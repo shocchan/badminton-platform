@@ -1,0 +1,41 @@
+export interface Tournament {
+  id: number;
+  title: string;
+  level: string;
+  event_type: string;
+  location: string;
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  capacity: number;
+  entry_fee: number;
+  cancel_fee?: number;
+  cancel_deadline: string;
+  description?: string;
+  status: 'active' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Entry {
+  id: number;
+  tournament_id: number;
+  name: string;
+  phone: string;
+  email: string;
+  notes?: string;
+  entry_date: string;
+  created_at: string;
+}
+
+export interface BlogPost {
+  id: number;
+  tournament_id?: number;
+  title: string;
+  content: string;
+  excerpt?: string;
+  image_url?: string;
+  published_at: string;
+  created_at: string;
+  updated_at: string;
+}
