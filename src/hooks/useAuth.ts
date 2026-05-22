@@ -1,36 +1,30 @@
 import { useState, useEffect } from 'react';
-import type { User } from '@supabase/supabase-js';
-import { supabase } from '../services/supabaseClient';
+
+const ADMIN_PASSWORD = 'admin2024';
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    const stored = localStorage.getItem('admin_auth');
+    setIsAuthenticated(stored === 'true');
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+  const login = async (password: string) => {
+    if (password === ADMIN_PASSWORD) {
+      localStorage.setItem('admin_auth', 'true');
+      setIsAuthenticated(true);
+      return true;
+    }
+    throw new Error('パスワードが間違っています');
   };
 
   const logout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    localStorage.removeItem('admin_auth');
+    setIsAuthenticated(false);
   };
 
-  const isAuthenticated = !!user;
-
-  return { user, loading, login, logout, isAuthenticated };
+  return { loading, login, logout, isAuthenticated };
 };

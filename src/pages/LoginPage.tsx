@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export const LoginPage = () => {
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -16,10 +15,10 @@ export const LoginPage = () => {
     setError(null);
 
     try {
-      await login(email, password);
+      await login(password);
       navigate('/admin');
-    } catch {
-      setError('メールアドレスまたはパスワードが間違っています');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ログインに失敗しました');
     } finally {
       setLoading(false);
     }
@@ -42,17 +41,6 @@ export const LoginPage = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="admin@example.com"
-              />
-            </div>
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
               <input
                 type="password"
@@ -61,12 +49,13 @@ export const LoginPage = () => {
                 onChange={e => setPassword(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="••••••••"
+                autoFocus
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors mt-2"
+              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors mt-6"
             >
               {loading ? 'ログイン中...' : 'ログイン'}
             </button>
