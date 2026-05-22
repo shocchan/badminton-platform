@@ -63,10 +63,13 @@ export const TournamentCard = ({ tournament, onApply }: TournamentCardProps) => 
           </div>
         </div>
 
-        {tournament.cancel_fee && (
-          <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg mb-4">
-            キャンセル料：期限後は¥{tournament.cancel_fee.toLocaleString()}
-          </p>
+        {tournament.payment_required && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 mb-4">
+            <p className="text-xs text-blue-700 font-medium mb-1">💳 事前支払いが必要です</p>
+            {tournament.payment_deadline && (
+              <p className="text-xs text-blue-600">支払い期限：{formatDate(tournament.payment_deadline)}</p>
+            )}
+          </div>
         )}
 
         {tournament.description && (

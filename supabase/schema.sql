@@ -9,10 +9,13 @@ CREATE TABLE tournaments (
   end_time TIME NOT NULL,
   capacity INT NOT NULL,
   entry_fee INT NOT NULL,
-  cancel_fee INT,
   cancel_deadline DATE NOT NULL,
   description TEXT,
   status VARCHAR(20) DEFAULT 'active',
+  payment_required BOOLEAN DEFAULT false,
+  payment_deadline DATE,
+  bank_account TEXT,
+  paypay_id TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

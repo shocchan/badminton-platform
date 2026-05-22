@@ -13,8 +13,8 @@ export const HomePage = () => {
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-bold text-gray-900 mb-3">🏸 バドミントン大会案内</h1>
-        <p className="text-gray-500">初心者から上級者まで楽しめるバドミントン大会を開催しています</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-3">🏸 川口・蕨バド交流杯</h1>
+        <p className="text-gray-500">川口・蕨エリアで初心者から上級者まで楽しめるバドミントン大会を開催しています</p>
       </div>
 
       <h2 className="text-xl font-bold text-gray-800 mb-6">今月の大会</h2>

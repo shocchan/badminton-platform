@@ -4,10 +4,10 @@ export const Footer = () => {
       <div className="max-w-6xl mx-auto px-4 text-center">
         <div className="flex items-center justify-center gap-2 mb-3">
           <span className="text-xl">🏸</span>
-          <span className="text-white font-bold">スピバド</span>
+          <span className="text-white font-bold">川口・蕨バド交流杯</span>
         </div>
-        <p className="text-sm">バドミントン大会プラットフォーム</p>
-        <p className="text-xs mt-4">© 2024 スピバド. All rights reserved.</p>
+        <p className="text-sm">川口・蕨エリアのバドミントン大会</p>
+        <p className="text-xs mt-4">© 2024 川口・蕨バド交流杯. All rights reserved.</p>
       </div>
     </footer>
   );

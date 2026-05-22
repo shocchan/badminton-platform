@@ -9,10 +9,13 @@ export interface Tournament {
   end_time: string;
   capacity: number;
   entry_fee: number;
-  cancel_fee?: number;
   cancel_deadline: string;
   description?: string;
   status: 'active' | 'cancelled';
+  payment_required: boolean;
+  payment_deadline?: string;
+  bank_account?: string;
+  paypay_id?: string;
   created_at: string;
   updated_at: string;
 }

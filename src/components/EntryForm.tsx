@@ -35,17 +35,54 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
       return;
     }
 
-    const { error: insertError } = await supabase.from('entries').insert([{
-      tournament_id: tournament.id,
-      ...formData,
-    }]);
+    try {
+      // Insert entry
+      const { error: insertError } = await supabase.from('entries').insert([{
+        tournament_id: tournament.id,
+        ...formData,
+      }]);
 
-    if (insertError) {
-      setError('申し込みに失敗しました。もう一度お試しください。');
-    } else {
+      if (insertError) throw insertError;
+
+      // Send payment email if payment is required
+      if (tournament.payment_required) {
+        await sendPaymentEmail(formData.email);
+      }
+
       setSuccess(true);
+    } catch (err) {
+      setError('申し込みに失敗しました。もう一度お試しください。');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  const sendPaymentEmail = async (email: string) => {
+    try {
+      const response = await fetch('https://jdkwijdphlkrcoigqfqw.supabase.co/functions/v1/send-payment-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          to: email,
+          tournament_title: tournament.title,
+          tournament_date: tournament.event_date,
+          payment_deadline: tournament.payment_deadline,
+          bank_account: tournament.bank_account,
+          paypay_id: tournament.paypay_id,
+        }),
+      });
+
+      if (!response.ok) {
+        console.warn('Payment email sending failed, but entry was saved');
+      }
+    } catch (err) {
+      console.warn('Payment email sending error:', err);
+      // Don't throw - entry is already saved
+    }
   };
 
   return (
@@ -66,9 +103,16 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
             <div className="text-center py-8">
               <div className="text-5xl mb-4">✅</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">申し込み完了！</h3>
-              <p className="text-gray-600 text-sm mb-6">
+              <p className="text-gray-600 text-sm mb-4">
                 {tournament.title}（{formatDate(tournament.event_date)}）への申し込みを受け付けました。
               </p>
+              {tournament.payment_required && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
+                  <p className="text-sm font-medium text-blue-900 mb-2">💳 支払い案内メールをお送りしました</p>
+                  <p className="text-xs text-blue-700 mb-2">メールアドレス: {formData.email}</p>
+                  <p className="text-xs text-blue-700">支払い期限: {tournament.payment_deadline ? formatDate(tournament.payment_deadline) : '未定'}</p>
+                </div>
+              )}
               <button
                 onClick={onClose}
                 className="bg-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors"

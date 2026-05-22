@@ -18,10 +18,13 @@ const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   end_time: '',
   capacity: 16,
   entry_fee: 2000,
-  cancel_fee: undefined,
   cancel_deadline: '',
   description: '',
   status: 'active',
+  payment_required: false,
+  payment_deadline: undefined,
+  bank_account: '',
+  paypay_id: '',
 };
 
 const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
@@ -107,10 +110,13 @@ export const AdminPage = () => {
       end_time: t.end_time,
       capacity: t.capacity,
       entry_fee: t.entry_fee,
-      cancel_fee: t.cancel_fee,
       cancel_deadline: t.cancel_deadline,
       description: t.description || '',
       status: t.status,
+      payment_required: t.payment_required,
+      payment_deadline: t.payment_deadline,
+      bank_account: t.bank_account || '',
+      paypay_id: t.paypay_id || '',
     });
     setShowTournamentForm(true);
   };
@@ -306,15 +312,6 @@ export const AdminPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">キャンセル料（円）</label>
-                  <input
-                    type="number"
-                    value={tournamentForm.cancel_fee || ''}
-                    onChange={e => setTournamentForm(p => ({...p, cancel_fee: e.target.value ? Number(e.target.value) : undefined}))}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">キャンセル期限 *</label>
                   <input
                     required
@@ -324,6 +321,50 @@ export const AdminPage = () => {
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div className="col-span-2">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                    <input
+                      type="checkbox"
+                      checked={tournamentForm.payment_required}
+                      onChange={e => setTournamentForm(p => ({...p, payment_required: e.target.checked}))}
+                      className="rounded"
+                    />
+                    事前支払いが必要
+                  </label>
+                </div>
+                {tournamentForm.payment_required && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">支払い期限 *</label>
+                      <input
+                        type="date"
+                        value={tournamentForm.payment_deadline || ''}
+                        onChange={e => setTournamentForm(p => ({...p, payment_deadline: e.target.value}))}
+                        className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">PayPay ID</label>
+                      <input
+                        type="text"
+                        value={tournamentForm.paypay_id}
+                        onChange={e => setTournamentForm(p => ({...p, paypay_id: e.target.value}))}
+                        className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="例：user123"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">銀行口座情報</label>
+                      <textarea
+                        value={tournamentForm.bank_account}
+                        onChange={e => setTournamentForm(p => ({...p, bank_account: e.target.value}))}
+                        rows={2}
+                        className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                        placeholder="例：○○銀行 支店 普通預金 1234567"
+                      />
+                    </div>
+                  </>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
                   <select

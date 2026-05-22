@@ -11,7 +11,7 @@ export const Header = () => {
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl">🏸</span>
           <div>
-            <div className="font-bold text-gray-900 text-lg leading-tight">スピバド</div>
+            <div className="font-bold text-gray-900 text-lg leading-tight">川口・蕨バド交流杯</div>
             <div className="text-xs text-gray-500">バドミントン大会</div>
           </div>
         </Link>
