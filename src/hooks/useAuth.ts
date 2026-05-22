@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-const ADMIN_PASSWORD = 'admin2024';
+const ADMIN_PASSWORD = 'Hiranosy0709';
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
