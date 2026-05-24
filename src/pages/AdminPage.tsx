@@ -32,7 +32,7 @@ const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   content: '',
   excerpt: '',
   image_url: '',
-  published_at: new Date().toISOString(),
+  published_at: '',
 };
 
 export const AdminPage = () => {
@@ -169,6 +169,7 @@ export const AdminPage = () => {
         ...postForm,
         image_url: finalImageUrl || undefined,
         excerpt: postForm.excerpt || undefined,
+        published_at: postForm.published_at || new Date().toISOString(),
       };
 
       if (editingPost) {
@@ -557,12 +558,17 @@ export const AdminPage = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">公開日時 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    公開日時
+                    <span className="ml-2 text-xs font-normal text-gray-400">（空白 = 即時公開）</span>
+                  </label>
                   <input
-                    required
                     type="datetime-local"
-                    value={postForm.published_at.slice(0, 16)}
-                    onChange={e => setPostForm(p => ({...p, published_at: new Date(e.target.value).toISOString()}))}
+                    value={postForm.published_at ? postForm.published_at.slice(0, 16) : ''}
+                    onChange={e => setPostForm(p => ({
+                      ...p,
+                      published_at: e.target.value ? new Date(e.target.value).toISOString() : ''
+                    }))}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
