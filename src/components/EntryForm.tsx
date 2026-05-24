@@ -44,10 +44,8 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
 
       if (insertError) throw insertError;
 
-      // Send payment email if payment is required
-      if (tournament.payment_required) {
-        await sendPaymentEmail(formData.email);
-      }
+      // Always notify admin; also send payment instructions if required
+      await sendPaymentEmail(formData.email);
 
       setSuccess(true);
     } catch (err) {
@@ -68,11 +66,15 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
         },
         body: JSON.stringify({
           to: email,
+          name: formData.name,
+          phone: formData.phone,
+          notes: formData.notes,
           tournament_title: tournament.title,
           tournament_date: tournament.event_date,
           payment_deadline: tournament.payment_deadline,
           bank_account: tournament.bank_account,
           paypay_id: tournament.paypay_id,
+          payment_required: tournament.payment_required,
         }),
       });
 
@@ -145,17 +147,6 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">電話番号（任意）</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="090-1234-5678"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span className="text-red-500">*</span></label>
                 <input
                   type="email"
@@ -164,6 +155,17 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                   onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="example@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">電話番号（任意）</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="090-1234-5678"
                 />
               </div>
 
