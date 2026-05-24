@@ -68,6 +68,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
         },
         body: JSON.stringify({
           to: email,
+          name: formData.name,
           tournament_title: tournament.title,
           tournament_date: tournament.event_date,
           payment_deadline: tournament.payment_deadline,
