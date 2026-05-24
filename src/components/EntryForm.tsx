@@ -10,7 +10,7 @@ interface EntryFormProps {
 export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
+    phone: ''
     email: '',
     notes: '',
   });
