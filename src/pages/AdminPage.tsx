@@ -56,6 +56,9 @@ export const AdminPage = () => {
   const [postForm, setPostForm] = useState(EMPTY_POST);
   const [postError, setPostError] = useState<string | null>(null);
   const [postSuccess, setPostSuccess] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -130,22 +133,60 @@ export const AdminPage = () => {
     }
   };
 
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const ext = file.name.split('.').pop();
+    const fileName = `${Date.now()}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from('blog-images')
+      .upload(fileName, file, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage
+      .from('blog-images')
+      .getPublicUrl(data.path);
+    return urlData.publicUrl;
+  };
+
   const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPostError(null);
     try {
+      let finalImageUrl = postForm.image_url;
+
+      if (imageFile) {
+        setImageUploading(true);
+        finalImageUrl = await uploadImage(imageFile);
+        setImageUploading(false);
+      }
+
+      const cleanForm = {
+        ...postForm,
+        image_url: finalImageUrl || undefined,
+        excerpt: postForm.excerpt || undefined,
+      };
+
       if (editingPost) {
-        await updatePost(editingPost.id, postForm);
+        await updatePost(editingPost.id, cleanForm);
       } else {
-        await createPost(postForm);
+        await createPost(cleanForm);
       }
       setShowPostForm(false);
       setEditingPost(null);
       setPostForm(EMPTY_POST);
+      setImageFile(null);
+      setImagePreview(null);
       setPostSuccess(true);
       setTimeout(() => setPostSuccess(false), 3000);
     } catch (err: unknown) {
-      setPostError(err instanceof Error ? err.message : '保存に失敗しました');
+      setImageUploading(false);
+      const msg = (err as { message?: string })?.message ?? '保存に失敗しました';
+      setPostError(msg);
     }
   };
 
@@ -158,6 +199,8 @@ export const AdminPage = () => {
       image_url: p.image_url || '',
       published_at: p.published_at,
     });
+    setImageFile(null);
+    setImagePreview(p.image_url || null);
     setShowPostForm(true);
   };
 
@@ -485,13 +528,33 @@ export const AdminPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">画像URL</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">画像</label>
                   <input
-                    value={postForm.image_url}
-                    onChange={e => setPostForm(p => ({...p, image_url: e.target.value}))}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://..."
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageSelect}
+                    className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
                   />
+                  {imagePreview && (
+                    <div className="relative mt-2 inline-block">
+                      <img
+                        src={imagePreview}
+                        alt="プレビュー"
+                        className="h-32 w-auto rounded-xl object-cover border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                          setPostForm(p => ({...p, image_url: ''}));
+                        }}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">公開日時 *</label>
@@ -516,16 +579,21 @@ export const AdminPage = () => {
                 <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    onClick={() => { setShowPostForm(false); setEditingPost(null); }}
+                    onClick={() => { setShowPostForm(false); setEditingPost(null); setImageFile(null); setImagePreview(null); }}
                     className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+                    disabled={imageUploading}
                   >
                     キャンセル
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+                    disabled={imageUploading}
+                    className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
                   >
-                    公開
+                    {imageUploading && (
+                      <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    )}
+                    {imageUploading ? '画像アップロード中...' : '公開'}
                   </button>
                 </div>
               </form>
