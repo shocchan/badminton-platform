@@ -10,7 +10,7 @@ interface EntryFormProps {
 export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
   const [formData, setFormData] = useState({
     name: '',
-    phone: ''
+    phone: '',
     email: '',
     notes: '',
   });
@@ -60,7 +60,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
 
   const sendPaymentEmail = async (email: string) => {
     try {
-      const response = await fetch('https://jdkwijdphlkrcoigqfqw.supabase.co/functions/v1/send-payment-email', {
+      const response = await fetch('https://jdkwijdphlkrcoiggfqw.supabase.co/functions/v1/send-payment-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,10 +145,9 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">電話番号 <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">電話番号（任意）</label>
                 <input
                   type="tel"
-                  required
                   value={formData.phone}
                   onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
