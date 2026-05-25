@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { EntryForm } from '../components/EntryForm';
+import { PreEntryModal } from '../components/PreEntryModal';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament } from '../types';
 
 export const HomePage = () => {
   const { tournaments, loading, error } = useTournaments();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [preEntryTournament, setPreEntryTournament] = useState<Tournament | null>(null);
   const [entryCounts, setEntryCounts] = useState<Record<number, number>>({});
   const [filterLevel, setFilterLevel] = useState<string>('全て');
   const [filterType, setFilterType] = useState<string>('全て');
@@ -157,11 +159,22 @@ export const HomePage = () => {
               key={tournament.id}
               tournament={tournament}
               entryCount={entryCounts[tournament.id] || 0}
-              onApply={setSelectedTournament}
+              onApply={setPreEntryTournament}
             />
           ))}
         </div>
       </div>
+
+      {preEntryTournament && !selectedTournament && (
+        <PreEntryModal
+          tournament={preEntryTournament}
+          onConfirm={() => {
+            setSelectedTournament(preEntryTournament);
+            setPreEntryTournament(null);
+          }}
+          onClose={() => setPreEntryTournament(null)}
+        />
+      )}
 
       {selectedTournament && (
         <EntryForm

@@ -54,9 +54,16 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-4">
         <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="text-white font-bold text-base sm:text-lg leading-snug">{tournament.title}</h3>
-          <span className={`text-xs font-bold px-2 py-1 rounded-full flex-shrink-0 ${countdownColor}`}>
-            {countdownLabel}
-          </span>
+          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            {remaining > 0 && remaining <= 3 && (
+              <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">
+                🔥 急募！
+              </span>
+            )}
+            <span className={`text-xs font-bold px-2 py-1 rounded-full ${countdownColor}`}>
+              {countdownLabel}
+            </span>
+          </div>
         </div>
         <div className="flex gap-2">
           <span className={`text-xs font-medium px-2 py-1 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>

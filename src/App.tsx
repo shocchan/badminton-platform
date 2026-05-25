@@ -8,6 +8,8 @@ import { AdminPage } from './pages/AdminPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { LevelGuidePage } from './pages/LevelGuidePage';
+import { CancelPolicyPage } from './pages/CancelPolicyPage';
+import { FaqPage } from './pages/FaqPage';
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
             <Route path="/admin" element={<AdminPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/level-guide" element={<LevelGuidePage />} />
+            <Route path="/cancel-policy" element={<CancelPolicyPage />} />
+            <Route path="/faq" element={<FaqPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>
