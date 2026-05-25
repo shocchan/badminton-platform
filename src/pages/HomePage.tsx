@@ -48,7 +48,7 @@ export const HomePage = () => {
         style={{
           backgroundImage: 'url(/hero.jpg)',
           backgroundSize: 'cover',
-          backgroundPosition: 'center top',
+          backgroundPosition: 'center center',
         }}
       >
         {/* オーバーレイ：左側を暗くしてテキストを読みやすく */}
