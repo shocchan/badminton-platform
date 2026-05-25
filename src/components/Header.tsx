@@ -35,6 +35,7 @@ export const Header = () => {
         <nav className="flex items-center gap-3 sm:gap-6">
           {navLink('/', '大会案内')}
           {navLink('/blog', 'ブログ')}
+          {navLink('/level-guide', 'クラス案内')}
           {isAuthenticated ? (
             <>
               {navLink('/admin', '管理画面')}

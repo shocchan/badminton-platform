@@ -82,14 +82,6 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           <div>
             <div className="text-gray-500 text-xs mb-1">📍 会場</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{tournament.location}</div>
-            <a
-              href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-500 hover:underline mt-0.5 inline-block"
-            >
-              地図を見る →
-            </a>
           </div>
           <div>
             <div className="text-gray-500 text-xs mb-1">💰 参加費</div>
@@ -109,6 +101,18 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </div>
           </div>
         </div>
+
+        {/* Google マップリンク */}
+        <a
+          href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
+        >
+          <span>🗺️</span>
+          <span className="font-medium">{tournament.location} の地図を見る</span>
+          <span className="ml-auto text-xs">→</span>
+        </a>
 
         {tournament.payment_required && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 mb-4">
