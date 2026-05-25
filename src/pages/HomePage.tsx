@@ -75,56 +75,51 @@ export const HomePage = () => {
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
 
-        {/* フィルターバー */}
+        {/* タイトル＋フィルターバー */}
         {!loading && !error && activeTournaments.length > 0 && (
           <div className="mb-8">
             <h2 className="text-xl font-bold text-gray-800 mb-4">開催予定の大会</h2>
-            <div className="flex flex-wrap gap-4">
-              {/* レベルフィルター */}
-              {levels.length > 2 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-gray-500 font-medium">レベル：</span>
-                  {levels.map(level => (
-                    <button
-                      key={level}
-                      onClick={() => setFilterLevel(level)}
-                      className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                        filterLevel === level
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {/* 種目フィルター */}
-              {types.length > 2 && (
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs text-gray-500 font-medium">種目：</span>
-                  {types.map(type => (
-                    <button
-                      key={type}
-                      onClick={() => setFilterType(type)}
-                      className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                        filterType === type
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {(levels.length > 2 || types.length > 2) && (
+              <div className="flex flex-wrap gap-4">
+                {levels.length > 2 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium">レベル：</span>
+                    {levels.map(level => (
+                      <button
+                        key={level}
+                        onClick={() => setFilterLevel(level)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                          filterLevel === level
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {level}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {types.length > 2 && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs text-gray-500 font-medium">種目：</span>
+                    {types.map(type => (
+                      <button
+                        key={type}
+                        onClick={() => setFilterType(type)}
+                        className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                          filterType === type
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-
-        {/* タイトル（フィルターなし時） */}
-        {!loading && !error && activeTournaments.length > 0 && levels.length <= 2 && types.length <= 2 && (
-          <h2 className="text-xl font-bold text-gray-800 mb-6">開催予定の大会</h2>
         )}
 
         {loading && (

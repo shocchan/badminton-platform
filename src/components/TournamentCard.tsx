@@ -82,6 +82,14 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           <div>
             <div className="text-gray-500 text-xs mb-1">📍 会場</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{tournament.location}</div>
+            <a
+              href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-500 hover:underline mt-0.5 inline-block"
+            >
+              地図を見る →
+            </a>
           </div>
           <div>
             <div className="text-gray-500 text-xs mb-1">💰 参加費</div>
