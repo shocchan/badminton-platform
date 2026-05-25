@@ -11,6 +11,15 @@ type Tab = 'tournaments' | 'blog' | 'entries';
 // ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
 const CARD_ASPECT = 2;
 
+// ISO文字列(UTC)をdatetime-local input用のローカル時間文字列に変換
+const toLocalInput = (iso: string): string => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso.slice(0, 16);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const parsePosPercent = (pos: string): [number, number] => {
   const parts = (pos || '50% 50%').split(' ');
   const p = (s: string) => {
@@ -687,7 +696,7 @@ export const AdminPage = () => {
                   {isScheduled && (
                     <input
                       type="datetime-local"
-                      value={postForm.published_at ? postForm.published_at.slice(0, 16) : ''}
+                      value={postForm.published_at ? toLocalInput(postForm.published_at) : ''}
                       onChange={e => setPostForm(p => ({
                         ...p,
                         published_at: e.target.value ? new Date(e.target.value).toISOString() : ''
