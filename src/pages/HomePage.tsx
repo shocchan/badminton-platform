@@ -63,9 +63,10 @@ export const HomePage = () => {
               楽しめるバドミントン大会を開催しています
             </p>
             <div className="flex flex-wrap gap-3 text-sm">
-              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 定期開催</span>
+              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📅 不定期開催</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
+              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">⚡ 短時間・複数試合保証</span>
             </div>
           </div>
         </div>
