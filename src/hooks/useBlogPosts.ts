@@ -2,17 +2,25 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
 import type { BlogPost } from '../types';
 
-export const useBlogPosts = () => {
+export const useBlogPosts = (options?: { includeScheduled?: boolean }) => {
+  const includeScheduled = options?.includeScheduled ?? false;
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchBlogPosts = async () => {
     setLoading(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('blog_posts')
       .select('*')
       .order('published_at', { ascending: false });
+
+    // 公開ページでは published_at が現在以前の記事のみ表示
+    if (!includeScheduled) {
+      query = query.lte('published_at', new Date().toISOString());
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       setError(error.message);

@@ -65,7 +65,7 @@ export const AdminPage = () => {
   const [activeTab, setActiveTab] = useState<Tab>('tournaments');
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
-  const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts();
+  const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
   const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
 
