@@ -202,6 +202,7 @@ export const AdminPage = () => {
       content: p.content,
       excerpt: p.excerpt || '',
       image_url: p.image_url || '',
+      image_position: p.image_position || 'center center',
       published_at: futureDate ? p.published_at : '',
     });
     setImageFile(null);
@@ -541,23 +542,51 @@ export const AdminPage = () => {
                     className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
                   />
                   {imagePreview && (
-                    <div className="relative mt-2 inline-block">
-                      <img
-                        src={imagePreview}
-                        alt="プレビュー"
-                        className="h-32 w-auto rounded-xl object-cover border border-gray-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImageFile(null);
-                          setImagePreview(null);
-                          setPostForm(p => ({...p, image_url: ''}));
-                        }}
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600"
-                      >
-                        ×
-                      </button>
+                    <div className="mt-2 space-y-2">
+                      {/* プレビュー（固定サイズでトリミング確認） */}
+                      <div className="relative w-full h-40 overflow-hidden rounded-xl border border-gray-200">
+                        <img
+                          src={imagePreview}
+                          alt="プレビュー"
+                          className="w-full h-full object-cover"
+                          style={{ objectPosition: postForm.image_position || 'center center' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImagePreview(null);
+                            setPostForm(p => ({...p, image_url: '', image_position: 'center center'}));
+                          }}
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 shadow"
+                        >
+                          ×
+                        </button>
+                      </div>
+                      {/* 表示位置ピッカー */}
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500 shrink-0">表示位置：</span>
+                        <div className="grid grid-cols-3 gap-1">
+                          {([
+                            ['left top','↖'],['center top','↑'],['right top','↗'],
+                            ['left center','←'],['center center','●'],['right center','→'],
+                            ['left bottom','↙'],['center bottom','↓'],['right bottom','↘'],
+                          ] as [string, string][]).map(([pos, icon]) => (
+                            <button
+                              key={pos}
+                              type="button"
+                              onClick={() => setPostForm(p => ({...p, image_position: pos}))}
+                              className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-colors ${
+                                (postForm.image_position || 'center center') === pos
+                                  ? 'bg-blue-500 text-white shadow'
+                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                              }`}
+                            >
+                              {icon}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

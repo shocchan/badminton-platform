@@ -36,7 +36,12 @@ export const BlogPage = () => {
         {blogPosts.map(post => (
           <article key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             {post.image_url && (
-              <img src={post.image_url} alt={post.title} className="w-full h-48 object-cover" />
+              <img
+                src={post.image_url}
+                alt={post.title}
+                className="w-full h-48 object-cover"
+                style={{ objectPosition: post.image_position || 'center center' }}
+              />
             )}
             {!post.image_url && (
               <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl">

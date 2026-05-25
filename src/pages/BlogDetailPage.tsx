@@ -31,7 +31,12 @@ export const BlogDetailPage = () => {
       <Link to="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
 
       {post.image_url && (
-        <img src={post.image_url} alt={post.title} className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8" />
+        <img
+          src={post.image_url}
+          alt={post.title}
+          className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8"
+          style={{ objectPosition: post.image_position || 'center center' }}
+        />
       )}
 
       <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">

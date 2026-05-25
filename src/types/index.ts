@@ -38,6 +38,7 @@ export interface BlogPost {
   content: string;
   excerpt?: string;
   image_url?: string;
+  image_position?: string;
   published_at: string;
   created_at: string;
   updated_at: string;
