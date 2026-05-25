@@ -59,6 +59,7 @@ export const AdminPage = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [isScheduled, setIsScheduled] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -182,6 +183,7 @@ export const AdminPage = () => {
       setPostForm(EMPTY_POST);
       setImageFile(null);
       setImagePreview(null);
+      setIsScheduled(false);
       setPostSuccess(true);
       setTimeout(() => setPostSuccess(false), 3000);
     } catch (err: unknown) {
@@ -193,12 +195,14 @@ export const AdminPage = () => {
 
   const handleEditPost = (p: BlogPost) => {
     setEditingPost(p);
+    const futureDate = new Date(p.published_at) > new Date();
+    setIsScheduled(futureDate);
     setPostForm({
       title: p.title,
       content: p.content,
       excerpt: p.excerpt || '',
       image_url: p.image_url || '',
-      published_at: p.published_at,
+      published_at: futureDate ? p.published_at : '',
     });
     setImageFile(null);
     setImagePreview(p.image_url || null);
@@ -558,19 +562,31 @@ export const AdminPage = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    公開日時
-                    <span className="ml-2 text-xs font-normal text-gray-400">（空白 = 即時公開）</span>
+                  <label className="flex items-center gap-3 text-sm font-medium text-gray-700 mb-2 cursor-pointer select-none">
+                    <div
+                      onClick={() => {
+                        const next = !isScheduled;
+                        setIsScheduled(next);
+                        if (!next) setPostForm(p => ({...p, published_at: ''}));
+                      }}
+                      className={`relative w-10 h-6 rounded-full transition-colors ${isScheduled ? 'bg-blue-500' : 'bg-gray-300'}`}
+                    >
+                      <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${isScheduled ? 'translate-x-4' : ''}`} />
+                    </div>
+                    予約投稿
+                    {!isScheduled && <span className="text-xs font-normal text-green-600 bg-green-50 px-2 py-0.5 rounded-full">即時公開</span>}
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={postForm.published_at ? postForm.published_at.slice(0, 16) : ''}
-                    onChange={e => setPostForm(p => ({
-                      ...p,
-                      published_at: e.target.value ? new Date(e.target.value).toISOString() : ''
-                    }))}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  {isScheduled && (
+                    <input
+                      type="datetime-local"
+                      value={postForm.published_at ? postForm.published_at.slice(0, 16) : ''}
+                      onChange={e => setPostForm(p => ({
+                        ...p,
+                        published_at: e.target.value ? new Date(e.target.value).toISOString() : ''
+                      }))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">本文（HTML可） *</label>
@@ -585,7 +601,7 @@ export const AdminPage = () => {
                 <div className="flex gap-3 justify-end">
                   <button
                     type="button"
-                    onClick={() => { setShowPostForm(false); setEditingPost(null); setImageFile(null); setImagePreview(null); }}
+                    onClick={() => { setShowPostForm(false); setEditingPost(null); setImageFile(null); setImagePreview(null); setIsScheduled(false); }}
                     className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
                     disabled={imageUploading}
                   >
