@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTournaments } from '../hooks/useTournaments';
@@ -7,6 +7,21 @@ import { supabase } from '../services/supabaseClient';
 import type { Tournament, BlogPost, Entry } from '../types';
 
 type Tab = 'tournaments' | 'blog' | 'entries';
+
+// ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
+const CARD_ASPECT = 2;
+
+const parsePosPercent = (pos: string): [number, number] => {
+  const parts = (pos || '50% 50%').split(' ');
+  const p = (s: string) => {
+    if (!s) return 50;
+    if (s === 'left' || s === 'top') return 0;
+    if (s === 'center') return 50;
+    if (s === 'right' || s === 'bottom') return 100;
+    return parseFloat(s) || 50;
+  };
+  return [p(parts[0]), p(parts[1])];
+};
 
 const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   title: '',
@@ -60,6 +75,10 @@ export const AdminPage = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [isScheduled, setIsScheduled] = useState(false);
+  const [imgNaturalSize, setImgNaturalSize] = useState({ w: 0, h: 0 });
+  const [cropDragging, setCropDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ mx: 0, my: 0, px: 50, py: 50 });
+  const cropContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -139,6 +158,43 @@ export const AdminPage = () => {
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setImgNaturalSize({ w: 0, h: 0 });
+    setPostForm(p => ({...p, image_position: '50% 50%'}));
+  };
+
+  const getCropRect = (imgAspect: number, posX: number, posY: number) => {
+    if (imgAspect >= CARD_ASPECT) {
+      const cropW = (CARD_ASPECT / imgAspect) * 100;
+      return { left: posX * (100 - cropW) / 100, top: 0, width: cropW, height: 100 };
+    } else {
+      const cropH = (imgAspect / CARD_ASPECT) * 100;
+      return { left: 0, top: posY * (100 - cropH) / 100, width: 100, height: cropH };
+    }
+  };
+
+  const startCropDrag = (mx: number, my: number) => {
+    const [px, py] = parsePosPercent(postForm.image_position || '50% 50%');
+    setCropDragging(true);
+    setDragStart({ mx, my, px, py });
+  };
+
+  const moveCropDrag = (mx: number, my: number) => {
+    if (!cropDragging || !cropContainerRef.current || imgNaturalSize.w === 0) return;
+    const rect = cropContainerRef.current.getBoundingClientRect();
+    const imgAspect = imgNaturalSize.w / imgNaturalSize.h;
+    const dx = mx - dragStart.mx;
+    const dy = my - dragStart.my;
+    let newPx = dragStart.px, newPy = dragStart.py;
+    if (imgAspect >= CARD_ASPECT) {
+      const cropWpx = rect.width * (CARD_ASPECT / imgAspect);
+      const maxPx = rect.width - cropWpx;
+      if (maxPx > 0) newPx = Math.max(0, Math.min(100, dragStart.px + (dx / maxPx) * 100));
+    } else {
+      const cropHpx = rect.height * (imgAspect / CARD_ASPECT);
+      const maxPy = rect.height - cropHpx;
+      if (maxPy > 0) newPy = Math.max(0, Math.min(100, dragStart.py + (dy / maxPy) * 100));
+    }
+    setPostForm(p => ({...p, image_position: `${Math.round(newPx)}% ${Math.round(newPy)}%`}));
   };
 
   const uploadImage = async (file: File): Promise<string> => {
@@ -542,51 +598,74 @@ export const AdminPage = () => {
                     className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 cursor-pointer"
                   />
                   {imagePreview && (
-                    <div className="mt-2 space-y-2">
-                      {/* プレビュー（固定サイズでトリミング確認） */}
-                      <div className="relative w-full h-40 overflow-hidden rounded-xl border border-gray-200">
+                    <div className="mt-2 space-y-1">
+                      <p className="text-xs text-gray-400">
+                        青枠の範囲が実際に表示される部分です。ドラッグして調整してください
+                      </p>
+                      <div
+                        ref={cropContainerRef}
+                        className={`relative w-full overflow-hidden rounded-xl border border-gray-200 select-none ${cropDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                        style={{ aspectRatio: imgNaturalSize.w > 0 ? `${imgNaturalSize.w}/${imgNaturalSize.h}` : '16/9' }}
+                        onMouseDown={e => { e.preventDefault(); startCropDrag(e.clientX, e.clientY); }}
+                        onMouseMove={e => moveCropDrag(e.clientX, e.clientY)}
+                        onMouseUp={() => setCropDragging(false)}
+                        onMouseLeave={() => setCropDragging(false)}
+                        onTouchStart={e => { const t = e.touches[0]; startCropDrag(t.clientX, t.clientY); }}
+                        onTouchMove={e => { e.preventDefault(); const t = e.touches[0]; moveCropDrag(t.clientX, t.clientY); }}
+                        onTouchEnd={() => setCropDragging(false)}
+                      >
                         <img
                           src={imagePreview}
-                          alt="プレビュー"
-                          className="w-full h-full object-cover"
-                          style={{ objectPosition: postForm.image_position || 'center center' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setImageFile(null);
-                            setImagePreview(null);
-                            setPostForm(p => ({...p, image_url: '', image_position: 'center center'}));
+                          alt="crop preview"
+                          className="w-full h-full"
+                          style={{ display: 'block', objectFit: 'contain' }}
+                          onLoad={e => {
+                            const img = e.currentTarget;
+                            setImgNaturalSize({ w: img.naturalWidth, h: img.naturalHeight });
                           }}
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-sm flex items-center justify-center hover:bg-red-600 shadow"
-                        >
-                          ×
-                        </button>
+                          draggable={false}
+                        />
+                        {imgNaturalSize.w > 0 && (() => {
+                          const [px, py] = parsePosPercent(postForm.image_position || '50% 50%');
+                          const { left, top, width, height } = getCropRect(imgNaturalSize.w / imgNaturalSize.h, px, py);
+                          return (
+                            <>
+                              {/* 暗いオーバーレイ（4辺） */}
+                              {top > 0 && <div className="absolute inset-x-0 top-0 bg-black/50 pointer-events-none" style={{ height: `${top}%` }} />}
+                              {top + height < 100 && <div className="absolute inset-x-0 bottom-0 bg-black/50 pointer-events-none" style={{ height: `${100 - top - height}%` }} />}
+                              {left > 0 && <div className="absolute bg-black/50 pointer-events-none" style={{ top: `${top}%`, height: `${height}%`, left: 0, width: `${left}%` }} />}
+                              {left + width < 100 && <div className="absolute bg-black/50 pointer-events-none" style={{ top: `${top}%`, height: `${height}%`, right: 0, width: `${100 - left - width}%` }} />}
+                              {/* 青い枠（表示範囲） */}
+                              <div
+                                className="absolute border-2 border-blue-400 pointer-events-none"
+                                style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `${height}%` }}
+                              >
+                                {/* 四隅のハンドル */}
+                                {([[0,0],[100,0],[0,100],[100,100]] as [number,number][]).map(([x, y], i) => (
+                                  <div key={i} className="absolute w-3 h-3 bg-blue-400 rounded-sm"
+                                    style={{ left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)' }} />
+                                ))}
+                                {/* 中央ラベル */}
+                                <div className="absolute inset-0 flex items-end justify-end p-1">
+                                  <span className="text-xs text-blue-300 bg-black/30 px-1 rounded">表示範囲</span>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
-                      {/* 表示位置ピッカー */}
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500 shrink-0">表示位置：</span>
-                        <div className="grid grid-cols-3 gap-1">
-                          {([
-                            ['left top','↖'],['center top','↑'],['right top','↗'],
-                            ['left center','←'],['center center','●'],['right center','→'],
-                            ['left bottom','↙'],['center bottom','↓'],['right bottom','↘'],
-                          ] as [string, string][]).map(([pos, icon]) => (
-                            <button
-                              key={pos}
-                              type="button"
-                              onClick={() => setPostForm(p => ({...p, image_position: pos}))}
-                              className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-colors ${
-                                (postForm.image_position || 'center center') === pos
-                                  ? 'bg-blue-500 text-white shadow'
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                              }`}
-                            >
-                              {icon}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview(null);
+                          setImgNaturalSize({ w: 0, h: 0 });
+                          setPostForm(p => ({...p, image_url: '', image_position: '50% 50%'}));
+                        }}
+                        className="text-xs text-red-500 hover:underline"
+                      >
+                        × 画像を削除
+                      </button>
                     </div>
                   )}
                 </div>
