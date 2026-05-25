@@ -34,7 +34,7 @@ const parsePosPercent = (pos: string): [number, number] => {
 
 const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   title: '',
-  level: '初級OP',
+  level: '超初級',
   event_type: 'シングルス',
   location: '',
   event_date: '',
@@ -351,7 +351,7 @@ export const AdminPage = () => {
                     onChange={e => setTournamentForm(p => ({...p, level: e.target.value}))}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    {['初級OP', '初級S', '初級SS', 'オープン'].map(l => <option key={l}>{l}</option>)}
+                    {['超初級', '初級', '中級', 'オープン'].map(l => <option key={l}>{l}</option>)}
                   </select>
                 </div>
                 <div>

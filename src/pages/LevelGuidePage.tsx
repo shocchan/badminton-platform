@@ -22,7 +22,7 @@ const levels = [
   },
   {
     id: 'intermediate',
-    name: '初級SS / 中級',
+    name: '中級',
     nameEn: 'INTERMEDIATE',
     emoji: '🥈',
     color: '#708090',
@@ -41,7 +41,7 @@ const levels = [
   },
   {
     id: 'beginner',
-    name: '初級 / 初級S',
+    name: '初級',
     nameEn: 'BEGINNER',
     emoji: '🥉',
     color: '#CD7F32',
@@ -60,7 +60,7 @@ const levels = [
   },
   {
     id: 'fresher',
-    name: '超初級 / 初級OP',
+    name: '超初級',
     nameEn: 'FRESHER',
     emoji: '🌱',
     color: '#2d9e5f',

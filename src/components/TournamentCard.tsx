@@ -7,10 +7,10 @@ interface TournamentCardProps {
 }
 
 const levelColors: Record<string, string> = {
-  '初級OP': 'bg-green-100 text-green-800',
-  '初級S': 'bg-blue-100 text-blue-800',
-  '初級SS': 'bg-purple-100 text-purple-800',
-  'オープン': 'bg-orange-100 text-orange-800',
+  '超初級': 'bg-green-100 text-green-800',
+  '初級':   'bg-orange-100 text-orange-800',
+  '中級':   'bg-gray-100 text-gray-700',
+  'オープン': 'bg-yellow-100 text-yellow-800',
 };
 
 export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
