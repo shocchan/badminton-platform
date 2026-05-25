@@ -7,39 +7,6 @@ interface PreEntryModalProps {
   onClose: () => void;
 }
 
-const rules = [
-  {
-    icon: '🏸',
-    title: 'シャトルは持参制',
-    body: 'シャトルは各自でご持参ください。忘れた場合は会場で1球500円でご購入いただけます。',
-    level: 'info',
-  },
-  {
-    icon: '⚠️',
-    title: 'キャンセル期限を守ってください',
-    body: 'キャンセル期限を過ぎたキャンセルは返金できません。期限内のキャンセルはお早めにご連絡ください。',
-    level: 'warning',
-  },
-  {
-    icon: '🚨',
-    title: '当日キャンセル・無断欠席は厳禁',
-    body: '当日のキャンセルや無断欠席は他の参加者・運営に多大なご迷惑をおかけします。繰り返し違反された場合は今後のご参加をお断りします。',
-    level: 'danger',
-  },
-  {
-    icon: '👟',
-    title: '体育館シューズをご持参ください',
-    body: '会場のルールにより、体育館用の室内シューズが必要です。外履きのままのご参加はできません。',
-    level: 'info',
-  },
-  {
-    icon: '🤝',
-    title: 'フェアプレーでご参加ください',
-    body: 'セルフジャッジ制です。お互いを尊重し、気持ちよくプレーしましょう。',
-    level: 'info',
-  },
-];
-
 const levelBg = (level: string) => {
   switch (level) {
     case 'danger': return 'bg-red-50 border-red-300';
@@ -56,8 +23,61 @@ const levelText = (level: string) => {
   }
 };
 
+// 超初級ダブルスかどうか判定
+const isShotokuDoubles = (tournament: Tournament) =>
+  tournament.level === '超初級' && tournament.event_type?.includes('ダブルス');
+
+// 現在の季節から推奨番手を返す
+const getShuttleNumber = () => {
+  const month = new Date().getMonth() + 1; // 1-12
+  return month >= 4 && month <= 9 ? '3番' : '4番';
+};
+
 export const PreEntryModal = ({ tournament, onConfirm, onClose }: PreEntryModalProps) => {
   const [checked, setChecked] = useState(false);
+  const noShuttleNeeded = isShotokuDoubles(tournament);
+  const shuttleNumber = getShuttleNumber();
+
+  const rules = [
+    // シャトルルール（大会種別で出し分け）
+    noShuttleNeeded
+      ? {
+          icon: '🏸',
+          title: 'シャトル持参は不要です',
+          body: 'この大会（超初級ダブルス）はシャトル持参不要です。手ぶらでお越しいただけます。',
+          level: 'info',
+        }
+      : {
+          icon: '🏸',
+          title: `シャトルを持参してください（現在の推奨：${shuttleNumber}）`,
+          body: `日本バドミントン協会またはBWF認定の第2種検定球以上を8〜12球ご持参ください。季節推奨番手：4〜9月は3番・10〜3月は4番。忘れた場合は会場で1球500円で購入できます。`,
+          level: 'info',
+        },
+    {
+      icon: '⚠️',
+      title: 'キャンセル期限を守ってください',
+      body: 'キャンセル期限を過ぎたキャンセルは返金できません。期限内のキャンセルはお早めにご連絡ください。',
+      level: 'warning',
+    },
+    {
+      icon: '🚨',
+      title: '当日キャンセル・無断欠席は厳禁',
+      body: '当日のキャンセルや無断欠席は他の参加者・運営に多大なご迷惑をおかけします。繰り返し違反された場合は今後のご参加をお断りします。',
+      level: 'danger',
+    },
+    {
+      icon: '👟',
+      title: '体育館シューズをご持参ください',
+      body: '会場のルールにより、体育館用の室内シューズが必要です。外履きのままのご参加はできません。',
+      level: 'info',
+    },
+    {
+      icon: '🤝',
+      title: 'フェアプレーでご参加ください',
+      body: 'セルフジャッジ制です。お互いを尊重し、気持ちよくプレーしましょう。',
+      level: 'info',
+    },
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">

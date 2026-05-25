@@ -30,11 +30,19 @@ const faqs = [
     items: [
       {
         q: 'シャトルは持参が必要ですか？',
-        a: '当大会はシャトル持参制です。ご自身でシャトルをご用意の上お越しください。ナイロン・羽毛どちらも使用可能です。',
+        a: '超初級ダブルス大会を除き、シャトル持参が必須です。日本バドミントン協会またはBWF認定の第2種検定球以上を、規定数（8〜12球）ご用意ください。なお、超初級ダブルス大会のみシャトル持参は不要です。',
+      },
+      {
+        q: 'シャトルの番手（スピード）はどれを選べばいいですか？',
+        a: '季節によって推奨番手が異なります。4月〜9月は3番、10月〜翌3月は4番をご用意ください。番手が違うと飛び方が変わり試合に影響するため、できるだけ指定番手でお願いします。',
       },
       {
         q: 'シャトルを忘れた場合はどうなりますか？',
         a: '会場にて1球500円でご購入いただけます。数に限りがあるため、なるべくご持参いただくようお願いします。',
+      },
+      {
+        q: 'シャトルの種類（ナイロン・羽毛）はどちらでもいいですか？',
+        a: 'ナイロン・羽毛どちらも使用可能です。検定球であれば問題ありません。',
       },
       {
         q: 'ラケットは貸し出ししていますか？',
@@ -106,6 +114,25 @@ export const FaqPage = () => {
           「初めてで不安…」という方もご安心ください。<br />
           よく寄せられる質問をまとめました。
         </p>
+      </div>
+
+      {/* シャトル番手クイックリファレンス */}
+      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-10">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xl">🏸</span>
+          <span className="font-extrabold text-blue-900">シャトル持参ガイド（超初級ダブルスを除く）</span>
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div className="bg-white rounded-xl p-3 border border-blue-200 text-center">
+            <div className="text-xs text-gray-500 mb-1">🌸 4月〜9月</div>
+            <div className="font-extrabold text-blue-700 text-lg">3番</div>
+          </div>
+          <div className="bg-white rounded-xl p-3 border border-blue-200 text-center">
+            <div className="text-xs text-gray-500 mb-1">🍂 10月〜3月</div>
+            <div className="font-extrabold text-blue-700 text-lg">4番</div>
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 mt-3">第2種検定球以上・8〜12球 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要</p>
       </div>
 
       {/* FAQセクション */}

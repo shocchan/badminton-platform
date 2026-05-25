@@ -10,10 +10,13 @@ interface EntryFormProps {
 type Step = 'input' | 'confirm' | 'success';
 
 export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
+  const isDoubles = tournament.event_type?.includes('ダブルス');
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     email: '',
+    partner_name: '',
     notes: '',
   });
   const [step, setStep] = useState<Step>('input');
@@ -42,7 +45,11 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
     try {
       const { error: insertError } = await supabase.from('entries').insert([{
         tournament_id: tournament.id,
-        ...formData,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        partner_name: isDoubles ? formData.partner_name : null,
+        notes: formData.notes,
       }]);
       if (insertError) throw insertError;
       await sendPaymentEmail(formData.email);
@@ -82,6 +89,15 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
       console.warn('Payment email sending error:', err);
     }
   };
+
+  // 確認画面の表示フィールド
+  const confirmFields = [
+    { label: 'お名前', value: formData.name },
+    ...(isDoubles ? [{ label: 'ペアの相手のお名前', value: formData.partner_name || '未入力' }] : []),
+    { label: 'メールアドレス', value: formData.email },
+    { label: '電話番号', value: formData.phone || '未入力' },
+    { label: '備考', value: formData.notes || '未入力' },
+  ];
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -146,12 +162,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                   <p className="text-sm font-bold text-blue-900">{tournament.title}</p>
                   <p className="text-xs text-blue-700">{formatDate(tournament.event_date)} ｜ {tournament.location}</p>
                 </div>
-                {[
-                  { label: 'お名前', value: formData.name },
-                  { label: 'メールアドレス', value: formData.email },
-                  { label: '電話番号', value: formData.phone || '未入力' },
-                  { label: '備考', value: formData.notes || '未入力' },
-                ].map(({ label, value }) => (
+                {confirmFields.map(({ label, value }) => (
                   <div key={label} className="px-4 py-3">
                     <p className="text-xs text-gray-500 mb-0.5">{label}</p>
                     <p className="text-sm text-gray-900">{value}</p>
@@ -199,6 +210,25 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                   placeholder="山田 太郎"
                 />
               </div>
+
+              {/* ダブルス大会のみペア名フィールドを表示 */}
+              {isDoubles && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ペアの相手のお名前
+                    <span className="text-xs text-gray-400 font-normal ml-2">（未定の場合は「未定」と入力）</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.partner_name}
+                    onChange={e => setFormData(p => ({ ...p, partner_name: e.target.value }))}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="鈴木 花子"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">一人でエントリーする場合は当日ペア調整します</p>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span className="text-red-500">*</span></label>
                 <input
@@ -227,7 +257,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                   onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
                   rows={3}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="ペア名など"
+                  placeholder="その他ご連絡事項があればご記入ください"
                 />
               </div>
               <button
