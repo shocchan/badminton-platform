@@ -6,11 +6,10 @@ const levels = [
     name: 'オープン',
     nameEn: 'OPEN',
     emoji: '🥇',
-    color: '#B8860B',
     bg: 'from-yellow-500 to-yellow-400',
     lightBg: 'bg-yellow-50',
     border: 'border-yellow-400',
-    badge: 'bg-yellow-100 text-yellow-800',
+    svgFill: '#EAB308',
     description: 'レベル制限なし。上級者から一般プレーヤーまで誰でも参加可能な最高峰クラス。',
     target: '・試合経験が豊富な方\n・しっかり競い合いたい方\n・レベルを問わず挑戦したい方',
     guide: [
@@ -25,11 +24,10 @@ const levels = [
     name: '中級',
     nameEn: 'INTERMEDIATE',
     emoji: '🥈',
-    color: '#708090',
-    bg: 'from-gray-500 to-gray-400',
-    lightBg: 'bg-gray-50',
-    border: 'border-gray-400',
-    badge: 'bg-gray-100 text-gray-700',
+    bg: 'from-indigo-500 to-indigo-400',
+    lightBg: 'bg-indigo-50',
+    border: 'border-indigo-400',
+    svgFill: '#6366f1',
     description: 'ある程度の経験があり、ラリーを安定して続けられるプレーヤー向けクラス。',
     target: '・バドミントン歴3年以上\n・ゲーム練習を定期的にしている\n・大会に1〜2回出たことがある',
     guide: [
@@ -44,11 +42,10 @@ const levels = [
     name: '初級',
     nameEn: 'BEGINNER',
     emoji: '🥉',
-    color: '#CD7F32',
     bg: 'from-orange-500 to-orange-400',
     lightBg: 'bg-orange-50',
     border: 'border-orange-400',
-    badge: 'bg-orange-100 text-orange-800',
+    svgFill: '#f97316',
     description: '基本的なショットを覚えて、ゲームを楽しめるようになってきた方向けのクラス。',
     target: '・バドミントン歴1〜3年\n・練習でゲームを経験している\n・初めての大会に挑戦したい',
     guide: [
@@ -63,11 +60,10 @@ const levels = [
     name: '超初級',
     nameEn: 'FRESHER',
     emoji: '🌱',
-    color: '#2d9e5f',
     bg: 'from-green-500 to-green-400',
     lightBg: 'bg-green-50',
     border: 'border-green-400',
-    badge: 'bg-green-100 text-green-800',
+    svgFill: '#22c55e',
     description: 'バドミントンを始めたばかりの方でも安心して参加できる、最も敷居の低いクラス。',
     target: '・バドミントン歴1年未満\n・初めて試合に出る方\n・とにかく楽しく参加したい方',
     guide: [
@@ -78,6 +74,83 @@ const levels = [
     note: '「負けても楽しかった！」が目標のクラスです',
   },
 ];
+
+// SVGピラミッド
+const ClassPyramid = () => {
+  const W = 560;
+  const H = 260;
+  const cx = W / 2;
+
+  // 各段の高さ・上辺幅・下辺幅（台形）
+  const tiers = [
+    { topW: 110, botW: 200, y: 0,   h: 60, fill: '#EAB308', label: '🥇 オープン',  sub: 'OPEN' },
+    { topW: 200, botW: 310, y: 64,  h: 60, fill: '#6366f1', label: '🥈 中級',      sub: 'INTERMEDIATE' },
+    { topW: 310, botW: 420, y: 128, h: 60, fill: '#f97316', label: '🥉 初級',      sub: 'BEGINNER' },
+    { topW: 420, botW: 540, y: 192, h: 60, fill: '#22c55e', label: '🌱 超初級',    sub: 'FRESHER — 初めての方大歓迎' },
+  ];
+
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full max-w-lg mx-auto"
+      aria-label="クラスピラミッド図：上から オープン・中級・初級・超初級"
+    >
+      {tiers.map((t, i) => {
+        const x1 = cx - t.topW / 2;
+        const x2 = cx + t.topW / 2;
+        const x3 = cx + t.botW / 2;
+        const x4 = cx - t.botW / 2;
+        const y1 = t.y;
+        const y2 = t.y + t.h - 4;
+        const isLast = i === tiers.length - 1;
+        const points = isLast
+          ? `${x1},${y1} ${x2},${y1} ${x3},${y2} ${x4},${y2}`
+          : `${x1},${y1} ${x2},${y1} ${x3},${y2} ${x4},${y2}`;
+
+        const my = t.y + t.h / 2 - 6;
+
+        return (
+          <g key={i}>
+            <polygon
+              points={points}
+              fill={t.fill}
+              opacity="0.92"
+            />
+            {/* 段の間の区切り線 */}
+            {!isLast && (
+              <line
+                x1={cx - t.botW / 2} y1={y2}
+                x2={cx + t.botW / 2} y2={y2}
+                stroke="white" strokeWidth="2.5" opacity="0.6"
+              />
+            )}
+            {/* ラベル */}
+            <text
+              x={cx} y={my + 4}
+              textAnchor="middle"
+              fontSize="15"
+              fontWeight="800"
+              fontFamily="system-ui, sans-serif"
+              fill="white"
+            >
+              {t.label}
+            </text>
+            <text
+              x={cx} y={my + 20}
+              textAnchor="middle"
+              fontSize="10"
+              fontFamily="system-ui, sans-serif"
+              fill="rgba(255,255,255,0.8)"
+            >
+              {t.sub}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+};
 
 export const LevelGuidePage = () => {
   return (
@@ -93,35 +166,15 @@ export const LevelGuidePage = () => {
         </p>
       </div>
 
-      {/* ピラミッド図 */}
+      {/* SVGピラミッド */}
       <div className="mb-12">
-        <h2 className="text-center text-sm font-bold text-gray-400 mb-6 tracking-widest uppercase">Class Pyramid</h2>
-        <div className="flex flex-col items-center gap-2">
-          {levels.map((level, i) => {
-            const widths = ['w-full sm:w-2/4', 'w-full sm:w-3/4', 'w-full sm:w-3/4', 'w-full'];
-            return (
-              <div key={level.id} className={`${widths[i]} transition-all`}>
-                <div className={`bg-gradient-to-r ${level.bg} rounded-xl px-6 py-3 flex items-center justify-between shadow-sm`}>
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{level.emoji}</span>
-                    <div>
-                      <div className="text-white font-bold text-sm sm:text-base">{level.name}</div>
-                      <div className="text-white/70 text-xs">{level.nameEn}</div>
-                    </div>
-                  </div>
-                  <a
-                    href={`/#`}
-                    onClick={e => { e.preventDefault(); document.getElementById(level.id)?.scrollIntoView({ behavior: 'smooth' }); }}
-                    className="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-full transition-colors"
-                  >
-                    詳細 ↓
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        <p className="text-center text-xs text-gray-400 mt-4">↑ 上に行くほど競技レベルが高くなります</p>
+        <h2 className="text-center text-xs font-bold text-gray-400 mb-4 tracking-widest uppercase">
+          ↑ 上が最高峰クラス
+        </h2>
+        <ClassPyramid />
+        <p className="text-center text-xs text-gray-400 mt-3">
+          各クラスの詳細は下のカードをご確認ください
+        </p>
       </div>
 
       {/* クラス詳細カード */}
@@ -146,16 +199,20 @@ export const LevelGuidePage = () => {
               <div className="grid sm:grid-cols-2 gap-4 mb-5">
                 {/* こんな方におすすめ */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
-                  <div className="text-xs font-bold text-gray-500 mb-2">👤 こんな方におすすめ</div>
+                  <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
+                    <span>👤</span> こんな方におすすめ
+                  </div>
                   {level.target.split('\n').map((line, i) => (
-                    <div key={i} className="text-sm text-gray-700">{line}</div>
+                    <div key={i} className="text-sm text-gray-700 py-0.5">{line}</div>
                   ))}
                 </div>
 
                 {/* レベル目安 */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
-                  <div className="text-xs font-bold text-gray-500 mb-2">✅ レベルの目安</div>
-                  <ul className="space-y-1">
+                  <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
+                    <span>✅</span> レベルの目安
+                  </div>
+                  <ul className="space-y-1.5">
                     {level.guide.map((g, i) => (
                       <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
                         <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
