@@ -37,7 +37,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   // ── シェア機能 ──
   const handleShare = async () => {
     const text = `【${tournament.title}】\n📅 ${formatDate(tournament.event_date)}\n🕐 ${formatTime(tournament.start_time)}〜${formatTime(tournament.end_time)}\n📍 ${tournament.location}\n💰 参加費 ¥${tournament.entry_fee.toLocaleString()}`;
-    const url = window.location.href;
+    const url = `${window.location.origin}/tournaments/${tournament.id}`;
 
     if (navigator.share) {
       try {
@@ -165,6 +165,9 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           <div>
             <div className="text-gray-500 text-xs mb-1">📍 会場</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{tournament.location}</div>
+            {tournament.venue_address && (
+              <div className="text-gray-400 text-xs mt-0.5">{tournament.venue_address}</div>
+            )}
           </div>
           <div>
             <div className="text-gray-500 text-xs mb-1">💰 参加費</div>
@@ -198,7 +201,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
         {/* Google マップリンク */}
         <a
-          href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.location)}`}
+          href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.venue_address || tournament.location)}`}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"

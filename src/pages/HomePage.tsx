@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
+import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
 import { EntryForm } from '../components/EntryForm';
 import { PreEntryModal } from '../components/PreEntryModal';
 import { supabase } from '../services/supabaseClient';
@@ -68,9 +69,19 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
           onClick={prevMonth}
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
         >‹</button>
-        <span className="font-extrabold text-gray-900 text-sm">
-          {year}年 {month + 1}月
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="font-extrabold text-gray-900 text-sm">
+            {year}年 {month + 1}月
+          </span>
+          {(year !== today.getFullYear() || month !== today.getMonth()) && (
+            <button
+              onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()); }}
+              className="text-xs text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-full transition-colors font-medium"
+            >
+              今月
+            </button>
+          )}
+        </div>
         <button
           onClick={nextMonth}
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
@@ -234,8 +245,14 @@ export const HomePage = () => {
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
 
         {loading && (
-          <div className="flex justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+          <div className="lg:grid lg:grid-cols-[320px_1fr] lg:gap-8 lg:items-start">
+            <div className="hidden lg:block">
+              <div className="skeleton h-6 w-32 rounded mb-3" />
+              <div className="skeleton h-72 w-full rounded-2xl" />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => <TournamentCardSkeleton key={i} />)}
+            </div>
           </div>
         )}
         {error && (

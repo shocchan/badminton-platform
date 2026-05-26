@@ -28,6 +28,21 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  // Googleカレンダー追加URL
+  const buildGoogleCalendarUrl = () => {
+    const d = tournament.event_date.slice(0, 10).replace(/-/g, '');
+    const start = `${d}T${tournament.start_time.slice(0, 5).replace(':', '')}00`;
+    const end   = `${d}T${tournament.end_time.slice(0, 5).replace(':', '')}00`;
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: tournament.title,
+      dates: `${start}/${end}`,
+      details: `川口・蕨バド交流杯\n参加費: ¥${tournament.entry_fee.toLocaleString()}`,
+      location: tournament.venue_address || tournament.location,
+    });
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  };
+
   const handleConfirm = (e: React.FormEvent) => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -137,15 +152,33 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                 {tournament.title}（{formatDate(tournament.event_date)}）への申し込みを受け付けました。
               </p>
               {tournament.payment_required && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 text-left">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
                   <p className="text-sm font-medium text-blue-900 mb-2">💳 支払い案内メールをお送りしました</p>
                   <p className="text-xs text-blue-700 mb-2">メールアドレス: {formData.email}</p>
                   <p className="text-xs text-blue-700">支払い期限: {tournament.payment_deadline ? formatDate(tournament.payment_deadline) : '未定'}</p>
                 </div>
               )}
+
+              {/* カレンダー追加ボタン */}
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-left">
+                <p className="text-sm font-bold text-green-900 mb-1">📅 大会をカレンダーに追加しよう</p>
+                <p className="text-xs text-green-700 mb-3">当日忘れないようにカレンダーに登録しておきましょう！</p>
+                <a
+                  href={buildGoogleCalendarUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full bg-white border border-green-300 hover:bg-green-50 text-green-800 font-bold text-sm py-2.5 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+                  </svg>
+                  Googleカレンダーに追加
+                </a>
+              </div>
+
               <button
                 onClick={onClose}
-                className="bg-blue-600 text-white px-6 py-2 rounded-xl font-medium hover:bg-blue-700 transition-colors"
+                className="w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
               >
                 閉じる
               </button>
