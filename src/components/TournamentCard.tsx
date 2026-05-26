@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Tournament } from '../types';
 
 interface TournamentCardProps {
@@ -101,9 +102,10 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     : 'bg-white/15 text-white';
 
   return (
-    <div
+    <Link
+      to={`/tournaments/${tournament.id}`}
       ref={cardRef}
-      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-500 flex flex-col ${
+      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col group ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       }`}
     >
@@ -133,7 +135,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           </div>
           {/* シェアボタン */}
           <button
-            onClick={handleShare}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); handleShare(); }}
             className="flex items-center gap-1 text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full transition-colors"
             aria-label="この大会をシェア"
           >
@@ -204,6 +206,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.venue_address || tournament.location)}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={e => e.stopPropagation()}
           className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
         >
           <span>🗺️</span>
@@ -234,10 +237,10 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </div>
           ) : tournament.status === 'active' ? (
             <button
-              onClick={() => onApply(tournament)}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
               className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base"
             >
-              申し込む
+              申し込む →
             </button>
           ) : (
             <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
@@ -246,6 +249,6 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
