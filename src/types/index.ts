@@ -16,6 +16,7 @@ export interface Tournament {
   payment_deadline?: string;
   bank_account?: string;
   paypay_id?: string;
+  venue_address?: string;
   created_at: string;
   updated_at: string;
 }
