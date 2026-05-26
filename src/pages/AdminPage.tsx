@@ -49,6 +49,7 @@ const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   payment_deadline: undefined,
   bank_account: '',
   paypay_id: '',
+  venue_address: '',
 };
 
 const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
@@ -68,6 +69,7 @@ export const AdminPage = () => {
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
   const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
+  const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
 
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
@@ -100,6 +102,38 @@ export const AdminPage = () => {
       fetchEntries();
     }
   }, [activeTab]);
+
+  // ── リアルタイム申し込み通知 ──
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const channel = supabase
+      .channel('entries-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'entries' },
+        async (payload) => {
+          // 大会名を取得して通知
+          const { data: t } = await supabase
+            .from('tournaments')
+            .select('title')
+            .eq('id', payload.new.tournament_id)
+            .single();
+          const msg = `🏸 新しい申し込み！${t?.title ? `「${t.title}」` : ''}に ${payload.new.name} さんが申し込みました`;
+          setNewEntryNotice(msg);
+          setTimeout(() => setNewEntryNotice(null), 6000);
+          // ブラウザ通知（許可されている場合）
+          if (Notification.permission === 'granted') {
+            new Notification('新規申し込み', { body: msg, icon: '/favicon.ico' });
+          } else if (Notification.permission === 'default') {
+            Notification.requestPermission();
+          }
+          // エントリー一覧を開いていればリフレッシュ
+          if (activeTab === 'entries') fetchEntries();
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAuthenticated, activeTab]);
 
   const fetchEntries = async () => {
     setEntriesLoading(true);
@@ -149,6 +183,7 @@ export const AdminPage = () => {
       payment_deadline: t.payment_deadline,
       bank_account: t.bank_account || '',
       paypay_id: t.paypay_id || '',
+      venue_address: t.venue_address || '',
     });
     setShowTournamentForm(true);
   };
@@ -298,6 +333,15 @@ export const AdminPage = () => {
     <main className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">管理画面</h1>
 
+      {/* リアルタイム通知バナー */}
+      {newEntryNotice && (
+        <div className="fixed top-20 right-4 z-50 max-w-sm bg-green-600 text-white px-4 py-3 rounded-2xl shadow-xl flex items-start gap-3 animate-bounce">
+          <span className="text-xl flex-shrink-0">🏸</span>
+          <p className="text-sm font-medium leading-snug">{newEntryNotice}</p>
+          <button onClick={() => setNewEntryNotice(null)} className="text-white/70 hover:text-white ml-1 flex-shrink-0">✕</button>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認']] as [Tab, string][]).map(([key, label]) => (
@@ -376,13 +420,26 @@ export const AdminPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">会場 *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">会場名 *</label>
                   <input
                     required
                     value={tournamentForm.location}
                     onChange={e => setTournamentForm(p => ({...p, location: e.target.value}))}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="三芳町総合体育館"
+                    placeholder="川口市立体育館"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    住所
+                    <span className="text-xs text-gray-400 font-normal ml-1">（マップ表示に使用）</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={tournamentForm.venue_address || ''}
+                    onChange={e => setTournamentForm(p => ({...p, venue_address: e.target.value}))}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="埼玉県川口市〇〇1-2-3"
                   />
                 </div>
                 <div>
@@ -777,7 +834,35 @@ export const AdminPage = () => {
       {/* Entries Tab */}
       {activeTab === 'entries' && (
         <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">エントリー一覧</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-800">エントリー一覧</h2>
+            <button
+              onClick={() => {
+                const header = ['大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日'];
+                const rows = entries.map(e => [
+                  e.tournaments?.title || '',
+                  e.name,
+                  e.partner_name || '',
+                  e.email,
+                  e.phone || '',
+                  e.notes || '',
+                  formatDate(e.entry_date),
+                ]);
+                const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+                const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `entries_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              disabled={entries.length === 0}
+              className="flex items-center gap-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            >
+              ⬇ CSVエクスポート
+            </button>
+          </div>
           {entriesLoading ? (
             <div className="flex justify-center py-10">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -789,6 +874,7 @@ export const AdminPage = () => {
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">大会名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">参加者名</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">ペア名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">電話番号</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">メール</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">備考</th>
@@ -800,14 +886,15 @@ export const AdminPage = () => {
                     <tr key={entry.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-700">{entry.tournaments?.title || '-'}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{entry.name}</td>
-                      <td className="px-4 py-3 text-gray-600">{entry.phone}</td>
+                      <td className="px-4 py-3 text-gray-500">{entry.partner_name || '-'}</td>
+                      <td className="px-4 py-3 text-gray-600">{entry.phone || '-'}</td>
                       <td className="px-4 py-3 text-gray-600">{entry.email}</td>
                       <td className="px-4 py-3 text-gray-500">{entry.notes || '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(entry.entry_date)}</td>
                     </tr>
                   ))}
                   {entries.length === 0 && (
-                    <tr><td colSpan={6} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
+                    <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
                   )}
                 </tbody>
               </table>

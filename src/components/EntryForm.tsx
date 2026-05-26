@@ -58,6 +58,20 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
     setLoading(true);
     setError(null);
     try {
+      // 重複申し込みチェック（同メール×同大会）
+      const { data: existing } = await supabase
+        .from('entries')
+        .select('id')
+        .eq('tournament_id', tournament.id)
+        .eq('email', formData.email)
+        .maybeSingle();
+      if (existing) {
+        setError('このメールアドレスはすでにこの大会に申し込み済みです。');
+        setStep('input');
+        setLoading(false);
+        return;
+      }
+
       const { error: insertError } = await supabase.from('entries').insert([{
         tournament_id: tournament.id,
         name: formData.name,

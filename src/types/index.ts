@@ -27,6 +27,7 @@ export interface Entry {
   name: string;
   phone: string;
   email: string;
+  partner_name?: string;
   notes?: string;
   entry_date: string;
   created_at: string;
