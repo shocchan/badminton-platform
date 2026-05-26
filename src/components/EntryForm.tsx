@@ -105,6 +105,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
           name: formData.name,
           phone: formData.phone,
           notes: formData.notes,
+          partner_name: isDoubles ? formData.partner_name : null,
           tournament_title: tournament.title,
           tournament_date: tournament.event_date,
           payment_deadline: tournament.payment_deadline,
