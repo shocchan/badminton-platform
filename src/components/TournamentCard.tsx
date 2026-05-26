@@ -9,7 +9,7 @@ interface TournamentCardProps {
 const levelColors: Record<string, string> = {
   '超初級': 'bg-green-100 text-green-800',
   '初級':   'bg-orange-100 text-orange-800',
-  '中級':   'bg-gray-100 text-gray-700',
+  '中級':   'bg-indigo-100 text-indigo-700',
   'オープン': 'bg-yellow-100 text-yellow-800',
 };
 

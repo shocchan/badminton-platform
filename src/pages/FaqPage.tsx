@@ -130,9 +130,10 @@ export const FaqPage = () => {
             <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">✓</span>
             使用OK（第2種検定球以上・羽毛のみ）
           </div>
-          <div className="grid sm:grid-cols-3 gap-3">
+          {/* モバイル: 横スクロール / デスクトップ: 3列グリッド */}
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:overflow-visible">
             {/* AS-700 */}
-            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+            <div className="flex-shrink-0 w-[72vw] sm:w-auto bg-white border-2 border-green-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <div className="text-xs font-bold text-red-600 mb-0.5">YONEX</div>
@@ -152,7 +153,7 @@ export const FaqPage = () => {
               </a>
             </div>
             {/* F-80 */}
-            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+            <div className="flex-shrink-0 w-[72vw] sm:w-auto bg-white border-2 border-green-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <div className="text-xs font-bold text-red-600 mb-0.5">YONEX</div>
@@ -172,7 +173,7 @@ export const FaqPage = () => {
               </a>
             </div>
             {/* RSL シルバーフェザー */}
-            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+            <div className="flex-shrink-0 w-[72vw] sm:w-auto bg-white border-2 border-green-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div>
                   <div className="text-xs font-bold text-blue-700 mb-0.5">RSL</div>

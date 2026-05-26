@@ -154,6 +154,7 @@ export const HomePage = () => {
   const [filterLevel, setFilterLevel]               = useState<string>('全て');
   const [filterType,  setFilterType]                = useState<string>('全て');
   const [selectedDate, setSelectedDate]             = useState<string | null>(null);
+  const [calendarOpen, setCalendarOpen]             = useState<boolean>(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -176,8 +177,9 @@ export const HomePage = () => {
 
   const handleDateSelect = (date: string | null) => {
     setSelectedDate(date);
-    // モバイル: 日付選択したらリスト部分へスクロール
-    if (date && listRef.current) {
+    // モバイル: 日付選択したらカレンダーを閉じてリスト部分へスクロール
+    if (date) {
+      setCalendarOpen(false);
       setTimeout(() => {
         listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 50);
@@ -249,21 +251,44 @@ export const HomePage = () => {
           <div className="lg:grid lg:grid-cols-[320px_1fr] lg:gap-8 lg:items-start">
 
             {/* ── 左: カレンダー（デスクトップで sticky） ── */}
-            <div className="lg:sticky lg:top-6 mb-6 lg:mb-0">
-              <h2 className="text-base font-extrabold text-gray-800 mb-3">📅 開催カレンダー</h2>
-              <TournamentCalendar
-                tournaments={activeTournaments}
-                selectedDate={selectedDate}
-                onSelectDate={handleDateSelect}
-              />
-              {selectedDate && (
-                <button
-                  onClick={() => setSelectedDate(null)}
-                  className="mt-2 w-full text-xs text-blue-600 hover:underline py-1"
-                >
-                  ✕ 絞り込みを解除して全大会を表示
-                </button>
-              )}
+            <div className="lg:sticky lg:top-6 mb-4 lg:mb-0">
+
+              {/* モバイル用トグルボタン */}
+              <button
+                onClick={() => setCalendarOpen(o => !o)}
+                className="lg:hidden w-full flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-4 py-3.5 shadow-sm mb-2 transition-colors hover:bg-gray-50"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-base">📅</span>
+                  <span className="font-extrabold text-gray-800 text-sm">
+                    {selectedDate
+                      ? `${new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })} の大会を表示中`
+                      : 'カレンダーで日程を絞り込む'}
+                  </span>
+                  {selectedDate && (
+                    <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">絞込中</span>
+                  )}
+                </div>
+                <span className={`text-gray-400 text-xs transition-transform duration-200 ${calendarOpen ? 'rotate-180' : ''}`}>▼</span>
+              </button>
+
+              {/* カレンダー本体（モバイル: トグル / デスクトップ: 常時表示） */}
+              <div className={`lg:block ${calendarOpen ? 'block' : 'hidden'}`}>
+                <h2 className="text-base font-extrabold text-gray-800 mb-3 hidden lg:block">📅 開催カレンダー</h2>
+                <TournamentCalendar
+                  tournaments={activeTournaments}
+                  selectedDate={selectedDate}
+                  onSelectDate={handleDateSelect}
+                />
+                {selectedDate && (
+                  <button
+                    onClick={() => { setSelectedDate(null); setCalendarOpen(false); }}
+                    className="mt-2 w-full text-xs text-blue-600 hover:underline py-1"
+                  >
+                    ✕ 絞り込みを解除して全大会を表示
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* ── 右: 大会リスト ── */}
