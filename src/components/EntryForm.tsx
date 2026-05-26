@@ -225,7 +225,7 @@ export const EntryForm = ({ tournament, onClose }: EntryFormProps) => {
                     className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="鈴木 花子"
                   />
-                  <p className="text-xs text-gray-400 mt-1">一人でエントリーする場合は当日ペア調整します</p>
+                  <p className="text-xs text-gray-400 mt-1">ペアが決まってからお申し込みください</p>
                 </div>
               )}
 
