@@ -6,10 +6,10 @@ const levels = [
     name: 'オープン',
     nameEn: 'OPEN',
     emoji: '🥇',
-    bg: 'from-yellow-500 to-yellow-400',
-    lightBg: 'bg-yellow-50',
-    border: 'border-yellow-400',
-    svgFill: '#EAB308',
+    bg: 'from-violet-600 to-violet-500',
+    lightBg: 'bg-violet-50',
+    border: 'border-violet-400',
+    svgFill: '#7c3aed',
     description: 'レベル制限なし。上級者から一般プレーヤーまで誰でも参加可能な最高峰クラス。',
     target: '・試合経験が豊富な方\n・しっかり競い合いたい方\n・レベルを問わず挑戦したい方',
     guide: [
@@ -24,10 +24,10 @@ const levels = [
     name: '中級',
     nameEn: 'INTERMEDIATE',
     emoji: '🥈',
-    bg: 'from-indigo-500 to-indigo-400',
+    bg: 'from-indigo-600 to-indigo-500',
     lightBg: 'bg-indigo-50',
     border: 'border-indigo-400',
-    svgFill: '#6366f1',
+    svgFill: '#4f46e5',
     description: 'ある程度の経験があり、ラリーを安定して続けられるプレーヤー向けクラス。',
     target: '・バドミントン歴3年以上\n・ゲーム練習を定期的にしている\n・大会に1〜2回出たことがある',
     guide: [
@@ -83,10 +83,10 @@ const ClassPyramid = () => {
 
   // 各段の高さ・上辺幅・下辺幅（台形）
   const tiers = [
-    { topW: 110, botW: 200, y: 0,   h: 60, fill: '#EAB308', label: '🥇 オープン',  sub: 'OPEN' },
-    { topW: 200, botW: 310, y: 64,  h: 60, fill: '#6366f1', label: '🥈 中級',      sub: 'INTERMEDIATE' },
+    { topW: 110, botW: 200, y: 0,   h: 60, fill: '#7c3aed', label: '🥇 オープン',  sub: 'OPEN' },
+    { topW: 200, botW: 310, y: 64,  h: 60, fill: '#4f46e5', label: '🥈 中級',      sub: 'INTERMEDIATE' },
     { topW: 310, botW: 420, y: 128, h: 60, fill: '#f97316', label: '🥉 初級',      sub: 'BEGINNER' },
-    { topW: 420, botW: 540, y: 192, h: 60, fill: '#22c55e', label: '🌱 超初級',    sub: 'FRESHER — 初めての方大歓迎' },
+    { topW: 420, botW: 540, y: 192, h: 60, fill: '#10b981', label: '🌱 超初級',    sub: 'FRESHER — 初めての方大歓迎' },
   ];
 
   return (

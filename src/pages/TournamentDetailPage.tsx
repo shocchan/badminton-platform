@@ -16,7 +16,7 @@ const levelAccent: Record<string, string> = {
   '超初級': 'from-green-500 to-green-400',
   '初級':   'from-orange-500 to-orange-400',
   '中級':   'from-indigo-600 to-indigo-500',
-  'オープン': 'from-yellow-500 to-yellow-400',
+  'オープン': 'from-violet-600 to-purple-500',
 };
 
 export const TournamentDetailPage = () => {

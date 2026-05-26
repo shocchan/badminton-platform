@@ -9,10 +9,56 @@ interface TournamentCardProps {
 }
 
 const levelColors: Record<string, string> = {
-  '超初級': 'bg-green-100 text-green-800',
+  '超初級': 'bg-emerald-100 text-emerald-800',
   '初級':   'bg-orange-100 text-orange-800',
-  '中級':   'bg-indigo-100 text-indigo-700',
-  'オープン': 'bg-yellow-100 text-yellow-800',
+  '中級':   'bg-indigo-100 text-indigo-800',
+  'オープン': 'bg-violet-100 text-violet-800',
+};
+
+type LevelConfig = {
+  headerBg: string; titleColor: string; typeBadge: string;
+  shareBtn: string; countdown: string; applyBtn: string;
+};
+const levelConfig: Record<string, LevelConfig> = {
+  '超初級': {
+    headerBg:  'bg-emerald-50',
+    titleColor:'text-emerald-900',
+    typeBadge: 'bg-emerald-100 text-emerald-800',
+    shareBtn:  'text-emerald-700 hover:text-emerald-900 bg-emerald-100 hover:bg-emerald-200',
+    countdown: 'bg-emerald-100 text-emerald-800',
+    applyBtn:  'bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700',
+  },
+  '初級': {
+    headerBg:  'bg-orange-50',
+    titleColor:'text-orange-900',
+    typeBadge: 'bg-orange-100 text-orange-800',
+    shareBtn:  'text-orange-700 hover:text-orange-900 bg-orange-100 hover:bg-orange-200',
+    countdown: 'bg-orange-100 text-orange-800',
+    applyBtn:  'bg-orange-500 hover:bg-orange-600 active:bg-orange-700',
+  },
+  '中級': {
+    headerBg:  'bg-indigo-50',
+    titleColor:'text-indigo-900',
+    typeBadge: 'bg-indigo-100 text-indigo-800',
+    shareBtn:  'text-indigo-700 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200',
+    countdown: 'bg-indigo-100 text-indigo-800',
+    applyBtn:  'bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800',
+  },
+  'オープン': {
+    headerBg:  'bg-violet-50',
+    titleColor:'text-violet-900',
+    typeBadge: 'bg-violet-100 text-violet-800',
+    shareBtn:  'text-violet-700 hover:text-violet-900 bg-violet-100 hover:bg-violet-200',
+    countdown: 'bg-violet-100 text-violet-800',
+    applyBtn:  'bg-violet-600 hover:bg-violet-700 active:bg-violet-800',
+  },
+};
+const defaultConfig: LevelConfig = {
+  headerBg: 'bg-blue-50', titleColor: 'text-blue-900',
+  typeBadge: 'bg-blue-100 text-blue-800',
+  shareBtn: 'text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200',
+  countdown: 'bg-blue-100 text-blue-800',
+  applyBtn: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800',
 };
 
 export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
@@ -75,6 +121,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
+  const config = levelConfig[tournament.level] ?? defaultConfig;
 
   const remainingColor = remaining <= 3
     ? 'bg-red-500 text-white'
@@ -89,8 +136,8 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     : `あと${daysUntil}日`;
 
   const countdownColor = daysUntil <= 3
-    ? 'bg-red-500/20 text-red-100'
-    : 'bg-white/15 text-white';
+    ? 'bg-red-100 text-red-700'
+    : config.countdown;
 
   return (
     <Link
@@ -101,9 +148,9 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
       }`}
     >
       {/* ヘッダー */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-4">
+      <div className={`${config.headerBg} px-4 sm:px-6 py-4`}>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="text-white font-bold text-base sm:text-lg leading-snug">{tournament.title}</h3>
+          <h3 className={`${config.titleColor} font-bold text-base sm:text-lg leading-snug`}>{tournament.title}</h3>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             {remaining > 0 && remaining <= 3 && (
               <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">
@@ -120,14 +167,14 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             <span className={`text-xs font-medium px-2 py-1 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>
               {tournament.level}
             </span>
-            <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/20 text-white">
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${config.typeBadge}`}>
               {tournament.event_type}
             </span>
           </div>
           {/* シェアボタン */}
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); handleShare(); }}
-            className="flex items-center gap-1 text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full transition-colors"
+            className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${config.shareBtn}`}
             aria-label="この大会をシェア"
           >
             {copied ? (
@@ -217,7 +264,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           ) : tournament.status === 'active' ? (
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base"
+              className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base`}
             >
               申し込む →
             </button>
