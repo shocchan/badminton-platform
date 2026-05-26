@@ -171,7 +171,9 @@ export const HomePage = () => {
     fetchEntryCounts();
   }, []);
 
-  const activeTournaments = tournaments.filter(t => t.status === 'active');
+  const activeTournaments = tournaments
+    .filter(t => t.status === 'active')
+    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
   const levels = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.level)))];
   const types  = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.event_type)))];
 

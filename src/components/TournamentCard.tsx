@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { Tournament } from '../types';
 
 interface TournamentCardProps {
@@ -14,6 +15,48 @@ const levelColors: Record<string, string> = {
 };
 
 export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // ── フェードインアニメーション ──
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.08 }
+    );
+    if (cardRef.current) observer.observe(cardRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  // ── シェア機能 ──
+  const handleShare = async () => {
+    const text = `【${tournament.title}】\n📅 ${formatDate(tournament.event_date)}\n🕐 ${formatTime(tournament.start_time)}〜${formatTime(tournament.end_time)}\n📍 ${tournament.location}\n💰 参加費 ¥${tournament.entry_fee.toLocaleString()}`;
+    const url = window.location.href;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: tournament.title, text, url });
+      } catch {
+        // キャンセル等は無視
+      }
+    } else {
+      // フォールバック: クリップボードコピー
+      try {
+        await navigator.clipboard.writeText(`${text}\n${url}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // 対応なし
+      }
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
@@ -58,7 +101,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     : 'bg-white/15 text-white';
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
+    <div
+      ref={cardRef}
+      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all duration-500 flex flex-col ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      }`}
+    >
       {/* ヘッダー */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-4 sm:px-6 py-4">
         <div className="flex items-start justify-between gap-3 mb-2">
@@ -74,13 +122,32 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </span>
           </div>
         </div>
-        <div className="flex gap-2">
-          <span className={`text-xs font-medium px-2 py-1 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>
-            {tournament.level}
-          </span>
-          <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/20 text-white">
-            {tournament.event_type}
-          </span>
+        <div className="flex items-center justify-between">
+          <div className="flex gap-2">
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>
+              {tournament.level}
+            </span>
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-white/20 text-white">
+              {tournament.event_type}
+            </span>
+          </div>
+          {/* シェアボタン */}
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1 text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1 rounded-full transition-colors"
+            aria-label="この大会をシェア"
+          >
+            {copied ? (
+              <>✅ <span>コピー済み</span></>
+            ) : (
+              <>
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                <span>シェア</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
