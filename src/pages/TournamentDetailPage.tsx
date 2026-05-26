@@ -90,12 +90,10 @@ export const TournamentDetailPage = () => {
   );
 
   const remaining = tournament.capacity - entryCount;
-  const usedPercent = Math.min(100, Math.round((entryCount / tournament.capacity) * 100));
   const daysUntil = getDaysUntil(tournament.event_date);
   const accent = levelAccent[tournament.level] ?? 'from-blue-600 to-blue-500';
   const lColor = levelColors[tournament.level] ?? { bg: 'bg-gray-100', text: 'text-gray-700' };
 
-  const barColor = remaining <= 3 ? 'bg-red-500' : remaining <= 7 ? 'bg-yellow-400' : 'bg-green-500';
   const badgeColor = remaining <= 3 ? 'bg-red-500 text-white' : remaining <= 7 ? 'bg-yellow-400 text-yellow-900' : 'bg-green-100 text-green-800';
 
   return (
@@ -160,19 +158,10 @@ export const TournamentDetailPage = () => {
           ))}
         </div>
 
-        {/* 参加状況バー */}
-        <div className="px-5 py-4 border-t border-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs text-gray-500 font-medium">👥 参加状況</span>
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>残り{remaining}席</span>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-            <div className={`h-2.5 rounded-full transition-all duration-700 ${barColor}`} style={{ width: `${usedPercent}%` }} />
-          </div>
-          <div className="flex justify-between text-xs text-gray-400 mt-1.5">
-            <span>{entryCount}人申込済み</span>
-            <span>定員{tournament.capacity}名</span>
-          </div>
+        {/* 残席バッジ */}
+        <div className="flex items-center justify-between px-5 py-4 border-t border-gray-50">
+          <span className="text-xs text-gray-500 font-medium">👥 残席状況</span>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>残り{remaining}席</span>
         </div>
       </div>
 

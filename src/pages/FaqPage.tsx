@@ -210,6 +210,38 @@ export const FaqPage = () => {
         <p className="text-xs text-gray-400">8〜12球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要</p>
       </div>
 
+      {/* 参加費ガイド */}
+      <div className="mb-10">
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">💰</span>
+          <span className="font-extrabold text-gray-900 text-base sm:text-lg">参加費一覧</span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+          {/* シングルス */}
+          <div className="bg-white border-2 border-blue-200 rounded-2xl p-4">
+            <div className="text-xs font-bold text-blue-600 mb-1">シングルス</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥1,500<span className="text-sm font-normal text-gray-500"> / 人</span></div>
+            <p className="text-xs text-gray-500 leading-relaxed">シャトル持参必須（8〜12球）</p>
+          </div>
+          {/* ダブルス */}
+          <div className="bg-white border-2 border-indigo-200 rounded-2xl p-4">
+            <div className="text-xs font-bold text-indigo-600 mb-1">ダブルス・混合ダブルス</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,500<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
+            <p className="text-xs text-gray-500 leading-relaxed">シャトル持参必須（8〜12球）</p>
+          </div>
+          {/* 超初級 */}
+          <div className="bg-white border-2 border-green-200 rounded-2xl p-4">
+            <div className="text-xs font-bold text-green-600 mb-1">超初級ダブルス</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥4,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">シャトル持参不要</span>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed mt-1.5">シャトルは主催側が用意します</p>
+          </div>
+        </div>
+        <p className="text-xs text-gray-400">※ 参加費は大会カードに記載。事前支払い・当日支払いは大会ごとに異なります。</p>
+      </div>
+
       {/* FAQセクション */}
       <div className="space-y-8">
         {faqs.map((section) => (
