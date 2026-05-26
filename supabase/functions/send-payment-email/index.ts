@@ -20,6 +20,8 @@ interface PaymentEmailRequest {
   bank_account: string;
   paypay_id: string;
   payment_required: boolean;
+  cancel_link?: string;
+  is_waitlist?: boolean;
 }
 
 const headerStyle = (color: string) => `
@@ -72,6 +74,7 @@ serve(async (req: Request) => {
       to, name, phone, notes, partner_name,
       tournament_title, tournament_date, payment_deadline,
       bank_account, paypay_id, payment_required,
+      cancel_link, is_waitlist,
     } = (await req.json()) as PaymentEmailRequest;
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -87,6 +90,82 @@ serve(async (req: Request) => {
       : "未定";
 
     const results: string[] = [];
+
+    // ── 0. キャンセル待ちメール ──
+    if (is_waitlist) {
+      const partnerRow = partner_name
+        ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;">ペアの相手</td><td style="padding:10px 0;font-weight:600;">${partner_name}</td></tr>`
+        : "";
+
+      const waitlistHtml = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+    <div style="background:linear-gradient(135deg,#b45309 0%,#d97706 50%,#f59e0b 100%);padding:28px 32px;border-radius:16px 16px 0 0;">
+      <div style="font-size:28px;margin-bottom:8px;">⏳</div>
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.5px;">川口・蕨バド交流杯</h1>
+      <p style="color:#fef3c7;margin:6px 0 0;font-size:14px;">キャンセル待ち登録完了</p>
+    </div>
+    <div style="${bodyStyle}">
+      <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
+      <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">キャンセル待ちにご登録いただきありがとうございます。</p>
+      <div style="${infoCardStyle}">
+        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;letter-spacing:0.5px;">📋 登録内容</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">開催日</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">お名前</td><td style="padding:10px 0;font-weight:600;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">${name}</td></tr>
+          ${partnerRow}
+        </table>
+      </div>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:16px 20px;margin:20px 0;">
+        <p style="margin:0 0 8px;font-size:14px;color:#92400e;font-weight:700;">⏳ キャンセル待ち中</p>
+        <p style="margin:0;font-size:13px;color:#78350f;line-height:1.6;">現在満員のため、キャンセル待ちとなっています。<br>キャンセルが発生した場合、このメールアドレスに繰り上げ当選のご連絡をします。</p>
+      </div>
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
+        <p style="font-size:13px;color:#9ca3af;margin:0 0 4px;">ご不明な点はこのメールに返信してください。</p>
+        <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
+  </div>
+</body>
+</html>`;
+
+      const res0 = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          reply_to: ADMIN_EMAIL,
+          to: [to],
+          subject: `【キャンセル待ち登録完了】${tournament_title}`,
+          text: `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」のキャンセル待ちにご登録いただきありがとうございます。\n\n開催日：${eventDate}\n\n現在満員のため、キャンセル待ちとなっています。\nキャンセルが発生した際に、このメールアドレスへ繰り上げ当選のご連絡をします。\n\n川口・蕨バド交流杯`.trim(),
+          html: waitlistHtml,
+        }),
+      });
+      if (!res0.ok) throw new Error(`Waitlist email error: ${res0.status} ${await res0.text()}`);
+      const r0 = await res0.json();
+      results.push(r0.id);
+
+      // 管理者にも通知（キャンセル待ち）
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          to: [ADMIN_EMAIL],
+          subject: `【キャンセル待ち登録】${name}さんが${tournament_title}のキャンセル待ちに登録しました`,
+          text: `キャンセル待ち登録\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n大会：${tournament_title}\n開催日：${eventDate}`.trim(),
+        }),
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, email_ids: results }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     // ── 1. 参加者向けメール ──
     if (payment_required) {
@@ -153,6 +232,14 @@ serve(async (req: Request) => {
         <div style="${warningStyle}">
           ✏️ 送金時のメッセージに「<strong>${name}</strong>」とご記入ください
         </div>
+      </div>` : ""}
+
+      <!-- キャンセルリンク -->
+      ${cancel_link ? `
+      <div style="margin-top:16px;padding:14px 18px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;font-weight:600;">❌ キャンセルについて</p>
+        <p style="margin:0 0 6px;font-size:12px;color:#6b7280;">キャンセルが必要な場合は期限内に以下のリンクからお手続きください。</p>
+        <a href="${cancel_link}" style="font-size:12px;color:#dc2626;word-break:break-all;">${cancel_link}</a>
       </div>` : ""}
 
       <!-- フッター -->

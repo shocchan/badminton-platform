@@ -172,7 +172,11 @@ export const HomePage = () => {
 
   useEffect(() => {
     const fetchEntryCounts = async () => {
-      const { data } = await supabase.from('entries').select('tournament_id');
+      // confirmed のみカウント（waitlist・cancelled は残席に影響しない）
+      const { data } = await supabase
+        .from('entries')
+        .select('tournament_id')
+        .eq('status', 'confirmed');
       if (data) {
         const counts: Record<number, number> = {};
         data.forEach(e => {
@@ -444,6 +448,7 @@ export const HomePage = () => {
       {selectedTournament && (
         <EntryForm
           tournament={selectedTournament}
+          entryCount={entryCounts[selectedTournament.id] || 0}
           onClose={() => setSelectedTournament(null)}
         />
       )}

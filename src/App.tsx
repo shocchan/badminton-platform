@@ -14,6 +14,7 @@ const NotFoundPage       = lazy(() => import('./pages/NotFoundPage').then(m => (
 const LevelGuidePage     = lazy(() => import('./pages/LevelGuidePage').then(m => ({ default: m.LevelGuidePage })));
 const CancelPolicyPage   = lazy(() => import('./pages/CancelPolicyPage').then(m => ({ default: m.CancelPolicyPage })));
 const FaqPage            = lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
+const CancelEntryPage    = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
 
 // ローディングフォールバック
 const PageLoader = () => (
@@ -38,6 +39,7 @@ const AnimatedRoutes = () => {
           <Route path="/level-guide" element={<LevelGuidePage />} />
           <Route path="/cancel-policy" element={<CancelPolicyPage />} />
           <Route path="/faq" element={<FaqPage />} />
+          <Route path="/cancel" element={<CancelEntryPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

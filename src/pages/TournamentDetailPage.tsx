@@ -44,7 +44,8 @@ export const TournamentDetailPage = () => {
       const { data: entries } = await supabase
         .from('entries')
         .select('id')
-        .eq('tournament_id', id);
+        .eq('tournament_id', id)
+        .eq('status', 'confirmed');
       setEntryCount(entries?.length ?? 0);
       setLoading(false);
     };
@@ -219,7 +220,7 @@ export const TournamentDetailPage = () => {
         />
       )}
       {showForm && (
-        <EntryForm tournament={tournament} onClose={() => setShowForm(false)} />
+        <EntryForm tournament={tournament} entryCount={entryCount} onClose={() => setShowForm(false)} />
       )}
     </main>
   );
