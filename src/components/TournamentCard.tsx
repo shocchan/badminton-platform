@@ -264,6 +264,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           ) : tournament.status === 'active' ? (
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
+              aria-label={`${tournament.title}に申し込む`}
               className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base`}
             >
               申し込む →
