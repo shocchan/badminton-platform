@@ -120,20 +120,8 @@ export const FaqPage = () => {
       <div className="mb-10 space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-xl">🏸</span>
-          <span className="font-extrabold text-gray-900 text-base sm:text-lg">シャトル持参ガイド</span>
+          <span className="font-extrabold text-gray-900 text-base sm:text-lg">使用OK・NGシャトルガイド</span>
           <span className="text-xs text-gray-400 font-normal">（超初級ダブルスを除く）</span>
-        </div>
-
-        {/* 推奨番手 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
-            <div className="text-xs text-gray-500 mb-1">🌸 4月〜9月（推奨）</div>
-            <div className="font-extrabold text-blue-700 text-xl">3番</div>
-          </div>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
-            <div className="text-xs text-gray-500 mb-1">🍂 10月〜3月（推奨）</div>
-            <div className="font-extrabold text-blue-700 text-xl">4番</div>
-          </div>
         </div>
 
         {/* OK商品 */}
@@ -142,7 +130,7 @@ export const FaqPage = () => {
             <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">✓</span>
             使用OK（第2種検定球以上・羽毛のみ）
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
             {/* AS-700 */}
             <div className="bg-white border-2 border-green-200 rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 mb-2">
@@ -153,7 +141,7 @@ export const FaqPage = () => {
                 </div>
                 <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">一般大会・練習会でよく使われるスタンダード。コスパと品質のバランスが◎</p>
+              <p className="text-xs text-gray-500 mb-3">一般大会でよく使われるスタンダード。コスパと品質のバランスが◎</p>
               <a
                 href="https://www.amazon.co.jp/s?k=ヨネックス+エアロセンサ700+AS-700"
                 target="_blank"
@@ -173,9 +161,29 @@ export const FaqPage = () => {
                 </div>
                 <span className="flex-shrink-0 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">第1種検定</span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">国内の主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス</p>
+              <p className="text-xs text-gray-500 mb-3">国内主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス</p>
               <a
                 href="https://www.amazon.co.jp/s?k=ヨネックス+ニューオフィシャル+F-80"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+              >
+                <span>🛒</span> Amazonで見る
+              </a>
+            </div>
+            {/* RSL シルバーフェザー */}
+            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div className="text-xs font-bold text-blue-700 mb-0.5">RSL</div>
+                  <div className="font-extrabold text-gray-900 text-sm leading-tight">シルバーフェザー</div>
+                  <div className="text-xs text-gray-400">Silver Feather</div>
+                </div>
+                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">マレーシア老舗ブランド。ヨネックスより安価で耐久性が高く、コスパ最強と人気</p>
+              <a
+                href="https://www.amazon.co.jp/s?k=RSL+シルバーフェザー+シャトル"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"

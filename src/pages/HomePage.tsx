@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { EntryForm } from '../components/EntryForm';
@@ -27,36 +27,32 @@ const LEVEL_LEGEND = [
 // ── カレンダーコンポーネント ──────────────────────────────
 interface CalendarProps {
   tournaments: Tournament[];
-  entryCounts: Record<number, number>;
-  onApply: (t: Tournament) => void;
+  selectedDate: string | null;
+  onSelectDate: (date: string | null) => void;
 }
 
-const TournamentCalendar = ({ tournaments, entryCounts, onApply }: CalendarProps) => {
+const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: CalendarProps) => {
   const today = new Date();
   const [year, setYear]   = useState(today.getFullYear());
-  const [month, setMonth] = useState(today.getMonth()); // 0-indexed
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [month, setMonth] = useState(today.getMonth());
 
   const prevMonth = () => {
     if (month === 0) { setMonth(11); setYear(y => y - 1); }
     else setMonth(m => m - 1);
-    setSelectedDate(null);
   };
   const nextMonth = () => {
     if (month === 11) { setMonth(0); setYear(y => y + 1); }
     else setMonth(m => m + 1);
-    setSelectedDate(null);
   };
 
   const daysInMonth    = new Date(year, month + 1, 0).getDate();
-  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0=日
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
 
   const toDateStr = (day: number) =>
     `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
   const todayStr =
     `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
-  // 日付→大会 マッピング
   const byDate: Record<string, Tournament[]> = {};
   tournaments.forEach(t => {
     const d = t.event_date.slice(0, 10);
@@ -64,139 +60,87 @@ const TournamentCalendar = ({ tournaments, entryCounts, onApply }: CalendarProps
     byDate[d].push(t);
   });
 
-  const selectedTournaments = selectedDate ? (byDate[selectedDate] ?? []) : [];
-
   return (
-    <div>
-      {/* カレンダー本体 */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        {/* ヘッダー */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <button
-            onClick={prevMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors text-lg"
-          >‹</button>
-          <span className="font-extrabold text-gray-900 text-base">
-            {year}年 {month + 1}月
-          </span>
-          <button
-            onClick={nextMonth}
-            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors text-lg"
-          >›</button>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      {/* ヘッダー */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <button
+          onClick={prevMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
+        >‹</button>
+        <span className="font-extrabold text-gray-900 text-sm">
+          {year}年 {month + 1}月
+        </span>
+        <button
+          onClick={nextMonth}
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
+        >›</button>
+      </div>
+
+      <div className="p-3">
+        {/* 曜日 */}
+        <div className="grid grid-cols-7 mb-1">
+          {['日','月','火','水','木','金','土'].map((d, i) => (
+            <div key={d} className={`text-center text-xs font-bold py-1 ${
+              i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'
+            }`}>{d}</div>
+          ))}
         </div>
 
-        <div className="p-3 sm:p-4">
-          {/* 曜日ヘッダー */}
-          <div className="grid grid-cols-7 mb-1">
-            {['日','月','火','水','木','金','土'].map((d, i) => (
+        {/* 日付グリッド */}
+        <div className="grid grid-cols-7 gap-0.5">
+          {Array.from({ length: firstDayOfWeek }).map((_, i) => <div key={`e${i}`} />)}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day    = i + 1;
+            const ds     = toDateStr(day);
+            const tours  = byDate[ds] ?? [];
+            const hasTour    = tours.length > 0;
+            const isToday    = ds === todayStr;
+            const isSelected = ds === selectedDate;
+            const dow = new Date(year, month, day).getDay();
+
+            return (
               <div
-                key={d}
-                className={`text-center text-xs font-bold py-1.5 ${
-                  i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'
-                }`}
-              >{d}</div>
-            ))}
-          </div>
-
-          {/* 日付グリッド */}
-          <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
-            {/* 空白セル */}
-            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-              <div key={`e${i}`} />
-            ))}
-            {/* 日付セル */}
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day  = i + 1;
-              const ds   = toDateStr(day);
-              const tours = byDate[ds] ?? [];
-              const hasTour    = tours.length > 0;
-              const isToday    = ds === todayStr;
-              const isSelected = ds === selectedDate;
-              const dow = new Date(year, month, day).getDay();
-              const isSun = dow === 0;
-              const isSat = dow === 6;
-
-              return (
-                <div
-                  key={day}
-                  onClick={() => hasTour && setSelectedDate(isSelected ? null : ds)}
-                  className={[
-                    'rounded-xl flex flex-col items-center py-1.5 px-0.5 min-h-[50px] sm:min-h-[56px] transition-colors',
-                    hasTour ? 'cursor-pointer hover:bg-blue-50' : '',
-                    isSelected ? 'bg-blue-100 ring-2 ring-blue-400 ring-inset' : '',
-                    isToday && !isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300 ring-inset' : '',
-                  ].join(' ')}
-                >
-                  <span className={[
-                    'text-xs font-bold mb-1',
-                    isSun ? 'text-red-500' : isSat ? 'text-blue-500' : 'text-gray-700',
-                    isToday ? '!text-yellow-600' : '',
-                  ].join(' ')}>
-                    {day}
-                  </span>
-                  <div className="flex flex-wrap gap-0.5 justify-center">
-                    {tours.map(t => (
-                      <span
-                        key={t.id}
-                        className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: levelColor(t.level) }}
-                        title={t.title}
-                      />
-                    ))}
-                  </div>
+                key={day}
+                onClick={() => hasTour && onSelectDate(isSelected ? null : ds)}
+                className={[
+                  'rounded-lg flex flex-col items-center py-1 px-0.5 min-h-[46px] transition-colors',
+                  hasTour ? 'cursor-pointer hover:bg-blue-50' : '',
+                  isSelected ? 'bg-blue-100 ring-2 ring-blue-400 ring-inset' : '',
+                  isToday && !isSelected ? 'bg-yellow-50 ring-2 ring-yellow-300 ring-inset' : '',
+                ].join(' ')}
+              >
+                <span className={[
+                  'text-xs font-semibold mb-0.5',
+                  dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700',
+                  isToday ? '!text-yellow-600 font-extrabold' : '',
+                ].join(' ')}>
+                  {day}
+                </span>
+                <div className="flex flex-wrap gap-0.5 justify-center">
+                  {tours.map(t => (
+                    <span
+                      key={t.id}
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ backgroundColor: levelColor(t.level) }}
+                    />
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* 凡例 */}
-      <div className="flex flex-wrap gap-3 mt-3 px-1">
+      <div className="flex flex-wrap gap-2 px-3 pb-3">
         {LEVEL_LEGEND.map(item => (
-          <div key={item.label} className="flex items-center gap-1.5 text-xs text-gray-500">
-            <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+          <div key={item.label} className="flex items-center gap-1 text-xs text-gray-500">
+            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
             {item.label}
           </div>
         ))}
-        <div className="flex items-center gap-1.5 text-xs text-gray-400">
-          <span className="w-2.5 h-2.5 rounded border-2 border-yellow-300 flex-shrink-0" />
-          今日
-        </div>
       </div>
-
-      {/* 選択日の大会一覧 */}
-      {selectedDate && (
-        <div className="mt-6">
-          <h3 className="font-bold text-gray-800 text-sm mb-3">
-            📅{' '}
-            {new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', {
-              month: 'long', day: 'numeric', weekday: 'short',
-            })}の大会
-          </h3>
-          {selectedTournaments.length > 0 ? (
-            <div className="grid sm:grid-cols-2 gap-4">
-              {selectedTournaments.map(tournament => (
-                <TournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  entryCount={entryCounts[tournament.id] || 0}
-                  onApply={onApply}
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400">この日の大会はありません</p>
-          )}
-        </div>
-      )}
-
-      {/* 大会がない月の場合 */}
-      {Object.keys(byDate).length === 0 && (
-        <p className="text-center text-sm text-gray-400 mt-6">
-          この月に予定されている大会はありません
-        </p>
-      )}
     </div>
   );
 };
@@ -204,12 +148,13 @@ const TournamentCalendar = ({ tournaments, entryCounts, onApply }: CalendarProps
 // ── メインページ ──────────────────────────────────────────
 export const HomePage = () => {
   const { tournaments, loading, error } = useTournaments();
-  const [selectedTournament, setSelectedTournament]   = useState<Tournament | null>(null);
-  const [preEntryTournament, setPreEntryTournament]   = useState<Tournament | null>(null);
-  const [entryCounts, setEntryCounts]                 = useState<Record<number, number>>({});
-  const [filterLevel, setFilterLevel]                 = useState<string>('全て');
-  const [filterType,  setFilterType]                  = useState<string>('全て');
-  const [viewMode, setViewMode]                       = useState<'list' | 'calendar'>('list');
+  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+  const [preEntryTournament, setPreEntryTournament] = useState<Tournament | null>(null);
+  const [entryCounts, setEntryCounts]               = useState<Record<number, number>>({});
+  const [filterLevel, setFilterLevel]               = useState<string>('全て');
+  const [filterType,  setFilterType]                = useState<string>('全て');
+  const [selectedDate, setSelectedDate]             = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchEntryCounts = async () => {
@@ -229,11 +174,26 @@ export const HomePage = () => {
   const levels = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.level)))];
   const types  = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.event_type)))];
 
+  const handleDateSelect = (date: string | null) => {
+    setSelectedDate(date);
+    // モバイル: 日付選択したらリスト部分へスクロール
+    if (date && listRef.current) {
+      setTimeout(() => {
+        listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  };
+
   const filteredTournaments = activeTournaments.filter(t => {
     const levelOk = filterLevel === '全て' || t.level === filterLevel;
     const typeOk  = filterType  === '全て' || t.event_type === filterType;
-    return levelOk && typeOk;
+    const dateOk  = !selectedDate || t.event_date.slice(0, 10) === selectedDate;
+    return levelOk && typeOk && dateOk;
   });
+
+  const selectedDateLabel = selectedDate
+    ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })
+    : null;
 
   return (
     <main>
@@ -269,79 +229,6 @@ export const HomePage = () => {
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
 
-        {!loading && !error && activeTournaments.length > 0 && (
-          <div className="mb-8">
-            {/* タイトル＋ビュー切り替え */}
-            <div className="flex items-center justify-between mb-4 gap-4">
-              <h2 className="text-xl font-bold text-gray-800">開催予定の大会</h2>
-              <div className="flex bg-gray-100 rounded-xl p-1 gap-1 flex-shrink-0">
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                    viewMode === 'list'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <span>📋</span> リスト
-                </button>
-                <button
-                  onClick={() => setViewMode('calendar')}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
-                    viewMode === 'calendar'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <span>📅</span> カレンダー
-                </button>
-              </div>
-            </div>
-
-            {/* フィルター（リストビューのみ表示） */}
-            {viewMode === 'list' && (levels.length > 2 || types.length > 2) && (
-              <div className="flex flex-wrap gap-4">
-                {levels.length > 2 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-gray-500 font-medium">レベル：</span>
-                    {levels.map(level => (
-                      <button
-                        key={level}
-                        onClick={() => setFilterLevel(level)}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                          filterLevel === level
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {types.length > 2 && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-gray-500 font-medium">種目：</span>
-                    {types.map(type => (
-                      <button
-                        key={type}
-                        onClick={() => setFilterType(type)}
-                        className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
-                          filterType === type
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {loading && (
           <div className="flex justify-center py-20">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
@@ -357,40 +244,113 @@ export const HomePage = () => {
           </div>
         )}
 
-        {/* カレンダービュー */}
-        {!loading && !error && viewMode === 'calendar' && (
-          <TournamentCalendar
-            tournaments={activeTournaments}
-            entryCounts={entryCounts}
-            onApply={setPreEntryTournament}
-          />
-        )}
+        {!loading && !error && activeTournaments.length > 0 && (
+          /* デスクトップ: 左カレンダー sticky + 右リスト / モバイル: 縦並び */
+          <div className="lg:grid lg:grid-cols-[320px_1fr] lg:gap-8 lg:items-start">
 
-        {/* リストビュー */}
-        {!loading && !error && viewMode === 'list' && (
-          <>
-            {filteredTournaments.length === 0 && activeTournaments.length > 0 && (
-              <div className="text-center py-12 text-gray-400">
-                <p>該当する大会がありません</p>
+            {/* ── 左: カレンダー（デスクトップで sticky） ── */}
+            <div className="lg:sticky lg:top-6 mb-6 lg:mb-0">
+              <h2 className="text-base font-extrabold text-gray-800 mb-3">📅 開催カレンダー</h2>
+              <TournamentCalendar
+                tournaments={activeTournaments}
+                selectedDate={selectedDate}
+                onSelectDate={handleDateSelect}
+              />
+              {selectedDate && (
                 <button
-                  onClick={() => { setFilterLevel('全て'); setFilterType('全て'); }}
-                  className="mt-3 text-sm text-blue-600 hover:underline"
+                  onClick={() => setSelectedDate(null)}
+                  className="mt-2 w-full text-xs text-blue-600 hover:underline py-1"
                 >
-                  フィルターをリセット
+                  ✕ 絞り込みを解除して全大会を表示
                 </button>
-              </div>
-            )}
-            <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-              {filteredTournaments.map(tournament => (
-                <TournamentCard
-                  key={tournament.id}
-                  tournament={tournament}
-                  entryCount={entryCounts[tournament.id] || 0}
-                  onApply={setPreEntryTournament}
-                />
-              ))}
+              )}
             </div>
-          </>
+
+            {/* ── 右: 大会リスト ── */}
+            <div ref={listRef}>
+              {/* リストヘッダー */}
+              <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+                <h2 className="text-base font-extrabold text-gray-800">
+                  {selectedDateLabel
+                    ? <span>📋 {selectedDateLabel}の大会</span>
+                    : '📋 開催予定の大会'
+                  }
+                </h2>
+              </div>
+
+              {/* フィルター */}
+              {!selectedDate && (levels.length > 2 || types.length > 2) && (
+                <div className="flex flex-wrap gap-3 mb-5">
+                  {levels.length > 2 && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs text-gray-500 font-medium">レベル：</span>
+                      {levels.map(level => (
+                        <button
+                          key={level}
+                          onClick={() => setFilterLevel(level)}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                            filterLevel === level
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {level}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {types.length > 2 && (
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-xs text-gray-500 font-medium">種目：</span>
+                      {types.map(type => (
+                        <button
+                          key={type}
+                          onClick={() => setFilterType(type)}
+                          className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
+                            filterType === type
+                              ? 'bg-blue-600 text-white shadow-sm'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 大会カード */}
+              {filteredTournaments.length === 0 ? (
+                <div className="text-center py-16 text-gray-400">
+                  <div className="text-4xl mb-3">🏸</div>
+                  <p className="text-sm">
+                    {selectedDate ? 'この日の大会はありません' : '該当する大会がありません'}
+                  </p>
+                  {(selectedDate || filterLevel !== '全て' || filterType !== '全て') && (
+                    <button
+                      onClick={() => { setSelectedDate(null); setFilterLevel('全て'); setFilterType('全て'); }}
+                      className="mt-3 text-sm text-blue-600 hover:underline"
+                    >
+                      すべての大会を表示
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {filteredTournaments.map(tournament => (
+                    <TournamentCard
+                      key={tournament.id}
+                      tournament={tournament}
+                      entryCount={entryCounts[tournament.id] || 0}
+                      onApply={setPreEntryTournament}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
         )}
       </div>
 
