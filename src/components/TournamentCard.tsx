@@ -31,12 +31,21 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
+  const usedPercent = tournament.capacity > 0
+    ? Math.min(100, Math.round((entryCount / tournament.capacity) * 100))
+    : 0;
 
   const remainingColor = remaining <= 3
     ? 'bg-red-500 text-white'
     : remaining <= 7
     ? 'bg-yellow-400 text-yellow-900'
     : 'bg-green-100 text-green-800';
+
+  const barColor = remaining <= 3
+    ? 'bg-red-500'
+    : remaining <= 7
+    ? 'bg-yellow-400'
+    : 'bg-green-500';
 
   const countdownLabel = daysUntil < 0
     ? '開催済み'
@@ -94,18 +103,29 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             <div className="text-gray-500 text-xs mb-1">💰 参加費</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">¥{tournament.entry_fee.toLocaleString()}</div>
           </div>
-          <div>
+          <div className="col-span-2">
             <div className="text-gray-500 text-xs mb-1">⚠️ キャンセル期限</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate(tournament.cancel_deadline)}</div>
           </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1">👥 残り席数</div>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${remainingColor}`}>
-                残り{remaining}席
-              </span>
-              <span className="text-xs text-gray-400">/ {tournament.capacity}名</span>
-            </div>
+        </div>
+
+        {/* 席数プログレスバー */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs text-gray-500 font-medium">👥 参加状況</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${remainingColor}`}>
+              残り{remaining}席
+            </span>
+          </div>
+          <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-2 rounded-full transition-all duration-700 ${barColor}`}
+              style={{ width: `${usedPercent}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-400 mt-1">
+            <span>{entryCount}人申込済み</span>
+            <span>定員{tournament.capacity}名</span>
           </div>
         </div>
 
