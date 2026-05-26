@@ -42,7 +42,7 @@ const faqs = [
       },
       {
         q: 'シャトルの種類（ナイロン・羽毛）はどちらでもいいですか？',
-        a: '羽毛シャトルのみ使用可能です。ナイロン製は使用不可となります。日本バドミントン協会またはBWF認定の第2種検定球以上をご用意ください。例：ヨネックス「エアロセンサ300／500」、ミズノ「ミズノ練習球」など。',
+        a: '羽毛シャトルのみ使用可能です。ナイロン製は使用不可です。また、羽毛でも検定なしの練習球（エアロセンサ500以下など）は使用不可となります。使用可能なのは日本バドミントン協会またはBWF認定の第2種検定球以上のみです。例：ヨネックス「エアロセンサ700（AS-700）」「ニューオフィシャル（F-80）」など。',
       },
       {
         q: 'ラケットは貸し出ししていますか？',
@@ -116,23 +116,89 @@ export const FaqPage = () => {
         </p>
       </div>
 
-      {/* シャトル番手クイックリファレンス */}
-      <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-10">
-        <div className="flex items-center gap-2 mb-3">
+      {/* シャトル持参ガイド */}
+      <div className="mb-10 space-y-4">
+        <div className="flex items-center gap-2">
           <span className="text-xl">🏸</span>
-          <span className="font-extrabold text-blue-900">シャトル持参ガイド（超初級ダブルスを除く）</span>
+          <span className="font-extrabold text-gray-900 text-base sm:text-lg">シャトル持参ガイド</span>
+          <span className="text-xs text-gray-400 font-normal">（超初級ダブルスを除く）</span>
         </div>
-        <div className="grid sm:grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl p-3 border border-blue-200 text-center">
-            <div className="text-xs text-gray-500 mb-1">🌸 4月〜9月</div>
-            <div className="font-extrabold text-blue-700 text-lg">3番</div>
+
+        {/* 推奨番手 */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+            <div className="text-xs text-gray-500 mb-1">🌸 4月〜9月（推奨）</div>
+            <div className="font-extrabold text-blue-700 text-xl">3番</div>
           </div>
-          <div className="bg-white rounded-xl p-3 border border-blue-200 text-center">
-            <div className="text-xs text-gray-500 mb-1">🍂 10月〜3月</div>
-            <div className="font-extrabold text-blue-700 text-lg">4番</div>
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+            <div className="text-xs text-gray-500 mb-1">🍂 10月〜3月（推奨）</div>
+            <div className="font-extrabold text-blue-700 text-xl">4番</div>
           </div>
         </div>
-        <p className="text-xs text-gray-500 mt-3">第2種検定球以上・8〜12球 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要</p>
+
+        {/* OK商品 */}
+        <div>
+          <div className="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
+            <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">✓</span>
+            使用OK（第2種検定球以上・羽毛のみ）
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {/* AS-700 */}
+            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div className="text-xs font-bold text-red-600 mb-0.5">YONEX</div>
+                  <div className="font-extrabold text-gray-900 text-sm leading-tight">エアロセンサ700</div>
+                  <div className="text-xs text-gray-400">AS-700</div>
+                </div>
+                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">一般大会・練習会でよく使われるスタンダード。コスパと品質のバランスが◎</p>
+              <a
+                href="https://www.amazon.co.jp/s?k=ヨネックス+エアロセンサ700+AS-700"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+              >
+                <span>🛒</span> Amazonで見る
+              </a>
+            </div>
+            {/* F-80 */}
+            <div className="bg-white border-2 border-green-200 rounded-xl p-4">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div>
+                  <div className="text-xs font-bold text-red-600 mb-0.5">YONEX</div>
+                  <div className="font-extrabold text-gray-900 text-sm leading-tight">ニューオフィシャル</div>
+                  <div className="text-xs text-gray-400">F-80</div>
+                </div>
+                <span className="flex-shrink-0 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">第1種検定</span>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">国内の主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス</p>
+              <a
+                href="https://www.amazon.co.jp/s?k=ヨネックス+ニューオフィシャル+F-80"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+              >
+                <span>🛒</span> Amazonで見る
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* NG例 */}
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <div className="text-xs font-bold text-red-700 mb-1.5 flex items-center gap-1">
+            <span>🚫</span> 使用NG（持参しても使えません）
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {['ナイロン製シャトル全般', 'エアロセンサ600以下（AS-600/500/400/300/200）', 'メイビスシリーズ（ナイロン）'].map(ng => (
+              <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
+            ))}
+          </div>
+        </div>
+
+        <p className="text-xs text-gray-400">8〜12球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要</p>
       </div>
 
       {/* FAQセクション */}
