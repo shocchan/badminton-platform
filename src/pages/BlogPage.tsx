@@ -34,33 +34,36 @@ export const BlogPage = () => {
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {blogPosts.map(post => (
-          <article key={post.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col">
-            {post.image_url ? (
-              <img
-                src={post.image_url}
-                alt={post.title}
-                className="w-full h-44 sm:h-48 object-cover"
-                style={{ objectPosition: post.image_position || 'center center' }}
-              />
-            ) : (
-              <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl">
-                🏸
-              </div>
-            )}
-            <div className="p-4 sm:p-5 flex flex-col flex-1">
-              <p className="text-xs text-gray-400 mb-2">{formatDate(post.published_at)}</p>
-              <h2 className="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h2>
-              {post.excerpt && (
-                <p className="text-gray-500 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+          <Link
+            key={post.id}
+            to={`/blog/${post.id}`}
+            className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
+          >
+            <article className="flex flex-col flex-1">
+              {post.image_url ? (
+                <img
+                  src={post.image_url}
+                  alt={post.title}
+                  className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                  style={{ objectPosition: post.image_position || 'center center' }}
+                />
+              ) : (
+                <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl">
+                  🏸
+                </div>
               )}
-              <Link
-                to={`/blog/${post.id}`}
-                className="mt-auto text-blue-600 text-sm font-medium hover:underline"
-              >
-                詳細を見る →
-              </Link>
-            </div>
-          </article>
+              <div className="p-4 sm:p-5 flex flex-col flex-1">
+                <p className="text-xs text-gray-400 mb-2">{formatDate(post.published_at)}</p>
+                <h2 className="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h2>
+                {post.excerpt && (
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+                )}
+                <span className="mt-auto text-blue-600 text-sm font-medium group-hover:underline">
+                  詳細を見る →
+                </span>
+              </div>
+            </article>
+          </Link>
         ))}
       </div>
     </main>
