@@ -16,7 +16,7 @@ const levelColors: Record<string, string> = {
 };
 
 export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
 
