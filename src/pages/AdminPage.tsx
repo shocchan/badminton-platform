@@ -32,6 +32,14 @@ const parsePosPercent = (pos: string): [number, number] => {
   return [p(parts[0]), p(parts[1])];
 };
 
+// レベル×種目から参加費を自動算出
+const calcEntryFee = (level: string, eventType: string): number => {
+  const isDoubles = eventType.includes('ダブルス');
+  if (!isDoubles) return 1500;          // シングルス
+  if (level === '超初級') return 3000;  // 超初級ダブルス（シャトル込み）
+  return 2000;                          // その他ダブルス・混合
+};
+
 const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   title: '',
   level: '超初級',
@@ -41,7 +49,7 @@ const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   start_time: '',
   end_time: '',
   capacity: 16,
-  entry_fee: 2000,
+  entry_fee: calcEntryFee('超初級', 'シングルス'),
   cancel_deadline: '',
   description: '',
   status: 'active',
@@ -141,8 +149,28 @@ export const AdminPage = () => {
       .from('entries')
       .select('*, tournaments(title)')
       .order('created_at', { ascending: false });
-    setEntries(data || []);
+    setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
     setEntriesLoading(false);
+  };
+
+  const handlePromoteWaitlist = async (entryId: number, entryName: string) => {
+    if (!confirm(`${entryName}さんをキャンセル待ちから繰り上げ当選にしますか？\n（参加確定メールが送信されます）`)) return;
+    try {
+      await supabase.from('entries').update({ status: 'confirmed' }).eq('id', entryId);
+      await fetchEntries();
+    } catch (err) {
+      alert('繰り上げ処理に失敗しました');
+    }
+  };
+
+  const handleCancelEntry = async (entryId: number, entryName: string) => {
+    if (!confirm(`${entryName}さんの申し込みをキャンセルしますか？`)) return;
+    try {
+      await supabase.from('entries').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', entryId);
+      await fetchEntries();
+    } catch (err) {
+      alert('キャンセル処理に失敗しました');
+    }
   };
 
   const handleTournamentSubmit = async (e: React.FormEvent) => {
@@ -392,7 +420,10 @@ export const AdminPage = () => {
                   <select
                     required
                     value={tournamentForm.level}
-                    onChange={e => setTournamentForm(p => ({...p, level: e.target.value}))}
+                    onChange={e => {
+                      const level = e.target.value;
+                      setTournamentForm(p => ({...p, level, entry_fee: calcEntryFee(level, p.event_type)}));
+                    }}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {['超初級', '初級', '中級', 'オープン'].map(l => <option key={l}>{l}</option>)}
@@ -403,7 +434,10 @@ export const AdminPage = () => {
                   <select
                     required
                     value={tournamentForm.event_type}
-                    onChange={e => setTournamentForm(p => ({...p, event_type: e.target.value}))}
+                    onChange={e => {
+                      const eventType = e.target.value;
+                      setTournamentForm(p => ({...p, event_type: eventType, entry_fee: calcEntryFee(p.level, eventType)}));
+                    }}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {['シングルス', 'ダブルス', '混合ダブルス'].map(t => <option key={t}>{t}</option>)}
@@ -463,14 +497,26 @@ export const AdminPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">参加費（円） *</label>
-                  <input
-                    required
-                    type="number"
-                    value={tournamentForm.entry_fee}
-                    onChange={e => setTournamentForm(p => ({...p, entry_fee: Number(e.target.value)}))}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    参加費（円）
+                    <span className="text-xs text-blue-500 font-normal ml-1">※レベル×種目から自動設定</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      required
+                      type="number"
+                      value={tournamentForm.entry_fee}
+                      onChange={e => setTournamentForm(p => ({...p, entry_fee: Number(e.target.value)}))}
+                      className="w-full border-2 border-blue-300 bg-blue-50 rounded-xl px-3 py-2 text-sm font-bold text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTournamentForm(p => ({...p, entry_fee: calcEntryFee(p.level, p.event_type)}))}
+                      className="text-xs text-blue-600 hover:text-blue-800 whitespace-nowrap border border-blue-300 rounded-lg px-2 py-1.5"
+                    >
+                      リセット
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">定員 *</label>
@@ -838,8 +884,10 @@ export const AdminPage = () => {
             <h2 className="text-lg font-bold text-gray-800">エントリー一覧</h2>
             <button
               onClick={() => {
-                const header = ['大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日'];
+                const statusLabel = (s: string) => s === 'confirmed' ? '確定' : s === 'waitlist' ? 'キャンセル待ち' : s === 'cancelled' ? 'キャンセル' : '確定';
+                const header = ['ステータス', '大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日'];
                 const rows = entries.map(e => [
+                  statusLabel(e.status || 'confirmed'),
                   e.tournaments?.title || '',
                   e.name,
                   e.partner_name || '',
@@ -872,6 +920,7 @@ export const AdminPage = () => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">大会名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">参加者名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ペア名</th>
@@ -879,11 +928,26 @@ export const AdminPage = () => {
                     <th className="text-left px-4 py-3 font-medium text-gray-600">メール</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">備考</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">申込日</th>
+                    <th className="text-right px-4 py-3 font-medium text-gray-600">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {entries.map((entry) => (
-                    <tr key={entry.id} className="hover:bg-gray-50">
+                    <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-50' : ''}`}>
+                      <td className="px-4 py-3">
+                        {entry.status === 'confirmed' && (
+                          <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
+                        )}
+                        {entry.status === 'waitlist' && (
+                          <span className="text-xs px-2 py-1 rounded-full font-medium bg-amber-100 text-amber-700">待機</span>
+                        )}
+                        {entry.status === 'cancelled' && (
+                          <span className="text-xs px-2 py-1 rounded-full font-medium bg-gray-100 text-gray-500">取消</span>
+                        )}
+                        {!entry.status && (
+                          <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-gray-700">{entry.tournaments?.title || '-'}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{entry.name}</td>
                       <td className="px-4 py-3 text-gray-500">{entry.partner_name || '-'}</td>
@@ -891,10 +955,28 @@ export const AdminPage = () => {
                       <td className="px-4 py-3 text-gray-600">{entry.email}</td>
                       <td className="px-4 py-3 text-gray-500">{entry.notes || '-'}</td>
                       <td className="px-4 py-3 text-gray-500">{formatDate(entry.entry_date)}</td>
+                      <td className="px-4 py-3 text-right whitespace-nowrap">
+                        {entry.status === 'waitlist' && (
+                          <button
+                            onClick={() => handlePromoteWaitlist(entry.id, entry.name)}
+                            className="text-xs text-green-600 hover:underline mr-2 font-medium"
+                          >
+                            繰り上げ
+                          </button>
+                        )}
+                        {(entry.status === 'confirmed' || entry.status === 'waitlist' || !entry.status) && (
+                          <button
+                            onClick={() => handleCancelEntry(entry.id, entry.name)}
+                            className="text-xs text-red-500 hover:underline"
+                          >
+                            取消
+                          </button>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {entries.length === 0 && (
-                    <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
+                    <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
                   )}
                 </tbody>
               </table>

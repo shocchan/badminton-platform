@@ -67,6 +67,7 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <button
           onClick={prevMonth}
+          aria-label="前の月へ"
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
         >‹</button>
         <div className="flex items-center gap-2">
@@ -84,6 +85,7 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
         </div>
         <button
           onClick={nextMonth}
+          aria-label="次の月へ"
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
         >›</button>
       </div>
@@ -170,7 +172,11 @@ export const HomePage = () => {
 
   useEffect(() => {
     const fetchEntryCounts = async () => {
-      const { data } = await supabase.from('entries').select('tournament_id');
+      // confirmed のみカウント（waitlist・cancelled は残席に影響しない）
+      const { data } = await supabase
+        .from('entries')
+        .select('tournament_id')
+        .eq('status', 'confirmed');
       if (data) {
         const counts: Record<number, number> = {};
         data.forEach(e => {
@@ -224,18 +230,19 @@ export const HomePage = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/50 to-transparent" />
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="max-w-lg">
-            <h1 className="text-3xl sm:text-5xl font-extrabold mb-4 tracking-tight drop-shadow-lg">
-              🏸 川口・蕨バド交流杯
+            <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">川口・蕨バド交流杯</p>
+            <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg leading-tight">
+              仕事終わりに、<br />3試合以上。
             </h1>
-            <p className="text-blue-100 text-base sm:text-xl leading-relaxed mb-8 drop-shadow">
-              川口・蕨エリアで初心者から上級者まで<br className="hidden sm:inline" />
-              楽しめるバドミントン大会を開催しています
+            <p className="text-blue-100 text-sm sm:text-lg leading-relaxed mb-8 drop-shadow">
+              平日夜開催・川口蕨エリアのバドミントン大会。<br className="hidden sm:inline" />
+              超初級〜オープンまで全レベル歓迎！
             </p>
             <div className="flex flex-wrap gap-3 text-sm">
-              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📅 不定期開催</span>
+              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜開催</span>
+              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 3試合以上保証</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
-              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">⚡ 短時間・複数試合保証</span>
             </div>
           </div>
         </div>
@@ -256,12 +263,34 @@ export const HomePage = () => {
           </div>
         )}
         {error && (
-          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm">{error}</div>
+          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl text-sm flex items-start gap-3">
+            <span className="text-xl flex-shrink-0">⚠️</span>
+            <div>
+              <p className="font-bold mb-1">データの取得に失敗しました</p>
+              <p className="text-red-600">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-2 text-red-700 underline text-xs hover:no-underline"
+              >
+                再読み込みする
+              </button>
+            </div>
+          </div>
         )}
         {!loading && !error && activeTournaments.length === 0 && (
-          <div className="text-center py-20 text-gray-400">
-            <div className="text-5xl mb-4">🏸</div>
-            <p>現在予定されている大会はありません</p>
+          <div className="text-center py-24" role="status" aria-live="polite">
+            <div className="text-6xl mb-6">🏸</div>
+            <h2 className="text-xl font-bold text-gray-700 mb-2">現在、開催予定の大会はありません</h2>
+            <p className="text-sm text-gray-500 mb-6">新しい大会が決まり次第、こちらに掲載されます。<br />LINEやXでお知らせをお待ちください！</p>
+            <a
+              href="https://x.com/search?q=%E5%B7%9D%E5%8F%A3%E8%95%A8%E3%83%90%E3%83%89"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
+              aria-label="Xで最新情報をチェック（外部リンク）"
+            >
+              Xで最新情報をチェック →
+            </a>
           </div>
         )}
 
@@ -275,6 +304,8 @@ export const HomePage = () => {
               {/* モバイル用トグルボタン */}
               <button
                 onClick={() => setCalendarOpen(o => !o)}
+                aria-expanded={calendarOpen}
+                aria-controls="tournament-calendar"
                 className="lg:hidden w-full flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-4 py-3.5 shadow-sm mb-2 transition-colors hover:bg-gray-50"
               >
                 <div className="flex items-center gap-2">
@@ -292,7 +323,7 @@ export const HomePage = () => {
               </button>
 
               {/* カレンダー本体（モバイル: トグル / デスクトップ: 常時表示） */}
-              <div className={`lg:block ${calendarOpen ? 'block' : 'hidden'}`}>
+              <div id="tournament-calendar" className={`lg:block ${calendarOpen ? 'block' : 'hidden'}`}>
                 <h2 className="text-base font-extrabold text-gray-800 mb-3 hidden lg:block">📅 開催カレンダー</h2>
                 <TournamentCalendar
                   tournaments={activeTournaments}
@@ -302,6 +333,7 @@ export const HomePage = () => {
                 {selectedDate && (
                   <button
                     onClick={() => { setSelectedDate(null); setCalendarOpen(false); }}
+                    aria-label="日付の絞り込みを解除して全大会を表示"
                     className="mt-2 w-full text-xs text-blue-600 hover:underline py-1"
                   >
                     ✕ 絞り込みを解除して全大会を表示
@@ -332,6 +364,8 @@ export const HomePage = () => {
                         <button
                           key={level}
                           onClick={() => setFilterLevel(level)}
+                          aria-label={`レベル：${level}で絞り込む`}
+                          aria-pressed={filterLevel === level}
                           className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
                             filterLevel === level
                               ? 'bg-blue-600 text-white shadow-sm'
@@ -350,6 +384,8 @@ export const HomePage = () => {
                         <button
                           key={type}
                           onClick={() => setFilterType(type)}
+                          aria-label={`種目：${type}で絞り込む`}
+                          aria-pressed={filterType === type}
                           className={`text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
                             filterType === type
                               ? 'bg-blue-600 text-white shadow-sm'
@@ -374,6 +410,7 @@ export const HomePage = () => {
                   {(selectedDate || filterLevel !== '全て' || filterType !== '全て') && (
                     <button
                       onClick={() => { setSelectedDate(null); setFilterLevel('全て'); setFilterType('全て'); }}
+                      aria-label="フィルターをリセットしてすべての大会を表示"
                       className="mt-3 text-sm text-blue-600 hover:underline"
                     >
                       すべての大会を表示
@@ -411,6 +448,7 @@ export const HomePage = () => {
       {selectedTournament && (
         <EntryForm
           tournament={selectedTournament}
+          entryCount={entryCounts[selectedTournament.id] || 0}
           onClose={() => setSelectedTournament(null)}
         />
       )}

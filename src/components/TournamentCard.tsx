@@ -257,21 +257,26 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
         )}
 
         <div className="mt-auto">
-          {remaining <= 0 ? (
+          {tournament.status !== 'active' ? (
             <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
-              満員
+              中止
             </div>
-          ) : tournament.status === 'active' ? (
+          ) : remaining <= 0 ? (
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
+              aria-label={`${tournament.title}のキャンセル待ちに申し込む`}
+              className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base"
+            >
+              キャンセル待ちで申し込む →
+            </button>
+          ) : (
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
+              aria-label={`${tournament.title}に申し込む`}
               className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base`}
             >
               申し込む →
             </button>
-          ) : (
-            <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
-              中止
-            </div>
           )}
         </div>
       </div>

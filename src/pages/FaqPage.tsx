@@ -226,13 +226,13 @@ export const FaqPage = () => {
           {/* ダブルス */}
           <div className="bg-white border-2 border-indigo-200 rounded-2xl p-4">
             <div className="text-xs font-bold text-indigo-600 mb-1">ダブルス・混合ダブルス</div>
-            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,500<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
             <p className="text-xs text-gray-500 leading-relaxed">シャトル持参必須（8〜12球）</p>
           </div>
           {/* 超初級 */}
           <div className="bg-white border-2 border-green-200 rounded-2xl p-4">
             <div className="text-xs font-bold text-green-600 mb-1">超初級ダブルス</div>
-            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥4,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥3,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
             <div className="flex items-center gap-1 mt-1">
               <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">シャトル持参不要</span>
             </div>

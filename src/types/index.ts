@@ -31,6 +31,10 @@ export interface Entry {
   notes?: string;
   entry_date: string;
   created_at: string;
+  status: 'confirmed' | 'waitlist' | 'cancelled';
+  cancel_token?: string;
+  cancelled_at?: string;
+  cancel_reason?: string;
 }
 
 export interface BlogPost {
