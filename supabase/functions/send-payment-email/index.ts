@@ -347,6 +347,73 @@ serve(async (req: Request) => {
       if (!res1.ok) throw new Error(`Participant email error: ${res1.status} ${await res1.text()}`);
       const r1 = await res1.json();
       results.push(r1.id);
+    } else {
+      // ── 1b. 支払い不要の場合：申し込み完了確認メール ──
+      const partnerRow = partner_name
+        ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;">ペアの相手</td><td style="padding:10px 0;font-weight:600;">${partner_name}</td></tr>`
+        : "";
+
+      const cancelBlock = cancel_link
+        ? `<div style="margin-top:16px;padding:14px 18px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#991b1b;font-weight:600;">❌ キャンセルについて</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#6b7280;">キャンセル期限内であれば以下のリンクからお手続きできます。</p>
+        <a href="${cancel_link}" style="display:inline-block;background:#dc2626;color:#ffffff;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;text-decoration:none;">キャンセルする</a>
+      </div>`
+        : "";
+
+      const confirmHtml = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+    <div style="${headerStyle("linear-gradient(135deg,#065f46 0%,#059669 50%,#10b981 100%)")}">
+      <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.5px;">川口・蕨バド交流杯</h1>
+      <p style="color:#a7f3d0;margin:6px 0 0;font-size:14px;">申し込み受付完了</p>
+    </div>
+    <div style="${bodyStyle}">
+      <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
+      <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">ご申し込みありがとうございます。参加が確定しました！</p>
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:0 0 20px;">
+        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ 参加費は不要です。当日会場でお待ちしています！</p>
+      </div>
+      <div style="${infoCardStyle}">
+        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px;">📋 申し込み内容</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">開催日</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">お名前</td><td style="padding:10px 0;font-weight:600;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">${name}</td></tr>
+          ${partnerRow}
+        </table>
+      </div>
+      ${cancelBlock}
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
+        <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
+        <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
+  </div>
+</body>
+</html>`;
+
+      const confirmText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n参加費は不要です。当日会場でお待ちしています！\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}川口・蕨バド交流杯`.trim();
+
+      const res1b = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          reply_to: ADMIN_EMAIL,
+          to: [to],
+          subject: `【申し込み完了】${tournament_title}への参加が確定しました`,
+          text: confirmText,
+          html: confirmHtml,
+        }),
+      });
+      if (!res1b.ok) throw new Error(`Confirm email error: ${res1b.status} ${await res1b.text()}`);
+      const r1b = await res1b.json();
+      results.push(r1b.id);
     }
 
     // ── 2. 管理者向け通知メール ──
