@@ -6,6 +6,10 @@ import { useBlogPosts } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament, BlogPost, Entry } from '../types';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+
 type Tab = 'tournaments' | 'blog' | 'entries';
 
 // ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
@@ -78,6 +82,7 @@ export const AdminPage = () => {
   const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
@@ -156,19 +161,66 @@ export const AdminPage = () => {
   const handlePromoteWaitlist = async (entryId: number, entryName: string) => {
     if (!confirm(`${entryName}さんをキャンセル待ちから繰り上げ当選にしますか？\n（参加確定メールが送信されます）`)) return;
     try {
-      await supabase.from('entries').update({ status: 'confirmed' }).eq('id', entryId);
+      // 1. エントリーと大会情報を取得
+      const { data: entry } = await supabase
+        .from('entries')
+        .select('*, tournaments(*)')
+        .eq('id', entryId)
+        .single();
+
+      // 2. ステータスを confirmed に更新
+      const { error: updateErr } = await supabase
+        .from('entries')
+        .update({ status: 'confirmed' })
+        .eq('id', entryId);
+      if (updateErr) throw updateErr;
+
+      // 3. 繰り上げ当選メールを送信
+      if (entry) {
+        const t = entry.tournaments as Tournament;
+        const cancelLink = entry.cancel_token
+          ? `${window.location.origin}/cancel?token=${entry.cancel_token}`
+          : undefined;
+        await fetch(`${EDGE_BASE}/send-payment-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
+          body: JSON.stringify({
+            to: entry.email,
+            name: entry.name,
+            phone: entry.phone,
+            notes: entry.notes,
+            partner_name: entry.partner_name,
+            tournament_title: t?.title ?? '',
+            tournament_date: t?.event_date ?? '',
+            payment_deadline: t?.payment_deadline ?? '',
+            bank_account: t?.bank_account ?? '',
+            paypay_id: t?.paypay_id ?? '',
+            payment_required: t?.payment_required ?? false,
+            cancel_link: cancelLink,
+            is_promotion: true,
+          }),
+        });
+      }
+
       await fetchEntries();
+      alert(`✅ ${entryName}さんを繰り上げ当選にしました。確定メールを送信しました。`);
     } catch (err) {
+      console.error(err);
       alert('繰り上げ処理に失敗しました');
     }
   };
 
   const handleCancelEntry = async (entryId: number, entryName: string) => {
-    if (!confirm(`${entryName}さんの申し込みをキャンセルしますか？`)) return;
+    if (!confirm(`${entryName}さんの申し込みをキャンセルしますか？\nこの操作は取り消せません。`)) return;
     try {
-      await supabase.from('entries').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', entryId);
+      const { error } = await supabase
+        .from('entries')
+        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+        .eq('id', entryId);
+      if (error) throw error;
       await fetchEntries();
     } catch (err) {
+      console.error(err);
       alert('キャンセル処理に失敗しました');
     }
   };
@@ -881,7 +933,18 @@ export const AdminPage = () => {
       {activeTab === 'entries' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-800">エントリー一覧</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-gray-800">エントリー一覧</h2>
+              <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showCancelled}
+                  onChange={e => setShowCancelled(e.target.checked)}
+                  className="rounded"
+                />
+                取消済みも表示
+              </label>
+            </div>
             <button
               onClick={() => {
                 const statusLabel = (s: string) => s === 'confirmed' ? '確定' : s === 'waitlist' ? 'キャンセル待ち' : s === 'cancelled' ? 'キャンセル' : '確定';
@@ -932,8 +995,8 @@ export const AdminPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {entries.map((entry) => (
-                    <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-50' : ''}`}>
+                  {entries.filter(e => showCancelled || e.status !== 'cancelled').map((entry) => (
+                    <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''}`}>
                       <td className="px-4 py-3">
                         {entry.status === 'confirmed' && (
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>

@@ -22,6 +22,7 @@ interface PaymentEmailRequest {
   payment_required: boolean;
   cancel_link?: string;
   is_waitlist?: boolean;
+  is_promotion?: boolean;
 }
 
 const headerStyle = (color: string) => `
@@ -74,7 +75,7 @@ serve(async (req: Request) => {
       to, name, phone, notes, partner_name,
       tournament_title, tournament_date, payment_deadline,
       bank_account, paypay_id, payment_required,
-      cancel_link, is_waitlist,
+      cancel_link, is_waitlist, is_promotion,
     } = (await req.json()) as PaymentEmailRequest;
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -167,7 +168,81 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── 1. 参加者向けメール ──
+    // ── 0.5. 管理者手動繰り上げメール ──
+    if (is_promotion) {
+      const partnerRowP = partner_name
+        ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">ペアの相手</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${partner_name}</td></tr>`
+        : "";
+      const cancelBlockP = cancel_link ? `
+      <div style="margin-top:16px;padding:14px 18px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#991b1b;font-weight:600;">❌ キャンセルについて</p>
+        <p style="margin:0 0 8px;font-size:12px;color:#6b7280;">キャンセル期限内であれば以下のリンクからお手続きできます。</p>
+        <a href="${cancel_link}" style="display:inline-block;background:#dc2626;color:#ffffff;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;text-decoration:none;">キャンセルする</a>
+      </div>` : "";
+      const promoHtml = `<!DOCTYPE html>
+<html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+    <div style="${headerStyle("linear-gradient(135deg,#065f46 0%,#059669 50%,#10b981 100%)")}">
+      <div style="font-size:28px;margin-bottom:8px;">🎉</div>
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;">川口・蕨バド交流杯</h1>
+      <p style="color:#a7f3d0;margin:6px 0 0;font-size:14px;">繰り上げ当選のご案内</p>
+    </div>
+    <div style="${bodyStyle}">
+      <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
+      <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">キャンセルが発生し、繰り上げ当選となりました！</p>
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:0 0 20px;">
+        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">🎉 参加が確定しました！当日会場でお待ちしています。</p>
+      </div>
+      <div style="${infoCardStyle}">
+        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;letter-spacing:0.5px;">📋 大会情報</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">開催日</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">お名前</td><td style="padding:10px 0;font-weight:600;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">${name}</td></tr>
+          ${partnerRowP}
+        </table>
+      </div>
+      ${payment_required ? `<p style="font-size:14px;color:#374151;margin:16px 0 8px;font-weight:600;">参加費のお支払いをお願いします：</p>
+      ${bank_account ? `<div style="${payCardStyle}"><p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#1e3a8a;">🏦 銀行振込</p><p style="margin:0;font-size:14px;white-space:pre-line;line-height:1.8;">${bank_account}</p></div>` : ""}
+      ${paypay_id ? `<div style="${payCardStyle}"><p style="margin:0 0 8px;font-size:15px;font-weight:700;color:#dc2626;">📱 PayPay ID: ${paypay_id}</p><div style="${warningStyle}">✏️ 送金時は「${name}」とご記入ください</div></div>` : ""}` : ""}
+      ${cancelBlockP}
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
+        <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
+        <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
+  </div>
+</body></html>`;
+      const resP = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          reply_to: ADMIN_EMAIL,
+          to: [to],
+          subject: `【繰り上げ当選】${tournament_title} への参加が確定しました`,
+          text: `${name} 様\n\nキャンセルが発生し、繰り上げ当選となりました！\n\n大会名：${tournament_title}\n開催日：${eventDate}\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}当日会場でお待ちしています。\n\n川口・蕨バド交流杯`,
+          html: promoHtml,
+        }),
+      });
+      if (!resP.ok) throw new Error(`Promotion email error: ${resP.status} ${await resP.text()}`);
+      results.push((await resP.json()).id);
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          to: [ADMIN_EMAIL],
+          subject: `【繰り上げ完了】${name}さんを${tournament_title}に繰り上げました`,
+          text: `管理者操作による繰り上げ\n\nお名前：${name}\nメール：${to}\n大会：${tournament_title}\n開催日：${eventDate}`,
+        }),
+      });
+      return new Response(JSON.stringify({ success: true, email_ids: results }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+    }
+
+    // ── 1. 参加者向けメール（支払い必要な場合のみ） ──
     if (payment_required) {
       const partnerRow = partner_name
         ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;">ペアの相手</td><td style="padding:10px 0;font-weight:600;">${partner_name}</td></tr>`
