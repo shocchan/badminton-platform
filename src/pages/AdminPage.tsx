@@ -158,70 +158,39 @@ export const AdminPage = () => {
     setEntriesLoading(false);
   };
 
+  const callAdminFunction = async (action: 'cancel' | 'promote', entry_id: number) => {
+    const res = await fetch(`${EDGE_BASE}/process-admin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
+      body: JSON.stringify({ action, entry_id }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error ?? `HTTP ${res.status}`);
+    }
+    return res.json();
+  };
+
   const handlePromoteWaitlist = async (entryId: number, entryName: string) => {
     if (!confirm(`${entryName}さんをキャンセル待ちから繰り上げ当選にしますか？\n（参加確定メールが送信されます）`)) return;
     try {
-      // 1. エントリーと大会情報を取得
-      const { data: entry } = await supabase
-        .from('entries')
-        .select('*, tournaments(*)')
-        .eq('id', entryId)
-        .single();
-
-      // 2. ステータスを confirmed に更新
-      const { error: updateErr } = await supabase
-        .from('entries')
-        .update({ status: 'confirmed' })
-        .eq('id', entryId);
-      if (updateErr) throw updateErr;
-
-      // 3. 繰り上げ当選メールを送信
-      if (entry) {
-        const t = entry.tournaments as Tournament;
-        const cancelLink = entry.cancel_token
-          ? `${window.location.origin}/cancel?token=${entry.cancel_token}`
-          : undefined;
-        await fetch(`${EDGE_BASE}/send-payment-email`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ANON_KEY}` },
-          body: JSON.stringify({
-            to: entry.email,
-            name: entry.name,
-            phone: entry.phone,
-            notes: entry.notes,
-            partner_name: entry.partner_name,
-            tournament_title: t?.title ?? '',
-            tournament_date: t?.event_date ?? '',
-            payment_deadline: t?.payment_deadline ?? '',
-            bank_account: t?.bank_account ?? '',
-            paypay_id: t?.paypay_id ?? '',
-            payment_required: t?.payment_required ?? false,
-            cancel_link: cancelLink,
-            is_promotion: true,
-          }),
-        });
-      }
-
+      await callAdminFunction('promote', entryId);
       await fetchEntries();
       alert(`✅ ${entryName}さんを繰り上げ当選にしました。確定メールを送信しました。`);
     } catch (err) {
       console.error(err);
-      alert('繰り上げ処理に失敗しました');
+      alert('繰り上げ処理に失敗しました: ' + (err as Error).message);
     }
   };
 
   const handleCancelEntry = async (entryId: number, entryName: string) => {
     if (!confirm(`${entryName}さんの申し込みをキャンセルしますか？\nこの操作は取り消せません。`)) return;
     try {
-      const { error } = await supabase
-        .from('entries')
-        .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-        .eq('id', entryId);
-      if (error) throw error;
+      await callAdminFunction('cancel', entryId);
       await fetchEntries();
     } catch (err) {
       console.error(err);
-      alert('キャンセル処理に失敗しました');
+      alert('キャンセル処理に失敗しました: ' + (err as Error).message);
     }
   };
 
