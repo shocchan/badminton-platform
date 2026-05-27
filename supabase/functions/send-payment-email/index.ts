@@ -167,34 +167,33 @@ serve(async (req: Request) => {
       );
     }
 
-    // ── 1. 参加者向けメール（常に送信） ──
-    const partnerRow = partner_name
-      ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">ペアの相手</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${partner_name}</td></tr>`
-      : "";
+    // ── 1. 参加者向けメール ──
+    if (payment_required) {
+      const partnerRow = partner_name
+        ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;">ペアの相手</td><td style="padding:10px 0;font-weight:600;">${partner_name}</td></tr>`
+        : "";
 
-    const cancelBlock = cancel_link ? `
-      <div style="margin-top:16px;padding:14px 18px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;">
-        <p style="margin:0 0 6px;font-size:13px;color:#991b1b;font-weight:600;">❌ キャンセルについて</p>
-        <p style="margin:0 0 8px;font-size:12px;color:#6b7280;">キャンセル期限内であれば以下のリンクからお手続きできます。</p>
-        <a href="${cancel_link}" style="display:inline-block;background:#dc2626;color:#ffffff;font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;text-decoration:none;">キャンセルする</a>
-        <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;word-break:break-all;">${cancel_link}</p>
-      </div>` : "";
-
-    const participantHtml = payment_required ? `<!DOCTYPE html>
+      const participantHtml = `<!DOCTYPE html>
 <html lang="ja">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
   <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+
+    <!-- ヘッダー -->
     <div style="${headerStyle("linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#3b82f6 100%)")}">
       <div style="font-size:28px;margin-bottom:8px;">🏸</div>
       <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.5px;">川口・蕨バド交流杯</h1>
       <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">参加費お支払いのご案内</p>
     </div>
+
+    <!-- 本文 -->
     <div style="${bodyStyle}">
       <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
       <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">ご申し込みありがとうございます。</p>
+
+      <!-- 大会情報カード -->
       <div style="${infoCardStyle}">
-        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;letter-spacing:0.5px;">📋 申し込み内容</p>
+        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px;">📋 申し込み内容</p>
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
           <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">開催日</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}</td></tr>
@@ -202,90 +201,78 @@ serve(async (req: Request) => {
           ${partnerRow}
         </table>
       </div>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 20px;margin:20px 0;">
-        <p style="margin:0;font-size:13px;color:#991b1b;font-weight:700;">⏰ お支払い期限：${paymentDeadlineStr}</p>
+
+      <!-- 支払い期限バナー -->
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:16px 20px;margin:20px 0;display:flex;align-items:center;gap:12px;">
+        <span style="font-size:24px;">⏰</span>
+        <div>
+          <p style="margin:0;font-size:13px;color:#991b1b;font-weight:700;">お支払い期限</p>
+          <p style="margin:4px 0 0;font-size:18px;font-weight:700;color:#dc2626;">${paymentDeadlineStr}</p>
+        </div>
       </div>
+
       <p style="font-size:14px;color:#374151;margin:0 0 8px;font-weight:600;">以下のいずれか一方でお支払いください：</p>
+
       ${bank_account ? `
+      <!-- 銀行振込 -->
       <div style="${payCardStyle}">
         <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#1e3a8a;">🏦 銀行振込</p>
         <p style="margin:0 0 12px;font-size:14px;white-space:pre-line;color:#374141;line-height:1.8;">${bank_account}</p>
-        <div style="${warningStyle}">📧 振込後はこのメールに返信して「振込完了」とご連絡ください</div>
+        <div style="${warningStyle}">
+          📧 振込後はこのメールに返信して「振込完了」とご連絡ください
+        </div>
       </div>` : ""}
+
       ${paypay_id ? `
+      <!-- PayPay -->
       <div style="${payCardStyle}">
         <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#dc2626;">📱 PayPay</p>
         <p style="margin:0 0 4px;font-size:13px;color:#6b7280;">PayPay ID</p>
         <p style="margin:0 0 12px;font-size:18px;font-weight:700;color:#374141;">${paypay_id}</p>
-        <div style="${warningStyle}">✏️ 送金時のメッセージに「<strong>${name}</strong>」とご記入ください</div>
+        <div style="${warningStyle}">
+          ✏️ 送金時のメッセージに「<strong>${name}</strong>」とご記入ください
+        </div>
       </div>` : ""}
-      ${cancelBlock}
+
+      <!-- キャンセルリンク -->
+      ${cancel_link ? `
+      <div style="margin-top:16px;padding:14px 18px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;font-weight:600;">❌ キャンセルについて</p>
+        <p style="margin:0 0 6px;font-size:12px;color:#6b7280;">キャンセルが必要な場合は期限内に以下のリンクからお手続きください。</p>
+        <a href="${cancel_link}" style="font-size:12px;color:#dc2626;word-break:break-all;">${cancel_link}</a>
+      </div>` : ""}
+
+      <!-- フッター -->
       <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
         <p style="font-size:13px;color:#9ca3af;margin:0 0 4px;">お支払い確認後、参加確定のご連絡をいたします。</p>
         <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
         <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
       </div>
     </div>
-    <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
-  </div>
-</body>
-</html>` : `<!DOCTYPE html>
-<html lang="ja">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
-  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
-    <div style="${headerStyle("linear-gradient(135deg,#1d4ed8 0%,#2563eb 50%,#3b82f6 100%)")}">
-      <div style="font-size:28px;margin-bottom:8px;">🏸</div>
-      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.5px;">川口・蕨バド交流杯</h1>
-      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">申し込み完了のご案内</p>
-    </div>
-    <div style="${bodyStyle}">
-      <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
-      <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">ご申し込みありがとうございます。参加が確定しました！</p>
-      <div style="${infoCardStyle}">
-        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;letter-spacing:0.5px;">📋 申し込み内容</p>
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
-          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">開催日</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}</td></tr>
-          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">お名前</td><td style="padding:10px 0;font-weight:600;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">${name}</td></tr>
-          ${partnerRow}
-        </table>
-      </div>
-      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:20px 0;">
-        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ 参加確定です！当日会場でお待ちしています。</p>
-      </div>
-      ${cancelBlock}
-      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
-        <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
-        <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
-      </div>
-    </div>
+
     <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
   </div>
 </body>
 </html>`;
 
-    const participantText = payment_required
-      ? `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}${cancel_link ? `■ キャンセル\n${cancel_link}\n\n` : ""}お支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim()
-      : `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n${cancel_link ? `■ キャンセルはこちら\n${cancel_link}\n\n` : ""}当日会場でお待ちしています。\n\n川口・蕨バド交流杯`.trim();
+      const participantText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}お支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim();
 
-    const res1 = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
-        reply_to: ADMIN_EMAIL,
-        to: [to],
-        subject: payment_required
-          ? `【参加費支払い案内】${tournament_title}（期限：${paymentDeadlineStr}）`
-          : `【申し込み完了】${tournament_title}（${eventDate}）`,
-        text: participantText,
-        html: participantHtml,
-      }),
-    });
-    if (!res1.ok) throw new Error(`Participant email error: ${res1.status} ${await res1.text()}`);
-    const r1 = await res1.json();
-    results.push(r1.id);
+      const res1 = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          reply_to: ADMIN_EMAIL,
+          to: [to],
+          subject: `【参加費支払い案内】${tournament_title}（期限：${paymentDeadlineStr}）`,
+          text: participantText,
+          html: participantHtml,
+        }),
+      });
+      if (!res1.ok) throw new Error(`Participant email error: ${res1.status} ${await res1.text()}`);
+      const r1 = await res1.json();
+      results.push(r1.id);
+    }
 
     // ── 2. 管理者向け通知メール ──
     const partnerAdminRow = partner_name
