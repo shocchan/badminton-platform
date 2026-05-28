@@ -90,6 +90,10 @@ export const AdminPage = () => {
   const [tournamentError, setTournamentError] = useState<string | null>(null);
   const [tournamentSuccess, setTournamentSuccess] = useState(false);
 
+  // 削除確認ダイアログ
+  const [deleteConfirmTournament, setDeleteConfirmTournament] = useState<Tournament | null>(null);
+  const [deleteConfirmInput, setDeleteConfirmInput] = useState('');
+
   const [showPostForm, setShowPostForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [postForm, setPostForm] = useState(EMPTY_POST);
@@ -237,10 +241,17 @@ export const AdminPage = () => {
     setShowTournamentForm(true);
   };
 
-  const handleDeleteTournament = async (id: number) => {
-    if (!confirm('この大会を削除しますか？')) return;
+  const handleDeleteTournament = (t: Tournament) => {
+    setDeleteConfirmTournament(t);
+    setDeleteConfirmInput('');
+  };
+
+  const handleDeleteTournamentConfirm = async () => {
+    if (!deleteConfirmTournament) return;
     try {
-      await deleteTournament(id);
+      await deleteTournament(deleteConfirmTournament.id);
+      setDeleteConfirmTournament(null);
+      setDeleteConfirmInput('');
     } catch (err: unknown) {
       alert(err instanceof Error ? err.message : '削除に失敗しました');
     }
@@ -669,7 +680,7 @@ export const AdminPage = () => {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => handleEditTournament(t)} className="text-blue-600 hover:underline mr-3">編集</button>
-                        <button onClick={() => handleDeleteTournament(t.id)} className="text-red-500 hover:underline">削除</button>
+                        <button onClick={() => handleDeleteTournament(t)} className="text-red-500 hover:underline">削除</button>
                       </td>
                     </tr>
                   ))}
@@ -1014,6 +1025,59 @@ export const AdminPage = () => {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {/* 大会削除確認モーダル */}
+      {deleteConfirmTournament && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setDeleteConfirmTournament(null)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-600 text-lg">🗑</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">大会を削除しますか？</h3>
+                <p className="text-xs text-gray-500 mt-0.5">この操作は取り消せません</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4">
+              <p className="text-sm font-medium text-red-800 break-words">{deleteConfirmTournament.title}</p>
+              <p className="text-xs text-red-600 mt-0.5">{deleteConfirmTournament.event_date} ・ {deleteConfirmTournament.location}</p>
+            </div>
+
+            <p className="text-sm text-gray-600 mb-2">
+              確認のため、大会名を下に入力してください：
+            </p>
+            <p className="text-xs text-gray-400 mb-2 font-mono bg-gray-50 px-3 py-1.5 rounded-lg break-words">
+              {deleteConfirmTournament.title}
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmInput}
+              onChange={e => setDeleteConfirmInput(e.target.value)}
+              placeholder="大会名を入力..."
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 mb-4"
+              autoFocus
+            />
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setDeleteConfirmTournament(null); setDeleteConfirmInput(''); }}
+                className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDeleteTournamentConfirm}
+                disabled={deleteConfirmInput !== deleteConfirmTournament.title}
+                className="px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                削除する
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>
