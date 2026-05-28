@@ -7,22 +7,22 @@ import { PreEntryModal } from '../components/PreEntryModal';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament } from '../types';
 
-// レベル別カラー
+// レベル別カラー（TournamentCard・LevelGuidePage と統一）
 const levelColor = (level: string): string => {
   switch (level) {
-    case 'オープン': return '#EAB308';
-    case '中級':     return '#6366f1';
-    case '初級':     return '#f97316';
-    case '超初級':   return '#22c55e';
+    case 'オープン': return '#7c3aed';  // violet-600
+    case '中級':     return '#4f46e5';  // indigo-600
+    case '初級':     return '#f97316';  // orange-500
+    case '超初級':   return '#10b981';  // emerald-500
     default:         return '#6b7280';
   }
 };
 
 const LEVEL_LEGEND = [
-  { label: 'オープン', color: '#EAB308' },
-  { label: '中級',     color: '#6366f1' },
+  { label: 'オープン', color: '#7c3aed' },
+  { label: '中級',     color: '#4f46e5' },
   { label: '初級',     color: '#f97316' },
-  { label: '超初級',   color: '#22c55e' },
+  { label: '超初級',   color: '#10b981' },
 ];
 
 // ── カレンダーコンポーネント ──────────────────────────────
