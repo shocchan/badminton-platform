@@ -232,7 +232,7 @@ export const HomePage = () => {
           <div className="max-w-lg">
             <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">川口・蕨バド交流杯</p>
             <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg leading-tight">
-              仕事終わりに、<br />3試合以上。
+              仕事終わりに、<br />4試合以上。
             </h1>
             <p className="text-blue-100 text-sm sm:text-lg leading-relaxed mb-8 drop-shadow">
               平日夜開催・川口蕨エリアのバドミントン大会。<br className="hidden sm:inline" />
@@ -240,7 +240,7 @@ export const HomePage = () => {
             </p>
             <div className="flex flex-wrap gap-3 text-sm">
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜開催</span>
-              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 3試合以上保証</span>
+              <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 4試合以上保証</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
               <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
             </div>
