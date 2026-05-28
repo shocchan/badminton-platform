@@ -64,7 +64,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 flex-shrink-0">⚡</span>
-                <span>最低3試合以上保証</span>
+                <span>最低4試合以上保証</span>
               </div>
             </div>
           </div>
