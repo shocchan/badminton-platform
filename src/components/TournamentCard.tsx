@@ -215,7 +215,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           </div>
           <div className="col-span-2">
             <div className="text-gray-500 text-xs mb-1">⚠️ キャンセル期限</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate(tournament.cancel_deadline)}</div>
+            <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate((() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return d.toISOString().split('T')[0]; })())}</div>
           </div>
         </div>
 

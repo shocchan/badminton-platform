@@ -92,6 +92,14 @@ export const TournamentDetailPage = () => {
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
+
+  // 申し込み締め切り = 大会14日前
+  const entryDeadline = new Date(tournament.event_date);
+  entryDeadline.setDate(entryDeadline.getDate() - 14);
+  entryDeadline.setHours(23, 59, 59);
+  const isEntryClosed = new Date() > entryDeadline;
+  const entryDeadlineStr = entryDeadline.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
+
   const accent = levelAccent[tournament.level] ?? 'from-blue-600 to-blue-500';
   const lColor = levelColors[tournament.level] ?? { bg: 'bg-gray-100', text: 'text-gray-700' };
 
@@ -146,7 +154,7 @@ export const TournamentDetailPage = () => {
             { icon: '🕐', label: '時間', value: `${formatTime(tournament.start_time)} 〜 ${formatTime(tournament.end_time)}` },
             { icon: '📍', label: '会場', value: tournament.location, sub: tournament.venue_address },
             { icon: '💰', label: '参加費', value: `¥${tournament.entry_fee.toLocaleString()}` },
-            { icon: '⚠️', label: 'キャンセル期限', value: formatDate(tournament.cancel_deadline) },
+            { icon: '⚠️', label: 'キャンセル期限', value: formatDate(entryDeadline.toISOString().split('T')[0]) },
           ].map(({ icon, label, value, sub }) => (
             <div key={label} className="flex items-start gap-3 px-5 py-4">
               <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
@@ -198,17 +206,21 @@ export const TournamentDetailPage = () => {
 
       {/* 申し込みボタン */}
       <div className="sticky bottom-4">
-        {remaining <= 0 ? (
+        {tournament.status !== 'active' ? (
+          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">中止</div>
+        ) : isEntryClosed ? (
+          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">
+            申し込み締め切り済み（{entryDeadlineStr}に締め切りました）
+          </div>
+        ) : remaining <= 0 ? (
           <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">満員</div>
-        ) : tournament.status === 'active' ? (
+        ) : (
           <button
             onClick={() => setPreEntry(true)}
             className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold py-4 rounded-2xl transition-colors shadow-lg text-base"
           >
             この大会に申し込む →
           </button>
-        ) : (
-          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">中止</div>
         )}
       </div>
 

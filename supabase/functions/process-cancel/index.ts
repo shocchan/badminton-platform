@@ -44,11 +44,11 @@ serve(async (req: Request) => {
 
       const t = entry.tournaments as Record<string, unknown>;
 
-      // cancel_deadlineがNULLの場合はevent_dateの1週間前を使用
+      // cancel_deadlineがNULLの場合はevent_dateの14日前を使用
       const cancelDeadline = t.cancel_deadline
         ?? (() => {
           const d = new Date(t.event_date as string);
-          d.setDate(d.getDate() - 7);
+          d.setDate(d.getDate() - 14);
           return d.toISOString().split("T")[0];
         })();
 
@@ -87,11 +87,11 @@ serve(async (req: Request) => {
 
       const t = entry.tournaments as Record<string, unknown>;
 
-      // cancel_deadlineがNULLの場合はevent_dateの1週間前を使用
+      // cancel_deadlineがNULLの場合はevent_dateの14日前を使用
       const cancelDeadlineStr = t.cancel_deadline
         ?? (() => {
           const d = new Date(t.event_date as string);
-          d.setDate(d.getDate() - 7);
+          d.setDate(d.getDate() - 14);
           return d.toISOString().split("T")[0];
         })();
 

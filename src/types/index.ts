@@ -9,7 +9,7 @@ export interface Tournament {
   end_time: string;
   capacity: number;
   entry_fee: number;
-  cancel_deadline: string;
+  cancel_deadline?: string | null;
   description?: string;
   status: 'active' | 'cancelled';
   payment_required: boolean;

@@ -90,9 +90,9 @@ serve(async (req: Request) => {
         })
       : "未定";
 
-    // キャンセル期限：大会日の1週間前
+    // キャンセル期限：大会日の14日前
     const cancelDeadlineDate = new Date(tournament_date);
-    cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 7);
+    cancelDeadlineDate.setDate(cancelDeadlineDate.getDate() - 14);
     const cancelDeadlineStr = cancelDeadlineDate.toLocaleDateString("ja-JP", {
       year: "numeric", month: "long", day: "numeric",
     });
@@ -318,7 +318,7 @@ serve(async (req: Request) => {
 
       <!-- キャンセル期限 -->
       <div style="margin-top:16px;padding:14px 18px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
-        <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会1週間前）</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会2週間前）</p>
         <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルは全額返金いたします。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
       </div>
 
@@ -343,7 +343,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const participantText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}【キャンセル期限】${cancelDeadlineStr}（大会1週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\nお支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim();
+      const participantText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\nお支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim();
 
       const res1 = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -401,7 +401,7 @@ serve(async (req: Request) => {
       </div>
       <!-- キャンセル期限 -->
       <div style="margin-top:16px;padding:14px 18px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
-        <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会1週間前）</p>
+        <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会2週間前）</p>
         <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルは全額返金いたします。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
       </div>
 
@@ -416,7 +416,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const confirmText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n参加費は不要です。当日会場でお待ちしています！\n\n【キャンセル期限】${cancelDeadlineStr}（大会1週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}川口・蕨バド交流杯`.trim();
+      const confirmText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n参加費は不要です。当日会場でお待ちしています！\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}川口・蕨バド交流杯`.trim();
 
       const res1b = await fetch("https://api.resend.com/emails", {
         method: "POST",

@@ -63,6 +63,17 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     setLoading(true);
     setError(null);
     try {
+      // 申し込み締め切りチェック（大会14日前）
+      const entryDeadline = new Date(tournament.event_date);
+      entryDeadline.setDate(entryDeadline.getDate() - 14);
+      entryDeadline.setHours(23, 59, 59);
+      if (new Date() > entryDeadline) {
+        setError('申し込み締め切りを過ぎています。');
+        setStep('input');
+        setLoading(false);
+        return;
+      }
+
       // 重複申し込みチェック（同メール×同大会、cancelled 以外）
       const { data: existing } = await supabase
         .from('entries')
@@ -236,7 +247,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               {!isWaitlist && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-left">
                   <p className="text-sm font-medium text-gray-700 mb-1">❌ キャンセルについて</p>
-                  <p className="text-xs text-gray-500">メールに記載のキャンセルリンクからキャンセルできます。期限: {tournament.cancel_deadline ? formatDate(tournament.cancel_deadline) : '未定'}</p>
+                  <p className="text-xs text-gray-500">メールに記載のキャンセルリンクからキャンセルできます。期限: 大会2週間前（{(() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return formatDate(d.toISOString().split('T')[0]); })()}）</p>
                 </div>
               )}
 
