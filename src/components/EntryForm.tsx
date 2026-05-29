@@ -155,6 +155,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           bank_account: tournament.bank_account,
           paypay_id: tournament.paypay_id,
           payment_required: tournament.payment_required && status === 'confirmed',
+          entry_fee: tournament.entry_fee,
           cancel_link: cancelLink,
           is_waitlist: status === 'waitlist',
         }),

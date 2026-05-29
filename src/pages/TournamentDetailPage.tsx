@@ -209,8 +209,8 @@ export const TournamentDetailPage = () => {
         {tournament.status !== 'active' ? (
           <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">中止</div>
         ) : isEntryClosed ? (
-          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">
-            申し込み締め切り済み（{entryDeadlineStr}に締め切りました）
+          <div className="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-2xl text-center shadow-lg cursor-not-allowed">
+            申し込み受付終了（{entryDeadlineStr}に締め切りました）
           </div>
         ) : remaining <= 0 ? (
           <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">満員</div>

@@ -20,6 +20,7 @@ interface PaymentEmailRequest {
   bank_account: string;
   paypay_id: string;
   payment_required: boolean;
+  entry_fee?: number;
   cancel_link?: string;
   is_waitlist?: boolean;
   is_promotion?: boolean;
@@ -74,7 +75,7 @@ serve(async (req: Request) => {
     const {
       to, name, phone, notes, partner_name,
       tournament_title, tournament_date, payment_deadline,
-      bank_account, paypay_id, payment_required,
+      bank_account, paypay_id, payment_required, entry_fee,
       cancel_link, is_waitlist, is_promotion,
     } = (await req.json()) as PaymentEmailRequest;
 
@@ -96,6 +97,17 @@ serve(async (req: Request) => {
     const cancelDeadlineStr = cancelDeadlineDate.toLocaleDateString("ja-JP", {
       year: "numeric", month: "long", day: "numeric",
     });
+
+    // シャトル持参案内（超初級ダブルス=3000円以外の大会に表示）
+    const showShuttleNote = entry_fee !== 3000;
+    const shuttleBlock = showShuttleNote ? `
+      <div style="margin-top:16px;padding:14px 18px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#1e40af;font-weight:700;">🏸 シャトルについて</p>
+        <p style="margin:0;font-size:12px;color:#1e3a8a;line-height:1.7;">本大会はシャトル持参制です（日本バドミントン協会またはBWF認定の第2種検定球、8〜12球）。<br>お忘れの場合は当日会場にて1球500円でご購入いただけます。</p>
+      </div>` : "";
+    const shuttleText = showShuttleNote
+      ? "\n\n【シャトルについて】\nシャトル持参制です（第2種検定球 8〜12球）。\n当日会場での購入も可能です（1球500円）。"
+      : "";
 
     const results: string[] = [];
 
@@ -330,6 +342,8 @@ serve(async (req: Request) => {
         <a href="${cancel_link}" style="font-size:12px;color:#dc2626;word-break:break-all;">${cancel_link}</a>
       </div>` : ""}
 
+      ${shuttleBlock}
+
       <!-- フッター -->
       <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
         <p style="font-size:13px;color:#9ca3af;margin:0 0 4px;">お支払い確認後、参加確定のご連絡をいたします。</p>
@@ -343,7 +357,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const participantText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\nお支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim();
+      const participantText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n\n【大会情報】\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【お支払い期限】${paymentDeadlineStr}\n\n${bank_account ? `■ 銀行振込\n${bank_account}\n※振込後、このメールに「振込完了」と返信ください。\n\n` : ""}${paypay_id ? `■ PayPay\nPayPay ID：${paypay_id}\n※送金時のメッセージに「${name}」とご記入ください。\n\n` : ""}【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。${shuttleText}\n\nお支払い確認後、参加確定のご連絡をいたします。\n\n川口・蕨バド交流杯`.trim();
 
       const res1 = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -388,7 +402,7 @@ serve(async (req: Request) => {
       <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
       <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">ご申し込みありがとうございます。参加が確定しました！</p>
       <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:0 0 20px;">
-        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ 参加費は不要です。当日会場でお待ちしています！</p>
+        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ 事前振り込みは不要です。参加費は当日会場にて現金またはPayPayでお支払いください。</p>
       </div>
       <div style="${infoCardStyle}">
         <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:0.5px;">📋 申し込み内容</p>
@@ -406,6 +420,7 @@ serve(async (req: Request) => {
       </div>
 
       ${cancelBlock}
+      ${shuttleBlock}
       <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
         <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
         <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
@@ -416,7 +431,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const confirmText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n参加費は不要です。当日会場でお待ちしています！\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}川口・蕨バド交流杯`.trim();
+      const confirmText = `${name} 様\n\n川口・蕨バド交流杯へのご申し込みありがとうございます。\n参加が確定しました！\n\n大会名：${tournament_title}\n開催日：${eventDate}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n事前振り込みは不要です。参加費は当日会場にて現金またはPayPayでお支払いください。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは全額返金いたします。期限を過ぎたキャンセルは返金できません。${shuttleText}\n\n${cancel_link ? `キャンセルはこちら：${cancel_link}\n\n` : ""}川口・蕨バド交流杯`.trim();
 
       const res1b = await fetch("https://api.resend.com/emails", {
         method: "POST",
