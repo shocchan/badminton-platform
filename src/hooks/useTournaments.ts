@@ -38,8 +38,10 @@ export const useTournaments = () => {
     const createTournament = async (tournamentData: Omit<Tournament, 'id' | 'created_at' | 'updated_at'>) => {
           console.log('[useTournaments] createTournament 開始 (生データ):', tournamentData);
 
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { cancel_deadline: _cd, ...rest } = tournamentData;
           const payload = {
-                  ...tournamentData,
+                  ...rest,
                   payment_required: tournamentData.payment_required ?? false,
                   payment_deadline: tournamentData.payment_deadline || null,
                   bank_account: tournamentData.bank_account?.trim() || null,
