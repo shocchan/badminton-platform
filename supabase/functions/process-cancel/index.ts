@@ -43,11 +43,20 @@ serve(async (req: Request) => {
       }
 
       const t = entry.tournaments as Record<string, unknown>;
+
+      // cancel_deadlineがNULLの場合はevent_dateの1週間前を使用
+      const cancelDeadline = t.cancel_deadline
+        ?? (() => {
+          const d = new Date(t.event_date as string);
+          d.setDate(d.getDate() - 7);
+          return d.toISOString().split("T")[0];
+        })();
+
       return json({
         name: entry.name,
         tournament_title: t.title,
         tournament_date: t.event_date,
-        cancel_deadline: t.cancel_deadline,
+        cancel_deadline: cancelDeadline,
         entry_fee: t.entry_fee,
         payment_required: t.payment_required,
         status: entry.status,
@@ -78,8 +87,16 @@ serve(async (req: Request) => {
 
       const t = entry.tournaments as Record<string, unknown>;
 
+      // cancel_deadlineがNULLの場合はevent_dateの1週間前を使用
+      const cancelDeadlineStr = t.cancel_deadline
+        ?? (() => {
+          const d = new Date(t.event_date as string);
+          d.setDate(d.getDate() - 7);
+          return d.toISOString().split("T")[0];
+        })();
+
       // キャンセル期限チェック
-      const deadlineDate = new Date(t.cancel_deadline as string);
+      const deadlineDate = new Date(cancelDeadlineStr as string);
       deadlineDate.setHours(23, 59, 59);
       if (new Date() > deadlineDate) {
         return json({ error: "past_deadline" }, 400);
