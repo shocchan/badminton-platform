@@ -58,6 +58,7 @@ const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   description: '',
   edition: null,
   status: 'active',
+  visibility: 'draft' as 'draft' | 'unlisted' | 'published',
   payment_required: false,
   payment_deadline: undefined,
   bank_account: '',
@@ -239,6 +240,7 @@ export const AdminPage = () => {
       paypay_id: t.paypay_id || '',
       venue_address: t.venue_address || '',
       edition: t.edition ?? null,
+      visibility: (t.visibility ?? 'published') as 'draft' | 'unlisted' | 'published',
     });
     setShowTournamentForm(true);
   };
@@ -624,6 +626,19 @@ export const AdminPage = () => {
                   </>
                 )}
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">公開設定</label>
+                  <select
+                    value={tournamentForm.visibility ?? 'draft'}
+                    onChange={e => setTournamentForm(p => ({...p, visibility: e.target.value as 'draft' | 'unlisted' | 'published'}))}
+                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="draft">🔒 非公開（draft）</option>
+                    <option value="unlisted">🔗 限定公開（unlisted）</option>
+                    <option value="published">✅ 公開（published）</option>
+                  </select>
+                  <p className="text-xs text-gray-400 mt-1">非公開：一覧・URLともに非表示　限定公開：URLのみアクセス可　公開：全員に表示</p>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
                   <select
                     value={tournamentForm.status}
@@ -683,9 +698,17 @@ export const AdminPage = () => {
                       <td className="px-4 py-3 font-medium text-gray-900">{t.title}</td>
                       <td className="px-4 py-3 text-gray-600">{formatDate(t.event_date)}</td>
                       <td className="px-4 py-3">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                          {t.status === 'active' ? '開催予定' : '中止'}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium w-fit ${t.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {t.status === 'active' ? '開催予定' : '中止'}
+                          </span>
+                          {(() => {
+                            const v = t.visibility ?? 'published';
+                            if (v === 'draft')     return <span className="text-xs px-2 py-1 rounded-full font-medium w-fit bg-gray-100 text-gray-600">🔒 非公開</span>;
+                            if (v === 'unlisted')  return <span className="text-xs px-2 py-1 rounded-full font-medium w-fit bg-orange-100 text-orange-700">🔗 限定公開</span>;
+                            return null;
+                          })()}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => handleEditTournament(t)} className="text-blue-600 hover:underline mr-3">編集</button>

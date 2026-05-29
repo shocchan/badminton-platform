@@ -12,6 +12,7 @@ export interface Tournament {
   cancel_deadline?: string | null;
   description?: string;
   edition?: number | null;
+  visibility?: 'draft' | 'unlisted' | 'published';
   status: 'active' | 'cancelled';
   payment_required: boolean;
   payment_deadline?: string;

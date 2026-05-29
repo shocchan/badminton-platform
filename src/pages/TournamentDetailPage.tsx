@@ -90,6 +90,15 @@ export const TournamentDetailPage = () => {
     </div>
   );
 
+  // draft は直接URLでもアクセス不可
+  if ((tournament.visibility ?? 'published') === 'draft') return (
+    <div className="max-w-2xl mx-auto px-4 py-16 text-center">
+      <div className="text-4xl mb-4">🔒</div>
+      <p className="text-gray-500 mb-6">この大会は現在非公開です</p>
+      <Link to="/" className="text-blue-600 hover:underline">← トップへ戻る</Link>
+    </div>
+  );
+
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
 
