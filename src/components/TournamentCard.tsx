@@ -121,6 +121,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
+  const isEntryClosed = daysUntil >= 0 && daysUntil < 14;
   const config = levelConfig[tournament.level] ?? defaultConfig;
 
   const remainingColor = remaining <= 3
@@ -260,6 +261,10 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           {tournament.status !== 'active' ? (
             <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
               中止
+            </div>
+          ) : isEntryClosed ? (
+            <div className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-xl text-center text-sm cursor-not-allowed">
+              申し込み受付終了
             </div>
           ) : remaining <= 0 ? (
             <button
