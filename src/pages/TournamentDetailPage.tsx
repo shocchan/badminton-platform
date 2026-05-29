@@ -115,7 +115,22 @@ export const TournamentDetailPage = () => {
       {/* ヒーローヘッダー */}
       <div className={`bg-gradient-to-r ${accent} rounded-2xl px-6 py-6 mb-6 text-white shadow-md`}>
         <div className="flex items-start justify-between gap-4 mb-3">
-          <h1 className="text-xl sm:text-2xl font-extrabold leading-snug">{tournament.title}</h1>
+          <h1 className="leading-snug">
+            {(() => {
+              const SERIES = '川口・蕨バド交流杯';
+              const seriesLabel = tournament.edition != null
+                ? `${SERIES} 第${tournament.edition}回`
+                : SERIES;
+              const rest = tournament.title.replace(SERIES, '').trim();
+              const mainTitle = rest || tournament.title;
+              return (
+                <>
+                  <div className="text-white/70 text-xs font-medium mb-0.5">{seriesLabel}</div>
+                  <div className="text-xl sm:text-2xl font-extrabold">{mainTitle}</div>
+                </>
+              );
+            })()}
+          </h1>
           <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
             {remaining > 0 && remaining <= 3 && (
               <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">🔥 急募！</span>

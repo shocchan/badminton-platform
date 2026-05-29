@@ -11,6 +11,7 @@ export interface Tournament {
   entry_fee: number;
   cancel_deadline?: string | null;
   description?: string;
+  edition?: number | null;
   status: 'active' | 'cancelled';
   payment_required: boolean;
   payment_deadline?: string;
