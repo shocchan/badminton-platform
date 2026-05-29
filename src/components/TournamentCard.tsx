@@ -151,7 +151,22 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
       {/* ヘッダー */}
       <div className={`${config.headerBg} px-4 sm:px-6 py-4`}>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className={`${config.titleColor} font-bold text-base sm:text-lg leading-snug`}>{tournament.title}</h3>
+          <h3 className="leading-snug">
+            {(() => {
+              const spaceIdx = tournament.title.indexOf(' ');
+              if (spaceIdx === -1) {
+                return <span className={`${config.titleColor} font-bold text-base sm:text-lg`}>{tournament.title}</span>;
+              }
+              const series = tournament.title.slice(0, spaceIdx);
+              const main   = tournament.title.slice(spaceIdx + 1);
+              return (
+                <>
+                  <div className="text-xs text-gray-400 font-medium mb-0.5">{series}</div>
+                  <div className={`${config.titleColor} font-bold text-base sm:text-lg`}>{main}</div>
+                </>
+              );
+            })()}
+          </h3>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             {remaining > 0 && remaining <= 3 && (
               <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">
