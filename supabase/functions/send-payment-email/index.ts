@@ -138,7 +138,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           reply_to: ADMIN_EMAIL,
           to: [to],
           subject: `【キャンセル待ち登録完了】${tournament_title}`,
@@ -155,7 +155,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           to: [ADMIN_EMAIL],
           subject: `【キャンセル待ち登録】${name}さんが${tournament_title}のキャンセル待ちに登録しました`,
           text: `キャンセル待ち登録\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n大会：${tournament_title}\n開催日：${eventDate}`.trim(),
@@ -219,7 +219,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           reply_to: ADMIN_EMAIL,
           to: [to],
           subject: `【繰り上げ当選】${tournament_title} への参加が確定しました`,
@@ -233,7 +233,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           to: [ADMIN_EMAIL],
           subject: `【繰り上げ完了】${name}さんを${tournament_title}に繰り上げました`,
           text: `管理者操作による繰り上げ\n\nお名前：${name}\nメール：${to}\n大会：${tournament_title}\n開催日：${eventDate}`,
@@ -336,7 +336,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           reply_to: ADMIN_EMAIL,
           to: [to],
           subject: `【参加費支払い案内】${tournament_title}（期限：${paymentDeadlineStr}）`,
@@ -403,7 +403,7 @@ serve(async (req: Request) => {
         method: "POST",
         headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           reply_to: ADMIN_EMAIL,
           to: [to],
           subject: `【申し込み完了】${tournament_title}への参加が確定しました`,
@@ -464,7 +464,7 @@ serve(async (req: Request) => {
       method: "POST",
       headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
+        from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
         to: [ADMIN_EMAIL],
         subject: `【新規エントリー】${name}さんが${tournament_title}に申し込みました`,
         text: adminText,
