@@ -42,8 +42,17 @@ export const BlogDetailPage = () => {
       <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="text-sm text-gray-400 mb-3">{formatDate(post.published_at)}</div>
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{post.title}</h1>
+        <style>{`
+          .blog-content a {
+            color: #2563eb;
+            text-decoration: underline;
+          }
+          .blog-content a:hover {
+            color: #1d4ed8;
+          }
+        `}</style>
         <div
-          className="prose prose-lg max-w-none text-gray-700"
+          className="prose prose-lg max-w-none text-gray-700 blog-content"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </article>
