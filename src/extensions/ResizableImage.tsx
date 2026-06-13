@@ -1,7 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import { useRef } from 'react';
+import React, { useRef } from 'react';
 
 // ── リサイズハンドル付き画像ビュー ──────────────────────────
 function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps) {
