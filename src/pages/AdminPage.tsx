@@ -1,9 +1,13 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTournaments } from '../hooks/useTournaments';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 import type { Tournament, BlogPost, Entry } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -66,11 +70,157 @@ const EMPTY_TOURNAMENT: Omit<Tournament, 'id' | 'created_at' | 'updated_at'> = {
   venue_address: '',
 };
 
+// ── ツールバーボタン ──────────────────────────────────────
+function TBtn({ onClick, active, title, children }: { onClick: () => void; active?: boolean; title?: string; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={`px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+        active ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+// ── リッチテキストエディタ（白テーマ）─────────────────────
+function RichEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({ openOnClick: false }),
+      Placeholder.configure({ placeholder: '本文を入力してください…' }),
+    ],
+    content: value || '',
+    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    editorProps: {
+      attributes: {
+        class: 'outline-none min-h-[320px] px-4 py-3 text-gray-800 leading-relaxed prose prose-sm max-w-none',
+      },
+    },
+  });
+
+  // valueが外部から変わった時（編集開始時）に同期
+  const isFirstMount = useRef(true);
+  useEffect(() => {
+    if (isFirstMount.current) { isFirstMount.current = false; return; }
+  }, []);
+
+  const setLink = useCallback(() => {
+    const url = window.prompt('URLを入力してください');
+    if (!url) return;
+    editor?.chain().focus().setLink({ href: url }).run();
+  }, [editor]);
+
+  if (!editor) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+        <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="見出し1">H1</TBtn>
+        <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="見出し2">H2</TBtn>
+        <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="見出し3">H3</TBtn>
+        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <TBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="太字"><b>B</b></TBtn>
+        <TBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="斜体"><i>I</i></TBtn>
+        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <TBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="箇条書き">・</TBtn>
+        <TBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="番号付きリスト">1.</TBtn>
+        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <TBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="引用">❝</TBtn>
+        <TBtn onClick={setLink} active={editor.isActive('link')} title="リンク">🔗</TBtn>
+        <TBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="区切り線">—</TBtn>
+      </div>
+      <EditorContent editor={editor} />
+    </div>
+  );
+}
+
+// ── Markdownエディタ（白テーマ）──────────────────────────
+function MarkdownEditor({ value, onChange }: { value: string; onChange: (md: string) => void }) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      rows={16}
+      className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800 text-sm resize-y font-mono"
+      placeholder={'Markdownで本文を入力してください\n\n## 見出し\n\n本文テキスト'}
+    />
+  );
+}
+
+// ── タグ入力（白テーマ）──────────────────────────────────
+function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[]) => void }) {
+  const [input, setInput] = useState('');
+
+  const add = () => {
+    const val = input.trim();
+    if (val && !tags.includes(val)) onChange([...tags, val]);
+    setInput('');
+  };
+
+  return (
+    <div className="flex flex-wrap gap-2 items-center px-3 py-2 rounded-xl border border-gray-300 min-h-[46px] focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 bg-white">
+      {tags.map(tag => (
+        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+          #{tag}
+          <button type="button" onClick={() => onChange(tags.filter(t => t !== tag))} className="ml-0.5 hover:text-red-500 text-xs leading-none">×</button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } if (e.key === ',') { e.preventDefault(); add(); } }}
+        onBlur={add}
+        placeholder={tags.length === 0 ? 'タグを入力してEnter' : '+ タグを追加'}
+        className="flex-1 min-w-[120px] bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
+      />
+    </div>
+  );
+}
+
+// ── 公開ステータス切り替え（白テーマ）────────────────────
+function StatusToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const options = [
+    { value: 'draft', label: '🔒 下書き', desc: '非公開' },
+    { value: 'published', label: '🌐 公開', desc: '全員に表示' },
+  ];
+  return (
+    <div className="flex gap-2">
+      {options.map(opt => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-semibold transition-all ${
+            value === opt.value
+              ? opt.value === 'published'
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : 'border-gray-400 bg-gray-100 text-gray-700'
+              : 'border-gray-200 text-gray-400 hover:border-gray-300'
+          }`}
+        >
+          {opt.label}
+          <span className="block text-xs font-normal opacity-70">{opt.desc}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   title: '',
   content: '',
+  content_type: 'html',
   excerpt: '',
   image_url: '',
+  tags: [],
+  status: 'published',
+  youtube_url: '',
+  external_url: '',
   published_at: '',
 };
 
@@ -330,10 +480,22 @@ export const AdminPage = () => {
         setImageUploading(false);
       }
 
+      // リッチエディタでは空の場合 <p></p> になるため実質空チェック
+      const bodyText = postForm.content.replace(/<[^>]*>/g, '').trim();
+      if (!bodyText && postForm.content_type === 'html') {
+        setPostError('本文を入力してください');
+        return;
+      }
+
       const cleanForm = {
         ...postForm,
         image_url: finalImageUrl || undefined,
         excerpt: postForm.excerpt || undefined,
+        youtube_url: postForm.youtube_url || undefined,
+        external_url: postForm.external_url || undefined,
+        tags: postForm.tags?.length ? postForm.tags : [],
+        status: postForm.status || 'published',
+        content_type: postForm.content_type || 'html',
         published_at: postForm.published_at || new Date().toISOString(),
       };
 
@@ -364,9 +526,14 @@ export const AdminPage = () => {
     setPostForm({
       title: p.title,
       content: p.content,
+      content_type: p.content_type || 'html',
       excerpt: p.excerpt || '',
       image_url: p.image_url || '',
       image_position: p.image_position || 'center center',
+      tags: p.tags || [],
+      status: p.status || 'published',
+      youtube_url: p.youtube_url || '',
+      external_url: p.external_url || '',
       published_at: futureDate ? p.published_at : '',
     });
     setImageFile(null);
@@ -766,7 +933,7 @@ export const AdminPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">画像</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">サムネイル画像</label>
                   <input
                     type="file"
                     accept="image/*"
@@ -873,14 +1040,60 @@ export const AdminPage = () => {
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">本文（HTML可） *</label>
-                  <textarea
-                    required
-                    value={postForm.content}
-                    onChange={e => setPostForm(p => ({...p, content: e.target.value}))}
-                    rows={8}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-sm font-medium text-gray-700">本文 *</label>
+                    <div className="flex gap-1">
+                      {(['html', 'markdown'] as const).map(mode => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setPostForm(p => ({...p, content_type: mode}))}
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            postForm.content_type === mode
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          }`}
+                        >
+                          {mode === 'html' ? '✍️ リッチテキスト' : '📝 Markdown'}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {postForm.content_type === 'markdown'
+                    ? <MarkdownEditor value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
+                    : <RichEditor key={editingPost?.id ?? 'new'} value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
+                  }
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>
+                    <input
+                      type="url"
+                      value={postForm.youtube_url || ''}
+                      onChange={e => setPostForm(p => ({...p, youtube_url: e.target.value}))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://youtube.com/watch?v=..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">外部リンクURL</label>
+                    <input
+                      type="url"
+                      value={postForm.external_url || ''}
+                      onChange={e => setPostForm(p => ({...p, external_url: e.target.value}))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">タグ</label>
+                  <TagInput tags={postForm.tags || []} onChange={tags => setPostForm(p => ({...p, tags}))} />
+                  <p className="text-xs text-gray-400 mt-1">Enterまたはカンマで追加</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">公開ステータス</label>
+                  <StatusToggle value={postForm.status || 'published'} onChange={v => setPostForm(p => ({...p, status: v as 'draft' | 'published'}))} />
                 </div>
                 <div className="flex gap-3 justify-end">
                   <button
@@ -899,7 +1112,7 @@ export const AdminPage = () => {
                     {imageUploading && (
                       <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     )}
-                    {imageUploading ? '画像アップロード中...' : '公開'}
+                    {imageUploading ? '画像アップロード中...' : postForm.status === 'draft' ? '下書き保存' : '公開する'}
                   </button>
                 </div>
               </form>
@@ -916,6 +1129,7 @@ export const AdminPage = () => {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">タイトル</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">公開日</th>
                     <th className="text-right px-4 py-3 font-medium text-gray-600">操作</th>
                   </tr>
@@ -924,6 +1138,12 @@ export const AdminPage = () => {
                   {blogPosts.map(p => (
                     <tr key={p.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 font-medium text-gray-900">{p.title}</td>
+                      <td className="px-4 py-3">
+                        {p.status === 'draft'
+                          ? <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">🔒 下書き</span>
+                          : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
+                        }
+                      </td>
                       <td className="px-4 py-3 text-gray-600">{formatDate(p.published_at)}</td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => handleEditPost(p)} className="text-blue-600 hover:underline mr-3">編集</button>
@@ -932,7 +1152,7 @@ export const AdminPage = () => {
                     </tr>
                   ))}
                   {blogPosts.length === 0 && (
-                    <tr><td colSpan={3} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
+                    <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
                   )}
                 </tbody>
               </table>

@@ -15,9 +15,11 @@ export const useBlogPosts = (options?: { includeScheduled?: boolean }) => {
       .select('*')
       .order('published_at', { ascending: false });
 
-    // 公開ページでは published_at が現在以前の記事のみ表示
+    // 公開ページでは published_at が現在以前かつ status = published の記事のみ表示
     if (!includeScheduled) {
-      query = query.lte('published_at', new Date().toISOString());
+      query = query
+        .lte('published_at', new Date().toISOString())
+        .or('status.eq.published,status.is.null');
     }
 
     const { data, error } = await query;

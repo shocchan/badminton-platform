@@ -44,9 +44,14 @@ export interface BlogPost {
   tournament_id?: number;
   title: string;
   content: string;
+  content_type?: 'html' | 'markdown';
   excerpt?: string;
   image_url?: string;
   image_position?: string;
+  tags?: string[];
+  status?: 'draft' | 'published';
+  youtube_url?: string;
+  external_url?: string;
   published_at: string;
   created_at: string;
   updated_at: string;
