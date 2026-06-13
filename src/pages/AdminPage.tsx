@@ -8,6 +8,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import Image from '@tiptap/extension-image';
 import type { Tournament, BlogPost, Entry } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -88,9 +89,13 @@ function TBtn({ onClick, active, title, children }: { onClick: () => void; activ
 
 // ── リッチテキストエディタ（白テーマ）─────────────────────
 function RichEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
+  const imgInputRef = useRef<HTMLInputElement>(null);
+  const [imgUploading, setImgUploading] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
+      Image.configure({ HTMLAttributes: { class: 'max-w-full h-auto rounded-lg my-2' } }),
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: '本文を入力してください…' }),
     ],
@@ -115,6 +120,26 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
     editor?.chain().focus().setLink({ href: url }).run();
   }, [editor]);
 
+  const handleImageFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file || !editor) return;
+    if (file.size > 10 * 1024 * 1024) { alert('ファイルサイズは10MB以下にしてください'); return; }
+    setImgUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const filename = `body/${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage.from('blog-images').upload(filename, file, { upsert: false });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(data.path);
+      editor.chain().focus().setImage({ src: urlData.publicUrl }).run();
+    } catch (err) {
+      alert('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
+    } finally {
+      setImgUploading(false);
+    }
+  }, [editor]);
+
   if (!editor) return null;
 
   return (
@@ -133,6 +158,11 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         <TBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} title="引用">❝</TBtn>
         <TBtn onClick={setLink} active={editor.isActive('link')} title="リンク">🔗</TBtn>
         <TBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="区切り線">—</TBtn>
+        <div className="w-px h-5 bg-gray-300 mx-1" />
+        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入">
+          {imgUploading ? <span className="inline-block w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : '🖼'}
+        </TBtn>
+        <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
       </div>
       <EditorContent editor={editor} />
     </div>
