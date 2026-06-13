@@ -1,13 +1,14 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
-import React, { useRef } from 'react';
+import { useRef } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 
 // ── リサイズハンドル付き画像ビュー ──────────────────────────
 function ResizableImageView({ node, updateAttributes, selected }: NodeViewProps) {
   const imgRef = useRef<HTMLImageElement>(null);
 
-  const startResize = (e: React.MouseEvent) => {
+  const startResize = (e: ReactMouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
