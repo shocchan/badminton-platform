@@ -590,15 +590,15 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
       {/* ② 参加確定リスト */}
       {confirmedEntries.length > 0 && (
-        <div className="rounded-xl overflow-hidden border border-blue-200 mb-3">
-          <div className="bg-blue-600 px-4 py-2 flex items-center gap-2">
+        <div className="rounded-xl overflow-hidden border border-emerald-200 mb-3">
+          <div className="px-4 py-2 flex items-center gap-2" style={{ background: 'linear-gradient(90deg, #16a34a, #15803d)' }}>
             <span className="text-white text-xs font-bold tracking-wide">✅ {t.confirmedSection}</span>
-            <span className="ml-auto text-blue-200 text-xs">{confirmedCount}/{activity.capacity}{t.personUnit}</span>
+            <span className="ml-auto text-green-200 text-xs">{confirmedCount}/{activity.capacity}{t.personUnit}</span>
           </div>
-          <div className="bg-blue-50 px-4 py-2.5 space-y-1">
+          <div className="bg-emerald-50 px-4 py-2.5 space-y-1">
             {expandEntries(confirmedEntries).map((e, i) => (
               <p key={`conf-${e.id}-${i}`} className="text-sm text-gray-700 flex items-center gap-1.5">
-                <span className="text-blue-400 w-5 text-right flex-shrink-0 font-bold">{i + 1}.</span>
+                <span className="text-emerald-500 w-5 text-right flex-shrink-0 font-bold">{i + 1}.</span>
                 <span className="font-medium">{e.displayName}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
                   e.member_type === 'member'
@@ -828,7 +828,8 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           {/* シェアボタン */}
           <button
             onClick={handleShare}
-            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors"
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold transition-colors"
+            style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
