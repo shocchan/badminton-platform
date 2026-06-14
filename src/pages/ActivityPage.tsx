@@ -287,11 +287,10 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
     const waitlistQty = qty - confirmedQty;
     const base = { activity_id: id, name: name.trim(), member_type: memberType, source, cancel_code: code, notes: entryNotes.trim() };
 
-    const inserts: Promise<{ error: unknown }>[] = [];
-    if (confirmedQty > 0) inserts.push(supabase.from('activity_entries').insert({ ...base, quantity: confirmedQty, status: 'confirmed' }));
-    if (waitlistQty > 0) inserts.push(supabase.from('activity_entries').insert({ ...base, quantity: waitlistQty, status: 'waitlist' }));
+    const results: { error: unknown }[] = [];
+    if (confirmedQty > 0) results.push(await supabase.from('activity_entries').insert({ ...base, quantity: confirmedQty, status: 'confirmed' }));
+    if (waitlistQty > 0) results.push(await supabase.from('activity_entries').insert({ ...base, quantity: waitlistQty, status: 'waitlist' }));
 
-    const results = await Promise.all(inserts);
     setSubmitting(false);
     const anyError = results.some(r => r.error);
     if (anyError) {
