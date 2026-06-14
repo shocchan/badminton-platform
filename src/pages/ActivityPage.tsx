@@ -303,7 +303,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     const days = ['日','月','火','水','木','金','土'];
     const dateStr = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
     const text = [
-      '【川口・蕨バドミントン交流会】',
       `📅 ${dateStr} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)}`,
       `📍 ${activity.location}`,
       `💴 ¥${activity.price.toLocaleString()} / 人`,
@@ -324,7 +323,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     const zhDays = ['日','一','二','三','四','五','六'];
     const dateStr = `${d.getMonth()+1}月${d.getDate()}日（周${zhDays[d.getDay()]}）`;
     const text = [
-      '【川口・蕨羽毛球交流会】',
       `📅 ${dateStr} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)}`,
       `📍 ${activity.location}`,
       `💴 ¥${activity.price.toLocaleString()} / 人`,
@@ -996,7 +994,10 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
                     <div className="p-4">
                       <p className="font-bold text-gray-900">{a.title}</p>
                       <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
-                      <p className="text-sm text-gray-500">{a.location}</p>
+                      {a.address
+                        ? <p className="text-xs text-gray-400 mt-0.5">📍 {a.address}</p>
+                        : <p className="text-sm text-gray-500">{a.location}</p>
+                      }
                       <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
                     </div>
                   </Link>
