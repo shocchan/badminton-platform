@@ -487,37 +487,40 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             </h3>
             <div className="space-y-2.5">
               {/* LINE */}
-              <button
-                onClick={handleCopyLine}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#06C755] text-white hover:opacity-90 transition-opacity text-left"
-              >
-                <span className="text-2xl flex-shrink-0">💬</span>
-                <div>
-                  <p className="font-bold text-sm">LINE用にコピー</p>
-                  <p className="text-xs opacity-80 mt-0.5">日本語テキスト＋日本語ページのURL</p>
-                </div>
+              <button onClick={handleCopyLine}
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#06C755] text-white hover:opacity-90 transition-opacity">
+                {/* LINE icon */}
+                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" fill="none">
+                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.25"/>
+                  <path d="M20 8C13.37 8 8 12.48 8 18c0 3.56 2.22 6.7 5.6 8.53-.25.9-.9 3.24-.97 3.53-.1.37.14.36.29.27.12-.07 4.88-3.22 5.5-3.65.48.07.97.1 1.48.1 6.63 0 12-4.48 12-10S26.63 8 20 8z" fill="white"/>
+                  <path d="M16 17h-1.5v4.5H16V17zm4.5 0h-1.5v2.75l-2.25-2.75H15.5V21.5H17v-2.75L19.25 21.5H20.5V17zm1.5 4.5h4V20H23.5v-.75H25V18h-1.5v-.75H25V16h-4v5.5z" fill="#06C755"/>
+                </svg>
+                <span className="font-bold text-base">LINEでシェア</span>
               </button>
               {/* WeChat */}
-              <button
-                onClick={handleCopyWeChat}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#07C160] text-white hover:opacity-90 transition-opacity text-left"
-              >
-                <span className="text-2xl flex-shrink-0">🟢</span>
-                <div>
-                  <p className="font-bold text-sm">微信用に复制</p>
-                  <p className="text-xs opacity-80 mt-0.5">中国語テキスト＋中国語ページのURL</p>
-                </div>
+              <button onClick={handleCopyWeChat}
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#2DC100] text-white hover:opacity-90 transition-opacity">
+                {/* WeChat icon */}
+                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" fill="none">
+                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.25"/>
+                  <ellipse cx="15" cy="19" rx="7" ry="5.5" fill="white"/>
+                  <ellipse cx="25" cy="21" rx="7" ry="5.5" fill="white" fillOpacity="0.85"/>
+                  <circle cx="13" cy="18.5" r="1.2" fill="#2DC100"/>
+                  <circle cx="17" cy="18.5" r="1.2" fill="#2DC100"/>
+                  <circle cx="23" cy="20.5" r="1.2" fill="#2DC100"/>
+                  <circle cx="27" cy="20.5" r="1.2" fill="#2DC100"/>
+                </svg>
+                <span className="font-bold text-base">WeChatでシェア</span>
               </button>
-              {/* URLのみ */}
-              <button
-                onClick={handleCopyUrl}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-left"
-              >
-                <span className="text-2xl flex-shrink-0">🔗</span>
-                <div>
-                  <p className="font-medium text-sm">{lang === 'ja' ? 'URLをコピー' : '复制链接'}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{lang === 'ja' ? 'サイト経由（テキストなし）' : '仅链接'}</p>
-                </div>
+              {/* URLコピー */}
+              <button onClick={handleCopyUrl}
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
+                <svg viewBox="0 0 36 36" className="w-9 h-9 flex-shrink-0" fill="none">
+                  <rect width="36" height="36" rx="9" fill="#e5e7eb"/>
+                  <path d="M15 21a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
+                  <path d="M21 15a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+                <span className="font-medium text-base">{lang === 'ja' ? 'URLをコピー' : '复制链接'}</span>
               </button>
             </div>
             <button
