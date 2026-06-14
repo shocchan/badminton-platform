@@ -313,26 +313,38 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
     setCancelSubmitting(true);
     setCancelError('');
     setCancelMsg('');
-    const { data } = await supabase
+
+    // 同名・同コードのエントリを全件取得（確定/補欠で複数行の場合あり）
+    const { data: rows } = await supabase
       .from('activity_entries')
       .select('*')
       .eq('activity_id', id)
       .eq('name', cancelName.trim())
       .eq('cancel_code', cancelCode.trim())
-      .maybeSingle();
-    if (!data) {
+      .order('status', { ascending: false }); // waitlist を先に削除
+
+    if (!rows || rows.length === 0) {
       setCancelError(t.cancelError);
       setCancelSubmitting(false);
       return;
     }
-    const newQty = data.quantity - cancelQty;
-    if (newQty <= 0) {
-      await supabase.from('activity_entries').delete().eq('id', data.id);
-      setCancelMsg(t.cancelSuccess);
-    } else {
-      await supabase.from('activity_entries').update({ quantity: newQty }).eq('id', data.id);
-      setCancelMsg(t.cancelPartial(cancelQty, newQty));
+
+    // 補欠→確定の順に cancelQty 分を削除/減算
+    let remaining = cancelQty;
+    for (const row of rows) {
+      if (remaining <= 0) break;
+      const toRemove = Math.min(remaining, row.quantity);
+      remaining -= toRemove;
+      if (toRemove >= row.quantity) {
+        await supabase.from('activity_entries').delete().eq('id', row.id);
+      } else {
+        await supabase.from('activity_entries').update({ quantity: row.quantity - toRemove }).eq('id', row.id);
+      }
     }
+
+    const totalQty = rows.reduce((s: number, r: ActivityEntry) => s + r.quantity, 0);
+    const leftQty = totalQty - cancelQty;
+    setCancelMsg(leftQty <= 0 ? t.cancelSuccess : t.cancelPartial(cancelQty, leftQty));
     setCancelSubmitting(false);
     setCancelName(''); setCancelCode(''); setCancelQty(1);
     fetchEntries();
