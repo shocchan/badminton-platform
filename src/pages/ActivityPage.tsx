@@ -489,26 +489,22 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
               {/* LINE */}
               <button onClick={handleCopyLine}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#06C755] text-white hover:opacity-90 transition-opacity">
-                {/* LINE icon */}
-                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" fill="none">
-                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.25"/>
-                  <path d="M20 8C13.37 8 8 12.48 8 18c0 3.56 2.22 6.7 5.6 8.53-.25.9-.9 3.24-.97 3.53-.1.37.14.36.29.27.12-.07 4.88-3.22 5.5-3.65.48.07.97.1 1.48.1 6.63 0 12-4.48 12-10S26.63 8 20 8z" fill="white"/>
-                  <path d="M16 17h-1.5v4.5H16V17zm4.5 0h-1.5v2.75l-2.25-2.75H15.5V21.5H17v-2.75L19.25 21.5H20.5V17zm1.5 4.5h4V20H23.5v-.75H25V18h-1.5v-.75H25V16h-4v5.5z" fill="#06C755"/>
-                </svg>
+                <img src="/icons/line.png" alt="LINE" className="w-9 h-9 flex-shrink-0 rounded-xl" />
                 <span className="font-bold text-base">LINEでシェア</span>
               </button>
               {/* WeChat */}
               <button onClick={handleCopyWeChat}
-                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#2DC100] text-white hover:opacity-90 transition-opacity">
-                {/* WeChat icon */}
-                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" fill="none">
-                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.25"/>
-                  <ellipse cx="15" cy="19" rx="7" ry="5.5" fill="white"/>
-                  <ellipse cx="25" cy="21" rx="7" ry="5.5" fill="white" fillOpacity="0.85"/>
-                  <circle cx="13" cy="18.5" r="1.2" fill="#2DC100"/>
-                  <circle cx="17" cy="18.5" r="1.2" fill="#2DC100"/>
-                  <circle cx="23" cy="20.5" r="1.2" fill="#2DC100"/>
-                  <circle cx="27" cy="20.5" r="1.2" fill="#2DC100"/>
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#07C160] text-white hover:opacity-90 transition-opacity">
+                {/* WeChat ロゴ SVG（正確版） */}
+                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.2"/>
+                  {/* 大きい泡（左・微信本体） */}
+                  <path d="M17.5 9C11.1 9 6 13.2 6 18.4c0 2.9 1.6 5.5 4.2 7.2l-1 3.4 3.8-1.9c1.1.3 2.3.5 3.5.5 6.4 0 11.5-4.2 11.5-9.4S23.9 9 17.5 9z" fill="white"/>
+                  {/* 小さい泡（右・相手） */}
+                  <path d="M34 23.5c0-4.4-4.4-8-9.8-8-.3 0-.6 0-.9.1 1.1 1.4 1.7 3 1.7 4.8 0 4.7-4.5 8.5-10 8.5-.5 0-1 0-1.5-.1C15.3 31 18 32.5 21 32.5c1 0 2-.2 3-.4l3.3 1.7-.9-3c2.2-1.5 3.6-3.7 3.6-6.3z" fill="white" fillOpacity="0.85"/>
+                  {/* 目（左の泡） */}
+                  <circle cx="14.5" cy="18" r="1.3" fill="#07C160"/>
+                  <circle cx="19.5" cy="18" r="1.3" fill="#07C160"/>
                 </svg>
                 <span className="font-bold text-base">WeChatでシェア</span>
               </button>
