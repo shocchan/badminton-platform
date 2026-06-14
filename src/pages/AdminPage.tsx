@@ -265,6 +265,8 @@ interface Activity {
   capacity: number;
   price: number;
   status: 'open' | 'closed' | 'cancelled';
+  address?: string;
+  notes?: string;
   created_at: string;
 }
 
@@ -280,14 +282,23 @@ interface ActivityEntry {
 }
 
 const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
-  title: '幸栄公民館 バドミントン活動',
+  title: '',
   date: '',
   start_time: '17:00',
   end_time: '19:00',
-  location: '幸栄公民館',
+  location: '',
   capacity: 8,
   price: 600,
   status: 'open',
+  address: '',
+  notes: '',
+};
+
+const autoTitle = (date: string, start: string, end: string, location: string) => {
+  if (!date || !location) return '';
+  const d = new Date(date);
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  return `${d.getMonth()+1}/${d.getDate()}（${days[d.getDay()]}）${location} ${start.slice(0,5)}-${end.slice(0,5)}`;
 };
 
 const formatDateJP = (dateStr: string) => {
@@ -338,9 +349,10 @@ const ActivityAdminTab = () => {
     if (!form.date) { setSaveError('日付を入力してください'); return; }
     setSaving(true);
     setSaveError('');
+    const payload = { ...form, title: autoTitle(form.date, form.start_time, form.end_time, form.location) };
     const { error } = editId
-      ? await supabase.from('activities').update(form).eq('id', editId)
-      : await supabase.from('activities').insert(form);
+      ? await supabase.from('activities').update(payload).eq('id', editId)
+      : await supabase.from('activities').insert(payload);
     setSaving(false);
     if (error) {
       setSaveError(`保存エラー: ${error.message}`);
@@ -354,7 +366,7 @@ const ActivityAdminTab = () => {
 
   const handleEdit = (a: Activity) => {
     setEditId(a.id);
-    setForm({ title: a.title, date: a.date, start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: a.status });
+    setForm({ title: a.title, date: a.date, start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: a.status, address: a.address || '', notes: a.notes || '' });
     setShowForm(true);
   };
 
@@ -380,21 +392,24 @@ const ActivityAdminTab = () => {
 
       {showForm && (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="font-bold text-gray-800 mb-4">{editId ? '活動を編集' : '活動を作成'}</h3>
+          <h3 className="font-bold text-gray-800 mb-1">{editId ? '活動を編集' : '活動を作成'}</h3>
+          {/* タイトルプレビュー */}
+          <p className="text-xs text-gray-400 mb-4">
+            タイトル自動生成：
+            <span className="font-medium text-gray-600 ml-1">
+              {autoTitle(form.date, form.start_time, form.end_time, form.location) || '日付・場所・時間を入力すると自動生成されます'}
+            </span>
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
-              <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
-            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">日付</label>
               <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
                 className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">場所</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">場所名</label>
               <input type="text" value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
+                placeholder="幸栄公民館"
                 className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
@@ -416,6 +431,19 @@ const ActivityAdminTab = () => {
               <label className="block text-sm font-medium text-gray-700 mb-1">料金（円）</label>
               <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: Number(e.target.value) }))}
                 className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">住所</label>
+              <input type="text" value={form.address || ''} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+                placeholder="埼玉県川口市幸町2-1-1"
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">支払い方法・備考</label>
+              <textarea value={form.notes || ''} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
+                placeholder="当日現金払い（600円）またはPayPay払い可"
+                rows={2}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>

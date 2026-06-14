@@ -12,6 +12,8 @@ interface Activity {
   capacity: number;
   price: number;
   status: 'open' | 'closed' | 'cancelled';
+  address?: string;
+  notes?: string;
 }
 
 interface ActivityEntry {
@@ -239,6 +241,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
       setSuccessIsWaitlist(entryStatus === 'waitlist');
       setName('');
       setQty(1);
+      fetchEntries();
     }
   };
 
@@ -299,6 +302,12 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
         </p>
         <p className="text-gray-500">{activity.location}</p>
         <p className="text-2xl font-bold text-blue-600 mt-1">{t.price(activity.price)}</p>
+        {(activity.address || activity.notes) && (
+          <div className="mt-3 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600 space-y-1">
+            {activity.address && <p>📍 {activity.address}</p>}
+            {activity.notes && <p className="whitespace-pre-wrap">💳 {activity.notes}</p>}
+          </div>
+        )}
       </div>
 
       {/* 定員バー */}
@@ -314,43 +323,53 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
         </span>
       </div>
 
-      {/* 参加確定リスト */}
+      {/* ② 参加確定リスト */}
       {confirmedEntries.length > 0 && (
-        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-3">
-          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">{t.confirmedSection}</p>
-          {expandEntries(confirmedEntries).map((e, i) => (
-            <p key={`conf-${e.id}-${i}`} className="text-sm text-gray-700 py-0.5 flex items-center gap-1.5">
-              <span className="text-gray-400 w-5 text-right flex-shrink-0">{i + 1}.</span>
-              <span className="font-medium">{e.displayName}</span>
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                e.member_type === 'member'
-                  ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
-                {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
-              </span>
-            </p>
-          ))}
+        <div className="rounded-xl overflow-hidden border border-blue-200 mb-3">
+          <div className="bg-blue-600 px-4 py-2 flex items-center gap-2">
+            <span className="text-white text-xs font-bold tracking-wide">✅ {t.confirmedSection}</span>
+            <span className="ml-auto text-blue-200 text-xs">{confirmedCount}/{activity.capacity}{t.personUnit}</span>
+          </div>
+          <div className="bg-blue-50 px-4 py-2.5 space-y-1">
+            {expandEntries(confirmedEntries).map((e, i) => (
+              <p key={`conf-${e.id}-${i}`} className="text-sm text-gray-700 flex items-center gap-1.5">
+                <span className="text-blue-400 w-5 text-right flex-shrink-0 font-bold">{i + 1}.</span>
+                <span className="font-medium">{e.displayName}</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                  e.member_type === 'member'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
+                </span>
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* 補欠リスト */}
+      {/* ② 補欠リスト */}
       {waitlistEntries.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-3">
-          <p className="text-xs font-semibold text-yellow-700 mb-2 uppercase tracking-wide">{t.waitlistSection}</p>
-          {expandEntries(waitlistEntries).map((e, i) => (
-            <p key={`wl-${e.id}-${i}`} className="text-sm text-gray-700 py-0.5 flex items-center gap-1.5">
-              <span className="text-yellow-500 w-12 text-right flex-shrink-0 text-xs font-bold">{t.waitlistBadge}{i + 1}.</span>
-              <span className="font-medium">{e.displayName}</span>
-              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                e.member_type === 'member'
-                  ? 'bg-green-100 text-green-700 border border-green-200'
-                  : 'bg-gray-200 text-gray-500'
-              }`}>
-                {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
-              </span>
-            </p>
-          ))}
+        <div className="rounded-xl overflow-hidden border border-yellow-300 mb-3">
+          <div className="bg-yellow-400 px-4 py-2 flex items-center gap-2">
+            <span className="text-yellow-900 text-xs font-bold tracking-wide">⏳ {t.waitlistSection}</span>
+            <span className="ml-auto text-yellow-800 text-xs">{waitlistEntries.reduce((s,e)=>s+e.quantity,0)}{t.personUnit}</span>
+          </div>
+          <div className="bg-yellow-50 px-4 py-2.5 space-y-1">
+            {expandEntries(waitlistEntries).map((e, i) => (
+              <p key={`wl-${e.id}-${i}`} className="text-sm text-gray-700 flex items-center gap-1.5">
+                <span className="text-yellow-600 w-12 text-right flex-shrink-0 text-xs font-bold">{t.waitlistBadge}{i + 1}.</span>
+                <span className="font-medium">{e.displayName}</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                  e.member_type === 'member'
+                    ? 'bg-green-100 text-green-700 border border-green-200'
+                    : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
+                </span>
+              </p>
+            ))}
+          </div>
         </div>
       )}
 
