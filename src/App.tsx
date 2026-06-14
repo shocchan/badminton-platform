@@ -17,6 +17,8 @@ const CancelPolicyPage   = lazy(() => import('./pages/CancelPolicyPage').then(m 
 const FaqPage            = lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
 const CancelEntryPage    = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
 const ActivityPage       = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityPage })));
+const ActivityListPage   = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityListPage })));
+const ActivityPageCN     = lazy(() => import('./pages/ActivityPageCN').then(m => ({ default: m.ActivityPageCN })));
 
 // ローディングフォールバック
 const PageLoader = () => (
@@ -42,7 +44,9 @@ const AnimatedRoutes = () => {
           <Route path="/cancel-policy" element={<CancelPolicyPage />} />
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/cancel" element={<CancelEntryPage />} />
-          <Route path="/activity" element={<ActivityPage />} />
+          <Route path="/activity" element={<ActivityListPage />} />
+          <Route path="/activity/:id" element={<ActivityPage />} />
+          <Route path="/activity-cn/:id" element={<ActivityPageCN />} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

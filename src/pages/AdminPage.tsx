@@ -466,7 +466,17 @@ const ActivityAdminTab = () => {
                 </p>
                 <p className="text-sm text-gray-500">¥{a.price.toLocaleString()} ／ 定員{a.capacity}人</p>
               </div>
-              <div className="flex gap-2 flex-shrink-0 ml-3">
+              <div className="flex gap-2 flex-shrink-0 ml-3 flex-wrap justify-end">
+                <button
+                  onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity/${a.id}`); }}
+                  className="text-xs text-gray-500 hover:underline"
+                  title="日本語URL"
+                >🇯🇵URL</button>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity-cn/${a.id}?from=wechat`); }}
+                  className="text-xs text-gray-500 hover:underline"
+                  title="中国語URL"
+                >🇨🇳URL</button>
                 <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
                 <button onClick={() => handleDelete(a.id)} className="text-xs text-red-400 hover:underline">削除</button>
               </div>

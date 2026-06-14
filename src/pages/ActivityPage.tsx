@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 
 interface Activity {
@@ -11,7 +12,6 @@ interface Activity {
   capacity: number;
   price: number;
   status: 'open' | 'closed' | 'cancelled';
-  created_at: string;
 }
 
 interface ActivityEntry {
@@ -22,392 +22,516 @@ interface ActivityEntry {
   source: 'line' | 'wechat' | 'web';
   cancel_code: string;
   quantity: number;
+  status: 'confirmed' | 'waitlist';
   created_at: string;
 }
 
-type ViewMode = 'list' | 'cancel';
+const WECHAT_ID = 'Shocchance';
 
-const formatDate = (dateStr: string) => {
+const T = {
+  ja: {
+    memberBadge: 'チャージ済み',
+    normalBadge: '通常',
+    submitMember: '申し込む（チャージ済み会員）',
+    submitNormal: '申し込む（通常）',
+    namePlaceholder: 'お名前',
+    full: '満員',
+    remaining: (n: number) => `残り${n}枠`,
+    used: (u: number, c: number) => `${u}/${c}人`,
+    waitlistBadge: '補欠',
+    waitlistSection: '補欠リスト',
+    confirmedSection: '参加確定',
+    cancelLink: 'キャンセルはこちら',
+    cancelTitle: '申し込みキャンセル',
+    cancelNamePh: 'お名前（申し込み時と同じ）',
+    cancelCodePh: '4桁のキャンセルコード',
+    cancelBtn: 'キャンセルする',
+    cancelSubmitting: 'キャンセル中...',
+    cancelSuccess: 'キャンセルが完了しました。',
+    cancelPartial: (n: number, r: number) => `${n}人分をキャンセルしました。残り${r}人分は有効です。`,
+    cancelError: 'コードが違います。コードを忘れた場合は主催者にご連絡ください。',
+    cancelPolicy: `※コードを忘れた場合は主催者（WeChat ID：${WECHAT_ID}）までご連絡ください。無断キャンセルは原則禁止・費用発生の対象となります。`,
+    cancelRules: [
+      '【キャンセルルール】24時間前までにキャンセルしてください。',
+      '24時間以内のキャンセルの場合：',
+      '1️⃣ 補欠・代替あり → 補欠者が繰り上がるか自分で代わりを見つけた場合は費用なし',
+      '2️⃣ 補欠・代替なし → 空きが生じた場合は通常料金が発生します ⚠️',
+      '（※ 自分で代替者を見つける場合、補欠順は問いません。ただし事前にご連絡ください）',
+    ],
+    successTitle: '申し込みが完了しました！',
+    successWaitlist: '補欠として登録しました！繰り上がった場合にご連絡します。',
+    successCodeLabel: 'キャンセルコード：',
+    successNote: 'このコードはキャンセル時に必要です。スクリーンショットを保存してください。',
+    submitting: '送信中...',
+    backLink: '申し込みに戻る',
+    notFound: 'この活動は見つかりませんでした。',
+    cancelled: 'この活動は中止になりました。',
+    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    memberBanner: '💳 チャージ済み会員の方へ',
+    memberBannerNote: '事前チャージ済みの方は「チャージ済み会員」ボタンでお申し込みください。残高から自動で引き落とされます。',
+    memberNote: '※チャージ済みの方はこちら',
+    fullNote: '定員に達しています。補欠として申し込むことができます。',
+    waitlistSubmitNormal: '補欠で申し込む（通常）',
+    waitlistSubmitMember: '補欠で申し込む（チャージ済み）',
+    personUnit: '人',
+  },
+  zh: {
+    memberBadge: '充值会员',
+    normalBadge: '普通',
+    submitMember: '报名（充值会员）',
+    submitNormal: '报名（普通）',
+    namePlaceholder: '您的姓名',
+    full: '已满',
+    remaining: (n: number) => `剩余${n}名`,
+    used: (u: number, c: number) => `${u}/${c}人`,
+    waitlistBadge: '候补',
+    waitlistSection: '候补名单',
+    confirmedSection: '已确认参加',
+    cancelLink: '取消报名',
+    cancelTitle: '取消报名',
+    cancelNamePh: '您的姓名（报名时填写的）',
+    cancelCodePh: '4位取消码',
+    cancelBtn: '确认取消',
+    cancelSubmitting: '取消中...',
+    cancelSuccess: '取消成功。',
+    cancelPartial: (n: number, r: number) => `已取消${n}人份。剩余${r}人份仍有效。`,
+    cancelError: '取消码不正确。如忘记取消码，请联系主办方。',
+    cancelPolicy: `※如忘记取消码，请联系主办方（微信ID：${WECHAT_ID}）。擅自爽约原则上禁止，可能产生费用。`,
+    cancelRules: [
+      '【取消规则】请提前 24小时 以上取消报名。',
+      '若在24小时内取消：',
+      '1️⃣ 有人补位 → 如有候补顺次上位，或您自行找友人替补，则无需扣费',
+      '2️⃣ 无人补位 → 若最终无人补位导致空缺，需按正常标准扣费 ⚠️',
+      '（※ 自行找人替补不受候补顺序限制，但请提前私聊告知）',
+    ],
+    successTitle: '报名成功！',
+    successWaitlist: '已加入候补名单！有空位时将联系您。',
+    successCodeLabel: '取消码：',
+    successNote: '取消报名时需要此码。请截图保存。',
+    submitting: '提交中...',
+    backLink: '返回报名页面',
+    notFound: '未找到该活动。',
+    cancelled: '该活动已取消。',
+    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    memberBanner: '💳 充值会员专享',
+    memberBannerNote: '已预充值的会员请点击「充值会员」按钮报名。费用将自动从余额中扣除。',
+    memberNote: '※已充值会员请选此项',
+    fullNote: '报名已满。您可以加入候补名单。',
+    waitlistSubmitNormal: '候补报名（普通）',
+    waitlistSubmitMember: '候补报名（会员）',
+    personUnit: '名',
+  },
+};
+
+const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
+
+const expandEntries = (entries: ActivityEntry[]) =>
+  entries.flatMap(e => {
+    if (e.quantity <= 1) return [{ ...e, displayName: e.name }];
+    const suffixes = ['①', '②', '③'];
+    return Array.from({ length: e.quantity }, (_, i) => ({
+      ...e,
+      displayName: `${e.name}${suffixes[i] ?? String(i + 1)}`,
+    }));
+  });
+
+const formatDate = (dateStr: string, lang: 'ja' | 'zh') => {
   const d = new Date(dateStr);
+  if (lang === 'zh') return `${d.getMonth() + 1}月${d.getDate()}日`;
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 };
 
-const generateCancelCode = () => {
-  return String(Math.floor(1000 + Math.random() * 9000));
-};
-
-export const ActivityPage = () => {
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [entries, setEntries] = useState<Record<string, ActivityEntry[]>>({});
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-
-  // form state per activity
-  const [formName, setFormName] = useState<Record<string, string>>({});
-  const [formQty, setFormQty] = useState<Record<string, number>>({});
-  const [submitting, setSubmitting] = useState<Record<string, boolean>>({});
-  const [successCode, setSuccessCode] = useState<Record<string, string>>({});
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // cancel form state
-  const [cancelActivityId, setCancelActivityId] = useState('');
-  const [cancelName, setCancelName] = useState('');
-  const [cancelCode, setCancelCode] = useState('');
-  const [cancelQty, setCancelQty] = useState(1);
-  const [cancelMsg, setCancelMsg] = useState('');
-  const [cancelError, setCancelError] = useState('');
-  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+// ── 単一活動ページ ─────────────────────────────────────────
+export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
+  const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const t = T[lang];
 
   const source = (() => {
-    const p = new URLSearchParams(window.location.search).get('from') || 'web';
+    const p = searchParams.get('from') || 'web';
     return ['line', 'wechat', 'web'].includes(p) ? (p as 'line' | 'wechat' | 'web') : 'web';
   })();
 
-  const fetchActivities = useCallback(async () => {
-    const { data } = await supabase
-      .from('activities')
-      .select('*')
-      .neq('status', 'cancelled')
-      .gte('date', new Date().toISOString().split('T')[0])
-      .order('date', { ascending: true });
-    if (data) setActivities(data);
-  }, []);
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [entries, setEntries] = useState<ActivityEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCancel, setShowCancel] = useState(false);
 
-  const fetchEntries = useCallback(async (activityIds: string[]) => {
-    if (!activityIds.length) return;
+  const [name, setName] = useState('');
+  const [qty, setQty] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [successCode, setSuccessCode] = useState('');
+  const [successIsWaitlist, setSuccessIsWaitlist] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const [cancelName, setCancelName] = useState('');
+  const [cancelCode, setCancelCode] = useState('');
+  const [cancelQty, setCancelQty] = useState(1);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [cancelMsg, setCancelMsg] = useState('');
+  const [cancelError, setCancelError] = useState('');
+
+  const confirmedEntries = entries.filter(e => e.status === 'confirmed');
+  const waitlistEntries = entries.filter(e => e.status === 'waitlist');
+  const confirmedCount = confirmedEntries.reduce((s, e) => s + e.quantity, 0);
+  const remaining = activity ? Math.max(0, activity.capacity - confirmedCount) : 0;
+  const isFull = remaining <= 0;
+
+  const fetchActivity = useCallback(async () => {
+    if (!id) return;
+    const { data } = await supabase.from('activities').select('*').eq('id', id).single();
+    if (data) setActivity(data);
+  }, [id]);
+
+  const fetchEntries = useCallback(async () => {
+    if (!id) return;
     const { data } = await supabase
       .from('activity_entries')
       .select('*')
-      .in('activity_id', activityIds)
+      .eq('activity_id', id)
       .order('created_at', { ascending: true });
-    if (data) {
-      const grouped: Record<string, ActivityEntry[]> = {};
-      for (const e of data) {
-        if (!grouped[e.activity_id]) grouped[e.activity_id] = [];
-        grouped[e.activity_id].push(e);
-      }
-      setEntries(grouped);
-    }
-  }, []);
+    if (data) setEntries(data);
+  }, [id]);
 
   useEffect(() => {
     (async () => {
-      await fetchActivities();
+      await Promise.all([fetchActivity(), fetchEntries()]);
       setLoading(false);
     })();
-  }, [fetchActivities]);
+  }, [fetchActivity, fetchEntries]);
 
   useEffect(() => {
-    if (activities.length) {
-      fetchEntries(activities.map(a => a.id));
-    }
-  }, [activities, fetchEntries]);
-
-  // realtime
-  useEffect(() => {
-    if (!activities.length) return;
+    if (!id) return;
     const channel = supabase
-      .channel('activity_entries_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_entries' }, () => {
-        fetchEntries(activities.map(a => a.id));
-      })
+      .channel(`activity_${id}`)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'activity_entries',
+        filter: `activity_id=eq.${id}`,
+      }, fetchEntries)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [activities, fetchEntries]);
+  }, [id, fetchEntries]);
 
-  const getUsed = (activityId: string) =>
-    (entries[activityId] || []).reduce((sum, e) => sum + e.quantity, 0);
-
-  const handleSubmit = async (activity: Activity, memberType: 'member' | 'normal') => {
-    const name = (formName[activity.id] || '').trim();
-    if (!name) {
-      setErrors(p => ({ ...p, [activity.id]: 'お名前を入力してください' }));
+  const handleSubmit = async (memberType: 'member' | 'normal') => {
+    if (!name.trim()) {
+      setFormError(lang === 'ja' ? 'お名前を入力してください' : '请输入姓名');
       return;
     }
-    setErrors(p => ({ ...p, [activity.id]: '' }));
-
-    const used = getUsed(activity.id);
-    const qty = formQty[activity.id] || 1;
-    if (used + qty > activity.capacity) {
-      setErrors(p => ({ ...p, [activity.id]: '定員を超えています' }));
-      return;
-    }
-
-    setSubmitting(p => ({ ...p, [activity.id]: true }));
-    const code = generateCancelCode();
-
+    setFormError('');
+    setSubmitting(true);
+    const code = generateCode();
+    const entryStatus = isFull ? 'waitlist' : 'confirmed';
     const { error } = await supabase.from('activity_entries').insert({
-      activity_id: activity.id,
-      name,
+      activity_id: id,
+      name: name.trim(),
       member_type: memberType,
       source,
       cancel_code: code,
       quantity: qty,
+      status: entryStatus,
     });
-
-    setSubmitting(p => ({ ...p, [activity.id]: false }));
+    setSubmitting(false);
     if (error) {
-      setErrors(p => ({ ...p, [activity.id]: '申し込みに失敗しました。もう一度お試しください。' }));
+      setFormError(lang === 'ja' ? '申し込みに失敗しました。もう一度お試しください。' : '报名失败，请重试。');
     } else {
-      setSuccessCode(p => ({ ...p, [activity.id]: code }));
-      setFormName(p => ({ ...p, [activity.id]: '' }));
-      setFormQty(p => ({ ...p, [activity.id]: 1 }));
+      setSuccessCode(code);
+      setSuccessIsWaitlist(entryStatus === 'waitlist');
+      setName('');
+      setQty(1);
     }
   };
 
   const handleCancel = async () => {
     if (!cancelName.trim() || !cancelCode.trim()) {
-      setCancelError('お名前とキャンセルコードを入力してください');
+      setCancelError(lang === 'ja' ? 'お名前とキャンセルコードを入力してください' : '请输入姓名和取消码');
       return;
     }
     setCancelSubmitting(true);
     setCancelError('');
     setCancelMsg('');
-
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('activity_entries')
       .select('*')
-      .eq('activity_id', cancelActivityId || undefined)
+      .eq('activity_id', id)
       .eq('name', cancelName.trim())
       .eq('cancel_code', cancelCode.trim())
       .maybeSingle();
-
-    if (error || !data) {
-      setCancelError('コードが違います。コードを忘れた場合は主催者にご連絡ください。');
+    if (!data) {
+      setCancelError(t.cancelError);
       setCancelSubmitting(false);
       return;
     }
-
     const newQty = data.quantity - cancelQty;
     if (newQty <= 0) {
-      const { error: delErr } = await supabase.from('activity_entries').delete().eq('id', data.id);
-      if (delErr) {
-        setCancelError('キャンセルに失敗しました');
-      } else {
-        setCancelMsg('キャンセルが完了しました。');
-        setCancelName(''); setCancelCode(''); setCancelQty(1); setCancelActivityId('');
-      }
+      await supabase.from('activity_entries').delete().eq('id', data.id);
+      setCancelMsg(t.cancelSuccess);
     } else {
-      const { error: updErr } = await supabase
-        .from('activity_entries')
-        .update({ quantity: newQty })
-        .eq('id', data.id);
-      if (updErr) {
-        setCancelError('キャンセルに失敗しました');
-      } else {
-        setCancelMsg(`${cancelQty}人分をキャンセルしました。残り${newQty}人分は有効です。`);
-        setCancelName(''); setCancelCode(''); setCancelQty(1); setCancelActivityId('');
-      }
+      await supabase.from('activity_entries').update({ quantity: newQty }).eq('id', data.id);
+      setCancelMsg(t.cancelPartial(cancelQty, newQty));
     }
     setCancelSubmitting(false);
+    setCancelName(''); setCancelCode(''); setCancelQty(1);
+    fetchEntries();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!activity) return (
+    <main className="max-w-lg mx-auto px-4 py-12 text-center text-gray-500">{t.notFound}</main>
+  );
+
+  if (activity.status === 'cancelled') return (
+    <main className="max-w-lg mx-auto px-4 py-12 text-center text-gray-500">{t.cancelled}</main>
+  );
 
   return (
-    <main className="max-w-2xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">活動申し込み</h1>
-        <button
-          onClick={() => setViewMode(viewMode === 'list' ? 'cancel' : 'list')}
-          className="text-sm text-gray-500 underline"
-        >
-          {viewMode === 'list' ? 'キャンセルする' : '申し込み一覧へ'}
-        </button>
+    <main className="max-w-lg mx-auto px-4 py-8">
+      {/* ヘッダー */}
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold text-gray-900">{activity.title}</h1>
+        <p className="text-gray-500 mt-1">
+          {formatDate(activity.date, lang)}　{activity.start_time.slice(0, 5)}〜{activity.end_time.slice(0, 5)}
+        </p>
+        <p className="text-gray-500">{activity.location}</p>
+        <p className="text-2xl font-bold text-blue-600 mt-1">{t.price(activity.price)}</p>
       </div>
 
-      {viewMode === 'cancel' && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="font-bold text-gray-800 mb-4">申し込みキャンセル</h2>
-          {activities.length > 0 && (
-            <div className="mb-3">
-              <label className="block text-sm font-medium text-gray-700 mb-1">活動（任意）</label>
-              <select
-                value={cancelActivityId}
-                onChange={e => setCancelActivityId(e.target.value)}
-                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="">すべての活動から検索</option>
-                {activities.map(a => (
-                  <option key={a.id} value={a.id}>{formatDate(a.date)} {a.title}</option>
-                ))}
-              </select>
-            </div>
-          )}
-          <div className="mb-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">お名前</label>
-            <input
-              type="text"
-              value={cancelName}
-              onChange={e => setCancelName(e.target.value)}
-              placeholder="申し込み時のお名前"
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div className="mb-3">
-            <label className="block text-sm font-medium text-gray-700 mb-1">4桁のキャンセルコード</label>
-            <input
-              type="text"
-              value={cancelCode}
-              onChange={e => setCancelCode(e.target.value)}
-              placeholder="1234"
-              maxLength={4}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">キャンセル人数</label>
-            <select
-              value={cancelQty}
-              onChange={e => setCancelQty(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              {[1, 2, 3].map(n => <option key={n} value={n}>{n}人</option>)}
-            </select>
-          </div>
-          {cancelError && <p className="text-red-500 text-sm mb-3">{cancelError}</p>}
-          {cancelMsg && <p className="text-green-600 text-sm mb-3">{cancelMsg}</p>}
-          <button
-            onClick={handleCancel}
-            disabled={cancelSubmitting}
-            className="w-full bg-gray-700 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-gray-800 transition-colors disabled:opacity-50"
-          >
-            {cancelSubmitting ? 'キャンセル中...' : 'キャンセルする'}
-          </button>
-          <p className="text-xs text-gray-400 mt-3">
-            ※コードを忘れた場合は主催者までご連絡ください。無断キャンセルは原則禁止・費用発生の対象となります。
+      {/* 定員バー */}
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${isFull ? 'bg-red-400' : 'bg-blue-400'}`}
+            style={{ width: `${Math.min(100, (confirmedCount / activity.capacity) * 100)}%` }}
+          />
+        </div>
+        <span className={`text-sm font-medium flex-shrink-0 ${isFull ? 'text-red-500' : 'text-gray-700'}`}>
+          {isFull ? t.full : t.remaining(remaining)}　{t.used(confirmedCount, activity.capacity)}
+        </span>
+      </div>
+
+      {/* 参加確定リスト */}
+      {confirmedEntries.length > 0 && (
+        <div className="bg-gray-50 rounded-xl px-4 py-3 mb-3">
+          <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">{t.confirmedSection}</p>
+          {expandEntries(confirmedEntries).map((e, i) => (
+            <p key={`conf-${e.id}-${i}`} className="text-sm text-gray-700 py-0.5 flex items-center gap-1.5">
+              <span className="text-gray-400 w-5 text-right flex-shrink-0">{i + 1}.</span>
+              <span className="font-medium">{e.displayName}</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                e.member_type === 'member'
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : 'bg-gray-200 text-gray-500'
+              }`}>
+                {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
+              </span>
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* 補欠リスト */}
+      {waitlistEntries.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 mb-3">
+          <p className="text-xs font-semibold text-yellow-700 mb-2 uppercase tracking-wide">{t.waitlistSection}</p>
+          {expandEntries(waitlistEntries).map((e, i) => (
+            <p key={`wl-${e.id}-${i}`} className="text-sm text-gray-700 py-0.5 flex items-center gap-1.5">
+              <span className="text-yellow-500 w-12 text-right flex-shrink-0 text-xs font-bold">{t.waitlistBadge}{i + 1}.</span>
+              <span className="font-medium">{e.displayName}</span>
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                e.member_type === 'member'
+                  ? 'bg-green-100 text-green-700 border border-green-200'
+                  : 'bg-gray-200 text-gray-500'
+              }`}>
+                {e.member_type === 'member' ? t.memberBadge : t.normalBadge}
+              </span>
+            </p>
+          ))}
+        </div>
+      )}
+
+      {/* 申し込み完了 */}
+      {successCode && (
+        <div className={`border rounded-xl p-4 mb-4 ${successIsWaitlist ? 'bg-yellow-50 border-yellow-300' : 'bg-green-50 border-green-200'}`}>
+          <p className={`font-bold text-sm mb-1 ${successIsWaitlist ? 'text-yellow-800' : 'text-green-800'}`}>
+            {successIsWaitlist ? t.successWaitlist : t.successTitle}
+          </p>
+          <p className={`text-sm ${successIsWaitlist ? 'text-yellow-700' : 'text-green-700'}`}>
+            {t.successCodeLabel}
+            <span className="font-bold text-xl tracking-[0.2em] ml-1">{successCode}</span>
+          </p>
+          <p className={`text-xs mt-1.5 ${successIsWaitlist ? 'text-yellow-600' : 'text-green-600'}`}>
+            {t.successNote}
           </p>
         </div>
       )}
 
-      {viewMode === 'list' && activities.length === 0 && (
-        <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">🏸</p>
-          <p>現在申し込み受付中の活動はありません</p>
+      {/* メインフォーム / キャンセルフォーム */}
+      {!showCancel ? (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          {/* 会員バナー */}
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4">
+            <p className="text-sm font-bold text-green-800">{t.memberBanner}</p>
+            <p className="text-xs text-green-700 mt-0.5">{t.memberBannerNote}</p>
+          </div>
+
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder={t.namePlaceholder}
+            disabled={activity.status === 'closed'}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-50"
+          />
+          <select
+            value={qty}
+            onChange={e => setQty(Number(e.target.value))}
+            disabled={activity.status === 'closed'}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            {[1, 2, 3].map(n => <option key={n} value={n}>{n}{t.personUnit}</option>)}
+          </select>
+
+          {formError && <p className="text-red-500 text-xs mb-3">{formError}</p>}
+
+          {isFull && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-3 py-2 mb-3 text-sm text-yellow-800 font-medium">
+              {t.fullNote}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleSubmit('normal')}
+              disabled={submitting || activity.status === 'closed'}
+              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300"
+            >
+              {submitting ? t.submitting : isFull ? t.waitlistSubmitNormal : t.submitNormal}
+            </button>
+            <div className="flex-1 flex flex-col gap-1">
+              <button
+                onClick={() => handleSubmit('member')}
+                disabled={submitting || activity.status === 'closed'}
+                className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors disabled:bg-gray-300"
+              >
+                {submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}
+              </button>
+              <p className="text-xs text-green-700 text-center font-medium">{t.memberNote}</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setShowCancel(true)}
+            className="w-full text-center text-sm text-gray-400 mt-4 underline"
+          >
+            {t.cancelLink}
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          <h2 className="font-bold text-gray-800 mb-4">{t.cancelTitle}</h2>
+          <input
+            type="text"
+            value={cancelName}
+            onChange={e => setCancelName(e.target.value)}
+            placeholder={t.cancelNamePh}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <input
+            type="text"
+            value={cancelCode}
+            onChange={e => setCancelCode(e.target.value)}
+            placeholder={t.cancelCodePh}
+            maxLength={4}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+          <select
+            value={cancelQty}
+            onChange={e => setCancelQty(Number(e.target.value))}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            {[1, 2, 3].map(n => <option key={n} value={n}>{n}{t.personUnit}</option>)}
+          </select>
+
+          {cancelError && <p className="text-red-500 text-sm mb-3">{cancelError}</p>}
+          {cancelMsg && <p className="text-green-600 text-sm mb-3">{cancelMsg}</p>}
+
+          <button
+            onClick={handleCancel}
+            disabled={cancelSubmitting}
+            className="w-full bg-gray-700 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-gray-800 transition-colors disabled:opacity-50 mb-4"
+          >
+            {cancelSubmitting ? t.cancelSubmitting : t.cancelBtn}
+          </button>
+
+          {/* キャンセルポリシー */}
+          <div className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500 space-y-1.5">
+            {t.cancelRules.map((rule, i) => (
+              <p key={i} className={i === 0 ? 'font-semibold text-gray-700' : ''}>{rule}</p>
+            ))}
+            <p className="pt-2 border-t border-gray-200">{t.cancelPolicy}</p>
+          </div>
+
+          <button
+            onClick={() => { setShowCancel(false); setCancelError(''); setCancelMsg(''); }}
+            className="w-full text-center text-sm text-gray-400 mt-3 underline"
+          >
+            {t.backLink}
+          </button>
         </div>
       )}
+    </main>
+  );
+};
 
-      {viewMode === 'list' && activities.map(activity => {
-        const actEntries = entries[activity.id] || [];
-        const used = actEntries.reduce((sum, e) => sum + e.quantity, 0);
-        const remaining = activity.capacity - used;
-        const isFull = remaining <= 0 || activity.status === 'closed';
-        const code = successCode[activity.id];
+// ── 活動一覧ページ（管理者がURLをコピーするため） ─────────────
+export const ActivityListPage = () => {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
 
-        return (
-          <div key={activity.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <h2 className="font-bold text-gray-900 text-lg">{activity.title}</h2>
-                <p className="text-gray-500 text-sm mt-0.5">
-                  {formatDate(activity.date)}　{activity.start_time.slice(0, 5)}〜{activity.end_time.slice(0, 5)}
-                </p>
-                <p className="text-gray-500 text-sm">{activity.location}</p>
-              </div>
-              <div className="text-right flex-shrink-0 ml-3">
-                <p className="text-2xl font-bold text-blue-600">¥{activity.price.toLocaleString()}</p>
-                <p className="text-xs text-gray-400">/ 人</p>
-              </div>
-            </div>
+  useEffect(() => {
+    supabase
+      .from('activities')
+      .select('*')
+      .neq('status', 'cancelled')
+      .order('date', { ascending: true })
+      .then(({ data }) => { if (data) setActivities(data); setLoading(false); });
+  }, []);
 
-            {/* 定員状況 */}
-            <div className="flex items-center gap-3 my-3">
-              <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${isFull ? 'bg-red-400' : 'bg-blue-400'}`}
-                  style={{ width: `${Math.min(100, (used / activity.capacity) * 100)}%` }}
-                />
-              </div>
-              <span className={`text-sm font-medium flex-shrink-0 ${isFull ? 'text-red-500' : 'text-gray-600'}`}>
-                {isFull ? '満員' : `残り${remaining}枠`}　{used}/{activity.capacity}人
-              </span>
-            </div>
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const fmt = (d: string) => { const dt = new Date(d); return `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`; };
 
-            {/* 申し込み者リスト */}
-            {actEntries.length > 0 && (
-              <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-sm text-gray-600 space-y-0.5">
-                {actEntries.map((e, i) => (
-                  <p key={e.id}>
-                    {i + 1}. {e.name}
-                    <span className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${e.member_type === 'member' ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'}`}>
-                      {e.member_type === 'member' ? '会員' : '通常'}
-                    </span>
-                    {e.quantity > 1 && <span className="ml-1 text-xs text-gray-400">・{e.quantity}人</span>}
-                  </p>
-                ))}
-              </div>
-            )}
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+    </div>
+  );
 
-            {/* 申し込み完了表示 */}
-            {code && (
-              <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
-                <p className="text-green-800 font-medium text-sm mb-1">申し込みが完了しました！</p>
-                <p className="text-green-700 text-sm">
-                  キャンセルコード：<span className="font-bold text-lg tracking-widest">{code}</span>
-                </p>
-                <p className="text-green-600 text-xs mt-1">このコードはキャンセル時に必要です。スクリーンショットを保存してください。</p>
-              </div>
-            )}
-
-            {/* 申し込みフォーム */}
-            {!code && (
-              <div>
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    value={formName[activity.id] || ''}
-                    onChange={e => setFormName(p => ({ ...p, [activity.id]: e.target.value }))}
-                    placeholder="お名前"
-                    disabled={isFull}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-50 disabled:text-gray-400"
-                  />
-                </div>
-                <div className="mb-3">
-                  <select
-                    value={formQty[activity.id] || 1}
-                    onChange={e => setFormQty(p => ({ ...p, [activity.id]: Number(e.target.value) }))}
-                    disabled={isFull}
-                    className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-50"
-                  >
-                    <option value={1}>1人</option>
-                    <option value={2}>2人</option>
-                    <option value={3}>3人</option>
-                  </select>
-                </div>
-                {errors[activity.id] && (
-                  <p className="text-red-500 text-xs mb-3">{errors[activity.id]}</p>
-                )}
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleSubmit(activity, 'normal')}
-                    disabled={isFull || submitting[activity.id]}
-                    className="flex-1 bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    {isFull ? '満員' : submitting[activity.id] ? '送信中...' : '申し込む（通常）'}
-                  </button>
-                  <div className="flex-1 flex flex-col">
-                    <button
-                      onClick={() => handleSubmit(activity, 'member')}
-                      disabled={isFull || submitting[activity.id]}
-                      className="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                      {isFull ? '満員' : submitting[activity.id] ? '送信中...' : '申し込む（会員）'}
-                    </button>
-                    <p className="text-xs text-gray-400 text-center mt-1">※チャージ済みの方はこちら</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
+  return (
+    <main className="max-w-lg mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">活動一覧</h1>
+      {activities.length === 0 ? (
+        <p className="text-center py-16 text-gray-400">現在受付中の活動はありません</p>
+      ) : (
+        <div className="space-y-3">
+          {activities.map(a => (
+            <Link
+              key={a.id}
+              to={`/activity/${a.id}`}
+              className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
+            >
+              <p className="font-bold text-gray-900">{a.title}</p>
+              <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
+              <p className="text-sm text-gray-500">{a.location}</p>
+              <p className="text-blue-600 font-bold mt-1">¥{a.price.toLocaleString()} / 人</p>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 };
