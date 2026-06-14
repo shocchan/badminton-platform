@@ -267,6 +267,7 @@ interface Activity {
   status: 'open' | 'closed' | 'cancelled';
   address?: string;
   notes?: string;
+  archived_at?: string | null;
   created_at: string;
 }
 
@@ -279,6 +280,7 @@ interface ActivityEntry {
   cancel_code: string;
   quantity: number;
   status: 'confirmed' | 'waitlist';
+  notes: string;
   created_at: string;
 }
 
@@ -320,6 +322,8 @@ const ActivityAdminTab = () => {
   const [saveError, setSaveError] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+  const [copyToast, setCopyToast] = useState('');
 
   const fetchAll = useCallback(async () => {
     const { data: acts } = await supabase.from('activities').select('*').order('date', { ascending: true });
@@ -371,18 +375,82 @@ const ActivityAdminTab = () => {
     setShowForm(true);
   };
 
+  const handleArchive = async (id: string) => {
+    if (!confirm('この活動をアーカイブしますか？データは保持されます。')) return;
+    await supabase.from('activities').update({ archived_at: new Date().toISOString() }).eq('id', id);
+    fetchAll();
+  };
+
+  const handleUnarchive = async (id: string) => {
+    await supabase.from('activities').update({ archived_at: null }).eq('id', id);
+    fetchAll();
+  };
+
   const handleDelete = async (id: string) => {
-    if (!confirm('この活動を削除しますか？申し込みデータも削除されます。')) return;
+    if (!confirm('完全削除しますか？申し込みデータも削除されます。この操作は取り消せません。')) return;
     await supabase.from('activities').delete().eq('id', id);
     fetchAll();
   };
+
+  const copyWechatText = (a: Activity, actEntries: ActivityEntry[]) => {
+    const suffixes = ['①', '②', '③'];
+    const rows = actEntries.flatMap(e =>
+      Array.from({ length: e.quantity }, (_, i) => ({
+        name: e.quantity > 1 ? `${e.name}${suffixes[i] ?? i+1}` : e.name,
+        notes: e.notes || '',
+      }))
+    );
+    const header = `【${a.title}】`;
+    const lines = rows.map((r, i) => `【${i+1}】姓名: ${r.name}; 备注: ${r.notes}`).join('\n');
+    navigator.clipboard.writeText(`${header}\n${lines}`);
+    setCopyToast('コピーしました！');
+    setTimeout(() => setCopyToast(''), 2000);
+  };
+
+  const exportExcel = async (a: Activity, actEntries: ActivityEntry[]) => {
+    const { utils, writeFile } = await import('xlsx');
+    const suffixes = ['①', '②', '③'];
+    const rows = actEntries.flatMap(e =>
+      Array.from({ length: e.quantity }, (_, i) => ({
+        '番号': '',
+        '姓名': e.quantity > 1 ? `${e.name}${suffixes[i] ?? i+1}` : e.name,
+        '種別': e.member_type === 'member' ? '会員' : '通常',
+        '状態': e.status === 'waitlist' ? '補欠' : '確定',
+        '流入元': sourceLabel(e.source).replace(/[📱💬🌐]\s?/g, ''),
+        '備考': e.notes || '',
+        '申込日時': new Date(e.created_at).toLocaleString('ja-JP'),
+      }))
+    );
+    rows.forEach((r, i) => { r['番号'] = String(i + 1); });
+    const ws = utils.json_to_sheet(rows);
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, '参加者リスト');
+    writeFile(wb, `${a.title}_参加者リスト.xlsx`);
+  };
+
+  const activeActivities = activities.filter(a => !a.archived_at);
+  const archivedActivities = activities.filter(a => a.archived_at);
+  const displayActivities = showArchived ? archivedActivities : activeActivities;
 
   if (loading) return <div className="py-10 text-center text-gray-400">読み込み中...</div>;
 
   return (
     <div>
+      {copyToast && (
+        <div className="fixed top-4 right-4 z-50 bg-gray-800 text-white text-sm px-4 py-2 rounded-xl shadow-lg">
+          {copyToast}
+        </div>
+      )}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-bold text-gray-800">活動管理</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-bold text-gray-800">活動管理</h2>
+          <button
+            onClick={() => setShowArchived(!showArchived)}
+            className={`text-xs px-3 py-1 rounded-full border transition-colors ${showArchived ? 'bg-gray-700 text-white border-gray-700' : 'text-gray-500 border-gray-300 hover:bg-gray-50'}`}
+          >
+            {showArchived ? '▶ アクティブに戻る' : `📦 アーカイブ（${archivedActivities.length}件）`}
+          </button>
+        </div>
         <button
           onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_ACTIVITY); }}
           className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -469,10 +537,10 @@ const ActivityAdminTab = () => {
       )}
 
       {activities.length === 0 && (
-        <div className="text-center py-16 text-gray-400">活動がありません</div>
+        <div className="text-center py-16 text-gray-400">{showArchived ? 'アーカイブされた活動はありません' : '活動がありません'}</div>
       )}
 
-      {activities.map(a => {
+      {displayActivities.map(a => {
         const actEntries = entries[a.id] || [];
         const used = actEntries.reduce((sum, e) => sum + e.quantity, 0);
         const remaining = a.capacity - used;
@@ -496,18 +564,18 @@ const ActivityAdminTab = () => {
                 <p className="text-sm text-gray-500">¥{a.price.toLocaleString()} ／ 定員{a.capacity}人</p>
               </div>
               <div className="flex gap-2 flex-shrink-0 ml-3 flex-wrap justify-end">
-                <button
-                  onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity/${a.id}`); }}
-                  className="text-xs text-gray-500 hover:underline"
-                  title="日本語URL"
-                >🇯🇵URL</button>
-                <button
-                  onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity-cn/${a.id}?from=wechat`); }}
-                  className="text-xs text-gray-500 hover:underline"
-                  title="中国語URL"
-                >🇨🇳URL</button>
-                <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
-                <button onClick={() => handleDelete(a.id)} className="text-xs text-red-400 hover:underline">削除</button>
+                {!a.archived_at && <>
+                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
+                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
+                  <button onClick={() => copyWechatText(a, actEntries)} className="text-xs text-purple-500 hover:underline" title="WeChatテキストコピー">📋WeChat</button>
+                  <button onClick={() => exportExcel(a, actEntries)} className="text-xs text-green-600 hover:underline" title="Excel出力">📊Excel</button>
+                  <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
+                  <button onClick={() => handleArchive(a.id)} className="text-xs text-orange-400 hover:underline">📦アーカイブ</button>
+                </>}
+                {a.archived_at && <>
+                  <button onClick={() => handleUnarchive(a.id)} className="text-xs text-blue-400 hover:underline">↩ 復元</button>
+                  <button onClick={() => handleDelete(a.id)} className="text-xs text-red-400 hover:underline">完全削除</button>
+                </>}
               </div>
             </div>
 
@@ -557,6 +625,7 @@ const ActivityAdminTab = () => {
                         <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">種別</th>
                         <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">状態</th>
                         <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">流入元</th>
+                        <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">備考</th>
                         <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">日時</th>
                         <th className="px-2 py-1.5"></th>
                       </tr>
@@ -579,6 +648,7 @@ const ActivityAdminTab = () => {
                               </span>
                             </td>
                             <td className="px-2 py-2 text-gray-500">{sourceLabel(e.source)}</td>
+                            <td className="px-2 py-2 text-gray-500 text-xs max-w-[120px] truncate" title={e.notes}>{e.notes || '-'}</td>
                             <td className="px-2 py-2 text-gray-400 text-xs whitespace-nowrap">
                               {new Date(e.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </td>

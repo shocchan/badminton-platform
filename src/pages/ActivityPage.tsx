@@ -25,6 +25,7 @@ interface ActivityEntry {
   cancel_code: string;
   quantity: number;
   status: 'confirmed' | 'waitlist';
+  notes: string;
   created_at: string;
 }
 
@@ -162,6 +163,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
 
   const [name, setName] = useState('');
   const [qty, setQty] = useState(1);
+  const [entryNotes, setEntryNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successCode, setSuccessCode] = useState('');
   const [successIsWaitlist, setSuccessIsWaitlist] = useState(false);
@@ -233,6 +235,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
       cancel_code: code,
       quantity: qty,
       status: entryStatus,
+      notes: entryNotes.trim(),
     });
     setSubmitting(false);
     if (error) {
@@ -240,6 +243,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
     } else {
       setSuccessCode(code);
       setSuccessIsWaitlist(entryStatus === 'waitlist');
+      setEntryNotes('');
       setName('');
       setQty(1);
       fetchEntries();
@@ -415,6 +419,15 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
           >
             {[1, 2, 3].map(n => <option key={n} value={n}>{n}{t.personUnit}</option>)}
           </select>
+
+          <textarea
+            value={entryNotes}
+            onChange={e => setEntryNotes(e.target.value)}
+            placeholder={lang === 'ja' ? '備考（任意）例：少し遅れます、初心者です…' : '备注（选填）例：我会稍微晚到、我是初学者…'}
+            rows={2}
+            disabled={activity.status === 'closed'}
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-50"
+          />
 
           {formError && <p className="text-red-500 text-xs mb-3">{formError}</p>}
 
