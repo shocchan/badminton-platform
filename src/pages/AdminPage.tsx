@@ -294,7 +294,7 @@ const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
   price: 600,
   status: 'open',
   address: '',
-  notes: '当日現金払い（600円）またはPayPay払い可',
+  notes: '当日現金払い または PayPay（ID：shocchance）払い可：600円\n※チャージは2000円から（次回以降の申し込みは「チャージ済み会員」を選択してください。）',
 };
 
 const autoTitle = (date: string, start: string, end: string, location: string) => {
