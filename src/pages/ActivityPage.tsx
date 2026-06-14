@@ -593,16 +593,89 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   );
 };
 
-// ── 活動一覧ページ（管理者がURLをコピーするため） ─────────────
+// ── 活動カレンダー ─────────────────────────────────────────────
+const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
+  activities: Activity[];
+  selectedDate: string | null;
+  onSelect: (d: string | null) => void;
+}) => {
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay();
+  const toStr = (day: number) => `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+  const byDate: Record<string, true> = {};
+  activities.forEach(a => { byDate[a.date] = true; });
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+        <button onClick={() => month === 0 ? (setMonth(11), setYear(y=>y-1)) : setMonth(m=>m-1)}
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold">‹</button>
+        <div className="flex items-center gap-2">
+          <span className="font-extrabold text-gray-900 text-sm">{year}年 {month+1}月</span>
+          {(year !== today.getFullYear() || month !== today.getMonth()) && (
+            <button onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()); }}
+              className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium">今月</button>
+          )}
+        </div>
+        <button onClick={() => month === 11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1)}
+          className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold">›</button>
+      </div>
+      <div className="p-3">
+        <div className="grid grid-cols-7 mb-1">
+          {['日','月','火','水','木','金','土'].map((d,i) => (
+            <div key={d} className={`text-center text-xs font-bold py-1 ${i===0?'text-red-500':i===6?'text-blue-500':'text-gray-400'}`}>{d}</div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-0.5">
+          {Array.from({length: firstDow}).map((_,i) => <div key={`e${i}`} />)}
+          {Array.from({length: daysInMonth}).map((_,i) => {
+            const day = i+1;
+            const ds = toStr(day);
+            const hasActivity = byDate[ds];
+            const isToday = ds === todayStr;
+            const isSelected = ds === selectedDate;
+            const dow = new Date(year, month, day).getDay();
+            return (
+              <div key={day} onClick={() => hasActivity && onSelect(isSelected ? null : ds)}
+                className={`rounded-lg flex flex-col items-center py-1 px-0.5 min-h-[40px] transition-colors ${
+                  hasActivity ? 'cursor-pointer' : 'cursor-default'
+                } ${isSelected ? 'bg-emerald-500 text-white' :
+                   isToday ? 'bg-emerald-50 border border-emerald-300' : 'hover:bg-gray-50'}`}
+              >
+                <span className={`text-xs font-semibold mb-0.5 ${
+                  isSelected ? 'text-white' :
+                  dow===0 ? 'text-red-500' : dow===6 ? 'text-blue-500' : 'text-gray-700'
+                }`}>{day}</span>
+                {hasActivity && (
+                  <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-emerald-500'}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── 活動一覧ページ ─────────────────────────────────────────────
 export const ActivityListPage = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   useEffect(() => {
     supabase
       .from('activities')
       .select('*')
       .neq('status', 'cancelled')
+      .is('archived_at', null)
       .order('date', { ascending: true })
       .then(({ data }) => { if (data) setActivities(data); setLoading(false); });
   }, []);
@@ -610,20 +683,44 @@ export const ActivityListPage = () => {
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   const fmt = (d: string) => { const dt = new Date(d); return `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`; };
 
+  const displayed = selectedDate
+    ? activities.filter(a => a.date === selectedDate)
+    : activities;
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
     </div>
   );
 
   return (
     <main className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">活動一覧</h1>
-      {activities.length === 0 ? (
-        <p className="text-center py-16 text-gray-400">現在受付中の活動はありません</p>
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">通常活動</h1>
+
+      <ActivityCalendar
+        activities={activities}
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
+      />
+
+      {selectedDate && (
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-medium text-gray-600">
+            {fmt(selectedDate)} の活動
+          </p>
+          <button onClick={() => setSelectedDate(null)} className="text-xs text-emerald-600 hover:underline">
+            ✕ 絞り込み解除
+          </button>
+        </div>
+      )}
+
+      {displayed.length === 0 ? (
+        <p className="text-center py-12 text-gray-400">
+          {selectedDate ? 'この日の活動はありません' : '現在受付中の活動はありません'}
+        </p>
       ) : (
         <div className="space-y-3">
-          {activities.map(a => (
+          {displayed.map(a => (
             <Link
               key={a.id}
               to={`/activity/${a.id}`}
@@ -632,7 +729,7 @@ export const ActivityListPage = () => {
               <p className="font-bold text-gray-900">{a.title}</p>
               <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
               <p className="text-sm text-gray-500">{a.location}</p>
-              <p className="text-blue-600 font-bold mt-1">¥{a.price.toLocaleString()} / 人</p>
+              <p className="text-emerald-600 font-bold mt-1">¥{a.price.toLocaleString()} / 人</p>
             </Link>
           ))}
         </div>

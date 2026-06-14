@@ -290,7 +290,7 @@ const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
   start_time: '17:00',
   end_time: '19:00',
   location: '',
-  capacity: 8,
+  capacity: 16,
   price: 600,
   status: 'open',
   address: '',
@@ -570,6 +570,12 @@ const ActivityAdminTab = () => {
                   <button onClick={() => copyWechatText(a, actEntries)} className="text-xs text-purple-500 hover:underline" title="WeChatテキストコピー">📋WeChat</button>
                   <button onClick={() => exportExcel(a, actEntries)} className="text-xs text-green-600 hover:underline" title="Excel出力">📊Excel</button>
                   <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
+                  <button onClick={() => {
+                    setEditId(null);
+                    setForm({ title: '', date: '', start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: 'open', address: a.address || '', notes: a.notes || '' });
+                    setShowForm(true);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} className="text-xs text-teal-500 hover:underline">📋複製</button>
                   <button onClick={() => handleArchive(a.id)} className="text-xs text-orange-400 hover:underline">📦アーカイブ</button>
                 </>}
                 {a.archived_at && <>
