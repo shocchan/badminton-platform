@@ -305,6 +305,7 @@ const ActivityAdminTab = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<Omit<Activity, 'id' | 'created_at'>>(EMPTY_ACTIVITY);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -334,13 +335,17 @@ const ActivityAdminTab = () => {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const handleSave = async () => {
+    if (!form.date) { setSaveError('日付を入力してください'); return; }
     setSaving(true);
-    if (editId) {
-      await supabase.from('activities').update(form).eq('id', editId);
-    } else {
-      await supabase.from('activities').insert(form);
-    }
+    setSaveError('');
+    const { error } = editId
+      ? await supabase.from('activities').update(form).eq('id', editId)
+      : await supabase.from('activities').insert(form);
     setSaving(false);
+    if (error) {
+      setSaveError(`保存エラー: ${error.message}`);
+      return;
+    }
     setShowForm(false);
     setEditId(null);
     setForm(EMPTY_ACTIVITY);
@@ -422,8 +427,9 @@ const ActivityAdminTab = () => {
               </select>
             </div>
           </div>
+          {saveError && <p className="text-red-500 text-sm mt-3">{saveError}</p>}
           <div className="flex gap-3 mt-4 justify-end">
-            <button onClick={() => { setShowForm(false); setEditId(null); }}
+            <button onClick={() => { setShowForm(false); setEditId(null); setSaveError(''); }}
               className="px-5 py-2 border border-gray-300 rounded-xl text-sm hover:bg-gray-50">キャンセル</button>
             <button onClick={handleSave} disabled={saving}
               className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
