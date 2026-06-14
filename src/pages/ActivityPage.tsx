@@ -294,12 +294,53 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
   // シェア
   const handleShare = () => setShowShareModal(true);
+  const origin = window.location.origin;
 
-  const handleCopyShareText = async () => {
-    const title = activity?.title ?? '';
-    const url = window.location.href;
-    await navigator.clipboard.writeText(`${title}\n${url}`);
-    setShareToast(lang === 'ja' ? '✅ タイトルとURLをコピーしました' : '✅ 已复制标题和链接');
+  const handleCopyLine = async () => {
+    if (!activity) return;
+    const lineUrl = `${origin}/activity/${id}?from=line`;
+    const d = new Date(activity.date);
+    const days = ['日','月','火','水','木','金','土'];
+    const dateStr = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
+    const text = [
+      '【川口・蕨バドミントン交流会】',
+      `📅 ${dateStr} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)}`,
+      `📍 ${activity.location}`,
+      `💴 ¥${activity.price.toLocaleString()} / 人`,
+      '',
+      '▶ 申し込みはこちら',
+      lineUrl,
+    ].join('\n');
+    await navigator.clipboard.writeText(text);
+    setShareToast('✅ LINEシェア用テキストをコピーしました');
+    setTimeout(() => setShareToast(''), 2500);
+    setShowShareModal(false);
+  };
+
+  const handleCopyWeChat = async () => {
+    if (!activity) return;
+    const wechatUrl = `${origin}/activity-cn/${id}?from=wechat`;
+    const d = new Date(activity.date);
+    const zhDays = ['日','一','二','三','四','五','六'];
+    const dateStr = `${d.getMonth()+1}月${d.getDate()}日（周${zhDays[d.getDay()]}）`;
+    const text = [
+      '【川口・蕨羽毛球交流会】',
+      `📅 ${dateStr} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)}`,
+      `📍 ${activity.location}`,
+      `💴 ¥${activity.price.toLocaleString()} / 人`,
+      '',
+      '▶ 点击报名',
+      wechatUrl,
+    ].join('\n');
+    await navigator.clipboard.writeText(text);
+    setShareToast('✅ 已复制微信分享文字');
+    setTimeout(() => setShareToast(''), 2500);
+    setShowShareModal(false);
+  };
+
+  const handleCopyUrl = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setShareToast(lang === 'ja' ? '✅ URLをコピーしました' : '✅ 已复制链接');
     setTimeout(() => setShareToast(''), 2500);
     setShowShareModal(false);
   };
@@ -446,32 +487,38 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
               {lang === 'ja' ? 'シェア' : '分享'}
             </h3>
-            {/* コピー内容プレビュー */}
-            <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-sm text-gray-700 break-all">
-              <p className="font-bold">{activity?.title}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{window.location.href}</p>
-            </div>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {/* LINE */}
               <button
-                onClick={handleCopyShareText}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#06C755] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+                onClick={handleCopyLine}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#06C755] text-white hover:opacity-90 transition-opacity text-left"
               >
-                <span className="text-xl">💬</span>
-                <div className="text-left">
-                  <p>{lang === 'ja' ? 'LINEにコピーして貼り付け' : '复制后粘贴到LINE'}</p>
-                  <p className="text-xs font-normal opacity-80">{lang === 'ja' ? 'タイトル＋URLをコピー' : '复制标题和链接'}</p>
+                <span className="text-2xl flex-shrink-0">💬</span>
+                <div>
+                  <p className="font-bold text-sm">LINE用にコピー</p>
+                  <p className="text-xs opacity-80 mt-0.5">日本語テキスト＋日本語ページのURL</p>
                 </div>
               </button>
               {/* WeChat */}
               <button
-                onClick={handleCopyShareText}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#07C160] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+                onClick={handleCopyWeChat}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#07C160] text-white hover:opacity-90 transition-opacity text-left"
               >
-                <span className="text-xl">🟢</span>
-                <div className="text-left">
-                  <p>{lang === 'ja' ? 'WeChatにコピーして貼り付け' : '复制后粘贴到微信'}</p>
-                  <p className="text-xs font-normal opacity-80">{lang === 'ja' ? 'タイトル＋URLをコピー' : '复制标题和链接'}</p>
+                <span className="text-2xl flex-shrink-0">🟢</span>
+                <div>
+                  <p className="font-bold text-sm">微信用に复制</p>
+                  <p className="text-xs opacity-80 mt-0.5">中国語テキスト＋中国語ページのURL</p>
+                </div>
+              </button>
+              {/* URLのみ */}
+              <button
+                onClick={handleCopyUrl}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors text-left"
+              >
+                <span className="text-2xl flex-shrink-0">🔗</span>
+                <div>
+                  <p className="font-medium text-sm">{lang === 'ja' ? 'URLをコピー' : '复制链接'}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{lang === 'ja' ? 'サイト経由（テキストなし）' : '仅链接'}</p>
                 </div>
               </button>
             </div>
