@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Activity {
   id: string;
@@ -184,15 +185,43 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
   return (
     <button
       onClick={handleCopy}
-      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium mb-3 transition-colors ${
-        copied
-          ? 'bg-green-100 text-green-700 border border-green-300'
-          : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-      }`}
+      className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-600 transition-colors mb-2 mx-auto"
     >
-      {copied ? '✅ コピーしました！' : `📋 ${lang === 'ja' ? '参加者リストをコピー（WeChat用）' : '复制参与者名单（微信用）'}`}
+      {copied
+        ? '✅ コピーしました！'
+        : `📋 ${lang === 'ja' ? '参加者リストをコピー（WeChat用）' : '复制参与者名单（微信用）'}`}
     </button>
   );
+};
+
+// 開始時刻+1時間を締め切りとして計算
+const getDeadline = (date: string, startTime: string): Date => {
+  const dt = new Date(`${date}T${startTime}`);
+  dt.setHours(dt.getHours() + 1);
+  return dt;
+};
+
+const isExpiredActivity = (date: string, startTime: string): boolean =>
+  new Date() > getDeadline(date, startTime);
+
+const useCountdown = (deadline: Date | null) => {
+  const [label, setLabel] = useState('');
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    if (!deadline) return;
+    const tick = () => {
+      const diff = deadline.getTime() - Date.now();
+      if (diff <= 0) { setExpired(true); setLabel(''); return; }
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      setLabel(h > 0 ? `${h}時間${m}分${s}秒` : `${m}分${s}秒`);
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [deadline]);
+  return { label, expired };
 };
 
 const formatDate = (dateStr: string, lang: 'ja' | 'zh') => {
@@ -203,10 +232,14 @@ const formatDate = (dateStr: string, lang: 'ja' | 'zh') => {
 };
 
 // ── 単一活動ページ ─────────────────────────────────────────
-export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
+export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
+  const { lang: ctxLang } = useLanguage();
+  const lang = langProp ?? ctxLang;
   const t = T[lang];
+  const formRef = useRef<HTMLDivElement>(null);
+  const [shareToast, setShareToast] = useState('');
 
   const source = (() => {
     const p = searchParams.get('from') || 'web';
@@ -238,6 +271,24 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   const confirmedCount = confirmedEntries.reduce((s, e) => s + e.quantity, 0);
   const remaining = activity ? Math.max(0, activity.capacity - confirmedCount) : 0;
   const isFull = remaining <= 0;
+
+  // 締め切り（開始+1時間）
+  const deadline = activity ? getDeadline(activity.date, activity.start_time) : null;
+  const { label: countdownLabel, expired: autoExpired } = useCountdown(deadline);
+  const isClosed = activity?.status === 'closed' || autoExpired;
+
+  // シェア
+  const handleShare = async () => {
+    const url = window.location.href;
+    const title = activity?.title ?? '';
+    if (navigator.share) {
+      try { await navigator.share({ title, url }); } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url);
+      setShareToast(lang === 'ja' ? 'URLをコピーしました' : '已复制链接');
+      setTimeout(() => setShareToast(''), 2000);
+    }
+  };
 
   const fetchActivity = useCallback(async () => {
     if (!id) return;
@@ -365,35 +416,67 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   );
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8">
-      {/* ヘッダー */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">{activity.title}</h1>
-        <p className="text-gray-500 mt-1">
-          {formatDate(activity.date, lang)}　{activity.start_time.slice(0, 5)}〜{activity.end_time.slice(0, 5)}
-        </p>
-        <p className="text-gray-500">{activity.location}</p>
-        <p className="text-2xl font-bold text-blue-600 mt-1">{t.price(activity.price)}</p>
-        {(activity.address || activity.notes) && (
-          <div className="mt-3 bg-gray-50 rounded-xl px-4 py-3 text-sm text-gray-600 space-y-1">
-            {activity.address && <p>📍 {activity.address}</p>}
-            {activity.notes && <p className="whitespace-pre-wrap">💳 {activity.notes}</p>}
+    <main className="max-w-lg mx-auto px-4 pb-28 pt-0">
+      {/* シェアトースト */}
+      {shareToast && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg">
+          {shareToast}
+        </div>
+      )}
+
+      {/* WeChat風ヘッダーカード */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-5 pt-6 pb-5 -mx-4 mb-4">
+        <div className="flex items-start justify-between gap-3">
+          <h1 className="text-xl font-bold leading-snug flex-1">{activity.title}</h1>
+          <button onClick={handleShare} className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors" title="シェア">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+          </button>
+        </div>
+        <div className="mt-3 space-y-1.5 text-blue-100 text-sm">
+          <p>📅 {formatDate(activity.date, lang)}　{activity.start_time.slice(0,5)}〜{activity.end_time.slice(0,5)}</p>
+          <p>📍 {activity.location}</p>
+          {activity.address && <p className="text-blue-200 text-xs">{activity.address}</p>}
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <span className="text-2xl font-extrabold">{t.price(activity.price)}</span>
+          {isClosed
+            ? <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">{lang === 'ja' ? '締め切り' : '已截止'}</span>
+            : isFull
+              ? <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-lg">{t.full}</span>
+              : <span className="bg-green-400 text-green-900 text-xs font-bold px-2 py-1 rounded-lg">{lang === 'ja' ? '受付中' : '报名中'}</span>
+          }
+        </div>
+      </div>
+
+      {/* 情報行 */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-50 mb-4">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <span className="text-lg">👥</span>
+          <div className="flex-1">
+            <p className="text-xs text-gray-400">{lang === 'ja' ? '参加人数' : '参加人数'}</p>
+            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
+          </div>
+          {/* 定員バー */}
+          <div className="w-20">
+            <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
+              <div className={`h-full rounded-full ${isFull ? 'bg-red-400' : 'bg-blue-400'}`}
+                style={{ width: `${Math.min(100, (confirmedCount / activity.capacity) * 100)}%` }} />
+            </div>
+            <p className={`text-xs mt-0.5 text-right ${isFull ? 'text-red-500' : 'text-blue-500'}`}>
+              {isFull ? t.full : t.remaining(remaining)}
+            </p>
+          </div>
+        </div>
+        {activity.notes && (
+          <div className="px-4 py-3">
+            <p className="text-xs text-gray-400 mb-1">{lang === 'ja' ? '支払い方法' : '支付方式'}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{activity.notes}</p>
           </div>
         )}
       </div>
 
-      {/* 定員バー */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex-1 bg-gray-100 rounded-full h-2.5 overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all ${isFull ? 'bg-red-400' : 'bg-blue-400'}`}
-            style={{ width: `${Math.min(100, (confirmedCount / activity.capacity) * 100)}%` }}
-          />
-        </div>
-        <span className={`text-sm font-medium flex-shrink-0 ${isFull ? 'text-red-500' : 'text-gray-700'}`}>
-          {isFull ? t.full : t.remaining(remaining)}　{t.used(confirmedCount, activity.capacity)}
-        </span>
-      </div>
 
       {/* ② 参加確定リスト */}
       {confirmedEntries.length > 0 && (
@@ -468,7 +551,16 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
 
       {/* メインフォーム / キャンセルフォーム */}
       {!showCancel ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div ref={formRef} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+          {/* 締め切り後 */}
+          {isClosed ? (
+            <div className="text-center py-6">
+              <p className="text-3xl mb-2">🔒</p>
+              <p className="font-bold text-gray-700">{lang === 'ja' ? '受付を締め切りました' : '报名已截止'}</p>
+              <p className="text-sm text-gray-400 mt-1">{lang === 'ja' ? '開始時刻を過ぎたため締め切られました' : '活动开始后报名已自动关闭'}</p>
+            </div>
+          ) : (
+          <>
           {/* 会員バナー */}
           <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4">
             <p className="text-sm font-bold text-green-800">{t.memberBanner}</p>
@@ -480,8 +572,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder={t.namePlaceholder}
-            disabled={activity.status === 'closed'}
-            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-50"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
           <select
             value={qty}
@@ -535,6 +626,8 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
           >
             {t.cancelLink}
           </button>
+          </>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
@@ -589,6 +682,41 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
           </button>
         </div>
       )}
+      {/* Sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40">
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+          {/* カウントダウン or 締め切り */}
+          <div className="flex-1 min-w-0">
+            {isClosed ? (
+              <p className="text-xs font-bold text-red-500">{lang === 'ja' ? '受付終了' : '报名已截止'}</p>
+            ) : countdownLabel ? (
+              <>
+                <p className="text-[10px] text-gray-400">{lang === 'ja' ? '締め切りまで' : '距截止还有'}</p>
+                <p className="text-sm font-bold text-red-500 tabular-nums">{countdownLabel}</p>
+              </>
+            ) : null}
+          </div>
+          {/* シェアボタン */}
+          <button
+            onClick={handleShare}
+            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            {lang === 'ja' ? 'シェア' : '分享'}
+          </button>
+          {/* 申し込みボタン */}
+          {!isClosed && (
+            <button
+              onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
+            >
+              {lang === 'ja' ? '申し込む' : '立即报名'}
+            </button>
+          )}
+        </div>
+      </div>
     </main>
   );
 };
@@ -705,9 +833,12 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   const fmt = (d: string) => { const dt = new Date(d); return `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`; };
 
+  // 開始+1時間を過ぎた活動は一覧から除外
+  const activeActivities = activities.filter(a => !isExpiredActivity(a.date, a.start_time));
+
   const displayed = selectedDate
-    ? activities.filter(a => a.date === selectedDate)
-    : activities;
+    ? activeActivities.filter(a => a.date === selectedDate)
+    : activeActivities;
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
@@ -723,7 +854,7 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
         {/* カレンダー（デスクトップで sticky） */}
         <div className="lg:sticky lg:top-6 mb-4 lg:mb-0">
           <ActivityCalendar
-            activities={activities}
+            activities={activeActivities}
             selectedDate={selectedDate}
             onSelect={setSelectedDate}
           />
