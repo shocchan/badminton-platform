@@ -128,15 +128,27 @@ const T = {
 
 const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 
-const expandEntries = (entries: ActivityEntry[]) =>
-  entries.flatMap(e => {
-    if (e.quantity <= 1) return [{ ...e, displayName: e.name }];
-    const suffixes = ['①', '②', '③'];
-    return Array.from({ length: e.quantity }, (_, i) => ({
-      ...e,
-      displayName: `${e.name}${suffixes[i] ?? String(i + 1)}`,
-    }));
+const SUFFIXES = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
+
+const expandEntries = (entries: ActivityEntry[]) => {
+  // 名前ごとの合計人数を集計
+  const totals: Record<string, number> = {};
+  entries.forEach(e => { totals[e.name] = (totals[e.name] || 0) + e.quantity; });
+
+  // 名前ごとに通し番号を振る
+  const counters: Record<string, number> = {};
+  return entries.flatMap(e => {
+    const total = totals[e.name];
+    return Array.from({ length: e.quantity }, () => {
+      counters[e.name] = (counters[e.name] || 0) + 1;
+      const n = counters[e.name];
+      return {
+        ...e,
+        displayName: total > 1 ? `${e.name}${SUFFIXES[n - 1] ?? n}` : e.name,
+      };
+    });
   });
+};
 
 const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entries: ActivityEntry[]; lang: 'ja' | 'zh' }) => {
   const [copied, setCopied] = useState(false);
