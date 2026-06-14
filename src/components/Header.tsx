@@ -48,7 +48,7 @@ export const Header = () => {
         <Link to="/" onClick={close} className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xl sm:text-2xl">🏸</span>
           <div>
-            <div className="font-bold text-gray-900 text-sm sm:text-lg leading-tight">川口・蕨バド交流杯</div>
+            <div className="font-bold text-gray-900 text-sm sm:text-lg leading-tight">川口・蕨バドミントン交流会</div>
             <div className="text-xs text-gray-500 hidden sm:block">バドミントン大会</div>
           </div>
         </Link>

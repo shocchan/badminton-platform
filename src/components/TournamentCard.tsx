@@ -153,7 +153,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
         <div className="flex items-start justify-between gap-3 mb-2">
           <h3 className="leading-snug">
             {(() => {
-              const SERIES = '川口・蕨バド交流杯';
+              const SERIES = '川口・蕨バドミントン交流会';
               const seriesLabel = tournament.edition != null
                 ? `${SERIES} 第${tournament.edition}回`
                 : SERIES;

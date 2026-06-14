@@ -194,6 +194,12 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
   );
 };
 
+// 会場名 → 画像パスのマッピング
+const VENUE_IMAGES: Record<string, string> = {
+  '芝園公民館': '/venues/shibaen-kouminkan.jpg',
+  '蕨市民体育館': '/venues/warabi-taiikukan.jpg',
+};
+
 // 開始時刻+1時間を締め切りとして計算
 const getDeadline = (date: string, startTime: string): Date => {
   const dt = new Date(`${date}T${startTime}`);
@@ -922,18 +928,33 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
             </p>
           ) : (
             <div className="space-y-3">
-              {displayed.map(a => (
-                <Link
-                  key={a.id}
-                  to={t.detailLink(a.id)}
-                  className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
-                >
-                  <p className="font-bold text-gray-900">{a.title}</p>
-                  <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
-                  <p className="text-sm text-gray-500">{a.location}</p>
-                  <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
-                </Link>
-              ))}
+              {displayed.map(a => {
+                const venueImg = VENUE_IMAGES[a.location] ?? null;
+                return (
+                  <Link
+                    key={a.id}
+                    to={t.detailLink(a.id)}
+                    className="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                  >
+                    {/* 会場画像 */}
+                    {venueImg ? (
+                      <div className="h-32 overflow-hidden">
+                        <img src={venueImg} alt={a.location} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="h-16 bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">
+                        <span className="text-white text-2xl">🏸</span>
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <p className="font-bold text-gray-900">{a.title}</p>
+                      <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
+                      <p className="text-sm text-gray-500">{a.location}</p>
+                      <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

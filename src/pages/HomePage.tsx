@@ -231,12 +231,12 @@ export const HomePage = () => {
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/50 to-transparent" />
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="max-w-lg">
-            <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">川口・蕨バド交流杯</p>
+            <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">川口・蕨バドミントン交流会</p>
             <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg leading-tight">
               仕事終わりに、<br />4試合以上。
             </h1>
             <p className="text-blue-100 text-sm sm:text-lg leading-relaxed mb-8 drop-shadow">
-              平日夜開催・川口蕨エリアのバドミントン大会。<br className="hidden sm:inline" />
+              平日夜開催・川口・蕨エリアのバドミントン交流会。<br className="hidden sm:inline" />
               超初級〜オープンまで全レベル歓迎！
             </p>
             <div className="flex flex-wrap gap-3 text-sm">

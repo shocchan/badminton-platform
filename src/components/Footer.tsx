@@ -15,7 +15,7 @@ export const Footer = () => {
           <div className="sm:col-span-1">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-2xl">🏸</span>
-              <span className="text-white font-extrabold text-base">{lang === 'ja' ? '川口・蕨バド交流杯' : '川口・蕨羽毛球交流杯'}</span>
+              <span className="text-white font-extrabold text-base">{lang === 'ja' ? '川口・蕨バドミントン交流会' : '川口・蕨羽毛球交流会'}</span>
             </div>
             <p className="text-sm leading-relaxed text-gray-500">
               {lang === 'ja'
@@ -79,7 +79,7 @@ export const Footer = () => {
       {/* ボトムバー */}
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
-          <p>© {year} 川口・蕨バド交流杯. All rights reserved.</p>
+          <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <Link to="/faq" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? 'FAQ' : '常见问题'}</Link>
             <Link to="/cancel-policy" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? 'キャンセルポリシー' : '取消政策'}</Link>

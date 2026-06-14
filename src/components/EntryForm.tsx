@@ -42,7 +42,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       action: 'TEMPLATE',
       text: tournament.title,
       dates: `${start}/${end}`,
-      details: `川口・蕨バド交流杯\n参加費: ¥${tournament.entry_fee.toLocaleString()}`,
+      details: `川口・蕨バドミントン交流会\n参加費: ¥${tournament.entry_fee.toLocaleString()}`,
       location: tournament.venue_address || tournament.location,
     });
     return `https://calendar.google.com/calendar/render?${params.toString()}`;

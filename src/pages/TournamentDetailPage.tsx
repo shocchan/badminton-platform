@@ -126,7 +126,7 @@ export const TournamentDetailPage = () => {
         <div className="flex items-start justify-between gap-4 mb-3">
           <h1 className="leading-snug">
             {(() => {
-              const SERIES = '川口・蕨バド交流杯';
+              const SERIES = '川口・蕨バドミントン交流会';
               const seriesLabel = tournament.edition != null
                 ? `${SERIES} 第${tournament.edition}回`
                 : SERIES;
