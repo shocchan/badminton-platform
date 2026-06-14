@@ -15,7 +15,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities';
 
 // ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
 const CARD_ASPECT = 2;
@@ -252,6 +252,288 @@ const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   youtube_url: '',
   external_url: '',
   published_at: '',
+};
+
+// ── 活動管理タブ ──────────────────────────────────────────────
+interface Activity {
+  id: string;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  capacity: number;
+  price: number;
+  status: 'open' | 'closed' | 'cancelled';
+  created_at: string;
+}
+
+interface ActivityEntry {
+  id: string;
+  activity_id: string;
+  name: string;
+  member_type: 'member' | 'normal';
+  source: 'line' | 'wechat' | 'web';
+  cancel_code: string;
+  quantity: number;
+  created_at: string;
+}
+
+const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
+  title: '幸栄公民館 バドミントン活動',
+  date: '',
+  start_time: '17:00',
+  end_time: '19:00',
+  location: '幸栄公民館',
+  capacity: 8,
+  price: 600,
+  status: 'open',
+};
+
+const formatDateJP = (dateStr: string) => {
+  const d = new Date(dateStr);
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+};
+
+const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
+
+const ActivityAdminTab = () => {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [entries, setEntries] = useState<Record<string, ActivityEntry[]>>({});
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState<Omit<Activity, 'id' | 'created_at'>>(EMPTY_ACTIVITY);
+  const [saving, setSaving] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const fetchAll = useCallback(async () => {
+    const { data: acts } = await supabase.from('activities').select('*').order('date', { ascending: true });
+    if (acts) {
+      setActivities(acts);
+      if (acts.length) {
+        const { data: ents } = await supabase
+          .from('activity_entries')
+          .select('*')
+          .in('activity_id', acts.map((a: Activity) => a.id))
+          .order('created_at', { ascending: true });
+        if (ents) {
+          const grouped: Record<string, ActivityEntry[]> = {};
+          for (const e of ents) {
+            if (!grouped[e.activity_id]) grouped[e.activity_id] = [];
+            grouped[e.activity_id].push(e);
+          }
+          setEntries(grouped);
+        }
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    if (editId) {
+      await supabase.from('activities').update(form).eq('id', editId);
+    } else {
+      await supabase.from('activities').insert(form);
+    }
+    setSaving(false);
+    setShowForm(false);
+    setEditId(null);
+    setForm(EMPTY_ACTIVITY);
+    fetchAll();
+  };
+
+  const handleEdit = (a: Activity) => {
+    setEditId(a.id);
+    setForm({ title: a.title, date: a.date, start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: a.status });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('この活動を削除しますか？申し込みデータも削除されます。')) return;
+    await supabase.from('activities').delete().eq('id', id);
+    fetchAll();
+  };
+
+  if (loading) return <div className="py-10 text-center text-gray-400">読み込み中...</div>;
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-bold text-gray-800">活動管理</h2>
+        <button
+          onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_ACTIVITY); }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          ＋ 活動を追加
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+          <h3 className="font-bold text-gray-800 mb-4">{editId ? '活動を編集' : '活動を作成'}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">タイトル</label>
+              <input type="text" value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">日付</label>
+              <input type="date" value={form.date} onChange={e => setForm(p => ({ ...p, date: e.target.value }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">場所</label>
+              <input type="text" value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">開始時刻</label>
+              <input type="time" value={form.start_time} onChange={e => setForm(p => ({ ...p, start_time: e.target.value }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">終了時刻</label>
+              <input type="time" value={form.end_time} onChange={e => setForm(p => ({ ...p, end_time: e.target.value }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">定員</label>
+              <input type="number" value={form.capacity} onChange={e => setForm(p => ({ ...p, capacity: Number(e.target.value) }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">料金（円）</label>
+              <input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: Number(e.target.value) }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>
+              <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as Activity['status'] }))}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+                <option value="open">受付中</option>
+                <option value="closed">締め切り</option>
+                <option value="cancelled">中止</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4 justify-end">
+            <button onClick={() => { setShowForm(false); setEditId(null); }}
+              className="px-5 py-2 border border-gray-300 rounded-xl text-sm hover:bg-gray-50">キャンセル</button>
+            <button onClick={handleSave} disabled={saving}
+              className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
+              {saving ? '保存中...' : '保存'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {activities.length === 0 && (
+        <div className="text-center py-16 text-gray-400">活動がありません</div>
+      )}
+
+      {activities.map(a => {
+        const actEntries = entries[a.id] || [];
+        const used = actEntries.reduce((sum, e) => sum + e.quantity, 0);
+        const remaining = a.capacity - used;
+        const expanded = expandedId === a.id;
+
+        const bySource = { line: { member: 0, normal: 0 }, wechat: { member: 0, normal: 0 }, web: { member: 0, normal: 0 } };
+        for (const e of actEntries) {
+          bySource[e.source][e.member_type] += e.quantity;
+        }
+        const memberTotal = actEntries.filter(e => e.member_type === 'member').reduce((s, e) => s + e.quantity, 0);
+        const normalTotal = actEntries.filter(e => e.member_type === 'normal').reduce((s, e) => s + e.quantity, 0);
+
+        return (
+          <div key={a.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-bold text-gray-900">{a.title}</h3>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {formatDateJP(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}　{a.location}
+                </p>
+                <p className="text-sm text-gray-500">¥{a.price.toLocaleString()} ／ 定員{a.capacity}人</p>
+              </div>
+              <div className="flex gap-2 flex-shrink-0 ml-3">
+                <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
+                <button onClick={() => handleDelete(a.id)} className="text-xs text-red-400 hover:underline">削除</button>
+              </div>
+            </div>
+
+            {/* 集計 */}
+            <div className="mt-3 bg-gray-50 rounded-xl p-4 text-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="font-medium text-gray-800">総申込: {used}/{a.capacity}人</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${remaining <= 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                  {remaining <= 0 ? '満員' : `残り${remaining}枠`}
+                </span>
+              </div>
+              <div className="space-y-1 text-gray-600 border-t border-gray-200 pt-2">
+                {(['line', 'wechat', 'web'] as const).map(src => {
+                  const total = bySource[src].member + bySource[src].normal;
+                  if (total === 0) return null;
+                  return (
+                    <p key={src}>{sourceLabel(src)}：{total}人（会員{bySource[src].member} / 通常{bySource[src].normal}）</p>
+                  );
+                })}
+              </div>
+              <p className="border-t border-gray-200 pt-2 mt-2 text-gray-700 font-medium">
+                会員合計: {memberTotal}人　通常合計: {normalTotal}人
+              </p>
+            </div>
+
+            {/* 申し込み者リスト */}
+            <button
+              onClick={() => setExpandedId(expanded ? null : a.id)}
+              className="text-xs text-blue-500 mt-2 hover:underline"
+            >
+              {expanded ? '▲ 閉じる' : `▼ 申し込み者一覧（${actEntries.length}件）`}
+            </button>
+            {expanded && actEntries.length > 0 && (
+              <div className="mt-2 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">#</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">名前</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">種別</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">流入元</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">人数</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">日時</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {actEntries.map((e, i) => (
+                      <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50">
+                        <td className="px-2 py-2 text-gray-400">{i + 1}</td>
+                        <td className="px-2 py-2 font-medium text-gray-800">{e.name}</td>
+                        <td className="px-2 py-2">
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${e.member_type === 'member' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                            {e.member_type === 'member' ? '会員' : '通常'}
+                          </span>
+                        </td>
+                        <td className="px-2 py-2 text-gray-500">{sourceLabel(e.source)}</td>
+                        <td className="px-2 py-2 text-gray-600">{e.quantity}人</td>
+                        <td className="px-2 py-2 text-gray-400 text-xs whitespace-nowrap">
+                          {new Date(e.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 export const AdminPage = () => {
@@ -605,7 +887,7 @@ export const AdminPage = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
-        {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認']] as [Tab, string][]).map(([key, label]) => (
+        {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理']] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
@@ -1309,6 +1591,11 @@ export const AdminPage = () => {
           )}
         </div>
       )}
+      {/* Activities Tab */}
+      {activeTab === 'activities' && (
+        <ActivityAdminTab />
+      )}
+
       {/* 大会削除確認モーダル */}
       {deleteConfirmTournament && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
