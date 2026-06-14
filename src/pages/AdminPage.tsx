@@ -294,7 +294,7 @@ const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
   price: 600,
   status: 'open',
   address: '',
-  notes: '',
+  notes: '当日現金払い（600円）またはPayPay払い可',
 };
 
 const autoTitle = (date: string, start: string, end: string, location: string) => {

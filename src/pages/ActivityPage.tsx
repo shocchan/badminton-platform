@@ -495,7 +495,7 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
           <textarea
             value={entryNotes}
             onChange={e => setEntryNotes(e.target.value)}
-            placeholder={lang === 'ja' ? '備考（任意）例：少し遅れます、初心者です…' : '备注（选填）例：我会稍微晚到、我是初学者…'}
+            placeholder={lang === 'ja' ? '備考（任意）例：初参加です。' : '备注（选填）例：我是第一次参加。'}
             rows={2}
             disabled={activity.status === 'closed'}
             className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-50"
