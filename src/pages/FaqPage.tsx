@@ -190,7 +190,7 @@ export const FaqPage = () => {
                   <div className="font-extrabold text-gray-900 text-sm leading-tight">エアロセンサ700</div>
                   <div className="text-xs text-gray-400">AS-700</div>
                 </div>
-                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
+                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{lang === 'ja' ? '第2種検定' : '2级检定'}</span>
               </div>
               <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? '一般大会でよく使われるスタンダード。コスパと品質のバランスが◎' : '一般比赛常用标准球，性价比与品质兼具'}</p>
               <a
@@ -210,7 +210,7 @@ export const FaqPage = () => {
                   <div className="font-extrabold text-gray-900 text-sm leading-tight">ニューオフィシャル</div>
                   <div className="text-xs text-gray-400">F-80</div>
                 </div>
-                <span className="flex-shrink-0 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">第1種検定</span>
+                <span className="flex-shrink-0 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">{lang === 'ja' ? '第1種検定' : '1级检定'}</span>
               </div>
               <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? '国内主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス' : '国内主要比赛使用的高级球，耐用性和飞行性能均为顶级'}</p>
               <a
@@ -230,7 +230,7 @@ export const FaqPage = () => {
                   <div className="font-extrabold text-gray-900 text-sm leading-tight">シルバーフェザー</div>
                   <div className="text-xs text-gray-400">Silver Feather</div>
                 </div>
-                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
+                <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{lang === 'ja' ? '第2種検定' : '2级检定'}</span>
               </div>
               <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? 'マレーシア老舗ブランド。ヨネックスより安価で耐久性が高く、コスパ最強と人気' : '马来西亚老牌品牌，比YONEX便宜且耐用，性价比超群'}</p>
               <a
@@ -255,7 +255,7 @@ export const FaqPage = () => {
               ? ['ナイロン製シャトル全般', 'エアロセンサ600以下（AS-600/500/400/300/200）', 'メイビスシリーズ（ナイロン）'].map(ng => (
                   <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
                 ))
-              : ['尼龙球全系列', '气动传感器600以下（AS-600/500/400/300/200）', 'Mavis系列（尼龙）'].map(ng => (
+              : ['尼龙球全系列', 'Aerosensa 600以下（AS-600/500/400/300/200）', 'Mavis系列（尼龙）'].map(ng => (
                   <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
                 ))
             }
