@@ -212,10 +212,18 @@ const useCountdown = (deadline: Date | null) => {
     const tick = () => {
       const diff = deadline.getTime() - Date.now();
       if (diff <= 0) { setExpired(true); setLabel(''); return; }
-      const h = Math.floor(diff / 3600000);
+      const totalH = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      setLabel(h > 0 ? `${h}時間${m}分${s}秒` : `${m}分${s}秒`);
+      if (totalH >= 24) {
+        const d = Math.floor(totalH / 24);
+        const remH = totalH % 24;
+        setLabel(`${d}日${remH}時間`);
+      } else if (totalH >= 1) {
+        setLabel(`${totalH}時間${m}分`);
+      } else {
+        setLabel(`${m}分${s}秒`);
+      }
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -240,6 +248,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const t = T[lang];
   const formRef = useRef<HTMLDivElement>(null);
   const [shareToast, setShareToast] = useState('');
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const source = (() => {
     const p = searchParams.get('from') || 'web';
@@ -278,17 +287,17 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const isClosed = activity?.status === 'closed' || autoExpired;
 
   // シェア
-  const handleShare = async () => {
-    const url = window.location.href;
-    const title = activity?.title ?? '';
-    if (navigator.share) {
-      try { await navigator.share({ title, url }); } catch { /* cancelled */ }
-    } else {
-      await navigator.clipboard.writeText(url);
-      setShareToast(lang === 'ja' ? 'URLをコピーしました' : '已复制链接');
-      setTimeout(() => setShareToast(''), 2000);
-    }
+  const handleShare = () => setShowShareModal(true);
+
+  const handleCopyUrl = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setShareToast(lang === 'ja' ? '✅ URLをコピーしました' : '✅ 已复制链接');
+    setTimeout(() => setShareToast(''), 2500);
+    setShowShareModal(false);
   };
+
+  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}`;
+  // WeChatはwebからの直接シェアが不可→URLコピー案内
 
   const fetchActivity = useCallback(async () => {
     if (!id) return;
@@ -417,10 +426,57 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
   return (
     <main className="max-w-lg mx-auto px-4 pb-28 pt-0">
-      {/* シェアトースト */}
+      {/* トースト */}
       {shareToast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg">
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
           {shareToast}
+        </div>
+      )}
+
+      {/* シェアモーダル */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowShareModal(false)} />
+          <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl">
+            <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
+              {lang === 'ja' ? 'シェア' : '分享'}
+            </h3>
+            <div className="space-y-3">
+              {/* LINE */}
+              <a
+                href={lineShareUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setShowShareModal(false)}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#06C755] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+              >
+                <span className="text-xl">💬</span>
+                <span>LINEでシェア</span>
+              </a>
+              {/* WeChat - URLコピー案内 */}
+              <button
+                onClick={handleCopyUrl}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#07C160] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+              >
+                <span className="text-xl">🟢</span>
+                <span>{lang === 'ja' ? 'WeChat用にURLをコピー' : '复制链接（用于微信）'}</span>
+              </button>
+              {/* URLコピー */}
+              <button
+                onClick={handleCopyUrl}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium text-sm hover:bg-gray-200 transition-colors"
+              >
+                <span className="text-xl">🔗</span>
+                <span>{lang === 'ja' ? 'URLをコピー' : '复制链接'}</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowShareModal(false)}
+              className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600"
+            >
+              {lang === 'ja' ? 'キャンセル' : '取消'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -699,22 +755,13 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           {/* シェアボタン */}
           <button
             onClick={handleShare}
-            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-bold hover:bg-blue-700 transition-colors"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
             {lang === 'ja' ? 'シェア' : '分享'}
           </button>
-          {/* 申し込みボタン */}
-          {!isClosed && (
-            <button
-              onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-              className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors"
-            >
-              {lang === 'ja' ? '申し込む' : '立即报名'}
-            </button>
-          )}
         </div>
       </div>
     </main>
