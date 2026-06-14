@@ -996,11 +996,7 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
                     )}
                     <div className="p-4">
                       <p className="font-bold text-gray-900">{a.title}</p>
-                      <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
-                      {a.address
-                        ? <p className="text-xs text-gray-400 mt-0.5">📍 {a.address}</p>
-                        : <p className="text-sm text-gray-500">{a.location}</p>
-                      }
+                      {a.address && <p className="text-xs text-gray-400 mt-0.5">📍 {a.address}</p>}
                       <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
                     </div>
                   </Link>
