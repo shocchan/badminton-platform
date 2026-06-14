@@ -709,24 +709,34 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             </div>
           )}
 
-          <div className="flex gap-2">
+          {/* 申し込みボタン（縦並び） */}
+          <div className="flex flex-col gap-3 mt-2">
+            {/* チャージ済み会員ボタン（メイン） */}
+            <button
+              onClick={() => handleSubmit('member')}
+              disabled={submitting}
+              className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 50%, #166534 100%)' }}
+            >
+              <span className="relative z-10 flex items-center justify-center gap-2">
+                <span className="text-lg">💳</span>
+                <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}</span>
+              </span>
+              <span className="absolute bottom-1 right-3 text-[10px] text-green-200 font-normal">{t.memberNote}</span>
+            </button>
+
+            {/* 通常ボタン（サブ） */}
             <button
               onClick={() => handleSubmit('normal')}
-              disabled={submitting || activity.status === 'closed'}
-              className="flex-1 bg-blue-600 text-white py-3 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:bg-gray-300"
+              disabled={submitting}
+              className="w-full py-4 rounded-2xl font-bold text-base text-white shadow active:scale-[0.98] transition-all disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' }}
             >
-              {submitting ? t.submitting : isFull ? t.waitlistSubmitNormal : t.submitNormal}
+              <span className="flex items-center justify-center gap-2">
+                <span className="text-lg">🏸</span>
+                <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitNormal : t.submitNormal}</span>
+              </span>
             </button>
-            <div className="flex-1 flex flex-col gap-1">
-              <button
-                onClick={() => handleSubmit('member')}
-                disabled={submitting || activity.status === 'closed'}
-                className="w-full bg-green-600 text-white py-3 rounded-xl font-bold text-sm hover:bg-green-700 transition-colors disabled:bg-gray-300"
-              >
-                {submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}
-              </button>
-              <p className="text-xs text-green-700 text-center font-medium">{t.memberNote}</p>
-            </div>
           </div>
 
           <button
