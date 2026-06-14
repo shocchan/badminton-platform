@@ -138,6 +138,51 @@ const expandEntries = (entries: ActivityEntry[]) =>
     }));
   });
 
+const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entries: ActivityEntry[]; lang: 'ja' | 'zh' }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    const confirmed = entries.filter(e => e.status === 'confirmed');
+    const waitlist = entries.filter(e => e.status === 'waitlist');
+    const suffixes = ['①', '②', '③'];
+
+    const expand = (list: ActivityEntry[]) =>
+      list.flatMap(e =>
+        Array.from({ length: e.quantity }, (_, i) => ({
+          name: e.quantity > 1 ? `${e.name}${suffixes[i] ?? i + 1}` : e.name,
+          notes: e.notes || '',
+        }))
+      );
+
+    const confirmedRows = expand(confirmed);
+    const waitlistRows = expand(waitlist);
+
+    const header = `【${activity.title}】`;
+    const lines = confirmedRows.map((r, i) => `【${i + 1}】姓名: ${r.name}; 备注: ${r.notes}`).join('\n');
+    const waitlistLines = waitlistRows.length
+      ? '\n' + (lang === 'ja' ? '--- 補欠 ---' : '--- 候补 ---') + '\n' +
+        waitlistRows.map((r, i) => `[候补${i + 1}] 姓名: ${r.name}; 备注: ${r.notes}`).join('\n')
+      : '';
+
+    navigator.clipboard.writeText(`${header}\n${lines}${waitlistLines}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium mb-3 transition-colors ${
+        copied
+          ? 'bg-green-100 text-green-700 border border-green-300'
+          : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
+      }`}
+    >
+      {copied ? '✅ コピーしました！' : `📋 ${lang === 'ja' ? '参加者リストをコピー（WeChat用）' : '复制参与者名单（微信用）'}`}
+    </button>
+  );
+};
+
 const formatDate = (dateStr: string, lang: 'ja' | 'zh') => {
   const d = new Date(dateStr);
   if (lang === 'zh') return `${d.getMonth() + 1}月${d.getDate()}日`;
@@ -376,6 +421,11 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
             ))}
           </div>
         </div>
+      )}
+
+      {/* 参加者リストコピーボタン */}
+      {entries.length > 0 && (
+        <CopyListButton activity={activity} entries={entries} lang={lang} />
       )}
 
       {/* 申し込み完了 */}
