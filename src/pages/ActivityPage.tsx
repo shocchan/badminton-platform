@@ -664,11 +664,33 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
   );
 };
 
+const LIST_T = {
+  ja: {
+    title: '通常活動',
+    empty: '現在受付中の活動はありません',
+    emptyDate: 'この日の活動はありません',
+    clearFilter: '✕ 絞り込み解除',
+    dateLabel: (d: string) => `${d} の活動`,
+    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    detailLink: (id: string) => `/activity/${id}`,
+  },
+  zh: {
+    title: '日常活动',
+    empty: '目前没有活动',
+    emptyDate: '当天没有活动',
+    clearFilter: '✕ 取消筛选',
+    dateLabel: (d: string) => `${d} 的活动`,
+    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    detailLink: (id: string) => `/activity-cn/${id}?from=wechat`,
+  },
+};
+
 // ── 活動一覧ページ ─────────────────────────────────────────────
-export const ActivityListPage = () => {
+const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const t = LIST_T[lang];
 
   useEffect(() => {
     supabase
@@ -694,48 +716,56 @@ export const ActivityListPage = () => {
   );
 
   return (
-    <main className="max-w-lg mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">通常活動</h1>
+    <main className="max-w-5xl mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title}</h1>
 
-      <ActivityCalendar
-        activities={activities}
-        selectedDate={selectedDate}
-        onSelect={setSelectedDate}
-      />
-
-      {selectedDate && (
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-medium text-gray-600">
-            {fmt(selectedDate)} の活動
-          </p>
-          <button onClick={() => setSelectedDate(null)} className="text-xs text-emerald-600 hover:underline">
-            ✕ 絞り込み解除
-          </button>
+      <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-6 lg:items-start">
+        {/* カレンダー（デスクトップで sticky） */}
+        <div className="lg:sticky lg:top-6 mb-4 lg:mb-0">
+          <ActivityCalendar
+            activities={activities}
+            selectedDate={selectedDate}
+            onSelect={setSelectedDate}
+          />
+          {selectedDate && (
+            <div className="flex items-center justify-between mt-2 px-1">
+              <p className="text-sm font-medium text-gray-600">{fmt(selectedDate)} の活動</p>
+              <button onClick={() => setSelectedDate(null)} className="text-xs text-emerald-600 hover:underline">
+                {t.clearFilter}
+              </button>
+            </div>
+          )}
         </div>
-      )}
 
-      {displayed.length === 0 ? (
-        <p className="text-center py-12 text-gray-400">
-          {selectedDate ? 'この日の活動はありません' : '現在受付中の活動はありません'}
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {displayed.map(a => (
-            <Link
-              key={a.id}
-              to={`/activity/${a.id}`}
-              className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
-            >
-              <p className="font-bold text-gray-900">{a.title}</p>
-              <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
-              <p className="text-sm text-gray-500">{a.location}</p>
-              <p className="text-emerald-600 font-bold mt-1">¥{a.price.toLocaleString()} / 人</p>
-            </Link>
-          ))}
+        {/* 活動リスト */}
+        <div>
+          {displayed.length === 0 ? (
+            <p className="text-center py-12 text-gray-400">
+              {selectedDate ? t.emptyDate : t.empty}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {displayed.map(a => (
+                <Link
+                  key={a.id}
+                  to={t.detailLink(a.id)}
+                  className="block bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow"
+                >
+                  <p className="font-bold text-gray-900">{a.title}</p>
+                  <p className="text-sm text-gray-500 mt-0.5">{fmt(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}</p>
+                  <p className="text-sm text-gray-500">{a.location}</p>
+                  <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </main>
   );
 };
+
+export const ActivityListPage = () => <ActivityListBase lang="ja" />;
+export const ActivityListPageCN = () => <ActivityListBase lang="zh" />;
 
 export default ActivityPage;
