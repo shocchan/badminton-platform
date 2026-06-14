@@ -282,24 +282,23 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
     setFormError('');
     setSubmitting(true);
     const code = generateCode();
-    // confirmedCount + 今回の人数が定員を超える場合は補欠
-    const entryStatus = (confirmedCount + qty > (activity?.capacity ?? 0)) ? 'waitlist' : 'confirmed';
-    const { error } = await supabase.from('activity_entries').insert({
-      activity_id: id,
-      name: name.trim(),
-      member_type: memberType,
-      source,
-      cancel_code: code,
-      quantity: qty,
-      status: entryStatus,
-      notes: entryNotes.trim(),
-    });
+    const cap = activity?.capacity ?? 0;
+    const confirmedQty = Math.min(qty, Math.max(0, cap - confirmedCount));
+    const waitlistQty = qty - confirmedQty;
+    const base = { activity_id: id, name: name.trim(), member_type: memberType, source, cancel_code: code, notes: entryNotes.trim() };
+
+    const inserts: Promise<{ error: unknown }>[] = [];
+    if (confirmedQty > 0) inserts.push(supabase.from('activity_entries').insert({ ...base, quantity: confirmedQty, status: 'confirmed' }));
+    if (waitlistQty > 0) inserts.push(supabase.from('activity_entries').insert({ ...base, quantity: waitlistQty, status: 'waitlist' }));
+
+    const results = await Promise.all(inserts);
     setSubmitting(false);
-    if (error) {
+    const anyError = results.some(r => r.error);
+    if (anyError) {
       setFormError(lang === 'ja' ? '申し込みに失敗しました。もう一度お試しください。' : '报名失败，请重试。');
     } else {
       setSuccessCode(code);
-      setSuccessIsWaitlist(entryStatus === 'waitlist');
+      setSuccessIsWaitlist(confirmedQty === 0);
       setEntryNotes('');
       setName('');
       setQty(1);
