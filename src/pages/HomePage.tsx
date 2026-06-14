@@ -249,6 +249,18 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* 大会ページ案内バナー */}
+      <div className="bg-amber-50 border-b border-amber-200">
+        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-sm text-amber-800">
+          <span className="text-base">🏆</span>
+          <span className="font-semibold">ここは大会（トーナメント）のページです。</span>
+          <span className="text-amber-600 hidden sm:inline">毎回500〜3,000円の参加費が発生します。</span>
+          <Link to="/activity" className="ml-auto flex-shrink-0 text-xs bg-emerald-500 text-white px-2.5 py-1 rounded-full font-medium hover:bg-emerald-600 transition-colors">
+            通常活動はこちら →
+          </Link>
+        </div>
+      </div>
+
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
 

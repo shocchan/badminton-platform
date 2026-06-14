@@ -534,27 +534,28 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
       )}
 
       {/* WeChat風ヘッダーカード */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white px-5 pt-6 pb-5 -mx-4 mb-4">
+      <div className="text-white px-5 pt-6 pb-5 -mx-4 mb-4"
+        style={{ background: 'linear-gradient(160deg, #4ade80 0%, #22c55e 30%, #16a34a 70%, #15803d 100%)' }}>
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-xl font-bold leading-snug flex-1">{activity.title}</h1>
+          <h1 className="text-xl font-bold leading-snug flex-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{activity.title}</h1>
           <button onClick={handleShare} className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors" title="シェア">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
         </div>
-        <div className="mt-3 space-y-1.5 text-blue-100 text-sm">
+        <div className="mt-3 space-y-1.5 text-green-50 text-sm">
           <p>📅 {formatDate(activity.date, lang)}　{activity.start_time.slice(0,5)}〜{activity.end_time.slice(0,5)}</p>
           <p>📍 {activity.location}</p>
-          {activity.address && <p className="text-blue-200 text-xs">{activity.address}</p>}
+          {activity.address && <p className="text-green-100 text-xs">{activity.address}</p>}
         </div>
         <div className="mt-3 flex items-center gap-3">
-          <span className="text-2xl font-extrabold">{t.price(activity.price)}</span>
+          <span className="text-2xl font-extrabold" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{t.price(activity.price)}</span>
           {isClosed
             ? <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">{lang === 'ja' ? '締め切り' : '已截止'}</span>
             : isFull
               ? <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-lg">{t.full}</span>
-              : <span className="bg-green-400 text-green-900 text-xs font-bold px-2 py-1 rounded-lg">{lang === 'ja' ? '受付中' : '报名中'}</span>
+              : <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: 'rgba(255,120,0,0.9)', color: '#fff' }}>{lang === 'ja' ? '受付中' : '报名中'}</span>
           }
         </div>
       </div>
@@ -570,10 +571,10 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           {/* 定員バー */}
           <div className="w-20">
             <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div className={`h-full rounded-full ${isFull ? 'bg-red-400' : 'bg-blue-400'}`}
+              <div className={`h-full rounded-full ${isFull ? 'bg-red-400' : 'bg-emerald-400'}`}
                 style={{ width: `${Math.min(100, (confirmedCount / activity.capacity) * 100)}%` }} />
             </div>
-            <p className={`text-xs mt-0.5 text-right ${isFull ? 'text-red-500' : 'text-blue-500'}`}>
+            <p className={`text-xs mt-0.5 text-right ${isFull ? 'text-red-500' : 'text-emerald-600'}`}>
               {isFull ? t.full : t.remaining(remaining)}
             </p>
           </div>
