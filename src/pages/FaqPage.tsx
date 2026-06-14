@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const faqs = [
   {
@@ -96,8 +97,54 @@ const faqs = [
   },
 ];
 
+const faqsZh = [
+  {
+    category: '参加・报名相关',
+    icon: '📝',
+    items: [
+      { q: '初次参加可以吗？', a: '当然欢迎！超初级・初级组专为初学者设计，即使不熟悉比赛规则也能放心参加。' },
+      { q: '一个人可以参加吗？', a: '单打项目可以一人参加。双打・混双项目请在确定搭档后报名。当天还没确定搭档则无法参赛，请提前联系确认。' },
+      { q: '报名后可以修改内容吗？', a: '在取消截止日期前可以修改。请尽早联系我们。' },
+      { q: '可以带孩子参加吗？', a: '初中生以上可以参加，家长也可以一同参赛。' },
+    ],
+  },
+  {
+    category: '羽毛球及用具',
+    icon: '🏸',
+    items: [
+      { q: '需要自带羽毛球吗？', a: '除超初级双打外，必须自带羽毛球。请准备日本羽毛球协会或BWF认证的2级以上检定球（8〜12颗）。' },
+      { q: '羽毛球速度怎么选？', a: '根据季节选择：4〜9月选3号，10〜次年3月选4号。速度不对会影响比赛，请尽量按规定准备。' },
+      { q: '忘带羽毛球怎么办？', a: '可在会场以500日元/颗购买，数量有限，请尽量自备。' },
+      { q: '尼龙球可以用吗？', a: '只能使用羽毛球，不可使用尼龙球。练习用羽毛球（气动传感器500以下等）也不可使用。' },
+      { q: '可以借球拍吗？', a: '没有球拍出借服务，请自备球拍。' },
+      { q: '对服装有要求吗？', a: '请穿运动服。室内运动鞋为必须（不可穿外出鞋进入球场）。' },
+    ],
+  },
+  {
+    category: '比赛当天流程',
+    icon: '📅',
+    items: [
+      { q: '需要提前多久到场？', a: '请在开赛前至少5分钟到达。迟到15分钟以上可能无法参赛（判负），如有迟到请提前联系。' },
+      { q: '有裁判吗？', a: '采用自裁制度，请互相公平判断。请以体育精神参赛。' },
+      { q: '一天能打几场比赛？', a: '因级别和参加人数而异，但保证至少4场比赛。请查看各赛事页面了解详情。' },
+      { q: '可以中途离场吗？', a: '如有特殊情况请与我们商量。但中途离场会影响赛程安排，请尽量避免。' },
+    ],
+  },
+  {
+    category: '费用及取消相关',
+    icon: '💰',
+    items: [
+      { q: '参赛费用何时支付？', a: '部分赛事需要提前支付，部分可当天支付。请查看赛事卡上的"提前支付"说明。' },
+      { q: '取消后能退款吗？', a: '仅在取消截止日期前取消可退款。超过截止日期原则上不予退款。详情请查看取消政策。' },
+      { q: '因天气或场地原因取消时怎么办？', a: '因主办方原因取消时全额退款。天气原因的取消判断原则上在前一天通知。' },
+    ],
+  },
+];
+
 export const FaqPage = () => {
+  const { lang } = useLanguage();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const activeFaqs = lang === 'zh' ? faqsZh : faqs;
 
   const toggle = (key: string) => {
     setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
@@ -108,11 +155,14 @@ export const FaqPage = () => {
       {/* タイトル */}
       <div className="text-center mb-10">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">
-          ❓ よくある質問
+          {lang === 'ja' ? '❓ よくある質問' : '❓ 常见问题'}
         </h1>
         <p className="text-gray-500 text-sm sm:text-base max-w-xl mx-auto">
-          「初めてで不安…」という方もご安心ください。<br />
-          よく寄せられる質問をまとめました。
+          {lang === 'ja' ? (
+            <>「初めてで不安…」という方もご安心ください。<br />よく寄せられる質問をまとめました。</>
+          ) : (
+            <>初次参加无需担心。<br />这里汇总了常见问题。</>
+          )}
         </p>
       </div>
 
@@ -120,15 +170,15 @@ export const FaqPage = () => {
       <div className="mb-10 space-y-4">
         <div className="flex items-center gap-2">
           <span className="text-xl">🏸</span>
-          <span className="font-extrabold text-gray-900 text-base sm:text-lg">使用OK・NGシャトルガイド</span>
-          <span className="text-xs text-gray-400 font-normal">（超初級ダブルスを除く）</span>
+          <span className="font-extrabold text-gray-900 text-base sm:text-lg">{lang === 'ja' ? '使用OK・NGシャトルガイド' : '可用/不可用羽毛球指南'}</span>
+          <span className="text-xs text-gray-400 font-normal">{lang === 'ja' ? '（超初級ダブルスを除く）' : '（超初级双打除外）'}</span>
         </div>
 
         {/* OK商品 */}
         <div>
           <div className="text-xs font-bold text-green-700 mb-2 flex items-center gap-1">
             <span className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center text-green-600 flex-shrink-0">✓</span>
-            使用OK（第2種検定球以上・羽毛のみ）
+            {lang === 'ja' ? '使用OK（第2種検定球以上・羽毛のみ）' : '可用（2级以上检定球・仅羽毛球）'}
           </div>
           {/* モバイル: 横スクロール / デスクトップ: 3列グリッド */}
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-3 sm:overflow-visible">
@@ -142,14 +192,14 @@ export const FaqPage = () => {
                 </div>
                 <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">一般大会でよく使われるスタンダード。コスパと品質のバランスが◎</p>
+              <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? '一般大会でよく使われるスタンダード。コスパと品質のバランスが◎' : '一般比赛常用标准球，性价比与品质兼具'}</p>
               <a
                 href="https://www.amazon.co.jp/s?k=ヨネックス+エアロセンサ700+AS-700"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
               >
-                <span>🛒</span> Amazonで見る
+                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
               </a>
             </div>
             {/* F-80 */}
@@ -162,14 +212,14 @@ export const FaqPage = () => {
                 </div>
                 <span className="flex-shrink-0 text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">第1種検定</span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">国内主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス</p>
+              <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? '国内主要大会で使われるハイグレード球。耐久性・飛行性能ともにトップクラス' : '国内主要比赛使用的高级球，耐用性和飞行性能均为顶级'}</p>
               <a
                 href="https://www.amazon.co.jp/s?k=ヨネックス+ニューオフィシャル+F-80"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
               >
-                <span>🛒</span> Amazonで見る
+                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
               </a>
             </div>
             {/* RSL シルバーフェザー */}
@@ -182,14 +232,14 @@ export const FaqPage = () => {
                 </div>
                 <span className="flex-shrink-0 text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">第2種検定</span>
               </div>
-              <p className="text-xs text-gray-500 mb-3">マレーシア老舗ブランド。ヨネックスより安価で耐久性が高く、コスパ最強と人気</p>
+              <p className="text-xs text-gray-500 mb-3">{lang === 'ja' ? 'マレーシア老舗ブランド。ヨネックスより安価で耐久性が高く、コスパ最強と人気' : '马来西亚老牌品牌，比YONEX便宜且耐用，性价比超群'}</p>
               <a
                 href="https://www.amazon.co.jp/s?k=RSL+シルバーフェザー+シャトル"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
               >
-                <span>🛒</span> Amazonで見る
+                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
               </a>
             </div>
           </div>
@@ -198,53 +248,66 @@ export const FaqPage = () => {
         {/* NG例 */}
         <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
           <div className="text-xs font-bold text-red-700 mb-1.5 flex items-center gap-1">
-            <span>🚫</span> 使用NG（持参しても使えません）
+            <span>🚫</span> {lang === 'ja' ? '使用NG（持参しても使えません）' : '不可使用（带来也无效）'}
           </div>
           <div className="flex flex-wrap gap-2">
-            {['ナイロン製シャトル全般', 'エアロセンサ600以下（AS-600/500/400/300/200）', 'メイビスシリーズ（ナイロン）'].map(ng => (
-              <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
-            ))}
+            {lang === 'ja'
+              ? ['ナイロン製シャトル全般', 'エアロセンサ600以下（AS-600/500/400/300/200）', 'メイビスシリーズ（ナイロン）'].map(ng => (
+                  <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
+                ))
+              : ['尼龙球全系列', '气动传感器600以下（AS-600/500/400/300/200）', 'Mavis系列（尼龙）'].map(ng => (
+                  <span key={ng} className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full">{ng}</span>
+                ))
+            }
           </div>
         </div>
 
-        <p className="text-xs text-gray-400">8〜12球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要</p>
+        <p className="text-xs text-gray-400">
+          {lang === 'ja'
+            ? '8〜12球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要'
+            : '需自带8〜12颗 ／ 忘带可在会场以500日元/颗购买 ／ 超初级双打无需自带'}
+        </p>
       </div>
 
       {/* 参加費ガイド */}
       <div className="mb-10">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-xl">💰</span>
-          <span className="font-extrabold text-gray-900 text-base sm:text-lg">参加費一覧</span>
+          <span className="font-extrabold text-gray-900 text-base sm:text-lg">{lang === 'ja' ? '参加費一覧' : '参赛费用一览'}</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
           {/* シングルス */}
           <div className="bg-white border-2 border-blue-200 rounded-2xl p-4">
-            <div className="text-xs font-bold text-blue-600 mb-1">シングルス</div>
-            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥1,500<span className="text-sm font-normal text-gray-500"> / 人</span></div>
-            <p className="text-xs text-gray-500 leading-relaxed">シャトル持参必須（8〜12球）</p>
+            <div className="text-xs font-bold text-blue-600 mb-1">{lang === 'ja' ? 'シングルス' : '单打'}</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥1,500<span className="text-sm font-normal text-gray-500"> / {lang === 'ja' ? '人' : '人'}</span></div>
+            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（8〜12球）' : '需自带羽毛球（8〜12颗）'}</p>
           </div>
           {/* ダブルス */}
           <div className="bg-white border-2 border-indigo-200 rounded-2xl p-4">
-            <div className="text-xs font-bold text-indigo-600 mb-1">ダブルス・混合ダブルス</div>
-            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
-            <p className="text-xs text-gray-500 leading-relaxed">シャトル持参必須（8〜12球）</p>
+            <div className="text-xs font-bold text-indigo-600 mb-1">{lang === 'ja' ? 'ダブルス・混合ダブルス' : '双打・混合双打'}</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,000<span className="text-sm font-normal text-gray-500"> / {lang === 'ja' ? 'ペア' : '组'}</span></div>
+            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（8〜12球）' : '需自带羽毛球（8〜12颗）'}</p>
           </div>
           {/* 超初級 */}
           <div className="bg-white border-2 border-green-200 rounded-2xl p-4">
-            <div className="text-xs font-bold text-green-600 mb-1">超初級ダブルス</div>
-            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥3,000<span className="text-sm font-normal text-gray-500"> / ペア</span></div>
+            <div className="text-xs font-bold text-green-600 mb-1">{lang === 'ja' ? '超初級ダブルス' : '超初级双打'}</div>
+            <div className="text-2xl font-extrabold text-gray-900 mb-1">¥3,000<span className="text-sm font-normal text-gray-500"> / {lang === 'ja' ? 'ペア' : '组'}</span></div>
             <div className="flex items-center gap-1 mt-1">
-              <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">シャトル持参不要</span>
+              <span className="text-xs font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded-full">{lang === 'ja' ? 'シャトル持参不要' : '无需自带羽毛球'}</span>
             </div>
-            <p className="text-xs text-gray-500 leading-relaxed mt-1.5">シャトルは主催側が用意します</p>
+            <p className="text-xs text-gray-500 leading-relaxed mt-1.5">{lang === 'ja' ? 'シャトルは主催側が用意します' : '羽毛球由主办方提供'}</p>
           </div>
         </div>
-        <p className="text-xs text-gray-400">※ 参加費は大会カードに記載。事前支払い・当日支払いは大会ごとに異なります。</p>
+        <p className="text-xs text-gray-400">
+          {lang === 'ja'
+            ? '※ 参加費は大会カードに記載。事前支払い・当日支払いは大会ごとに異なります。'
+            : '※ 参赛费用请查看赛事卡。提前支付或当天支付因赛事而异。'}
+        </p>
       </div>
 
       {/* FAQセクション */}
       <div className="space-y-8">
-        {faqs.map((section) => (
+        {activeFaqs.map((section) => (
           <div key={section.category}>
             <div className="flex items-center gap-2 mb-4">
               <span className="text-xl">{section.icon}</span>
@@ -287,22 +350,22 @@ export const FaqPage = () => {
       {/* まだ疑問が解決しない場合 */}
       <div className="mt-12 bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center">
         <div className="text-2xl mb-2">💬</div>
-        <h3 className="font-bold text-gray-900 mb-2">他にご不明点はありますか？</h3>
+        <h3 className="font-bold text-gray-900 mb-2">{lang === 'ja' ? '他にご不明点はありますか？' : '还有其他问题吗？'}</h3>
         <p className="text-sm text-gray-600 mb-4">
-          お気軽にお問い合わせください。
+          {lang === 'ja' ? 'お気軽にお問い合わせください。' : '欢迎随时联系我们。'}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/"
             className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
           >
-            大会一覧を見る →
+            {lang === 'ja' ? '大会一覧を見る →' : '查看赛事列表 →'}
           </Link>
           <Link
             to="/cancel-policy"
             className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-bold px-6 py-3 rounded-xl border border-gray-200 transition-colors"
           >
-            キャンセルポリシーを確認 →
+            {lang === 'ja' ? 'キャンセルポリシーを確認 →' : '查看取消政策 →'}
           </Link>
         </div>
       </div>

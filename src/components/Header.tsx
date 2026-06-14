@@ -1,21 +1,22 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type NavItem = {
   to: string;
-  label: string;
+  label: { ja: string; zh: string };
   icon: string;
   category: 'tournament' | 'activity' | 'general';
-  badge?: string;
+  badge?: { ja: string; zh: string };
 };
 
 const navLinks: NavItem[] = [
-  { to: '/',            label: '大会案内',   icon: '🏆', category: 'tournament' },
-  { to: '/activity',    label: '通常活動',   icon: '🏸', category: 'activity' },
-  { to: '/blog',        label: 'ブログ',     icon: '📝', category: 'general' },
-  { to: '/level-guide', label: 'クラス案内', icon: '📊', category: 'tournament', badge: '大会' },
-  { to: '/faq',         label: 'FAQ',        icon: '❓', category: 'tournament', badge: '大会' },
+  { to: '/',            label: { ja: '大会案内',   zh: '赛事信息' }, icon: '🏆', category: 'tournament' },
+  { to: '/activity',    label: { ja: '通常活動',   zh: '日常活动' }, icon: '🏸', category: 'activity' },
+  { to: '/blog',        label: { ja: 'ブログ',     zh: '博客' },     icon: '📝', category: 'general' },
+  { to: '/level-guide', label: { ja: 'クラス案内', zh: '级别说明' }, icon: '📊', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
+  { to: '/faq',         label: { ja: 'FAQ',        zh: '常见问题' }, icon: '❓', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
 ];
 
 const categoryColor = (cat: NavItem['category'], active: boolean) => {
@@ -32,6 +33,7 @@ const categoryBg = (cat: NavItem['category'], active: boolean) => {
 export const Header = () => {
   const location = useLocation();
   const { isAuthenticated, logout } = useAuth();
+  const { lang, setLang } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (to: string) =>
@@ -62,10 +64,10 @@ export const Header = () => {
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${categoryColor(category, active)} ${active ? (category === 'activity' ? 'bg-emerald-50' : 'bg-blue-50') : 'hover:bg-gray-50'}`}
               >
                 <span className="text-base leading-none">{icon}</span>
-                <span>{label}</span>
+                <span>{label[lang]}</span>
                 {badge && (
                   <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 text-blue-600 font-bold leading-none">
-                    {badge}
+                    {badge[lang]}
                   </span>
                 )}
               </Link>
@@ -73,6 +75,13 @@ export const Header = () => {
           })}
 
           <div className="w-px h-4 bg-gray-200 mx-1" />
+
+          <button
+            onClick={() => setLang(lang === 'ja' ? 'zh' : 'ja')}
+            className="text-xs font-bold px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
+          >
+            {lang === 'ja' ? '中文' : '日本語'}
+          </button>
 
           {isAuthenticated ? (
             <>
@@ -119,27 +128,27 @@ export const Header = () => {
         <div className="border-t border-gray-100 bg-white px-4 py-3 pb-4 flex flex-col gap-1">
 
           {/* 大会セクション */}
-          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest px-2 mb-1">🏆 大会</p>
+          <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest px-2 mb-1">{lang === 'ja' ? '🏆 大会' : '🏆 赛事'}</p>
           {navLinks.filter(n => n.category === 'tournament').map(({ to, label, icon, badge }) => (
             <Link key={to} to={to} onClick={close}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('tournament', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label}</span>
-              {badge && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-500 font-bold">{badge}</span>}
+              <span>{label[lang]}</span>
+              {badge && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-500 font-bold">{badge[lang]}</span>}
             </Link>
           ))}
 
           <div className="h-px bg-gray-100 my-2" />
 
           {/* 通常活動セクション */}
-          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest px-2 mb-1">🏸 通常活動</p>
+          <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest px-2 mb-1">{lang === 'ja' ? '🏸 通常活動' : '🏸 日常活动'}</p>
           {navLinks.filter(n => n.category === 'activity').map(({ to, label, icon }) => (
             <Link key={to} to={to} onClick={close}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('activity', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label}</span>
+              <span>{label[lang]}</span>
             </Link>
           ))}
 
@@ -151,9 +160,18 @@ export const Header = () => {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label}</span>
+              <span>{label[lang]}</span>
             </Link>
           ))}
+
+          {/* 言語切り替え（モバイル） */}
+          <div className="h-px bg-gray-100 my-1" />
+          <button
+            onClick={() => { setLang(lang === 'ja' ? 'zh' : 'ja'); close(); }}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors text-left"
+          >
+            🌐 {lang === 'ja' ? '中文に切り替え' : '切换为日语'}
+          </button>
 
           <div className="h-px bg-gray-100 my-1" />
           {isAuthenticated ? (

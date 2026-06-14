@@ -1,6 +1,22 @@
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
-const levels = [
+type LevelData = {
+  id: string;
+  name: string;
+  nameEn: string;
+  emoji: string;
+  bg: string;
+  lightBg: string;
+  border: string;
+  svgFill: string;
+  description: string;
+  target: string;
+  guide: string[];
+  note: string | null;
+};
+
+const levelsJa: LevelData[] = [
   {
     id: 'open',
     name: 'オープン',
@@ -72,6 +88,81 @@ const levels = [
       'ゆっくりなラリーが少し続けられる',
     ],
     note: '「負けても楽しかった！」が目標のクラスです',
+  },
+];
+
+const levelsZh: LevelData[] = [
+  {
+    id: 'open',
+    name: '公开组',
+    nameEn: 'OPEN',
+    emoji: '🥇',
+    bg: 'from-violet-600 to-violet-500',
+    lightBg: 'bg-violet-50',
+    border: 'border-violet-400',
+    svgFill: '#7c3aed',
+    description: '无级别限制。从高水平选手到普通选手均可参加的最高级别组。',
+    target: '・有丰富比赛经验者\n・希望认真竞技者\n・不限水平、想挑战的选手',
+    guide: [
+      '能打出扣杀、平抽等进攻性球路',
+      '能有意识地进行战术布局',
+      '有多次参赛经验',
+    ],
+    note: '初学者建议从下面的级别开始参赛',
+  },
+  {
+    id: 'intermediate',
+    name: '中级',
+    nameEn: 'INTERMEDIATE',
+    emoji: '🥈',
+    bg: 'from-indigo-600 to-indigo-500',
+    lightBg: 'bg-indigo-50',
+    border: 'border-indigo-400',
+    svgFill: '#4f46e5',
+    description: '有一定基础，能稳定打出拉锯战的选手组。',
+    target: '・打球经历3年以上\n・定期进行比赛练习\n・参加过1〜2次比赛',
+    guide: [
+      '能打出高远球、扣杀、吊球等基本球路',
+      '能前后左右灵活移动',
+      '能打出10拍以上的拉锯战',
+    ],
+    note: null,
+  },
+  {
+    id: 'beginner',
+    name: '初级',
+    nameEn: 'BEGINNER',
+    emoji: '🥉',
+    bg: 'from-orange-500 to-orange-400',
+    lightBg: 'bg-orange-50',
+    border: 'border-orange-400',
+    svgFill: '#f97316',
+    description: '已掌握基本球路、开始享受比赛乐趣的选手组。',
+    target: '・打球经历1〜3年\n・在练习中有过比赛经验\n・想挑战人生第一场正式比赛',
+    guide: [
+      '发球稳定入界',
+      '能打出高远球和扣杀',
+      '能进行短暂的拉锯战',
+    ],
+    note: null,
+  },
+  {
+    id: 'fresher',
+    name: '超初级',
+    nameEn: 'FRESHER',
+    emoji: '🌱',
+    bg: 'from-green-500 to-green-400',
+    lightBg: 'bg-green-50',
+    border: 'border-green-400',
+    svgFill: '#22c55e',
+    description: '门槛最低的组别，刚开始打羽毛球的初学者也能放心参加。',
+    target: '・打球经历不足1年\n・第一次参加比赛\n・只想开心地参与',
+    guide: [
+      '球拍能打到球',
+      '能完成基本发球',
+      '能进行短暂慢速的拉锯战',
+    ],
+    note: '目标是"输了也很开心！"的组别',
   },
 ];
 
@@ -153,27 +244,32 @@ const ClassPyramid = () => {
 };
 
 export const LevelGuidePage = () => {
+  const { lang } = useLanguage();
+  const levels = lang === 'zh' ? levelsZh : levelsJa;
   return (
     <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       {/* タイトル */}
       <div className="text-center mb-10">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">
-          🏸 クラス分け案内
+          {lang === 'ja' ? '🏸 クラス分け案内' : '🏸 级别说明'}
         </h1>
         <p className="text-gray-500 text-sm sm:text-base max-w-xl mx-auto">
-          「自分はどのクラスに出ればいいの？」を解決します。<br />
-          下のガイドを参考に、ぴったりのクラスを選んでください。
+          {lang === 'ja' ? (
+            <>「自分はどのクラスに出ればいいの？」を解決します。<br />下のガイドを参考に、ぴったりのクラスを選んでください。</>
+          ) : (
+            <>解决「我该参加哪个级别？」的疑问。<br />请参考下方说明，选择最适合自己的级别。</>
+          )}
         </p>
       </div>
 
       {/* SVGピラミッド */}
       <div className="mb-12">
         <h2 className="text-center text-xs font-bold text-gray-400 mb-4 tracking-widest uppercase">
-          ↑ 上が最高峰クラス
+          {lang === 'ja' ? '↑ 上が最高峰クラス' : '↑ 上方为最高级别'}
         </h2>
         <ClassPyramid />
         <p className="text-center text-xs text-gray-400 mt-3">
-          各クラスの詳細は下のカードをご確認ください
+          {lang === 'ja' ? '各クラスの詳細は下のカードをご確認ください' : '各级别详情请查看下方卡片'}
         </p>
       </div>
 
@@ -200,7 +296,7 @@ export const LevelGuidePage = () => {
                 {/* こんな方におすすめ */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
                   <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
-                    <span>👤</span> こんな方におすすめ
+                    <span>👤</span> {lang === 'ja' ? 'こんな方におすすめ' : '适合人群'}
                   </div>
                   {level.target.split('\n').map((line, i) => (
                     <div key={i} className="text-sm text-gray-700 py-0.5">{line}</div>
@@ -210,7 +306,7 @@ export const LevelGuidePage = () => {
                 {/* レベル目安 */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
                   <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
-                    <span>✅</span> レベルの目安
+                    <span>✅</span> {lang === 'ja' ? 'レベルの目安' : '水平参考'}
                   </div>
                   <ul className="space-y-1.5">
                     {level.guide.map((g, i) => (
@@ -234,7 +330,7 @@ export const LevelGuidePage = () => {
                 to="/"
                 className={`flex items-center justify-center gap-2 w-full sm:w-auto sm:inline-flex bg-gradient-to-r ${level.bg} text-white font-bold px-6 py-3 rounded-xl shadow hover:opacity-90 transition-opacity`}
               >
-                {level.name}クラスの大会を見る →
+                {lang === 'ja' ? `${level.name}クラスの大会を見る →` : `查看${level.name}组赛事 →`}
               </Link>
             </div>
           </div>
@@ -244,16 +340,19 @@ export const LevelGuidePage = () => {
       {/* 迷ったら */}
       <div className="mt-10 bg-blue-50 border border-blue-200 rounded-2xl p-6 text-center">
         <div className="text-2xl mb-2">🤔</div>
-        <h3 className="font-bold text-gray-900 mb-2">どのクラスか迷ったら？</h3>
+        <h3 className="font-bold text-gray-900 mb-2">{lang === 'ja' ? 'どのクラスか迷ったら？' : '不知道该选哪个级别？'}</h3>
         <p className="text-sm text-gray-600 mb-4">
-          迷ったら<strong>一つ下のクラス</strong>から始めることをおすすめします。<br />
-          楽しく試合ができることが一番大切です！
+          {lang === 'ja' ? (
+            <>迷ったら<strong>一つ下のクラス</strong>から始めることをおすすめします。<br />楽しく試合ができることが一番大切です！</>
+          ) : (
+            <>如果拿不准，建议从<strong>低一级的组别</strong>开始。<br />能开心地打比赛才是最重要的！</>
+          )}
         </p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
         >
-          大会一覧を見る →
+          {lang === 'ja' ? '大会一覧を見る →' : '查看赛事列表 →'}
         </Link>
       </div>
     </main>
