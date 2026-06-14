@@ -711,31 +711,40 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
           {/* 申し込みボタン（縦並び） */}
           <div className="flex flex-col gap-3 mt-2">
-            {/* 通常ボタン（上・メイン・緑） */}
+            {/* 通常ボタン（上・メイン・エメラルド） */}
             <button
               onClick={() => handleSubmit('normal')}
               disabled={submitting}
-              className="w-full py-4 rounded-2xl font-bold text-base text-white shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)' }}
+              className="w-full py-4 rounded-2xl font-bold text-base text-white active:scale-[0.98] transition-all disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(160deg, #6ee7b7 0%, #10b981 30%, #059669 70%, #047857 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 6px 20px rgba(5,150,105,0.45)',
+                textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+              }}
             >
-              <span className="flex items-center justify-center gap-2">
-                <span className="text-lg">🏸</span>
+              <span className="flex items-center justify-center gap-2 text-lg tracking-wide">
+                <span>🏸</span>
                 <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitNormal : t.submitNormal}</span>
               </span>
             </button>
 
-            {/* チャージ済み会員ボタン（下・金） */}
+            {/* チャージ済み会員ボタン（下・ゴールド） */}
             <button
               onClick={() => handleSubmit('member')}
               disabled={submitting}
-              className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base shadow-lg active:scale-[0.98] transition-all disabled:opacity-50"
-              style={{ background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)', color: '#fff' }}
+              className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base active:scale-[0.98] transition-all disabled:opacity-50"
+              style={{
+                background: 'linear-gradient(160deg, #fef08a 0%, #fbbf24 25%, #f59e0b 55%, #d97706 80%, #92400e 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 20px rgba(217,119,6,0.5)',
+                color: '#431407',
+                textShadow: '0 1px 0 rgba(255,255,255,0.3)',
+              }}
             >
-              <span className="relative z-10 flex items-center justify-center gap-2">
-                <span className="text-lg">💳</span>
+              <span className="relative z-10 flex items-center justify-center gap-2 text-lg tracking-wide">
+                <span>💳</span>
                 <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}</span>
               </span>
-              <span className="absolute bottom-1 right-3 text-[10px] text-amber-200 font-normal">{t.memberNote}</span>
+              <span className="absolute bottom-1 right-3 text-[10px] font-normal opacity-60">{t.memberNote}</span>
             </button>
           </div>
 
