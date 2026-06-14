@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
@@ -433,6 +434,23 @@ export const HomePage = () => {
 
           </div>
         )}
+      </div>
+
+      {/* 通常活動バナー */}
+      <div className="max-w-6xl mx-auto px-4 pb-10">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-white">
+            <p className="text-xs font-semibold tracking-widest uppercase opacity-80 mb-1">REGULAR SESSION</p>
+            <h2 className="text-xl font-extrabold mb-1">🏸 通常活動に参加しよう！</h2>
+            <p className="text-emerald-100 text-sm">2時間 ¥600 ／ 定員制・事前申し込み制</p>
+          </div>
+          <Link
+            to="/activity"
+            className="flex-shrink-0 bg-white text-emerald-700 font-bold px-6 py-3 rounded-xl text-sm hover:bg-emerald-50 transition-colors shadow"
+          >
+            申し込みはこちら →
+          </Link>
+        </div>
       </div>
 
       {preEntryTournament && !selectedTournament && (

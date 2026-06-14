@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 
 const navLinks = [
   { to: '/',            label: '大会案内' },
+  { to: '/activity',    label: '通常活動' },
   { to: '/blog',        label: 'ブログ' },
   { to: '/level-guide', label: 'クラス案内' },
   { to: '/faq',         label: 'FAQ' },
