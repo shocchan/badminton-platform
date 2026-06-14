@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
@@ -161,6 +162,7 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
 
 // ── メインページ ──────────────────────────────────────────
 export const HomePage = () => {
+  const { lang } = useLanguage();
   const { tournaments, loading, error } = useTournaments();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [preEntryTournament, setPreEntryTournament] = useState<Tournament | null>(null);
@@ -251,12 +253,19 @@ export const HomePage = () => {
 
       {/* 大会ページ案内バナー */}
       <div className="bg-amber-50 border-b border-amber-200">
-        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-sm text-amber-800">
-          <span className="text-base">🏆</span>
-          <span className="font-semibold">ここは大会のページです。</span>
-          <span className="text-amber-600 hidden sm:inline">毎回1,000円〜の参加費が発生します。</span>
-          <Link to="/activity" className="ml-auto flex-shrink-0 text-xs bg-emerald-500 text-white px-2.5 py-1 rounded-full font-medium hover:bg-emerald-600 transition-colors">
-            通常活動はこちら →
+        <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-amber-800">
+          <span className="text-base flex-shrink-0">🏆</span>
+          <span className="font-semibold text-sm leading-snug">
+            {lang === 'zh' ? '这里是赛事（比赛）页面。' : 'ここは大会のページです。'}
+          </span>
+          <span className="text-amber-600 text-xs hidden sm:inline">
+            {lang === 'zh' ? '每次需要1,000日元以上的参赛费。' : '毎回1,000円〜の参加費が発生します。'}
+          </span>
+          <Link
+            to={lang === 'zh' ? '/activity-cn' : '/activity'}
+            className="ml-auto flex-shrink-0 text-xs font-semibold bg-emerald-500 text-white px-3 py-1.5 rounded-full hover:bg-emerald-600 transition-colors whitespace-nowrap"
+          >
+            {lang === 'zh' ? '日常活动 →' : '通常活動はこちら →'}
           </Link>
         </div>
       </div>
