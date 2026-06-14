@@ -215,12 +215,12 @@ const useCountdown = (deadline: Date | null) => {
       const totalH = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      if (totalH >= 24) {
-        const d = Math.floor(totalH / 24);
-        const remH = totalH % 24;
-        setLabel(`${d}日${remH}時間`);
-      } else if (totalH >= 1) {
-        setLabel(`${totalH}時間${m}分`);
+      const d = Math.floor(totalH / 24);
+      const remH = totalH % 24;
+      if (d > 0) {
+        setLabel(`${d}日${remH}時間${m}分${s}秒`);
+      } else if (remH > 0) {
+        setLabel(`${remH}時間${m}分${s}秒`);
       } else {
         setLabel(`${m}分${s}秒`);
       }
@@ -289,15 +289,14 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   // シェア
   const handleShare = () => setShowShareModal(true);
 
-  const handleCopyUrl = async () => {
-    await navigator.clipboard.writeText(window.location.href);
-    setShareToast(lang === 'ja' ? '✅ URLをコピーしました' : '✅ 已复制链接');
+  const handleCopyShareText = async () => {
+    const title = activity?.title ?? '';
+    const url = window.location.href;
+    await navigator.clipboard.writeText(`${title}\n${url}`);
+    setShareToast(lang === 'ja' ? '✅ タイトルとURLをコピーしました' : '✅ 已复制标题和链接');
     setTimeout(() => setShareToast(''), 2500);
     setShowShareModal(false);
   };
-
-  const lineShareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(window.location.href)}`;
-  // WeChatはwebからの直接シェアが不可→URLコピー案内
 
   const fetchActivity = useCallback(async () => {
     if (!id) return;
@@ -441,33 +440,33 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
               {lang === 'ja' ? 'シェア' : '分享'}
             </h3>
+            {/* コピー内容プレビュー */}
+            <div className="bg-gray-50 rounded-xl px-4 py-3 mb-4 text-sm text-gray-700 break-all">
+              <p className="font-bold">{activity?.title}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{window.location.href}</p>
+            </div>
             <div className="space-y-3">
               {/* LINE */}
-              <a
-                href={lineShareUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => setShowShareModal(false)}
+              <button
+                onClick={handleCopyShareText}
                 className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#06C755] text-white font-bold text-sm hover:opacity-90 transition-opacity"
               >
                 <span className="text-xl">💬</span>
-                <span>LINEでシェア</span>
-              </a>
-              {/* WeChat - URLコピー案内 */}
+                <div className="text-left">
+                  <p>{lang === 'ja' ? 'LINEにコピーして貼り付け' : '复制后粘贴到LINE'}</p>
+                  <p className="text-xs font-normal opacity-80">{lang === 'ja' ? 'タイトル＋URLをコピー' : '复制标题和链接'}</p>
+                </div>
+              </button>
+              {/* WeChat */}
               <button
-                onClick={handleCopyUrl}
+                onClick={handleCopyShareText}
                 className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-[#07C160] text-white font-bold text-sm hover:opacity-90 transition-opacity"
               >
                 <span className="text-xl">🟢</span>
-                <span>{lang === 'ja' ? 'WeChat用にURLをコピー' : '复制链接（用于微信）'}</span>
-              </button>
-              {/* URLコピー */}
-              <button
-                onClick={handleCopyUrl}
-                className="flex items-center gap-3 w-full px-4 py-3 rounded-xl bg-gray-100 text-gray-700 font-medium text-sm hover:bg-gray-200 transition-colors"
-              >
-                <span className="text-xl">🔗</span>
-                <span>{lang === 'ja' ? 'URLをコピー' : '复制链接'}</span>
+                <div className="text-left">
+                  <p>{lang === 'ja' ? 'WeChatにコピーして貼り付け' : '复制后粘贴到微信'}</p>
+                  <p className="text-xs font-normal opacity-80">{lang === 'ja' ? 'タイトル＋URLをコピー' : '复制标题和链接'}</p>
+                </div>
               </button>
             </div>
             <button
