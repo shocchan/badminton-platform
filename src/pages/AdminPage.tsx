@@ -547,14 +547,16 @@ const ActivityAdminTab = () => {
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">#</th>
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">名前</th>
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">種別</th>
+                      <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">状態</th>
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">流入元</th>
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">人数</th>
                       <th className="text-left px-2 py-1.5 text-xs text-gray-500 font-medium">日時</th>
+                      <th className="px-2 py-1.5"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {actEntries.map((e, i) => (
-                      <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50">
+                      <tr key={e.id} className={`border-b border-gray-50 hover:bg-gray-50 ${e.status === 'waitlist' ? 'bg-yellow-50/50' : ''}`}>
                         <td className="px-2 py-2 text-gray-400">{i + 1}</td>
                         <td className="px-2 py-2 font-medium text-gray-800">{e.name}</td>
                         <td className="px-2 py-2">
@@ -562,10 +564,27 @@ const ActivityAdminTab = () => {
                             {e.member_type === 'member' ? '会員' : '通常'}
                           </span>
                         </td>
+                        <td className="px-2 py-2">
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${e.status === 'waitlist' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}`}>
+                            {e.status === 'waitlist' ? '補欠' : '確定'}
+                          </span>
+                        </td>
                         <td className="px-2 py-2 text-gray-500">{sourceLabel(e.source)}</td>
                         <td className="px-2 py-2 text-gray-600">{e.quantity}人</td>
                         <td className="px-2 py-2 text-gray-400 text-xs whitespace-nowrap">
                           {new Date(e.created_at).toLocaleString('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </td>
+                        <td className="px-2 py-2">
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`「${e.name}」の申し込みを削除しますか？`)) return;
+                              await supabase.from('activity_entries').delete().eq('id', e.id);
+                              fetchAll();
+                            }}
+                            className="text-xs text-red-400 hover:text-red-600 hover:underline"
+                          >
+                            削除
+                          </button>
                         </td>
                       </tr>
                     ))}

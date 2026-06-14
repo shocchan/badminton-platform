@@ -223,7 +223,8 @@ export const ActivityPage = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
     setFormError('');
     setSubmitting(true);
     const code = generateCode();
-    const entryStatus = isFull ? 'waitlist' : 'confirmed';
+    // confirmedCount + 今回の人数が定員を超える場合は補欠
+    const entryStatus = (confirmedCount + qty > (activity?.capacity ?? 0)) ? 'waitlist' : 'confirmed';
     const { error } = await supabase.from('activity_entries').insert({
       activity_id: id,
       name: name.trim(),
