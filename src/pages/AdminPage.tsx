@@ -278,6 +278,7 @@ interface ActivityEntry {
   source: 'line' | 'wechat' | 'web';
   cancel_code: string;
   quantity: number;
+  status: 'confirmed' | 'waitlist';
   created_at: string;
 }
 
