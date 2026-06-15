@@ -15,7 +15,15 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members';
+
+interface Member {
+  id: string;
+  member_number: number;
+  name: string;
+  charge_balance: number;
+  active: boolean;
+}
 
 // ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
 const CARD_ASPECT = 2;
@@ -701,6 +709,17 @@ export const AdminPage = () => {
   const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);
 
+  // 会員管理
+  const [members, setMembers] = useState<Member[]>([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [memberAddModalOpen, setMemberAddModalOpen] = useState(false);
+  const [memberEditTarget, setMemberEditTarget] = useState<Member | null>(null);
+  const [newMemberNumber, setNewMemberNumber] = useState('');
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberBalance, setNewMemberBalance] = useState('0');
+  const [editMemberForm, setEditMemberForm] = useState<Partial<Member>>({});
+  const [memberOpError, setMemberOpError] = useState('');
+
   const [showTournamentForm, setShowTournamentForm] = useState(false);
   const [editingTournament, setEditingTournament] = useState<Tournament | null>(null);
   const [tournamentForm, setTournamentForm] = useState(EMPTY_TOURNAMENT);
@@ -732,9 +751,8 @@ export const AdminPage = () => {
   }, [isAuthenticated, authLoading, navigate]);
 
   useEffect(() => {
-    if (activeTab === 'entries') {
-      fetchEntries();
-    }
+    if (activeTab === 'entries') fetchEntries();
+    if (activeTab === 'members') fetchMembers();
   }, [activeTab]);
 
   // ── リアルタイム申し込み通知 ──
@@ -777,6 +795,39 @@ export const AdminPage = () => {
       .order('created_at', { ascending: false });
     setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
     setEntriesLoading(false);
+  };
+
+  const fetchMembers = async () => {
+    setMembersLoading(true);
+    const { data } = await supabase
+      .from('members')
+      .select('*')
+      .order('member_number', { ascending: true });
+    setMembers((data || []) as Member[]);
+    setMembersLoading(false);
+  };
+
+  const handleAddMember = async () => {
+    setMemberOpError('');
+    if (!newMemberNumber || !newMemberName.trim()) {
+      setMemberOpError('会員番号と名前は必須です');
+      return;
+    }
+    const { error } = await supabase.from('members').insert({
+      member_number: parseInt(newMemberNumber),
+      name: newMemberName.trim(),
+      charge_balance: parseInt(newMemberBalance) || 0,
+      active: true,
+    });
+    if (error) { setMemberOpError(error.message); return; }
+    setMemberAddModalOpen(false);
+    setNewMemberNumber(''); setNewMemberName(''); setNewMemberBalance('0');
+    fetchMembers();
+  };
+
+  const handleUpdateMember = async (id: string, updates: Partial<Member>) => {
+    await supabase.from('members').update(updates).eq('id', id);
+    fetchMembers();
   };
 
   const callAdminFunction = async (action: 'cancel' | 'promote', entry_id: number) => {
@@ -1040,7 +1091,7 @@ export const AdminPage = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
-        {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理']] as [Tab, string][]).map(([key, label]) => (
+        {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '会員管理']] as [Tab, string][]).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
@@ -1747,6 +1798,159 @@ export const AdminPage = () => {
       {/* Activities Tab */}
       {activeTab === 'activities' && (
         <ActivityAdminTab />
+      )}
+
+      {/* Members Tab */}
+      {activeTab === 'members' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-800">会員管理</h2>
+            <button
+              onClick={() => { setMemberOpError(''); setMemberAddModalOpen(true); }}
+              className="bg-yellow-500 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-yellow-600 transition-colors"
+            >
+              ＋ 新規会員追加
+            </button>
+          </div>
+
+          {membersLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 border-4 border-yellow-200 border-t-yellow-500 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
+                    <th className="px-4 py-3">番号</th>
+                    <th className="px-4 py-3">名前</th>
+                    <th className="px-4 py-3">チャージ残高</th>
+                    <th className="px-4 py-3">状態</th>
+                    <th className="px-4 py-3">操作</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {members.map(m => (
+                    <tr key={m.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-mono text-gray-600">{m.member_number}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{m.name}</td>
+                      <td className="px-4 py-3 text-gray-800">¥{m.charge_balance.toLocaleString()}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          m.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          {m.active ? '有効' : '無効'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => { setMemberEditTarget(m); setEditMemberForm({ name: m.name, charge_balance: m.charge_balance, active: m.active }); setMemberOpError(''); }}
+                          className="text-xs text-blue-600 hover:underline"
+                        >
+                          編集
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {members.length === 0 && (
+                    <tr><td colSpan={5} className="text-center py-8 text-gray-400">会員データがありません</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 新規会員追加モーダル */}
+          {memberAddModalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setMemberAddModalOpen(false)} />
+              <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                <h3 className="font-bold text-gray-900 mb-4">新規会員追加</h3>
+                {memberOpError && <p className="text-red-500 text-xs mb-3">{memberOpError}</p>}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">会員番号 *</label>
+                    <input type="number" value={newMemberNumber} onChange={e => setNewMemberNumber(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      placeholder="例：25" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">名前 *</label>
+                    <input type="text" value={newMemberName} onChange={e => setNewMemberName(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      placeholder="例：小海" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">初期チャージ残高（円）</label>
+                    <input type="number" value={newMemberBalance} onChange={e => setNewMemberBalance(e.target.value)}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                      placeholder="0" />
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-5">
+                  <button onClick={() => setMemberAddModalOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50">
+                    キャンセル
+                  </button>
+                  <button onClick={handleAddMember}
+                    className="flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-yellow-500 hover:bg-yellow-600">
+                    追加する
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 会員編集モーダル */}
+          {memberEditTarget && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="absolute inset-0 bg-black/40" onClick={() => setMemberEditTarget(null)} />
+              <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+                <h3 className="font-bold text-gray-900 mb-1">会員編集</h3>
+                <p className="text-xs text-gray-500 mb-4">会員番号: {memberEditTarget.member_number}</p>
+                {memberOpError && <p className="text-red-500 text-xs mb-3">{memberOpError}</p>}
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">名前</label>
+                    <input type="text" value={editMemberForm.name ?? ''} onChange={e => setEditMemberForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 block mb-1">チャージ残高（円）</label>
+                    <div className="flex gap-2 items-center">
+                      <input type="number" value={editMemberForm.charge_balance ?? 0}
+                        onChange={e => setEditMemberForm(f => ({ ...f, charge_balance: parseInt(e.target.value) || 0 }))}
+                        className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
+                      <button onClick={() => setEditMemberForm(f => ({ ...f, charge_balance: (f.charge_balance ?? 0) + 600 }))}
+                        className="px-3 py-2 rounded-xl bg-green-100 text-green-700 text-xs font-bold hover:bg-green-200 whitespace-nowrap">
+                        ＋¥600
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="memberActive" checked={editMemberForm.active ?? true}
+                      onChange={e => setEditMemberForm(f => ({ ...f, active: e.target.checked }))}
+                      className="w-4 h-4 accent-yellow-500" />
+                    <label htmlFor="memberActive" className="text-sm text-gray-700">有効</label>
+                  </div>
+                </div>
+                <div className="flex gap-3 mt-5">
+                  <button onClick={() => setMemberEditTarget(null)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50">
+                    キャンセル
+                  </button>
+                  <button onClick={async () => {
+                    await handleUpdateMember(memberEditTarget.id, editMemberForm);
+                    setMemberEditTarget(null);
+                  }}
+                    className="flex-1 py-2.5 rounded-xl font-bold text-sm text-white bg-yellow-500 hover:bg-yellow-600">
+                    保存する
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* 大会削除確認モーダル */}
