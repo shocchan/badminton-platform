@@ -163,7 +163,7 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
       list.flatMap(e =>
         Array.from({ length: e.quantity }, (_, i) => ({
           name: e.quantity > 1 ? `${e.name}${suffixes[i] ?? i + 1}` : e.name,
-          notes: e.notes || '',
+          notes: [e.member_type === 'member' ? 'チャージ済み' : '', e.notes || ''].filter(Boolean).join(' '),
         }))
       );
 
@@ -281,12 +281,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const [cancelMsg, setCancelMsg] = useState('');
   const [cancelError, setCancelError] = useState('');
 
-  // 会員番号モーダル
-  const [memberModalOpen, setMemberModalOpen] = useState(false);
-  const [memberNumber, setMemberNumber] = useState('');
-  const [memberData, setMemberData] = useState<{ id: string; name: string } | null>(null);
-  const [memberError, setMemberError] = useState('');
-  const [memberStep, setMemberStep] = useState<'input' | 'confirm'>('input');
 
   const confirmedEntries = entries.filter(e => e.status === 'confirmed');
   const waitlistEntries = entries.filter(e => e.status === 'waitlist');
@@ -385,8 +379,8 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     return () => { supabase.removeChannel(channel); };
   }, [id, fetchEntries]);
 
-  const handleSubmit = async (memberType: 'member' | 'normal', nameOverride?: string) => {
-    const submitName = nameOverride ?? name.trim();
+  const handleSubmit = async (memberType: 'member' | 'normal') => {
+    const submitName = name.trim();
     if (!submitName) {
       setFormError(lang === 'ja' ? 'お名前を入力してください' : '请输入姓名');
       return;
@@ -735,7 +729,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
             {/* チャージ済み会員ボタン（下・ゴールド） */}
             <button
-              onClick={() => setMemberModalOpen(true)}
+              onClick={() => handleSubmit('member')}
               disabled={submitting}
               className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base active:scale-[0.98] transition-all disabled:opacity-50"
               style={{
@@ -815,115 +809,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           </button>
         </div>
       )}
-      {/* 会員番号モーダル */}
-      {memberModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => {
-            setMemberModalOpen(false);
-            setMemberNumber('');
-            setMemberData(null);
-            setMemberError('');
-            setMemberStep('input');
-          }} />
-          <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl">
-            {memberStep === 'input' ? (
-              <>
-                <h3 className="font-bold text-gray-900 text-base mb-1 text-center">
-                  {lang === 'ja' ? 'チャージ会員 申し込み' : '充值会员报名'}
-                </h3>
-                <p className="text-xs text-gray-500 text-center mb-4">
-                  {lang === 'ja' ? '会員番号を入力してください' : '请输入会员编号'}
-                </p>
-                <input
-                  type="number"
-                  value={memberNumber}
-                  onChange={e => { setMemberNumber(e.target.value); setMemberError(''); }}
-                  placeholder={lang === 'ja' ? '番号（数字のみ）' : '会员编号'}
-                  className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                  autoFocus
-                />
-                {memberError && (
-                  <p className="text-red-500 text-xs mb-3">{memberError}</p>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => {
-                      setMemberModalOpen(false);
-                      setMemberNumber('');
-                      setMemberData(null);
-                      setMemberError('');
-                      setMemberStep('input');
-                    }}
-                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                  >
-                    {lang === 'ja' ? 'キャンセル' : '取消'}
-                  </button>
-                  <button
-                    onClick={async () => {
-                      setMemberError('');
-                      if (!memberNumber.trim()) {
-                        setMemberError(lang === 'ja' ? '番号を入力してください' : '请输入编号');
-                        return;
-                      }
-                      const { data, error } = await supabase
-                        .from('members')
-                        .select('id, name, active')
-                        .eq('member_number', parseInt(memberNumber))
-                        .single();
-                      if (error || !data || !data.active) {
-                        setMemberError(lang === 'ja'
-                          ? '会員番号が見つかりません。番号をご確認いただくか、主催者にお問い合わせください。'
-                          : '未找到该会员编号，请确认后联系主办方。');
-                        return;
-                      }
-                      setMemberData({ id: data.id, name: data.name });
-                      setMemberStep('confirm');
-                    }}
-                    className="flex-1 py-2.5 rounded-xl font-bold text-sm text-white"
-                    style={{ background: 'linear-gradient(135deg, #fbbf24, #d97706)' }}
-                  >
-                    {lang === 'ja' ? '確認する' : '确认'}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
-                  {lang === 'ja' ? '確認' : '确认'}
-                </h3>
-                <p className="text-center text-gray-700 mb-6">
-                  <span className="font-bold text-lg">{memberData?.name}</span>
-                  {lang === 'ja' ? 'さんでお間違いないですか？' : '，请确认是您本人'}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => { setMemberStep('input'); setMemberData(null); }}
-                    className="flex-1 py-2.5 rounded-xl border border-gray-300 text-sm font-medium text-gray-600 hover:bg-gray-50"
-                  >
-                    {lang === 'ja' ? '戻る' : '返回'}
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (!memberData) return;
-                      await handleSubmit('member', memberData.name);
-                      setMemberModalOpen(false);
-                      setMemberNumber('');
-                      setMemberData(null);
-                      setMemberStep('input');
-                    }}
-                    disabled={submitting}
-                    className="flex-1 py-2.5 rounded-xl font-bold text-sm text-white disabled:opacity-50"
-                    style={{ background: 'linear-gradient(135deg, #fbbf24, #d97706)' }}
-                  >
-                    {submitting ? (lang === 'ja' ? '送信中...' : '提交中...') : (lang === 'ja' ? '申し込む' : '确认报名')}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Sticky bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
