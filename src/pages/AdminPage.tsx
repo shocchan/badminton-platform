@@ -321,11 +321,16 @@ const formatDateJP = (dateStr: string) => {
 const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
 
 const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
+  const isChaoxianzuTab = !!groupId;
+  const INITIAL_ACTIVITY = isChaoxianzuTab
+    ? { ...EMPTY_ACTIVITY, notes: '' }
+    : EMPTY_ACTIVITY;
+
   const [activities, setActivities] = useState<Activity[]>([]);
   const [entries, setEntries] = useState<Record<string, ActivityEntry[]>>({});
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<Omit<Activity, 'id' | 'created_at'>>(EMPTY_ACTIVITY);
+  const [form, setForm] = useState<Omit<Activity, 'id' | 'created_at'>>(INITIAL_ACTIVITY);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [editId, setEditId] = useState<string | null>(null);
