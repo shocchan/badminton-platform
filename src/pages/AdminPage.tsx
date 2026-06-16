@@ -717,15 +717,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [cxAuthError, setCxAuthError] = useState('');
   const [cxLogging, setCxLogging] = useState(false);
   const [groupId, setGroupId] = useState<string | null>(null);
+  const [groupIdLoaded, setGroupIdLoaded] = useState(false);
 
   useEffect(() => {
     if (!isChaoxianzu) return;
     supabase
-      .from('groups')
-      .select('id')
-      .eq('slug', 'chaoxianzu')
-      .single()
-      .then(({ data }) => { if (data) setGroupId(data.id); });
+      .rpc('get_group_id', { group_slug: 'chaoxianzu' })
+      .then(({ data }) => {
+        if (data) setGroupId(data);
+        setGroupIdLoaded(true);
+      });
   }, [isChaoxianzu]);
 
   const handleCxLogin = async () => {
@@ -1883,7 +1884,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       )}
       {/* Activities Tab */}
       {activeTab === 'activities' && (
-        <ActivityAdminTab groupId={groupId ?? undefined} />
+        isChaoxianzu && !groupIdLoaded
+          ? <div className="py-10 text-center text-gray-400">読み込み中...</div>
+          : isChaoxianzu && groupIdLoaded && !groupId
+            ? <div className="py-10 text-center text-red-400">グループ情報の取得に失敗しました。ページを再読み込みしてください。</div>
+            : <ActivityAdminTab groupId={groupId ?? undefined} />
       )}
 
       {/* Members Tab */}
