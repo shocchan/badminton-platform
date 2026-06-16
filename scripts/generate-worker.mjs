@@ -55,7 +55,8 @@ async function generateSitemap(env) {
       urls += '\\n  <url>\\n    <loc>' + loc + '</loc>\\n    <changefreq>' + u.freq + '</changefreq>\\n    <priority>' + u.priority + '</priority>\\n  </url>';
     }
     for (const t of tournaments) {
-      urls += '\\n  <url>\\n    <loc>https://kawabado.com/' + lang + '/tournaments/' + t.id + '</loc>\\n    <lastmod>' + t.updated_at + '</lastmod>\\n    <changefreq>daily</changefreq>\\n    <priority>0.9</priority>\\n  </url>';
+      const lastmod = t.updated_at ? t.updated_at.slice(0, 10) : '';
+      urls += '\\n  <url>\\n    <loc>https://kawabado.com/' + lang + '/tournaments/' + t.id + '</loc>' + (lastmod ? '\\n    <lastmod>' + lastmod + '</lastmod>' : '') + '\\n    <changefreq>daily</changefreq>\\n    <priority>0.9</priority>\\n  </url>';
     }
   }
 
