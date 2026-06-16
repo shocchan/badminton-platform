@@ -320,8 +320,8 @@ const formatDateJP = (dateStr: string) => {
 
 const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
 
-const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
-  const isChaoxianzuTab = !!groupId;
+const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?: string }) => {
+  const isChaoxianzuTab = !!groupSlug;
   const INITIAL_ACTIVITY = isChaoxianzuTab
     ? { ...EMPTY_ACTIVITY, notes: '' }
     : EMPTY_ACTIVITY;
@@ -369,19 +369,36 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
     if (!form.date) { setSaveError('日付を入力してください'); return; }
     setSaving(true);
     setSaveError('');
-    const payload = {
-      ...form,
-      title: autoTitle(form.date, form.start_time, form.end_time, form.location),
-      ...(groupId && !editId ? { group_id: groupId } : {}),
-    };
-    const { error } = editId
-      ? await supabase.from('activities').update(payload).eq('id', editId)
-      : await supabase.from('activities').insert(payload);
-    setSaving(false);
-    if (error) {
-      setSaveError(`保存エラー: ${error.message}`);
-      return;
+    const title = autoTitle(form.date, form.start_time, form.end_time, form.location);
+
+    if (groupSlug) {
+      // chaoxianzu: SECURITY DEFINER RPC経由
+      const { error } = await supabase.rpc('admin_upsert_activity', {
+        p_group_slug: groupSlug,
+        p_edit_id: editId || null,
+        p_title: title,
+        p_date: form.date,
+        p_start_time: form.start_time,
+        p_end_time: form.end_time,
+        p_location: form.location,
+        p_capacity: form.capacity,
+        p_price: form.price,
+        p_status: form.status,
+        p_address: form.address || '',
+        p_notes: form.notes || '',
+      });
+      setSaving(false);
+      if (error) { setSaveError(`保存エラー: ${error.message}`); return; }
+    } else {
+      // kawaguchi-warabi: 直接保存（Supabase Auth認証済み）
+      const payload = { ...form, title };
+      const { error } = editId
+        ? await supabase.from('activities').update(payload).eq('id', editId)
+        : await supabase.from('activities').insert(payload);
+      setSaving(false);
+      if (error) { setSaveError(`保存エラー: ${error.message}`); return; }
     }
+
     setShowForm(false);
     setEditId(null);
     setForm(INITIAL_ACTIVITY);
@@ -396,18 +413,30 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
 
   const handleArchive = async (id: string) => {
     if (!confirm('この活動をアーカイブしますか？データは保持されます。')) return;
-    await supabase.from('activities').update({ archived_at: new Date().toISOString() }).eq('id', id);
+    if (groupSlug) {
+      await supabase.rpc('admin_archive_activity', { p_id: id, p_group_slug: groupSlug });
+    } else {
+      await supabase.from('activities').update({ archived_at: new Date().toISOString() }).eq('id', id);
+    }
     fetchAll();
   };
 
   const handleUnarchive = async (id: string) => {
-    await supabase.from('activities').update({ archived_at: null }).eq('id', id);
+    if (groupSlug) {
+      await supabase.rpc('admin_unarchive_activity', { p_id: id, p_group_slug: groupSlug });
+    } else {
+      await supabase.from('activities').update({ archived_at: null }).eq('id', id);
+    }
     fetchAll();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('完全削除しますか？申し込みデータも削除されます。この操作は取り消せません。')) return;
-    await supabase.from('activities').delete().eq('id', id);
+    if (groupSlug) {
+      await supabase.rpc('admin_delete_activity', { p_id: id, p_group_slug: groupSlug });
+    } else {
+      await supabase.from('activities').delete().eq('id', id);
+    }
     fetchAll();
   };
 
@@ -1893,7 +1922,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           ? <div className="py-10 text-center text-gray-400">読み込み中...</div>
           : isChaoxianzu && groupIdLoaded && !groupId
             ? <div className="py-10 text-center text-red-400">グループ情報の取得に失敗しました。ページを再読み込みしてください。</div>
-            : <ActivityAdminTab groupId={groupId ?? undefined} />
+            : <ActivityAdminTab groupId={groupId ?? undefined} groupSlug={isChaoxianzu ? 'chaoxianzu' : undefined} />
       )}
 
       {/* Members Tab */}
