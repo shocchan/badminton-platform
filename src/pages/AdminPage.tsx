@@ -584,8 +584,8 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
               </div>
               <div className="flex gap-2 flex-shrink-0 ml-3 flex-wrap justify-end">
                 {!a.archived_at && <>
-                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
-                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
+                  <button onClick={() => { const base = groupId ? `/chaoxianzu` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
+                  <button onClick={() => { const base = groupId ? `/chaoxianzu` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
                   <button onClick={() => copyWechatText(a, actEntries)} className="text-xs text-purple-500 hover:underline" title="WeChatテキストコピー">📋WeChat</button>
                   <button onClick={() => exportExcel(a, actEntries)} className="text-xs text-green-600 hover:underline" title="Excel出力">📊Excel</button>
                   <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
