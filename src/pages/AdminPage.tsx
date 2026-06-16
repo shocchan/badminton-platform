@@ -706,7 +706,7 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
 export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const isChaoxianzu = groupSlug === 'chaoxianzu';
 
-  // chaoxianzu用シンプルパスワード認証
+  // chaoxianzu用シンプルパスワード認証（RPC経由でサーバー側照合）
   const [cxPassword, setCxPassword] = useState('');
   const [cxAuthed, setCxAuthed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -715,29 +715,32 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     return false;
   });
   const [cxAuthError, setCxAuthError] = useState('');
+  const [cxLogging, setCxLogging] = useState(false);
   const [groupId, setGroupId] = useState<string | null>(null);
-  const [groupAdminPassword, setGroupAdminPassword] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isChaoxianzu) return;
     supabase
       .from('groups')
-      .select('id, admin_password')
+      .select('id')
       .eq('slug', 'chaoxianzu')
       .single()
-      .then(({ data }) => {
-        if (data) {
-          setGroupId(data.id);
-          setGroupAdminPassword(data.admin_password);
-        }
-      });
+      .then(({ data }) => { if (data) setGroupId(data.id); });
   }, [isChaoxianzu]);
 
-  const handleCxLogin = () => {
-    if (cxPassword === groupAdminPassword) {
+  const handleCxLogin = async () => {
+    if (!cxPassword) return;
+    setCxLogging(true);
+    setCxAuthError('');
+    const { data, error } = await supabase.rpc('check_group_password', {
+      group_slug: 'chaoxianzu',
+      password: cxPassword,
+    });
+    setCxLogging(false);
+    if (error) { setCxAuthError('エラーが発生しました'); return; }
+    if (data === true) {
       sessionStorage.setItem('cx_admin_auth', 'true');
       setCxAuthed(true);
-      setCxAuthError('');
     } else {
       setCxAuthError('パスワードが間違っています');
     }
@@ -1141,10 +1144,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           {cxAuthError && <p className="text-red-500 text-xs mb-3">{cxAuthError}</p>}
           <button
             onClick={handleCxLogin}
-            disabled={!groupAdminPassword}
+            disabled={cxLogging || !cxPassword}
             className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
-            ログイン
+            {cxLogging ? '確認中...' : 'ログイン'}
           </button>
         </div>
       </main>
