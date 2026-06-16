@@ -384,7 +384,7 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
     }
     setShowForm(false);
     setEditId(null);
-    setForm(EMPTY_ACTIVITY);
+    setForm(INITIAL_ACTIVITY);
     fetchAll();
   };
 
@@ -471,7 +471,7 @@ const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
           </button>
         </div>
         <button
-          onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY_ACTIVITY); }}
+          onClick={() => { setShowForm(true); setEditId(null); setForm(INITIAL_ACTIVITY); }}
           className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           ＋ 活動を追加

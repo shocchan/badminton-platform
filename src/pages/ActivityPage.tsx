@@ -633,7 +633,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     fetchEntries();
   };
 
-  const enableMemberCharge = group?.enable_member_charge ?? true;
+  const enableMemberCharge = group?.enable_member_charge ?? false;
 
   // 言語切り替えUI（chaoxianzuは3言語、それ以外は2言語）
   const LangSwitcher = () => {
