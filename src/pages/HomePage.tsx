@@ -222,14 +222,17 @@ export const HomePage = () => {
   return (
     <main>
       {/* ヒーローセクション */}
-      <div
-        className="relative text-white overflow-hidden"
-        style={{
-          backgroundImage: 'url(/hero.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center center',
-        }}
-      >
+      <div className="relative text-white overflow-hidden">
+        <picture>
+          <source srcSet="/hero.webp" type="image/webp" />
+          <img
+            src="/hero.jpg"
+            alt="川口・蕨バドミントン交流会"
+            fetchPriority="high"
+            loading="eager"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+          />
+        </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/50 to-transparent" />
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="max-w-lg">
