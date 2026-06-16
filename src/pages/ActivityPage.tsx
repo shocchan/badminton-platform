@@ -396,21 +396,20 @@ const formatDate = (dateStr: string, lang: Lang) => {
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 };
 
-// グループをslugで取得するフック
+// グループをslugで取得するフック（RPC経由でRLS問題を回避）
 const useGroup = (groupSlug: string) => {
   const [group, setGroup] = useState<Group | null>(null);
   const [groupId, setGroupId] = useState<string | null>(null);
 
   useEffect(() => {
+    // get_group_id RPCでIDを取得し、その後グループ情報をRPCで取得
     supabase
-      .from('groups')
-      .select('id, slug, name, enable_member_charge')
-      .eq('slug', groupSlug)
+      .rpc('get_group_info', { group_slug: groupSlug })
       .single()
       .then(({ data }) => {
         if (data) {
-          setGroup(data);
-          setGroupId(data.id);
+          setGroup(data as Group);
+          setGroupId((data as Group).id);
         }
       });
   }, [groupSlug]);
