@@ -41,6 +41,9 @@ export const Header = () => {
 
   const close = () => setMenuOpen(false);
 
+  // ナビはja/zhのみ対応。koはjaにフォールバック
+  const navLang = lang === 'ko' ? 'ja' : lang;
+
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-4">
@@ -64,10 +67,10 @@ export const Header = () => {
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${categoryColor(category, active)} ${active ? (category === 'activity' ? 'bg-emerald-50' : 'bg-blue-50') : 'hover:bg-gray-50'}`}
               >
                 <span className="text-base leading-none">{icon}</span>
-                <span>{label[lang]}</span>
+                <span>{label[navLang]}</span>
                 {badge && (
                   <span className="text-[10px] px-1 py-0.5 rounded bg-blue-100 text-blue-600 font-bold leading-none">
-                    {badge[lang]}
+                    {badge[navLang]}
                   </span>
                 )}
               </Link>
@@ -134,8 +137,8 @@ export const Header = () => {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('tournament', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label[lang]}</span>
-              {badge && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-500 font-bold">{badge[lang]}</span>}
+              <span>{label[navLang]}</span>
+              {badge && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-500 font-bold">{badge[navLang]}</span>}
             </Link>
           ))}
 
@@ -148,7 +151,7 @@ export const Header = () => {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('activity', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label[lang]}</span>
+              <span>{label[navLang]}</span>
             </Link>
           ))}
 
@@ -160,7 +163,7 @@ export const Header = () => {
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive(to))}`}
             >
               <span>{icon}</span>
-              <span>{label[lang]}</span>
+              <span>{label[navLang]}</span>
             </Link>
           ))}
 

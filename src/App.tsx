@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ActivityPage, ActivityListPage, ActivityListPageCN } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
 const HomePage           = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -17,10 +18,16 @@ const LevelGuidePage     = lazy(() => import('./pages/LevelGuidePage').then(m =>
 const CancelPolicyPage   = lazy(() => import('./pages/CancelPolicyPage').then(m => ({ default: m.CancelPolicyPage })));
 const FaqPage            = lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
 const CancelEntryPage    = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
-const ActivityPage       = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityPage })));
-const ActivityListPage   = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityListPage })));
-const ActivityListPageCN = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityListPageCN })));
 const ActivityPageCN     = lazy(() => import('./pages/ActivityPageCN').then(m => ({ default: m.ActivityPageCN })));
+
+// 在日朝鮮族バドミントン協会（chaoxianzu）グループ用コンポーネント
+const CXActivityListJA = () => <ActivityListPage groupSlug="chaoxianzu" />;
+const CXActivityListCN = () => <ActivityListPageCN groupSlug="chaoxianzu" />;
+const CXActivityListKR = () => <ActivityListPage groupSlug="chaoxianzu" forceLang="ko" />;
+const CXActivityPageJA = () => <ActivityPage groupSlug="chaoxianzu" />;
+const CXActivityPageCN = () => <ActivityPage lang="zh" groupSlug="chaoxianzu" />;
+const CXActivityPageKR = () => <ActivityPage groupSlug="chaoxianzu" forceLang="ko" />;
+const CXAdminPage      = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="chaoxianzu" /> })));
 
 // ローディングフォールバック
 const PageLoader = () => (
@@ -36,6 +43,7 @@ const AnimatedRoutes = () => {
     <Suspense fallback={<PageLoader />}>
       <div key={location.pathname} className="page-fade">
         <Routes location={location}>
+          {/* 川口・蕨グループ（既存、後方互換） */}
           <Route path="/" element={<HomePage />} />
           <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
           <Route path="/blog" element={<BlogPage />} />
@@ -46,10 +54,20 @@ const AnimatedRoutes = () => {
           <Route path="/cancel-policy" element={<CancelPolicyPage />} />
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/cancel" element={<CancelEntryPage />} />
-          <Route path="/activity" element={<ActivityListPage />} />
-          <Route path="/activity-cn" element={<ActivityListPageCN />} />
-          <Route path="/activity/:id" element={<ActivityPage />} />
-          <Route path="/activity-cn/:id" element={<ActivityPageCN />} />
+          <Route path="/activity" element={<ActivityListPage groupSlug="kawaguchi-warabi" />} />
+          <Route path="/activity-cn" element={<ActivityListPageCN groupSlug="kawaguchi-warabi" />} />
+          <Route path="/activity/:id" element={<ActivityPage groupSlug="kawaguchi-warabi" />} />
+          <Route path="/activity-cn/:id" element={<ActivityPageCN groupSlug="kawaguchi-warabi" />} />
+
+          {/* 在日朝鮮族バドミントン協会（chaoxianzu） */}
+          <Route path="/chaoxianzu/activity" element={<CXActivityListJA />} />
+          <Route path="/chaoxianzu/activity-cn" element={<CXActivityListCN />} />
+          <Route path="/chaoxianzu/activity-kr" element={<CXActivityListKR />} />
+          <Route path="/chaoxianzu/activity/:id" element={<CXActivityPageJA />} />
+          <Route path="/chaoxianzu/activity-cn/:id" element={<CXActivityPageCN />} />
+          <Route path="/chaoxianzu/activity-kr/:id" element={<CXActivityPageKR />} />
+          <Route path="/chaoxianzu/admin" element={<CXAdminPage />} />
+
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>

@@ -320,7 +320,7 @@ const formatDateJP = (dateStr: string) => {
 
 const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
 
-const ActivityAdminTab = () => {
+const ActivityAdminTab = ({ groupId }: { groupId?: string }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [entries, setEntries] = useState<Record<string, ActivityEntry[]>>({});
   const [loading, setLoading] = useState(true);
@@ -334,7 +334,9 @@ const ActivityAdminTab = () => {
   const [copyToast, setCopyToast] = useState('');
 
   const fetchAll = useCallback(async () => {
-    const { data: acts } = await supabase.from('activities').select('*').order('date', { ascending: true });
+    let query = supabase.from('activities').select('*').order('date', { ascending: true });
+    if (groupId) query = query.eq('group_id', groupId);
+    const { data: acts } = await query;
     if (acts) {
       setActivities(acts);
       if (acts.length) {
@@ -362,7 +364,11 @@ const ActivityAdminTab = () => {
     if (!form.date) { setSaveError('日付を入力してください'); return; }
     setSaving(true);
     setSaveError('');
-    const payload = { ...form, title: autoTitle(form.date, form.start_time, form.end_time, form.location) };
+    const payload = {
+      ...form,
+      title: autoTitle(form.date, form.start_time, form.end_time, form.location),
+      ...(groupId && !editId ? { group_id: groupId } : {}),
+    };
     const { error } = editId
       ? await supabase.from('activities').update(payload).eq('id', editId)
       : await supabase.from('activities').insert(payload);
@@ -697,10 +703,49 @@ const ActivityAdminTab = () => {
   );
 };
 
-export const AdminPage = () => {
+export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
+  const isChaoxianzu = groupSlug === 'chaoxianzu';
+
+  // chaoxianzu用シンプルパスワード認証
+  const [cxPassword, setCxPassword] = useState('');
+  const [cxAuthed, setCxAuthed] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('cx_admin_auth') === 'true';
+    }
+    return false;
+  });
+  const [cxAuthError, setCxAuthError] = useState('');
+  const [groupId, setGroupId] = useState<string | null>(null);
+  const [groupAdminPassword, setGroupAdminPassword] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isChaoxianzu) return;
+    supabase
+      .from('groups')
+      .select('id, admin_password')
+      .eq('slug', 'chaoxianzu')
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setGroupId(data.id);
+          setGroupAdminPassword(data.admin_password);
+        }
+      });
+  }, [isChaoxianzu]);
+
+  const handleCxLogin = () => {
+    if (cxPassword === groupAdminPassword) {
+      sessionStorage.setItem('cx_admin_auth', 'true');
+      setCxAuthed(true);
+      setCxAuthError('');
+    } else {
+      setCxAuthError('パスワードが間違っています');
+    }
+  };
+
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>('tournaments');
+  const [activeTab, setActiveTab] = useState<Tab>(isChaoxianzu ? 'activities' : 'tournaments');
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
@@ -745,18 +790,21 @@ export const AdminPage = () => {
   const cropContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (isChaoxianzu) return;
     if (!authLoading && !isAuthenticated) {
       navigate('/login');
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading, navigate, isChaoxianzu]);
 
   useEffect(() => {
+    if (isChaoxianzu) return;
     if (activeTab === 'entries') fetchEntries();
     if (activeTab === 'members') fetchMembers();
-  }, [activeTab]);
+  }, [activeTab, isChaoxianzu]);
 
   // ── リアルタイム申し込み通知 ──
   useEffect(() => {
+    if (isChaoxianzu) return;
     if (!isAuthenticated) return;
     const channel = supabase
       .channel('entries-realtime')
@@ -1066,7 +1114,7 @@ export const AdminPage = () => {
     }
   };
 
-  if (authLoading) {
+  if (authLoading && !isChaoxianzu) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
@@ -1074,11 +1122,43 @@ export const AdminPage = () => {
     );
   }
 
+  // chaoxianzu: パスワード未認証の場合はログイン画面を表示
+  if (isChaoxianzu && !cxAuthed) {
+    return (
+      <main className="max-w-sm mx-auto px-4 py-20">
+        <h1 className="text-xl font-bold text-gray-900 mb-6 text-center">管理画面ログイン</h1>
+        <p className="text-sm text-gray-500 mb-4 text-center">在日朝鮮族バドミントン協会</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <input
+            type="password"
+            value={cxPassword}
+            onChange={e => setCxPassword(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCxLogin()}
+            placeholder="管理パスワード"
+            className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            autoFocus
+          />
+          {cxAuthError && <p className="text-red-500 text-xs mb-3">{cxAuthError}</p>}
+          <button
+            onClick={handleCxLogin}
+            disabled={!groupAdminPassword}
+            className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            ログイン
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   const formatDate = (str: string) => str ? new Date(str).toLocaleDateString('ja-JP') : '';
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">管理画面</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">管理画面</h1>
+      {isChaoxianzu && (
+        <p className="text-sm text-gray-500 mb-4">在日朝鮮族バドミントン協会</p>
+      )}
 
       {/* リアルタイム通知バナー */}
       {newEntryNotice && (
@@ -1091,7 +1171,10 @@ export const AdminPage = () => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
-        {([['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '会員管理']] as [Tab, string][]).map(([key, label]) => (
+        {(isChaoxianzu
+          ? [['activities', '活動管理']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '会員管理']] as [Tab, string][]
+        ).map(([key, label]) => (
           <button
             key={key}
             onClick={() => setActiveTab(key)}
@@ -1797,7 +1880,7 @@ export const AdminPage = () => {
       )}
       {/* Activities Tab */}
       {activeTab === 'activities' && (
-        <ActivityAdminTab />
+        <ActivityAdminTab groupId={groupId ?? undefined} />
       )}
 
       {/* Members Tab */}

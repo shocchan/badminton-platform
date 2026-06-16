@@ -2,6 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '../services/supabaseClient';
 import { useLanguage } from '../contexts/LanguageContext';
+import type { Lang } from '../contexts/LanguageContext';
+
+interface Group {
+  id: string;
+  slug: string;
+  name: string;
+  enable_member_charge: boolean;
+}
 
 interface Activity {
   id: string;
@@ -15,6 +23,7 @@ interface Activity {
   status: 'open' | 'closed' | 'cancelled';
   address?: string;
   notes?: string;
+  group_id?: string;
 }
 
 interface ActivityEntry {
@@ -32,7 +41,59 @@ interface ActivityEntry {
 
 const WECHAT_ID = 'Shocchance';
 
-const T = {
+const T: Record<Lang, {
+  memberBadge: string;
+  normalBadge: string;
+  submitMember: string;
+  submitNormal: string;
+  namePlaceholder: string;
+  full: string;
+  remaining: (n: number) => string;
+  used: (u: number, c: number) => string;
+  waitlistBadge: string;
+  waitlistSection: string;
+  confirmedSection: string;
+  cancelLink: string;
+  cancelTitle: string;
+  cancelNamePh: string;
+  cancelCodePh: string;
+  cancelBtn: string;
+  cancelSubmitting: string;
+  cancelSuccess: string;
+  cancelPartial: (n: number, r: number) => string;
+  cancelError: string;
+  cancelPolicy: string;
+  cancelRules: string[];
+  successTitle: string;
+  successWaitlist: string;
+  successCodeLabel: string;
+  successNote: string;
+  submitting: string;
+  backLink: string;
+  notFound: string;
+  cancelled: string;
+  price: (p: number) => string;
+  memberBanner: string;
+  memberBannerNote: string;
+  memberNote: string;
+  fullNote: string;
+  waitlistSubmitNormal: string;
+  waitlistSubmitMember: string;
+  personUnit: string;
+  closed: string;
+  closedNote: string;
+  receiving: string;
+  participants: string;
+  payment: string;
+  share: string;
+  copyUrl: string;
+  shareCancel: string;
+  deadline: string;
+  deadlineLabel: string;
+  nameError: string;
+  submitError: string;
+  cancelNameCodeError: string;
+}> = {
   ja: {
     memberBadge: 'チャージ済み',
     normalBadge: '通常',
@@ -40,8 +101,8 @@ const T = {
     submitNormal: '今すぐ申し込む',
     namePlaceholder: 'お名前',
     full: '満員',
-    remaining: (n: number) => `残り${n}枠`,
-    used: (u: number, c: number) => `${u}/${c}人`,
+    remaining: (n) => `残り${n}枠`,
+    used: (u, c) => `${u}/${c}人`,
     waitlistBadge: '補欠',
     waitlistSection: '補欠リスト',
     confirmedSection: '参加確定',
@@ -52,7 +113,7 @@ const T = {
     cancelBtn: 'キャンセルする',
     cancelSubmitting: 'キャンセル中...',
     cancelSuccess: 'キャンセルが完了しました。',
-    cancelPartial: (n: number, r: number) => `${n}人分をキャンセルしました。残り${r}人分は有効です。`,
+    cancelPartial: (n, r) => `${n}人分をキャンセルしました。残り${r}人分は有効です。`,
     cancelError: 'コードが違います。コードを忘れた場合は主催者にご連絡ください。',
     cancelPolicy: `※コードを忘れた場合は主催者（WeChat ID：${WECHAT_ID}）までご連絡ください。無断キャンセルは原則禁止・費用発生の対象となります。`,
     cancelRules: [
@@ -70,7 +131,7 @@ const T = {
     backLink: '申し込みに戻る',
     notFound: 'この活動は見つかりませんでした。',
     cancelled: 'この活動は中止になりました。',
-    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    price: (p) => `¥${p.toLocaleString()} / 人`,
     memberBanner: '💳 チャージ済み会員の方へ',
     memberBannerNote: '事前チャージ済みの方は「チャージ済み会員」ボタンでお申し込みください。残高から自動で引き落とされます。',
     memberNote: '※チャージ済みの方はこちら',
@@ -78,6 +139,19 @@ const T = {
     waitlistSubmitNormal: '補欠で申し込む（通常）',
     waitlistSubmitMember: '補欠で申し込む（チャージ済み）',
     personUnit: '人',
+    closed: '締め切り',
+    closedNote: '開始時刻を過ぎたため締め切られました',
+    receiving: '受付中',
+    participants: '参加人数',
+    payment: '支払い方法',
+    share: 'シェア',
+    copyUrl: 'URLをコピー',
+    shareCancel: 'キャンセル',
+    deadline: '受付終了',
+    deadlineLabel: '締め切りまで',
+    nameError: 'お名前を入力してください',
+    submitError: '申し込みに失敗しました。もう一度お試しください。',
+    cancelNameCodeError: 'お名前とキャンセルコードを入力してください',
   },
   zh: {
     memberBadge: '充值会员',
@@ -86,8 +160,8 @@ const T = {
     submitNormal: '立即报名',
     namePlaceholder: '您的姓名',
     full: '已满',
-    remaining: (n: number) => `剩余${n}名`,
-    used: (u: number, c: number) => `${u}/${c}人`,
+    remaining: (n) => `剩余${n}名`,
+    used: (u, c) => `${u}/${c}人`,
     waitlistBadge: '候补',
     waitlistSection: '候补名单',
     confirmedSection: '已确认参加',
@@ -98,7 +172,7 @@ const T = {
     cancelBtn: '确认取消',
     cancelSubmitting: '取消中...',
     cancelSuccess: '取消成功。',
-    cancelPartial: (n: number, r: number) => `已取消${n}人份。剩余${r}人份仍有效。`,
+    cancelPartial: (n, r) => `已取消${n}人份。剩余${r}人份仍有效。`,
     cancelError: '取消码不正确。如忘记取消码，请联系主办方。',
     cancelPolicy: `※如忘记取消码，请联系主办方（微信ID：${WECHAT_ID}）。擅自爽约原则上禁止，可能产生费用。`,
     cancelRules: [
@@ -116,7 +190,7 @@ const T = {
     backLink: '返回报名页面',
     notFound: '未找到该活动。',
     cancelled: '该活动已取消。',
-    price: (p: number) => `¥${p.toLocaleString()} / 人`,
+    price: (p) => `¥${p.toLocaleString()} / 人`,
     memberBanner: '💳 充值会员专享',
     memberBannerNote: '已预充值的会员请点击「充值会员」按钮报名。费用将自动从余额中扣除。',
     memberNote: '※已充值会员请选此项',
@@ -124,6 +198,78 @@ const T = {
     waitlistSubmitNormal: '候补报名（普通）',
     waitlistSubmitMember: '候补报名（会员）',
     personUnit: '名',
+    closed: '已截止',
+    closedNote: '活动开始后报名已自动关闭',
+    receiving: '报名中',
+    participants: '参加人数',
+    payment: '支付方式',
+    share: '分享',
+    copyUrl: '复制链接',
+    shareCancel: '取消',
+    deadline: '报名已截止',
+    deadlineLabel: '距截止还有',
+    nameError: '请输入姓名',
+    submitError: '报名失败，请重试。',
+    cancelNameCodeError: '请输入姓名和取消码',
+  },
+  ko: {
+    memberBadge: '충전 회원',
+    normalBadge: '일반',
+    submitMember: '충전 회원으로 신청',
+    submitNormal: '지금 신청하기',
+    namePlaceholder: '이름',
+    full: '마감',
+    remaining: (n) => `잔여 ${n}자리`,
+    used: (u, c) => `${u}/${c}명`,
+    waitlistBadge: '대기',
+    waitlistSection: '대기 명단',
+    confirmedSection: '참가 확정',
+    cancelLink: '취소하기',
+    cancelTitle: '신청 취소',
+    cancelNamePh: '이름（신청 시 입력한 이름）',
+    cancelCodePh: '4자리 취소 코드',
+    cancelBtn: '취소 확인',
+    cancelSubmitting: '취소 중...',
+    cancelSuccess: '취소가 완료되었습니다.',
+    cancelPartial: (n, r) => `${n}명분을 취소했습니다. 나머지 ${r}명분은 유효합니다.`,
+    cancelError: '코드가 올바르지 않습니다. 코드를 잊으셨다면 주최자에게 문의해 주세요.',
+    cancelPolicy: `※코드를 잊으셨다면 주최자（WeChat ID：${WECHAT_ID}）에게 문의해 주세요. 무단 취소는 원칙적으로 금지되며 비용이 발생할 수 있습니다.`,
+    cancelRules: [
+      '【취소 규칙】24시간 전까지 취소해 주세요.',
+      '24시간 이내 취소의 경우：',
+      '1️⃣ 대기자·대체자 있음 → 대기자가 올라오거나 직접 대체자를 구한 경우 비용 없음',
+      '2️⃣ 대기자·대체자 없음 → 공석이 생길 경우 정상 요금이 발생합니다 ⚠️',
+      '（※ 직접 대체자를 구할 경우 대기 순서 무관. 단, 사전에 연락 필수）',
+    ],
+    successTitle: '신청이 완료되었습니다！',
+    successWaitlist: '대기자로 등록되었습니다！자리가 나면 연락드리겠습니다.',
+    successCodeLabel: '취소 코드：',
+    successNote: '이 코드는 취소 시 필요합니다. 스크린샷을 저장해 주세요.',
+    submitting: '전송 중...',
+    backLink: '신청 페이지로 돌아가기',
+    notFound: '이 활동을 찾을 수 없습니다.',
+    cancelled: '이 활동은 취소되었습니다.',
+    price: (p) => `¥${p.toLocaleString()} / 명`,
+    memberBanner: '💳 충전 회원 안내',
+    memberBannerNote: '사전 충전 회원은 「충전 회원」 버튼으로 신청해 주세요. 잔액에서 자동으로 차감됩니다.',
+    memberNote: '※충전 회원은 여기',
+    fullNote: '정원이 찼습니다. 대기자로 신청할 수 있습니다.',
+    waitlistSubmitNormal: '대기 신청（일반）',
+    waitlistSubmitMember: '대기 신청（충전 회원）',
+    personUnit: '명',
+    closed: '마감',
+    closedNote: '시작 시각이 지나 접수가 마감되었습니다',
+    receiving: '접수 중',
+    participants: '참가 인원',
+    payment: '결제 방법',
+    share: '공유',
+    copyUrl: 'URL 복사',
+    shareCancel: '취소',
+    deadline: '접수 마감',
+    deadlineLabel: '마감까지',
+    nameError: '이름을 입력해 주세요',
+    submitError: '신청에 실패했습니다. 다시 시도해 주세요.',
+    cancelNameCodeError: '이름과 취소 코드를 입력해 주세요',
   },
 };
 
@@ -132,11 +278,9 @@ const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 const SUFFIXES = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩'];
 
 const expandEntries = (entries: ActivityEntry[]) => {
-  // 名前ごとの合計人数を集計
   const totals: Record<string, number> = {};
   entries.forEach(e => { totals[e.name] = (totals[e.name] || 0) + e.quantity; });
 
-  // 名前ごとに通し番号を振る
   const counters: Record<string, number> = {};
   return entries.flatMap(e => {
     const total = totals[e.name];
@@ -151,7 +295,7 @@ const expandEntries = (entries: ActivityEntry[]) => {
   });
 };
 
-const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entries: ActivityEntry[]; lang: 'ja' | 'zh' }) => {
+const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entries: ActivityEntry[]; lang: Lang }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -172,8 +316,9 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
 
     const header = `【${activity.title}】`;
     const lines = confirmedRows.map((r, i) => `【${i + 1}】姓名: ${r.name}; 备注: ${r.notes}`).join('\n');
+    const waitlistLabel = lang === 'ko' ? '--- 대기 ---' : lang === 'ja' ? '--- 補欠 ---' : '--- 候补 ---';
     const waitlistLines = waitlistRows.length
-      ? '\n' + (lang === 'ja' ? '--- 補欠 ---' : '--- 候补 ---') + '\n' +
+      ? '\n' + waitlistLabel + '\n' +
         waitlistRows.map((r, i) => `[候补${i + 1}] 姓名: ${r.name}; 备注: ${r.notes}`).join('\n')
       : '';
 
@@ -182,25 +327,27 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const label = lang === 'ko'
+    ? '참가자 명단 복사（WeChat용）'
+    : lang === 'ja'
+      ? '参加者リストをコピー（WeChat用）'
+      : '复制参与者名单（微信用）';
+
   return (
     <button
       onClick={handleCopy}
       className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-600 transition-colors mb-2 mx-auto"
     >
-      {copied
-        ? '✅ コピーしました！'
-        : `📋 ${lang === 'ja' ? '参加者リストをコピー（WeChat用）' : '复制参与者名单（微信用）'}`}
+      {copied ? '✅ コピーしました！' : `📋 ${label}`}
     </button>
   );
 };
 
-// 会場名 → 画像パスのマッピング
 const VENUE_IMAGES: Record<string, string> = {
   '芝園公民館': '/venues/shibaen-kouminkan.jpg',
   '蕨市民体育館': '/venues/warabi-taiikukan.jpg',
 };
 
-// 開始時刻+1時間を締め切りとして計算
 const getDeadline = (date: string, startTime: string): Date => {
   const dt = new Date(`${date}T${startTime}`);
   dt.setHours(dt.getHours() + 1);
@@ -238,23 +385,56 @@ const useCountdown = (deadline: Date | null) => {
   return { label, expired };
 };
 
-const formatDate = (dateStr: string, lang: 'ja' | 'zh') => {
+const formatDate = (dateStr: string, lang: Lang) => {
   const d = new Date(dateStr);
   if (lang === 'zh') return `${d.getMonth() + 1}月${d.getDate()}日`;
+  if (lang === 'ko') {
+    const days = ['일', '월', '화', '수', '목', '금', '토'];
+    return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  }
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 };
 
+// グループをslugで取得するフック
+const useGroup = (groupSlug: string) => {
+  const [group, setGroup] = useState<Group | null>(null);
+  const [groupId, setGroupId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase
+      .from('groups')
+      .select('id, slug, name, enable_member_charge')
+      .eq('slug', groupSlug)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setGroup(data);
+          setGroupId(data.id);
+        }
+      });
+  }, [groupSlug]);
+
+  return { group, groupId };
+};
+
 // ── 単一活動ページ ─────────────────────────────────────────
-export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
+export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', forceLang }: { lang?: Lang; groupSlug?: string; forceLang?: Lang }) => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { lang: ctxLang } = useLanguage();
-  const lang = langProp ?? ctxLang;
+  const { lang: ctxLang, setLang } = useLanguage();
+  const lang = forceLang ?? langProp ?? ctxLang;
   const t = T[lang];
   const formRef = useRef<HTMLDivElement>(null);
   const [shareToast, setShareToast] = useState('');
   const [showShareModal, setShowShareModal] = useState(false);
+
+  const { group } = useGroup(groupSlug);
+
+  // forceLangが指定されている場合はContextの言語も同期
+  useEffect(() => {
+    if (forceLang) setLang(forceLang);
+  }, [forceLang, setLang]);
 
   const source = (() => {
     const p = searchParams.get('from') || 'web';
@@ -281,25 +461,24 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const [cancelMsg, setCancelMsg] = useState('');
   const [cancelError, setCancelError] = useState('');
 
-
   const confirmedEntries = entries.filter(e => e.status === 'confirmed');
   const waitlistEntries = entries.filter(e => e.status === 'waitlist');
   const confirmedCount = confirmedEntries.reduce((s, e) => s + e.quantity, 0);
   const remaining = activity ? Math.max(0, activity.capacity - confirmedCount) : 0;
   const isFull = remaining <= 0;
 
-  // 締め切り（開始+1時間）
   const deadline = activity ? getDeadline(activity.date, activity.start_time) : null;
   const { label: countdownLabel, expired: autoExpired } = useCountdown(deadline);
   const isClosed = activity?.status === 'closed' || autoExpired;
 
-  // シェア
   const handleShare = () => setShowShareModal(true);
   const origin = window.location.origin;
 
+  const basePath = groupSlug === 'kawaguchi-warabi' ? '' : `/${groupSlug}`;
+
   const handleCopyLine = async () => {
     if (!activity) return;
-    const lineUrl = `${origin}/activity/${id}?from=line`;
+    const lineUrl = `${origin}${basePath}/activity/${id}?from=line`;
     const d = new Date(activity.date);
     const days = ['日','月','火','水','木','金','土'];
     const dateStr = `${d.getMonth()+1}/${d.getDate()}(${days[d.getDay()]})`;
@@ -312,14 +491,15 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
       lineUrl,
     ].join('\n');
     await navigator.clipboard.writeText(text);
-    setShareToast('✅ LINEシェア用テキストをコピーしました');
+    setShareToast(lang === 'ko' ? '✅ LINE 공유 텍스트를 복사했습니다' : '✅ LINEシェア用テキストをコピーしました');
     setTimeout(() => setShareToast(''), 2500);
     setShowShareModal(false);
   };
 
   const handleCopyWeChat = async () => {
     if (!activity) return;
-    const wechatUrl = `${origin}/activity-cn/${id}?from=wechat`;
+    const cnPath = groupSlug === 'kawaguchi-warabi' ? '/activity-cn' : `/${groupSlug}/activity-cn`;
+    const wechatUrl = `${origin}${cnPath}/${id}?from=wechat`;
     const d = new Date(activity.date);
     const zhDays = ['日','一','二','三','四','五','六'];
     const dateStr = `${d.getMonth()+1}月${d.getDate()}日（周${zhDays[d.getDay()]}）`;
@@ -339,7 +519,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
   const handleCopyUrl = async () => {
     await navigator.clipboard.writeText(window.location.href);
-    setShareToast(lang === 'ja' ? '✅ URLをコピーしました' : '✅ 已复制链接');
+    setShareToast(t.copyUrl + ' ✅');
     setTimeout(() => setShareToast(''), 2500);
     setShowShareModal(false);
   };
@@ -382,7 +562,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
   const handleSubmit = async (memberType: 'member' | 'normal') => {
     const submitName = name.trim();
     if (!submitName) {
-      setFormError(lang === 'ja' ? 'お名前を入力してください' : '请输入姓名');
+      setFormError(t.nameError);
       return;
     }
     setFormError('');
@@ -400,7 +580,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     setSubmitting(false);
     const anyError = results.some(r => r.error);
     if (anyError) {
-      setFormError(lang === 'ja' ? '申し込みに失敗しました。もう一度お試しください。' : '报名失败，请重试。');
+      setFormError(t.submitError);
     } else {
       setSuccessCode(code);
       setSuccessIsWaitlist(confirmedQty === 0);
@@ -413,21 +593,20 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 
   const handleCancel = async () => {
     if (!cancelName.trim() || !cancelCode.trim()) {
-      setCancelError(lang === 'ja' ? 'お名前とキャンセルコードを入力してください' : '请输入姓名和取消码');
+      setCancelError(t.cancelNameCodeError);
       return;
     }
     setCancelSubmitting(true);
     setCancelError('');
     setCancelMsg('');
 
-    // 同名・同コードのエントリを全件取得（確定/補欠で複数行の場合あり）
     const { data: rows } = await supabase
       .from('activity_entries')
       .select('*')
       .eq('activity_id', id)
       .eq('name', cancelName.trim())
       .eq('cancel_code', cancelCode.trim())
-      .order('status', { ascending: false }); // waitlist を先に削除
+      .order('status', { ascending: false });
 
     if (!rows || rows.length === 0) {
       setCancelError(t.cancelError);
@@ -435,7 +614,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
       return;
     }
 
-    // 補欠→確定の順に cancelQty 分を削除/減算
     let remaining = cancelQty;
     for (const row of rows) {
       if (remaining <= 0) break;
@@ -456,6 +634,37 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     fetchEntries();
   };
 
+  const enableMemberCharge = group?.enable_member_charge ?? true;
+
+  // 言語切り替えUI（chaoxianzuは3言語、それ以外は2言語）
+  const LangSwitcher = () => {
+    const { setLang: setCtxLang } = useLanguage();
+    const switchLang = (l: Lang) => setCtxLang(l);
+
+    if (groupSlug === 'chaoxianzu') {
+      return (
+        <div className="flex gap-1 text-xs">
+          {(['ja', 'zh', 'ko'] as Lang[]).map(l => (
+            <button key={l} onClick={() => switchLang(l)}
+              className={`px-2 py-0.5 rounded-full border transition-colors ${lang === l ? 'bg-white text-green-700 border-white font-bold' : 'text-white/80 border-white/40 hover:border-white'}`}>
+              {l === 'ja' ? '日本語' : l === 'zh' ? '中文' : '한국어'}
+            </button>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className="flex gap-1 text-xs">
+        {(['ja', 'zh'] as Lang[]).map(l => (
+          <button key={l} onClick={() => switchLang(l)}
+            className={`px-2 py-0.5 rounded-full border transition-colors ${lang === l ? 'bg-white text-green-700 border-white font-bold' : 'text-white/80 border-white/40 hover:border-white'}`}>
+            {l === 'ja' ? '日本語' : '中文'}
+          </button>
+        ))}
+      </div>
+    );
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
@@ -470,47 +679,42 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
     <main className="max-w-lg mx-auto px-4 py-12 text-center text-gray-500">{t.cancelled}</main>
   );
 
+  const notesPlaceholder = lang === 'ko'
+    ? '비고（선택）예：처음 참가합니다.'
+    : lang === 'zh'
+      ? '备注（选填）例：我是第一次参加。'
+      : '備考（任意）例：初参加です。';
+
   return (
     <main className="max-w-lg mx-auto px-4 pb-28 pt-0">
-      {/* トースト */}
       {shareToast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
           {shareToast}
         </div>
       )}
 
-      {/* シェアモーダル */}
       {showShareModal && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
           <div className="absolute inset-0 bg-black/40" onClick={() => setShowShareModal(false)} />
           <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl">
-            <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
-              {lang === 'ja' ? 'シェア' : '分享'}
-            </h3>
+            <h3 className="font-bold text-gray-900 text-base mb-4 text-center">{t.share}</h3>
             <div className="space-y-2.5">
-              {/* LINE */}
               <button onClick={handleCopyLine}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#06C755] text-white hover:opacity-90 transition-opacity">
                 <img src="/icons/line.png" alt="LINE" className="w-9 h-9 flex-shrink-0 rounded-xl" />
-                <span className="font-bold text-base">LINEでシェア</span>
+                <span className="font-bold text-base">LINE{lang === 'ko' ? '으로 공유' : 'でシェア'}</span>
               </button>
-              {/* WeChat */}
               <button onClick={handleCopyWeChat}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#07C160] text-white hover:opacity-90 transition-opacity">
-                {/* WeChat ロゴ SVG（正確版） */}
                 <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
                   <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.2"/>
-                  {/* 大きい泡（左・微信本体） */}
                   <path d="M17.5 9C11.1 9 6 13.2 6 18.4c0 2.9 1.6 5.5 4.2 7.2l-1 3.4 3.8-1.9c1.1.3 2.3.5 3.5.5 6.4 0 11.5-4.2 11.5-9.4S23.9 9 17.5 9z" fill="white"/>
-                  {/* 小さい泡（右・相手） */}
                   <path d="M34 23.5c0-4.4-4.4-8-9.8-8-.3 0-.6 0-.9.1 1.1 1.4 1.7 3 1.7 4.8 0 4.7-4.5 8.5-10 8.5-.5 0-1 0-1.5-.1C15.3 31 18 32.5 21 32.5c1 0 2-.2 3-.4l3.3 1.7-.9-3c2.2-1.5 3.6-3.7 3.6-6.3z" fill="white" fillOpacity="0.85"/>
-                  {/* 目（左の泡） */}
                   <circle cx="14.5" cy="18" r="1.3" fill="#07C160"/>
                   <circle cx="19.5" cy="18" r="1.3" fill="#07C160"/>
                 </svg>
-                <span className="font-bold text-base">WeChatでシェア</span>
+                <span className="font-bold text-base">WeChat{lang === 'ko' ? '으로 공유' : 'でシェア'}</span>
               </button>
-              {/* URLコピー */}
               <button onClick={handleCopyUrl}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
                 <svg viewBox="0 0 36 36" className="w-9 h-9 flex-shrink-0" fill="none">
@@ -518,30 +722,28 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
                   <path d="M15 21a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
                   <path d="M21 15a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.5-1.5" stroke="#6b7280" strokeWidth="2" strokeLinecap="round"/>
                 </svg>
-                <span className="font-medium text-base">{lang === 'ja' ? 'URLをコピー' : '复制链接'}</span>
+                <span className="font-medium text-base">{t.copyUrl}</span>
               </button>
             </div>
-            <button
-              onClick={() => setShowShareModal(false)}
-              className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600"
-            >
-              {lang === 'ja' ? 'キャンセル' : '取消'}
+            <button onClick={() => setShowShareModal(false)} className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600">
+              {t.shareCancel}
             </button>
           </div>
         </div>
       )}
 
-      {/* WeChat風ヘッダーカード */}
+      {/* ヘッダーカード */}
       <div className="text-white px-5 pt-6 pb-5 -mx-4 mb-4"
         style={{ background: 'linear-gradient(160deg, #4ade80 0%, #22c55e 30%, #16a34a 70%, #15803d 100%)' }}>
-        <div className="flex items-start justify-between gap-3">
-          <h1 className="text-xl font-bold leading-snug flex-1" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{activity.title}</h1>
-          <button onClick={handleShare} className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors" title="シェア">
+        <div className="flex items-start justify-between gap-3 mb-2">
+          <LangSwitcher />
+          <button onClick={handleShare} className="flex-shrink-0 bg-white/20 hover:bg-white/30 rounded-xl p-2 transition-colors" title={t.share}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
           </button>
         </div>
+        <h1 className="text-xl font-bold leading-snug" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{activity.title}</h1>
         <div className="mt-3 space-y-1.5 text-green-50 text-sm">
           <p>📅 {formatDate(activity.date, lang)}　{activity.start_time.slice(0,5)}〜{activity.end_time.slice(0,5)}</p>
           <p>📍 {activity.location}</p>
@@ -550,10 +752,10 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         <div className="mt-3 flex items-center gap-3">
           <span className="text-2xl font-extrabold" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{t.price(activity.price)}</span>
           {isClosed
-            ? <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">{lang === 'ja' ? '締め切り' : '已截止'}</span>
+            ? <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">{t.closed}</span>
             : isFull
               ? <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-lg">{t.full}</span>
-              : <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: 'rgba(255,120,0,0.9)', color: '#fff' }}>{lang === 'ja' ? '受付中' : '报名中'}</span>
+              : <span className="text-xs font-bold px-2 py-1 rounded-lg" style={{ background: 'rgba(255,120,0,0.9)', color: '#fff' }}>{t.receiving}</span>
           }
         </div>
       </div>
@@ -563,10 +765,9 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         <div className="flex items-center gap-3 px-4 py-3">
           <span className="text-lg">👥</span>
           <div className="flex-1">
-            <p className="text-xs text-gray-400">{lang === 'ja' ? '参加人数' : '参加人数'}</p>
-            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
+            <p className="text-xs text-gray-400">{t.participants}</p>
+            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ko' ? `대기 ${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}명` : lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
           </div>
-          {/* 定員バー */}
           <div className="w-20">
             <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
               <div className={`h-full rounded-full ${isFull ? 'bg-red-400' : 'bg-emerald-400'}`}
@@ -579,14 +780,13 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         </div>
         {activity.notes && (
           <div className="px-4 py-3">
-            <p className="text-xs text-gray-400 mb-1">{lang === 'ja' ? '支払い方法' : '支付方式'}</p>
+            <p className="text-xs text-gray-400 mb-1">{t.payment}</p>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{activity.notes}</p>
           </div>
         )}
       </div>
 
-
-      {/* ② 参加確定リスト */}
+      {/* 参加確定リスト */}
       {confirmedEntries.length > 0 && (
         <div className="rounded-xl overflow-hidden border border-emerald-200 mb-3">
           <div className="px-4 py-2 flex items-center gap-2" style={{ background: 'linear-gradient(90deg, #16a34a, #15803d)' }}>
@@ -611,7 +811,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         </div>
       )}
 
-      {/* ② 補欠リスト */}
+      {/* 補欠リスト */}
       {waitlistEntries.length > 0 && (
         <div className="rounded-xl overflow-hidden border border-yellow-300 mb-3">
           <div className="bg-yellow-400 px-4 py-2 flex items-center gap-2">
@@ -636,12 +836,10 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         </div>
       )}
 
-      {/* 参加者リストコピーボタン */}
       {entries.length > 0 && (
         <CopyListButton activity={activity} entries={entries} lang={lang} />
       )}
 
-      {/* 申し込み完了 */}
       {successCode && (
         <div className={`border rounded-xl p-4 mb-4 ${successIsWaitlist ? 'bg-yellow-50 border-yellow-300' : 'bg-green-50 border-green-200'}`}>
           <p className={`font-bold text-sm mb-1 ${successIsWaitlist ? 'text-yellow-800' : 'text-green-800'}`}>
@@ -657,23 +855,22 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
         </div>
       )}
 
-      {/* メインフォーム / キャンセルフォーム */}
       {!showCancel ? (
         <div ref={formRef} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-          {/* 締め切り後 */}
           {isClosed ? (
             <div className="text-center py-6">
               <p className="text-3xl mb-2">🔒</p>
-              <p className="font-bold text-gray-700">{lang === 'ja' ? '受付を締め切りました' : '报名已截止'}</p>
-              <p className="text-sm text-gray-400 mt-1">{lang === 'ja' ? '開始時刻を過ぎたため締め切られました' : '活动开始后报名已自动关闭'}</p>
+              <p className="font-bold text-gray-700">{t.deadline}</p>
+              <p className="text-sm text-gray-400 mt-1">{t.closedNote}</p>
             </div>
           ) : (
           <>
-          {/* 会員バナー */}
-          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4">
-            <p className="text-sm font-bold text-green-800">{t.memberBanner}</p>
-            <p className="text-xs text-green-700 mt-0.5">{t.memberBannerNote}</p>
-          </div>
+          {enableMemberCharge && (
+            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 mb-4">
+              <p className="text-sm font-bold text-green-800">{t.memberBanner}</p>
+              <p className="text-xs text-green-700 mt-0.5">{t.memberBannerNote}</p>
+            </div>
+          )}
 
           <input
             type="text"
@@ -694,7 +891,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           <textarea
             value={entryNotes}
             onChange={e => setEntryNotes(e.target.value)}
-            placeholder={lang === 'ja' ? '備考（任意）例：初参加です。' : '备注（选填）例：我是第一次参加。'}
+            placeholder={notesPlaceholder}
             rows={2}
             disabled={activity.status === 'closed'}
             className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-50"
@@ -708,9 +905,8 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             </div>
           )}
 
-          {/* 申し込みボタン（縦並び） */}
           <div className="flex flex-col gap-3 mt-2">
-            {/* 通常ボタン（上・メイン・エメラルド） */}
+            {/* 通常申し込みボタン */}
             <button
               onClick={() => handleSubmit('normal')}
               disabled={submitting}
@@ -727,30 +923,29 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
               </span>
             </button>
 
-            {/* チャージ済み会員ボタン（下・ゴールド） */}
-            <button
-              onClick={() => handleSubmit('member')}
-              disabled={submitting}
-              className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base active:scale-[0.98] transition-all disabled:opacity-50"
-              style={{
-                background: 'linear-gradient(160deg, #fef08a 0%, #fbbf24 25%, #f59e0b 55%, #d97706 80%, #92400e 100%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 20px rgba(217,119,6,0.5)',
-                color: '#431407',
-                textShadow: '0 1px 0 rgba(255,255,255,0.3)',
-              }}
-            >
-              <span className="relative z-10 flex items-center justify-center gap-2 text-lg tracking-wide">
-                <span>💳</span>
-                <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}</span>
-              </span>
-              <span className="absolute bottom-1 right-3 text-[10px] font-normal opacity-60">{t.memberNote}</span>
-            </button>
+            {/* チャージ会員ボタン（enable_member_charge=trueのグループのみ） */}
+            {enableMemberCharge && (
+              <button
+                onClick={() => handleSubmit('member')}
+                disabled={submitting}
+                className="w-full relative overflow-hidden py-4 rounded-2xl font-bold text-base active:scale-[0.98] transition-all disabled:opacity-50"
+                style={{
+                  background: 'linear-gradient(160deg, #fef08a 0%, #fbbf24 25%, #f59e0b 55%, #d97706 80%, #92400e 100%)',
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 20px rgba(217,119,6,0.5)',
+                  color: '#431407',
+                  textShadow: '0 1px 0 rgba(255,255,255,0.3)',
+                }}
+              >
+                <span className="relative z-10 flex items-center justify-center gap-2 text-lg tracking-wide">
+                  <span>💳</span>
+                  <span>{submitting ? t.submitting : isFull ? t.waitlistSubmitMember : t.submitMember}</span>
+                </span>
+                <span className="absolute bottom-1 right-3 text-[10px] font-normal opacity-60">{t.memberNote}</span>
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={() => setShowCancel(true)}
-            className="w-full text-center text-sm text-gray-400 mt-4 underline"
-          >
+          <button onClick={() => setShowCancel(true)} className="w-full text-center text-sm text-gray-400 mt-4 underline">
             {t.cancelLink}
           </button>
           </>
@@ -793,7 +988,6 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             {cancelSubmitting ? t.cancelSubmitting : t.cancelBtn}
           </button>
 
-          {/* キャンセルポリシー */}
           <div className="bg-gray-50 rounded-xl px-4 py-3 text-xs text-gray-500 space-y-1.5">
             {t.cancelRules.map((rule, i) => (
               <p key={i} className={i === 0 ? 'font-semibold text-gray-700' : ''}>{rule}</p>
@@ -809,21 +1003,20 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
           </button>
         </div>
       )}
+
       {/* Sticky bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
-          {/* カウントダウン or 締め切り */}
           <div className="flex-1 min-w-0">
             {isClosed ? (
-              <p className="text-xs font-bold text-red-500">{lang === 'ja' ? '受付終了' : '报名已截止'}</p>
+              <p className="text-xs font-bold text-red-500">{t.deadline}</p>
             ) : countdownLabel ? (
               <>
-                <p className="text-[10px] text-gray-400">{lang === 'ja' ? '締め切りまで' : '距截止还有'}</p>
+                <p className="text-[10px] text-gray-400">{t.deadlineLabel}</p>
                 <p className="text-sm font-bold text-red-500 tabular-nums">{countdownLabel}</p>
               </>
             ) : null}
           </div>
-          {/* シェアボタン */}
           <button
             onClick={handleShare}
             className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl text-white text-sm font-bold transition-colors"
@@ -832,7 +1025,7 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
-            {lang === 'ja' ? 'シェア' : '分享'}
+            {t.share}
           </button>
         </div>
       </div>
@@ -841,10 +1034,11 @@ export const ActivityPage = ({ lang: langProp }: { lang?: 'ja' | 'zh' }) => {
 };
 
 // ── 活動カレンダー ─────────────────────────────────────────────
-const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
+const ActivityCalendar = ({ activities, selectedDate, onSelect, lang }: {
   activities: Activity[];
   selectedDate: string | null;
   onSelect: (d: string | null) => void;
+  lang: Lang;
 }) => {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -858,6 +1052,12 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
   const byDate: Record<string, true> = {};
   activities.forEach(a => { byDate[a.date] = true; });
 
+  const dayNames = lang === 'ko'
+    ? ['일', '월', '화', '수', '목', '금', '토']
+    : ['日', '月', '火', '水', '木', '金', '土'];
+
+  const thisMonth = lang === 'ko' ? '이번 달' : '今月';
+
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
@@ -867,7 +1067,7 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
           <span className="font-extrabold text-gray-900 text-sm">{year}年 {month+1}月</span>
           {(year !== today.getFullYear() || month !== today.getMonth()) && (
             <button onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()); }}
-              className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium">今月</button>
+              className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium">{thisMonth}</button>
           )}
         </div>
         <button onClick={() => month === 11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1)}
@@ -875,7 +1075,7 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
       </div>
       <div className="p-3">
         <div className="grid grid-cols-7 mb-1">
-          {['日','月','火','水','木','金','土'].map((d,i) => (
+          {dayNames.map((d, i) => (
             <div key={d} className={`text-center text-xs font-bold py-1 ${i===0?'text-red-500':i===6?'text-blue-500':'text-gray-400'}`}>{d}</div>
           ))}
         </div>
@@ -911,55 +1111,68 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
   );
 };
 
-const LIST_T = {
+const LIST_T: Record<Lang, {
+  title: string;
+  empty: string;
+  emptyDate: string;
+  clearFilter: string;
+  price: (p: number) => string;
+  detailLink: (id: string, groupSlug: string) => string;
+}> = {
   ja: {
     title: '通常活動',
     empty: '現在受付中の活動はありません',
     emptyDate: 'この日の活動はありません',
     clearFilter: '✕ 絞り込み解除',
-    dateLabel: (d: string) => `${d} の活動`,
-    price: (p: number) => `¥${p.toLocaleString()} / 人`,
-    detailLink: (id: string) => `/activity/${id}`,
+    price: (p) => `¥${p.toLocaleString()} / 人`,
+    detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity/${id}` : `/${groupSlug}/activity/${id}`,
   },
   zh: {
     title: '日常活动',
     empty: '目前没有活动',
     emptyDate: '当天没有活动',
     clearFilter: '✕ 取消筛选',
-    dateLabel: (d: string) => `${d} 的活动`,
-    price: (p: number) => `¥${p.toLocaleString()} / 人`,
-    detailLink: (id: string) => `/activity-cn/${id}?from=wechat`,
+    price: (p) => `¥${p.toLocaleString()} / 人`,
+    detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity-cn/${id}?from=wechat` : `/${groupSlug}/activity-cn/${id}?from=wechat`,
+  },
+  ko: {
+    title: '배드민턴 모임',
+    empty: '현재 접수 중인 모임이 없습니다',
+    emptyDate: '이 날의 모임이 없습니다',
+    clearFilter: '✕ 필터 해제',
+    price: (p) => `¥${p.toLocaleString()} / 명`,
+    detailLink: (id, groupSlug) => `/${groupSlug}/activity-kr/${id}`,
   },
 };
 
 // ── 活動一覧ページ ─────────────────────────────────────────────
-const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
+const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLang }: { lang?: Lang; groupSlug?: string; forceLang?: Lang }) => {
+  const effectiveLang = forceLang ?? lang;
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const t = LIST_T[lang];
+  const { group, groupId } = useGroup(groupSlug);
+  const t = LIST_T[effectiveLang];
 
   useEffect(() => {
+    if (!groupId) return;
     supabase
       .from('activities')
       .select('*')
+      .eq('group_id', groupId)
       .neq('status', 'cancelled')
       .is('archived_at', null)
       .order('date', { ascending: true })
       .then(({ data }) => { if (data) setActivities(data); setLoading(false); });
-  }, []);
+  }, [groupId]);
 
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   const fmt = (d: string) => { const dt = new Date(d); return `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`; };
 
-  // 開始+1時間を過ぎた活動は一覧から除外
   const activeActivities = activities.filter(a => !isExpiredActivity(a.date, a.start_time));
+  const displayed = selectedDate ? activeActivities.filter(a => a.date === selectedDate) : activeActivities;
 
-  const displayed = selectedDate
-    ? activeActivities.filter(a => a.date === selectedDate)
-    : activeActivities;
-
-  if (loading) return (
+  if (loading || !group) return (
     <div className="flex items-center justify-center min-h-[60vh]">
       <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
     </div>
@@ -967,15 +1180,18 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
 
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-4">{t.title}</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h1>
+      {groupSlug !== 'kawaguchi-warabi' && (
+        <p className="text-sm text-gray-500 mb-4">{group.name}</p>
+      )}
 
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-6 lg:items-start">
-        {/* カレンダー（デスクトップで sticky） */}
         <div className="lg:sticky lg:top-6 mb-4 lg:mb-0">
           <ActivityCalendar
             activities={activeActivities}
             selectedDate={selectedDate}
             onSelect={setSelectedDate}
+            lang={effectiveLang}
           />
           {selectedDate && (
             <div className="flex items-center justify-between mt-2 px-1">
@@ -987,7 +1203,6 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
           )}
         </div>
 
-        {/* 活動リスト */}
         <div>
           {displayed.length === 0 ? (
             <p className="text-center py-12 text-gray-400">
@@ -1000,10 +1215,9 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
                 return (
                   <Link
                     key={a.id}
-                    to={t.detailLink(a.id)}
+                    to={t.detailLink(a.id, groupSlug)}
                     className="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
                   >
-                    {/* 会場画像 */}
                     {venueImg ? (
                       <div className="h-32 overflow-hidden">
                         <img src={venueImg} alt={a.location} className="w-full h-full object-cover" />
@@ -1029,7 +1243,9 @@ const ActivityListBase = ({ lang = 'ja' }: { lang?: 'ja' | 'zh' }) => {
   );
 };
 
-export const ActivityListPage = () => <ActivityListBase lang="ja" />;
-export const ActivityListPageCN = () => <ActivityListBase lang="zh" />;
+export const ActivityListPage = ({ groupSlug = 'kawaguchi-warabi', forceLang }: { groupSlug?: string; forceLang?: Lang }) =>
+  <ActivityListBase lang="ja" groupSlug={groupSlug} forceLang={forceLang} />;
+export const ActivityListPageCN = ({ groupSlug = 'kawaguchi-warabi' }: { groupSlug?: string }) =>
+  <ActivityListBase lang="zh" groupSlug={groupSlug} />;
 
 export default ActivityPage;
