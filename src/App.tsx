@@ -6,7 +6,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { LanguageProvider } from './contexts/LanguageContext';
 import LangWrapper from './components/LangWrapper';
 import NavigateWithId from './components/NavigateWithId';
-import { ActivityPage, ActivityListPage, ActivityListPageCN } from './pages/ActivityPage';
+import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
 const HomePage             = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -20,8 +20,6 @@ const LevelGuidePage       = lazy(() => import('./pages/LevelGuidePage').then(m 
 const CancelPolicyPage     = lazy(() => import('./pages/CancelPolicyPage').then(m => ({ default: m.CancelPolicyPage })));
 const FaqPage              = lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
 const CancelEntryPage      = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
-const ActivityPageCN       = lazy(() => import('./pages/ActivityPageCN').then(m => ({ default: m.ActivityPageCN })));
-
 // chaoxianzu グループ用
 const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="chaoxianzu" /> })));
 

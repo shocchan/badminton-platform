@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -422,7 +422,7 @@ const useGroup = (groupSlug: string) => {
 export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', forceLang }: { lang?: Lang; groupSlug?: string; forceLang?: Lang }) => {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
-  const { lang: ctxLang, setLang } = useLanguage();
+  const { lang: ctxLang } = useLanguage();
   const lang = forceLang ?? langProp ?? ctxLang;
   const t = T[lang];
   const formRef = useRef<HTMLDivElement>(null);
@@ -430,11 +430,6 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const [showShareModal, setShowShareModal] = useState(false);
 
   const { group } = useGroup(groupSlug);
-
-  // forceLangが指定されている場合はContextの言語も同期
-  useEffect(() => {
-    if (forceLang) setLang(forceLang);
-  }, [forceLang, setLang]);
 
   const source = (() => {
     const p = searchParams.get('from') || 'web';
@@ -638,8 +633,14 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
 
   // 言語切り替えUI（chaoxianzuは3言語、それ以外は2言語）
   const LangSwitcher = () => {
-    const { setLang: setCtxLang } = useLanguage();
-    const switchLang = (l: Lang) => setCtxLang(l);
+    const { groupSlug: gs } = useLanguage();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const switchLang = (l: Lang) => {
+      const parts = location.pathname.split('/').filter(Boolean);
+      if (gs === 'chaoxianzu') { parts[1] = l; } else { parts[0] = l; }
+      navigate('/' + parts.join('/'));
+    };
 
     if (groupSlug === 'chaoxianzu') {
       return (
