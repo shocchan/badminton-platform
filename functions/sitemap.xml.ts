@@ -9,36 +9,42 @@ export async function onRequest(context: { env: { VITE_SUPABASE_URL: string; VIT
   const { data: tournaments } = await supabase
     .from('tournaments')
     .select('id, updated_at')
-    .eq('status', 'published');
+    .eq('visibility', 'published');
 
   const staticUrls = [
-    { path: '',               priority: '1.0', freq: 'weekly' },
-    { path: 'activity',       priority: '0.9', freq: 'weekly' },
-    { path: 'level-guide',    priority: '0.8', freq: 'monthly' },
-    { path: 'faq',            priority: '0.8', freq: 'monthly' },
-    { path: 'blog',           priority: '0.7', freq: 'weekly' },
-    { path: 'cancel-policy',  priority: '0.5', freq: 'monthly' },
+    { path: '',              priority: '1.0', freq: 'weekly' },
+    { path: 'activity',      priority: '0.9', freq: 'weekly' },
+    { path: 'level-guide',   priority: '0.8', freq: 'monthly' },
+    { path: 'faq',           priority: '0.8', freq: 'monthly' },
+    { path: 'blog',          priority: '0.7', freq: 'weekly' },
+    { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
   ];
 
+  const langs = ['ja', 'zh'];
   let urls = '';
 
-  for (const u of staticUrls) {
-    urls += `
+  for (const lang of langs) {
+    for (const u of staticUrls) {
+      const loc = u.path === ''
+        ? `https://kawabado.com/${lang}/`
+        : `https://kawabado.com/${lang}/${u.path}`;
+      urls += `
   <url>
-    <loc>https://kawabado.com/${u.path}</loc>
+    <loc>${loc}</loc>
     <changefreq>${u.freq}</changefreq>
     <priority>${u.priority}</priority>
   </url>`;
-  }
+    }
 
-  for (const t of (tournaments || [])) {
-    urls += `
+    for (const t of (tournaments || [])) {
+      urls += `
   <url>
-    <loc>https://kawabado.com/tournaments/${t.id}</loc>
+    <loc>https://kawabado.com/${lang}/tournaments/${t.id}</loc>
     <lastmod>${t.updated_at}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>`;
+    }
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

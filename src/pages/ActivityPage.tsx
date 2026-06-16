@@ -1189,8 +1189,12 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
         <meta name="description" content={activityMeta.description} />
         <meta property="og:title" content={activityMeta.title} />
         <meta property="og:description" content={activityMeta.description} />
-        <meta property="og:url" content="https://kawabado.com/activity" />
-        <link rel="canonical" href="https://kawabado.com/activity" />
+        <meta property="og:url" content={`https://kawabado.com/${effectiveLang}/activity`} />
+        <meta property="og:locale" content={effectiveLang === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        <link rel="canonical" href={`https://kawabado.com/${effectiveLang}/activity`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/activity" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/activity" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/activity" />
       </Helmet>
     <main className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h1>
@@ -1257,8 +1261,10 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
   );
 };
 
-export const ActivityListPage = ({ groupSlug = 'kawaguchi-warabi', forceLang }: { groupSlug?: string; forceLang?: Lang }) =>
-  <ActivityListBase lang="ja" groupSlug={groupSlug} forceLang={forceLang} />;
+export const ActivityListPage = ({ groupSlug = 'kawaguchi-warabi', forceLang }: { groupSlug?: string; forceLang?: Lang }) => {
+  const { lang } = useLanguage();
+  return <ActivityListBase lang={forceLang ?? lang} groupSlug={groupSlug} />;
+};
 export const ActivityListPageCN = ({ groupSlug = 'kawaguchi-warabi' }: { groupSlug?: string }) =>
   <ActivityListBase lang="zh" groupSlug={groupSlug} />;
 

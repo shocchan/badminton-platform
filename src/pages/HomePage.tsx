@@ -246,8 +246,12 @@ export const HomePage = () => {
         <meta name="description" content={metaContent.description} />
         <meta property="og:title" content={metaContent.title} />
         <meta property="og:description" content={metaContent.description} />
-        <meta property="og:url" content="https://kawabado.com/" />
-        <link rel="canonical" href="https://kawabado.com/" />
+        <meta property="og:url" content={`https://kawabado.com/${lang}/`} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        <link rel="canonical" href={`https://kawabado.com/${lang}/`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/" />
         <script type="application/ld+json">{JSON.stringify(orgJsonLd)}</script>
       </Helmet>
     <main>

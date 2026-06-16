@@ -259,8 +259,12 @@ export const LevelGuidePage = () => {
         <meta name="description" content={levelMeta.description} />
         <meta property="og:title" content={levelMeta.title} />
         <meta property="og:description" content={levelMeta.description} />
-        <meta property="og:url" content="https://kawabado.com/level-guide" />
-        <link rel="canonical" href="https://kawabado.com/level-guide" />
+        <meta property="og:url" content={`https://kawabado.com/${lang}/level-guide`} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        <link rel="canonical" href={`https://kawabado.com/${lang}/level-guide`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/level-guide" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/level-guide" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/level-guide" />
       </Helmet>
     <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       {/* タイトル */}

@@ -1,22 +1,22 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type NavItem = {
-  to: string;
+  path: string; // /:lang/ 以降のパス（例: '' / 'activity' / 'blog'）
   label: { ja: string; zh: string };
   icon: string;
   category: 'tournament' | 'activity' | 'general';
   badge?: { ja: string; zh: string };
 };
 
-const navLinks: NavItem[] = [
-  { to: '/',            label: { ja: '大会案内',   zh: '赛事信息' }, icon: '🏆', category: 'tournament' },
-  { to: '/activity',    label: { ja: '通常活動',   zh: '日常活动' }, icon: '🏸', category: 'activity' },
-  { to: '/blog',        label: { ja: 'ブログ',     zh: '博客' },     icon: '📝', category: 'general' },
-  { to: '/level-guide', label: { ja: 'クラス案内', zh: '级别说明' }, icon: '📊', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
-  { to: '/faq',         label: { ja: 'FAQ',        zh: '常见问题' }, icon: '❓', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
+const NAV_ITEMS: NavItem[] = [
+  { path: '',            label: { ja: '大会案内',   zh: '赛事信息' }, icon: '🏆', category: 'tournament' },
+  { path: 'activity',   label: { ja: '通常活動',   zh: '日常活动' }, icon: '🏸', category: 'activity' },
+  { path: 'blog',       label: { ja: 'ブログ',     zh: '博客' },     icon: '📝', category: 'general' },
+  { path: 'level-guide',label: { ja: 'クラス案内', zh: '级别说明' }, icon: '📊', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
+  { path: 'faq',        label: { ja: 'FAQ',        zh: '常见问题' }, icon: '❓', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
 ];
 
 const categoryColor = (cat: NavItem['category'], active: boolean) => {
@@ -32,23 +32,45 @@ const categoryBg = (cat: NavItem['category'], active: boolean) => {
 
 export const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
-  const { lang, setLang } = useLanguage();
+  const { lang, groupSlug } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const isActive = (to: string) =>
-    to === '/' ? location.pathname === '/' : location.pathname.startsWith(to);
+  // グループプレフィックス（kawaguchi-warabi は空）
+  const groupPrefix = groupSlug === 'chaoxianzu' ? '/chaoxianzu' : '';
+
+  // ナビリンクの to を生成
+  const navTo = (path: string) =>
+    path === '' ? `${groupPrefix}/${lang}/` : `${groupPrefix}/${lang}/${path}`;
+
+  // アクティブ判定
+  const isActive = (path: string) => {
+    const target = navTo(path);
+    if (path === '') return location.pathname === target || location.pathname === `${groupPrefix}/${lang}`;
+    return location.pathname.startsWith(`${groupPrefix}/${lang}/${path}`);
+  };
+
+  // 言語切り替え：URLの lang 部分だけ差し替え
+  const switchLanguage = (newLang: string) => {
+    const parts = location.pathname.split('/').filter(Boolean);
+    if (groupSlug === 'chaoxianzu') {
+      parts[1] = newLang; // /chaoxianzu/:lang/...
+    } else {
+      parts[0] = newLang; // /:lang/...
+    }
+    navigate('/' + parts.join('/') + (location.search || ''));
+    setMenuOpen(false);
+  };
 
   const close = () => setMenuOpen(false);
-
-  // ナビはja/zhのみ対応。koはjaにフォールバック
-  const navLang = lang === 'ko' ? 'ja' : lang;
+  const navLang = lang === 'ko' ? 'ja' : lang as 'ja' | 'zh';
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-4">
         {/* ロゴ */}
-        <Link to="/" onClick={close} className="flex items-center gap-2 flex-shrink-0">
+        <Link to={navTo('')} onClick={close} className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xl sm:text-2xl">🏸</span>
           <div>
             <div className="font-bold text-gray-900 text-sm sm:text-lg leading-tight">川口・蕨バドミントン交流会</div>
@@ -58,12 +80,12 @@ export const Header = () => {
 
         {/* デスクトップナビ */}
         <nav className="hidden sm:flex items-center gap-1">
-          {navLinks.map(({ to, label, icon, category, badge }) => {
-            const active = isActive(to);
+          {NAV_ITEMS.map(({ path, label, icon, category, badge }) => {
+            const active = isActive(path);
             return (
               <Link
-                key={to}
-                to={to}
+                key={path}
+                to={navTo(path)}
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${categoryColor(category, active)} ${active ? (category === 'activity' ? 'bg-emerald-50' : 'bg-blue-50') : 'hover:bg-gray-50'}`}
               >
                 <span className="text-base leading-none">{icon}</span>
@@ -80,7 +102,7 @@ export const Header = () => {
           <div className="w-px h-4 bg-gray-200 mx-1" />
 
           <button
-            onClick={() => setLang(lang === 'ja' ? 'zh' : 'ja')}
+            onClick={() => switchLanguage(lang === 'ja' ? 'zh' : 'ja')}
             className="text-xs font-bold px-2.5 py-1 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600"
           >
             {lang === 'ja' ? '中文' : '日本語'}
@@ -89,9 +111,9 @@ export const Header = () => {
           {isAuthenticated ? (
             <>
               <Link
-                to="/admin"
+                to={navTo('admin')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  location.pathname.startsWith('/admin') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
+                  isActive('admin') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
                 管理画面
@@ -132,9 +154,9 @@ export const Header = () => {
 
           {/* 大会セクション */}
           <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest px-2 mb-1">{lang === 'ja' ? '🏆 大会' : '🏆 赛事'}</p>
-          {navLinks.filter(n => n.category === 'tournament').map(({ to, label, icon, badge }) => (
-            <Link key={to} to={to} onClick={close}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('tournament', isActive(to))}`}
+          {NAV_ITEMS.filter(n => n.category === 'tournament').map(({ path, label, icon, badge }) => (
+            <Link key={path} to={navTo(path)} onClick={close}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('tournament', isActive(path))}`}
             >
               <span>{icon}</span>
               <span>{label[navLang]}</span>
@@ -146,9 +168,9 @@ export const Header = () => {
 
           {/* 通常活動セクション */}
           <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest px-2 mb-1">{lang === 'ja' ? '🏸 通常活動' : '🏸 日常活动'}</p>
-          {navLinks.filter(n => n.category === 'activity').map(({ to, label, icon }) => (
-            <Link key={to} to={to} onClick={close}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('activity', isActive(to))}`}
+          {NAV_ITEMS.filter(n => n.category === 'activity').map(({ path, label, icon }) => (
+            <Link key={path} to={navTo(path)} onClick={close}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('activity', isActive(path))}`}
             >
               <span>{icon}</span>
               <span>{label[navLang]}</span>
@@ -158,9 +180,9 @@ export const Header = () => {
           <div className="h-px bg-gray-100 my-2" />
 
           {/* その他 */}
-          {navLinks.filter(n => n.category === 'general').map(({ to, label, icon }) => (
-            <Link key={to} to={to} onClick={close}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive(to))}`}
+          {NAV_ITEMS.filter(n => n.category === 'general').map(({ path, label, icon }) => (
+            <Link key={path} to={navTo(path)} onClick={close}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive(path))}`}
             >
               <span>{icon}</span>
               <span>{label[navLang]}</span>
@@ -170,7 +192,7 @@ export const Header = () => {
           {/* 言語切り替え（モバイル） */}
           <div className="h-px bg-gray-100 my-1" />
           <button
-            onClick={() => { setLang(lang === 'ja' ? 'zh' : 'ja'); close(); }}
+            onClick={() => switchLanguage(lang === 'ja' ? 'zh' : 'ja')}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors text-left"
           >
             🌐 {lang === 'ja' ? '中文に切り替え' : '切换为日语'}
@@ -179,8 +201,8 @@ export const Header = () => {
           <div className="h-px bg-gray-100 my-1" />
           {isAuthenticated ? (
             <>
-              <Link to="/admin" onClick={close}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', location.pathname.startsWith('/admin'))}`}
+              <Link to={navTo('admin')} onClick={close}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive('admin'))}`}
               >
                 ⚙️ 管理画面
               </Link>

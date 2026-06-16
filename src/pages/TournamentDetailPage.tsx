@@ -153,8 +153,12 @@ export const TournamentDetailPage = () => {
         <meta name="description" content={pageDesc} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={`https://kawabado.com/tournaments/${tournament.id}`} />
-        <link rel="canonical" href={`https://kawabado.com/tournaments/${tournament.id}`} />
+        <meta property="og:url" content={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
+        <meta property="og:locale" content="ja_JP" />
+        <link rel="canonical" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
+        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
+        <link rel="alternate" hrefLang="zh" href={`https://kawabado.com/zh/tournaments/${tournament.id}`} />
+        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
     <main className="max-w-2xl mx-auto px-4 py-8">

@@ -174,8 +174,12 @@ export const FaqPage = () => {
         <meta name="description" content={faqMeta.description} />
         <meta property="og:title" content={faqMeta.title} />
         <meta property="og:description" content={faqMeta.description} />
-        <meta property="og:url" content="https://kawabado.com/faq" />
-        <link rel="canonical" href="https://kawabado.com/faq" />
+        <meta property="og:url" content={`https://kawabado.com/${lang}/faq`} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        <link rel="canonical" href={`https://kawabado.com/${lang}/faq`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/faq" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/faq" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/faq" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">

@@ -1,0 +1,23 @@
+# 旧URL → 新URL（301リダイレクト）
+/                             /ja/                          302
+/activity                     /ja/activity                  301
+/activity/:id                 /ja/activity/:id              301
+/activity-cn                  /zh/activity                  301
+/activity-cn/:id              /zh/activity/:id              301
+/tournaments/:id              /ja/tournaments/:id           301
+/faq                          /ja/faq                       301
+/level-guide                  /ja/level-guide               301
+/cancel-policy                /ja/cancel-policy             301
+/admin                        /ja/admin                     301
+/blog                         /ja/blog                      301
+/blog/:id                     /ja/blog/:id                  301
+/chaoxianzu/activity          /chaoxianzu/ja/activity       301
+/chaoxianzu/activity-cn       /chaoxianzu/zh/activity       301
+/chaoxianzu/activity-kr       /chaoxianzu/ko/activity       301
+/chaoxianzu/activity/:id      /chaoxianzu/ja/activity/:id   301
+/chaoxianzu/activity-cn/:id   /chaoxianzu/zh/activity/:id   301
+/chaoxianzu/activity-kr/:id   /chaoxianzu/ko/activity/:id   301
+/chaoxianzu/admin             /chaoxianzu/ja/admin          301
+
+# SPA フォールバック（全ルートを index.html に渡す）
+/*                            /index.html                   200
