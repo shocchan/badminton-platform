@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type LevelData = {
@@ -246,7 +247,21 @@ const ClassPyramid = () => {
 export const LevelGuidePage = () => {
   const { lang } = useLanguage();
   const levels = lang === 'zh' ? levelsZh : levelsJa;
+
+  const levelMeta = lang === 'zh'
+    ? { title: '级别说明 | 川口・蕨羽毛球交流会', description: '超初级・初级・中级・公开组各级别的说明。从零基础到有经验者全级别欢迎参加。' }
+    : { title: 'レベル・クラス案内 | 川口・蕨バドミントン交流会', description: '超初級・初級・中級・オープンの各クラスの違いをご説明します。初めての方から経験者まで全レベル歓迎。' };
+
   return (
+    <>
+      <Helmet>
+        <title>{levelMeta.title}</title>
+        <meta name="description" content={levelMeta.description} />
+        <meta property="og:title" content={levelMeta.title} />
+        <meta property="og:description" content={levelMeta.description} />
+        <meta property="og:url" content="https://kawabado.com/level-guide" />
+        <link rel="canonical" href="https://kawabado.com/level-guide" />
+      </Helmet>
     <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       {/* タイトル */}
       <div className="text-center mb-10">
@@ -356,5 +371,6 @@ export const LevelGuidePage = () => {
         </Link>
       </div>
     </main>
+    </>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
@@ -1177,7 +1178,20 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
     </div>
   );
 
+  const activityMeta = effectiveLang === 'zh'
+    ? { title: '常规活动列表 | 川口・蕨羽毛球交流会', description: '在川口市・蕨市公民馆举办的羽毛球常规活动列表。参加费600日元起。' }
+    : { title: '通常活動 一覧 | 川口・蕨バドミントン交流会', description: '川口市・蕨市の公民館で開催するバドミントン通常活動の一覧。芝園公民館・幸栄公民館など。参加費600円〜。' };
+
   return (
+    <>
+      <Helmet>
+        <title>{activityMeta.title}</title>
+        <meta name="description" content={activityMeta.description} />
+        <meta property="og:title" content={activityMeta.title} />
+        <meta property="og:description" content={activityMeta.description} />
+        <meta property="og:url" content="https://kawabado.com/activity" />
+        <link rel="canonical" href="https://kawabado.com/activity" />
+      </Helmet>
     <main className="max-w-5xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h1>
       {groupSlug !== 'kawaguchi-warabi' && (
@@ -1239,6 +1253,7 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
         </div>
       </div>
     </main>
+    </>
   );
 };
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
@@ -219,7 +220,36 @@ export const HomePage = () => {
     ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })
     : null;
 
+  const metaContent = lang === 'zh'
+    ? {
+        title: '川口・蕨羽毛球交流会 | 平日夜间羽毛球活动 川口・蕨',
+        description: '埼玉县川口市・蕨市地区的平日夜间羽毛球交流活动。从超初级到高水平全级别欢迎参加。保证4场以上比赛。',
+      }
+    : {
+        title: '川口・蕨バドミントン交流会 | 平日夜バドミントン大会 川口・蕨',
+        description: '川口市・蕨市エリアの平日夜バドミントン交流会。超初級〜オープンまで全レベル歓迎。4試合以上保証。芝園公民館・蕨市民体育館ほかで定期開催。',
+      };
+
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: '川口・蕨バドミントン交流会',
+    url: 'https://kawabado.com',
+    areaServed: ['川口市', '蕨市'],
+    sport: 'バドミントン',
+  };
+
   return (
+    <>
+      <Helmet>
+        <title>{metaContent.title}</title>
+        <meta name="description" content={metaContent.description} />
+        <meta property="og:title" content={metaContent.title} />
+        <meta property="og:description" content={metaContent.description} />
+        <meta property="og:url" content="https://kawabado.com/" />
+        <link rel="canonical" href="https://kawabado.com/" />
+        <script type="application/ld+json">{JSON.stringify(orgJsonLd)}</script>
+      </Helmet>
     <main>
       {/* ヒーローセクション */}
       <div className="relative text-white overflow-hidden">
@@ -506,5 +536,6 @@ export const HomePage = () => {
         />
       )}
     </main>
+    </>
   );
 };

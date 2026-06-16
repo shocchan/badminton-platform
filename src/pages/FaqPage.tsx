@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const faqs = [
@@ -150,7 +151,33 @@ export const FaqPage = () => {
     setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const faqMeta = lang === 'zh'
+    ? { title: '常见问题 | 川口・蕨羽毛球交流会', description: '川口・蕨羽毛球交流会的参加方法、注意事项、取消政策等常见问题汇总。' }
+    : { title: 'よくある質問 | 川口・蕨バドミントン交流会', description: '川口・蕨バドミントン交流会への参加方法、持ち物、キャンセルポリシーなどよくある質問をまとめています。' };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: activeFaqs.flatMap(cat =>
+      cat.items.map(item => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      }))
+    ),
+  };
+
   return (
+    <>
+      <Helmet>
+        <title>{faqMeta.title}</title>
+        <meta name="description" content={faqMeta.description} />
+        <meta property="og:title" content={faqMeta.title} />
+        <meta property="og:description" content={faqMeta.description} />
+        <meta property="og:url" content="https://kawabado.com/faq" />
+        <link rel="canonical" href="https://kawabado.com/faq" />
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
       {/* タイトル */}
       <div className="text-center mb-10">
@@ -370,5 +397,6 @@ export const FaqPage = () => {
         </div>
       </div>
     </main>
+    </>
   );
 };
