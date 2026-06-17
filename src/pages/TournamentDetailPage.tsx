@@ -184,8 +184,8 @@ export const TournamentDetailPage = () => {
   };
 
   const shareLabels = lang === 'zh'
-    ? { line: '分享到LINE', wechat: '复制微信分享文本' }
-    : { line: 'LINEでシェア', wechat: 'WeChat用テキストをコピー' };
+    ? { line: '分享到LINE', wechat: '微信分享' }
+    : { line: 'LINEでシェア', wechat: 'WeChatでシェア' };
 
   return (
     <>
