@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
 import { useBlogPost } from '../hooks/useBlogPosts';
 
 export const BlogDetailPage = () => {
@@ -8,6 +9,18 @@ export const BlogDetailPage = () => {
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const getYoutubeId = (url: string) => {
+    const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&?\s]+)/);
+    return m ? m[1] : null;
+  };
+
+  // Markdownのリンクを別タブで開く
+  const markdownComponents: Components = {
+    a: ({ href, children }) => (
+      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+    ),
   };
 
   if (loading) {
@@ -59,7 +72,7 @@ export const BlogDetailPage = () => {
         `}</style>
         {post.content_type === 'markdown' ? (
           <div className="prose prose-lg max-w-none text-gray-700 blog-content">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
           </div>
         ) : (
           <div
@@ -67,6 +80,24 @@ export const BlogDetailPage = () => {
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
         )}
+
+        {/* YouTube埋め込み */}
+        {post.youtube_url && (() => {
+          const videoId = getYoutubeId(post.youtube_url);
+          return videoId ? (
+            <div className="mt-8">
+              <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full rounded-xl"
+                  src={`https://www.youtube.com/embed/${videoId}`}
+                  title="YouTube video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          ) : null;
+        })()}
       </article>
     </main>
   );
