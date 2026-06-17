@@ -42,17 +42,17 @@ export const Footer = () => {
                 <span className="text-gray-600">›</span> {lang === 'ja' ? 'ブログ' : '博客'}
               </Link>
               <Link to="/faq" className="text-sm hover:text-white transition-colors flex items-center gap-2">
-                <span className="text-gray-600">›</span> {lang === 'ja' ? 'よくある質問' : '常见问题'}
+                <span className="text-gray-600">›</span> {lang === 'ja' ? '大会FAQ' : '赛事常见问题'}
               </Link>
               <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
-                <span className="text-gray-600">›</span> {lang === 'ja' ? 'キャンセルポリシー' : '取消政策'}
+                <span className="text-gray-600">›</span> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>
             </nav>
           </div>
 
           {/* 参加案内 */}
           <div>
-            <h3 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">{lang === 'ja' ? '参加について' : '参赛须知'}</h3>
+            <h3 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">{lang === 'ja' ? '大会参加について' : '参赛须知'}</h3>
             <div className="flex flex-col gap-2.5 text-sm text-gray-500">
               <div className="flex items-start gap-2">
                 <span className="mt-0.5 flex-shrink-0">📅</span>
@@ -81,8 +81,8 @@ export const Footer = () => {
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600">
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link to="/faq" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? 'FAQ' : '常见问题'}</Link>
-            <Link to="/cancel-policy" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? 'キャンセルポリシー' : '取消政策'}</Link>
+            <Link to="/faq" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
+            <Link to="/cancel-policy" className="hover:text-gray-400 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
           </div>
         </div>
       </div>

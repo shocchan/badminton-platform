@@ -40,7 +40,7 @@ export const TournamentDetailPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [preEntry, setPreEntry] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
 
   useEffect(() => {
@@ -101,18 +101,6 @@ export const TournamentDetailPage = () => {
     }
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    if (!tournament) return;
-    const text = `【${tournament.title}】\n📅 ${formatDate(tournament.event_date)}\n📍 ${tournament.location}\n💰 参加費 ¥${tournament.entry_fee.toLocaleString()}`;
-    if (navigator.share) {
-      try { await navigator.share({ title: tournament.title, text, url }); } catch { /* cancel */ }
-    } else {
-      await navigator.clipboard.writeText(`${text}\n${url}`);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
 
   if (loading) return (
     <div className="flex justify-center items-center min-h-[50vh]">
@@ -194,6 +182,37 @@ export const TournamentDetailPage = () => {
           {shareToast}
         </div>
       )}
+
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowShareModal(false)} />
+          <div className="relative bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl">
+            <h3 className="font-bold text-gray-900 text-base mb-4 text-center">
+              {lang === 'zh' ? '分享' : 'シェア'}
+            </h3>
+            <div className="space-y-2.5">
+              <button onClick={() => { handleLineShare(); setShowShareModal(false); }}
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#06C755] text-white hover:opacity-90 transition-opacity">
+                <img src="/icons/line.png" alt="LINE" className="w-9 h-9 flex-shrink-0 rounded-xl" />
+                <span className="font-bold text-base">{shareLabels.line}</span>
+              </button>
+              <button onClick={() => { handleWechatShare(); setShowShareModal(false); }}
+                className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#07C160] text-white hover:opacity-90 transition-opacity">
+                <svg viewBox="0 0 40 40" className="w-9 h-9 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.2"/>
+                  <path d="M17.5 9C11.1 9 6 13.2 6 18.4c0 2.9 1.6 5.5 4.2 7.2l-1 3.4 3.8-1.9c1.1.3 2.3.5 3.5.5 6.4 0 11.5-4.2 11.5-9.4S23.9 9 17.5 9z" fill="white"/>
+                  <path d="M34 23.5c0-4.4-4.4-8-9.8-8-.3 0-.6 0-.9.1 1.1 1.4 1.7 3 1.7 4.8 0 4.7-4.5 8.5-10 8.5-.5 0-1 0-1.5-.1C15.3 31 18 32.5 21 32.5c1 0 2-.2 3-.4l3.3 1.7-.9-3c2.2-1.5 3.6-3.7 3.6-6.3z" fill="white" fillOpacity="0.85"/>
+                </svg>
+                <span className="font-bold text-base">{shareLabels.wechat}</span>
+              </button>
+            </div>
+            <button onClick={() => setShowShareModal(false)} className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600">
+              {lang === 'zh' ? '取消' : 'キャンセル'}
+            </button>
+          </div>
+        </div>
+      )}
+
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
@@ -247,17 +266,13 @@ export const TournamentDetailPage = () => {
             <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-white/20">{tournament.event_type}</span>
           </div>
           <button
-            onClick={handleShare}
+            onClick={() => setShowShareModal(true)}
             className="flex items-center gap-1.5 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full transition-colors"
           >
-            {copied ? '✅ コピー済み' : (
-              <>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                シェア
-              </>
-            )}
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+            </svg>
+            {lang === 'zh' ? '分享' : 'シェア'}
           </button>
         </div>
       </div>
