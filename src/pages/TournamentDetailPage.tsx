@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { PreEntryModal } from '../components/PreEntryModal';
 import { EntryForm } from '../components/EntryForm';
+import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 
 const levelColors: Record<string, { bg: string; text: string }> = {
@@ -20,9 +21,19 @@ const levelAccent: Record<string, string> = {
   'オープン': 'from-violet-600 to-purple-500',
 };
 
+const generateShareText = (tournament: Tournament, lang: string) => {
+  const formatDate = (d: string) => new Date(d).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const fmtTime = (t: string) => t.slice(0, 5);
+  if (lang === 'zh') {
+    return `【${tournament.title}】\n日期：${formatDate(tournament.event_date)}\n时间：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n地点：${tournament.location}\n参加费：${tournament.entry_fee}日元\n详情・报名：`;
+  }
+  return `【${tournament.title}】\n日時：${formatDate(tournament.event_date)}\n時間：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n会場：${tournament.location}\n参加費：${tournament.entry_fee}円\n詳細・申し込み：`;
+};
+
 export const TournamentDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { lang } = useLanguage();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [entryCount, setEntryCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -30,6 +41,7 @@ export const TournamentDetailPage = () => {
   const [preEntry, setPreEntry] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [shareToast, setShareToast] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,6 +74,31 @@ export const TournamentDetailPage = () => {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const event = new Date(dateStr); event.setHours(0, 0, 0, 0);
     return Math.ceil((event.getTime() - today.getTime()) / 86400000);
+  };
+
+  const showToast = (msg: string) => {
+    setShareToast(msg);
+    setTimeout(() => setShareToast(''), 2500);
+  };
+
+  const handleLineShare = () => {
+    if (!tournament) return;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
+    const text = generateShareText(tournament, lang);
+    const shareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(baseUrl)}&text=${encodeURIComponent(text)}`;
+    window.open(shareUrl, '_blank');
+  };
+
+  const handleWechatShare = async () => {
+    if (!tournament) return;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=wechat`;
+    const text = generateShareText(tournament, lang);
+    try {
+      await navigator.clipboard.writeText(`${text}${baseUrl}`);
+      showToast(lang === 'zh' ? '已复制。请粘贴到微信进行分享。' : 'コピーしました。WeChatに貼り付けてシェアしてください。');
+    } catch {
+      console.error('クリップボードへのコピーに失敗しました');
+    }
   };
 
   const handleShare = async () => {
@@ -146,8 +183,17 @@ export const TournamentDetailPage = () => {
     },
   };
 
+  const shareLabels = lang === 'zh'
+    ? { line: '分享到LINE', wechat: '复制微信分享文本' }
+    : { line: 'LINEでシェア', wechat: 'WeChat用テキストをコピー' };
+
   return (
     <>
+      {shareToast && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
+          {shareToast}
+        </div>
+      )}
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={pageDesc} />
@@ -243,6 +289,33 @@ export const TournamentDetailPage = () => {
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>残り{remaining}席</span>
         </div>
       </div>
+
+      {/* シェアボタン */}
+      {isEntryClosed || tournament.status !== 'active' ? null : (
+        <div className="mb-6">
+          <p className="text-xs text-gray-400 mb-2">{lang === 'zh' ? '分享：' : 'シェアする：'}</p>
+          <div className="flex gap-3">
+            <button
+              onClick={handleLineShare}
+              className="flex items-center gap-2 flex-1 justify-center px-4 py-3 rounded-2xl bg-[#06C755] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+            >
+              <img src="/icons/line.png" alt="LINE" className="w-6 h-6 rounded-lg" />
+              {shareLabels.line}
+            </button>
+            <button
+              onClick={handleWechatShare}
+              className="flex items-center gap-2 flex-1 justify-center px-4 py-3 rounded-2xl bg-[#07C160] text-white font-bold text-sm hover:opacity-90 transition-opacity"
+            >
+              <svg viewBox="0 0 40 40" className="w-6 h-6 flex-shrink-0" xmlns="http://www.w3.org/2000/svg">
+                <rect width="40" height="40" rx="10" fill="white" fillOpacity="0.2"/>
+                <path d="M17.5 9C11.1 9 6 13.2 6 18.4c0 2.9 1.6 5.5 4.2 7.2l-1 3.4 3.8-1.9c1.1.3 2.3.5 3.5.5 6.4 0 11.5-4.2 11.5-9.4S23.9 9 17.5 9z" fill="white"/>
+                <path d="M34 23.5c0-4.4-4.4-8-9.8-8-.3 0-.6 0-.9.1 1.1 1.4 1.7 3 1.7 4.8 0 4.7-4.5 8.5-10 8.5-.5 0-1 0-1.5-.1C15.3 31 18 32.5 21 32.5c1 0 2-.2 3-.4l3.3 1.7-.9-3c2.2-1.5 3.6-3.7 3.6-6.3z" fill="white" fillOpacity="0.85"/>
+              </svg>
+              {shareLabels.wechat}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Google マップ */}
       <a

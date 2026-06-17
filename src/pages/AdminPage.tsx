@@ -277,6 +277,7 @@ interface Activity {
   notes?: string;
   archived_at?: string | null;
   created_at: string;
+  view_count?: number;
 }
 
 interface ActivityEntry {
@@ -640,6 +641,9 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${remaining <= 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                   {remaining <= 0 ? '満員' : `残り${remaining}枠`}
                 </span>
+                {a.view_count != null && (
+                  <span className="text-xs text-gray-400 ml-auto">👁 閲覧数: {a.view_count}</span>
+                )}
               </div>
               <div className="space-y-1 text-gray-600 border-t border-gray-200 pt-2">
                 {(['line', 'wechat', 'web'] as const).map(src => {

@@ -544,6 +544,11 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
 
   useEffect(() => {
     if (!id) return;
+    supabase.rpc('increment_activity_view', { activity_id: id });
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
     const channel = supabase
       .channel(`activity_${id}`)
       .on('postgres_changes', {
