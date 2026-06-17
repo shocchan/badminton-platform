@@ -99,11 +99,14 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     return `【${tournament.title}】\n日時：${d}\n時間：${t}\n会場：${tournament.location}\n参加費：${tournament.entry_fee}円\n詳細・申し込み：`;
   };
 
-  const handleLineShare = (e: React.MouseEvent) => {
+  const handleLineShare = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
     const text = generateShareText();
-    window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(baseUrl)}&text=${encodeURIComponent(text)}`, '_blank');
+    try {
+      await navigator.clipboard.writeText(`${text}${baseUrl}`);
+      showToast(lang === 'zh' ? '已复制。请粘贴到LINE进行分享。' : 'コピーしました。LINEに貼り付けてシェアしてください。');
+    } catch { /* 対応なし */ }
     setShowShareModal(false);
   };
 

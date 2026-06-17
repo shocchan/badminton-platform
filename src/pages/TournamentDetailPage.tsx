@@ -81,12 +81,16 @@ export const TournamentDetailPage = () => {
     setTimeout(() => setShareToast(''), 2500);
   };
 
-  const handleLineShare = () => {
+  const handleLineShare = async () => {
     if (!tournament) return;
     const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
     const text = generateShareText(tournament, lang);
-    const shareUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(baseUrl)}&text=${encodeURIComponent(text)}`;
-    window.open(shareUrl, '_blank');
+    try {
+      await navigator.clipboard.writeText(`${text}${baseUrl}`);
+      showToast(lang === 'zh' ? '已复制。请粘贴到LINE进行分享。' : 'コピーしました。LINEに貼り付けてシェアしてください。');
+    } catch {
+      console.error('クリップボードへのコピーに失敗しました');
+    }
   };
 
   const handleWechatShare = async () => {
