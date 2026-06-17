@@ -758,9 +758,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [groupIdLoaded, setGroupIdLoaded] = useState(false);
 
   useEffect(() => {
-    if (!isChaoxianzu) return;
+    const slug = isChaoxianzu ? 'chaoxianzu' : 'kawaguchi-warabi';
     supabase
-      .rpc('get_group_id', { group_slug: 'chaoxianzu' })
+      .rpc('get_group_id', { group_slug: slug })
       .then(({ data }) => {
         if (data) setGroupId(data);
         setGroupIdLoaded(true);
@@ -1922,11 +1922,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       )}
       {/* Activities Tab */}
       {activeTab === 'activities' && (
-        isChaoxianzu && !groupIdLoaded
+        !groupIdLoaded
           ? <div className="py-10 text-center text-gray-400">読み込み中...</div>
-          : isChaoxianzu && groupIdLoaded && !groupId
+          : !groupId
             ? <div className="py-10 text-center text-red-400">グループ情報の取得に失敗しました。ページを再読み込みしてください。</div>
-            : <ActivityAdminTab groupId={groupId ?? undefined} groupSlug={isChaoxianzu ? 'chaoxianzu' : undefined} />
+            : <ActivityAdminTab groupId={groupId} groupSlug={isChaoxianzu ? 'chaoxianzu' : undefined} />
       )}
 
       {/* Members Tab */}
