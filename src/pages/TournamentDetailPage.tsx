@@ -291,7 +291,7 @@ export const TournamentDetailPage = () => {
       </div>
 
       {/* シェアボタン */}
-      {isEntryClosed || tournament.status !== 'active' ? null : (
+      {tournament.status !== 'active' ? null : (
         <div className="mb-6">
           <p className="text-xs text-gray-400 mb-2">{lang === 'zh' ? '分享：' : 'シェアする：'}</p>
           <div className="flex gap-3">
