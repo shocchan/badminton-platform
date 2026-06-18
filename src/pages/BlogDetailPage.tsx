@@ -1,11 +1,19 @@
 import { useParams, Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { useBlogPost } from '../hooks/useBlogPosts';
+import { supabase } from '../services/supabaseClient';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { post, loading, error } = useBlogPost(Number(id));
+
+  useEffect(() => {
+    if (!id) return;
+    supabase.rpc('increment_blog_view', { blog_id: Number(id) })
+      .then(({ error }) => { if (error) console.error('increment_blog_view error:', error); });
+  }, [id]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });

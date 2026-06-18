@@ -1772,6 +1772,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     <th className="text-left px-4 py-3 font-medium text-gray-600">タイトル</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">公開日</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">👁 閲覧数</th>
                     <th className="text-right px-4 py-3 font-medium text-gray-600">操作</th>
                   </tr>
                 </thead>
@@ -1786,6 +1787,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                         }
                       </td>
                       <td className="px-4 py-3 text-gray-600">{formatDate(p.published_at)}</td>
+                      <td className="px-4 py-3 text-gray-500">{p.view_count ?? 0}</td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => handleEditPost(p)} className="text-blue-600 hover:underline mr-3">編集</button>
                         <button onClick={() => handleDeletePost(p.id)} className="text-red-500 hover:underline">削除</button>
@@ -1793,7 +1795,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     </tr>
                   ))}
                   {blogPosts.length === 0 && (
-                    <tr><td colSpan={4} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
+                    <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
                   )}
                 </tbody>
               </table>

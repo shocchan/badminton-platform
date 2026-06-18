@@ -55,4 +55,5 @@ export interface BlogPost {
   published_at: string;
   created_at: string;
   updated_at: string;
+  view_count?: number;
 }
