@@ -22,6 +22,7 @@ const FaqPage              = lazy(() => import('./pages/FaqPage').then(m => ({ d
 const CancelEntryPage      = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
 // chaoxianzu グループ用
 const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="chaoxianzu" /> })));
+const Vol1Results = lazy(() => import('./pages/results/Vol1'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -60,8 +61,9 @@ const AnimatedRoutes = () => {
           </Route>
 
           {/* ── 言語によらないページ ── */}
-          <Route path="/login"  element={<LoginPage />} />
-          <Route path="/cancel" element={<CancelEntryPage />} />
+          <Route path="/login"       element={<LoginPage />} />
+          <Route path="/cancel"      element={<CancelEntryPage />} />
+          <Route path="/results/vol1" element={<Vol1Results />} />
 
           {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
           <Route path="/"                         element={<Navigate to="/ja/" replace />} />
