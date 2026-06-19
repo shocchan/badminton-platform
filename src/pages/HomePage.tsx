@@ -300,6 +300,21 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* 特典登録バナー */}
+      <Link to={`/${lang}/join`} className="block bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-colors">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
+          <span className="text-xl flex-shrink-0">🎁</span>
+          <div className="flex-1 min-w-0">
+            <span className="font-bold text-white text-sm">
+              {lang === 'zh' ? '【限定福利】注册会员，获取ばりかた屋免费券！' : '【無料特典】登録するだけ！ばりかた屋の無料券をプレゼント🎉'}
+            </span>
+          </div>
+          <span className="flex-shrink-0 bg-white text-green-600 font-bold text-xs px-3 py-1.5 rounded-full whitespace-nowrap">
+            {lang === 'zh' ? '立即注册 →' : '今すぐ登録 →'}
+          </span>
+        </div>
+      </Link>
+
       {/* 大会ページ案内バナー */}
       <div className="bg-amber-50 border-b border-amber-200">
         <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-amber-800">
