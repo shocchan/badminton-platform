@@ -392,7 +392,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
       if (error) { setSaveError(`保存エラー: ${error.message}`); return; }
     } else {
       // kawaguchi-warabi: 直接保存（Supabase Auth認証済み）
-      const payload = { ...form, title };
+      const payload = { ...form, title, ...(groupId ? { group_id: groupId } : {}) };
       const { error } = editId
         ? await supabase.from('activities').update(payload).eq('id', editId)
         : await supabase.from('activities').insert(payload);
