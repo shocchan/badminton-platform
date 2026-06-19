@@ -192,8 +192,9 @@ export const HomePage = () => {
     fetchEntryCounts();
   }, []);
 
+  const todayStr = new Date().toISOString().slice(0, 10);
   const activeTournaments = tournaments
-    .filter(t => t.status === 'active' && (t.visibility ?? 'published') === 'published')
+    .filter(t => t.status === 'active' && (t.visibility ?? 'published') === 'published' && t.event_date.slice(0, 10) >= todayStr)
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
   const levels = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.level)))];
   const types  = ['全て', ...Array.from(new Set(activeTournaments.map(t => t.event_type)))];
