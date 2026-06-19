@@ -44,7 +44,7 @@ const content = {
     bothOk: '※两项都填写也可以',
     submit: '立即注册',
     privacy: '※个人信息仅用于优惠及信息提供',
-    success: '感谢注册！\n翔会通过微信 / 邮件与您联系🏸',
+    success: '感谢注册！\nShocchance会通过微信 / 邮件与您联系🏸',
     errorRequired: '请填写姓名和微信号或邮箱地址',
     errorEmail: '邮箱地址格式不正确',
     errorServer: '注册失败，请重试。',
