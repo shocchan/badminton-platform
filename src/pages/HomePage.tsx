@@ -306,11 +306,11 @@ export const HomePage = () => {
           <span className="text-xl flex-shrink-0">🎁</span>
           <div className="flex-1 min-w-0">
             <span className="font-bold text-white text-sm">
-              {lang === 'zh' ? '【限定福利】注册会员，获取ばりかた屋免费券！' : '【無料特典】登録するだけ！ばりかた屋の無料券をプレゼント🎉'}
+              {lang === 'zh' ? '【会员限定】获取ばりかた屋拉面免费券等川口・蕨地区特典！' : '【会員限定】ばりかた屋のラーメン無料券など川口・蕨エリアの特典をお届け中'}
             </span>
           </div>
           <span className="flex-shrink-0 bg-white text-green-600 font-bold text-xs px-3 py-1.5 rounded-full whitespace-nowrap">
-            {lang === 'zh' ? '立即注册 →' : '今すぐ登録 →'}
+            {lang === 'zh' ? '领取特典 →' : '特典を受け取る →'}
           </span>
         </div>
       </Link>
