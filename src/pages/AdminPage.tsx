@@ -814,6 +814,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [subscribersLoading, setSubscribersLoading] = useState(false);
   const [copiedWechatId, setCopiedWechatId] = useState<string | null>(null);
+  const [subscriberAddModal, setSubscriberAddModal] = useState(false);
+  const [newSubscriber, setNewSubscriber] = useState({ name: '', wechat_id: '', email: '', language: 'ja', source: 'web' });
+  const [subscriberAddError, setSubscriberAddError] = useState('');
   const [memberAddModalOpen, setMemberAddModalOpen] = useState(false);
   const [memberEditTarget, setMemberEditTarget] = useState<Member | null>(null);
   const [newMemberNumber, setNewMemberNumber] = useState('');
@@ -901,6 +904,23 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       .order('created_at', { ascending: false });
     setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
     setEntriesLoading(false);
+  };
+
+  const handleAddSubscriber = async () => {
+    setSubscriberAddError('');
+    if (!newSubscriber.name.trim()) { setSubscriberAddError('名前は必須です'); return; }
+    if (!newSubscriber.wechat_id.trim() && !newSubscriber.email.trim()) { setSubscriberAddError('WeChat IDかメールアドレスを入力してください'); return; }
+    const { error } = await supabase.from('subscribers').insert({
+      name: newSubscriber.name.trim(),
+      wechat_id: newSubscriber.wechat_id.trim() || null,
+      email: newSubscriber.email.trim() || null,
+      language: newSubscriber.language,
+      source: newSubscriber.source,
+    });
+    if (error) { setSubscriberAddError('追加に失敗しました'); return; }
+    setSubscriberAddModal(false);
+    setNewSubscriber({ name: '', wechat_id: '', email: '', language: 'ja', source: 'web' });
+    fetchSubscribers();
   };
 
   const fetchSubscribers = async () => {
@@ -2169,7 +2189,15 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-gray-800">登録者管理</h2>
-            <span className="text-sm text-gray-500">{subscribers.length}件</span>
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-500">{subscribers.length}件</span>
+              <button
+                onClick={() => { setSubscriberAddError(''); setSubscriberAddModal(true); }}
+                className="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-green-700 transition-colors"
+              >
+                ＋ 登録者追加
+              </button>
+            </div>
           </div>
 
           {subscribersLoading ? (
@@ -2233,6 +2261,71 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               </table>
             </div>
           )}
+        </div>
+      )}
+      {/* 登録者追加モーダル */}
+      {subscriberAddModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">登録者を追加</h3>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="名前 *"
+                value={newSubscriber.name}
+                onChange={e => setNewSubscriber(p => ({ ...p, name: e.target.value }))}
+                className="w-full border rounded-lg px-4 py-2 text-sm"
+              />
+              <input
+                type="text"
+                placeholder="WeChat ID"
+                value={newSubscriber.wechat_id}
+                onChange={e => setNewSubscriber(p => ({ ...p, wechat_id: e.target.value }))}
+                className="w-full border rounded-lg px-4 py-2 text-sm"
+              />
+              <input
+                type="email"
+                placeholder="メールアドレス"
+                value={newSubscriber.email}
+                onChange={e => setNewSubscriber(p => ({ ...p, email: e.target.value }))}
+                className="w-full border rounded-lg px-4 py-2 text-sm"
+              />
+              <div className="flex gap-3">
+                <select
+                  value={newSubscriber.language}
+                  onChange={e => setNewSubscriber(p => ({ ...p, language: e.target.value }))}
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="ja">日本語</option>
+                  <option value="zh">中文</option>
+                </select>
+                <select
+                  value={newSubscriber.source}
+                  onChange={e => setNewSubscriber(p => ({ ...p, source: e.target.value }))}
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                >
+                  <option value="web">web</option>
+                  <option value="line">line</option>
+                  <option value="wechat">wechat</option>
+                </select>
+              </div>
+              {subscriberAddError && <p className="text-red-500 text-sm">{subscriberAddError}</p>}
+            </div>
+            <div className="flex gap-3 justify-end mt-5">
+              <button
+                onClick={() => setSubscriberAddModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-sm hover:bg-gray-50"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleAddSubscriber}
+                className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700"
+              >
+                追加する
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>
