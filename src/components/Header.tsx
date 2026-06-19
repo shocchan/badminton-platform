@@ -125,11 +125,7 @@ export const Header = () => {
                 ログアウト
               </button>
             </>
-          ) : (
-            <Link to="/login" className="text-sm text-gray-400 hover:text-gray-700 transition-colors px-2">
-              管理者ログイン
-            </Link>
-          )}
+          ) : null}
         </nav>
 
         {/* ハンバーガーボタン（モバイルのみ） */}
@@ -213,11 +209,7 @@ export const Header = () => {
               </button>
             </>
           ) : (
-            <Link to="/login" onClick={close}
-              className="flex items-center px-4 py-3 rounded-xl text-sm font-medium text-gray-400 hover:bg-gray-50 transition-colors"
-            >
-              管理者ログイン
-            </Link>
+            null
           )}
         </div>
       </div>
