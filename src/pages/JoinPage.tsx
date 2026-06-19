@@ -97,17 +97,20 @@ export const JoinPage = () => {
       return;
     }
 
-    if (email.trim()) {
-      await fetch(`${EDGE_BASE}/send-welcome`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': ANON_KEY,
-          'Authorization': `Bearer ${ANON_KEY}`,
-        },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), language: lang === 'zh' ? 'zh' : 'ja' }),
-      });
-    }
+    await fetch(`${EDGE_BASE}/send-welcome`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': ANON_KEY,
+        'Authorization': `Bearer ${ANON_KEY}`,
+      },
+      body: JSON.stringify({
+        name: name.trim(),
+        email: email.trim() || null,
+        wechat_id: wechatId.trim() || null,
+        language: lang === 'zh' ? 'zh' : 'ja',
+      }),
+    });
 
     setLoading(false);
     setSubmitted(true);
