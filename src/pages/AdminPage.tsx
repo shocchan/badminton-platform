@@ -15,7 +15,17 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers';
+
+interface Subscriber {
+  id: string;
+  name: string;
+  wechat_id: string | null;
+  email: string | null;
+  language: string;
+  source: string;
+  created_at: string;
+}
 
 interface Member {
   id: string;
@@ -799,6 +809,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   // 会員管理
   const [members, setMembers] = useState<Member[]>([]);
   const [membersLoading, setMembersLoading] = useState(false);
+
+  // 登録者管理
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [subscribersLoading, setSubscribersLoading] = useState(false);
+  const [copiedWechatId, setCopiedWechatId] = useState<string | null>(null);
   const [memberAddModalOpen, setMemberAddModalOpen] = useState(false);
   const [memberEditTarget, setMemberEditTarget] = useState<Member | null>(null);
   const [newMemberNumber, setNewMemberNumber] = useState('');
@@ -842,6 +857,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     if (isChaoxianzu) return;
     if (activeTab === 'entries') fetchEntries();
     if (activeTab === 'members') fetchMembers();
+    if (activeTab === 'subscribers') fetchSubscribers();
   }, [activeTab, isChaoxianzu]);
 
   // ── リアルタイム申し込み通知 ──
@@ -885,6 +901,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       .order('created_at', { ascending: false });
     setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
     setEntriesLoading(false);
+  };
+
+  const fetchSubscribers = async () => {
+    setSubscribersLoading(true);
+    const { data } = await supabase
+      .from('subscribers')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setSubscribers((data || []) as Subscriber[]);
+    setSubscribersLoading(false);
   };
 
   const fetchMembers = async () => {
@@ -1215,7 +1241,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isChaoxianzu
           ? [['activities', '活動管理']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '会員管理']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '会員管理'], ['subscribers', '登録者管理']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -2135,6 +2161,78 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Subscribers Tab */}
+      {activeTab === 'subscribers' && (
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-800">登録者管理</h2>
+            <span className="text-sm text-gray-500">{subscribers.length}件</span>
+          </div>
+
+          {subscribersLoading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-8 h-8 border-4 border-green-200 border-t-green-500 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
+                    <th className="px-4 py-3">登録日時</th>
+                    <th className="px-4 py-3">名前</th>
+                    <th className="px-4 py-3">WeChat ID</th>
+                    <th className="px-4 py-3">メールアドレス</th>
+                    <th className="px-4 py-3">言語</th>
+                    <th className="px-4 py-3">流入元</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {subscribers.map(s => (
+                    <tr key={s.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {new Date(s.created_at).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-4 py-3 font-medium text-gray-900">{s.name}</td>
+                      <td className="px-4 py-3">
+                        {s.wechat_id ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-800 font-mono text-xs">{s.wechat_id}</span>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(s.wechat_id!);
+                                setCopiedWechatId(s.id);
+                                setTimeout(() => setCopiedWechatId(null), 2000);
+                              }}
+                              className="text-xs text-blue-600 hover:underline shrink-0"
+                            >
+                              {copiedWechatId === s.id ? 'コピー済み✓' : 'コピー'}
+                            </button>
+                          </div>
+                        ) : <span className="text-gray-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 text-xs">{s.email ?? <span className="text-gray-300">—</span>}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          s.language === 'zh' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {s.language === 'zh' ? '中文' : '日本語'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-xs">{s.source}</td>
+                    </tr>
+                  ))}
+                  {subscribers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-10 text-center text-gray-400">登録者がいません</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </main>

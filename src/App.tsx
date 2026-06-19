@@ -23,6 +23,7 @@ const CancelEntryPage      = lazy(() => import('./pages/CancelEntryPage').then(m
 // chaoxianzu グループ用
 const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="chaoxianzu" /> })));
 const Vol1Results = lazy(() => import('./pages/results/Vol1'));
+const JoinPage     = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -51,6 +52,7 @@ const AnimatedRoutes = () => {
             <Route path="admin"           element={<AdminPage />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />
+            <Route path="join"            element={<JoinPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}
