@@ -817,6 +817,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [subscriberAddModal, setSubscriberAddModal] = useState(false);
   const [newSubscriber, setNewSubscriber] = useState({ name: '', wechat_id: '', email: '', language: 'ja', source: 'web' });
   const [subscriberAddError, setSubscriberAddError] = useState('');
+  const [editingSubscriber, setEditingSubscriber] = useState<Subscriber | null>(null);
+  const [editSubscriberForm, setEditSubscriberForm] = useState({ name: '', wechat_id: '', email: '', language: 'ja', source: 'web' });
+  const [deletingSubscriberId, setDeletingSubscriberId] = useState<string | null>(null);
   const [memberAddModalOpen, setMemberAddModalOpen] = useState(false);
   const [memberEditTarget, setMemberEditTarget] = useState<Member | null>(null);
   const [newMemberNumber, setNewMemberNumber] = useState('');
@@ -904,6 +907,25 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       .order('created_at', { ascending: false });
     setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
     setEntriesLoading(false);
+  };
+
+  const handleDeleteSubscriber = async (id: string) => {
+    await supabase.from('subscribers').delete().eq('id', id);
+    setDeletingSubscriberId(null);
+    fetchSubscribers();
+  };
+
+  const handleEditSubscriber = async () => {
+    if (!editingSubscriber) return;
+    await supabase.from('subscribers').update({
+      name: editSubscriberForm.name.trim(),
+      wechat_id: editSubscriberForm.wechat_id.trim() || null,
+      email: editSubscriberForm.email.trim() || null,
+      language: editSubscriberForm.language,
+      source: editSubscriberForm.source,
+    }).eq('id', editingSubscriber.id);
+    setEditingSubscriber(null);
+    fetchSubscribers();
   };
 
   const handleAddSubscriber = async () => {
@@ -2215,6 +2237,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     <th className="px-4 py-3">メールアドレス</th>
                     <th className="px-4 py-3">言語</th>
                     <th className="px-4 py-3">流入元</th>
+                    <th className="px-4 py-3">操作</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -2250,11 +2273,23 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-500 text-xs">{s.source}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => { setEditingSubscriber(s); setEditSubscriberForm({ name: s.name, wechat_id: s.wechat_id || '', email: s.email || '', language: s.language, source: s.source }); }}
+                            className="text-xs text-blue-600 hover:underline"
+                          >編集</button>
+                          <button
+                            onClick={() => setDeletingSubscriberId(s.id)}
+                            className="text-xs text-red-500 hover:underline"
+                          >削除</button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                   {subscribers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center text-gray-400">登録者がいません</td>
+                      <td colSpan={7} className="px-4 py-10 text-center text-gray-400">登録者がいません</td>
                     </tr>
                   )}
                 </tbody>
@@ -2263,6 +2298,49 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           )}
         </div>
       )}
+      {/* 削除確認モーダル */}
+      {deletingSubscriberId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">削除しますか？</h3>
+            <p className="text-sm text-gray-500 mb-5">この登録者データを削除します。元に戻せません。</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setDeletingSubscriberId(null)} className="px-4 py-2 border border-gray-300 rounded-xl text-sm hover:bg-gray-50">キャンセル</button>
+              <button onClick={() => handleDeleteSubscriber(deletingSubscriberId)} className="px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700">削除する</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 編集モーダル */}
+      {editingSubscriber && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">登録者を編集</h3>
+            <div className="space-y-3">
+              <input type="text" placeholder="名前 *" value={editSubscriberForm.name} onChange={e => setEditSubscriberForm(p => ({ ...p, name: e.target.value }))} className="w-full border rounded-lg px-4 py-2 text-sm" />
+              <input type="text" placeholder="WeChat ID" value={editSubscriberForm.wechat_id} onChange={e => setEditSubscriberForm(p => ({ ...p, wechat_id: e.target.value }))} className="w-full border rounded-lg px-4 py-2 text-sm" />
+              <input type="email" placeholder="メールアドレス" value={editSubscriberForm.email} onChange={e => setEditSubscriberForm(p => ({ ...p, email: e.target.value }))} className="w-full border rounded-lg px-4 py-2 text-sm" />
+              <div className="flex gap-3">
+                <select value={editSubscriberForm.language} onChange={e => setEditSubscriberForm(p => ({ ...p, language: e.target.value }))} className="flex-1 border rounded-lg px-3 py-2 text-sm">
+                  <option value="ja">日本語</option>
+                  <option value="zh">中文</option>
+                </select>
+                <select value={editSubscriberForm.source} onChange={e => setEditSubscriberForm(p => ({ ...p, source: e.target.value }))} className="flex-1 border rounded-lg px-3 py-2 text-sm">
+                  <option value="web">web</option>
+                  <option value="line">line</option>
+                  <option value="wechat">wechat</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end mt-5">
+              <button onClick={() => setEditingSubscriber(null)} className="px-4 py-2 border border-gray-300 rounded-xl text-sm hover:bg-gray-50">キャンセル</button>
+              <button onClick={handleEditSubscriber} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700">保存する</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 登録者追加モーダル */}
       {subscriberAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
