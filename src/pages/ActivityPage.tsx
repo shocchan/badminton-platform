@@ -1170,6 +1170,7 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
       .neq('status', 'cancelled')
       .is('archived_at', null)
       .order('date', { ascending: true })
+      .order('start_time', { ascending: true })
       .then(({ data }) => { if (data) setActivities(data); setLoading(false); });
   }, [groupId]);
 
