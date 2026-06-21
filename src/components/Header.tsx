@@ -37,8 +37,8 @@ export const Header = () => {
   const { lang, groupSlug } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // グループプレフィックス（kawaguchi-warabi は空）
-  const groupPrefix = groupSlug === 'chaoxianzu' ? '/chaoxianzu' : '';
+  // グループプレフィックス（kawaguchi-warabi は空、それ以外は /groupSlug）
+  const groupPrefix = groupSlug === 'kawaguchi-warabi' ? '' : `/${groupSlug}`;
 
   // ナビリンクの to を生成
   const navTo = (path: string) =>
@@ -54,10 +54,10 @@ export const Header = () => {
   // 言語切り替え：URLの lang 部分だけ差し替え
   const switchLanguage = (newLang: string) => {
     const parts = location.pathname.split('/').filter(Boolean);
-    if (groupSlug === 'chaoxianzu') {
-      parts[1] = newLang; // /chaoxianzu/:lang/...
-    } else {
+    if (groupSlug === 'kawaguchi-warabi') {
       parts[0] = newLang; // /:lang/...
+    } else {
+      parts[1] = newLang; // /:groupSlug/:lang/...
     }
     navigate('/' + parts.join('/') + (location.search || ''));
     setMenuOpen(false);

@@ -649,7 +649,8 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     const location = useLocation();
     const switchLang = (l: Lang) => {
       const parts = location.pathname.split('/').filter(Boolean);
-      if (gs === 'chaoxianzu') { parts[1] = l; } else { parts[0] = l; }
+      // kawaguchi-warabiはパス先頭が言語(/ja/...)、それ以外はグループ名が先頭で2番目が言語(/chaoxianzu/ja/..., /assistant/ja/...)
+      if (gs === 'kawaguchi-warabi') { parts[0] = l; } else { parts[1] = l; }
       navigate('/' + parts.join('/'));
     };
 

@@ -12,13 +12,16 @@ interface LanguageContextValue {
 const LanguageContext = createContext<LanguageContextValue>({ lang: 'ja', groupSlug: 'kawaguchi-warabi' });
 
 // URLパスから lang と groupSlug を導出する
+// kawaguchi-warabi: /:lang/...  それ以外のグループ: /:groupSlug/:lang/...
+const KNOWN_SUBGROUPS = ['chaoxianzu', 'assistant'];
+
 const parseLangFromPath = (pathname: string): LanguageContextValue => {
   const parts = pathname.split('/').filter(Boolean);
-  if (parts[0] === 'chaoxianzu') {
+  if (KNOWN_SUBGROUPS.includes(parts[0])) {
     const l = parts[1];
     return {
       lang: (l === 'zh' || l === 'ko' ? l : 'ja') as Lang,
-      groupSlug: 'chaoxianzu',
+      groupSlug: parts[0],
     };
   }
   const l = parts[0];
