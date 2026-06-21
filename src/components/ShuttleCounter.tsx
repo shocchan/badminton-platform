@@ -175,7 +175,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
       </p>
 
       {/* 積み上がっていくシャトルアイコングリッド */}
-      <div className="mx-auto mt-5 grid w-full grid-cols-4 gap-3 px-1">
+      <div className="mx-auto mt-5 grid w-full grid-cols-10 gap-2 px-1 sm:grid-cols-4 sm:gap-3">
         {Array.from({ length: GRID_SIZE }).map((_, i) => (
           <div key={i} className="aspect-square">
             <ShuttleIcon
