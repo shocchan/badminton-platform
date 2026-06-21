@@ -2418,7 +2418,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       {activeTab === 'shuttle' && (
         <div>
           <h2 className="text-lg font-bold text-gray-800 mb-4">シャトル供養カウンター</h2>
-          <ShuttleAdminPanel adminToken={sessionToken} />
+          <ShuttleAdminPanel />
         </div>
       )}
     </main>

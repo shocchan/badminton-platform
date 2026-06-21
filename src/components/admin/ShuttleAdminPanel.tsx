@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { supabase } from '../../services/supabaseClient';
 
 const VENUE_OPTIONS = ['芝園公民館', '蕨市民体育館', 'その他'];
 
-export default function ShuttleAdminPanel({ adminToken }: { adminToken: string }) {
+export default function ShuttleAdminPanel() {
   const [count, setCount] = useState('');
   const [venue, setVenue] = useState(VENUE_OPTIONS[0]);
   const [note, setNote] = useState('');
@@ -20,21 +21,14 @@ export default function ShuttleAdminPanel({ adminToken }: { adminToken: string }
 
     setStatus('saving');
     try {
-      const res = await fetch('/api/admin/shuttle-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          count: countNum,
-          venue,
-          note: note || undefined,
-          adminToken,
-        }),
+      const { error } = await supabase.from('shuttle_retirement_log').insert({
+        count: countNum,
+        venue,
+        note: note || null,
+        logged_at: new Date().toISOString().slice(0, 10),
       });
 
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `送信失敗 (${res.status})`);
-      }
+      if (error) throw new Error(error.message);
 
       setStatus('done');
       setCount('');
