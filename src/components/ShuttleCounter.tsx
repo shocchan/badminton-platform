@@ -24,7 +24,7 @@ interface CounterRow {
 }
 
 const GRID_SIZE = 20;
-const ICON_SRC = '/icons/shuttle-icon.png';
+const ICON_SRC = '/icons/shuttle-icon.png?v=2';
 
 /**
  * シャトルアイコン。progress(0〜1)に応じて、色褪せた状態→くっきり鮮やかな
