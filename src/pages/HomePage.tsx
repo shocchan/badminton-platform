@@ -271,31 +271,36 @@ export const HomePage = () => {
         </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/50 to-transparent" />
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
-          <div className="max-w-lg">
-            <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">
-              {lang === 'zh' ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会'}
-            </p>
-            <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg leading-tight">
-              {lang === 'zh' ? <>下班后，<br />4场以上！</> : <>仕事終わりに、<br />4試合以上。</>}
-            </h1>
-            <p className="text-blue-100 text-sm sm:text-lg leading-relaxed mb-8 drop-shadow">
-              {lang === 'zh'
-                ? <>平日夜间举办・川口・蕨地区羽毛球赛事。<br className="hidden sm:inline" />超初级〜公开组全级别欢迎！</>
-                : <>平日夜開催・川口・蕨エリアのバドミントン交流会。<br className="hidden sm:inline" />超初級〜オープンまで全レベル歓迎！</>
-              }
-            </p>
-            <div className="flex flex-wrap gap-3 text-sm">
-              {lang === 'zh' ? <>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜间举办</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 保证4场以上</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全级别欢迎</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨地区</span>
-              </> : <>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜開催</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 4試合以上保証</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
-                <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
-              </>}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+            <div className="max-w-lg flex-1">
+              <p className="text-blue-200 text-sm sm:text-base font-semibold tracking-widest mb-2 drop-shadow">
+                {lang === 'zh' ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会'}
+              </p>
+              <h1 className="text-3xl sm:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-lg leading-tight">
+                {lang === 'zh' ? <>下班后，<br />4场以上！</> : <>仕事終わりに、<br />4試合以上。</>}
+              </h1>
+              <p className="text-blue-100 text-sm sm:text-lg leading-relaxed mb-8 drop-shadow">
+                {lang === 'zh'
+                  ? <>平日夜间举办・川口・蕨地区羽毛球赛事。<br className="hidden sm:inline" />超初级〜公开组全级别欢迎！</>
+                  : <>平日夜開催・川口・蕨エリアのバドミントン交流会。<br className="hidden sm:inline" />超初級〜オープンまで全レベル歓迎！</>
+                }
+              </p>
+              <div className="flex flex-wrap gap-3 text-sm">
+                {lang === 'zh' ? <>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜间举办</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 保证4场以上</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全级别欢迎</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨地区</span>
+                </> : <>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜開催</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 4試合以上保証</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
+                </>}
+              </div>
+            </div>
+            <div className="w-full sm:w-64 flex-shrink-0">
+              <ShuttleCounter />
             </div>
           </div>
         </div>
@@ -520,11 +525,6 @@ export const HomePage = () => {
 
           </div>
         )}
-      </div>
-
-      {/* シャトル供養カウンター */}
-      <div className="max-w-6xl mx-auto px-4 pb-8">
-        <ShuttleCounter />
       </div>
 
       {/* 通常活動バナー */}
