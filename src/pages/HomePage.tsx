@@ -300,7 +300,7 @@ export const HomePage = () => {
               </div>
             </div>
             <div className="w-full sm:w-64 flex-shrink-0">
-              <ShuttleCounter />
+              <ShuttleCounter locale={lang === 'zh' ? 'zh' : 'ja'} />
             </div>
           </div>
         </div>
