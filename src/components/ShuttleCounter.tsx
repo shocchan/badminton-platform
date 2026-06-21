@@ -40,9 +40,9 @@ function ShuttleIcon({
   progress: number;
   pop: boolean;
 }) {
-  const grayscaleAmt = filled ? (1 - progress) * 80 : 100;
-  const saturateAmt = filled ? 80 + progress * 220 : 0;
-  const brightnessAmt = filled ? 1 : 1.15;
+  const grayscaleAmt = filled ? (1 - progress) * 40 : 100;
+  const saturateAmt = filled ? 120 + progress * 180 : 0;
+  const brightnessAmt = filled ? 0.88 + progress * 0.12 : 1.1;
 
   return (
     <img
@@ -53,7 +53,7 @@ function ShuttleIcon({
         pop ? 'animate-[pop_0.4s_ease-out]' : ''
       }`}
       style={{
-        opacity: filled ? 1 : 0.22,
+        opacity: filled ? 1 : 0.15,
         filter: `grayscale(${grayscaleAmt}%) brightness(${brightnessAmt}) saturate(${saturateAmt}%)`,
       }}
     />
@@ -175,7 +175,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
       </p>
 
       {/* 積み上がっていくシャトルアイコングリッド */}
-      <div className="mx-auto mt-5 grid max-w-xs grid-cols-10 gap-1.5">
+      <div className="mx-auto mt-5 grid w-full grid-cols-5 gap-3 px-2">
         {Array.from({ length: GRID_SIZE }).map((_, i) => (
           <div key={i} className="aspect-square">
             <ShuttleIcon
