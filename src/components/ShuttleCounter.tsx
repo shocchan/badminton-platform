@@ -1,13 +1,3 @@
-// src/components/ShuttleCounter.tsx
-//
-// サイトに置く「シャトル供養カウンター」。
-// shuttle_counter テーブルをリアルタイム購読して、本数をアニメーションで表示する。
-// 進捗は数字だけでなく、20マスのシャトルアイコングリッドが塗りつぶされていく
-// 形でも見せる。アイコンは public/icons/shuttle-icon.png を使用し、
-// グリッドの並び順で「色褪せた状態 → くっきり鮮やかな状態」へフィルター変化する。
-//
-// locale props で 'ja' | 'zh' を渡すと表示文言が切り替わる。
-// 既存のページ側のロケール判定(URLパスなど)から渡してください。
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import {
@@ -26,11 +16,6 @@ interface CounterRow {
 const GRID_SIZE = 20;
 const ICON_SRC = '/icons/shuttle-icon.png?v=2';
 
-/**
- * シャトルアイコン。progress(0〜1)に応じて、色褪せた状態→くっきり鮮やかな
- * 状態へフィルターで変化する。filled=falseなら、輪郭がうっすら見える程度の
- * ゴースト表示にする。
- */
 function ShuttleIcon({
   filled,
   progress,
@@ -60,7 +45,13 @@ function ShuttleIcon({
   );
 }
 
-export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLocale }) {
+export default function ShuttleCounter({
+  locale = 'ja',
+  linkable = true,
+}: {
+  locale?: ShuttleLocale;
+  linkable?: boolean;
+}) {
   const t = SHUTTLE_COUNTER_TEXT[locale];
 
   const [data, setData] = useState<CounterRow | null>(null);
@@ -93,11 +84,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
           (payload) => {
             const next = payload.new as CounterRow;
             setData(next);
-
-            if (
-              prevMilestoneRef.current !== null &&
-              next.last_milestone > prevMilestoneRef.current
-            ) {
+            if (prevMilestoneRef.current !== null && next.last_milestone > prevMilestoneRef.current) {
               setCelebrating(next.last_milestone);
               setTimeout(() => setCelebrating(null), 6000);
             }
@@ -152,9 +139,9 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
     prevFilledRef.current = filledSlots;
   }, [filledSlots]);
 
-  return (
+  const inner = (
     <div className="relative overflow-hidden rounded-2xl border border-amber-900/10 bg-amber-50 px-6 py-8 text-center">
-      {/* 舞い落ちる羽根の演出(常時、控えめに)。同じアイコン画像を小さく回転させて使用 */}
+      {/* 舞い落ちる演出 */}
       <div className="pointer-events-none absolute inset-0 opacity-25">
         {[...Array(6)].map((_, i) => (
           <img
@@ -174,7 +161,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
         <span className="ml-2 text-xl font-normal text-amber-700">{t.unit}</span>
       </p>
 
-      {/* 積み上がっていくシャトルアイコングリッド */}
+      {/* アイコングリッド: スマホ10列×2行、デスクトップ4列×5行 */}
       <div className="mx-auto mt-5 grid w-full grid-cols-10 gap-2 px-1 sm:grid-cols-4 sm:gap-3">
         {Array.from({ length: GRID_SIZE }).map((_, i) => (
           <div key={i} className="aspect-square">
@@ -189,10 +176,13 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
 
       {next && (
         <p className="mt-3 text-xs text-amber-700/80">
-          {t.nextMilestone(
-            t.milestoneLabel(next.count, next.count === 1000),
-            next.count - displayCount
-          )}
+          {t.nextMilestone(t.milestoneLabel(next.count, next.count === 1000), next.count - displayCount)}
+        </p>
+      )}
+
+      {linkable && (
+        <p className="mt-4 text-[11px] font-medium text-amber-700/70 underline-offset-2 group-hover:underline">
+          {locale === 'zh' ? '查看羽毛球的故事 →' : 'シャトルたちの物語を見る →'}
         </p>
       )}
 
@@ -215,9 +205,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
           10% { opacity: 1; }
           100% { transform: translateY(420px) rotate(180deg); opacity: 0; }
         }
-        @keyframes fadeIn {
-          from { opacity: 0; } to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes pop {
           0% { transform: scale(0.4); opacity: 0; }
           60% { transform: scale(1.25); opacity: 1; }
@@ -225,5 +213,18 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
         }
       `}</style>
     </div>
+  );
+
+  if (!linkable) return inner;
+
+  return (
+    <a
+      href={`/${locale}/shuttle-roadmap`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group block transition-transform hover:-translate-y-0.5 hover:shadow-lg rounded-2xl"
+    >
+      {inner}
+    </a>
   );
 }
