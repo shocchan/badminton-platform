@@ -53,7 +53,6 @@ function ShuttleIcon({
         pop ? 'animate-[pop_0.4s_ease-out]' : ''
       }`}
       style={{
-        mixBlendMode: 'multiply',
         opacity: filled ? 1 : 0.22,
         filter: `grayscale(${grayscaleAmt}%) brightness(${brightnessAmt}) saturate(${saturateAmt}%)`,
       }}
@@ -163,7 +162,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
             src={ICON_SRC}
             alt=""
             className="absolute top-[-10%] h-4 w-4 animate-[fall_8s_linear_infinite] grayscale"
-            style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s`, mixBlendMode: 'multiply' }}
+            style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s` }}
           />
         ))}
       </div>
