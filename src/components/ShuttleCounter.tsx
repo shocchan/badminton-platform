@@ -3,7 +3,8 @@
 // サイトに置く「シャトル供養カウンター」。
 // shuttle_counter テーブルをリアルタイム購読して、本数をアニメーションで表示する。
 // 進捗は数字だけでなく、20マスのシャトルアイコングリッドが塗りつぶされていく
-// 形でも見せる(一目で「積み上がってる」感が伝わるように)。
+// 形でも見せる。アイコンは public/icons/shuttle-icon.png を使用し、
+// グリッドの並び順で「色褪せた状態 → くっきり鮮やかな状態」へフィルター変化する。
 //
 // locale props で 'ja' | 'zh' を渡すと表示文言が切り替わる。
 // 既存のページ側のロケール判定(URLパスなど)から渡してください。
@@ -23,33 +24,41 @@ interface CounterRow {
 }
 
 const GRID_SIZE = 20;
+const ICON_SRC = '/icons/shuttle-icon.png';
 
-/** シャトルの小アイコン。filled=trueで色付き、falseで輪郭だけ */
-function ShuttleIcon({ filled, pop }: { filled: boolean; pop: boolean }) {
+/**
+ * シャトルアイコン。progress(0〜1)に応じて、色褪せた状態→くっきり鮮やかな
+ * 状態へフィルターで変化する。filled=falseなら、輪郭がうっすら見える程度の
+ * ゴースト表示にする。
+ */
+function ShuttleIcon({
+  filled,
+  progress,
+  pop,
+}: {
+  filled: boolean;
+  progress: number;
+  pop: boolean;
+}) {
+  const grayscaleAmt = (1 - progress) * 65;
+  const brightnessAmt = 1 + (1 - progress) * 0.12;
+  const saturateAmt = 70 + progress * 70;
+
   return (
-    <svg
-      viewBox="0 0 24 26"
-      width="100%"
-      height="100%"
-      className={`transition-all duration-300 ${pop ? 'animate-[pop_0.4s_ease-out]' : ''}`}
-    >
-      <path
-        d="M12 1 L3 16 Q12 22 21 16 Z"
-        fill={filled ? '#B98C5E' : 'none'}
-        stroke="#8A6239"
-        strokeWidth="1.3"
-        opacity={filled ? 1 : 0.28}
-      />
-      <circle
-        cx="12"
-        cy="20.5"
-        r="3.4"
-        fill={filled ? '#8A6239' : 'none'}
-        stroke="#8A6239"
-        strokeWidth="1.3"
-        opacity={filled ? 1 : 0.28}
-      />
-    </svg>
+    <img
+      src={ICON_SRC}
+      alt=""
+      draggable={false}
+      className={`h-full w-full select-none object-contain transition-all duration-300 ${
+        pop ? 'animate-[pop_0.4s_ease-out]' : ''
+      }`}
+      style={{
+        opacity: filled ? 1 : 0.16,
+        filter: filled
+          ? `grayscale(${grayscaleAmt}%) brightness(${brightnessAmt}) saturate(${saturateAmt}%)`
+          : 'grayscale(100%)',
+      }}
+    />
   );
 }
 
@@ -61,7 +70,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
   const [celebrating, setCelebrating] = useState<number | null>(null);
   const [justFilled, setJustFilled] = useState<number | null>(null);
   const prevMilestoneRef = useRef<number | null>(null);
-  const prevDisplayRef = useRef(0);
+  const prevFilledRef = useRef(0);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel>;
@@ -106,7 +115,6 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
     };
   }, []);
 
-  // カウントアップ・アニメーション
   useEffect(() => {
     if (!data) return;
     const target = data.total_count;
@@ -116,12 +124,12 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
     const step = Math.max(1, Math.round(Math.abs(diff) / 30));
     const id = setInterval(() => {
       setDisplayCount((cur) => {
-        const next = cur + Math.sign(diff) * step;
-        if ((diff > 0 && next >= target) || (diff < 0 && next <= target)) {
+        const nextVal = cur + Math.sign(diff) * step;
+        if ((diff > 0 && nextVal >= target) || (diff < 0 && nextVal <= target)) {
           clearInterval(id);
           return target;
         }
-        return next;
+        return nextVal;
       });
     }, 30);
     return () => clearInterval(id);
@@ -136,25 +144,26 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
   const tierProgress = Math.max(0, displayCount - tierStart);
   const filledSlots = Math.min(GRID_SIZE, Math.round((tierProgress / tierTotal) * GRID_SIZE));
 
-  // グリッドが新しく埋まったマスに、ポップアニメーションを一瞬だけ付ける
   useEffect(() => {
-    if (filledSlots > prevDisplayRef.current) {
+    if (filledSlots > prevFilledRef.current) {
       setJustFilled(filledSlots - 1);
       const timer = setTimeout(() => setJustFilled(null), 400);
-      prevDisplayRef.current = filledSlots;
+      prevFilledRef.current = filledSlots;
       return () => clearTimeout(timer);
     }
-    prevDisplayRef.current = filledSlots;
+    prevFilledRef.current = filledSlots;
   }, [filledSlots]);
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-amber-900/10 bg-amber-50 px-6 py-8 text-center">
-      {/* 舞い落ちる羽根の演出 (常時、控えめに) */}
-      <div className="pointer-events-none absolute inset-0 opacity-20">
+      {/* 舞い落ちる羽根の演出(常時、控えめに)。同じアイコン画像を小さく回転させて使用 */}
+      <div className="pointer-events-none absolute inset-0 opacity-25">
         {[...Array(6)].map((_, i) => (
-          <span
+          <img
             key={i}
-            className="absolute top-[-10%] h-2 w-2 rounded-full bg-amber-700/40 animate-[fall_8s_linear_infinite]"
+            src={ICON_SRC}
+            alt=""
+            className="absolute top-[-10%] h-4 w-4 animate-[fall_8s_linear_infinite] grayscale"
             style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s` }}
           />
         ))}
@@ -168,21 +177,27 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
       </p>
 
       {/* 積み上がっていくシャトルアイコングリッド */}
-      <div className="mx-auto mt-5 grid max-w-xs grid-cols-10 gap-1.5 sm:grid-cols-10">
+      <div className="mx-auto mt-5 grid max-w-xs grid-cols-10 gap-1.5">
         {Array.from({ length: GRID_SIZE }).map((_, i) => (
-          <div key={i} className="aspect-[24/26]">
-            <ShuttleIcon filled={i < filledSlots} pop={i === justFilled} />
+          <div key={i} className="aspect-square">
+            <ShuttleIcon
+              filled={i < filledSlots}
+              progress={i / (GRID_SIZE - 1)}
+              pop={i === justFilled}
+            />
           </div>
         ))}
       </div>
 
       {next && (
         <p className="mt-3 text-xs text-amber-700/80">
-          {t.nextMilestone(t.milestoneLabel(next.count, next.count === 1000), next.count - displayCount)}
+          {t.nextMilestone(
+            t.milestoneLabel(next.count, next.count === 1000),
+            next.count - displayCount
+          )}
         </p>
       )}
 
-      {/* 節目演出のオーバーレイ */}
       {celebrating !== null && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-amber-900/90 text-amber-50 animate-[fadeIn_0.4s_ease-out]">
           <p className="text-3xl font-bold">
