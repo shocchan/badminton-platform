@@ -799,13 +799,6 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(isChaoxianzu ? 'activities' : 'tournaments');
-  const [sessionToken, setSessionToken] = useState<string>('');
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSessionToken(session?.access_token ?? '');
-    });
-  }, [isAuthenticated]);
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
