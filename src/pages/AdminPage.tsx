@@ -10,12 +10,13 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { ResizableImage } from '../extensions/ResizableImage';
 import type { Tournament, BlogPost, Entry } from '../types';
+import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle';
 
 interface Subscriber {
   id: string;
@@ -798,6 +799,13 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>(isChaoxianzu ? 'activities' : 'tournaments');
+  const [sessionToken, setSessionToken] = useState<string>('');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSessionToken(session?.access_token ?? '');
+    });
+  }, [isAuthenticated]);
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
@@ -1283,7 +1291,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isChaoxianzu
           ? [['activities', '活動管理']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理'], ['shuttle', 'シャトル供養']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -2404,6 +2412,13 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Shuttle Tab */}
+      {activeTab === 'shuttle' && (
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">シャトル供養カウンター</h2>
+          <ShuttleAdminPanel adminToken={sessionToken} />
         </div>
       )}
     </main>

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import ShuttleCounter from '../components/ShuttleCounter';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTournaments } from '../hooks/useTournaments';
@@ -519,6 +520,11 @@ export const HomePage = () => {
 
           </div>
         )}
+      </div>
+
+      {/* シャトル供養カウンター */}
+      <div className="max-w-6xl mx-auto px-4 pb-8">
+        <ShuttleCounter />
       </div>
 
       {/* 通常活動バナー */}
