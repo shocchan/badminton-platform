@@ -99,7 +99,7 @@ export default function ShuttleCounter() {
 
       <p className="mt-2 text-5xl font-bold tabular-nums text-amber-900">
         {displayCount.toLocaleString()}
-        <span className="ml-2 text-xl font-normal text-amber-700">本</span>
+        <span className="ml-2 text-xl font-normal text-amber-700">個</span>
       </p>
 
       {next && (
@@ -111,7 +111,7 @@ export default function ShuttleCounter() {
             />
           </div>
           <p className="mt-1 text-xs text-amber-700/80">
-            次の節目「{next.label}」まであと {Math.max(0, next.count - displayCount)} 本
+            次の節目「{next.label}」まであと {Math.max(0, next.count - displayCount)} 個
           </p>
         </div>
       )}
@@ -119,7 +119,7 @@ export default function ShuttleCounter() {
       {celebrating !== null && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-amber-900/90 text-amber-50 animate-[fadeIn_0.4s_ease-out]">
           <p className="text-3xl font-bold">
-            {SHUTTLE_MILESTONES.find((m) => m.count === celebrating)?.label ?? `${celebrating}本達成`}
+            {SHUTTLE_MILESTONES.find((m) => m.count === celebrating)?.label ?? `${celebrating}個達成`}
           </p>
           <p className="text-sm opacity-90">
             {SHUTTLE_MILESTONES.find((m) => m.count === celebrating)?.tier === 'big'
