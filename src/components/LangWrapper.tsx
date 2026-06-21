@@ -4,6 +4,7 @@ import { useParams, Outlet, Navigate } from 'react-router-dom';
 const VALID_LANGS: Record<string, string[]> = {
   'kawaguchi-warabi': ['ja', 'zh'],
   'chaoxianzu': ['ja', 'zh', 'ko'],
+  'assistant': ['ja', 'zh'],
 };
 
 interface LangWrapperProps {
@@ -13,7 +14,7 @@ interface LangWrapperProps {
 const LangWrapper: React.FC<LangWrapperProps> = ({ groupSlug }) => {
   const { lang } = useParams<{ lang: string }>();
   const validLangs = VALID_LANGS[groupSlug] || ['ja'];
-  const fallback = groupSlug === 'chaoxianzu' ? '/chaoxianzu/ja/' : '/ja/';
+  const fallback = groupSlug === 'kawaguchi-warabi' ? '/ja/' : `/${groupSlug}/ja/`;
 
   useEffect(() => {
     if (lang && validLangs.includes(lang)) {

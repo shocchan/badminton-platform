@@ -333,8 +333,8 @@ const formatDateJP = (dateStr: string) => {
 const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
 
 const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?: string }) => {
-  const isChaoxianzuTab = !!groupSlug;
-  const INITIAL_ACTIVITY = isChaoxianzuTab
+  const isSubGroupTab = !!groupSlug;
+  const INITIAL_ACTIVITY = isSubGroupTab
     ? { ...EMPTY_ACTIVITY, notes: '' }
     : EMPTY_ACTIVITY;
 
@@ -753,13 +753,15 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
 };
 
 export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
-  const isChaoxianzu = groupSlug === 'chaoxianzu';
+  // kawaguchi-warabi（しょっちゃん本人）以外は全て「サブグループ」＝簡易パスワード認証＋通常活動のみ操作可能
+  const isSubGroup = !!groupSlug && groupSlug !== 'kawaguchi-warabi';
 
-  // chaoxianzu用シンプルパスワード認証（RPC経由でサーバー側照合）
+  // サブグループ用シンプルパスワード認証（RPC経由でサーバー側照合。groupSlugごとにセッション保持）
+  const cxStorageKey = `sub_admin_auth_${groupSlug ?? ''}`;
   const [cxPassword, setCxPassword] = useState('');
   const [cxAuthed, setCxAuthed] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('cx_admin_auth') === 'true';
+    if (typeof window !== 'undefined' && groupSlug) {
+      return sessionStorage.getItem(`sub_admin_auth_${groupSlug}`) === 'true';
     }
     return false;
   });
@@ -769,27 +771,39 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [groupIdLoaded, setGroupIdLoaded] = useState(false);
 
   useEffect(() => {
-    const slug = isChaoxianzu ? 'chaoxianzu' : 'kawaguchi-warabi';
+    const slug = isSubGroup ? groupSlug! : 'kawaguchi-warabi';
     supabase
       .rpc('get_group_id', { group_slug: slug })
       .then(({ data }) => {
         if (data) setGroupId(data);
         setGroupIdLoaded(true);
       });
-  }, [isChaoxianzu]);
+  }, [isSubGroup, groupSlug]);
+
+  // サブグループの表示名（ログイン画面・ヘッダーに表示）
+  const [subGroupName, setSubGroupName] = useState<string>('');
+  useEffect(() => {
+    if (!isSubGroup || !groupSlug) return;
+    supabase
+      .rpc('get_group_info', { group_slug: groupSlug })
+      .single()
+      .then(({ data }) => {
+        if (data) setSubGroupName((data as { name: string }).name);
+      });
+  }, [isSubGroup, groupSlug]);
 
   const handleCxLogin = async () => {
-    if (!cxPassword) return;
+    if (!cxPassword || !groupSlug) return;
     setCxLogging(true);
     setCxAuthError('');
     const { data, error } = await supabase.rpc('check_group_password', {
-      group_slug: 'chaoxianzu',
+      group_slug: groupSlug,
       password: cxPassword,
     });
     setCxLogging(false);
     if (error) { setCxAuthError('エラーが発生しました'); return; }
     if (data === true) {
-      sessionStorage.setItem('cx_admin_auth', 'true');
+      sessionStorage.setItem(cxStorageKey, 'true');
       setCxAuthed(true);
     } else {
       setCxAuthError('パスワードが間違っています');
@@ -798,7 +812,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>(isChaoxianzu ? 'activities' : 'tournaments');
+  const [activeTab, setActiveTab] = useState<Tab>(isSubGroup ? 'activities' : 'tournaments');
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
@@ -854,22 +868,22 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const cropContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isChaoxianzu) return;
+    if (isSubGroup) return;
     if (!authLoading && !isAuthenticated) {
       navigate('/login');
     }
-  }, [isAuthenticated, authLoading, navigate, isChaoxianzu]);
+  }, [isAuthenticated, authLoading, navigate, isSubGroup]);
 
   useEffect(() => {
-    if (isChaoxianzu) return;
+    if (isSubGroup) return;
     if (activeTab === 'entries') fetchEntries();
     if (activeTab === 'members') fetchMembers();
     if (activeTab === 'subscribers') fetchSubscribers();
-  }, [activeTab, isChaoxianzu]);
+  }, [activeTab, isSubGroup]);
 
   // ── リアルタイム申し込み通知 ──
   useEffect(() => {
-    if (isChaoxianzu) return;
+    if (isSubGroup) return;
     if (!isAuthenticated) return;
     const channel = supabase
       .channel('entries-realtime')
@@ -1225,7 +1239,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     }
   };
 
-  if (authLoading && !isChaoxianzu) {
+  if (authLoading && !isSubGroup) {
     return (
       <div className="flex justify-center py-20">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
@@ -1233,12 +1247,12 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     );
   }
 
-  // chaoxianzu: パスワード未認証の場合はログイン画面を表示
-  if (isChaoxianzu && !cxAuthed) {
+  // サブグループ: パスワード未認証の場合はログイン画面を表示
+  if (isSubGroup && !cxAuthed) {
     return (
       <main className="max-w-sm mx-auto px-4 py-20">
         <h1 className="text-xl font-bold text-gray-900 mb-6 text-center">管理画面ログイン</h1>
-        <p className="text-sm text-gray-500 mb-4 text-center">在日朝鮮族バドミントン協会</p>
+        {subGroupName && <p className="text-sm text-gray-500 mb-4 text-center">{subGroupName}</p>}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <input
             type="password"
@@ -1267,8 +1281,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">管理画面</h1>
-      {isChaoxianzu && (
-        <p className="text-sm text-gray-500 mb-4">在日朝鮮族バドミントン協会</p>
+      {isSubGroup && subGroupName && (
+        <p className="text-sm text-gray-500 mb-4">{subGroupName}</p>
       )}
 
       {/* リアルタイム通知バナー */}
@@ -1282,8 +1296,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
-        {(isChaoxianzu
-          ? [['activities', '活動管理']] as [Tab, string][]
+        {(isSubGroup
+          ? [['activities', '通常活動']] as [Tab, string][]
           : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理'], ['shuttle', 'シャトル供養']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
@@ -1997,7 +2011,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           ? <div className="py-10 text-center text-gray-400">読み込み中...</div>
           : !groupId
             ? <div className="py-10 text-center text-red-400">グループ情報の取得に失敗しました。ページを再読み込みしてください。</div>
-            : <ActivityAdminTab groupId={groupId} groupSlug={isChaoxianzu ? 'chaoxianzu' : undefined} />
+            : <ActivityAdminTab groupId={groupId} groupSlug={isSubGroup ? groupSlug : undefined} />
       )}
 
       {/* Members Tab */}

@@ -22,6 +22,8 @@ const FaqPage              = lazy(() => import('./pages/FaqPage').then(m => ({ d
 const CancelEntryPage      = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
 // chaoxianzu グループ用
 const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="chaoxianzu" /> })));
+// assistant グループ用（通常活動のみ管理可能なサブ管理者）
+const AssistantAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="assistant" /> })));
 const Vol1Results = lazy(() => import('./pages/results/Vol1'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
@@ -62,6 +64,12 @@ const AnimatedRoutes = () => {
             <Route path="activity"     element={<ActivityListPage groupSlug="chaoxianzu" />} />
             <Route path="activity/:id" element={<ActivityPage groupSlug="chaoxianzu" />} />
             <Route path="admin"        element={<CXAdminPage />} />
+          </Route>
+
+          {/* ── assistant グループ（通常活動のみ管理。公開一覧は /:lang/activity に統合表示） ── */}
+          <Route path="/assistant/:lang/*" element={<LangWrapper groupSlug="assistant" />}>
+            <Route path="activity/:id" element={<ActivityPage groupSlug="assistant" />} />
+            <Route path="admin"        element={<AssistantAdminPage />} />
           </Route>
 
           {/* ── 言語によらないページ ── */}

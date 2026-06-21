@@ -10,7 +10,12 @@ interface Group {
   slug: string;
   name: string;
   enable_member_charge: boolean;
+  badge_label?: string | null;
 }
+
+// 川口・蕨の一覧ページに統合表示するサブグループのslug一覧
+// （表示は同じ一覧に混ぜるが、データ・権限は別グループとして分離されている）
+const MERGED_SUBGROUP_SLUGS = ['assistant'];
 
 interface Activity {
   id: string;
@@ -1161,18 +1166,59 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
   const { group, groupId } = useGroup(groupSlug);
   const t = LIST_T[effectiveLang];
 
+  // kawaguchi-warabiの一覧には、統合表示対象のサブグループ（assistant等）も合わせて取得する
+  const isMainGroup = groupSlug === 'kawaguchi-warabi';
+  const [groupMeta, setGroupMeta] = useState<Record<string, { slug: string; badgeLabel: string | null }>>({});
+
+  useEffect(() => {
+    if (!isMainGroup) return;
+    Promise.all(
+      MERGED_SUBGROUP_SLUGS.map(slug =>
+        supabase.rpc('get_group_info', { group_slug: slug }).single().then(({ data }) => data as Group | null)
+      )
+    ).then(results => {
+      const meta: Record<string, { slug: string; badgeLabel: string | null }> = {};
+      results.forEach(g => { if (g) meta[g.id] = { slug: g.slug, badgeLabel: g.badge_label ?? null }; });
+      setGroupMeta(meta);
+    });
+  }, [isMainGroup]);
+
   useEffect(() => {
     if (!groupId) return;
-    supabase
-      .from('activities')
-      .select('*')
-      .eq('group_id', groupId)
-      .neq('status', 'cancelled')
-      .is('archived_at', null)
-      .order('date', { ascending: true })
-      .order('start_time', { ascending: true })
-      .then(({ data }) => { if (data) setActivities(data); setLoading(false); });
-  }, [groupId]);
+
+    const fetchForGroup = (gid: string) =>
+      supabase
+        .from('activities')
+        .select('*')
+        .eq('group_id', gid)
+        .neq('status', 'cancelled')
+        .is('archived_at', null)
+        .order('date', { ascending: true })
+        .order('start_time', { ascending: true })
+        .then(({ data }) => data ?? []);
+
+    if (!isMainGroup) {
+      fetchForGroup(groupId).then(data => { setActivities(data); setLoading(false); });
+      return;
+    }
+
+    // メイングループ + 統合表示対象のサブグループをまとめて取得
+    Promise.all(
+      MERGED_SUBGROUP_SLUGS.map(slug =>
+        supabase.rpc('get_group_id', { group_slug: slug }).then(({ data }) => data as string | null)
+      )
+    ).then(subGroupIds => {
+      const allGroupIds = [groupId, ...subGroupIds.filter((id): id is string => !!id)];
+      Promise.all(allGroupIds.map(fetchForGroup)).then(results => {
+        const merged = results.flat().sort((a, b) => {
+          if (a.date !== b.date) return a.date.localeCompare(b.date);
+          return a.start_time.localeCompare(b.start_time);
+        });
+        setActivities(merged);
+        setLoading(false);
+      });
+    });
+  }, [groupId, isMainGroup]);
 
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   const fmt = (d: string) => { const dt = new Date(d); return `${dt.getMonth()+1}/${dt.getDate()}(${days[dt.getDay()]})`; };
@@ -1237,10 +1283,13 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
             <div className="space-y-3">
               {displayed.map(a => {
                 const venueImg = VENUE_IMAGES[a.location] ?? null;
+                // 統合表示しているサブグループの活動かどうか判定し、バッジ・リンク先を出し分け
+                const subMeta = a.group_id ? groupMeta[a.group_id] : undefined;
+                const activityGroupSlug = subMeta?.slug ?? groupSlug;
                 return (
                   <Link
                     key={a.id}
-                    to={t.detailLink(a.id, groupSlug)}
+                    to={t.detailLink(a.id, activityGroupSlug)}
                     className="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
                   >
                     {venueImg ? (
@@ -1253,7 +1302,14 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
                       </div>
                     )}
                     <div className="p-4">
-                      <p className="font-bold text-gray-900">{a.title}</p>
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="font-bold text-gray-900">{a.title}</p>
+                        {subMeta?.badgeLabel && (
+                          <span className="shrink-0 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-full px-2 py-0.5">
+                            {subMeta.badgeLabel}
+                          </span>
+                        )}
+                      </div>
                       {a.address && <p className="text-xs text-gray-400 mt-0.5">📍 {a.address}</p>}
                       <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
                     </div>
