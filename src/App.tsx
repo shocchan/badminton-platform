@@ -97,6 +97,9 @@ const AnimatedRoutes = () => {
           <Route path="/chaoxianzu/activity-cn/:id"  element={<NavigateWithId to="/chaoxianzu/zh/activity" />} />
           <Route path="/chaoxianzu/activity-kr/:id"  element={<NavigateWithId to="/chaoxianzu/ko/activity" />} />
           <Route path="/chaoxianzu/admin"         element={<Navigate to="/chaoxianzu/ja/admin" replace />} />
+          <Route path="/assistant/activity/:id"      element={<NavigateWithId to="/assistant/ja/activity" />} />
+          <Route path="/assistant/activity-cn/:id"   element={<NavigateWithId to="/assistant/zh/activity" />} />
+          <Route path="/assistant/admin"          element={<Navigate to="/assistant/ja/admin" replace />} />
 
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

@@ -317,6 +317,19 @@ const EMPTY_ACTIVITY: Omit<Activity, 'id' | 'created_at'> = {
   notes: '当日現金払い または PayPay（ID：shocchance）払い可：600円\n※チャージは2000円から（次回以降の申し込みは「チャージ済み会員」を選択してください。）',
 };
 
+// 会場プリセット（場所名を選択すると住所が自動入力される。一覧のサムネイル画像とも紐づく）
+const VENUE_PRESETS: { name: string; address: string }[] = [
+  { name: '芝園公民館', address: '埼玉県川口市芝園町3-15' },
+  { name: '蕨市民体育館', address: '埼玉県蕨市北町1-27-15' },
+];
+const VENUE_OTHER = 'その他（自由入力）';
+
+// 場所名がプリセットに一致すればそのプリセット名、しなければ「その他」を返す
+const resolveVenueSelect = (location: string): string => {
+  if (!location) return '';
+  return VENUE_PRESETS.some(v => v.name === location) ? location : VENUE_OTHER;
+};
+
 const autoTitle = (date: string, start: string, end: string, location: string) => {
   if (!date || !location) return '';
   const d = new Date(date);
@@ -349,6 +362,8 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [copyToast, setCopyToast] = useState('');
+  // 場所選択: プリセット名 または VENUE_OTHER（その他＝自由入力）
+  const [venueSelect, setVenueSelect] = useState<string>('');
 
   const fetchAll = useCallback(async () => {
     let query = supabase.from('activities').select('*').order('date', { ascending: true });
@@ -414,12 +429,14 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
     setShowForm(false);
     setEditId(null);
     setForm(INITIAL_ACTIVITY);
+    setVenueSelect('');
     fetchAll();
   };
 
   const handleEdit = (a: Activity) => {
     setEditId(a.id);
     setForm({ title: a.title, date: a.date, start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: a.status, address: a.address || '', notes: a.notes || '' });
+    setVenueSelect(resolveVenueSelect(a.location));
     setShowForm(true);
   };
 
@@ -512,7 +529,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
           </button>
         </div>
         <button
-          onClick={() => { setShowForm(true); setEditId(null); setForm(INITIAL_ACTIVITY); }}
+          onClick={() => { setShowForm(true); setEditId(null); setForm(INITIAL_ACTIVITY); setVenueSelect(''); }}
           className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           ＋ 活動を追加
@@ -537,9 +554,32 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">場所名</label>
-              <input type="text" value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
-                placeholder="幸栄公民館"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              <select
+                value={venueSelect}
+                onChange={e => {
+                  const v = e.target.value;
+                  setVenueSelect(v);
+                  if (v === VENUE_OTHER) {
+                    // その他: 場所名・住所とも自由入力にリセット
+                    setForm(p => ({ ...p, location: '', address: '' }));
+                  } else {
+                    const preset = VENUE_PRESETS.find(p => p.name === v);
+                    setForm(p => ({ ...p, location: preset?.name ?? '', address: preset?.address ?? '' }));
+                  }
+                }}
+                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              >
+                <option value="" disabled>選択してください</option>
+                {VENUE_PRESETS.map(v => (
+                  <option key={v.name} value={v.name}>{v.name}</option>
+                ))}
+                <option value={VENUE_OTHER}>{VENUE_OTHER}</option>
+              </select>
+              {venueSelect === VENUE_OTHER && (
+                <input type="text" value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))}
+                  placeholder="幸栄公民館"
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm mt-2 focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">開始時刻</label>
@@ -563,9 +603,14 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">住所</label>
-              <input type="text" value={form.address || ''} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
-                placeholder="埼玉県川口市幸町2-1-1"
-                className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              {venueSelect === VENUE_OTHER || venueSelect === '' ? (
+                <input type="text" value={form.address || ''} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+                  placeholder="埼玉県川口市幸町2-1-1"
+                  className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400" />
+              ) : (
+                <input type="text" value={form.address || ''} readOnly
+                  className="w-full border border-gray-200 bg-gray-50 text-gray-500 rounded-xl px-3 py-2 text-sm cursor-not-allowed" />
+              )}
             </div>
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">支払い方法・備考</label>
@@ -625,14 +670,15 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
               </div>
               <div className="flex gap-2 flex-shrink-0 ml-3 flex-wrap justify-end">
                 {!a.archived_at && <>
-                  <button onClick={() => { const base = groupId ? `/chaoxianzu` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
-                  <button onClick={() => { const base = groupId ? `/chaoxianzu` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
+                  <button onClick={() => { const base = groupSlug ? `/${groupSlug}` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
+                  <button onClick={() => { const base = groupSlug ? `/${groupSlug}` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
                   <button onClick={() => copyWechatText(a, actEntries)} className="text-xs text-purple-500 hover:underline" title="WeChatテキストコピー">📋WeChat</button>
                   <button onClick={() => exportExcel(a, actEntries)} className="text-xs text-green-600 hover:underline" title="Excel出力">📊Excel</button>
                   <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
                   <button onClick={() => {
                     setEditId(null);
                     setForm({ title: '', date: '', start_time: a.start_time, end_time: a.end_time, location: a.location, capacity: a.capacity, price: a.price, status: 'open', address: a.address || '', notes: a.notes || '' });
+                    setVenueSelect(resolveVenueSelect(a.location));
                     setShowForm(true);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }} className="text-xs text-teal-500 hover:underline">📋複製</button>
