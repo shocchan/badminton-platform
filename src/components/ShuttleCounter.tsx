@@ -40,9 +40,9 @@ function ShuttleIcon({
   progress: number;
   pop: boolean;
 }) {
-  const grayscaleAmt = (1 - progress) * 65;
-  const brightnessAmt = 1 + (1 - progress) * 0.12;
-  const saturateAmt = 70 + progress * 70;
+  const grayscaleAmt = filled ? (1 - progress) * 80 : 100;
+  const saturateAmt = filled ? 80 + progress * 220 : 0;
+  const brightnessAmt = filled ? 1 : 1.15;
 
   return (
     <img
@@ -53,10 +53,9 @@ function ShuttleIcon({
         pop ? 'animate-[pop_0.4s_ease-out]' : ''
       }`}
       style={{
-        opacity: filled ? 1 : 0.16,
-        filter: filled
-          ? `grayscale(${grayscaleAmt}%) brightness(${brightnessAmt}) saturate(${saturateAmt}%)`
-          : 'grayscale(100%)',
+        mixBlendMode: 'multiply',
+        opacity: filled ? 1 : 0.22,
+        filter: `grayscale(${grayscaleAmt}%) brightness(${brightnessAmt}) saturate(${saturateAmt}%)`,
       }}
     />
   );
@@ -164,7 +163,7 @@ export default function ShuttleCounter({ locale = 'ja' }: { locale?: ShuttleLoca
             src={ICON_SRC}
             alt=""
             className="absolute top-[-10%] h-4 w-4 animate-[fall_8s_linear_infinite] grayscale"
-            style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s` }}
+            style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s`, mixBlendMode: 'multiply' }}
           />
         ))}
       </div>
