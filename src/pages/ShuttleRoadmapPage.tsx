@@ -43,7 +43,24 @@ export function ShuttleRoadmapPage() {
             <p className="text-sm font-bold text-amber-900">
               {tier.count.toLocaleString()}{locale === 'zh' ? '个' : '個'}
             </p>
-            <p className="mt-1 text-base font-semibold text-amber-950">{tier.items}</p>
+            <div className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-2">
+              {tier.items.map((item, i) => (
+                <span key={item.label} className="inline-flex items-center">
+                  {i > 0 && <span className="mx-1.5 text-amber-300">/</span>}
+                  <span className="inline-flex items-center gap-1.5 text-base font-semibold text-amber-950">
+                    {item.icon && (
+                      <img
+                        src={`/icons/${item.icon}`}
+                        alt={item.label}
+                        className="h-7 w-7 shrink-0 object-contain"
+                        loading="lazy"
+                      />
+                    )}
+                    {item.label}
+                  </span>
+                </span>
+              ))}
+            </div>
             <p className="mt-1 text-sm text-amber-800/70">{tier.caption}</p>
           </div>
         ))}
