@@ -77,7 +77,9 @@ const AnimatedRoutes = () => {
           <Route path="/login"       element={<LoginPage />} />
           <Route path="/cancel"      element={<CancelEntryPage />} />
           <Route path="/results/vol1" element={<Vol1Results />} />
-          <Route path="/ja/results/vol2" element={<Vol2Results />} />
+          <Route path="/results/vol2" element={<Vol2Results />} />
+          <Route path="/:lang/results/vol1" element={<Vol1Results />} />
+          <Route path="/:lang/results/vol2" element={<Vol2Results />} />
 
           {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
           <Route path="/"                         element={<Navigate to="/ja/" replace />} />
