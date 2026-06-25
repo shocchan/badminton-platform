@@ -25,6 +25,7 @@ const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default:
 // assistant グループ用（通常活動のみ管理可能なサブ管理者）
 const AssistantAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="assistant" /> })));
 const Vol1Results = lazy(() => import('./pages/results/Vol1'));
+const Vol2Results = lazy(() => import('./pages/results/Vol2'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 
@@ -76,6 +77,7 @@ const AnimatedRoutes = () => {
           <Route path="/login"       element={<LoginPage />} />
           <Route path="/cancel"      element={<CancelEntryPage />} />
           <Route path="/results/vol1" element={<Vol1Results />} />
+          <Route path="/ja/results/vol2" element={<Vol2Results />} />
 
           {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
           <Route path="/"                         element={<Navigate to="/ja/" replace />} />

@@ -289,6 +289,10 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
               中止
             </div>
+          ) : daysUntil < 0 ? (
+            <div className="w-full bg-gray-100 text-gray-400 font-bold py-3 rounded-xl text-center text-sm">
+              開催終了
+            </div>
           ) : isEntryClosed ? (
             <div className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-xl text-center text-sm cursor-not-allowed">
               申し込み受付終了

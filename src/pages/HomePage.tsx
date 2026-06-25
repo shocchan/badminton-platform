@@ -193,7 +193,8 @@ export const HomePage = () => {
     fetchEntryCounts();
   }, []);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const _now = new Date();
+  const todayStr = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
   const activeTournaments = tournaments
     .filter(t => t.status === 'active' && (t.visibility ?? 'published') === 'published' && t.event_date != null && t.event_date.slice(0, 10) >= todayStr)
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
