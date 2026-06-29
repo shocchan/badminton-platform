@@ -49,7 +49,7 @@ export interface BlogPost {
   image_url?: string;
   image_position?: string;
   tags?: string[];
-  status?: 'draft' | 'published';
+  status?: 'draft' | 'unlisted' | 'published';
   youtube_url?: string;
   external_url?: string;
   published_at: string;

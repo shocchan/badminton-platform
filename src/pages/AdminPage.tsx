@@ -235,6 +235,7 @@ function TagInput({ tags, onChange }: { tags: string[]; onChange: (tags: string[
 function StatusToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const options = [
     { value: 'draft', label: '🔒 下書き', desc: '非公開' },
+    { value: 'unlisted', label: '🔗 限定公開', desc: 'URLのみ' },
     { value: 'published', label: '🌐 公開', desc: '全員に表示' },
   ];
   return (
@@ -248,7 +249,9 @@ function StatusToggle({ value, onChange }: { value: string; onChange: (v: string
             value === opt.value
               ? opt.value === 'published'
                 ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : 'border-gray-400 bg-gray-100 text-gray-700'
+                : opt.value === 'unlisted'
+                  ? 'border-orange-400 bg-orange-50 text-orange-700'
+                  : 'border-gray-400 bg-gray-100 text-gray-700'
               : 'border-gray-200 text-gray-400 hover:border-gray-300'
           }`}
         >
@@ -1863,7 +1866,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">公開ステータス</label>
-                  <StatusToggle value={postForm.status || 'published'} onChange={v => setPostForm(p => ({...p, status: v as 'draft' | 'published'}))} />
+                  <StatusToggle value={postForm.status || 'published'} onChange={v => setPostForm(p => ({...p, status: v as 'draft' | 'unlisted' | 'published'}))} />
                 </div>
                 <div className="flex gap-3 justify-end">
                   <button
@@ -1882,7 +1885,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     {imageUploading && (
                       <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     )}
-                    {imageUploading ? '画像アップロード中...' : postForm.status === 'draft' ? '下書き保存' : '公開する'}
+                    {imageUploading ? '画像アップロード中...' : postForm.status === 'draft' ? '下書き保存' : postForm.status === 'unlisted' ? '限定公開で保存' : '公開する'}
                   </button>
                 </div>
               </form>
@@ -1912,7 +1915,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       <td className="px-4 py-3">
                         {p.status === 'draft'
                           ? <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">🔒 下書き</span>
-                          : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
+                          : p.status === 'unlisted'
+                            ? <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">🔗 限定公開</span>
+                            : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
                         }
                       </td>
                       <td className="px-4 py-3 text-gray-600">{formatDate(p.published_at)}</td>

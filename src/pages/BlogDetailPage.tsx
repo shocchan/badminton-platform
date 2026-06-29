@@ -39,7 +39,7 @@ export const BlogDetailPage = () => {
     );
   }
 
-  if (error || !post) {
+  if (error || !post || post.status === 'draft') {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <p className="text-gray-400">記事が見つかりませんでした</p>
