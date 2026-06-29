@@ -1131,6 +1131,7 @@ const LIST_T: Record<Lang, {
   clearFilter: string;
   price: (p: number) => string;
   detailLink: (id: string, groupSlug: string) => string;
+  wechatMiniProgramNotice: string;
 }> = {
   ja: {
     title: '通常活動',
@@ -1139,6 +1140,7 @@ const LIST_T: Record<Lang, {
     clearFilter: '✕ 絞り込み解除',
     price: (p) => `¥${p.toLocaleString()} / 人`,
     detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity/${id}` : `/${groupSlug}/activity/${id}`,
+    wechatMiniProgramNotice: '小程序（WeChatミニプログラム）でお申し込み済みの方は、こちらでのお申し込みは不要です。重複してのご登録はお控えください。',
   },
   zh: {
     title: '日常活动',
@@ -1147,6 +1149,7 @@ const LIST_T: Record<Lang, {
     clearFilter: '✕ 取消筛选',
     price: (p) => `¥${p.toLocaleString()} / 人`,
     detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity-cn/${id}?from=wechat` : `/${groupSlug}/activity-cn/${id}?from=wechat`,
+    wechatMiniProgramNotice: '已通过小程序报名的用户，无需在此重复报名。请勿重复提交申请。',
   },
   ko: {
     title: '배드민턴 모임',
@@ -1155,6 +1158,7 @@ const LIST_T: Record<Lang, {
     clearFilter: '✕ 필터 해제',
     price: (p) => `¥${p.toLocaleString()} / 명`,
     detailLink: (id, groupSlug) => `/${groupSlug}/activity-kr/${id}`,
+    wechatMiniProgramNotice: '',
   },
 };
 
@@ -1276,6 +1280,12 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
         </div>
 
         <div>
+          {t.wechatMiniProgramNotice && (
+            <div className="flex gap-3 items-start bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-xl px-4 py-3 mb-4 text-sm leading-relaxed">
+              <span className="text-lg shrink-0">⚠️</span>
+              <p>{t.wechatMiniProgramNotice}</p>
+            </div>
+          )}
           {displayed.length === 0 ? (
             <p className="text-center py-12 text-gray-400">
               {selectedDate ? t.emptyDate : t.empty}
