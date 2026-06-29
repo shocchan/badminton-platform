@@ -1916,7 +1916,14 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                         {p.status === 'draft'
                           ? <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">🔒 下書き</span>
                           : p.status === 'unlisted'
-                            ? <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">🔗 限定公開</span>
+                            ? <span className="inline-flex items-center gap-1">
+                                <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">🔗 限定公開</span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`https://kawabado.com/ja/blog/${p.id}`); (e.target as HTMLButtonElement).textContent = '✓'; setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'URL'; }, 1500); }}
+                                  className="text-[11px] px-1.5 py-0.5 rounded bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 transition-colors"
+                                >URL</button>
+                              </span>
                             : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
                         }
                       </td>
