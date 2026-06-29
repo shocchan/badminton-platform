@@ -456,7 +456,7 @@ export default function TacticsBoard() {
     setPreviewArrow(null);
   }, [tool, getCourtPos, players, pushHistory]);
 
-  const onCurveHandleDown = useCallback((e: React.PointerEvent, arrowId: string) => {
+  const onCurveHandleDown = useCallback((_e: React.PointerEvent, arrowId: string) => {
     curveDragging.current = arrowId;
     dragStartSnapshot.current = { players, arrows };
   }, [players, arrows]);
