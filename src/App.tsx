@@ -28,6 +28,7 @@ const Vol1Results = lazy(() => import('./pages/results/Vol1'));
 const Vol2Results = lazy(() => import('./pages/results/Vol2'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
+const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -58,6 +59,7 @@ const AnimatedRoutes = () => {
             <Route path="blog/:id"        element={<BlogDetailPage />} />
             <Route path="join"            element={<JoinPage />} />
             <Route path="shuttle-roadmap" element={<ShuttleRoadmapPage />} />
+            <Route path="tactics-board"  element={<TacticsBoardPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}
