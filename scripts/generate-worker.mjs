@@ -109,9 +109,13 @@ export default {
     }
 
     // HTMLルートはWorkerに埋め込まれたindex.htmlを返す
+    // HTMLは常に最新を取りに行かせる（中のJS/CSSはハッシュ付きURLなので安全に長期キャッシュできる）
     return new Response(INDEX_HTML, {
       status: 200,
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Cache-Control': 'no-cache, must-revalidate',
+      },
     });
   },
 };
