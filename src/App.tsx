@@ -26,6 +26,7 @@ const CXAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default:
 const AssistantAdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: () => <m.AdminPage groupSlug="assistant" /> })));
 const Vol1Results = lazy(() => import('./pages/results/Vol1'));
 const Vol2Results = lazy(() => import('./pages/results/Vol2'));
+const Vol3Results = lazy(() => import('./pages/results/Vol3'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
@@ -80,8 +81,10 @@ const AnimatedRoutes = () => {
           <Route path="/cancel"      element={<CancelEntryPage />} />
           <Route path="/results/vol1" element={<Vol1Results />} />
           <Route path="/results/vol2" element={<Vol2Results />} />
+          <Route path="/results/vol3" element={<Vol3Results />} />
           <Route path="/:lang/results/vol1" element={<Vol1Results />} />
           <Route path="/:lang/results/vol2" element={<Vol2Results />} />
+          <Route path="/:lang/results/vol3" element={<Vol3Results />} />
 
           {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
           <Route path="/"                         element={<Navigate to="/ja/" replace />} />
