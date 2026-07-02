@@ -307,15 +307,12 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
   const handleCopy = () => {
     const confirmed = entries.filter(e => e.status === 'confirmed');
     const waitlist = entries.filter(e => e.status === 'waitlist');
-    const suffixes = ['①', '②', '③'];
 
     const expand = (list: ActivityEntry[]) =>
-      list.flatMap(e =>
-        Array.from({ length: e.quantity }, (_, i) => ({
-          name: e.quantity > 1 ? `${e.name}${suffixes[i] ?? i + 1}` : e.name,
-          notes: [e.member_type === 'member' ? 'チャージ済み' : '', e.notes || ''].filter(Boolean).join(' '),
-        }))
-      );
+      expandEntries(list).map(e => ({
+        name: e.displayName,
+        notes: [e.member_type === 'member' ? 'チャージ済み' : '', e.notes || ''].filter(Boolean).join(' '),
+      }));
 
     const confirmedRows = expand(confirmed);
     const waitlistRows = expand(waitlist);
