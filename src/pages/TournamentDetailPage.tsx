@@ -4,6 +4,8 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { PreEntryModal } from '../components/PreEntryModal';
 import { EntryForm } from '../components/EntryForm';
+import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 
@@ -147,33 +149,11 @@ export const TournamentDetailPage = () => {
   const pageTitle = `${tournament.title} | 川口・蕨バドミントン交流会`;
   const pageDesc = `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${tournament.entry_fee}円。${tournament.level}クラス。`;
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'SportsEvent',
-    name: tournament.title,
-    startDate: `${tournament.event_date}T${tournament.start_time}+09:00`,
-    endDate: `${tournament.event_date}T${tournament.end_time}+09:00`,
-    location: {
-      '@type': 'Place',
-      name: tournament.location,
-      address: {
-        '@type': 'PostalAddress',
-        addressRegion: '埼玉県',
-        streetAddress: tournament.venue_address ?? '',
-        addressCountry: 'JP',
-      },
-    },
-    organizer: {
-      '@type': 'Organization',
-      name: '川口・蕨バドミントン交流会',
-    },
-    offers: {
-      '@type': 'Offer',
-      price: tournament.entry_fee,
-      priceCurrency: 'JPY',
-      url: `https://kawabado.com/tournaments/${tournament.id}`,
-    },
-  };
+  const eventSchemaProps = tournamentToEventSchemaProps(tournament, {
+    entryUrl: `https://kawabado.com/ja/tournaments/${tournament.id}`,
+    image: 'https://kawabado.com/ogp.jpg',
+    availability: tournament.status === 'cancelled' ? 'SoldOut' : remaining <= 0 ? 'SoldOut' : 'InStock',
+  });
 
   const shareLabels = lang === 'zh'
     ? { line: '分享到LINE', wechat: '微信分享' }
@@ -228,9 +208,13 @@ export const TournamentDetailPage = () => {
         <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="zh" href={`https://kawabado.com/zh/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
       </Helmet>
+      <EventSchema {...eventSchemaProps} />
     <main className="max-w-2xl mx-auto px-4 py-8">
+      <Breadcrumbs items={[
+        { label: lang === 'zh' ? '首页' : 'ホーム', path: `/${lang}/` },
+        { label: tournament.title },
+      ]} />
       {/* 戻るボタン */}
       <button onClick={() => navigate(-1)} className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 mb-6 transition-colors">
         ← 大会一覧に戻る

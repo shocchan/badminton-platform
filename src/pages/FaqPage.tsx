@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const faqs = [
@@ -183,6 +184,10 @@ export const FaqPage = () => {
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[
+        { label: lang === 'ja' ? 'ホーム' : '首页', path: `/${lang}/` },
+        { label: lang === 'ja' ? 'よくある質問' : '常见问题' },
+      ]} />
       {/* タイトル */}
       <div className="text-center mb-10">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">

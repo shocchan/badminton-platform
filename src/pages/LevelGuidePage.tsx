@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type LevelData = {
@@ -267,6 +268,10 @@ export const LevelGuidePage = () => {
         <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/level-guide" />
       </Helmet>
     <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[
+        { label: lang === 'ja' ? 'ホーム' : '首页', path: `/${lang}/` },
+        { label: lang === 'ja' ? 'クラス案内' : '级别说明' },
+      ]} />
       {/* タイトル */}
       <div className="text-center mb-10">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 
 type RuleItem = { heading: string; body: string; level: string };
@@ -181,6 +182,10 @@ export const CancelPolicyPage = () => {
   const rules = lang === 'zh' ? rulesZh : rulesJa;
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
+      <Breadcrumbs items={[
+        { label: lang === 'ja' ? 'ホーム' : '首页', path: `/${lang}/` },
+        { label: lang === 'ja' ? 'キャンセルポリシー' : '取消政策' },
+      ]} />
       {/* タイトル */}
       <div className="text-center mb-10">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 mb-3">

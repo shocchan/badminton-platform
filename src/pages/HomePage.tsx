@@ -8,6 +8,7 @@ import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
 import { EntryForm } from '../components/EntryForm';
 import { PreEntryModal } from '../components/PreEntryModal';
+import { GeneralFaqSection } from '../components/GeneralFaqSection';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament } from '../types';
 
@@ -236,10 +237,22 @@ export const HomePage = () => {
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': 'https://kawabado.com/#organization',
     name: '川口・蕨バドミントン交流会',
     url: 'https://kawabado.com',
+    logo: 'https://kawabado.com/favicon.png',
     areaServed: ['川口市', '蕨市'],
     sport: 'バドミントン',
+  };
+
+  const websiteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': 'https://kawabado.com/#website',
+    name: '川口・蕨バドミントン交流会',
+    url: 'https://kawabado.com',
+    inLanguage: ['ja', 'zh'],
+    publisher: { '@id': 'https://kawabado.com/#organization' },
   };
 
   return (
@@ -256,6 +269,7 @@ export const HomePage = () => {
         <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/" />
         <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/" />
         <script type="application/ld+json">{JSON.stringify(orgJsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(websiteJsonLd)}</script>
       </Helmet>
     <main>
       {/* ヒーローセクション */}
@@ -544,6 +558,8 @@ export const HomePage = () => {
           </Link>
         </div>
       </div>
+
+      <GeneralFaqSection lang={lang} />
 
       {preEntryTournament && !selectedTournament && (
         <PreEntryModal

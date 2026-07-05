@@ -1,5 +1,7 @@
 import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
+import { EventSchema } from '../../components/seo/EventSchema'
+import { Breadcrumbs } from '../../components/Breadcrumbs'
 
 const t = {
   ja: {
@@ -63,6 +65,7 @@ function isWin(score: string): boolean {
 export default function Vol1Results() {
   const { lang } = useParams<{ lang?: string }>()
   const l = lang === 'zh' ? t.zh : t.ja
+  const homeLang = lang === 'zh' ? 'zh' : 'ja'
 
   return (
     <>
@@ -70,9 +73,31 @@ export default function Vol1Results() {
         <title>{l.title}</title>
         <meta name="description" content={l.desc} />
       </Helmet>
+      <EventSchema
+        name="第1回 川口・蕨バド交流大会（シングルス）"
+        startDate="2026-06-18"
+        endDate="2026-06-18"
+        eventStatus="EventScheduled"
+        location={{
+          name: '芝園公民館',
+          streetAddress: '埼玉県川口市芝園町3-15',
+          addressLocality: '川口市',
+        }}
+        offers={{
+          price: 1500,
+          availability: 'SoldOut',
+          url: `https://kawabado.com/${homeLang}/results/vol1`,
+        }}
+        description={l.desc}
+      />
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className="mb-8">
+          <Breadcrumbs items={[
+            { label: homeLang === 'zh' ? '首页' : 'ホーム', path: `/${homeLang}/` },
+            { label: homeLang === 'zh' ? '博客' : 'ブログ', path: `/${homeLang}/blog` },
+            { label: l.heading + ' ' + l.sub },
+          ]} />
           <p className="text-sm text-gray-500 mb-1">{l.date}</p>
           <h1 className="text-2xl font-bold text-gray-900">
             {l.heading}<br />
