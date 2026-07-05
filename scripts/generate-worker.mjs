@@ -104,8 +104,18 @@ export default {
     if (hasExtension && !pathname.endsWith('.html')) {
       try {
         const assetResponse = await env.ASSETS.fetch(request);
-        if (assetResponse.status < 400) return assetResponse;
+        // _redirects のSPAフォールバックにより、存在しないアセットには index.html が
+        // 200で返ってくる。それをそのまま返すと _headers の immutable ルールで
+        // 「JSのURLに中身がHTML」がエッジに1年キャッシュされる事故になるため、
+        // Content-Type が HTML のものはアセットとして返さない。
+        const ct = (assetResponse.headers.get('Content-Type') || '');
+        if (assetResponse.status < 400 && !ct.includes('text/html')) return assetResponse;
       } catch (_) {}
+      // 見つからないアセットは index.html にフォールバックせず、キャッシュ不可の404を返す
+      return new Response('Not Found', {
+        status: 404,
+        headers: { 'Cache-Control': 'no-store' },
+      });
     }
 
     // HTMLルートはWorkerに埋め込まれたindex.htmlを返す

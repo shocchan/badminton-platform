@@ -87,8 +87,8 @@ export const EventSchema = ({
         url: offers.url,
       },
     }),
-    ...(image && { image: Array.isArray(image) ? image : [image] }),
     ...(description && { description }),
+    ...(image && { image: Array.isArray(image) ? image : [image] }),
   };
 
   return (
