@@ -28,6 +28,7 @@ const Vol1Results = lazy(() => import('./pages/results/Vol1'));
 const Vol2Results = lazy(() => import('./pages/results/Vol2'));
 const Vol3Results = lazy(() => import('./pages/results/Vol3'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
+const VenueGuidePage      = lazy(() => import('./pages/VenueGuidePage').then(m => ({ default: m.VenueGuidePage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
 
@@ -53,6 +54,7 @@ const AnimatedRoutes = () => {
             <Route path="activity/:id"    element={<ActivityPage groupSlug="kawaguchi-warabi" />} />
             <Route path="tournaments/:id" element={<TournamentDetailPage />} />
             <Route path="faq"             element={<FaqPage />} />
+            <Route path="venues"          element={<VenueGuidePage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
             <Route path="admin"           element={<AdminPage />} />

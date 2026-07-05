@@ -44,6 +44,9 @@ export const Footer = () => {
               <Link to="/faq" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <span className="text-gray-600">›</span> {lang === 'ja' ? '大会FAQ' : '赛事常见问题'}
               </Link>
+              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/venues`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <span className="text-gray-600">›</span> {lang === 'ja' ? '会場ガイド' : '会场指南'}
+              </Link>
               <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <span className="text-gray-600">›</span> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>
