@@ -72,6 +72,12 @@ export const EventSchema = ({
       name: organizer.name,
       url: organizer.url,
     },
+    // 大会参加者は不特定多数のため、主催コミュニティを performer として記載
+    // （Google推奨フィールド。欠落すると「重大ではない問題」警告が出る）
+    performer: {
+      '@type': 'PerformingGroup',
+      name: organizer.name,
+    },
     ...(offers && {
       offers: {
         '@type': 'Offer',
