@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
+import { EventSchema } from '../components/seo/EventSchema';
+import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
 
@@ -695,7 +697,51 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       ? '备注（选填）例：我是第一次参加。'
       : '備考（任意）例：初参加です。';
 
+  const timeRange = `${activity.start_time.slice(0, 5)}〜${activity.end_time.slice(0, 5)}`;
+  const detailUrl = `https://kawabado.com${basePath}/${lang}/activity/${activity.id}`;
+  const detailMeta = lang === 'zh'
+    ? {
+        title: `${activity.title} | 川口・蕨羽毛球日常活动`,
+        desc: `${formatDate(activity.date, 'zh')} ${timeRange} 在${activity.location}举办的羽毛球日常活动。参加费${activity.price}日元（含羽毛球费用）。可通过本页面在线报名。`,
+      }
+    : {
+        title: `${activity.title} | 川口・蕨バドミントン通常活動`,
+        desc: `${formatDate(activity.date, 'ja')} ${timeRange} ${activity.location}で開催するバドミントン通常活動。参加費${activity.price}円（シャトル代込み）。このページからそのまま申し込めます。`,
+      };
+  // assistant グループの活動一覧は川口・蕨の一覧に統合表示されている
+  const listPath = groupSlug === 'chaoxianzu'
+    ? `/chaoxianzu/${lang}/activity`
+    : `/${lang === 'ko' ? 'ja' : lang}/activity`;
+
   return (
+    <>
+      <Helmet>
+        <title>{detailMeta.title}</title>
+        <meta name="description" content={detailMeta.desc} />
+        <meta property="og:title" content={detailMeta.title} />
+        <meta property="og:description" content={detailMeta.desc} />
+        <meta property="og:url" content={detailUrl} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : lang === 'ko' ? 'ko_KR' : 'ja_JP'} />
+        <link rel="canonical" href={detailUrl} />
+        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com${basePath}/ja/activity/${activity.id}`} />
+        <link rel="alternate" hrefLang="zh" href={`https://kawabado.com${basePath}/zh/activity/${activity.id}`} />
+        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com${basePath}/ja/activity/${activity.id}`} />
+      </Helmet>
+      <EventSchema
+        name={activity.title}
+        startDate={`${activity.date}T${activity.start_time.slice(0, 5)}:00+09:00`}
+        endDate={`${activity.date}T${activity.end_time.slice(0, 5)}:00+09:00`}
+        location={{
+          name: activity.location,
+          streetAddress: activity.address,
+        }}
+        offers={{
+          price: activity.price,
+          availability: isClosed || isFull ? 'SoldOut' : 'InStock',
+          url: detailUrl,
+        }}
+        description={detailMeta.desc}
+      />
     <main className="max-w-lg mx-auto px-4 pb-28 pt-0">
       {shareToast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-xs px-4 py-2 rounded-xl shadow-lg whitespace-nowrap">
@@ -1039,7 +1085,17 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
           </button>
         </div>
       </div>
+
+      <Breadcrumbs
+        className="mt-6 mb-0"
+        items={[
+          { label: lang === 'zh' ? '首页' : 'ホーム', path: `/${lang === 'ko' ? 'ja' : lang}/` },
+          { label: lang === 'zh' ? '日常活动' : lang === 'ko' ? '정기 활동' : '通常活動', path: listPath },
+          { label: activity.title },
+        ]}
+      />
     </main>
+    </>
   );
 };
 
@@ -1253,9 +1309,22 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
         <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/activity" />
       </Helmet>
     <main className="max-w-5xl mx-auto px-4 py-8">
+      {isMainGroup && (
+        <Breadcrumbs items={[
+          { label: effectiveLang === 'zh' ? '首页' : 'ホーム', path: `/${effectiveLang === 'ko' ? 'ja' : effectiveLang}/` },
+          { label: effectiveLang === 'zh' ? '日常活动' : '通常活動' },
+        ]} />
+      )}
       <h1 className="text-2xl font-bold text-gray-900 mb-1">{t.title}</h1>
       {groupSlug !== 'kawaguchi-warabi' && (
         <p className="text-sm text-gray-500 mb-4">{group.name}</p>
+      )}
+      {isMainGroup && (
+        <p className="text-sm text-gray-500 leading-relaxed mb-5 max-w-3xl">
+          {effectiveLang === 'zh'
+            ? '川口市・蕨市地区羽毛球社团「川口・蕨羽毛球交流会」的日常活动列表。主要在平日晚上于芝园公民馆・蕨市民体育馆等场地举办。参加费600日元起（含羽毛球费用），欢迎初学者和一个人参加，运营可中文沟通。选择想参加的日期即可直接报名。'
+            : '川口市・蕨市エリアのバドミントンサークル「川口・蕨バドミントン交流会」の通常活動一覧です。平日夜を中心に芝園公民館・蕨市民体育館などで開催。参加費600円〜（シャトル代込み）、初心者・お一人での参加も歓迎、中国語対応可。参加したい日を選んでそのまま申し込めます。'}
+        </p>
       )}
 
       <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-6 lg:items-start">

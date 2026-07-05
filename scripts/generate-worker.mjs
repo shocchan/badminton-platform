@@ -22,28 +22,40 @@ async function generateSitemap(env) {
     { path: 'level-guide',   priority: '0.8', freq: 'monthly' },
     { path: 'faq',           priority: '0.8', freq: 'monthly' },
     { path: 'blog',          priority: '0.7', freq: 'weekly' },
+    { path: 'join',          priority: '0.6', freq: 'monthly' },
+    { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },
+    { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
+    { path: 'results/vol3',  priority: '0.6', freq: 'yearly' },
     { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
   ];
 
   const langs = ['ja', 'zh'];
   let urls = '';
 
-  // Supabase REST API で公開中の大会を取得（失敗しても静的URLは返す）
+  // Supabase REST API で公開中の大会・通常活動を取得（失敗しても静的URLは返す）
   let tournaments = [];
+  let activities = [];
   try {
     const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
     const supabaseKey = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
     if (supabaseUrl && supabaseKey) {
+      const headers = {
+        apikey: supabaseKey,
+        Authorization: 'Bearer ' + supabaseKey,
+      };
       const res = await fetch(
         supabaseUrl + '/rest/v1/tournaments?select=id,updated_at&visibility=eq.published',
-        {
-          headers: {
-            apikey: supabaseKey,
-            Authorization: 'Bearer ' + supabaseKey,
-          },
-        }
+        { headers }
       );
       if (res.ok) tournaments = await res.json();
+
+      // 開催予定の通常活動（キャンセル・アーカイブ済みを除く）
+      const today = new Date().toISOString().slice(0, 10);
+      const actRes = await fetch(
+        supabaseUrl + '/rest/v1/activities?select=id,date&status=neq.cancelled&archived_at=is.null&date=gte.' + today,
+        { headers }
+      );
+      if (actRes.ok) activities = await actRes.json();
     }
   } catch (_) {}
 
@@ -57,6 +69,9 @@ async function generateSitemap(env) {
     for (const t of tournaments) {
       const lastmod = t.updated_at ? t.updated_at.slice(0, 10) : '';
       urls += '\\n  <url>\\n    <loc>https://kawabado.com/' + lang + '/tournaments/' + t.id + '</loc>' + (lastmod ? '\\n    <lastmod>' + lastmod + '</lastmod>' : '') + '\\n    <changefreq>daily</changefreq>\\n    <priority>0.9</priority>\\n  </url>';
+    }
+    for (const a of activities) {
+      urls += '\\n  <url>\\n    <loc>https://kawabado.com/' + lang + '/activity/' + a.id + '</loc>\\n    <changefreq>daily</changefreq>\\n    <priority>0.8</priority>\\n  </url>';
     }
   }
 
