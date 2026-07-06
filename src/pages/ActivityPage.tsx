@@ -3,6 +3,7 @@ import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'reac
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { EventSchema } from '../components/seo/EventSchema';
+import { FAQSchema } from '../components/seo/FAQSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
@@ -1294,6 +1295,25 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
     ? { title: '常规活动列表 | 川口・蕨羽毛球交流会', description: '在川口市・蕨市公民馆举办的羽毛球常规活动列表。参加费600日元起。' }
     : { title: '通常活動 一覧 | 川口・蕨バドミントン交流会', description: '川口市・蕨市の公民館で開催するバドミントン通常活動の一覧。芝園公民館・幸栄公民館など。参加費600円〜。' };
 
+  // 通常活動向けFAQ（検索流入用。FAQPageスキーマ付き）
+  const activityFaq = effectiveLang === 'zh'
+    ? [
+        { question: '初学者也可以参加日常活动吗？', answer: '非常欢迎。不是教学形式，而是自由练习型活动，从初学者到高级选手都能按自己的节奏享受羽毛球。很久没打球的朋友也请放心参加。' },
+        { question: '一个人参加也没问题吗？', answer: '完全没问题。大多数参加者都是一个人报名的。这里汇集了中国、越南、印度尼西亚、菲律宾等多国成员，很快就能融入。' },
+        { question: '参加费是多少？', answer: '每次600日元起，已包含羽毛球费用。详情请查看各活动页面。' },
+        { question: '需要带什么？', answer: '只需球拍和室内运动鞋。羽毛球由我们准备。' },
+        { question: '在哪里举办？', answer: '主要在JR蕨站步行可达的芝园公民馆（川口市）和蕨市民体育馆（蕨市）举办，以平日晚上为主。' },
+        { question: '不会日语也能参加吗？', answer: '可以。我们支持中文咨询和报名，也可以通过微信联系。' },
+      ]
+    : [
+        { question: '初心者でも通常活動に参加できますか？', answer: '大歓迎です。レッスン形式ではなく自由練習型なので、初心者から上級者まで自分のペースで楽しめます。ブランクのある方も安心してご参加ください。' },
+        { question: '一人で参加しても大丈夫ですか？', answer: '大丈夫です。参加者の多くがお一人での参加です。中国・ベトナム・インドネシア・フィリピンなど多国籍なメンバーが集まっており、すぐに打ち解けられます。' },
+        { question: '参加費はいくらですか？', answer: '1回600円〜で、シャトル代込みです。詳細は各活動ページをご確認ください。' },
+        { question: '持ち物は何が必要ですか？', answer: 'ラケットと体育館用シューズのみでOKです。シャトルはこちらで用意します。' },
+        { question: 'どこで開催していますか？', answer: 'JR蕨駅から徒歩圏内の芝園公民館（川口市）・蕨市民体育館（蕨市）を中心に、平日夜がメインです。' },
+        { question: '日本語が苦手でも参加できますか？', answer: '参加できます。中国語でのお問い合わせ・お申し込みに対応しており、WeChatからのご連絡も可能です。' },
+      ];
+
   return (
     <>
       <Helmet>
@@ -1397,6 +1417,30 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
           )}
         </div>
       </div>
+
+      {/* 通常活動FAQ（メイングループのみ・SEO用FAQPageスキーマ付き） */}
+      {isMainGroup && (
+        <section className="mt-14 max-w-3xl">
+          <FAQSchema items={activityFaq} />
+          <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4">
+            {effectiveLang === 'zh' ? '❓ 日常活动常见问题' : '❓ 通常活動のよくある質問'}
+          </h2>
+          <div className="space-y-2">
+            {activityFaq.map(f => (
+              <details key={f.question} className="group bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4">
+                <summary className="flex items-start justify-between gap-4 cursor-pointer list-none">
+                  <span className="flex items-start gap-3">
+                    <span className="text-emerald-600 font-extrabold text-sm flex-shrink-0 mt-0.5">Q.</span>
+                    <span className="font-bold text-gray-800 text-sm sm:text-base">{f.question}</span>
+                  </span>
+                  <span className="flex-shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180">▼</span>
+                </summary>
+                <p className="text-sm text-gray-600 leading-relaxed mt-3 pt-3 border-t border-gray-100">{f.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      )}
     </main>
     </>
   );
