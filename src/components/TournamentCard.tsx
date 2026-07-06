@@ -63,7 +63,7 @@ const defaultConfig: LevelConfig = {
 };
 
 export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
-  const cardRef = useRef<HTMLAnchorElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
@@ -159,10 +159,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   return (
     <>
-    <Link
-      to={`/tournaments/${tournament.id}`}
+    {/* アンカー入れ子（hydrationエラー）回避のため、カード本体はdiv +
+        タイトルLinkの::afterをカード全体に広げるstretched linkパターン。
+        ボタン・地図リンク等は relative z-10 でLinkレイヤーの上に置く */}
+    <div
       ref={cardRef}
-      className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col group ${
+      className={`relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col group ${
         visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       }`}
     >
@@ -178,10 +180,13 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
               const rest = tournament.title.replace(SERIES, '').trim();
               const mainTitle = rest || tournament.title;
               return (
-                <>
+                <Link
+                  to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${tournament.id}`}
+                  className="block after:absolute after:inset-0 after:content-['']"
+                >
                   <div className="text-xs text-gray-400 font-medium mb-0.5">{seriesLabel}</div>
                   <div className={`${config.titleColor} font-bold text-base sm:text-lg`}>{mainTitle}</div>
-                </>
+                </Link>
               );
             })()}
           </h3>
@@ -208,7 +213,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           {/* シェアボタン */}
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); setShowShareModal(true); }}
-            className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${config.shareBtn}`}
+            className={`relative z-10 flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${config.shareBtn}`}
             aria-label="この大会をシェア"
           >
             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -261,7 +266,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           target="_blank"
           rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
+          className="relative z-10 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
         >
           <span>🗺️</span>
           <span className="font-medium">{tournament.location} の地図を見る</span>
@@ -279,12 +284,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
         {tournament.description && (
           <div
-            className="text-sm text-gray-600 mb-5 prose prose-sm max-w-none"
+            className="relative z-10 text-sm text-gray-600 mb-5 prose prose-sm max-w-none"
             dangerouslySetInnerHTML={{ __html: tournament.description }}
           />
         )}
 
-        <div className="mt-auto">
+        <div className="relative z-10 mt-auto">
           {tournament.status !== 'active' ? (
             <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
               中止
@@ -316,7 +321,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           )}
         </div>
       </div>
-    </Link>
+    </div>
 
       {/* トースト */}
       {shareToast && (

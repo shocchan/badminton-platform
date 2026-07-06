@@ -22,6 +22,7 @@ async function generateSitemap(env) {
     { path: 'level-guide',   priority: '0.8', freq: 'monthly' },
     { path: 'faq',           priority: '0.8', freq: 'monthly' },
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
+    { path: 'contact',       priority: '0.6', freq: 'monthly' },
     { path: 'blog',          priority: '0.7', freq: 'weekly' },
     { path: 'join',          priority: '0.6', freq: 'monthly' },
     { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },

@@ -50,6 +50,9 @@ export const Footer = () => {
               <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <span className="text-gray-600">›</span> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>
+              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/contact`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <span className="text-gray-600">›</span> {lang === 'ja' ? 'お問い合わせ・スポンサー窓口' : '联系我们・赞助合作'}
+              </Link>
             </nav>
           </div>
 

@@ -29,6 +29,7 @@ const Vol2Results = lazy(() => import('./pages/results/Vol2'));
 const Vol3Results = lazy(() => import('./pages/results/Vol3'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const VenueGuidePage      = lazy(() => import('./pages/VenueGuidePage').then(m => ({ default: m.VenueGuidePage })));
+const ContactPage         = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
 
@@ -55,6 +56,7 @@ const AnimatedRoutes = () => {
             <Route path="tournaments/:id" element={<TournamentDetailPage />} />
             <Route path="faq"             element={<FaqPage />} />
             <Route path="venues"          element={<VenueGuidePage />} />
+            <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
             <Route path="admin"           element={<AdminPage />} />
@@ -96,6 +98,7 @@ const AnimatedRoutes = () => {
           <Route path="/activity-cn/:id"          element={<NavigateWithId to="/zh/activity" />} />
           <Route path="/tournaments/:id"          element={<NavigateWithId to="/ja/tournaments" />} />
           <Route path="/faq"                      element={<Navigate to="/ja/faq" replace />} />
+          <Route path="/contact"                  element={<Navigate to="/ja/contact" replace />} />
           <Route path="/level-guide"              element={<Navigate to="/ja/level-guide" replace />} />
           <Route path="/cancel-policy"            element={<Navigate to="/ja/cancel-policy" replace />} />
           <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
