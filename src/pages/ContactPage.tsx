@@ -6,6 +6,9 @@ import { supabase } from '../services/supabaseClient';
 
 type Category = 'activity' | 'tournament' | 'sponsor' | 'other';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
+
 const I18N = {
   ja: {
     metaTitle: 'お問い合わせ・スポンサー窓口 | 川口・蕨バドミントン交流会',
@@ -159,6 +162,23 @@ export const ContactPage = () => {
         lang: l,
       }]);
       if (insertError) throw insertError;
+
+      // info@ への通知メール（失敗しても問い合わせ自体は保存済みなので送信成功扱い）
+      fetch(`${EDGE_BASE}/notify-contact`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          category: formData.category,
+          message: formData.message.trim(),
+          lang: l,
+        }),
+      }).catch(() => { /* 通知失敗は無視 */ });
+
       setDone(true);
     } catch (err) {
       console.error(err);
