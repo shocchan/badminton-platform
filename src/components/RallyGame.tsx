@@ -484,7 +484,7 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
   useEffect(() => {
     // 開発時のみ: 自動テストからシミュレーション状態と finish 関数を公開する
     if (import.meta.env.DEV) {
-      (window as unknown as { __rallySim?: Sim; __finishGame?: (text: string) => void }).__rallySim = simRef.current;
+      (window as unknown as { __rallySim?: Sim; __finishGame?: (text: string) => void }).__rallySim = simRef.current ?? undefined;
       (window as unknown as { __finishGame?: (text: string) => void }).__finishGame = finish;
     }
   }, []);

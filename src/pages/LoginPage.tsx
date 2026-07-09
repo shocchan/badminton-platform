@@ -4,6 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
 import { PasswordInput } from '../components/PasswordInput';
 import { translations } from '../locales/translations';
+import { supabase } from '../services/supabaseClient';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -22,7 +23,8 @@ export const LoginPage = () => {
 
     try {
       await login(email, password);
-      navigate(`/${lang}/mypage`);
+      const { data: isAdmin } = await supabase.rpc('is_admin');
+      navigate(`/${lang}/${isAdmin ? 'admin' : 'mypage'}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errorLoginFailed);
     } finally {

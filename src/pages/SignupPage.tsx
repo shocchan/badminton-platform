@@ -51,9 +51,8 @@ export const SignupPage = () => {
         const { error: insertErr } = await supabase
           .from('members')
           .insert({
-            user_id: authData.user.id,
-            email: email.trim(),
             name: name.trim(),
+            charge_balance: 0,
             active: true,
           });
 
