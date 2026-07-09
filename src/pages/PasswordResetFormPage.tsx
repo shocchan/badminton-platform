@@ -13,7 +13,8 @@ export const PasswordResetFormPage = () => {
   const [sessionError, setSessionError] = useState(false);
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const t = translations[lang].passwordResetForm;
+  const safeLang = (lang === 'zh' ? 'zh' : 'ja') as 'ja' | 'zh';
+  const t = translations[safeLang].passwordResetForm;
 
   useEffect(() => {
     // セッションの確認（リセットリンク経由でのみアクセス可能）

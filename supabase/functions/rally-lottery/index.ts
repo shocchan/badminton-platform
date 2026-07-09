@@ -165,6 +165,22 @@ serve(async (req) => {
         game_play_id: play.id,
       });
       if (couponErr) throw couponErr;
+
+      // 当選通知メール送信
+      try {
+        const prizeLabel = prizeType === "ramen" ? "ラーメン無料券" : "バド活動無料券";
+        await supabase.functions.invoke("send-lottery-notification", {
+          body: {
+            deviceUuid,
+            prizeType,
+            prizeLabel,
+            rallyCount,
+          },
+        });
+      } catch (emailErr) {
+        console.error("[rally-lottery] email error:", emailErr);
+        // メール送信エラーは無視（抽選結果は確定）
+      }
     }
 
     const body: LotteryResponse = { drawCount, isWinner, prizeType, dailyLimited };

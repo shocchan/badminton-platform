@@ -13,17 +13,36 @@ import {
   type LotteryResult,
 } from '../services/rallyLottery';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useAuth } from '../hooks/useAuth';
 
 /** リザルト画面を見せてから抽選モーダルを出すまでの間 */
 const LOTTERY_DELAY_MS = 1400;
 
 export default function RallyGamePage() {
   const { lang } = useLanguage();
+  const { user } = useAuth();
   const locale = lang === 'zh' ? 'zh' : 'ja';
   const [lottery, setLottery] = useState<LotteryResult | null>(null);
 
   const handleGameEnd = (rallyCount: number) => {
     if (rallyCount < 1) return;
+
+    // テストモード: test@example.com は必ず当選
+    const isTestUser = user?.email === 'test@example.com';
+
+    if (isTestUser && rallyCount >= RALLIES_PER_DRAW) {
+      const delay = new Promise((res) => setTimeout(res, LOTTERY_DELAY_MS));
+      delay.then(() => {
+        setLottery({
+          drawCount: Math.floor(rallyCount / RALLIES_PER_DRAW),
+          isWinner: true,
+          prizeType: 'ramen',
+          dailyLimited: false,
+        });
+      });
+      return;
+    }
+
     // プレイ記録と抽選はサーバーに任せる（15ラリー未満は抽選0回で記録のみ）
     const delay = new Promise((res) => setTimeout(res, LOTTERY_DELAY_MS));
     Promise.all([drawRallyLottery(rallyCount), delay])

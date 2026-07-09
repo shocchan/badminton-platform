@@ -468,10 +468,6 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
     phaseRef.current = 'playing';
     setPhase('playing');
     beep(660, 80);
-    // 開発時のみ: 自動テストからシミュレーション状態を覗けるようにする
-    if (import.meta.env.DEV) {
-      (window as unknown as { __rallySim?: Sim }).__rallySim = simRef.current;
-    }
   };
 
   const finish = (text: string) => {
@@ -484,6 +480,14 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
     beep(220, 260, 'sawtooth', 0.04);
     onGameEndRef.current?.(sim.rally);
   };
+
+  useEffect(() => {
+    // 開発時のみ: 自動テストからシミュレーション状態と finish 関数を公開する
+    if (import.meta.env.DEV) {
+      (window as unknown as { __rallySim?: Sim; __finishGame?: (text: string) => void }).__rallySim = simRef.current;
+      (window as unknown as { __finishGame?: (text: string) => void }).__finishGame = finish;
+    }
+  }, []);
 
   const swing = (now: number) => {
     const sim = simRef.current;

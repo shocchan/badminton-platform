@@ -38,6 +38,7 @@ export const Header = () => {
   const { isAuthenticated, logout } = useAuth();
   const { lang, groupSlug } = useLanguage();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [authMenuOpen, setAuthMenuOpen] = useState(false);
 
   // グループプレフィックス（kawaguchi-warabi は空、それ以外は /groupSlug）
   const groupPrefix = groupSlug === 'kawaguchi-warabi' ? '' : `/${groupSlug}`;
@@ -66,7 +67,7 @@ export const Header = () => {
   };
 
   const close = () => setMenuOpen(false);
-  const navLang = lang === 'ko' ? 'ja' : lang as 'ja' | 'zh';
+  const navLang = lang as 'ja' | 'zh';
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -110,21 +111,59 @@ export const Header = () => {
             {lang === 'ja' ? '中文' : '日本語'}
           </button>
 
-          {isAuthenticated ? (
+          {/* プロフィールアイコン */}
+          <div className="relative">
             <button
-              onClick={logout}
-              className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2"
+              onClick={() => setAuthMenuOpen(!authMenuOpen)}
+              className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center hover:shadow-lg transition-shadow text-lg font-bold ml-2"
+              title={isAuthenticated ? 'マイメニュー' : 'ログイン'}
             >
-              ログアウト
+              👤
             </button>
-          ) : (
-            <Link
-              to="/login"
-              className="text-sm font-bold px-3 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-            >
-              👤 ログイン
-            </Link>
-          )}
+
+            {/* ドロップダウンメニュー */}
+            {authMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={navTo('mypage')}
+                      onClick={() => setAuthMenuOpen(false)}
+                      className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      📱 マイページ
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setAuthMenuOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      ログアウト
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to={navTo('auth-landing')}
+                      onClick={() => setAuthMenuOpen(false)}
+                      className="block px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors border-b border-gray-100"
+                    >
+                      🔓 ログイン
+                    </Link>
+                    <Link
+                      to={navTo('auth-landing')}
+                      onClick={() => setAuthMenuOpen(false)}
+                      className="block px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                    >
+                      ✨ 新規登録
+                    </Link>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* ハンバーガーボタン（モバイルのみ） */}
@@ -145,7 +184,7 @@ export const Header = () => {
           menuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="border-t border-gray-100 bg-white px-4 py-3 pb-4 flex flex-col gap-1">
+        <div className="border-t border-gray-100 bg-white px-4 py-3 pb-4 flex flex-col gap-1 overflow-y-auto max-h-[calc(500px-8px)]">
 
           {/* 大会セクション */}
           <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest px-2 mb-1">{lang === 'ja' ? '🏆 大会' : '🏆 赛事'}</p>
@@ -194,18 +233,33 @@ export const Header = () => {
           </button>
 
           <div className="h-px bg-gray-100 my-1" />
+          <div className="h-px bg-gray-100 my-1" />
           {isAuthenticated ? (
-            <button onClick={() => { logout(); close(); }}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors text-left w-full"
-            >
-              ログアウト
-            </button>
+            <>
+              <Link to={navTo('mypage')} onClick={close}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition-colors"
+              >
+                📱 マイページ
+              </Link>
+              <button onClick={() => { logout(); close(); }}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors text-left w-full"
+              >
+                ログアウト
+              </button>
+            </>
           ) : (
-            <Link to="/login" onClick={close}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition-colors"
-            >
-              👤 ログイン
-            </Link>
+            <>
+              <Link to={navTo('auth-landing')} onClick={close}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                🔓 ログイン
+              </Link>
+              <Link to={navTo('auth-landing')} onClick={close}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition-colors"
+              >
+                ✨ 新規登録
+              </Link>
+            </>
           )}
         </div>
       </div>

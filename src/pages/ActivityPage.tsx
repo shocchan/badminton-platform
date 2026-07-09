@@ -221,65 +221,6 @@ const T: Record<Lang, {
     submitError: '报名失败，请重试。',
     cancelNameCodeError: '请输入姓名和取消码',
   },
-  ko: {
-    memberBadge: '충전 회원',
-    normalBadge: '일반',
-    submitMember: '충전 회원으로 신청',
-    submitNormal: '지금 신청하기',
-    namePlaceholder: '이름',
-    full: '마감',
-    remaining: (n) => `잔여 ${n}자리`,
-    used: (u, c) => `${u}/${c}명`,
-    waitlistBadge: '대기',
-    waitlistSection: '대기 명단',
-    confirmedSection: '참가 확정',
-    cancelLink: '취소하기',
-    cancelTitle: '신청 취소',
-    cancelNamePh: '이름（신청 시 입력한 이름）',
-    cancelCodePh: '4자리 취소 코드',
-    cancelBtn: '취소 확인',
-    cancelSubmitting: '취소 중...',
-    cancelSuccess: '취소가 완료되었습니다.',
-    cancelPartial: (n, r) => `${n}명분을 취소했습니다. 나머지 ${r}명분은 유효합니다.`,
-    cancelError: '코드가 올바르지 않습니다. 코드를 잊으셨다면 주최자에게 문의해 주세요.',
-    cancelPolicy: `※코드를 잊으셨다면 주최자（WeChat ID：${WECHAT_ID}）에게 문의해 주세요. 무단 취소는 원칙적으로 금지되며 비용이 발생할 수 있습니다.`,
-    cancelRules: [
-      '【취소 규칙】24시간 전까지 취소해 주세요.',
-      '24시간 이내 취소의 경우：',
-      '1️⃣ 대기자·대체자 있음 → 대기자가 올라오거나 직접 대체자를 구한 경우 비용 없음',
-      '2️⃣ 대기자·대체자 없음 → 공석이 생길 경우 정상 요금이 발생합니다 ⚠️',
-      '（※ 직접 대체자를 구할 경우 대기 순서 무관. 단, 사전에 연락 필수）',
-    ],
-    successTitle: '신청이 완료되었습니다！',
-    successWaitlist: '대기자로 등록되었습니다！자리가 나면 연락드리겠습니다.',
-    successCodeLabel: '취소 코드：',
-    successNote: '이 코드는 취소 시 필요합니다. 스크린샷을 저장해 주세요.',
-    submitting: '전송 중...',
-    backLink: '신청 페이지로 돌아가기',
-    notFound: '이 활동을 찾을 수 없습니다.',
-    cancelled: '이 활동은 취소되었습니다.',
-    price: (p) => `¥${p.toLocaleString()} / 명`,
-    memberBanner: '💳 충전 회원 안내',
-    memberBannerNote: '사전 충전 회원은 「충전 회원」 버튼으로 신청해 주세요. 잔액에서 자동으로 차감됩니다.',
-    memberNote: '※충전 회원은 여기',
-    fullNote: '정원이 찼습니다. 대기자로 신청할 수 있습니다.',
-    waitlistSubmitNormal: '대기 신청（일반）',
-    waitlistSubmitMember: '대기 신청（충전 회원）',
-    personUnit: '명',
-    closed: '마감',
-    closedNote: '시작 시각이 지나 접수가 마감되었습니다',
-    receiving: '접수 중',
-    participants: '참가 인원',
-    payment: '결제 방법',
-    share: '공유',
-    copyUrl: 'URL 복사',
-    shareCancel: '취소',
-    deadline: '접수 마감',
-    deadlineLabel: '마감까지',
-    nameError: '이름을 입력해 주세요',
-    submitError: '신청에 실패했습니다. 다시 시도해 주세요.',
-    cancelNameCodeError: '이름과 취소 코드를 입력해 주세요',
-  },
 };
 
 const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
@@ -322,7 +263,7 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
 
     const header = `【${activity.title}】`;
     const lines = confirmedRows.map((r, i) => `【${i + 1}】姓名: ${r.name}; 备注: ${r.notes}`).join('\n');
-    const waitlistLabel = lang === 'ko' ? '--- 대기 ---' : lang === 'ja' ? '--- 補欠 ---' : '--- 候补 ---';
+    const waitlistLabel = lang === 'ja' ? '--- 補欠 ---' : '--- 候补 ---';
     const waitlistLines = waitlistRows.length
       ? '\n' + waitlistLabel + '\n' +
         waitlistRows.map((r, i) => `[候补${i + 1}] 姓名: ${r.name}; 备注: ${r.notes}`).join('\n')
@@ -333,11 +274,9 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const label = lang === 'ko'
-    ? '참가자 명단 복사（WeChat용）'
-    : lang === 'ja'
-      ? '参加者リストをコピー（WeChat用）'
-      : '复制参与者名单（微信用）';
+  const label = lang === 'ja'
+    ? '参加者リストをコピー（WeChat用）'
+    : '复制参与者名单（微信用）';
 
   return (
     <button
@@ -394,10 +333,6 @@ const useCountdown = (deadline: Date | null) => {
 const formatDate = (dateStr: string, lang: Lang) => {
   const d = new Date(dateStr);
   if (lang === 'zh') return `${d.getMonth() + 1}月${d.getDate()}日`;
-  if (lang === 'ko') {
-    const days = ['일', '월', '화', '수', '목', '금', '토'];
-    return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-  }
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
 };
@@ -505,7 +440,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       lineUrl,
     ].join('\n');
     await navigator.clipboard.writeText(text);
-    setShareToast(lang === 'ko' ? '✅ LINE 공유 텍스트를 복사했습니다' : '✅ LINEシェア用テキストをコピーしました');
+    setShareToast('✅ LINEシェア用テキストをコピーしました');
     setTimeout(() => setShareToast(''), 2500);
     setShowShareModal(false);
   };
@@ -668,18 +603,6 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       navigate('/' + parts.join('/'));
     };
 
-    if (groupSlug === 'chaoxianzu') {
-      return (
-        <div className="flex gap-1 text-xs">
-          {(['ja', 'zh', 'ko'] as Lang[]).map(l => (
-            <button key={l} onClick={() => switchLang(l)}
-              className={`px-2 py-0.5 rounded-full border transition-colors ${lang === l ? 'bg-white text-green-700 border-white font-bold' : 'text-white/80 border-white/40 hover:border-white'}`}>
-              {l === 'ja' ? '日本語' : l === 'zh' ? '中文' : '한국어'}
-            </button>
-          ))}
-        </div>
-      );
-    }
     return (
       <div className="flex gap-1 text-xs">
         {(['ja', 'zh'] as Lang[]).map(l => (
@@ -706,11 +629,9 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     <main className="max-w-lg mx-auto px-4 py-12 text-center text-gray-500">{t.cancelled}</main>
   );
 
-  const notesPlaceholder = lang === 'ko'
-    ? '비고（선택）예：처음 참가합니다.'
-    : lang === 'zh'
-      ? '备注（选填）例：我是第一次参加。'
-      : '備考（任意）例：初参加です。';
+  const notesPlaceholder = lang === 'zh'
+    ? '备注（选填）例：我是第一次参加。'
+    : '備考（任意）例：初参加です。';
 
   const timeRange = `${activity.start_time.slice(0, 5)}〜${activity.end_time.slice(0, 5)}`;
   const detailUrl = `https://kawabado.com${basePath}/${lang}/activity/${activity.id}`;
@@ -726,7 +647,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   // assistant グループの活動一覧は川口・蕨の一覧に統合表示されている
   const listPath = groupSlug === 'chaoxianzu'
     ? `/chaoxianzu/${lang}/activity`
-    : `/${lang === 'ko' ? 'ja' : lang}/activity`;
+    : `/${lang}/activity`;
 
   return (
     <>
@@ -736,7 +657,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
         <meta property="og:title" content={detailMeta.title} />
         <meta property="og:description" content={detailMeta.desc} />
         <meta property="og:url" content={detailUrl} />
-        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : lang === 'ko' ? 'ko_KR' : 'ja_JP'} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
         <link rel="canonical" href={detailUrl} />
         <link rel="alternate" hrefLang="ja" href={`https://kawabado.com${basePath}/ja/activity/${activity.id}`} />
         <link rel="alternate" hrefLang="zh" href={`https://kawabado.com${basePath}/zh/activity/${activity.id}`} />
@@ -773,7 +694,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
               <button onClick={handleCopyLine}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#06C755] text-white hover:opacity-90 transition-opacity">
                 <img src="/icons/line.png" alt="LINE" className="w-9 h-9 flex-shrink-0 rounded-xl" />
-                <span className="font-bold text-base">LINE{lang === 'ko' ? '으로 공유' : 'でシェア'}</span>
+                <span className="font-bold text-base">LINEでシェア</span>
               </button>
               <button onClick={handleCopyWeChat}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-[#07C160] text-white hover:opacity-90 transition-opacity">
@@ -784,7 +705,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
                   <circle cx="14.5" cy="18" r="1.3" fill="#07C160"/>
                   <circle cx="19.5" cy="18" r="1.3" fill="#07C160"/>
                 </svg>
-                <span className="font-bold text-base">WeChat{lang === 'ko' ? '으로 공유' : 'でシェア'}</span>
+                <span className="font-bold text-base">WeChatでシェア</span>
               </button>
               <button onClick={handleCopyUrl}
                 className="flex items-center gap-4 w-full px-5 py-3.5 rounded-2xl bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors">
@@ -837,7 +758,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
           <span className="text-lg">👥</span>
           <div className="flex-1">
             <p className="text-xs text-gray-400">{t.participants}</p>
-            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ko' ? `대기 ${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}명` : lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
+            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
           </div>
           <div className="w-20">
             <div className="bg-gray-100 rounded-full h-2 overflow-hidden">
@@ -1109,8 +1030,8 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       <Breadcrumbs
         className="mt-6 mb-0"
         items={[
-          { label: lang === 'zh' ? '首页' : 'ホーム', path: `/${lang === 'ko' ? 'ja' : lang}/` },
-          { label: lang === 'zh' ? '日常活动' : lang === 'ko' ? '정기 활동' : '通常活動', path: listPath },
+          { label: lang === 'zh' ? '首页' : 'ホーム', path: `/${lang}/` },
+          { label: lang === 'zh' ? '日常活动' : '通常活動', path: listPath },
           { label: activity.title },
         ]}
       />
@@ -1120,11 +1041,10 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
 };
 
 // ── 活動カレンダー ─────────────────────────────────────────────
-const ActivityCalendar = ({ activities, selectedDate, onSelect, lang }: {
+const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
   activities: Activity[];
   selectedDate: string | null;
   onSelect: (d: string | null) => void;
-  lang: Lang;
 }) => {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -1138,11 +1058,9 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect, lang }: {
   const byDate: Record<string, true> = {};
   activities.forEach(a => { byDate[a.date] = true; });
 
-  const dayNames = lang === 'ko'
-    ? ['일', '월', '화', '수', '목', '금', '토']
-    : ['日', '月', '火', '水', '木', '金', '土'];
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
-  const thisMonth = lang === 'ko' ? '이번 달' : '今月';
+  const thisMonth = '今月';
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden mb-4">
@@ -1223,15 +1141,6 @@ const LIST_T: Record<Lang, {
     price: (p) => `¥${p.toLocaleString()} / 人`,
     detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity-cn/${id}?from=wechat` : `/${groupSlug}/activity-cn/${id}?from=wechat`,
     wechatMiniProgramNotice: '已通过小程序报名的用户，无需在此重复报名。请勿重复提交申请。',
-  },
-  ko: {
-    title: '배드민턴 모임',
-    empty: '현재 접수 중인 모임이 없습니다',
-    emptyDate: '이 날의 모임이 없습니다',
-    clearFilter: '✕ 필터 해제',
-    price: (p) => `¥${p.toLocaleString()} / 명`,
-    detailLink: (id, groupSlug) => `/${groupSlug}/activity-kr/${id}`,
-    wechatMiniProgramNotice: '',
   },
 };
 
@@ -1350,7 +1259,7 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
     <main className="max-w-5xl mx-auto px-4 py-8">
       {isMainGroup && (
         <Breadcrumbs items={[
-          { label: effectiveLang === 'zh' ? '首页' : 'ホーム', path: `/${effectiveLang === 'ko' ? 'ja' : effectiveLang}/` },
+          { label: effectiveLang === 'zh' ? '首页' : 'ホーム', path: `/${effectiveLang}/` },
           { label: effectiveLang === 'zh' ? '日常活动' : '通常活動' },
         ]} />
       )}
@@ -1372,7 +1281,6 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
             activities={activeActivities}
             selectedDate={selectedDate}
             onSelect={setSelectedDate}
-            lang={effectiveLang}
           />
           {selectedDate && (
             <div className="flex items-center justify-between mt-2 px-1">

@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 
-export type Lang = 'ja' | 'zh' | 'ko';
+export type Lang = 'ja' | 'zh';
 
 interface LanguageContextValue {
   lang: Lang;
@@ -20,7 +20,7 @@ const parseLangFromPath = (pathname: string): LanguageContextValue => {
   if (KNOWN_SUBGROUPS.includes(parts[0])) {
     const l = parts[1];
     return {
-      lang: (l === 'zh' || l === 'ko' ? l : 'ja') as Lang,
+      lang: (l === 'zh' ? 'zh' : 'ja') as Lang,
       groupSlug: parts[0],
     };
   }

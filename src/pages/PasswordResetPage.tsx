@@ -11,7 +11,8 @@ export const PasswordResetPage = () => {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const t = translations[lang].passwordReset;
+  const safeLang = (lang === 'zh' ? 'zh' : 'ja') as 'ja' | 'zh';
+  const t = translations[safeLang].passwordReset;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

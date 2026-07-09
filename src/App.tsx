@@ -6,10 +6,10 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { LanguageProvider } from './contexts/LanguageContext';
 import LangWrapper from './components/LangWrapper';
 import NavigateWithId from './components/NavigateWithId';
+import { HomePageWrapper } from './components/HomePageWrapper';
 import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
-const HomePage             = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
@@ -64,7 +64,7 @@ const AnimatedRoutes = () => {
 
           {/* ── 川口・蕨グループ（新URL） ── */}
           <Route path="/:lang" element={<LangWrapper groupSlug="kawaguchi-warabi" />}>
-            <Route index element={<HomePage />} />
+            <Route index element={<HomePageWrapper />} />
           </Route>
           <Route path="/:lang/*" element={<LangWrapper groupSlug="kawaguchi-warabi" />}>
             <Route path="activity"        element={<ActivityListPage groupSlug="kawaguchi-warabi" />} />
@@ -83,6 +83,7 @@ const AnimatedRoutes = () => {
             <Route path="tactics-board"  element={<TacticsBoardPage />} />
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
+            <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />
             <Route path="signup"          element={<SignupPage />} />
             <Route path="password-reset"  element={<PasswordResetPage />} />

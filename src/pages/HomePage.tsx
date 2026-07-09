@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ShuttleCounter from '../components/ShuttleCounter';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../hooks/useAuth';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
@@ -12,8 +11,6 @@ import { PreEntryModal } from '../components/PreEntryModal';
 import { GeneralFaqSection } from '../components/GeneralFaqSection';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament } from '../types';
-
-const AuthLandingPage = lazy(() => import('./AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 
 // レベル別カラー（TournamentCard・LevelGuidePage と統一）
 const levelColor = (level: string): string => {
@@ -169,7 +166,6 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
 // ── メインページ ──────────────────────────────────────────
 export const HomePage = () => {
   const { lang } = useLanguage();
-  const { isAuthenticated, loading: authLoading } = useAuth();
   const { tournaments, loading, error } = useTournaments();
   const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
   const [preEntryTournament, setPreEntryTournament] = useState<Tournament | null>(null);
@@ -179,11 +175,6 @@ export const HomePage = () => {
   const [selectedDate, setSelectedDate]             = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen]             = useState<boolean>(false);
   const listRef = useRef<HTMLDivElement>(null);
-
-  // 未ログイン時は AuthLandingPage を表示
-  if (!authLoading && !isAuthenticated) {
-    return <Suspense fallback={<div>Loading...</div>}><AuthLandingPage /></Suspense>;
-  }
 
   useEffect(() => {
     const fetchEntryCounts = async () => {

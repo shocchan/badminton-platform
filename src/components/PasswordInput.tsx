@@ -51,7 +51,8 @@ export const PasswordInput = ({
 }: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const { lang } = useLanguage();
-  const strength = calculateStrength(value, lang as 'ja' | 'zh');
+  const safeLang = (lang === 'zh' ? 'zh' : 'ja') as 'ja' | 'zh';
+  const strength = calculateStrength(value, safeLang);
   const isPasswordSet = value.length > 0;
 
   return (
@@ -92,7 +93,7 @@ export const PasswordInput = ({
       )}
 
       {isPasswordSet && value.length < 6 && (
-        <p className="text-xs text-red-500">{strengthTexts[lang].shortPassword}</p>
+        <p className="text-xs text-red-500">{strengthTexts[safeLang].shortPassword}</p>
       )}
     </div>
   );

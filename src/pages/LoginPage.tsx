@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
-import { supabase } from '../services/supabaseClient';
 import { PasswordInput } from '../components/PasswordInput';
 import { translations } from '../locales/translations';
 

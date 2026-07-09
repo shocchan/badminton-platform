@@ -5,7 +5,8 @@ import { translations } from '../locales/translations';
 export const PasswordResetSuccessPage = () => {
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const t = translations[lang].passwordResetSuccess;
+  const safeLang = (lang === 'zh' ? 'zh' : 'ja') as 'ja' | 'zh';
+  const t = translations[safeLang].passwordResetSuccess;
 
   return (
     <main className="min-h-[80vh] flex items-center justify-center px-4 py-8">

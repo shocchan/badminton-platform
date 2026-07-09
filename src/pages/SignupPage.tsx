@@ -13,7 +13,8 @@ export const SignupPage = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { lang } = useLanguage();
-  const t = translations[lang].login;
+  const safeLang = (lang === 'zh' ? 'zh' : 'ja') as 'ja' | 'zh';
+  const t = translations[safeLang].login;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
