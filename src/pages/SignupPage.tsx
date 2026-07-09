@@ -33,7 +33,7 @@ export const SignupPage = () => {
         return;
       }
 
-      const { error: signUpErr } = await supabase.auth.signUp({
+      const { data: authData, error: signUpErr } = await supabase.auth.signUp({
         email,
         password,
         options: { data: { name: name.trim() } },
@@ -45,6 +45,21 @@ export const SignupPage = () => {
             ? t.errorAlreadyRegistered
             : t.errorSignupFailed,
         );
+      }
+
+      if (authData.user?.id) {
+        const { error: insertErr } = await supabase
+          .from('members')
+          .insert({
+            user_id: authData.user.id,
+            email: email.trim(),
+            name: name.trim(),
+            active: true,
+          });
+
+        if (insertErr && !insertErr.message.includes('duplicate')) {
+          console.error('Error inserting member record:', insertErr);
+        }
       }
 
       navigate(`/${lang}/mypage`);
