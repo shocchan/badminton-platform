@@ -10,11 +10,13 @@ import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
 const HomePage             = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
 const AdminPage            = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const LoginPage            = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const SignupPage           = lazy(() => import('./pages/SignupPage').then(m => ({ default: m.SignupPage })));
 const PasswordResetPage    = lazy(() => import('./pages/PasswordResetPage').then(m => ({ default: m.PasswordResetPage })));
 const PasswordResetFormPage = lazy(() => import('./pages/PasswordResetFormPage').then(m => ({ default: m.PasswordResetFormPage })));
 const PasswordResetSuccessPage = lazy(() => import('./pages/PasswordResetSuccessPage').then(m => ({ default: m.PasswordResetSuccessPage })));
@@ -82,6 +84,7 @@ const AnimatedRoutes = () => {
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
             <Route path="login"           element={<LoginPage />} />
+            <Route path="signup"          element={<SignupPage />} />
             <Route path="password-reset"  element={<PasswordResetPage />} />
             <Route path="password-reset-form" element={<PasswordResetFormPage />} />
             <Route path="password-reset-success" element={<PasswordResetSuccessPage />} />
