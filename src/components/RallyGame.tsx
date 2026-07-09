@@ -902,7 +902,7 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
   const isLegend = finalRally >= LEGEND_RALLY;
 
   return (
-    <div className="relative mx-auto w-full max-w-[420px] select-none overflow-hidden rounded-2xl shadow-lg">
+    <div className="relative mx-auto h-full max-h-full w-auto max-w-full select-none overflow-hidden rounded-2xl shadow-lg">
       <canvas
         ref={canvasRef}
         className="block aspect-[9/14] w-full touch-none"
