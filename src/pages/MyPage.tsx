@@ -35,6 +35,7 @@ export default function MyPage() {
   const [sessionLoading, setSessionLoading] = useState(true);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [couponsLoading, setCouponsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   // 登録/ログイン直後はクーポン引き継ぎ完了後に再取得する必要がある
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -48,6 +49,20 @@ export default function MyPage() {
     } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setIsAdmin(false);
+      return;
+    }
+    let alive = true;
+    supabase.rpc('is_admin').then(({ data }) => {
+      if (alive) setIsAdmin(data === true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [session]);
 
   useEffect(() => {
     if (!session) return;
@@ -79,12 +94,22 @@ export default function MyPage() {
         <meta name="robots" content="noindex" />
       </Helmet>
 
-      <a
-        href={`/${locale}/game`}
-        className="text-sm text-emerald-700 underline-offset-2 hover:underline"
-      >
-        ← バド対決ゲームへ
-      </a>
+      <div className="flex items-center gap-4">
+        <a
+          href={`/${locale}/game`}
+          className="text-sm text-emerald-700 underline-offset-2 hover:underline"
+        >
+          ← バド対決ゲームへ
+        </a>
+        {isAdmin && (
+          <a
+            href={`/${locale}/admin`}
+            className="text-sm text-blue-700 underline-offset-2 hover:underline"
+          >
+            → 管理ページへ
+          </a>
+        )}
+      </div>
 
       <h1 className="mt-6 text-2xl font-bold text-slate-900">マイページ</h1>
 

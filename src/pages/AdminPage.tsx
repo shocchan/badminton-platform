@@ -1412,10 +1412,19 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-10">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">管理画面</h1>
-      {isSubGroup && subGroupName && (
-        <p className="text-sm text-gray-500 mb-4">{subGroupName}</p>
-      )}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">管理画面</h1>
+          {isSubGroup && subGroupName && (
+            <p className="text-sm text-gray-500 mb-4">{subGroupName}</p>
+          )}
+        </div>
+        {!isSubGroup && (
+          <a href="/ja/mypage" className="text-sm text-emerald-700 underline-offset-2 hover:underline">
+            ← マイページへ
+          </a>
+        )}
+      </div>
 
       {/* リアルタイム通知バナー */}
       {newEntryNotice && (
