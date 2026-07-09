@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../services/supabaseClient';
+import { PasswordInput } from '../components/PasswordInput';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -119,14 +120,10 @@ export const LoginPage = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
-              <input
-                type="password"
-                required
+              <PasswordInput
                 value={password}
-                onChange={e => setPassword(e.target.value)}
-                minLength={6}
-                className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="••••••••"
+                onChange={setPassword}
+                showStrength={showSignup}
               />
             </div>
             <button
@@ -157,22 +154,33 @@ export const LoginPage = () => {
                 </button>
               </p>
             ) : (
-              <p className="text-sm text-gray-600">
-                会員登録がまだの方は
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowSignup(true);
-                    setName('');
-                    setEmail('');
-                    setPassword('');
-                    setError(null);
-                  }}
-                  className="font-bold text-blue-600 hover:text-blue-700 ml-1"
-                >
-                  こちらから登録
-                </button>
-              </p>
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  会員登録がまだの方は
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowSignup(true);
+                      setName('');
+                      setEmail('');
+                      setPassword('');
+                      setError(null);
+                    }}
+                    className="font-bold text-blue-600 hover:text-blue-700 ml-1"
+                  >
+                    こちらから登録
+                  </button>
+                </p>
+                <p className="text-xs text-gray-500 border-t border-gray-200 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/ja/password-reset')}
+                    className="text-blue-600 hover:text-blue-700 underline"
+                  >
+                    パスワードを忘れた方はこちら
+                  </button>
+                </p>
+              </div>
             )}
           </div>
         </div>

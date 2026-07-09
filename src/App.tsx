@@ -15,6 +15,9 @@ const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ 
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
 const AdminPage            = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const LoginPage            = lazy(() => import('./pages/LoginPage').then(m => ({ default: m.LoginPage })));
+const PasswordResetPage    = lazy(() => import('./pages/PasswordResetPage').then(m => ({ default: m.PasswordResetPage })));
+const PasswordResetFormPage = lazy(() => import('./pages/PasswordResetFormPage').then(m => ({ default: m.PasswordResetFormPage })));
+const PasswordResetSuccessPage = lazy(() => import('./pages/PasswordResetSuccessPage').then(m => ({ default: m.PasswordResetSuccessPage })));
 const NotFoundPage         = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LevelGuidePage       = lazy(() => import('./pages/LevelGuidePage').then(m => ({ default: m.LevelGuidePage })));
 const CancelPolicyPage     = lazy(() => import('./pages/CancelPolicyPage').then(m => ({ default: m.CancelPolicyPage })));
@@ -70,6 +73,9 @@ const AnimatedRoutes = () => {
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
             <Route path="login"           element={<LoginPage />} />
+            <Route path="password-reset"  element={<PasswordResetPage />} />
+            <Route path="password-reset-form" element={<PasswordResetFormPage />} />
+            <Route path="password-reset-success" element={<PasswordResetSuccessPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}
