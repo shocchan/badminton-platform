@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { PasswordInput } from '../components/PasswordInput';
+import { translations } from '../locales/translations';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -13,6 +15,8 @@ export const LoginPage = () => {
   const [showSignup, setShowSignup] = useState(true);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang].login;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,12 +26,12 @@ export const LoginPage = () => {
     try {
       if (showSignup) {
         if (!name.trim()) {
-          setError('お名前を入力してください');
+          setError(t.errorNameRequired);
           setLoading(false);
           return;
         }
         if (password.length < 6) {
-          setError('パスワードは6文字以上にしてください');
+          setError(t.errorPasswordTooShort);
           setLoading(false);
           return;
         }
@@ -39,16 +43,16 @@ export const LoginPage = () => {
         if (signUpErr) {
           throw new Error(
             signUpErr.message.includes('already registered')
-              ? 'このメールアドレスは登録済みです。ログインに切り替えてください'
-              : '登録に失敗しました。メールアドレスを確認してください',
+              ? t.errorAlreadyRegistered
+              : t.errorSignupFailed,
           );
         }
       } else {
         await login(email, password);
       }
-      navigate('/ja/mypage');
+      navigate(`/${lang}/mypage`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : (showSignup ? '登録に失敗しました' : 'ログインに失敗しました'));
+      setError(err instanceof Error ? err.message : (showSignup ? t.errorSignupFailed : t.errorLoginFailed));
     } finally {
       setLoading(false);
     }
@@ -60,19 +64,19 @@ export const LoginPage = () => {
         {/* 会員登録メリット表示（初期表示時） */}
         {!showSignup && (
           <div className="mb-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 p-6">
-            <p className="text-sm font-bold text-blue-900 mb-3">🎁 会員登録するとこんなメリット！</p>
+            <p className="text-sm font-bold text-blue-900 mb-3">🎁 {t.merit}</p>
             <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start gap-2">
                 <span className="text-lg">🍜</span>
-                <span><strong>バド対決ゲーム</strong>の景品（無料券）を受け取れる</span>
+                <span><strong>{t.meritGame}</strong>{t.meritGameDesc}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-lg">📱</span>
-                <span><strong>マイページ</strong>でいつでも無料券を確認・提示できる</span>
+                <span><strong>{t.meritMypage}</strong>{t.meritMypageDesc}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-lg">✅</span>
-                <span><strong>大会への参加申込</strong>がスムーズになる</span>
+                <span><strong>{t.meritEntry}</strong>{t.meritEntryDesc}</span>
               </li>
             </ul>
           </div>
@@ -80,7 +84,7 @@ export const LoginPage = () => {
 
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">{showSignup ? '📝' : '🔓'}</div>
-          <h1 className="text-2xl font-bold text-gray-900">{showSignup ? 'アカウント作成' : 'ログイン'}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{showSignup ? t.title : t.titleLogin}</h1>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -93,7 +97,7 @@ export const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {showSignup && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">お名前</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.nameLabel}</label>
                 <input
                   type="text"
                   required
@@ -101,25 +105,25 @@ export const LoginPage = () => {
                   onChange={e => setName(e.target.value)}
                   maxLength={30}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="お名前（例: 田中太郎）"
+                  placeholder={t.namePlaceholder}
                   autoFocus
                 />
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="your-email@example.com"
+                placeholder={t.emailPlaceholder}
                 autoFocus={!showSignup}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.passwordLabel}</label>
               <PasswordInput
                 value={password}
                 onChange={setPassword}
@@ -131,14 +135,14 @@ export const LoginPage = () => {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors mt-6"
             >
-              {loading ? (showSignup ? '登録中...' : 'ログイン中...') : (showSignup ? '登録して受け取る' : 'ログイン')}
+              {loading ? (showSignup ? t.submitSignupLoading : t.submitLoginLoading) : (showSignup ? t.submitSignup : t.submitLogin)}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             {showSignup ? (
               <p className="text-sm text-gray-600">
-                既存ユーザーは
+                {t.existingUser}
                 <button
                   type="button"
                   onClick={() => {
@@ -150,13 +154,13 @@ export const LoginPage = () => {
                   }}
                   className="font-bold text-blue-600 hover:text-blue-700 ml-1"
                 >
-                  ログイン
+                  {t.toggleLogin}
                 </button>
               </p>
             ) : (
               <div className="space-y-3">
                 <p className="text-sm text-gray-600">
-                  会員登録がまだの方は
+                  {t.newUser}
                   <button
                     type="button"
                     onClick={() => {
@@ -168,16 +172,16 @@ export const LoginPage = () => {
                     }}
                     className="font-bold text-blue-600 hover:text-blue-700 ml-1"
                   >
-                    こちらから登録
+                    {t.toggleSignup}
                   </button>
                 </p>
                 <p className="text-xs text-gray-500 border-t border-gray-200 pt-3">
                   <button
                     type="button"
-                    onClick={() => navigate('/ja/password-reset')}
+                    onClick={() => navigate(`/${lang}/password-reset`)}
                     className="text-blue-600 hover:text-blue-700 underline"
                   >
-                    パスワードを忘れた方はこちら
+                    {t.forgotPassword}
                   </button>
                 </p>
               </div>

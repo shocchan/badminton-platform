@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PasswordInputProps {
   value: string;
@@ -14,7 +15,12 @@ interface StrengthInfo {
   text: string;
 }
 
-const calculateStrength = (password: string): StrengthInfo => {
+const strengthTexts = {
+  ja: { weak: '弱 - もっと複雑にしてください', medium: '中程度 - 良好です', strong: '強い - 安全です', shortPassword: 'パスワードは6文字以上にしてください' },
+  zh: { weak: '弱 - 请增加复杂度', medium: '中等 - 很好', strong: '强 - 安全', shortPassword: '密码必须至少6个字符' },
+};
+
+const calculateStrength = (password: string, lang: 'ja' | 'zh' = 'ja'): StrengthInfo => {
   let score = 0;
   const checks = {
     length: password.length >= 8,
@@ -29,11 +35,11 @@ const calculateStrength = (password: string): StrengthInfo => {
   });
 
   if (score <= 2) {
-    return { level: 'weak', score, color: 'bg-red-500', text: '弱 - もっと複雑にしてください' };
+    return { level: 'weak', score, color: 'bg-red-500', text: strengthTexts[lang].weak };
   } else if (score <= 3) {
-    return { level: 'medium', score, color: 'bg-yellow-500', text: '中程度 - 良好です' };
+    return { level: 'medium', score, color: 'bg-yellow-500', text: strengthTexts[lang].medium };
   } else {
-    return { level: 'strong', score, color: 'bg-green-500', text: '強い - 安全です' };
+    return { level: 'strong', score, color: 'bg-green-500', text: strengthTexts[lang].strong };
   }
 };
 
@@ -44,7 +50,8 @@ export const PasswordInput = ({
   showStrength = true,
 }: PasswordInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
-  const strength = calculateStrength(value);
+  const { lang } = useLanguage();
+  const strength = calculateStrength(value, lang as 'ja' | 'zh');
   const isPasswordSet = value.length > 0;
 
   return (
@@ -85,7 +92,7 @@ export const PasswordInput = ({
       )}
 
       {isPasswordSet && value.length < 6 && (
-        <p className="text-xs text-red-500">パスワードは6文字以上にしてください</p>
+        <p className="text-xs text-red-500">{strengthTexts[lang].shortPassword}</p>
       )}
     </div>
   );

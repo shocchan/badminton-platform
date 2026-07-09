@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../services/supabaseClient';
 import { PasswordInput } from '../components/PasswordInput';
+import { translations } from '../locales/translations';
 
 export const PasswordResetFormPage = () => {
   const [password, setPassword] = useState('');
@@ -10,6 +12,8 @@ export const PasswordResetFormPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [sessionError, setSessionError] = useState(false);
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang].passwordResetForm;
 
   useEffect(() => {
     // セッションの確認（リセットリンク経由でのみアクセス可能）
@@ -29,13 +33,13 @@ export const PasswordResetFormPage = () => {
 
     try {
       if (password.length < 6) {
-        setError('パスワードは6文字以上にしてください');
+        setError(t.errorPasswordTooShort);
         setLoading(false);
         return;
       }
 
       if (password !== confirmPassword) {
-        setError('パスワードが一致しません');
+        setError(t.errorMismatch);
         setLoading(false);
         return;
       }
@@ -45,11 +49,11 @@ export const PasswordResetFormPage = () => {
       });
 
       if (updateErr) {
-        throw new Error('パスワードの更新に失敗しました');
+        throw new Error(t.errorUpdateFailed);
       }
 
       // 成功画面に遷移
-      navigate('/ja/password-reset-success');
+      navigate(`/${lang}/password-reset-success`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'エラーが発生しました');
     } finally {
@@ -63,19 +67,19 @@ export const PasswordResetFormPage = () => {
         <div className="w-full max-w-md text-center">
           <div className="mb-6">
             <div className="text-5xl mb-4">⏰</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">リンクの有効期限が切れています</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">{t.expiredTitle}</h1>
             <p className="text-gray-600 text-sm leading-relaxed">
-              パスワードリセットリンクは1時間で期限切れになります。
+              {t.expiredDesc}
               <br />
-              もう一度リセットリクエストを送信してください。
+              {t.expiredAction}
             </p>
           </div>
 
           <button
-            onClick={() => navigate('/ja/password-reset')}
+            onClick={() => navigate(`/${lang}/password-reset`)}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
           >
-            もう一度リセットリクエストを送信
+            {t.expiredButton}
           </button>
         </div>
       </main>
@@ -87,7 +91,7 @@ export const PasswordResetFormPage = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">🔐</div>
-          <h1 className="text-2xl font-bold text-gray-900">新しいパスワードを設定</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -100,7 +104,7 @@ export const PasswordResetFormPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                新しいパスワード
+                {t.newPasswordLabel}
               </label>
               <PasswordInput
                 value={password}
@@ -112,7 +116,7 @@ export const PasswordResetFormPage = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                パスワード（確認）
+                {t.confirmPasswordLabel}
               </label>
               <PasswordInput
                 value={confirmPassword}
@@ -121,10 +125,10 @@ export const PasswordResetFormPage = () => {
                 showStrength={false}
               />
               {confirmPassword && password !== confirmPassword && (
-                <p className="text-xs text-red-500 mt-2">パスワードが一致しません</p>
+                <p className="text-xs text-red-500 mt-2">{t.passwordMismatch}</p>
               )}
               {confirmPassword && password === confirmPassword && (
-                <p className="text-xs text-green-500 mt-2">✓ パスワードが一致しています</p>
+                <p className="text-xs text-green-500 mt-2">{t.passwordMatch}</p>
               )}
             </div>
 
@@ -133,7 +137,7 @@ export const PasswordResetFormPage = () => {
               disabled={loading || password.length < 6 || password !== confirmPassword}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors mt-6"
             >
-              {loading ? 'パスワードを更新中...' : 'パスワードを更新'}
+              {loading ? t.submitLoading : t.submit}
             </button>
           </form>
         </div>

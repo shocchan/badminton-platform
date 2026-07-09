@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../services/supabaseClient';
+import { translations } from '../locales/translations';
 
 export const PasswordResetPage = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +10,8 @@ export const PasswordResetPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { lang } = useLanguage();
+  const t = translations[lang].passwordReset;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -17,17 +21,17 @@ export const PasswordResetPage = () => {
 
     try {
       if (!email.trim()) {
-        setError('メールアドレスを入力してください');
+        setError(t.errorEmailRequired);
         setLoading(false);
         return;
       }
 
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/ja/password-reset-form`,
+        redirectTo: `${window.location.origin}/${lang}/password-reset-form`,
       });
 
       if (resetErr) {
-        throw new Error('パスワードリセットメールの送信に失敗しました');
+        throw new Error(t.errorSendFailed);
       }
 
       setSuccess(true);
@@ -45,22 +49,22 @@ export const PasswordResetPage = () => {
         <div className="w-full max-w-md text-center">
           <div className="mb-6">
             <div className="text-5xl mb-4">📧</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">メールを送信しました</h1>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">{t.successTitle}</h1>
             <p className="text-gray-600 text-sm leading-relaxed mb-4">
-              入力したメールアドレスに、パスワードリセットリンクを送信しました。
+              {t.successDesc}
               <br />
-              メールをご確認ください。（5分以内）
+              {t.successNote}
             </p>
             <p className="text-xs text-gray-500">
-              ※ メールが届かない場合は、迷惑メールフォルダをご確認ください。
+              {t.successWarning}
             </p>
           </div>
 
           <button
-            onClick={() => navigate('/ja/login')}
+            onClick={() => navigate(`/${lang}/login`)}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
           >
-            ログインページに戻る
+            {t.backToLogin}
           </button>
         </div>
       </main>
@@ -72,9 +76,9 @@ export const PasswordResetPage = () => {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="text-4xl mb-2">🔑</div>
-          <h1 className="text-2xl font-bold text-gray-900">パスワードを再設定</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t.title}</h1>
           <p className="text-sm text-gray-600 mt-2">
-            アカウントに登録したメールアドレスを入力してください
+            {t.subtitle}
           </p>
         </div>
 
@@ -88,7 +92,7 @@ export const PasswordResetPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                メールアドレス
+                {t.emailLabel}
               </label>
               <input
                 type="email"
@@ -96,7 +100,7 @@ export const PasswordResetPage = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="your-email@example.com"
+                placeholder={t.emailPlaceholder}
                 autoFocus
               />
             </div>
@@ -106,19 +110,19 @@ export const PasswordResetPage = () => {
               disabled={loading}
               className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors mt-6"
             >
-              {loading ? 'リセットメール送信中...' : 'リセットメールを送信'}
+              {loading ? t.submitLoading : t.submit}
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              パスワードを思い出しましたか？
+              {t.forgotPassword}
               <button
                 type="button"
-                onClick={() => navigate('/ja/login')}
+                onClick={() => navigate(`/${lang}/login`)}
                 className="font-bold text-blue-600 hover:text-blue-700 ml-1"
               >
-                ログインへ
+                {t.backToLogin}
               </button>
             </p>
           </div>
