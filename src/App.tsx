@@ -103,6 +103,7 @@ const AnimatedRoutes = () => {
 
           {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
           <Route path="/"                         element={<Navigate to="/ja/" replace />} />
+          <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
           <Route path="/activity"                 element={<Navigate to="/ja/activity" replace />} />
           <Route path="/activity/:id"             element={<NavigateWithId to="/ja/activity" />} />
           <Route path="/activity-cn"              element={<Navigate to="/zh/activity" replace />} />
