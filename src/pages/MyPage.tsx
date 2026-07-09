@@ -164,7 +164,7 @@ export default function MyPage() {
                     </p>
                     <p className="mt-2 text-xs leading-relaxed text-slate-500">
                       {usable
-                        ? 'ご利用時はスタッフにこの画面をご提示ください。'
+                        ? 'かわバドの活動時にしょっちゃんへこの画面をご提示ください。確認後、無料券（紙）をお渡しします。'
                         : coupon.status === 'used'
                           ? `使用日: ${coupon.used_at ? new Date(coupon.used_at).toLocaleDateString('ja-JP') : '-'}`
                           : ''}
