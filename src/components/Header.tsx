@@ -111,23 +111,20 @@ export const Header = () => {
           </button>
 
           {isAuthenticated ? (
-            <>
-              <Link
-                to={navTo('admin')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive('admin') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                管理画面
-              </Link>
-              <button
-                onClick={logout}
-                className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2"
-              >
-                ログアウト
-              </button>
-            </>
-          ) : null}
+            <button
+              onClick={logout}
+              className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2"
+            >
+              ログアウト
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="text-sm font-bold px-3 py-1.5 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+            >
+              👤 ログイン
+            </Link>
+          )}
         </nav>
 
         {/* ハンバーガーボタン（モバイルのみ） */}
@@ -198,20 +195,17 @@ export const Header = () => {
 
           <div className="h-px bg-gray-100 my-1" />
           {isAuthenticated ? (
-            <>
-              <Link to={navTo('admin')} onClick={close}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors ${categoryBg('general', isActive('admin'))}`}
-              >
-                ⚙️ 管理画面
-              </Link>
-              <button onClick={() => { logout(); close(); }}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors text-left"
-              >
-                ログアウト
-              </button>
-            </>
+            <button onClick={() => { logout(); close(); }}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 transition-colors text-left w-full"
+            >
+              ログアウト
+            </button>
           ) : (
-            null
+            <Link to="/login" onClick={close}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold bg-blue-50 text-blue-600 transition-colors"
+            >
+              👤 ログイン
+            </Link>
           )}
         </div>
       </div>

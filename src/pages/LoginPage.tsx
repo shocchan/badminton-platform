@@ -7,6 +7,7 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSignup, setShowSignup] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -17,7 +18,7 @@ export const LoginPage = () => {
 
     try {
       await login(email, password);
-      navigate('/admin');
+      navigate('/ja/mypage');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
     } finally {
@@ -26,11 +27,32 @@ export const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+    <main className="min-h-[80vh] flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md">
+        {/* 会員登録メリット表示（初期表示時） */}
+        {!showSignup && (
+          <div className="mb-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-100 p-6">
+            <p className="text-sm font-bold text-blue-900 mb-3">🎁 会員登録するとこんなメリット！</p>
+            <ul className="space-y-2 text-sm text-blue-800">
+              <li className="flex items-start gap-2">
+                <span className="text-lg">🍜</span>
+                <span><strong>バド対決ゲーム</strong>の景品（無料券）を受け取れる</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-lg">📱</span>
+                <span><strong>マイページ</strong>でいつでも無料券を確認・提示できる</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-lg">✅</span>
+                <span><strong>大会への参加申込</strong>がスムーズになる</span>
+              </li>
+            </ul>
+          </div>
+        )}
+
         <div className="text-center mb-8">
-          <div className="text-4xl mb-2">🔐</div>
-          <h1 className="text-2xl font-bold text-gray-900">管理者ログイン</h1>
+          <div className="text-4xl mb-2">{showSignup ? '📝' : '🔓'}</div>
+          <h1 className="text-2xl font-bold text-gray-900">{showSignup ? 'アカウント作成' : 'ログイン'}</h1>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
@@ -49,7 +71,7 @@ export const LoginPage = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="admin@example.com"
+                placeholder="your-email@example.com"
                 autoFocus
               />
             </div>
@@ -72,6 +94,18 @@ export const LoginPage = () => {
               {loading ? 'ログイン中...' : 'ログイン'}
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              会員登録がまだの方は
+              <button
+                onClick={() => setShowSignup(true)}
+                className="font-bold text-blue-600 hover:text-blue-700 ml-1"
+              >
+                こちらから登録
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </main>
