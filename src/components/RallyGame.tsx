@@ -839,12 +839,15 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
           : '#ffffff';
         ctx.fillText(String(sim.rally), W / 2, 68);
         ctx.font = 'bold 11px sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.55)';
-        ctx.fillText(
-          `スピード Lv.${Math.min(sim.rally + 1, LEGEND_RALLY)}`,
-          W / 2,
-          86,
-        );
+        const flightMs = sim.currentDiff?.flightMs ?? 1500;
+        const speedLabel =
+          flightMs < 850 ? '⚡爆速!!' :
+          flightMs < 1050 ? '🔥はやい!' :
+          flightMs < 1300 ? 'ふつう' :
+          '☁️ゆったり';
+        ctx.fillStyle =
+          flightMs < 850 ? '#fb923c' : 'rgba(255,255,255,0.55)';
+        ctx.fillText(`今の球: ${speedLabel}`, W / 2, 86);
       }
     };
     raf = requestAnimationFrame(tick);
