@@ -69,6 +69,7 @@ const AnimatedRoutes = () => {
             <Route path="tactics-board"  element={<TacticsBoardPage />} />
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
+            <Route path="login"           element={<LoginPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}
