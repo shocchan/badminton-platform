@@ -48,8 +48,8 @@ export default function RallyGamePage() {
         />
       </Helmet>
 
-      {/* ゲーム本体：画面の残り高さいっぱいに表示 */}
-      <div className="flex h-[100dvh] flex-col overflow-hidden">
+      {/* ゲーム本体：スマホはフルスクリーン、PCは通常フロー */}
+      <div className="flex h-[100dvh] flex-col overflow-hidden md:h-auto md:overflow-visible">
         {/* 薄いヘッダー（常に固定表示） */}
         <div className="flex shrink-0 items-center justify-between px-4 py-2">
           <a
@@ -61,8 +61,8 @@ export default function RallyGamePage() {
           <h1 className="text-sm font-bold text-slate-900">バド対決ゲーム</h1>
         </div>
 
-        {/* ゲーム本体: 残り高さいっぱいに表示、スクロール不要 */}
-        <div className="flex min-h-0 flex-1 items-center justify-center px-3 pb-3">
+        {/* ゲーム本体: スマホはフルスクリーン、PCは通常レイアウト */}
+        <div className="flex min-h-0 flex-1 items-center justify-center px-3 pb-3 md:flex-none md:py-10">
           <RallyGame onGameEnd={handleGameEnd} drawEveryRallies={RALLIES_PER_DRAW} />
         </div>
       </div>

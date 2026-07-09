@@ -14,6 +14,7 @@ import {
   evaluateSwingTiming,
   pickLanding,
   rankForRally,
+  type ShotDifficulty,
 } from '../lib/rallyGame';
 
 // ── 論理座標系（描画は常に W×H、実ピクセルへは setTransform で拡大） ──
@@ -77,11 +78,12 @@ interface Sim {
   targetD: number;
   aiX: number;
   swingStart: number | null;
-  swungThisShot: boolean;
+  attemptedSwing: boolean; // このシャトルに一度でもスイングしたか（終了メッセージの出し分け用）
   shuttle: Shuttle | null;
   /** 返球がラインを割ったとき: 着地後に表示する終了メッセージ */
   pendingEnd: string | null;
   rng: () => number;
+  currentDiff: ShotDifficulty | null;
   popups: Popup[];
   particles: Particle[];
   trail: { x: number; y: number; s: number }[];
@@ -450,10 +452,11 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
       targetD: 0.15,
       aiX: 0,
       swingStart: null,
-      swungThisShot: false,
+      attemptedSwing: false,
       shuttle: { mode: 'pause', until: now + 900 },
       pendingEnd: null,
       rng: createRng(),
+      currentDiff: null,
       popups: [
         { text: 'AIサーブ!', x: W / 2, y: 240, start: now, color: '#fbbf24', size: 22 },
       ],
@@ -489,14 +492,16 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
     sim.swingStart = now;
 
     const sh = sim.shuttle;
-    // 相手コートにシャトルがある間の素振りはノーカウント
-    if (!sh || sh.mode !== 'incoming' || sim.swungThisShot) {
+    // 相手コートにシャトルがある間、または既にヒットして返球済みの場合はノーカウント
+    // （ヒット後は shuttle.mode が 'returning' に変わるので自然にブロックされる）
+    if (!sh || sh.mode !== 'incoming') {
       beep(300, 50, 'sine', 0.02);
       return;
     }
-    sim.swungThisShot = true;
+    sim.attemptedSwing = true;
 
-    const diff = difficultyForRally(sim.rally);
+    const diff = sim.currentDiff;
+    if (!diff) return; // 念のためのガード
     const remain = sh.start + sh.duration - now;
     const inWindow = remain <= diff.hitWindowMs && remain >= -40;
     const dx = sim.racketX - sh.toX;
@@ -660,7 +665,8 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
             if (sim.pendingEnd && now >= sh.until) {
               finish(sim.pendingEnd);
             } else if (now >= sh.until) {
-              const diff = difficultyForRally(sim.rally);
+              const diff = difficultyForRally(sim.rally, sim.rng);
+              sim.currentDiff = diff;
               const landing = pickLanding(sim.rng, diff);
               const speedT = (1500 - diff.flightMs) / 800;
               sim.shuttle = {
@@ -673,7 +679,7 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
                 duration: diff.flightMs,
                 arc: lerp(95, 42, clamp(speedT, 0, 1)),
               };
-              sim.swungThisShot = false;
+              sim.attemptedSwing = false;
               sim.trail = [];
               beep(420, 60, 'sine', 0.03);
             }
@@ -705,7 +711,7 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
               }
             } else if (p >= 1) {
               // 着地: 打ち返せなかった
-              finish(sim.swungThisShot ? '空振り…！' : 'アウト…届かなかった！');
+              finish(sim.attemptedSwing ? '空振り…！' : 'アウト…届かなかった！');
             }
             // 軌跡を記録
             if (p < 1 && sim.trail.length < 200) {
@@ -750,9 +756,9 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
       })();
 
       // 着地点マーカー＋タイミングリング（incoming時のみ）
-      if (sim && playing && sim.shuttle && sim.shuttle.mode === 'incoming') {
+      if (sim && playing && sim.shuttle && sim.shuttle.mode === 'incoming' && sim.currentDiff) {
         const sh = sim.shuttle;
-        const diff = difficultyForRally(sim.rally);
+        const diff = sim.currentDiff;
         const remain = sh.start + sh.duration - now;
         const m = project(sh.toX, sh.toD);
         const inWindow = remain <= diff.hitWindowMs;
@@ -902,7 +908,7 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
   const isLegend = finalRally >= LEGEND_RALLY;
 
   return (
-    <div className="relative mx-auto h-full max-h-full w-auto max-w-full select-none overflow-hidden rounded-2xl shadow-lg">
+    <div className="relative mx-auto h-full max-h-full w-auto max-w-full select-none overflow-hidden rounded-2xl shadow-lg md:h-auto md:max-h-none md:w-full md:max-w-[420px]">
       <canvas
         ref={canvasRef}
         className="block aspect-[9/14] w-full touch-none"

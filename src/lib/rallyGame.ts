@@ -20,11 +20,25 @@ export interface ShotDifficulty {
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 
-/** ラリー数 → その次にAIが打つショットの難易度 */
-export function difficultyForRally(rally: number): ShotDifficulty {
+/** ラリー数と乱数 → その次にAIが打つショットの難易度 */
+export function difficultyForRally(
+  rally: number,
+  rng: () => number,
+): ShotDifficulty {
+  // 出てくる最速球はラリーが進むほど厳しくなる（fastestが徐々に下がる）
+  const fastest = clamp(1500 - rally * 32, 620, 1500);
+  // 最遅球はゆるやかにしか絞らない（緩い球も後半まで混ぎる=緩急）
+  const slowest = clamp(1500 - rally * 8, fastest + 200, 1600);
+  const flightMs = fastest + rng() * (slowest - fastest);
+  // 速い球ほどヒットウィンドウも少し厳しくする
+  const hitWindowMs = clamp(
+    300 - rally * 4.2 - (1500 - flightMs) * 0.05,
+    140,
+    300,
+  );
   return {
-    flightMs: clamp(1500 - rally * 28, 700, 1500),
-    hitWindowMs: clamp(280 - rally * 4.5, 150, 280),
+    flightMs,
+    hitWindowMs,
     courseSpread: Math.min(0.35 + rally * 0.022, 1),
     cornerBias: Math.min(rally * 0.02, 0.6),
   };
