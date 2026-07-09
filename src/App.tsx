@@ -51,6 +51,15 @@ const AnimatedRoutes = () => {
       <div key={location.pathname} className="page-fade">
         <Routes location={location}>
 
+          {/* ── 旧URL → 新URLリダイレクト（最優先） ── */}
+          <Route path="/"                         element={<Navigate to="/ja/" replace />} />
+          <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
+          <Route path="/login"                    element={<Navigate to="/ja/login" replace />} />
+          <Route path="/activity"                 element={<Navigate to="/ja/activity" replace />} />
+          <Route path="/activity/:id"             element={<NavigateWithId to="/ja/activity" />} />
+          <Route path="/activity-cn"              element={<Navigate to="/zh/activity" replace />} />
+          <Route path="/activity-cn/:id"          element={<NavigateWithId to="/zh/activity" />} />
+
           {/* ── 川口・蕨グループ（新URL） ── */}
           <Route path="/:lang" element={<LangWrapper groupSlug="kawaguchi-warabi" />}>
             <Route index element={<HomePage />} />
@@ -64,7 +73,7 @@ const AnimatedRoutes = () => {
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
-            <Route path="admin"           element={<AdminPage />} />
+            <Route path="admin"           element={<AdminPage groupSlug="kawaguchi-warabi" />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />
             <Route path="join"            element={<JoinPage />} />
@@ -92,7 +101,6 @@ const AnimatedRoutes = () => {
           </Route>
 
           {/* ── 言語によらないページ ── */}
-          <Route path="/login"       element={<LoginPage />} />
           <Route path="/cancel"      element={<CancelEntryPage />} />
           <Route path="/results/vol1" element={<Vol1Results />} />
           <Route path="/results/vol2" element={<Vol2Results />} />
@@ -100,14 +108,6 @@ const AnimatedRoutes = () => {
           <Route path="/:lang/results/vol1" element={<Vol1Results />} />
           <Route path="/:lang/results/vol2" element={<Vol2Results />} />
           <Route path="/:lang/results/vol3" element={<Vol3Results />} />
-
-          {/* ── 旧URL → 新URLリダイレクト（React Router層） ── */}
-          <Route path="/"                         element={<Navigate to="/ja/" replace />} />
-          <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
-          <Route path="/activity"                 element={<Navigate to="/ja/activity" replace />} />
-          <Route path="/activity/:id"             element={<NavigateWithId to="/ja/activity" />} />
-          <Route path="/activity-cn"              element={<Navigate to="/zh/activity" replace />} />
-          <Route path="/activity-cn/:id"          element={<NavigateWithId to="/zh/activity" />} />
           <Route path="/tournaments/:id"          element={<NavigateWithId to="/ja/tournaments" />} />
           <Route path="/faq"                      element={<Navigate to="/ja/faq" replace />} />
           <Route path="/contact"                  element={<Navigate to="/ja/contact" replace />} />
