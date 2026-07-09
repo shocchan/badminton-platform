@@ -8,15 +8,18 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
+import Youtube from '@tiptap/extension-youtube';
 import { ResizableImage } from '../extensions/ResizableImage';
 import type { Tournament, BlogPost, Entry } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
+import CouponAdminPanel from '../components/admin/CouponAdminPanel';
+import GameStatsPanel from '../components/admin/GameStatsPanel';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle' | 'coupons' | 'game';
 
 interface Subscriber {
   id: string;
@@ -106,17 +109,45 @@ function TBtn({ onClick, active, title, children }: { onClick: () => void; activ
   );
 }
 
+// 画像をStorageにアップロードして公開URLを返す（本文エディタ共通）
+async function uploadBlogImage(file: File): Promise<string> {
+  if (file.size > 10 * 1024 * 1024) throw new Error('ファイルサイズは10MB以下にしてください');
+  const ext = file.name.split('.').pop() || 'png';
+  const filename = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { data, error } = await supabase.storage.from('blog-images').upload(filename, file, { upsert: false });
+  if (error) throw error;
+  return supabase.storage.from('blog-images').getPublicUrl(data.path).data.publicUrl;
+}
+
 // ── リッチテキストエディタ（白テーマ）─────────────────────
 function RichEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
   const imgInputRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
 
+  // handleDrop/handlePaste から最新の editor を参照するための ref（useEditorより前に宣言）
+  const editorRef = useRef<ReturnType<typeof useEditor>>(null);
+
+  const insertImage = useCallback(async (file: File) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    setImgUploading(true);
+    try {
+      const url = await uploadBlogImage(file);
+      editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
+    } catch (err) {
+      alert('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
+    } finally {
+      setImgUploading(false);
+    }
+  }, []);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       ResizableImage,
+      Youtube.configure({ width: 640, height: 360, nocookie: true, HTMLAttributes: { class: 'blog-video' } }),
       Link.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder: '本文を入力してください…' }),
+      Placeholder.configure({ placeholder: '本文を入力…（画像はドラッグ&ドロップやCmd+Vでも貼れます）' }),
     ],
     content: value || '',
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -124,46 +155,54 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
       attributes: {
         class: 'outline-none min-h-[320px] px-4 py-3 text-gray-800 leading-relaxed prose prose-sm max-w-none',
       },
+      // ドラッグ&ドロップで画像を挿入
+      handleDrop: (_view, event) => {
+        const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
+        if (files.length === 0) return false;
+        event.preventDefault();
+        files.forEach(f => void insertImage(f));
+        return true;
+      },
+      // クリップボードからの貼り付けで画像を挿入
+      handlePaste: (_view, event) => {
+        const files = Array.from(event.clipboardData?.files || []).filter(f => f.type.startsWith('image/'));
+        if (files.length === 0) return false;
+        event.preventDefault();
+        files.forEach(f => void insertImage(f));
+        return true;
+      },
     },
   });
-
-  // valueが外部から変わった時（編集開始時）に同期
-  const isFirstMount = useRef(true);
-  useEffect(() => {
-    if (isFirstMount.current) { isFirstMount.current = false; return; }
-  }, []);
+  useEffect(() => { editorRef.current = editor; }, [editor]);
 
   const setLink = useCallback(() => {
-    const url = window.prompt('URLを入力してください');
-    if (!url) return;
+    const prev = editor?.getAttributes('link').href as string | undefined;
+    const url = window.prompt('リンク先URL', prev || 'https://');
+    if (url === null) return;
+    if (url === '') { editor?.chain().focus().unsetLink().run(); return; }
     editor?.chain().focus().setLink({ href: url }).run();
   }, [editor]);
 
-  const handleImageFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const addVideo = useCallback(() => {
+    const url = window.prompt('YouTubeのURLを貼り付けてください');
+    if (!url) return;
+    editor?.chain().focus().setYoutubeVideo({ src: url }).run();
+  }, [editor]);
+
+  const handleImageFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     e.target.value = '';
-    if (!file || !editor) return;
-    if (file.size > 10 * 1024 * 1024) { alert('ファイルサイズは10MB以下にしてください'); return; }
-    setImgUploading(true);
-    try {
-      const ext = file.name.split('.').pop();
-      const filename = `body/${Date.now()}.${ext}`;
-      const { data, error } = await supabase.storage.from('blog-images').upload(filename, file, { upsert: false });
-      if (error) throw error;
-      const { data: urlData } = supabase.storage.from('blog-images').getPublicUrl(data.path);
-      editor.commands.insertContent({ type: 'image', attrs: { src: urlData.publicUrl, width: 400 } });
-    } catch (err) {
-      alert('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
-    } finally {
-      setImgUploading(false);
-    }
-  }, [editor]);
+    if (file) void insertImage(file);
+  }, [insertImage]);
 
   if (!editor) return null;
 
   return (
     <div className="rounded-xl border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
       <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50">
+        <TBtn onClick={() => editor.chain().focus().undo().run()} title="元に戻す (Cmd+Z)">↶</TBtn>
+        <TBtn onClick={() => editor.chain().focus().redo().run()} title="やり直し (Cmd+Shift+Z)">↷</TBtn>
+        <div className="w-px h-5 bg-gray-300 mx-1" />
         <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} title="見出し1">H1</TBtn>
         <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} title="見出し2">H2</TBtn>
         <TBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} title="見出し3">H3</TBtn>
@@ -178,9 +217,10 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         <TBtn onClick={setLink} active={editor.isActive('link')} title="リンク">🔗</TBtn>
         <TBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="区切り線">—</TBtn>
         <div className="w-px h-5 bg-gray-300 mx-1" />
-        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入">
+        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入（ドラッグ&ドロップ / Cmd+Vも可）">
           {imgUploading ? <span className="inline-block w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : '🖼'}
         </TBtn>
+        <TBtn onClick={addVideo} title="動画を埋め込む（YouTube）">🎬</TBtn>
         <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
       </div>
       <EditorContent editor={editor} />
@@ -402,9 +442,10 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
     const title = autoTitle(form.date, form.start_time, form.end_time, form.location);
 
     if (groupSlug) {
-      // chaoxianzu: SECURITY DEFINER RPC経由
+      // chaoxianzu: SECURITY DEFINER RPC経由（sessionStorageに保持したグループパスワードで認可）
       const { error } = await supabase.rpc('admin_upsert_activity', {
         p_group_slug: groupSlug,
+        p_password: sessionStorage.getItem(`sub_admin_auth_${groupSlug}`),
         p_edit_id: editId || null,
         p_title: title,
         p_date: form.date,
@@ -446,7 +487,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
   const handleArchive = async (id: string) => {
     if (!confirm('この活動をアーカイブしますか？データは保持されます。')) return;
     if (groupSlug) {
-      await supabase.rpc('admin_archive_activity', { p_id: id, p_group_slug: groupSlug });
+      await supabase.rpc('admin_archive_activity', { p_id: id, p_group_slug: groupSlug, p_password: sessionStorage.getItem(`sub_admin_auth_${groupSlug}`) });
     } else {
       await supabase.from('activities').update({ archived_at: new Date().toISOString() }).eq('id', id);
     }
@@ -455,7 +496,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
 
   const handleUnarchive = async (id: string) => {
     if (groupSlug) {
-      await supabase.rpc('admin_unarchive_activity', { p_id: id, p_group_slug: groupSlug });
+      await supabase.rpc('admin_unarchive_activity', { p_id: id, p_group_slug: groupSlug, p_password: sessionStorage.getItem(`sub_admin_auth_${groupSlug}`) });
     } else {
       await supabase.from('activities').update({ archived_at: null }).eq('id', id);
     }
@@ -465,7 +506,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
   const handleDelete = async (id: string) => {
     if (!confirm('完全削除しますか？申し込みデータも削除されます。この操作は取り消せません。')) return;
     if (groupSlug) {
-      await supabase.rpc('admin_delete_activity', { p_id: id, p_group_slug: groupSlug });
+      await supabase.rpc('admin_delete_activity', { p_id: id, p_group_slug: groupSlug, p_password: sessionStorage.getItem(`sub_admin_auth_${groupSlug}`) });
     } else {
       await supabase.from('activities').delete().eq('id', id);
     }
@@ -810,7 +851,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [cxPassword, setCxPassword] = useState('');
   const [cxAuthed, setCxAuthed] = useState(() => {
     if (typeof window !== 'undefined' && groupSlug) {
-      return sessionStorage.getItem(`sub_admin_auth_${groupSlug}`) === 'true';
+      // セッションにはグループパスワード自体を保持する（RPC呼び出し時に必要）。
+      // 旧形式の 'true' は無効扱いにして再ログインさせる
+      const v = sessionStorage.getItem(`sub_admin_auth_${groupSlug}`);
+      return !!v && v !== 'true';
     }
     return false;
   });
@@ -852,7 +896,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     setCxLogging(false);
     if (error) { setCxAuthError('エラーが発生しました'); return; }
     if (data === true) {
-      sessionStorage.setItem(cxStorageKey, 'true');
+      sessionStorage.setItem(cxStorageKey, cxPassword);
       setCxAuthed(true);
     } else {
       setCxAuthError('パスワードが間違っています');
@@ -922,6 +966,20 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       navigate('/login');
     }
   }, [isAuthenticated, authLoading, navigate, isSubGroup]);
+
+  // ゲーム会員など「ログインはできるが管理者ではない」ユーザーを弾く
+  // （サーバー側もRLS/RPCで防御済み。これはUX用のゲート）
+  const [isSiteAdmin, setIsSiteAdmin] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (isSubGroup || !isAuthenticated) return;
+    let alive = true;
+    supabase.rpc('is_admin').then(({ data }) => {
+      if (alive) setIsSiteAdmin(data === true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [isSubGroup, isAuthenticated]);
 
   useEffect(() => {
     if (isSubGroup) return;
@@ -1225,16 +1283,25 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         return;
       }
 
+      // 抜粋が空なら本文の冒頭から自動生成（一覧がスカスカにならないように）
+      const autoExcerpt = (() => {
+        if (postForm.excerpt?.trim()) return postForm.excerpt.trim();
+        const plain = postForm.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+        return plain ? plain.slice(0, 80) + (plain.length > 80 ? '…' : '') : undefined;
+      })();
+
       const cleanForm = {
         ...postForm,
         image_url: finalImageUrl || undefined,
-        excerpt: postForm.excerpt || undefined,
+        excerpt: autoExcerpt,
         youtube_url: postForm.youtube_url || undefined,
         external_url: postForm.external_url || undefined,
         tags: postForm.tags?.length ? postForm.tags : [],
         status: postForm.status || 'published',
         content_type: postForm.content_type || 'html',
-        published_at: postForm.published_at || new Date().toISOString(),
+        // 予約日時があればそれを使う。編集時は元の公開日を維持（編集で日付が今日にならないように）。
+        // 新規作成のみ現在時刻。
+        published_at: postForm.published_at || editingPost?.published_at || new Date().toISOString(),
       };
 
       if (editingPost) {
@@ -1296,6 +1363,22 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     );
   }
 
+  // 管理者以外（ゲーム会員等）が /admin を開いた場合
+  if (!isSubGroup && isAuthenticated && isSiteAdmin === false) {
+    return (
+      <main className="max-w-sm mx-auto px-4 py-20 text-center">
+        <p className="text-4xl">🔒</p>
+        <h1 className="mt-4 text-lg font-bold text-gray-900">管理者専用ページです</h1>
+        <p className="mt-2 text-sm text-gray-500">
+          このアカウントには管理権限がありません。
+        </p>
+        <a href="/ja/mypage" className="mt-6 inline-block text-sm text-blue-600 underline underline-offset-2">
+          マイページへ
+        </a>
+      </main>
+    );
+  }
+
   // サブグループ: パスワード未認証の場合はログイン画面を表示
   if (isSubGroup && !cxAuthed) {
     return (
@@ -1347,7 +1430,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isSubGroup
           ? [['activities', '通常活動']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理'], ['shuttle', 'シャトル供養']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理'], ['shuttle', 'シャトル供養'], ['coupons', 'クーポン消込'], ['game', 'ゲーム実績']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -1839,7 +1922,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">YouTube URL</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">記事末尾のYouTube動画</label>
                     <input
                       type="url"
                       value={postForm.youtube_url || ''}
@@ -1847,6 +1930,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="https://youtube.com/watch?v=..."
                     />
+                    <p className="text-xs text-gray-400 mt-1">本文の途中に入れたい場合は本文ツールバーの 🎬 を使ってください</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">外部リンクURL</label>
@@ -2484,6 +2568,20 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         <div>
           <h2 className="text-lg font-bold text-gray-800 mb-4">シャトル供養カウンター</h2>
           <ShuttleAdminPanel />
+        </div>
+      )}
+      {/* Coupons Tab */}
+      {activeTab === 'coupons' && (
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">クーポン消込（バド対決ゲーム景品）</h2>
+          <CouponAdminPanel />
+        </div>
+      )}
+      {/* Game Stats Tab */}
+      {activeTab === 'game' && (
+        <div>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">ゲーム実績（バド対決）</h2>
+          <GameStatsPanel />
         </div>
       )}
     </main>

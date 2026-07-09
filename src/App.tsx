@@ -32,6 +32,8 @@ const VenueGuidePage      = lazy(() => import('./pages/VenueGuidePage').then(m =
 const ContactPage         = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
+const RallyGamePage       = lazy(() => import('./pages/RallyGamePage'));
+const MyPage              = lazy(() => import('./pages/MyPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -65,6 +67,8 @@ const AnimatedRoutes = () => {
             <Route path="join"            element={<JoinPage />} />
             <Route path="shuttle-roadmap" element={<ShuttleRoadmapPage />} />
             <Route path="tactics-board"  element={<TacticsBoardPage />} />
+            <Route path="game"            element={<RallyGamePage />} />
+            <Route path="mypage"          element={<MyPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}

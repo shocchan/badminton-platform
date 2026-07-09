@@ -10,10 +10,11 @@ export const useBlogPosts = (options?: { includeScheduled?: boolean }) => {
 
   const fetchBlogPosts = async () => {
     setLoading(true);
+    // 並び順は作成日（created_at）基準。編集で published_at が動いても順番は変わらない
     let query = supabase
       .from('blog_posts')
       .select('*')
-      .order('published_at', { ascending: false });
+      .order('created_at', { ascending: false });
 
     // 公開ページでは published_at が現在以前かつ status = published の記事のみ表示
     if (!includeScheduled) {

@@ -17,6 +17,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: 'blog',       label: { ja: 'ブログ',     zh: '博客' },     icon: '📝', category: 'general' },
   { path: 'level-guide',label: { ja: 'クラス案内', zh: '级别说明' }, icon: '📊', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
   { path: 'faq',        label: { ja: 'FAQ',        zh: '常见问题' }, icon: '❓', category: 'tournament', badge: { ja: '大会', zh: '大会' } },
+  { path: 'game',       label: { ja: 'バドゲーム', zh: '羽球游戏' }, icon: '🎮', category: 'general' },
+  { path: 'tactics-board', label: { ja: '戦術ボード', zh: '战术板' }, icon: '📋', category: 'general' },
 ];
 
 const categoryColor = (cat: NavItem['category'], active: boolean) => {

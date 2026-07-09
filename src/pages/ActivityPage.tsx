@@ -461,6 +461,20 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const [cancelMsg, setCancelMsg] = useState('');
   const [cancelError, setCancelError] = useState('');
 
+  // ログイン会員は申込フォームの名前を自動入力（毎回入力しなくて済むように）
+  const [memberName, setMemberName] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (!u) return;
+      const nick = (u.user_metadata?.nickname as string | undefined) || u.email || '';
+      if (nick) {
+        setMemberName(nick);
+        setName(prev => prev || nick);
+      }
+    });
+  }, []);
+
   const confirmedEntries = entries.filter(e => e.status === 'confirmed');
   const waitlistEntries = entries.filter(e => e.status === 'waitlist');
   const confirmedCount = confirmedEntries.reduce((s, e) => s + e.quantity, 0);
@@ -929,6 +943,11 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
             </div>
           )}
 
+          {memberName && (
+            <p className="text-xs text-emerald-700 mb-1.5">
+              ✅ <span className="font-bold">{memberName}</span> さんとしてログイン中（名前は自動入力済み）
+            </p>
+          )}
           <input
             type="text"
             value={name}
