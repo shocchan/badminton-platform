@@ -13,7 +13,7 @@ interface Props {
 
 export default function ClaimAccountForm({ onDone }: Props) {
   const [mode, setMode] = useState<'register' | 'login'>('register');
-  const [nickname, setNickname] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -24,8 +24,8 @@ export default function ClaimAccountForm({ onDone }: Props) {
     if (busy) return;
     setError(null);
 
-    if (mode === 'register' && nickname.trim().length === 0) {
-      setError('ニックネームを入力してください');
+    if (mode === 'register' && name.trim().length === 0) {
+      setError('お名前を入力してください');
       return;
     }
     if (password.length < 6) {
@@ -39,7 +39,7 @@ export default function ClaimAccountForm({ onDone }: Props) {
         const { error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { nickname: nickname.trim() } },
+          options: { data: { name: name.trim() } },
         });
         if (signUpErr) {
           throw new Error(
@@ -94,10 +94,10 @@ export default function ClaimAccountForm({ onDone }: Props) {
         {mode === 'register' && (
           <input
             type="text"
-            value={nickname}
-            onChange={(e) => setNickname(e.target.value)}
-            placeholder="ニックネーム（例: しょっちゃん）"
-            maxLength={20}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="お名前（例: 田中太郎）"
+            maxLength={30}
             className={inputClass}
           />
         )}

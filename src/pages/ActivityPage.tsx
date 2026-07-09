@@ -467,10 +467,10 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
       if (!u) return;
-      const nick = (u.user_metadata?.nickname as string | undefined) || u.email || '';
-      if (nick) {
-        setMemberName(nick);
-        setName(prev => prev || nick);
+      const name = (u.user_metadata?.name as string | undefined) || u.email || '';
+      if (name) {
+        setMemberName(name);
+        setName(prev => prev || name);
       }
     });
   }, []);
