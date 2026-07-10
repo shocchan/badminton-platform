@@ -80,6 +80,94 @@ async function generateSitemap(env) {
   return '<?xml version="1.0" encoding="UTF-8"?>\\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + '\\n</urlset>';
 }
 
+// ── ページ別OGP（LINE/WeChat/X等のクローラーはJSを実行しないため、Worker側で差し込む） ──
+
+function matchOgpRoute(pathname) {
+  let m = pathname.match(/^\\/(ja|zh)\\/tournaments\\/(\\d+)\\/?$/);
+  if (m) return { kind: 'tournament', lang: m[1], id: m[2] };
+  m = pathname.match(/^\\/tournaments\\/(\\d+)\\/?$/);
+  if (m) return { kind: 'tournament', lang: 'ja', id: m[1] };
+  m = pathname.match(/^\\/(ja|zh)\\/blog\\/(\\d+)\\/?$/);
+  if (m) return { kind: 'blog', lang: m[1], id: m[2] };
+  m = pathname.match(/^\\/blog\\/(\\d+)\\/?$/);
+  if (m) return { kind: 'blog', lang: 'ja', id: m[1] };
+  return null;
+}
+
+async function fetchFirst(env, path) {
+  const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
+  const key = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
+  if (!supabaseUrl || !key) return null;
+  const res = await fetch(supabaseUrl + path, {
+    headers: { apikey: key, Authorization: 'Bearer ' + key },
+  });
+  if (!res.ok) return null;
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length ? rows[0] : null;
+}
+
+function escAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function injectOgp(meta) {
+  let html = INDEX_HTML
+    .replace(/<title>[^<]*<\\/title>/, '<title>' + escAttr(meta.title) + '</title>')
+    .replace(/(<meta name="description" content=")[^"]*(")/, '$1' + escAttr(meta.description) + '$2')
+    .replace(/(<meta property="og:title" content=")[^"]*(")/, '$1' + escAttr(meta.title) + '$2')
+    .replace(/(<meta property="og:description" content=")[^"]*(")/, '$1' + escAttr(meta.description) + '$2');
+  if (meta.image) {
+    html = html
+      .replace(/(<meta property="og:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2')
+      .replace(/(<meta name="twitter:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2');
+  }
+  return html.replace('</head>', '<meta property="og:url" content="' + escAttr(meta.url) + '" />\\n  </head>');
+}
+
+const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
+const WEEKDAYS_ZH = ['日', '一', '二', '三', '四', '五', '六'];
+
+async function buildOgpMeta(route, env, pageUrl) {
+  if (route.kind === 'tournament') {
+    const t = await fetchFirst(env,
+      '/rest/v1/tournaments?id=eq.' + route.id +
+      '&visibility=neq.draft&select=title,event_date,start_time,end_time,location,entry_fee,level,event_type');
+    if (!t || !t.event_date) return null;
+    const [y, mo, d] = t.event_date.split('-');
+    const wdIdx = new Date(t.event_date).getUTCDay();
+    const time = (t.start_time || '').slice(0, 5) + '〜' + (t.end_time || '').slice(0, 5);
+    const fee = Number(t.entry_fee || 0).toLocaleString('ja-JP');
+    if (route.lang === 'zh') {
+      return {
+        title: t.title + '｜' + Number(mo) + '/' + Number(d) + '(周' + WEEKDAYS_ZH[wdIdx] + ')举办',
+        description: '📅' + y + '年' + Number(mo) + '月' + Number(d) + '日(周' + WEEKDAYS_ZH[wdIdx] + ') ' + time +
+          '｜📍' + t.location + '｜💰报名费¥' + fee + '｜' + t.level + '·' + t.event_type + '。正在报名中！',
+        url: pageUrl,
+      };
+    }
+    return {
+      title: t.title + '｜' + Number(mo) + '/' + Number(d) + '(' + WEEKDAYS_JA[wdIdx] + ')開催',
+      description: '📅' + y + '年' + Number(mo) + '月' + Number(d) + '日(' + WEEKDAYS_JA[wdIdx] + ') ' + time +
+        '｜📍' + t.location + '｜💰参加費¥' + fee + '｜' + t.level + '・' + t.event_type + '。申込受付中！',
+      url: pageUrl,
+    };
+  }
+  if (route.kind === 'blog') {
+    const p = await fetchFirst(env,
+      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url');
+    if (!p) return null;
+    return {
+      title: p.title + '｜川口・蕨バドミントン交流会',
+      description: p.excerpt || '川口・蕨エリアのバドミントン交流会の活動ブログ',
+      image: p.image_url && /^https?:/.test(p.image_url) ? p.image_url : null,
+      url: pageUrl,
+    };
+  }
+  return null;
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -133,6 +221,23 @@ export default {
         status: 404,
         headers: { 'Cache-Control': 'no-store' },
       });
+    }
+
+    // 大会・ブログ詳細ページ: OGPを差し込んだHTMLを返す（シェア時のプレビュー用）
+    const ogpRoute = matchOgpRoute(pathname);
+    if (ogpRoute) {
+      try {
+        const meta = await buildOgpMeta(ogpRoute, env, 'https://kawabado.com' + pathname);
+        if (meta) {
+          return new Response(injectOgp(meta), {
+            status: 200,
+            headers: {
+              'Content-Type': 'text/html; charset=utf-8',
+              'Cache-Control': 'no-cache, must-revalidate',
+            },
+          });
+        }
+      } catch (_) { /* 失敗時は共通HTMLにフォールバック */ }
     }
 
     // HTMLルートはWorkerに埋め込まれたindex.htmlを返す
