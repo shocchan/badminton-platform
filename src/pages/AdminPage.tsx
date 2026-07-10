@@ -1439,7 +1439,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isSubGroup
           ? [['activities', '通常活動']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['subscribers', '登録者管理'], ['shuttle', 'シャトル供養'], ['coupons', 'クーポン消込'], ['game', 'ゲーム実績']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '登録者管理'], ['shuttle', 'シャトル供養'], ['coupons', 'クーポン消込'], ['game', 'ゲーム実績']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
