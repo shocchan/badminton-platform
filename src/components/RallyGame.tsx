@@ -422,13 +422,15 @@ function drawShuttle(
 // ── ゲームコンポーネント ──
 
 export interface RallyGameProps {
+  /** ゲーム開始時に通知（抽選セッションの発行は親が行う） */
+  onGameStart?: () => void;
   /** ゲーム終了時に到達ラリー数を通知（抽選APIへの接続は親が行う） */
   onGameEnd?: (rallyCount: number) => void;
   /** 抽選1回に必要なラリー数。指定するとスタート画面・リザルトにチャンス表示を出す */
   drawEveryRallies?: number;
 }
 
-export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProps) {
+export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: RallyGameProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const simRef = useRef<Sim | null>(null);
   const keysRef = useRef(new Set<string>());
@@ -438,11 +440,14 @@ export default function RallyGame({ onGameEnd, drawEveryRallies }: RallyGameProp
   // rAFループやイベントリスナーから最新値を読むための参照
   const phaseRef = useRef<Phase>('ready');
   const onGameEndRef = useRef(onGameEnd);
+  const onGameStartRef = useRef(onGameStart);
   useEffect(() => {
     onGameEndRef.current = onGameEnd;
-  }, [onGameEnd]);
+    onGameStartRef.current = onGameStart;
+  }, [onGameEnd, onGameStart]);
 
   const start = () => {
+    onGameStartRef.current?.();
     const now = performance.now();
     simRef.current = {
       rally: 0,

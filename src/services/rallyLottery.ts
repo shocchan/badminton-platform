@@ -19,6 +19,25 @@ export interface LotteryResult {
   dailyLimited: boolean;
 }
 
+// ゲーム開始時にサーバーへセッションを登録し、終了時にIDを添えて抽選する。
+// サーバーは開始からの経過時間とラリー数の整合性を検証する（チート対策）。
+let sessionPromise: Promise<string | null> | null = null;
+
+/** ゲーム開始時に呼ぶ。サーバーに開始時刻を記録してセッションIDを取得（失敗時はnull） */
+export function startRallySession(): void {
+  sessionPromise = (async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('rally-lottery', {
+        body: { action: 'start', deviceUuid: getDeviceUuid() },
+      });
+      if (error) return null;
+      return (data?.sessionId as string) ?? null;
+    } catch {
+      return null;
+    }
+  })();
+}
+
 // 同一ゲームの二重送信ガード（React StrictModeのeffect二重実行や連打対策）。
 // 5秒以内の同ラリー数のリクエストは同じPromiseを返す。
 let lastCall: { key: string; at: number; promise: Promise<LotteryResult> } | null = null;
@@ -29,8 +48,9 @@ export function drawRallyLottery(rallyCount: number): Promise<LotteryResult> {
     return lastCall.promise;
   }
   const promise = (async () => {
+    const sessionId = sessionPromise ? await sessionPromise : null;
     const { data, error } = await supabase.functions.invoke('rally-lottery', {
-      body: { deviceUuid: getDeviceUuid(), rallyCount },
+      body: { deviceUuid: getDeviceUuid(), rallyCount, sessionId },
     });
     if (error) throw error;
     return data as LotteryResult;
