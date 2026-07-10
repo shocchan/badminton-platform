@@ -12,14 +12,13 @@ import Youtube from '@tiptap/extension-youtube';
 import { ResizableImage } from '../extensions/ResizableImage';
 import type { Tournament, BlogPost, Entry } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
-import CouponAdminPanel from '../components/admin/CouponAdminPanel';
 import GameStatsPanel from '../components/admin/GameStatsPanel';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle' | 'coupons' | 'game';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle' | 'game';
 
 interface Subscriber {
   id: string;
@@ -1110,6 +1109,18 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     fetchMembers();
   };
 
+  // 会員一覧上でのクーポン消込（旧クーポン消込タブの置き換え）
+  const handleRedeemCoupon = async (member: Member, coupon: MemberCoupon) => {
+    const label = coupon.type === 'ramen' ? 'ラーメン無料券' : 'バド活動無料券';
+    if (!window.confirm(`${member.name} さんの「${label}」を使用済みにしますか？`)) return;
+    const { data, error } = await supabase.rpc('admin_redeem_coupon', { p_coupon_id: coupon.id });
+    if (error || data !== true) {
+      window.alert('クーポンの消込に失敗しました');
+      return;
+    }
+    fetchMembers();
+  };
+
   const handleUpdateMember = async (id: string, updates: Partial<Member>) => {
     await supabase.from('members').update(updates).eq('id', id);
     fetchMembers();
@@ -1444,7 +1455,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isSubGroup
           ? [['activities', '通常活動']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '登録者管理'], ['shuttle', 'シャトル供養'], ['coupons', 'クーポン消込'], ['game', 'ゲーム実績']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '登録者管理'], ['shuttle', 'シャトル供養'], ['game', 'ゲーム実績']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -2215,21 +2226,29 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                           <span className="text-gray-300">—</span>
                         ) : (
                           <div className="flex flex-wrap gap-1">
-                            {m.coupons.map(c => (
+                            {m.coupons.map(c => c.status === 'used' ? (
                               <span
                                 key={c.id}
                                 title={`発行: ${new Date(c.issued_at).toLocaleDateString('ja-JP')}`}
-                                className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
-                                  c.status === 'used'
-                                    ? 'bg-gray-100 text-gray-400 line-through'
-                                    : c.status === 'reserved'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-emerald-100 text-emerald-700'
+                                className="text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap bg-gray-100 text-gray-400 line-through"
+                              >
+                                {c.type === 'ramen' ? '🍜 ラーメン' : '🏸 バド活動'}
+                              </span>
+                            ) : (
+                              <button
+                                key={c.id}
+                                onClick={() => handleRedeemCoupon(m, c)}
+                                title={`発行: ${new Date(c.issued_at).toLocaleDateString('ja-JP')}｜クリックで使用済みにする`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap transition-colors ${
+                                  c.status === 'reserved'
+                                    ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                                    : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
                                 }`}
                               >
                                 {c.type === 'ramen' ? '🍜 ラーメン' : '🏸 バド活動'}
-                                {c.status === 'used' ? '' : c.status === 'reserved' ? '(予約中)' : c.status === 'unclaimed' ? '(未受取)' : ''}
-                              </span>
+                                {c.status === 'reserved' ? '(予約中)' : c.status === 'unclaimed' ? '(未受取)' : ''}
+                                <span className="ml-1">✓消込</span>
+                              </button>
                             ))}
                           </div>
                         )}
@@ -2593,13 +2612,6 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         <div>
           <h2 className="text-lg font-bold text-gray-800 mb-4">シャトル供養カウンター</h2>
           <ShuttleAdminPanel />
-        </div>
-      )}
-      {/* Coupons Tab */}
-      {activeTab === 'coupons' && (
-        <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">クーポン消込（バド対決ゲーム景品）</h2>
-          <CouponAdminPanel />
         </div>
       )}
       {/* Game Stats Tab */}
