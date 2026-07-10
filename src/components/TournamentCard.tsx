@@ -67,7 +67,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   const [visible, setVisible] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
+  const [descExpanded, setDescExpanded] = useState(false);
   const { lang } = useLanguage();
+
+  // 説明文のプレーンテキスト長（短ければ折りたたみトグルを出さない）
+  const descTextLength = (tournament.description || '').replace(/<[^>]*>/g, '').length;
+  const isDescLong = descTextLength > 80;
 
   // ── フェードインアニメーション ──
   useEffect(() => {
@@ -283,10 +288,24 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
         )}
 
         {tournament.description && (
-          <div
-            className="relative z-10 text-sm text-gray-600 mb-5 prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: tournament.description }}
-          />
+          <div className="relative z-10 mb-5">
+            <div
+              className={`text-sm text-gray-600 prose prose-sm max-w-none ${
+                isDescLong && !descExpanded ? 'line-clamp-3' : ''
+              }`}
+              dangerouslySetInnerHTML={{ __html: tournament.description }}
+            />
+            {isDescLong && (
+              <button
+                onClick={e => { e.preventDefault(); e.stopPropagation(); setDescExpanded(v => !v); }}
+                className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-700"
+              >
+                {descExpanded
+                  ? (lang === 'zh' ? '收起 ▲' : '閉じる ▲')
+                  : (lang === 'zh' ? '查看详情 ▼' : '詳細を見る ▼')}
+              </button>
+            )}
+          </div>
         )}
 
         <div className="relative z-10 mt-auto">
