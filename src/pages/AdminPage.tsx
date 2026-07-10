@@ -31,12 +31,21 @@ interface Subscriber {
   created_at: string;
 }
 
+interface MemberCoupon {
+  id: string;
+  type: 'ramen' | 'badminton';
+  status: 'unclaimed' | 'claimed' | 'reserved' | 'used';
+  issued_at: string;
+}
+
 interface Member {
   id: string;
-  member_number: number;
+  member_number: number | null;
   name: string;
-  charge_balance: number;
+  email: string | null;
   active: boolean;
+  created_at: string | null;
+  coupons: MemberCoupon[];
 }
 
 // ブログカードの表示比率（h-48 ≈ 192px、3カラムで約384px幅 → 2:1）
@@ -932,7 +941,6 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [memberEditTarget, setMemberEditTarget] = useState<Member | null>(null);
   const [newMemberNumber, setNewMemberNumber] = useState('');
   const [newMemberName, setNewMemberName] = useState('');
-  const [newMemberBalance, setNewMemberBalance] = useState('0');
   const [editMemberForm, setEditMemberForm] = useState<Partial<Member>>({});
   const [memberOpError, setMemberOpError] = useState('');
 
@@ -1079,29 +1087,26 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
   const fetchMembers = async () => {
     setMembersLoading(true);
-    const { data } = await supabase
-      .from('members')
-      .select('*')
-      .order('member_number', { ascending: true });
+    // メール・保有クーポンを結合した管理者専用RPC（is_admin()ガード付き）
+    const { data } = await supabase.rpc('admin_list_members');
     setMembers((data || []) as Member[]);
     setMembersLoading(false);
   };
 
   const handleAddMember = async () => {
     setMemberOpError('');
-    if (!newMemberNumber || !newMemberName.trim()) {
-      setMemberOpError('会員番号と名前は必須です');
+    if (!newMemberName.trim()) {
+      setMemberOpError('名前は必須です');
       return;
     }
     const { error } = await supabase.from('members').insert({
-      member_number: parseInt(newMemberNumber),
+      member_number: newMemberNumber ? parseInt(newMemberNumber) : null,
       name: newMemberName.trim(),
-      charge_balance: parseInt(newMemberBalance) || 0,
       active: true,
     });
     if (error) { setMemberOpError(error.message); return; }
     setMemberAddModalOpen(false);
-    setNewMemberNumber(''); setNewMemberName(''); setNewMemberBalance('0');
+    setNewMemberNumber(''); setNewMemberName('');
     fetchMembers();
   };
 
@@ -2187,9 +2192,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 text-left text-xs font-semibold text-gray-500">
-                    <th className="px-4 py-3">番号</th>
+                    <th className="px-4 py-3">登録日</th>
                     <th className="px-4 py-3">名前</th>
-                    <th className="px-4 py-3">チャージ残高</th>
+                    <th className="px-4 py-3">メールアドレス</th>
+                    <th className="px-4 py-3">クーポン</th>
                     <th className="px-4 py-3">状態</th>
                     <th className="px-4 py-3">操作</th>
                   </tr>
@@ -2197,9 +2203,37 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 <tbody className="divide-y divide-gray-50">
                   {members.map(m => (
                     <tr key={m.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-gray-600">{m.member_number}</td>
+                      <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                        {m.created_at
+                          ? new Date(m.created_at).toLocaleDateString('ja-JP', { month: '2-digit', day: '2-digit' })
+                          : '—'}
+                      </td>
                       <td className="px-4 py-3 font-medium text-gray-900">{m.name}</td>
-                      <td className="px-4 py-3 text-gray-800">¥{m.charge_balance.toLocaleString()}</td>
+                      <td className="px-4 py-3 text-gray-600">{m.email ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {m.coupons.length === 0 ? (
+                          <span className="text-gray-300">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {m.coupons.map(c => (
+                              <span
+                                key={c.id}
+                                title={`発行: ${new Date(c.issued_at).toLocaleDateString('ja-JP')}`}
+                                className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${
+                                  c.status === 'used'
+                                    ? 'bg-gray-100 text-gray-400 line-through'
+                                    : c.status === 'reserved'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-emerald-100 text-emerald-700'
+                                }`}
+                              >
+                                {c.type === 'ramen' ? '🍜 ラーメン' : '🏸 バド活動'}
+                                {c.status === 'used' ? '' : c.status === 'reserved' ? '(予約中)' : c.status === 'unclaimed' ? '(未受取)' : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           m.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
@@ -2209,7 +2243,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       </td>
                       <td className="px-4 py-3">
                         <button
-                          onClick={() => { setMemberEditTarget(m); setEditMemberForm({ name: m.name, charge_balance: m.charge_balance, active: m.active }); setMemberOpError(''); }}
+                          onClick={() => { setMemberEditTarget(m); setEditMemberForm({ name: m.name, active: m.active }); setMemberOpError(''); }}
                           className="text-xs text-blue-600 hover:underline"
                         >
                           編集
@@ -2218,7 +2252,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     </tr>
                   ))}
                   {members.length === 0 && (
-                    <tr><td colSpan={5} className="text-center py-8 text-gray-400">会員データがありません</td></tr>
+                    <tr><td colSpan={6} className="text-center py-8 text-gray-400">会員データがありません</td></tr>
                   )}
                 </tbody>
               </table>
@@ -2234,22 +2268,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 {memberOpError && <p className="text-red-500 text-xs mb-3">{memberOpError}</p>}
                 <div className="space-y-3">
                   <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">会員番号 *</label>
-                    <input type="number" value={newMemberNumber} onChange={e => setNewMemberNumber(e.target.value)}
-                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      placeholder="例：25" />
-                  </div>
-                  <div>
                     <label className="text-xs font-medium text-gray-600 block mb-1">名前 *</label>
                     <input type="text" value={newMemberName} onChange={e => setNewMemberName(e.target.value)}
                       className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
                       placeholder="例：小海" />
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">初期チャージ残高（円）</label>
-                    <input type="number" value={newMemberBalance} onChange={e => setNewMemberBalance(e.target.value)}
+                    <label className="text-xs font-medium text-gray-600 block mb-1">会員番号（任意）</label>
+                    <input type="number" value={newMemberNumber} onChange={e => setNewMemberNumber(e.target.value)}
                       className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      placeholder="0" />
+                      placeholder="例：25" />
                   </div>
                 </div>
                 <div className="flex gap-3 mt-5">
@@ -2272,25 +2300,13 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <div className="absolute inset-0 bg-black/40" onClick={() => setMemberEditTarget(null)} />
               <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
                 <h3 className="font-bold text-gray-900 mb-1">会員編集</h3>
-                <p className="text-xs text-gray-500 mb-4">会員番号: {memberEditTarget.member_number}</p>
+                <p className="text-xs text-gray-500 mb-4">{memberEditTarget.email ?? `会員番号: ${memberEditTarget.member_number ?? '—'}`}</p>
                 {memberOpError && <p className="text-red-500 text-xs mb-3">{memberOpError}</p>}
                 <div className="space-y-3">
                   <div>
                     <label className="text-xs font-medium text-gray-600 block mb-1">名前</label>
                     <input type="text" value={editMemberForm.name ?? ''} onChange={e => setEditMemberForm(f => ({ ...f, name: e.target.value }))}
                       className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 block mb-1">チャージ残高（円）</label>
-                    <div className="flex gap-2 items-center">
-                      <input type="number" value={editMemberForm.charge_balance ?? 0}
-                        onChange={e => setEditMemberForm(f => ({ ...f, charge_balance: parseInt(e.target.value) || 0 }))}
-                        className="flex-1 border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400" />
-                      <button onClick={() => setEditMemberForm(f => ({ ...f, charge_balance: (f.charge_balance ?? 0) + 600 }))}
-                        className="px-3 py-2 rounded-xl bg-green-100 text-green-700 text-xs font-bold hover:bg-green-200 whitespace-nowrap">
-                        ＋¥600
-                      </button>
-                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <input type="checkbox" id="memberActive" checked={editMemberForm.active ?? true}
