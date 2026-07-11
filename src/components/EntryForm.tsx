@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import type { Tournament } from '../types';
 import { supabase } from '../services/supabaseClient';
+import { PaymentMethodSelector } from './PaymentMethodSelector';
+import { StripePaymentForm } from './StripePaymentForm';
+import { PaymentCompletionPage } from './PaymentCompletionPage';
+import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
+import type { PaymentMethod } from '../lib/payment';
 
 interface EntryFormProps {
   tournament: Tournament;
@@ -8,7 +13,7 @@ interface EntryFormProps {
   onClose: () => void;
 }
 
-type Step = 'input' | 'confirm' | 'success';
+type Step = 'input' | 'confirm' | 'payment-method' | 'success';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
@@ -27,6 +32,16 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [step, setStep] = useState<Step>('input');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 支払い方法選択（Vol.4〜 クレジット決済対応）
+  const [entryInfo, setEntryInfo] = useState<{ id: number; cancelToken: string } | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number; fee: number } | null>(null);
+  const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
+  const [confirmWarning, setConfirmWarning] = useState<string | null>(null);
+  const [bankCopied, setBankCopied] = useState(false);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -114,14 +129,19 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           notes: formData.notes,
           status,
         }])
-        .select('cancel_token')
+        .select('id, cancel_token')
         .single();
 
       if (insertError) throw insertError;
 
-      // メール送信
-      await sendEmail(formData.email, status, inserted?.cancel_token);
-      setStep('success');
+      // 支払いが必要な確定エントリーは支払い方法選択へ。それ以外は従来通りメール送信して完了
+      if (status === 'confirmed' && tournament.payment_required && inserted) {
+        setEntryInfo({ id: inserted.id, cancelToken: inserted.cancel_token });
+        setStep('payment-method');
+      } else {
+        await sendEmail(formData.email, status, inserted?.cancel_token);
+        setStep('success');
+      }
     } catch (err) {
       setError('申し込みに失敗しました。もう一度お試しください。');
       setStep('input');
@@ -131,7 +151,13 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     }
   };
 
-  const sendEmail = async (email: string, status: 'confirmed' | 'waitlist', cancelToken?: string) => {
+  const sendEmail = async (
+    email: string,
+    status: 'confirmed' | 'waitlist',
+    cancelToken?: string,
+    method?: PaymentMethod,
+    entryId?: number,
+  ) => {
     try {
       const cancelLink = cancelToken
         ? `${window.location.origin}/cancel?token=${cancelToken}`
@@ -158,12 +184,115 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           entry_fee: tournament.entry_fee,
           cancel_link: cancelLink,
           is_waitlist: status === 'waitlist',
+          // 支払い方法が選択済みの場合は entries に記録される（PayPay/銀行振込）
+          payment_method: method,
+          entry_id: entryId,
+          cancel_token: method ? cancelToken : undefined,
         }),
       });
       if (!response.ok) console.warn('Email sending failed, but entry was saved');
     } catch (err) {
       console.warn('Email sending error:', err);
     }
+  };
+
+  // ── 支払い方法選択ハンドラー ──
+
+  const handleSelectMethod = (method: PaymentMethod) => {
+    if (paymentLoading) return;
+    setPaymentMethod(method);
+    setPaymentError(null);
+    if (method === 'credit' && !stripeInfo) {
+      void createPaymentIntent();
+    }
+  };
+
+  const createPaymentIntent = async () => {
+    if (!entryInfo) return;
+    setPaymentLoading(true);
+    setPaymentError(null);
+    try {
+      const res = await fetchWithTimeout(`${EDGE_BASE}/create-payment-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ entry_id: entryInfo.id, cancel_token: entryInfo.cancelToken }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.clientSecret) {
+        setPaymentError(data.error || '決済の準備に失敗しました。別の支払い方法をご利用ください。');
+        return;
+      }
+      setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount, fee: data.fee });
+    } catch (err) {
+      setPaymentError(
+        err instanceof DOMException && err.name === 'AbortError'
+          ? '一時的に処理できません。時間をおいてお試しいただくか、別の支払い方法をご利用ください。'
+          : '決済の準備に失敗しました。別の支払い方法をご利用ください。',
+      );
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  // PayPay / 銀行振込: 従来通りの案内メールを送信して完了
+  const handleConfirmOfflinePayment = async (method: 'paypay' | 'bank') => {
+    if (!entryInfo) return;
+    setPaymentLoading(true);
+    setPaymentError(null);
+    await sendEmail(formData.email, 'confirmed', entryInfo.cancelToken, method, entryInfo.id);
+    setPaymentLoading(false);
+    setStep('success');
+  };
+
+  // クレジット決済成功 → サーバー側で決済確認 + 完了メール送信
+  const handleStripeSuccess = async (paymentIntentId: string) => {
+    setPaymentLoading(true);
+    try {
+      const res = await fetchWithTimeout(`${EDGE_BASE}/confirm-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ payment_intent_id: paymentIntentId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPaidInfo({
+          amount: data.amount ?? stripeInfo?.amount ?? 0,
+          paidAt: data.paid_at ?? new Date().toISOString(),
+        });
+      } else {
+        setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
+        setConfirmWarning('お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。');
+      }
+    } catch {
+      setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
+      setConfirmWarning('お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。');
+    } finally {
+      setPaymentLoading(false);
+      setStep('success');
+    }
+  };
+
+  const handleCopyBank = async () => {
+    if (!tournament.bank_account) return;
+    try {
+      await navigator.clipboard.writeText(tournament.bank_account);
+      setBankCopied(true);
+      setTimeout(() => setBankCopied(false), 2000);
+    } catch { /* clipboard 非対応環境では何もしない */ }
+  };
+
+  // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る
+  const handleClose = () => {
+    if (step === 'payment-method' && entryInfo && !paidInfo) {
+      void sendEmail(formData.email, 'confirmed', entryInfo.cancelToken);
+    }
+    onClose();
   };
 
   // 確認画面の表示フィールド
@@ -177,7 +306,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className={`bg-white rounded-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto ${step === 'payment-method' ? 'max-w-2xl' : 'max-w-md'}`}>
         {/* ヘッダー */}
         <div className={`px-6 py-5 rounded-t-2xl ${isWaitlist ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-blue-600 to-blue-500'}`}>
           <div className="flex justify-between items-start">
@@ -187,7 +316,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               </h2>
               <p className="text-white/80 text-sm mt-1">{tournament.title}</p>
             </div>
-            <button onClick={onClose} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
+            <button onClick={handleClose} aria-label="閉じる" className="text-white/70 hover:text-white text-2xl leading-none">×</button>
           </div>
           {/* キャンセル待て案内 */}
           {isWaitlist && step === 'input' && (
@@ -207,13 +336,133 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 'confirm' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'}`}>2</span>
                 確認
               </div>
+              {!isWaitlist && tournament.payment_required && (
+                <>
+                  <div className="flex-1 h-px bg-white/30" />
+                  <div className={`flex items-center gap-1.5 text-xs font-medium ${step === 'payment-method' ? 'text-white' : 'text-white/40'}`}>
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 'payment-method' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'}`}>3</span>
+                    支払い
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
 
         <div className="px-6 py-5">
+          {/* 支払い方法選択画面 */}
+          {step === 'payment-method' && entryInfo && (
+            <div className="space-y-4">
+              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+                ✅ 申し込みを受け付けました。<span className="font-bold">お支払い方法を選択してください。</span>
+              </div>
+
+              <PaymentMethodSelector
+                entryFee={tournament.entry_fee}
+                paypayId={tournament.paypay_id}
+                bankAccount={tournament.bank_account}
+                creditAvailable={isCreditPaymentAvailable}
+                selected={paymentMethod}
+                onSelect={handleSelectMethod}
+                disabled={paymentLoading}
+              />
+
+              {paymentError && (
+                <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl">
+                  {paymentError}
+                  {paymentMethod === 'credit' && (
+                    <button
+                      onClick={() => void createPaymentIntent()}
+                      className="block mt-2 text-xs font-bold text-red-700 underline"
+                    >
+                      もう一度お試しください
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* クレジットカード決済フォーム */}
+              {paymentMethod === 'credit' && paymentLoading && !stripeInfo && (
+                <div className="flex items-center justify-center gap-3 py-8 text-gray-500 text-sm" aria-live="polite">
+                  <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
+                  決済の準備中...
+                </div>
+              )}
+              {paymentMethod === 'credit' && stripeInfo && (
+                <div className="border border-gray-200 rounded-xl p-4 bg-white">
+                  <p className="text-sm font-bold text-gray-700 mb-3">💳 カード情報を入力してください</p>
+                  <StripePaymentForm
+                    clientSecret={stripeInfo.clientSecret}
+                    amount={stripeInfo.amount}
+                    onSuccess={id => void handleStripeSuccess(id)}
+                  />
+                </div>
+              )}
+
+              {/* PayPay */}
+              {paymentMethod === 'paypay' && tournament.paypay_id && (
+                <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+                  <p className="text-sm font-bold text-gray-700">📱 PayPayでのお支払い</p>
+                  <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
+                    <p className="text-xs text-gray-500 mb-1">PayPay ID</p>
+                    <p className="text-lg font-bold text-red-600">{tournament.paypay_id}</p>
+                    <p className="text-xs text-gray-500 mt-1">✏️ 送金時のメッセージに「{formData.name}」とご記入ください</p>
+                  </div>
+                  <p className="text-xs text-gray-500">確定すると、お支払い情報をメールでお送りします。期限までにお支払いください。</p>
+                  <button
+                    onClick={() => void handleConfirmOfflinePayment('paypay')}
+                    disabled={paymentLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+                  >
+                    {paymentLoading ? '送信中...' : 'PayPayで支払う（案内メールを受け取る）'}
+                  </button>
+                </div>
+              )}
+
+              {/* 銀行振込 */}
+              {paymentMethod === 'bank' && tournament.bank_account && (
+                <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
+                  <p className="text-sm font-bold text-gray-700">🏦 銀行振込でのお支払い</p>
+                  <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                    <p className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">{tournament.bank_account}</p>
+                    <button
+                      onClick={() => void handleCopyBank()}
+                      className="mt-2 text-xs font-bold text-blue-700 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-100 transition-colors"
+                    >
+                      {bankCopied ? '✓ コピーしました' : '📋 振込情報をコピー'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">確定すると、振込先情報をメールでお送りします。期限までにお振込みください。</p>
+                  <button
+                    onClick={() => void handleConfirmOfflinePayment('bank')}
+                    disabled={paymentLoading}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+                  >
+                    {paymentLoading ? '送信中...' : '銀行振込で支払う（案内メールを受け取る）'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 完了画面（クレジット決済） */}
+          {step === 'success' && paymentMethod === 'credit' && paidInfo && entryInfo && (
+            <PaymentCompletionPage
+              tournament={tournament}
+              name={formData.name}
+              entryId={entryInfo.id}
+              entryFee={tournament.entry_fee}
+              fee={paidInfo.amount - tournament.entry_fee}
+              total={paidInfo.amount}
+              paidAt={paidInfo.paidAt}
+              calendarUrl={buildGoogleCalendarUrl()}
+              warning={confirmWarning}
+              onClose={onClose}
+            />
+          )}
+
           {/* 完了画面 */}
-          {step === 'success' && (
+          {step === 'success' && !(paymentMethod === 'credit' && paidInfo) && (
             <div className="text-center py-8">
               <div className="text-5xl mb-4">{isWaitlist ? '⏳' : '✅'}</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -239,6 +488,9 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               {!isWaitlist && tournament.payment_required && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
                   <p className="text-sm font-medium text-blue-900 mb-2">💳 支払い案内メールをお送りしました</p>
+                  {paymentMethod && (
+                    <p className="text-xs text-blue-700 mb-2">選択した支払い方法: {paymentMethod === 'paypay' ? 'PayPay' : '銀行振込'}</p>
+                  )}
                   <p className="text-xs text-blue-700 mb-2">メールアドレス: {formData.email}</p>
                   <p className="text-xs text-blue-700">支払い期限: {tournament.payment_deadline ? formatDate(tournament.payment_deadline) : '未定'}</p>
                 </div>

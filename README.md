@@ -5,7 +5,7 @@
 ## 機能
 - 🎫 大会案内ページ（開催予定の大会一覧表示）
 - 📝 申し込みフォーム（Supabase自動保存）
-- 💳 事前支払い機能（銀行振込・PayPay対応）
+- 💳 事前支払い機能（クレジットカード〔Stripe〕・銀行振込・PayPay対応）
 - 📧 自動メール送信（支払い案内）
 - 📰 ブログページ（大会結果・レポート）
 - 🔧 管理画面（大会・ブログCRUD、エントリー確認）
@@ -30,9 +30,41 @@ npm run dev
 
 Supabase ダッシュボードで `supabase/schema.sql` を実行してテーブルを作成してください。
 
+## Stripe クレジット決済の設定
+
+クレジット決済は **キー未設定の間は選択肢が表示されない**（PayPay/銀行振込のみで動作する）。有効化する手順:
+
+1. [Stripe ダッシュボード](https://dashboard.stripe.com/apikeys) で公開可能キー（`pk_...`）とシークレットキー（`sk_...`）を取得
+2. フロント: `.env` に `VITE_STRIPE_PUBLISHABLE_KEY=pk_...` を設定して再ビルド
+3. バックエンド: Edge Functions にシークレットキーを設定
+   ```bash
+   supabase secrets set STRIPE_SECRET_KEY=sk_... --project-ref <project-ref>
+   ```
+4. Edge Functions をデプロイ
+   ```bash
+   supabase functions deploy create-payment-intent --project-ref <project-ref>
+   supabase functions deploy confirm-payment --project-ref <project-ref>
+   supabase functions deploy send-payment-email --project-ref <project-ref>
+   ```
+5. マイグレーション `supabase/migrations/20260711_add_payment_columns.sql` を実行（entries に payment_method / payment_status / stripe_payment_id / paid_at を追加）
+
+### 決済金額
+
+参加費 + 決済手数料3.6%（四捨五入）。例: ¥3,000 → 手数料 ¥108 → 合計 **¥3,108**。金額は `create-payment-intent` がサーバー側で計算する（クライアントの申告値は使わない）。
+
+### テスト決済（Test Mode キー使用時）
+
+- カード番号: `4242 4242 4242 4242`（成功） / `4000 0000 0000 0002`(拒否)
+- 有効期限: 任意の未来の月/年、CVC: 任意の3桁
+- 決済フロー: 申し込み → 支払い方法選択 → カード入力 → 完了画面（QR参加証・領収書DL）＋完了メール
+
+### キャンセル・返金（クレジット決済分）
+
+Stripe ダッシュボードから該当 PaymentIntent を refund し、entries テーブルの該当行を手動更新する（自動返金は未実装）。
+
 ## デプロイ（Cloudflare Pages）
 
-1. GitHub に push
-2. Cloudflare Pages > Create > GitHub で接続
-3. 環境変数を設定（VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY）
-4. 自動デプロイ開始
+```bash
+npm run build
+./node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main --commit-dirty=true
+```

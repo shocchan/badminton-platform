@@ -37,6 +37,10 @@ export interface Entry {
   cancel_token?: string;
   cancelled_at?: string;
   cancel_reason?: string;
+  payment_method?: 'credit' | 'paypay' | 'bank' | null;
+  payment_status?: 'pending' | 'completed' | 'failed';
+  stripe_payment_id?: string | null;
+  paid_at?: string | null;
 }
 
 export interface BlogPost {

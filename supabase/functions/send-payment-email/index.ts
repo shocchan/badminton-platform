@@ -24,6 +24,17 @@ interface PaymentEmailRequest {
   cancel_link?: string;
   is_waitlist?: boolean;
   is_promotion?: boolean;
+  // クレジット決済対応（Vol.4〜）
+  payment_method?: "credit" | "paypay" | "bank";
+  entry_id?: number;
+  cancel_token?: string; // paypay/bank の payment_method 記録時の本人確認用
+  amount_fee?: number;   // クレジット決済手数料
+  amount_total?: number; // 手数料込み合計
+  paid_at?: string;
+  start_time?: string;
+  end_time?: string;
+  location?: string;
+  venue_address?: string;
 }
 
 const headerStyle = (color: string) => `
@@ -77,10 +88,34 @@ serve(async (req: Request) => {
       tournament_title, tournament_date, payment_deadline,
       bank_account, paypay_id, payment_required, entry_fee,
       cancel_link, is_waitlist, is_promotion,
+      payment_method, entry_id, cancel_token,
+      amount_fee, amount_total, paid_at,
+      start_time, end_time, location, venue_address,
     } = (await req.json()) as PaymentEmailRequest;
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     if (!resendApiKey) throw new Error("RESEND_API_KEY is not set");
+
+    // PayPay/銀行振込選択時: payment_method を記録（cancel_token で本人確認、失敗してもメール送信は続行）
+    if (entry_id && cancel_token && (payment_method === "paypay" || payment_method === "bank")) {
+      try {
+        const supabaseUrl = Deno.env.get("SUPABASE_URL");
+        const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+        if (supabaseUrl && serviceKey) {
+          await fetch(`${supabaseUrl}/rest/v1/entries?id=eq.${entry_id}&cancel_token=eq.${cancel_token}`, {
+            method: "PATCH",
+            headers: {
+              apikey: serviceKey,
+              Authorization: `Bearer ${serviceKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ payment_method }),
+          });
+        }
+      } catch (e) {
+        console.error("payment_method update failed:", e.message);
+      }
+    }
 
     const eventDate = new Date(tournament_date).toLocaleDateString("ja-JP", {
       year: "numeric", month: "long", day: "numeric", weekday: "short",
@@ -110,6 +145,152 @@ serve(async (req: Request) => {
       : "";
 
     const results: string[] = [];
+
+    // ── 0a. クレジット決済完了メール ──
+    if (payment_method === "credit") {
+      const feeYen = (amount_fee ?? 0).toLocaleString();
+      const totalYen = (amount_total ?? entry_fee ?? 0).toLocaleString();
+      const entryFeeYen = (entry_fee ?? 0).toLocaleString();
+      const paidAtStr = paid_at
+        ? new Date(paid_at).toLocaleString("ja-JP", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Tokyo" })
+        : "";
+      const timeRange = start_time && end_time ? `${start_time.slice(0, 5)}〜${end_time.slice(0, 5)}` : "";
+
+      // 参加証QRコード（外部QR生成API、内容は照合用の参加コードのみ）
+      const entryRef = `KAWABADO-ENTRY-${entry_id ?? ""}`;
+      const qrData = encodeURIComponent(`${entryRef} | ${name} | ${tournament_title}`);
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrData}`;
+
+      // Googleカレンダー追加リンク
+      const d = tournament_date.slice(0, 10).replace(/-/g, "");
+      const calStart = start_time ? `${d}T${start_time.slice(0, 5).replace(":", "")}00` : d;
+      const calEnd = end_time ? `${d}T${end_time.slice(0, 5).replace(":", "")}00` : d;
+      const calParams = new URLSearchParams({
+        action: "TEMPLATE",
+        text: tournament_title,
+        dates: `${calStart}/${calEnd}`,
+        details: `川口・蕨バド交流杯\n参加費支払い済み（クレジットカード）`,
+        location: venue_address || location || "",
+      });
+      const calUrl = `https://calendar.google.com/calendar/render?${calParams.toString()}`;
+
+      const partnerRowC = partner_name
+        ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">ペアの相手</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${partner_name}</td></tr>`
+        : "";
+
+      const creditHtml = `<!DOCTYPE html>
+<html lang="ja">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic ProN',Meiryo,sans-serif;">
+  <div style="max-width:600px;margin:32px auto;padding:0 16px;">
+    <div style="${headerStyle("linear-gradient(135deg,#065f46 0%,#059669 50%,#10b981 100%)")}">
+      <div style="font-size:28px;margin-bottom:8px;">✅</div>
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:700;letter-spacing:-0.5px;">川口・蕨バド交流杯</h1>
+      <p style="color:#a7f3d0;margin:6px 0 0;font-size:14px;">お支払い完了・参加確定</p>
+    </div>
+    <div style="${bodyStyle}">
+      <p style="font-size:16px;font-weight:600;margin:0 0 4px;">${name} 様</p>
+      <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">参加費のお支払いが完了し、参加が確定しました！</p>
+
+      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:0 0 20px;">
+        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ お支払い済み（クレジットカード）¥${totalYen}</p>
+      </div>
+
+      <div style="${infoCardStyle}">
+        <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#374151;letter-spacing:0.5px;">📋 参加確認</p>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;width:40%;border-bottom:1px solid #e5e7eb;">大会名</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${tournament_title}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">日時</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${eventDate}${timeRange ? ` ${timeRange}` : ""}</td></tr>
+          ${location ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">会場</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${location}</td></tr>` : ""}
+          ${venue_address ? `<tr><td style="padding:10px 0;color:#6b7280;font-size:14px;border-bottom:1px solid #e5e7eb;">住所</td><td style="padding:10px 0;font-weight:600;border-bottom:1px solid #e5e7eb;">${venue_address}</td></tr>` : ""}
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">お名前</td><td style="padding:10px 0;font-weight:600;${partner_name ? "border-bottom:1px solid #e5e7eb;" : ""}">${name}</td></tr>
+          ${partnerRowC}
+        </table>
+      </div>
+
+      <!-- 領収明細 -->
+      <div style="${payCardStyle}">
+        <p style="margin:0 0 12px;font-size:15px;font-weight:700;color:#065f46;">🧾 領収明細</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;">参加費</td><td style="padding:8px 0;text-align:right;border-bottom:1px solid #f3f4f6;">¥${entryFeeYen}</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280;border-bottom:1px solid #f3f4f6;">決済手数料</td><td style="padding:8px 0;text-align:right;border-bottom:1px solid #f3f4f6;">¥${feeYen}</td></tr>
+          <tr><td style="padding:8px 0;font-weight:700;">合計</td><td style="padding:8px 0;text-align:right;font-weight:700;">¥${totalYen}</td></tr>
+          ${paidAtStr ? `<tr><td style="padding:8px 0;color:#6b7280;">支払日時</td><td style="padding:8px 0;text-align:right;font-size:13px;">${paidAtStr}</td></tr>` : ""}
+        </table>
+        <div style="${warningStyle}">🧾 領収書は申し込み完了画面からダウンロードできます。カード明細にも記録が残ります。</div>
+      </div>
+
+      <!-- 参加証QR -->
+      <div style="text-align:center;margin:24px 0;padding:20px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+        <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#374151;">🎫 参加証（当日受付でご提示ください）</p>
+        <img src="${qrUrl}" alt="参加証QRコード" width="220" height="220" style="display:inline-block;border:8px solid #ffffff;border-radius:8px;" />
+        <p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">${entryRef}</p>
+      </div>
+
+      <!-- カレンダー追加 -->
+      <div style="text-align:center;margin:0 0 20px;">
+        <a href="${calUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;font-size:14px;font-weight:700;padding:12px 24px;border-radius:10px;text-decoration:none;">📅 Googleカレンダーに追加</a>
+      </div>
+
+      <!-- キャンセル期限 -->
+      <div style="margin-top:16px;padding:14px 18px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
+        <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会2週間前）</p>
+        <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルはクレジットカードに全額返金いたします（返金処理に数日かかる場合があります）。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
+      </div>
+
+      ${cancel_link ? `
+      <div style="margin-top:12px;padding:14px 18px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+        <p style="margin:0 0 6px;font-size:13px;color:#374151;font-weight:600;">❌ キャンセルについて</p>
+        <p style="margin:0 0 6px;font-size:12px;color:#6b7280;">キャンセルが必要な場合は期限内に以下のリンクからお手続きください。</p>
+        <a href="${cancel_link}" style="font-size:12px;color:#dc2626;word-break:break-all;">${cancel_link}</a>
+      </div>` : ""}
+
+      ${shuttleBlock}
+
+      <div style="margin-top:28px;padding-top:20px;border-top:1px solid #e5e7eb;">
+        <p style="font-size:13px;color:#9ca3af;margin:0;">ご不明な点はこのメールに返信してください。</p>
+        <p style="font-size:13px;font-weight:600;color:#374151;margin:16px 0 0;">川口・蕨バド交流杯</p>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">このメールはシステムから自動送信されています</p>
+  </div>
+</body>
+</html>`;
+
+      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${entryFeeYen}\n決済手数料：¥${feeYen}\n合計：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【参加証】\n当日受付で参加コード「${entryRef}」をお伝えください。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルはクレジットカードに全額返金いたします。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
+
+      const resC = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
+          reply_to: ADMIN_EMAIL,
+          to: [to],
+          subject: `✅【お支払い完了】${tournament_title}への参加が確定しました`,
+          text: creditText,
+          html: creditHtml,
+        }),
+      });
+      if (!resC.ok) throw new Error(`Credit email error: ${resC.status} ${await resC.text()}`);
+      results.push((await resC.json()).id);
+
+      // 管理者通知（決済完了）
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${resendApiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
+          to: [ADMIN_EMAIL],
+          subject: `💳【決済完了】${name}さんが${tournament_title}の参加費をクレジットで支払いました`,
+          text: `クレジット決済完了\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n大会：${tournament_title}\n開催日：${eventDate}\n\n参加費：¥${entryFeeYen}\n手数料：¥${feeYen}\n合計：¥${totalYen}${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n※振込確認は不要です。返金が必要な場合は Stripe ダッシュボードから refund してください。`.trim(),
+        }),
+      });
+
+      return new Response(
+        JSON.stringify({ success: true, email_ids: results }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
 
     // ── 0. キャンセル待ちメール ──
     if (is_waitlist) {
