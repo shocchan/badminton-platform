@@ -32,12 +32,25 @@ const CheckoutForm = ({ amount, onSuccess }: { amount: number; onSuccess: (id: s
     setProcessing(true);
     setError(null);
 
-    const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: window.location.href },
-      redirect: 'if_required',
-    });
+    // confirmPayment がネットワーク不調等で応答しないケースに備え、45秒でタイムアウトさせる
+    // （処理中オーバーレイが無限に出続けることを防ぐ安全策）
+    const timeout = new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), 45000));
+    const result = await Promise.race([
+      stripe.confirmPayment({
+        elements,
+        confirmParams: { return_url: window.location.href },
+        redirect: 'if_required',
+      }),
+      timeout,
+    ]);
 
+    if (result === 'timeout') {
+      setError('決済の応答がありません。通信環境をご確認のうえもう一度お試しいただくか、別の支払い方法をご利用ください。');
+      setProcessing(false);
+      return;
+    }
+
+    const { error: stripeError, paymentIntent } = result;
     if (stripeError) {
       setError(stripeError.message || fallbackErrorMessage(stripeError.code));
       setProcessing(false);

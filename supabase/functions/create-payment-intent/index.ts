@@ -67,10 +67,12 @@ serve(async (req: Request) => {
     const { fee, total } = calcCreditAmounts(tournament.entry_fee);
 
     // Stripe PaymentIntent 作成（金額は必ずサーバー側で計算）
+    // カード決済のみに限定（Linkなど電話番号OTP認証を伴う決済手段は、
+    // モーダル内での認証ポップアップが視認しづらく「処理中のまま固まる」原因になるため除外）
     const params = new URLSearchParams({
       amount: String(total),
       currency: "jpy",
-      "automatic_payment_methods[enabled]": "true",
+      "payment_method_types[]": "card",
       description: `${tournament.title} 参加費（${entry.name} 様）`,
       receipt_email: entry.email,
       "metadata[entry_id]": String(entry.id),
