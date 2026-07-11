@@ -64,7 +64,17 @@ Stripe ダッシュボードから該当 PaymentIntent を refund し、entries 
 
 ## デプロイ（Cloudflare Pages）
 
+**必ずステージング → CEO確認 → 本番の順で反映する。本番（kawabado.com）への直接デプロイは禁止。**
+
 ```bash
-npm run build
-./node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main --commit-dirty=true
+# 1. ステージングへ（CEO確認用、kawabado.com には影響しない）
+./scripts/deploy-staging.sh
+# → https://staging.badminton-platform.pages.dev
+
+# 2. ステージングでCEOがOKを出したら本番へ
+./scripts/deploy-production.sh
+# → https://kawabado.com
 ```
+
+- ステージングURLは非公開（リンクを知っている人のみ・検索エンジンにも載らない）
+- DB・メールは本番と共通。申し込みテストは `visibility='unlisted'` の【テスト】大会を作って行い、終わったらテスト大会とエントリーを削除する（メール送信も実際に動くので送信テストができる）
