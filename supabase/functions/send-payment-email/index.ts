@@ -156,11 +156,6 @@ serve(async (req: Request) => {
         : "";
       const timeRange = start_time && end_time ? `${start_time.slice(0, 5)}〜${end_time.slice(0, 5)}` : "";
 
-      // 参加証QRコード（外部QR生成API、内容は照合用の参加コードのみ）
-      const entryRef = `KAWABADO-ENTRY-${entry_id ?? ""}`;
-      const qrData = encodeURIComponent(`${entryRef} | ${name} | ${tournament_title}`);
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrData}`;
-
       // Googleカレンダー追加リンク
       const d = tournament_date.slice(0, 10).replace(/-/g, "");
       const calStart = start_time ? `${d}T${start_time.slice(0, 5).replace(":", "")}00` : d;
@@ -220,11 +215,10 @@ serve(async (req: Request) => {
         <div style="${warningStyle}">🧾 領収書は申し込み完了画面からダウンロードできます。カード明細にも記録が残ります。</div>
       </div>
 
-      <!-- 参加証QR -->
-      <div style="text-align:center;margin:24px 0;padding:20px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
-        <p style="margin:0 0 12px;font-size:13px;font-weight:700;color:#374151;">🎫 参加証（当日受付でご提示ください）</p>
-        <img src="${qrUrl}" alt="参加証QRコード" width="220" height="220" style="display:inline-block;border:8px solid #ffffff;border-radius:8px;" />
-        <p style="margin:8px 0 0;font-size:12px;color:#9ca3af;">${entryRef}</p>
+      <!-- 当日受付の案内 -->
+      <div style="margin:24px 0;padding:16px 20px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;">
+        <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#374151;">🙋 当日の受付について</p>
+        <p style="margin:0;font-size:12px;color:#6b7280;line-height:1.6;">受付でお名前をお伝えください。参加証などのご提示は不要です。</p>
       </div>
 
       <!-- カレンダー追加 -->
@@ -257,7 +251,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${entryFeeYen}\n決済手数料：¥${feeYen}\n合計：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【参加証】\n当日受付で参加コード「${entryRef}」をお伝えください。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルはクレジットカードに全額返金いたします。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
+      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${entryFeeYen}\n決済手数料：¥${feeYen}\n合計：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【当日の受付】\n受付でお名前をお伝えください。参加証などのご提示は不要です。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルはクレジットカードに全額返金いたします。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
 
       const resC = await fetch("https://api.resend.com/emails", {
         method: "POST",

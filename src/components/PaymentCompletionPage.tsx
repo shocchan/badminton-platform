@@ -1,11 +1,8 @@
-import { useRef } from 'react';
-import { QRCodeCanvas } from 'qrcode.react';
 import type { Tournament } from '../types';
 
 interface PaymentCompletionPageProps {
   tournament: Tournament;
   name: string;
-  entryId: number;
   entryFee: number;
   fee: number;
   total: number;
@@ -19,11 +16,8 @@ const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
 
 export const PaymentCompletionPage = ({
-  tournament, name, entryId, entryFee, fee, total, paidAt, calendarUrl, warning, onClose,
+  tournament, name, entryFee, fee, total, paidAt, calendarUrl, warning, onClose,
 }: PaymentCompletionPageProps) => {
-  const qrRef = useRef<HTMLDivElement>(null);
-  const entryRef = `KAWABADO-ENTRY-${entryId}`;
-  const qrValue = `${entryRef} | ${name} | ${tournament.title}`;
   const timeRange = `${tournament.start_time.slice(0, 5)}〜${tournament.end_time.slice(0, 5)}`;
   const paidAtStr = new Date(paidAt).toLocaleString('ja-JP', {
     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -57,23 +51,12 @@ export const PaymentCompletionPage = ({
 <p class="meta">
   但し：${tournament.title} 参加費として<br>
   支払日：${paidAtStr}<br>
-  支払方法：クレジットカード<br>
-  参加コード：${entryRef}
+  支払方法：クレジットカード
 </p>
 <p class="footer">川口・蕨バド交流杯（kawabado.com）<br>上記の金額を正に領収いたしました。</p>
 <button class="print-btn" onclick="window.print()">印刷 / PDFとして保存</button>
 </body></html>`);
     w.document.close();
-  };
-
-  // 参加証: QRコードをPNGダウンロード
-  const downloadPass = () => {
-    const canvas = qrRef.current?.querySelector('canvas');
-    if (!canvas) return;
-    const link = document.createElement('a');
-    link.download = `kawabado-pass-${entryId}.png`;
-    link.href = canvas.toDataURL('image/png');
-    link.click();
   };
 
   return (
@@ -115,19 +98,10 @@ export const PaymentCompletionPage = ({
         </p>
       </div>
 
-      {/* 参加証QR */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5">
-        <p className="text-sm font-bold text-gray-700 mb-3">🎫 参加証（当日受付でご提示ください）</p>
-        <div ref={qrRef} className="flex justify-center">
-          <QRCodeCanvas
-            value={qrValue}
-            size={500}
-            level="M"
-            includeMargin
-            className="!w-[240px] !h-[240px] md:!w-[300px] md:!h-[300px] bg-white rounded-lg border border-gray-200"
-          />
-        </div>
-        <p className="text-xs text-gray-400 mt-2">{entryRef}</p>
+      {/* 当日受付の案内 */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5 text-left">
+        <p className="text-sm font-bold text-gray-700 mb-1">🙋 当日の受付について</p>
+        <p className="text-xs text-gray-500">受付でお名前をお伝えください。参加証などのご提示は不要です。</p>
       </div>
 
       {/* アクションボタン */}
@@ -140,20 +114,12 @@ export const PaymentCompletionPage = ({
         >
           📅 Googleカレンダーに追加
         </a>
-        <div className="grid grid-cols-2 gap-2.5">
-          <button
-            onClick={downloadReceipt}
-            className="bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 font-bold text-sm py-3 rounded-xl transition-colors"
-          >
-            🧾 領収書をダウンロード
-          </button>
-          <button
-            onClick={downloadPass}
-            className="bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 font-bold text-sm py-3 rounded-xl transition-colors"
-          >
-            🎫 参加証をダウンロード
-          </button>
-        </div>
+        <button
+          onClick={downloadReceipt}
+          className="w-full bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 font-bold text-sm py-3 rounded-xl transition-colors"
+        >
+          🧾 領収書をダウンロード
+        </button>
         <button
           onClick={onClose}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors"

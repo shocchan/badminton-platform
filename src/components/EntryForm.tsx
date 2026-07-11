@@ -446,11 +446,10 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           )}
 
           {/* 完了画面（クレジット決済） */}
-          {step === 'success' && paymentMethod === 'credit' && paidInfo && entryInfo && (
+          {step === 'success' && paymentMethod === 'credit' && paidInfo && (
             <PaymentCompletionPage
               tournament={tournament}
               name={formData.name}
-              entryId={entryInfo.id}
               entryFee={tournament.entry_fee}
               fee={paidInfo.amount - tournament.entry_fee}
               total={paidInfo.amount}
