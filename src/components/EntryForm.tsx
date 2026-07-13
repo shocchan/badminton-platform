@@ -355,6 +355,9 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
                 ✅ 申し込みを受け付けました。<span className="font-bold">お支払い方法を選択してください。</span>
+                {isDoubles && (
+                  <p className="text-xs text-green-700 mt-1">※参加費はペア2名分（1人あたり ¥{Math.round(tournament.entry_fee / 2).toLocaleString()}）をまとめてお支払いください。</p>
+                )}
               </div>
 
               <PaymentMethodSelector

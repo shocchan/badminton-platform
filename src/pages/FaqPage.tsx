@@ -47,7 +47,7 @@ const faqs = [
     items: [
       {
         q: 'シャトルは持参が必要ですか？',
-        a: '超初級ダブルス大会を除き、シャトル持参が必須です。日本バドミントン協会またはBWF認定の第2種検定球以上を、規定数（8〜12球）ご用意ください。なお、超初級ダブルス大会のみシャトル持参は不要です。',
+        a: '超初級ダブルス大会を除き、シャトル持参が必須です。日本バドミントン協会またはBWF認定の第2種検定球以上を、規定数（3〜5球）ご用意ください。なお、超初級ダブルス大会のみシャトル持参は不要です。',
       },
       {
         q: 'シャトルの番手（スピード）はどれを選べばいいですか？',
@@ -136,7 +136,7 @@ const faqsZh = [
     category: '羽毛球及用具',
     icon: '🏸',
     items: [
-      { q: '需要自带羽毛球吗？', a: '除超初级双打外，必须自带羽毛球。请准备日本羽毛球协会或BWF认证的2级以上检定球（8〜12颗）。' },
+      { q: '需要自带羽毛球吗？', a: '除超初级双打外，必须自带羽毛球。请准备日本羽毛球协会或BWF认证的2级以上检定球（3〜5颗）。' },
       { q: '羽毛球速度怎么选？', a: '根据季节选择：4〜9月选3号，10〜次年3月选4号。速度不对会影响比赛，请尽量按规定准备。' },
       { q: '忘带羽毛球怎么办？', a: '可在会场以500日元/颗购买，数量有限，请尽量自备。' },
       { q: '尼龙球可以用吗？', a: '只能使用羽毛球，不可使用尼龙球。练习用羽毛球（气动传感器500以下等）也不可使用。' },
@@ -323,8 +323,8 @@ export const FaqPage = () => {
 
         <p className="text-xs text-gray-400">
           {lang === 'ja'
-            ? '8〜12球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要'
-            : '需自带8〜12颗 ／ 忘带可在会场以500日元/颗购买 ／ 超初级双打无需自带'}
+            ? '3〜5球持参 ／ 忘れた場合は会場で1球500円購入可 ／ 超初級ダブルスのみ持参不要'
+            : '需自带3〜5颗 ／ 忘带可在会场以500日元/颗购买 ／ 超初级双打无需自带'}
         </p>
       </div>
 
@@ -339,13 +339,13 @@ export const FaqPage = () => {
           <div className="bg-white border-2 border-blue-200 rounded-2xl p-4">
             <div className="text-xs font-bold text-blue-600 mb-1">{lang === 'ja' ? 'シングルス' : '单打'}</div>
             <div className="text-2xl font-extrabold text-gray-900 mb-1">¥1,500<span className="text-sm font-normal text-gray-500"> / {lang === 'ja' ? '人' : '人'}</span></div>
-            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（8〜12球）' : '需自带羽毛球（8〜12颗）'}</p>
+            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（3〜5球）' : '需自带羽毛球（3〜5颗）'}</p>
           </div>
           {/* ダブルス */}
           <div className="bg-white border-2 border-indigo-200 rounded-2xl p-4">
             <div className="text-xs font-bold text-indigo-600 mb-1">{lang === 'ja' ? 'ダブルス・混合ダブルス' : '双打・混合双打'}</div>
             <div className="text-2xl font-extrabold text-gray-900 mb-1">¥2,000<span className="text-sm font-normal text-gray-500"> / {lang === 'ja' ? 'ペア' : '组'}</span></div>
-            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（8〜12球）' : '需自带羽毛球（8〜12颗）'}</p>
+            <p className="text-xs text-gray-500 leading-relaxed">{lang === 'ja' ? 'シャトル持参必須（3〜5球）' : '需自带羽毛球（3〜5颗）'}</p>
           </div>
           {/* 超初級 */}
           <div className="bg-white border-2 border-green-200 rounded-2xl p-4">

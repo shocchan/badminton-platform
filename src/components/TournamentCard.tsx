@@ -2,18 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CalendarDays,
-  Clock,
   MapPin,
   JapaneseYen,
-  AlertTriangle,
-  Users,
-  CreditCard,
   Share2,
-  ChevronDown,
-  ArrowRight,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
+import { feeDisplay, feePerPerson, isDoublesEvent, isShuttleFree } from '../lib/fee';
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -79,12 +74,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   const [visible, setVisible] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
-  const [descExpanded, setDescExpanded] = useState(false);
   const { lang } = useLanguage();
-
-  // 説明文のプレーンテキスト長（短ければ折りたたみトグルを出さない）
-  const descTextLength = (tournament.description || '').replace(/<[^>]*>/g, '').length;
-  const isDescLong = descTextLength > 80;
 
   // ── フェードインアニメーション ──
   useEffect(() => {
@@ -110,10 +100,13 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   const generateShareText = () => {
     const d = formatDate(tournament.event_date);
     const t = `${formatTime(tournament.start_time)}〜${formatTime(tournament.end_time)}`;
+    const fee = isDoublesEvent(tournament)
+      ? (lang === 'zh' ? `每人${feePerPerson(tournament)}日元` : `1人${feePerPerson(tournament).toLocaleString()}円`)
+      : (lang === 'zh' ? `${tournament.entry_fee}日元` : `${tournament.entry_fee.toLocaleString()}円`);
     if (lang === 'zh') {
-      return `【${tournament.title}】\n日期：${d}\n时间：${t}\n地点：${tournament.location}\n参加费：${tournament.entry_fee}日元\n详情・报名：`;
+      return `【${tournament.title}】\n日期：${d}\n时间：${t}\n地点：${tournament.location}\n参加费：${fee}\n详情・报名：`;
     }
-    return `【${tournament.title}】\n日時：${d}\n時間：${t}\n会場：${tournament.location}\n参加費：${tournament.entry_fee}円\n詳細・申し込み：`;
+    return `【${tournament.title}】\n日時：${d}\n時間：${t}\n会場：${tournament.location}\n参加費：${fee}\n詳細・申し込み：`;
   };
 
   const handleLineShare = async (e: React.MouseEvent) => {
@@ -141,6 +134,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+  };
+
+  // カード表示用の短い日付（例: 8月13日(木)）
+  const formatDateShort = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' });
   };
 
   const formatTime = (timeStr: string) => timeStr.slice(0, 5);
@@ -192,9 +191,9 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
       }`}
     >
       {/* ヘッダー */}
-      <div className={`${config.headerBg} px-4 sm:px-6 py-4`}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="leading-snug">
+      <div className={`${config.headerBg} px-4 py-3`}>
+        <div className="flex items-start justify-between gap-2 mb-1.5">
+          <h3 className="leading-snug min-w-0">
             {(() => {
               const SERIES = '川口・蕨バドミントン交流会';
               const seriesLabel = tournament.edition != null
@@ -207,36 +206,36 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
                   to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${tournament.id}`}
                   className="block after:absolute after:inset-0 after:content-['']"
                 >
-                  <div className="text-xs text-gray-400 font-medium mb-0.5">{seriesLabel}</div>
-                  <div className={`${config.titleColor} font-bold text-base sm:text-lg`}>{mainTitle}</div>
+                  <div className="text-[10px] text-gray-400 font-medium">{seriesLabel}</div>
+                  <div className={`${config.titleColor} font-bold text-sm sm:text-base`}>{mainTitle}</div>
                 </Link>
               );
             })()}
           </h3>
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
             {remaining > 0 && remaining <= 3 && (
-              <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-500 text-white animate-pulse">
                 🔥 急募！
               </span>
             )}
-            <span className={`text-xs font-bold px-2 py-1 rounded-full ${countdownColor}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${countdownColor}`}>
               {countdownLabel}
             </span>
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            <span className={`text-xs font-medium px-2 py-1 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>
+          <div className="flex gap-1.5">
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${levelColors[tournament.level] || 'bg-gray-100 text-gray-700'}`}>
               {tournament.level}
             </span>
-            <span className={`text-xs font-medium px-2 py-1 rounded-full ${config.typeBadge}`}>
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${config.typeBadge}`}>
               {tournament.event_type}
             </span>
           </div>
           {/* シェアボタン */}
           <button
             onClick={e => { e.preventDefault(); e.stopPropagation(); setShowShareModal(true); }}
-            className={`relative z-10 flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${config.shareBtn}`}
+            className={`relative z-10 flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full transition-colors ${config.shareBtn}`}
             aria-label="この大会をシェア"
           >
             <Share2 className="w-3 h-3" />
@@ -245,115 +244,77 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
         </div>
       </div>
 
-      {/* コンテンツ */}
-      <div className="px-4 sm:px-6 py-5 flex flex-col flex-1">
-        <div className="grid grid-cols-2 gap-3 text-sm mb-4">
-          <div>
-            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> 開催日</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate(tournament.event_date)}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> 時間</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatTime(tournament.start_time)} 〜 {formatTime(tournament.end_time)}</div>
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> 会場</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">{tournament.location}</div>
-            {tournament.venue_address && (
-              <div className="text-gray-400 text-xs mt-0.5">{tournament.venue_address}</div>
-            )}
-          </div>
-          <div>
-            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><JapaneseYen className="w-3 h-3" /> 参加費</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">¥{tournament.entry_fee.toLocaleString()}</div>
-          </div>
-          <div className="col-span-2">
-            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> キャンセル期限</div>
-            <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate((() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return d.toISOString().split('T')[0]; })())}</div>
-          </div>
+      {/* コンテンツ（日時・会場・金額・シャトルの最小構成） */}
+      <div className="px-4 py-3 flex flex-col flex-1 gap-2">
+        <div className="flex items-center gap-1.5 text-sm text-gray-800">
+          <CalendarDays className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium">{formatDateShort(tournament.event_date)}</span>
+          <span className="text-gray-500">{formatTime(tournament.start_time)}〜{formatTime(tournament.end_time)}</span>
         </div>
 
-        {/* 残席バッジ */}
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-xs text-gray-500 font-medium flex items-center gap-1"><Users className="w-3 h-3" /> 残席状況</span>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${remainingColor}`}>
-            残り{remaining}席
+        <div className="flex items-center gap-1.5 text-sm text-gray-800 min-w-0">
+          <MapPin className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+          <span className="font-medium truncate">{tournament.location}</span>
+          <a
+            href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.venue_address || tournament.location)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="relative z-10 text-xs text-blue-600 hover:text-blue-700 underline underline-offset-2 flex-shrink-0"
+          >
+            地図
+          </a>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-sm text-gray-800">
+            <JapaneseYen className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            <span className="font-bold">{feeDisplay(tournament, lang === 'zh' ? 'zh' : 'ja')}</span>
+            {isDoublesEvent(tournament) && (
+              <span className="text-[10px] text-gray-400">ペア ¥{tournament.entry_fee.toLocaleString()}</span>
+            )}
+          </div>
+          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
+            isShuttleFree(tournament) ? 'bg-gray-100 text-gray-500' : 'bg-blue-50 text-blue-700'
+          }`}>
+            🏸 {isShuttleFree(tournament) ? 'シャトル持参不要' : 'シャトル持参制'}
           </span>
         </div>
 
-        {/* Google マップリンク */}
-        <a
-          href={`https://maps.google.com/maps?q=${encodeURIComponent(tournament.venue_address || tournament.location)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={e => e.stopPropagation()}
-          className="relative z-10 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
-        >
-          <MapPin className="w-4 h-4 flex-shrink-0" />
-          <span className="font-medium">{tournament.location} の地図を見る</span>
-          <ArrowRight className="ml-auto w-3.5 h-3.5" />
-        </a>
-
-        {tournament.payment_required && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 mb-4">
-            <p className="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> 事前支払いが必要です</p>
-            {tournament.payment_deadline && (
-              <p className="text-xs text-blue-600">支払い期限：{formatDate(tournament.payment_deadline)}</p>
-            )}
-          </div>
-        )}
-
-        {tournament.description && (
-          <div className="relative z-10 mb-5">
-            <div
-              className={`text-sm text-gray-600 prose prose-sm max-w-none ${
-                isDescLong && !descExpanded ? 'line-clamp-3' : ''
-              }`}
-              dangerouslySetInnerHTML={{ __html: tournament.description }}
-            />
-            {isDescLong && (
-              <button
-                onClick={e => { e.preventDefault(); e.stopPropagation(); setDescExpanded(v => !v); }}
-                className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                {descExpanded
-                  ? (lang === 'zh' ? '收起' : '閉じる')
-                  : (lang === 'zh' ? '查看详情' : '詳細を見る')}
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${descExpanded ? 'rotate-180' : ''}`} />
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className="relative z-10 mt-auto">
+        <div className="relative z-10 mt-auto pt-1 flex items-center gap-2">
           {tournament.status !== 'active' ? (
-            <div className="w-full bg-gray-200 text-gray-500 font-bold py-3 rounded-xl text-center text-sm">
+            <div className="flex-1 bg-gray-200 text-gray-500 font-bold py-2.5 rounded-xl text-center text-sm">
               中止
             </div>
           ) : daysUntil < 0 ? (
-            <div className="w-full bg-gray-100 text-gray-400 font-bold py-3 rounded-xl text-center text-sm">
+            <div className="flex-1 bg-gray-100 text-gray-400 font-bold py-2.5 rounded-xl text-center text-sm">
               開催終了
             </div>
           ) : isEntryClosed ? (
-            <div className="w-full bg-gray-200 text-gray-400 font-bold py-3 rounded-xl text-center text-sm cursor-not-allowed">
+            <div className="flex-1 bg-gray-200 text-gray-400 font-bold py-2.5 rounded-xl text-center text-sm cursor-not-allowed">
               申し込み受付終了
             </div>
           ) : remaining <= 0 ? (
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
               aria-label={`${tournament.title}のキャンセル待ちに申し込む`}
-              className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base"
+              className="flex-1 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm"
             >
               キャンセル待ちで申し込む →
             </button>
           ) : (
-            <button
-              onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-              aria-label={`${tournament.title}に申し込む`}
-              className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base`}
-            >
-              申し込む →
-            </button>
+            <>
+              <button
+                onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
+                aria-label={`${tournament.title}に申し込む`}
+                className={`flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm`}
+              >
+                申し込む →
+              </button>
+              <span className={`text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 ${remainingColor}`}>
+                残り{remaining}席
+              </span>
+            </>
           )}
         </div>
       </div>

@@ -138,10 +138,10 @@ serve(async (req: Request) => {
     const shuttleBlock = showShuttleNote ? `
       <div style="margin-top:16px;padding:14px 18px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
         <p style="margin:0 0 6px;font-size:13px;color:#1e40af;font-weight:700;">🏸 シャトルについて</p>
-        <p style="margin:0;font-size:12px;color:#1e3a8a;line-height:1.7;">本大会はシャトル持参制です（日本バドミントン協会またはBWF認定の第2種検定球、8〜12球）。<br>お忘れの場合は当日会場にて1球500円でご購入いただけます。</p>
+        <p style="margin:0;font-size:12px;color:#1e3a8a;line-height:1.7;">本大会はシャトル持参制です（日本バドミントン協会またはBWF認定の第2種検定球、3〜5球）。<br>お忘れの場合は当日会場にて1球500円でご購入いただけます。</p>
       </div>` : "";
     const shuttleText = showShuttleNote
-      ? "\n\n【シャトルについて】\nシャトル持参制です（第2種検定球 8〜12球）。\n当日会場での購入も可能です（1球500円）。"
+      ? "\n\n【シャトルについて】\nシャトル持参制です（第2種検定球 3〜5球）。\n当日会場での購入も可能です（1球500円）。"
       : "";
 
     const results: string[] = [];

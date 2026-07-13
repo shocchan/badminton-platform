@@ -7,6 +7,7 @@ import { EntryForm } from '../components/EntryForm';
 import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
 import type { Tournament } from '../types';
 
 const levelColors: Record<string, { bg: string; text: string }> = {
@@ -26,10 +27,13 @@ const levelAccent: Record<string, string> = {
 const generateShareText = (tournament: Tournament, lang: string) => {
   const formatDate = (d: string) => new Date(d).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
   const fmtTime = (t: string) => t.slice(0, 5);
+  const fee = isDoublesEvent(tournament)
+    ? (lang === 'zh' ? `每人${feePerPerson(tournament)}日元` : `1人${feePerPerson(tournament).toLocaleString()}円`)
+    : (lang === 'zh' ? `${tournament.entry_fee}日元` : `${tournament.entry_fee.toLocaleString()}円`);
   if (lang === 'zh') {
-    return `【${tournament.title}】\n日期：${formatDate(tournament.event_date)}\n时间：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n地点：${tournament.location}\n参加费：${tournament.entry_fee}日元\n详情・报名：`;
+    return `【${tournament.title}】\n日期：${formatDate(tournament.event_date)}\n时间：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n地点：${tournament.location}\n参加费：${fee}\n详情・报名：`;
   }
-  return `【${tournament.title}】\n日時：${formatDate(tournament.event_date)}\n時間：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n会場：${tournament.location}\n参加費：${tournament.entry_fee}円\n詳細・申し込み：`;
+  return `【${tournament.title}】\n日時：${formatDate(tournament.event_date)}\n時間：${fmtTime(tournament.start_time)}〜${fmtTime(tournament.end_time)}\n会場：${tournament.location}\n参加費：${fee}\n詳細・申し込み：`;
 };
 
 export const TournamentDetailPage = () => {
@@ -155,7 +159,7 @@ export const TournamentDetailPage = () => {
   const badgeColor = remaining <= 3 ? 'bg-red-500 text-white' : remaining <= 7 ? 'bg-yellow-400 text-yellow-900' : 'bg-green-100 text-green-800';
 
   const pageTitle = `${tournament.title} | 川口・蕨バドミントン交流会`;
-  const pageDesc = `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${tournament.entry_fee}円。${tournament.level}クラス。`;
+  const pageDesc = `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${isDoublesEvent(tournament) ? `1人${feePerPerson(tournament)}円` : `${tournament.entry_fee}円`}。${tournament.level}クラス。`;
 
   const eventSchemaProps = tournamentToEventSchemaProps(tournament, {
     entryUrl: `https://kawabado.com/ja/tournaments/${tournament.id}`,
@@ -280,7 +284,7 @@ export const TournamentDetailPage = () => {
             { icon: '📅', label: '開催日', value: formatDate(tournament.event_date) },
             { icon: '🕐', label: '時間', value: `${formatTime(tournament.start_time)} 〜 ${formatTime(tournament.end_time)}` },
             { icon: '📍', label: '会場', value: tournament.location, sub: tournament.venue_address },
-            { icon: '💰', label: '参加費', value: `¥${tournament.entry_fee.toLocaleString()}` },
+            { icon: '💰', label: '参加費', value: feeDisplay(tournament, lang === 'zh' ? 'zh' : 'ja'), sub: isDoublesEvent(tournament) ? `ペア合計 ¥${tournament.entry_fee.toLocaleString()}` : undefined },
             { icon: '⚠️', label: 'キャンセル期限', value: formatDate(entryDeadline.toISOString().split('T')[0]) },
           ].map(({ icon, label, value, sub }) => (
             <div key={label} className="flex items-start gap-3 px-5 py-4">
