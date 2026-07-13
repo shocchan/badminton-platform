@@ -45,3 +45,27 @@
   animation: shimmer 1.4s infinite;
   border-radius: 0.5rem;
 }
+
+/* ── トースト・ダイアログの入場 ── */
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toastEnter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── クーポンのミシン目（チケット風） ── */
+.ticket-perforation {
+  background-image: linear-gradient(to right, #cbd5e1 45%, transparent 45%);
+  background-size: 10px 1.5px;
+  background-repeat: repeat-x;
+  background-position: center;
+}

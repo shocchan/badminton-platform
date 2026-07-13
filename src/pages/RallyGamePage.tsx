@@ -1,12 +1,14 @@
 // バド対決ゲームのページ: /:lang/game
 // ①ゲーム本体 → ②抽選（Supabase Edge Function）まで実装済み。
-// ③（会員登録・当選引き継ぎ・活動申込での無料券利用）は今後追加予定。
+// スマホはフルスクリーン、PCは左右に遊び方・抽選パネルを置く3カラム。
 
 import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { Gamepad2, Gift, Target, Trophy, ChevronRight } from 'lucide-react';
 import RallyGame from '../components/RallyGame';
 import RallyLotteryModal from '../components/RallyLotteryModal';
-import { LEGEND_RALLY } from '../lib/rallyGame';
+import { LEGEND_RALLY, RALLY_RANKS } from '../lib/rallyGame';
+import { getRallyBest } from '../lib/rallyBest';
 import {
   RALLIES_PER_DRAW,
   drawRallyLottery,
@@ -22,6 +24,7 @@ export default function RallyGamePage() {
   const { lang } = useLanguage();
   const locale = lang === 'zh' ? 'zh' : 'ja';
   const [lottery, setLottery] = useState<LotteryResult | null>(null);
+  const best = getRallyBest();
 
   const handleGameEnd = (rallyCount: number) => {
     if (rallyCount < 1) return;
@@ -41,7 +44,7 @@ export default function RallyGamePage() {
   };
 
   return (
-    <>
+    <main>
       <Helmet>
         <title>バド対決ゲーム | かわバド</title>
         <meta
@@ -50,10 +53,10 @@ export default function RallyGamePage() {
         />
       </Helmet>
 
-      {/* ゲーム本体：スマホはフルスクリーン、PCは通常フロー */}
+      {/* ゲーム本体：スマホはフルスクリーン、PCは3カラム */}
       <div className="flex h-[100dvh] flex-col overflow-hidden md:h-auto md:overflow-visible">
         {/* 薄いヘッダー（常に固定表示） */}
-        <div className="flex shrink-0 items-center justify-between px-4 py-2">
+        <div className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between px-4 py-2">
           <a
             href={`/${locale}/`}
             className="text-xs text-emerald-700 underline-offset-2 hover:underline"
@@ -63,16 +66,85 @@ export default function RallyGamePage() {
           <h1 className="text-sm font-bold text-slate-900">バド対決ゲーム</h1>
         </div>
 
-        {/* ゲーム本体: スマホはフルスクリーン、PCは通常レイアウト */}
-        <div className="flex min-h-0 flex-1 items-center justify-center px-3 pb-3 md:flex-none md:py-10">
-          <RallyGame onGameStart={startRallySession} onGameEnd={handleGameEnd} drawEveryRallies={RALLIES_PER_DRAW} />
+        <div className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 items-start gap-6 px-3 pb-3 md:flex-none md:px-6 md:py-8">
+          {/* 左パネル: あそびかた（PCのみ） */}
+          <aside className="hidden flex-1 lg:block">
+            <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Gamepad2 className="h-4 w-4 text-emerald-500" /> あそびかた
+              </h2>
+              <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-slate-600">
+                <li>🏸 マウスでラケットをコート全面に移動（←→↑↓キーもOK）</li>
+                <li>🎯 落下点に緑リングが縮んでくる。重なった瞬間にクリック / Space でスイング！</li>
+                <li>⚖️ ジャストなら「Perfect」。早い・遅いは打球が横に流れてアウトミスの危険</li>
+                <li>💨 ラリーが続くほどシャトルは速く、コースはライン際に</li>
+              </ul>
+            </div>
+            <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Trophy className="h-4 w-4 text-amber-500" /> ランク表
+              </h2>
+              <ul className="mt-3 space-y-1.5">
+                {RALLY_RANKS.map((r) => (
+                  <li
+                    key={r.min}
+                    className="flex items-center justify-between rounded-lg px-2 py-1.5 text-xs odd:bg-slate-50"
+                  >
+                    <span className="font-bold text-slate-700">
+                      {r.emoji} {r.label}
+                    </span>
+                    <span className="text-slate-400">{r.min}〜</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </aside>
+
+          {/* 中央: ゲーム本体 */}
+          <div className="flex min-h-0 w-full flex-1 items-center justify-center md:flex-none lg:w-[400px] lg:flex-initial">
+            <RallyGame onGameStart={startRallySession} onGameEnd={handleGameEnd} drawEveryRallies={RALLIES_PER_DRAW} />
+          </div>
+
+          {/* 右パネル: 抽選・自己ベスト（PCのみ） */}
+          <aside className="hidden flex-1 lg:block">
+            <div className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-5 shadow-sm ring-1 ring-amber-200">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-amber-900">
+                <Gift className="h-4 w-4" /> {RALLIES_PER_DRAW}ラリーごとに抽選チャンス
+              </h2>
+              <p className="mt-2 text-xs leading-relaxed text-amber-900/80">
+                <span className="font-bold">{RALLIES_PER_DRAW}ラリー続けるごとに抽選が1回</span>
+                回ります。ごくまれに <span className="font-bold">🍜 ラーメン無料券</span> や{' '}
+                <span className="font-bold">🏸 バド活動無料券</span> が当たるかも…！？
+              </p>
+            </div>
+            <div className="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+              <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                <Target className="h-4 w-4 text-blue-500" /> あなたの自己ベスト
+              </h2>
+              <p className="mt-2 text-3xl font-black text-slate-900">
+                {best > 0 ? best : '—'}
+                {best > 0 && <span className="ml-1 text-sm font-bold text-slate-400">ラリー</span>}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                {best >= LEGEND_RALLY
+                  ? 'カンスト級！あなたは本物です'
+                  : `まずは10ラリー、目指せ${LEGEND_RALLY}ラリー！`}
+              </p>
+              <a
+                href={`/${locale}/mypage`}
+                className="mt-3 inline-flex items-center text-xs font-bold text-blue-600 underline-offset-2 hover:underline"
+              >
+                当選クーポンはマイページで確認 <ChevronRight className="h-3.5 w-3.5" />
+              </a>
+            </div>
+          </aside>
         </div>
       </div>
 
-      {/* 説明文・遊び方・抽選案内は、ゲームの下に別セクションとして */}
-      <div className="mx-auto max-w-2xl px-5 py-8">
+      {/* 説明文・遊び方・抽選案内（モバイル/タブレットのみ。PCは左右パネルに集約） */}
+      <div className="mx-auto max-w-2xl px-5 py-8 lg:hidden">
         <div className="text-center">
-          <p className="text-xs font-medium tracking-wide text-emerald-600">
+          <p className="text-xs font-medium tracking-wide text-emerald-700">
             KAWABADO MINI GAME
           </p>
           <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-slate-600">
@@ -109,6 +181,6 @@ export default function RallyGamePage() {
       {lottery !== null && (
         <RallyLotteryModal result={lottery} onClose={() => setLottery(null)} />
       )}
-    </>
+    </main>
   );
 }

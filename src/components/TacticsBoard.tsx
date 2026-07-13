@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { ConfirmDialog } from "./ui/ConfirmDialog";
 
 // ============================================================
 // Types
@@ -348,9 +349,8 @@ export default function TacticsBoard() {
   const [label, setLabel] = useState("");
   const [showLabelEdit, setShowLabelEdit] = useState(false);
 
-  // Reset confirm state
+  // Reset confirm dialog
   const [resetPending, setResetPending] = useState(false);
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Save slots
   const [slots, setSlots] = useState<SaveSlot[]>(loadSlots);
@@ -586,14 +586,9 @@ export default function TacticsBoard() {
     pushHistory({ players: nextPlayers, arrows: nextArrows });
   };
 
-  // Reset with confirm
-  const handleReset = () => {
-    if (!resetPending) {
-      setResetPending(true);
-      resetTimer.current = setTimeout(() => setResetPending(false), 3000);
-      return;
-    }
-    if (resetTimer.current) clearTimeout(resetTimer.current);
+  // Reset（破壊的操作なので確認ダイアログを挟む）
+  const handleReset = () => setResetPending(true);
+  const doReset = () => {
     setResetPending(false);
     setPlayers(DEFAULT_PLAYERS);
     setArrows([]);
@@ -797,11 +792,12 @@ export default function TacticsBoard() {
                     onClick={() => setTool(key)}
                     style={{
                       padding: "7px 10px", borderRadius: 7,
-                      border: active ? "none" : "2px solid transparent",
+                      border: "2px solid transparent",
                       background: active ? color : "#1F2937",
                       color: active ? "white" : "#9CA3AF",
-                      fontSize: 12, fontWeight: 600, cursor: "pointer",
+                      fontSize: 12, fontWeight: active ? 700 : 600, cursor: "pointer",
                       textAlign: "left",
+                      boxShadow: active ? `0 0 0 2px #111827, 0 0 0 4px ${color}88` : "none",
                     }}
                   >
                     {btnLabel}
@@ -942,9 +938,9 @@ export default function TacticsBoard() {
                 style={smallBtn("#374151")}>矢印クリア</button>
               <button
                 onClick={handleReset}
-                style={smallBtn(resetPending ? "#DC2626" : "#374151")}
+                style={{ ...smallBtn("#7F1D1D"), color: "#FCA5A5", border: "1px solid #B91C1C" }}
               >
-                {resetPending ? "本当にリセット？" : "リセット"}
+                🗑 リセット
               </button>
               <button onClick={saveImage} style={{
                 padding: "8px", borderRadius: 7,
@@ -994,6 +990,16 @@ export default function TacticsBoard() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={resetPending}
+        title="ボードをリセットしますか？"
+        message="配置した選手・矢印がすべて初期状態に戻ります。この操作は元に戻せません。"
+        confirmLabel="リセットする"
+        danger
+        onConfirm={doReset}
+        onCancel={() => setResetPending(false)}
+      />
     </div>
   );
 }

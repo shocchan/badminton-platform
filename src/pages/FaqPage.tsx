@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -255,9 +256,9 @@ export const FaqPage = () => {
                 href="https://www.amazon.co.jp/s?k=ヨネックス+エアロセンサ700+AS-700"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+                className="flex items-center justify-center gap-1.5 w-full bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 text-xs font-medium py-2 rounded-lg border border-gray-200 transition-colors"
               >
-                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
+                <span className="text-[9px] font-bold text-gray-400 border border-gray-300 rounded px-1 py-px leading-none">PR</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'} <ExternalLink className="w-3 h-3" />
               </a>
             </div>
             {/* F-80 */}
@@ -275,9 +276,9 @@ export const FaqPage = () => {
                 href="https://www.amazon.co.jp/s?k=ヨネックス+ニューオフィシャル+F-80"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+                className="flex items-center justify-center gap-1.5 w-full bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 text-xs font-medium py-2 rounded-lg border border-gray-200 transition-colors"
               >
-                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
+                <span className="text-[9px] font-bold text-gray-400 border border-gray-300 rounded px-1 py-px leading-none">PR</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'} <ExternalLink className="w-3 h-3" />
               </a>
             </div>
             {/* RSL シルバーフェザー */}
@@ -295,9 +296,9 @@ export const FaqPage = () => {
                 href="https://www.amazon.co.jp/s?k=RSL+シルバーフェザー+シャトル"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 w-full bg-yellow-400 hover:bg-yellow-300 text-gray-900 text-xs font-bold py-2 rounded-lg transition-colors"
+                className="flex items-center justify-center gap-1.5 w-full bg-white hover:bg-gray-50 text-gray-500 hover:text-gray-700 text-xs font-medium py-2 rounded-lg border border-gray-200 transition-colors"
               >
-                <span>🛒</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'}
+                <span className="text-[9px] font-bold text-gray-400 border border-gray-300 rounded px-1 py-px leading-none">PR</span> {lang === 'ja' ? 'Amazonで見る' : '在Amazon查看'} <ExternalLink className="w-3 h-3" />
               </a>
             </div>
           </div>
@@ -376,22 +377,21 @@ export const FaqPage = () => {
                 const key = `${section.category}-${i}`;
                 const isOpen = !!openItems[key];
                 return (
-                  <div key={key} className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div key={key} className={`rounded-2xl border overflow-hidden shadow-sm transition-colors duration-200 ${isOpen ? 'bg-blue-50/60 border-blue-200' : 'bg-white border-gray-200'}`}>
                     <button
                       onClick={() => toggle(key)}
-                      className="w-full flex items-start justify-between gap-4 px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                      aria-expanded={isOpen}
+                      className={`w-full flex items-start justify-between gap-4 px-5 py-4 text-left transition-colors ${isOpen ? '' : 'hover:bg-gray-50'}`}
                     >
                       <div className="flex items-start gap-3">
                         <span className="text-blue-600 font-extrabold text-sm flex-shrink-0 mt-0.5">Q.</span>
                         <span className="font-bold text-gray-800 text-sm sm:text-base">{item.q}</span>
                       </div>
-                      <span className={`flex-shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-                        ▼
-                      </span>
+                      <ChevronDown className={`flex-shrink-0 w-4 h-4 mt-1 transition-transform duration-200 ${isOpen ? 'rotate-180 text-blue-500' : 'text-gray-400'}`} />
                     </button>
                     {isOpen && (
                       <div className="px-5 pb-4 pt-0">
-                        <div className="border-t border-gray-100 pt-4 flex gap-3">
+                        <div className="border-t border-blue-100 pt-4 flex gap-3 toast-enter">
                           <span className="text-green-600 font-extrabold text-sm flex-shrink-0 mt-0.5">A.</span>
                           <p className="text-sm text-gray-600 leading-relaxed">{item.a}</p>
                         </div>

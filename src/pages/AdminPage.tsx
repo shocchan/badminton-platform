@@ -13,6 +13,8 @@ import { ResizableImage } from '../extensions/ResizableImage';
 import type { Tournament, BlogPost, Entry } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
 import GameStatsPanel from '../components/admin/GameStatsPanel';
+import { toast } from '../components/ui/Toast';
+import { ShieldCheck } from 'lucide-react';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
@@ -143,7 +145,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
       const url = await uploadBlogImage(file);
       editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
     } catch (err) {
-      alert('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
+      toast.error('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
     } finally {
       setImgUploading(false);
     }
@@ -1115,7 +1117,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     if (!window.confirm(`${member.name} さんの「${label}」を使用済みにしますか？`)) return;
     const { data, error } = await supabase.rpc('admin_redeem_coupon', { p_coupon_id: coupon.id });
     if (error || data !== true) {
-      window.alert('クーポンの消込に失敗しました');
+      toast.error('クーポンの消込に失敗しました');
       return;
     }
     fetchMembers();
@@ -1144,10 +1146,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     try {
       await callAdminFunction('promote', entryId);
       await fetchEntries();
-      alert(`✅ ${entryName}さんを繰り上げ当選にしました。確定メールを送信しました。`);
+      toast.success(`${entryName}さんを繰り上げ当選にしました。確定メールを送信しました。`);
     } catch (err) {
       console.error(err);
-      alert('繰り上げ処理に失敗しました: ' + (err as Error).message);
+      toast.error('繰り上げ処理に失敗しました: ' + (err as Error).message);
     }
   };
 
@@ -1158,7 +1160,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       await fetchEntries();
     } catch (err) {
       console.error(err);
-      alert('キャンセル処理に失敗しました: ' + (err as Error).message);
+      toast.error('キャンセル処理に失敗しました: ' + (err as Error).message);
     }
   };
 
@@ -1219,7 +1221,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       setDeleteConfirmTournament(null);
       setDeleteConfirmInput('');
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : '削除に失敗しました');
+      toast.error(err instanceof Error ? err.message : '削除に失敗しました');
     }
   };
 
@@ -1367,7 +1369,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     try {
       await deletePost(id);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : '削除に失敗しました');
+      toast.error(err instanceof Error ? err.message : '削除に失敗しました');
     }
   };
 
@@ -1430,7 +1432,12 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     <main className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">管理画面</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
+              <ShieldCheck className="h-5 w-5" />
+            </span>
+            管理画面
+          </h1>
           {isSubGroup && subGroupName && (
             <p className="text-sm text-gray-500 mb-4">{subGroupName}</p>
           )}

@@ -97,6 +97,7 @@ export default function ClaimAccountForm({ onDone }: Props) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="お名前（例: 田中太郎）"
+            aria-label="お名前"
             maxLength={30}
             className={inputClass}
           />
@@ -106,6 +107,7 @@ export default function ClaimAccountForm({ onDone }: Props) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="メールアドレス"
+          aria-label="メールアドレス"
           required
           className={inputClass}
         />
@@ -114,6 +116,7 @@ export default function ClaimAccountForm({ onDone }: Props) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="パスワード（6文字以上）"
+          aria-label="パスワード"
           required
           minLength={6}
           className={inputClass}

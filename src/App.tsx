@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
 import NavigateWithId from './components/NavigateWithId';
 import { HomePageWrapper } from './components/HomePageWrapper';
@@ -89,6 +90,8 @@ const AnimatedRoutes = () => {
             <Route path="password-reset"  element={<PasswordResetPage />} />
             <Route path="password-reset-form" element={<PasswordResetFormPage />} />
             <Route path="password-reset-success" element={<PasswordResetSuccessPage />} />
+            {/* 未知のサブパスはヘッダー・フッター間が空にならないよう404を出す */}
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
 
           {/* ── chaoxianzu グループ（新URL） ── */}
@@ -96,12 +99,14 @@ const AnimatedRoutes = () => {
             <Route path="activity"     element={<ActivityListPage groupSlug="chaoxianzu" />} />
             <Route path="activity/:id" element={<ActivityPage groupSlug="chaoxianzu" />} />
             <Route path="admin"        element={<CXAdminPage />} />
+            <Route path="*"            element={<NotFoundPage />} />
           </Route>
 
           {/* ── assistant グループ（通常活動のみ管理。公開一覧は /:lang/activity に統合表示） ── */}
           <Route path="/assistant/:lang/*" element={<LangWrapper groupSlug="assistant" />}>
             <Route path="activity/:id" element={<ActivityPage groupSlug="assistant" />} />
             <Route path="admin"        element={<AssistantAdminPage />} />
+            <Route path="*"            element={<NotFoundPage />} />
           </Route>
 
           {/* ── 言語によらないページ ── */}
@@ -143,13 +148,15 @@ function AppInner() {
     <>
       <ScrollToTop />
       <LanguageProvider>
-        <div className="min-h-screen flex flex-col bg-gray-50">
-          <Header />
-          <div className="flex-1">
-            <AnimatedRoutes />
+        <ToastProvider>
+          <div className="min-h-screen flex flex-col bg-gray-50">
+            <Header />
+            <div className="flex-1">
+              <AnimatedRoutes />
+            </div>
+            <Footer />
           </div>
-          <Footer />
-        </div>
+        </ToastProvider>
       </LanguageProvider>
     </>
   );

@@ -1,28 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
-  <!-- 青い円背景 -->
-  <circle cx="24" cy="24" r="24" fill="#1D4ED8"/>
-
-  <!-- ラケット（頭部の楕円） -->
-  <ellipse cx="20" cy="17" rx="9" ry="11" fill="none" stroke="white" stroke-width="2.2"/>
-
-  <!-- ラケット内のグリッド線（横） -->
-  <line x1="11.5" y1="13" x2="28.5" y2="13" stroke="white" stroke-width="0.8" opacity="0.6"/>
-  <line x1="11" y1="17" x2="29" y2="17" stroke="white" stroke-width="0.8" opacity="0.6"/>
-  <line x1="11.5" y1="21" x2="28.5" y2="21" stroke="white" stroke-width="0.8" opacity="0.6"/>
-  <!-- ラケット内のグリッド線（縦） -->
-  <line x1="16" y1="6.5" x2="16" y2="27.5" stroke="white" stroke-width="0.8" opacity="0.6"/>
-  <line x1="20" y1="6" x2="20" y2="28" stroke="white" stroke-width="0.8" opacity="0.6"/>
-  <line x1="24" y1="6.5" x2="24" y2="27.5" stroke="white" stroke-width="0.8" opacity="0.6"/>
-
-  <!-- ハンドル -->
-  <rect x="19" y="27.5" width="2.5" height="9" rx="1.2" fill="white"/>
-
-  <!-- シャトルコック（右下） -->
-  <circle cx="34" cy="36" r="2.5" fill="white"/>
-  <!-- シャトルの羽根 -->
-  <line x1="34" y1="33.5" x2="30" y2="27" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="34" y1="33.5" x2="34" y2="26" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="34" y1="33.5" x2="38" y2="27" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-  <!-- 羽根の先端をつなぐ弧（横線） -->
-  <path d="M 30.5 27.5 Q 34 25.5 37.5 27.5" stroke="white" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="kb-lg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#1E40AF"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="11" fill="url(#kb-lg)"/>
+  <path d="M5 39.5 H43" stroke="white" stroke-width="1.4" opacity="0.22" stroke-linecap="round"/>
+  <path d="M9 43 H39" stroke="white" stroke-width="1.2" opacity="0.12" stroke-linecap="round"/>
+  <g transform="rotate(-135 22 24)">
+    <circle cx="22" cy="33.5" r="4.4" fill="#fff"/>
+    <path d="M17.6 33.5 a4.4 4.4 0 0 0 8.8 0" fill="#FDE68A" opacity="0.9"/>
+    <path d="M22 29.5 L14.6 14.5 L17.6 13.2 L22 27 L26.4 13.2 L29.4 14.5 Z" fill="#fff" opacity="0.95"/>
+    <path d="M22 28.5 L18.4 15 L22 26 L25.6 15 Z" fill="#DBEAFE" opacity="0.85"/>
+    <path d="M15 14.8 Q22 10.8 29 14.8" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M17 22.5 Q22 20.5 27 22.5" stroke="#fff" stroke-width="1.1" fill="none" opacity="0.7"/>
+  </g>
+  <path d="M33 9 L39.5 6" stroke="#34D399" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M36.5 15 L42 12.5" stroke="#34D399" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
 </svg>

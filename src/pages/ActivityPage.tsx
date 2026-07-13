@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { CalendarDays, Clock, MapPin, ChevronDown, ArrowRight, AlertTriangle, HelpCircle } from 'lucide-react';
+import { CardSkeleton } from '../components/ui/StateViews';
 import { supabase } from '../services/supabaseClient';
 import { EventSchema } from '../components/seo/EventSchema';
 import { FAQSchema } from '../components/seo/FAQSchema';
@@ -1071,7 +1073,7 @@ const ActivityCalendar = ({ activities, selectedDate, onSelect }: {
           <span className="font-extrabold text-gray-900 text-sm">{year}年 {month+1}月</span>
           {(year !== today.getFullYear() || month !== today.getMonth()) && (
             <button onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()); }}
-              className="text-xs text-emerald-600 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium">{thisMonth}</button>
+              className="text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-full font-medium">{thisMonth}</button>
           )}
         </div>
         <button onClick={() => month === 11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1)}
@@ -1214,9 +1216,15 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
   const displayed = selectedDate ? activeActivities.filter(a => a.date === selectedDate) : activeActivities;
 
   if (loading || !group) return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
-    </div>
+    <main className="max-w-5xl mx-auto px-4 py-8">
+      <div className="skeleton h-8 w-40 rounded-lg mb-6" />
+      <div className="lg:grid lg:grid-cols-[340px_1fr] lg:gap-6 lg:items-start">
+        <div className="skeleton h-80 w-full rounded-2xl mb-4 lg:mb-0" />
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => <CardSkeleton key={i} lines={2} />)}
+        </div>
+      </div>
+    </main>
   );
 
   const activityMeta = effectiveLang === 'zh'
@@ -1294,10 +1302,14 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
 
         <div>
           {t.wechatMiniProgramNotice && (
-            <div className="flex gap-3 items-start bg-yellow-50 border border-yellow-300 text-yellow-800 rounded-xl px-4 py-3 mb-4 text-sm leading-relaxed">
-              <span className="text-lg shrink-0">⚠️</span>
-              <p>{t.wechatMiniProgramNotice}</p>
-            </div>
+            <details className="group bg-yellow-50/70 border border-yellow-200 text-yellow-800 rounded-xl px-4 py-2.5 mb-4 text-xs leading-relaxed">
+              <summary className="flex items-center gap-2 cursor-pointer list-none font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-yellow-600" />
+                {effectiveLang === 'zh' ? '已通过小程序报名的用户请注意' : '小程序（WeChatミニプログラム）でお申し込み済みの方へ'}
+                <ChevronDown className="w-3.5 h-3.5 ml-auto shrink-0 text-yellow-500 transition-transform duration-200 group-open:rotate-180" />
+              </summary>
+              <p className="mt-2 pt-2 border-t border-yellow-200/70">{t.wechatMiniProgramNotice}</p>
+            </details>
           )}
           {displayed.length === 0 ? (
             <p className="text-center py-12 text-gray-400">
@@ -1314,7 +1326,7 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
                   <Link
                     key={a.id}
                     to={t.detailLink(a.id, activityGroupSlug)}
-                    className="block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow"
+                    className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
                     {venueImg ? (
                       <div className="h-32 overflow-hidden">
@@ -1334,8 +1346,29 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
                           </span>
                         )}
                       </div>
-                      {a.address && <p className="text-xs text-gray-400 mt-0.5">📍 {a.address}</p>}
-                      <p className="text-emerald-600 font-bold mt-1">{t.price(a.price)}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-gray-500">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarDays className="w-3.5 h-3.5 text-emerald-500" /> {fmt(a.date)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-emerald-500" /> {a.start_time.slice(0, 5)}〜{a.end_time.slice(0, 5)}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-500" /> {a.location}
+                        </span>
+                      </div>
+                      {a.address && (
+                        <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                          <MapPin className="w-3 h-3 shrink-0" /> {a.address}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between mt-3">
+                        <p className="text-emerald-600 font-bold">{t.price(a.price)}</p>
+                        <span className="inline-flex items-center gap-1 bg-emerald-500 group-hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-full transition-colors">
+                          {effectiveLang === 'zh' ? '报名这一天' : 'この日に申し込む'}
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 );
@@ -1349,18 +1382,19 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
       {isMainGroup && (
         <section className="mt-14 max-w-3xl">
           <FAQSchema items={activityFaq} />
-          <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4">
-            {effectiveLang === 'zh' ? '❓ 日常活动常见问题' : '❓ 通常活動のよくある質問'}
+          <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-4 flex items-center gap-2">
+            <HelpCircle className="w-5 h-5 text-emerald-500" />
+            {effectiveLang === 'zh' ? '日常活动常见问题' : '通常活動のよくある質問'}
           </h2>
           <div className="space-y-2">
             {activityFaq.map(f => (
               <details key={f.question} className="group bg-white rounded-2xl border border-gray-200 shadow-sm px-5 py-4">
                 <summary className="flex items-start justify-between gap-4 cursor-pointer list-none">
                   <span className="flex items-start gap-3">
-                    <span className="text-emerald-600 font-extrabold text-sm flex-shrink-0 mt-0.5">Q.</span>
+                    <span className="text-emerald-700 font-extrabold text-sm flex-shrink-0 mt-0.5">Q.</span>
                     <span className="font-bold text-gray-800 text-sm sm:text-base">{f.question}</span>
                   </span>
-                  <span className="flex-shrink-0 text-gray-400 transition-transform duration-200 group-open:rotate-180">▼</span>
+                  <ChevronDown className="flex-shrink-0 w-4 h-4 mt-1 text-gray-400 transition-transform duration-200 group-open:rotate-180" />
                 </summary>
                 <p className="text-sm text-gray-600 leading-relaxed mt-3 pt-3 border-t border-gray-100">{f.answer}</p>
               </details>

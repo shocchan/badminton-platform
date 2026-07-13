@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Crown, Medal, Award, Sprout, User, Check, CheckCircle2, Lightbulb, type LucideIcon } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -168,6 +169,14 @@ const levelsZh: LevelData[] = [
   },
 ];
 
+// クラスごとの統一アイコン（ピラミッド配色に合わせたメダル代替）
+const LEVEL_ICONS: Record<string, LucideIcon> = {
+  open: Crown,
+  intermediate: Medal,
+  beginner: Award,
+  fresher: Sprout,
+};
+
 // SVGピラミッド
 const ClassPyramid = () => {
   const W = 560;
@@ -176,10 +185,10 @@ const ClassPyramid = () => {
 
   // 各段の高さ・上辺幅・下辺幅（台形）
   const tiers = [
-    { topW: 110, botW: 200, y: 0,   h: 60, fill: '#7c3aed', label: '🥇 オープン',  sub: 'OPEN' },
-    { topW: 200, botW: 310, y: 64,  h: 60, fill: '#4f46e5', label: '🥈 中級',      sub: 'INTERMEDIATE' },
-    { topW: 310, botW: 420, y: 128, h: 60, fill: '#f97316', label: '🥉 初級',      sub: 'BEGINNER' },
-    { topW: 420, botW: 540, y: 192, h: 60, fill: '#10b981', label: '🌱 超初級',    sub: 'FRESHER — 初めての方大歓迎' },
+    { topW: 110, botW: 200, y: 0,   h: 60, fill: '#7c3aed', label: 'オープン',  sub: 'OPEN' },
+    { topW: 200, botW: 310, y: 64,  h: 60, fill: '#4f46e5', label: '中級',      sub: 'INTERMEDIATE' },
+    { topW: 310, botW: 420, y: 128, h: 60, fill: '#f97316', label: '初級',      sub: 'BEGINNER' },
+    { topW: 420, botW: 540, y: 192, h: 60, fill: '#10b981', label: '超初級',    sub: 'FRESHER — 初めての方大歓迎' },
   ];
 
   return (
@@ -304,7 +313,11 @@ export const LevelGuidePage = () => {
             {/* カードヘッダー */}
             <div className={`bg-gradient-to-r ${level.bg} px-6 py-4`}>
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{level.emoji}</span>
+                {(() => { const Icon = LEVEL_ICONS[level.id] ?? Award; return (
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/20">
+                    <Icon className="h-6 w-6 text-white" strokeWidth={2.25} />
+                  </span>
+                ); })()}
                 <div>
                   <div className="text-white font-extrabold text-xl">{level.name}</div>
                   <div className="text-white/80 text-xs font-medium tracking-widest">{level.nameEn}</div>
@@ -320,7 +333,7 @@ export const LevelGuidePage = () => {
                 {/* こんな方におすすめ */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
                   <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
-                    <span>👤</span> {lang === 'ja' ? 'こんな方におすすめ' : '适合人群'}
+                    <User className="w-3.5 h-3.5" /> {lang === 'ja' ? 'こんな方におすすめ' : '适合人群'}
                   </div>
                   {level.target.split('\n').map((line, i) => (
                     <div key={i} className="text-sm text-gray-700 py-0.5">{line}</div>
@@ -330,12 +343,12 @@ export const LevelGuidePage = () => {
                 {/* レベル目安 */}
                 <div className="bg-white rounded-xl p-4 border border-gray-200">
                   <div className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1">
-                    <span>✅</span> {lang === 'ja' ? 'レベルの目安' : '水平参考'}
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> {lang === 'ja' ? 'レベルの目安' : '水平参考'}
                   </div>
                   <ul className="space-y-1.5">
                     {level.guide.map((g, i) => (
                       <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                        <span className="text-green-500 mt-0.5 flex-shrink-0">✓</span>
+                        <Check className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" strokeWidth={3} />
                         {g}
                       </li>
                     ))}
@@ -345,7 +358,7 @@ export const LevelGuidePage = () => {
 
               {level.note && (
                 <div className="bg-white border border-blue-200 rounded-xl px-4 py-3 mb-5">
-                  <p className="text-sm text-blue-700">💡 {level.note}</p>
+                  <p className="text-sm text-blue-700 flex items-start gap-1.5"><Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0" /> {level.note}</p>
                 </div>
               )}
 

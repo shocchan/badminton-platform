@@ -109,8 +109,16 @@ export const TournamentDetailPage = () => {
 
 
   if (loading) return (
-    <div className="flex justify-center items-center min-h-[50vh]">
-      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+    <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="skeleton h-6 w-48 rounded-lg mb-4" />
+      <div className="skeleton h-40 w-full rounded-2xl mb-4" />
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="skeleton h-16 rounded-xl" />
+        <div className="skeleton h-16 rounded-xl" />
+        <div className="skeleton h-16 rounded-xl" />
+        <div className="skeleton h-16 rounded-xl" />
+      </div>
+      <div className="skeleton h-12 w-full rounded-xl" />
     </div>
   );
 

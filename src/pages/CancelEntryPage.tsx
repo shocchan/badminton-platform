@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useToast } from '../components/ui/Toast';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -24,6 +26,8 @@ export const CancelEntryPage = () => {
   const [entry, setEntry] = useState<EntryInfo | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [processing, setProcessing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (!token) {
@@ -74,7 +78,7 @@ export const CancelEntryPage = () => {
   };
 
   const handleCancel = async () => {
-    if (!confirm('本当にキャンセルしますか？')) return;
+    setConfirmOpen(false);
     setProcessing(true);
     try {
       const res = await fetch(`${EDGE_BASE}/process-cancel`, {
@@ -87,12 +91,12 @@ export const CancelEntryPage = () => {
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'キャンセルに失敗しました。');
+        toast.error(data.error || 'キャンセルに失敗しました。');
       } else {
         setState('cancelled');
       }
     } catch {
-      alert('通信エラーが発生しました。');
+      toast.error('通信エラーが発生しました。');
     } finally {
       setProcessing(false);
     }
@@ -156,12 +160,22 @@ export const CancelEntryPage = () => {
             )}
 
             <button
-              onClick={handleCancel}
+              onClick={() => setConfirmOpen(true)}
               disabled={processing}
               className="w-full bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors mb-3"
             >
               {processing ? 'キャンセル処理中...' : 'キャンセルする'}
             </button>
+            <ConfirmDialog
+              open={confirmOpen}
+              title="申し込みをキャンセルしますか？"
+              message="キャンセル後に再度参加したい場合は、あらためてお申し込みが必要です。"
+              confirmLabel="キャンセルする"
+              cancelLabel="やめる"
+              danger
+              onConfirm={handleCancel}
+              onCancel={() => setConfirmOpen(false)}
+            />
             <a
               href="/"
               className="block w-full text-center text-sm text-gray-500 hover:text-gray-700 py-2"

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Newspaper, ArrowRight, Tag } from 'lucide-react';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateViews';
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
@@ -29,7 +31,9 @@ export const BlogPage = () => {
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
       <div className="text-center mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">📰 ブログ</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
+          <Newspaper className="w-6 h-6 text-blue-500" /> ブログ
+        </h1>
         <p className="text-gray-500 text-sm sm:text-base">大会結果やお知らせをお届けします</p>
       </div>
 
@@ -41,8 +45,9 @@ export const BlogPage = () => {
               <button
                 key={opt.key}
                 onClick={() => setSort(opt.key)}
+                aria-pressed={sort === opt.key}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  sort === opt.key ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-800'
+                  sort === opt.key ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
                 {opt.label}
@@ -53,20 +58,15 @@ export const BlogPage = () => {
       )}
 
       {loading && (
-        <div className="flex justify-center py-20">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[...Array(6)].map((_, i) => <CardSkeleton key={i} lines={2} />)}
         </div>
       )}
 
-      {error && (
-        <div className="bg-red-50 text-red-600 px-4 py-3 rounded-xl text-sm">{error}</div>
-      )}
+      {error && <ErrorState message="記事の読み込みに失敗しました" />}
 
       {!loading && !error && blogPosts.length === 0 && (
-        <div className="text-center py-20 text-gray-400">
-          <div className="text-5xl mb-4">📝</div>
-          <p>まだ記事がありません</p>
-        </div>
+        <EmptyState emoji="📝" title="まだ記事がありません" description="大会結果やお知らせを順次掲載していきます" />
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -77,26 +77,31 @@ export const BlogPage = () => {
             className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
           >
             <article className="flex flex-col flex-1">
-              {post.image_url ? (
-                <img
-                  src={post.image_url}
-                  alt={post.title}
-                  className="w-full h-44 sm:h-48 object-cover group-hover:scale-[1.02] transition-transform duration-300"
-                  style={{ objectPosition: post.image_position || 'center center' }}
-                />
-              ) : (
-                <div className="w-full h-44 sm:h-48 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-4xl">
-                  🏸
-                </div>
-              )}
+              <div className="relative w-full aspect-[16/9] overflow-hidden bg-gradient-to-br from-blue-100 to-blue-200">
+                {post.image_url ? (
+                  <img
+                    src={post.image_url}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                    style={{ objectPosition: post.image_position || 'center center' }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl">🏸</div>
+                )}
+                {/* テイスト混在をならす共通ラベル帯 */}
+                <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 bg-gray-900/70 text-white text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm">
+                  <Tag className="w-2.5 h-2.5" />
+                  {post.tags && post.tags.length > 0 ? post.tags[0] : 'ブログ'}
+                </span>
+              </div>
               <div className="p-4 sm:p-5 flex flex-col flex-1">
                 <p className="text-xs text-gray-400 mb-2">{formatDate(post.created_at)}</p>
                 <h2 className="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h2>
                 {post.excerpt && (
                   <p className="text-gray-500 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
                 )}
-                <span className="mt-auto text-blue-600 text-sm font-medium group-hover:underline">
-                  詳細を見る →
+                <span className="mt-auto inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:underline">
+                  詳細を見る <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </div>
             </article>

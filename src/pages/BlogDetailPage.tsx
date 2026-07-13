@@ -33,8 +33,15 @@ export const BlogDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center py-20">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <div className="skeleton aspect-[16/9] w-full rounded-2xl mb-6" />
+        <div className="skeleton h-7 w-3/4 rounded-lg mb-3" />
+        <div className="skeleton h-4 w-32 rounded mb-6" />
+        <div className="space-y-2.5">
+          <div className="skeleton h-4 w-full rounded" />
+          <div className="skeleton h-4 w-full rounded" />
+          <div className="skeleton h-4 w-2/3 rounded" />
+        </div>
       </div>
     );
   }

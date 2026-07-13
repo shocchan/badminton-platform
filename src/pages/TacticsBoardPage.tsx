@@ -6,5 +6,9 @@
 import TacticsBoard from "../components/TacticsBoard";
 
 export default function TacticsBoardPage() {
-  return <TacticsBoard />;
+  return (
+    <main aria-label="戦術ボード">
+      <TacticsBoard />
+    </main>
+  );
 }

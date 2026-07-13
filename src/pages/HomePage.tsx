@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { CalendarDays, ClipboardList, Gift, ChevronDown, ChevronLeft, ChevronRight, Trophy, X } from 'lucide-react';
 import ShuttleCounter from '../components/ShuttleCounter';
+import { ErrorState } from '../components/ui/StateViews';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTournaments } from '../hooks/useTournaments';
@@ -74,7 +76,7 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
           onClick={prevMonth}
           aria-label="前の月へ"
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
-        >‹</button>
+        ><ChevronLeft className="w-4 h-4" /></button>
         <div className="flex items-center gap-2">
           <span className="font-extrabold text-gray-900 text-sm">
             {year}年 {month + 1}月
@@ -92,15 +94,25 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
           onClick={nextMonth}
           aria-label="次の月へ"
           className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold transition-colors"
-        >›</button>
+        ><ChevronRight className="w-4 h-4" /></button>
       </div>
 
       <div className="p-3">
+        {/* レベル別ドットの凡例（曜日行のすぐ上に置いて対応を取りやすく） */}
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 mb-2 px-0.5">
+          {LEVEL_LEGEND.map(item => (
+            <div key={item.label} className="flex items-center gap-1 text-[10px] text-gray-500">
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+              {item.label}
+            </div>
+          ))}
+        </div>
+
         {/* 曜日 */}
         <div className="grid grid-cols-7 mb-1">
           {['日','月','火','水','木','金','土'].map((d, i) => (
             <div key={d} className={`text-center text-xs font-bold py-1 ${
-              i === 0 ? 'text-red-500' : i === 6 ? 'text-blue-500' : 'text-gray-400'
+              i === 0 ? 'text-red-600' : i === 6 ? 'text-blue-600' : 'text-gray-500'
             }`}>{d}</div>
           ))}
         </div>
@@ -130,8 +142,8 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
               >
                 <span className={[
                   'text-xs font-semibold mb-0.5',
-                  dow === 0 ? 'text-red-500' : dow === 6 ? 'text-blue-500' : 'text-gray-700',
-                  isToday ? '!text-yellow-600 font-extrabold' : '',
+                  dow === 0 ? 'text-red-600' : dow === 6 ? 'text-blue-600' : 'text-gray-700',
+                  isToday ? '!text-amber-700 font-extrabold' : '',
                 ].join(' ')}>
                   {day}
                 </span>
@@ -150,15 +162,6 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
         </div>
       </div>
 
-      {/* 凡例 */}
-      <div className="flex flex-wrap gap-2 px-3 pb-3">
-        {LEVEL_LEGEND.map(item => (
-          <div key={item.label} className="flex items-center gap-1 text-xs text-gray-500">
-            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-            {item.label}
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
@@ -285,6 +288,8 @@ export const HomePage = () => {
           />
         </picture>
         <div className="absolute inset-0 bg-gradient-to-r from-blue-900/80 via-blue-800/50 to-transparent" />
+        {/* モバイルは画像の顔とテキストが重なりやすいので、可読性用の敷きを追加 */}
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-950/60 via-blue-900/35 to-blue-950/55 sm:hidden" />
         <div className="relative max-w-6xl mx-auto px-4 py-16 sm:py-24">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-8">
             <div className="max-w-lg flex-1">
@@ -321,16 +326,16 @@ export const HomePage = () => {
         </div>
       </div>
 
-      {/* 特典登録バナー */}
+      {/* 特典登録バナー（モバイルは縦積み+ボタンフル幅で重なり防止） */}
       <Link to={`/${lang}/join`} className="block bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 transition-colors">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
-          <span className="text-xl flex-shrink-0">🎁</span>
-          <div className="flex-1 min-w-0">
-            <span className="font-bold text-white text-sm">
+        <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3">
+          <div className="flex items-start sm:items-center gap-2.5 flex-1 min-w-0">
+            <Gift className="w-5 h-5 flex-shrink-0 text-white mt-0.5 sm:mt-0" />
+            <span className="font-bold text-white text-sm leading-snug">
               {lang === 'zh' ? '【会员限定】获取ばりかた屋拉面免费券等川口・蕨地区特典！' : '【会員限定】ばりかた屋のラーメン無料券など川口・蕨エリアの特典をお届け中'}
             </span>
           </div>
-          <span className="flex-shrink-0 bg-white text-green-600 font-bold text-xs px-3 py-1.5 rounded-full whitespace-nowrap">
+          <span className="flex-shrink-0 bg-white text-green-700 font-bold text-xs px-3 py-2 sm:py-1.5 rounded-full whitespace-nowrap text-center w-full sm:w-auto">
             {lang === 'zh' ? '领取特典 →' : '特典を受け取る →'}
           </span>
         </div>
@@ -339,16 +344,16 @@ export const HomePage = () => {
       {/* 大会ページ案内バナー */}
       <div className="bg-amber-50 border-b border-amber-200">
         <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-amber-800">
-          <span className="text-base flex-shrink-0">🏆</span>
+          <Trophy className="w-4 h-4 flex-shrink-0 text-amber-600" />
           <span className="font-semibold text-sm leading-snug">
             {lang === 'zh' ? '这里是赛事（比赛）页面。' : 'ここは大会のページです。'}
           </span>
-          <span className="text-amber-600 text-xs hidden sm:inline">
+          <span className="text-amber-700 text-xs hidden sm:inline">
             {lang === 'zh' ? '每次需要1,000日元以上的参赛费。' : '毎回1,000円〜の参加費が発生します。'}
           </span>
           <Link
             to={lang === 'zh' ? '/activity-cn' : '/activity'}
-            className="ml-auto flex-shrink-0 text-xs font-semibold bg-emerald-500 text-white px-3 py-1.5 rounded-full hover:bg-emerald-600 transition-colors whitespace-nowrap"
+            className="ml-auto flex-shrink-0 text-xs font-semibold bg-emerald-700 text-white px-3 py-1.5 rounded-full hover:bg-emerald-800 transition-colors whitespace-nowrap"
           >
             {lang === 'zh' ? '日常活动 →' : '通常活動はこちら →'}
           </Link>
@@ -369,21 +374,7 @@ export const HomePage = () => {
             </div>
           </div>
         )}
-        {error && (
-          <div role="alert" className="bg-red-50 border border-red-200 text-red-700 px-5 py-4 rounded-xl text-sm flex items-start gap-3">
-            <span className="text-xl flex-shrink-0">⚠️</span>
-            <div>
-              <p className="font-bold mb-1">データの取得に失敗しました</p>
-              <p className="text-red-600">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="mt-2 text-red-700 underline text-xs hover:no-underline"
-              >
-                再読み込みする
-              </button>
-            </div>
-          </div>
-        )}
+        {error && <ErrorState message="大会データの取得に失敗しました" />}
         {!loading && !error && activeTournaments.length === 0 && (
           <div className="text-center py-24" role="status" aria-live="polite">
             <div className="text-6xl mb-6">🏸</div>
@@ -416,7 +407,7 @@ export const HomePage = () => {
                 className="lg:hidden w-full flex items-center justify-between bg-white border border-gray-200 rounded-2xl px-4 py-3.5 shadow-sm mb-2 transition-colors hover:bg-gray-50"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-base">📅</span>
+                  <CalendarDays className="w-4 h-4 text-blue-500 flex-shrink-0" />
                   <span className="font-extrabold text-gray-800 text-sm">
                     {selectedDate
                       ? `${new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' })} の大会を表示中`
@@ -426,12 +417,14 @@ export const HomePage = () => {
                     <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">絞込中</span>
                   )}
                 </div>
-                <span className={`text-gray-400 text-xs transition-transform duration-200 ${calendarOpen ? 'rotate-180' : ''}`}>▼</span>
+                <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${calendarOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {/* カレンダー本体（モバイル: トグル / デスクトップ: 常時表示） */}
               <div id="tournament-calendar" className={`lg:block ${calendarOpen ? 'block' : 'hidden'}`}>
-                <h2 className="text-base font-extrabold text-gray-800 mb-3 hidden lg:block">📅 開催カレンダー</h2>
+                <h2 className="text-base font-extrabold text-gray-800 mb-3 hidden lg:flex items-center gap-1.5">
+                  <CalendarDays className="w-4 h-4 text-blue-500" /> 開催カレンダー
+                </h2>
                 <TournamentCalendar
                   tournaments={activeTournaments}
                   selectedDate={selectedDate}
@@ -441,9 +434,9 @@ export const HomePage = () => {
                   <button
                     onClick={() => { setSelectedDate(null); setCalendarOpen(false); }}
                     aria-label="日付の絞り込みを解除して全大会を表示"
-                    className="mt-2 w-full text-xs text-blue-600 hover:underline py-1"
+                    className="mt-2 w-full inline-flex items-center justify-center gap-1 text-xs text-blue-600 hover:underline py-1"
                   >
-                    ✕ 絞り込みを解除して全大会を表示
+                    <X className="w-3 h-3" /> 絞り込みを解除して全大会を表示
                   </button>
                 )}
               </div>
@@ -453,11 +446,9 @@ export const HomePage = () => {
             <div ref={listRef}>
               {/* リストヘッダー */}
               <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
-                <h2 className="text-base font-extrabold text-gray-800">
-                  {selectedDateLabel
-                    ? <span>📋 {selectedDateLabel}の大会</span>
-                    : '📋 開催予定の大会'
-                  }
+                <h2 className="text-base font-extrabold text-gray-800 flex items-center gap-1.5">
+                  <ClipboardList className="w-4 h-4 text-blue-500" />
+                  {selectedDateLabel ? `${selectedDateLabel}の大会` : '開催予定の大会'}
                 </h2>
               </div>
 

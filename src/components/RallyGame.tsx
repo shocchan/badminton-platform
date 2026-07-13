@@ -16,6 +16,7 @@ import {
   rankForRally,
   type ShotDifficulty,
 } from '../lib/rallyGame';
+import { updateRallyBest, getRallyBest } from '../lib/rallyBest';
 
 // ── 論理座標系（描画は常に W×H、実ピクセルへは setTransform で拡大） ──
 const W = 360;
@@ -419,6 +420,82 @@ function drawShuttle(
   ctx.restore();
 }
 
+// ── シェア用スコア画像（Canvasで生成し、共有 or ダウンロード） ──
+async function shareScoreImage(rally: number, rankLabel: string, rankEmoji: string, best: number) {
+  const c = document.createElement('canvas');
+  c.width = 720;
+  c.height = 900;
+  const ctx = c.getContext('2d');
+  if (!ctx) return;
+
+  // 背景（夜の体育館グラデ）
+  const bg = ctx.createLinearGradient(0, 0, 0, c.height);
+  bg.addColorStop(0, '#0f172a');
+  bg.addColorStop(1, '#134e4a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, c.width, c.height);
+
+  // コートライン風の装飾
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(60, 60, c.width - 120, c.height - 120);
+  ctx.beginPath();
+  ctx.moveTo(60, c.height / 2);
+  ctx.lineTo(c.width - 60, c.height / 2);
+  ctx.stroke();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#6ee7b7';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillText('KAWABADO MINI GAME', c.width / 2, 150);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 44px sans-serif';
+  ctx.fillText('🏸 バド対決ゲーム', c.width / 2, 215);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText('到達ラリー数', c.width / 2, 330);
+  ctx.fillStyle = '#fde047';
+  ctx.font = 'black 200px sans-serif';
+  ctx.fillText(String(rally), c.width / 2, 530);
+
+  ctx.fillStyle = '#6ee7b7';
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillText(`${rankEmoji} ${rankLabel}`, c.width / 2, 620);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.fillText(`自己ベスト: ${best}ラリー`, c.width / 2, 690);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = 'bold 30px sans-serif';
+  ctx.fillText('kawabado.com/ja/game', c.width / 2, 790);
+
+  const blob = await new Promise<Blob | null>((res) => c.toBlob(res, 'image/png'));
+  if (!blob) return;
+  const file = new File([blob], 'kawabado-rally-score.png', { type: 'image/png' });
+  // モバイルはOSの共有シートへ。使えなければPNGダウンロード
+  if (typeof navigator.canShare === 'function' && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'バド対決ゲーム',
+        text: `AIとのラリー対決で${rally}ラリー達成！ #かわバド`,
+      });
+      return;
+    } catch {
+      /* キャンセル時はダウンロードにフォールバックしない */
+      return;
+    }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kawabado-rally-score.png';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 // ── ゲームコンポーネント ──
 
 export interface RallyGameProps {
@@ -437,6 +514,8 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
   const [phase, setPhase] = useState<Phase>('ready');
   const [finalRally, setFinalRally] = useState(0);
   const [endText, setEndText] = useState('');
+  const [isNewBest, setIsNewBest] = useState(false);
+  const [best, setBest] = useState(() => getRallyBest());
   // rAFループやイベントリスナーから最新値を読むための参照
   const phaseRef = useRef<Phase>('ready');
   const onGameEndRef = useRef(onGameEnd);
@@ -481,6 +560,8 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
     phaseRef.current = 'over';
     setFinalRally(sim.rally);
     setEndText(text);
+    setIsNewBest(updateRallyBest(sim.rally));
+    setBest(getRallyBest());
     setPhase('over');
     beep(220, 260, 'sawtooth', 0.04);
     onGameEndRef.current?.(sim.rally);
@@ -971,6 +1052,11 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
           }`}
         >
           <p className="text-sm font-medium text-slate-300">{endText}</p>
+          {isNewBest && finalRally > 0 && (
+            <p className="toast-enter rounded-full bg-amber-400/90 px-4 py-1 text-xs font-black text-amber-950">
+              🎉 自己ベスト更新！
+            </p>
+          )}
           <p className="text-xs text-slate-400">到達ラリー数</p>
           <p
             className={`text-6xl font-black leading-none ${
@@ -994,12 +1080,22 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
               あと{drawEveryRallies - finalRally}ラリーで抽選チャンス！🎁
             </p>
           )}
+          {!isNewBest && best > 0 && (
+            <p className="text-xs text-slate-400">自己ベスト: {best}ラリー</p>
+          )}
           <button
             type="button"
             onClick={start}
             className="mt-3 rounded-full bg-emerald-500 px-10 py-3 text-lg font-bold text-white shadow-md transition hover:bg-emerald-400 active:scale-95"
           >
             もう一度対決する
+          </button>
+          <button
+            type="button"
+            onClick={() => void shareScoreImage(finalRally, rank.label, rank.emoji, Math.max(best, finalRally))}
+            className="rounded-full border border-white/30 px-6 py-2 text-xs font-bold text-white/90 transition hover:bg-white/10 active:scale-95"
+          >
+            📸 スコア画像をシェア
           </button>
         </div>
       )}

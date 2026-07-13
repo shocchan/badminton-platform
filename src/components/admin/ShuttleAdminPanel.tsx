@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
+import { toast } from '../ui/Toast';
 
 const VENUE_OPTIONS = ['芝園公民館', '蕨市民体育館', 'その他'];
 
@@ -114,7 +115,7 @@ export default function ShuttleAdminPanel() {
   const handleDelete = async (id: string) => {
     if (!confirm('このログを削除しますか？カウンターも更新されます。')) return;
     const { error } = await supabase.from('shuttle_retirement_log').delete().eq('id', id);
-    if (error) { alert(error.message); return; }
+    if (error) { toast.error(error.message); return; }
     await recalcCounter();
     fetchLogs();
   };

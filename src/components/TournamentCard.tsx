@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  JapaneseYen,
+  AlertTriangle,
+  Users,
+  CreditCard,
+  Share2,
+  ChevronDown,
+  ArrowRight,
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 
@@ -145,6 +157,8 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
   const daysUntil = getDaysUntil(tournament.event_date);
   const isEntryClosed = daysUntil >= 0 && daysUntil < 14;
   const config = levelConfig[tournament.level] ?? defaultConfig;
+  // 申し込み不可のカードは全体をトーンダウンして、募集中カードを引き立てる
+  const isInactive = tournament.status !== 'active' || daysUntil < 0 || isEntryClosed;
 
   const remainingColor = remaining <= 3
     ? 'bg-red-500 text-white'
@@ -169,8 +183,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
         ボタン・地図リンク等は relative z-10 でLinkレイヤーの上に置く */}
     <div
       ref={cardRef}
-      className={`relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all duration-500 flex flex-col group ${
-        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      className={`relative bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-500 flex flex-col group ${
+        !visible
+          ? 'opacity-0 translate-y-6'
+          : isInactive
+            ? 'opacity-60 saturate-[0.6] hover:opacity-80 translate-y-0'
+            : 'opacity-100 translate-y-0 hover:shadow-lg hover:-translate-y-0.5'
       }`}
     >
       {/* ヘッダー */}
@@ -221,9 +239,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             className={`relative z-10 flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-colors ${config.shareBtn}`}
             aria-label="この大会をシェア"
           >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
+            <Share2 className="w-3 h-3" />
             <span>{lang === 'zh' ? '分享' : 'シェア'}</span>
           </button>
         </div>
@@ -233,33 +249,33 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
       <div className="px-4 sm:px-6 py-5 flex flex-col flex-1">
         <div className="grid grid-cols-2 gap-3 text-sm mb-4">
           <div>
-            <div className="text-gray-500 text-xs mb-1">📅 開催日</div>
+            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> 開催日</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate(tournament.event_date)}</div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">🕐 時間</div>
+            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><Clock className="w-3 h-3" /> 時間</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatTime(tournament.start_time)} 〜 {formatTime(tournament.end_time)}</div>
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">📍 会場</div>
+            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><MapPin className="w-3 h-3" /> 会場</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{tournament.location}</div>
             {tournament.venue_address && (
               <div className="text-gray-400 text-xs mt-0.5">{tournament.venue_address}</div>
             )}
           </div>
           <div>
-            <div className="text-gray-500 text-xs mb-1">💰 参加費</div>
+            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><JapaneseYen className="w-3 h-3" /> 参加費</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">¥{tournament.entry_fee.toLocaleString()}</div>
           </div>
           <div className="col-span-2">
-            <div className="text-gray-500 text-xs mb-1">⚠️ キャンセル期限</div>
+            <div className="text-gray-500 text-xs mb-1 flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> キャンセル期限</div>
             <div className="font-medium text-gray-800 text-xs sm:text-sm">{formatDate((() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return d.toISOString().split('T')[0]; })())}</div>
           </div>
         </div>
 
         {/* 残席バッジ */}
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xs text-gray-500 font-medium">👥 残席状況</span>
+          <span className="text-xs text-gray-500 font-medium flex items-center gap-1"><Users className="w-3 h-3" /> 残席状況</span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${remainingColor}`}>
             残り{remaining}席
           </span>
@@ -273,14 +289,14 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           onClick={e => e.stopPropagation()}
           className="relative z-10 flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-2.5 transition-colors mb-4"
         >
-          <span>🗺️</span>
+          <MapPin className="w-4 h-4 flex-shrink-0" />
           <span className="font-medium">{tournament.location} の地図を見る</span>
-          <span className="ml-auto text-xs">→</span>
+          <ArrowRight className="ml-auto w-3.5 h-3.5" />
         </a>
 
         {tournament.payment_required && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-3 mb-4">
-            <p className="text-xs text-blue-700 font-medium mb-1">💳 事前支払いが必要です</p>
+            <p className="text-xs text-blue-700 font-medium mb-1 flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> 事前支払いが必要です</p>
             {tournament.payment_deadline && (
               <p className="text-xs text-blue-600">支払い期限：{formatDate(tournament.payment_deadline)}</p>
             )}
@@ -298,11 +314,12 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             {isDescLong && (
               <button
                 onClick={e => { e.preventDefault(); e.stopPropagation(); setDescExpanded(v => !v); }}
-                className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-700"
+                className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-blue-600 hover:text-blue-700"
               >
                 {descExpanded
-                  ? (lang === 'zh' ? '收起 ▲' : '閉じる ▲')
-                  : (lang === 'zh' ? '查看详情 ▼' : '詳細を見る ▼')}
+                  ? (lang === 'zh' ? '收起' : '閉じる')
+                  : (lang === 'zh' ? '查看详情' : '詳細を見る')}
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${descExpanded ? 'rotate-180' : ''}`} />
               </button>
             )}
           </div>
@@ -325,7 +342,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
               aria-label={`${tournament.title}のキャンセル待ちに申し込む`}
-              className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base"
+              className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base"
             >
               キャンセル待ちで申し込む →
             </button>
@@ -333,7 +350,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             <button
               onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
               aria-label={`${tournament.title}に申し込む`}
-              className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-colors text-sm sm:text-base`}
+              className={`w-full ${config.applyBtn} text-white font-bold py-3 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm sm:text-base`}
             >
               申し込む →
             </button>
