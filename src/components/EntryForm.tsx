@@ -6,6 +6,8 @@ import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
 import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
 import type { PaymentMethod } from '../lib/payment';
+import { useLanguage } from '../contexts/LanguageContext';
+import { getEntryTexts } from '../locales/entry';
 
 interface EntryFormProps {
   tournament: Tournament;
@@ -19,6 +21,8 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 
 export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) => {
+  const { lang } = useLanguage();
+  const t = getEntryTexts(lang);
   const isDoubles = tournament.event_type?.includes('ダブルス');
   const isWaitlist = entryCount >= tournament.capacity;
 
@@ -40,12 +44,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number; fee: number } | null>(null);
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
-  const [confirmWarning, setConfirmWarning] = useState<string | null>(null);
+  const [confirmWarning, setConfirmWarning] = useState(false);
   const [bankCopied, setBankCopied] = useState(false);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    return date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   // Googleカレンダー追加URL
@@ -67,7 +71,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setError('有効なメールアドレスを入力してください');
+      setError(t.errEmail);
       return;
     }
     setError(null);
@@ -83,7 +87,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       entryDeadline.setDate(entryDeadline.getDate() - 14);
       entryDeadline.setHours(23, 59, 59);
       if (new Date() > entryDeadline) {
-        setError('申し込み締め切りを過ぎています。');
+        setError(t.errDeadline);
         setStep('input');
         setLoading(false);
         return;
@@ -99,9 +103,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         .maybeSingle();
 
       if (existing) {
-        const msg = existing.status === 'waitlist'
-          ? 'このメールアドレスはすでにキャンセル待ちに登録済みです。'
-          : 'このメールアドレスはすでにこの大会に申し込み済みです。';
+        const msg = existing.status === 'waitlist' ? t.errDupWaitlist : t.errDupEntry;
         setError(msg);
         setStep('input');
         setLoading(false);
@@ -143,7 +145,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         setStep('success');
       }
     } catch (err) {
-      setError('申し込みに失敗しました。もう一度お試しください。');
+      setError(t.errSubmit);
       setStep('input');
       console.error(err);
     } finally {
@@ -222,15 +224,13 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       });
       const data = await res.json();
       if (!res.ok || data.error || !data.clientSecret) {
-        setPaymentError(data.error || '決済の準備に失敗しました。別の支払い方法をご利用ください。');
+        setPaymentError(data.error || t.payErrPrepare);
         return;
       }
       setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount, fee: data.fee });
     } catch (err) {
       setPaymentError(
-        err instanceof DOMException && err.name === 'AbortError'
-          ? '一時的に処理できません。時間をおいてお試しいただくか、別の支払い方法をご利用ください。'
-          : '決済の準備に失敗しました。別の支払い方法をご利用ください。',
+        err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
       );
     } finally {
       setPaymentLoading(false);
@@ -267,11 +267,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         });
       } else {
         setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
-        setConfirmWarning('お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。');
+        setConfirmWarning(true);
       }
     } catch {
       setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
-      setConfirmWarning('お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。');
+      setConfirmWarning(true);
     } finally {
       setPaymentLoading(false);
       setStep('success');
@@ -297,11 +297,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
   // 確認画面の表示フィールド
   const confirmFields = [
-    { label: 'お名前', value: formData.name },
-    ...(isDoubles ? [{ label: 'ペアの相手のお名前', value: formData.partner_name || '未入力' }] : []),
-    { label: 'メールアドレス', value: formData.email },
-    { label: '電話番号', value: formData.phone || '未入力' },
-    { label: '備考', value: formData.notes || '未入力' },
+    { label: t.labelName, value: formData.name },
+    ...(isDoubles ? [{ label: t.labelPartner, value: formData.partner_name || t.notEntered }] : []),
+    { label: t.labelEmail, value: formData.email },
+    { label: t.labelPhone.replace(/（.*）|\(.*\)/, ''), value: formData.phone || t.notEntered },
+    { label: t.labelNotes.replace(/（.*）|\(.*\)/, ''), value: formData.notes || t.notEntered },
   ];
 
   return (
@@ -312,16 +312,16 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-white font-bold text-lg">
-                {isWaitlist ? 'キャンセル待ち申し込み' : '大会申し込み'}
+                {isWaitlist ? t.formTitleWaitlist : t.formTitle}
               </h2>
               <p className="text-white/80 text-sm mt-1">{tournament.title}</p>
             </div>
-            <button onClick={handleClose} aria-label="閉じる" className="text-white/70 hover:text-white text-2xl leading-none">×</button>
+            <button onClick={handleClose} aria-label={t.close} className="text-white/70 hover:text-white text-2xl leading-none">×</button>
           </div>
           {/* キャンセル待て案内 */}
           {isWaitlist && step === 'input' && (
             <div className="mt-3 bg-white/20 rounded-xl px-3 py-2 text-white text-xs">
-              ⏳ この大会は満員です。キャンセル待ちに登録すると、空きが出た際にメールでご連絡します。
+              {t.waitlistNote}
             </div>
           )}
           {/* ステップインジケーター */}
@@ -329,19 +329,19 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
             <div className="flex items-center gap-2 mt-4">
               <div className={`flex items-center gap-1.5 text-xs font-medium ${step === 'input' ? 'text-white' : 'text-white/60'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 'input' ? 'bg-white text-blue-600' : 'bg-white/30 text-white'}`}>1</span>
-                入力
+                {t.stepInput}
               </div>
               <div className="flex-1 h-px bg-white/30" />
               <div className={`flex items-center gap-1.5 text-xs font-medium ${step === 'confirm' ? 'text-white' : 'text-white/40'}`}>
                 <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 'confirm' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'}`}>2</span>
-                確認
+                {t.stepConfirm}
               </div>
               {!isWaitlist && tournament.payment_required && (
                 <>
                   <div className="flex-1 h-px bg-white/30" />
                   <div className={`flex items-center gap-1.5 text-xs font-medium ${step === 'payment-method' ? 'text-white' : 'text-white/40'}`}>
                     <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${step === 'payment-method' ? 'bg-white text-blue-600' : 'bg-white/20 text-white'}`}>3</span>
-                    支払い
+                    {t.stepPayment}
                   </div>
                 </>
               )}
@@ -354,9 +354,9 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           {step === 'payment-method' && entryInfo && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
-                ✅ 申し込みを受け付けました。<span className="font-bold">お支払い方法を選択してください。</span>
+                ✅ {t.paySelectLead}<span className="font-bold">{t.paySelectLeadStrong}</span>
                 {isDoubles && (
-                  <p className="text-xs text-green-700 mt-1">※参加費はペア2名分（1人あたり ¥{Math.round(tournament.entry_fee / 2).toLocaleString()}）をまとめてお支払いください。</p>
+                  <p className="text-xs text-green-700 mt-1">{t.payPairNote(Math.round(tournament.entry_fee / 2).toLocaleString())}</p>
                 )}
               </div>
 
@@ -368,6 +368,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 selected={paymentMethod}
                 onSelect={handleSelectMethod}
                 disabled={paymentLoading}
+                lang={lang}
               />
 
               {paymentError && (
@@ -378,7 +379,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                       onClick={() => void createPaymentIntent()}
                       className="block mt-2 text-xs font-bold text-red-700 underline"
                     >
-                      もう一度お試しください
+                      {t.payRetry}
                     </button>
                   )}
                 </div>
@@ -388,15 +389,16 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               {paymentMethod === 'credit' && paymentLoading && !stripeInfo && (
                 <div className="flex items-center justify-center gap-3 py-8 text-gray-500 text-sm" aria-live="polite">
                   <div className="w-5 h-5 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin" />
-                  決済の準備中...
+                  {t.payPreparing}
                 </div>
               )}
               {paymentMethod === 'credit' && stripeInfo && (
                 <div className="border border-gray-200 rounded-xl p-4 bg-white">
-                  <p className="text-sm font-bold text-gray-700 mb-3">💳 カード情報を入力してください</p>
+                  <p className="text-sm font-bold text-gray-700 mb-3">{t.payCardLead}</p>
                   <StripePaymentForm
                     clientSecret={stripeInfo.clientSecret}
                     amount={stripeInfo.amount}
+                    lang={lang}
                     onSuccess={id => void handleStripeSuccess(id)}
                   />
                 </div>
@@ -405,19 +407,19 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               {/* PayPay */}
               {paymentMethod === 'paypay' && tournament.paypay_id && (
                 <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
-                  <p className="text-sm font-bold text-gray-700">📱 PayPayでのお支払い</p>
+                  <p className="text-sm font-bold text-gray-700">{t.payPaypayLead}</p>
                   <div className="bg-red-50 border border-red-100 rounded-xl px-4 py-3">
                     <p className="text-xs text-gray-500 mb-1">PayPay ID</p>
                     <p className="text-lg font-bold text-red-600">{tournament.paypay_id}</p>
-                    <p className="text-xs text-gray-500 mt-1">✏️ 送金時のメッセージに「{formData.name}」とご記入ください</p>
+                    <p className="text-xs text-gray-500 mt-1">{t.payPaypayMsg(formData.name)}</p>
                   </div>
-                  <p className="text-xs text-gray-500">確定すると、お支払い情報をメールでお送りします。期限までにお支払いください。</p>
+                  <p className="text-xs text-gray-500">{t.payPaypayNote}</p>
                   <button
                     onClick={() => void handleConfirmOfflinePayment('paypay')}
                     disabled={paymentLoading}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
                   >
-                    {paymentLoading ? '送信中...' : 'PayPayで支払う（案内メールを受け取る）'}
+                    {paymentLoading ? t.paySending : t.payPaypayBtn}
                   </button>
                 </div>
               )}
@@ -425,23 +427,23 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               {/* 銀行振込 */}
               {paymentMethod === 'bank' && tournament.bank_account && (
                 <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
-                  <p className="text-sm font-bold text-gray-700">🏦 銀行振込でのお支払い</p>
+                  <p className="text-sm font-bold text-gray-700">{t.payBankLead}</p>
                   <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
                     <p className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">{tournament.bank_account}</p>
                     <button
                       onClick={() => void handleCopyBank()}
                       className="mt-2 text-xs font-bold text-blue-700 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-100 transition-colors"
                     >
-                      {bankCopied ? '✓ コピーしました' : '📋 振込情報をコピー'}
+                      {bankCopied ? t.payBankCopied : t.payBankCopy}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">確定すると、振込先情報をメールでお送りします。期限までにお振込みください。</p>
+                  <p className="text-xs text-gray-500">{t.payBankNote}</p>
                   <button
                     onClick={() => void handleConfirmOfflinePayment('bank')}
                     disabled={paymentLoading}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
                   >
-                    {paymentLoading ? '送信中...' : '銀行振込で支払う（案内メールを受け取る）'}
+                    {paymentLoading ? t.paySending : t.payBankBtn}
                   </button>
                 </div>
               )}
@@ -459,6 +461,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               paidAt={paidInfo.paidAt}
               calendarUrl={buildGoogleCalendarUrl()}
               warning={confirmWarning}
+              lang={lang}
               onClose={onClose}
             />
           )}
@@ -468,49 +471,49 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
             <div className="text-center py-8">
               <div className="text-5xl mb-4">{isWaitlist ? '⏳' : '✅'}</div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
-                {isWaitlist ? 'キャンセル待ち登録完了！' : '申し込み完了！'}
+                {isWaitlist ? t.doneTitleWaitlist : t.doneTitle}
               </h3>
               <p className="text-gray-600 text-sm mb-4">
                 {isWaitlist
-                  ? `${tournament.title}のキャンセル待ちに登録しました。空きが出た際にメールでご連絡します。`
-                  : `${tournament.title}（${formatDate(tournament.event_date)}）への申し込みを受け付けました。`
+                  ? t.doneLeadWaitlist(tournament.title)
+                  : t.doneLead(tournament.title, formatDate(tournament.event_date))
                 }
               </p>
 
               {/* キャンセル待ちの場合 */}
               {isWaitlist && (
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 text-left">
-                  <p className="text-sm font-medium text-amber-900 mb-1">⏳ キャンセル待ち登録完了</p>
-                  <p className="text-xs text-amber-700 mb-1">メールアドレス: {formData.email}</p>
-                  <p className="text-xs text-amber-700">繰り上げ当選した際、メールにてご案内します。</p>
+                  <p className="text-sm font-medium text-amber-900 mb-1">{t.doneWaitlistBox}</p>
+                  <p className="text-xs text-amber-700 mb-1">{t.doneMail}: {formData.email}</p>
+                  <p className="text-xs text-amber-700">{t.doneWaitlistBoxNote}</p>
                 </div>
               )}
 
               {/* 確定申し込みの場合 */}
               {!isWaitlist && tournament.payment_required && (
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-4 text-left">
-                  <p className="text-sm font-medium text-blue-900 mb-2">💳 支払い案内メールをお送りしました</p>
+                  <p className="text-sm font-medium text-blue-900 mb-2">{t.donePayMailSent}</p>
                   {paymentMethod && (
-                    <p className="text-xs text-blue-700 mb-2">選択した支払い方法: {paymentMethod === 'paypay' ? 'PayPay' : '銀行振込'}</p>
+                    <p className="text-xs text-blue-700 mb-2">{t.doneSelectedMethod}: {paymentMethod === 'paypay' ? t.methodPaypay : t.methodBank}</p>
                   )}
-                  <p className="text-xs text-blue-700 mb-2">メールアドレス: {formData.email}</p>
-                  <p className="text-xs text-blue-700">支払い期限: {tournament.payment_deadline ? formatDate(tournament.payment_deadline) : '未定'}</p>
+                  <p className="text-xs text-blue-700 mb-2">{t.doneMail}: {formData.email}</p>
+                  <p className="text-xs text-blue-700">{t.donePayDeadline}: {tournament.payment_deadline ? formatDate(tournament.payment_deadline) : t.doneTbd}</p>
                 </div>
               )}
 
               {/* キャンセル方法案内 */}
               {!isWaitlist && (
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-left">
-                  <p className="text-sm font-medium text-gray-700 mb-1">❌ キャンセルについて</p>
-                  <p className="text-xs text-gray-500">メールに記載のキャンセルリンクからキャンセルできます。期限: 大会2週間前（{(() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return formatDate(d.toISOString().split('T')[0]); })()}）</p>
+                  <p className="text-sm font-medium text-gray-700 mb-1">{t.doneCancelTitle}</p>
+                  <p className="text-xs text-gray-500">{t.doneCancelNote((() => { const d = new Date(tournament.event_date); d.setDate(d.getDate() - 14); return formatDate(d.toISOString().split('T')[0]); })())}</p>
                 </div>
               )}
 
               {/* カレンダー追加ボタン（確定のみ） */}
               {!isWaitlist && (
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 text-left">
-                  <p className="text-sm font-bold text-green-900 mb-1">📅 大会をカレンダーに追加しよう</p>
-                  <p className="text-xs text-green-700 mb-3">当日忘れないようにカレンダーに登録しておきましょう！</p>
+                  <p className="text-sm font-bold text-green-900 mb-1">{t.doneCalTitle}</p>
+                  <p className="text-xs text-green-700 mb-3">{t.doneCalNote}</p>
                   <a
                     href={buildGoogleCalendarUrl()}
                     target="_blank"
@@ -520,7 +523,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
                     </svg>
-                    Googleカレンダーに追加
+                    {t.doneCalBtn}
                   </a>
                 </div>
               )}
@@ -529,7 +532,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 onClick={onClose}
                 className={`w-full text-white px-6 py-3 rounded-xl font-bold transition-colors ${isWaitlist ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
               >
-                閉じる
+                {t.close}
               </button>
             </div>
           )}
@@ -537,13 +540,13 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           {/* 確認画面 */}
           {step === 'confirm' && (
             <div className="space-y-4">
-              <p className="text-sm text-gray-600">以下の内容で{isWaitlist ? 'キャンセル待ち登録' : '申し込み'}します。よろしいですか？</p>
+              <p className="text-sm text-gray-600">{t.confirmLead(isWaitlist)}</p>
               <div className="bg-gray-50 rounded-xl divide-y divide-gray-200">
                 <div className={`rounded-t-xl px-4 py-3 ${isWaitlist ? 'bg-amber-50' : 'bg-blue-50'}`}>
-                  <p className={`text-xs font-medium mb-0.5 ${isWaitlist ? 'text-amber-600' : 'text-blue-600'}`}>申し込み大会</p>
+                  <p className={`text-xs font-medium mb-0.5 ${isWaitlist ? 'text-amber-600' : 'text-blue-600'}`}>{t.confirmTournament}</p>
                   <p className={`text-sm font-bold ${isWaitlist ? 'text-amber-900' : 'text-blue-900'}`}>{tournament.title}</p>
                   <p className={`text-xs ${isWaitlist ? 'text-amber-700' : 'text-blue-700'}`}>{formatDate(tournament.event_date)} ｜ {tournament.location}</p>
-                  {isWaitlist && <p className="text-xs text-amber-600 font-medium mt-1">⏳ キャンセル待ちでの登録になります</p>}
+                  {isWaitlist && <p className="text-xs text-amber-600 font-medium mt-1">{t.confirmWaitlistNote}</p>}
                 </div>
                 {confirmFields.map(({ label, value }) => (
                   <div key={label} className="px-4 py-3">
@@ -560,14 +563,14 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                   onClick={() => setStep('input')}
                   className="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm"
                 >
-                  ← 戻る
+                  {t.back}
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
                   className={`flex-1 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm ${isWaitlist ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
                 >
-                  {loading ? '送信中...' : isWaitlist ? 'キャンセル待ちで登録' : '申し込む'}
+                  {loading ? t.submitting : isWaitlist ? t.submitWaitlist : t.submit}
                 </button>
               </div>
             </div>
@@ -583,35 +586,35 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>
               )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">お名前 <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelName} <span className="text-red-500">*</span></label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="山田 太郎"
+                  placeholder={t.phName}
                 />
               </div>
 
               {isDoubles && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ペアの相手のお名前
-                    <span className="text-xs text-gray-400 font-normal ml-2">（未定の場合は「未定」と入力）</span>
+                    {t.labelPartner}
+                    <span className="text-xs text-gray-400 font-normal ml-2">{t.labelPartnerNote}</span>
                   </label>
                   <input
                     type="text"
                     value={formData.partner_name}
                     onChange={e => setFormData(p => ({ ...p, partner_name: e.target.value }))}
                     className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="鈴木 花子"
+                    placeholder={t.phPartner}
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">メールアドレス <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelEmail} <span className="text-red-500">*</span></label>
                 <input
                   type="email"
                   required
@@ -622,7 +625,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">電話番号（任意）</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelPhone}</label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -632,20 +635,20 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">備考（任意）</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelNotes}</label>
                 <textarea
                   value={formData.notes}
                   onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
                   rows={3}
                   className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder="その他ご連絡事項があればご記入ください"
+                  placeholder={t.phNotes}
                 />
               </div>
               <button
                 type="submit"
                 className={`w-full text-white font-bold py-3 rounded-xl transition-colors ${isWaitlist ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
               >
-                確認画面へ →
+                {t.toConfirm}
               </button>
             </form>
           )}

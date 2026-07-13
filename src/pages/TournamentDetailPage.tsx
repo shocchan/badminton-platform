@@ -72,7 +72,7 @@ export const TournamentDetailPage = () => {
   }, [id]);
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+    new Date(dateStr).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
   const formatTime = (t: string) => t.slice(0, 5);
 
@@ -256,7 +256,7 @@ export const TournamentDetailPage = () => {
               <span className="text-xs font-extrabold px-2 py-1 rounded-full bg-red-500 text-white animate-pulse">🔥 急募！</span>
             )}
             <span className="text-xs font-bold px-2 py-1 rounded-full bg-white/20">
-              {daysUntil < 0 ? '開催済み' : daysUntil === 0 ? '本日開催！' : `あと${daysUntil}日`}
+              {daysUntil < 0 ? (lang === 'zh' ? '已结束' : '開催済み') : daysUntil === 0 ? (lang === 'zh' ? '今日举办！' : '本日開催！') : (lang === 'zh' ? `还有${daysUntil}天` : `あと${daysUntil}日`)}
             </span>
           </div>
         </div>
@@ -281,11 +281,11 @@ export const TournamentDetailPage = () => {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
         <div className="divide-y divide-gray-50">
           {[
-            { icon: '📅', label: '開催日', value: formatDate(tournament.event_date) },
-            { icon: '🕐', label: '時間', value: `${formatTime(tournament.start_time)} 〜 ${formatTime(tournament.end_time)}` },
-            { icon: '📍', label: '会場', value: tournament.location, sub: tournament.venue_address },
-            { icon: '💰', label: '参加費', value: feeDisplay(tournament, lang === 'zh' ? 'zh' : 'ja'), sub: isDoublesEvent(tournament) ? `ペア合計 ¥${tournament.entry_fee.toLocaleString()}` : undefined },
-            { icon: '⚠️', label: 'キャンセル期限', value: formatDate(entryDeadline.toISOString().split('T')[0]) },
+            { icon: '📅', label: lang === 'zh' ? '日期' : '開催日', value: formatDate(tournament.event_date) },
+            { icon: '🕐', label: lang === 'zh' ? '时间' : '時間', value: `${formatTime(tournament.start_time)} 〜 ${formatTime(tournament.end_time)}` },
+            { icon: '📍', label: lang === 'zh' ? '场馆' : '会場', value: tournament.location, sub: tournament.venue_address },
+            { icon: '💰', label: lang === 'zh' ? '参加费' : '参加費', value: feeDisplay(tournament, lang === 'zh' ? 'zh' : 'ja'), sub: isDoublesEvent(tournament) ? (lang === 'zh' ? `一对合计 ¥${tournament.entry_fee.toLocaleString()}` : `ペア合計 ¥${tournament.entry_fee.toLocaleString()}`) : undefined },
+            { icon: '⚠️', label: lang === 'zh' ? '取消期限' : 'キャンセル期限', value: formatDate(entryDeadline.toISOString().split('T')[0]) },
           ].map(({ icon, label, value, sub }) => (
             <div key={label} className="flex items-start gap-3 px-5 py-4">
               <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
@@ -300,8 +300,8 @@ export const TournamentDetailPage = () => {
 
         {/* 残席バッジ */}
         <div className="flex items-center justify-between px-5 py-4 border-t border-gray-50">
-          <span className="text-xs text-gray-500 font-medium">👥 残席状況</span>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>残り{remaining}席</span>
+          <span className="text-xs text-gray-500 font-medium">👥 {lang === 'zh' ? '剩余名额' : '残席状況'}</span>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${badgeColor}`}>{lang === 'zh' ? `剩余${remaining}位` : `残り${remaining}席`}</span>
         </div>
       </div>
 
@@ -347,9 +347,9 @@ export const TournamentDetailPage = () => {
       {/* 事前支払い */}
       {tournament.payment_required && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 mb-6">
-          <p className="text-sm font-bold text-blue-900 mb-1">💳 事前支払いが必要な大会です</p>
+          <p className="text-sm font-bold text-blue-900 mb-1">💳 {lang === 'zh' ? '本大会需提前支付参加费' : '事前支払いが必要な大会です'}</p>
           {tournament.payment_deadline && (
-            <p className="text-xs text-blue-700">支払い期限：{formatDate(tournament.payment_deadline)}</p>
+            <p className="text-xs text-blue-700">{lang === 'zh' ? '支付期限' : '支払い期限'}：{formatDate(tournament.payment_deadline)}</p>
           )}
         </div>
       )}
@@ -365,19 +365,19 @@ export const TournamentDetailPage = () => {
       {/* 申し込みボタン */}
       <div className="sticky bottom-4">
         {tournament.status !== 'active' ? (
-          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">中止</div>
+          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">{lang === 'zh' ? '已中止' : '中止'}</div>
         ) : isEntryClosed ? (
           <div className="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-2xl text-center shadow-lg cursor-not-allowed">
-            申し込み受付終了（{entryDeadlineStr}に締め切りました）
+            {lang === 'zh' ? `报名已截止（截止于${entryDeadlineStr}）` : `申し込み受付終了（${entryDeadlineStr}に締め切りました）`}
           </div>
         ) : remaining <= 0 ? (
-          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">満員</div>
+          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">{lang === 'zh' ? '已满员' : '満員'}</div>
         ) : (
           <button
             onClick={() => setPreEntry(true)}
             className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold py-4 rounded-2xl transition-colors shadow-lg text-base"
           >
-            この大会に申し込む →
+            {lang === 'zh' ? '报名本次大会 →' : 'この大会に申し込む →'}
           </button>
         )}
       </div>

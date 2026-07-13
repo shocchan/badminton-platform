@@ -1,4 +1,5 @@
 import type { Tournament } from '../types';
+import { getEntryTexts } from '../locales/entry';
 
 interface PaymentCompletionPageProps {
   tournament: Tournament;
@@ -8,16 +9,17 @@ interface PaymentCompletionPageProps {
   total: number;
   paidAt: string;
   calendarUrl: string;
-  warning?: string | null;
+  warning?: boolean;
+  lang: string;
   onClose: () => void;
 }
 
-const formatDate = (dateStr: string) =>
-  new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
-
 export const PaymentCompletionPage = ({
-  tournament, name, entryFee, fee, total, paidAt, calendarUrl, warning, onClose,
+  tournament, name, entryFee, fee, total, paidAt, calendarUrl, warning, lang, onClose,
 }: PaymentCompletionPageProps) => {
+  const t = getEntryTexts(lang);
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
   const timeRange = `${tournament.start_time.slice(0, 5)}〜${tournament.end_time.slice(0, 5)}`;
   const paidAtStr = new Date(paidAt).toLocaleString('ja-JP', {
     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
@@ -62,46 +64,46 @@ export const PaymentCompletionPage = ({
   return (
     <div className="text-center py-4">
       <div aria-hidden="true" className="text-6xl mb-3">✅</div>
-      <h3 className="text-xl font-bold text-gray-900 mb-2">参加が確定しました</h3>
-      <p className="text-gray-600 text-sm mb-4">お支払いが完了しました。確認メールをお送りしています。</p>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{t.ccTitle}</h3>
+      <p className="text-gray-600 text-sm mb-4">{t.ccLead}</p>
 
       {warning && (
         <div role="alert" className="bg-amber-50 border border-amber-200 text-amber-800 text-xs px-4 py-3 rounded-xl mb-4 text-left">
-          ⚠️ {warning}
+          ⚠️ {t.ccWarning}
         </div>
       )}
 
       {/* 参加確認 */}
       <div className="bg-gray-50 rounded-xl divide-y divide-gray-200 text-left mb-4">
         <div className="bg-green-50 rounded-t-xl px-4 py-3">
-          <p className="text-xs font-medium text-green-600 mb-0.5">参加確認</p>
+          <p className="text-xs font-medium text-green-600 mb-0.5">{t.ccConfirm}</p>
           <p className="text-sm font-bold text-green-900">{tournament.title}</p>
           <p className="text-xs text-green-700">{tournament.level}</p>
         </div>
         <div className="px-4 py-3 flex justify-between items-center">
-          <span className="text-xs text-gray-500">参加費</span>
-          <span className="text-sm font-bold text-gray-900">¥{total.toLocaleString()}（クレジット決済済み）<span className="text-green-600">✓</span></span>
+          <span className="text-xs text-gray-500">{t.ccFee}</span>
+          <span className="text-sm font-bold text-gray-900">¥{total.toLocaleString()}{t.ccPaid}<span className="text-green-600">✓</span></span>
         </div>
         <div className="px-4 py-3 flex justify-between items-center">
-          <span className="text-xs text-gray-500">参加者</span>
+          <span className="text-xs text-gray-500">{t.ccName}</span>
           <span className="text-sm text-gray-900">{name}</span>
         </div>
       </div>
 
       {/* 大会情報 */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-left">
-        <p className="text-sm font-bold text-blue-900 mb-2">📌 大会情報（当日のご案内）</p>
+        <p className="text-sm font-bold text-blue-900 mb-2">{t.ccInfoTitle}</p>
         <p className="text-xs text-blue-800 leading-relaxed">
-          日時: {formatDate(tournament.event_date)} {timeRange}<br />
-          会場: {tournament.location}
-          {tournament.venue_address && <><br />住所: {tournament.venue_address}</>}
+          {t.ccInfoDate}: {formatDate(tournament.event_date)} {timeRange}<br />
+          {t.ccInfoVenue}: {tournament.location}
+          {tournament.venue_address && <><br />{t.ccInfoAddress}: {tournament.venue_address}</>}
         </p>
       </div>
 
       {/* 当日受付の案内 */}
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5 text-left">
-        <p className="text-sm font-bold text-gray-700 mb-1">🙋 当日の受付について</p>
-        <p className="text-xs text-gray-500">受付でお名前をお伝えください。参加証などのご提示は不要です。</p>
+        <p className="text-sm font-bold text-gray-700 mb-1">{t.ccCheckinTitle}</p>
+        <p className="text-xs text-gray-500">{t.ccCheckinNote}</p>
       </div>
 
       {/* アクションボタン */}
@@ -112,19 +114,19 @@ export const PaymentCompletionPage = ({
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full bg-white border border-green-300 hover:bg-green-50 text-green-800 font-bold text-sm py-3 rounded-xl transition-colors"
         >
-          📅 Googleカレンダーに追加
+          📅 {t.doneCalBtn}
         </a>
         <button
           onClick={downloadReceipt}
           className="w-full bg-white border border-blue-300 hover:bg-blue-50 text-blue-700 font-bold text-sm py-3 rounded-xl transition-colors"
         >
-          🧾 領収書をダウンロード
+          {t.ccReceipt}
         </button>
         <button
           onClick={onClose}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold transition-colors"
         >
-          閉じる
+          {t.close}
         </button>
       </div>
     </div>

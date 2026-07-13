@@ -1,5 +1,6 @@
 import type { PaymentMethod } from '../lib/payment';
 import { calcCreditAmounts } from '../lib/payment';
+import { getEntryTexts } from '../locales/entry';
 
 interface PaymentMethodSelectorProps {
   entryFee: number;
@@ -9,12 +10,14 @@ interface PaymentMethodSelectorProps {
   selected: PaymentMethod | null;
   onSelect: (method: PaymentMethod) => void;
   disabled?: boolean;
+  lang: string;
 }
 
 export const PaymentMethodSelector = ({
-  entryFee, paypayId, bankAccount, creditAvailable, selected, onSelect, disabled,
+  entryFee, paypayId, bankAccount, creditAvailable, selected, onSelect, disabled, lang,
 }: PaymentMethodSelectorProps) => {
   const { fee, total } = calcCreditAmounts(entryFee);
+  const t = getEntryTexts(lang);
 
   const options: Array<{
     method: PaymentMethod;
@@ -29,9 +32,9 @@ export const PaymentMethodSelector = ({
     {
       method: 'credit',
       icon: '💳',
-      title: 'クレジットカード',
-      subtitle: 'Visa / Mastercard / AmEx ほか',
-      feeLabel: `決済手数料: ¥${fee.toLocaleString()}（3.6%）`,
+      title: t.pmCredit,
+      subtitle: t.pmCreditSub,
+      feeLabel: t.pmCreditFee(fee.toLocaleString()),
       totalLabel: `¥${total.toLocaleString()}`,
       recommended: true,
       available: creditAvailable,
@@ -39,18 +42,18 @@ export const PaymentMethodSelector = ({
     {
       method: 'paypay',
       icon: '📱',
-      title: 'PayPay',
-      subtitle: paypayId ? `PayPay ID: ${paypayId}` : 'PayPay IDに送金',
-      feeLabel: '手数料: ¥0',
+      title: t.pmPaypay,
+      subtitle: paypayId ? t.pmPaypaySub(paypayId) : t.pmPaypaySubNoId,
+      feeLabel: t.pmFeeFree,
       totalLabel: `¥${entryFee.toLocaleString()}`,
       available: !!paypayId,
     },
     {
       method: 'bank',
       icon: '🏦',
-      title: '銀行振込',
-      subtitle: '振込先はメールでご案内',
-      feeLabel: '手数料: ¥0（振込手数料はご負担ください）',
+      title: t.pmBank,
+      subtitle: t.pmBankSub,
+      feeLabel: t.pmBankFee,
       totalLabel: `¥${entryFee.toLocaleString()}`,
       available: !!bankAccount,
     },
@@ -59,7 +62,7 @@ export const PaymentMethodSelector = ({
   const visibleOptions = options.filter(o => o.available);
 
   return (
-    <div role="radiogroup" aria-label="支払い方法" className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div role="radiogroup" aria-label={t.pmGroupLabel} className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {visibleOptions.map(opt => {
         const isSelected = selected === opt.method;
         return (
@@ -68,7 +71,7 @@ export const PaymentMethodSelector = ({
             type="button"
             role="radio"
             aria-checked={isSelected}
-            aria-label={`${opt.title} 支払額 ${opt.totalLabel}`}
+            aria-label={t.pmAria(opt.title, opt.totalLabel)}
             disabled={disabled}
             onClick={() => onSelect(opt.method)}
             className={`relative text-left border-2 rounded-xl p-4 transition-all duration-150 hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:hover:scale-100 ${
@@ -79,7 +82,7 @@ export const PaymentMethodSelector = ({
           >
             {opt.recommended && (
               <span className="absolute -top-2.5 left-3 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                推奨
+                {t.pmRecommended}
               </span>
             )}
             <div className="flex items-center gap-2 mb-1.5">
@@ -93,7 +96,7 @@ export const PaymentMethodSelector = ({
             <p className="text-xs text-gray-500">{opt.feeLabel}</p>
             <p className="text-lg font-bold text-gray-900 mt-1">
               {opt.totalLabel}
-              <span className="text-xs font-normal text-gray-400 ml-1">お支払い額</span>
+              <span className="text-xs font-normal text-gray-400 ml-1">{t.pmAmount}</span>
             </p>
           </button>
         );
