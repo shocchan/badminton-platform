@@ -54,6 +54,12 @@ export default function ClaimAccountForm({ onDone }: Props) {
           password,
         });
         if (loginErr) throw new Error('メールアドレスまたはパスワードが間違っています');
+        // 管理者アカウントはこの簡易ログイン（2段階認証なし）を通さない。正規のログイン画面へ誘導
+        const { data: isAdmin } = await supabase.rpc('is_admin');
+        if (isAdmin) {
+          await supabase.auth.signOut();
+          throw new Error('管理者アカウントはログインページからログインしてください');
+        }
       }
       const claim = await claimGuestCoupons();
       onDone(claim);

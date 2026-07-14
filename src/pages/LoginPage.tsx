@@ -11,10 +11,18 @@ export const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { login } = useAuth();
+  // 管理者メールOTP（2段階目）
+  const [otp, setOtp] = useState<{ challengeId: string; sentTo: string } | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const { login, verifyOtp } = useAuth();
   const navigate = useNavigate();
   const { lang } = useLanguage();
   const t = translations[lang].login;
+
+  const goAfterLogin = async () => {
+    const { data: isAdmin } = await supabase.rpc('is_admin');
+    navigate(`/${lang}/${isAdmin ? 'admin' : 'mypage'}`);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,9 +30,27 @@ export const LoginPage = () => {
     setError(null);
 
     try {
-      await login(email, password);
-      const { data: isAdmin } = await supabase.rpc('is_admin');
-      navigate(`/${lang}/${isAdmin ? 'admin' : 'mypage'}`);
+      const result = await login(email, password);
+      if (result.needsOtp) {
+        setOtp({ challengeId: result.challengeId, sentTo: result.sentTo });
+      } else {
+        await goAfterLogin();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.errorLoginFailed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await verifyOtp(otp.challengeId, otpCode.trim());
+      await goAfterLogin();
     } catch (err) {
       setError(err instanceof Error ? err.message : t.errorLoginFailed);
     } finally {
@@ -66,6 +92,44 @@ export const LoginPage = () => {
             </div>
           )}
 
+          {otp ? (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div className="text-center mb-2">
+                <div className="text-3xl mb-2">📧</div>
+                <p className="text-sm text-gray-700 font-medium">認証コードを送信しました</p>
+                <p className="text-xs text-gray-500 mt-1">{otp.sentTo} 宛のメールに記載の6桁コードを入力してください（10分以内）</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">認証コード</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  required
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-center text-lg tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="000000"
+                  autoFocus
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold py-3 rounded-xl transition-colors"
+              >
+                {loading ? '確認中...' : 'ログイン'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setOtp(null); setOtpCode(''); setError(null); }}
+                className="w-full text-xs text-gray-500 hover:text-gray-700"
+              >
+                ← 最初からやり直す
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
@@ -95,7 +159,9 @@ export const LoginPage = () => {
               {loading ? t.submitLoginLoading : t.submitLogin}
             </button>
           </form>
+          )}
 
+          {!otp && (
           <div className="mt-6 text-center space-y-3">
             <p className="text-sm text-gray-600">
               {t.newUser}
@@ -117,6 +183,7 @@ export const LoginPage = () => {
               </button>
             </p>
           </div>
+          )}
         </div>
       </div>
     </main>
