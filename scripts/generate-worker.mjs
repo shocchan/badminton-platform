@@ -173,6 +173,19 @@ export default {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
+    // 管理画面ルートへのBasic認証ゲート（クレジット取引セキュリティ・チェックリスト対応）
+    // ADMIN_GATE_USER / ADMIN_GATE_PASS が未設定の環境ではゲート無効（開発時など）
+    if (/^\\/(ja\\/|zh\\/)?admin(\\/|$)/.test(pathname) && env.ADMIN_GATE_USER && env.ADMIN_GATE_PASS) {
+      const auth = request.headers.get('Authorization') || '';
+      const expected = 'Basic ' + btoa(env.ADMIN_GATE_USER + ':' + env.ADMIN_GATE_PASS);
+      if (auth !== expected) {
+        return new Response('Authentication required', {
+          status: 401,
+          headers: { 'WWW-Authenticate': 'Basic realm="kawabado admin"', 'Cache-Control': 'no-store' },
+        });
+      }
+    }
+
     // /sitemap.xml → 動的生成
     if (pathname === '/sitemap.xml') {
       try {

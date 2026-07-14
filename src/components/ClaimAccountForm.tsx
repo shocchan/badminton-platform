@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { claimGuestCoupons, type ClaimResult } from '../services/coupons';
+import { useAuth } from '../hooks/useAuth';
 
 interface Props {
   /** 登録/ログイン＋引き継ぎ完了時に呼ばれる */
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function ClaimAccountForm({ onDone }: Props) {
+  const { login } = useAuth();
   const [mode, setMode] = useState<'register' | 'login'>('register');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -49,16 +51,11 @@ export default function ClaimAccountForm({ onDone }: Props) {
           );
         }
       } else {
-        const { error: loginErr } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (loginErr) throw new Error('メールアドレスまたはパスワードが間違っています');
-        // 管理者アカウントはこの簡易ログイン（2段階認証なし）を通さない。正規のログイン画面へ誘導
-        const { data: isAdmin } = await supabase.rpc('is_admin');
-        if (isAdmin) {
-          await supabase.auth.signOut();
-          throw new Error('管理者アカウントはログインページからログインしてください');
+        // login-guard 経由（試行回数ロック付き）。管理者は needsOtp が返り
+        // セッションは一切作られないので、ここでは正規のログイン画面へ誘導するだけ
+        const result = await login(email, password);
+        if (result.needsOtp) {
+          throw new Error('管理者アカウントは /login のログインページからログインしてください（二段階認証が必要です）');
         }
       }
       const claim = await claimGuestCoupons();
