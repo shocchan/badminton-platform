@@ -229,7 +229,7 @@ serve(async (req: Request) => {
       <!-- キャンセル期限 -->
       <div style="margin-top:16px;padding:14px 18px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
         <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会2週間前）</p>
-        <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルはクレジットカードに全額返金いたします（返金処理に数日かかる場合があります）。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
+        <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルは参加費¥${entryFeeYen}をクレジットカードに返金いたします（決済手数料¥${feeYen}は返金対象外です。返金処理に数日かかる場合があります）。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
       </div>
 
       ${cancel_link ? `
@@ -251,7 +251,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${entryFeeYen}\n決済手数料：¥${feeYen}\n合計：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【当日の受付】\n受付でお名前をお伝えください。参加証などのご提示は不要です。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルはクレジットカードに全額返金いたします。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
+      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${entryFeeYen}\n決済手数料：¥${feeYen}\n合計：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【当日の受付】\n受付でお名前をお伝えください。参加証などのご提示は不要です。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは参加費¥${entryFeeYen}をクレジットカードに返金いたします（決済手数料¥${feeYen}は返金対象外）。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
 
       const resC = await fetch("https://api.resend.com/emails", {
         method: "POST",

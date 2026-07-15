@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../components/ui/Toast';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { calcCreditAmounts } from '../lib/payment';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -14,6 +15,8 @@ interface EntryInfo {
   status: string;
   entry_fee: number;
   payment_required: boolean;
+  payment_method: 'credit' | 'paypay' | 'bank' | null;
+  payment_status: 'pending' | 'completed' | 'failed' | 'refunded' | null;
 }
 
 type PageState = 'loading' | 'found' | 'cancelled' | 'error' | 'past_deadline' | 'already_cancelled';
@@ -27,6 +30,7 @@ export const CancelEntryPage = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [processing, setProcessing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [wasRefunded, setWasRefunded] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -93,6 +97,7 @@ export const CancelEntryPage = () => {
       if (!res.ok) {
         toast.error(data.error || 'キャンセルに失敗しました。');
       } else {
+        setWasRefunded(!!data.refunded);
         setState('cancelled');
       }
     } catch {
@@ -149,12 +154,13 @@ export const CancelEntryPage = () => {
               </div>
             </div>
 
-            {entry.payment_required && (
+            {entry.payment_required && entry.payment_status === 'completed' && (
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5 text-sm">
                 <p className="font-bold text-yellow-800 mb-1">💰 参加費の返金について</p>
                 <p className="text-yellow-700 text-xs">
-                  すでにお支払いいただいた参加費は、主催者より銀行振込またはPayPayにて返金します。
-                  返金まで数日かかる場合があります。
+                  {entry.payment_method === 'credit'
+                    ? `参加費¥${entry.entry_fee.toLocaleString()}をお支払いいただいたクレジットカードに自動返金します（決済手数料¥${calcCreditAmounts(entry.entry_fee).fee.toLocaleString()}は返金対象外です。カード明細への反映まで数日かかる場合があります）。`
+                    : '主催者より銀行振込またはPayPayにて返金します。返金まで数日かかる場合があります。'}
                 </p>
               </div>
             )}
@@ -192,7 +198,9 @@ export const CancelEntryPage = () => {
             <h1 className="text-xl font-bold text-gray-900 mb-2">キャンセル完了</h1>
             <p className="text-sm text-gray-600 mb-6">
               申し込みをキャンセルしました。<br />
-              参加費をお支払い済みの場合は、主催者より返金の連絡をいたします。
+              {wasRefunded && entry
+                ? `参加費¥${entry.entry_fee.toLocaleString()}をクレジットカードへ返金しました（決済手数料は返金対象外です）。`
+                : '参加費をお支払い済みの場合は、主催者より返金の連絡をいたします。'}
             </p>
             <a
               href="/"

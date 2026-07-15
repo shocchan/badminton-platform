@@ -17,9 +17,10 @@ export const getStripe = () => {
   return stripePromise;
 };
 
-// クレジット決済手数料: 参加費の3.6%（四捨五入）。サーバー側（create-payment-intent）と同じ式
+// クレジット決済手数料: 参加費の4%（四捨五入）。サーバー側（create-payment-intent）と同じ式
+// Stripeの実費（3.6%＋α、実測値ベース）をカバーし、キャンセル時の部分返金でkawabadoが損をしないための率
 export const calcCreditAmounts = (entryFee: number) => {
-  const fee = Math.round(entryFee * 0.036);
+  const fee = Math.round(entryFee * 0.04);
   return { fee, total: entryFee + fee };
 };
 

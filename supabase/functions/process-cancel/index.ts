@@ -31,7 +31,7 @@ serve(async (req: Request) => {
 
       const { data: entry } = await supabase
         .from("entries")
-        .select("id, name, email, status, tournament_id, tournaments(title, event_date, cancel_deadline, entry_fee, payment_required)")
+        .select("id, name, email, status, payment_method, payment_status, tournament_id, tournaments(title, event_date, cancel_deadline, entry_fee, payment_required)")
         .eq("cancel_token", token)
         .single();
 
@@ -60,6 +60,8 @@ serve(async (req: Request) => {
         entry_fee: t.entry_fee,
         payment_required: t.payment_required,
         status: entry.status,
+        payment_method: entry.payment_method,
+        payment_status: entry.payment_status,
       });
     }
 
@@ -74,7 +76,7 @@ serve(async (req: Request) => {
       // エントリー取得
       const { data: entry } = await supabase
         .from("entries")
-        .select("id, name, email, status, tournament_id, tournaments(title, event_date, cancel_deadline, entry_fee, payment_required, bank_account, paypay_id, payment_deadline)")
+        .select("id, name, email, status, payment_method, payment_status, stripe_payment_id, tournament_id, tournaments(title, event_date, cancel_deadline, entry_fee, payment_required, bank_account, paypay_id, payment_deadline)")
         .eq("cancel_token", token)
         .single();
 
@@ -102,13 +104,58 @@ serve(async (req: Request) => {
         return json({ error: "past_deadline" }, 400);
       }
 
+      const wasConfirmed = entry.status === "confirmed";
+
+      // ── クレジット決済済みの確定参加者は、期限内キャンセルでStripe自動返金 ──
+      let refundResult: { attempted: boolean; success: boolean; amount?: number; error?: string } = { attempted: false, success: false };
+      if (
+        wasConfirmed &&
+        entry.payment_method === "credit" &&
+        entry.payment_status === "completed" &&
+        entry.stripe_payment_id
+      ) {
+        const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+        if (stripeKey) {
+          refundResult.attempted = true;
+          // 決済手数料（4%分）は返金対象外。参加費本体（entry_fee）のみ返金し、
+          // 手数料は簡単なキャンセル→再申込の繰り返しを防ぐため参加者負担のままとする
+          try {
+            const refundRes = await fetch("https://api.stripe.com/v1/refunds", {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${stripeKey}`,
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Idempotency-Key": `cancel-refund-${entry.id}`,
+              },
+              body: new URLSearchParams({
+                payment_intent: entry.stripe_payment_id as string,
+                amount: String(t.entry_fee as number),
+              }).toString(),
+            });
+            const refund = await refundRes.json();
+            if (refundRes.ok) {
+              refundResult.success = true;
+              refundResult.amount = refund.amount;
+              await supabase
+                .from("entries")
+                .update({ payment_status: "refunded" })
+                .eq("id", entry.id);
+            } else {
+              refundResult.error = refund?.error?.message ?? "unknown Stripe error";
+              console.error("Stripe refund failed:", refundResult.error);
+            }
+          } catch (e) {
+            refundResult.error = e.message;
+            console.error("Stripe refund error:", e.message);
+          }
+        }
+      }
+
       // エントリーをキャンセルに更新
       await supabase
         .from("entries")
         .update({ status: "cancelled", cancelled_at: new Date().toISOString() })
         .eq("id", entry.id);
-
-      const wasConfirmed = entry.status === "confirmed";
 
       // ── 管理者へキャンセル通知 ──
       await sendCancelNotifyToAdmin(resendKey, {
@@ -119,6 +166,8 @@ serve(async (req: Request) => {
         entry_fee: t.entry_fee as number,
         payment_required: t.payment_required as boolean,
         was_confirmed: wasConfirmed,
+        payment_method: entry.payment_method as string | null,
+        refund: refundResult,
       });
 
       // ── confirmed のキャンセルの場合: キャンセル待ちを繰り上げ ──
@@ -164,7 +213,7 @@ serve(async (req: Request) => {
         }
       }
 
-      return json({ success: true });
+      return json({ success: true, refunded: refundResult.success, refund_attempted: refundResult.attempted });
     }
 
     return json({ error: "method_not_allowed" }, 405);
@@ -192,10 +241,30 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
   entry_fee: number;
   payment_required: boolean;
   was_confirmed: boolean;
+  payment_method: string | null;
+  refund: { attempted: boolean; success: boolean; amount?: number; error?: string };
 }) {
   const eventDate = new Date(data.tournament_date).toLocaleDateString("ja-JP", {
     year: "numeric", month: "long", day: "numeric", weekday: "short",
   });
+
+  const needsManualRefund = data.payment_required && data.was_confirmed && !data.refund.success;
+  const methodLabel = data.payment_method === "credit" ? "クレジットカード" : data.payment_method === "paypay" ? "PayPay" : data.payment_method === "bank" ? "銀行振込" : "未確認";
+
+  // 返金ステータスのお知らせブロック
+  const refundBlock = data.refund.success
+    ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:14px 18px;font-size:13px;color:#065f46;">
+        ✅ Stripeで自動返金済みです（¥${(data.refund.amount ?? 0).toLocaleString()}、決済手数料分は返金対象外）。参加者への追加対応は不要です。
+      </div>`
+    : data.refund.attempted && !data.refund.success
+    ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#991b1b;">
+        ⚠️ Stripe自動返金に失敗しました（${data.refund.error ?? "原因不明"}）。Stripeダッシュボードから手動で返金してください。
+      </div>`
+    : needsManualRefund
+    ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#991b1b;">
+        💰 参加費（¥${data.entry_fee.toLocaleString()}）の返金が必要です。支払い方法「${methodLabel}」に応じて${data.payment_method === "credit" ? "Stripeダッシュボードから" : "銀行振込またはPayPayで"}返金してください。
+      </div>`
+    : "";
 
   const html = `<!DOCTYPE html>
 <html lang="ja">
@@ -215,13 +284,10 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 0;color:#6b7280;font-size:14px;">大会名</td><td style="padding:10px 0;font-weight:600;">${data.tournament_title}</td></tr>
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 0;color:#6b7280;font-size:14px;">開催日</td><td style="padding:10px 0;font-weight:600;">${eventDate}</td></tr>
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px 0;color:#6b7280;font-size:14px;">参加ステータス</td><td style="padding:10px 0;font-weight:600;">${data.was_confirmed ? '<span style="color:#dc2626;">確定参加者</span>' : '<span style="color:#f59e0b;">キャンセル待ち</span>'}</td></tr>
-          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;">支払い</td><td style="padding:10px 0;font-weight:600;">${data.payment_required && data.was_confirmed ? `<span style="color:#dc2626;">返金が必要な可能性あり（¥${data.entry_fee.toLocaleString()}）</span>` : '—'}</td></tr>
+          <tr><td style="padding:10px 0;color:#6b7280;font-size:14px;">支払い方法</td><td style="padding:10px 0;font-weight:600;">${data.was_confirmed && data.payment_required ? methodLabel : '—'}</td></tr>
         </table>
       </div>
-      ${data.payment_required && data.was_confirmed ? `
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#991b1b;">
-        💰 参加費（¥${data.entry_fee.toLocaleString()}）の返金が必要な場合は、銀行振込またはPayPayで返金してください。
-      </div>` : ""}
+      ${refundBlock}
     </div>
     <p style="text-align:center;font-size:12px;color:#9ca3af;margin:16px 0 32px;">川口・蕨バド交流杯 管理システム</p>
   </div>
@@ -234,7 +300,7 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
     body: JSON.stringify({
       from: "川口・蕨バド交流杯 <onboarding@resend.dev>",
       to: [ADMIN_EMAIL],
-      subject: `【キャンセル通知】${data.name}さんが${data.tournament_title}をキャンセルしました`,
+      subject: `【キャンセル通知】${data.name}さんが${data.tournament_title}をキャンセルしました${data.refund.success ? "（自動返金済み）" : ""}`,
       html,
     }),
   });

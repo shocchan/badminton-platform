@@ -6,9 +6,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// クレジット決済手数料: 参加費の3.6%（四捨五入）を上乗せ
+// クレジット決済手数料: 参加費の4%（四捨五入）を上乗せ
+// Stripe実費（3.6%＋実測の追加分）をカバーし、キャンセル時の部分返金でkawabadoが損をしないための率
 export const calcCreditAmounts = (entryFee: number) => {
-  const fee = Math.round(entryFee * 0.036);
+  const fee = Math.round(entryFee * 0.04);
   return { fee, total: entryFee + fee };
 };
 
