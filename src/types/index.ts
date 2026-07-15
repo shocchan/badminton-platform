@@ -60,4 +60,6 @@ export interface BlogPost {
   created_at: string;
   updated_at: string;
   view_count?: number;
+  auto_generated?: boolean;
+  auto_generated_at?: string;
 }

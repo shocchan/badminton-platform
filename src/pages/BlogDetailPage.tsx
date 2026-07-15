@@ -9,11 +9,12 @@ export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const { post, loading, error } = useBlogPost(Number(id));
 
+  // 下書きプレビュー（管理者のみRLSで取得可能）では閲覧数を増やさない
   useEffect(() => {
-    if (!id) return;
-    supabase.rpc('increment_blog_view', { blog_id: Number(id) })
+    if (!post || post.status === 'draft') return;
+    supabase.rpc('increment_blog_view', { blog_id: post.id })
       .then(({ error }) => { if (error) console.error('increment_blog_view error:', error); });
-  }, [id]);
+  }, [post?.id, post?.status]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -46,7 +47,8 @@ export const BlogDetailPage = () => {
     );
   }
 
-  if (error || !post || post.status === 'draft') {
+  // 下書きはRLSにより管理者以外は取得できず error になる（＝ここに来た下書きは管理者のプレビュー）
+  if (error || !post) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <p className="text-gray-400">記事が見つかりませんでした</p>
@@ -57,6 +59,12 @@ export const BlogDetailPage = () => {
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
+      {post.status === 'draft' && (
+        <div className="mb-6 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl text-sm">
+          <span className="font-medium">📝 下書きプレビュー — この記事はまだ公開されていません（管理者のみ閲覧可能）</span>
+          <Link to="/ja/admin" className="shrink-0 text-blue-600 hover:underline">管理ページへ</Link>
+        </div>
+      )}
       <Link to="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
 
       {post.image_url && (

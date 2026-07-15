@@ -919,6 +919,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
   const { tournaments, loading: tLoading, createTournament, updateTournament, deleteTournament } = useTournaments();
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
+  const draftPosts = blogPosts.filter(p => p.status === 'draft');
+  const livePosts = blogPosts.filter(p => p.status !== 'draft');
   const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
@@ -1370,6 +1372,17 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       await deletePost(id);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : '削除に失敗しました');
+    }
+  };
+
+  // 下書きを一覧からワンクリック公開（公開日時は今にする）
+  const handlePublishPost = async (p: BlogPost) => {
+    if (!confirm(`「${p.title}」を公開しますか？サイトに即時表示されます。`)) return;
+    try {
+      await updatePost(p.id, { status: 'published', published_at: new Date().toISOString() });
+      toast.success('公開しました 🌐');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : '公開に失敗しました');
     }
   };
 
@@ -2013,49 +2026,114 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">タイトル</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">公開日</th>
-                    <th className="text-left px-4 py-3 font-medium text-gray-600">👁 閲覧数</th>
-                    <th className="text-right px-4 py-3 font-medium text-gray-600">操作</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {blogPosts.map(p => (
-                    <tr key={p.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{p.title}</td>
-                      <td className="px-4 py-3">
-                        {p.status === 'draft'
-                          ? <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600 font-medium">🔒 下書き</span>
-                          : p.status === 'unlisted'
-                            ? <span className="inline-flex items-center gap-1">
-                                <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">🔗 限定公開</span>
-                                <button
-                                  type="button"
-                                  onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`https://kawabado.com/ja/blog/${p.id}`); (e.target as HTMLButtonElement).textContent = '✓'; setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'URL'; }, 1500); }}
-                                  className="text-[11px] px-1.5 py-0.5 rounded bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 transition-colors"
-                                >URL</button>
-                              </span>
-                            : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
-                        }
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">{formatDate(p.published_at)}</td>
-                      <td className="px-4 py-3 text-gray-500">{p.view_count ?? 0}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button onClick={() => handleEditPost(p)} className="text-blue-600 hover:underline mr-3">編集</button>
-                        <button onClick={() => handleDeletePost(p.id)} className="text-red-500 hover:underline">削除</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {blogPosts.length === 0 && (
-                    <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
+            <div className="space-y-8">
+              {/* ── 下書きセクション ── */}
+              <div>
+                <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3">
+                  📝 下書き
+                  {draftPosts.length > 0 && (
+                    <span className="text-xs bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full font-medium">{draftPosts.length}件</span>
                   )}
-                </tbody>
-              </table>
+                </h3>
+                {draftPosts.length === 0 ? (
+                  <div className="border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
+                    <p className="text-sm text-gray-400">下書きはありません</p>
+                    <p className="text-xs text-gray-300 mt-1">「＋ 新規記事」で下書き保存すると、ここに表示されます</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    {draftPosts.map(p => (
+                      <div key={p.id} className="border border-amber-200 bg-amber-50 rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                        <div className="flex items-start justify-between gap-4 flex-wrap">
+                          <div className="flex-1 min-w-[240px]">
+                            <p className="font-bold text-gray-900">{p.title}</p>
+                            {p.excerpt && <p className="text-sm text-gray-600 mt-1">{p.excerpt}</p>}
+                            <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                              <span>作成: {formatDate(p.created_at)}</span>
+                              {p.auto_generated && (
+                                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">🤖 自動生成</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 shrink-0 flex-wrap">
+                            <a
+                              href={`/ja/blog/${p.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-xs font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                            >プレビュー</a>
+                            <button
+                              onClick={() => handleEditPost(p)}
+                              className="px-3 py-1.5 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                            >編集</button>
+                            <button
+                              onClick={() => handlePublishPost(p)}
+                              className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
+                            >🌐 公開</button>
+                            <button
+                              onClick={() => handleDeletePost(p.id)}
+                              className="px-3 py-1.5 bg-white border border-red-200 text-red-500 text-xs font-medium rounded-lg hover:bg-red-50 transition-colors"
+                            >削除</button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* ── 公開済み・限定公開セクション ── */}
+              <div>
+                <h3 className="flex items-center gap-2 font-bold text-gray-800 mb-3">
+                  🌐 公開済み・限定公開
+                  {livePosts.length > 0 && (
+                    <span className="text-xs bg-green-100 text-green-800 px-2.5 py-0.5 rounded-full font-medium">{livePosts.length}件</span>
+                  )}
+                </h3>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 border-b border-gray-100">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-medium text-gray-600">タイトル</th>
+                        <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
+                        <th className="text-left px-4 py-3 font-medium text-gray-600">公開日</th>
+                        <th className="text-left px-4 py-3 font-medium text-gray-600">👁 閲覧数</th>
+                        <th className="text-right px-4 py-3 font-medium text-gray-600">操作</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {livePosts.map(p => (
+                        <tr key={p.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-3 font-medium text-gray-900">{p.title}</td>
+                          <td className="px-4 py-3">
+                            {p.status === 'unlisted'
+                              ? <span className="inline-flex items-center gap-1">
+                                  <span className="text-xs px-2 py-1 rounded-full bg-orange-100 text-orange-700 font-medium">🔗 限定公開</span>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`https://kawabado.com/ja/blog/${p.id}`); (e.target as HTMLButtonElement).textContent = '✓'; setTimeout(() => { (e.target as HTMLButtonElement).textContent = 'URL'; }, 1500); }}
+                                    className="text-[11px] px-1.5 py-0.5 rounded bg-orange-50 border border-orange-200 text-orange-600 hover:bg-orange-100 transition-colors"
+                                  >URL</button>
+                                </span>
+                              : <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">🌐 公開</span>
+                            }
+                          </td>
+                          <td className="px-4 py-3 text-gray-600">{formatDate(p.published_at)}</td>
+                          <td className="px-4 py-3 text-gray-500">{p.view_count ?? 0}</td>
+                          <td className="px-4 py-3 text-right whitespace-nowrap">
+                            <a href={`/ja/blog/${p.id}`} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:underline mr-3">表示</a>
+                            <button onClick={() => handleEditPost(p)} className="text-blue-600 hover:underline mr-3">編集</button>
+                            <button onClick={() => handleDeletePost(p.id)} className="text-red-500 hover:underline">削除</button>
+                          </td>
+                        </tr>
+                      ))}
+                      {livePosts.length === 0 && (
+                        <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-400">記事がありません</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           )}
         </div>
