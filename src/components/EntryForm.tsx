@@ -42,7 +42,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
-  const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number; fee: number } | null>(null);
+  const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number } | null>(null);
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
   const [confirmWarning, setConfirmWarning] = useState(false);
   const [bankCopied, setBankCopied] = useState(false);
@@ -227,7 +227,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         setPaymentError(data.error || t.payErrPrepare);
         return;
       }
-      setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount, fee: data.fee });
+      setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount });
     } catch (err) {
       setPaymentError(
         err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
@@ -456,7 +456,6 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               tournament={tournament}
               name={formData.name}
               entryFee={tournament.entry_fee}
-              fee={paidInfo.amount - tournament.entry_fee}
               total={paidInfo.amount}
               paidAt={paidInfo.paidAt}
               calendarUrl={buildGoogleCalendarUrl()}

@@ -17,12 +17,11 @@ export const getStripe = () => {
   return stripePromise;
 };
 
-// クレジット決済手数料: 参加費の4%（四捨五入）。サーバー側（create-payment-intent）と同じ式
-// Stripeの実費（3.6%＋α、実測値ベース）をカバーし、キャンセル時の部分返金でkawabadoが損をしないための率
-export const calcCreditAmounts = (entryFee: number) => {
-  const fee = Math.round(entryFee * 0.04);
-  return { fee, total: entryFee + fee };
-};
+// クレジット決済のキャンセル手数料率（期限内キャンセルでも10%を差し引いて返金）
+// 決済手数料の上乗せはしない（全支払い方法で参加費は同額）。実費はkawabadoが負担する運用方針
+export const CREDIT_CANCEL_FEE_RATE = 0.10;
+export const calcCreditRefundAmount = (entryFee: number) =>
+  entryFee - Math.round(entryFee * CREDIT_CANCEL_FEE_RATE);
 
 // Edge Function 呼び出し（30秒タイムアウト付き）
 export const fetchWithTimeout = async (url: string, options: RequestInit, timeoutMs = 30000) => {

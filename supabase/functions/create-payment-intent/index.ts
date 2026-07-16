@@ -6,13 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// クレジット決済手数料: 参加費の4%（四捨五入）を上乗せ
-// Stripe実費（3.6%＋実測の追加分）をカバーし、キャンセル時の部分返金でkawabadoが損をしないための率
-export const calcCreditAmounts = (entryFee: number) => {
-  const fee = Math.round(entryFee * 0.04);
-  return { fee, total: entryFee + fee };
-};
-
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -65,13 +58,11 @@ serve(async (req: Request) => {
       return json({ error: "この大会は事前支払い不要です" }, 400);
     }
 
-    const { fee, total } = calcCreditAmounts(tournament.entry_fee);
-
-    // Stripe PaymentIntent 作成（金額は必ずサーバー側で計算）
+    // Stripe PaymentIntent 作成（金額は必ずサーバー側で計算。手数料上乗せなし、参加費と同額）
     // カード決済のみに限定（Linkなど電話番号OTP認証を伴う決済手段は、
     // モーダル内での認証ポップアップが視認しづらく「処理中のまま固まる」原因になるため除外）
     const params = new URLSearchParams({
-      amount: String(total),
+      amount: String(tournament.entry_fee),
       currency: "jpy",
       "payment_method_types[]": "card",
       description: `${tournament.title} 参加費（${entry.name} 様）`,
@@ -79,14 +70,13 @@ serve(async (req: Request) => {
       "metadata[entry_id]": String(entry.id),
       "metadata[tournament_id]": String(tournament.id),
       "metadata[entry_fee]": String(tournament.entry_fee),
-      "metadata[credit_fee]": String(fee),
     });
     const piRes = await fetch("https://api.stripe.com/v1/payment_intents", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${stripeKey}`,
         "Content-Type": "application/x-www-form-urlencoded",
-        "Idempotency-Key": `entry-${entry.id}-${total}`,
+        "Idempotency-Key": `entry-${entry.id}-${tournament.entry_fee}`,
       },
       body: params.toString(),
     });
@@ -105,8 +95,7 @@ serve(async (req: Request) => {
 
     return json({
       clientSecret: pi.client_secret,
-      amount: total,
-      fee,
+      amount: tournament.entry_fee,
       entry_fee: tournament.entry_fee,
     });
   } catch (error) {

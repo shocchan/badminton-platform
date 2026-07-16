@@ -66,6 +66,10 @@ const CheckoutForm = ({ amount, t, onSuccess }: { amount: number; t: EntryTexts;
         onLoadError={() => setLoadFailed(true)}
       />
 
+      {elementReady && (
+        <p className="text-xs text-amber-600">{t.payCreditCancelNote}</p>
+      )}
+
       {/* カード入力欄の読み込み中表示 */}
       {!elementReady && !loadFailed && (
         <div className="flex items-center justify-center gap-2 py-3 text-gray-500 text-xs" aria-live="polite">

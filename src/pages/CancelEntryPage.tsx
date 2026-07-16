@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../components/ui/Toast';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
-import { calcCreditAmounts } from '../lib/payment';
+import { calcCreditRefundAmount } from '../lib/payment';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -159,7 +159,7 @@ export const CancelEntryPage = () => {
                 <p className="font-bold text-yellow-800 mb-1">💰 参加費の返金について</p>
                 <p className="text-yellow-700 text-xs">
                   {entry.payment_method === 'credit'
-                    ? `参加費¥${entry.entry_fee.toLocaleString()}をお支払いいただいたクレジットカードに自動返金します（決済手数料¥${calcCreditAmounts(entry.entry_fee).fee.toLocaleString()}は返金対象外です。カード明細への反映まで数日かかる場合があります）。`
+                    ? `参加費の90%（¥${calcCreditRefundAmount(entry.entry_fee).toLocaleString()}）をお支払いいただいたクレジットカードに自動返金します（キャンセル手数料として10%を差し引きます。カード明細への反映まで数日かかる場合があります）。`
                     : '主催者より銀行振込またはPayPayにて返金します。返金まで数日かかる場合があります。'}
                 </p>
               </div>
@@ -199,7 +199,7 @@ export const CancelEntryPage = () => {
             <p className="text-sm text-gray-600 mb-6">
               申し込みをキャンセルしました。<br />
               {wasRefunded && entry
-                ? `参加費¥${entry.entry_fee.toLocaleString()}をクレジットカードへ返金しました（決済手数料は返金対象外です）。`
+                ? `参加費の90%（¥${calcCreditRefundAmount(entry.entry_fee).toLocaleString()}）をクレジットカードへ返金しました（キャンセル手数料10%差引）。`
                 : '参加費をお支払い済みの場合は、主催者より返金の連絡をいたします。'}
             </p>
             <a

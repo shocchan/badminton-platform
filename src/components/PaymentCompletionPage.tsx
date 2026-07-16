@@ -5,7 +5,6 @@ interface PaymentCompletionPageProps {
   tournament: Tournament;
   name: string;
   entryFee: number;
-  fee: number;
   total: number;
   paidAt: string;
   calendarUrl: string;
@@ -15,7 +14,7 @@ interface PaymentCompletionPageProps {
 }
 
 export const PaymentCompletionPage = ({
-  tournament, name, entryFee, fee, total, paidAt, calendarUrl, warning, lang, onClose,
+  tournament, name, entryFee, total, paidAt, calendarUrl, warning, lang, onClose,
 }: PaymentCompletionPageProps) => {
   const t = getEntryTexts(lang);
   const formatDate = (dateStr: string) =>
@@ -24,6 +23,13 @@ export const PaymentCompletionPage = ({
   const paidAtStr = new Date(paidAt).toLocaleString('ja-JP', {
     year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
+  const cancelDeadlineStr = formatDate((() => {
+    if (tournament.cancel_deadline) return tournament.cancel_deadline;
+    const d = new Date(tournament.event_date);
+    d.setDate(d.getDate() - 14);
+    return d.toISOString().split('T')[0];
+  })());
+  const refundAmount = (entryFee - Math.round(entryFee * 0.1)).toLocaleString();
 
   // 領収書: 印刷用ウィンドウを開く（ブラウザの印刷→PDF保存で利用）
   const downloadReceipt = () => {
@@ -46,9 +52,7 @@ export const PaymentCompletionPage = ({
 <h1>領収書</h1>
 <p class="meta">${name} 様</p>
 <table>
-  <tr><td>参加費</td><td>¥${entryFee.toLocaleString()}</td></tr>
-  <tr><td>決済手数料</td><td>¥${fee.toLocaleString()}</td></tr>
-  <tr class="total"><td>合計</td><td>¥${total.toLocaleString()}</td></tr>
+  <tr class="total"><td>参加費</td><td>¥${total.toLocaleString()}</td></tr>
 </table>
 <p class="meta">
   但し：${tournament.title} 参加費として<br>
@@ -101,9 +105,15 @@ export const PaymentCompletionPage = ({
       </div>
 
       {/* 当日受付の案内 */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-5 text-left">
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4 text-left">
         <p className="text-sm font-bold text-gray-700 mb-1">{t.ccCheckinTitle}</p>
         <p className="text-xs text-gray-500">{t.ccCheckinNote}</p>
+      </div>
+
+      {/* キャンセル規定 */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5 text-left">
+        <p className="text-sm font-bold text-amber-800 mb-1">{t.doneCancelTitle}</p>
+        <p className="text-xs text-amber-700">{t.ccCancelPolicy(cancelDeadlineStr, refundAmount)}</p>
       </div>
 
       {/* アクションボタン */}

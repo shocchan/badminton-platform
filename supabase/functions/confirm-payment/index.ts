@@ -95,8 +95,8 @@ serve(async (req: Request) => {
     }
 
     // 支払い完了メール送信（失敗しても決済自体は成立しているので成功で返す）
+    // 手数料上乗せなし。参加費と決済額は同額
     const entryFee = Number(pi.metadata?.entry_fee ?? tournament?.entry_fee ?? 0);
-    const creditFee = Number(pi.metadata?.credit_fee ?? pi.amount - entryFee);
     try {
       const mailRes = await fetch(`${supabaseUrl}/functions/v1/send-payment-email`, {
         method: "POST",
@@ -119,7 +119,6 @@ serve(async (req: Request) => {
           paypay_id: "",
           payment_required: true,
           entry_fee: entryFee,
-          amount_fee: creditFee,
           amount_total: pi.amount,
           paid_at: paidAt,
           entry_id: entry.id,

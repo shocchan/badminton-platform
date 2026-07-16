@@ -1,5 +1,4 @@
 import type { PaymentMethod } from '../lib/payment';
-import { calcCreditAmounts } from '../lib/payment';
 import { getEntryTexts } from '../locales/entry';
 
 interface PaymentMethodSelectorProps {
@@ -16,7 +15,6 @@ interface PaymentMethodSelectorProps {
 export const PaymentMethodSelector = ({
   entryFee, paypayId, bankAccount, creditAvailable, selected, onSelect, disabled, lang,
 }: PaymentMethodSelectorProps) => {
-  const { fee, total } = calcCreditAmounts(entryFee);
   const t = getEntryTexts(lang);
 
   const options: Array<{
@@ -34,8 +32,8 @@ export const PaymentMethodSelector = ({
       icon: '💳',
       title: t.pmCredit,
       subtitle: t.pmCreditSub,
-      feeLabel: t.pmCreditFee(fee.toLocaleString()),
-      totalLabel: `¥${total.toLocaleString()}`,
+      feeLabel: t.pmFeeFree,
+      totalLabel: `¥${entryFee.toLocaleString()}`,
       recommended: true,
       available: creditAvailable,
     },

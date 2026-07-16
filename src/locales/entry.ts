@@ -68,6 +68,7 @@ const ja = {
   payRetry: 'もう一度お試しください',
   payPreparing: '決済の準備中...',
   payCardLead: '💳 カード情報を入力してください',
+  payCreditCancelNote: '※期限内キャンセルの場合も、キャンセル手数料として10%を差し引いて返金します。',
   payPaypayLead: '📱 PayPayでのお支払い',
   payPaypayMsg: (name: string) => `✏️ 送金時のメッセージに「${name}」とご記入ください`,
   payPaypayNote: '確定すると、お支払い情報をメールでお送りします。期限までにお支払いください。',
@@ -86,7 +87,6 @@ const ja = {
   pmRecommended: '推奨',
   pmCredit: 'クレジットカード',
   pmCreditSub: 'Visa / Mastercard / AmEx ほか',
-  pmCreditFee: (fee: string) => `決済手数料: ¥${fee}（4%）`,
   pmPaypay: 'PayPay',
   pmPaypaySub: (id: string) => `PayPay ID: ${id}`,
   pmPaypaySubNoId: 'PayPay IDに送金',
@@ -144,6 +144,7 @@ const ja = {
   ccCheckinNote: '受付でお名前をお伝えください。参加証などのご提示は不要です。',
   ccReceipt: '🧾 領収書をダウンロード',
   ccWarning: 'お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。',
+  ccCancelPolicy: (deadline: string, refund: string) => `キャンセル期限（${deadline}）内でも、キャンセル手数料10%を差し引いた¥${refund}の返金となります。期限を過ぎたキャンセルは返金できません。`,
 };
 
 const zh: typeof ja = {
@@ -207,6 +208,7 @@ const zh: typeof ja = {
   payRetry: '请重试',
   payPreparing: '正在准备支付...',
   payCardLead: '💳 请输入银行卡信息',
+  payCreditCancelNote: '※即使在取消期限内取消，也将扣除10%作为取消手续费后退款。',
   payPaypayLead: '📱 使用PayPay支付',
   payPaypayMsg: (name: string) => `✏️ 转账留言请填写「${name}」`,
   payPaypayNote: '确认后，支付信息将发送至您的邮箱。请在期限内完成支付。',
@@ -224,7 +226,6 @@ const zh: typeof ja = {
   pmRecommended: '推荐',
   pmCredit: '信用卡',
   pmCreditSub: 'Visa / Mastercard / AmEx 等',
-  pmCreditFee: (fee: string) => `手续费: ¥${fee}（4%）`,
   pmPaypay: 'PayPay',
   pmPaypaySub: (id: string) => `PayPay ID: ${id}`,
   pmPaypaySubNoId: '向PayPay ID转账',
@@ -279,6 +280,7 @@ const zh: typeof ja = {
   ccCheckinNote: '签到时向工作人员报姓名即可，无需出示参赛证明。',
   ccReceipt: '🧾 下载收据',
   ccWarning: '支付已完成，但确认处理稍有延迟。即使暂未收到确认邮件，您的参赛也已确认，请放心。',
+  ccCancelPolicy: (deadline: string, refund: string) => `即使在取消期限（${deadline}）内取消，也会扣除10%的取消手续费，退还¥${refund}。超过期限将无法退款。`,
 };
 
 export type EntryTexts = typeof ja;

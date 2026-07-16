@@ -50,7 +50,7 @@ Supabase ダッシュボードで `supabase/schema.sql` を実行してテーブ
 
 ### 決済金額
 
-参加費 + 決済手数料4%（四捨五入）。例: ¥3,000 → 手数料 ¥120 → 合計 **¥3,120**。金額は `create-payment-intent` がサーバー側で計算する（クライアントの申告値は使わない）。
+手数料の上乗せなし。クレジットカードもPayPay・銀行振込と同額（参加費そのまま）。金額は `create-payment-intent` がサーバー側で計算する（クライアントの申告値は使わない）。実際の決済手数料（Stripe実費・約4%）はkawabado負担とする運用方針。
 
 ### テスト決済（Test Mode キー使用時）
 
@@ -60,7 +60,7 @@ Supabase ダッシュボードで `supabase/schema.sql` を実行してテーブ
 
 ### キャンセル・返金（クレジット決済分）
 
-Stripe ダッシュボードから該当 PaymentIntent を refund し、entries テーブルの該当行を手動更新する（自動返金は未実装）。
+`process-cancel` Edge Function が期限内キャンセルで自動的に Stripe refund を実行する（`src/lib/payment.ts` の `calcCreditRefundAmount`）。**キャンセル手数料として一律10%を差し引き、参加費の90%のみ返金**（安易なキャンセルの抑止のため。期限外キャンセルは不可）。PayPay・銀行振込は従来通り管理者が手動対応。
 
 ## デプロイ（Cloudflare Pages）
 

@@ -117,8 +117,10 @@ serve(async (req: Request) => {
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
         if (stripeKey) {
           refundResult.attempted = true;
-          // 決済手数料（4%分）は返金対象外。参加費本体（entry_fee）のみ返金し、
-          // 手数料は簡単なキャンセル→再申込の繰り返しを防ぐため参加者負担のままとする
+          // クレジット決済は期限内キャンセルでも10%をキャンセル手数料として差し引く
+          // （安易なキャンセル→再申込の繰り返しを防ぐ抑止力。参加費に決済手数料の上乗せはしていない）
+          const entryFee = t.entry_fee as number;
+          const refundAmount = entryFee - Math.round(entryFee * 0.1);
           try {
             const refundRes = await fetch("https://api.stripe.com/v1/refunds", {
               method: "POST",
@@ -129,7 +131,7 @@ serve(async (req: Request) => {
               },
               body: new URLSearchParams({
                 payment_intent: entry.stripe_payment_id as string,
-                amount: String(t.entry_fee as number),
+                amount: String(refundAmount),
               }).toString(),
             });
             const refund = await refundRes.json();
@@ -254,7 +256,7 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
   // 返金ステータスのお知らせブロック
   const refundBlock = data.refund.success
     ? `<div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:14px 18px;font-size:13px;color:#065f46;">
-        ✅ Stripeで自動返金済みです（¥${(data.refund.amount ?? 0).toLocaleString()}、決済手数料分は返金対象外）。参加者への追加対応は不要です。
+        ✅ Stripeで自動返金済みです（¥${(data.refund.amount ?? 0).toLocaleString()}、キャンセル手数料10%差引後）。参加者への追加対応は不要です。
       </div>`
     : data.refund.attempted && !data.refund.success
     ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#991b1b;">
