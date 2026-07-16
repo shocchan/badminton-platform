@@ -96,13 +96,23 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       // 重複申し込みチェック（同メール×同大会、cancelled 以外）
       const { data: existing } = await supabase
         .from('entries')
-        .select('id, status')
+        .select('id, status, cancel_token, payment_status')
         .eq('tournament_id', tournament.id)
         .eq('email', formData.email)
         .neq('status', 'cancelled')
         .maybeSingle();
 
       if (existing) {
+        // 支払い前（未完了）に画面を閉じただけの場合は「申し込み済み」として弾かず、
+        // 同じエントリーをそのまま再利用して支払い画面へ戻す（重複作成しない。
+        // entries への UPDATE 権限は anon に付与していないため、内容の更新はせず既存の値をそのまま使う）
+        const resumable = existing.status === 'confirmed' && tournament.payment_required && existing.payment_status !== 'completed';
+        if (resumable) {
+          setEntryInfo({ id: existing.id, cancelToken: existing.cancel_token });
+          setStep('payment-method');
+          setLoading(false);
+          return;
+        }
         const msg = existing.status === 'waitlist' ? t.errDupWaitlist : t.errDupEntry;
         setError(msg);
         setStep('input');
@@ -359,6 +369,16 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                   <p className="text-xs text-green-700 mt-1">{t.payPairNote(Math.round(tournament.entry_fee / 2).toLocaleString())}</p>
                 )}
               </div>
+
+              {!paymentLoading && (
+                <button
+                  type="button"
+                  onClick={() => setStep('confirm')}
+                  className="text-xs font-medium text-gray-500 hover:text-gray-700"
+                >
+                  {t.back}
+                </button>
+              )}
 
               <PaymentMethodSelector
                 entryFee={tournament.entry_fee}
