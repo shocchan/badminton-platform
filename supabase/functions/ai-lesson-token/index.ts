@@ -88,24 +88,6 @@ const isRateLimited = (): boolean => {
   return false;
 };
 
-// OPENAI_API_KEY の取得。
-// 【一時的フォールバック】2026-07-17時点、ダッシュボードでの登録時に名前へ
-// 「Name\n」ラベルが混入した状態（"Name\nOPENAI_API_KEY"）で保存されている。
-// 正しい名前で見つからない場合のみ、OPENAI_API_KEY で終わる環境変数を探し、
-// 値に混入した「Value」ラベル・空白を除去して使う。値はログへ一切出さない。
-// 正しい名前で再登録されたらこのフォールバックは削除してよい。
-const getOpenAiKey = (): string | null => {
-  const direct = Deno.env.get("OPENAI_API_KEY");
-  if (direct) return direct.trim();
-  for (const [name, value] of Object.entries(Deno.env.toObject())) {
-    if (name !== "OPENAI_API_KEY" && name.trim().endsWith("OPENAI_API_KEY")) {
-      const cleaned = value.replace(/^\s*[Vv]alue\s*/, "").replace(/\s+/g, "");
-      if (cleaned.startsWith("sk-")) return cleaned;
-    }
-  }
-  return null;
-};
-
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
@@ -137,7 +119,7 @@ serve(async (req) => {
       // Secret未設定時は全リクエストを拒否（フェイルクローズ）
       return json(503, { error: "demo_code_not_configured" });
     }
-    const apiKey = getOpenAiKey();
+    const apiKey = Deno.env.get("OPENAI_API_KEY")?.trim();
     if (!apiKey) {
       return json(503, { error: "openai_key_not_configured" });
     }
