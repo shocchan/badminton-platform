@@ -2,6 +2,7 @@
 // ヒアリング回答からルールベース生成された LearningPlan を可視化する
 
 import { Target, TrendingUp, MessageCircle, CalendarClock, PieChart, Languages, Wand2 } from 'lucide-react';
+import { RoadmapSummary } from './RoadmapSummary';
 import type { AiLessonDict } from '../../locales/aiLesson';
 import type { LearningPlan } from '../../lib/aiLesson/types';
 
@@ -50,6 +51,9 @@ export const PlanView = ({ t, plan, onNext }: Props) => {
             </div>
           </div>
         </div>
+
+        {/* 目標達成ロードマップ（全体進捗・推定残り・次のミッション。詳細はタップで展開） */}
+        <RoadmapSummary t={t} plan={plan} />
 
         {/* 優先課題 */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">

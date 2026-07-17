@@ -14,6 +14,16 @@ import { aiLessonRepository, isGatePassed, todayISO } from '../../lib/aiLesson/r
 import type { StudentProfile } from '../../lib/aiLesson/repository';
 import { applySessionToProgress, calcGauges, calcSessionXp, nextStreak } from '../../lib/aiLesson/xp';
 import type { Gauges } from '../../lib/aiLesson/xp';
+import { roadmapRepository } from '../../lib/aiLesson/roadmapRepository';
+import {
+  applyLessonToRoadmap,
+  calculateGoalProgress,
+  countCategoryProgress,
+  estimateRemainingMissions,
+  findRoadmapItemForTarget,
+  pickNextMissions,
+} from '../../lib/aiLesson/roadmapProgress';
+import type { RoadmapReportData } from '../../components/ai-lesson/RoadmapReportCard';
 import { PasscodeGate } from '../../components/ai-lesson/PasscodeGate';
 import { HearingForm } from '../../components/ai-lesson/HearingForm';
 import { PlanView } from '../../components/ai-lesson/PlanView';
@@ -39,6 +49,7 @@ interface ReportData {
   gauges: Gauges;
   streakDays: number;
   reviewSchedule: ReviewScheduleItem[];
+  roadmap: RoadmapReportData;
 }
 
 export default function AiLessonDemoPage() {
@@ -103,12 +114,39 @@ export default function AiLessonDemoPage() {
       expressions: expressionLabels,
     }));
 
+    // ロードマップ進捗の更新（今日の表現を該当項目へ反映し、変化をレポートへ渡す）
+    const roadmap = roadmapRepository.getRoadmapForGoal(profile.answers.goal);
+    const rBefore = roadmapRepository.loadProgress(roadmap.goal);
+    const overallBefore = calculateGoalProgress(roadmap, rBefore).overallRatio;
+    const rAfter = applyLessonToRoadmap(roadmap, rBefore, outcome.expressions, today);
+    roadmapRepository.saveProgress(rAfter);
+    const goalAfter = calculateGoalProgress(roadmap, rAfter);
+    const item = findRoadmapItemForTarget(roadmap, profile.plan.target.label);
+    const category = item ? roadmap.categories.find((c) => c.id === item.categoryId) ?? null : null;
+    const catProg = item ? countCategoryProgress(roadmap, rAfter, item.categoryId) : { done: 0, total: 0 };
+    const convDomain = goalAfter.domains.find((d) => d.key === 'conversation');
+    const nextItem = pickNextMissions(roadmap, rAfter, 1)[0] ?? null;
+    const roadmapData: RoadmapReportData = {
+      itemLabel: item?.label ?? null,
+      categoryLabel: category ? (locale === 'zh' ? category.labelZh : category.labelJa) : null,
+      categoryDone: catProg.done,
+      categoryTotal: catProg.total,
+      domainLabel: t.roadmap.domains.conversation,
+      domainDone: convDomain?.understoodCount ?? 0,
+      domainTotal: convDomain?.totalItems ?? 0,
+      overallBeforePct: (overallBefore * 100).toFixed(1),
+      overallAfterPct: (goalAfter.overallRatio * 100).toFixed(1),
+      remaining: estimateRemainingMissions(roadmap, rAfter),
+      nextLabel: nextItem?.label ?? null,
+    };
+
     setReport({
       session,
       totalXp: newProgress.totalXp,
       gauges: calcGauges(newProgress),
       streakDays: newProgress.streakDays,
       reviewSchedule,
+      roadmap: roadmapData,
     });
     setStep('report');
   };
@@ -162,6 +200,7 @@ export default function AiLessonDemoPage() {
           gauges={report.gauges}
           streakDays={report.streakDays}
           reviewSchedule={report.reviewSchedule}
+          roadmapData={report.roadmap}
           onAgain={() => setStep('mission')}
           onBackToPlan={() => setStep('plan')}
         />

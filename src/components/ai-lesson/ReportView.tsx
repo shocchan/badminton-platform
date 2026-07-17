@@ -1,6 +1,8 @@
 // 学習レポート: 実施結果 + XP + 習慣/成長/定着ゲージ + エビングハウス型復習予定
 
 import { Award, BookOpen, CheckCircle2, Lightbulb, PenLine, CalendarDays, Zap, RotateCcw } from 'lucide-react';
+import { RoadmapReportCard } from './RoadmapReportCard';
+import type { RoadmapReportData } from './RoadmapReportCard';
 import type { AiLessonDict } from '../../locales/aiLesson';
 import type { LearningPlan, ReviewScheduleItem, SessionRecord } from '../../lib/aiLesson/types';
 import type { Gauges } from '../../lib/aiLesson/xp';
@@ -13,6 +15,8 @@ interface Props {
   gauges: Gauges;
   streakDays: number;
   reviewSchedule: ReviewScheduleItem[];
+  /** 今日のロードマップ進捗（ページ側で計算済み） */
+  roadmapData?: RoadmapReportData;
   onAgain: () => void;
   onBackToPlan: () => void;
 }
@@ -61,7 +65,7 @@ const Section = ({ icon, title, children }: { icon: React.ReactNode; title: stri
 );
 
 export const ReportView = ({
-  t, plan, session, totalXp, gauges, streakDays, reviewSchedule, onAgain, onBackToPlan,
+  t, plan, session, totalXp, gauges, streakDays, reviewSchedule, roadmapData, onAgain, onBackToPlan,
 }: Props) => {
   const tr = t.report;
   const minutes = Math.floor(session.elapsedSeconds / 60);
@@ -142,6 +146,9 @@ export const ReportView = ({
           <Gauge label={tr.gaugeGrowth} desc={tr.gaugeGrowthDesc(gauges.growthLevel)} ratio={gauges.growth} color="bg-blue-600" />
           <Gauge label={tr.gaugeRetention} desc={tr.gaugeRetentionDesc} ratio={gauges.retention} color="bg-emerald-500" />
         </div>
+
+        {/* 今日のロードマップ進捗 */}
+        {roadmapData && <RoadmapReportCard t={t} data={roadmapData} />}
 
         {/* 表現の記録 */}
         <Section icon={<BookOpen className="w-4 h-4 text-blue-600" />} title={tr.newExpressions}>
