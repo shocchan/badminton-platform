@@ -168,8 +168,10 @@ async function buildOgpMeta(route, env, pageUrl) {
   return null;
 }
 
-export default {
-  async fetch(request, env) {
+// 本番ホスト（これ以外＝staging・Previewデプロイ・localhostは検索エンジンから除外する）
+const PRODUCTION_HOSTS = ['kawabado.com', 'www.kawabado.com'];
+
+async function handleRequest(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -262,6 +264,22 @@ export default {
         'Cache-Control': 'no-cache, must-revalidate',
       },
     });
+}
+
+export default {
+  async fetch(request, env) {
+    const response = await handleRequest(request, env);
+
+    // staging・Preview環境（本番ホスト以外）は検索エンジンにインデックスさせない。
+    // 既存のステータス・ヘッダー（Cache-Control等）はそのまま維持し、
+    // X-Robots-Tag だけを追加する。本番 kawabado.com には付けない。
+    const host = new URL(request.url).hostname;
+    if (!PRODUCTION_HOSTS.includes(host)) {
+      const noindexed = new Response(response.body, response);
+      noindexed.headers.set('X-Robots-Tag', 'noindex, nofollow');
+      return noindexed;
+    }
+    return response;
   },
 };
 `;
