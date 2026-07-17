@@ -40,3 +40,12 @@ export const WEEKS_PER_MONTH = 4.33;
 
 /** 苦手と表示する苦手度のしきい値 */
 export const WEAKNESS_BADGE_THRESHOLD = 0.5;
+
+/** 初期診断期間: このレッスン回数に達するまで残り回数を確定表示しない（「診断中」表示） */
+export const DIAGNOSIS_MIN_SESSIONS = 4;
+
+/** 推定値の更新間隔（毎レッスンで数字を動かさない。週1回のみ再計算） */
+export const ESTIMATE_UPDATE_INTERVAL_DAYS = 7;
+
+/** 推定履歴の保持件数 */
+export const ESTIMATE_HISTORY_MAX = 20;

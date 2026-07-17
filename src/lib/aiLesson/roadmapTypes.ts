@@ -62,10 +62,17 @@ export interface RoadmapCategory {
   labelZh: string;
 }
 
+/** 領域のカリキュラム状態（仮の総数を正式カリキュラムのように見せないための区別）
+ *  - published … 実項目が投入済み。件数・進捗を正式値として表示できる
+ *  - estimated … 一部項目のみ。総数は試算値（「試算」表示を付ける）
+ *  - planned   … 項目未投入。「設計中」と表示し、数値を前面に出さない */
+export type DomainCurriculumStatus = 'published' | 'estimated' | 'planned';
+
 /** 領域定義。totalItems は仮の総項目数（定義済み items より多くてよい。差分は未定義の残り） */
 export interface RoadmapDomain {
   key: DomainKey;
   totalItems: number;
+  status: DomainCurriculumStatus;
 }
 
 /** 目標ごとのロードマップ（カリキュラム本体。生徒の進捗は含まない） */
@@ -93,6 +100,15 @@ export interface RoadmapItemProgress {
   lastUpdatedISO: string;
 }
 
+/** 推定値の履歴1件（「数字だけ突然増やさない」ための更新理由付き記録） */
+export interface EstimateHistoryEntry {
+  dateISO: string;
+  min: number;
+  max: number;
+  /** 更新理由キー（initial / reviewAdded / smooth） */
+  reasonKey: string;
+}
+
 export interface RoadmapProgressState {
   goal: RoadmapGoalKey;
   itemStates: Record<string, RoadmapItemProgress>;
@@ -102,7 +118,16 @@ export interface RoadmapProgressState {
   weeklyTargetSessions: number | null;
   /** 生徒ごとの残りミッション補正（管理者調整想定。+/-回数） */
   remainingMissionsOffset: number;
+  /** 表示中の推定値（毎レッスンではなく一定間隔でのみ更新する） */
+  lastEstimate: (MissionEstimate & { dateISO: string; reasonKey: string }) | null;
+  /** 推定値の更新履歴（直近のみ保持） */
+  estimateHistory: EstimateHistoryEntry[];
 }
+
+/** 画面に出す推定状態: 診断中（初期3〜5回）or 確定表示 */
+export type EstimateDisplay =
+  | { mode: 'diagnosing'; sessionsUntilReady: number }
+  | { mode: 'ready'; min: number; max: number; updatedISO: string; reasonKey: string };
 
 // ── 計算結果 ──
 

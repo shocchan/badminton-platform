@@ -17,10 +17,10 @@ import type { Gauges } from '../../lib/aiLesson/xp';
 import { roadmapRepository } from '../../lib/aiLesson/roadmapRepository';
 import {
   applyLessonToRoadmap,
-  calculateGoalProgress,
   countCategoryProgress,
-  estimateRemainingMissions,
+  countPublishedProgress,
   findRoadmapItemForTarget,
+  getDisplayedEstimate,
   pickNextMissions,
 } from '../../lib/aiLesson/roadmapProgress';
 import type { RoadmapReportData } from '../../components/ai-lesson/RoadmapReportCard';
@@ -114,30 +114,32 @@ export default function AiLessonDemoPage() {
       expressions: expressionLabels,
     }));
 
-    // ロードマップ進捗の更新（今日の表現を該当項目へ反映し、変化をレポートへ渡す）
+    // ロードマップ進捗の更新（今日の表現を該当項目へ反映し、今日できたことをレポートへ渡す）
     const roadmap = roadmapRepository.getRoadmapForGoal(profile.answers.goal);
     const rBefore = roadmapRepository.loadProgress(roadmap.goal);
-    const overallBefore = calculateGoalProgress(roadmap, rBefore).overallRatio;
-    const rAfter = applyLessonToRoadmap(roadmap, rBefore, outcome.expressions, today);
-    roadmapRepository.saveProgress(rAfter);
-    const goalAfter = calculateGoalProgress(roadmap, rAfter);
+    let rAfter = applyLessonToRoadmap(roadmap, rBefore, outcome.expressions, today);
     const item = findRoadmapItemForTarget(roadmap, profile.plan.target.label);
     const category = item ? roadmap.categories.find((c) => c.id === item.categoryId) ?? null : null;
     const catProg = item ? countCategoryProgress(roadmap, rAfter, item.categoryId) : { done: 0, total: 0 };
-    const convDomain = goalAfter.domains.find((d) => d.key === 'conversation');
+    const published = countPublishedProgress(roadmap, rAfter);
     const nextItem = pickNextMissions(roadmap, rAfter, 1)[0] ?? null;
+    // 推定残りは診断期間中「診断中」、以後も週1回のみ更新（学習直後に数字が増える問題の対策）
+    const sessionsCount = aiLessonRepository.listSessions().length; // appendSession済みなので今回分を含む
+    const estimateResult = getDisplayedEstimate(roadmap, rAfter, sessionsCount, today);
+    if (estimateResult.progressToSave) rAfter = estimateResult.progressToSave;
+    roadmapRepository.saveProgress(rAfter);
+    const todayUsage = item ? (outcome.expressions[0]?.usage ?? null) : null;
     const roadmapData: RoadmapReportData = {
       itemLabel: item?.label ?? null,
       categoryLabel: category ? (locale === 'zh' ? category.labelZh : category.labelJa) : null,
       categoryDone: catProg.done,
       categoryTotal: catProg.total,
-      domainLabel: t.roadmap.domains.conversation,
-      domainDone: convDomain?.understoodCount ?? 0,
-      domainTotal: convDomain?.totalItems ?? 0,
-      overallBeforePct: (overallBefore * 100).toFixed(1),
-      overallAfterPct: (goalAfter.overallRatio * 100).toFixed(1),
-      remaining: estimateRemainingMissions(roadmap, rAfter),
+      publishedDone: published.done,
+      publishedTotal: published.total,
+      todayUsage,
+      nextReviewLabel: t.report.reviewDay(1),
       nextLabel: nextItem?.label ?? null,
+      estimate: estimateResult.display,
     };
 
     setReport({

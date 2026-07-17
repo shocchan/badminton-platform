@@ -6,6 +6,9 @@
 // - estimateCompletionDate()     … 推定到達期間
 
 import {
+  DIAGNOSIS_MIN_SESSIONS,
+  ESTIMATE_HISTORY_MAX,
+  ESTIMATE_UPDATE_INTERVAL_DAYS,
   LOW_RETENTION_PENALTY,
   MASTERY_ORDER,
   MASTERY_WEIGHTS,
@@ -16,6 +19,7 @@ import type {
   CompletionEstimate,
   DomainKey,
   DomainProgress,
+  EstimateDisplay,
   GoalProgress,
   GoalRoadmap,
   MasteryState,
@@ -233,6 +237,65 @@ export const countCategoryProgress = (
   return {
     done: items.filter((i) => atLeast(stateOf(progress, i.id), 'understood')).length,
     total: items.length,
+  };
+};
+
+/** 公開中（実項目が定義済み）のミッション進捗。仮の総数と混ぜない正式値（12-10節対応） */
+export const countPublishedProgress = (
+  roadmap: GoalRoadmap,
+  progress: RoadmapProgressState,
+  domainKey?: DomainKey,
+): { done: number; total: number } => {
+  const items = roadmap.items.filter((i) => (domainKey ? i.domain === domainKey : true));
+  return {
+    done: items.filter((i) => atLeast(stateOf(progress, i.id), 'understood')).length,
+    total: items.length,
+  };
+};
+
+const daysBetweenISO = (fromISO: string, toISO: string): number =>
+  Math.round((new Date(toISO + 'T00:00:00').getTime() - new Date(fromISO + 'T00:00:00').getTime()) / 86400000);
+
+/**
+ * 画面に出す推定残りミッション（カーナビの到着予定時間方式）。
+ * - 最初の DIAGNOSIS_MIN_SESSIONS 回は「診断中」を返し、数値を確定表示しない
+ * - 診断後も毎レッスンでは更新せず、ESTIMATE_UPDATE_INTERVAL_DAYS ごとに再計算する
+ * - 数値が変わる場合は理由キー（reviewAdded / smooth）を付け、履歴へ残す
+ * 返り値の progressToSave が non-null の場合、呼び出し側が saveProgress すること。
+ */
+export const getDisplayedEstimate = (
+  roadmap: GoalRoadmap,
+  progress: RoadmapProgressState,
+  completedSessions: number,
+  todayISO: string,
+): { display: EstimateDisplay; progressToSave: RoadmapProgressState | null } => {
+  if (completedSessions < DIAGNOSIS_MIN_SESSIONS) {
+    return {
+      display: { mode: 'diagnosing', sessionsUntilReady: DIAGNOSIS_MIN_SESSIONS - completedSessions },
+      progressToSave: null,
+    };
+  }
+
+  const last = progress.lastEstimate;
+  if (last && daysBetweenISO(last.dateISO, todayISO) < ESTIMATE_UPDATE_INTERVAL_DAYS) {
+    // 更新間隔内は前回の表示を維持（学習直後に数字が増えて見える問題の対策）
+    return {
+      display: { mode: 'ready', min: last.min, max: last.max, updatedISO: last.dateISO, reasonKey: last.reasonKey },
+      progressToSave: null,
+    };
+  }
+
+  const fresh = estimateRemainingMissions(roadmap, progress);
+  const reasonKey = !last ? 'initial' : fresh.max > last.max ? 'reviewAdded' : 'smooth';
+  const entry = { dateISO: todayISO, min: fresh.min, max: fresh.max, reasonKey };
+  const progressToSave: RoadmapProgressState = {
+    ...progress,
+    lastEstimate: entry,
+    estimateHistory: [...(progress.estimateHistory ?? []), entry].slice(-ESTIMATE_HISTORY_MAX),
+  };
+  return {
+    display: { mode: 'ready', min: fresh.min, max: fresh.max, updatedISO: todayISO, reasonKey },
+    progressToSave,
   };
 };
 

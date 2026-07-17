@@ -30,6 +30,48 @@ const REALTIME_MODEL = Deno.env.get("AI_LESSON_REALTIME_MODEL") ?? "gpt-realtime
 const VOICE = "marin"; // 公式推奨（marin / cedar）
 const OPENAI_CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets";
 
+// N3相当の学習者向けに正式パラメータで減速（audio.output.speed: 0.25〜1.5、既定1.0）
+// 2〜3割ゆっくり = 0.8。話し方自体の減速は instructions 側でも指示している。
+const OUTPUT_SPEED = 0.8;
+
+// ターン検知: semantic_vad には音量閾値がなく（eagerness のみ）、小さな物音でも
+// 発話開始と誤検知して AI の発話が止まる問題が実機で出たため、閾値を調整できる
+// server_vad へ切り替える（割り込み機能自体は interrupt_response で維持）。
+// - threshold 0.7        … 既定0.5より高くし、咳・環境音での誤割り込みを減らす
+// - prefix_padding_ms    … 発話冒頭の取りこぼし防止
+// - silence_duration_ms  … 学習者のゆっくりした発話終了を待つ（既定500→850ms）
+const TURN_DETECTION = {
+  type: "server_vad",
+  threshold: 0.7,
+  prefix_padding_ms: 300,
+  silence_duration_ms: 850,
+  create_response: true,
+  interrupt_response: true,
+} as const;
+
+// レッスン終了は自然言語ではなく tool call で明示させる（クライアントが検知して終了処理）
+const FINISH_LESSON_TOOL = {
+  type: "function",
+  name: "finish_lesson",
+  description:
+    "レッスンのまとめと終了のあいさつを話し終えた直後に必ず呼ぶ。これを呼ぶとレッスンが終了する。",
+  parameters: {
+    type: "object",
+    properties: {
+      reason: {
+        type: "string",
+        enum: ["completed", "student_request"],
+        description: "completed=通常の完了 / student_request=生徒の希望による終了",
+      },
+      target_practiced: {
+        type: "boolean",
+        description: "生徒が今日の目標表現を一度でも発話（復唱含む）したか",
+      },
+    },
+    required: ["reason"],
+  },
+} as const;
+
 // ── 簡易レート制限（isolateメモリ内。コールドスタートでリセットされる） ──
 // 連打による複数トークン発行を抑える最低限の装置。
 // フェーズ2: Supabaseテーブル（ai_lesson_usage 等）で「1日3回・端末単位」の本格制限と
@@ -148,18 +190,15 @@ serve(async (req) => {
           model: REALTIME_MODEL,
           instructions,
           output_modalities: ["audio"],
+          tools: [FINISH_LESSON_TOOL],
+          tool_choice: "auto",
           audio: {
             input: {
               // ja/zh が混在するため language は固定しない
               transcription: { model: "gpt-4o-transcribe" },
-              turn_detection: {
-                type: "semantic_vad",
-                eagerness: "low", // 日本語学習者の長めの間を許容
-                create_response: true,
-                interrupt_response: true, // 生徒の割り込みでAI発話を停止
-              },
+              turn_detection: TURN_DETECTION,
             },
-            output: { voice: VOICE },
+            output: { voice: VOICE, speed: OUTPUT_SPEED },
           },
         },
       }),

@@ -40,7 +40,11 @@ const emptyProgress = (goal: RoadmapGoalKey): RoadmapProgressState => ({
   examDateISO: null,
   weeklyTargetSessions: null,
   remainingMissionsOffset: 0,
+  lastEstimate: null,
+  estimateHistory: [],
 });
+// 旧バージョンで保存された進捗（lastEstimate等なし）は loadProgress の
+// { ...emptyProgress(goal), ...parsed } でデフォルト補完される（migration不要の後方互換）
 
 const createLocalStorageRoadmapRepository = (): RoadmapRepository => ({
   getRoadmapForGoal(goal) {

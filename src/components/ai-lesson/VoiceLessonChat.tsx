@@ -1,11 +1,15 @@
 // 3分音声レッスン本体（集中モード・LessonChatと同じ全画面フレーム）
 // - 音声通信は voiceSession.ts に委譲。このコンポーネントはUI・タイマー・学習判定・ログのみ
-// - タイマーは接続完了時刻からの実経過（バックグラウンド遷移後も復帰時に補正）
-// - 残り35秒で session.update によるまとめ移行シグナル → 3分でまとめ猶予バナー → 3分30秒で強制終了
-// - 失敗時は再試行（最大2回）またはテキストモードへのフォールバック
+// - 「3分きっかり」ではなく学習完了優先: 2:30で着地指示 → 3:00で完了していなければ
+//   最大60秒延長（UIは「まとめ中」表示）→ 4:00で必ず終了
+// - 正常終了はゆい先生の finish_lesson ツール＋最終音声の再生完了で検知し、
+//   「レッスンが完了しました」表示 → 自動でレポートへ遷移（手動の終了操作は不要）
+// - 途中終了・エラー時は自動遷移せず「レポートを見る / もう一度 / テキストへ」を選ばせる
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, RefreshCw, Volume2, AlertTriangle } from 'lucide-react';
+import {
+  X, Clock, Flag, Mic, MicOff, PenLine, RefreshCw, Volume2, AlertTriangle, CheckCircle2, FileText, Square,
+} from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
@@ -34,8 +38,10 @@ const formatTime = (sec: number): string => {
 const hasChinese = (text: string): boolean =>
   /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(text);
 
-const WRAP_SIGNAL_BEFORE_SEC = 35; // 残り35秒でまとめ移行を指示
-const SUMMARY_GRACE_SEC = 30;      // 3分経過後のまとめ猶予（超えたら強制終了）
+const CLOSING_BEFORE_END_SEC = 30;  // 残り30秒（2:30）で着地・最終練習へ誘導
+const MAX_EXTENSION_SEC = 60;       // 3:00以降のまとめ延長は最大60秒（=4:00で必ず終了）
+const SUMMARY_END_TIMEOUT_MS = 25000; // 「まとめて終了」後、finish_lessonが来なくても終了する猶予
+const COMPLETE_OVERLAY_MS = 1600;   // 「レッスンが完了しました」表示時間
 const MAX_RETRY = 2;
 
 const isWeChatBrowser = (): boolean => /MicroMessenger/i.test(navigator.userAgent);
@@ -44,9 +50,11 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
   const tl = t.lesson;
   const tv = t.voice;
   const duration = courseMinutes * 60;
+  const hardEnd = duration + MAX_EXTENSION_SEC;
 
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [errorKind, setErrorKind] = useState<VoiceErrorKind | null>(null);
+  const [interrupted, setInterrupted] = useState(false); // 緊急停止など、エラー以外の途中終了
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [liveTutor, setLiveTutor] = useState('');
   const [liveUser, setLiveUser] = useState('');
@@ -54,7 +62,8 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
   const [userSpeaking, setUserSpeaking] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [finishing, setFinishing] = useState(false);
+  const [endingSummary, setEndingSummary] = useState(false); // 「まとめて終了」進行中
+  const [completedOverlay, setCompletedOverlay] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
 
   const sessionRef = useRef<VoiceSessionHandle | null>(null);
@@ -64,18 +73,23 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
   const startAtRef = useRef<number | null>(null); // 接続完了時刻（タイマー基準）
   const sessionStartISORef = useRef<string>(new Date().toISOString());
   const finishedRef = useRef(false);
+  const closingSentRef = useRef(false);
+  const extensionSentRef = useRef(false);
+  const pendingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const themeLabel = t.plan.themes[plan.themeKey as keyof typeof t.plan.themes] ?? plan.themeKey;
-  const remaining = duration - elapsed;
-  const inSummaryGrace = elapsed >= duration;
+  const remaining = Math.max(duration - elapsed, 0);
+  const inExtension = elapsed >= duration && !completedOverlay;
 
   const logEntry = (entry: Omit<VoiceLogEntry, 'atMs'>) => {
+    if (finishedRef.current) return; // 終了後はログを増やさない
     const atMs = startAtRef.current ? Date.now() - startAtRef.current : 0;
     entriesRef.current.push({ ...entry, atMs });
   };
 
   const pushMessage = (m: ChatMessage) => {
+    if (finishedRef.current) return;
     messagesRef.current = [...messagesRef.current, m];
     setMessages(messagesRef.current);
   };
@@ -106,10 +120,10 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
     };
   };
 
-  const finish = useCallback((reason: string) => {
+  /** すべての終了経路の共通処理。overlay=true なら完了表示→自動でレポートへ */
+  const completeLesson = useCallback((reason: string, overlay: boolean) => {
     if (finishedRef.current) return;
     finishedRef.current = true;
-    setFinishing(true);
     sessionRef.current?.stop();
 
     const outcome = buildOutcome();
@@ -125,17 +139,25 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
     });
 
     const elapsedSec = startAtRef.current
-      ? Math.min(Math.floor((Date.now() - startAtRef.current) / 1000), duration + SUMMARY_GRACE_SEC)
+      ? Math.min(Math.floor((Date.now() - startAtRef.current) / 1000), hardEnd)
       : 0;
-    onFinish(outcome, elapsedSec);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration, onFinish, plan]);
 
-  const start = useCallback(async () => {
+    if (overlay) {
+      setCompletedOverlay(true);
+      const id = setTimeout(() => onFinish(outcome, elapsedSec), COMPLETE_OVERLAY_MS);
+      pendingTimersRef.current.push(id);
+    } else {
+      onFinish(outcome, elapsedSec);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hardEnd, onFinish, plan]);
+
+  const start = useCallback(() => {
     setErrorKind(null);
+    setInterrupted(false);
     setStatus('requesting-mic');
     const code = (import.meta.env.VITE_AI_LESSON_DEMO_CODE as string | undefined) ?? '';
-    const session = await startVoiceSession({
+    sessionRef.current = startVoiceSession({
       code,
       plan: {
         themeLabel,
@@ -191,17 +213,23 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
           logEntry({ speaker: 'system', text: `error:${kind}` });
           setErrorKind(kind);
         },
+        // ゆい先生がまとめ→finish_lessonを呼び、最終音声の再生が完了した
+        onFinishLesson: (reason) => {
+          logEntry({ speaker: 'system', text: `finish_lesson:${reason}` });
+          completeLesson(reason === 'student_request' ? 'student-request' : 'completed', true);
+        },
       },
     });
-    sessionRef.current = session;
-  }, [plan, themeLabel]);
+  }, [plan, themeLabel, completeLesson]);
 
   // 初回マウントで接続開始（setTimeoutで1tick遅らせ、effect内の同期setStateを避ける）。
-  // アンマウント時は必ず切断（マイク停止・PeerConnection close）
+  // アンマウント時は必ず切断（マイク停止・PeerConnection close・保留タイマー解除）
   useEffect(() => {
-    const id = setTimeout(() => { void start(); }, 0);
+    const id = setTimeout(() => { start(); }, 0);
+    const timers = pendingTimersRef.current; // 同一配列をpushで使い回すため参照コピーで安全
     return () => {
       clearTimeout(id);
+      timers.forEach(clearTimeout);
       sessionRef.current?.stop();
     };
   }, [start]);
@@ -211,7 +239,7 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
     if (status !== 'connected') return;
     const tick = () => {
       if (startAtRef.current === null) return;
-      setElapsed(Math.min(Math.floor((Date.now() - startAtRef.current) / 1000), duration + SUMMARY_GRACE_SEC));
+      setElapsed(Math.min(Math.floor((Date.now() - startAtRef.current) / 1000), hardEnd));
     };
     const id = setInterval(tick, 1000);
     document.addEventListener('visibilitychange', tick);
@@ -219,35 +247,78 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
       clearInterval(id);
       document.removeEventListener('visibilitychange', tick);
     };
-  }, [status, duration]);
+  }, [status, hardEnd]);
 
-  // 残り35秒: まとめ移行シグナル（session.update）
-  const wrapSentRef = useRef(false);
+  // 残り30秒（2:30）: 新しい話題を止め、最終練習→まとめへ誘導（session.update + system指示）
   useEffect(() => {
-    if (wrapSentRef.current || status !== 'connected') return;
-    if (remaining <= WRAP_SIGNAL_BEFORE_SEC) {
-      wrapSentRef.current = true;
-      sessionRef.current?.sendWrapUpSignal();
-      logEntry({ speaker: 'system', text: 'wrapup-signal' });
+    if (closingSentRef.current || status !== 'connected' || finishedRef.current) return;
+    if (elapsed >= duration - CLOSING_BEFORE_END_SEC) {
+      closingSentRef.current = true;
+      sessionRef.current?.sendCue(
+        '残り約30秒です。新しい話題を始めず、今の話を短く着地させてください。目標表現が未使用なら最後の練習として復唱させ、言い直し→今日の表現の確認→短いまとめの後、必ず finish_lesson を呼んでください。',
+        { switchToWrapUp: true, respondIfIdle: true },
+      );
+      logEntry({ speaker: 'system', text: 'closing-cue' });
     }
-  }, [remaining, status]);
+  }, [elapsed, duration, status]);
 
-  // 3分30秒（duration + 猶予）で強制終了
+  // 3:00: 完了していなければ延長モード（最大60秒）。まとめを促す
   useEffect(() => {
-    if (elapsed >= duration + SUMMARY_GRACE_SEC && !finishedRef.current) {
-      finish('timeout');
+    if (extensionSentRef.current || status !== 'connected' || finishedRef.current) return;
+    if (elapsed >= duration) {
+      extensionSentRef.current = true;
+      sessionRef.current?.sendCue(
+        '目安時間を過ぎました。60秒以内に、今日の表現の確認と短いまとめを終えて finish_lesson を呼んでください。',
+        { respondIfIdle: true },
+      );
+      logEntry({ speaker: 'system', text: 'extension-cue' });
     }
-  }, [elapsed, duration, finish]);
+  }, [elapsed, duration, status]);
+
+  // 4:00: 必ず終了（ここまで来たら自動でレポートへ）
+  useEffect(() => {
+    if (elapsed >= hardEnd && !finishedRef.current) {
+      completeLesson('timeout', true);
+    }
+  }, [elapsed, hardEnd, completeLesson]);
 
   // 新着で最下部へスクロール
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, liveTutor, liveUser]);
 
+  /** 「まとめて終了する」: 即切断せず、短いまとめ→finish_lesson を待つ（最大25秒） */
+  const handleSummaryEnd = () => {
+    setConfirmOpen(false);
+    if (finishedRef.current) return;
+    if (status !== 'connected') {
+      // 接続できていない場合はまとめようがないので中断扱い
+      stopImmediately();
+      return;
+    }
+    setEndingSummary(true);
+    sessionRef.current?.sendCue(
+      '生徒がレッスンの終了を希望しています。今の話を一言で受け止め、15秒程度で短くまとめて（今日できたこと＋明日の復習予告）、必ず finish_lesson を呼んでください。',
+      { switchToWrapUp: true, respondIfIdle: true },
+    );
+    logEntry({ speaker: 'system', text: 'summary-end-requested' });
+    const id = setTimeout(() => {
+      completeLesson('manual-summary', true);
+    }, SUMMARY_END_TIMEOUT_MS);
+    pendingTimersRef.current.push(id);
+  };
+
+  /** 緊急停止（接続不良時など）: 即切断して選択画面へ */
+  const stopImmediately = () => {
+    sessionRef.current?.stop();
+    setEndingSummary(false);
+    setInterrupted(true);
+  };
+
   const handleRetry = () => {
     if (retryCount >= MAX_RETRY) return;
     setRetryCount((c) => c + 1);
-    void start();
+    start();
   };
 
   const handleSwitchToText = () => {
@@ -258,35 +329,86 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
     onSwitchToText();
   };
 
+  /** 途中終了時「ここまでのレポートを見る」 */
+  const handlePartialReport = () => {
+    completeLesson('interrupted', false);
+  };
+
   const statusLine = (): string => {
-    if (finishing) return tv.statusEnding;
+    if (endingSummary) return tv.endingSummary;
     if (status === 'requesting-mic') return tv.statusMicPermission;
     if (status === 'connecting') return tv.statusConnecting;
-    if (inSummaryGrace) return tv.summaryPhase;
+    if (inExtension) return tv.finalPractice;
     if (tutorSpeaking) return tv.statusTutorSpeaking;
     return tv.statusListening;
   };
 
-  // ── エラー画面（接続前後の失敗・切断） ──
-  if (errorKind && status === 'error') {
-    const canRetry = errorKind !== 'mic-denied' && retryCount < MAX_RETRY;
-    const message =
-      errorKind === 'mic-denied' ? tv.micDenied
-        : errorKind === 'disconnected' ? tv.connectionLost
-          : retryCount >= MAX_RETRY ? tv.retryLimit : tv.connectFailed;
+  // ── 完了オーバーレイ（正常終了 → 自動でレポートへ） ──
+  if (completedOverlay) {
+    return (
+      <div className="fixed inset-0 z-40 bg-gray-50 flex items-center justify-center px-4" style={{ height: '100dvh' }}>
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+            <CheckCircle2 className="w-8 h-8 text-emerald-600" />
+          </div>
+          <p className="font-bold text-gray-900 text-lg">{tv.completedMessage}</p>
+          <p className="text-sm text-gray-500 mt-1">{tv.completedSub}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // ── マイク拒否 ──
+  if (errorKind === 'mic-denied' && status === 'error') {
     return (
       <div className="fixed inset-0 z-40 bg-gray-50 flex items-center justify-center px-4" style={{ height: '100dvh' }}>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-sm w-full text-center">
           <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
-            {errorKind === 'mic-denied'
-              ? <MicOff className="w-6 h-6 text-amber-600" />
-              : <AlertTriangle className="w-6 h-6 text-amber-600" />}
+            <MicOff className="w-6 h-6 text-amber-600" />
           </div>
-          <p className="text-sm text-gray-700 leading-relaxed mb-5">{message}</p>
+          <p className="text-sm text-gray-700 leading-relaxed mb-5">{tv.micDenied}</p>
           {isWeChatBrowser() && (
             <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5 mb-4">{tv.wechatWarning}</p>
           )}
+          <button
+            type="button"
+            onClick={handleSwitchToText}
+            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+          >
+            <PenLine className="w-4 h-4" />
+            {tv.switchToText}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── 途中終了・エラー（自動遷移せず選択させる） ──
+  if ((errorKind && status === 'error') || interrupted) {
+    const hasProgress = messages.length > 0;
+    const canRetry = !hasProgress && retryCount < MAX_RETRY && !interrupted;
+    const message = interrupted
+      ? tv.interruptedTitle
+      : errorKind === 'disconnected' ? tv.connectionLost
+        : retryCount >= MAX_RETRY ? tv.retryLimit : tv.connectFailed;
+    return (
+      <div className="fixed inset-0 z-40 bg-gray-50 flex items-center justify-center px-4" style={{ height: '100dvh' }}>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-sm w-full text-center">
+          <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="w-6 h-6 text-amber-600" />
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed mb-5">{message}</p>
           <div className="space-y-2">
+            {hasProgress && (
+              <button
+                type="button"
+                onClick={handlePartialReport}
+                className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                {tv.viewPartialReport}
+              </button>
+            )}
             {canRetry && (
               <button
                 type="button"
@@ -316,28 +438,30 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
       className="fixed inset-0 z-40 bg-gray-50 flex flex-col"
       style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}
     >
-      {/* ── 上部バー: 終了 / 残り時間 / 状態 ── */}
+      {/* ── 上部バー: レッスンを終える / 残り時間 / 状態 ── */}
       <div className="bg-white border-b border-gray-200 px-3 py-2 shrink-0">
         <div className="flex items-center justify-between gap-2">
           <button
             type="button"
             onClick={() => setConfirmOpen(true)}
-            aria-label={tl.endLesson}
-            className="min-h-11 min-w-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg"
+            disabled={endingSummary}
+            aria-label={tv.endLessonButton}
+            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40"
           >
             <X className="w-5 h-5" />
-            <span className="text-xs font-medium">{tl.endShort}</span>
+            <span className="text-xs font-medium whitespace-nowrap">{tv.endLessonButton}</span>
           </button>
           <div className="flex items-center gap-1.5">
-            <Clock className={`w-4 h-4 ${remaining <= 30 && !inSummaryGrace ? 'text-red-500' : 'text-blue-600'}`} />
-            <span className={`font-mono font-bold text-lg tabular-nums ${remaining <= 30 && !inSummaryGrace ? 'text-red-600' : 'text-gray-900'}`}>
+            <Clock className={`w-4 h-4 ${remaining <= 30 && !inExtension ? 'text-red-500' : 'text-blue-600'}`} />
+            <span className={`font-mono font-bold text-lg tabular-nums ${remaining <= 30 && !inExtension ? 'text-red-600' : 'text-gray-900'}`}>
               {formatTime(remaining)}
             </span>
           </div>
           <span className={`text-[11px] font-medium px-2.5 py-1 rounded-full whitespace-nowrap flex items-center gap-1 ${
-            status === 'connected' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'
+            inExtension || endingSummary ? 'bg-amber-50 text-amber-700'
+              : status === 'connected' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-blue-700'
           }`}>
-            {status === 'connected' && <Mic className="w-3 h-3" />}
+            {status === 'connected' && !inExtension && !endingSummary && <Mic className="w-3 h-3" />}
             {statusLine()}
           </span>
         </div>
@@ -349,10 +473,21 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
         </p>
       </div>
 
-      {/* ── まとめ猶予バナー ── */}
-      {inSummaryGrace && !finishing && (
-        <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-2 shrink-0">
-          <p className="text-sm text-emerald-800 font-medium">{tv.summaryPhase}</p>
+      {/* ── まとめ中バナー（延長 or まとめて終了） ── */}
+      {(inExtension || endingSummary) && (
+        <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
+          <p className="text-sm text-amber-800 font-medium min-w-0">
+            {endingSummary ? tv.endingSummary : tv.finalPractice}
+          </p>
+          {/* 緊急切断（まとめが進まない・接続不良時の脱出口） */}
+          <button
+            type="button"
+            onClick={stopImmediately}
+            className="min-h-9 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 bg-white rounded-lg hover:bg-red-50 transition-colors flex items-center gap-1 shrink-0"
+          >
+            <Square className="w-3 h-3" />
+            {tv.emergencyStop}
+          </button>
         </div>
       )}
 
@@ -418,7 +553,6 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
       {/* ── 下部: 会話状態インジケーター＋操作 ── */}
       <div className="bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
         <div className="flex items-center gap-3">
-          {/* 状態サークル: ゆい先生が話す時は青、聞いている時は緑で脈動 */}
           <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-colors ${
             status !== 'connected'
               ? 'bg-gray-100 text-gray-400'
@@ -445,12 +579,13 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
         </div>
       </div>
 
+      {/* 「レッスンを終える」→ 即切断せず、まとめてから終了 */}
       <ConfirmDialog
         open={confirmOpen}
-        title={tl.endConfirm}
-        confirmLabel={tl.endConfirmYes}
-        cancelLabel={tl.endConfirmNo}
-        onConfirm={() => { setConfirmOpen(false); finish('manual'); }}
+        title={tv.endSummaryConfirm}
+        confirmLabel={tv.endSummarize}
+        cancelLabel={tv.endContinue}
+        onConfirm={handleSummaryEnd}
         onCancel={() => setConfirmOpen(false)}
       />
     </div>
