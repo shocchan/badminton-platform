@@ -4,7 +4,16 @@
     "allow": [
       "Bash",
       "Fetch",
-      "Write",
+      "Write(src/**)",
+      "Write(components/**)",
+      "Write(public/**)",
+      "Write(pages/**)",
+      "Write(lib/**)",
+      "Write(styles/**)",
+      "Write(utils/**)",
+      "Write(supabase/**)",
+      "Write(.env.local)",
+      "Write(.env.example)",
       "Read"
     ],
     "ask": [
