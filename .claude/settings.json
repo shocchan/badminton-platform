@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash",
+      "Bash(npm *)",
+      "Bash(pnpm *)",
+      "Bash(git *)",
+      "Bash(vercel *)",
+      "Bash(npx *)",
+      "Write",
+      "Read"
+    ],
+    "deny": [
+      "Bash(scripts/deploy-production.sh*)",
+      "Bash(./scripts/deploy-production.sh*)",
+      "Bash(bash scripts/deploy-production.sh*)",
+      "Bash(bash ./scripts/deploy-production.sh*)",
+      "Bash(sh scripts/deploy-production.sh*)",
+      "Bash(sh ./scripts/deploy-production.sh*)",
+      "Bash(*deploy-production.sh*)",
+      "Bash(node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main*)",
+      "Bash(./node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main*)",
+      "Bash(*wrangler pages deploy* --branch=main*)",
+      "Bash(*supabase functions deploy*)",
+      "Bash(vercel deploy --prod*)",
+      "Bash(wrangler deploy --env production*)",
+      "Bash(npx supabase db push --db-url *production*)",
+      "Bash(supabase deploy*)",
+      "Write(.env.production)",
+      "Write(.env.production.local)",
+      "Write(.npmrc)",
+      "Write(secret:*)"
+    ]
+  }
+}
