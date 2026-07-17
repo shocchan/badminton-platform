@@ -4,6 +4,7 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { LessonFocusProvider, useLessonFocus } from './contexts/LessonFocusContext';
 import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
 import NavigateWithId from './components/NavigateWithId';
@@ -40,6 +41,8 @@ const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
 const RallyGamePage       = lazy(() => import('./pages/RallyGamePage'));
 const MyPage              = lazy(() => import('./pages/MyPage'));
+// AI日本語学習デモ（限定公開: ナビ・sitemap・robots非掲載、パスコードゲートあり）
+const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -84,6 +87,7 @@ const AnimatedRoutes = () => {
             <Route path="tactics-board"  element={<TacticsBoardPage />} />
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
+            <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
             <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />
             <Route path="signup"          element={<SignupPage />} />
@@ -144,17 +148,19 @@ const AnimatedRoutes = () => {
 };
 
 function AppInner() {
+  // AIレッスン中の集中モード（レッスン画面だけがtrueにする。一般ページは常に従来表示）
+  const { focused } = useLessonFocus();
   return (
     <>
       <ScrollToTop />
       <LanguageProvider>
         <ToastProvider>
           <div className="min-h-screen flex flex-col bg-gray-50">
-            <Header />
+            {!focused && <Header />}
             <div className="flex-1">
               <AnimatedRoutes />
             </div>
-            <Footer />
+            {!focused && <Footer />}
           </div>
         </ToastProvider>
       </LanguageProvider>
@@ -165,7 +171,9 @@ function AppInner() {
 function App() {
   return (
     <BrowserRouter>
-      <AppInner />
+      <LessonFocusProvider>
+        <AppInner />
+      </LessonFocusProvider>
     </BrowserRouter>
   );
 }
