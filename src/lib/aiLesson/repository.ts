@@ -131,3 +131,40 @@ export const todayISO = (): string => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
+
+// ── 音声セッションログ（MVP: localStorage保存。将来 ai_lesson_voice_logs テーブルへ） ──
+// 文字起こし・目標表現の使用・エラー等の記録のみ。秘密情報（client secret等）は絶対に含めない。
+
+export interface VoiceLogEntry {
+  /** 発話者（system = 接続・タイマー等のイベント） */
+  speaker: 'student' | 'tutor' | 'system';
+  text: string;
+  /** セッション開始からの経過ミリ秒 */
+  atMs: number;
+  /** 生徒の発話に目標表現が含まれていたか */
+  targetUse?: boolean;
+  /** 中国語（簡体字）が含まれていたか（簡易判定） */
+  hasZh?: boolean;
+}
+
+export interface VoiceSessionLog {
+  startedAtISO: string;
+  endedAtISO: string;
+  /** completed / manual / timeout / error / fallback-to-text */
+  endReason: string;
+  entries: VoiceLogEntry[];
+  targetUseCount: number;
+  /** 目標表現の初回使用が自力かヒントありか（未使用は null） */
+  targetUsage: 'self' | 'hint' | null;
+  connectionErrors: string[];
+}
+
+const KEY_VOICE_LOGS = PREFIX + 'voiceLogs';
+
+export const appendVoiceLog = (log: VoiceSessionLog): void => {
+  const logs = readJson<VoiceSessionLog[]>(KEY_VOICE_LOGS) ?? [];
+  logs.push(log);
+  writeJson(KEY_VOICE_LOGS, logs.slice(-10)); // デモなので直近10セッションまで
+};
+
+export const listVoiceLogs = (): VoiceSessionLog[] => readJson<VoiceSessionLog[]>(KEY_VOICE_LOGS) ?? [];

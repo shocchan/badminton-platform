@@ -1,14 +1,16 @@
-// コース選択（3分のみ実装、7分・12分は準備中）＋ 今日のミッション表示
+// コース選択（3分のみ実装、7分・12分は準備中）＋ 今日のミッション表示 ＋ 音声/テキストモード選択
 
 import { useState } from 'react';
-import { Flag, Play, Clock } from 'lucide-react';
+import { Flag, Play, Clock, Mic, PenLine } from 'lucide-react';
 import type { AiLessonDict } from '../../locales/aiLesson';
 import type { LearningPlan } from '../../lib/aiLesson/types';
+
+export type LessonMode = 'voice' | 'text';
 
 interface Props {
   t: AiLessonDict;
   plan: LearningPlan;
-  onStart: (minutes: number) => void;
+  onStart: (minutes: number, mode: LessonMode) => void;
 }
 
 const COURSES = [
@@ -20,6 +22,7 @@ const COURSES = [
 export const MissionSelect = ({ t, plan, onStart }: Props) => {
   const tm = t.mission;
   const [minutes, setMinutes] = useState(3);
+  const [mode, setMode] = useState<LessonMode>('voice');
   const themeLabel = t.plan.themes[plan.themeKey as keyof typeof t.plan.themes] ?? plan.themeKey;
   const missionText = tm.missionLine(themeLabel, plan.target.label);
 
@@ -63,9 +66,46 @@ export const MissionSelect = ({ t, plan, onStart }: Props) => {
         ))}
       </div>
 
+      {/* モード選択（音声 / テキスト）。音声が失敗してもレッスン内からテキストへ切替可能 */}
+      <p className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+        <Mic className="w-4 h-4 text-blue-600" />
+        {tm.modeLabel}
+      </p>
+      <div className="grid grid-cols-2 gap-2 mb-6">
+        <button
+          type="button"
+          onClick={() => setMode('voice')}
+          className={`min-h-11 p-3 rounded-xl border text-left transition-colors relative ${
+            mode === 'voice' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300'
+          }`}
+        >
+          <span className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-400 text-white">
+            {tm.modeVoiceBadge}
+          </span>
+          <span className={`flex items-center gap-1.5 font-bold text-sm ${mode === 'voice' ? 'text-blue-700' : 'text-gray-800'}`}>
+            <Mic className="w-4 h-4" />
+            {tm.modeVoice}
+          </span>
+          <span className="block text-[11px] text-gray-500 mt-1 leading-snug">{tm.modeVoiceDesc}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode('text')}
+          className={`min-h-11 p-3 rounded-xl border text-left transition-colors ${
+            mode === 'text' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300'
+          }`}
+        >
+          <span className={`flex items-center gap-1.5 font-bold text-sm ${mode === 'text' ? 'text-blue-700' : 'text-gray-800'}`}>
+            <PenLine className="w-4 h-4" />
+            {tm.modeText}
+          </span>
+          <span className="block text-[11px] text-gray-500 mt-1 leading-snug">{tm.modeTextDesc}</span>
+        </button>
+      </div>
+
       <button
         type="button"
-        onClick={() => onStart(minutes)}
+        onClick={() => onStart(minutes, mode)}
         className="w-full min-h-11 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center justify-center gap-2"
       >
         <Play className="w-5 h-5" />

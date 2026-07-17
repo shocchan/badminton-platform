@@ -18,7 +18,9 @@ import { PasscodeGate } from '../../components/ai-lesson/PasscodeGate';
 import { HearingForm } from '../../components/ai-lesson/HearingForm';
 import { PlanView } from '../../components/ai-lesson/PlanView';
 import { MissionSelect } from '../../components/ai-lesson/MissionSelect';
+import type { LessonMode } from '../../components/ai-lesson/MissionSelect';
 import { LessonChat } from '../../components/ai-lesson/LessonChat';
+import { VoiceLessonChat } from '../../components/ai-lesson/VoiceLessonChat';
 import { ReportView } from '../../components/ai-lesson/ReportView';
 import type { TutorOutcome } from '../../lib/aiLesson/mockTutor';
 import type { HearingAnswers, ReviewScheduleItem, SessionRecord } from '../../lib/aiLesson/types';
@@ -50,6 +52,7 @@ export default function AiLessonDemoPage() {
     return aiLessonRepository.loadProfile() ? 'plan' : 'hearing';
   });
   const [courseMinutes, setCourseMinutes] = useState(3);
+  const [lessonMode, setLessonMode] = useState<LessonMode>('text');
   const [report, setReport] = useState<ReportData | null>(null);
 
   // レッスン中だけ共通ヘッダー・フッターを隠す集中モード（他ページには影響しない）
@@ -129,14 +132,26 @@ export default function AiLessonDemoPage() {
         <MissionSelect
           t={t}
           plan={profile.plan}
-          onStart={(minutes) => {
+          onStart={(minutes, mode) => {
             setCourseMinutes(minutes);
+            setLessonMode(mode);
             setStep('lesson');
           }}
         />
       )}
       {step === 'lesson' && profile && (
-        <LessonChat t={t} plan={profile.plan} courseMinutes={courseMinutes} onFinish={handleLessonFinish} />
+        lessonMode === 'voice' ? (
+          <VoiceLessonChat
+            t={t}
+            plan={profile.plan}
+            courseMinutes={courseMinutes}
+            onFinish={handleLessonFinish}
+            // 音声の失敗・辞退時は既存テキストモードで最初からやり直す（レッスンは3分と短いため）
+            onSwitchToText={() => setLessonMode('text')}
+          />
+        ) : (
+          <LessonChat t={t} plan={profile.plan} courseMinutes={courseMinutes} onFinish={handleLessonFinish} />
+        )
       )}
       {step === 'report' && profile && report && (
         <ReportView
