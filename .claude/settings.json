@@ -4,16 +4,7 @@
     "allow": [
       "Bash",
       "Fetch",
-      "Write(src/**)",
-      "Write(components/**)",
-      "Write(public/**)",
-      "Write(pages/**)",
-      "Write(lib/**)",
-      "Write(styles/**)",
-      "Write(utils/**)",
-      "Write(supabase/**)",
-      "Write(.env.local)",
-      "Write(.env.example)",
+      "Write",
       "Read"
     ],
     "ask": [
@@ -31,6 +22,7 @@
       "Bash(sh scripts/deploy-production.sh)",
       "Bash(wrangler pages deploy --branch=main)",
       "Bash(supabase functions deploy)",
+      "Bash(curl *functions/deploy*)",
       "Write(.env.production)",
       "Write(.env.production.local)",
       "Write(.npmrc)",
