@@ -96,10 +96,13 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
     } else onComplete(result);
   }, [mission.detect, onComplete]);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (isCancelled: () => boolean = () => false) => {
     setErrorKind(null); setInterrupted(false); setStatus('requesting-mic');
     // コースでは招待コードではなく「JWT＋予約済みセッションID」で認可する
     const accessToken = await getAccessToken();
+    // トークン取得の待ち時間中に離脱していたら接続を始めない
+    // （始めてしまうと cleanup 済みの後にセッションが動き出し、マイクが残る）
+    if (isCancelled()) return;
     const payload = buildVoicePayload(mission, learner, step);
     sessionRef.current = startVoiceSession({
       sessionId, accessToken, plan: payload,
@@ -129,9 +132,15 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
   }, [learner, mission, step, complete, sessionId]);
 
   useEffect(() => {
-    const id = setTimeout(() => { void start(); }, 0);
+    let cancelled = false;
+    const id = setTimeout(() => { void start(() => cancelled); }, 0);
     const tm = timers.current;
-    return () => { clearTimeout(id); tm.forEach(clearTimeout); sessionRef.current?.stop(); };
+    return () => {
+      cancelled = true;
+      clearTimeout(id);
+      tm.forEach(clearTimeout);
+      sessionRef.current?.stop();
+    };
   }, [start]);
 
   useEffect(() => {
@@ -166,7 +175,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
     timers.current.push(id);
   };
   const stopNow = () => { sessionRef.current?.stop(); setEnding(false); setInterrupted(true); };
-  const doRetry = () => { if (retry >= MAX_RETRY) return; setRetry((c) => c + 1); start(); };
+  const doRetry = () => { if (retry >= MAX_RETRY) return; setRetry((c) => c + 1); void start(); };
   const switchText = () => { sessionRef.current?.stop(); onSwitchToText(); };
   const partialReport = () => complete('interrupted', 'interrupted', false);
 
