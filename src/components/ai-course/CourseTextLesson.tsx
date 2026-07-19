@@ -112,7 +112,7 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
 
       {used && (
         <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
-          <p className="text-sm text-emerald-800 font-medium">{t.report.usageSelf}</p>
+          <p className="text-sm text-emerald-800 font-medium">{tl.usedBanner}</p>
           <button type="button" onClick={finish} className="min-h-11 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg flex items-center gap-1 shrink-0">{t.report.backHome}<ArrowRight className="w-4 h-4" /></button>
         </div>
       )}

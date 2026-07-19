@@ -89,7 +89,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               <label className="text-xs font-medium text-gray-600 mb-1 block">{tl.codeLabel}</label>
               <input
                 type="text" inputMode="numeric" value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
-                placeholder={tl.codePlaceholder} maxLength={6} autoComplete="one-time-code"
+                placeholder={tl.codePlaceholder} maxLength={8} autoComplete="one-time-code"
                 className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl text-center tracking-[0.5em] text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
