@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLessonFocus } from '../../contexts/LessonFocusContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
-import { getSession, onAuthChange, signOut } from '../../lib/aiLesson/course/courseAuth';
+import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -37,12 +37,15 @@ import type { CourseReportData } from '../../components/ai-course/CourseReport';
 type Step = 'loading' | 'login' | 'hearing' | 'home' | 'lesson' | 'report' | 'roadmap' | 'history' | 'settings';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const DEMO_CODE = (import.meta.env.VITE_AI_LESSON_DEMO_CODE as string | undefined) ?? '';
 
-/** レポートをEdge Functionで生成（失敗時はローカルの簡易レポート） */
+/**
+ * レポートをEdge Functionで生成（失敗時はローカルの簡易レポート）。
+ * sessionId を渡すとサーバー側で本人確認＋保存＋二重生成防止が働く。
+ */
 const generateReport = async (
   targetExpression: string, themeJa: string, detectedUsage: string,
   utterances: { speaker: string; transcript: string }[],
+  sessionId: string | null,
 ): Promise<{ report: LessonReport; fromAi: boolean }> => {
   const localFallback: LessonReport = {
     todaySummaryJa: `今日は「${targetExpression}」を練習しました。`,
@@ -54,9 +57,14 @@ const generateReport = async (
   };
   if (!SUPA_URL || utterances.filter((u) => u.speaker === 'student').length === 0) return { report: localFallback, fromAi: false };
   try {
+    const accessToken = await getAccessToken();
     const res = await fetch(`${SUPA_URL}/functions/v1/ai-lesson-report`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code: DEMO_CODE, targetExpression, themeJa, detectedUsage, utterances }),
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify({ sessionId, targetExpression, themeJa, detectedUsage, utterances }),
     });
     if (!res.ok) return { report: localFallback, fromAi: false };
     const data = await res.json();
@@ -202,8 +210,13 @@ export default function AiCoursePage() {
     const { report: rep, fromAi } = await generateReport(
       mission.targetExpression, mission.titleJa, result.usage,
       result.utterances.filter((u) => u.speaker !== 'system').map((u) => ({ speaker: u.speaker, transcript: u.transcript })),
+      activeSessionId,
     );
-    if (activeSessionId) await courseRepository.finalizeSession(activeSessionId, { report: rep }, [], learner.id);
+    // AI生成時は Edge Function 側が保存済み。ローカル版のときだけここで保存する
+    // （AIレポートを後からローカル版で上書きして内容が消えるのを防ぐ）
+    if (activeSessionId && !fromAi) {
+      await courseRepository.finalizeSession(activeSessionId, { report: rep }, [], learner.id);
+    }
 
     const stats = learnerStats(sessions, freshProgress);
     const xp = calcLessonXp(result.usage, isReview, reviewSucceeded, Math.max(stats.streak, 1));

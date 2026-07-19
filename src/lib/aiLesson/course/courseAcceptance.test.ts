@@ -14,6 +14,8 @@ import {
   isWeeklyMission, missionById, courseEndDateISO, COURSE_TOTAL_DAYS,
 } from './courseEngine';
 import { isAiCourseRoute } from './courseRoutes';
+import { detectTargetUsage } from './courseLesson';
+import type { ConversationTurn } from './courseLesson';
 import type { ItemProgress, Learner, LessonKind } from './types';
 
 const iso = (d: Date): string =>
@@ -269,6 +271,70 @@ describe('weekly practice', () => {
     const plan = buildLessonPlan(makeLearner(), progresses, new Date('2026-09-01T09:00:00'));
     expect(plan!.main.weeklyTargets).toBeDefined();
     expect(plan!.main.weeklyTargets!.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+// ────────────────────────────────────────────────
+// 発話ログからの使用判定（§11）
+// レポートの土台になる判定。人工の会話ログで検証する。
+// ────────────────────────────────────────────────
+describe('target usage detection from utterance logs', () => {
+  // 「〜たことがあります」（経験）の検出パターン
+  const detect = 'たことがあり';
+
+  it('生徒が自分から使えば self', () => {
+    const turns: ConversationTurn[] = [
+      { role: 'tutor', text: '日本で何かおもしろい経験はありますか。' },
+      { role: 'student', text: '日本の大会に出たことがあります。' },
+    ];
+    expect(detectTargetUsage(turns, detect).usage).toBe('self');
+  });
+
+  it('先生のお手本の直後に言えば hint（お手本を生徒の自力使用にしない）', () => {
+    const turns: ConversationTurn[] = [
+      { role: 'tutor', text: 'たとえば「大会に出たことがあります」と言えますよ。' },
+      { role: 'student', text: '大会に出たことがあります。' },
+    ];
+    expect(detectTargetUsage(turns, detect).usage).toBe('hint');
+  });
+
+  it('先生だけが使い、生徒が使っていなければ none', () => {
+    const turns: ConversationTurn[] = [
+      { role: 'tutor', text: '「〜たことがあります」を使ってみましょう。' },
+      { role: 'student', text: 'はい。' },
+      { role: 'tutor', text: '私は北海道へ行ったことがあります。' },
+    ];
+    const r = detectTargetUsage(turns, detect);
+    expect(r.usage).toBe('none');
+    expect(r.count).toBe(0);
+  });
+
+  it('ヒント後でも、あとから自力で使えれば self に上がる', () => {
+    const turns: ConversationTurn[] = [
+      { role: 'tutor', text: '「行ったことがあります」ですね。' },
+      { role: 'student', text: '行ったことがあります。' },
+      { role: 'tutor', text: 'ほかの場面ではどうですか。' },
+      { role: 'student', text: '中国でバドミントンの試合を見たことがあります。' },
+    ];
+    expect(detectTargetUsage(turns, detect).usage).toBe('self');
+  });
+
+  it('生徒が中国語だけで話した場合は未使用として扱う', () => {
+    const turns: ConversationTurn[] = [
+      { role: 'tutor', text: '経験を話してみましょう。' },
+      { role: 'student', text: '我参加过日本的比赛。' },
+    ];
+    expect(detectTargetUsage(turns, detect).usage).toBe('none');
+  });
+
+  it('壊れた検出パターンでも落ちず none を返す', () => {
+    const turns: ConversationTurn[] = [{ role: 'student', text: 'テスト' }];
+    expect(() => detectTargetUsage(turns, '([')).not.toThrow();
+    expect(detectTargetUsage(turns, '([').usage).toBe('none');
+  });
+
+  it('発話が無いときも安全に none', () => {
+    expect(detectTargetUsage([], detect).usage).toBe('none');
   });
 });
 
