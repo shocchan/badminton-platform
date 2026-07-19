@@ -30,7 +30,11 @@ export const buildVoicePayload = (
   reviewPrompt:
     step.kind === 'review_day1' ? mission.reviewPrompts.day1
       : step.kind === 'review_day3' ? mission.reviewPrompts.day3
-        : step.kind === 'review_day7' ? mission.reviewPrompts.day7 : '',
+        : step.kind === 'review_day7' || step.kind === 'review_day30' ? mission.reviewPrompts.day7 : '',
+  // 週間総合実践: その週の2〜4表現を会話の中で自然に使わせる（名前は先に見せない）
+  weeklyTargets: (step.weeklyTargets ?? [])
+    .map((m) => `${m.targetExpression}|${m.detect}`)
+    .join('///'),
 });
 
 export interface ConversationTurn { role: 'student' | 'tutor'; text: string }

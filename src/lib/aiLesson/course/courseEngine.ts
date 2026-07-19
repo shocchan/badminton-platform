@@ -47,8 +47,42 @@ const reviewStageToKind = (stage: ReviewStage): LessonKind => {
     case 'day1': return 'review_day1';
     case 'day3': return 'review_day3';
     case 'day7': return 'review_day7';
+    case 'day30': return 'review_day30';
     default: return 'extra';
   }
+};
+
+/** 週の5番目は「週間総合実践」。通常の新規ミッションとは別種別として扱う */
+export const WEEKLY_PRACTICE_ORDER = 5;
+export const isWeeklyMission = (m: Mission): boolean => m.order === WEEKLY_PRACTICE_ORDER;
+
+/** コース期間（12週）。30日後復習をこの期間内に収められるかの判定に使う */
+export const COURSE_TOTAL_DAYS = 12 * 7;
+
+/**
+ * 週間総合実践で扱う表現を選ぶ（2〜4個）。
+ * - その週の1〜4番目のうち、学習済みのものを対象にする
+ * - 定着が弱い／失敗が多いものを優先（苦手表現を優先）
+ */
+export const selectWeeklyPracticeItems = (
+  week: number,
+  progresses: ItemProgress[],
+): Mission[] => {
+  const weekMissions = COURSE_MISSIONS
+    .filter((m) => m.week === week && m.order < WEEKLY_PRACTICE_ORDER && m.isPublished)
+    .sort((a, b) => a.order - b.order);
+  const learned = weekMissions.filter((m) => progresses.some((p) => p.itemId === m.id));
+  const pool = learned.length > 0 ? learned : weekMissions;
+
+  // 弱い順（未学習 → 状態が低い → 失敗が多い）に並べる
+  const weakness = (m: Mission): number => {
+    const p = progresses.find((x) => x.itemId === m.id);
+    if (!p) return -1;
+    return rank(p.masteryState) - p.failedReviews * 2;
+  };
+  const sorted = [...pool].sort((a, b) => weakness(a) - weakness(b) || a.order - b.order);
+  const take = Math.min(4, Math.max(2, sorted.length));
+  return sorted.slice(0, take);
 };
 
 export interface DueReview {
@@ -117,11 +151,21 @@ export const buildLessonPlan = (
   const weak = calculateWeakItems(progresses);
   const nextNew = selectNextMission(learner, progresses);
 
+  // 7日後・30日後復習と週間総合実践は、答え（表現名）を先に見せず自由会話で使わせる
+  const HIDE_TARGET_KINDS: LessonKind[] = ['review_day7', 'review_day30', 'weekly_practice'];
+
   const stepFor = (mission: Mission, kind: LessonKind): LessonPlanStep => ({
     mission,
     kind,
-    hideTarget: kind === 'review_day7', // 7日後復習は答え（表現名）を先に見せない
+    hideTarget: HIDE_TARGET_KINDS.includes(kind),
+    ...(kind === 'weekly_practice'
+      ? { weeklyTargets: selectWeeklyPracticeItems(mission.week, progresses) }
+      : {}),
   });
+
+  /** 新規枠のミッションは、週の5番目なら週間総合実践として扱う */
+  const newStepFor = (mission: Mission): LessonPlanStep =>
+    stepFor(mission, isWeeklyMission(mission) ? 'weekly_practice' : 'new');
 
   // 優先度1: 期限超過復習がある → それをメインに、別の復習をウォームアップに
   const overdue = dueReviews.filter((d) => d.overdue);
@@ -139,7 +183,7 @@ export const buildLessonPlan = (
   if (dueReviews.length > 0 && nextNew) {
     return {
       review: stepFor(dueReviews[0].mission, dueReviews[0].kind),
-      main: stepFor(nextNew, 'new'),
+      main: newStepFor(nextNew),
       reasonKey: 'due_review_plus_new',
     };
   }
@@ -159,14 +203,14 @@ export const buildLessonPlan = (
     const weakMission = missionById(weak[0].itemId);
     return {
       review: weakMission ? stepFor(weakMission, 'extra') : null,
-      main: stepFor(nextNew, 'new'),
+      main: newStepFor(nextNew),
       reasonKey: 'weak_plus_new',
     };
   }
 
   // 優先度5: 通常の新規
   if (nextNew) {
-    return { review: null, main: stepFor(nextNew, 'new'), reasonKey: 'next_new' };
+    return { review: null, main: newStepFor(nextNew), reasonKey: 'next_new' };
   }
 
   // 優先度6: 弱点補強のみ
@@ -197,10 +241,11 @@ const stateFromNewUsage = (usage: LessonResult['usage']): CourseMasteryState => 
 };
 
 /** 復習成功時に進む状態 */
-const nextReviewState: Record<'day1' | 'day3' | 'day7' | 'extra', CourseMasteryState> = {
+const nextReviewState: Record<'day1' | 'day3' | 'day7' | 'day30' | 'extra', CourseMasteryState> = {
   day1: 'reviewed_day1',
   day3: 'reviewed_day3',
   day7: 'retained_day7',
+  day30: 'retained_day30',
   extra: 'used_independently',
 };
 
@@ -219,6 +264,11 @@ export const updateMasteryState = (
   itemId: string,
   result: LessonResult,
   now = new Date(),
+  /**
+   * コース終了日（YYYY-MM-DD）。30日後復習がこの日を越える項目には予約しない
+   * （3か月コース内で実施できない復習を表示しないため）。null なら制限しない。
+   */
+  courseEndISO: string | null = null,
 ): ItemProgress => {
   const today = todayISO(now);
   const nowISO = now.toISOString();
@@ -252,7 +302,9 @@ export const updateMasteryState = (
   // 復習
   const stageKey = (result.kind === 'review_day1' ? 'day1'
     : result.kind === 'review_day3' ? 'day3'
-      : result.kind === 'review_day7' ? 'day7' : 'extra') as 'day1' | 'day3' | 'day7' | 'extra';
+      : result.kind === 'review_day7' ? 'day7'
+        : result.kind === 'review_day30' ? 'day30'
+          : 'extra') as 'day1' | 'day3' | 'day7' | 'day30' | 'extra';
 
   if (!result.succeeded) {
     // 失敗: 昇格させず、2日後(extra)に再設定
@@ -267,6 +319,19 @@ export const updateMasteryState = (
 
   // 成功: 次の定着状態へ、次の復習日を設定
   const newState = promote(base.masteryState, nextReviewState[stageKey]);
+
+  // day30 成功でこの項目の復習は完了。以降は予約しない
+  if (stageKey === 'day30') {
+    return {
+      ...base,
+      masteryState: newState,
+      lastPracticedAt: nowISO,
+      successfulReviews: base.successfulReviews + 1,
+      nextReviewAt: null,
+      reviewStage: 'none',
+    };
+  }
+
   const nextStage: ReviewStage =
     stageKey === 'day1' ? 'day3'
       : stageKey === 'day3' ? 'day7'
@@ -275,14 +340,36 @@ export const updateMasteryState = (
     nextStage === 'day3' ? REVIEW_INTERVALS.day3
       : nextStage === 'day7' ? REVIEW_INTERVALS.day7
         : REVIEW_INTERVALS.day30;
+  const nextDate = addDays(today, nextInterval);
+
+  // 30日後復習がコース期間を越える項目には予約しない（実施できない復習を出さない）
+  if (nextStage === 'day30' && courseEndISO && nextDate > courseEndISO) {
+    return {
+      ...base,
+      masteryState: newState,
+      lastPracticedAt: nowISO,
+      successfulReviews: base.successfulReviews + 1,
+      nextReviewAt: null,
+      reviewStage: 'none',
+    };
+  }
+
   return {
     ...base,
     masteryState: newState,
     lastPracticedAt: nowISO,
     successfulReviews: base.successfulReviews + 1,
-    nextReviewAt: nextStage === 'day30' && newState === 'retained_day30' ? null : addDays(today, nextInterval),
-    reviewStage: newState === 'retained_day30' ? 'none' : nextStage,
+    nextReviewAt: nextDate,
+    reviewStage: nextStage,
   };
+};
+
+/** learner の開始日から、コース終了日（YYYY-MM-DD）を求める */
+export const courseEndDateISO = (learner: Learner): string | null => {
+  if (!learner.startedAtISO) return null;
+  const start = new Date(learner.startedAtISO);
+  if (Number.isNaN(start.getTime())) return null;
+  return addDays(todayISO(start), COURSE_TOTAL_DAYS);
 };
 
 /**

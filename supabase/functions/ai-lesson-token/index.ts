@@ -235,6 +235,7 @@ serve(async (req) => {
       usageNotes: cleanText(plan.usageNotes, 300) ?? undefined,
       commonMistakes: cleanText(plan.commonMistakes, 400) ?? undefined,
       reviewPrompt: cleanText(plan.reviewPrompt, 300) ?? undefined,
+      weeklyTargets: cleanText(plan.weeklyTargets, 400) ?? undefined,
     };
 
     const instructions = buildVoiceInstructions(params);

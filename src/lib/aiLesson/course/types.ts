@@ -16,8 +16,19 @@ export type CourseMasteryState =
 
 export type ReviewStage = 'none' | 'day1' | 'day3' | 'day7' | 'day30' | 'extra';
 
-/** レッスンの種類 */
-export type LessonKind = 'new' | 'review_day1' | 'review_day3' | 'review_day7' | 'extra' | 'weekly';
+/**
+ * レッスンの種類。
+ * weekly_practice（週間総合実践）は通常の新規ミッションとは別種別で、
+ * プロンプト・完了条件・レポート内容を分ける（週の複数表現を会話の中で使わせる）。
+ */
+export type LessonKind =
+  | 'new'
+  | 'review_day1'
+  | 'review_day3'
+  | 'review_day7'
+  | 'review_day30'
+  | 'extra'
+  | 'weekly_practice';
 
 export type MissionCategory =
   | 'selfIntro' | 'experience' | 'change' | 'habit' | 'permission' | 'trouble'
@@ -87,6 +98,8 @@ export interface AdminOverrides {
 export interface Learner {
   id: string;
   userId: string;
+  /** コース開始日（ISO）。30日後復習をコース期間内に収めるかの判定に使う */
+  startedAtISO: string | null;
   displayName: string;
   preferredLanguage: 'ja' | 'zh';
   estimatedLevel: string;
@@ -154,8 +167,13 @@ export interface LessonReport {
 export interface LessonPlanStep {
   mission: Mission;
   kind: LessonKind;
-  /** 7日後復習では目標表現名を先に見せない */
+  /** 7日後・30日後復習・週間総合実践では目標表現名を先に見せない */
   hideTarget: boolean;
+  /**
+   * 週間総合実践で扱う表現（2〜4個、苦手優先）。
+   * 名前は最初に全部見せず、会話の中で自然に使わせる。
+   */
+  weeklyTargets?: Mission[];
 }
 
 export interface LessonPlan {

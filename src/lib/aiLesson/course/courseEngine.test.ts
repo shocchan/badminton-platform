@@ -17,7 +17,7 @@ const REQUIRED_FIELDS: (keyof typeof COURSE_MISSIONS[number])[] = [
 ];
 
 const makeLearner = (over: Partial<Learner> = {}): Learner => ({
-  id: 'L1', userId: 'U1', displayName: 'Andy', preferredLanguage: 'zh', estimatedLevel: 'N3',
+  id: 'L1', userId: 'U1', startedAtISO: null, displayName: 'Andy', preferredLanguage: 'zh', estimatedLevel: 'N3',
   difficultyLevel: 2, currentWeek: 1, isActive: true, hearing: {},
   settings: { zhSupport: 'whenStuck', correction: 'summary', weeklyTarget: 5, sessionMinutes: 3, examDateISO: null },
   adminOverrides: {}, ...over,

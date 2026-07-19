@@ -29,8 +29,10 @@ export const CourseHome = ({
 }: Props) => {
   const th = t.home;
   const mission = plan?.main.mission ?? null;
-  const isReview = plan?.main.kind !== 'new' && plan?.main.kind !== undefined;
-  const badge = plan?.main.kind === 'new' ? th.newBadge : plan?.main.kind === 'weekly' ? th.weeklyBadge : th.reviewBadge;
+  const isReview = !!plan && (plan.main.kind.startsWith('review') || plan.main.kind === 'extra');
+  const badge = plan?.main.kind === 'new' ? th.newBadge
+    : plan?.main.kind === 'weekly_practice' ? th.weeklyBadge
+      : th.reviewBadge;
   const canLearn = remainingToday > 0 && learner.isActive;
 
   return (

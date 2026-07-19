@@ -12,7 +12,7 @@ import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
 import {
-  buildLessonPlan, updateMasteryState, adjustDifficulty, selectNextMission, missionById,
+  buildLessonPlan, updateMasteryState, adjustDifficulty, selectNextMission, missionById, courseEndDateISO,
 } from '../../lib/aiLesson/course/courseEngine';
 import { learnerStats, weekStats, estimateSessionCost } from '../../lib/aiLesson/course/courseStats';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
@@ -165,12 +165,13 @@ export default function AiCoursePage() {
 
     // 進捗更新（新規/復習）
     const prev = progress.find((p) => p.itemId === mission.id) ?? null;
-    const updated = updateMasteryState(prev, mission.id, { kind: mainStep.kind, usage: result.usage, succeeded: reviewSucceeded });
+    const courseEnd = courseEndDateISO(learner);
+    const updated = updateMasteryState(prev, mission.id, { kind: mainStep.kind, usage: result.usage, succeeded: reviewSucceeded }, new Date(), courseEnd);
     await courseRepository.upsertProgress(learner.id, updated);
     // ウォームアップ復習があれば、それも更新
     if (plan.review) {
       const rPrev = progress.find((p) => p.itemId === plan.review!.mission.id) ?? null;
-      const rUpdated = updateMasteryState(rPrev, plan.review.mission.id, { kind: plan.review.kind, usage: 'hint', succeeded: true });
+      const rUpdated = updateMasteryState(rPrev, plan.review.mission.id, { kind: plan.review.kind, usage: 'hint', succeeded: true }, new Date(), courseEnd);
       await courseRepository.upsertProgress(learner.id, rUpdated);
     }
 

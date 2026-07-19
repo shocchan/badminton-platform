@@ -24,10 +24,41 @@ export interface VoicePromptParams {
   commonMistakes?: string;
   /** 復習の進め方（day1/day3/day7別の指示） */
   reviewPrompt?: string;
+  /**
+   * 週間総合実践で扱う表現。"表現|検出パターン///表現|検出パターン" 形式。
+   * 名前は最初に生徒へ見せない（自力で使えるかを見るため）。
+   */
+  weeklyTargets?: string;
 }
+
+/** 週間総合実践で扱う表現名を取り出す（先生側だけが知る） */
+const parseWeeklyTargets = (raw?: string): string[] => {
+  if (!raw) return [];
+  return raw.split("///")
+    .map((s) => s.split("|")[0]?.trim() ?? "")
+    .filter((s) => s.length > 0)
+    .slice(0, 4);
+};
 
 /** レッスン種別に応じた進め方（復習は同じ質問の繰り返しにしない） */
 const kindGuide = (p: VoicePromptParams): string => {
+  // 週間総合実践: 通常の新規ミッションとは完了条件・進め方を分ける
+  if (p.lessonKind === "weekly_practice") {
+    const targets = parseWeeklyTargets(p.weeklyTargets);
+    const list = targets.length > 0
+      ? targets.map((t, i) => `  ${i + 1}. ${t}`).join("\n")
+      : "  （今週学んだ表現）";
+    return `【今日は週間総合実践】
+- 今週の総まとめ。1つの表現を教える回ではなく、今週の複数の表現を「会話の中で使えるか」を見る回。
+- 先生が心の中で確認する表現（生徒には最初に一覧を言わない）:
+${list}
+- 最初に表現名を並べて説明しない。自然な話題から会話を始め、生徒が自分で思い出して使えるかを見る。
+- 上のうち2つ以上を、生徒が自分の言葉で使えたら十分な達成とする。
+- 出てこない表現があれば、会話の後半でその表現を使いたくなる質問をして引き出す。
+  それでも出なければ、最後に短くヒントを出して一度だけ使わせる。
+- 苦手そうな表現ほど優先して引き出す。全部を無理に詰め込まない。
+- まとめでは「自力で使えた表現」と「もう少し練習したい表現」を分けて短く伝える。`;
+  }
   if (!p.lessonKind || p.lessonKind === 'new') {
     return `【今日は新しい表現】
 - テーマ→目標表現の短い説明→短いお手本→生徒への質問、の順で始める。
@@ -35,6 +66,13 @@ const kindGuide = (p: VoicePromptParams): string => {
 - 目標表現を使った言い直し→別の場面でもう一度使わせる→最終確認→まとめ。`;
   }
   const base = p.reviewPrompt ? `- 復習の進め方: ${p.reviewPrompt}\n` : '';
+  if (p.lessonKind === 'review_day30') {
+    return `【今日は復習（30日後の定着チェック）】
+${base}- 最初に目標表現の名前を言わない。ふつうの雑談として始める。
+- 1か月前に学んだ表現を、生徒が自由な会話の中で自然に使えるかを見る。
+- 使えたら大きく認める。出てこなければ最後に短くヒントを出し、一度だけ使わせる。
+- 思い出せなくても否定しない。「1か月経っても覚えている部分」を必ず認める。`;
+  }
   if (p.lessonKind === 'review_day7' || p.hideTarget) {
     return `【今日は復習（自力チェック）】
 ${base}- 最初に目標表現の名前を言わない。自然な会話の流れの中で、生徒が自分で思い出して使えるか確認する。
