@@ -73,6 +73,23 @@ const queuePending = (op: Omit<PendingOp, 'at'>): void => {
   writeLS(LS.pending, q.slice(-100));
 };
 
+/** ai_start_session が返す拒否理由（安全なコードのみ。内部情報は含まない） */
+export type StartSessionCode =
+  | 'no_learner'
+  | 'learner_suspended'
+  | 'session_already_active'
+  | 'daily_session_limit'
+  | 'daily_time_limit'
+  | 'network'
+  | 'unknown';
+
+export interface StartSessionResult {
+  ok: boolean;
+  sessionId?: string | null;
+  remainingSessions?: number;
+  code?: StartSessionCode;
+}
+
 export interface CourseRepository {
   getCurrentUserId(): Promise<string | null>;
   getLearner(): Promise<Learner | null>;
@@ -87,7 +104,8 @@ export interface CourseRepository {
   }>): Promise<void>;
   listProgress(): Promise<ItemProgress[]>;
   upsertProgress(learnerId: string, p: ItemProgress): Promise<void>;
-  createSession(learnerId: string, s: Omit<CourseSessionRecord, 'id'>): Promise<string | null>;
+  /** サーバー側で上限確認＋セッション予約を原子的に行う（クライアント判定に依存しない） */
+  createSession(learnerId: string, s: Omit<CourseSessionRecord, 'id'>): Promise<StartSessionResult>;
   finalizeSession(sessionId: string, patch: Partial<CourseSessionRecord>, utterances: CourseUtterance[], learnerId: string): Promise<void>;
   listRecentSessions(limit?: number): Promise<CourseSessionRecord[]>;
   saveFeedback(learnerId: string, sessionId: string | null, fb: FeedbackInput): Promise<void>;
@@ -182,14 +200,21 @@ const createRepository = (): CourseRepository => ({
     if (error) queuePending({ kind: 'progress', payload: { learnerId, p } });
   },
 
-  async createSession(learnerId, s) {
-    const { data, error } = await supabase.from('ai_learning_sessions').insert({
-      learner_id: learnerId, mission_id: s.missionId, mode: s.mode, lesson_kind: s.lessonKind,
-      difficulty: s.difficulty, started_at: s.startedAt, target_expression: s.targetExpression,
-      completion_status: 'in_progress', curriculum_version: 'v1',
-    }).select('id').single();
-    if (error || !data) return null;
-    return (data as { id: string }).id;
+  async createSession(_learnerId, s) {
+    // 直接 insert はRLSで禁止。ai_start_session RPC が
+    // 「停止中でないか・本日の回数/時間の上限・同時セッション」を確認してから
+    // セッション行を作る（確認と予約を1トランザクションで行う）。
+    const { data, error } = await supabase.rpc('ai_start_session', {
+      p_mission_id: s.missionId,
+      p_lesson_kind: s.lessonKind,
+      p_mode: s.mode,
+      p_difficulty: s.difficulty,
+      p_target_expression: s.targetExpression,
+    });
+    if (error || !data) return { ok: false, code: 'network' };
+    const r = data as { ok: boolean; code?: string; sessionId?: string; remainingSessions?: number };
+    if (!r.ok) return { ok: false, code: (r.code as StartSessionCode) ?? 'unknown' };
+    return { ok: true, sessionId: r.sessionId ?? null, remainingSessions: r.remainingSessions ?? 0 };
   },
 
   async finalizeSession(sessionId, patch, utterances, learnerId) {
@@ -247,14 +272,15 @@ const createRepository = (): CourseRepository => ({
   },
 
   async recordUsage(learnerId, seconds, costUsd) {
-    // 当日行を読み、加算してupsert
+    // 回数(sessions_count)は ai_start_session が予約時に加算済み。
+    // ここで再加算すると二重計上になるため、秒数とコストのみ積む。
     const today = new Date().toISOString().slice(0, 10);
     const { data } = await supabase.from('ai_usage_daily').select('*')
       .eq('learner_id', learnerId).eq('usage_date', today).maybeSingle();
     const prev = data as { sessions_count: number; seconds_used: number; estimated_cost_usd: number } | null;
     const { error } = await supabase.from('ai_usage_daily').upsert({
       learner_id: learnerId, usage_date: today,
-      sessions_count: (prev?.sessions_count ?? 0) + 1,
+      sessions_count: prev?.sessions_count ?? 0,
       seconds_used: (prev?.seconds_used ?? 0) + seconds,
       estimated_cost_usd: Number(prev?.estimated_cost_usd ?? 0) + costUsd,
       updated_at: new Date().toISOString(),

@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
+import { getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 
@@ -26,6 +27,8 @@ interface Props {
   t: AiCourseDict;
   learner: Learner;
   step: LessonPlanStep;
+  /** ai_start_session で予約済みのセッションID。トークン発行の認可に使う */
+  sessionId: string | null;
   onComplete: (r: VoiceLessonResult) => void;
   onSwitchToText: () => void;
   onExit: () => void;
@@ -37,7 +40,7 @@ const isWeChat = () => /MicroMessenger/i.test(navigator.userAgent);
 const hasZh = (s: string) => /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(s);
 const fmt = (sec: number) => `${Math.floor(Math.max(sec, 0) / 60)}:${String(Math.max(sec, 0) % 60).padStart(2, '0')}`;
 
-export const CourseVoiceLesson = ({ t, learner, step, onComplete, onSwitchToText, onExit }: Props) => {
+export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onSwitchToText, onExit }: Props) => {
   const tv = t.voice, tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
@@ -93,12 +96,13 @@ export const CourseVoiceLesson = ({ t, learner, step, onComplete, onSwitchToText
     } else onComplete(result);
   }, [mission.detect, onComplete]);
 
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     setErrorKind(null); setInterrupted(false); setStatus('requesting-mic');
-    const code = (import.meta.env.VITE_AI_LESSON_DEMO_CODE as string | undefined) ?? '';
+    // コースでは招待コードではなく「JWT＋予約済みセッションID」で認可する
+    const accessToken = await getAccessToken();
     const payload = buildVoicePayload(mission, learner, step);
     sessionRef.current = startVoiceSession({
-      code, plan: payload,
+      sessionId, accessToken, plan: payload,
       callbacks: {
         onStatus: (s) => {
           setStatus(s);
@@ -122,10 +126,10 @@ export const CourseVoiceLesson = ({ t, learner, step, onComplete, onSwitchToText
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
     });
-  }, [learner, mission, step, complete]);
+  }, [learner, mission, step, complete, sessionId]);
 
   useEffect(() => {
-    const id = setTimeout(() => start(), 0);
+    const id = setTimeout(() => { void start(); }, 0);
     const tm = timers.current;
     return () => { clearTimeout(id); tm.forEach(clearTimeout); sessionRef.current?.stop(); };
   }, [start]);

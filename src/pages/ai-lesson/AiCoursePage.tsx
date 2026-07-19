@@ -81,6 +81,8 @@ export default function AiCoursePage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [hearingBusy, setHearingBusy] = useState(false);
   const [hasResume, setHasResume] = useState(false);
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState('');
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
@@ -123,19 +125,33 @@ export default function AiCoursePage() {
     if (created) await loadAll();
   };
 
-  const startLesson = (m: 'voice' | 'text') => {
-    if (!learner || !plan || remaining <= 0 || !learner.isActive) return;
-    setMode(m);
-    courseRepository.saveResume({ missionId: plan.main.mission.id, kind: plan.main.kind, at: Date.now() });
-    setHasResume(false);
-    // Supabaseにセッション作成（IDを保持）
-    void courseRepository.createSession(learner.id, {
+  /**
+   * レッスン開始。上限判定はサーバー（ai_start_session）が正。
+   * クライアント側の remaining は表示用で、ここでは開始可否の根拠にしない。
+   */
+  const startLesson = async (m: 'voice' | 'text') => {
+    if (!learner || !plan || starting) return;
+    setStarting(true);
+    setStartError('');
+    const r = await courseRepository.createSession(learner.id, {
       missionId: plan.main.mission.id, mode: m, lessonKind: plan.main.kind, difficulty: learner.difficultyLevel,
       startedAt: new Date().toISOString(), endedAt: null, durationSeconds: 0, completionStatus: 'in_progress',
       endReason: null, targetExpression: plan.main.mission.targetExpression, targetUsed: false,
       targetUsedIndependently: false, hintsUsed: 0, chineseSupportUsed: false, errorCode: null,
       estimatedCostUsd: 0, report: null,
-    }).then((id) => setActiveSessionId(id));
+    });
+    setStarting(false);
+    if (!r.ok) {
+      setStartError(t.limits[r.code ?? 'unknown'] ?? t.limits.unknown);
+      // 上限に当たったら表示も実際の状態に合わせる
+      if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit') setRemaining(0);
+      return;
+    }
+    setMode(m);
+    setActiveSessionId(r.sessionId ?? null);
+    setRemaining(r.remainingSessions ?? 0);
+    courseRepository.saveResume({ missionId: plan.main.mission.id, kind: plan.main.kind, at: Date.now() });
+    setHasResume(false);
     setStep('lesson');
   };
 
@@ -230,12 +246,12 @@ export default function AiCoursePage() {
 
   if (step === 'lesson' && plan) {
     return mode === 'voice'
-      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
+      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
       : <CourseTextLesson t={t} step={plan.main} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
     return <Shell nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
-      onAgain={() => { if (remaining > 1) startLesson(mode); }} canAgain={remaining > 1 && learner.isActive} /></Shell>;
+      onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive} /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
@@ -258,10 +274,10 @@ export default function AiCoursePage() {
         reviewsDue={reviewsDue}
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}
-        onStart={startLesson}
-        onResume={() => { setHasResume(false); startLesson(mode); }}
+        starting={starting} startError={startError}
+        onStart={(m) => { void startLesson(m); }}
+        onResume={() => { setHasResume(false); void startLesson(mode); }}
         onDiscardResume={() => { courseRepository.clearResume(); setHasResume(false); }}
-        onRoadmap={() => setStep('roadmap')} onHistory={() => setStep('history')} onSettings={() => setStep('settings')}
       />
     </Shell>
   );

@@ -65,7 +65,15 @@ const OPENAI_CALLS_URL = 'https://api.openai.com/v1/realtime/calls';
 let activeSession: { stop: () => void } | null = null;
 
 interface StartOptions {
-  code: string;
+  /** デモページ用の招待コード。コース（sessionId あり）では使わない */
+  code?: string;
+  /**
+   * コースの予約済みセッションID（ai_start_session の戻り値）。
+   * これがある場合、Edge Function 側は JWT + セッション所有者を検証する。
+   */
+  sessionId?: string | null;
+  /** コースモードでのみ必要な Supabase のアクセストークン（JWT） */
+  accessToken?: string | null;
   plan: VoicePlanPayload;
   callbacks: VoiceSessionCallbacks;
 }
@@ -241,8 +249,16 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
     try {
       const res = await fetchWithTimeout(`${supabaseUrl}/functions/v1/ai-lesson-token`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: opts.code, plan: opts.plan }),
+        headers: {
+          'Content-Type': 'application/json',
+          // コースモードでは JWT を送り、サーバー側で本人＋予約済みセッションを検証させる
+          ...(opts.accessToken ? { Authorization: `Bearer ${opts.accessToken}` } : {}),
+        },
+        body: JSON.stringify({
+          code: opts.code,
+          sessionId: opts.sessionId ?? undefined,
+          plan: opts.plan,
+        }),
       }, 15000);
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };

@@ -1,6 +1,6 @@
 // 学習ホーム。1つのおすすめミッションを大きく出し、迷わせない。
 
-import { Flag, Mic, PenLine, Map, History, Settings, Flame, CalendarCheck, Sparkles, RefreshCw } from 'lucide-react';
+import { Flag, Mic, PenLine, Flame, CalendarCheck, Sparkles, RefreshCw } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
 import type { LearnerStats } from '../../lib/aiLesson/course/courseStats';
@@ -14,17 +14,18 @@ interface Props {
   reviewsOverdue: number;
   remainingToday: number;
   hasResume: boolean;
+  /** セッション開始をサーバーへ問い合わせ中 */
+  starting: boolean;
+  /** サーバーが開始を断った理由（上限・停止中など） */
+  startError: string;
   onStart: (mode: 'voice' | 'text') => void;
   onResume: () => void;
   onDiscardResume: () => void;
-  onRoadmap: () => void;
-  onHistory: () => void;
-  onSettings: () => void;
 }
 
 export const CourseHome = ({
   t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
-  hasResume, onStart, onResume, onDiscardResume, onRoadmap, onHistory, onSettings,
+  hasResume, starting, startError, onStart, onResume, onDiscardResume,
 }: Props) => {
   const th = t.home;
   const mission = plan?.main.mission ?? null;
@@ -34,13 +35,7 @@ export const CourseHome = ({
 
   return (
     <div className="max-w-md mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-lg font-bold text-gray-900">{th.greeting(learner.displayName)}</h1>
-        <button type="button" onClick={onSettings} aria-label={th.settings}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-400 hover:text-gray-600">
-          <Settings className="w-5 h-5" />
-        </button>
-      </div>
+      <h1 className="text-lg font-bold text-gray-900 mb-4">{th.greeting(learner.displayName)}</h1>
 
       {/* 中断・再開 */}
       {hasResume && (
@@ -78,24 +73,26 @@ export const CourseHome = ({
         )}
       </div>
 
-      {/* 話し方選択＋開始 */}
+      {/* 開始。迷わせないため主要CTAは1つだけにし、テキスト版は補助導線に落とす */}
       {canLearn ? (
         <div className="mb-5">
-          <p className="text-xs text-gray-500 mb-2">{th.chooseMode}</p>
-          <div className="grid grid-cols-2 gap-2">
-            <button type="button" onClick={() => onStart('voice')}
-              className="min-h-11 py-4 rounded-xl bg-blue-600 text-white font-bold flex flex-col items-center gap-1 hover:bg-blue-700 transition-colors">
-              <Mic className="w-5 h-5" />{th.modeVoice}
-            </button>
-            <button type="button" onClick={() => onStart('text')}
-              className="min-h-11 py-4 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold flex flex-col items-center gap-1 hover:bg-gray-50 transition-colors">
-              <PenLine className="w-5 h-5" />{th.modeText}
-            </button>
-          </div>
+          <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
+            className="w-full min-h-11 py-4 rounded-xl bg-blue-600 text-white font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-colors">
+            <Mic className="w-5 h-5" />{starting ? t.common.loading : th.startLesson}
+          </button>
+          <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
+            className="w-full min-h-11 py-2 mt-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">
+            <PenLine className="w-3.5 h-3.5" />{th.modeText}
+          </button>
+          {startError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-2">{startError}</p>
+          )}
         </div>
       ) : (
         <div className="bg-gray-100 rounded-xl p-4 text-center mb-5">
-          <p className="text-sm text-gray-600 font-medium">{th.limitReached}</p>
+          <p className="text-sm text-gray-600 font-medium">
+            {learner.isActive ? th.limitReached : t.limits.learner_suspended}
+          </p>
         </div>
       )}
 
@@ -109,12 +106,7 @@ export const CourseHome = ({
       </div>
       {canLearn && <p className="text-xs text-gray-400 text-center mb-4">{th.remainingToday(remainingToday)}</p>}
 
-      {/* ナビ */}
-      <div className="space-y-2">
-        <NavBtn icon={<Map className="w-4 h-4" />} label={th.seeRoadmap} onClick={onRoadmap} />
-        <NavBtn icon={<History className="w-4 h-4" />} label={th.seeHistory} onClick={onHistory} />
-      </div>
-
+      {/* ロードマップ／学習履歴／設定は専用ヘッダーにあるため、ここでは重複させない */}
       <p className="text-[11px] text-gray-400 leading-relaxed mt-5">{t.positioning}</p>
     </div>
   );
@@ -125,11 +117,4 @@ const Stat = ({ icon, label, value }: { icon: React.ReactNode; label: string; va
     <p className="text-[11px] text-gray-500 flex items-center gap-1">{icon}{label}</p>
     <p className="font-bold text-gray-900 text-sm mt-0.5">{value}</p>
   </div>
-);
-
-const NavBtn = ({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) => (
-  <button type="button" onClick={onClick}
-    className="w-full min-h-11 py-3 px-4 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
-    {icon}{label}
-  </button>
 );

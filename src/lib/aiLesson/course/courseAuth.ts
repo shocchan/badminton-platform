@@ -18,6 +18,12 @@ export const getSession = async (): Promise<AuthUser | null> => {
   return u ? { id: u.id, email: u.email ?? null } : null;
 };
 
+/** Edge Function へ本人確認のために渡す JWT。ログへは出さない */
+export const getAccessToken = async (): Promise<string | null> => {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.access_token ?? null;
+};
+
 export const onAuthChange = (cb: (user: AuthUser | null) => void): (() => void) => {
   const { data } = supabase.auth.onAuthStateChange((_event, session) => {
     const u = session?.user;
@@ -26,13 +32,50 @@ export const onAuthChange = (cb: (user: AuthUser | null) => void): (() => void) 
   return () => data.subscription.unsubscribe();
 };
 
-/** 6桁OTPをメールで送る。shouldCreateUser=true で新規も可（招待コードは呼び出し側で検証済み前提） */
-export const sendEmailOtp = async (email: string): Promise<{ ok: boolean; error?: string }> => {
-  const { error } = await supabase.auth.signInWithOtp({
-    email: email.trim(),
-    options: { shouldCreateUser: true },
-  });
-  return error ? { ok: false, error: error.message } : { ok: true };
+/** OTP送信の結果。理由は安全なコードのみ（Supabaseの生メッセージは扱わない） */
+export type OtpSendCode =
+  | 'invalid_invite'      // 招待コードが違う / 未登録なのに招待コードなし
+  | 'otp_cooldown'        // 60秒の再送間隔
+  | 'otp_hourly_limit'    // 1時間の送信上限
+  | 'invalid_email'
+  | 'network'
+  | 'unknown';
+
+export interface OtpSendResult {
+  ok: boolean;
+  code?: OtpSendCode;
+  /** 再送可能になるまでの秒数 */
+  retryAfter?: number;
+}
+
+const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+/**
+ * OTPをメールで送る。
+ * supabase.auth.signInWithOtp は使わない（招待コードを知らない人が
+ * ブラウザから直接呼んで登録できてしまうため）。必ず ai-course-auth を通す。
+ * - 初回: inviteCode を渡す。サーバー側でDB照合し、成功時のみ登録許可が出る
+ * - 継続: inviteCode 不要。既に learner があるメールにだけ送られる
+ */
+export const sendEmailOtp = async (email: string, inviteCode?: string): Promise<OtpSendResult> => {
+  if (!SUPA_URL || !ANON_KEY) return { ok: false, code: 'unknown' };
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ email: email.trim(), code: inviteCode?.trim() || undefined }),
+    });
+    if (res.ok) return { ok: true };
+    const data = await res.json().catch(() => ({}));
+    return {
+      ok: false,
+      code: (data?.error as OtpSendCode) ?? 'unknown',
+      retryAfter: typeof data?.retryAfter === 'number' ? data.retryAfter : undefined,
+    };
+  } catch {
+    return { ok: false, code: 'network' };
+  }
 };
 
 /** メール+6桁コードで検証してログイン */

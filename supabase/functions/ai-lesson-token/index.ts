@@ -94,6 +94,69 @@ const json = (status: number, body: unknown) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+// ── コースモードの認可 ──
+// デモ（/:lang/ai-lesson-demo）は従来どおり招待コードのみ。
+// コース（/:lang/ai-course）は JWT + ai_start_session で予約済みのセッションIDを必須にする。
+// これにより、バンドルを読んだだけの第三者が OpenAI トークンを発行できない。
+interface CourseAuthResult {
+  ok: boolean;
+  code?: string;
+}
+
+const authorizeCourseSession = async (
+  req: Request,
+  sessionId: string,
+): Promise<CourseAuthResult> => {
+  const url = Deno.env.get("SUPABASE_URL");
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !serviceKey) return { ok: false, code: "not_configured" };
+
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  if (!token) return { ok: false, code: "unauthorized" };
+
+  // 1. JWTを検証してユーザーを特定（メール等はログへ出さない）
+  const userRes = await fetch(`${url}/auth/v1/user`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${token}` },
+  });
+  if (!userRes.ok) return { ok: false, code: "unauthorized" };
+  const user = await userRes.json();
+  const userId = user?.id;
+  if (!userId) return { ok: false, code: "unauthorized" };
+
+  // 2. セッションが「その本人のもの」かつ「開始予約済み」かを service_role で確認
+  const q = new URLSearchParams({
+    id: `eq.${sessionId}`,
+    select: "id,learner_id,completion_status,started_at",
+  });
+  const sRes = await fetch(`${url}/rest/v1/ai_learning_sessions?${q}`, {
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+  });
+  if (!sRes.ok) return { ok: false, code: "session_not_found" };
+  const rows = await sRes.json();
+  const session = Array.isArray(rows) ? rows[0] : null;
+  if (!session) return { ok: false, code: "session_not_found" };
+  if (session.completion_status !== "in_progress") {
+    return { ok: false, code: "session_not_active" };
+  }
+  // 予約から時間が経ちすぎたセッションでのトークン発行は拒否（使い回し防止）
+  if (Date.now() - new Date(session.started_at).getTime() > 10 * 60_000) {
+    return { ok: false, code: "session_expired" };
+  }
+
+  const lRes = await fetch(
+    `${url}/rest/v1/ai_learners?id=eq.${session.learner_id}&select=id,user_id,is_active`,
+    { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } },
+  );
+  if (!lRes.ok) return { ok: false, code: "forbidden" };
+  const lRows = await lRes.json();
+  const learner = Array.isArray(lRows) ? lRows[0] : null;
+  if (!learner || learner.user_id !== userId) return { ok: false, code: "forbidden" };
+  if (!learner.is_active) return { ok: false, code: "learner_suspended" };
+
+  return { ok: true };
+};
+
 // クライアントから受けるのは構造化された短い文字列のみ（長文注入を拒否）
 const cleanText = (v: unknown, max: number): string | null => {
   if (typeof v !== "string") return null;
@@ -114,11 +177,6 @@ serve(async (req) => {
   }
 
   try {
-    const demoCode = Deno.env.get("AI_LESSON_DEMO_CODE");
-    if (!demoCode) {
-      // Secret未設定時は全リクエストを拒否（フェイルクローズ）
-      return json(503, { error: "demo_code_not_configured" });
-    }
     const apiKey = Deno.env.get("OPENAI_API_KEY")?.trim();
     if (!apiKey) {
       return json(503, { error: "openai_key_not_configured" });
@@ -131,9 +189,25 @@ serve(async (req) => {
       return json(400, { error: "invalid_json" });
     }
 
-    const code = cleanText(body.code, 64);
-    if (!code || code !== demoCode) {
-      return json(403, { error: "invalid_code" });
+    // コースモード（sessionIdあり）か、従来のデモモード（招待コードのみ）か
+    const sessionId = cleanText(body.sessionId, 64);
+    if (sessionId) {
+      const auth = await authorizeCourseSession(req, sessionId);
+      if (!auth.ok) {
+        const status = auth.code === "unauthorized" ? 401
+          : auth.code === "not_configured" ? 503 : 403;
+        return json(status, { error: auth.code ?? "forbidden" });
+      }
+    } else {
+      const demoCode = Deno.env.get("AI_LESSON_DEMO_CODE");
+      if (!demoCode) {
+        // Secret未設定時は全リクエストを拒否（フェイルクローズ）
+        return json(503, { error: "demo_code_not_configured" });
+      }
+      const code = cleanText(body.code, 64);
+      if (!code || code !== demoCode) {
+        return json(403, { error: "invalid_code" });
+      }
     }
 
     if (isRateLimited()) {
