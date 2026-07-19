@@ -5,6 +5,12 @@ const ja = {
   locale: 'ja' as 'ja' | 'zh',
   positioning: 'このコースは、N2の文法や語彙を「実際に話せる日本語」にするための会話伴走コースです。N2試験の全範囲を網羅する教材ではありません。',
   brand: 'ゆい先生とAI日本語会話コース',
+  nav: {
+    home: 'ホーム',
+    roadmap: 'ロードマップ',
+    history: '学習履歴',
+    settings: '設定',
+  },
   login: {
     title: 'ログイン',
     subtitle: 'メールアドレスに届く確認コードでログインします。',
@@ -178,6 +184,12 @@ const zh: AiCourseDict = {
   locale: 'zh',
   positioning: '本课程是把N2的语法和词汇练成「能真正开口说的日语」的会话陪练课程，并非涵盖N2考试全部范围的教材。',
   brand: '结衣老师・AI日语会话课程',
+  nav: {
+    home: '首页',
+    roadmap: '学习路线',
+    history: '学习记录',
+    settings: '设置',
+  },
   login: {
     title: '登录',
     subtitle: '通过发送到邮箱的验证码登录。',

@@ -7,6 +7,7 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { LessonFocusProvider, useLessonFocus } from './contexts/LessonFocusContext';
 import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
+import { isAiCourseRoute } from './lib/aiLesson/course/courseRoutes';
 import NavigateWithId from './components/NavigateWithId';
 import { HomePageWrapper } from './components/HomePageWrapper';
 import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
@@ -155,17 +156,20 @@ const AnimatedRoutes = () => {
 function AppInner() {
   // AIレッスン中の集中モード（レッスン画面だけがtrueにする。一般ページは常に従来表示）
   const { focused } = useLessonFocus();
+  // AIコースは通常会員向けではないため、専用ヘッダーに差し替える（通常ページには影響しない）
+  const { pathname } = useLocation();
+  const chromeless = focused || isAiCourseRoute(pathname);
   return (
     <>
       <ScrollToTop />
       <LanguageProvider>
         <ToastProvider>
           <div className="min-h-screen flex flex-col bg-gray-50">
-            {!focused && <Header />}
+            {!chromeless && <Header />}
             <div className="flex-1">
               <AnimatedRoutes />
             </div>
-            {!focused && <Footer />}
+            {!chromeless && <Footer />}
           </div>
         </ToastProvider>
       </LanguageProvider>

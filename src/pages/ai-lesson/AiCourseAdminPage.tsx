@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
+import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth';
 import { adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner } from '../../lib/aiLesson/course/courseAdminApi';
 import type { AdminLearnerRow } from '../../lib/aiLesson/course/courseAdminApi';
@@ -64,15 +65,21 @@ export default function AiCourseAdminPage() {
     return '順調。現状維持。';
   };
 
-  if (state === 'loading') return <div className="max-w-md mx-auto px-4 py-12 text-center text-gray-500">{t.common.loading}</div>;
+  if (state === 'loading') return (
+    <><CourseHeader t={t} /><div className="max-w-md mx-auto px-4 py-12 text-center text-gray-500">{t.common.loading}</div></>
+  );
   if (state === 'noauth') return (
-    <div className="max-w-md mx-auto px-4 py-12 text-center">
-      <p className="text-sm text-gray-600">{ta.noAccess}</p>
-    </div>
+    <>
+      <CourseHeader t={t} />
+      <div className="max-w-md mx-auto px-4 py-12 text-center">
+        <p className="text-sm text-gray-600">{ta.noAccess}</p>
+      </div>
+    </>
   );
 
   return (
     <>
+      <CourseHeader t={t} />
       <Helmet><title>{ta.title} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
       <div className="max-w-2xl mx-auto px-4 py-6">
         <h1 className="text-lg font-bold text-gray-900 mb-4">{ta.title}</h1>

@@ -21,6 +21,8 @@ import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib
 import type {
   CourseSessionRecord, FeedbackInput, ItemProgress, Learner, LessonPlan, LessonReport,
 } from '../../lib/aiLesson/course/types';
+import { CourseHeader } from '../../components/ai-course/CourseHeader';
+import type { CourseNavKey } from '../../components/ai-course/CourseHeader';
 import { CourseLogin } from '../../components/ai-course/CourseLogin';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
@@ -219,13 +221,20 @@ export default function AiCoursePage() {
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
 
+  const handleLogout = async () => { await signOut(); setStep('login'); };
+  const navFor = (current: CourseNavKey) => ({
+    current,
+    onNavigate: (k: CourseNavKey) => setStep(k),
+    onLogout: () => { void handleLogout(); },
+  });
+
   if (step === 'lesson' && plan) {
     return mode === 'voice'
       ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
       : <CourseTextLesson t={t} step={plan.main} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
-    return <Shell><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
+    return <Shell nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { if (remaining > 1) startLesson(mode); }} canAgain={remaining > 1 && learner.isActive} /></Shell>;
   }
   if (step === 'roadmap') {
@@ -237,13 +246,13 @@ export default function AiCoursePage() {
         const wk = Math.max(learner.settings.weeklyTarget, 1);
         return { mode: 'ready' as const, minWeeks: Math.ceil(remainingMissions / wk), maxWeeks: Math.ceil((remainingMissions * 1.5) / wk) };
       })();
-    return <Shell><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
+    return <Shell nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
-  if (step === 'settings') return <Shell><SettingsView t={t} onLogout={async () => { await signOut(); setStep('login'); }} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'settings') return <Shell nav={navFor('settings')}><SettingsView t={t} onLogout={() => { void handleLogout(); }} onBack={() => setStep('home')} /></Shell>;
 
   return (
-    <Shell>
+    <Shell nav={navFor('home')}>
       <CourseHome
         t={t} learner={learner} plan={plan} stats={stats}
         reviewsDue={reviewsDue}
@@ -260,12 +269,21 @@ export default function AiCoursePage() {
 
 const missionsInWeek = (week: number) => missionById(`w${String(week).padStart(2, '0')}m1`) ? [1, 2, 3, 4, 5].map((o) => missionById(`w${String(week).padStart(2, '0')}m${o}`)!).filter(Boolean) : [];
 
-const Shell = ({ children }: { children: React.ReactNode }) => {
+/** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
+const Shell = ({ children, nav }: {
+  children: React.ReactNode;
+  /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
+  nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
+}) => {
   const { lang } = useLanguage();
   const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   return (
     <>
       <Helmet><title>{t.brand} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
+      <CourseHeader
+        t={t} showNav={!!nav} current={nav?.current}
+        onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
+      />
       {children}
     </>
   );
