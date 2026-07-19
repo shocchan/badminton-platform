@@ -7,8 +7,11 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth';
-import { adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow } from '../../lib/aiLesson/course/courseAdminApi';
+import {
+  adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
+  adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
+} from '../../lib/aiLesson/course/courseAdminApi';
+import type { AdminLearnerRow, AdminIssueReport } from '../../lib/aiLesson/course/courseAdminApi';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
@@ -23,12 +26,22 @@ export default function AiCourseAdminPage() {
   const [progress, setProgress] = useState<ItemProgress[]>([]);
   const [sessions, setSessions] = useState<CourseSessionRecord[]>([]);
   const [saved, setSaved] = useState(false);
+  const [issues, setIssues] = useState<AdminIssueReport[]>([]);
+  const [dataMsg, setDataMsg] = useState('');
 
   const selectLearner = useCallback(async (l: AdminLearnerRow) => {
     setSel(l);
     setProgress(await adminGetProgress(l.id));
     setSessions(await adminGetSessions(l.id));
   }, []);
+
+  /** 生徒一覧を取り直す（テストlearner削除後など） */
+  const reload = useCallback(async () => {
+    const list = await adminListLearners();
+    setLearners(list);
+    setSel(list[0] ?? null);
+    if (list[0]) await selectLearner(list[0]);
+  }, [selectLearner]);
 
   useEffect(() => {
     void (async () => {
@@ -39,6 +52,7 @@ export default function AiCourseAdminPage() {
       const list = await adminListLearners();
       setLearners(list);
       if (list[0]) await selectLearner(list[0]);
+      setIssues(await adminListIssueReports());
       setState('ready');
     })();
   }, [selectLearner]);
@@ -159,8 +173,57 @@ export default function AiCourseAdminPage() {
               </div>
               {saved && <p className="text-xs text-emerald-600 mt-2 text-center">{ta.saved}</p>}
             </div>
+
+            {/* プライバシー操作（§13）・テストデータ削除（§21） */}
+            <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
+              <p className="text-sm font-bold text-gray-800 mb-1">{ta.dataTitle}</p>
+              <p className="text-xs text-gray-500 mb-3">{ta.dataDescription}</p>
+              <button type="button"
+                onClick={async () => { const n = await adminDeleteUtterances(sel.id); setDataMsg(ta.utterancesDeleted(n)); }}
+                className="w-full min-h-11 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50">
+                {ta.deleteUtterances}
+              </button>
+              <button type="button"
+                onClick={async () => { const n = await adminDeleteTestLearners(); setDataMsg(ta.testLearnersDeleted(n)); await reload(); }}
+                className="w-full min-h-11 py-2 mt-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50">
+                {ta.deleteTestLearners}
+              </button>
+              {dataMsg && <p className="text-xs text-emerald-600 mt-2 text-center">{dataMsg}</p>}
+            </div>
           </>
         )}
+
+        {/* 問題報告（§18） */}
+        <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
+          <p className="text-sm font-bold text-gray-800 mb-2">{ta.issuesTitle}</p>
+          {issues.length === 0 ? (
+            <p className="text-xs text-gray-500">{ta.issuesEmpty}</p>
+          ) : (
+            <ul className="space-y-2">
+              {issues.map((r) => (
+                <li key={r.id} className={`border rounded-lg p-3 ${r.resolved ? 'border-gray-100 bg-gray-50' : 'border-amber-200 bg-amber-50'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-800 break-words">{r.comment || ta.none}</p>
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        {r.createdAt.slice(0, 16).replace('T', ' ')}
+                        {r.page ? ` ・ ${r.page}` : ''}
+                        {r.errorCode ? ` ・ ${r.errorCode}` : ''}
+                        {r.online === false ? ` ・ ${ta.offline}` : ''}
+                      </p>
+                      {r.userAgent && <p className="text-[10px] text-gray-400 mt-0.5 break-all">{r.userAgent}</p>}
+                    </div>
+                    <button type="button"
+                      onClick={async () => { await adminResolveIssue(r.id, !r.resolved); setIssues(await adminListIssueReports()); }}
+                      className="shrink-0 min-h-9 px-2 py-1 text-xs rounded border border-gray-300 bg-white text-gray-700">
+                      {r.resolved ? ta.reopen : ta.resolve}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </>
   );

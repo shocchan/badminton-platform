@@ -24,6 +24,8 @@ import type {
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import type { CourseNavKey } from '../../components/ai-course/CourseHeader';
 import { CourseLogin } from '../../components/ai-course/CourseLogin';
+import { CourseOnboarding } from '../../components/ai-course/CourseOnboarding';
+import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
@@ -34,7 +36,16 @@ import { CourseTextLesson } from '../../components/ai-course/CourseTextLesson';
 import { CourseReport } from '../../components/ai-course/CourseReport';
 import type { CourseReportData } from '../../components/ai-course/CourseReport';
 
-type Step = 'loading' | 'login' | 'hearing' | 'home' | 'lesson' | 'report' | 'roadmap' | 'history' | 'settings';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'roadmap' | 'history' | 'settings';
+
+/** 利用開始案内を見終わったか（端末ごと） */
+const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
+const hasSeenGuide = (): boolean => {
+  try { return localStorage.getItem(GUIDE_SEEN_KEY) === '1'; } catch { return false; }
+};
+const markGuideSeen = (): void => {
+  try { localStorage.setItem(GUIDE_SEEN_KEY, '1'); } catch { /* private mode */ }
+};
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 
@@ -91,6 +102,7 @@ export default function AiCoursePage() {
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  const [guideMode, setGuideMode] = useState<'first' | 'review'>('first');
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
@@ -110,7 +122,8 @@ export default function AiCoursePage() {
     setRemaining(remainingSessionsToday(lim, usage));
     setPlan(buildLessonPlan(l, prog));
     setHasResume(courseRepository.loadResume<unknown>() !== null);
-    setStep('home');
+    // 初回だけ利用開始案内を挟む。以降はホームへ直行する
+    setStep(hasSeenGuide() ? 'home' : 'guide');
   }, []);
 
   // 初回ロードは1tick遅らせ、effect内の同期setStateを避ける
@@ -279,7 +292,28 @@ export default function AiCoursePage() {
     return <Shell nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
   }
   if (step === 'history') return <Shell nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
-  if (step === 'settings') return <Shell nav={navFor('settings')}><SettingsView t={t} onLogout={() => { void handleLogout(); }} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'guide') {
+    return (
+      <Shell nav={navFor('home')}>
+        <CourseOnboarding
+          t={t} mode={guideMode}
+          onDone={() => { markGuideSeen(); setStep(guideMode === 'first' ? 'home' : 'settings'); }}
+        />
+      </Shell>
+    );
+  }
+  if (step === 'settings') {
+    return (
+      <Shell nav={navFor('settings')}>
+        <CourseSettings
+          t={t} learnerId={learner.id}
+          onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
+          onLogout={() => { void handleLogout(); }}
+          onBack={() => setStep('home')}
+        />
+      </Shell>
+    );
+  }
 
   return (
     <Shell nav={navFor('home')}>
@@ -309,7 +343,18 @@ const Shell = ({ children, nav }: {
   const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   return (
     <>
-      <Helmet><title>{t.brand} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
+      <Helmet>
+        <title>{t.brand} | kawabado</title>
+        <meta name="robots" content="noindex, nofollow" />
+        {/* ホーム画面追加用。AIコースのページでだけ読み込むので、
+            サイト全体のPWA挙動（現状なし）には影響しない */}
+        <link rel="manifest" href={lang === 'zh' ? '/ai-course-zh.webmanifest' : '/ai-course.webmanifest'} />
+        <meta name="theme-color" content="#2563eb" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content={lang === 'zh' ? 'AI日语' : 'AI日本語'} />
+        <link rel="apple-touch-icon" href="/favicon.png" />
+      </Helmet>
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
@@ -319,10 +364,3 @@ const Shell = ({ children, nav }: {
   );
 };
 
-const SettingsView = ({ t, onLogout, onBack }: { t: typeof aiCourseI18n['ja']; onLogout: () => void; onBack: () => void }) => (
-  <div className="max-w-md mx-auto px-4 py-6">
-    <button type="button" onClick={onBack} className="min-h-11 px-2 -ml-1 text-sm text-gray-500 mb-4">← {t.roadmap.back}</button>
-    <p className="text-[11px] text-gray-400 leading-relaxed mb-4">{t.positioning}</p>
-    <button type="button" onClick={onLogout} className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50">{t.login.logout}</button>
-  </div>
-);

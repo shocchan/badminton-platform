@@ -12,7 +12,9 @@ export const adminListLearners = async (): Promise<AdminLearnerRow[]> => {
   const { data, error } = await supabase.from('ai_learners').select('*').order('updated_at', { ascending: false });
   if (error || !data) return [];
   return (data as Record<string, unknown>[]).map((r) => ({
-    id: r.id as string, userId: r.user_id as string, displayName: (r.display_name as string) ?? '',
+    id: r.id as string, userId: r.user_id as string,
+    startedAtISO: (r.created_at as string) ?? null,
+    displayName: (r.display_name as string) ?? '',
     preferredLanguage: (r.preferred_language === 'ja' ? 'ja' : 'zh'),
     estimatedLevel: (r.estimated_level as string) ?? 'N3', difficultyLevel: (r.difficulty_level as Learner['difficultyLevel']) ?? 2,
     currentWeek: (r.current_week as number) ?? 1, isActive: (r.is_active as boolean) ?? true,
@@ -60,4 +62,58 @@ export const adminUpdateLearner = async (
   if (patch.settings !== undefined) row.settings = patch.settings;
   const { error } = await supabase.from('ai_learners').update(row).eq('id', learnerId);
   return !error;
+};
+
+// ── 問題報告（§18）・プライバシー操作（§13）・テストデータ削除（§21） ──
+
+export interface AdminIssueReport {
+  id: string;
+  learnerId: string | null;
+  sessionId: string | null;
+  page: string | null;
+  errorCode: string | null;
+  userAgent: string | null;
+  platform: string | null;
+  online: boolean | null;
+  comment: string | null;
+  resolved: boolean;
+  createdAt: string;
+}
+
+export const adminListIssueReports = async (limit = 50): Promise<AdminIssueReport[]> => {
+  const { data } = await supabase.from('ai_issue_reports').select('*')
+    .order('created_at', { ascending: false }).limit(limit);
+  if (!data) return [];
+  return (data as Record<string, unknown>[]).map((r) => ({
+    id: r.id as string,
+    learnerId: (r.learner_id as string) ?? null,
+    sessionId: (r.session_id as string) ?? null,
+    page: (r.page as string) ?? null,
+    errorCode: (r.error_code as string) ?? null,
+    userAgent: (r.user_agent as string) ?? null,
+    platform: (r.platform as string) ?? null,
+    online: (r.online as boolean) ?? null,
+    comment: (r.comment as string) ?? null,
+    resolved: (r.resolved as boolean) ?? false,
+    createdAt: r.created_at as string,
+  }));
+};
+
+export const adminResolveIssue = async (id: string, resolved: boolean): Promise<boolean> => {
+  const { error } = await supabase.from('ai_issue_reports').update({ resolved }).eq('id', id);
+  return !error;
+};
+
+/** 対象生徒の発話ログ（文字起こし）だけを削除する。レポート・進捗は残る */
+export const adminDeleteUtterances = async (learnerId: string): Promise<number> => {
+  const { data, error } = await supabase.rpc('ai_admin_delete_utterances', { p_learner_id: learnerId });
+  if (error) return 0;
+  return typeof data === 'number' ? data : 0;
+};
+
+/** staging受入テストで作った is_test の生徒を一括削除（本番データと混ざらないようにする） */
+export const adminDeleteTestLearners = async (): Promise<number> => {
+  const { data, error } = await supabase.rpc('ai_delete_test_learners');
+  if (error) return 0;
+  return typeof data === 'number' ? data : 0;
 };

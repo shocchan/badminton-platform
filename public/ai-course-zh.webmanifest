@@ -1,0 +1,16 @@
+{
+  "name": "结衣老师・AI日语会话课程",
+  "short_name": "AI日语",
+  "description": "每天3〜4分钟，把N2水平的表达练到真正能开口说。",
+  "start_url": "/zh/ai-course",
+  "scope": "/zh/ai-course",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "lang": "zh-Hans",
+  "icons": [
+    { "src": "/logo-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

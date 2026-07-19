@@ -1,0 +1,16 @@
+{
+  "name": "ゆい先生とAI日本語会話コース",
+  "short_name": "AI日本語",
+  "description": "N2レベルの表現を実際に話せるようにする、1日3〜4分の日本語会話コース。",
+  "start_url": "/ja/ai-course",
+  "scope": "/ja/ai-course",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "lang": "ja",
+  "icons": [
+    { "src": "/logo-192.webp", "sizes": "192x192", "type": "image/webp", "purpose": "any" },
+    { "src": "/favicon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
