@@ -151,9 +151,16 @@ serve(async (req) => {
       zhSupport,
       correction,
       targetLabel: cleanText(target.label, 60) ?? "「〜たことがあります」",
-      targetExample: cleanText(target.example, 120) ?? "日本の大会に出たことがあります。",
-      targetZhMeaning: cleanText(target.zhMeaning, 120) ?? "曾经…过（表达经历）",
-      targetZhExample: cleanText(target.zhExample, 120) ?? "我参加过日本的比赛。",
+      targetExample: cleanText(target.example, 200) ?? "日本の大会に出たことがあります。",
+      targetZhMeaning: cleanText(target.zhMeaning, 200) ?? "曾经…过（表达经历）",
+      targetZhExample: cleanText(target.zhExample, 200) ?? "我参加过日本的比赛。",
+      // ── コース用フィールド（任意） ──
+      difficultyGuide: cleanText(plan.difficultyGuide, 200) ?? undefined,
+      lessonKind: cleanText(plan.lessonKind, 20) ?? undefined,
+      hideTarget: plan.hideTarget === true,
+      usageNotes: cleanText(plan.usageNotes, 300) ?? undefined,
+      commonMistakes: cleanText(plan.commonMistakes, 400) ?? undefined,
+      reviewPrompt: cleanText(plan.reviewPrompt, 300) ?? undefined,
     };
 
     const instructions = buildVoiceInstructions(params);

@@ -11,7 +11,42 @@ export interface VoicePromptParams {
   targetExample: string;
   targetZhMeaning: string;
   targetZhExample: string;
+  // ── コース用（任意）。デモ単発では未指定 ──
+  /** 難易度の指示（1〜5に応じた話し方） */
+  difficultyGuide?: string;
+  /** レッスン種別: new / review_day1 / review_day3 / review_day7 / extra */
+  lessonKind?: string;
+  /** 7日後復習など、目標表現名を先に言わない */
+  hideTarget?: boolean;
+  /** 使い方の注意（母語話者向け） */
+  usageNotes?: string;
+  /** よくある間違い */
+  commonMistakes?: string;
+  /** 復習の進め方（day1/day3/day7別の指示） */
+  reviewPrompt?: string;
 }
+
+/** レッスン種別に応じた進め方（復習は同じ質問の繰り返しにしない） */
+const kindGuide = (p: VoicePromptParams): string => {
+  if (!p.lessonKind || p.lessonKind === 'new') {
+    return `【今日は新しい表現】
+- テーマ→目標表現の短い説明→短いお手本→生徒への質問、の順で始める。
+- 説明しすぎない。生徒に話させる時間を全体の半分以上にする。
+- 目標表現を使った言い直し→別の場面でもう一度使わせる→最終確認→まとめ。`;
+  }
+  const base = p.reviewPrompt ? `- 復習の進め方: ${p.reviewPrompt}\n` : '';
+  if (p.lessonKind === 'review_day7' || p.hideTarget) {
+    return `【今日は復習（自力チェック）】
+${base}- 最初に目標表現の名前を言わない。自然な会話の流れの中で、生徒が自分で思い出して使えるか確認する。
+- 使えたら大きく認め、使えなければ最後にヒントを出して一度使わせる。`;
+  }
+  if (p.lessonKind === 'review_day1') {
+    return `【今日は復習（翌日）】
+${base}- まず意味を軽く確認し、文の一部を空けて補完させ、短く復唱させる。長く説明しない。`;
+  }
+  return `【今日は復習】
+${base}- 前回と違う場面で目標表現を使わせる。ヒントは前回より減らす。`;
+};
 
 const ZH_SUPPORT_RULES: Record<VoicePromptParams['zhSupport'], string> = {
   whenStuck: '中国語は生徒が困った時・詰まった時だけ短く使う。',
@@ -47,6 +82,11 @@ export const buildVoiceInstructions = (p: VoicePromptParams): string => `
 - 質問をしたら、生徒が考える時間を静かに待つ。急かさない。
 - モデル文・言い直し・文法説明は、特にゆっくり、はっきり話す。
 - 中国語の補足も早口にしない。
+${p.difficultyGuide ? `- レベル調整: ${p.difficultyGuide}` : ''}
+
+${kindGuide(p)}
+${p.usageNotes ? `\n【この表現の使い方】\n- ${p.usageNotes}` : ''}
+${p.commonMistakes ? `\n【中国語話者が間違えやすい点】\n- ${p.commonMistakes}\n- 生徒がこの間違いをしたら、やさしく一度だけ直す。` : ''}
 
 【基本】
 - 基本は日本語で話す。

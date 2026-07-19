@@ -43,6 +43,9 @@ const RallyGamePage       = lazy(() => import('./pages/RallyGamePage'));
 const MyPage              = lazy(() => import('./pages/MyPage'));
 // AI日本語学習デモ（限定公開: ナビ・sitemap・robots非掲載、パスコードゲートあり）
 const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
+// AI日本語コース完成版（Andyさん向け・限定公開・メールOTP認証）
+const AiCoursePage        = lazy(() => import('./pages/ai-lesson/AiCoursePage'));
+const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-[60vh]">
@@ -88,6 +91,8 @@ const AnimatedRoutes = () => {
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
             <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
+              <Route path="ai-course"       element={<AiCoursePage />} />
+              <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
             <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />
             <Route path="signup"          element={<SignupPage />} />
