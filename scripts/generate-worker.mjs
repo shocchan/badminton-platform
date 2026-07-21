@@ -24,6 +24,7 @@ async function generateSitemap(env) {
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
     { path: 'blog',          priority: '0.7', freq: 'weekly' },
+    { path: 'tournaments/gallery', priority: '0.7', freq: 'weekly' },
     { path: 'join',          priority: '0.6', freq: 'monthly' },
     { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
