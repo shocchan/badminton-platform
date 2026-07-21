@@ -85,6 +85,11 @@ export interface LearnerSettings {
   weeklyTarget: number;
   sessionMinutes: number;
   examDateISO: string | null;
+  /**
+   * 音声レッスンの字幕補助（表示側）。zhSupport（音声側）とは別軸。
+   * 未設定なら courseSubtitles.deriveDefaultSubtitleMode で導出する。
+   */
+  subtitleMode?: 'ja' | 'ja_zh' | 'whenStuck';
   /** サインアップ時の招待コード（Edge Function側でSecretと照合） */
   inviteCode?: string;
 }
