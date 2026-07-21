@@ -37,13 +37,13 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
   const zh = t.locale === 'zh';
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-5">
         <button type="button" onClick={onBack} aria-label={t.roadmap.back}
           className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">{tg.title}</h1>
+        <h1 className="text-lg lg:text-xl font-bold text-gray-900">{tg.title}</h1>
       </div>
 
       {/* データ不足時は断定せず「分析中」（§26） */}
@@ -58,6 +58,9 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
           </div>
         </div>
       )}
+
+      {/* PC は2カラムに流し込み（旅マップ・スキル横並び等）。読み物幅を確保しつつ余白を活かす */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-x-6 lg:items-start">
 
       {/* 旅マップ */}
       <Section icon={<Map className="w-4 h-4 text-blue-600" />} title={tg.journeyTitle}>
@@ -107,6 +110,8 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
           <p className="text-[11px] text-gray-400 mt-3 leading-relaxed">{tg.goalNote}</p>
         </div>
       </Section>
+
+      </div>{/* /2カラムグリッド */}
     </div>
   );
 };

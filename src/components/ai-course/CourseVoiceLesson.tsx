@@ -3,7 +3,7 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, Volume2, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square } from 'lucide-react';
+import { X, Clock, Flag, Mic, MicOff, PenLine, Volume2, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
@@ -39,10 +39,17 @@ interface Props {
   step: LessonPlanStep;
   /** ai_start_session で予約済みのセッションID。トークン発行の認可に使う */
   sessionId: string | null;
+  /** 現在の表示言語（字幕・UIの言語切替に使う） */
+  lang: 'ja' | 'zh';
+  /** ワンタップ言語切替（音声セッションは継続。確認後に呼ぶ） */
+  onToggleLang: () => void;
   onComplete: (r: VoiceLessonResult) => void;
   onSwitchToText: () => void;
   onExit: () => void;
 }
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const DURATION = 180, HARD_END = 240, CLOSING_BEFORE = 30;
 const COMPLETE_OVERLAY_MS = 1600, MAX_RETRY = 2;
@@ -50,7 +57,7 @@ const isWeChat = () => /MicroMessenger/i.test(navigator.userAgent);
 const hasZh = (s: string) => /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(s);
 const fmt = (sec: number) => `${Math.floor(Math.max(sec, 0) / 60)}:${String(Math.max(sec, 0) % 60).padStart(2, '0')}`;
 
-export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onSwitchToText, onExit }: Props) => {
+export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleLang, onComplete, onSwitchToText, onExit }: Props) => {
   const tv = t.voice, tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
@@ -70,6 +77,8 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [ending, setEnding] = useState(false); const [doneOverlay, setDoneOverlay] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [atBottom, setAtBottom] = useState(true);      // 会話履歴が最下部にあるか（自動追従の可否）
+  const [langConfirmOpen, setLangConfirmOpen] = useState(false);
 
   // 中国語補助字幕（表示側）。zhSupport（音声側）とは別軸で、learner設定＋レベルから決まる。
   const subtitleMode = effectiveSubtitleMode(learner.settings, t.locale === 'zh' ? 'zh' : 'ja', learner.difficultyLevel);
@@ -150,9 +159,15 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
     });
   }, [learner, mission, step, complete, sessionId]);
 
+  // start は毎renderで identity が変わりうる（onComplete等に依存）。
+  // ref経由で「最新のstart」を保持し、マウント時に1回だけ起動する。
+  // → 言語切替など親の再renderが起きても、音声セッションを再起動しない（§4）。
+  const startRef = useRef(start);
+  useEffect(() => { startRef.current = start; }); // 常に最新の start を保持（render中には書かない）
   useEffect(() => {
+    // マウント時のみ起動。sessionId は起動前に確定済み（page側でcreateSession→setStepの順）
     let cancelled = false;
-    const id = setTimeout(() => { void start(() => cancelled); }, 0);
+    const id = setTimeout(() => { void startRef.current(() => cancelled); }, 0);
     const tm = timers.current;
     return () => {
       cancelled = true;
@@ -160,7 +175,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
       tm.forEach(clearTimeout);
       sessionRef.current?.stop();
     };
-  }, [start]);
+  }, []);
 
   useEffect(() => {
     if (status !== 'connected') return;
@@ -182,8 +197,19 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
   // 4分で強制終了
   useEffect(() => { if (elapsed >= HARD_END && !doneRef.current) complete('timeout', 'completed', true); }, [elapsed, complete]);
 
-  // 字幕は subs の変化ではスクロールしない（中国語訳が後から付いても画面を跳ねさせない）
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [msgs, liveT, liveU]);
+  // 会話履歴のスクロール（§12）:
+  // - ユーザーが上へスクロールして過去ログを読んでいる間は自動追従しない
+  // - 最下部にいるときだけ最新へ追従（字幕の subs 変化では追従しない＝跳ねさせない）
+  const scrollToLatest = useCallback((smooth = true) => {
+    const el = scrollRef.current; if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth && !prefersReducedMotion() ? 'smooth' : 'auto' });
+    setAtBottom(true);
+  }, []);
+  const onHistoryScroll = () => {
+    const el = scrollRef.current; if (!el) return;
+    setAtBottom(el.scrollHeight - el.scrollTop - el.clientHeight < 80);
+  };
+  useEffect(() => { if (atBottom) scrollToLatest(); }, [msgs, liveT, liveU, atBottom, scrollToLatest]);
 
   // ゆい先生の1発話を中国語補助訳にする（キャッシュ優先・失敗は握りつぶす）
   const requestTranslate = useCallback((index: number, text: string) => {
@@ -229,6 +255,8 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
     timers.current.push(id);
   };
   const stopNow = () => { sessionRef.current?.stop(); setEnding(false); setInterrupted(true); };
+  // 言語切替は音声セッションを継続したまま表示言語だけ変える（mount一回化により再起動しない）
+  const confirmLangSwitch = () => { setLangConfirmOpen(false); onToggleLang(); };
   const doRetry = () => { if (retry >= MAX_RETRY) return; setRetry((c) => c + 1); void start(); };
   const switchText = () => { sessionRef.current?.stop(); onSwitchToText(); };
   const partialReport = () => complete('interrupted', 'interrupted', false);
@@ -277,76 +305,163 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
     );
   }
 
-  return (
-    <div className="fixed inset-0 z-40 bg-gray-50 flex flex-col" style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}>
-      <div className="bg-white border-b border-gray-200 px-3 py-2 shrink-0">
-        <div className="flex items-center justify-between gap-2">
-          <button type="button" onClick={() => setConfirmOpen(true)} disabled={ending} aria-label={tv.endLessonButton}
-            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40">
-            <X className="w-5 h-5" /><span className="text-xs font-medium whitespace-nowrap">{tv.endLessonButton}</span>
-          </button>
-          <div className="flex items-center gap-1.5">
-            <Clock className={`w-4 h-4 ${remaining <= 30 && !inExt ? 'text-red-500' : 'text-blue-600'}`} />
-            <span className={`font-mono font-bold text-lg tabular-nums ${remaining <= 30 && !inExt ? 'text-red-600' : 'text-gray-900'}`}>{fmt(remaining)}</span>
-          </div>
-          <span className={`text-[11px] font-medium px-2 py-1 rounded-full whitespace-nowrap flex items-center gap-1 ${isReview ? 'bg-violet-50 text-violet-700' : 'bg-emerald-50 text-emerald-700'}`}>
-            {kindLabel}
-          </span>
-        </div>
-        <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 overflow-hidden">
-          <Flag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <span className="truncate">{tl.theme}: {t.locale === 'zh' ? mission.titleZh : mission.titleJa}
-            {step.hideTarget ? ` ／ ${tl.hiddenTarget}` : ` ／ ${tl.target}: ${mission.targetExpression}`}</span>
-        </p>
-        {/* 目標表現の中国語の意味は、固定カリキュラムの meaningZh を使う（API不要）。答えを隠す回では出さない */}
-        {!step.hideTarget && zhAssistAvailable(subtitleMode) && mission.meaningZh && (
-          <p className="text-[11px] text-gray-400 mt-0.5 pl-[18px] truncate">{mission.meaningZh}</p>
-        )}
-      </div>
+  // 最新のゆい先生発話（強調表示用）
+  let lastTutorIdx = -1;
+  for (let i = msgs.length - 1; i >= 0; i--) { if (msgs[i].role === 'tutor') { lastTutorIdx = i; break; } }
 
-      {(inExt || ending) && (
-        <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
-          <p className="text-sm text-amber-800 font-medium min-w-0">{ending ? tv.endingSummary : tv.finalPractice}</p>
-          <button type="button" onClick={stopNow} className="min-h-9 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 bg-white rounded-lg flex items-center gap-1 shrink-0"><Square className="w-3 h-3" />{tv.emergencyStop}</button>
+  const langBtn = (
+    <button type="button" onClick={() => setLangConfirmOpen(true)}
+      aria-label={lang === 'ja' ? '切换到中文' : '日本語に切り替える'}
+      className="min-h-11 px-2.5 text-xs font-medium text-gray-600 hover:text-blue-600 border border-gray-200 rounded-lg flex items-center gap-1 shrink-0">
+      <Languages className="w-3.5 h-3.5" />{lang === 'ja' ? '中文' : '日本語'}
+    </button>
+  );
+
+  // 目標表現カード（PC右パネル）。答えを隠す回は中国語意味を出さない
+  const targetCard = (
+    <div className="bg-gray-50 rounded-xl p-4">
+      <p className="text-[11px] text-gray-500 flex items-center gap-1 mb-1"><Flag className="w-3.5 h-3.5 text-amber-500" />{tl.theme}</p>
+      <p className="text-sm font-bold text-gray-900 leading-snug">{t.locale === 'zh' ? mission.titleZh : mission.titleJa}</p>
+      {step.hideTarget ? (
+        <p className="text-xs text-gray-500 mt-2">{tl.hiddenTarget}</p>
+      ) : (
+        <>
+          <p className="text-base font-bold text-blue-700 mt-2 leading-snug break-words">{mission.targetExpression}</p>
+          {zhAssistAvailable(subtitleMode) && mission.meaningZh && (
+            <p className="text-[13px] text-gray-500 mt-1 leading-relaxed break-words">{mission.meaningZh}</p>
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const statusIndicator = (big = false) => (
+    <div className="flex items-center gap-3">
+      <div className={`${big ? 'w-14 h-14' : 'w-12 h-12'} rounded-full flex items-center justify-center shrink-0 ${status !== 'connected' ? 'bg-gray-100 text-gray-400' : tutorSpeaking ? 'bg-blue-100 text-blue-600' : userSpeaking ? 'bg-emerald-100 text-emerald-600 motion-safe:animate-pulse' : 'bg-emerald-50 text-emerald-500'}`}>
+        {tutorSpeaking ? <Volume2 className={big ? 'w-6 h-6' : 'w-5 h-5'} /> : <Mic className={big ? 'w-6 h-6' : 'w-5 h-5'} />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-gray-800" aria-live="polite">{statusLine()}</p>
+        <p className="text-[11px] text-gray-400">{tv.transcriptNote}</p>
+      </div>
+    </div>
+  );
+
+  const conversation = (
+    <>
+      {status === 'connected' && msgs.length === 0 && !liveT && <p className="text-sm text-gray-500 text-center py-6">{tv.speakFirstHint}</p>}
+      {(status === 'requesting-mic' || status === 'connecting') && (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center motion-safe:animate-pulse"><Mic className="w-7 h-7 text-blue-600" /></div>
+          <p className="text-sm text-gray-600">{statusLine()}</p>
         </div>
       )}
-      {isWeChat() && status !== 'connected' && <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 shrink-0"><p className="text-xs text-amber-800">{tv.wechatWarning}</p></div>}
-
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-3 overscroll-contain">
-        {status === 'connected' && msgs.length === 0 && !liveT && <p className="text-xs text-gray-500 text-center py-4">{tv.speakFirstHint}</p>}
-        {(status === 'requesting-mic' || status === 'connecting') && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center animate-pulse"><Mic className="w-7 h-7 text-blue-600" /></div>
-            <p className="text-sm text-gray-600">{statusLine()}</p>
-          </div>
-        )}
-        {msgs.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
-            <div className="max-w-[85%]">
-              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
-              <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>{m.text}</div>
-              {/* 中国語補助字幕はゆい先生の発話にのみ。日本語字幕を隠さず下に小さく薄く出す */}
+      {msgs.map((m, i) => {
+        const isStudent = m.role === 'student';
+        const emphasize = i === lastTutorIdx; // 最新のゆい先生発話を少し大きく
+        return (
+          <div key={i} className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
+            <div className="max-w-[85%] lg:max-w-[78%]">
+              <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
+              <div className={`px-4 py-2.5 rounded-2xl leading-relaxed whitespace-pre-wrap break-words ${
+                isStudent
+                  ? 'bg-blue-600 text-white rounded-tr-sm text-[15px] lg:text-base'
+                  : `bg-white text-gray-900 border border-gray-200 rounded-tl-sm ${emphasize ? 'text-[17px] lg:text-lg font-medium shadow-sm' : 'text-[15px] lg:text-base'}`
+              }`}>{m.text}</div>
               {m.role === 'tutor' && zhAssistAvailable(subtitleMode) && (
                 <ZhAssist sub={subs[i]} tv={tv} onShow={() => requestTranslate(i, m.text)} />
               )}
             </div>
           </div>
-        ))}
-        {liveT && <div className="flex justify-start"><div className="max-w-[85%]"><div className="px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-sm bg-white/70 text-gray-500 border border-gray-200 border-dashed">{liveT}</div></div></div>}
-        {liveU && <div className="flex justify-end"><div className="max-w-[85%]"><div className="px-3.5 py-2.5 rounded-2xl rounded-tr-sm text-sm bg-blue-400/60 text-white">{liveU}</div></div></div>}
-      </div>
+        );
+      })}
+      {liveT && <div className="flex justify-start"><div className="max-w-[85%] lg:max-w-[78%]"><div className="px-4 py-2.5 rounded-2xl rounded-tl-sm text-[15px] bg-white/80 text-gray-500 border border-gray-200 border-dashed">{liveT}</div></div></div>}
+      {liveU && <div className="flex justify-end"><div className="max-w-[85%] lg:max-w-[78%]"><div className="px-4 py-2.5 rounded-2xl rounded-tr-sm text-[15px] bg-blue-400/70 text-white">{liveU}</div></div></div>}
+    </>
+  );
 
-      <div className="bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-        <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${status !== 'connected' ? 'bg-gray-100 text-gray-400' : tutorSpeaking ? 'bg-blue-100 text-blue-600' : userSpeaking ? 'bg-emerald-100 text-emerald-600 animate-pulse' : 'bg-emerald-50 text-emerald-500'}`}>
-            {tutorSpeaking ? <Volume2 className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+  return (
+    <div className="fixed inset-0 z-40 bg-gray-50 flex flex-col" style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}>
+      {/* ── トップバー ── */}
+      <div className="bg-white border-b border-gray-200 px-3 lg:px-4 py-2 shrink-0">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          <button type="button" onClick={() => setConfirmOpen(true)} disabled={ending} aria-label={tv.endLessonButton}
+            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40">
+            <X className="w-5 h-5" /><span className="text-xs font-medium whitespace-nowrap">{tv.endLessonButton}</span>
+          </button>
+          <div className="flex items-center gap-2">
+            {langBtn}
+            <div className="flex items-center gap-1.5">
+              <Clock className={`w-4 h-4 ${remaining <= 30 && !inExt ? 'text-red-500' : 'text-blue-600'}`} />
+              <span className={`font-mono font-bold text-lg tabular-nums ${remaining <= 30 && !inExt ? 'text-red-600' : 'text-gray-900'}`}>{fmt(remaining)}</span>
+            </div>
+            <span className={`text-[11px] font-medium px-2 py-1 rounded-full whitespace-nowrap flex items-center gap-1 ${isReview ? 'bg-violet-50 text-violet-700' : 'bg-emerald-50 text-emerald-700'}`}>
+              {kindLabel}
+            </span>
           </div>
-          <div className="min-w-0 flex-1"><p className="text-sm font-medium text-gray-800 truncate">{statusLine()}</p><p className="text-[11px] text-gray-400 truncate">{tv.transcriptNote}</p></div>
-          <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
+        </div>
+        {/* スマホ/タブレット用の目標表現行（PCは右パネルに出す） */}
+        <div className="lg:hidden max-w-6xl mx-auto">
+          <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 overflow-hidden">
+            <Flag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <span className="truncate">{tl.theme}: {t.locale === 'zh' ? mission.titleZh : mission.titleJa}
+              {step.hideTarget ? ` ／ ${tl.hiddenTarget}` : ` ／ ${tl.target}: ${mission.targetExpression}`}</span>
+          </p>
+          {!step.hideTarget && zhAssistAvailable(subtitleMode) && mission.meaningZh && (
+            <p className="text-[11px] text-gray-500 mt-0.5 pl-[18px] truncate">{mission.meaningZh}</p>
+          )}
         </div>
       </div>
 
+      {(inExt || ending) && (
+        <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 shrink-0">
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+            <p className="text-sm text-amber-800 font-medium min-w-0">{ending ? tv.endingSummary : tv.finalPractice}</p>
+            <button type="button" onClick={stopNow} className="min-h-9 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 bg-white rounded-lg flex items-center gap-1 shrink-0"><Square className="w-3 h-3" />{tv.emergencyStop}</button>
+          </div>
+        </div>
+      )}
+      {isWeChat() && status !== 'connected' && <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 shrink-0"><p className="text-xs text-amber-800 max-w-6xl mx-auto">{tv.wechatWarning}</p></div>}
+
+      {/* ── 本体: スマホ=1カラム / PC=会話（左）＋補助（右）の2カラム ── */}
+      <div className="flex-1 min-h-0 w-full max-w-6xl mx-auto flex flex-col lg:flex-row">
+        {/* 左: 会話 */}
+        <div className="flex-1 min-h-0 relative flex flex-col">
+          <div ref={scrollRef} onScroll={onHistoryScroll} className="flex-1 overflow-y-auto px-3 lg:px-6 py-3 lg:py-5 space-y-3 overscroll-contain">
+            {conversation}
+          </div>
+          {/* 最新へ戻る（過去ログ閲覧中のみ） */}
+          {!atBottom && (
+            <button type="button" onClick={() => scrollToLatest()}
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 min-h-9 px-3 py-1.5 bg-gray-900/85 text-white text-xs font-medium rounded-full shadow-lg flex items-center gap-1">
+              <ChevronDown className="w-3.5 h-3.5" />{tv.backToLatest}
+            </button>
+          )}
+          {/* スマホ用の下部ステータスバー（PCは右パネルへ） */}
+          <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">{statusIndicator(false)}</div>
+              <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
+            </div>
+          </div>
+        </div>
+
+        {/* 右: 補助パネル（PCのみ） */}
+        <aside className="hidden lg:flex lg:flex-col lg:w-80 xl:w-96 shrink-0 border-l border-gray-200 bg-white p-5 gap-4 overflow-y-auto">
+          {targetCard}
+          {statusIndicator(true)}
+          {zhAssistAvailable(subtitleMode) && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Subtitles className="w-4 h-4 text-indigo-500" />
+              {subtitleMode === 'ja_zh' ? t.settings.subtitleModes.ja_zh : subtitleMode === 'whenStuck' ? t.settings.subtitleModes.whenStuck : t.settings.subtitleModes.ja}
+            </div>
+          )}
+          <button type="button" onClick={switchText} className="mt-auto min-h-11 px-3 py-2.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg flex items-center justify-center gap-1.5"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+        </aside>
+      </div>
+
       <ConfirmDialog open={confirmOpen} title={tv.endSummaryConfirm} confirmLabel={tv.endSummarize} cancelLabel={tv.endContinue} onConfirm={handleSummaryEnd} onCancel={() => setConfirmOpen(false)} />
+      <ConfirmDialog open={langConfirmOpen} title={tv.langSwitchConfirm} confirmLabel={tv.langSwitchOnly} cancelLabel={tv.endContinue} onConfirm={confirmLangSwitch} onCancel={() => setLangConfirmOpen(false)} />
       {/* onExit is used by parent when leaving; keep referenced */}
       <button type="button" onClick={onExit} className="hidden" aria-hidden />
     </div>
@@ -364,16 +479,17 @@ const ZhAssist = ({ sub, tv, onShow }: {
   tv: AiCourseDict['voice'];
   onShow: () => void;
 }) => {
+  // コントラスト確保のため gray-600（WCAG AA相当）。日本語より小さいが読める大きさに。
   if (sub?.state === 'shown' && sub.zh) {
-    return <p className="text-[11px] text-gray-400 mt-1 px-1 leading-snug whitespace-pre-wrap break-words">{sub.zh}</p>;
+    return <p className="text-[13px] lg:text-sm text-gray-600 mt-1 px-1 leading-relaxed whitespace-pre-wrap break-words">{sub.zh}</p>;
   }
   if (sub?.state === 'pending') {
-    return <p className="text-[11px] text-gray-300 mt-1 px-1">{tv.subtitleTranslating}</p>;
+    return <p className="text-[13px] text-gray-400 mt-1 px-1">{tv.subtitleTranslating}</p>;
   }
   // 未翻訳（whenStuckで未トリガー）または失敗 → 「中文を見る」ボタン
   return (
     <button type="button" onClick={onShow}
-      className="text-[11px] text-blue-400 hover:text-blue-500 mt-1 px-1 underline decoration-dotted">
+      className="min-h-11 text-[13px] text-blue-600 hover:text-blue-700 mt-1 px-1 underline decoration-dotted">
       {sub?.state === 'error' ? tv.subtitleRetry : tv.subtitleShowZh}
     </button>
   );

@@ -50,7 +50,7 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
       <button type="button" onClick={onBack} className="min-h-11 px-2 -ml-1 text-sm text-gray-500 mb-4">
         ← {t.roadmap.back}
       </button>

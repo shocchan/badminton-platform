@@ -50,7 +50,7 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
   const rate = (rating: FeedbackInput['difficultyRating']) => { setRated(true); onFeedback({ difficultyRating: rating }); };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
       <div className="text-center mb-5">
         <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-2">
           <Award className="w-7 h-7 text-amber-500" />

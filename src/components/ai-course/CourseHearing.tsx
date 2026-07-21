@@ -75,7 +75,7 @@ export const CourseHearing = ({ t, onComplete, busy }: Props) => {
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-8">
+    <div className="max-w-md lg:max-w-xl mx-auto px-4 py-8">
       <div className="text-center mb-6">
         <h1 className="text-xl font-bold text-gray-900">{tx.title}</h1>
         <p className="text-sm text-gray-500 mt-1">{tx.sub}</p>

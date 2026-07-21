@@ -46,8 +46,8 @@ export const CourseHome = ({
   const canLearn = remainingToday > 0 && learner.isActive;
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-lg font-bold text-gray-900 mb-4">{th.greeting(learner.displayName)}</h1>
+    <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
+      <h1 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">{th.greeting(learner.displayName)}</h1>
 
       {/* 中断・再開 */}
       {hasResume && (
@@ -65,6 +65,10 @@ export const CourseHome = ({
           </div>
         </div>
       )}
+
+      {/* PC は 左（現在地・今日のレッスン・CTA）／右（成長・旅マップ）の2カラム */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+      <div className="lg:space-y-4 lg:[&>*]:mb-0">
 
       {/* 現在地カード（Week番号より「今どんな力をつける段階か」） */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex items-center gap-2.5">
@@ -118,6 +122,9 @@ export const CourseHome = ({
         </div>
       )}
 
+      </div>{/* /左カラム */}
+      <div className="lg:space-y-3 lg:[&>*]:mb-0">
+
       {/* 今週できるようになったこと（最大3） */}
       {thisWeekCanDos.length > 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
@@ -157,11 +164,14 @@ export const CourseHome = ({
       </button>
 
       {/* 補助情報（連続日数など。主役にしない・§22） */}
-      <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+      <div className="flex items-center justify-center lg:justify-start gap-4 text-xs text-gray-400 mt-4 lg:mt-0">
         <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-orange-400" />{th.streakValue(stats.streak)}</span>
         <span>{th.thisWeekValue(stats.weekSessions, learner.settings.weeklyTarget)}</span>
         {reviewsOverdue > 0 && <span className="text-red-500">{th.reviewsOverdue(reviewsOverdue)}</span>}
       </div>
+
+      </div>{/* /右カラム */}
+      </div>{/* /2カラムグリッド */}
 
       <p className="text-[11px] text-gray-400 leading-relaxed mt-5">{t.positioning}</p>
     </div>

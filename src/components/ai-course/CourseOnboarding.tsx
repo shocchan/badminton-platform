@@ -24,7 +24,7 @@ export const CourseOnboarding = ({ t, mode, onDone }: Props) => {
   ];
 
   return (
-    <div className="max-w-md mx-auto px-4 py-6">
+    <div className="max-w-md lg:max-w-xl mx-auto px-4 py-6">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
         <h1 className="text-xl font-bold text-gray-900">{to.title}</h1>
         <p className="text-sm text-gray-600 mt-2 leading-relaxed">{to.purpose}</p>
