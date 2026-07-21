@@ -311,13 +311,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     { label: t.labelName, value: formData.name },
     ...(isDoubles ? [{ label: t.labelPartner, value: formData.partner_name || t.notEntered }] : []),
     { label: t.labelEmail, value: formData.email },
-    { label: t.labelPhone.replace(/（.*）|\(.*\)/, ''), value: formData.phone || t.notEntered },
-    { label: t.labelNotes.replace(/（.*）|\(.*\)/, ''), value: formData.notes || t.notEntered },
   ];
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto ${step === 'payment-method' ? 'max-w-2xl' : 'max-w-md'}`}>
+      // 専用ページ（/tournaments/:id/entry）内にインライン表示するカード。
+      // 以前はモーダル（fixed overlay）だったが、スマホでの安定感・戻る操作対応のためページ化
+      <div className={`bg-white rounded-2xl w-full shadow-md border border-gray-100 mx-auto ${step === 'payment-method' ? 'max-w-2xl' : 'max-w-md'}`}>
         {/* ヘッダー */}
         <div className={`px-6 py-5 rounded-t-2xl ${isWaitlist ? 'bg-gradient-to-r from-amber-500 to-amber-400' : 'bg-gradient-to-r from-blue-600 to-blue-500'}`}>
           <div className="flex justify-between items-start">
@@ -648,26 +647,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                   placeholder="example@email.com"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelPhone}</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="090-1234-5678"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t.labelNotes}</label>
-                <textarea
-                  value={formData.notes}
-                  onChange={e => setFormData(p => ({ ...p, notes: e.target.value }))}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  placeholder={t.phNotes}
-                />
-              </div>
+              {/* 電話・備考は申込ハードルを下げるため非表示（必要事項は確認メールへの返信で伺う）。
+                  state は空のまま送信されるため DB・メール送信の互換性は維持 */}
+              <p className="text-xs text-gray-400">
+                {lang === 'zh' ? '如有其他事项，收到确认邮件后直接回复即可。' : 'その他の連絡事項は、確認メールへの返信でお知らせいただけます。'}
+              </p>
               <button
                 type="submit"
                 className={`w-full text-white font-bold py-3 rounded-xl transition-colors ${isWaitlist ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'}`}
@@ -678,6 +662,5 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           )}
         </div>
       </div>
-    </div>
   );
 };

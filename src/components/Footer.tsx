@@ -47,6 +47,9 @@ export const Footer = () => {
               <Link to="/blog" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'ブログ' : '博客'}
               </Link>
+              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/gallery`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会レポート' : '往届赛事回顾'}
+              </Link>
               <Link to="/faq" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会FAQ' : '赛事常见问题'}
               </Link>

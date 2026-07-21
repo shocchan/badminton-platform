@@ -14,6 +14,7 @@ import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const TournamentGalleryPage = lazy(() => import('./pages/tournaments/TournamentGalleryPage').then(m => ({ default: m.TournamentGalleryPage })));
+const TournamentEntryPage = lazy(() => import('./pages/tournaments/TournamentEntryPage').then(m => ({ default: m.TournamentEntryPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
 const AdminPage            = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
@@ -72,6 +73,7 @@ const AnimatedRoutes = () => {
             <Route path="activity"        element={<ActivityListPage groupSlug="kawaguchi-warabi" />} />
             <Route path="activity/:id"    element={<ActivityPage groupSlug="kawaguchi-warabi" />} />
             <Route path="tournaments/gallery" element={<TournamentGalleryPage />} />
+            <Route path="tournaments/:id/entry" element={<TournamentEntryPage />} />
             <Route path="tournaments/:id" element={<TournamentDetailPage />} />
             <Route path="faq"             element={<FaqPage />} />
             <Route path="venues"          element={<VenueGuidePage />} />

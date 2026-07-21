@@ -30,6 +30,7 @@ export async function onRequest(context: { env: Env }) {
       { path: 'level-guide',   priority: '0.8', freq: 'monthly' },
       { path: 'faq',           priority: '0.8', freq: 'monthly' },
       { path: 'blog',          priority: '0.7', freq: 'weekly' },
+      { path: 'tournaments/gallery', priority: '0.7', freq: 'weekly' },
       { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
     ];
 

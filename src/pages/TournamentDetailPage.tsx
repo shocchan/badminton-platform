@@ -6,8 +6,6 @@ import {
   CreditCard, Trophy, ShieldCheck, Share2, Camera, ArrowRight, ChevronRight, Map,
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
-import { PreEntryModal } from '../components/PreEntryModal';
-import { EntryForm } from '../components/EntryForm';
 import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { LogoMark } from '../components/LogoMark';
@@ -56,8 +54,6 @@ export const TournamentDetailPage = () => {
   const [entryCount, setEntryCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [preEntry, setPreEntry] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
 
@@ -199,7 +195,7 @@ export const TournamentDetailPage = () => {
   const stats = [
     { Icon: Trophy, big: tournament.edition != null ? (zh ? `第${tournament.edition}届` : `第${tournament.edition}回`) : (zh ? '定期' : '定期'), label: zh ? '举办实绩' : '開催実績' },
     { Icon: Users, big: zh ? '初〜高级' : '初〜上級', label: zh ? '各水平欢迎' : '全レベル歓迎' },
-    { Icon: ShieldCheck, big: zh ? '最少4场' : '最低4試合', label: zh ? '循环赛保证' : '総当たり保証' },
+    { Icon: ShieldCheck, big: zh ? '最少4场' : '最低4試合', label: zh ? '场次保证' : '試合数保証' },
   ];
 
   const infoItems: { Icon: typeof Calendar; label: string; value: string; sub?: string }[] = [
@@ -379,7 +375,7 @@ export const TournamentDetailPage = () => {
         <ShieldCheck className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
         <div>
           <p className="text-sm font-bold text-green-900">
-            {zh ? '保证最少4场循环赛' : '最低4試合の総当たり戦を保証'}
+            {zh ? '保证最少参加4场比赛' : '最低4試合を保証'}
           </p>
           <p className="text-xs text-green-700 mt-1">
             {zh
@@ -460,7 +456,7 @@ export const TournamentDetailPage = () => {
         ) : remaining <= 0 ? (
           <div className="bg-white/95 backdrop-blur rounded-2xl shadow-lg p-2">
             <button
-              onClick={() => setPreEntry(true)}
+              onClick={() => navigate(`/${lang}/tournaments/${tournament.id}/entry`)}
               className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-extrabold py-4 rounded-xl transition-colors text-base"
             >
               {zh ? '满员：候补报名 →' : '満員のため、キャンセル待ちで申し込む →'}
@@ -472,7 +468,7 @@ export const TournamentDetailPage = () => {
         ) : (
           <div className="bg-white/95 backdrop-blur rounded-2xl shadow-lg p-2">
             <button
-              onClick={() => setPreEntry(true)}
+              onClick={() => navigate(`/${lang}/tournaments/${tournament.id}/entry`)}
               className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold py-4 rounded-xl transition-colors text-base"
             >
               {zh ? '报名本次大会 →' : 'この大会に申し込む →'}
@@ -484,16 +480,6 @@ export const TournamentDetailPage = () => {
         )}
       </div>
 
-      {preEntry && !showForm && (
-        <PreEntryModal
-          tournament={tournament}
-          onConfirm={() => { setShowForm(true); setPreEntry(false); }}
-          onClose={() => setPreEntry(false)}
-        />
-      )}
-      {showForm && (
-        <EntryForm tournament={tournament} entryCount={entryCount} onClose={() => setShowForm(false)} />
-      )}
     </main>
     </>
   );
