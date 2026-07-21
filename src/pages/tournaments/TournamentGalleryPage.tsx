@@ -5,8 +5,13 @@ import { useBlogPosts } from '../../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-// 「大会レポート」= blog_posts のうち tags に "tournament" を含む公開記事
+// 「大会レポート」= blog_posts のうち、タイトルに「開催レポート」を含む記事
+// （既存レポートの命名規約に自動追従）、または tags に "tournament" を明示付与した記事。
 const REPORT_TAG = 'tournament';
+const REPORT_TITLE_MARK = '開催レポート';
+
+const isTournamentReport = (post: { title?: string; tags?: string[] }) =>
+  post.tags?.includes(REPORT_TAG) || (post.title ?? '').includes(REPORT_TITLE_MARK);
 
 const TEXT = {
   ja: {
@@ -36,7 +41,7 @@ export const TournamentGalleryPage = () => {
   const t = TEXT[lang === 'zh' ? 'zh' : 'ja'];
   const { blogPosts, loading, error } = useBlogPosts();
 
-  const reports = blogPosts.filter(p => p.tags?.includes(REPORT_TAG));
+  const reports = blogPosts.filter(isTournamentReport);
 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', {
