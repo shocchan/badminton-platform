@@ -90,6 +90,11 @@ export interface LearnerSettings {
    * 未設定なら courseSubtitles.deriveDefaultSubtitleMode で導出する。
    */
   subtitleMode?: 'ja' | 'ja_zh' | 'whenStuck';
+  /**
+   * 画面の表示言語（UI）。subtitleMode（字幕）・zhSupport（音声補助）とは別の意味。
+   * 最後に選んだ言語を learner 単位で保持し、複数端末で同期する。
+   */
+  uiLanguage?: 'ja' | 'zh';
   /** サインアップ時の招待コード（Edge Function側でSecretと照合） */
   inviteCode?: string;
 }

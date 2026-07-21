@@ -7,6 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLessonFocus } from '../../contexts/LessonFocusContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
+import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -23,6 +24,7 @@ import { currentCanDos, canDosThisWeek, nextAbility, stageOfMastery, weekStageLa
 import type { AchievedCanDo } from '../../lib/aiLesson/course/courseCanDo';
 import { buildJourney } from '../../lib/aiLesson/course/courseJourney';
 import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
+import { otherLang, swapCourseLocaleInPath } from '../../lib/aiLesson/course/courseLanguage';
 import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
 import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
@@ -96,8 +98,12 @@ const generateReport = async (
 };
 
 export default function AiCoursePage() {
-  const { lang } = useLanguage();
-  const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
+  const { lang: urlLang } = useLanguage();
+  // 表示言語は in-memory state。切替時に navigate しない（remount＝状態喪失を避ける）。
+  // 初期値はURL（AIコースは常に /ja/ or /zh/）を優先。
+  const [uiLang, setUiLang] = useState<'ja' | 'zh'>(urlLang === 'zh' ? 'zh' : 'ja');
+  const lang = uiLang;
+  const t = aiCourseI18n[uiLang];
 
   const [step, setStep] = useState<Step>('loading');
   const [learner, setLearner] = useState<Learner | null>(null);
@@ -121,6 +127,30 @@ export default function AiCoursePage() {
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
 
+  // 表示言語を反映（navigateせず、URLの locale segment だけ replaceState で同期）
+  useEffect(() => { try { document.documentElement.lang = uiLang; } catch { /* noop */ } }, [uiLang]);
+
+  const applyLang = useCallback((next: 'ja' | 'zh') => {
+    setUiLang(next);
+    try {
+      document.documentElement.lang = next;
+      const path = swapCourseLocaleInPath(window.location.pathname, next);
+      window.history.replaceState(window.history.state, '', path + window.location.search + window.location.hash);
+    } catch { /* noop */ }
+  }, []);
+
+  /** 言語をワンタップで切り替える（learner設定へ保存し複数端末で同期） */
+  const toggleLang = useCallback(() => {
+    const next = otherLang(uiLang);
+    applyLang(next);
+    setLearner((prev) => {
+      if (!prev) return prev;
+      const nextSettings = { ...prev.settings, uiLanguage: next };
+      void courseRepository.updateLearner({ settings: nextSettings });
+      return { ...prev, settings: nextSettings };
+    });
+  }, [uiLang, applyLang]);
+
   // データ読込
   const loadAll = useCallback(async () => {
     const user = await getSession();
@@ -137,9 +167,12 @@ export default function AiCoursePage() {
     setRemaining(remainingSessionsToday(lim, usage));
     setPlan(buildLessonPlan(l, prog));
     setHasResume(courseRepository.loadResume<unknown>() !== null);
+    // 保存済みの表示言語があれば反映（複数端末で同じ言語に）。無ければURL言語のまま。
+    const saved = l.settings.uiLanguage;
+    if ((saved === 'ja' || saved === 'zh') && saved !== uiLang) applyLang(saved);
     // 初回だけ利用開始案内を挟む。以降はホームへ直行する
     setStep(hasSeenGuide() ? 'home' : 'guide');
-  }, []);
+  }, [uiLang, applyLang]);
 
   // 初回ロードは1tick遅らせ、effect内の同期setStateを避ける
   useEffect(() => {
@@ -328,11 +361,11 @@ export default function AiCoursePage() {
   };
 
   // ── レンダリング ──
-  if (step === 'loading') return <Shell><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
-  if (step === 'login') return <Shell><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
-  if (step === 'hearing') return <Shell><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
+  if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
+  if (step === 'hearing') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
 
-  if (!learner) return <Shell><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
 
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
@@ -347,11 +380,11 @@ export default function AiCoursePage() {
 
   if (step === 'lesson' && plan) {
     return mode === 'voice'
-      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
+      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
       : <CourseTextLesson t={t} step={plan.main} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
-    return <Shell nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive} /></Shell>;
   }
   if (step === 'roadmap') {
@@ -363,12 +396,12 @@ export default function AiCoursePage() {
         const wk = Math.max(learner.settings.weeklyTarget, 1);
         return { mode: 'ready' as const, minWeeks: Math.ceil(remainingMissions / wk), maxWeeks: Math.ceil((remainingMissions * 1.5) / wk) };
       })();
-    return <Shell nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
-      <Shell nav={navFor('growth')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')}>
         {growthData ? (
           <GrowthOverview
             t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}
@@ -383,7 +416,7 @@ export default function AiCoursePage() {
   }
   if (step === 'guide') {
     return (
-      <Shell nav={navFor('home')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
         <CourseOnboarding
           t={t} mode={guideMode}
           onDone={() => { markGuideSeen(); setStep(guideMode === 'first' ? 'home' : 'settings'); }}
@@ -393,7 +426,7 @@ export default function AiCoursePage() {
   }
   if (step === 'settings') {
     return (
-      <Shell nav={navFor('settings')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')}>
         <CourseSettings
           t={t} learner={learner}
           onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
@@ -410,7 +443,7 @@ export default function AiCoursePage() {
   }
 
   return (
-    <Shell nav={navFor('home')}>
+    <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
       <CourseHome
         t={t} learner={learner} plan={plan} stats={stats}
         reviewsDue={reviewsDue}
@@ -433,16 +466,18 @@ export default function AiCoursePage() {
 const missionsInWeek = (week: number) => missionById(`w${String(week).padStart(2, '0')}m1`) ? [1, 2, 3, 4, 5].map((o) => missionById(`w${String(week).padStart(2, '0')}m${o}`)!).filter(Boolean) : [];
 
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
-const Shell = ({ children, nav }: {
+const Shell = ({ children, nav, t, lang, onToggleLang }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
   nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
+  t: AiCourseDict;
+  lang: 'ja' | 'zh';
+  onToggleLang: () => void;
 }) => {
-  const { lang } = useLanguage();
-  const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   return (
     <>
       <Helmet>
+        <html lang={lang} />
         <title>{t.brand} | kawabado</title>
         <meta name="robots" content="noindex, nofollow" />
         {/* ホーム画面追加用。AIコースのページでだけ読み込むので、
@@ -457,6 +492,7 @@ const Shell = ({ children, nav }: {
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
+        lang={lang} onToggleLang={onToggleLang}
       />
       {children}
     </>
