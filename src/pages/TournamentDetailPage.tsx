@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   Calendar, Clock, MapPin, JapaneseYen, AlertTriangle, Users,
-  CreditCard, Trophy, ShieldCheck, Share2, Camera, ArrowRight, ChevronRight, Map,
+  CreditCard, Trophy, ShieldCheck, Share2, Camera, ArrowRight, ChevronRight, Map, Quote,
 } from 'lucide-react';
 import { supabase } from '../services/supabaseClient';
 import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
@@ -430,6 +430,31 @@ export const TournamentDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* 参加者の声（実際にいただいた声のみ。捏造禁止） */}
+      <div className="mb-4">
+        <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800 mb-3">
+          <Quote className="w-4 h-4 text-blue-500" /> {zh ? '参加者的声音' : '参加者の声'}
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(zh
+            ? [
+                { text: '平时打单打的机会很少，短时间内能打很多场比赛，是很好的练习。希望以后继续举办！', from: '单打参加者' },
+                { text: '在中国，平日晚上打比赛很常见，但在日本却很难找到这样的机会，真的太好了。', from: '来自中国的参加者' },
+              ]
+            : [
+                { text: 'シングルスをやる機会が少なく、短時間でたくさん試合もできていい練習になるので、また開催して欲しい', from: 'シングルス参加者' },
+                { text: '中国では平日の夜に試合することが多いけど、日本ではなかなかなかったので良かった', from: '中国出身の参加者' },
+              ]
+          ).map(v => (
+            <figure key={v.text} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <Quote className="w-4 h-4 text-blue-200 mb-2" aria-hidden="true" />
+              <blockquote className="text-sm text-gray-700 leading-relaxed">{v.text}</blockquote>
+              <figcaption className="text-xs text-gray-400 mt-2">— {v.from}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
 
       {/* 主催者ブロック（ブランド・実在情報のみ） */}
       <div className="flex items-center gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 mb-6">
