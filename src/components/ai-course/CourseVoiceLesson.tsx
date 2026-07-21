@@ -9,6 +9,11 @@ import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
 import { getAccessToken } from '../../lib/aiLesson/course/courseAuth';
+import {
+  effectiveSubtitleMode, autoTranslateAll, zhAssistAvailable,
+  shouldAutoShowOnStuck, isRepeatedTutorQuestion,
+} from '../../lib/aiLesson/course/courseSubtitles';
+import { translateTutorLine, cachedTranslation, estimateTranslateCostUsd } from '../../lib/aiLesson/course/courseTranslateApi';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 
@@ -21,7 +26,12 @@ export interface VoiceLessonResult {
   durationSeconds: number;
   completionStatus: 'completed' | 'interrupted' | 'error';
   endReason: string;
+  /** 中国語補助字幕でかかった追加API概算コスト（USD） */
+  translateCostUsd: number;
 }
+
+/** ゆい先生の1発話ぶんの中国語補助字幕の状態 */
+type SubState = { zh?: string; state: 'pending' | 'shown' | 'error' };
 
 interface Props {
   t: AiCourseDict;
@@ -61,6 +71,14 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
   const [ending, setEnding] = useState(false); const [doneOverlay, setDoneOverlay] = useState(false);
   const [retry, setRetry] = useState(0);
 
+  // 中国語補助字幕（表示側）。zhSupport（音声側）とは別軸で、learner設定＋レベルから決まる。
+  const subtitleMode = effectiveSubtitleMode(learner.settings, t.locale === 'zh' ? 'zh' : 'ja', learner.difficultyLevel);
+  const [subs, setSubs] = useState<Record<number, SubState>>({});
+  const processedRef = useRef<Set<number>>(new Set()); // 自動翻訳を実行済みのメッセージ index
+  const translateCostRef = useRef(0);
+  // 翻訳の文脈ヒント（今日の目標表現＋その中国語の意味）。固定文はここから流用でき、API節約になる。
+  const targetHint = `${mission.targetExpression}（${mission.meaningZh}）`;
+
   const sessionRef = useRef<VoiceSessionHandle | null>(null);
   const uttRef = useRef<CourseUtterance[]>([]);
   const msgsRef = useRef<{ role: 'student' | 'tutor'; text: string }[]>([]);
@@ -88,6 +106,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
       targetUsedIndependently: usage === 'self',
       chineseSupportUsed: uttRef.current.some((u) => u.speaker === 'tutor' && hasZh(u.transcript)),
       durationSeconds, completionStatus: statusKind, endReason,
+      translateCostUsd: translateCostRef.current,
     };
     if (overlay) {
       setDoneOverlay(true);
@@ -163,7 +182,42 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
   // 4分で強制終了
   useEffect(() => { if (elapsed >= HARD_END && !doneRef.current) complete('timeout', 'completed', true); }, [elapsed, complete]);
 
+  // 字幕は subs の変化ではスクロールしない（中国語訳が後から付いても画面を跳ねさせない）
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [msgs, liveT, liveU]);
+
+  // ゆい先生の1発話を中国語補助訳にする（キャッシュ優先・失敗は握りつぶす）
+  const requestTranslate = useCallback((index: number, text: string) => {
+    const cachedZh = cachedTranslation(text);
+    if (cachedZh) { setSubs((s) => ({ ...s, [index]: { zh: cachedZh, state: 'shown' } })); return; }
+    setSubs((s) => ({ ...s, [index]: { state: 'pending' } }));
+    void translateTutorLine(sessionId, text, targetHint).then((r) => {
+      if (r.ok && r.zh) {
+        setSubs((s) => ({ ...s, [index]: { zh: r.zh as string, state: 'shown' } }));
+        translateCostRef.current += estimateTranslateCostUsd(r.usage);
+      } else {
+        setSubs((s) => ({ ...s, [index]: { state: 'error' } }));
+      }
+    });
+  }, [sessionId, targetHint]);
+
+  // 確定したゆい先生の発話だけを対象に、モードに応じて自動翻訳する。
+  // ・ja_zh: 常時 / ・whenStuck: 困った合図のときだけ / ・ja: なにもしない
+  // 暫定字幕(liveT)や生徒の発話は対象にしない。
+  useEffect(() => {
+    if (!zhAssistAvailable(subtitleMode)) return;
+    msgs.forEach((m, i) => {
+      if (m.role !== 'tutor' || processedRef.current.has(i)) return;
+      processedRef.current.add(i);
+      let prevStudent: string | null = null;
+      for (let k = i - 1; k >= 0; k--) { if (msgs[k].role === 'student') { prevStudent = msgs[k].text; break; } }
+      const tutorLines = msgs.slice(0, i + 1).filter((x) => x.role === 'tutor').map((x) => x.text);
+      const repeated = isRepeatedTutorQuestion(m.text, tutorLines);
+      const auto = autoTranslateAll(subtitleMode)
+        || (subtitleMode === 'whenStuck'
+          && shouldAutoShowOnStuck({ tutorText: m.text, prevStudentText: prevStudent, tutorRepeatedQuestion: repeated }));
+      if (auto) requestTranslate(i, m.text);
+    });
+  }, [msgs, subtitleMode, requestTranslate]);
 
   const handleSummaryEnd = () => {
     setConfirmOpen(false);
@@ -244,6 +298,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
           <span className="truncate">{tl.theme}: {t.locale === 'zh' ? mission.titleZh : mission.titleJa}
             {step.hideTarget ? ` ／ ${tl.hiddenTarget}` : ` ／ ${tl.target}: ${mission.targetExpression}`}</span>
         </p>
+        {/* 目標表現の中国語の意味は、固定カリキュラムの meaningZh を使う（API不要）。答えを隠す回では出さない */}
+        {!step.hideTarget && zhAssistAvailable(subtitleMode) && mission.meaningZh && (
+          <p className="text-[11px] text-gray-400 mt-0.5 pl-[18px] truncate">{mission.meaningZh}</p>
+        )}
       </div>
 
       {(inExt || ending) && (
@@ -265,8 +323,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
         {msgs.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[85%]">
-              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? tl.target && '' : ''}{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
+              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
               <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>{m.text}</div>
+              {/* 中国語補助字幕はゆい先生の発話にのみ。日本語字幕を隠さず下に小さく薄く出す */}
+              {m.role === 'tutor' && zhAssistAvailable(subtitleMode) && (
+                <ZhAssist sub={subs[i]} tv={tv} onShow={() => requestTranslate(i, m.text)} />
+              )}
             </div>
           </div>
         ))}
@@ -288,5 +350,31 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, onComplete, onS
       {/* onExit is used by parent when leaving; keep referenced */}
       <button type="button" onClick={onExit} className="hidden" aria-hidden />
     </div>
+  );
+};
+
+/**
+ * ゆい先生の発話の下に出す中国語補助字幕。
+ * - 日本語より小さく・薄く（主役を日本語にする）
+ * - まだ翻訳していない（whenStuckで未トリガー）ときは「中文を見る」ボタン
+ * - 失敗時は静かに再取得ボタン。音声・日本語字幕は止めない
+ */
+const ZhAssist = ({ sub, tv, onShow }: {
+  sub: SubState | undefined;
+  tv: AiCourseDict['voice'];
+  onShow: () => void;
+}) => {
+  if (sub?.state === 'shown' && sub.zh) {
+    return <p className="text-[11px] text-gray-400 mt-1 px-1 leading-snug whitespace-pre-wrap break-words">{sub.zh}</p>;
+  }
+  if (sub?.state === 'pending') {
+    return <p className="text-[11px] text-gray-300 mt-1 px-1">{tv.subtitleTranslating}</p>;
+  }
+  // 未翻訳（whenStuckで未トリガー）または失敗 → 「中文を見る」ボタン
+  return (
+    <button type="button" onClick={onShow}
+      className="text-[11px] text-blue-400 hover:text-blue-500 mt-1 px-1 underline decoration-dotted">
+      {sub?.state === 'error' ? tv.subtitleRetry : tv.subtitleShowZh}
+    </button>
   );
 };

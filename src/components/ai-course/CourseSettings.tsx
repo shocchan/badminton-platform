@@ -1,25 +1,45 @@
 // 設定画面。利用案内の再確認（§17）・プライバシー（§13）・問題報告（§18）・ログアウト。
 
 import { useState } from 'react';
-import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check } from 'lucide-react';
+import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles } from 'lucide-react';
 import { CourseIssueReport } from './CourseIssueReport';
 import { deleteMyUtterances } from '../../lib/aiLesson/course/courseIssueApi';
+import { effectiveSubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
+import type { SubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
 import type { AiCourseDict } from '../../locales/aiCourse';
+import type { Learner, LearnerSettings } from '../../lib/aiLesson/course/types';
 
 interface Props {
   t: AiCourseDict;
-  learnerId: string | null;
+  learner: Learner;
   onShowGuide: () => void;
+  /** 設定変更を learner に保存（Supabaseへ。複数端末で同期） */
+  onSaveSettings: (patch: Partial<LearnerSettings>) => void;
   onLogout: () => void;
   onBack: () => void;
 }
 
-export const CourseSettings = ({ t, learnerId, onShowGuide, onLogout, onBack }: Props) => {
+const SUBTITLE_MODES: SubtitleMode[] = ['ja', 'ja_zh', 'whenStuck'];
+
+export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogout, onBack }: Props) => {
   const ts = t.settings;
+  const learnerId = learner.id;
   const [showIssue, setShowIssue] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleted, setDeleted] = useState<number | null>(null);
+  const [subMode, setSubMode] = useState<SubtitleMode>(
+    effectiveSubtitleMode(learner.settings, t.locale === 'zh' ? 'zh' : 'ja', learner.difficultyLevel),
+  );
+  const [subSaved, setSubSaved] = useState(false);
+  const zhForcedOff = learner.settings.zhSupport === 'none';
+
+  const chooseSubMode = (m: SubtitleMode) => {
+    setSubMode(m);
+    onSaveSettings({ subtitleMode: m });
+    setSubSaved(true);
+    setTimeout(() => setSubSaved(false), 1500);
+  };
 
   const runDelete = async () => {
     setDeleting(true);
@@ -42,6 +62,33 @@ export const CourseSettings = ({ t, learnerId, onShowGuide, onLogout, onBack }: 
           className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
           {ts.guideOpen}
         </button>
+      </Section>
+
+      {/* 字幕モード（中国語補助） */}
+      <Section icon={<Subtitles className="w-4 h-4 text-indigo-600" />} title={ts.subtitleTitle}>
+        <p className="text-xs text-gray-500 mb-3">{ts.subtitleDescription}</p>
+        {zhForcedOff ? (
+          <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3">{ts.subtitleForcedJa}</p>
+        ) : (
+          <div className="space-y-2">
+            {SUBTITLE_MODES.map((m) => (
+              <button key={m} type="button" onClick={() => chooseSubMode(m)}
+                aria-pressed={subMode === m}
+                className={`w-full min-h-11 py-2.5 px-3 rounded-lg text-sm text-left border flex items-start gap-2 ${
+                  subMode === m ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:bg-gray-50'
+                }`}>
+                <span className={`mt-0.5 w-4 h-4 rounded-full border shrink-0 flex items-center justify-center ${subMode === m ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'}`}>
+                  {subMode === m && <Check className="w-2.5 h-2.5 text-white" />}
+                </span>
+                <span>
+                  <span className="font-medium text-gray-800 block">{ts.subtitleModes[m]}</span>
+                  <span className="text-[11px] text-gray-500 block">{ts.subtitleModeHints[m]}</span>
+                </span>
+              </button>
+            ))}
+            {subSaved && <p className="text-xs text-emerald-600 text-center">{ts.saved ?? ''}</p>}
+          </div>
+        )}
       </Section>
 
       {/* プライバシー・発話履歴 */}

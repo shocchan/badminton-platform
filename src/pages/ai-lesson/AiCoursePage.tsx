@@ -18,6 +18,7 @@ import { learnerStats, weekStats, estimateSessionCost } from '../../lib/aiLesson
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
 import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
+import { needsHearing } from '../../lib/aiLesson/course/courseFlow';
 import type {
   CourseSessionRecord, FeedbackInput, ItemProgress, Learner, LessonPlan, LessonReport,
 } from '../../lib/aiLesson/course/types';
@@ -113,7 +114,8 @@ export default function AiCoursePage() {
     if (!user) { setStep('login'); return; }
     await courseRepository.flushPending();
     const l = await courseRepository.getLearner();
-    if (!l) { setStep('hearing'); return; }
+    // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす
+    if (needsHearing(l)) { setStep('hearing'); return; }
     const [prog, sess, lim] = await Promise.all([
       courseRepository.listProgress(), courseRepository.listRecentSessions(50), getUsageLimits(),
     ]);
@@ -196,8 +198,8 @@ export default function AiCoursePage() {
       await courseRepository.upsertProgress(learner.id, rUpdated);
     }
 
-    // セッション確定＋発話保存＋利用量記録
-    const cost = estimateSessionCost(result.durationSeconds);
+    // セッション確定＋発話保存＋利用量記録（音声コスト＋中国語補助字幕の翻訳コスト）
+    const cost = estimateSessionCost(result.durationSeconds) + (result.translateCostUsd ?? 0);
     if (activeSessionId) {
       await courseRepository.finalizeSession(activeSessionId, {
         endedAt: new Date().toISOString(), durationSeconds: result.durationSeconds,
@@ -306,8 +308,13 @@ export default function AiCoursePage() {
     return (
       <Shell nav={navFor('settings')}>
         <CourseSettings
-          t={t} learnerId={learner.id}
+          t={t} learner={learner}
           onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
+          onSaveSettings={(patch) => {
+            const nextSettings = { ...learner.settings, ...patch };
+            setLearner({ ...learner, settings: nextSettings });
+            void courseRepository.updateLearner({ settings: nextSettings });
+          }}
           onLogout={() => { void handleLogout(); }}
           onBack={() => setStep('home')}
         />

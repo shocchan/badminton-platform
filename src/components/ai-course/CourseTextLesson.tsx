@@ -92,6 +92,7 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
       durationSeconds: Math.floor((Date.now() - startAt.current) / 1000),
       completionStatus: 'completed',
       endReason: 'text-complete',
+      translateCostUsd: 0,
     });
   };
 
