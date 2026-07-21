@@ -15,6 +15,7 @@ import {
 } from './courseEngine';
 import { isAiCourseRoute } from './courseRoutes';
 import { detectTargetUsage } from './courseLesson';
+import { needsHearing } from './courseFlow';
 import type { ConversationTurn } from './courseLesson';
 import type { ItemProgress, Learner, LessonKind } from './types';
 
@@ -353,6 +354,18 @@ describe('AI course route detection', () => {
     for (const p of ['/ja/', '/ja/mypage', '/ja/activity', '/zh/join', '/ja/admin', '/ja/ai-lesson-demo']) {
       expect(isAiCourseRoute(p), p).toBe(false);
     }
+  });
+});
+
+// ────────────────────────────────────────────────
+// 新規／既存learnerの8問ヒアリング表示判定（§6）
+// ────────────────────────────────────────────────
+describe('hearing visibility', () => {
+  it('新規（learner未作成）はヒアリングを表示', () => {
+    expect(needsHearing(null)).toBe(true);
+  });
+  it('既存learnerはヒアリングを再表示しない', () => {
+    expect(needsHearing(makeLearner())).toBe(false);
   });
 });
 
