@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
   MapPin,
@@ -13,7 +13,6 @@ import { feeDisplay, feePerPerson, isDoublesEvent, isShuttleFree } from '../lib/
 interface TournamentCardProps {
   tournament: Tournament;
   entryCount?: number;
-  onApply: (tournament: Tournament) => void;
 }
 
 const levelColors: Record<string, string> = {
@@ -69,7 +68,8 @@ const defaultConfig: LevelConfig = {
   applyBtn: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800',
 };
 
-export const TournamentCard = ({ tournament, entryCount = 0, onApply }: TournamentCardProps) => {
+export const TournamentCard = ({ tournament, entryCount = 0 }: TournamentCardProps) => {
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
@@ -152,6 +152,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     return Math.ceil((event.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   };
 
+  const detailPath = `/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${tournament.id}`;
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
   const isEntryClosed = daysUntil >= 0 && daysUntil < 14;
@@ -296,20 +297,20 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </div>
           ) : remaining <= 0 ? (
             <button
-              onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-              aria-label={`${tournament.title}のキャンセル待ちに申し込む`}
+              onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(detailPath); }}
+              aria-label={`${tournament.title}の詳細を見る（キャンセル待ち受付中）`}
               className="flex-1 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm"
             >
-              キャンセル待ちで申し込む →
+              {lang === 'zh' ? '查看详情（候补报名）→' : '詳細を見る（キャンセル待ち受付中）→'}
             </button>
           ) : (
             <>
               <button
-                onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-                aria-label={`${tournament.title}に申し込む`}
+                onClick={e => { e.preventDefault(); e.stopPropagation(); navigate(detailPath); }}
+                aria-label={`${tournament.title}の詳細を見る`}
                 className={`flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm`}
               >
-                申し込む →
+                {lang === 'zh' ? '查看详情・报名 →' : '詳細を見る →'}
               </button>
               <span className={`text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 ${remainingColor}`}>
                 残り{remaining}席

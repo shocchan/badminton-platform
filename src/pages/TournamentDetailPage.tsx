@@ -458,14 +458,29 @@ export const TournamentDetailPage = () => {
             {zh ? `报名已截止（截止于${entryDeadlineStr}）` : `申し込み受付終了（${entryDeadlineStr}に締め切りました）`}
           </div>
         ) : remaining <= 0 ? (
-          <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">{zh ? '已满员' : '満員'}</div>
+          <div className="bg-white/95 backdrop-blur rounded-2xl shadow-lg p-2">
+            <button
+              onClick={() => setPreEntry(true)}
+              className="w-full bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white font-extrabold py-4 rounded-xl transition-colors text-base"
+            >
+              {zh ? '满员：候补报名 →' : '満員のため、キャンセル待ちで申し込む →'}
+            </button>
+            <p className="text-center text-[11px] text-gray-500 mt-1.5 pb-0.5">
+              {zh ? '有空位时将按顺序邮件通知（此时点击不会立即报名）' : '空きが出たら先着順でメールでご案内します（この時点では確定しません）'}
+            </p>
+          </div>
         ) : (
-          <button
-            onClick={() => setPreEntry(true)}
-            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold py-4 rounded-2xl transition-colors shadow-lg text-base"
-          >
-            {zh ? '报名本次大会 →' : 'この大会に申し込む →'}
-          </button>
+          <div className="bg-white/95 backdrop-blur rounded-2xl shadow-lg p-2">
+            <button
+              onClick={() => setPreEntry(true)}
+              className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-extrabold py-4 rounded-xl transition-colors text-base"
+            >
+              {zh ? '报名本次大会 →' : 'この大会に申し込む →'}
+            </button>
+            <p className="text-center text-[11px] text-gray-500 mt-1.5 pb-0.5">
+              {zh ? '点击后先确认注意事项・输入内容，最后才确定报名' : 'タップ後に注意事項の確認 → 入力 → 確認画面があります。すぐには確定しません'}
+            </p>
+          </div>
         )}
       </div>
 

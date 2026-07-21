@@ -8,8 +8,6 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
-import { EntryForm } from '../components/EntryForm';
-import { PreEntryModal } from '../components/PreEntryModal';
 import { GeneralFaqSection } from '../components/GeneralFaqSection';
 import { supabase } from '../services/supabaseClient';
 import type { Tournament } from '../types';
@@ -170,8 +168,6 @@ const TournamentCalendar = ({ tournaments, selectedDate, onSelectDate }: Calenda
 export const HomePage = () => {
   const { lang } = useLanguage();
   const { tournaments, loading, error } = useTournaments();
-  const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-  const [preEntryTournament, setPreEntryTournament] = useState<Tournament | null>(null);
   const [entryCounts, setEntryCounts]               = useState<Record<number, number>>({});
   const [filterLevel, setFilterLevel]               = useState<string>('全て');
   const [filterType,  setFilterType]                = useState<string>('全て');
@@ -522,7 +518,6 @@ export const HomePage = () => {
                       key={tournament.id}
                       tournament={tournament}
                       entryCount={entryCounts[tournament.id] || 0}
-                      onApply={setPreEntryTournament}
                     />
                   ))}
                 </div>
@@ -552,23 +547,6 @@ export const HomePage = () => {
 
       <GeneralFaqSection lang={lang} />
 
-      {preEntryTournament && !selectedTournament && (
-        <PreEntryModal
-          tournament={preEntryTournament}
-          onConfirm={() => {
-            setSelectedTournament(preEntryTournament);
-            setPreEntryTournament(null);
-          }}
-          onClose={() => setPreEntryTournament(null)}
-        />
-      )}
-      {selectedTournament && (
-        <EntryForm
-          tournament={selectedTournament}
-          entryCount={entryCounts[selectedTournament.id] || 0}
-          onClose={() => setSelectedTournament(null)}
-        />
-      )}
     </main>
     </>
   );

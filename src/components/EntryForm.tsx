@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CalendarDays, MapPin } from 'lucide-react';
 import type { Tournament } from '../types';
 import { supabase } from '../services/supabaseClient';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
@@ -598,8 +599,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           {/* 入力画面 */}
           {step === 'input' && (
             <form onSubmit={handleConfirm} className="space-y-4">
-              <div className={`rounded-xl p-3 text-sm ${isWaitlist ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
-                📅 {formatDate(tournament.event_date)} ｜ 📍 {tournament.location}
+              <div className={`flex items-center gap-1.5 rounded-xl p-3 text-sm ${isWaitlist ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
+                <CalendarDays className="w-4 h-4 flex-shrink-0" />
+                <span>{formatDate(tournament.event_date)}</span>
+                <span className="opacity-40">｜</span>
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{tournament.location}</span>
               </div>
               {error && (
                 <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl">{error}</div>

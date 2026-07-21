@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Feather, CalendarX, ShieldAlert, Footprints, Handshake, ClipboardCheck } from 'lucide-react';
 import type { Tournament } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
@@ -41,27 +42,32 @@ export const PreEntryModal = ({ tournament, onConfirm, onClose }: PreEntryModalP
   const rules = [
     // シャトルルール（大会種別で出し分け）
     noShuttleNeeded
-      ? { icon: '🏸', title: t.ruleShuttleFreeTitle, body: t.ruleShuttleFreeBody, level: 'info' }
-      : { icon: '🏸', title: t.ruleShuttleTitle(shuttleNumber), body: t.ruleShuttleBody, level: 'info' },
-    { icon: '⚠️', title: t.ruleCancelTitle, body: t.ruleCancelBody, level: 'warning' },
-    { icon: '🚨', title: t.ruleNoshowTitle, body: t.ruleNoshowBody, level: 'danger' },
-    { icon: '👟', title: t.ruleShoesTitle, body: t.ruleShoesBody, level: 'info' },
-    { icon: '🤝', title: t.ruleFairTitle, body: t.ruleFairBody, level: 'info' },
+      ? { Icon: Feather, title: t.ruleShuttleFreeTitle, body: t.ruleShuttleFreeBody, level: 'info' }
+      : { Icon: Feather, title: t.ruleShuttleTitle(shuttleNumber), body: t.ruleShuttleBody, level: 'info' },
+    { Icon: CalendarX, title: t.ruleCancelTitle, body: t.ruleCancelBody, level: 'warning' },
+    { Icon: ShieldAlert, title: t.ruleNoshowTitle, body: t.ruleNoshowBody, level: 'danger' },
+    { Icon: Footprints, title: t.ruleShoesTitle, body: t.ruleShoesBody, level: 'info' },
+    { Icon: Handshake, title: t.ruleFairTitle, body: t.ruleFairBody, level: 'info' },
   ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
         {/* ヘッダー */}
-        <div className="bg-gradient-to-r from-orange-500 to-orange-400 px-6 py-4 flex-shrink-0">
+        <div className="px-6 py-4 flex-shrink-0 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <div>
-              <div className="text-white font-extrabold text-lg">{t.preTitle}</div>
-              <div className="text-orange-100 text-xs mt-0.5">{tournament.title}</div>
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <ClipboardCheck className="w-5 h-5 text-blue-600" />
+              </span>
+              <div className="min-w-0">
+                <div className="text-gray-900 font-extrabold text-lg leading-tight">{t.preTitle}</div>
+                <div className="text-gray-400 text-xs mt-0.5 truncate">{tournament.title}</div>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="text-white/70 hover:text-white text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              className="text-gray-400 hover:text-gray-600 text-xl w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors flex-shrink-0"
               aria-label={t.close}
             >
               ✕
@@ -81,8 +87,8 @@ export const PreEntryModal = ({ tournament, onConfirm, onClose }: PreEntryModalP
                 key={i}
                 className={`rounded-xl border p-4 ${levelBg(rule.level)}`}
               >
-                <div className={`flex items-start gap-2 ${levelText(rule.level)}`}>
-                  <span className="flex-shrink-0 text-base">{rule.icon}</span>
+                <div className={`flex items-start gap-2.5 ${levelText(rule.level)}`}>
+                  <rule.Icon className="flex-shrink-0 w-4 h-4 mt-0.5" />
                   <div>
                     <div className="font-bold text-sm">{rule.title}</div>
                     <p className="text-xs mt-1 leading-relaxed opacity-90">{rule.body}</p>
