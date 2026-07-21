@@ -2,11 +2,11 @@
 // Andyさんは kawabado の通常会員ではないため、通常ヘッダー（マイページ／予約／決済）は出さない。
 // 既存の Header.tsx には一切手を加えない。表示切替は App.tsx のルート判定で行う。
 
-import { GraduationCap, Home, Map, History, Settings, LogOut } from 'lucide-react';
+import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
 /** ヘッダーのナビ対象（AiCoursePage の Step と対応） */
-export type CourseNavKey = 'home' | 'roadmap' | 'history' | 'settings';
+export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'history' | 'settings';
 
 interface Props {
   t: AiCourseDict;
@@ -19,6 +19,7 @@ interface Props {
 
 const NAV: { key: CourseNavKey; icon: typeof Home }[] = [
   { key: 'home', icon: Home },
+  { key: 'growth', icon: TrendingUp },
   { key: 'roadmap', icon: Map },
   { key: 'history', icon: History },
   { key: 'settings', icon: Settings },

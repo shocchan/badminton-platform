@@ -1,9 +1,10 @@
 // 12週間ロードマップ。各週の状態・完了/定着/復習待ち・苦手・次のミッションを表示。
 
-import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope } from 'lucide-react';
+import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
 import type { Mission } from '../../lib/aiLesson/course/types';
+import { COURSE_GOAL_CANDOS } from '../../lib/aiLesson/course/courseCanDo';
 
 interface Props {
   t: AiCourseDict;
@@ -35,6 +36,19 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, on
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-gray-900">{tr.title}</h1>
+      </div>
+
+      {/* 12週後に目指す会話（§24。断定しない） */}
+      <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+        <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-2">
+          <Target className="w-4 h-4 text-amber-500" />{t.growth.goalTitle}
+        </p>
+        <ul className="space-y-1">
+          {COURSE_GOAL_CANDOS.slice(0, 4).map((g, i) => (
+            <li key={i} className="text-xs text-gray-700 flex items-start gap-1.5"><span className="text-amber-400">◇</span>{t.locale === 'zh' ? g.zh : g.ja}</li>
+          ))}
+        </ul>
+        <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">{t.growth.goalNote}</p>
       </div>
 
       {/* 推定修了（診断中 or 週数レンジ） */}

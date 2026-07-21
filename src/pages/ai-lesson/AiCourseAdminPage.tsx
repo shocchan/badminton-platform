@@ -13,6 +13,7 @@ import {
 } from '../../lib/aiLesson/course/courseAdminApi';
 import type { AdminLearnerRow, AdminIssueReport } from '../../lib/aiLesson/course/courseAdminApi';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
+import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
 
@@ -58,6 +59,8 @@ export default function AiCourseAdminPage() {
   }, [selectLearner]);
 
   const stats = sel ? learnerStats(sessions, progress) : null;
+  const growth = sel ? calculateSpeakingGrowth(sessions, progress) : null;
+  const lowConfExcluded = sessions.filter((s) => !s.speechMetrics).length; // メトリクス未算出＝除外相当
   const recentReport = sessions.find((s) => s.report)?.report ?? null;
 
   const update = async (patch: Parameters<typeof adminUpdateLearner>[1]) => {
@@ -132,6 +135,22 @@ export default function AiCourseAdminPage() {
               <p className="text-xs text-blue-700">{ta.suggestion}</p>
               <p className="text-sm font-medium text-gray-800">{suggestion()}</p>
             </div>
+
+            {/* 成長表示の根拠（§27）。学習者に見せている成長の裏付けを確認できる */}
+            {growth && (
+              <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">
+                <p className="text-xs font-bold text-gray-700 mb-2">{ta.growthEvidence}</p>
+                <ul className="text-xs text-gray-600 space-y-1">
+                  <li className="flex justify-between"><span>{ta.evSufficient}</span><span className="font-medium">{growth.sufficient ? `OK（${growth.sessionsAnalyzed}回）` : `分析中（あと${growth.sessionsUntilReady}回）`}</span></li>
+                  <li className="flex justify-between"><span>{ta.evIndependent}</span><span className="font-medium">{Math.round(growth.independentRate * 100)}%</span></li>
+                  <li className="flex justify-between"><span>{ta.evReuse}</span><span className="font-medium">{Math.round(growth.reuseRate * 100)}%</span></li>
+                  <li className="flex justify-between"><span>{ta.evZhReduction}</span><span className="font-medium">{Math.round(growth.withoutZhRate * 100)}%{growth.zhReductionImproved ? ' ↑' : ''}</span></li>
+                  <li className="flex justify-between"><span>{ta.evRoundtrips}</span><span className="font-medium">{growth.avgRoundtrips ? growth.avgRoundtrips.toFixed(1) : '—'}</span></li>
+                  <li className="flex justify-between"><span>{ta.evReason}</span><span className="font-medium">{Math.round(growth.reasonRate * 100)}%</span></li>
+                  <li className="flex justify-between"><span>{ta.evExcluded}</span><span className="font-medium">{lowConfExcluded}</span></li>
+                </ul>
+              </div>
+            )}
 
             {recentReport && (
               <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">

@@ -15,6 +15,15 @@ import {
   buildLessonPlan, updateMasteryState, adjustDifficulty, selectNextMission, missionById, courseEndDateISO,
 } from '../../lib/aiLesson/course/courseEngine';
 import { learnerStats, weekStats, estimateSessionCost } from '../../lib/aiLesson/course/courseStats';
+import { computeSpeechMetrics, buildGrowthSnapshot, dueSnapshotTrigger, calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
+import type { GrowthMetrics, GrowthSnapshot } from '../../lib/aiLesson/course/courseGrowth';
+import { latestRepresentative, buildBeforeAfter } from '../../lib/aiLesson/course/courseBeforeAfter';
+import type { BeforeAfter } from '../../lib/aiLesson/course/courseBeforeAfter';
+import { currentCanDos, canDosThisWeek, nextAbility, stageOfMastery, weekStageLabel } from '../../lib/aiLesson/course/courseCanDo';
+import type { AchievedCanDo } from '../../lib/aiLesson/course/courseCanDo';
+import { buildJourney } from '../../lib/aiLesson/course/courseJourney';
+import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
+import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
 import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
@@ -37,7 +46,7 @@ import { CourseTextLesson } from '../../components/ai-course/CourseTextLesson';
 import { CourseReport } from '../../components/ai-course/CourseReport';
 import type { CourseReportData } from '../../components/ai-course/CourseReport';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'roadmap' | 'history' | 'settings';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -104,6 +113,10 @@ export default function AiCoursePage() {
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
   const [guideMode, setGuideMode] = useState<'first' | 'review'>('first');
+  const [growthData, setGrowthData] = useState<{
+    metrics: GrowthMetrics; journey: JourneyPlace[]; canDos: AchievedCanDo[];
+    beforeAfter: BeforeAfter | null; snapshots: GrowthSnapshot[];
+  } | null>(null);
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
@@ -200,12 +213,15 @@ export default function AiCoursePage() {
 
     // セッション確定＋発話保存＋利用量記録（音声コスト＋中国語補助字幕の翻訳コスト）
     const cost = estimateSessionCost(result.durationSeconds) + (result.translateCostUsd ?? 0);
+    // 成長計算の材料（発話メトリクス）を実発話から算出して保存
+    const speechMetrics = computeSpeechMetrics(result.utterances);
     if (activeSessionId) {
       await courseRepository.finalizeSession(activeSessionId, {
         endedAt: new Date().toISOString(), durationSeconds: result.durationSeconds,
         completionStatus: result.completionStatus, endReason: result.endReason,
         targetUsed: result.targetUsed, targetUsedIndependently: result.targetUsedIndependently,
         chineseSupportUsed: result.chineseSupportUsed, estimatedCostUsd: cost,
+        speechMetrics,
       }, result.utterances, learner.id);
     }
     await courseRepository.recordUsage(learner.id, result.durationSeconds, cost);
@@ -238,12 +254,46 @@ export default function AiCoursePage() {
     const nextMission = selectNextMission(learner, freshProgress);
     courseRepository.clearResume();
 
+    // レポート先頭の「今日できるようになったこと」（誠実表示）＋次の能力
+    const todayCanDo = {
+      category: mission.category,
+      expression: mission.targetExpression,
+      stage: stageOfMastery(updated.masteryState),
+      isReview,
+      reviewSucceeded,
+    };
+    const nextAbilityDef = nextAbility(nextMission?.id ?? null);
+
     setReport({
       mission, report: rep, masteryState: updated.masteryState, nextReviewISO: updated.nextReviewAt,
       nextMissionLabel: nextMission?.targetExpression ?? null, xpEarned: xp.earned, xpBreakdown: xp.breakdown,
       weekSessions: stats.weekSessions + 1, weeklyTarget: learner.settings.weeklyTarget, fromAi,
+      todayCanDo, nextAbility: nextAbilityDef,
     });
     setStep('report');
+
+    // 成長スナップショット（マイルストーン到達時に1回だけ・非同期・失敗しても学習に影響しない）
+    void maybeCaptureSnapshot(learner, freshProgress);
+  };
+
+  /** マイルストーン到達時に成長スナップショットを撮る（append-only） */
+  const maybeCaptureSnapshot = async (l: Learner, freshProgress: ItemProgress[]) => {
+    try {
+      const freshSessions = await courseRepository.listRecentSessions(80);
+      const completed = freshSessions.filter((s) => s.completionStatus === 'completed').length;
+      const existing = new Set((await courseRepository.listGrowthSnapshots(l.id)).map((s) => s.triggerKind));
+      const trigger = dueSnapshotTrigger(completed, l.currentWeek, existing);
+      if (!trigger) return;
+      const samples = await courseRepository.loadStudentUtterances(l.id);
+      const canDoIds = currentCanDos(freshProgress).map((c) => c.id);
+      const nm = selectNextMission(l, freshProgress);
+      const snap = buildGrowthSnapshot({
+        trigger, sessions: freshSessions, progresses: freshProgress,
+        canDoIds, nextAbilityId: nm ? missionById(nm.id)?.category ?? null : null,
+        representativeUtterance: latestRepresentative(samples),
+      });
+      await courseRepository.saveGrowthSnapshot(l.id, snap);
+    } catch { /* 成長スナップショットの失敗は無視 */ }
   };
 
   const handleFeedback = async (fb: FeedbackInput) => {
@@ -256,6 +306,27 @@ export default function AiCoursePage() {
 
   const backHome = () => { void loadAll(); };
 
+  /** 成長画面を開く: 実発話を読み、成長データを組み立ててから遷移 */
+  const openGrowth = async () => {
+    if (!learner) return;
+    setGrowthData(null);
+    setStep('growth');
+    const [samples, snapshots] = await Promise.all([
+      courseRepository.loadStudentUtterances(learner.id),
+      courseRepository.listGrowthSnapshots(learner.id),
+    ]);
+    // 自力使用フラグを Before/After サンプルへ付与（該当セッションの targetUsedIndependently）
+    const selfSessions = new Set(sessions.filter((s) => s.targetUsedIndependently).map((s) => s.id));
+    const enriched = samples.map((s) => ({ ...s, usedIndependently: selfSessions.has(s.sessionId) }));
+    setGrowthData({
+      metrics: calculateSpeakingGrowth(sessions, progress),
+      journey: buildJourney(progress, learner.currentWeek),
+      canDos: currentCanDos(progress),
+      beforeAfter: buildBeforeAfter(enriched),
+      snapshots,
+    });
+  };
+
   // ── レンダリング ──
   if (step === 'loading') return <Shell><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
   if (step === 'login') return <Shell><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
@@ -267,9 +338,10 @@ export default function AiCoursePage() {
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
+  const goNav = (k: CourseNavKey) => { if (k === 'growth') { void openGrowth(); } else { setStep(k); } };
   const navFor = (current: CourseNavKey) => ({
     current,
-    onNavigate: (k: CourseNavKey) => setStep(k),
+    onNavigate: goNav,
     onLogout: () => { void handleLogout(); },
   });
 
@@ -294,6 +366,21 @@ export default function AiCoursePage() {
     return <Shell nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
   }
   if (step === 'history') return <Shell nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'growth') {
+    return (
+      <Shell nav={navFor('growth')}>
+        {growthData ? (
+          <GrowthOverview
+            t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}
+            canDos={growthData.canDos} beforeAfter={growthData.beforeAfter} snapshots={growthData.snapshots}
+            onBack={() => setStep('home')}
+          />
+        ) : (
+          <div className="py-16 text-center text-gray-500">{t.common.loading}</div>
+        )}
+      </Shell>
+    );
+  }
   if (step === 'guide') {
     return (
       <Shell nav={navFor('home')}>
@@ -330,9 +417,14 @@ export default function AiCoursePage() {
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}
         starting={starting} startError={startError}
+        currentStageLabel={weekStageLabel(learner.currentWeek, t.locale === 'zh' ? 'zh' : 'ja')}
+        thisWeekCanDos={canDosThisWeek(progress, learner.currentWeek)}
+        nextAbility={nextAbility(selectNextMission(learner, progress)?.id ?? null)}
+        journey={buildJourney(progress, learner.currentWeek)}
         onStart={(m) => { void startLesson(m); }}
         onResume={() => { setHasResume(false); void startLesson(mode); }}
         onDiscardResume={() => { courseRepository.clearResume(); setHasResume(false); }}
+        onSeeGrowth={() => { void openGrowth(); }}
       />
     </Shell>
   );

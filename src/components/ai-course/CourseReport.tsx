@@ -2,9 +2,11 @@
 // 全体%の微増ではなく「今日できたこと」を主役にする。
 
 import { useState } from 'react';
-import { Award, CheckCircle2, PenLine, CalendarDays, Zap, ArrowRight, Home, Sparkles, RotateCcw } from 'lucide-react';
+import { Award, CheckCircle2, PenLine, CalendarDays, Zap, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
-import type { CourseMasteryState, FeedbackInput, LessonReport, Mission } from '../../lib/aiLesson/course/types';
+import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
+import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
+import type { CanDoStage } from '../../lib/aiLesson/course/courseCanDo';
 
 export interface CourseReportData {
   mission: Mission;
@@ -17,6 +19,15 @@ export interface CourseReportData {
   weekSessions: number;
   weeklyTarget: number;
   fromAi: boolean; // AI生成か（falseならローカルフォールバック）
+  /** 今日できるようになったこと（誠実表示・§21/§23） */
+  todayCanDo: {
+    category: MissionCategory;
+    expression: string;
+    stage: CanDoStage;
+    isReview: boolean;
+    reviewSucceeded: boolean;
+  };
+  nextAbility: { id: string; ja: string; zh: string } | null;
 }
 
 interface Props {
@@ -27,15 +38,6 @@ interface Props {
   onAgain: () => void;
   canAgain: boolean;
 }
-
-const XP_LABELS: Record<string, { ja: string; zh: string }> = {
-  lessonComplete: { ja: 'レッスン完了', zh: '完成课程' },
-  understood: { ja: '意味を理解', zh: '理解意思' },
-  usedWithHint: { ja: 'ヒントあり使用', zh: '提示下使用' },
-  usedSelf: { ja: '自力で使用', zh: '独立使用' },
-  reviewSuccess: { ja: '復習成功', zh: '复习成功' },
-  streakBonus: { ja: '連続学習ボーナス', zh: '连续学习奖励' },
-};
 
 export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain }: Props) => {
   const tr = t.report;
@@ -57,6 +59,30 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
       </div>
 
       <div className="space-y-3">
+        {/* 【最初に】今日できるようになったこと（数値ではなく成果を主役に・§21） */}
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-5">
+          <p className="text-xs font-medium text-emerald-700 mb-2">{tr.canDoTitle}</p>
+          <div className="flex items-start gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-base font-bold text-gray-900 leading-snug">{tr.canDoStages[data.todayCanDo.stage]}</p>
+              <p className="text-sm text-gray-700 mt-1">「{data.todayCanDo.expression}」</p>
+              <p className="text-xs text-gray-500 mt-1">{canDoLineForMission(data.todayCanDo.category, data.todayCanDo.expression, zh ? 'zh' : 'ja')}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 次にできるようになること */}
+        {data.nextAbility && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4 flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-blue-600 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[11px] text-gray-500">{tr.nextAbilityTitle}</p>
+              <p className="text-sm font-medium text-gray-800 truncate">{zh ? data.nextAbility.zh : data.nextAbility.ja}</p>
+            </div>
+          </div>
+        )}
+
         {/* 今日の表現＋できたこと */}
         <div className="bg-white rounded-2xl border border-gray-100 p-5">
           <p className="text-xs text-gray-500">{tr.todayExpression}</p>
@@ -118,23 +144,12 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
           )}
         </div>
 
-        {/* XP＋週間進捗 */}
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl p-5 text-white">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-xs text-blue-100 flex items-center gap-1"><Zap className="w-3.5 h-3.5" />{tr.xp}</p>
-              <p className="text-3xl font-bold">+{data.xpEarned} <span className="text-base font-medium">XP</span></p>
-            </div>
-            <p className="text-sm text-blue-100">{tr.weeklyProgress}: {data.weekSessions}/{data.weeklyTarget}</p>
+        {/* XP＋週間進捗（補助情報。主役にしない・§22） */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-gray-500 flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-400" />{tr.xp} <span className="font-bold text-gray-700">+{data.xpEarned}</span></p>
+            <p className="text-xs text-gray-500">{tr.weeklyProgress}: <span className="font-bold text-gray-700">{data.weekSessions}/{data.weeklyTarget}</span></p>
           </div>
-          <ul className="mt-3 pt-3 border-t border-white/20 space-y-1">
-            {data.xpBreakdown.map((b) => (
-              <li key={b.key} className="flex justify-between text-xs text-blue-50">
-                <span>{XP_LABELS[b.key] ? (zh ? XP_LABELS[b.key].zh : XP_LABELS[b.key].ja) : b.key}</span>
-                <span className="font-bold">+{b.xp}</span>
-              </li>
-            ))}
-          </ul>
         </div>
 
         {/* 1タップ評価 */}

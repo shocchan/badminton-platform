@@ -1,9 +1,13 @@
-// 学習ホーム。1つのおすすめミッションを大きく出し、迷わせない。
+// 学習ホーム（§20）。主役は「今日のレッスンを始める」＋「できるようになったこと」。
+// 詳細な統計は出さず、成長は「成長を見る」から専用画面へ。
 
-import { Flag, Mic, PenLine, Flame, CalendarCheck, Sparkles, RefreshCw } from 'lucide-react';
+import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { GrowthJourneyMap } from './GrowthJourneyMap';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
 import type { LearnerStats } from '../../lib/aiLesson/course/courseStats';
+import type { AchievedCanDo } from '../../lib/aiLesson/course/courseCanDo';
+import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
 
 interface Props {
   t: AiCourseDict;
@@ -14,20 +18,26 @@ interface Props {
   reviewsOverdue: number;
   remainingToday: number;
   hasResume: boolean;
-  /** セッション開始をサーバーへ問い合わせ中 */
   starting: boolean;
-  /** サーバーが開始を断った理由（上限・停止中など） */
   startError: string;
+  // 成長系（§20）
+  currentStageLabel: string;
+  thisWeekCanDos: AchievedCanDo[];
+  nextAbility: { id: string; ja: string; zh: string } | null;
+  journey: JourneyPlace[];
   onStart: (mode: 'voice' | 'text') => void;
   onResume: () => void;
   onDiscardResume: () => void;
+  onSeeGrowth: () => void;
 }
 
 export const CourseHome = ({
-  t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
-  hasResume, starting, startError, onStart, onResume, onDiscardResume,
+  t, learner, plan, stats, reviewsOverdue, remainingToday,
+  hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
+  onStart, onResume, onDiscardResume, onSeeGrowth,
 }: Props) => {
-  const th = t.home;
+  const th = t.home; const tg = t.growth;
+  const zh = t.locale === 'zh';
   const mission = plan?.main.mission ?? null;
   const isReview = !!plan && (plan.main.kind.startsWith('review') || plan.main.kind === 'extra');
   const badge = plan?.main.kind === 'new' ? th.newBadge
@@ -56,7 +66,18 @@ export const CourseHome = ({
         </div>
       )}
 
-      {/* 今日のおすすめミッション（大きく） */}
+      {/* 現在地カード（Week番号より「今どんな力をつける段階か」） */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex items-center gap-2.5">
+        <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+          <MapPin className="w-4 h-4 text-blue-600" />
+        </div>
+        <div className="min-w-0">
+          <p className="text-[11px] text-gray-500">{tg.currentLocation} ・ Week {learner.currentWeek}</p>
+          <p className="text-sm font-bold text-gray-900 truncate">{currentStageLabel}</p>
+        </div>
+      </div>
+
+      {/* 今日のおすすめミッション */}
       <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-sm p-5 text-white mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-blue-100 flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" />{th.todayMission}</span>
@@ -64,7 +85,7 @@ export const CourseHome = ({
         </div>
         {mission ? (
           <>
-            <p className="font-bold text-lg leading-snug">{t.locale === 'zh' ? mission.titleZh : mission.titleJa}</p>
+            <p className="font-bold text-lg leading-snug">{zh ? mission.titleZh : mission.titleJa}</p>
             {!plan?.main.hideTarget && (
               <p className="text-sm text-blue-100 mt-1">{th.todayTarget}: {mission.targetExpression}</p>
             )}
@@ -75,7 +96,7 @@ export const CourseHome = ({
         )}
       </div>
 
-      {/* 開始。迷わせないため主要CTAは1つだけにし、テキスト版は補助導線に落とす */}
+      {/* 開始（主要CTAは1つ） */}
       {canLearn ? (
         <div className="mb-5">
           <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
@@ -86,9 +107,8 @@ export const CourseHome = ({
             className="w-full min-h-11 py-2 mt-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">
             <PenLine className="w-3.5 h-3.5" />{th.modeText}
           </button>
-          {startError && (
-            <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-2">{startError}</p>
-          )}
+          {startError && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-2">{startError}</p>}
+          <p className="text-xs text-gray-400 text-center mt-2">{th.remainingToday(remainingToday)}</p>
         </div>
       ) : (
         <div className="bg-gray-100 rounded-xl p-4 text-center mb-5">
@@ -98,25 +118,52 @@ export const CourseHome = ({
         </div>
       )}
 
-      {/* サマリー */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <Stat icon={<CalendarCheck className="w-4 h-4 text-emerald-600" />} label={th.thisWeek} value={th.thisWeekValue(stats.weekSessions, learner.settings.weeklyTarget)} />
-        <Stat icon={<Flame className="w-4 h-4 text-orange-500" />} label={th.streak} value={th.streakValue(stats.streak)} />
-        <Stat icon={<Flag className="w-4 h-4 text-blue-600" />} label={th.currentStage} value={th.stageValue(learner.currentWeek)} />
-        <Stat icon={<CalendarCheck className="w-4 h-4 text-violet-600" />} label={th.nextCheckpoint}
-          value={reviewsOverdue > 0 ? th.reviewsOverdue(reviewsOverdue) : reviewsDue > 0 ? th.reviewsDue(reviewsDue) : th.noReviews} />
-      </div>
-      {canLearn && <p className="text-xs text-gray-400 text-center mb-4">{th.remainingToday(remainingToday)}</p>}
+      {/* 今週できるようになったこと（最大3） */}
+      {thisWeekCanDos.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
+          <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />{tg.thisWeekCanDo}
+          </p>
+          <ul className="space-y-1.5">
+            {thisWeekCanDos.map((c) => (
+              <li key={c.id} className="flex items-start gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                <span className="text-sm text-gray-800 leading-snug">{zh ? c.zh : c.ja}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
-      {/* ロードマップ／学習履歴／設定は専用ヘッダーにあるため、ここでは重複させない */}
+      {/* 次にできるようになること */}
+      {nextAbility && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3 flex items-center gap-2.5">
+          <TrendingUp className="w-4 h-4 text-blue-600 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-[11px] text-gray-500">{tg.nextAbilityTitle}</p>
+            <p className="text-sm font-medium text-gray-800 truncate">{zh ? nextAbility.zh : nextAbility.ja}</p>
+          </div>
+        </div>
+      )}
+
+      {/* 小さな旅マップ＋成長を見る */}
+      <button type="button" onClick={onSeeGrowth}
+        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors">
+        <div className="flex items-center justify-between mb-2">
+          <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-blue-600" />{tg.journeyTitle}</p>
+          <span className="text-xs text-blue-600 flex items-center gap-0.5">{tg.seeGrowth}<ArrowRight className="w-3 h-3" /></span>
+        </div>
+        <GrowthJourneyMap t={t} places={journey} currentWeek={learner.currentWeek} compact />
+      </button>
+
+      {/* 補助情報（連続日数など。主役にしない・§22） */}
+      <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
+        <span className="flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-orange-400" />{th.streakValue(stats.streak)}</span>
+        <span>{th.thisWeekValue(stats.weekSessions, learner.settings.weeklyTarget)}</span>
+        {reviewsOverdue > 0 && <span className="text-red-500">{th.reviewsOverdue(reviewsOverdue)}</span>}
+      </div>
+
       <p className="text-[11px] text-gray-400 leading-relaxed mt-5">{t.positioning}</p>
     </div>
   );
 };
-
-const Stat = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="bg-white rounded-xl border border-gray-100 p-3">
-    <p className="text-[11px] text-gray-500 flex items-center gap-1">{icon}{label}</p>
-    <p className="font-bold text-gray-900 text-sm mt-0.5">{value}</p>
-  </div>
-);
