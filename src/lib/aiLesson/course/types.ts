@@ -128,6 +128,16 @@ export interface ItemProgress {
   failedReviews: number;
 }
 
+/** セッションごとの発話メトリクス（成長計算の材料。DB: ai_learning_sessions.speech_metrics） */
+export interface SpeechMetrics {
+  studentTurns: number;
+  totalStudentChars: number;
+  longestAnswerChars: number;
+  roundtrips: number;
+  gaveReason: boolean;
+  askedBack: boolean;
+}
+
 export interface CourseSessionRecord {
   id: string;
   missionId: string;
@@ -147,6 +157,8 @@ export interface CourseSessionRecord {
   errorCode: string | null;
   estimatedCostUsd: number;
   report: LessonReport | null;
+  /** 成長計算の材料（完了時に算出して保存。古いセッションは undefined） */
+  speechMetrics?: SpeechMetrics;
 }
 
 export interface CourseUtterance {

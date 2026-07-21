@@ -16,7 +16,10 @@ import type {
   Learner,
   LearnerSettings,
   LessonReport,
+  SpeechMetrics,
 } from './types';
+import type { GrowthSnapshot } from './courseGrowth';
+import type { SpeechSample } from './courseBeforeAfter';
 
 const LS = {
   learner: 'kawabado.aiCourse.v1.learner',
@@ -108,6 +111,11 @@ export interface CourseRepository {
   createSession(learnerId: string, s: Omit<CourseSessionRecord, 'id'>): Promise<StartSessionResult>;
   finalizeSession(sessionId: string, patch: Partial<CourseSessionRecord>, utterances: CourseUtterance[], learnerId: string): Promise<void>;
   listRecentSessions(limit?: number): Promise<CourseSessionRecord[]>;
+  /** 成長のBefore/After用: 生徒の確定発話を古い→新しい順で取得 */
+  loadStudentUtterances(learnerId: string, limit?: number): Promise<SpeechSample[]>;
+  /** 成長スナップショットを保存（同一 trigger は上書きせず維持＝append-only） */
+  saveGrowthSnapshot(learnerId: string, snapshot: GrowthSnapshot): Promise<void>;
+  listGrowthSnapshots(learnerId: string): Promise<GrowthSnapshot[]>;
   saveFeedback(learnerId: string, sessionId: string | null, fb: FeedbackInput): Promise<void>;
   recordUsage(learnerId: string, seconds: number, costUsd: number): Promise<void>;
   flushPending(): Promise<void>;
@@ -230,6 +238,7 @@ const createRepository = (): CourseRepository => ({
     if (patch.errorCode !== undefined) row.error_code = patch.errorCode;
     if (patch.estimatedCostUsd !== undefined) row.estimated_cost_usd = patch.estimatedCostUsd;
     if (patch.report !== undefined) row.report = patch.report;
+    if (patch.speechMetrics !== undefined) row.speech_metrics = patch.speechMetrics;
     const { error } = await supabase.from('ai_learning_sessions').update(row).eq('id', sessionId);
     if (error) { queuePending({ kind: 'session', payload: { sessionId, patch } }); return; }
     if (utterances.length > 0) {
@@ -259,7 +268,41 @@ const createRepository = (): CourseRepository => ({
       hintsUsed: r.hints_used as number, chineseSupportUsed: r.chinese_support_used as boolean,
       errorCode: r.error_code as string | null, estimatedCostUsd: Number(r.estimated_cost_usd ?? 0),
       report: (r.report as LessonReport) ?? null,
+      speechMetrics: (r.speech_metrics && typeof (r.speech_metrics as SpeechMetrics).studentTurns === 'number'
+        ? (r.speech_metrics as SpeechMetrics) : undefined),
     }));
+  },
+
+  async loadStudentUtterances(learnerId, limit = 40) {
+    // 古い→新しい順に、生徒の確定発話を取得（Before/After用）。低信頼除外は純関数側で行う
+    const { data, error } = await supabase.from('ai_session_utterances')
+      .select('transcript, created_at, session_id, is_final')
+      .eq('learner_id', learnerId).eq('speaker', 'student').eq('is_final', true)
+      .order('created_at', { ascending: true }).limit(limit);
+    if (error || !data) return [];
+    return (data as Record<string, unknown>[]).map((r) => ({
+      transcript: r.transcript as string,
+      dateISO: (r.created_at as string) ?? '',
+      sessionId: (r.session_id as string) ?? '',
+    }));
+  },
+
+  async saveGrowthSnapshot(learnerId, snapshot) {
+    // 同一 trigger が既にあれば維持（append-only）。onConflict で何もしない
+    const { error } = await supabase.from('ai_growth_snapshots').upsert({
+      learner_id: learnerId,
+      trigger_kind: snapshot.triggerKind,
+      session_count: snapshot.sessionCount,
+      data: snapshot,
+    }, { onConflict: 'learner_id,trigger_kind', ignoreDuplicates: true });
+    if (error) { /* 成長保存の失敗は学習を止めない */ }
+  },
+
+  async listGrowthSnapshots(learnerId) {
+    const { data, error } = await supabase.from('ai_growth_snapshots')
+      .select('data').eq('learner_id', learnerId).order('created_at', { ascending: true });
+    if (error || !data) return [];
+    return (data as { data: GrowthSnapshot }[]).map((r) => r.data).filter(Boolean);
   },
 
   async saveFeedback(learnerId, sessionId, fb) {
