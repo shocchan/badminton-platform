@@ -362,6 +362,31 @@ export const TournamentDetailPage = () => {
         />
       )}
 
+      {/* 参加保証バナー（信頼表示） */}
+      <div className="bg-green-50 border border-green-200 rounded-2xl px-5 py-4 mb-4 flex items-start gap-3">
+        <span className="text-lg flex-shrink-0 mt-0.5" aria-hidden="true">✅</span>
+        <div>
+          <p className="text-sm font-bold text-green-900">
+            {lang === 'zh' ? '保证最少4场循环赛' : '最低4試合の総当たり戦を保証'}
+          </p>
+          <p className="text-xs text-green-700 mt-1">
+            {lang === 'zh'
+              ? '根据参加人数确保比赛场数。从初学者到高级者，营造让所有人都能尽兴的环境。'
+              : '参加人数に応じた試合組数を確保。初心者から上級者まで、全員が楽しめる環境です。'}
+          </p>
+        </div>
+      </div>
+
+      {/* 過去大会ギャラリーへのリンク（信頼表示） */}
+      <Link
+        to={`/${lang}/tournaments/gallery`}
+        className="flex items-center gap-2 text-sm text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-2xl px-5 py-3.5 transition-colors mb-6"
+      >
+        <span className="text-lg" aria-hidden="true">📸</span>
+        <span className="font-medium">{lang === 'zh' ? '查看往届赛事回顾' : '過去の大会レポートを見る'}</span>
+        <span className="ml-auto text-xs">→</span>
+      </Link>
+
       {/* 申し込みボタン */}
       <div className="sticky bottom-4">
         {tournament.status !== 'active' ? (
