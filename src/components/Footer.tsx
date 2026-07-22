@@ -59,6 +59,9 @@ export const Footer = () => {
               <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/privacy-policy`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'プライバシーポリシー' : '隐私政策'}
               </Link>
+              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/tokushoho`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '特定商取引法に基づく表記' : '特定商业交易法标示'}
+              </Link>
               <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>

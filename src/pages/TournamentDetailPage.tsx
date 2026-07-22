@@ -11,6 +11,7 @@ import { Breadcrumbs } from '../components/Breadcrumbs';
 import { LogoMark } from '../components/LogoMark';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { trackViewTournament } from '../lib/analytics';
 import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
 import type { Tournament } from '../types';
 
@@ -95,6 +96,7 @@ export const TournamentDetailPage = () => {
         .single();
       if (tErr || !t) { setError('大会が見つかりませんでした'); setLoading(false); return; }
       setTournament(t);
+      trackViewTournament(t.id, t.entry_fee);
 
       const { data: entries } = await supabase
         .from('entries')

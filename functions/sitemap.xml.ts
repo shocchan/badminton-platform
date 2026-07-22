@@ -33,6 +33,7 @@ export async function onRequest(context: { env: Env }) {
       { path: 'tournaments/gallery', priority: '0.7', freq: 'weekly' },
       { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
       { path: 'privacy-policy', priority: '0.3', freq: 'yearly' },
+    { path: 'tokushoho',      priority: '0.3', freq: 'yearly' },
     ];
 
     const langs = ['ja', 'zh'];

@@ -17,6 +17,7 @@ const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').t
 const TournamentGalleryPage = lazy(() => import('./pages/tournaments/TournamentGalleryPage').then(m => ({ default: m.TournamentGalleryPage })));
 const TournamentEntryPage = lazy(() => import('./pages/tournaments/TournamentEntryPage').then(m => ({ default: m.TournamentEntryPage })));
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
+const TokushohoPage = lazy(() => import('./pages/TokushohoPage').then(m => ({ default: m.TokushohoPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
 const AdminPage            = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
@@ -87,6 +88,7 @@ const AnimatedRoutes = () => {
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
             <Route path="privacy-policy"  element={<PrivacyPolicyPage />} />
+            <Route path="tokushoho"       element={<TokushohoPage />} />
             <Route path="admin"           element={<AdminPage groupSlug="kawaguchi-warabi" />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />
@@ -134,6 +136,7 @@ const AnimatedRoutes = () => {
           <Route path="/level-guide"              element={<Navigate to="/ja/level-guide" replace />} />
           <Route path="/cancel-policy"            element={<Navigate to="/ja/cancel-policy" replace />} />
           <Route path="/privacy-policy"           element={<Navigate to="/ja/privacy-policy" replace />} />
+          <Route path="/tokushoho"                element={<Navigate to="/ja/tokushoho" replace />} />
           <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
           <Route path="/blog"                     element={<Navigate to="/ja/blog" replace />} />
           <Route path="/blog/:id"                 element={<NavigateWithId to="/ja/blog" />} />

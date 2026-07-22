@@ -6,7 +6,7 @@ import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
 import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
-import { trackEntryCompleted } from '../lib/analytics';
+import { trackGenerateLead, trackBeginCheckout, trackPurchase } from '../lib/analytics';
 import type { PaymentMethod } from '../lib/payment';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
@@ -39,14 +39,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 申込完了時にURLへ ?completed=1 を付与し、計測イベントを送信
-  // （広告のコンバージョン計測用。リロードは発生せず、決済・メール処理には一切影響しない）
+  // 申込完了時にURLへ ?completed=1 を付与（広告のURL到達ベースの補助計測用マーカー。
+  // 成果イベント本体は generate_lead / begin_checkout / purchase を各処理成功時に送信）
   useEffect(() => {
     if (step === 'success' && !window.location.search.includes('completed=1')) {
       window.history.replaceState(null, '', `${window.location.pathname}?completed=1`);
-      trackEntryCompleted(tournament.id, tournament.entry_fee);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   // 支払い方法選択（Vol.4〜 クレジット決済対応）
@@ -158,6 +156,9 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
       if (insertError) throw insertError;
 
+      // 成果計測: 申込フォーム送信完了（GA4 generate_lead / Meta Lead）
+      trackGenerateLead(tournament.id, tournament.entry_fee, status);
+
       // 支払いが必要な確定エントリーは支払い方法選択へ。それ以外は従来通りメール送信して完了
       if (status === 'confirmed' && tournament.payment_required && inserted) {
         setEntryInfo({ id: inserted.id, cancelToken: inserted.cancel_token });
@@ -250,6 +251,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
       setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount });
+      // 成果計測: クレジット決済開始（GA4 begin_checkout / Meta InitiateCheckout）
+      trackBeginCheckout(tournament.id, data.amount);
     } catch (err) {
       setPaymentError(
         err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
@@ -272,6 +275,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   // クレジット決済成功 → サーバー側で決済確認 + 完了メール送信
   const handleStripeSuccess = async (paymentIntentId: string) => {
     setPaymentLoading(true);
+    // 成果計測: 決済完了（Stripeクライアント側で支払い成功が確定した時点で送信）
+    trackPurchase(tournament.id, stripeInfo?.amount ?? tournament.entry_fee);
     try {
       const res = await fetchWithTimeout(`${EDGE_BASE}/confirm-payment`, {
         method: 'POST',

@@ -5,6 +5,7 @@ import { supabase } from '../../services/supabaseClient';
 import { PreEntryModal } from '../../components/PreEntryModal';
 import { EntryForm } from '../../components/EntryForm';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { trackBeginApplication } from '../../lib/analytics';
 import type { Tournament } from '../../types';
 
 // 申し込み専用ページ。
@@ -76,7 +77,7 @@ export const TournamentEntryPage = () => {
         {!rulesAccepted ? (
           <PreEntryModal
             tournament={tournament}
-            onConfirm={() => setRulesAccepted(true)}
+            onConfirm={() => { setRulesAccepted(true); trackBeginApplication(tournament.id); }}
             onClose={() => navigate(detailPath)}
           />
         ) : (
