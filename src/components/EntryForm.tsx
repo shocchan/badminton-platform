@@ -6,6 +6,7 @@ import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
 import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
+import { trackEntryCompleted } from '../lib/analytics';
 import type { PaymentMethod } from '../lib/payment';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
@@ -38,12 +39,14 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 申込完了時にURLへ ?completed=1 を付与（広告のコンバージョン計測用マーカー。
-  // リロードは発生せず、決済・メール処理には一切影響しない）
+  // 申込完了時にURLへ ?completed=1 を付与し、計測イベントを送信
+  // （広告のコンバージョン計測用。リロードは発生せず、決済・メール処理には一切影響しない）
   useEffect(() => {
     if (step === 'success' && !window.location.search.includes('completed=1')) {
       window.history.replaceState(null, '', `${window.location.pathname}?completed=1`);
+      trackEntryCompleted(tournament.id, tournament.entry_fee);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   // 支払い方法選択（Vol.4〜 クレジット決済対応）
@@ -659,6 +662,13 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                   state は空のまま送信されるため DB・メール送信の互換性は維持 */}
               <p className="text-xs text-gray-400">
                 {lang === 'zh' ? '如有其他事项，收到确认邮件后直接回复即可。' : 'その他の連絡事項は、確認メールへの返信でお知らせいただけます。'}
+              </p>
+              <p className="text-xs text-gray-400">
+                {lang === 'zh' ? '提交即视为同意' : '送信により、'}
+                <a href={`/${lang === 'zh' ? 'zh' : 'ja'}/privacy-policy`} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline underline-offset-2">
+                  {lang === 'zh' ? '《隐私政策》' : 'プライバシーポリシー'}
+                </a>
+                {lang === 'zh' ? '。' : 'に同意したものとみなします。'}
               </p>
               <button
                 type="submit"

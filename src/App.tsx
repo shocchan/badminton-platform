@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { trackPageView } from './lib/analytics';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -15,6 +16,7 @@ const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const TournamentGalleryPage = lazy(() => import('./pages/tournaments/TournamentGalleryPage').then(m => ({ default: m.TournamentGalleryPage })));
 const TournamentEntryPage = lazy(() => import('./pages/tournaments/TournamentEntryPage').then(m => ({ default: m.TournamentEntryPage })));
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
 const AdminPage            = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
@@ -51,6 +53,10 @@ const PageLoader = () => (
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+
+  // 広告計測: SPAのルート遷移ごとにページビュー送信（タグ未設定ならno-op）
+  useEffect(() => { trackPageView(location.pathname); }, [location.pathname]);
+
   return (
     <Suspense fallback={<PageLoader />}>
       <div key={location.pathname} className="page-fade">
@@ -80,6 +86,7 @@ const AnimatedRoutes = () => {
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
+            <Route path="privacy-policy"  element={<PrivacyPolicyPage />} />
             <Route path="admin"           element={<AdminPage groupSlug="kawaguchi-warabi" />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />
@@ -126,6 +133,7 @@ const AnimatedRoutes = () => {
           <Route path="/contact"                  element={<Navigate to="/ja/contact" replace />} />
           <Route path="/level-guide"              element={<Navigate to="/ja/level-guide" replace />} />
           <Route path="/cancel-policy"            element={<Navigate to="/ja/cancel-policy" replace />} />
+          <Route path="/privacy-policy"           element={<Navigate to="/ja/privacy-policy" replace />} />
           <Route path="/admin"                    element={<Navigate to="/ja/admin" replace />} />
           <Route path="/blog"                     element={<Navigate to="/ja/blog" replace />} />
           <Route path="/blog/:id"                 element={<NavigateWithId to="/ja/blog" />} />

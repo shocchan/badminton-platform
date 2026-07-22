@@ -33,29 +33,26 @@ const levelBar: Record<string, string> = {
 const isTournamentReport = (post: { title?: string; tags?: string[] }) =>
   post.tags?.includes('tournament') || (post.title ?? '').includes('開催レポート');
 
-// 参加者の声用の手描き風アバター（実在人物を特定しない汎用イラスト）
+// 参加者の声用アバター（SNS初期アイコン風の人型シルエット。実在人物を特定しない）
 const TestimonialAvatar = ({ variant }: { variant: 'blue' | 'amber' }) => {
-  const c = variant === 'blue'
-    ? { bg: '#dbeafe', hair: '#1e3a8a', skin: '#fde8d7', line: '#1f2937' }
-    : { bg: '#fef3c7', hair: '#78350f', skin: '#fde8d7', line: '#1f2937' };
+  const id = `av-${variant}`;
+  const [from, to] = variant === 'blue' ? ['#7c9fd8', '#5563b8'] : ['#f0b45f', '#d98a3d'];
   return (
     <svg viewBox="0 0 48 48" className="w-10 h-10 flex-shrink-0" aria-hidden="true">
-      <circle cx="24" cy="24" r="23" fill={c.bg} stroke={c.line} strokeWidth="1.2" />
-      {/* 顔 */}
-      <circle cx="24" cy="26" r="12.5" fill={c.skin} stroke={c.line} strokeWidth="1.2" />
-      {/* 髪（バリエーションで形を変える） */}
-      {variant === 'blue' ? (
-        <path d="M11.5 26 C11 12 37 12 36.5 26 C33 18.5 30 17 24 17 C18 17 15 18.5 11.5 26 Z" fill={c.hair} stroke={c.line} strokeWidth="1.2" strokeLinejoin="round" />
-      ) : (
-        <path d="M11.5 27 C10 12 38 12 36.5 27 L34 21 C33 26 31.5 26.5 31 22 C28 26 20 26 17 22 C16.5 26.5 15 26 14 21 Z" fill={c.hair} stroke={c.line} strokeWidth="1.2" strokeLinejoin="round" />
-      )}
-      {/* 目・口（にっこり） */}
-      <path d="M18.5 28 q1.5 1.8 3 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M26.5 28 q1.5 1.8 3 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
-      <path d="M20.5 33 q3.5 3 7 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
-      {/* ほっぺ */}
-      <circle cx="16.5" cy="31" r="1.8" fill="#fca5a5" opacity="0.55" />
-      <circle cx="31.5" cy="31" r="1.8" fill="#fca5a5" opacity="0.55" />
+      <defs>
+        <linearGradient id={id} x1="0" y1="1" x2="1" y2="0">
+          <stop offset="0%" stopColor={from} />
+          <stop offset="100%" stopColor={to} />
+        </linearGradient>
+        <clipPath id={`${id}-clip`}>
+          <circle cx="24" cy="24" r="24" />
+        </clipPath>
+      </defs>
+      <circle cx="24" cy="24" r="24" fill={`url(#${id})`} />
+      <g clipPath={`url(#${id}-clip)`} fill="#fafafa">
+        <circle cx="24" cy="19" r="9" />
+        <path d="M24 30 c-8.5 0 -14 5.5 -14 13 L10 50 L38 50 L38 43 c0 -7.5 -5.5 -13 -14 -13 Z" />
+      </g>
     </svg>
   );
 };

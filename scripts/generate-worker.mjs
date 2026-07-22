@@ -30,6 +30,7 @@ async function generateSitemap(env) {
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol3',  priority: '0.6', freq: 'yearly' },
     { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
+    { path: 'privacy-policy', priority: '0.3', freq: 'yearly' },
   ];
 
   const langs = ['ja', 'zh'];
