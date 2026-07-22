@@ -102,12 +102,14 @@ export const initAnalytics = () => {
   }
 
   if (META_PIXEL_ID) {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const fbq: any = function (...args: unknown[]) {
-      if (fbq.callMethod) fbq.callMethod(...args);
-      else fbq.queue.push(args);
+    /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params, prefer-spread */
+    // Meta公式スニペット完全準拠。gtagと同様 fbevents.js は arguments を処理するため
+    // rest引数の配列にしない（callMethod.apply / queue.push(arguments)）。
+    const fbq: any = function () {
+      if (fbq.callMethod) fbq.callMethod.apply(fbq, arguments);
+      else fbq.queue.push(arguments);
     };
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+    /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params, prefer-spread */
     if (!window._fbq) window._fbq = fbq;
     fbq.push = fbq;
     fbq.loaded = true;
@@ -119,6 +121,7 @@ export const initAnalytics = () => {
     s.src = 'https://connect.facebook.net/en_US/fbevents.js';
     document.head.appendChild(s);
     fbq('init', META_PIXEL_ID);
+    // 初回PageViewはSPAの trackPageView（初回マウント時に発火）に任せ、二重計上を防ぐ
   }
 };
 
