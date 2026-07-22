@@ -89,10 +89,16 @@ export const initAnalytics = () => {
     s.src = `https://www.googletagmanager.com/gtag/js?id=${GA4_ID}`;
     document.head.appendChild(s);
     window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag(...args: unknown[]) { window.dataLayer!.push(args); };
+    // 公式スニペット準拠: gtag.js は arguments オブジェクトのみをコマンドとして処理する。
+    // rest引数の実配列(push([...]))を渡すと config/js が無視されコンテナが初期化されず、
+    // collect が一切送信されない（2026-07-22 実機で特定した不具合の修正）。
+    // eslint-disable-next-line prefer-rest-params -- gtag.jsはargumentsオブジェクトのみ処理する（配列不可）
+    window.gtag = function gtag() { window.dataLayer!.push(arguments); };
     window.gtag('js', new Date());
-    // SPAなので page_view は手動送信（route遷移ごとに trackPageView）
-    window.gtag('config', GA4_ID, { send_page_view: false });
+    // SPAなので page_view は手動送信（route遷移ごとに trackPageView）。
+    // tracktest中は config にも debug_mode を付け DebugView に確実に表示させる
+    const debugMode = (() => { try { return sessionStorage.getItem(TRACKTEST_KEY) === '1'; } catch { return false; } })();
+    window.gtag('config', GA4_ID, { send_page_view: false, ...(debugMode ? { debug_mode: true } : {}) });
   }
 
   if (META_PIXEL_ID) {
