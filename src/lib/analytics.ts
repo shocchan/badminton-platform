@@ -157,7 +157,7 @@ export const trackPageView = (pathname: string) => {
   }
   send(
     'page_view',
-    { page_location: window.location.href, page_path: pathname, language: currentLang() },
+    { page_location: window.location.href, page_path: pathname, page_lang: currentLang() },
     'PageView',
   );
 };
@@ -166,7 +166,7 @@ export const trackPageView = (pathname: string) => {
 export const trackViewTournament = (tournamentId: number, fee: number) => {
   send(
     'view_tournament',
-    { tournament_id: tournamentId, value: fee, currency: 'JPY', language: currentLang() },
+    { tournament_id: tournamentId, value: fee, currency: 'JPY', page_lang: currentLang() },
     'ViewContent',
     { content_ids: [String(tournamentId)], content_type: 'tournament', value: fee, currency: 'JPY' },
   );
@@ -176,7 +176,7 @@ export const trackViewTournament = (tournamentId: number, fee: number) => {
 export const trackBeginApplication = (tournamentId: number) => {
   send(
     'begin_application',
-    { tournament_id: tournamentId, language: currentLang() },
+    { tournament_id: tournamentId, page_lang: currentLang() },
     'BeginApplication',
     { content_ids: [String(tournamentId)] },
     true,
@@ -187,7 +187,7 @@ export const trackBeginApplication = (tournamentId: number) => {
 export const trackGenerateLead = (tournamentId: number, fee: number, status: 'confirmed' | 'waitlist') => {
   send(
     'generate_lead',
-    { tournament_id: tournamentId, value: fee, currency: 'JPY', entry_status: status, language: currentLang(), ...getUtm() },
+    { tournament_id: tournamentId, value: fee, currency: 'JPY', entry_status: status, page_lang: currentLang(), ...getUtm() },
     'Lead',
     { content_ids: [String(tournamentId)], value: fee, currency: 'JPY' },
   );
@@ -197,7 +197,7 @@ export const trackGenerateLead = (tournamentId: number, fee: number, status: 'co
 export const trackBeginCheckout = (tournamentId: number, amount: number) => {
   send(
     'begin_checkout',
-    { tournament_id: tournamentId, value: amount, currency: 'JPY', language: currentLang(), ...getUtm() },
+    { tournament_id: tournamentId, value: amount, currency: 'JPY', page_lang: currentLang(), ...getUtm() },
     'InitiateCheckout',
     { content_ids: [String(tournamentId)], value: amount, currency: 'JPY' },
   );
@@ -212,7 +212,7 @@ export const trackPurchase = (tournamentId: number, amount: number) => {
       tournament_id: tournamentId,
       value: amount,
       currency: 'JPY',
-      language: currentLang(),
+      page_lang: currentLang(),
       ...getUtm(),
     },
     'Purchase',
