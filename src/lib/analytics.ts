@@ -128,7 +128,15 @@ const send = (
     console.debug('[analytics]', ga4Event ?? metaEvent, { ...ga4Params, enabled: isEnabled() });
   }
   if (!isEnabled()) return;
-  if (ga4Event && GA4_ID && window.gtag) window.gtag('event', ga4Event, ga4Params);
+  // tracktest中は GA4 DebugView に即時表示（debug_mode）＋
+  // 内部トラフィック印（GA4管理画面でフィルタ設定すればレポートから除外可能）
+  let params = ga4Params;
+  try {
+    if (sessionStorage.getItem(TRACKTEST_KEY) === '1') {
+      params = { ...ga4Params, debug_mode: true, traffic_type: 'internal' };
+    }
+  } catch { /* noop */ }
+  if (ga4Event && GA4_ID && window.gtag) window.gtag('event', ga4Event, params);
   if (metaEvent && META_PIXEL_ID && window.fbq) {
     window.fbq(metaCustom ? 'trackCustom' : 'track', metaEvent, metaParams);
   }
