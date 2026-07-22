@@ -33,6 +33,33 @@ const levelBar: Record<string, string> = {
 const isTournamentReport = (post: { title?: string; tags?: string[] }) =>
   post.tags?.includes('tournament') || (post.title ?? '').includes('開催レポート');
 
+// 参加者の声用の手描き風アバター（実在人物を特定しない汎用イラスト）
+const TestimonialAvatar = ({ variant }: { variant: 'blue' | 'amber' }) => {
+  const c = variant === 'blue'
+    ? { bg: '#dbeafe', hair: '#1e3a8a', skin: '#fde8d7', line: '#1f2937' }
+    : { bg: '#fef3c7', hair: '#78350f', skin: '#fde8d7', line: '#1f2937' };
+  return (
+    <svg viewBox="0 0 48 48" className="w-10 h-10 flex-shrink-0" aria-hidden="true">
+      <circle cx="24" cy="24" r="23" fill={c.bg} stroke={c.line} strokeWidth="1.2" />
+      {/* 顔 */}
+      <circle cx="24" cy="26" r="12.5" fill={c.skin} stroke={c.line} strokeWidth="1.2" />
+      {/* 髪（バリエーションで形を変える） */}
+      {variant === 'blue' ? (
+        <path d="M11.5 26 C11 12 37 12 36.5 26 C33 18.5 30 17 24 17 C18 17 15 18.5 11.5 26 Z" fill={c.hair} stroke={c.line} strokeWidth="1.2" strokeLinejoin="round" />
+      ) : (
+        <path d="M11.5 27 C10 12 38 12 36.5 27 L34 21 C33 26 31.5 26.5 31 22 C28 26 20 26 17 22 C16.5 26.5 15 26 14 21 Z" fill={c.hair} stroke={c.line} strokeWidth="1.2" strokeLinejoin="round" />
+      )}
+      {/* 目・口（にっこり） */}
+      <path d="M18.5 28 q1.5 1.8 3 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M26.5 28 q1.5 1.8 3 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M20.5 33 q3.5 3 7 0" fill="none" stroke={c.line} strokeWidth="1.4" strokeLinecap="round" />
+      {/* ほっぺ */}
+      <circle cx="16.5" cy="31" r="1.8" fill="#fca5a5" opacity="0.55" />
+      <circle cx="31.5" cy="31" r="1.8" fill="#fca5a5" opacity="0.55" />
+    </svg>
+  );
+};
+
 const generateShareText = (tournament: Tournament, lang: string) => {
   const formatDate = (d: string) => new Date(d).toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
   const fmtTime = (t: string) => t.slice(0, 5);
@@ -250,7 +277,9 @@ export const TournamentDetailPage = () => {
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
         <meta property="og:url" content={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
+        <meta property="og:image" content="https://kawabado.com/ogp.jpg" />
         <meta property="og:locale" content="ja_JP" />
+        <meta name="twitter:card" content="summary_large_image" />
         <link rel="canonical" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="zh" href={`https://kawabado.com/zh/tournaments/${tournament.id}`} />
@@ -431,26 +460,40 @@ export const TournamentDetailPage = () => {
         </div>
       )}
 
-      {/* 参加者の声（実際にいただいた声のみ。捏造禁止） */}
+      {/* 参加者の声（実際にいただいた声のみ。捏造禁止。
+          アバターは実在人物を特定しない手描き風イラスト） */}
       <div className="mb-4">
         <h2 className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-800 mb-3">
           <Quote className="w-4 h-4 text-blue-500" /> {zh ? '参加者的声音' : '参加者の声'}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {(zh
             ? [
-                { text: '平时打单打的机会很少，短时间内能打很多场比赛，是很好的练习。希望以后继续举办！', from: '单打参加者' },
-                { text: '在中国，平日晚上打比赛很常见，但在日本却很难找到这样的机会，真的太好了。', from: '来自中国的参加者' },
+                { text: '平时打单打的机会很少，短时间内能打很多场比赛，是很好的练习。希望以后继续举办！', from: '单打参加者', avatar: 'blue' as const },
+                { text: '在中国，平日晚上打比赛很常见，但在日本却很难找到这样的机会，真的太好了。', from: '来自中国的参加者', avatar: 'amber' as const },
               ]
             : [
-                { text: 'シングルスをやる機会が少なく、短時間でたくさん試合もできていい練習になるので、また開催して欲しい', from: 'シングルス参加者' },
-                { text: '中国では平日の夜に試合することが多いけど、日本ではなかなかなかったので良かった', from: '中国出身の参加者' },
+                { text: 'シングルスをやる機会が少なく、短時間でたくさん試合もできていい練習になるので、また開催して欲しい', from: 'シングルス参加者', avatar: 'blue' as const },
+                { text: '中国では平日の夜に試合することが多いけど、日本ではなかなかなかったので良かった', from: '中国出身の参加者', avatar: 'amber' as const },
               ]
           ).map(v => (
-            <figure key={v.text} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <Quote className="w-4 h-4 text-blue-200 mb-2" aria-hidden="true" />
-              <blockquote className="text-sm text-gray-700 leading-relaxed">{v.text}</blockquote>
-              <figcaption className="text-xs text-gray-400 mt-2">— {v.from}</figcaption>
+            <figure key={v.text} className="flex flex-col">
+              {/* 吹き出し */}
+              <div className="relative bg-white rounded-2xl border-2 border-gray-200 p-4 shadow-sm">
+                <blockquote
+                  className="text-[15px] text-gray-800 leading-relaxed"
+                  style={{ fontFamily: "'Klee One', 'Yu Kyokasho', 'YuKyokasho', cursive" }}
+                >
+                  「{v.text}」
+                </blockquote>
+                {/* 吹き出しのしっぽ */}
+                <span className="absolute -bottom-[9px] left-8 w-4 h-4 bg-white border-b-2 border-r-2 border-gray-200 rotate-45" aria-hidden="true" />
+              </div>
+              {/* 話者 */}
+              <figcaption className="flex items-center gap-2.5 mt-3 ml-4">
+                <TestimonialAvatar variant={v.avatar} />
+                <span className="text-xs font-semibold text-gray-600">{v.from}</span>
+              </figcaption>
             </figure>
           ))}
         </div>

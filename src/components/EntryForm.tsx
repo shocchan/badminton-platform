@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CalendarDays, MapPin } from 'lucide-react';
 import type { Tournament } from '../types';
 import { supabase } from '../services/supabaseClient';
@@ -37,6 +37,14 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [step, setStep] = useState<Step>('input');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 申込完了時にURLへ ?completed=1 を付与（広告のコンバージョン計測用マーカー。
+  // リロードは発生せず、決済・メール処理には一切影響しない）
+  useEffect(() => {
+    if (step === 'success' && !window.location.search.includes('completed=1')) {
+      window.history.replaceState(null, '', `${window.location.pathname}?completed=1`);
+    }
+  }, [step]);
 
   // 支払い方法選択（Vol.4〜 クレジット決済対応）
   const [entryInfo, setEntryInfo] = useState<{ id: number; cancelToken: string } | null>(null);
