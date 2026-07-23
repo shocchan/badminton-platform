@@ -65,7 +65,7 @@ describe('whenStuck auto-show triggers', () => {
     expect(studentIsStuck('はい、分かりました')).toBe(false);
     expect(studentIsStuck(null)).toBe(false);
   });
-  it('ゆい先生が中国語で補助したら表示', () => {
+  it('翔子先生が中国語で補助したら表示', () => {
     expect(tutorUsedChinese('这个的意思是……')).toBe(true);
     expect(tutorUsedChinese('では、写真を撮ってもいいですか、と言ってみましょう。')).toBe(false);
   });

@@ -27,7 +27,7 @@ export const REVIEW_INTERVALS = { day1: 1, day3: 3, day7: 7, day30: 30, extra: 2
 /** 「定着済み」とみなす状態（ロードマップ・レポート表示用） */
 export const RETAINED_STATES: CourseMasteryState[] = ['retained_day7', 'retained_day30'];
 
-/** 難易度5段階の説明（ゆい先生プロンプトにも渡す） */
+/** 難易度5段階の説明（翔子先生プロンプトにも渡す） */
 export const DIFFICULTY_GUIDE: Record<number, { ja: string; promptJa: string }> = {
   1: { ja: '選択肢中心・短い復唱・中国語補助多め', promptJa: '選択肢を多めに出し、短い復唱を中心にする。中国語補助を多めに使う。' },
   2: { ja: '文の前半を提示・短い自由回答', promptJa: '文の前半を提示して続きを言わせる。短い自由回答を促す。' },

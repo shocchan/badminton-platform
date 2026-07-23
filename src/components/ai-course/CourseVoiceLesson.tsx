@@ -1,4 +1,4 @@
-// コースの音声レッスン。voiceSession(WebRTC) を使い、ミッション文脈でゆい先生と会話する。
+// コースの音声レッスン。voiceSession(WebRTC) を使い、ミッション文脈で翔子先生と会話する。
 // 終了体験（2:30着地→最大4分→finish_lesson→自動完了）と冪等cleanupは voiceSession 側で担保。
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
@@ -30,7 +30,7 @@ export interface VoiceLessonResult {
   translateCostUsd: number;
 }
 
-/** ゆい先生の1発話ぶんの中国語補助字幕の状態 */
+/** 翔子先生の1発話ぶんの中国語補助字幕の状態 */
 type SubState = { zh?: string; state: 'pending' | 'shown' | 'error' };
 
 interface Props {
@@ -211,7 +211,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   };
   useEffect(() => { if (atBottom) scrollToLatest(); }, [msgs, liveT, liveU, atBottom, scrollToLatest]);
 
-  // ゆい先生の1発話を中国語補助訳にする（キャッシュ優先・失敗は握りつぶす）
+  // 翔子先生の1発話を中国語補助訳にする（キャッシュ優先・失敗は握りつぶす）
   const requestTranslate = useCallback((index: number, text: string) => {
     const cachedZh = cachedTranslation(text);
     if (cachedZh) { setSubs((s) => ({ ...s, [index]: { zh: cachedZh, state: 'shown' } })); return; }
@@ -226,7 +226,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     });
   }, [sessionId, targetHint]);
 
-  // 確定したゆい先生の発話だけを対象に、モードに応じて自動翻訳する。
+  // 確定した翔子先生の発話だけを対象に、モードに応じて自動翻訳する。
   // ・ja_zh: 常時 / ・whenStuck: 困った合図のときだけ / ・ja: なにもしない
   // 暫定字幕(liveT)や生徒の発話は対象にしない。
   useEffect(() => {
@@ -305,7 +305,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     );
   }
 
-  // 最新のゆい先生発話（強調表示用）
+  // 最新の翔子先生発話（強調表示用）
   let lastTutorIdx = -1;
   for (let i = msgs.length - 1; i >= 0; i--) { if (msgs[i].role === 'tutor') { lastTutorIdx = i; break; } }
 
@@ -358,11 +358,11 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       )}
       {msgs.map((m, i) => {
         const isStudent = m.role === 'student';
-        const emphasize = i === lastTutorIdx; // 最新のゆい先生発話を少し大きく
+        const emphasize = i === lastTutorIdx; // 最新の翔子先生発話を少し大きく
         return (
           <div key={i} className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[85%] lg:max-w-[78%]">
-              <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
+              <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>
               <div className={`px-4 py-2.5 rounded-2xl leading-relaxed whitespace-pre-wrap break-words ${
                 isStudent
                   ? 'bg-blue-600 text-white rounded-tr-sm text-[15px] lg:text-base'
@@ -469,7 +469,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
 };
 
 /**
- * ゆい先生の発話の下に出す中国語補助字幕。
+ * 翔子先生の発話の下に出す中国語補助字幕。
  * - 日本語より小さく・薄く（主役を日本語にする）
  * - まだ翻訳していない（whenStuckで未トリガー）ときは「中文を見る」ボタン
  * - 失敗時は静かに再取得ボタン。音声・日本語字幕は止めない

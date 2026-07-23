@@ -42,7 +42,7 @@ export interface ConversationTurn { role: 'student' | 'tutor'; text: string }
 /**
  * 会話ログから目標表現の使用を保守的に判定する。
  * - 生徒の発話に検出パターンが出た回数
- * - 直前にゆい先生が同じ表現を言っていたら hint 扱い（お手本/復唱の直後）
+ * - 直前に翔子先生が同じ表現を言っていたら hint 扱い（お手本/復唱の直後）
  */
 export const detectTargetUsage = (
   turns: ConversationTurn[],

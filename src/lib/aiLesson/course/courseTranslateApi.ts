@@ -1,4 +1,4 @@
-// ゆい先生の日本語発話 → 短い中国語補助訳の取得（キャッシュ＋多重リクエスト抑止）。
+// 翔子先生の日本語発話 → 短い中国語補助訳の取得（キャッシュ＋多重リクエスト抑止）。
 //
 // - 同じ字幕を何度も翻訳しない（テキストをキーにキャッシュ）
 // - 同時に同じテキストを2回投げない（in-flight を共有）
@@ -35,7 +35,7 @@ export const estimateTranslateCostUsd = (usage: TranslateResult['usage']): numbe
 export const cachedTranslation = (text: string): string | null => cache.get(text.trim()) ?? null;
 
 /**
- * ゆい先生の発話 1 行を中国語補助訳にする。
+ * 翔子先生の発話 1 行を中国語補助訳にする。
  * sessionId が無い場合は翻訳しない（デモや未認可では字幕補助を出さない）。
  */
 export const translateTutorLine = async (

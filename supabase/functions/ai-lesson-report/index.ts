@@ -125,7 +125,7 @@ serve(async (req) => {
     const utterances = Array.isArray(body.utterances) ? body.utterances.slice(0, 60) : [];
     if (utterances.length === 0) return json(400, { error: "no_utterances" });
 
-    // 会話ログを短く整形（生徒＝S / ゆい先生＝T）。長すぎる発話は切り詰める
+    // 会話ログを短く整形（生徒＝S / 翔子先生＝T）。長すぎる発話は切り詰める
     const transcript = utterances
       .map((u) => `${u.speaker === "student" ? "S" : u.speaker === "tutor" ? "T" : "-"}: ${String(u.transcript).slice(0, 200)}`)
       .join("\n");
@@ -135,7 +135,7 @@ serve(async (req) => {
       "実際の会話ログだけに基づいて、短い学習レポートをJSONで作成します。固定文は使わないでください。",
       "",
       "【厳守】判定の原則",
-      "1. 「S:」の行だけが生徒の発話です。「T:」はゆい先生（AI）のお手本・質問であり、",
+      "1. 「S:」の行だけが生徒の発話です。「T:」は翔子先生（AI）のお手本・質問であり、",
       "   生徒が言ったことにしてはいけません。T の文を achievements や corrections.original に使わない。",
       "2. 生徒が実際に言っていない文を「言えた」と書かない。ログに無いことは書かない。",
       "3. 文字起こしは不完全なことがあります。意味が取れない断片は、断定せず触れないでください。",

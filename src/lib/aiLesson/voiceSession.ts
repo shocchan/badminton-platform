@@ -40,7 +40,7 @@ export interface VoiceSessionCallbacks {
   onTutorSpeaking: (speaking: boolean) => void;
   onUserSpeaking: (speaking: boolean) => void;
   onError: (kind: VoiceErrorKind, message?: string) => void;
-  /** ゆい先生が finish_lesson ツールを呼び、最終音声の再生完了を検出した時に1回だけ発火 */
+  /** 翔子先生が finish_lesson ツールを呼び、最終音声の再生完了を検出した時に1回だけ発火 */
   onFinishLesson: (reason: string) => void;
 }
 
@@ -324,7 +324,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           case 'conversation.item.input_audio_transcription.completed':
             callbacks.onUserTranscript(ev.transcript ?? '', true);
             break;
-          // ゆい先生の文字起こし
+          // 翔子先生の文字起こし
           case 'response.output_audio_transcript.delta':
             tutorBuffer += ev.delta ?? '';
             callbacks.onTutorTranscript(tutorBuffer, false);

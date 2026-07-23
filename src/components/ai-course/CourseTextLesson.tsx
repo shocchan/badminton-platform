@@ -122,7 +122,7 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
         {msgs.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[85%]">
-              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '结衣老师' : 'ゆい先生')}</p>
+              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>
               <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>{m.text}</div>
             </div>
           </div>

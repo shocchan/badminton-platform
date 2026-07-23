@@ -6,7 +6,7 @@ import type { LessonKind } from '../lib/aiLesson/course/types';
 const ja = {
   locale: 'ja' as 'ja' | 'zh',
   positioning: 'このコースは、N2の文法や語彙を「実際に話せる日本語」にするための会話伴走コースです。N2試験の全範囲を網羅する教材ではありません。',
-  brand: 'ゆい先生とAI日本語会話コース',
+  brand: '翔子先生とAI日本語会話コース',
   nav: {
     home: 'ホーム',
     growth: '成長',
@@ -69,7 +69,7 @@ const ja = {
   /** 利用開始案内（初回のみ自動表示。設定から再確認できる） */
   onboarding: {
     title: 'はじめる前に',
-    purpose: 'このコースは、ゆい先生とAI音声で毎日少しずつ日本語を話し、N2レベルの表現を「実際に使える」状態にするためのものです。',
+    purpose: 'このコースは、翔子先生とAI音声で毎日少しずつ日本語を話し、N2レベルの表現を「実際に使える」状態にするためのものです。',
     duration: '1回は3〜4分。週5回を目安に続けてください。',
     microphone: 'マイクの使用を許可してください。声で会話します。',
     browser: 'WeChat内のブラウザではなく、SafariかChromeで開いてください。',
@@ -88,7 +88,7 @@ const ja = {
     guideOpen: '使い方をもう一度見る',
     saved: '保存しました',
     subtitleTitle: '字幕（中国語の補助）',
-    subtitleDescription: '音声レッスン中、ゆい先生の日本語字幕の下に中国語の補助を出すかを選べます。日本語が主役です。',
+    subtitleDescription: '音声レッスン中、翔子先生の日本語字幕の下に中国語の補助を出すかを選べます。日本語が主役です。',
     subtitleForcedJa: '中国語サポートを「使わない」に設定しているため、字幕は日本語のみです。',
     subtitleModes: {
       ja: '日本語のみ',
@@ -237,10 +237,10 @@ const ja = {
   },
   voice: {
     statusMicPermission: 'マイクの許可を待っています…',
-    statusConnecting: 'ゆい先生に接続中…',
-    statusTutorSpeaking: 'ゆい先生が話しています',
+    statusConnecting: '翔子先生に接続中…',
+    statusTutorSpeaking: '翔子先生が話しています',
     statusListening: 'あなたの話を聞いています',
-    endingSummary: 'ゆい先生がまとめています…',
+    endingSummary: '翔子先生がまとめています…',
     finalPractice: 'まとめ中（最後の練習）',
     completedMessage: 'レッスンが完了しました',
     completedSub: 'レポートを準備しています…',
@@ -252,7 +252,7 @@ const ja = {
     retry: 'もう一度接続する',
     switchToText: 'テキストで練習する',
     transcriptNote: '会話は自動で文字起こしされます',
-    speakFirstHint: '接続できました！ゆい先生のあいさつを待ってから、日本語で話しかけてみましょう。',
+    speakFirstHint: '接続できました！翔子先生のあいさつを待ってから、日本語で話しかけてみましょう。',
     subtitleShowZh: '中国語を見る',
     subtitleTranslating: '中国語訳を準備中…',
     subtitleRetry: '中国語訳をもう一度',
@@ -360,7 +360,7 @@ export type AiCourseDict = typeof ja;
 const zh: AiCourseDict = {
   locale: 'zh',
   positioning: '本课程是把N2的语法和词汇练成「能真正开口说的日语」的会话陪练课程，并非涵盖N2考试全部范围的教材。',
-  brand: '结衣老师・AI日语会话课程',
+  brand: '翔子老师・AI日语会话课程',
   nav: {
     home: '首页',
     growth: '成长',
@@ -422,7 +422,7 @@ const zh: AiCourseDict = {
   },
   onboarding: {
     title: '开始之前',
-    purpose: '这门课程是通过和结衣老师用语音每天说一点日语，把N2水平的表达练到「真正能用出来」。',
+    purpose: '这门课程是通过和翔子老师用语音每天说一点日语，把N2水平的表达练到「真正能用出来」。',
     duration: '每次3〜4分钟。建议每周练5次。',
     microphone: '请允许使用麦克风。我们用声音对话。',
     browser: '请用Safari或Chrome打开，不要用微信内置浏览器。',
@@ -441,7 +441,7 @@ const zh: AiCourseDict = {
     guideOpen: '再看一遍使用方法',
     saved: '已保存',
     subtitleTitle: '字幕（中文辅助）',
-    subtitleDescription: '语音课程中，可以选择是否在结衣老师的日语字幕下方显示中文辅助。以日语为主。',
+    subtitleDescription: '语音课程中，可以选择是否在翔子老师的日语字幕下方显示中文辅助。以日语为主。',
     subtitleForcedJa: '你已把中文支持设为“不使用”，因此字幕仅显示日语。',
     subtitleModes: {
       ja: '仅日语',
@@ -589,10 +589,10 @@ const zh: AiCourseDict = {
   },
   voice: {
     statusMicPermission: '正在等待麦克风授权…',
-    statusConnecting: '正在连接结衣老师…',
-    statusTutorSpeaking: '结衣老师正在说话',
+    statusConnecting: '正在连接翔子老师…',
+    statusTutorSpeaking: '翔子老师正在说话',
     statusListening: '正在听你说话',
-    endingSummary: '结衣老师正在总结…',
+    endingSummary: '翔子老师正在总结…',
     finalPractice: '总结中（最后的练习）',
     completedMessage: '课程完成！',
     completedSub: '正在生成学习报告…',
@@ -604,7 +604,7 @@ const zh: AiCourseDict = {
     retry: '重新连接',
     switchToText: '改用文字练习',
     transcriptNote: '会话内容会自动转成文字',
-    speakFirstHint: '连接成功！等结衣老师打完招呼后，试着用日语开口说说看吧。',
+    speakFirstHint: '连接成功！等翔子老师打完招呼后，试着用日语开口说说看吧。',
     subtitleShowZh: '查看中文',
     subtitleTranslating: '正在准备中文…',
     subtitleRetry: '重新获取中文',

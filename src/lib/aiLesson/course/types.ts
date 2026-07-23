@@ -61,7 +61,7 @@ export interface Mission {
   hintLevels: string[];
   chineseSupport: 'minimal' | 'normal' | 'rich';
   correctionPriority: 'meaning' | 'target' | 'both';
-  completionCriteria: string;    // ゆい先生への完了条件の説明
+  completionCriteria: string;    // 翔子先生への完了条件の説明
   reviewPrompts: { day1: string; day3: string; day7: string };
   alternateScenes: string[];     // 別場面での再使用（3日後復習にも使う）
   requiredPreviousItems: string[];

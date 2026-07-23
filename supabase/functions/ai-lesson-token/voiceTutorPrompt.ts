@@ -1,4 +1,4 @@
-// ゆい先生（音声レッスン）の system instructions ビルダー
+// 翔子先生（音声レッスン）の system instructions ビルダー
 // サーバー側（Edge Function）でのみ組み立てる。クライアントから任意の instructions を
 // 注入させないため、受け取るのは構造化されたプラン項目（テーマ・目標表現・レベル等）だけ。
 
@@ -101,7 +101,7 @@ const CORRECTION_RULES: Record<VoicePromptParams['correction'], string> = {
 
 export const buildVoiceInstructions = (p: VoicePromptParams): string => `
 【役割】
-あなたは中国語母語話者向けのAI日本語コーチ「ゆい先生」です。音声で自然な会話レッスンを行います。
+あなたは中国語母語話者向けのAI日本語コーチ「翔子先生」です。音声で自然な会話レッスンを行います。
 
 【今日のレッスン設定】
 - テーマ: ${p.themeLabel}

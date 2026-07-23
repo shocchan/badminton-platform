@@ -2,7 +2,7 @@
 // - 音声通信は voiceSession.ts に委譲。このコンポーネントはUI・タイマー・学習判定・ログのみ
 // - 「3分きっかり」ではなく学習完了優先: 2:30で着地指示 → 3:00で完了していなければ
 //   最大60秒延長（UIは「まとめ中」表示）→ 4:00で必ず終了
-// - 正常終了はゆい先生の finish_lesson ツール＋最終音声の再生完了で検知し、
+// - 正常終了は翔子先生の finish_lesson ツール＋最終音声の再生完了で検知し、
 //   「レッスンが完了しました」表示 → 自動でレポートへ遷移（手動の終了操作は不要）
 // - 途中終了・エラー時は自動遷移せず「レポートを見る / もう一度 / テキストへ」を選ばせる
 
@@ -95,7 +95,7 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
   };
 
   /** 会話ログから学習結果を組み立てる。
-   *  目標表現の判定は保守的に: 直前のゆい先生の発話に目標表現が含まれていた場合
+   *  目標表現の判定は保守的に: 直前の翔子先生の発話に目標表現が含まれていた場合
    *  （お手本・復唱直後の可能性が高い）は 'self' ではなく 'hint' 扱いにする。 */
   const buildOutcome = (): TutorOutcome => {
     const detect = plan.target.detect;
@@ -213,7 +213,7 @@ export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToTe
           logEntry({ speaker: 'system', text: `error:${kind}` });
           setErrorKind(kind);
         },
-        // ゆい先生がまとめ→finish_lessonを呼び、最終音声の再生が完了した
+        // 翔子先生がまとめ→finish_lessonを呼び、最終音声の再生が完了した
         onFinishLesson: (reason) => {
           logEntry({ speaker: 'system', text: `finish_lesson:${reason}` });
           completeLesson(reason === 'student_request' ? 'student-request' : 'completed', true);
