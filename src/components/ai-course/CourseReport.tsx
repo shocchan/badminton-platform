@@ -7,6 +7,7 @@ import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
 import type { CanDoStage } from '../../lib/aiLesson/course/courseCanDo';
+import { ShokoAvatar } from './ShokoAvatar';
 
 export interface CourseReportData {
   mission: Mission;
@@ -56,10 +57,8 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
       <div className="text-center mb-5 motion-safe:animate-[report-in_0.5s_ease-out]">
-        <p className="text-xs font-medium text-emerald-600 mb-1.5 tracking-wide">{tr.todayStep}</p>
-        <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
-          <CheckCircle2 className="w-7 h-7 text-emerald-600 check-pop" />
-        </div>
+        <p className="text-xs font-medium text-emerald-600 mb-2 tracking-wide">{tr.todayStep}</p>
+        <ShokoAvatar size={64} expression="smile" className="mx-auto mb-2 ring-4 ring-emerald-50 check-pop" />
         <h1 className="text-lg font-bold text-gray-900">{zh ? r.todaySummaryZh : r.todaySummaryJa}</h1>
       </div>
 
