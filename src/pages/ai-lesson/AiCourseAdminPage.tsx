@@ -10,10 +10,11 @@ import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth'
 import {
   adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
   adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
-  adminGetUsageCost,
+  adminGetUsageCost, adminGetMonthlyUsageMap,
 } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost } from '../../lib/aiLesson/course/courseAdminApi';
+import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary } from '../../lib/aiLesson/course/courseAdminApi';
 import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostCard';
+import { CourseLearnerList } from '../../components/ai-course/CourseLearnerList';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
 import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
@@ -32,6 +33,7 @@ export default function AiCourseAdminPage() {
   const [issues, setIssues] = useState<AdminIssueReport[]>([]);
   const [dataMsg, setDataMsg] = useState('');
   const [usageCost, setUsageCost] = useState<AdminUsageCost | null>(null);
+  const [usageMap, setUsageMap] = useState<Record<string, LearnerUsageSummary>>({});
 
   const selectLearner = useCallback(async (l: AdminLearnerRow) => {
     setSel(l);
@@ -57,6 +59,7 @@ export default function AiCourseAdminPage() {
       if (!admin) { setState('noauth'); return; }
       const list = await adminListLearners();
       setLearners(list);
+      setUsageMap(await adminGetMonthlyUsageMap());
       if (list[0]) await selectLearner(list[0]);
       setIssues(await adminListIssueReports());
       setState('ready');
@@ -103,19 +106,14 @@ export default function AiCourseAdminPage() {
     <>
       <CourseHeader t={t} />
       <Helmet><title>{ta.title} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
-      <div className="max-w-2xl mx-auto px-4 py-6">
+      <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-lg font-bold text-gray-900 mb-4">{ta.title}</h1>
 
-        {/* 生徒選択 */}
-        <div className="flex gap-2 flex-wrap mb-4">
-          {learners.map((l) => (
-            <button key={l.id} type="button" onClick={() => selectLearner(l)}
-              className={`min-h-9 px-3 py-1.5 rounded-lg text-sm border ${sel?.id === l.id ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700'}`}>
-              {l.displayName || l.id.slice(0, 6)} {!l.isActive && `（${ta.paused}）`}
-            </button>
-          ))}
-          {learners.length === 0 && <p className="text-sm text-gray-500">{ta.none}</p>}
-        </div>
+        {/* 生徒一覧（選択前に全員の利用状況が分かるカード） */}
+        <CourseLearnerList
+          learners={learners} usageMap={usageMap} selectedId={sel?.id ?? null}
+          emptyLabel={ta.none} onSelect={(l) => void selectLearner(l)}
+        />
 
         {sel && stats && (
           <>

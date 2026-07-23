@@ -164,3 +164,25 @@ export const adminGetUsageCost = async (learner: AdminLearnerRow): Promise<Admin
     days, monthlyMaxSessions, monthlyMaxSeconds,
   };
 };
+
+// ── 生徒一覧カード用: 全生徒の今月サマリを1クエリで取得 ──
+
+export interface LearnerUsageSummary { sessions: number; costUsd: number; lastDate: string | null; }
+
+/** 全生徒の「今月」の回数・推定コスト・最終利用日を learner_id ごとに集計 */
+export const adminGetMonthlyUsageMap = async (): Promise<Record<string, LearnerUsageSummary>> => {
+  const today = jstDate(new Date());
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const { data } = await supabase.from('ai_usage_daily')
+    .select('learner_id, usage_date, sessions_count, estimated_cost_usd')
+    .gte('usage_date', monthStart);
+  const map: Record<string, LearnerUsageSummary> = {};
+  for (const r of (data ?? []) as { learner_id: string; usage_date: string; sessions_count: number; estimated_cost_usd: number }[]) {
+    const m = map[r.learner_id] ?? { sessions: 0, costUsd: 0, lastDate: null };
+    m.sessions += r.sessions_count ?? 0;
+    m.costUsd += Number(r.estimated_cost_usd ?? 0);
+    if (!m.lastDate || r.usage_date > m.lastDate) m.lastDate = r.usage_date;
+    map[r.learner_id] = m;
+  }
+  return map;
+};
