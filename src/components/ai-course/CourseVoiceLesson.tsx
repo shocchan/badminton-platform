@@ -3,10 +3,11 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
+import { X, Clock, Flag, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
+import { ShokoAvatar } from './ShokoAvatar';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -355,17 +356,22 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       {status === 'connected' && msgs.length === 0 && !liveT && <p className="text-sm text-gray-500 text-center py-6">{tv.speakFirstHint}</p>}
       {(status === 'requesting-mic' || status === 'connecting') && (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
-          <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center motion-safe:animate-pulse"><Mic className="w-7 h-7 text-blue-600" /></div>
+          <ShokoAvatar size={72} className="ring-4 ring-blue-100 voice-breathe" />
           <p className="text-sm text-gray-600">{statusLine()}</p>
         </div>
       )}
       {msgs.map((m, i) => {
         const isStudent = m.role === 'student';
         const emphasize = i === lastTutorIdx; // 最新の翔子先生発話を少し大きく
+        const turnStart = i === 0 || msgs[i - 1].role !== m.role; // 話者が変わった最初の発話
         return (
-          <div key={i} className={`flex ${isStudent ? 'justify-end' : 'justify-start'}`}>
+          <div key={i} className={`flex gap-2 ${isStudent ? 'justify-end' : 'justify-start'} ${turnStart ? 'mt-1' : ''}`}>
+            {/* 翔子先生のターン頭にだけアバター（連続発話はスペーサーで揃える） */}
+            {!isStudent && (turnStart
+              ? <ShokoAvatar size={28} className="shrink-0 mt-5" />
+              : <div className="w-7 shrink-0" aria-hidden />)}
             <div className="max-w-[85%] lg:max-w-[78%]">
-              <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>
+              {turnStart && <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>}
               <div className={`px-4 py-2.5 rounded-2xl leading-relaxed whitespace-pre-wrap break-words ${
                 isStudent
                   ? 'bg-blue-600 text-white rounded-tr-sm text-[15px] lg:text-base'

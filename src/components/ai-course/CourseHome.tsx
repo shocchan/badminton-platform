@@ -3,6 +3,7 @@
 
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
+import { ShokoAvatar } from './ShokoAvatar';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
@@ -48,7 +49,10 @@ export const CourseHome = ({
 
   return (
     <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
-      <h1 className="text-lg lg:text-xl font-bold text-gray-900 mb-4">{th.greeting(learner.displayName)}</h1>
+      <div className="flex items-center gap-2.5 mb-4">
+        <ShokoAvatar size={40} className="shrink-0" />
+        <h1 className="text-lg lg:text-xl font-bold text-gray-900 min-w-0">{th.greeting(learner.displayName)}</h1>
+      </div>
 
       {/* 中断・再開 */}
       {hasResume && (

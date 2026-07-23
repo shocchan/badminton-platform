@@ -5,7 +5,8 @@
 // 継続ログイン（learner作成済み）では招待コードは不要。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Lock, Mail, ArrowRight, KeyRound, RotateCcw } from 'lucide-react';
+import { Mail, ArrowRight, KeyRound, RotateCcw } from 'lucide-react';
+import { ShokoAvatar } from './ShokoAvatar';
 import { sendEmailOtp, verifyEmailOtp } from '../../lib/aiLesson/course/courseAuth';
 import type { OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
 import type { AiCourseDict } from '../../locales/aiCourse';
@@ -88,9 +89,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   return (
     <div className="max-w-md mx-auto px-4 py-10">
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4">
-          <Lock className="w-6 h-6 text-blue-600" />
-        </div>
+        <ShokoAvatar size={72} className="mx-auto mb-3 ring-4 ring-blue-50" />
         <h1 className="text-xl font-bold text-gray-900 text-center">{tl.title}</h1>
         <p className="text-sm text-gray-500 mt-2 mb-5 text-center">{tl.subtitle}</p>
 
