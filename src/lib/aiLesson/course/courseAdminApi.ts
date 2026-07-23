@@ -117,3 +117,50 @@ export const adminDeleteTestLearners = async (): Promise<number> => {
   if (error) return 0;
   return typeof data === 'number' ? data : 0;
 };
+
+// ── 利用とコスト（§管理画面で生徒ごとに確認） ──
+
+export interface DailyUsagePoint { date: string; sessions: number; seconds: number; costUsd: number; }
+export interface AdminUsageCost {
+  month: { sessions: number; seconds: number; costUsd: number };
+  today: { sessions: number; seconds: number; costUsd: number };
+  days: DailyUsagePoint[];        // 当月の日次（古い→新しい）
+  monthlyMaxSessions: number;     // 上限（learner個別 > config > 既定80）
+  monthlyMaxSeconds: number;
+}
+
+/** YYYY-MM-DD（Asia/Tokyo）。サーバーの ai_start_session と日付基準を合わせる */
+const jstDate = (d: Date): string => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(d);
+
+/** 対象生徒の「今月」の利用量・推定コストを集計（ai_usage_daily を当月で合算） */
+export const adminGetUsageCost = async (learner: AdminLearnerRow): Promise<AdminUsageCost> => {
+  const today = jstDate(new Date());
+  const monthStart = `${today.slice(0, 7)}-01`;
+  const { data } = await supabase.from('ai_usage_daily')
+    .select('usage_date, sessions_count, seconds_used, estimated_cost_usd')
+    .eq('learner_id', learner.id).gte('usage_date', monthStart)
+    .order('usage_date', { ascending: true });
+  const rows = (data ?? []) as { usage_date: string; sessions_count: number; seconds_used: number; estimated_cost_usd: number }[];
+
+  const days: DailyUsagePoint[] = rows.map((r) => ({
+    date: r.usage_date, sessions: r.sessions_count ?? 0,
+    seconds: r.seconds_used ?? 0, costUsd: Number(r.estimated_cost_usd ?? 0),
+  }));
+  const month = days.reduce((a, d) => ({
+    sessions: a.sessions + d.sessions, seconds: a.seconds + d.seconds, costUsd: a.costUsd + d.costUsd,
+  }), { sessions: 0, seconds: 0, costUsd: 0 });
+  const t = days.find((d) => d.date === today);
+  const todayUsage = t ?? { sessions: 0, seconds: 0, costUsd: 0 };
+
+  // 上限は learner個別指定 > ai_config > 既定
+  const { data: cfg } = await supabase.from('ai_config').select('value').eq('key', 'usage_limits').maybeSingle();
+  const limits = (cfg?.value as Record<string, number> | undefined) ?? {};
+  const monthlyMaxSessions = learner.adminOverrides.monthlyMaxSessions ?? limits.monthly_max_sessions ?? 80;
+  const monthlyMaxSeconds = learner.adminOverrides.monthlyMaxSeconds ?? limits.monthly_max_seconds ?? 21600;
+
+  return {
+    month,
+    today: { sessions: todayUsage.sessions, seconds: todayUsage.seconds, costUsd: todayUsage.costUsd },
+    days, monthlyMaxSessions, monthlyMaxSeconds,
+  };
+};

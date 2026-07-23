@@ -10,8 +10,10 @@ import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth'
 import {
   adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
   adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
+  adminGetUsageCost,
 } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow, AdminIssueReport } from '../../lib/aiLesson/course/courseAdminApi';
+import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost } from '../../lib/aiLesson/course/courseAdminApi';
+import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostCard';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
 import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
@@ -29,11 +31,14 @@ export default function AiCourseAdminPage() {
   const [saved, setSaved] = useState(false);
   const [issues, setIssues] = useState<AdminIssueReport[]>([]);
   const [dataMsg, setDataMsg] = useState('');
+  const [usageCost, setUsageCost] = useState<AdminUsageCost | null>(null);
 
   const selectLearner = useCallback(async (l: AdminLearnerRow) => {
     setSel(l);
+    setUsageCost(null);
     setProgress(await adminGetProgress(l.id));
     setSessions(await adminGetSessions(l.id));
+    setUsageCost(await adminGetUsageCost(l));
   }, []);
 
   /** 生徒一覧を取り直す（テストlearner削除後など） */
@@ -135,6 +140,9 @@ export default function AiCourseAdminPage() {
               <p className="text-xs text-blue-700">{ta.suggestion}</p>
               <p className="text-sm font-medium text-gray-800">{suggestion()}</p>
             </div>
+
+            {/* 利用とコスト（今月）。生徒ごとにどれくらい使っているかを可視化 */}
+            {usageCost && <div className="mb-4"><CourseUsageCostCard data={usageCost} /></div>}
 
             {/* 成長表示の根拠（§27）。学習者に見せている成長の裏付けを確認できる */}
             {growth && (

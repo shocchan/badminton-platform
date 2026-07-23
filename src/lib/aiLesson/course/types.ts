@@ -103,6 +103,9 @@ export interface AdminOverrides {
   nextMissionId?: string | null;
   priorityItemIds?: string[];
   note?: string;
+  /** この生徒だけ月次上限を変える（VIP対応など）。未指定なら ai_config の既定値 */
+  monthlyMaxSessions?: number;
+  monthlyMaxSeconds?: number;
 }
 
 export interface Learner {
