@@ -65,7 +65,7 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
       </Section>
 
       {/* 字幕モード（中国語補助） */}
-      <Section icon={<Subtitles className="w-4 h-4 text-indigo-600" />} title={ts.subtitleTitle}>
+      <Section icon={<Subtitles className="w-4 h-4 text-blue-600" />} title={ts.subtitleTitle}>
         <p className="text-xs text-gray-500 mb-3">{ts.subtitleDescription}</p>
         {zhForcedOff ? (
           <p className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3">{ts.subtitleForcedJa}</p>
@@ -75,9 +75,9 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
               <button key={m} type="button" onClick={() => chooseSubMode(m)}
                 aria-pressed={subMode === m}
                 className={`w-full min-h-11 py-2.5 px-3 rounded-lg text-sm text-left border flex items-start gap-2 ${
-                  subMode === m ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 hover:bg-gray-50'
+                  subMode === m ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
                 }`}>
-                <span className={`mt-0.5 w-4 h-4 rounded-full border shrink-0 flex items-center justify-center ${subMode === m ? 'border-indigo-600 bg-indigo-600' : 'border-gray-300'}`}>
+                <span className={`mt-0.5 w-4 h-4 rounded-full border shrink-0 flex items-center justify-center ${subMode === m ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
                   {subMode === m && <Check className="w-2.5 h-2.5 text-white" />}
                 </span>
                 <span>
@@ -123,7 +123,7 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
       </Section>
 
       {/* 問題を報告する */}
-      <Section icon={<LifeBuoy className="w-4 h-4 text-violet-600" />} title={ts.supportTitle}>
+      <Section icon={<LifeBuoy className="w-4 h-4 text-blue-600" />} title={ts.supportTitle}>
         {showIssue ? (
           <CourseIssueReport t={t} learnerId={learnerId} sessionId={null} onClose={() => setShowIssue(false)} />
         ) : (

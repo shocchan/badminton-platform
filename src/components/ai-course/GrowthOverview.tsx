@@ -75,13 +75,13 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
         </Section>
 
         {/* ③ Before / After（PCは左右比較・スマホは上下） */}
-        <Section icon={<GitCompare className="w-4 h-4 text-violet-600" />} title={tg.beforeAfterTitle}>
+        <Section icon={<GitCompare className="w-4 h-4 text-blue-600" />} title={tg.beforeAfterTitle}>
           <BeforeAfterSpeechCard t={t} data={beforeAfter} sessionsUntilReady={metrics.sessionsUntilReady} />
         </Section>
 
         {/* ④ 会話力6スキル（スコア競争にしない） */}
         {metrics.sufficient && (
-          <Section icon={<BarChart3 className="w-4 h-4 text-indigo-600" />} title={tg.skillTitle}>
+          <Section icon={<BarChart3 className="w-4 h-4 text-blue-600" />} title={tg.skillTitle}>
             <div className="bg-white rounded-2xl border border-gray-100 p-5">
               <SpeakingSkillSummary t={t} skills={metrics.skills} />
             </div>
@@ -90,7 +90,7 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
 
         {/* ⑤ 成長スナップショット（時系列） */}
         {snapshots.length > 0 && (
-          <Section icon={<Camera className="w-4 h-4 text-indigo-500" />} title={tg.snapshotTitle}>
+          <Section icon={<Camera className="w-4 h-4 text-blue-500" />} title={tg.snapshotTitle}>
             <div className="space-y-3">
               {snapshots.map((s) => <GrowthSnapshotCard key={s.triggerKind} t={t} snapshot={s} />)}
             </div>

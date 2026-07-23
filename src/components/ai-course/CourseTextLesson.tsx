@@ -103,7 +103,7 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
           <button type="button" onClick={() => setConfirmOpen(true)} className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg">
             <X className="w-5 h-5" /><span className="text-xs font-medium">{t.report.backHome}</span>
           </button>
-          <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${isReview ? 'bg-violet-50 text-violet-700' : 'bg-emerald-50 text-emerald-700'}`}>{isReview ? tl.reviewBadge : tl.newBadge}</span>
+          <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${isReview ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{isReview ? tl.reviewBadge : tl.newBadge}</span>
         </div>
         <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 overflow-hidden">
           <Flag className="w-3.5 h-3.5 text-amber-500 shrink-0" />

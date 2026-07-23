@@ -42,7 +42,12 @@ export const GrowthJourneyMap = ({ t, places, compact = false, currentWeek }: Pr
               <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${nodeBg(p.state)} ${isCurrent ? 'ring-4 ring-blue-100' : ''}`}>
                 {nodeIcon(p.state)}
               </div>
-              {!isLast && <div className={`w-0.5 flex-1 min-h-[1.75rem] ${p.state === 'done' ? 'bg-emerald-300' : 'bg-gray-200'}`} />}
+              {!isLast && (
+                <div
+                  className={`w-0.5 flex-1 min-h-[1.75rem] ${p.state === 'done' ? 'bg-emerald-300' : 'bg-gray-200'} ${compact ? '' : 'line-grow'}`}
+                  style={compact ? undefined : { animationDelay: `${i * 60}ms` }}
+                />
+              )}
             </div>
             {/* 場所の情報。現在地だけ淡い枠で強調（一目で分かる） */}
             <div className={`min-w-0 flex-1 ${isLast ? '' : 'pb-4'} ${p.state === 'locked' ? 'opacity-50' : ''}`}>

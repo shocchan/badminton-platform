@@ -58,14 +58,14 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
       <div className="text-center mb-5 motion-safe:animate-[report-in_0.5s_ease-out]">
         <p className="text-xs font-medium text-emerald-600 mb-1.5 tracking-wide">{tr.todayStep}</p>
         <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
-          <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+          <CheckCircle2 className="w-7 h-7 text-emerald-600 check-pop" />
         </div>
         <h1 className="text-lg font-bold text-gray-900">{zh ? r.todaySummaryZh : r.todaySummaryJa}</h1>
       </div>
 
       <div className="space-y-3">
         {/* 【最初に】今日できるようになったこと（数値ではなく成果を主役に・§21） */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-5 motion-safe:animate-[report-in_0.5s_ease-out]">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl border border-emerald-100 p-5 motion-safe:animate-[report-in_0.5s_ease-out]">
           <p className="text-xs font-medium text-emerald-700 mb-2">{tr.canDoTitle}</p>
           <div className="flex items-start gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -118,7 +118,7 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
         {/* 訂正（生徒の実発話→改善例） */}
         {r.corrections.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-2"><PenLine className="w-4 h-4 text-violet-600" />{tr.corrections}</p>
+            <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-2"><PenLine className="w-4 h-4 text-blue-600" />{tr.corrections}</p>
             <ul className="space-y-3">
               {r.corrections.map((c, i) => (
                 <li key={i} className="text-sm">

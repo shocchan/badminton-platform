@@ -19,7 +19,7 @@ const stateIcon = (state: WeekStat['state']) => {
   switch (state) {
     case 'locked': return <Lock className="w-4 h-4 text-gray-300" />;
     case 'retained': return <Star className="w-4 h-4 text-amber-500" />;
-    case 'reviewing': return <RotateCcw className="w-4 h-4 text-violet-500" />;
+    case 'reviewing': return <RotateCcw className="w-4 h-4 text-blue-500" />;
     case 'learned': return <CheckCircle2 className="w-4 h-4 text-emerald-500" />;
     case 'inProgress': return <PlayCircle className="w-4 h-4 text-blue-500" />;
     default: return <Circle className="w-4 h-4 text-gray-300" />;

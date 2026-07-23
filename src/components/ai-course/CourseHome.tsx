@@ -83,7 +83,7 @@ export const CourseHome = ({
       </div>
 
       {/* 今日のおすすめミッション */}
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-sm p-5 text-white mb-4">
+      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-5 text-white mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-blue-100 flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" />{th.todayMission}</span>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isReview ? 'bg-amber-400 text-amber-900' : 'bg-white/20 text-white'}`}>{badge}</span>

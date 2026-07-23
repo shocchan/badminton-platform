@@ -13,12 +13,12 @@ interface Props {
 // レベルごとの控えめな色（強み=emerald / 伸び中=indigo / 分析中=gray）
 const barClass: Record<SkillLevel, string> = {
   strength: 'bg-emerald-500',
-  growing: 'bg-indigo-400',
+  growing: 'bg-blue-400',
   analyzing: 'bg-gray-200',
 };
 const tagClass: Record<SkillLevel, string> = {
   strength: 'text-emerald-600',
-  growing: 'text-indigo-500',
+  growing: 'text-blue-500',
   analyzing: 'text-gray-400',
 };
 

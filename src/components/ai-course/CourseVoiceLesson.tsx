@@ -3,8 +3,10 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, Volume2, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
+import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { VoicePulse } from './VoicePulse';
+import type { VoicePulseStatus } from './VoicePulse';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -335,11 +337,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     </div>
   );
 
+  const pulseStatus: VoicePulseStatus =
+    status !== 'connected' ? (status === 'connecting' || status === 'requesting-mic' ? 'connecting' : 'idle')
+      : tutorSpeaking ? 'tutorSpeaking' : userSpeaking ? 'userSpeaking' : 'listening';
   const statusIndicator = (big = false) => (
     <div className="flex items-center gap-3">
-      <div className={`${big ? 'w-14 h-14' : 'w-12 h-12'} rounded-full flex items-center justify-center shrink-0 ${status !== 'connected' ? 'bg-gray-100 text-gray-400' : tutorSpeaking ? 'bg-blue-100 text-blue-600' : userSpeaking ? 'bg-emerald-100 text-emerald-600 motion-safe:animate-pulse' : 'bg-emerald-50 text-emerald-500'}`}>
-        {tutorSpeaking ? <Volume2 className={big ? 'w-6 h-6' : 'w-5 h-5'} /> : <Mic className={big ? 'w-6 h-6' : 'w-5 h-5'} />}
-      </div>
+      <VoicePulse status={pulseStatus} big={big} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-gray-800" aria-live="polite">{statusLine()}</p>
         <p className="text-[11px] text-gray-400">{tv.transcriptNote}</p>
@@ -395,7 +398,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
               <Clock className={`w-4 h-4 ${remaining <= 30 && !inExt ? 'text-red-500' : 'text-blue-600'}`} />
               <span className={`font-mono font-bold text-lg tabular-nums ${remaining <= 30 && !inExt ? 'text-red-600' : 'text-gray-900'}`}>{fmt(remaining)}</span>
             </div>
-            <span className={`text-[11px] font-medium px-2 py-1 rounded-full whitespace-nowrap flex items-center gap-1 ${isReview ? 'bg-violet-50 text-violet-700' : 'bg-emerald-50 text-emerald-700'}`}>
+            <span className={`text-[11px] font-medium px-2 py-1 rounded-full whitespace-nowrap flex items-center gap-1 ${isReview ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>
               {kindLabel}
             </span>
           </div>
@@ -452,7 +455,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           {statusIndicator(true)}
           {zhAssistAvailable(subtitleMode) && (
             <div className="flex items-center gap-2 text-xs text-gray-500">
-              <Subtitles className="w-4 h-4 text-indigo-500" />
+              <Subtitles className="w-4 h-4 text-blue-500" />
               {subtitleMode === 'ja_zh' ? t.settings.subtitleModes.ja_zh : subtitleMode === 'whenStuck' ? t.settings.subtitleModes.whenStuck : t.settings.subtitleModes.ja}
             </div>
           )}

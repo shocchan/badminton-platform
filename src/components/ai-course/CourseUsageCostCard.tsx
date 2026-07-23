@@ -39,7 +39,7 @@ export const CourseUsageCostCard = ({ data, jpyRate = 150 }: Props) => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* 推定コスト（今月） */}
-        <div className="rounded-xl bg-gradient-to-br from-slate-50 to-indigo-50 border border-indigo-100 p-4">
+        <div className="rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 p-4">
           <p className="text-[11px] text-gray-500">今月の推定コスト</p>
           <p className="text-3xl font-bold text-gray-900 tracking-tight tabular-nums">
             ${data.month.costUsd.toFixed(2)}
@@ -50,7 +50,7 @@ export const CourseUsageCostCard = ({ data, jpyRate = 150 }: Props) => {
         {/* 月次上限メーター */}
         <div className="rounded-xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-1.5">
-            <p className="text-[11px] text-gray-500 flex items-center gap-1"><Gauge className="w-3.5 h-3.5 text-indigo-500" />月次上限</p>
+            <p className="text-[11px] text-gray-500 flex items-center gap-1"><Gauge className="w-3.5 h-3.5 text-blue-500" />月次上限</p>
             <p className={`text-xs font-bold tabular-nums ${c.text}`}>{data.month.sessions} / {data.monthlyMaxSessions}回</p>
           </div>
           <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden" role="progressbar" aria-valuenow={data.month.sessions} aria-valuemax={data.monthlyMaxSessions}>
@@ -72,7 +72,7 @@ export const CourseUsageCostCard = ({ data, jpyRate = 150 }: Props) => {
             {data.days.map((d) => (
               <div key={d.date} className="flex-1 min-w-[6px] flex flex-col items-center justify-end group"
                 title={`${d.date.slice(5)}: ${d.sessions}回 / ${min1(d.seconds)}分 / $${d.costUsd.toFixed(2)}`}>
-                <div className="w-full rounded-t bg-indigo-400 group-hover:bg-indigo-600 motion-safe:transition-colors"
+                <div className="w-full rounded-t bg-blue-400 group-hover:bg-blue-600 motion-safe:transition-colors"
                   style={{ height: `${Math.max((d.sessions / maxDaySessions) * 100, 8)}%` }} />
                 <span className="text-[9px] text-gray-400 mt-0.5">{Number(d.date.slice(8, 10))}</span>
               </div>
