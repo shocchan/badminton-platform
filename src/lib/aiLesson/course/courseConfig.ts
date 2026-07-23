@@ -47,12 +47,17 @@ export const DIFFICULTY_ADJUST = {
 /** 診断期間（推定完了日をこの回数まで確定表示しない） */
 export const COURSE_DIAGNOSIS_MIN_SESSIONS = 4;
 
-/** 利用上限のデフォルト（ai_config.usage_limits で上書き可能） */
+/**
+ * 利用上限のデフォルト（ai_config.usage_limits で上書き可能）。
+ * 方針: 日々はスパイク防止の軽い枠、本当のアッパーは月次（有料利用者は惜しみなく攻略できる）。
+ */
 export const DEFAULT_USAGE_LIMITS = {
-  session_max_seconds: 240,   // 1セッション最大4分
-  daily_max_sessions: 5,      // 1日最大5セッション
-  daily_max_seconds: 1200,    // 1日最大20分
-  monthly_cost_warn_usd: 15,  // 月次コスト警告
+  session_max_seconds: 240,     // 1セッション最大4分
+  daily_max_sessions: 10,       // 日次スパイク防止（緩め）
+  daily_max_seconds: 2700,      // 1日最大45分
+  monthly_max_sessions: 80,     // 1人あたりの月次アッパー
+  monthly_max_seconds: 21600,   // 月最大6時間（回数が主・時間は副次ガード）
+  monthly_cost_warn_usd: 40,    // 月次コスト警告
 } as const;
 
 /** gpt-realtime-2.1 の概算単価（音声, per 1M tokens）。コスト記録用の目安 */

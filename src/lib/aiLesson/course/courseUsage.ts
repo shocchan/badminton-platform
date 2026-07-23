@@ -7,6 +7,8 @@ export interface UsageLimits {
   session_max_seconds: number;
   daily_max_sessions: number;
   daily_max_seconds: number;
+  monthly_max_sessions: number;
+  monthly_max_seconds: number;
   monthly_cost_warn_usd: number;
 }
 

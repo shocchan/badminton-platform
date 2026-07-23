@@ -212,8 +212,9 @@ export default function AiCoursePage() {
     setStarting(false);
     if (!r.ok) {
       setStartError(t.limits[r.code ?? 'unknown'] ?? t.limits.unknown);
-      // 上限に当たったら表示も実際の状態に合わせる
-      if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit') setRemaining(0);
+      // 上限に当たったら表示も実際の状態に合わせる（日次・月次いずれも今は開始できない）
+      if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit'
+        || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit') setRemaining(0);
       return;
     }
     setMode(m);

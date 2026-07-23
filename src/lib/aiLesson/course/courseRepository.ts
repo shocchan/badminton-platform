@@ -83,6 +83,8 @@ export type StartSessionCode =
   | 'session_already_active'
   | 'daily_session_limit'
   | 'daily_time_limit'
+  | 'monthly_session_limit'
+  | 'monthly_time_limit'
   | 'network'
   | 'unknown';
 
@@ -90,6 +92,8 @@ export interface StartSessionResult {
   ok: boolean;
   sessionId?: string | null;
   remainingSessions?: number;
+  /** 今月あと何回できるか（月次アッパー基準） */
+  remainingMonthly?: number;
   code?: StartSessionCode;
 }
 
@@ -220,9 +224,9 @@ const createRepository = (): CourseRepository => ({
       p_target_expression: s.targetExpression,
     });
     if (error || !data) return { ok: false, code: 'network' };
-    const r = data as { ok: boolean; code?: string; sessionId?: string; remainingSessions?: number };
+    const r = data as { ok: boolean; code?: string; sessionId?: string; remainingSessions?: number; remainingMonthly?: number };
     if (!r.ok) return { ok: false, code: (r.code as StartSessionCode) ?? 'unknown' };
-    return { ok: true, sessionId: r.sessionId ?? null, remainingSessions: r.remainingSessions ?? 0 };
+    return { ok: true, sessionId: r.sessionId ?? null, remainingSessions: r.remainingSessions ?? 0, remainingMonthly: r.remainingMonthly };
   },
 
   async finalizeSession(sessionId, patch, utterances, learnerId) {
