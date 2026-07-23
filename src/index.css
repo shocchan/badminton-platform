@@ -69,3 +69,9 @@
   background-repeat: repeat-x;
   background-position: center;
 }
+
+/* ── レポートの「今日の一歩」入場（控えめ・reduced-motionでは無効） ── */
+@keyframes report-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

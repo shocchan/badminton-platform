@@ -132,6 +132,16 @@ export interface SpeakingSkill {
   grounded: boolean;
 }
 
+/**
+ * スキルの見せ方（スコア競争にしない・§3）。
+ * - 根拠が弱い → analyzing（分析中）
+ * - しっかりできている → strength（強み）
+ * - それ以外 → growing（伸びている途中）。※「弱い/失敗」という区分は作らない
+ */
+export type SkillLevel = 'strength' | 'growing' | 'analyzing';
+export const skillLevel = (s: SpeakingSkill): SkillLevel =>
+  !s.grounded ? 'analyzing' : s.score >= 0.7 ? 'strength' : 'growing';
+
 const CATEGORY_OF_SKILL: Record<Exclude<SpeakingSkillKey, 'askBack' | 'continue'>, MissionCategory[]> = {
   experience: ['experience', 'change'],
   request: ['permission'],

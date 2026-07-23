@@ -3,6 +3,7 @@
 
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
+import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
 import type { LearnerStats } from '../../lib/aiLesson/course/courseStats';
@@ -39,7 +40,7 @@ export const CourseHome = ({
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
   const mission = plan?.main.mission ?? null;
-  const isReview = !!plan && (plan.main.kind.startsWith('review') || plan.main.kind === 'extra');
+  const isReview = !!plan && isReviewKind(plan.main.kind);
   const badge = plan?.main.kind === 'new' ? th.newBadge
     : plan?.main.kind === 'weekly_practice' ? th.weeklyBadge
       : th.reviewBadge;
@@ -70,14 +71,14 @@ export const CourseHome = ({
       <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
       <div className="lg:space-y-4 lg:[&>*]:mb-0">
 
-      {/* 現在地カード（Week番号より「今どんな力をつける段階か」） */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex items-center gap-2.5">
-        <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-          <MapPin className="w-4 h-4 text-blue-600" />
+      {/* 現在地カード：Week番号ではなく「今できる会話レベル」を主に見せる */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex items-center gap-3">
+        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+          <MapPin className="w-5 h-5 text-blue-600" />
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] text-gray-500">{tg.currentLocation} ・ Week {learner.currentWeek}</p>
-          <p className="text-sm font-bold text-gray-900 truncate">{currentStageLabel}</p>
+          <p className="text-[11px] text-gray-500">{tg.currentLevelLabel} ・ Week {learner.currentWeek}/12</p>
+          <p className="text-sm lg:text-base font-bold text-gray-900 leading-snug">{currentStageLabel}</p>
         </div>
       </div>
 
@@ -105,7 +106,7 @@ export const CourseHome = ({
         <div className="mb-5">
           <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
             className="w-full min-h-11 py-4 rounded-xl bg-blue-600 text-white font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-colors">
-            <Mic className="w-5 h-5" />{starting ? t.common.loading : th.startLesson}
+            <Mic className="w-5 h-5" />{starting ? t.common.loading : (isReview ? th.startReview : th.startLesson)}
           </button>
           <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
             className="w-full min-h-11 py-2 mt-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">

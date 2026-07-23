@@ -33,6 +33,9 @@ const rank = (s: CourseMasteryState): number => COURSE_MASTERY_ORDER.indexOf(s);
 export const atLeast = (s: CourseMasteryState, min: CourseMasteryState): boolean => rank(s) >= rank(min);
 export const isRetained = (s: CourseMasteryState): boolean => RETAINED_STATES.includes(s);
 
+/** そのレッスン種別が「復習」か（ホームの主要CTA・レポートの表示切替に使う） */
+export const isReviewKind = (kind: LessonKind): boolean => kind.startsWith('review') || kind === 'extra';
+
 const todayISO = (now: Date): string =>
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 const addDays = (baseISO: string, days: number): string => {

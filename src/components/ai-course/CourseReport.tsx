@@ -2,7 +2,7 @@
 // 全体%の微増ではなく「今日できたこと」を主役にする。
 
 import { useState } from 'react';
-import { Award, CheckCircle2, PenLine, CalendarDays, Zap, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp } from 'lucide-react';
+import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
@@ -18,6 +18,8 @@ export interface CourseReportData {
   xpBreakdown: { key: string; xp: number }[];
   weekSessions: number;
   weeklyTarget: number;
+  /** 今日のレッスンの長さ（秒）。補助情報として表示 */
+  durationSeconds: number;
   fromAi: boolean; // AI生成か（falseならローカルフォールバック）
   /** 今日できるようになったこと（誠実表示・§21/§23） */
   todayCanDo: {
@@ -49,18 +51,21 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
 
   const rate = (rating: FeedbackInput['difficultyRating']) => { setRated(true); onFeedback({ difficultyRating: rating }); };
 
+  const durMin = Math.max(1, Math.round(data.durationSeconds / 60));
+
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
-      <div className="text-center mb-5">
-        <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-2">
-          <Award className="w-7 h-7 text-amber-500" />
+    <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
+      <div className="text-center mb-5 motion-safe:animate-[report-in_0.5s_ease-out]">
+        <p className="text-xs font-medium text-emerald-600 mb-1.5 tracking-wide">{tr.todayStep}</p>
+        <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
+          <CheckCircle2 className="w-7 h-7 text-emerald-600" />
         </div>
         <h1 className="text-lg font-bold text-gray-900">{zh ? r.todaySummaryZh : r.todaySummaryJa}</h1>
       </div>
 
       <div className="space-y-3">
         {/* 【最初に】今日できるようになったこと（数値ではなく成果を主役に・§21） */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-5">
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100 p-5 motion-safe:animate-[report-in_0.5s_ease-out]">
           <p className="text-xs font-medium text-emerald-700 mb-2">{tr.canDoTitle}</p>
           <div className="flex items-start gap-2">
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -144,11 +149,12 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
           )}
         </div>
 
-        {/* XP＋週間進捗（補助情報。主役にしない・§22） */}
+        {/* 補助情報（学習時間・XP・週間進捗。主役にしない・§22） */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-500 flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-400" />{tr.xp} <span className="font-bold text-gray-700">+{data.xpEarned}</span></p>
-            <p className="text-xs text-gray-500">{tr.weeklyProgress}: <span className="font-bold text-gray-700">{data.weekSessions}/{data.weeklyTarget}</span></p>
+          <div className="flex items-center justify-between flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+            <p className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 text-gray-400" />{tr.todayTime} <span className="font-bold text-gray-700">{tr.minutesValue(durMin)}</span></p>
+            <p className="flex items-center gap-1"><Zap className="w-3.5 h-3.5 text-amber-400" />{tr.xp} <span className="font-bold text-gray-700">+{data.xpEarned}</span></p>
+            <p>{tr.weeklyProgress}: <span className="font-bold text-gray-700">{data.weekSessions}/{data.weeklyTarget}</span></p>
           </div>
         </div>
 

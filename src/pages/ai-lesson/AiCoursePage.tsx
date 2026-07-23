@@ -20,7 +20,7 @@ import { computeSpeechMetrics, buildGrowthSnapshot, dueSnapshotTrigger, calculat
 import type { GrowthMetrics, GrowthSnapshot } from '../../lib/aiLesson/course/courseGrowth';
 import { latestRepresentative, buildBeforeAfter } from '../../lib/aiLesson/course/courseBeforeAfter';
 import type { BeforeAfter } from '../../lib/aiLesson/course/courseBeforeAfter';
-import { currentCanDos, canDosThisWeek, nextAbility, stageOfMastery, weekStageLabel } from '../../lib/aiLesson/course/courseCanDo';
+import { currentCanDos, canDosThisWeek, nextAbility, stageOfMastery, weekLevelCanDo } from '../../lib/aiLesson/course/courseCanDo';
 import type { AchievedCanDo } from '../../lib/aiLesson/course/courseCanDo';
 import { buildJourney } from '../../lib/aiLesson/course/courseJourney';
 import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
@@ -302,6 +302,7 @@ export default function AiCoursePage() {
       mission, report: rep, masteryState: updated.masteryState, nextReviewISO: updated.nextReviewAt,
       nextMissionLabel: nextMission?.targetExpression ?? null, xpEarned: xp.earned, xpBreakdown: xp.breakdown,
       weekSessions: stats.weekSessions + 1, weeklyTarget: learner.settings.weeklyTarget, fromAi,
+      durationSeconds: result.durationSeconds,
       todayCanDo, nextAbility: nextAbilityDef,
     });
     setStep('report');
@@ -451,7 +452,7 @@ export default function AiCoursePage() {
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}
         starting={starting} startError={startError}
-        currentStageLabel={weekStageLabel(learner.currentWeek, t.locale === 'zh' ? 'zh' : 'ja')}
+        currentStageLabel={weekLevelCanDo(learner.currentWeek, t.locale === 'zh' ? 'zh' : 'ja')}
         thisWeekCanDos={canDosThisWeek(progress, learner.currentWeek)}
         nextAbility={nextAbility(selectNextMission(learner, progress)?.id ?? null)}
         journey={buildJourney(progress, learner.currentWeek)}

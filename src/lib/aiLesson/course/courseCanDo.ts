@@ -52,6 +52,21 @@ export const CAN_DO_BY_CATEGORY: Record<MissionCategory, { ja: string; zh: strin
 /** 会話の場面としての「聞き返し」能力（カテゴリ外だが can-do として扱う） */
 export const CAN_DO_ASK_BACK = { id: 'askBack', ja: '分からない時に自然に聞き返せる', zh: '不明白时能自然地反问' };
 
+/** 週 → その週の中心となる会話カテゴリ（現在地の「今できる会話レベル」表示に使う） */
+export const WEEK_CATEGORY: Record<number, MissionCategory> = {
+  1: 'selfIntro', 2: 'experience', 3: 'change', 4: 'habit', 5: 'permission', 6: 'trouble',
+  7: 'opinion', 8: 'comparison', 9: 'guess', 10: 'workLife', 11: 'badminton', 12: 'integrated',
+};
+
+/**
+ * 現在地の「今できる会話レベル」。Week番号ではなく、その週で身につく会話能力を1文で。
+ * 例: Week3 → 「以前と今の変化を説明できる」
+ */
+export const weekLevelCanDo = (week: number, locale: 'ja' | 'zh'): string => {
+  const cat = WEEK_CATEGORY[week] ?? 'selfIntro';
+  return locale === 'zh' ? CAN_DO_BY_CATEGORY[cat].zh : CAN_DO_BY_CATEGORY[cat].ja;
+};
+
 export interface AchievedCanDo {
   id: string;
   ja: string;

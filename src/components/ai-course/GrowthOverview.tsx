@@ -59,59 +59,59 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
         </div>
       )}
 
-      {/* PC は2カラムに流し込み（旅マップ・スキル横並び等）。読み物幅を確保しつつ余白を活かす */}
-      <div className="lg:grid lg:grid-cols-2 lg:gap-x-6 lg:items-start">
-
-      {/* 旅マップ */}
+      {/* ① 現在地＝旅マップ（主役級。PCでも大きく） */}
       <Section icon={<Map className="w-4 h-4 text-blue-600" />} title={tg.journeyTitle}>
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
           <GrowthJourneyMap t={t} places={journey} currentWeek={currentWeek} />
         </div>
       </Section>
 
-      {/* できるようになったこと */}
-      <Section icon={<Target className="w-4 h-4 text-emerald-600" />} title={tg.canDoNowTitle}>
-        <CanDoAchievementCard t={t} title={tg.canDoNowTitle} canDos={canDos} />
-      </Section>
+      {/* ②以降は読み物幅（PCで広がりすぎない）で優先順に縦に */}
+      <div className="lg:max-w-3xl lg:mx-auto">
 
-      {/* 会話力スキル */}
-      {metrics.sufficient && (
-        <Section icon={<BarChart3 className="w-4 h-4 text-indigo-600" />} title={tg.skillTitle}>
+        {/* ② できるようになったこと */}
+        <Section icon={<Target className="w-4 h-4 text-emerald-600" />} title={tg.canDoNowTitle}>
+          <CanDoAchievementCard t={t} title={tg.canDoNowTitle} canDos={canDos} />
+        </Section>
+
+        {/* ③ Before / After（PCは左右比較・スマホは上下） */}
+        <Section icon={<GitCompare className="w-4 h-4 text-violet-600" />} title={tg.beforeAfterTitle}>
+          <BeforeAfterSpeechCard t={t} data={beforeAfter} sessionsUntilReady={metrics.sessionsUntilReady} />
+        </Section>
+
+        {/* ④ 会話力6スキル（スコア競争にしない） */}
+        {metrics.sufficient && (
+          <Section icon={<BarChart3 className="w-4 h-4 text-indigo-600" />} title={tg.skillTitle}>
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <SpeakingSkillSummary t={t} skills={metrics.skills} />
+            </div>
+          </Section>
+        )}
+
+        {/* ⑤ 成長スナップショット（時系列） */}
+        {snapshots.length > 0 && (
+          <Section icon={<Camera className="w-4 h-4 text-indigo-500" />} title={tg.snapshotTitle}>
+            <div className="space-y-3">
+              {snapshots.map((s) => <GrowthSnapshotCard key={s.triggerKind} t={t} snapshot={s} />)}
+            </div>
+          </Section>
+        )}
+
+        {/* ⑥ 12週後に目指す姿（断定しない注記つき） */}
+        <Section icon={<Target className="w-4 h-4 text-amber-500" />} title={tg.goalTitle}>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <SpeakingSkillSummary t={t} skills={metrics.skills} />
+            <ul className="space-y-2">
+              {COURSE_GOAL_CANDOS.map((g, i) => (
+                <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
+                  <span className="text-amber-400 mt-0.5">◇</span>{zh ? g.zh : g.ja}
+                </li>
+              ))}
+            </ul>
+            <p className="text-[11px] text-gray-400 mt-3 leading-relaxed">{tg.goalNote}</p>
           </div>
         </Section>
-      )}
 
-      {/* Before / After */}
-      <Section icon={<GitCompare className="w-4 h-4 text-violet-600" />} title={tg.beforeAfterTitle}>
-        <BeforeAfterSpeechCard t={t} data={beforeAfter} sessionsUntilReady={metrics.sessionsUntilReady} />
-      </Section>
-
-      {/* 成長スナップショット（時系列） */}
-      {snapshots.length > 0 && (
-        <Section icon={<Camera className="w-4 h-4 text-indigo-500" />} title={tg.snapshotTitle}>
-          <div className="space-y-3">
-            {snapshots.map((s) => <GrowthSnapshotCard key={s.triggerKind} t={t} snapshot={s} />)}
-          </div>
-        </Section>
-      )}
-
-      {/* 12週後に目指す姿（§24。断定しない注記つき） */}
-      <Section icon={<Target className="w-4 h-4 text-amber-500" />} title={tg.goalTitle}>
-        <div className="bg-white rounded-2xl border border-gray-100 p-5">
-          <ul className="space-y-2">
-            {COURSE_GOAL_CANDOS.map((g, i) => (
-              <li key={i} className="text-sm text-gray-700 flex items-start gap-2">
-                <span className="text-amber-400 mt-0.5">◇</span>{zh ? g.zh : g.ja}
-              </li>
-            ))}
-          </ul>
-          <p className="text-[11px] text-gray-400 mt-3 leading-relaxed">{tg.goalNote}</p>
-        </div>
-      </Section>
-
-      </div>{/* /2カラムグリッド */}
+      </div>
     </div>
   );
 };

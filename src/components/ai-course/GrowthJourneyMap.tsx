@@ -1,7 +1,7 @@
 // 会話の旅マップ（§18-B/§19）。12週を縦の道として並べ、現在地と到達済みを示す。
-// 大人向けに落ち着いたトーン。アニメは prefers-reduced-motion を尊重。
+// 大人向けに落ち着いたトーン。幼稚なゲーム感は避ける。アニメは prefers-reduced-motion を尊重。
 
-import { MapPin, Check, Circle, Lock, Flag } from 'lucide-react';
+import { MapPin, Check, Circle, Lock } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
 
@@ -34,28 +34,28 @@ export const GrowthJourneyMap = ({ t, places, compact = false, currentWeek }: Pr
     <div className="relative">
       {shown.map((p, i) => {
         const isLast = i === shown.length - 1;
+        const isCurrent = p.state === 'current';
         return (
           <div key={p.week} className="flex gap-3">
             {/* 縦の道＋ノード */}
             <div className="flex flex-col items-center">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${nodeBg(p.state)} ${p.state === 'current' ? 'ring-4 ring-blue-100 motion-safe:transition-all' : ''}`}>
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${nodeBg(p.state)} ${isCurrent ? 'ring-4 ring-blue-100' : ''}`}>
                 {nodeIcon(p.state)}
               </div>
               {!isLast && <div className={`w-0.5 flex-1 min-h-[1.75rem] ${p.state === 'done' ? 'bg-emerald-300' : 'bg-gray-200'}`} />}
             </div>
-            {/* 場所の情報 */}
-            <div className={`pb-4 min-w-0 ${p.state === 'locked' ? 'opacity-50' : ''}`}>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <p className={`text-sm font-bold ${p.state === 'current' ? 'text-blue-700' : 'text-gray-900'}`}>{zh ? p.nameZh : p.nameJa}</p>
-                {p.state === 'current' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">{t.growth.currentLocation}</span>}
-                {/* 定着した表現ぶんの星（大人向けに控えめ） */}
-                {p.retained > 0 && (
-                  <span className="inline-flex items-center gap-0.5 text-[10px] text-amber-500">
-                    {Array.from({ length: Math.min(p.retained, 4) }).map((_, k) => <Flag key={k} className="w-2.5 h-2.5 fill-amber-400" />)}
-                  </span>
-                )}
+            {/* 場所の情報。現在地だけ淡い枠で強調（一目で分かる） */}
+            <div className={`min-w-0 flex-1 ${isLast ? '' : 'pb-4'} ${p.state === 'locked' ? 'opacity-50' : ''}`}>
+              <div className={isCurrent ? '-mx-2 px-2 py-1.5 rounded-lg bg-blue-50/60 border border-blue-100' : ''}>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[10px] text-gray-400 tabular-nums">Week {p.week}</span>
+                  <p className={`text-sm font-bold ${isCurrent ? 'text-blue-700' : 'text-gray-900'}`}>{zh ? p.nameZh : p.nameJa}</p>
+                  {isCurrent && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">{t.growth.currentLocation}</span>}
+                  {/* 定着表現数は控えめな補助表示（星やアイコンで飾らない） */}
+                  {p.retained > 0 && <span className="text-[10px] text-emerald-600">{t.growth.retainedShort(p.retained)}</span>}
+                </div>
+                <p className={`text-xs text-gray-500 mt-0.5 ${compact ? 'truncate' : ''}`}>{zh ? p.themeZh : p.themeJa}</p>
               </div>
-              <p className="text-xs text-gray-500 truncate">{zh ? p.themeZh : p.themeJa}</p>
             </div>
           </div>
         );
