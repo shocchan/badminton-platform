@@ -523,7 +523,7 @@ export const HomePage = () => {
             <p className="text-emerald-100 text-sm">2時間 ¥600 ／ 定員制・事前申し込み制</p>
           </div>
           <Link
-            to="/activity"
+            to={`/${lang === 'zh' ? 'zh' : 'ja'}/activity`}
             className="flex-shrink-0 bg-white text-emerald-700 font-bold px-6 py-3 rounded-xl text-sm hover:bg-emerald-50 transition-colors shadow"
           >
             申し込みはこちら →

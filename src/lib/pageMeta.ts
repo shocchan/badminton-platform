@@ -80,6 +80,11 @@ const STATIC_PAGES: StaticEntry[] = [
   { path: '/ja/blog', title: `ブログ・開催レポート | ${SITE_BRAND_JA}`,
     description: '川口・蕨エリアで開催しているバドミントン大会・通常活動のレポート、参加者の声、運営からのお知らせをまとめたブログ。',
     bilingual: false },
+  // 中国語ブログ一覧: 記事本文は日本語のため noindex 相当（Worker が X-Robots-Tag を付与）。
+  // hreflang は出さず、sitemap にも含めない。self-canonical のみ。
+  { path: '/zh/blog', title: `博客・活动报道 | ${SITE_BRAND_ZH}`,
+    description: '川口・蕨羽毛球交流会的比赛・日常活动报道。※ 博客文章目前均以日语撰写。',
+    bilingual: false },
   // ── FAQ ──
   { path: '/ja/faq', title: `よくある質問（FAQ）| ${SITE_BRAND_JA}`,
     description: '川口・蕨バドミントン交流会のFAQ。参加方法、レベルの目安、キャンセル、持ち物、会場、初参加・一人参加、外国人参加者への対応などを掲載。',

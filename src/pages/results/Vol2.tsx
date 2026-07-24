@@ -79,7 +79,7 @@ export default function Vol2Results() {
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-          <a href="/blog" className="text-sm text-blue-600 hover:underline">{i.back}</a>
+          <a href={`/${homeLang}/blog`} className="text-sm text-blue-600 hover:underline">{i.back}</a>
         </div>
       </div>
     </>

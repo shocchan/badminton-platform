@@ -6,6 +6,8 @@ import { LogoMark } from './LogoMark';
 export const Footer = () => {
   const year = new Date().getFullYear();
   const { lang } = useLanguage();
+  // 内部リンクは常に正規URL（言語プレフィックス付き）にして 301 と言語コンテキスト喪失を防ぐ
+  const homeLang = lang === 'zh' ? 'zh' : 'ja';
 
   return (
     <footer className="bg-gray-900 text-gray-400 mt-16">
@@ -38,34 +40,34 @@ export const Footer = () => {
           <div>
             <h2 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">{lang === 'ja' ? 'サイトマップ' : '网站地图'}</h2>
             <nav aria-label="フッターナビゲーション" className="flex flex-col gap-2.5">
-              <Link to="/" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会案内' : '赛事信息'}
               </Link>
-              <Link to="/level-guide" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/level-guide`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'クラス案内' : '级别说明'}
               </Link>
-              <Link to="/blog" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/blog`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'ブログ' : '博客'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/gallery`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/tournaments/gallery`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会レポート' : '往届赛事回顾'}
               </Link>
-              <Link to="/faq" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/faq`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会FAQ' : '赛事常见问题'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/venues`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/venues`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '会場ガイド' : '会场指南'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/privacy-policy`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/privacy-policy`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'プライバシーポリシー' : '隐私政策'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/tokushoho`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/tokushoho`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '特定商取引法に基づく表記' : '特定商业交易法标示'}
               </Link>
-              <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/cancel-policy`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/contact`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={`/${homeLang}/contact`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'お問い合わせ・スポンサー窓口' : '联系我们・赞助合作'}
               </Link>
             </nav>
@@ -102,8 +104,8 @@ export const Footer = () => {
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link to="/faq" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
-            <Link to="/cancel-policy" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
+            <Link to={`/${homeLang}/faq`} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
+            <Link to={`/${homeLang}/cancel-policy`} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
           </div>
         </div>
       </div>

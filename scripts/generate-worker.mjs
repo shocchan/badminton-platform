@@ -150,6 +150,11 @@ const STATIC_PAGES = {
   '/ja/blog':            { title: 'ブログ・開催レポート | ' + SITE_BRAND_JA,
                            desc:  '川口・蕨エリアで開催しているバドミントン大会・通常活動のレポート、参加者の声、運営からのお知らせをまとめたブログ。',
                            bilingual: false },
+  // 中国語ブログ一覧は独自の中国語記事が無いため noindex, follow（記事本文は日本語）。
+  // hreflang は出さず、canonical は自己参照。sitemap には含めない（下 generateSitemap 参照）。
+  '/zh/blog':            { title: '博客・活动报道 | ' + SITE_BRAND_ZH,
+                           desc:  '川口・蕨羽毛球交流会的比赛・日常活动报道。※ 博客文章目前均以日语撰写。',
+                           bilingual: false },
   '/ja/faq':             { title: 'よくある質問（FAQ）| ' + SITE_BRAND_JA,
                            desc:  '川口・蕨バドミントン交流会のFAQ。参加方法、レベルの目安、キャンセル、持ち物、会場、初参加・一人参加、外国人参加者への対応などを掲載。',
                            bilingual: true },
@@ -450,7 +455,7 @@ async function generateSitemap(env) {
     { path: 'faq',           priority: '0.8', freq: 'monthly' },
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
-    { path: 'blog',          priority: '0.7', freq: 'weekly' },
+    { path: 'blog',          priority: '0.7', freq: 'weekly', jaOnly: true },
     { path: 'tournaments/gallery', priority: '0.7', freq: 'weekly' },
     { path: 'join',          priority: '0.6', freq: 'monthly' },
     { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },
@@ -496,6 +501,7 @@ async function generateSitemap(env) {
 
   for (const lang of langs) {
     for (const u of staticUrls) {
+      if (u.jaOnly && lang !== 'ja') continue;
       const loc = u.path === ''
         ? 'https://kawabado.com/' + lang + '/'
         : 'https://kawabado.com/' + lang + '/' + u.path;
@@ -639,6 +645,68 @@ function htmlResponseHeaders(hostname, extra) {
 }
 
 // ────────────────────────────────────────────────────────────
+// 旧URL → 正規URL 301 マップ（言語プレフィックスなし等）
+// GET/HEAD のみ対象。遷移先は必ず /ja・/zh・/chaoxianzu/(ja|zh|ko) 始まりの
+// 正規パスにして 301 ループを防ぐ。クエリは呼び出し側で url.search として保持。
+// ────────────────────────────────────────────────────────────
+
+const LEGACY_EXACT_REDIRECTS = {
+  '/': '/ja/',
+  '/faq': '/ja/faq',
+  '/blog': '/ja/blog',
+  '/activity': '/ja/activity',
+  '/activity-cn': '/zh/activity',
+  '/contact': '/ja/contact',
+  '/level-guide': '/ja/level-guide',
+  '/cancel-policy': '/ja/cancel-policy',
+  '/privacy-policy': '/ja/privacy-policy',
+  '/tokushoho': '/ja/tokushoho',
+  '/login': '/ja/login',
+  '/admin': '/ja/admin',
+  '/venues': '/ja/venues',
+  '/join': '/ja/join',
+  '/shuttle-roadmap': '/ja/shuttle-roadmap',
+  '/game': '/ja/game',
+  '/tactics-board': '/ja/tactics-board',
+  '/tournaments/gallery': '/ja/tournaments/gallery',
+  '/results/vol1': '/ja/results/vol1',
+  '/results/vol2': '/ja/results/vol2',
+  '/results/vol3': '/ja/results/vol3',
+  '/chaoxianzu/activity': '/chaoxianzu/ja/activity',
+  '/chaoxianzu/activity-cn': '/chaoxianzu/zh/activity',
+  '/chaoxianzu/activity-kr': '/chaoxianzu/ko/activity',
+  '/chaoxianzu/admin': '/chaoxianzu/ja/admin',
+};
+
+const LEGACY_ID_REDIRECTS = [
+  [/^\\/blog\\/(\\d+)$/, '/ja/blog/'],
+  [/^\\/tournaments\\/(\\d+)$/, '/ja/tournaments/'],
+  [/^\\/activity\\/([^/]+)$/, '/ja/activity/'],
+  [/^\\/activity-cn\\/([^/]+)$/, '/zh/activity/'],
+  [/^\\/chaoxianzu\\/activity\\/([^/]+)$/, '/chaoxianzu/ja/activity/'],
+  [/^\\/chaoxianzu\\/activity-cn\\/([^/]+)$/, '/chaoxianzu/zh/activity/'],
+  [/^\\/chaoxianzu\\/activity-kr\\/([^/]+)$/, '/chaoxianzu/ko/activity/'],
+];
+
+// pathname を正規URLへ 301 する必要があれば遷移先パスを返す（不要なら null）。
+function computeLegacyRedirect(pathname) {
+  const p = (pathname !== '/' && pathname.endsWith('/')) ? pathname.slice(0, -1) : pathname;
+  if (Object.prototype.hasOwnProperty.call(LEGACY_EXACT_REDIRECTS, p)) {
+    return LEGACY_EXACT_REDIRECTS[p];
+  }
+  for (const [re, prefix] of LEGACY_ID_REDIRECTS) {
+    const m = p.match(re);
+    if (m) return prefix + m[1];
+  }
+  return null;
+}
+
+// noindex, follow にすべきパス（中国語ブログ一覧は独自の中国語記事が無いため）
+function isNoindexPath(pathname) {
+  return pathname === '/zh/blog' || pathname === '/zh/blog/';
+}
+
+// ────────────────────────────────────────────────────────────
 // メインハンドラ
 // ────────────────────────────────────────────────────────────
 
@@ -655,6 +723,16 @@ export default {
     if (redir) return Response.redirect(url.origin + '/ja/activity/' + redir[1] + url.search, 301);
     redir = pathname.match(/^\\/assistant\\/activity-cn\\/([^/]+)\\/?$/);
     if (redir) return Response.redirect(url.origin + '/zh/activity/' + redir[1] + url.search, 301);
+
+    // ── 言語プレフィックスなし等の旧URL → 正規URLへ 301 ─────
+    // GET/HEAD のみ対象（POST 等の処理リクエストは 301 しない）。クエリは保持。
+    // /admin は正規URL(/ja/admin)へ 301 した後に管理ゲートで Basic 認証が発動する。
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const legacyTarget = computeLegacyRedirect(pathname);
+      if (legacyTarget) {
+        return Response.redirect(url.origin + legacyTarget + url.search, 301);
+      }
+    }
 
     // ── 管理画面ゲート（全グループ網羅）─────
     if (ADMIN_PATH_RE.test(pathname)) {
@@ -761,9 +839,10 @@ export default {
       }
     }
 
+    const extra200 = isNoindexPath(pathname) ? { 'X-Robots-Tag': 'noindex, follow' } : undefined;
     return new Response(injected, {
       status: 200,
-      headers: htmlResponseHeaders(hostname),
+      headers: htmlResponseHeaders(hostname, extra200),
     });
   },
 };

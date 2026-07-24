@@ -404,13 +404,13 @@ export const FaqPage = () => {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            to="/"
+            to={`/${lang === 'zh' ? 'zh' : 'ja'}/`}
             className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
           >
             {lang === 'ja' ? '大会一覧を見る →' : '查看赛事列表 →'}
           </Link>
           <Link
-            to="/cancel-policy"
+            to={`/${lang === 'zh' ? 'zh' : 'ja'}/cancel-policy`}
             className="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-bold px-6 py-3 rounded-xl border border-gray-200 transition-colors"
           >
             {lang === 'ja' ? 'キャンセルポリシーを確認 →' : '查看取消政策 →'}

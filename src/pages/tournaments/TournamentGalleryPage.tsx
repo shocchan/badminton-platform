@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ArrowRight, Tag, Trophy } from 'lucide-react';
+import { ArrowRight, Tag, Trophy, BarChart3 } from 'lucide-react';
 import { useBlogPosts } from '../../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -23,6 +23,8 @@ const TEXT = {
     emptyDesc: '過去の大会の様子を順次掲載していきます',
     error: 'レポートの読み込みに失敗しました',
     read: 'レポートを読む',
+    resultsTitle: '大会結果・成績表',
+    resultsDesc: '各回の最終順位・総当たりスコア表はこちら',
     metaTitle: '大会レポート | 川口・蕨バドミントン交流会',
     metaDesc: '川口・蕨バドミントン交流会の過去の大会レポート。参加者の声・試合結果・当日の様子をご紹介します。',
   },
@@ -33,10 +35,19 @@ const TEXT = {
     emptyDesc: '往届赛事的精彩瞬间将陆续更新',
     error: '回顾内容加载失败',
     read: '阅读回顾',
+    resultsTitle: '比赛结果・成绩表',
+    resultsDesc: '各届的最终排名・循环赛成绩表请见此处',
     metaTitle: '往届赛事回顾 | 川口・蕨羽毛球交流会',
     metaDesc: '川口・蕨羽毛球交流会的往届赛事回顾。参加者的感想、比赛结果、当天的现场情况。',
   },
 } as const;
+
+// 過去大会の結果ページ（詳細な順位・スコア表）。孤立を防ぐためギャラリーから内部リンクする。
+const RESULT_PAGES = [
+  { slug: 'vol1', label: { ja: '第1回 大会結果', zh: '第1届 比赛结果' } },
+  { slug: 'vol2', label: { ja: '第2回 大会結果', zh: '第2届 比赛结果' } },
+  { slug: 'vol3', label: { ja: '第3回 大会結果', zh: '第3届 比赛结果' } },
+] as const;
 
 export const TournamentGalleryPage = () => {
   const { lang } = useLanguage();
@@ -132,6 +143,26 @@ export const TournamentGalleryPage = () => {
             ))}
           </div>
         )}
+
+        {/* 過去大会の結果・成績表（詳細な順位・スコア表への内部リンク） */}
+        <section className="mt-12 sm:mt-14">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-1 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-blue-500" /> {t.resultsTitle}
+          </h2>
+          <p className="text-gray-500 text-sm mb-4">{t.resultsDesc}</p>
+          <div className="grid sm:grid-cols-3 gap-3">
+            {RESULT_PAGES.map(r => (
+              <Link
+                key={r.slug}
+                to={`/${lang === 'zh' ? 'zh' : 'ja'}/results/${r.slug}`}
+                className="flex items-center justify-between gap-2 bg-white rounded-xl border border-gray-100 px-4 py-3 text-sm font-medium text-gray-700 hover:border-blue-200 hover:text-blue-700 hover:shadow-sm transition-all"
+              >
+                <span>{r.label[lang === 'zh' ? 'zh' : 'ja']}</span>
+                <ArrowRight className="w-4 h-4 flex-shrink-0" />
+              </Link>
+            ))}
+          </div>
+        </section>
       </main>
     </>
   );

@@ -183,7 +183,7 @@ export const CancelEntryPage = () => {
               onCancel={() => setConfirmOpen(false)}
             />
             <a
-              href="/"
+              href="/ja/"
               className="block w-full text-center text-sm text-gray-500 hover:text-gray-700 py-2"
             >
               ← トップページへ戻る
@@ -203,7 +203,7 @@ export const CancelEntryPage = () => {
                 : '参加費をお支払い済みの場合は、主催者より返金の連絡をいたします。'}
             </p>
             <a
-              href="/"
+              href="/ja/"
               className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
             >
               トップページへ
@@ -224,7 +224,7 @@ export const CancelEntryPage = () => {
               ご事情がある場合は、参加費支払い案内メールへの返信でご連絡ください。
             </p>
             <a
-              href="/"
+              href="/ja/"
               className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
             >
               トップページへ
@@ -241,7 +241,7 @@ export const CancelEntryPage = () => {
               この申し込みはすでにキャンセルされています。
             </p>
             <a
-              href="/"
+              href="/ja/"
               className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
             >
               トップページへ
@@ -256,7 +256,7 @@ export const CancelEntryPage = () => {
             <h1 className="text-xl font-bold text-gray-900 mb-2">エラーが発生しました</h1>
             <p className="text-sm text-gray-600 mb-6">{errorMsg}</p>
             <a
-              href="/"
+              href="/ja/"
               className="inline-block bg-blue-600 text-white font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
             >
               トップページへ

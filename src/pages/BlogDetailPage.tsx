@@ -89,7 +89,7 @@ export const BlogDetailPage = () => {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
         <p className="text-gray-400">記事が見つかりませんでした</p>
-        <Link to="/blog" className="text-blue-600 mt-4 inline-block hover:underline">← ブログ一覧へ</Link>
+        <Link to="/ja/blog" className="text-blue-600 mt-4 inline-block hover:underline">← ブログ一覧へ</Link>
       </div>
     );
   }
@@ -134,7 +134,7 @@ export const BlogDetailPage = () => {
           <Link to="/ja/admin" className="shrink-0 text-blue-600 hover:underline">管理ページへ</Link>
         </div>
       )}
-      <Link to="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
+      <Link to="/ja/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
 
       {post.image_url && (
         <img

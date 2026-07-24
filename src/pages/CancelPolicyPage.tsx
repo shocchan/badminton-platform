@@ -272,7 +272,7 @@ export const CancelPolicyPage = () => {
       {/* 戻るリンク */}
       <div className="mt-10 text-center">
         <Link
-          to="/"
+          to={`/${lang === 'zh' ? 'zh' : 'ja'}/`}
           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
         >
           {lang === 'ja' ? '大会一覧を見る →' : '查看赛事列表 →'}

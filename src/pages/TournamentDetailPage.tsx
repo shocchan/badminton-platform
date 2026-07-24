@@ -197,7 +197,7 @@ export const TournamentDetailPage = () => {
     <div className="max-w-2xl mx-auto px-4 py-16 text-center">
       <div className="text-4xl mb-4">🏸</div>
       <p className="text-gray-500 mb-6">{error ?? '大会が見つかりませんでした'}</p>
-      <Link to="/" className="text-blue-600 hover:underline">← トップへ戻る</Link>
+      <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/`} className="text-blue-600 hover:underline">← トップへ戻る</Link>
     </div>
   );
 
@@ -206,7 +206,7 @@ export const TournamentDetailPage = () => {
     <div className="max-w-2xl mx-auto px-4 py-16 text-center">
       <div className="text-4xl mb-4">🔒</div>
       <p className="text-gray-500 mb-6">この大会は現在非公開です</p>
-      <Link to="/" className="text-blue-600 hover:underline">← トップへ戻る</Link>
+      <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/`} className="text-blue-600 hover:underline">← トップへ戻る</Link>
     </div>
   );
 

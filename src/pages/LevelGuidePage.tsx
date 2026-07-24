@@ -351,7 +351,7 @@ export const LevelGuidePage = () => {
 
               {/* エントリーボタン */}
               <Link
-                to="/"
+                to={`/${lang === 'zh' ? 'zh' : 'ja'}/`}
                 className={`flex items-center justify-center gap-2 w-full sm:w-auto sm:inline-flex bg-gradient-to-r ${level.bg} text-white font-bold px-6 py-3 rounded-xl shadow hover:opacity-90 transition-opacity`}
               >
                 {lang === 'ja' ? `${level.name}クラスの大会を見る →` : `查看${level.name}组赛事 →`}
@@ -373,7 +373,7 @@ export const LevelGuidePage = () => {
           )}
         </p>
         <Link
-          to="/"
+          to={`/${lang === 'zh' ? 'zh' : 'ja'}/`}
           className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl transition-colors"
         >
           {lang === 'ja' ? '大会一覧を見る →' : '查看赛事列表 →'}
