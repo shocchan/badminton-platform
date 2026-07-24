@@ -5,7 +5,7 @@ import type { LessonKind } from '../lib/aiLesson/course/types';
 
 const ja = {
   locale: 'ja' as 'ja' | 'zh',
-  positioning: 'このコースは、N2の文法や語彙を「実際に話せる日本語」にするための会話伴走コースです。N2試験の全範囲を網羅する教材ではありません。',
+  positioning: '会話力を中心に、JLPT N2レベルの語彙・文法・表現・読解・聴解を「実際に使える形」で身につけ、N2合格水準を目指すコースです。問題の答えを覚えるだけでなく、日本人の自然な会話を理解し、自分の経験や考えをN2レベルの日本語で伝えられる状態を目指します（合格を保証するものではありません）。',
   brand: '翔子先生とAI日本語会話コース',
   nav: {
     home: 'ホーム',
@@ -419,6 +419,23 @@ const ja = {
     voiceLockedShort: '音声レッスンは未解放',
     weekMissions: 'この週の章',
   },
+  n2: {
+    relevanceLabel: 'N2関連度',
+    levelDaily: '会話の基礎（N4〜N5）',
+    levelN3: 'N3相当（N2への足場）',
+    levelBridge: 'N3〜N2の橋渡し',
+    convGoalLabel: 'この章で話せるようになること',
+    n2GoalLabel: 'この章で身につけるN2力',
+    n2GoalDaily: '会話の土台づくり。N2文法・語彙は専用トラックで別途学びます。',
+    n2GoalN3: 'N2文法へ進むための足場（N3レベル）。N2文法トラックは準備中です。',
+    n2GoalBridge: 'N3〜N2の橋渡し表現。対応するN2文法・問題は準備中です（順次追加）。',
+    trackPreparing: 'N2文法・聴解・読解・語彙の専用トラックは準備中です（段階的に追加）。',
+    goalNote: 'N2合格水準を目指します（合格を保証するものではありません）。',
+    mapTitle: 'N2力の見通し',
+    mapNote: 'これは合格率ではありません。学習の見通しです。',
+    axisPreparing: '準備中',
+    axes: { vocab: '語彙', grammar: '文法', reading: '読解', listening: '聴解', conversation: '会話で使用', review: '復習定着' },
+  },
   limit: {
     dailyReached: '本日の利用上限に達しました。明日また続けましょう。',
     sessionActive: '別のレッスンが進行中です。少し待ってからもう一度お試しください。',
@@ -467,7 +484,7 @@ export type AiCourseDict = typeof ja;
 
 const zh: AiCourseDict = {
   locale: 'zh',
-  positioning: '本课程是把N2的语法和词汇练成「能真正开口说的日语」的会话陪练课程，并非涵盖N2考试全部范围的教材。',
+  positioning: '本课程以提高会话能力为核心，同时帮助你把JLPT N2水平的词汇、语法、表达、阅读和听力练到「真正能用出来」，向N2合格水准迈进。不仅要会做题，还要能听懂日本人的自然表达，并用N2水平的日语说出自己的经历和想法（本课程不保证考试合格）。',
   brand: '翔子老师・AI日语会话课程',
   nav: {
     home: '首页',
@@ -878,6 +895,23 @@ const zh: AiCourseDict = {
     tapToPreview: '查看内容・可以用文字预习',
     voiceLockedShort: '语音课程未解锁',
     weekMissions: '本周的章节',
+  },
+  n2: {
+    relevanceLabel: 'N2关联度',
+    levelDaily: '会话基础（N4〜N5）',
+    levelN3: '相当于N3（通往N2的台阶）',
+    levelBridge: 'N3〜N2的过渡',
+    convGoalLabel: '本章能开口说的',
+    n2GoalLabel: '本章要掌握的N2能力',
+    n2GoalDaily: '打好会话基础。N2语法・词汇会在专门的学习线里单独学习。',
+    n2GoalN3: '通往N2语法的台阶（N3水平）。N2语法学习线正在准备中。',
+    n2GoalBridge: 'N3〜N2的过渡表达。对应的N2语法・题目正在准备中（陆续添加）。',
+    trackPreparing: 'N2语法・听力・阅读・词汇的专门学习线正在准备中（逐步添加）。',
+    goalNote: '以N2合格水准为目标（本课程不保证考试合格）。',
+    mapTitle: 'N2能力概览',
+    mapNote: '这不是合格率，而是学习进度概览。',
+    axisPreparing: '准备中',
+    axes: { vocab: '词汇', grammar: '语法', reading: '阅读', listening: '听力', conversation: '会话运用', review: '复习巩固' },
   },
   limit: {
     dailyReached: '已达到今日学习上限，明天再继续吧。',

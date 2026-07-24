@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ArrowLeft, BookOpen, Lock, Mic, ArrowRight, ChevronDown, Eye, Timer, AlertTriangle, Target, Sparkles, PenLine, CheckCircle2 } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
 import { buildPreviewExpression, type MissionAccess } from '../../lib/aiLesson/course/coursePreview';
+import { missionN2Level } from '../../lib/aiLesson/course/courseN2';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Mission } from '../../lib/aiLesson/course/types';
@@ -97,6 +98,28 @@ export const CoursePreview = ({ t, mission, access, prereqTitles, estMinutes, on
             </div>
           </div>
         </Section>
+
+        {/* 会話目標とN2目標の併記（Phase N2-A） */}
+        {(() => {
+          const tn2 = t.n2;
+          const level = missionN2Level(mission.id);
+          const levelLabel = level === 'n2bridge' ? tn2.levelBridge : level === 'n3' ? tn2.levelN3 : tn2.levelDaily;
+          const n2Goal = level === 'n2bridge' ? tn2.n2GoalBridge : level === 'n3' ? tn2.n2GoalN3 : tn2.n2GoalDaily;
+          const levelClass = level === 'n2bridge' ? 'bg-indigo-50 text-indigo-700' : level === 'n3' ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-500';
+          return (
+            <div className="bg-white rounded-2xl border border-gray-100 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[11px] text-gray-400">{tn2.relevanceLabel}</span>
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${levelClass}`}>{levelLabel}</span>
+              </div>
+              <p className="text-[11px] font-medium text-emerald-700">{tn2.convGoalLabel}</p>
+              <p className="text-sm text-gray-800 mb-2">{canDoLineForMission(mission.category, mission.targetExpression, zh ? 'zh' : 'ja')}</p>
+              <p className="text-[11px] font-medium text-indigo-700">{tn2.n2GoalLabel}</p>
+              <p className="text-sm text-gray-700">{n2Goal}</p>
+              <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">{tn2.trackPreparing} {tn2.goalNote}</p>
+            </div>
+          );
+        })()}
 
         {/* 重要表現カード（最初に・主役） */}
         <Section icon={<Sparkles className="w-4 h-4 text-amber-500" />} title={tp.keyExpression}>
