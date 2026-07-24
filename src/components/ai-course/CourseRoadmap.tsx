@@ -1,19 +1,26 @@
-// 12週間ロードマップ。各週の状態・完了/定着/復習待ち・苦手・次のミッションを表示。
+// 12週間ロードマップ。各週カードをタップで展開し、その週の5章を表示。
+// 鍵付きの週もタップ可＝テキスト予習を開ける（音声のみ未解放）。
 
-import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target, BookOpen, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target, BookOpen, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
-import type { Mission } from '../../lib/aiLesson/course/types';
+import type { ItemProgress, Mission } from '../../lib/aiLesson/course/types';
 import { COURSE_GOAL_CANDOS } from '../../lib/aiLesson/course/courseCanDo';
+import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
+import { missionAccessState } from '../../lib/aiLesson/course/coursePreview';
 
 interface Props {
   t: AiCourseDict;
   weeks: WeekStat[];
   currentWeek: number;
   nextMission: Mission | null;
+  progress: ItemProgress[];
   estimate: { mode: 'diagnosing'; remaining: number } | { mode: 'ready'; minWeeks: number; maxWeeks: number };
-  /** 全ての章のテキスト予習一覧を開く */
+  /** 全ての章のテキスト予習一覧を開く（補助導線） */
   onSeeChapters: () => void;
+  /** 章（ミッション）のテキスト予習を開く */
+  onOpenPreview: (mission: Mission) => void;
   onBack: () => void;
 }
 
@@ -28,8 +35,16 @@ const stateIcon = (state: WeekStat['state']) => {
   }
 };
 
-export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, onSeeChapters, onBack }: Props) => {
+export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, estimate, onSeeChapters, onOpenPreview, onBack }: Props) => {
   const tr = t.roadmap;
+  const tp = t.preview;
+  const zh = t.locale === 'zh';
+  const [expanded, setExpanded] = useState<Set<number>>(new Set([currentWeek]));
+  const toggle = (wk: number) => setExpanded((prev) => {
+    const next = new Set(prev);
+    if (next.has(wk)) next.delete(wk); else next.add(wk);
+    return next;
+  });
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
@@ -80,38 +95,81 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, on
       <div className="space-y-2">
         {weeks.map((w) => {
           const isCurrent = w.week === currentWeek;
+          const isOpen = expanded.has(w.week);
+          const locked = w.state === 'locked';
+          const missions = COURSE_MISSIONS.filter((m) => m.week === w.week).sort((a, b) => a.order - b.order);
           return (
             <div key={w.week}
-              className={`rounded-xl border p-3 ${isCurrent ? 'border-blue-400 bg-blue-50/50' : w.state === 'locked' ? 'border-gray-100 bg-gray-50 opacity-70' : 'border-gray-200 bg-white'}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 min-w-0">
-                  {stateIcon(w.state)}
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">
-                      Week {w.week}
-                      {isCurrent && <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white">{tr.current}</span>}
+              className={`rounded-xl border overflow-hidden ${isCurrent ? 'border-blue-300 bg-blue-50/40' : 'border-gray-200 bg-white'}`}>
+              {/* 週カード全体をタップ＝展開（鍵付きでも押せる） */}
+              <button type="button" onClick={() => toggle(w.week)} aria-expanded={isOpen}
+                className="w-full text-left p-3 flex items-start gap-2 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl transition-colors">
+                <span className="mt-0.5 shrink-0">{stateIcon(w.state)}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-gray-900 truncate">
+                    Week {w.week} ・ {zh ? w.themeZh : w.themeJa}
+                    {isCurrent && <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white align-middle">{tr.current}</span>}
+                  </p>
+                  {/* 閲覧可能だと分かる明示文言＋（鍵付きは）音声未解放の意味 */}
+                  <p className="text-[11px] text-blue-600 flex items-center gap-1 mt-0.5">
+                    <BookOpen className="w-3 h-3 shrink-0" />{tp.tapToPreview}
+                  </p>
+                  {locked && (
+                    <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                      <Lock className="w-3 h-3 shrink-0" />{tp.voiceLockedShort}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{t.locale === 'zh' ? w.themeZh : w.themeJa}</p>
+                  )}
+                  {!locked && w.state !== 'notStarted' && (
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-[11px] text-gray-500">
+                      <span>{tr.done(w.learned, w.total)}</span>
+                      <span>{tr.retained(w.retained)}</span>
+                      {w.reviewing > 0 && <span>{tr.reviewWaiting(w.reviewing)}</span>}
+                    </div>
+                  )}
+                </div>
+                <span className="shrink-0 self-center text-gray-400">
+                  {isOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                </span>
+              </button>
+
+              {/* 展開: この週の5章。各章をタップで予習ページへ（未解放でも閲覧可） */}
+              {isOpen && (
+                <div className="px-3 pb-3 pt-0">
+                  <p className="text-[11px] font-medium text-gray-400 mb-1.5">{tp.weekMissions}</p>
+                  <div className="space-y-1.5">
+                    {missions.map((m) => {
+                      const access = missionAccessState(m, progress);
+                      return (
+                        <button key={m.id} type="button" onClick={() => onOpenPreview(m)}
+                          className="w-full text-left bg-gray-50 hover:bg-blue-50 rounded-lg p-2.5 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors">
+                          <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
+                            access === 'locked' ? 'bg-gray-200' : access === 'completed' ? 'bg-emerald-100' : 'bg-blue-100'}`}>
+                            {access === 'locked' ? <Lock className="w-3 h-3 text-gray-500" />
+                              : access === 'completed' ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                : <PlayCircle className="w-3.5 h-3.5 text-blue-600" />}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium text-gray-900 truncate">{zh ? m.titleZh : m.titleJa}</span>
+                            <span className="block text-[11px] text-gray-400 truncate">{m.targetExpression}</span>
+                          </span>
+                          <span className="text-[11px] text-blue-600 font-medium flex items-center gap-0.5 shrink-0">
+                            <BookOpen className="w-3.5 h-3.5" /><ChevronRight className="w-3.5 h-3.5" />
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
+                  {w.weakLabels.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {w.weakLabels.slice(0, 3).map((l) => (
+                        <span key={l} className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">{tr.weakExpr}: {l}</span>
+                      ))}
+                    </div>
+                  )}
+                  {isCurrent && nextMission && (
+                    <p className="text-[11px] text-blue-700 mt-2">{tr.nextMission}: {nextMission.targetExpression}</p>
+                  )}
                 </div>
-                <span className="text-[11px] text-gray-500 shrink-0">{tr.weekStates[w.state]}</span>
-              </div>
-              {w.state !== 'locked' && w.state !== 'notStarted' && (
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2 text-[11px] text-gray-500">
-                  <span>{tr.done(w.learned, w.total)}</span>
-                  <span>{tr.retained(w.retained)}</span>
-                  {w.reviewing > 0 && <span>{tr.reviewWaiting(w.reviewing)}</span>}
-                </div>
-              )}
-              {w.weakLabels.length > 0 && (
-                <div className="flex flex-wrap gap-1 mt-1.5">
-                  {w.weakLabels.slice(0, 3).map((l) => (
-                    <span key={l} className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600">{tr.weakExpr}: {l}</span>
-                  ))}
-                </div>
-              )}
-              {isCurrent && nextMission && (
-                <p className="text-[11px] text-blue-700 mt-1.5">{tr.nextMission}: {nextMission.targetExpression}</p>
               )}
             </div>
           );

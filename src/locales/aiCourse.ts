@@ -415,6 +415,9 @@ const ja = {
     estMinutes: (n: number) => `目安 約${n}分`,
     allChaptersTitle: '全ての章（予習）',
     allChaptersHint: 'どの章もテキストで予習できます。音声レッスンは順番に解放されます。',
+    tapToPreview: '内容を見る・テキストで予習できます',
+    voiceLockedShort: '音声レッスンは未解放',
+    weekMissions: 'この週の章',
   },
   limit: {
     dailyReached: '本日の利用上限に達しました。明日また続けましょう。',
@@ -872,6 +875,9 @@ const zh: AiCourseDict = {
     estMinutes: (n: number) => `大约 ${n} 分钟`,
     allChaptersTitle: '全部章节（预习）',
     allChaptersHint: '任何章节都可以用文字预习。语音课程会按顺序解锁。',
+    tapToPreview: '查看内容・可以用文字预习',
+    voiceLockedShort: '语音课程未解锁',
+    weekMissions: '本周的章节',
   },
   limit: {
     dailyReached: '已达到今日学习上限，明天再继续吧。',
