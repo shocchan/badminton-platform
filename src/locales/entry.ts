@@ -64,6 +64,7 @@ const ja = {
   // 支払い方法選択
   paySelectLead: '申し込みを受け付けました。',
   paySelectLeadStrong: 'お支払い方法を選択してください。',
+  resumeNotice: '以前の未払いの申し込みが見つかりました。今回ご入力いただいた内容に更新して、お支払い手続きを続けます。',
   payPairNote: (per: string) => `※参加費はペア2名分（1人あたり ¥${per}）をまとめてお支払いください。`,
   payRetry: 'もう一度お試しください',
   payPreparing: '決済の準備中...',
@@ -204,6 +205,7 @@ const zh: typeof ja = {
 
   paySelectLead: '已受理您的报名。',
   paySelectLeadStrong: '请选择支付方式。',
+  resumeNotice: '找到您之前未支付的报名信息。已根据本次填写的内容进行更新，请继续完成支付。',
   payPairNote: (per: string) => `※参加费为一对2人的合计金额（每人 ¥${per}），请一并支付。`,
   payRetry: '请重试',
   payPreparing: '正在准备支付...',
