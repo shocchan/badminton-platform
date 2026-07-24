@@ -3,7 +3,7 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
+import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
@@ -11,6 +11,7 @@ import { ShokoAvatar } from './ShokoAvatar';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
+import { isMeaningfulUserTurn, COURSE_TURN_DETECTION, shouldShowGreetingGuide } from '../../lib/aiLesson/course/courseInteraction';
 import { getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import {
   effectiveSubtitleMode, autoTranslateAll, zhAssistAvailable,
@@ -82,6 +83,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const [retry, setRetry] = useState(0);
   const [atBottom, setAtBottom] = useState(true);      // 会話履歴が最下部にあるか（自動追従の可否）
   const [langConfirmOpen, setLangConfirmOpen] = useState(false);
+  const [hasMeaningfulTurn, setHasMeaningfulTurn] = useState(false); // 有効な生徒発話が1回来たか（開始案内の消灯用）
+  // 生徒の発話継続時間の推定（speech_started→stopped）。咳・物音の誤確定を弾く材料
+  const speakStartRef = useRef<number | null>(null);
+  const lastSpeakMsRef = useRef(0);
 
   // 中国語補助字幕（表示側）。zhSupport（音声側）とは別軸で、learner設定＋レベルから決まる。
   const subtitleMode = effectiveSubtitleMode(learner.settings, t.locale === 'zh' ? 'zh' : 'ja', learner.difficultyLevel);
@@ -137,6 +142,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     const payload = buildVoicePayload(mission, learner, step);
     sessionRef.current = startVoiceSession({
       sessionId, accessToken, plan: payload,
+      turnDetection: COURSE_TURN_DETECTION,
       callbacks: {
         onStatus: (s) => {
           setStatus(s);
@@ -145,6 +151,14 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         onUserTranscript: (text, isFinal) => {
           if (!isFinal) { setLiveU((p) => p + text); return; }
           setLiveU(''); const tr = text.trim(); if (!tr) return;
+          // 咳・雑音・短い相づちを「回答」として扱わない（会話・ミッションを勝手に進めない）。
+          // 直前の翔子先生の発話が短答（〜か？）を期待していれば短答を許可する。
+          const lastTutor = [...msgsRef.current].reverse().find((m) => m.role === 'tutor')?.text ?? '';
+          const shortAnswerExpected = /(か|ですか|ますか)[。.\s]*[?？]?\s*$/.test(lastTutor) || /どちら|ですか|ますか/.test(lastTutor);
+          if (!isMeaningfulUserTurn({ transcript: tr, durationMs: lastSpeakMsRef.current, shortAnswerExpected })) {
+            return; // 空の生徒発話を保存しない・ターンを確定しない
+          }
+          setHasMeaningfulTurn(true);
           msgsRef.current = [...msgsRef.current, { role: 'student', text: tr }]; setMsgs(msgsRef.current);
           const rel = (() => { try { return new RegExp(mission.detect).test(tr); } catch { return false; } })();
           log({ speaker: 'student', transcript: tr, atMs: startAtRef.current ? Date.now() - startAtRef.current : 0, isFinal: true, relatedTarget: rel });
@@ -155,7 +169,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           msgsRef.current = [...msgsRef.current, { role: 'tutor', text: tr }]; setMsgs(msgsRef.current);
           log({ speaker: 'tutor', transcript: tr, atMs: startAtRef.current ? Date.now() - startAtRef.current : 0, isFinal: true, relatedTarget: false });
         },
-        onTutorSpeaking: setTutorSpeaking, onUserSpeaking: setUserSpeaking,
+        onTutorSpeaking: setTutorSpeaking,
+        onUserSpeaking: (speaking) => {
+          if (speaking) { speakStartRef.current = Date.now(); }
+          else if (speakStartRef.current) { lastSpeakMsRef.current = Date.now() - speakStartRef.current; speakStartRef.current = null; }
+          setUserSpeaking(speaking);
+        },
         onError: (kind) => { log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false }); setErrorKind(kind); },
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
@@ -353,7 +372,17 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
 
   const conversation = (
     <>
-      {status === 'connected' && msgs.length === 0 && !liveT && <p className="text-sm text-gray-500 text-center py-6">{tv.speakFirstHint}</p>}
+      {shouldShowGreetingGuide({ connected: status === 'connected', hasMeaningfulUserTurn: hasMeaningfulTurn, ended: doneOverlay || ending }) && !liveT && (
+        <div className="mx-auto max-w-sm text-center py-6 px-4">
+          <ShokoAvatar size={56} className="mx-auto mb-3 ring-4 ring-blue-100 voice-breathe" />
+          <p className="text-base font-bold text-gray-900 leading-snug">{tv.greetingGuideTitle}</p>
+          <div className="inline-flex items-center gap-2 mt-3 mb-2 px-4 py-2 bg-blue-50 rounded-2xl">
+            <Mic className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="text-lg font-bold text-blue-700">「{tv.greetingExample}」</span>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">{tv.greetingGuideHint}</p>
+        </div>
+      )}
       {(status === 'requesting-mic' || status === 'connecting') && (
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <ShokoAvatar size={72} className="ring-4 ring-blue-100 voice-breathe" />

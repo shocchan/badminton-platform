@@ -2,7 +2,7 @@
 // 全体%の微増ではなく「今日できたこと」を主役にする。
 
 import { useState } from 'react';
-import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp } from 'lucide-react';
+import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
@@ -40,9 +40,14 @@ interface Props {
   onBackHome: () => void;
   onAgain: () => void;
   canAgain: boolean;
+  /** 次の章へすぐ進む（Feature 3） */
+  onNextChapter?: () => void;
+  canNext?: boolean;
+  /** 今回の復習ノートを開く（Feature 5） */
+  onSeeReviewNote?: () => void;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
@@ -175,15 +180,29 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
       </div>
 
       <div className="mt-5 space-y-2">
+        {/* 学習意欲がある生徒を止めない: 次の章へすぐ進める（Feature 3） */}
+        {onNextChapter && canNext && (
+          <button type="button" onClick={onNextChapter}
+            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2">
+            {tr.nextChapter}<ArrowRight className="w-4 h-4" />
+          </button>
+        )}
+        {/* 今回の復習ノート（音声なしで見返す・Feature 5） */}
+        {onSeeReviewNote && (
+          <button type="button" onClick={onSeeReviewNote}
+            className="w-full min-h-11 py-3 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl hover:bg-blue-50 flex items-center justify-center gap-2">
+            <BookOpen className="w-4 h-4" />{tr.seeReviewNote}
+          </button>
+        )}
         {canAgain && (
           <button type="button" onClick={onAgain}
-            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2">
-            <RotateCcw className="w-4 h-4" />{tr.again}
+            className="w-full min-h-11 py-2.5 text-sm text-gray-500 hover:text-gray-700 rounded-xl flex items-center justify-center gap-1.5">
+            <RotateCcw className="w-3.5 h-3.5" />{tr.again}
           </button>
         )}
         <button type="button" onClick={onBackHome}
           className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
-          <Home className="w-4 h-4" />{tr.backHome}
+          <Home className="w-4 h-4" />{onNextChapter ? tr.doneForToday : tr.backHome}
         </button>
       </div>
     </div>

@@ -1,7 +1,7 @@
 // 学習ホーム（§20）。主役は「今日のレッスンを始める」＋「できるようになったこと」。
 // 詳細な統計は出さず、成長は「成長を見る」から専用画面へ。
 
-import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
 import { ShokoAvatar } from './ShokoAvatar';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
@@ -31,12 +31,13 @@ interface Props {
   onResume: () => void;
   onDiscardResume: () => void;
   onSeeGrowth: () => void;
+  onSeePastNotes: () => void;
 }
 
 export const CourseHome = ({
   t, learner, plan, stats, reviewsOverdue, remainingToday,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
-  onStart, onResume, onDiscardResume, onSeeGrowth,
+  onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -166,6 +167,14 @@ export const CourseHome = ({
           <span className="text-xs text-blue-600 flex items-center gap-0.5">{tg.seeGrowth}<ArrowRight className="w-3 h-3" /></span>
         </div>
         <GrowthJourneyMap t={t} places={journey} currentWeek={learner.currentWeek} compact />
+      </button>
+
+      {/* 過去の復習ノート（音声なしで見返す・Feature 5） */}
+      <button type="button" onClick={onSeePastNotes}
+        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors flex items-center gap-2.5">
+        <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+        <span className="text-sm font-medium text-gray-800 flex-1 min-w-0">{t.reviewNote.seeAll}</span>
+        <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
       </button>
 
       {/* 補助情報（連続日数など。主役にしない・§22） */}

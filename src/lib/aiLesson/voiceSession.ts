@@ -75,6 +75,11 @@ interface StartOptions {
   /** コースモードでのみ必要な Supabase のアクセストークン（JWT） */
   accessToken?: string | null;
   plan: VoicePlanPayload;
+  /**
+   * turn_detection（VAD）の上書き設定。短い咳・雑音での誤割り込みを防ぐため、
+   * threshold を上げ silence_duration を長めにする（コースで指定）。未指定ならサーバー既定。
+   */
+  turnDetection?: Record<string, unknown>;
   callbacks: VoiceSessionCallbacks;
 }
 
@@ -375,7 +380,12 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
         }
       };
       dc.onopen = () => {
-        if (!stopped) setStatus('connected');
+        if (stopped) return;
+        // 誤割り込み防止のVAD設定を適用（短い雑音で翔子先生を止めない・ターンを即確定しない）
+        if (opts.turnDetection) {
+          send({ type: 'session.update', session: { turn_detection: opts.turnDetection } });
+        }
+        setStatus('connected');
       };
       dc.onclose = () => {
         if (!stopped && status === 'connected') fail('disconnected');
