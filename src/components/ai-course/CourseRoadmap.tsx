@@ -1,6 +1,6 @@
 // 12週間ロードマップ。各週の状態・完了/定着/復習待ち・苦手・次のミッションを表示。
 
-import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target } from 'lucide-react';
+import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target, BookOpen, ArrowRight } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
 import type { Mission } from '../../lib/aiLesson/course/types';
@@ -12,6 +12,8 @@ interface Props {
   currentWeek: number;
   nextMission: Mission | null;
   estimate: { mode: 'diagnosing'; remaining: number } | { mode: 'ready'; minWeeks: number; maxWeeks: number };
+  /** 全ての章のテキスト予習一覧を開く */
+  onSeeChapters: () => void;
   onBack: () => void;
 }
 
@@ -26,7 +28,7 @@ const stateIcon = (state: WeekStat['state']) => {
   }
 };
 
-export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, onBack }: Props) => {
+export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, onSeeChapters, onBack }: Props) => {
   const tr = t.roadmap;
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
@@ -37,6 +39,17 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, estimate, on
         </button>
         <h1 className="text-lg font-bold text-gray-900">{tr.title}</h1>
       </div>
+
+      {/* 全ての章をテキスト予習（鍵付き章も閲覧可） */}
+      <button type="button" onClick={onSeeChapters}
+        className="w-full text-left bg-white rounded-xl border border-blue-100 p-4 mb-4 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
+        <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900">{t.preview.allChaptersTitle}</p>
+          <p className="text-[11px] text-gray-400 truncate">{t.preview.open} ・ {t.preview.anytime}</p>
+        </div>
+        <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+      </button>
 
       {/* 12週後に目指す会話（§24。断定しない） */}
       <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">

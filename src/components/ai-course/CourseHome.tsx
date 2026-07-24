@@ -32,12 +32,14 @@ interface Props {
   onDiscardResume: () => void;
   onSeeGrowth: () => void;
   onSeePastNotes: () => void;
+  /** 今日の章をテキストで予習（音声前の確認・APIなし） */
+  onPreview: () => void;
 }
 
 export const CourseHome = ({
   t, learner, plan, stats, reviewsOverdue, remainingToday,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
-  onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes,
+  onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -127,6 +129,12 @@ export const CourseHome = ({
           </p>
         </div>
       )}
+
+      {/* テキストで予習（音声前の確認・APIなし・いつでも可） */}
+      <button type="button" onClick={onPreview}
+        className="w-full min-h-11 py-2.5 -mt-2 mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
+        <BookOpen className="w-4 h-4" />{t.preview.open}
+      </button>
 
       </div>{/* /左カラム */}
       <div className="lg:space-y-3 lg:[&>*]:mb-0">
