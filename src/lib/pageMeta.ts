@@ -113,6 +113,13 @@ const STATIC_PAGES: StaticEntry[] = [
   { path: '/zh/game', title: `羽毛球对决游戏 | ${SITE_BRAND_ZH}`,
     description: '与AI进行羽毛球对拉！掌握时机打出高分。每15次对拉自动参与抽奖，有极小概率获得免费参加券。',
     bilingual: true },
+  // ── 大会一覧（ディスカバリー）──
+  { path: '/ja/tournaments', title: `バドミントン大会一覧（川口・蕨・埼玉） | ${SITE_BRAND_JA}`,
+    description: '川口市・蕨市を中心に埼玉で開催するバドミントン交流大会の一覧。シングルス・ダブルス・ミックスダブルスをレベル別に開催、1人参加・初参加歓迎。募集中の大会はこのページから申し込めます。',
+    bilingual: true },
+  { path: '/zh/tournaments', title: `羽毛球比赛一览（川口・蕨・埼玉） | ${SITE_BRAND_ZH}`,
+    description: '以埼玉县川口市・蕨市为中心举办的羽毛球交流比赛一览。单打・双打・混合双打按级别举办，欢迎单独参加・首次参加。正在报名中的比赛可在本页面报名。',
+    bilingual: true },
   // ── 大会ギャラリー ──
   { path: '/ja/tournaments/gallery', title: `過去大会ギャラリー | ${SITE_BRAND_JA}`,
     description: '川口・蕨バド交流杯 過去大会の集合写真ギャラリー。会場の雰囲気や参加者の様子をご覧いただけます。',
