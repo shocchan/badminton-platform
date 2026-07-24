@@ -55,10 +55,11 @@ import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import { CoursePreview } from '../../components/ai-course/CoursePreview';
 import { CourseChapterList } from '../../components/ai-course/CourseChapterList';
+import { CourseN2Grammar } from '../../components/ai-course/CourseN2Grammar';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -517,7 +518,7 @@ export default function AiCoursePage() {
         const wk = Math.max(learner.settings.weeklyTarget, 1);
         return { mode: 'ready' as const, minWeeks: Math.ceil(remainingMissions / wk), maxWeeks: Math.ceil((remainingMissions * 1.5) / wk) };
       })();
-    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} estimate={est} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onBack={() => setStep('home')} /></Shell>;
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} estimate={est} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
   if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
@@ -549,6 +550,13 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
         <CourseChapterList t={t} progress={progress}
           onOpenPreview={(m) => openPreview(m, 'chapters')} onBack={() => setStep('roadmap')} />
+      </Shell>
+    );
+  }
+  if (step === 'n2grammar') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
+        <CourseN2Grammar t={t} onBack={() => setStep('roadmap')} />
       </Shell>
     );
   }

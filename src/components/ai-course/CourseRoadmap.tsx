@@ -21,6 +21,8 @@ interface Props {
   onSeeChapters: () => void;
   /** 章（ミッション）のテキスト予習を開く */
   onOpenPreview: (mission: Mission) => void;
+  /** N2文法トラック（準備中/レビュー）を開く */
+  onSeeN2Grammar: () => void;
   onBack: () => void;
 }
 
@@ -35,7 +37,7 @@ const stateIcon = (state: WeekStat['state']) => {
   }
 };
 
-export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, estimate, onSeeChapters, onOpenPreview, onBack }: Props) => {
+export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, estimate, onSeeChapters, onOpenPreview, onSeeN2Grammar, onBack }: Props) => {
   const tr = t.roadmap;
   const tp = t.preview;
   const zh = t.locale === 'zh';
@@ -62,6 +64,17 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-gray-900">{t.preview.allChaptersTitle}</p>
           <p className="text-[11px] text-gray-400 truncate">{t.preview.open} ・ {t.preview.anytime}</p>
+        </div>
+        <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+      </button>
+
+      {/* N2文法トラック（準備中・レビュー） */}
+      <button type="button" onClick={onSeeN2Grammar}
+        className="w-full text-left bg-white rounded-xl border border-indigo-100 p-4 mb-4 hover:bg-indigo-50 transition-colors flex items-center gap-2.5">
+        <BookOpen className="w-4 h-4 text-indigo-600 shrink-0" />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-gray-900">{t.n2grammar.navTitle}</p>
+          <p className="text-[11px] text-gray-400 truncate">{t.n2grammar.subtitle}</p>
         </div>
         <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
       </button>
