@@ -32,27 +32,32 @@ describe('AIコース文言: ja / zh 構造一致', () => {
   });
 });
 
-describe('AIコース文言: 呼称の混同防止（§7）', () => {
-  // 連絡先・問い合わせ・停止時案内など「人間へ連絡」を促す文言
+describe('AIコース文言: 呼称仕様（§7 正式仕様）', () => {
+  // AI講師: ja「翔子先生」/ zh「翔子老师」。 人間の運営・連絡先: ja「コース運営者」/ zh「课程负责人」
+  const humanContactJa = [ja.onboarding.contact, ja.issue.description, ja.limits.learner_suspended];
   const humanContactZh = [zh.onboarding.contact, zh.issue.description, zh.limits.learner_suspended];
 
-  it('人間の連絡先文言に、AI講師と紛らわしい「翔一老师」を使わない', () => {
+  it('人間の連絡先（zh）は「课程负责人」で、AI講師と紛らわしい語を使わない', () => {
     for (const line of humanContactZh) {
-      expect(line, line).not.toContain('翔一');
+      expect(line, line).toContain('课程负责人');
+      expect(line, line).not.toContain('翔一'); // 旧・別人名（1文字違いの混同）
+      expect(line, line).not.toContain('翔子'); // AI講師名と同名にしない
     }
   });
 
-  it('人間の連絡先文言が、AI講師「翔子老师」と同名にならない', () => {
-    for (const line of humanContactZh) {
-      // 「翔子」を人間の連絡先に使うと、AI と人間の区別がつかなくなる
+  it('人間の連絡先（ja）は「コース運営者」で、AI講師名や個人ニックネームを使わない', () => {
+    for (const line of humanContactJa) {
+      expect(line, line).toContain('コース運営者');
       expect(line, line).not.toContain('翔子');
+      expect(line, line).not.toContain('しょっちゃん');
     }
   });
 
-  it('AI講師名はブランド・音声UIでは引き続き「翔子」を使う（呼称の一貫性）', () => {
-    expect(zh.brand).toContain('翔子');
-    expect(zh.voice.statusConnecting).toContain('翔子');
+  it('AI講師名はブランド・音声UIで「翔子先生 / 翔子老师」を使う（呼称の一貫性）', () => {
     expect(ja.brand).toContain('翔子先生');
+    expect(zh.brand).toContain('翔子老师');
+    expect(ja.voice.statusConnecting).toContain('翔子先生');
+    expect(zh.voice.statusConnecting).toContain('翔子老师');
   });
 });
 
