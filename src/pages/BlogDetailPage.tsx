@@ -1,9 +1,27 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { useBlogPost } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
+
+const SITE_NAME = '川口・蕨バドミントン交流会（kawabado）';
+const DEFAULT_OGP = 'https://kawabado.com/ogp.jpg';
+
+// SEO: 記事本文（Markdown/HTML）から description 用のプレーンテキストを作る
+const buildExcerpt = (raw: string | undefined, max = 140): string => {
+  if (!raw) return '';
+  const plain = raw
+    .replace(/```[\s\S]*?```/g, ' ')       // code fences
+    .replace(/<[^>]+>/g, ' ')              // HTML tags
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ') // markdown images
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // markdown links → keep text
+    .replace(/[#*_`>~-]+/g, ' ')           // markdown syntax
+    .replace(/\s+/g, ' ')
+    .trim();
+  return plain.length > max ? plain.slice(0, max - 1) + '…' : plain;
+};
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,8 +75,55 @@ export const BlogDetailPage = () => {
     );
   }
 
+  // SEO: ブログは日本語のみ実装（Case C）。canonical は常に /ja/blog/:id。
+  // 中国語URLで表示された場合も、canonical で日本語版へ正規化する。hreflang は出さない。
+  const canonical = `https://kawabado.com/ja/blog/${post.id}`;
+  const seoTitle = `${post.title} | ${SITE_NAME}`;
+  const seoDesc = post.excerpt?.trim() || buildExcerpt(post.content) || `${SITE_NAME}のブログ記事`;
+  const seoImage = post.image_url && /^https?:\/\//.test(post.image_url) ? post.image_url : DEFAULT_OGP;
+  const isPublic = post.status !== 'draft';
+
+  const blogPostingJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: seoDesc,
+    image: seoImage,
+    datePublished: post.published_at || post.created_at,
+    dateModified: post.updated_at || post.created_at,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    author: { '@type': 'Organization', name: SITE_NAME, url: 'https://kawabado.com' },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      logo: { '@type': 'ImageObject', url: 'https://kawabado.com/favicon.png' },
+    },
+    inLanguage: 'ja',
+  };
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
+      <Helmet>
+        <html lang="ja" />
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDesc} />
+        {/* 下書きは検索対象外（RLSにより一般ユーザーは取得できないが、二重防御） */}
+        {!isPublic && <meta name="robots" content="noindex, nofollow" />}
+        <meta property="og:type" content="article" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDesc} />
+        <meta property="og:url" content={canonical} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:locale" content="ja_JP" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDesc} />
+        <meta name="twitter:image" content={seoImage} />
+        <link rel="canonical" href={canonical} />
+        {isPublic && (
+          <script type="application/ld+json">{JSON.stringify(blogPostingJsonLd)}</script>
+        )}
+      </Helmet>
       {post.status === 'draft' && (
         <div className="mb-6 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl text-sm">
           <span className="font-medium">📝 下書きプレビュー — この記事はまだ公開されていません（管理者のみ閲覧可能）</span>

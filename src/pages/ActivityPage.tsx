@@ -636,7 +636,10 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     : '備考（任意）例：初参加です。';
 
   const timeRange = `${activity.start_time.slice(0, 5)}〜${activity.end_time.slice(0, 5)}`;
-  const detailUrl = `https://kawabado.com${basePath}/${lang}/activity/${activity.id}`;
+  // SEO: 活動詳細の正規URLは常に /:lang/activity/:id（basePath無し）。
+  // Worker側で /assistant/:lang/activity/:id → /:lang/activity/:id を301するが、
+  // 万一直リンクで来ても canonical が正規を指すよう防御。
+  const detailUrl = `https://kawabado.com/${lang}/activity/${activity.id}`;
   const detailMeta = lang === 'zh'
     ? {
         title: `${activity.title} | 川口・蕨羽毛球日常活动`,
@@ -661,9 +664,9 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
         <meta property="og:url" content={detailUrl} />
         <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
         <link rel="canonical" href={detailUrl} />
-        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com${basePath}/ja/activity/${activity.id}`} />
-        <link rel="alternate" hrefLang="zh" href={`https://kawabado.com${basePath}/zh/activity/${activity.id}`} />
-        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com${basePath}/ja/activity/${activity.id}`} />
+        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/activity/${activity.id}`} />
+        <link rel="alternate" hrefLang="zh-CN" href={`https://kawabado.com/zh/activity/${activity.id}`} />
+        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/activity/${activity.id}`} />
       </Helmet>
       <EventSchema
         name={activity.title}
@@ -1123,7 +1126,8 @@ const LIST_T: Record<Lang, {
   emptyDate: string;
   clearFilter: string;
   price: (p: number) => string;
-  detailLink: (id: string, groupSlug: string) => string;
+  // SEO: 常に正規URLを返す。サブグループ活動も /:lang/activity/:id に統一。
+  detailLink: (id: string) => string;
   wechatMiniProgramNotice: string;
 }> = {
   ja: {
@@ -1132,7 +1136,9 @@ const LIST_T: Record<Lang, {
     emptyDate: 'この日の活動はありません',
     clearFilter: '✕ 絞り込み解除',
     price: (p) => `¥${p.toLocaleString()} / 人`,
-    detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity/${id}` : `/${groupSlug}/activity/${id}`,
+    // SEO: サブグループ（assistant等）の活動も、公開の正規URLは /ja/activity/:id に統一。
+    // 重複インデックス防止のため、内部リンクは常に正規URLを出力する。
+    detailLink: (id) => `/ja/activity/${id}`,
     wechatMiniProgramNotice: '小程序（WeChatミニプログラム）でお申し込み済みの方は、こちらでのお申し込みは不要です。重複してのご登録はお控えください。',
   },
   zh: {
@@ -1141,7 +1147,8 @@ const LIST_T: Record<Lang, {
     emptyDate: '当天没有活动',
     clearFilter: '✕ 取消筛选',
     price: (p) => `¥${p.toLocaleString()} / 人`,
-    detailLink: (id, groupSlug) => groupSlug === 'kawaguchi-warabi' ? `/activity-cn/${id}?from=wechat` : `/${groupSlug}/activity-cn/${id}?from=wechat`,
+    // SEO: 中国語版も正規URLを /zh/activity/:id に統一（?from=wechat はトラッキング用に維持）
+    detailLink: (id) => `/zh/activity/${id}?from=wechat`,
     wechatMiniProgramNotice: '已通过小程序报名的用户，无需在此重复报名。请勿重复提交申请。',
   },
 };
@@ -1261,7 +1268,7 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
         <meta property="og:locale" content={effectiveLang === 'zh' ? 'zh_CN' : 'ja_JP'} />
         <link rel="canonical" href={`https://kawabado.com/${effectiveLang}/activity`} />
         <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/activity" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/activity" />
+        <link rel="alternate" hrefLang="zh-CN" href="https://kawabado.com/zh/activity" />
         <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/activity" />
       </Helmet>
     <main className="max-w-5xl mx-auto px-4 py-8">
@@ -1319,13 +1326,13 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
             <div className="space-y-3">
               {displayed.map(a => {
                 const venueImg = VENUE_IMAGES[a.location] ?? null;
-                // 統合表示しているサブグループの活動かどうか判定し、バッジ・リンク先を出し分け
+                // 統合表示しているサブグループの活動はバッジで区別。
+                // 詳細URLは常に正規URL（/:lang/activity/:id）に統一（SEO: 重複インデックス防止）。
                 const subMeta = a.group_id ? groupMeta[a.group_id] : undefined;
-                const activityGroupSlug = subMeta?.slug ?? groupSlug;
                 return (
                   <Link
                     key={a.id}
-                    to={t.detailLink(a.id, activityGroupSlug)}
+                    to={t.detailLink(a.id)}
                     className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
                     {venueImg ? (

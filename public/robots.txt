@@ -1,5 +1,31 @@
+# kawabado.com robots.txt
+# 削除方針: 既にインデックスされたURLは robots ではなく noindex + 301 で剥がす。
+# ここは補助的に「新規クロール抑止」のみ担当する。
+
 User-agent: *
 Allow: /
+
+# 管理画面（全グループ）
 Disallow: /admin
+Disallow: /ja/admin
+Disallow: /zh/admin
+Disallow: /ko/admin
+Disallow: /assistant/
+Disallow: /chaoxianzu/
+
+# 会員限定・認証フロー
+Disallow: /*/mypage
+Disallow: /*/login
+Disallow: /*/signup
+Disallow: /*/password-reset
+Disallow: /*/password-reset-form
+Disallow: /*/password-reset-success
+Disallow: /*/auth-landing
+
+# 大会エントリー（noindex 済み）
+Disallow: /*/tournaments/*/entry
+
+# キャンセルフロー
+Disallow: /cancel
 
 Sitemap: https://kawabado.com/sitemap.xml

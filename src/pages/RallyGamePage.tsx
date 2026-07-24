@@ -26,6 +26,23 @@ export default function RallyGamePage() {
   const [lottery, setLottery] = useState<LotteryResult | null>(null);
   const best = getRallyBest();
 
+  // SEO: /zh/game が日本語タイトルで表示されていた事故を修正。
+  // ブランド表記は「kawabado」（英字ブランド名）＋「川口・蕨バドミントン交流会」（コミュニティ名）で統一。
+  const seo = lang === 'zh'
+    ? {
+        title: '羽毛球对决游戏 | 川口・蕨羽毛球交流会（kawabado）',
+        description: '与AI进行羽毛球对拉！掌握时机打出高分。每15次对拉自动参与抽奖，有极小概率获得免费参加券。',
+        htmlLang: 'zh-CN',
+        ogLocale: 'zh_CN',
+      }
+    : {
+        title: 'バド対決ゲーム | 川口・蕨バドミントン交流会（kawabado）',
+        description: 'AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！',
+        htmlLang: 'ja',
+        ogLocale: 'ja_JP',
+      };
+  const gameUrl = `https://kawabado.com/${locale}/game`;
+
   const handleGameEnd = (rallyCount: number) => {
     if (rallyCount < 1) return;
 
@@ -46,11 +63,21 @@ export default function RallyGamePage() {
   return (
     <main>
       <Helmet>
-        <title>バド対決ゲーム | かわバド</title>
-        <meta
-          name="description"
-          content="AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！"
-        />
+        <html lang={seo.htmlLang} />
+        <title>{seo.title}</title>
+        <meta name="description" content={seo.description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={seo.title} />
+        <meta property="og:description" content={seo.description} />
+        <meta property="og:url" content={gameUrl} />
+        <meta property="og:locale" content={seo.ogLocale} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seo.title} />
+        <meta name="twitter:description" content={seo.description} />
+        <link rel="canonical" href={gameUrl} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/game" />
+        <link rel="alternate" hrefLang="zh-CN" href="https://kawabado.com/zh/game" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/game" />
       </Helmet>
 
       {/* ゲーム本体：スマホはフルスクリーン、PCは3カラム */}

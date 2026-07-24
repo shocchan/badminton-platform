@@ -18,7 +18,10 @@ const LangWrapper: React.FC<LangWrapperProps> = ({ groupSlug }) => {
 
   useEffect(() => {
     if (lang && validLangs.includes(lang)) {
-      document.documentElement.lang = lang;
+      // SEO: html lang は BCP47 準拠。zh は簡体字コミュニティ向けなので zh-CN を出力。
+      // ja / ko はそのまま。
+      const htmlLang = lang === 'zh' ? 'zh-CN' : lang;
+      document.documentElement.lang = htmlLang;
     }
   }, [lang, validLangs]);
 
