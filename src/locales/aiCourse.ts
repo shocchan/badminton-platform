@@ -430,7 +430,7 @@ const zh: AiCourseDict = {
     interrupt: '基本上用日语进行。只有卡住的时候才用中文帮你。老师说话的时候，你只要清楚地开口，就可以打断。',
     autoReport: '课程结束后会自动进入学习报告页面。',
     scopeNote: '这门课程以会话练习为主。想通过N2，还需要另外学习阅读、词汇和语法。',
-    contact: '遇到问题或有疑问时，请联系翔一老师。也可以从设置页面提交反馈。',
+    contact: '遇到问题或有疑问时，请联系课程负责人。也可以从设置页面提交反馈。',
     start: '开始',
     close: '关闭',
     reopenHint: '这份说明可以随时从设置里再看一遍。',
@@ -467,7 +467,7 @@ const zh: AiCourseDict = {
   },
   issue: {
     title: '反馈问题',
-    description: '请写下发生了什么，翔一老师会来确认。',
+    description: '请写下发生了什么，课程负责人会来确认。',
     placeholder: '例：听不到声音／麦克风没反应／中途停住了',
     attachNote: '为了排查问题，会一并发送发生时间、页面、错误信息和你的设备信息。对话内容和密码不会被发送。',
     submit: '发送',
@@ -479,7 +479,7 @@ const zh: AiCourseDict = {
   },
   limits: {
     no_learner: '没有找到学习数据。请重新登录一次。',
-    learner_suspended: '当前账号已暂停使用。请联系翔一老师。',
+    learner_suspended: '当前账号已暂停使用。请联系课程负责人。',
     session_already_active: '另一个页面正在上课。请关闭其他标签页，稍等一下再试。',
     daily_session_limit: '今天的学习次数已达上限。明天再继续吧。',
     daily_time_limit: '今天的学习时长已达上限。明天再继续吧。',
