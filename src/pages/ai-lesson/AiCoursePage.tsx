@@ -48,13 +48,13 @@ import { CourseTextLesson } from '../../components/ai-course/CourseTextLesson';
 import { CourseReport } from '../../components/ai-course/CourseReport';
 import type { CourseReportData } from '../../components/ai-course/CourseReport';
 import { CourseReviewNote } from '../../components/ai-course/CourseReviewNote';
-import { CourseReviewNotesList } from '../../components/ai-course/CourseReviewNotesList';
-import type { ReviewNoteSummary } from '../../components/ai-course/CourseReviewNotesList';
+import type { SelfEval } from '../../components/ai-course/CourseReviewNote';
 import { buildReviewNote } from '../../lib/aiLesson/course/courseReviewNote';
 import type { ReviewNote } from '../../lib/aiLesson/course/courseReviewNote';
+import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'reviewNotes';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -69,6 +69,8 @@ const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 
 /** 今日のローカル日付 YYYY-MM-DD（module scope＝render純度ルールの対象外） */
 const todayLocalISO = (): string => new Date().toISOString().slice(0, 10);
+/** 現在時刻 ISO（module scope＝render純度ルールの対象外） */
+const nowISO = (): string => new Date().toISOString();
 
 /**
  * レポートをEdge Functionで生成（失敗時はローカルの簡易レポート）。
@@ -135,7 +137,6 @@ export default function AiCoursePage() {
   // 「今回の復習」ノート（Feature 5）。currentNote=直近レッスンのノート、activeNote=表示中
   const [currentNote, setCurrentNote] = useState<ReviewNote | null>(null);
   const [activeNote, setActiveNote] = useState<ReviewNote | null>(null);
-  const [noteSummaries, setNoteSummaries] = useState<ReviewNoteSummary[]>([]);
   const [noteReturnStep, setNoteReturnStep] = useState<Step>('home');
   const [reviewedNoteIds, setReviewedNoteIds] = useState<Set<string>>(new Set());
   const noteUttsRef = useRef<{ transcript: string; sessionId: string }[]>([]);
@@ -270,28 +271,41 @@ export default function AiCoursePage() {
     setStep('reviewNote');
   };
 
-  /** 過去の復習ノート一覧を開く（完了＋レポートありのセッション） */
-  const openReviewNotes = async () => {
+  /** 学習記録カード（ReviewItem）から復習ノートを開く。過去発話を必要時に読み込む */
+  const openNoteForReviewItem = async (item: ReviewItem) => {
     if (!learner) return;
-    noteUttsRef.current = await courseRepository.loadStudentUtterances(learner.id, 200);
-    const summaries: ReviewNoteSummary[] = sessions
-      .filter((s) => s.completionStatus === 'completed')
-      .map((s) => {
-        const m = missionById(s.missionId);
-        return m ? { sessionId: s.id, dateISO: s.startedAt.slice(0, 10), themeJa: m.titleJa, themeZh: m.titleZh, isReview: isReviewKind(s.lessonKind) } : null;
-      })
-      .filter((x): x is ReviewNoteSummary => x !== null);
-    setNoteSummaries(summaries);
-    setNoteReturnStep('home');
-    setStep('reviewNotes');
+    setNoteReturnStep('history');
+    if (noteUttsRef.current.length === 0) {
+      noteUttsRef.current = await courseRepository.loadStudentUtterances(learner.id, 200);
+    }
+    if (item.sessionId) { openNoteForSession(item.sessionId, noteUttsRef.current); return; }
+    // セッション未紐付け（レア）: Mission だけで最小ノートを組む（実発話・レポートなし）
+    const mission = missionById(item.missionId);
+    if (!mission) return;
+    setActiveNote(buildReviewNote({
+      sessionId: `m-${item.missionId}`, dateISO: item.dateISO ?? todayLocalISO(), mission, report: null,
+      myUtterances: [], isReview: item.reasons.includes('overdue') || item.reasons.includes('due'),
+      nextReviewISO: item.nextReviewISO,
+    }));
+    setStep('reviewNote');
   };
 
-  /** 復習ノートで「見て確認した/声に出した」を記録（非破壊: lastPracticedAt を今日へ） */
-  const markNoteReviewed = (note: ReviewNote) => {
+  /**
+   * 30秒確認の自己評価を記録（非破壊）。定着は断定しない:
+   * - remembered/hesitated: lastPracticedAt を今日へ（接触記録のみ・ステージ昇格なし）
+   * - again: settings.practiceAgainIds へ追加（「もう一度」タブに出す）
+   */
+  const handleSelfEval = (note: ReviewNote, kind: SelfEval) => {
     if (!learner) return;
     setReviewedNoteIds((prev) => new Set(prev).add(note.sessionId));
     const prog = progress.find((p) => p.itemId === note.missionId);
-    if (prog) void courseRepository.upsertProgress(learner.id, { ...prog, lastPracticedAt: new Date().toISOString() });
+    if (prog) void courseRepository.upsertProgress(learner.id, { ...prog, lastPracticedAt: nowISO() });
+    if (kind === 'again') {
+      const ids = Array.from(new Set([...(learner.settings.practiceAgainIds ?? []), note.missionId]));
+      const nextSettings = { ...learner.settings, practiceAgainIds: ids };
+      setLearner({ ...learner, settings: nextSettings });
+      void courseRepository.updateLearner({ settings: nextSettings });
+    }
   };
 
   // レッスン完了 → 状態更新・保存・レポート生成
@@ -479,7 +493,7 @@ export default function AiCoursePage() {
       })();
     return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} estimate={est} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')}>
@@ -495,19 +509,11 @@ export default function AiCoursePage() {
       </Shell>
     );
   }
-  if (step === 'reviewNotes') {
-    return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
-        <CourseReviewNotesList t={t} notes={noteSummaries}
-          onOpen={(id) => openNoteForSession(id, noteUttsRef.current)} onBack={() => setStep('home')} />
-      </Shell>
-    );
-  }
   if (step === 'reviewNote' && activeNote) {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
-        <CourseReviewNote t={t} note={activeNote} reviewed={reviewedNoteIds.has(activeNote.sessionId)}
-          onMarkReviewed={() => markNoteReviewed(activeNote)}
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}>
+        <CourseReviewNote t={t} note={activeNote} selfEvaluated={reviewedNoteIds.has(activeNote.sessionId)}
+          onSelfEval={(kind) => handleSelfEval(activeNote, kind)}
           onBack={() => setStep(noteReturnStep)} />
       </Shell>
     );
@@ -556,7 +562,7 @@ export default function AiCoursePage() {
         onResume={() => { setHasResume(false); void startLesson(mode); }}
         onDiscardResume={() => { courseRepository.clearResume(); setHasResume(false); }}
         onSeeGrowth={() => { void openGrowth(); }}
-        onSeePastNotes={() => { void openReviewNotes(); }}
+        onSeePastNotes={() => { setStep('history'); }}
       />
     </Shell>
   );

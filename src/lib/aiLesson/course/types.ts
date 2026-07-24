@@ -97,6 +97,11 @@ export interface LearnerSettings {
   uiLanguage?: 'ja' | 'zh';
   /** サインアップ時の招待コード（Edge Function側でSecretと照合） */
   inviteCode?: string;
+  /**
+   * 「もう一度復習したい」と本人が選んだ表現（missionId）。復習記録ページで使う。
+   * 既存 settings(jsonb) への追加フィールド＝新規テーブル不要・非破壊。
+   */
+  practiceAgainIds?: string[];
 }
 
 export interface AdminOverrides {

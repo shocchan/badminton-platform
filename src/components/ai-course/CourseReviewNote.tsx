@@ -1,20 +1,23 @@
 // 「今回の復習」ノート（Feature 5）。音声を使わず、目で確認して何度でも見返す備忘録。
 // 既存データ（buildReviewNote）から生成済みの ReviewNote を表示するだけ（副作用なし）。
 
-import { ArrowLeft, BookOpen, CheckCircle2, MessageSquare, Sparkles, AlertTriangle, CalendarDays, Volume2, Eye, Repeat } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, BookOpen, CheckCircle2, MessageSquare, Sparkles, AlertTriangle, CalendarDays, Repeat, Eye, Timer } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { ReviewNote } from '../../lib/aiLesson/course/courseReviewNote';
+
+export type SelfEval = 'remembered' | 'hesitated' | 'again';
 
 interface Props {
   t: AiCourseDict;
   note: ReviewNote;
   onBack: () => void;
-  /** 復習として記録（見て確認/声に出した）。任意 */
-  onMarkReviewed?: (kind: 'viewed' | 'spoke') => void;
+  /** 30秒確認の自己評価を記録（任意）。定着は断定せず、記録のみ */
+  onSelfEval?: (kind: SelfEval) => void;
   /** もう一度音声で練習（任意） */
   onPractice?: () => void;
-  reviewed?: boolean;
+  selfEvaluated?: boolean;
 }
 
 const Card = ({ children }: { children: React.ReactNode }) => (
@@ -24,10 +27,11 @@ const Label = ({ icon, children }: { icon: React.ReactNode; children: React.Reac
   <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5 mb-1.5">{icon}{children}</p>
 );
 
-export const CourseReviewNote = ({ t, note, onBack, onMarkReviewed, onPractice, reviewed }: Props) => {
+export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, selfEvaluated }: Props) => {
   const tn = t.reviewNote;
   const zh = t.locale === 'zh';
   const e = note.expression;
+  const [revealed, setRevealed] = useState(false);
 
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
@@ -128,23 +132,40 @@ export const CourseReviewNote = ({ t, note, onBack, onMarkReviewed, onPractice, 
           </div>
         </Card>
 
-        {/* 復習の記録（音声任意）。見て確認しただけでも記録可能 */}
-        {onMarkReviewed && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            {reviewed ? (
-              <p className="text-sm text-emerald-600 font-medium text-center">{tn.reviewRecorded}</p>
+        {/* 30秒確認（音声API不使用）: 中国語→日本語を思い出す→答え→自己評価 */}
+        {onSelfEval && (
+          <div className="bg-white rounded-2xl border border-blue-100 p-5">
+            <p className="text-xs font-medium text-blue-700 flex items-center gap-1.5 mb-1"><Timer className="w-3.5 h-3.5" />{tn.flashcardTitle}</p>
+            {selfEvaluated ? (
+              <p className="text-sm text-emerald-600 font-medium text-center py-2">{tn.selfRecorded}</p>
             ) : (
               <>
-                <div className="grid grid-cols-2 gap-2">
-                  <button type="button" onClick={() => onMarkReviewed('viewed')}
-                    className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50 flex items-center justify-center gap-1.5">
-                    <Eye className="w-4 h-4 text-blue-600" />{tn.reviewDone}
-                  </button>
-                  <button type="button" onClick={() => onMarkReviewed('spoke')}
-                    className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50 flex items-center justify-center gap-1.5">
-                    <Volume2 className="w-4 h-4 text-emerald-600" />{tn.reviewSpoke}
-                  </button>
+                <p className="text-[11px] text-gray-400 mb-3">{tn.flashcardHint}</p>
+                <div className="bg-blue-50 rounded-xl p-4 text-center">
+                  <p className="text-lg font-bold text-blue-800 leading-snug break-words">{e.meaningZh}</p>
+                  {!revealed ? (
+                    <button type="button" onClick={() => setRevealed(true)}
+                      className="mt-3 min-h-11 px-5 py-2 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl inline-flex items-center gap-1.5 hover:bg-blue-50">
+                      <Eye className="w-4 h-4" />{tn.showAnswer}
+                    </button>
+                  ) : (
+                    <div className="mt-3 pt-3 border-t border-blue-100">
+                      <p className="text-lg font-bold text-gray-900 leading-snug break-words">{e.targetExpression}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{e.reading}</p>
+                      <p className="text-sm text-gray-700 mt-1">💬 {e.simpleExample}</p>
+                    </div>
+                  )}
                 </div>
+                {revealed && (
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    <button type="button" onClick={() => onSelfEval('remembered')}
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-emerald-50">😊 {tn.selfRemembered}</button>
+                    <button type="button" onClick={() => onSelfEval('hesitated')}
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-amber-50">🤔 {tn.selfHesitated}</button>
+                    <button type="button" onClick={() => onSelfEval('again')}
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-blue-50">🔁 {tn.selfAgain}</button>
+                  </div>
+                )}
                 {onPractice && (
                   <button type="button" onClick={onPractice}
                     className="w-full min-h-11 py-2 mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
