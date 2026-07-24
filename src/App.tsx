@@ -9,9 +9,11 @@ import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
 import NavigateWithId from './components/NavigateWithId';
 import { HomePageWrapper } from './components/HomePageWrapper';
-import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
+// 通常活動一覧/詳細はトップ表示に不要なので遅延化し、メインバンドルから切り離す。
+const ActivityPage         = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityPage })));
+const ActivityListPage     = lazy(() => import('./pages/ActivityPage').then(m => ({ default: m.ActivityListPage })));
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const TournamentGalleryPage = lazy(() => import('./pages/tournaments/TournamentGalleryPage').then(m => ({ default: m.TournamentGalleryPage })));

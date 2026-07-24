@@ -117,6 +117,8 @@ export const TournamentGalleryPage = () => {
                       <img
                         src={post.image_url}
                         alt={post.title}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                         style={{ objectPosition: post.image_position || 'center center' }}
                       />

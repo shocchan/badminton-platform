@@ -38,8 +38,8 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 50,
         items: [
-          { label: 'しおり', icon: 'shiori.png' },
-          { label: 'ストラップ', icon: 'strap.png' },
+          { label: 'しおり', icon: 'shiori.webp' },
+          { label: 'ストラップ', icon: 'strap.webp' },
           { label: 'マグネット' },
           { label: 'ピンバッジ' },
         ],
@@ -48,8 +48,8 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 100,
         items: [
-          { label: 'コースター', icon: 'coaster.png' },
-          { label: 'レジンメダル', icon: 'resin_medal.png' },
+          { label: 'コースター', icon: 'coaster.webp' },
+          { label: 'レジンメダル', icon: 'resin_medal.webp' },
         ],
         caption: '積み重ねた時間が、手に取れる形に',
       },
@@ -57,7 +57,7 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
         count: 300,
         items: [
           { label: 'フォトフレーム' },
-          { label: 'ペン立て', icon: 'penholder.png' },
+          { label: 'ペン立て', icon: 'penholder.webp' },
           { label: '風鈴' },
         ],
         caption: 'コミュニティの日常に、そっと寄り添う',
@@ -70,7 +70,7 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 1000,
         items: [
-          { label: 'アートラケット', icon: 'artracket.png' },
+          { label: 'アートラケット', icon: 'artracket.webp' },
           { label: 'タペストリー' },
           { label: 'ランプシェード' },
         ],
@@ -93,8 +93,8 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 50,
         items: [
-          { label: '书签', icon: 'shiori.png' },
-          { label: '挂饰钥匙扣', icon: 'strap.png' },
+          { label: '书签', icon: 'shiori.webp' },
+          { label: '挂饰钥匙扣', icon: 'strap.webp' },
           { label: '冰箱贴' },
           { label: '徽章' },
         ],
@@ -103,14 +103,14 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 100,
         items: [
-          { label: '杯垫', icon: 'coaster.png' },
-          { label: '树脂奖牌', icon: 'resin_medal.png' },
+          { label: '杯垫', icon: 'coaster.webp' },
+          { label: '树脂奖牌', icon: 'resin_medal.webp' },
         ],
         caption: '积累的时光，化作触手可及的形状',
       },
       {
         count: 300,
-        items: [{ label: '相框' }, { label: '笔筒', icon: 'penholder.png' }, { label: '风铃' }],
+        items: [{ label: '相框' }, { label: '笔筒', icon: 'penholder.webp' }, { label: '风铃' }],
         caption: '悄悄融入社群的日常',
       },
       {
@@ -121,7 +121,7 @@ export const SHUTTLE_ROADMAP_TEXT: Record<ShuttleLocale, RoadmapStrings> = {
       {
         count: 1000,
         items: [
-          { label: '艺术球拍', icon: 'artracket.png' },
+          { label: '艺术球拍', icon: 'artracket.webp' },
           { label: '挂毯' },
           { label: '灯罩' },
         ],
