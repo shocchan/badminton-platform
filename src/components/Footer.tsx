@@ -49,6 +49,9 @@ export const Footer = () => {
               <Link to={`/${homeLang}/level-guide`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'クラス案内' : '级别说明'}
               </Link>
+              <Link to={`/${homeLang}/first-time`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '初参加ガイド' : '首次参加指南'}
+              </Link>
               <Link to={`/${homeLang}/blog`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'ブログ' : '博客'}
               </Link>

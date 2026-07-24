@@ -43,6 +43,7 @@ const Vol2Results = lazy(() => import('./pages/results/Vol2'));
 const Vol3Results = lazy(() => import('./pages/results/Vol3'));
 const JoinPage            = lazy(() => import('./pages/JoinPage').then(m => ({ default: m.JoinPage })));
 const VenueGuidePage      = lazy(() => import('./pages/VenueGuidePage').then(m => ({ default: m.VenueGuidePage })));
+const FirstTimeGuidePage  = lazy(() => import('./pages/FirstTimeGuidePage').then(m => ({ default: m.FirstTimeGuidePage })));
 const ContactPage         = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
 const ShuttleRoadmapPage  = lazy(() => import('./pages/ShuttleRoadmapPage').then(m => ({ default: m.ShuttleRoadmapPage })));
 const TacticsBoardPage    = lazy(() => import('./pages/TacticsBoardPage'));
@@ -90,6 +91,7 @@ const AnimatedRoutes = () => {
             <Route path="venues"          element={<VenueGuidePage />} />
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
+            <Route path="first-time"      element={<FirstTimeGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
             <Route path="privacy-policy"  element={<PrivacyPolicyPage />} />
             <Route path="tokushoho"       element={<TokushohoPage />} />

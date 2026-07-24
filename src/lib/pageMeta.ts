@@ -106,6 +106,13 @@ const STATIC_PAGES: StaticEntry[] = [
   { path: '/zh/level-guide', title: `参加级别参考 | ${SITE_BRAND_ZH}`,
     description: '川口・蕨羽毛球交流会各级别（超初级・初级・中级・高级・公开）的参考标准和适合自己的班次选择方法。',
     bilingual: true },
+  // ── 初参加・一人参加ガイド ──
+  { path: '/ja/first-time', title: `初参加・一人参加ガイド | ${SITE_BRAND_JA}`,
+    description: '川口・蕨バドミントン交流会にはじめて参加する方へ。一人参加・初心者歓迎。持ち物・参加費・当日の流れ・キャンセル・中国語対応をまとめました。',
+    bilingual: true },
+  { path: '/zh/first-time', title: `首次参加・单独参加指南 | ${SITE_BRAND_ZH}`,
+    description: '写给首次参加川口・蕨羽毛球交流会的朋友。欢迎单独参加・初学者。汇总了携带物品・参加费・当天流程・取消・中文对应。',
+    bilingual: true },
   // ── ゲームページ ──
   { path: '/ja/game', title: `バド対決ゲーム | ${SITE_BRAND_JA}`,
     description: 'AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！',
