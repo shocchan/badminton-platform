@@ -531,6 +531,18 @@ export const HomePage = () => {
         </div>
       </div>
 
+      {/* 国際交流ページへの導線 */}
+      <div className="max-w-6xl mx-auto px-4 pb-10 text-center">
+        <Link
+          to={`/${lang === 'zh' ? 'zh' : 'ja'}/international`}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:underline"
+        >
+          🌏 {lang === 'ja'
+            ? '日本人・中国人を中心に、多国籍のメンバーが交流しています — 国際交流について'
+            : '以日本人・中国人为主，来自多国的成员在此交流 — 关于国际交流'}
+        </Link>
+      </div>
+
       <GeneralFaqSection lang={lang} />
 
     </main>

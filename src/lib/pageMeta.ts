@@ -113,6 +113,13 @@ const STATIC_PAGES: StaticEntry[] = [
   { path: '/zh/first-time', title: `首次参加・单独参加指南 | ${SITE_BRAND_ZH}`,
     description: '写给首次参加川口・蕨羽毛球交流会的朋友。欢迎单独参加・初学者。汇总了携带物品・参加费・当天流程・取消・中文对应。',
     bilingual: true },
+  // ── 国際交流 ──
+  { path: '/ja/international', title: `国際交流バドミントン（川口・蕨・埼玉） | ${SITE_BRAND_JA}`,
+    description: '川口・蕨エリアの国際交流バドミントンコミュニティ。日本人・中国人を中心に、インド・フィリピン・インドネシア出身の方の参加実績も。日本語・中国語で案内可能、一人参加・初参加歓迎。大会と通常活動を開催。',
+    bilingual: true },
+  { path: '/zh/international', title: `国际交流羽毛球（川口・蕨・埼玉） | ${SITE_BRAND_ZH}`,
+    description: '川口・蕨地区的国际交流羽毛球社区。以日本人・中国人为主，也有印度・菲律宾・印度尼西亚的参加者。可用日语・中文对应，欢迎单独参加・首次参加。举办比赛和常规活动。',
+    bilingual: true },
   // ── ゲームページ ──
   { path: '/ja/game', title: `バド対決ゲーム | ${SITE_BRAND_JA}`,
     description: 'AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！',

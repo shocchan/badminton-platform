@@ -46,6 +46,7 @@ const TEXT = {
     langTitle: '中国語対応',
     langBody:
       '運営は中国語対応が可能で、日本人・中国人を中心とした中日バイリンガルのコミュニティです。中国語のみでも安心してご参加いただけます。',
+    intlLink: '国際交流バドミントンについて',
     faqTitle: 'その他のよくある質問',
     faqBody: '会場・駐車場・申し込み方法など、よくある質問をまとめています。',
     faqLink: 'FAQを見る',
@@ -84,6 +85,7 @@ const TEXT = {
     langTitle: '中文对应',
     langBody:
       '运营团队可以用中文沟通，是以日本人・中国人为主的中日双语社区。只会中文也能安心参加。',
+    intlLink: '关于国际交流羽毛球',
     faqTitle: '其他常见问题',
     faqBody: '汇总了场地・停车场・报名方法等常见问题。',
     faqLink: '查看FAQ',
@@ -146,7 +148,10 @@ export const FirstTimeGuidePage = () => {
         <Link to={`/${homeLang}/cancel-policy`} className={inlineLink}>{t.cancelLink} <ArrowRight className="w-3.5 h-3.5" /></Link>
       </Section>
 
-      <Section icon={Languages} title={t.langTitle}>{t.langBody}</Section>
+      <Section icon={Languages} title={t.langTitle}>
+        <p className="mb-2">{t.langBody}</p>
+        <Link to={`/${homeLang}/international`} className={inlineLink}>{t.intlLink} <ArrowRight className="w-3.5 h-3.5" /></Link>
+      </Section>
 
       <Section icon={HelpCircle} title={t.faqTitle}>
         <p className="mb-2">{t.faqBody}</p>

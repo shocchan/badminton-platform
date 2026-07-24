@@ -31,6 +31,7 @@ const TEXT = {
     fee: '参加費',
     yen: '円',
     ended: '終了',
+    intlLink: '多国籍のメンバーが参加しています → 国際交流バドミントンについて',
   },
   zh: {
     home: '首页',
@@ -49,6 +50,7 @@ const TEXT = {
     fee: '参加费',
     yen: '日元',
     ended: '已结束',
+    intlLink: '有来自多个国家的成员参加 → 关于国际交流羽毛球',
   },
 } as const;
 
@@ -131,6 +133,9 @@ export const TournamentListPage = () => {
             <Trophy className="w-7 h-7 text-blue-500 flex-shrink-0" /> {t.h1}
           </h1>
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{t.intro}</p>
+          <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/international`} className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium hover:underline mt-3">
+            {t.intlLink}
+          </Link>
         </header>
 
         {/* 募集中・開催予定 */}
