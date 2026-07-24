@@ -83,8 +83,7 @@ serve(async (req) => {
   const known = await rpc(url, serviceKey, "ai_email_has_learner", { p_email: email });
 
   if (known === true) {
-    // 既存の受講者 → 招待コードなしで再ログイン可
-    createUser = false;
+    // 既存の受講者 → 招待コードなしで再ログイン可（createUser は false のまま）
   } else if (code) {
     const redeemed = await rpc(url, serviceKey, "ai_redeem_invite", { p_code: code, p_email: email });
     if (!redeemed || redeemed.ok !== true) {
