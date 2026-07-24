@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 const EDGE_BASE = (import.meta.env.VITE_SUPABASE_URL as string).replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -54,6 +54,9 @@ const content = {
 export const JoinPage = () => {
   const { lang } = useLanguage();
   const t = content[lang === 'zh' ? 'zh' : 'ja'];
+
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
 
   const [name, setName] = useState('');
   const [wechatId, setWechatId] = useState('');
@@ -127,12 +130,6 @@ export const JoinPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t.title}</title>
-        <meta name="description" content={t.description} />
-        <link rel="canonical" href={`https://kawabado.com/${lang}/join`} />
-      </Helmet>
-
       <div className="max-w-md mx-auto px-4 py-10">
         <h1 className="text-2xl font-bold text-center mb-6">{t.heading}</h1>
 

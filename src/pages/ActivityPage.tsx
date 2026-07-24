@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { CalendarDays, Clock, MapPin, ChevronDown, ArrowRight, AlertTriangle, HelpCircle } from 'lucide-react';
 import { CardSkeleton } from '../components/ui/StateViews';
 import { supabase } from '../services/supabaseClient';
@@ -9,6 +8,10 @@ import { FAQSchema } from '../components/seo/FAQSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
+import { usePageMeta } from '../hooks/usePageMeta';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
+import type { PageMeta } from '../lib/pageMeta';
+import { DEFAULT_OGP, bilingualHreflang } from '../lib/pageMeta';
 
 interface Group {
   id: string;
@@ -422,6 +425,27 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const { label: countdownLabel, expired: autoExpired } = useCountdown(deadline);
   const isClosed = activity?.status === 'closed' || autoExpired;
 
+  // SEO: 活動詳細の meta を計算し、usePageMeta で in-place 更新（Helmet を使うと React 19 で重複するため）。
+  // activity 読み込み中や cancelled は null を渡して no-op にする。
+  // hooks 順序を安定させるため、必ず早期returnの手前で呼ぶ。
+  const detailUrl = activity ? `https://kawabado.com/${lang}/activity/${activity.id}` : '';
+  const activityPageMeta: PageMeta | null = (activity && activity.status !== 'cancelled') ? (lang === 'zh' ? {
+    title: `${activity.title} | 川口・蕨羽毛球日常活动`,
+    description: `${activity.date} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)} 在${activity.location}举办的羽毛球日常活动。参加费${activity.price}日元（含羽毛球费用）。可通过本页面在线报名。`,
+    canonical: detailUrl,
+    hreflang: bilingualHreflang(`/activity/${activity.id}`),
+    ogType: 'website', ogUrl: detailUrl, ogImage: DEFAULT_OGP, ogLocale: 'zh_CN',
+    twitterCard: 'summary_large_image', htmlLang: 'zh-CN',
+  } : {
+    title: `${activity.title} | 川口・蕨バドミントン通常活動`,
+    description: `${activity.date} ${activity.start_time.slice(0,5)}〜${activity.end_time.slice(0,5)} ${activity.location}で開催するバドミントン通常活動。参加費${activity.price}円（シャトル代込み）。このページからそのまま申し込めます。`,
+    canonical: detailUrl,
+    hreflang: bilingualHreflang(`/activity/${activity.id}`),
+    ogType: 'website', ogUrl: detailUrl, ogImage: DEFAULT_OGP, ogLocale: 'ja_JP',
+    twitterCard: 'summary_large_image', htmlLang: 'ja',
+  }) : null;
+  usePageMeta(activityPageMeta);
+
   const handleShare = () => setShowShareModal(true);
   const origin = window.location.origin;
 
@@ -636,38 +660,16 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     : '備考（任意）例：初参加です。';
 
   const timeRange = `${activity.start_time.slice(0, 5)}〜${activity.end_time.slice(0, 5)}`;
-  // SEO: 活動詳細の正規URLは常に /:lang/activity/:id（basePath無し）。
-  // Worker側で /assistant/:lang/activity/:id → /:lang/activity/:id を301するが、
-  // 万一直リンクで来ても canonical が正規を指すよう防御。
-  const detailUrl = `https://kawabado.com/${lang}/activity/${activity.id}`;
-  const detailMeta = lang === 'zh'
-    ? {
-        title: `${activity.title} | 川口・蕨羽毛球日常活动`,
-        desc: `${formatDate(activity.date, 'zh')} ${timeRange} 在${activity.location}举办的羽毛球日常活动。参加费${activity.price}日元（含羽毛球费用）。可通过本页面在线报名。`,
-      }
-    : {
-        title: `${activity.title} | 川口・蕨バドミントン通常活動`,
-        desc: `${formatDate(activity.date, 'ja')} ${timeRange} ${activity.location}で開催するバドミントン通常活動。参加費${activity.price}円（シャトル代込み）。このページからそのまま申し込めます。`,
-      };
+  // 日付文字列を description 用に整形（EventSchema 内部の日付組立ては別途）
+  void formatDate; void timeRange;
   // assistant グループの活動一覧は川口・蕨の一覧に統合表示されている
   const listPath = groupSlug === 'chaoxianzu'
     ? `/chaoxianzu/${lang}/activity`
     : `/${lang}/activity`;
+  // ページ meta は Worker + 上部の usePageMeta で管理。Helmet は EventSchema (JSON-LD) 経由のみ。
 
   return (
     <>
-      <Helmet>
-        <title>{detailMeta.title}</title>
-        <meta name="description" content={detailMeta.desc} />
-        <meta property="og:title" content={detailMeta.title} />
-        <meta property="og:description" content={detailMeta.desc} />
-        <meta property="og:url" content={detailUrl} />
-        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={detailUrl} />
-        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/activity/${activity.id}`} />
-        <link rel="alternate" hrefLang="zh-CN" href={`https://kawabado.com/zh/activity/${activity.id}`} />
-        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/activity/${activity.id}`} />
-      </Helmet>
       <EventSchema
         name={activity.title}
         startDate={`${activity.date}T${activity.start_time.slice(0, 5)}:00+09:00`}
@@ -681,7 +683,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
           availability: isClosed || isFull ? 'SoldOut' : 'InStock',
           url: detailUrl,
         }}
-        description={detailMeta.desc}
+        description={activityPageMeta?.description ?? ''}
       />
     <main className="max-w-lg mx-auto px-4 pb-28 pt-0">
       {shareToast && (
@@ -1162,6 +1164,9 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
   const { group, groupId } = useGroup(groupSlug);
   const t = LIST_T[effectiveLang];
 
+  // ページ meta は Worker + useStaticPageMeta で管理（early return より前で呼ぶ）
+  useStaticPageMeta();
+
   // kawaguchi-warabiの一覧には、統合表示対象のサブグループ（assistant等）も合わせて取得する
   const isMainGroup = groupSlug === 'kawaguchi-warabi';
   const [groupMeta, setGroupMeta] = useState<Record<string, { slug: string; badgeLabel: string | null }>>({});
@@ -1234,10 +1239,6 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
     </main>
   );
 
-  const activityMeta = effectiveLang === 'zh'
-    ? { title: '常规活动列表 | 川口・蕨羽毛球交流会', description: '在川口市・蕨市公民馆举办的羽毛球常规活动列表。参加费600日元起。' }
-    : { title: '通常活動 一覧 | 川口・蕨バドミントン交流会', description: '川口市・蕨市の公民館で開催するバドミントン通常活動の一覧。芝園公民館・幸栄公民館など。参加費600円〜。' };
-
   // 通常活動向けFAQ（検索流入用。FAQPageスキーマ付き）
   const activityFaq = effectiveLang === 'zh'
     ? [
@@ -1259,18 +1260,6 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
 
   return (
     <>
-      <Helmet>
-        <title>{activityMeta.title}</title>
-        <meta name="description" content={activityMeta.description} />
-        <meta property="og:title" content={activityMeta.title} />
-        <meta property="og:description" content={activityMeta.description} />
-        <meta property="og:url" content={`https://kawabado.com/${effectiveLang}/activity`} />
-        <meta property="og:locale" content={effectiveLang === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${effectiveLang}/activity`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/activity" />
-        <link rel="alternate" hrefLang="zh-CN" href="https://kawabado.com/zh/activity" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/activity" />
-      </Helmet>
     <main className="max-w-5xl mx-auto px-4 py-8">
       {isMainGroup && (
         <Breadcrumbs items={[

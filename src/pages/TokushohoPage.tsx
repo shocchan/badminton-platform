@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { FileText } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 // 特定商取引法に基づく表記。
 // 個人事業者のため、氏名・住所・電話番号は「請求があった場合に遅滞なく開示する」
@@ -69,15 +69,12 @@ export const TokushohoPage = () => {
   const zh = lang === 'zh';
   const rows = zh ? ZH : JA;
   const title = zh ? '特定商业交易法标示' : '特定商取引法に基づく表記';
-  const canonical = `https://kawabado.com/${zh ? 'zh' : 'ja'}/tokushoho`;
+
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
 
   return (
     <>
-      <Helmet>
-        <title>{`${title} | 川口・蕨バドミントン交流会`}</title>
-        <meta name="description" content={zh ? '川口・蕨羽毛球交流会 基于特定商业交易法的标示。' : '川口・蕨バドミントン交流会の特定商取引法に基づく表記です。'} />
-        <link rel="canonical" href={canonical} />
-      </Helmet>
       <main className="max-w-2xl mx-auto px-4 py-8">
         <Breadcrumbs items={[{ label: zh ? '首页' : 'ホーム', path: `/${lang}/` }, { label: title }]} />
         <div className="flex items-center gap-2.5 mb-6">

@@ -5,6 +5,8 @@ import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { useBlogPost } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
+import { usePageMeta } from '../hooks/usePageMeta';
+import type { PageMeta } from '../lib/pageMeta';
 
 const SITE_NAME = '川口・蕨バドミントン交流会（kawabado）';
 const DEFAULT_OGP = 'https://kawabado.com/ogp.jpg';
@@ -33,6 +35,23 @@ export const BlogDetailPage = () => {
     supabase.rpc('increment_blog_view', { blog_id: post.id })
       .then(({ error }) => { if (error) console.error('increment_blog_view error:', error); });
   }, [post?.id, post?.status]);
+
+  // SEO: ブログは日本語のみ実装（Case C）。canonical は常に /ja/blog/:id。
+  // 中国語URLで表示された場合も、canonical で日本語版へ正規化する。hreflang は出さない。
+  // usePageMeta を早期returnより前に呼ぶ（hooks順序を安定させるため）。
+  const pageMeta: PageMeta | null = post && post.status !== 'draft' ? {
+    title: `${post.title} | ${SITE_NAME}`,
+    description: post.excerpt?.trim() || buildExcerpt(post.content) || `${SITE_NAME}のブログ記事`,
+    canonical: `https://kawabado.com/ja/blog/${post.id}`,
+    hreflang: [], // Case C: 中国語版が存在しないため hreflang は出さない
+    ogType: 'article',
+    ogUrl: `https://kawabado.com/ja/blog/${post.id}`,
+    ogImage: post.image_url && /^https?:\/\//.test(post.image_url) ? post.image_url : DEFAULT_OGP,
+    ogLocale: 'ja_JP',
+    twitterCard: 'summary_large_image',
+    htmlLang: 'ja',
+  } : null;
+  usePageMeta(pageMeta);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -75,10 +94,9 @@ export const BlogDetailPage = () => {
     );
   }
 
-  // SEO: ブログは日本語のみ実装（Case C）。canonical は常に /ja/blog/:id。
-  // 中国語URLで表示された場合も、canonical で日本語版へ正規化する。hreflang は出さない。
+  // ページ meta は Worker + 上部の usePageMeta で管理。Helmet は JSON-LD のみ担う。
+  // 下書きは pageMeta を出さない（usePageMeta が no-op）ため、robots meta も残らない。
   const canonical = `https://kawabado.com/ja/blog/${post.id}`;
-  const seoTitle = `${post.title} | ${SITE_NAME}`;
   const seoDesc = post.excerpt?.trim() || buildExcerpt(post.content) || `${SITE_NAME}のブログ記事`;
   const seoImage = post.image_url && /^https?:\/\//.test(post.image_url) ? post.image_url : DEFAULT_OGP;
   const isPublic = post.status !== 'draft';
@@ -104,22 +122,8 @@ export const BlogDetailPage = () => {
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
       <Helmet>
-        <html lang="ja" />
-        <title>{seoTitle}</title>
-        <meta name="description" content={seoDesc} />
         {/* 下書きは検索対象外（RLSにより一般ユーザーは取得できないが、二重防御） */}
         {!isPublic && <meta name="robots" content="noindex, nofollow" />}
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={seoTitle} />
-        <meta property="og:description" content={seoDesc} />
-        <meta property="og:url" content={canonical} />
-        <meta property="og:image" content={seoImage} />
-        <meta property="og:locale" content="ja_JP" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={seoTitle} />
-        <meta name="twitter:description" content={seoDesc} />
-        <meta name="twitter:image" content={seoImage} />
-        <link rel="canonical" href={canonical} />
         {isPublic && (
           <script type="application/ld+json">{JSON.stringify(blogPostingJsonLd)}</script>
         )}

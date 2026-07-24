@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { Newspaper, ArrowRight, Tag } from 'lucide-react';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateViews';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 // SEO: ブログは現状 blog_posts テーブルに言語カラムを持たず、
 // 全記事が日本語で書かれている（Case C: 中国語URLでも日本語本文をそのまま表示）。
 // このため中国語版の hreflang は出さず、日本語ページを正規インデックス対象にする。
-const BLOG_LIST_URL = 'https://kawabado.com/ja/blog';
-const BLOG_LIST_TITLE = 'ブログ・開催レポート | 川口・蕨バドミントン交流会（kawabado）';
-const BLOG_LIST_DESC = '川口・蕨エリアで開催しているバドミントン大会・通常活動のレポート、参加者の声、運営からのお知らせをまとめたブログ。';
+// ページ meta は Worker が /ja/blog に注入し、SPA遷移時は useStaticPageMeta が in-place 更新する。
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
@@ -23,6 +21,8 @@ const SORT_OPTIONS: { key: SortMode; label: string }[] = [
 export const BlogPage = () => {
   const { blogPosts, loading, error } = useBlogPosts();
   const [sort, setSort] = useState<SortMode>('newest');
+
+  useStaticPageMeta();
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -38,20 +38,6 @@ export const BlogPage = () => {
 
   return (
     <main className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
-      <Helmet>
-        <html lang="ja" />
-        <title>{BLOG_LIST_TITLE}</title>
-        <meta name="description" content={BLOG_LIST_DESC} />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={BLOG_LIST_TITLE} />
-        <meta property="og:description" content={BLOG_LIST_DESC} />
-        <meta property="og:url" content={BLOG_LIST_URL} />
-        <meta property="og:locale" content="ja_JP" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={BLOG_LIST_TITLE} />
-        <meta name="twitter:description" content={BLOG_LIST_DESC} />
-        <link rel="canonical" href={BLOG_LIST_URL} />
-      </Helmet>
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
           <Newspaper className="w-6 h-6 text-blue-500" /> ブログ

@@ -4,6 +4,7 @@ import { ChevronDown, ExternalLink } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 const faqs = [
   {
@@ -171,13 +172,12 @@ export const FaqPage = () => {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const activeFaqs = lang === 'zh' ? faqsZh : faqs;
 
+  // ページ meta は Worker + useStaticPageMeta で管理。Helmet は JSON-LD 専用。
+  useStaticPageMeta();
+
   const toggle = (key: string) => {
     setOpenItems(prev => ({ ...prev, [key]: !prev[key] }));
   };
-
-  const faqMeta = lang === 'zh'
-    ? { title: '常见问题 | 川口・蕨羽毛球交流会', description: '川口・蕨羽毛球交流会的参加方法、注意事项、取消政策等常见问题汇总。' }
-    : { title: 'よくある質問 | 川口・蕨バドミントン交流会', description: '川口・蕨バドミントン交流会への参加方法、持ち物、キャンセルポリシーなどよくある質問をまとめています。' };
 
   const faqJsonLd = {
     '@context': 'https://schema.org',
@@ -194,16 +194,6 @@ export const FaqPage = () => {
   return (
     <>
       <Helmet>
-        <title>{faqMeta.title}</title>
-        <meta name="description" content={faqMeta.description} />
-        <meta property="og:title" content={faqMeta.title} />
-        <meta property="og:description" content={faqMeta.description} />
-        <meta property="og:url" content={`https://kawabado.com/${lang}/faq`} />
-        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${lang}/faq`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/faq" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/faq" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/faq" />
         <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
       </Helmet>
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">

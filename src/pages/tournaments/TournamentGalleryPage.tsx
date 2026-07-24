@@ -4,6 +4,8 @@ import { ArrowRight, Tag, Trophy } from 'lucide-react';
 import { useBlogPosts } from '../../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../../components/ui/StateViews';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useStaticPageMeta } from '../../hooks/useStaticPageMeta';
+import { getStaticPageMeta } from '../../lib/pageMeta';
 
 // 「大会レポート」= blog_posts のうち、タイトルに「開催レポート」を含む記事
 // （既存レポートの命名規約に自動追従）、または tags に "tournament" を明示付与した記事。
@@ -50,33 +52,25 @@ export const TournamentGalleryPage = () => {
       day: 'numeric',
     });
 
-  const canonical = `https://kawabado.com/${lang}/tournaments/gallery`;
+  // ページ meta は Worker + useStaticPageMeta で管理。Helmet は JSON-LD 専用。
+  useStaticPageMeta();
+  const pageMeta = getStaticPageMeta(`/${lang}/tournaments/gallery`);
+  const collectionJsonLd = pageMeta ? {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: pageMeta.title,
+    url: pageMeta.canonical,
+    image: pageMeta.ogImage,
+    description: pageMeta.description,
+  } : null;
 
   return (
     <>
-      <Helmet>
-        <title>{t.metaTitle}</title>
-        <meta name="description" content={t.metaDesc} />
-        <meta property="og:title" content={t.metaTitle} />
-        <meta property="og:description" content={t.metaDesc} />
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://kawabado.com/ogp.jpg" />
-        <meta property="og:url" content={canonical} />
-        <link rel="canonical" href={canonical} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/tournaments/gallery" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/tournaments/gallery" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/tournaments/gallery" />
-        <script type="application/ld+json">
-          {JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'CollectionPage',
-            name: t.metaTitle,
-            url: canonical,
-            image: 'https://kawabado.com/ogp.jpg',
-            description: t.metaDesc,
-          })}
-        </script>
-      </Helmet>
+      {collectionJsonLd && (
+        <Helmet>
+          <script type="application/ld+json">{JSON.stringify(collectionJsonLd)}</script>
+        </Helmet>
+      )}
 
       <main className="max-w-5xl mx-auto px-4 py-8 sm:py-10">
         <div className="text-center mb-8 sm:mb-10">

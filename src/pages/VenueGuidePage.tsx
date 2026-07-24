@@ -2,6 +2,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 type Venue = {
   id: string;
@@ -56,15 +57,8 @@ export const VenueGuidePage = () => {
   const { lang } = useLanguage();
   const l = lang === 'zh' ? 'zh' : 'ja';
 
-  const meta = l === 'zh'
-    ? {
-        title: '会场指南 | 川口・蕨羽毛球交流会',
-        description: '川口・蕨羽毛球交流会的活动会场指南。芝园公民馆（川口市）・蕨市民体育馆的地址、从蕨站的交通方式、停车场信息。',
-      }
-    : {
-        title: '会場ガイド | 川口・蕨バドミントン交流会',
-        description: '川口・蕨バドミントン交流会の活動会場ガイド。芝園公民館（川口市）・蕨市民体育館の住所、蕨駅からのアクセス、駐車場情報をまとめています。',
-      };
+  // ページ meta は Worker + useStaticPageMeta で管理。Helmet は JSON-LD 専用。
+  useStaticPageMeta();
 
   const venuesJsonLd = VENUES.map(v => ({
     '@context': 'https://schema.org',
@@ -82,16 +76,6 @@ export const VenueGuidePage = () => {
   return (
     <>
       <Helmet>
-        <title>{meta.title}</title>
-        <meta name="description" content={meta.description} />
-        <meta property="og:title" content={meta.title} />
-        <meta property="og:description" content={meta.description} />
-        <meta property="og:url" content={`https://kawabado.com/${l}/venues`} />
-        <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${l}/venues`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/venues" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/venues" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/venues" />
         <script type="application/ld+json">{JSON.stringify(venuesJsonLd)}</script>
       </Helmet>
       <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">

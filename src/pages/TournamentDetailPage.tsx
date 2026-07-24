@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import {
   Calendar, Clock, MapPin, JapaneseYen, AlertTriangle, Users,
   CreditCard, Trophy, ShieldCheck, Share2, Camera, ArrowRight, ChevronRight, Map, Quote,
@@ -14,6 +13,9 @@ import { useBlogPosts } from '../hooks/useBlogPosts';
 import { trackViewTournament } from '../lib/analytics';
 import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
 import type { Tournament } from '../types';
+import { usePageMeta } from '../hooks/usePageMeta';
+import type { PageMeta } from '../lib/pageMeta';
+import { DEFAULT_OGP, bilingualHreflang } from '../lib/pageMeta';
 
 const levelColors: Record<string, { bg: string; text: string }> = {
   '超初級': { bg: 'bg-green-100',  text: 'text-green-800' },
@@ -125,6 +127,34 @@ export const TournamentDetailPage = () => {
     setTimeout(() => setShareToast(''), 2500);
   };
 
+  // ページ meta を計算し、usePageMeta で in-place 更新（Helmet を使うと React 19 で重複するため）。
+  // 読み込み中や draft は null で no-op。hooks 順序を安定させるため早期returnの手前で呼ぶ。
+  const isPublic = !!(tournament && (tournament.visibility ?? 'published') !== 'draft');
+  const tournamentPageMeta: PageMeta | null = isPublic && tournament ? (zh ? {
+    title: `${tournament.title}｜川口・蕨羽毛球交流会`,
+    description: `${tournament.event_date} 举办。地点: ${tournament.location}。参加费: ${isDoublesEvent(tournament) ? `1人${feePerPerson(tournament)}日元` : `${tournament.entry_fee}日元`}。${tournament.level}班次。`,
+    canonical: `https://kawabado.com/zh/tournaments/${tournament.id}`,
+    hreflang: bilingualHreflang(`/tournaments/${tournament.id}`),
+    ogType: 'website',
+    ogUrl: `https://kawabado.com/zh/tournaments/${tournament.id}`,
+    ogImage: DEFAULT_OGP,
+    ogLocale: 'zh_CN',
+    twitterCard: 'summary_large_image',
+    htmlLang: 'zh-CN',
+  } : {
+    title: `${tournament.title} | 川口・蕨バドミントン交流会`,
+    description: `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${isDoublesEvent(tournament) ? `1人${feePerPerson(tournament)}円` : `${tournament.entry_fee}円`}。${tournament.level}クラス。`,
+    canonical: `https://kawabado.com/ja/tournaments/${tournament.id}`,
+    hreflang: bilingualHreflang(`/tournaments/${tournament.id}`),
+    ogType: 'website',
+    ogUrl: `https://kawabado.com/ja/tournaments/${tournament.id}`,
+    ogImage: DEFAULT_OGP,
+    ogLocale: 'ja_JP',
+    twitterCard: 'summary_large_image',
+    htmlLang: 'ja',
+  }) : null;
+  usePageMeta(tournamentPageMeta);
+
   const handleLineShare = async () => {
     if (!tournament) return;
     const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
@@ -195,9 +225,7 @@ export const TournamentDetailPage = () => {
 
   const badgeColor = remaining <= 3 ? 'bg-red-500 text-white' : remaining <= 7 ? 'bg-amber-400 text-amber-900' : 'bg-green-100 text-green-800';
 
-  const pageTitle = `${tournament.title} | 川口・蕨バドミントン交流会`;
-  const pageDesc = `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${isDoublesEvent(tournament) ? `1人${feePerPerson(tournament)}円` : `${tournament.entry_fee}円`}。${tournament.level}クラス。`;
-
+  // ページ meta は Worker + 上部の usePageMeta で管理。以下は EventSchema (JSON-LD) 用に残す。
   const eventSchemaProps = tournamentToEventSchemaProps(tournament, {
     entryUrl: `https://kawabado.com/ja/tournaments/${tournament.id}`,
     image: 'https://kawabado.com/ogp.jpg',
@@ -270,20 +298,6 @@ export const TournamentDetailPage = () => {
         </div>
       )}
 
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={pageDesc} />
-        <meta property="og:title" content={pageTitle} />
-        <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-        <meta property="og:image" content="https://kawabado.com/ogp.jpg" />
-        <meta property="og:locale" content="ja_JP" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <link rel="canonical" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-        <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-        <link rel="alternate" hrefLang="zh" href={`https://kawabado.com/zh/tournaments/${tournament.id}`} />
-        <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-      </Helmet>
       <EventSchema {...eventSchemaProps} />
     <main className="max-w-2xl mx-auto px-4 py-8">
       <Breadcrumbs items={[

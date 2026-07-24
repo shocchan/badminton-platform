@@ -1,7 +1,7 @@
-import { Helmet } from 'react-helmet-async'
 import { useParams } from 'react-router-dom'
 import { EventSchema } from '../../components/seo/EventSchema'
 import { Breadcrumbs } from '../../components/Breadcrumbs'
+import { useStaticPageMeta } from '../../hooks/useStaticPageMeta'
 
 const t = {
   ja: {
@@ -67,12 +67,11 @@ export default function Vol1Results() {
   const l = lang === 'zh' ? t.zh : t.ja
   const homeLang = lang === 'zh' ? 'zh' : 'ja'
 
+  // ページ meta は Worker + useStaticPageMeta で管理。EventSchema (JSON-LD) は残す。
+  useStaticPageMeta()
+
   return (
     <>
-      <Helmet>
-        <title>{l.title}</title>
-        <meta name="description" content={l.desc} />
-      </Helmet>
       <EventSchema
         name="第1回 川口・蕨バド交流大会（シングルス）"
         startDate="2026-06-18"

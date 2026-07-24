@@ -5,6 +5,7 @@ import ShuttleCounter from '../components/ShuttleCounter';
 import { ErrorState } from '../components/ui/StateViews';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 import { useTournaments } from '../hooks/useTournaments';
 import { TournamentCard } from '../components/TournamentCard';
 import { TournamentCardSkeleton } from '../components/TournamentCardSkeleton';
@@ -223,15 +224,10 @@ export const HomePage = () => {
     ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })
     : null;
 
-  const metaContent = lang === 'zh'
-    ? {
-        title: '川口・蕨羽毛球交流会 | 平日夜间羽毛球活动 川口・蕨',
-        description: '埼玉县川口市・蕨市地区的平日夜间羽毛球交流活动。从超初级到高水平全级别欢迎参加。保证4场以上比赛。',
-      }
-    : {
-        title: '川口・蕨バドミントン交流会 | 平日夜バドミントン大会 川口・蕨',
-        description: '川口市・蕨市エリアの平日夜バドミントン交流会。超初級〜オープンまで全レベル歓迎。4試合以上保証。芝園公民館・蕨市民体育館ほかで定期開催。',
-      };
+  // ページ meta (title, description, canonical, OGP, Twitter, hreflang, html lang) は
+  // Worker が初期HTMLに注入し、SPA遷移時は useStaticPageMeta が既存タグを in-place 更新する。
+  // → Helmet で meta を出すと React 19 の native hoisting により重複するため、Helmet は JSON-LD のみに使う。
+  useStaticPageMeta();
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -257,16 +253,6 @@ export const HomePage = () => {
   return (
     <>
       <Helmet>
-        <title>{metaContent.title}</title>
-        <meta name="description" content={metaContent.description} />
-        <meta property="og:title" content={metaContent.title} />
-        <meta property="og:description" content={metaContent.description} />
-        <meta property="og:url" content={`https://kawabado.com/${lang}/`} />
-        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${lang}/`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/" />
         <script type="application/ld+json">{JSON.stringify(orgJsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify(websiteJsonLd)}</script>
       </Helmet>

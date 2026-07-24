@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 type RuleItem = { heading: string; body: string; level: string };
 type RuleSection = { id: string; icon: string; color: string; headerBg: string; lightBg: string; title: string; items: RuleItem[] };
@@ -180,6 +181,8 @@ const levelIcon = (level: string) => {
 export const CancelPolicyPage = () => {
   const { lang } = useLanguage();
   const rules = lang === 'zh' ? rulesZh : rulesJa;
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
   return (
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
       <Breadcrumbs items={[

@@ -5,6 +5,7 @@ import { SHUTTLE_ROADMAP_TEXT } from '../lib/shuttleRoadmapI18n';
 import { SHUTTLE_MILESTONES } from '../lib/shuttleMilestones';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../services/supabaseClient';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 const GOAL = SHUTTLE_MILESTONES[SHUTTLE_MILESTONES.length - 1].count; // 1000
 
@@ -13,6 +14,9 @@ export function ShuttleRoadmapPage() {
   const locale = lang === 'zh' ? 'zh' : 'ja';
   const t = SHUTTLE_ROADMAP_TEXT[locale];
   const [total, setTotal] = useState<number | null>(null);
+
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
 
   useEffect(() => {
     supabase

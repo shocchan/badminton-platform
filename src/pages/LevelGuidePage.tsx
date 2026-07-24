@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Crown, Medal, Award, Sprout, User, Check, CheckCircle2, Lightbulb, type LucideIcon } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 type LevelData = {
   id: string;
@@ -258,24 +258,11 @@ export const LevelGuidePage = () => {
   const { lang } = useLanguage();
   const levels = lang === 'zh' ? levelsZh : levelsJa;
 
-  const levelMeta = lang === 'zh'
-    ? { title: '级别说明 | 川口・蕨羽毛球交流会', description: '超初级・初级・中级・公开组各级别的说明。从零基础到有经验者全级别欢迎参加。' }
-    : { title: 'レベル・クラス案内 | 川口・蕨バドミントン交流会', description: '超初級・初級・中級・オープンの各クラスの違いをご説明します。初めての方から経験者まで全レベル歓迎。' };
+  // ページ meta は Worker + useStaticPageMeta で管理。このページは JSON-LD が無いので Helmet 不要。
+  useStaticPageMeta();
 
   return (
     <>
-      <Helmet>
-        <title>{levelMeta.title}</title>
-        <meta name="description" content={levelMeta.description} />
-        <meta property="og:title" content={levelMeta.title} />
-        <meta property="og:description" content={levelMeta.description} />
-        <meta property="og:url" content={`https://kawabado.com/${lang}/level-guide`} />
-        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${lang}/level-guide`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/level-guide" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/level-guide" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/level-guide" />
-      </Helmet>
     <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
       <Breadcrumbs items={[
         { label: lang === 'ja' ? 'ホーム' : '首页', path: `/${lang}/` },

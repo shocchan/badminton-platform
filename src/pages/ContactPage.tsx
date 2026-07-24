@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../services/supabaseClient';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 type Category = 'activity' | 'tournament' | 'sponsor' | 'other';
 
@@ -124,6 +124,9 @@ export const ContactPage = () => {
   const t = I18N[l];
   const formRef = useRef<HTMLFormElement>(null);
 
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -193,18 +196,6 @@ export const ContactPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t.metaTitle}</title>
-        <meta name="description" content={t.metaDescription} />
-        <meta property="og:title" content={t.metaTitle} />
-        <meta property="og:description" content={t.metaDescription} />
-        <meta property="og:url" content={`https://kawabado.com/${l}/contact`} />
-        <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
-        <link rel="canonical" href={`https://kawabado.com/${l}/contact`} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/contact" />
-        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/contact" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/contact" />
-      </Helmet>
       <main className="max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <Breadcrumbs items={[
           { label: t.breadcrumbHome, path: `/${l}/` },

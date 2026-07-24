@@ -3,7 +3,6 @@
 // スマホはフルスクリーン、PCは左右に遊び方・抽選パネルを置く3カラム。
 
 import { useState } from 'react';
-import { Helmet } from 'react-helmet-async';
 import { Gamepad2, Gift, Target, Trophy, ChevronRight } from 'lucide-react';
 import RallyGame from '../components/RallyGame';
 import RallyLotteryModal from '../components/RallyLotteryModal';
@@ -16,6 +15,7 @@ import {
   type LotteryResult,
 } from '../services/rallyLottery';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 /** リザルト画面を見せてから抽選モーダルを出すまでの間 */
 const LOTTERY_DELAY_MS = 1400;
@@ -26,22 +26,8 @@ export default function RallyGamePage() {
   const [lottery, setLottery] = useState<LotteryResult | null>(null);
   const best = getRallyBest();
 
-  // SEO: /zh/game が日本語タイトルで表示されていた事故を修正。
-  // ブランド表記は「kawabado」（英字ブランド名）＋「川口・蕨バドミントン交流会」（コミュニティ名）で統一。
-  const seo = lang === 'zh'
-    ? {
-        title: '羽毛球对决游戏 | 川口・蕨羽毛球交流会（kawabado）',
-        description: '与AI进行羽毛球对拉！掌握时机打出高分。每15次对拉自动参与抽奖，有极小概率获得免费参加券。',
-        htmlLang: 'zh-CN',
-        ogLocale: 'zh_CN',
-      }
-    : {
-        title: 'バド対決ゲーム | 川口・蕨バドミントン交流会（kawabado）',
-        description: 'AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！',
-        htmlLang: 'ja',
-        ogLocale: 'ja_JP',
-      };
-  const gameUrl = `https://kawabado.com/${locale}/game`;
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
 
   const handleGameEnd = (rallyCount: number) => {
     if (rallyCount < 1) return;
@@ -62,24 +48,6 @@ export default function RallyGamePage() {
 
   return (
     <main>
-      <Helmet>
-        <html lang={seo.htmlLang} />
-        <title>{seo.title}</title>
-        <meta name="description" content={seo.description} />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={seo.title} />
-        <meta property="og:description" content={seo.description} />
-        <meta property="og:url" content={gameUrl} />
-        <meta property="og:locale" content={seo.ogLocale} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={seo.title} />
-        <meta name="twitter:description" content={seo.description} />
-        <link rel="canonical" href={gameUrl} />
-        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/game" />
-        <link rel="alternate" hrefLang="zh-CN" href="https://kawabado.com/zh/game" />
-        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/game" />
-      </Helmet>
-
       {/* ゲーム本体：スマホはフルスクリーン、PCは3カラム */}
       <div className="flex h-[100dvh] flex-col overflow-hidden md:h-auto md:overflow-visible">
         {/* 薄いヘッダー（常に固定表示） */}

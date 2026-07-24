@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
 import { ShieldCheck } from 'lucide-react';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useStaticPageMeta } from '../hooks/useStaticPageMeta';
 
 // プライバシーポリシー。実際のデータフロー（Supabase / Stripe / Resend / 計測タグ）に
 // 即した内容のみ記載する。運営者の正式表記を変更する場合はここを更新。
@@ -145,15 +145,12 @@ export const PrivacyPolicyPage = () => {
   const zh = lang === 'zh';
   const t = zh ? ZH : JA;
   const title = zh ? '隐私政策' : 'プライバシーポリシー';
-  const canonical = `https://kawabado.com/${zh ? 'zh' : 'ja'}/privacy-policy`;
+
+  // ページ meta は Worker + useStaticPageMeta で管理。
+  useStaticPageMeta();
 
   return (
     <>
-      <Helmet>
-        <title>{`${title} | 川口・蕨バドミントン交流会`}</title>
-        <meta name="description" content={zh ? '川口・蕨羽毛球交流会的个人信息处理方针。' : '川口・蕨バドミントン交流会の個人情報の取り扱い方針です。'} />
-        <link rel="canonical" href={canonical} />
-      </Helmet>
       <main className="max-w-2xl mx-auto px-4 py-8">
         <Breadcrumbs items={[{ label: zh ? '首页' : 'ホーム', path: `/${lang}/` }, { label: title }]} />
         <div className="flex items-center gap-2.5 mb-2">
