@@ -48,6 +48,17 @@ export interface N2GrammarItem {
   linkedMissionIds?: string[];
   quizzes?: N2QuizItem[];
   contentVersion?: number;
+  /** 多義語の用法分離（例: 〜た上で/〜上で/〜上での）。1 grammarId 内で複数用法を構造化 */
+  senses?: N2Sense[];
+}
+
+export interface N2Sense {
+  senseId: string;
+  meaningJa: string;
+  meaningZh: string;
+  connection: string;
+  examples: string[];
+  situations: string[];
 }
 
 export type N2QuizType = 'grammarChoice' | 'contextFill' | 'similarCompare' | 'reorder' | 'errorCorrection';
@@ -80,6 +91,42 @@ export const mergeN2Content = (
 /** 全問題を平坦化 */
 export const allQuizzes = (items: N2GrammarItem[]): N2QuizItem[] =>
   items.flatMap((g) => g.quizzes ?? []);
+
+// ── 軽量インデックス（一覧・検索・統計。本文/例文/問題は含めない） ──
+import type { N2GrammarIndexItem } from './n2GrammarIndex';
+
+export const learnerVisibleIndex = (idx: N2GrammarIndexItem[]): N2GrammarIndexItem[] =>
+  idx.filter((g) => g.reviewStatus === 'approved');
+export const reviewCandidatesIndex = (idx: N2GrammarIndexItem[]): N2GrammarIndexItem[] =>
+  idx.filter((g) => g.reviewStatus === 'reviewed' || g.reviewStatus === 'draft');
+export const searchIndex = (idx: N2GrammarIndexItem[], q: string): N2GrammarIndexItem[] => {
+  const s = q.trim();
+  if (!s) return idx;
+  return idx.filter((g) => g.displayExpression.includes(s) || g.meaningShort.includes(s) || g.grammarId.includes(s));
+};
+export const byUnit12Index = (idx: N2GrammarIndexItem[], unit: number): N2GrammarIndexItem[] =>
+  idx.filter((g) => g.unit12 === unit);
+export const n2IndexStats = (idx: N2GrammarIndexItem[]) => ({
+  total: idx.length,
+  imported: idx.filter((g) => g.reviewStatus === 'imported').length,
+  draft: idx.filter((g) => g.reviewStatus === 'draft').length,
+  reviewed: idx.filter((g) => g.reviewStatus === 'reviewed').length,
+  approved: idx.filter((g) => g.reviewStatus === 'approved').length,
+  withContent: idx.filter((g) => g.hasContent).length,
+});
+
+/**
+ * 文法詳細の本文（例文・中国語・問題等）を dynamic import で読み込む。
+ * 一覧はインデックスのみを使い、詳細を開いた時だけ本文チャンクを取得する。
+ */
+export const loadFullGrammar = async (grammarId: string): Promise<N2GrammarItem | null> => {
+  const [data, content] = await Promise.all([
+    import('./n2GrammarData'),
+    import('./n2GrammarContent'),
+  ]);
+  const merged = mergeN2Content(data.N2_GRAMMAR_ITEMS, content.N2_GRAMMAR_CONTENT);
+  return merged.find((g) => g.grammarId === grammarId) ?? null;
+};
 
 /** learner に見せてよいのは approved のみ（AI生成・未レビューは出さない） */
 export const learnerVisible = (items: N2GrammarItem[]): N2GrammarItem[] =>

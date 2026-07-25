@@ -34,7 +34,7 @@ export const N2_GRAMMAR_CONTENT: Record<string, Partial<N2GrammarItem>> = {
     ],
     readingExamples: ['長時間の議論のあげく、計画は中止という結論に至った。'],
     listeningExamples: ['さんざん道に迷ったあげく、集合時間に遅れてしまって…。'],
-    similarGrammarIds: ['n2g-006'], // 〜末に（すえに）系と比較（要人間確認）
+    similarGrammarIds: [], // 本来は「〜末に(すえに)」と比較だが原本Batch1外。要人間追加(similar_pending)
     differencesJa: '「〜た結果」より、苦労・紆余曲折のニュアンスが強く、悪い結果に使いやすい。',
     differencesZh: '比「〜た結果」更强调过程的曲折，且多用于消极结果。',
     commonMistakes: ['良い結果に使うと不自然（×合格したあげく喜んだ）', '名詞は「の」が必要（×苦労あげく）'],
@@ -195,12 +195,26 @@ export const N2_GRAMMAR_CONTENT: Record<string, Partial<N2GrammarItem>> = {
     ],
     readingExamples: ['留学生活を送る上で、地域との交流は大きな支えになる。'],
     listeningExamples: ['チームを作る上で、まず目標の共有が必要だよね。'],
-    similarGrammarIds: ['n2g-007'],
+    similarGrammarIds: [], // 007「上は」は決意で別義。安易にリンクしない
     differencesJa: '「上で（〜てから）」＝順序（動詞た形＋上で）とは別。ここは「観点・場面」の上で。',
     differencesZh: '与“动词た形＋上で（=…之后再…）”不同，本条为“方面/场合”。',
     commonMistakes: ['順序の「た形＋上で」と混同', '名詞は「の」が必要'],
     chineseSpeakerNotes: '“在…方面”对应良好。但“做完A再做B”的「上で」是另一用法，勿混。',
     substitutionTemplate: '［目的・行為］＋上で、［重要・必要なこと］。',
+    senses: [
+      { senseId: 'ue-de-aspect', meaningJa: '〜する上で＝〜する場合に・観点として大切な点', meaningZh: '在…方面／做…时（重要的点）',
+        connection: '動詞辞書形＋上で／名詞＋の＋上で',
+        examples: ['会話力を上げる上で、毎日声に出す練習は欠かせません。', '仕事を進める上で、報連相が大切です。'],
+        situations: ['学習に必要なこと', '仕事の進め方', '判断の前提'] },
+      { senseId: 'ta-ue-de-order', meaningJa: '〜た上で＝〜してから（順序・前提）', meaningZh: '在…之后再…（顺序/前提）',
+        connection: '動詞た形＋上で',
+        examples: ['資料を確認した上で、返事します。', 'よく考えた上で、参加を決めました。'],
+        situations: ['手順を踏む', '確認してから決める'] },
+      { senseId: 'ue-de-no-noun', meaningJa: '〜上での＋名詞＝〜する際の（名詞修飾）', meaningZh: '…时的（用于修饰名词）',
+        connection: '動詞辞書形／名詞＋の＋上での＋名詞',
+        examples: ['生活する上での注意点をまとめました。', '交流する上でのマナーを学ぶ。'],
+        situations: ['注意点・ポイントを名詞でまとめる'] },
+    ],
     quizzes: [
       q('n2g-006', 1, 'grammarChoice', '日本語を学ぶ（　）で、目標を持つことが大切だ。', ['上', 'あげく', '一方', 'うち'], 0,
         '「学ぶ上で（＝学ぶ際に）」。', '“在学习方面”。', ['他は観点を表さない'], 2),
