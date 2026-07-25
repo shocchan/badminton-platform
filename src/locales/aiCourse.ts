@@ -168,6 +168,9 @@ const ja = {
   },
   home: {
     greeting: (name: string) => (name ? `${name}さん、こんにちは！` : 'こんにちは！'),
+    // 先生の一言（行動案内・1文だけ）
+    coachLineNew: '今日はこれを練習しましょう。',
+    coachLineReview: '前に習った表現、覚えていますか？',
     todayMission: '今日のおすすめ',
     reviewBadge: '復習',
     newBadge: '新しい表現',
@@ -272,6 +275,10 @@ const ja = {
   },
   report: {
     todayStep: '今日の一歩',
+    // 段階的開示（最初は「完了＋できたこと＋直す点1つ」だけ見せる）
+    seeDetails: '詳しく見る',
+    hideDetails: '閉じる',
+    fixOneTitle: '次はこれを1つ直しましょう',
     todayTime: '学習時間',
     minutesValue: (n: number) => `${n}分`,
     canDoTitle: '今日、できるようになったこと',
@@ -439,6 +446,9 @@ const ja = {
   n2grammar: {
     navTitle: 'N2文法トラック',
     subtitle: '原本180項目（レビュー中）',
+    // 180件で圧倒しないための導線（最近見た項目＝続きから）
+    recentTitle: '続きから',
+    recommendBadge: 'おすすめ',
     back: '戻る',
     total: (n: number) => `全${n}項目`,
     approvedCount: (n: number) => `公開中 ${n}`,
@@ -702,6 +712,9 @@ const zh: AiCourseDict = {
   },
   home: {
     greeting: (name: string) => (name ? `${name}，你好！` : '你好！'),
+    // 先生的一句话（引导行动・只用一句）
+    coachLineNew: '今天来练这个吧。',
+    coachLineReview: '之前学的表达，还记得吗？',
     todayMission: '今日推荐',
     reviewBadge: '复习',
     newBadge: '新表达',
@@ -806,6 +819,10 @@ const zh: AiCourseDict = {
   },
   report: {
     todayStep: '今天的一步',
+    // 分阶段展示（先只看「完成＋做到的事＋一个改进点」）
+    seeDetails: '查看详情',
+    hideDetails: '收起',
+    fixOneTitle: '下次先改进这一点',
     todayTime: '学习时长',
     minutesValue: (n: number) => `${n}分钟`,
     canDoTitle: '今天，你变得能做到的事',
@@ -973,6 +990,9 @@ const zh: AiCourseDict = {
   n2grammar: {
     navTitle: 'N2语法学习线',
     subtitle: '原始180项（审核中）',
+    // 避免被180项压倒的入口（最近看过＝继续学习）
+    recentTitle: '继续学习',
+    recommendBadge: '推荐',
     back: '返回',
     total: (n: number) => `共${n}项`,
     approvedCount: (n: number) => `已公开 ${n}`,

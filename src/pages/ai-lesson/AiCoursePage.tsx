@@ -29,6 +29,7 @@ import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
 import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
+import { trackCourse, trackCourseOnce } from '../../lib/aiLesson/course/courseAnalytics';
 import { needsHearing } from '../../lib/aiLesson/course/courseFlow';
 import type {
   CourseSessionRecord, FeedbackInput, ItemProgress, Learner, LessonPlan, LessonReport,
@@ -152,6 +153,13 @@ export default function AiCoursePage() {
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
 
+  // 画面計測（個人情報なし。gtag未存在なら何もしない）
+  useEffect(() => {
+    if (step === 'home') trackCourseOnce('view_ai_course_home');
+    else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
+    else if (step === 'history') trackCourse('open_ai_course_review');
+  }, [step]);
+
   // 表示言語を反映（navigateせず、URLの locale segment だけ replaceState で同期）
   useEffect(() => { try { document.documentElement.lang = uiLang; } catch { /* noop */ } }, [uiLang]);
 
@@ -245,6 +253,7 @@ export default function AiCoursePage() {
     setMode(m);
     setActiveSessionId(r.sessionId ?? null);
     setRemaining(r.remainingSessions ?? 0);
+    trackCourse('start_ai_course_lesson', { mode: m, kind: planArg.main.kind, week: learner.currentWeek });
     courseRepository.saveResume({ missionId: planArg.main.mission.id, kind: planArg.main.kind, at: Date.now() });
     setHasResume(false);
     setStep('lesson');
@@ -424,6 +433,10 @@ export default function AiCoursePage() {
       isReview, nextReviewISO: updated.nextReviewAt,
     }));
     setStep('report');
+    trackCourse('complete_ai_course_lesson', {
+      kind: mainStep.kind, usage: result.usage, duration_seconds: result.durationSeconds,
+      status: result.completionStatus,
+    });
 
     // 成長スナップショット（マイルストーン到達時に1回だけ・非同期・失敗しても学習に影響しない）
     void maybeCaptureSnapshot(learner, freshProgress);

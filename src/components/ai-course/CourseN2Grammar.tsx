@@ -9,6 +9,7 @@ import type { N2GrammarIndexItem } from '../../lib/aiLesson/course/n2GrammarInde
 import {
   publiclyVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar,
 } from '../../lib/aiLesson/course/courseN2Grammar';
+import { loadRecentN2, pushRecentN2, recommendN2 } from '../../lib/aiLesson/course/n2Recent';
 import type { N2GrammarItem } from '../../lib/aiLesson/course/courseN2Grammar';
 import { CourseIssueReport } from './CourseIssueReport';
 import type { AiCourseDict } from '../../locales/aiCourse';
@@ -60,8 +61,12 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(false);
   const [expanded, setExpanded] = useState(false); // 詳細（ニュアンス等）を折り畳み。初期は essentials のみ
+  // 「続きから」（端末ローカル・最近見た5件）と「おすすめ」1件（180件で圧倒しない導線）
+  const [recent, setRecent] = useState<string[]>(() => loadRecentN2());
+  const recommendedId = useMemo(() => recommendN2(visible, recent), [visible, recent]);
 
   const openDetail = (grammarId: string) => {
+    setRecent(pushRecentN2(grammarId));
     setOpenId(grammarId); setDetail(null); setDetailError(false); setDetailLoading(true); setExpanded(false);
     loadFullGrammar(grammarId)
       .then((full) => { setDetail(full); setDetailLoading(false); })
@@ -121,6 +126,27 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
 
       {(inReview || visible.length > 0) && (
         <>
+          {/* 続きから＋おすすめ（全一覧の前に「次の1つ」を提示・§12） */}
+          {(recent.length > 0 || recommendedId) && (
+            <div className="mb-3">
+              <p className="text-[11px] font-medium text-gray-400 mb-1.5">{tg.recentTitle}</p>
+              <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                {recommendedId && !recent.includes(recommendedId) && (
+                  <button type="button" onClick={() => openDetail(recommendedId)}
+                    className="shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-bold bg-blue-600 text-white flex items-center gap-1">
+                    <span className="text-[9px] font-bold px-1 py-px rounded bg-white/25">{tg.recommendBadge}</span>
+                    {exprOf(recommendedId)}
+                  </button>
+                )}
+                {recent.map((id) => (
+                  <button key={id} type="button" onClick={() => openDetail(id)}
+                    className="shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-medium bg-white border border-blue-200 text-blue-700 hover:bg-blue-50">
+                    {exprOf(id)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="relative mb-2">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tg.search}

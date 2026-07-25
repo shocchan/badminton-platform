@@ -1,5 +1,5 @@
-// 学習ホーム（§20）。主役は「今日のレッスンを始める」＋「できるようになったこと」。
-// 詳細な統計は出さず、成長は「成長を見る」から専用画面へ。
+// 学習ホーム（§20・UX改訂）。開いた瞬間に「今日やること・何分・始める」が分かる構成。
+// 主役=今日の学習カード（CTA内蔵）。補助=前回の続き・今日の復習。詳細は右カラム/下部へ。
 
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
@@ -37,7 +37,7 @@ interface Props {
 }
 
 export const CourseHome = ({
-  t, learner, plan, stats, reviewsOverdue, remainingToday,
+  t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview,
 }: Props) => {
@@ -52,12 +52,16 @@ export const CourseHome = ({
 
   return (
     <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
+      {/* 先生の一言（あいさつ＋今日の行動案内。1〜2文だけ） */}
       <div className="flex items-center gap-2.5 mb-4">
         <ShokoAvatar size={40} className="shrink-0" />
-        <h1 className="text-lg lg:text-xl font-bold text-gray-900 min-w-0">{th.greeting(learner.displayName)}</h1>
+        <div className="min-w-0">
+          <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">{th.greeting(learner.displayName)}</h1>
+          <p className="text-xs text-gray-500 mt-0.5">{isReview ? th.coachLineReview : th.coachLineNew}</p>
+        </div>
       </div>
 
-      {/* 中断・再開 */}
+      {/* 中断・再開（あれば最優先の補助導線） */}
       {hasResume && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
           <p className="text-sm text-amber-800 font-medium mb-2">{th.resumeTitle}</p>
@@ -74,22 +78,11 @@ export const CourseHome = ({
         </div>
       )}
 
-      {/* PC は 左（現在地・今日のレッスン・CTA）／右（成長・旅マップ）の2カラム */}
+      {/* PC は 左（今日の学習）／右（成長・記録）の2カラム */}
       <div className="lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
       <div className="lg:space-y-4 lg:[&>*]:mb-0">
 
-      {/* 現在地カード：Week番号ではなく「今できる会話レベル」を主に見せる */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-          <MapPin className="w-5 h-5 text-blue-600" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-[11px] text-gray-500">{tg.currentLevelLabel} ・ Week {learner.currentWeek}/12</p>
-          <p className="text-sm lg:text-base font-bold text-gray-900 leading-snug">{currentStageLabel}</p>
-        </div>
-      </div>
-
-      {/* 今日のおすすめミッション */}
+      {/* ── 今日の学習カード（主役・CTA内蔵。今日やること＋何分＋始める） ── */}
       <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-5 text-white mb-4">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-blue-100 flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" />{th.todayMission}</span>
@@ -101,40 +94,57 @@ export const CourseHome = ({
             {!plan?.main.hideTarget && (
               <p className="text-sm text-blue-100 mt-1">{th.todayTarget}: {mission.targetExpression}</p>
             )}
-            <p className="text-xs text-blue-100 mt-1">{th.minutes(mission.estimatedMinutes)} ・ Week {mission.week}</p>
+            <p className="text-xs text-blue-100 mt-1">{th.minutes(mission.estimatedMinutes)}</p>
           </>
         ) : (
           <p className="text-sm text-blue-100">{t.common.loading}</p>
         )}
+        {/* 主CTA（カード内。視線移動ゼロで開始） */}
+        {canLearn ? (
+          <>
+            <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
+              className="w-full min-h-11 py-3.5 mt-4 rounded-xl bg-white text-blue-700 font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-50 disabled:opacity-50 transition-colors">
+              <Mic className="w-5 h-5" />{starting ? t.common.loading : (isReview ? th.startReview : th.startLesson)}
+            </button>
+            <p className="text-[11px] text-blue-200 text-center mt-2">{th.remainingToday(remainingToday)}</p>
+          </>
+        ) : (
+          <div className="bg-white/15 rounded-xl p-3 text-center mt-4">
+            <p className="text-sm text-blue-50 font-medium">
+              {learner.isActive ? th.limitReached : t.limits.learner_suspended}
+            </p>
+          </div>
+        )}
       </div>
+      {startError && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mb-4">{startError}</p>}
 
-      {/* 開始（主要CTAは1つ） */}
-      {canLearn ? (
-        <div className="mb-5">
-          <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
-            className="w-full min-h-11 py-4 rounded-xl bg-blue-600 text-white font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-700 disabled:opacity-50 transition-colors">
-            <Mic className="w-5 h-5" />{starting ? t.common.loading : (isReview ? th.startReview : th.startLesson)}
-          </button>
-          <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
-            className="w-full min-h-11 py-2 mt-2 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">
-            <PenLine className="w-3.5 h-3.5" />{th.modeText}
-          </button>
-          {startError && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mt-2">{startError}</p>}
-          <p className="text-xs text-gray-400 text-center mt-2">{th.remainingToday(remainingToday)}</p>
-        </div>
-      ) : (
-        <div className="bg-gray-100 rounded-xl p-4 text-center mb-5">
-          <p className="text-sm text-gray-600 font-medium">
-            {learner.isActive ? th.limitReached : t.limits.learner_suspended}
-          </p>
-        </div>
+      {/* 補助導線: テキストで話す・予習（小さく1行ずつ） */}
+      {canLearn && (
+        <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
+          className="w-full min-h-11 py-2 -mt-1 mb-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">
+          <PenLine className="w-3.5 h-3.5" />{th.modeText}
+        </button>
       )}
-
-      {/* テキストで予習（音声前の確認・APIなし・いつでも可） */}
       <button type="button" onClick={onPreview}
-        className="w-full min-h-11 py-2.5 -mt-2 mb-4 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
+        className="w-full min-h-11 py-2 mb-3 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
+
+      {/* 今日の復習（あるときだけ・1行で件数と入口） */}
+      {reviewsDue > 0 && (
+        <button type="button" onClick={onSeePastNotes}
+          className="w-full text-left bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 hover:bg-amber-100 transition-colors flex items-center gap-2.5">
+          <RefreshCw className="w-4 h-4 text-amber-600 shrink-0" />
+          <span className="text-sm font-bold text-amber-900 flex-1 min-w-0">{th.reviewsDue(reviewsDue)}</span>
+          <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
+        </button>
+      )}
+
+      {/* 現在地（補助情報へ降格・1行） */}
+      <div className="flex items-center gap-2 px-1 mb-4 text-xs text-gray-500">
+        <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+        <span className="min-w-0 truncate">{tg.currentLevelLabel}: <span className="font-medium text-gray-700">{currentStageLabel}</span> ・ Week {learner.currentWeek}/12</span>
+      </div>
 
       </div>{/* /左カラム */}
       <div className="lg:space-y-3 lg:[&>*]:mb-0">
@@ -194,8 +204,7 @@ export const CourseHome = ({
 
       </div>{/* /右カラム */}
       </div>{/* /2カラムグリッド */}
-
-      <p className="text-[11px] text-gray-400 leading-relaxed mt-5">{t.positioning}</p>
+      {/* コース説明文（positioning）は設定画面に集約（学習ホームでは繰り返さない） */}
     </div>
   );
 };
