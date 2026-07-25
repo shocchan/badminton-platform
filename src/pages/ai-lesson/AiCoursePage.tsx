@@ -55,7 +55,7 @@ import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import { CoursePreview } from '../../components/ai-course/CoursePreview';
 import { CourseChapterList } from '../../components/ai-course/CourseChapterList';
-import { CourseN2Grammar } from '../../components/ai-course/CourseN2Grammar';
+import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 
@@ -556,7 +556,7 @@ export default function AiCoursePage() {
   if (step === 'n2grammar') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
-        <CourseN2Grammar t={t} onBack={() => setStep('roadmap')} />
+        <N2GrammarLazy t={t} onBack={() => setStep('roadmap')} />
       </Shell>
     );
   }
