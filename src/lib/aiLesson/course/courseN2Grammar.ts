@@ -24,19 +24,62 @@ export interface N2GrammarItem {
   reviewStatus: N2ReviewStatus;
   /** 不足・要確認の印（needs_reading / needs_meaningZh / needs_connection / needs_quiz 等） */
   reviewFlags: string[];
-  // ── 原本に無い＝人間/レビューで追加（未確定・任意） ──
+  // ── 教材draft（人間レビュー前・任意）。原本に無い項目はここに作成 ──
+  variants?: string[];
   reading?: string;
+  level?: 'N2' | 'N3' | 'N2-N1';
   meaningZh?: string;
-  functionCategory?: string;
+  shortMeaningZh?: string;
+  functionCategory?: string[];
   connection?: string;
   nuanceJa?: string;
   nuanceZh?: string;
+  situations?: string[];
+  /** 原本例文とは別に追加した会話例（区別のため別フィールド） */
+  conversationExamples?: string[];
+  readingExamples?: string[];
+  listeningExamples?: string[];
   similarGrammarIds?: string[];
-  differences?: string;
+  differencesJa?: string;
+  differencesZh?: string;
   commonMistakes?: string[];
+  chineseSpeakerNotes?: string;
   substitutionTemplate?: string;
   linkedMissionIds?: string[];
+  quizzes?: N2QuizItem[];
+  contentVersion?: number;
 }
+
+export type N2QuizType = 'grammarChoice' | 'contextFill' | 'similarCompare' | 'reorder' | 'errorCorrection';
+
+export interface N2QuizItem {
+  questionId: string;
+  grammarId: string;
+  questionType: N2QuizType;
+  prompt: string;
+  choices: string[];
+  correctAnswer: number; // index into choices
+  explanationJa: string;
+  explanationZh: string;
+  wrongAnswerReasons: string[];
+  difficulty: 1 | 2 | 3;
+  reviewStatus: N2ReviewStatus;
+  reviewFlags: string[];
+}
+
+/** 教材draft（overlay）を原本itemへ合成。content があれば reviewStatus='draft' に上げる */
+export const mergeN2Content = (
+  base: N2GrammarItem[],
+  content: Record<string, Partial<N2GrammarItem>>,
+): N2GrammarItem[] => base.map((g) => {
+  const c = content[g.grammarId];
+  if (!c) return g;
+  return { ...g, ...c, reviewStatus: c.reviewStatus ?? 'draft' };
+});
+
+/** 全問題を平坦化 */
+export const allQuizzes = (items: N2GrammarItem[]): N2QuizItem[] =>
+  items.flatMap((g) => g.quizzes ?? []);
 
 /** learner に見せてよいのは approved のみ（AI生成・未レビューは出さない） */
 export const learnerVisible = (items: N2GrammarItem[]): N2GrammarItem[] =>

@@ -5,17 +5,45 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Search, BookText, AlertTriangle, X, ChevronRight } from 'lucide-react';
 import { N2_GRAMMAR_ITEMS } from '../../lib/aiLesson/course/n2GrammarData';
-import { learnerVisible, reviewCandidates, searchGrammar, byUnit12, n2GrammarStats } from '../../lib/aiLesson/course/courseN2Grammar';
+import { N2_GRAMMAR_CONTENT } from '../../lib/aiLesson/course/n2GrammarContent';
+import { learnerVisible, reviewCandidates, searchGrammar, byUnit12, n2GrammarStats, mergeN2Content } from '../../lib/aiLesson/course/courseN2Grammar';
 import type { N2GrammarItem } from '../../lib/aiLesson/course/courseN2Grammar';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
 interface Props { t: AiCourseDict; onBack: () => void; }
 
+const ITEMS = mergeN2Content(N2_GRAMMAR_ITEMS, N2_GRAMMAR_CONTENT);
+
+const Field = ({ label, value, empty, mono }: { label: string; value?: string; empty?: string; mono?: boolean }) => {
+  if (!value && !empty) return null;
+  return (
+    <div>
+      <p className="text-[11px] font-medium text-gray-500">{label}</p>
+      <p className={`text-sm text-gray-800 leading-relaxed break-words ${mono ? 'font-mono text-[13px]' : ''}`}>
+        {value || <span className="text-gray-400">{empty}</span>}
+      </p>
+    </div>
+  );
+};
+
+const ListField = ({ label, items, icon }: { label: string; items?: string[]; icon?: string }) => {
+  if (!items || items.length === 0) return null;
+  return (
+    <div>
+      <p className="text-[11px] font-medium text-gray-500">{label}</p>
+      <ul className="space-y-0.5">
+        {items.map((it, i) => <li key={i} className="text-sm text-gray-800 leading-relaxed break-words">{icon ? `${icon} ` : '・'}{it}</li>)}
+      </ul>
+    </div>
+  );
+};
+
 export const CourseN2Grammar = ({ t, onBack }: Props) => {
   const tg = t.n2grammar;
-  const stats = useMemo(() => n2GrammarStats(N2_GRAMMAR_ITEMS), []);
-  const approved = useMemo(() => learnerVisible(N2_GRAMMAR_ITEMS), []);
-  const candidates = useMemo(() => reviewCandidates(N2_GRAMMAR_ITEMS), []);
+  const zh = t.locale === 'zh';
+  const stats = useMemo(() => n2GrammarStats(ITEMS), []);
+  const approved = useMemo(() => learnerVisible(ITEMS), []);
+  const candidates = useMemo(() => reviewCandidates(ITEMS), []);
   const [showPreview, setShowPreview] = useState(false);
   const [q, setQ] = useState('');
   const [unit, setUnit] = useState<number | 'all'>('all');
@@ -115,21 +143,71 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
                 className="min-h-11 min-w-11 flex items-center justify-center text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-3">
+              {detail.reviewStatus === 'draft' && (
+                <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">{tg.draftContent}</p>
+              )}
+              {!detail.meaningZh && !detail.connection && detail.reviewStatus !== 'draft' && (
+                <p className="text-[11px] text-gray-400">{tg.noContentYet}</p>
+              )}
+              {detail.functionCategory && detail.functionCategory.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {detail.functionCategory.map((fc) => <span key={fc} className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">{fc}</span>)}
+                </div>
+              )}
+              <Field label={tg.meaning} value={detail.meaningJa} empty={tg.meaningEmpty} />
+              <Field label={tg.meaningZh} value={detail.meaningZh} />
+              <Field label={tg.connection} value={detail.connection} />
+              <Field label={tg.nuance} value={zh ? detail.nuanceZh : detail.nuanceJa} />
+              <ListField label={tg.situations} items={detail.situations} />
               <div>
-                <p className="text-[11px] font-medium text-gray-500">{tg.meaning}</p>
-                <p className="text-sm text-gray-800">{detail.meaningJa || <span className="text-gray-400">{tg.meaningEmpty}</span>}</p>
-              </div>
-              <div>
-                <p className="text-[11px] font-medium text-gray-500">{tg.example}</p>
+                <p className="text-[11px] font-medium text-gray-500">{tg.example}（原本）</p>
                 <ul className="space-y-1">{detail.examples.map((e, i) => <li key={i} className="text-sm text-gray-900 leading-relaxed select-text">💬 {e}</li>)}</ul>
               </div>
+              <ListField label={tg.convExamples} items={detail.conversationExamples} icon="💬" />
+              <ListField label={tg.readingExamples} items={detail.readingExamples} icon="📖" />
+              <ListField label={tg.listeningExamples} items={detail.listeningExamples} icon="🎧" />
+              <Field label={tg.differences} value={zh ? detail.differencesZh : detail.differencesJa} />
+              <ListField label={tg.mistakesLabel} items={detail.commonMistakes} icon="⚠️" />
+              <Field label={tg.chineseNotes} value={detail.chineseSpeakerNotes} />
+              <Field label={tg.template} value={detail.substitutionTemplate} mono />
+              {detail.similarGrammarIds && detail.similarGrammarIds.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500">{tg.similar}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {detail.similarGrammarIds.map((sid) => {
+                      const s = ITEMS.find((x) => x.grammarId === sid);
+                      return s ? <button key={sid} type="button" onClick={() => setDetail(s)} className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100">{s.displayExpression}</button> : null;
+                    })}
+                  </div>
+                </div>
+              )}
+              {detail.quizzes && detail.quizzes.length > 0 && (
+                <div>
+                  <p className="text-[11px] font-medium text-gray-500 mb-1">{tg.quizzes}（{detail.quizzes.length}）</p>
+                  <div className="space-y-2">
+                    {detail.quizzes.map((qz) => (
+                      <div key={qz.questionId} className="bg-gray-50 rounded-lg p-2.5">
+                        <p className="text-sm text-gray-900">{qz.prompt}</p>
+                        <ol className="mt-1 space-y-0.5">
+                          {qz.choices.map((c, ci) => (
+                            <li key={ci} className={`text-xs ${ci === qz.correctAnswer ? 'text-emerald-700 font-bold' : 'text-gray-600'}`}>
+                              {ci === qz.correctAnswer ? '✓ ' : '・'}{c}
+                            </li>
+                          ))}
+                        </ol>
+                        <p className="text-[11px] text-gray-500 mt-1">{tg.explanation}: {zh ? qz.explanationZh : qz.explanationJa}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {detail.reviewFlags.length > 0 && (
                 <div className="bg-amber-50 rounded-xl p-3">
                   <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1 mb-1"><AlertTriangle className="w-3.5 h-3.5" />{tg.needsWork}</p>
                   <div className="flex flex-wrap gap-1">
                     {detail.reviewFlags.map((fl) => {
-                      const label = (tg.flags as Record<string, string>)[fl];
-                      return label ? <span key={fl} className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-amber-200 text-amber-700">{label}</span> : null;
+                      const label = (tg.flags as Record<string, string>)[fl] ?? fl;
+                      return <span key={fl} className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-amber-200 text-amber-700">{label}</span>;
                     })}
                   </div>
                 </div>
