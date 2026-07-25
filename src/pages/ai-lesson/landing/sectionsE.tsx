@@ -43,7 +43,7 @@ export function FinalCtaSection({ v, lang, onConsult }: { v: VariantConfig; lang
           <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-b from-lp-coral to-lp-coral-deep text-white text-center px-6 py-14 sm:py-20">
             <img
               src={imgUrl(v.images.cheer)} width={cw} height={ch}
-              alt={lang === 'ja' ? `${v.name.ja}が応援している` : `${v.name.zh}在为你加油`}
+              alt={lang === 'ja' ? `${v.name.ja}` : `${v.name.zh}`}
               loading="lazy" decoding="async"
               className="w-[130px] h-auto mx-auto mb-4 drop-shadow-[0_10px_16px_rgba(0,0,0,0.2)]"
             />
