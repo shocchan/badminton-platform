@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* ── AI日本語伴走コース 販売LP 暖色パレット（アイボリー/テラコッタ/深緑/ゴールド） ── */
+@theme {
+  --color-lp-ivory: #FBF5EC;
+  --color-lp-ivory-2: #F5EAD9;
+  --color-lp-card: #FFFDF8;
+  --color-lp-ink: #372B26;
+  --color-lp-ink-soft: #6E5F57;
+  --color-lp-line: #E7D8C4;
+  --color-lp-coral: #EE7A56;
+  --color-lp-coral-deep: #D65E3B;
+  --color-lp-coral-soft: #FBDDCF;
+  --color-lp-pine: #1E5C57;
+  --color-lp-pine-soft: #CFE4DF;
+  --color-lp-gold: #F4BE4C;
+  --color-lp-gold-soft: #FBEAC0;
+}
+
 /* ── Tiptap リッチエディタ ── */
 .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
 .ProseMirror h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }

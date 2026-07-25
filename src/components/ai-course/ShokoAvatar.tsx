@@ -1,6 +1,6 @@
 // 翔子先生のアバター（丸）。用途・状態に応じて表情を切り替える。
-// neutral=穏やか（聞いている/待ち） / speaking=話している / smile=笑顔（ごほうび）
-// 小さい時は軽い256px版を出し分け。画像は円形ポートレート。
+// 画像は円形ポートレート（顔が中心に来るよう object-position を上寄せ）。
+// ※ 旧 /shoko-avatar.png は存在せず空表示だったため、実イラスト(public/images/ai-course)へ差し替え。
 
 export type ShokoExpression = 'neutral' | 'speaking' | 'smile';
 
@@ -12,22 +12,23 @@ interface Props {
   labeled?: boolean;
 }
 
-const baseName = (e: ShokoExpression) =>
-  e === 'speaking' ? 'shoko-avatar-speaking' : e === 'smile' ? 'shoko-avatar-smile' : 'shoko-avatar';
+const srcFor = (e: ShokoExpression) =>
+  e === 'smile'
+    ? '/images/ai-course/shoko-sensei-cheer.webp'
+    : '/images/ai-course/shoko-sensei-base.webp';
 
 export const ShokoAvatar = ({ size = 40, expression = 'neutral', className = '', labeled = true }: Props) => {
-  const base = baseName(expression);
   return (
     <img
-      src={size <= 160 ? `/${base}-256.png` : `/${base}.png`}
+      src={srcFor(expression)}
       width={size}
       height={size}
       alt={labeled ? '翔子先生' : ''}
       aria-hidden={labeled ? undefined : true}
       loading="lazy"
       decoding="async"
-      className={`rounded-full object-cover bg-slate-100 ${className}`}
-      style={{ width: size, height: size }}
+      className={`rounded-full object-cover bg-lp-coral-soft ${className}`}
+      style={{ width: size, height: size, objectPosition: 'center 12%' }}
     />
   );
 };

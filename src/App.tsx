@@ -44,8 +44,8 @@ const RallyGamePage       = lazy(() => import('./pages/RallyGamePage'));
 const MyPage              = lazy(() => import('./pages/MyPage'));
 // AI日本語学習デモ（限定公開: ナビ・sitemap・robots非掲載、パスコードゲートあり）
 const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
-// AI日本語コース完成版（Andyさん向け・限定公開・メールOTP認証）
-const AiCoursePage        = lazy(() => import('./pages/ai-lesson/AiCoursePage'));
+// AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
+const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
 
 const PageLoader = () => (
@@ -92,7 +92,9 @@ const AnimatedRoutes = () => {
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
             <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
-              <Route path="ai-course"       element={<AiCoursePage />} />
+              <Route path="ai-course"       element={<AiCourseEntry />} />
+              <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
+              <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
             <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />

@@ -1,0 +1,140 @@
+import type { Lang } from '../../../contexts/LanguageContext';
+import { LP, type VariantConfig } from './lpContent';
+import { Reveal, SectionHeading, Check } from './lpUi';
+import {
+  BookOpen, Ear, MessageCircle, Briefcase, CalendarDays, Brain, Compass, Users,
+  Bot, UserRound, ArrowRight,
+} from 'lucide-react';
+
+const painIcon: Record<string, typeof BookOpen> = {
+  test: BookOpen, listen: Ear, talk: MessageCircle, work: Briefcase,
+  calendar: CalendarDays, forget: Brain, lost: Compass, friend: Users,
+};
+
+export function PainPointsSection({ lang }: { lang: Lang }) {
+  return (
+    <section id="pain" className="bg-lp-ivory-2 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <Reveal><SectionHeading eyebrow={LP.pain.heading[lang]} title={LP.pain.lead[lang]} /></Reveal>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {LP.pain.items[lang].map((it, i) => {
+            const Icon = painIcon[it.scene] || MessageCircle;
+            return (
+              <Reveal key={i} delay={(i % 4) * 60}>
+                <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-5 shadow-[0_6px_18px_rgba(55,43,38,0.06)]">
+                  <span className="inline-flex w-11 h-11 items-center justify-center rounded-xl bg-lp-coral-soft text-lp-coral-deep mb-3">
+                    <Icon className="w-5 h-5" aria-hidden="true" />
+                  </span>
+                  <p className="text-[0.98rem] text-lp-ink leading-relaxed">{it.text}</p>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function WhyLessonsFailSection({ lang }: { lang: Lang }) {
+  const w = LP.whyFail;
+  return (
+    <section id="why" className="py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-5">
+        <Reveal><SectionHeading title={w.heading[lang]} /></Reveal>
+        <div className="grid md:grid-cols-2 gap-5">
+          <Reveal>
+            <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-6">
+              <span className="inline-block text-[0.82rem] font-extrabold tracking-wide bg-lp-line text-lp-ink-soft rounded-full px-3.5 py-1 mb-4">{w.beforeLabel[lang]}</span>
+              <ol className="flex flex-col gap-2.5">
+                {w.before[lang].map((s, i) => (
+                  <li key={i} className="flex items-center gap-2 text-lp-ink-soft">
+                    {i > 0 && <ArrowRight className="w-4 h-4 rotate-90 shrink-0 text-lp-line" aria-hidden="true" />}
+                    <span className={i === w.before[lang].length - 1 ? 'font-bold text-lp-ink' : ''}>{s}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="h-full bg-lp-card border-2 border-lp-coral rounded-2xl p-6">
+              <span className="inline-block text-[0.82rem] font-extrabold tracking-wide bg-lp-coral text-white rounded-full px-3.5 py-1 mb-4">{w.afterLabel[lang]}</span>
+              <ol className="flex flex-col gap-2.5">
+                {w.after[lang].map((s, i) => (
+                  <li key={i} className="flex items-center gap-2 text-lp-ink">
+                    {i > 0 && <ArrowRight className="w-4 h-4 rotate-90 shrink-0 text-lp-coral" aria-hidden="true" />}
+                    <span className={i === w.after[lang].length - 1 ? 'font-bold' : ''}>{s}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang }) {
+  const r = LP.roles;
+  const aiName = r.ai.name[lang].replace('翔子先生・悠斗先生', v.name[lang]).replace('翔子・悠斗', v.name[lang]);
+  return (
+    <section id="roles" className="bg-lp-ivory-2 py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-5">
+        <Reveal><SectionHeading eyebrow={LP.roles.sub[lang]} title={r.heading[lang]} /></Reveal>
+        <div className="grid md:grid-cols-2 gap-5">
+          <Reveal>
+            <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-lg bg-lp-coral-soft text-lp-coral-deep"><Bot className="w-5 h-5" /></span>
+                <span className="text-[0.8rem] font-extrabold tracking-wide bg-lp-coral text-white rounded-full px-3 py-0.5">{r.ai.label[lang]}</span>
+              </div>
+              <h3 className="font-extrabold text-lp-ink text-lg mb-3">{aiName}</h3>
+              <ul className="flex flex-col gap-2.5">
+                {r.ai.items[lang].map((s, i) => (
+                  <li key={i} className="flex gap-2.5 text-[0.97rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-coral" />{s}</li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+          <Reveal delay={80}>
+            <div className="h-full bg-lp-card border-2 border-lp-pine rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-flex w-9 h-9 items-center justify-center rounded-lg bg-lp-pine-soft text-lp-pine"><UserRound className="w-5 h-5" /></span>
+                <span className="text-[0.8rem] font-extrabold tracking-wide bg-lp-pine text-white rounded-full px-3 py-0.5">{r.human.label[lang]}</span>
+              </div>
+              <h3 className="font-extrabold text-lp-ink text-lg mb-3">{r.human.name[lang]}</h3>
+              <ul className="flex flex-col gap-2.5">
+                {r.human.items[lang].map((s, i) => (
+                  <li key={i} className="flex gap-2.5 text-[0.97rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-pine" />{s}</li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function DailyLearningFlow({ v, lang }: { v: VariantConfig; lang: Lang }) {
+  const steps = LP.flow.steps[lang];
+  return (
+    <section id="flow" className="py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-5">
+        <Reveal><SectionHeading title={LP.flow.heading[lang]} /></Reveal>
+        <ol className="grid gap-4 md:grid-cols-5 sm:grid-cols-2">
+          {steps.map((s, i) => (
+            <Reveal key={i} delay={(i % 5) * 60}>
+              <li className="h-full bg-lp-card border border-lp-line rounded-2xl p-5 flex flex-col gap-2">
+                <span className="w-9 h-9 rounded-full bg-lp-coral text-white font-extrabold grid place-items-center">{i + 1}</span>
+                <h3 className="font-extrabold text-lp-ink text-[1.02rem] mt-1">{s.title.replace('AI', i === 1 ? v.name[lang] : 'AI')}</h3>
+                <p className="text-[0.92rem] text-lp-ink-soft leading-relaxed">{s.body}</p>
+              </li>
+            </Reveal>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
