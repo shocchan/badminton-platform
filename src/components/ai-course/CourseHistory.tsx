@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Sparkles, ArrowRight, CalendarDays, CheckCircle2, Lightbulb, RefreshCw, BookOpen, ChevronRight } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
+import { CourseIllustration } from './CourseIllustration';
 import { buildReviewPlan } from '../../lib/aiLesson/course/courseReviewPlan';
 import type { ReviewItem, ReviewPlan } from '../../lib/aiLesson/course/courseReviewPlan';
 import { atLeast } from '../../lib/aiLesson/course/courseEngine';
@@ -113,13 +114,17 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
                 </button>
               </>
             ) : (
-              <>
-                <p className="text-sm text-gray-500 mb-3">{r.noReviewToday}</p>
-                <button type="button" onClick={() => { setTab('recent'); }}
-                  className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:text-blue-700">
-                  {r.seeRecent}<ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </>
+              <div className="flex items-center gap-4">
+                {/* 復習ゼロ＝休んでOKの空状態（翔子先生が和らげる・§17） */}
+                <CourseIllustration slot="emptyReview" width={72} lang={t.locale === 'zh' ? 'zh' : 'ja'} decorative className="shrink-0 rounded-full" />
+                <div className="min-w-0">
+                  <p className="text-sm text-gray-500 mb-2">{r.noReviewToday}</p>
+                  <button type="button" onClick={() => { setTab('recent'); }}
+                    className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:text-blue-700">
+                    {r.seeRecent}<ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
             )}
           </div>
 

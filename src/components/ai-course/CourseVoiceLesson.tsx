@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
 import { ShokoAvatar } from './ShokoAvatar';
+import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -290,8 +291,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   if (doneOverlay) return (
     <div className="fixed inset-0 z-40 bg-gray-50 flex items-center justify-center px-4" style={{ height: '100dvh' }}>
       <div className="text-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4"><CheckCircle2 className="w-8 h-8 text-emerald-600" /></div>
-        <p className="font-bold text-gray-900 text-lg">{tv.completedMessage}</p>
+        {/* 完了の達成感（翔子先生が拍手・会話終了後なので集中は妨げない） */}
+        <CourseIllustration slot="complete" width={110} lang={t.locale === 'zh' ? 'zh' : 'ja'} decorative className="mx-auto mb-3" />
+        <div className="flex items-center justify-center gap-1.5 mb-1">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600" aria-hidden="true" />
+          <p className="font-bold text-gray-900 text-lg">{tv.completedMessage}</p>
+        </div>
         <p className="text-sm text-gray-500 mt-1">{tv.completedSub}</p>
       </div>
     </div>

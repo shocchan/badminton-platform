@@ -1,10 +1,15 @@
-// テキストモードのレッスン（フォールバック）。API不要の決定的な進行。
-// ミッションの opening/hint/detect を使い、目標表現を使えたら完了できる。
+// テキストモードのレッスン（決定的ターンエンジン版・API不使用＝費用ゼロ）。
+// 旧実装の問題（同じ質問の永久リピート・終了地点なし・発言を拾わない）を
+// courseTextTurn エンジンで解消: 8ターン制・closing宣言・反応＋質問1つ・常時終了ボタン。
 
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { X, Send, Lightbulb, Flag, ArrowRight } from 'lucide-react';
+import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
+import {
+  initialTextTurnState, nextTextTurn, TEXT_MAX_TURNS_DEFAULT,
+} from '../../lib/aiLesson/course/courseTextTurn';
+import type { TextTurnState } from '../../lib/aiLesson/course/courseTextTurn';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseUtterance, LessonPlanStep } from '../../lib/aiLesson/course/types';
 import type { VoiceLessonResult } from './CourseVoiceLesson';
@@ -32,16 +37,20 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
   const [msgs, setMsgs] = useState<{ role: 'student' | 'tutor'; text: string }[]>(
     () => [{ role: 'tutor', text: introText(step) }],
   );
+  const [engine, setEngine] = useState<TextTurnState>(() => initialTextTurnState());
   const [input, setInput] = useState('');
   const [hintIdx, setHintIdx] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [used, setUsed] = useState(false);
+  const [offerSummary, setOfferSummary] = useState(false);
   const startAt = useRef(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const uttRef = useRef<CourseUtterance[]>([]);
+  const finishedRef = useRef(false); // onComplete の二重発火防止
 
   const detect = useMemo(() => { try { return new RegExp(mission.detect); } catch { return null; } }, [mission.detect]);
+  const closed = engine.phase === 'done'; // 会話終了（入力を閉じ、まとめへ誘導）
 
   // 開始時刻の記録と導入発話のログ（stateは触らない）
   useEffect(() => {
@@ -54,33 +63,35 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
   const log = (role: 'student' | 'tutor', text: string, rel = false) =>
     uttRef.current.push({ speaker: role, transcript: text, atMs: Date.now() - startAt.current, isFinal: true, relatedTarget: rel });
 
-  const tutorSay = (text: string) => { setMsgs((p) => [...p, { role: 'tutor', text }]); log('tutor', text); };
-
   const send = () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || closed) return;
     setInput('');
     const hit = detect ? detect.test(text) : false;
     setMsgs((p) => [...p, { role: 'student', text }]);
     log('student', text, hit);
-    if (hit) {
-      setUsed(true);
-      tutorSay(`いいですね！「${mission.targetExpression}」が使えました。${step.hideTarget ? '' : `もう一度、別の場面でも使ってみましょう。例えば ${mission.alternateScenes[0] ?? ''} の場面ではどうですか？`}`);
-    } else {
-      // 未使用ならフォローアップ or ヒント誘導
-      const fu = mission.followUpQuestions[Math.min(msgs.length, mission.followUpQuestions.length - 1)] ?? mission.followUpQuestions[0];
-      tutorSay(fu ?? 'もう少し話してみましょう。');
-    }
-    inputRef.current?.focus();
+    // 決定的エンジンで返答を生成（反応＋質問1つ・closing制御・重複質問防止）
+    const r = nextTextTurn(engine, text, mission);
+    setEngine(r.state);
+    if (r.targetHit) setUsed(true);
+    if (r.offerSummary) setOfferSummary(true);
+    setMsgs((p) => [...p, { role: 'tutor', text: r.text }]);
+    log('tutor', r.text);
+    if (r.state.phase !== 'done') inputRef.current?.focus();
   };
 
   const hint = () => {
+    if (closed) return;
     const h = mission.hintLevels[Math.min(hintIdx, mission.hintLevels.length - 1)];
     setHintIdx((i) => i + 1);
-    tutorSay(`💡 ${h}`);
+    setMsgs((p) => [...p, { role: 'tutor', text: `💡 ${h}` }]);
+    log('tutor', `💡 ${h}`);
   };
 
+  /** 会話を終えてまとめ（レポート）へ。何度押しても1回だけ発火 */
   const finish = () => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
     setConfirmOpen(false);
     const { usage, count } = detectTargetUsage(uttRef.current.map((u) => ({ role: u.speaker === 'student' ? 'student' : 'tutor', text: u.transcript })), mission.detect);
     onComplete({
@@ -91,7 +102,7 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
       chineseSupportUsed: false,
       durationSeconds: Math.floor((Date.now() - startAt.current) / 1000),
       completionStatus: 'completed',
-      endReason: 'text-complete',
+      endReason: closed ? 'text-max-turns' : 'text-complete',
       translateCostUsd: 0,
     });
   };
@@ -101,9 +112,15 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
       <div className="bg-white border-b border-gray-200 px-3 py-2 shrink-0">
         <div className="flex items-center justify-between gap-2">
           <button type="button" onClick={() => setConfirmOpen(true)} className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg">
-            <X className="w-5 h-5" /><span className="text-xs font-medium">{t.report.backHome}</span>
+            <X className="w-5 h-5" /><span className="text-xs font-medium">{tl.seeSummary}</span>
           </button>
-          <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${isReview ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{isReview ? tl.reviewBadge : tl.newBadge}</span>
+          <div className="flex items-center gap-2">
+            {/* 進行表示（終わりが見える・§14） */}
+            <span className="text-xs font-mono font-bold text-gray-600 tabular-nums" aria-label={`${engine.turn}/${engine.maxTurns}`}>
+              {tl.textProgress(Math.min(engine.turn, engine.maxTurns), TEXT_MAX_TURNS_DEFAULT)}
+            </span>
+            <span className={`text-[11px] font-medium px-2 py-1 rounded-full ${isReview ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700'}`}>{isReview ? tl.reviewBadge : tl.newBadge}</span>
+          </div>
         </div>
         <p className="text-xs text-gray-600 mt-1 flex items-center gap-1 overflow-hidden">
           <Flag className="w-3.5 h-3.5 text-amber-500 shrink-0" />
@@ -111,10 +128,10 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
         </p>
       </div>
 
-      {used && (
+      {used && !closed && (
         <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
           <p className="text-sm text-emerald-800 font-medium">{tl.usedBanner}</p>
-          <button type="button" onClick={finish} className="min-h-11 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg flex items-center gap-1 shrink-0">{t.report.backHome}<ArrowRight className="w-4 h-4" /></button>
+          <button type="button" onClick={finish} className="min-h-11 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg flex items-center gap-1 shrink-0">{tl.seeSummary}<ArrowRight className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -127,21 +144,40 @@ export const CourseTextLesson = ({ t, step, onComplete, onExit }: Props) => {
             </div>
           </div>
         ))}
+        {/* 会話終了: 入力の代わりに完了メッセージ（§10 終了宣言後は質問なし） */}
+        {closed && (
+          <div className="mx-auto max-w-sm text-center py-4">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" aria-hidden="true" />
+            <p className="text-sm text-gray-600">{tl.textInputClosed}</p>
+          </div>
+        )}
       </div>
 
       <div className="bg-gray-50 border-t border-gray-200 px-3 pt-2 shrink-0" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
-        <button type="button" onClick={hint} className="w-full min-h-11 py-2 mb-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1"><Lightbulb className="w-4 h-4" />{t.report.tooHard === '有点难' ? '提示' : 'ヒント'}</button>
-        <div className="flex gap-2 items-end">
-          <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }}
-            placeholder={t.locale === 'zh' ? '用日语输入…' : '日本語で入力…'}
-            className="flex-1 min-h-12 px-4 py-3 border border-gray-300 rounded-xl bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" />
-          <button type="button" onClick={send} disabled={!input.trim()} aria-label="send"
-            className="min-h-12 min-w-12 px-4 bg-blue-600 text-white rounded-xl disabled:opacity-40 flex items-center justify-center shrink-0"><Send className="w-5 h-5" /></button>
-        </div>
+        {/* 常時見える終了導線（1タップでまとめへ・追加確認なし・§3） */}
+        <button type="button" onClick={finish}
+          className={`w-full min-h-11 py-2.5 mb-2 font-bold rounded-xl flex items-center justify-center gap-1.5 text-sm transition-colors ${
+            closed || offerSummary
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+          {tl.endAndSummarize}<ArrowRight className="w-4 h-4" />
+        </button>
+        {!closed && (
+          <>
+            <button type="button" onClick={hint} className="w-full min-h-11 py-2 mb-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1"><Lightbulb className="w-4 h-4" />{t.locale === 'zh' ? '提示' : 'ヒント'}</button>
+            <div className="flex gap-2 items-end">
+              <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) send(); }}
+                placeholder={t.locale === 'zh' ? '用日语输入…' : '日本語で入力…'}
+                className="flex-1 min-h-12 px-4 py-3 border border-gray-300 rounded-xl bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0" />
+              <button type="button" onClick={send} disabled={!input.trim()} aria-label="send"
+                className="min-h-12 min-w-12 px-4 bg-blue-600 text-white rounded-xl disabled:opacity-40 flex items-center justify-center shrink-0"><Send className="w-5 h-5" /></button>
+            </div>
+          </>
+        )}
       </div>
 
-      <ConfirmDialog open={confirmOpen} title={t.voice.endSummaryConfirm} confirmLabel={t.report.backHome} cancelLabel={t.voice.endContinue} onConfirm={finish} onCancel={() => setConfirmOpen(false)} />
+      <ConfirmDialog open={confirmOpen} title={t.voice.endSummaryConfirm} confirmLabel={tl.seeSummary} cancelLabel={t.voice.endContinue} onConfirm={finish} onCancel={() => setConfirmOpen(false)} />
       <button type="button" onClick={onExit} className="hidden" aria-hidden />
     </div>
   );
