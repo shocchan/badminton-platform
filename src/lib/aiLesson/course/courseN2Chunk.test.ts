@@ -1,7 +1,7 @@
 // N2 チャンク分割・インデックス・senses・dynamic import の検証（Phase N2-B2）。
 import { describe, it, expect } from 'vitest';
 import { N2_GRAMMAR_INDEX } from './n2GrammarIndex';
-import { learnerVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar } from './courseN2Grammar';
+import { learnerVisibleIndex, publiclyVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar } from './courseN2Grammar';
 import { aiCourseI18n } from '../../../locales/aiCourse';
 
 describe('公開状況の正直表示（誤認防止）', () => {
@@ -36,9 +36,14 @@ describe('軽量インデックス（一覧で本文/問題を読み込まない
     expect(s.draft).toBe(10);
     expect(s.approved).toBe(0);
   });
-  it('learner向け(approved)は0、レビュー候補(draft+reviewed)は15', () => {
+  it('人間承認済(approved)は0、レビュー候補(draft+reviewed)は15', () => {
     expect(learnerVisibleIndex(N2_GRAMMAR_INDEX).length).toBe(0);
     expect(reviewCandidatesIndex(N2_GRAMMAR_INDEX).length).toBe(15);
+  });
+  it('限定ベータ: 180件すべて learner に表示（hidden=0）', () => {
+    expect(publiclyVisibleIndex(N2_GRAMMAR_INDEX).length).toBe(180);
+    expect(N2_GRAMMAR_INDEX.every((g) => g.publishStatus === 'beta')).toBe(true);
+    expect(N2_GRAMMAR_INDEX.filter((g) => g.publishStatus === 'hidden').length).toBe(0);
   });
   it('検索・ユニットフィルターがインデックスで動く', () => {
     expect(searchIndex(N2_GRAMMAR_INDEX, 'あげく').length).toBeGreaterThanOrEqual(1);

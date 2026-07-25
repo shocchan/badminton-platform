@@ -488,6 +488,10 @@ const ja = {
     nextGrammar: '次の文法',
     backToList: '一覧へ戻る',
     firstQuiz: '確認問題（1問）',
+    betaBadge: 'ベータ',
+    betaBanner: 'このN2文法教材はベータ版です。原本教材をもとにAIで解説・問題を補完しています。内容は順次確認・改善しています。',
+    contentComing: 'この項目の解説・問題は順次追加中です（ベータ）。まずは表現と例文で確認しましょう。',
+    reportIssue: '問題を報告',
   },
   limit: {
     dailyReached: '本日の利用上限に達しました。明日また続けましょう。',
@@ -1018,6 +1022,10 @@ const zh: AiCourseDict = {
     nextGrammar: '下一个语法',
     backToList: '返回列表',
     firstQuiz: '确认题（1题）',
+    betaBadge: '测试版',
+    betaBanner: '本N2语法教材目前为测试版。部分说明和练习题由AI根据原始教材补充，内容会持续检查和改进。',
+    contentComing: '本项目的说明・练习题正在陆续添加中（测试版）。可以先看表达和例句。',
+    reportIssue: '反馈问题',
   },
   limit: {
     dailyReached: '已达到今日学习上限，明天再继续吧。',

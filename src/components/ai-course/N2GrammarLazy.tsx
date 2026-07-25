@@ -30,12 +30,12 @@ class LazyBoundary extends Component<{ fallback: ReactNode; children: ReactNode 
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-export const N2GrammarLazy = ({ t, onBack }: { t: AiCourseDict; onBack: () => void }) => {
+export const N2GrammarLazy = ({ t, onBack, learnerId }: { t: AiCourseDict; onBack: () => void; learnerId?: string }) => {
   const [key, setKey] = useState(0);
   return (
     <LazyBoundary key={key} fallback={<Retry t={t} onRetry={() => setKey((k) => k + 1)} />}>
       <Suspense fallback={<Loading t={t} />}>
-        <CourseN2Grammar t={t} onBack={onBack} />
+        <CourseN2Grammar t={t} onBack={onBack} learnerId={learnerId} />
       </Suspense>
     </LazyBoundary>
   );

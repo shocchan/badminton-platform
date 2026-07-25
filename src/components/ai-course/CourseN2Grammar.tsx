@@ -3,16 +3,17 @@
 // learner には approved のみ表示。合格率は表示しない。
 
 import { useMemo, useState } from 'react';
-import { ArrowLeft, Search, BookText, AlertTriangle, X, ChevronRight, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Search, AlertTriangle, X, ChevronRight, RefreshCw, Flag } from 'lucide-react';
 import { N2_GRAMMAR_INDEX } from '../../lib/aiLesson/course/n2GrammarIndex';
 import type { N2GrammarIndexItem } from '../../lib/aiLesson/course/n2GrammarIndex';
 import {
-  learnerVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar,
+  publiclyVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar,
 } from '../../lib/aiLesson/course/courseN2Grammar';
 import type { N2GrammarItem } from '../../lib/aiLesson/course/courseN2Grammar';
+import { CourseIssueReport } from './CourseIssueReport';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
-interface Props { t: AiCourseDict; onBack: () => void; }
+interface Props { t: AiCourseDict; onBack: () => void; learnerId?: string; }
 
 // レビュー導線は staging のみ。本番(production build)では一般学習者に露出しない（build時に確定）。
 const REVIEW_MODE = import.meta.env.MODE !== 'production';
@@ -43,12 +44,13 @@ const ListField = ({ label, items, icon }: { label: string; items?: string[]; ic
   );
 };
 
-export const CourseN2Grammar = ({ t, onBack }: Props) => {
+export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
   const tg = t.n2grammar;
   const zh = t.locale === 'zh';
   const stats = useMemo(() => n2IndexStats(N2_GRAMMAR_INDEX), []);
-  const approved = useMemo(() => learnerVisibleIndex(N2_GRAMMAR_INDEX), []);
+  const visible = useMemo(() => publiclyVisibleIndex(N2_GRAMMAR_INDEX), []); // 限定ベータ: 180件表示
   const candidates = useMemo(() => reviewCandidatesIndex(N2_GRAMMAR_INDEX), []);
+  const [showIssue, setShowIssue] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [q, setQ] = useState('');
   const [unit, setUnit] = useState<number | 'all'>('all');
@@ -69,7 +71,7 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
 
   // レビュー導線は staging のみ。本番では常に approved のみ
   const inReview = REVIEW_MODE && showPreview;
-  const base: N2GrammarIndexItem[] = inReview ? candidates : approved;
+  const base: N2GrammarIndexItem[] = inReview ? candidates : visible;
   const list = useMemo(() => {
     let items = base;
     if (unit !== 'all') items = byUnit12Index(items, unit);
@@ -93,27 +95,22 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
         </div>
       </div>
 
-      {/* 公開状況（正直表示・「完成」とは言わない） */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
-        <p className="text-sm text-gray-700 leading-relaxed">{tg.ongoingNotice}</p>
-        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-          <span>{tg.total(stats.total)}</span>
-          <span className="text-emerald-600">{tg.approvedCount(stats.approved)}</span>
-          {REVIEW_MODE && <span className="text-amber-600">{tg.reviewingCount(stats.reviewed + stats.draft)}</span>}
-          <span className="text-gray-400">{tg.notPassRate}</span>
+      {/* ベータ告知（初回に一度・各項目には繰り返さない） */}
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500 text-white">{tg.betaBadge}</span>
+          <span className="text-xs text-gray-500">{tg.total(stats.total)}</span>
         </div>
+        <p className="text-sm text-gray-700 leading-relaxed">{tg.betaBanner}</p>
+        {learnerId && (
+          <button type="button" onClick={() => setShowIssue(true)}
+            className="mt-2 text-xs text-blue-600 font-medium inline-flex items-center gap-1"><Flag className="w-3 h-3" />{tg.reportIssue}</button>
+        )}
+        {REVIEW_MODE && (
+          <button type="button" onClick={() => setShowPreview((v) => !v)}
+            className="mt-2 ml-4 text-xs text-amber-700 font-medium underline decoration-dotted">{tg.previewToggle}</button>
+        )}
       </div>
-
-      {!inReview && approved.length === 0 && (
-        <div className="bg-blue-50 rounded-2xl p-5 text-center mb-3">
-          <BookText className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-          <p className="text-sm text-gray-700">{tg.learnerEmpty}</p>
-          {REVIEW_MODE && (
-            <button type="button" onClick={() => setShowPreview(true)}
-              className="mt-3 text-xs text-blue-600 font-medium underline decoration-dotted">{tg.previewToggle}</button>
-          )}
-        </div>
-      )}
 
       {inReview && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 flex items-start gap-2">
@@ -122,7 +119,7 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
         </div>
       )}
 
-      {(inReview || approved.length > 0) && (
+      {(inReview || visible.length > 0) && (
         <>
           <div className="relative mb-2">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -192,6 +189,10 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
                   {tg.steps.map((s, i) => <li key={i} className="flex items-center gap-1"><span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold flex items-center justify-center">{i + 1}</span>{s}</li>)}
                 </ol>
 
+                {/* 未作成項目（ベータ）: 表現＋例文で確認 */}
+                {!detail.meaningZh && !detail.connection && (
+                  <p className="text-[12px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">{tg.contentComing}</p>
+                )}
                 {/* essentials（初期表示） */}
                 {detail.functionCategory && detail.functionCategory.length > 0 && (
                   <div className="flex flex-wrap gap-1">
@@ -322,6 +323,11 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
             })()}
           </div>
         </div>
+      )}
+
+      {showIssue && learnerId && (
+        <CourseIssueReport t={t} learnerId={learnerId} sessionId={null}
+          errorCode={openId ? `n2:${openId}` : 'n2-grammar'} onClose={() => setShowIssue(false)} />
       )}
     </div>
   );

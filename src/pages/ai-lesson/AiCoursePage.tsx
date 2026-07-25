@@ -556,7 +556,7 @@ export default function AiCoursePage() {
   if (step === 'n2grammar') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
-        <N2GrammarLazy t={t} onBack={() => setStep('roadmap')} />
+        <N2GrammarLazy t={t} onBack={() => setStep('roadmap')} learnerId={learner.id} />
       </Shell>
     );
   }

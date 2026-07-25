@@ -3,6 +3,8 @@
 // 人間レビューで追加する（reviewFlags で明示）。learner には reviewStatus==='approved' のみ表示。
 
 export type N2ReviewStatus = 'imported' | 'draft' | 'reviewed' | 'approved' | 'rejected';
+/** 公開可否（reviewStatus=人間レビュー状態 とは分離）。hidden=非表示 / beta=限定ベータ表示 / published=正式公開 */
+export type N2PublishStatus = 'hidden' | 'beta' | 'published';
 
 export interface N2GrammarItem {
   grammarId: string;
@@ -22,6 +24,8 @@ export interface N2GrammarItem {
   /** 頻出度（原本B列。'×' など） */
   frequency: string;
   reviewStatus: N2ReviewStatus;
+  /** 公開可否（learner表示は hidden 以外）。既定 beta */
+  publishStatus?: N2PublishStatus;
   /** 不足・要確認の印（needs_reading / needs_meaningZh / needs_connection / needs_quiz 等） */
   reviewFlags: string[];
   // ── 教材draft（人間レビュー前・任意）。原本に無い項目はここに作成 ──
@@ -97,6 +101,9 @@ import type { N2GrammarIndexItem } from './n2GrammarIndex';
 
 export const learnerVisibleIndex = (idx: N2GrammarIndexItem[]): N2GrammarIndexItem[] =>
   idx.filter((g) => g.reviewStatus === 'approved');
+/** 限定ベータ表示: hidden 以外（beta＋published）をlearnerへ出す */
+export const publiclyVisibleIndex = (idx: N2GrammarIndexItem[]): N2GrammarIndexItem[] =>
+  idx.filter((g) => g.publishStatus !== 'hidden');
 export const reviewCandidatesIndex = (idx: N2GrammarIndexItem[]): N2GrammarIndexItem[] =>
   idx.filter((g) => g.reviewStatus === 'reviewed' || g.reviewStatus === 'draft');
 export const searchIndex = (idx: N2GrammarIndexItem[], q: string): N2GrammarIndexItem[] => {
