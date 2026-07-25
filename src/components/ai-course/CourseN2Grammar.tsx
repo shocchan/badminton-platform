@@ -14,6 +14,9 @@ import type { AiCourseDict } from '../../locales/aiCourse';
 
 interface Props { t: AiCourseDict; onBack: () => void; }
 
+// レビュー導線は staging のみ。本番(production build)では一般学習者に露出しない（build時に確定）。
+const REVIEW_MODE = import.meta.env.MODE !== 'production';
+
 const exprOf = (id: string) => N2_GRAMMAR_INDEX.find((g) => g.grammarId === id)?.displayExpression ?? id;
 
 const Field = ({ label, value, empty, mono }: { label: string; value?: string; empty?: string; mono?: boolean }) => {
@@ -54,21 +57,28 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
   const [detail, setDetail] = useState<N2GrammarItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(false);
+  const [expanded, setExpanded] = useState(false); // 詳細（ニュアンス等）を折り畳み。初期は essentials のみ
 
   const openDetail = (grammarId: string) => {
-    setOpenId(grammarId); setDetail(null); setDetailError(false); setDetailLoading(true);
+    setOpenId(grammarId); setDetail(null); setDetailError(false); setDetailLoading(true); setExpanded(false);
     loadFullGrammar(grammarId)
       .then((full) => { setDetail(full); setDetailLoading(false); })
       .catch(() => { setDetailError(true); setDetailLoading(false); });
   };
   const closeDetail = () => { setOpenId(null); setDetail(null); setDetailError(false); };
 
-  const base: N2GrammarIndexItem[] = showPreview ? candidates : approved;
+  // レビュー導線は staging のみ。本番では常に approved のみ
+  const inReview = REVIEW_MODE && showPreview;
+  const base: N2GrammarIndexItem[] = inReview ? candidates : approved;
   const list = useMemo(() => {
     let items = base;
     if (unit !== 'all') items = byUnit12Index(items, unit);
     return searchIndex(items, q);
   }, [base, unit, q]);
+  // 前後移動（現在の絞り込み一覧内。learnerは approved のみが対象）
+  const curIdx = openId ? list.findIndex((g) => g.grammarId === openId) : -1;
+  const prevId = curIdx > 0 ? list[curIdx - 1].grammarId : null;
+  const nextId = curIdx >= 0 && curIdx < list.length - 1 ? list[curIdx + 1].grammarId : null;
 
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
@@ -83,30 +93,36 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-        <span>{tg.total(stats.total)}</span>
-        <span className="text-emerald-600">{tg.approvedCount(stats.approved)}</span>
-        <span className="text-amber-600">{tg.reviewingCount(stats.reviewed + stats.draft)}</span>
-        <span className="text-gray-400">{tg.notPassRate}</span>
+      {/* 公開状況（正直表示・「完成」とは言わない） */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
+        <p className="text-sm text-gray-700 leading-relaxed">{tg.ongoingNotice}</p>
+        <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
+          <span>{tg.total(stats.total)}</span>
+          <span className="text-emerald-600">{tg.approvedCount(stats.approved)}</span>
+          {REVIEW_MODE && <span className="text-amber-600">{tg.reviewingCount(stats.reviewed + stats.draft)}</span>}
+          <span className="text-gray-400">{tg.notPassRate}</span>
+        </div>
       </div>
 
-      {!showPreview && approved.length === 0 && (
+      {!inReview && approved.length === 0 && (
         <div className="bg-blue-50 rounded-2xl p-5 text-center mb-3">
           <BookText className="w-6 h-6 text-blue-500 mx-auto mb-2" />
           <p className="text-sm text-gray-700">{tg.learnerEmpty}</p>
-          <button type="button" onClick={() => setShowPreview(true)}
-            className="mt-3 text-xs text-blue-600 font-medium underline decoration-dotted">{tg.previewToggle}</button>
+          {REVIEW_MODE && (
+            <button type="button" onClick={() => setShowPreview(true)}
+              className="mt-3 text-xs text-blue-600 font-medium underline decoration-dotted">{tg.previewToggle}</button>
+          )}
         </div>
       )}
 
-      {showPreview && (
+      {inReview && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <p className="text-[11px] text-amber-800 leading-relaxed">{tg.previewBanner}</p>
         </div>
       )}
 
-      {(showPreview || approved.length > 0) && (
+      {(inReview || approved.length > 0) && (
         <>
           <div className="relative mb-2">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -146,7 +162,7 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
             <div className="flex items-start justify-between gap-2 mb-2">
               <div>
                 <p className="text-xl font-bold text-gray-900 break-words">{exprOf(openId)}</p>
-                {detail && <p className="text-[11px] text-gray-400">{tg.sourceRow(detail.sourceRow)} ・ {detail.sourceUnit} ・ No.{detail.no}</p>}
+                {detail && inReview && <p className="text-[11px] text-gray-400">{tg.sourceRow(detail.sourceRow)} ・ {detail.sourceUnit} ・ No.{detail.no}</p>}
               </div>
               <button type="button" onClick={closeDetail} aria-label={tg.close}
                 className="min-h-11 min-w-11 flex items-center justify-center text-gray-400 hover:text-gray-600"><X className="w-5 h-5" /></button>
@@ -163,94 +179,147 @@ export const CourseN2Grammar = ({ t, onBack }: Props) => {
               </div>
             )}
 
-            {detail && (
+            {detail && (() => {
+              const showAll = expanded || inReview; // learnerは初期折り畳み、reviewは全表示
+              const firstQuiz = detail.quizzes && detail.quizzes[0];
+              return (
               <div className="space-y-3">
-                {detail.reviewStatus === 'draft' && (
+                {inReview && detail.reviewStatus === 'draft' && (
                   <p className="text-[11px] text-amber-700 bg-amber-50 rounded-lg px-2.5 py-1.5">{tg.draftContent}</p>
                 )}
-                {!detail.meaningZh && !detail.connection && detail.reviewStatus !== 'draft' && (
-                  <p className="text-[11px] text-gray-400">{tg.noContentYet}</p>
-                )}
+                {/* 学び方（最低限の導線） */}
+                <ol className="flex flex-wrap gap-x-2 gap-y-1 text-[11px] text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                  {tg.steps.map((s, i) => <li key={i} className="flex items-center gap-1"><span className="w-4 h-4 rounded-full bg-blue-100 text-blue-700 text-[9px] font-bold flex items-center justify-center">{i + 1}</span>{s}</li>)}
+                </ol>
+
+                {/* essentials（初期表示） */}
                 {detail.functionCategory && detail.functionCategory.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {detail.functionCategory.map((fc) => <span key={fc} className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">{fc}</span>)}
                   </div>
                 )}
+                <Field label={tg.meaningZh} value={detail.shortMeaningZh || detail.meaningZh} />
                 <Field label={tg.meaning} value={detail.meaningJa} empty={tg.meaningEmpty} />
-                <Field label={tg.meaningZh} value={detail.meaningZh} />
                 <Field label={tg.connection} value={detail.connection} />
-                <Field label={tg.nuance} value={zh ? detail.nuanceZh : detail.nuanceJa} />
-                <ListField label={tg.situations} items={detail.situations} />
-
-                {/* 多義語の用法分離（senses） */}
-                {detail.senses && detail.senses.length > 0 && (
-                  <div className="space-y-2">
-                    {detail.senses.map((s) => (
-                      <div key={s.senseId} className="bg-indigo-50/60 rounded-xl p-3">
-                        <p className="text-sm font-bold text-indigo-800">{s.meaningJa}</p>
-                        <p className="text-[12px] text-indigo-700">{s.meaningZh}</p>
-                        <p className="text-[11px] text-gray-500 mt-0.5">{tg.connection}: {s.connection}</p>
-                        <ul className="mt-1 space-y-0.5">{s.examples.map((e, i) => <li key={i} className="text-sm text-gray-800">💬 {e}</li>)}</ul>
-                      </div>
-                    ))}
+                {detail.examples[0] && (
+                  <div>
+                    <p className="text-[11px] font-medium text-gray-500">{tg.example}</p>
+                    <p className="text-sm text-gray-900 leading-relaxed select-text">💬 {detail.examples[0]}</p>
                   </div>
                 )}
-
-                <div>
-                  <p className="text-[11px] font-medium text-gray-500">{tg.example}（原本）</p>
-                  <ul className="space-y-1">{detail.examples.map((e, i) => <li key={i} className="text-sm text-gray-900 leading-relaxed select-text">💬 {e}</li>)}</ul>
+                {firstQuiz && (
+                  <div>
+                    <p className="text-[11px] font-medium text-gray-500 mb-1">{tg.firstQuiz}</p>
+                    <div className="bg-gray-50 rounded-lg p-2.5">
+                      <p className="text-sm text-gray-900">{firstQuiz.prompt}</p>
+                      <ol className="mt-1 space-y-0.5">
+                        {firstQuiz.choices.map((c, ci) => (
+                          <li key={ci} className={`text-xs ${ci === firstQuiz.correctAnswer ? 'text-emerald-700 font-bold' : 'text-gray-600'}`}>{ci === firstQuiz.correctAnswer ? '✓ ' : '・'}{c}</li>
+                        ))}
+                      </ol>
+                      <p className="text-[11px] text-gray-500 mt-1">{tg.explanation}: {zh ? firstQuiz.explanationZh : firstQuiz.explanationJa}</p>
+                    </div>
+                  </div>
+                )}
+                {/* 次の行動 */}
+                <div className="bg-blue-50 rounded-lg px-3 py-2">
+                  <p className="text-[11px] font-medium text-blue-700">{tg.firstAction}</p>
+                  <p className="text-sm text-gray-800">{tg.nextActionText}</p>
                 </div>
-                <ListField label={tg.convExamples} items={detail.conversationExamples} icon="💬" />
-                <ListField label={tg.readingExamples} items={detail.readingExamples} icon="📖" />
-                <ListField label={tg.listeningExamples} items={detail.listeningExamples} icon="🎧" />
-                <Field label={tg.differences} value={zh ? detail.differencesZh : detail.differencesJa} />
-                <ListField label={tg.mistakesLabel} items={detail.commonMistakes} icon="⚠️" />
-                <Field label={tg.chineseNotes} value={detail.chineseSpeakerNotes} />
-                <Field label={tg.template} value={detail.substitutionTemplate} mono />
-                {detail.similarGrammarIds && detail.similarGrammarIds.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-medium text-gray-500">{tg.similar}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {detail.similarGrammarIds.map((sid) => (
-                        <button key={sid} type="button" onClick={() => openDetail(sid)}
-                          className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100">{exprOf(sid)}</button>
-                      ))}
-                    </div>
-                  </div>
+
+                {/* もっと見る（折り畳み） */}
+                {!inReview && (
+                  <button type="button" onClick={() => setExpanded((v) => !v)}
+                    className="w-full min-h-11 py-2 text-sm text-blue-600 hover:text-blue-700 border border-gray-200 rounded-xl">
+                    {expanded ? tg.showLess : tg.showMore}
+                  </button>
                 )}
-                {detail.quizzes && detail.quizzes.length > 0 && (
-                  <div>
-                    <p className="text-[11px] font-medium text-gray-500 mb-1">{tg.quizzes}（{detail.quizzes.length}）</p>
-                    <div className="space-y-2">
-                      {detail.quizzes.map((qz) => (
-                        <div key={qz.questionId} className="bg-gray-50 rounded-lg p-2.5">
-                          <p className="text-sm text-gray-900">{qz.prompt}</p>
-                          <ol className="mt-1 space-y-0.5">
-                            {qz.choices.map((c, ci) => (
-                              <li key={ci} className={`text-xs ${ci === qz.correctAnswer ? 'text-emerald-700 font-bold' : 'text-gray-600'}`}>
-                                {ci === qz.correctAnswer ? '✓ ' : '・'}{c}
-                              </li>
-                            ))}
-                          </ol>
-                          <p className="text-[11px] text-gray-500 mt-1">{tg.explanation}: {zh ? qz.explanationZh : qz.explanationJa}</p>
+
+                {showAll && (
+                  <div className="space-y-3 pt-1">
+                    <Field label={tg.nuance} value={zh ? detail.nuanceZh : detail.nuanceJa} />
+                    <ListField label={tg.situations} items={detail.situations} />
+                    {detail.senses && detail.senses.length > 0 && (
+                      <div className="space-y-2">
+                        {detail.senses.map((s) => (
+                          <div key={s.senseId} className="bg-indigo-50/60 rounded-xl p-3">
+                            <p className="text-sm font-bold text-indigo-800">{s.meaningJa}</p>
+                            <p className="text-[12px] text-indigo-700">{s.meaningZh}</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">{tg.connection}: {s.connection}</p>
+                            <ul className="mt-1 space-y-0.5">{s.examples.map((e, i) => <li key={i} className="text-sm text-gray-800">💬 {e}</li>)}</ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {detail.examples.length > 1 && (
+                      <div>
+                        <p className="text-[11px] font-medium text-gray-500">{tg.example}（原本）</p>
+                        <ul className="space-y-1">{detail.examples.slice(1).map((e, i) => <li key={i} className="text-sm text-gray-900 leading-relaxed select-text">💬 {e}</li>)}</ul>
+                      </div>
+                    )}
+                    <ListField label={tg.convExamples} items={detail.conversationExamples} icon="💬" />
+                    <ListField label={tg.readingExamples} items={detail.readingExamples} icon="📖" />
+                    <ListField label={tg.listeningExamples} items={detail.listeningExamples} icon="🎧" />
+                    <Field label={tg.differences} value={zh ? detail.differencesZh : detail.differencesJa} />
+                    <ListField label={tg.mistakesLabel} items={detail.commonMistakes} icon="⚠️" />
+                    <Field label={tg.chineseNotes} value={detail.chineseSpeakerNotes} />
+                    <Field label={tg.template} value={detail.substitutionTemplate} mono />
+                    {detail.similarGrammarIds && detail.similarGrammarIds.length > 0 && (
+                      <div>
+                        <p className="text-[11px] font-medium text-gray-500">{tg.similar}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {detail.similarGrammarIds.map((sid) => (
+                            <button key={sid} type="button" onClick={() => openDetail(sid)}
+                              className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100">{exprOf(sid)}</button>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+                    {detail.quizzes && detail.quizzes.length > 1 && (
+                      <div>
+                        <p className="text-[11px] font-medium text-gray-500 mb-1">{tg.quizzes}（{detail.quizzes.length}）</p>
+                        <div className="space-y-2">
+                          {detail.quizzes.slice(1).map((qz) => (
+                            <div key={qz.questionId} className="bg-gray-50 rounded-lg p-2.5">
+                              <p className="text-sm text-gray-900">{qz.prompt}</p>
+                              <ol className="mt-1 space-y-0.5">
+                                {qz.choices.map((c, ci) => (
+                                  <li key={ci} className={`text-xs ${ci === qz.correctAnswer ? 'text-emerald-700 font-bold' : 'text-gray-600'}`}>{ci === qz.correctAnswer ? '✓ ' : '・'}{c}</li>
+                                ))}
+                              </ol>
+                              <p className="text-[11px] text-gray-500 mt-1">{tg.explanation}: {zh ? qz.explanationZh : qz.explanationJa}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {/* review専用: フラグ */}
+                    {inReview && detail.reviewFlags.length > 0 && (
+                      <div className="bg-amber-50 rounded-xl p-3">
+                        <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1 mb-1"><AlertTriangle className="w-3.5 h-3.5" />{tg.needsWork}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {detail.reviewFlags.map((fl) => {
+                            const label = (tg.flags as Record<string, string>)[fl] ?? fl;
+                            return <span key={fl} className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-amber-200 text-amber-700">{label}</span>;
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
-                {detail.reviewFlags.length > 0 && (
-                  <div className="bg-amber-50 rounded-xl p-3">
-                    <p className="text-[11px] font-medium text-amber-700 flex items-center gap-1 mb-1"><AlertTriangle className="w-3.5 h-3.5" />{tg.needsWork}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {detail.reviewFlags.map((fl) => {
-                        const label = (tg.flags as Record<string, string>)[fl] ?? fl;
-                        return <span key={fl} className="text-[10px] px-1.5 py-0.5 rounded bg-white border border-amber-200 text-amber-700">{label}</span>;
-                      })}
-                    </div>
-                  </div>
-                )}
+
+                {/* 前後移動・戻る */}
+                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                  <button type="button" onClick={() => prevId && openDetail(prevId)} disabled={!prevId}
+                    className="min-h-11 flex-1 py-2 text-sm rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50">← {tg.prevGrammar}</button>
+                  <button type="button" onClick={closeDetail}
+                    className="min-h-11 px-3 py-2 text-sm text-gray-500 hover:text-gray-700">{tg.backToList}</button>
+                  <button type="button" onClick={() => nextId && openDetail(nextId)} disabled={!nextId}
+                    className="min-h-11 flex-1 py-2 text-sm rounded-xl border border-gray-200 disabled:opacity-40 hover:bg-gray-50">{tg.nextGrammar} →</button>
+                </div>
               </div>
-            )}
+              );
+            })()}
           </div>
         </div>
       )}

@@ -2,6 +2,21 @@
 import { describe, it, expect } from 'vitest';
 import { N2_GRAMMAR_INDEX } from './n2GrammarIndex';
 import { learnerVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar } from './courseN2Grammar';
+import { aiCourseI18n } from '../../../locales/aiCourse';
+
+describe('公開状況の正直表示（誤認防止）', () => {
+  for (const loc of ['ja', 'zh'] as const) {
+    it(`${loc}: 「完成」「全180公開」と誤認させない・順次追加を明示`, () => {
+      const n = aiCourseI18n[loc].n2grammar.ongoingNotice;
+      expect(n.length).toBeGreaterThan(0);
+      expect(n).not.toContain('完成');
+      expect(/全180.*公開|全部.*公开|180項目.*公開済/.test(n)).toBe(false);
+    });
+    it(`${loc}: 学び方ステップは5段階`, () => {
+      expect(aiCourseI18n[loc].n2grammar.steps.length).toBe(5);
+    });
+  }
+});
 
 describe('軽量インデックス（一覧で本文/問題を読み込まない）', () => {
   it('180項目のインデックスがある', () => {
