@@ -303,25 +303,34 @@ describe('Personal World V1（本人主役・アバターなし完成度）', ()
 });
 
 
-describe('しくみラボ試作のアクセス制限（§2A-6）', () => {
-  it('labPreview=false（一般受講生・Andyさん）には入口を表示しない', () => {
+describe('しくみラボ ホーム大カード（§2）', () => {
+  it('labPreview=false（一般受講生・Andyさん）にはDOM自体を出さない', () => {
     render(<CourseHome {...homeProps} />);
-    expect(screen.queryByText(t.lab.homeEntry)).toBeNull();
+    expect(screen.queryByText(t.lab.homeCardTitle)).toBeNull();
   });
-  it('labPreview=true（テストアカウント）のみ入口表示・onOpenLab発火', () => {
+  it('labPreview=trueで大カード表示・第一CTAは一つ・onOpenLab(today)発火', () => {
     const onLab = vi.fn();
     render(<CourseHome {...homeProps} labPreview onOpenLab={onLab} />);
-    fireEvent.click(screen.getByText(t.lab.homeEntry));
-    expect(onLab).toHaveBeenCalledTimes(1);
+    expect(screen.getByText(t.lab.homeCardTitle)).toBeTruthy();
+    // 未着手状態→第一CTAは「始める」一つだけ
+    fireEvent.click(screen.getByText(t.lab.ctaStart));
+    expect(onLab).toHaveBeenCalledWith('today');
+    // 第二CTA（単元を選ぶ）は1つまで
+    fireEvent.click(screen.getByText(t.lab.homeCardChoose));
+    expect(onLab).toHaveBeenCalledWith('units');
   });
-  it('中国語UIでもlabPreview=trueで入口カードを表示する', () => {
+  it('カード内へ全単元一覧・全語彙を表示しない（§2）', () => {
+    render(<CourseHome {...homeProps} labPreview />);
+    expect(screen.queryByText('助詞「は・が・を」')).toBeNull();
+    expect(screen.queryByPlaceholderText(t.lab.searchWords)).toBeNull();
+  });
+  it('中国語UIでもlabPreview=trueで大カード表示', () => {
     const tz = aiCourseI18n.zh;
     render(<CourseHome {...homeProps} t={tz} labPreview />);
-    expect(screen.getByText(tz.lab.homeEntry)).toBeTruthy();
+    expect(screen.getByText(tz.lab.homeCardTitle)).toBeTruthy();
   });
   it('カード表示はlabPreview propのみに依存する（is_test等の追加条件なし）', () => {
-    // CourseHomeはis_testを受け取らない設計＝is_test=falseでもlabPreview=trueなら表示される
     render(<CourseHome {...homeProps} labPreview />);
-    expect(screen.getByText(t.lab.homeEntry)).toBeTruthy();
+    expect(screen.getByText(t.lab.homeCardTitle)).toBeTruthy();
   });
 });

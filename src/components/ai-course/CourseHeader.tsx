@@ -6,11 +6,11 @@
 // - スマホ: ブランド行＋横スクロールタブ（従来のコンパクト表示）
 // - lg以上: 1段レイアウト（左ブランド／中央ナビ／右 言語切替・ログアウト）
 
-import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages } from 'lucide-react';
+import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
 /** ヘッダーのナビ対象（AiCoursePage の Step と対応） */
-export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'history' | 'settings';
+export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'lab' | 'history' | 'settings';
 
 interface Props {
   t: AiCourseDict;
@@ -23,12 +23,16 @@ interface Props {
   lang?: 'ja' | 'zh';
   /** ワンタップ言語切替。ある場合だけボタンを出す（管理画面では渡さない） */
   onToggleLang?: () => void;
+  /** しくみラボの主要ナビ表示（labPreview権限のみtrue・一般受講生はDOM自体を出さない・§1） */
+  showLab?: boolean;
 }
 
-const NAV: { key: CourseNavKey; icon: typeof Home }[] = [
+const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] => [
   { key: 'home', icon: Home },
   { key: 'growth', icon: TrendingUp },
   { key: 'roadmap', icon: Map },
+  // しくみラボはAI会話と並ぶ主要機能としてロードマップの次に置く（labPreviewのみ・§1）
+  ...(showLab ? ([{ key: 'lab', icon: FlaskConical }] as { key: CourseNavKey; icon: typeof Home }[]) : []),
   { key: 'history', icon: History },
   { key: 'settings', icon: Settings },
 ];
@@ -46,8 +50,9 @@ const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: ()
   </button>
 );
 
-export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang }: Props) => {
+export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false }: Props) => {
   const toggleLabel = lang === 'ja' ? '中文' : '日本語';
+  const NAV = navItems(showLab);
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4">
@@ -92,7 +97,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
 
         {/* ── 下段: スマホ/タブレット用の横スクロールタブ（lg未満のみ） ── */}
         {showNav && onNavigate && (
-          <nav className="flex lg:hidden items-center gap-1 -mb-px overflow-x-auto" aria-label={t.brand}>
+          <nav className={`flex lg:hidden items-center gap-1 -mb-px ${showLab ? 'flex-wrap' : 'overflow-x-auto'}`} aria-label={t.brand}>
             {NAV.map(({ key, icon: Icon }) => (
               <button
                 key={key} type="button" onClick={() => onNavigate(key)}

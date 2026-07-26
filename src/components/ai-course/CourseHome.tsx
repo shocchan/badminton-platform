@@ -8,6 +8,9 @@ import { LearnerAvatar } from './LearnerAvatar';
 import { usePrivateAvatarUrl } from '../../lib/aiLesson/course/usePrivateAvatarUrl';
 import { deriveCourseMemories } from '../../lib/aiLesson/course/courseMemories';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { FOUNDATION_UNIT_META } from '../../lib/aiLesson/course/foundationRegistry';
+import { createFoundationProgressRepository } from '../../lib/aiLesson/course/foundationProgress';
+import { recommendToday } from '../../lib/aiLesson/course/foundationRecommend';
 import type { LearnerSettings } from '../../lib/aiLesson/course/types';
 import type { CourseSessionRecord } from '../../lib/aiLesson/course/types';
 import { currentDisplayWeek, chapterOfInternalWeek } from '../../lib/aiLesson/course/courseWeekMapping';
@@ -57,7 +60,7 @@ interface Props {
   onOpenNotebook: () => void;
   /** しくみラボ試作（adminOverrides.labPreview=true のテストアカウントのみ・§2A-6） */
   labPreview: boolean;
-  onOpenLab: () => void;
+  onOpenLab: (section?: 'today' | 'units') => void;
   /** アバター承認/作り直し（settings更新・§Avatar2） */
   onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
 }
@@ -202,14 +205,8 @@ export const CourseHome = ({
         className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
-      {/* しくみラボ試作入口（labPreview権限のみ表示・draft教材・一般受講生はDOM自体なし） */}
-      {labPreview && (
-        <button type="button" onClick={onOpenLab}
-          className="w-full min-h-12 py-3 mb-2 px-4 text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
-          <BookOpen className="w-4 h-4" />{t.lab.homeEntry}
-          <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-white text-indigo-500">draft</span>
-        </button>
-      )}
+      {/* 日本語のしくみ: AI会話と並ぶ主要学習メニュー（labPreview権限のみ・一般受講生はDOM自体なし・§2） */}
+      {labPreview && <FoundationHomeCard t={t} onOpenLab={onOpenLab} />}
 
       {/* 軽め2〜3分（API不使用・会話しない日の入口・§E-3） */}
       {hasLightMaterial && (
@@ -374,6 +371,42 @@ const AvatarReviewCard = ({ t, learner, onUpdate }: {
       {learner.settings.avatarReviewStatus === 'revision_requested' && (
         <p className="text-[11px] text-gray-500 mt-2">{ta.reviseHint}</p>
       )}
+    </div>
+  );
+};
+
+/** ホームの「日本語のしくみ」大カード。第一CTAは利用状態から決定的に一つだけ（§2） */
+const FoundationHomeCard = ({ t, onOpenLab }: { t: AiCourseDict; onOpenLab: (section?: 'today' | 'units') => void }) => {
+  const tl = t.lab;
+  const zh = t.locale === 'zh';
+  // sessionStorageの試作進捗のみ参照（会話進捗と分離・読み取りだけ）
+  const rec = (() => {
+    try {
+      const repo = createFoundationProgressRepository(window.sessionStorage);
+      const summaries = Object.fromEntries(FOUNDATION_UNIT_META.map((m) => [m.id, repo.getUnitSummary(m.id)]));
+      const dueCount = repo.getReviewQueue(new Date().toISOString()).filter((e) => e.isDue).length;
+      return recommendToday(FOUNDATION_UNIT_META, summaries, dueCount);
+    } catch { return null; }
+  })();
+  const recUnit = rec?.unitId ? FOUNDATION_UNIT_META.find((m) => m.id === rec.unitId) : null;
+  const isReview = rec?.kind === 'review_due' || rec?.kind === 'all_done_review';
+  const cta = isReview ? tl.ctaReview : rec?.kind === 'resume_unit' ? tl.ctaResume : tl.ctaStart;
+  const body = rec
+    ? (isReview ? tl.recReview(rec.dueCount) : recUnit ? tl.todayBody(zh ? recUnit.titleZh : recUnit.titleJa) : tl.recAllDone)
+    : tl.homeCardTitle;
+  return (
+    <div className="bg-white rounded-2xl border-2 border-indigo-100 p-5 mb-4">
+      <div className="flex items-center gap-2 mb-1">
+        <BookOpen className="w-4 h-4 text-indigo-600" />
+        <p className="text-sm font-bold text-gray-900">{tl.homeCardTitle}</p>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{tl.betaBadge}</span>
+      </div>
+      <p className="text-xs text-gray-600">{body}</p>
+      {rec && <p className="text-[11px] text-gray-400 mt-0.5">{tl.aboutMinutes(rec.estimatedMinutes)}</p>}
+      <button type="button" onClick={() => onOpenLab('today')}
+        className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl">{cta}</button>
+      <button type="button" onClick={() => onOpenLab('units')}
+        className="w-full min-h-11 py-2 mt-1 text-sm text-indigo-700">{tl.homeCardChoose}</button>
     </div>
   );
 };
