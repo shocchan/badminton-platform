@@ -6,9 +6,10 @@ export const usePrivateAvatarUrl = (path: string | null | undefined): string | n
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
-    setUrl(null);
-    if (!path) return;
-    void getAvatarSignedUrl(path).then((u) => { if (alive) setUrl(u); });
+    // effect内で同期setStateしない（microtask経由）。古いeffectは alive=false で無効化される
+    void Promise.resolve()
+      .then(() => (path ? getAvatarSignedUrl(path) : null))
+      .then((u) => { if (alive) setUrl(u); });
     return () => { alive = false; };
   }, [path]);
   return url;
