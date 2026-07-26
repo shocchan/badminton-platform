@@ -33,6 +33,8 @@ export interface VoiceLessonResult {
   endReason: string;
   /** 中国語補助字幕でかかった追加API概算コスト（USD） */
   translateCostUsd: number;
+  /** 発話をターン毎に保存済み（テキスト会話）。finalize時の一括insertをスキップして重複保存を防ぐ */
+  utterancesAlreadySaved?: boolean;
 }
 
 /** 翔子先生の1発話ぶんの中国語補助字幕の状態 */

@@ -19,6 +19,10 @@ export interface ChatTurnResult {
     question: string | null;
     shouldClose: boolean;
     closingMessage: string | null;
+    /** 応答全体の簡体字訳（折り畳み表示用・同一応答で生成済み＝追加課金なし） */
+    translationZh: string | null;
+    /** 学習者レベルより難しい語の読み（最大3語） */
+    readingAids: { text: string; reading: string }[];
   };
   studentTurns?: number;
   maxTurns?: number;
@@ -29,6 +33,8 @@ export interface ChatTurnRequest {
   sessionId: string;
   locale: 'ja' | 'zh';
   learnerLevel: number;
+  /** JLPT目安（N5〜N1）。語彙・文長の制御に使う */
+  estimatedLevel: string;
   missionTitleJa: string;
   targetExpression: string;
   history: { role: 'student' | 'tutor'; text: string }[];
@@ -77,6 +83,13 @@ export const requestChatTurn = async (req: ChatTurnRequest): Promise<ChatTurnRes
         question: data.turn.question ?? null,
         shouldClose: !!data.turn.shouldClose,
         closingMessage: data.turn.closingMessage ?? null,
+        translationZh: typeof data.turn.translationZh === 'string' ? data.turn.translationZh : null,
+        readingAids: Array.isArray(data.turn.readingAids)
+          ? data.turn.readingAids
+            .filter((a: unknown): a is { text: string; reading: string } =>
+              !!a && typeof (a as { text?: unknown }).text === 'string' && typeof (a as { reading?: unknown }).reading === 'string')
+            .slice(0, 3)
+          : [],
       },
       studentTurns: typeof data.studentTurns === 'number' ? data.studentTurns : undefined,
       maxTurns: typeof data.maxTurns === 'number' ? data.maxTurns : undefined,

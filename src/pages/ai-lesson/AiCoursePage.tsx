@@ -30,6 +30,8 @@ import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
 import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
 import { trackCourse, trackCourseOnce } from '../../lib/aiLesson/course/courseAnalytics';
+import { buildResumeFromUtterances } from '../../lib/aiLesson/course/courseTextResume';
+import type { ResumedTextLesson } from '../../lib/aiLesson/course/courseTextResume';
 import { needsHearing } from '../../lib/aiLesson/course/courseFlow';
 import type {
   CourseSessionRecord, FeedbackInput, ItemProgress, Learner, LessonPlan, LessonReport,
@@ -135,6 +137,10 @@ export default function AiCoursePage() {
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  // 別端末で進行中のセッション（エラーではなく復旧選択肢を出す・§B）
+  const [recovery, setRecovery] = useState<CourseSessionRecord | null>(null);
+  const [pendingMode, setPendingMode] = useState<'voice' | 'text'>('voice');
+  const [textResume, setTextResume] = useState<ResumedTextLesson | null>(null);
   const [guideMode, setGuideMode] = useState<'first' | 'review'>('first');
   const [growthData, setGrowthData] = useState<{
     metrics: GrowthMetrics; journey: JourneyPlace[]; canDos: AchievedCanDo[];
@@ -244,12 +250,18 @@ export default function AiCoursePage() {
     });
     setStarting(false);
     if (!r.ok) {
+      // 進行中セッション → 赤エラーではなく復旧選択肢（この端末で再開/新規/キャンセル）
+      if (r.code === 'session_already_active') {
+        const act = await courseRepository.getActiveSession();
+        if (act) { setPendingMode(m); setRecovery(act); setStartError(''); return; }
+      }
       setStartError(t.limits[r.code ?? 'unknown'] ?? t.limits.unknown);
       // 上限に当たったら表示も実際の状態に合わせる（日次・月次いずれも今は開始できない）
       if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit'
         || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit') setRemaining(0);
       return;
     }
+    setTextResume(null);
     setMode(m);
     setActiveSessionId(r.sessionId ?? null);
     setRemaining(r.remainingSessions ?? 0);
@@ -257,6 +269,49 @@ export default function AiCoursePage() {
     courseRepository.saveResume({ missionId: planArg.main.mission.id, kind: planArg.main.kind, at: Date.now() });
     setHasResume(false);
     setStep('lesson');
+  };
+
+  /** 進行中セッションのミッションから復元用の LessonPlan を組む */
+  const planForSession = (s: CourseSessionRecord): LessonPlan | null => {
+    const mission = missionById(s.missionId);
+    if (!mission) return null;
+    const hide = ['review_day7', 'review_day30', 'weekly_practice'].includes(s.lessonKind);
+    return { main: { mission, kind: s.lessonKind, hideTarget: hide }, review: null, reasonKey: 'resume' };
+  };
+
+  /** 【B-3】この端末で続きを再開（本人所有の in_progress セッション） */
+  const resumeActiveSession = async () => {
+    if (!recovery || !learner) return;
+    const freshPlan = planForSession(recovery);
+    if (!freshPlan) { await discardActiveAndStartNew(); return; } // 不明ミッション（想定外）は新規へ
+    if (recovery.mode === 'text') {
+      // テキスト: 同じ sessionId を引き継ぎ、保存済み発話から履歴・ターン・出題済み質問を復元
+      const utts = await courseRepository.listSessionUtterances(recovery.id);
+      setTextResume(buildResumeFromUtterances(utts));
+      setPlan(freshPlan);
+      setActiveSessionId(recovery.id);
+      setMode('text');
+      setRecovery(null);
+      setStep('lesson');
+      return;
+    }
+    // 音声: 古いWebRTC接続は引き継げないため、旧セッションを中断扱いにして
+    // 同じミッションを新しい音声セッションとして開始（二重接続・二重課金なし）
+    await courseRepository.finalizeSession(recovery.id, {
+      endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'superseded-resume',
+    }, [], learner.id);
+    setRecovery(null);
+    await startLesson('voice', freshPlan);
+  };
+
+  /** 【B-4】前のレッスンを終了して新しく始める（完了扱いにしない＝XP・復習登録なし） */
+  const discardActiveAndStartNew = async () => {
+    if (!recovery || !learner) return;
+    await courseRepository.finalizeSession(recovery.id, {
+      endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'superseded-new',
+    }, [], learner.id);
+    setRecovery(null);
+    await startLesson(pendingMode);
   };
 
   /**
@@ -375,7 +430,8 @@ export default function AiCoursePage() {
         targetUsed: result.targetUsed, targetUsedIndependently: result.targetUsedIndependently,
         chineseSupportUsed: result.chineseSupportUsed, estimatedCostUsd: cost,
         speechMetrics,
-      }, result.utterances, learner.id);
+        // ターン毎チェックポイント保存済み（テキスト会話）なら一括insertしない（重複保存防止）
+      }, result.utterancesAlreadySaved ? [] : result.utterances, learner.id);
     }
     await courseRepository.recordUsage(learner.id, result.durationSeconds, cost);
 
@@ -514,7 +570,7 @@ export default function AiCoursePage() {
   if (step === 'lesson' && plan) {
     return mode === 'voice'
       ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
-      : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} onComplete={handleLessonComplete} onExit={backHome} />;
+      : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
     return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
@@ -625,6 +681,10 @@ export default function AiCoursePage() {
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}
         starting={starting} startError={startError}
+        recovery={recovery ? { mode: recovery.mode } : null}
+        onResumeActive={() => { void resumeActiveSession(); }}
+        onDiscardActive={() => { void discardActiveAndStartNew(); }}
+        onCancelRecovery={() => setRecovery(null)}
         currentStageLabel={weekLevelCanDo(learner.currentWeek, t.locale === 'zh' ? 'zh' : 'ja')}
         thisWeekCanDos={canDosThisWeek(progress, learner.currentWeek)}
         nextAbility={nextAbility(selectNextMission(learner, progress)?.id ?? null)}

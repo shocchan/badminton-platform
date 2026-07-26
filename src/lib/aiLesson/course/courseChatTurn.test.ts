@@ -9,6 +9,8 @@ const turn = (over: Partial<Parameters<typeof composeTutorText>[0]> = {}) => ({
   question: 'どの部分がいちばん難しかったですか？' as string | null,
   shouldClose: false,
   closingMessage: null as string | null,
+  translationZh: null as string | null,
+  readingAids: [] as { text: string; reading: string }[],
   ...over,
 });
 

@@ -27,6 +27,11 @@ interface Props {
   thisWeekCanDos: AchievedCanDo[];
   nextAbility: { id: string; ja: string; zh: string } | null;
   journey: JourneyPlace[];
+  /** 別端末で進行中のレッスン（エラーではなく復旧選択肢を出す・§B） */
+  recovery?: { mode: 'voice' | 'text' } | null;
+  onResumeActive?: () => void;
+  onDiscardActive?: () => void;
+  onCancelRecovery?: () => void;
   onStart: (mode: 'voice' | 'text') => void;
   onResume: () => void;
   onDiscardResume: () => void;
@@ -39,6 +44,7 @@ interface Props {
 export const CourseHome = ({
   t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
+  recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview,
 }: Props) => {
   const th = t.home; const tg = t.growth;
@@ -60,6 +66,28 @@ export const CourseHome = ({
           <p className="text-xs text-gray-500 mt-0.5">{isReview ? th.coachLineReview : th.coachLineNew}</p>
         </div>
       </div>
+
+      {/* 別端末で進行中のレッスン → 復旧選択肢（警告色・データは消えていない・主CTA=再開） */}
+      {recovery && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4" role="status">
+          <p className="text-sm font-bold text-amber-900 mb-1">{th.activeElsewhereTitle}</p>
+          <p className="text-xs text-amber-800 leading-relaxed mb-3">{th.activeElsewhereBody}</p>
+          <div className="space-y-2">
+            <button type="button" onClick={onResumeActive} disabled={starting}
+              className="w-full min-h-11 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-50">
+              <RefreshCw className="w-4 h-4" />{th.activeResumeHere}
+            </button>
+            <button type="button" onClick={onDiscardActive} disabled={starting}
+              className="w-full min-h-11 py-2.5 bg-white border border-amber-300 text-amber-800 text-sm font-medium rounded-xl disabled:opacity-50">
+              {th.activeStartNew}
+            </button>
+            <button type="button" onClick={onCancelRecovery}
+              className="w-full min-h-9 py-1.5 text-xs text-gray-500 hover:text-gray-700">
+              {th.activeCancel}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 中断・再開（あれば最優先の補助導線） */}
       {hasResume && (

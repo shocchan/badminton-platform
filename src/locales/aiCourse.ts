@@ -200,6 +200,12 @@ const ja = {
     modeVoice: '音声で話す',
     modeText: 'テキストで話す',
     chooseMode: '話し方を選ぶ',
+    // 別端末で進行中のレッスンがあるとき（エラーではなく復旧案内・§B）
+    activeElsewhereTitle: '別の端末で進行中のレッスンがあります',
+    activeElsewhereBody: '前の画面を閉じた場合は、この端末で続きを再開できます。学習データは消えていません。',
+    activeResumeHere: 'この端末で続きを再開',
+    activeStartNew: '前のレッスンを終了して新しく始める',
+    activeCancel: 'キャンセル',
   },
   roadmap: {
     title: '12週間ロードマップ',
@@ -233,7 +239,7 @@ const ja = {
     reviewBadge: '復習',
     newBadge: '新しい表現',
     reviewDay1: '翌日の復習', reviewDay3: '3日後の復習', reviewDay7: '7日後の復習', extra: '追加の復習',
-    hiddenTarget: '（今日の表現は会話の中で思い出してみましょう）',
+    hiddenTarget: '（今日の表現を思い出して、使ってみましょう）',
     theme: 'テーマ',
     target: '今日の表現',
     usedBanner: '今日の表現が使えました',
@@ -751,6 +757,12 @@ const zh: AiCourseDict = {
     modeVoice: '语音对话',
     modeText: '文字对话',
     chooseMode: '选择对话方式',
+    // 其他设备上有进行中的课程时（不是错误，而是恢复引导・§B）
+    activeElsewhereTitle: '有一节课正在其他设备上进行',
+    activeElsewhereBody: '如果已关闭之前的页面，可以在这台设备上继续。学习数据没有丢失。',
+    activeResumeHere: '在这台设备上继续',
+    activeStartNew: '结束上一节课并重新开始',
+    activeCancel: '取消',
   },
   roadmap: {
     title: '12周路线图',

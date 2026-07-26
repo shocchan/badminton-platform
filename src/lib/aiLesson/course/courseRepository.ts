@@ -117,6 +117,12 @@ export interface CourseRepository {
   listRecentSessions(limit?: number): Promise<CourseSessionRecord[]>;
   /** 成長のBefore/After用: 生徒の確定発話を古い→新しい順で取得 */
   loadStudentUtterances(learnerId: string, limit?: number): Promise<SpeechSample[]>;
+  /** 進行中（in_progress）の自分のセッションを1件取得（端末間の再開判定用） */
+  getActiveSession(): Promise<CourseSessionRecord | null>;
+  /** セッションの発話を時系列で取得（テキスト会話の端末間復元用） */
+  listSessionUtterances(sessionId: string, limit?: number): Promise<{ speaker: string; transcript: string }[]>;
+  /** 発話を逐次保存（テキスト会話のターン毎チェックポイント。失敗は無視） */
+  appendUtterances(sessionId: string, learnerId: string, utts: CourseUtterance[]): Promise<void>;
   /** 成長スナップショットを保存（同一 trigger は上書きせず維持＝append-only） */
   saveGrowthSnapshot(learnerId: string, snapshot: GrowthSnapshot): Promise<void>;
   listGrowthSnapshots(learnerId: string): Promise<GrowthSnapshot[]>;
@@ -289,6 +295,51 @@ const createRepository = (): CourseRepository => ({
       dateISO: (r.created_at as string) ?? '',
       sessionId: (r.session_id as string) ?? '',
     }));
+  },
+
+  async getActiveSession() {
+    // 進行中セッション（別端末で開始されたものを含む）。最新1件のみ
+    const learner = await this.getLearner();
+    if (!learner) return null;
+    const { data, error } = await supabase.from('ai_learning_sessions').select('*')
+      .eq('learner_id', learner.id).eq('completion_status', 'in_progress')
+      .order('started_at', { ascending: false }).limit(1);
+    if (error || !data || data.length === 0) return null;
+    const r = data[0] as Record<string, unknown>;
+    return {
+      id: r.id as string, missionId: r.mission_id as string, mode: r.mode as 'voice' | 'text',
+      lessonKind: r.lesson_kind as CourseSessionRecord['lessonKind'], difficulty: r.difficulty as number,
+      startedAt: r.started_at as string, endedAt: r.ended_at as string | null,
+      durationSeconds: r.duration_seconds as number,
+      completionStatus: r.completion_status as CourseSessionRecord['completionStatus'],
+      endReason: r.end_reason as string | null, targetExpression: r.target_expression as string,
+      targetUsed: r.target_used as boolean, targetUsedIndependently: r.target_used_independently as boolean,
+      hintsUsed: r.hints_used as number, chineseSupportUsed: r.chinese_support_used as boolean,
+      errorCode: r.error_code as string | null, estimatedCostUsd: Number(r.estimated_cost_usd ?? 0),
+      report: (r.report as LessonReport) ?? null,
+    } as CourseSessionRecord;
+  },
+
+  async listSessionUtterances(sessionId, limit = 60) {
+    // テキスト会話の端末間復元用（自分のセッションのみRLSで読める）
+    const { data, error } = await supabase.from('ai_session_utterances')
+      .select('speaker, transcript, at_ms')
+      .eq('session_id', sessionId).eq('is_final', true)
+      .order('at_ms', { ascending: true }).limit(limit);
+    if (error || !data) return [];
+    return (data as Record<string, unknown>[]).map((r) => ({
+      speaker: r.speaker as string, transcript: r.transcript as string,
+    }));
+  },
+
+  async appendUtterances(sessionId, learnerId, utts) {
+    // ターン毎チェックポイント（fire-and-forget）。失敗しても会話は止めない
+    if (utts.length === 0) return;
+    const rows = utts.map((u) => ({
+      session_id: sessionId, learner_id: learnerId, speaker: u.speaker,
+      transcript: u.transcript, at_ms: u.atMs, is_final: u.isFinal, related_target: u.relatedTarget,
+    }));
+    await supabase.from('ai_session_utterances').insert(rows).then(() => undefined, () => undefined);
   },
 
   async saveGrowthSnapshot(learnerId, snapshot) {

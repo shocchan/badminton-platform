@@ -39,8 +39,50 @@ const CHAT_SCHEMA = {
     shouldClose: { type: "boolean" },                  // まとめへ移行すべきか
     understoodSummary: { type: "string" },             // 学習者の状況の理解メモ（内部用・短く）
     closingMessage: { type: ["string", "null"] },      // 終了時の一言（shouldClose時のみ）
+    translationZh: { type: ["string", "null"] },       // 応答全体の自然な簡体字訳（中国語母語者向け・折り畳み表示用）
+    readingAids: {                                     // 学習者レベルより難しい語の読み（最大3語）
+      type: "array", maxItems: 3,
+      items: {
+        type: "object", additionalProperties: false,
+        properties: { text: { type: "string" }, reading: { type: "string" } },
+        required: ["text", "reading"],
+      },
+    },
   },
-  required: ["reaction", "correction", "question", "shouldClose", "understoodSummary", "closingMessage"],
+  required: ["reaction", "correction", "question", "shouldClose", "understoodSummary", "closingMessage", "translationZh", "readingAids"],
+};
+
+/** 学習者レベル（JLPT目安）→ 語彙・文長ルール。N3の品質を最優先 */
+const levelRules = (estimatedLevel: string): string => {
+  const lv = (estimatedLevel || "N3").toUpperCase();
+  if (lv.includes("N5") || lv.includes("N4")) {
+    return [
+      "【語彙・文の難しさ（最重要・N5〜N4学習者）】",
+      "・1文は15文字以内を目安に、とても短く。1回の応答は2文＋質問1つまで。",
+      "・N4より難しい語彙・文法を使わない。漢語（〜的、〜性、経験、印象 等）を避け、やまとことばで言う。",
+      "・例:「印象に残っていること」→「よく覚えていること」/「どのように感じましたか」→「どんな気持ちでしたか」",
+    ].join("\n");
+  }
+  if (lv.includes("N3")) {
+    return [
+      "【語彙・文の難しさ（最重要・N3学習者）】",
+      "・1文は20文字前後で短く。1回の応答は2〜3文（反応1〜2文＋質問1つ）。",
+      "・抽象的な漢字語（印象・経験・総合・状況・把握 等）を避け、日常語で言い換える。",
+      "・N2以上の文法・語彙を不用意に使わない。どうしても必要な難語は「印象（いんしょう）」のように読みを添え、readingAidsにも入れる。",
+      "・例:「印象に残っている経験を教えてください」→「日本で、よく覚えていることはありますか？」",
+      "・例:「もう少し詳しく説明してください」→「その時、何がありましたか？」",
+      "・例:「どのように感じましたか」→「その時、どんな気持ちでしたか？」",
+      "・過度な敬語を使わない（です・ます で十分）。文法説明を会話中にしない。",
+    ].join("\n");
+  }
+  if (lv.includes("N1")) {
+    return "【語彙・文の難しさ】N1学習者。自然な日本語でよいが、1回の応答は3〜4文・質問1つを守る。";
+  }
+  return [
+    "【語彙・文の難しさ（N2学習者）】",
+    "・1回の応答は2〜4文・質問1つ。N1レベルの硬い書き言葉は避け、自然な話し言葉で。",
+    "・専門的・抽象的すぎる語には readingAids で読みを添える。",
+  ].join("\n");
 };
 
 /** JWT→ユーザーID（失敗時 null）。メール等はログへ出さない */
@@ -89,7 +131,7 @@ serve(async (req) => {
     if (!apiKey || !supaUrl || !serviceKey) return json(503, { error: "not_configured" });
 
     let body: {
-      sessionId?: string; locale?: string; learnerLevel?: number;
+      sessionId?: string; locale?: string; learnerLevel?: number; estimatedLevel?: string;
       missionTitleJa?: string; targetExpression?: string; meaningZh?: string;
       history?: HistoryMsg[]; studentText?: string;
       maxTurns?: number; closingAnnounced?: boolean;
@@ -119,7 +161,7 @@ serve(async (req) => {
     const asked = (Array.isArray(body.askedQuestions) ? body.askedQuestions : [])
       .filter((q) => typeof q === "string").slice(-10).map((q) => q.slice(0, 120));
 
-    const zhUser = body.locale === "zh";
+    const estLevel = String(body.estimatedLevel ?? "N3").slice(0, 8);
     const sys = [
       "あなたは「翔子先生」。中国語母語話者に日本語会話を教える、温かく簡潔な先生です。",
       "学習者とテキストで日本語会話の練習をしています。JSONで応答します。",
@@ -127,7 +169,9 @@ serve(async (req) => {
       "【今日のレッスン】",
       `テーマ: ${String(body.missionTitleJa ?? "").slice(0, 80) || "(自由会話)"}`,
       `目標表現: ${String(body.targetExpression ?? "").slice(0, 40) || "(なし)"}`,
-      `学習者レベル: ${Math.min(Math.max(Number(body.learnerLevel) || 3, 1), 5)}/5（低いほどやさしい日本語で）`,
+      `学習者レベル: JLPT ${estLevel}（難易度 ${Math.min(Math.max(Number(body.learnerLevel) || 3, 1), 5)}/5）`,
+      "",
+      levelRules(estLevel),
       "",
       "【応答ルール（厳守）】",
       "1. reaction: 学習者の直前の発言から、人・場所・出来事・感情のうち最低1点を具体的に拾って短く反応する（1〜2文）。",
@@ -139,10 +183,9 @@ serve(async (req) => {
       "5. 学習者が終了を望んだら（「終わりたい」等）、question=null・shouldClose=true にする。",
       "6. 目標表現は自然な場面で1〜2回使う機会を作る。無理に何度も要求しない。",
       "7. 応答は全体で日本語2〜4文。学習者レベルに合わせたやさしい語彙。絵文字は使わない。",
-      zhUser
-        ? "8. 学習者が明らかに困っている時だけ、reactionの末尾に短い中国語補足（1文・括弧書き）を付けてよい。"
-        : "8. 中国語は使わない。",
+      "8. translationZh: 応答全体（reaction＋correction＋question/closingMessage）の自然な簡体字訳を必ず入れる。学習者（中国語母語者）が押した時だけ表示される折り畳み用。本文には中国語を混ぜない。",
       "9. understoodSummary: 学習者の状況をあなたがどう理解したか、日本語1文で（内部メモ・学習者には見えない）。",
+      "10. readingAids: 学習者レベルより難しい語を使った場合だけ、その語と読み（ひらがな）を最大3語。一般的なやさしい語（N5〜N3相当）には付けない。使わなければ空配列。",
       "",
       closingNow
         ? "【重要・終了ターン】これが最後の応答です。question=null、shouldClose=true とし、closingMessage に「今日の会話をまとめましょう」という趣旨の一言を入れる。新しい質問・新しい話題を出さない。"
@@ -183,6 +226,7 @@ serve(async (req) => {
     let turn: {
       reaction?: string; correction?: string | null; question?: string | null;
       shouldClose?: boolean; understoodSummary?: string; closingMessage?: string | null;
+      translationZh?: string | null; readingAids?: { text?: string; reading?: string }[];
     };
     try { turn = JSON.parse(content); } catch { return json(502, { error: "bad_turn_json" }); }
 
@@ -195,6 +239,12 @@ serve(async (req) => {
     // 質問の重複ガード（既出質問と完全一致なら落とす→フロントが定型の最終質問に差し替え可能）
     if (turn.question && asked.includes(turn.question)) turn.question = null;
 
+    // readingAids のサーバー側ガード（最大3・各フィールド長制限・文字列のみ）
+    const readingAids = (Array.isArray(turn.readingAids) ? turn.readingAids : [])
+      .filter((a) => a && typeof a.text === "string" && typeof a.reading === "string" && a.text.length > 0)
+      .slice(0, 3)
+      .map((a) => ({ text: String(a.text).slice(0, 20), reading: String(a.reading).slice(0, 30) }));
+
     return json(200, {
       turn: {
         reaction: String(turn.reaction ?? "").slice(0, 300),
@@ -202,6 +252,9 @@ serve(async (req) => {
         question: turn.question ? String(turn.question).slice(0, 200) : null,
         shouldClose: !!turn.shouldClose,
         closingMessage: turn.closingMessage ? String(turn.closingMessage).slice(0, 200) : null,
+        // 本文と同じ応答内で生成（翻訳ボタンを押しても追加課金なし）。受講者は中国語母語者のためlocale問わず返す
+        translationZh: turn.translationZh ? String(turn.translationZh).slice(0, 600) : null,
+        readingAids,
       },
       studentTurns,
       maxTurns,

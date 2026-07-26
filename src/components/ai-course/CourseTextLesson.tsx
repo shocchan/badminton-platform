@@ -1,14 +1,14 @@
 // テキストモードのレッスン（LLM会話＋決定的ガードレール）。
 //
 // 通常時: ai-lesson-chat Edge Function（gpt-4o-mini）が学習者の発言を理解して
-//   「反応＋（必要時のみ訂正）＋質問1つ」を返す。終了はサーバー・クライアント双方で強制。
-// 障害時: 決定的エンジン（courseTextTurn）へターン数を引き継いで自動フォールバック。
-//   理解しているフリはせず「ガイド付き会話に切り替えました」と明示する。
-// ガードレール（両モード共通）: 最大8ターン・closing宣言・終了後は質問なし・
-//   重複質問防止・1応答1質問・常時終了ボタン・二重送信防止。
+//   「反応＋（必要時のみ訂正）＋質問1つ」を返す。N3等のレベルに応じて語彙・文長を制御。
+// 障害時: 決定的エンジン（courseTextTurn）へターン数を引き継いで自動フォールバック（明示表示）。
+// 端末間再開: ターン毎に発話をDBへチェックポイント保存し、別端末から履歴ごと復元できる。
+// 補助: AI発話ごとに「中国語訳」を折り畳み表示（同一応答で生成済み＝追加API課金なし）、
+//   難しい語は readingAids から <ruby> で読みを付ける（LLM文字列をHTMLとして描画しない）。
 
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2, WifiOff } from 'lucide-react';
+import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2, WifiOff, Languages, ChevronDown } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
 import { nextTextTurn, initialTextTurnState, TEXT_MAX_TURNS_DEFAULT } from '../../lib/aiLesson/course/courseTextTurn';
@@ -18,17 +18,30 @@ import {
 } from '../../lib/aiLesson/course/courseChatTurn';
 import type { ChatConvState } from '../../lib/aiLesson/course/courseChatTurn';
 import { requestChatTurn, estimateChatCostUsd } from '../../lib/aiLesson/course/courseChatApi';
+import { segmentWithReadings } from '../../lib/aiLesson/course/courseTextResume';
+import type { ReadingAid, ResumedTextLesson } from '../../lib/aiLesson/course/courseTextResume';
+import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 import type { VoiceLessonResult } from './CourseVoiceLesson';
 
+interface Msg {
+  role: 'student' | 'tutor';
+  text: string;
+  /** AI発話の簡体字訳（折り畳み表示・LLM応答と同時生成） */
+  zh?: string | null;
+  /** 難しい語の読み（最大3語） */
+  aids?: ReadingAid[];
+}
+
 interface Props {
   t: AiCourseDict;
   step: LessonPlanStep;
-  /** 予約済みセッションID（LLM会話の認可に使う）。null ならガイド付き会話のみ */
+  /** 予約済みセッションID（LLM会話の認可・チェックポイント保存に使う） */
   sessionId: string | null;
-  /** 学習者（レベルをLLMへ渡す）。無ければ標準レベル */
   learner: Learner | null;
+  /** 別端末からの再開データ（保存済み履歴とターン状態） */
+  resume?: ResumedTextLesson | null;
   onComplete: (r: VoiceLessonResult) => void;
   onExit: () => void;
 }
@@ -41,19 +54,31 @@ const introText = (step: LessonPlanStep): string => {
     : `今日のテーマは「${m.titleJa}」です。目標の表現は ${m.targetExpression}。例えば「${m.simpleExample}」。\n${m.openingQuestion}`;
 };
 
-export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onExit }: Props) => {
+/** ruby表示（構造化データからのみ描画。dangerouslySetInnerHTML不使用） */
+const RubyText = ({ text, aids }: { text: string; aids?: ReadingAid[] }) => {
+  const segs = useMemo(() => segmentWithReadings(text, aids ?? []), [text, aids]);
+  return (
+    <>
+      {segs.map((s, i) => s.reading
+        ? <ruby key={i}>{s.text}<rt className="text-[10px] text-gray-500">{s.reading}</rt></ruby>
+        : <span key={i}>{s.text}</span>)}
+    </>
+  );
+};
+
+export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, onComplete, onExit }: Props) => {
   const tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
-  const [msgs, setMsgs] = useState<{ role: 'student' | 'tutor'; text: string }[]>(
-    () => [{ role: 'tutor', text: introText(step) }],
-  );
-  // llm=通常 / guided=フォールバック（決定的エンジン）。sessionId が無い場合は最初から guided
+  // 再開時は保存済み履歴から復元。新規は導入メッセージから
+  const [msgs, setMsgs] = useState<Msg[]>(() =>
+    resume && resume.msgs.length > 0 ? resume.msgs : [{ role: 'tutor', text: introText(step) }]);
   const [engineMode, setEngineMode] = useState<'llm' | 'guided'>(() => (sessionId ? 'llm' : 'guided'));
-  const [chatState, setChatState] = useState<ChatConvState>(() => initialChatConvState(TEXT_MAX_TURNS_DEFAULT));
+  const [chatState, setChatState] = useState<ChatConvState>(() => resume?.chatState ?? initialChatConvState(TEXT_MAX_TURNS_DEFAULT));
   const [guidedState, setGuidedState] = useState<TextTurnState>(() => initialTextTurnState());
-  const [busy, setBusy] = useState(false); // 送信中（二重送信防止・入力制御）
+  const [busy, setBusy] = useState(false);
   const [fallbackNoticeShown, setFallbackNoticeShown] = useState(false);
+  const [openZh, setOpenZh] = useState<Set<number>>(new Set()); // 中国語訳を開いたメッセージindex
   const [input, setInput] = useState('');
   const [hintIdx, setHintIdx] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -63,9 +88,10 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const uttRef = useRef<CourseUtterance[]>([]);
-  const chatCostRef = useRef(0);           // LLM会話の概算コスト（レッスン結果へ計上）
-  const finishedRef = useRef(false);       // onComplete の二重発火防止
-  const aliveRef = useRef(true);           // 離脱後のsetState防止
+  const savedRef = useRef(0);          // チェックポイント保存済みの発話数（再保存防止）
+  const chatCostRef = useRef(0);
+  const finishedRef = useRef(false);
+  const aliveRef = useRef(true);
 
   const detect = useMemo(() => { try { return new RegExp(mission.detect); } catch { return null; } }, [mission.detect]);
   const turnCount = engineMode === 'llm' ? chatState.studentTurns : guidedState.turn;
@@ -73,27 +99,48 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
 
   useEffect(() => {
     startAt.current = Date.now();
-    uttRef.current.push({ speaker: 'tutor', transcript: introText(step), atMs: 0, isFinal: true, relatedTarget: false });
+    if (resume && resume.msgs.length > 0) {
+      // 復元分は既にDB保存済み: uttRef に取り込み（usage判定用）、再保存はしない
+      uttRef.current = resume.msgs.map((m, i) => ({
+        speaker: m.role, transcript: m.text, atMs: i, isFinal: true,
+        relatedTarget: m.role === 'student' && !!detect && detect.test(m.text),
+      }));
+      savedRef.current = uttRef.current.length;
+      if (uttRef.current.some((u) => u.relatedTarget)) setUsed(true);
+    } else {
+      uttRef.current.push({ speaker: 'tutor', transcript: introText(step), atMs: 0, isFinal: true, relatedTarget: false });
+    }
     return () => { aliveRef.current = false; };
-  }, [step]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 初回マウント時のみ（resume/stepは開始時に確定）
+  }, []);
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' }); }, [msgs, busy]);
 
   const log = (role: 'student' | 'tutor', text: string, rel = false) =>
     uttRef.current.push({ speaker: role, transcript: text, atMs: Date.now() - startAt.current, isFinal: true, relatedTarget: rel });
 
-  const pushTutor = (text: string) => { setMsgs((p) => [...p, { role: 'tutor', text }]); log('tutor', text); };
+  /** ターン毎チェックポイント（端末間再開用・fire-and-forget・重複保存なし） */
+  const flushCheckpoint = () => {
+    if (!sessionId || !learner) return;
+    const fresh = uttRef.current.slice(savedRef.current);
+    savedRef.current = uttRef.current.length;
+    if (fresh.length > 0) void courseRepository.appendUtterances(sessionId, learner.id, fresh);
+  };
 
-  /** ガイド付き（決定的）エンジンで1ターン返す */
+  const pushTutor = (text: string, zh: string | null = null, aids: ReadingAid[] = []) => {
+    setMsgs((p) => [...p, { role: 'tutor', text, zh, aids }]);
+    log('tutor', text);
+  };
+
   const guidedReply = (text: string, state: TextTurnState) => {
     const r = nextTextTurn(state, text, mission);
     setGuidedState(r.state);
     if (r.targetHit) setUsed(true);
     if (r.offerSummary) setOfferSummary(true);
     pushTutor(r.text);
+    flushCheckpoint();
   };
 
-  /** LLM失敗 → ガイド付きへ切替（進行ターンを引き継ぎ・明示表示） */
   const fallbackToGuided = (text: string) => {
     const seeded = toGuidedState(chatState);
     setEngineMode('guided');
@@ -119,13 +166,13 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
       return;
     }
 
-    // ── LLMターン ──
     setBusy(true);
     const history = msgs.map((m) => ({ role: m.role, text: m.text }));
     const res = await requestChatTurn({
       sessionId,
       locale: t.locale === 'zh' ? 'zh' : 'ja',
       learnerLevel: learner?.difficultyLevel ?? 3,
+      estimatedLevel: learner?.estimatedLevel ?? 'N3',
       missionTitleJa: mission.titleJa,
       targetExpression: step.hideTarget ? '' : mission.targetExpression,
       history,
@@ -134,7 +181,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
       closingAnnounced: willBeClosing(chatState),
       askedQuestions: chatState.asked,
     });
-    if (!aliveRef.current) return; // 離脱後は何もしない
+    if (!aliveRef.current) return;
     setBusy(false);
 
     if (!res.ok || !res.turn) {
@@ -146,7 +193,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
     const nextState = applyChatTurn(chatState, res.turn);
     setChatState(nextState);
     if (res.turn.shouldClose) setOfferSummary(true);
-    pushTutor(composeTutorText(res.turn));
+    pushTutor(composeTutorText(res.turn), res.turn.translationZh, res.turn.readingAids);
+    flushCheckpoint();
     if (!nextState.done) inputRef.current?.focus();
   };
 
@@ -155,14 +203,21 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
     const h = mission.hintLevels[Math.min(hintIdx, mission.hintLevels.length - 1)];
     setHintIdx((i) => i + 1);
     pushTutor(`💡 ${h}`);
+    flushCheckpoint();
   };
 
-  /** 会話を終えてまとめ（レポート）へ。何度押しても1回だけ発火 */
+  const toggleZh = (i: number) => setOpenZh((prev) => {
+    const next = new Set(prev);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
+
   const finish = () => {
     if (finishedRef.current) return;
     finishedRef.current = true;
     setConfirmOpen(false);
     const { usage, count } = detectTargetUsage(uttRef.current.map((u) => ({ role: u.speaker === 'student' ? 'student' : 'tutor', text: u.transcript })), mission.detect);
+    flushCheckpoint(); // 未保存分を確定
     onComplete({
       utterances: uttRef.current,
       usage,
@@ -172,8 +227,9 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
       durationSeconds: Math.floor((Date.now() - startAt.current) / 1000),
       completionStatus: 'completed',
       endReason: closed ? 'text-max-turns' : 'text-complete',
-      // LLM会話の概算APIコストを計上（フィールドは補助API費用の共用チャネル）
       translateCostUsd: chatCostRef.current,
+      // チェックポイント保存済み → finalize時の一括insertをスキップ（重複保存防止）
+      utterancesAlreadySaved: !!(sessionId && learner),
     });
   };
 
@@ -188,7 +244,6 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
             {engineMode === 'guided' && sessionId && (
               <WifiOff className="w-3.5 h-3.5 text-amber-500" aria-label={tl.fallbackNotice} />
             )}
-            {/* 進行表示（終わりが見える） */}
             <span className="text-xs font-mono font-bold text-gray-600 tabular-nums" aria-label={`${turnCount}/${TEXT_MAX_TURNS_DEFAULT}`}>
               {tl.textProgress(Math.min(turnCount, TEXT_MAX_TURNS_DEFAULT), TEXT_MAX_TURNS_DEFAULT)}
             </span>
@@ -213,11 +268,26 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
           <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[85%]">
               <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>
-              <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>{m.text}</div>
+              <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>
+                {m.role === 'tutor' ? <RubyText text={m.text} aids={m.aids} /> : m.text}
+              </div>
+              {/* 中国語訳（AI発話ごとに折り畳み・追加API呼び出しなし） */}
+              {m.role === 'tutor' && m.zh && (
+                <div className="mt-1 px-1">
+                  <button type="button" onClick={() => toggleZh(i)} aria-expanded={openZh.has(i)}
+                    className="min-h-9 inline-flex items-center gap-1 text-[12px] text-blue-600 hover:text-blue-700">
+                    <Languages className="w-3.5 h-3.5" aria-hidden="true" />
+                    {t.locale === 'zh' ? '中文翻译' : '中国語訳'}
+                    <ChevronDown className={`w-3 h-3 transition-transform ${openZh.has(i) ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                  {openZh.has(i) && (
+                    <p className="text-[13px] text-gray-600 leading-relaxed mt-0.5 whitespace-pre-wrap break-words">{m.zh}</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
-        {/* LLM応答待ち（考え中） */}
         {busy && (
           <div className="flex justify-start">
             <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-sm bg-white/80 text-gray-400 border border-gray-200 border-dashed flex items-center gap-1.5">
@@ -230,7 +300,6 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
             </div>
           </div>
         )}
-        {/* 会話終了: 入力の代わりに完了メッセージ（終了宣言後は質問なし） */}
         {closed && (
           <div className="mx-auto max-w-sm text-center py-4">
             <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" aria-hidden="true" />
@@ -240,7 +309,6 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, onComplete, onEx
       </div>
 
       <div className="bg-gray-50 border-t border-gray-200 px-3 pt-2 shrink-0" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
-        {/* 常時見える終了導線（1タップでまとめへ・追加確認なし） */}
         <button type="button" onClick={finish}
           className={`w-full min-h-11 py-2.5 mb-2 font-bold rounded-xl flex items-center justify-center gap-1.5 text-sm transition-colors ${
             closed || offerSummary
