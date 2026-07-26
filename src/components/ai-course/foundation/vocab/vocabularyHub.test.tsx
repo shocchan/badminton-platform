@@ -77,10 +77,12 @@ describe('今日の3語フロー（§25-§26）', () => {
     fireEvent.click(screen.getByText(t.lab.check));
     await waitFor(() => expect(screen.getByText(t.lab.next)).toBeTruthy());
     fireEvent.click(screen.getByText(t.lab.next));
-    // 自己評価
+    // 自己評価（§2: 評価前は次へ非表示・評価後に「次のことばへ」出現）
     await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
+    expect(screen.queryByText(t.vocab.nextWord)).toBeNull();
     fireEvent.click(screen.getByText(t.vocab.selfKnownBtn));
-    fireEvent.click(screen.getByText(t.lab.next));
+    await waitFor(() => expect(screen.getByText(t.vocab.nextWord)).toBeTruthy());
+    fireEvent.click(screen.getByText(t.vocab.nextWord));
     await waitFor(() => expect(screen.getByText(t.vocab.dailyStep(2, 3))).toBeTruthy());
   });
   it('決定的理由が表示される（架空AI分析なし）・同日は同じ3語', async () => {
@@ -95,5 +97,95 @@ describe('今日の3語フロー（§25-§26）', () => {
     await waitFor(() => expect(screen.getByText(t.vocab.dailyStep(1, 3))).toBeTruthy());
     const raw2 = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
     expect(raw2.dailyWords.itemIds).toEqual(raw.dailyWords.itemIds);
+  });
+});
+
+describe('順次ナビゲーション（§2-§3）', () => {
+  it('詳細: 自己評価前はsticky内が2択・「次のことばへ」非表示、評価後に出現し次の動詞へ進む', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'verbs', itemId: 'fi-iku' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
+    expect(screen.queryByText(t.vocab.nextWord)).toBeNull();
+    fireEvent.click(screen.getByText(t.vocab.selfKnownBtn));
+    await waitFor(() => expect(screen.getByText(t.vocab.nextWord)).toBeTruthy());
+    // 進行状況（動詞 1 / 27）と保存表示
+    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 4, 27))).toBeTruthy(); // 一覧順=単元1動詞3語の後
+    expect(screen.getAllByText(new RegExp(t.vocab.savedNote)).length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getByText(t.vocab.nextWord));
+    // 動詞一覧2番目（来る）へ・カテゴリ順維持
+    await waitFor(() => expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 5, 27))).toBeTruthy());
+    // 自己評価は変更可能・重複レコードなし（entriesは同一キー上書き）
+    const raw = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
+    expect(raw.entries['fi-iku'].selfAssessment).toBe('self_known');
+  });
+  it('カテゴリ最後の語では「一覧へ戻る」になり一覧へ遷移する', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'naAdj', itemId: 'fi-jouzu' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
+    fireEvent.click(screen.getByText(t.vocab.needsReviewBtn));
+    const back = await screen.findByText(t.vocab.backToList(t.vocab.catNaAdj));
+    fireEvent.click(back);
+    await waitFor(() => expect(screen.getByText('好き')).toBeTruthy()); // な形一覧
+  });
+  it('直接URL（カテゴリ文脈なし）でも同品詞カテゴリで安全に次へ進める（§3E）', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'detail', itemId: 'fi-sumu' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
+    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 1, 27))).toBeTruthy(); // 住むは一覧先頭
+  });
+});
+
+describe('語彙会話練習（§7-§12）', () => {
+  it('住む: CTA→開始画面（テーマ・最初の質問「今、どこに住んでいますか？」）→対象表現で応答が進む', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'practice', itemId: 'fi-sumu' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.practiceTitle('住む'))).toBeTruthy());
+    expect(screen.getByText('今住んでいる場所について話す')).toBeTruthy();
+    expect(screen.getByText('今、どこに住んでいますか？')).toBeTruthy();
+    fireEvent.click(screen.getByText(t.vocab.practiceStart));
+    // starter質問が表示され、対象表現を含む回答で praise + followUp
+    await waitFor(() => expect(screen.getAllByText('今、どこに住んでいますか？').length).toBeGreaterThanOrEqual(1));
+    const input = screen.getByPlaceholderText(t.vocab.practiceInput);
+    fireEvent.change(input, { target: { value: '東京に住んでいます' } });
+    fireEvent.click(screen.getByText(t.vocab.practiceSend));
+    await waitFor(() => expect(screen.getByText(t.vocab.practiceUsedTarget('に住んでいます'))).toBeTruthy());
+    expect(screen.getByText('前は どこに住んでいましたか？')).toBeTruthy();
+    // 会話・週進行・XPストアへ書かない（語彙storeのみ）
+    expect(window.sessionStorage.getItem('ai_course_foundation_preview_v1')).toBeNull();
+  });
+  it('対象表現なしの回答にはヒント（〜を使って言ってみましょう）を返す', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'practice', itemId: 'fi-iku' }} />);
+    fireEvent.click(await screen.findByText(t.vocab.practiceStart));
+    const input = screen.getByPlaceholderText(t.vocab.practiceInput);
+    fireEvent.change(input, { target: { value: '横浜です' } });
+    fireEvent.click(screen.getByText(t.vocab.practiceSend));
+    await waitFor(() => expect(screen.getByText(t.vocab.practiceTryTarget('に行きます'))).toBeTruthy());
+  });
+  it('練習データが無い語ではCTA自体を出さない（虚偽CTA禁止・§12）', async () => {
+    render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'nouns', itemId: 'fi-kusuri' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.detailUsage)).toBeTruthy());
+    expect(screen.queryByText(t.vocab.practiceCta)).toBeNull();
+  });
+});
+
+describe('目標・パック・レベル表示（§33-§46）', () => {
+  it('トップに目標・現在のパック（実データ78語）・状態・内訳が表示される', () => {
+    render(<VocabularyHub {...base} />);
+    expect(screen.getByText(t.vocab.goalHeading)).toBeTruthy();
+    expect(screen.getAllByText(t.vocab.tracks.life_basic).length).toBeGreaterThanOrEqual(1); // 表示＋select option
+    expect(screen.getByText('生活・会話の基礎')).toBeTruthy();
+    expect(screen.getAllByText(new RegExp('0 / 78')).length).toBeGreaterThanOrEqual(1); // 実Item数から計算
+    expect(screen.getByText(t.vocab.packStates.not_started)).toBeTruthy();
+    expect(screen.getByText(t.vocab.mvpPackNote)).toBeTruthy(); // N2完成語彙と誤認させない
+  });
+  it('目標をN2準備へ変更できる（推定根拠なしに自動確定しない・本人変更）', () => {
+    render(<VocabularyHub {...base} />);
+    fireEvent.change(screen.getByLabelText(t.vocab.changeGoal), { target: { value: 'n2_prep' } });
+    expect(screen.getAllByText(t.vocab.tracks.n2_prep).length).toBeGreaterThanOrEqual(1);
+    const raw = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
+    expect(raw.settings.track).toBe('n2_prep');
+  });
+  it('transparent_same（中国）は意味近い注意＋読み確認ポイントを表示・false friend（先生）は注意表示', async () => {
+    const r1 = render(<VocabularyHub {...base} initial={{ view: 'detail', itemId: 'fi-chugoku' }} />);
+    await waitFor(() => expect(screen.getByText(t.vocab.cognateSame)).toBeTruthy());
+    r1.unmount();
+    render(<VocabularyHub {...base} initial={{ view: 'detail', itemId: 'fi-sensei' }} />);
+    await waitFor(() => expect(screen.getByText(new RegExp(t.vocab.cognateDiff))).toBeTruthy());
   });
 });
