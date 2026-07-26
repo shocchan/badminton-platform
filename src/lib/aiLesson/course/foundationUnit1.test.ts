@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { UNIT1, UNIT1_ITEMS, UNIT1_QUESTIONS, UNIT1_RULES } from './foundationUnit1';
-import { judgeQuestion, normalizeKanaAnswer, aggregateByDimension, deriveReviewCandidates, shuffledOrder, shuffledChoices } from './foundationGrade';
+import { judgeQuestion, normalizeKanaAnswer, aggregateByDimension, deriveReviewCandidates, shuffledOrder, shuffledChoices, validateExactLexemeRef, type AuditedCell } from './foundationGrade';
 
 describe('しくみラボ 単元データ整合性（Phase 2A レビュー前修正版）', () => {
   it('ID重複なし・単元参照が実在・source追跡あり（複数sources対応）', () => {
@@ -13,14 +13,12 @@ describe('しくみラボ 単元データ整合性（Phase 2A レビュー前修
     const shusshin = UNIT1_ITEMS.find((i) => i.id === 'fi-shusshin')!;
     expect(shusshin.sources.length).toBeGreaterThanOrEqual(2);
   });
-  it('sourceRow: 特定済みの語は行番号を持ち、未特定の語はラベル（黙ってnullにしない）', () => {
-    const rowOf = (id: string) => UNIT1_ITEMS.find((i) => i.id === id)!.sources[0];
-    expect(rowOf('fi-kaisha').sourceRow).toBe(72);
-    expect(rowOf('fi-gakusei').sourceRow).toBe(326);
-    expect(rowOf('fi-namae').sourceRow).toBe(2);
-    // 行未特定の語は sourceRow=null だが note に理由ラベル必須
+  it('全sourceRefがsourceMatchType/sourceLabelを持つ（null黙残し禁止）', () => {
     UNIT1_ITEMS.flatMap((i) => i.sources).forEach((s) => {
-      if (s.sourceRow === null) expect(s.note && s.note.length > 0).toBe(true);
+      expect(['exact_lexeme', 'inflected_form', 'example_contains', 'related_expression', 'external_scope']).toContain(s.sourceMatchType);
+      expect(s.sourceLabel.length).toBeGreaterThan(0);
+      if (s.sourceMatchType === 'external_scope') { expect(s.sourceSheet).toBeNull(); expect(s.cellRange ?? null).toBeNull(); }
+      else { expect(s.sourceSheet).toBeTruthy(); expect(s.cellRange).toBeTruthy(); }
     });
   });
   it('語彙は8〜12語・出身/会社員を含む・好き/仕事は含まない（移動/除外）', () => {
@@ -45,6 +43,61 @@ describe('しくみラボ 単元データ整合性（Phase 2A レビュー前修
     const d = (k: string) => UNIT1_QUESTIONS.filter((q) => q.dimension === k).length;
     expect(d('reading')).toBe(3); expect(d('meaning')).toBe(3);
     expect(d('form') + d('connection')).toBe(3); expect(d('usage')).toBe(2);
+  });
+});
+
+describe('出典監査（CEO確認済みfixture・Excel実ファイル非依存）', () => {
+  const MIN = '最初に覚える最低限表現';
+  // 2026-07-26 人間確認済み監査結果（原資料照合）
+  const AUDIT: AuditedCell[] = [
+    { sheet: MIN, cellRange: 'C3', value: '日本語', isHeader: true }, // 列見出し行
+    { sheet: MIN, cellRange: 'C200', value: '勉強する' },
+    { sheet: MIN, cellRange: 'C201', value: '働く' },
+    { sheet: MIN, cellRange: 'C208', value: '住む' },
+    { sheet: MIN, cellRange: 'C72', value: '会社' },
+    { sheet: '動詞活用形', cellRange: 'B62', value: '勉強する' },
+    { sheet: '動詞活用形', cellRange: 'B63', value: '働く' },
+    { sheet: '動詞活用形', cellRange: 'B70', value: '住む' },
+    { sheet: '動詞活用形', cellRange: 'C136', value: '勉強する（学习）' },
+    { sheet: '動詞活用形', cellRange: 'C137', value: '働く（工作）' },
+    { sheet: '動詞活用形', cellRange: 'C144', value: '住む（居住）' },
+    { sheet: '動詞活用形', cellRange: 'C188', value: '勉強する' },
+    { sheet: '動詞活用形', cellRange: 'C189', value: '働く' },
+    { sheet: '動詞活用形', cellRange: 'C196', value: '住む' },
+  ];
+  const srcOf = (id: string) => UNIT1_ITEMS.find((i) => i.id === id)!.sources;
+  it('列見出しセル（C3）はexact_lexemeとして検証を通らない', () => {
+    const bad = { sourceKind: 'teacher_workbook', sourceSheet: MIN, sourceRow: 3, cellRange: 'C3', sourceMatchType: 'exact_lexeme', sourceLabel: 'x' } as const;
+    expect(validateExactLexemeRef('日本語', bad, AUDIT)).toBe(false);
+  });
+  it('全教材のexact_lexeme出典は監査済みセルに対象語が直接存在する', () => {
+    UNIT1_ITEMS.forEach((i) => i.sources.filter((s) => s.sourceMatchType === 'exact_lexeme')
+      .forEach((s) => expect(validateExactLexemeRef(i.lemma, s, AUDIT)).toBe(true)));
+  });
+  it('勉強する=C200・働く=C201・住む=C208 が主要出典（＋動詞活用形の追加参照）', () => {
+    expect(srcOf('fi-benkyo')[0]).toMatchObject({ sourceSheet: MIN, cellRange: 'C200', sourceMatchType: 'exact_lexeme' });
+    expect(srcOf('fi-hataraku')[0]).toMatchObject({ sourceSheet: MIN, cellRange: 'C201', sourceMatchType: 'exact_lexeme' });
+    expect(srcOf('fi-sumu')[0]).toMatchObject({ sourceSheet: MIN, cellRange: 'C208', sourceMatchType: 'exact_lexeme' });
+    ['fi-benkyo', 'fi-hataraku', 'fi-sumu'].forEach((id) => {
+      expect(srcOf(id).filter((s) => s.sourceSheet === '動詞活用形').length).toBeGreaterThanOrEqual(3);
+      expect(srcOf(id).length).toBe(4); // 複数sourceRef維持
+    });
+  });
+  it('中国・会社員はexternal_scope（Excelに存在するように見せない）', () => {
+    expect(srcOf('fi-chugoku').every((s) => s.sourceMatchType === 'external_scope')).toBe(true);
+    expect(srcOf('fi-kaishain').every((s) => s.sourceMatchType === 'external_scope')).toBe(true);
+  });
+  it('日本語: 列見出しC3を出典にせずexternal_scope主＋例文はexample_contains明記', () => {
+    const refs = srcOf('fi-nihongo');
+    expect(refs.some((s) => s.cellRange === 'C3')).toBe(false);
+    expect(refs[0].sourceMatchType).toBe('external_scope');
+    expect(refs.find((s) => s.cellRange === 'F44')?.sourceMatchType).toBe('example_contains');
+  });
+  it('名前・出身=related_expression／学生=example_contains（F326）／日本=external_scope主', () => {
+    expect(srcOf('fi-namae')[0].sourceMatchType).toBe('related_expression');
+    expect(srcOf('fi-shusshin')[0].sourceMatchType).toBe('related_expression');
+    expect(srcOf('fi-gakusei')[0]).toMatchObject({ cellRange: 'F326', sourceMatchType: 'example_contains' });
+    expect(srcOf('fi-nihon')[0].sourceMatchType).toBe('external_scope');
   });
 });
 

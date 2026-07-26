@@ -11,19 +11,51 @@ Can-do:
 
 ## 語彙（11語）
 
-| id | 語 | 読み | 中訳 | 品詞 | 例文 | 注記(zh) | 出典 | review |
+| id | 語 | 読み | 中訳 | 品詞 | 例文 | 注記(zh) | review |
+|---|---|---|---|---|---|---|---|
+| fi-namae | 名前 | なまえ | 名字 | noun | 名前は王です。 我姓王。 | 日语常省略「私は」。 | draft |
+| fi-shusshin | 出身 | しゅっしん | 出身・老家 | noun | 中国出身です。 我来自中国。 | 「〇〇出身です」＝我是〇〇人/来自〇〇。 | draft |
+| fi-chugoku | 中国 | ちゅうごく | 中国 | noun | 中国出身です。 我来自中国。 | — | draft |
+| fi-nihon | 日本 | にほん | 日本 | noun | 日本に住んでいます。 我住在日本。 | — | draft |
+| fi-gakusei | 学生 | がくせい | 学生 | noun | 学生です。 我是学生。 | — | draft |
+| fi-kaishain | 会社員 | かいしゃいん | 公司职员 | noun | 会社員です。 我是公司职员。 | — | draft |
+| fi-kaisha | 会社 | かいしゃ | 公司 | noun | 会社で働いています。 我在公司工作。 | 动作场所用「で」。 | draft |
+| fi-nihongo | 日本語 | にほんご | 日语 | noun | 日本語を勉強しています。 我在学日语。 | 学习对象用「を」。 | draft |
+| fi-sumu | 住む | すむ | 住 | verb | 日本に住んでいます。 我住在日本。 | 现在住着＝「住んでいます」。「住みます」听起来像今后的打算。地点用「に」。 | draft |
+| fi-hataraku | 働く | はたらく | 工作（动词） | verb | 会社で働いています。 我在公司工作。 | 现在的工作状态＝「働いています」。「働きます」可能被理解为今后的安排。 | draft |
+| fi-benkyo | 勉強する | べんきょうする | 学习 | verb | 日本語を勉強しています。 我在学日语。 | 与中文「勉强」意思不同。正在学＝「勉強しています」。 | draft |
+
+### sourceRef全量（§6: workbook / sheet / row / cellRange / sourceLabel / sourceMatchType / sourceKind / reviewStatus）
+
+| 語 | workbook | sheet | row | cellRange | sourceLabel | sourceMatchType | sourceKind | reviewStatus |
 |---|---|---|---|---|---|---|---|---|
-| fi-namae | 名前 | なまえ | 名字 | noun | 名前は王です。 我姓王。 | 日语常省略「私は」。 | 基礎会話練習GW のコピー 行2（きそ　〜詞.xlsx） | draft |
-| fi-shusshin | 出身 | しゅっしん | 出身・老家 | noun | 中国出身です。 我来自中国。 | 「〇〇出身です」＝我是〇〇人/来自〇〇。 | 基礎会話練習GW のコピー 行3（「どこから来ましたか」の答え方として）<br>教科書範囲（標準初級（自己紹介）範囲から補完） | draft |
-| fi-chugoku | 中国 | ちゅうごく | 中国 | noun | 中国出身です。 我来自中国。 | — | 教科書範囲（標準初級範囲（国名））<br>最初に覚える最低限表現 行未特定（国名としての単独行は未特定・要人間確認） | draft |
-| fi-nihon | 日本 | にほん | 日本 | noun | 日本に住んでいます。 我住在日本。 | — | 教科書範囲（標準初級範囲（国名）） | draft |
-| fi-gakusei | 学生 | がくせい | 学生 | noun | 学生です。 我是学生。 | — | 最初に覚える最低限表現 行326（例文「私は学生です。」内） | draft |
-| fi-kaishain | 会社員 | かいしゃいん | 公司职员 | noun | 会社員です。 我是公司职员。 | — | 教科書範囲（標準初級範囲（職業）） | draft |
-| fi-kaisha | 会社 | かいしゃ | 公司 | noun | 会社で働いています。 我在公司工作。 | 动作场所用「で」。 | 最初に覚える最低限表現 行72（きそ　〜詞.xlsx） | draft |
-| fi-nihongo | 日本語 | にほんご | 日语 | noun | 日本語を勉強しています。 我在学日语。 | 学习对象用「を」。 | 最初に覚える最低限表現 行3（きそ　〜詞.xlsx） | draft |
-| fi-sumu | 住む | すむ | 住 | verb | 日本に住んでいます。 我住在日本。 | 现在住着＝「住んでいます」。「住みます」听起来像今后的打算。地点用「に」。 | 動詞使用頻度順 行未特定（原型表記の行未特定・要人間確認） | draft |
-| fi-hataraku | 働く | はたらく | 工作（动词） | verb | 会社で働いています。 我在公司工作。 | 现在的工作状态＝「働いています」。「働きます」可能被理解为今后的安排。 | 動詞使用頻度順 行未特定（原型表記の行未特定・要人間確認） | draft |
-| fi-benkyo | 勉強する | べんきょうする | 学习 | verb | 日本語を勉強しています。 我在学日语。 | 与中文「勉强」意思不同。正在学＝「勉強しています」。 | 最初に覚える最低限表現 行未特定（学習系表現ブロック内・行未特定・要人間確認） | draft |
+| 名前 | きそ　〜詞.xlsx | 基礎会話練習GW のコピー | 2 | B2 | 質問文「おなまえは なんですか？」（かな表記・お＋なまえ、漢字見出し語の完全一致ではない） | related_expression | teacher_workbook | draft |
+| 名前 | — | — | — | — | 標準初級範囲（自己紹介）から補完・要人間確認 | external_scope | reviewed_textbook_scope | draft |
+| 出身 | きそ　〜詞.xlsx | 基礎会話練習GW のコピー | 3 | B3 | 質問文「どこから きましたか？」（出身を問う機能・語の完全一致ではない） | related_expression | teacher_workbook | draft |
+| 出身 | — | — | — | — | 標準初級範囲（自己紹介）から補完 | external_scope | reviewed_textbook_scope | draft |
+| 中国 | — | — | — | — | Excel内に「中国」単独の語彙セルなし（「中国語」等は別語のため出典にしない）。標準初級範囲（国名）から補完 | external_scope | reviewed_textbook_scope | draft |
+| 日本 | — | — | — | — | Excel内に「日本」単独の語彙セルなし。標準初級範囲（国名）から補完 | external_scope | reviewed_textbook_scope | draft |
+| 日本 | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 29 | F29 | 例文「以前日本に住んでいました。」内 | example_contains | teacher_workbook | draft |
+| 学生 | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 326 | F326 | 例文「私は学生です。」内（見出し語セルはC326「は」） | example_contains | teacher_workbook | draft |
+| 学生 | — | — | — | — | 標準初級範囲（身分）から補完 | external_scope | reviewed_textbook_scope | draft |
+| 会社員 | — | — | — | — | Excel内に「会社員」の語彙セルなし。標準初級範囲（職業）から補完 | external_scope | reviewed_textbook_scope | draft |
+| 会社 | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 72 | C72 | 語彙行「会社 / kaisha / 公司」 | exact_lexeme | teacher_workbook | draft |
+| 日本語 | — | — | — | — | Excel内の「日本語」セルはすべて列見出し（C3等）のため語彙出典にしない。標準初級範囲から補完 | external_scope | reviewed_textbook_scope | draft |
+| 日本語 | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 44 | F44 | 例文「毎日日本語を勉強します。」内 | example_contains | teacher_workbook | draft |
+| 住む | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 208 | C208 | 語彙行「住む / sumu / 居住」 | exact_lexeme | teacher_workbook | draft |
+| 住む | きそ　〜詞.xlsx | 動詞活用形 | 70 | B70 | 活用表見出し「住む」 | exact_lexeme | teacher_workbook | draft |
+| 住む | きそ　〜詞.xlsx | 動詞活用形 | 144 | C144 | 活用表「住む（対訳注記付き）」 | exact_lexeme | teacher_workbook | draft |
+| 住む | きそ　〜詞.xlsx | 動詞活用形 | 196 | C196 | 活用表「住む」 | exact_lexeme | teacher_workbook | draft |
+| 働く | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 201 | C201 | 語彙行「働く / hataraku / 工作」 | exact_lexeme | teacher_workbook | draft |
+| 働く | きそ　〜詞.xlsx | 動詞活用形 | 63 | B63 | 活用表見出し「働く」 | exact_lexeme | teacher_workbook | draft |
+| 働く | きそ　〜詞.xlsx | 動詞活用形 | 137 | C137 | 活用表「働く（対訳注記付き）」 | exact_lexeme | teacher_workbook | draft |
+| 働く | きそ　〜詞.xlsx | 動詞活用形 | 189 | C189 | 活用表「働く」 | exact_lexeme | teacher_workbook | draft |
+| 勉強する | きそ　〜詞.xlsx | 最初に覚える最低限表現 | 200 | C200 | 語彙行「勉強する / benkyou suru / 学习」 | exact_lexeme | teacher_workbook | draft |
+| 勉強する | きそ　〜詞.xlsx | 動詞活用形 | 62 | B62 | 活用表見出し「勉強する」 | exact_lexeme | teacher_workbook | draft |
+| 勉強する | きそ　〜詞.xlsx | 動詞活用形 | 136 | C136 | 活用表「勉強する（対訳注記付き）」 | exact_lexeme | teacher_workbook | draft |
+| 勉強する | きそ　〜詞.xlsx | 動詞活用形 | 188 | C188 | 活用表「勉強する」 | exact_lexeme | teacher_workbook | draft |
+
+✅ 列見出しセル（最初に覚える最低限表現!C3 ほか同形式の繰り返し見出し行）は語彙出典に使用していない（テストで担保）。
 
 ## ルール（3件）
 
@@ -126,8 +158,10 @@ Can-do:
 | 除外 | 仕事 | 「会社員です／会社で働いています」で職業表現が完結し、第1単元の情報量を抑えるため。後続単元（仕事・日常）で導入 |
 | 移動 | 好き | 自己紹介②（趣味）単元へ。理由: ①第1単元は「名前・出身・職業・現況」に集中させ語数を8〜12に収める ②「好き」はな形容詞で「〜が好きです」の助詞「が」も同時導入が必要になり、本単元の助詞（は・に・で・を）と混線する ③趣味文脈なら「音楽が好きです」など自然な例で、な形容詞として正しく説明できる |
 
-## 出典行の特定状況（§7報告）
+## 出典監査の結論（2026-07-26 再監査・CEO指摘反映）
 
-- 特定済み: 名前=基礎会話練習GW行2 ／ 出身=同行3（「どこから来ましたか」）／ 会社=最低限表現行72 ／ 学生=同行326（例文「私は学生です。」内）／ 日本語=同行3
-- 行未特定（sourceRow=null＋ラベル付き・人間確認要）: **住む・働く・勉強する** — 「動詞使用頻度順」シートを全列走査したが原型単独セルとして見つからず（活用形・複合表記の可能性）。**中国** — 国名単独行が未特定。CEOに該当行のご確認をお願いしたい項目です。
-- Excel外補完（reviewed_textbook_scope）: 出身（補強）・日本・会社員 — 標準初級の自己紹介範囲。draftのままCEO承認待ち。
+- exact_lexeme: 勉強する=最低限表現!C200／働く=C201／住む=C208（主要出典）＋動詞活用形!B62/B63/B70・C136/C137/C144・C188/C189/C196（活用情報の追加参照）／会社=C72
+- example_contains: 学生=F326「私は学生です。」／日本=F29「以前日本に住んでいました。」（補助）／日本語=F44「毎日日本語を勉強します。」（補助）
+- related_expression: 名前=GW!B2「おなまえは なんですか？」／出身=GW!B3「どこから きましたか？」
+- external_scope: 中国（「中国語」等は別語のため出典にしない）・会社員・日本（主）・日本語（主・全「日本語」セルが列見出しのため）・名前/出身/学生の補完参照
+- Excelの行番号・セル範囲は教材IDに使用していない（IDは fi- 安定スラッグ）。

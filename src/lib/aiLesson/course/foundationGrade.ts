@@ -1,5 +1,5 @@
 // しくみラボ 決定的採点＋軸別集計＋復習候補（Phase 2A・LLM不使用・DB書き込みなし）
-import type { FoundationQuestion, FoundationDimension } from './foundationTypes';
+import type { FoundationQuestion, FoundationDimension, FoundationSourceRef } from './foundationTypes';
 
 /** かな正規化: NFKC・カタカナ→ひらがな・空白（全角含む）除去。読み自体は厳密比較 */
 export const normalizeKanaAnswer = (s: string): string =>
@@ -87,4 +87,20 @@ export const shuffledOrder = (q: FoundationQuestion): number[] => {
   for (let i = n - 1; i > 0; i--) { const j = seed % (i + 1); [idx[i], idx[j]] = [idx[j], idx[i]]; seed = (seed * 17 + 7) % 997; }
   if (idx.every((v, i) => v === i) && n > 1) [idx[0], idx[1]] = [idx[1], idx[0]];
   return idx;
+};
+
+/** 人間確認済みセル監査データ（テストfixture用・Excel実ファイル非依存） */
+export interface AuditedCell { sheet: string; cellRange: string; value: string; isHeader?: boolean }
+
+/**
+ * exact_lexeme出典の妥当性検証（§4/§5）:
+ * 列見出しセルはexact_lexeme不可。該当セルに見出し語が語彙項目として
+ * 直接存在（完全一致 or 「語（対訳注記）」形式）する場合のみ有効。
+ */
+export const validateExactLexemeRef = (lemma: string, ref: FoundationSourceRef, audited: AuditedCell[]): boolean => {
+  if (ref.sourceMatchType !== 'exact_lexeme') return false;
+  if (!ref.sourceSheet || !ref.cellRange) return false;
+  const hit = audited.find((a) => a.sheet === ref.sourceSheet && a.cellRange === ref.cellRange);
+  if (!hit || hit.isHeader) return false;
+  return hit.value === lemma || hit.value.startsWith(lemma + '（');
 };

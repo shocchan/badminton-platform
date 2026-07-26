@@ -2,11 +2,21 @@
 export type FoundationReviewStatus = 'source' | 'draft' | 'beta' | 'approved';
 export type FoundationDimension = 'reading' | 'meaning' | 'form' | 'connection' | 'usage';
 
+/** 出典セルと教材項目の関係（CEOレビュー前修正§4） */
+export type FoundationSourceMatchType =
+  | 'exact_lexeme'        // 見出し語がセルに語彙項目として直接存在
+  | 'inflected_form'      // 活用形・変化形として存在
+  | 'example_contains'    // 例文・質問文の一部として存在
+  | 'related_expression'  // 意味・Can-do上は関連するが同じ語ではない
+  | 'external_scope';     // Excelには直接存在せず標準初級範囲から補完
+
 export interface FoundationSourceRef {
   sourceKind: 'teacher_workbook' | 'reviewed_textbook_scope' | 'official_framework';
   sourceSheet: string | null;   // Excel由来ならシート名
-  sourceRow: number | null;     // 特定できない場合はnull（行番号を永続IDにしない）
-  note?: string;
+  sourceRow: number | null;     // 特定できない場合はnull（行番号・セル範囲を教材IDにしない）
+  cellRange?: string | null;    // 例 'C200'。Excel由来で特定済みの場合のみ
+  sourceMatchType: FoundationSourceMatchType;
+  sourceLabel: string;          // 出典の人間可読ラベル（null黙残し禁止・§7）
 }
 
 export interface FoundationItem {

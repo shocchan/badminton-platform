@@ -3,25 +3,36 @@
 // て形の全変形・ているの全用法は扱わない（§4）。「好き」は自己紹介②（趣味）単元へ移動。
 import type { FoundationItem, FoundationRule, FoundationQuestion, FoundationUnit } from './foundationTypes';
 
-const WB = 'きそ　〜詞.xlsx';
+// 出典監査 2026-07-26 実施（原資料Excel「きそ〜詞」を読み取り専用で全セル照合）。
+// 行番号・セル範囲は参照情報であり教材IDには使用しない（IDは安定スラッグ）。
 type Ref = FoundationItem['sources'][number];
-const xls = (sheet: string, row: number | null, label?: string): Ref =>
-  ({ sourceKind: 'teacher_workbook', sourceSheet: sheet, sourceRow: row, note: label ?? WB });
-const std = (label: string): Ref =>
-  ({ sourceKind: 'reviewed_textbook_scope', sourceSheet: null, sourceRow: null, note: label });
+type Match = Ref['sourceMatchType'];
+const MIN = '最初に覚える最低限表現';
+const KATSUYO = '動詞活用形';
+const GW = '基礎会話練習GW のコピー';
+const xls = (sheet: string, row: number, cell: string, match: Match, label: string): Ref =>
+  ({ sourceKind: 'teacher_workbook', sourceSheet: sheet, sourceRow: row, cellRange: cell, sourceMatchType: match, sourceLabel: label });
+const ext = (label: string): Ref =>
+  ({ sourceKind: 'reviewed_textbook_scope', sourceSheet: null, sourceRow: null, cellRange: null, sourceMatchType: 'external_scope', sourceLabel: label });
+/** 動詞活用形シートの追加参照（活用情報として保持・CEO指示§1） */
+const katsuyoRefs = (lemma: string, b: number, c1: number, c2: number): Ref[] => [
+  xls(KATSUYO, b, `B${b}`, 'exact_lexeme', `活用表見出し「${lemma}」`),
+  xls(KATSUYO, c1, `C${c1}`, 'exact_lexeme', `活用表「${lemma}（対訳注記付き）」`),
+  xls(KATSUYO, c2, `C${c2}`, 'exact_lexeme', `活用表「${lemma}」`),
+];
 
 export const UNIT1_ITEMS: FoundationItem[] = [
-  { id: 'fi-namae', lemma: '名前', displayForm: '名前', readingKana: 'なまえ', readingRomaji: 'namae', partOfSpeech: 'noun', meaningZh: '名字', exampleJa: '名前は王です。', exampleZh: '我姓王。', usageNoteZh: '日语常省略「私は」。', sources: [xls('基礎会話練習GW のコピー', 2)], review: 'draft' },
-  { id: 'fi-shusshin', lemma: '出身', displayForm: '出身', readingKana: 'しゅっしん', readingRomaji: 'shusshin', partOfSpeech: 'noun', meaningZh: '出身・老家', exampleJa: '中国出身です。', exampleZh: '我来自中国。', usageNoteZh: '「〇〇出身です」＝我是〇〇人/来自〇〇。', sources: [xls('基礎会話練習GW のコピー', 3, '「どこから来ましたか」の答え方として'), std('標準初級（自己紹介）範囲から補完')], review: 'draft' },
-  { id: 'fi-chugoku', lemma: '中国', displayForm: '中国', readingKana: 'ちゅうごく', readingRomaji: 'chuugoku', partOfSpeech: 'noun', meaningZh: '中国', exampleJa: '中国出身です。', exampleZh: '我来自中国。', sources: [std('標準初級範囲（国名）'), xls('最初に覚える最低限表現', null, '国名としての単独行は未特定・要人間確認')], review: 'draft' },
-  { id: 'fi-nihon', lemma: '日本', displayForm: '日本', readingKana: 'にほん', readingRomaji: 'nihon', partOfSpeech: 'noun', meaningZh: '日本', exampleJa: '日本に住んでいます。', exampleZh: '我住在日本。', sources: [std('標準初級範囲（国名）')], review: 'draft' },
-  { id: 'fi-gakusei', lemma: '学生', displayForm: '学生', readingKana: 'がくせい', readingRomaji: 'gakusei', partOfSpeech: 'noun', meaningZh: '学生', exampleJa: '学生です。', exampleZh: '我是学生。', sources: [xls('最初に覚える最低限表現', 326, '例文「私は学生です。」内')], review: 'draft' },
-  { id: 'fi-kaishain', lemma: '会社員', displayForm: '会社員', readingKana: 'かいしゃいん', readingRomaji: 'kaishain', partOfSpeech: 'noun', meaningZh: '公司职员', exampleJa: '会社員です。', exampleZh: '我是公司职员。', sources: [std('標準初級範囲（職業）')], review: 'draft' },
-  { id: 'fi-kaisha', lemma: '会社', displayForm: '会社', readingKana: 'かいしゃ', readingRomaji: 'kaisha', partOfSpeech: 'noun', meaningZh: '公司', exampleJa: '会社で働いています。', exampleZh: '我在公司工作。', usageNoteZh: '动作场所用「で」。', sources: [xls('最初に覚える最低限表現', 72)], review: 'draft' },
-  { id: 'fi-nihongo', lemma: '日本語', displayForm: '日本語', readingKana: 'にほんご', readingRomaji: 'nihongo', partOfSpeech: 'noun', meaningZh: '日语', exampleJa: '日本語を勉強しています。', exampleZh: '我在学日语。', usageNoteZh: '学习对象用「を」。', sources: [xls('最初に覚える最低限表現', 3)], review: 'draft' },
-  { id: 'fi-sumu', lemma: '住む', displayForm: '住む', readingKana: 'すむ', readingRomaji: 'sumu', partOfSpeech: 'verb', meaningZh: '住', exampleJa: '日本に住んでいます。', exampleZh: '我住在日本。', usageNoteZh: '现在住着＝「住んでいます」。「住みます」听起来像今后的打算。地点用「に」。', sources: [xls('動詞使用頻度順', null, '原型表記の行未特定・要人間確認')], review: 'draft' },
-  { id: 'fi-hataraku', lemma: '働く', displayForm: '働く', readingKana: 'はたらく', readingRomaji: 'hataraku', partOfSpeech: 'verb', meaningZh: '工作（动词）', exampleJa: '会社で働いています。', exampleZh: '我在公司工作。', usageNoteZh: '现在的工作状态＝「働いています」。「働きます」可能被理解为今后的安排。', sources: [xls('動詞使用頻度順', null, '原型表記の行未特定・要人間確認')], review: 'draft' },
-  { id: 'fi-benkyo', lemma: '勉強する', displayForm: '勉強する', readingKana: 'べんきょうする', readingRomaji: 'benkyou suru', partOfSpeech: 'verb', meaningZh: '学习', exampleJa: '日本語を勉強しています。', exampleZh: '我在学日语。', usageNoteZh: '与中文「勉强」意思不同。正在学＝「勉強しています」。', sources: [xls('最初に覚える最低限表現', null, '学習系表現ブロック内・行未特定・要人間確認')], review: 'draft' },
+  { id: 'fi-namae', lemma: '名前', displayForm: '名前', readingKana: 'なまえ', readingRomaji: 'namae', partOfSpeech: 'noun', meaningZh: '名字', exampleJa: '名前は王です。', exampleZh: '我姓王。', usageNoteZh: '日语常省略「私は」。', sources: [xls(GW, 2, 'B2', 'related_expression', '質問文「おなまえは なんですか？」（かな表記・お＋なまえ、漢字見出し語の完全一致ではない）'), ext('標準初級範囲（自己紹介）から補完・要人間確認')], review: 'draft' },
+  { id: 'fi-shusshin', lemma: '出身', displayForm: '出身', readingKana: 'しゅっしん', readingRomaji: 'shusshin', partOfSpeech: 'noun', meaningZh: '出身・老家', exampleJa: '中国出身です。', exampleZh: '我来自中国。', usageNoteZh: '「〇〇出身です」＝我是〇〇人/来自〇〇。', sources: [xls(GW, 3, 'B3', 'related_expression', '質問文「どこから きましたか？」（出身を問う機能・語の完全一致ではない）'), ext('標準初級範囲（自己紹介）から補完')], review: 'draft' },
+  { id: 'fi-chugoku', lemma: '中国', displayForm: '中国', readingKana: 'ちゅうごく', readingRomaji: 'chuugoku', partOfSpeech: 'noun', meaningZh: '中国', exampleJa: '中国出身です。', exampleZh: '我来自中国。', sources: [ext('Excel内に「中国」単独の語彙セルなし（「中国語」等は別語のため出典にしない）。標準初級範囲（国名）から補完')], review: 'draft' },
+  { id: 'fi-nihon', lemma: '日本', displayForm: '日本', readingKana: 'にほん', readingRomaji: 'nihon', partOfSpeech: 'noun', meaningZh: '日本', exampleJa: '日本に住んでいます。', exampleZh: '我住在日本。', sources: [ext('Excel内に「日本」単独の語彙セルなし。標準初級範囲（国名）から補完'), xls(MIN, 29, 'F29', 'example_contains', '例文「以前日本に住んでいました。」内')], review: 'draft' },
+  { id: 'fi-gakusei', lemma: '学生', displayForm: '学生', readingKana: 'がくせい', readingRomaji: 'gakusei', partOfSpeech: 'noun', meaningZh: '学生', exampleJa: '学生です。', exampleZh: '我是学生。', sources: [xls(MIN, 326, 'F326', 'example_contains', '例文「私は学生です。」内（見出し語セルはC326「は」）'), ext('標準初級範囲（身分）から補完')], review: 'draft' },
+  { id: 'fi-kaishain', lemma: '会社員', displayForm: '会社員', readingKana: 'かいしゃいん', readingRomaji: 'kaishain', partOfSpeech: 'noun', meaningZh: '公司职员', exampleJa: '会社員です。', exampleZh: '我是公司职员。', sources: [ext('Excel内に「会社員」の語彙セルなし。標準初級範囲（職業）から補完')], review: 'draft' },
+  { id: 'fi-kaisha', lemma: '会社', displayForm: '会社', readingKana: 'かいしゃ', readingRomaji: 'kaisha', partOfSpeech: 'noun', meaningZh: '公司', exampleJa: '会社で働いています。', exampleZh: '我在公司工作。', usageNoteZh: '动作场所用「で」。', sources: [xls(MIN, 72, 'C72', 'exact_lexeme', '語彙行「会社 / kaisha / 公司」')], review: 'draft' },
+  { id: 'fi-nihongo', lemma: '日本語', displayForm: '日本語', readingKana: 'にほんご', readingRomaji: 'nihongo', partOfSpeech: 'noun', meaningZh: '日语', exampleJa: '日本語を勉強しています。', exampleZh: '我在学日语。', usageNoteZh: '学习对象用「を」。', sources: [ext('Excel内の「日本語」セルはすべて列見出し（C3等）のため語彙出典にしない。標準初級範囲から補完'), xls(MIN, 44, 'F44', 'example_contains', '例文「毎日日本語を勉強します。」内')], review: 'draft' },
+  { id: 'fi-sumu', lemma: '住む', displayForm: '住む', readingKana: 'すむ', readingRomaji: 'sumu', partOfSpeech: 'verb', meaningZh: '住', exampleJa: '日本に住んでいます。', exampleZh: '我住在日本。', usageNoteZh: '现在住着＝「住んでいます」。「住みます」听起来像今后的打算。地点用「に」。', sources: [xls(MIN, 208, 'C208', 'exact_lexeme', '語彙行「住む / sumu / 居住」'), ...katsuyoRefs('住む', 70, 144, 196)], review: 'draft' },
+  { id: 'fi-hataraku', lemma: '働く', displayForm: '働く', readingKana: 'はたらく', readingRomaji: 'hataraku', partOfSpeech: 'verb', meaningZh: '工作（动词）', exampleJa: '会社で働いています。', exampleZh: '我在公司工作。', usageNoteZh: '现在的工作状态＝「働いています」。「働きます」可能被理解为今后的安排。', sources: [xls(MIN, 201, 'C201', 'exact_lexeme', '語彙行「働く / hataraku / 工作」'), ...katsuyoRefs('働く', 63, 137, 189)], review: 'draft' },
+  { id: 'fi-benkyo', lemma: '勉強する', displayForm: '勉強する', readingKana: 'べんきょうする', readingRomaji: 'benkyou suru', partOfSpeech: 'verb', meaningZh: '学习', exampleJa: '日本語を勉強しています。', exampleZh: '我在学日语。', usageNoteZh: '与中文「勉强」意思不同。正在学＝「勉強しています」。', sources: [xls(MIN, 200, 'C200', 'exact_lexeme', '語彙行「勉強する / benkyou suru / 学习」'), ...katsuyoRefs('勉強する', 62, 136, 188)], review: 'draft' },
 ];
 
 export const UNIT1_RULES: FoundationRule[] = [
