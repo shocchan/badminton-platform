@@ -91,6 +91,9 @@ describe('候補状態の導出（§12・attemptedAt明示・日付偽装なし�
       { correct: true, attemptedAt: '2026-08-02T09:00:00.000Z' }];
     expect(deriveMasteryState(laterDay)).toBe('retained');
   });
+  it('「あとで確認」はfamiliarではなくguided扱い（§13）', () => {
+    expect(deriveMasteryState([{ correct: false, skipped: true, attemptedAt: '2026-07-26T09:00:00.000Z' }])).toBe('guided');
+  });
   it('後日に誤答すればretainedへ進めずfamiliarへ戻る', () => {
     expect(deriveMasteryState([
       { correct: true, attemptedAt: '2026-07-26T09:00:00.000Z' },

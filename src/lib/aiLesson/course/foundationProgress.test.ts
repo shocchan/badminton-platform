@@ -57,6 +57,27 @@ describe('SessionFoundationProgressRepository（§14）', () => {
     expect(storage._map.has(FOUNDATION_STORAGE_KEY)).toBe(false);
   });
 
+  it('v1→v2移行: 完了済みattemptは維持・入力式を含み得る未完了attemptは安全に破棄（§20）', () => {
+    const done = { attemptId: 'u1:1', unitId: 'u1', attemptNumber: 1, attemptSeed: 1, startedAt: '2026-07-20T09:00:00.000Z', completedAt: '2026-07-20T09:05:00.000Z', locale: 'ja', answers: [{ questionId: 'q1', targetId: 'i1', dimension: 'reading', correct: true, errorTag: 'e', attemptedAt: '2026-07-20T09:01:00.000Z' }] };
+    const incomplete = { ...done, attemptId: 'u1:2', attemptNumber: 2, completedAt: null };
+    storage.setItem(FOUNDATION_STORAGE_KEY, JSON.stringify({ schemaVersion: 1, attempts: [done, incomplete] }));
+    const repo = createFoundationProgressRepository(storage);
+    const attempts = repo.getAttempts();
+    expect(attempts.length).toBe(1);
+    expect(attempts[0].attemptId).toBe('u1:1'); // 完了済みの結果は維持
+    expect(JSON.parse(storage.getItem(FOUNDATION_STORAGE_KEY)!).schemaVersion).toBe(2);
+  });
+
+  it('「あとで確認」（skipped）は誤答と別管理でday3候補になる（§13）', () => {
+    const repo = createFoundationProgressRepository(storage);
+    const a = repo.startAttempt('u1', 'ja');
+    repo.recordAnswer(a.attemptId, { questionId: 'q1', targetId: 'i-skip', dimension: 'meaning', correct: false, skipped: true, errorTag: 'e', attemptedAt: '2026-07-26T09:00:00.000Z' });
+    repo.completeAttempt(a.attemptId);
+    const entry = repo.getReviewQueue('2026-07-26T10:00:00.000Z').find((e) => e.targetId === 'i-skip')!;
+    expect(entry.candidateState).toBe('due_day3');
+    expect(entry.suggestedInterval).toBe('day3');
+  });
+
   it('attemptSeedは attempt ごとに変わり得る・キーと保存内容にPIIを含まない', () => {
     const repo = createFoundationProgressRepository(storage);
     const a1 = repo.startAttempt('u1', 'ja');

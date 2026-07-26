@@ -1,15 +1,16 @@
 // しくみラボの表示位置をURL search paramsで管理（言語切替・リロード・再マウントでも位置維持）。
 // URL=どの画面を開いているか／Repository=何を回答したか／local state=一時UI の責務分離。
 // URLへ入れるのは lab/section/unit/step のみ（回答・正解・learner情報・errorTag等は入れない）。
-export type LabSection = 'today' | 'words' | 'rules' | 'review' | 'history';
+export type LabSection = 'today' | 'units' | 'records';
 export type LabUnitStep = 'intro' | 'words' | 'rules' | 'quiz' | 'result';
 
-/** URL上のsection名（外部表記）→内部view名。不正値はtoday扱い */
+/** URL上のsection名→内部view名。旧5領域URL（vocabulary/rules/review）は新3領域へ正規化（§19・リダイレクトなし） */
 const SECTION_FROM_URL: Record<string, LabSection> = {
-  today: 'today', vocabulary: 'words', rules: 'rules', review: 'review', history: 'history',
+  today: 'today', units: 'units', history: 'records',
+  vocabulary: 'units', rules: 'units', review: 'records',
 };
 const SECTION_TO_URL: Record<LabSection, string> = {
-  today: 'today', words: 'vocabulary', rules: 'rules', review: 'review', history: 'history',
+  today: 'today', units: 'units', records: 'history',
 };
 const VALID_STEPS = new Set<LabUnitStep>(['intro', 'words', 'rules', 'quiz', 'result']);
 

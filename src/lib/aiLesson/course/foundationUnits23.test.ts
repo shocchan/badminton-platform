@@ -23,14 +23,16 @@ describe('単元2 ます形・ない形（データ整合・例外）', () => {
     expect(bankItem('fi-suru').verbGroup).toBe('g3');
     expect(bankItem('fi-kuru').verbGroup).toBe('g3');
   });
-  it('活用採点: 行きます・買わない（かな許容・買あないは不正解）', () => {
+  it('活用選択（タップ式）: 行きます・買わない（誤答候補に買あない等の典型誤りを含む）', () => {
     const masu = UNIT2_QUESTIONS.find((q) => q.id === 'f2q-f2')!;
-    expect(judgeQuestion(masu, { text: '行きます' })).toBe(true);
-    expect(judgeQuestion(masu, { text: 'いきます' })).toBe(true);
-    expect(judgeQuestion(masu, { text: '行くます' })).toBe(false);
+    expect(masu.type).toBe('conjugation_choice');
+    expect(masu.choices![masu.answerIndex!]).toBe('行きます');
+    expect(masu.choices).toContain('行くます'); // 辞書形+ます の典型誤り
     const nai = UNIT2_QUESTIONS.find((q) => q.id === 'f2q-f5')!;
-    expect(judgeQuestion(nai, { text: '買わない' })).toBe(true);
-    expect(judgeQuestion(nai, { text: '買あない' })).toBe(false);
+    expect(nai.type).toBe('conjugation_choice');
+    expect(nai.choices![nai.answerIndex!]).toBe('買わない');
+    expect(nai.choices).toContain('買あない'); // 中国語母語者の典型誤り
+    expect(judgeQuestion(nai, { choiceIndex: nai.choices!.indexOf('買あない') })).toBe(false);
   });
   it('軸別最低問題数: 読み2・意味2・形接続3・使用2', () => {
     const d = (k: string) => UNIT2_QUESTIONS.filter((q) => q.dimension === k).length;
@@ -52,12 +54,14 @@ describe('単元3 て形（音便・例外・語彙再利用）', () => {
     const all = UNIT3_RULES.map((r) => r.explanationJa).join('');
     ['って', 'んで', 'いて', 'いで', 'して', '食べて', '来て', '行って'].forEach((k) => expect(all).toContain(k));
   });
-  it('活用採点: 買って・来る→きて・行く→行って（例外）', () => {
+  it('活用選択（タップ式）: 買って・来て（きて）・行って（例外）', () => {
     const katte = UNIT3_QUESTIONS.find((q) => q.id === 'f3q-f1')!;
-    expect(judgeQuestion(katte, { text: '買って' })).toBe(true);
-    expect(judgeQuestion(katte, { text: '買いて' })).toBe(false);
+    expect(katte.type).toBe('conjugation_choice');
+    expect(katte.choices![katte.answerIndex!]).toBe('買って');
+    expect(katte.choices).toContain('買いて'); // 音便を知らない典型誤り
     const kite = UNIT3_QUESTIONS.find((q) => q.id === 'f3q-f4')!;
-    expect(judgeQuestion(kite, { text: 'きて' })).toBe(true);
+    expect(kite.type).toBe('conjugation_choice');
+    expect(kite.choices![kite.answerIndex!]).toBe('来て（きて）');
     const itte = UNIT3_QUESTIONS.find((q) => q.id === 'f3q-f5')!;
     expect(itte.choices![itte.answerIndex!]).toBe('行って');
   });

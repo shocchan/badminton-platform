@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { FOUNDATION_UNIT_META, loadFoundationUnit, isKnownFoundationUnit } from './foundationRegistry';
 import type { FoundationUnitBundle } from './foundationRegistry';
-import { mechanicOf } from './foundationTypes';
+import { mechanicOf, requiresKeyboard } from './foundationTypes';
 
 const bundles: Record<string, FoundationUnitBundle> = {};
 const loadAll = async () => {
@@ -15,6 +15,25 @@ describe('しくみラボ 全6単元の横断整合（Phase 2B §27）', () => {
     expect(FOUNDATION_UNIT_META.length).toBe(6);
     expect(isKnownFoundationUnit('fu-bogus')).toBe(false);
     await expect(loadFoundationUnit('fu-bogus')).rejects.toThrow('unknown foundation unit');
+  });
+
+  it('利用者向け全単元がタップ式のみ（requiresKeyboard=false・入力式は教材検証エラー・§11）', async () => {
+    const bs = await loadAll();
+    for (const b of Object.values(bs)) for (const q of b.questions) {
+      expect(requiresKeyboard(q.type)).toBe(false);
+      expect(['text_input', 'kana_input', 'conjugation_input']).not.toContain(q.type);
+      expect(mechanicOf(q.type)).not.toBe('input');
+    }
+  });
+
+  it('choice系は2〜4択・複数正解なし・正解が選択肢に存在する', async () => {
+    const bs = await loadAll();
+    for (const b of Object.values(bs)) for (const q of b.questions) {
+      if (mechanicOf(q.type) !== 'choice') continue;
+      expect(new Set(q.choices).size).toBe(q.choices!.length); // 重複＝複数正解の芽を排除
+      expect(q.choices!.length).toBeGreaterThanOrEqual(2);
+      expect(q.choices!.length).toBeLessThanOrEqual(4);
+    }
   });
 
   it('メタと実データが一致し、全教材がdraft（自動approved禁止）', async () => {

@@ -21,7 +21,7 @@ export const UNIT5_RULES: FoundationRule[] = [
 export const UNIT5_QUESTIONS: FoundationQuestion[] = [
   // 読み×2
   { id: 'f5q-r1', targetItemId: 'fi-densha', dimension: 'reading', type: 'reading_choice', promptJa: '「電車」の読みは？', promptZh: '「電車」怎么读？', choices: ['でんしゃ', 'でんくるま', 'てんしゃ'], answerIndex: 0, explanationJa: '電車＝でんしゃ。', explanationZh: '電車读作「でんしゃ」。', errorTag: 'reading_densha', review: 'draft' },
-  { id: 'f5q-r2', targetItemId: 'fi-okiru', dimension: 'reading', type: 'kana_input', promptJa: '「起きる」の読みをひらがなで入力してください。', promptZh: '请用平假名输入「起きる」的读音。', accepted: ['おきる'], explanationJa: '起きる＝おきる。', explanationZh: '起きる读作「おきる」。', errorTag: 'reading_okiru', review: 'draft' },
+  { id: 'f5q-r2', targetItemId: 'fi-okiru', dimension: 'reading', type: 'reading_choice', promptJa: '「起きる」の読みは？', promptZh: '「起きる」怎么读？', choices: ['おきる', 'おこる', 'きる'], answerIndex: 0, explanationJa: '起きる＝おきる。「おこる（起こる）」は別の動詞です。', explanationZh: '起きる读作「おきる」。「おこる（起こる）」是另一个动词（发生）。', errorTag: 'reading_okiru', review: 'draft' },
   // 意味×2
   { id: 'f5q-m1', targetItemId: 'fi-densha', dimension: 'meaning', type: 'single_choice', promptJa: '「電車で行きます」の意味は？', promptZh: '「電車で行きます」的意思是？', choices: ['坐电车去', '在电车里住', '买电车票'], answerIndex: 0, explanationJa: '手段の「で」：坐电车去。', explanationZh: '表示手段的「で」：坐电车去。', errorTag: 'meaning_densha_de', review: 'draft' },
   { id: 'f5q-m2', targetItemId: 'fi-okiru', dimension: 'meaning', type: 'single_choice', promptJa: '「7時に起きます」の意味は？', promptZh: '「7時に起きます」的意思是？', choices: ['7点起床', '7点睡觉', '起来7次'], answerIndex: 0, explanationJa: '時刻の「に」＋起きる：7点起床。', explanationZh: '时刻「に」＋起きる：7点起床。', errorTag: 'meaning_okimasu', review: 'draft' },
@@ -33,7 +33,7 @@ export const UNIT5_QUESTIONS: FoundationQuestion[] = [
   { id: 'f5q-p5', targetRuleId: 'fr-ni-place-time', dimension: 'particle', type: 'error_correction_choice', promptJa: '「日本で住んでいます」。直すなら？', promptZh: '「日本で住んでいます」需要怎么改？', choices: ['で→に', 'で→へ', '直さなくてよい'], answerIndex: 0, hintJa: '住む場所に使う助詞は「働く場所」と違います。', hintZh: '居住地点的助词和工作地点不同。', explanationJa: '住む場所は「に」：日本に住んでいます（働く場所は「で」）。', explanationZh: '居住地点用「に」：日本に住んでいます（工作地点才用「で」）。', errorTag: 'particle_sumu_ni', review: 'draft' },
   // 文中使用×2
   { id: 'f5q-u1', targetRuleId: 'fr-de-place-means', dimension: 'usage', type: 'sentence_order', promptJa: 'ならべかえて、通勤の文を作ってください。', promptZh: '请排列成表示通勤的句子。', orderTokens: ['電車', 'で', '会社', 'に', '行きます'], explanationJa: '電車で＋会社に＋行きます。', explanationZh: '電車で（坐电车）＋会社に（去公司）＋行きます。', errorTag: 'usage_order_de_ni', review: 'draft' },
-  { id: 'f5q-u2', targetRuleId: 'fr-ni-e-destination', dimension: 'usage', type: 'single_choice', promptJa: '週末に故郷へ戻ることを言うと？', promptZh: '说「周末回老家」应该选？', choices: ['週末、家に帰ります。', '週末、家で帰ります。', '週末、家を帰ります。'], answerIndex: 0, explanationJa: '帰る先は「に」（へも可）。', explanationZh: '回去的目的地用「に」（也可用へ）。', errorTag: 'usage_kaeru_ni', review: 'draft' },
+  { id: 'f5q-u2', targetRuleId: 'fr-ni-e-destination', dimension: 'usage', type: 'sentence_choice', promptJa: '週末に故郷へ戻ることを言うと？', promptZh: '说「周末回老家」应该选？', choices: ['週末、家に帰ります。', '週末、家で帰ります。', '週末、家を帰ります。'], answerIndex: 0, explanationJa: '帰る先は「に」（へも可）。', explanationZh: '回去的目的地用「に」（也可用へ）。', errorTag: 'usage_kaeru_ni', review: 'draft' },
 ];
 
 export const UNIT5: FoundationUnit = {

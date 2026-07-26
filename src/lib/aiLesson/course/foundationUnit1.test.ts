@@ -126,13 +126,13 @@ describe('choice表示シャッフル（決定的・安定ID判定）', () => {
 });
 
 describe('決定的採点', () => {
-  const input = UNIT1_QUESTIONS.find((q) => q.id === 'fq-r3')!;
   const order = UNIT1_QUESTIONS.find((q) => q.id === 'fq-u1')!;
-  it('かな正規化: カタカナ・全角空白を許容', () => {
+  it('かな正規化（エンジン維持）とタップ化されたfq-r3（reading_choice）', () => {
     expect(normalizeKanaAnswer(' スム ')).toBe('すむ');
-    expect(judgeQuestion(input, { text: 'スム' })).toBe(true);
-    expect(judgeQuestion(input, { text: 'すみ' })).toBe(false);
-    expect(judgeQuestion(input, { text: '' })).toBe(false);
+    const r3 = UNIT1_QUESTIONS.find((q) => q.id === 'fq-r3')!;
+    expect(r3.type).toBe('reading_choice');
+    expect(r3.choices![r3.answerIndex!]).toBe('すむ');
+    expect(judgeQuestion(r3, { choiceIndex: r3.answerIndex! })).toBe(true);
   });
   it('に/で/を の助詞問題とています選択の正誤', () => {
     const de = UNIT1_QUESTIONS.find((q) => q.id === 'fq-f2')!;

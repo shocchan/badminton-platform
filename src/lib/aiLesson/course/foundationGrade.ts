@@ -52,7 +52,7 @@ export interface ReviewCandidate {
   reviewDimension: FoundationDimension;
   errorTag: string;
   suggestedInterval: 'day1' | 'day3' | 'day7' | null;
-  reviewReason: 'incorrect' | 'hint_used' | 'confirm_retention' | 'retained';
+  reviewReason: 'incorrect' | 'hint_used' | 'skipped' | 'confirm_retention' | 'retained';
   candidateState: 'due_day1' | 'due_day3' | 'confirm_day7' | 'retained';
 }
 
@@ -63,7 +63,7 @@ export interface ReviewCandidate {
  * 一度の自力正解だけでは定着と判定しない。
  */
 export const deriveReviewCandidates = (
-  rs: { questionId: string; targetId: string; dimension: FoundationDimension; correct: boolean; hintUsed?: boolean; previouslyConfirmed?: boolean; errorTag: string }[],
+  rs: { questionId: string; targetId: string; dimension: FoundationDimension; correct: boolean; hintUsed?: boolean; skipped?: boolean; previouslyConfirmed?: boolean; errorTag: string }[],
 ): ReviewCandidate[] => {
   const seen = new Set<string>();
   const out: ReviewCandidate[] = [];
@@ -71,7 +71,8 @@ export const deriveReviewCandidates = (
     const key = `${r.targetId}:${r.dimension}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    if (!r.correct) out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: 'day1', reviewReason: 'incorrect', candidateState: 'due_day1' });
+    if (!r.correct && r.skipped) out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: 'day3', reviewReason: 'skipped', candidateState: 'due_day3' });
+    else if (!r.correct) out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: 'day1', reviewReason: 'incorrect', candidateState: 'due_day1' });
     else if (r.hintUsed) out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: 'day3', reviewReason: 'hint_used', candidateState: 'due_day3' });
     else if (r.previouslyConfirmed) out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: null, reviewReason: 'retained', candidateState: 'retained' });
     else out.push({ reviewTarget: r.targetId, reviewDimension: r.dimension, errorTag: r.errorTag, suggestedInterval: 'day7', reviewReason: 'confirm_retention', candidateState: 'confirm_day7' });
@@ -130,7 +131,7 @@ export const shuffledMatchingRight = (q: FoundationQuestion, attemptSeed: number
 };
 
 // --- Item×次元の候補状態（§12・attemptedAtはISO文字列で明示） ---
-export interface AttemptRecord { correct: boolean; hintUsed?: boolean; attemptedAt: string }
+export interface AttemptRecord { correct: boolean; hintUsed?: boolean; skipped?: boolean; attemptedAt: string }
 /**
  * not_seen→familiar（誤答経験）→guided（ヒント正解）→independent（自力正解）→
  * retained（別の日の再確認でも自力正解）。日付偽装をしない: 渡されたattemptedAtのみから導出。
@@ -139,7 +140,7 @@ export const deriveMasteryState = (history: AttemptRecord[]): FoundationMasteryS
   if (history.length === 0) return 'not_seen';
   const sorted = [...history].sort((a, b) => a.attemptedAt.localeCompare(b.attemptedAt));
   const last = sorted[sorted.length - 1];
-  if (!last.correct) return 'familiar';
+  if (!last.correct) return last.skipped ? 'guided' : 'familiar'; // 「あとで確認」は誤答と別管理（§13）
   if (last.hintUsed) return 'guided';
   const lastDay = last.attemptedAt.slice(0, 10);
   const earlierSelfCorrect = sorted.slice(0, -1).some((r) => r.correct && !r.hintUsed && r.attemptedAt.slice(0, 10) < lastDay);

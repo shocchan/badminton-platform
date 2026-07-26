@@ -5,7 +5,7 @@ import type { FoundationDimension, FoundationMasteryState } from './foundationTy
 import { deriveMasteryState } from './foundationGrade';
 
 export const FOUNDATION_STORAGE_KEY = 'ai_course_foundation_preview_v1';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2; // v2: 全問タップ式化・skipped追加（§20）
 
 export interface FoundationAnswerRecord {
   questionId: string;
@@ -13,6 +13,7 @@ export interface FoundationAnswerRecord {
   dimension: FoundationDimension;
   correct: boolean;
   hintUsed?: boolean;
+  skipped?: boolean;      // 「あとで確認」（誤答と別管理・day3候補・§13）
   errorTag: string;
   attemptedAt: string; // ISO
 }
@@ -71,7 +72,13 @@ export const createFoundationProgressRepository = (storage: StorageLike): Founda
       const raw = storage.getItem(FOUNDATION_STORAGE_KEY);
       if (!raw) return { schemaVersion: SCHEMA_VERSION, attempts: [] };
       const parsed = JSON.parse(raw) as StoreShape;
-      // schemaVersion不一致・構造不正は黙って破棄（試作データのため移行しない・§14）
+      // v1→v2移行（§20）: 完了済み結果は維持、入力式問題を含み得る未完了attemptは安全に破棄
+      if (parsed?.schemaVersion === 1 && Array.isArray(parsed.attempts)) {
+        const migrated: StoreShape = { schemaVersion: SCHEMA_VERSION, attempts: parsed.attempts.filter((a) => a?.completedAt !== null) };
+        try { storage.setItem(FOUNDATION_STORAGE_KEY, JSON.stringify(migrated)); } catch { /* noop */ }
+        return migrated;
+      }
+      // それ以外のversion不一致・構造不正は黙って破棄（試作データ）
       if (parsed?.schemaVersion !== SCHEMA_VERSION || !Array.isArray(parsed.attempts)) {
         storage.removeItem(FOUNDATION_STORAGE_KEY);
         return { schemaVersion: SCHEMA_VERSION, attempts: [] };
@@ -162,6 +169,7 @@ export const createFoundationProgressRepository = (storage: StorageLike): Founda
         let candidateState: FoundationReviewEntry['candidateState'];
         let interval: FoundationReviewEntry['suggestedInterval'];
         if (state === 'retained') { candidateState = 'retained'; interval = null; }
+        else if (!last.correct && last.skipped) { candidateState = 'due_day3'; interval = 'day3'; }
         else if (!last.correct) { candidateState = 'due_day1'; interval = 'day1'; }
         else if (last.hintUsed) { candidateState = 'due_day3'; interval = 'day3'; }
         else { candidateState = 'confirm_day7'; interval = 'day7'; }

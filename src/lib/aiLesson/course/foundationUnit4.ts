@@ -23,7 +23,7 @@ export const UNIT4_RULES: FoundationRule[] = [
 export const UNIT4_QUESTIONS: FoundationQuestion[] = [
   // 読み×2
   { id: 'f4q-r1', targetItemId: 'fi-neko', dimension: 'reading', type: 'reading_choice', promptJa: '「猫」の読みは？', promptZh: '「猫」怎么读？', choices: ['ねこ', 'いぬ', 'びょう'], answerIndex: 0, explanationJa: '猫＝ねこ。', explanationZh: '猫读作「ねこ」。', errorTag: 'reading_neko', review: 'draft' },
-  { id: 'f4q-r2', targetItemId: 'fi-wakaru', dimension: 'reading', type: 'kana_input', promptJa: '「分かる」の読みをひらがなで入力してください。', promptZh: '请用平假名输入「分かる」的读音。', accepted: ['わかる'], explanationJa: '分かる＝わかる。', explanationZh: '分かる读作「わかる」。', errorTag: 'reading_wakaru', review: 'draft' },
+  { id: 'f4q-r2', targetItemId: 'fi-wakaru', dimension: 'reading', type: 'reading_choice', promptJa: '「分かる」の読みは？', promptZh: '「分かる」怎么读？', choices: ['わかる', 'ぶんかる', 'わける'], answerIndex: 0, explanationJa: '分かる＝わかる。「ぶん」は音読み（気分など）、「わける（分ける）」は別の動詞です。', explanationZh: '分かる读作「わかる」。「ぶん」是音读，「わける（分ける）」是另一个动词。', errorTag: 'reading_wakaru', review: 'draft' },
   // 意味×3
   { id: 'f4q-m1', targetItemId: 'fi-neko', dimension: 'meaning', type: 'single_choice', promptJa: '「猫がいます」の意味は？', promptZh: '「猫がいます」的意思是？', choices: ['有猫', '喜欢猫', '是猫'], answerIndex: 0, explanationJa: '存在の文：有猫。', explanationZh: '表示存在：有（一只）猫。', errorTag: 'meaning_neko_imasu', review: 'draft' },
   { id: 'f4q-m2', targetItemId: 'fi-aru', dimension: 'meaning', type: 'single_choice', promptJa: '「時間があります」の意味は？', promptZh: '「時間があります」的意思是？', choices: ['有时间', '时间到了', '在时间里'], answerIndex: 0, explanationJa: '時間があります＝有时间。', explanationZh: '「時間があります」＝有时间。', errorTag: 'meaning_jikan_aru', review: 'draft' },
@@ -35,7 +35,7 @@ export const UNIT4_QUESTIONS: FoundationQuestion[] = [
   { id: 'f4q-p4', targetRuleId: 'fr-ga-basic', dimension: 'particle', type: 'error_correction_choice', promptJa: '「日本語を分かります」。直すなら？', promptZh: '「日本語を分かります」需要怎么改？', choices: ['を→が', 'を→は', '直さなくてよい'], answerIndex: 0, hintJa: '「分かる」の対象に使う助詞は特別です。', hintZh: '「分かる」的对象要用特殊的助词。', explanationJa: '「分かる」の対象は「が」：日本語が分かります。', explanationZh: '「分かる」的对象用「が」：日本語が分かります。', errorTag: 'particle_wakaru_ga', review: 'draft' },
   // 文中使用×2
   { id: 'f4q-u1', targetRuleId: 'fr-wo-object', dimension: 'usage', type: 'sentence_order', promptJa: 'ならべかえて、自己紹介の文を作ってください。', promptZh: '请排列成自我介绍的句子。', orderTokens: ['私', 'は', '日本語', 'を', '勉強します'], explanationJa: '私は＋日本語を＋勉強します。', explanationZh: '私は＋日本語を＋勉強します。', errorTag: 'usage_order_wa_wo', review: 'draft' },
-  { id: 'f4q-u2', targetRuleId: 'fr-ga-basic', dimension: 'usage', type: 'single_choice', promptJa: '「部屋に何がいますか？」への自然な答えは？', promptZh: '回答「部屋に何がいますか？」最自然的是？', choices: ['猫がいます。', '猫はいます。', '猫をいます。'], answerIndex: 0, explanationJa: '質問への新情報は「が」で伝えます。', explanationZh: '回答新信息用「が」。', errorTag: 'usage_ga_answer', review: 'draft' },
+  { id: 'f4q-u2', targetRuleId: 'fr-ga-basic', dimension: 'usage', type: 'sentence_choice', promptJa: '「部屋に何がいますか？」への自然な答えは？', promptZh: '回答「部屋に何がいますか？」最自然的是？', choices: ['猫がいます。', '猫はいます。', '猫をいます。'], answerIndex: 0, explanationJa: '質問への新情報は「が」で伝えます。', explanationZh: '回答新信息用「が」。', errorTag: 'usage_ga_answer', review: 'draft' },
 ];
 
 export const UNIT4: FoundationUnit = {

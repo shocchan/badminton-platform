@@ -4,8 +4,9 @@ export type FoundationDimension = 'reading' | 'meaning' | 'form' | 'connection' 
 
 /** 問題タイプ（Phase 2B §9）。描画・採点は mechanicOf で4系統に集約する */
 export type FoundationQuestionType =
-  | 'single_choice' | 'reading_choice' | 'particle_choice' | 'error_correction_choice' | 'fill_blank'
-  | 'text_input' | 'kana_input' | 'conjugation_input'
+  | 'single_choice' | 'reading_choice' | 'particle_choice' | 'conjugation_choice' | 'sentence_choice'
+  | 'error_correction_choice' | 'fill_blank'
+  | 'text_input' | 'kana_input' | 'conjugation_input'   // 入力系: エンジンは保持するが利用者向け単元では禁止（§11）
   | 'sentence_order'
   | 'matching';
 export type FoundationMechanic = 'choice' | 'input' | 'order' | 'matching';
@@ -17,6 +18,12 @@ export const mechanicOf = (t: FoundationQuestionType): FoundationMechanic => {
     default: return 'choice';
   }
 };
+
+/**
+ * キーボード入力が必要な問題タイプか（§9/§11）。
+ * 利用者向けFoundationUnitではtrueの問題を含めてはならない（教材検証テストで強制）。
+ */
+export const requiresKeyboard = (t: FoundationQuestionType): boolean => mechanicOf(t) === 'input';
 
 /** Item×次元ごとの候補状態（§12・1回の自力正解ではretainedにしない） */
 export type FoundationMasteryState = 'not_seen' | 'familiar' | 'guided' | 'independent' | 'retained';
