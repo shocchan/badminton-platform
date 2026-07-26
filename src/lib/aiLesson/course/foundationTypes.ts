@@ -53,6 +53,11 @@ export interface FoundationItem {
   readingRomaji: string;        // 補助表示のみ（読める判定には使わない）
   partOfSpeech: 'noun' | 'verb' | 'naAdj' | 'iAdj' | 'expression';
   verbGroup?: 'g1' | 'g2' | 'g3';  // 動詞のみ（一類/二類/三類・帰る等の例外は一類として登録し注記）
+  /** 場面カテゴリ（名詞・表現中心・ことば図鑑の場面別分類・§10） */
+  sceneCategory?: 'people' | 'life' | 'food' | 'transport' | 'work_school' | 'shopping' | 'health' | 'time_money' | 'selfintro';
+  coreLevel?: 'A' | 'B';           // 語彙優先度（Core A=最優先）
+  antonymId?: string;              // 反対語Item（形容詞対比・§9）
+  imageAssetId?: string;           // VisualAssetManifestのID（画像は差し替え可能・§15）
   meaningZh: string;
   exampleJa: string;
   exampleZh: string;
