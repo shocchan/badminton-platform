@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  initialChatConvState, willBeClosing, applyChatTurn, composeTutorText, toGuidedState,
+  initialChatConvState, willBeClosing, applyChatTurn, composeTutorText, toGuidedState, cleanTurnText,
 } from './courseChatTurn';
 
 const turn = (over: Partial<Parameters<typeof composeTutorText>[0]> = {}) => ({
@@ -56,6 +56,56 @@ describe('LLM会話状態機械（クライアント側ガード）', () => {
     }));
     expect(text).toContain('まとめましょう');
     expect(text).not.toContain('出てはいけない');
+  });
+
+  // ── 「✏️ null」表示の再発防止（correction等の擬似空値サニタイズ） ──
+  describe('空値サニタイズ（✏️ null 再発防止）', () => {
+    it.each([
+      ['null値', null],
+      ['undefined', undefined as unknown as string | null],
+      ['空文字', ''],
+      ['空白のみ', '   '],
+      ['文字列"null"（不具合の原因）', 'null'],
+      ['文字列"None"', 'None'],
+      ['「なし」', 'なし'],
+      ['「无」(zh)', '无'],
+      ['「没有」(zh)', '没有'],
+    ])('correctionが%s → 訂正行（✏️）を出さない', (_label, v) => {
+      const text = composeTutorText(turn({ correction: v as string | null }));
+      expect(text).not.toContain('✏️');
+      expect(text.toLowerCase()).not.toContain('null');
+      expect(text).not.toMatch(/\n\n/); // 余白（空行）も残さない
+    });
+
+    it('correctionが実際にある場合のみ ✏️＋訂正文を表示', () => {
+      const text = composeTutorText(turn({ correction: '「説明しました」の方が自然です。' }));
+      expect(text).toContain('✏️ 「説明しました」の方が自然です。');
+    });
+
+    it('reactionのみ（question/correctionが擬似空値）', () => {
+      const text = composeTutorText(turn({ question: 'null', correction: 'なし' }));
+      expect(text).toBe('上司に説明しようとしたけれど、緊張したんですね。');
+    });
+
+    it('questionのみ（reactionが擬似空値でも落ちない）', () => {
+      const text = composeTutorText(turn({ reaction: 'null' }));
+      expect(text).toBe('どの部分がいちばん難しかったですか？');
+    });
+
+    it('shouldClose時にclosingMessageが「null」文字列なら締め行も出さない', () => {
+      const text = composeTutorText(turn({ shouldClose: true, closingMessage: 'null', question: null }));
+      expect(text.toLowerCase()).not.toContain('null');
+    });
+
+    it('applyChatTurn: 擬似空値の質問をasked履歴に入れない', () => {
+      const s = applyChatTurn(initialChatConvState(8), turn({ question: 'null' }));
+      expect(s.asked).toEqual([]);
+    });
+
+    it('cleanTurnText: 正常文字列はtrimして返す・HTMLはただの文字列（注入なし）', () => {
+      expect(cleanTurnText('  こんにちは  ')).toBe('こんにちは');
+      expect(cleanTurnText('<b>強調</b>')).toBe('<b>強調</b>'); // タグは文字列のまま（Reactがエスケープ描画）
+    });
   });
 
   it('toGuidedState: フォールバック時にターン数と段階を引き継ぐ（8ターン保証を維持）', () => {

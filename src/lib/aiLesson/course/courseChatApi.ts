@@ -6,6 +6,7 @@
 // - 失敗はここで飲み込み ok:false を返す。呼び出し側はレッスンを止めない
 
 import { getAccessToken } from './courseAuth';
+import { cleanTurnText } from './courseChatTurn';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -78,12 +79,13 @@ export const requestChatTurn = async (req: ChatTurnRequest): Promise<ChatTurnRes
     return {
       ok: true,
       turn: {
-        reaction: data.turn.reaction,
-        correction: data.turn.correction ?? null,
-        question: data.turn.question ?? null,
+        // 各フィールドをサニタイズ（モデルが文字列「null」等を返しても表示に混入させない）
+        reaction: cleanTurnText(data.turn.reaction) ?? '',
+        correction: cleanTurnText(data.turn.correction),
+        question: cleanTurnText(data.turn.question),
         shouldClose: !!data.turn.shouldClose,
-        closingMessage: data.turn.closingMessage ?? null,
-        translationZh: typeof data.turn.translationZh === 'string' ? data.turn.translationZh : null,
+        closingMessage: cleanTurnText(data.turn.closingMessage),
+        translationZh: cleanTurnText(data.turn.translationZh),
         readingAids: Array.isArray(data.turn.readingAids)
           ? data.turn.readingAids
             .filter((a: unknown): a is { text: string; reading: string } =>

@@ -29,6 +29,18 @@ const OPENAI_TIMEOUT_MS = 20000; // OpenAI呼び出しタイムアウト
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
+/**
+ * 任意フィールドのサニタイズ: null/空文字に加え、モデルが「null」「なし」等の
+ * 文字列を返すケースも null へ倒す（フロントで「✏️ null」と表示された不具合の再発防止）。
+ */
+const EMPTYISH = new Set(["null", "none", "undefined", "nan", "n/a", "-", "なし", "特になし", "无", "没有"]);
+const cleanField = (v: unknown, maxLen: number): string | null => {
+  if (typeof v !== "string") return null;
+  const t = v.trim();
+  if (!t || EMPTYISH.has(t.toLowerCase())) return null;
+  return t.slice(0, maxLen);
+};
+
 const CHAT_SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -178,7 +190,7 @@ serve(async (req) => {
       "   一般論やテンプレ相づちだけで返さない。過去の会話内容と矛盾しない。",
       "2. question: 会話を1歩だけ深める質問をちょうど1つ。話題を勝手に変えない。",
       `   次の質問は既出なので繰り返さない（言い換えもしない）: ${asked.length ? asked.map((q) => `「${q}」`).join(" ") : "(なし)"}`,
-      "3. correction: 毎回入れない。意味が通じない・目標表現に直結する場合だけ、自然な言い直しを1文（例:「〜の方が自然です」）。それ以外は null。",
+      "3. correction: 毎回入れない。意味が通じない・目標表現に直結する場合だけ、自然な言い直しを1文（例:「〜の方が自然です」）。それ以外は JSON の null 値にする（文字列で「null」「なし」と書かない）。",
       "4. 学習者の文が曖昧で意味が取れない時だけ、questionを短い確認（「〜という意味ですか？」）にする。理解できる時は確認しない。",
       "5. 学習者が終了を望んだら（「終わりたい」等）、question=null・shouldClose=true にする。",
       "6. 目標表現は自然な場面で1〜2回使う機会を作る。無理に何度も要求しない。",
@@ -230,14 +242,17 @@ serve(async (req) => {
     };
     try { turn = JSON.parse(content); } catch { return json(502, { error: "bad_turn_json" }); }
 
-    // ── サーバー側の最終ガード（モデル出力を上書き） ──
-    if (closingNow || turn.shouldClose) {
-      turn.shouldClose = true;
-      turn.question = null;                       // 終了宣言後に新しい質問を出さない
-      if (!turn.closingMessage) turn.closingMessage = "ありがとうございます。今日の会話をまとめましょう。";
+    // ── サーバー側の最終ガード（モデル出力を上書き・「null」等の擬似空文字列も除去） ──
+    let correction = cleanField(turn.correction, 200);
+    let question = cleanField(turn.question, 200);
+    let closingMessage = cleanField(turn.closingMessage, 200);
+    const shouldClose = closingNow || !!turn.shouldClose;
+    if (shouldClose) {
+      question = null;                            // 終了宣言後に新しい質問を出さない
+      if (!closingMessage) closingMessage = "ありがとうございます。今日の会話をまとめましょう。";
     }
     // 質問の重複ガード（既出質問と完全一致なら落とす→フロントが定型の最終質問に差し替え可能）
-    if (turn.question && asked.includes(turn.question)) turn.question = null;
+    if (question && asked.includes(question)) question = null;
 
     // readingAids のサーバー側ガード（最大3・各フィールド長制限・文字列のみ）
     const readingAids = (Array.isArray(turn.readingAids) ? turn.readingAids : [])
@@ -247,13 +262,13 @@ serve(async (req) => {
 
     return json(200, {
       turn: {
-        reaction: String(turn.reaction ?? "").slice(0, 300),
-        correction: turn.correction ? String(turn.correction).slice(0, 200) : null,
-        question: turn.question ? String(turn.question).slice(0, 200) : null,
-        shouldClose: !!turn.shouldClose,
-        closingMessage: turn.closingMessage ? String(turn.closingMessage).slice(0, 200) : null,
+        reaction: cleanField(turn.reaction, 300) ?? "",
+        correction,
+        question,
+        shouldClose,
+        closingMessage: shouldClose ? closingMessage : null,
         // 本文と同じ応答内で生成（翻訳ボタンを押しても追加課金なし）。受講者は中国語母語者のためlocale問わず返す
-        translationZh: turn.translationZh ? String(turn.translationZh).slice(0, 600) : null,
+        translationZh: cleanField(turn.translationZh, 600),
         readingAids,
       },
       studentTurns,
