@@ -12,6 +12,7 @@ import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { CourseRetryCard } from './CourseRetryCard';
 import { CourseIllustration } from './CourseIllustration';
 import { ShokoAvatar } from './ShokoAvatar';
+import { LearnerAvatar } from './LearnerAvatar';
 
 export interface CourseReportData {
   mission: Mission;
@@ -49,9 +50,14 @@ interface Props {
   canNext?: boolean;
   /** 今回の復習ノートを開く（Feature 5） */
   onSeeReviewNote?: () => void;
+  /** わたしの日本語ノートへ（§PW-V1。通常会話=DB保存済みの時だけ渡す） */
+  onSeeNotebook?: () => void;
+  /** 本人表示用（アバターは承認済みsigned URLを親から渡す。無ければイニシャル） */
+  learnerName?: string;
+  learnerAvatarUrl?: string | null;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
@@ -117,7 +123,11 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
         {retryDone && (
           <div className="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-2xl border border-blue-100 p-5 motion-safe:animate-[report-in_0.5s_ease-out]" aria-live="polite">
             <div className="flex items-center gap-3">
-              <CourseIllustration slot="complete" width={64} lang={zh ? 'zh' : 'ja'} decorative className="shrink-0 rounded-2xl" />
+              {/* 本人が主役・先生は補助（同等以下のサイズ・§PW-V1） */}
+              <div className="flex items-center shrink-0 -space-x-2">
+                <LearnerAvatar displayName={learnerName} imageSrc={learnerAvatarUrl} size={56} decorative className="ring-2 ring-white z-10" />
+                <CourseIllustration slot="complete" width={48} lang={zh ? 'zh' : 'ja'} decorative className="rounded-2xl" />
+              </div>
               <div className="min-w-0">
                 <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />{tr.doneTitle}
@@ -127,6 +137,14 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                     <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
                   </p>
+                )}
+                {/* ノートへ残った事実（通常会話=DB保存済みの時だけ表示・軽め学習では出さない） */}
+                {onSeeNotebook && (
+                  <>
+                    <p className="text-xs text-amber-700 mt-1.5">{tr.savedToNotebook}</p>
+                    <button type="button" onClick={onSeeNotebook}
+                      className="min-h-9 mt-1 text-xs font-bold text-blue-600 hover:text-blue-700">{tr.seeNotebook} →</button>
+                  </>
                 )}
               </div>
             </div>

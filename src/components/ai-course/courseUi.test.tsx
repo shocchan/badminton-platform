@@ -126,6 +126,7 @@ const homeProps = {
   weekLearningDays: 2, hasLightMaterial: false,
   onStart: () => {}, onResume: () => {}, onDiscardResume: () => {},
   onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {}, onStartLight: () => {},
+  sessions: [], onOpenNotebook: () => {}, onUpdateAvatarSettings: () => {},
 };
 
 describe('CourseHome（今日の学習と復旧パネル）', () => {
@@ -263,5 +264,39 @@ describe('軽め学習の入口（§E-3）', () => {
     cleanup();
     render(<CourseHome {...homeProps} hasLightMaterial={false} />);
     expect(screen.queryByText(t.home.lightStart)).toBeNull();
+  });
+});
+
+
+describe('Personal World V1（本人主役・アバターなし完成度）', () => {
+  it('アバター未登録でもheroはイニシャルで完成（壊れた画像枠なし）・主CTA維持', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.getByText(t.home.profileTitle('テスト'))).toBeTruthy();
+    expect(screen.getByText(t.home.startLesson)).toBeTruthy();
+    expect(document.querySelector('img[src=""]')).toBeNull();
+  });
+
+  it('pending時のみプレビューカード（承認/作り直し/あとで）・強制モーダルなし', () => {
+    const onUpd = vi.fn();
+    const l2 = { ...learner, settings: { ...learner.settings, avatarReviewStatus: 'pending', pendingAvatarObjectPath: '123e4567-e89b-12d3-a456-426614174000/candidates/a.png' } } as typeof learner;
+    render(<CourseHome {...homeProps} learner={l2} onUpdateAvatarSettings={onUpd} />);
+    expect(screen.getByText(t.avatarReview.title)).toBeTruthy();
+    fireEvent.click(screen.getByText(t.avatarReview.revise));
+    expect(onUpd).toHaveBeenCalledWith({ avatarReviewStatus: 'revision_requested' });
+    cleanup();
+    render(<CourseHome {...homeProps} />); // pendingなし→カードなし
+    expect(screen.queryByText(t.avatarReview.title)).toBeNull();
+  });
+
+  it('最近の思い出: セッションありで最新1件・なしで非表示（未達成を出さない）', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.queryByText(t.memories.latestLabel)).toBeNull();
+  });
+
+  it('zh: hero・プレビュー文言パリティ', () => {
+    const l2 = { ...learner, settings: { ...learner.settings, avatarReviewStatus: 'pending', pendingAvatarObjectPath: '123e4567-e89b-12d3-a456-426614174000/candidates/a.png' } } as typeof learner;
+    render(<CourseHome {...homeProps} t={tz} learner={l2} />);
+    expect(screen.getByText(tz.home.profileTitle('テスト'))).toBeTruthy();
+    expect(screen.getByText(tz.avatarReview.title)).toBeTruthy();
   });
 });

@@ -7,6 +7,7 @@ import { buildNotebook, groupByDate } from '../../lib/aiLesson/course/courseNote
 import { deriveCourseMemories } from '../../lib/aiLesson/course/courseMemories';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { LearnerAvatar } from './LearnerAvatar';
+import { usePrivateAvatarUrl } from '../../lib/aiLesson/course/usePrivateAvatarUrl';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseSessionRecord, ItemProgress, Learner } from '../../lib/aiLesson/course/types';
 
@@ -34,10 +35,17 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={t.roadmap.back}
           className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700"><ArrowLeft className="w-5 h-5" /></button>
-        <LearnerAvatar displayName={learner.displayName} size={32} decorative />
+        <LearnerAvatar displayName={learner.displayName} size={56} decorative className="ring-4 ring-amber-100"
+          imageSrc={usePrivateAvatarUrl(learner.settings.avatarReviewStatus === 'approved' ? learner.settings.avatarObjectPath : null)} />
         <div className="min-w-0">
           <h1 className="text-lg font-bold text-gray-900 leading-tight">{tn.title(learner.displayName)}</h1>
           <p className="text-[11px] text-gray-400">{tn.subtitle}</p>
+          {/* 表紙: 実データのみ（最初のページ日・ページ数=完了した会話1回を1ページと定義） */}
+          {days.length > 0 && (
+            <p className="text-[11px] text-amber-700 mt-0.5">
+              {tn.coverFirst(days[days.length - 1].dateISO)} ・ {tn.coverPages(days.reduce((n, d) => n + d.entries.length, 0))}
+            </p>
+          )}
         </div>
       </div>
 
@@ -50,7 +58,9 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
             <Album className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold text-gray-900">{tn2.sectionTitle}</span>
-              <span className="block text-[11px] text-gray-500 truncate">{tn2.sectionHint}</span>
+              <span className="block text-[11px] text-gray-500 truncate">
+                {memories.length > 0 ? tn2.titles[memories[memories.length - 1].type] : tn2.sectionHint}
+              </span>
             </span>
             <ChevronDown className={`w-4 h-4 text-amber-500 transition-transform ${albumOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
           </button>

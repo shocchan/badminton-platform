@@ -583,7 +583,9 @@ export default function AiCoursePage() {
     return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive}
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive}
-      onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined} /></Shell>;
+      onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
+      onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
+      learnerName={learner.displayName} /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
@@ -729,6 +731,13 @@ export default function AiCoursePage() {
         })()}
         hasLightMaterial={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
         onStartLight={() => setStep('light')}
+        sessions={sessions}
+        onOpenNotebook={() => setStep('notebook')}
+        onUpdateAvatarSettings={(patch) => {
+          const nextSettings = { ...learner.settings, ...patch };
+          setLearner({ ...learner, settings: nextSettings });
+          void courseRepository.updateLearner({ settings: nextSettings });
+        }}
         starting={starting} startError={startError}
         recovery={recovery ? { mode: recovery.mode } : null}
         onResumeActive={() => { void resumeActiveSession(); }}

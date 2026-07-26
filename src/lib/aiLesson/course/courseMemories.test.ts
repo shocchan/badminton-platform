@@ -78,3 +78,16 @@ describe('思い出アルバム判定（決定的・未達成は出さない・�
     expect(ms.length).toBeLessThanOrEqual(6);
   });
 });
+
+describe('アバターpath検証（signed URL発行前ガード）', () => {
+  it('正しい形式のみ許可・traversal/外部URL/SVG拒否', async () => {
+    const { isValidAvatarPath } = await import('./avatarStorage');
+    const uid = '123e4567-e89b-12d3-a456-426614174000';
+    expect(isValidAvatarPath(`${uid}/candidates/avatar-1.png`)).toBe(true);
+    expect(isValidAvatarPath(`${uid}/approved/a.webp`)).toBe(true);
+    expect(isValidAvatarPath(`${uid}/../other/a.png`)).toBe(false);
+    expect(isValidAvatarPath('https://evil.example/a.png')).toBe(false);
+    expect(isValidAvatarPath(`${uid}/approved/a.svg`)).toBe(false);
+    expect(isValidAvatarPath('not-a-uuid/approved/a.png')).toBe(false);
+  });
+});

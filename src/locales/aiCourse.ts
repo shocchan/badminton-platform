@@ -354,6 +354,8 @@ const ja = {
     // 今日の学習完了（言い直し後の締め）
     doneTitle: '今日の学習はこれで完了です！',
     doneCoachLine: 'おつかれさまでした。続けることがいちばんの力になります。',
+    savedToNotebook: '今日のページが、あなたの日本語ノートに残りました。',
+    seeNotebook: 'ノートを見る',
     todayTime: '学習時間',
     minutesValue: (n: number) => `${n}分`,
     canDoTitle: '今日、できるようになったこと',
@@ -625,9 +627,20 @@ const ja = {
     reopen: '未対応に戻す',
     offline: 'オフライン',
   },
+  // アバタープレビュー（完成画像の本人確認・強制なし・§Avatar2）
+  avatarReview: {
+    title: 'あなたの学習キャラクターができました',
+    body: '日本語ノートの中で使うキャラクターを確認してください。',
+    approve: 'このキャラクターにする',
+    revise: '作り直してもらう',
+    later: 'あとで確認する',
+    reviseHint: '作り直しの希望は、WeChat（ID: Shocchance）へ気軽にどうぞ。',
+    altSuffix: 'さんの学習キャラクター',
+  },
   // 思い出アルバム（既存データから再構築・未達成は非表示・§Album）
   memories: {
     sectionTitle: '思い出アルバム',
+    latestLabel: '最近の思い出',
     sectionHint: 'あなたが歩いてきた節目だけを残します',
     open: '思い出を見る',
     close: '閉じる',
@@ -679,6 +692,8 @@ const ja = {
     } as Record<'self' | 'retried' | 'hint' | 'kept', string>,
     detailExpr: '今日の表現',
     detailTime: '会話時間',
+    coverFirst: (d: string) => `最初のページ: ${d}`,
+    coverPages: (n: number) => `これまでのページ: ${n}（会話1回＝1ページ）`,
   },
   // 軽め2〜3分学習（API不使用・§E-3）
   light: {
@@ -1071,6 +1086,8 @@ const zh: AiCourseDict = {
     // 完成今天的学习（重说后的收尾）
     doneTitle: '今天的学习到这里就完成了！',
     doneCoachLine: '辛苦了。坚持下去就是最大的进步。',
+    savedToNotebook: '今天这一页已经留在你的日语笔记里了。',
+    seeNotebook: '查看笔记',
     todayTime: '学习时长',
     minutesValue: (n: number) => `${n}分钟`,
     canDoTitle: '今天，你变得能做到的事',
@@ -1342,9 +1359,20 @@ const zh: AiCourseDict = {
     reopen: '恢复为未处理',
     offline: '离线',
   },
+  // 角色预览（确认成品图像・不强制・§Avatar2）
+  avatarReview: {
+    title: '你的学习角色已经准备好了',
+    body: '请确认在日语学习笔记中使用的角色。',
+    approve: '就用这个角色',
+    revise: '请重新制作',
+    later: '以后再确认',
+    reviseHint: '想调整的话，随时在微信（ID: Shocchance）告诉我们。',
+    altSuffix: '的学习角色',
+  },
   // 学习回忆册（由现有数据重建・不显示未达成・§Album）
   memories: {
     sectionTitle: '学习回忆册',
+    latestLabel: '最近的回忆',
     sectionHint: '只保留你走过的重要节点',
     open: '看看回忆',
     close: '收起',
@@ -1396,6 +1424,8 @@ const zh: AiCourseDict = {
     } as Record<'self' | 'retried' | 'hint' | 'kept', string>,
     detailExpr: '今天的表达',
     detailTime: '会话时长',
+    coverFirst: (d: string) => `第一页: ${d}`,
+    coverPages: (n: number) => `已有页数: ${n}（1次会话＝1页）`,
   },
   // 轻量2〜3分钟学习（不调用API・§E-3）
   light: {

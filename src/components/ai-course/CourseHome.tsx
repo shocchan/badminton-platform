@@ -1,9 +1,15 @@
 // 学習ホーム（§20・UX改訂）。開いた瞬間に「今日やること・何分・始める」が分かる構成。
 // 主役=今日の学習カード（CTA内蔵）。補助=前回の続き・今日の復習。詳細は右カラム/下部へ。
 
+import { useState } from 'react';
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen, UserRound } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
 import { LearnerAvatar } from './LearnerAvatar';
+import { usePrivateAvatarUrl } from '../../lib/aiLesson/course/usePrivateAvatarUrl';
+import { deriveCourseMemories } from '../../lib/aiLesson/course/courseMemories';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import type { LearnerSettings } from '../../lib/aiLesson/course/types';
+import type { CourseSessionRecord } from '../../lib/aiLesson/course/types';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
@@ -45,6 +51,11 @@ interface Props {
   onStartLight: () => void;
   /** 今日の章をテキストで予習（音声前の確認・APIなし） */
   onPreview: () => void;
+  /** 最近の思い出→ノートへ（§PW-V1） */
+  sessions: CourseSessionRecord[];
+  onOpenNotebook: () => void;
+  /** アバター承認/作り直し（settings更新・§Avatar2） */
+  onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
 }
 
 export const CourseHome = ({
@@ -53,6 +64,7 @@ export const CourseHome = ({
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
+  sessions, onOpenNotebook, onUpdateAvatarSettings,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -67,10 +79,12 @@ export const CourseHome = ({
     <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
       {/* 先生の一言（あいさつ＋今日の行動案内。途切れ後は「おかえりなさい」で責めない・§B-3） */}
       <div className="flex items-center gap-2.5 mb-4">
-        {/* 本人が主人公: 先頭は本人のアバターと本人のノート名（§Avatar1A） */}
-        <LearnerAvatar displayName={learner.displayName} size={40} decorative className="shrink-0" />
+        {/* 本人が主人公: 承認済みアバター（signed URL・失敗時イニシャル）を先生より大きく（§PW-V1） */}
+        <LearnerAvatar displayName={learner.displayName} size={72} decorative className="shrink-0 ring-4 ring-amber-100"
+          imageSrc={usePrivateAvatarUrl(learner.settings.avatarReviewStatus === 'approved' ? learner.settings.avatarObjectPath : null)} />
         <div className="min-w-0">
-          <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">{th.profileTitle(learner.displayName)}</h1>
+          <h1 className="text-lg lg:text-xl font-bold text-gray-900 leading-tight">{th.profileTitle(learner.displayName)}</h1>
+          <p className="text-[11px] text-gray-500 mt-0.5 truncate">{tg.currentLevelLabel}: {currentStageLabel} ・ Week {learner.currentWeek}/12</p>
           <p className="text-xs text-gray-500 mt-0.5">
             {stats.streak === 0 && stats.totalSessions > 0
               ? th.welcomeBack
@@ -78,6 +92,11 @@ export const CourseHome = ({
           </p>
         </div>
       </div>
+
+      {/* アバタープレビュー（pending時のみ・強制モーダル禁止・§Avatar2） */}
+      {learner.settings.avatarReviewStatus === 'pending' && learner.settings.pendingAvatarObjectPath && (
+        <AvatarReviewCard t={t} learner={learner} onUpdate={onUpdateAvatarSettings} />
+      )}
 
       {/* 別端末で進行中のレッスン → 復旧選択肢（警告色・データは消えていない・主CTA=再開） */}
       {recovery && (
@@ -198,11 +217,6 @@ export const CourseHome = ({
         </button>
       )}
 
-      {/* 現在地（補助情報へ降格・1行） */}
-      <div className="flex items-center gap-2 px-1 mb-4 text-xs text-gray-500">
-        <MapPin className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-        <span className="min-w-0 truncate">{tg.currentLevelLabel}: <span className="font-medium text-gray-700">{currentStageLabel}</span> ・ Week {learner.currentWeek}/12</span>
-      </div>
 
       </div>{/* /左カラム */}
       <div className="lg:space-y-3 lg:[&>*]:mb-0">
@@ -264,6 +278,23 @@ export const CourseHome = ({
         </div>
       )}
 
+      {/* 最近の思い出（最新1件のみ・未達成非表示・§PW-V1） */}
+      {(() => {
+        const latest = deriveCourseMemories(sessions).slice(-1)[0];
+        if (!latest) return null;
+        return (
+          <button type="button" onClick={() => { trackCourse('view_latest_memory'); onOpenNotebook(); }}
+            className="w-full text-left bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-3 hover:bg-amber-100 transition-colors">
+            <p className="text-[11px] font-medium text-amber-700 mb-0.5">{t.memories.latestLabel}</p>
+            <p className="text-sm font-bold text-gray-900">{t.memories.titles[latest.type]}</p>
+            <p className="text-[11px] text-gray-500 mt-0.5 flex items-center justify-between">
+              <time dateTime={latest.achievedAtISO}>{latest.achievedAtISO}</time>
+              <span className="text-amber-700">{t.memories.sectionTitle} →</span>
+            </p>
+          </button>
+        );
+      })()}
+
       {/* 人間コーチの存在（静的文言＋既存WeChat導線のみ。主CTAより控えめ・§B-1） */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
         <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1">
@@ -283,6 +314,53 @@ export const CourseHome = ({
       </div>{/* /右カラム */}
       </div>{/* /2カラムグリッド */}
       {/* コース説明文（positioning）は設定画面に集約（学習ホームでは繰り返さない） */}
+    </div>
+  );
+};
+
+
+/** アバタープレビュー（承認/作り直し/あとで・二重操作防止・URL非ログ） */
+const AvatarReviewCard = ({ t, learner, onUpdate }: {
+  t: AiCourseDict; learner: Learner; onUpdate: (patch: Partial<LearnerSettings>) => void;
+}) => {
+  const ta = t.avatarReview;
+  const [hidden, setHidden] = useState(false);   // あとで確認する（この画面のみ）
+  const [busy, setBusy] = useState(false);
+  const url = usePrivateAvatarUrl(learner.settings.pendingAvatarObjectPath ?? null);
+  if (hidden) return null;
+  const approve = () => {
+    if (busy) return; setBusy(true);
+    trackCourse('approve_ai_course_avatar');
+    onUpdate({
+      avatarObjectPath: learner.settings.pendingAvatarObjectPath,
+      pendingAvatarObjectPath: undefined,
+      avatarReviewStatus: 'approved',
+      avatarUpdatedAt: new Date().toISOString(),
+    });
+  };
+  const revise = () => {
+    if (busy) return; setBusy(true);
+    trackCourse('request_ai_course_avatar_revision');
+    onUpdate({ avatarReviewStatus: 'revision_requested' });
+  };
+  return (
+    <div className="bg-white border-2 border-amber-200 rounded-2xl p-4 mb-4">
+      <p className="text-sm font-bold text-gray-900">{ta.title}</p>
+      <p className="text-xs text-gray-500 mt-0.5 mb-3">{ta.body}</p>
+      <div className="flex justify-center mb-3">
+        <LearnerAvatar displayName={learner.displayName} imageSrc={url} size={112} altSuffix={ta.altSuffix} />
+      </div>
+      <div className="space-y-2">
+        <button type="button" onClick={approve} disabled={busy || !url}
+          className="w-full min-h-11 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-50">{ta.approve}</button>
+        <button type="button" onClick={revise} disabled={busy}
+          className="w-full min-h-11 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm rounded-xl disabled:opacity-50">{ta.revise}</button>
+        <button type="button" onClick={() => setHidden(true)}
+          className="w-full min-h-9 py-1.5 text-xs text-gray-400">{ta.later}</button>
+      </div>
+      {learner.settings.avatarReviewStatus === 'revision_requested' && (
+        <p className="text-[11px] text-gray-500 mt-2">{ta.reviseHint}</p>
+      )}
     </div>
   );
 };
