@@ -2,8 +2,10 @@
 // できたことを先に・言い直しは責めない・存在しない値は行ごと非表示・LLM不使用（一言は決定的）。
 
 import { useState } from 'react';
-import { ArrowLeft, CalendarDays, CheckCircle2, PenLine, ChevronDown, Mic } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CheckCircle2, PenLine, ChevronDown, Mic, Album } from 'lucide-react';
 import { buildNotebook, groupByDate } from '../../lib/aiLesson/course/courseNotebook';
+import { deriveCourseMemories } from '../../lib/aiLesson/course/courseMemories';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { LearnerAvatar } from './LearnerAvatar';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseSessionRecord, ItemProgress, Learner } from '../../lib/aiLesson/course/types';
@@ -19,8 +21,11 @@ interface Props {
 
 export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, onBack }: Props) => {
   const tn = t.notebook;
+  const tn2 = t.memories;
   const zh = t.locale === 'zh';
   const days = groupByDate(buildNotebook(sessions, progress));
+  const memories = deriveCourseMemories(sessions);
+  const [albumOpen, setAlbumOpen] = useState(false);
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (id: string) => setOpen((p) => { const n = new Set(p); if (n.has(id)) n.delete(id); else n.add(id); return n; });
 
@@ -35,6 +40,44 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
           <p className="text-[11px] text-gray-400">{tn.subtitle}</p>
         </div>
       </div>
+
+      {/* 思い出アルバム（節目のみ・未達成非表示・既定は折り畳み=ノートを押し下げない・§Album） */}
+      {memories.length > 0 && (
+        <section className="mb-5">
+          <button type="button" aria-expanded={albumOpen}
+            onClick={() => setAlbumOpen((v) => { const nv = !v; if (nv) trackCourse('view_ai_course_memory_album', { count: memories.length }); return nv; })}
+            className="w-full min-h-11 text-left bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-center gap-2.5 hover:bg-amber-100 transition-colors">
+            <Album className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold text-gray-900">{tn2.sectionTitle}</span>
+              <span className="block text-[11px] text-gray-500 truncate">{tn2.sectionHint}</span>
+            </span>
+            <ChevronDown className={`w-4 h-4 text-amber-500 transition-transform ${albumOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
+          </button>
+          {albumOpen && (
+            <div className="mt-2 space-y-2 motion-safe:animate-[report-in_0.3s_ease-out]">
+              {memories.map((m) => (
+                <article key={m.stableKey} className="bg-white border border-amber-100 rounded-2xl p-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <LearnerAvatar displayName={learner.displayName} size={24} decorative />
+                    <h3 className="text-sm font-bold text-gray-900 min-w-0">{tn2.titles[m.type]}</h3>
+                  </div>
+                  <p className="text-[11px] text-gray-400 flex items-center gap-1 mb-1">
+                    <CalendarDays className="w-3 h-3" aria-hidden="true" /><time dateTime={m.achievedAtISO}>{m.achievedAtISO}</time>
+                  </p>
+                  <p className="text-xs text-gray-700 leading-relaxed">{tn2.descs[m.type]}</p>
+                  {m.targetExpression && (
+                    <p className="text-xs text-blue-700 font-medium mt-1">{tn2.exprLabel}: 「{m.targetExpression}」</p>
+                  )}
+                  <p className="text-[11px] text-gray-500 mt-2 bg-gray-50 rounded-lg px-3 py-1.5">
+                    {m.teacher === 'shoko' ? tn.fromShoko : tn.fromYuto}: {tn2.teacherLines[m.type]}
+                  </p>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {days.length === 0 ? (
         <div className="text-center py-10 px-4">

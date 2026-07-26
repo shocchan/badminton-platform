@@ -625,6 +625,39 @@ const ja = {
     reopen: '未対応に戻す',
     offline: 'オフライン',
   },
+  // 思い出アルバム（既存データから再構築・未達成は非表示・§Album）
+  memories: {
+    sectionTitle: '思い出アルバム',
+    sectionHint: 'あなたが歩いてきた節目だけを残します',
+    open: '思い出を見る',
+    close: '閉じる',
+    empty: '思い出の最初の1ページは、これからです。最初の会話を終えると、ここにあなたの歩みが残ります。',
+    exprLabel: 'この日の表現',
+    titles: {
+      firstConversation: 'はじめて会話を最後までできた日',
+      firstSelfUse: 'はじめて自分で表現を使えた日',
+      firstNextDayReview: '翌日、もう一度思い出せた日',
+      tenthConversation: '10回の会話を積み重ねた日',
+      oneMonth: '日本語の旅を始めて1か月',
+      naturalFind: 'より自然な言い方を見つけた日',
+    } as Record<string, string>,
+    descs: {
+      firstConversation: '最初の会話を最後まで終え、あなたの日本語ノートに最初のページが生まれました。',
+      firstSelfUse: 'ヒントなしで、自分の力で目標の表現を使えました。',
+      firstNextDayReview: '時間を空けても、学んだ表現を思い出せました。',
+      tenthConversation: '10回分の会話が、あなたの言葉として積み重なりました。',
+      oneMonth: '最初の会話の日から、1か月が経ちました。',
+      naturalFind: '会話を振り返り、より自然に伝える表現が見つかりました。',
+    } as Record<string, string>,
+    teacherLines: {
+      firstConversation: 'ここから、あなたの日本語の物語が始まりました。',
+      firstSelfUse: '自分のことばで伝えられた、大切な一歩です。',
+      firstNextDayReview: '時間を空けて、もう一度表現に会えましたね。',
+      tenthConversation: 'この積み重ねが、これからの力になります。',
+      oneMonth: '最初の日から、1か月。ここまでの歩みを一緒に見てきました。',
+      naturalFind: '見つけた表現は、次の会話で使ってみましょう。',
+    } as Record<string, string>,
+  },
   // わたしの日本語ノート（実データのみ・決定的一言・§Avatar1B）
   notebook: {
     title: (name: string) => (name ? `${name}さんの日本語ノート` : 'わたしの日本語ノート'),
@@ -1308,6 +1341,39 @@ const zh: AiCourseDict = {
     resolve: '标记为已处理',
     reopen: '恢复为未处理',
     offline: '离线',
+  },
+  // 学习回忆册（由现有数据重建・不显示未达成・§Album）
+  memories: {
+    sectionTitle: '学习回忆册',
+    sectionHint: '只保留你走过的重要节点',
+    open: '看看回忆',
+    close: '收起',
+    empty: '回忆册的第一页还在等你。完成第一次会话后，你的学习足迹会留在这里。',
+    exprLabel: '那一天的表达',
+    titles: {
+      firstConversation: '第一次完成会话的日子',
+      firstSelfUse: '第一次自己用出目标表达的日子',
+      firstNextDayReview: '第二天再次想起来的日子',
+      tenthConversation: '完成第10次会话的日子',
+      oneMonth: '开始日语学习之旅一个月',
+      naturalFind: '第一次发现更自然说法的日子',
+    } as Record<string, string>,
+    descs: {
+      firstConversation: '完成了第一次会话，你的日语笔记也有了第一页。',
+      firstSelfUse: '没有提示，靠自己用出了目标表达。',
+      firstNextDayReview: '隔了一天，依然想起了学过的表达。',
+      tenthConversation: '10次会话，正在变成属于你的语言。',
+      oneMonth: '从第一次会话那天起，已经过去一个月了。',
+      naturalFind: '回顾会话时，找到了更自然的表达方式。',
+    } as Record<string, string>,
+    teacherLines: {
+      firstConversation: '你的日语故事，从这里开始了。',
+      firstSelfUse: '用自己的话表达出来，是很重要的一步。',
+      firstNextDayReview: '隔了一段时间，又和这个表达见面了。',
+      tenthConversation: '这些积累，会成为接下来的力量。',
+      oneMonth: '从第一天到现在，一个月了。这段路我们一起看过来。',
+      naturalFind: '找到的表达，下次会话里试着用用吧。',
+    } as Record<string, string>,
   },
   // 我的日语笔记（只用真实数据・确定性一言・§Avatar1B）
   notebook: {
