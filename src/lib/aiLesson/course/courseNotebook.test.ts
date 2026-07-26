@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildNotebook, groupByDate, teacherLineKey } from './courseNotebook';
-import { firstGrapheme, paletteIndexFor } from '../../../components/ai-course/LearnerAvatar';
+import { firstGrapheme, paletteIndexFor } from './learnerAvatarUtils';
 import type { CourseSessionRecord, ItemProgress } from './types';
 
 const sess = (over: Partial<CourseSessionRecord>): CourseSessionRecord => ({

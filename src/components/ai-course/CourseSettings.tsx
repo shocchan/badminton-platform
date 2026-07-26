@@ -189,6 +189,7 @@ const NicknameEditor = ({ t, current, onSave }: { t: AiCourseDict; current: stri
   const savingRef = useRef(false);
   const submit = async () => {
     if (savingRef.current) return;
+    // eslint-disable-next-line no-control-regex -- 制御文字の拒否は意図的（§Avatar1A要件）
     const trimmed = value.trim().replace(/[\u0000-\u001F\u007F]/g, '');
     if (!trimmed) { setError(ts.nicknameEmpty); setState('error'); return; }
     if (Array.from(trimmed).length > NICKNAME_MAX) { setError(ts.nicknameTooLong(NICKNAME_MAX)); setState('error'); return; }
