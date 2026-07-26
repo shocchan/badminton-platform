@@ -514,7 +514,7 @@ export default function AiCoursePage() {
   if (step === 'lesson' && plan) {
     return mode === 'voice'
       ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
-      : <CourseTextLesson t={t} step={plan.main} onComplete={handleLessonComplete} onExit={backHome} />;
+      : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
     return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}

@@ -237,11 +237,13 @@ const ja = {
     theme: 'テーマ',
     target: '今日の表現',
     usedBanner: '今日の表現が使えました',
-    // テキスト会話（決定的エンジン）
+    // テキスト会話（LLM＋決定的ガード）
     endAndSummarize: '会話を終えてまとめを見る',
     seeSummary: 'まとめを見る',
     textInputClosed: '今日の会話はここまで。まとめに進みましょう。',
     textProgress: (n: number, max: number) => `${n} / ${max}`,
+    aiThinking: '翔子先生が考えています…',
+    fallbackNotice: '通信が不安定なため、ガイド付き会話に切り替えました。',
   },
   voice: {
     statusMicPermission: 'マイクの許可を待っています…',
@@ -786,11 +788,13 @@ const zh: AiCourseDict = {
     theme: '话题',
     target: '今天的表达',
     usedBanner: '用出了今天的表达',
-    // 文字会话（确定性引擎）
+    // 文字会话（LLM＋确定性护栏）
     endAndSummarize: '结束会话并查看总结',
     seeSummary: '查看总结',
     textInputClosed: '今天的会话到这里。去看总结吧。',
     textProgress: (n: number, max: number) => `${n} / ${max}`,
+    aiThinking: '翔子老师正在思考…',
+    fallbackNotice: '网络不稳定，已切换为引导式会话。',
   },
   voice: {
     statusMicPermission: '正在等待麦克风授权…',
