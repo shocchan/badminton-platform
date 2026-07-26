@@ -55,6 +55,9 @@ interface Props {
   /** 最近の思い出→ノートへ（§PW-V1） */
   sessions: CourseSessionRecord[];
   onOpenNotebook: () => void;
+  /** しくみラボ試作（adminOverrides.labPreview=true のテストアカウントのみ・§2A-6） */
+  labPreview: boolean;
+  onOpenLab: () => void;
   /** アバター承認/作り直し（settings更新・§Avatar2） */
   onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
 }
@@ -65,7 +68,7 @@ export const CourseHome = ({
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
-  sessions, onOpenNotebook, onUpdateAvatarSettings,
+  sessions, onOpenNotebook, onUpdateAvatarSettings, labPreview, onOpenLab,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -199,6 +202,14 @@ export const CourseHome = ({
         className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
+      {/* しくみラボ試作入口（labPreview権限のみ表示・draft教材） */}
+      {labPreview && (
+        <button type="button" onClick={onOpenLab}
+          className="w-full min-h-11 py-2 mb-1 text-sm text-indigo-700 hover:text-indigo-800 flex items-center justify-center gap-1.5">
+          <BookOpen className="w-4 h-4" />{t.lab.homeEntry}
+        </button>
+      )}
+
       {/* 軽め2〜3分（API不使用・会話しない日の入口・§E-3） */}
       {hasLightMaterial && (
         <button type="button" onClick={onStartLight}

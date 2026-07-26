@@ -46,6 +46,7 @@ import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
+import { CourseFoundationLab } from '../../components/ai-course/CourseFoundationLab';
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -66,7 +67,7 @@ import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -629,6 +630,13 @@ export default function AiCoursePage() {
       </Shell>
     );
   }
+  if (step === 'lab') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
+        <CourseFoundationLab t={t} onBack={() => setStep('home')} />
+      </Shell>
+    );
+  }
   if (step === 'notebook') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}>
@@ -731,6 +739,8 @@ export default function AiCoursePage() {
         onStartLight={() => setStep('light')}
         sessions={sessions}
         onOpenNotebook={() => setStep('notebook')}
+        labPreview={(learner.adminOverrides as { labPreview?: boolean } | undefined)?.labPreview === true}
+        onOpenLab={() => setStep('lab')}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });

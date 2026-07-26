@@ -127,6 +127,7 @@ const homeProps = {
   onStart: () => {}, onResume: () => {}, onDiscardResume: () => {},
   onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {}, onStartLight: () => {},
   sessions: [], onOpenNotebook: () => {}, onUpdateAvatarSettings: () => {},
+  labPreview: false, onOpenLab: () => {},
 };
 
 describe('CourseHome（今日の学習と復旧パネル）', () => {
@@ -298,5 +299,19 @@ describe('Personal World V1（本人主役・アバターなし完成度）', ()
     render(<CourseHome {...homeProps} t={tz} learner={l2} />);
     expect(screen.getByText(tz.home.profileTitle('テスト'))).toBeTruthy();
     expect(screen.getByText(tz.avatarReview.title)).toBeTruthy();
+  });
+});
+
+
+describe('しくみラボ試作のアクセス制限（§2A-6）', () => {
+  it('labPreview=false（一般受講生・Andyさん）には入口を表示しない', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.queryByText(t.lab.homeEntry)).toBeNull();
+  });
+  it('labPreview=true（テストアカウント）のみ入口表示・onOpenLab発火', () => {
+    const onLab = vi.fn();
+    render(<CourseHome {...homeProps} labPreview onOpenLab={onLab} />);
+    fireEvent.click(screen.getByText(t.lab.homeEntry));
+    expect(onLab).toHaveBeenCalledTimes(1);
   });
 });
