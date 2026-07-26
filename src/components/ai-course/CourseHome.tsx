@@ -202,11 +202,12 @@ export const CourseHome = ({
         className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
-      {/* しくみラボ試作入口（labPreview権限のみ表示・draft教材） */}
+      {/* しくみラボ試作入口（labPreview権限のみ表示・draft教材・一般受講生はDOM自体なし） */}
       {labPreview && (
         <button type="button" onClick={onOpenLab}
-          className="w-full min-h-11 py-2 mb-1 text-sm text-indigo-700 hover:text-indigo-800 flex items-center justify-center gap-1.5">
+          className="w-full min-h-12 py-3 mb-2 px-4 text-sm font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-xl flex items-center justify-center gap-1.5 transition-colors">
           <BookOpen className="w-4 h-4" />{t.lab.homeEntry}
+          <span className="text-[10px] font-normal px-1.5 py-0.5 rounded bg-white text-indigo-500">draft</span>
         </button>
       )}
 

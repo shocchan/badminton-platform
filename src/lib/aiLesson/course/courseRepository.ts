@@ -36,13 +36,13 @@ const writeLS = (key: string, v: unknown): void => {
 };
 
 // ── 行 <-> ドメイン変換 ──
-type LearnerRow = {
+export type LearnerRow = {
   id: string; user_id: string; created_at?: string; display_name: string; preferred_language: string;
   estimated_level: string; difficulty_level: number; current_week: number; is_active: boolean;
   hearing: Record<string, unknown>; settings: LearnerSettings; admin_overrides: AdminOverrides;
 };
 
-const rowToLearner = (r: LearnerRow): Learner => ({
+export const rowToLearner = (r: LearnerRow): Learner => ({
   id: r.id, userId: r.user_id, startedAtISO: r.created_at ?? null, displayName: r.display_name,
   preferredLanguage: (r.preferred_language === 'ja' ? 'ja' : 'zh'),
   estimatedLevel: r.estimated_level, difficultyLevel: (r.difficulty_level as Learner['difficultyLevel']),

@@ -314,4 +314,14 @@ describe('しくみラボ試作のアクセス制限（§2A-6）', () => {
     fireEvent.click(screen.getByText(t.lab.homeEntry));
     expect(onLab).toHaveBeenCalledTimes(1);
   });
+  it('中国語UIでもlabPreview=trueで入口カードを表示する', () => {
+    const tz = aiCourseI18n.zh;
+    render(<CourseHome {...homeProps} t={tz} labPreview />);
+    expect(screen.getByText(tz.lab.homeEntry)).toBeTruthy();
+  });
+  it('カード表示はlabPreview propのみに依存する（is_test等の追加条件なし）', () => {
+    // CourseHomeはis_testを受け取らない設計＝is_test=falseでもlabPreview=trueなら表示される
+    render(<CourseHome {...homeProps} labPreview />);
+    expect(screen.getByText(t.lab.homeEntry)).toBeTruthy();
+  });
 });
