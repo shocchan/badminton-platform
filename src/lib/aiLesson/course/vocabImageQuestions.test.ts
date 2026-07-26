@@ -22,10 +22,19 @@ describe('画像問題（§27・§43）', () => {
     expect(new Set(q.choices).size).toBe(3); // 複数正解なし
     expect(buildImageToWordQuestion(iku, asset, items, 5, false)).toBeNull();
   });
-  it('未生成（filePath null）・approvedなしでは生成しない', () => {
-    const plannedAsset = VISUAL_ASSETS.find((a) => a.id === 'va-verb-iku-scene')!;
-    expect(buildImageToWordQuestion(iku, plannedAsset, items, 5, true)).toBeNull();
+  it('未生成（filePath null）・assetなしでは生成しない', () => {
+    const kaeru = items.find((i) => i.id === 'fi-kaeru')!;
+    const plannedAsset = VISUAL_ASSETS.find((a) => a.id === 'va-verb-kaeru-scene')!;
+    expect(plannedAsset.filePath).toBeNull(); // 未取り込みassetはplannedのまま
+    expect(buildImageToWordQuestion(kaeru, plannedAsset, items, 5, true)).toBeNull();
     expect(buildImageToWordQuestion(iku, undefined, items, 5, true)).toBeNull();
+  });
+  it('取り込み済み実画像（行く等12枚）はdraftとしてlabPreviewで問題化できる', () => {
+    const real = VISUAL_ASSETS.find((a) => a.id === 'va-verb-iku-scene')!;
+    expect(real.filePath).toContain('.webp');
+    expect(real.reviewStatus).toBe('draft');
+    expect(buildImageToWordQuestion(iku, real, items, 5, true)).not.toBeNull();
+    expect(buildImageToWordQuestion(iku, real, items, 5, false)).toBeNull(); // 一般は非表示のまま
   });
   it('altで正解が漏れるassetは画像問題に使わない（§43）', () => {
     const leaky = draftAsset({ altJa: '行くを表す場面' });

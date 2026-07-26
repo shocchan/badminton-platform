@@ -59,6 +59,29 @@ export const VISUAL_ASSETS: VisualAsset[] = [
   plannedScene('va-scene-restaurant', 'fi-oishii', 'レストランで食事する場面', '在餐厅吃饭的场景', `${STYLE} 成人がレストランでおいしそうな料理を前にしている。`),
 ];
 
+/**
+ * 取り込み済み実画像（2026-07-27 ChatGPT生成→検証→WebP最適化→配置済み・全draft・§74）。
+ * ここに無いassetはplannedのまま（実ファイルが存在しない段階で完成画像として扱わない）。
+ */
+const IMPORTED: Record<string, { filePath: string; thumbnailPath: string; width: number; height: number }> = {
+  'va-verb-iku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-kuru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-taberu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-hataraku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-hataraku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-hataraku-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-sumu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-sumu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-sumu-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-benkyo-scene': { filePath: '/images/ai-course/foundation/verbs/verb-benkyo-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-benkyo-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-nomu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-nomu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-nomu-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-miru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-miru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-miru-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-kiku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kiku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kiku-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-hanasu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-hanasu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-hanasu-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-adj-ookii-chiisai-contrast': { filePath: '/images/ai-course/foundation/adjectives/adj-ookii-chiisai-contrast-v1.webp', thumbnailPath: '/images/ai-course/foundation/adjectives/adj-ookii-chiisai-contrast-v1-thumb.webp', width: 800, height: 600 },
+  'va-adj-atsui-samui-contrast': { filePath: '/images/ai-course/foundation/adjectives/adj-atsui-samui-contrast-v1.webp', thumbnailPath: '/images/ai-course/foundation/adjectives/adj-atsui-samui-contrast-v1-thumb.webp', width: 800, height: 600 },
+};
+for (const a of VISUAL_ASSETS) {
+  const im = IMPORTED[a.id];
+  if (im) { a.filePath = im.filePath; a.thumbnailPath = im.thumbnailPath; a.width = im.width; a.height = im.height; a.reviewStatus = 'generated' as const; a.reviewStatus = 'draft'; }
+}
+
 export const assetById = (id: string): VisualAsset | undefined => VISUAL_ASSETS.find((a) => a.id === id);
 export const assetForItem = (itemId: string): VisualAsset | undefined =>
   VISUAL_ASSETS.find((a) => a.learningTargetId === itemId && a.reviewStatus !== 'rejected');
