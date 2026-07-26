@@ -22,6 +22,8 @@ interface Props {
   onOpenNote: (item: ReviewItem) => void;
   /** わたしの表現（表現バンクMVP・§E-4）を開く */
   onOpenExpressions: () => void;
+  /** わたしの日本語ノート（§Avatar1B）を開く */
+  onOpenNotebook: () => void;
   onBack: () => void;
 }
 
@@ -70,7 +72,7 @@ const Card = ({ t, it, onOpen }: { t: AiCourseDict; it: ReviewItem; onOpen: () =
   );
 };
 
-export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenNote, onOpenExpressions, onBack }: Props) => {
+export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenNote, onOpenExpressions, onOpenNotebook, onBack }: Props) => {
   const r = t.records;
   const plan: ReviewPlan = buildReviewPlan(progress, sessions, practiceAgainIds);
   const hasReview = plan.today.length > 0;
@@ -142,6 +144,17 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-gray-900">{t.bank.title}</span>
               <span className="block text-[11px] text-gray-400 truncate">{t.bank.subtitle}</span>
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+          </button>
+
+          {/* わたしの日本語ノート（日付・出来事の物語層。表現＝横断一覧と役割分離・§Avatar1B） */}
+          <button type="button" onClick={onOpenNotebook}
+            className="w-full text-left bg-white rounded-xl border border-emerald-100 p-3.5 mb-3 hover:bg-emerald-50 transition-colors flex items-center gap-2.5">
+            <CalendarDays className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium text-gray-900">{t.notebook.title('')}</span>
+              <span className="block text-[11px] text-gray-400 truncate">{t.notebook.subtitle}</span>
             </span>
             <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
           </button>

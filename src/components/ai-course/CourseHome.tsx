@@ -3,7 +3,7 @@
 
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen, UserRound } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
-import { ShokoAvatar } from './ShokoAvatar';
+import { LearnerAvatar } from './LearnerAvatar';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
@@ -67,9 +67,10 @@ export const CourseHome = ({
     <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
       {/* 先生の一言（あいさつ＋今日の行動案内。途切れ後は「おかえりなさい」で責めない・§B-3） */}
       <div className="flex items-center gap-2.5 mb-4">
-        <ShokoAvatar size={40} className="shrink-0" />
+        {/* 本人が主人公: 先頭は本人のアバターと本人のノート名（§Avatar1A） */}
+        <LearnerAvatar displayName={learner.displayName} size={40} decorative className="shrink-0" />
         <div className="min-w-0">
-          <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">{th.greeting(learner.displayName)}</h1>
+          <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">{th.profileTitle(learner.displayName)}</h1>
           <p className="text-xs text-gray-500 mt-0.5">
             {stats.streak === 0 && stats.totalSessions > 0
               ? th.welcomeBack

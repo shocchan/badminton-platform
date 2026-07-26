@@ -86,6 +86,13 @@ const ja = {
     reopenHint: 'この案内は、設定からいつでも見直せます。',
   },
   settings: {
+    // ニックネーム（学習世界内の表示名・本名不要・§Avatar1A）
+    nicknameTitle: 'この学習ノートで使う名前',
+    nicknameHelp: '本名ではなく、ニックネームでも大丈夫です。あとから変更できます。',
+    nicknameSave: '保存する',
+    nicknameSaved: '保存しました',
+    nicknameEmpty: '名前を入力してください（空白だけは使えません）',
+    nicknameTooLong: (n: number) => `${n}文字以内で入力してください`,
     // AI先生と人間コーチの役割（混同させない・§B-1）
     rolesTitle: 'AI先生と人間コーチ',
     rolesAiLabel: 'AI先生（毎日）',
@@ -186,6 +193,7 @@ const ja = {
     // 上限到達（完了扱い・前向きに）
     doneForTodayTitle: '今日はここまでで大丈夫です',
     // 人間コーチの可視化（静的文言＋既存WeChat導線のみ・§B-1）
+    profileTitle: (name: string) => (name ? `${name}さんの日本語ノート` : 'あなたの日本語ノート'),
     coachCardTitle: '安田コーチも伴走します',
     coachCardBody: 'AIで毎日練習しながら、レッスンとWeChatで学習の方向を一緒に調整します。',
     coachCardWechat: 'WeChatで相談（ID: Shocchance）',
@@ -617,6 +625,28 @@ const ja = {
     reopen: '未対応に戻す',
     offline: 'オフライン',
   },
+  // わたしの日本語ノート（実データのみ・決定的一言・§Avatar1B）
+  notebook: {
+    title: (name: string) => (name ? `${name}さんの日本語ノート` : 'わたしの日本語ノート'),
+    subtitle: '日本語で生きた時間が、ここに残ります',
+    empty: 'まだ最初のページはありません。今日の会話を終えると、あなたの日本語ノートに最初の記録が残ります。',
+    emptyCta: '今日の会話を始める',
+    didSelf: (expr: string) => `「${expr}」を自分の力で使えました`,
+    didHint: (expr: string) => `「${expr}」をヒントを見ながら使えました`,
+    didTalk: '日本語で最後まで会話しました',
+    retriedLabel: '言い直した表現: ',
+    nextReview: (d: string) => `次にもう一度使う日: ${d}`,
+    fromShoko: '翔子先生から',
+    fromYuto: '悠斗先生から',
+    lines: {
+      self: '今日も自分の言葉で話せましたね。',
+      retried: '言い直した表現は、次回もう一度使ってみましょう。',
+      hint: '少しずつ、自分で使える表現が増えています。',
+      kept: '今日使った表現を、次の場面にもつなげましょう。',
+    } as Record<'self' | 'retried' | 'hint' | 'kept', string>,
+    detailExpr: '今日の表現',
+    detailTime: '会話時間',
+  },
   // 軽め2〜3分学習（API不使用・§E-3）
   light: {
     title: '3分だけ学習',
@@ -741,6 +771,13 @@ const zh: AiCourseDict = {
     reopenHint: '这份说明可以随时从设置里再看一遍。',
   },
   settings: {
+    // 昵称（学习世界内的显示名・无需真名・§Avatar1A）
+    nicknameTitle: '这本学习笔记中使用的名字',
+    nicknameHelp: '不需要使用真实姓名，昵称也可以。之后还能修改。',
+    nicknameSave: '保存',
+    nicknameSaved: '已保存',
+    nicknameEmpty: '请输入名字（不能只有空格）',
+    nicknameTooLong: (n: number) => `请控制在${n}个字以内`,
     // AI老师与真人教练的分工（避免混淆・§B-1）
     rolesTitle: 'AI老师与真人教练',
     rolesAiLabel: 'AI老师（每天）',
@@ -840,6 +877,7 @@ const zh: AiCourseDict = {
     // 达到今日上限（当作完成・积极表述）
     doneForTodayTitle: '今天学到这里就可以了',
     // 真人教练的可视化（静态文言＋现有微信咨询・§B-1）
+    profileTitle: (name: string) => (name ? `${name}的日语笔记` : '你的日语笔记'),
     coachCardTitle: '安田教练也会陪伴你的学习',
     coachCardBody: '每天用AI练习，同时通过课程和微信咨询，一起调整学习方向。',
     coachCardWechat: '微信咨询（ID: Shocchance）',
@@ -1270,6 +1308,28 @@ const zh: AiCourseDict = {
     resolve: '标记为已处理',
     reopen: '恢复为未处理',
     offline: '离线',
+  },
+  // 我的日语笔记（只用真实数据・确定性一言・§Avatar1B）
+  notebook: {
+    title: (name: string) => (name ? `${name}的日语笔记` : '我的日语笔记'),
+    subtitle: '你用日语生活过的时间，会留在这里',
+    empty: '现在还没有第一页记录。完成今天的会话后，你的日语笔记中就会留下第一条记录。',
+    emptyCta: '开始今天的会话',
+    didSelf: (expr: string) => `靠自己用出了「${expr}」`,
+    didHint: (expr: string) => `看着提示用出了「${expr}」`,
+    didTalk: '用日语坚持完成了会话',
+    retriedLabel: '重新说过的句子: ',
+    nextReview: (d: string) => `下次再用一次的日子: ${d}`,
+    fromShoko: '翔子老师',
+    fromYuto: '悠斗老师',
+    lines: {
+      self: '今天也用自己的话说出来了。',
+      retried: '下次再试着使用今天重新表达的句子吧。',
+      hint: '能自己使用的表达正在一点点增加。',
+      kept: '把今天用过的表达带到下一个场景吧。',
+    } as Record<'self' | 'retried' | 'hint' | 'kept', string>,
+    detailExpr: '今天的表达',
+    detailTime: '会话时长',
   },
   // 轻量2〜3分钟学习（不调用API・§E-3）
   light: {

@@ -45,6 +45,7 @@ import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
+import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -65,7 +66,7 @@ import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -167,6 +168,7 @@ export default function AiCoursePage() {
     if (step === 'home') trackCourseOnce('view_ai_course_home');
     else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
     else if (step === 'history') trackCourse('open_ai_course_review');
+    else if (step === 'notebook') trackCourse('view_ai_course_notebook'); // 名前・本文は送らない
   }, [step]);
 
   // 表示言語を反映（navigateせず、URLの locale segment だけ replaceState で同期）
@@ -594,7 +596,7 @@ export default function AiCoursePage() {
       })();
     return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} estimate={est} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')}>
@@ -624,6 +626,14 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
         <CourseLightPractice t={t} progress={progress}
           practiceAgainIds={learner.settings.practiceAgainIds ?? []} onExit={() => setStep('home')} />
+      </Shell>
+    );
+  }
+  if (step === 'notebook') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}>
+        <CourseNotebook t={t} learner={learner} sessions={sessions} progress={progress}
+          onStartToday={() => setStep('home')} onBack={() => setStep('history')} />
       </Shell>
     );
   }
@@ -681,6 +691,18 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')}>
         <CourseSettings
           t={t} learner={learner}
+          onSaveNickname={async (name) => {
+            const prev = learner.displayName;
+            setLearner({ ...learner, displayName: name });
+            try {
+              await courseRepository.updateLearner({ displayName: name });
+              trackCourse('save_ai_course_nickname'); // 本文は送らない
+              return true;
+            } catch {
+              setLearner({ ...learner, displayName: prev });
+              return false;
+            }
+          }}
           onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
           onSaveSettings={(patch) => {
             const nextSettings = { ...learner.settings, ...patch };
