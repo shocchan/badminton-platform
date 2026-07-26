@@ -21,6 +21,7 @@ import { requestChatTurn, estimateChatCostUsd } from '../../lib/aiLesson/course/
 import { segmentWithReadings } from '../../lib/aiLesson/course/courseTextResume';
 import type { ReadingAid, ResumedTextLesson } from '../../lib/aiLesson/course/courseTextResume';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 import type { VoiceLessonResult } from './CourseVoiceLesson';
@@ -208,7 +209,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
 
   const toggleZh = (i: number) => setOpenZh((prev) => {
     const next = new Set(prev);
-    if (next.has(i)) next.delete(i); else next.add(i);
+    if (next.has(i)) next.delete(i);
+    else { next.add(i); trackCourse('open_ai_course_translation'); }
     return next;
   });
 

@@ -284,6 +284,7 @@ export default function AiCoursePage() {
     if (!recovery || !learner) return;
     const freshPlan = planForSession(recovery);
     if (!freshPlan) { await discardActiveAndStartNew(); return; } // 不明ミッション（想定外）は新規へ
+    trackCourse('resume_ai_course_other_device', { mode: recovery.mode });
     if (recovery.mode === 'text') {
       // テキスト: 同じ sessionId を引き継ぎ、保存済み発話から履歴・ターン・出題済み質問を復元
       const utts = await courseRepository.listSessionUtterances(recovery.id);
@@ -307,6 +308,7 @@ export default function AiCoursePage() {
   /** 【B-4】前のレッスンを終了して新しく始める（完了扱いにしない＝XP・復習登録なし） */
   const discardActiveAndStartNew = async () => {
     if (!recovery || !learner) return;
+    trackCourse('abandon_ai_course_previous', { mode: recovery.mode });
     await courseRepository.finalizeSession(recovery.id, {
       endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'superseded-new',
     }, [], learner.id);

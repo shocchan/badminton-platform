@@ -1,0 +1,156 @@
+// @vitest-environment jsdom
+// 主要UXのレンダリング回帰テスト（言い直しフロー・レポート段階表示・ホーム復旧パネル）。
+// LLM・DB・音声には触れない。実ミッションデータは読み取りのみ。
+
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, fireEvent, cleanup } from '@testing-library/react';
+
+afterEach(cleanup); // vitest globals無効のため明示クリーンアップ（DOM蓄積防止）
+import { CourseRetryCard } from './CourseRetryCard';
+import { CourseReport } from './CourseReport';
+import type { CourseReportData } from './CourseReport';
+import { CourseHome } from './CourseHome';
+import { aiCourseI18n } from '../../locales/aiCourse';
+import { missionById } from '../../lib/aiLesson/course/courseEngine';
+import type { Learner } from '../../lib/aiLesson/course/types';
+import type { LearnerStats } from '../../lib/aiLesson/course/courseStats';
+
+const t = aiCourseI18n.ja;
+const tz = aiCourseI18n.zh;
+const mission = missionById('w01m1')!;
+
+const retryTarget = {
+  original: '昨日上司に説明するでした',
+  improved: '昨日、上司に説明しました',
+  noteZh: '过去式要用「しました」',
+  reason: 'meaning' as const,
+};
+
+describe('CourseRetryCard（言い直しフロー）', () => {
+  it('元の表現・自然な表現・入力欄・スキップを表示する', () => {
+    render(<CourseRetryCard t={t} target={retryTarget} onFinished={() => {}} />);
+    expect(screen.getByText(t.report.retryTitle)).toBeTruthy();
+    expect(screen.getByText(retryTarget.original)).toBeTruthy();
+    expect(screen.getByText(retryTarget.improved)).toBeTruthy();
+    expect(screen.getByPlaceholderText(t.report.retryInputLabel)).toBeTruthy();
+    expect(screen.getByText(t.report.retrySkip)).toBeTruthy();
+  });
+
+  it('自然な表現を入力すると「よく言えました！」＋onFinished(done) 1回', () => {
+    const done = vi.fn();
+    render(<CourseRetryCard t={t} target={retryTarget} onFinished={done} />);
+    fireEvent.change(screen.getByPlaceholderText(t.report.retryInputLabel), { target: { value: '昨日上司に説明しました。' } });
+    fireEvent.click(screen.getByText(t.report.retryButton));
+    expect(screen.getByText(t.report.retryGood)).toBeTruthy();
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(done).toHaveBeenCalledWith('done');
+  });
+
+  it('全く違う文はヒントを出して再入力できる（失敗で終わらせない）', () => {
+    const done = vi.fn();
+    render(<CourseRetryCard t={t} target={retryTarget} onFinished={done} />);
+    fireEvent.change(screen.getByPlaceholderText(t.report.retryInputLabel), { target: { value: '今日は良い天気です' } });
+    fireEvent.click(screen.getByText(t.report.retryButton));
+    expect(screen.getByText(t.report.retryHint)).toBeTruthy();
+    expect(done).not.toHaveBeenCalled(); // まだ終わっていない＝もう一度試せる
+  });
+
+  it('スキップは失敗扱いにしない（retrySkipped表示・onFinished(skipped)）', () => {
+    const done = vi.fn();
+    render(<CourseRetryCard t={t} target={retryTarget} onFinished={done} />);
+    fireEvent.click(screen.getByText(t.report.retrySkip));
+    expect(screen.getByText(t.report.retrySkipped)).toBeTruthy();
+    expect(done).toHaveBeenCalledWith('skipped');
+  });
+});
+
+const reportData = (corrections: CourseReportData['report']['corrections']): CourseReportData => ({
+  mission,
+  report: {
+    todaySummaryJa: '今日は理由の説明を練習しました。', todaySummaryZh: '今天练习了说明理由。',
+    achievements: ['自分の言葉で話せました'], corrections,
+    naturalPhrases: ['そうなんですね'], targetUsage: 'hint', encouragementJa: 'よくできました',
+  },
+  masteryState: 'used_with_hint', nextReviewISO: '2026-07-27', nextMissionLabel: null,
+  xpEarned: 10, xpBreakdown: [], weekSessions: 1, weeklyTarget: 5,
+  durationSeconds: 180, fromAi: true,
+  todayCanDo: { category: mission.category, expression: mission.targetExpression, stage: 'withHint', isReview: false, reviewSucceeded: true },
+  nextAbility: null,
+});
+
+describe('CourseReport（会話後の一本道）', () => {
+  const noop = () => {};
+
+  it('訂正あり: 言い直しカードが出て、完了ストリップはまだ出ない', () => {
+    render(<CourseReport t={t} data={reportData([retryTarget])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false} />);
+    expect(screen.getByText(t.report.retryTitle)).toBeTruthy();
+    expect(screen.queryByText(t.report.doneTitle)).toBeNull();
+  });
+
+  it('スキップすると「今日の学習完了」ストリップと次の復習日が出る', () => {
+    render(<CourseReport t={t} data={reportData([retryTarget])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false} />);
+    fireEvent.click(screen.getByText(t.report.retrySkip));
+    expect(screen.getByText(t.report.doneTitle)).toBeTruthy();
+    expect(screen.getByText('2026-07-27')).toBeTruthy();
+  });
+
+  it('訂正ゼロ: 最初から完了ストリップを表示（言い直しカードなし）', () => {
+    render(<CourseReport t={t} data={reportData([])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false} />);
+    expect(screen.queryByText(t.report.retryTitle)).toBeNull();
+    expect(screen.getByText(t.report.doneTitle)).toBeTruthy();
+  });
+
+  it('「詳しく見る」で詳細が開閉する（aria-expanded）', () => {
+    render(<CourseReport t={t} data={reportData([])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false} />);
+    const toggle = screen.getByText(t.report.seeDetails);
+    expect(toggle.closest('button')?.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(toggle);
+    expect(screen.getByText(t.report.hideDetails)).toBeTruthy();
+    expect(screen.getByText(t.report.masteryNow)).toBeTruthy();
+  });
+});
+
+const learner = {
+  id: 'l1', displayName: 'テスト', preferredLanguage: 'ja', estimatedLevel: 'N3',
+  difficultyLevel: 3, currentWeek: 1, isActive: true,
+  settings: { zhSupport: 'whenStuck', correction: 'summary', weeklyTarget: 5, sessionMinutes: 3, examDateISO: null },
+} as unknown as Learner;
+const stats = { totalSessions: 3, weekSessions: 1, streak: 2, learnedCount: 3, retainedCount: 0, overdueReviews: 0, selfRate: 0, hintRate: 1 } as LearnerStats;
+
+const homeProps = {
+  t, learner, stats,
+  plan: { main: { mission, kind: 'new' as const, hideTarget: false }, review: null, reasonKey: 'next_new' },
+  reviewsDue: 2, reviewsOverdue: 0, remainingToday: 3,
+  hasResume: false, starting: false, startError: '',
+  currentStageLabel: 'あいさつと自己紹介ができる', thisWeekCanDos: [], nextAbility: null, journey: [],
+  onStart: () => {}, onResume: () => {}, onDiscardResume: () => {},
+  onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {},
+};
+
+describe('CourseHome（今日の学習と復旧パネル）', () => {
+  it('主CTA「今日のレッスンを始める」と今日の復習導線を表示', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.getByText(t.home.startLesson)).toBeTruthy();
+    expect(screen.getByText(t.home.reviewsDue(2))).toBeTruthy();
+  });
+
+  it('復旧パネル: 3つの選択肢が出て、それぞれのコールバックが発火する', () => {
+    const onResume = vi.fn(); const onDiscard = vi.fn(); const onCancel = vi.fn();
+    render(<CourseHome {...homeProps} recovery={{ mode: 'text' }}
+      onResumeActive={onResume} onDiscardActive={onDiscard} onCancelRecovery={onCancel} />);
+    expect(screen.getByText(t.home.activeElsewhereTitle)).toBeTruthy();
+    fireEvent.click(screen.getByText(t.home.activeResumeHere));
+    fireEvent.click(screen.getByText(t.home.activeStartNew));
+    fireEvent.click(screen.getByText(t.home.activeCancel));
+    expect(onResume).toHaveBeenCalledTimes(1);
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('zh UIでも主CTAと復旧パネル文言が表示される（パリティ）', () => {
+    render(<CourseHome {...homeProps} t={tz} recovery={{ mode: 'voice' }}
+      onResumeActive={() => {}} onDiscardActive={() => {}} onCancelRecovery={() => {}} />);
+    expect(screen.getByText(tz.home.startLesson)).toBeTruthy();
+    expect(screen.getByText(tz.home.activeElsewhereTitle)).toBeTruthy();
+  });
+});
