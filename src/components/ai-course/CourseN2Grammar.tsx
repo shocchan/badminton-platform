@@ -10,6 +10,9 @@ import {
   publiclyVisibleIndex, reviewCandidatesIndex, searchIndex, byUnit12Index, n2IndexStats, loadFullGrammar,
 } from '../../lib/aiLesson/course/courseN2Grammar';
 import { loadRecentN2, pushRecentN2, recommendN2 } from '../../lib/aiLesson/course/n2Recent';
+import { N2_CATEGORY_DEFS, byCategory } from '../../lib/aiLesson/course/n2Categories';
+import type { N2CategoryId } from '../../lib/aiLesson/course/n2Categories';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import type { N2GrammarItem } from '../../lib/aiLesson/course/courseN2Grammar';
 import { CourseIssueReport } from './CourseIssueReport';
 import type { AiCourseDict } from '../../locales/aiCourse';
@@ -55,6 +58,7 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
   const [showPreview, setShowPreview] = useState(false);
   const [q, setQ] = useState('');
   const [unit, setUnit] = useState<number | 'all'>('all');
+  const [cat, setCat] = useState<N2CategoryId | 'all'>('all');
   // 詳細は dynamic import で読み込む（一覧＝インデックスのみ）
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<N2GrammarItem | null>(null);
@@ -80,8 +84,13 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
   const list = useMemo(() => {
     let items = base;
     if (unit !== 'all') items = byUnit12Index(items, unit);
+    if (cat !== 'all') items = byCategory(items, cat);
     return searchIndex(items, q);
-  }, [base, unit, q]);
+  }, [base, unit, cat, q]);
+  const pickCat = (c: N2CategoryId | 'all') => {
+    setCat(c);
+    if (c !== 'all') trackCourse('open_ai_course_n2_category', { category: c });
+  };
   // 前後移動（現在の絞り込み一覧内。learnerは approved のみが対象）
   const curIdx = openId ? list.findIndex((g) => g.grammarId === openId) : -1;
   const prevId = curIdx > 0 ? list[curIdx - 1].grammarId : null;
@@ -147,6 +156,26 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
               </div>
             </div>
           )}
+          {/* 使用場面から探す（180項目に圧倒されない入口・§4） */}
+          <div className="mb-2">
+            <p className="text-[11px] font-medium text-gray-400 mb-1.5">{tg.byScene}</p>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+              <button type="button" onClick={() => pickCat('all')}
+                className={`shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-medium ${cat === 'all' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
+                {tg.allScenes}
+              </button>
+              {N2_CATEGORY_DEFS.filter((d) => d.id !== 'daily').map((d) => (
+                <button key={d.id} type="button" onClick={() => pickCat(d.id)} title={zh ? d.descZh : d.descJa}
+                  className={`shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-medium ${cat === d.id ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-200 text-gray-600'}`}>
+                  {zh ? d.zh : d.ja}
+                </button>
+              ))}
+            </div>
+            {cat !== 'all' && (() => {
+              const d = N2_CATEGORY_DEFS.find((x) => x.id === cat);
+              return d ? <p className="text-[11px] text-gray-500 mt-1 px-1">{zh ? d.descZh : d.descJa}</p> : null;
+            })()}
+          </div>
           <div className="relative mb-2">
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tg.search}
