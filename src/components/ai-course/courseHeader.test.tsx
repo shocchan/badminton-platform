@@ -9,14 +9,14 @@ const t = aiCourseI18n.ja;
 const base = { t, showNav: true, onNavigate: () => {}, onLogout: () => {}, lang: 'ja' as const, onToggleLang: () => {} };
 
 describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () => {
-  it('showLab=trueで表示（デスクトップ＋モバイル両ナビ）・ロードマップの次に位置', () => {
+  it('showLab=trueで表示（デスクトップ＋モバイル両ナビ）・ことば→しくみの順でロードマップの次に位置', () => {
     render(<CourseHeader {...base} showLab />);
-    const items = screen.getAllByText(t.nav.lab);
-    expect(items.length).toBe(2); // lg用＋モバイル用
+    expect(screen.getAllByText(t.nav.lab).length).toBe(2); // lg用＋モバイル用
+    expect(screen.getAllByText(t.nav.vocab).length).toBe(2);
     // 表示順: roadmap の次
     const labels = screen.getAllByRole('button').map((b) => b.textContent);
     const navLabels = labels.filter((l) => Object.values(t.nav).some((v) => l?.includes(v)));
-    expect(navLabels.join(',')).toContain(`${t.nav.roadmap},${t.nav.lab},${t.nav.history}`);
+    expect(navLabels.join(',')).toContain(`${t.nav.roadmap},${t.nav.vocab},${t.nav.lab},${t.nav.history}`);
   });
   it('showLab=false（一般受講生・Andyさん）ではDOM自体を出さない', () => {
     render(<CourseHeader {...base} />);

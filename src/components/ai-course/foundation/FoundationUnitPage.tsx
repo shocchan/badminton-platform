@@ -7,6 +7,7 @@ import { aggregateByDimension, deriveReviewCandidates } from '../../../lib/aiLes
 import { trackCourse } from '../../../lib/aiLesson/course/courseAnalytics';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 import { FoundationQuestionStep } from './FoundationQuestionStep';
+import { diagramForRule } from './vocab/diagramForRule';
 
 type Phase = 'intro' | 'words' | 'rules' | 'quiz' | 'result';
 interface Props {
@@ -136,12 +137,16 @@ export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChang
           <StepIndicator tl={tl} current="rules" />
           <p className="text-xs font-bold text-gray-500 mb-2">{tl.stepRules}</p>
           <div className="space-y-2">
-            {rules.map((r) => (
-              <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
-                <p className="text-sm font-bold text-gray-900">{zh ? r.titleZh : r.titleJa}</p>
-                <p className="text-xs text-gray-600 mt-1 leading-relaxed">{zh ? r.explanationZh : r.explanationJa}</p>
-              </div>
-            ))}
+            {rules.map((r) => {
+              const Diagram = diagramForRule(r.id);
+              return (
+                <div key={r.id} className="bg-white rounded-xl border border-gray-100 p-4">
+                  <p className="text-sm font-bold text-gray-900">{zh ? r.titleZh : r.titleJa}</p>
+                  <p className="text-xs text-gray-600 mt-1 leading-relaxed">{zh ? r.explanationZh : r.explanationJa}</p>
+                  {Diagram && <Diagram t={t} />}
+                </div>
+              );
+            })}
           </div>
           <div className="flex gap-2 mt-3">
             <button type="button" onClick={() => setPhase('words')} className="min-h-11 px-4 text-sm text-gray-500 border border-gray-200 rounded-xl">{tl.back}</button>

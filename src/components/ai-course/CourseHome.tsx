@@ -60,7 +60,8 @@ interface Props {
   onOpenNotebook: () => void;
   /** しくみラボ試作（adminOverrides.labPreview=true のテストアカウントのみ・§2A-6） */
   labPreview: boolean;
-  onOpenLab: (section?: 'today' | 'units') => void;
+  onOpenLab: (section?: 'today' | 'units' | 'records') => void;
+  onOpenVocab: (view?: 'top' | 'daily') => void;
   /** アバター承認/作り直し（settings更新・§Avatar2） */
   onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
 }
@@ -71,7 +72,7 @@ export const CourseHome = ({
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
-  sessions, onOpenNotebook, onUpdateAvatarSettings, labPreview, onOpenLab,
+  sessions, onOpenNotebook, onUpdateAvatarSettings, labPreview, onOpenLab, onOpenVocab,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -206,7 +207,11 @@ export const CourseHome = ({
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
       {/* 日本語のしくみ: AI会話と並ぶ主要学習メニュー（labPreview権限のみ・一般受講生はDOM自体なし・§2） */}
-      {labPreview && <FoundationHomeCard t={t} onOpenLab={onOpenLab} />}
+      {labPreview && (
+        <PlatformLearningMenu t={t} onOpenLab={onOpenLab} onOpenVocab={onOpenVocab}
+          onStartConversation={() => onStart('voice')} canLearn={canLearn}
+          missionTitle={mission ? (zh ? mission.titleZh : mission.titleJa) : null} />
+      )}
 
       {/* 軽め2〜3分（API不使用・会話しない日の入口・§E-3） */}
       {hasLightMaterial && (
@@ -375,38 +380,67 @@ const AvatarReviewCard = ({ t, learner, onUpdate }: {
   );
 };
 
-/** ホームの「日本語のしくみ」大カード。第一CTAは利用状態から決定的に一つだけ（§2） */
-const FoundationHomeCard = ({ t, onOpenLab }: { t: AiCourseDict; onOpenLab: (section?: 'today' | 'units') => void }) => {
-  const tl = t.lab;
-  const zh = t.locale === 'zh';
-  // sessionStorageの試作進捗のみ参照（会話進捗と分離・読み取りだけ）
+/**
+ * 統合「今日の学習」ヒーロー＋3つの学習入口（Phase 2C+ §4-§5・labPreviewのみ）。
+ * 第一CTAは状態から決定的に一つ: 復習期限→途中の文法→今日の会話→今日の3語→次の単元。
+ * 3カードは色・アイコン・レイアウトで役割を区別（会話=対話／ことば=視覚記憶／しくみ=構造）。
+ */
+const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, canLearn, missionTitle }: {
+  t: AiCourseDict;
+  onOpenLab: (section?: 'today' | 'units' | 'records') => void;
+  onOpenVocab: (view?: 'top' | 'daily') => void;
+  onStartConversation: () => void;
+  canLearn: boolean;
+  missionTitle: string | null;
+}) => {
+  const tm = t.homeMenu; const tl = t.lab; const zh = t.locale === 'zh';
   const rec = (() => {
     try {
       const repo = createFoundationProgressRepository(window.sessionStorage);
       const summaries = Object.fromEntries(FOUNDATION_UNIT_META.map((m) => [m.id, repo.getUnitSummary(m.id)]));
       const dueCount = repo.getReviewQueue(new Date().toISOString()).filter((e) => e.isDue).length;
-      return recommendToday(FOUNDATION_UNIT_META, summaries, dueCount);
+      return { r: recommendToday(FOUNDATION_UNIT_META, summaries, dueCount), dueCount };
     } catch { return null; }
   })();
-  const recUnit = rec?.unitId ? FOUNDATION_UNIT_META.find((m) => m.id === rec.unitId) : null;
-  const isReview = rec?.kind === 'review_due' || rec?.kind === 'all_done_review';
-  const cta = isReview ? tl.ctaReview : rec?.kind === 'resume_unit' ? tl.ctaResume : tl.ctaStart;
-  const body = rec
-    ? (isReview ? tl.recReview(rec.dueCount) : recUnit ? tl.todayBody(zh ? recUnit.titleZh : recUnit.titleJa) : tl.recAllDone)
-    : tl.homeCardTitle;
+  const recUnit = rec?.r.unitId ? FOUNDATION_UNIT_META.find((m) => m.id === rec.r.unitId) : null;
+  // 決定的な第一アクション（§4: 復習期限→途中→今日の会話→次の単元→今日の3語）
+  const hero = (() => {
+    if (rec && rec.dueCount > 0) return { reason: tm.reasonReview, body: tl.recReview(rec.dueCount), cta: tl.ctaReview, action: () => onOpenLab('records'), minutes: rec.r.estimatedMinutes as number | null };
+    if (rec && rec.r.kind === 'resume_unit' && recUnit) return { reason: tm.reasonResumeLab, body: tl.todayBody(zh ? recUnit.titleZh : recUnit.titleJa), cta: tl.ctaResume, action: () => onOpenLab('today'), minutes: rec.r.estimatedMinutes as number | null };
+    if (canLearn && missionTitle) return { reason: tm.reasonConversation, body: missionTitle, cta: tl.ctaStart, action: onStartConversation, minutes: null };
+    if (rec && (rec.r.kind === 'next_unit' || rec.r.kind === 'first_unit') && recUnit) return { reason: tm.reasonNextUnit, body: tl.todayBody(zh ? recUnit.titleZh : recUnit.titleJa), cta: tl.ctaStart, action: () => onOpenLab('today'), minutes: rec.r.estimatedMinutes as number | null };
+    return { reason: tm.reasonDaily, body: tm.vocabBody, cta: tl.ctaStart, action: () => onOpenVocab('daily'), minutes: 3 as number | null };
+  })();
+  const { reason: heroReason, body: heroBody, cta: heroCta, action: heroAction, minutes: heroMinutes } = hero;
   return (
-    <div className="bg-white rounded-2xl border-2 border-indigo-100 p-5 mb-4">
-      <div className="flex items-center gap-2 mb-1">
-        <BookOpen className="w-4 h-4 text-indigo-600" />
-        <p className="text-sm font-bold text-gray-900">{tl.homeCardTitle}</p>
-        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{tl.betaBadge}</span>
+    <div className="mb-4">
+      {/* ① 今日の学習（Hero・CTA一つ） */}
+      <div className="bg-indigo-600 text-white rounded-2xl p-5 mb-3">
+        <p className="text-xs font-bold text-indigo-200 mb-1">{tm.todayHeading}</p>
+        <p className="text-base font-bold leading-snug">{heroBody}</p>
+        <p className="text-[11px] text-indigo-200 mt-1">{heroReason}{heroMinutes ? `・${tl.aboutMinutes(heroMinutes)}` : ''}</p>
+        <button type="button" onClick={heroAction}
+          className="w-full min-h-12 py-3 mt-3 bg-white text-indigo-700 font-bold rounded-xl">{heroCta}</button>
       </div>
-      <p className="text-xs text-gray-600">{body}</p>
-      {rec && <p className="text-[11px] text-gray-400 mt-0.5">{tl.aboutMinutes(rec.estimatedMinutes)}</p>}
-      <button type="button" onClick={() => onOpenLab('today')}
-        className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl">{cta}</button>
-      <button type="button" onClick={() => onOpenLab('units')}
-        className="w-full min-h-11 py-2 mt-1 text-sm text-indigo-700">{tl.homeCardChoose}</button>
+      {/* ② 3つの学習入口（役割で見た目を区別・§5） */}
+      <p className="text-xs font-bold text-gray-500 mb-2">{tm.menuHeading}</p>
+      <div className="space-y-2">
+        <button type="button" onClick={onStartConversation} disabled={!canLearn}
+          className="w-full text-left rounded-2xl p-4 min-h-11 bg-gradient-to-r from-blue-600 to-blue-500 text-white disabled:opacity-60">
+          <p className="text-sm font-bold flex items-center gap-1.5"><Mic className="w-4 h-4" aria-hidden />{tm.convTitle}</p>
+          <p className="text-xs text-blue-100 mt-0.5">{tm.convBody}</p>
+        </button>
+        <button type="button" onClick={() => onOpenVocab('top')}
+          className="w-full text-left rounded-2xl p-4 min-h-11 bg-white border-2 border-teal-100">
+          <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-teal-600" aria-hidden />{tm.vocabTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
+          <p className="text-xs text-gray-600 mt-0.5">{tm.vocabBody}</p>
+        </button>
+        <button type="button" onClick={() => onOpenLab('today')}
+          className="w-full text-left rounded-2xl p-4 min-h-11 bg-indigo-50 border-2 border-indigo-100">
+          <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><PenLine className="w-4 h-4 text-indigo-600" aria-hidden />{tm.labTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
+          <p className="text-xs text-gray-600 mt-0.5">{tm.labBody}</p>
+        </button>
+      </div>
     </div>
   );
 };

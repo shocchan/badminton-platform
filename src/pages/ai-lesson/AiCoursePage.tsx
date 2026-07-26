@@ -3,7 +3,8 @@
 // ＋ ロードマップ / 履歴 / 設定。進捗は Supabase（RLS）、オフライン時は localStorage。
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { parseLabUrl, buildLabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
+import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
+import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
 import type { LabUrlInput } from '../../lib/aiLesson/course/labUrlState';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -50,6 +51,8 @@ import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressi
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 // しくみラボは labPreview 管理者のみ利用のため lazy chunk 化（一般受講生のbundleへ教材を含めない・§17）
 const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
+// ことば図鑑も labPreview 限定の lazy chunk（語彙・画像manifestをメインbundleへ含めない・§58）
+const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -70,7 +73,7 @@ import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -137,7 +140,7 @@ export default function AiCoursePage() {
   // しくみラボの権限（labPreview管理者のみ・§23）。未許可でstepがlabになった場合はホームへ退避
   const labAllowed = hasLabPreview(learner?.adminOverrides);
   useEffect(() => {
-    if (step !== 'lab' || labAllowed) return;
+    if ((step !== 'lab' && step !== 'vocab') || labAllowed) return;
     let alive = true;
     // effect内同期setStateを避ける（リポジトリ既定のmicrotaskパターン）
     void Promise.resolve().then(() => { if (alive) setStep('home'); });
@@ -207,6 +210,14 @@ export default function AiCoursePage() {
     } catch { /* noop */ }
   }, []);
 
+  /** ことば図鑑の表示位置をURLへ同期（§59） */
+  const syncVocabUrl = useCallback((state: { view: VocabUrlView; category: string | null; itemId: string | null } | null) => {
+    try {
+      const search = buildVocabSearch(window.location.search, state);
+      window.history.replaceState(window.history.state, '', window.location.pathname + search + window.location.hash);
+    } catch { /* noop */ }
+  }, []);
+
   /** 言語をワンタップで切り替える（learner設定へ保存し複数端末で同期） */
   const toggleLang = useCallback(() => {
     const next = otherLang(uiLang);
@@ -241,12 +252,15 @@ export default function AiCoursePage() {
     // URLにラボ位置があれば復元（言語切替・リロード・再マウント対応・§7）。
     // labPreviewが無い場合はURLからラボparamsを外してホームへ（教材非表示・attempt非生成・§11）
     const labUrl = parseLabUrl(window.location.search);
+    const vocabUrl = parseVocabUrl(window.location.search);
     const allowed = hasLabPreview(l.adminOverrides);
     if (!hasSeenGuide()) { setStep('guide'); return; }
     if (labUrl.lab && allowed) { setStep('lab'); return; }
+    if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
     if (labUrl.lab) syncLabUrl(null);
+    if (vocabUrl.vocab) syncVocabUrl(null);
     setStep('home');
-  }, [applyLang, syncLabUrl]);
+  }, [applyLang, syncLabUrl, syncVocabUrl]);
 
   // 初回ロードは1tick遅らせ、effect内の同期setStateを避ける
   useEffect(() => {
@@ -607,8 +621,17 @@ export default function AiCoursePage() {
     if (k === 'lab') {
       if (!labAllowed) return; // 権限なしは何もしない（DOM上ボタン自体が出ない前提の防御）
       trackCourse('click_ai_course_foundation_nav');
+      syncVocabUrl(null);
       syncLabUrl({ section: 'today', unit: null, step: null });
       setStep('lab');
+      return;
+    }
+    if (k === 'vocab') {
+      if (!labAllowed) return;
+      trackCourse('click_ai_course_foundation_nav');
+      syncLabUrl(null);
+      syncVocabUrl({ view: 'top', category: null, itemId: null });
+      setStep('vocab');
       return;
     }
     setStep(k);
@@ -679,6 +702,20 @@ export default function AiCoursePage() {
             initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
             onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
             onBack={() => { syncLabUrl(null); setStep('home'); }} />
+        </Suspense>
+      </Shell>
+    );
+  }
+  if (step === 'vocab') {
+    if (!labAllowed) return null;
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
+        <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <VocabularyHubLazy t={t}
+            initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
+            onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
+            onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
+            onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
       </Shell>
     );
@@ -786,7 +823,8 @@ export default function AiCoursePage() {
         sessions={sessions}
         onOpenNotebook={() => setStep('notebook')}
         labPreview={hasLabPreview(learner.adminOverrides)}
-        onOpenLab={(section) => { syncLabUrl({ section: section === 'units' ? 'units' : 'today', unit: null, step: null }); setStep('lab'); }}
+        onOpenLab={(section) => { syncVocabUrl(null); syncLabUrl({ section: section === 'units' ? 'units' : section === 'records' ? 'records' : 'today', unit: null, step: null }); setStep('lab'); }}
+        onOpenVocab={(view) => { syncLabUrl(null); syncVocabUrl({ view: view === 'daily' ? 'daily' : 'top', category: null, itemId: null }); setStep('vocab'); }}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });

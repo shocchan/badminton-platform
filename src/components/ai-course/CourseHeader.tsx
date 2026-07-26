@@ -6,11 +6,11 @@
 // - スマホ: ブランド行＋横スクロールタブ（従来のコンパクト表示）
 // - lg以上: 1段レイアウト（左ブランド／中央ナビ／右 言語切替・ログアウト）
 
-import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical } from 'lucide-react';
+import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical, BookOpen } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
 /** ヘッダーのナビ対象（AiCoursePage の Step と対応） */
-export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'lab' | 'history' | 'settings';
+export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'vocab' | 'lab' | 'history' | 'settings';
 
 interface Props {
   t: AiCourseDict;
@@ -31,8 +31,8 @@ const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] 
   { key: 'home', icon: Home },
   { key: 'growth', icon: TrendingUp },
   { key: 'roadmap', icon: Map },
-  // しくみラボはAI会話と並ぶ主要機能としてロードマップの次に置く（labPreviewのみ・§1）
-  ...(showLab ? ([{ key: 'lab', icon: FlaskConical }] as { key: CourseNavKey; icon: typeof Home }[]) : []),
+  // ことば図鑑・しくみラボはAI会話と並ぶ主要機能としてロードマップの次に置く（labPreviewのみ）
+  ...(showLab ? ([{ key: 'vocab', icon: BookOpen }, { key: 'lab', icon: FlaskConical }] as { key: CourseNavKey; icon: typeof Home }[]) : []),
   { key: 'history', icon: History },
   { key: 'settings', icon: Settings },
 ];
