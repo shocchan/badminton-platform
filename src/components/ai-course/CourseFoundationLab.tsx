@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle2, FlaskConical, Lightbulb } from 'lucide-react';
 import { UNIT1, UNIT1_ITEMS, UNIT1_RULES, UNIT1_QUESTIONS } from '../../lib/aiLesson/course/foundationUnit1';
-import { judgeQuestion, aggregateByDimension, deriveReviewCandidates, shuffledOrder } from '../../lib/aiLesson/course/foundationGrade';
+import { judgeQuestion, aggregateByDimension, deriveReviewCandidates, shuffledOrder, shuffledChoices } from '../../lib/aiLesson/course/foundationGrade';
 import type { QuestionResult } from '../../lib/aiLesson/course/foundationGrade';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
@@ -22,6 +22,7 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
   const [results, setResults] = useState<QuestionResult[]>([]);
   const q = UNIT1_QUESTIONS[qi];
   const shuffled = useMemo(() => (q?.type === 'order' ? shuffledOrder(q) : []), [q]);
+  const choiceOrder = useMemo(() => (q?.type === 'choice' ? shuffledChoices(q) : []), [q]);
 
   const submit = () => {
     if (!q || judged !== null) return;
@@ -108,11 +109,12 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
           <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
           {q.type === 'choice' && (
             <div className="space-y-2">
-              {q.choices!.map((c, i) => (
-                <button key={i} type="button" disabled={judged !== null} onClick={() => setPicked(i)}
+              {/* 表示順は決定的シャッフル・判定は元index（安定choice ID）で行う */}
+              {choiceOrder.map((orig) => (
+                <button key={orig} type="button" disabled={judged !== null} onClick={() => setPicked(orig)}
                   className={`w-full min-h-11 px-4 py-2.5 text-left text-sm rounded-xl border ${
-                    judged !== null && i === q.answerIndex ? 'border-emerald-400 bg-emerald-50'
-                      : picked === i ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}>{c}</button>
+                    judged !== null && orig === q.answerIndex ? 'border-emerald-400 bg-emerald-50'
+                      : picked === orig ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}>{q.choices![orig]}</button>
               ))}
             </div>
           )}
@@ -174,6 +176,7 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
           ) : (
             <p className="text-xs text-emerald-700 bg-emerald-50 rounded-xl p-3 mb-3">{tl.allGood}</p>
           )}
+          <p className="text-[11px] text-gray-500 mb-1">{tl.retainNote}</p>
           <p className="text-[11px] text-gray-400 mb-3">{tl.notSaved}</p>
           <button type="button" onClick={onBack} className="w-full min-h-11 py-3 bg-indigo-600 text-white font-bold rounded-xl">{t.report.backHome}</button>
         </div>
