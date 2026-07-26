@@ -20,10 +20,13 @@ export interface VocabEntry {
   encounterCount: number;
   tests: VocabTestRecord[];
 }
+export type FuriganaSetting = 'always' | 'first_time' | 'hard_only' | 'off';
+export interface VocabSettings { track: string; furigana: FuriganaSetting }
 interface StoreShape {
   schemaVersion: number;
   entries: Record<string, VocabEntry>;
   dailyWords: { dateKey: string; itemIds: string[] } | null;
+  settings?: VocabSettings;
 }
 
 export interface VocabStats {
@@ -48,6 +51,8 @@ export interface VocabProgressRepository {
   getReviewItemIds(): string[];
   getDailyWords(dateKey: string): string[] | null;
   setDailyWords(dateKey: string, itemIds: string[]): void;
+  getSettings(): VocabSettings;
+  setSettings(patch: Partial<VocabSettings>): void;
   reset(): void;
 }
 
@@ -128,6 +133,16 @@ export const createVocabProgressRepository = (storage: StorageLike): VocabProgre
     setDailyWords(dateKey, itemIds) {
       const st = load(); st.dailyWords = { dateKey, itemIds }; save(st);
     },
+    getSettings() {
+      const st = load();
+      // トラック初期値は基礎（推定根拠なしにN2等を確定しない・§35）。ふりがな初期値はトラック連動でUI側が解決
+      return st.settings ?? { track: 'life_basic', furigana: 'always' };
+    },
+    setSettings(patch) {
+      const st = load();
+      st.settings = { ...(st.settings ?? { track: 'life_basic', furigana: 'always' }), ...patch };
+      save(st);
+    },
     reset() { storage.removeItem(VOCAB_STORAGE_KEY); },
   };
 };
@@ -144,6 +159,7 @@ export const pickDailyWords = (
   currentUnitItemIds: string[],
   dateKey: string,
   count = 3,
+  opts?: { deprioritizedIds?: string[] },  // N2/N3トラックのtransparent同源語等（弱点・復習なら通常どおり出る・§36）
 ): { itemIds: string[]; reasons: Record<string, 'review' | 'continue' | 'current_unit' | 'core_a'> } => {
   const fixed = repo.getDailyWords(dateKey);
   const reasons: Record<string, 'review' | 'continue' | 'current_unit' | 'core_a'> = {};
@@ -158,7 +174,10 @@ export const pickDailyWords = (
       if ((e.selfAssessment === 'seen' || e.selfAssessment === 'learning') && repo.getVerifiedState(id) === 'not_tested') push(id, 'continue');
     }
     for (const id of currentUnitItemIds) if (repo.getEntry(id).selfAssessment === 'unseen') push(id, 'current_unit');
-    for (const id of allIds) if (repo.getEntry(id).selfAssessment === 'unseen') push(id, 'core_a');
+    const depri = new Set(opts?.deprioritizedIds ?? []);
+    for (const id of allIds) if (!depri.has(id) && repo.getEntry(id).selfAssessment === 'unseen') push(id, 'core_a');
+    // 後回し語は他が尽きた場合のみ（簡易確認ルートで通過・§40）
+    for (const id of allIds) if (depri.has(id) && repo.getEntry(id).selfAssessment === 'unseen') push(id, 'core_a');
     return picked;
   };
   if (fixed) {
