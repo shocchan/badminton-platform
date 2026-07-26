@@ -11,10 +11,13 @@ import { FoundationQuestionStep } from './FoundationQuestionStep';
 type Phase = 'intro' | 'words' | 'rules' | 'quiz' | 'result';
 interface Props {
   t: AiCourseDict; bundle: FoundationUnitBundle; repo: FoundationProgressRepository;
+  /** URL復元用（言語切替・リロード後の位置維持・§7）。不正値・矛盾は安全な段階へ落とす（§8） */
+  initialPhase?: string | null;
+  onPhaseChange?: (phase: Phase) => void;
   onExit: () => void; onGoReview: () => void; onProgressChanged: () => void;
 }
 
-export const FoundationUnitPage = ({ t, bundle, repo, onExit, onGoReview, onProgressChanged }: Props) => {
+export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChange, onExit, onGoReview, onProgressChanged }: Props) => {
   const tl = t.lab; const zh = t.locale === 'zh';
   const { unit, items, rules, questions } = bundle;
   const [attempt, setAttempt] = useState<FoundationAttemptRecord | null>(() => {
@@ -23,7 +26,18 @@ export const FoundationUnitPage = ({ t, bundle, repo, onExit, onGoReview, onProg
     return existing ?? null;
   });
   const answered = attempt?.answers.length ?? 0;
-  const [phase, setPhase] = useState<Phase>(attempt && answered > 0 ? 'quiz' : 'intro');
+  const [phase, setPhaseRaw] = useState<Phase>(() => {
+    // URL step と Repository の矛盾解決（§8）:
+    // quiz指定→未完了attemptがある時のみ再開（勝手にattemptを作らない）。完了済みのみ→result。どちらも無ければintro
+    if (initialPhase === 'quiz') {
+      if (attempt) return 'quiz';
+      return repo.getUnitSummary(unit.id).completedCount > 0 ? 'result' : 'intro';
+    }
+    if (initialPhase === 'result') return repo.getUnitSummary(unit.id).completedCount > 0 ? 'result' : 'intro';
+    if (initialPhase === 'words' || initialPhase === 'rules' || initialPhase === 'intro') return initialPhase;
+    return attempt && answered > 0 ? 'quiz' : 'intro';
+  });
+  const setPhase = (p: Phase) => { setPhaseRaw(p); onPhaseChange?.(p); };
   const [qi, setQi] = useState(answered < questions.length ? answered : 0);
   const [stepKey, setStepKey] = useState(0);
 
@@ -55,7 +69,9 @@ export const FoundationUnitPage = ({ t, bundle, repo, onExit, onGoReview, onProg
     } else { setQi(qi + 1); setStepKey((k) => k + 1); }
   };
 
-  const results = (repo.getAttempts().find((a) => a.attemptId === attempt?.attemptId)?.answers ?? [])
+  const lastCompleted = [...repo.getAttempts()].reverse().find((a) => a.unitId === unit.id && a.completedAt !== null);
+  const resultAttemptId = attempt?.attemptId ?? lastCompleted?.attemptId;
+  const results = (repo.getAttempts().find((a) => a.attemptId === resultAttemptId)?.answers ?? [])
     .map((x) => ({ questionId: x.questionId, targetId: x.targetId, dimension: x.dimension, correct: x.correct, hintUsed: x.hintUsed, errorTag: x.errorTag }));
   const dims = aggregateByDimension(results.map(({ questionId, dimension, correct, errorTag, targetId }) => ({ questionId, dimension, correct, errorTag, targetId })));
   const weak = deriveReviewCandidates(results).filter((w) => w.candidateState !== 'confirm_day7' && w.candidateState !== 'retained');

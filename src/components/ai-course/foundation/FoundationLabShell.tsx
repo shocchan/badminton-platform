@@ -16,18 +16,42 @@ import { FoundationHistoryView } from './FoundationHistoryView';
 
 export type LabView = 'today' | 'words' | 'rules' | 'review' | 'history';
 type BundleState = Record<string, FoundationUnitBundle | 'loading' | 'error'>;
-interface Props { t: AiCourseDict; onBack: () => void; }
+export interface LabShellState { section: LabView; unit: string | null; step: string | null }
+interface Props {
+  t: AiCourseDict;
+  onBack: () => void;
+  /** URLからの位置復元（言語切替・リロード対応・§7）。不正unitはラボトップへ（§8） */
+  initial?: { section?: LabView; unit?: string | null; step?: string | null };
+  /** 表示位置の変化をURLへ同期するためのコールバック（回答内容は渡さない） */
+  onStateChange?: (s: LabShellState) => void;
+}
 
-export const FoundationLabShell = ({ t, onBack }: Props) => {
+export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props) => {
   const tl = t.lab;
-  const [view, setView] = useState<LabView>('today');
-  const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
+  const [view, setViewRaw] = useState<LabView>(initial?.section ?? 'today');
+  const [activeUnitId, setActiveUnitIdRaw] = useState<string | null>(() =>
+    (initial?.unit && isKnownFoundationUnit(initial.unit) ? initial.unit : null));
+  const [unitStep, setUnitStep] = useState<string | null>(initial?.step ?? null);
+  const notify = (next: { view?: LabView; unit?: string | null; step?: string | null }) => {
+    onStateChange?.({
+      section: next.view ?? view,
+      unit: next.unit !== undefined ? next.unit : activeUnitId,
+      step: next.step !== undefined ? next.step : unitStep,
+    });
+  };
+  const setView = (v: LabView) => { setViewRaw(v); notify({ view: v, unit: null, step: null }); };
+  const setActiveUnitId = (id: string | null) => { setActiveUnitIdRaw(id); setUnitStep(id ? 'intro' : null); notify({ unit: id, step: id ? 'intro' : null }); };
   const [bundles, setBundles] = useState<BundleState>({});
   const [, setProgressTick] = useState(0);
   const repo = useMemo(() => createFoundationProgressRepository(window.sessionStorage), []);
   const onProgressChanged = useCallback(() => setProgressTick((v) => v + 1), []);
 
   useEffect(() => { trackCourseOnce('view_ai_course_foundation_lab'); }, []);
+  // 初期URLの不正unit等を1回だけ正規化（§8: 不正unit→ラボトップ・ループなし）
+  useEffect(() => {
+    if (initial?.unit && !isKnownFoundationUnit(initial.unit)) onStateChange?.({ section: initial?.section ?? 'today', unit: null, step: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- マウント時のみ
+  }, []);
 
   const loadUnit = useCallback((id: string) => {
     if (!isKnownFoundationUnit(id)) return; // 不正IDはロードしない（§23）
@@ -36,6 +60,14 @@ export const FoundationLabShell = ({ t, onBack }: Props) => {
       .then((bundle) => setBundles((b) => ({ ...b, [id]: bundle })))
       .catch(() => setBundles((b) => ({ ...b, [id]: 'error' })));
   }, []);
+
+  // URL復元で単元が直接開かれた場合もデータをロード（言語切替・リロード対応・microtaskで同期setState回避）
+  useEffect(() => {
+    if (!activeUnitId) return;
+    let alive = true;
+    void Promise.resolve().then(() => { if (alive) loadUnit(activeUnitId); });
+    return () => { alive = false; };
+  }, [activeUnitId, loadUnit]);
 
   // ことば/しくみ/復習/履歴はラベル解決のため全単元データが必要（lazy・ラボ内でのみロード）
   const needAll = view === 'words' || view === 'rules' || view === 'review' || view === 'history';
@@ -78,7 +110,9 @@ export const FoundationLabShell = ({ t, onBack }: Props) => {
             <button type="button" onClick={() => loadUnit(activeUnitId)} className="min-h-11 px-6 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl">{t.common.retry}</button>
           </div>
         ) : (
-          <FoundationUnitPage t={t} bundle={active} repo={repo} onProgressChanged={onProgressChanged}
+          <FoundationUnitPage key={activeUnitId} t={t} bundle={active} repo={repo} onProgressChanged={onProgressChanged}
+            initialPhase={unitStep}
+            onPhaseChange={(p) => { setUnitStep(p); notify({ step: p }); }}
             onExit={() => setActiveUnitId(null)} onGoReview={() => { setActiveUnitId(null); setView('review'); }} />
         )
       ) : (

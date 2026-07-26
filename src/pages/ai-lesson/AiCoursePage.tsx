@@ -3,6 +3,8 @@
 // ＋ ロードマップ / 履歴 / 設定。進捗は Supabase（RLS）、オフライン時は localStorage。
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { parseLabUrl, buildLabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
+import type { LabUrlInput } from '../../lib/aiLesson/course/labUrlState';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLessonFocus } from '../../contexts/LessonFocusContext';
@@ -133,7 +135,7 @@ export default function AiCoursePage() {
   const [step, setStep] = useState<Step>('loading');
   const [learner, setLearner] = useState<Learner | null>(null);
   // しくみラボの権限（labPreview管理者のみ・§23）。未許可でstepがlabになった場合はホームへ退避
-  const labAllowed = (learner?.adminOverrides as { labPreview?: boolean } | undefined)?.labPreview === true;
+  const labAllowed = hasLabPreview(learner?.adminOverrides);
   useEffect(() => {
     if (step !== 'lab' || labAllowed) return;
     let alive = true;
@@ -185,12 +187,23 @@ export default function AiCoursePage() {
   // 表示言語を反映（navigateせず、URLの locale segment だけ replaceState で同期）
   useEffect(() => { try { document.documentElement.lang = uiLang; } catch { /* noop */ } }, [uiLang]);
 
+  // loadAllのdepsからuiLangを外すためのref（言語切替でinitial-load effectが再発火しstepがhomeへ戻るバグの根本修正）
+  const uiLangRef = useRef(uiLang);
   const applyLang = useCallback((next: 'ja' | 'zh') => {
+    uiLangRef.current = next;
     setUiLang(next);
     try {
       document.documentElement.lang = next;
       const path = swapCourseLocaleInPath(window.location.pathname, next);
       window.history.replaceState(window.history.state, '', path + window.location.search + window.location.hash);
+    } catch { /* noop */ }
+  }, []);
+
+  /** ラボの表示位置をURLへ同期（app=1等は維持・回答内容は入れない・§7/§9） */
+  const syncLabUrl = useCallback((state: LabUrlInput | null) => {
+    try {
+      const search = buildLabSearch(window.location.search, state);
+      window.history.replaceState(window.history.state, '', window.location.pathname + search + window.location.hash);
     } catch { /* noop */ }
   }, []);
 
@@ -224,10 +237,16 @@ export default function AiCoursePage() {
     setHasResume(courseRepository.loadResume<unknown>() !== null);
     // 保存済みの表示言語があれば反映（複数端末で同じ言語に）。無ければURL言語のまま。
     const saved = l.settings.uiLanguage;
-    if ((saved === 'ja' || saved === 'zh') && saved !== uiLang) applyLang(saved);
-    // 初回だけ利用開始案内を挟む。以降はホームへ直行する
-    setStep(hasSeenGuide() ? 'home' : 'guide');
-  }, [uiLang, applyLang]);
+    if ((saved === 'ja' || saved === 'zh') && saved !== uiLangRef.current) applyLang(saved);
+    // URLにラボ位置があれば復元（言語切替・リロード・再マウント対応・§7）。
+    // labPreviewが無い場合はURLからラボparamsを外してホームへ（教材非表示・attempt非生成・§11）
+    const labUrl = parseLabUrl(window.location.search);
+    const allowed = hasLabPreview(l.adminOverrides);
+    if (!hasSeenGuide()) { setStep('guide'); return; }
+    if (labUrl.lab && allowed) { setStep('lab'); return; }
+    if (labUrl.lab) syncLabUrl(null);
+    setStep('home');
+  }, [applyLang, syncLabUrl]);
 
   // 初回ロードは1tick遅らせ、effect内の同期setStateを避ける
   useEffect(() => {
@@ -646,7 +665,10 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-          <CourseFoundationLab t={t} onBack={() => setStep('home')} />
+          <CourseFoundationLab t={t}
+            initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
+            onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
+            onBack={() => { syncLabUrl(null); setStep('home'); }} />
         </Suspense>
       </Shell>
     );
@@ -753,8 +775,8 @@ export default function AiCoursePage() {
         onStartLight={() => setStep('light')}
         sessions={sessions}
         onOpenNotebook={() => setStep('notebook')}
-        labPreview={(learner.adminOverrides as { labPreview?: boolean } | undefined)?.labPreview === true}
-        onOpenLab={() => setStep('lab')}
+        labPreview={hasLabPreview(learner.adminOverrides)}
+        onOpenLab={() => { syncLabUrl({ section: 'today', unit: null, step: null }); setStep('lab'); }}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });
