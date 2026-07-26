@@ -47,8 +47,7 @@ import { CourseLightPractice } from '../../components/ai-course/CourseLightPract
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 // しくみラボは labPreview 管理者のみ利用のため lazy chunk 化（一般受講生のbundleへ教材を含めない・§17）
-const CourseFoundationLab = lazy(() =>
-  import('../../components/ai-course/CourseFoundationLab').then((m) => ({ default: m.CourseFoundationLab })));
+const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
