@@ -2,13 +2,17 @@
 // 鍵付きの週もタップ可＝テキスト予習を開ける（音声のみ未解放）。
 
 import { useState } from 'react';
-import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target, BookOpen, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Target, BookOpen, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
 import type { ItemProgress, Mission } from '../../lib/aiLesson/course/types';
 import { COURSE_GOAL_CANDOS } from '../../lib/aiLesson/course/courseCanDo';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
 import { missionAccessState } from '../../lib/aiLesson/course/coursePreview';
+import {
+  chapterOfInternalWeek, displayWeeksOfChapter, currentDisplayWeek, isInternalWeekLocked, CHAPTER_COUNT,
+} from '../../lib/aiLesson/course/courseWeekMapping';
+import type { AccessTier } from '../../lib/aiLesson/course/courseWeekMapping';
 
 interface Props {
   t: AiCourseDict;
@@ -16,7 +20,10 @@ interface Props {
   currentWeek: number;
   nextMission: Mission | null;
   progress: ItemProgress[];
-  estimate: { mode: 'diagnosing'; remaining: number } | { mode: 'ready'; minWeeks: number; maxWeeks: number };
+  /** アクセス層（starter_12w=Week13以降鍵付き・§24W） */
+  accessTier: AccessTier;
+  /** 現在の内部週の完了ミッション数（表示週の前半/後半判定用） */
+  doneInCurrentWeek: number;
   /** 全ての章のテキスト予習一覧を開く（補助導線） */
   onSeeChapters: () => void;
   /** 章（ミッション）のテキスト予習を開く */
@@ -37,7 +44,7 @@ const stateIcon = (state: WeekStat['state']) => {
   }
 };
 
-export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, estimate, onSeeChapters, onOpenPreview, onSeeN2Grammar, onBack }: Props) => {
+export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, accessTier, doneInCurrentWeek, onSeeChapters, onOpenPreview, onSeeN2Grammar, onBack }: Props) => {
   const tr = t.roadmap;
   const tp = t.preview;
   const zh = t.locale === 'zh';
@@ -64,24 +71,48 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
         return (
           <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
             <p className="text-xs text-blue-700 flex items-center gap-1.5 mb-1">
-              <Target className="w-3.5 h-3.5" />{tr.current} ・ Week {currentWeek}/12
+              <Target className="w-3.5 h-3.5" />{tr.current} ・ {tr.weekOf24(currentDisplayWeek(currentWeek, doneInCurrentWeek))} ・ {tr.chapterLabel(chapterOfInternalWeek(currentWeek))} {tr.chapters[chapterOfInternalWeek(currentWeek) - 1]?.title}
             </p>
             <p className="text-base font-bold text-gray-900 leading-snug">{zh ? cw.themeZh : cw.themeJa}</p>
             <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-gray-600">
               <span>{tr.done(cw.learned, cw.total)}</span>
               {nextMission && <span>{tr.nextMission}: <span className="font-medium text-blue-700">{nextMission.targetExpression}</span></span>}
             </div>
-            <p className="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1">
-              {estimate.mode === 'diagnosing'
-                ? <><Stethoscope className="w-3 h-3 text-blue-500" />{tr.estimatedCompletion}: {tr.diagnosing.replace('{n}', String(estimate.remaining))}</>
-                : <>{tr.estimatedCompletion}: {tr.completionValue(estimate.minWeeks, estimate.maxWeeks)}</>}
-            </p>
+            {accessTier === 'starter_12w' && (
+              <p className="text-[11px] text-gray-500 mt-1.5">{tr.availableRange}</p>
+            )}
           </div>
         );
       })()}
 
-      <div className="space-y-2">
-        {weeks.map((w) => {
+      <div className="space-y-4">
+        {Array.from({ length: CHAPTER_COUNT }, (_, ci) => ci + 1).map((c) => {
+          const [wStart, wEnd] = [c * 2 - 1, c * 2];
+          const chapterWeeks = weeks.filter((w) => w.week >= wStart && w.week <= wEnd);
+          const locked = isInternalWeekLocked(accessTier, wStart);
+          const [dwS, dwE] = displayWeeksOfChapter(c);
+          const chDef = tr.chapters[c - 1];
+          if (locked) {
+            // 鍵付き章（§24W-10）: 章タイトル＋概要＋相談導線のみ。料金・申込み・教材本文・完了は出さない
+            return (
+              <div key={c} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-1">
+                  <Lock className="w-3.5 h-3.5" aria-hidden="true" />{tr.chapterLabel(c)} ・ Week {dwS}〜{dwE}
+                </p>
+                <p className="text-sm font-bold text-gray-700">{chDef?.title}</p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{chDef?.summary}</p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">{tr.lockedChapterNote}</p>
+                <p className="text-xs font-bold text-emerald-700 mt-1.5 select-all">{tr.consultCta}</p>
+              </div>
+            );
+          }
+          return (
+            <div key={c}>
+              <p className="text-xs font-bold text-gray-500 mb-1.5">
+                {tr.chapterLabel(c)} ・ Week {dwS}〜{dwE} ・ {chDef?.title}
+              </p>
+              <div className="space-y-2">
+        {chapterWeeks.map((w) => {
           const isCurrent = w.week === currentWeek;
           const isOpen = expanded.has(w.week);
           const locked = w.state === 'locked';
@@ -159,6 +190,10 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
                   )}
                 </div>
               )}
+            </div>
+          );
+        })}
+              </div>
             </div>
           );
         })}

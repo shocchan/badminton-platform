@@ -10,6 +10,7 @@ import { deriveCourseMemories } from '../../lib/aiLesson/course/courseMemories';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import type { LearnerSettings } from '../../lib/aiLesson/course/types';
 import type { CourseSessionRecord } from '../../lib/aiLesson/course/types';
+import { currentDisplayWeek, chapterOfInternalWeek } from '../../lib/aiLesson/course/courseWeekMapping';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { Learner, LessonPlan } from '../../lib/aiLesson/course/types';
@@ -84,7 +85,7 @@ export const CourseHome = ({
           imageSrc={usePrivateAvatarUrl(learner.settings.avatarReviewStatus === 'approved' ? learner.settings.avatarObjectPath : null)} />
         <div className="min-w-0">
           <h1 className="text-lg lg:text-xl font-bold text-gray-900 leading-tight">{th.profileTitle(learner.displayName)}</h1>
-          <p className="text-[11px] text-gray-500 mt-0.5 truncate">{tg.currentLevelLabel}: {currentStageLabel} ・ Week {learner.currentWeek}/12</p>
+          <p className="text-[11px] text-gray-500 mt-0.5 truncate">{tg.currentLevelLabel}: {currentStageLabel} ・ {t.roadmap.weekOf24(currentDisplayWeek(learner.currentWeek, 0))}〜 ・ {t.roadmap.chapters[chapterOfInternalWeek(learner.currentWeek) - 1]?.title}</p>
           <p className="text-xs text-gray-500 mt-0.5">
             {stats.streak === 0 && stats.totalSessions > 0
               ? th.welcomeBack

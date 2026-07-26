@@ -27,8 +27,8 @@ import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
 import { otherLang, swapCourseLocaleInPath } from '../../lib/aiLesson/course/courseLanguage';
 import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
-import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
+import { accessTierOf, isMissionLockedByTier } from '../../lib/aiLesson/course/courseWeekMapping';
 import { trackCourse, trackCourseOnce } from '../../lib/aiLesson/course/courseAnalytics';
 import { buildResumeFromUtterances } from '../../lib/aiLesson/course/courseTextResume';
 import type { ResumedTextLesson } from '../../lib/aiLesson/course/courseTextResume';
@@ -244,6 +244,11 @@ export default function AiCoursePage() {
    */
   const startLesson = async (m: 'voice' | 'text', planArg: LessonPlan | null = plan) => {
     if (!learner || !planArg || starting) return;
+    // §24W: starter_12w は第4章以降（内部7週〜）を開始不可（UI非表示だけに依存しない）
+    if (isMissionLockedByTier(accessTierOf(learner), planArg.main.mission)) {
+      setStartError(t.roadmap.lockedStart);
+      return;
+    }
     setStarting(true);
     setStartError('');
     const r = await courseRepository.createSession(learner.id, {
@@ -589,14 +594,7 @@ export default function AiCoursePage() {
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
-    const est = sessions.length < COURSE_DIAGNOSIS_MIN_SESSIONS
-      ? { mode: 'diagnosing' as const, remaining: COURSE_DIAGNOSIS_MIN_SESSIONS - sessions.length }
-      : (() => {
-        const remainingMissions = 60 - progress.length;
-        const wk = Math.max(learner.settings.weeklyTarget, 1);
-        return { mode: 'ready' as const, minWeeks: Math.ceil(remainingMissions / wk), maxWeeks: Math.ceil((remainingMissions * 1.5) / wk) };
-      })();
-    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} estimate={est} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
   if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
