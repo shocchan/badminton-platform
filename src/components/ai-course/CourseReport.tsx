@@ -1,12 +1,16 @@
 // レッスン後レポート（UX改訂）。最初に見せるのは「完了＋できたこと＋直す点1つ」だけ。
 // 詳細（訂正全件・自然な言い方・定着状態・XP内訳）は「詳しく見る」に折り畳む（§10）。
 
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
 import type { CanDoStage } from '../../lib/aiLesson/course/courseCanDo';
+import { pickRetryTarget } from '../../lib/aiLesson/course/courseRetry';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { CourseRetryCard } from './CourseRetryCard';
+import { CourseIllustration } from './CourseIllustration';
 import { ShokoAvatar } from './ShokoAvatar';
 
 export interface CourseReportData {
@@ -58,10 +62,17 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
   const rate = (rating: FeedbackInput['difficultyRating']) => { setRated(true); onFeedback({ difficultyRating: rating }); };
   const durMin = Math.max(1, Math.round(data.durationSeconds / 60));
 
-  const firstFix = r.corrections[0] ?? null;
-  const restFixes = r.corrections.slice(1);
-  // 折り畳みに中身があるときだけ「詳しく見る」を出す
-  const hasDetails = restFixes.length > 0 || r.naturalPhrases.length > 0 || !!data.nextAbility || true; // 定着状態・XPは常にあるため常時true
+  // 言い直し対象（最重要の1件のみ・無ければカードを出さない）
+  const retryTarget = useMemo(() => pickRetryTarget(r, data.mission.targetExpression), [r, data.mission.targetExpression]);
+  const [retryDone, setRetryDone] = useState(!retryTarget); // 対象なし＝最初から完了扱い
+  const dailyDoneSent = useRef(false);
+  const markDailyDone = () => {
+    setRetryDone(true);
+    if (!dailyDoneSent.current) { dailyDoneSent.current = true; trackCourse('complete_ai_course_daily'); }
+  };
+  // 詳細折り畳みには言い直し対象以外の訂正を出す（重複表示しない）
+  const restFixes = r.corrections.filter((c) => !(retryTarget && c.original === retryTarget.original && c.improved === retryTarget.improved));
+  const hasDetails = true; // 定着状態・XPは常にあるため常時true
 
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
@@ -90,13 +101,35 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
           </div>
         </div>
 
-        {/* ② 直す点は1つだけ（残りは「詳しく見る」へ・§10） */}
-        {firstFix && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-5">
-            <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-2"><PenLine className="w-4 h-4 text-blue-600" />{tr.fixOneTitle}</p>
-            <p className="text-sm text-gray-400 line-through decoration-red-300">{firstFix.original}</p>
-            <p className="text-sm text-gray-900 font-medium mt-0.5">→ {firstFix.improved}</p>
-            {firstFix.noteZh && <p className="text-xs text-gray-500 mt-0.5">{firstFix.noteZh}</p>}
+        {/* ② 言い直しフロー: 最重要の1文だけ、その場で1回言い直す（スキップ可・失敗扱いなし） */}
+        {retryTarget && !retryDone && (
+          <CourseRetryCard t={t} target={retryTarget} onFinished={() => markDailyDone()} />
+        )}
+        {retryTarget && retryDone && (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-1"><PenLine className="w-3.5 h-3.5 text-blue-600" />{tr.fixOneTitle}</p>
+            <p className="text-sm text-gray-400 line-through decoration-red-300">{retryTarget.original}</p>
+            <p className="text-sm text-gray-900 font-medium mt-0.5">→ {retryTarget.improved}</p>
+          </div>
+        )}
+
+        {/* ③ 今日の学習完了（言い直し後の締め・次の復習日と先生の一言） */}
+        {retryDone && (
+          <div className="bg-gradient-to-br from-blue-50 to-emerald-50 rounded-2xl border border-blue-100 p-5 motion-safe:animate-[report-in_0.5s_ease-out]" aria-live="polite">
+            <div className="flex items-center gap-3">
+              <CourseIllustration slot="complete" width={64} lang={zh ? 'zh' : 'ja'} decorative className="shrink-0 rounded-2xl" />
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />{tr.doneTitle}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">{tr.doneCoachLine}</p>
+                {data.nextReviewISO && (
+                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                    <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
