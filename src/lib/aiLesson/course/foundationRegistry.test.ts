@@ -3,7 +3,7 @@ import { FOUNDATION_UNIT_META, loadFoundationUnit, isKnownFoundationUnit } from 
 import type { FoundationUnitBundle } from './foundationRegistry';
 import { mechanicOf } from './foundationTypes';
 
-let bundles: Record<string, FoundationUnitBundle> = {};
+const bundles: Record<string, FoundationUnitBundle> = {};
 const loadAll = async () => {
   if (Object.keys(bundles).length) return bundles;
   for (const m of FOUNDATION_UNIT_META) bundles[m.id] = await loadFoundationUnit(m.id);
