@@ -91,6 +91,7 @@ export const FoundationUnitPage = ({ t, bundle, repo, onExit, onGoReview, onProg
                   <span className="text-base font-bold text-gray-900">{it.displayForm}</span>
                   <span className="text-xs text-gray-500">{it.readingKana}</span>
                   <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700">{tl.pos[it.partOfSpeech]}</span>
+                  {it.verbGroup && <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-50 text-sky-700">{tl.verbGroups[it.verbGroup]}</span>}
                 </div>
                 <p className="text-xs text-gray-700 mt-0.5">{it.meaningZh}</p>
                 <p className="text-[11px] text-gray-500 mt-0.5">{it.exampleJa}／{it.exampleZh}</p>

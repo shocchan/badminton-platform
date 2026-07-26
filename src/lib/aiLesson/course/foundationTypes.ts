@@ -45,6 +45,7 @@ export interface FoundationItem {
   readingKana: string;
   readingRomaji: string;        // 補助表示のみ（読める判定には使わない）
   partOfSpeech: 'noun' | 'verb' | 'naAdj' | 'iAdj' | 'expression';
+  verbGroup?: 'g1' | 'g2' | 'g3';  // 動詞のみ（一類/二類/三類・帰る等の例外は一類として登録し注記）
   meaningZh: string;
   exampleJa: string;
   exampleZh: string;

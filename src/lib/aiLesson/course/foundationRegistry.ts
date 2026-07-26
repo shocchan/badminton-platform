@@ -22,10 +22,14 @@ export interface FoundationUnitMeta {
 
 export const FOUNDATION_UNIT_META: FoundationUnitMeta[] = [
   { id: 'fu-selfintro-1', titleJa: '自己紹介で使う基本のことば', titleZh: '自我介绍常用词与句型', level: 'N5', recommendedWeek: 1, estimatedMinutes: 6, prerequisiteUnitIds: [], review: 'draft' },
+  { id: 'fu-verbs-masu-nai', titleJa: '基本動詞と「ます形・ない形」', titleZh: '基本动词与「ます形・ない形」', level: 'N5', recommendedWeek: 2, estimatedMinutes: 8, prerequisiteUnitIds: ['fu-selfintro-1'], review: 'draft' },
+  { id: 'fu-te-form', titleJa: '基本動詞の「て形」', titleZh: '基本动词的「て形」', level: 'N5', recommendedWeek: 3, estimatedMinutes: 8, prerequisiteUnitIds: ['fu-verbs-masu-nai'], review: 'draft' },
 ];
 
 const loaders: Record<string, () => Promise<{ BUNDLE: FoundationUnitBundle }>> = {
   'fu-selfintro-1': () => import('./foundationUnit1'),
+  'fu-verbs-masu-nai': () => import('./foundationUnit2'),
+  'fu-te-form': () => import('./foundationUnit3'),
 };
 
 export const isKnownFoundationUnit = (id: string): boolean => Object.prototype.hasOwnProperty.call(loaders, id);
