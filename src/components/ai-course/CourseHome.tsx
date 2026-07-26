@@ -18,6 +18,10 @@ interface Props {
   stats: LearnerStats;
   reviewsDue: number;
   reviewsOverdue: number;
+  /** 今週の学習日数（回数ではなく日数・§E-2） */
+  weekLearningDays: number;
+  /** 軽め学習の材料があるか（進捗ゼロでは出さない・§E-3） */
+  hasLightMaterial: boolean;
   remainingToday: number;
   hasResume: boolean;
   starting: boolean;
@@ -37,15 +41,18 @@ interface Props {
   onDiscardResume: () => void;
   onSeeGrowth: () => void;
   onSeePastNotes: () => void;
+  /** 軽め2〜3分学習（API不使用）を開く */
+  onStartLight: () => void;
   /** 今日の章をテキストで予習（音声前の確認・APIなし） */
   onPreview: () => void;
 }
 
 export const CourseHome = ({
   t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
+  weekLearningDays, hasLightMaterial,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
-  onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview,
+  onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -126,7 +133,11 @@ export const CourseHome = ({
             {!plan?.main.hideTarget && (
               <p className="text-sm text-blue-100 mt-1">{th.todayTarget}: {mission.targetExpression}</p>
             )}
-            <p className="text-xs text-blue-100 mt-1">{th.minutes(mission.estimatedMinutes)}</p>
+            <p className="text-xs text-blue-100 mt-1">
+              {th.minutes(mission.estimatedMinutes)}
+              {/* なぜ今日これなのか（決定的・reasonKey・不正キーはgenericへ・§E-1） */}
+              <span className="block mt-0.5 text-blue-200">{(plan && th.planReasons[plan.reasonKey]) ?? th.planReasons.generic}</span>
+            </p>
           </>
         ) : (
           <p className="text-sm text-blue-100">{t.common.loading}</p>
@@ -164,9 +175,17 @@ export const CourseHome = ({
         </button>
       )}
       <button type="button" onClick={onPreview}
-        className="w-full min-h-11 py-2 mb-3 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
+        className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
+      {/* 軽め2〜3分（API不使用・会話しない日の入口・§E-3） */}
+      {hasLightMaterial && (
+        <button type="button" onClick={onStartLight}
+          className="w-full min-h-11 py-2 mb-3 text-sm text-emerald-700 hover:text-emerald-800 flex items-center justify-center gap-1.5">
+          <Sparkles className="w-4 h-4" />{th.lightStart}
+          <span className="text-[11px] text-gray-400">{th.lightNote}</span>
+        </button>
+      )}
 
       {/* 今日の復習（あるときだけ・1行で件数と入口） */}
       {reviewsDue > 0 && (
@@ -232,6 +251,17 @@ export const CourseHome = ({
         <span className="text-sm font-medium text-gray-800 flex-1 min-w-0">{t.reviewNote.seeAll}</span>
         <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
       </button>
+
+      {/* 今週の学習リズム（日数ベース・責めない・比較なし・§E-2） */}
+      {stats.totalSessions > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
+          <p className="text-xs font-medium text-gray-500 mb-1">{th.rhythmTitle}</p>
+          <p className="text-sm font-bold text-gray-900">{th.rhythmDays(weekLearningDays)}</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {weekLearningDays >= 3 ? th.rhythmGood : weekLearningDays >= 1 ? th.rhythmStart : th.rhythmFresh}
+          </p>
+        </div>
+      )}
 
       {/* 人間コーチの存在（静的文言＋既存WeChat導線のみ。主CTAより控えめ・§B-1） */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">

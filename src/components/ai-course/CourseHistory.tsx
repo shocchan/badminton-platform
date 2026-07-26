@@ -20,6 +20,8 @@ interface Props {
   progress: ItemProgress[];
   practiceAgainIds: string[];
   onOpenNote: (item: ReviewItem) => void;
+  /** わたしの表現（表現バンクMVP・§E-4）を開く */
+  onOpenExpressions: () => void;
   onBack: () => void;
 }
 
@@ -68,7 +70,7 @@ const Card = ({ t, it, onOpen }: { t: AiCourseDict; it: ReviewItem; onOpen: () =
   );
 };
 
-export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenNote, onBack }: Props) => {
+export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenNote, onOpenExpressions, onBack }: Props) => {
   const r = t.records;
   const plan: ReviewPlan = buildReviewPlan(progress, sessions, practiceAgainIds);
   const hasReview = plan.today.length > 0;
@@ -132,6 +134,17 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
               </div>
             )}
           </div>
+
+          {/* わたしの表現（学んだ日本語の積み重ね・§E-4） */}
+          <button type="button" onClick={onOpenExpressions}
+            className="w-full text-left bg-white rounded-xl border border-blue-100 p-3.5 mb-3 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
+            <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-medium text-gray-900">{t.bank.title}</span>
+              <span className="block text-[11px] text-gray-400 truncate">{t.bank.subtitle}</span>
+            </span>
+            <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+          </button>
 
           {/* タブ（目的別） */}
           <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 -mx-1 px-1">

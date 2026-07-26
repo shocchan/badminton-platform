@@ -123,8 +123,9 @@ const homeProps = {
   reviewsDue: 2, reviewsOverdue: 0, remainingToday: 3,
   hasResume: false, starting: false, startError: '',
   currentStageLabel: 'あいさつと自己紹介ができる', thisWeekCanDos: [], nextAbility: null, journey: [],
+  weekLearningDays: 2, hasLightMaterial: false,
   onStart: () => {}, onResume: () => {}, onDiscardResume: () => {},
-  onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {},
+  onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {}, onStartLight: () => {},
 };
 
 describe('CourseHome（今日の学習と復旧パネル）', () => {
@@ -207,5 +208,60 @@ describe('streak復帰文言（§B-3）', () => {
     for (const d of [t, tz]) {
       expect(d.home.welcomeBack).not.toMatch(/失い|ゼロ|失去|清零/);
     }
+  });
+});
+
+
+describe('今日のおすすめ理由1行（§E-1）', () => {
+  it('reasonKeyに対応する理由を表示（next_new）', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.getByText(t.home.planReasons.next_new)).toBeTruthy();
+  });
+
+  it('不正なreasonKeyはgenericへfallback・CTAは不変', () => {
+    render(<CourseHome {...homeProps} plan={{ ...homeProps.plan, reasonKey: 'unknown_key' }} />);
+    expect(screen.getByText(t.home.planReasons.generic)).toBeTruthy();
+    expect(screen.getByText(t.home.startLesson)).toBeTruthy();
+  });
+
+  it('zh: 理由が中国語で表示される', () => {
+    render(<CourseHome {...homeProps} t={tz} />);
+    expect(screen.getByText(tz.home.planReasons.next_new)).toBeTruthy();
+  });
+});
+
+describe('週次学習リズム（§E-2）', () => {
+  it('日数と前向きな文言（3日以上=良いペース）', () => {
+    render(<CourseHome {...homeProps} weekLearningDays={4} stats={{ ...stats, totalSessions: 10 }} />);
+    expect(screen.getByText(t.home.rhythmDays(4))).toBeTruthy();
+    expect(screen.getByText(t.home.rhythmGood)).toBeTruthy();
+  });
+
+  it('0日でも責めない（これから文言）・初回利用者には出さない', () => {
+    render(<CourseHome {...homeProps} weekLearningDays={0} stats={{ ...stats, totalSessions: 5, streak: 3 }} />);
+    expect(screen.getByText(t.home.rhythmFresh)).toBeTruthy();
+    cleanup();
+    render(<CourseHome {...homeProps} weekLearningDays={0} stats={{ ...stats, totalSessions: 0 }} />);
+    expect(screen.queryByText(t.home.rhythmTitle)).toBeNull();
+  });
+
+  it('否定的表現を含まない（ja/zh）', () => {
+    for (const d of [t, tz]) {
+      for (const s2 of [d.home.rhythmGood, d.home.rhythmStart, d.home.rhythmFresh]) {
+        expect(s2).not.toMatch(/失|ゼロ|途切れ|中断|失去|清零/);
+      }
+    }
+  });
+});
+
+describe('軽め学習の入口（§E-3）', () => {
+  it('材料がある時だけ「3分だけやる」を表示し、押すとonStartLight', () => {
+    const onLight = vi.fn();
+    render(<CourseHome {...homeProps} hasLightMaterial onStartLight={onLight} />);
+    fireEvent.click(screen.getByText(t.home.lightStart));
+    expect(onLight).toHaveBeenCalledTimes(1);
+    cleanup();
+    render(<CourseHome {...homeProps} hasLightMaterial={false} />);
+    expect(screen.queryByText(t.home.lightStart)).toBeNull();
   });
 });
