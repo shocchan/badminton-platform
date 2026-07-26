@@ -70,8 +70,8 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
                 <button
                   key={key} type="button" onClick={() => onNavigate(key)}
                   aria-current={current === key ? 'page' : undefined}
-                  className={`min-h-11 px-3 py-2 text-sm font-medium rounded-lg flex items-center gap-1.5 transition-colors ${
-                    current === key ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'
+                  className={`min-h-11 px-3 py-2 text-sm font-medium rounded-lg flex items-center gap-1.5 transition-colors action-raised ${
+                    current === key ? 'bg-blue-50 text-blue-700 shadow-inner is-current-pill' : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
