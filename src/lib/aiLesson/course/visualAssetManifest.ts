@@ -57,6 +57,11 @@ export const VISUAL_ASSETS: VisualAsset[] = [
   plannedScene('va-scene-station', 'fi-eki', '駅の改札前の場面', '车站检票口的场景', `${STYLE} 駅の改札前を成人が歩いている。駅と分かる構図だが案内表示の文字は抽象化。`),
   plannedScene('va-scene-hospital', 'fi-byouin', '病院の受付の場面', '医院前台的场景', `${STYLE} 成人が病院の受付で話している。清潔で落ち着いた医療機関の雰囲気。`),
   plannedScene('va-scene-restaurant', 'fi-oishii', 'レストランで食事する場面', '在餐厅吃饭的场景', `${STYLE} 成人がレストランでおいしそうな料理を前にしている。`),
+  // ── パックカバー（§18・パックのテーマを抽象的に表現） ──
+  { ...plannedScene('va-pack-life-basic-cover', 'pack-life-basic-1', '日常生活の場面が緩やかにつながるコラージュ', '日常生活场景的柔和拼贴', `${STYLE} 家・駅・店・職場の日常場面を、余白を活かして抽象的に緩やかにつなげたコラージュ。一枚に詰め込みすぎない。パック表紙用の落ち着いた構図。`), assetType: 'scene_illustration' as const },
+  { ...plannedScene('va-pack-n3-prep-cover', 'pack-n3-prep-1', '語彙カードと会話・矢印が広がる学習拡張のイメージ', '词汇卡片与对话・箭头扩展的学习意象', `${STYLE} 語彙カードが重なり、会話の吹き出し（文字なし）と矢印が広がっていく抽象的な学習拡張のイメージ。変化・比較・意見を想起させる落ち着いた構図。パック表紙用。`), assetType: 'scene_illustration' as const },
+  { ...plannedScene('va-pack-conversation-cover', 'conversation', '二人の成人の自然な会話の流れ', '两位成人自然对话的画面', `${STYLE} 二人の成人が向かい合い、質問と応答の流れが吹き出しの形（文字なし）で見える。会話コアパック表紙用。`), assetType: 'scene_illustration' as const },
+  { ...plannedScene('va-pack-business-cover', 'business', '会議・報告・確認を抽象的に表した職場の場面', '会议・汇报・确认的抽象职场画面', `${STYLE} 会議テーブル・資料・確認のジェスチャーを抽象的に表した職場の場面。仕事パック表紙用（将来draft）。`), assetType: 'scene_illustration' as const },
 ];
 
 /**

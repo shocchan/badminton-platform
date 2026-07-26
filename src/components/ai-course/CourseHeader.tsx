@@ -27,15 +27,23 @@ interface Props {
   showLab?: boolean;
 }
 
-const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] => [
-  { key: 'home', icon: Home },
-  { key: 'growth', icon: TrendingUp },
-  { key: 'roadmap', icon: Map },
-  // ことば図鑑・しくみラボはAI会話と並ぶ主要機能としてロードマップの次に置く（labPreviewのみ）
-  ...(showLab ? ([{ key: 'vocab', icon: BookOpen }, { key: 'lab', icon: FlaskConical }] as { key: CourseNavKey; icon: typeof Home }[]) : []),
-  { key: 'history', icon: History },
-  { key: 'settings', icon: Settings },
-];
+// 案A（Phase 2D §27・labPreviewのみ）: 機能で選べる5項目。ロードマップ・学習記録は成長内へ統合
+// （旧URL・旧画面は削除せず直接アクセス可能）。一般受講生は従来の5項目のまま。
+const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] => (showLab
+  ? [
+    { key: 'home', icon: Home },
+    { key: 'vocab', icon: BookOpen },
+    { key: 'lab', icon: FlaskConical },
+    { key: 'growth', icon: TrendingUp },
+    { key: 'settings', icon: Settings },
+  ]
+  : [
+    { key: 'home', icon: Home },
+    { key: 'growth', icon: TrendingUp },
+    { key: 'roadmap', icon: Map },
+    { key: 'history', icon: History },
+    { key: 'settings', icon: Settings },
+  ]);
 
 /** 言語切替ボタン。日本語表示中は「中文」、中国語表示中は「日本語」を出す（必ず文字を表示） */
 const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: () => void; label: string }) => (

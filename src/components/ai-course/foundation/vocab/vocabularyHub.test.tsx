@@ -3,6 +3,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { VocabularyHub } from './VocabularyHub';
 import { aiCourseI18n } from '../../../../locales/aiCourse';
+import { allVocabularyItems, vocabByCategory } from '../../../../lib/aiLesson/course/foundationVocabBank';
 
 afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); });
@@ -25,7 +26,7 @@ describe('ことば図鑑トップ（§7・3ブロック構成）', () => {
     expect(screen.getByText(t.vocab.catIAdj)).toBeTruthy();
     expect(screen.getByText(t.vocab.catNaAdj)).toBeTruthy();
     expect(screen.getByText(t.vocab.catNouns)).toBeTruthy();
-    expect(screen.getByText(t.vocab.wordsCount(27))).toBeTruthy(); // 動詞27語
+    expect(screen.getByText(t.vocab.wordsCount(vocabByCategory(allVocabularyItems(), 'verbs').length))).toBeTruthy(); // 動詞（実数）
   });
   it('zhでもトップが表示される', () => {
     render(<VocabularyHub {...base} t={aiCourseI18n.zh} />);
@@ -108,17 +109,17 @@ describe('順次ナビゲーション（§2-§3）', () => {
     fireEvent.click(screen.getByText(t.vocab.selfKnownBtn));
     await waitFor(() => expect(screen.getByText(t.vocab.nextWord)).toBeTruthy());
     // 進行状況（動詞 1 / 27）と保存表示
-    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 4, 27))).toBeTruthy(); // 一覧順=単元1動詞3語の後
+    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 4, vocabByCategory(allVocabularyItems(), 'verbs').length))).toBeTruthy();
     expect(screen.getAllByText(new RegExp(t.vocab.savedNote)).length).toBeGreaterThanOrEqual(1);
     fireEvent.click(screen.getByText(t.vocab.nextWord));
     // 動詞一覧2番目（来る）へ・カテゴリ順維持
-    await waitFor(() => expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 5, 27))).toBeTruthy());
+    await waitFor(() => expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 5, vocabByCategory(allVocabularyItems(), 'verbs').length))).toBeTruthy());
     // 自己評価は変更可能・重複レコードなし（entriesは同一キー上書き）
     const raw = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
     expect(raw.entries['fi-iku'].selfAssessment).toBe('self_known');
   });
   it('カテゴリ最後の語では「一覧へ戻る」になり一覧へ遷移する', async () => {
-    render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'naAdj', itemId: 'fi-jouzu' }} />);
+    render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'naAdj', itemId: vocabByCategory(allVocabularyItems(), 'naAdj').slice(-1)[0].id }} />);
     await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
     fireEvent.click(screen.getByText(t.vocab.needsReviewBtn));
     const back = await screen.findByText(t.vocab.backToList(t.vocab.catNaAdj));
@@ -128,7 +129,7 @@ describe('順次ナビゲーション（§2-§3）', () => {
   it('直接URL（カテゴリ文脈なし）でも同品詞カテゴリで安全に次へ進める（§3E）', async () => {
     render(<VocabularyHub {...base} initial={{ view: 'detail', itemId: 'fi-sumu' }} />);
     await waitFor(() => expect(screen.getByText(t.vocab.selfPrompt)).toBeTruthy());
-    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 1, 27))).toBeTruthy(); // 住むは一覧先頭
+    expect(screen.getByText(t.vocab.categoryProgress(t.vocab.catVerbs, 1, vocabByCategory(allVocabularyItems(), 'verbs').length))).toBeTruthy();
   });
 });
 
@@ -187,5 +188,34 @@ describe('目標・パック・レベル表示（§33-§46）', () => {
     r1.unmount();
     render(<VocabularyHub {...base} initial={{ view: 'detail', itemId: 'fi-sensei' }} />);
     await waitFor(() => expect(screen.getByText(new RegExp(t.vocab.cognateDiff))).toBeTruthy());
+  });
+});
+
+describe('語彙ロードマップ・診断（Phase 2D §9-§10・§20-§21）', () => {
+  it('ロードマップ: 目標・現在パック・2本の分離バー・診断CTA・次のパック（N3準備）', async () => {
+    window.sessionStorage.setItem('ai_course_vocab_preview_v1', JSON.stringify({ schemaVersion: 1, entries: {}, dailyWords: null, settings: { track: 'n2_prep', furigana: 'hard_only' } }));
+    render(<VocabularyHub {...base} initial={{ view: 'roadmap' }} />);
+    await waitFor(() => expect(screen.getAllByText(t.vocab.tracks.n2_prep).length).toBeGreaterThanOrEqual(1));
+    expect(screen.getByText(t.vocab.n2Note)).toBeTruthy(); // N2の正直な表示（§9）
+    expect(screen.getByText('生活・会話の基礎')).toBeTruthy();
+    expect(screen.getByText('N3準備・語彙拡張')).toBeTruthy(); // 次のパック
+    expect(screen.getByText(t.vocab.n3PackNote)).toBeTruthy(); // 公式語彙と誤解させない
+    expect(screen.getAllByText(t.vocab.statStarted).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(t.vocab.statVerifiedLabel).length).toBeGreaterThanOrEqual(1); // 分離バー
+    expect(screen.getByText(new RegExp(t.vocab.diagnosticCta))).toBeTruthy();
+  });
+  it('診断: タップ回答→正解=確認済み/誤答=復習リスト・完了画面に件数', async () => {
+    window.sessionStorage.setItem('ai_course_vocab_preview_v1', JSON.stringify({ schemaVersion: 1, entries: {}, dailyWords: null, settings: { track: 'n2_prep', furigana: 'hard_only' } }));
+    render(<VocabularyHub {...base} initial={{ view: 'diagnostic' }} />);
+    await waitFor(() => expect(screen.getByText(t.lab.check)).toBeTruthy());
+    // 1問回答（choice→確認）
+    const choices = screen.getAllByRole('button').filter((b) => b.getAttribute('aria-pressed') !== null);
+    fireEvent.click(choices[0]);
+    fireEvent.click(screen.getByText(t.lab.check));
+    await waitFor(() => expect(screen.getByText(t.lab.next)).toBeTruthy());
+    const raw = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
+    const diag = raw.diagnostics['pack-life-basic-1'];
+    expect(Object.keys(diag).length).toBe(1);
+    expect(['confirmed', 'remedial']).toContain(Object.values(diag)[0]);
   });
 });

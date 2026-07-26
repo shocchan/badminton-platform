@@ -19,10 +19,11 @@ describe('語彙バンク整合（§23・§50-52）', () => {
     newIds.forEach((id) => expect(existing.has(id)).toBe(false));
     VOCAB_NEW_ITEMS.forEach((i) => { expect(i.review).toBe('draft'); expect(i.meaningZh.length).toBeGreaterThan(0); expect(i.readingKana.length).toBeGreaterThan(0); });
   });
-  it('全体で70〜100語・同一Itemの再利用（行く/住む等は新規登録されない）', () => {
+  it('全語彙=基礎78＋N3拡張・同一Itemの再利用（行く/住む等は新規登録されない）', () => {
     const all = allVocabularyItems();
-    expect(all.length).toBeGreaterThanOrEqual(70);
-    expect(all.length).toBeLessThanOrEqual(100);
+    const basics = all.filter((i) => i.coreLevel !== 'B');
+    expect(basics.length).toBe(78); // 基礎パックは78語のまま
+    expect(all.length).toBeGreaterThan(78);
     expect(new Set(all.map((i) => i.id)).size).toBe(all.length);
     expect(VOCAB_NEW_ITEMS.some((i) => i.lemma === '行く' || i.lemma === '住む')).toBe(false);
   });
@@ -44,11 +45,13 @@ describe('語彙バンク整合（§23・§50-52）', () => {
       expect(it.id).toMatch(/^fi-[a-z0-9-]+$/);
     }
   });
-  it('カテゴリ分類: 動詞27・い形16・な形7・場面別が引ける', () => {
+  it('カテゴリ分類: 基礎動詞27を含む・い形/な形/場面別が引ける', () => {
     const all = allVocabularyItems();
-    expect(vocabByCategory(all, 'verbs').length).toBe(27);
-    expect(vocabByCategory(all, 'iAdj').length).toBe(16);
-    expect(vocabByCategory(all, 'naAdj').length).toBe(7);
+    const basicVerbs = vocabByCategory(all.filter((i) => i.coreLevel !== 'B'), 'verbs');
+    expect(basicVerbs.length).toBe(27);
+    expect(vocabByCategory(all, 'verbs').length).toBeGreaterThan(27); // N3動詞追加
+    expect(vocabByCategory(all, 'iAdj').length).toBeGreaterThanOrEqual(16);
+    expect(vocabByCategory(all, 'naAdj').length).toBeGreaterThanOrEqual(7);
     expect(vocabByCategory(all, 'scenes').length).toBeGreaterThanOrEqual(10);
   });
 });

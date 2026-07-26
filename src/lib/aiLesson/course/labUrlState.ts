@@ -58,7 +58,7 @@ export const hasLabPreview = (adminOverrides: unknown): boolean =>
   (adminOverrides as { labPreview?: unknown }).labPreview === true;
 
 // ── ことば図鑑のURL状態（§59・回答/自己評価/learner情報は入れない） ──
-export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice';
+export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview';
 export interface ParsedVocabUrl { vocab: boolean; view: VocabUrlView; category: string | null; itemId: string | null }
 
 export const parseVocabUrl = (search: string): ParsedVocabUrl => {
@@ -71,7 +71,7 @@ export const parseVocabUrl = (search: string): ParsedVocabUrl => {
   let view: VocabUrlView = 'top';
   if (raw === 'practice' && itemId) view = 'practice';
   else if (itemId) view = 'detail';
-  else if (raw === 'daily' || raw === 'all') view = raw;
+  else if (raw === 'daily' || raw === 'all' || raw === 'roadmap' || raw === 'diagnostic' || raw === 'quickreview') view = raw;
   else if (category) view = 'category';
   return { vocab, view, category, itemId };
 };
@@ -81,7 +81,7 @@ export const buildVocabSearch = (currentSearch: string, state: { view: VocabUrlV
   p.delete('vocab'); p.delete('vview'); p.delete('vcat'); p.delete('vitem');
   if (state) {
     p.set('vocab', '1');
-    if (state.view === 'daily' || state.view === 'all' || state.view === 'practice') p.set('vview', state.view);
+    if (state.view !== 'top' && state.view !== 'category' && state.view !== 'detail') p.set('vview', state.view);
     if (state.category) p.set('vcat', state.category);
     if (state.itemId) p.set('vitem', state.itemId);
   }

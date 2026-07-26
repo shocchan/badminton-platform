@@ -5,6 +5,7 @@ export type VocabularyLevelTag =
   | 'foundation' | 'jlpt_n5_estimate' | 'jlpt_n4_estimate' | 'jlpt_n3_estimate'
   | 'jlpt_n2_estimate' | 'jlpt_n1_estimate' | 'daily_life' | 'conversation_core' | 'business' | 'unclassified';
 export type LevelConfidence = 'high' | 'medium' | 'low' | 'unreviewed';
+import { N3_ITEMS } from './foundationVocabN3';
 export type ChineseCognateType =
   | 'transparent_same' | 'mostly_same' | 'partial_overlap' | 'false_friend'
   | 'japanese_specific' | 'no_cognate' | 'unreviewed';
@@ -51,8 +52,27 @@ export const VOCAB_LEVEL_META: Record<string, VocabularyLevelMeta> = {
   'fi-hanasu': f(['foundation', 'conversation_core'], 'partial_overlap', 'medium'),
 };
 
+// N3準備パック（一括登録・levelEvidence共通・cognateは高確信のみ個別分類）
+const N3E = 'N3準備・語彙拡張パック（N3目安・公式断定なし）としての収録。会話/読解の拡張語彙';
+const n3 = (cognate: ChineseCognateType = 'unreviewed', conf: LevelConfidence = 'medium', noteZh?: string): VocabularyLevelMeta =>
+  ({ levelTags: ['jlpt_n3_estimate', 'conversation_core'], levelConfidence: conf, levelEvidence: N3E, cognate, cognateNoteZh: noteZh });
+export const N3_LEVEL_META: Record<string, VocabularyLevelMeta> = {
+  'fi-riyuu': n3('transparent_same', 'high'), 'fi-iken': n3('transparent_same', 'high'),
+  'fi-keiken': n3('transparent_same', 'high'), 'fi-mondai': n3('transparent_same', 'high'),
+  'fi-jouhou': n3('mostly_same', 'medium'), 'fi-kankei': n3('transparent_same', 'high'),
+  'fi-houhou': n3('transparent_same', 'high'), 'fi-jiyuu': n3('transparent_same', 'high'),
+  'fi-hitsuyou': n3('mostly_same', 'medium'), 'fi-fukuzatsu': n3('transparent_same', 'high'),
+  'fi-shuukan': n3('mostly_same', 'medium', '日语「習慣」多指个人习惯，中文「习惯」也可作动词'),
+  'fi-yotei': n3('mostly_same', 'medium'), 'fi-joukyou': n3('mostly_same', 'medium'),
+  'fi-kyoumi': n3('mostly_same', 'medium', '搭配不同：日语说「興味がある」'),
+  'fi-tsugou': n3('false_friend', 'high', '日语「都合」指时间上方便与否，不是中文「都合适」'),
+  'fi-muri': n3('partial_overlap', 'medium'), 'fi-taihen': n3('false_friend', 'medium', '日语「大変」主要指辛苦・严重，不是中文「大变」'),
+};
+// 残りのN3語は unreviewed cognate のまま N3タグを付与（断定しない・§34）
+for (const it of N3_ITEMS) if (!N3_LEVEL_META[it.id]) N3_LEVEL_META[it.id] = n3();
+
 export const UNCLASSIFIED_META: VocabularyLevelMeta = {
   levelTags: ['foundation', 'unclassified'], levelConfidence: 'unreviewed',
   levelEvidence: BASE + '（個別レベル・同源語分類は人間レビュー待ち）', cognate: 'unreviewed',
 };
-export const levelMetaOf = (itemId: string): VocabularyLevelMeta => VOCAB_LEVEL_META[itemId] ?? UNCLASSIFIED_META;
+export const levelMetaOf = (itemId: string): VocabularyLevelMeta => VOCAB_LEVEL_META[itemId] ?? N3_LEVEL_META[itemId] ?? UNCLASSIFIED_META;

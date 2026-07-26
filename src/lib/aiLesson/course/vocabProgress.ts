@@ -22,11 +22,14 @@ export interface VocabEntry {
 }
 export type FuriganaSetting = 'always' | 'first_time' | 'hard_only' | 'off';
 export interface VocabSettings { track: string; furigana: FuriganaSetting }
+export type DiagnosticState = 'confirmed' | 'remedial';
 interface StoreShape {
   schemaVersion: number;
   entries: Record<string, VocabEntry>;
   dailyWords: { dateKey: string; itemIds: string[] } | null;
   settings?: VocabSettings;
+  /** パック開始診断の結果（packId→itemId→状態・§10。自己申告でなく問題結果からのみ設定） */
+  diagnostics?: Record<string, Record<string, DiagnosticState>>;
 }
 
 export interface VocabStats {
@@ -53,6 +56,8 @@ export interface VocabProgressRepository {
   setDailyWords(dateKey: string, itemIds: string[]): void;
   getSettings(): VocabSettings;
   setSettings(patch: Partial<VocabSettings>): void;
+  setDiagnosticResult(packId: string, itemId: string, state: DiagnosticState): void;
+  getDiagnosticResults(packId: string): Record<string, DiagnosticState>;
   reset(): void;
 }
 
@@ -143,6 +148,14 @@ export const createVocabProgressRepository = (storage: StorageLike): VocabProgre
       st.settings = { ...(st.settings ?? { track: 'life_basic', furigana: 'always' }), ...patch };
       save(st);
     },
+    setDiagnosticResult(packId, itemId, state) {
+      const st = load();
+      st.diagnostics = st.diagnostics ?? {};
+      st.diagnostics[packId] = st.diagnostics[packId] ?? {};
+      st.diagnostics[packId][itemId] = state;
+      save(st);
+    },
+    getDiagnosticResults(packId) { return load().diagnostics?.[packId] ?? {}; },
     reset() { storage.removeItem(VOCAB_STORAGE_KEY); },
   };
 };

@@ -663,6 +663,12 @@ export default function AiCoursePage() {
   if (step === 'growth') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')} showLab={labAllowed}>
+        {labAllowed && (
+          <div className="max-w-md mx-auto px-4 pt-4 flex gap-2">
+            <button type="button" onClick={() => setStep('roadmap')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.roadmap}</button>
+            <button type="button" onClick={() => setStep('history')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.history}</button>
+          </div>
+        )}
         {growthData ? (
           <GrowthOverview
             t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}

@@ -4,6 +4,7 @@
 import type { FoundationItem } from './foundationTypes';
 import { BANK_ITEMS } from './foundationItemBank';
 import { UNIT1_ITEMS } from './foundationUnit1';
+import { N3_ITEMS } from './foundationVocabN3';
 
 type Ref = FoundationItem['sources'][number];
 const MIN = '最初に覚える最低限表現';
@@ -69,7 +70,7 @@ export const VOCAB_NEW_ITEMS: FoundationItem[] = [
 /** ことば図鑑の全語彙（既存Item再利用＋新規・重複禁止・§23） */
 export const allVocabularyItems = (): FoundationItem[] => {
   const map = new Map<string, FoundationItem>();
-  for (const it of [...UNIT1_ITEMS, ...BANK_ITEMS, ...VOCAB_NEW_ITEMS]) {
+  for (const it of [...UNIT1_ITEMS, ...BANK_ITEMS, ...VOCAB_NEW_ITEMS, ...N3_ITEMS]) {
     if (!map.has(it.id)) map.set(it.id, it);
   }
   return [...map.values()];

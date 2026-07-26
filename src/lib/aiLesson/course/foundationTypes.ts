@@ -63,6 +63,7 @@ export interface FoundationItem {
   exampleJa: string;
   exampleZh: string;
   usageNoteZh?: string;         // 中国語母語者向け注意
+  commonFormsJa?: string[];     // よく使う形（例:「〜に住んでいます」「状況を確認する」・§8）
   /** 多義語のsense分離（§6）。単義語は省略可。将来Rule/UsagePatternへ接続 */
   senses?: { id: string; meaningZh: string; noteJa?: string }[];
   sources: FoundationSourceRef[];

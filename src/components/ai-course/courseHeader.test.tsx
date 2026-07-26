@@ -9,14 +9,21 @@ const t = aiCourseI18n.ja;
 const base = { t, showNav: true, onNavigate: () => {}, onLogout: () => {}, lang: 'ja' as const, onToggleLang: () => {} };
 
 describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () => {
-  it('showLab=trueで表示（デスクトップ＋モバイル両ナビ）・ことば→しくみの順でロードマップの次に位置', () => {
+  it('showLab=true（案A）: ホーム/ことば/しくみ/成長/設定の5項目・ロードマップと記録は成長へ統合', () => {
     render(<CourseHeader {...base} showLab />);
     expect(screen.getAllByText(t.nav.lab).length).toBe(2); // lg用＋モバイル用
     expect(screen.getAllByText(t.nav.vocab).length).toBe(2);
-    // 表示順: roadmap の次
+    expect(screen.queryByText(t.nav.roadmap)).toBeNull(); // 成長内サブリンクへ（旧URLは維持）
+    expect(screen.queryByText(t.nav.history)).toBeNull();
     const labels = screen.getAllByRole('button').map((b) => b.textContent);
-    const navLabels = labels.filter((l) => Object.values(t.nav).some((v) => l?.includes(v)));
-    expect(navLabels.join(',')).toContain(`${t.nav.roadmap},${t.nav.vocab},${t.nav.lab},${t.nav.history}`);
+    const navLabels = labels.filter((l) => Object.values(t.nav).some((v2) => l?.includes(v2)));
+    expect(navLabels.join(',')).toContain(`${t.nav.home},${t.nav.vocab},${t.nav.lab},${t.nav.growth}`);
+  });
+  it('一般受講生（showLab=false）は従来の5項目のまま（ロードマップ・記録あり）', () => {
+    render(<CourseHeader {...base} />);
+    expect(screen.getAllByText(t.nav.roadmap).length).toBe(2);
+    expect(screen.getAllByText(t.nav.history).length).toBe(2);
+    expect(screen.queryByText(t.nav.vocab)).toBeNull();
   });
   it('showLab=false（一般受講生・Andyさん）ではDOM自体を出さない', () => {
     render(<CourseHeader {...base} />);

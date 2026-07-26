@@ -17,10 +17,14 @@ import { VocabImage } from './VocabImage';
 import { ActionButton } from '../ActionButton';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
-import { VOCABULARY_PACKS, computePackProgress } from '../../../../lib/aiLesson/course/vocabularyPacks';
+import { VOCABULARY_PACKS, computePackProgress, currentPackForTrack, nextPackForTrack } from '../../../../lib/aiLesson/course/vocabularyPacks';
+import type { VocabularyTrack, VocabularyPack as VocabularyPackT } from '../../../../lib/aiLesson/course/vocabularyPacks';
+import { pickDiagnosticItems, buildDiagnosticQuestion, applyDiagnosticResult, pickQuickReviewItems } from '../../../../lib/aiLesson/course/vocabDiagnostic';
+import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
+import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -47,7 +51,7 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview') return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -126,6 +130,8 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
                     </div>
                   </details>
                   <p className="text-[10px] text-gray-400 mt-1.5">{tv.mvpPackNote}</p>
+                  <button type="button" onClick={() => setView('roadmap')}
+                    className="min-h-10 mt-1 text-xs font-bold text-indigo-700 underline">{tv.viewRoadmap} →</button>
                 </div>
               );
             })()}
@@ -173,6 +179,17 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
         </div>
       )}
 
+      {view === 'roadmap' && (
+        <VocabRoadmapView t={t} repo={repo} itemById={itemById} onChanged={bump}
+          onStartDiagnostic={() => setView('diagnostic')} onStartQuickReview={() => setView('quickreview')}
+          onOpenDaily={() => setView('daily')} />
+      )}
+      {view === 'diagnostic' && (
+        <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump} onDone={() => setView('roadmap')} />
+      )}
+      {view === 'quickreview' && (
+        <VocabQuickReviewView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump} onDone={() => setView('roadmap')} />
+      )}
       {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} onChanged={bump} onDone={() => setView('top')} onRestart={() => setView('daily')} />}
       {view === 'category' && category && <VocabCategoryList t={t} repo={repo} list={listFor(category)} query="" showSearch={false} onQuery={() => {}} onOpen={(id) => setView('detail', category, id)} />}
       {view === 'all' && <VocabCategoryList t={t} repo={repo} list={listFor('all')} query={query} showSearch onQuery={setQuery} onOpen={(id) => setView('detail', 'all', id)} />}
@@ -583,4 +600,205 @@ const VocabPracticeView = ({ t, item, onDone }: { t: AiCourseDict; item: Foundat
   );
 };
 
+
+const PackCard = ({ t, repo, pack, isCurrent }: { t: AiCourseDict; repo: VocabProgressRepository; pack: VocabularyPackT; isCurrent: boolean }) => {
+  const tv = t.vocab; const zh = t.locale === 'zh';
+  const pp = computePackProgress(pack, repo);
+  const cover = pack.coverAssetId ? assetById(pack.coverAssetId) : undefined;
+  return (
+    <div className={`rounded-2xl border p-4 ${isCurrent ? 'bg-white border-indigo-200' : 'bg-gray-50/60 border-gray-100'}`}>
+      {cover && isVisibleAsset(cover, true) && cover.filePath && (
+        <img src={cover.thumbnailPath ?? cover.filePath} alt={cover.altJa} loading="lazy" width={cover.width ?? 400} height={cover.height ?? 300}
+          className="w-full rounded-xl mb-2 object-cover" style={{ aspectRatio: '4 / 3' }} />
+      )}
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-bold text-gray-400">{isCurrent ? tv.packHeading : tv.nextPackHeading}</p>
+        <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">{tv.packStates[pp.state]}</span>
+      </div>
+      <p className="text-sm font-bold text-gray-900">{zh ? pack.titleZh : pack.titleJa}</p>
+      <p className="text-xs text-gray-500 mt-0.5">{zh ? pack.descriptionZh : pack.descriptionJa}</p>
+      {pack.id === 'pack-n3-prep-1' && <p className="text-[10px] text-gray-400 mt-1">{tv.n3PackNote}</p>}
+      {isCurrent && (
+        <div className="mt-2 space-y-1.5">
+          {/* 学習開始と問題確認は別バー（§21・混ぜない） */}
+          <div>
+            <p className="text-[10px] text-gray-500 flex justify-between"><span>{tv.statStarted}</span><span>{pp.seenCount} / {pp.totalCount}</span></p>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-indigo-500 rounded-full" style={{ width: `${pp.totalCount ? Math.round((pp.seenCount / pp.totalCount) * 100) : 0}%` }} /></div>
+          </div>
+          <div>
+            <p className="text-[10px] text-gray-500 flex justify-between"><span>{tv.statVerifiedLabel}</span><span>{pp.verifiedCount} / {pp.totalCount}</span></p>
+            <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-teal-500 rounded-full" style={{ width: `${pp.totalCount ? Math.round((pp.verifiedCount / pp.totalCount) * 100) : 0}%` }} /></div>
+          </div>
+          <p className="text-[10px] text-gray-500">{tv.statRetainedLabel}: {pp.retainedCandidateCount}・{tv.statRemaining}: {pp.remainingCount}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** 語彙ロードマップ（§20-§21・状態を一つの達成率へ混ぜない） */
+const VocabRoadmapView = ({ t, repo, itemById, onChanged, onStartDiagnostic, onStartQuickReview, onOpenDaily }: {
+  t: AiCourseDict; repo: VocabProgressRepository; itemById: Map<string, FoundationItem>; onChanged: () => void;
+  onStartDiagnostic: () => void; onStartQuickReview: () => void; onOpenDaily: () => void;
+}) => {
+  const tv = t.vocab;
+  const track = repo.getSettings().track as VocabularyTrack;
+  const current = currentPackForTrack(track);
+  const next = nextPackForTrack(track);
+  useEffect(() => { trackCourse('view_ai_course_vocabulary_roadmap', { goal: track }); }, [track]);
+  const diagLeft = pickDiagnosticItems(current, track, itemById, repo).length;
+  const quickLeft = pickQuickReviewItems(current.itemIds, repo).length;
+  return (
+    <div className="space-y-3">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <p className="text-[11px] font-bold text-gray-400">{tv.goalHeading}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-base font-bold text-gray-900">{tv.tracks[track] ?? tv.tracks.life_basic}</p>
+          <select aria-label={tv.changeGoal} value={track}
+            onChange={(e) => { repo.setSettings({ track: e.target.value }); trackCourse('select_ai_course_vocabulary_goal', { goal: e.target.value }); onChanged(); }}
+            className="min-h-9 text-xs border border-gray-200 rounded-lg px-2 text-gray-600">
+            {Object.entries(tv.tracks).map(([k, label]) => <option key={k} value={k}>{label}</option>)}
+          </select>
+        </div>
+        {(track === 'n2_prep') && <p className="text-[11px] text-gray-500 mt-1.5">{tv.n2Note}</p>}
+      </div>
+      <PackCard t={t} repo={repo} pack={current} isCurrent />
+      {diagLeft > 0 && (
+        <ActionButton variant="primary" fullWidth onClick={onStartDiagnostic}>{tv.diagnosticCta}（{diagLeft}）</ActionButton>
+      )}
+      <div className="flex gap-2">
+        <ActionButton variant="secondary" className="flex-1" onClick={onOpenDaily}>{tv.dailyCta}</ActionButton>
+        <ActionButton variant="secondary" className="flex-1" disabled={quickLeft === 0} onClick={onStartQuickReview}>{tv.quickReviewCta}</ActionButton>
+      </div>
+      {next && <PackCard t={t} repo={repo} pack={next} isCurrent={false} />}
+      <p className="text-[11px] text-gray-400">{tv.notSavedVocab}</p>
+    </div>
+  );
+};
+
+/** パック開始診断（§10・タップ式・正解=確認済み/誤答=remedial） */
+const VocabDiagnosticView = ({ t, repo, itemById, items, onChanged, onDone }: {
+  t: AiCourseDict; repo: VocabProgressRepository; itemById: Map<string, FoundationItem>; items: FoundationItem[];
+  onChanged: () => void; onDone: () => void;
+}) => {
+  const tv = t.vocab; const zh = t.locale === 'zh';
+  const track = repo.getSettings().track as VocabularyTrack;
+  const pack = currentPackForTrack(track);
+  const targets = useMemo(() => pickDiagnosticItems(pack, track, itemById, repo), [pack, track, itemById, repo]);
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [judged, setJudged] = useState<boolean | null>(null);
+  const [confirmed, setConfirmed] = useState(0);
+  const [remedial, setRemedial] = useState(0);
+  useEffect(() => { trackCourseOnce('start_ai_course_vocabulary_diagnostic'); }, []);
+  if (targets.length === 0 || idx >= targets.length) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+        <p className="text-base font-bold text-gray-900 mb-2">{tv.diagnosticDone}</p>
+        <p className="text-sm text-gray-700">{tv.diagnosticConfirmed(confirmed)}</p>
+        <p className="text-sm text-gray-700 mb-3">{tv.diagnosticRemedial(remedial)}</p>
+        <ActionButton variant="primary" fullWidth onClick={() => { trackCourse('complete_ai_course_vocabulary_diagnostic', { goal: track }); onDone(); }}>{tv.backToVocabTop}</ActionButton>
+        <p className="text-[11px] text-gray-400 mt-2">{tv.notSavedVocab}</p>
+      </div>
+    );
+  }
+  const item = targets[idx];
+  const q = buildDiagnosticQuestion(item, items, idx);
+  const order = shuffledChoicesSeeded(q, idx + 7);
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] text-gray-500">{tv.diagnosticIntro}</span>
+        <span className="text-xs font-mono text-gray-400">{idx + 1} / {targets.length}</span>
+      </div>
+      <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
+      <div className="space-y-2">
+        {order.map((orig) => (
+          <ActionButton key={orig} variant="choice" fullWidth selected={picked === orig} showCheck={judged === null} disabled={judged !== null}
+            className={judged !== null && orig === q.answerIndex ? 'border-emerald-400 bg-emerald-50' : ''}
+            onClick={() => setPicked(orig)}>
+            <span className="flex-1">{q.choices![orig]}</span>
+          </ActionButton>
+        ))}
+      </div>
+      {judged === null ? (
+        <ActionButton variant="primary" fullWidth className="mt-3" disabled={picked === null}
+          onClick={() => {
+            const ok = picked === q.answerIndex;
+            setJudged(ok);
+            repo.recordTest(item.id, q.dimension === 'reading' ? 'reading' : 'meaning', ok);
+            const st = applyDiagnosticResult(repo, pack.id, item.id, ok);
+            if (st === 'confirmed') { setConfirmed((n) => n + 1); repo.recordEncounter(item.id); }
+            else setRemedial((n) => n + 1);
+            onChanged();
+          }}>{t.lab.check}</ActionButton>
+      ) : (
+        <div className="mt-3" aria-live="polite">
+          <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? tv.roleLabels.confirmed : tv.roleLabels.remedial}</p>
+          <p className="text-xs text-gray-600 mt-1">{zh ? q.explanationZh : q.explanationJa}</p>
+          <ActionButton variant="primary" fullWidth className="mt-3" onClick={() => { setIdx(idx + 1); setPicked(null); setJudged(null); }}>{t.lab.next}</ActionButton>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/** 3分復習（§25・弱点だけ3〜7問・同じItemの別形式可） */
+const VocabQuickReviewView = ({ t, repo, itemById, items, onChanged, onDone }: {
+  t: AiCourseDict; repo: VocabProgressRepository; itemById: Map<string, FoundationItem>; items: FoundationItem[];
+  onChanged: () => void; onDone: () => void;
+}) => {
+  const tv = t.vocab; const zh = t.locale === 'zh';
+  const ids = useMemo(() => pickQuickReviewItems(items.map((i) => i.id), repo).filter((id) => itemById.has(id)), [items, itemById, repo]);
+  const [idx, setIdx] = useState(0);
+  const [picked, setPicked] = useState<number | null>(null);
+  const [judged, setJudged] = useState<boolean | null>(null);
+  useEffect(() => { trackCourseOnce('start_ai_course_vocabulary_quick_review'); }, []);
+  if (ids.length === 0) return <p className="text-sm text-gray-400 bg-white border border-gray-100 rounded-xl p-4">{tv.quickReviewEmpty}</p>;
+  if (idx >= ids.length) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
+        <p className="text-base font-bold text-gray-900 mb-3">{tv.quickReviewDone}</p>
+        <ActionButton variant="primary" fullWidth onClick={() => { trackCourse('complete_ai_course_vocabulary_quick_review'); onDone(); }}>{tv.backToVocabTop}</ActionButton>
+      </div>
+    );
+  }
+  const item = itemById.get(ids[idx])!;
+  // 弱点軸を維持: 前回readingを誤答→読み形式、それ以外は意味/画像形式（§25）
+  const lastWrongReading = item && repo.getEntry(item.id).tests.slice().reverse().find((x) => !x.correct)?.dimension === 'reading';
+  const imgQ = !lastWrongReading ? buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 23, true) : null;
+  const q = imgQ ?? buildDiagnosticQuestion(item, items, lastWrongReading ? 1 : 0);
+  const order = shuffledChoicesSeeded(q, idx + 13);
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] text-gray-500">{tv.quickReviewCta}</span>
+        <span className="text-xs font-mono text-gray-400">{idx + 1} / {ids.length}</span>
+      </div>
+      {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />}
+      <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
+      <div className="space-y-2">
+        {order.map((orig) => (
+          <ActionButton key={orig} variant="choice" fullWidth selected={picked === orig} showCheck={judged === null} disabled={judged !== null}
+            className={judged !== null && orig === q.answerIndex ? 'border-emerald-400 bg-emerald-50' : ''}
+            onClick={() => setPicked(orig)}>
+            <span className="flex-1">{q.choices![orig]}</span>
+          </ActionButton>
+        ))}
+      </div>
+      {judged === null ? (
+        <ActionButton variant="primary" fullWidth className="mt-3" disabled={picked === null}
+          onClick={() => { const ok = picked === q.answerIndex; setJudged(ok); repo.recordTest(item.id, q.dimension === 'reading' ? 'reading' : 'meaning', ok); onChanged(); }}>{t.lab.check}</ActionButton>
+      ) : (
+        <div className="mt-3" aria-live="polite">
+          <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? t.lab.correct : t.lab.notYet}</p>
+          <p className="text-xs text-gray-600 mt-1">{zh ? q.explanationZh : q.explanationJa}</p>
+          <ActionButton variant="primary" fullWidth className="mt-3" onClick={() => { setIdx(idx + 1); setPicked(null); setJudged(null); }}>{t.lab.next}</ActionButton>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export default VocabularyHub;
+
