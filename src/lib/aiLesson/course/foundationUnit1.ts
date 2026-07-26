@@ -2,6 +2,7 @@
 // 中心表現=「〜に住んでいます／〜で働いています／〜を勉強しています」（自己紹介の重要なまとまり）。
 // て形の全変形・ているの全用法は扱わない（§4）。「好き」は自己紹介②（趣味）単元へ移動。
 import type { FoundationItem, FoundationRule, FoundationQuestion, FoundationUnit } from './foundationTypes';
+import type { FoundationUnitBundle } from './foundationRegistry';
 
 // 出典監査 2026-07-26 実施（原資料Excel「きそ〜詞」を読み取り専用で全セル照合）。
 // 行番号・セル範囲は参照情報であり教材IDには使用しない（IDは安定スラッグ）。
@@ -43,26 +44,30 @@ export const UNIT1_RULES: FoundationRule[] = [
 
 export const UNIT1_QUESTIONS: FoundationQuestion[] = [
   // 読み×3
-  { id: 'fq-r1', targetItemId: 'fi-hataraku', dimension: 'reading', type: 'choice', promptJa: '「働く」の読みは？', promptZh: '「働く」怎么读？', choices: ['はたらく', 'うごく', 'どうく'], answerIndex: 0, explanationJa: '働く＝はたらく。', explanationZh: '働く读作「はたらく」。', errorTag: 'reading_hataraku', review: 'draft' },
-  { id: 'fq-r2', targetItemId: 'fi-shusshin', dimension: 'reading', type: 'choice', promptJa: '「出身」の読みは？', promptZh: '「出身」怎么读？', choices: ['しゅっしん', 'でみ', 'しゅつみ'], answerIndex: 0, explanationJa: '出身＝しゅっしん。', explanationZh: '出身读作「しゅっしん」。', errorTag: 'reading_shusshin', review: 'draft' },
-  { id: 'fq-r3', targetItemId: 'fi-sumu', dimension: 'reading', type: 'input', promptJa: '「住む」の読みをひらがなで入力してください。', promptZh: '请用平假名输入「住む」的读音。', accepted: ['すむ'], explanationJa: '住む＝すむ。', explanationZh: '住む读作「すむ」。', errorTag: 'reading_sumu', review: 'draft' },
+  { id: 'fq-r1', targetItemId: 'fi-hataraku', dimension: 'reading', type: 'reading_choice', promptJa: '「働く」の読みは？', promptZh: '「働く」怎么读？', choices: ['はたらく', 'うごく', 'どうく'], answerIndex: 0, explanationJa: '働く＝はたらく。', explanationZh: '働く读作「はたらく」。', errorTag: 'reading_hataraku', review: 'draft' },
+  { id: 'fq-r2', targetItemId: 'fi-shusshin', dimension: 'reading', type: 'reading_choice', promptJa: '「出身」の読みは？', promptZh: '「出身」怎么读？', choices: ['しゅっしん', 'でみ', 'しゅつみ'], answerIndex: 0, explanationJa: '出身＝しゅっしん。', explanationZh: '出身读作「しゅっしん」。', errorTag: 'reading_shusshin', review: 'draft' },
+  { id: 'fq-r3', targetItemId: 'fi-sumu', dimension: 'reading', type: 'kana_input', promptJa: '「住む」の読みをひらがなで入力してください。', promptZh: '请用平假名输入「住む」的读音。', accepted: ['すむ'], explanationJa: '住む＝すむ。', explanationZh: '住む读作「すむ」。', errorTag: 'reading_sumu', review: 'draft' },
   // 意味×3
-  { id: 'fq-m1', targetItemId: 'fi-kaisha', dimension: 'meaning', type: 'choice', promptJa: '「会社」の意味は？', promptZh: '「会社」的意思是？', choices: ['公司', '学校', '医院'], answerIndex: 0, explanationJa: '会社＝公司。', explanationZh: '会社＝公司。', errorTag: 'meaning_kaisha', review: 'draft' },
-  { id: 'fq-m2', targetItemId: 'fi-kaishain', dimension: 'meaning', type: 'choice', promptJa: '“公司职员”は日本語で？', promptZh: '“公司职员”用日语怎么说？', choices: ['会社員', '学生', '先生'], answerIndex: 0, explanationJa: '会社員＝公司职员。', explanationZh: '「会社員（かいしゃいん）」＝公司职员。', errorTag: 'meaning_kaishain', review: 'draft' },
-  { id: 'fq-m3', targetItemId: 'fi-benkyo', dimension: 'meaning', type: 'choice', promptJa: '「日本語を勉強しています」の意味は？', promptZh: '「日本語を勉強しています」的意思是？', choices: ['我在学日语', '我教日语', '我想说日语'], answerIndex: 0, explanationJa: '勉強しています＝正在学习。', explanationZh: '「勉強しています」表示正在学习的状态。', errorTag: 'meaning_benkyo', review: 'draft' },
+  { id: 'fq-m1', targetItemId: 'fi-kaisha', dimension: 'meaning', type: 'single_choice', promptJa: '「会社」の意味は？', promptZh: '「会社」的意思是？', choices: ['公司', '学校', '医院'], answerIndex: 0, explanationJa: '会社＝公司。', explanationZh: '会社＝公司。', errorTag: 'meaning_kaisha', review: 'draft' },
+  { id: 'fq-m2', targetItemId: 'fi-kaishain', dimension: 'meaning', type: 'single_choice', promptJa: '“公司职员”は日本語で？', promptZh: '“公司职员”用日语怎么说？', choices: ['会社員', '学生', '先生'], answerIndex: 0, explanationJa: '会社員＝公司职员。', explanationZh: '「会社員（かいしゃいん）」＝公司职员。', errorTag: 'meaning_kaishain', review: 'draft' },
+  { id: 'fq-m3', targetItemId: 'fi-benkyo', dimension: 'meaning', type: 'single_choice', promptJa: '「日本語を勉強しています」の意味は？', promptZh: '「日本語を勉強しています」的意思是？', choices: ['我在学日语', '我教日语', '我想说日语'], answerIndex: 0, explanationJa: '勉強しています＝正在学习。', explanationZh: '「勉強しています」表示正在学习的状态。', errorTag: 'meaning_benkyo', review: 'draft' },
   // 形・接続×3
-  { id: 'fq-f1', targetRuleId: 'fr-teimasu', dimension: 'form', type: 'choice', promptJa: '今、日本で生活しています。「日本に＿＿」正しいのは？', promptZh: '现在生活在日本。「日本に＿＿」应该选？', choices: ['住んでいます', '住みます', '住みました'], answerIndex: 0, explanationJa: '今の状態は「住んでいます」。「住みます」は予定のように聞こえることがあります。', explanationZh: '现在的居住状态用「住んでいます」；「住みます」听起来像今后的打算。', errorTag: 'teimasu_state_sumu', review: 'draft' },
-  { id: 'fq-f2', targetRuleId: 'fr-particles', dimension: 'connection', type: 'choice', promptJa: '「会社＿＿働いています」。正しい助詞は？', promptZh: '「会社＿＿働いています」应该用哪个助词？', choices: ['で', 'に', 'を'], answerIndex: 0, explanationJa: '動作の場所は「で」。', explanationZh: '动作发生的场所用「で」。', errorTag: 'particle_location_action', review: 'draft' },
-  { id: 'fq-f3', targetRuleId: 'fr-particles', dimension: 'connection', type: 'choice', promptJa: '「日本語＿＿勉強しています」。正しい助詞は？', promptZh: '「日本語＿＿勉強しています」应该用哪个助词？', choices: ['を', 'に', 'は'], answerIndex: 0, explanationJa: '勉強する対象は「を」。', explanationZh: '学习的对象用「を」。', errorTag: 'particle_wo_object', review: 'draft' },
+  { id: 'fq-f1', targetRuleId: 'fr-teimasu', dimension: 'form', type: 'single_choice', promptJa: '今、日本で生活しています。「日本に＿＿」正しいのは？', promptZh: '现在生活在日本。「日本に＿＿」应该选？', choices: ['住んでいます', '住みます', '住みました'], answerIndex: 0, explanationJa: '今の状態は「住んでいます」。「住みます」は予定のように聞こえることがあります。', explanationZh: '现在的居住状态用「住んでいます」；「住みます」听起来像今后的打算。', errorTag: 'teimasu_state_sumu', review: 'draft' },
+  { id: 'fq-f2', targetRuleId: 'fr-particles', dimension: 'connection', type: 'particle_choice', promptJa: '「会社＿＿働いています」。正しい助詞は？', promptZh: '「会社＿＿働いています」应该用哪个助词？', choices: ['で', 'に', 'を'], answerIndex: 0, explanationJa: '動作の場所は「で」。', explanationZh: '动作发生的场所用「で」。', errorTag: 'particle_location_action', review: 'draft' },
+  { id: 'fq-f3', targetRuleId: 'fr-particles', dimension: 'connection', type: 'particle_choice', promptJa: '「日本語＿＿勉強しています」。正しい助詞は？', promptZh: '「日本語＿＿勉強しています」应该用哪个助词？', choices: ['を', 'に', 'は'], answerIndex: 0, explanationJa: '勉強する対象は「を」。', explanationZh: '学习的对象用「を」。', errorTag: 'particle_wo_object', review: 'draft' },
   // 文中使用×2
-  { id: 'fq-u1', targetRuleId: 'fr-teimasu', dimension: 'usage', type: 'order', promptJa: 'ならべかえて、今の状況を伝える文を作ってください。', promptZh: '请排列成一句说明现状的话。', orderTokens: ['日本語', 'を', '勉強して', 'います'], explanationJa: '日本語＋を＋勉強しています。', explanationZh: '日语＋を＋勉強しています。', errorTag: 'usage_order_benkyo', review: 'draft' },
-  { id: 'fq-u2', targetRuleId: 'fr-desu', dimension: 'usage', type: 'choice', promptJa: '自己紹介として自然なのは？（王さん・中国から来た会社員）', promptZh: '哪句自我介绍最自然？（小王・来自中国的公司职员）', choices: ['中国出身です。会社員です。', '私は中国です。', '中国が出身します。'], answerIndex: 0, explanationJa: '出身＋です／職業＋です。「私は中国です」は不自然です。', explanationZh: '「〇〇出身です」「会社員です」。「私は中国です」是不自然的说法。', errorTag: 'usage_selfintro_shusshin', review: 'draft' },
+  { id: 'fq-u1', targetRuleId: 'fr-teimasu', dimension: 'usage', type: 'sentence_order', promptJa: 'ならべかえて、今の状況を伝える文を作ってください。', promptZh: '请排列成一句说明现状的话。', orderTokens: ['日本語', 'を', '勉強して', 'います'], explanationJa: '日本語＋を＋勉強しています。', explanationZh: '日语＋を＋勉強しています。', errorTag: 'usage_order_benkyo', review: 'draft' },
+  { id: 'fq-u2', targetRuleId: 'fr-desu', dimension: 'usage', type: 'single_choice', promptJa: '自己紹介として自然なのは？（王さん・中国から来た会社員）', promptZh: '哪句自我介绍最自然？（小王・来自中国的公司职员）', choices: ['中国出身です。会社員です。', '私は中国です。', '中国が出身します。'], answerIndex: 0, explanationJa: '出身＋です／職業＋です。「私は中国です」は不自然です。', explanationZh: '「〇〇出身です」「会社員です」。「私は中国です」是不自然的说法。', errorTag: 'usage_selfintro_shusshin', review: 'draft' },
 ];
 
 export const UNIT1: FoundationUnit = {
   id: 'fu-selfintro-1',
   titleJa: '自己紹介で使う基本のことば',
   titleZh: '自我介绍常用词与句型',
+  level: 'N5',
+  recommendedWeek: 1,
+  estimatedMinutes: 6,
+  prerequisiteUnitIds: [],
   canDoJa: ['名前・出身・仕事や学習状況を短く言える', '「〜に住んでいます」「〜で働いています」「〜を勉強しています」で今の状況を言える'],
   canDoZh: ['能简短说出名字、来自哪里、工作或学习情况', '能用「〜に住んでいます／〜で働いています／〜を勉強しています」说明现状'],
   itemIds: UNIT1_ITEMS.map((i) => i.id),
@@ -70,3 +75,5 @@ export const UNIT1: FoundationUnit = {
   questionIds: UNIT1_QUESTIONS.map((q) => q.id),
   review: 'draft',
 };
+
+export const BUNDLE: FoundationUnitBundle = { unit: UNIT1, items: UNIT1_ITEMS, rules: UNIT1_RULES, questions: UNIT1_QUESTIONS };

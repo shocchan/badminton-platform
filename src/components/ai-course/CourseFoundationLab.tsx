@@ -6,6 +6,7 @@ import { UNIT1, UNIT1_ITEMS, UNIT1_RULES, UNIT1_QUESTIONS } from '../../lib/aiLe
 import { judgeQuestion, aggregateByDimension, deriveReviewCandidates, shuffledOrder, shuffledChoices } from '../../lib/aiLesson/course/foundationGrade';
 import type { QuestionResult } from '../../lib/aiLesson/course/foundationGrade';
 import type { AiCourseDict } from '../../locales/aiCourse';
+import { mechanicOf } from '../../lib/aiLesson/course/foundationTypes';
 
 type Phase = 'intro' | 'words' | 'rules' | 'quiz' | 'result';
 interface Props { t: AiCourseDict; onBack: () => void; }
@@ -21,14 +22,14 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
   const [judged, setJudged] = useState<boolean | null>(null);
   const [results, setResults] = useState<QuestionResult[]>([]);
   const q = UNIT1_QUESTIONS[qi];
-  const shuffled = useMemo(() => (q?.type === 'order' ? shuffledOrder(q) : []), [q]);
-  const choiceOrder = useMemo(() => (q?.type === 'choice' ? shuffledChoices(q) : []), [q]);
+  const shuffled = useMemo(() => (q && mechanicOf(q.type) === 'order' ? shuffledOrder(q) : []), [q]);
+  const choiceOrder = useMemo(() => (q && mechanicOf(q.type) === 'choice' ? shuffledChoices(q) : []), [q]);
 
   const submit = () => {
     if (!q || judged !== null) return;
     const ok = judgeQuestion(q, {
       choiceIndex: picked ?? undefined, text,
-      orderIndexes: q.type === 'order' ? orderPick.map((p) => p) : undefined,
+      orderIndexes: mechanicOf(q.type) === 'order' ? orderPick.map((p) => p) : undefined,
     });
     setJudged(ok);
     setResults((r) => [...r, { questionId: q.id, dimension: q.dimension, correct: ok, errorTag: q.errorTag, targetId: q.targetItemId ?? q.targetRuleId ?? q.id }]);
@@ -107,7 +108,7 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
             <span className="text-xs font-mono text-gray-400">{qi + 1} / {UNIT1_QUESTIONS.length}</span>
           </div>
           <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
-          {q.type === 'choice' && (
+          {mechanicOf(q.type) === 'choice' && (
             <div className="space-y-2">
               {/* 表示順は決定的シャッフル・判定は元index（安定choice ID）で行う */}
               {choiceOrder.map((orig) => (
@@ -118,12 +119,12 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
               ))}
             </div>
           )}
-          {q.type === 'input' && (
+          {mechanicOf(q.type) === 'input' && (
             <input type="text" value={text} onChange={(e) => setText(e.target.value)} disabled={judged !== null}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) submit(); }}
               placeholder={tl.inputKana} className="w-full min-h-12 px-4 py-3 border border-gray-300 rounded-xl text-base" />
           )}
-          {q.type === 'order' && (
+          {mechanicOf(q.type) === 'order' && (
             <div>
               <div className="min-h-11 bg-gray-50 rounded-xl px-3 py-2 mb-2 text-sm text-gray-800">
                 {orderPick.map((p) => q.orderTokens![p]).join(' ') || tl.orderHint}
@@ -141,7 +142,7 @@ export const CourseFoundationLab = ({ t, onBack }: Props) => {
           )}
           {judged === null ? (
             <button type="button" onClick={submit}
-              disabled={q.type === 'choice' ? picked === null : q.type === 'input' ? !text.trim() : orderPick.length !== (q.orderTokens?.length ?? 0)}
+              disabled={mechanicOf(q.type) === 'choice' ? picked === null : mechanicOf(q.type) === 'input' ? !text.trim() : orderPick.length !== (q.orderTokens?.length ?? 0)}
               className="w-full min-h-11 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-40">{tl.check}</button>
           ) : (
             <div className="mt-3" aria-live="polite">

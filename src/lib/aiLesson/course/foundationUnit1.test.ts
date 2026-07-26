@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { UNIT1, UNIT1_ITEMS, UNIT1_QUESTIONS, UNIT1_RULES } from './foundationUnit1';
+import { mechanicOf } from './foundationTypes';
 import { judgeQuestion, normalizeKanaAnswer, aggregateByDimension, deriveReviewCandidates, shuffledOrder, shuffledChoices, validateExactLexemeRef, type AuditedCell } from './foundationGrade';
 
 describe('しくみラボ 単元データ整合性（Phase 2A レビュー前修正版）', () => {
@@ -102,7 +103,7 @@ describe('出典監査（CEO確認済みfixture・Excel実ファイル非依存�
 });
 
 describe('choice表示シャッフル（決定的・安定ID判定）', () => {
-  const choiceQs = UNIT1_QUESTIONS.filter((q) => q.type === 'choice');
+  const choiceQs = UNIT1_QUESTIONS.filter((q) => mechanicOf(q.type) === 'choice');
   it('2〜4択に対応・同じ問題は毎回同じ表示順（決定的）', () => {
     choiceQs.forEach((q) => {
       expect(q.choices!.length).toBeGreaterThanOrEqual(2);

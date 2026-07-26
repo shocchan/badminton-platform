@@ -2,7 +2,7 @@
 // 認証 → 初回診断 → 学習ホーム → レッスン（音声/テキスト）→ レポート → ホーム
 // ＋ ロードマップ / 履歴 / 設定。進捗は Supabase（RLS）、オフライン時は localStorage。
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLessonFocus } from '../../contexts/LessonFocusContext';
@@ -46,7 +46,9 @@ import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
-import { CourseFoundationLab } from '../../components/ai-course/CourseFoundationLab';
+// しくみラボは labPreview 管理者のみ利用のため lazy chunk 化（一般受講生のbundleへ教材を含めない・§17）
+const CourseFoundationLab = lazy(() =>
+  import('../../components/ai-course/CourseFoundationLab').then((m) => ({ default: m.CourseFoundationLab })));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -131,6 +133,15 @@ export default function AiCoursePage() {
 
   const [step, setStep] = useState<Step>('loading');
   const [learner, setLearner] = useState<Learner | null>(null);
+  // しくみラボの権限（labPreview管理者のみ・§23）。未許可でstepがlabになった場合はホームへ退避
+  const labAllowed = (learner?.adminOverrides as { labPreview?: boolean } | undefined)?.labPreview === true;
+  useEffect(() => {
+    if (step !== 'lab' || labAllowed) return;
+    let alive = true;
+    // effect内同期setStateを避ける（リポジトリ既定のmicrotaskパターン）
+    void Promise.resolve().then(() => { if (alive) setStep('home'); });
+    return () => { alive = false; };
+  }, [step, labAllowed]);
   const [progress, setProgress] = useState<ItemProgress[]>([]);
   const [sessions, setSessions] = useState<CourseSessionRecord[]>([]);
   const [plan, setPlan] = useState<LessonPlan | null>(null);
@@ -631,9 +642,13 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'lab') {
+    // lazy chunk取得前にも権限確認（未許可者は描画しない・上のeffectでホームへ戻る・§23）
+    if (!labAllowed) return null;
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
-        <CourseFoundationLab t={t} onBack={() => setStep('home')} />
+        <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <CourseFoundationLab t={t} onBack={() => setStep('home')} />
+        </Suspense>
       </Shell>
     );
   }

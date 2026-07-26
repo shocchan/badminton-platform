@@ -1,6 +1,25 @@
 // 日本語のしくみラボ 最小教材モデル（Phase 2A・将来拡張可能な最小責務）
 export type FoundationReviewStatus = 'source' | 'draft' | 'beta' | 'approved';
-export type FoundationDimension = 'reading' | 'meaning' | 'form' | 'connection' | 'usage';
+export type FoundationDimension = 'reading' | 'meaning' | 'form' | 'connection' | 'particle' | 'usage';
+
+/** 問題タイプ（Phase 2B §9）。描画・採点は mechanicOf で4系統に集約する */
+export type FoundationQuestionType =
+  | 'single_choice' | 'reading_choice' | 'particle_choice' | 'error_correction_choice' | 'fill_blank'
+  | 'text_input' | 'kana_input' | 'conjugation_input'
+  | 'sentence_order'
+  | 'matching';
+export type FoundationMechanic = 'choice' | 'input' | 'order' | 'matching';
+export const mechanicOf = (t: FoundationQuestionType): FoundationMechanic => {
+  switch (t) {
+    case 'text_input': case 'kana_input': case 'conjugation_input': return 'input';
+    case 'sentence_order': return 'order';
+    case 'matching': return 'matching';
+    default: return 'choice';
+  }
+};
+
+/** Item×次元ごとの候補状態（§12・1回の自力正解ではretainedにしない） */
+export type FoundationMasteryState = 'not_seen' | 'familiar' | 'guided' | 'independent' | 'retained';
 
 /** 出典セルと教材項目の関係（CEOレビュー前修正§4） */
 export type FoundationSourceMatchType =
@@ -29,14 +48,16 @@ export interface FoundationItem {
   meaningZh: string;
   exampleJa: string;
   exampleZh: string;
-  usageNoteZh?: string;         // 中国語母語者向け注意（多義語は将来sense分離）
+  usageNoteZh?: string;         // 中国語母語者向け注意
+  /** 多義語のsense分離（§6）。単義語は省略可。将来Rule/UsagePatternへ接続 */
+  senses?: { id: string; meaningZh: string; noteJa?: string }[];
   sources: FoundationSourceRef[];
   review: FoundationReviewStatus;
 }
 
 export interface FoundationRule {
   id: string;
-  category: 'copula' | 'particle' | 'sentenceType';
+  category: 'copula' | 'particle' | 'sentenceType' | 'verbGroup' | 'conjugation' | 'numberTime' | 'expression';
   titleJa: string; titleZh: string;
   explanationJa: string; explanationZh: string;
   review: FoundationReviewStatus;
@@ -47,12 +68,14 @@ export interface FoundationQuestion {
   targetItemId?: string;
   targetRuleId?: string;
   dimension: FoundationDimension;
-  type: 'choice' | 'input' | 'order';
+  type: FoundationQuestionType;
   promptJa: string; promptZh: string;
-  choices?: string[];           // choice用
+  choices?: string[];           // choice系用（元indexが安定choice ID）
   answerIndex?: number;
-  accepted?: string[];          // input用（かな正規化後に比較する許容解答）
-  orderTokens?: string[];       // order用（正解順で保持・出題時は決定的シャッフル）
+  accepted?: string[];          // input系用（正規化後に比較する許容解答・問題ごとに明示）
+  orderTokens?: string[];       // sentence_order用（正解順で保持・出題時は決定的シャッフル）
+  pairs?: { left: string; right: string }[]; // matching用（正解は同index対応）
+  hintJa?: string; hintZh?: string;          // 任意ヒント（使用するとday3候補）
   explanationJa: string; explanationZh: string;
   errorTag: string;
   review: FoundationReviewStatus;
@@ -62,6 +85,10 @@ export interface FoundationUnit {
   id: string;
   titleJa: string; titleZh: string;
   canDoJa: string[]; canDoZh: string[];
+  level: 'N5' | 'N5-N4';
+  recommendedWeek: number;          // 24週表示側の推奨週（表示のみ・強制しない）
+  estimatedMinutes: number;
+  prerequisiteUnitIds: string[];    // ソフト前提（ハードロックしない・§13）
   itemIds: string[]; ruleIds: string[]; questionIds: string[];
-  review: FoundationReviewStatus;   // 単元全体の状態（今回はdraft固定）
+  review: FoundationReviewStatus;   // 単元全体の状態（Phase 2Bはdraft固定）
 }
