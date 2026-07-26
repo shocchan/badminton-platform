@@ -6,6 +6,7 @@ export type FoundationDimension = 'reading' | 'meaning' | 'form' | 'connection' 
 export type FoundationQuestionType =
   | 'single_choice' | 'reading_choice' | 'particle_choice' | 'conjugation_choice' | 'sentence_choice'
   | 'error_correction_choice' | 'fill_blank'
+  | 'image_to_word' | 'word_to_image' | 'contrast_choice' | 'scene_choice' | 'diagram_choice'  // 画像・図解問題（choice系・§27）
   | 'text_input' | 'kana_input' | 'conjugation_input'   // 入力系: エンジンは保持するが利用者向け単元では禁止（§11）
   | 'sentence_order'
   | 'matching';
@@ -89,6 +90,7 @@ export interface FoundationQuestion {
   orderTokens?: string[];       // sentence_order用（正解順で保持・出題時は決定的シャッフル）
   pairs?: { left: string; right: string }[]; // matching用（正解は同index対応）
   hintJa?: string; hintZh?: string;          // 任意ヒント（使用するとday3候補）
+  imageAssetId?: string;                     // 画像問題用（image_to_word等・未承認画像は一般表示不可）
   explanationJa: string; explanationZh: string;
   errorTag: string;
   review: FoundationReviewStatus;

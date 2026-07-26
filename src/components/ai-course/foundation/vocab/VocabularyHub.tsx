@@ -9,6 +9,7 @@ import type { VocabCategory } from '../../../../lib/aiLesson/course/foundationVo
 import { assetForItem } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { createVocabProgressRepository, pickDailyWords } from '../../../../lib/aiLesson/course/vocabProgress';
 import { shuffledChoicesSeeded } from '../../../../lib/aiLesson/course/foundationGrade';
+import { buildImageToWordQuestion } from '../../../../lib/aiLesson/course/vocabImageQuestions';
 import type { FoundationQuestion } from '../../../../lib/aiLesson/course/foundationTypes';
 import { trackCourse, trackCourseOnce } from '../../../../lib/aiLesson/course/courseAnalytics';
 import type { AiCourseDict } from '../../../../locales/aiCourse';
@@ -303,7 +304,9 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDo
     );
   }
   const item = itemById.get(ids[idx])!;
-  const q = meaningQuestionFor(t, items, item, idx + 11);
+  // 画像が表示可能なら画像→ことば問題、無ければ意味問題（画像ロード不可でも回答可能・§44）
+  const imgQ = buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 11, true);
+  const q = imgQ ?? meaningQuestionFor(t, items, item, idx + 11);
   const order = shuffledChoicesSeeded(q, idx + 3);
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5">
@@ -325,6 +328,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDo
       )}
       {phase === 'quiz' && (
         <div>
+          {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />}
           <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
           <div className="space-y-2">
             {order.map((orig) => (

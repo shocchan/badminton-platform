@@ -21,8 +21,8 @@ const STYLE = '成人向け日本語教材用の柔らかいフラットイラ�
 export const VISUAL_ASSETS: VisualAsset[] = [
   // ── 第1バッチ: 基本動詞（§69） ──
   planned('va-verb-iku-scene', 'fi-iku', '目的地へ向かって歩いて移動している場面', '朝着目的地走去的场景', `${STYLE} 成人の人物が少し離れた駅の入口へ向かって歩いている。進行方向が明確で、目的地にまだ到着していない。こちらへ来る構図・帰宅に見える構図は避ける。`),
-  planned('va-verb-kuru-scene', 'fi-kuru', 'こちらへ近づいて来る場面', '朝这边走来的场景', `${STYLE} 画面手前で成人が待っていて、別の成人が奥から手前へ歩いて近づいてくる。近づく方向が明確。「行く」と同じ構図にしない。`),
-  planned('va-verb-kaeru-scene', 'fi-kaeru', '家へ帰る場面', '回家的场景', `${STYLE} 夕方、成人がかばんを持って自宅の玄関へ向かっている。家に帰る安心感が伝わる。出勤に見える構図は避ける。`),
+  planned('va-verb-kuru-scene', 'fi-kuru', '奥からこちらへ歩み寄る人物の場面', '朝这边走来的场景', `${STYLE} 画面手前で成人が待っていて、別の成人が奥から手前へ歩いて近づいてくる。近づく方向が明確。「行く」と同じ構図にしない。`),
+  planned('va-verb-kaeru-scene', 'fi-kaeru', '夕方、自宅へ戻る場面', '回家的场景', `${STYLE} 夕方、成人がかばんを持って自宅の玄関へ向かっている。家に帰る安心感が伝わる。出勤に見える構図は避ける。`),
   planned('va-verb-sumu-scene', 'fi-sumu', 'その場所で継続して生活している場面', '在住处持续生活的场景', `${STYLE} 成人が自宅の部屋でくつろいで日常生活をしている。生活用品が少し見え、ホテル滞在や訪問には見えない。`),
   planned('va-verb-hataraku-scene', 'fi-hataraku', '職場で働いている場面', '在公司工作的场景', `${STYLE} 成人がオフィスのデスクで仕事をしている。画面の主役は働く動作。背景の同僚はシルエット程度。`),
   planned('va-verb-benkyo-scene', 'fi-benkyo', '机で勉強している場面', '在书桌前学习的场景', `${STYLE} 成人がノートと本を開いて勉強している。集中している様子。文字は読めない抽象表現。`),
@@ -39,12 +39,12 @@ export const VISUAL_ASSETS: VisualAsset[] = [
   planned('va-verb-tsukuru-scene', 'fi-tsukuru', '料理を作っている場面', '做饭的场景', `${STYLE} 成人がキッチンで料理を作っている。作る動作が主役。`),
   // ── 第3バッチ: 生活・移動 ──
   planned('va-verb-au-scene', 'fi-au', '友達と会っている場面', '和朋友见面的场景', `${STYLE} 二人の成人が待ち合わせ場所で会って挨拶している。再会の瞬間が分かる。`),
-  planned('va-verb-okiru-scene', 'fi-okiru', '朝起きる場面', '早晨起床的场景', `${STYLE} 朝、成人がベッドから起き上がっている。窓から朝の光。寝る場面と混同しない。`),
-  planned('va-verb-neru-scene', 'fi-neru', '夜寝る場面', '晚上睡觉的场景', `${STYLE} 夜、成人がベッドで眠っている。落ち着いた夜の雰囲気。`),
-  planned('va-verb-noru-scene', 'fi-noru', '電車に乗る場面', '上电车的场景', `${STYLE} 成人が開いたドアから電車に乗り込んでいる。乗る方向が明確。降りる場面と混同しない。`),
-  planned('va-verb-oriru-scene', 'fi-oriru', '電車から降りる場面', '下电车的场景', `${STYLE} 成人が電車のドアからホームへ降りている。降りる方向が明確。「乗る」と反対の構図。`),
-  planned('va-verb-hairu-scene', 'fi-hairu', '店に入る場面', '进店的场景', `${STYLE} 成人が店の入口ドアを開けて中へ入っている。入る方向が明確。`),
-  planned('va-verb-deru-scene', 'fi-deru', '家を出る場面', '出门的场景', `${STYLE} 成人が玄関から外へ出ている。出る方向が明確。「入る」と反対の構図。`),
+  planned('va-verb-okiru-scene', 'fi-okiru', '朝、ベッドから起き上がる場面', '早晨起床的场景', `${STYLE} 朝、成人がベッドから起き上がっている。窓から朝の光。寝る場面と混同しない。`),
+  planned('va-verb-neru-scene', 'fi-neru', '夜、ベッドで眠っている場面', '晚上睡觉的场景', `${STYLE} 夜、成人がベッドで眠っている。落ち着いた夜の雰囲気。`),
+  planned('va-verb-noru-scene', 'fi-noru', '電車に乗り込む場面', '上电车的场景', `${STYLE} 成人が開いたドアから電車に乗り込んでいる。乗る方向が明確。降りる場面と混同しない。`),
+  planned('va-verb-oriru-scene', 'fi-oriru', '電車からホームに降り立つ場面', '下电车的场景', `${STYLE} 成人が電車のドアからホームへ降りている。降りる方向が明確。「乗る」と反対の構図。`),
+  planned('va-verb-hairu-scene', 'fi-hairu', '店の入口から中へ進む場面', '进店的场景', `${STYLE} 成人が店の入口ドアを開けて中へ入っている。入る方向が明確。`),
+  planned('va-verb-deru-scene', 'fi-deru', '玄関から外へ向かう場面', '出门的场景', `${STYLE} 成人が玄関から外へ出ている。出る方向が明確。「入る」と反対の構図。`),
   // ── 第4バッチ: 形容詞対比（§9） ──
   plannedContrast('va-adj-ookii-chiisai-contrast', 'fi-ookii', '大きいかばんと小さいかばんの比較', '大包和小包的对比', `${STYLE} 左に大きいかばん、右に小さいかばんを並べた対比図。大きさの差が一目で分かる。`),
   plannedContrast('va-adj-takai-yasui-contrast', 'fi-takai', '高い値札と安い値札の商品比較', '贵和便宜的商品对比', `${STYLE} 左に高そうな商品と大きい値札、右に安い商品と小さい値札。金額の数字は抽象的な記号で表現し読める文字は入れない。`),
