@@ -81,10 +81,11 @@
 - 表示順例(seed0): しゅつみ → しゅっしん → でみ
 - 解説(ja): 出身＝しゅっしん。 ／ (zh): 出身读作「しゅっしん」。
 
-### fq-r3（reading / kana_input） → fi-sumu / errorTag: reading_sumu / draft
-- 出題(ja): 「住む」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「住む」的读音。
-- 許容解答: すむ（正規化あり）
-- 解説(ja): 住む＝すむ。 ／ (zh): 住む读作「すむ」。
+### fq-r3（reading / reading_choice） → fi-sumu / errorTag: reading_sumu / draft
+- 出題(ja): 「住む」の読みは？ ／ (zh): 「住む」怎么读？
+- 選択肢(ID順): [0]すむ ✅ / [1]じゅうむ / [2]すみ / [3]すまう
+- 表示順例(seed0): すみ → すむ → じゅうむ → すまう
+- 解説(ja): 住む＝すむ。「じゅう」は音読み（住所など）です。 ／ (zh): 住む读作「すむ」。「じゅう」是音读（如「住所」）。
 
 ### fq-m1（meaning / single_choice） → fi-kaisha / errorTag: meaning_kaisha / draft
 - 出題(ja): 「会社」の意味は？ ／ (zh): 「会社」的意思是？
@@ -104,7 +105,7 @@
 - 表示順例(seed0): 我想说日语 → 我在学日语 → 我教日语
 - 解説(ja): 勉強しています＝正在学习。 ／ (zh): 「勉強しています」表示正在学习的状态。
 
-### fq-f1（form / single_choice） → fr-teimasu / errorTag: teimasu_state_sumu / draft
+### fq-f1（form / conjugation_choice） → fr-teimasu / errorTag: teimasu_state_sumu / draft
 - 出題(ja): 今、日本で生活しています。「日本に＿＿」正しいのは？ ／ (zh): 现在生活在日本。「日本に＿＿」应该选？
 - 選択肢(ID順): [0]住んでいます ✅ / [1]住みます / [2]住みました
 - 表示順例(seed0): 住みます → 住んでいます → 住みました
@@ -127,7 +128,7 @@
 - 正答順: 日本語 + を + 勉強して + います
 - 解説(ja): 日本語＋を＋勉強しています。 ／ (zh): 日语＋を＋勉強しています。
 
-### fq-u2（usage / single_choice） → fr-desu / errorTag: usage_selfintro_shusshin / draft
+### fq-u2（usage / sentence_choice） → fr-desu / errorTag: usage_selfintro_shusshin / draft
 - 出題(ja): 自己紹介として自然なのは？（王さん・中国から来た会社員） ／ (zh): 哪句自我介绍最自然？（小王・来自中国的公司职员）
 - 選択肢(ID順): [0]中国出身です。会社員です。 ✅ / [1]私は中国です。 / [2]中国が出身します。
 - 表示順例(seed0): 中国が出身します。 → 中国出身です。会社員です。 → 私は中国です。

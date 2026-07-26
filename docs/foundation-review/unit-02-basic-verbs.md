@@ -92,10 +92,11 @@
 - 表示順例(seed0): どくむ → よむ → とむ
 - 解説(ja): 読む＝よむ。 ／ (zh): 読む读作「よむ」。
 
-### f2q-r2（reading / kana_input） → fi-kaeru / errorTag: reading_kaeru / draft
-- 出題(ja): 「帰る」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「帰る」的读音。
-- 許容解答: かえる（正規化あり）
-- 解説(ja): 帰る＝かえる。 ／ (zh): 帰る读作「かえる」。
+### f2q-r2（reading / reading_choice） → fi-kaeru / errorTag: reading_kaeru / draft
+- 出題(ja): 「帰る」の読みは？ ／ (zh): 「帰る」怎么读？
+- 選択肢(ID順): [0]かえる ✅ / [1]がえる / [2]かえり / [3]きる
+- 表示順例(seed0): かえり → かえる → きる → がえる
+- 解説(ja): 帰る＝かえる。「かえり（帰り）」は名詞形です。 ／ (zh): 帰る读作「かえる」。「かえり（帰り）」是名词形。
 
 ### f2q-m1（meaning / single_choice） → fi-kau / errorTag: meaning_kau / draft
 - 出題(ja): 「買う」の意味は？ ／ (zh): 「買う」的意思是？
@@ -122,30 +123,32 @@
 - ヒント: 「る」で終わっても一類の動詞があります。（使用時はday3候補）
 - 解説(ja): 帰るは「る」で終わりますが一類（帰ります・帰らない）。 ／ (zh): 「帰る」虽以る结尾但是一类动词（帰ります・帰らない）。
 
-### f2q-f2（form / conjugation_input） → fr-masu-form / errorTag: masu_iku / draft
-- 出題(ja): 「行く」のます形は？（〜ます の形で入力） ／ (zh): 「行く」的ます形是？（请输入〜ます的形式）
-- 許容解答: 行きます / いきます（正規化あり）
-- 解説(ja): 一類：うの音→いの音＋ます。行く→行きます。 ／ (zh): 一类动词u音变i音＋ます：行く→行きます。
+### f2q-f2（form / conjugation_choice） → fr-masu-form / errorTag: masu_iku / draft
+- 出題(ja): 「行く」のます形は？ ／ (zh): 「行く」的ます形是？
+- 選択肢(ID順): [0]行きます ✅ / [1]行くます / [2]行かます / [3]行います
+- 表示順例(seed0): 行います → 行きます → 行くます → 行かます
+- 解説(ja): 一類：うの音→いの音＋ます。行く→行きます。辞書形に直接「ます」は付けません。 ／ (zh): 一类动词u音变i音＋ます：行く→行きます。不能在辞书形后直接加「ます」。
 
-### f2q-f3（form / single_choice） → fr-masu-form / errorTag: masu_taberu / draft
+### f2q-f3（form / conjugation_choice） → fr-masu-form / errorTag: masu_taberu / draft
 - 出題(ja): 「食べる」のます形は？ ／ (zh): 「食べる」的ます形是？
 - 選択肢(ID順): [0]食べます ✅ / [1]食べります / [2]食べします
 - 表示順例(seed0): 食べします → 食べます → 食べります
 - 解説(ja): 二類：る→ます。食べる→食べます。 ／ (zh): 二类动词去る＋ます：食べる→食べます。
 
-### f2q-f4（form / single_choice） → fr-nai-form / errorTag: nai_kuru_exception / draft
+### f2q-f4（form / conjugation_choice） → fr-nai-form / errorTag: nai_kuru_exception / draft
 - 出題(ja): 「来る」のない形は？ ／ (zh): 「来る」的ない形是？
 - 選択肢(ID順): [0]来ない（こない） ✅ / [1]来らない / [2]来ない（くない）
 - 表示順例(seed0): 来ない（くない） → 来ない（こない） → 来らない
 - 解説(ja): 三類の例外：来る→来ない（こない）。読みも変わります。 ／ (zh): 三类动词特殊变化：来る→来ない，读音变为「こない」。
 
-### f2q-f5（form / conjugation_input） → fr-nai-form / errorTag: nai_kau_wa / draft
+### f2q-f5（form / conjugation_choice） → fr-nai-form / errorTag: nai_kau_wa / draft
 - 出題(ja): 「買う」のない形は？ ／ (zh): 「買う」的ない形是？
-- 許容解答: 買わない / かわない（正規化あり）
+- 選択肢(ID順): [0]買わない ✅ / [1]買あない / [2]買いない / [3]買らない
+- 表示順例(seed0): 買あない → 買らない → 買わない → 買いない
 - ヒント: 「う」で終わる動詞は「わ」になります。（使用時はday3候補）
 - 解説(ja): 買う→買わない（×買あない）。うで終わる一類は「わ＋ない」。 ／ (zh): 買う→買わない（不是「買あない」）。以う结尾的一类动词变「わ＋ない」。
 
-### f2q-c1（connection / single_choice） → fr-nai-form / errorTag: nai_aru_exception / draft
+### f2q-c1（connection / conjugation_choice） → fr-nai-form / errorTag: nai_aru_exception / draft
 - 出題(ja): 「時間が＿＿」。「ない」を使った正しい形は？ ／ (zh): 「時間が＿＿」。用否定的正确说法是？
 - 選択肢(ID順): [0]ありません ✅ / [1]あらないです / [2]ないます
 - 表示順例(seed0): あらないです → ありません → ないます

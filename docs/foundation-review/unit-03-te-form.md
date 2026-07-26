@@ -96,10 +96,11 @@
 - 表示順例(seed0): こうって → いって → ぎょうって
 - 解説(ja): 行って＝いって。 ／ (zh): 行って读作「いって」。
 
-### f3q-r2（reading / kana_input） → fi-hanasu / errorTag: reading_hanashite / draft
-- 出題(ja): 「話して」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「話して」的读音。
-- 許容解答: はなして（正規化あり）
-- 解説(ja): 話して＝はなして。 ／ (zh): 話して读作「はなして」。
+### f3q-r2（reading / reading_choice） → fi-hanasu / errorTag: reading_hanashite / draft
+- 出題(ja): 「話して」の読みは？ ／ (zh): 「話して」怎么读？
+- 選択肢(ID順): [0]はなして ✅ / [1]はなしって / [2]ばなして
+- 表示順例(seed0): ばなして → はなしって → はなして
+- 解説(ja): 話して＝はなして（す→して、小さい「っ」は入りません）。 ／ (zh): 話して读作「はなして」（す→して，没有促音「っ」）。
 
 ### f3q-m1（meaning / single_choice） → fi-miru / errorTag: meaning_mitekudasai / draft
 - 出題(ja): 「見てください」の意味は？ ／ (zh): 「見てください」的意思是？
@@ -113,12 +114,13 @@
 - 表示順例(seed0): 请吃一点 → 请听我说一下 → 请写一下
 - 解説(ja): この場面の聞く＝听。 ／ (zh): 这里的「聞く」是「听」的意思。
 
-### f3q-f1（form / conjugation_input） → fr-te-g1a / errorTag: te_katte / draft
+### f3q-f1（form / conjugation_choice） → fr-te-g1a / errorTag: te_katte / draft
 - 出題(ja): 「買う」のて形は？ ／ (zh): 「買う」的て形是？
-- 許容解答: 買って / かって（正規化あり）
+- 選択肢(ID順): [0]買って ✅ / [1]買いて / [2]買うて / [3]買んで
+- 表示順例(seed0): 買いて → 買って → 買んで → 買うて
 - 解説(ja): う・つ・る→って。買う→買って。 ／ (zh): う・つ・る结尾→って：買う→買って。
 
-### f3q-f2（form / single_choice） → fr-te-g1a / errorTag: te_yonde / draft
+### f3q-f2（form / conjugation_choice） → fr-te-g1a / errorTag: te_yonde / draft
 - 出題(ja): 「読む」のて形は？ ／ (zh): 「読む」的て形是？
 - 選択肢(ID順): [0]読んで ✅ / [1]読って / [2]読みて
 - 表示順例(seed0): 読って → 読みて → 読んで
@@ -129,19 +131,20 @@
 - 正答対応: 書く→書いて / 話す→話して / 食べる→食べて
 - 解説(ja): く→いて（書いて）、す→して（話して）、二類はる→て（食べて）。 ／ (zh): く→いて（書いて）、す→して（話して）、二类去る＋て（食べて）。
 
-### f3q-f4（form / conjugation_input） → fr-te-g2g3 / errorTag: te_kite / draft
-- 出題(ja): 「来る」のて形をひらがなで入力してください。 ／ (zh): 请用平假名输入「来る」的て形。
-- 許容解答: きて / 来て（正規化あり）
+### f3q-f4（form / conjugation_choice） → fr-te-g2g3 / errorTag: te_kite / draft
+- 出題(ja): 「来る」のて形は？ ／ (zh): 「来る」的て形是？
+- 選択肢(ID順): [0]来て（きて） ✅ / [1]来て（くて） / [2]来って / [3]来るて
+- 表示順例(seed0): 来て（くて） → 来て（きて） → 来って → 来るて
 - ヒント: 三類は読み方も変わります。（使用時はday3候補）
-- 解説(ja): 来る→来て（きて）。 ／ (zh): 来る→来て，读「きて」。
+- 解説(ja): 来る→来て。読みは「きて」に変わります（×くて）。 ／ (zh): 来る→来て，读音变为「きて」（不是くて）。
 
-### f3q-f5（form / single_choice） → fr-te-iku-exception / errorTag: te_iku_exception / draft
+### f3q-f5（form / conjugation_choice） → fr-te-iku-exception / errorTag: te_iku_exception / draft
 - 出題(ja): 「行く」のて形は？ ／ (zh): 「行く」的て形是？
 - 選択肢(ID順): [0]行って ✅ / [1]行いて / [2]行きて
 - 表示順例(seed0): 行いて → 行って → 行きて
 - 解説(ja): 例外：行く→行って（×行いて）。 ／ (zh): 例外：行く→行って（不是「行いて」）。
 
-### f3q-c1（connection / single_choice） → fr-te-kudasai / errorTag: te_kudasai_connect / draft
+### f3q-c1（connection / conjugation_choice） → fr-te-kudasai / errorTag: te_kudasai_connect / draft
 - 出題(ja): 「ここに名前を＿＿ください」。正しいのは？ ／ (zh): 「ここに名前を＿＿ください」应该选？
 - 選択肢(ID順): [0]書いて ✅ / [1]書きて / [2]書き
 - 表示順例(seed0): 書き → 書いて → 書きて
@@ -152,7 +155,7 @@
 - 正答順: もう一度 + 話して + ください
 - 解説(ja): もう一度＋話して＋ください。 ／ (zh): 再说一遍＝もう一度話してください。
 
-### f3q-u2（usage / single_choice） → fr-te-overview / errorTag: usage_te_sequence / draft
+### f3q-u2（usage / sentence_choice） → fr-te-overview / errorTag: usage_te_sequence / draft
 - 出題(ja): 朝ごはんを食べた後で会社へ行くことを、一つの文で言うと？ ／ (zh): 「吃完早饭后去公司」用一句话说是？
 - 選択肢(ID順): [0]朝ごはんを食べて、会社へ行きます。 ✅ / [1]朝ごはんを食べます、会社へ行きます。 / [2]朝ごはんを食べるして、会社へ行きます。
 - 表示順例(seed0): 朝ごはんを食べるして、会社へ行きます。 → 朝ごはんを食べます、会社へ行きます。 → 朝ごはんを食べて、会社へ行きます。

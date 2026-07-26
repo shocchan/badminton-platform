@@ -61,10 +61,11 @@
 - 表示順例(seed0): いぬ → びょう → ねこ
 - 解説(ja): 猫＝ねこ。 ／ (zh): 猫读作「ねこ」。
 
-### f4q-r2（reading / kana_input） → fi-wakaru / errorTag: reading_wakaru / draft
-- 出題(ja): 「分かる」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「分かる」的读音。
-- 許容解答: わかる（正規化あり）
-- 解説(ja): 分かる＝わかる。 ／ (zh): 分かる读作「わかる」。
+### f4q-r2（reading / reading_choice） → fi-wakaru / errorTag: reading_wakaru / draft
+- 出題(ja): 「分かる」の読みは？ ／ (zh): 「分かる」怎么读？
+- 選択肢(ID順): [0]わかる ✅ / [1]ぶんかる / [2]わける
+- 表示順例(seed0): ぶんかる → わける → わかる
+- 解説(ja): 分かる＝わかる。「ぶん」は音読み（気分など）、「わける（分ける）」は別の動詞です。 ／ (zh): 分かる读作「わかる」。「ぶん」是音读，「わける（分ける）」是另一个动词。
 
 ### f4q-m1（meaning / single_choice） → fi-neko / errorTag: meaning_neko_imasu / draft
 - 出題(ja): 「猫がいます」の意味は？ ／ (zh): 「猫がいます」的意思是？
@@ -114,7 +115,7 @@
 - 正答順: 私 + は + 日本語 + を + 勉強します
 - 解説(ja): 私は＋日本語を＋勉強します。 ／ (zh): 私は＋日本語を＋勉強します。
 
-### f4q-u2（usage / single_choice） → fr-ga-basic / errorTag: usage_ga_answer / draft
+### f4q-u2（usage / sentence_choice） → fr-ga-basic / errorTag: usage_ga_answer / draft
 - 出題(ja): 「部屋に何がいますか？」への自然な答えは？ ／ (zh): 回答「部屋に何がいますか？」最自然的是？
 - 選択肢(ID順): [0]猫がいます。 ✅ / [1]猫はいます。 / [2]猫をいます。
 - 表示順例(seed0): 猫をいます。 → 猫がいます。 → 猫はいます。

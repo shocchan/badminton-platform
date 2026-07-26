@@ -73,11 +73,11 @@
 - 表示順例(seed0): いちにん → いちじん → ひとり
 - 解説(ja): 一人＝ひとり、二人＝ふたり（特殊読み）。 ／ (zh): 一人＝ひとり、二人＝ふたり（特殊读法）。
 
-### f6q-r3（reading / kana_input） → fr-time-reading / errorTag: reading_kuji / draft
-- 出題(ja): 「9時」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「9時」的读音。
-- 許容解答: くじ（正規化あり）
-- ヒント: 「きゅうじ」ではありません。（使用時はday3候補）
-- 解説(ja): 9時＝くじ（×きゅうじ）。 ／ (zh): 9時读「くじ」（不是きゅうじ）。
+### f6q-r3（reading / reading_choice） → fr-time-reading / errorTag: reading_kuji / draft
+- 出題(ja): 「9時」の読みは？ ／ (zh): 「9時」怎么读？
+- 選択肢(ID順): [0]くじ ✅ / [1]きゅうじ / [2]ここのじ
+- 表示順例(seed0): ここのじ → くじ → きゅうじ
+- 解説(ja): 9時＝くじ（×きゅうじ）。特殊読みです。 ／ (zh): 9時读「くじ」（不是きゅうじ）。是特殊读法。
 
 ### f6q-m1（meaning / single_choice） → fi-ikura / errorTag: meaning_ikura / draft
 - 出題(ja): 「いくらですか」の意味は？ ／ (zh): 「いくらですか」的意思是？
@@ -96,7 +96,7 @@
 - 正答対応: 6時→ろくじ / 7時→しちじ / 9時→くじ
 - 解説(ja): 6時＝ろくじ（規則的）、7時＝しちじ・9時＝くじ（特殊）。 ／ (zh): 6時＝ろくじ（规则读法），7時＝しちじ・9時＝くじ（特殊读法）。
 
-### f6q-f2（form / single_choice） → fr-counters / errorTag: form_futari / draft
+### f6q-f2（form / reading_choice） → fr-counters / errorTag: form_futari / draft
 - 出題(ja): 「二人」の読みは？ ／ (zh): 「二人」怎么读？
 - 選択肢(ID順): [0]ふたり ✅ / [1]ににん / [2]にじん
 - 表示順例(seed0): にじん → ふたり → ににん
@@ -108,7 +108,7 @@
 - 表示順例(seed0): は → が → を
 - 解説(ja): ほしい物＋を＋ください。 ／ (zh): 想要的东西＋を＋ください。
 
-### f6q-u1（usage / single_choice） → fr-shopping / errorTag: usage_kudasai_count / draft
+### f6q-u1（usage / sentence_choice） → fr-shopping / errorTag: usage_kudasai_count / draft
 - 出題(ja): りんごを3つ買いたいとき、店で何と言う？ ／ (zh): 想买3个苹果时，在店里怎么说？
 - 選択肢(ID順): [0]りんごを三つください。 ✅ / [1]りんごが三つです。 / [2]りんごを三つあります。
 - 表示順例(seed0): りんごを三つあります。 → りんごを三つください。 → りんごが三つです。
@@ -119,7 +119,7 @@
 - 正答順: これ + を + ください
 - 解説(ja): これ＋を＋ください。 ／ (zh): 这个＋を＋请给我。
 
-### f6q-u3（usage / single_choice） → fi-ikura / errorTag: usage_ikura_scene / draft
+### f6q-u3（usage / sentence_choice） → fi-ikura / errorTag: usage_ikura_scene / draft
 - 出題(ja): 値段を聞くとき、自然なのは？ ／ (zh): 询问价格时最自然的说法是？
 - 選択肢(ID順): [0]これはいくらですか。 ✅ / [1]これはいくつですか。 / [2]これは何時ですか。
 - 表示順例(seed0): これはいくつですか。 → これは何時ですか。 → これはいくらですか。

@@ -64,10 +64,11 @@
 - 表示順例(seed0): でんくるま → てんしゃ → でんしゃ
 - 解説(ja): 電車＝でんしゃ。 ／ (zh): 電車读作「でんしゃ」。
 
-### f5q-r2（reading / kana_input） → fi-okiru / errorTag: reading_okiru / draft
-- 出題(ja): 「起きる」の読みをひらがなで入力してください。 ／ (zh): 请用平假名输入「起きる」的读音。
-- 許容解答: おきる（正規化あり）
-- 解説(ja): 起きる＝おきる。 ／ (zh): 起きる读作「おきる」。
+### f5q-r2（reading / reading_choice） → fi-okiru / errorTag: reading_okiru / draft
+- 出題(ja): 「起きる」の読みは？ ／ (zh): 「起きる」怎么读？
+- 選択肢(ID順): [0]おきる ✅ / [1]おこる / [2]きる
+- 表示順例(seed0): きる → おきる → おこる
+- 解説(ja): 起きる＝おきる。「おこる（起こる）」は別の動詞です。 ／ (zh): 起きる读作「おきる」。「おこる（起こる）」是另一个动词（发生）。
 
 ### f5q-m1（meaning / single_choice） → fi-densha / errorTag: meaning_densha_de / draft
 - 出題(ja): 「電車で行きます」の意味は？ ／ (zh): 「電車で行きます」的意思是？
@@ -117,7 +118,7 @@
 - 正答順: 電車 + で + 会社 + に + 行きます
 - 解説(ja): 電車で＋会社に＋行きます。 ／ (zh): 電車で（坐电车）＋会社に（去公司）＋行きます。
 
-### f5q-u2（usage / single_choice） → fr-ni-e-destination / errorTag: usage_kaeru_ni / draft
+### f5q-u2（usage / sentence_choice） → fr-ni-e-destination / errorTag: usage_kaeru_ni / draft
 - 出題(ja): 週末に故郷へ戻ることを言うと？ ／ (zh): 说「周末回老家」应该选？
 - 選択肢(ID順): [0]週末、家に帰ります。 ✅ / [1]週末、家で帰ります。 / [2]週末、家を帰ります。
 - 表示順例(seed0): 週末、家で帰ります。 → 週末、家に帰ります。 → 週末、家を帰ります。
