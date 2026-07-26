@@ -6,6 +6,7 @@ import { ArrowLeft, Sparkles, ArrowRight, CalendarDays, CheckCircle2, Lightbulb,
 import { ShokoAvatar } from './ShokoAvatar';
 import { CourseIllustration } from './CourseIllustration';
 import { buildReviewPlan } from '../../lib/aiLesson/course/courseReviewPlan';
+import { reviewReasonKey } from '../../lib/aiLesson/course/courseReviewReason';
 import type { ReviewItem, ReviewPlan } from '../../lib/aiLesson/course/courseReviewPlan';
 import { atLeast } from '../../lib/aiLesson/course/courseEngine';
 import type { AiCourseDict } from '../../locales/aiCourse';
@@ -50,6 +51,10 @@ const Card = ({ t, it, onOpen }: { t: AiCourseDict; it: ReviewItem; onOpen: () =
             {it.usage === 'hint' && !due && <Lightbulb className="w-3.5 h-3.5 text-amber-400 shrink-0" />}
             {usageText(t, it)}
           </p>
+          {/* なぜ今日この表現が出ているのか（期日復習のみ・1行・責めない・§B-2） */}
+          {due && (
+            <p className="text-[11px] text-gray-500 mt-1 leading-snug">{r.reviewReasons[reviewReasonKey(it)]}</p>
+          )}
           <div className="flex items-center flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-[11px] text-gray-400">
             {it.dateISO && <span>{r.learnedOn(it.dateISO)}</span>}
             {it.nextReviewISO && <span className="flex items-center gap-0.5"><CalendarDays className="w-3 h-3" />{r.nextReviewOn(it.nextReviewISO)}</span>}

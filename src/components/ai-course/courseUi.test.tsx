@@ -153,4 +153,59 @@ describe('CourseHome（今日の学習と復旧パネル）', () => {
     expect(screen.getByText(tz.home.startLesson)).toBeTruthy();
     expect(screen.getByText(tz.home.activeElsewhereTitle)).toBeTruthy();
   });
+
+  it('状態別CTA: 新規＝「今日の会話を始める」・上限到達＝完了扱いの前向き表示', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.getByText('今日の会話を始める')).toBeTruthy();
+    cleanup();
+    render(<CourseHome {...homeProps} remainingToday={0} />);
+    expect(screen.getByText(t.home.doneForTodayTitle)).toBeTruthy();
+    expect(screen.queryByText(t.home.startLesson)).toBeNull(); // 主CTAは出さない
+  });
+});
+
+describe('人間コーチの可視化（§B-1）', () => {
+  it('ja: コーチカード（タイトル・本文・WeChat導線）が表示され、主CTAを妨げない', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.getByText(t.home.coachCardTitle)).toBeTruthy();
+    expect(screen.getByText(t.home.coachCardBody)).toBeTruthy();
+    expect(screen.getByText(t.home.coachCardWechat)).toBeTruthy();
+    expect(screen.getByText(t.home.startLesson)).toBeTruthy(); // 主CTA健在
+  });
+
+  it('zh: コーチカードが中国語で表示される', () => {
+    render(<CourseHome {...homeProps} t={tz} />);
+    expect(screen.getByText(tz.home.coachCardTitle)).toBeTruthy();
+    expect(screen.getByText(tz.home.coachCardWechat)).toBeTruthy();
+  });
+
+  it('存在しない動的コメント・架空の確認日時を表示しない（静的文言のみ）', () => {
+    render(<CourseHome {...homeProps} />);
+    expect(screen.queryByText(/確認済み/)).toBeNull();
+    expect(screen.queryByText(/今週.*確認/)).toBeNull();
+  });
+});
+
+describe('streak復帰文言（§B-3）', () => {
+  it('中断後（streak=0・学習歴あり）: 「おかえりなさい」を表示', () => {
+    render(<CourseHome {...homeProps} stats={{ ...stats, streak: 0, totalSessions: 5 }} />);
+    expect(screen.getByText(t.home.welcomeBack)).toBeTruthy();
+    expect(screen.getByText(t.home.startLesson)).toBeTruthy(); // 既存CTA健在
+  });
+
+  it('継続中（streak>0）には出ない', () => {
+    render(<CourseHome {...homeProps} stats={{ ...stats, streak: 3, totalSessions: 5 }} />);
+    expect(screen.queryByText(t.home.welcomeBack)).toBeNull();
+  });
+
+  it('初回利用者（学習歴ゼロ）には出ない', () => {
+    render(<CourseHome {...homeProps} stats={{ ...stats, streak: 0, totalSessions: 0 }} />);
+    expect(screen.queryByText(t.home.welcomeBack)).toBeNull();
+  });
+
+  it('否定的表現（失いました等）を含まない', () => {
+    for (const d of [t, tz]) {
+      expect(d.home.welcomeBack).not.toMatch(/失い|ゼロ|失去|清零/);
+    }
+  });
 });

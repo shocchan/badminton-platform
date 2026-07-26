@@ -65,6 +65,9 @@ const ja = {
       practiced: '練習した', withHint: 'ヒントあり', independent: '自力で使えた',
       day1: '翌日も', day3: '別の場面でも', day7: '定着してきた', day30: '長期定着',
     } as Record<'practiced' | 'withHint' | 'independent' | 'day1' | 'day3' | 'day7' | 'day30', string>,
+    // 人間コーチとの接続（記録→レッスンの方向調整・常時監視ではない・§B-1）
+    coachTitle: 'この記録は、コーチとの伴走にも使います',
+    coachBody: 'AIで記録した学習内容は、個別レッスンで学習方向を調整するときに一緒に確認します（すべての会話を常時見ているわけではありません）。苦手な場面や目標の変更は、WeChatでいつでも相談できます。',
   },
   /** 利用開始案内（初回のみ自動表示。設定から再確認できる） */
   onboarding: {
@@ -83,6 +86,13 @@ const ja = {
     reopenHint: 'この案内は、設定からいつでも見直せます。',
   },
   settings: {
+    // AI先生と人間コーチの役割（混同させない・§B-1）
+    rolesTitle: 'AI先生と人間コーチ',
+    rolesAiLabel: 'AI先生（毎日）',
+    rolesAi: ['毎日の会話練習', '復習と学習案内', '短いフィードバックと言い直し支援'],
+    rolesCoachLabel: '安田コーチ（人間）',
+    rolesCoach: ['目標設定と学習方向の調整', '面接・仕事など重要場面の指導', '教材品質の確認と実際の交流への接続'],
+    rolesWechatHint: '学習方向の相談・言えなかった表現・レッスンで扱いたい場面は、WeChat（ID: Shocchance）へどうぞ。',
     guideTitle: '使い方',
     guideDescription: '最初にお見せした案内をもう一度確認できます。',
     guideOpen: '使い方をもう一度見る',
@@ -171,13 +181,21 @@ const ja = {
     // 先生の一言（行動案内・1文だけ）
     coachLineNew: '今日はこれを練習しましょう。',
     coachLineReview: '前に習った表現、覚えていますか？',
+    // streak復帰（途切れた後の最初の1回だけ。責めない・§B-3）
+    welcomeBack: 'おかえりなさい。今日はここから、また始めましょう。',
+    // 上限到達（完了扱い・前向きに）
+    doneForTodayTitle: '今日はここまでで大丈夫です',
+    // 人間コーチの可視化（静的文言＋既存WeChat導線のみ・§B-1）
+    coachCardTitle: '安田コーチも伴走します',
+    coachCardBody: 'AIで毎日練習しながら、レッスンとWeChatで学習の方向を一緒に調整します。',
+    coachCardWechat: 'WeChatで相談（ID: Shocchance）',
     todayMission: '今日のおすすめ',
     reviewBadge: '復習',
     newBadge: '新しい表現',
     weeklyBadge: '週まとめ',
     minutes: (n: number) => `約${n}分`,
     todayTarget: '今日の表現',
-    startLesson: '今日のレッスンを始める',
+    startLesson: '今日の会話を始める',
     startReview: '今日の復習を始める',
     seeRoadmap: 'ロードマップを見る',
     seeHistory: '学習履歴を見る',
@@ -393,6 +411,14 @@ const ja = {
     back: '戻る',
     empty: 'まだ学習記録がありません。最初のレッスンを始めましょう！',
     totalSessions: (n: number) => `累計 ${n} 回`,
+    // 「なぜ今日この表現が出ているのか」1行理由（決定的・責めない・§B-2）
+    reviewReasons: {
+      day1: '昨日練習した表現を、もう一度使ってみましょう。',
+      day3: '少し時間を空けて、思い出せるか確認します。',
+      day7: '別の日にも自力で使えるか確認します。',
+      overdue: '予定日を過ぎていますが、今日から再開すれば大丈夫です。',
+      general: 'もう一度使って、自分のものにしましょう。',
+    } as Record<'day1' | 'day3' | 'day7' | 'overdue' | 'general', string>,
     todayReviewTitle: '今日の復習',
     todayReviewCount: (n: number) => `復習する表現が${n}個あります。`,
     todayReviewMinutes: (n: number) => `約${n}分で確認できます。`,
@@ -641,6 +667,9 @@ const zh: AiCourseDict = {
       practiced: '练习过', withHint: '有提示', independent: '独立用出',
       day1: '第二天也会', day3: '别的场景也会', day7: '逐渐掌握', day30: '长期掌握',
     } as Record<'practiced' | 'withHint' | 'independent' | 'day1' | 'day3' | 'day7' | 'day30', string>,
+    // 与真人教练的连接（记录用于调整课程方向・并非全程监看・§B-1）
+    coachTitle: '这些记录也会用于教练的陪伴',
+    coachBody: '用AI记录的学习内容，会在一对一课程中用来一起调整学习方向（并不会实时查看你的全部对话）。不擅长的场景或目标变化，随时可以在微信上咨询。',
   },
   onboarding: {
     title: '开始之前',
@@ -658,6 +687,13 @@ const zh: AiCourseDict = {
     reopenHint: '这份说明可以随时从设置里再看一遍。',
   },
   settings: {
+    // AI老师与真人教练的分工（避免混淆・§B-1）
+    rolesTitle: 'AI老师与真人教练',
+    rolesAiLabel: 'AI老师（每天）',
+    rolesAi: ['每天的会话练习', '复习与学习引导', '简短反馈与重说练习'],
+    rolesCoachLabel: '安田教练（真人）',
+    rolesCoach: ['设定目标・调整学习方向', '面试・工作等重要场景的指导', '确认教材质量・连接真实交流'],
+    rolesWechatHint: '学习方向、没能说出口的表达、想在课上练的场景，都可以在微信（ID: Shocchance）咨询。',
     guideTitle: '使用方法',
     guideDescription: '可以再看一遍最初的使用说明。',
     guideOpen: '再看一遍使用方法',
@@ -745,13 +781,21 @@ const zh: AiCourseDict = {
     // 先生的一句话（引导行动・只用一句）
     coachLineNew: '今天来练这个吧。',
     coachLineReview: '之前学的表达，还记得吗？',
+    // 中断后的欢迎回来（只在中断后显示。不责备・§B-3）
+    welcomeBack: '欢迎回来。今天就从这里重新开始吧。',
+    // 达到今日上限（当作完成・积极表述）
+    doneForTodayTitle: '今天学到这里就可以了',
+    // 真人教练的可视化（静态文言＋现有微信咨询・§B-1）
+    coachCardTitle: '安田教练也会陪伴你的学习',
+    coachCardBody: '每天用AI练习，同时通过课程和微信咨询，一起调整学习方向。',
+    coachCardWechat: '微信咨询（ID: Shocchance）',
     todayMission: '今日推荐',
     reviewBadge: '复习',
     newBadge: '新表达',
     weeklyBadge: '每周总结',
     minutes: (n: number) => `约${n}分钟`,
     todayTarget: '今天的表达',
-    startLesson: '开始今天的课程',
+    startLesson: '开始今天的会话',
     startReview: '开始今天的复习',
     seeRoadmap: '查看路线图',
     seeHistory: '查看学习记录',
@@ -967,6 +1011,14 @@ const zh: AiCourseDict = {
     back: '返回',
     empty: '还没有学习记录，开始第一节课吧！',
     totalSessions: (n: number) => `累计 ${n} 次`,
+    // 「为什么今天出现这个表达」的一行理由（确定性・不责备・§B-2）
+    reviewReasons: {
+      day1: '再用一次昨天练习过的表达吧。',
+      day3: '隔几天后，再确认一下能不能想起来。',
+      day7: '确认一下换一天后能不能自己用出来。',
+      overdue: '虽然过了原定复习日期，但从今天重新开始也没关系。',
+      general: '再用一次，把它变成自己的表达吧。',
+    } as Record<'day1' | 'day3' | 'day7' | 'overdue' | 'general', string>,
     todayReviewTitle: '今日复习',
     todayReviewCount: (n: number) => `有${n}个表达需要复习。`,
     todayReviewMinutes: (n: number) => `大约${n}分钟可以完成。`,

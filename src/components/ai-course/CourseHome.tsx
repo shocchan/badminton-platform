@@ -1,7 +1,7 @@
 // 学習ホーム（§20・UX改訂）。開いた瞬間に「今日やること・何分・始める」が分かる構成。
 // 主役=今日の学習カード（CTA内蔵）。補助=前回の続き・今日の復習。詳細は右カラム/下部へ。
 
-import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen } from 'lucide-react';
+import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen, UserRound } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
 import { ShokoAvatar } from './ShokoAvatar';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
@@ -58,12 +58,16 @@ export const CourseHome = ({
 
   return (
     <div className="max-w-md lg:max-w-5xl mx-auto px-4 py-6">
-      {/* 先生の一言（あいさつ＋今日の行動案内。1〜2文だけ） */}
+      {/* 先生の一言（あいさつ＋今日の行動案内。途切れ後は「おかえりなさい」で責めない・§B-3） */}
       <div className="flex items-center gap-2.5 mb-4">
         <ShokoAvatar size={40} className="shrink-0" />
         <div className="min-w-0">
           <h1 className="text-base lg:text-lg font-bold text-gray-900 leading-tight">{th.greeting(learner.displayName)}</h1>
-          <p className="text-xs text-gray-500 mt-0.5">{isReview ? th.coachLineReview : th.coachLineNew}</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {stats.streak === 0 && stats.totalSessions > 0
+              ? th.welcomeBack
+              : isReview ? th.coachLineReview : th.coachLineNew}
+          </p>
         </div>
       </div>
 
@@ -138,9 +142,15 @@ export const CourseHome = ({
           </>
         ) : (
           <div className="bg-white/15 rounded-xl p-3 text-center mt-4">
-            <p className="text-sm text-blue-50 font-medium">
-              {learner.isActive ? th.limitReached : t.limits.learner_suspended}
-            </p>
+            {learner.isActive ? (
+              <>
+                {/* 上限到達＝「完了」として前向きに（§B-4） */}
+                <p className="text-sm text-white font-bold">{th.doneForTodayTitle}</p>
+                <p className="text-xs text-blue-100 mt-1">{th.limitReached}</p>
+              </>
+            ) : (
+              <p className="text-sm text-blue-50 font-medium">{t.limits.learner_suspended}</p>
+            )}
           </div>
         )}
       </div>
@@ -222,6 +232,15 @@ export const CourseHome = ({
         <span className="text-sm font-medium text-gray-800 flex-1 min-w-0">{t.reviewNote.seeAll}</span>
         <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
       </button>
+
+      {/* 人間コーチの存在（静的文言＋既存WeChat導線のみ。主CTAより控えめ・§B-1） */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
+        <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1">
+          <UserRound className="w-3.5 h-3.5 text-emerald-600" />{th.coachCardTitle}
+        </p>
+        <p className="text-xs text-gray-500 leading-relaxed">{th.coachCardBody}</p>
+        <p className="text-[11px] text-emerald-700 mt-1.5 select-all">{th.coachCardWechat}</p>
+      </div>
 
       {/* 補助情報（連続日数など。主役にしない・§22） */}
       <div className="flex items-center justify-center lg:justify-start gap-4 text-xs text-gray-400 mt-4 lg:mt-0">

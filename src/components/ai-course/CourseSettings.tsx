@@ -1,7 +1,7 @@
 // 設定画面。利用案内の再確認（§17）・プライバシー（§13）・問題報告（§18）・ログアウト。
 
 import { useState } from 'react';
-import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles } from 'lucide-react';
+import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users } from 'lucide-react';
 import { CourseIssueReport } from './CourseIssueReport';
 import { deleteMyUtterances } from '../../lib/aiLesson/course/courseIssueApi';
 import { effectiveSubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
@@ -120,6 +120,25 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
             <Trash2 className="w-3.5 h-3.5" />{ts.deleteUtterances}
           </button>
         )}
+      </Section>
+
+      {/* AI先生と人間コーチの役割（混同させない・§B-1） */}
+      <Section icon={<Users className="w-4 h-4 text-emerald-600" />} title={ts.rolesTitle}>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs font-bold text-blue-700 mb-1">{ts.rolesAiLabel}</p>
+            <ul className="space-y-0.5">
+              {ts.rolesAi.map((r, i) => <li key={i} className="text-xs text-gray-600">・{r}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-emerald-700 mb-1">{ts.rolesCoachLabel}</p>
+            <ul className="space-y-0.5">
+              {ts.rolesCoach.map((r, i) => <li key={i} className="text-xs text-gray-600">・{r}</li>)}
+            </ul>
+          </div>
+        </div>
+        <p className="text-[11px] text-gray-500 leading-relaxed mt-3 select-all">{ts.rolesWechatHint}</p>
       </Section>
 
       {/* 問題を報告する */}
