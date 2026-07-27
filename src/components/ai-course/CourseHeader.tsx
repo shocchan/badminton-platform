@@ -76,12 +76,12 @@ const MobileLabNav = ({ t, current, onNavigate }: {
   const moreActive = current === 'growth' || current === 'settings';
   return (
     <nav className="lg:hidden relative -mb-px" aria-label={t.brand}>
-      <div className="flex items-stretch">
+      <div className="flex flex-wrap items-stretch">
         {MAIN.map(({ key, icon: Icon, label }) => (
           <button
             key={key} type="button" onClick={() => { setMoreOpen(false); onNavigate(key); }}
             aria-current={current === key ? 'page' : undefined}
-            className={`flex-1 basis-0 min-w-0 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
+            className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
               current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -92,7 +92,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
         <button
           type="button" aria-expanded={moreOpen} aria-haspopup="menu"
           onClick={() => { if (!moreOpen) trackCourse('open_ai_course_mobile_more'); setMoreOpen((v) => !v); }}
-          className={`flex-1 basis-0 min-w-0 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
+          className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
             moreActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
