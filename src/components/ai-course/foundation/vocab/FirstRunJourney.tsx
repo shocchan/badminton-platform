@@ -42,6 +42,12 @@ interface Props {
 }
 
 /**
+ * この画面のfocus ring（§11）。共通の indigo-400 は白地で 2.98:1 と 3:1 にわずかに届かないため、
+ * Journey/Recovery の範囲だけ濃い色と余白で見分けやすくする。全アプリのテーマは変えない。
+ */
+const FOCUS_RING = '[&_button:focus-visible]:outline-none [&_button:focus-visible]:ring-2 [&_button:focus-visible]:ring-indigo-600 [&_button:focus-visible]:ring-offset-2';
+
+/**
  * 進捗表示（§5・CEO指示: 見やすく・視線が左から右へ流れるように）。
  * 番号／ラベル／接続線で「今どこか」「あといくつか」を一目で示す。
  * 済み=チェック・現在=塗り＋リング・未来=薄い丸 と形も変え、色だけに依存しない。
@@ -206,8 +212,9 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
     go();
   };
 
+  // focus ringはこの範囲だけ濃くする（共通ActionButtonは全アプリ共通なので変更しない・§11）
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 p-5">
+    <div className={`bg-white rounded-2xl border border-gray-100 p-5 ${FOCUS_RING}`}>
       {sandbox && (
         <p className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mb-2">
           {tv.frSandboxBadge}

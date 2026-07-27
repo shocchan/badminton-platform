@@ -24,6 +24,9 @@ interface RecoveryProps {
   labPreview?: boolean;
 }
 
+/** Recovery内のfocus ring（2E-1.16 §11）。共通コンポーネントは変えずここだけ濃くする */
+const RECOVERY_FOCUS_RING = '[&_button:focus-visible]:outline-none [&_button:focus-visible]:ring-2 [&_button:focus-visible]:ring-indigo-600 [&_button:focus-visible]:ring-offset-2';
+
 /** 学習者向けの復帰カード。第一CTAは一つ・補助は最大2つ（§11） */
 export const LearnerRecovery = ({
   t, kind, onRetry, onHome, onAlternative, onResetOnboarding, devDetail, labPreview,
@@ -50,7 +53,7 @@ export const LearnerRecovery = ({
   ].filter(Boolean).slice(0, 2) as { label: string; action: () => void }[];
 
   return (
-    <div role="alert" className="bg-white rounded-2xl border border-gray-200 p-5">
+    <div role="alert" className={`bg-white rounded-2xl border border-gray-200 p-5 ${RECOVERY_FOCUS_RING}`}>
       <h3 className="text-base font-bold text-gray-900 mb-1">{copy.heading}</h3>
       <p className="text-sm text-gray-600 mb-4">{copy.body}</p>
       <ActionButton variant="primary" fullWidth onClick={primary.action}>{primary.label}</ActionButton>
