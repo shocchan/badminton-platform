@@ -12,7 +12,7 @@ const motionSafe = 'motion-safe:transition-all motion-safe:duration-300';
 // ── ステップイラスト（4種・視線の起点を作る） ──────────────────────────
 
 const Frame = ({ children, label }: { children: ReactNode; label: string }) => (
-  <svg viewBox="0 0 96 72" role="img" aria-label={label} className="w-24 h-18 shrink-0">
+  <svg viewBox="0 0 96 72" role="img" aria-label={label} className="w-20 h-[60px] shrink-0">
     {children}
   </svg>
 );
@@ -170,26 +170,34 @@ export interface TimelinePoint { label: string; count: number; emphasis?: boolea
  * 次回復習の時間軸。今日を起点に右へ伸びる線と点で「忘れかける頃に戻ってくる」を表す。
  * 件数は数字でも読める。0件の点は薄く描き、存在自体は示す（予定がないことも情報）。
  */
-export const ReviewTimeline = ({ points, todayLabel }: { points: TimelinePoint[]; todayLabel: string }) => (
-  <div className="mt-1">
-    <div className="relative flex items-end justify-between pt-4">
-      <span aria-hidden className="absolute left-2 right-2 top-6 h-0.5 bg-indigo-100 rounded-full" />
-      <div className="relative z-10 flex flex-col items-center">
-        <span aria-hidden className="w-3 h-3 rounded-full bg-indigo-600 ring-4 ring-indigo-100" />
-        <span className="mt-1 text-[10px] font-bold text-indigo-700">{todayLabel}</span>
+export const ReviewTimeline = ({ points, todayLabel }: { points: TimelinePoint[]; todayLabel: string }) => {
+  const columns = [{ label: todayLabel, count: null as number | null, emphasis: true }, ...points];
+  return (
+    <div className="mt-1">
+      <div className="relative flex items-start justify-between pt-4">
+        <span aria-hidden className="absolute left-3 right-3 top-[22px] h-0.5 bg-indigo-100 rounded-full" />
+        {columns.map((c, i) => {
+          const today = i === 0;
+          const active = today || (c.count ?? 0) > 0;
+          return (
+            <div key={c.label} className="relative z-10 flex flex-col items-center flex-1">
+              <span aria-hidden className={`rounded-full ${motionSafe} ${
+                today ? 'w-3 h-3 bg-indigo-600 ring-4 ring-indigo-100'
+                  : active ? (c.emphasis ? 'w-3 h-3 bg-indigo-500' : 'w-2.5 h-2.5 bg-indigo-300')
+                    : 'w-2 h-2 bg-gray-200'}`} />
+              <span className={`mt-1.5 text-[10px] leading-none ${
+                today ? 'font-bold text-indigo-700' : active ? 'text-gray-700' : 'text-gray-400'}`}>
+                {c.label}
+              </span>
+              {/* 今日の列は件数を持たないが、高さを揃えるため空の行を確保する */}
+              <span className={`mt-0.5 text-[10px] leading-none font-bold tabular-nums ${
+                active ? 'text-indigo-700' : 'text-gray-300'}`}>
+                {c.count === null ? '\u00a0' : c.count}
+              </span>
+            </div>
+          );
+        })}
       </div>
-      {points.map((p) => (
-        <div key={p.label} className="relative z-10 flex flex-col items-center">
-          <span aria-hidden
-            className={`rounded-full ${motionSafe} ${p.count > 0
-              ? (p.emphasis ? 'w-3 h-3 bg-indigo-500' : 'w-2.5 h-2.5 bg-indigo-300')
-              : 'w-2 h-2 bg-gray-200'}`} />
-          <span className={`mt-1 text-[10px] ${p.count > 0 ? 'text-gray-700' : 'text-gray-400'}`}>{p.label}</span>
-          <span className={`text-[10px] font-bold tabular-nums ${p.count > 0 ? 'text-indigo-700' : 'text-gray-300'}`}>
-            {p.count}
-          </span>
-        </div>
-      ))}
     </div>
-  </div>
-);
+  );
+};
