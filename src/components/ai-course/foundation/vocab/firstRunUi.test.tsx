@@ -273,3 +273,37 @@ describe('保存データの版が食い違うとき（2E-1.15）', () => {
     expect(screen.queryByText(tv.recNewerHeading)).toBeNull();
   });
 });
+
+// Phase 2E-1.15 §10: 部分成功Recovery（契約completed・stepが前）。
+describe('部分成功Recovery（2E-1.15 E2）', () => {
+  it('契約は完了しているのにstepが前なら、その場でStep4を表示する', async () => {
+    window.sessionStorage.setItem('ai_course_first_run_v1', JSON.stringify({
+      schemaVersion: 1, step: 'practice', goal: 'daily_conversation', checkDone: true, practiceDone: true,
+      completedAt: null, startedAt: '2026-07-28T05:00:00.000Z', updatedAt: '2026-07-28T05:00:00.000Z',
+    }));
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 2, journeyId: '2026-07-28T05:00:00.000Z',
+      activeTaskType: 'practice', activeTaskId: 'p-e2', activeTaskStatus: 'completed',
+      taskStartedAt: 'x', taskCompletedAt: 'y', returnStep: 'done',
+      completionToken: 'tok-e2', usedTokens: ['tok-e2'], completedTaskIds: ['p-e2'],
+      completionSnapshot: {
+        checkedCount: 3, independentCount: 0, supportedCount: 0, needsReviewCount: 0, partial: false,
+        learnerResult: {
+          checkedCount: 3, correctCount: 2, incorrectCount: 1, notAnsweredCount: 0,
+          answeredWithSupportCount: null, feltConfidentCount: 2, feltUnsureCount: 1,
+          scheduledForReviewCount: 3, nextReviewDate: '2026-07-29', partial: false,
+        },
+      },
+    }));
+    render(<FirstRunJourney {...base} />);
+    // 1回目のrenderでStep4が見える（保存だけして画面が前のまま、にならない）
+    await waitFor(() => expect(screen.getByText(tv.frDoneHeading)).toBeTruthy());
+    expect(screen.getByText(tv.lrChecked(3))).toBeTruthy();
+    // tokenとcompletedTaskIdsは触らない
+    const c = JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!);
+    expect(c.usedTokens).toEqual(['tok-e2']);
+    expect(c.completedTaskIds).toEqual(['p-e2']);
+    // Journeyのstepだけが修復されている
+    expect(JSON.parse(window.sessionStorage.getItem('ai_course_first_run_v1')!).step).toBe('done');
+  });
+});

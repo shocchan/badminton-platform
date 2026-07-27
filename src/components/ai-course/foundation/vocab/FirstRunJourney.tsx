@@ -94,7 +94,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   useEffect(() => { trackCourseOnce('start_ai_course_first_run'); }, []);
 
   const state: FirstRunState = loaded.state;
-  const step: JourneyStep = loaded.record?.step ?? 'goal';
+  const rawStep: JourneyStep = loaded.record?.step ?? 'goal';
   const goal = loaded.record?.goal ?? null;
   const refresh = () => setLoaded(repo.load());   // イベントハンドラ内でのみ呼ぶ
 
@@ -149,13 +149,15 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   // 部分成功Recovery（2E-1.14 §5）: 契約は完了しているのにstepが前、という状態を直す。
   // 判定は保存済みの事実だけから決定的に行い、完了処理・token消費は絶対に再実行しない。
   const repair = planJourneyRepair({
-    contract, step, journeyCompleted: !!loaded.record?.completedAt,
+    contract, step: rawStep, journeyCompleted: !!loaded.record?.completedAt,
     currentView: 'firstrun', hasLearningResult: false,
   });
-  if (repair.setStep && repair.setStep !== step) {
-    // stepだけを安全に修復する（renderごとに繰り返さないよう、値が違うときだけ書く）
+  if (repair.setStep && repair.setStep !== rawStep) {
+    // stepだけを安全に修復する（同じ値なら何も書かないので、renderごとに繰り返さない）
     repo.repairStep(repair.setStep);
   }
+  // 修復後のstepをその場の表示にも使う。保存だけして画面が1つ前のまま、を防ぐ。
+  const step: JourneyStep = repair.setStep ?? rawStep;
   // 次回予定の件数（Step4のみ・読み取り専用）
   const upcoming = step === 'done'
     ? scheduleRepo.getDueSummary().upcoming
