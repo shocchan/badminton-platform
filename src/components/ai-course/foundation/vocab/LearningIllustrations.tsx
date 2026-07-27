@@ -12,8 +12,9 @@ const motionSafe = 'motion-safe:transition-all motion-safe:duration-300';
 // ── ステップイラスト（4種・視線の起点を作る） ──────────────────────────
 
 // viewBoxは図形のbboxに合わせて個別に渡す（共通viewBoxだと余白が大きく、絵が小さく見えた）
+// 幅だけ指定して高さは比率任せにする（正方形に押し込むと図が上下に潰れて読めなくなる）
 const Frame = ({ children, label, viewBox }: { children: ReactNode; label: string; viewBox: string }) => (
-  <svg viewBox={viewBox} role="img" aria-label={label} className="w-14 h-14 shrink-0">
+  <svg viewBox={viewBox} role="img" aria-label={label} className="w-16 shrink-0">
     {children}
   </svg>
 );
@@ -52,16 +53,14 @@ export const PracticeIllustration = ({ label }: { label: string }) => (
   </Frame>
 );
 
-/** Step4 まとめ: カレンダーと次の点（また戻ってくることを絵で示す） */
+/** Step4 まとめ: カレンダーの中の大きなチェック（今日ぶんが終わった、が一目で分かる形） */
 export const DoneIllustration = ({ label }: { label: string }) => (
-  <Frame label={label} viewBox="12 14 80 46">
-    <rect x="16" y="18" width="40" height="38" rx="5" fill="#fff" stroke="#C7D2FE" strokeWidth="2" />
-    <rect x="16" y="18" width="40" height="10" rx="5" fill="#4F46E5" />
-    <path d="M26 40 l5 5 l11 -12" stroke="#10B981" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <circle cx="68" cy="30" r="4" fill="#A5B4FC" />
-    <circle cx="78" cy="40" r="3.5" fill="#C7D2FE" />
-    <circle cx="86" cy="50" r="3" fill="#E0E7FF" />
-    <path d="M62 34 L66 38 M72 34 L76 38 M82 44 L84 46" stroke="#E0E7FF" strokeWidth="1.5" strokeLinecap="round" />
+  <Frame label={label} viewBox="10 10 76 60">
+    <rect x="14" y="14" width="68" height="52" rx="8" fill="#fff" stroke="#C7D2FE" strokeWidth="3" />
+    <rect x="14" y="14" width="68" height="14" rx="8" fill="#4F46E5" />
+    <rect x="14" y="22" width="68" height="6" fill="#4F46E5" />
+    <path d="M32 44 l10 10 l22 -22" stroke="#10B981" strokeWidth="6" fill="none"
+      strokeLinecap="round" strokeLinejoin="round" />
   </Frame>
 );
 
