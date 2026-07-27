@@ -27,6 +27,9 @@ import { relationsForItem } from '../../../../lib/aiLesson/course/vocabRelations
 import { RubySegments } from './RubyText';
 import type { FuriganaDisplayMode } from './RubyText';
 import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabProgress';
+import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
+import type { VocabSpacedReviewRepository, ReviewResult } from '../../../../lib/aiLesson/course/vocabSpacedReview';
+import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
@@ -47,13 +50,16 @@ interface Props {
   onStateChange?: (s: VocabHubState) => void;
 }
 
-const dateKey = () => new Date().toISOString().slice(0, 10);
+// 日付判定はLearningClockへ集約（ローカル日付・UTCで日付がずれない・2E-1.10 §5）
+const dateKey = () => defaultLearningClock.localDateKey();
 
-export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
+export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange }: Props) => {
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
   const repo = useMemo(() => createVocabProgressRepository(window.sessionStorage), []);
+  // 間隔反復（翌日/3日後/7日後）のpreview Repository（2E-1.10 §3・正式保存ではない）
+  const schedule = useMemo(() => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((v) => v + 1), []);
 
@@ -137,6 +143,32 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
               );
             })()}
           </div>
+          {/* ①-a 今日の復習（期限ベース・第一表示・2E-1.10 §6）。0件のときは出さず次の行動へ誘導 */}
+          {(() => {
+            const s = schedule.getDueSummary();
+            if (s.total === 0) return null;
+            const minutes = Math.max(1, Math.round(s.total * 0.5));
+            return (
+              <div className="bg-white rounded-2xl border border-amber-200 p-5 mb-4">
+                <p className="text-xs font-bold text-amber-700 mb-1">{tv.dueReviewTitle}</p>
+                <p className="text-base font-bold text-gray-900 mb-3">{tv.dueReviewCount(s.total, minutes)}</p>
+                <ActionButton variant="primary" fullWidth
+                  onClick={() => { trackCourse('view_ai_course_daily_review', { count: String(s.total) }); setView('quickreview'); }}>
+                  {tv.dueReviewStart}
+                </ActionButton>
+                <details className="mt-2">
+                  <summary className="text-[11px] text-gray-500 cursor-pointer min-h-8 flex items-center">{tv.dueBreakdown}</summary>
+                  <ul className="text-[11px] text-gray-600 mt-1 space-y-0.5">
+                    {s.overdue > 0 && <li>・{tv.dueOverdue(s.overdue)}</li>}
+                    {s.byStage.day1 > 0 && <li>・{tv.dueDay1(s.byStage.day1)}</li>}
+                    {s.byStage.day3 > 0 && <li>・{tv.dueDay3(s.byStage.day3)}</li>}
+                    {s.byStage.day7 > 0 && <li>・{tv.dueDay7(s.byStage.day7)}</li>}
+                    {s.byStage.retention_candidate > 0 && <li>・{tv.dueRetention(s.byStage.retention_candidate)}</li>}
+                  </ul>
+                </details>
+              </div>
+            );
+          })()}
           {/* ① 今日のことば（§7第一表示） */}
           <div className="bg-indigo-600 text-white rounded-2xl p-5 mb-4">
             <p className="text-xs font-bold text-indigo-200 mb-2">{tv.todayWordsHeading}</p>
@@ -213,7 +245,8 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
         <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump} onDone={() => setView('roadmap')} />
       )}
       {view === 'quickreview' && (
-        <VocabQuickReviewView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump} onDone={() => setView('roadmap')} />
+        <VocabQuickReviewView t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
+          onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
       )}
       {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} onChanged={bump} onDone={() => setView('top')} onRestart={() => setView('daily')} />}
       {view === 'category' && category && <VocabCategoryList t={t} repo={repo} list={listFor(category)} query="" showSearch={false} onQuery={() => {}} onOpen={(id) => setView('detail', category, id)} />}
@@ -898,24 +931,94 @@ const VocabDiagnosticView = ({ t, repo, itemById, items, onChanged, onDone }: {
 };
 
 /** 3分復習（§25・弱点だけ3〜7問・同じItemの別形式可） */
-const VocabQuickReviewView = ({ t, repo, itemById, items, onChanged, onDone }: {
-  t: AiCourseDict; repo: VocabProgressRepository; itemById: Map<string, FoundationItem>; items: FoundationItem[];
-  onChanged: () => void; onDone: () => void;
+/**
+ * 学習完了画面（Phase 2E-1.10 §16-§17）。
+ * 「今日できたこと」と「次回の復習予定」を示し、一覧へ戻すだけにしない。
+ * 内部state名（day1 / retention_candidate 等）は表示しない。第一CTAは一つ。
+ */
+const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTalk, onAgain }: {
+  t: AiCourseDict; schedule: VocabSpacedReviewRepository; itemById: Map<string, FoundationItem>;
+  results: { itemId: string; correct: boolean }[];
+  onFinish: () => void; onTalk?: () => void; onAgain?: () => void;
+}) => {
+  const tv = t.vocab;
+  useEffect(() => { trackCourseOnce('view_ai_course_learning_completion'); }, []);
+  const checked = new Set(results.map((r) => r.itemId)).size;
+  const uncertain = results.filter((r) => !r.correct);
+  const summary = schedule.getDueSummary();
+  // 明日もう一度確認する語の代表（1語だけ具体名を出す・情報を並べすぎない・§17）
+  const tomorrowWord = results.map((r) => schedule.get(r.itemId))
+    .find((e) => e && e.reviewStage === 'day1');
+  const tomorrowName = tomorrowWord ? itemById.get(tomorrowWord.itemId)?.displayForm : undefined;
+  const hasSchedule = summary.upcoming.tomorrow + summary.upcoming.inThreeDays + summary.upcoming.inSevenDays > 0;
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 p-5" aria-live="polite">
+      <h3 className="text-base font-bold text-gray-900 mb-2">{tv.completionTitle}</h3>
+      <ul className="text-sm text-gray-700 space-y-1 mb-3">
+        <li>・{tv.completionChecked(checked)}</li>
+        {uncertain.length > 0 && <li>・{tv.completionUncertain(uncertain.length)}</li>}
+      </ul>
+      {/* 次回予定（日付を並べすぎない・学習を強制する印象にしない・§17） */}
+      <div className="bg-indigo-50/60 rounded-xl p-3 mb-4">
+        <p className="text-xs font-bold text-indigo-800 mb-1">{tv.completionNextHeading}</p>
+        {hasSchedule ? (
+          <>
+            {tomorrowName && <p className="text-sm text-gray-800">{tv.completionNextWord(tomorrowName)}</p>}
+            <p className="text-xs text-gray-600 mt-1">
+              {[summary.upcoming.tomorrow > 0 ? tv.completionNextTomorrow(summary.upcoming.tomorrow) : null,
+                summary.upcoming.inThreeDays > 0 ? tv.completionNextThree(summary.upcoming.inThreeDays) : null,
+                summary.upcoming.inSevenDays > 0 ? tv.completionNextSeven(summary.upcoming.inSevenDays) : null]
+                .filter(Boolean).join('・')}
+            </p>
+          </>
+        ) : <p className="text-xs text-gray-500">{tv.completionNoSchedule}</p>}
+      </div>
+      {/* 第一CTAは一つ（§16）。補助CTAは弱いスタイル */}
+      <ActionButton variant="primary" fullWidth
+        onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onFinish(); }}>
+        {tv.completionFinish}
+      </ActionButton>
+      <div className="flex flex-wrap gap-2 mt-2">
+        {onTalk && (
+          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl"
+            onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'talk' }); onTalk(); }}>
+            {tv.completionTalk}
+          </button>
+        )}
+        {onAgain && (
+          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl"
+            onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'again' }); onAgain(); }}>
+            {tv.completionAgain}
+          </button>
+        )}
+      </div>
+      <p className="text-[11px] text-gray-400 mt-3">{tv.notSavedVocab}</p>
+    </div>
+  );
+};
+
+const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk }: {
+  t: AiCourseDict; repo: VocabProgressRepository; schedule: VocabSpacedReviewRepository;
+  itemById: Map<string, FoundationItem>; items: FoundationItem[];
+  onChanged: () => void; onDone: () => void; onTalk?: () => void;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
-  const ids = useMemo(() => pickQuickReviewItems(items.map((i) => i.id), repo).filter((id) => itemById.has(id)), [items, itemById, repo]);
+  // 期限が来た復習を優先し、足りない分を従来の弱点候補で補う（空画面にしない・§6）
+  const ids = useMemo(() => {
+    const due = schedule.getDue().map((d) => d.itemId).filter((id) => itemById.has(id));
+    const fallback = pickQuickReviewItems(items.map((i) => i.id), repo).filter((id) => itemById.has(id));
+    return [...new Set([...due, ...fallback])];
+  }, [items, itemById, repo, schedule]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [judged, setJudged] = useState<boolean | null>(null);
-  useEffect(() => { trackCourseOnce('start_ai_course_vocabulary_quick_review'); }, []);
+  const [done, setDone] = useState<{ itemId: string; correct: boolean }[]>([]);
+  useEffect(() => { trackCourseOnce('start_ai_course_daily_review'); }, []);
   if (ids.length === 0) return <p className="text-sm text-gray-400 bg-white border border-gray-100 rounded-xl p-4">{tv.quickReviewEmpty}</p>;
   if (idx >= ids.length) {
-    return (
-      <div className="bg-white rounded-2xl border border-gray-100 p-5 text-center">
-        <p className="text-base font-bold text-gray-900 mb-3">{tv.quickReviewDone}</p>
-        <ActionButton variant="primary" fullWidth onClick={() => { trackCourse('complete_ai_course_vocabulary_quick_review'); onDone(); }}>{tv.backToVocabTop}</ActionButton>
-      </div>
-    );
+    return <LearningCompletionView t={t} schedule={schedule} itemById={itemById} results={done}
+      onFinish={() => { trackCourse('complete_ai_course_daily_review'); onDone(); }}
+      onTalk={onTalk} onAgain={() => { setIdx(0); setDone([]); setPicked(null); setJudged(null); }} />;
   }
   const item = itemById.get(ids[idx])!;
   // 弱点軸を維持: 前回readingを誤答→読み形式、それ以外は意味/画像形式（§25）
@@ -942,7 +1045,18 @@ const VocabQuickReviewView = ({ t, repo, itemById, items, onChanged, onDone }: {
       </div>
       {judged === null ? (
         <ActionButton variant="primary" fullWidth className="mt-3" disabled={picked === null}
-          onClick={() => { const ok = picked === q.answerIndex; setJudged(ok); repo.recordTest(item.id, q.dimension === 'reading' ? 'reading' : 'meaning', ok); onChanged(); }}>{t.lab.check}</ActionButton>
+          onClick={() => {
+            const ok = picked === q.answerIndex;
+            const dim = q.dimension === 'reading' ? 'reading' as const : 'meaning' as const;
+            setJudged(ok);
+            repo.recordTest(item.id, dim, ok);
+            // 間隔反復へ反映（誤答→翌日・自力正解→7日後。同日の再正解では段階を進めない）
+            const result: ReviewResult = ok ? 'independent' : 'wrong';
+            schedule.recordResult({ itemId: item.id, result, dimension: dim, source: 'quick_review' });
+            trackCourse('schedule_ai_course_vocabulary_review', { itemId: item.id, stage: schedule.get(item.id)?.reviewStage ?? '' });
+            setDone((prev) => [...prev, { itemId: item.id, correct: ok }]);
+            onChanged();
+          }}>{t.lab.check}</ActionButton>
       ) : (
         <div className="mt-3" aria-live="polite">
           <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? t.lab.correct : t.lab.notYet}</p>
