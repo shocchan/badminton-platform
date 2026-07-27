@@ -215,3 +215,61 @@ describe('Step4の結果表示（2E-1.15）', () => {
     await waitFor(() => expect(screen.getByText(`・${tv.frResultChecked(3)}`)).toBeTruthy());
   });
 });
+
+// Phase 2E-1.15 §7-§8: 保存データの版が食い違うときのRecovery。
+describe('保存データの版が食い違うとき（2E-1.15）', () => {
+  const seedJourney = () => window.sessionStorage.setItem('ai_course_first_run_v1', JSON.stringify({
+    schemaVersion: 1, step: 'practice', goal: 'daily_conversation', checkDone: true, practiceDone: false,
+    completedAt: null, startedAt: '2026-07-28T00:00:00.000Z', updatedAt: '2026-07-28T00:00:00.000Z',
+  }));
+  const seedProgress = () => window.sessionStorage.setItem('ai_course_vocab_preview_v1', JSON.stringify({
+    schemaVersion: 2, entries: { 'fi-sumu': { itemId: 'fi-sumu', selfAssessment: 'self_known', tests: [] } },
+  }));
+
+  it('保存データの方が新しい場合は上書きせず、読み直しを案内する', async () => {
+    seedJourney(); seedProgress();
+    const before = window.sessionStorage.getItem('ai_course_journey_task_v1');
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 99, journeyId: 'j', activeTaskId: 't', activeTaskStatus: 'in_progress',
+    }));
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.recNewerHeading)).toBeTruthy());
+    // 保存状態を書き換えていない
+    expect(JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!).schemaVersion).toBe(99);
+    expect(before).toBeNull();
+    // 学習記録は無傷
+    expect(window.sessionStorage.getItem('ai_course_vocab_preview_v1')).not.toBeNull();
+  });
+
+  it('読めない保存データでは自動で完了扱いにせず、初回だけやり直せる', async () => {
+    seedJourney(); seedProgress();
+    window.sessionStorage.setItem('ai_course_journey_task_v1', '{壊れたJSON');
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.recUnreadableHeading)).toBeTruthy());
+    expect(screen.getByText(tv.recCorruptCta)).toBeTruthy();
+    // 学習記録と復習予定は消さない
+    expect(window.sessionStorage.getItem('ai_course_vocab_preview_v1')).not.toBeNull();
+  });
+
+  it('Recovery画面に技術用語を出さない', async () => {
+    seedJourney();
+    window.sessionStorage.setItem('ai_course_journey_task_v1', '{"schemaVersion":0,"journeyId":"j","activeTaskId":"t","activeTaskStatus":"in_progress"}');
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.recUnreadableHeading)).toBeTruthy());
+    ['schema', 'token', 'contract', 'localStorage', 'incompatible', 'hydration']
+      .forEach((w) => expect(document.body.textContent).not.toContain(w));
+  });
+
+  it('古いが移行できる版はRecoveryを出さず、そのまま学習を続けられる', async () => {
+    seedJourney();
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 1, journeyId: 'j', activeTaskId: 't', activeTaskStatus: 'in_progress',
+      activeTaskType: 'practice', taskStartedAt: 'x', taskCompletedAt: null, returnStep: 'done',
+      completionToken: 'tok', usedTokens: [], completedTaskIds: [], completionSnapshot: null,
+    }));
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getAllByText(tv.frPracticeHeading).length).toBeGreaterThan(0));
+    expect(screen.queryByText(tv.recUnreadableHeading)).toBeNull();
+    expect(screen.queryByText(tv.recNewerHeading)).toBeNull();
+  });
+});

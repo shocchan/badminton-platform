@@ -6,7 +6,9 @@ import type { DiagnosticSetQuestion } from './vocabDiagnostic';
 import type { LearnerResult } from './learnerResultModel';
 
 // v2: 練習の再開位置（taskProgress）を追加。v1は「進行位置なし」として安全に読み込める。
-const CONTRACT_SCHEMA_VERSION = 2;
+export const CONTRACT_SCHEMA_VERSION = 2;
+/** 情報を失わず自動移行できる古いversion（v1は taskProgress が無いだけ） */
+export const MIGRATABLE_CONTRACT_VERSIONS = [1];
 const READABLE_SCHEMA_VERSIONS = [1, 2];
 
 export type JourneyTaskType = 'diagnostic' | 'practice';

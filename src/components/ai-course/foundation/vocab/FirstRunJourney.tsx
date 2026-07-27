@@ -15,6 +15,9 @@ import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningCl
 import { LearnerRecovery } from './LearnerRecovery';
 import { planJourneyRepair } from '../../../../lib/aiLesson/course/journeyRecovery';
 import { isQuizBreakdownComplete } from '../../../../lib/aiLesson/course/learnerResultModel';
+import { classifySchema } from '../../../../lib/aiLesson/course/journeySchemaVersion';
+import { JOURNEY_TASK_KEY } from '../../../../lib/aiLesson/course/courseStorageRegistry';
+import { CONTRACT_SCHEMA_VERSION, MIGRATABLE_CONTRACT_VERSIONS } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import { JourneyStepper, ResultBars, ReviewTimeline } from './LearningIllustrations';
 import { STEP_ILLUSTRATIONS } from './stepIllustrationMap';
@@ -94,6 +97,32 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   const step: JourneyStep = loaded.record?.step ?? 'goal';
   const goal = loaded.record?.goal ?? null;
   const refresh = () => setLoaded(repo.load());   // イベントハンドラ内でのみ呼ぶ
+
+  // 保存データのversion判定（2E-1.15 §7）。判定は一箇所・決定的。
+  // 学習進捗と復習予定には触れず、Journey状態だけを対象にする。
+  const contractCheck = classifySchema({
+    raw: store.getItem(JOURNEY_TASK_KEY),
+    currentVersion: CONTRACT_SCHEMA_VERSION,
+    migratableVersions: MIGRATABLE_CONTRACT_VERSIONS,
+    requiredFields: ['journeyId', 'activeTaskId', 'activeTaskStatus'],
+  });
+
+  // 保存データの方が新しい: 上書きせず、読み直しを案内する（自動reloadはしない・§9）
+  if (contractCheck.classification === 'newer_than_client') {
+    return (
+      <LearnerRecovery t={t} kind="version_conflict" onHome={onHome}
+        onRetry={() => window.location.reload()}
+        labPreview={sandbox} devDetail={`saved v${contractCheck.foundVersion} > client v${CONTRACT_SCHEMA_VERSION}`} />
+    );
+  }
+  // 続き方を判断できない保存データ: 自動で完了扱いにせず、初回Journeyだけ作り直せるようにする
+  if (contractCheck.classification === 'incompatible_schema' || contractCheck.classification === 'corrupted_state') {
+    return (
+      <LearnerRecovery t={t} kind="unreadable_journey" onHome={onHome}
+        onResetOnboarding={() => { taskRepo.clear(); repo.resetOnboardingOnly(); refresh(); }}
+        labPreview={sandbox} devDetail={`contract: ${contractCheck.classification} (v${contractCheck.foundVersion})`} />
+    );
+  }
 
   // 壊れた/非互換の保存データ: 初回状態だけ作り直す（学習記録は消さない・§7）
   if (state === 'corrupted_onboarding' || state === 'incompatible_schema') {

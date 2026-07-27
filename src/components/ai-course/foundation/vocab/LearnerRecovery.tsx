@@ -8,7 +8,11 @@ import { ActionButton } from '../ActionButton';
 
 interface RecoveryProps {
   t: AiCourseDict;
-  kind: 'load_fail' | 'empty_pool' | 'corrupted' | 'render_error';
+  kind: 'load_fail' | 'empty_pool' | 'corrupted' | 'render_error'
+    /** 保存データの方が新しい（古い画面で開いている・上書きしない） */
+    | 'version_conflict'
+    /** 続き方を判断できない保存データ（自動で完了扱いにしない） */
+    | 'unreadable_journey';
   onRetry?: () => void;
   onHome: () => void;
   /** 代替の練習へ（問題不足時・学習を完全停止させない・§7） */
@@ -30,6 +34,8 @@ export const LearnerRecovery = ({
     empty_pool: { heading: tv.recEmptyHeading, body: tv.recEmptyBody },
     corrupted: { heading: tv.recCorruptHeading, body: tv.recCorruptBody },
     render_error: { heading: tv.recErrorHeading, body: tv.recErrorBody },
+    version_conflict: { heading: tv.recNewerHeading, body: tv.recNewerBody },
+    unreadable_journey: { heading: tv.recUnreadableHeading, body: tv.recUnreadableBody },
   }[kind];
   // 第一CTA: 再試行があれば再試行・なければ代替・どちらも無ければホーム
   const primary = onRetry
