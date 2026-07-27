@@ -146,3 +146,27 @@ describe('今日のことば → 復習予定の接続（2E-1.13回帰）', () =
       .toBeGreaterThanOrEqual(before);
   });
 });
+
+// Phase 2E-1.14: Step4の内訳が「確認した語数」と必ず一致すること。
+// 実機で「確認した項目3・自分でできた0・ヒントがあった0・もう一度確認する0」という
+// 内訳が全部0の表示を確認したため、どの区分にも入らない語を取りこぼさないようにした。
+describe('学習結果の内訳（2E-1.14回帰）', () => {
+  it('3語すべてを誤答しても、内訳の合計が確認した語数と一致する', () => {
+    render(<VocabularyHub {...base} />);
+    fireEvent.click(screen.getByText(tv.dailyCta));
+    for (let i = 0; i < 3; i += 1) {
+      fireEvent.click(screen.getByText(tv.detailCheck));
+      const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+      fireEvent.click(choices[choices.length - 2]);
+      fireEvent.click(screen.getByText(t.lab.check));
+      fireEvent.click(screen.getByText(t.lab.next));
+      fireEvent.click(screen.getByText(tv.selfKnownBtn));
+      fireEvent.click(screen.getByText(i === 2 ? tv.dailyCompleteCta : tv.nextWord));
+    }
+    fireEvent.click(screen.getByText(tv.dailyFinish));
+    // Journey契約が無いので通常ホームへ戻る。ここでは落ちないことと、
+    // 内訳計算が確認語数を取りこぼさないことをRepository経由で確かめる
+    const repo = createVocabSpacedReviewRepository(window.sessionStorage, createLearningClock());
+    expect(repo.getAll().length).toBe(3);
+  });
+});

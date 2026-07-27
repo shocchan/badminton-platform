@@ -339,11 +339,20 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
       {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
         const ids = daily.itemIds.filter((id) => itemById.has(id));
+        // 内訳は必ず確認した語数の内訳になるようにする（合計3で内訳が全部0だと学習者に伝わらない）。
+        // 判定規則そのものは変えず、どの区分にも入らない語（問題を間違えた語など）を
+        // 「もう一度確認する」に含める。実際その語は翌日の復習予定に入っている。
+        const independent = ids.filter((id) => {
+          const v = repo.getVerifiedState(id);
+          return v === 'independent' || v === 'retained_candidate';
+        });
+        const supported = ids.filter((id) => repo.getVerifiedState(id) === 'guided');
+        const needsReview = ids.filter((id) => !independent.includes(id) && !supported.includes(id));
         const done = finishJourneyTask('practice', {
           checkedCount: ids.length,
-          independentCount: ids.filter((id) => repo.getVerifiedState(id) === 'independent' || repo.getVerifiedState(id) === 'retained_candidate').length,
-          supportedCount: ids.filter((id) => repo.getVerifiedState(id) === 'guided').length,
-          needsReviewCount: ids.filter((id) => repo.getEntry(id).selfAssessment === 'needs_review').length,
+          independentCount: independent.length,
+          supportedCount: supported.length,
+          needsReviewCount: needsReview.length,
           partial: ids.length === 0,
         });
         if (!done) setView('top');
