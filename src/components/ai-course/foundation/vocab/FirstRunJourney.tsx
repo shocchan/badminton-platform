@@ -14,6 +14,7 @@ import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/cour
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
 import { planJourneyRepair } from '../../../../lib/aiLesson/course/journeyRecovery';
+import { isQuizBreakdownComplete } from '../../../../lib/aiLesson/course/learnerResultModel';
 import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import { JourneyStepper, ResultBars, ReviewTimeline } from './LearningIllustrations';
 import { STEP_ILLUSTRATIONS } from './stepIllustrationMap';
@@ -113,6 +114,9 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   const resumable = contract && (contract.activeTaskStatus === 'in_progress' || contract.activeTaskStatus === 'interrupted')
     ? contract : null;
   const snapshot: JourneyResultSnapshot | null = contract?.completionSnapshot ?? null;
+  const learner = snapshot?.learnerResult ?? null;
+  // 棒グラフは「合計の完全な内訳」のときだけ描く（§6）
+  const quizComplete = learner ? isQuizBreakdownComplete(learner) : false;
   // 部分成功Recovery（2E-1.14 §5）: 契約は完了しているのにstepが前、という状態を直す。
   // 判定は保存済みの事実だけから決定的に行い、完了処理・token消費は絶対に再実行しない。
   const repair = planJourneyRepair({
@@ -207,25 +211,58 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
       {step === 'done' && (
         <>
           <StepHeading step="done" title={tv.frDoneHeading} />
-          {/* 実際に確定した結果だけを表示。取得できなかった値は0と断定しない（§8）。
-              数値テキストと棒グラフの両方を出し、図が読めなくても内容が分かるようにする。 */}
-          {snapshot && (
-            <div className="bg-gray-50 rounded-xl p-3 mb-3">
-              <p className="text-[11px] font-bold text-gray-500 mb-2">{tv.frResultChartLabel}</p>
-              <ul className="text-sm text-gray-700 space-y-1">
-                {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
-                {snapshot.independentCount !== null && <li>・{tv.frResultIndependent(snapshot.independentCount)}</li>}
-                {snapshot.supportedCount !== null && <li>・{tv.frResultSupported(snapshot.supportedCount)}</li>}
-                {snapshot.needsReviewCount !== null && <li>・{tv.frResultNeedsReview(snapshot.needsReviewCount)}</li>}
-                {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
-              </ul>
-              <div className="mt-2">
-                <ResultBars total={snapshot.checkedCount ?? 0} bars={[
-                  { label: tv.frBarIndependent, count: snapshot.independentCount ?? 0, tone: 'good' },
-                  { label: tv.frBarSupported, count: snapshot.supportedCount ?? 0, tone: 'support' },
-                  { label: tv.frBarReview, count: snapshot.needsReviewCount ?? 0, tone: 'review' },
-                ]} />
+          {/* 結果は3つの別々の軸として見せる（2E-1.15 §3-§4）。
+              軸A クイズの結果だけが「今日確認したことば」の完全な内訳。
+              軸B 本人の感じ方と 軸C これからの予定は、合計の分解ではないので別のカードにする。 */}
+          {learner ? (
+            <>
+              <p className="text-sm text-gray-800 mb-2">{tv.lrChecked(learner.checkedCount)}</p>
+              {/* 軸A: 問題の結果（ここだけ棒グラフにしてよい） */}
+              <div className="bg-gray-50 rounded-xl p-3 mb-2">
+                <p className="text-[11px] font-bold text-gray-500 mb-1.5">{tv.lrQuizHeading}</p>
+                <ul className="text-sm text-gray-700 space-y-0.5">
+                  <li>・{tv.lrCorrect(learner.correctCount)}</li>
+                  {learner.incorrectCount > 0 && <li>・{tv.lrIncorrect(learner.incorrectCount)}</li>}
+                  {learner.notAnsweredCount > 0 && <li>・{tv.lrNotAnswered(learner.notAnsweredCount)}</li>}
+                </ul>
+                {quizComplete && (
+                  <div className="mt-2">
+                    <ResultBars total={learner.checkedCount} bars={[
+                      { label: tv.lrBarCorrect, count: learner.correctCount, tone: 'good' },
+                      { label: tv.lrBarIncorrect, count: learner.incorrectCount, tone: 'review' },
+                      { label: tv.lrBarNotAnswered, count: learner.notAnsweredCount, tone: 'support' },
+                    ]} />
+                  </div>
+                )}
               </div>
+              {/* 軸B: 本人の感じ方（正解の代わりにしない） */}
+              {(learner.feltConfidentCount > 0 || learner.feltUnsureCount > 0) && (
+                <div className="bg-gray-50 rounded-xl p-3 mb-2">
+                  <p className="text-[11px] font-bold text-gray-500 mb-1.5">{tv.lrFeelHeading}</p>
+                  <ul className="text-sm text-gray-700 space-y-0.5">
+                    {learner.feltConfidentCount > 0 && <li>・{tv.lrConfident(learner.feltConfidentCount)}</li>}
+                    {learner.feltUnsureCount > 0 && <li>・{tv.lrUnsure(learner.feltUnsureCount)}</li>}
+                  </ul>
+                </div>
+              )}
+              {learner.partial && <p className="text-xs text-gray-500 mb-2">{tv.lrPartial}</p>}
+            </>
+          ) : snapshot && (
+            /* 旧版のsnapshot（学習者向けモデルを持たない）はそのまま数値だけ見せる */
+            <ul className="text-sm text-gray-700 space-y-1 mb-3">
+              {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
+              {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
+            </ul>
+          )}
+          {/* 軸C: これからの予定（合計の分解ではないので独立したカードにする） */}
+          {learner && (
+            <div className="bg-indigo-50/60 rounded-xl p-3 mb-2">
+              <p className="text-[11px] font-bold text-indigo-800 mb-1">{tv.lrNextHeading}</p>
+              <p className="text-sm text-gray-800">
+                {learner.scheduledForReviewCount > 0
+                  ? tv.lrScheduled(learner.scheduledForReviewCount)
+                  : tv.lrNoSchedule}
+              </p>
             </div>
           )}
           {/* 新規利用者へ復習の仕組みを一文で（定着は断定しない・§4）＋時間軸の図 */}

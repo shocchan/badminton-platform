@@ -20,6 +20,8 @@ import {
 } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import type { JourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
+import { buildLearnerResult } from '../../../../lib/aiLesson/course/learnerResultModel';
+import type { JourneyResultSnapshot } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import { ActionButton } from '../ActionButton';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
@@ -80,7 +82,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const journeyTask = useMemo(() => createJourneyTaskRepository(store), [store]);
   const firstRun = useMemo(() => createFirstRunRepository(store, repo, schedule), [store, repo, schedule]);
   /** 診断・練習が終わったときに、Journey契約があれば完了させてJourneyへ戻す（無ければ通常動作） */
-  const finishJourneyTask = (type: 'diagnostic' | 'practice', snapshot: { checkedCount: number | null; independentCount: number | null; supportedCount: number | null; needsReviewCount: number | null; partial: boolean }) => {
+  const finishJourneyTask = (type: 'diagnostic' | 'practice', snapshot: JourneyResultSnapshot) => {
     const c = journeyTask.get();
     if (!c || c.activeTaskType !== type || c.activeTaskStatus === 'completed') return false;
     const r = journeyTask.completeTask({ journeyId: c.journeyId, taskId: c.activeTaskId, token: c.completionToken, snapshot });
@@ -345,6 +347,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           supportedCount: ids.filter((id) => repo.getVerifiedState(id) === 'guided').length,
           needsReviewCount: ids.filter((id) => repo.getEntry(id).selfAssessment === 'needs_review').length,
           partial: ids.length === 0,
+          // 表示は別軸のモデルで行う（合計の分解に見せない・2E-1.15 §3）
+          learnerResult: buildLearnerResult(ids, repo, schedule),
         });
         if (!done) setView('top');
       }} onRestart={() => setView('daily')} />}

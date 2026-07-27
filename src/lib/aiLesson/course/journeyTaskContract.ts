@@ -3,6 +3,7 @@
 // URL遷移やbrowser backだけで「完了」にしない（§5）。同じ完了を二重処理しない。
 import { JOURNEY_TASK_KEY } from './courseStorageRegistry';
 import type { DiagnosticSetQuestion } from './vocabDiagnostic';
+import type { LearnerResult } from './learnerResultModel';
 
 // v2: 練習の再開位置（taskProgress）を追加。v1は「進行位置なし」として安全に読み込める。
 const CONTRACT_SCHEMA_VERSION = 2;
@@ -68,6 +69,11 @@ export interface JourneyResultSnapshot {
   needsReviewCount: number | null;
   /** 一部の結果を取得できなかった（学習者へ簡潔に伝える） */
   partial: boolean;
+  /**
+   * 学習者向けの結果（2E-1.15）。クイズ正誤・本人の感じ方・これからの予定を別の軸で持つ。
+   * 旧版のsnapshotには無いため任意。ある場合はこちらを表示に使う。
+   */
+  learnerResult?: LearnerResult;
 }
 
 type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;

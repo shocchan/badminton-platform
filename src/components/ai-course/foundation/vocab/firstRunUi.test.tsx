@@ -139,3 +139,79 @@ describe('既存利用者への影響（§3・§12）', () => {
     expect(window.sessionStorage.getItem(VOCAB_STORAGE_KEY)).toBe(before);
   });
 });
+
+// Phase 2E-1.15 §3-§6: Step4はクイズ正誤・本人の感じ方・これからの予定を別の軸で見せる。
+describe('Step4の結果表示（2E-1.15）', () => {
+  const seedDone = (learnerResult: Record<string, unknown> | undefined) => {
+    window.sessionStorage.setItem('ai_course_first_run_v1', JSON.stringify({
+      schemaVersion: 1, step: 'done', goal: 'daily_conversation', checkDone: true, practiceDone: true,
+      completedAt: null, startedAt: '2026-07-28T00:00:00.000Z', updatedAt: '2026-07-28T00:00:00.000Z',
+    }));
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 2, journeyId: '2026-07-28T00:00:00.000Z',
+      activeTaskType: 'practice', activeTaskId: 'p1', activeTaskStatus: 'completed',
+      taskStartedAt: '2026-07-28T00:00:00.000Z', taskCompletedAt: '2026-07-28T00:10:00.000Z',
+      returnStep: 'done', completionToken: 'tok', usedTokens: ['tok'], completedTaskIds: ['p1'],
+      completionSnapshot: {
+        checkedCount: 3, independentCount: 0, supportedCount: 0, needsReviewCount: 0, partial: false,
+        learnerResult,
+      },
+    }));
+  };
+
+  it('クイズ誤答＋「覚えたと思う」を「正しく答えられた」に見せない', async () => {
+    seedDone({
+      checkedCount: 3, correctCount: 0, incorrectCount: 3, notAnsweredCount: 0,
+      answeredWithSupportCount: null, feltConfidentCount: 3, feltUnsureCount: 0,
+      scheduledForReviewCount: 3, nextReviewDate: '2026-07-29', partial: false,
+    });
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.lrChecked(3))).toBeTruthy());
+    expect(screen.getByText(`・${tv.lrCorrect(0)}`)).toBeTruthy();
+    expect(screen.getByText(`・${tv.lrIncorrect(3)}`)).toBeTruthy();
+    // 本人の感じ方は別の見出しの下にある
+    expect(screen.getByText(tv.lrFeelHeading)).toBeTruthy();
+    expect(screen.getByText(`・${tv.lrConfident(3)}`)).toBeTruthy();
+  });
+
+  it('クイズの結果・感じ方・次の予定はそれぞれ別の見出しを持つ', async () => {
+    seedDone({
+      checkedCount: 2, correctCount: 1, incorrectCount: 1, notAnsweredCount: 0,
+      answeredWithSupportCount: null, feltConfidentCount: 1, feltUnsureCount: 1,
+      scheduledForReviewCount: 2, nextReviewDate: '2026-07-29', partial: false,
+    });
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.lrQuizHeading)).toBeTruthy());
+    expect(screen.getByText(tv.lrFeelHeading)).toBeTruthy();
+    expect(screen.getByText(tv.lrNextHeading)).toBeTruthy();
+    expect(screen.getByText(tv.lrScheduled(2))).toBeTruthy();
+  });
+
+  it('復習予定が0件でも「予定なし」と正直に伝える', async () => {
+    seedDone({
+      checkedCount: 1, correctCount: 1, incorrectCount: 0, notAnsweredCount: 0,
+      answeredWithSupportCount: null, feltConfidentCount: 0, feltUnsureCount: 0,
+      scheduledForReviewCount: 0, nextReviewDate: null, partial: false,
+    });
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.lrNoSchedule)).toBeTruthy());
+  });
+
+  it('内部用語を画面に出さない', async () => {
+    seedDone({
+      checkedCount: 1, correctCount: 0, incorrectCount: 1, notAnsweredCount: 0,
+      answeredWithSupportCount: null, feltConfidentCount: 1, feltUnsureCount: 0,
+      scheduledForReviewCount: 1, nextReviewDate: '2026-07-29', partial: false,
+    });
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.lrQuizHeading)).toBeTruthy());
+    ['independent', 'supported', 'needsReview', 'retained', 'mastery', 'snapshot', 'partial snapshot']
+      .forEach((w) => expect(document.body.textContent).not.toContain(w));
+  });
+
+  it('旧版のsnapshot（学習者向けモデルなし）でも落ちず、確認した数だけ見せる', async () => {
+    seedDone(undefined);
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(`・${tv.frResultChecked(3)}`)).toBeTruthy());
+  });
+});
