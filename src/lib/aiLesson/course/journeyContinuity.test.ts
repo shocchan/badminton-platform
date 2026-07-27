@@ -11,7 +11,7 @@ import { createVocabProgressRepository, VOCAB_STORAGE_KEY } from './vocabProgres
 import { createVocabSpacedReviewRepository, VOCAB_REVIEW_SCHEDULE_KEY } from './vocabSpacedReview';
 import { createVocabDecisionRepository, VOCAB_DECISION_LOCAL_KEY } from './vocabDecisionStore';
 import { createLearningClock } from './learningClock';
-import { FIRST_RUN_STORAGE_KEY } from './firstRunJourney';
+import { FIRST_RUN_STORAGE_KEY, createFirstRunRepository } from './firstRunJourney';
 
 const mem = () => {
   const m = new Map<string, string>();
@@ -181,5 +181,50 @@ describe('Journey Task Contract（§4-§5）', () => {
       expect(r.contract.completionSnapshot!.partial).toBe(true);
       expect(r.contract.completionSnapshot!.independentCount).toBeNull();   // 0にしない
     }
+  });
+});
+
+describe('診断・練習からの自動復帰（§6-§7・実機で検出した不具合の回帰）', () => {
+  // 実機検証で「契約はcompletedになるがJourneyのstepがStep2のまま」だった不具合の回帰テスト。
+  // 契約の完了とJourneyのステップ進行は必ず一緒に行う。
+  const setup = () => {
+    const st = mem();
+    const progress = createVocabProgressRepository(st);
+    const schedule = createVocabSpacedReviewRepository(st, clock);
+    const firstRun = createFirstRunRepository(st, progress, schedule, fixedNow);
+    let n = 0;
+    const task = createJourneyTaskRepository(st, fixedNow, () => `tok${++n}`);
+    return { st, firstRun, task };
+  };
+  const snap = { checkedCount: 9, independentCount: 0, supportedCount: 0, needsReviewCount: 9, partial: false };
+
+  it('診断完了でStep3（最初の練習）へ進む', () => {
+    const { firstRun, task } = setup();
+    firstRun.setGoal('daily_conversation');                    // → step: check
+    const c = task.startTask({ journeyId: 'j1', taskType: 'diagnostic', taskId: 'd1', returnStep: 'practice' });
+    const r = task.completeTask({ journeyId: 'j1', taskId: 'd1', token: c.completionToken, snapshot: snap });
+    expect(r.ok).toBe(true);
+    firstRun.completeCheck();                                   // UI側で行う進行
+    expect(firstRun.load().record!.step).toBe('practice');
+  });
+  it('練習完了でStep4（今日のまとめ）へ進み、結果が契約に残る', () => {
+    const { firstRun, task } = setup();
+    firstRun.setGoal('jlpt_n3'); firstRun.completeCheck();
+    const c = task.startTask({ journeyId: 'j1', taskType: 'practice', taskId: 'p1', returnStep: 'done' });
+    const r = task.completeTask({ journeyId: 'j1', taskId: 'p1', token: c.completionToken, snapshot: snap });
+    expect(r.ok).toBe(true);
+    firstRun.completePractice();
+    expect(firstRun.load().record!.step).toBe('done');
+    expect(task.get()!.completionSnapshot).toEqual(snap);
+  });
+  it('同じ完了を二度処理してもJourneyの完了は一度だけ', () => {
+    const { firstRun, task } = setup();
+    firstRun.setGoal('work'); firstRun.completeCheck(); firstRun.completePractice();
+    const c = task.startTask({ journeyId: 'j1', taskType: 'practice', taskId: 'p1', returnStep: 'done' });
+    task.completeTask({ journeyId: 'j1', taskId: 'p1', token: c.completionToken, snapshot: snap });
+    const first = firstRun.complete().completedAt;
+    // browser back等で再度完了処理が走っても completedAt は変わらず、契約も二重完了しない
+    expect(task.completeTask({ journeyId: 'j1', taskId: 'p1', token: c.completionToken, snapshot: snap }).ok).toBe(false);
+    expect(firstRun.complete().completedAt).toBe(first);
   });
 });

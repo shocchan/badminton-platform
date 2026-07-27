@@ -30,7 +30,7 @@ import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabPro
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import type { VocabSpacedReviewRepository, ReviewResult } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
-import { detectFirstRunState } from '../../../../lib/aiLesson/course/firstRunJourney';
+import { detectFirstRunState, createFirstRunRepository } from '../../../../lib/aiLesson/course/firstRunJourney';
 import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import { LearnerErrorBoundary, LearnerRecovery } from './LearnerRecovery';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
@@ -66,13 +66,16 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const schedule = useMemo(() => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
   // Journey往復契約（2E-1.12 §6-§7・完了はJourney側の契約が一致した場合のみ）
   const journeyTask = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
+  const firstRun = useMemo(() => createFirstRunRepository(window.sessionStorage, repo, schedule), [repo, schedule]);
   /** 診断・練習が終わったときに、Journey契約があれば完了させてJourneyへ戻す（無ければ通常動作） */
   const finishJourneyTask = (type: 'diagnostic' | 'practice', snapshot: { checkedCount: number | null; independentCount: number | null; supportedCount: number | null; needsReviewCount: number | null; partial: boolean }) => {
     const c = journeyTask.get();
     if (!c || c.activeTaskType !== type || c.activeTaskStatus === 'completed') return false;
     const r = journeyTask.completeTask({ journeyId: c.journeyId, taskId: c.activeTaskId, token: c.completionToken, snapshot });
     if (!r.ok) return false;
-    setView('firstrun');   // Step3（診断後）/Step4（練習後）へ自動復帰
+    // Journeyのステップも進める（診断完了→Step3・練習完了→Step4）。完了は契約側で一度だけ（§7）
+    if (type === 'diagnostic') firstRun.completeCheck(); else firstRun.completePractice();
+    setView('firstrun');
     return true;
   };
   const [, setTick] = useState(0);
