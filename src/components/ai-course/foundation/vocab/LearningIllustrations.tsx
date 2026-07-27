@@ -11,15 +11,16 @@ const motionSafe = 'motion-safe:transition-all motion-safe:duration-300';
 
 // ── ステップイラスト（4種・視線の起点を作る） ──────────────────────────
 
-const Frame = ({ children, label }: { children: ReactNode; label: string }) => (
-  <svg viewBox="0 0 96 72" role="img" aria-label={label} className="w-20 h-[60px] shrink-0">
+// viewBoxは図形のbboxに合わせて個別に渡す（共通viewBoxだと余白が大きく、絵が小さく見えた）
+const Frame = ({ children, label, viewBox }: { children: ReactNode; label: string; viewBox: string }) => (
+  <svg viewBox={viewBox} role="img" aria-label={label} className="w-14 h-14 shrink-0">
     {children}
   </svg>
 );
 
 /** Step1 目的: 方位磁針（どこへ向かうか） */
 export const GoalIllustration = ({ label }: { label: string }) => (
-  <Frame label={label}>
+  <Frame label={label} viewBox="18 6 60 60">
     <circle cx="48" cy="36" r="26" fill="#EEF2FF" />
     <circle cx="48" cy="36" r="26" fill="none" stroke="#C7D2FE" strokeWidth="2" />
     <path d="M48 18 L54 34 L48 30 L42 34 Z" fill="#4F46E5" />
@@ -30,7 +31,7 @@ export const GoalIllustration = ({ label }: { label: string }) => (
 
 /** Step2 短い確認: カードと虫めがね（測るのではなく「見てみる」印象） */
 export const CheckIllustration = ({ label }: { label: string }) => (
-  <Frame label={label}>
+  <Frame label={label} viewBox="14 15 70 48">
     <rect x="18" y="20" width="34" height="26" rx="4" fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="2" />
     <rect x="24" y="27" width="18" height="3" rx="1.5" fill="#A5B4FC" />
     <rect x="24" y="34" width="12" height="3" rx="1.5" fill="#C7D2FE" />
@@ -41,7 +42,7 @@ export const CheckIllustration = ({ label }: { label: string }) => (
 
 /** Step3 最初の練習: 吹き出し（話す・使う） */
 export const PracticeIllustration = ({ label }: { label: string }) => (
-  <Frame label={label}>
+  <Frame label={label} viewBox="6 15 82 50">
     <path d="M14 18 h50 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 h-30 l-12 10 v-10 h-8 a6 6 0 0 1 -6 -6 v-20 a6 6 0 0 1 6 -6 z"
       fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="2" />
     <rect x="24" y="28" width="26" height="3.5" rx="1.75" fill="#818CF8" />
@@ -53,7 +54,7 @@ export const PracticeIllustration = ({ label }: { label: string }) => (
 
 /** Step4 まとめ: カレンダーと次の点（また戻ってくることを絵で示す） */
 export const DoneIllustration = ({ label }: { label: string }) => (
-  <Frame label={label}>
+  <Frame label={label} viewBox="12 14 80 46">
     <rect x="16" y="18" width="40" height="38" rx="5" fill="#fff" stroke="#C7D2FE" strokeWidth="2" />
     <rect x="16" y="18" width="40" height="10" rx="5" fill="#4F46E5" />
     <path d="M26 40 l5 5 l11 -12" stroke="#10B981" strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
