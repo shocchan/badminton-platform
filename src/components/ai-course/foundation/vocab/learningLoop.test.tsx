@@ -94,3 +94,55 @@ describe('復習→完了画面（§16-§17）', () => {
     expect(allVocabularyItems().every((i) => i.review === 'draft')).toBe(true);
   });
 });
+
+// Phase 2E-1.13: staging実機で「Step4の復習予定が0件」を検出したことによる回帰テスト。
+// 今日のことば（練習）の結果が間隔反復に入らないと、完了画面が
+// 「忘れかけるころにもう一度出てきます」と言いながら予定が生まれない。
+describe('今日のことば → 復習予定の接続（2E-1.13回帰）', () => {
+  const startDaily = () => {
+    render(<VocabularyHub {...base} />);
+    fireEvent.click(screen.getByText(tv.dailyCta));
+  };
+
+  it('クイズに誤答すると、その語の復習予定ができる', async () => {
+    startDaily();
+    fireEvent.click(screen.getByText(tv.detailCheck));           // 見る → ためす
+    const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+    // 選択肢のうち正解でないものを選ぶため、まず一つ選んで判定する
+    const before = window.sessionStorage.getItem(VOCAB_REVIEW_SCHEDULE_KEY);
+    expect(before).toBeNull();
+    fireEvent.click(choices[choices.length - 2]);
+    fireEvent.click(screen.getByText(t.lab.check));
+    const repo = createVocabSpacedReviewRepository(window.sessionStorage, createLearningClock());
+    expect(repo.getAll().length).toBeGreaterThan(0);
+  });
+
+  it('「まだ不安」を選ぶと復習予定が作られる（自己申告も学習ループに入る）', () => {
+    startDaily();
+    fireEvent.click(screen.getByText(tv.detailCheck));
+    const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+    fireEvent.click(choices[choices.length - 2]);
+    fireEvent.click(screen.getByText(t.lab.check));
+    fireEvent.click(screen.getByText(t.lab.next));               // ためす → ふりかえる
+    fireEvent.click(screen.getByText(tv.needsReviewBtn));
+    const repo = createVocabSpacedReviewRepository(window.sessionStorage, createLearningClock());
+    const entry = repo.getAll()[0];
+    expect(entry).toBeTruthy();
+    expect(entry.learnerUncertain).toBe(true);
+  });
+
+  it('「覚えた」を選んでも既存の復習予定は消えない（§4・自己申告で定着扱いにしない）', () => {
+    seedDueReview(allVocabularyItems()[0].id);
+    const repo = createVocabSpacedReviewRepository(window.sessionStorage, createLearningClock());
+    const before = repo.getAll().length;
+    startDaily();
+    fireEvent.click(screen.getByText(tv.detailCheck));
+    const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+    fireEvent.click(choices[choices.length - 2]);
+    fireEvent.click(screen.getByText(t.lab.check));
+    fireEvent.click(screen.getByText(t.lab.next));
+    fireEvent.click(screen.getByText(tv.selfKnownBtn));
+    expect(createVocabSpacedReviewRepository(window.sessionStorage, createLearningClock()).getAll().length)
+      .toBeGreaterThanOrEqual(before);
+  });
+});

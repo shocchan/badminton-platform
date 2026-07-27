@@ -304,7 +304,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         <VocabQuickReviewView t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
           onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
       )}
-      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} onChanged={bump} onDone={() => {
+      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
         const ids = daily.itemIds.filter((id) => itemById.has(id));
         const done = finishJourneyTask('practice', {
@@ -373,11 +373,17 @@ const meaningQuestionFor = (t: AiCourseDict, items: FoundationItem[], item: Foun
   };
 };
 
-const SelfAssessRow = ({ t, repo, id, onChanged }: { t: AiCourseDict; repo: VocabProgressRepository; id: string; onChanged: () => void }) => {
+const SelfAssessRow = ({ t, repo, id, onChanged, schedule }: {
+  t: AiCourseDict; repo: VocabProgressRepository; id: string; onChanged: () => void;
+  /** 渡された場合、自己評価を復習予定へも反映する（「覚えた」で予定は消えない・§4） */
+  schedule?: VocabSpacedReviewRepository;
+}) => {
   const tv = t.vocab;
   const cur = repo.getEntry(id).selfAssessment;
   const set = (sa: 'self_known' | 'needs_review') => {
     repo.setSelfAssessment(id, sa);
+    if (sa === 'needs_review') schedule?.markUncertain(id);
+    else schedule?.markSelfKnown(id);
     trackCourse('set_ai_course_vocabulary_self_assessment', { itemId: id, selfAssessment: sa });
     onChanged();
   };
@@ -610,10 +616,13 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
 /** 1語の中の段階順（PhaseTrailの現在位置算出に使う） */
 const PHASE_ORDER = ['card', 'quiz', 'assess'] as const;
 
-const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDone, onRestart }: {
+const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, onChanged, onDone, onRestart }: {
   t: AiCourseDict; items: FoundationItem[]; itemById: Map<string, FoundationItem>;
   ids: string[]; reasons: Record<string, string>;
-  repo: VocabProgressRepository; onChanged: () => void; onDone: () => void; onRestart: () => void;
+  repo: VocabProgressRepository;
+  /** 今日のことばの結果も間隔反復へ入れる（2E-1.13で接続。これがないと復習予定が生まれない） */
+  schedule: VocabSpacedReviewRepository;
+  onChanged: () => void; onDone: () => void; onRestart: () => void;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
   const [idx, setIdx] = useState(0);
@@ -695,7 +704,14 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDo
           </div>
           {judged === null ? (
             <ActionButton variant="primary" fullWidth className="mt-3" disabled={picked === null}
-              onClick={() => { const ok = picked === q.answerIndex; setJudged(ok); repo.recordTest(item.id, 'meaning', ok); onChanged(); }}>{t.lab.check}</ActionButton>
+              onClick={() => {
+                const ok = picked === q.answerIndex;
+                setJudged(ok);
+                repo.recordTest(item.id, 'meaning', ok);
+                // 誤答→翌日・自力正解→7日後。同日の再正解では段階を進めない（vocabSpacedReview側で担保）
+                schedule.recordResult({ itemId: item.id, result: ok ? 'independent' : 'wrong', dimension: 'meaning', source: 'daily' });
+                onChanged();
+              }}>{t.lab.check}</ActionButton>
           ) : (
             <div className="mt-3" aria-live="polite">
               <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? t.lab.correct : t.lab.notYet}</p>
@@ -709,7 +725,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDo
         <div>
           <p className="text-lg font-bold text-gray-900 mb-0.5">{item.displayForm} <span className="text-sm font-normal text-gray-500">{item.readingKana}</span></p>
           <p className="text-sm text-gray-700 mb-3">{item.meaningZh}</p>
-          <SelfAssessRow t={t} repo={repo} id={item.id} onChanged={onChanged} />
+          <SelfAssessRow t={t} repo={repo} id={item.id} onChanged={onChanged} schedule={schedule} />
           {(repo.getEntry(item.id).selfAssessment === 'self_known' || repo.getEntry(item.id).selfAssessment === 'needs_review') && (
             <ActionButton variant="primary" fullWidth className="mt-3" aria-live="polite"
               onClick={() => { setIdx(idx + 1); setPhase('card'); setPicked(null); setJudged(null); }}>
