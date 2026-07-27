@@ -26,6 +26,18 @@ export interface DecisionProvenance {
   datasetVersion: string;
 }
 
+/**
+ * リリース影響の分類（Phase 2E-1.10 §18）。
+ * 91件すべてをリリースブロッカーにしない。ただしP0/P1は後回しにしない。
+ */
+export type ReleaseClass = 'release_blocker' | 'before_beta_recommended' | 'can_defer';
+
+/**
+ * 重大度の由来（§19）。同じ根本問題が複数P0に見える誤解を防ぐ。
+ * local=この判断事項自体が重大／inherited=同じ語の別の重大問題を継承。
+ */
+export type SeveritySource = 'local' | 'inherited';
+
 export interface HumanDecisionItem {
   decisionId: string;               // `${itemId}:${decisionType}`（決定的・元データ順序に依存しない）
   itemId: string;
@@ -41,6 +53,17 @@ export interface HumanDecisionItem {
   impactAreas: string[];            // 現在接続済みの影響範囲
   impactFutureAreas: string[];      // 将来影響候補（現在は未接続・断定しない・§7）
   provenance: DecisionProvenance;
+  /** この判断事項自体の重大度（§19・語からの継承を含まない） */
+  localSeverity: HumanReviewPriority;
+  /** 語単位で継承した重大度（§19・表示上は「関連する語の重大問題」） */
+  inheritedSeverity: HumanReviewPriority;
+  /** 実効重大度（local と inherited の重い方＝従来のpriorityと同値） */
+  effectiveSeverity: HumanReviewPriority;
+  severitySource: SeveritySource;
+  /** 同じ根本問題をまとめる単位（§19・Release Gateで重複カウントしない） */
+  rootIssueId: string;
+  /** リリース影響の分類（§18） */
+  releaseClass: ReleaseClass;
 }
 
 const P_ORDER: Record<HumanReviewPriority, number> = { P0: 0, P1: 1, P2: 2, P3: 3 };
@@ -83,25 +106,50 @@ const provenanceOf = (
 /** 導出の完全性監査（§2.3・labPreview/テスト用。learner向けUIへは出さない） */
 export interface DecisionQueueAudit {
   sourceCandidates: number;
-  adopted: number;
-  excludedAdopted: number;          // 提案が既に採用済み（現在値と一致）で判断不要
+  /**
+   * レビュー対象に選定した件数（§20の用語修正）。
+   * 「教材へ採用済み」「公開承認済み」ではない。判断キューに載せた＝人間の判断待ち、という意味。
+   */
+  queuedForReview: number;
+  /** 提案が既に教材へ反映済み（現在値と一致）で判断不要 */
+  excludedAlreadyApplied: number;
   excludedNotApplicable: number;    // 導出条件を満たさず対象外（例: roleが既にoptional以外）
   duplicates: number;               // 重複decisionId（常に0であるべき）
-  byType: Record<DecisionType, { candidates: number; adopted: number; excludedAdopted: number; excludedNotApplicable: number }>;
+  byType: Record<DecisionType, { candidates: number; queuedForReview: number; excludedAlreadyApplied: number; excludedNotApplicable: number }>;
 }
 
 interface BuildResult { queue: HumanDecisionItem[]; audit: DecisionQueueAudit }
 
+/** 導出途中の形（重大度分離・リリース分類を付ける前） */
+type DraftDecisionItem = Omit<HumanDecisionItem,
+  'localSeverity' | 'inheritedSeverity' | 'effectiveSeverity' | 'severitySource' | 'rootIssueId' | 'releaseClass'>;
+
+/**
+ * リリース影響の分類（§18）。
+ * blocker=学習が成立しない/重大な誤りが学習者に出る（読み・意味・例文の重大誤り、P0/P1相当）。
+ * before_beta=品質として直したいが学習は成立する（中国語の自然さ・ふりがな粒度・role判断・画像品質）。
+ * can_defer=表現の好み・optional/enrichmentの微調整・内部表示。
+ */
+const releaseClassOf = (d: DraftDecisionItem, localSeverity: HumanReviewPriority): ReleaseClass => {
+  // 自分自身が重大（P0/P1）＝リリースブロッカー。継承だけのP0はブロッカーにしない（§19）
+  if (localSeverity === 'P0' || localSeverity === 'P1') return 'release_blocker';
+  if (d.decisionType === 'example' || d.decisionType === 'cognate') return 'release_blocker';
+  if (d.decisionType === 'meaning_zh' || d.decisionType === 'sense') return 'before_beta_recommended';
+  // role提案は学習不能にはならない（推薦順位の調整）＝beta前推奨
+  if (d.decisionType === 'role') return 'before_beta_recommended';
+  return 'can_defer';
+};
+
 const buildAll = (): BuildResult => {
   const records = buildVocabularyReviewRecords();
   const prioById = new Map(buildReviewComparisons().map((c) => [c.itemId, c.humanReviewPriority]));
-  const out: HumanDecisionItem[] = [];
+  const out: DraftDecisionItem[] = [];
   const byType: DecisionQueueAudit['byType'] = {
-    example: { candidates: 0, adopted: 0, excludedAdopted: 0, excludedNotApplicable: 0 },
-    cognate: { candidates: 0, adopted: 0, excludedAdopted: 0, excludedNotApplicable: 0 },
-    meaning_zh: { candidates: 0, adopted: 0, excludedAdopted: 0, excludedNotApplicable: 0 },
-    role: { candidates: 0, adopted: 0, excludedAdopted: 0, excludedNotApplicable: 0 },
-    sense: { candidates: 0, adopted: 0, excludedAdopted: 0, excludedNotApplicable: 0 },
+    example: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
+    cognate: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
+    meaning_zh: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
+    role: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
+    sense: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
   };
   for (const rec of records) {
     const g = CHATGPT_REVIEWS[rec.itemId] ?? null;
@@ -110,9 +158,9 @@ const buildAll = (): BuildResult => {
     // ① 例文の提案（fi-namae等）。採用済み（現在値と一致）は判断不要として除外
     if (g?.suggestedExampleJa) {
       byType.example.candidates += 1;
-      if (g.suggestedExampleJa === rec.item.exampleJa) byType.example.excludedAdopted += 1;
+      if (g.suggestedExampleJa === rec.item.exampleJa) byType.example.excludedAlreadyApplied += 1;
       else {
-        byType.example.adopted += 1;
+        byType.example.queuedForReview += 1;
         out.push({
           decisionId: `${rec.itemId}:example`, itemId: rec.itemId, wordJa: word, decisionType: 'example',
           priority: prio,
@@ -128,9 +176,9 @@ const buildAll = (): BuildResult => {
     // ② cognate分類の提案（現分類と一致=採用済みは除外）
     if (g?.suggestedCognate) {
       byType.cognate.candidates += 1;
-      if (g.suggestedCognate === rec.cognateDefault) byType.cognate.excludedAdopted += 1;
+      if (g.suggestedCognate === rec.cognateDefault) byType.cognate.excludedAlreadyApplied += 1;
       else {
-        byType.cognate.adopted += 1;
+        byType.cognate.queuedForReview += 1;
         out.push({
           decisionId: `${rec.itemId}:cognate`, itemId: rec.itemId, wordJa: word, decisionType: 'cognate',
           priority: prio,
@@ -146,9 +194,9 @@ const buildAll = (): BuildResult => {
     // ③ meaningZhの提案（採用済みは除外）
     if (g?.suggestedMeaningZh) {
       byType.meaning_zh.candidates += 1;
-      if (g.suggestedMeaningZh === rec.item.meaningZh) byType.meaning_zh.excludedAdopted += 1;
+      if (g.suggestedMeaningZh === rec.item.meaningZh) byType.meaning_zh.excludedAlreadyApplied += 1;
       else {
-        byType.meaning_zh.adopted += 1;
+        byType.meaning_zh.queuedForReview += 1;
         out.push({
           decisionId: `${rec.itemId}:meaning_zh`, itemId: rec.itemId, wordJa: word, decisionType: 'meaning_zh',
           priority: prio,
@@ -167,7 +215,7 @@ const buildAll = (): BuildResult => {
       const current = rec.rolesByTrack.conversation ?? 'optional';
       if (current !== 'optional') byType.role.excludedNotApplicable += 1;
       else {
-        byType.role.adopted += 1;
+        byType.role.queuedForReview += 1;
         out.push({
           decisionId: `${rec.itemId}:role`, itemId: rec.itemId, wordJa: word, decisionType: 'role',
           priority: prio,
@@ -185,7 +233,7 @@ const buildAll = (): BuildResult => {
       byType.sense.candidates += 1;
       if (!rec.cognateSenseOverrides.some((o) => o.reviewStatus === 'unreviewed')) byType.sense.excludedNotApplicable += 1;
       else {
-        byType.sense.adopted += 1;
+        byType.sense.queuedForReview += 1;
         out.push({
           decisionId: `${rec.itemId}:sense`, itemId: rec.itemId, wordJa: word, decisionType: 'sense',
           priority: prio,
@@ -199,16 +247,32 @@ const buildAll = (): BuildResult => {
       }
     }
   }
+  // 重大度の分離とリリース分類（2E-1.10 §18-§19）を、導出後に決定的に付与する
+  const enriched = out.map((d) => {
+    const localSeverity = d.provenance.independentPriority;
+    const inheritedSeverity = d.provenance.sourcePriority;
+    const effectiveSeverity = P_ORDER[localSeverity] <= P_ORDER[inheritedSeverity] ? localSeverity : inheritedSeverity;
+    const severitySource: SeveritySource = P_ORDER[inheritedSeverity] < P_ORDER[localSeverity] ? 'inherited' : 'local';
+    return {
+      ...d,
+      localSeverity, inheritedSeverity, effectiveSeverity, severitySource,
+      // 根本問題の単位（§19）: この判断事項自体に重大問題（P0/P1）があれば独立した根本問題。
+      // 自分は軽微で語の重大度を継承しているだけなら、語の根本問題へまとめて重複カウントを防ぐ。
+      rootIssueId: (localSeverity === 'P0' || localSeverity === 'P1') ? d.decisionId
+        : severitySource === 'inherited' ? `${d.itemId}:root` : d.decisionId,
+      releaseClass: releaseClassOf(d, localSeverity),
+    };
+  });
   // 決定的順序: P0→P1→P2→P3、同一priorityはitemId昇順、同一語はdecisionType順。
   // decisionIdはitemId+typeのみから決まるため、元データの並びが変わっても不変（§2.2）
   const tOrder: Record<DecisionType, number> = { example: 0, cognate: 1, meaning_zh: 2, sense: 3, role: 4 };
-  const queue = out.sort((a, b) =>
+  const queue = enriched.sort((a, b) =>
     P_ORDER[a.priority] - P_ORDER[b.priority] || a.itemId.localeCompare(b.itemId) || tOrder[a.decisionType] - tOrder[b.decisionType]);
   const ids = new Set(queue.map((d) => d.decisionId));
   const audit: DecisionQueueAudit = {
     sourceCandidates: Object.values(byType).reduce((n, x) => n + x.candidates, 0),
-    adopted: queue.length,
-    excludedAdopted: Object.values(byType).reduce((n, x) => n + x.excludedAdopted, 0),
+    queuedForReview: queue.length,
+    excludedAlreadyApplied: Object.values(byType).reduce((n, x) => n + x.excludedAlreadyApplied, 0),
     excludedNotApplicable: Object.values(byType).reduce((n, x) => n + x.excludedNotApplicable, 0),
     duplicates: queue.length - ids.size,
     byType,
@@ -230,20 +294,34 @@ export interface DecisionQueueSummary {
   /** priority由来の内訳（§3: 独立 vs 語からの継承） */
   independentPriorityCount: number;
   inheritedPriorityCount: number;
+  /** リリース影響の分類（§18・91件すべてをブロッカーにしない） */
+  byReleaseClass: Record<ReleaseClass, number>;
+  /** 根本問題ベースのブロッカー数（§19・同じ根本問題を重複カウントしない） */
+  rootBlockerCount: number;
+  /** 自分自身がP0/P1の判断事項数（継承だけのP0を含まない・§19） */
+  rootP0Count: number;
+  rootP1Count: number;
 }
 
 export const decisionQueueSummary = (queue = buildDecisionQueue()): DecisionQueueSummary => {
   const byType: Record<DecisionType, number> = { example: 0, cognate: 0, meaning_zh: 0, role: 0, sense: 0 };
   const byPriority: Record<HumanReviewPriority, number> = { P0: 0, P1: 0, P2: 0, P3: 0 };
   const words = new Set<string>();
-  let inherited = 0;
+  const byReleaseClass: Record<ReleaseClass, number> = { release_blocker: 0, before_beta_recommended: 0, can_defer: 0 };
+  const blockerRoots = new Set<string>();
+  let inherited = 0, rootP0 = 0, rootP1 = 0;
   for (const d of queue) {
     byType[d.decisionType] += 1; byPriority[d.priority] += 1; words.add(d.itemId);
     if (d.provenance.priorityInheritedFromWord) inherited += 1;
+    byReleaseClass[d.releaseClass] += 1;
+    if (d.releaseClass === 'release_blocker') blockerRoots.add(d.rootIssueId);
+    if (d.localSeverity === 'P0') rootP0 += 1;
+    if (d.localSeverity === 'P1') rootP1 += 1;
   }
   return {
     itemCount: queue.length, wordCount: words.size, byType, byPriority,
     independentPriorityCount: queue.length - inherited, inheritedPriorityCount: inherited,
+    byReleaseClass, rootBlockerCount: blockerRoots.size, rootP0Count: rootP0, rootP1Count: rootP1,
   };
 };
 

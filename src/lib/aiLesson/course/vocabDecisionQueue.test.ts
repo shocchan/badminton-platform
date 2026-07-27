@@ -68,13 +68,14 @@ describe('Human Decision Queue（§2 目的A）', () => {
 describe('導出の完全性監査（2E-1.8 §2）', () => {
   const audit = auditDecisionQueue();
   const q = buildDecisionQueue();
-  it('候補=採用+採用済み除外+対象外除外・重複0・件数の恒等式がtype別にも成立', () => {
+  it('候補=レビュー対象に選定+反映済み除外+対象外除外・重複0・件数の恒等式がtype別にも成立', () => {
+    // §20: queuedForReview は「レビュー対象に選定した数」であり、教材採用・公開承認ではない
     expect(audit.duplicates).toBe(0);
-    expect(audit.adopted).toBe(q.length);
-    expect(audit.sourceCandidates).toBe(audit.adopted + audit.excludedAdopted + audit.excludedNotApplicable);
+    expect(audit.queuedForReview).toBe(q.length);
+    expect(audit.sourceCandidates).toBe(audit.queuedForReview + audit.excludedAlreadyApplied + audit.excludedNotApplicable);
     for (const k of Object.keys(audit.byType) as (keyof typeof audit.byType)[]) {
       const b = audit.byType[k];
-      expect(b.candidates).toBe(b.adopted + b.excludedAdopted + b.excludedNotApplicable);
+      expect(b.candidates).toBe(b.queuedForReview + b.excludedAlreadyApplied + b.excludedNotApplicable);
     }
   });
   it('期待値スナップショット（教材データ更新時は意図的にこの数値を更新すること）', () => {
@@ -89,8 +90,40 @@ describe('導出の完全性監査（2E-1.8 §2）', () => {
     // 監査カウンタ（候補218=採用91+採用済み除外108+対象外19）
     const a = auditDecisionQueue();
     expect(a.sourceCandidates).toBe(218);
-    expect(a.excludedAdopted).toBe(108);
+    expect(a.excludedAlreadyApplied).toBe(108);
     expect(a.excludedNotApplicable).toBe(19);
+  });
+});
+
+describe('リリース分類と根本問題（2E-1.10 §18-§20）', () => {
+  const q = buildDecisionQueue();
+  const s = decisionQueueSummary(q);
+  it('91件すべてをリリースブロッカーにしない（分類の合計は総数と一致）', () => {
+    const sum = s.byReleaseClass.release_blocker + s.byReleaseClass.before_beta_recommended + s.byReleaseClass.can_defer;
+    expect(sum).toBe(s.itemCount);
+    expect(s.byReleaseClass.release_blocker).toBeLessThan(s.itemCount);
+    expect(s.byReleaseClass.release_blocker).toBe(14);
+  });
+  it('root P0/P1は「その項目自体が重大」なものだけ（継承だけのP0を数えない・§19）', () => {
+    expect(s.rootP0Count).toBe(1);                       // fi-namae:example のみ
+    expect(s.rootP1Count).toBe(13);
+    const rootP0 = q.filter((d) => d.localSeverity === 'P0');
+    expect(rootP0.map((d) => d.decisionId)).toEqual(['fi-namae:example']);
+    expect(rootP0[0].severitySource).toBe('local');
+    // 継承でP0に見える項目は localSeverity が P0 ではない
+    const inherited = q.filter((d) => d.severitySource === 'inherited' && d.priority === 'P0');
+    expect(inherited.length).toBeGreaterThan(0);
+    for (const d of inherited) expect(d.localSeverity).not.toBe('P0');
+  });
+  it('Release Gateで同じ根本問題を重複カウントしない（rootIssueId単位）', () => {
+    const blockers = q.filter((d) => d.releaseClass === 'release_blocker');
+    expect(s.rootBlockerCount).toBe(new Set(blockers.map((d) => d.rootIssueId)).size);
+    expect(s.rootBlockerCount).toBeLessThanOrEqual(blockers.length);
+  });
+  it('P0/P1は必ずリリースブロッカー（後回しにしない・§18）', () => {
+    for (const d of q) {
+      if (d.localSeverity === 'P0' || d.localSeverity === 'P1') expect(d.releaseClass).toBe('release_blocker');
+    }
   });
 });
 
