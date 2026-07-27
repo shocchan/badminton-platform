@@ -19,6 +19,7 @@ import {
   isJourneySandboxActive, beginJourneySandbox, createJourneySandbox,
 } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
+import type { JourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import { ActionButton } from '../ActionButton';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
@@ -335,7 +336,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         <VocabQuickReviewView t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
           onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
       )}
-      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} onChanged={bump} onDone={() => {
+      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
         const ids = daily.itemIds.filter((id) => itemById.has(id));
         const done = finishJourneyTask('practice', {
@@ -647,17 +648,30 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
 /** 1語の中の段階順（PhaseTrailの現在位置算出に使う） */
 const PHASE_ORDER = ['card', 'quiz', 'assess'] as const;
 
-const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, onChanged, onDone, onRestart }: {
+const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journeyTask, onChanged, onDone, onRestart }: {
   t: AiCourseDict; items: FoundationItem[]; itemById: Map<string, FoundationItem>;
   ids: string[]; reasons: Record<string, string>;
   repo: VocabProgressRepository;
   /** 今日のことばの結果も間隔反復へ入れる（2E-1.13で接続。これがないと復習予定が生まれない） */
   schedule: VocabSpacedReviewRepository;
+  /** 再開位置の保存先（2E-1.14 §3・確定した操作だけを書く） */
+  journeyTask: JourneyTaskRepository;
   onChanged: () => void; onDone: () => void; onRestart: () => void;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
-  const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState<'card' | 'quiz' | 'assess'>('card');
+  // 再開位置は契約から復元する（再読込しても済んだフェーズをやり直させない・§4）
+  const saved = journeyTask.get();
+  const resume = saved?.activeTaskType === 'practice' && saved.activeTaskStatus !== 'completed'
+    ? saved.taskProgress : undefined;
+  const [idx, setIdx] = useState(() => (resume && resume.wordIndex < ids.length ? resume.wordIndex : 0));
+  const [phase, setPhase] = useState<'card' | 'quiz' | 'assess'>(() => (resume?.phase ?? 'card'));
+  /** 確定した操作のあとだけ呼ぶ（未確定の選択は保存しない） */
+  const saveProgress = (wordIndex: number, ph: 'card' | 'quiz' | 'assess') => {
+    journeyTask.saveProgress({
+      wordIndex, phase: ph,
+      completedWordIds: ids.slice(0, wordIndex),
+    });
+  };
   const [picked, setPicked] = useState<number | null>(null);
   const [judged, setJudged] = useState<boolean | null>(null);
   if (ids.length === 0) return <p className="text-sm text-gray-400 text-center py-8">{tv.emptyReview}</p>;
@@ -715,7 +729,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, onCha
             <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-2 mt-2">💡 {item.usageNoteZh}</p>
           )}
           <ActionButton variant="primary" fullWidth className="mt-4"
-            onClick={() => { repo.recordEncounter(item.id, { imageViewed: true }); setPhase('quiz'); onChanged(); }}>{tv.detailCheck}</ActionButton>
+            onClick={() => { repo.recordEncounter(item.id, { imageViewed: true }); setPhase('quiz'); saveProgress(idx, 'quiz'); onChanged(); }}>{tv.detailCheck}</ActionButton>
         </div>
       )}
       {phase === 'quiz' && (
@@ -747,7 +761,8 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, onCha
             <div className="mt-3" aria-live="polite">
               <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? t.lab.correct : t.lab.notYet}</p>
               <p className="text-xs text-gray-600 mt-1">{zh ? q.explanationZh : q.explanationJa}</p>
-              <ActionButton variant="primary" fullWidth className="mt-3" onClick={() => setPhase('assess')}>{t.lab.next}<ArrowRight className="w-4 h-4" aria-hidden /></ActionButton>
+              <ActionButton variant="primary" fullWidth className="mt-3"
+                onClick={() => { setPhase('assess'); saveProgress(idx, 'assess'); }}>{t.lab.next}<ArrowRight className="w-4 h-4" aria-hidden /></ActionButton>
             </div>
           )}
         </div>
@@ -759,7 +774,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, onCha
           <SelfAssessRow t={t} repo={repo} id={item.id} onChanged={onChanged} schedule={schedule} />
           {(repo.getEntry(item.id).selfAssessment === 'self_known' || repo.getEntry(item.id).selfAssessment === 'needs_review') && (
             <ActionButton variant="primary" fullWidth className="mt-3" aria-live="polite"
-              onClick={() => { setIdx(idx + 1); setPhase('card'); setPicked(null); setJudged(null); }}>
+              onClick={() => { setIdx(idx + 1); setPhase('card'); setPicked(null); setJudged(null); saveProgress(idx + 1, 'card'); }}>
               {isLast ? tv.dailyCompleteCta : tv.nextWord}<ArrowRight className="w-4 h-4" aria-hidden />
             </ActionButton>
           )}
