@@ -12,8 +12,9 @@
 ## 実数（コードから導出・decisionQueueSummary）
 
 - **decision item総数: 91 ／ 対象語数: 72**（語数と判断事項数を分離表示）
-- 内訳: example 1（fi-namae）・cognate 11（AI不一致）・meaning_zh 17・role 60（optional→diagnostic提案・報告値「約40語」より多い実数）・sense 2（taihen/tsugou）
-  ※ role提案の実数60はChatGPTレビューのrole_mismatch件数から導出（報告値と差異あり・実データ正）
+- 内訳: example 1（fi-namae）・cognate 11（AI不一致）・**meaning_zh 20・role 57**・sense 2（taihen/tsugou）
+  ※ 訂正（2E-1.8完全性監査で検出）: 本報告の初版は meaning_zh 17・role 60 と誤集計していた。
+  実数は auditDecisionQueue() が正（候補218=採用91+採用済み除外108+対象外19・テストで固定）
 - 優先度: P0=3（fi-namaeの例文・中国語訳・role）・P1系はキュー先頭に決定的ソート
 - 採用済み提案はキューへ乗せない（fi-jouhou:cognate等は判断不要としてテストで担保）
 

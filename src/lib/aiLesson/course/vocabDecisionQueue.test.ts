@@ -1,10 +1,12 @@
 // Phase 2E-1.7 データ層テスト: Human Decision Queue導出＋判断ドラフトストアv3。
 // 判断ドラフトは正式承認ではない（教材review状態・v2レビューストアへ影響しないことを担保）。
 import { describe, it, expect } from 'vitest';
-import { buildDecisionQueue, decisionQueueSummary } from './vocabDecisionQueue';
+import { buildDecisionQueue, decisionQueueSummary, auditDecisionQueue, decisionBadgeForWord } from './vocabDecisionQueue';
 import {
   createVocabDecisionRepository, VOCAB_DECISION_LOCAL_KEY, DECISION_SCHEMA_VERSION,
+  classifyDraftEntry, DECISION_DATASET_VERSION,
 } from './vocabDecisionStore';
+import type { DecisionDraftEntry } from './vocabDecisionStore';
 import { VOCAB_REVIEW_LOCAL_KEY } from './vocabReviewStore';
 import { allVocabularyItems } from './foundationVocabBank';
 
@@ -59,6 +61,101 @@ describe('Human Decision Queue（§2 目的A）', () => {
     expect(s.wordCount).toBeLessThan(s.itemCount);
     expect(s.byPriority.P0).toBeGreaterThanOrEqual(1);
     expect(s.byType.example + s.byType.cognate + s.byType.meaning_zh + s.byType.role + s.byType.sense).toBe(s.itemCount);
+    expect(s.independentPriorityCount + s.inheritedPriorityCount).toBe(s.itemCount);
+  });
+});
+
+describe('導出の完全性監査（2E-1.8 §2）', () => {
+  const audit = auditDecisionQueue();
+  const q = buildDecisionQueue();
+  it('候補=採用+採用済み除外+対象外除外・重複0・件数の恒等式がtype別にも成立', () => {
+    expect(audit.duplicates).toBe(0);
+    expect(audit.adopted).toBe(q.length);
+    expect(audit.sourceCandidates).toBe(audit.adopted + audit.excludedAdopted + audit.excludedNotApplicable);
+    for (const k of Object.keys(audit.byType) as (keyof typeof audit.byType)[]) {
+      const b = audit.byType[k];
+      expect(b.candidates).toBe(b.adopted + b.excludedAdopted + b.excludedNotApplicable);
+    }
+  });
+  it('期待値スナップショット（教材データ更新時は意図的にこの数値を更新すること）', () => {
+    // 2026-07-27 phase-2e-1.5データ時点の実数。変わった場合は auto-fix や教材変更に由来するはず。
+    // 注: 2E-1.7完了報告の「meaning_zh 17・role 60」は誤集計で、実数はこの監査が正
+    //（本テスト導入時に検出・完了報告に差異を記載済み）。
+    const s = decisionQueueSummary(q);
+    expect(s.itemCount).toBe(91);
+    expect(s.wordCount).toBe(72);
+    expect(s.byType).toEqual({ example: 1, cognate: 11, meaning_zh: 20, role: 57, sense: 2 });
+    expect(s.byPriority).toEqual({ P0: 3, P1: 4, P2: 83, P3: 1 });
+    // 監査カウンタ（候補218=採用91+採用済み除外108+対象外19）
+    const a = auditDecisionQueue();
+    expect(a.sourceCandidates).toBe(218);
+    expect(a.excludedAdopted).toBe(108);
+    expect(a.excludedNotApplicable).toBe(19);
+  });
+});
+
+describe('priority由来（2E-1.8 §3: 独立P0と語からの継承を区別・decisionPriorityは変えない）', () => {
+  const q = buildDecisionQueue();
+  const byId = new Map(q.map((d) => [d.decisionId, d]));
+  it('fi-namae: exampleは独立P0（ふりがな/日本語major由来）・meaning_zhとroleは語のP0を継承', () => {
+    expect(byId.get('fi-namae:example')!.provenance.priorityInheritedFromWord).toBe(false);
+    expect(byId.get('fi-namae:example')!.provenance.independentPriority).toBe('P0');
+    expect(byId.get('fi-namae:meaning_zh')!.provenance.priorityInheritedFromWord).toBe(true);
+    expect(byId.get('fi-namae:role')!.provenance.priorityInheritedFromWord).toBe(true);
+    // 表示priority自体は従来どおり語単位（人間判断なしに意味を変えない）
+    expect(byId.get('fi-namae:role')!.priority).toBe('P0');
+  });
+  it('provenanceは既存データ由来のフィールドのみ（推測生成しない・datasetVersion付与）', () => {
+    for (const d of q) {
+      expect(d.provenance.datasetVersion).toBe(DECISION_DATASET_VERSION);
+      expect(['chatgpt', 'claude']).toContain(d.provenance.sourceReview);
+      expect(d.provenance.derivationRule.length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('stale/orphaned検出（2E-1.8 §5・自動削除・自動確定しない）', () => {
+  const entry = (over: Partial<DecisionDraftEntry>): DecisionDraftEntry => ({
+    decisionId: 'fi-x:cognate', status: 'keep_current', updatedAt: 'now', history: [], ...over,
+  });
+  it('classifyDraftEntry: current/stale/orphaned/incompatible', () => {
+    const item = { currentValueJa: 'A', proposedValueJa: 'B' };
+    expect(classifyDraftEntry(entry({ snapshotCurrentValueJa: 'A', snapshotProposedValueJa: 'B', datasetVersion: DECISION_DATASET_VERSION }), item)).toBe('current');
+    expect(classifyDraftEntry(entry({ snapshotCurrentValueJa: 'OLD', snapshotProposedValueJa: 'B', datasetVersion: DECISION_DATASET_VERSION }), item)).toBe('stale');
+    expect(classifyDraftEntry(entry({}), undefined)).toBe('orphaned');
+    expect(classifyDraftEntry(entry({ datasetVersion: 'phase-old' }), item)).toBe('incompatible');
+    // snapshot無し（旧ドラフト）はcurrent扱い（誤ってstale表示しない）
+    expect(classifyDraftEntry(entry({}), item)).toBe('current');
+  });
+  it('setStatusのsnapshot保存→教材値が変わるとpreviewImportがstaleを警告・履歴は維持', () => {
+    const m = new Map<string, string>();
+    const st = { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); } };
+    const repo = createVocabDecisionRepository(st);
+    repo.setStatus('fi-a:cognate', 'keep_current', 'メモ', { currentValueJa: 'unreviewed', proposedValueJa: 'false_friend' });
+    const json = repo.exportJson(['fi-a:cognate']);
+    // 教材側の値が変わった想定のキューでプレビュー
+    const pv = repo.previewImport(json, new Set(['fi-a:cognate']),
+      new Map([['fi-a:cognate', { currentValueJa: 'partial_overlap', proposedValueJa: 'false_friend' }]]));
+    expect(pv.ok).toBe(true);
+    expect(pv.staleCount).toBe(1);
+    expect(pv.exportedAt).toBeTruthy();
+    const e = repo.getEntry('fi-a:cognate')!;
+    expect(e.history.length).toBe(1);
+    expect(e.reviewerNote).toBe('メモ');
+  });
+});
+
+describe('語ごとの判断バッジ集計（2E-1.8 §6.2）', () => {
+  it('未処理・P0・保留を分けて数える（判断済みはpendingから除外）', () => {
+    const q = buildDecisionQueue();
+    const b0 = decisionBadgeForWord('fi-namae', () => undefined, q);
+    expect(b0.total).toBe(3);
+    expect(b0.pending).toBe(3);
+    expect(b0.p0).toBe(3);
+    const b1 = decisionBadgeForWord('fi-namae', (id) => (id === 'fi-namae:role' ? 'keep_current' : undefined), q);
+    expect(b1.pending).toBe(2);
+    const none = decisionBadgeForWord('fi-sensei', () => undefined, q);   // 判断事項なしの語
+    expect(none.total).toBe(0);
   });
 });
 
@@ -107,8 +204,11 @@ describe('判断ドラフトストアv3（§5-§6・正式承認ではない）'
     // replaceは全置換
     expect(repo2.applyImport(pv, 'replace')).toBe(true);
     expect(Object.keys(repo2.getAll())).toEqual(['fi-namae:example']);
-    // 検証エラー: 未知ID・不正status・重複・壊れたJSON
-    expect(repo2.previewImport(json.replace('fi-namae:example', 'fi-unknown:example'), valid).ok).toBe(false);
+    // 検証: 未知IDはエラーではなくorphaned警告（判断履歴を失わせない・2E-1.8 §5）
+    const pvOrphan = repo2.previewImport(json.replaceAll('fi-namae:example', 'fi-unknown:example'), valid);
+    expect(pvOrphan.ok).toBe(true);
+    expect(pvOrphan.orphanedCount).toBe(1);
+    // 検証エラー: 不正status・壊れたJSON
     expect(repo2.previewImport(json.replaceAll('keep_current', 'approved'), valid).ok).toBe(false);
     expect(repo2.previewImport('{{{', valid).ok).toBe(false);
     expect(Object.keys(repo2.getAll())).toEqual(['fi-namae:example']);   // 失敗時は変更なし
