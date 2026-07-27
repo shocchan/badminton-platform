@@ -5,6 +5,8 @@ import { createVocabProgressRepository } from './vocabProgress';
 import { currentPackForTrack, computePackProgress } from './vocabularyPacks';
 import type { VocabularyTrack } from './vocabularyPacks';
 import { assetById } from './visualAssetManifest';
+import { createVocabSpacedReviewRepository } from './vocabSpacedReview';
+import { defaultLearningClock } from './learningClock';
 
 export interface VocabHomeSummary {
   track: VocabularyTrack;
@@ -14,6 +16,10 @@ export interface VocabHomeSummary {
   coverThumbPath: string | null;
   seenCount: number;
   totalCount: number;
+  /** 今日が期限の語彙復習（Phase 2E-1.10 §15・ホーム第一CTAの最優先判定に使う） */
+  dueReviewCount: number;
+  /** うち期限を過ぎたもの */
+  overdueReviewCount: number;
 }
 
 // 成長画面向けの語彙状態サマリー（§25・自己評価と問題確認を混ぜない）
@@ -48,6 +54,8 @@ export const getVocabHomeSummary = (): VocabHomeSummary => {
   const pack = currentPackForTrack(track);
   const pp = computePackProgress(pack, repo);
   const cover = pack.coverAssetId ? assetById(pack.coverAssetId) : undefined;
+  // 期限が来た語彙復習（ホーム第一CTAの最優先・2E-1.10 §15）
+  const due = createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock).getDueSummary();
   return {
     track,
     packTitleJa: pack.titleJa,
@@ -56,5 +64,7 @@ export const getVocabHomeSummary = (): VocabHomeSummary => {
     coverThumbPath: cover?.thumbnailPath ?? null,
     seenCount: pp.seenCount,
     totalCount: pp.totalCount,
+    dueReviewCount: due.total,
+    overdueReviewCount: due.overdue,
   };
 };

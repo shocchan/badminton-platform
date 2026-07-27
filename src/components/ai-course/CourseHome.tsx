@@ -61,7 +61,7 @@ interface Props {
   /** しくみラボ試作（adminOverrides.labPreview=true のテストアカウントのみ・§2A-6） */
   labPreview: boolean;
   onOpenLab: (section?: 'today' | 'units' | 'records') => void;
-  onOpenVocab: (view?: 'top' | 'daily') => void;
+  onOpenVocab: (view?: 'top' | 'daily' | 'quickreview') => void;
   /** アバター承認/作り直し（settings更新・§Avatar2） */
   onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
 }
@@ -389,7 +389,7 @@ const AvatarReviewCard = ({ t, learner, onUpdate }: {
 const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, canLearn, missionTitle }: {
   t: AiCourseDict;
   onOpenLab: (section?: 'today' | 'units' | 'records') => void;
-  onOpenVocab: (view?: 'top' | 'daily') => void;
+  onOpenVocab: (view?: 'top' | 'daily' | 'quickreview') => void;
   onStartConversation: () => void;
   canLearn: boolean;
   missionTitle: string | null;
@@ -415,6 +415,16 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   const recUnit = rec?.r.unitId ? FOUNDATION_UNIT_META.find((m) => m.id === rec.r.unitId) : null;
   // 決定的な第一アクション（§4: 復習期限→途中→今日の会話→次の単元→今日の3語）
   const hero = (() => {
+    // ①-0 語彙の期限復習を最優先（2E-1.10 §15・翌日/3日後/7日後の予定が来ている）
+    if (vocabSummary && vocabSummary.dueReviewCount > 0) {
+      return {
+        reason: vocabSummary.overdueReviewCount > 0 ? t.vocab.reasonOverdue : t.vocab.reasonDueToday,
+        body: t.vocab.dueReviewCount(vocabSummary.dueReviewCount, Math.max(1, Math.round(vocabSummary.dueReviewCount * 0.5))),
+        cta: t.vocab.dueReviewStart,
+        action: () => onOpenVocab('quickreview'),
+        minutes: null as number | null,
+      };
+    }
     if (rec && rec.dueCount > 0) return { reason: tm.reasonReview, body: tl.recReview(rec.dueCount), cta: tl.ctaReview, action: () => onOpenLab('records'), minutes: rec.r.estimatedMinutes as number | null };
     if (rec && rec.r.kind === 'resume_unit' && recUnit) return { reason: tm.reasonResumeLab, body: tl.todayBody(zh ? recUnit.titleZh : recUnit.titleJa), cta: tl.ctaResume, action: () => onOpenLab('today'), minutes: rec.r.estimatedMinutes as number | null };
     if (canLearn && missionTitle) return { reason: tm.reasonConversation, body: missionTitle, cta: tl.ctaStart, action: onStartConversation, minutes: null };

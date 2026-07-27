@@ -850,7 +850,13 @@ export default function AiCoursePage() {
         onOpenNotebook={() => setStep('notebook')}
         labPreview={hasLabPreview(learner.adminOverrides)}
         onOpenLab={(section) => { syncVocabUrl(null); syncLabUrl({ section: section === 'units' ? 'units' : section === 'records' ? 'records' : 'today', unit: null, step: null }); setStep('lab'); }}
-        onOpenVocab={(view) => { syncLabUrl(null); syncVocabUrl({ view: view === 'daily' ? 'daily' : 'top', category: null, itemId: null }); setStep('vocab'); }}
+        onOpenVocab={(view) => {
+          syncLabUrl(null);
+          // 期限復習・今日の3語・トップの3系統（第一CTAから直接開く・2E-1.10 §15）
+          const v = view === 'daily' ? 'daily' : view === 'quickreview' ? 'quickreview' : 'top';
+          syncVocabUrl({ view: v, category: null, itemId: null });
+          setStep('vocab');
+        }}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });
