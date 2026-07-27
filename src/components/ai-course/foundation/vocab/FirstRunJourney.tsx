@@ -13,6 +13,8 @@ import { createVocabProgressRepository } from '../../../../lib/aiLesson/course/v
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
+import { JourneyStepper, ResultBars, ReviewTimeline } from './LearningIllustrations';
+import { STEP_ILLUSTRATIONS } from './stepIllustrationMap';
 import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import type { JourneyResultSnapshot } from '../../../../lib/aiLesson/course/journeyTaskContract';
 
@@ -30,21 +32,37 @@ interface Props {
   onComplete: () => void;
 }
 
-/** 進捗表示（§5・色だけに依存せず番号とステップ名を出す・読み上げ対応） */
+/**
+ * 進捗表示（§5・CEO指示: 見やすく・視線が左から右へ流れるように）。
+ * 番号／ラベル／接続線で「今どこか」「あといくつか」を一目で示す。
+ * 済み=チェック・現在=塗り＋リング・未来=薄い丸 と形も変え、色だけに依存しない。
+ */
 const StepProgress = ({ t, step }: { t: AiCourseDict; step: JourneyStep }) => {
   const tv = t.vocab;
   const idx = stepIndexOf(step);
   return (
-    <div className="mb-3">
-      <p className="text-[11px] font-bold text-indigo-700">{tv.frStepLabel(idx, TOTAL_STEPS)}・{tv.frSteps[step]}</p>
-      <ol className="flex gap-1 mt-1" aria-label={tv.frStepLabel(idx, TOTAL_STEPS)}>
-        {JOURNEY_STEPS.map((s, i) => (
-          <li key={s} aria-current={s === step ? 'step' : undefined}
-            className={`h-1.5 flex-1 rounded-full ${i < idx ? 'bg-indigo-500' : 'bg-gray-200'}`}>
-            <span className="sr-only">{tv.frSteps[s]}{s === step ? '（現在）' : ''}</span>
-          </li>
-        ))}
-      </ol>
+    <div className="mb-1">
+      <JourneyStepper
+        steps={JOURNEY_STEPS.map((s) => ({ key: s, label: tv.frSteps[s] }))}
+        currentIndex={idx - 1}
+        ariaLabel={tv.frStepLabel(idx, TOTAL_STEPS)} />
+      <p className="sr-only">{tv.frStepLabel(idx, TOTAL_STEPS)}・{tv.frSteps[step]}</p>
+    </div>
+  );
+};
+
+/** 各ステップの見出し（イラスト＋大きな見出しで視線の起点を作る） */
+const StepHeading = ({ t, step, title, body }: {
+  t: AiCourseDict; step: JourneyStep; title: string; body?: string;
+}) => {
+  const Illustration = STEP_ILLUSTRATIONS[step];
+  return (
+    <div className="flex items-center gap-3 mb-3">
+      <Illustration label={t.vocab.frSteps[step]} />
+      <div className="min-w-0">
+        <h2 className="text-base font-bold text-gray-900 leading-snug" tabIndex={-1}>{title}</h2>
+        {body && <p className="text-xs text-gray-600 mt-1">{body}</p>}
+      </div>
     </div>
   );
 };
@@ -58,6 +76,9 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
   }, []);
   // Journeyと診断・練習の往復契約（2E-1.12 §4）
   const taskRepo = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
+  // Step4の復習タイムライン用（読み取りのみ・予定は作らない）
+  const scheduleRepo = useMemo(
+    () => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
   // 保存後に再読込するための状態（stateへJourneyの内容を持たず、常にRepositoryを正とする）
   const [loaded, setLoaded] = useState(() => repo.load());
   useEffect(() => { trackCourseOnce('start_ai_course_first_run'); }, []);
@@ -86,6 +107,10 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
   const resumable = contract && (contract.activeTaskStatus === 'in_progress' || contract.activeTaskStatus === 'interrupted')
     ? contract : null;
   const snapshot: JourneyResultSnapshot | null = contract?.completionSnapshot ?? null;
+  // 次回予定の件数（Step4のみ・読み取り専用）
+  const upcoming = step === 'done'
+    ? scheduleRepo.getDueSummary().upcoming
+    : { tomorrow: 0, inThreeDays: 0, inSevenDays: 0 };
   const startTask = (type: 'diagnostic' | 'practice', go: () => void) => {
     taskRepo.startTask({
       journeyId: loaded.record?.startedAt ?? 'journey',
@@ -122,8 +147,7 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
 
       {step === 'goal' && (
         <>
-          <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frGoalHeading}</h2>
-          <p className="text-xs text-gray-500 mb-3">{tv.frGoalNote}</p>
+          <StepHeading t={t} step="goal" title={tv.frGoalHeading} body={tv.frGoalNote} />
           <fieldset className="space-y-2">
             <legend className="sr-only">{tv.frGoalHeading}</legend>
             {LEARNING_GOALS.map((g) => (
@@ -138,8 +162,7 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
 
       {step === 'check' && (
         <>
-          <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frCheckHeading}</h2>
-          <p className="text-xs text-gray-600 mb-4">{tv.frCheckNote}</p>
+          <StepHeading t={t} step="check" title={tv.frCheckHeading} body={tv.frCheckNote} />
           <ActionButton variant="primary" fullWidth
             onClick={() => { trackCourse('start_ai_course_first_run', { step: 'check' }); startTask('diagnostic', onStartCheck); }}>
             {tv.frCheckStart}
@@ -155,8 +178,7 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
 
       {step === 'practice' && (
         <>
-          <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frPracticeHeading}</h2>
-          <p className="text-xs text-gray-600 mb-4">{goalReason(goal)}</p>
+          <StepHeading t={t} step="practice" title={tv.frPracticeHeading} body={goalReason(goal)} />
           <ActionButton variant="primary" fullWidth
             onClick={() => { repo.completePractice(); refresh(); trackCourse('start_ai_course_first_run', { step: 'practice' }); startTask('practice', onStartPractice); }}>
             {tv.frPracticeStart}
@@ -168,19 +190,38 @@ export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPract
 
       {step === 'done' && (
         <>
-          <h2 className="text-base font-bold text-gray-900 mb-1" tabIndex={-1}>{tv.frDoneHeading}</h2>
-          {/* 実際に確定した結果だけを表示。取得できなかった値は0と断定しない（§8） */}
+          <StepHeading t={t} step="done" title={tv.frDoneHeading} />
+          {/* 実際に確定した結果だけを表示。取得できなかった値は0と断定しない（§8）。
+              数値テキストと棒グラフの両方を出し、図が読めなくても内容が分かるようにする。 */}
           {snapshot && (
-            <ul className="text-sm text-gray-700 space-y-1 mb-3">
-              {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
-              {snapshot.independentCount !== null && <li>・{tv.frResultIndependent(snapshot.independentCount)}</li>}
-              {snapshot.supportedCount !== null && <li>・{tv.frResultSupported(snapshot.supportedCount)}</li>}
-              {snapshot.needsReviewCount !== null && <li>・{tv.frResultNeedsReview(snapshot.needsReviewCount)}</li>}
-              {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
-            </ul>
+            <div className="bg-gray-50 rounded-xl p-3 mb-3">
+              <p className="text-[11px] font-bold text-gray-500 mb-2">{tv.frResultChartLabel}</p>
+              <ul className="text-sm text-gray-700 space-y-1">
+                {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
+                {snapshot.independentCount !== null && <li>・{tv.frResultIndependent(snapshot.independentCount)}</li>}
+                {snapshot.supportedCount !== null && <li>・{tv.frResultSupported(snapshot.supportedCount)}</li>}
+                {snapshot.needsReviewCount !== null && <li>・{tv.frResultNeedsReview(snapshot.needsReviewCount)}</li>}
+                {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
+              </ul>
+              <div className="mt-2">
+                <ResultBars total={snapshot.checkedCount ?? 0} bars={[
+                  { label: tv.frBarIndependent, count: snapshot.independentCount ?? 0, tone: 'good' },
+                  { label: tv.frBarSupported, count: snapshot.supportedCount ?? 0, tone: 'support' },
+                  { label: tv.frBarReview, count: snapshot.needsReviewCount ?? 0, tone: 'review' },
+                ]} />
+              </div>
+            </div>
           )}
-          {/* 新規利用者へ復習の仕組みを一文で（定着は断定しない・§4） */}
-          <p className="text-sm text-gray-700 mb-4">{tv.frReviewExplain}</p>
+          {/* 新規利用者へ復習の仕組みを一文で（定着は断定しない・§4）＋時間軸の図 */}
+          <p className="text-sm text-gray-700">{tv.frReviewExplain}</p>
+          <div className="mb-4">
+            <p className="sr-only">{tv.frTimelineLabel}</p>
+            <ReviewTimeline todayLabel={tv.frTimelineToday} points={[
+              { label: tv.frTimelineTomorrow, count: upcoming.tomorrow, emphasis: true },
+              { label: tv.frTimelineThree, count: upcoming.inThreeDays },
+              { label: tv.frTimelineSeven, count: upcoming.inSevenDays },
+            ]} />
+          </div>
           <ActionButton variant="primary" fullWidth
             onClick={() => { repo.complete(); taskRepo.clear(); trackCourse('complete_ai_course_first_run', { step: 'done' }); onComplete(); }}>
             {tv.frGoHome}

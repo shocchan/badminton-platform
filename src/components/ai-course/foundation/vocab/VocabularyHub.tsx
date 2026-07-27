@@ -14,6 +14,7 @@ import type { FoundationQuestion } from '../../../../lib/aiLesson/course/foundat
 import { trackCourse, trackCourseOnce } from '../../../../lib/aiLesson/course/courseAnalytics';
 import type { AiCourseDict } from '../../../../locales/aiCourse';
 import { VocabImage } from './VocabImage';
+import { DoneIllustration, ResultBars, ReviewTimeline, PhaseTrail } from './LearningIllustrations';
 import { ActionButton } from '../ActionButton';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
@@ -606,6 +607,9 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
   );
 };
 
+/** 1語の中の段階順（PhaseTrailの現在位置算出に使う） */
+const PHASE_ORDER = ['card', 'quiz', 'assess'] as const;
+
 const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDone, onRestart }: {
   t: AiCourseDict; items: FoundationItem[]; itemById: Map<string, FoundationItem>;
   ids: string[]; reasons: Record<string, string>;
@@ -652,17 +656,24 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, onChanged, onDo
         <span className="text-[11px] text-gray-500">{tv.reasons[reasons[item.id]] ?? ''}</span>
         <span className="text-xs font-mono text-gray-400">{tv.dailyStep(idx + 1, ids.length)}</span>
       </div>
-      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-3" role="progressbar" aria-valuenow={idx + 1} aria-valuemin={1} aria-valuemax={ids.length}>
-        <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.round(((idx + 1) / ids.length) * 100)}%` }} />
+      <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mb-2" role="progressbar" aria-valuenow={idx + 1} aria-valuemin={1} aria-valuemax={ids.length}>
+        <div className="h-full bg-indigo-500 rounded-full motion-safe:transition-[width] motion-safe:duration-500" style={{ width: `${Math.round(((idx + 1) / ids.length) * 100)}%` }} />
       </div>
+      {/* 語の中の3段階。「何問目か」だけでは今の一歩が見えないので併記する（2E-1.13） */}
+      <PhaseTrail ariaLabel={tv.dailyPhaseLabel} currentIndex={PHASE_ORDER.indexOf(phase)}
+        phases={[tv.dailyPhaseSee, tv.dailyPhaseTry, tv.dailyPhaseReflect]} />
       {phase === 'card' && (
-        <div>
+        // 視線の順路: 絵 → ことば → 読み → 意味 → 例文 → 次へ。区切り線で塊を分ける
+        <div key={item.id} className="motion-safe:animate-[pageFadeIn_260ms_ease-out]">
           <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />
-          <p className="text-2xl font-bold text-gray-900">{item.displayForm}</p>
-          <p className="text-sm text-gray-500">{item.readingKana}</p>
-          <p className="text-base text-gray-800 mt-1">{item.meaningZh}</p>
-          <p className="text-xs text-gray-500 mt-2">{item.exampleJa}／{item.exampleZh}</p>
-          {item.usageNoteZh && <p className="text-xs text-amber-700 mt-1">💡 {item.usageNoteZh}</p>}
+          <p className="text-[28px] leading-tight font-bold text-gray-900">{item.displayForm}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{item.readingKana}</p>
+          <p className="text-base text-gray-800 mt-2 pb-3 border-b border-gray-100">{item.meaningZh}</p>
+          <p className="text-xs text-gray-600 mt-3 leading-relaxed">{item.exampleJa}</p>
+          <p className="text-xs text-gray-400 leading-relaxed">{item.exampleZh}</p>
+          {item.usageNoteZh && (
+            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg px-2.5 py-2 mt-2">💡 {item.usageNoteZh}</p>
+          )}
           <ActionButton variant="primary" fullWidth className="mt-4"
             onClick={() => { repo.recordEncounter(item.id, { imageViewed: true }); setPhase('quiz'); onChanged(); }}>{tv.detailCheck}</ActionButton>
         </div>
@@ -1023,11 +1034,22 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
   const hasSchedule = summary.upcoming.tomorrow + summary.upcoming.inThreeDays + summary.upcoming.inSevenDays > 0;
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5" aria-live="polite">
-      <h3 className="text-base font-bold text-gray-900 mb-2">{tv.completionTitle}</h3>
-      <ul className="text-sm text-gray-700 space-y-1 mb-3">
+      {/* 見出しの横に絵を置き、視線の起点を作る（CEO指示・2E-1.13） */}
+      <div className="flex items-center gap-3 mb-2">
+        <DoneIllustration label={tv.completionTitle} />
+        <h3 className="text-base font-bold text-gray-900 leading-snug">{tv.completionTitle}</h3>
+      </div>
+      <ul className="text-sm text-gray-700 space-y-1 mb-2">
         <li>・{tv.completionChecked(checked)}</li>
         {uncertain.length > 0 && <li>・{tv.completionUncertain(uncertain.length)}</li>}
       </ul>
+      {/* 数字と同じ内容を棒でも示す（図が読めなくても文章で分かる） */}
+      <div className="mb-3">
+        <ResultBars total={checked} bars={[
+          { label: tv.frBarIndependent, count: checked - uncertain.length, tone: 'good' },
+          { label: tv.frBarReview, count: uncertain.length, tone: 'review' },
+        ]} />
+      </div>
       {/* 次回予定（日付を並べすぎない・学習を強制する印象にしない・§17） */}
       <div className="bg-indigo-50/60 rounded-xl p-3 mb-4">
         <p className="text-xs font-bold text-indigo-800 mb-1">{tv.completionNextHeading}</p>
@@ -1042,6 +1064,13 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
             </p>
           </>
         ) : <p className="text-xs text-gray-500">{tv.completionNoSchedule}</p>}
+        {hasSchedule && (
+          <ReviewTimeline todayLabel={tv.frTimelineToday} points={[
+            { label: tv.frTimelineTomorrow, count: summary.upcoming.tomorrow, emphasis: true },
+            { label: tv.frTimelineThree, count: summary.upcoming.inThreeDays },
+            { label: tv.frTimelineSeven, count: summary.upcoming.inSevenDays },
+          ]} />
+        )}
       </div>
       {/* 第一CTAは一つ（§16）。補助CTAは弱いスタイル */}
       <ActionButton variant="primary" fullWidth

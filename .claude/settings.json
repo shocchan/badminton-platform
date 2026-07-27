@@ -1,0 +1,45 @@
+{
+  "permissions": {
+    "defaultMode": "auto",
+    "allow": [
+      "Read",
+      "Bash(git *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(python3 *)",
+      "Bash(rtk *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(find *)",
+      "Bash(mkdir *)",
+      "Bash(which *)",
+      "Bash(pwd)",
+      "Bash(supabase functions deploy --project-ref staging*)"
+    ],
+    "ask": [
+      "Bash(*stripe*)",
+      "Bash(*payment*)",
+      "Bash(*paypal*)",
+      "Bash(*charge*)",
+      "Bash(*billing*)",
+      "WebFetch(*stripe*)",
+      "WebFetch(*payment*)"
+    ],
+    "deny": [
+      "Bash(./scripts/deploy-production.sh)",
+      "Bash(bash scripts/deploy-production.sh)",
+      "Bash(sh scripts/deploy-production.sh)",
+      "Bash(scripts/deploy-production.sh)",
+      "Bash(*deploy-production.sh*)",
+      "Bash(*wrangler pages deploy*--branch=main*)",
+      "Bash(*wrangler deploy --env production*)",
+      "Write(.env.production)",
+      "Write(.env.production.local)",
+      "Write(.npmrc)",
+      "Write(secret:*)"
+    ]
+  }
+}
