@@ -81,7 +81,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
           <button
             key={key} type="button" onClick={() => { setMoreOpen(false); onNavigate(key); }}
             aria-current={current === key ? 'page' : undefined}
-            className={`flex-1 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
+            className={`flex-1 min-h-11 min-w-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
               current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -92,7 +92,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
         <button
           type="button" aria-expanded={moreOpen} aria-haspopup="menu"
           onClick={() => { if (!moreOpen) trackCourse('open_ai_course_mobile_more'); setMoreOpen((v) => !v); }}
-          className={`flex-1 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
+          className={`flex-1 min-h-11 min-w-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
             moreActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -167,7 +167,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
             {showNav && onLogout && (
               <button
                 type="button" onClick={onLogout}
-                className="min-h-11 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0"
+                className="min-h-11 min-w-11 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1 shrink-0"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t.login.logout}</span>
