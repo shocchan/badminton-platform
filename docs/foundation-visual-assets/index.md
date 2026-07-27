@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|---|---|---|
 | va-verb-iku-scene | fi-iku | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-iku-scene-v1.webp | 27KB | 800x600 | 目的地へ向かって歩いて移動している場面 | ai_generated_internal |
 | va-verb-kuru-scene | fi-kuru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kuru-scene-v1.webp | 23KB | 800x600 | 奥からこちらへ歩み寄る人物の場面 | ai_generated_internal |
-| va-verb-kaeru-scene | fi-kaeru | scene_illustration | planned | — | — | — | 夕方、自宅へ戻る場面 | ai_generated_internal |
+| va-verb-kaeru-scene | fi-kaeru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kaeru-scene-v1.webp | 38KB | 800x600 | 夕方、自宅へ戻る場面 | ai_generated_internal |
 | va-verb-sumu-scene | fi-sumu | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-sumu-scene-v1.webp | 43KB | 800x600 | その場所で継続して生活している場面 | ai_generated_internal |
 | va-verb-hataraku-scene | fi-hataraku | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-hataraku-scene-v1.webp | 31KB | 800x600 | 職場で働いている場面 | ai_generated_internal |
 | va-verb-benkyo-scene | fi-benkyo | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-benkyo-scene-v1.webp | 35KB | 800x600 | 机で勉強している場面 | ai_generated_internal |
@@ -16,13 +16,13 @@
 | va-verb-kiku-scene | fi-kiku | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kiku-scene-v1.webp | 23KB | 800x600 | 音楽や話を聞いている場面 | ai_generated_internal |
 | va-verb-hanasu-scene | fi-hanasu | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-hanasu-scene-v1.webp | 30KB | 800x600 | 人と話している場面 | ai_generated_internal |
 | va-verb-yomu-scene | fi-yomu | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-yomu-scene-v3.webp | 31KB | 800x600 | 本を読んでいる場面 | ai_generated_internal |
-| va-verb-kaku-scene | fi-kaku | scene_illustration | planned | — | — | — | 書類やノートに書いている場面 | ai_generated_internal |
-| va-verb-kau-scene | fi-kau | scene_illustration | planned | — | — | — | 店で買い物をしている場面 | ai_generated_internal |
-| va-verb-tsukau-scene | fi-tsukau | scene_illustration | planned | — | — | — | 道具を使っている場面 | ai_generated_internal |
-| va-verb-tsukuru-scene | fi-tsukuru | scene_illustration | planned | — | — | — | 料理を作っている場面 | ai_generated_internal |
-| va-verb-au-scene | fi-au | scene_illustration | planned | — | — | — | 友達と会っている場面 | ai_generated_internal |
-| va-verb-okiru-scene | fi-okiru | scene_illustration | planned | — | — | — | 朝、ベッドから起き上がる場面 | ai_generated_internal |
-| va-verb-neru-scene | fi-neru | scene_illustration | planned | — | — | — | 夜、ベッドで眠っている場面 | ai_generated_internal |
+| va-verb-kaku-scene | fi-kaku | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kaku-scene-v1.webp | 30KB | 800x600 | 書類やノートに書いている場面 | ai_generated_internal |
+| va-verb-kau-scene | fi-kau | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kau-scene-v1.webp | 27KB | 800x600 | 店で買い物をしている場面 | ai_generated_internal |
+| va-verb-tsukau-scene | fi-tsukau | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-tsukau-scene-v1.webp | 30KB | 800x600 | 道具を使っている場面 | ai_generated_internal |
+| va-verb-tsukuru-scene | fi-tsukuru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-tsukuru-scene-v1.webp | 60KB | 800x600 | 料理を作っている場面 | ai_generated_internal |
+| va-verb-au-scene | fi-au | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-au-scene-v1.webp | 48KB | 800x600 | 友達と会っている場面 | ai_generated_internal |
+| va-verb-okiru-scene | fi-okiru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-okiru-scene-v1.webp | 36KB | 800x600 | 朝、ベッドから起き上がる場面 | ai_generated_internal |
+| va-verb-neru-scene | fi-neru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-neru-scene-v1.webp | 24KB | 800x600 | 夜、ベッドで眠っている場面 | ai_generated_internal |
 | va-verb-noru-scene | fi-noru | scene_illustration | planned | — | — | — | 電車に乗り込む場面 | ai_generated_internal |
 | va-verb-oriru-scene | fi-oriru | scene_illustration | planned | — | — | — | 電車からホームに降り立つ場面 | ai_generated_internal |
 | va-verb-hairu-scene | fi-hairu | scene_illustration | planned | — | — | — | 店の入口から中へ進む場面 | ai_generated_internal |

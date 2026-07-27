@@ -66,6 +66,7 @@ export const VISUAL_ASSETS: VisualAsset[] = [
 
 /**
  * 取り込み済み実画像（2026-07-27 ChatGPT生成→検証→WebP最適化→配置済み・全draft・§74）。
+ * Phase 2E-1で8枚追加（帰る/書く/買う/使う/作る/会う/起きる/寝る・計23枚）。
  * ここに無いassetはplannedのまま（実ファイルが存在しない段階で完成画像として扱わない）。
  */
 const IMPORTED: Record<string, { filePath: string; thumbnailPath: string; width: number; height: number }> = {
@@ -73,6 +74,14 @@ const IMPORTED: Record<string, { filePath: string; thumbnailPath: string; width:
   'va-pack-life-basic-cover': { filePath: '/images/ai-course/foundation/covers/pack-life-basic-cover-v1.webp', thumbnailPath: '/images/ai-course/foundation/covers/pack-life-basic-cover-v1-thumb.webp', width: 800, height: 600 },
   'va-pack-n3-prep-cover': { filePath: '/images/ai-course/foundation/covers/pack-n3-prep-cover-v1.webp', thumbnailPath: '/images/ai-course/foundation/covers/pack-n3-prep-cover-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-iku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-kaeru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kaeru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kaeru-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-kaku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kaku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kaku-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-kau-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kau-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kau-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-tsukau-scene': { filePath: '/images/ai-course/foundation/verbs/verb-tsukau-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-tsukau-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-tsukuru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-tsukuru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-tsukuru-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-au-scene': { filePath: '/images/ai-course/foundation/verbs/verb-au-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-au-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-okiru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-okiru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-okiru-scene-v1-thumb.webp', width: 800, height: 600 },
+  'va-verb-neru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-neru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-neru-scene-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-kuru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-taberu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-hataraku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-hataraku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-hataraku-scene-v1-thumb.webp', width: 800, height: 600 },

@@ -23,10 +23,10 @@ describe('画像問題（§27・§43）', () => {
     expect(buildImageToWordQuestion(iku, asset, items, 5, false)).toBeNull();
   });
   it('未生成（filePath null）・assetなしでは生成しない', () => {
-    const kaeru = items.find((i) => i.id === 'fi-kaeru')!;
-    const plannedAsset = VISUAL_ASSETS.find((a) => a.id === 'va-verb-kaeru-scene')!;
-    expect(plannedAsset.filePath).toBeNull(); // 未取り込みassetはplannedのまま
-    expect(buildImageToWordQuestion(kaeru, plannedAsset, items, 5, true)).toBeNull();
+    const noru = items.find((i) => i.id === 'fi-noru')!;
+    const plannedAsset = VISUAL_ASSETS.find((a) => a.id === 'va-verb-noru-scene')!;
+    expect(plannedAsset.filePath).toBeNull(); // 未取り込みassetはplannedのまま（2E-1時点で乗る/降りる等が残り）
+    expect(buildImageToWordQuestion(noru, plannedAsset, items, 5, true)).toBeNull();
     expect(buildImageToWordQuestion(iku, undefined, items, 5, true)).toBeNull();
   });
   it('取り込み済み実画像（行く等12枚）はdraftとしてlabPreviewで問題化できる', () => {
