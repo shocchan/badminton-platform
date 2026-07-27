@@ -6,8 +6,11 @@ import type { FoundationItem, FoundationQuestion } from './foundationTypes';
 import type { VocabularyPack, VocabularyTrack, VocabularyPackItemRole } from './vocabularyPacks';
 import { roleFor } from './vocabularyPacks';
 import type { VocabProgressRepository, VocabQuestionDimension, DiagnosticOutcome } from './vocabProgress';
-import { poolQuestionsFor, relatedItemsOf } from './vocabDiagnosticPool';
+import { poolQuestionsFor, relatedItemsOf, CONVERSATION_CORE_POOL } from './vocabDiagnosticPool';
 import type { VocabPoolQuestion } from './vocabDiagnosticPool';
+
+/** 1回の診断に入れる会話コア確認の上限（§10: 11語を1つの診断へ詰め込まない） */
+export const CORE_PER_SET = 2;
 
 /**
  * N3診断のprobe問題（2E-1.5 §21: required語の用法・自他・助詞・活用・false friendを
@@ -113,6 +116,22 @@ export const buildDiagnosticSet = (
       const entry = repo.getDiagnosticEntry(pack.id, p.itemId);
       if (entry?.dims[p.vocabDimension]) continue;   // 同一次元の再出題はしない
       push(p.itemId, p.vocabDimension, p.q);
+    }
+  }
+  // ③-b 会話コア語の確認（2E-1.10 §10）。
+  //   これらは全trackでrequired＝通常の診断対象に入らないため、診断のたびに少数ずつ確認する。
+  //   決定的ローテーション: まだその次元を確認していない語から定義順に CORE_PER_SET 問だけ。
+  //   問題数の上限（total）は変えない＝診断が長くならない。未出題語をconfirmedにもしない。
+  {
+    let added = 0;
+    for (const p of CONVERSATION_CORE_POOL) {
+      if (added >= CORE_PER_SET || out.length >= total) break;
+      if (!itemById.has(p.itemId)) continue;
+      const entry = repo.getDiagnosticEntry(pack.id, p.itemId);
+      if (entry?.dims[p.vocabDimension]) continue;      // 同一次元の再出題はしない
+      const before = out.length;
+      push(p.itemId, p.vocabDimension, p.q);
+      if (out.length > before) added += 1;
     }
   }
   // ④まだ枠が余っていれば2問目（別次元）を追加

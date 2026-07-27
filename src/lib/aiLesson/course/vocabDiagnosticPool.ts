@@ -66,6 +66,30 @@ export const N3_POOL: VocabPoolQuestion[] = [
   q('vdq-n-ff-taihen', 'fi-taihen', 'meaning', 'single_choice', 'meaning', '「仕事が大変です」の「大変」の意味は？', '「仕事が大変です」的「大変」是什么意思？', ['辛苦；不容易', '发生了大的变化', '非常大'], '大変＝辛苦・骨が折れる。中国語の「大变」ではない。', '大変＝辛苦，不是中文的「大变」。'),
 ];
 
+/**
+ * 会話コア語の確認問題（Phase 2E-1.10 §10）。
+ * これらの語は全trackでrequired＝通常の診断セットに一度も入らなかった（2E-1.9の接続監査で判明）。
+ * 読み・意味は基礎的なので、会話で実際に間違えやすい「助詞・活用・使い分け」を確認する。
+ * 診断セットには決定的ローテーションで少数ずつ入れる（問題数を増やさない・§10）。
+ */
+export const CONVERSATION_CORE_POOL: VocabPoolQuestion[] = [
+  q('vdq-c-p-sumu', 'fi-sumu', 'particle', 'particle_choice', 'particle', '「東京（　）住んでいます」正しい助詞は？', '「東京（　）住んでいます」应该用哪个助词？', ['に', 'で', 'を'], '住む場所は「に」。「で」は動作をする場所。', '居住地点用「に」；「で」表示做动作的场所。'),
+  q('vdq-c-p-hataraku', 'fi-hataraku', 'particle', 'particle_choice', 'particle', '「会社（　）働いています」正しい助詞は？', '「会社（　）働いています」应该用哪个助词？', ['で', 'に', 'を'], '働く場所は「で」（動作をする場所）。住む場所の「に」と区別。', '工作地点用「で」，和居住地点的「に」区分。'),
+  q('vdq-c-p-iku', 'fi-iku', 'particle', 'particle_choice', 'particle', '「駅（　）行きます」正しい助詞は？', '「駅（　）行きます」应该用哪个助词？', ['に', 'で', 'が'], '行き先は「に／へ」。', '目的地用「に／へ」。'),
+  q('vdq-c-p-kiku', 'fi-kiku', 'particle', 'particle_choice', 'particle', '「先生（　）聞きます」＝先生に質問する。正しい助詞は？', '「先生（　）聞きます」＝向老师提问。应该用哪个助词？', ['に', 'を', 'で'], '質問する相手は「に」。「音楽を聞く」の「を」と区別。', '提问对象用「に」；「音楽を聞く」用「を」。'),
+  q('vdq-c-f-kuru', 'fi-kuru', 'conjugation', 'conjugation_choice', 'form', '「日本に（　）ました」正しいのは？', '「日本に（　）ました」应该选？', ['来', 'き', 'くり'], '来る→来ました（きました）。不規則動詞です。', '来る是不规则动词：来ました（きました）。'),
+  q('vdq-c-f-taberu', 'fi-taberu', 'conjugation', 'conjugation_choice', 'form', '「朝ごはんを（　）ています」正しいのは？', '「朝ごはんを（　）ています」应该选？', ['食べ', '食べる', '食べり'], '食べる→食べています（二類動詞）。', '食べる是二类动词：食べています。'),
+  q('vdq-c-f-benkyo', 'fi-benkyo', 'conjugation', 'conjugation_choice', 'form', '「日本語を（　）います」正しいのは？', '「日本語を（　）います」应该选？', ['勉強して', '勉強で', '勉強し'], '「勉強する」→勉強しています（三類動詞）。', '「勉強する」是三类动词：勉強しています。'),
+  q('vdq-c-u-nomu', 'fi-nomu', 'collocation', 'single_choice', 'usage', '「薬を（　）ます」自然なのは？', '「薬を（　）ます」哪个自然？', ['飲み', '食べ', '使い'], '日本語では薬は「飲む」。中国語の「吃药」と違います。', '日语里吃药说「薬を飲む」，和中文的「吃药」不同。'),
+  q('vdq-c-u-miru', 'fi-miru', 'collocation', 'single_choice', 'usage', '「映画を（　）ます」自然なのは？', '「映画を（　）ます」哪个自然？', ['見', '聞き', '読み'], '映画は「見る」。', '看电影用「見る」。'),
+  q('vdq-c-u-hanasu', 'fi-hanasu', 'usage', 'sentence_choice', 'usage', '自然な文はどれですか。', '哪句自然？', ['日本語を話します。', '日本語が話します。', '日本語で話しません。'], '話す対象の言語は「を」。', '所说的语言用「を」：日本語を話します。'),
+  q('vdq-c-ff-sensei', 'fi-sensei', 'usage', 'sentence_choice', 'usage', '「先生」の使い方が正しいのはどれですか。', '「先生」的正确用法是哪个？', ['田中先生に聞きます。', '田中先生は男の人です（＝Mr.の意味で）。', '店の先生に聞きます。'], '日本語の「先生」は教師・医師などへの敬称。一般の男性は「〜さん」。', '日语「先生」用于老师・医生等，不是中文的「先生（Mr.）」；一般男性用「〜さん」。'),
+];
+
+/** 会話コア語のitemId（実データ由来・手入力の固定リストを作らない・§10） */
+export const conversationCoreItemIds = (): string[] =>
+  [...new Set(CONVERSATION_CORE_POOL.map((p) => p.itemId))];
+
 export const poolQuestionsFor = (packId: string): VocabPoolQuestion[] =>
   packId === 'pack-n3-prep-1' ? N3_POOL : BASIC_POOL;
 

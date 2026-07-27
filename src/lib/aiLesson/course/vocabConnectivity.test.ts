@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildConnectivityGraph, connectivitySummary, auditDiagnosticCoverage, SURFACE_KEYS } from './vocabConnectivity';
 import { allVocabularyItems } from './foundationVocabBank';
+import { conversationCoreItemIds } from './vocabDiagnosticPool';
 
 describe('接続グラフの完全性（§2・§7）', () => {
   const g = buildConnectivityGraph();
@@ -24,12 +25,27 @@ describe('接続グラフの完全性（§2・§7）', () => {
     expect(Object.values(s.byLevelOverall.basics).reduce((a, b) => a + b, 0)).toBe(78);
     expect(Object.values(s.byLevelOverall.n3).reduce((a, b) => a + b, 0)).toBe(62);
   });
-  it('期待値スナップショット（2026-07-27時点・データ/コード変更時は意図的に更新）', () => {
+  it('期待値スナップショット（Phase 2E-1.10で学習ループを閉鎖・変更時は意図的に更新）', () => {
     expect(s.byStatusPerSurface.vocabScreen).toMatchObject({ connected: 140 });
-    expect(s.byStatusPerSurface.diagnostic).toMatchObject({ connected: 129, partial: 11 });
-    expect(s.byStatusPerSurface.conversation).toMatchObject({ connected: 12, unverified: 128 });
-    expect(s.byStatusPerSurface.review).toMatchObject({ partial: 140 });   // 間隔反復未実装の構造的ギャップ
+    // 2E-1.10 §10: 会話コア11語へ確認問題を追加し、診断の未接続を解消（129+11partial → 140）
+    expect(s.byStatusPerSurface.diagnostic).toMatchObject({ connected: 140 });
+    expect(s.byStatusPerSurface.diagnostic.partial).toBe(0);
+    // 2E-1.10 §11: fi-senseiの練習を追加（12 → 13）。残りは一般導線のみ＝unverified
+    expect(s.byStatusPerSurface.conversation).toMatchObject({ connected: 13, unverified: 127 });
+    // 2E-1.10 §3: 間隔反復の実装で復習の構造的ギャップを解消（140partial → 140connected）
+    expect(s.byStatusPerSurface.review).toMatchObject({ connected: 140 });
     expect(s.overallByStatus.orphaned).toBe(0);   // 完全孤立語はない
+  });
+  it('接続品質を分けて集計する（§26・generic接続を完成扱いしない）', () => {
+    expect(s.qualityTotals.none).toBe(0);
+    // 会話の127語は「AI会話への一般導線のみ」＝genericであり、完成した接続ではない
+    expect(s.byQualityPerSurface.conversation.generic).toBe(127);
+    expect(s.byQualityPerSurface.conversation.contextual).toBe(13);
+    expect(s.byQualityPerSurface.vocabScreen.verified).toBe(140);
+    expect(s.byQualityPerSurface.review.verified).toBe(140);
+    // 品質の合計はedge数と一致
+    const total = Object.values(s.qualityTotals).reduce((a, b) => a + b, 0);
+    expect(total).toBe(140 * SURFACE_KEYS.length);
   });
   it('全edgeにreasonとevidence（ファイル/export名）がある・決定的（再導出で同一）', () => {
     for (const w of g.words) for (const k of SURFACE_KEYS) {
@@ -42,17 +58,25 @@ describe('接続グラフの完全性（§2・§7）', () => {
   });
   it('会話接続は明示参照のみconnected（推測でconnectedにしない・§5）', () => {
     const conn = g.words.filter((w) => w.surfaces.conversation.status === 'connected');
-    expect(conn.length).toBe(12);   // vocabConversationPracticeの明示itemId参照数
-    for (const w of conn) expect(w.surfaces.conversation.verification).toBe('direct');
-    // 明示参照が無い語はunverified（AI自由会話の可能性のみ）
+    expect(conn.length).toBe(13);   // vocabConversationPracticeの明示itemId参照数
+    for (const w of conn) {
+      expect(w.surfaces.conversation.verification).toBe('direct');
+      expect(w.surfaces.conversation.quality).toBe('contextual');
+    }
+    // 明示参照が無い語はunverified/generic（AI会話への一般導線のみ）
     const namae = g.words.find((w) => w.itemId === 'fi-namae')!;
     expect(namae.surfaces.conversation.status).toBe('unverified');
+    expect(namae.surfaces.conversation.quality).toBe('generic');
   });
-  it('診断partial=全trackでrequired等の語（会話コア）・理由に診断対象外と明記', () => {
-    const partial = g.words.filter((w) => w.surfaces.diagnostic.status === 'partial');
-    expect(partial.length).toBe(11);
-    for (const w of partial) expect(w.surfaces.diagnostic.reasonJa).toContain('診断セット対象外');
-    expect(partial.map((w) => w.itemId)).toContain('fi-iku');   // 会話コア動詞
+  it('会話コア語は診断・会話の両方へ接続済み（2E-1.10 §10-§11のRelease Minimum）', () => {
+    const coreIds = conversationCoreItemIds();
+    expect(coreIds.length).toBe(11);
+    for (const id of coreIds) {
+      const w = g.words.find((x) => x.itemId === id);
+      expect(w, id).toBeTruthy();
+      expect(w!.surfaces.diagnostic.status, id).toBe('connected');
+      expect(w!.surfaces.conversation.status, id).toBe('connected');   // 対象語別の練習がある
+    }
   });
 });
 

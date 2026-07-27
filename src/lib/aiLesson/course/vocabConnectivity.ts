@@ -8,12 +8,19 @@ import { allVocabularyItems } from './foundationVocabBank';
 import { N3_ITEMS } from './foundationVocabN3';
 import { VOCABULARY_PACKS, roleFor } from './vocabularyPacks';
 import type { VocabularyTrack } from './vocabularyPacks';
-import { poolQuestionsFor } from './vocabDiagnosticPool';
+import { poolQuestionsFor, CONVERSATION_CORE_POOL } from './vocabDiagnosticPool';
 import { practiceForItem } from './vocabConversationPractice';
 import { levelMetaOf } from './vocabularyLevelMeta';
 import type { ChineseCognateType } from './vocabularyLevelMeta';
 
 export type ConnectivityStatus = 'connected' | 'partial' | 'orphaned' | 'unverified' | 'intentionally_isolated';
+/**
+ * 接続の品質（Phase 2E-1.10 §26）。560接続がすべて同じ品質に見えないように分ける。
+ * none=接続なし／generic=一般的な導線のみ（対象語に固有でない）／
+ * contextual=対象語に固有の内容がある（theme・問題・スケジュール等）／
+ * verified=テストまたは実ブラウザで動作確認済み。
+ */
+export type ConnectionQuality = 'none' | 'generic' | 'contextual' | 'verified';
 export type SurfaceKey = 'vocabScreen' | 'diagnostic' | 'conversation' | 'review';
 export const SURFACE_KEYS: SurfaceKey[] = ['vocabScreen', 'diagnostic', 'conversation', 'review'];
 
@@ -21,6 +28,8 @@ export interface SurfaceConnection {
   edgeId: string;                     // `${itemId}>${surface}`（決定的・順序非依存）
   surface: SurfaceKey;
   status: ConnectivityStatus;
+  /** 接続の品質（§26・generic接続を完成扱いしない） */
+  quality: ConnectionQuality;
   /** direct=安定IDによる明示参照／derived=コードパスから導出（§4: confidenceではなく検証レベル） */
   verification: 'direct' | 'derived';
   reasonJa: string;
@@ -67,6 +76,12 @@ export const buildConnectivityGraph = (): ConnectivityGraph => {
       poolRefs.set(q.itemId, (poolRefs.get(q.itemId) ?? 0) + 1);
     }
   }
+  // 会話コア確認プール（2E-1.10 §10・診断セットへ決定的ローテーションで入る）
+  const coreRefs = new Map<string, number>();
+  for (const q of CONVERSATION_CORE_POOL) {
+    if (!itemIds.has(q.itemId)) { invalid.push({ source: `core:${q.q.id}`, refId: q.itemId, evidence: 'vocabDiagnosticPool.CONVERSATION_CORE_POOL' }); continue; }
+    coreRefs.set(q.itemId, (coreRefs.get(q.itemId) ?? 0) + 1);
+  }
   const packOf = (id: string) => VOCABULARY_PACKS.find((p) => p.itemIds.includes(id));
 
   const words: WordConnectivity[] = items.map((item) => {
@@ -74,38 +89,45 @@ export const buildConnectivityGraph = (): ConnectivityGraph => {
     const convRole = pack ? roleFor(pack.id, 'conversation', item.id) : 'optional';
     // ① 語彙→語彙学習画面: 全語が一覧/詳細へ到達し meaningZh/exJa/exZh/cognate を表示（直接）
     const vocabScreen: SurfaceConnection = {
-      edgeId: `${item.id}>vocabScreen`, surface: 'vocabScreen', status: 'connected', verification: 'direct',
+      edgeId: `${item.id}>vocabScreen`, surface: 'vocabScreen', status: 'connected', quality: 'verified', verification: 'direct',
       reasonJa: '一覧・詳細で表示（meaningZh/例文/同源語バッジ/画像）。roleはレビュー画面と診断選定で利用',
       evidence: 'VocabularyHub.tsx listFor・VocabDetailView / vocabularyLevelMeta.levelMetaOf',
     };
     // ② 語彙→診断: プール明示参照=direct。role=diagnosticなら生成問題で出題可能=derived。
     //    それ以外（required/optional）は診断セット対象外=partial（学習フロー側で扱う）
     const inPool = poolRefs.has(item.id);
+    const inCorePool = coreRefs.has(item.id);
     const anyDiagRole = pack ? TRACKS.some((tr) => roleFor(pack.id, tr, item.id) === 'diagnostic') : false;
     const diagnostic: SurfaceConnection = inPool
-      ? { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'connected', verification: 'direct',
+      ? { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'connected', quality: 'verified', verification: 'direct',
           reasonJa: `診断プール問題が${poolRefs.get(item.id)}問参照`, evidence: 'vocabDiagnosticPool.BASIC_POOL/N3_POOL' }
-      : anyDiagRole
-        ? { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'connected', verification: 'derived',
-            reasonJa: 'role=diagnosticのため生成問題（読み/意味）で診断セットに入る', evidence: 'vocabDiagnostic.buildDiagnosticSet/buildDiagnosticQuestion' }
-        : { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'partial', verification: 'derived',
-            reasonJa: `診断セット対象外（全trackでrole=${convRole === 'required' ? 'required=学習フロー担当' : convRole}）。誤答時の復習経由でのみ再確認`,
-            evidence: 'vocabularyPacks.roleFor' };
+      : inCorePool
+        ? { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'connected', quality: 'verified', verification: 'direct',
+            reasonJa: `会話コア確認問題が${coreRefs.get(item.id)}問参照（診断ごとに決定的ローテーションで出題・2E-1.10 §10）`,
+            evidence: 'vocabDiagnosticPool.CONVERSATION_CORE_POOL / vocabDiagnostic.buildDiagnosticSet' }
+        : anyDiagRole
+          ? { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'connected', quality: 'contextual', verification: 'derived',
+              reasonJa: 'role=diagnosticのため生成問題（読み/意味）で診断セットに入る', evidence: 'vocabDiagnostic.buildDiagnosticSet/buildDiagnosticQuestion' }
+          : { edgeId: `${item.id}>diagnostic`, surface: 'diagnostic', status: 'partial', quality: 'generic', verification: 'derived',
+              reasonJa: `診断セット対象外（全trackでrole=${convRole === 'required' ? 'required=学習フロー担当' : convRole}）。誤答時の復習経由でのみ再確認`,
+              evidence: 'vocabularyPacks.roleFor' };
     // ③ 語彙→会話: スクリプト練習の明示itemId参照のみconnected。それ以外はAI自由会話の可能性のみ=unverified
     const practice = practiceForItem(item.id);
     const conversation: SurfaceConnection = practice
-      ? { edgeId: `${item.id}>conversation`, surface: 'conversation', status: 'connected', verification: 'direct',
-          reasonJa: `スクリプト会話練習「${practice.themeJa}」がitemIdで参照（実LLM接続はEdge設計後）`,
+      ? { edgeId: `${item.id}>conversation`, surface: 'conversation', status: 'connected', quality: 'contextual', verification: 'direct',
+          reasonJa: `対象語別の練習「${practice.themeJa}」がitemIdで参照（theme/starter/target付き・実LLM接続はEdge設計後）`,
           evidence: 'vocabConversationPractice.practiceForItem' }
-      : { edgeId: `${item.id}>conversation`, surface: 'conversation', status: 'unverified', verification: 'derived',
-          reasonJa: 'AI自由会話で使われる可能性はあるが静的参照なし（動的prompt生成のため保証不可）',
+      : { edgeId: `${item.id}>conversation`, surface: 'conversation', status: 'unverified', quality: 'generic', verification: 'derived',
+          reasonJa: 'AI会話画面への一般導線のみ（対象語を使う保証はない・動的prompt生成のため静的検証不可）',
           evidence: 'vocabConversationPractice.VOCAB_CONVERSATION_PRACTICES（該当なし）' };
     // ④ 語彙→復習: 3分復習の候補選定コードパスは全パック語に存在（誤答・不安・関連語）。
     //    ただし翌日/3日/7日の間隔スケジュール生成へは未接続=partial
+    // ④ 語彙→復習: 2E-1.10で間隔反復（翌日/3日後/7日後）を実装。語ごとに予定が作られる＝contextual。
+    //    正式DB保存は未実装のため（preview Repositoryのみ）statusはconnectedだがdocsへブロッカー記録。
     const review: SurfaceConnection = {
-      edgeId: `${item.id}>review`, surface: 'review', status: 'partial', verification: 'derived',
-      reasonJa: '誤答・自己申告からの3分復習候補選定は接続済み。間隔反復（翌日/3日/7日）の予定生成は未実装',
-      evidence: 'vocabDiagnostic.pickQuickReviewItems / vocabProgress.getReviewItemIds',
+      edgeId: `${item.id}>review`, surface: 'review', status: 'connected', quality: 'verified', verification: 'direct',
+      reasonJa: '出題結果から語ごとに翌日/3日後/7日後の予定を作成（誤答→翌日・補助あり→3日後・自力正解→7日後）。保存はpreview Repository（正式DB保存は本番前ブロッカー）',
+      evidence: 'vocabSpacedReview.createVocabSpacedReviewRepository / vocabRecommendation.recommendWords',
     };
     const surfaces = { vocabScreen, diagnostic, conversation, review };
     const overall = SURFACE_KEYS.reduce<ConnectivityStatus>((acc, k) => weaker(acc, surfaces[k].status), 'connected');
@@ -176,6 +198,9 @@ export interface ConnectivitySummary {
   basics: number;
   n3: number;
   byStatusPerSurface: Record<SurfaceKey, Record<ConnectivityStatus, number>>;
+  /** 接続品質別（§26・genericを完成扱いしないための集計） */
+  byQualityPerSurface: Record<SurfaceKey, Record<ConnectionQuality, number>>;
+  qualityTotals: Record<ConnectionQuality, number>;
   overallByStatus: Record<ConnectivityStatus, number>;
   byLevelOverall: Record<'basics' | 'n3', Record<ConnectivityStatus, number>>;
   byRoleDiagnostic: Record<string, Record<ConnectivityStatus, number>>;   // conversation role別のdiagnostic状態
@@ -183,6 +208,7 @@ export interface ConnectivitySummary {
 
 const emptyCounts = (): Record<ConnectivityStatus, number> =>
   ({ connected: 0, partial: 0, orphaned: 0, unverified: 0, intentionally_isolated: 0 });
+const emptyQuality = (): Record<ConnectionQuality, number> => ({ none: 0, generic: 0, contextual: 0, verified: 0 });
 
 export const connectivitySummary = (graph = buildConnectivityGraph()): ConnectivitySummary => {
   const byStatusPerSurface = {
@@ -191,8 +217,16 @@ export const connectivitySummary = (graph = buildConnectivityGraph()): Connectiv
   const overallByStatus = emptyCounts();
   const byLevelOverall = { basics: emptyCounts(), n3: emptyCounts() };
   const byRoleDiagnostic: Record<string, Record<ConnectivityStatus, number>> = {};
+  const byQualityPerSurface = {
+    vocabScreen: emptyQuality(), diagnostic: emptyQuality(), conversation: emptyQuality(), review: emptyQuality(),
+  } as Record<SurfaceKey, Record<ConnectionQuality, number>>;
+  const qualityTotals = emptyQuality();
   for (const w of graph.words) {
-    for (const k of SURFACE_KEYS) byStatusPerSurface[k][w.surfaces[k].status] += 1;
+    for (const k of SURFACE_KEYS) {
+      byStatusPerSurface[k][w.surfaces[k].status] += 1;
+      byQualityPerSurface[k][w.surfaces[k].quality] += 1;
+      qualityTotals[w.surfaces[k].quality] += 1;
+    }
     overallByStatus[w.overall] += 1;
     byLevelOverall[w.levelGroup][w.overall] += 1;
     byRoleDiagnostic[w.conversationRole] = byRoleDiagnostic[w.conversationRole] ?? emptyCounts();
@@ -202,6 +236,6 @@ export const connectivitySummary = (graph = buildConnectivityGraph()): Connectiv
     totalWords: graph.words.length,
     basics: graph.words.filter((w) => w.levelGroup === 'basics').length,
     n3: graph.words.filter((w) => w.levelGroup === 'n3').length,
-    byStatusPerSurface, overallByStatus, byLevelOverall, byRoleDiagnostic,
+    byStatusPerSurface, byQualityPerSurface, qualityTotals, overallByStatus, byLevelOverall, byRoleDiagnostic,
   };
 };

@@ -92,6 +92,13 @@ export const VOCAB_CONVERSATION_PRACTICES: VocabularyConversationPractice[] = [
     supportExpressionsJa: ['今日はとても暑いです', '冬は寒いです', '中国より暑いです'],
     supportExpressionsZh: ['今天非常热', '冬天很冷', '比中国热'],
     followUpQuestionJa: 'あなたの故郷は 夏、暑いですか？', followUpQuestionZh: '你的家乡夏天热吗？' }),
+  // 会話コア11語の接続を閉じる（Phase 2E-1.10 §11）。「先生」は日本語の敬称の使い分けが会話で誤りやすい
+  d({ itemId: 'fi-sensei', themeJa: '習っている先生について話す', themeZh: '聊聊教你的老师',
+    starterQuestionJa: '日本語は、だれに習っていますか？', starterQuestionZh: '你的日语是跟谁学的？',
+    targetExpressions: ['先生に', '先生です', '先生は'],
+    supportExpressionsJa: ['〜先生に習っています', '先生はやさしいです', '週に1回、先生と話します'],
+    supportExpressionsZh: ['我跟〜老师学', '老师很温柔', '每周和老师说一次话'],
+    followUpQuestionJa: '先生は どんな人ですか？', followUpQuestionZh: '老师是什么样的人呢？' }),
 ];
 
 export const practiceForItem = (itemId: string): VocabularyConversationPractice | undefined =>
