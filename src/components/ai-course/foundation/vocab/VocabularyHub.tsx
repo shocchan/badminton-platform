@@ -30,6 +30,7 @@ import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabPro
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
+const VocabDecisionBadgeLazy = lazy(() => import('./VocabDecisionBadge'));
 import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
@@ -195,7 +196,8 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
       )}
       {view === 'decisions' && (
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-          <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')} />
+          <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')}
+            onOpenItem={(id) => setView('detail', null, id)} />
         </Suspense>
       )}
       {view === 'diagnostic' && (
@@ -218,12 +220,18 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
         const nextItem = idx >= 0 && idx + 1 < list.length ? list[idx + 1] : null;
         const catLabel = ctxCat === 'verbs' ? tv.catVerbs : ctxCat === 'iAdj' ? tv.catIAdj : ctxCat === 'naAdj' ? tv.catNaAdj : ctxCat === 'all' ? tv.catAll : tv.catNouns;
         return (
+          <>
+          {/* 未処理判断がある語だけの導線（labPreview限定領域・2E-1.8 §6.2） */}
+          <Suspense fallback={null}>
+            <VocabDecisionBadgeLazy t={t} itemId={item.id} onOpen={() => setView('decisions')} />
+          </Suspense>
           <VocabDetailView key={item.id} t={t} item={item} itemById={itemById} repo={repo} onChanged={bump}
             progressLabel={idx >= 0 ? tv.categoryProgress(catLabel, idx + 1, list.length) : null}
             nextItem={nextItem} backLabel={tv.backToList(catLabel)}
             onNext={() => { trackCourse('click_ai_course_vocabulary_next', { itemId: item.id }); if (nextItem) setView('detail', category, nextItem.id); else setView(ctxCat === 'all' ? 'all' : 'category', ctxCat === 'all' ? 'all' : ctxCat); }}
             onOpenItem={(id) => setView('detail', category, id)}
             onStartPractice={practiceForItem(item.id) ? () => { trackCourse('click_ai_course_vocabulary_conversation', { itemId: item.id }); setView('practice', category, item.id); } : undefined} />
+          </>
         );
       })()}
       {view === 'practice' && itemId && itemById.get(itemId) && (

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Decision Console UIテスト（Phase 2E-1.7 §8・§16）。
 // 判断ドラフト保存は正式承認ではない（バナー明示・教材review状態は不変・2段階確定）。
-import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import VocabDecisionConsole from './VocabDecisionConsole';
 import { DECISION_I18N } from './vocabReviewI18n';
@@ -10,7 +10,7 @@ import { VOCAB_DECISION_LOCAL_KEY } from '../../../../lib/aiLesson/course/vocabD
 import { allVocabularyItems } from '../../../../lib/aiLesson/course/foundationVocabBank';
 
 afterEach(cleanup);
-beforeEach(() => window.localStorage.clear());
+beforeEach(() => { window.localStorage.clear(); window.sessionStorage.clear(); });
 const td = DECISION_I18N.ja;
 const base = { t: aiCourseI18n.ja, onBack: () => {} };
 
@@ -64,5 +64,54 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
     fireEvent.click(screen.getByText(td.importBtn));
     await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('JSON'));
     expect(window.localStorage.getItem(VOCAB_DECISION_LOCAL_KEY)).toBeNull();
+  });
+  it('2E-1.8: バナーは主メッセージ＋展開可能な補足（安全文言は維持）・priority由来の凡例表示', () => {
+    render(<VocabDecisionConsole {...base} />);
+    expect(screen.getByText(td.banner)).toBeTruthy();
+    expect(screen.getByText(td.bannerMore)).toBeTruthy();
+    expect(screen.getByText(td.banner2)).toBeTruthy();   // details内にDOMとして存在
+    expect(screen.getByText(/priority内訳: 独立 \d+・語から継承 \d+/)).toBeTruthy();
+  });
+  it('2E-1.8: 詳細に監査情報（由来）が折りたたみで出る・継承P0は†付き表示', () => {
+    render(<VocabDecisionConsole {...base} />);
+    fireEvent.click(screen.getAllByText(td.detailOpen)[1]);   // fi-namae:meaning_zh（継承P0）
+    expect(screen.getByText(td.provenanceHeading)).toBeTruthy();
+    expect(screen.getAllByText(new RegExp(td.prioInherited)).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('P0†').length).toBeGreaterThanOrEqual(1);
+  });
+  it('2E-1.8: 語彙詳細を見るボタンがonOpenItemを呼ぶ・roleの意味説明はrole判断のみ', () => {
+    const onOpenItem = vi.fn();
+    render(<VocabDecisionConsole {...base} onOpenItem={onOpenItem} />);
+    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);   // fi-namae:example
+    expect(screen.queryByText(td.roleHelpHeading)).toBeNull();
+    fireEvent.click(screen.getByText(td.openWord));
+    expect(onOpenItem).toHaveBeenCalledWith('fi-namae');
+    // role判断を開くと定義説明が出る
+    fireEvent.click(screen.getAllByText(td.detailOpen)[2]);   // fi-namae:role
+    expect(screen.getByText(td.roleHelpHeading)).toBeTruthy();
+  });
+  it('2E-1.8: フィルター文脈がsessionStorageへ保存され再マウントで復元される（§6.3）', async () => {
+    const { unmount } = render(<VocabDecisionConsole {...base} />);
+    fireEvent.change(screen.getByLabelText(td.filterPriority), { target: { value: 'P0' } });
+    await waitFor(() => expect(JSON.parse(window.sessionStorage.getItem('ai_course_decision_console_ui_v1')!).prio).toBe('P0'));
+    unmount();
+    render(<VocabDecisionConsole {...base} />);
+    await waitFor(() => expect(screen.getAllByText(td.detailOpen).length).toBe(3));   // P0フィルター維持
+  });
+  it('2E-1.8: 判断後に教材値が変わるとstale警告が行に出る（自動確定・削除しない）', async () => {
+    // 直接localStorageへ「古いsnapshot付きドラフト」を注入して描画
+    window.localStorage.setItem(VOCAB_DECISION_LOCAL_KEY, JSON.stringify({
+      schemaVersion: 3, sourceDatasetVersion: 'phase-2e-1.5',
+      entries: { 'fi-namae:example': {
+        decisionId: 'fi-namae:example', status: 'keep_current', updatedAt: 'x',
+        history: [{ status: 'keep_current', at: 'x' }],
+        snapshotCurrentValueJa: '（旧い例文）', snapshotProposedValueJa: '（旧い提案）', datasetVersion: 'phase-2e-1.5',
+      } },
+    }));
+    render(<VocabDecisionConsole {...base} />);
+    expect(screen.getAllByText(td.freshness.stale).length).toBeGreaterThanOrEqual(1);
+    // ドラフト自体は消えない
+    const raw = JSON.parse(window.localStorage.getItem(VOCAB_DECISION_LOCAL_KEY)!);
+    expect(raw.entries['fi-namae:example'].status).toBe('keep_current');
   });
 });
