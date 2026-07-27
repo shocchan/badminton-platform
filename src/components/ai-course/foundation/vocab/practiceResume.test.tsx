@@ -88,3 +88,64 @@ describe('練習の再開位置', () => {
     expect(repo.get()?.taskProgress).toEqual(before);
   });
 });
+
+// 診断の再開（§4 Journey C）: 途中で再読込しても同じ問題を続けられること。
+describe('診断の再開位置', () => {
+  const startDiagnosticTask = () => {
+    const repo = createJourneyTaskRepository(window.sessionStorage);
+    repo.startTask({ journeyId: 'j1', taskType: 'diagnostic', taskId: 'diag-1', returnStep: 'practice' });
+    return repo;
+  };
+  const openDiagnostic = () => render(<VocabularyHub {...base} initial={{ view: 'diagnostic' }} />);
+  const answerOne = () => {
+    const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+    fireEvent.click(choices[choices.length - 2]);
+    fireEvent.click(screen.getByText(t.lab.check));
+  };
+
+  it('回答を確定すると、その時点の出題セットと位置が保存される', () => {
+    const repo = startDiagnosticTask();
+    openDiagnostic();
+    expect(repo.get()?.taskProgress?.diagnostic).toBeUndefined();
+    answerOne();
+    const d = repo.get()?.taskProgress?.diagnostic;
+    expect(d?.index).toBe(1);
+    expect((d?.questions.length ?? 0)).toBeGreaterThan(1);
+  });
+
+  it('選んだだけでは保存しない（再読込で確定扱いにしない）', () => {
+    const repo = startDiagnosticTask();
+    openDiagnostic();
+    const choices = screen.getAllByRole('button').filter((b) => b.textContent);
+    fireEvent.click(choices[choices.length - 2]);
+    expect(repo.get()?.taskProgress?.diagnostic).toBeUndefined();
+  });
+
+  it('再読込しても同じ出題セットの続きから再開する', () => {
+    const repo = startDiagnosticTask();
+    openDiagnostic();
+    answerOne();
+    fireEvent.click(screen.getByText(t.lab.next));
+    const saved = repo.get()!.taskProgress!.diagnostic!;
+    cleanup();
+    openDiagnostic();
+    const after = repo.get()!.taskProgress!.diagnostic!;
+    // 保存済みのセットがそのまま使われる（作り直して別の問題にならない）
+    expect(after.questions.map((q) => q.itemId)).toEqual(saved.questions.map((q) => q.itemId));
+    expect(screen.getByText(`${saved.index + 1} / ${saved.questions.length}`)).toBeTruthy();
+  });
+
+  it('契約が完了していれば保存済みセットを使わず新しい診断を始める', () => {
+    const repo = startDiagnosticTask();
+    openDiagnostic();
+    answerOne();
+    const c = repo.get()!;
+    repo.completeTask({
+      journeyId: 'j1', taskId: 'diag-1', token: c.completionToken,
+      snapshot: { checkedCount: 1, independentCount: 1, supportedCount: 0, needsReviewCount: 0, partial: false },
+    });
+    cleanup();
+    openDiagnostic();
+    expect(screen.getByText(/^1 \/ \d+$/)).toBeTruthy();
+  });
+});

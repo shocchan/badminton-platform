@@ -2,6 +2,7 @@
 // 初回Journeyから診断・練習へ出て、完了・中断・失敗の結果を安全にJourneyへ戻すための契約。
 // URL遷移やbrowser backだけで「完了」にしない（§5）。同じ完了を二重処理しない。
 import { JOURNEY_TASK_KEY } from './courseStorageRegistry';
+import type { DiagnosticSetQuestion } from './vocabDiagnostic';
 
 // v2: 練習の再開位置（taskProgress）を追加。v1は「進行位置なし」として安全に読み込める。
 const CONTRACT_SCHEMA_VERSION = 2;
@@ -43,6 +44,20 @@ export interface TaskProgress {
   phase: 'card' | 'quiz' | 'assess';
   /** 完了した語のID（重複しない） */
   completedWordIds: string[];
+  /** 診断の再開情報（診断タスクのときだけ入る） */
+  diagnostic?: DiagnosticResume;
+}
+
+/**
+ * 診断の再開情報。
+ * 出題セットは学習記録から作られるため、回答が増えると作り直しでは別の問題になる。
+ * そのため **確定した時点のセットそのもの** を持ち、途中再開でも同じ問題を続けられるようにする。
+ */
+export interface DiagnosticResume {
+  /** 次に答える問題のindex（確定済みの数と一致する） */
+  index: number;
+  /** 出題セット（型は vocabDiagnostic 側の DiagnosticSetQuestion） */
+  questions: DiagnosticSetQuestion[];
 }
 
 /** Step4へ渡す結果（実際に確定した値だけ。欠けた値は null のままにして0と断定しない・§8） */

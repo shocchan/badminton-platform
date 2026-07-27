@@ -316,7 +316,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         </Suspense>
       )}
       {view === 'diagnostic' && (
-        <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump}
+        <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} journeyTask={journeyTask} onChanged={bump}
           onDone={() => {
             // Journeyから来ていれば結果を渡してStep3へ戻す（無ければ従来どおりロードマップへ）
             const pack = VOCABULARY_PACKS[0];
@@ -979,16 +979,26 @@ const VocabRoadmapView = ({ t, repo, itemById, onChanged, onStartDiagnostic, onS
 };
 
 /** パック開始診断（§4-§6・タップ式・次元別記録。読み問題では対象語の読みを事前に出さない） */
-const VocabDiagnosticView = ({ t, repo, itemById, items, onChanged, onDone }: {
+const VocabDiagnosticView = ({ t, repo, itemById, items, journeyTask, onChanged, onDone }: {
   t: AiCourseDict; repo: VocabProgressRepository; itemById: Map<string, FoundationItem>; items: FoundationItem[];
+  /** 再開情報の保存先（2E-1.14 §4・途中で再読込しても同じ問題を続けられるようにする） */
+  journeyTask: JourneyTaskRepository;
   onChanged: () => void; onDone: () => void;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
   const track = repo.getSettings().track as VocabularyTrack;
   const pack = currentPackForTrack(track);
-  // セットはマウント時に決定的に固定（回答途中で再計算して問題が入れ替わらないように）
-  const [setQs] = useState<DiagnosticSetQuestion[]>(() => buildDiagnosticSet(pack, track, itemById, repo, items));
-  const [idx, setIdx] = useState(0);
+  // 中断した診断があれば同じ問題で再開する。無ければ新しいセットを作る。
+  // セットは学習記録から作られるため、回答が増えたあとに作り直すと別の問題になってしまう。
+  const savedDiagnostic = (() => {
+    const c = journeyTask.get();
+    if (!c || c.activeTaskType !== 'diagnostic' || c.activeTaskStatus === 'completed') return null;
+    const d = c.taskProgress?.diagnostic;
+    return d && d.questions.length > 0 ? d : null;
+  })();
+  const [setQs] = useState<DiagnosticSetQuestion[]>(
+    () => savedDiagnostic?.questions ?? buildDiagnosticSet(pack, track, itemById, repo, items));
+  const [idx, setIdx] = useState(savedDiagnostic?.index ?? 0);
   const [picked, setPicked] = useState<number | null>(null);
   const [judged, setJudged] = useState<boolean | null>(null);
   useEffect(() => { trackCourseOnce('start_ai_course_vocabulary_diagnostic'); }, []);
@@ -1056,6 +1066,11 @@ const VocabDiagnosticView = ({ t, repo, itemById, items, onChanged, onDone }: {
             setJudged(ok);
             const outcome = applyDiagnosticAnswer(repo, pack.id, item.id, vocabDimension, ok);
             if (ok) repo.recordEncounter(item.id);
+            // 確定した回答の分だけ再開位置を進める（未確定の選択は保存しない）
+            journeyTask.saveProgress({
+              wordIndex: 0, phase: 'card', completedWordIds: [],
+              diagnostic: { index: idx + 1, questions: setQs },
+            });
             trackCourse('answer_ai_course_vocabulary_diagnostic', { dimension: vocabDimension, outcome });
             onChanged();
           }}>{t.lab.check}</ActionButton>
