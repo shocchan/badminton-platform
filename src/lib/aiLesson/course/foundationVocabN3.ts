@@ -1,5 +1,6 @@
 // N3準備・語彙拡張パック（Phase 2D §6-§8・全draft・N3は「目安」で公式断定なし）。
-// 既存Itemと重複しない新規55語。出典監査 2026-07-27（Excel読み取り専用照合・未発見はexternal_scope明示）。
+// 既存Itemと重複しない新規62語。出典監査 2026-07-27（Excel読み取り専用照合・未発見はexternal_scope明示）。
+// 目標別role監査は vocabularyRoleMeta.ts（Phase 2E-1 §3）。
 import type { FoundationItem } from './foundationTypes';
 
 type Ref = FoundationItem['sources'][number];
@@ -52,7 +53,7 @@ export const N3_ITEMS: FoundationItem[] = [
   v('fi-ganbaru', '頑張る', 'がんばる', 'ganbaru', 'verb', '努力；加油', ['仕事を頑張る', 'もう少し頑張ります'], '日本語の勉強を頑張っています。', '正在努力学日语。', [xls(SAN, 32, 'D32', 'exact_lexeme', '3単語例文「頑張る」')], undefined, 'g1'),
   // ── 抽象名詞 ──
   v('fi-kimochi', '気持ち', 'きもち', 'kimochi', 'noun', '心情；感受', ['気持ちを伝える', '気持ちが分かる'], '感謝の気持ちを伝えたいです。', '想表达感谢的心情。', [ext()]),
-  v('fi-kibun', '気分', 'きぶん', 'kibun', 'noun', '身体・情绪状态', ['気分がいい', '気分が悪くなりました'], '今日は気分がいいです。', '今天心情（状态）很好。', [ext()], '「気持ち」=内心感受，「気分」=当下状态。'),
+  v('fi-kibun', '気分', 'きぶん', 'kibun', 'noun', '状态；心情好坏', ['気分がいい', '気分が悪くなりました'], '今日は気分がいいです。', '今天状态很好。', [ext()], '「気持ち」=内心感受，「気分」=当下状态。「気分が悪い」多指身体不舒服。'),
   v('fi-riyuu', '理由', 'りゆう', 'riyuu', 'noun', '理由', ['理由を説明する', '遅れた理由'], '日本に来た理由は仕事です。', '来日本的理由是工作。', [xls('N3の文法120例文集', 60, 'C60', 'example_contains', 'N3文法例文内「理由」（公式N3語彙の根拠にはしない）')]),
   v('fi-iken', '意見', 'いけん', 'iken', 'noun', '意见；看法', ['意見を言う', '意見を聞く'], '会議で意見を言いました。', '在会议上发表了意见。', [xls(SAN, 21, 'C21', 'exact_lexeme', '3単語例文「意見」')]),
   v('fi-keiken', '経験', 'けいけん', 'keiken', 'noun', '经验；经历', ['経験がある', 'いい経験になりました'], '接客の経験があります。', '有接待客人的经验。', [xls(SAN, 24, 'C24', 'exact_lexeme', '3単語例文「経験」')]),
@@ -87,5 +88,19 @@ export const N3_ITEMS: FoundationItem[] = [
   v('fi-tsumari', 'つまり', 'つまり', 'tsumari', 'expression', '也就是说', ['つまり〜ということ'], 'つまり、明日は休みということですね。', '也就是说明天休息，对吧。', [xls('原：接続詞使用頻度順（話し言葉）', 18, 'C18', 'exact_lexeme', '接続詞頻度順「つまり」')]),
   v('fi-sorede', 'それで', 'それで', 'sorede', 'expression', '所以；然后', ['それでどうしましたか'], '電車が遅れました。それで、遅刻しました。', '电车晚点了，所以迟到了。', [xls(SAN, 7, 'E7', 'exact_lexeme', '3単語例文「それで」')]),
 ];
+
+// 多義語sense（Phase 2E-1 §7・Item分類だけでは誤解が出る語のみ。無理に全語へ付けない）
+const withSenses = (id: string, senses: NonNullable<FoundationItem['senses']>): void => {
+  const it = N3_ITEMS.find((i) => i.id === id);
+  if (it) it.senses = senses;
+};
+withSenses('fi-taihen', [
+  { id: 'taihen-hard', meaningZh: '辛苦；费力（仕事が大変）' },
+  { id: 'taihen-serious', meaningZh: '不得了；糟了（大変だ！）', noteJa: '程度が大きい・緊急の意' },
+]);
+withSenses('fi-tsugou', [
+  { id: 'tsugou-convenience', meaningZh: '（时间上）方便与否（都合がいい／悪い）' },
+  { id: 'tsugou-arrangement', meaningZh: '因故；安排上的原因（都合により）', noteJa: '書き言葉寄り' },
+]);
 
 export const n3ItemById = (id: string): FoundationItem | undefined => N3_ITEMS.find((i) => i.id === id);

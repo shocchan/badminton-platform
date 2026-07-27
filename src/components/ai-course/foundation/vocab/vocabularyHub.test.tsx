@@ -11,12 +11,15 @@ const t = aiCourseI18n.ja;
 const base = { t, onBack: () => {}, onGoConversation: () => {} };
 
 describe('ことば図鑑トップ（§7・3ブロック構成）', () => {
-  it('今日のことば・カテゴリー・復習の3ブロックのみ＋非保存表記', () => {
+  it('パック・今日のことば・カテゴリーの3ブロック＋非保存表記（復習はロードマップへ集約・2E-1 §26）', () => {
     render(<VocabularyHub {...base} />);
+    expect(screen.getByText(t.vocab.packHeading)).toBeTruthy();
     expect(screen.getByText(t.vocab.todayWordsHeading)).toBeTruthy();
     expect(screen.getByText(t.vocab.categoriesHeading)).toBeTruthy();
-    expect(screen.getByText(t.vocab.reviewHeading)).toBeTruthy();
+    expect(screen.queryByText(t.vocab.reviewHeading)).toBeNull(); // 同じ進捗の重複表示をしない（§26）
     expect(screen.getByText(t.vocab.notSavedVocab)).toBeTruthy();
+    // 内部レビュー入口はことば画面内のみ（利用者向けナビに出さない・§14）
+    expect(screen.getByText(t.vocab.internalReviewEntry)).toBeTruthy();
     // トップへ大きな検索欄・全語一覧を出さない（§31・§7）
     expect(screen.queryByPlaceholderText(t.vocab.searchPlaceholder)).toBeNull();
   });
@@ -166,14 +169,14 @@ describe('語彙会話練習（§7-§12）', () => {
 });
 
 describe('目標・パック・レベル表示（§33-§46）', () => {
-  it('トップに目標・現在のパック（実データ78語）・状態・内訳が表示される', () => {
+  it('トップに目標・現在のパック（実データ78語）・状態が表示される（内訳はロードマップへ・§26）', () => {
     render(<VocabularyHub {...base} />);
     expect(screen.getByText(t.vocab.goalHeading)).toBeTruthy();
     expect(screen.getAllByText(t.vocab.tracks.life_basic).length).toBeGreaterThanOrEqual(1); // 表示＋select option
     expect(screen.getByText('生活・会話の基礎')).toBeTruthy();
     expect(screen.getAllByText(new RegExp('0 / 78')).length).toBeGreaterThanOrEqual(1); // 実Item数から計算
     expect(screen.getByText(t.vocab.packStates.not_started)).toBeTruthy();
-    expect(screen.getByText(t.vocab.mvpPackNote)).toBeTruthy(); // N2完成語彙と誤認させない
+    expect(screen.getByText(`${t.vocab.viewRoadmap} →`)).toBeTruthy(); // 詳細内訳はロードマップで
   });
   it('目標をN2準備へ変更できる（推定根拠なしに自動確定しない・本人変更）', () => {
     render(<VocabularyHub {...base} />);
@@ -204,18 +207,25 @@ describe('語彙ロードマップ・診断（Phase 2D §9-§10・§20-§21）',
     expect(screen.getAllByText(t.vocab.statVerifiedLabel).length).toBeGreaterThanOrEqual(1); // 分離バー
     expect(screen.getByText(new RegExp(t.vocab.diagnosticCta))).toBeTruthy();
   });
-  it('診断: タップ回答→正解=確認済み/誤答=復習リスト・完了画面に件数', async () => {
+  it('診断: タップ回答→次元別に記録（v1ストアはv2へ移行・自己申告と混在しない）', async () => {
+    // v1形式で書いてもv2へ安全に移行される（§29移行テスト）
     window.sessionStorage.setItem('ai_course_vocab_preview_v1', JSON.stringify({ schemaVersion: 1, entries: {}, dailyWords: null, settings: { track: 'n2_prep', furigana: 'hard_only' } }));
     render(<VocabularyHub {...base} initial={{ view: 'diagnostic' }} />);
     await waitFor(() => expect(screen.getByText(t.lab.check)).toBeTruthy());
+    // 次元ラベルが表示される（読み/意味/使い方等・§5）
+    expect(Object.values(t.vocab.diagDims).some((label) => screen.queryByText(label as string))).toBe(true);
     // 1問回答（choice→確認）
     const choices = screen.getAllByRole('button').filter((b) => b.getAttribute('aria-pressed') !== null);
     fireEvent.click(choices[0]);
     fireEvent.click(screen.getByText(t.lab.check));
     await waitFor(() => expect(screen.getByText(t.lab.next)).toBeTruthy());
     const raw = JSON.parse(window.sessionStorage.getItem('ai_course_vocab_preview_v1')!);
+    expect(raw.schemaVersion).toBe(2);
     const diag = raw.diagnostics['pack-life-basic-1'];
     expect(Object.keys(diag).length).toBe(1);
-    expect(['confirmed', 'remedial']).toContain(Object.values(diag)[0]);
+    const entry = Object.values(diag)[0] as { dims: Record<string, string> };
+    const dimStates = Object.values(entry.dims);
+    expect(dimStates.length).toBe(1);
+    expect(['confirmed', 'needs_review']).toContain(dimStates[0]);
   });
 });

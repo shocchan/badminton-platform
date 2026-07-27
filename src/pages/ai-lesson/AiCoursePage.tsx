@@ -618,6 +618,18 @@ export default function AiCoursePage() {
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
     if (k === 'growth') { void openGrowth(); return; }
+    if (k === 'conversation') {
+      // AI会話の主要ナビ入口（§19）: ホームの会話開始カードへ直行
+      trackCourse('click_ai_course_conversation_nav');
+      setStep('home');
+      setTimeout(() => {
+        try {
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          document.getElementById('ai-course-conversation-entry')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        } catch { /* noop */ }
+      }, 80);
+      return;
+    }
     if (k === 'lab') {
       if (!labAllowed) return; // 権限なしは何もしない（DOM上ボタン自体が出ない前提の防御）
       trackCourse('click_ai_course_foundation_nav');
@@ -669,6 +681,7 @@ export default function AiCoursePage() {
             <button type="button" onClick={() => setStep('history')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.history}</button>
           </div>
         )}
+        {labAllowed && <GrowthVocabCard t={t} />}
         {growthData ? (
           <GrowthOverview
             t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}
@@ -857,6 +870,48 @@ export default function AiCoursePage() {
 }
 
 const missionsInWeek = (week: number) => missionById(`w${String(week).padStart(2, '0')}m1`) ? [1, 2, 3, 4, 5].map((o) => missionById(`w${String(week).padStart(2, '0')}m${o}`)!).filter(Boolean) : [];
+
+/**
+ * 成長画面の語彙状態カード（Phase 2E-1 §25・labPreviewのみ）。
+ * 語彙データは動的import（メインbundleへ入れない・§31）。自己評価は問題確認と別行で表示し、
+ * 「語彙力◯◯」のような断定スコアは出さない。
+ */
+const GrowthVocabCard = ({ t }: { t: AiCourseDict }) => {
+  const tv = t.vocab;
+  const [sum, setSum] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabGrowthSummary | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void import('../../lib/aiLesson/course/vocabHomeSummary')
+      .then((m) => { if (alive) setSum(m.getVocabGrowthSummary()); })
+      .catch(() => { /* 表示なしで成立 */ });
+    return () => { alive = false; };
+  }, []);
+  if (!sum || sum.startedCount === 0) return null;
+  const d = sum.confirmedByDimension;
+  const rows: [string, number][] = [
+    [tv.growthVocabStarted, sum.startedCount],
+    [`${tv.diagDims.reading}${tv.dimStates.confirmed}`, d.reading],
+    [`${tv.diagDims.meaning}${tv.dimStates.confirmed}`, d.meaning],
+    [`${tv.diagDims.usage}・${tv.diagDims.collocation}${tv.dimStates.confirmed}`, d.usage + d.collocation + d.particle + d.conjugation],
+    [tv.statRetainedLabel, sum.retainedCandidateCount],
+    [tv.growthVocabNeedsReview, sum.needsReviewCount],
+  ];
+  return (
+    <div className="max-w-md mx-auto px-4 pt-3">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <p className="text-xs font-bold text-gray-500 mb-2">{tv.growthVocabHeading}</p>
+        <div className="space-y-1">
+          {rows.map(([label, n]) => (
+            <p key={label} className="text-xs text-gray-700 flex justify-between"><span>{label}</span><span className="font-mono">{n}</span></p>
+          ))}
+        </div>
+        {/* 自己評価は別表示（問題確認と混ぜない・§25） */}
+        <p className="text-[11px] text-gray-400 mt-2">{tv.statsSelfKnown}: {sum.selfKnownCount}。{tv.growthVocabSelfNote}</p>
+        <p className="text-[11px] text-indigo-600 mt-1">{tv.growthVocabNextHint}</p>
+      </div>
+    </div>
+  );
+};
 
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
 const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false }: {

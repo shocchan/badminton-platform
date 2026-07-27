@@ -6,11 +6,11 @@
 // - スマホ: ブランド行＋横スクロールタブ（従来のコンパクト表示）
 // - lg以上: 1段レイアウト（左ブランド／中央ナビ／右 言語切替・ログアウト）
 
-import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical, BookOpen } from 'lucide-react';
+import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical, BookOpen, Mic } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
-/** ヘッダーのナビ対象（AiCoursePage の Step と対応） */
-export type CourseNavKey = 'home' | 'growth' | 'roadmap' | 'vocab' | 'lab' | 'history' | 'settings';
+/** ヘッダーのナビ対象（AiCoursePage の Step と対応。conversationはホームの会話開始位置への入口） */
+export type CourseNavKey = 'home' | 'conversation' | 'growth' | 'roadmap' | 'vocab' | 'lab' | 'history' | 'settings';
 
 interface Props {
   t: AiCourseDict;
@@ -27,11 +27,13 @@ interface Props {
   showLab?: boolean;
 }
 
-// 案A（Phase 2D §27・labPreviewのみ）: 機能で選べる5項目。ロードマップ・学習記録は成長内へ統合
-// （旧URL・旧画面は削除せず直接アクセス可能）。一般受講生は従来の5項目のまま。
+// 案A改（Phase 2E-1 §19・labPreviewのみ）: 中核機能のAI会話を主要ナビへ明示。
+// ロードマップ・学習記録は成長内へ統合（旧URL・旧画面は削除せず直接アクセス可能）。
+// 一般受講生は従来の5項目のまま変更しない。
 const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] => (showLab
   ? [
     { key: 'home', icon: Home },
+    { key: 'conversation', icon: Mic },
     { key: 'vocab', icon: BookOpen },
     { key: 'lab', icon: FlaskConical },
     { key: 'growth', icon: TrendingUp },
@@ -115,7 +117,8 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
-                {t.nav[key]}
+                {/* モバイルは「日本語のしくみ」を短縮表示（6項目でも窮屈にしない・§19） */}
+                {showLab && key === 'lab' ? t.nav.labShort : t.nav[key]}
               </button>
             ))}
           </nav>

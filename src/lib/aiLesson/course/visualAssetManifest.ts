@@ -94,3 +94,43 @@ export const assetById = (id: string): VisualAsset | undefined => VISUAL_ASSETS.
 export const assetForItem = (itemId: string): VisualAsset | undefined =>
   VISUAL_ASSETS.find((a) => a.learningTargetId === itemId && a.reviewStatus !== 'rejected');
 export { IMG as VISUAL_ASSET_BASE };
+
+// ── アセット状態の正規化（Phase 2E-1 §23） ──
+// 「planned=22とqueue=18の4件差」の原因: generation-progress.json のpendingCountが
+// 手動更新でドリフトしていた（将来パック用カバー2枚と再試行分の数え漏れ）。
+// 今後は集計をこの関数へ一本化する（docs・UI・進捗ファイル・完了報告で共通・手計算禁止）。
+
+/** 生成キュー未投入のasset（対応パック未実装のため生成を保留・§23） */
+export const NOT_QUEUED_ASSET_IDS: string[] = ['va-pack-conversation-cover', 'va-pack-business-cover'];
+/** しくみ図解SVG（Reactコンポーネント・manifest外だが集計に含める・§23） */
+export const SVG_DIAGRAM_COUNT = 6; // NiE/DePlace/WoObject/TeimasuTimeline/NaiForm/FrequencyScale
+
+export interface VisualAssetStateSummary {
+  totalManifest: number;
+  imported: number;            // 実ファイルあり（draft）
+  queuedPending: number;       // キュー済み・未生成
+  plannedUnqueued: number;     // キュー未投入（将来パック用等）
+  placeholderOnly: number;     // 実ファイルなし＝UI上はplaceholder表示（queued+unqueuedの合計）
+  svgOnly: number;
+  rejected: number;
+  blocked: number;
+}
+
+/** 単一の状態集計関数（§23。矛盾した状態を持たせない: filePathの有無を最終根拠にする） */
+export const aggregateAssetStates = (): VisualAssetStateSummary => {
+  const imported = VISUAL_ASSETS.filter((a) => !!a.filePath && a.reviewStatus !== 'rejected').length;
+  const rejected = VISUAL_ASSETS.filter((a) => a.reviewStatus === 'rejected').length;
+  const notImported = VISUAL_ASSETS.filter((a) => !a.filePath && a.reviewStatus !== 'rejected');
+  const plannedUnqueued = notImported.filter((a) => NOT_QUEUED_ASSET_IDS.includes(a.id)).length;
+  const queuedPending = notImported.length - plannedUnqueued;
+  return {
+    totalManifest: VISUAL_ASSETS.length,
+    imported,
+    queuedPending,
+    plannedUnqueued,
+    placeholderOnly: notImported.length,
+    svgOnly: SVG_DIAGRAM_COUNT,
+    rejected,
+    blocked: 0,
+  };
+};

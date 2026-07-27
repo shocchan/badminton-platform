@@ -4,7 +4,7 @@ import { N3_ITEMS } from './foundationVocabN3';
 import { allVocabularyItems } from './foundationVocabBank';
 import { levelMetaOf } from './vocabularyLevelMeta';
 import { createVocabProgressRepository } from './vocabProgress';
-import { pickDiagnosticItems, buildDiagnosticQuestion, applyDiagnosticResult, effectiveRole, diagnosticCountFor, pickQuickReviewItems } from './vocabDiagnostic';
+import { pickDiagnosticItems, buildDiagnosticQuestion, applyDiagnosticAnswer, effectiveRole, diagnosticCountFor, pickQuickReviewItems } from './vocabDiagnostic';
 
 const makeStorage = () => {
   const m = new Map<string, string>();
@@ -55,7 +55,8 @@ describe('パックrole（§3-§4）', () => {
     expect(roleFor('pack-life-basic-1', 'life_basic', 'fi-taberu')).toBe('required');
     expect(roleFor('pack-life-basic-1', 'n3_prep', 'fi-eki')).toBe('diagnostic'); // 会話コア以外の基礎語は確認のみ
     expect(roleFor('pack-life-basic-1', 'n3_prep', 'fi-sumu')).toBe('required'); // 会話コアはN3でもrequired候補
-    expect(roleFor('pack-n3-prep-1', 'n3_prep', 'fi-joukyou')).toBe('required');
+    expect(roleFor('pack-n3-prep-1', 'n3_prep', 'fi-kakunin')).toBe('required');   // 中核する動詞
+    expect(roleFor('pack-n3-prep-1', 'n3_prep', 'fi-joukyou')).toBe('diagnostic'); // 中国語から推測しやすい語は短い確認（2E-1 §3）
     expect(roleFor('pack-n3-prep-1', 'n2_prep', 'fi-joukyou')).toBe('diagnostic'); // N2はN3語の不足確認から
   });
   it('role別件数は関数から算出（手計算しない）・全roleが有効値', () => {
@@ -81,13 +82,14 @@ describe('診断（§10）', () => {
     expect(diagnosticCountFor(basics)).toBeLessThanOrEqual(15);
     expect(diagnosticCountFor(n3pack)).toBeGreaterThanOrEqual(8);
   });
-  it('正解=confirmed・誤答=remedial・自己申告では変わらない', () => {
+  it('読み＋意味の確認=confirmed・誤答=remedial・自己申告では変わらない', () => {
     const repo = createVocabProgressRepository(storage);
     const targets = pickDiagnosticItems(basics, 'n2_prep', itemById, repo);
     expect(targets.length).toBeGreaterThan(0);
     const a = targets[0]; const b = targets[1];
-    applyDiagnosticResult(repo, basics.id, a.id, true);
-    applyDiagnosticResult(repo, basics.id, b.id, false);
+    applyDiagnosticAnswer(repo, basics.id, a.id, 'reading', true);
+    applyDiagnosticAnswer(repo, basics.id, a.id, 'meaning', true);
+    applyDiagnosticAnswer(repo, basics.id, b.id, 'meaning', false);
     expect(effectiveRole(basics, 'n2_prep', a.id, repo)).toBe('confirmed');
     expect(effectiveRole(basics, 'n2_prep', b.id, repo)).toBe('remedial');
     // 自己評価self_knownにしてもdiagnostic結果は変わらない

@@ -3,6 +3,7 @@
 import type { FoundationItem } from './foundationTypes';
 import { allVocabularyItems } from './foundationVocabBank';
 import { N3_ITEMS } from './foundationVocabN3';
+import { N3_ROLE_META } from './vocabularyRoleMeta';
 import type { VocabProgressRepository } from './vocabProgress';
 import { levelMetaOf } from './vocabularyLevelMeta';
 import type { ChineseCognateType } from './vocabularyLevelMeta';
@@ -25,6 +26,7 @@ export interface VocabularyPack {
 
 /**
  * トラック別の静的role（§3-§4・決定的ルール＋明示分類から導出）。
+ * N3パックは語別監査（vocabularyRoleMeta・全62語に根拠つき）から引く。
  * 診断結果による動的変換（diagnostic→confirmed/remedial）はRepository側のoverrideで扱う。
  */
 export const roleFor = (packId: string, track: VocabularyTrack, itemId: string): VocabularyPackItemRole => {
@@ -34,8 +36,14 @@ export const roleFor = (packId: string, track: VocabularyTrack, itemId: string):
   const isN3 = N3_ITEMS.some((i) => i.id === itemId);
   if (packId === 'pack-n3-prep-1') {
     if (!isN3) return 'diagnostic';               // パック内の基礎語は確認のみ
-    if (track === 'n2_prep') return 'diagnostic'; // N2はN3語の不足確認から（§9）
-    return 'required';
+    const audited = N3_ROLE_META[itemId];
+    if (audited) {
+      if (track === 'n2_prep') return audited.n2_prep;           // 原則diagnostic・false friend中核のみrequired（§3）
+      if (track === 'conversation') return audited.conversation; // 発話で再利用しやすい語を重視
+      return audited.n3_prep;                                    // N3準備: 読解・文法・日常語彙を重視
+    }
+    // 監査漏れ（テストで検出）は安全側=diagnostic
+    return 'diagnostic';
   }
   // 生活・会話の基礎パック
   if (track === 'n3_prep' || track === 'n2_prep') {

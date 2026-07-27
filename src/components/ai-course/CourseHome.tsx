@@ -1,7 +1,7 @@
 // 学習ホーム（§20・UX改訂）。開いた瞬間に「今日やること・何分・始める」が分かる構成。
 // 主役=今日の学習カード（CTA内蔵）。補助=前回の続き・今日の復習。詳細は右カラム/下部へ。
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen, UserRound } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
 import { LearnerAvatar } from './LearnerAvatar';
@@ -150,7 +150,8 @@ export const CourseHome = ({
       <div className="lg:space-y-4 lg:[&>*]:mb-0">
 
       {/* ── 今日の学習カード（主役・CTA内蔵。今日やること＋何分＋始める） ── */}
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-5 text-white mb-4">
+      {/* id: ヘッダーの「AI会話」ナビから直接ここへ来る（Phase 2E-1 §19の会話入口） */}
+      <div id="ai-course-conversation-entry" className="bg-gradient-to-br from-blue-600 to-blue-700 rounded-2xl shadow-sm p-5 text-white mb-4 scroll-mt-32">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs text-blue-100 flex items-center gap-1"><Sparkles className="w-3.5 h-3.5" />{th.todayMission}</span>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isReview ? 'bg-amber-400 text-amber-900' : 'bg-white/20 text-white'}`}>{badge}</span>
@@ -394,6 +395,15 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   missionTitle: string | null;
 }) => {
   const tm = t.homeMenu; const tl = t.lab; const zh = t.locale === 'zh';
+  // 語彙サマリー（現在の目標・パック・カバー）は動的import（語彙データをメインbundleへ入れない・§31）
+  const [vocabSummary, setVocabSummary] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabHomeSummary | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void import('../../lib/aiLesson/course/vocabHomeSummary')
+      .then((m) => { if (alive) setVocabSummary(m.getVocabHomeSummary()); })
+      .catch(() => { /* サマリー無しでもHeroは成立する */ });
+    return () => { alive = false; };
+  }, []);
   const rec = (() => {
     try {
       const repo = createFoundationProgressRepository(window.sessionStorage);
@@ -414,13 +424,32 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   const { reason: heroReason, body: heroBody, cta: heroCta, action: heroAction, minutes: heroMinutes } = hero;
   return (
     <div className="mb-4">
-      {/* ① 今日の学習（Hero・CTA一つ） */}
-      <div className="bg-indigo-600 text-white rounded-2xl p-5 mb-3">
-        <p className="text-xs font-bold text-indigo-200 mb-1">{tm.todayHeading}</p>
-        <p className="text-base font-bold leading-snug">{heroBody}</p>
-        <p className="text-[11px] text-indigo-200 mt-1">{heroReason}{heroMinutes ? `・${tl.aboutMinutes(heroMinutes)}` : ''}</p>
-        <button type="button" onClick={heroAction}
-          className="w-full min-h-12 py-3 mt-3 bg-white text-indigo-700 font-bold rounded-xl">{heroCta}</button>
+      {/* ① 今日の学習（Premium Hero・第一CTAは一つ・§18。PCは2カラム、モバイルはテキスト優先） */}
+      <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-2xl overflow-hidden mb-3">
+        <div className="lg:grid lg:grid-cols-[1fr,190px]">
+          <div className="p-5">
+            <p className="text-xs font-bold text-indigo-200 mb-1">{tm.todayHeading}</p>
+            <p className="text-base font-bold leading-snug">{heroBody}</p>
+            <p className="text-[11px] text-indigo-200 mt-1">{heroReason}{heroMinutes ? `・${tl.aboutMinutes(heroMinutes)}` : ''}</p>
+            {vocabSummary && (
+              <p className="text-[11px] text-indigo-200 mt-1.5">
+                {tm.heroGoalLabel}: {t.vocab.tracks[vocabSummary.track] ?? t.vocab.tracks.life_basic}
+                ・{tm.heroPackLabel}: {zh ? vocabSummary.packTitleZh : vocabSummary.packTitleJa}
+                （{t.vocab.packProgress(vocabSummary.seenCount, vocabSummary.totalCount)}）
+              </p>
+            )}
+            <button type="button" onClick={heroAction}
+              className="action-raised w-full min-h-12 py-3 mt-3 bg-white text-indigo-700 font-bold rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">{heroCta}</button>
+          </div>
+          {/* パックカバー（装飾・学習情報をここに依存させない→alt空・§32。実ファイルがある時のみ） */}
+          {vocabSummary?.coverPath && (
+            <div className="hidden lg:block relative">
+              <img src={vocabSummary.coverThumbPath ?? vocabSummary.coverPath} alt="" aria-hidden loading="lazy"
+                width={320} height={240} className="absolute inset-0 w-full h-full object-cover opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-600/70 to-transparent" aria-hidden />
+            </div>
+          )}
+        </div>
       </div>
       {/* ② 3つの学習入口（役割で見た目を区別・§5） */}
       <p className="text-xs font-bold text-gray-500 mb-2">{tm.menuHeading}</p>

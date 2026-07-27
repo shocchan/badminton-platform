@@ -9,15 +9,26 @@ const t = aiCourseI18n.ja;
 const base = { t, showNav: true, onNavigate: () => {}, onLogout: () => {}, lang: 'ja' as const, onToggleLang: () => {} };
 
 describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () => {
-  it('showLab=true（案A）: ホーム/ことば/しくみ/成長/設定の5項目・ロードマップと記録は成長へ統合', () => {
+  it('showLab=true（案A改・2E-1 §19）: ホーム/AI会話/ことば/しくみ/成長/設定の6項目・ロードマップと記録は成長へ統合', () => {
     render(<CourseHeader {...base} showLab />);
-    expect(screen.getAllByText(t.nav.lab).length).toBe(2); // lg用＋モバイル用
+    expect(screen.getAllByText(t.nav.lab).length).toBe(1);        // lg用（モバイルは短縮ラベル）
+    expect(screen.getAllByText(t.nav.labShort).length).toBe(1);   // モバイル用短縮（§19）
+    expect(screen.getAllByText(t.nav.conversation).length).toBe(2); // AI会話が主要ナビに明示（lg＋モバイル）
     expect(screen.getAllByText(t.nav.vocab).length).toBe(2);
     expect(screen.queryByText(t.nav.roadmap)).toBeNull(); // 成長内サブリンクへ（旧URLは維持）
     expect(screen.queryByText(t.nav.history)).toBeNull();
     const labels = screen.getAllByRole('button').map((b) => b.textContent);
     const navLabels = labels.filter((l) => Object.values(t.nav).some((v2) => l?.includes(v2)));
-    expect(navLabels.join(',')).toContain(`${t.nav.home},${t.nav.vocab},${t.nav.lab},${t.nav.growth}`);
+    expect(navLabels.join(',')).toContain(`${t.nav.home},${t.nav.conversation},${t.nav.vocab},${t.nav.lab},${t.nav.growth}`);
+  });
+  it('AI会話ナビはonNavigate(conversation)を発火・一般受講生には出ない', () => {
+    const onNav = vi.fn();
+    render(<CourseHeader {...base} showLab onNavigate={onNav} />);
+    fireEvent.click(screen.getAllByText(t.nav.conversation)[0]);
+    expect(onNav).toHaveBeenCalledWith('conversation');
+    cleanup();
+    render(<CourseHeader {...base} />);
+    expect(screen.queryByText(t.nav.conversation)).toBeNull();
   });
   it('一般受講生（showLab=false）は従来の5項目のまま（ロードマップ・記録あり）', () => {
     render(<CourseHeader {...base} />);
@@ -37,10 +48,11 @@ describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () =
     fireEvent.click(btns[0]);
     expect(onNav).toHaveBeenCalledWith('lab');
   });
-  it('zhは「日语基础」（直訳の実験室名ではない）', () => {
+  it('zhは「日语基础」（直訳の実験室名ではない）・モバイルは短縮「基础」', () => {
     const tz = aiCourseI18n.zh;
     render(<CourseHeader {...base} t={tz} showLab />);
-    expect(screen.getAllByText('日语基础').length).toBe(2);
+    expect(screen.getAllByText('日语基础').length).toBe(1);
+    expect(screen.getAllByText('基础').length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText('日语构造实验室')).toBeNull();
   });
 });

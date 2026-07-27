@@ -1,0 +1,58 @@
+// 教材レビュー画面の文言（Phase 2E-1 §14-§17）。
+// 管理者（labPreview）専用のためメイン辞書（aiCourse.ts=メインbundle）へは入れず、
+// レビュー画面のlazy chunk内に置く（bundle増加の最小化・§31）。
+export const REVIEW_I18N = {
+  ja: {
+    title: '教材レビュー',
+    intro: '140語の教材データを1語ずつ確認します。結果はこの端末のセッション内にのみ保存され、教材の正式状態（draft）は変わりません。',
+    filterLabel: 'フィルター',
+    filters: {
+      all: 'すべて', unreviewed: 'レビュー未実施', cognate_unreviewed: '同源語 未分類', false_friend: 'false friend',
+      partial_overlap: '部分一致', zh: '中国語 要確認', furigana: 'ふりがな 要確認', image: '画像 要確認', source: '出典 external', n3: 'N3パック', basics: '基礎78語',
+    } as Record<string, string>,
+    progress: (r: number, total: number) => `${r} / ${total} 件レビュー済み`,
+    counts: (ok: number, fix: number, hold: number) => `問題なし ${ok}・修正必要 ${fix}・保留 ${hold}`,
+    decisionOk: '問題なし',
+    decisionFix: '修正が必要',
+    decisionHold: '保留',
+    issueHeading: '修正が必要な箇所（複数可）',
+    issues: { zh_meaning: '中国語訳', example_ja: '日本語例文', example_zh: '中国語例文', reading: '読み', furigana: 'ふりがな', cognate: '同源語分類', level: 'レベル', role: 'role', image: '画像', source: '出典', other: 'その他' } as Record<string, string>,
+    noteLabel: 'メモ（任意・この端末のセッション内のみ）',
+    prev: '前へ', next: '次へ', nextUnreviewed: '次の未レビューへ',
+    exportBtn: 'JSONエクスポート', importBtn: 'JSONインポート',
+    importPlaceholder: 'エクスポートしたJSONを貼り付けてください',
+    importOk: '取り込みました。', importFail: '形式が正しくありません（何も変更していません）。',
+    shortcuts: 'A=問題なし / R=修正 / H=保留 / J・→=次へ / K・←=前へ（入力中は無効）',
+    fields: { reading: '読み', pos: '品詞', senses: '意味の使い分け', zhCore: '中国語（中心意味）', zhFocus: '学習ポイント', usageNote: '注意（中国語）', exampleJa: '例文', exampleZh: '例文（中国語）', cognate: '同源語', level: 'レベル', roles: 'track別role', rationale: 'role根拠', sources: '出典', image: '画像', furigana: '例文ふりがな', issues: '要確認フラグ' } as Record<string, string>,
+    notApproved: '※「問題なし」にしても教材データは自動でapprovedになりません。レビュー結果はエクスポートし、Claude Codeが教材を修正・テスト後に状態を更新します。',
+    rubyToggle: '例文のふりがな表示',
+    empty: '該当する語がありません。フィルターを変えてください。',
+  },
+  zh: {
+    title: '教材审核',
+    intro: '逐个确认140个词的教材数据。结果只保存在本设备的会话中，教材的正式状态（draft）不会改变。',
+    filterLabel: '筛选',
+    filters: {
+      all: '全部', unreviewed: '未审核', cognate_unreviewed: '同源词未分类', false_friend: 'false friend',
+      partial_overlap: '部分一致', zh: '中文待确认', furigana: '注音待确认', image: '图片待确认', source: '出处 external', n3: 'N3词汇包', basics: '基础78词',
+    } as Record<string, string>,
+    progress: (r: number, total: number) => `已审核 ${r} / ${total} 条`,
+    counts: (ok: number, fix: number, hold: number) => `没问题 ${ok}・需修改 ${fix}・搁置 ${hold}`,
+    decisionOk: '没问题',
+    decisionFix: '需要修改',
+    decisionHold: '搁置',
+    issueHeading: '需要修改的部分（可多选）',
+    issues: { zh_meaning: '中文释义', example_ja: '日语例句', example_zh: '中文例句', reading: '读音', furigana: '注音', cognate: '同源词分类', level: '级别', role: 'role', image: '图片', source: '出处', other: '其他' } as Record<string, string>,
+    noteLabel: '备注（可选・仅保存在本设备会话中）',
+    prev: '上一个', next: '下一个', nextUnreviewed: '下一个未审核',
+    exportBtn: '导出JSON', importBtn: '导入JSON',
+    importPlaceholder: '请粘贴导出的JSON',
+    importOk: '已导入。', importFail: '格式不正确（未做任何更改）。',
+    shortcuts: 'A=没问题 / R=需修改 / H=搁置 / J・→=下一个 / K・←=上一个（输入时无效）',
+    fields: { reading: '读音', pos: '词性', senses: '义项', zhCore: '中文（核心意思）', zhFocus: '学习要点', usageNote: '注意（中文）', exampleJa: '例句', exampleZh: '例句（中文）', cognate: '同源词', level: '级别', roles: '各track的role', rationale: 'role依据', sources: '出处', image: '图片', furigana: '例句注音', issues: '待确认标记' } as Record<string, string>,
+    notApproved: '※选择「没问题」不会让教材数据自动变为approved。审核结果需导出，由Claude Code修改教材并测试后再更新状态。',
+    rubyToggle: '例句注音显示',
+    empty: '没有符合条件的词。请更换筛选条件。',
+  },
+};
+export type ReviewI18n = typeof REVIEW_I18N.ja;

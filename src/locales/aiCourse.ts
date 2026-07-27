@@ -13,6 +13,8 @@ const ja = {
     roadmap: 'ロードマップ',
     vocab: 'ことば',
     lab: '日本語のしくみ',
+    labShort: 'しくみ',
+    conversation: 'AI会話',
     history: '学習記録',
     settings: '設定',
   },
@@ -761,6 +763,8 @@ const ja = {
     labTitle: '日本語のしくみ',
     labBody: '文法・活用・助詞を確認して、正しい形を選べるように。',
     open: '開く',
+    heroGoalLabel: '現在の目標',
+    heroPackLabel: '現在のパック',
   },
   vocab: {
     title: 'ことば図鑑',
@@ -856,6 +860,33 @@ const ja = {
     cognateJapanese: '日本語独自の使い方があることばです。',
     cognateNo: '中国語からは意味を推測しにくいことばです。',
     notSavedVocab: '※試作確認のため、この記録は正式保存されません。',
+    // ── Phase 2E-1: 中心意味と学習ポイントの分離（§8） ──
+    meaningCore: '中心の意味',
+    learningFocus: '学習ポイント',
+    showReadingBtn: '読みを表示',
+    hideReadingBtn: '読みを隠す',
+    senseCognateHeading: '意味ごとの中国語との関係',
+    // ── 診断の次元別表示（§4-§6・「習得済み」とは言わない） ──
+    diagDims: { reading: '読み', meaning: '意味', usage: '使い方', collocation: 'よく使う組み合わせ', particle: '助詞', conjugation: '活用' } as Record<string, string>,
+    dimStates: { confirmed: '確認しました', supported: '確認しました（補助あり）', needs_review: 'もう一度確認しましょう', not_tested: '未確認' } as Record<string, string>,
+    outcomes: { basic_confirmed: '基礎確認済み', partially_confirmed: '一部確認済み', remedial: '復習が必要', diagnostic: '未確認' } as Record<string, string>,
+    outcomeNote: '「確認済み」は覚え切ったという意味ではありません。別の日の確認で定着を見ます。',
+    diagnosticResultHeading: '確認の結果（次元別）',
+    diagnosticBasic: (n: number) => `基礎確認済み（読み＋意味）: ${n}語`,
+    diagnosticPartial: (n: number) => `一部確認済み: ${n}語`,
+    // ── ロードマップの旅表示（§24） ──
+    roadmapSteps: { goal: '目標', pack: '現在のパック', diagnostic: '知っていることばの確認', learn: '毎日の学習（今日の3語）', verify: '問題で確認', retention: '定着の確認', next: '次のパック' } as Record<string, string>,
+    roadmapNextNote: '現在のパックを進めると始められます。',
+    quickReviewChip: (n: number) => `3分復習（${n}）`,
+    // ── 成長画面の語彙統合（§25） ──
+    growthVocabHeading: 'ことばの学習状態',
+    growthVocabStarted: '学習を始めた語',
+    growthVocabNeedsReview: '復習が必要な語',
+    growthVocabSelfNote: '「覚えたと思う」は自己評価で、問題での確認とは別に数えています。',
+    growthVocabNextHint: '次にやること: 今日の3語 → 弱いことばの3分復習',
+    // ── 教材レビュー（§14-§17・labPreview限定・学習者へ出さない） ──
+    internalReviewEntry: '内部レビュー（教材確認・管理用）',
+    // 教材レビュー画面の文言は vocabReviewI18n.ts（lazy chunk・管理者専用のためメイン辞書に入れない・§31）
     diagrams: {
       niE: '移動先を表す「に・へ」の図', niECaption: '現在地から目的地へ。「日本に行きます／日本へ行きます」',
       de: '動作の場所を表す「で」の図', deCaption: '場所の枠の中で動作する。「会社で働きます」',
@@ -992,6 +1023,8 @@ const zh: AiCourseDict = {
     roadmap: '学习路线',
     vocab: '词汇',
     lab: '日语基础',
+    labShort: '基础',
+    conversation: 'AI会话',
     history: '学习记录',
     settings: '设置',
   },
@@ -1737,6 +1770,8 @@ const zh: AiCourseDict = {
     labTitle: '日语基础',
     labBody: '确认语法・活用・助词，学会选择正确的形式。',
     open: '打开',
+    heroGoalLabel: '当前目标',
+    heroPackLabel: '当前词汇包',
   },
   vocab: {
     title: '日语词汇',
@@ -1832,6 +1867,32 @@ const zh: AiCourseDict = {
     cognateJapanese: '这个词有日语独特的用法。',
     cognateNo: '这个词很难从中文直接推测意思。',
     notSavedVocab: '※目前为试作确认阶段，此记录不会正式保存。',
+    // ── Phase 2E-1: 核心意思与学习要点分离（§8） ──
+    meaningCore: '核心意思',
+    learningFocus: '学习要点',
+    showReadingBtn: '显示读音',
+    hideReadingBtn: '隐藏读音',
+    senseCognateHeading: '不同义项与中文的关系',
+    // ── 诊断的分维度显示（§4-§6） ──
+    diagDims: { reading: '读音', meaning: '意思', usage: '用法', collocation: '常用搭配', particle: '助词', conjugation: '活用' } as Record<string, string>,
+    dimStates: { confirmed: '已确认', supported: '已确认（有辅助）', needs_review: '需要再确认', not_tested: '未确认' } as Record<string, string>,
+    outcomes: { basic_confirmed: '基础已确认', partially_confirmed: '部分已确认', remedial: '需要复习', diagnostic: '未确认' } as Record<string, string>,
+    outcomeNote: '「已确认」不等于完全掌握。之后会在另一天确认巩固情况。',
+    diagnosticResultHeading: '确认结果（分维度）',
+    diagnosticBasic: (n: number) => `基础已确认（读音＋意思）：${n} 个词`,
+    diagnosticPartial: (n: number) => `部分已确认：${n} 个词`,
+    // ── 路线图（§24） ──
+    roadmapSteps: { goal: '目标', pack: '当前词汇包', diagnostic: '确认已会的词', learn: '每日学习（今日3词）', verify: '做题确认', retention: '巩固确认', next: '下一个词汇包' } as Record<string, string>,
+    roadmapNextNote: '继续当前词汇包后即可开始。',
+    quickReviewChip: (n: number) => `3分钟复习（${n}）`,
+    // ── 成长页的词汇状态（§25） ──
+    growthVocabHeading: '词汇学习状态',
+    growthVocabStarted: '已开始学习的词',
+    growthVocabNeedsReview: '需要复习的词',
+    growthVocabSelfNote: '「觉得记住了」是自我评价，和做题确认分开统计。',
+    growthVocabNextHint: '接下来：今日3词 → 薄弱词汇的3分钟复习',
+    // ── 教材レビュー（labPreview限定・利用者向けには表示しない） ──
+    internalReviewEntry: '内部审核（教材确认・管理用）',
     diagrams: {
       niE: '表示移动目的地的「に・へ」示意图', niECaption: '从现在位置到目的地。「日本に行きます／日本へ行きます」',
       de: '表示动作场所的「で」示意图', deCaption: '在场所范围内做动作。「会社で働きます」',
