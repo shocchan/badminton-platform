@@ -13,6 +13,7 @@ import { createVocabProgressRepository } from '../../../../lib/aiLesson/course/v
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
+import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import { JourneyStepper, ResultBars, ReviewTimeline } from './LearningIllustrations';
 import { STEP_ILLUSTRATIONS } from './stepIllustrationMap';
 import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
@@ -22,6 +23,8 @@ interface Props {
   t: AiCourseDict;
   /** 検証用サンドボックスで動作中（UIに明示・§13） */
   sandbox?: boolean;
+  /** 保存先。sandbox動作中は分離namespaceが渡る（既定は通常のsessionStorage） */
+  storage?: StorageLike;
   /** 短い確認（既存の開始診断）へ進む */
   onStartCheck: () => void;
   /** 最初の練習（既存の今日のことば）へ進む */
@@ -67,18 +70,19 @@ const StepHeading = ({ t, step, title, body }: {
   );
 };
 
-export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPractice, onHome, onComplete }: Props) {
+export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onStartPractice, onHome, onComplete }: Props) {
+  const store: StorageLike = storage ?? window.sessionStorage;
   const tv = t.vocab;
   const repo = useMemo(() => {
-    const progress = createVocabProgressRepository(window.sessionStorage);
-    const schedule = createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock);
-    return createFirstRunRepository(window.sessionStorage, progress, schedule);
-  }, []);
+    const progress = createVocabProgressRepository(store);
+    const schedule = createVocabSpacedReviewRepository(store, defaultLearningClock);
+    return createFirstRunRepository(store, progress, schedule);
+  }, [store]);
   // Journeyと診断・練習の往復契約（2E-1.12 §4）
-  const taskRepo = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
+  const taskRepo = useMemo(() => createJourneyTaskRepository(store), [store]);
   // Step4の復習タイムライン用（読み取りのみ・予定は作らない）
   const scheduleRepo = useMemo(
-    () => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
+    () => createVocabSpacedReviewRepository(store, defaultLearningClock), [store]);
   // 保存後に再読込するための状態（stateへJourneyの内容を持たず、常にRepositoryを正とする）
   const [loaded, setLoaded] = useState(() => repo.load());
   useEffect(() => { trackCourseOnce('start_ai_course_first_run'); }, []);

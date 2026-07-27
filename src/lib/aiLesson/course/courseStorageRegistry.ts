@@ -81,7 +81,7 @@ export const JOURNEY_RESET_ALLOWLIST: string[] =
 export const LEARNER_PROGRESS_KEYS: string[] =
   STORAGE_KEY_REGISTRY.filter((k) => k.owner === 'learner_progress').map((k) => k.key);
 
-type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+export type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
 
 export interface SafeResetResult {
   removed: string[];
@@ -135,4 +135,20 @@ export const createJourneySandbox = (base: StorageLike): JourneySandbox => {
     },
     end: () => safeResetKeys(base, [JOURNEY_SANDBOX_KEY]),
   };
+};
+
+/**
+ * サンドボックスが動作中か（2E-1.14 §7）。
+ * sandboxキーの存在そのものを目印にする。新しいキーを増やさず、再読込をまたいでも判定でき、
+ * `end()` で目印ごと消える。通常キーは一切読まない。
+ */
+export const isJourneySandboxActive = (base: StorageLike): boolean => {
+  try { return base.getItem(JOURNEY_SANDBOX_KEY) !== null; } catch { return false; }
+};
+
+/** サンドボックスを開始する（空の名前空間を作るだけ。通常キーには触れない） */
+export const beginJourneySandbox = (base: StorageLike): JourneySandbox => {
+  try { if (base.getItem(JOURNEY_SANDBOX_KEY) === null) base.setItem(JOURNEY_SANDBOX_KEY, '{}'); }
+  catch { /* 保存できなくてもラッパは返す（検証を止めない） */ }
+  return createJourneySandbox(base);
 };

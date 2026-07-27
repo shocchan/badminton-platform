@@ -874,6 +874,11 @@ const ja = {
   frTimelineThree: '3日後',
   frTimelineSeven: '7日後',
   frResultChartLabel: '今日の結果',
+  // 検証用サンドボックス（labPreview限定・一般受講生には出さない）
+  sandboxEntry: '初回学習を安全に試す（通常の記録に影響しません）',
+  sandboxBanner: '検証モードで動いています。ここでの操作は通常の学習記録に影響しません。',
+  sandboxEnd: '検証を終えて通常の画面へ戻る',
+  sandboxEnded: '検証モードを終了しました。',
   // 1語の中の3段階（練習画面の上部・短い動詞で）
   dailyPhaseSee: '見る',
   dailyPhaseTry: 'ためす',
@@ -1993,6 +1998,10 @@ const zh: AiCourseDict = {
   frTimelineThree: '3天后',
   frTimelineSeven: '7天后',
   frResultChartLabel: '今天的结果',
+  sandboxEntry: '安全地试用初次学习（不影响正常记录）',
+  sandboxBanner: '当前为验证模式。这里的操作不会影响正常的学习记录。',
+  sandboxEnd: '结束验证，返回正常画面',
+  sandboxEnded: '已结束验证模式。',
   dailyPhaseSee: '看',
   dailyPhaseTry: '试试',
   dailyPhaseReflect: '回顾',

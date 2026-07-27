@@ -15,6 +15,10 @@ import { trackCourse, trackCourseOnce } from '../../../../lib/aiLesson/course/co
 import type { AiCourseDict } from '../../../../locales/aiCourse';
 import { VocabImage } from './VocabImage';
 import { DoneIllustration, ResultBars, ReviewTimeline, PhaseTrail } from './LearningIllustrations';
+import {
+  isJourneySandboxActive, beginJourneySandbox, createJourneySandbox,
+} from '../../../../lib/aiLesson/course/courseStorageRegistry';
+import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import { ActionButton } from '../ActionButton';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
@@ -62,12 +66,18 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
-  const repo = useMemo(() => createVocabProgressRepository(window.sessionStorage), []);
+  // 検証用サンドボックス（2E-1.14 §7）。動作中は通常キーを一切読まず・書かず、
+  // sandbox名前空間だけを使う。通常の学習進捗を退避・削除して検証状態を作らないための仕組み。
+  const [sandboxOn, setSandboxOn] = useState(() => isJourneySandboxActive(window.sessionStorage));
+  const store = useMemo<StorageLike>(
+    () => (sandboxOn ? createJourneySandbox(window.sessionStorage).storage : window.sessionStorage),
+    [sandboxOn]);
+  const repo = useMemo(() => createVocabProgressRepository(store), [store]);
   // 間隔反復（翌日/3日後/7日後）のpreview Repository（2E-1.10 §3・正式保存ではない）
-  const schedule = useMemo(() => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
+  const schedule = useMemo(() => createVocabSpacedReviewRepository(store, defaultLearningClock), [store]);
   // Journey往復契約（2E-1.12 §6-§7・完了はJourney側の契約が一致した場合のみ）
-  const journeyTask = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
-  const firstRun = useMemo(() => createFirstRunRepository(window.sessionStorage, repo, schedule), [repo, schedule]);
+  const journeyTask = useMemo(() => createJourneyTaskRepository(store), [store]);
+  const firstRun = useMemo(() => createFirstRunRepository(store, repo, schedule), [store, repo, schedule]);
   /** 診断・練習が終わったときに、Journey契約があれば完了させてJourneyへ戻す（無ければ通常動作） */
   const finishJourneyTask = (type: 'diagnostic' | 'practice', snapshot: { checkedCount: number | null; independentCount: number | null; supportedCount: number | null; needsReviewCount: number | null; partial: boolean }) => {
     const c = journeyTask.get();
@@ -125,6 +135,20 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         <h1 className="text-base font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-indigo-600" />{tv.title}</h1>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{t.lab.betaBadge}</span>
       </div>
+
+      {/* 検証モードの常時表示（2E-1.14 §7）。控えめだが必ず見える位置に置き、
+          「今どちらの状態か」を取り違えないようにする。終了はここからいつでも可能。 */}
+      {sandboxOn && (
+        <div role="status" className="mb-3 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          <p className="text-[11px] font-bold text-amber-800">{tv.sandboxBanner}</p>
+          <button type="button"
+            onClick={() => {
+              createJourneySandbox(window.sessionStorage).end();   // sandboxキーのみ削除
+              setSandboxOn(false); setView('top');
+            }}
+            className="mt-1 min-h-10 text-[11px] text-amber-900 underline">{tv.sandboxEnd}</button>
+        </div>
+      )}
 
       {view === 'top' && (
         <div>
@@ -246,6 +270,13 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
           <button type="button" onClick={() => setView('connectivity')}
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
+          {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
+              初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
+          {!sandboxOn && (
+            <button type="button"
+              onClick={() => { beginJourneySandbox(window.sessionStorage); setSandboxOn(true); setView('firstrun'); }}
+              className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.sandboxEntry}</button>
+          )}
         </div>
       )}
 
@@ -269,7 +300,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
       {view === 'firstrun' && (
         <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview>
           <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <FirstRunJourneyLazy t={t}
+            <FirstRunJourneyLazy t={t} sandbox={sandboxOn} storage={store}
               onStartCheck={() => setView('diagnostic')}
               onStartPractice={() => setView('daily')}
               onHome={() => setView('top')}
