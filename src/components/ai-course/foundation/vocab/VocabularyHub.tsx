@@ -29,11 +29,12 @@ import type { FuriganaDisplayMode } from './RubyText';
 import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabProgress';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
+const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
 import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -60,7 +61,7 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions') return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -176,6 +177,8 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
           {/* 内部レビュー入口（labPreview画面内のみ・利用者向けナビには出さない・§14） */}
           <button type="button" onClick={() => setView('review')}
             className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left">{tv.internalReviewEntry}</button>
+          <button type="button" onClick={() => setView('decisions')}
+            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
         </div>
       )}
 
@@ -188,6 +191,11 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <VocabReviewPanelLazy t={t} items={items} initialItemId={itemId}
             onOpenItem={(id) => setView('review', null, id)} onBack={() => setView('top')} />
+        </Suspense>
+      )}
+      {view === 'decisions' && (
+        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')} />
         </Suspense>
       )}
       {view === 'diagnostic' && (

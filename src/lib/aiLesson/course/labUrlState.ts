@@ -58,7 +58,7 @@ export const hasLabPreview = (adminOverrides: unknown): boolean =>
   (adminOverrides as { labPreview?: unknown }).labPreview === true;
 
 // ── ことば図鑑のURL状態（§59・回答/自己評価/learner情報は入れない） ──
-export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review';
+export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions';
 export interface ParsedVocabUrl { vocab: boolean; view: VocabUrlView; category: string | null; itemId: string | null }
 
 export const parseVocabUrl = (search: string): ParsedVocabUrl => {
@@ -70,6 +70,7 @@ export const parseVocabUrl = (search: string): ParsedVocabUrl => {
   const raw = practiceMode ? 'practice' : (p.get('vview') ?? '');
   let view: VocabUrlView = 'top';
   if (raw === 'review') view = 'review';               // 教材レビュー（vitemは位置復元用・§28）
+  else if (raw === 'decisions') view = 'decisions';    // 判断キュー（2E-1.7・labPreview限定）
   else if (raw === 'practice' && itemId) view = 'practice';
   else if (itemId) view = 'detail';
   else if (raw === 'daily' || raw === 'all' || raw === 'roadmap' || raw === 'diagnostic' || raw === 'quickreview') view = raw;

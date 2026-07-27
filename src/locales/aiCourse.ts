@@ -894,6 +894,7 @@ const ja = {
     growthVocabNextHint: '次にやること: 今日の3語 → 弱いことばの3分復習',
     // ── 教材レビュー（§14-§17・labPreview限定・学習者へ出さない） ──
     internalReviewEntry: '内部レビュー（教材確認・管理用）',
+    decisionConsoleEntry: '判断キュー（CEO用・ローカル判断ドラフト）',
     // 教材レビュー画面の文言は vocabReviewI18n.ts（lazy chunk・管理者専用のためメイン辞書に入れない・§31）
     diagrams: {
       niE: '移動先を表す「に・へ」の図', niECaption: '現在地から目的地へ。「日本に行きます／日本へ行きます」',
@@ -1908,6 +1909,7 @@ const zh: AiCourseDict = {
     growthVocabNextHint: '接下来：今日3词 → 薄弱词汇的3分钟复习',
     // ── 教材レビュー（labPreview限定・利用者向けには表示しない） ──
     internalReviewEntry: '内部审核（教材确认・管理用）',
+    decisionConsoleEntry: '判断队列（CEO用・本地判断草稿）',
     diagrams: {
       niE: '表示移动目的地的「に・へ」示意图', niECaption: '从现在位置到目的地。「日本に行きます／日本へ行きます」',
       de: '表示动作场所的「で」示意图', deCaption: '在场所范围内做动作。「会社で働きます」',
