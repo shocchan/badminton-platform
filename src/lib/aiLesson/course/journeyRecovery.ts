@@ -59,6 +59,17 @@ export interface JourneyRepairInput {
   hasLearningResult: boolean;
 }
 
+/**
+ * 契約の進行記録から「その回の練習が最後まで終わっているか」を判定する。
+ * 総数が記録されていない古い契約では判定できないので false（＝やり直させない代わりに、
+ * 勝手に完了ともしない）。
+ */
+export const isTaskFinished = (contract: JourneyTaskContract | null): boolean => {
+  const p = contract?.taskProgress;
+  if (!p || typeof p.totalWords !== 'number' || p.totalWords <= 0) return false;
+  return p.completedWordIds.length >= p.totalWords;
+};
+
 /** 保存済みの事実から修復計画を決める（副作用なし・同じ入力なら必ず同じ結果） */
 export const planJourneyRepair = (input: JourneyRepairInput): JourneyRepairPlan => {
   const { contract, step, journeyCompleted, currentView, hasLearningResult } = input;

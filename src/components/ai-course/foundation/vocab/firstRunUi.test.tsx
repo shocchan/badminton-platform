@@ -307,3 +307,98 @@ describe('部分成功Recovery（2E-1.15 E2）', () => {
     expect(JSON.parse(window.sessionStorage.getItem('ai_course_first_run_v1')!).step).toBe('done');
   });
 });
+
+// Phase 2E-1.16 §3-§4: 練習は終わったのに契約が未完了、からの復帰。
+describe('contract_pending Recovery（2E-1.16 E1）', () => {
+  const WORDS = ['fi-namae', 'fi-shusshin', 'fi-chugoku'];
+  const seedPending = () => {
+    window.sessionStorage.setItem('ai_course_first_run_v1', JSON.stringify({
+      schemaVersion: 1, step: 'done', goal: 'daily_conversation', checkDone: true, practiceDone: true,
+      completedAt: null, startedAt: '2026-07-28T05:00:00.000Z', updatedAt: '2026-07-28T05:00:00.000Z',
+    }));
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 2, journeyId: '2026-07-28T05:00:00.000Z',
+      activeTaskType: 'practice', activeTaskId: 'p-e1', activeTaskStatus: 'in_progress',
+      taskStartedAt: 'x', taskCompletedAt: null, returnStep: 'done',
+      completionToken: 'tok-e1', usedTokens: [], completedTaskIds: [], completionSnapshot: null,
+      taskProgress: { wordIndex: 3, phase: 'assess', completedWordIds: WORDS, totalWords: 3 },
+    }));
+    // 練習の結果と復習予定は保存済み
+    window.sessionStorage.setItem('ai_course_vocab_preview_v1', JSON.stringify({
+      schemaVersion: 2,
+      entries: Object.fromEntries(WORDS.map((id, i) => [id, {
+        itemId: id, selfAssessment: i === 2 ? 'needs_review' : 'self_known',
+        imageViewed: true, firstSeenAt: null, lastSeenAt: null, encounterCount: 1,
+        tests: [{ dimension: 'meaning', correct: i !== 1, attemptedAt: '2026-07-28T05:00:00.000Z' }],
+      }])),
+    }));
+    window.sessionStorage.setItem('ai_course_vocab_schedule_preview_v1', JSON.stringify({
+      schemaVersion: 1,
+      entries: Object.fromEntries(WORDS.map((id) => [id, {
+        itemId: id, weakDimensions: [], lastAttemptAt: '2026-07-28T05:00:00.000Z',
+        lastAttemptDay: '2026-07-28', nextReviewAt: '2026-07-29', reviewStage: 'day1',
+        consecutiveIndependent: 0, lastResult: 'wrong', source: 'daily',
+        updatedAt: '2026-07-28T05:00:00.000Z',
+      }])),
+    }));
+  };
+  const scheduleCount = () =>
+    Object.keys(JSON.parse(window.sessionStorage.getItem('ai_course_vocab_schedule_preview_v1')!).entries).length;
+
+  it('練習が終わっていれば「結果画面へ進む」を出す（学習はやり直させない）', async () => {
+    seedPending();
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.cpHeading)).toBeTruthy());
+    expect(screen.getByText(tv.cpCta)).toBeTruthy();
+    // 練習の再開を促すカードは出さない
+    expect(screen.queryByText(tv.frResumePractice)).toBeNull();
+  });
+
+  it('進むと契約だけ完了し、復習予定は増えない', async () => {
+    seedPending();
+    const before = scheduleCount();
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.cpCta)).toBeTruthy());
+    fireEvent.click(screen.getByText(tv.cpCta));
+    const c = JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!);
+    expect(c.activeTaskStatus).toBe('completed');
+    expect(c.completedTaskIds).toEqual(['p-e1']);
+    expect(c.usedTokens).toEqual(['tok-e1']);
+    expect(scheduleCount()).toBe(before);
+  });
+
+  it('結果は保存済みの回答から作られ、実際の内訳と一致する', async () => {
+    seedPending();
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.cpCta)).toBeTruthy());
+    fireEvent.click(screen.getByText(tv.cpCta));
+    const c = JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!);
+    const r = c.completionSnapshot.learnerResult;
+    expect(r.checkedCount).toBe(3);
+    expect(r.correctCount).toBe(2);      // 2語正解・1語誤答
+    expect(r.incorrectCount).toBe(1);
+    expect(r.feltUnsureCount).toBe(1);   // 1語だけ「まだ不安」
+    expect(r.answeredWithSupportCount).toBeNull();
+  });
+
+  it('二度押しても completedTaskIds も token も増えない', async () => {
+    seedPending();
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.cpCta)).toBeTruthy());
+    fireEvent.click(screen.getByText(tv.cpCta));
+    const after = JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!);
+    expect(after.completedTaskIds).toHaveLength(1);
+    expect(after.usedTokens).toHaveLength(1);
+  });
+
+  it('練習が途中なら（総数に達していなければ）この復帰は出さない', async () => {
+    seedPending();
+    const c = JSON.parse(window.sessionStorage.getItem('ai_course_journey_task_v1')!);
+    c.taskProgress.completedWordIds = ['fi-namae'];
+    c.taskProgress.wordIndex = 1;
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify(c));
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.frDoneHeading)).toBeTruthy());
+    expect(screen.queryByText(tv.cpHeading)).toBeNull();
+  });
+});

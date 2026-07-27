@@ -34,7 +34,7 @@ describe('練習の再開位置', () => {
     openDaily();
     expect(repo.get()?.taskProgress).toBeUndefined();
     fireEvent.click(screen.getByText(tv.detailCheck));
-    expect(repo.get()?.taskProgress).toEqual({ wordIndex: 0, phase: 'quiz', completedWordIds: [] });
+    expect(repo.get()?.taskProgress).toEqual({ wordIndex: 0, phase: 'quiz', completedWordIds: [], totalWords: 3 });
   });
 
   it('選択しただけで確定していない回答は保存しない（再読込で正解扱いにしない）', () => {

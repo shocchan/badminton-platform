@@ -674,6 +674,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
     journeyTask.saveProgress({
       wordIndex, phase: ph,
       completedWordIds: ids.slice(0, wordIndex),
+      totalWords: ids.length,
     });
   };
   const [picked, setPicked] = useState<number | null>(null);

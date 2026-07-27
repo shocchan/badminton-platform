@@ -47,6 +47,11 @@ export interface TaskProgress {
   phase: 'card' | 'quiz' | 'assess';
   /** 完了した語のID（重複しない） */
   completedWordIds: string[];
+  /**
+   * その回に扱う語の総数。
+   * 「練習が終わっているか」を判定するために記録する（練習語数そのものは変えない）。
+   */
+  totalWords?: number;
   /** 診断の再開情報（診断タスクのときだけ入る） */
   diagnostic?: DiagnosticResume;
 }

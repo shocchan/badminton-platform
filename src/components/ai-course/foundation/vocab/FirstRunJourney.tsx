@@ -10,10 +10,11 @@ import {
 } from '../../../../lib/aiLesson/course/firstRunJourney';
 import type { LearningGoal, JourneyStep, FirstRunState } from '../../../../lib/aiLesson/course/firstRunJourney';
 import { createVocabProgressRepository } from '../../../../lib/aiLesson/course/vocabProgress';
+import { buildLearnerResult } from '../../../../lib/aiLesson/course/learnerResultModel';
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
-import { planJourneyRepair } from '../../../../lib/aiLesson/course/journeyRecovery';
+import { planJourneyRepair, isTaskFinished } from '../../../../lib/aiLesson/course/journeyRecovery';
 import { isQuizBreakdownComplete } from '../../../../lib/aiLesson/course/learnerResultModel';
 import { classifySchema } from '../../../../lib/aiLesson/course/journeySchemaVersion';
 import { JOURNEY_TASK_KEY } from '../../../../lib/aiLesson/course/courseStorageRegistry';
@@ -97,6 +98,9 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   const rawStep: JourneyStep = loaded.record?.step ?? 'goal';
   const goal = loaded.record?.goal ?? null;
   const refresh = () => setLoaded(repo.load());   // イベントハンドラ内でのみ呼ぶ
+  // 契約完了の再試行中／失敗表示（処理中は再操作させない・成功を偽らない）
+  const [cpBusy, setCpBusy] = useState(false);
+  const [cpFailed, setCpFailed] = useState(false);
 
   // 保存データのversion判定（2E-1.15 §7）。判定は一箇所・決定的。
   // 学習進捗と復習予定には触れず、Journey状態だけを対象にする。
@@ -150,7 +154,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   // 判定は保存済みの事実だけから決定的に行い、完了処理・token消費は絶対に再実行しない。
   const repair = planJourneyRepair({
     contract, step: rawStep, journeyCompleted: !!loaded.record?.completedAt,
-    currentView: 'firstrun', hasLearningResult: false,
+    currentView: 'firstrun', hasLearningResult: isTaskFinished(contract),
   });
   if (repair.setStep && repair.setStep !== rawStep) {
     // stepだけを安全に修復する（同じ値なら何も書かないので、renderごとに繰り返さない）
@@ -162,6 +166,37 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   const upcoming = step === 'done'
     ? scheduleRepo.getDueSummary().upcoming
     : { tomorrow: 0, inThreeDays: 0, inSevenDays: 0 };
+  /**
+   * 練習は終わっているのに契約だけ未完了、という状態から復帰する（2E-1.16 §3）。
+   * 保存済みの結果と既存の復習予定をそのまま使い、**契約完了だけ**をやり直す。
+   * 学習も復習予定も再実行しない。tokenは有効なときに一度だけ使う。
+   */
+  const retryContractCompletion = (): boolean => {
+    const c = taskRepo.get();
+    if (!c) return false;
+    const ids = c.taskProgress?.completedWordIds ?? [];
+    if (ids.length === 0) return false;
+    const progress = createVocabProgressRepository(store);
+    const result = buildLearnerResult(ids, progress, scheduleRepo);
+    const r = taskRepo.completeTask({
+      journeyId: c.journeyId, taskId: c.activeTaskId, token: c.completionToken,
+      snapshot: {
+        checkedCount: result.checkedCount,
+        independentCount: result.correctCount,
+        supportedCount: result.answeredWithSupportCount,
+        needsReviewCount: result.feltUnsureCount,
+        partial: result.partial,
+        learnerResult: result,
+      },
+    });
+    // 既に完了していた場合（tokenを使い切っている）も、Journeyのstepだけは進めて結果画面へ導く
+    const alreadyDone = !r.ok && (r.reason === 'token_used' || r.reason === 'already_completed');
+    if (!r.ok && !alreadyDone) return false;
+    if (c.returnStep === 'practice') repo.completeCheck(); else repo.completePractice();
+    refresh();
+    return true;
+  };
+
   const startTask = (type: 'diagnostic' | 'practice', go: () => void) => {
     taskRepo.startTask({
       journeyId: loaded.record?.startedAt ?? 'journey',
@@ -180,8 +215,26 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
       )}
       <StepProgress t={t} step={step} />
       {loaded.saveFailed && <p role="alert" className="text-[11px] text-orange-700 mb-2">{tv.recSaveFailed}</p>}
+      {/* 練習は終わったが結果画面へ進めていない（2E-1.16 §3）。
+          学習も復習予定も再実行せず、契約完了だけをやり直す。 */}
+      {repair.retryContractCompletion && (
+        <div role="status" className="bg-indigo-50 rounded-xl p-3 mb-3">
+          <p className="text-sm font-bold text-gray-900 mb-2">
+            {cpFailed ? tv.cpFailHeading : tv.cpHeading}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <ActionButton variant="primary" fullWidth
+              onClick={() => { setCpBusy(true); const ok = retryContractCompletion(); setCpBusy(false); setCpFailed(!ok); }}
+              disabled={cpBusy}>
+              {cpFailed ? tv.cpRetry : tv.cpCta}
+            </ActionButton>
+            <button type="button" onClick={onHome}
+              className="w-full min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frResumeHome}</button>
+          </div>
+        </div>
+      )}
       {/* 中断からの復帰（§9・完了処理は再実行しない） */}
-      {resumable && (
+      {!repair.retryContractCompletion && resumable && (
         <div role="status" className="bg-indigo-50 rounded-xl p-3 mb-3">
           <p className="text-sm font-bold text-gray-900 mb-2">
             {resumable.activeTaskType === 'diagnostic' ? tv.frResumeCheck : tv.frResumePractice}

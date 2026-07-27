@@ -895,6 +895,11 @@ const ja = {
   lrBarCorrect: '正しく答えた',
   lrBarIncorrect: 'もう一度確認',
   lrBarNotAnswered: 'まだ未回答',
+  // 練習は終わったが結果画面へ進めていないとき（2E-1.16 §3）
+  cpHeading: '練習結果の保存を完了します。',
+  cpCta: '結果画面へ進む',
+  cpFailHeading: '練習は終わっていますが、結果画面を開けませんでした。',
+  cpRetry: 'もう一度試す',
   // 1語の中の3段階（練習画面の上部・短い動詞で）
   dailyPhaseSee: '見る',
   dailyPhaseTry: 'ためす',
@@ -2040,6 +2045,10 @@ const zh: AiCourseDict = {
   lrBarCorrect: '答对',
   lrBarIncorrect: '再确认',
   lrBarNotAnswered: '未作答',
+  cpHeading: '正在完成练习结果的保存。',
+  cpCta: '前往结果页面',
+  cpFailHeading: '练习已经结束，但没能打开结果页面。',
+  cpRetry: '再试一次',
   dailyPhaseSee: '看',
   dailyPhaseTry: '试试',
   dailyPhaseReflect: '回顾',
