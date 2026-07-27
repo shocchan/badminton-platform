@@ -1,15 +1,16 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-27 16:10（ループ#2分析完了・セッション時限16:30で終了）
+更新: 2026-07-27 21:15（ループ#3=2E-1.8完了・ループ#4分析へ）
 
-- 現在のPhase: **2E-1.7 完了**（データ層＋Decision Console UI・staging反映・完了報告 completion-reports/phase-2e1-7-completion-report.md）。
-  判断キュー: 91判断事項/72語（example1・cognate11・meaning_zh17・role60・sense2）。残: モバイル目視・逆リンク
+- 現在のPhase: **2E-1.8 完了**（完全性監査・P0由来・stale検出・双方向リンク・実ブラウザモバイル検証。completion-reports/phase-2e1-8-completion-report.md）
+  判断キュー実数: 91判断事項/72語（example1・cognate11・**meaning_zh20・role57**・sense2）※2E-1.7報告の17/60は誤集計と判明し訂正済み
+  priority内訳: 独立70・語から継承21（fi-namae P0=3は example独立+2継承と特定）
 - 自律ループ#1: CONTINUE→2E-1.7実装完了（reviews/2e1-6-chatgpt-review.md）
 - 自律ループ#2: CONTINUE・**次Phase=2E-1.8 Decision Integrity & Review Readiness**（reviews/2e1-7-chatgpt-review.md・prompts/2e1-8-prompt.md）。
   validator=block（完了条件/STOP_FOR_HUMAN条件の禁止事項列挙による誤検知）→意味検証pass。**未実行**（16:30時限）。次セッションはここから
 - ブランチ: feature/ai-course-learning-polish（main・本番は禁止）
 - 最新コミット: phase-history参照（2E-1.7 UIコミット済み）
-- テスト: 589件全パス／tsc 0エラー／lint 45E/6W=51（ベースライン一致・新規ファイル増分0）
+- テスト: 604件全パス／tsc 0エラー／lint 45E/6W=51（ベースライン一致・新規ファイル増分0）
 - bundle: main 590.30KB / gzip 169.96KB（レビュー系はlazy chunk: VocabReviewPanel 80.8KB）
 - 教材: 140語（基礎78＋N3 62）全draft・Sense 8語・cognate分類済み126語/unreviewed 10語＋kyoumi係争1・
   二重AIレビュー140/140（consensus 52/disagreement 73/human 15・P0=1 P1=4 P2=83 P3=52）

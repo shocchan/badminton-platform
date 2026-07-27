@@ -6,3 +6,4 @@
 | 2E-1.5 | 教材第二校正・実機UX監査・Premium最終調整 | ChatGPT独立監査140語・自動修正60件・draft分類90語・レビュー永続化v2・比較UI・N3診断16問・モバイルナビ案A・画像4枚 | ace72b5/3e56a50/08121a8 | 577 | 画像8枚・モバイル目視・人間判断待ち | 2E-1.6 |
 | 2E-1.6 | 自律改善ループ基盤 | autonomous-loop docs一式・分析テンプレート・prompt validator・報告生成スクリプト・state管理 | 9b9f4a7 | 577 | — | 自律ループ1回目（ChatGPT分析） |
 | 2E-1.7 | Human Decision Console & Proposal Triage（ChatGPT設計・CONTINUE） | 判断キュー91件/72語の導出・判断ドラフトストアv3・Decision Console UI（vview=decisions） | 028854e ほか | 589 | モバイル目視・詳細画面への逆リンク | ループ#2分析で決定 |
+| 2E-1.8 | Decision Integrity & Review Readiness（ChatGPT設計・CONTINUE） | 完全性監査218→91＋恒等式テスト・provenance/独立継承priority・stale/orphaned検出・Console⇔語彙詳細双方向リンク・iframe実ブラウザ5幅検証 | c7bd23c/ac0326f | 604 | 詳細セクションanchor・contrast計測 | ループ#4分析で決定 |
