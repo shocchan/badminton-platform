@@ -1,0 +1,1267 @@
+{
+ "generatedAt": "2026-07-27",
+ "phase": "2E-1.5",
+ "policy": "両AI high confidence一致の軽微修正のみ自動適用（§8）。human:true・sev high・AI不一致は適用しない",
+ "applied": [
+  {
+   "itemId": "fi-iku",
+   "field": "exampleZh",
+   "before": "去学校。",
+   "after": "我去学校。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-taberu",
+   "field": "exampleZh",
+   "before": "吃早饭。",
+   "after": "我吃早饭。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-miru",
+   "field": "exampleZh",
+   "before": "看电影。",
+   "after": "我看电影。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-hanasu",
+   "field": "exampleZh",
+   "before": "说日语。",
+   "after": "我说日语。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-hanasu",
+   "field": "meaningZh",
+   "before": "说",
+   "after": "说；讲",
+   "file": "foundationItemBank.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-kaku",
+   "field": "exampleZh",
+   "before": "写名字。",
+   "after": "我写名字。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-yomu",
+   "field": "exampleZh",
+   "before": "读书。",
+   "after": "我读书。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-suru",
+   "field": "exampleZh",
+   "before": "做工作。",
+   "after": "我工作。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-kau",
+   "field": "exampleZh",
+   "before": "买水。",
+   "after": "我买水。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-iru-exist",
+   "field": "exampleZh",
+   "before": "有猫。",
+   "after": "有一只猫。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-neko",
+   "field": "exampleZh",
+   "before": "有猫。",
+   "after": "有一只猫。",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tsukau",
+   "field": "exampleZh",
+   "before": "用手机。",
+   "after": "我用手机。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tsukuru",
+   "field": "exampleZh",
+   "before": "做晚饭。",
+   "after": "我做晚饭。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-hairu",
+   "field": "exampleZh",
+   "before": "进店。",
+   "after": "我进店里。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-ookii",
+   "field": "exampleZh",
+   "before": "很大的包。",
+   "after": "是一个大包。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-chiisai",
+   "field": "exampleZh",
+   "before": "很小的店。",
+   "after": "是一家小店。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-yasui",
+   "field": "exampleZh",
+   "before": "在便宜的超市买。",
+   "after": "我在便宜的超市买东西。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tanoshii",
+   "field": "exampleZh",
+   "before": "在日本的生活很开心。",
+   "after": "在日本的生活很愉快。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tanoshii",
+   "field": "meaningZh",
+   "before": "开心；愉快",
+   "after": "愉快；开心；有趣",
+   "file": "foundationVocabBank.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "exampleJa",
+   "before": "いくつですか。",
+   "after": "りんごはいくつありますか。",
+   "file": "foundationItemBank.ts",
+   "category": "obvious_mismatch"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "exampleZh",
+   "before": "要几个？",
+   "after": "有几个苹果？",
+   "file": "foundationItemBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "meaningZh",
+   "before": "几个",
+   "after": "几个；多少；几岁",
+   "file": "foundationItemBank.ts",
+   "category": "obvious_mismatch"
+  },
+  {
+   "itemId": "fi-jouzu",
+   "field": "exampleZh",
+   "before": "擅长做菜。",
+   "after": "他很会做菜。",
+   "file": "foundationVocabBank.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-shusshin",
+   "field": "meaningZh",
+   "before": "出身；老家",
+   "after": "出身地；来自",
+   "file": "foundationUnit1.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-tsuzukeru",
+   "field": "exampleZh",
+   "before": "每天坚持学一点。",
+   "after": "每天继续学一点。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tsuzuku",
+   "field": "exampleZh",
+   "before": "连日高温。",
+   "after": "炎热的天气一直持续着。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-kanjiru",
+   "field": "exampleZh",
+   "before": "感觉到日语在进步。",
+   "after": "我感觉自己的日语进步了。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-tsutaeru",
+   "field": "exampleZh",
+   "before": "把要求告诉了店员。",
+   "after": "我把自己的要求告诉了店员。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-renraku",
+   "field": "exampleZh",
+   "before": "要迟到时请联系。",
+   "after": "要迟到时请联系我。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-nareru",
+   "field": "exampleZh",
+   "before": "基本习惯了日本的生活。",
+   "after": "已经很习惯日本的生活了。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-komaru",
+   "field": "exampleZh",
+   "before": "因为不认识汉字很为难。",
+   "after": "因为不会读汉字，我很为难。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-kimochi",
+   "field": "exampleZh",
+   "before": "想表达感谢的心情。",
+   "after": "我想表达感谢之情。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-kimochi",
+   "field": "meaningZh",
+   "before": "心情；感受",
+   "after": "心情；感受；心意",
+   "file": "foundationVocabN3.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-shiraberu",
+   "field": "exampleZh",
+   "before": "查不懂的词。",
+   "after": "查不懂的单词。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-houhou",
+   "field": "exampleZh",
+   "before": "换了记单词的方法。",
+   "after": "改变了记忆的方法。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-fukuzatsu",
+   "field": "exampleZh",
+   "before": "日本的电车线路有点复杂。",
+   "after": "日本的电车有点复杂。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-sorede",
+   "field": "exampleJa",
+   "before": "電車が遅れました。それで、遅刻しました。",
+   "after": "電車が遅れました。それで、会社に遅刻しました。",
+   "file": "foundationVocabN3.ts",
+   "category": "obvious_mismatch"
+  },
+  {
+   "itemId": "fi-sorede",
+   "field": "exampleZh",
+   "before": "电车晚点了，所以迟到了。",
+   "after": "电车晚点了，所以我上班迟到了。",
+   "file": "foundationVocabN3.ts",
+   "category": "zh_naturalization"
+  },
+  {
+   "itemId": "fi-yotei",
+   "field": "meaningZh",
+   "before": "预定；计划",
+   "after": "计划；安排；预定事项",
+   "file": "foundationVocabN3.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-yoyaku",
+   "field": "meaningZh",
+   "before": "预约",
+   "after": "预约；预订",
+   "file": "foundationVocabN3.ts",
+   "category": "minor_scope_update"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "furigana",
+   "before": "[T('いくつ'), s('ですか。')]",
+   "after": "[s('りんごは'), T('いくつ'), s('ありますか。')]",
+   "file": "vocabFurigana.ts",
+   "category": "example_sync"
+  },
+  {
+   "itemId": "fi-sorede",
+   "field": "furigana",
+   "before": "…それで、遅刻しました。",
+   "after": "…それで、会社に遅刻しました。（会社=かいしゃ追加）",
+   "file": "vocabFurigana.ts",
+   "category": "example_sync"
+  },
+  {
+   "itemId": "fi-kaisha",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "japanese_specific（注記付き）",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-benri",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-kusuri",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-jouhou",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "false_friend（情报=谍报の注記付き）",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-hitsuyou",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-yotei",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "partial_overlap（预定=预订の注記付き）",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-shuukan",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-joukyou",
+   "field": "cognate",
+   "before": "mostly_same",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_correction"
+  },
+  {
+   "itemId": "fi-densha",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-kudasai",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-tanoshii",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-jouzu",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-yoyaku",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-tsuzukeru",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-kimochi",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-yotei",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  },
+  {
+   "itemId": "fi-sorede",
+   "field": "learningFocusZh",
+   "before": "（なし）",
+   "after": "注記追加",
+   "file": "vocabContentMeta.ts",
+   "category": "focus_note_added"
+  }
+ ],
+ "draftClassifications": [
+  {
+   "itemId": "fi-neko",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ookii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-chiisai",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-atarashii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-furui",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-atsui",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-samui",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-isogashii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-muzukashii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-chikai",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tooi",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ooi",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-sukunai",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-shizuka",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ie",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-namae",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kaku",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-yomu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kau",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kaeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-okiru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsukau",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsukuru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-au",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-neru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-hairu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-deru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-noru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-oriru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-okane",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-eki",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-suki",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-takai",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tanoshii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-densha",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-wakaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-shigoto",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-en",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-suru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-aru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-iru-exist",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ikura",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ikutsu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kore",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kudasai",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-oishii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-basu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-shusshin",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "false_friend",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-jouzu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "false_friend",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-hajimeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-owaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kangaeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kanjiru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsutaeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-setsumei",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kakunin",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-junbi",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-erabu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-wasureru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kuraberu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-nareru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kanashii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-sabishii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kibishii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kanarazu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-saikin",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "transparent_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-fueru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-heru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsuzukeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsuzuku",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kimeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kimaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-omou",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-renraku",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-shiraberu",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-komaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ureshii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-hazukashii",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kawaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kaeru-change",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-yoyaku",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "partial_overlap",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-riyou",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "mostly_same",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-oboeru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-ganbaru",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-kimochi",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "japanese_specific",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tabun",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-nakanaka",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-yatto",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-tsumari",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  },
+  {
+   "itemId": "fi-sorede",
+   "field": "cognate",
+   "before": "unreviewed",
+   "after": "no_cognate",
+   "file": "vocabularyLevelMeta.ts",
+   "category": "cognate_draft_classification"
+  }
+ ],
+ "skippedForHumanReview": [
+  {
+   "itemId": "fi-namae",
+   "reason": "ChatGPT自身がhuman:true指定（P0）。例文変更は人間確認後に実施"
+  },
+  {
+   "itemId": "fi-jiyuu",
+   "reason": "例文訳「自由时间」は対象語との対応を保つため維持（提案は自然さのみ）"
+  },
+  {
+   "itemId": "fi-nihongo",
+   "reason": "cognate分類でAI不一致（Claude=字面で意味推測可 / ChatGPT=japanese_specific）→人間レビューへ"
+  },
+  {
+   "itemId": "fi-kaishain",
+   "reason": "cognate分類でAI不一致→人間レビューへ"
+  },
+  {
+   "itemId": "fi-nanji",
+   "reason": "cognate分類でAI不一致→人間レビューへ"
+  },
+  {
+   "itemId": "fi-tomodachi",
+   "reason": "cognate分類でAI不一致→人間レビューへ"
+  },
+  {
+   "itemId": "fi-yasui",
+   "reason": "「安」は中国語で「便宜」を意味しないためpartial_overlap提案に不同意→人間レビューへ"
+  },
+  {
+   "itemId": "fi-genki",
+   "reason": "「元气满满」等 現代中文で意味が近く false_friend提案に不同意→人間レビューへ"
+  },
+  {
+   "itemId": "fi-kibun",
+   "reason": "「気分」と「气氛」は字形が異なりfalse friendの定義に合うか要確認→人間レビューへ"
+  },
+  {
+   "itemId": "fi-soudan",
+   "reason": "false_friend提案に不同意（商谈・相谈は現代中文に存在）→人間レビューへ"
+  },
+  {
+   "itemId": "fi-zenzen",
+   "reason": "false_friend提案に不同意（全然は中文書面語に存在）→人間レビューへ"
+  },
+  {
+   "itemId": "fi-yakusoku",
+   "reason": "mostly_same提案に不同意（中文「约束」=束縛でありむしろ同形異義寄り）→人間レビューへ"
+  },
+  {
+   "itemId": "fi-kyoumi",
+   "reason": "false_friend提案とmostly_same現分類が不一致（P1）→現分類維持で人間レビューへ"
+  },
+  {
+   "itemId": "role_mismatch全般",
+   "reason": "基礎パック会話トラックのoptional→diagnostic変更提案はカリキュラム判断のため自動適用しない"
+  }
+ ]
+}

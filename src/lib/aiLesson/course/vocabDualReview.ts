@@ -93,12 +93,30 @@ const priorityOf = (c: Omit<VocabularyReviewComparison, 'humanReviewPriority'>):
   return 'P3';
 };
 
+type ReviewRecord = ReturnType<typeof buildVocabularyReviewRecords>[number];
+
+/**
+ * 採用済み提案の解決（§8）: ChatGPTの指摘のうち、提案（suggested*）を既に教材データへ
+ * 反映済みのものは「解決済み=ok」として比較する（auto-fix-log.jsonと対応）。
+ * 反映していない提案・不一致はそのまま残す（人間レビューの母集団を歪めない）。
+ */
+const resolveAdopted = (rec: ReviewRecord, g: ExternalVocabularyReview): ExternalVocabularyReview => {
+  const r = { ...g };
+  if (r.suggestedCognate && r.suggestedCognate === rec.cognateDefault) r.cognateStatus = 'ok';
+  const zhAdopted = (r.suggestedExampleZh == null || r.suggestedExampleZh === rec.item.exampleZh)
+    && (r.suggestedMeaningZh == null || r.suggestedMeaningZh === rec.item.meaningZh);
+  if (r.chineseStatus !== 'ok' && (r.suggestedExampleZh != null || r.suggestedMeaningZh != null) && zhAdopted) r.chineseStatus = 'ok';
+  if (r.japaneseStatus !== 'ok' && r.suggestedExampleJa != null && r.suggestedExampleJa === rec.item.exampleJa) r.japaneseStatus = 'ok';
+  return r;
+};
+
 /** 全140語の比較（レビュー画面用・単一導出関数） */
 export const buildReviewComparisons = (): VocabularyReviewComparison[] => {
   const records = buildVocabularyReviewRecords();
   return records.map((rec) => {
     const claude = claudeReviewOf(rec.itemId, rec.cognateDefault === 'unreviewed');
-    const chatgpt = CHATGPT_REVIEWS[rec.itemId] ?? null;
+    const raw = CHATGPT_REVIEWS[rec.itemId] ?? null;
+    const chatgpt = raw ? resolveAdopted(rec, raw) : null;
     const agreementFields: FieldKey[] = [];
     const disagreementFields: FieldKey[] = [];
     if (chatgpt) {

@@ -18,8 +18,30 @@
 適用可: 双方high confidence一致の軽微修正（中国語の自然化・明確な不整合・
 unreviewed cognateへの合意draft分類）。適用不可: レベル確定・JLPT断定・required最終承認・
 Sense統合削除・低確信false friend確定・意図が変わる例文変更。適用後もdraft維持。
-ログ: `scratchpad/content-review/auto-fix-log.json`＋`AUTO_FIXED_ITEM_IDS`。
+ログ: `docs/ai-course/phase-2e1-5-auto-fix-log.json`＋`AUTO_FIXED_ITEM_IDS`。
 
-## 集計・結果
+ChatGPTがhuman:true指定した語（fi-namae）は提案があっても自動修正しない（P0で人間へ）。
+採用済み提案は `resolveAdopted()` で「解決済み」として比較する（未採用の提案・不一致はそのまま残す）。
 
-サマリーは `dualReviewSummary()`（単一関数）とai-review-summaryを参照。
+## 収集結果（2026-07-27・7バッチ/140語完了）
+
+- ChatGPTレビュー取得: **140/140語**（batch01=JSON全形式、batch02-07=圧縮pipe形式）
+- 集計（`dualReviewSummary()`）: consensus 52 / disagreement 73 / human_review_required 15
+- 優先度: **P0=1（fi-namae 例文と王姓の読み）** / **P1=4（fi-komaru・fi-tsugou・fi-kyoumi・fi-taihen）** / P2=83 / P3=52
+- P2の主因は3系統: ①基礎パック会話トラックのrole提案（optional→diagnostic・カリキュラム判断のため未適用）
+  ②かな語のふりがなマーカー指摘（バッチ出力形式の artifact・教材データ自体は正しい）
+  ③部分採用（例文は採用・意味範囲提案は人間確認待ち）
+
+## AI不一致→人間レビュー行き（cognate分類・10語+3語）
+
+| 語 | ChatGPT提案 | Claude見解 |
+|---|---|---|
+| fi-nihongo / fi-kaishain / fi-nanji / fi-tomodachi | japanese_specific | 字面から意味推測可でpartial寄り |
+| fi-yasui | partial_overlap | 「安」は中文で「便宜」を意味せず疑問 |
+| fi-genki | false_friend | 「元气满满」等 現代中文で近接 |
+| fi-kibun | false_friend | 「气氛」とは字形が異なる |
+| fi-soudan | false_friend | 商谈・相谈は現代中文に存在 |
+| fi-zenzen | false_friend | 全然は中文書面語に存在 |
+| fi-yakusoku | mostly_same | 中文「约束」=束縛で むしろ同形異義寄り |
+| fi-kyoumi | false_friend（major） | 現分類mostly_same維持で人間判断へ（P1） |
+| fi-taihen / fi-tsugou | — | Sense未レビュー（Claude側uncertain維持） |

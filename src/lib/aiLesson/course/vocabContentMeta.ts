@@ -56,6 +56,17 @@ export const VOCAB_CONTENT_NOTES: Record<string, VocabContentNote> = {
   'fi-takai': { meaningZhShort: '贵；高', learningFocusZh: '表示价格时中文说「贵」，日语用「高い」（⇔安い）。表示高度时（⇔低い）。', exampleType: 'daily_life' },
   'fi-kibun': { meaningZhShort: '状态；心情好坏', learningFocusZh: '「気分が悪い」多指身体不舒服，和「気持ち」（内心感受）区分。', exampleType: 'conversation' },
   'fi-shuukan': { learningFocusZh: '日语「習慣」是名词。「習慣にする」＝养成习惯。', exampleType: 'daily_life' },
+  // ── 二重AIレビュー一致で追加した注記（Phase 2E-1.5 §8・draft・人間確認待ち） ──
+  'fi-densha': { learningFocusZh: '日语「電車」泛指以电力运行的城市・通勤列车，不只是路面电车。', exampleType: 'daily_life' },
+  'fi-ikutsu': { learningFocusZh: '「いくつ」既可问数量，也可问年龄，具体意思由上下文决定。', exampleType: 'conversation' },
+  'fi-kudasai': { learningFocusZh: '名词后用「〜をください」＝请给我〜；动词后用「〜てください」＝请做〜。', exampleType: 'conversation' },
+  'fi-tanoshii': { learningFocusZh: '「楽しい」既可表示心情愉快，也可表示活动有趣・令人享受。', exampleType: 'daily_life' },
+  'fi-jouzu': { learningFocusZh: '「上手」评价技能，常用「〜が上手です」；夸自己一般不用。和中文「上手（开始做）」不同。', exampleType: 'conversation' },
+  'fi-yoyaku': { learningFocusZh: '预约时间・服务用「予約する」；中文订餐厅・酒店・票时常说「预订」。', exampleType: 'daily_life' },
+  'fi-tsuzukeru': { learningFocusZh: '「続ける」强调主动让动作继续，不一定含「坚持」的意志色彩。', exampleType: 'daily_life' },
+  'fi-kimochi': { learningFocusZh: '「感謝の気持ち」更接近中文的"感谢之情・心意"。', exampleType: 'conversation' },
+  'fi-yotei': { learningFocusZh: '「予定」既表示计划，也表示已安排好的日程。中文「预定」多指预订。', exampleType: 'daily_life' },
+  'fi-sorede': { learningFocusZh: '「それで」连接前因后果；口语中也可用来催促对方继续说。', exampleType: 'conversation' },
 };
 
 const FIRST_SENSE_SPLIT = /[；;]/;

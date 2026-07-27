@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { createVocabReviewRepository, VOCAB_REVIEW_STORAGE_KEY, VOCAB_REVIEW_LOCAL_KEY, REVIEW_SCHEMA_VERSION, DATA_VERSION } from './vocabReviewStore';
 import { buildReviewComparisons, dualReviewSummary, claudeReviewOf } from './vocabDualReview';
-import { CHATGPT_REVIEWS } from './vocabChatgptReview';
+import { CHATGPT_REVIEWS, AUTO_FIXED_ITEM_IDS } from './vocabChatgptReview';
 import { buildDiagnosticSet, diagnosticCountFor } from './vocabDiagnostic';
 import { createVocabProgressRepository } from './vocabProgress';
 import { VOCABULARY_PACKS } from './vocabularyPacks';
@@ -93,6 +93,20 @@ describe('二重AIレビュー比較（§2・§7）', () => {
   });
   it('CHATGPT_REVIEWSのitemIdはすべて実在する', () => {
     for (const id of Object.keys(CHATGPT_REVIEWS)) expect(itemById.has(id), id).toBe(true);
+  });
+  it('収集完了: 全140語にChatGPTレビューがあり、human:true指定（fi-namae）はP0のまま自動修正されない', () => {
+    expect(Object.keys(CHATGPT_REVIEWS).length).toBe(items.length);
+    const namae = buildReviewComparisons().find((c) => c.itemId === 'fi-namae')!;
+    expect(namae.aiReviewState).toBe('human_review_required');
+    expect(namae.humanReviewPriority).toBe('P0');
+    expect(AUTO_FIXED_ITEM_IDS).not.toContain('fi-namae');
+    expect(itemById.get('fi-namae')!.exampleJa).toBe('名前は王です。');   // 人間確認まで変えない
+  });
+  it('自動修正済みIDは実在し、修正後の例文が反映されている（明白な誤訳の代表例）', () => {
+    for (const id of AUTO_FIXED_ITEM_IDS) expect(itemById.has(id), id).toBe(true);
+    expect(itemById.get('fi-komaru')!.exampleZh).toBe('因为不会读汉字，我很为难。');
+    expect(itemById.get('fi-ikutsu')!.exampleJa).toBe('りんごはいくつありますか。');
+    expect(itemById.get('fi-sorede')!.exampleJa).toContain('会社に遅刻');
   });
 });
 
