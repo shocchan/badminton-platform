@@ -4,7 +4,7 @@
 export const REVIEW_I18N = {
   ja: {
     title: '教材レビュー',
-    intro: '140語の教材データを1語ずつ確認します。結果はこの端末のセッション内にのみ保存され、教材の正式状態（draft）は変わりません。',
+    intro: '140語の教材データを1語ずつ確認します。結果はこの端末のlocalStorageに保存され（タブを閉じても保持）、教材の正式状態（draft）は変わりません。',
     filterLabel: 'フィルター',
     filters: {
       important: '重要項目（P0/P1）', all: 'すべて', unreviewed: 'レビュー未実施',
@@ -48,7 +48,7 @@ export const REVIEW_I18N = {
   },
   zh: {
     title: '教材审核',
-    intro: '逐个确认140个词的教材数据。结果只保存在本设备的会话中，教材的正式状态（draft）不会改变。',
+    intro: '逐个确认140个词的教材数据。结果保存在本设备的localStorage中（关闭标签页后仍保留），教材的正式状态（draft）不会改变。',
     filterLabel: '筛选',
     filters: {
       important: '重要项目（P0/P1）', all: '全部', unreviewed: '未审核',
