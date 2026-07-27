@@ -15,7 +15,7 @@
 | va-verb-miru-scene | fi-miru | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-miru-scene-v1.webp | 20KB | 800x600 | 何かを見ている場面 | ai_generated_internal |
 | va-verb-kiku-scene | fi-kiku | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-kiku-scene-v1.webp | 23KB | 800x600 | 音楽や話を聞いている場面 | ai_generated_internal |
 | va-verb-hanasu-scene | fi-hanasu | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-hanasu-scene-v1.webp | 30KB | 800x600 | 人と話している場面 | ai_generated_internal |
-| va-verb-yomu-scene | fi-yomu | scene_illustration | planned | — | — | — | 本を読んでいる場面 | ai_generated_internal |
+| va-verb-yomu-scene | fi-yomu | scene_illustration | draft | /images/ai-course/foundation/verbs/verb-yomu-scene-v3.webp | 31KB | 800x600 | 本を読んでいる場面 | ai_generated_internal |
 | va-verb-kaku-scene | fi-kaku | scene_illustration | planned | — | — | — | 書類やノートに書いている場面 | ai_generated_internal |
 | va-verb-kau-scene | fi-kau | scene_illustration | planned | — | — | — | 店で買い物をしている場面 | ai_generated_internal |
 | va-verb-tsukau-scene | fi-tsukau | scene_illustration | planned | — | — | — | 道具を使っている場面 | ai_generated_internal |
@@ -37,5 +37,9 @@
 | va-scene-station | fi-eki | scene_illustration | planned | — | — | — | 駅の改札前の場面 | ai_generated_internal |
 | va-scene-hospital | fi-byouin | scene_illustration | planned | — | — | — | 病院の受付の場面 | ai_generated_internal |
 | va-scene-restaurant | fi-oishii | scene_illustration | planned | — | — | — | レストランで食事する場面 | ai_generated_internal |
+| va-pack-life-basic-cover | pack-life-basic-1 | scene_illustration | draft | /images/ai-course/foundation/covers/pack-life-basic-cover-v1.webp | 65KB | 800x600 | 日常生活の場面が緩やかにつながるコラージュ | ai_generated_internal |
+| va-pack-n3-prep-cover | pack-n3-prep-1 | scene_illustration | draft | /images/ai-course/foundation/covers/pack-n3-prep-cover-v1.webp | 34KB | 800x600 | 語彙カードと会話・矢印が広がる学習拡張のイメージ | ai_generated_internal |
+| va-pack-conversation-cover | conversation | scene_illustration | planned | — | — | — | 二人の成人の自然な会話の流れ | ai_generated_internal |
+| va-pack-business-cover | business | scene_illustration | planned | — | — | — | 会議・報告・確認を抽象的に表した職場の場面 | ai_generated_internal |
 
-合計: 33件（ai_generated: 33件）
+合計: 37件（ai_generated: 37件）

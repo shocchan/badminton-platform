@@ -69,6 +69,9 @@ export const VISUAL_ASSETS: VisualAsset[] = [
  * ここに無いassetはplannedのまま（実ファイルが存在しない段階で完成画像として扱わない）。
  */
 const IMPORTED: Record<string, { filePath: string; thumbnailPath: string; width: number; height: number }> = {
+  'va-verb-yomu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-yomu-scene-v3.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-yomu-scene-v3-thumb.webp', width: 800, height: 600 },
+  'va-pack-life-basic-cover': { filePath: '/images/ai-course/foundation/covers/pack-life-basic-cover-v1.webp', thumbnailPath: '/images/ai-course/foundation/covers/pack-life-basic-cover-v1-thumb.webp', width: 800, height: 600 },
+  'va-pack-n3-prep-cover': { filePath: '/images/ai-course/foundation/covers/pack-n3-prep-cover-v1.webp', thumbnailPath: '/images/ai-course/foundation/covers/pack-n3-prep-cover-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-iku-scene': { filePath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-iku-scene-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-kuru-scene': { filePath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-kuru-scene-v1-thumb.webp', width: 800, height: 600 },
   'va-verb-taberu-scene': { filePath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1.webp', thumbnailPath: '/images/ai-course/foundation/verbs/verb-taberu-scene-v1-thumb.webp', width: 800, height: 600 },
