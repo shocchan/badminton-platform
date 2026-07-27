@@ -13,3 +13,12 @@
 - レベルメタ: 全語 jlpt_n3_estimate＋levelEvidence「N3目安・公式断定なし」。cognateは高確信17語のみ分類
   （都合=false_friend・大変=false_friend等）、残りunreviewed
 - 人間レビュー: 全60語がレビュー待ち（draft）
+
+## Phase 2E-1 更新（2026-07-27）
+
+- 実語数は62語（本文中の「60語」は旧記述）。
+- 全62語へ目標別role監査を追加（vocabularyRoleMeta.ts・根拠つき・全件required解消）。
+- 大変・都合へSense追加（taihen-hard/serious・tsugou-convenience/arrangement）と
+  Sense別cognate上書き（ai-course-vocabulary-sense-cognates.md）。
+- 例文ふりがな62/62語（ai-course-vocabulary-example-furigana.md）。
+- 人間レビューは educational review画面（ai-course-vocabulary-content-review.md）で実施可能。

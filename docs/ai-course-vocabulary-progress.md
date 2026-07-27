@@ -25,3 +25,11 @@ dailyWords = { dateKey, itemIds }。不正JSON/version不一致は安全破棄�
 教材・画像manifest=TS静的（レビューがgitで完結・デプロイと同期・DBに教材本文を置かない）、
 学習者進捗=DB（ai_course_foundation_vocabulary_progress）という分担を採用。
 visual asset metadataはDBへ入れない（運用比較の結論: 画像差し替えはgit+deployで原子的に行う方が安全）。
+
+## Phase 2E-1 更新（2026-07-27）
+
+- sessionStorage `ai_course_vocab_preview_v1` を schemaVersion 2 へ（次元別診断）。
+  v1からの移行はlegacy保持（confirmed→partially_confirmed・次元をでっち上げない）。
+- 教材レビュー専用 `ai_course_vocab_review_preview_v1`（schemaVersion 1）を新設。
+  語彙進捗と教材レビューは混ぜない（キー・型・テストで分離）。
+- 正式保存（migration適用）時は diagnostics の次元構造をそのままJSONBへ移せる設計。

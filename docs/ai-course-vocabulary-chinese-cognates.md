@@ -13,3 +13,12 @@ transparent_same / mostly_same / partial_overlap / false_friend / japanese_speci
 ## 現状
 high confidence分類: transparent_same 8語・mostly_same 2語・false_friend 2語（先生・勉強する）・
 partial_overlap 5語・japanese_specific 2語・no_cognate 2語。残り57語=unreviewed（人間レビュー待ち）。
+
+## Phase 2E-1 更新（2026-07-27）
+
+- 140語の実測（auditSummary・単一集計関数）: 分類済み40（transparent 17／mostly 9／partial 6／
+  false friend 4／japanese_specific 2／no_cognate 2）・unreviewed 100（基礎55＋N3 45）。
+- Sense別上書きを導入（高い・聞く・大変・都合＝4語8Sense・未レビュー2Sense）。
+  Item集計とSense集計は分離（ai-course-vocabulary-sense-cognates.md）。
+- 中心意味（meaningZhShort）と学習ポイント（learningFocusZh・37語）を分離（同ドキュメント§4）。
+- 中国語表記の正規化: meaningZh内の日本語式中黒「・」を「；」へ統一（テストで再発防止）。

@@ -7,3 +7,10 @@
 - 自己申告だけで完了扱いにしない（self_knownはdiagnostic結果に影響しない・テスト担保）
 - N2学習者の初期パス: 基礎診断→弱点remedialだけ学習→N3準備パック→（将来）N2パック
 - 3分復習（§25）: 弱点3〜7問・前回誤答の軸を維持（読み誤答→読み形式）・画像形式も利用
+
+## Phase 2E-1 更新（2026-07-27）
+
+本ドキュメントの「confirmed/remedial」二値モデルは次元別モデルへ拡張された。
+現行仕様は ai-course-vocabulary-diagnostic-dimensions.md が正
+（reading/meaning/usage/collocation/particle/conjugation・basic_confirmed/partially_confirmed/remedial・
+v1→v2移行・診断問題プール）。

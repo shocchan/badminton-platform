@@ -12,3 +12,9 @@ always（いつも表示）/ first_time（初めてのことばだけ）/ hard_o
 - 読み問題（reading_choice等）の問題文には対象語の読みを表示しない
 - 画像問題のalt・aria-labelに正解の日本語（見出し語・かな）を含めない（altLeaksAnswer検証）
 - 回答後の解説では読みを表示する
+
+## Phase 2E-1 更新（2026-07-27）
+
+- 例文の語別ふりがなを本実装（140/140語・667セグメント）。仕様は
+  ai-course-vocabulary-example-furigana.md が正（再構成保証・hard_only/offの実挙動・
+  不確実語のplain textフォールバック・「読みを表示」補助操作）。
