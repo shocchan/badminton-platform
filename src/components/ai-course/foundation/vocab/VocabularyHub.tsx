@@ -30,16 +30,19 @@ import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabPro
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import type { VocabSpacedReviewRepository, ReviewResult } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
+import { detectFirstRunState } from '../../../../lib/aiLesson/course/firstRunJourney';
+import { LearnerErrorBoundary, LearnerRecovery } from './LearnerRecovery';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
 const VocabDecisionBadgeLazy = lazy(() => import('./VocabDecisionBadge'));
 const VocabConnectivityInspectorLazy = lazy(() => import('./VocabConnectivityInspector'));
+const FirstRunJourneyLazy = lazy(() => import('./FirstRunJourney'));
 import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -69,7 +72,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity' || v === 'firstrun') return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -143,6 +146,18 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
               );
             })()}
           </div>
+          {/* ①-0 初回の案内（2E-1.11 §3・履歴がある人には出さない） */}
+          {(() => {
+            const fr = detectFirstRunState(window.sessionStorage, repo, schedule);
+            if (fr.state !== 'true_first_run' && fr.state !== 'onboarding_in_progress') return null;
+            return (
+              <div className="bg-white rounded-2xl border border-indigo-200 p-5 mb-4">
+                <p className="text-xs font-bold text-indigo-700 mb-1">{tv.frSteps.goal}</p>
+                <p className="text-base font-bold text-gray-900 mb-3">{tv.frGoalHeading}</p>
+                <ActionButton variant="primary" fullWidth onClick={() => setView('firstrun')}>{tv.frNext}</ActionButton>
+              </div>
+            );
+          })()}
           {/* ①-a 今日の復習（期限ベース・第一表示・2E-1.10 §6）。0件のときは出さず次の行動へ誘導 */}
           {(() => {
             const s = schedule.getDueSummary();
@@ -234,6 +249,17 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')}
             onOpenItem={(id) => setView('detail', null, id)} />
         </Suspense>
+      )}
+      {view === 'firstrun' && (
+        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview>
+          <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+            <FirstRunJourneyLazy t={t}
+              onStartCheck={() => setView('diagnostic')}
+              onStartPractice={() => setView('daily')}
+              onHome={() => setView('top')}
+              onComplete={() => setView('top')} />
+          </Suspense>
+        </LearnerErrorBoundary>
       )}
       {view === 'connectivity' && (
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
@@ -853,6 +879,10 @@ const VocabDiagnosticView = ({ t, repo, itemById, items, onChanged, onDone }: {
   const [picked, setPicked] = useState<number | null>(null);
   const [judged, setJudged] = useState<boolean | null>(null);
   useEffect(() => { trackCourseOnce('start_ai_course_vocabulary_diagnostic'); }, []);
+  // 問題が1問も作れない場合は学習を止めず、代替の練習へ誘導する（2E-1.11 §7）
+  if (setQs.length === 0 && !repo.getDiagnosticOutcomes(pack.id)) {
+    return <LearnerRecovery t={t} kind="empty_pool" onHome={onDone} onAlternative={onDone} />;
+  }
   if (setQs.length === 0 || idx >= setQs.length) {
     // 結果はRepositoryの導出値から表示（ローカルカウントの二重管理をしない・§6）
     const outcomes = repo.getDiagnosticOutcomes(pack.id);
