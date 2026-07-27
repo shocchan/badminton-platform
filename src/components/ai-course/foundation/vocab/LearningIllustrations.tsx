@@ -13,14 +13,19 @@ const motionSafe = 'motion-safe:transition-all motion-safe:duration-300';
 
 // viewBoxは図形のbboxに合わせて個別に渡す（共通viewBoxだと余白が大きく、絵が小さく見えた）
 // 幅だけ指定して高さは比率任せにする（正方形に押し込むと図が上下に潰れて読めなくなる）
-const Frame = ({ children, label, viewBox }: { children: ReactNode; label: string; viewBox: string }) => (
-  <svg viewBox={viewBox} role="img" aria-label={label} className="w-16 shrink-0">
+//
+// アクセシビリティ（2E-1.14 §11）: これらの絵は必ず隣に同じ意味の見出しがある場所で使う。
+// そこで **既定は装飾（aria-hidden）** とし、読み上げを重複させない。
+// 隣接テキストが無い場所で使う場合だけ label を渡すと、意味のある画像として読まれる。
+const Frame = ({ children, label, viewBox }: { children: ReactNode; label?: string; viewBox: string }) => (
+  <svg viewBox={viewBox} className="w-16 shrink-0" focusable="false"
+    {...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': true })}>
     {children}
   </svg>
 );
 
 /** Step1 目的: 方位磁針（どこへ向かうか） */
-export const GoalIllustration = ({ label }: { label: string }) => (
+export const GoalIllustration = ({ label }: { label?: string }) => (
   <Frame label={label} viewBox="18 6 60 60">
     <circle cx="48" cy="36" r="26" fill="#EEF2FF" />
     <circle cx="48" cy="36" r="26" fill="none" stroke="#C7D2FE" strokeWidth="2" />
@@ -31,7 +36,7 @@ export const GoalIllustration = ({ label }: { label: string }) => (
 );
 
 /** Step2 短い確認: カードと虫めがね（測るのではなく「見てみる」印象） */
-export const CheckIllustration = ({ label }: { label: string }) => (
+export const CheckIllustration = ({ label }: { label?: string }) => (
   <Frame label={label} viewBox="14 15 70 48">
     <rect x="18" y="20" width="34" height="26" rx="4" fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="2" />
     <rect x="24" y="27" width="18" height="3" rx="1.5" fill="#A5B4FC" />
@@ -42,7 +47,7 @@ export const CheckIllustration = ({ label }: { label: string }) => (
 );
 
 /** Step3 最初の練習: 吹き出し（話す・使う） */
-export const PracticeIllustration = ({ label }: { label: string }) => (
+export const PracticeIllustration = ({ label }: { label?: string }) => (
   <Frame label={label} viewBox="6 15 82 50">
     <path d="M14 18 h50 a6 6 0 0 1 6 6 v20 a6 6 0 0 1 -6 6 h-30 l-12 10 v-10 h-8 a6 6 0 0 1 -6 -6 v-20 a6 6 0 0 1 6 -6 z"
       fill="#EEF2FF" stroke="#C7D2FE" strokeWidth="2" />
@@ -54,7 +59,7 @@ export const PracticeIllustration = ({ label }: { label: string }) => (
 );
 
 /** Step4 まとめ: カレンダーの中の大きなチェック（今日ぶんが終わった、が一目で分かる形） */
-export const DoneIllustration = ({ label }: { label: string }) => (
+export const DoneIllustration = ({ label }: { label?: string }) => (
   <Frame label={label} viewBox="10 10 76 60">
     <rect x="14" y="14" width="68" height="52" rx="8" fill="#fff" stroke="#C7D2FE" strokeWidth="3" />
     <rect x="14" y="14" width="68" height="14" rx="8" fill="#4F46E5" />

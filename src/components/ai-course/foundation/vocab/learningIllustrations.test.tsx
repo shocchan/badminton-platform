@@ -80,20 +80,29 @@ describe('ReviewTimeline', () => {
 });
 
 describe('ステップイラスト', () => {
-  it('4ステップ分そろっていて、すべて role="img" と読み上げラベルを持つ', () => {
+  it('既定では装飾扱いになる（隣の見出しと二重に読み上げさせない）', () => {
     const keys = ['goal', 'check', 'practice', 'done'] as const;
     keys.forEach((k) => {
       const Illustration = STEP_ILLUSTRATIONS[k];
-      const { container } = render(<Illustration label={`ラベル-${k}`} />);
+      const { container } = render(<Illustration />);
       const svg = container.querySelector('svg');
-      expect(svg?.getAttribute('role')).toBe('img');
-      expect(svg?.getAttribute('aria-label')).toBe(`ラベル-${k}`);
+      expect(svg?.getAttribute('aria-hidden')).toBe('true');
+      expect(svg?.getAttribute('role')).toBeNull();
+      expect(svg?.getAttribute('focusable')).toBe('false');
       cleanup();
     });
   });
 
+  it('隣接テキストが無い場所ではラベルを渡して意味のある画像にできる', () => {
+    const { container } = render(<STEP_ILLUSTRATIONS.goal label="学習の目的" />);
+    const svg = container.querySelector('svg');
+    expect(svg?.getAttribute('role')).toBe('img');
+    expect(svg?.getAttribute('aria-label')).toBe('学習の目的');
+    expect(svg?.getAttribute('aria-hidden')).toBeNull();
+  });
+
   it('外部リソースを読み込まない（画像リクエスト・script を含まない）', () => {
-    const { container } = render(<STEP_ILLUSTRATIONS.done label="まとめ" />);
+    const { container } = render(<STEP_ILLUSTRATIONS.done />);
     expect(container.querySelector('image')).toBeNull();
     expect(container.querySelector('script')).toBeNull();
     expect(container.innerHTML).not.toContain('http');

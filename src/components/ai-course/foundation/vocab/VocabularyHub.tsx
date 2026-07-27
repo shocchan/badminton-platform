@@ -1113,7 +1113,7 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
     <div className="bg-white rounded-2xl border border-gray-100 p-5" aria-live="polite">
       {/* 見出しの横に絵を置き、視線の起点を作る（CEO指示・2E-1.13） */}
       <div className="flex items-center gap-3 mb-2">
-        <DoneIllustration label={tv.completionTitle} />
+        <DoneIllustration />
         <h3 className="text-base font-bold text-gray-900 leading-snug">{tv.completionTitle}</h3>
       </div>
       <ul className="text-sm text-gray-700 space-y-1 mb-2">

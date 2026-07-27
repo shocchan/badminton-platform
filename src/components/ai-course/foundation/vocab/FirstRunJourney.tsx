@@ -55,14 +55,15 @@ const StepProgress = ({ t, step }: { t: AiCourseDict; step: JourneyStep }) => {
   );
 };
 
-/** 各ステップの見出し（イラスト＋大きな見出しで視線の起点を作る） */
-const StepHeading = ({ t, step, title, body }: {
-  t: AiCourseDict; step: JourneyStep; title: string; body?: string;
+/** 各ステップの見出し（イラスト＋大きな見出しで視線の起点を作る）。
+ *  絵は装飾（隣の見出しが同じ意味を伝えるため、読み上げを重複させない・§11） */
+const StepHeading = ({ step, title, body }: {
+  step: JourneyStep; title: string; body?: string;
 }) => {
   const Illustration = STEP_ILLUSTRATIONS[step];
   return (
     <div className="flex items-center gap-3 mb-3">
-      <Illustration label={t.vocab.frSteps[step]} />
+      <Illustration />
       <div className="min-w-0">
         <h2 className="text-base font-bold text-gray-900 leading-snug" tabIndex={-1}>{title}</h2>
         {body && <p className="text-xs text-gray-600 mt-1">{body}</p>}
@@ -162,7 +163,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
 
       {step === 'goal' && (
         <>
-          <StepHeading t={t} step="goal" title={tv.frGoalHeading} body={tv.frGoalNote} />
+          <StepHeading step="goal" title={tv.frGoalHeading} body={tv.frGoalNote} />
           <fieldset className="space-y-2">
             <legend className="sr-only">{tv.frGoalHeading}</legend>
             {LEARNING_GOALS.map((g) => (
@@ -177,7 +178,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
 
       {step === 'check' && (
         <>
-          <StepHeading t={t} step="check" title={tv.frCheckHeading} body={tv.frCheckNote} />
+          <StepHeading step="check" title={tv.frCheckHeading} body={tv.frCheckNote} />
           <ActionButton variant="primary" fullWidth
             onClick={() => { trackCourse('start_ai_course_first_run', { step: 'check' }); startTask('diagnostic', onStartCheck); }}>
             {tv.frCheckStart}
@@ -193,7 +194,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
 
       {step === 'practice' && (
         <>
-          <StepHeading t={t} step="practice" title={tv.frPracticeHeading} body={goalReason(goal)} />
+          <StepHeading step="practice" title={tv.frPracticeHeading} body={goalReason(goal)} />
           <ActionButton variant="primary" fullWidth
             onClick={() => { repo.completePractice(); refresh(); trackCourse('start_ai_course_first_run', { step: 'practice' }); startTask('practice', onStartPractice); }}>
             {tv.frPracticeStart}
@@ -205,7 +206,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
 
       {step === 'done' && (
         <>
-          <StepHeading t={t} step="done" title={tv.frDoneHeading} />
+          <StepHeading step="done" title={tv.frDoneHeading} />
           {/* 実際に確定した結果だけを表示。取得できなかった値は0と断定しない（§8）。
               数値テキストと棒グラフの両方を出し、図が読めなくても内容が分かるようにする。 */}
           {snapshot && (
