@@ -246,7 +246,8 @@ describe('保存データの版が食い違うとき（2E-1.15）', () => {
     window.sessionStorage.setItem('ai_course_journey_task_v1', '{壊れたJSON');
     render(<FirstRunJourney {...base} />);
     await waitFor(() => expect(screen.getByText(tv.recUnreadableHeading)).toBeTruthy());
-    expect(screen.getByText(tv.recCorruptCta)).toBeTruthy();
+    // 第一CTAは「この初回学習を最初から始める」（2E-1.16 §7）
+    expect(screen.getByText(tv.recUnreadableCta)).toBeTruthy();
     // 学習記録と復習予定は消さない
     expect(window.sessionStorage.getItem('ai_course_vocab_preview_v1')).not.toBeNull();
   });

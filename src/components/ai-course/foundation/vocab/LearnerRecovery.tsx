@@ -40,15 +40,20 @@ export const LearnerRecovery = ({
     version_conflict: { heading: tv.recNewerHeading, body: tv.recNewerBody },
     unreadable_journey: { heading: tv.recUnreadableHeading, body: tv.recUnreadableBody },
   }[kind];
-  // 第一CTA: 再試行があれば再試行・なければ代替・どちらも無ければホーム
-  const primary = onRetry
-    ? { label: tv.recRetry, action: onRetry }
-    : onAlternative
-      ? { label: tv.recEmptyAlt, action: onAlternative }
-      : { label: tv.frGoHome, action: onHome };
+  // 続き方が読めないときは「最初から始める」が第一CTA（2E-1.16 §7）。
+  // それ以外は 再試行 → 代替 → ホーム の順で第一CTAを決める。
+  const restartLabel = kind === 'unreadable_journey' ? tv.recUnreadableCta : tv.recCorruptCta;
+  const primary = kind === 'unreadable_journey' && onResetOnboarding
+    ? { label: restartLabel, action: onResetOnboarding }
+    : onRetry
+      ? { label: tv.recRetry, action: onRetry }
+      : onAlternative
+        ? { label: tv.recEmptyAlt, action: onAlternative }
+        : { label: tv.frGoHome, action: onHome };
   const secondaries = [
     onRetry && onAlternative ? { label: tv.recEmptyAlt, action: onAlternative } : null,
-    onResetOnboarding ? { label: tv.recCorruptCta, action: onResetOnboarding } : null,
+    onResetOnboarding && primary.action !== onResetOnboarding
+      ? { label: restartLabel, action: onResetOnboarding } : null,
     primary.label !== tv.frGoHome ? { label: tv.frGoHome, action: onHome } : null,
   ].filter(Boolean).slice(0, 2) as { label: string; action: () => void }[];
 
