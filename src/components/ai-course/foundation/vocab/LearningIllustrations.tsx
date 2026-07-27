@@ -96,7 +96,7 @@ export const JourneyStepper = ({ steps, currentIndex, ariaLabel }: {
             className={`relative z-10 w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${motionSafe} ${
               done ? 'bg-indigo-500 text-white'
                 : current ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 scale-110'
-                  : 'bg-gray-100 text-gray-400'}`}>
+                  : 'bg-gray-100 text-gray-500'}`}>
             {done ? '✓' : i + 1}
           </span>
           <span className={`mt-1 text-[10px] leading-tight text-center ${current ? 'font-bold text-indigo-700' : 'text-gray-500'}`}>
@@ -123,7 +123,7 @@ export const PhaseTrail = ({ phases, currentIndex, ariaLabel }: {
       return (
         <li key={label} aria-current={current ? 'step' : undefined}
           className={`flex items-center gap-1 text-[10px] ${motionSafe} ${
-            current ? 'font-bold text-indigo-700' : done ? 'text-indigo-400' : 'text-gray-400'}`}>
+            current ? 'font-bold text-indigo-700' : done ? 'text-indigo-500' : 'text-gray-500'}`}>
           <span aria-hidden className={`w-1.5 h-1.5 rounded-full ${
             current ? 'bg-indigo-600' : done ? 'bg-indigo-300' : 'bg-gray-200'}`} />
           {label}
@@ -191,12 +191,12 @@ export const ReviewTimeline = ({ points, todayLabel }: { points: TimelinePoint[]
                   : active ? (c.emphasis ? 'w-3 h-3 bg-indigo-500' : 'w-2.5 h-2.5 bg-indigo-300')
                     : 'w-2 h-2 bg-gray-200'}`} />
               <span className={`mt-1.5 text-[10px] leading-none ${
-                today ? 'font-bold text-indigo-700' : active ? 'text-gray-700' : 'text-gray-400'}`}>
+                today ? 'font-bold text-indigo-700' : active ? 'text-gray-700' : 'text-gray-500'}`}>
                 {c.label}
               </span>
               {/* 今日の列は件数を持たないが、高さを揃えるため空の行を確保する */}
               <span className={`mt-0.5 text-[10px] leading-none font-bold tabular-nums ${
-                active ? 'text-indigo-700' : 'text-gray-300'}`}>
+                active ? 'text-indigo-700' : 'text-gray-500'}`}>
                 {c.count === null ? '\u00a0' : c.count}
               </span>
             </div>
