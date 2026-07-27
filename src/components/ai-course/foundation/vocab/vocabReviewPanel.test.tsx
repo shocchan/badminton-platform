@@ -7,11 +7,11 @@ import { RubySegments, RubyWord } from './RubyText';
 import { resolveFuriganaMode } from '../../../../lib/aiLesson/course/vocabFurigana';
 import { aiCourseI18n } from '../../../../locales/aiCourse';
 import { allVocabularyItems } from '../../../../lib/aiLesson/course/foundationVocabBank';
-import { VOCAB_REVIEW_STORAGE_KEY } from '../../../../lib/aiLesson/course/vocabReviewStore';
+import { VOCAB_REVIEW_LOCAL_KEY } from '../../../../lib/aiLesson/course/vocabReviewStore';
 import { REVIEW_I18N } from './vocabReviewI18n';
 
 afterEach(cleanup);
-beforeEach(() => { window.sessionStorage.clear(); });
+beforeEach(() => { window.sessionStorage.clear(); window.localStorage.clear(); });
 const t = aiCourseI18n.ja;
 const items = allVocabularyItems();
 const base = { t, items, onOpenItem: () => {}, onBack: () => {} };
@@ -74,7 +74,7 @@ describe('教材レビュー画面（§14-§17）', () => {
     render(<VocabReviewPanel {...base} />);
     fireEvent.click(screen.getByText(`${REVIEW_I18N.ja.decisionOk} (A)`));
     await waitFor(() => {
-      const raw = JSON.parse(window.sessionStorage.getItem(VOCAB_REVIEW_STORAGE_KEY)!);
+      const raw = JSON.parse(window.localStorage.getItem(VOCAB_REVIEW_LOCAL_KEY)!);
       expect(Object.keys(raw.entries).length).toBe(1);
       expect(Object.values(raw.entries)[0]).toMatchObject({ decision: 'ok', reviewerMode: 'labPreview' });
     });
@@ -85,15 +85,15 @@ describe('教材レビュー画面（§14-§17）', () => {
     render(<VocabReviewPanel {...base} />);
     fireEvent.keyDown(window, { key: 'a' });
     await waitFor(() => {
-      const raw = JSON.parse(window.sessionStorage.getItem(VOCAB_REVIEW_STORAGE_KEY)!);
+      const raw = JSON.parse(window.localStorage.getItem(VOCAB_REVIEW_LOCAL_KEY)!);
       expect(Object.keys(raw.entries).length).toBe(1);
     });
     // 入力欄フォーカス中は無効
-    window.sessionStorage.removeItem(VOCAB_REVIEW_STORAGE_KEY);
+    window.localStorage.removeItem(VOCAB_REVIEW_LOCAL_KEY);
     const noteBox = screen.getByLabelText(new RegExp(REVIEW_I18N.ja.noteLabel));
     noteBox.focus();
     fireEvent.keyDown(window, { key: 'a' });
-    expect(window.sessionStorage.getItem(VOCAB_REVIEW_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(VOCAB_REVIEW_LOCAL_KEY)).toBeNull();
   });
   it('J/Kで前後へ移動（onOpenItemに次のitemIdが渡る）', async () => {
     const onOpenItem = vi.fn();
@@ -106,13 +106,13 @@ describe('教材レビュー画面（§14-§17）', () => {
     fireEvent.change(screen.getByLabelText(REVIEW_I18N.ja.importBtn), { target: { value: '{{{broken' } });
     fireEvent.click(screen.getByText(REVIEW_I18N.ja.importBtn));
     await waitFor(() => expect(screen.getByText(REVIEW_I18N.ja.importFail)).toBeTruthy());
-    expect(window.sessionStorage.getItem(VOCAB_REVIEW_STORAGE_KEY)).toBeNull();
+    expect(window.localStorage.getItem(VOCAB_REVIEW_LOCAL_KEY)).toBeNull();
   });
   it('フィルター: false friendで件数が絞られ、該当語（先生・都合等）だけになる', async () => {
     render(<VocabReviewPanel {...base} />);
     fireEvent.change(screen.getByLabelText(REVIEW_I18N.ja.filterLabel), { target: { value: 'false_friend' } });
     await waitFor(() => {
-      const counter = screen.getByText(new RegExp('^1 / '));
+      const counter = screen.getAllByText(new RegExp('^1 / ')).find((el) => el.className.includes('font-mono'))!;
       const totalShown = Number(counter.textContent!.split('/')[1].trim());
       expect(totalShown).toBeGreaterThanOrEqual(4);   // 先生・勉強・都合・大変（+Sense override語）
       expect(totalShown).toBeLessThan(items.length);

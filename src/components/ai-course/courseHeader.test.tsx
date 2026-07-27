@@ -21,6 +21,28 @@ describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () =
     const navLabels = labels.filter((l) => Object.values(t.nav).some((v2) => l?.includes(v2)));
     expect(navLabels.join(',')).toContain(`${t.nav.home},${t.nav.conversation},${t.nav.vocab},${t.nav.lab},${t.nav.growth}`);
   });
+  it('モバイル案A（2E-1.5 §16）: 主要4項目＋その他シート（成長・設定）・Escapeで閉じる', () => {
+    const onNav = vi.fn();
+    render(<CourseHeader {...base} showLab onNavigate={onNav} />);
+    // その他を開くと成長・設定が出る
+    const more = screen.getByText(t.nav.more);
+    expect(more.closest('button')?.getAttribute('aria-expanded')).toBe('false');
+    fireEvent.click(more);
+    expect(more.closest('button')?.getAttribute('aria-expanded')).toBe('true');
+    const menu = screen.getByRole('menu');
+    expect(menu.textContent).toContain(t.nav.growth);
+    expect(menu.textContent).toContain(t.nav.settings);
+    fireEvent.click(screen.getAllByText(t.nav.growth).find((el) => el.closest('[role=menu]'))!);
+    expect(onNav).toHaveBeenCalledWith('growth');
+    // Escapeで閉じる
+    fireEvent.click(screen.getByText(t.nav.more));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByRole('menu')).toBeNull();
+    // 一般受講生ナビに「その他」は無い
+    cleanup();
+    render(<CourseHeader {...base} />);
+    expect(screen.queryByText(t.nav.more)).toBeNull();
+  });
   it('AI会話ナビはonNavigate(conversation)を発火・一般受講生には出ない', () => {
     const onNav = vi.fn();
     render(<CourseHeader {...base} showLab onNavigate={onNav} />);

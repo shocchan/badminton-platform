@@ -6,8 +6,10 @@
 // - スマホ: ブランド行＋横スクロールタブ（従来のコンパクト表示）
 // - lg以上: 1段レイアウト（左ブランド／中央ナビ／右 言語切替・ログアウト）
 
-import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical, BookOpen, Mic } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { GraduationCap, Home, TrendingUp, Map, History, Settings, LogOut, Languages, FlaskConical, BookOpen, Mic, MoreHorizontal } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 
 /** ヘッダーのナビ対象（AiCoursePage の Step と対応。conversationはホームの会話開始位置への入口） */
 export type CourseNavKey = 'home' | 'conversation' | 'growth' | 'roadmap' | 'vocab' | 'lab' | 'history' | 'settings';
@@ -46,6 +48,75 @@ const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] 
     { key: 'history', icon: History },
     { key: 'settings', icon: Settings },
   ]);
+
+/**
+ * labPreviewモバイルナビ（案A・2E-1.5 §16）: ホーム/AI会話/ことば/しくみ＋その他。
+ * 「その他」は新画面ではなく軽量シート（成長・設定）。Escape/外側タップ/選択で閉じる。
+ * 4項目は320pxでも各72px以上・44pxタップ領域を確保できる。
+ */
+const MobileLabNav = ({ t, current, onNavigate }: {
+  t: AiCourseDict; current?: CourseNavKey; onNavigate: (k: CourseNavKey) => void;
+}) => {
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMoreOpen(false); };
+    const onDown = (e: MouseEvent) => { if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false); };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onDown);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onDown); };
+  }, [moreOpen]);
+  const MAIN: { key: CourseNavKey; icon: typeof Home; label: string }[] = [
+    { key: 'home', icon: Home, label: t.nav.home },
+    { key: 'conversation', icon: Mic, label: t.nav.conversation },
+    { key: 'vocab', icon: BookOpen, label: t.nav.vocab },
+    { key: 'lab', icon: FlaskConical, label: t.nav.labShort },
+  ];
+  const moreActive = current === 'growth' || current === 'settings';
+  return (
+    <nav className="lg:hidden relative -mb-px" aria-label={t.brand}>
+      <div className="flex items-stretch">
+        {MAIN.map(({ key, icon: Icon, label }) => (
+          <button
+            key={key} type="button" onClick={() => { setMoreOpen(false); onNavigate(key); }}
+            aria-current={current === key ? 'page' : undefined}
+            className={`flex-1 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
+              current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            {label}
+          </button>
+        ))}
+        <button
+          type="button" aria-expanded={moreOpen} aria-haspopup="menu"
+          onClick={() => { if (!moreOpen) trackCourse('open_ai_course_mobile_more'); setMoreOpen((v) => !v); }}
+          className={`flex-1 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
+            moreActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          <MoreHorizontal className="w-3.5 h-3.5 shrink-0" />
+          {t.nav.more}
+        </button>
+      </div>
+      {moreOpen && (
+        <div ref={moreRef} role="menu" aria-label={t.nav.more}
+          className="absolute right-2 top-full mt-1 z-40 bg-white border border-gray-200 rounded-xl shadow-lg py-1 min-w-40 motion-safe:animate-[fadeIn_120ms_ease-out]">
+          {([['growth', TrendingUp, t.nav.growth], ['settings', Settings, t.nav.settings]] as [CourseNavKey, typeof Home, string][]).map(([key, Icon, label]) => (
+            <button key={key} type="button" role="menuitem"
+              onClick={() => { setMoreOpen(false); onNavigate(key); }}
+              aria-current={current === key ? 'page' : undefined}
+              className={`w-full min-h-11 px-4 py-2 text-sm text-left flex items-center gap-2 ${current === key ? 'text-blue-700 font-bold' : 'text-gray-700'} hover:bg-gray-50`}
+            >
+              <Icon className="w-4 h-4" />{label}
+            </button>
+          ))}
+        </div>
+      )}
+    </nav>
+  );
+};
 
 /** 言語切替ボタン。日本語表示中は「中文」、中国語表示中は「日本語」を出す（必ず文字を表示） */
 const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: () => void; label: string }) => (
@@ -105,23 +176,28 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
           </div>
         </div>
 
-        {/* ── 下段: スマホ/タブレット用の横スクロールタブ（lg未満のみ） ── */}
+        {/* ── 下段: スマホ/タブレット用タブ（lg未満のみ）。
+             labPreviewは案A（2E-1.5 §16）: 主要4項目＋「その他」（成長・設定は軽量シート）。
+             一般受講生は従来の5項目のまま。 ── */}
         {showNav && onNavigate && (
-          <nav className={`flex lg:hidden items-center gap-1 -mb-px ${showLab ? 'flex-wrap' : 'overflow-x-auto'}`} aria-label={t.brand}>
-            {NAV.map(({ key, icon: Icon }) => (
-              <button
-                key={key} type="button" onClick={() => onNavigate(key)}
-                aria-current={current === key ? 'page' : undefined}
-                className={`min-h-11 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center gap-1.5 transition-colors ${
-                  current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {/* モバイルは「日本語のしくみ」を短縮表示（6項目でも窮屈にしない・§19） */}
-                {showLab && key === 'lab' ? t.nav.labShort : t.nav[key]}
-              </button>
-            ))}
-          </nav>
+          showLab
+            ? <MobileLabNav t={t} current={current} onNavigate={onNavigate} />
+            : (
+              <nav className="flex lg:hidden items-center gap-1 -mb-px overflow-x-auto" aria-label={t.brand}>
+                {NAV.map(({ key, icon: Icon }) => (
+                  <button
+                    key={key} type="button" onClick={() => onNavigate(key)}
+                    aria-current={current === key ? 'page' : undefined}
+                    className={`min-h-11 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center gap-1.5 transition-colors ${
+                      current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    {t.nav[key]}
+                  </button>
+                ))}
+              </nav>
+            )
         )}
       </div>
     </header>

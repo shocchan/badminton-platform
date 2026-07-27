@@ -136,7 +136,26 @@
     --action-depth: 0 3px 0 0;
     --card-interactive-shadow: 0 1px 3px rgb(15 23 42 / 0.07), 0 4px 12px rgb(15 23 42 / 0.06);
     --transition-fast: 140ms cubic-bezier(0.2, 0.7, 0.4, 1);
+    /* Premium Typography System（Phase 2E-1.5 §17・AIコース学習画面共通） */
+    --type-display: 700 1.5rem/1.35 system-ui, sans-serif;        /* ホームHeroのみ */
+    --type-page-title: 700 1.125rem/1.4 system-ui, sans-serif;    /* ことば・しくみ・成長等 */
+    --type-section-title: 700 0.75rem/1.4 system-ui, sans-serif;  /* セクション見出し（灰） */
+    --type-card-title: 700 0.875rem/1.45 system-ui, sans-serif;
+    --type-body: 400 0.875rem/1.6 system-ui, sans-serif;
+    --type-caption: 400 0.6875rem/1.5 system-ui, sans-serif;
+    --type-japanese-word: 700 1.625rem/1.3 system-ui, sans-serif; /* 語彙見出し語 */
+    --type-reading: 400 0.875rem/1.4 system-ui, sans-serif;       /* 見出し語の読み */
+    --type-translation: 400 1rem/1.6 system-ui, sans-serif;       /* 中国語中心意味（日本語が主・中国語が従） */
+    --type-ruby-size: 0.6em;                                       /* rubyは小さすぎない（旧0.55em→0.6em） */
   }
+  .type-display { font: var(--type-display); }
+  .type-page-title { font: var(--type-page-title); }
+  .type-section-title { font: var(--type-section-title); letter-spacing: 0.02em; }
+  .type-card-title { font: var(--type-card-title); }
+  .type-caption { font: var(--type-caption); }
+  .type-japanese-word { font: var(--type-japanese-word); }
+  .type-reading { font: var(--type-reading); }
+  .type-translation { font: var(--type-translation); }
   /* 押せるボタン共通（浮く→持ち上がる→押し込む） */
   .action-raised {
     transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);

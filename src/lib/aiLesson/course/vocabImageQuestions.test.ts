@@ -23,11 +23,12 @@ describe('画像問題（§27・§43）', () => {
     expect(buildImageToWordQuestion(iku, asset, items, 5, false)).toBeNull();
   });
   it('未生成（filePath null）・assetなしでは生成しない', () => {
-    const noru = items.find((i) => i.id === 'fi-noru')!;
-    const plannedAsset = VISUAL_ASSETS.find((a) => a.id === 'va-verb-noru-scene')!;
-    expect(plannedAsset.filePath).toBeNull(); // 未取り込みassetはplannedのまま（2E-1時点で乗る/降りる等が残り）
-    expect(buildImageToWordQuestion(noru, plannedAsset, items, 5, true)).toBeNull();
+    // 取り込み進行に依存しないよう、filePath無しのassetを合成して検証（挙動仕様のテスト）
+    const plannedAsset = draftAsset({ filePath: null, thumbnailPath: null, reviewStatus: 'planned' });
+    expect(buildImageToWordQuestion(iku, plannedAsset, items, 5, true)).toBeNull();
     expect(buildImageToWordQuestion(iku, undefined, items, 5, true)).toBeNull();
+    // manifest側の不変条件: filePathが無いassetは必ずplanned系状態
+    for (const a of VISUAL_ASSETS) if (!a.filePath) expect(['planned', 'rejected']).toContain(a.reviewStatus);
   });
   it('取り込み済み実画像（行く等12枚）はdraftとしてlabPreviewで問題化できる', () => {
     const real = VISUAL_ASSETS.find((a) => a.id === 'va-verb-iku-scene')!;

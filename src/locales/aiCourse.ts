@@ -17,6 +17,7 @@ const ja = {
     conversation: 'AI会話',
     history: '学習記録',
     settings: '設定',
+    more: 'その他',
   },
   growth: {
     nav: '成長',
@@ -875,7 +876,14 @@ const ja = {
     diagnosticBasic: (n: number) => `基礎確認済み（読み＋意味）: ${n}語`,
     diagnosticPartial: (n: number) => `一部確認済み: ${n}語`,
     // ── ロードマップの旅表示（§24） ──
-    roadmapSteps: { goal: '目標', pack: '現在のパック', diagnostic: '知っていることばの確認', learn: '毎日の学習（今日の3語）', verify: '問題で確認', retention: '定着の確認', next: '次のパック' } as Record<string, string>,
+    roadmapSteps: { goal: '目標', pack: '現在のパック', diagnostic: 'まず確認', learn: '必要なことばを学ぶ', verify: '問題で確認', retention: '日を空けて復習', next: '次のパック' } as Record<string, string>,
+    // 各ステップの「なぜ」を短く（§20・説明を長くしない）
+    roadmapStepWhy: {
+      diagnostic: '知っていることばは短い確認で通過します',
+      learn: '画像・読み・意味・使い方を確認します',
+      verify: '自分で選べるか確かめます',
+      retention: 'あとで思い出せるか確認します',
+    } as Record<string, string>,
     roadmapNextNote: '現在のパックを進めると始められます。',
     quickReviewChip: (n: number) => `3分復習（${n}）`,
     // ── 成長画面の語彙統合（§25） ──
@@ -1027,6 +1035,7 @@ const zh: AiCourseDict = {
     conversation: 'AI会话',
     history: '学习记录',
     settings: '设置',
+    more: '更多',
   },
   growth: {
     nav: '成长',
@@ -1882,7 +1891,13 @@ const zh: AiCourseDict = {
     diagnosticBasic: (n: number) => `基础已确认（读音＋意思）：${n} 个词`,
     diagnosticPartial: (n: number) => `部分已确认：${n} 个词`,
     // ── 路线图（§24） ──
-    roadmapSteps: { goal: '目标', pack: '当前词汇包', diagnostic: '确认已会的词', learn: '每日学习（今日3词）', verify: '做题确认', retention: '巩固确认', next: '下一个词汇包' } as Record<string, string>,
+    roadmapSteps: { goal: '目标', pack: '当前词汇包', diagnostic: '先确认', learn: '学习需要的词', verify: '做题确认', retention: '隔天复习', next: '下一个词汇包' } as Record<string, string>,
+    roadmapStepWhy: {
+      diagnostic: '已经会的词，快速确认即可通过',
+      learn: '通过图片・读音・意思・用法来学习',
+      verify: '确认自己能不能选出来',
+      retention: '过几天再确认还记不记得',
+    } as Record<string, string>,
     roadmapNextNote: '继续当前词汇包后即可开始。',
     quickReviewChip: (n: number) => `3分钟复习（${n}）`,
     // ── 成长页的词汇状态（§25） ──

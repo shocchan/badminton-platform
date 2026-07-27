@@ -681,7 +681,14 @@ export default function AiCoursePage() {
             <button type="button" onClick={() => setStep('history')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.history}</button>
           </div>
         )}
-        {labAllowed && <GrowthVocabCard t={t} />}
+        {labAllowed && (
+          <GrowthVocabCard t={t} onAction={(view) => {
+            trackCourse('click_ai_course_growth_next_action', { view });
+            syncLabUrl(null);
+            syncVocabUrl({ view, category: null, itemId: null });
+            setStep('vocab');
+          }} />
+        )}
         {growthData ? (
           <GrowthOverview
             t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}
@@ -876,7 +883,7 @@ const missionsInWeek = (week: number) => missionById(`w${String(week).padStart(2
  * 語彙データは動的import（メインbundleへ入れない・§31）。自己評価は問題確認と別行で表示し、
  * 「語彙力◯◯」のような断定スコアは出さない。
  */
-const GrowthVocabCard = ({ t }: { t: AiCourseDict }) => {
+const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: 'quickreview' | 'daily') => void }) => {
   const tv = t.vocab;
   const [sum, setSum] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabGrowthSummary | null>(null);
   useEffect(() => {
@@ -907,7 +914,20 @@ const GrowthVocabCard = ({ t }: { t: AiCourseDict }) => {
         </div>
         {/* 自己評価は別表示（問題確認と混ぜない・§25） */}
         <p className="text-[11px] text-gray-400 mt-2">{tv.statsSelfKnown}: {sum.selfKnownCount}。{tv.growthVocabSelfNote}</p>
-        <p className="text-[11px] text-indigo-600 mt-1">{tv.growthVocabNextHint}</p>
+        {/* 次の一手は一つだけ（2E-1.5 §33・数値を見るだけにしない） */}
+        {onAction && (
+          sum.needsReviewCount > 0 ? (
+            <button type="button" onClick={() => onAction('quickreview')}
+              className="action-raised w-full min-h-11 mt-2 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl">
+              {tv.quickReviewChip(sum.needsReviewCount)}
+            </button>
+          ) : (
+            <button type="button" onClick={() => onAction('daily')}
+              className="action-raised w-full min-h-11 mt-2 py-2 text-sm font-bold text-indigo-700 bg-white border border-indigo-200 rounded-xl">
+              {tv.dailyCta}
+            </button>
+          )
+        )}
       </div>
     </div>
   );

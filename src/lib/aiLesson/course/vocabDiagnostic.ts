@@ -9,10 +9,25 @@ import type { VocabProgressRepository, VocabQuestionDimension, DiagnosticOutcome
 import { poolQuestionsFor, relatedItemsOf } from './vocabDiagnosticPool';
 import type { VocabPoolQuestion } from './vocabDiagnosticPool';
 
-/** 診断問題数（§5: 基礎10〜15問・N3 12〜18問。語数に比例させすぎない） */
+/**
+ * N3診断のprobe問題（2E-1.5 §21: required語の用法・自他・助詞・活用・false friendを
+ * 診断セットへ含める。roleは変わらない=次元記録のみ。教育的に対象語が実在する問題だけ登録）。
+ */
+const N3_PROBE_QUESTION_IDS = [
+  'vdq-n-t-kimaru',   // 自他（決まる/決める）
+  'vdq-n-t-kawaru',   // 自他（変わる/変える）
+  'vdq-n-p-nareru',   // 助詞（〜に慣れる）
+  'vdq-n-f-tsuzukeru', // 活用（続けて/続いて）
+  'vdq-n-ff-tsugou',  // false friend（都合の用法）
+];
+
+/** 診断問題数（§5/§21: 基礎10〜15問・N3 12〜18問=診断11＋probe5（推奨15前後）。語数に比例させすぎない） */
 export const diagnosticCountFor = (pack: VocabularyPack): number => {
-  const [min, max] = pack.id === 'pack-n3-prep-1' ? [12, 18] : [10, 15];
-  return Math.min(max, Math.max(min, Math.round(pack.itemIds.length / 6)));
+  if (pack.id === 'pack-n3-prep-1') {
+    const base = Math.min(15, Math.max(10, Math.round(pack.itemIds.length / 6) + 1));
+    return Math.min(18, base + N3_PROBE_QUESTION_IDS.length);
+  }
+  return Math.min(15, Math.max(10, Math.round(pack.itemIds.length / 6)));
 };
 
 /** 診断対象: diagnostic roleの語から決定的に選ぶ（未診断優先・ID順） */
@@ -87,7 +102,20 @@ export const buildDiagnosticSet = (
       push(item.id, g.dimension === 'reading' ? 'reading' : 'meaning', g);
     }
   });
-  // ③まだ枠が余っていれば2問目（別次元）を追加
+  // ③N3パックはprobe問題（自他・助詞・活用・false friend）を追加（§21）。
+  //   対象はrequired語＝roleは変わらず、次元別の確認記録のみ。未回答のもののみ。
+  if (pack.id === 'pack-n3-prep-1') {
+    const pool = poolQuestionsFor(pack.id);
+    for (const qid of N3_PROBE_QUESTION_IDS) {
+      if (out.length >= total) break;
+      const p = pool.find((x) => x.q.id === qid);
+      if (!p || !itemById.has(p.itemId)) continue;
+      const entry = repo.getDiagnosticEntry(pack.id, p.itemId);
+      if (entry?.dims[p.vocabDimension]) continue;   // 同一次元の再出題はしない
+      push(p.itemId, p.vocabDimension, p.q);
+    }
+  }
+  // ④まだ枠が余っていれば2問目（別次元）を追加
   targets.forEach((item, i) => {
     if (out.length >= total) return;
     if ((perItem.get(item.id) ?? 0) === 1) {

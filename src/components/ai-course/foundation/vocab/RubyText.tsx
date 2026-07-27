@@ -14,7 +14,7 @@ export type FuriganaDisplayMode = 'all' | 'hard' | 'none';
 
 export const RubyWord = ({ text, reading, show }: { text: string; reading: string; show: boolean }) => (
   show ? (
-    <ruby className="[&>rt]:text-[0.55em] [&>rt]:text-gray-500">{text}<rt>{reading}</rt></ruby>
+    <ruby className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{text}<rt>{reading}</rt></ruby>
   ) : (
     <span>{text}</span>
   )
@@ -35,7 +35,7 @@ export const RubySegments = ({ segments, mode = 'all', show, hideTargetReading }
         const allowed = effective === 'all' || (effective === 'hard' && seg.level === 'hard');
         const visible = allowed && !!seg.reading && !(hideTargetReading && seg.isTarget);
         return visible
-          ? <ruby key={i} className="[&>rt]:text-[0.55em] [&>rt]:text-gray-500">{seg.text}<rt>{seg.reading}</rt></ruby>
+          ? <ruby key={i} className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{seg.text}<rt>{seg.reading}</rt></ruby>
           : <span key={i}>{seg.text}</span>;
       })}
     </>

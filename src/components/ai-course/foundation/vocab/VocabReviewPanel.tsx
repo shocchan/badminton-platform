@@ -15,8 +15,13 @@ import { trackCourse, trackCourseOnce } from '../../../../lib/aiLesson/course/co
 import { RubySegments } from './RubyText';
 import { ActionButton } from '../ActionButton';
 import { REVIEW_I18N } from './vocabReviewI18n';
+import { buildReviewComparisons } from '../../../../lib/aiLesson/course/vocabDualReview';
+import type { VocabularyReviewComparison } from '../../../../lib/aiLesson/course/vocabDualReview';
+import { AUTO_FIXED_ITEM_IDS } from '../../../../lib/aiLesson/course/vocabChatgptReview';
 
-type FilterKey = 'all' | 'unreviewed' | 'cognate_unreviewed' | 'false_friend' | 'partial_overlap' | 'zh' | 'furigana' | 'image' | 'source' | 'n3' | 'basics';
+type FilterKey = 'important' | 'all' | 'unreviewed' | 'p0' | 'p1' | 'p2' | 'p3'
+  | 'ai_agree' | 'ai_disagree' | 'human_required' | 'autofixed'
+  | 'cognate_unreviewed' | 'false_friend' | 'partial_overlap' | 'zh' | 'furigana' | 'image' | 'source' | 'n3' | 'basics';
 
 const ISSUE_KEYS: ReviewIssueType[] = ['zh_meaning', 'example_ja', 'example_zh', 'reading', 'furigana', 'cognate', 'level', 'role', 'image', 'source', 'other'];
 
@@ -29,11 +34,18 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
 }) => {
   const tr = REVIEW_I18N[t.locale === 'zh' ? 'zh' : 'ja'];
   const records = useMemo(() => buildVocabularyReviewRecords(), []);
-  const repo = useMemo(() => createVocabReviewRepository(window.sessionStorage), []);
+  // 2E-1.5 §11: localStorageで永続化（タブを閉じても保持）。旧sessionStorage v1から自動移行
+  const repo = useMemo(() => createVocabReviewRepository(window.localStorage, window.sessionStorage), []);
   const n3Ids = useMemo(() => new Set(N3_ITEMS.map((i) => i.id)), []);
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((v) => v + 1), []);
-  const [filter, setFilter] = useState<FilterKey>(() => (repo.getUiState().filter as FilterKey) ?? 'all');
+  // 初期表示は「重要項目レビュー」モード（P0/P1のみ・§10）。保存済みフィルターがあれば復元
+  const [filter, setFilter] = useState<FilterKey>(() => (repo.getUiState().filter as FilterKey) ?? 'important');
+  const comparisons = useMemo(() => {
+    const map = new Map<string, VocabularyReviewComparison>();
+    for (const c of buildReviewComparisons()) map.set(c.itemId, c);
+    return map;
+  }, []);
   const [showRuby, setShowRuby] = useState(true);
   const [importText, setImportText] = useState('');
   const [importMsg, setImportMsg] = useState<'ok' | 'fail' | null>(null);
@@ -43,7 +55,17 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
 
   const filtered = useMemo(() => {
     const byFilter = (r: VocabularyReviewRecord): boolean => {
+      const cmp = comparisons.get(r.itemId);
       switch (filter) {
+        case 'important': return cmp?.humanReviewPriority === 'P0' || cmp?.humanReviewPriority === 'P1';
+        case 'p0': return cmp?.humanReviewPriority === 'P0';
+        case 'p1': return cmp?.humanReviewPriority === 'P1';
+        case 'p2': return cmp?.humanReviewPriority === 'P2';
+        case 'p3': return cmp?.humanReviewPriority === 'P3';
+        case 'ai_agree': return cmp?.aiReviewState === 'ai_consensus';
+        case 'ai_disagree': return cmp?.aiReviewState === 'ai_disagreement';
+        case 'human_required': return cmp?.aiReviewState === 'human_review_required';
+        case 'autofixed': return AUTO_FIXED_ITEM_IDS.includes(r.itemId);
         case 'unreviewed': return !repo.getEntry(r.itemId);
         case 'cognate_unreviewed': return r.cognateDefault === 'unreviewed';
         case 'false_friend': return r.cognateDefault === 'false_friend' || r.cognateSenseOverrides.some((o) => o.cognateType === 'false_friend');
@@ -57,10 +79,15 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
         default: return true;
       }
     };
-    return records.filter(byFilter);
+    const out = records.filter(byFilter);
+    // 重要項目モードが空なら全件へフォールバック（初回・未収集時に空画面を出さない）
+    if (filter === 'important' && out.length === 0) return records;
+    // P0/P1を常に先頭へ（§7）
+    const rank = (r: VocabularyReviewRecord) => ({ P0: 0, P1: 1, P2: 2, P3: 3 } as const)[comparisons.get(r.itemId)?.humanReviewPriority ?? 'P3'];
+    return [...out].sort((a, b) => rank(a) - rank(b));
     // repo entries change on decision → bump()で再評価される
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [records, filter, n3Ids, repo, setTick]);
+  }, [records, filter, n3Ids, repo, comparisons, setTick]);
 
   const idx = Math.max(0, initialItemId ? filtered.findIndex((r) => r.itemId === initialItemId) : 0);
   const rec: VocabularyReviewRecord | undefined = filtered[idx] ?? filtered[0];
@@ -144,6 +171,9 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
         </div>
         <p className="text-[11px] text-gray-500 mt-1">{tr.progress(progress.reviewed, progress.total)}・{tr.counts(progress.ok, progress.fix, progress.hold)}</p>
         <p className="text-[10px] text-gray-400 mt-0.5">{tr.shortcuts}</p>
+        <p className="text-[10px] text-gray-400 mt-0.5">{tr.persistNote}</p>
+        {repo.lastSaveFailed() && <p className="text-[11px] text-red-600 mt-1" role="alert">{tr.saveFailed}</p>}
+        {repo.importedVersionMismatch() && <p className="text-[11px] text-amber-700 mt-1">{tr.versionMismatch}</p>}
       </div>
 
       {/* 対象語カード（日本語と中国語を並べて比較・§17） */}
@@ -198,6 +228,49 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
         </div>
       </div>
 
+      {/* AIレビュー比較（§10: 現在値/Claude/ChatGPT/推奨draft/差分。折りたたみで密度を抑える） */}
+      {(() => {
+        const cmp = comparisons.get(rec.itemId);
+        if (!cmp) return null;
+        const badge = (s: string) => s === 'ok' ? 'bg-emerald-50 text-emerald-700' : s === 'uncertain' ? 'bg-gray-100 text-gray-500' : s === 'minor_issue' ? 'bg-amber-50 text-amber-800' : 'bg-red-50 text-red-700';
+        const row = (label: string, r2: NonNullable<typeof cmp.claude> | null) => (
+          <div className="flex flex-wrap items-center gap-1 text-[11px]">
+            <span className="text-gray-400 w-20 shrink-0">{label}</span>
+            {r2 ? (['japaneseStatus', 'chineseStatus', 'furiganaStatus', 'cognateStatus', 'curriculumStatus'] as const).map((f) => (
+              <span key={f} className={`px-1.5 py-0.5 rounded ${badge(r2[f])} ${cmp.disagreementFields.includes(f) ? 'ring-1 ring-amber-400' : ''}`}>{tr.fieldNames[f]}:{r2[f] === 'ok' ? 'OK' : r2[f]}</span>
+            )) : <span className="text-gray-400">{tr.notYetChatgpt}</span>}
+          </div>
+        );
+        return (
+          <div className="bg-white rounded-2xl border border-gray-100 p-4">
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-xs font-bold text-gray-500">{tr.aiHeading}</p>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${cmp.humanReviewPriority === 'P0' ? 'bg-red-100 text-red-700' : cmp.humanReviewPriority === 'P1' ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-500'}`}>
+                {tr.priorityLabel}: {cmp.humanReviewPriority}・{tr.aiStates[cmp.aiReviewState]}
+              </span>
+            </div>
+            <div className="space-y-1">
+              {row(tr.claudeLabel, cmp.claude)}
+              {row(tr.chatgptLabel, cmp.chatgpt)}
+            </div>
+            {cmp.claude.rationaleJa && <p className="text-[11px] text-gray-500 mt-1.5">Claude: {cmp.claude.rationaleJa}</p>}
+            {cmp.chatgpt?.rationaleJa && <p className="text-[11px] text-gray-500 mt-0.5">ChatGPT: {cmp.chatgpt.rationaleJa}</p>}
+            {cmp.chatgpt && (cmp.chatgpt.suggestedMeaningZh || cmp.chatgpt.suggestedLearningFocusZh || cmp.chatgpt.suggestedExampleJa || cmp.chatgpt.suggestedExampleZh || cmp.chatgpt.suggestedCognate) && (
+              <details className="mt-1.5">
+                <summary className="text-[11px] font-bold text-indigo-600 cursor-pointer min-h-6">{tr.suggestedHeading}</summary>
+                <div className="text-[11px] text-gray-700 space-y-0.5 mt-1">
+                  {cmp.chatgpt.suggestedMeaningZh && <p>zh: {cmp.chatgpt.suggestedMeaningZh}</p>}
+                  {cmp.chatgpt.suggestedLearningFocusZh && <p>focus: {cmp.chatgpt.suggestedLearningFocusZh}</p>}
+                  {cmp.chatgpt.suggestedExampleJa && <p>例文: {cmp.chatgpt.suggestedExampleJa}</p>}
+                  {cmp.chatgpt.suggestedExampleZh && <p>例文zh: {cmp.chatgpt.suggestedExampleZh}</p>}
+                  {cmp.chatgpt.suggestedCognate && <p>cognate: {cmp.chatgpt.suggestedCognate}</p>}
+                </div>
+              </details>
+            )}
+          </div>
+        );
+      })()}
+
       {/* 判定エリア */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4">
         <p className="text-xs font-bold text-gray-500 mb-1.5">{tr.issueHeading}</p>
@@ -245,6 +318,9 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
           placeholder={tr.importPlaceholder} aria-label={tr.importBtn}
           className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs" />
         {importMsg && <p className={`text-xs mt-1 ${importMsg === 'ok' ? 'text-emerald-700' : 'text-red-600'}`} aria-live="polite">{importMsg === 'ok' ? tr.importOk : tr.importFail}</p>}
+        {/* 全削除（確認つき・§12） */}
+        <button type="button" className="min-h-10 mt-2 text-[11px] text-red-500 underline"
+          onClick={() => { if (window.confirm(tr.clearConfirm)) { repo.reset(); bump(); } }}>{tr.clearAll}</button>
       </div>
     </div>
   );

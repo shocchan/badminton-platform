@@ -23,6 +23,7 @@ import { pickDiagnosticItems, buildDiagnosticQuestion, buildDiagnosticSet, apply
 import type { DiagnosticSetQuestion } from '../../../../lib/aiLesson/course/vocabDiagnostic';
 import { meaningZhShortOf, contentNoteOf, senseOverridesOf } from '../../../../lib/aiLesson/course/vocabContentMeta';
 import { furiganaForItem, resolveFuriganaMode } from '../../../../lib/aiLesson/course/vocabFurigana';
+import { relationsForItem } from '../../../../lib/aiLesson/course/vocabRelations';
 import { RubySegments } from './RubyText';
 import type { FuriganaDisplayMode } from './RubyText';
 import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabProgress';
@@ -393,6 +394,18 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
         {antonym && (
           <p className="text-xs text-gray-600 mt-2">{tv.antonym}: <button type="button" className="text-indigo-700 font-bold underline min-h-6" onClick={() => onOpenItem(antonym.id)}>{antonym.displayForm}（{antonym.meaningZh}）</button></p>
         )}
+        {/* 近似・類義関係（§24: high confidence draftのみ・最大2件で密度を上げない） */}
+        {relationsForItem(item.id).slice(0, 2).map((rel) => {
+          const otherId = rel.itemId === item.id ? rel.relatedItemId : rel.itemId;
+          const other = itemById.get(otherId);
+          if (!other) return null;
+          return (
+            <p key={otherId} className="text-[11px] text-gray-600 bg-gray-50 rounded-lg px-2.5 py-1.5 mt-2">
+              <button type="button" className="text-indigo-700 font-bold underline min-h-6" onClick={() => onOpenItem(other.id)}>{other.displayForm}</button>
+              ： {t.locale === 'zh' ? rel.explanationZh : rel.explanationJa}
+            </p>
+          );
+        })}
       </div>
       {(item.senses && item.senses.length > 1) && (
         <details className="bg-white rounded-xl border border-gray-100 p-4">
@@ -684,14 +697,17 @@ const PackCard = ({ t, repo, pack, isCurrent }: { t: AiCourseDict; repo: VocabPr
 };
 
 /** ロードマップの旅ステップ（§24・モジュールレベル・ロック乱発なし） */
-const RoadmapStep = ({ label, done, active, children }: {
-  label: string; done?: boolean; active?: boolean; children: React.ReactNode;
+const RoadmapStep = ({ label, why, done, active, children }: {
+  label: string; why?: string; done?: boolean; active?: boolean; children: React.ReactNode;
 }) => (
   <div className="relative pl-6 pb-4 last:pb-0">
     {/* 縦タイムラインの接続線とノード */}
     <span className="absolute left-[7px] top-5 bottom-0 w-px bg-indigo-100" aria-hidden />
     <span className={`absolute left-0 top-1 w-[15px] h-[15px] rounded-full border-2 ${done ? 'bg-indigo-500 border-indigo-500' : active ? 'bg-white border-indigo-500' : 'bg-white border-gray-200'}`} aria-hidden />
-    <p className={`text-[11px] font-bold mb-1 ${active ? 'text-indigo-700' : 'text-gray-400'}`}>{label}</p>
+    <p className={`text-[11px] font-bold ${active ? 'text-indigo-700' : 'text-gray-400'}`}>{label}</p>
+    {/* なぜこのステップか（§20・1行だけ） */}
+    {why && <p className="text-[11px] text-gray-400 mb-1">{why}</p>}
+    {!why && <span className="block mb-1" />}
     {children}
   </div>
 );
@@ -728,20 +744,20 @@ const VocabRoadmapView = ({ t, repo, itemById, onChanged, onStartDiagnostic, onS
       <RoadmapStep label={steps.pack} active done={pp.state !== 'not_started'}>
         <PackCard t={t} repo={repo} pack={current} isCurrent />
       </RoadmapStep>
-      <RoadmapStep label={steps.diagnostic} active={diagLeft > 0} done={diagLeft === 0}>
+      <RoadmapStep label={steps.diagnostic} why={tv.roadmapStepWhy.diagnostic} active={diagLeft > 0} done={diagLeft === 0}>
         {diagLeft > 0
           ? <ActionButton variant="primary" fullWidth onClick={onStartDiagnostic}>{tv.diagnosticCta}（{diagLeft}）</ActionButton>
           : <p className="text-xs text-gray-400">{tv.outcomes.basic_confirmed}・{tv.outcomes.partially_confirmed}・{tv.outcomes.remedial}</p>}
       </RoadmapStep>
-      <RoadmapStep label={steps.learn} active done={pp.state === 'seen_all' || pp.state === 'verifying' || pp.state === 'retention_check'}>
+      <RoadmapStep label={steps.learn} why={tv.roadmapStepWhy.learn} active done={pp.state === 'seen_all' || pp.state === 'verifying' || pp.state === 'retention_check'}>
         <ActionButton variant="secondary" fullWidth onClick={onOpenDaily}>{tv.dailyCta}</ActionButton>
       </RoadmapStep>
-      <RoadmapStep label={steps.verify} active={quickLeft > 0} done={pp.state === 'verifying' || pp.state === 'retention_check'}>
+      <RoadmapStep label={steps.verify} why={tv.roadmapStepWhy.verify} active={quickLeft > 0} done={pp.state === 'verifying' || pp.state === 'retention_check'}>
         <ActionButton variant="secondary" fullWidth disabled={quickLeft === 0} onClick={onStartQuickReview}>
           {quickLeft > 0 ? tv.quickReviewChip(quickLeft) : tv.quickReviewEmpty}
         </ActionButton>
       </RoadmapStep>
-      <RoadmapStep label={steps.retention} done={pp.retainedCandidateCount > 0}>
+      <RoadmapStep label={steps.retention} why={tv.roadmapStepWhy.retention} done={pp.retainedCandidateCount > 0}>
         <p className="text-xs text-gray-600">{tv.statRetainedLabel}: {pp.retainedCandidateCount}</p>
       </RoadmapStep>
       {next && (
