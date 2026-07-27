@@ -13,9 +13,13 @@ import { createVocabProgressRepository } from '../../../../lib/aiLesson/course/v
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
+import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
+import type { JourneyResultSnapshot } from '../../../../lib/aiLesson/course/journeyTaskContract';
 
 interface Props {
   t: AiCourseDict;
+  /** 検証用サンドボックスで動作中（UIに明示・§13） */
+  sandbox?: boolean;
   /** 短い確認（既存の開始診断）へ進む */
   onStartCheck: () => void;
   /** 最初の練習（既存の今日のことば）へ進む */
@@ -45,13 +49,15 @@ const StepProgress = ({ t, step }: { t: AiCourseDict; step: JourneyStep }) => {
   );
 };
 
-export default function FirstRunJourney({ t, onStartCheck, onStartPractice, onHome, onComplete }: Props) {
+export default function FirstRunJourney({ t, sandbox, onStartCheck, onStartPractice, onHome, onComplete }: Props) {
   const tv = t.vocab;
   const repo = useMemo(() => {
     const progress = createVocabProgressRepository(window.sessionStorage);
     const schedule = createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock);
     return createFirstRunRepository(window.sessionStorage, progress, schedule);
   }, []);
+  // Journeyと診断・練習の往復契約（2E-1.12 §4）
+  const taskRepo = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
   // 保存後に再読込するための状態（stateへJourneyの内容を持たず、常にRepositoryを正とする）
   const [loaded, setLoaded] = useState(() => repo.load());
   useEffect(() => { trackCourseOnce('start_ai_course_first_run'); }, []);
@@ -75,10 +81,44 @@ export default function FirstRunJourney({ t, onStartCheck, onStartPractice, onHo
     return tv.frReasonBasic;
   };
 
+  // 進行中タスクの復帰（診断・練習の途中でJourneyへ戻ってきた場合・§9）
+  const contract = taskRepo.get();
+  const resumable = contract && (contract.activeTaskStatus === 'in_progress' || contract.activeTaskStatus === 'interrupted')
+    ? contract : null;
+  const snapshot: JourneyResultSnapshot | null = contract?.completionSnapshot ?? null;
+  const startTask = (type: 'diagnostic' | 'practice', go: () => void) => {
+    taskRepo.startTask({
+      journeyId: loaded.record?.startedAt ?? 'journey',
+      taskType: type, taskId: `${type}-${Date.now().toString(36)}`,
+      returnStep: type === 'diagnostic' ? 'practice' : 'done',
+    });
+    go();
+  };
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      {sandbox && (
+        <p className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 mb-2">
+          {tv.frSandboxBadge}
+        </p>
+      )}
       <StepProgress t={t} step={step} />
       {loaded.saveFailed && <p role="alert" className="text-[11px] text-orange-700 mb-2">{tv.recSaveFailed}</p>}
+      {/* 中断からの復帰（§9・完了処理は再実行しない） */}
+      {resumable && (
+        <div role="status" className="bg-indigo-50 rounded-xl p-3 mb-3">
+          <p className="text-sm font-bold text-gray-900 mb-2">
+            {resumable.activeTaskType === 'diagnostic' ? tv.frResumeCheck : tv.frResumePractice}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button"
+              onClick={() => (resumable.activeTaskType === 'diagnostic' ? onStartCheck() : onStartPractice())}
+              className="flex-1 min-h-10 px-3 text-xs font-bold text-white bg-indigo-600 rounded-xl">{tv.frResumeCta}</button>
+            <button type="button" onClick={() => { taskRepo.markInterrupted(); onHome(); }}
+              className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frResumeHome}</button>
+          </div>
+        </div>
+      )}
 
       {step === 'goal' && (
         <>
@@ -101,7 +141,7 @@ export default function FirstRunJourney({ t, onStartCheck, onStartPractice, onHo
           <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frCheckHeading}</h2>
           <p className="text-xs text-gray-600 mb-4">{tv.frCheckNote}</p>
           <ActionButton variant="primary" fullWidth
-            onClick={() => { trackCourse('start_ai_course_first_run', { step: 'check' }); onStartCheck(); }}>
+            onClick={() => { trackCourse('start_ai_course_first_run', { step: 'check' }); startTask('diagnostic', onStartCheck); }}>
             {tv.frCheckStart}
           </ActionButton>
           <div className="flex flex-wrap gap-2 mt-2">
@@ -118,7 +158,7 @@ export default function FirstRunJourney({ t, onStartCheck, onStartPractice, onHo
           <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frPracticeHeading}</h2>
           <p className="text-xs text-gray-600 mb-4">{goalReason(goal)}</p>
           <ActionButton variant="primary" fullWidth
-            onClick={() => { repo.completePractice(); refresh(); trackCourse('start_ai_course_first_run', { step: 'practice' }); onStartPractice(); }}>
+            onClick={() => { repo.completePractice(); refresh(); trackCourse('start_ai_course_first_run', { step: 'practice' }); startTask('practice', onStartPractice); }}>
             {tv.frPracticeStart}
           </ActionButton>
           <button type="button" onClick={() => { repo.goBack(); refresh(); }}
@@ -128,11 +168,21 @@ export default function FirstRunJourney({ t, onStartCheck, onStartPractice, onHo
 
       {step === 'done' && (
         <>
-          <h2 className="text-base font-bold text-gray-900 mb-1">{tv.frDoneHeading}</h2>
+          <h2 className="text-base font-bold text-gray-900 mb-1" tabIndex={-1}>{tv.frDoneHeading}</h2>
+          {/* 実際に確定した結果だけを表示。取得できなかった値は0と断定しない（§8） */}
+          {snapshot && (
+            <ul className="text-sm text-gray-700 space-y-1 mb-3">
+              {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
+              {snapshot.independentCount !== null && <li>・{tv.frResultIndependent(snapshot.independentCount)}</li>}
+              {snapshot.supportedCount !== null && <li>・{tv.frResultSupported(snapshot.supportedCount)}</li>}
+              {snapshot.needsReviewCount !== null && <li>・{tv.frResultNeedsReview(snapshot.needsReviewCount)}</li>}
+              {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
+            </ul>
+          )}
           {/* 新規利用者へ復習の仕組みを一文で（定着は断定しない・§4） */}
           <p className="text-sm text-gray-700 mb-4">{tv.frReviewExplain}</p>
           <ActionButton variant="primary" fullWidth
-            onClick={() => { repo.complete(); trackCourse('complete_ai_course_first_run', { step: 'done' }); onComplete(); }}>
+            onClick={() => { repo.complete(); taskRepo.clear(); trackCourse('complete_ai_course_first_run', { step: 'done' }); onComplete(); }}>
             {tv.frGoHome}
           </ActionButton>
         </>

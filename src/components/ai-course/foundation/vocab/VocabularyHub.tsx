@@ -31,6 +31,7 @@ import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/cour
 import type { VocabSpacedReviewRepository, ReviewResult } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { detectFirstRunState } from '../../../../lib/aiLesson/course/firstRunJourney';
+import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import { LearnerErrorBoundary, LearnerRecovery } from './LearnerRecovery';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
@@ -63,6 +64,17 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const repo = useMemo(() => createVocabProgressRepository(window.sessionStorage), []);
   // 間隔反復（翌日/3日後/7日後）のpreview Repository（2E-1.10 §3・正式保存ではない）
   const schedule = useMemo(() => createVocabSpacedReviewRepository(window.sessionStorage, defaultLearningClock), []);
+  // Journey往復契約（2E-1.12 §6-§7・完了はJourney側の契約が一致した場合のみ）
+  const journeyTask = useMemo(() => createJourneyTaskRepository(window.sessionStorage), []);
+  /** 診断・練習が終わったときに、Journey契約があれば完了させてJourneyへ戻す（無ければ通常動作） */
+  const finishJourneyTask = (type: 'diagnostic' | 'practice', snapshot: { checkedCount: number | null; independentCount: number | null; supportedCount: number | null; needsReviewCount: number | null; partial: boolean }) => {
+    const c = journeyTask.get();
+    if (!c || c.activeTaskType !== type || c.activeTaskStatus === 'completed') return false;
+    const r = journeyTask.completeTask({ journeyId: c.journeyId, taskId: c.activeTaskId, token: c.completionToken, snapshot });
+    if (!r.ok) return false;
+    setView('firstrun');   // Step3（診断後）/Step4（練習後）へ自動復帰
+    return true;
+  };
   const [, setTick] = useState(0);
   const bump = useCallback(() => setTick((v) => v + 1), []);
 
@@ -268,13 +280,38 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         </Suspense>
       )}
       {view === 'diagnostic' && (
-        <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump} onDone={() => setView('roadmap')} />
+        <VocabDiagnosticView t={t} repo={repo} itemById={itemById} items={items} onChanged={bump}
+          onDone={() => {
+            // Journeyから来ていれば結果を渡してStep3へ戻す（無ければ従来どおりロードマップへ）
+            const pack = VOCABULARY_PACKS[0];
+            const outcomes = repo.getDiagnosticOutcomes(pack.id);
+            const ids = Object.keys(outcomes);
+            const done = finishJourneyTask('diagnostic', {
+              checkedCount: ids.length,
+              independentCount: ids.filter((id) => outcomes[id] === 'basic_confirmed').length,
+              supportedCount: ids.filter((id) => outcomes[id] === 'partially_confirmed').length,
+              needsReviewCount: ids.filter((id) => outcomes[id] === 'remedial').length,
+              partial: ids.length === 0,
+            });
+            if (!done) setView('roadmap');
+          }} />
       )}
       {view === 'quickreview' && (
         <VocabQuickReviewView t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
           onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
       )}
-      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} onChanged={bump} onDone={() => setView('top')} onRestart={() => setView('daily')} />}
+      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} onChanged={bump} onDone={() => {
+        // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
+        const ids = daily.itemIds.filter((id) => itemById.has(id));
+        const done = finishJourneyTask('practice', {
+          checkedCount: ids.length,
+          independentCount: ids.filter((id) => repo.getVerifiedState(id) === 'independent' || repo.getVerifiedState(id) === 'retained_candidate').length,
+          supportedCount: ids.filter((id) => repo.getVerifiedState(id) === 'guided').length,
+          needsReviewCount: ids.filter((id) => repo.getEntry(id).selfAssessment === 'needs_review').length,
+          partial: ids.length === 0,
+        });
+        if (!done) setView('top');
+      }} onRestart={() => setView('daily')} />}
       {view === 'category' && category && <VocabCategoryList t={t} repo={repo} list={listFor(category)} query="" showSearch={false} onQuery={() => {}} onOpen={(id) => setView('detail', category, id)} />}
       {view === 'all' && <VocabCategoryList t={t} repo={repo} list={listFor('all')} query={query} showSearch onQuery={setQuery} onOpen={(id) => setView('detail', 'all', id)} />}
       {view === 'detail' && itemId && itemById.get(itemId) && (() => {
