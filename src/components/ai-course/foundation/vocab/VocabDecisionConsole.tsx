@@ -210,7 +210,12 @@ export default function VocabDecisionConsole({ t, onBack, onOpenItem }: Props) {
                     <button type="button" onClick={() => goNext(d)}
                       className="min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-lg">{td.nextItem}</button>
                     {onOpenItem && (
-                      <button type="button" onClick={() => onOpenItem(d.itemId)}
+                      <button type="button"
+                        onClick={() => {
+                          // 判断typeに応じた詳細セクションへ（例文→examples・それ以外→meaning・§11）
+                          window.location.hash = d.decisionType === 'example' ? 'vsec-examples' : 'vsec-meaning';
+                          onOpenItem(d.itemId);
+                        }}
                         className="min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-lg">{td.openWord}</button>
                     )}
                   </div>

@@ -173,3 +173,41 @@ export const DECISION_I18N = {
     saveFailed: '⚠ 保存失败（可能超出容量）。请用JSON导出备份。',
   },
 };
+
+// 接続監査Inspector（Phase 2E-1.9・labPreview専用lazy chunk内）
+export const CONNECTIVITY_I18N = {
+  ja: {
+    title: '学習接続監査（read-only）',
+    intro: '語彙が学習画面・診断・会話・復習へどう接続されているかをコードと静的データから導出した監査です。教材・接続の自動変更はしません。ことば図鑑全体は現在labPreview限定（一般受講生には意図的に非公開）です。',
+    surfaces: { vocabScreen: '語彙画面', diagnostic: '診断', conversation: '会話', review: '復習' } as Record<string, string>,
+    statuses: { connected: '接続済み', partial: '部分接続', orphaned: '孤立', unverified: '未保証', intentionally_isolated: '意図的隔離' } as Record<string, string>,
+    verification: { direct: '直接参照', derived: 'コードパス導出' } as Record<string, string>,
+    filterLevel: 'レベル', filterRole: 'role', filterStatus: '総合状態', filterSurface: 'surface', searchLabel: '語彙検索',
+    all: 'すべて', basics: '基礎78', n3: 'N3 62',
+    summaryWords: (t: number, b: number, n: number) => `対象 ${t}語（基礎${b}・N3 ${n}）`,
+    edges: (e: number, dup: number, inv: number) => `接続edge ${e}・重複 ${dup}・不正参照 ${inv}`,
+    diagHeading: '診断カバレッジ',
+    diagLine: (q: number, u: number, ff: number, cov: number) => `プール問題 ${q}問・参照ユニーク語 ${u}・false friend probe ${ff}・N3診断適格 ${cov}%`,
+    reason: '理由', evidence: '根拠（ファイル/export/関数）',
+    openWord: '語彙詳細', openDecisions: '判断キュー',
+    detailOpen: '詳細', empty: '該当する語がありません。',
+    liveCount: (n: number) => `${n}語を表示中`,
+  },
+  zh: {
+    title: '学习连接审计（只读）',
+    intro: '从代码与静态数据推导词汇与学习页面・诊断・会话・复习的连接状况。不会自动更改教材或连接。整个词汇图鉴目前仅限labPreview（对普通学员有意隐藏）。',
+    surfaces: { vocabScreen: '词汇页面', diagnostic: '诊断', conversation: '会话', review: '复习' } as Record<string, string>,
+    statuses: { connected: '已连接', partial: '部分连接', orphaned: '孤立', unverified: '未保证', intentionally_isolated: '有意隔离' } as Record<string, string>,
+    verification: { direct: '直接引用', derived: '代码路径推导' } as Record<string, string>,
+    filterLevel: '级别', filterRole: 'role', filterStatus: '综合状态', filterSurface: 'surface', searchLabel: '搜索词汇',
+    all: '全部', basics: '基础78', n3: 'N3 62',
+    summaryWords: (t: number, b: number, n: number) => `对象 ${t}词（基础${b}・N3 ${n}）`,
+    edges: (e: number, dup: number, inv: number) => `连接edge ${e}・重复 ${dup}・无效引用 ${inv}`,
+    diagHeading: '诊断覆盖',
+    diagLine: (q: number, u: number, ff: number, cov: number) => `题库 ${q}题・引用词 ${u}・false friend probe ${ff}・N3诊断适格 ${cov}%`,
+    reason: '理由', evidence: '依据（文件/export/函数）',
+    openWord: '词汇详情', openDecisions: '判断队列',
+    detailOpen: '详情', empty: '没有符合条件的词。',
+    liveCount: (n: number) => `正在显示 ${n} 个词`,
+  },
+};

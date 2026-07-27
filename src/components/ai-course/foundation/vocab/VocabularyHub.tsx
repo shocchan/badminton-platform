@@ -31,11 +31,12 @@ import type { DiagnosticOutcome } from '../../../../lib/aiLesson/course/vocabPro
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
 const VocabDecisionBadgeLazy = lazy(() => import('./VocabDecisionBadge'));
+const VocabConnectivityInspectorLazy = lazy(() => import('./VocabConnectivityInspector'));
 import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -62,7 +63,7 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity') return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -180,6 +181,8 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
             className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left">{tv.internalReviewEntry}</button>
           <button type="button" onClick={() => setView('decisions')}
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
+          <button type="button" onClick={() => setView('connectivity')}
+            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
         </div>
       )}
 
@@ -198,6 +201,12 @@ export const VocabularyHub = ({ t, onBack, initial, onStateChange }: Props) => {
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')}
             onOpenItem={(id) => setView('detail', null, id)} />
+        </Suspense>
+      )}
+      {view === 'connectivity' && (
+        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <VocabConnectivityInspectorLazy t={t} onBack={() => setView('top')}
+            onOpenItem={(id) => setView('detail', null, id)} onOpenDecisions={() => setView('decisions')} />
         </Suspense>
       )}
       {view === 'diagnostic' && (
@@ -352,6 +361,14 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
   const showReading = effectiveMode === 'all';
   const segments = furiganaForItem(item.id);
   const note = contentNoteOf(item.id);
+  // hashアンカーへの移動（2E-1.9 §11・keyboard利用者にはfocusも移す）
+  useEffect(() => {
+    const h = window.location.hash;
+    if (!h.startsWith('#vsec-')) return;
+    const el = document.querySelector<HTMLElement>(h);
+    if (el) { el.scrollIntoView({ block: 'start' }); el.focus({ preventScroll: true }); }
+    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+  }, []);
   const zhShort = meaningZhShortOf(item);
   const senseOverrides = senseOverridesOf(item.id);
   const Diagram = item.id === 'fi-iku' || item.id === 'fi-noru' ? NiEDirectionDiagram
@@ -360,7 +377,8 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
   return (
     <div className="space-y-3 pb-28">
       {progressLabel && <p className="text-xs font-mono text-gray-400">{progressLabel}</p>}
-      <div className="bg-white rounded-2xl border border-gray-100 p-5">
+      {/* セクションanchor（2E-1.9 §11: hashで意味/例文へ直接移動・focusも移動） */}
+      <div id="vsec-meaning" tabIndex={-1} className="bg-white rounded-2xl border border-gray-100 p-5 focus:outline-none">
         <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />
         <div className="flex items-baseline gap-2 flex-wrap">
           <span className="text-2xl font-bold text-gray-900">{item.displayForm}</span>
@@ -394,7 +412,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
           </p>
         )}
       </div>
-      <div className="bg-white rounded-xl border border-gray-100 p-4">
+      <div id="vsec-examples" tabIndex={-1} className="bg-white rounded-xl border border-gray-100 p-4 focus:outline-none">
         <p className="text-xs font-bold text-gray-500 mb-1">{tv.detailUsage}</p>
         {/* 例文の構造化ふりがな（§11）。segmentsが無い語はplain textへ安全にフォールバック（§12） */}
         {segments ? (
