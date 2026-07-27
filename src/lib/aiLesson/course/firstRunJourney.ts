@@ -115,6 +115,12 @@ export interface FirstRunRepository {
   /** 短い確認を終えた（診断の回答自体は既存Repositoryが保持） */
   completeCheck(): FirstRunRecord;
   completePractice(): FirstRunRecord;
+  /**
+   * stepだけを安全に修復する（2E-1.14 §5）。
+   * 契約が完了しているのにstepが前に残っている状態を直すためだけに使う。
+   * 完了フラグ・completedAt・目的には触れない。同じstepを渡しても何も変わらない。
+   */
+  repairStep(step: JourneyStep): FirstRunRecord;
   /** 初回完了。既に完了済みなら completedAt を上書きしない（重複記録しない・§6） */
   complete(): FirstRunRecord;
   /** 前のステップへ戻る（回答は消さない・§5） */
@@ -155,6 +161,7 @@ export const createFirstRunRepository = (
     setGoal: (goal) => patch((p) => ({ ...p, goal, step: 'check' })),
     completeCheck: () => patch((p) => ({ ...p, checkDone: true, step: 'practice' })),
     completePractice: () => patch((p) => ({ ...p, practiceDone: true, step: 'done' })),
+    repairStep: (step) => patch((p) => (p.step === step ? p : { ...p, step })),
     complete: () => patch((p) => (p.completedAt ? p : { ...p, completedAt: now().toISOString(), step: 'done' })),
     goBack() {
       const cur = read();

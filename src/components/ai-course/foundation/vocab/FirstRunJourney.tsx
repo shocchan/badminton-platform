@@ -13,6 +13,7 @@ import { createVocabProgressRepository } from '../../../../lib/aiLesson/course/v
 import { createVocabSpacedReviewRepository } from '../../../../lib/aiLesson/course/vocabSpacedReview';
 import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningClock';
 import { LearnerRecovery } from './LearnerRecovery';
+import { planJourneyRepair } from '../../../../lib/aiLesson/course/journeyRecovery';
 import type { StorageLike } from '../../../../lib/aiLesson/course/courseStorageRegistry';
 import { JourneyStepper, ResultBars, ReviewTimeline } from './LearningIllustrations';
 import { STEP_ILLUSTRATIONS } from './stepIllustrationMap';
@@ -111,6 +112,16 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
   const resumable = contract && (contract.activeTaskStatus === 'in_progress' || contract.activeTaskStatus === 'interrupted')
     ? contract : null;
   const snapshot: JourneyResultSnapshot | null = contract?.completionSnapshot ?? null;
+  // 部分成功Recovery（2E-1.14 §5）: 契約は完了しているのにstepが前、という状態を直す。
+  // 判定は保存済みの事実だけから決定的に行い、完了処理・token消費は絶対に再実行しない。
+  const repair = planJourneyRepair({
+    contract, step, journeyCompleted: !!loaded.record?.completedAt,
+    currentView: 'firstrun', hasLearningResult: false,
+  });
+  if (repair.setStep && repair.setStep !== step) {
+    // stepだけを安全に修復する（renderごとに繰り返さないよう、値が違うときだけ書く）
+    repo.repairStep(repair.setStep);
+  }
   // 次回予定の件数（Step4のみ・読み取り専用）
   const upcoming = step === 'done'
     ? scheduleRepo.getDueSummary().upcoming

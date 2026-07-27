@@ -3,7 +3,9 @@
 // URL遷移やbrowser backだけで「完了」にしない（§5）。同じ完了を二重処理しない。
 import { JOURNEY_TASK_KEY } from './courseStorageRegistry';
 
-const CONTRACT_SCHEMA_VERSION = 1;
+// v2: 練習の再開位置（taskProgress）を追加。v1は「進行位置なし」として安全に読み込める。
+const CONTRACT_SCHEMA_VERSION = 2;
+const READABLE_SCHEMA_VERSIONS = [1, 2];
 
 export type JourneyTaskType = 'diagnostic' | 'practice';
 export type JourneyTaskStatus = 'not_started' | 'in_progress' | 'completed' | 'interrupted' | 'failed' | 'recovered';
@@ -26,6 +28,21 @@ export interface JourneyTaskContract {
   completedTaskIds: string[];
   /** 学習者へ見せる結果（内部state名を含めない・§8） */
   completionSnapshot: JourneyResultSnapshot | null;
+  /** 再開位置（2E-1.14 §3・確定した操作だけを記録する。未確定の選択は入れない） */
+  taskProgress?: TaskProgress;
+}
+
+/**
+ * 再開位置。**確定した操作だけ**を記録する。
+ * 選んだだけで確定していない回答は含めない（再読込で確定扱いにしないため）。
+ */
+export interface TaskProgress {
+  /** 何語目まで完了したか（0起点のindex＝次に取り組む語） */
+  wordIndex: number;
+  /** その語のどこまで進んだか */
+  phase: 'card' | 'quiz' | 'assess';
+  /** 完了した語のID（重複しない） */
+  completedWordIds: string[];
 }
 
 /** Step4へ渡す結果（実際に確定した値だけ。欠けた値は null のままにして0と断定しない・§8） */
@@ -68,6 +85,10 @@ export interface JourneyTaskRepository {
   markInterrupted(): JourneyTaskContract | null;
   /** 結果を取得できなかった（完了を偽らない・§6） */
   markFailed(): JourneyTaskContract | null;
+  /** 再開位置を記録する（確定した操作のときだけ呼ぶ） */
+  saveProgress(progress: TaskProgress): JourneyTaskContract | null;
+  /** Journeyのstepだけを修復した記録（完了処理は再実行しない） */
+  markRecovered(): JourneyTaskContract | null;
   clear(): void;
   lastSaveFailed(): boolean;
 }
@@ -86,7 +107,8 @@ export const createJourneyTaskRepository = (
       const raw = storage.getItem(JOURNEY_TASK_KEY);
       if (!raw) return null;
       const p = JSON.parse(raw) as JourneyTaskContract;
-      if (p?.schemaVersion !== CONTRACT_SCHEMA_VERSION) return null;   // 別版は無視（壊さない）
+      // 読める版なら受け入れる（v1には taskProgress が無いだけで、意味は失われない）
+      if (!READABLE_SCHEMA_VERSIONS.includes(p?.schemaVersion)) return null;
       return p;
     } catch { return null; }
   };
@@ -139,6 +161,16 @@ export const createJourneyTaskRepository = (
       const c = read();
       if (!c || c.activeTaskStatus === 'completed') return c;
       return write({ ...c, activeTaskStatus: 'failed' });
+    },
+    saveProgress(progress) {
+      const c = read();
+      if (!c || c.activeTaskStatus === 'completed') return c;   // 完了後は進行位置を動かさない
+      return write({ ...c, schemaVersion: CONTRACT_SCHEMA_VERSION, taskProgress: progress });
+    },
+    markRecovered() {
+      const c = read();
+      if (!c) return null;
+      return write({ ...c, activeTaskStatus: 'recovered' });
     },
     clear() { try { storage.removeItem(JOURNEY_TASK_KEY); } catch { saveFailed = true; } },
     lastSaveFailed: () => saveFailed,
