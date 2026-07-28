@@ -1,0 +1,97 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "status": "design_draft",
+ "note": "設計草案。実装はRPG Vertical Slice Phase（CEO承認後）で開始する",
+ "inGame": [
+  {
+   "id": "adventure-xp",
+   "nameJa": "冒険値",
+   "type": "counter",
+   "source": [
+    "学習した",
+    "継続した",
+    "クエスト完了",
+    "新しい場面に挑戦",
+    "復習した"
+   ],
+   "affectsMastery": false,
+   "decreases": false
+  },
+  {
+   "id": "adventurer-rank",
+   "nameJa": "冒険者ランク",
+   "type": "level",
+   "derivedFrom": "adventure-xp",
+   "isJlptLevel": false
+  },
+  {
+   "id": "area-unlock",
+   "nameJa": "新エリア",
+   "type": "unlock"
+  },
+  {
+   "id": "story-unlock",
+   "nameJa": "新ストーリー",
+   "type": "unlock"
+  },
+  {
+   "id": "character-unlock",
+   "nameJa": "新人物",
+   "type": "unlock"
+  },
+  {
+   "id": "title",
+   "nameJa": "称号",
+   "type": "cosmetic"
+  },
+  {
+   "id": "costume",
+   "nameJa": "衣装",
+   "type": "cosmetic",
+   "status": "deferred"
+  },
+  {
+   "id": "base-decor",
+   "nameJa": "拠点の装飾",
+   "type": "cosmetic",
+   "status": "deferred"
+  },
+  {
+   "id": "memory-shard",
+   "nameJa": "記憶のかけら",
+   "type": "collection",
+   "source": "復習の達成（間隔反復の完了）"
+  },
+  {
+   "id": "world-encyclopedia",
+   "nameJa": "世界の図鑑",
+   "type": "collection",
+   "status": "deferred"
+  },
+  {
+   "id": "adventure-log",
+   "nameJa": "冒険記録",
+   "type": "record"
+  }
+ ],
+ "realWorld": {
+  "status": "not_implemented",
+  "policy": "real-world-reward-policy-draft.md",
+  "blockedBy": [
+   "景品表示法の確認",
+   "税務・会計",
+   "利用規約",
+   "協賛契約",
+   "CEO承認"
+  ],
+  "recommendedInitial": "確定型の小さな特典のみ。抽選型・高額景品は法務確認後",
+  "decisionQueue": "awaiting_legal_review"
+ },
+ "prohibited": [
+  "ガチャ",
+  "課金抽選",
+  "pay to win",
+  "法務承認前の現実景品付与"
+ ]
+}

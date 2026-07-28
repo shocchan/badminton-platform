@@ -2,6 +2,19 @@
 
 最終更新: 2026-07-28 ／ 迷ったらまずここ。
 
+## ⭐ 最上位方針（すべての設計判断の基準）
+
+- **`rpg/product-north-star.md`** — 主人公冒険型・日本語攻略RPG。**今後の全UI/ルート/Unit/
+  イラスト/成長設計はこれと矛盾しないこと**
+- `rpg/original-world-bible.md` — オリジナル世界観（ミナモ列島・ことばの霧・10エリア）
+- `rpg/adventure-learning-loop.md` — 冒険と学習のコアループ（既存エンジンを包む三層構造）
+- `rpg/xp-and-mastery-separation.md` — 冒険値と日本語力の分離（**混同禁止**）
+- `rpg/chapter-and-quest-model.md` — 章・エリア・クエスト（既存Unit/攻略ルートとの対応）
+- `rpg/rpg-visual-direction.md` — ビジュアル方針（成人向け・模倣禁止）
+- `rpg/real-world-reward-policy-draft.md` — 現実副賞の草案（**未実装・法務確認前**）
+- `rpg/chapter-1-vertical-slice-plan.md` — Chapter 1だけを完全に作る計画
+- `rpg/generated/*.json` — world/chapter/quest/reward manifest（ガードテストあり）
+
 ## 🔴 いま見るもの（CEOの判断・確認待ち）
 
 | ファイル | 内容 |

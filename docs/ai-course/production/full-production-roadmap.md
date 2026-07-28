@@ -57,6 +57,10 @@
 | **3P-9** | 人間承認Closure | §22の8分割パケットでhuman review完走支援 | **人間承認そのもの** |
 | **3P-10** | 規約・運用・Production RC | 監視・rollback・backup・規約導線・RC判定 | 規約最終確認 |
 | **3P-11** | 本番公開 | CEO最終承認後のみ | **CEO承認** |
+| **RPG-VS** | RPG Vertical Slice（Chapter 1「ミナト」） | 主人公・世界地図・Quest3〜5・章末場面攻略・解放 | 教材draft完成＋rights確定＋CEO承認 |
+
+**最上位方針**: `rpg/product-north-star.md`（主人公冒険型RPG）。教材完成作業はRPG世界の中身を
+作る作業でもあるため中断しない。RPG全面実装は教材の主要draft完成後にVertical Sliceから開始する。
 
 ## 自律継続の運用（§28-§32）
 
