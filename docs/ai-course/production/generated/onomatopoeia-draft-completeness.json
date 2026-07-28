@@ -1,0 +1,958 @@
+{
+ "generatedAt": "2026-07-28",
+ "sourceSheet": "オノマトペ100集（完成版）",
+ "sourceCandidates": 100,
+ "completeDrafts": 21,
+ "incompleteRemaining": 79,
+ "principle": "完成draft（全field完備）のみonomatopoeiaDrafts.tsへ追加。未収録は理由付きでここに残す",
+ "remaining": [
+  {
+   "sourceCandidateId": "c26bd533110d2d57",
+   "surface": "ぐったり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "9409fbeb6d9891b8",
+   "surface": "くねくね",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "15e38b99ce9d1048",
+   "surface": "くらくら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "26f751460538ece8",
+   "surface": "くるくる",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a35c4abadb4c53d9",
+   "surface": "げっそり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c978fd2668bca434",
+   "surface": "げらげら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "8e02193ada8728eb",
+   "surface": "ごくごく",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "4725bb854f9af9a5",
+   "surface": "こそこそ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "f0dbe7a82da22ed1",
+   "surface": "ごしごし",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "fc98110b26c1d80b",
+   "surface": "ごちゃごちゃ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "ab367b9615d44dff",
+   "surface": "こつこつ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "8c1f1118e01dc48a",
+   "surface": "こってり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "eed1c287bbd2629e",
+   "surface": "こなごな",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "648351f4db78d8fc",
+   "surface": "さっぱり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c4ee5b567cccbcb5",
+   "surface": "さらさら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "d6f87eb84b98910e",
+   "surface": "ざらざら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a923c38a618533fa",
+   "surface": "じめじめ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c414814b912cbdee",
+   "surface": "しゅわしゅわ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "054d91cac253f571",
+   "surface": "じろじろ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "942759decb33e082",
+   "surface": "じんじん",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "df9d07434204a00f",
+   "surface": "すかすか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "ee6d8f8ddd02d2cc",
+   "surface": "ずきずき",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "e36600b23eafb373",
+   "surface": "すっきり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "9e0f146dfb71d240",
+   "surface": "すべすべ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "db8d5af977d93065",
+   "surface": "すやすや",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "275ec2361632798f",
+   "surface": "すらすら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "1b75adf0700c3a40",
+   "surface": "ぞくぞく",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "3c49e42b87b94d95",
+   "surface": "そっくり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "7c927a4c4b933d3b",
+   "surface": "そっと(そーっと)",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "da9ac9c5b7c99cf6",
+   "surface": "にこにこ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "943a4aaacea40d0f",
+   "surface": "にやにや",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c9e4a5b3a7cf09fb",
+   "surface": "にょろにょろ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "4c2e352f6a36df6a",
+   "surface": "ぬるぬる",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "acccc8efa611f356",
+   "surface": "ねばねば",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "d10af6efd27b6e75",
+   "surface": "はきはき",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "eb46cd17236d1bbc",
+   "surface": "ばしゃばしゃ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "09518998c4e9be4d",
+   "surface": "ばったり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "1d71857e8fbc421c",
+   "surface": "ばっちり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "d3d5b14bca1983a2",
+   "surface": "はらはら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "14bb6f195ddccfc0",
+   "surface": "ぴかぴか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "d7ddc77dfda5e951",
+   "surface": "びしょびしょ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "ac153c1ee6fb0fd1",
+   "surface": "ひそひそ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "e4685e6889c08780",
+   "surface": "ぴったり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "b70a57b8fd1cd541",
+   "surface": "ひょろひょろ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "214023e36ed777e5",
+   "surface": "ぴょんぴょん",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "0bee5c306acbfd44",
+   "surface": "ひらひら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a705d3f103dbc8b0",
+   "surface": "びりびり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a8795aa52f7d5a91",
+   "surface": "ひんやり",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "acafe2f247a02237",
+   "surface": "ふかふか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "2858d9586d4ab43c",
+   "surface": "ぶかぶか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "074d08805f17f268",
+   "surface": "ふさふさ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "5856fd24f8da0b73",
+   "surface": "ふっくら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "287ef9367536f329",
+   "surface": "ふらふら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a22698d6e8fcdffd",
+   "surface": "ぶらぶら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c98ddd536692387c",
+   "surface": "ぶるぶる",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c70eed2ec5ad131f",
+   "surface": "ふわふわ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "730e92fa45b46612",
+   "surface": "ぷんぷん",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "79e4f58e9227a550",
+   "surface": "ぺこぺこ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "1901ddcbaa3ef4f7",
+   "surface": "べたべた",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "457303937a89fa36",
+   "surface": "ぺちゃんこ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "5b28b736ade22fc4",
+   "surface": "へとへと",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "bde4f67d11948018",
+   "surface": "ぺらぺら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "b0043e8839de0507",
+   "surface": "べろべろ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a9402d819cd8d5e7",
+   "surface": "ぽかぽか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "7aafe6bc2ab98cc9",
+   "surface": "ぼこぼこ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "d452b25cdbf0cd85",
+   "surface": "ぼさぼさ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "9936c1713b5ea367",
+   "surface": "まるまる",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c4bb1b028fe5b943",
+   "surface": "むかむか",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "c64d68034117d4d8",
+   "surface": "むきむき",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "3cb85e04156cf1ca",
+   "surface": "むずむず",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "9d43afc90e1e68e6",
+   "surface": "むしゃむしゃ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a271df9951ba0b30",
+   "surface": "めらめら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "ab936b5dc43be821",
+   "surface": "めろめろ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "67b76b18fb87e470",
+   "surface": "もくもく",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "a3909cade803de06",
+   "surface": "もぐもぐ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "401a1970982864c0",
+   "surface": "もちもち",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "99859f29e51dddde",
+   "surface": "もてもて",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "663a3982707333d6",
+   "surface": "ゆらゆら",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  },
+  {
+   "sourceCandidateId": "77422822ee8d3cbb",
+   "surface": "よれよれ",
+   "missing": [
+    "meaningZh品質",
+    "例文2",
+    "問題2種",
+    "会話練習",
+    "commonMistake"
+   ],
+   "reason": "未執筆（バッチ2以降）"
+  }
+ ]
+}

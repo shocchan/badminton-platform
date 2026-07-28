@@ -58,7 +58,7 @@ export const hasLabPreview = (adminOverrides: unknown): boolean =>
   (adminOverrides as { labPreview?: unknown }).labPreview === true;
 
 // ── ことば図鑑のURL状態（§59・回答/自己評価/learner情報は入れない） ──
-export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun';
+export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts';
 export interface ParsedVocabUrl { vocab: boolean; view: VocabUrlView; category: string | null; itemId: string | null }
 
 export const parseVocabUrl = (search: string): ParsedVocabUrl => {
