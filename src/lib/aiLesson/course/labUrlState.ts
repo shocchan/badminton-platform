@@ -58,7 +58,7 @@ export const hasLabPreview = (adminOverrides: unknown): boolean =>
   (adminOverrides as { labPreview?: unknown }).labPreview === true;
 
 // ── ことば図鑑のURL状態（§59・回答/自己評価/learner情報は入れない） ──
-export type VocabUrlView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts';
+export type VocabUrlView = 'n3grammar' | 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts';
 export interface ParsedVocabUrl { vocab: boolean; view: VocabUrlView; category: string | null; itemId: string | null }
 
 export const parseVocabUrl = (search: string): ParsedVocabUrl => {
@@ -74,6 +74,7 @@ export const parseVocabUrl = (search: string): ParsedVocabUrl => {
   else if (raw === 'connectivity') view = 'connectivity';   // 接続監査（2E-1.9・labPreview限定）
   else if (raw === 'firstrun') view = 'firstrun';           // 初回Journey（2E-1.11・labPreview限定）
   else if (raw === 'onodrafts') view = 'onodrafts';         // オノマトペdraft（3P-3・labPreview限定）
+  else if (raw === 'n3grammar') view = 'n3grammar';         // N3文法draft（3P-4・labPreview限定）
   else if (raw === 'practice' && itemId) view = 'practice';
   else if (itemId) view = 'detail';
   else if (raw === 'daily' || raw === 'all' || raw === 'roadmap' || raw === 'diagnostic' || raw === 'quickreview') view = raw;

@@ -20,6 +20,7 @@
 - `production/illustration-coverage-inventory.md` — イラスト欠損115語
 - `production/grammar-completion-inventory.md` — N2 180/N3 120の完成状況
 - `production/excel-integration-backlog.md` — Excel 40シートの統合Backlog
+- `production/generated/n3-grammar-source-audit.json` — N3文法120行の監査（重複・N2重なり・粒度）
 - `production/generated/*.json` — 機械可読manifest（単一集計から生成）
 
 ## Phase 3（教材Release完成・N2問題演習）

@@ -1031,6 +1031,9 @@ const ja = {
     onoDraftsEntry: 'オノマトペdraft教材（内部確認・未公開）',
     onoDraftsTitle: 'オノマトペ 完成draft（内部確認）',
     onoDraftsNotice: (n: number) => `完成draft ${n}語／候補100語。全件draft・人間レビュー前・学習者には公開されません。`,
+    n3GrammarDraftsEntry: 'N3文法draft教材（内部確認・未公開）',
+    n3GrammarDraftsTitle: 'N3文法 完成draft（内部確認）',
+    n3GrammarDraftsNotice: (n: number) => `完成draft ${n}文型／独立文型76（Excel120行・重複6・N2重なり38は判断待ち）。全件draft・人間レビュー前。`,
     // 教材レビュー画面の文言は vocabReviewI18n.ts（lazy chunk・管理者専用のためメイン辞書に入れない・§31）
     diagrams: {
       niE: '移動先を表す「に・へ」の図', niECaption: '現在地から目的地へ。「日本に行きます／日本へ行きます」',
@@ -2170,6 +2173,9 @@ const zh: AiCourseDict = {
     onoDraftsEntry: '拟声拟态词draft教材（内部确认・未公开）',
     onoDraftsTitle: '拟声拟态词 完成draft（内部确认）',
     onoDraftsNotice: (n: number) => `完成draft ${n}词／候选100词。全部为draft・人工审核前・不对学习者公开。`,
+    n3GrammarDraftsEntry: 'N3语法draft教材（内部确认・未公开）',
+    n3GrammarDraftsTitle: 'N3语法 完成draft（内部确认）',
+    n3GrammarDraftsNotice: (n: number) => `完成draft ${n}个句型／独立句型76（Excel120行・重复6・与N2重叠38待判断）。全部为draft・人工审核前。`,
     diagrams: {
       niE: '表示移动目的地的「に・へ」示意图', niECaption: '从现在位置到目的地。「日本に行きます／日本へ行きます」',
       de: '表示动作场所的「で」示意图', deCaption: '在场所范围内做动作。「会社で働きます」',

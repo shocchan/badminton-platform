@@ -45,6 +45,7 @@ import { LearnerErrorBoundary, LearnerRecovery } from './LearnerRecovery';
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
 const OnoDraftsPanelLazy = lazy(() => import('./OnoDraftsPanel'));
+const N3GrammarDraftsPanelLazy = lazy(() => import('./N3GrammarDraftsPanel'));
 const VocabDecisionBadgeLazy = lazy(() => import('./VocabDecisionBadge'));
 const VocabConnectivityInspectorLazy = lazy(() => import('./VocabConnectivityInspector'));
 const FirstRunJourneyLazy = lazy(() => import('./FirstRunJourney'));
@@ -52,7 +53,7 @@ import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts' | 'n3grammar';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -102,7 +103,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity' || v === 'firstrun' || v === 'onodrafts') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity' || v === 'firstrun' || v === 'onodrafts' || v === 'n3grammar') return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -276,6 +277,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
           <button type="button" onClick={() => setView('onodrafts')}
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.onoDraftsEntry}</button>
+          <button type="button" onClick={() => setView('n3grammar')}
+            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.n3GrammarDraftsEntry}</button>
           {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
               初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
           {!sandboxOn && (
@@ -317,6 +320,11 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
       {view === 'onodrafts' && (
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <OnoDraftsPanelLazy t={t} onBack={() => setView('top')} />
+        </Suspense>
+      )}
+      {view === 'n3grammar' && (
+        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <N3GrammarDraftsPanelLazy t={t} onBack={() => setView('top')} />
         </Suspense>
       )}
       {view === 'connectivity' && (
