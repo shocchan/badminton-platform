@@ -119,6 +119,37 @@ describe('N2文法 完成draft', () => {
   });
 });
 
+describe('N2文法 同義判断待ち7件のpre-draft（人間判断不要fieldのみ完成）', () => {
+  it('7件を過不足なく覆い、draftsへは混入していない（恒等式維持）', async () => {
+    const { N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE } = await import('./n2GrammarPredraftsAwaitingMerge');
+    const HUMAN = ['n2g-007', 'n2g-018', 'n2g-024', 'n2g-064', 'n2g-099', 'n2g-104', 'n2g-162'];
+    const preIds = N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE.map(p => p.grammarId).sort();
+    expect(preIds).toEqual([...HUMAN].sort());
+    const draftIds = new Set(N2_GRAMMAR_DRAFTS.map(d => d.grammarId));
+    for (const id of preIds) expect(draftIds.has(id), `${id} がdraftsに混入`).toBe(false);
+  });
+  it('pre-draftも完成条件を満たし、原本provenance・判断保留メタが正しい', async () => {
+    const { N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE } = await import('./n2GrammarPredraftsAwaitingMerge');
+    const sha16 = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
+    for (const p of N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE) {
+      expect(p.explanationZh.length).toBeGreaterThan(8);
+      expect(p.examplesJa.length).toBeGreaterThanOrEqual(2);
+      expect(p.examplesZh.length).toBe(p.examplesJa.length);
+      expect(p.recognition.options.length).toBe(4);
+      expect(p.production.expected.length).toBeGreaterThan(0);
+      expect(p.sourceExample.hash).toBe(sha16(p.sourceExample.text));
+      expect(byId.get(p.grammarId)!.examples).toContain(p.sourceExample.text);
+      // 人間判断は保留のまま（自動昇格なし）
+      expect(p.reviewStatus).toBe('draft');
+      expect(p.humanReviewed).toBe(false);
+      expect(p.approved).toBe(false);
+      expect(p.mergeDecision.humanDecisionRequired).toEqual(
+        ['merge_or_separate', 'canonical_id', 'level_placement', 'approved_relation']);
+      expect(byId.has(p.mergeDecision.pairedWith), `${p.grammarId}: 相手ID不正`).toBe(true);
+    }
+  });
+});
+
 describe('N2文法 恒等式と横断品質（Phase 3P-5完了時の不変条件）', () => {
   const HUMAN_DECISION = ['n2g-007', 'n2g-018', 'n2g-024', 'n2g-064', 'n2g-099', 'n2g-104', 'n2g-162'];
   it('恒等式: completeDraft 173 + humanDecision 7 + autonomousIncomplete 0 = 180', () => {
