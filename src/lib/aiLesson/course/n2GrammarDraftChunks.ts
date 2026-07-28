@@ -30,10 +30,19 @@ export const loadN2DraftUnitFile = async (fileNo: number): Promise<N2GrammarDraf
   return (await loader()).drafts;
 };
 
-/** unit属性（1〜12）でロード。繰越（Unit4/5ファイル内のunit3/4項目）も正しく回収する */
+/**
+ * unit属性→実際に項目が入っているUnitファイル番号（繰越・穴埋めの実配置）。
+ * unit1の穴埋め→Unit3ファイル、unit3/4の繰越→Unit5ファイル。
+ * この対応はn2GrammarDraftChunks.test.tsが全unitで機械検証する。
+ */
+const FILES_BY_UNIT: Record<number, number[]> = {
+  1: [1, 3], 2: [2], 3: [3, 5], 4: [4, 5], 5: [5], 6: [6],
+  7: [7], 8: [8], 9: [9], 10: [10], 11: [11], 12: [12],
+};
+
+/** unit属性（1〜12）でロード。繰越・穴埋め項目も正しく回収する */
 export const loadN2DraftsByUnit = async (unit: number): Promise<N2GrammarDraft[]> => {
-  // 繰越の実配置: unit3の一部→Unit3/4ファイル、unit4の一部→Unit4/5ファイル、unit5→Unit5ファイル
-  const fileCandidates = unit === 3 ? [3, 4] : unit === 4 ? [4, 5] : [unit];
+  const fileCandidates = FILES_BY_UNIT[unit] ?? [unit];
   const all = (await Promise.all(fileCandidates.map(loadN2DraftUnitFile))).flat();
   return all.filter(d => d.unit === unit);
 };
