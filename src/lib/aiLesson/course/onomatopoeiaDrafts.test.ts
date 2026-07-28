@@ -40,8 +40,9 @@ describe('オノマトペ完成draft', () => {
     expect(ONOMATOPOEIA_DRAFTS.every(o =>
       o.publishStatus === 'draft' && !o.humanReviewed && !o.approved)).toBe(true);
   });
-  it('sourceCandidateIdがintake manifestの実在候補と一致（surfaceも一致）', () => {
-    const bySid = new Map(onoCandidates.map(c => [c.sourceCandidateId, c.surface]));
+  it('sourceCandidateIdがintake manifestの実在候補と一致（括弧注記を除いたsurfaceで照合）', () => {
+    const norm = (s: string) => s.replace(/[（(].*?[)）]/g, '').trim();
+    const bySid = new Map(onoCandidates.map(c => [c.sourceCandidateId, norm(c.surface)]));
     for (const o of ONOMATOPOEIA_DRAFTS) {
       expect(bySid.get(o.sourceCandidateId)).toBe(o.surface);
     }

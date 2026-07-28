@@ -499,8 +499,19 @@ export const ONOMATOPOEIA_DRAFTS_BATCH1: OnomatopoeiaDraft[] = [
     difficulty: 'basic' }),
 ];
 
+import { ONOMATOPOEIA_DRAFTS_BATCH2 } from './onomatopoeiaDrafts2';
+import { ONOMATOPOEIA_DRAFTS_BATCH3 } from './onomatopoeiaDrafts3';
+import { ONOMATOPOEIA_DRAFTS_BATCH4 } from './onomatopoeiaDrafts4';
+import { ONOMATOPOEIA_DRAFTS_BATCH5 } from './onomatopoeiaDrafts5';
+
 /** 現在の完成draft（全バッチ集約）。追加は「全field完備」のバッチのみ。 */
-export const ONOMATOPOEIA_DRAFTS: OnomatopoeiaDraft[] = [...ONOMATOPOEIA_DRAFTS_BATCH1];
+export const ONOMATOPOEIA_DRAFTS: OnomatopoeiaDraft[] = [
+  ...ONOMATOPOEIA_DRAFTS_BATCH1,
+  ...ONOMATOPOEIA_DRAFTS_BATCH2,
+  ...ONOMATOPOEIA_DRAFTS_BATCH3,
+  ...ONOMATOPOEIA_DRAFTS_BATCH4,
+  ...ONOMATOPOEIA_DRAFTS_BATCH5,
+];
 
 export const onomatopoeiaDraftById = (id: string): OnomatopoeiaDraft | undefined =>
   ONOMATOPOEIA_DRAFTS.find((o) => o.id === id);
