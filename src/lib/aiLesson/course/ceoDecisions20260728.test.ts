@@ -25,12 +25,12 @@ describe('fi-namae（P0例文・P1訳語のCEO確定値）', () => {
     const { buildDiagnosticQuestion } = await import('./vocabDiagnostic');
     const q = buildDiagnosticQuestion(namae, allVocabularyItems(), 0);
     if (q.dimension === 'meaning') {
-      expect(q.choices![q.answerIndex]).toBe('姓名；名字');
+      expect(q.choices![q.answerIndex ?? 0]).toBe('姓名；名字');
     } else {
       // index 0 が読み問題の場合も、意味問題側で正答が新訳になることを確認する
       const qm = buildDiagnosticQuestion(namae, allVocabularyItems(), 1);
       const target = [q, qm].find((x) => x.dimension === 'meaning');
-      expect(target?.choices![target.answerIndex]).toBe('姓名；名字');
+      expect(target!.choices![target!.answerIndex ?? 0]).toBe('姓名；名字');
     }
   });
   it('例文ふりがなは新例文と一致するよう再構成済み', () => {
