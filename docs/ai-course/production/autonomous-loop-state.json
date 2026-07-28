@@ -1,26 +1,25 @@
 {
- "sessionStartedAt": "2026-07-29T00:20:00+09:00",
+ "sessionStartedAt": "2026-07-29T01:20:00+09:00",
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "R1: N3/N2 overlap 38件Usage構造化（二重Item化なし・レベル配置は人間判断維持）",
-  "R2: Chapter 1 data contract＋Adventure runtime（sandbox・不変条件テスト14件）",
-  "R3: オリジナルpixel assets（主人公/翔子先生/NPC2/ランタン/町マップ・既存IP流用0）",
-  "R4: Chapter 1 playable vertical slice UI（Map/Quest/学習/章末場面会話/完了・lazy chunk 32.4kB）",
-  "R5: UI E2E 8件（5Quest完走・reload復元・sandbox分離・XP冪等）＋lint基線51復帰",
-  "R6: N2 Unit lazy chunk境界（Unit1分離＋動的importローダー＋実配置マップ）",
-  "R7: Grammar Human Review Packet（180件・8分割・risk 5分類・状態不変更）"
+  "C1: 文法ミッション統合（fr-desu/fr-ni-e-destination/fr-time-reading・実在Rule/Question・産出付き）",
+  "C2: 復習Quest「再会」（時間シミュレーション・別文脈再確認・Clarity更新・XP日次冪等）",
+  "C3: pixelAssets v2（キャラ4状態・灯/ベンチ/花壇/碑・Fog4段階可視化・伏せ字看板）",
+  "C4: パネルv2（responsive 60/40・自動移動演出・aria-live・Fog/現在地テキスト併記）",
+  "C5: contact sheet＋asset manifest 22件（重複hash0・human_review_candidate維持）",
+  "C6: テスト947→955（文法要件・再会E2E・a11y）・lint51維持・build成功"
  ],
- "phaseBudgetUsed": 7,
+ "phaseBudgetUsed": 6,
  "phaseBudgetMax": 8,
  "currentPhase": "完了報告→staging反映",
- "resumeFrom": "Chapter 1はlabPreviewでplayable（?vocab=1&vview=adventure）。次候補: Chapter 1へ文法ミッション統合・復習Quest実装・N2 draft内部確認パネル（Unit lazy chunk使用）・イラストreview console",
+ "resumeFrom": "Chapter 1はplayable polished draft。残: 実機モバイル確認（人間）・Asset/Story/名称承認（人間）・N2内部確認パネル（Unit chunk使用・未着手）・Chapter 2設計",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 947,
+ "testCount": 955,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
- "stagingDeployedThrough": "R7（RPG Chapter 1 Vertical Slice）",
+ "stagingDeployedThrough": "C6（Chapter 1 polished draft）",
  "unfinishedCounts": {
   "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
   "inProgressLabels": 9,
@@ -55,18 +54,18 @@
   "RPG Chapter 1の名称・Story・pixel asset承認（はじまりの町/ことば通り/みなも広場/ハナさん/ゲンさん等は仮称・human_review_candidate）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-7（2026-07-29・RPG Chapter 1 Vertical Slice）",
+ "sessionId": "autonomous-session-8（2026-07-29・Chapter 1 Closure）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
  "bundleReport": {
   "totalJsRaw": "3370.6 kB（dist/assets/*.js 92 files・stat実測）",
   "totalJsGzip": "987.8 kB（gzip -c実測）",
-  "mainIndex": "590.38 kB（index-BKiAuWXx.js・サイズ基線維持）",
+  "mainIndex": "590.38 kB（サイズ基線維持）",
   "largestLazyChunk": "AdminPage 533.20 kB（既存・本作業外）",
   "n2DraftDelivery": "N2 drafts（Unit1〜12・173件＋pre-draft7件）はUIから未import。dist成果物に一切含まれず、learner転送量への影響 0 byte",
   "note": "旧記録の「totalJs 1022.5 kB」は測定方法が未記録の値。今回から実測方法を明記（raw/gzip併記）。learner公開時はUnit単位lazy chunk分割が必要（Priority 7）",
-  "chapter1Panel": "32.39 kB (gzip 10.68)・labPreview限定lazy chunk"
+  "chapter1Panel": "52.31 kB (gzip 15.22)・labPreview限定lazy chunk（文法データ・v2 assets込み）"
  },
  "northStar": "docs/ai-course/rpg/product-north-star.md（主人公冒険型・日本語攻略RPG）。今後の全UI/ルート/Unit/イラスト/成長設計はこれと矛盾しないこと",
  "resolvedDecisions": [
