@@ -14,7 +14,8 @@ import {
 } from '../../../lib/aiLesson/course/rpg/adventureState';
 import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocabBank';
 import type { FoundationItem } from '../../../lib/aiLesson/course/foundationTypes';
-import { HeroSprite, ShokoSprite, NpcHanaSprite, NpcGenSprite, LanternMarker, TownMapBase, FOG_FILL } from './pixelAssets';
+import { HeroSprite, ShokoSprite, NpcHanaSprite, NpcGenSprite, LanternMarker, TownMapBase } from './pixelAssets';
+import { FOG_FILL } from './fogStyles';
 
 type Screen =
   | { kind: 'map' }
@@ -46,9 +47,15 @@ const buildOptions = (item: FoundationItem, pool: FoundationItem[]): string[] =>
   return [...opts].sort((a, b) => a.localeCompare(b, 'zh'));
 };
 
+// render中にDate.now()を呼ばないための起動時刻とhandler専用時計
+// （fog表示は操作のたびにnowMs stateで更新。renderからclockNowは呼ばない）
+const initialNowMs = Date.now();
+const clockNow = () => Date.now();
+
 export const Chapter1AdventurePanel = ({ onBack }: Props) => {
-  const now = () => Date.now();
-  const [state, setState] = useState<AdventureState>(() => loadAdventureState(Date.now()));
+  const [nowMs, setNowMs] = useState(initialNowMs);
+  const now = () => { const t = clockNow(); setNowMs(t); return t; };
+  const [state, setState] = useState<AdventureState>(() => loadAdventureState(initialNowMs));
   const [screen, setScreen] = useState<Screen>({ kind: 'map' });
   const [simpleMode, setSimpleMode] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => {
@@ -62,7 +69,7 @@ export const Chapter1AdventurePanel = ({ onBack }: Props) => {
 
   const nextQuest: Chapter1Quest | null = state.chapter.currentQuestId
     ? chapter1QuestById(state.chapter.currentQuestId) ?? null : null;
-  const reviewIds = reviewNeededItems(state, now());
+  const reviewIds = reviewNeededItems(state, nowMs);
   const chapterDone = state.chapter.completedAtMs !== null;
 
   const beginQuest = (q: Chapter1Quest) => {
@@ -158,7 +165,7 @@ export const Chapter1AdventurePanel = ({ onBack }: Props) => {
               {/* Fog（場所ごとに導出。解放済みは学習の鮮度で変化・再ロックはしない） */}
               {CHAPTER1_LOCATIONS.map(loc => {
                 const discovered = state.chapter.discoveredLocationIds.includes(loc.locationId);
-                const fog = discovered ? deriveLocationFog(state, loc.locationId, now()) : 'foggy';
+                const fog = discovered ? deriveLocationFog(state, loc.locationId, nowMs) : 'foggy';
                 const f = FOG_FILL[fog];
                 const r = FOG_REGIONS[loc.locationId];
                 return f.opacity > 0 ? (

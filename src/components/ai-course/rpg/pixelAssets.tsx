@@ -196,11 +196,3 @@ export const TownMapBase = () => (
     <Tree x={36} y={26} /><Tree x={26} y={30} /><Tree x={3} y={16} />
   </g>
 );
-
-/** Fog色（導出FogLevel→表示）。review_neededはランタン色をわずかに混ぜ「再会待ち」を示す */
-export const FOG_FILL: Record<string, { fill: string; opacity: number }> = {
-  clear: { fill: '#ffffff', opacity: 0 },
-  light_fog: { fill: '#e3ebf2', opacity: 0.45 },
-  foggy: { fill: '#dde6ee', opacity: 0.92 },
-  review_needed: { fill: '#e6dfeb', opacity: 0.6 },
-};
