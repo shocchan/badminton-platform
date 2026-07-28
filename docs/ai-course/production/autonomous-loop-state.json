@@ -40,6 +40,7 @@
   "n2AwaitingMergeDecision": 7
  },
  "decisionQueueAwaiting": [
+  "Excel原本3ソースのrightsStatus確認（teacher_created_assumed→confirmedへ昇格できるか。未確認のため原本例文はruntime使用禁止・独自例文で代替中）",
   "APPLY_STAGING_MIGRATIONS / APPLY_SHARED_SUPABASE_MIGRATIONS（CEO明示文字列）",
   "reuse_existing 63件のsense統合判断（reuse-decision-packet.json・awaiting_semantic_decision）",
   "N3シート38件のレベル配置判断（N2と同表記・awaiting_level_decision）",

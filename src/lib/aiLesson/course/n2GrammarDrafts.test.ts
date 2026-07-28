@@ -54,18 +54,28 @@ describe('N2文法 完成draft', () => {
       expect(d.unit).toBeGreaterThan(0);
     }
   });
-  it('grammarIdが原本n2GrammarDataに実在し、原本の第1例文を改変していない', () => {
+  it('原本例文はsourceExampleへ退避され、runtime例文には使われていない（rights）', () => {
     for (const d of N2_GRAMMAR_DRAFTS) {
       const src = byId.get(d.grammarId);
       expect(src, `${d.grammarId} が原本にない`).toBeTruthy();
-      // 原本例文はふりがな注記を含むため、括弧注記を除いた本文が一致することを見る。
-      // やむを得ず編集した場合は sourceExampleEdit に原文と理由を必ず残す（改変を隠さない）。
-      const strip = (s: string) => s.replace(/[（(][ぁ-ん]+[)）]/g, '');
-      if (d.sourceExampleEdit) {
-        expect(strip(d.sourceExampleEdit.original)).toBe(strip(src!.examples[0]));
-        expect(d.sourceExampleEdit.reason.length).toBeGreaterThan(10);
-      } else {
-        expect(strip(d.examplesJa[0])).toBe(strip(src!.examples[0]));
+      expect(d.sourceExample.text).toBe(src!.examples[0]);
+      expect(d.sourceExample.rightsStatus).toBe('teacher_created_assumed');
+      expect(d.sourceExample.hash).toMatch(/^[0-9a-f]{16}$/);
+      expect(d.runtimeExampleOrigin).toBe('original_authored');
+    }
+  });
+  it('runtime例文が原本と近接していない（言い換えただけの例文を禁止）', () => {
+    // 文字ベースの類似度。0.6以上は「少し言い換えただけ」とみなして不合格にする
+    const ratio = (a: string, b: string) => {
+      const A = a.replace(/[（(][ぁ-ん]+[)）]|\s/g, ''), B = b.replace(/[（(][ぁ-ん]+[)）]|\s/g, '');
+      const set = new Set(B.split(''));
+      let hit = 0; for (const c of A) if (set.has(c)) hit++;
+      return hit / Math.max(A.length, B.length);
+    };
+    for (const d of N2_GRAMMAR_DRAFTS) {
+      for (const ex of d.examplesJa) {
+        expect(ratio(ex, d.sourceExample.text),
+          `${d.grammarId}: runtime例文が原本に近すぎる`).toBeLessThan(0.75);
       }
     }
   });

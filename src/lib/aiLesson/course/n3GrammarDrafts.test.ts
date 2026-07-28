@@ -68,8 +68,10 @@ describe('N3文法 完成draft', () => {
       // 「〜や〜など」のような不連続文型は分割し、全断片が同一例文に現れることを見る
       const parts = d.pattern.replace(/[（(].*?[)）]/g, '').split(/[〜~]/)
         .map(s => s.trim()).filter(Boolean).map(s => s.slice(0, 2));
-      const hit = d.examplesJa.some(e => parts.every(p => e.includes(p)));
-      expect(hit, `${d.grammarId}: 例文に「${parts.join('/')}」が揃っていない`).toBe(true);
+      const hit = d.matchKeys
+        ? d.examplesJa.some(e => d.matchKeys!.some(k => e.includes(k)))
+        : d.examplesJa.some(e => parts.every(p => e.includes(p)));
+      expect(hit, `${d.grammarId}: 例文に「${(d.matchKeys ?? parts).join('/')}」が揃っていない`).toBe(true);
     }
   });
   it('vocabularyLinksが実在する語彙IDを指す（参照切れ0）', () => {
@@ -98,5 +100,26 @@ describe('N3文法 完成draft', () => {
   it('自動昇格なし（全件draft・human_reviewed/approved false）', () => {
     expect(N3_GRAMMAR_DRAFTS.every(d =>
       d.reviewStatus === 'draft' && !d.humanReviewed && !d.approved)).toBe(true);
+  });
+});
+
+describe('rights: N3 runtime例文が原本と近接していない', () => {
+  // 原本Excelは teacher_created_assumed（未確認）。runtime例文は独自作成でなければならない。
+  const bySrc = new Map(audit.entries.map((e: { sourceRowId: string; exJa: string }) =>
+    [e.sourceRowId, e.exJa ?? '']));
+  const ratio = (a: string, b: string) => {
+    const A = a.replace(/\s/g, ''), B = (b ?? '').replace(/\s/g, '');
+    if (!B) return 0;
+    const set = new Set(B.split(''));
+    let hit = 0; for (const c of A) if (set.has(c)) hit++;
+    return hit / Math.max(A.length, B.length);
+  };
+  it('全例文が原本との類似度0.85未満', () => {
+    for (const d of N3_GRAMMAR_DRAFTS) {
+      const orig = (bySrc.get(d.sourceRowId) ?? '') as string;
+      for (const ex of d.examplesJa) {
+        expect(ratio(ex, orig), `${d.grammarId}: 原本に近すぎる例文`).toBeLessThan(0.85);
+      }
+    }
   });
 });

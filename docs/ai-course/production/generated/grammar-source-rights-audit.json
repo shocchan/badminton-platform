@@ -1,0 +1,34 @@
+{
+ "generatedAt": "2026-07-28",
+ "rule": "runtime使用可: teacher_created_confirmed / licensed / permission_confirmed / public_domain。使用禁止: teacher_created_assumed / private_reference_only / rights_unknown / blocked",
+ "sources": [
+  {
+   "source": "Excel「原：N2の文法180例文集」",
+   "usedBy": "n2GrammarData.ts（180件の例文）",
+   "rightsStatus": "teacher_created_assumed",
+   "basis": "3A監査時にCEO自作と推定。書面での確認は未取得（copyright-and-rights-gate.md §46）",
+   "runtimeUse": "forbidden",
+   "mitigation": "原本例文はsourceExample（text+hash+rightsStatus）として内部照合用にのみ保持。runtime例文は全件独自作成し、類似度0.75未満をテストで強制",
+   "decisionQueue": "awaiting_human_rights_decision"
+  },
+  {
+   "source": "Excel「N3の文法120例文集」",
+   "usedBy": "n3GrammarDrafts*.ts（76文型）",
+   "rightsStatus": "teacher_created_assumed",
+   "basis": "同上",
+   "runtimeUse": "forbidden",
+   "mitigation": "runtime例文71件を独自作成へ差し替え済み（差し替え前は最大類似度1.0）。意味・中文はsourceの内容知識であり表現は独自",
+   "decisionQueue": "awaiting_human_rights_decision"
+  },
+  {
+   "source": "Excel「オノマトペ100集（完成版）」",
+   "usedBy": "onomatopoeiaDrafts*.ts（100語）",
+   "rightsStatus": "teacher_created_assumed",
+   "basis": "同上",
+   "runtimeUse": "forbidden",
+   "mitigation": "**未対応**。runtime例文の独自作成が必要（次バッチで対応）",
+   "decisionQueue": "awaiting_human_rights_decision"
+  }
+ ],
+ "requiredHumanDecision": "CEOが「これらは自作である」と確認すれば teacher_created_confirmed へ昇格でき、原本例文をそのままruntimeで使える。AIはこの確認を代行しない"
+}

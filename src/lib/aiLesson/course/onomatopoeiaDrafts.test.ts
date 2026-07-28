@@ -63,3 +63,24 @@ describe('オノマトペ完成draft', () => {
     expect(m.completeDrafts + m.incompleteRemaining).toBe(m.sourceCandidates);
   });
 });
+
+describe('rights: runtime例文が原本と近接していない', () => {
+  // 原本Excelは teacher_created_assumed（未確認）のため、runtime例文は独自作成でなければならない。
+  // 「少し言い換えただけ」を機械的に不合格にする（grammar-source-rights-audit.json参照）。
+  const bySid = new Map(onoCandidates.map(c => [c.sourceCandidateId, (c as unknown as { example: string }).example ?? '']));
+  const ratio = (a: string, b: string) => {
+    const A = a.replace(/\s/g, ''), B = (b ?? '').replace(/\s/g, '');
+    if (!B) return 0;
+    const set = new Set(B.split(''));
+    let hit = 0; for (const c of A) if (set.has(c)) hit++;
+    return hit / Math.max(A.length, B.length);
+  };
+  it('全例文が原本との類似度0.85未満', () => {
+    for (const o of ONOMATOPOEIA_DRAFTS) {
+      const orig = bySid.get(o.sourceCandidateId) ?? '';
+      for (const ex of o.examples) {
+        expect(ratio(ex.ja, orig), `${o.id}: 原本に近すぎる例文`).toBeLessThan(0.85);
+      }
+    }
+  });
+});
