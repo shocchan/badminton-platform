@@ -1,6 +1,7 @@
 // Phase 3P-5: N2文法完成draftのガード。原本との整合と、field埋めでない実質を検証する。
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'fs';
+import { createHash } from 'node:crypto';
 import { join } from 'path';
 import { N2_GRAMMAR_DRAFTS } from './n2GrammarDrafts';
 import { N2_GRAMMAR_ITEMS } from './n2GrammarData';
@@ -54,19 +55,19 @@ describe('N2文法 完成draft', () => {
       expect(d.unit).toBeGreaterThan(0);
     }
   });
-  it('原本例文はsourceExampleへ退避され、runtime例文には使われていない（rights）', () => {
+  it('原本例文はsourceExampleへ改変なしで退避されている（provenance）', () => {
+    const sha16 = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
     for (const d of N2_GRAMMAR_DRAFTS) {
       const src = byId.get(d.grammarId);
       expect(src, `${d.grammarId} が原本にない`).toBeTruthy();
-      // 原本例文はhash付きで保持。CEO確認によりconfirmedならruntime使用も可
-      expect(['teacher_created_assumed', 'teacher_created_confirmed'])
-        .toContain(d.sourceExample.rightsStatus);
-      expect(d.sourceExample.hash).toMatch(/^[0-9a-f]{16}$/);
+      // CEO確認（2026-07-28）により全Sourceはconfirmed。runtime使用可
+      expect(d.sourceExample.rightsStatus).toBe('teacher_created_confirmed');
+      // hashは実際のsha256先頭16桁。textは原本セルと完全一致（注記・全角数字も含め無改変）
+      expect(d.sourceExample.hash, `${d.grammarId}: hashがsha256(text)と不一致`)
+        .toBe(sha16(d.sourceExample.text));
+      expect(src!.examples, `${d.grammarId}: sourceExample.textが原本に無い`)
+        .toContain(d.sourceExample.text);
       expect(['original_authored', 'source_confirmed']).toContain(d.runtimeExampleOrigin);
-      // confirmed以外のSourceを原本のままruntimeに使っていないこと
-      if (d.runtimeExampleOrigin === 'source_confirmed') {
-        expect(d.sourceExample.rightsStatus).toBe('teacher_created_confirmed');
-      }
     }
   });
   it('権利未確認Sourceの場合のみ、runtime例文の原本近接を禁止する', () => {
