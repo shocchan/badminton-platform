@@ -7,7 +7,8 @@
 - CEO指示「攻略型・完全版 v1.0」（§0-39・自律継続・上限8Phase/10時間）を実行中
 - 完了: **3P-1**（完全Inventory・manifest5本・ベースライン確定）→ **3P-2**（Excel intake・
   全40シート登録・2,089候補終端状態・第一弾614意味分類）
-- **3P-3完了**（会話contextual 0・オノマトペ100/100・reuseパケット63）。監督レビュー→3P-4（N3文法120）へ
+- **3P-3完了・監督CONTINUE済み**（会話contextual 0・オノマトペ100/100・reuseパケット63）
+- **3P-4指示文受領済み**（prompts/3p-4-prompt.md）。入口監査済み: N3=120行・独立文型114・重複表記6・中文列あり。次は意味分類→完成draft化
 - ブランチ: `feature/ai-course-learning-polish`／テスト881／lint 51不変／main bundle 590.35KB／staging反映済み(3P-3)
 
 ## 3P-3の実行案（監督の修正が優先）
