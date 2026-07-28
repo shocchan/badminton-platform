@@ -73,6 +73,7 @@ export const parseVocabUrl = (search: string): ParsedVocabUrl => {
   else if (raw === 'decisions') view = 'decisions';    // 判断キュー（2E-1.7・labPreview限定）
   else if (raw === 'connectivity') view = 'connectivity';   // 接続監査（2E-1.9・labPreview限定）
   else if (raw === 'firstrun') view = 'firstrun';           // 初回Journey（2E-1.11・labPreview限定）
+  else if (raw === 'onodrafts') view = 'onodrafts';         // オノマトペdraft（3P-3・labPreview限定）
   else if (raw === 'practice' && itemId) view = 'practice';
   else if (itemId) view = 'detail';
   else if (raw === 'daily' || raw === 'all' || raw === 'roadmap' || raw === 'diagnostic' || raw === 'quickreview') view = raw;
