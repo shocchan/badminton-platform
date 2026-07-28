@@ -21,7 +21,7 @@
 | focus ring（全アプリ共通） | **解決済み**（2026-07-28 CEO承認の共通修正。全計測3.5:1以上・staging反映済み） |
 | ヒント使用の記録 | 今回は追加しない（CEO決定）。将来設計のみ `hint-usage-future-design.md` |
 | 検証モードの公開分離 | 現在はlabPreviewで非表示・chunk非読込。**正式公開前に internal_review entitlement へ移す**（設計は#5の資料に含む） |
-| 検証モード中のanalytics送信 | 現在は送信される（labPreview保持者のみなので実害は限定的）。entitlement移行時に停止する |
+| 検証モード中のanalytics送信 | **解決済み**（2026-07-28: sandbox中は送信しない。staging実機でdataLayer無送信を確認・テスト4件） |
 | 会話 generic 127語 | 品質改善候補（ブロッカーではない） |
 | Step4と完了画面の棒ラベル不統一 | **解決済み**（「正しく答えた／もう一度確認」へ統一・2026-07-28） |
 
