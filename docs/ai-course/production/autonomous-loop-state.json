@@ -1,25 +1,26 @@
 {
- "sessionStartedAt": "2026-07-29T01:20:00+09:00",
+ "sessionStartedAt": "2026-07-29T02:00:00+09:00",
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "C1: 文法ミッション統合（fr-desu/fr-ni-e-destination/fr-time-reading・実在Rule/Question・産出付き）",
-  "C2: 復習Quest「再会」（時間シミュレーション・別文脈再確認・Clarity更新・XP日次冪等）",
-  "C3: pixelAssets v2（キャラ4状態・灯/ベンチ/花壇/碑・Fog4段階可視化・伏せ字看板）",
-  "C4: パネルv2（responsive 60/40・自動移動演出・aria-live・Fog/現在地テキスト併記）",
-  "C5: contact sheet＋asset manifest 22件（重複hash0・human_review_candidate維持）",
-  "C6: テスト947→955（文法要件・再会E2E・a11y）・lint51維持・build成功"
+  "PR1: answer leakage監査基盤＋teach/assess分離（Chapter1のP1 11件→0）",
+  "PR2: cognate-aware出題エンジン（4分類・高リスク12語contrast・同形同義語の意味当て廃止）",
+  "PR3: Production Blocker Manifest（単一集計・ai_actionable/human_gate分離）",
+  "PR4: learner HomeをRPG World Shellへ昇格（実ブラウザ実測でoverflow0・Map58%幅）",
+  "PR5: 開発表示のdevTools隔離＋blocker計測の精度向上（debug13→0・comingSoon5→0）",
+  "PR6: N3 Unit Coverage Contract（12単元・全140語・孤立0）＋Stage1-3実装（活用・産出）",
+  "PR7: Production GO Matrix（pass19/fail7/human_required10・partial禁止）"
  ],
- "phaseBudgetUsed": 6,
+ "phaseBudgetUsed": 7,
  "phaseBudgetMax": 8,
- "currentPhase": "完了報告→staging反映",
- "resumeFrom": "Chapter 1はplayable polished draft。残: 実機モバイル確認（人間）・Asset/Story/名称承認（人間）・N2内部確認パネル（Unit chunk使用・未着手）・Chapter 2設計",
+ "currentPhase": "完了報告",
+ "resumeFrom": "AI解消可能blocker=0。残りfail 7件（N3単元learner UI・RLS/entitlement検証・cross-device・monitoring・support導線・rollback/backup・incident response）はAIで着手可能。human_required 10件はCEO承認/法務/実機/remote DB/本番承認。",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 955,
+ "testCount": 980,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
- "stagingDeployedThrough": "C6（Chapter 1 polished draft）",
+ "stagingDeployedThrough": "PR7（Production Readiness Closure）",
  "unfinishedCounts": {
   "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
   "inProgressLabels": 9,
@@ -54,7 +55,7 @@
   "RPG Chapter 1の名称・Story・pixel asset承認（はじまりの町/ことば通り/みなも広場/ハナさん/ゲンさん等は仮称・human_review_candidate）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-8（2026-07-29・Chapter 1 Closure）",
+ "sessionId": "autonomous-session-9（2026-07-29・Production Readiness Closure）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
@@ -78,5 +79,13 @@
   "humanDecisionRequired": 7,
   "autonomousIncomplete": 0,
   "identity": "173+7+0+0=180"
+ },
+ "productionGo": "NO-GO",
+ "blockerDelta": {
+  "aiActionableStart": 124,
+  "aiActionableEnd": 0,
+  "p1Start": 18,
+  "p1End": 0,
+  "note": "P1（answer leakage・開発表示・coming soon）は全て解消。残るP1はLP文言のCEO/法務判断のみ"
  }
 }
