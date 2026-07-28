@@ -363,6 +363,7 @@ import { N2_GRAMMAR_DRAFTS_UNIT5 } from './n2GrammarDraftsUnit5';
 import { N2_GRAMMAR_DRAFTS_UNIT6 } from './n2GrammarDraftsUnit6';
 import { N2_GRAMMAR_DRAFTS_UNIT7 } from './n2GrammarDraftsUnit7';
 import { N2_GRAMMAR_DRAFTS_UNIT8 } from './n2GrammarDraftsUnit8';
+import { N2_GRAMMAR_DRAFTS_UNIT9 } from './n2GrammarDraftsUnit9';
 
 /** 現在の完成draft（全Unit集約）。追加は「全field完備」のUnitのみ。 */
 export const N2_GRAMMAR_DRAFTS: N2GrammarDraft[] = [
@@ -374,6 +375,7 @@ export const N2_GRAMMAR_DRAFTS: N2GrammarDraft[] = [
   ...N2_GRAMMAR_DRAFTS_UNIT6,
   ...N2_GRAMMAR_DRAFTS_UNIT7,
   ...N2_GRAMMAR_DRAFTS_UNIT8,
+  ...N2_GRAMMAR_DRAFTS_UNIT9,
 ];
 
 export const n2GrammarDraftById = (id: string): N2GrammarDraft | undefined =>
