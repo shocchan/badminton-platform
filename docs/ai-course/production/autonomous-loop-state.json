@@ -3,15 +3,16 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "3P-5 Unit2（N2文法13件・rights確認反映・指標定義書）"
+  "3P-5 Unit2（13件）",
+  "3P-5 Unit3＋Unit1穴埋め（15件）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（N2 Unit1の穴埋め2件 → Unit3〜12）",
- "resumeFrom": "N2文法の残り148件。①Unit1の未執筆2件（n2g-009「〜うちは」・n2g-010「〜しようではないか」）②Unit3（n2g-031〜045）以降。**rightsはteacher_created_confirmedなので原本例文をそのままexamplesJa[0]に使える**（制作が速い）。パターンはn2GrammarDraftsUnit2.tsを踏襲",
+ "currentPhase": "3P-5継続（Unit4: n2g-046〜060）",
+ "resumeFrom": "N2文法の残り133件（Unit4〜12、n2g-046以降）。同義判断待ち7件は除く。パターンはn2GrammarDraftsUnit3.tsを踏襲（rights confirmed・原本例文をruntime使用・第2例文は独自作成・matchKeysで不連続文型対応）",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 911,
+ "testCount": 912,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
  "stagingDeployedThrough": "3P-5",
@@ -66,9 +67,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 25,
+  "completeDraft": 40,
   "synonymAwaiting": 7,
-  "remaining": 148,
+  "remaining": 133,
   "humanReviewed": 0,
   "approved": 0
  }
