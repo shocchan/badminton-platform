@@ -85,3 +85,33 @@
 2. 初回Learner Journeyの専用フローが未実装
 3. admin_overrides のRLS問題が正式公開ブロッカーとして残っている
 4. 正式DB保存（語彙進捗・復習スケジュール）が未実装
+
+---
+
+## 教材の承認状態モデル（CEO決定 2026-07-28）
+
+**140語の一括承認は行わない。** 各語（の各field）は次の状態を1段ずつ進む:
+
+| 状態 | 意味 | 進められる者 |
+|---|---|---|
+| `draft` | AI作成のまま | — |
+| `ceo_decided` | CEOが採否を判断した（判断シート記入） | **CEOのみ** |
+| `applied_draft` | 判断をdraftデータへ反映した | AI（判断の転記のみ） |
+| `human_review_candidate` | staging確認まで済み、人間レビュー待ち | AI（作業完了の宣言のみ） |
+| `human_reviewed` | 人間がレビューした | **人間のみ** |
+| `approved` | 公開してよい | **人間のみ** |
+
+- **AIレビュー（Claude/ChatGPT/両者一致/多数決/confidence）は human_reviewed / approved へ
+  進める根拠にならない**
+- 逆流は常に可能（approved後でも問題が見つかればdraftへ戻す）
+
+## Release Gate（追加・CEO決定 2026-07-28）
+
+> **root P0 / root P1 が未解決の判断を含むパックは approved にできない。**
+
+判定式: パック内の全語について `rootIssueId` を持つ判断が
+`ceo_decided` 以降であること。1件でも `draft` の P0/P1 が残るパックは、
+他の全条件を満たしても approved に進めない。
+
+現状: 生活・会話の基礎パックに root P0=1・root P1=13 が `draft` のまま
+→ **本パックは現時点で approved 不可**（判断シート: `decision-packets/curriculum-p0-p1-ceo-review.md`）。
