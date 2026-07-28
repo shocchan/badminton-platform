@@ -11,6 +11,16 @@
 | `mobile-device-beta-checklist.md` | 実機スマートフォンのチェックリスト（CEO記入式・未実施） |
 | `completion-reports/curriculum-p0-p1-application-report.md` | 教材14件の反映報告（root P0/P1=0） |
 
+## Phase 3（教材Release完成・N2問題演習）
+
+- `phase-3-roadmap.md` — **Phase 3A〜3Fの計画と3Bへ進む条件**
+- `current-content-release-audit.md` — 現教材のRelease監査（読込済み≠公開可能）
+- `excel-source-inventory.md` — Excel 40シートの分類・重複・権利
+- `n2-question-source-inventory.md` — N2問題Source（現在0件・登録手順）
+- `copyright-and-rights-gate.md` — 著作権・権利ゲート（全教材に適用）
+- `n2-question-schema.md` — 問題スキーマ設計（実装は3C）
+- `content-release-matrix.json` — 機械可読の完成度集計（単一集計から生成）
+
 ## 判断の記録
 
 - `decision-packets/curriculum-p0-p1-ceo-review.md` — P0/P1判断シート（判断済み・記録）
