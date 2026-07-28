@@ -42,15 +42,33 @@ const UNFINISHED_LABELS = ['準備中', '作成中', 'coming soon', 'Coming Soon
 
 interface SurfaceFinding { file: string; label: string; line: number }
 
+/**
+ * learner viewの対象外ファイル。
+ * - vocabReviewI18n / VocabDecisionConsole 等は labPreview 管理者専用consoleの文言で、
+ *   learnerのルートからは到達しない（AiCoursePageがlabPreview権限で分岐）。
+ */
+const ADMIN_ONLY_FILES = [
+  'foundation/vocab/vocabReviewI18n.ts',
+  'foundation/vocab/VocabDecisionConsole.tsx',
+  'foundation/vocab/VocabConnectivityInspector.tsx',
+];
+
 const scanSurfaces = (labels: string[], dirs: string[]): SurfaceFinding[] => {
   const out: SurfaceFinding[] = [];
   for (const d of dirs) {
     if (!existsSync(join(ROOT, d))) continue;
     for (const file of walk(join(ROOT, d))) {
+      if (ADMIN_ONLY_FILES.some(a => file.endsWith(a))) continue;
       const text = readFileSync(file, 'utf8');
+      let devOnly = false;
       text.split('\n').forEach((ln, i) => {
+        // 開発者ツール領域（learner viewでは描画されない）はマーカーで明示的にskip
+        if (ln.includes('dev-only:start')) { devOnly = true; return; }
+        if (ln.includes('dev-only:end')) { devOnly = false; return; }
+        if (devOnly) return;
         // JSXの表示文字列のみを対象にする（import・型・コメント行は除外）
-        if (/^\s*(\/\/|\*|import|export type|export interface)/.test(ln)) return;
+        // JSDoc（/** */）・JSXコメント（{/* */}）・行コメントは表示されないので対象外
+        if (/^\s*(\/\/|\*|\/\*|\{\/\*|import|export type|export interface)/.test(ln)) return;
         for (const lab of labels) {
           if (ln.includes(lab)) out.push({ file: file.replace(ROOT + '/', ''), label: lab, line: i + 1 });
         }
@@ -62,6 +80,8 @@ const scanSurfaces = (labels: string[], dirs: string[]): SurfaceFinding[] => {
 
 // learnerが実際に到達する画面（labPreview限定パネルは production では非表示）
 const LEARNER_DIRS = ['src/components/ai-course', 'src/pages/ai-lesson'];
+// LP（未ログインの見込み客向け）。文言はマーケ・法務判断のため human_gate に分類する
+const LANDING_DIR = 'src/pages/ai-lesson/landing';
 
 // ── 教育品質 ──
 const leakageFindings = [
@@ -103,8 +123,13 @@ const referenced = new Set<string>([
 const orphanVocabulary = pool.filter(i => !referenced.has(i.id)).map(i => i.id);
 
 // ── 集計 ──
-const debugLabels = scanSurfaces(DEV_LABELS, LEARNER_DIRS);
-const unfinished = scanSurfaces(UNFINISHED_LABELS, LEARNER_DIRS);
+const allDebug = scanSurfaces(DEV_LABELS, LEARNER_DIRS);
+const allUnfinished = scanSurfaces(UNFINISHED_LABELS, LEARNER_DIRS);
+const isLanding = (f: SurfaceFinding) => f.file.startsWith(LANDING_DIR);
+const debugLabels = allDebug.filter(f => !isLanding(f));
+const unfinished = allUnfinished.filter(f => !isLanding(f));
+// LPの「ベータ版」「準備中」表記は、正式版表現・掲載素材のCEO/法務判断（§25）
+const landingCopyDecisions = [...allDebug, ...allUnfinished].filter(isLanding);
 
 type Owner = 'ai_actionable' | 'human_gate';
 interface Blocker { key: string; count: number; severity: 'P0' | 'P1' | 'P2'; owner: Owner; note: string }
@@ -139,6 +164,8 @@ const humanGates: Blocker[] = [
     note: '共有Supabaseへのmigration/RLS適用（APPLY_SHARED_SUPABASE_MIGRATIONS が必要）' },
   { key: 'legalDecisionBlockers', count: 1, severity: 'P0', owner: 'human_gate',
     note: '利用規約・プライバシー・AI利用範囲・現実景品の法務判断' },
+  { key: 'landingCopyDecision', count: landingCopyDecisions.length, severity: 'P1', owner: 'human_gate',
+    note: 'LPの「ベータ版」「学習画面は準備中」表記。正式版表現と掲載素材はCEO/法務の判断' },
   { key: 'productionDeployWaiting', count: 1, severity: 'P0', owner: 'human_gate',
     note: '本番反映（APPROVE_AI_COURSE_PRODUCTION_RELEASE が必要）' },
 ];
@@ -164,6 +191,7 @@ const manifest = {
     orphanVocabularyTotal: orphanVocabulary.length,
     debugLabelsVisible: debugLabels.slice(0, 40),
     comingSoonVisible: unfinished.slice(0, 40),
+    landingCopyDecisions,
   },
   coverage: {
     vocabularyTotal: pool.length,

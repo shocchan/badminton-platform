@@ -1,10 +1,10 @@
 {
- "generatedAt": "2026-07-28T17:54:22.278Z",
+ "generatedAt": "2026-07-28T18:13:41.030Z",
  "productionGo": "NO-GO",
  "summary": {
-  "aiActionableBlockers": 124,
-  "humanGateBlockers": 6,
-  "p1Count": 18,
+  "aiActionableBlockers": 106,
+  "humanGateBlockers": 10,
+  "p1Count": 4,
   "p0Count": 6
  },
  "blockers": [
@@ -52,14 +52,14 @@
   },
   {
    "key": "debugLabelsVisible",
-   "count": 13,
+   "count": 0,
    "severity": "P1",
    "owner": "ai_actionable",
    "note": "learner画面に開発表示（試作/sandbox/検証用など）が残っている箇所"
   },
   {
    "key": "comingSoonVisible",
-   "count": 5,
+   "count": 0,
    "severity": "P1",
    "owner": "ai_actionable",
    "note": "learner画面に準備中/coming soon表示が残っている箇所"
@@ -100,6 +100,13 @@
    "severity": "P0",
    "owner": "human_gate",
    "note": "利用規約・プライバシー・AI利用範囲・現実景品の法務判断"
+  },
+  {
+   "key": "landingCopyDecision",
+   "count": 4,
+   "severity": "P1",
+   "owner": "human_gate",
+   "note": "LPの「ベータ版」「学習画面は準備中」表記。正式版表現と掲載素材はCEO/法務の判断"
   },
   {
    "key": "productionDeployWaiting",
@@ -157,79 +164,9 @@
    "fi-kazoku"
   ],
   "orphanVocabularyTotal": 105,
-  "debugLabelsVisible": [
-   {
-    "file": "src/components/ai-course/CourseHome.tsx",
-    "label": "試作",
-    "line": 61
-   },
-   {
-    "file": "src/components/ai-course/foundation/vocab/FirstRunJourney.tsx",
-    "label": "検証用",
-    "line": 30
-   },
-   {
-    "file": "src/components/ai-course/foundation/vocab/VocabularyHub.tsx",
-    "label": "検証用",
-    "line": 285
-   },
-   {
-    "file": "src/components/ai-course/foundation/vocab/VocabularyHub.tsx",
-    "label": "labPreview限定",
-    "line": 395
-   },
-   {
-    "file": "src/components/ai-course/foundation/vocab/vocabReviewI18n.ts",
-    "label": "labPreview限定",
-    "line": 181
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "labPreview限定",
-    "line": 258
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "sandbox保存",
-    "line": 258
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "内部プレビュー",
-    "line": 258
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "この画面専用",
-    "line": 258
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "通常の学習記録には影響しません",
-    "line": 258
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "検証用",
-    "line": 376
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "検証用",
-    "line": 377
-   },
-   {
-    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
-    "label": "sandbox保存",
-    "line": 379
-   }
-  ],
-  "comingSoonVisible": [
-   {
-    "file": "src/components/ai-course/CourseRoadmap.tsx",
-    "label": "準備中",
-    "line": 31
-   },
+  "debugLabelsVisible": [],
+  "comingSoonVisible": [],
+  "landingCopyDecisions": [
    {
     "file": "src/pages/ai-lesson/landing/lpContent.ts",
     "label": "ベータ版",

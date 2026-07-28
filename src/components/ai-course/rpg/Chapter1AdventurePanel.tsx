@@ -39,7 +39,14 @@ type Screen =
   | { kind: 'reviewCheck'; keys: string[]; index: number; wrongOnce: boolean }
   | { kind: 'reviewDone'; count: number };
 
-interface Props { onBack: () => void }
+interface Props {
+  onBack: () => void;
+  /**
+   * 開発者ツール（時間送り・sandbox注記）。learner viewでは必ず false。
+   * §6: learner画面に「試作」「sandbox」「検証用」等の開発表示を出さない。
+   */
+  devTools?: boolean;
+}
 
 const NPC_SPRITE: Record<string, (p: { className?: string; pose?: SpritePose; decorative?: boolean }) => React.ReactElement> = {
   'c1-npc-shoko': ShokoSprite, 'c1-npc-hana': NpcHanaSprite, 'c1-npc-gen': NpcGenSprite,
@@ -68,7 +75,7 @@ const rotatedTokens = (tokens: string[]): string[] =>
 const initialNowMs = Date.now();
 const clockNow = () => Date.now();
 
-export const Chapter1AdventurePanel = ({ onBack }: Props) => {
+export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
   const [state, setState] = useState<AdventureState>(() => loadAdventureState(initialNowMs));
   const [screen, setScreen] = useState<Screen>({ kind: 'map' });
   const [simpleMode, setSimpleMode] = useState(false);
@@ -254,9 +261,13 @@ export const Chapter1AdventurePanel = ({ onBack }: Props) => {
           </label>
         </div>
       </div>
-      <p className="text-[11px] text-gray-400 mb-3">
-        内部プレビュー（labPreview限定・sandbox保存）。冒険の進行はこの画面専用で、通常の学習記録には影響しません。
-      </p>
+      {/* dev-only:start */}
+      {devTools && (
+        <p className="text-[11px] text-gray-400 mb-3" data-dev-only="true">
+          開発者ツール表示中（この画面の進行は検証用の保存領域を使います）
+        </p>
+      )}
+      {/* dev-only:end */}
 
       {screen.kind === 'map' && (
         <div className="md:grid md:grid-cols-5 md:gap-4">
@@ -371,14 +382,19 @@ export const Chapter1AdventurePanel = ({ onBack }: Props) => {
                 );
               })}
             </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button"
-                onClick={() => { setState(advanceSimulatedTime(state, 3)); announce('検証用に時間を3日進めました。'); }}
-                className="min-h-11 px-3 text-[11px] text-gray-500 border border-gray-200 rounded-xl">検証用: 時間を＋3日</button>
-              <button type="button"
-                onClick={() => { if (window.confirm('冒険の進行（この画面のsandbox保存のみ）を最初からやり直しますか？')) { setState(resetAdventureState(clockNow())); setScreen({ kind: 'map' }); } }}
-                className="min-h-11 px-3 text-[11px] text-gray-400 underline">最初からやり直す</button>
-            </div>
+            {/* 開発者ツール（learner viewでは非表示・§6） */}
+            {/* dev-only:start */}
+            {devTools && (
+              <div className="mt-3 flex flex-wrap gap-2" data-dev-only="true">
+                <button type="button"
+                  onClick={() => { setState(advanceSimulatedTime(state, 3)); announce('時間を3日進めました。'); }}
+                  className="min-h-11 px-3 text-[11px] text-gray-500 border border-gray-200 rounded-xl">時間を＋3日</button>
+                <button type="button"
+                  onClick={() => { if (window.confirm('冒険の進行を最初からやり直しますか？')) { setState(resetAdventureState(clockNow())); setScreen({ kind: 'map' }); } }}
+                  className="min-h-11 px-3 text-[11px] text-gray-400 underline">最初からやり直す</button>
+              </div>
+            )}
+            {/* dev-only:end */}
           </div>
         </div>
       )}
