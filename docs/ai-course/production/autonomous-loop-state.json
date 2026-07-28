@@ -3,19 +3,15 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "3P-1",
-  "3P-2",
-  "3P-3",
-  "3P-4",
-  "3P-5（一部: source監査完了・Unit1の15件完成draft）"
+  "3P-5R（rights対応・全教材の原本例文排除）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続中（N2 Unit2以降）",
- "resumeFrom": "3P-5残り: N2文法 Unit2〜12（165件・うち同義注記7は人間判断待ち）の完成draft化。パターンは n2GrammarDrafts.ts のUnit1と同一（30field・原本例文verbatim・sourceExampleEditで改変記録・N3シート38件を中文sourceに活用）。source監査は完了済み（n2-grammar-source-audit.json）。完了後は3P-6（攻略ルート・Unit・ホーム）へ自動継続",
+ "currentPhase": "3P-5継続（N2 Unit2〜12）",
+ "resumeFrom": "N2文法 Unit2〜12（165件）の完成draft化。**重要: 原本例文はruntime使用禁止（teacher_created_assumed）**。n2GrammarDrafts.ts Unit1と同じ形（sourceExampleへ退避＋独自runtime例文＋類似度0.75未満）で作る。source監査・rights監査は完了済み。CEO指示の拡張field（canonicalPattern/category/connectionRules/contextQuestion/answerExplanationJa/completionCondition/weakDimensions/order/sourceRefs/rightsStatus）への型拡張が未実施なので、Unit2着手前に型を拡張すること",
  "branch": "feature/ai-course-learning-polish",
- "lastCommit": "feat(content): Phase 3P-5 N2文法 source監査＋Unit1完成draft 15件",
- "testCount": 898,
+ "lastCommit": "fix(content): rights対応 原本例文をruntimeから排除し独自例文へ差し替え",
+ "testCount": 901,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
  "stagingDeployedThrough": "3P-5",
@@ -50,5 +46,17 @@
   "イラスト承認（approved付与は人間のみ）",
   "実機スマートフォンチェックリスト"
  ],
- "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金"
+ "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
+ "sessionId": "autonomous-session-3（2026-07-28 夜）",
+ "currentLoopNumber": 0,
+ "maxAdditionalPhases": 8,
+ "autonomousContinuation": true,
+ "bundleReport": {
+  "totalJs": "1022.5 kB",
+  "mainIndex": "590.38 kB",
+  "largestLazyChunk": "AdminPage 533.20 kB（既存・本作業外）",
+  "onoDraftsPanel": "174.68 kB (gzip 52.93)",
+  "n3GrammarPanel": "157.68 kB (gzip 46.55)",
+  "note": "draft画面はlabPreview専用のlazy chunk。一般学習者は読み込まない。ただしN2 180追加時は約370KBになるため、learner公開時はUnit単位分割が必要"
+ }
 }
