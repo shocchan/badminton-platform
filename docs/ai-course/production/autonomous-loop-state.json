@@ -3,13 +3,14 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "3P-5 Unit2（13件）",
-  "3P-5 Unit3＋Unit1穴埋め（15件）"
+  "3P-5 batch1: Unit2（13件）",
+  "3P-5 batch2: Unit3＋U1穴埋め（15件）",
+  "3P-5 batch3: Unit4（14件・049/055は次バッチ）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit4: n2g-046〜060）",
- "resumeFrom": "N2文法の残り133件（Unit4〜12、n2g-046以降）。同義判断待ち7件は除く。パターンはn2GrammarDraftsUnit3.tsを踏襲（rights confirmed・原本例文をruntime使用・第2例文は独自作成・matchKeysで不連続文型対応）",
+ "currentPhase": "3P-5継続（Unit4残2件→Unit5〜12）",
+ "resumeFrom": "N2文法の残り119件（n2g-049/055、Unit5: n2g-061〜075以降）。n2GrammarDraftsUnit4.tsのパターンを踏襲。同義判断待ち7件は除く",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
  "testCount": 912,
@@ -67,9 +68,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 40,
+  "completeDraft": 53,
   "synonymAwaiting": 7,
-  "remaining": 133,
+  "remaining": 120,
   "humanReviewed": 0,
   "approved": 0
  }
