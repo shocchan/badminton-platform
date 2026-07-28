@@ -11,6 +11,19 @@ import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocab
 import { UNIT1_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit1';
 import { UNIT5_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit5';
 import { UNIT6_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit6';
+import { buildAssessQuestions } from '../../../lib/aiLesson/course/quality/assessQuestionEngine';
+import type { FoundationItem } from '../../../lib/aiLesson/course/foundationTypes';
+
+const vocabPool = allVocabularyItems();
+/** その語のassess問題（パネルと同じ決定的生成） */
+const assessOf = (item: FoundationItem) => buildAssessQuestions(item, vocabPool, { introduced: false, max: 2 });
+/** teach画面→assess全問正解 で1語を通す */
+const clearItemViaUi = (item: FoundationItem) => {
+  fireEvent.click(screen.getByRole('button', { name: 'おぼえた・確認へ進む' }));
+  for (const aq of assessOf(item)) {
+    fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
+  }
+};
 
 const questionById = new Map([...UNIT1_QUESTIONS, ...UNIT5_QUESTIONS, ...UNIT6_QUESTIONS].map(q => [q.id, q]));
 
@@ -27,11 +40,8 @@ const clearQuestViaUi = (questOrder: number) => {
   // Intro（シンプルモードでない場合のみ）→ 学習開始
   const start = screen.queryByRole('button', { name: '学習を始める' });
   if (start) fireEvent.click(start);
-  // 各ことばの意味チェックに正解
-  for (const itemId of quest.learningItemIds) {
-    const item = itemById.get(itemId)!;
-    fireEvent.click(screen.getByRole('button', { name: item.meaningZh }));
-  }
+  // 各ことば: おぼえる→確認（assess）に正解
+  for (const itemId of quest.learningItemIds) clearItemViaUi(itemById.get(itemId)!);
   // 文法ミッション（ルール理解→確認問題→産出の順に正解）
   for (const m of quest.grammarRequirements ?? []) {
     fireEvent.click(screen.getByRole('button', { name: '確認問題へ' }));
@@ -70,16 +80,15 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     fireEvent.click(screen.getByRole('button', { name: /Quest 1.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));
     const first = itemById.get(CHAPTER1_QUESTS[0].learningItemIds[0])!;
-    // わざと不正解（正解以外の選択肢）
-    const wrong = screen.getAllByRole('button')
-      .find(b => b.textContent && b.textContent !== first.meaningZh &&
-        !b.textContent.includes('中断') && b.className.includes('border-gray-200'))!;
-    fireEvent.click(wrong);
-    expect(screen.getByText(/もう一度/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'おぼえた・確認へ進む' }));
+    const aq = assessOf(first)[0];
+    const wrongChoice = aq.choices.find((_, i) => i !== aq.answerIndex)!;
+    fireEvent.click(screen.getByRole('button', { name: wrongChoice }));
+    expect(screen.getByText(/もう一度考えてみましょう/)).toBeTruthy();
     expect(screen.queryByText('Quest 1 完了！')).toBeNull();
-    // 正解で次へ
-    fireEvent.click(screen.getByRole('button', { name: first.meaningZh }));
-    expect(screen.getByText(/ことば 2／2/)).toBeTruthy();
+    // 正解で先へ進む
+    fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
+    expect(screen.queryByText(/確認 1／/)).toBeNull();
   });
   it('5 Questを完走→霧が晴れ・人物解放・Story進行・Chapter完了（学習進行=物語進行）', () => {
     render(<Chapter1AdventurePanel onBack={() => {}} />);
@@ -111,9 +120,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     const q5 = CHAPTER1_QUESTS[4];
     fireEvent.click(screen.getByRole('button', { name: /Quest 5.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));
-    for (const itemId of q5.learningItemIds) {
-      fireEvent.click(screen.getByRole('button', { name: itemById.get(itemId)!.meaningZh }));
-    }
+    for (const itemId of q5.learningItemIds) clearItemViaUi(itemById.get(itemId)!);
     // 場面会話1問目で誤答→進まない
     const step = CHAPTER1_FINALE_STEPS[0];
     const wrong = step.optionsJa.find(o => o !== step.correctJa)!;
@@ -137,6 +144,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     // Intro画面を経由せず、直接ことばの学習へ
     expect(screen.queryByRole('button', { name: '学習を始める' })).toBeNull();
     expect(screen.getByText(/ことば 1／2/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'おぼえた・確認へ進む' })).toBeTruthy();
   });
   it('保存はsandboxキーのみ（learner系キーへ非接触）', () => {
     render(<Chapter1AdventurePanel onBack={() => {}} />);
@@ -158,9 +166,7 @@ describe('文法ミッション（§10）', () => {
     const q2 = CHAPTER1_QUESTS[1];
     fireEvent.click(screen.getByRole('button', { name: /Quest 2.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));
-    for (const itemId of q2.learningItemIds) {
-      fireEvent.click(screen.getByRole('button', { name: itemById.get(itemId)!.meaningZh }));
-    }
+    for (const itemId of q2.learningItemIds) clearItemViaUi(itemById.get(itemId)!);
     // ルール画面（実在のFoundationRuleが表示される）
     expect(screen.getByText('名詞＋です／ではありません')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '確認問題へ' }));
@@ -200,8 +206,9 @@ describe('復習Quest「再会」（§11）', () => {
     const xpBefore = Number(screen.getByText(/^冒険値 /).textContent!.replace(/[^0-9]/g, ''));
     for (const itemId of CHAPTER1_QUESTS[0].learningItemIds) {
       const item = itemById.get(itemId)!;
-      expect(screen.getByText(item.exampleJa)).toBeTruthy(); // 初回カードではなく例文文脈
-      fireEvent.click(screen.getByRole('button', { name: item.meaningZh }));
+      const qs = assessOf(item);
+      const aq = qs[qs.length - 1];
+      fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
     }
     expect(screen.getByText(/再会できました/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'マップで確かめる' }));
@@ -227,9 +234,7 @@ describe('Accessibility（§15）', () => {
     const quest = CHAPTER1_QUESTS[0];
     fireEvent.click(screen.getByRole('button', { name: /Quest 1.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));
-    for (const itemId of quest.learningItemIds) {
-      fireEvent.click(screen.getByRole('button', { name: itemById.get(itemId)!.meaningZh }));
-    }
+    for (const itemId of quest.learningItemIds) clearItemViaUi(itemById.get(itemId)!);
     const live = container.querySelector('[aria-live="polite"]')!;
     expect(live.textContent).toContain('Quest1完了'); // 解放通知
     fireEvent.click(screen.getByRole('button', { name: /マップへ（主人公が次の場所へ進みます）/ }));
