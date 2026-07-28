@@ -3,14 +3,13 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "3P-5 batch1: Unit2（13件）",
-  "3P-5 batch2: Unit3＋U1穴埋め（15件）",
-  "3P-5 batch3: Unit4（14件・049/055は次バッチ）"
+  "正準集計＋訂正記録",
+  "3P-5 batch: Unit5＋繰越4件（19件）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit4残2件→Unit5〜12）",
- "resumeFrom": "N2文法の残り119件（n2g-049/055、Unit5: n2g-061〜075以降）。n2GrammarDraftsUnit4.tsのパターンを踏襲。同義判断待ち7件は除く",
+ "currentPhase": "3P-5継続（Unit6: n2g-076〜090）",
+ "resumeFrom": "N2残102件（Unit6: n2g-076〜090から。繰越なし）。パターンはUnit5踏襲",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
  "testCount": 912,
@@ -50,7 +49,7 @@
   "現実世界の副賞: 景品表示法・税務・利用規約・協賛契約の確認（awaiting_legal_review・未実装）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-4（2026-07-28 深夜）",
+ "sessionId": "autonomous-session-5（2026-07-29）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
@@ -68,10 +67,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 53,
-  "synonymAwaiting": 7,
-  "remaining": 120,
-  "humanReviewed": 0,
-  "approved": 0
+  "completeDraft": 71,
+  "humanDecisionRequired": 7,
+  "autonomousIncomplete": 102,
+  "identity": "71+7+102+0=180"
  }
 }
