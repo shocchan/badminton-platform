@@ -30,16 +30,19 @@ export interface N2GrammarDraft {
   };
   production: { promptJa: string; promptZh: string; expected: string[]; acceptable: string[] };
   practice: { themeJa: string; starterJa: string; starterZh: string; targetUse: string };
+  /** 例文照合の鍵。不連続文型・活用で語尾が変わる文型で明示する */
+  matchKeys?: string[];
   vocabularyLinks: string[];
   reviewKey: string;
   route: 'n2-grammar';
   unit: number;                 // 原本の unit12（1〜12）
   /** N3シート由来の中文を使った場合の出典。無い場合はnull（新規執筆） */
   zhSourceRowId: string | null;
-  /** 原本例文（内部照合用）。rightsStatusが未確認のためruntime表示には使わない。 */
-  sourceExample: { text: string; hash: string; rightsStatus: 'teacher_created_assumed' };
-  /** runtime例文の由来。teacher_created_assumedのSourceは使えないため常にoriginal_authored */
-  runtimeExampleOrigin: 'original_authored';
+  /** 原本例文。CEO確認により teacher_created_confirmed（2026-07-28）。runtime使用可。 */
+  sourceExample: { text: string; hash: string;
+    rightsStatus: 'teacher_created_assumed' | 'teacher_created_confirmed' };
+  /** runtime例文の由来。confirmed後は原本をそのまま使う選択（source_confirmed）も可 */
+  runtimeExampleOrigin: 'original_authored' | 'source_confirmed';
   reviewStatus: 'draft';
   humanReviewed: false;
   approved: false;
@@ -353,8 +356,13 @@ export const N2_GRAMMAR_DRAFTS_UNIT1: N2GrammarDraft[] = [
     vocabularyLinks: ['fi-ganbaru', 'fi-ureshii'] }),
 ];
 
+import { N2_GRAMMAR_DRAFTS_UNIT2 } from './n2GrammarDraftsUnit2';
+
 /** 現在の完成draft（全Unit集約）。追加は「全field完備」のUnitのみ。 */
-export const N2_GRAMMAR_DRAFTS: N2GrammarDraft[] = [...N2_GRAMMAR_DRAFTS_UNIT1];
+export const N2_GRAMMAR_DRAFTS: N2GrammarDraft[] = [
+  ...N2_GRAMMAR_DRAFTS_UNIT1,
+  ...N2_GRAMMAR_DRAFTS_UNIT2,
+];
 
 export const n2GrammarDraftById = (id: string): N2GrammarDraft | undefined =>
   N2_GRAMMAR_DRAFTS.find((d) => d.grammarId === id);

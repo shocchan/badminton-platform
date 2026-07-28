@@ -1,34 +1,41 @@
 {
  "generatedAt": "2026-07-28",
- "rule": "runtime使用可: teacher_created_confirmed / licensed / permission_confirmed / public_domain。使用禁止: teacher_created_assumed / private_reference_only / rights_unknown / blocked",
+ "rule": "runtime使用可: teacher_created_confirmed / licensed / permission_confirmed / public_domain。本プロジェクトの原本3ソースはCEO確認により confirmed（使用可）",
  "sources": [
   {
    "source": "Excel「原：N2の文法180例文集」",
    "usedBy": "n2GrammarData.ts（180件の例文）",
-   "rightsStatus": "teacher_created_assumed",
-   "basis": "3A監査時にCEO自作と推定。書面での確認は未取得（copyright-and-rights-gate.md §46）",
-   "runtimeUse": "forbidden",
-   "mitigation": "原本例文はsourceExample（text+hash+rightsStatus）として内部照合用にのみ保持。runtime例文は全件独自作成し、類似度0.75未満をテストで強制",
-   "decisionQueue": "awaiting_human_rights_decision"
+   "rightsStatus": "teacher_created_confirmed",
+   "basis": "CEO本人の明示確認（2026-07-28）。自作オリジナル教材・転載なし",
+   "runtimeUse": "allowed",
+   "mitigation": "制作済みの独自例文はそのまま維持（品質面で妥当なため）。今後の新規制作では原本例文と新規例文を比較し、良い方をruntimeに採用できる",
+   "decisionQueue": "resolved"
   },
   {
    "source": "Excel「N3の文法120例文集」",
    "usedBy": "n3GrammarDrafts*.ts（76文型）",
-   "rightsStatus": "teacher_created_assumed",
-   "basis": "同上",
-   "runtimeUse": "forbidden",
-   "mitigation": "runtime例文71件を独自作成へ差し替え済み（差し替え前は最大類似度1.0）。意味・中文はsourceの内容知識であり表現は独自",
-   "decisionQueue": "awaiting_human_rights_decision"
+   "rightsStatus": "teacher_created_confirmed",
+   "basis": "CEO本人の明示確認（2026-07-28）。自作オリジナル教材・転載なし",
+   "runtimeUse": "allowed",
+   "mitigation": "制作済みの独自例文はそのまま維持（品質面で妥当なため）。今後の新規制作では原本例文と新規例文を比較し、良い方をruntimeに採用できる",
+   "decisionQueue": "resolved"
   },
   {
    "source": "Excel「オノマトペ100集（完成版）」",
    "usedBy": "onomatopoeiaDrafts*.ts（100語）",
-   "rightsStatus": "teacher_created_assumed",
-   "basis": "同上",
-   "runtimeUse": "forbidden",
-   "mitigation": "**未対応**。runtime例文の独自作成が必要（次バッチで対応）",
-   "decisionQueue": "awaiting_human_rights_decision"
+   "rightsStatus": "teacher_created_confirmed",
+   "basis": "CEO本人の明示確認（2026-07-28）。自作オリジナル教材・転載なし",
+   "runtimeUse": "allowed",
+   "mitigation": "制作済みの独自例文はそのまま維持（品質面で妥当なため）。今後の新規制作では原本例文と新規例文を比較し、良い方をruntimeに採用できる",
+   "decisionQueue": "resolved"
   }
  ],
- "requiredHumanDecision": "CEOが「これらは自作である」と確認すれば teacher_created_confirmed へ昇格でき、原本例文をそのままruntimeで使える。AIはこの確認を代行しない"
+ "requiredHumanDecision": "解決済み。ただし human_reviewed / approved は引き続き人間のみが付与する",
+ "ceoConfirmation": {
+  "date": "2026-07-28",
+  "statement": "提出したExcel教材はすべてCEO自身が作成したオリジナル教材。第三者の書籍・有料教材・Webサイト・試験問題からの転載はない",
+  "result": "全3ソースを teacher_created_confirmed として扱う。runtime使用可",
+  "directive": "既に作成した独自例文を機械的に原本へ戻さない。原本と新規を比較し、自然さ・学習効果・中国語母語者への分かりやすさが高い方をruntime候補にする",
+  "unchanged": "human_reviewed / approved は自動昇格しない（人間確認待ちのまま）"
+ }
 }

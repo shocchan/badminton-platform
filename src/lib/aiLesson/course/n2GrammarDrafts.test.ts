@@ -58,13 +58,18 @@ describe('N2文法 完成draft', () => {
     for (const d of N2_GRAMMAR_DRAFTS) {
       const src = byId.get(d.grammarId);
       expect(src, `${d.grammarId} が原本にない`).toBeTruthy();
-      expect(d.sourceExample.text).toBe(src!.examples[0]);
-      expect(d.sourceExample.rightsStatus).toBe('teacher_created_assumed');
+      // 原本例文はhash付きで保持。CEO確認によりconfirmedならruntime使用も可
+      expect(['teacher_created_assumed', 'teacher_created_confirmed'])
+        .toContain(d.sourceExample.rightsStatus);
       expect(d.sourceExample.hash).toMatch(/^[0-9a-f]{16}$/);
-      expect(d.runtimeExampleOrigin).toBe('original_authored');
+      expect(['original_authored', 'source_confirmed']).toContain(d.runtimeExampleOrigin);
+      // confirmed以外のSourceを原本のままruntimeに使っていないこと
+      if (d.runtimeExampleOrigin === 'source_confirmed') {
+        expect(d.sourceExample.rightsStatus).toBe('teacher_created_confirmed');
+      }
     }
   });
-  it('runtime例文が原本と近接していない（言い換えただけの例文を禁止）', () => {
+  it('権利未確認Sourceの場合のみ、runtime例文の原本近接を禁止する', () => {
     // 文字ベースの類似度。0.6以上は「少し言い換えただけ」とみなして不合格にする
     const ratio = (a: string, b: string) => {
       const A = a.replace(/[（(][ぁ-ん]+[)）]|\s/g, ''), B = b.replace(/[（(][ぁ-ん]+[)）]|\s/g, '');
@@ -73,6 +78,7 @@ describe('N2文法 完成draft', () => {
       return hit / Math.max(A.length, B.length);
     };
     for (const d of N2_GRAMMAR_DRAFTS) {
+      if (d.sourceExample.rightsStatus === 'teacher_created_confirmed') continue;
       for (const ex of d.examplesJa) {
         expect(ratio(ex, d.sourceExample.text),
           `${d.grammarId}: runtime例文が原本に近すぎる`).toBeLessThan(0.75);
@@ -81,8 +87,11 @@ describe('N2文法 完成draft', () => {
   });
   it('例文に文型の核が実在する（field埋め防止）', () => {
     for (const d of N2_GRAMMAR_DRAFTS) {
-      const core = d.pattern.replace(/[〜~（）()]/g, '').slice(0, 2);
-      expect(d.examplesJa.some(e => e.includes(core)), `${d.grammarId}: 例文に「${core}」が無い`).toBe(true);
+      const core = d.pattern.replace(/[〜~（）()]/g, '').split(/[／/]/)[0].slice(0, 2);
+      const hit = d.matchKeys
+        ? d.examplesJa.some(e => d.matchKeys!.some(k => e.includes(k)))
+        : d.examplesJa.some(e => e.includes(core));
+      expect(hit, `${d.grammarId}: 例文に「${(d.matchKeys ?? [core]).join('/')}」が無い`).toBe(true);
     }
   });
   it('vocabularyLinksの参照切れ0・自動昇格なし', () => {
@@ -91,6 +100,15 @@ describe('N2文法 完成draft', () => {
       expect(d.reviewStatus).toBe('draft');
       expect(d.humanReviewed).toBe(false);
       expect(d.approved).toBe(false);
+    }
+  });
+  it('Unit2以降も含め、必須fieldとUnit番号が正しい', () => {
+    const units = new Set(N2_GRAMMAR_DRAFTS.map(d => d.unit));
+    expect(units.has(1)).toBe(true);
+    expect(units.has(2)).toBe(true);
+    for (const d of N2_GRAMMAR_DRAFTS) {
+      expect(d.unit).toBeGreaterThanOrEqual(1);
+      expect(d.unit).toBeLessThanOrEqual(12);
     }
   });
   it('N3シート由来の中文を使った場合は出典を記録している', () => {

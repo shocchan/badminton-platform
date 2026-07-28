@@ -3,16 +3,15 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "3P-5R（rights対応）",
-  "RPG-NS（North Star設計docs 8本＋manifest 4本）"
+  "3P-5 Unit2（N2文法13件・rights確認反映・指標定義書）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（N2 Unit2〜12）",
- "resumeFrom": "N2文法 Unit2〜12（165件）の完成draft化。**重要: 原本例文はruntime使用禁止（teacher_created_assumed）**。n2GrammarDrafts.ts Unit1と同じ形（sourceExampleへ退避＋独自runtime例文＋類似度0.75未満）で作る。source監査・rights監査は完了済み。CEO指示の拡張field（canonicalPattern/category/connectionRules/contextQuestion/answerExplanationJa/completionCondition/weakDimensions/order/sourceRefs/rightsStatus）への型拡張が未実施なので、Unit2着手前に型を拡張すること",
+ "currentPhase": "3P-5継続（N2 Unit1の穴埋め2件 → Unit3〜12）",
+ "resumeFrom": "N2文法の残り148件。①Unit1の未執筆2件（n2g-009「〜うちは」・n2g-010「〜しようではないか」）②Unit3（n2g-031〜045）以降。**rightsはteacher_created_confirmedなので原本例文をそのままexamplesJa[0]に使える**（制作が速い）。パターンはn2GrammarDraftsUnit2.tsを踏襲",
  "branch": "feature/ai-course-learning-polish",
- "lastCommit": "docs(rpg): North Star「主人公冒険型・日本語攻略RPG」の設計確定",
- "testCount": 910,
+ "lastCommit": "（このセッションのN2 Unit2コミット）",
+ "testCount": 911,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
  "stagingDeployedThrough": "3P-5",
@@ -37,7 +36,6 @@
   "n2AwaitingMergeDecision": 7
  },
  "decisionQueueAwaiting": [
-  "Excel原本3ソースのrightsStatus確認（teacher_created_assumed→confirmedへ昇格できるか。未確認のため原本例文はruntime使用禁止・独自例文で代替中）",
   "RPG North Star設計8本の承認（特に世界名「ミナモ列島」・エリア名10件・Chapter 1のQuest構成。名称は仮確定）",
   "APPLY_STAGING_MIGRATIONS / APPLY_SHARED_SUPABASE_MIGRATIONS（CEO明示文字列）",
   "reuse_existing 63件のsense統合判断（reuse-decision-packet.json・awaiting_semantic_decision）",
@@ -50,7 +48,7 @@
   "現実世界の副賞: 景品表示法・税務・利用規約・協賛契約の確認（awaiting_legal_review・未実装）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-3（2026-07-28 夜）",
+ "sessionId": "autonomous-session-4（2026-07-28 深夜）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
@@ -62,5 +60,16 @@
   "n3GrammarPanel": "157.68 kB (gzip 46.55)",
   "note": "draft画面はlabPreview専用のlazy chunk。一般学習者は読み込まない。ただしN2 180追加時は約370KBになるため、learner公開時はUnit単位分割が必要"
  },
- "northStar": "docs/ai-course/rpg/product-north-star.md（主人公冒険型・日本語攻略RPG）。今後の全UI/ルート/Unit/イラスト/成長設計はこれと矛盾しないこと"
+ "northStar": "docs/ai-course/rpg/product-north-star.md（主人公冒険型・日本語攻略RPG）。今後の全UI/ルート/Unit/イラスト/成長設計はこれと矛盾しないこと",
+ "resolvedDecisions": [
+  "2026-07-28 CEO: Excel原本3ソースは自作オリジナル → teacher_created_confirmed。runtime使用可。既存の独自例文は戻さず、以後は原本と新規を比較して良い方を採用"
+ ],
+ "n2Progress": {
+  "total": 180,
+  "completeDraft": 25,
+  "synonymAwaiting": 7,
+  "remaining": 148,
+  "humanReviewed": 0,
+  "approved": 0
+ }
 }
