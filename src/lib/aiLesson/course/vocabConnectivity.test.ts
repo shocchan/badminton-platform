@@ -85,8 +85,8 @@ describe('診断カバレッジ監査（§7）', () => {
   it('プール参照は全て実在ID・問題ID重複なし・N3診断適格率100%', () => {
     expect(d.invalidWordIds).toBe(0);
     expect(d.duplicateQuestionIds).toBe(0);
-    expect(d.poolQuestionTotal).toBe(33);
-    expect(d.uniqueWordRefs).toBe(29);
+    expect(d.poolQuestionTotal).toBe(37);   // 2026-07-28 CEO判断: 意味・用法問題4問追加（yasui/nanji/yakusoku/zenzen）
+    expect(d.uniqueWordRefs).toBe(33);   // +4語（yasui/nanji/yakusoku/zenzen・2026-07-28 CEO判断反映）
     expect(d.basicsWordRefs + d.n3WordRefs).toBe(d.uniqueWordRefs);
     expect(d.n3DiagnosticEligible).toBe(62);
     expect(d.n3CoveragePct).toBe(100);

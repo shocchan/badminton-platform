@@ -8,6 +8,7 @@ import { CHATGPT_REVIEWS } from './vocabChatgptReview';
 import { buildReviewComparisons } from './vocabDualReview';
 import type { HumanReviewPriority, ExternalVocabularyReview } from './vocabDualReview';
 import { DECISION_DATASET_VERSION } from './vocabDecisionStore';
+import { isCeoDecidedField } from './vocabFieldReviewDecisions';
 
 export type DecisionType = 'example' | 'cognate' | 'meaning_zh' | 'role' | 'sense';
 
@@ -73,14 +74,19 @@ const P_ORDER: Record<HumanReviewPriority, number> = { P0: 0, P1: 1, P2: 2, P3: 
  * 語単位priorityの導出規則（priorityOf）をそのtypeの該当フィールドに限定して適用した近似。
  * decisionPriority自体はこの値で上書きしない（人間判断なしに優先度の意味を変えない）。
  */
-const independentPriorityOf = (type: DecisionType, g: ExternalVocabularyReview | null): HumanReviewPriority => {
+const independentPriorityOf = (
+  type: DecisionType, g: ExternalVocabularyReview | null, cognateCurrent?: string,
+): HumanReviewPriority => {
   switch (type) {
     case 'example':
       return g && (g.japaneseStatus === 'major_issue' || g.furiganaStatus === 'major_issue') ? 'P0' : 'P2';
     case 'meaning_zh':
       return g?.chineseStatus === 'major_issue' ? 'P1' : 'P3';
     case 'cognate':
-      return 'P1';   // cognate不一致はpriorityOfでP1（severity≠none）
+      // CEO決定のseverity原則（2026-07-28）:
+      //   unreviewed＝学習者へ断定表示せず・false friend診断にも推薦にも使っていない → P2
+      //   確定済み分類が誤りの疑い＝既に画面・診断で利用中の誤情報の可能性 → P1
+      return cognateCurrent === 'unreviewed' ? 'P2' : 'P1';
     case 'role':
       return 'P2';
     case 'sense':
@@ -91,8 +97,9 @@ const independentPriorityOf = (type: DecisionType, g: ExternalVocabularyReview |
 const provenanceOf = (
   type: DecisionType, g: ExternalVocabularyReview | null, wordPriority: HumanReviewPriority,
   sourceField: string, derivationRule: string, sourceReview: 'chatgpt' | 'claude' = 'chatgpt',
+  cognateCurrent?: string,
 ): DecisionProvenance => {
-  const independent = independentPriorityOf(type, g);
+  const independent = independentPriorityOf(type, g, cognateCurrent);
   return {
     sourceReview, sourceField,
     sourceConfidence: g?.confidence ?? 'n/a',
@@ -114,8 +121,10 @@ export interface DecisionQueueAudit {
   /** 提案が既に教材へ反映済み（現在値と一致）で判断不要 */
   excludedAlreadyApplied: number;
   excludedNotApplicable: number;    // 導出条件を満たさず対象外（例: roleが既にoptional以外）
+  /** CEOがfield単位で判断済み（vocabFieldReviewDecisions）。再度キューへ出さない */
+  excludedCeoDecided: number;
   duplicates: number;               // 重複decisionId（常に0であるべき）
-  byType: Record<DecisionType, { candidates: number; queuedForReview: number; excludedAlreadyApplied: number; excludedNotApplicable: number }>;
+  byType: Record<DecisionType, { candidates: number; queuedForReview: number; excludedAlreadyApplied: number; excludedNotApplicable: number; excludedCeoDecided: number }>;
 }
 
 interface BuildResult { queue: HumanDecisionItem[]; audit: DecisionQueueAudit }
@@ -130,13 +139,13 @@ type DraftDecisionItem = Omit<HumanDecisionItem,
  * before_beta=品質として直したいが学習は成立する（中国語の自然さ・ふりがな粒度・role判断・画像品質）。
  * can_defer=表現の好み・optional/enrichmentの微調整・内部表示。
  */
-const releaseClassOf = (d: DraftDecisionItem, localSeverity: HumanReviewPriority): ReleaseClass => {
-  // 自分自身が重大（P0/P1）＝リリースブロッカー。継承だけのP0はブロッカーにしない（§19）
+const releaseClassOf = (_d: DraftDecisionItem, localSeverity: HumanReviewPriority): ReleaseClass => {
+  // CEO決定のseverity原則（2026-07-28）:
+  //   blocker＝その判断事項自体がP0/P1（学習不能・重大誤答・表示中の重大誤情報）だけ。
+  //   P2（未確定cognate・非表示の補助分類・role/sense確認）＝before beta recommended。
+  //   P3（文言・軽微な自然さ）＝can defer。typeだけを理由に格上げしない。
   if (localSeverity === 'P0' || localSeverity === 'P1') return 'release_blocker';
-  if (d.decisionType === 'example' || d.decisionType === 'cognate') return 'release_blocker';
-  if (d.decisionType === 'meaning_zh' || d.decisionType === 'sense') return 'before_beta_recommended';
-  // role提案は学習不能にはならない（推薦順位の調整）＝beta前推奨
-  if (d.decisionType === 'role') return 'before_beta_recommended';
+  if (localSeverity === 'P2') return 'before_beta_recommended';
   return 'can_defer';
 };
 
@@ -145,11 +154,17 @@ const buildAll = (): BuildResult => {
   const prioById = new Map(buildReviewComparisons().map((c) => [c.itemId, c.humanReviewPriority]));
   const out: DraftDecisionItem[] = [];
   const byType: DecisionQueueAudit['byType'] = {
-    example: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
-    cognate: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
-    meaning_zh: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
-    role: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
-    sense: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0 },
+    example: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0, excludedCeoDecided: 0 },
+    cognate: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0, excludedCeoDecided: 0 },
+    meaning_zh: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0, excludedCeoDecided: 0 },
+    role: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0, excludedCeoDecided: 0 },
+    sense: { candidates: 0, queuedForReview: 0, excludedAlreadyApplied: 0, excludedNotApplicable: 0, excludedCeoDecided: 0 },
+  };
+  // CEO判断済みfieldはキューへ載せない（判断は人間側で確定済み・§2）
+  const pushUnlessCeoDecided = (d: DraftDecisionItem) => {
+    if (isCeoDecidedField(d.decisionId)) { byType[d.decisionType].excludedCeoDecided += 1; return; }
+    byType[d.decisionType].queuedForReview += 1;
+    out.push(d);
   };
   for (const rec of records) {
     const g = CHATGPT_REVIEWS[rec.itemId] ?? null;
@@ -160,8 +175,7 @@ const buildAll = (): BuildResult => {
       byType.example.candidates += 1;
       if (g.suggestedExampleJa === rec.item.exampleJa) byType.example.excludedAlreadyApplied += 1;
       else {
-        byType.example.queuedForReview += 1;
-        out.push({
+        pushUnlessCeoDecided({
           decisionId: `${rec.itemId}:example`, itemId: rec.itemId, wordJa: word, decisionType: 'example',
           priority: prio,
           currentValueJa: `${rec.item.exampleJa}／${rec.item.exampleZh}`,
@@ -178,8 +192,7 @@ const buildAll = (): BuildResult => {
       byType.cognate.candidates += 1;
       if (g.suggestedCognate === rec.cognateDefault) byType.cognate.excludedAlreadyApplied += 1;
       else {
-        byType.cognate.queuedForReview += 1;
-        out.push({
+        pushUnlessCeoDecided({
           decisionId: `${rec.itemId}:cognate`, itemId: rec.itemId, wordJa: word, decisionType: 'cognate',
           priority: prio,
           currentValueJa: rec.cognateDefault,
@@ -187,7 +200,7 @@ const buildAll = (): BuildResult => {
           proposalSource: 'chatgpt', reasonJa: g.rationaleJa,
           impactAreas: ['同源語バッジ', 'false friend注意表示'],
           impactFutureAreas: ['診断の優先次元（false friend問題の出題対象）'],
-          provenance: provenanceOf('cognate', g, prio, 'cognate', 'chatgpt.suggestedCognateが現分類と不一致'),
+          provenance: provenanceOf('cognate', g, prio, 'cognate', 'chatgpt.suggestedCognateが現分類と不一致', 'chatgpt', rec.cognateDefault),
         });
       }
     }
@@ -196,8 +209,7 @@ const buildAll = (): BuildResult => {
       byType.meaning_zh.candidates += 1;
       if (g.suggestedMeaningZh === rec.item.meaningZh) byType.meaning_zh.excludedAlreadyApplied += 1;
       else {
-        byType.meaning_zh.queuedForReview += 1;
-        out.push({
+        pushUnlessCeoDecided({
           decisionId: `${rec.itemId}:meaning_zh`, itemId: rec.itemId, wordJa: word, decisionType: 'meaning_zh',
           priority: prio,
           currentValueJa: rec.item.meaningZh,
@@ -215,8 +227,7 @@ const buildAll = (): BuildResult => {
       const current = rec.rolesByTrack.conversation ?? 'optional';
       if (current !== 'optional') byType.role.excludedNotApplicable += 1;
       else {
-        byType.role.queuedForReview += 1;
-        out.push({
+        pushUnlessCeoDecided({
           decisionId: `${rec.itemId}:role`, itemId: rec.itemId, wordJa: word, decisionType: 'role',
           priority: prio,
           currentValueJa: `conversation: ${current}`,
@@ -233,8 +244,7 @@ const buildAll = (): BuildResult => {
       byType.sense.candidates += 1;
       if (!rec.cognateSenseOverrides.some((o) => o.reviewStatus === 'unreviewed')) byType.sense.excludedNotApplicable += 1;
       else {
-        byType.sense.queuedForReview += 1;
-        out.push({
+        pushUnlessCeoDecided({
           decisionId: `${rec.itemId}:sense`, itemId: rec.itemId, wordJa: word, decisionType: 'sense',
           priority: prio,
           currentValueJa: rec.cognateSenseOverrides.map((o) => `${o.senseId}:${o.reviewStatus}`).join('・'),
@@ -274,6 +284,7 @@ const buildAll = (): BuildResult => {
     queuedForReview: queue.length,
     excludedAlreadyApplied: Object.values(byType).reduce((n, x) => n + x.excludedAlreadyApplied, 0),
     excludedNotApplicable: Object.values(byType).reduce((n, x) => n + x.excludedNotApplicable, 0),
+    excludedCeoDecided: Object.values(byType).reduce((n, x) => n + x.excludedCeoDecided, 0),
     duplicates: queue.length - ids.size,
     byType,
   };

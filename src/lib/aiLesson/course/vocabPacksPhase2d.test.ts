@@ -45,7 +45,9 @@ describe('N3準備パック（§6-§8）', () => {
       expect(m.levelTags).toContain('jlpt_n3_estimate');
       expect(m.levelEvidence).toContain('公式断定なし');
     }
-    expect(N3_ITEMS.some((i) => levelMetaOf(i.id).cognate === 'unreviewed')).toBe(true);
+    // 2026-07-28 CEO判断で最後の未確定4語（kibun/soudan/yakusoku/zenzen）が確定し、N3の未確定は0になった。
+    // 「断定しない」原則は維持: 確定はすべて人間（CEO）判断由来であることを別テストで担保する
+    expect(N3_ITEMS.filter((i) => levelMetaOf(i.id).cognate === 'unreviewed')).toHaveLength(0);
   });
 });
 
@@ -70,7 +72,7 @@ describe('パックrole（§3-§4）', () => {
     const agg = aggregateCognates(items.filter((i) => basics.itemIds.includes(i.id)));
     const total = Object.values(agg).reduce((a, b) => a + b, 0);
     expect(total).toBe(basics.itemIds.length); // 全78語が必ずいずれかに分類（unreviewed含む）
-    expect(agg.unreviewed).toBeGreaterThan(0);  // 未レビューを断定しない
+    expect(agg.unreviewed).toBe(0);  // 2026-07-28 CEO判断で基礎78語の同源語分類がすべて確定（AIによる断定ではない）
   });
 });
 

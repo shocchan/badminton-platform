@@ -14,11 +14,12 @@ const t = aiCourseI18n.ja;
 
 describe('VocabDecisionBadge', () => {
   it('未処理判断がある語（fi-namae）は件数付きで表示・クリックでonOpen', () => {
+    // 2026-07-28: example/meaning_zhはCEO判断でキュー外→fi-namaeに残るのはroleの1件
     const onOpen = vi.fn();
     render(<VocabDecisionBadge t={t} itemId="fi-namae" onOpen={onOpen} />);
     const btn = screen.getByRole('button');
-    expect(btn.textContent).toContain(`${td.statuses.pending} 3`);
-    expect(btn.textContent).toContain('P0 3');
+    expect(btn.textContent).toContain(`${td.statuses.pending} 1`);
+    expect(btn.textContent).toContain('P0 1');
     fireEvent.click(btn);
     expect(onOpen).toHaveBeenCalled();
   });
@@ -28,9 +29,6 @@ describe('VocabDecisionBadge', () => {
   });
   it('全件判断済みなら表示しない（deferredだけ残ればdeferred表示）', () => {
     const entries: Record<string, unknown> = {};
-    for (const id of ['fi-namae:example', 'fi-namae:meaning_zh']) {
-      entries[id] = { decisionId: id, status: 'keep_current', updatedAt: 'x', history: [] };
-    }
     entries['fi-namae:role'] = { decisionId: 'fi-namae:role', status: 'deferred', updatedAt: 'x', history: [] };
     window.localStorage.setItem(VOCAB_DECISION_LOCAL_KEY, JSON.stringify({ schemaVersion: 3, sourceDatasetVersion: 'phase-2e-1.5', entries }));
     render(<VocabDecisionBadge t={t} itemId="fi-namae" onOpen={() => {}} />);

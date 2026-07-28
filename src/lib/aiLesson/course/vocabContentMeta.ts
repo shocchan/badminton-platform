@@ -47,11 +47,11 @@ export const VOCAB_CONTENT_NOTES: Record<string, VocabContentNote> = {
   'fi-wakaru': { learningFocusZh: '对象用「が」：日本語が分かります（不用「を」）。', exampleType: 'conversation' },
   'fi-suki': { learningFocusZh: '「好き」是な形容词不是动词。对象用「が」：音楽が好きです。', exampleType: 'conversation' },
   'fi-nareru': { learningFocusZh: '对象用「に」：日本の生活に慣れました。', exampleType: 'conversation' },
-  'fi-kyoumi': { learningFocusZh: '搭配和中文不同：「〜に興味があります」（对〜感兴趣）。', exampleType: 'conversation' },
-  'fi-soudan': { learningFocusZh: '商量对象用「に」或「と」：上司に相談します。', exampleType: 'business' },
+  'fi-kyoumi': { learningFocusZh: '搭配和中文不同：「〜に興味があります」（对〜感兴趣）。现代中文也有“兴味”，但较书面，日常更常说“兴趣”。', exampleType: 'conversation' },
+  'fi-soudan': { learningFocusZh: '商量对象用「に」或「と」：上司に相談します。现代中文日常多说“商量”或“咨询”。中文“相谈”即使出现，也不完全等同于日语“相談する”。', exampleType: 'business' },
   'fi-renraku': { learningFocusZh: '联系对象用「に」：会社に連絡します。', exampleType: 'business' },
   'fi-hitsuyou': { learningFocusZh: '句型「〜が必要です」＝需要〜（主语用が）。', exampleType: 'daily_life' },
-  'fi-zenzen': { learningFocusZh: '基本和否定搭配：全然分かりません。口语中「全然大丈夫」也常听到。', exampleType: 'conversation' },
+  'fi-zenzen': { learningFocusZh: '中文“全然”表示完全、全部，较偏书面。日语「全然」常和否定表达搭配（全然分かりません），口语中也会出现「全然大丈夫」等肯定用法。', exampleType: 'conversation' },
   'fi-kiku': { learningFocusZh: '「聞く」既是听也是问。注意中文「闻」是闻气味，意思不同。', exampleType: 'conversation' },
   'fi-takai': { meaningZhShort: '贵；高', learningFocusZh: '表示价格时中文说「贵」，日语用「高い」（⇔安い）。表示高度时（⇔低い）。', exampleType: 'daily_life' },
   'fi-kibun': { meaningZhShort: '状态；心情好坏', learningFocusZh: '「気分が悪い」多指身体不舒服，和「気持ち」（内心感受）区分。', exampleType: 'conversation' },
@@ -67,6 +67,15 @@ export const VOCAB_CONTENT_NOTES: Record<string, VocabContentNote> = {
   'fi-kimochi': { learningFocusZh: '「感謝の気持ち」更接近中文的"感谢之情・心意"。', exampleType: 'conversation' },
   'fi-yotei': { learningFocusZh: '「予定」既表示计划，也表示已安排好的日程。中文「预定」多指预订。', exampleType: 'daily_life' },
   'fi-sorede': { learningFocusZh: '「それで」连接前因后果；口语中也可用来催促对方继续说。', exampleType: 'conversation' },
+
+  // ── CEO判断による同源語の学習ポイント（2026-07-28・field単位ceo_decided） ──
+  'fi-genki': { learningFocusZh: '中文“元气”主要表示活力、精神或生命力；日语「元気」还常用于询问和表达身体状况、精神状态。', exampleType: 'conversation' },
+  'fi-kaishain': { learningFocusZh: '中文通常说“公司职员”或“上班族”，不使用“会社员”这一词形。', exampleType: 'conversation' },
+  'fi-nanji': { learningFocusZh: '日语「何時」主要询问具体的时刻，相当于“几点”；中文“何时”通常相当于“什么时候”，范围更广。', exampleType: 'conversation' },
+  'fi-nihongo': { learningFocusZh: '中文通常说“日语”，不使用“日本语”作为一般词形。', exampleType: 'conversation' },
+  'fi-tomodachi': { learningFocusZh: '中文通常说“朋友”，不使用“友达”这一词形。', exampleType: 'conversation' },
+  'fi-yakusoku': { learningFocusZh: '日语「約束」表示约定、承诺；现代中文“约束”主要表示限制、管束。', exampleType: 'conversation' },
+  'fi-yasui': { learningFocusZh: '日语「安い」表示价格低；中文“安”主要与安全、平安有关，价格低通常说“便宜”。', exampleType: 'daily_life' },
 };
 
 const FIRST_SENSE_SPLIT = /[；;]/;
@@ -127,4 +136,4 @@ export const aggregateSenseCognates = (): SenseCognateSummary => {
     if (o.reviewStatus === 'unreviewed') unreviewed += 1;
   }
   return { itemsWithOverrides: entries.length, senseOverrideCount: senseIds.size, unreviewedSenseCount: unreviewed };
-};
+}

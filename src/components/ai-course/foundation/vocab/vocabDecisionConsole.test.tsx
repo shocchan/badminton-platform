@@ -19,12 +19,12 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
     render(<VocabDecisionConsole {...base} />);
     expect(screen.getByText(td.banner)).toBeTruthy();
     expect(screen.getByText(/対象語数 \d+・判断事項数 \d+/)).toBeTruthy();
-    // P0のfi-namae（例文判断）が先頭に見える
+    // P0（語継承）のfi-namae:roleが先頭に見える（example/meaning_zhはCEO判断でキュー外・2026-07-28）
     expect(screen.getAllByText('名前').length).toBeGreaterThanOrEqual(1);
   });
   it('詳細→状態選択→保存の2段階でlocalStorage v3へ保存（即確定しない・教材はdraftのまま）', async () => {
     render(<VocabDecisionConsole {...base} />);
-    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);   // fi-namae:example
+    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);   // fi-namae:role（現在の先頭P0）
     const saveBtn = screen.getByText(td.save).closest('button')!;
     expect(saveBtn.getAttribute('aria-disabled')).toBe('true');   // 選択前は確定できない
     fireEvent.click(saveBtn);
@@ -34,7 +34,7 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
     await waitFor(() => {
       const raw = JSON.parse(window.localStorage.getItem(VOCAB_DECISION_LOCAL_KEY)!);
       expect(raw.schemaVersion).toBe(3);
-      expect(raw.entries['fi-namae:example'].status).toBe('needs_context');
+      expect(raw.entries['fi-namae:role'].status).toBe('needs_context');
     });
     expect(screen.getAllByText(td.saved).length).toBeGreaterThanOrEqual(1);   // aria-live通知
     expect(allVocabularyItems().every((i) => i.review === 'draft')).toBe(true);
@@ -48,13 +48,13 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
     fireEvent.click(screen.getByText(td.reopen));
     await waitFor(() => {
       const raw = JSON.parse(window.localStorage.getItem(VOCAB_DECISION_LOCAL_KEY)!);
-      expect(raw.entries['fi-namae:example'].status).toBe('pending');
-      expect(raw.entries['fi-namae:example'].history.length).toBe(2);
+      expect(raw.entries['fi-namae:role'].status).toBe('pending');
+      expect(raw.entries['fi-namae:role'].history.length).toBe(2);
     });
-    // P0フィルター: fi-namaeの判断事項（例文・中国語訳・role）だけになる（語単位で潰さない）
+    // P0フィルター: 残るP0はfi-namae:roleの1件だけ（example/meaning_zhはCEO判断済み）
     fireEvent.change(screen.getByLabelText(td.filterPriority), { target: { value: 'P0' } });
     await waitFor(() => {
-      expect(screen.getAllByText(td.detailOpen).length).toBe(3);
+      expect(screen.getAllByText(td.detailOpen).length).toBe(1);
       expect(screen.queryAllByText('P2').length).toBe(0);
     });
   });
@@ -74,7 +74,7 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
   });
   it('2E-1.8: 詳細に監査情報（由来）が折りたたみで出る・継承P0は†付き表示', () => {
     render(<VocabDecisionConsole {...base} />);
-    fireEvent.click(screen.getAllByText(td.detailOpen)[1]);   // fi-namae:meaning_zh（継承P0）
+    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);   // fi-namae:role（語のP0を継承）
     expect(screen.getByText(td.provenanceHeading)).toBeTruthy();
     expect(screen.getAllByText(new RegExp(td.prioInherited)).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('P0†').length).toBeGreaterThanOrEqual(1);
@@ -82,13 +82,13 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
   it('2E-1.8: 語彙詳細を見るボタンがonOpenItemを呼ぶ・roleの意味説明はrole判断のみ', () => {
     const onOpenItem = vi.fn();
     render(<VocabDecisionConsole {...base} onOpenItem={onOpenItem} />);
-    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);   // fi-namae:example
+    fireEvent.click(screen.getAllByText(td.detailOpen)[1]);   // 2件目（meaning_zh系・roleではない）
     expect(screen.queryByText(td.roleHelpHeading)).toBeNull();
+    // role判断（先頭のfi-namae:role）を開くと定義説明が出る
+    fireEvent.click(screen.getAllByText(td.detailOpen)[0]);
+    expect(screen.getByText(td.roleHelpHeading)).toBeTruthy();
     fireEvent.click(screen.getByText(td.openWord));
     expect(onOpenItem).toHaveBeenCalledWith('fi-namae');
-    // role判断を開くと定義説明が出る
-    fireEvent.click(screen.getAllByText(td.detailOpen)[2]);   // fi-namae:role
-    expect(screen.getByText(td.roleHelpHeading)).toBeTruthy();
   });
   it('2E-1.8: フィルター文脈がsessionStorageへ保存され再マウントで復元される（§6.3）', async () => {
     const { unmount } = render(<VocabDecisionConsole {...base} />);
@@ -96,22 +96,22 @@ describe('Decision Console（labPreview限定・ローカル判断ドラフト�
     await waitFor(() => expect(JSON.parse(window.sessionStorage.getItem('ai_course_decision_console_ui_v1')!).prio).toBe('P0'));
     unmount();
     render(<VocabDecisionConsole {...base} />);
-    await waitFor(() => expect(screen.getAllByText(td.detailOpen).length).toBe(3));   // P0フィルター維持
+    await waitFor(() => expect(screen.getAllByText(td.detailOpen).length).toBe(1));   // P0フィルター維持（P0はrole 1件）
   });
   it('2E-1.8: 判断後に教材値が変わるとstale警告が行に出る（自動確定・削除しない）', async () => {
     // 直接localStorageへ「古いsnapshot付きドラフト」を注入して描画
     window.localStorage.setItem(VOCAB_DECISION_LOCAL_KEY, JSON.stringify({
       schemaVersion: 3, sourceDatasetVersion: 'phase-2e-1.5',
-      entries: { 'fi-namae:example': {
-        decisionId: 'fi-namae:example', status: 'keep_current', updatedAt: 'x',
+      entries: { 'fi-namae:role': {
+        decisionId: 'fi-namae:role', status: 'keep_current', updatedAt: 'x',
         history: [{ status: 'keep_current', at: 'x' }],
-        snapshotCurrentValueJa: '（旧い例文）', snapshotProposedValueJa: '（旧い提案）', datasetVersion: 'phase-2e-1.5',
+        snapshotCurrentValueJa: '（旧い値）', snapshotProposedValueJa: '（旧い提案）', datasetVersion: 'phase-2e-1.5',
       } },
     }));
     render(<VocabDecisionConsole {...base} />);
     expect(screen.getAllByText(td.freshness.stale).length).toBeGreaterThanOrEqual(1);
     // ドラフト自体は消えない
     const raw = JSON.parse(window.localStorage.getItem(VOCAB_DECISION_LOCAL_KEY)!);
-    expect(raw.entries['fi-namae:example'].status).toBe('keep_current');
+    expect(raw.entries['fi-namae:role'].status).toBe('keep_current');
   });
 });

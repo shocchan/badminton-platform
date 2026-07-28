@@ -100,7 +100,8 @@ describe('二重AIレビュー比較（§2・§7）', () => {
     expect(namae.aiReviewState).toBe('human_review_required');
     expect(namae.humanReviewPriority).toBe('P0');
     expect(AUTO_FIXED_ITEM_IDS).not.toContain('fi-namae');
-    expect(itemById.get('fi-namae')!.exampleJa).toBe('名前は王です。');   // 人間確認まで変えない
+    // CEO判断（2026-07-28）でfield単位反映済み。自動修正リストには入れない（AUTO_FIXEDは上で確認済み）
+    expect(itemById.get('fi-namae')!.exampleJa).toBe('私の名前は王小明です。');
   });
   it('自動修正済みIDは実在し、修正後の例文が反映されている（明白な誤訳の代表例）', () => {
     for (const id of AUTO_FIXED_ITEM_IDS) expect(itemById.has(id), id).toBe(true);

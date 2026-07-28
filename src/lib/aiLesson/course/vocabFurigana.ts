@@ -29,7 +29,7 @@ const T = (text: string, reading?: string): FuriganaTextSegment => ({ text, ...(
  */
 export const EXAMPLE_FURIGANA: Record<string, FuriganaTextSegment[]> = {
   // ── 単元1（自己紹介） ──
-  'fi-namae': [T('名前', 'なまえ'), s('は'), s('王', 'おう'), s('です。')],
+  'fi-namae': [s('私', 'わたし'), s('の'), T('名前', 'なまえ'), s('は'), s('王小明', 'おうしょうめい'), s('です。')],
   'fi-shusshin': [s('中国', 'ちゅうごく'), T('出身', 'しゅっしん'), s('です。')],
   'fi-chugoku': [T('中国', 'ちゅうごく'), s('出身', 'しゅっしん'), s('です。')],
   'fi-nihon': [T('日本', 'にほん'), s('に'), s('住', 'す'), s('んでいます。')],

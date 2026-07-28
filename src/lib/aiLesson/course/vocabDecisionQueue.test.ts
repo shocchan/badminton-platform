@@ -32,21 +32,21 @@ describe('Human Decision Queue（§2 目的A）', () => {
     }
     expect(buildDecisionQueue().map((d) => d.decisionId)).toEqual(q.map((d) => d.decisionId));   // 決定的
   });
-  it('fi-namaeの例文判断がP0として先頭に来る（自動採用しない・表示のみ）', () => {
-    expect(q[0].decisionId).toBe('fi-namae:example');
-    expect(q[0].priority).toBe('P0');
-    expect(q[0].currentValueJa).toContain('名前は王です。');
-    expect(q[0].proposedValueJa).toContain('王小明');
+  it('CEO判断済みfield（2026-07-28・14件）はキューに再掲されない', () => {
+    // fi-namaeの例文・訳、cognate 11件はCEOがfield単位で確定済み（vocabFieldReviewDecisions）
+    expect(q.some((d) => d.decisionId === 'fi-namae:example')).toBe(false);
+    expect(q.some((d) => d.decisionId === 'fi-namae:meaning_zh')).toBe(false);
+    expect(q.some((d) => d.decisionId === 'fi-komaru:meaning_zh')).toBe(false);
+    expect(q.some((d) => d.decisionType === 'cognate')).toBe(false);
+    const a = auditDecisionQueue();
+    // 14件 = CEO除外11 + 「CEO確定値がChatGPT提案と一致し反映済み」扱い3（kaishain/nihongo/tomodachi）
+    expect(a.excludedCeoDecided).toBe(11);
   });
-  it('cognate不一致・meaningZh未採用・role提案・Sense未レビューが判断事項として含まれる', () => {
+  it('meaningZh未採用・role提案・Sense未レビューが判断事項として含まれる（cognateはCEO確定で0）', () => {
     const types = new Set(q.map((d) => d.decisionType));
-    expect(types).toContain('cognate');
     expect(types).toContain('meaning_zh');
     expect(types).toContain('role');
     expect(types).toContain('sense');
-    // 代表例: AI不一致のcognate（採用済みの提案はキューに乗らない）
-    expect(q.some((d) => d.decisionId === 'fi-nihongo:cognate')).toBe(true);
-    expect(q.some((d) => d.decisionId === 'fi-komaru:meaning_zh')).toBe(true);
     expect(q.some((d) => d.decisionId === 'fi-taihen:sense')).toBe(true);
     expect(q.some((d) => d.decisionId === 'fi-jouhou:cognate')).toBe(false);   // 採用済み提案は判断不要
   });
@@ -59,7 +59,6 @@ describe('Human Decision Queue（§2 目的A）', () => {
     const s = decisionQueueSummary(q);
     expect(s.itemCount).toBe(q.length);
     expect(s.wordCount).toBeLessThan(s.itemCount);
-    expect(s.byPriority.P0).toBeGreaterThanOrEqual(1);
     expect(s.byType.example + s.byType.cognate + s.byType.meaning_zh + s.byType.role + s.byType.sense).toBe(s.itemCount);
     expect(s.independentPriorityCount + s.inheritedPriorityCount).toBe(s.itemCount);
   });
@@ -72,26 +71,27 @@ describe('導出の完全性監査（2E-1.8 §2）', () => {
     // §20: queuedForReview は「レビュー対象に選定した数」であり、教材採用・公開承認ではない
     expect(audit.duplicates).toBe(0);
     expect(audit.queuedForReview).toBe(q.length);
-    expect(audit.sourceCandidates).toBe(audit.queuedForReview + audit.excludedAlreadyApplied + audit.excludedNotApplicable);
+    expect(audit.sourceCandidates).toBe(audit.queuedForReview + audit.excludedAlreadyApplied + audit.excludedNotApplicable + audit.excludedCeoDecided);
     for (const k of Object.keys(audit.byType) as (keyof typeof audit.byType)[]) {
       const b = audit.byType[k];
-      expect(b.candidates).toBe(b.queuedForReview + b.excludedAlreadyApplied + b.excludedNotApplicable);
+      expect(b.candidates).toBe(b.queuedForReview + b.excludedAlreadyApplied + b.excludedNotApplicable + b.excludedCeoDecided);
     }
   });
   it('期待値スナップショット（教材データ更新時は意図的にこの数値を更新すること）', () => {
     // 2026-07-27 phase-2e-1.5データ時点の実数。変わった場合は auto-fix や教材変更に由来するはず。
     // 注: 2E-1.7完了報告の「meaning_zh 17・role 60」は誤集計で、実数はこの監査が正
     //（本テスト導入時に検出・完了報告に差異を記載済み）。
+    // 2026-07-28 CEO判断14件反映後の実数（91→77件。cognate/example/meaning_zh計14件がキュー外へ）
     const s = decisionQueueSummary(q);
-    expect(s.itemCount).toBe(91);
-    expect(s.wordCount).toBe(72);
-    expect(s.byType).toEqual({ example: 1, cognate: 11, meaning_zh: 20, role: 57, sense: 2 });
-    expect(s.byPriority).toEqual({ P0: 3, P1: 4, P2: 83, P3: 1 });
-    // 監査カウンタ（候補218=採用91+採用済み除外108+対象外19）
+    expect(s.itemCount).toBe(77);
+    expect(s.byType).toEqual({ example: 0, cognate: 0, meaning_zh: 18, role: 57, sense: 2 });
+    expect(s.byPriority).toEqual({ P0: 1, P1: 8, P2: 67, P3: 1 });   // 表示priorityは語単位の継承値
+    // 監査カウンタ（候補218 = 選定77 + 反映済み111 + 対象外19 + CEO判断済み11）
     const a = auditDecisionQueue();
     expect(a.sourceCandidates).toBe(218);
-    expect(a.excludedAlreadyApplied).toBe(108);
+    expect(a.excludedAlreadyApplied).toBe(111);
     expect(a.excludedNotApplicable).toBe(19);
+    expect(a.excludedCeoDecided).toBe(11);
   });
 });
 
@@ -102,18 +102,21 @@ describe('リリース分類と根本問題（2E-1.10 §18-§20）', () => {
     const sum = s.byReleaseClass.release_blocker + s.byReleaseClass.before_beta_recommended + s.byReleaseClass.can_defer;
     expect(sum).toBe(s.itemCount);
     expect(s.byReleaseClass.release_blocker).toBeLessThan(s.itemCount);
-    expect(s.byReleaseClass.release_blocker).toBe(14);
+    // severityモデル修正（CEO決定 2026-07-28）: blockerは「その項目自体がP0/P1」だけ。
+    // CEO判断14件の反映後、残る77件はP2/P3のみ＝blocker 0
+    expect(s.byReleaseClass.release_blocker).toBe(0);
+    expect(s.byReleaseClass.before_beta_recommended).toBe(59);
+    expect(s.byReleaseClass.can_defer).toBe(18);
   });
-  it('root P0/P1は「その項目自体が重大」なものだけ（継承だけのP0を数えない・§19）', () => {
-    expect(s.rootP0Count).toBe(1);                       // fi-namae:example のみ
-    expect(s.rootP1Count).toBe(13);
-    const rootP0 = q.filter((d) => d.localSeverity === 'P0');
-    expect(rootP0.map((d) => d.decisionId)).toEqual(['fi-namae:example']);
-    expect(rootP0[0].severitySource).toBe('local');
-    // 継承でP0に見える項目は localSeverity が P0 ではない
-    const inherited = q.filter((d) => d.severitySource === 'inherited' && d.priority === 'P0');
+  it('root P0/P1は「その項目自体が重大」なものだけ（CEO判断反映後は0・§19）', () => {
+    expect(s.rootP0Count).toBe(0);   // fi-namae:example はCEO判断で解決（キュー外）
+    expect(s.rootP1Count).toBe(0);
+    expect(q.filter((d) => d.localSeverity === 'P0')).toHaveLength(0);
+    expect(q.filter((d) => d.localSeverity === 'P1')).toHaveLength(0);
+    // 継承でP0/P1に見える項目は localSeverity が P0/P1 ではない
+    const inherited = q.filter((d) => d.severitySource === 'inherited' && (d.priority === 'P0' || d.priority === 'P1'));
     expect(inherited.length).toBeGreaterThan(0);
-    for (const d of inherited) expect(d.localSeverity).not.toBe('P0');
+    for (const d of inherited) expect(['P2', 'P3']).toContain(d.localSeverity);
   });
   it('Release Gateで同じ根本問題を重複カウントしない（rootIssueId単位）', () => {
     const blockers = q.filter((d) => d.releaseClass === 'release_blocker');
@@ -130,13 +133,13 @@ describe('リリース分類と根本問題（2E-1.10 §18-§20）', () => {
 describe('priority由来（2E-1.8 §3: 独立P0と語からの継承を区別・decisionPriorityは変えない）', () => {
   const q = buildDecisionQueue();
   const byId = new Map(q.map((d) => [d.decisionId, d]));
-  it('fi-namae: exampleは独立P0（ふりがな/日本語major由来）・meaning_zhとroleは語のP0を継承', () => {
-    expect(byId.get('fi-namae:example')!.provenance.priorityInheritedFromWord).toBe(false);
-    expect(byId.get('fi-namae:example')!.provenance.independentPriority).toBe('P0');
-    expect(byId.get('fi-namae:meaning_zh')!.provenance.priorityInheritedFromWord).toBe(true);
+  it('fi-namae: roleは語のP0を継承（example/meaning_zhはCEO判断でキュー外）', () => {
+    expect(byId.has('fi-namae:example')).toBe(false);
+    expect(byId.has('fi-namae:meaning_zh')).toBe(false);
     expect(byId.get('fi-namae:role')!.provenance.priorityInheritedFromWord).toBe(true);
     // 表示priority自体は従来どおり語単位（人間判断なしに意味を変えない）
     expect(byId.get('fi-namae:role')!.priority).toBe('P0');
+    expect(byId.get('fi-namae:role')!.localSeverity).toBe('P2');
   });
   it('provenanceは既存データ由来のフィールドのみ（推測生成しない・datasetVersion付与）', () => {
     for (const d of q) {
@@ -181,12 +184,13 @@ describe('stale/orphaned検出（2E-1.8 §5・自動削除・自動確定しな�
 describe('語ごとの判断バッジ集計（2E-1.8 §6.2）', () => {
   it('未処理・P0・保留を分けて数える（判断済みはpendingから除外）', () => {
     const q = buildDecisionQueue();
+    // 2026-07-28: fi-namaeのexample/meaning_zhはCEO判断でキュー外→残るのはroleの1件
     const b0 = decisionBadgeForWord('fi-namae', () => undefined, q);
-    expect(b0.total).toBe(3);
-    expect(b0.pending).toBe(3);
-    expect(b0.p0).toBe(3);
+    expect(b0.total).toBe(1);
+    expect(b0.pending).toBe(1);
+    expect(b0.p0).toBe(1);   // 表示priorityは語単位の継承値（localSeverityはP2）
     const b1 = decisionBadgeForWord('fi-namae', (id) => (id === 'fi-namae:role' ? 'keep_current' : undefined), q);
-    expect(b1.pending).toBe(2);
+    expect(b1.pending).toBe(0);
     const none = decisionBadgeForWord('fi-sensei', () => undefined, q);   // 判断事項なしの語
     expect(none.total).toBe(0);
   });

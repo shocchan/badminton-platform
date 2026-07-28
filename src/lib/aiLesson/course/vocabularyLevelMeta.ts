@@ -83,6 +83,20 @@ Object.assign(VOCAB_LEVEL_META, {
   'fi-jouzu': a('false_friend', '中文「上手」是开始做・容易上手的意思，日语「上手」指擅长'),
 } satisfies Record<string, VocabularyLevelMeta>);
 
+// ── CEO判断による同源語分類の確定（2026-07-28・field単位ceo_decided→applied_draft） ──
+// 分類のみの確定であり、item全体のhuman_reviewed/approvedを意味しない。
+const CEO = BASE + '。cognateはCEO判断（2026-07-28・field単位確定）';
+const ceo = (cognate: ChineseCognateType, noteZh?: string): VocabularyLevelMeta =>
+  ({ levelTags: ['foundation'], levelConfidence: 'high', levelEvidence: CEO, cognate, cognateNoteZh: noteZh });
+Object.assign(VOCAB_LEVEL_META, {
+  'fi-genki': ceo('partial_overlap'),
+  'fi-kaishain': ceo('japanese_specific'),
+  'fi-nanji': ceo('partial_overlap'),
+  'fi-nihongo': ceo('japanese_specific'),
+  'fi-tomodachi': ceo('japanese_specific'),
+  'fi-yasui': ceo('false_friend', '日语「安い」表示价格低；中文“安”主要与安全、平安有关，价格低通常说“便宜”'),
+} satisfies Record<string, VocabularyLevelMeta>);
+
 // N3準備パック（一括登録・levelEvidence共通・cognateは高確信のみ個別分類）
 const N3E = 'N3準備・語彙拡張パック（N3目安・公式断定なし）としての収録。会話/読解の拡張語彙';
 const n3 = (cognate: ChineseCognateType = 'unreviewed', conf: LevelConfidence = 'medium', noteZh?: string): VocabularyLevelMeta =>
@@ -113,6 +127,11 @@ export const N3_LEVEL_META: Record<string, VocabularyLevelMeta> = {
   'fi-tsuzuku': n3('partial_overlap'), 'fi-kimeru': n3('partial_overlap'), 'fi-kimaru': n3('partial_overlap'),
   'fi-omou': n3('partial_overlap'), 'fi-renraku': n3('partial_overlap'), 'fi-shiraberu': n3('partial_overlap'),
   'fi-komaru': n3('partial_overlap'), 'fi-ureshii': n3('partial_overlap'), 'fi-hazukashii': n3('partial_overlap'),
+  // CEO判断による確定（2026-07-28・field単位）
+  'fi-kibun': n3('japanese_specific', 'high'),
+  'fi-soudan': n3('partial_overlap', 'high'),
+  'fi-yakusoku': n3('false_friend', 'high', '日语「約束」表示约定、承诺；现代中文“约束”主要表示限制、管束'),
+  'fi-zenzen': n3('partial_overlap', 'high'),
   'fi-kawaru': n3('partial_overlap'), 'fi-kaeru-change': n3('partial_overlap'),
   'fi-yoyaku': n3('partial_overlap', 'medium', '预约时间・服务用「予約」；中文订餐厅・酒店・票时常说「预订」'),
   'fi-riyou': n3('mostly_same', 'medium', '中文「利用」常带利己的语感，日语「利用する」是中性的'),
