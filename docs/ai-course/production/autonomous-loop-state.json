@@ -5,12 +5,13 @@
  "phasesCompletedThisSession": [
   "provenance整合（hash87件sha256化・原本text8件復元・rights confirmed統一・テスト強化）",
   "3P-5 batch: Unit8（15件）",
-  "3P-5 batch: Unit9（15件）"
+  "3P-5 batch: Unit9（15件）",
+  "3P-5 batch: Unit10（15件）"
  ],
  "phaseBudgetUsed": 1,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit10: n2g-136〜150）",
- "resumeFrom": "N2残44件（Unit10: n2g-136〜150から）。パターンはUnit8/9踏襲",
+ "currentPhase": "3P-5継続（Unit11: n2g-151〜165、162除く14件）",
+ "resumeFrom": "N2残29件（Unit11: n2g-151〜165、162は同義判断待ちのため除外）",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
  "testCount": 911,
@@ -23,7 +24,7 @@
   "prototypeBetaLabels": 20,
   "illustrationsMissing": 115,
   "illustrationsApproved": 0,
-  "n2GrammarIncomplete": 44,
+  "n2GrammarIncomplete": 29,
   "n3GrammarNotImported": 0,
   "conversationContextualGap": 0,
   "excelInventoryUnregisteredSheets": 0,
@@ -34,7 +35,7 @@
   "onomatopoeiaDraftIncomplete": 0,
   "n3GrammarCompleteDrafts": 76,
   "n3AwaitingLevelDecision": 38,
-  "n2GrammarCompleteDrafts": 129,
+  "n2GrammarCompleteDrafts": 144,
   "n2AwaitingMergeDecision": 7
  },
  "decisionQueueAwaiting": [
@@ -69,9 +70,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 129,
+  "completeDraft": 144,
   "humanDecisionRequired": 7,
-  "autonomousIncomplete": 44,
-  "identity": "129+7+44+0=180"
+  "autonomousIncomplete": 29,
+  "identity": "144+7+29+0=180"
  }
 }
