@@ -1,20 +1,18 @@
 {
- "sessionStartedAt": "2026-07-28T15:30:00+09:00",
+ "sessionStartedAt": "2026-07-28T22:05:00+09:00",
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "正準集計＋訂正記録",
-  "3P-5 batch: Unit5＋繰越4件（19件）",
-  "3P-5 batch: Unit6（15件）",
-  "3P-5 batch: Unit7（13件）"
+  "provenance整合（hash87件sha256化・原本text8件復元・rights confirmed統一・テスト強化）",
+  "3P-5 batch: Unit8（15件）"
  ],
- "phaseBudgetUsed": 5,
+ "phaseBudgetUsed": 1,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit8: n2g-106〜120）",
- "resumeFrom": "N2残74件（Unit8: n2g-106〜120から）。パターンはUnit7踏襲",
+ "currentPhase": "3P-5継続（Unit9: n2g-121〜135）",
+ "resumeFrom": "N2残59件（Unit9: n2g-121〜135から）。パターンはUnit8踏襲",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 912,
+ "testCount": 911,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
  "stagingDeployedThrough": "3P-5",
@@ -24,7 +22,7 @@
   "prototypeBetaLabels": 20,
   "illustrationsMissing": 115,
   "illustrationsApproved": 0,
-  "n2GrammarIncomplete": 165,
+  "n2GrammarIncomplete": 59,
   "n3GrammarNotImported": 0,
   "conversationContextualGap": 0,
   "excelInventoryUnregisteredSheets": 0,
@@ -35,7 +33,7 @@
   "onomatopoeiaDraftIncomplete": 0,
   "n3GrammarCompleteDrafts": 76,
   "n3AwaitingLevelDecision": 38,
-  "n2GrammarCompleteDrafts": 15,
+  "n2GrammarCompleteDrafts": 114,
   "n2AwaitingMergeDecision": 7
  },
  "decisionQueueAwaiting": [
@@ -51,7 +49,7 @@
   "現実世界の副賞: 景品表示法・税務・利用規約・協賛契約の確認（awaiting_legal_review・未実装）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-5（2026-07-29）",
+ "sessionId": "autonomous-session-6（2026-07-28）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
@@ -69,9 +67,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 99,
+  "completeDraft": 114,
   "humanDecisionRequired": 7,
-  "autonomousIncomplete": 74,
-  "identity": "99+7+74+0=180"
+  "autonomousIncomplete": 59,
+  "identity": "114+7+59+0=180"
  }
 }
