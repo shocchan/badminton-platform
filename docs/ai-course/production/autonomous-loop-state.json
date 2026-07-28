@@ -63,7 +63,8 @@
  },
  "northStar": "docs/ai-course/rpg/product-north-star.md（主人公冒険型・日本語攻略RPG）。今後の全UI/ルート/Unit/イラスト/成長設計はこれと矛盾しないこと",
  "resolvedDecisions": [
-  "2026-07-28 CEO: Excel原本3ソースは自作オリジナル → teacher_created_confirmed。runtime使用可。既存の独自例文は戻さず、以後は原本と新規を比較して良い方を採用"
+  "2026-07-28 CEO: Excel原本3ソースは自作オリジナル → teacher_created_confirmed。runtime使用可。既存の独自例文は戻さず、以後は原本と新規を比較して良い方を採用",
+  "2026-07-28 CEO: RPGはGBA風見下ろしドットRPGの空気感を参考（既存IP模倣禁止・操作ゲーム化しない・学習の進捗=物語の進行・章末は場面攻略・RPG風学習UI・教材本体優先）。product-north-star.mdに正式追記"
  ],
  "n2Progress": {
   "total": 180,
