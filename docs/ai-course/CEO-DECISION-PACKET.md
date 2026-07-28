@@ -1,3 +1,8 @@
+> **【更新 2026-07-28】このパケットの判断は完了しました。**
+> 教材P0/P1の14件はCEO判断済み・反映済み（root P0/P1 = 0）。
+> **最新の状況と残る判断は `decision-packets/preproduction-blocker-summary.md` を見てください。**
+> 以下は当時の記録として残しています。
+
 # CEO判断パケット（自律ループ停止・2026-07-28 04:10）
 
 監督ChatGPTが **decision = STOP_FOR_HUMAN** を出しました。

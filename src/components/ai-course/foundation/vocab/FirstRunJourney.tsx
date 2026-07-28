@@ -328,8 +328,8 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
               </div>
               {/* 軸B: 本人の感じ方（正解の代わりにしない） */}
               {(learner.feltConfidentCount > 0 || learner.feltUnsureCount > 0) && (
-                <div className="bg-gray-50 rounded-xl p-3 mb-2">
-                  <p className="text-[11px] font-bold text-gray-500 mb-1.5">{tv.lrFeelHeading}</p>
+                <div className="bg-gray-50 rounded-xl p-2.5 mb-1.5">
+                  <p className="text-[11px] font-bold text-gray-500 mb-1">{tv.lrFeelHeading}</p>
                   <ul className="text-sm text-gray-700 space-y-0.5">
                     {learner.feltConfidentCount > 0 && <li>・{tv.lrConfident(learner.feltConfidentCount)}</li>}
                     {learner.feltUnsureCount > 0 && <li>・{tv.lrUnsure(learner.feltUnsureCount)}</li>}
@@ -338,16 +338,21 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
               )}
               {learner.partial && <p className="text-xs text-gray-500 mb-2">{tv.lrPartial}</p>}
             </>
-          ) : snapshot && (
+          ) : snapshot ? (
             /* 旧版のsnapshot（学習者向けモデルを持たない）はそのまま数値だけ見せる */
             <ul className="text-sm text-gray-700 space-y-1 mb-3">
               {snapshot.checkedCount !== null && <li>・{tv.frResultChecked(snapshot.checkedCount)}</li>}
               {snapshot.partial && <li className="text-xs text-gray-500">{tv.frResultPartial}</li>}
             </ul>
+          ) : repair.snapshotMissing && (
+            /* 契約は完了しているのに結果が保存されていない（部分成功）。
+               無言でStep4を出すと「結果が無いのが正常」に見えるため、欠損を正直に伝える（§8）。
+               数値は推測で作らない。復習予定（下のタイムライン）は実データなのでそのまま出す。 */
+            <p className="text-xs text-gray-500 mb-3">{tv.frResultPartial}</p>
           )}
           {/* 軸C: これからの予定（合計の分解ではないので独立したカードにする） */}
           {learner && (
-            <div className="bg-indigo-50/60 rounded-xl p-3 mb-2">
+            <div className="bg-indigo-50/60 rounded-xl p-2.5 mb-1.5">
               <p className="text-[11px] font-bold text-indigo-800 mb-1">{tv.lrNextHeading}</p>
               <p className="text-sm text-gray-800">
                 {learner.scheduledForReviewCount > 0
@@ -357,8 +362,8 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
             </div>
           )}
           {/* 新規利用者へ復習の仕組みを一文で（定着は断定しない・§4）＋時間軸の図 */}
-          <p className="text-sm text-gray-700">{tv.frReviewExplain}</p>
-          <div className="mb-4">
+          <p className="text-xs text-gray-600 mt-1">{tv.frReviewExplain}</p>
+          <div className="mb-3">
             <p className="sr-only">{tv.frTimelineLabel}</p>
             <ReviewTimeline todayLabel={tv.frTimelineToday} points={[
               { label: tv.frTimelineTomorrow, count: upcoming.tomorrow, emphasis: true },

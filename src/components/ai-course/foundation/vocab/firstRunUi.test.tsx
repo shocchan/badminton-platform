@@ -403,3 +403,25 @@ describe('contract_pending Recovery（2E-1.16 E1）', () => {
     expect(screen.queryByText(tv.cpHeading)).toBeNull();
   });
 });
+
+// 結果が完全に欠損したStep4（契約completed・snapshot null）で欠損を正直に伝える。
+describe('結果欠損時のStep4（ブラッシュアップ 2026-07-28）', () => {
+  it('契約は完了・結果なし → 「一部の結果を表示できませんでした」を出し、数値を作らない', async () => {
+    window.sessionStorage.setItem('ai_course_first_run_v1', JSON.stringify({
+      schemaVersion: 1, step: 'done', goal: 'daily_conversation', checkDone: true, practiceDone: true,
+      completedAt: null, startedAt: '2026-07-28T05:00:00.000Z', updatedAt: '2026-07-28T05:00:00.000Z',
+    }));
+    window.sessionStorage.setItem('ai_course_journey_task_v1', JSON.stringify({
+      schemaVersion: 2, journeyId: '2026-07-28T05:00:00.000Z',
+      activeTaskType: 'practice', activeTaskId: 'p-miss', activeTaskStatus: 'completed',
+      taskStartedAt: 'x', taskCompletedAt: 'y', returnStep: 'done',
+      completionToken: 'tok', usedTokens: ['tok'], completedTaskIds: ['p-miss'],
+      completionSnapshot: null,
+    }));
+    render(<FirstRunJourney {...base} />);
+    await waitFor(() => expect(screen.getByText(tv.frResultPartial)).toBeTruthy());
+    // 数値を推測で作らない（0件表示や結果カードを出さない）
+    expect(screen.queryByText(tv.lrQuizHeading)).toBeNull();
+    expect(screen.queryByText(tv.lrChecked(0))).toBeNull();
+  });
+});
