@@ -64,3 +64,31 @@ originality review→人間確認→正式教材登録。カテゴリ自体は�
 | 助詞② | grammar_integration | 11 |  |  |  |  |
 | 「です・ます」文（敬语句型） のコピー | grammar_integration | 44 |  |  | 要 |  |
 | 動詞活用形 | grammar_integration | 188 |  |  |  |  |
+
+
+---
+
+## Phase 3P-2 実績（Deterministic Excel Intake・2026-07-28）
+
+このBacklogの「未統合」定義は3P-2で細分化された。以後の単一情報源は
+`generated/excel-intake-inventory.json` ほか5 manifest（生成:
+`scripts/ai-course/generate-excel-intake-manifests.py`・workbook sha16 8b365e6186b9189d）。
+
+| 指標 | before（3P-1） | after（3P-2） |
+|---|---|---|
+| Inventory未登録シート | 26 | **0**（40/40が理由付きsheetState） |
+| intakeStatus未分類行 | 全行 | **0**（登録2,089候補すべて終端状態） |
+| 第一弾4シートの意味未分類 | 614 | **0** |
+| provenance欠損 | 未計測 | **0** |
+
+- sheetState内訳: first_wave_classified 4 / deferred_to_phase 16 / already_integrated 11 /
+  awaiting_rights_rewrite 3 / duplicate_source_sheet 2 / excluded_by_explicit_rule 7（メタデータ）
+- intakeStatus内訳: classified 493 / deferred_to_phase 662 / duplicate_source_row 555 /
+  awaiting_rights_rewrite 379
+- 第一弾分類: new_item 411（オノマトペ100含む）/ expression 120 / reuse_existing 64（sense統合は人間判断）/
+  new_grammar_pattern 19（複合動詞第二要素）/ conflict 0（かな語の二重登録バグ修正後）
+- 旧「既存重複113行」の再導出: 既存140語との表記一致は**64件**（第一弾のみ。旧113はセル単位の
+  概算だったため過大。全シートの意味分類完了時に再集計する）
+- rights 3シート（営業200・慣用句111・ビジネスメッセージ68=379行）: 全行awaiting_rights_rewriteで
+  登録・非採用・非削除。独自教材への置換は3P-5、置換関係はsourceCandidateIdで追跡
+- 教材本体への変更・自動追加は一切なし。全候補reviewStatus=draft

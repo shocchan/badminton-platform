@@ -22,6 +22,11 @@
 | 人間承認必要field（推定） | 約4,720 | 全件human review完了 |
 | 正式DB保存 | 未適用 | 適用＋同期＋分離検証 |
 
+## 進捗
+
+- **3P-2完了（2026-07-28）**: Excel Inventory未登録 26→0、intakeStatus未分類→0、
+  第一弾4シート意味分類完了（詳細→ excel-integration-backlog.md 末尾）
+
 ## Phase計画（3P-2〜3P-11）
 
 | Phase | 目的 | 主な成果 | 停止点 |
