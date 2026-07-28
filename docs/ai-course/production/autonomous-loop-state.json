@@ -5,12 +5,13 @@
  "phasesCompletedThisSession": [
   "正準集計＋訂正記録",
   "3P-5 batch: Unit5＋繰越4件（19件）",
-  "3P-5 batch: Unit6（15件）"
+  "3P-5 batch: Unit6（15件）",
+  "3P-5 batch: Unit7（13件）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit7: n2g-091〜105）",
- "resumeFrom": "N2残87件（Unit7: n2g-091〜105。099/104は同義判断待ちのため対象外）。パターンはUnit6踏襲",
+ "currentPhase": "3P-5継続（Unit8: n2g-106〜120）",
+ "resumeFrom": "N2残74件（Unit8: n2g-106〜120から）。パターンはUnit7踏襲",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
  "testCount": 912,
@@ -68,9 +69,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 86,
+  "completeDraft": 99,
   "humanDecisionRequired": 7,
-  "autonomousIncomplete": 87,
-  "identity": "86+7+87+0=180"
+  "autonomousIncomplete": 74,
+  "identity": "99+7+74+0=180"
  }
 }
