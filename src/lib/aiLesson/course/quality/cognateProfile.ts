@@ -3,7 +3,8 @@
 // 目的: 中国語と同じ漢字の語に「意味を選ぶだけ」の問題を大量に出さない。
 // 語ごとに「中国語の同形語との関係」を分類し、その語で*測る価値のある*次元だけを出題する。
 //
-// 分類は教材制作者の判断であり、reviewStatus は human_review_candidate。approved へは自動昇格しない。
+// 分類は AI が語ごとに個別判断したもの（authorship='individually_authored_by_ai'）。
+// 人間の執筆・確認ではない。reviewStatus は human_review_candidate で、approved へは自動昇格しない。
 import type { FoundationItem } from '../foundationTypes';
 
 export type CognateClass =
@@ -39,6 +40,8 @@ export interface CognateProfile {
   transferRiskZh: string | null;
   /** 高リスク（誤用が実害になる）語か。Coverage Contractでcontrast必須になる */
   highRisk: boolean;
+  /** 分類の主体。AIによる個別判断であり、人間の確認は未実施 */
+  authorship: 'individually_authored_by_ai';
   reviewStatus: 'human_review_candidate';
 }
 
@@ -46,7 +49,8 @@ const p = (
   itemId: string, cognateClass: CognateClass,
   zhCognate: string | null = null, zhCognateMeaning: string | null = null,
   transferRiskZh: string | null = null, highRisk = false,
-): CognateProfile => ({ itemId, cognateClass, zhCognate, zhCognateMeaning, transferRiskZh, highRisk, reviewStatus: 'human_review_candidate' });
+): CognateProfile => ({ itemId, cognateClass, zhCognate, zhCognateMeaning, transferRiskZh, highRisk,
+  authorship: 'individually_authored_by_ai', reviewStatus: 'human_review_candidate' });
 
 /**
  * 明示プロファイル。中国語話者にとって判断が分かれる語を優先して収録する。

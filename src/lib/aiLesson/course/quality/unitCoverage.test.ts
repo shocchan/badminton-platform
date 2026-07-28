@@ -3,7 +3,7 @@
 // 高リスクcontrast欠落0・全単元でStage2以上と実践Missionが成立。
 import { describe, it, expect } from 'vitest';
 import { N3_UNIT_SPECS } from './n3UnitSpecs';
-import { evaluateUnitCoverage, summarizeCoverage, STAGE_OF, highRiskWithin } from './unitCoverage';
+import { evaluateUnitCoverage, summarizeCoverage, STAGE_OF, highRiskWithin, vocabularyMembership } from './unitCoverage';
 import { allVocabularyItems } from '../foundationVocabBank';
 import { buildAssessQuestions } from './assessQuestionEngine';
 import { highRiskCognateIds } from './cognateProfile';
@@ -49,6 +49,26 @@ describe('N3 Unit Coverage Contract', () => {
     // 全単元の高リスクを合わせるとプロファイル側の高リスク全件になる
     const all = new Set(N3_UNIT_SPECS.flatMap(s => s.highRiskCognateIds));
     for (const id of highRiskCognateIds()) expect(all.has(id), `${id} がどの単元にも入っていない`).toBe(true);
+  });
+  it('Unit所属: primaryは1つ・再登場/Mission/復習は複数可（§4）', () => {
+    const mem = vocabularyMembership(N3_UNIT_SPECS);
+    expect(mem.size).toBe(pool.length);
+    for (const m of mem.values()) {
+      expect(m.primaryUnitId, `${m.itemId} にprimary所属がない`).toBeTruthy();
+      // 再登場・Mission・復習は複数可（禁止しない）
+      expect(Array.isArray(m.encounterUnitIds)).toBe(true);
+      expect(m.reviewContextIds.length).toBeGreaterThanOrEqual(1);
+    }
+    // 実際に再登場している語が存在する（同じItemを複製せず別文脈で使えている）
+    const reencountered = [...mem.values()].filter(m => m.encounterUnitIds.length > 0);
+    expect(reencountered.length).toBeGreaterThanOrEqual(10);
+    for (const m of reencountered) {
+      expect(m.encounterUnitIds).not.toContain(m.primaryUnitId); // primaryと同じ単元は再登場ではない
+    }
+  });
+  it('再登場は必ず「前の単元で学んだ語」（学ぶ前に再登場しない）', () => {
+    expect(summary.encounterBeforePrimary).toEqual([]);
+    expect(summary.encounterLinks).toBeGreaterThan(0);
   });
   it('単元specは全件human_review_candidate（自動承認なし）', () => {
     for (const spec of N3_UNIT_SPECS) {

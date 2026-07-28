@@ -1,8 +1,13 @@
 // 高リスク同形語の contrast／転移誤用バンク（§12・§16）。
 //
 // 中国語と同じ漢字なのに使い方が違う語は、「意味を選ぶ」問題では測れない。
-// ここでは実際の誤用（母語転移）を題材にした問題文を、語ごとに人手で執筆する。
-// 全件 human_review_candidate。approved へは自動昇格しない。
+// ここでは実際の誤用（母語転移）を題材にした問題文を、語ごとに個別作成している。
+//
+// 執筆主体の正確な状態（誤認防止・§3）:
+//   authorship = 'individually_authored_by_ai'（テンプレートへ語を差し替えた量産ではなく、
+//   語ごとに転移リスクを見て個別に作文したが、書いたのはAIであり人間ではない）
+//   humanReviewed = false / approved = false
+// 「人手執筆」「人間確認済み」と表現してはいけない。
 import type { LearningDimension } from './cognateProfile';
 
 export interface ContrastQuestion {
@@ -15,6 +20,10 @@ export interface ContrastQuestion {
   answerIndex: number;
   explanationJa: string;
   explanationZh: string;
+  /** 執筆主体。AIが語ごとに個別作成（テンプレ量産ではない）が、人間の執筆・確認ではない */
+  authorship: 'individually_authored_by_ai';
+  humanReviewed: false;
+  approved: false;
   reviewStatus: 'human_review_candidate';
 }
 
@@ -22,7 +31,8 @@ const q = (
   itemId: string, dimension: ContrastQuestion['dimension'],
   promptJa: string, promptZh: string, choices: string[], answerIndex: number,
   explanationJa: string, explanationZh: string,
-): ContrastQuestion => ({ itemId, dimension, promptJa, promptZh, choices, answerIndex, explanationJa, explanationZh, reviewStatus: 'human_review_candidate' });
+): ContrastQuestion => ({ itemId, dimension, promptJa, promptZh, choices, answerIndex, explanationJa, explanationZh,
+  authorship: 'individually_authored_by_ai', humanReviewed: false, approved: false, reviewStatus: 'human_review_candidate' });
 
 export const COGNATE_CONTRAST_BANK: ContrastQuestion[] = [
   // ── 先生（中: Mr./夫） ──
