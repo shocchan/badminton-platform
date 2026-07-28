@@ -50,5 +50,28 @@ on conflict (learner_id) do nothing;
 -- 注意: admin_overrides からの labPreview 削除は、クライアント切替の動作確認後に
 --       別migrationで行う（本草案では既存データを変更しない）。
 
+-- ── 二層防御の2層目: ai_learners.admin_overrides の列保護（草案・未適用） ──
+-- learner本人のupdate自体は残す（display_name等の自己更新のため）が、
+-- admin_overrides の変更だけは admin / service_role 以外で拒否する。
+create or replace function public.ai_course_protect_admin_overrides()
+returns trigger language plpgsql security definer as $$
+begin
+  if new.admin_overrides is distinct from old.admin_overrides then
+    if not (public.ai_is_admin() or current_setting('request.jwt.claims', true) is null) then
+      raise exception 'admin_overrides can only be changed by admin or service role';
+    end if;
+  end if;
+  return new;
+end $$;
+drop trigger if exists ai_learners_protect_admin_overrides on public.ai_learners;
+create trigger ai_learners_protect_admin_overrides
+  before update on public.ai_learners
+  for each row execute function public.ai_course_protect_admin_overrides();
+-- 注: service_role はRLS・triggerの対象だが、current_setting('request.jwt.claims') が
+--     nullになる直接接続/migration経路を許可する。適用前にshadow DBで
+--     「learner本人のadmin_overrides変更が拒否され、他列の自己更新は通る」ことを検証する。
+
 -- rollback:
+--   drop trigger if exists ai_learners_protect_admin_overrides on public.ai_learners;
+--   drop function if exists public.ai_course_protect_admin_overrides();
 --   drop table if exists public.ai_course_entitlements;

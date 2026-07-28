@@ -1128,8 +1128,9 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
       {/* 数字と同じ内容を棒でも示す（図が読めなくても文章で分かる） */}
       <div className="mb-3">
         <ResultBars total={checked} bars={[
-          { label: tv.frBarIndependent, count: checked - uncertain.length, tone: 'good' },
-          { label: tv.frBarReview, count: uncertain.length, tone: 'review' },
+          // ラベルはStep4と統一（どちらもクイズ正誤由来・2026-07-28 CEO承認の軽微修正）
+          { label: tv.lrBarCorrect, count: checked - uncertain.length, tone: 'good' },
+          { label: tv.lrBarIncorrect, count: uncertain.length, tone: 'review' },
         ]} />
       </div>
       {/* 次回予定（日付を並べすぎない・学習を強制する印象にしない・§17） */}
