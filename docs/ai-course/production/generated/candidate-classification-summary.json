@@ -18,7 +18,8 @@
  "rows": {
   "nonEmptyTotal": 3417,
   "structural": 239,
-  "registeredCandidates": 2089
+  "registeredCandidates": 2089,
+  "nonRegisteredSheetRows": 1089
  },
  "intakeStatus": {
   "deferred_to_phase": 662,
@@ -37,8 +38,8 @@
   ],
   "candidates": 614,
   "byRelationship": {
-   "new_item": 411,
-   "reuse_existing": 64,
+   "new_item": 412,
+   "reuse_existing": 63,
    "expression": 120,
    "new_grammar_pattern": 19
   }
@@ -47,5 +48,5 @@
   "complete": 2089,
   "errors": 0
  },
- "generationSeconds": 0.8
+ "generationSeconds": 0.9
 }

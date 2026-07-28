@@ -7,6 +7,7 @@
 | ファイル | 内容 |
 |---|---|
 | **`decision-packets/preproduction-blocker-summary.md`** | **公開前ブロッカーの最新状況と解除順序（入口）** |
+| `decision-packets/reuse-existing-63-decision-packet.md` | Excel候補63件のsense統合判断（3P-3・awaiting） |
 | `decision-packets/final-database-and-entitlement-apply-packet.md` | DB保存＋entitlementの適用前パケット（`APPLY_STAGING_MIGRATIONS` 待ち） |
 | `mobile-device-beta-checklist.md` | 実機スマートフォンのチェックリスト（CEO記入式・未実施） |
 | `completion-reports/curriculum-p0-p1-application-report.md` | 教材14件の反映報告（root P0/P1=0） |

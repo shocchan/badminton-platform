@@ -101,5 +101,20 @@ export const VOCAB_CONVERSATION_PRACTICES: VocabularyConversationPractice[] = [
     followUpQuestionJa: '先生は どんな人ですか？', followUpQuestionZh: '老师是什么样的人呢？' }),
 ];
 
+// Phase 3P-3: contextual接続の全140語化。既存13語（上記）は変更せず、
+// 未接続127語を4バッチで追加した（全draft・判定規則/復習規則は不変）。
+import { VOCAB_CONVERSATION_PRACTICES_BATCH1 } from './vocabConversationPractice2';
+import { VOCAB_CONVERSATION_PRACTICES_BATCH2 } from './vocabConversationPractice3';
+import { VOCAB_CONVERSATION_PRACTICES_BATCH3 } from './vocabConversationPractice4';
+import { VOCAB_CONVERSATION_PRACTICES_BATCH4 } from './vocabConversationPractice5';
+
+export const ALL_CONVERSATION_PRACTICES: VocabularyConversationPractice[] = [
+  ...VOCAB_CONVERSATION_PRACTICES,
+  ...VOCAB_CONVERSATION_PRACTICES_BATCH1,
+  ...VOCAB_CONVERSATION_PRACTICES_BATCH2,
+  ...VOCAB_CONVERSATION_PRACTICES_BATCH3,
+  ...VOCAB_CONVERSATION_PRACTICES_BATCH4,
+];
+
 export const practiceForItem = (itemId: string): VocabularyConversationPractice | undefined =>
-  VOCAB_CONVERSATION_PRACTICES.find((p) => p.itemId === itemId);
+  ALL_CONVERSATION_PRACTICES.find((p) => p.itemId === itemId);

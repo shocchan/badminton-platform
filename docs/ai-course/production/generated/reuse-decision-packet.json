@@ -1,0 +1,1898 @@
+{
+ "generatedAt": "2026-07-28",
+ "total": 63,
+ "countNote": "3P-2報告時は64。lemma索引をrepo内正データ（scripts/ai-course/data/lemmas-140.json）から再構築した結果1件がnew_itemへ移動し63が確定値",
+ "principle": "default decisionの自動採用はしない。全件human判断待ち。既存Decision Queue（教材field判断）とはid体系が独立で重複しない",
+ "packets": [
+  {
+   "decisionId": "reuse-8027f39fcc3dbd5c",
+   "sourceCandidateId": "8027f39fcc3dbd5c",
+   "candidate": {
+    "surface": "友達",
+    "reading": "tomodachi",
+    "zh": "朋友",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 58,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tomodachi",
+    "lemma": "友達",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（友達）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-5d20523da2ac61bc",
+   "sourceCandidateId": "5d20523da2ac61bc",
+   "candidate": {
+    "surface": "家族",
+    "reading": "kazoku",
+    "zh": "家人 / 家庭",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 59,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kazoku",
+    "lemma": "家族",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（家族）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-63acb1515626721c",
+   "sourceCandidateId": "63acb1515626721c",
+   "candidate": {
+    "surface": "学校",
+    "reading": "gakkou",
+    "zh": "学校",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 71,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-gakkou",
+    "lemma": "学校",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（学校）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-af9c79bdabc46d57",
+   "sourceCandidateId": "af9c79bdabc46d57",
+   "candidate": {
+    "surface": "会社",
+    "reading": "kaisha",
+    "zh": "公司",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 72,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kaisha",
+    "lemma": "会社",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（会社）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-e5214b8261e80e1a",
+   "sourceCandidateId": "e5214b8261e80e1a",
+   "candidate": {
+    "surface": "駅",
+    "reading": "eki",
+    "zh": "车站",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 73,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-eki",
+    "lemma": "駅",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（駅）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-fe96c079002d6c1c",
+   "sourceCandidateId": "fe96c079002d6c1c",
+   "candidate": {
+    "surface": "病院",
+    "reading": "byouin",
+    "zh": "医院",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 75,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-byouin",
+    "lemma": "病院",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（病院）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-bb5ddb92c33e1696",
+   "sourceCandidateId": "bb5ddb92c33e1696",
+   "candidate": {
+    "surface": "家",
+    "reading": "ie",
+    "zh": "家",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 80,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ie",
+    "lemma": "家",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（家）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-637e5440fcc77448",
+   "sourceCandidateId": "637e5440fcc77448",
+   "candidate": {
+    "surface": "電車",
+    "reading": "densha",
+    "zh": "电车",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 106,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-densha",
+    "lemma": "電車",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（電車）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-76a92ddc74027136",
+   "sourceCandidateId": "76a92ddc74027136",
+   "candidate": {
+    "surface": "バス",
+    "reading": "basu",
+    "zh": "公交车",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 107,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-basu",
+    "lemma": "バス",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（ばす）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-89c64c101ac891ce",
+   "sourceCandidateId": "89c64c101ac891ce",
+   "candidate": {
+    "surface": "水",
+    "reading": "mizu",
+    "zh": "水",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 122,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-mizu",
+    "lemma": "水",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（水）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-751adfff6c5e9ff0",
+   "sourceCandidateId": "751adfff6c5e9ff0",
+   "candidate": {
+    "surface": "お金",
+    "reading": "okane",
+    "zh": "钱",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 151,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-okane",
+    "lemma": "お金",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（お金）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-40d3a46ca26af1d1",
+   "sourceCandidateId": "40d3a46ca26af1d1",
+   "candidate": {
+    "surface": "仕事",
+    "reading": "shigoto",
+    "zh": "工作",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 152,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-shigoto",
+    "lemma": "仕事",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（仕事）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-9b1626a6da68804d",
+   "sourceCandidateId": "9b1626a6da68804d",
+   "candidate": {
+    "surface": "問題",
+    "reading": "mondai",
+    "zh": "问题",
+    "example": "",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 156,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-mondai",
+    "lemma": "問題",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（問題）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-f7bc687e913c2008",
+   "sourceCandidateId": "f7bc687e913c2008",
+   "candidate": {
+    "surface": "する",
+    "reading": "suru",
+    "zh": "做 / 进行",
+    "example": "毎日(まいにち)運動(うんどう)をする。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 172,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-suru",
+    "lemma": "する",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（する）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-6e1fc7fb95662d58",
+   "sourceCandidateId": "6e1fc7fb95662d58",
+   "candidate": {
+    "surface": "行く",
+    "reading": "iku",
+    "zh": "去",
+    "example": "明日(あした)、東京(とうきょう)へ行(い)く。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 173,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-iku",
+    "lemma": "行く",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（行く）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-7ab18d87a196fe2f",
+   "sourceCandidateId": "7ab18d87a196fe2f",
+   "candidate": {
+    "surface": "来る",
+    "reading": "kuru",
+    "zh": "来",
+    "example": "友達(ともだち)が家(いえ)に来(く)る。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 174,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kuru",
+    "lemma": "来る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（来る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-1d5c7cb8503a2355",
+   "sourceCandidateId": "1d5c7cb8503a2355",
+   "candidate": {
+    "surface": "帰る",
+    "reading": "kaeru",
+    "zh": "回去 / 回家",
+    "example": "学校(がっこう)から家(いえ)に帰(かえ)る。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 175,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kaeru",
+    "lemma": "帰る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（帰る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-c8edd4eca4b671be",
+   "sourceCandidateId": "c8edd4eca4b671be",
+   "candidate": {
+    "surface": "見る",
+    "reading": "miru",
+    "zh": "看 / 观看",
+    "example": "映画(えいが)を見(み)た。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 176,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-miru",
+    "lemma": "見る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（見る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-640737fd910967d5",
+   "sourceCandidateId": "640737fd910967d5",
+   "candidate": {
+    "surface": "聞く",
+    "reading": "kiku",
+    "zh": "听 / 询问",
+    "example": "音楽(おんがく)を聞(き)くのが好(す)きだ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 177,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kiku",
+    "lemma": "聞く",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（聞く）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-349b5bea7b92873b",
+   "sourceCandidateId": "349b5bea7b92873b",
+   "candidate": {
+    "surface": "話す",
+    "reading": "hanasu",
+    "zh": "说 / 交谈",
+    "example": "彼(かれ)と日本語(にほんご)で話(はな)す。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 178,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-hanasu",
+    "lemma": "話す",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（話す）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-e8f1fbde1dbb41c0",
+   "sourceCandidateId": "e8f1fbde1dbb41c0",
+   "candidate": {
+    "surface": "書く",
+    "reading": "kaku",
+    "zh": "写",
+    "example": "手紙(てがみ)を書(か)く。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 179,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kaku",
+    "lemma": "書く",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（書く）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-3dd9ba2bb921656d",
+   "sourceCandidateId": "3dd9ba2bb921656d",
+   "candidate": {
+    "surface": "読む",
+    "reading": "yomu",
+    "zh": "读",
+    "example": "本(ほん)を読(よ)むのが趣味(しゅみ)だ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 180,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-yomu",
+    "lemma": "読む",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（読む）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-2a782a7e40ca5555",
+   "sourceCandidateId": "2a782a7e40ca5555",
+   "candidate": {
+    "surface": "食べる",
+    "reading": "taberu",
+    "zh": "吃",
+    "example": "昼(ひる)ごはんを食(た)べた。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 181,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-taberu",
+    "lemma": "食べる",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（食べる）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-36a6690bc2460714",
+   "sourceCandidateId": "36a6690bc2460714",
+   "candidate": {
+    "surface": "飲む",
+    "reading": "nomu",
+    "zh": "喝",
+    "example": "コーヒーを飲(の)む。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 182,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-nomu",
+    "lemma": "飲む",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（飲む）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-fafb79b544880eb0",
+   "sourceCandidateId": "fafb79b544880eb0",
+   "candidate": {
+    "surface": "買う",
+    "reading": "kau",
+    "zh": "买",
+    "example": "新(あたら)しい靴(くつ)を買(か)った。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 183,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kau",
+    "lemma": "買う",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（買う）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-36aea9aa497edd84",
+   "sourceCandidateId": "36aea9aa497edd84",
+   "candidate": {
+    "surface": "使う",
+    "reading": "tsukau",
+    "zh": "使用",
+    "example": "このアプリを使(つか)う。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 185,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tsukau",
+    "lemma": "使う",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（使う）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-9a86a02c83aaba2a",
+   "sourceCandidateId": "9a86a02c83aaba2a",
+   "candidate": {
+    "surface": "作る",
+    "reading": "tsukuru",
+    "zh": "制作 / 做",
+    "example": "カレーを作(つく)るのが得意(とくい)だ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 186,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tsukuru",
+    "lemma": "作る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（作る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-2af715507532a8f2",
+   "sourceCandidateId": "2af715507532a8f2",
+   "candidate": {
+    "surface": "入る",
+    "reading": "hairu",
+    "zh": "进入",
+    "example": "部屋(へや)に入(はい)る。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 191,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-hairu",
+    "lemma": "入る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（入る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-358521b5dd33fc47",
+   "sourceCandidateId": "358521b5dd33fc47",
+   "candidate": {
+    "surface": "出る",
+    "reading": "deru",
+    "zh": "出去",
+    "example": "家(いえ)を出(で)る時間(じかん)は7時(しちじ)です。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 192,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-deru",
+    "lemma": "出る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（出る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-202963397d0bbec2",
+   "sourceCandidateId": "202963397d0bbec2",
+   "candidate": {
+    "surface": "始める",
+    "reading": "hajimeru",
+    "zh": "开始",
+    "example": "新(あたら)しい仕事(しごと)を始(はじ)める。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 193,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-hajimeru",
+    "lemma": "始める",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（始める）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-4a37c0238abeec09",
+   "sourceCandidateId": "4a37c0238abeec09",
+   "candidate": {
+    "surface": "終わる",
+    "reading": "owaru",
+    "zh": "结束",
+    "example": "授業(じゅぎょう)が終(お)わった。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 194,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-owaru",
+    "lemma": "終わる",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（終わる）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-7d11bf04c013fa0c",
+   "sourceCandidateId": "7d11bf04c013fa0c",
+   "candidate": {
+    "surface": "分かる",
+    "reading": "wakaru",
+    "zh": "明白",
+    "example": "その意味(いみ)が分(わ)からない。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 195,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-wakaru",
+    "lemma": "分かる",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（分かる）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-8ebf562b57ab5942",
+   "sourceCandidateId": "8ebf562b57ab5942",
+   "candidate": {
+    "surface": "忘れる",
+    "reading": "wasureru",
+    "zh": "忘记",
+    "example": "パスワードを忘(わす)れた。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 197,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-wasureru",
+    "lemma": "忘れる",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（忘れる）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-e58edd8beab8def0",
+   "sourceCandidateId": "e58edd8beab8def0",
+   "candidate": {
+    "surface": "思う",
+    "reading": "omou",
+    "zh": "认为 / 觉得",
+    "example": "彼(かれ)は優(やさ)しい人(ひと)だと思(おも)う。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 198,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-omou",
+    "lemma": "思う",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（思う）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-e48a5ee34f5f0121",
+   "sourceCandidateId": "e48a5ee34f5f0121",
+   "candidate": {
+    "surface": "勉強する",
+    "reading": "benkyou suru",
+    "zh": "学习",
+    "example": "毎日(まいにち)中国語(ちゅうごくご)を勉強(べんきょう)する。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 200,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-benkyo",
+    "lemma": "勉強する",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（勉強する）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-00c93ce60e61597d",
+   "sourceCandidateId": "00c93ce60e61597d",
+   "candidate": {
+    "surface": "働く",
+    "reading": "hataraku",
+    "zh": "工作",
+    "example": "銀行(ぎんこう)で働(はたら)いている。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 201,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-hataraku",
+    "lemma": "働く",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（働く）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-4489b735b9445c51",
+   "sourceCandidateId": "4489b735b9445c51",
+   "candidate": {
+    "surface": "住む",
+    "reading": "sumu",
+    "zh": "居住",
+    "example": "東京(とうきょう)に住(す)んでいる。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 208,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-sumu",
+    "lemma": "住む",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（住む）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-0eb32ace1f73c8ec",
+   "sourceCandidateId": "0eb32ace1f73c8ec",
+   "candidate": {
+    "surface": "頑張る",
+    "reading": "ganbaru",
+    "zh": "努力",
+    "example": "試験(しけん)のために頑張(がんば)る。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 211,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ganbaru",
+    "lemma": "頑張る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（頑張る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-ef6746be4ba0c761",
+   "sourceCandidateId": "ef6746be4ba0c761",
+   "candidate": {
+    "surface": "連絡する",
+    "reading": "renraku suru",
+    "zh": "联系",
+    "example": "すぐに連絡(れんらく)してください。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 212,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-renraku",
+    "lemma": "連絡する",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（連絡する）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-a682280e98fed373",
+   "sourceCandidateId": "a682280e98fed373",
+   "candidate": {
+    "surface": "予約する",
+    "reading": "yoyaku suru",
+    "zh": "预约",
+    "example": "ホテルを予約(よやく)する。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 213,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-yoyaku",
+    "lemma": "予約する",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（予約する）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-dd1bef93b7f897a7",
+   "sourceCandidateId": "dd1bef93b7f897a7",
+   "candidate": {
+    "surface": "大きい",
+    "reading": "ookii",
+    "zh": "大的",
+    "example": "大(おお)きい家(いえ)に住(す)みたい。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 219,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ookii",
+    "lemma": "大きい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（大きい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-2b4429c1c2c46450",
+   "sourceCandidateId": "2b4429c1c2c46450",
+   "candidate": {
+    "surface": "小さい",
+    "reading": "chiisai",
+    "zh": "小的",
+    "example": "小(ちい)さい犬(いぬ)を飼(か)っている。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 220,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-chiisai",
+    "lemma": "小さい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（小さい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-d36379953512c947",
+   "sourceCandidateId": "d36379953512c947",
+   "candidate": {
+    "surface": "高い",
+    "reading": "takai",
+    "zh": "高的 / 贵的",
+    "example": "このビルはとても高(たか)い。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 221,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-takai",
+    "lemma": "高い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（高い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-ce71b9619dc10dc6",
+   "sourceCandidateId": "ce71b9619dc10dc6",
+   "candidate": {
+    "surface": "安い",
+    "reading": "yasui",
+    "zh": "便宜的",
+    "example": "このスマホは安(やす)いけど便利(べんり)だ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 223,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-yasui",
+    "lemma": "安い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（安い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-874ff7a3a3c416d7",
+   "sourceCandidateId": "874ff7a3a3c416d7",
+   "candidate": {
+    "surface": "新しい",
+    "reading": "atarashii",
+    "zh": "新的",
+    "example": "新(あたら)しい仕事(しごと)を始(はじ)めた。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 228,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-atarashii",
+    "lemma": "新しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（新しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-98827f6e1cf2c13e",
+   "sourceCandidateId": "98827f6e1cf2c13e",
+   "candidate": {
+    "surface": "古い",
+    "reading": "furui",
+    "zh": "旧的",
+    "example": "古(ふる)い映画(えいが)が好(す)きだ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 229,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-furui",
+    "lemma": "古い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（古い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-5164c9519b99440f",
+   "sourceCandidateId": "5164c9519b99440f",
+   "candidate": {
+    "surface": "暑い",
+    "reading": "atsui",
+    "zh": "热的(天气)",
+    "example": "夏(なつ)はとても暑(あつ)い。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 230,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-atsui",
+    "lemma": "暑い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（暑い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-ef95c81dd38dd70b",
+   "sourceCandidateId": "ef95c81dd38dd70b",
+   "candidate": {
+    "surface": "寒い",
+    "reading": "samui",
+    "zh": "冷的(天气)",
+    "example": "冬(ふゆ)は寒(さむ)いから苦手(にがて)だ。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 231,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-samui",
+    "lemma": "寒い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（寒い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-45bf835e0db0ff14",
+   "sourceCandidateId": "45bf835e0db0ff14",
+   "candidate": {
+    "surface": "難しい",
+    "reading": "muzukashii",
+    "zh": "难的",
+    "example": "この問題(もんだい)は難(むずか)しい。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 234,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-muzukashii",
+    "lemma": "難しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（難しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-289a9e8f28ba9987",
+   "sourceCandidateId": "289a9e8f28ba9987",
+   "candidate": {
+    "surface": "嬉しい",
+    "reading": "ureshii",
+    "zh": "高兴的",
+    "example": "試験(しけん)に合格(ごうかく)して嬉(うれ)しい。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 241,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ureshii",
+    "lemma": "嬉しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（嬉しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-c09553920217affb",
+   "sourceCandidateId": "c09553920217affb",
+   "candidate": {
+    "surface": "楽しい",
+    "reading": "tanoshii",
+    "zh": "开心的 / 愉快的",
+    "example": "旅行(りょこう)は楽(たの)しかった。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 242,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tanoshii",
+    "lemma": "楽しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（楽しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-6554ce908e15c680",
+   "sourceCandidateId": "6554ce908e15c680",
+   "candidate": {
+    "surface": "悲しい",
+    "reading": "kanashii",
+    "zh": "伤心的",
+    "example": "その映画(えいが)は悲(かな)しかった。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 243,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-kanashii",
+    "lemma": "悲しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（悲しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-056b9e8fa9cfd903",
+   "sourceCandidateId": "056b9e8fa9cfd903",
+   "candidate": {
+    "surface": "多い",
+    "reading": "ooi",
+    "zh": "多的",
+    "example": "日本(にほん)には観光客(かんこうきゃく)が多(おお)い。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 248,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ooi",
+    "lemma": "多い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（多い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-59293134070a570d",
+   "sourceCandidateId": "59293134070a570d",
+   "candidate": {
+    "surface": "少ない",
+    "reading": "sukunai",
+    "zh": "少的",
+    "example": "この町(まち)は人(ひと)が少(すく)ない。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 249,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-sukunai",
+    "lemma": "少ない",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（少ない）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-5aa5691e14f1938a",
+   "sourceCandidateId": "5aa5691e14f1938a",
+   "candidate": {
+    "surface": "遠い",
+    "reading": "tooi",
+    "zh": "远的",
+    "example": "学校(がっこう)は家(いえ)から遠(とお)い。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 250,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tooi",
+    "lemma": "遠い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（遠い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-bd0a66267c9c82b6",
+   "sourceCandidateId": "bd0a66267c9c82b6",
+   "candidate": {
+    "surface": "近い",
+    "reading": "chikai",
+    "zh": "近的",
+    "example": "駅(えき)はここから近(ちか)い。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 251,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-chikai",
+    "lemma": "近い",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（近い）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-603fb03f2adbbcb9",
+   "sourceCandidateId": "603fb03f2adbbcb9",
+   "candidate": {
+    "surface": "忙しい",
+    "reading": "isogashii",
+    "zh": "忙的",
+    "example": "毎日(まいにち)忙(いそが)しい。",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 252,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-isogashii",
+    "lemma": "忙しい",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（忙しい）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-ad40b5072ca675ce",
+   "sourceCandidateId": "ad40b5072ca675ce",
+   "candidate": {
+    "surface": "いくつ",
+    "reading": "ikutsu",
+    "zh": "多少(个)",
+    "example": "りんごはいくつありますか?(有几个苹果?)",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 274,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ikutsu",
+    "lemma": "いくつ",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（いくつ）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-08678ca04c330deb",
+   "sourceCandidateId": "08678ca04c330deb",
+   "candidate": {
+    "surface": "いくら",
+    "reading": "ikura",
+    "zh": "多少钱",
+    "example": "これはいくらですか?(这个多少钱?)",
+    "note": "",
+    "sheet": "最初に覚える最低限表現",
+    "excelRow": 275,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-ikura",
+    "lemma": "いくら",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（いくら）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-ed4cb09054f56f8e",
+   "sourceCandidateId": "ed4cb09054f56f8e",
+   "candidate": {
+    "surface": "始める",
+    "reading": "",
+    "zh": "",
+    "example": "書き始める",
+    "note": "動作を始める",
+    "sheet": "複合動詞一覧",
+    "excelRow": 3,
+    "intakeStatus": "duplicate_source_row"
+   },
+   "matchedExistingWord": {
+    "id": "fi-hajimeru",
+    "lemma": "始める",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（始める）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-d862be823b6d6511",
+   "sourceCandidateId": "d862be823b6d6511",
+   "candidate": {
+    "surface": "終わる",
+    "reading": "",
+    "zh": "",
+    "example": "食べ終わる",
+    "note": "動作が完了する",
+    "sheet": "複合動詞一覧",
+    "excelRow": 5,
+    "intakeStatus": "duplicate_source_row"
+   },
+   "matchedExistingWord": {
+    "id": "fi-owaru",
+    "lemma": "終わる",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（終わる）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-e29a257cc139dba8",
+   "sourceCandidateId": "e29a257cc139dba8",
+   "candidate": {
+    "surface": "続ける",
+    "reading": "",
+    "zh": "",
+    "example": "歌い続ける、走り続ける",
+    "note": "動作を続ける",
+    "sheet": "複合動詞一覧",
+    "excelRow": 8,
+    "intakeStatus": "classified"
+   },
+   "matchedExistingWord": {
+    "id": "fi-tsuzukeru",
+    "lemma": "続ける",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（続ける）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  },
+  {
+   "decisionId": "reuse-bbfc373ce403a507",
+   "sourceCandidateId": "bbfc373ce403a507",
+   "candidate": {
+    "surface": "出る",
+    "reading": "",
+    "zh": "",
+    "example": "飛び出す、抜け出す",
+    "note": "動作が外に向かう、現れる",
+    "sheet": "複合動詞一覧",
+    "excelRow": 26,
+    "intakeStatus": "duplicate_source_row"
+   },
+   "matchedExistingWord": {
+    "id": "fi-deru",
+    "lemma": "出る",
+    "reading": null
+   },
+   "matchEvidence": "正規化surface一致（出る）",
+   "reviewQuestion": "候補の意味・用法は既存語の現senseの範囲内か？例文は補助教材として使えるか？",
+   "availableDecisions": [
+    "merge_as_existing_sense_material",
+    "add_as_new_sense",
+    "add_as_expression_or_collocation",
+    "create_separate_item",
+    "exclude_duplicate",
+    "defer"
+   ],
+   "status": "awaiting_semantic_decision"
+  }
+ ]
+}

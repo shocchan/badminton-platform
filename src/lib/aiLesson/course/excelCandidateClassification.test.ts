@@ -107,3 +107,34 @@ describe('Excel intake: 自動昇格なし', () => {
     }
   });
 });
+
+describe('Excel intake: preflight恒等式（3P-3監督指摘）', () => {
+  it('sheetStateは排他的primary stateで合計40', () => {
+    const sum = Object.values(summary.sheets.byState as Record<string, number>)
+      .reduce((a, b) => a + b, 0);
+    expect(sum).toBe(40);
+  });
+  it('行数会計: 非空行 = 構造行 + 登録候補 + 非登録シート行', () => {
+    const r = summary.rows;
+    expect(r.nonEmptyTotal).toBe(r.structural + r.registeredCandidates + r.nonRegisteredSheetRows);
+  });
+  it('provenance index: candidateIdから出典を、fingerprintから全provenanceを引ける', () => {
+    const byFp = new Map<string, number>();
+    for (const c of candidates) byFp.set(c.contentFingerprint, (byFp.get(c.contentFingerprint) ?? 0) + 1);
+    expect(byFp.size).toBeGreaterThan(0);
+    const sample = candidates[100];
+    expect(candidates.filter(c => c.contentFingerprint === sample.contentFingerprint).length)
+      .toBe(byFp.get(sample.contentFingerprint));
+  });
+});
+
+describe('reuse判断パケット（3P-3）', () => {
+  it('reuse_existing全件がパケット化され、自動採用されていない', () => {
+    const pkt = gen('reuse-decision-packet.json');
+    const reuse = candidates.filter(c => c.relationship === 'reuse_existing');
+    expect(pkt.total).toBe(reuse.length);
+    expect(pkt.packets.every((p: { status: string }) => p.status === 'awaiting_semantic_decision')).toBe(true);
+    const ids = new Set(candidates.map(c => c.sourceCandidateId));
+    expect(pkt.packets.every((p: { sourceCandidateId: string }) => ids.has(p.sourceCandidateId))).toBe(true);
+  });
+});

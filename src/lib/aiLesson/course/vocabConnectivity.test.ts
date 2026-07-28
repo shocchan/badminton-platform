@@ -30,17 +30,17 @@ describe('接続グラフの完全性（§2・§7）', () => {
     // 2E-1.10 §10: 会話コア11語へ確認問題を追加し、診断の未接続を解消（129+11partial → 140）
     expect(s.byStatusPerSurface.diagnostic).toMatchObject({ connected: 140 });
     expect(s.byStatusPerSurface.diagnostic.partial).toBe(0);
-    // 2E-1.10 §11: fi-senseiの練習を追加（12 → 13）。残りは一般導線のみ＝unverified
-    expect(s.byStatusPerSurface.conversation).toMatchObject({ connected: 13, unverified: 127 });
+    // 3P-3: 未接続127語へitemId固有の練習を追加し全140語がconnected（残unverified 0）
+    expect(s.byStatusPerSurface.conversation).toMatchObject({ connected: 140, unverified: 0 });
     // 2E-1.10 §3: 間隔反復の実装で復習の構造的ギャップを解消（140partial → 140connected）
     expect(s.byStatusPerSurface.review).toMatchObject({ connected: 140 });
     expect(s.overallByStatus.orphaned).toBe(0);   // 完全孤立語はない
   });
   it('接続品質を分けて集計する（§26・generic接続を完成扱いしない）', () => {
     expect(s.qualityTotals.none).toBe(0);
-    // 会話の127語は「AI会話への一般導線のみ」＝genericであり、完成した接続ではない
-    expect(s.byQualityPerSurface.conversation.generic).toBe(127);
-    expect(s.byQualityPerSurface.conversation.contextual).toBe(13);
+    // 3P-3: 全140語が対象語固有の練習（theme/starter/target付き）＝contextual。generic 0
+    expect(s.byQualityPerSurface.conversation.generic).toBe(0);
+    expect(s.byQualityPerSurface.conversation.contextual).toBe(140);
     expect(s.byQualityPerSurface.vocabScreen.verified).toBe(140);
     expect(s.byQualityPerSurface.review.verified).toBe(140);
     // 品質の合計はedge数と一致
@@ -58,15 +58,15 @@ describe('接続グラフの完全性（§2・§7）', () => {
   });
   it('会話接続は明示参照のみconnected（推測でconnectedにしない・§5）', () => {
     const conn = g.words.filter((w) => w.surfaces.conversation.status === 'connected');
-    expect(conn.length).toBe(13);   // vocabConversationPracticeの明示itemId参照数
+    expect(conn.length).toBe(140);   // 3P-3で全語に明示itemId参照の練習を追加
     for (const w of conn) {
       expect(w.surfaces.conversation.verification).toBe('direct');
       expect(w.surfaces.conversation.quality).toBe('contextual');
     }
-    // 明示参照が無い語はunverified/generic（AI会話への一般導線のみ）
+    // 3P-3で追加した語も明示参照でconnected（推測ではない）
     const namae = g.words.find((w) => w.itemId === 'fi-namae')!;
-    expect(namae.surfaces.conversation.status).toBe('unverified');
-    expect(namae.surfaces.conversation.quality).toBe('generic');
+    expect(namae.surfaces.conversation.status).toBe('connected');
+    expect(namae.surfaces.conversation.evidence).toContain('practiceForItem');
   });
   it('会話コア語は診断・会話の両方へ接続済み（2E-1.10 §10-§11のRelease Minimum）', () => {
     const coreIds = conversationCoreItemIds();

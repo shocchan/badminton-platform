@@ -161,10 +161,12 @@ describe('語彙会話練習（§7-§12）', () => {
     fireEvent.click(screen.getByText(t.vocab.practiceSend));
     await waitFor(() => expect(screen.getByText(t.vocab.practiceTryTarget('に行きます'))).toBeTruthy());
   });
-  it('練習データが無い語ではCTA自体を出さない（虚偽CTA禁止・§12）', async () => {
+  it('3P-3で全140語に練習が付いたため、旧・練習なし語（fi-kusuri）にもCTAが出る', async () => {
+    // 虚偽CTA禁止（練習が無ければ出さない）のロジック自体は残っているが、
+    // 実データに練習なし語が無くなったため、存在確認のみ行う
     render(<VocabularyHub {...base} initial={{ view: 'detail', category: 'nouns', itemId: 'fi-kusuri' }} />);
     await waitFor(() => expect(screen.getByText(t.vocab.detailUsage)).toBeTruthy());
-    expect(screen.queryByText(t.vocab.practiceCta)).toBeNull();
+    expect(screen.queryByText(t.vocab.practiceCta)).toBeTruthy();
   });
 });
 

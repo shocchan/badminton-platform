@@ -26,6 +26,11 @@
 
 - **3P-2完了（2026-07-28）**: Excel Inventory未登録 26→0、intakeStatus未分類→0、
   第一弾4シート意味分類完了（詳細→ excel-integration-backlog.md 末尾）
+- **3P-3一部完了（2026-07-28）**: ①会話contextual未達 **127→0**（4バッチ・全140語・全draft・
+  テンプレ量産防止ガード付き）②reuse判断パケット63件生成（awaiting_semantic_decision）
+  ③generator入力のrepo内永続化＋行数会計恒等式。**オノマトペ完成draft化は未着手（追加0件）**—
+  完成draft定義（例文2・問題2・会話・復習・route・中文品質）を満たす品質保証が
+  今セッションの残量では不可能なため次セッションへ（偽装で数を減らさない原則）
 
 ## Phase計画（3P-2〜3P-11）
 

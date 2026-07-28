@@ -31,9 +31,9 @@ def sha1(s):
 def main():
     t0 = time.time()
     wb_sha = hashlib.sha256(open(WB_PATH, 'rb').read()).hexdigest()[:16]
-    inv = json.load(open('/tmp/excel_inventory.json'))
-    sheet_meta = {s['sheet']: s for s in inv['sheets']}
-    lemmas = json.load(open('/tmp/lemmas.json'))
+    seed = json.load(open(os.path.join(ROOT, 'scripts/ai-course/data/sheet-meta.json')))
+    sheet_meta = {s['sheet']: s for s in seed['sheets']}
+    lemmas = json.load(open(os.path.join(ROOT, 'scripts/ai-course/data/lemmas-140.json')))
     by_surface = {}
     for it in lemmas:
         for key in {core(it['lemma']), core(it.get('reading', ''))}:
@@ -46,21 +46,17 @@ def main():
 
     sheets_out, candidates, structural = [], [], []
 
+    STATE_REASON = {
+        'awaiting_rights_rewrite': 'rights_unknown（CEO権利判断待ち・独自教材へ置換予定）',
+        'first_wave_classified': '権利クリア第一弾・意味分類対象',
+        'already_integrated': '既存140語のsourceRefで使用済み',
+        'excluded_by_explicit_rule': '計画・メモ等のメタデータシート（教材行なし）',
+        'duplicate_source_sheet': '完成版シートと同内容の旧版',
+        'deferred_to_phase': '後続Phase（3P-3以降）で意味分類',
+    }
     def sheet_state(name):
-        m = sheet_meta.get(name, {})
-        cls = m.get('classification', 'unknown')
-        used = bool(m.get('alreadyUsedBySourceRefs'))
-        if m.get('rightsStatus') == 'rights_review_required':
-            return 'awaiting_rights_rewrite', 'rights_unknown（CEO権利判断待ち・独自教材へ置換予定）'
-        if name in FIRST_WAVE:
-            return 'first_wave_classified', '権利クリア第一弾・意味分類対象'
-        if used:
-            return 'already_integrated', '既存140語のsourceRefで使用済み'
-        if cls == 'metadata_only':
-            return 'excluded_by_explicit_rule', '計画・メモ等のメタデータシート（教材行なし）'
-        if cls == 'duplicate':
-            return 'duplicate_source_sheet', '完成版シートと同内容の旧版'
-        return 'deferred_to_phase', '後続Phase（3P-3以降）で意味分類'
+        st = sheet_meta.get(name, {}).get('baseState', 'deferred_to_phase')
+        return st, STATE_REASON[st]
 
     for name in wb.sheetnames:
         ws = wb[name]
@@ -218,7 +214,10 @@ def write_manifests(wb_sha, sheets_out, candidates, structural, conflicts, await
         'rowCountNote': 'nonEmptyはtrim後の非空行。3A監査の4417はセル単位計上で、空白のみ行を含む',
         'rows': {'nonEmptyTotal': sum(s['nonEmptyRows'] for s in sheets_out),
                  'structural': len(structural),
-                 'registeredCandidates': len(candidates)},
+                 'registeredCandidates': len(candidates),
+                 # 行数会計: 非空行 = 構造行 + 登録候補 + 非登録シート（統合済/メタ）の行
+                 'nonRegisteredSheetRows': sum(s['nonEmptyRows'] for s in sheets_out
+                                               if s['sheetState'] in ('already_integrated', 'excluded_by_explicit_rule'))},
         'intakeStatus': dict(st), 'unclassified': sum(1 for c in candidates if not c['intakeStatus']),
         'duplicateContent': dup_content,
         'firstWave': {'sheets': FIRST_WAVE, 'candidates': len(fw), 'byRelationship': dict(rel)},

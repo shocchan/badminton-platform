@@ -27,9 +27,10 @@
    "n3Grammar": 120
   },
   "conversationMissing": {
-   "vocabContextualGap": 127,
+   "vocabContextualGap": 0,
    "n2Grammar": 180,
-   "n3Grammar": 120
+   "n3Grammar": 120,
+   "note": "3P-3で127→0（4バッチ・全draft）。ベースラインはfull-production-roadmap.md参照"
   },
   "reviewMissing": {
    "vocab": 0,

@@ -7362,13 +7362,11 @@
    "example": "この問題はぜんぜん分からない。",
    "note": "",
    "candidateType": "word",
-   "matchedExistingIds": [
-    "fi-zenzen"
-   ],
-   "relationship": "reuse_existing",
+   "matchedExistingIds": [],
+   "relationship": "new_item",
    "intakeStatus": "classified",
-   "reason": "既存語と同表記。sense統合かrelationかは人間判断",
-   "requiresHumanDecision": true,
+   "reason": "既存140語に一致なし",
+   "requiresHumanDecision": false,
    "reviewStatus": "draft"
   },
   {
