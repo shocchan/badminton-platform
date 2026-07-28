@@ -1,7 +1,7 @@
 // Phase 2E-1.14 §5: 部分成功Recoveryの判定。
 // 「どこまで成功したか」を保存済みの事実だけから決め、学習をやり直させないことを担保する。
 import { describe, it, expect } from 'vitest';
-import { planJourneyRepair, resolveSnapshot } from './journeyRecovery';
+import { planJourneyRepair } from './journeyRecovery';
 import type { JourneyTaskContract, JourneyResultSnapshot } from './journeyTaskContract';
 
 const snapshot: JourneyResultSnapshot = {
@@ -109,26 +109,5 @@ describe('planJourneyRepair', () => {
   it('同じ入力なら必ず同じ計画になる（決定的）', () => {
     const i = input({ hasLearningResult: true });
     expect(planJourneyRepair(i)).toEqual(planJourneyRepair(i));
-  });
-});
-
-describe('resolveSnapshot', () => {
-  it('保存済みの結果があればそのまま使う', () => {
-    expect(resolveSnapshot(snapshot, null)).toEqual(snapshot);
-  });
-
-  it('再導出できた場合は partial を立てて、作り直しであることを隠さない', () => {
-    const r = resolveSnapshot(null, { ...snapshot, partial: false });
-    expect(r.checkedCount).toBe(3);
-    expect(r.partial).toBe(true);
-  });
-
-  it('再導出できない場合は 0 と断定せず null のままにする', () => {
-    const r = resolveSnapshot(null, null);
-    expect(r.checkedCount).toBeNull();
-    expect(r.independentCount).toBeNull();
-    expect(r.supportedCount).toBeNull();
-    expect(r.needsReviewCount).toBeNull();
-    expect(r.partial).toBe(true);
   });
 });

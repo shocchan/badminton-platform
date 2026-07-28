@@ -11,7 +11,7 @@
 //   - tokenを再消費しない・completedTaskIdsを再追加しない
 //   - 取得できなかった値を推測で作らない
 //   - この関数自体は副作用を持たない（判定と適用を分ける）
-import type { JourneyTaskContract, JourneyResultSnapshot } from './journeyTaskContract';
+import type { JourneyTaskContract } from './journeyTaskContract';
 import type { JourneyStep } from './firstRunJourney';
 
 /** 何が起きていたか（学習者には見せない・開発とテストのための語彙） */
@@ -113,21 +113,4 @@ export const planJourneyRepair = (input: JourneyRepairInput): JourneyRepairPlan 
     };
   }
   return NO_REPAIR;
-};
-
-/**
- * Step4へ渡す結果を安全に決める。
- * 保存済みsnapshotがあればそれを使う。無い場合、**再導出できるときだけ** 作り直し、
- * できなければ全項目 null ＋ partial（0と断定しない）。
- */
-export const resolveSnapshot = (
-  saved: JourneyResultSnapshot | null,
-  rederived: JourneyResultSnapshot | null,
-): JourneyResultSnapshot => {
-  if (saved) return saved;
-  if (rederived) return { ...rederived, partial: true };   // 再構築であることを隠さない
-  return {
-    checkedCount: null, independentCount: null,
-    supportedCount: null, needsReviewCount: null, partial: true,
-  };
 };
