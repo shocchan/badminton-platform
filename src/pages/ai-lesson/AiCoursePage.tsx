@@ -4,6 +4,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
+import WorldHomeShell from '../../components/ai-course/rpg/WorldHomeShell';
 import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
 import type { LabUrlInput } from '../../lib/aiLesson/course/labUrlState';
 import { Helmet } from 'react-helmet-async';
@@ -835,6 +836,49 @@ export default function AiCoursePage() {
 
   return (
     <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <WorldHomeShell
+        areaName="ミナモ列島・はじまりの町"
+        locationName={weekLevelCanDo(learner.currentWeek, 'ja')}
+        clarity={reviewsDue === 0 ? 'clear' : reviewsDue <= 5 ? 'light_fog' : 'foggy'}
+        reviewsDue={reviewsDue}
+        onOpenReview={() => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); }}
+        record={{
+          daysThisWeek: (() => {
+            const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
+            return new Set(sessions.filter((s2) => new Date(s2.startedAt) >= monday).map((s2) => s2.startedAt.slice(0, 10))).size;
+          })(),
+          totalSessions: sessions.length,
+        }}
+        todayAction={plan ? {
+          worldLead: hasResume ? '前回の続きから歩く' : '会話の広場へ行く',
+          learningTitle: t.locale === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa,
+          learningDetail: `目標表現「${plan.main.mission.targetExpression}」・AI会話1回・今日あと${remaining}回`,
+          ctaLabel: hasResume ? '続きから始める' : '今日の会話を始める',
+          onStart: () => { setHasResume(false); void startLesson(mode); },
+        } : null}
+        upcoming={buildJourney(progress, learner.currentWeek).slice(0, 6).map((j) => ({
+          label: `${j.nameJa}（Week ${j.week}）`,
+          detail: `${j.themeJa}・${j.retained}/${j.total}語が定着`,
+          unlocked: j.state === 'done',
+        }))}
+        facilities={[
+          { id: 'lib', worldName: '記憶の書庫', functionName: 'ことばを学ぶ・復習する',
+            descriptionJa: '語彙の学習と定着の確認', badge: reviewsDue,
+            onOpen: () => { syncLabUrl(null); syncVocabUrl({ view: 'top', category: null, itemId: null }); setStep('vocab'); } },
+          { id: 'workshop', worldName: '文法の工房', functionName: '日本語のしくみを学ぶ',
+            descriptionJa: '文型と使い分けの練習',
+            onOpen: () => { syncVocabUrl(null); syncLabUrl({ section: 'units', unit: null, step: null }); setStep('lab'); } },
+          { id: 'plaza', worldName: '会話の広場', functionName: 'AI会話で話す',
+            descriptionJa: '翔子先生と話して確かめる',
+            onOpen: () => { void startLesson(mode); } },
+          { id: 'garden', worldName: 'オモイデ庭園', functionName: '復習して思い出す',
+            descriptionJa: '前に学んだことばと再会する', badge: reviewsDue,
+            onOpen: () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); } },
+          { id: 'record', worldName: '冒険の記録', functionName: '成長と履歴を見る',
+            descriptionJa: 'できるようになったことの記録',
+            onOpen: () => { void openGrowth(); } },
+        ]}
+      >
       <CourseHome
         t={t} learner={learner} plan={plan} stats={stats}
         reviewsDue={reviewsDue}
@@ -878,6 +922,7 @@ export default function AiCoursePage() {
         onSeePastNotes={() => { setStep('history'); }}
         onPreview={() => { if (plan) openPreview(plan.main.mission, 'home'); }}
       />
+      </WorldHomeShell>
     </Shell>
   );
 }
