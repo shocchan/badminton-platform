@@ -1,28 +1,26 @@
 {
- "sessionStartedAt": "2026-07-28T22:05:00+09:00",
+ "sessionStartedAt": "2026-07-29T00:20:00+09:00",
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "provenance整合（hash87件sha256化・原本text8件復元・rights confirmed統一・テスト強化）",
-  "3P-5 batch: Unit8（15件）",
-  "3P-5 batch: Unit9（15件）",
-  "3P-5 batch: Unit10（15件）",
-  "3P-5 batch: Unit11（14件・162は同義判断待ち）",
-  "3P-5 batch: Unit12（15件）→ autonomousIncomplete 0 達成・Phase 3P-5終了",
-  "Priority 1: 全180件横断品質監査→AUDIT CLEAN（長さ偏り36件修正・prompt重複1件解消）",
-  "Priority 2: 不変条件テスト昇格（911→916、恒等式・重複・漏洩・furigana・テンプレ防止）",
-  "Priority 3: 同義判断待ち7件のpre-draft完成（916→918、恒等式非破壊・mergeDecisionメタ付き）"
+  "R1: N3/N2 overlap 38件Usage構造化（二重Item化なし・レベル配置は人間判断維持）",
+  "R2: Chapter 1 data contract＋Adventure runtime（sandbox・不変条件テスト14件）",
+  "R3: オリジナルpixel assets（主人公/翔子先生/NPC2/ランタン/町マップ・既存IP流用0）",
+  "R4: Chapter 1 playable vertical slice UI（Map/Quest/学習/章末場面会話/完了・lazy chunk 32.4kB）",
+  "R5: UI E2E 8件（5Quest完走・reload復元・sandbox分離・XP冪等）＋lint基線51復帰",
+  "R6: N2 Unit lazy chunk境界（Unit1分離＋動的importローダー＋実配置マップ）",
+  "R7: Grammar Human Review Packet（180件・8分割・risk 5分類・状態不変更）"
  ],
- "phaseBudgetUsed": 5,
+ "phaseBudgetUsed": 7,
  "phaseBudgetMax": 8,
- "currentPhase": "完了報告作成",
- "resumeFrom": "N2は自律完了（173+7+0+0=180・pre-draft7件済み）。次候補: N3 overlap38件のUsage構造化（Priority 4）→ Grammar human review packet（Priority 6）→ Unit単位lazy chunk設計（Priority 7）",
+ "currentPhase": "完了報告→staging反映",
+ "resumeFrom": "Chapter 1はlabPreviewでplayable（?vocab=1&vview=adventure）。次候補: Chapter 1へ文法ミッション統合・復習Quest実装・N2 draft内部確認パネル（Unit lazy chunk使用）・イラストreview console",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 918,
+ "testCount": 947,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
- "stagingDeployedThrough": "3P-5完了（Unit8〜12＋監査＋pre-draft）",
+ "stagingDeployedThrough": "R7（RPG Chapter 1 Vertical Slice）",
  "unfinishedCounts": {
   "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
   "inProgressLabels": 9,
@@ -53,20 +51,22 @@
   "human_reviewedへ進めるfield指定",
   "イラスト承認（approved付与は人間のみ）",
   "実機スマートフォンチェックリスト",
-  "現実世界の副賞: 景品表示法・税務・利用規約・協賛契約の確認（awaiting_legal_review・未実装）"
+  "現実世界の副賞: 景品表示法・税務・利用規約・協賛契約の確認（awaiting_legal_review・未実装）",
+  "RPG Chapter 1の名称・Story・pixel asset承認（はじまりの町/ことば通り/みなも広場/ハナさん/ゲンさん等は仮称・human_review_candidate）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-6（2026-07-28）",
+ "sessionId": "autonomous-session-7（2026-07-29・RPG Chapter 1 Vertical Slice）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
  "bundleReport": {
   "totalJsRaw": "3370.6 kB（dist/assets/*.js 92 files・stat実測）",
   "totalJsGzip": "987.8 kB（gzip -c実測）",
-  "mainIndex": "590.38 kB（index-DFo3ZtfI.js・基線とハッシュ同一）",
+  "mainIndex": "590.38 kB（index-BKiAuWXx.js・サイズ基線維持）",
   "largestLazyChunk": "AdminPage 533.20 kB（既存・本作業外）",
   "n2DraftDelivery": "N2 drafts（Unit1〜12・173件＋pre-draft7件）はUIから未import。dist成果物に一切含まれず、learner転送量への影響 0 byte",
-  "note": "旧記録の「totalJs 1022.5 kB」は測定方法が未記録の値。今回から実測方法を明記（raw/gzip併記）。learner公開時はUnit単位lazy chunk分割が必要（Priority 7）"
+  "note": "旧記録の「totalJs 1022.5 kB」は測定方法が未記録の値。今回から実測方法を明記（raw/gzip併記）。learner公開時はUnit単位lazy chunk分割が必要（Priority 7）",
+  "chapter1Panel": "32.39 kB (gzip 10.68)・labPreview限定lazy chunk"
  },
  "northStar": "docs/ai-course/rpg/product-north-star.md（主人公冒険型・日本語攻略RPG）。今後の全UI/ルート/Unit/イラスト/成長設計はこれと矛盾しないこと",
  "resolvedDecisions": [
