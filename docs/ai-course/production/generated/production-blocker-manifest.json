@@ -1,0 +1,262 @@
+{
+ "generatedAt": "2026-07-28T17:54:22.278Z",
+ "productionGo": "NO-GO",
+ "summary": {
+  "aiActionableBlockers": 124,
+  "humanGateBlockers": 6,
+  "p1Count": 18,
+  "p0Count": 6
+ },
+ "blockers": [
+  {
+   "key": "answerLeakageIssues",
+   "count": 0,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "assess画面で答えが露出している問題数"
+  },
+  {
+   "key": "trivialCognateQuestions",
+   "count": 0,
+   "severity": "P2",
+   "owner": "ai_actionable",
+   "note": "中国語と同形同義の語に意味当てを出している問題数"
+  },
+  {
+   "key": "highRiskContrastMissing",
+   "count": 0,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "高リスク同形語でcontrast問題が無い語数"
+  },
+  {
+   "key": "requiredVocabularyUntested",
+   "count": 0,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "Chapter必須語のうち評価問題を作れない語数"
+  },
+  {
+   "key": "orphanVocabulary",
+   "count": 105,
+   "severity": "P2",
+   "owner": "ai_actionable",
+   "note": "どのUnit/Chapterからも参照されない語数"
+  },
+  {
+   "key": "questionQualityWarnings",
+   "count": 1,
+   "severity": "P2",
+   "owner": "ai_actionable",
+   "note": "長さ・文体の偏りなど当てやすさの警告"
+  },
+  {
+   "key": "debugLabelsVisible",
+   "count": 13,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "learner画面に開発表示（試作/sandbox/検証用など）が残っている箇所"
+  },
+  {
+   "key": "comingSoonVisible",
+   "count": 5,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "learner画面に準備中/coming soon表示が残っている箇所"
+  }
+ ],
+ "humanGates": [
+  {
+   "key": "humanContentReviewWaiting",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "N2/N3教材・cognate分類・contrast問題のCEO承認（human_reviewed/approvedは自動昇格しない）"
+  },
+  {
+   "key": "humanVisualReviewWaiting",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "RPG世界名・Story文言・pixel assetのCEO承認"
+  },
+  {
+   "key": "physicalDeviceWaiting",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "実機iPhone/Android・VoiceOver/TalkBack確認"
+  },
+  {
+   "key": "remoteDbWaiting",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "共有Supabaseへのmigration/RLS適用（APPLY_SHARED_SUPABASE_MIGRATIONS が必要）"
+  },
+  {
+   "key": "legalDecisionBlockers",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "利用規約・プライバシー・AI利用範囲・現実景品の法務判断"
+  },
+  {
+   "key": "productionDeployWaiting",
+   "count": 1,
+   "severity": "P0",
+   "owner": "human_gate",
+   "note": "本番反映（APPROVE_AI_COURSE_PRODUCTION_RELEASE が必要）"
+  }
+ ],
+ "details": {
+  "answerLeakageIssues": [],
+  "trivialCognateQuestions": [],
+  "highRiskContrastMissing": [],
+  "requiredVocabularyUntested": [],
+  "orphanVocabularySample": [
+   "fi-suru",
+   "fi-taberu",
+   "fi-kaku",
+   "fi-ikutsu",
+   "fi-en",
+   "fi-nomu",
+   "fi-tsukau",
+   "fi-tsukuru",
+   "fi-neru",
+   "fi-hairu",
+   "fi-deru",
+   "fi-noru",
+   "fi-oriru",
+   "fi-ookii",
+   "fi-chiisai",
+   "fi-takai",
+   "fi-yasui",
+   "fi-atarashii",
+   "fi-furui",
+   "fi-atsui",
+   "fi-samui",
+   "fi-isogashii",
+   "fi-tanoshii",
+   "fi-muzukashii",
+   "fi-chikai",
+   "fi-tooi",
+   "fi-ooi",
+   "fi-sukunai",
+   "fi-oishii",
+   "fi-suki",
+   "fi-shizuka",
+   "fi-benri",
+   "fi-kantan",
+   "fi-yuumei",
+   "fi-jouzu",
+   "fi-ie",
+   "fi-byouin",
+   "fi-kusuri",
+   "fi-mizu",
+   "fi-kazoku"
+  ],
+  "orphanVocabularyTotal": 105,
+  "debugLabelsVisible": [
+   {
+    "file": "src/components/ai-course/CourseHome.tsx",
+    "label": "試作",
+    "line": 61
+   },
+   {
+    "file": "src/components/ai-course/foundation/vocab/FirstRunJourney.tsx",
+    "label": "検証用",
+    "line": 30
+   },
+   {
+    "file": "src/components/ai-course/foundation/vocab/VocabularyHub.tsx",
+    "label": "検証用",
+    "line": 285
+   },
+   {
+    "file": "src/components/ai-course/foundation/vocab/VocabularyHub.tsx",
+    "label": "labPreview限定",
+    "line": 395
+   },
+   {
+    "file": "src/components/ai-course/foundation/vocab/vocabReviewI18n.ts",
+    "label": "labPreview限定",
+    "line": 181
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "labPreview限定",
+    "line": 258
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "sandbox保存",
+    "line": 258
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "内部プレビュー",
+    "line": 258
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "この画面専用",
+    "line": 258
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "通常の学習記録には影響しません",
+    "line": 258
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "検証用",
+    "line": 376
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "検証用",
+    "line": 377
+   },
+   {
+    "file": "src/components/ai-course/rpg/Chapter1AdventurePanel.tsx",
+    "label": "sandbox保存",
+    "line": 379
+   }
+  ],
+  "comingSoonVisible": [
+   {
+    "file": "src/components/ai-course/CourseRoadmap.tsx",
+    "label": "準備中",
+    "line": 31
+   },
+   {
+    "file": "src/pages/ai-lesson/landing/lpContent.ts",
+    "label": "ベータ版",
+    "line": 164
+   },
+   {
+    "file": "src/pages/ai-lesson/landing/lpContent.ts",
+    "label": "ベータ版",
+    "line": 454
+   },
+   {
+    "file": "src/pages/ai-lesson/landing/lpContent.ts",
+    "label": "ベータ版",
+    "line": 512
+   },
+   {
+    "file": "src/pages/ai-lesson/landing/sectionsB.tsx",
+    "label": "準備中",
+    "line": 42
+   }
+  ]
+ },
+ "coverage": {
+  "vocabularyTotal": 140,
+  "vocabularyAssessable": 140,
+  "chapter1RequiredItems": 11,
+  "highRiskCognates": 12,
+  "generatedAssessQuestions": 370
+ }
+}
