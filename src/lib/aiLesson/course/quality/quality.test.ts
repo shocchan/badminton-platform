@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { auditPresentedQuestion, auditFoundationQuestion, meaningTokens } from './answerLeakage';
 import { buildAssessQuestions, canAssess } from './assessQuestionEngine';
-import { cognateProfileFor, allowsCoreMeaningQuestion, highRiskCognateIds, COGNATE_PROFILES } from './cognateProfile';
+import { allowsCoreMeaningQuestion, highRiskCognateIds, COGNATE_PROFILES } from './cognateProfile';
 import { COGNATE_CONTRAST_BANK, contrastQuestionsFor } from './cognateContrastBank';
 import { allVocabularyItems } from '../foundationVocabBank';
 import { BUNDLE as U1 } from '../foundationUnit1';
@@ -84,10 +84,10 @@ describe('生成されるassess問題は答えを漏らさない（P1=0）', () 
     const max = Math.max(...values), min = Math.min(...values);
     expect(max / min).toBeLessThan(2); // どの位置にも均等に現れる
   });
-  it('既存Foundation問題のrelease blockerを把握している（既知1件のみ）', () => {
+  it('既存Foundation問題のrelease blockerが0件', () => {
     const blockers = foundationQuestions.flatMap(q => auditFoundationQuestion(q))
-      .filter(x => x.releaseBlocker).map(x => x.questionId);
-    expect(blockers).toEqual(['f2q-f1']); // ヒント文に答えの語が入る既知の1件（P1 queueで修正済み）
+      .filter(x => x.releaseBlocker).map(x => `${x.questionId}:${x.kind}`);
+    expect(blockers).toEqual([]);
   });
 });
 
