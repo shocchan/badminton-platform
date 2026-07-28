@@ -46,6 +46,7 @@ const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
 const OnoDraftsPanelLazy = lazy(() => import('./OnoDraftsPanel'));
 const N3GrammarDraftsPanelLazy = lazy(() => import('./N3GrammarDraftsPanel'));
+const Chapter1AdventurePanelLazy = lazy(() => import('../../rpg/Chapter1AdventurePanel'));
 const VocabDecisionBadgeLazy = lazy(() => import('./VocabDecisionBadge'));
 const VocabConnectivityInspectorLazy = lazy(() => import('./VocabConnectivityInspector'));
 const FirstRunJourneyLazy = lazy(() => import('./FirstRunJourney'));
@@ -53,7 +54,7 @@ import { assetById } from '../../../../lib/aiLesson/course/visualAssetManifest';
 import { isVisibleAsset } from '../../../../lib/aiLesson/course/visualAssetTypes';
 import { NiEDirectionDiagram, WoObjectDiagram, TeimasuTimelineDiagram } from './GrammarDiagrams';
 
-export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts' | 'n3grammar';
+export type VocabView = 'top' | 'category' | 'detail' | 'daily' | 'all' | 'practice' | 'roadmap' | 'diagnostic' | 'quickreview' | 'review' | 'decisions' | 'connectivity' | 'firstrun' | 'onodrafts' | 'n3grammar' | 'adventure';
 export interface VocabHubState { view: VocabView; category: VocabCategory | null; itemId: string | null }
 interface Props {
   t: AiCourseDict;
@@ -279,6 +280,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.onoDraftsEntry}</button>
           <button type="button" onClick={() => setView('n3grammar')}
             className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.n3GrammarDraftsEntry}</button>
+          <button type="button" onClick={() => setView('adventure')}
+            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.adventureEntry}</button>
           {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
               初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
           {!sandboxOn && (
@@ -326,6 +329,13 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <N3GrammarDraftsPanelLazy t={t} onBack={() => setView('top')} />
         </Suspense>
+      )}
+      {view === 'adventure' && (
+        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview>
+          <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+            <Chapter1AdventurePanelLazy onBack={() => setView('top')} />
+          </Suspense>
+        </LearnerErrorBoundary>
       )}
       {view === 'connectivity' && (
         <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>

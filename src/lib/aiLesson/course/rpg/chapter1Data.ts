@@ -52,6 +52,8 @@ export interface Chapter1Quest {
   /** 実在教材ID（foundationVocabBank）。全問正解ではなく各Itemのチェック1回正解で充足 */
   learningItemIds: string[];
   unlocks: { locationIds: string[]; npcIds: string[]; storyBeatIds: string[] };
+  /** このQuestの舞台となる場所（主人公の自動移動先） */
+  siteLocationId: string;
   /** 章末の場面攻略（10問テストではなく会話場面で締める） */
   isChapterFinale: boolean;
   adventureXpReward: number;
@@ -111,6 +113,7 @@ export const CHAPTER1_STORY_BEATS: Chapter1StoryBeat[] = [
 /** Chapter 1のQuest（5件・学習目的を必ず明示） */
 export const CHAPTER1_QUESTS: Chapter1Quest[] = [
   { questId: 'c1q1-meet-shoko', order: 1,
+    siteLocationId: 'c1-town-gate',
     titleJa: '翔子先生と出会う', titleZh: '与翔子老师相遇',
     learnGoalJa: '「先生」「会う」の2語を確認する', learnGoalZh: '确认「先生」「会う」这2个词',
     estimatedMinutes: 3,
@@ -123,6 +126,7 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
     unlocks: { locationIds: ['c1-main-street'], npcIds: ['c1-npc-shoko'], storyBeatIds: ['c1-beat-arrival', 'c1-beat-shoko-meet'] },
     isChapterFinale: false, adventureXpReward: 20 },
   { questId: 'c1q2-tell-name', order: 2,
+    siteLocationId: 'c1-town-gate',
     titleJa: '自分の名前を伝える', titleZh: '告诉对方你的名字',
     learnGoalJa: '「名前」「話す」の2語で自己紹介の形を作る', learnGoalZh: '用「名前」「話す」学会自我介绍的形式',
     estimatedMinutes: 3,
@@ -135,6 +139,7 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
     unlocks: { locationIds: [], npcIds: [], storyBeatIds: ['c1-beat-name-told'] },
     isChapterFinale: false, adventureXpReward: 20 },
   { questId: 'c1q3-greet-town', order: 3,
+    siteLocationId: 'c1-main-street',
     titleJa: '町の人へあいさつする', titleZh: '向镇上的人问好',
     learnGoalJa: '「元気」「友達」の2語であいさつと応答を確認する', learnGoalZh: '用「元気」「友達」确认问候和回应',
     estimatedMinutes: 4,
@@ -147,6 +152,7 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
     unlocks: { locationIds: ['c1-plaza'], npcIds: ['c1-npc-hana'], storyBeatIds: ['c1-beat-street-open'] },
     isChapterFinale: false, adventureXpReward: 25 },
   { questId: 'c1q4-ask-time-place', order: 4,
+    siteLocationId: 'c1-plaza',
     titleJa: '時間と場所を尋ねる', titleZh: '询问时间和地点',
     learnGoalJa: '「何時」「駅」「行く」の3語で質問の形を作る', learnGoalZh: '用「何時」「駅」「行く」学会提问的形式',
     estimatedMinutes: 5,
@@ -159,6 +165,7 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
     unlocks: { locationIds: ['c1-station-front'], npcIds: ['c1-npc-gen'], storyBeatIds: ['c1-beat-station-visible'] },
     isChapterFinale: false, adventureXpReward: 25 },
   { questId: 'c1q5-station-talk', order: 5,
+    siteLocationId: 'c1-station-front',
     titleJa: '章末：駅前で会話を成立させる', titleZh: '章末：在车站前完成对话',
     learnGoalJa: '「来る」「学校」を加え、場面会話（あいさつ→名前→時間→行き先）を通す',
     learnGoalZh: '加上「来る」「学校」，完整走一遍场景对话（问候→名字→时间→目的地）',

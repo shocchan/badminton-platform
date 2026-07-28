@@ -54,6 +54,7 @@ describe('Chapter 1 data contract', () => {
     const npcs = new Set(CHAPTER1_NPCS.map(n => n.npcId));
     const beats = new Set(CHAPTER1_STORY_BEATS.map(b => b.beatId));
     for (const q of CHAPTER1_QUESTS) {
+      expect(locs.has(q.siteLocationId), `${q.questId}: 舞台${q.siteLocationId}が実在しない`).toBe(true);
       q.unlocks.locationIds.forEach(id => expect(locs.has(id), id).toBe(true));
       q.unlocks.npcIds.forEach(id => expect(npcs.has(id), id).toBe(true));
       q.unlocks.storyBeatIds.forEach(id => expect(beats.has(id), id).toBe(true));
