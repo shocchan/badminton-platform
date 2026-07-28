@@ -7,8 +7,8 @@
 - CEO指示「攻略型・完全版 v1.0」（§0-39・自律継続・上限8Phase/10時間）を実行中
 - 完了: **3P-1**（完全Inventory・manifest5本・ベースライン確定）→ **3P-2**（Excel intake・
   全40シート登録・2,089候補終端状態・第一弾614意味分類）
-- 実行中: 監督ChatGPT「AI日本語学習監督」へ3P-2報告済み→3P-3指示文待ち
-- ブランチ: `feature/ai-course-learning-polish`／テスト864／lint 51不変／main bundle 590.35KB
+- **停止中: AUTONOMOUS_SESSION_LIMIT**（3 Phase実行後コンテキスト上限）。再開点は autonomous-loop-state.json の resumeFrom
+- ブランチ: `feature/ai-course-learning-polish`／テスト873／lint 51不変／main bundle 590.35KB／staging反映済み(3P-3)
 
 ## 3P-3の実行案（監督の修正が優先）
 

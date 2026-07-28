@@ -1,36 +1,44 @@
 {
-  "sessionStartedAt": "2026-07-28T15:30:00+09:00",
-  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
-  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
-  "phasesCompletedThisSession": ["3P-1", "3P-2"],
-  "phaseBudgetUsed": 2,
-  "phaseBudgetMax": 8,
-  "currentPhase": "3P-3（監督のNEXT_PHASE_PROMPT待ち→実行）",
-  "resumeFrom": "監督ChatGPTへ3P-2完了報告送信済み。応答から<AUTONOMOUS_REVIEW>/<NEXT_PHASE_PROMPT>を抽出→validate-autonomous-next-prompt.mjs→意味検証→3P-3実行。3P-3案=会話contextual 127削減＋オノマトペdraft化＋reuse64判断パケット",
-  "branch": "feature/ai-course-learning-polish",
-  "lastCommit": "a468f33 feat(content): Phase 3P-2 provenance-first候補モデル＋決定的Excel intake",
-  "testCount": 864,
-  "lintBaseline": "45E+6W=51",
-  "mainBundleKb": 590.35,
-  "stagingDeployedThrough": "3P-1（3P-2はruntime変更なしのためdeploy不要）",
-  "unfinishedCounts": {
-    "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
-    "inProgressLabels": 9, "prototypeBetaLabels": 20,
-    "illustrationsMissing": 115, "illustrationsApproved": 0,
-    "n2GrammarIncomplete": 180, "n3GrammarNotImported": 120,
-    "conversationContextualGap": 127,
-    "excelInventoryUnregisteredSheets": 0,
-    "excelIntakeUnclassifiedRows": 0,
-    "firstWaveSemanticUnclassified": 0,
-    "rightsSheetsAwaitingRewrite": 3
-  },
-  "decisionQueueAwaiting": [
-    "APPLY_STAGING_MIGRATIONS / APPLY_SHARED_SUPABASE_MIGRATIONS（CEO明示文字列）",
-    "reuse_existing 64件のsense統合/relation判断",
-    "rights 3シート（営業200・慣用句111・ビジネス67）の権利判断→独自教材置換承認",
-    "human_reviewedへ進めるfield指定",
-    "イラスト承認（approved付与は人間のみ）",
-    "実機スマートフォンチェックリスト"
-  ],
-  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金"
+ "sessionStartedAt": "2026-07-28T15:30:00+09:00",
+ "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
+ "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
+ "phasesCompletedThisSession": [
+  "3P-1",
+  "3P-2",
+  "3P-3(一部: 会話contextual完了・reuseパケット完了・オノマトペ未着手)"
+ ],
+ "phaseBudgetUsed": 3,
+ "phaseBudgetMax": 8,
+ "currentPhase": "AUTONOMOUS_SESSION_LIMIT（コンテキスト上限による正常停止）",
+ "resumeFrom": "3P-3残り: ①オノマトペ100候補の完成draft化（監督指示§5-13: 例文2・recognition/production各1問・会話・復習・route/Unit・中文品質。不完全なitemは追加しない）②完成後に再集計→監督レビュー→3P-4（N3文法120）へ。監督の3P-3指示文はChatGPTスレッド末尾、要点はprompts/3p-3の代わりにphase-history.md参照",
+ "branch": "feature/ai-course-learning-polish",
+ "lastCommit": "feat(content): Phase 3P-3 会話contextual 127→0＋reuse判断パケット63件",
+ "testCount": 873,
+ "lintBaseline": "45E+6W=51",
+ "mainBundleKb": 590.35,
+ "stagingDeployedThrough": "3P-3",
+ "unfinishedCounts": {
+  "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
+  "inProgressLabels": 9,
+  "prototypeBetaLabels": 20,
+  "illustrationsMissing": 115,
+  "illustrationsApproved": 0,
+  "n2GrammarIncomplete": 180,
+  "n3GrammarNotImported": 120,
+  "conversationContextualGap": 0,
+  "excelInventoryUnregisteredSheets": 0,
+  "excelIntakeUnclassifiedRows": 0,
+  "firstWaveSemanticUnclassified": 0,
+  "rightsSheetsAwaitingRewrite": 3,
+  "reuseAwaitingSemanticDecision": 63
+ },
+ "decisionQueueAwaiting": [
+  "APPLY_STAGING_MIGRATIONS / APPLY_SHARED_SUPABASE_MIGRATIONS（CEO明示文字列）",
+  "reuse_existing 63件のsense統合判断（reuse-decision-packet.json・awaiting_semantic_decision）",
+  "rights 3シート（営業200・慣用句111・ビジネス67）の権利判断→独自教材置換承認",
+  "human_reviewedへ進めるfield指定",
+  "イラスト承認（approved付与は人間のみ）",
+  "実機スマートフォンチェックリスト"
+ ],
+ "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金"
 }
