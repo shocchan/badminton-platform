@@ -118,3 +118,50 @@ describe('N2文法 完成draft', () => {
     for (const d of withSource) expect(d.zhSourceRowId).toMatch(/^n3row-\d+$/);
   });
 });
+
+describe('N2文法 恒等式と横断品質（Phase 3P-5完了時の不変条件）', () => {
+  const HUMAN_DECISION = ['n2g-007', 'n2g-018', 'n2g-024', 'n2g-064', 'n2g-099', 'n2g-104', 'n2g-162'];
+  it('恒等式: completeDraft 173 + humanDecision 7 + autonomousIncomplete 0 = 180', () => {
+    const ids = new Set(N2_GRAMMAR_DRAFTS.map(d => d.grammarId));
+    expect(ids.size).toBe(N2_GRAMMAR_DRAFTS.length); // grammarId一意
+    expect(ids.size).toBe(173);
+    for (const h of HUMAN_DECISION) expect(ids.has(h), `${h} は同義判断待ちのままのはず`).toBe(false);
+    // drafts + 人間判断7件で原本180件を過不足なく覆う
+    const all = new Set([...ids, ...HUMAN_DECISION]);
+    expect(all.size).toBe(180);
+    for (const g of N2_GRAMMAR_ITEMS) expect(all.has(g.grammarId), `${g.grammarId} が未分類`).toBe(true);
+  });
+  it('Unit 1〜12がすべて存在する', () => {
+    const units = new Set(N2_GRAMMAR_DRAFTS.map(d => d.unit));
+    for (let u = 1; u <= 12; u++) expect(units.has(u), `Unit ${u} が空`).toBe(true);
+  });
+  it('recognition: 選択肢4件一意・answerIndex範囲内・正解が問題文に漏れない・長さだけで正解が割れない', () => {
+    for (const d of N2_GRAMMAR_DRAFTS) {
+      const { promptZh, options, answerIndex } = d.recognition;
+      expect(new Set(options).size).toBe(4);
+      expect(answerIndex).toBeGreaterThanOrEqual(0);
+      expect(answerIndex).toBeLessThan(4);
+      const ans = options[answerIndex];
+      if (ans.length > 6) expect(promptZh.includes(ans), `${d.grammarId}: 正解漏洩`).toBe(false);
+      const lens = options.map(o => o.length).sort((a, b) => b - a);
+      const biased = ans.length === lens[0] && lens[0] >= lens[1] * 2;
+      expect(biased, `${d.grammarId}: 正解だけ極端に長い`).toBe(false);
+    }
+  });
+  it('furiganaに漢字が残っていない・中文例文が日本語のコピーでない', () => {
+    for (const d of N2_GRAMMAR_DRAFTS) {
+      expect(d.furigana.match(/[一-鿿]/g), `${d.grammarId}: furiganaに漢字`).toBeNull();
+      d.examplesZh.forEach((z, i) => expect(z, `${d.grammarId}: examplesZh[${i}]`).not.toBe(d.examplesJa[i]));
+    }
+  });
+  it('例文・説明・練習promptの完全重複が項目間に無い（量産テンプレ防止）', () => {
+    const seen = new Map<string, string>();
+    for (const d of N2_GRAMMAR_DRAFTS) {
+      for (const key of [...d.examplesJa.map(e => `ex:${e}`), `rec:${d.recognition.promptZh}`,
+        `st:${d.practice.starterJa}`, `pr:${d.production.promptJa}`, `mi:${d.commonMistakesZh}`, `zh:${d.explanationZh}`]) {
+        expect(seen.has(key), `${d.grammarId} と ${seen.get(key)} が重複: ${key.slice(0, 40)}`).toBe(false);
+        seen.set(key, d.grammarId);
+      }
+    }
+  });
+});
