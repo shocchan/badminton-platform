@@ -5,15 +5,15 @@
  "phasesCompletedThisSession": [
   "3P-1",
   "3P-2",
-  "3P-3(一部: 会話contextual完了・reuseパケット完了・オノマトペ未着手)"
+  "3P-3（完了: 会話contextual 127→0・オノマトペ完成draft 100/100・reuseパケット63件）"
  ],
  "phaseBudgetUsed": 3,
  "phaseBudgetMax": 8,
- "currentPhase": "AUTONOMOUS_SESSION_LIMIT（コンテキスト上限による正常停止）",
- "resumeFrom": "3P-3残り: ①オノマトペ100候補の完成draft化（監督指示§5-13: 例文2・recognition/production各1問・会話・復習・route/Unit・中文品質。不完全なitemは追加しない）②完成後に再集計→監督レビュー→3P-4（N3文法120）へ。監督の3P-3指示文はChatGPTスレッド末尾、要点はprompts/3p-3の代わりにphase-history.md参照",
+ "currentPhase": "3P-3完了。監督へ完了報告→3P-4（N3文法120）の指示文待ち",
+ "resumeFrom": "監督ChatGPTの<AUTONOMOUS_REVIEW>/<NEXT_PHASE_PROMPT>（3P-4: N3文法120のExcel取込→全field生成）を受領しValidator→実行。未受領なら再依頼から",
  "branch": "feature/ai-course-learning-polish",
- "lastCommit": "feat(content): Phase 3P-3 会話contextual 127→0＋reuse判断パケット63件",
- "testCount": 873,
+ "lastCommit": "feat(content): Phase 3P-3完了 オノマトペ完成draft 100/100（バッチ2-5）",
+ "testCount": 881,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
  "stagingDeployedThrough": "3P-3",
@@ -30,7 +30,8 @@
   "excelIntakeUnclassifiedRows": 0,
   "firstWaveSemanticUnclassified": 0,
   "rightsSheetsAwaitingRewrite": 3,
-  "reuseAwaitingSemanticDecision": 63
+  "reuseAwaitingSemanticDecision": 63,
+  "onomatopoeiaDraftIncomplete": 0
  },
  "decisionQueueAwaiting": [
   "APPLY_STAGING_MIGRATIONS / APPLY_SHARED_SUPABASE_MIGRATIONS（CEO明示文字列）",
