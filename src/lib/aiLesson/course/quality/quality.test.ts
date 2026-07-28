@@ -56,7 +56,7 @@ describe('生成されるassess問題は答えを漏らさない（P1=0）', () 
     for (const item of pool) {
       for (const q of buildAssessQuestions(item, pool, { introduced: false })) {
         const f = auditPresentedQuestion({
-          questionId: q.questionId, phase: 'assess', teachTexts: [],
+          questionId: q.questionId, phase: 'assess', kind: q.kind, teachTexts: [],
           promptTexts: [q.promptJa, q.promptZh], choices: q.choices,
           correctAnswer: q.choices[q.answerIndex],
         });

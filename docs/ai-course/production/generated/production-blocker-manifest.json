@@ -1,8 +1,8 @@
 {
- "generatedAt": "2026-07-28T18:13:41.030Z",
+ "generatedAt": "2026-07-28T18:27:12.095Z",
  "productionGo": "NO-GO",
  "summary": {
-  "aiActionableBlockers": 106,
+  "aiActionableBlockers": 0,
   "humanGateBlockers": 10,
   "p1Count": 4,
   "p0Count": 6
@@ -38,14 +38,28 @@
   },
   {
    "key": "orphanVocabulary",
-   "count": 105,
+   "count": 0,
    "severity": "P2",
    "owner": "ai_actionable",
-   "note": "どのUnit/Chapterからも参照されない語数"
+   "note": "どの単元にも割り当てられていない語数（Unit Coverage Contract）"
+  },
+  {
+   "key": "incompleteUnits",
+   "count": 0,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "Coverage契約を満たさない単元数（required未評価・contrast欠落・Mission未解決）"
+  },
+  {
+   "key": "unitsWithoutApplyStage",
+   "count": 0,
+   "severity": "P1",
+   "owner": "ai_actionable",
+   "note": "実践（Stage 3）が0の単元数。理解だけで完了させない"
   },
   {
    "key": "questionQualityWarnings",
-   "count": 1,
+   "count": 0,
    "severity": "P2",
    "owner": "ai_actionable",
    "note": "長さ・文体の偏りなど当てやすさの警告"
@@ -121,49 +135,8 @@
   "trivialCognateQuestions": [],
   "highRiskContrastMissing": [],
   "requiredVocabularyUntested": [],
-  "orphanVocabularySample": [
-   "fi-suru",
-   "fi-taberu",
-   "fi-kaku",
-   "fi-ikutsu",
-   "fi-en",
-   "fi-nomu",
-   "fi-tsukau",
-   "fi-tsukuru",
-   "fi-neru",
-   "fi-hairu",
-   "fi-deru",
-   "fi-noru",
-   "fi-oriru",
-   "fi-ookii",
-   "fi-chiisai",
-   "fi-takai",
-   "fi-yasui",
-   "fi-atarashii",
-   "fi-furui",
-   "fi-atsui",
-   "fi-samui",
-   "fi-isogashii",
-   "fi-tanoshii",
-   "fi-muzukashii",
-   "fi-chikai",
-   "fi-tooi",
-   "fi-ooi",
-   "fi-sukunai",
-   "fi-oishii",
-   "fi-suki",
-   "fi-shizuka",
-   "fi-benri",
-   "fi-kantan",
-   "fi-yuumei",
-   "fi-jouzu",
-   "fi-ie",
-   "fi-byouin",
-   "fi-kusuri",
-   "fi-mizu",
-   "fi-kazoku"
-  ],
-  "orphanVocabularyTotal": 105,
+  "orphanVocabularySample": [],
+  "orphanVocabularyTotal": 0,
   "debugLabelsVisible": [],
   "comingSoonVisible": [],
   "landingCopyDecisions": [
@@ -189,11 +162,178 @@
    }
   ]
  },
+ "unitCoverage": {
+  "units": [
+   {
+    "unitId": "n3u-01-self",
+    "target": 12,
+    "assessable": 12,
+    "stages": {
+     "understand": 16,
+     "distinguish": 12,
+     "apply": 2
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-02-daily",
+    "target": 18,
+    "assessable": 18,
+    "stages": {
+     "understand": 35,
+     "distinguish": 21,
+     "apply": 1
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-03-move",
+    "target": 10,
+    "assessable": 10,
+    "stages": {
+     "understand": 14,
+     "distinguish": 11,
+     "apply": 1
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-04-things",
+    "target": 12,
+    "assessable": 12,
+    "stages": {
+     "understand": 13,
+     "distinguish": 12,
+     "apply": 1
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-05-adjpair",
+    "target": 12,
+    "assessable": 12,
+    "stages": {
+     "understand": 12,
+     "distinguish": 14,
+     "apply": 8
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-06-feeling",
+    "target": 16,
+    "assessable": 16,
+    "stages": {
+     "understand": 17,
+     "distinguish": 21,
+     "apply": 14
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-07-people",
+    "target": 7,
+    "assessable": 7,
+    "stages": {
+     "understand": 11,
+     "distinguish": 12,
+     "apply": 6
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-08-change",
+    "target": 12,
+    "assessable": 12,
+    "stages": {
+     "understand": 23,
+     "distinguish": 33,
+     "apply": 3
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-09-think",
+    "target": 12,
+    "assessable": 12,
+    "stages": {
+     "understand": 16,
+     "distinguish": 27,
+     "apply": 4
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-10-arrange",
+    "target": 13,
+    "assessable": 13,
+    "stages": {
+     "understand": 20,
+     "distinguish": 33,
+     "apply": 4
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-11-situation",
+    "target": 8,
+    "assessable": 8,
+    "stages": {
+     "understand": 8,
+     "distinguish": 16,
+     "apply": 6
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   },
+   {
+    "unitId": "n3u-12-adverb",
+    "target": 8,
+    "assessable": 8,
+    "stages": {
+     "understand": 9,
+     "distinguish": 16,
+     "apply": 5
+    },
+    "requiredUntested": 0,
+    "highRiskContrastMissing": 0,
+    "passes": true
+   }
+  ],
+  "vocabularyTotal": 140,
+  "vocabularyCovered": 140,
+  "orphanVocabulary": [],
+  "duplicateAssignments": [],
+  "requiredUntestedTotal": 0,
+  "highRiskContrastMissingTotal": 0,
+  "unitsFailing": []
+ },
  "coverage": {
   "vocabularyTotal": 140,
   "vocabularyAssessable": 140,
   "chapter1RequiredItems": 11,
   "highRiskCognates": 12,
-  "generatedAssessQuestions": 370
+  "generatedAssessQuestions": 477
  }
 }

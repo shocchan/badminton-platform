@@ -18,6 +18,8 @@ import { UNIT4_QUESTIONS } from '../../src/lib/aiLesson/course/foundationUnit4';
 import { UNIT5_QUESTIONS } from '../../src/lib/aiLesson/course/foundationUnit5';
 import { UNIT6_QUESTIONS } from '../../src/lib/aiLesson/course/foundationUnit6';
 import { CHAPTER1_QUESTS } from '../../src/lib/aiLesson/course/rpg/chapter1Data';
+import { N3_UNIT_SPECS } from '../../src/lib/aiLesson/course/quality/n3UnitSpecs';
+import { summarizeCoverage, evaluateUnitCoverage } from '../../src/lib/aiLesson/course/quality/unitCoverage';
 
 const ROOT = process.cwd();
 const pool = allVocabularyItems();
@@ -88,7 +90,7 @@ const leakageFindings = [
   ...foundationQuestions.flatMap(q => auditFoundationQuestion(q)),
   ...pool.flatMap(item => buildAssessQuestions(item, pool, { introduced: false }).flatMap(q =>
     auditPresentedQuestion({
-      questionId: q.questionId, phase: 'assess', teachTexts: [],
+      questionId: q.questionId, phase: 'assess', kind: q.kind, teachTexts: [],
       promptTexts: [q.promptJa, q.promptZh], choices: q.choices,
       correctAnswer: q.choices[q.answerIndex],
     }))),
@@ -114,13 +116,12 @@ const requiredVocabularyUntested = chapter1Items.filter(id => {
   return !it || !canAssess(it, pool);
 });
 
-/** どのUnit・Chapterからも参照されない語（孤立） */
-const referenced = new Set<string>([
-  ...chapter1Items,
-  ...foundationQuestions.map(q => q.targetItemId).filter((x): x is string => !!x),
-  ...U1.items.map(i => i.id),
-]);
-const orphanVocabulary = pool.filter(i => !referenced.has(i.id)).map(i => i.id);
+/** Unit Coverage Contract（§14）。孤立・未評価・段階不足を契約から算出する */
+const coverage = summarizeCoverage(N3_UNIT_SPECS, pool);
+const orphanVocabulary = coverage.orphanVocabulary;
+const unitResults = N3_UNIT_SPECS.map(s2 => evaluateUnitCoverage(s2, pool));
+const incompleteUnits = unitResults.filter(r => !r.passes).map(r => r.unitId);
+const unitsWithoutApply = unitResults.filter(r => r.stageCounts.apply === 0).map(r => r.unitId);
 
 // ── 集計 ──
 const allDebug = scanSurfaces(DEV_LABELS, LEARNER_DIRS);
@@ -144,7 +145,11 @@ const blockers: Blocker[] = [
   { key: 'requiredVocabularyUntested', count: requiredVocabularyUntested.length, severity: 'P1', owner: 'ai_actionable',
     note: 'Chapter必須語のうち評価問題を作れない語数' },
   { key: 'orphanVocabulary', count: orphanVocabulary.length, severity: 'P2', owner: 'ai_actionable',
-    note: 'どのUnit/Chapterからも参照されない語数' },
+    note: 'どの単元にも割り当てられていない語数（Unit Coverage Contract）' },
+  { key: 'incompleteUnits', count: incompleteUnits.length, severity: 'P1', owner: 'ai_actionable',
+    note: 'Coverage契約を満たさない単元数（required未評価・contrast欠落・Mission未解決）' },
+  { key: 'unitsWithoutApplyStage', count: unitsWithoutApply.length, severity: 'P1', owner: 'ai_actionable',
+    note: '実践（Stage 3）が0の単元数。理解だけで完了させない' },
   { key: 'questionQualityWarnings', count: questionQualityWarnings.length, severity: 'P2', owner: 'ai_actionable',
     note: '長さ・文体の偏りなど当てやすさの警告' },
   { key: 'debugLabelsVisible', count: debugLabels.length, severity: 'P1', owner: 'ai_actionable',
@@ -192,6 +197,12 @@ const manifest = {
     debugLabelsVisible: debugLabels.slice(0, 40),
     comingSoonVisible: unfinished.slice(0, 40),
     landingCopyDecisions,
+  },
+  unitCoverage: {
+    ...coverage,
+    units: unitResults.map(r => ({ unitId: r.unitId, target: r.targetCount, assessable: r.assessableCount,
+      stages: r.stageCounts, requiredUntested: r.requiredUntested.length,
+      highRiskContrastMissing: r.highRiskContrastMissing.length, passes: r.passes })),
   },
   coverage: {
     vocabularyTotal: pool.length,

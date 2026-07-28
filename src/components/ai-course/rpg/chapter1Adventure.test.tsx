@@ -18,11 +18,18 @@ const vocabPool = allVocabularyItems();
 /** その語のassess問題（パネルと同じ決定的生成） */
 const assessOf = (item: FoundationItem) => buildAssessQuestions(item, vocabPool, { introduced: false, max: 2 });
 /** teach画面→assess全問正解 で1語を通す */
-const clearItemViaUi = (item: FoundationItem) => {
-  fireEvent.click(screen.getByRole('button', { name: 'おぼえた・確認へ進む' }));
-  for (const aq of assessOf(item)) {
+const answerAssessQuestion = (aq: ReturnType<typeof assessOf>[number]) => {
+  if (aq.kind === 'order') {
+    for (const tok of aq.orderAnswer ?? aq.choices) {
+      fireEvent.click(screen.getAllByRole('button', { name: tok })[0]);
+    }
+  } else {
     fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
   }
+};
+const clearItemViaUi = (item: FoundationItem) => {
+  fireEvent.click(screen.getByRole('button', { name: 'おぼえた・確認へ進む' }));
+  for (const aq of assessOf(item)) answerAssessQuestion(aq);
 };
 
 const questionById = new Map([...UNIT1_QUESTIONS, ...UNIT5_QUESTIONS, ...UNIT6_QUESTIONS].map(q => [q.id, q]));
@@ -192,7 +199,8 @@ describe('文法ミッション（§10）', () => {
 
 describe('復習Quest「再会」（§11）', () => {
   it('時間経過後だけ手紙が現れ、別文脈の再確認で霧が晴れ、XPは1日1回', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    // 時間送りは開発者ツール（learner viewには出さない）。検証のためdevToolsで描画する
+    render(<Chapter1AdventurePanel onBack={() => {}} devTools />);
     clearQuestViaUi(1);
     // 期限前は再会導線が出ない
     expect(screen.queryByText(/ハナさんからの手紙/)).toBeNull();
@@ -205,10 +213,8 @@ describe('復習Quest「再会」（§11）', () => {
     // 別文脈: 例文の中で意味を確認（先生・会う）
     const xpBefore = Number(screen.getByText(/^冒険値 /).textContent!.replace(/[^0-9]/g, ''));
     for (const itemId of CHAPTER1_QUESTS[0].learningItemIds) {
-      const item = itemById.get(itemId)!;
-      const qs = assessOf(item);
-      const aq = qs[qs.length - 1];
-      fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
+      const qs = assessOf(itemById.get(itemId)!);
+      answerAssessQuestion(qs[qs.length - 1]);
     }
     expect(screen.getByText(/再会できました/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'マップで確かめる' }));
@@ -217,6 +223,24 @@ describe('復習Quest「再会」（§11）', () => {
     expect(screen.getByText(/✓ Quest 1/)).toBeTruthy();
     const xpAfter = Number(screen.getByText(/^冒険値 /).textContent!.replace(/[^0-9]/g, ''));
     expect(xpAfter).toBe(xpBefore + 15);
+  });
+});
+
+describe('learner viewに開発表示を出さない（§6）', () => {
+  it('devTools未指定では検証用ボタン・内部プレビュー表記が存在しない', () => {
+    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} />);
+    expect(screen.queryByRole('button', { name: /時間を＋3日/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /最初からやり直す/ })).toBeNull();
+    expect(container.querySelectorAll('[data-dev-only]').length).toBe(0);
+    const text = container.textContent ?? '';
+    for (const forbidden of ['試作', 'sandbox', 'labPreview', '内部プレビュー', '検証用', 'デバッグ']) {
+      expect(text.includes(forbidden), `learner viewに「${forbidden}」が出ている`).toBe(false);
+    }
+  });
+  it('devTools指定時のみ開発者ツールが出る', () => {
+    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} devTools />);
+    expect(screen.getByRole('button', { name: /時間を＋3日/ })).toBeTruthy();
+    expect(container.querySelectorAll('[data-dev-only]').length).toBeGreaterThan(0);
   });
 });
 

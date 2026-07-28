@@ -13,6 +13,12 @@ export type LearningPhase = 'teach' | 'assess';
 export interface PresentedQuestion {
   questionId: string;
   phase: LearningPhase;
+  /**
+   * choice=選択式（答え＝選択肢の1つ） / order=並べ替え（答え＝正しい語順の文）。
+   * orderでは意味の提示（中国語訳）は課題そのものなので漏洩ではない。
+   * 漏洩になるのは「完成した日本語文」が事前に見えていること。
+   */
+  kind?: 'choice' | 'order';
   /** 同一画面または直前に提示した教示テキスト（解説・例文・訳・注記・ふりがな） */
   teachTexts: string[];
   /** 問題文（日本語・中国語とも） */
@@ -74,6 +80,17 @@ export const auditPresentedQuestion = (q: PresentedQuestion): LeakageFinding[] =
     add('duplicate_choice', 'P1', '選択肢に重複があり正解が一意でない');
   }
 
+  if (q.phase === 'assess' && q.kind === 'order') {
+    // 並べ替え: 完成文が教示テキスト・問題文・alt に出ていたら漏洩
+    const completed = q.choices.join('');
+    for (const t of [...q.teachTexts, ...q.promptTexts, ...(q.mediaTexts ?? [])]) {
+      if (contains(t, completed)) {
+        add('answer_in_prompt', 'P1', `並べ替えの完成文が提示されている: ${t.slice(0, 40)}`); break;
+      }
+    }
+    return out;
+  }
+
   if (q.phase === 'assess') {
     // 答えそのもの、または答えの核となる語が教示テキストに出ていないか
     const tokens = [q.correctAnswer, ...meaningTokens(q.correctAnswer)];
@@ -93,7 +110,8 @@ export const auditPresentedQuestion = (q: PresentedQuestion): LeakageFinding[] =
     }
   }
 
-  // 形式的な当てやすさ（フェーズによらずP2）
+  // 形式的な当てやすさ（フェーズによらずP2・選択式のみ）
+  if (q.kind === 'order') return out;
   const lens = q.choices.map(c => c.length).sort((a, b) => b - a);
   if (q.choices.length > 1 && q.correctAnswer.length === lens[0] && lens[0] >= lens[1] * 2) {
     add('length_outlier', 'P2', '正解だけ極端に長く、内容を読まずに当てられる');

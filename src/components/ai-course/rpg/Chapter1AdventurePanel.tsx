@@ -30,13 +30,13 @@ import {
 type Screen =
   | { kind: 'map' }
   | { kind: 'questIntro'; questId: string }
-  | { kind: 'learning'; questId: string; itemIndex: number; phase: 'teach' | 'assess'; qIndex: number; wrongOnce: boolean }
+  | { kind: 'learning'; questId: string; itemIndex: number; phase: 'teach' | 'assess'; qIndex: number; built: string[]; wrongOnce: boolean }
   | { kind: 'grammar'; questId: string; missionIndex: number; step: number; built: string[]; wrongOnce: boolean }
   | { kind: 'finale'; questId: string; stepIndex: number; wrongOnce: boolean }
   | { kind: 'questComplete'; questId: string; xpGained: number }
   | { kind: 'chapterComplete' }
   | { kind: 'reviewLetter' }
-  | { kind: 'reviewCheck'; keys: string[]; index: number; wrongOnce: boolean }
+  | { kind: 'reviewCheck'; keys: string[]; index: number; built: string[]; wrongOnce: boolean }
   | { kind: 'reviewDone'; count: number };
 
 interface Props {
@@ -126,7 +126,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
 
   const beginQuest = (q: Chapter1Quest) => {
     setState(startQuest(state, q.questId, now()));
-    setScreen(simpleMode ? { kind: 'learning', questId: q.questId, itemIndex: 0, phase: 'teach', qIndex: 0, wrongOnce: false }
+    setScreen(simpleMode ? { kind: 'learning', questId: q.questId, itemIndex: 0, phase: 'teach', qIndex: 0, built: [], wrongOnce: false }
       : { kind: 'questIntro', questId: q.questId });
   };
 
@@ -163,13 +163,13 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
       return;
     }
     const nextQ = s.qIndex + 1;
-    if (nextQ < qs.length) { setScreen({ ...s, qIndex: nextQ, wrongOnce: false }); return; }
+    if (nextQ < qs.length) { setScreen({ ...s, qIndex: nextQ, built: [], wrongOnce: false }); return; }
     // その語の全assessに正解 → 要件充足として記録
     const next = recordLearningResult(state, s.questId, item.id, true, now());
     setState(next);
     const idx = s.itemIndex + 1;
     if (idx < quest.learningItemIds.length) {
-      setScreen({ kind: 'learning', questId: s.questId, itemIndex: idx, phase: 'teach', qIndex: 0, wrongOnce: false });
+      setScreen({ kind: 'learning', questId: s.questId, itemIndex: idx, phase: 'teach', qIndex: 0, built: [], wrongOnce: false });
     } else {
       afterItems(quest, next);
     }
@@ -220,7 +220,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
     setState(next);
     if (!correct) { setScreen({ ...s, wrongOnce: true }); return; }
     if (s.index + 1 < s.keys.length) {
-      setScreen({ kind: 'reviewCheck', keys: s.keys, index: s.index + 1, wrongOnce: false });
+      setScreen({ kind: 'reviewCheck', keys: s.keys, index: s.index + 1, built: [], wrongOnce: false });
     } else {
       const rewarded = claimReviewReward(next, REVIEW_REUNION.adventureXpReward, now());
       setState(rewarded);
@@ -228,6 +228,31 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
       announce('再会の復習が終わり、ことばの霧が晴れました。');
     }
   };
+
+  /** 並べ替え（産出）解答UI。トークンを順に押して文を作る */
+  const OrderAnswer = ({ aq, built, onPush, onReset }: {
+    aq: { choices: string[]; orderAnswer?: string[] }; built: string[];
+    onPush: (t: string) => void; onReset: () => void;
+  }) => (
+    <div>
+      <div className="min-h-11 p-2 mb-2 bg-slate-50 rounded-xl text-base text-gray-900" aria-live="polite">
+        {built.length ? built.join('') : <span className="text-gray-300">ここに文ができます</span>}
+      </div>
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        {aq.choices.map((tok, i) => {
+          const target = aq.orderAnswer ?? aq.choices;
+          const used = built.filter(b => b === tok).length >= target.filter(t => t === tok).length;
+          return (
+            <button key={`${tok}-${i}`} type="button" disabled={used} onClick={() => onPush(tok)}
+              className={`min-h-11 px-3 py-2 text-sm rounded-xl border ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-indigo-200 hover:border-indigo-400'}`}>
+              {tok}
+            </button>
+          );
+        })}
+      </div>
+      <button type="button" onClick={onReset} className="min-h-11 px-3 text-xs text-gray-400 underline">やり直す</button>
+    </div>
+  );
 
   const heroLoc = useMemo(() => {
     const site = nextQuest?.siteLocationId ?? CHAPTER1_QUESTS[CHAPTER1_QUESTS.length - 1].siteLocationId;
@@ -419,7 +444,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
               <div><dt className="inline font-bold">完了すると: </dt><dd className="inline">{q.storyOutcomeJa}</dd></div>
               <div><dt className="inline font-bold">復習予定: </dt><dd className="inline">正解から2日で薄霧、10日で「再会」の復習Questが出ます</dd></div>
             </dl>
-            <button type="button" onClick={() => setScreen({ kind: 'learning', questId: q.questId, itemIndex: 0, phase: 'teach', qIndex: 0, wrongOnce: false })}
+            <button type="button" onClick={() => setScreen({ kind: 'learning', questId: q.questId, itemIndex: 0, phase: 'teach', qIndex: 0, built: [], wrongOnce: false })}
               className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">学習を始める</button>
             <button type="button" onClick={() => setScreen({ kind: 'map' })}
               className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">マップへ戻る</button>
@@ -457,7 +482,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
               <p className="text-[11px] text-gray-400 mb-2">
                 次は、この画面を閉じてから{qs.length}問確認します（答えは表示されません）。
               </p>
-              <button type="button" onClick={() => setScreen({ ...screen, phase: 'assess', qIndex: 0, wrongOnce: false })}
+              <button type="button" onClick={() => setScreen({ ...screen, phase: 'assess', qIndex: 0, built: [], wrongOnce: false })}
                 className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
                 おぼえた・確認へ進む
               </button>
@@ -479,14 +504,27 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
             {screen.wrongOnce && (
               <p className="text-xs text-rose-600 mb-2">もう一度考えてみましょう。（再想一想）</p>
             )}
-            <div className="grid grid-cols-1 gap-1.5">
-              {aq.choices.map((opt, i) => (
-                <button key={opt} type="button" onClick={() => answerAssess(screen, item, i === aq.answerIndex)}
-                  className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-                  {opt}
-                </button>
-              ))}
-            </div>
+            {aq.kind === 'order' ? (
+              <OrderAnswer aq={aq} built={screen.built}
+                onReset={() => setScreen({ ...screen, built: [] })}
+                onPush={(tok) => {
+                  const target = aq.orderAnswer ?? aq.choices;
+                  const built = [...screen.built, tok];
+                  if (built.length < target.length) { setScreen({ ...screen, built }); return; }
+                  const ok = built.join('') === target.join('');
+                  if (!ok) { setScreen({ ...screen, built: [], wrongOnce: true }); return; }
+                  answerAssess(screen, item, true);
+                }} />
+            ) : (
+              <div className="grid grid-cols-1 gap-1.5">
+                {aq.choices.map((opt, i) => (
+                  <button key={opt} type="button" onClick={() => answerAssess(screen, item, i === aq.answerIndex)}
+                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
             <button type="button" onClick={() => setScreen({ ...screen, phase: 'teach' })}
               className="w-full min-h-11 mt-3 text-xs text-gray-500 underline">もう一度おぼえる画面を見る（この問題はやり直しになります）</button>
           </div>
@@ -657,7 +695,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
           </div>
           <p className="text-xs text-gray-500 mb-3">霞んでいることば: {reviewKeys.length}個。別の文の中で確かめます。元のQuestや場所の記録は変わりません。</p>
           <button type="button"
-            onClick={() => setScreen({ kind: 'reviewCheck', keys: reviewKeys.slice(0, 6), index: 0, wrongOnce: false })}
+            onClick={() => setScreen({ kind: 'reviewCheck', keys: reviewKeys.slice(0, 6), index: 0, built: [], wrongOnce: false })}
             className="w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm">確かめに行く</button>
           <button type="button" onClick={() => setScreen({ kind: 'map' })}
             className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">あとにする</button>
@@ -694,12 +732,25 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
             <p className="text-sm font-bold text-gray-800 mb-1 whitespace-pre-line">{aq.promptJa}</p>
             <p className="text-xs text-gray-400 mb-3">{aq.promptZh}</p>
             {screen.wrongOnce && <p className="text-xs text-rose-600 mb-2">ゆっくりで大丈夫。もう一度考えてみましょう。</p>}
-            <div className="grid grid-cols-1 gap-1.5">
-              {aq.choices.map((opt, i) => (
-                <button key={opt} type="button" onClick={() => answerReview(screen, i === aq.answerIndex)}
-                  className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400">{opt}</button>
-              ))}
-            </div>
+            {aq.kind === 'order' ? (
+              <OrderAnswer aq={aq} built={screen.built}
+                onReset={() => setScreen({ ...screen, built: [] })}
+                onPush={(tok) => {
+                  const target = aq.orderAnswer ?? aq.choices;
+                  const built = [...screen.built, tok];
+                  if (built.length < target.length) { setScreen({ ...screen, built }); return; }
+                  const ok = built.join('') === target.join('');
+                  if (!ok) { setScreen({ ...screen, built: [], wrongOnce: true }); return; }
+                  answerReview(screen, true);
+                }} />
+            ) : (
+              <div className="grid grid-cols-1 gap-1.5">
+                {aq.choices.map((opt, i) => (
+                  <button key={opt} type="button" onClick={() => answerReview(screen, i === aq.answerIndex)}
+                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400">{opt}</button>
+                ))}
+              </div>
+            )}
           </div>
         );
       })()}
