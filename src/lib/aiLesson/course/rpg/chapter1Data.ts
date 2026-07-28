@@ -32,6 +32,18 @@ export interface Chapter1StoryBeat {
   textZh: string;
 }
 
+/** 文法ミッション（実在のFoundationRule/Questionのみ参照。教材の複製はしない） */
+export interface GrammarMission {
+  /** 実在のFoundationRule ID（foundationUnit1/5/6） */
+  ruleId: string;
+  /** ルールと問題が属するfoundation unitファイル番号（lazy import用） */
+  unitFile: 1 | 5 | 6;
+  /** そのルールを対象とする実在のFoundationQuestion ID（choice系） */
+  questionIds: string[];
+  /** 短い産出: トークンを正しい順に並べる（Quest場面用の文。教材の複製ではなく使用場面） */
+  production: { promptJa: string; promptZh: string; tokens: string[] };
+}
+
 export interface Chapter1Quest {
   questId: string;
   order: number;
@@ -51,6 +63,8 @@ export interface Chapter1Quest {
   storyOutcomeZh: string;
   /** 実在教材ID（foundationVocabBank）。全問正解ではなく各Itemのチェック1回正解で充足 */
   learningItemIds: string[];
+  /** 文法ミッション（ルール理解→確認問題→短い産出まで通すと充足） */
+  grammarRequirements?: GrammarMission[];
   unlocks: { locationIds: string[]; npcIds: string[]; storyBeatIds: string[] };
   /** このQuestの舞台となる場所（主人公の自動移動先） */
   siteLocationId: string;
@@ -128,14 +142,20 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
   { questId: 'c1q2-tell-name', order: 2,
     siteLocationId: 'c1-town-gate',
     titleJa: '自分の名前を伝える', titleZh: '告诉对方你的名字',
-    learnGoalJa: '「名前」「話す」の2語で自己紹介の形を作る', learnGoalZh: '用「名前」「話す」学会自我介绍的形式',
-    estimatedMinutes: 3,
-    completionConditionJa: '2語のチェックに正解する', completionConditionZh: '答对2个词的确认题',
+    learnGoalJa: '語彙2語（名前・話す）＋文法「名詞＋です」で自己紹介の形を作る', learnGoalZh: '2个词（名前・話す）＋语法「名词＋です」，学会自我介绍',
+    estimatedMinutes: 5,
+    completionConditionJa: '2語のチェックと文法問題1問・産出1問に正解する', completionConditionZh: '答对2个词、1道语法题和1道造句题',
     storyIntroJa: '翔子先生が尋ねた。「あなたのお名前は？」',
     storyIntroZh: '翔子老师问道：「你叫什么名字？」',
     storyOutcomeJa: '名前が伝わった。翔子先生があなたを「旅の人」ではなく名前で呼ぶようになった。',
     storyOutcomeZh: '名字传达到了。翔子老师开始用名字称呼你，而不再是「旅人」。',
     learningItemIds: ['fi-namae', 'fi-hanasu'],
+    grammarRequirements: [
+      { ruleId: 'fr-desu', unitFile: 1, questionIds: ['fq-u2'],
+        production: { promptJa: '翔子先生に名前を伝える文を組み立ててください。',
+          promptZh: '把向翔子老师介绍名字的句子排好。',
+          tokens: ['名前', 'は', '（あなた）', 'です'] } },
+    ],
     unlocks: { locationIds: [], npcIds: [], storyBeatIds: ['c1-beat-name-told'] },
     isChapterFinale: false, adventureXpReward: 20 },
   { questId: 'c1q3-greet-town', order: 3,
@@ -154,14 +174,24 @@ export const CHAPTER1_QUESTS: Chapter1Quest[] = [
   { questId: 'c1q4-ask-time-place', order: 4,
     siteLocationId: 'c1-plaza',
     titleJa: '時間と場所を尋ねる', titleZh: '询问时间和地点',
-    learnGoalJa: '「何時」「駅」「行く」の3語で質問の形を作る', learnGoalZh: '用「何時」「駅」「行く」学会提问的形式',
-    estimatedMinutes: 5,
-    completionConditionJa: '3語のチェックに正解する', completionConditionZh: '答对3个词的确认题',
+    learnGoalJa: '語彙3語（何時・駅・行く）＋文法2つ（移動先の「に／へ」・時刻の読み方）', learnGoalZh: '3个词（何時・駅・行く）＋2个语法（表示目的地的「に/へ」・时刻的读法）',
+    estimatedMinutes: 7,
+    completionConditionJa: '3語のチェックと文法問題3問・産出1問に正解する', completionConditionZh: '答对3个词、3道语法题和1道造句题',
     storyIntroJa: '広場の掲示板に、次の町への電車のことが書いてあるらしい。まだ霧で読めない。',
     storyIntroZh: '广场的告示板上好像写着去下一个小镇的电车信息，但雾还没散，读不清。',
     storyOutcomeJa: '掲示板が読めた。駅の方角の霧が晴れ、駅前のゲンさんの姿が見えた。',
     storyOutcomeZh: '你读懂了告示板。车站方向的雾散了，能看到站前的老玄了。',
     learningItemIds: ['fi-nanji', 'fi-eki', 'fi-iku'],
+    grammarRequirements: [
+      { ruleId: 'fr-ni-e-destination', unitFile: 5, questionIds: ['f5q-p1', 'f5q-u2'],
+        production: { promptJa: '掲示板を読んで、行き先を言う文を組み立ててください。',
+          promptZh: '读完告示板，把说明目的地的句子排好。',
+          tokens: ['学校', 'へ', '行きます'] } },
+      { ruleId: 'fr-time-reading', unitFile: 6, questionIds: ['f6q-r1'],
+        production: { promptJa: '時計を見て、今の時刻を言う文を組み立ててください。',
+          promptZh: '看着时钟，把说明现在时刻的句子排好。',
+          tokens: ['今', '2時', 'です'] } },
+    ],
     unlocks: { locationIds: ['c1-station-front'], npcIds: ['c1-npc-gen'], storyBeatIds: ['c1-beat-station-visible'] },
     isChapterFinale: false, adventureXpReward: 25 },
   { questId: 'c1q5-station-talk', order: 5,
@@ -206,6 +236,17 @@ export const CHAPTER1_FINALE_STEPS: FinaleStep[] = [
     correctJa: '学校へ行きます。', usesItemId: 'fi-iku',
     optionsJa: ['学校へ行きます。', '学校を寝ます。', '学校が来ます。'] },
 ];
+
+/** 復習Quest「再会」の場面文（ハナさんからの手紙）。復習期限があるときだけ出現する */
+export const REVIEW_REUNION = {
+  questId: 'c1r-reunion-letter',
+  titleJa: '再会：ハナさんからの手紙', titleZh: '重逢：小花的来信',
+  letterJa: 'こんにちは。この前のこと、覚えていますか？　少し霞んできたことばを、もう一度いっしょに確かめましょう。——ハナ',
+  letterZh: '你好。之前学过的还记得吗？有些词已经有点模糊了，我们再一起确认一遍吧。——小花',
+  outcomeJa: '思い出したことばに、もう一度光が差した。町の看板が、また はっきり読める。',
+  outcomeZh: '想起来的词又亮了起来。镇上的招牌又能看清了。',
+  adventureXpReward: 15,
+} as const;
 
 export const chapter1QuestById = (id: string): Chapter1Quest | undefined =>
   CHAPTER1_QUESTS.find(q => q.questId === id);

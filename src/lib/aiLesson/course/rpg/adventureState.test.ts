@@ -4,8 +4,9 @@ import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import {
   RPG_SANDBOX_KEY, loadAdventureState, startQuest,
-  recordLearningResult, completeQuest,
+  recordLearningResult, completeQuest, questRequirementKeys,
   deriveItemFog, deriveLocationFog, reviewNeededItems, resetAdventureState,
+  advanceSimulatedTime, recordReviewResult, claimReviewReward,
 } from './adventureState';
 import { CHAPTER1_QUESTS, CHAPTER1_LOCATIONS, CHAPTER1_NPCS, CHAPTER1_STORY_BEATS, CHAPTER1_FINALE_STEPS } from './chapter1Data';
 import { allVocabularyItems } from '../foundationVocabBank';
@@ -30,7 +31,7 @@ const clearQuests = (upTo: number, storage: KVStorage) => {
   let st = loadAdventureState(NOW, storage);
   for (const q of CHAPTER1_QUESTS.filter(q => q.order <= upTo)) {
     st = startQuest(st, q.questId, NOW, storage);
-    for (const id of q.learningItemIds) st = recordLearningResult(st, q.questId, id, true, NOW, storage);
+    for (const id of questRequirementKeys(q.questId)) st = recordLearningResult(st, q.questId, id, true, NOW, storage);
     st = completeQuest(st, q.questId, NOW, q.isChapterFinale, storage);
   }
   return st;
@@ -184,6 +185,58 @@ describe('FogとUnlockの分離（§6）', () => {
     const st = resetAdventureState(NOW, s);
     expect(st.adventureXp).toBe(0);
     expect([...touched]).toEqual([RPG_SANDBOX_KEY]);
+  });
+});
+
+describe('文法ミッション要件（§10）', () => {
+  it('Quest2/4は語彙だけでは完了できない（rule要件が必須）', () => {
+    const { s } = trackingStorage();
+    let st = clearQuests(1, s);
+    st = startQuest(st, 'c1q2-tell-name', NOW, s);
+    for (const id of ['fi-namae', 'fi-hanasu']) st = recordLearningResult(st, 'c1q2-tell-name', id, true, NOW, s);
+    const blocked = completeQuest(st, 'c1q2-tell-name', NOW, false, s);
+    expect(blocked.chapter.completedQuestIds).not.toContain('c1q2-tell-name');
+    st = recordLearningResult(st, 'c1q2-tell-name', 'rule:fr-desu', true, NOW, s);
+    const done = completeQuest(st, 'c1q2-tell-name', NOW, false, s);
+    expect(done.chapter.completedQuestIds).toContain('c1q2-tell-name');
+  });
+  it('要件キーは実在rule（fr-desu/fr-ni-e-destination/fr-time-reading）を含む', () => {
+    expect(questRequirementKeys('c1q2-tell-name')).toContain('rule:fr-desu');
+    const q4 = questRequirementKeys('c1q4-ask-time-place');
+    expect(q4).toContain('rule:fr-ni-e-destination');
+    expect(q4).toContain('rule:fr-time-reading');
+  });
+});
+
+describe('復習「再会」（§11）', () => {
+  it('時間シミュレーションで期限が発生→再確認でClarityが晴れる→XPは1日1回', () => {
+    const { s } = trackingStorage();
+    let st = clearQuests(2, s);
+    // 12日進める（review_needed発生）。Unlock・完了は不変
+    st = advanceSimulatedTime(st, 12, s);
+    const simNow = NOW + 12 * DAY;
+    expect(reviewNeededItems(st, simNow).length).toBeGreaterThan(0);
+    expect(st.chapter.completedQuestIds).toContain('c1q2-tell-name');
+    // 別文脈の再確認正解→lastCorrectAtMs更新→clear
+    expect(deriveItemFog(st, 'fi-namae', simNow)).toBe('review_needed');
+    st = recordReviewResult(st, 'fi-namae', true, simNow, s);
+    expect(deriveItemFog(st, 'fi-namae', simNow)).toBe('clear');
+    // rule要件も復習対象になり、再確認できる
+    expect(deriveItemFog(st, 'rule:fr-desu', simNow)).toBe('review_needed');
+    st = recordReviewResult(st, 'rule:fr-desu', true, simNow, s);
+    expect(deriveItemFog(st, 'rule:fr-desu', simNow)).toBe('clear');
+    // 報酬は冪等（同日2回目は加算なし）
+    const xp0 = st.adventureXp;
+    st = claimReviewReward(st, 15, simNow, s);
+    expect(st.adventureXp).toBe(xp0 + 15);
+    st = claimReviewReward(st, 15, simNow + 1000, s);
+    expect(st.adventureXp).toBe(xp0 + 15);
+  });
+  it('学習履歴のない語はrecordReviewResultで作られない（復習対象外）', () => {
+    const { s } = trackingStorage();
+    const st = loadAdventureState(NOW, s);
+    const after = recordReviewResult(st, 'fi-eki', true, NOW, s);
+    expect(after.learning['fi-eki']).toBeUndefined();
   });
 });
 

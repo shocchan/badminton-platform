@@ -53,6 +53,8 @@ export interface AdventureState {
   adventureXp: number;
   /** XP冪等台帳: 付与済みsource（questId等）。二重加算防止 */
   xpLedger: Record<string, number>;
+  /** labPreview検証用の時間シミュレーションoffset（sandbox限定。learner時計には影響しない） */
+  simulatedOffsetMs: number;
 }
 
 const defaultStorage = (): KVStorage | null => {
@@ -69,7 +71,7 @@ export const emptyAdventureState = (nowMs: number): AdventureState => ({
     completedQuestIds: [], encounteredNpcIds: [], discoveredLocationIds: ['c1-town-gate'],
     seenStoryBeatIds: [],
   },
-  quests: {}, learning: {}, adventureXp: 0, xpLedger: {},
+  quests: {}, learning: {}, adventureXp: 0, xpLedger: {}, simulatedOffsetMs: 0,
 });
 
 export const loadAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState => {
@@ -79,7 +81,7 @@ export const loadAdventureState = (nowMs: number, storage: KVStorage | null = de
     if (!raw) return emptyAdventureState(nowMs);
     const parsed = JSON.parse(raw) as AdventureState;
     if (parsed?.version !== 1 || parsed.chapter?.chapterId !== CHAPTER1_ID) return emptyAdventureState(nowMs);
-    return parsed;
+    return { ...parsed, simulatedOffsetMs: parsed.simulatedOffsetMs ?? 0 };
   } catch { return emptyAdventureState(nowMs); }
 };
 
@@ -104,7 +106,14 @@ export const startQuest = (state: AdventureState, questId: string, nowMs: number
   return save(next, storage);
 };
 
-/** sandbox学習結果を記録（正解でQuest要件を充足）。実在Quest対象IDのみ充足に数える */
+/** Questの全要件キー（語彙ID＋文法rule:キー） */
+export const questRequirementKeys = (questId: string): string[] => {
+  const quest = chapter1QuestById(questId);
+  if (!quest) return [];
+  return [...quest.learningItemIds, ...(quest.grammarRequirements ?? []).map(g => `rule:${g.ruleId}`)];
+};
+
+/** sandbox学習結果を記録（正解でQuest要件を充足）。実在Quest対象キーのみ充足に数える */
 export const recordLearningResult = (state: AdventureState, questId: string, itemId: string,
   correct: boolean, nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState => {
   const quest = chapter1QuestById(questId);
@@ -120,7 +129,7 @@ export const recordLearningResult = (state: AdventureState, questId: string, ite
     },
   };
   const qp = state.quests[questId] ?? { questId, startedAtMs: nowMs, completedAtMs: null, fulfilledItemIds: [], rewardClaimedAtMs: null };
-  const fulfilled = correct && quest.learningItemIds.includes(itemId)
+  const fulfilled = correct && questRequirementKeys(questId).includes(itemId)
     ? addUnique(qp.fulfilledItemIds, [itemId]) : qp.fulfilledItemIds;
   const next: AdventureState = {
     ...state, learning,
@@ -135,7 +144,7 @@ export const questRequirementsMet = (state: AdventureState, questId: string, fin
   if (!quest) return false;
   const qp = state.quests[questId];
   if (!qp) return false;
-  const itemsDone = quest.learningItemIds.every(id => qp.fulfilledItemIds.includes(id));
+  const itemsDone = questRequirementKeys(questId).every(id => qp.fulfilledItemIds.includes(id));
   return quest.isChapterFinale ? itemsDone && finaleCleared : itemsDone;
 };
 
@@ -210,6 +219,38 @@ export const reviewNeededItems = (state: AdventureState, nowMs: number): string[
   Object.values(state.learning)
     .filter(r => r.lastCorrectAtMs && deriveItemFog(state, r.itemId, nowMs) === 'review_needed')
     .map(r => r.itemId);
+
+/** labPreview検証用: 時間を進める（sandboxのみ。Unlock・完了は変化しない） */
+export const advanceSimulatedTime = (state: AdventureState, days: number,
+  storage: KVStorage | null = defaultStorage()): AdventureState =>
+  save({ ...state, simulatedOffsetMs: state.simulatedOffsetMs + days * DAY_MS }, storage);
+
+/** 復習「再会」の1語再確認（正解でlastCorrectAtMsが更新→Clarityが晴れる） */
+export const recordReviewResult = (state: AdventureState, itemId: string, correct: boolean,
+  nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState => {
+  const rec = state.learning[itemId];
+  if (!rec) return state; // 学習履歴のない語は復習対象外
+  const next: AdventureState = {
+    ...state,
+    learning: { ...state.learning, [itemId]: {
+      ...rec, correctCount: rec.correctCount + (correct ? 1 : 0),
+      lastCorrectAtMs: correct ? nowMs : rec.lastCorrectAtMs, lastAnswerCorrect: correct } },
+  };
+  return save(next, storage);
+};
+
+/**
+ * 復習Quest完了のXP付与（1日1回・冪等）。完了済みQuest・Unlockは一切変更しない。
+ * masteryではなく冒険継続の記録としてのXP。
+ */
+export const claimReviewReward = (state: AdventureState, rewardXp: number, nowMs: number,
+  storage: KVStorage | null = defaultStorage()): AdventureState => {
+  const dayBucket = Math.floor(nowMs / DAY_MS);
+  const key = `review:${dayBucket}`;
+  if (key in state.xpLedger) return state;
+  return save({ ...state, adventureXp: state.adventureXp + rewardXp,
+    xpLedger: { ...state.xpLedger, [key]: rewardXp } }, storage);
+};
 
 /** sandboxリセット（labPreview内の「最初からやり直す」用） */
 export const resetAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState =>
