@@ -1,6 +1,11 @@
 # 実機スマートフォン ベータ前チェックリスト（CEO実施用）
 
-作成: 2026-07-28 ／ 対象: staging（https://staging.badminton-platform.pages.dev）
+作成: 2026-07-28（教材14件反映後に確認順を更新） ／ 対象: staging（https://staging.badminton-platform.pages.dev）
+状態: **物理端末チェックは未完了**（自動テスト・iframe検証は実機確認済みを意味しません）
+
+教材反映後に必ず見ていただきたい2画面（Journey内で通過します）:
+- `?app=1&vocab=1&vview=detail&vitem=fi-namae` → 新例文「私の名前は王小明です。」とふりがな
+- `?app=1&vocab=1&vview=detail&vitem=fi-yasui` → false friendの学習ポイント（安≠便宜）
 
 > **このチェックはCEOの物理端末でのみ完了できます。**
 > AIの自動テスト・iframe幅検証は「実機確認済み」を意味しません（本書に含めていません）。

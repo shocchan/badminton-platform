@@ -105,13 +105,28 @@
   進める根拠にならない**
 - 逆流は常に可能（approved後でも問題が見つかればdraftへ戻す）
 
-## Release Gate（追加・CEO決定 2026-07-28）
+## Release Gate（CEO決定 2026-07-28・同日§6で更新）
 
-> **root P0 / root P1 が未解決の判断を含むパックは approved にできない。**
+1. **教材fieldの root P0: 0件必須**
+2. **教材fieldの root P1: 0件**、またはCEOが明示的に保留し、かつ該当情報が
+   利用者へ非表示・診断非使用であること
+3. **未レビューcognate**: 断定表示せず・false friend診断に使わず・推薦根拠に使わないなら
+   **P2としてbetaを妨げない**
+4. **pack approved**: 上記とは別に人間レビュー（human_reviewed→approved）が必要。
+   AIレビュー・AI間一致・confidenceは昇格根拠にならない
 
-判定式: パック内の全語について `rootIssueId` を持つ判断が
-`ceo_decided` 以降であること。1件でも `draft` の P0/P1 が残るパックは、
-他の全条件を満たしても approved に進めない。
+現状（2026-07-28 CEO判断14件の反映後）:
 
-現状: 生活・会話の基礎パックに root P0=1・root P1=13 が `draft` のまま
-→ **本パックは現時点で approved 不可**（判断シート: `decision-packets/curriculum-p0-p1-ceo-review.md`）。
+| Gate | 判定 |
+|---|---|
+| root P0 | **0件 ✅** |
+| root P1 | **0件 ✅** |
+| 未レビューcognate | 基礎78語・N3 62語とも確定済み（未確定0）。他パック追加時はP2運用 |
+| 教材の呼称 | **Vocabulary Content Draft RC**（approved教材ではない） |
+| pack approved | ❌ 未実施（human_reviewed へ進めるfieldのCEO指定待ち） |
+
+severity定義（CEO決定 2026-07-28）:
+P0=学習不能・重大誤答・読み/意味/例文の明白な重大誤り・正解漏洩・データ破壊。
+P1=現在表示される重大な誤情報・誤った分類が画面/診断/推薦で実際に使用中。
+P2=未確定cognate（非表示・非使用）・補助メタデータ・role/レベル/説明の確認。
+P3=文言・句読点・軽微な自然さ。継承issueで同一根本問題を重複カウントしない。
