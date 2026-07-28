@@ -1,0 +1,2777 @@
+{
+ "generatedAt": "2026-07-28",
+ "source": "n2GrammarData.ts（Excel「N2の文法180例文集」由来）",
+ "principle": "例文があるだけでは完成ではない。意味・中文・接続・問題・会話・復習が揃って初めて完成draft",
+ "totals": {
+  "items": 180,
+  "byClassification": {
+   "needs_full_authoring": 135,
+   "n3_sheet_can_fill": 38,
+   "synonym_of_other_item": 7
+  },
+  "unclassified": 0,
+  "duplicateSurface": 0,
+  "meaningJaPresent": 10,
+  "meaningZhPresent": 0,
+  "examplesPresent": 180,
+  "n3CanFill": 38,
+  "completeDrafts": 15,
+  "exampleMissingPattern": 1,
+  "exampleMissingPatternNote": "粗い2文字一致では6件が該当したが、不連続文型・活用形・「/」の代替表記による誤検出だった。断片分割＋代替表記対応で再検査した確定値。該当はn2g-169（〜わけだ）の例文に文型が現れない1件",
+  "exampleMissingPatternIds": [
+   "n2g-169"
+  ],
+  "draftRemaining": 158
+ },
+ "entries": [
+  {
+   "grammarId": "n2g-001",
+   "no": 1,
+   "unit": 1,
+   "pattern": "〜あげく",
+   "sourceMeaningJa": "〜した結果",
+   "sourceExamples": [
+    "試験前日（ぜんじつ）に徹夜をしたあげく、当日寝坊をしてしまいました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-002",
+   "no": 2,
+   "unit": 1,
+   "pattern": "〜あまり",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "周りの目線を気にするあまり、言いたいことが言えなくなってしまいました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~しすぎて結果が出る",
+    "meaningZh": "因为过于...导致...",
+    "exJa": "うれしさのあまり、泣いてしまった。",
+    "exZh": "因为太高兴了,不由得哭了出来。",
+    "sourceRowId": "n3row-2"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "complete_draft",
+   "reason": "N3シート（n3row-2）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-003",
+   "no": 3,
+   "unit": 1,
+   "pattern": "〜以上は",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "N2合格を目標にする以上は、文法も勉強しなければいけません。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-004",
+   "no": 4,
+   "unit": 1,
+   "pattern": "〜一方/一方で",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "試験合格はできる一方で、会話力がまだ乏しい（とぼしい）/低いです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-005",
+   "no": 5,
+   "unit": 1,
+   "pattern": "〜一方だ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本に来て7年以上過ごしているから、周り（他人）から日本語ができると思われる一方だ。＝ばかりだ"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-006",
+   "no": 6,
+   "unit": 1,
+   "pattern": "〜上では",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "会話力を上げる上では、話す練習も必要です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-007",
+   "no": 7,
+   "unit": 1,
+   "pattern": "〜上は",
+   "sourceMeaningJa": "3と同じ",
+   "sourceExamples": [
+    "目標を決めた上は、覚悟（かくご）を決めてやりきるしかありません。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「3と同じ」＝No.3（n2g-003）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-008",
+   "no": 8,
+   "unit": 1,
+   "pattern": "〜うちに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "忘れないうちに、メモをします。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~している間に",
+    "meaningZh": "趁着...期间",
+    "exJa": "若いうちに勉強しておいたほうがいい。",
+    "exZh": "趁年轻多学习比较好。",
+    "sourceRowId": "n3row-81"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "complete_draft",
+   "reason": "N3シート（n3row-81）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-009",
+   "no": 9,
+   "unit": 1,
+   "pattern": "〜うちは",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "真面目に文法だけ勉強しているうちは、会話力は上がりません。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-010",
+   "no": 10,
+   "unit": 1,
+   "pattern": "〜しようではないか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "そろそろ日本語の勉強をしようではないか。＝〜しましょうよ＝しようじゃないですか"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-011",
+   "no": 11,
+   "unit": 1,
+   "pattern": "〜得る（うる）",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "あなたのポテンシャルであれば、N1合格も一年以内で十分あり得ると思います。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-012",
+   "no": 12,
+   "unit": 1,
+   "pattern": "〜得ない（えない）",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "辛い食べ物に慣れていない人であれば、四川料理は完食し得ないと思います。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-013",
+   "no": 13,
+   "unit": 1,
+   "pattern": "〜おかげで",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "好きな俳優のおかげで、つらい時に頑張ることができました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-014",
+   "no": 14,
+   "unit": 1,
+   "pattern": "〜恐れがある",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本では近いうちに大きな地震がくる恐れがあります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-015",
+   "no": 15,
+   "unit": 1,
+   "pattern": "〜甲斐がある",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "たくさん勉強をした甲斐があって、無事（ぶじ）、試験に受かりました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "complete_draft",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-016",
+   "no": 16,
+   "unit": 2,
+   "pattern": "〜がきっかけで/がきっかけになって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "「小红书」がきっかけで、オンラインの日本語会話授業があることを知りました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-017",
+   "no": 17,
+   "unit": 2,
+   "pattern": "〜限りは/ない限り",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "教科書だけで勉強する限りは、会話力はなかなか上がらないと思います。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-018",
+   "no": 18,
+   "unit": 2,
+   "pattern": "〜が契機で",
+   "sourceMeaningJa": "16と同じ",
+   "sourceExamples": [
+    "日本語授業が契機で、試験の点数が大幅に上がりました。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「16と同じ」＝No.16（n2g-016）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-019",
+   "no": 19,
+   "unit": 2,
+   "pattern": "〜かけ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ずっと冷蔵庫に入れていた牛乳が腐りかけていました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-020",
+   "no": 20,
+   "unit": 2,
+   "pattern": "〜がたい",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "大好きな俳優に街で出会えたことは、本当に忘れがたいことです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~しにくい(心理的に)",
+    "meaningZh": "难以...",
+    "exJa": "信じがたい話ですね。",
+    "exZh": "真是难以置信的事情。",
+    "sourceRowId": "n3row-10"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-10）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-021",
+   "no": 21,
+   "unit": 2,
+   "pattern": "〜がちだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "いつもいろんなことが中途半端（ちゅうとはんぱ）になりがちです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-022",
+   "no": 22,
+   "unit": 2,
+   "pattern": "〜かというと",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "どちらかというと、勉強は好きではありません。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-023",
+   "no": 23,
+   "unit": 2,
+   "pattern": "〜かと思うと",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "飼っている犬がもう寝たかと思うと、急に吠（ほ）え出しました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~した直後に",
+    "meaningZh": "刚...就...",
+    "exJa": "空が暗くなったかと思うと、雨が降り出した。",
+    "exZh": "天刚变暗就开始下雨了。",
+    "sourceRowId": "n3row-14"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-14）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-024",
+   "no": 24,
+   "unit": 2,
+   "pattern": "〜かと思えば",
+   "sourceMeaningJa": "23と同じ",
+   "sourceExamples": [
+    "夏が来たかと思えば、また寒くなってきました。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「23と同じ」＝No.23（n2g-023）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-025",
+   "no": 25,
+   "unit": 2,
+   "pattern": "〜か〜ないかのうちに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "電車に乗るか乗らないかのうちに、ドアが閉まってしまいました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "すぐに",
+    "meaningZh": "刚...就...",
+    "exJa": "ベルが鳴るか鳴らないかのうちに、学生は教室を出た。",
+    "exZh": "铃声刚响起,学生就走出了教室。",
+    "sourceRowId": "n3row-13"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-13）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-026",
+   "no": 26,
+   "unit": 2,
+   "pattern": "〜か何か",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "旦那の誕生日には、ネクタイか何かをプレゼントしようと思います。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-027",
+   "no": 27,
+   "unit": 2,
+   "pattern": "〜かねない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今のまま改善できなければ、また失敗しかねないと思います。＝失敗する可能性がある"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-028",
+   "no": 28,
+   "unit": 2,
+   "pattern": "〜かねる",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "テストの点数が高いという情報では、会話力の実力を判断しかねます。　＝判断できないです"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-029",
+   "no": 29,
+   "unit": 2,
+   "pattern": "〜かのようだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "まるで、天国にいるかのような気分です。"
+   ],
+   "n3Fill": {
+    "meaningJa": "まるで~のようだ",
+    "meaningZh": "仿佛...一样",
+    "exJa": "彼はまるで夢を見ているかのようだ。",
+    "exZh": "他仿佛在做梦一样。",
+    "sourceRowId": "n3row-15"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-15）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-030",
+   "no": 30,
+   "unit": 2,
+   "pattern": "〜からいいようなものの",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "合格できたからいいようなものの、あと一つ間違えたら不合格でした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-031",
+   "no": 31,
+   "unit": 3,
+   "pattern": "〜からいうと",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "中国人の立場からいうと、日本の大学の英語レベルはすごく簡単です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-032",
+   "no": 32,
+   "unit": 3,
+   "pattern": "〜からこそ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "たくさん頑張ったからこそ、今のレベルに到達できたと思います。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-033",
+   "no": 33,
+   "unit": 3,
+   "pattern": "〜からして",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "この料理の色からして、絶対に辛い食べ物だと分かります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-034",
+   "no": 34,
+   "unit": 3,
+   "pattern": "〜からすると",
+   "sourceMeaningJa": "31,37と同じ",
+   "sourceExamples": [
+    "このメールの内容からすると、私に好意があるかもしれないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-035",
+   "no": 35,
+   "unit": 3,
+   "pattern": "〜からといって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "褒められたからといって、油断は禁物です。"
+   ],
+   "n3Fill": {
+    "meaningJa": "理由にはならない",
+    "meaningZh": "虽说...但不能...",
+    "exJa": "高いからといって、品質がいいとは限らない。",
+    "exZh": "虽说价格高,但不一定质量好。",
+    "sourceRowId": "n3row-16"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-16）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-036",
+   "no": 36,
+   "unit": 3,
+   "pattern": "〜からには",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "たくさん教えてもらったからには、試験に合格しなければなりません。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-037",
+   "no": 37,
+   "unit": 3,
+   "pattern": "〜から見ると",
+   "sourceMeaningJa": "31,34と同じ",
+   "sourceExamples": [
+    "今のコロナ情勢から見ると、留学をするのは難しいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-038",
+   "no": 38,
+   "unit": 3,
+   "pattern": "〜代わりに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "私があなたの授業を受ける代わりに、何がなんでも試験合格へ導いてください。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-039",
+   "no": 39,
+   "unit": 3,
+   "pattern": "〜気味",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "最近、忙しすぎて、疲れ気味です。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~の傾向がある",
+    "meaningZh": "有点...的倾向",
+    "exJa": "最近疲れ気味です。",
+    "exZh": "最近有点疲惫。",
+    "sourceRowId": "n3row-11"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-11）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-040",
+   "no": 40,
+   "unit": 3,
+   "pattern": "〜きりだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "骨折をしたきり、運動をしていないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-041",
+   "no": 41,
+   "unit": 3,
+   "pattern": "〜きる",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "筋トレを最後の一回までやりきることができました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "最後まで~する",
+    "meaningZh": "完全地...",
+    "exJa": "全部食べきった。",
+    "exZh": "全部吃完了。",
+    "sourceRowId": "n3row-17"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-17）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-042",
+   "no": 42,
+   "unit": 3,
+   "pattern": "〜くせに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "何時間も寝たくせに、まだ眠たいです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "非難の気持ち",
+    "meaningZh": "明明...却...",
+    "exJa": "知っているくせに、教えてくれなかった。",
+    "exZh": "明明知道却不告诉我。",
+    "sourceRowId": "n3row-18"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-18）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-043",
+   "no": 43,
+   "unit": 3,
+   "pattern": "〜くらい",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "これくらいの簡単な曲であれば、私もピアノを弾くことができます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-044",
+   "no": 44,
+   "unit": 3,
+   "pattern": "〜ことか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日、筋トレをどれだけしたことか。疲れすぎてもう動けないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "感嘆",
+    "meaningZh": "多么...",
+    "exJa": "どんなにうれしかったことか。",
+    "exZh": "我有多高兴啊。",
+    "sourceRowId": "n3row-85"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-85）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-045",
+   "no": 45,
+   "unit": 3,
+   "pattern": "〜ことから",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本語と中国語ができることから、翻訳の仕事の依頼が来ました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-046",
+   "no": 46,
+   "unit": 4,
+   "pattern": "〜ことだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "私の目標は今の自分以上の日本語レベルになることです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-047",
+   "no": 47,
+   "unit": 4,
+   "pattern": "〜ことだから",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "私の旦那のことだから、きっと、今日はお祝いをしてくれるだろう。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-048",
+   "no": 48,
+   "unit": 4,
+   "pattern": "〜ことなく",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日は一度も休むことなく、文法の学習をしていました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-049",
+   "no": 49,
+   "unit": 4,
+   "pattern": "〜ことは〜が",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "このイチゴは美味しいことは美味しいが、値段が高すぎて、なかなか買えません。"
+   ],
+   "n3Fill": {
+    "meaningJa": "一応~だが",
+    "meaningZh": "虽说...但是...",
+    "exJa": "行くことは行くが、あまり気が進まない。",
+    "exZh": "虽说会去,但并不是很情愿。",
+    "sourceRowId": "n3row-23"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-23）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-050",
+   "no": 50,
+   "unit": 4,
+   "pattern": "〜ことはない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今、点数が取れないからといって、焦ることはないですよ。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-051",
+   "no": 51,
+   "unit": 4,
+   "pattern": "〜際は",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "旅行に行く際は、エアコンの電源を切ったか確認しましょう。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-052",
+   "no": 52,
+   "unit": 4,
+   "pattern": "〜最中に",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "勉強をしている最中に、友達から連絡がきて、集中できませんでした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-053",
+   "no": 53,
+   "unit": 4,
+   "pattern": "〜ざるを得ない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "残りの2ヶ月で合格するには、効率よく勉強せざるを得ないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "どうしても~するしかない",
+    "meaningZh": "不得不...",
+    "exJa": "認めざるを得ない。",
+    "exZh": "不得不承认。",
+    "sourceRowId": "n3row-117"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-117）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-054",
+   "no": 54,
+   "unit": 4,
+   "pattern": "〜次第",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "この会社が生き残るかどうかは、社長次第です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-055",
+   "no": 55,
+   "unit": 4,
+   "pattern": "〜上は（じょうは）",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "データ上は問題ないですが、常に警戒しないといけないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-056",
+   "no": 56,
+   "unit": 4,
+   "pattern": "〜末に",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "色々考えた末にN1の試験にもチャレンジすることにしました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-057",
+   "no": 57,
+   "unit": 4,
+   "pattern": "〜ずにすむ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "雨が止んだので、傘を持たずにすみました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-058",
+   "no": 58,
+   "unit": 4,
+   "pattern": "〜ずにはいられない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "何回も不合格だった場合、自信を無くさずにはいられないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-059",
+   "no": 59,
+   "unit": 4,
+   "pattern": "〜せいで",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "昨日の地震のせいで、電車が遅延しています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-060",
+   "no": 60,
+   "unit": 4,
+   "pattern": "〜たいばかりに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "あの俳優に会いたいばかりに、イタリアへ旅行をすることを決めました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-061",
+   "no": 61,
+   "unit": 5,
+   "pattern": "〜だけであって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "彼は北海道出身だけあって、寒さには強いようです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-062",
+   "no": 62,
+   "unit": 5,
+   "pattern": "たとえ〜ても",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "たとえ今は無理であっても、いつかまた中国に戻りたいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-063",
+   "no": 63,
+   "unit": 5,
+   "pattern": "〜たところ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本語授業をお願いしたところ、快く引き受けてくれました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "したら...",
+    "meaningZh": "刚...就...",
+    "exJa": "聞いたところ、彼は辞めたらしい。",
+    "exZh": "一打听才知道他辞职了。",
+    "sourceRowId": "n3row-74"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-74）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-064",
+   "no": 64,
+   "unit": 5,
+   "pattern": "〜たところが",
+   "sourceMeaningJa": "63と同じ",
+   "sourceExamples": [
+    "彼なら知っていると思って聞いたところが、彼も知らなかったです。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「63と同じ」＝No.63（n2g-063）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-065",
+   "no": 65,
+   "unit": 5,
+   "pattern": "〜たとたんに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "電車に乗ったとたんに、電車が急に止まりました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~した直後",
+    "meaningZh": "刚...就...",
+    "exJa": "立ち上がったとたん、めまいがした。",
+    "exZh": "刚站起来就头晕了。",
+    "sourceRowId": "n3row-89"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-89）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-066",
+   "no": 66,
+   "unit": 5,
+   "pattern": "〜たばかり",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "起きたばかりなのに、勉強をしなければいけません。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~した直後",
+    "meaningZh": "刚刚...",
+    "exJa": "彼は来たばかりです。",
+    "exZh": "他刚来。",
+    "sourceRowId": "n3row-44"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-44）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-067",
+   "no": 67,
+   "unit": 5,
+   "pattern": "〜たびに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "間違えるたびに不安になります。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~するといつも",
+    "meaningZh": "每当...",
+    "exJa": "旅行のたびに新しい発見がある。",
+    "exZh": "每次旅行都有新发现。",
+    "sourceRowId": "n3row-90"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-90）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-068",
+   "no": 68,
+   "unit": 5,
+   "pattern": "〜だらけ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "毎日料理や皿洗いをしていると、手が傷だらけになります。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~がたくさんある(悪い意味)",
+    "meaningZh": "满是...(多为负面)",
+    "exJa": "この部屋はゴミだらけだ。",
+    "exZh": "这个房间到处都是垃圾。",
+    "sourceRowId": "n3row-6"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-6）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-069",
+   "no": 69,
+   "unit": 5,
+   "pattern": "〜ついでに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "買い物に行くついでに、ATMでお金を下ろしました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-070",
+   "no": 70,
+   "unit": 5,
+   "pattern": "〜っこない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "できっこないことでも、挑戦する価値はあります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-071",
+   "no": 71,
+   "unit": 5,
+   "pattern": "〜つつ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "分からない単語を調べつつ、問題を解いています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-072",
+   "no": 72,
+   "unit": 5,
+   "pattern": "〜つつある",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "だんだん日本語が分かりつつあります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-073",
+   "no": 73,
+   "unit": 5,
+   "pattern": "〜っぽい",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "最近歳をとって、忘れっぽいことが多いです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-074",
+   "no": 74,
+   "unit": 5,
+   "pattern": "〜つもりだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "明日から勉強をするつもりです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-075",
+   "no": 75,
+   "unit": 5,
+   "pattern": "〜つもりで",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "毎日頑張るつもりでスケジュールを立てましたが、無理でした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-076",
+   "no": 76,
+   "unit": 6,
+   "pattern": "〜て以来",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "結婚して以来、平和な日々を過ごしています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-077",
+   "no": 77,
+   "unit": 6,
+   "pattern": "〜てからでないと",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "人間は失敗をしてからでないと、なかなか学ばないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~しなければ",
+    "meaningZh": "不...就不行",
+    "exJa": "許可をもらってからでないと入れない。",
+    "exZh": "必须得到许可才能进入。",
+    "sourceRowId": "n3row-91"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-91）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-078",
+   "no": 78,
+   "unit": 6,
+   "pattern": "〜てしょうがない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日は眠たくてしょうがないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-079",
+   "no": 79,
+   "unit": 6,
+   "pattern": "〜てたまらない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "あの俳優に会いたくてたまらないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-080",
+   "no": 80,
+   "unit": 6,
+   "pattern": "〜てでも",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "どんなにお金をかけてでも、いつか俳優に会いにイタリアに行きます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-081",
+   "no": 81,
+   "unit": 6,
+   "pattern": "〜てならない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "先ほどの問題を間違えた気がしてならないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "感情の強調",
+    "meaningZh": "非常...",
+    "exJa": "会いたくてならない。",
+    "exZh": "非常想见。",
+    "sourceRowId": "n3row-116"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-116）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-082",
+   "no": 82,
+   "unit": 6,
+   "pattern": "〜てはいられない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "明日テストなので、今日は寝てはいられないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-083",
+   "no": 83,
+   "unit": 6,
+   "pattern": "〜てばかりはいられない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "試験中は一人で解くので、先生に頼ってばかりはいられないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-084",
+   "no": 84,
+   "unit": 6,
+   "pattern": "〜てはじめて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "病気になってはじめて家族の大切さが分かりました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-085",
+   "no": 85,
+   "unit": 6,
+   "pattern": "〜ということだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "試験まで残り３日。残りわずかということです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "伝聞・説明",
+    "meaningZh": "也就是说...",
+    "exJa": "明日から出張だということだ。",
+    "exZh": "也就是说从明天开始出差。",
+    "sourceRowId": "n3row-92"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-92）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-086",
+   "no": 86,
+   "unit": 6,
+   "pattern": "〜というものではない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ひたすら文法の勉強をすればよいというものではないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-087",
+   "no": 87,
+   "unit": 6,
+   "pattern": "〜というより",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本の納豆が嫌いというより、食べ慣れていないものを食べるのが嫌です。"
+   ],
+   "n3Fill": {
+    "meaningJa": "AよりB",
+    "meaningZh": "与其说是A不如说是B",
+    "exJa": "怒っているというより、呆れている。",
+    "exZh": "与其说是生气,不如说是无语。",
+    "sourceRowId": "n3row-95"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-95）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-088",
+   "no": 88,
+   "unit": 6,
+   "pattern": "〜といっても",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本語学習といっても、知識をつける学習、会話力を上げる学習など色々あります。"
+   ],
+   "n3Fill": {
+    "meaningJa": "実際は~",
+    "meaningZh": "虽说...",
+    "exJa": "料理が得意といっても簡単なものだけです。",
+    "exZh": "虽说擅长做饭,也只是简单的料理。",
+    "sourceRowId": "n3row-94"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-94）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-089",
+   "no": 89,
+   "unit": 6,
+   "pattern": "〜とおりに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "レシピに書いてあるとおりに作れば、誰でもスイーツを作れます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-090",
+   "no": 90,
+   "unit": 6,
+   "pattern": "〜とか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日は地震の影響で終日電車が動かないとか。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-091",
+   "no": 91,
+   "unit": 7,
+   "pattern": "〜どころか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "骨折したせいで、歩くどころか、立つのも難しいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-092",
+   "no": 92,
+   "unit": 7,
+   "pattern": "〜ところだった",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "N2例文集に出会わなかったら、試験までに文法が覚えられないところでした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-093",
+   "no": 93,
+   "unit": 7,
+   "pattern": "〜どころではない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "コロナ禍で、海外旅行どころではないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-094",
+   "no": 94,
+   "unit": 7,
+   "pattern": "〜ところに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "外に出かけようとしたところに、配達員がやって来ました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-095",
+   "no": 95,
+   "unit": 7,
+   "pattern": "〜ところを",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "授業中に寝ているところを先生に見つかってしまいました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-096",
+   "no": 96,
+   "unit": 7,
+   "pattern": "〜としか言いようがない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "1ヶ月でN2の試験を合格できたのは、生徒自身が優秀としか言いようがないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-097",
+   "no": 97,
+   "unit": 7,
+   "pattern": "〜としたら/とすれば/とすると",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日、授業をするとしたら、何時からできますか？"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-098",
+   "no": 98,
+   "unit": 7,
+   "pattern": "〜とともに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "コロナ拡大とともに、リモートワークが普及しました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~と一緒に",
+    "meaningZh": "和...一起",
+    "exJa": "家族とともに暮らす。",
+    "exZh": "和家人一起生活。",
+    "sourceRowId": "n3row-76"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-76）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-099",
+   "no": 99,
+   "unit": 7,
+   "pattern": "〜とは限らない",
+   "sourceMeaningJa": "86と同じ",
+   "sourceExamples": [
+    "N1試験で高得点をとれるからといって、仕事で使える会話力があるとは限らないです。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「86と同じ」＝No.86（n2g-086）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-100",
+   "no": 100,
+   "unit": 7,
+   "pattern": "〜ないことには",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "一度試してみないことには、結果は分かりません。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-101",
+   "no": 101,
+   "unit": 7,
+   "pattern": "〜ないことはない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ちょっと辛いですが、食べれないことはないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-102",
+   "no": 102,
+   "unit": 7,
+   "pattern": "〜ないではない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "私も似たような経験があるので、彼の言っていることが分からないでもないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-103",
+   "no": 103,
+   "unit": 7,
+   "pattern": "〜ながらも",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今のままでは合格できないと知りながらも、テスト勉強をせずに遊んでばかりいました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-104",
+   "no": 104,
+   "unit": 7,
+   "pattern": "〜なくはない",
+   "sourceMeaningJa": "102と同じ",
+   "sourceExamples": [
+    "今からお店に行けなくはないですが、もう夜遅いのでやめておきます。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「102と同じ」＝No.102（n2g-102）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-105",
+   "no": 105,
+   "unit": 7,
+   "pattern": "〜ならともかく",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "この問題は今回だけならともかく、いつも間違える問題です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-106",
+   "no": 106,
+   "unit": 8,
+   "pattern": "〜にあたって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "結婚記念10周年にあたって、大きなイベントをしようと思っています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-107",
+   "no": 107,
+   "unit": 8,
+   "pattern": "〜において",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "この授業は会話力を上げることにおいて、他の教室よりも力を入れています。"
+   ],
+   "n3Fill": {
+    "meaningJa": "場所や状況",
+    "meaningZh": "在...(场所)",
+    "exJa": "会議は東京において行われた。",
+    "exZh": "会议在东京举行。",
+    "sourceRowId": "n3row-119"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-119）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-108",
+   "no": 108,
+   "unit": 8,
+   "pattern": "〜に応じては",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "会話特化型の授業内容は生徒のレベルに応じて、合わせることができます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-109",
+   "no": 109,
+   "unit": 8,
+   "pattern": "〜にかかわらず",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "社会に出ると、学校の成績が高い低いにかかわらず、成果が求められる。"
+   ],
+   "n3Fill": {
+    "meaningJa": "関係なく",
+    "meaningZh": "无论...",
+    "exJa": "雨かどうかにかかわらず、行きます。",
+    "exZh": "无论下不下雨都去。",
+    "sourceRowId": "n3row-118"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-118）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-110",
+   "no": 110,
+   "unit": 8,
+   "pattern": "〜に限って",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今回、4月中に限って、文法例文集をプレゼントしています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-111",
+   "no": 111,
+   "unit": 8,
+   "pattern": "〜に限る",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "寒い日は、熱々の火鍋に限ります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-112",
+   "no": 112,
+   "unit": 8,
+   "pattern": "〜にかけては",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "例文集を作ることにかけては、定評があります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-113",
+   "no": 113,
+   "unit": 8,
+   "pattern": "〜に決まっている",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "何もせずに試験を受けても、合格できないに決まっています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-114",
+   "no": 114,
+   "unit": 8,
+   "pattern": "〜に加えて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "授業に加えて、自己学習の習慣も大事です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-115",
+   "no": 115,
+   "unit": 8,
+   "pattern": "〜に越したことはない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "どんなにつらいことがあっても、生きているに越したことはないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-116",
+   "no": 116,
+   "unit": 8,
+   "pattern": "〜に応えて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "お客様の要望に応えて、人気の化粧品を仕入れました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-117",
+   "no": 117,
+   "unit": 8,
+   "pattern": "〜に際して",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "お申し込みに際して、ネットで手続きが可能です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-118",
+   "no": 118,
+   "unit": 8,
+   "pattern": "〜に先立って",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "映画の一般公開に先立って、試写会を行う予定です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-119",
+   "no": 119,
+   "unit": 8,
+   "pattern": "〜に従って",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "例文集マニュアルに従って、読む練習を毎日繰り返せば、話せるようになります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-120",
+   "no": 120,
+   "unit": 8,
+   "pattern": "〜にしたら",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "子供の立場にしたら、この社会情勢は複雑で理解できないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-121",
+   "no": 121,
+   "unit": 9,
+   "pattern": "〜にしては",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "素人にしては、絵を描くのがうますぎます。"
+   ],
+   "n3Fill": {
+    "meaningJa": "予想外",
+    "meaningZh": "照理说...",
+    "exJa": "彼は新人にしては上手だ。",
+    "exZh": "他虽然是新人却很擅长。",
+    "sourceRowId": "n3row-97"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-97）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-122",
+   "no": 122,
+   "unit": 9,
+   "pattern": "〜にしても",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "いずれにしても、そろそろ旅行に行くか行かないか決めなければいけません。"
+   ],
+   "n3Fill": {
+    "meaningJa": "仮定・譲歩",
+    "meaningZh": "即使...",
+    "exJa": "行かないにしても、連絡ぐらいして。",
+    "exZh": "就算不去,也联系一下吧。",
+    "sourceRowId": "n3row-98"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-98）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-123",
+   "no": 123,
+   "unit": 9,
+   "pattern": "〜に過ぎない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "宇宙の大きさから見れば、小さな悩みに過ぎないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-124",
+   "no": 124,
+   "unit": 9,
+   "pattern": "〜に相違ない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "両親はどちらもO型なので、私の血液型はO型に相違ないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-125",
+   "no": 125,
+   "unit": 9,
+   "pattern": "〜に沿って",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "この計画に沿って、勉強をすれば、絶対大丈夫です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-126",
+   "no": 126,
+   "unit": 9,
+   "pattern": "〜に違いない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今の実力であれば合格するに違いないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "きっと~だ",
+    "meaningZh": "一定...",
+    "exJa": "彼は来るに違いない。",
+    "exZh": "他一定会来。",
+    "sourceRowId": "n3row-101"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-101）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-127",
+   "no": 127,
+   "unit": 9,
+   "pattern": "〜につき",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "オンライン授業では1人から3人につき、1人の先生が担当します。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-128",
+   "no": 128,
+   "unit": 9,
+   "pattern": "〜につけ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "雨につけ、雪につけ、毎日散歩をすることは日課です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-129",
+   "no": 129,
+   "unit": 9,
+   "pattern": "〜に伴って",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "SNSやオンラインの普及に伴って、授業がやりやすくなりました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-130",
+   "no": 130,
+   "unit": 9,
+   "pattern": "〜に反して",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "親の期待に反して、就職をせずに日本に行くことになりました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-131",
+   "no": 131,
+   "unit": 9,
+   "pattern": "〜にほかならない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "一年以内に合格できたのは、生徒自身の努力にほかならないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-132",
+   "no": 132,
+   "unit": 9,
+   "pattern": "〜にもかかわらず",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今日は寒かったにも関わらず、半袖で外に出てしまいました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-133",
+   "no": 133,
+   "unit": 9,
+   "pattern": "〜に基づいて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ルールに基づいて挑戦しましょう。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-134",
+   "no": 134,
+   "unit": 9,
+   "pattern": "〜にわたって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "英語、日本語、ピアノ、生花など、多岐にわたる特技があります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-135",
+   "no": 135,
+   "unit": 9,
+   "pattern": "〜抜きでは",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "先生の指導抜きでは合格までいくのが難しいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-136",
+   "no": 136,
+   "unit": 10,
+   "pattern": "〜抜く",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "マラソンでゴールまで走り抜きました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-137",
+   "no": 137,
+   "unit": 10,
+   "pattern": "〜のみならず",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "継続的に学習を続けるには、気合のみならず、習慣化させる仕組みづくりが大切です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-138",
+   "no": 138,
+   "unit": 10,
+   "pattern": "〜のもとで",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "先生の指導のもとで、なんとかN1にも合格することができました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-139",
+   "no": 139,
+   "unit": 10,
+   "pattern": "〜はおろか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ロックダウンで、旅行はおろか、買い物にすら行くことができませんでした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-140",
+   "no": 140,
+   "unit": 10,
+   "pattern": "〜ばかりか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "最初は挨拶ばかりか、「あいうえお」すら読めませんでした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-141",
+   "no": 141,
+   "unit": 10,
+   "pattern": "〜ばかりに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "高級の車を買ったばかりに、毎日のようにドライブをしています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-142",
+   "no": 142,
+   "unit": 10,
+   "pattern": "〜はともかくとして",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "結果はともかくとして、毎日努力できたことを称賛したいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-143",
+   "no": 143,
+   "unit": 10,
+   "pattern": "〜は別として",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "得意かどうかは別として、絵を描くのが好きです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-144",
+   "no": 144,
+   "unit": 10,
+   "pattern": "〜ば〜ほど",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "勉強すればするほど、賢くなります。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~すればするほど",
+    "meaningZh": "越...越...",
+    "exJa": "勉強すればするほど、上手になります。",
+    "exZh": "越学习越擅长。",
+    "sourceRowId": "n3row-3"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-3）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-145",
+   "no": 145,
+   "unit": 10,
+   "pattern": "〜はもちろん/もとより",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "最近は大人はもちろん、子供ですら、スマホを使う人が多くなりました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-146",
+   "no": 146,
+   "unit": 10,
+   "pattern": "〜反面",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "文法は難しい反面、慣れれば自然と話せるようになります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-147",
+   "no": 147,
+   "unit": 10,
+   "pattern": "〜べき",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今からでも例文集を読んで覚えるべきです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "~するのが当然だ",
+    "meaningZh": "应该...",
+    "exJa": "約束は守るべきだ。",
+    "exZh": "应该遵守约定。",
+    "sourceRowId": "n3row-5"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-5）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-148",
+   "no": 148,
+   "unit": 10,
+   "pattern": "〜ほか（は）ない/よりほかはない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "終電がなくなったので、タクシーで帰るほかはないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-149",
+   "no": 149,
+   "unit": 10,
+   "pattern": "〜ほど",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "試験勉強をすればするほど、会話力が上がるわけではないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "程度",
+    "meaningZh": "越...越...",
+    "exJa": "忙しいほど燃える。",
+    "exZh": "越忙越有干劲。",
+    "sourceRowId": "n3row-105"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-105）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-150",
+   "no": 150,
+   "unit": 10,
+   "pattern": "〜まい",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "あそこの飲食店でぼったくりをされて、もう二度と行くまいと思いました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-151",
+   "no": 151,
+   "unit": 11,
+   "pattern": "〜ままに",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "気合いで勉強をしていたら、電気をつけたまま、寝てしまいました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-152",
+   "no": 152,
+   "unit": 11,
+   "pattern": "〜もかまわず",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "雨の中、びしょ濡れになるのもかまわず、走り続けました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-153",
+   "no": 153,
+   "unit": 11,
+   "pattern": "〜も当然だ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ずっと掃除をしていなかったら、ほこりだらけになるのも当然です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-154",
+   "no": 154,
+   "unit": 11,
+   "pattern": "〜も〜なら〜も",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "親も親なら子も子ですね。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-155",
+   "no": 155,
+   "unit": 11,
+   "pattern": "〜ものか/もんか",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "ぼったくりをするお店には、二度と行くもんですか。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-156",
+   "no": 156,
+   "unit": 11,
+   "pattern": "〜ものがある",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "中国のここ十数年の発展には、目を見張るものがあります。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-157",
+   "no": 157,
+   "unit": 11,
+   "pattern": "〜ものだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "年を取れば、記憶力は衰えるものです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-158",
+   "no": 158,
+   "unit": 11,
+   "pattern": "〜ものだから",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "昔は、よく外で遊んだものです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-159",
+   "no": 159,
+   "unit": 11,
+   "pattern": "〜ものではない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "陰で人の悪口を言うものではないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-160",
+   "no": 160,
+   "unit": 11,
+   "pattern": "〜ものなら",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "イタリアに行けるものなら行きたいですが、遠すぎます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-161",
+   "no": 161,
+   "unit": 11,
+   "pattern": "〜ものの",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "例文集を1度読んだものの、全然覚えていないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-162",
+   "no": 162,
+   "unit": 11,
+   "pattern": "〜矢先に",
+   "sourceMeaningJa": "94と同じ",
+   "sourceExamples": [
+    "外に出かけようとした矢先に、配達員がやって来ました。"
+   ],
+   "n3Fill": null,
+   "classification": "synonym_of_other_item",
+   "terminalState": "awaiting_merge_decision",
+   "reason": "原本メモ「94と同じ」＝No.94（n2g-094）と同義の注記。統合か別項目かは人間判断"
+  },
+  {
+   "grammarId": "n2g-163",
+   "no": 163,
+   "unit": 11,
+   "pattern": "〜やら〜やら",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "カバンの中に本やらパソコンやらが入っていて、重すぎます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-164",
+   "no": 164,
+   "unit": 11,
+   "pattern": "〜ようがない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "手元に文法学習の本や例文集がないと勉強しようがないです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-165",
+   "no": 165,
+   "unit": 11,
+   "pattern": "〜ようで",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "彼は一見、天然なようで、すごく秀才です。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-166",
+   "no": 166,
+   "unit": 12,
+   "pattern": "〜ようでは",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "このような失敗で挫けるようでは、前に進むことは難しいですよ。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-167",
+   "no": 167,
+   "unit": 12,
+   "pattern": "〜ようなら（ば）",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "来週の授業に出られないようならば、前日までにご連絡ください。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-168",
+   "no": 168,
+   "unit": 12,
+   "pattern": "〜わけがない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "コロナ禍で出入国が難しい今、両親が日本に来れるわけがないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "絶対~ない",
+    "meaningZh": "不可能...",
+    "exJa": "彼がそんなことをするわけがない。",
+    "exZh": "他不可能做那种事。",
+    "sourceRowId": "n3row-28"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-28）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-169",
+   "no": 169,
+   "unit": 12,
+   "pattern": "〜わけだ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "一回の授業で3単元を進めれば、6回の授業でN2の文法を全てやり終えることができます。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある。※原本例文に文型が現れないため、教材化時は例文を新規作成しsourceExampleEditへ記録すること",
+   "sourceQualityIssue": "example_does_not_contain_pattern"
+  },
+  {
+   "grammarId": "n2g-170",
+   "no": 170,
+   "unit": 12,
+   "pattern": "〜わけではない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本人は辛い食べ物が苦手と言っても、全く食べられないというわけではないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "全部が~とは限らない",
+    "meaningZh": "并非...",
+    "exJa": "嫌いなわけではないが、あまり食べない。",
+    "exZh": "并不是讨厌,只是不太常吃。",
+    "sourceRowId": "n3row-29"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-29）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-171",
+   "no": 171,
+   "unit": 12,
+   "pattern": "〜わけにはいかない",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "試験まであと３日なので、諦めるわけにはいかないです。"
+   ],
+   "n3Fill": {
+    "meaningJa": "できない事情がある",
+    "meaningZh": "不能...",
+    "exJa": "試験があるから、休むわけにはいかない。",
+    "exZh": "因为有考试,不能请假。",
+    "sourceRowId": "n3row-30"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-30）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-172",
+   "no": 172,
+   "unit": 12,
+   "pattern": "〜わりには",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "たくさん努力をしたわりには、結果はイマイチでした。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-173",
+   "no": 173,
+   "unit": 12,
+   "pattern": "〜を中心に",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "太陽を中心に地球が回っています。"
+   ],
+   "n3Fill": {
+    "meaningJa": "中心・主に",
+    "meaningZh": "以...为中心",
+    "exJa": "学生を中心にアンケートを行った。",
+    "exZh": "以学生为中心进行问卷调查。",
+    "sourceRowId": "n3row-115"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-115）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-174",
+   "no": 174,
+   "unit": 12,
+   "pattern": "〜を通じて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "「小红书」を通じて、N2例文集を見つけることができました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "手段・期間",
+    "meaningZh": "通过.../在...期间",
+    "exJa": "先生を通じて知り合った。",
+    "exZh": "通过老师认识的。",
+    "sourceRowId": "n3row-113"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-113）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-175",
+   "no": 175,
+   "unit": 12,
+   "pattern": "〜を問わず",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "国籍を問わず、仲良くなれるといいなと思いました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-176",
+   "no": 176,
+   "unit": 12,
+   "pattern": "〜を除いては",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "平日の昼間を除いては、基本いつでも、日本語学習に役立つ資料を作っています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-177",
+   "no": 177,
+   "unit": 12,
+   "pattern": "〜をはじめ",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "日本をはじめ、いろんな国に旅行をしました。"
+   ],
+   "n3Fill": {
+    "meaningJa": "代表例",
+    "meaningZh": "以...为首",
+    "exJa": "校長先生をはじめ、先生方に感謝します。",
+    "exZh": "感谢以校长为首的各位老师。",
+    "sourceRowId": "n3row-114"
+   },
+   "classification": "n3_sheet_can_fill",
+   "terminalState": "draft_target",
+   "reason": "N3シート（n3row-114）が中文・意味・例文を供給できる。レベル配置は人間判断だが教材化は可能"
+  },
+  {
+   "grammarId": "n2g-178",
+   "no": 178,
+   "unit": 12,
+   "pattern": "〜を踏まえて",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "今回の結果を踏まえて、次の目標を計画した方がよいです。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-179",
+   "no": 179,
+   "unit": 12,
+   "pattern": "〜をめぐって",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "機械の安全性をめぐって、いろんな施策の検討をしています。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  },
+  {
+   "grammarId": "n2g-180",
+   "no": 180,
+   "unit": 12,
+   "pattern": "〜をもとにして",
+   "sourceMeaningJa": "",
+   "sourceExamples": [
+    "私自身の経験をもとにして、例文をたくさん作りました。ありがとうございました。"
+   ],
+   "n3Fill": null,
+   "classification": "needs_full_authoring",
+   "terminalState": "draft_target",
+   "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
+  }
+ ]
+}
