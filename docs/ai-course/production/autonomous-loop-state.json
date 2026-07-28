@@ -4,12 +4,13 @@
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
   "正準集計＋訂正記録",
-  "3P-5 batch: Unit5＋繰越4件（19件）"
+  "3P-5 batch: Unit5＋繰越4件（19件）",
+  "3P-5 batch: Unit6（15件）"
  ],
  "phaseBudgetUsed": 5,
  "phaseBudgetMax": 8,
- "currentPhase": "3P-5継続（Unit6: n2g-076〜090）",
- "resumeFrom": "N2残102件（Unit6: n2g-076〜090から。繰越なし）。パターンはUnit5踏襲",
+ "currentPhase": "3P-5継続（Unit7: n2g-091〜105）",
+ "resumeFrom": "N2残87件（Unit7: n2g-091〜105。099/104は同義判断待ちのため対象外）。パターンはUnit6踏襲",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
  "testCount": 912,
@@ -67,9 +68,9 @@
  ],
  "n2Progress": {
   "total": 180,
-  "completeDraft": 71,
+  "completeDraft": 86,
   "humanDecisionRequired": 7,
-  "autonomousIncomplete": 102,
-  "identity": "71+7+102+0=180"
+  "autonomousIncomplete": 87,
+  "identity": "86+7+87+0=180"
  }
 }
