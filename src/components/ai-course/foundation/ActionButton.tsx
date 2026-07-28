@@ -13,7 +13,10 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
 }
 
-const base = 'action-raised inline-flex items-center justify-center gap-1.5 rounded-xl font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1 disabled:opacity-45 disabled:shadow-none disabled:transform-none';
+// focus ring（CEO承認・2026-07-28）: indigo-400は白地2.98:1で3:1未達だった。
+// indigo-500（白地4.47:1・薄い藍地3.99:1）＋offset 2で、色とすき間の両方で見分けられるようにする。
+// outlineはtransparentで重ねる: 通常は見えず、forced-colors環境ではOSが塗り直すので消えない。
+const base = 'action-raised inline-flex items-center justify-center gap-1.5 rounded-xl font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-45 disabled:shadow-none disabled:transform-none';
 
 const variantClass: Record<ActionVariant, string> = {
   primary: 'action-primary bg-indigo-600 text-white min-h-12 px-4 py-3 text-base',

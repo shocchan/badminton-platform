@@ -193,7 +193,7 @@ export const CourseN2Grammar = ({ t, onBack, learnerId }: Props) => {
           <div className="grid gap-1.5 lg:grid-cols-2">
             {list.map((g) => (
               <button key={g.grammarId} type="button" onClick={() => openDetail(g.grammarId)}
-                className="w-full text-left bg-white border border-gray-100 rounded-xl p-3 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 flex items-center gap-2.5">
+                className="w-full text-left bg-white border border-gray-100 rounded-xl p-3 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 flex items-center gap-2.5">
                 <span className="text-[11px] font-mono text-gray-300 shrink-0 w-8">{g.no}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-bold text-gray-900 truncate">{g.displayExpression}</span>

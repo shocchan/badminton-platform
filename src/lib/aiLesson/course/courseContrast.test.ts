@@ -100,6 +100,31 @@ describe('小さな補助文字は 3:1 以上', () => {
   });
 });
 
+/**
+ * focus ring（CEO承認の全体修正・2026-07-28）。
+ * 最低基準3:1ぎりぎりではなく、余裕（3.2〜3.5:1以上）を持たせる。
+ */
+describe('focus ring（共通修正後）は余裕を持って見分けられる', () => {
+  const RING_TARGET = 3.5;
+  const cases: [string, string, string][] = [
+    ['共通ボタン ring（indigo-500 / 白地）', COLOR.indigo500, COLOR.white],
+    ['共通ボタン ring（indigo-500 / 薄い藍地）', COLOR.indigo500, COLOR.indigo50],
+    ['一覧行 ring（blue-600 / 白地）', '#2563eb', COLOR.white],
+    ['一覧行 ring（blue-600 / 薄い灰地）', '#2563eb', COLOR.gray50],
+    ['ホームCTA ring（teal-600 / 白地）', '#0d9488', COLOR.white],
+    ['hero ring（白 / 濃い藍地）', COLOR.white, COLOR.indigo600],
+  ];
+  it.each(cases)('%s は 3.5:1 以上', (_label, fg, bg) => {
+    expect(round(contrastRatio(fg, bg))).toBeGreaterThanOrEqual(RING_TARGET);
+  });
+  it('修正前の記録: indigo-400=2.98 / blue-400=2.54 / blue-300=1.80 / teal-300=1.48（いずれも3:1未達だった）', () => {
+    expect(round(contrastRatio(COLOR.indigo400, COLOR.white))).toBeLessThan(3);
+    expect(round(contrastRatio('#60a5fa', COLOR.white))).toBeLessThan(3);
+    expect(round(contrastRatio('#93c5fd', COLOR.white))).toBeLessThan(3);
+    expect(round(contrastRatio('#5eead4', COLOR.white))).toBeLessThan(3);
+  });
+});
+
 describe('focus ring は背景から見分けられる', () => {
   // indigo-400 は白地で 2.98 とわずかに未達だったため、focus ring には indigo-500 を使う
   it('focus ringの色は白地に対して 3:1 以上', () => {

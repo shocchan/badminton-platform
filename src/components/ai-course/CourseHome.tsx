@@ -465,17 +465,17 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
       <p className="text-xs font-bold text-gray-500 mb-2">{tm.menuHeading}</p>
       <div className="space-y-2">
         <button type="button" onClick={onStartConversation} disabled={!canLearn}
-          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-gradient-to-r from-blue-600 to-blue-500 text-white disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300">
+          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-gradient-to-r from-blue-600 to-blue-500 text-white disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2">
           <p className="text-sm font-bold flex items-center gap-1.5"><Mic className="w-4 h-4" aria-hidden />{tm.convTitle}</p>
           <p className="text-xs text-blue-100 mt-0.5">{tm.convBody}</p>
         </button>
         <button type="button" onClick={() => onOpenVocab('top')}
-          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-white border-2 border-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
+          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-white border-2 border-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">
           <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-teal-600" aria-hidden />{tm.vocabTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
           <p className="text-xs text-gray-600 mt-0.5">{tm.vocabBody}</p>
         </button>
         <button type="button" onClick={() => onOpenLab('today')}
-          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-indigo-50 border-2 border-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-indigo-50 border-2 border-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><PenLine className="w-4 h-4 text-indigo-600" aria-hidden />{tm.labTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
           <p className="text-xs text-gray-600 mt-0.5">{tm.labBody}</p>
         </button>

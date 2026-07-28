@@ -74,7 +74,7 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
           {choiceOrder.map((orig) => (
             <button key={orig} type="button" disabled={judged !== null} onClick={() => setPicked(orig)}
               aria-pressed={picked === orig}
-              className={`w-full min-h-12 px-4 py-3 text-left text-base rounded-xl border-2 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-400 ${
+              className={`w-full min-h-12 px-4 py-3 text-left text-base rounded-xl border-2 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                 judged !== null && orig === q.answerIndex ? 'border-emerald-400 bg-emerald-50'
                   : picked === orig ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
               <span className="flex-1">{q.choices![orig]}</span>
@@ -144,7 +144,7 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
       {judged === null ? (
         <div>
           <button type="button" onClick={submit} disabled={!canSubmit}
-            className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-indigo-400">{tl.check}</button>
+            className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-indigo-500">{tl.check}</button>
           <button type="button" onClick={skip} className="w-full min-h-11 py-2 mt-1 text-xs text-gray-400">{tl.skipQuestion}</button>
         </div>
       ) : (

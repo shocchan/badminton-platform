@@ -108,3 +108,17 @@ describe('ステップイラスト', () => {
     expect(container.innerHTML).not.toContain('http');
   });
 });
+
+// CEO承認のfocus ring共通修正（2026-07-28）の回帰: 共通ボタンのfocus指定。
+describe('共通ボタンのfocus ring指定（回帰）', () => {
+  it('keyboard時のみ（focus-visible）・indigo-500・offset・forced-colors用outlineを持つ', async () => {
+    const { ActionButton } = await import('../ActionButton');
+    const { container } = render(<ActionButton variant="primary">進む</ActionButton>);
+    const cls = container.querySelector('button')!.className;
+    expect(cls).toContain('focus-visible:ring-indigo-500');
+    expect(cls).toContain('focus-visible:ring-offset-2');
+    expect(cls).toContain('focus-visible:outline-transparent');   // forced-colorsで消えない
+    expect(cls).not.toContain('focus:ring');                       // mouse clickで常時出さない
+    expect(cls).not.toContain('ring-indigo-400');
+  });
+});

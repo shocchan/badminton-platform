@@ -256,7 +256,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           <div className="grid grid-cols-2 gap-2 mb-2">
             {catMeta.map(({ key, label }) => (
               <button key={key} type="button" onClick={() => setView('category', key)}
-                className="card-interactive min-h-16 bg-white rounded-xl border border-gray-100 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                className="card-interactive min-h-16 bg-white rounded-xl border border-gray-100 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                 <p className="text-sm font-bold text-gray-900 flex items-center justify-between">{label}<ArrowRight className="w-3.5 h-3.5 text-gray-300" aria-hidden /></p>
                 <p className="text-[11px] text-gray-400">{tv.wordsCount(listFor(key).length)}</p>
               </button>
@@ -438,7 +438,7 @@ const SelfAssessRow = ({ t, repo, id, onChanged, schedule }: {
 
 const CompactCard = ({ t, repo, item, onOpen }: { t: AiCourseDict; repo: VocabProgressRepository; item: FoundationItem; onOpen: () => void }) => (
   <button type="button" onClick={onOpen} aria-label={item.displayForm}
-    className="card-interactive w-full text-left bg-white rounded-xl border border-gray-100 p-3 flex gap-3 items-center min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+    className="card-interactive w-full text-left bg-white rounded-xl border border-gray-100 p-3 flex gap-3 items-center min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
     <VocabImage item={item} asset={assetForItem(item.id)} labPreview className="w-16 shrink-0" />
     <div className="flex-1 min-w-0">
       <div className="flex items-baseline gap-2 flex-wrap">
