@@ -15,13 +15,13 @@
   "meaningZhPresent": 0,
   "examplesPresent": 180,
   "n3CanFill": 38,
-  "completeDrafts": 144,
+  "completeDrafts": 158,
   "exampleMissingPattern": 1,
   "exampleMissingPatternNote": "粗い2文字一致では6件が該当したが、不連続文型・活用形・「/」の代替表記による誤検出だった。断片分割＋代替表記対応で再検査した確定値。該当はn2g-169（〜わけだ）の例文に文型が現れない1件",
   "exampleMissingPatternIds": [
    "n2g-169"
   ],
-  "draftRemaining": 29,
+  "draftRemaining": 15,
   "rightsStatus": "teacher_created_confirmed（CEO確認 2026-07-28・runtime使用可）"
  },
  "entries": [
@@ -2328,7 +2328,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2342,7 +2342,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2356,7 +2356,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2370,7 +2370,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2384,7 +2384,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2398,7 +2398,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2412,7 +2412,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2426,7 +2426,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2440,7 +2440,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2454,7 +2454,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2468,7 +2468,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2496,7 +2496,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2510,7 +2510,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
@@ -2524,7 +2524,7 @@
    ],
    "n3Fill": null,
    "classification": "needs_full_authoring",
-   "terminalState": "draft_target",
+   "terminalState": "complete_draft",
    "reason": "原本は例文のみ。意味・中文・接続・問題をすべて新規執筆する必要がある"
   },
   {
