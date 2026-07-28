@@ -1,0 +1,2896 @@
+{
+ "n2": {
+  "total": 180,
+  "complete": 0,
+  "incomplete": 180,
+  "items": [
+   {
+    "id": "n2g-001",
+    "expr": "〜あげく",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-002",
+    "expr": "〜あまり",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-003",
+    "expr": "〜以上は",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-004",
+    "expr": "〜一方/一方で",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-005",
+    "expr": "〜一方だ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-006",
+    "expr": "〜上では",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-007",
+    "expr": "〜上は",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-008",
+    "expr": "〜うちに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-009",
+    "expr": "〜うちは",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-010",
+    "expr": "〜しようではないか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": true
+   },
+   {
+    "id": "n2g-011",
+    "expr": "〜得る（うる）",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-012",
+    "expr": "〜得ない（えない）",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-013",
+    "expr": "〜おかげで",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-014",
+    "expr": "〜恐れがある",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-015",
+    "expr": "〜甲斐がある",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-016",
+    "expr": "〜がきっかけで/がきっかけになって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-017",
+    "expr": "〜限りは/ない限り",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-018",
+    "expr": "〜が契機で",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-019",
+    "expr": "〜かけ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-020",
+    "expr": "〜がたい",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-021",
+    "expr": "〜がちだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-022",
+    "expr": "〜かというと",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-023",
+    "expr": "〜かと思うと",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-024",
+    "expr": "〜かと思えば",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-025",
+    "expr": "〜か〜ないかのうちに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-026",
+    "expr": "〜か何か",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-027",
+    "expr": "〜かねない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-028",
+    "expr": "〜かねる",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-029",
+    "expr": "〜かのようだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-030",
+    "expr": "〜からいいようなものの",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-031",
+    "expr": "〜からいうと",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-032",
+    "expr": "〜からこそ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-033",
+    "expr": "〜からして",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-034",
+    "expr": "〜からすると",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-035",
+    "expr": "〜からといって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-036",
+    "expr": "〜からには",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-037",
+    "expr": "〜から見ると",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-038",
+    "expr": "〜代わりに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-039",
+    "expr": "〜気味",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-040",
+    "expr": "〜きりだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-041",
+    "expr": "〜きる",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-042",
+    "expr": "〜くせに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-043",
+    "expr": "〜くらい",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-044",
+    "expr": "〜ことか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-045",
+    "expr": "〜ことから",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-046",
+    "expr": "〜ことだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-047",
+    "expr": "〜ことだから",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-048",
+    "expr": "〜ことなく",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-049",
+    "expr": "〜ことは〜が",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-050",
+    "expr": "〜ことはない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-051",
+    "expr": "〜際は",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-052",
+    "expr": "〜最中に",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-053",
+    "expr": "〜ざるを得ない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-054",
+    "expr": "〜次第",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-055",
+    "expr": "〜上は（じょうは）",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-056",
+    "expr": "〜末に",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-057",
+    "expr": "〜ずにすむ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-058",
+    "expr": "〜ずにはいられない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-059",
+    "expr": "〜せいで",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-060",
+    "expr": "〜たいばかりに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-061",
+    "expr": "〜だけであって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-062",
+    "expr": "たとえ〜ても",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-063",
+    "expr": "〜たところ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-064",
+    "expr": "〜たところが",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-065",
+    "expr": "〜たとたんに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-066",
+    "expr": "〜たばかり",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-067",
+    "expr": "〜たびに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-068",
+    "expr": "〜だらけ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-069",
+    "expr": "〜ついでに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-070",
+    "expr": "〜っこない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-071",
+    "expr": "〜つつ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-072",
+    "expr": "〜つつある",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-073",
+    "expr": "〜っぽい",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-074",
+    "expr": "〜つもりだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-075",
+    "expr": "〜つもりで",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-076",
+    "expr": "〜て以来",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-077",
+    "expr": "〜てからでないと",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-078",
+    "expr": "〜てしょうがない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-079",
+    "expr": "〜てたまらない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-080",
+    "expr": "〜てでも",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-081",
+    "expr": "〜てならない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-082",
+    "expr": "〜てはいられない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-083",
+    "expr": "〜てばかりはいられない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-084",
+    "expr": "〜てはじめて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-085",
+    "expr": "〜ということだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-086",
+    "expr": "〜というものではない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-087",
+    "expr": "〜というより",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-088",
+    "expr": "〜といっても",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-089",
+    "expr": "〜とおりに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-090",
+    "expr": "〜とか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-091",
+    "expr": "〜どころか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-092",
+    "expr": "〜ところだった",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-093",
+    "expr": "〜どころではない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-094",
+    "expr": "〜ところに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-095",
+    "expr": "〜ところを",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-096",
+    "expr": "〜としか言いようがない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-097",
+    "expr": "〜としたら/とすれば/とすると",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-098",
+    "expr": "〜とともに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-099",
+    "expr": "〜とは限らない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-100",
+    "expr": "〜ないことには",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-101",
+    "expr": "〜ないことはない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-102",
+    "expr": "〜ないではない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-103",
+    "expr": "〜ながらも",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-104",
+    "expr": "〜なくはない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-105",
+    "expr": "〜ならともかく",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-106",
+    "expr": "〜にあたって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-107",
+    "expr": "〜において",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-108",
+    "expr": "〜に応じては",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-109",
+    "expr": "〜にかかわらず",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-110",
+    "expr": "〜に限って",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-111",
+    "expr": "〜に限る",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-112",
+    "expr": "〜にかけては",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-113",
+    "expr": "〜に決まっている",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-114",
+    "expr": "〜に加えて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-115",
+    "expr": "〜に越したことはない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-116",
+    "expr": "〜に応えて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-117",
+    "expr": "〜に際して",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-118",
+    "expr": "〜に先立って",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-119",
+    "expr": "〜に従って",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-120",
+    "expr": "〜にしたら",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-121",
+    "expr": "〜にしては",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-122",
+    "expr": "〜にしても",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-123",
+    "expr": "〜に過ぎない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-124",
+    "expr": "〜に相違ない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-125",
+    "expr": "〜に沿って",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-126",
+    "expr": "〜に違いない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-127",
+    "expr": "〜につき",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-128",
+    "expr": "〜につけ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-129",
+    "expr": "〜に伴って",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-130",
+    "expr": "〜に反して",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-131",
+    "expr": "〜にほかならない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-132",
+    "expr": "〜にもかかわらず",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-133",
+    "expr": "〜に基づいて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-134",
+    "expr": "〜にわたって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-135",
+    "expr": "〜抜きでは",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-136",
+    "expr": "〜抜く",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-137",
+    "expr": "〜のみならず",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-138",
+    "expr": "〜のもとで",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-139",
+    "expr": "〜はおろか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-140",
+    "expr": "〜ばかりか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-141",
+    "expr": "〜ばかりに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-142",
+    "expr": "〜はともかくとして",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-143",
+    "expr": "〜は別として",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-144",
+    "expr": "〜ば〜ほど",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-145",
+    "expr": "〜はもちろん/もとより",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-146",
+    "expr": "〜反面",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-147",
+    "expr": "〜べき",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-148",
+    "expr": "〜ほか（は）ない/よりほかはない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-149",
+    "expr": "〜ほど",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-150",
+    "expr": "〜まい",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-151",
+    "expr": "〜ままに",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-152",
+    "expr": "〜もかまわず",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-153",
+    "expr": "〜も当然だ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-154",
+    "expr": "〜も〜なら〜も",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-155",
+    "expr": "〜ものか/もんか",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-156",
+    "expr": "〜ものがある",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-157",
+    "expr": "〜ものだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-158",
+    "expr": "〜ものだから",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-159",
+    "expr": "〜ものではない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-160",
+    "expr": "〜ものなら",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-161",
+    "expr": "〜ものの",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-162",
+    "expr": "〜矢先に",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-163",
+    "expr": "〜やら〜やら",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-164",
+    "expr": "〜ようがない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-165",
+    "expr": "〜ようで",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-166",
+    "expr": "〜ようでは",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-167",
+    "expr": "〜ようなら（ば）",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-168",
+    "expr": "〜わけがない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-169",
+    "expr": "〜わけだ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-170",
+    "expr": "〜わけではない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-171",
+    "expr": "〜わけにはいかない",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-172",
+    "expr": "〜わりには",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-173",
+    "expr": "〜を中心に",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-174",
+    "expr": "〜を通じて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-175",
+    "expr": "〜を問わず",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-176",
+    "expr": "〜を除いては",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-177",
+    "expr": "〜をはじめ",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-178",
+    "expr": "〜を踏まえて",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-179",
+    "expr": "〜をめぐって",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   },
+   {
+    "id": "n2g-180",
+    "expr": "〜をもとにして",
+    "missing": [
+     "meaningZh",
+     "reading",
+     "connection",
+     "nuance",
+     "quiz",
+     "conversation",
+     "review",
+     "route"
+    ],
+    "complete": false,
+    "hasContentOverride": false
+   }
+  ]
+ },
+ "n3": {
+  "total": 120,
+  "imported": 0,
+  "complete": 0,
+  "incomplete": 120,
+  "source": "Excel『N3の文法120例文集』未取込"
+ }
+}
