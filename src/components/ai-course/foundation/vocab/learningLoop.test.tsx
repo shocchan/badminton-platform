@@ -13,7 +13,7 @@ afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); window.localStorage.clear(); });
 const t = aiCourseI18n.ja;
 const tv = t.vocab;
-const base = { t, onBack: () => {} };
+const base = { t, onBack: () => {}, labPreview: true };
 
 /** 昨日誤答した状態を作る（今日が期限の復習が1件ある） */
 const seedDueReview = (itemId: string) => {

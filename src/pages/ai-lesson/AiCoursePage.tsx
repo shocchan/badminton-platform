@@ -50,10 +50,10 @@ import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
-// しくみラボは labPreview 管理者のみ利用のため lazy chunk 化（一般受講生のbundleへ教材を含めない・§17）
+// しくみラボ・ことば図鑑・冒険は lazy chunk（教材・画像manifestをメインbundleへ含めない・§17）
 const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
-// ことば図鑑も labPreview 限定の lazy chunk（語彙・画像manifestをメインbundleへ含めない・§58）
 const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
+const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -73,8 +73,9 @@ import { CourseChapterList } from '../../components/ai-course/CourseChapterList'
 import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
+import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -138,15 +139,9 @@ export default function AiCoursePage() {
 
   const [step, setStep] = useState<Step>('loading');
   const [learner, setLearner] = useState<Learner | null>(null);
-  // しくみラボの権限（labPreview管理者のみ・§23）。未許可でstepがlabになった場合はホームへ退避
+  // labPreview（管理者）は内部レビュー画面の表示にのみ使う。
+  // 学習機能（ことば図鑑・しくみラボ・冒険）は全learnerが利用できる（FOREST FIRST §5-§6）。
   const labAllowed = hasLabPreview(learner?.adminOverrides);
-  useEffect(() => {
-    if ((step !== 'lab' && step !== 'vocab') || labAllowed) return;
-    let alive = true;
-    // effect内同期setStateを避ける（リポジトリ既定のmicrotaskパターン）
-    void Promise.resolve().then(() => { if (alive) setStep('home'); });
-    return () => { alive = false; };
-  }, [step, labAllowed]);
   const [progress, setProgress] = useState<ItemProgress[]>([]);
   const [sessions, setSessions] = useState<CourseSessionRecord[]>([]);
   const [plan, setPlan] = useState<LessonPlan | null>(null);
@@ -632,7 +627,6 @@ export default function AiCoursePage() {
       return;
     }
     if (k === 'lab') {
-      if (!labAllowed) return; // 権限なしは何もしない（DOM上ボタン自体が出ない前提の防御）
       trackCourse('click_ai_course_foundation_nav');
       syncVocabUrl(null);
       syncLabUrl({ section: 'today', unit: null, step: null });
@@ -640,7 +634,6 @@ export default function AiCoursePage() {
       return;
     }
     if (k === 'vocab') {
-      if (!labAllowed) return;
       trackCourse('click_ai_course_foundation_nav');
       syncLabUrl(null);
       syncVocabUrl({ view: 'top', category: null, itemId: null });
@@ -720,8 +713,6 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'lab') {
-    // lazy chunk取得前にも権限確認（未許可者は描画しない・上のeffectでホームへ戻る・§23）
-    if (!labAllowed) return null;
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('lab')} showLab={labAllowed}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
@@ -734,16 +725,26 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'vocab') {
-    if (!labAllowed) return null;
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-          <VocabularyHubLazy t={t}
+          <VocabularyHubLazy t={t} labPreview={labAllowed}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
             onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
+      </Shell>
+    );
+  }
+  if (step === 'adventure') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+            <Chapter1AdventureLazy onBack={() => setStep('home')} devTools={labAllowed} />
+          </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
@@ -877,6 +878,9 @@ export default function AiCoursePage() {
           { id: 'record', worldName: '冒険の記録', functionName: '成長と履歴を見る',
             descriptionJa: 'できるようになったことの記録',
             onOpen: () => { void openGrowth(); } },
+          { id: 'adventure', worldName: 'はじまりの町', functionName: '冒険・ものがたり',
+            descriptionJa: '学んだことばで町の霧を晴らす',
+            onOpen: () => setStep('adventure') },
         ]}
       >
       <CourseHome
@@ -892,7 +896,6 @@ export default function AiCoursePage() {
         onStartLight={() => setStep('light')}
         sessions={sessions}
         onOpenNotebook={() => setStep('notebook')}
-        labPreview={hasLabPreview(learner.adminOverrides)}
         onOpenLab={(section) => { syncVocabUrl(null); syncLabUrl({ section: section === 'units' ? 'units' : section === 'records' ? 'records' : 'today', unit: null, step: null }); setStep('lab'); }}
         onOpenVocab={(view) => {
           syncLabUrl(null);

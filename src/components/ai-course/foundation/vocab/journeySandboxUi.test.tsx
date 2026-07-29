@@ -15,7 +15,7 @@ afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); window.localStorage.clear(); });
 const t = aiCourseI18n.ja;
 const tv = t.vocab;
-const base = { t, onBack: () => {} };
+const base = { t, onBack: () => {}, labPreview: true };
 
 /** 通常側に「学習済みの記録」を作る（検証で失われてはいけないもの） */
 const seedNormalProgress = () => {

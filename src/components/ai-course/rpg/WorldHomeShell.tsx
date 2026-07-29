@@ -178,7 +178,7 @@ export const WorldHomeShell = ({
       </div>
 
       {/* ── 世界の施設（RPG名＋機能名を必ず併記） ── */}
-      <nav className="mt-4 grid grid-cols-2 lg:grid-cols-5 gap-2" aria-label="世界の施設">
+      <nav className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-2" aria-label="世界の施設">
         {facilities.map(f => (
           <button key={f.id} type="button" onClick={f.onOpen}
             className="relative text-left p-3 min-h-[4.5rem] bg-white border border-gray-200 rounded-2xl hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">

@@ -8,7 +8,7 @@ import { allVocabularyItems, vocabByCategory } from '../../../../lib/aiLesson/co
 afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); });
 const t = aiCourseI18n.ja;
-const base = { t, onBack: () => {}, onGoConversation: () => {} };
+const base = { t, onBack: () => {}, onGoConversation: () => {}, labPreview: true };
 
 describe('ことば図鑑トップ（§7・3ブロック構成）', () => {
   it('パック・今日のことば・カテゴリーの3ブロック＋非保存表記（復習はロードマップへ集約・2E-1 §26）', () => {
@@ -22,6 +22,23 @@ describe('ことば図鑑トップ（§7・3ブロック構成）', () => {
     expect(screen.getByText(t.vocab.internalReviewEntry)).toBeTruthy();
     // トップへ大きな検索欄・全語一覧を出さない（§31・§7）
     expect(screen.queryByPlaceholderText(t.vocab.searchPlaceholder)).toBeNull();
+  });
+  it('learner（labPreview=false）には内部レビュー・sandbox・冒険の内部入口を出さない（FOREST FIRST）', () => {
+    render(<VocabularyHub {...base} labPreview={false} />);
+    // 学習機能は見える
+    expect(screen.getByText(t.vocab.todayWordsHeading)).toBeTruthy();
+    // 内部入口はDOM自体なし
+    expect(screen.queryByText(t.vocab.internalReviewEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.decisionConsoleEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.connectivityEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.onoDraftsEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.n3GrammarDraftsEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.adventureEntry)).toBeNull();
+    expect(screen.queryByText(t.vocab.sandboxEntry)).toBeNull();
+  });
+  it('learnerのURL復元で内部viewを指定してもtopへ戻す', () => {
+    render(<VocabularyHub {...base} labPreview={false} initial={{ view: 'decisions' }} />);
+    expect(screen.getByText(t.vocab.todayWordsHeading)).toBeTruthy();
   });
   it('優先4カテゴリ（動詞/い形/な形/名詞）が大きく・語数付きで表示される', () => {
     render(<VocabularyHub {...base} />);

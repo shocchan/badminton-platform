@@ -11,7 +11,7 @@ afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); window.localStorage.clear(); });
 const t = aiCourseI18n.ja;
 const tv = t.vocab;
-const base = { t, onBack: () => {} };
+const base = { t, onBack: () => {}, labPreview: true };
 
 /** 初回Journeyの「最初の練習」から来た状態を作る */
 const startPracticeTask = () => {

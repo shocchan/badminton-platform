@@ -1,4 +1,5 @@
-// ことば図鑑（Phase 2C+ §6-§7・§18-§26）。labPreview限定・lazy chunk。
+// ことば図鑑（Phase 2C+ §6-§7・§18-§26）。全learner利用可のlazy chunk（FOREST FIRST）。
+// 内部レビュー画面（review/decisions/connectivity/onodrafts/n3grammar・sandbox）のみlabPreview管理者限定。
 // トップは3ブロックのみ（今日のことば／カテゴリー／復習したいことば・§7）。
 // 進捗はsessionStorage試作Repository。自己評価と検証状態は分離（§20）。
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -63,12 +64,15 @@ interface Props {
   onGoConversation?: () => void;
   initial?: Partial<VocabHubState>;
   onStateChange?: (s: VocabHubState) => void;
+  /** 内部レビュー画面（review/decisions/connectivity/onodrafts/n3grammar・sandbox・draft画像）の表示。
+      学習機能そのものは全learnerが利用できる（FOREST FIRST） */
+  labPreview?: boolean;
 }
 
 // 日付判定はLearningClockへ集約（ローカル日付・UTCで日付がずれない・2E-1.10 §5）
 const dateKey = () => defaultLearningClock.localDateKey();
 
-export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange }: Props) => {
+export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange, labPreview = false }: Props) => {
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
@@ -104,7 +108,9 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
     if (v === 'practice' && initial?.itemId && itemById.has(initial.itemId)) return 'practice';
     if (v === 'detail' && initial?.itemId && itemById.has(initial.itemId)) return 'detail';
     if (v === 'category' && initial?.category && validCats.includes(initial.category)) return 'category';
-    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'review' || v === 'decisions' || v === 'connectivity' || v === 'firstrun' || v === 'onodrafts' || v === 'n3grammar') return v;
+    if (v === 'daily' || v === 'all' || v === 'roadmap' || v === 'diagnostic' || v === 'quickreview' || v === 'firstrun') return v;
+    // 内部レビュー画面はlabPreview管理者のみURL復元を許可（learnerはtopへ）
+    if ((v === 'review' || v === 'decisions' || v === 'connectivity' || v === 'onodrafts' || v === 'n3grammar') && labPreview) return v;
     return 'top';
   });
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
@@ -269,25 +275,29 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
             className="w-full min-h-11 py-2 mb-4 text-sm text-indigo-700 border border-indigo-100 rounded-xl">{tv.catAll}・{tv.catScenes}</button>
           {/* 復習はロードマップ・3分復習へ集約（同じ進捗の重複表示を避ける・§26） */}
           <p className="text-[11px] text-gray-400 mt-3">{tv.notSavedVocab}</p>
-          {/* 内部レビュー入口（labPreview画面内のみ・利用者向けナビには出さない・§14） */}
-          <button type="button" onClick={() => setView('review')}
-            className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left">{tv.internalReviewEntry}</button>
-          <button type="button" onClick={() => setView('decisions')}
-            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
-          <button type="button" onClick={() => setView('connectivity')}
-            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
-          <button type="button" onClick={() => setView('onodrafts')}
-            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.onoDraftsEntry}</button>
-          <button type="button" onClick={() => setView('n3grammar')}
-            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.n3GrammarDraftsEntry}</button>
-          <button type="button" onClick={() => setView('adventure')}
-            className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.adventureEntry}</button>
-          {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
-              初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
-          {!sandboxOn && (
-            <button type="button"
-              onClick={() => { beginJourneySandbox(window.sessionStorage); setSandboxOn(true); setView('firstrun'); }}
-              className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.sandboxEntry}</button>
+          {/* 内部レビュー入口（labPreview管理者のみ・learnerにはDOM自体を出さない・§14） */}
+          {labPreview && (
+            <>
+              <button type="button" onClick={() => setView('review')}
+                className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left">{tv.internalReviewEntry}</button>
+              <button type="button" onClick={() => setView('decisions')}
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
+              <button type="button" onClick={() => setView('connectivity')}
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
+              <button type="button" onClick={() => setView('onodrafts')}
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.onoDraftsEntry}</button>
+              <button type="button" onClick={() => setView('n3grammar')}
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.n3GrammarDraftsEntry}</button>
+              <button type="button" onClick={() => setView('adventure')}
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.adventureEntry}</button>
+              {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
+                  初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
+              {!sandboxOn && (
+                <button type="button"
+                  onClick={() => { beginJourneySandbox(window.sessionStorage); setSandboxOn(true); setView('firstrun'); }}
+                  className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.sandboxEntry}</button>
+              )}
+            </>
           )}
         </div>
       )}
@@ -310,7 +320,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         </Suspense>
       )}
       {view === 'firstrun' && (
-        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview>
+        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview={labPreview}>
           <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
             <FirstRunJourneyLazy t={t} sandbox={sandboxOn} storage={store}
               onStartCheck={() => setView('diagnostic')}
@@ -331,9 +341,9 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         </Suspense>
       )}
       {view === 'adventure' && (
-        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview>
+        <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview={labPreview}>
           <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <Chapter1AdventurePanelLazy onBack={() => setView('top')} devTools />
+            <Chapter1AdventurePanelLazy onBack={() => setView('top')} devTools={labPreview} />
           </Suspense>
         </LearnerErrorBoundary>
       )}
@@ -361,10 +371,10 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           }} />
       )}
       {view === 'quickreview' && (
-        <VocabQuickReviewView t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
+        <VocabQuickReviewView labPreview={labPreview} t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
           onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
       )}
-      {view === 'daily' && <DailyFlowView t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
+      {view === 'daily' && <DailyFlowView labPreview={labPreview} t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
         const ids = daily.itemIds.filter((id) => itemById.has(id));
         const done = finishJourneyTask('practice', {
@@ -378,8 +388,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         });
         if (!done) setView('top');
       }} onRestart={() => setView('daily')} />}
-      {view === 'category' && category && <VocabCategoryList t={t} repo={repo} list={listFor(category)} query="" showSearch={false} onQuery={() => {}} onOpen={(id) => setView('detail', category, id)} />}
-      {view === 'all' && <VocabCategoryList t={t} repo={repo} list={listFor('all')} query={query} showSearch onQuery={setQuery} onOpen={(id) => setView('detail', 'all', id)} />}
+      {view === 'category' && category && <VocabCategoryList labPreview={labPreview} t={t} repo={repo} list={listFor(category)} query="" showSearch={false} onQuery={() => {}} onOpen={(id) => setView('detail', category, id)} />}
+      {view === 'all' && <VocabCategoryList labPreview={labPreview} t={t} repo={repo} list={listFor('all')} query={query} showSearch onQuery={setQuery} onOpen={(id) => setView('detail', 'all', id)} />}
       {view === 'detail' && itemId && itemById.get(itemId) && (() => {
         const item = itemById.get(itemId)!;
         // 順次ナビの文脈（§3）: カテゴリ由来はその決定的並び順、直接URL等は同品詞カテゴリ順（§3E）
@@ -396,7 +406,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           <Suspense fallback={null}>
             <VocabDecisionBadgeLazy t={t} itemId={item.id} onOpen={() => setView('decisions')} />
           </Suspense>
-          <VocabDetailView key={item.id} t={t} item={item} itemById={itemById} repo={repo} onChanged={bump}
+          <VocabDetailView labPreview={labPreview} key={item.id} t={t} item={item} itemById={itemById} repo={repo} onChanged={bump}
             progressLabel={idx >= 0 ? tv.categoryProgress(catLabel, idx + 1, list.length) : null}
             nextItem={nextItem} backLabel={tv.backToList(catLabel)}
             onNext={() => { trackCourse('click_ai_course_vocabulary_next', { itemId: item.id }); if (nextItem) setView('detail', category, nextItem.id); else setView(ctxCat === 'all' ? 'all' : 'category', ctxCat === 'all' ? 'all' : ctxCat); }}
@@ -462,10 +472,10 @@ const SelfAssessRow = ({ t, repo, id, onChanged, schedule }: {
   );
 };
 
-const CompactCard = ({ t, repo, item, onOpen }: { t: AiCourseDict; repo: VocabProgressRepository; item: FoundationItem; onOpen: () => void }) => (
+const CompactCard = ({ t, repo, item, onOpen, labPreview }: { t: AiCourseDict; repo: VocabProgressRepository; item: FoundationItem; onOpen: () => void; labPreview: boolean }) => (
   <button type="button" onClick={onOpen} aria-label={item.displayForm}
     className="card-interactive w-full text-left bg-white rounded-xl border border-gray-100 p-3 flex gap-3 items-center min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-    <VocabImage item={item} asset={assetForItem(item.id)} labPreview className="w-16 shrink-0" />
+    <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} className="w-16 shrink-0" />
     <div className="flex-1 min-w-0">
       <div className="flex items-baseline gap-2 flex-wrap">
         <span className="text-base font-bold text-gray-900">{item.displayForm}</span>
@@ -478,9 +488,10 @@ const CompactCard = ({ t, repo, item, onOpen }: { t: AiCourseDict; repo: VocabPr
   </button>
 );
 
-const VocabCategoryList = ({ t, repo, list, query, showSearch, onQuery, onOpen }: {
+const VocabCategoryList = ({ t, repo, list, query, showSearch, onQuery, onOpen, labPreview }: {
   t: AiCourseDict; repo: VocabProgressRepository; list: FoundationItem[];
   query: string; showSearch: boolean; onQuery: (q: string) => void; onOpen: (id: string) => void;
+  labPreview: boolean;
 }) => {
   const tv = t.vocab;
   const filtered = list.filter((i) => query.trim() === '' || i.lemma.includes(query.trim()) || i.readingKana.includes(query.trim()) || i.meaningZh.includes(query.trim()));
@@ -491,14 +502,14 @@ const VocabCategoryList = ({ t, repo, list, query, showSearch, onQuery, onOpen }
           aria-label={tv.searchPlaceholder} className="w-full min-h-11 px-4 py-2.5 border border-gray-200 rounded-xl text-sm mb-3" />
       )}
       <div className="space-y-2">
-        {filtered.map((it) => <CompactCard key={it.id} t={t} repo={repo} item={it} onOpen={() => onOpen(it.id)} />)}
+        {filtered.map((it) => <CompactCard key={it.id} t={t} repo={repo} item={it} onOpen={() => onOpen(it.id)} labPreview={labPreview} />)}
       </div>
       {filtered.length === 0 && <p className="text-sm text-gray-400 text-center py-8">{t.lab.emptyWords}</p>}
     </div>
   );
 };
 
-const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, nextItem, backLabel, onNext, onOpenItem, onStartPractice }: {
+const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, nextItem, backLabel, onNext, onOpenItem, onStartPractice, labPreview }: {
   t: AiCourseDict; item: FoundationItem; itemById: Map<string, FoundationItem>;
   repo: VocabProgressRepository; onChanged: () => void;
   progressLabel: string | null;
@@ -507,6 +518,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
   onNext: () => void;
   onOpenItem: (id: string) => void;
   onStartPractice?: () => void;
+  labPreview: boolean;
 }) => {
   const tv = t.vocab;
   useEffect(() => {
@@ -547,7 +559,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
       {progressLabel && <p className="text-xs font-mono text-gray-400">{progressLabel}</p>}
       {/* セクションanchor（2E-1.9 §11: hashで意味/例文へ直接移動・focusも移動） */}
       <div id="vsec-meaning" tabIndex={-1} className="bg-white rounded-2xl border border-gray-100 p-5 focus:outline-none">
-        <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />
+        <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />
         <div className="flex items-baseline gap-2 flex-wrap">
           <span className="text-2xl font-bold text-gray-900">{item.displayForm}</span>
           {showReading && <span className="text-sm text-gray-500">{item.readingKana}</span>}
@@ -678,7 +690,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
 /** 1語の中の段階順（PhaseTrailの現在位置算出に使う） */
 const PHASE_ORDER = ['card', 'quiz', 'assess'] as const;
 
-const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journeyTask, onChanged, onDone, onRestart }: {
+const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journeyTask, onChanged, onDone, onRestart, labPreview }: {
   t: AiCourseDict; items: FoundationItem[]; itemById: Map<string, FoundationItem>;
   ids: string[]; reasons: Record<string, string>;
   repo: VocabProgressRepository;
@@ -687,6 +699,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
   /** 再開位置の保存先（2E-1.14 §3・確定した操作だけを書く） */
   journeyTask: JourneyTaskRepository;
   onChanged: () => void; onDone: () => void; onRestart: () => void;
+  labPreview: boolean;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
   // 再開位置は契約から復元する（再読込しても済んだフェーズをやり直させない・§4）
@@ -732,7 +745,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
   }
   const item = itemById.get(ids[idx])!;
   const isLast = idx === ids.length - 1;
-  const imgQ = buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 11, true);
+  const imgQ = buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 11, labPreview);
   const q = imgQ ?? meaningQuestionFor(t, items, item, idx + 11);
   const order = shuffledChoicesSeeded(q, idx + 3);
   return (
@@ -750,7 +763,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
       {phase === 'card' && (
         // 視線の順路: 絵 → ことば → 読み → 意味 → 例文 → 次へ。区切り線で塊を分ける
         <div key={item.id} className="motion-safe:animate-[pageFadeIn_260ms_ease-out]">
-          <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />
+          <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />
           <p className="text-[28px] leading-tight font-bold text-gray-900">{item.displayForm}</p>
           <p className="text-sm text-gray-500 mt-0.5">{item.readingKana}</p>
           <p className="text-base text-gray-800 mt-2 pb-3 border-b border-gray-100">{item.meaningZh}</p>
@@ -765,7 +778,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
       )}
       {phase === 'quiz' && (
         <div>
-          {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />}
+          {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />}
           <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
           <div className="space-y-2">
             {order.map((orig) => (
@@ -1205,10 +1218,11 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
   );
 };
 
-const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk }: {
+const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk, labPreview }: {
   t: AiCourseDict; repo: VocabProgressRepository; schedule: VocabSpacedReviewRepository;
   itemById: Map<string, FoundationItem>; items: FoundationItem[];
   onChanged: () => void; onDone: () => void; onTalk?: () => void;
+  labPreview: boolean;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
   // 期限が来た復習を優先し、足りない分を従来の弱点候補で補う（空画面にしない・§6）
@@ -1231,7 +1245,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
   const item = itemById.get(ids[idx])!;
   // 弱点軸を維持: 前回readingを誤答→読み形式、それ以外は意味/画像形式（§25）
   const lastWrongReading = item && repo.getEntry(item.id).tests.slice().reverse().find((x) => !x.correct)?.dimension === 'reading';
-  const imgQ = !lastWrongReading ? buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 23, true) : null;
+  const imgQ = !lastWrongReading ? buildImageToWordQuestion(item, assetForItem(item.id), items, idx + 23, labPreview) : null;
   const q = imgQ ?? buildDiagnosticQuestion(item, items, lastWrongReading ? 1 : 0);
   const order = shuffledChoicesSeeded(q, idx + 13);
   return (
@@ -1240,7 +1254,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
         <span className="text-[11px] text-gray-500">{tv.quickReviewCta}</span>
         <span className="text-xs font-mono text-gray-400">{idx + 1} / {ids.length}</span>
       </div>
-      {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview size="detail" className="mb-3" />}
+      {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />}
       <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
       <div className="space-y-2">
         {order.map((orig) => (

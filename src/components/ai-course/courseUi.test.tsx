@@ -127,7 +127,7 @@ const homeProps = {
   onStart: () => {}, onResume: () => {}, onDiscardResume: () => {},
   onSeeGrowth: () => {}, onSeePastNotes: () => {}, onPreview: () => {}, onStartLight: () => {},
   sessions: [], onOpenNotebook: () => {}, onUpdateAvatarSettings: () => {},
-  labPreview: false, onOpenLab: () => {}, onOpenVocab: () => {},
+  onOpenLab: () => {}, onOpenVocab: () => {},
 };
 
 describe('CourseHome（今日の学習と復旧パネル）', () => {
@@ -303,15 +303,10 @@ describe('Personal World V1（本人主役・アバターなし完成度）', ()
 });
 
 
-describe('新ホーム: 今日の学習ヒーロー＋3つの学習入口（Phase 2C+ §4-§5）', () => {
-  it('labPreview=false（一般受講生・Andyさん）にはDOM自体を出さない', () => {
-    render(<CourseHome {...homeProps} />);
-    expect(screen.queryByText(t.homeMenu.todayHeading)).toBeNull();
-    expect(screen.queryByText(t.homeMenu.vocabTitle)).toBeNull();
-  });
-  it('labPreview=trueでヒーロー1枚（CTA一つ）＋3入口（会話/ことば/しくみ）を表示', () => {
+describe('新ホーム: 今日の学習ヒーロー＋3つの学習入口（Phase 2C+ §4-§5・FOREST FIRSTで全learner開放）', () => {
+  it('全learnerにヒーロー1枚（CTA一つ）＋3入口（会話/ことば/しくみ）を表示', () => {
     const onLab = vi.fn(); const onVocab = vi.fn();
-    render(<CourseHome {...homeProps} labPreview onOpenLab={onLab} onOpenVocab={onVocab} />);
+    render(<CourseHome {...homeProps} onOpenLab={onLab} onOpenVocab={onVocab} />);
     expect(screen.getByText(t.homeMenu.todayHeading)).toBeTruthy();
     expect(screen.getByText(t.homeMenu.menuHeading)).toBeTruthy();
     expect(screen.getByText(t.homeMenu.convTitle)).toBeTruthy();
@@ -323,13 +318,13 @@ describe('新ホーム: 今日の学習ヒーロー＋3つの学習入口（Phas
     expect(onLab).toHaveBeenCalledWith('today');
   });
   it('ヒーロー・入口カードへ全単元一覧・全語彙・検索欄を出さない（§4）', () => {
-    render(<CourseHome {...homeProps} labPreview />);
+    render(<CourseHome {...homeProps} />);
     expect(screen.queryByText('助詞「は・が・を」')).toBeNull();
     expect(screen.queryByPlaceholderText(t.vocab.searchPlaceholder)).toBeNull();
   });
   it('中国語UIでも表示される', () => {
     const tz = aiCourseI18n.zh;
-    render(<CourseHome {...homeProps} t={tz} labPreview />);
+    render(<CourseHome {...homeProps} t={tz} />);
     expect(screen.getByText(tz.homeMenu.todayHeading)).toBeTruthy();
     expect(screen.getByText(tz.homeMenu.vocabTitle)).toBeTruthy();
   });
