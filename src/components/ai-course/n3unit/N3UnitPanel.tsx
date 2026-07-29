@@ -13,8 +13,10 @@ import {
   type UnitRunState, type StoragePort, type LoadOutcome,
 } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { HeroSprite, ShokoSprite } from '../rpg/pixelAssets';
+import type { AiCourseDict } from '../../../locales/aiCourse';
 
 export interface N3UnitPanelProps {
+  t: AiCourseDict;
   spec: UnitCoverageSpec;
   pool: FoundationItem[];
   storage: StoragePort;
@@ -32,41 +34,43 @@ export interface N3UnitPanelProps {
   initialRunState?: UnitRunState;
 }
 
-const PHASE_LABEL: Record<string, string> = {
-  intro: 'この単元について', diagnostic: 'できることの確認', stage1: 'Stage 1・理解',
-  stage2: 'Stage 2・使い分け', stage3: 'Stage 3・実践', mission: '場面ミッション', result: '結果',
-};
+const phaseLabelOf = (t: AiCourseDict): Record<string, string> => ({
+  intro: t.n3u.phaseIntro, diagnostic: t.n3u.phaseDiagnostic, stage1: t.n3u.phaseStage1,
+  stage2: t.n3u.phaseStage2, stage3: t.n3u.phaseStage3, mission: t.n3u.phaseMission, result: t.n3u.phaseResult,
+});
 
 const STAGE_STEPS = ['diagnostic', 'stage1', 'stage2', 'stage3', 'mission'] as const;
 
 /** 学習中も消えないRPGフレーム（世界の文脈＋学習情報を両方出す） */
-const WorldFrame = ({ areaName, spec, state, progress, children }: {
-  areaName: string; spec: UnitCoverageSpec; state: UnitRunState;
+const WorldFrame = ({ t, areaName, spec, state, progress, children }: {
+  t: AiCourseDict; areaName: string; spec: UnitCoverageSpec; state: UnitRunState;
   progress: { done: number; total: number }; children: React.ReactNode;
 }) => {
   const stepIndex = STAGE_STEPS.indexOf(state.phase as typeof STAGE_STEPS[number]);
+  const PHASE_LABEL = phaseLabelOf(t);
+  const zh = t.locale === 'zh';
   return (
     <div className="w-full">
       <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50 to-white p-3 mb-3">
         <div className="flex items-center gap-2 mb-1.5">
           <div className="w-7 shrink-0"><HeroSprite decorative /></div>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] text-emerald-700">{areaName}・{spec.titleJa}</p>
+            <p className="text-[11px] text-emerald-700">{areaName}・{zh ? spec.titleZh : spec.titleJa}</p>
             <p className="text-sm font-bold text-gray-900 truncate">{PHASE_LABEL[state.phase]}</p>
           </div>
           <div className="w-7 shrink-0"><ShokoSprite decorative pose="talk" /></div>
         </div>
         {/* Stage進行（テキストでも状態が分かる） */}
-        <ol className="flex items-center gap-1" aria-label="この単元の進み方">
+        <ol className="flex items-center gap-1" aria-label={t.n3u.stepsAria}>
           {STAGE_STEPS.map((st, i) => (
             <li key={st} className={`flex-1 h-1.5 rounded-full ${i < stepIndex ? 'bg-emerald-500' : i === stepIndex ? 'bg-emerald-300' : 'bg-gray-200'}`}
-              aria-label={`${PHASE_LABEL[st]}${i < stepIndex ? '（完了）' : i === stepIndex ? '（実施中）' : '（未着手）'}`} />
+              aria-label={`${PHASE_LABEL[st]}${i < stepIndex ? t.n3u.stepDone : i === stepIndex ? t.n3u.stepActive : t.n3u.stepTodo}`} />
           ))}
         </ol>
         <p className="text-[11px] text-gray-500 mt-1">
           {PHASE_LABEL[state.phase]}
-          {progress.total > 0 && <> ・ 残り{progress.total - progress.done}問／{progress.total}問</>}
-          {' '}・ 完了すると「{worldChangeFor(spec).unlockJa}」
+          {progress.total > 0 && <>{t.n3u.remaining(progress.total - progress.done, progress.total)}</>}
+          {t.n3u.completesTo(zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa)}
         </p>
       </div>
       {children}
@@ -78,8 +82,10 @@ const moduleNowMs = Date.now();
 const systemNow = () => Date.now();
 
 export const N3UnitPanel = ({
-  spec, pool, storage, areaName, nextUnitTitleJa, onExit, onOpenNextUnit, nowMs, initialRunState,
+  t, spec, pool, storage, areaName, nextUnitTitleJa, onExit, onOpenNextUnit, nowMs, initialRunState,
 }: N3UnitPanelProps) => {
+  const PHASE_LABEL = phaseLabelOf(t);
+  const zh = t.locale === 'zh';
   // renderからは時計を呼ばない。初期値はmodule読み込み時刻、以後はhandler/effect内で取得する
   const clock = () => nowMs ?? systemNow();
   const set = useMemo(() => buildUnitQuestions(spec, pool), [spec, pool]);
@@ -131,7 +137,7 @@ export const N3UnitPanel = ({
     }
     const answered = answerQuestion(state, q, true, clock());
     const advanced = advancePhaseIfDone(answered, set, spec, clock());
-    if (advanced.phase !== state.phase) setAnnouncement(`${PHASE_LABEL[advanced.phase]}へ進みました`);
+    if (advanced.phase !== state.phase) setAnnouncement(t.n3u.phaseAdvanced(PHASE_LABEL[advanced.phase]));
     persist(advanced);
     setWrongOnce(false); setBuilt([]);
   };
@@ -139,7 +145,7 @@ export const N3UnitPanel = ({
   // 「まだ習っていない」: 誤答扱いにせず診断だけ消化して先へ（Stage1で導入から学ぶ）
   const declineDiagnostic = (q: AssessQuestion) => {
     const advanced = advancePhaseIfDone(markDiagnosticNotLearned(state, q), set, spec, clock());
-    if (advanced.phase !== state.phase) setAnnouncement(`${PHASE_LABEL[advanced.phase]}へ進みました`);
+    if (advanced.phase !== state.phase) setAnnouncement(t.n3u.phaseAdvanced(PHASE_LABEL[advanced.phase]));
     persist(advanced);
     setWrongOnce(false); setBuilt([]);
   };
@@ -154,33 +160,33 @@ export const N3UnitPanel = ({
   const summary = summarizeRun(state, spec, set);
 
   if (loadKind === 'loading') {
-    return <div className="py-10 text-center text-sm text-gray-500" role="status">読み込んでいます…</div>;
+    return <div className="py-10 text-center text-sm text-gray-500" role="status">{t.n3u.loading}</div>;
   }
 
   return (
-    <WorldFrame areaName={areaName} spec={spec} state={state}
+    <WorldFrame t={t} areaName={areaName} spec={spec} state={state}
       progress={{ done: Math.max(0, phaseTotal - queue.length), total: phaseTotal }}>
       <p aria-live="polite" className="sr-only">{announcement}</p>
 
       {/* 復元・保存の状態（技術用語を出さず、次の行動を1つ示す） */}
       {loadKind === 'corrupted' && (
         <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
-          <p className="text-xs font-bold text-amber-800">前回の続きが読み取れませんでした</p>
-          <p className="text-[11px] text-amber-700">この単元は最初から始められます。学んだ記録は失われていません。</p>
+          <p className="text-xs font-bold text-amber-800">{t.n3u.corruptedTitle}</p>
+          <p className="text-[11px] text-amber-700">{t.n3u.corruptedBody}</p>
         </div>
       )}
       {loadKind === 'schema_newer' && (
         <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-2xl">
-          <p className="text-xs font-bold text-amber-800">新しいバージョンの記録が見つかりました</p>
-          <p className="text-[11px] text-amber-700">アプリを再読み込みすると、続きから始められます。</p>
+          <p className="text-xs font-bold text-amber-800">{t.n3u.newerTitle}</p>
+          <p className="text-[11px] text-amber-700">{t.n3u.newerBody}</p>
         </div>
       )}
       {saveError && (
         <div className="mb-3 p-3 bg-rose-50 border border-rose-200 rounded-2xl" role="alert">
-          <p className="text-xs font-bold text-rose-800">まだ保存できていません</p>
-          <p className="text-[11px] text-rose-700 mb-2">通信が戻ると自動で保存されます。今は続けて学習できます。</p>
+          <p className="text-xs font-bold text-rose-800">{t.n3u.saveFailedTitle}</p>
+          <p className="text-[11px] text-rose-700 mb-2">{t.n3u.saveFailedBody}</p>
           <button type="button" onClick={() => void storage.save(state).then(r => setSaveError(r.ok ? null : r.code))}
-            className="min-h-11 px-3 text-xs font-bold text-rose-800 border border-rose-300 rounded-xl">もう一度保存する</button>
+            className="min-h-11 px-3 text-xs font-bold text-rose-800 border border-rose-300 rounded-xl">{t.n3u.saveRetry}</button>
         </div>
       )}
 
@@ -190,26 +196,26 @@ export const N3UnitPanel = ({
           <h2 className="text-lg font-bold text-gray-900 mb-1">{spec.titleJa}</h2>
           <p className="text-xs text-gray-400 mb-3">{spec.titleZh}</p>
           <dl className="text-sm text-gray-800 space-y-1.5 mb-4">
-            <div><dt className="inline font-bold">学ぶことば: </dt><dd className="inline">{spec.targetVocabularyIds.length}語</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introWords} </dt><dd className="inline">{spec.targetVocabularyIds.length}{t.n3u.wordsUnit}</dd></div>
             {spec.encounterVocabularyIds.length > 0 && (
-              <div><dt className="inline font-bold">前に学んだことばの再確認: </dt><dd className="inline">{spec.encounterVocabularyIds.length}語</dd></div>
+              <div><dt className="inline font-bold">{t.n3u.introEncounter} </dt><dd className="inline">{spec.encounterVocabularyIds.length}{t.n3u.wordsUnit}</dd></div>
             )}
             {spec.highRiskCognateIds.length > 0 && (
-              <div><dt className="inline font-bold">まちがえやすい同じ漢字の語: </dt>
+              <div><dt className="inline font-bold">{t.n3u.introCognate} </dt>
                 <dd className="inline">{spec.highRiskCognateIds.map(id => itemById.get(id)?.displayForm ?? id).join('・')}</dd></div>
             )}
-            <div><dt className="inline font-bold">進め方: </dt><dd className="inline">確認 → 理解 → 使い分け → 実践 → 場面ミッション</dd></div>
-            <div><dt className="inline font-bold">問題数のめやす: </dt>
-              <dd className="inline">{set.diagnostic.length + set.byStage.understand.length + set.byStage.distinguish.length + set.byStage.apply.length}問</dd></div>
-            <div><dt className="inline font-bold">完了条件: </dt>
-              <dd className="inline">全ての語を確認し、「{spec.practicalMission.titleJa}」を成功させる</dd></div>
-            <div><dt className="inline font-bold">完了すると: </dt><dd className="inline">{worldChangeFor(spec).unlockJa}</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introHow} </dt><dd className="inline">{t.n3u.introFlow}</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introCount} </dt>
+              <dd className="inline">{set.diagnostic.length + set.byStage.understand.length + set.byStage.distinguish.length + set.byStage.apply.length}{t.n3u.questionsUnit}</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introCondition} </dt>
+              <dd className="inline">{t.n3u.conditionText(zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa)}</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introUnlock} </dt><dd className="inline">{zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa}</dd></div>
           </dl>
           <button type="button" onClick={() => persist(advancePhaseIfDone(state, set, spec, clock()))}
             className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
-            はじめる（できることの確認から）
+            {t.n3u.start}
           </button>
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">世界へもどる</button>
+          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.n3u.backToWorld}</button>
         </div>
       )}
 
@@ -221,7 +227,7 @@ export const N3UnitPanel = ({
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             {state.phase === 'diagnostic' && (
               <p className="text-[11px] text-gray-500 mb-2">
-                すでに使える語は、この確認で先へ進めます（分からなければ「まだ習っていない」を選べます）
+                {t.n3u.diagnosticHint}
               </p>
             )}
             {/* Stage1は理解フェーズなので、答えを含まない導入だけ出す */}
@@ -229,18 +235,18 @@ export const N3UnitPanel = ({
               <div className="mb-3 p-3 bg-slate-50 rounded-xl">
                 <p className="text-xl font-bold text-gray-900">{item.displayForm}</p>
                 {profile?.transferRiskZh && (
-                  <p className="text-[11px] text-rose-700 mt-1">中国語の「{profile.zhCognate}」とは使い方が違います</p>
+                  <p className="text-[11px] text-rose-700 mt-1">{t.n3u.cognateDiffers(profile.zhCognate ?? '')}</p>
                 )}
               </div>
             )}
             <p className="text-sm font-bold text-gray-900 mb-1 whitespace-pre-line">{current.promptJa}</p>
             <p className="text-xs text-gray-400 mb-3">{current.promptZh}</p>
-            {wrongOnce && <p className="text-xs text-rose-600 mb-2">もう一度考えてみましょう。この語はあとで復習に出ます。</p>}
+            {wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.n3u.wrongRetry}</p>}
 
             {current.kind === 'order' ? (
               <div>
                 <div className="min-h-11 p-2 mb-2 bg-slate-50 rounded-xl text-base text-gray-900" aria-live="polite">
-                  {built.length ? built.join('') : <span className="text-gray-300">ここに文ができます</span>}
+                  {built.length ? built.join('') : <span className="text-gray-300">{t.n3u.orderHere}</span>}
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {current.choices.map((tok, i) => {
@@ -259,7 +265,7 @@ export const N3UnitPanel = ({
                     );
                   })}
                 </div>
-                <button type="button" onClick={() => setBuilt([])} className="min-h-11 px-3 text-xs text-gray-400 underline">やり直す</button>
+                <button type="button" onClick={() => setBuilt([])} className="min-h-11 px-3 text-xs text-gray-400 underline">{t.n3u.orderReset}</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-1.5">
@@ -273,10 +279,10 @@ export const N3UnitPanel = ({
             )}
             {state.phase === 'diagnostic' && (
               <button type="button" onClick={() => declineDiagnostic(current)}
-                className="w-full min-h-11 mt-2 text-xs text-gray-500 underline">まだ習っていない（最初から学ぶ）</button>
+                className="w-full min-h-11 mt-2 text-xs text-gray-500 underline">{t.n3u.notLearned}</button>
             )}
             <button type="button" onClick={onExit} className="w-full min-h-11 mt-2 text-xs text-gray-400 underline">
-              中断して世界へもどる（ここまでは保存されます）
+              {t.n3u.pauseSave}
             </button>
           </div>
         );
@@ -285,9 +291,9 @@ export const N3UnitPanel = ({
       {/* 問題が尽きたら次フェーズへ（空フェーズの行き止まり防止） */}
       {['diagnostic', 'stage1', 'stage2', 'stage3'].includes(state.phase) && !current && (
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-          <p className="text-sm font-bold text-gray-900 mb-2">{PHASE_LABEL[state.phase]}が終わりました</p>
+          <p className="text-sm font-bold text-gray-900 mb-2">{t.n3u.phaseDone(PHASE_LABEL[state.phase])}</p>
           <button type="button" onClick={() => persist(advancePhaseIfDone(state, set, spec, clock()))}
-            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">次へ進む</button>
+            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.next}</button>
         </div>
       )}
 
@@ -297,29 +303,29 @@ export const N3UnitPanel = ({
         if (!q) {
           return (
             <div className="bg-white border border-emerald-200 rounded-2xl p-4">
-              <p className="text-sm font-bold text-gray-900 mb-2">{spec.practicalMission.titleJa}を達成しました</p>
+              <p className="text-sm font-bold text-gray-900 mb-2">{t.n3u.missionDone(zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa)}</p>
               <button type="button" onClick={() => persist(clearMission(state, clock()))}
-                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">結果を見る</button>
+                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.seeResult}</button>
             </div>
           );
         }
         return (
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             <p className="text-[11px] text-emerald-600 font-bold mb-1">
-              場面ミッション {missionStep + 1}／{missionQuestions.length}
+              {t.n3u.missionProgress(missionStep + 1, missionQuestions.length)}
             </p>
             <div className="mb-3 p-3 bg-emerald-50 rounded-xl">
-              <p className="text-sm font-bold text-emerald-900">{spec.practicalMission.titleJa}</p>
-              <p className="text-xs text-emerald-800 mt-0.5">{spec.practicalMission.situationJa}</p>
-              <p className="text-[11px] text-emerald-700 mt-1">達成条件: {spec.practicalMission.goalJa}</p>
+              <p className="text-sm font-bold text-emerald-900">{zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa}</p>
+              <p className="text-xs text-emerald-800 mt-0.5">{zh ? spec.practicalMission.situationZh : spec.practicalMission.situationJa}</p>
+              <p className="text-[11px] text-emerald-700 mt-1">{t.n3u.missionGoal(zh ? spec.practicalMission.goalZh : spec.practicalMission.goalJa)}</p>
             </div>
             <p className="text-sm font-bold text-gray-900 mb-1 whitespace-pre-line">{q.promptJa}</p>
             <p className="text-xs text-gray-400 mb-3">{q.promptZh}</p>
-            {wrongOnce && <p className="text-xs text-rose-600 mb-2">もう一度。場面を思い浮かべてみましょう。</p>}
+            {wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.n3u.missionWrong}</p>}
             {q.kind === 'order' ? (
               <div>
                 <div className="min-h-11 p-2 mb-2 bg-slate-50 rounded-xl text-base text-gray-900" aria-live="polite">
-                  {built.length ? built.join('') : <span className="text-gray-300">ここに文ができます</span>}
+                  {built.length ? built.join('') : <span className="text-gray-300">{t.n3u.orderHere}</span>}
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {q.choices.map((tok, i) => {
@@ -364,15 +370,15 @@ export const N3UnitPanel = ({
       {/* ── 結果 ── */}
       {state.phase === 'result' && (
         <div className="bg-white border border-emerald-200 rounded-2xl p-4">
-          <h2 className="text-lg font-bold text-emerald-700 mb-2">{spec.titleJa} 完了</h2>
+          <h2 className="text-lg font-bold text-emerald-700 mb-2">{t.n3u.resultDone(zh ? spec.titleZh : spec.titleJa)}</h2>
           <div className="p-3 bg-emerald-50 rounded-xl mb-3">
-            <p className="text-sm text-emerald-900">{worldChangeFor(spec).unlockJa}</p>
+            <p className="text-sm text-emerald-900">{zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa}</p>
           </div>
           <dl className="grid grid-cols-2 gap-2 mb-3">
-            {[['学んだことば', `${summary.passedCount}／${summary.targetCount}語`],
-              ['取り組んだ語', `${summary.attemptedCount}語`],
-              ['復習に回した語', `${summary.reviewScheduledCount}語`],
-              ['正答率', `${Math.round(summary.accuracy * 100)}%`]].map(([k, v]) => (
+            {[[t.n3u.resultWords, `${summary.passedCount}／${summary.targetCount}${t.n3u.wordsUnit}`],
+              [t.n3u.resultTried, `${summary.attemptedCount}${t.n3u.wordsUnit}`],
+              [t.n3u.resultReview, `${summary.reviewScheduledCount}${t.n3u.wordsUnit}`],
+              [t.n3u.resultAccuracy, `${Math.round(summary.accuracy * 100)}%`]].map(([k, v]) => (
               <div key={k} className="p-2.5 bg-white border border-gray-100 rounded-xl">
                 <dt className="text-[10px] text-gray-400">{k}</dt>
                 <dd className="text-base font-bold text-gray-900">{v}</dd>
@@ -381,24 +387,24 @@ export const N3UnitPanel = ({
           </dl>
           {summary.reviewScheduledCount > 0 && (
             <p className="text-xs text-violet-700 mb-3">
-              まちがえた{summary.reviewScheduledCount}語は、日をおいて「オモイデ庭園」で再会します。
+              {t.n3u.resultReviewNote(summary.reviewScheduledCount)}
             </p>
           )}
           {!summary.meetsMinimumAccuracy && (
             <p className="text-xs text-amber-700 mb-3">
-              もう一度この単元に取り組むと、まだ不安な語だけを確かめられます。
+              {t.n3u.resultRetryNote}
             </p>
           )}
           {nextUnitTitleJa && onOpenNextUnit ? (
             <button type="button" onClick={onOpenNextUnit}
               className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
-              次へ：{nextUnitTitleJa}
+              {t.n3u.nextUnit(nextUnitTitleJa)}
             </button>
           ) : (
             <button type="button" onClick={onExit}
-              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">世界へもどる</button>
+              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.backToWorld}</button>
           )}
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">世界へもどる</button>
+          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.n3u.backToWorld}</button>
         </div>
       )}
     </WorldFrame>

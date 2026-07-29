@@ -29,7 +29,9 @@ export interface PracticalMission {
   /** その場面で必ず使う語（requiredVocabularyIdsの部分集合） */
   usesItemIds: string[];
   situationJa: string;
+  situationZh: string;
   goalJa: string;
+  goalZh: string;
 }
 
 export interface UnitCoverageSpec {

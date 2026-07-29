@@ -14,12 +14,14 @@ import {
   shuffleRecognition, productionUsesTarget,
 } from '../../../lib/aiLesson/course/n2quest/n2QuestProgress';
 import { ShokoSprite } from '../rpg/pixelAssets';
+import type { AiCourseDict } from '../../../locales/aiCourse';
 
 const browserStore = typeof window === 'undefined' ? null : window.localStorage;
 const safeStore = browserStore ?? { getItem: () => null, setItem: () => {} };
 const now = () => Date.now();
 
 export interface N2GrammarQuestPanelProps {
+  t: AiCourseDict;
   onBack: () => void;
   /** オモイデ庭園（期限復習）へ */
   onOpenReview?: () => void;
@@ -45,7 +47,7 @@ const loadUnitItems = async (unit: number): Promise<N2GrammarDraft[]> => {
     .sort((a, b) => a.grammarId.localeCompare(b.grammarId));
 };
 
-export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: N2GrammarQuestPanelProps) => {
+export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation }: N2GrammarQuestPanelProps) => {
   const [unit, setUnit] = useState<number | null>(null);
   const [unitData, setUnitData] = useState<UnitData>({ status: 'loading' });
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -90,14 +92,14 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
       <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
         <button type="button" onClick={backToList}
           className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-          <ArrowLeft className="w-4 h-4" aria-hidden />第{unit}単元の一覧へ
+          <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.backToUnitList(unit)}
         </button>
 
         {/* ヘッダー（塔の文脈＋文型） */}
         <div className="rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-50 to-white p-3 mb-3">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
-              <p className="text-[11px] text-violet-600">ソラノ塔・第{unit}単元・{idx + 1}/{items.length}</p>
+              <p className="text-[11px] text-violet-600">{t.n2q.itemPos(unit, idx + 1, items.length)}</p>
               <p className="text-lg font-bold text-gray-900">{active.pattern}</p>
               <p className="text-xs text-gray-500">{active.reading}・{active.meaningJa}</p>
             </div>
@@ -109,9 +111,9 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             <p className="text-sm text-gray-900 font-bold mb-1">{active.explanationZh}</p>
             <dl className="space-y-2 mt-3 text-sm">
-              <div><dt className="text-[11px] text-gray-400">接続</dt><dd className="text-gray-800">{active.formation}</dd></div>
-              <div><dt className="text-[11px] text-gray-400">使う場面</dt><dd className="text-gray-800">{active.usageScene}</dd></div>
-              <div><dt className="text-[11px] text-gray-400">ニュアンス</dt><dd className="text-gray-800">{active.nuance}</dd></div>
+              <div><dt className="text-[11px] text-gray-400">{t.n2q.connection}</dt><dd className="text-gray-800">{active.formation}</dd></div>
+              <div><dt className="text-[11px] text-gray-400">{t.n2q.scene}</dt><dd className="text-gray-800">{active.usageScene}</dd></div>
+              <div><dt className="text-[11px] text-gray-400">{t.n2q.nuance}</dt><dd className="text-gray-800">{active.nuance}</dd></div>
             </dl>
             <div className="mt-3 space-y-2">
               {active.examplesJa.map((ex, i) => (
@@ -123,27 +125,27 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
               ))}
             </div>
             <div className="mt-3 p-2.5 bg-amber-50 border border-amber-100 rounded-xl">
-              <p className="text-[11px] font-bold text-amber-800">よくある間違い</p>
+              <p className="text-[11px] font-bold text-amber-800">{t.n2q.mistakes}</p>
               <p className="text-xs text-amber-900">{active.commonMistakesZh}</p>
             </div>
             {active.learnerFocus && (
               <p className="text-xs text-gray-500 mt-2">{active.learnerFocus}</p>
             )}
             {active.similarPatterns.length > 0 && (
-              <p className="text-[11px] text-gray-400 mt-2">似ている文型: {active.similarPatterns.join('・')}（{active.contrast}）</p>
+              <p className="text-[11px] text-gray-400 mt-2">{t.n2q.similar(active.similarPatterns.join('・'))}（{active.contrast}）</p>
             )}
             <button type="button" onClick={() => setPhase('quiz')}
               className="w-full min-h-12 mt-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
-              確認問題へ
+              {t.n2q.toQuiz}
             </button>
           </div>
         )}
 
         {phase === 'quiz' && (
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <p className="text-[11px] font-bold text-indigo-500 mb-1">確認問題</p>
+            <p className="text-[11px] font-bold text-indigo-500 mb-1">{t.n2q.quiz}</p>
             <p className="text-sm font-bold text-gray-900 mb-3">{active.recognition.promptZh}</p>
-            <div className="space-y-2" role="group" aria-label="選択肢">
+            <div className="space-y-2" role="group" aria-label={t.n2q.choicesAria}>
               {shuffled.options.map((opt, i) => {
                 const isAnswer = i === shuffled.answerIndex;
                 const chosen = picked === i;
@@ -165,23 +167,23 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
                   if (ok) { markRecognized(safeStore, active.grammarId, now()); }
                 }}
                 className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm disabled:opacity-40">
-                こたえあわせ
+                {t.n2q.check}
               </button>
             ) : (
               <div className="mt-3">
                 <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-rose-700'}`}>
-                  {judged ? '正解です' : 'もう一度考えてみましょう'}
+                  {judged ? t.n2q.correct : t.n2q.tryAgain}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{active.recognition.explanationZh}</p>
                 {judged ? (
                   <button type="button" onClick={() => setPhase('produce')}
                     className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
-                    使用練習へ
+                    {t.n2q.toPractice}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { setPicked(null); setJudged(null); }}
                     className="w-full min-h-12 mt-3 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
-                    もう一度えらぶ
+                    {t.n2q.chooseAgain}
                   </button>
                 )}
               </div>
@@ -191,18 +193,18 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
 
         {phase === 'produce' && (
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
-            <p className="text-[11px] font-bold text-indigo-500 mb-1">使用練習</p>
+            <p className="text-[11px] font-bold text-indigo-500 mb-1">{t.n2q.practice}</p>
             <p className="text-sm font-bold text-gray-900">{active.production.promptJa}</p>
             <p className="text-xs text-gray-500 mb-3">{active.production.promptZh}</p>
             <textarea value={producedText} onChange={e => { setProducedText(e.target.value); setProduceResult(null); }}
-              rows={3} aria-label="自分の文を書く"
+              rows={3} aria-label={t.n2q.writeAria}
               className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
-              placeholder={`「${active.pattern}」を使って書いてみましょう`} />
+              placeholder={t.n2q.practicePlaceholder(active.pattern)} />
             {produceResult === 'ok' && (
-              <p className="text-sm font-bold text-emerald-700 mt-2">「{active.pattern}」が使えました</p>
+              <p className="text-sm font-bold text-emerald-700 mt-2">{t.n2q.usedOk(active.pattern)}</p>
             )}
             {produceResult === 'retry' && (
-              <p className="text-sm text-amber-700 mt-2">「{active.pattern}」を文の中に入れてみましょう（例: {active.examplesJa[1] ?? active.examplesJa[0]}）</p>
+              <p className="text-sm text-amber-700 mt-2">{t.n2q.useInSentence(active.pattern, active.examplesJa[1] ?? active.examplesJa[0])}</p>
             )}
             <div className="flex flex-col sm:flex-row gap-2 mt-3">
               <button type="button"
@@ -216,12 +218,12 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
                   }
                 }}
                 className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
-                書けたか確認する
+                {t.n2q.practiceCheck}
               </button>
               <button type="button"
                 onClick={() => { markProduced(safeStore, active.grammarId, now()); setPhase('done'); }}
                 className="flex-1 min-h-12 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold text-sm">
-                今日は読むだけにする
+                {t.n2q.practiceSkip}
               </button>
             </div>
           </div>
@@ -230,11 +232,11 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
         {phase === 'done' && (
           <div className="bg-white border border-emerald-200 rounded-2xl p-4">
             <p className="text-sm font-bold text-emerald-800 mb-1">
-              <Check className="inline w-4 h-4 -mt-0.5" aria-hidden /> 「{active.pattern}」の学習を記録しました（この端末）
+              <Check className="inline w-4 h-4 -mt-0.5" aria-hidden /> {t.n2q.recorded(active.pattern)}
             </p>
-            <p className="text-xs text-gray-600 mb-3">会話の中で使うと、いちばん定着します。</p>
+            <p className="text-xs text-gray-600 mb-3">{t.n2q.recordedBody}</p>
             <div className="p-2.5 bg-gray-50 rounded-xl mb-3">
-              <p className="text-[11px] text-gray-400">会話のきっかけ</p>
+              <p className="text-[11px] text-gray-400">{t.n2q.talkStarter}</p>
               <p className="text-sm text-gray-800">{active.practice.starterJa}</p>
               <p className="text-xs text-gray-500">{active.practice.starterZh}</p>
             </div>
@@ -242,18 +244,18 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
               {nextItem ? (
                 <button type="button" onClick={() => openItem(nextItem.grammarId)}
                   className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
-                  次の文型「{nextItem.pattern}」へ
+                  {t.n2q.nextGrammar(nextItem.pattern)}
                 </button>
               ) : (
                 <button type="button" onClick={backToList}
                   className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
-                  単元の結果を見る
+                  {t.n2q.seeUnitResult}
                 </button>
               )}
               {onGoConversation && (
                 <button type="button" onClick={onGoConversation}
                   className="flex-1 min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
-                  会話の広場で使ってみる
+                  {t.n2q.useInPlaza}
                 </button>
               )}
             </div>
@@ -261,7 +263,7 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
         )}
 
         {prog.recognizedAtMs !== null && phase === 'detail' && (
-          <p className="text-[11px] text-gray-400 mt-2">この文型は一度学習済みです。復習として読み直せます。</p>
+          <p className="text-[11px] text-gray-400 mt-2">{t.n2q.alreadyLearned}</p>
         )}
       </div>
     );
@@ -274,24 +276,24 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
       <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
         <button type="button" onClick={() => { setUnit(null); bump(); }}
           className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-          <ArrowLeft className="w-4 h-4" aria-hidden />単元一覧へ
+          <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.backToUnits}
         </button>
         <div className="rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-50 to-white p-3 mb-3">
-          <p className="text-[11px] text-violet-600">ソラノ塔（N2文法）</p>
-          <h2 className="text-lg font-bold text-gray-900">第{unit}単元</h2>
+          <p className="text-[11px] text-violet-600">{t.n2q.towerHeader}</p>
+          <h2 className="text-lg font-bold text-gray-900">{t.n2q.unitName(unit)}</h2>
           {unitData.status === 'ready' && (
-            <p className="text-xs text-gray-500">{prog.done}/{prog.total}文型が完了</p>
+            <p className="text-xs text-gray-500">{t.n2q.unitDone(prog.done, prog.total)}</p>
           )}
         </div>
 
         {unitData.status === 'loading' && (
-          <div className="py-10 text-center text-sm text-gray-500" role="status">塔の書物を開いています…</div>
+          <div className="py-10 text-center text-sm text-gray-500" role="status">{t.n2q.loading}</div>
         )}
         {unitData.status === 'error' && (
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
-            <p className="text-sm font-bold text-rose-800 mb-2">内容を読み込めませんでした</p>
+            <p className="text-sm font-bold text-rose-800 mb-2">{t.n2q.loadError}</p>
             <button type="button" onClick={() => { const u = unit; setUnit(null); setTimeout(() => setUnit(u), 0); }}
-              className="min-h-11 px-5 bg-rose-600 text-white rounded-2xl font-bold text-sm">もう一度読み込む</button>
+              className="min-h-11 px-5 bg-rose-600 text-white rounded-2xl font-bold text-sm">{t.n2q.reload}</button>
           </div>
         )}
         {unitData.status === 'ready' && (
@@ -319,26 +321,26 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
             </div>
             {prog.complete && (
               <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
-                <p className="text-sm font-bold text-emerald-800 mb-1">第{unit}単元・全{prog.total}文型を学びました</p>
-                <p className="text-[11px] text-emerald-700 mb-3">塔の霧がひとつ晴れました。忘れたころの再会が定着のちからになります。</p>
+                <p className="text-sm font-bold text-emerald-800 mb-1">{t.n2q.unitAllDone(unit, prog.total)}</p>
+                <p className="text-[11px] text-emerald-700 mb-3">{t.n2q.reviewCleared}</p>
                 <div className="flex flex-col sm:flex-row gap-2">
                   {unit < 12 && (
                     <button type="button" onClick={() => setUnit(unit + 1)}
                       className="flex-1 min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
-                      第{unit + 1}単元へ
+                      {t.n2q.toNextUnit(unit + 1)}
                     </button>
                   )}
                   {onOpenReview && (
                     <button type="button" onClick={onOpenReview}
                       className="flex-1 min-h-12 bg-white border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm">
-                      オモイデ庭園で復習する
+                      {t.n2q.reviewInGarden}
                     </button>
                   )}
                 </div>
               </div>
             )}
             <p className="text-[11px] text-gray-400 mt-3">
-              内容はAIが作成した草稿で、先生の確認を順次進めています。学習記録はこの端末に保存されます。
+              {t.n2q.draftNoticeSaved}
             </p>
           </>
         )}
@@ -351,24 +353,24 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
       <button type="button" onClick={onBack}
         className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-        <ArrowLeft className="w-4 h-4" aria-hidden />もどる
+        <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.back}
       </button>
       <div className="rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-100 to-white p-4 mb-3">
-        <p className="text-[11px] font-bold text-violet-600">ミナモ列島・第8エリア</p>
-        <h2 className="text-lg font-bold text-gray-900">ソラノ塔（N2文法攻略）</h2>
-        <p className="text-xs text-gray-600 mt-1">180の文型が12の階に分かれています。高く登るほど、書き言葉と改まった表現になります。</p>
+        <p className="text-[11px] font-bold text-violet-600">{t.n2q.areaBadge}</p>
+        <h2 className="text-lg font-bold text-gray-900">{t.n2q.towerTitle}</h2>
+        <p className="text-xs text-gray-600 mt-1">{t.n2q.towerBody}</p>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {UNIT_NUMBERS.map(u => (
           <button key={u} type="button" onClick={() => setUnit(u)}
             className="text-left p-3.5 bg-white border border-gray-200 rounded-2xl min-h-16 hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
-            <p className="text-sm font-bold text-gray-900">第{u}単元</p>
-            <p className="text-[11px] text-gray-400">{u}階の文型を学ぶ</p>
+            <p className="text-sm font-bold text-gray-900">{t.n2q.unitName(u)}</p>
+            <p className="text-[11px] text-gray-400">{t.n2q.unitFloor(u)}</p>
           </button>
         ))}
       </div>
       <p className="text-[11px] text-gray-400 mt-3">
-        内容はAIが作成した草稿で、先生の確認を順次進めています。
+        {t.n2q.draftNotice}
       </p>
     </div>
   );

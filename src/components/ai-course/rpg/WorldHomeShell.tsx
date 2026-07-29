@@ -8,6 +8,7 @@
 // - learner向け画面なので開発表示（試作・sandbox・検証用）は一切出さない。
 import type { ReactNode } from 'react';
 import type { WorldArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
+import type { AiCourseDict } from '../../../locales/aiCourse';
 import { IslandsMap } from './IslandsMap';
 
 export interface WorldFacility {
@@ -23,6 +24,7 @@ export interface WorldFacility {
 }
 
 export interface WorldHomeShellProps {
+  t: AiCourseDict;
   /** 章・エリア名（仮称） */
   areaName: string;
   /** 主人公の現在地 */
@@ -54,14 +56,10 @@ export interface WorldHomeShellProps {
   children?: ReactNode;
 }
 
-const CLARITY_TEXT: Record<WorldHomeShellProps['clarity'], string> = {
-  clear: '世界がはっきり見えています',
-  light_fog: '少し霧がかかっています。復習で晴れます',
-  foggy: '霧が濃くなっています。復習から始めましょう',
-};
+
 
 export const WorldHomeShell = ({
-  areaName, locationName, todayAction, reviewsDue, onOpenReview,
+  t, areaName, locationName, todayAction, reviewsDue, onOpenReview,
   facilities, record, upcoming, clarity, reducedMotion, areas, currentAreaId, onOpenArea, children,
 }: WorldHomeShellProps) => {
   return (
@@ -69,18 +67,18 @@ export const WorldHomeShell = ({
       {/* ── 世界のヘッダー（現在地・状態をテキストでも提供） ── */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2">
         <h1 className="text-base sm:text-lg font-bold text-gray-900">{areaName}</h1>
-        <span className="text-xs text-gray-500">現在地: {locationName}</span>
-        <span className="text-xs text-gray-400">{CLARITY_TEXT[clarity]}</span>
+        <span className="text-xs text-gray-500">{t.world.currentPlace} {locationName}</span>
+        <span className="text-xs text-gray-400">{clarity === 'clear' ? t.world.clarityClear : clarity === 'light_fog' ? t.world.clarityLight : t.world.clarityHeavy}</span>
       </div>
 
       {/* ── World（desktop: 地図6割 + 行動4割 / mobile: 縦積み） ── */}
       <div className="lg:grid lg:grid-cols-5 lg:gap-4">
-        <section className="lg:col-span-3" aria-label="ミナモ列島の地図">
-          <IslandsMap areas={areas} currentAreaId={currentAreaId} clarity={clarity}
+        <section className="lg:col-span-3" aria-label={t.world.mapAria}>
+          <IslandsMap t={t} areas={areas} currentAreaId={currentAreaId} clarity={clarity}
             reducedMotion={reducedMotion} onOpenArea={onOpenArea} />
         </section>
 
-        <section className="lg:col-span-2 mt-3 lg:mt-0 flex flex-col" aria-label="今日の行動">
+        <section className="lg:col-span-2 mt-3 lg:mt-0 flex flex-col" aria-label={t.world.todayAction}>
           {/* 第一CTA（常に一つ） */}
           {todayAction ? (
             <div className="bg-white border border-indigo-200 rounded-2xl p-4">
@@ -94,11 +92,11 @@ export const WorldHomeShell = ({
             </div>
           ) : (
             <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <p className="text-sm font-bold text-gray-900 mb-1">今日の分は終わりました</p>
-              <p className="text-xs text-gray-500 mb-3">世界の霧は晴れています。続けたいときは、ことばの復習から始められます。</p>
+              <p className="text-sm font-bold text-gray-900 mb-1">{t.world.todayDone}</p>
+              <p className="text-xs text-gray-500 mb-3">{t.world.todayDoneBody}</p>
               <button type="button" onClick={onOpenReview}
                 className="w-full min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
-                ことばを復習する
+                {t.world.reviewWords}
               </button>
             </div>
           )}
@@ -107,15 +105,15 @@ export const WorldHomeShell = ({
           {reviewsDue > 0 && (
             <button type="button" onClick={onOpenReview}
               className="w-full text-left mt-3 p-3 bg-violet-50 border border-violet-200 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">
-              <p className="text-xs font-bold text-violet-800">オモイデ庭園に霧がかかっています</p>
-              <p className="text-[11px] text-violet-700">復習する・{reviewsDue}語が待っています</p>
+              <p className="text-xs font-bold text-violet-800">{t.world.gardenFoggy}</p>
+              <p className="text-[11px] text-violet-700">{t.world.reviewWaiting(reviewsDue)}</p>
             </button>
           )}
 
           {/* この先の道（余白を埋め、次に何が開くかを示す） */}
           {upcoming.length > 0 && (
             <div className="mt-3 flex-1 min-h-0 p-3 bg-white border border-gray-100 rounded-2xl">
-              <p className="text-xs font-bold text-gray-700 mb-2">この先の道</p>
+              <p className="text-xs font-bold text-gray-700 mb-2">{t.world.roadAhead}</p>
               <ol className="space-y-1.5">
                 {upcoming.map((u, i) => (
                   <li key={u.label} className="flex items-start gap-2">
@@ -135,19 +133,19 @@ export const WorldHomeShell = ({
           {/* 冒険の記録 */}
           <dl className="mt-3 grid grid-cols-2 gap-2">
             <div className="p-2.5 bg-white border border-gray-100 rounded-xl">
-              <dt className="text-[10px] text-gray-400">今週歩いた日</dt>
-              <dd className="text-lg font-bold text-gray-900">{record.daysThisWeek}<span className="text-xs font-normal text-gray-400">日</span></dd>
+              <dt className="text-[10px] text-gray-400">{t.world.daysWalked}</dt>
+              <dd className="text-lg font-bold text-gray-900">{record.daysThisWeek}<span className="text-xs font-normal text-gray-400">{t.world.daysUnit}</span></dd>
             </div>
             <div className="p-2.5 bg-white border border-gray-100 rounded-xl">
-              <dt className="text-[10px] text-gray-400">これまでの会話</dt>
-              <dd className="text-lg font-bold text-gray-900">{record.totalSessions}<span className="text-xs font-normal text-gray-400">回</span></dd>
+              <dt className="text-[10px] text-gray-400">{t.world.talksSoFar}</dt>
+              <dd className="text-lg font-bold text-gray-900">{record.totalSessions}<span className="text-xs font-normal text-gray-400">{t.world.talksUnit}</span></dd>
             </div>
           </dl>
         </section>
       </div>
 
       {/* ── 世界の施設（RPG名＋機能名を必ず併記） ── */}
-      <nav className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-2" aria-label="世界の施設">
+      <nav className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-2" aria-label={t.world.facilitiesHeading}>
         {facilities.map(f => (
           <button key={f.id} type="button" onClick={f.onOpen}
             className="relative text-left p-3 min-h-[4.5rem] bg-white border border-gray-200 rounded-2xl hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">

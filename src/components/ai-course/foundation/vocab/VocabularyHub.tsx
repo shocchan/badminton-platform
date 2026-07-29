@@ -343,7 +343,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
       {view === 'adventure' && (
         <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview={labPreview}>
           <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <Chapter1AdventurePanelLazy onBack={() => setView('top')} devTools={labPreview} />
+            <Chapter1AdventurePanelLazy t={t} onBack={() => setView('top')} devTools={labPreview} />
           </Suspense>
         </LearnerErrorBoundary>
       )}

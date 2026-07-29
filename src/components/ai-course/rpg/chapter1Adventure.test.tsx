@@ -3,6 +3,7 @@
 // 学習完了→Quest進行→霧/解放→章末場面会話→Chapter完了までを実UIで通す。
 // LLM・DB・remote には触れない。保存はsandboxキーのみであることも検証する。
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
+import { aiCourseI18n } from '../../../locales/aiCourse';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Chapter1AdventurePanel from './Chapter1AdventurePanel';
 import { CHAPTER1_QUESTS, CHAPTER1_FINALE_STEPS, CHAPTER1_LOCATIONS } from '../../../lib/aiLesson/course/rpg/chapter1Data';
@@ -74,7 +75,7 @@ const clearQuestViaUi = (questOrder: number) => {
 
 describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
   it('学習内容・時間・完了条件が最初のQuest導線に明示される（§10）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     const q1 = CHAPTER1_QUESTS[0];
     fireEvent.click(screen.getByRole('button', { name: new RegExp(`Quest 1.*を始める`) }));
     expect(screen.getByText(q1.learnGoalJa)).toBeTruthy();
@@ -83,7 +84,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     expect(screen.getByText(q1.storyOutcomeJa)).toBeTruthy();
   });
   it('間違えると完了せず、正解のみで進む（Story Skipで学習完了しない）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     fireEvent.click(screen.getByRole('button', { name: /Quest 1.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));
     const first = itemById.get(CHAPTER1_QUESTS[0].learningItemIds[0])!;
@@ -98,7 +99,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     expect(screen.queryByText(/確認 1／/)).toBeNull();
   });
   it('5 Questを完走→霧が晴れ・人物解放・Story進行・Chapter完了（学習進行=物語進行）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     // 開始時: 未解放の場所は「？？？」・Quest2以降はロック
     expect(screen.getAllByText('？？？').length).toBeGreaterThanOrEqual(3);
     clearQuestViaUi(1);
@@ -122,7 +123,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     for (const loc of CHAPTER1_LOCATIONS) expect(screen.getAllByText(loc.nameJa).length).toBeGreaterThanOrEqual(1);
   });
   it('章末の場面会話は誤答では進まない（10問テストではなく場面攻略）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     for (let i = 1; i <= 4; i++) clearQuestViaUi(i);
     const q5 = CHAPTER1_QUESTS[4];
     fireEvent.click(screen.getByRole('button', { name: /Quest 5.*を始める/ }));
@@ -136,16 +137,16 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     expect(screen.queryByText('Quest 5 完了！')).toBeNull();
   });
   it('reloadで進行が復元される（resume）', () => {
-    const first = render(<Chapter1AdventurePanel onBack={() => {}} />);
+    const first = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     clearQuestViaUi(1);
     clearQuestViaUi(2);
     first.unmount();
-    render(<Chapter1AdventurePanel onBack={() => {}} />); // 再マウント=reload相当
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />); // 再マウント=reload相当
     expect(screen.getByRole('button', { name: /Quest 3.*を始める/ })).toBeTruthy();
     expect(screen.getAllByText('ことば通り').length).toBeGreaterThanOrEqual(1);
   });
   it('シンプル学習モードではStoryを飛ばして学習へ直行できる', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     fireEvent.click(screen.getByRole('checkbox', { name: /シンプル学習モード/ }));
     fireEvent.click(screen.getByRole('button', { name: /Quest 1.*を始める/ }));
     // Intro画面を経由せず、直接ことばの学習へ
@@ -154,13 +155,13 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     expect(screen.getByRole('button', { name: 'おぼえた・確認へ進む' })).toBeTruthy();
   });
   it('保存はsandboxキーのみ（learner系キーへ非接触）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     clearQuestViaUi(1);
     const keys = Object.keys(localStorage);
     expect(keys).toEqual([RPG_SANDBOX_KEY]);
   });
   it('冒険値の表示は習得度と区別されている（§7）', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     expect(screen.getByTitle(/日本語の習得度ではありません/)).toBeTruthy();
     expect(screen.queryByText(/JLPT/)).toBeNull(); // Adventure表示にJLPTを出さない
   });
@@ -168,7 +169,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
 
 describe('文法ミッション（§10）', () => {
   it('Quest2はルール理解→確認問題→産出を通し、誤答・誤順では進まない', () => {
-    render(<Chapter1AdventurePanel onBack={() => {}} />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     clearQuestViaUi(1);
     const q2 = CHAPTER1_QUESTS[1];
     fireEvent.click(screen.getByRole('button', { name: /Quest 2.*を始める/ }));
@@ -200,7 +201,7 @@ describe('文法ミッション（§10）', () => {
 describe('復習Quest「再会」（§11）', () => {
   it('時間経過後だけ手紙が現れ、別文脈の再確認で霧が晴れ、XPは1日1回', () => {
     // 時間送りは開発者ツール（learner viewには出さない）。検証のためdevToolsで描画する
-    render(<Chapter1AdventurePanel onBack={() => {}} devTools />);
+    render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} devTools />);
     clearQuestViaUi(1);
     // 期限前は再会導線が出ない
     expect(screen.queryByText(/ハナさんからの手紙/)).toBeNull();
@@ -228,7 +229,7 @@ describe('復習Quest「再会」（§11）', () => {
 
 describe('learner viewに開発表示を出さない（§6）', () => {
   it('devTools未指定では検証用ボタン・内部プレビュー表記が存在しない', () => {
-    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} />);
+    const { container } = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     expect(screen.queryByRole('button', { name: /時間を＋3日/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /最初からやり直す/ })).toBeNull();
     expect(container.querySelectorAll('[data-dev-only]').length).toBe(0);
@@ -238,7 +239,7 @@ describe('learner viewに開発表示を出さない（§6）', () => {
     }
   });
   it('devTools指定時のみ開発者ツールが出る', () => {
-    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} devTools />);
+    const { container } = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} devTools />);
     expect(screen.getByRole('button', { name: /時間を＋3日/ })).toBeTruthy();
     expect(container.querySelectorAll('[data-dev-only]').length).toBeGreaterThan(0);
   });
@@ -246,7 +247,7 @@ describe('learner viewに開発表示を出さない（§6）', () => {
 
 describe('Accessibility（§15）', () => {
   it('aria-live・マップaria-label・現在地/目的地/Fog状態のテキストがある', () => {
-    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} />);
+    const { container } = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     expect(container.querySelector('[aria-live="polite"]')).toBeTruthy();
     expect(screen.getByRole('img', { name: /はじまりの町のマップ。現在地は/ })).toBeTruthy();
     expect(screen.getByText('現在地:')).toBeTruthy();
@@ -254,7 +255,7 @@ describe('Accessibility（§15）', () => {
     expect(screen.getAllByText(/霧の中/).length).toBeGreaterThanOrEqual(1); // Fog状態のテキスト併記
   });
   it('Quest完了と帰還でaria-liveへ解放・移動が通知される', () => {
-    const { container } = render(<Chapter1AdventurePanel onBack={() => {}} />);
+    const { container } = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     const quest = CHAPTER1_QUESTS[0];
     fireEvent.click(screen.getByRole('button', { name: /Quest 1.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));

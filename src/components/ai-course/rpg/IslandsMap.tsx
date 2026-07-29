@@ -6,6 +6,7 @@
 // - RPG層はread only。クリックは onOpenArea を呼ぶだけ
 // - 霧（clarity）は表示のみ。読みやすさを損なう濃度にしない
 import type { WorldArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
+import type { AiCourseDict } from '../../../locales/aiCourse';
 
 /** landmarkごとの小さなpixel風glyph（すべて新規作図） */
 const LandmarkGlyph = ({ kind, accent }: { kind: WorldArea['visual']['landmark']; accent: string }) => {
@@ -71,6 +72,7 @@ const LandmarkGlyph = ({ kind, accent }: { kind: WorldArea['visual']['landmark']
 };
 
 export interface IslandsMapProps {
+  t: AiCourseDict;
   areas: WorldArea[];
   /** 主人公が今いるエリア（学習の進み具合から導出・書き込みなし） */
   currentAreaId: string;
@@ -81,7 +83,8 @@ export interface IslandsMapProps {
 
 const CLARITY_OPACITY = { clear: 0, light_fog: 0.14, foggy: 0.26 } as const;
 
-export const IslandsMap = ({ areas, currentAreaId, clarity, reducedMotion, onOpenArea }: IslandsMapProps) => {
+export const IslandsMap = ({ t, areas, currentAreaId, clarity, reducedMotion, onOpenArea }: IslandsMapProps) => {
+  const zh = t.locale === 'zh';
   const current = areas.find(a => a.areaId === currentAreaId) ?? areas[0];
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200"
@@ -131,7 +134,7 @@ export const IslandsMap = ({ areas, currentAreaId, clarity, reducedMotion, onOpe
       {/* エリアボタン（テキスト情報＋クリック領域。地図の情報源はこちら） */}
       {areas.map(a => (
         <button key={a.areaId} type="button" onClick={() => onOpenArea(a.areaId)}
-          aria-label={`${a.nameJa}へ行く（${a.learningThemeJa}）`}
+          aria-label={t.world.goToAria(a.nameJa.split('（')[0], zh ? a.learningThemeZh : a.learningThemeJa)}
           aria-current={a.areaId === current.areaId ? 'true' : undefined}
           className="absolute -translate-x-1/2 min-h-11 px-1.5 py-0.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
           style={{ left: `${a.pos.x}%`, top: `calc(${a.pos.y}% + 4.5%)` }}>

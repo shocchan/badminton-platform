@@ -729,7 +729,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')} showLab={labAllowed}>
         {/* 冒険の進み（Adventure）と日本語の実力は分けて見せる（§14） */}
-        <AdventureRecordCard />
+        <AdventureRecordCard t={t} />
         {labAllowed && (
           <div className="max-w-md mx-auto px-4 pt-4 flex gap-2">
             <button type="button" onClick={() => setStep('roadmap')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.roadmap}</button>
@@ -806,6 +806,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <OmoideGardenPanel
+          t={t}
           conversationReviewsDue={reviewsDue}
           onOpenVocabReview={openVocabQuickReview}
           onOpenConversationHistory={() => setStep('history')}
@@ -821,6 +822,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <KatariPortIntro
+          t={t}
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
           targetExpression={plan.main.mission.targetExpression}
           estimatedMinutes={plan.main.mission.estimatedMinutes}
@@ -839,7 +841,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <N3AreaPanelLazy area={area} storage={unitStorage}
+            <N3AreaPanelLazy t={t} area={area} storage={unitStorage}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
               onOpenAdventure={area.hasAdventure ? () => setStep('adventure') : undefined}
@@ -855,7 +857,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <Chapter1AdventureLazy onBack={() => setStep('home')} devTools={labAllowed} />
+            <Chapter1AdventureLazy t={t} onBack={() => setStep('home')} devTools={labAllowed} />
           </Suspense>
         </LearnerErrorBoundary>
       </Shell>
@@ -890,7 +892,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <N2QuestLazy onBack={() => setStep('home')} onOpenReview={openReview}
+            <N2QuestLazy t={t} onBack={() => setStep('home')} onOpenReview={openReview}
               onGoConversation={() => { void startLesson(mode); }} />
           </Suspense>
         </LearnerErrorBoundary>
@@ -966,7 +968,8 @@ export default function AiCoursePage() {
   return (
     <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
       <WorldHomeShell
-        areaName="ミナモ列島"
+        t={t}
+        areaName={t.world.islandsName}
         locationName={(areaById(currentAreaId)?.nameJa ?? 'ミナト').split('（')[0]}
         clarity={reviewsDue === 0 ? 'clear' : reviewsDue <= 5 ? 'light_fog' : 'foggy'}
         reviewsDue={reviewsDue}
@@ -982,35 +985,35 @@ export default function AiCoursePage() {
           totalSessions: sessions.length,
         }}
         todayAction={plan ? {
-          worldLead: hasResume ? '前回の続きから歩く' : '会話の広場へ行く',
+          worldLead: hasResume ? t.world.worldLeadResume : t.world.worldLeadGo,
           learningTitle: t.locale === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa,
-          learningDetail: `目標表現「${plan.main.mission.targetExpression}」・AI会話1回・今日あと${remaining}回`,
-          ctaLabel: hasResume ? '続きから始める' : '今日の会話を始める',
+          learningDetail: t.world.todaySub(plan.main.mission.targetExpression, remaining),
+          ctaLabel: hasResume ? t.world.ctaResume : t.world.ctaStart,
           onStart: () => { setHasResume(false); void startLesson(mode); },
         } : null}
         upcoming={buildJourney(progress, learner.currentWeek).slice(0, 6).map((j) => ({
-          label: `${j.nameJa}（Week ${j.week}）`,
-          detail: `${j.themeJa}・${j.retained}/${j.total}語が定着`,
+          label: t.world.weekLabel(t.locale === 'zh' ? j.nameZh : j.nameJa, j.week),
+          detail: t.world.retainedDetail(t.locale === 'zh' ? j.themeZh : j.themeJa, j.retained, j.total),
           unlocked: j.state === 'done',
         }))}
         facilities={[
-          { id: 'lib', worldName: '記憶の書庫', functionName: 'ことばを学ぶ・復習する',
-            descriptionJa: '語彙の学習と定着の確認', badge: reviewsDue,
+          { id: 'lib', worldName: t.world.facilities.lib.name, functionName: t.world.facilities.lib.fn,
+            descriptionJa: t.world.facilities.lib.body, badge: reviewsDue,
             onOpen: () => { syncLabUrl(null); syncVocabUrl({ view: 'top', category: null, itemId: null }); setStep('vocab'); } },
-          { id: 'workshop', worldName: '文法の工房', functionName: '日本語のしくみを学ぶ',
-            descriptionJa: '文型と使い分けの練習',
+          { id: 'workshop', worldName: t.world.facilities.workshop.name, functionName: t.world.facilities.workshop.fn,
+            descriptionJa: t.world.facilities.workshop.body,
             onOpen: () => { syncVocabUrl(null); syncLabUrl({ section: 'units', unit: null, step: null }); setStep('lab'); } },
-          { id: 'plaza', worldName: '会話の広場', functionName: 'AI会話で話す',
-            descriptionJa: '翔子先生と話して確かめる',
+          { id: 'plaza', worldName: t.world.facilities.plaza.name, functionName: t.world.facilities.plaza.fn,
+            descriptionJa: t.world.facilities.plaza.body,
             onOpen: () => setStep(plan ? 'conversationIntro' : 'home') },
-          { id: 'garden', worldName: 'オモイデ庭園', functionName: '復習して思い出す',
-            descriptionJa: '前に学んだことばと再会する', badge: reviewsDue,
+          { id: 'garden', worldName: t.world.facilities.garden.name, functionName: t.world.facilities.garden.fn,
+            descriptionJa: t.world.facilities.garden.body, badge: reviewsDue,
             onOpen: openReview },
-          { id: 'record', worldName: '冒険の記録', functionName: '成長と履歴を見る',
-            descriptionJa: 'できるようになったことの記録',
+          { id: 'record', worldName: t.world.facilities.record.name, functionName: t.world.facilities.record.fn,
+            descriptionJa: t.world.facilities.record.body,
             onOpen: () => { void openGrowth(); } },
-          { id: 'adventure', worldName: 'ミナモ列島をめぐる', functionName: '冒険・N3攻略',
-            descriptionJa: '地図のエリアを進んで霧を晴らす',
+          { id: 'adventure', worldName: t.world.facilities.adventure.name, functionName: t.world.facilities.adventure.fn,
+            descriptionJa: t.world.facilities.adventure.body,
             onOpen: () => openArea(currentAreaId) },
         ]}
       >

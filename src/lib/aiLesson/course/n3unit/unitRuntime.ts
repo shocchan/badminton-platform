@@ -253,8 +253,9 @@ export const summarizeRun = (
   };
 };
 
-/** 単元完了で世界に起きる変化（RPG層はこれをread onlyで使う） */
-export const worldChangeFor = (spec: UnitCoverageSpec): { placeJa: string; unlockJa: string } => ({
+/** 単元完了で世界に起きる変化（RPG層はこれをread onlyで使う）。zhはUI表示用（教材本文ではない） */
+export const worldChangeFor = (spec: UnitCoverageSpec): { placeJa: string; unlockJa: string; unlockZh: string } => ({
   placeJa: spec.titleJa,
   unlockJa: `${spec.practicalMission.titleJa}ができるようになり、次の場所へ進めます`,
+  unlockZh: `学会「${spec.practicalMission.titleZh}」，即可前往下一个地点`,
 });

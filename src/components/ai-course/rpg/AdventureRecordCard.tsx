@@ -5,10 +5,11 @@ import { n3UnitsDoneCount, areasDoneCount, n2LearnedCount } from '../../../lib/a
 import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs';
 import { loadAdventureState } from '../../../lib/aiLesson/course/rpg/adventureState';
 import { CHAPTER1_QUESTS } from '../../../lib/aiLesson/course/rpg/chapter1Data';
+import type { AiCourseDict } from '../../../locales/aiCourse';
 
 const browserStore = typeof window === 'undefined' ? null : window.localStorage;
 
-export const AdventureRecordCard = () => {
+export const AdventureRecordCard = ({ t }: { t: AiCourseDict }) => {
   const areas = browserStore ? areasDoneCount(browserStore) : { done: 0, total: 7 };
   const n3Done = browserStore ? n3UnitsDoneCount(browserStore) : 0;
   const n2Done = browserStore ? n2LearnedCount(browserStore) : 0;
@@ -19,27 +20,27 @@ export const AdventureRecordCard = () => {
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 pt-4">
       <div className="rounded-2xl border border-indigo-100 bg-white p-4">
-        <p className="text-xs font-bold text-gray-700 mb-2">ミナモ列島の冒険の進み</p>
+        <p className="text-xs font-bold text-gray-700 mb-2">{t.advRec.heading}</p>
         <dl className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-center">
           <div className="p-2 bg-indigo-50 rounded-xl">
-            <dt className="text-[10px] text-gray-500">第1章クエスト</dt>
+            <dt className="text-[10px] text-gray-500">{t.advRec.ch1Quests}</dt>
             <dd className="text-lg font-bold text-gray-900">{questsDone}<span className="text-xs font-normal text-gray-400">/{CHAPTER1_QUESTS.length}</span></dd>
           </div>
           <div className="p-2 bg-indigo-50 rounded-xl">
-            <dt className="text-[10px] text-gray-500">晴れたエリア</dt>
+            <dt className="text-[10px] text-gray-500">{t.advRec.clearedAreas}</dt>
             <dd className="text-lg font-bold text-gray-900">{areas.done}<span className="text-xs font-normal text-gray-400">/{areas.total}</span></dd>
           </div>
           <div className="p-2 bg-indigo-50 rounded-xl">
-            <dt className="text-[10px] text-gray-500">N3単元</dt>
+            <dt className="text-[10px] text-gray-500">{t.advRec.n3Units}</dt>
             <dd className="text-lg font-bold text-gray-900">{n3Done}<span className="text-xs font-normal text-gray-400">/{N3_UNIT_SPECS.length}</span></dd>
           </div>
           <div className="p-2 bg-indigo-50 rounded-xl">
-            <dt className="text-[10px] text-gray-500">N2文型</dt>
+            <dt className="text-[10px] text-gray-500">{t.advRec.n2Patterns}</dt>
             <dd className="text-lg font-bold text-gray-900">{n2Done}<span className="text-xs font-normal text-gray-400">/180</span></dd>
           </div>
         </dl>
         <p className="text-[11px] text-gray-400 mt-2">
-          冒険の進みは「歩いた距離」。日本語の実力は下の「できるようになったこと」で確かめます。二つは別のものです。
+          {t.advRec.note}
         </p>
       </div>
     </div>

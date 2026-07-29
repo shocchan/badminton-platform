@@ -2,6 +2,7 @@
 // N2文法攻略UIのフローテスト（FOREST FIRST §10・§24 Journey C）。
 // 単元一覧→文型一覧→詳細→確認問題→使用練習→次の文型→単元完了→Reviewまで。
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { aiCourseI18n } from '../../../locales/aiCourse';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import { N2GrammarQuestPanel } from './N2GrammarQuestPanel';
 import { shuffleRecognition, N2_QUEST_KEY_PREFIX } from '../../../lib/aiLesson/course/n2quest/n2QuestProgress';
@@ -13,7 +14,7 @@ beforeEach(() => { window.localStorage.clear(); });
 const noop = () => {};
 
 const openUnit1FirstItem = async () => {
-  render(<N2GrammarQuestPanel onBack={noop} />);
+  render(<N2GrammarQuestPanel t={aiCourseI18n.ja} onBack={noop} />);
   fireEvent.click(screen.getByText('第1単元'));
   // lazy chunk読込後に文型一覧が出る
   const first = [...N2_GRAMMAR_DRAFTS].filter(d => d.unit === 1)
@@ -24,7 +25,7 @@ const openUnit1FirstItem = async () => {
 
 describe('N2GrammarQuestPanel（ソラノ塔）', () => {
   it('単元一覧に12単元が並ぶ（準備中の階を作らない）', () => {
-    render(<N2GrammarQuestPanel onBack={noop} />);
+    render(<N2GrammarQuestPanel t={aiCourseI18n.ja} onBack={noop} />);
     for (let u = 1; u <= 12; u++) expect(screen.getByText(`第${u}単元`)).toBeTruthy();
     expect(screen.queryByText(/準備中|coming soon/i)).toBeNull();
   });
@@ -80,7 +81,7 @@ describe('N2GrammarQuestPanel（ソラノ塔）', () => {
   });
 
   it('unit 11 には同義判断待ちの n2g-162（〜矢先に）も表示される（180/180）', async () => {
-    render(<N2GrammarQuestPanel onBack={noop} />);
+    render(<N2GrammarQuestPanel t={aiCourseI18n.ja} onBack={noop} />);
     fireEvent.click(screen.getByText('第11単元'));
     await waitFor(() => expect(screen.getByText('〜矢先に')).toBeTruthy());
     // 内部メタ（統合判断・pairedWith等）はlearnerに出さない
@@ -89,7 +90,7 @@ describe('N2GrammarQuestPanel（ソラノ塔）', () => {
 
   it('会話の広場への接続（onGoConversation）が完了画面に出る', async () => {
     const goConv = vi.fn();
-    render(<N2GrammarQuestPanel onBack={noop} onGoConversation={goConv} />);
+    render(<N2GrammarQuestPanel t={aiCourseI18n.ja} onBack={noop} onGoConversation={goConv} />);
     fireEvent.click(screen.getByText('第1単元'));
     const first = [...N2_GRAMMAR_DRAFTS].filter(d => d.unit === 1)
       .sort((a, b) => a.grammarId.localeCompare(b.grammarId))[0];
@@ -106,7 +107,7 @@ describe('N2GrammarQuestPanel（ソラノ塔）', () => {
   });
 
   it('learner画面に開発用語を出さない', async () => {
-    const { container } = render(<N2GrammarQuestPanel onBack={noop} />);
+    const { container } = render(<N2GrammarQuestPanel t={aiCourseI18n.ja} onBack={noop} />);
     for (const banned of ['試作', 'draft', 'sandbox', 'labPreview', 'reviewStatus']) {
       expect(container.textContent?.includes(banned), banned).toBe(false);
     }

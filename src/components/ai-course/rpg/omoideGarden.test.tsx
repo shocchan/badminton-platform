@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 // オモイデ庭園（復習の統合入口・§13）と冒険の記録カード（§14）のテスト。
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { aiCourseI18n } from '../../../locales/aiCourse';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { OmoideGardenPanel } from './OmoideGardenPanel';
 import { AdventureRecordCard } from './AdventureRecordCard';
@@ -26,7 +27,7 @@ describe('OmoideGardenPanel（復習の統合入口）', () => {
       onOpenVocabReview: vi.fn(), onOpenConversationHistory: vi.fn(),
       onOpenN3: vi.fn(), onOpenN2: vi.fn(), onOpenAdventure: vi.fn(),
     };
-    render(<OmoideGardenPanel {...baseProps} {...fns} />);
+    render(<OmoideGardenPanel t={aiCourseI18n.ja} {...baseProps} {...fns} />);
     fireEvent.click(screen.getByText('ことばとの再会'));
     fireEvent.click(screen.getByText('会話の思い出'));
     fireEvent.click(screen.getByText('文法のことばと再会'));
@@ -40,7 +41,7 @@ describe('OmoideGardenPanel（復習の統合入口）', () => {
   });
 
   it('期限0でも空画面にせず、次の行動を提示する（§16 Empty）', () => {
-    render(<OmoideGardenPanel {...baseProps} conversationReviewsDue={0} />);
+    render(<OmoideGardenPanel t={aiCourseI18n.ja} {...baseProps} conversationReviewsDue={0} />);
     expect(screen.getByText('今日の期限の再会はありません。先に進んでも、読み直してもかまいません。')).toBeTruthy();
     expect(screen.getByText('ことばとの再会')).toBeTruthy();
   });
@@ -48,7 +49,7 @@ describe('OmoideGardenPanel（復習の統合入口）', () => {
   it('N3の復習予定件数がlocalStorageから導出される', () => {
     const st = { ...emptyRunState('n3u-03-move', 1), reviewScheduledItemIds: ['fi-iku', 'fi-kuru'] };
     window.localStorage.setItem(localUnitStorageKey('n3u-03-move'), JSON.stringify(st));
-    render(<OmoideGardenPanel {...baseProps} />);
+    render(<OmoideGardenPanel t={aiCourseI18n.ja} {...baseProps} />);
     const row = screen.getByText('文法のことばと再会');
     expect(row.textContent).toContain('2');
   });
@@ -60,7 +61,7 @@ describe('AdventureRecordCard（冒険と実力の分離）', () => {
       JSON.stringify({ ...emptyRunState('n3u-01-self', 1), phase: 'result', completedAtMs: 2 }));
     window.localStorage.setItem(N2_QUEST_KEY_PREFIX + 'n2g-001',
       JSON.stringify({ recognizedAtMs: 1, producedAtMs: 2 }));
-    render(<AdventureRecordCard />);
+    render(<AdventureRecordCard t={aiCourseI18n.ja} />);
     expect(screen.getByText('ミナモ列島の冒険の進み')).toBeTruthy();
     expect(screen.getByText(/二つは別のものです/)).toBeTruthy();
     expect(n3UnitsDoneCount(window.localStorage)).toBe(1);
