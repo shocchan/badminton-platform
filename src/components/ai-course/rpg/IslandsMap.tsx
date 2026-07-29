@@ -85,7 +85,7 @@ export const IslandsMap = ({ areas, currentAreaId, clarity, reducedMotion, onOpe
   const current = areas.find(a => a.areaId === currentAreaId) ?? areas[0];
   return (
     <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200"
-      style={{ aspectRatio: '4/3', minHeight: '46vh', background: 'linear-gradient(180deg,#bfe0ee 0%,#a8d2e6 55%,#98c6dd 100%)' }}>
+      style={{ aspectRatio: '4/3', minHeight: '46vh', maxHeight: '72vh', background: 'linear-gradient(180deg,#bfe0ee 0%,#a8d2e6 55%,#98c6dd 100%)' }}>
       {/* 海と島（装飾レイヤー。情報は下のボタンが持つ） */}
       <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full" aria-hidden>
         {/* 波（静かな世界観・動きは控えめ） */}

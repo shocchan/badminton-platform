@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -54,6 +54,19 @@ const PageLoader = () => (
   </div>
 );
 
+/**
+ * /:lang/ai-course 配下の不明URL（P2-15）。絶対パスでコース入口へ戻す。
+ * splatは空文字でもマッチするため、空のときはリダイレクトせず入口をそのまま描画する
+ * （相対Navigateだと自分自身への無限リダイレクト＝空白画面になる）。
+ */
+const AiCourseCatchAll = () => {
+  const params = useParams();
+  const splat = params['*'] ?? '';
+  const lang = params.lang === 'zh' ? 'zh' : 'ja';
+  if (splat === '' || splat === '/') return <AiCourseEntry />;
+  return <Navigate to={`/${lang}/ai-course`} replace />;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
@@ -96,6 +109,9 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
               <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
+              {/* コース配下の不明URLはコース入口へ戻す（P2-15: バドミントン側404へ落とさない）。
+                  注意: splatは空文字にもマッチするため、空なら入口を描画して自己リダイレクトのループを防ぐ */}
+              <Route path="ai-course/*"     element={<AiCourseCatchAll />} />
             <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />
             <Route path="signup"          element={<SignupPage />} />

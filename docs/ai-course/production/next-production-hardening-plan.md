@@ -20,8 +20,11 @@ Production GO Matrix（generated/production-go-matrix.md）のfail/human_require
    H1でlocal実証済み。既存learnerテーブルへの影響なし）
 2. `APPLY_SHARED_SUPABASE_MIGRATIONS` 承認後にremote適用
    （パケット§20bのH1修正差分込みで承認を得る。適用時は config.toml [db.migrations] enabled=true を確認）
-3. StoragePort/RepositoryをSupabase実装へ切替（supabaseUnitProgressServer.ts は実装・実証済み。
-   アプリ配線＝N3AreaPanelのcreateLocalUnitStorage差し替え＋outbox化が残り）
+3. ✅（AI準備完了 2026-07-29）StoragePort/RepositoryのSupabase配線を実装済み:
+   `syncedUnitStorage.ts`（probe-gated）＋`localStorageCachePort.ts`（outbox永続化）＋テスト7件。
+   起動時に ai_course_unit_progress をprobeし、**remote未適用の現在は自動で従来の端末内保存のまま**
+   （staging実画面で確認済み）。migration適用の瞬間から同期・既存local進捗の引き上げ・outboxが有効化される。
+   残り: n2quest進捗の同期対象化（テーブル設計はunit_progressの汎用jsonbで対応可・別途判断）
 4. 「この端末に保存」表示を「保存しました（同期済み）」へ、実挙動と一致させて更新
 
 ## Phase H3: 人間ゲート（CEO/法務/実機）

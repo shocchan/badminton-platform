@@ -77,6 +77,10 @@ import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
 import { n3FirstReviewAreaId } from '../../lib/aiLesson/course/rpg/gardenCounts';
+import { probeUnitProgressTable, createSyncedUnitStorage, type ProbeClient } from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
+import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
+import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
+import { supabase } from '../../services/supabaseClient';
 import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
 import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
 import { AdventureRecordCard } from '../../components/ai-course/rpg/AdventureRecordCard';
@@ -186,6 +190,25 @@ export default function AiCoursePage() {
   // World Map（ミナモ列島）: 開いているエリアと現在地（localStorageから導出・read only）
   const [activeAreaId, setActiveAreaId] = useState<string | null>(null);
   const [currentAreaId, setCurrentAreaId] = useState<string>(() => deriveCurrentAreaId(window.localStorage));
+  // 単元進捗の保存先（H2準備）: ai_course_unit_progress がremoteに存在する時だけ同期つきへ切替。
+  // 未適用の現在は probe が false → undefined のまま（N3AreaPanelは従来の端末内保存）。
+  const [unitStorage, setUnitStorage] = useState<StoragePort | undefined>(undefined);
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      if (!learner) { if (alive) setUnitStorage(undefined); return; }
+      const enabled = await probeUnitProgressTable(supabase as unknown as ProbeClient);
+      if (!alive || !enabled) return;
+      const synced = createSyncedUnitStorage({
+        learnerId: learner.id,
+        supabase: supabase as unknown as SupabaseLike,
+        localStore: window.localStorage,
+      });
+      void synced.flushOutbox(); // 前回未送信分を先に流す
+      if (alive) setUnitStorage(synced);
+    })();
+    return () => { alive = false; };
+  }, [learner]);
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
@@ -816,7 +839,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <N3AreaPanelLazy area={area}
+            <N3AreaPanelLazy area={area} storage={unitStorage}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
               onOpenAdventure={area.hasAdventure ? () => setStep('adventure') : undefined}

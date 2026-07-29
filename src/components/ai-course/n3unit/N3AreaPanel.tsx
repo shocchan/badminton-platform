@@ -10,6 +10,7 @@ import { unitSpecsForArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
 import { areaProgress, unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
 import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocabBank';
 import { createLocalUnitStorage } from '../../../lib/aiLesson/course/n3unit/localUnitStorage';
+import type { StoragePort } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { worldChangeFor } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { N3UnitPanel } from './N3UnitPanel';
 import { HeroSprite, ShokoSprite } from '../rpg/pixelAssets';
@@ -27,14 +28,20 @@ export interface N3AreaPanelProps {
   onOpenAdventure?: () => void;
   /** 復習（オモイデ庭園）への導線 */
   onOpenReview: () => void;
+  /**
+   * 進捗の保存先の差し替え（H2準備）。
+   * 未指定なら従来どおり端末内（localStorage）のみ。AiCoursePageが
+   * ai_course_unit_progress の存在をprobeして同期つきstorageを渡す。
+   */
+  storage?: StoragePort;
 }
 
-export const N3AreaPanel = ({ area, onExit, onOpenArea, onOpenAdventure, onOpenReview }: N3AreaPanelProps) => {
+export const N3AreaPanel = ({ area, onExit, onOpenArea, onOpenAdventure, onOpenReview, storage: injectedStorage }: N3AreaPanelProps) => {
   const pool = useMemo(() => allVocabularyItems(), []);
   const storage = useMemo(
-    () => (browserStore ? createLocalUnitStorage(browserStore)
+    () => injectedStorage ?? (browserStore ? createLocalUnitStorage(browserStore)
       : { load: async () => null, save: async () => ({ ok: true as const }) }),
-    []);
+    [injectedStorage]);
   const specs = useMemo(() => unitSpecsForArea(area), [area]);
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
   const [, setTick] = useState(0);

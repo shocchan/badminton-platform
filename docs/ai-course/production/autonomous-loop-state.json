@@ -13,16 +13,17 @@
   "S12-H1: Docker(colima)導入→supabase start→AIコース5migration＋draft3本local適用→失敗注入（部分適用ゼロ）→RLS JWT matrix 20/20→cross-device実DB実証3件→feature/security rollback分離実証（復元row count一致）。発見F1〜F4をdraft/パケットへ反映（証拠: generated/h1-local-verification.md）",
   "S12-H4a: P2-11（quickreview空CTA）・P2-12（庭園N3 deep-link）解消・staging実画面確認",
   "S12-H4b(G2): 全657問（N2 180＋N3 477）意味品質監査。P1計22件を修正（context開きフレーム18=例文24語改稿＋furigana同期／collocation対象語重複2=engine恒久修正／N2設計1・英字1）。漏洩0・複数正解0を機械検査で確認（generated/g2-question-audit.md）",
-  "S12-H4c: P2-8解消（AdventureRecordCardに第1章クエストx/5タイル）・P2-4はtypo現存せずと確認"
+  "S12-H4c: P2-8解消（AdventureRecordCardに第1章クエストx/5タイル）・P2-4はtypo現存せずと確認",
+  "S12-H4d/H2prep: P2-6（dead code削除）・P2-10（map maxHeight）・P2-15（コース内404→入口リダイレクト。初版の相対Navigateが空スプラット自己ループ=入口ブランクを起こしstagingで即検知→絶対パス+空スプラットガードへ修正・回帰確認済み）。H2#3のSupabase配線をprobe-gatedで実装（syncedUnitStorage+localStorageCachePort+テスト8件）。probeのhead:trueがテーブル不在でも204/error:nullを返すstaging実測罠を発見→GET probeへ修正し回帰テスト化。remote未適用の現在は純local動作をstaging実画面で確認"
  ],
  "wholeProductComplete": true,
  "wholeProductVerifiedOnRealStaging": true,
  "productionGo": "NO-GO",
  "branch": "feature/ai-course-learning-polish",
- "testCount": 1068,
+ "testCount": 1078,
  "lintBaseline": "45E+6W（全件バドミントン側レガシー・ai-course側0件）",
  "mainBundleKb": 589.2,
- "stagingDeployedThrough": "session-12 P1修正版（deploy 61864808）",
+ "stagingDeployedThrough": "session-12 H4/H2prep版（probe修正済み・最新deploy）",
  "backupBranch": "backup/forest-first-f10 (72fd19d)",
  "resumeFrom": "H1完了。次: H2（remote適用はCEOの APPLY_SHARED_SUPABASE_MIGRATIONS 待ち・パケット§20b差分込み。承認後にアプリ配線=StoragePort差し替え+outbox化）／人間ゲートH3（CEO教材/ビジュアル/世界名承認・法務・実機・support送信先）／品質深掘りH4（G2監査・P2 backlog）。local再現手順はrollback-backup.md",
  "decisionQueueAwaiting": [
