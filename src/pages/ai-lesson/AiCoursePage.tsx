@@ -76,6 +76,7 @@ import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/cou
 import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
+import { n3FirstReviewAreaId } from '../../lib/aiLesson/course/rpg/gardenCounts';
 import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
 import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
 import { AdventureRecordCard } from '../../components/ai-course/rpg/AdventureRecordCard';
@@ -785,7 +786,7 @@ export default function AiCoursePage() {
           conversationReviewsDue={reviewsDue}
           onOpenVocabReview={openVocabQuickReview}
           onOpenConversationHistory={() => setStep('history')}
-          onOpenN3={() => openArea(currentAreaId)}
+          onOpenN3={() => openArea(n3FirstReviewAreaId(window.localStorage) ?? currentAreaId)}
           onOpenN2={() => setStep('n2grammar')}
           onOpenAdventure={() => setStep('adventure')}
           onBack={() => setStep('home')}

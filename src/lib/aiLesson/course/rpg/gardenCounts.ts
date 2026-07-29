@@ -2,7 +2,7 @@
 // localStorageの学習記録から件数だけを導出する。ここから書き込みはしない。
 // 壊れた値は0件として扱う（表示が止まらないことを優先）。
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
-import { WORLD_AREAS } from './worldAtlas';
+import { WORLD_AREAS, unitSpecsForArea } from './worldAtlas';
 import { localUnitStorageKey } from '../n3unit/localUnitStorage';
 import { N2_QUEST_KEY_PREFIX } from '../n2quest/n2QuestProgress';
 import { areaProgress } from './worldProgress';
@@ -30,6 +30,23 @@ export const n3ScheduledReviewCount = (store: ReadableStore): number => {
     if (Array.isArray(list)) for (const id of list) if (typeof id === 'string') ids.add(id);
   }
   return ids.size;
+};
+
+/**
+ * 復習予定の語が待つ最初のN3エリア（P2-12）。
+ * 庭園の「N3攻略へ」を現在地ではなく、復習語が実際にあるエリアへ着地させるために使う。
+ * 復習予定がどの単元にも無ければ null（呼び出し側は現在地へフォールバック）。
+ */
+export const n3FirstReviewAreaId = (store: ReadableStore): string | null => {
+  const unitHasReviews = (unitId: string): boolean => {
+    const list = parseUnitState(store, unitId)?.reviewScheduledItemIds;
+    return Array.isArray(list) && list.some(id => typeof id === 'string');
+  };
+  for (const area of WORLD_AREAS) {
+    if (area.destination.kind !== 'n3area') continue;
+    if (unitSpecsForArea(area).some(spec => unitHasReviews(spec.unitId))) return area.areaId;
+  }
+  return null;
 };
 
 /** N3単元の完了数（result到達） */

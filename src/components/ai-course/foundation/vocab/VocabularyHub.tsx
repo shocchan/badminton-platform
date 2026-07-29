@@ -1236,7 +1236,23 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
   const [judged, setJudged] = useState<boolean | null>(null);
   const [done, setDone] = useState<{ itemId: string; correct: boolean }[]>([]);
   useEffect(() => { trackCourseOnce('start_ai_course_daily_review'); }, []);
-  if (ids.length === 0) return <p className="text-sm text-gray-400 bg-white border border-gray-100 rounded-xl p-4">{tv.quickReviewEmpty}</p>;
+  // 空でも行き止まりにしない（P2-11）: 理由と次の行動を必ず示す
+  if (ids.length === 0) {
+    return (
+      <div className="bg-white border border-gray-100 rounded-xl p-4">
+        <p className="text-sm text-gray-600">{tv.quickReviewEmpty}</p>
+        <p className="text-xs text-gray-400 mt-1 mb-3">{tv.quickReviewEmptyHint}</p>
+        <div className="space-y-2">
+          <button type="button" onClick={onDone}
+            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm">{tv.quickReviewEmptyBack}</button>
+          {onTalk && (
+            <button type="button" onClick={onTalk}
+              className="w-full min-h-11 px-4 bg-white border border-teal-200 text-teal-700 rounded-xl font-bold text-sm">{tv.quickReviewEmptyTalk}</button>
+          )}
+        </div>
+      </div>
+    );
+  }
   if (idx >= ids.length) {
     return <LearningCompletionView t={t} schedule={schedule} itemById={itemById} results={done}
       onFinish={() => { trackCourse('complete_ai_course_daily_review'); onDone(); }}

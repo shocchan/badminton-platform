@@ -7,7 +7,8 @@ import { AdventureRecordCard } from './AdventureRecordCard';
 import { localUnitStorageKey } from '../../../lib/aiLesson/course/n3unit/localUnitStorage';
 import { emptyRunState } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { N2_QUEST_KEY_PREFIX } from '../../../lib/aiLesson/course/n2quest/n2QuestProgress';
-import { n3ScheduledReviewCount, n2LearnedCount, n3UnitsDoneCount } from '../../../lib/aiLesson/course/rpg/gardenCounts';
+import { n3ScheduledReviewCount, n2LearnedCount, n3UnitsDoneCount, n3FirstReviewAreaId } from '../../../lib/aiLesson/course/rpg/gardenCounts';
+import { WORLD_AREAS, unitSpecsForArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
 
 afterEach(cleanup);
 beforeEach(() => { window.localStorage.clear(); window.sessionStorage.clear(); });
@@ -73,5 +74,26 @@ describe('gardenCounts（壊れた値で止まらない）', () => {
     window.localStorage.setItem(N2_QUEST_KEY_PREFIX + 'n2g-002', 'not-json');
     expect(n3ScheduledReviewCount(window.localStorage)).toBe(0);
     expect(n2LearnedCount(window.localStorage)).toBe(0);
+  });
+});
+
+describe('n3FirstReviewAreaId（庭園→N3復習のdeep-link・P2-12）', () => {
+  it('復習語がある最初のエリアIDを返し、無ければnull（現在地フォールバック）', () => {
+    window.localStorage.clear();
+    expect(n3FirstReviewAreaId(window.localStorage)).toBeNull();
+    // エリア5（ユカリの森）の単元にだけ復習語を置く
+    window.localStorage.setItem(localUnitStorageKey('n3u-06-feeling'),
+      JSON.stringify({ reviewScheduledItemIds: ['fi-kimochi'] }));
+    const areaId = n3FirstReviewAreaId(window.localStorage);
+    expect(areaId).not.toBeNull();
+    const area = WORLD_AREAS.find(a => a.areaId === areaId)!;
+    expect(area.destination.kind).toBe('n3area');
+    expect(unitSpecsForArea(area).some(s => s.unitId === 'n3u-06-feeling')).toBe(true);
+  });
+  it('壊れたJSONやreviewScheduledItemIds無しはnull', () => {
+    window.localStorage.clear();
+    window.localStorage.setItem(localUnitStorageKey('n3u-01-self'), '{broken');
+    window.localStorage.setItem(localUnitStorageKey('n3u-02-daily'), JSON.stringify({ phase: 'stage1' }));
+    expect(n3FirstReviewAreaId(window.localStorage)).toBeNull();
   });
 });
