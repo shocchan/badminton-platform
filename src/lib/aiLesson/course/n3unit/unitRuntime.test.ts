@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildUnitQuestions, questionsForPhase, answerQuestion, advancePhaseIfDone,
-  clearMission, summarizeRun, emptyRunState, restoreRunState, worldChangeFor,
+  markDiagnosticNotLearned, clearMission, summarizeRun, emptyRunState, restoreRunState, worldChangeFor,
   SCHEMA_VERSION, type UnitRunState,
 } from './unitRuntime';
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
@@ -25,12 +25,11 @@ const runUnitToCompletion = (specIndex: number, opts: { passDiagnostic: boolean 
     const queue = questionsForPhase(set, state);
     if (queue.length === 0) { state = advancePhaseIfDone(state, set, spec, NOW); continue; }
     const q = queue[0];
-    // 診断フェーズは opts で「既習」か「まだ習っていない」を切り替える
-    const correct = state.phase === 'diagnostic' ? opts.passDiagnostic : true;
-    state = answerQuestion(state, q, correct, NOW);
-    if (!correct) {
-      // 誤答は同じ問題が残る → 診断は1周で終える必要があるので既読扱いにする
-      state = { ...state, clearedQuestionIds: [...state.clearedQuestionIds, q.questionId] };
+    // 診断フェーズは opts で「既習（正解）」か「まだ習っていない（自己申告）」を切り替える
+    if (state.phase === 'diagnostic' && !opts.passDiagnostic) {
+      state = markDiagnosticNotLearned(state, q); // UIの「まだ習っていない」と同じ経路
+    } else {
+      state = answerQuestion(state, q, true, NOW);
     }
     state = advancePhaseIfDone(state, set, spec, NOW);
   }
@@ -81,6 +80,39 @@ describe('N3 Unit ランタイム: 12単元すべてが完走できる', () => {
     expect(state.reviewScheduledItemIds).toContain(q.itemId);
     expect(state.clearedQuestionIds).not.toContain(q.questionId); // 誤答では前進しない
   });
+  it('診断の「まだ習っていない」は行き止まりにならず、誤答扱いもしない（§6）', () => {
+    const spec = N3_UNIT_SPECS[0];
+    const set = buildUnitQuestions(spec, pool);
+    let state = advancePhaseIfDone(emptyRunState(spec.unitId, NOW), set, spec, NOW);
+    const before = questionsForPhase(set, state);
+    const q = before[0];
+    state = markDiagnosticNotLearned(state, q);
+    const after = questionsForPhase(set, state);
+    // 同じ問題が先頭に残り続けない（前進する）
+    expect(after.length).toBe(before.length - 1);
+    expect(after.some(x => x.questionId === q.questionId)).toBe(false);
+    // 誤答ではない: wrong加算なし・復習予定行きなし・既習skipにもしない
+    expect(state.attempts[q.itemId]?.wrongCount ?? 0).toBe(0);
+    expect(state.reviewScheduledItemIds).not.toContain(q.itemId);
+    expect(state.diagnosticSkippedItemIds).not.toContain(q.itemId);
+    // 使い分け（Stage2）では同じ問題が必ず出る（clearedにしない）
+    expect(state.clearedQuestionIds).not.toContain(q.questionId);
+  });
+  it('全問「まだ習っていない」でも診断が終わりStage1へ進む', () => {
+    const spec = N3_UNIT_SPECS[0];
+    const set = buildUnitQuestions(spec, pool);
+    let state = advancePhaseIfDone(emptyRunState(spec.unitId, NOW), set, spec, NOW);
+    let guard = 0;
+    while (state.phase === 'diagnostic') {
+      if (guard++ > 100) throw new Error('診断が終わらない');
+      const q = questionsForPhase(set, state)[0];
+      state = advancePhaseIfDone(markDiagnosticNotLearned(state, q), set, spec, NOW);
+    }
+    expect(state.phase).toBe('stage1');
+    // 全語がStage1で導入される（skipされない）
+    expect(state.diagnosticSkippedItemIds).toEqual([]);
+    expect(questionsForPhase(set, state).length).toBe(set.byStage.understand.length);
+  });
   it('encounter語は理解フェーズには出ず、使い分け以降で再登場する（§4）', () => {
     const spec = N3_UNIT_SPECS.find(s => s.encounterVocabularyIds.length > 0)!;
     const set = buildUnitQuestions(spec, pool);
@@ -99,6 +131,14 @@ describe('N3 Unit ランタイム: 中断復帰とエラー状態（§5G）', ()
     const out = restoreRunState(saved, spec.unitId, NOW);
     expect(out.kind).toBe('resumed');
     expect(out.state.phase).toBe('stage2');
+  });
+  it('旧形式（diagnosticDeclinedQuestionIdsなし）の保存値も既定値[]で復元できる', () => {
+    const spec = N3_UNIT_SPECS[0];
+    const legacy = { ...emptyRunState(spec.unitId, NOW), phase: 'diagnostic' as const };
+    delete (legacy as Partial<UnitRunState>).diagnosticDeclinedQuestionIds;
+    const out = restoreRunState(legacy, spec.unitId, NOW);
+    expect(out.kind).toBe('resumed');
+    expect(out.state.diagnosticDeclinedQuestionIds).toEqual([]);
   });
   it('保存値なしは新規、壊れた値・別単元は最初から（行き止まりにしない）', () => {
     expect(restoreRunState(null, 'u', NOW).kind).toBe('fresh');

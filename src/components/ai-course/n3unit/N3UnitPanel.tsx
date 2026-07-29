@@ -9,7 +9,7 @@ import { cognateProfileFor } from '../../../lib/aiLesson/course/quality/cognateP
 import type { AssessQuestion } from '../../../lib/aiLesson/course/quality/assessQuestionEngine';
 import {
   buildUnitQuestions, questionsForPhase, answerQuestion, advancePhaseIfDone,
-  clearMission, summarizeRun, emptyRunState, restoreRunState, worldChangeFor,
+  markDiagnosticNotLearned, clearMission, summarizeRun, emptyRunState, restoreRunState, worldChangeFor,
   type UnitRunState, type StoragePort, type LoadOutcome,
 } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { HeroSprite, ShokoSprite } from '../rpg/pixelAssets';
@@ -131,6 +131,14 @@ export const N3UnitPanel = ({
     }
     const answered = answerQuestion(state, q, true, clock());
     const advanced = advancePhaseIfDone(answered, set, spec, clock());
+    if (advanced.phase !== state.phase) setAnnouncement(`${PHASE_LABEL[advanced.phase]}へ進みました`);
+    persist(advanced);
+    setWrongOnce(false); setBuilt([]);
+  };
+
+  // 「まだ習っていない」: 誤答扱いにせず診断だけ消化して先へ（Stage1で導入から学ぶ）
+  const declineDiagnostic = (q: AssessQuestion) => {
+    const advanced = advancePhaseIfDone(markDiagnosticNotLearned(state, q), set, spec, clock());
     if (advanced.phase !== state.phase) setAnnouncement(`${PHASE_LABEL[advanced.phase]}へ進みました`);
     persist(advanced);
     setWrongOnce(false); setBuilt([]);
@@ -264,7 +272,7 @@ export const N3UnitPanel = ({
               </div>
             )}
             {state.phase === 'diagnostic' && (
-              <button type="button" onClick={() => submit(current, false)}
+              <button type="button" onClick={() => declineDiagnostic(current)}
                 className="w-full min-h-11 mt-2 text-xs text-gray-500 underline">まだ習っていない（最初から学ぶ）</button>
             )}
             <button type="button" onClick={onExit} className="w-full min-h-11 mt-2 text-xs text-gray-400 underline">

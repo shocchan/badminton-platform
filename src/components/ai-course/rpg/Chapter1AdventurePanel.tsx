@@ -298,7 +298,7 @@ export const Chapter1AdventurePanel = ({ onBack, devTools = false }: Props) => {
         <div className="md:grid md:grid-cols-5 md:gap-4">
           {/* ── 左（desktop 60%）: マップ ── */}
           <div className="md:col-span-3">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">Chapter 1: はじまりの町（仮称）</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">Chapter 1: はじまりの町</h2>
             <p className="text-xs text-gray-500 mb-2">日本語を学ぶと霧が晴れ、行ける場所と話せる人が増えていきます。</p>
             <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-[#9db877]" style={{ aspectRatio: '4/3' }}>
               <svg viewBox="0 0 48 36" className="absolute inset-0 w-full h-full" shapeRendering="crispEdges"

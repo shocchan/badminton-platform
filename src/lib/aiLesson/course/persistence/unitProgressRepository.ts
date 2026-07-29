@@ -79,6 +79,9 @@ export const mergeProgress = (a: UnitRunState, b: UnitRunState): UnitRunState =>
   const unionCleared = [...new Set([...a.clearedQuestionIds, ...b.clearedQuestionIds])];
   const unionReview = [...new Set([...a.reviewScheduledItemIds, ...b.reviewScheduledItemIds])];
   const unionSkipped = [...new Set([...a.diagnosticSkippedItemIds, ...b.diagnosticSkippedItemIds])];
+  const unionDeclined = [...new Set([
+    ...(a.diagnosticDeclinedQuestionIds ?? []), ...(b.diagnosticDeclinedQuestionIds ?? []),
+  ])];
   const attempts = { ...a.attempts };
   for (const [id, at] of Object.entries(b.attempts)) {
     const cur = attempts[id];
@@ -99,6 +102,7 @@ export const mergeProgress = (a: UnitRunState, b: UnitRunState): UnitRunState =>
     clearedQuestionIds: unionCleared,
     reviewScheduledItemIds: unionReview,
     diagnosticSkippedItemIds: unionSkipped,
+    diagnosticDeclinedQuestionIds: unionDeclined,
     attempts,
     missionCleared: a.missionCleared || b.missionCleared,
   };

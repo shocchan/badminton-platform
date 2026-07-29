@@ -37,6 +37,8 @@ export interface UnitRunState {
   clearedQuestionIds: string[];
   /** 間違えた語（復習予定へ回す） */
   reviewScheduledItemIds: string[];
+  /** 診断で「まだ習っていない」を選んだ問題ID（診断のみ消化。Stage2では出題する） */
+  diagnosticDeclinedQuestionIds: string[];
   missionCleared: boolean;
 }
 
@@ -45,7 +47,7 @@ export const SCHEMA_VERSION = 1;
 export const emptyRunState = (unitId: string, nowMs: number): UnitRunState => ({
   version: SCHEMA_VERSION, unitId, phase: 'intro', startedAtMs: nowMs, completedAtMs: null,
   diagnosticSkippedItemIds: [], cursor: 0, attempts: {}, clearedQuestionIds: [],
-  reviewScheduledItemIds: [], missionCleared: false,
+  reviewScheduledItemIds: [], diagnosticDeclinedQuestionIds: [], missionCleared: false,
 });
 
 /** 保存の抽象。localのみ／正式DBのどちらでも差し替えられる */
@@ -118,7 +120,8 @@ export const questionsForPhase = (
   set: UnitQuestionSet, state: UnitRunState,
 ): AssessQuestion[] => {
   if (state.phase === 'diagnostic') {
-    return set.diagnostic.filter(q => !state.clearedQuestionIds.includes(q.questionId));
+    return set.diagnostic.filter(q => !state.clearedQuestionIds.includes(q.questionId)
+      && !state.diagnosticDeclinedQuestionIds.includes(q.questionId));
   }
   const stage = stageOfPhase(state.phase);
   if (!stage) return [];
@@ -165,6 +168,23 @@ export const answerQuestion = (
     next = { ...next, diagnosticSkippedItemIds: [...next.diagnosticSkippedItemIds, question.itemId] };
   }
   return next;
+};
+
+/**
+ * 診断で「まだ習っていない」を選んだとき。誤答ではなく自己申告なので、
+ * wrong加算・復習予定行きにはせず、診断の出題だけを消化して先へ進める。
+ * - diagnosticSkippedItemIds には入れない＝Stage1で必ず導入から学ぶ
+ * - clearedQuestionIds には入れない＝同じ問題がStage2（使い分け）で必ず出る
+ */
+export const markDiagnosticNotLearned = (
+  state: UnitRunState, question: AssessQuestion,
+): UnitRunState => {
+  if (state.phase !== 'diagnostic') return state;
+  if (state.diagnosticDeclinedQuestionIds.includes(question.questionId)) return state;
+  return {
+    ...state,
+    diagnosticDeclinedQuestionIds: [...state.diagnosticDeclinedQuestionIds, question.questionId],
+  };
 };
 
 /** そのフェーズの残り問題が0なら次のフェーズへ */
