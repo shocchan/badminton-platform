@@ -16,6 +16,8 @@ import { createVocabProgressRepository } from './vocabProgress';
 import { createVocabSpacedReviewRepository } from './vocabSpacedReview';
 import { createLearningClock } from './learningClock';
 import { aiCourseI18n } from '../../../locales/aiCourse';
+import { levelMetaOf } from './vocabularyLevelMeta';
+import { contentNoteOf } from './vocabContentMeta';
 
 const mem = () => {
   const m = new Map<string, string>();
@@ -228,6 +230,17 @@ describe('スコープ文言の正直さ（ja/zh・偽装禁止）', () => {
       const all = JSON.stringify([loc.scopeTitle, loc.scopeSub(140), loc.disclaimer(140), loc.whatWhenDoneBody]);
       expect(all).not.toContain('N1');
       expect(all).not.toMatch(/全語彙を(学べます|カバー)|完全網羅|全部掌握N3/);
+    }
+  });
+});
+
+describe('注意分類語の中国語ノート網羅（夜間ブラッシュアップ2026-07-30）', () => {
+  it('false friend・意味範囲注意・日本語特有の全語に中国語ノートが1つ以上ある', () => {
+    for (const it2 of items) {
+      const meta = levelMetaOf(it2.id);
+      if (!['false_friend', 'partial_overlap', 'japanese_specific'].includes(meta.cognate)) continue;
+      const hasNote = !!it2.usageNoteZh || !!contentNoteOf(it2.id)?.learningFocusZh || !!meta.cognateNoteZh;
+      expect(hasNote, `${it2.id}（${meta.cognate}）に中国語ノートがない`).toBe(true);
     }
   });
 });

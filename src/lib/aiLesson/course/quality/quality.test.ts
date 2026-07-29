@@ -145,3 +145,48 @@ describe('Cognate-aware 出題方針（§12）', () => {
     for (const c of COGNATE_PROFILES) expect(c.reviewStatus).toBe('human_review_candidate');
   });
 });
+
+describe('誤答の質（QP-1/QP-2・夜間ブラッシュアップ2026-07-30）', () => {
+  const pool = allVocabularyItems();
+  it('QP-1: core_meaning誤答がpool先頭に固定されない（全体で十分な多様性）', () => {
+    const used = new Set<string>();
+    for (const item of pool) {
+      const qs = buildAssessQuestions(item, pool, { introduced: false });
+      for (const q of qs) {
+        if (q.dimension !== 'core_meaning') continue;
+        for (let i = 0; i < q.choices.length; i++) if (i !== q.answerIndex) used.add(q.choices[i]);
+      }
+    }
+    // 修正前は先頭の数語（姓名・出身地…）に偏っていた。回転後は誤答語彙が広く使われる
+    expect(used.size).toBeGreaterThanOrEqual(30);
+  });
+  it('QP-1: 生成は依然として決定的（同じ入力→同じ問題）', () => {
+    for (const item of pool.slice(0, 20)) {
+      const a = buildAssessQuestions(item, pool, { introduced: false });
+      const b = buildAssessQuestions(item, pool, { introduced: false });
+      expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+    }
+  });
+  it('QP-2: 語幹フレームの穴埋めは同じ活用クラスの誤答だけ（形だけで解けない）', () => {
+    // 「日本に住んでいます」→「＿＿んでいます」型。誤答も んで に自然に接続する動詞（む/ぶ/ぬ）のみ
+    const sumu = pool.find(i => i.id === 'fi-sumu')!;
+    const q = buildAssessQuestions(sumu, pool, { introduced: false }).find(x => x.dimension === 'context');
+    expect(q).toBeTruthy();
+    if (!q) return;
+    const ndeVerbs = new Set(pool.filter(i => i.partOfSpeech === 'verb' && /[むぶぬ]$/.test(i.lemma))
+      .map(i => (i.lemma.length > 2 ? i.lemma.slice(0, -1) : i.lemma.slice(0, 1))));
+    for (let i = 0; i < q.choices.length; i++) {
+      if (i === q.answerIndex) continue;
+      expect(ndeVerbs.has(q.choices[i]), `誤答「${q.choices[i]}」が んで フレームに接続できない`).toBe(true);
+    }
+  });
+  it('QP-2: 単一正解は維持（誤答は正解と同一表層にならない）', () => {
+    for (const item of pool) {
+      for (const q of buildAssessQuestions(item, pool, { introduced: false })) {
+        if (q.kind !== 'choice') continue;
+        const correct = q.choices[q.answerIndex];
+        expect(q.choices.filter(c => c === correct).length, q.questionId).toBe(1);
+      }
+    }
+  });
+});

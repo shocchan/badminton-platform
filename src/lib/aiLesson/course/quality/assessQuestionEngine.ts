@@ -28,9 +28,24 @@ export interface AssessQuestion {
 
 const hasKanji = (s: string) => /[一-鿿]/.test(s);
 
-/** 決定的な他選択肢の選び方（乱数を使わず、id順で近いものから採る） */
-const pickDistractors = <T>(pool: T[], exclude: (t: T) => boolean, n: number): T[] =>
-  pool.filter(t => !exclude(t)).slice(0, n);
+/** seed文字列の決定的hash（arrangeと同系・乱数なし） */
+const seedHash = (seed: string): number => {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) % 997;
+  return h;
+};
+
+/**
+ * 決定的な他選択肢の選び方（乱数なし）。
+ * QP-1対応: pool先頭固定だと誤答が毎回同じ語（姓名・出身…）になるため、
+ * 対象語idのhashで開始位置を回転させる。同じ入力からは常に同じ結果。
+ */
+const pickDistractors = <T>(pool: T[], exclude: (t: T) => boolean, n: number, seed = ''): T[] => {
+  const cand = pool.filter(t => !exclude(t));
+  if (cand.length <= n || !seed) return cand.slice(0, n);
+  const start = seedHash(seed) % cand.length;
+  return [...cand.slice(start), ...cand.slice(0, start)].slice(0, n);
+};
 
 /** 選択肢の並びを決定的に整える（正解の位置が常に同じにならないよう、idのhashで回転） */
 const arrange = (correct: string, distractors: string[], seed: string): { choices: string[]; answerIndex: number } => {
@@ -46,7 +61,7 @@ const arrange = (correct: string, distractors: string[], seed: string): { choice
 const readingQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQuestion | null => {
   if (!hasKanji(item.lemma)) return null;
   const distractors = pickDistractors(pool,
-    p => p.id === item.id || p.readingKana === item.readingKana || Math.abs(p.readingKana.length - item.readingKana.length) > 1, 2)
+    p => p.id === item.id || p.readingKana === item.readingKana || Math.abs(p.readingKana.length - item.readingKana.length) > 1, 2, item.id + 'r')
     .map(p => p.readingKana);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(item.readingKana, distractors, item.id + 'r');
@@ -60,27 +75,105 @@ const readingQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQu
 };
 
 /**
+ * 穴埋めフレームで「意味的にも成立してしまう」誤答語幹（夜間監査 2026-07-30・G2基準）。
+ * 例: 「名前を＿＿きます」に 聞 は正解になり得る。機械では意味判定できないため
+ * 目視監査の結果をここに固定する（新語追加時はこのリストも見直す）。
+ * 除外の結果 安全な誤答が2つ未満になった語は、cloze自体を出さない（無理に出題しない）。
+ */
+/**
+ * フレーム自体が開放的で、どの誤答でも意味が成立し得る語（目視監査 2026-07-30）。
+ * 「友だちが＿＿ます」「映画を＿＿ます」「11時に＿＿ます」型は除外語を並べても
+ * きりがないため、clozeを出さない（他のStage2次元で測る）。
+ */
+const CLOZE_SUPPRESS = new Set(['fi-kuru', 'fi-miru', 'fi-neru']);
+
+const CLOZE_DISTRACTOR_UNSAFE: Record<string, string[]> = {
+  'fi-miru': ['決め', '考え', '比べ', '忘れ', '食べ', '教え'],   // 映画を＿＿ます: 決める/比べる等も成立
+  'fi-neru': ['起き', '食べ', '決め', '忘れ', '見', '出'],       // 時刻だけのフレームは多くの動詞が成立
+  'fi-hataraku': ['聞', '書', '読'],                             // 会社で＿＿いています: 聞く/書くも成立
+  'fi-kaku': ['聞'],                                             // 名前を聞きます は正しい文
+  'fi-kiku': ['書'],                                             // 音楽を書きます（作曲）が成立し得る
+  'fi-kau': ['使'],                                              // 水を使います が成立
+  'fi-tsukau': ['買'],                                           // スマホを買います が成立
+  'fi-iku': ['聞', '書'],                                        // 学校に聞きます/書きます（問い合わせ/宛先）が成立し得る
+  'fi-kaeru': ['入'],                                            // 家に入ります が成立
+  'fi-hairu': ['帰', '決ま'],                                            // 店に帰ります（店員視点）が成立し得る
+  'fi-noru': ['入', '決ま'],                                             // 電車に入ります が口語で成立し得る
+  'fi-au': ['買'],                                               // 友達に買います（〜てあげる文脈）が成立し得る
+  'fi-heru': ['分か', '変わ', '決ま'],                           // 体重が変わりました/分かりました が成立
+  'fi-deru': ['決め', '比べ', '見', '考え'],                     // 家を決めます/比べます/見ます（内見）が成立
+};
+
+/** て形・た形の活用クラス（語幹フレームの誤答選定用・QP-2）。動詞以外はnull */
+const teFormClass = (item: FoundationItem): string | null => {
+  if (item.partOfSpeech !== 'verb') return null;
+  if (item.verbGroup === 'g2') return 'te';
+  if (item.verbGroup === 'g3') return item.lemma.endsWith('する') || item.lemma === 'する' ? 'shite' : 'kite';
+  const last = item.lemma.slice(-1);
+  if (last === 'む' || last === 'ぶ' || last === 'ぬ') return 'nde';
+  if (last === 'く') return item.lemma === '行く' ? 'tte' : 'ite';
+  if (last === 'ぐ') return 'ide';
+  if (last === 'す') return 'shite';
+  return 'tte'; // う・つ・る
+};
+
+/**
  * 文脈（穴埋め）問題。例文から対象語を伏せ、同じ品詞の語と選ばせる。
  * 中国語訳を出さないので答えが漏れない。活用形は例文の実表記を使う。
  */
+/**
+ * 穴埋め用の語幹。2文字動詞（住む・読む…）は従来語幹が縮まらず、活用された例文
+ * （住んでいます）と一致せずclozeが生成できなかった。漢字1字＋かな1字の語は
+ * 漢字部分を語幹として使う（全かな語は誤マッチを避けるため縮めない）。
+ */
+const clozeStemOf = (x: FoundationItem): string =>
+  x.lemma.length > 2 ? x.lemma.slice(0, x.lemma.length - 1)
+    : x.lemma.length === 2 && hasKanji(x.lemma[0]) && !hasKanji(x.lemma[1]) ? x.lemma[0]
+    : x.lemma;
+
 const clozeQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQuestion | null => {
+  if (CLOZE_SUPPRESS.has(item.id)) return null;
   const sentence = item.exampleJa;
   if (!sentence) return null;
   // 例文中の実際の表記を探す（活用で語尾が変わるため、語幹から順に試す）
-  const stem = item.lemma.length > 2 ? item.lemma.slice(0, item.lemma.length - 1) : item.lemma;
+  const stem = clozeStemOf(item);
   const surface = [item.displayForm, item.lemma, stem].find(s => s && sentence.includes(s));
   if (!surface) return null;
   const blanked = sentence.replace(surface, '＿＿');
   const formOf = (p: FoundationItem) => {
-    const st = p.lemma.length > 2 ? p.lemma.slice(0, p.lemma.length - 1) : p.lemma;
+    const st = clozeStemOf(p);
     return surface === item.displayForm ? p.displayForm : (surface === item.lemma ? p.lemma : st);
   };
-  // 長さで正解が分かってしまわないよう、対象語と近い長さの語を誤答に選ぶ
-  const distractors = pool
+  // 長さで正解が分かってしまわないよう、対象語と近い長さの語を誤答に選ぶ。
+  // QP-2対応: 語幹フレーム（＿＿んでいます等）では、同じ活用クラスの動詞だけを誤答にする。
+  // クラス不一致の誤答（働→＿＿んで）は形だけで消去できてしまい、意味を測れない。
+  const stemFrame = item.partOfSpeech === 'verb' && surface !== item.displayForm && surface !== item.lemma;
+  // 空欄の直後（継続部）。誤答語幹はこの継続部と組み合わせて実在の活用形になる必要がある。
+  const contAfterBlank = stemFrame ? sentence.slice(sentence.indexOf(surface) + surface.length) : '';
+  const conjFits = (p: FoundationItem): boolean => {
+    if (!stemFrame) return true;
+    const st = clozeStemOf(p);
+    const joined = st + contAfterBlank;
+    // ます系（買います）・ました系（買いました）
+    const m = masuForm(p.lemma, p.verbGroup);
+    if (m && joined.startsWith(m)) return true;
+    if (m && m.endsWith('ます') && joined.startsWith(m.slice(0, -2) + 'ました')) return true;
+    // て形・た形系（読んで/読んだ・書いて/書いた…）
+    const cls = teFormClass(p);
+    const ends = cls === 'nde' ? ['んで', 'んだ'] : cls === 'ite' ? ['いて', 'いた'] : cls === 'ide' ? ['いで', 'いだ']
+      : cls === 'tte' ? ['って', 'った'] : cls === 'shite' ? ['して', 'した'] : cls === 'kite' ? ['きて', 'きた']
+      : cls === 'te' ? ['て', 'た'] : [];
+    for (const e of ends) if (joined.startsWith(st + e)) return true;
+    return false;
+  };
+  const unsafe = new Set(CLOZE_DISTRACTOR_UNSAFE[item.id] ?? []);
+  const candidates = pool
     .filter(p => p.id !== item.id && p.partOfSpeech === item.partOfSpeech && p.meaningZh !== item.meaningZh)
+    .filter(p => conjFits(p))
     .map(p => formOf(p))
-    .filter(f => !!f && f !== surface && Math.abs(f.length - surface.length) <= 1)
-    .slice(0, 2);
+    .filter((f): f is string => !!f && f !== surface && !unsafe.has(f) && Math.abs(f.length - surface.length) <= 1);
+  const start = candidates.length > 2 ? seedHash(item.id + 'c') % candidates.length : 0;
+  const distractors = [...candidates.slice(start), ...candidates.slice(0, start)].slice(0, 2);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(surface, distractors, item.id + 'c');
   return {
@@ -99,7 +192,7 @@ const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): Asse
   const correct = forms[0];
   // 対象語（lemma/displayForm）を含む誤答は複数正解になるため除外する（G2監査 2026-07-29）
   const containsTarget = (s: string) => s.includes(item.displayForm) || s.includes(item.lemma);
-  const distractors = pickDistractors(pool, p => p.id === item.id || !(p.commonFormsJa ?? []).length, 8)
+  const distractors = pickDistractors(pool, p => p.id === item.id || !(p.commonFormsJa ?? []).length, 8, item.id + 'k')
     .map(p => (p.commonFormsJa ?? [])[0])
     .filter((s): s is string => !!s && s !== correct && !containsTarget(s))
     .slice(0, 2);
@@ -118,7 +211,7 @@ const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): Asse
 /** 中心意味問題（japanese_specificの初回のみ）。中国語訳を選ばせる */
 const coreMeaningQuestion = (item: FoundationItem, pool: FoundationItem[], profile: CognateProfile, introduced: boolean): AssessQuestion | null => {
   if (!allowsCoreMeaningQuestion(profile, introduced)) return null;
-  const distractors = pickDistractors(pool, p => p.id === item.id || p.meaningZh === item.meaningZh, 2)
+  const distractors = pickDistractors(pool, p => p.id === item.id || p.meaningZh === item.meaningZh, 2, item.id + 'm')
     .map(p => p.meaningZh);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(item.meaningZh, distractors, item.id + 'm');

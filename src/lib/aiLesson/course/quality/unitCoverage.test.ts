@@ -70,6 +70,28 @@ describe('N3 Unit Coverage Contract', () => {
     expect(summary.encounterBeforePrimary).toEqual([]);
     expect(summary.encounterLinks).toBeGreaterThan(0);
   });
+  it('全語がStage2（使い分け）問題を1問以上持つ（理解止まりの語0・夜間ブラッシュアップ2026-07-30）', () => {
+    for (const spec of N3_UNIT_SPECS) {
+      const r = evaluateUnitCoverage(spec, pool);
+      expect(r.itemsWithoutDistinguish, `${spec.unitId} に理解止まりの語`).toEqual([]);
+    }
+  });
+  it('動詞は全56語がverbGroupとcommonFormsJa（よく使う形）を持つ', () => {
+    const verbs = pool.filter(i => i.partOfSpeech === 'verb');
+    expect(verbs.length).toBeGreaterThanOrEqual(56);
+    for (const v of verbs) {
+      expect(v.verbGroup, `${v.id} にverbGroupがない`).toBeTruthy();
+      expect((v.commonFormsJa ?? []).length, `${v.id} にcommonFormsJaがない`).toBeGreaterThanOrEqual(2);
+      for (const f of v.commonFormsJa ?? []) {
+        // よく使う形は必ず対象語そのもの（活用形含む）を含む: 語幹一致で検証
+        const stem = v.lemma === 'する' ? 'し'
+          : v.lemma === '来る' ? '来'
+          : v.lemma.endsWith('する') ? v.lemma.slice(0, -2)
+          : v.lemma.slice(0, -1);
+        expect(f.includes(stem) || f.includes(v.lemma), `${v.id} の形「${f}」が語幹を含まない`).toBe(true);
+      }
+    }
+  });
   it('単元specは全件human_review_candidate（自動承認なし）', () => {
     for (const spec of N3_UNIT_SPECS) {
       expect(spec.reviewStatus).toBe('human_review_candidate');

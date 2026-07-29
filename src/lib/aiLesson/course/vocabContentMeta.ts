@@ -76,6 +76,29 @@ export const VOCAB_CONTENT_NOTES: Record<string, VocabContentNote> = {
   'fi-tomodachi': { learningFocusZh: '中文通常说“朋友”，不使用“友达”这一词形。', exampleType: 'conversation' },
   'fi-yakusoku': { learningFocusZh: '日语「約束」表示约定、承诺；现代中文“约束”主要表示限制、管束。', exampleType: 'conversation' },
   'fi-yasui': { learningFocusZh: '日语「安い」表示价格低；中文“安”主要与安全、平安有关，价格低通常说“便宜”。', exampleType: 'daily_life' },
+  // ── 意味範囲のズレ（partial_overlap）: 中文一词对应日语多词、自他区分等（夜間ブラッシュアップ2026-07-30・draft） ──
+  'fi-miru': { learningFocusZh: '中文的「看」范围很宽：看电视・电影用「見る」，看书・看报用「読む」，看医生是「診てもらう」。', exampleType: 'daily_life' },
+  'fi-yomu': { learningFocusZh: '中文常说「看书」，日语必须用「読む」：本を読む（不能说 本を見る）。', exampleType: 'daily_life' },
+  'fi-hanasu': { learningFocusZh: '「話す」是交谈・说（语言）：日本語で話す。转述别人说了什么时多用「言う」。', exampleType: 'conversation' },
+  'fi-kaku': { learningFocusZh: '写字・写文章用「書く」。注意中文「写作业」日语说「宿題をする」，不说「宿題を書く」。', exampleType: 'daily_life' },
+  'fi-tsukau': { learningFocusZh: '中文「用筷子吃」的“用”在日语里是助词「で」：はしで食べます。动词「使う」：はしを使います。', exampleType: 'daily_life' },
+  'fi-tsukuru': { learningFocusZh: '中文的「做」范围很宽：做饭・做东西用「作る」，做作业・做工作用「する」。', exampleType: 'daily_life' },
+  'fi-neru': { learningFocusZh: '「寝る」=睡觉，也含“躺下”。中文「睡不着」用另一个词：「眠れない」。', exampleType: 'daily_life' },
+  'fi-eki': { learningFocusZh: '「駅」只指电车・地铁站。公交车站叫「バス停」，不叫駅。中文「车站」两者都可以。', exampleType: 'daily_life' },
+  'fi-okane': { learningFocusZh: '日常固定说「お金」（お是礼貌前缀）。单说「金（かね）」口语里显得粗。', exampleType: 'daily_life' },
+  'fi-fueru': { learningFocusZh: '自动词：人が増える（不带宾语）。“把〜增加”用他动词「増やす」。中文「增加」不分自他。', exampleType: 'grammar_connection' },
+  'fi-heru': { learningFocusZh: '自动词：客が減る。他动词是「減らす」。惯用：「お腹が減った」=肚子饿了。', exampleType: 'grammar_connection' },
+  'fi-tsuzuku': { learningFocusZh: '自动词：雨が続く。“坚持做〜”用他动词「続ける」：勉強を続ける。', exampleType: 'grammar_connection' },
+  'fi-kimeru': { learningFocusZh: '他动词：行く日を決める（人来决定）。“定下来了”用自动词「決まる」。', exampleType: 'grammar_connection' },
+  'fi-kimaru': { learningFocusZh: '自动词：仕事が決まりました=工作定下来了（报告好消息的常用形）。人做决定用「決める」。', exampleType: 'conversation' },
+  'fi-shiraberu': { learningFocusZh: '查词典・上网查资料都用「調べる」。中文「调查」语感偏重，日常的“查一下”就是「調べる」。', exampleType: 'daily_life' },
+  'fi-ureshii': { learningFocusZh: '「嬉しい」说自己当下的心情。形容别人要说「嬉しそう」（看起来很高兴），不直接说 彼は嬉しい。', exampleType: 'conversation' },
+  'fi-hazukashii': { learningFocusZh: '既是“害羞”也是“难为情・丢脸”，比中文「羞耻」日常得多，多用于说自己。', exampleType: 'conversation' },
+  // ── 日本語特有（japanese_specific）: 中文に直接対応が無い使い方（同上・draft） ──
+  'fi-en': { learningFocusZh: '读「えん」，不读中文的 yuán。金额直接加円：1000円（せんえん）。', exampleType: 'daily_life' },
+  'fi-shigoto': { learningFocusZh: '「仕事」是名词：仕事が忙しい。要当动词用时说「働く」或「仕事をする」。中文「工作」名动皆可。', exampleType: 'business' },
+  'fi-oboeru': { learningFocusZh: '「覚える」=把新东西记住・学会：単語を覚える。“我还记得”用「覚えています」。', exampleType: 'daily_life' },
+  'fi-ganbaru': { learningFocusZh: '日本文化高频词：鼓励别人「頑張ってください」，回应「頑張ります」。中文里没有完全对应的寒暄用法。', exampleType: 'conversation' },
 };
 
 const FIRST_SENSE_SPLIT = /[；;]/;
