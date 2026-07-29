@@ -76,9 +76,10 @@ import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/cou
 import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
+import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
 import { deriveCurrentAreaId } from '../../lib/aiLesson/course/rpg/worldProgress';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -665,7 +666,8 @@ export default function AiCoursePage() {
     switch (area.destination.kind) {
       case 'n3area': setActiveAreaId(areaId); setStep('n3area'); break;
       case 'n2grammar': setStep('n2grammar'); break;
-      case 'conversation': void startLesson(mode); break;
+      // 会話は「カタリ港の旅立ちカード」を経由（場所・相手・目的・所要時間を先に示す・§12）
+      case 'conversation': setStep(plan ? 'conversationIntro' : 'home'); break;
       case 'review': openReview(); break;
     }
   };
@@ -681,7 +683,8 @@ export default function AiCoursePage() {
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive}
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
-      learnerName={learner.displayName} /></Shell>;
+      learnerName={learner.displayName}
+      worldLineJa="カタリ港の霧が、今日のぶんだけ晴れました。" /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
@@ -756,6 +759,22 @@ export default function AiCoursePage() {
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
+      </Shell>
+    );
+  }
+  if (step === 'conversationIntro' && plan) {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <KatariPortIntro
+          purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
+          targetExpression={plan.main.mission.targetExpression}
+          estimatedMinutes={plan.main.mission.estimatedMinutes}
+          remainingToday={remaining}
+          starting={starting}
+          onStartVoice={() => { void startLesson('voice'); }}
+          onStartText={() => { void startLesson('text'); }}
+          onBack={() => setStep('home')}
+        />
       </Shell>
     );
   }
@@ -918,7 +937,7 @@ export default function AiCoursePage() {
             onOpen: () => { syncVocabUrl(null); syncLabUrl({ section: 'units', unit: null, step: null }); setStep('lab'); } },
           { id: 'plaza', worldName: '会話の広場', functionName: 'AI会話で話す',
             descriptionJa: '翔子先生と話して確かめる',
-            onOpen: () => { void startLesson(mode); } },
+            onOpen: () => setStep(plan ? 'conversationIntro' : 'home') },
           { id: 'garden', worldName: 'オモイデ庭園', functionName: '復習して思い出す',
             descriptionJa: '前に学んだことばと再会する', badge: reviewsDue,
             onOpen: openReview },

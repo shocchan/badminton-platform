@@ -94,6 +94,12 @@ describe('CourseReport（会話後の一本道）', () => {
     expect(screen.getByText('2026-07-27')).toBeTruthy();
   });
 
+  it('worldLineJa: 完了ストリップに世界の変化の一言が出る（§12）', () => {
+    render(<CourseReport t={t} data={reportData([])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false}
+      worldLineJa="カタリ港の霧が、今日のぶんだけ晴れました。" />);
+    expect(screen.getByText('カタリ港の霧が、今日のぶんだけ晴れました。')).toBeTruthy();
+  });
+
   it('訂正ゼロ: 最初から完了ストリップを表示（言い直しカードなし）', () => {
     render(<CourseReport t={t} data={reportData([])} onFeedback={noop} onBackHome={noop} onAgain={noop} canAgain={false} />);
     expect(screen.queryByText(t.report.retryTitle)).toBeNull();

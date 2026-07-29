@@ -55,9 +55,11 @@ interface Props {
   /** 本人表示用（アバターは承認済みsigned URLを親から渡す。無ければイニシャル） */
   learnerName?: string;
   learnerAvatarUrl?: string | null;
+  /** 世界の変化の一言（FOREST FIRST §12。会話がミナモ列島の物語につながる） */
+  worldLineJa?: string;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
@@ -133,6 +135,7 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />{tr.doneTitle}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{tr.doneCoachLine}</p>
+                {worldLineJa && <p className="text-xs text-indigo-600 mt-1">{worldLineJa}</p>}
                 {data.nextReviewISO && (
                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                     <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
