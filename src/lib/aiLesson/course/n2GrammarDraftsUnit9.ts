@@ -132,7 +132,7 @@ export const N2_GRAMMAR_DRAFTS_UNIT9: N2GrammarDraft[] = [
     learnerFocus: '汇报进度的靠谱句式：「計画に沿って進んでいます」。让上司安心的一句话',
     similarPatterns: ['〜に従って', '〜に基づいて'],
     contrast: '「に沿って」＝線・方針からずれない；「に従って」＝指示に服従／連動変化；「に基づいて」＝土台・根拠の上に立つ',
-    recognition: { promptZh: '「お客様のご希望に沿った plan をご提案します」的意思是？',
+    recognition: { promptZh: '「お客様のご希望に沿ったプランをご提案します」的意思是？',
       options: ['提出符合客户希望的方案', '无视客户希望的方案', '希望客户接受任意方案', '让客户沿着路走'],
       answerIndex: 0, distractorReason: '「希望に沿う」＝不偏离对方希望',
       explanationZh: '抽象的「沿着」＝贴合、不偏离' },

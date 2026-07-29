@@ -34,9 +34,12 @@ Production GO Matrix（generated/production-go-matrix.md）のfail/human_require
 
 ## Phase H4: 品質の深掘り（FOREST FIRSTで後回しにした木）
 
-- G2: 478問の意味品質監査（Question Review Packet）
-- deferred-polish-backlog.md のP2群（命名統一・会話中の世界文脈・N2誤答後UX 等）
-- question-quality-backlog.json の消化
+- ✅ G2: 全657問（N2 180＋N3 477）の意味品質監査 完了（2026-07-29・generated/g2-question-audit.md）。
+  P1計22件（N2設計1・英字混入1・複数正解20）を全修正: 24語の例文改稿＋furigana同期＋
+  collocation distractorのengine恒久修正。P0/P1残 0
+- ✅ P2-11（quickreview空CTA）・P2-12（庭園N3 deep-link）解消
+- 残: deferred-polish-backlog.md のP2群（命名統一・会話中の世界文脈・N2誤答後UX 等）
+- 残: question-quality-backlog.json の消化（QP-1〜QP-4）
 
 ## 本番反映
 

@@ -97,8 +97,12 @@ const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): Asse
   const forms = item.commonFormsJa ?? [];
   if (forms.length === 0) return null;
   const correct = forms[0];
-  const distractors = pickDistractors(pool, p => p.id === item.id || !(p.commonFormsJa ?? []).length, 2)
-    .map(p => (p.commonFormsJa ?? [])[0]).filter((s): s is string => !!s && s !== correct);
+  // 対象語（lemma/displayForm）を含む誤答は複数正解になるため除外する（G2監査 2026-07-29）
+  const containsTarget = (s: string) => s.includes(item.displayForm) || s.includes(item.lemma);
+  const distractors = pickDistractors(pool, p => p.id === item.id || !(p.commonFormsJa ?? []).length, 8)
+    .map(p => (p.commonFormsJa ?? [])[0])
+    .filter((s): s is string => !!s && s !== correct && !containsTarget(s))
+    .slice(0, 2);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(correct, distractors, item.id + 'k');
   return {

@@ -1,0 +1,20 @@
+{
+ "generatedAt": "2026-07-29",
+ "source": "g2-question-audit.md（G2全数監査）",
+ "p0": [],
+ "p1": [],
+ "p1FixedInG2": [
+  { "id": "n2g-012", "kind": "misleading_design", "fix": "recognitionを文型の意味を問う設問へ差し替え" },
+  { "id": "n2g-125", "kind": "text_defect", "fix": "選択肢内の英字plan→プラン" },
+  { "class": "context_open_frame", "count": 18, "kind": "multiple_correct", "fix": "24語のexampleJa/Zh改稿＋furigana同期（distractor排除フレーム）" },
+  { "class": "collocation_dup_target", "count": 2, "kind": "multiple_correct", "fix": "assessQuestionEngineで対象語を含むdistractorを恒久除外" }
+ ],
+ "p2": [
+  { "id": "QP-1", "area": "distractor_variety", "note": "core_meaning/contextの誤答がpool先頭（姓名/出身地）に固定されがち。seeded rotation検討" },
+  { "id": "QP-2", "area": "form_giveaway", "note": "動詞穴埋めの辞書形distractorは形で解ける（単一正解は維持）" },
+  { "id": "QP-3", "area": "prenominal_frames", "note": "「＿＿＋名詞」フレームは本質的に多義。新語追加時の作成ガイドに反映" }
+ ],
+ "p3": [
+  { "id": "QP-4", "area": "zenzen_affirmative", "note": "「全然＋肯定」は教材では標準形（〜ない）を正とする方針を維持" }
+ ]
+}
