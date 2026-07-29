@@ -87,8 +87,8 @@ export const SupportReportButton = ({ context, adapter, contactFallbackJa, nowMs
           {/* 送信先未確定・検査で止めた場合は「受け付けた」と偽らない */}
           <p className="text-sm font-bold text-amber-700 mb-1">この端末に控えました</p>
           <p className="text-xs text-gray-600 mb-2">
-            まだ送信先の準備ができていないため、いまは端末内に残しています。
-            {contactFallbackJa ? `お急ぎの場合は ${contactFallbackJa} までお知らせください。` : ''}
+            送信先が未設定のため、いまは端末内に残しています。
+            {contactFallbackJa ?? ''}
           </p>
           <button type="button" onClick={() => setOpen(false)} className="min-h-11 px-3 text-xs text-gray-500 underline">閉じる</button>
         </div>

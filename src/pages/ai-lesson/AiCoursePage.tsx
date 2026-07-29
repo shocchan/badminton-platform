@@ -77,9 +77,16 @@ import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
 import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
+import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
+import { AdventureRecordCard } from '../../components/ai-course/rpg/AdventureRecordCard';
+import { SupportReportButton } from '../../components/ai-course/ops/SupportReportButton';
+import { createUnsetSupportAdapter } from '../../lib/aiLesson/course/ops/supportReport';
+
+// support送信先が確定するまでの既定adapter（「受け付けました」と偽らない・§19）
+const supportAdapter = createUnsetSupportAdapter();
 import { deriveCurrentAreaId } from '../../lib/aiLesson/course/rpg/worldProgress';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -655,8 +662,10 @@ export default function AiCoursePage() {
     onLogout: () => { void handleLogout(); },
   });
 
-  /** 期限復習（オモイデ庭園）を開く（施設・地図・エリア画面から共通） */
-  const openReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
+  /** オモイデ庭園（復習の統合入口・§13）。語彙/文法/会話の復習はここから分岐する */
+  const openReview = () => setStep('garden');
+  /** ことばの3分復習（庭園の中の実復習フロー） */
+  const openVocabQuickReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
 
   /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
   const openArea = (areaId: string) => {
@@ -694,6 +703,8 @@ export default function AiCoursePage() {
   if (step === 'growth') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')} showLab={labAllowed}>
+        {/* 冒険の進み（Adventure）と日本語の実力は分けて見せる（§14） */}
+        <AdventureRecordCard />
         {labAllowed && (
           <div className="max-w-md mx-auto px-4 pt-4 flex gap-2">
             <button type="button" onClick={() => setStep('roadmap')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.roadmap}</button>
@@ -759,6 +770,21 @@ export default function AiCoursePage() {
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
+      </Shell>
+    );
+  }
+  if (step === 'garden') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <OmoideGardenPanel
+          conversationReviewsDue={reviewsDue}
+          onOpenVocabReview={openVocabQuickReview}
+          onOpenConversationHistory={() => setStep('history')}
+          onOpenN3={() => openArea(currentAreaId)}
+          onOpenN2={() => setStep('n2grammar')}
+          onOpenAdventure={() => setStep('adventure')}
+          onBack={() => setStep('home')}
+        />
       </Shell>
     );
   }
@@ -894,6 +920,16 @@ export default function AiCoursePage() {
           onLogout={() => { void handleLogout(); }}
           onBack={() => setStep('home')}
         />
+        {/* 問い合わせ（§19）。送信先未確定の間は「この端末に控えました」と正直に表示する */}
+        <div className="max-w-md lg:max-w-2xl mx-auto px-4 pb-8">
+          <p className="text-xs font-bold text-gray-500 mb-1">こまったとき</p>
+          <SupportReportButton
+            adapter={supportAdapter}
+            context={{ route: 'settings', feature: 'support', locale: uiLang,
+              appVersion: 'staging', contentVersion: 'course-v1', deviceClass: 'unknown' }}
+            contactFallbackJa="うまくいかない状態が続くときは、先生に直接お知らせください。"
+          />
+        </div>
       </Shell>
     );
   }

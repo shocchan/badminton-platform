@@ -1,0 +1,40 @@
+// 冒険の記録カード（FOREST FIRST §14）。冒険の進みと日本語の力を「分けて」見せる。
+// Adventure（エリア・単元・文型の進み）はゲーム内の進行度であり、JLPTレベルや
+// Can-do（日本語の実力）とは別のもの。ここで混同させない。read only。
+import { n3UnitsDoneCount, areasDoneCount, n2LearnedCount } from '../../../lib/aiLesson/course/rpg/gardenCounts';
+import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs';
+
+const browserStore = typeof window === 'undefined' ? null : window.localStorage;
+
+export const AdventureRecordCard = () => {
+  const areas = browserStore ? areasDoneCount(browserStore) : { done: 0, total: 7 };
+  const n3Done = browserStore ? n3UnitsDoneCount(browserStore) : 0;
+  const n2Done = browserStore ? n2LearnedCount(browserStore) : 0;
+
+  return (
+    <div className="max-w-md lg:max-w-2xl mx-auto px-4 pt-4">
+      <div className="rounded-2xl border border-indigo-100 bg-white p-4">
+        <p className="text-xs font-bold text-gray-700 mb-2">ミナモ列島の冒険の進み</p>
+        <dl className="grid grid-cols-3 gap-2 text-center">
+          <div className="p-2 bg-indigo-50 rounded-xl">
+            <dt className="text-[10px] text-gray-500">晴れたエリア</dt>
+            <dd className="text-lg font-bold text-gray-900">{areas.done}<span className="text-xs font-normal text-gray-400">/{areas.total}</span></dd>
+          </div>
+          <div className="p-2 bg-indigo-50 rounded-xl">
+            <dt className="text-[10px] text-gray-500">N3単元</dt>
+            <dd className="text-lg font-bold text-gray-900">{n3Done}<span className="text-xs font-normal text-gray-400">/{N3_UNIT_SPECS.length}</span></dd>
+          </div>
+          <div className="p-2 bg-indigo-50 rounded-xl">
+            <dt className="text-[10px] text-gray-500">N2文型</dt>
+            <dd className="text-lg font-bold text-gray-900">{n2Done}<span className="text-xs font-normal text-gray-400">/180</span></dd>
+          </div>
+        </dl>
+        <p className="text-[11px] text-gray-400 mt-2">
+          冒険の進みは「歩いた距離」。日本語の実力は下の「できるようになったこと」で確かめます。二つは別のものです。
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default AdventureRecordCard;
