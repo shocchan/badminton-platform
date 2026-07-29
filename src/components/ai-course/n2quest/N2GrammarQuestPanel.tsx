@@ -31,6 +31,7 @@ type UnitData = { status: 'loading' } | { status: 'error' } | { status: 'ready';
 type ItemPhase = 'detail' | 'quiz' | 'produce' | 'done';
 
 const UNIT_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const NO_ITEMS: N2GrammarDraft[] = [];
 
 /** 同義判断待ち7件も学習対象として表示する（内部メタは出さない） */
 const loadUnitItems = async (unit: number): Promise<N2GrammarDraft[]> => {
@@ -59,14 +60,15 @@ export const N2GrammarQuestPanel = ({ onBack, onOpenReview, onGoConversation }: 
   useEffect(() => {
     if (unit === null) return;
     let alive = true;
-    setUnitData({ status: 'loading' });
+    // effect内同期setStateを避ける（リポジトリ既定のmicrotaskパターン）
+    void Promise.resolve().then(() => { if (alive) setUnitData({ status: 'loading' }); });
     loadUnitItems(unit)
       .then(items => { if (alive) setUnitData({ status: 'ready', items }); })
       .catch(() => { if (alive) setUnitData({ status: 'error' }); });
     return () => { alive = false; };
   }, [unit]);
 
-  const items = unitData.status === 'ready' ? unitData.items : [];
+  const items = unitData.status === 'ready' ? unitData.items : NO_ITEMS;
   const active = useMemo(() => items.find(d => d.grammarId === activeId) ?? null, [items, activeId]);
   const shuffled = useMemo(
     () => (active ? shuffleRecognition(active.grammarId, active.recognition.options, active.recognition.answerIndex) : null),
