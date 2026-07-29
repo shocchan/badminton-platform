@@ -1,21 +1,23 @@
-# 自律制作セッション 現在地（2026-07-28）
+# 自律制作セッション 現在地（2026-07-29・session-12終了時点）
 
 新しいセッションはまずこのファイルと `autonomous-loop-state.json` を読むこと。
 
 ## いまどこにいるか
 
-- CEO指示「攻略型・完全版 v1.0」（§0-39・自律継続・上限8Phase/10時間）を実行中
-- 完了: **3P-1**（完全Inventory・manifest5本・ベースライン確定）→ **3P-2**（Excel intake・
-  全40シート登録・2,089候補終端状態・第一弾614意味分類）
-- **3P-3・3P-4完了**（会話0・オノマトペ100・N3文法76完成draft）
-- **3P-5進行中**: N2 source監査完了＋Unit1の15件完成draft。残165はUnit2以降
-- ブランチ: `feature/ai-course-learning-polish`／テスト898／lint 51不変／main bundle 590.35KB／staging反映済み(3P-3)
+- **FOREST FIRST（F1〜F10）完了済み**。Whole Product Complete on Staging = YES（whole-product-completion-matrix.md）
+- **session-12（2026-07-29）**: 72fd19dをstagingへ反映し、認証済みlearner実画面で
+  Journey A〜I・全10エリア・N3全12単元・N2 180項目（173+7）を確認。
+  実画面で見つけたP1 3件（試作バッジ／N3診断「まだ習っていない」行き止まり／（仮称）表示）を修正
+- 保全branch: `backup/forest-first-f10`（72fd19d）
+- ブランチ: `feature/ai-course-learning-polish`／テスト1068／main bundle 589KB／staging反映済み（deploy 61864808）
+- N2恒等式: completeDraft 173 + humanDecisionRequired 7 = 180（learner表示180）
 
-## 3P-3の実行案（監督の修正が優先）
+## 次にやること
 
-1. 会話contextual未達127語の削減（vocabConversationPractice拡張・判定規則不変・draft）
-2. オノマトペ100候補の完成draft化（全field揃ったもののみ追加。未完成品を増やさない）
-3. reuse_existing 64件のsense統合判断パケット（人間向け）
+- `next-production-hardening-plan.md` の **Phase H1（Docker導入後のlocal DB実証）** から
+- 人間ゲートは H3（CEO教材/ビジュアル/世界名承認・法務・実機・support送信先）
+- 品質深掘りは H4（G2監査・deferred-polish-backlog.md P2-1〜P2-15）
+- Unit 8制作へ戻らない（過去レポートの「N2 99件・tests 911」はREPORT_ONLY_STALE）
 
 ## 不変の原則
 
