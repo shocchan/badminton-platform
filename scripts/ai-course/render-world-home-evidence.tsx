@@ -9,6 +9,9 @@ import { join } from 'node:path';
 import WorldHomeShell from '../../src/components/ai-course/rpg/WorldHomeShell';
 import { N3AreaPanel } from '../../src/components/ai-course/n3unit/N3AreaPanel';
 import { WORLD_AREAS, areaById } from '../../src/lib/aiLesson/course/rpg/worldAtlas';
+import { OmoideGardenPanel } from '../../src/components/ai-course/rpg/OmoideGardenPanel';
+import { KatariPortIntro } from '../../src/components/ai-course/rpg/KatariPortIntro';
+import { N2GrammarQuestPanel } from '../../src/components/ai-course/n2quest/N2GrammarQuestPanel';
 
 const ROOT = process.cwd();
 const cssFile = readdirSync(join(ROOT, 'dist/assets')).find(f => /^index-.*\.css$/.test(f));
@@ -82,4 +85,17 @@ const areaShot = (areaId: string, width: number, name: string) => {
 areaShot('area01-minato', 390, 'area01-mobile');
 areaShot('area05-yukari', 720, 'area05-desktop');
 areaShot('area07-katachi', 390, 'area07-mobile');
-console.log('evidence html written (world home ×3 / area ×3)');
+
+// 庭園・カタリ港・ソラノ塔（F7/F6/F5の新画面）
+const shot = (name: string, width: number, node: React.ReactElement) => {
+  writeFileSync(join(ROOT, OUT, `evidence-${name}.html`),
+    `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><style>body{margin:0;background:#f6f7f9}.frame{width:${width}px;margin:0 auto}</style></head><body><div class="frame">${renderToStaticMarkup(node)}</div></body></html>`);
+};
+shot('garden-320', 320, <OmoideGardenPanel conversationReviewsDue={3}
+  onOpenVocabReview={noop} onOpenConversationHistory={noop} onOpenN3={noop}
+  onOpenN2={noop} onOpenAdventure={noop} onBack={noop} />);
+shot('katari-320', 320, <KatariPortIntro purposeJa="以前と今の変化を説明する"
+  targetExpression="〜ようになりました" estimatedMinutes={3} remainingToday={5}
+  onStartVoice={noop} onStartText={noop} onBack={noop} />);
+shot('n2tower-390', 390, <N2GrammarQuestPanel onBack={noop} />);
+console.log('evidence html written (world home ×3 / area ×3 / garden・katari・n2tower)');
