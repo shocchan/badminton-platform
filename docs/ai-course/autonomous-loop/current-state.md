@@ -1,8 +1,8 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-28 00:40（夜間セッション overnight-20260727-c・ループ#2完了=2E-1.12）
+更新: 2026-07-30（zhローカライズ全画面配線＋ことば図鑑正準化スコープ可視化 完了）
 
-- 現在のPhase: **2E-1.12 完了**（Journey往復契約・storage登録簿と安全reset・実機で往復不具合を検出し修正。completion-reports/phase-2e1-12-completion-report.md）。前Phase: 2E-1.11（初回4ステップJourney・Recovery UX・Error Boundary。completion-reports/phase-2e1-11-completion-report.md）。前Phase: 2E-1.10（間隔反復・role推薦接続・会話コア接続・学習ループUI・リリース分類。completion-reports/phase-2e1-10-completion-report.md）。前々Phase: 2E-1.9（接続グラフ560edge・Inspector・anchor。completion-reports/phase-2e1-9-completion-report.md）。前Phase: 2E-1.8 完了（完全性監査・P0由来・stale検出・双方向リンク・実ブラウザモバイル検証。completion-reports/phase-2e1-8-completion-report.md）
+- 現在のPhase: **zh-l10n＋図鑑可視化 完了**（RPG/N3/N2全learner画面のzh辞書配線9件・vocabCanonical単一情報源・図鑑ヘッダー/11フィルター/全部終えた定義・completion-reports/zh-localization-vocab-scope-20260730.md）。tests 1120 PASS。前Phase: **2E-1.12 完了**（Journey往復契約・storage登録簿と安全reset・実機で往復不具合を検出し修正。completion-reports/phase-2e1-12-completion-report.md）。前Phase: 2E-1.11（初回4ステップJourney・Recovery UX・Error Boundary。completion-reports/phase-2e1-11-completion-report.md）。前Phase: 2E-1.10（間隔反復・role推薦接続・会話コア接続・学習ループUI・リリース分類。completion-reports/phase-2e1-10-completion-report.md）。前々Phase: 2E-1.9（接続グラフ560edge・Inspector・anchor。completion-reports/phase-2e1-9-completion-report.md）。前Phase: 2E-1.8 完了（完全性監査・P0由来・stale検出・双方向リンク・実ブラウザモバイル検証。completion-reports/phase-2e1-8-completion-report.md）
   判断キュー実数: 91判断事項/72語（example1・cognate11・**meaning_zh20・role57**・sense2）※2E-1.7報告の17/60は誤集計と判明し訂正済み
   priority内訳: 独立70・語から継承21（fi-namae P0=3は example独立+2継承と特定）
 - 自律ループ#1: CONTINUE→2E-1.7実装完了（reviews/2e1-6-chatgpt-review.md）

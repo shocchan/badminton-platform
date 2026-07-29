@@ -1418,6 +1418,7 @@ const ja = {
     leftValue: (n: number) => `${n}回`,
     startVoice: '声で会話を始める',
     startText: 'テキストで話す',
+    fogClearedToday: 'カタリ港の霧が、今日のぶんだけ晴れました。',
   },
   // ── Chapter 1（learner向けUIのみ。devツール表示は対象外・日本語のまま） ──
   ch1: {
@@ -2890,6 +2891,7 @@ const zh: AiCourseDict = {
     leftValue: (n: number) => `${n}次`,
     startVoice: '开始语音会话',
     startText: '用文字对话',
+    fogClearedToday: 'カタリ港（会话之港）的雾，散去了今天的一份。',
   },
   ch1: {
     mapAria: (cur: string, next: string) => `初始小镇的地图。当前位置是${cur}。${next ? `下一个目的地是${next}。` : ''}`,

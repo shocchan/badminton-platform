@@ -12,6 +12,9 @@ import { WORLD_AREAS, areaById } from '../../src/lib/aiLesson/course/rpg/worldAt
 import { OmoideGardenPanel } from '../../src/components/ai-course/rpg/OmoideGardenPanel';
 import { KatariPortIntro } from '../../src/components/ai-course/rpg/KatariPortIntro';
 import { N2GrammarQuestPanel } from '../../src/components/ai-course/n2quest/N2GrammarQuestPanel';
+import { aiCourseI18n } from '../../src/locales/aiCourse';
+
+const tJa = aiCourseI18n.ja;
 
 const ROOT = process.cwd();
 const cssFile = readdirSync(join(ROOT, 'dist/assets')).find(f => /^index-.*\.css$/.test(f));
@@ -29,6 +32,7 @@ const facilities = [
 
 const shell = (
   <WorldHomeShell
+    t={tJa}
     areaName="ミナモ列島・はじまりの町"
     locationName="変化の丘（Week 3）"
     clarity="light_fog"
@@ -76,7 +80,7 @@ writeFileSync(join(ROOT, OUT, 'evidence-world-home-mobile-small.html'), page(320
 const areaShot = (areaId: string, width: number, name: string) => {
   const area = areaById(areaId)!;
   const html = renderToStaticMarkup(
-    <N3AreaPanel area={area} onExit={noop} onOpenArea={noop} onOpenReview={noop}
+    <N3AreaPanel t={tJa} area={area} onExit={noop} onOpenArea={noop} onOpenReview={noop}
       onOpenAdventure={area.hasAdventure ? noop : undefined} />
   );
   writeFileSync(join(ROOT, OUT, `evidence-${name}.html`),
@@ -91,11 +95,11 @@ const shot = (name: string, width: number, node: React.ReactElement) => {
   writeFileSync(join(ROOT, OUT, `evidence-${name}.html`),
     `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><style>body{margin:0;background:#f6f7f9}.frame{width:${width}px;margin:0 auto}</style></head><body><div class="frame">${renderToStaticMarkup(node)}</div></body></html>`);
 };
-shot('garden-320', 320, <OmoideGardenPanel conversationReviewsDue={3}
+shot('garden-320', 320, <OmoideGardenPanel t={tJa} conversationReviewsDue={3}
   onOpenVocabReview={noop} onOpenConversationHistory={noop} onOpenN3={noop}
   onOpenN2={noop} onOpenAdventure={noop} onBack={noop} />);
-shot('katari-320', 320, <KatariPortIntro purposeJa="以前と今の変化を説明する"
+shot('katari-320', 320, <KatariPortIntro t={tJa} purposeJa="以前と今の変化を説明する"
   targetExpression="〜ようになりました" estimatedMinutes={3} remainingToday={5}
   onStartVoice={noop} onStartText={noop} onBack={noop} />);
-shot('n2tower-390', 390, <N2GrammarQuestPanel onBack={noop} />);
+shot('n2tower-390', 390, <N2GrammarQuestPanel t={tJa} onBack={noop} />);
 console.log('evidence html written (world home ×3 / area ×3 / garden・katari・n2tower)');

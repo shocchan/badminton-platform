@@ -718,7 +718,7 @@ export default function AiCoursePage() {
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
-      worldLineJa="カタリ港の霧が、今日のぶんだけ晴れました。" /></Shell>;
+      worldLineJa={t.katari.fogClearedToday} /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
