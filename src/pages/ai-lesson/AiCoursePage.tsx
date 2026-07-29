@@ -792,7 +792,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-          <VocabularyHubLazy t={t} labPreview={labAllowed}
+          <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
             onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}

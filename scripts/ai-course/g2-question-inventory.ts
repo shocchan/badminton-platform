@@ -41,6 +41,7 @@ const run = async () => {
     n2Production,
     n2MissingRecognition: n2Missing,
     n3QuestionsPerUnit: n3PerUnit,
+    n3TotalWithReencounters: n3Total,
     n3UniqueQuestionIds: seen.size,
     grandTotal: n2Recognition + seen.size,
   }, null, 1));

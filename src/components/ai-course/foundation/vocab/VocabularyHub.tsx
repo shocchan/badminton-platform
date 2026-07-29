@@ -42,6 +42,12 @@ import { defaultLearningClock } from '../../../../lib/aiLesson/course/learningCl
 import { detectFirstRunState, createFirstRunRepository } from '../../../../lib/aiLesson/course/firstRunJourney';
 import { createJourneyTaskRepository } from '../../../../lib/aiLesson/course/journeyTaskContract';
 import { LearnerErrorBoundary, LearnerRecovery } from './LearnerRecovery';
+import { VocabularyHubHeader } from './VocabularyHubHeader';
+import {
+  vocabCanonicalStats, learnerWordStateOf, computeVocabCompletion, levelTierOf,
+  filterVocabItems, unitLinksFor, VOCAB_FILTER_KEYS,
+} from '../../../../lib/aiLesson/course/vocabCanonical';
+import type { VocabFilterKey, LearnerWordState } from '../../../../lib/aiLesson/course/vocabCanonical';
 // 教材レビューは管理用の重い画面のため別chunk（一般学習フローのchunkへ含めない・§31）
 const VocabReviewPanelLazy = lazy(() => import('./VocabReviewPanel'));
 const VocabDecisionConsoleLazy = lazy(() => import('./VocabDecisionConsole'));
@@ -67,12 +73,14 @@ interface Props {
   /** 内部レビュー画面（review/decisions/connectivity/onodrafts/n3grammar・sandbox・draft画像）の表示。
       学習機能そのものは全learnerが利用できる（FOREST FIRST） */
   labPreview?: boolean;
+  /** 本人の推定レベル（'N3'等）。図鑑ヘッダーの表示切替のみに使い、習得判定には使わない */
+  learnerLevel?: string | null;
 }
 
 // 日付判定はLearningClockへ集約（ローカル日付・UTCで日付がずれない・2E-1.10 §5）
 const dateKey = () => defaultLearningClock.localDateKey();
 
-export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange, labPreview = false }: Props) => {
+export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange, labPreview = false, learnerLevel = null }: Props) => {
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
@@ -99,7 +107,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
     setView('firstrun');
     return true;
   };
-  const [, setTick] = useState(0);
+  const [tick, setTick] = useState(0);
   const bump = useCallback(() => setTick((v) => v + 1), []);
 
   const validCats: VocabCategory[] = ['verbs', 'iAdj', 'naAdj', 'nouns', 'scenes', 'all'];
@@ -116,6 +124,10 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const [category, setCategory] = useState<VocabCategory | null>(initial?.category && validCats.includes(initial.category) ? initial.category : null);
   const [itemId, setItemId] = useState<string | null>(initial?.itemId && itemById.has(initial.itemId) ? initial.itemId : null);
   const [query, setQuery] = useState('');
+  // 図鑑トップのしぼり込み（11フィルター＋検索併用・B§7）。触るまで一覧は出さない
+  const [scopeFilter, setScopeFilter] = useState<VocabFilterKey>('all');
+  const [scopeQuery, setScopeQuery] = useState('');
+  const [scopeTouched, setScopeTouched] = useState(false);
   const setView = (v: VocabView, cat: VocabCategory | null = null, id: string | null = null) => {
     setViewRaw(v); setCategory(cat); setItemId(id);
     onStateChange?.({ view: v, category: cat, itemId: id });
@@ -131,6 +143,17 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
   const daily = useMemo(
     () => pickDailyWords(items.filter((i) => i.coreLevel === 'A' || !i.coreLevel).map((i) => i.id), repo, [], dateKey()),
     [items, repo]);
+
+  // 図鑑ヘッダーの正準集計（vocabCanonicalが単一情報源・tickで学習操作後に再計算）
+  const canonical = useMemo(() => {
+    const stateCounts: Record<LearnerWordState, number> = { unseen: 0, learning: 0, reviewing: 0, retained_candidate: 0 };
+    for (const it of items) stateCounts[learnerWordStateOf(it.id, repo, schedule)] += 1;
+    return {
+      stats: vocabCanonicalStats(), stateCounts,
+      completion: computeVocabCompletion(repo, schedule), tier: levelTierOf(learnerLevel),
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- tick=学習操作後の手動再計算トリガー
+  }, [items, repo, schedule, learnerLevel, tick]);
 
 
   const listFor = (cat: VocabCategory): FoundationItem[] => vocabByCategory(items, cat);
@@ -164,6 +187,9 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
 
       {view === 'top' && (
         <div>
+          {/* ⓪-h 図鑑の正準ヘッダー（目的・スコープ・進捗・ゴール定義・レベル別表示・B§5-§6） */}
+          <VocabularyHubHeader t={t} stats={canonical.stats} stateCounts={canonical.stateCounts}
+            completion={canonical.completion} tier={canonical.tier} />
           {/* ⓪ 語彙の目標と現在のパック（§45/§50・第一表示） */}
           <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-3">
             <div className="flex items-center justify-between">
@@ -258,6 +284,38 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
                 <button type="button" onClick={() => setView('quickreview')}
                   className="w-full min-h-10 mt-2 text-xs font-bold text-indigo-100 underline">{tv.quickReviewChip(quickLeft)}</button>
               ) : null;
+            })()}
+          </div>
+          {/* ①-b 図鑑のしぼり込み（11フィルター＋検索併用・モバイルはwrap表示・B§7） */}
+          <div className="mb-4">
+            <p className="text-xs font-bold text-gray-500 mb-2">{t.vocabScope.filterHeading}</p>
+            <div className="flex flex-wrap gap-1.5 mb-2" role="group" aria-label={t.vocabScope.filterHeading}>
+              {VOCAB_FILTER_KEYS.map((k) => (
+                <button key={k} type="button"
+                  onClick={() => { setScopeFilter(k); setScopeTouched(true); }} aria-pressed={scopeFilter === k}
+                  className={`min-h-9 px-2.5 py-1 text-xs rounded-full border ${scopeFilter === k ? 'bg-indigo-600 text-white border-indigo-600 font-bold' : 'bg-white text-gray-600 border-gray-200'}`}>
+                  {t.vocabScope.filters[k]}
+                </button>
+              ))}
+            </div>
+            <input type="search" value={scopeQuery}
+              onChange={(e) => { setScopeQuery(e.target.value); setScopeTouched(true); }}
+              placeholder={t.vocabScope.searchInFilter} aria-label={t.vocabScope.searchInFilter}
+              className="w-full min-h-11 px-4 py-2.5 border border-gray-200 rounded-xl text-sm mb-2" />
+            {scopeFilter === 'selfKnown' && <p className="text-[11px] text-gray-400 mb-2">{t.vocabScope.selfKnownNote}</p>}
+            {scopeTouched && (() => {
+              const list = filterVocabItems(items, scopeFilter, scopeQuery, repo, schedule);
+              return (
+                <>
+                  <p className="text-[11px] text-gray-400 mb-2" aria-live="polite">{t.vocabScope.resultCount(list.length)}</p>
+                  {list.length === 0
+                    ? <p className="text-sm text-gray-400 text-center py-6">{t.vocabScope.emptyResult}</p>
+                    : <div className="space-y-2">{list.map((it) => (
+                        <CompactCard key={it.id} t={t} repo={repo} item={it}
+                          onOpen={() => setView('detail', 'all', it.id)} labPreview={labPreview} />
+                      ))}</div>}
+                </>
+              );
             })()}
           </div>
           {/* ② カテゴリー（優先4つ大＋すべて・§7） */}
@@ -644,6 +702,28 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
           <Diagram t={t} />
         </div>
       )}
+      {/* この語を使う場所（n3UnitSpecs/worldAtlasの実データのみ・架空の対応なし・B§10） */}
+      {(() => {
+        const links = unitLinksFor(item.id);
+        if (links.length === 0) return null;
+        return (
+          <div className="bg-white rounded-xl border border-gray-100 p-4">
+            <p className="text-xs font-bold text-gray-500 mb-1">{t.vocabScope.whereUsed}</p>
+            <ul className="space-y-1">
+              {links.map((l) => (
+                <li key={l.spec.unitId} className="text-xs text-gray-700">
+                  {l.area ? `${l.area.nameJa.split('（')[0]}・` : ''}{t.locale === 'zh' ? l.spec.titleZh : l.spec.titleJa}
+                  <span className="text-[10px] text-gray-400 ml-1">
+                    {[l.isPrimary ? t.vocabScope.usedAsPrimary : null,
+                      l.isEncounter ? t.vocabScope.usedAsEncounter : null,
+                      l.inMission ? t.vocabScope.usedInMission : null].filter(Boolean).join('・')}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        );
+      })()}
       {onStartPractice && (
         <ActionButton variant="secondary" fullWidth onClick={onStartPractice} className="text-indigo-700 border-indigo-200">
           <MessageCircle className="w-4 h-4" aria-hidden />{tv.practiceCta}
