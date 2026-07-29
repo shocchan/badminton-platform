@@ -25,7 +25,7 @@
  "mainBundleKb": 589.2,
  "stagingDeployedThrough": "session-12 H4/H2prep版（probe修正済み・最新deploy）",
  "backupBranch": "backup/forest-first-f10 (72fd19d)",
- "resumeFrom": "H1完了。次: H2（remote適用はCEOの APPLY_SHARED_SUPABASE_MIGRATIONS 待ち・パケット§20b差分込み。承認後にアプリ配線=StoragePort差し替え+outbox化）／人間ゲートH3（CEO教材/ビジュアル/世界名承認・法務・実機・support送信先）／品質深掘りH4（G2監査・P2 backlog）。local再現手順はrollback-backup.md",
+ "resumeFrom": "AI実行可能分は完遂（H1✅・H4主要✅・H2#1#3のAI準備✅）。次はすべて人間ゲート: H2=CEOの APPLY_SHARED_SUPABASE_MIGRATIONS（§20b差分込み。適用後は配線が自動有効化・残りはUI文言H2#4とn2quest対象化判断）／H3=世界名10件・教材/イラスト承認・support送信先・法務・実機／残P2はP2-2(DB同期が正式解)・P2-13/14(Realtime領域)・P2-3/5(デザイン・命名)・QP-1/2(類似度考慮の設計が必要)で全てブロック理由つき",
  "decisionQueueAwaiting": [
   "世界名・エリア名10件の承認（ミナモ列島/ミナト/ヒノデ台/トオリミチ/イチバ通り/ユカリの森/ハタラキ区/カタチの遺跡/ソラノ塔/カタリ港/オモイデ庭園・すべて仮称）",
   "APPLY_SHARED_SUPABASE_MIGRATIONS（進捗の正式DB同期）",
