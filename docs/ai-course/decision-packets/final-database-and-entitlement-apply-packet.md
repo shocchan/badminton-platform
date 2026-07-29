@@ -133,9 +133,26 @@ supabase CLI のmigrationは1ファイル=1トランザクション。2ファイ
 |---|---|
 | 20260728000000_ai_course_vocab_persistence_DRAFT.sql | `aa41ce8e44591c08` |
 | rollback_20260728000000_ai_course_vocab_persistence.sql | `e323251eca3deb18` |
-| 20260728010000_ai_course_entitlements_DRAFT.sql | `42cdbc6d27f61b4b` |
+| 20260728010000_ai_course_entitlements_DRAFT.sql | `cb95476835bab957`（H1修正後） |
+| 20260729000000_ai_course_unit_progress_DRAFT.sql | `726c59f62e755dbe`（H1で追加） |
+| rollback_20260729000000_ai_course_unit_progress.sql | `4b3ca07a070f64b1` |
 
 適用直前に `shasum -a 256` で再計算し、この値と一致しない場合は適用を中止する。
+
+### 20b. H1 shadow検証（2026-07-29・local実測）による更新
+
+local Supabase（Docker/colima）で本パケットの全SQLを適用し、JWT matrix 20項目・
+cross-device同期・feature/security rollbackを実測した（`production/generated/h1-local-verification.md`）。
+実測に基づく草案修正2点（**適用前にCEOはこの差分を含めて承認してください**）:
+
+1. **entitlements草案**: Supabaseの default privileges が authenticated へ ALL を自動付与するため、
+   `revoke insert, update, delete ... from authenticated` を明示追加（実測M07）。
+   また admin_overrides 保護triggerが service_role の Data API 経由更新まで拒否していたため、
+   `role='service_role'` claim を許可条件へ追加（実測M18。旧checksum 42cdbc6d→新 cb954768）。
+2. **unit_progress草案（新規追加）**: N3/N2単元進捗の正式保存
+   （楽観ロック＋mutationId冪等のRPC `ai_upsert_unit_progress`・直接書き込みはrevokeで遮断・
+   クライアント実装 `supabaseUnitProgressServer.ts` と実DB統合テスト済み）。
+   適用順は ①進捗3表 → ②entitlements＋列保護 → ③unit_progress。
 
 ## 21. 適用に必要なCEO回答
 

@@ -14,7 +14,11 @@
 
 ## 次にやること
 
-- `next-production-hardening-plan.md` の **Phase H1（Docker導入後のlocal DB実証）** から
+- **H1完了（2026-07-29）**: colima+local Supabaseで migration適用・失敗注入・RLS matrix 20/20・
+  cross-device実DB・rollback/backup をすべて実証（generated/h1-local-verification.md）。
+  draft修正2件をパケット§20bへ反映済み
+- 次は **H2**: CEOの `APPLY_SHARED_SUPABASE_MIGRATIONS`（§20b差分込み）待ち →
+  remote適用 → StoragePort差し替え＋outbox化（server実装 supabaseUnitProgressServer.ts は実証済み）
 - 人間ゲートは H3（CEO教材/ビジュアル/世界名承認・法務・実機・support送信先）
 - 品質深掘りは H4（G2監査・deferred-polish-backlog.md P2-1〜P2-15）
 - Unit 8制作へ戻らない（過去レポートの「N2 99件・tests 911」はREPORT_ONLY_STALE）

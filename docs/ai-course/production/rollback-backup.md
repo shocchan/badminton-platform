@@ -1,20 +1,27 @@
 # Rollback / Backup Runbook（AI日本語コース）
 
-生成: 2026-07-29 / 状態: **draft（未実行）**
+生成: 2026-07-29 / 状態: **local実証済み（2026-07-29・H1）**。remoteは未実行（CEO承認後のH2）
 
-## 重要: 本セッションでの実行可否
+## H1での実行結果（2026-07-29）
 
-`supabase` CLI は導入済み（v2.101.0）だが、**Docker が本機に未インストールのため
-`supabase start`（local Postgres）を起動できず、migration適用・rollback・
-grants/RLS検証を「実行」できていない**。
+colima（Docker互換・管理者権限不要）＋ `supabase start` でlocal Postgresを起動し、
+本書の手順を **AIコース5 migration＋draft 3本** に対して実行した。
+詳細な証拠と発見（F1〜F4）は `generated/h1-local-verification.md`。
 
-したがって本書は **手順書であり、実行済みの証拠ではない**。
-Production GO Matrix 上でも `rollback / backup` は **fail（未実証）** のままとする。
+- 失敗注入: 単一トランザクション適用で部分適用ゼロを実証
+- feature rollback: unit_progress撤去→security無傷→再適用→**backup復元でrow count一致（4→4）**
+- security rollback: 分離実行→保護消失を実測→再適用→拒否復帰（P0001）
+- ⚠️ **F1**: 全チェーンのfresh適用は `20260629`（chain外作成のblog_posts依存）で失敗する。
+  local環境は下記「local環境の作り方」の手順で構築すること
 
-実行に必要なもの:
-- Docker Desktop（または互換ランタイム）
-- `supabase start` が通ること
-- 実行後に本書へ「実行日・row count・grants・RLS・schema diff」を追記
+## local環境の作り方（H1確立手順）
+
+1. `colima start --cpu 2 --memory 3 --vm-type vz`
+2. `supabase/config.toml` の `[db.migrations] enabled` を一時的に `false`（歴史chainの自動適用を止める）
+3. `supabase start -x studio,imgproxy,edge-runtime,logflare,vector,realtime`
+4. AIコース5本（20260718000000〜20260726000000）→ draft（vocab_persistence→entitlements→unit_progress）の順に
+   `docker exec -i supabase_db_badminton-platform psql -U postgres -d postgres -v ON_ERROR_STOP=1 -1 < <file>`
+5. 終了時: `enabled = true` に必ず戻す（H2のremote db pushがskipされる事故防止）・`supabase stop`
 
 ## 分離の原則
 
@@ -88,4 +95,16 @@ psql "$LOCAL_DB_URL" -c "select count(*) from ai_course_vocab_item_progress;"  #
 
 ## 実行記録
 
-（未実行。Docker導入後に追記する）
+### 2026-07-29（H1・local）
+
+- 実行者: autonomous-session-12（Claude Code）／ CLI: supabase 2.101.0・Docker 29.5.2 (colima)
+- 適用: AIコース5 migration＋draft3本 全成功（各 `-1` 単一トランザクション）
+- row count: ai_course_unit_progress backup前 4 → rollback → 再適用＋復元後 **4（一致）**
+- RLS: 19表すべて rowsecurity=t／policies 40（rollback中も対象外は不変）
+- trigger: ai_learners_protect_admin_overrides はfeature rollback中も維持・security rollbackで消え再適用で復帰
+- 失敗注入: exit=3・probe表残存なし・表数19不変
+- schema diff: `supabase db diff` はmigration履歴管理をCLIに載せていないため未使用（psql直接適用のため）。
+  代替として表数・policy数・trigger有無のbefore/after比較で検証（generated/h1-local-verification.md）
+- SHA-256: generated/h1-local-verification.md に記載（vocab_persistence=パケット一致 aa41ce8e…・
+  entitlements=H1修正後 cb954768…・unit_progress=新規 726c59f6…）
+- 対象: **localのみ**。共有Supabaseへは一切未接触（`APPLY_SHARED_SUPABASE_MIGRATIONS` 待ち）
