@@ -10,7 +10,10 @@
   "S12-5: 全10エリア実画面確認・N3全12単元接続確認（1+2+1+1+2+2+3=12）・N2恒等式173+7=180を実データ検証・第1/6/12単元lazy chunk実表示",
   "S12-6: mobile実測（harness15画面×320/390/430/768/1280 headless実測・overflow 0・42px未満ボタン0）＋evidence PNG 10枚生成",
   "S12-7: 実画面で発見したP1 3件を修正（試作→ベータ/测试版28文字列・N3診断「まだ習っていない」行き止まり解消・Chapter1（仮称）除去）→ tests 1068全pass → redeploy 61864808 → 実画面で修正確認",
-  "S12-H1: Docker(colima)導入→supabase start→AIコース5migration＋draft3本local適用→失敗注入（部分適用ゼロ）→RLS JWT matrix 20/20→cross-device実DB実証3件→feature/security rollback分離実証（復元row count一致）。発見F1〜F4をdraft/パケットへ反映（証拠: generated/h1-local-verification.md）"
+  "S12-H1: Docker(colima)導入→supabase start→AIコース5migration＋draft3本local適用→失敗注入（部分適用ゼロ）→RLS JWT matrix 20/20→cross-device実DB実証3件→feature/security rollback分離実証（復元row count一致）。発見F1〜F4をdraft/パケットへ反映（証拠: generated/h1-local-verification.md）",
+  "S12-H4a: P2-11（quickreview空CTA）・P2-12（庭園N3 deep-link）解消・staging実画面確認",
+  "S12-H4b(G2): 全657問（N2 180＋N3 477）意味品質監査。P1計22件を修正（context開きフレーム18=例文24語改稿＋furigana同期／collocation対象語重複2=engine恒久修正／N2設計1・英字1）。漏洩0・複数正解0を機械検査で確認（generated/g2-question-audit.md）",
+  "S12-H4c: P2-8解消（AdventureRecordCardに第1章クエストx/5タイル）・P2-4はtypo現存せずと確認"
  ],
  "wholeProductComplete": true,
  "wholeProductVerifiedOnRealStaging": true,
