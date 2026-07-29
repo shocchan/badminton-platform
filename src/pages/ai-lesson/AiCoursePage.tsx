@@ -599,9 +599,10 @@ export default function AiCoursePage() {
     if (!learner) return;
     setGrowthData(null);
     setStep('growth');
+    // 通信失敗でも成長画面を行き止まりにしない（ローカルで計算できる分は必ず出す・§16）
     const [samples, snapshots] = await Promise.all([
-      courseRepository.loadStudentUtterances(learner.id),
-      courseRepository.listGrowthSnapshots(learner.id),
+      courseRepository.loadStudentUtterances(learner.id).catch(() => []),
+      courseRepository.listGrowthSnapshots(learner.id).catch(() => []),
     ]);
     // 自力使用フラグを Before/After サンプルへ付与（該当セッションの targetUsedIndependently）
     const selfSessions = new Set(sessions.filter((s) => s.targetUsedIndependently).map((s) => s.id));
@@ -751,18 +752,21 @@ export default function AiCoursePage() {
   if (step === 'lab') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('lab')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <CourseFoundationLab t={t}
             initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
             onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
             onBack={() => { syncLabUrl(null); setStep('home'); }} />
         </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
   if (step === 'vocab') {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
         <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
           <VocabularyHubLazy t={t} labPreview={labAllowed}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
@@ -770,6 +774,7 @@ export default function AiCoursePage() {
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
