@@ -54,6 +54,7 @@ import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
 const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
 const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
+const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -74,8 +75,10 @@ import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
+import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
+import { deriveCurrentAreaId } from '../../lib/aiLesson/course/rpg/worldProgress';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -171,6 +174,9 @@ export default function AiCoursePage() {
   // テキスト予習（全章・鍵付き章の閲覧）
   const [activeMission, setActiveMission] = useState<Mission | null>(null);
   const [previewReturnStep, setPreviewReturnStep] = useState<Step>('chapters');
+  // World Map（ミナモ列島）: 開いているエリアと現在地（localStorageから導出・read only）
+  const [activeAreaId, setActiveAreaId] = useState<string | null>(null);
+  const [currentAreaId, setCurrentAreaId] = useState<string>(() => deriveCurrentAreaId(window.localStorage));
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
@@ -648,6 +654,22 @@ export default function AiCoursePage() {
     onLogout: () => { void handleLogout(); },
   });
 
+  /** 期限復習（オモイデ庭園）を開く（施設・地図・エリア画面から共通） */
+  const openReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
+
+  /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
+  const openArea = (areaId: string) => {
+    const area = areaById(areaId);
+    if (!area) return;
+    trackCourse('open_ai_course_world_area');
+    switch (area.destination.kind) {
+      case 'n3area': setActiveAreaId(areaId); setStep('n3area'); break;
+      case 'n2grammar': setStep('n2grammar'); break;
+      case 'conversation': void startLesson(mode); break;
+      case 'review': openReview(); break;
+    }
+  };
+
   if (step === 'lesson' && plan) {
     return mode === 'voice'
       ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
@@ -734,6 +756,23 @@ export default function AiCoursePage() {
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
+      </Shell>
+    );
+  }
+  if (step === 'n3area' && activeAreaId && areaById(activeAreaId)) {
+    const area = areaById(activeAreaId)!;
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+            <N3AreaPanelLazy area={area}
+              onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
+              onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
+              onOpenAdventure={area.hasAdventure ? () => setStep('adventure') : undefined}
+              onOpenReview={openReview}
+            />
+          </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
@@ -838,11 +877,14 @@ export default function AiCoursePage() {
   return (
     <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
       <WorldHomeShell
-        areaName="ミナモ列島・はじまりの町"
-        locationName={weekLevelCanDo(learner.currentWeek, 'ja')}
+        areaName="ミナモ列島"
+        locationName={(areaById(currentAreaId)?.nameJa ?? 'ミナト').split('（')[0]}
         clarity={reviewsDue === 0 ? 'clear' : reviewsDue <= 5 ? 'light_fog' : 'foggy'}
         reviewsDue={reviewsDue}
-        onOpenReview={() => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); }}
+        onOpenReview={openReview}
+        areas={WORLD_AREAS}
+        currentAreaId={currentAreaId}
+        onOpenArea={openArea}
         record={{
           daysThisWeek: (() => {
             const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
@@ -874,13 +916,13 @@ export default function AiCoursePage() {
             onOpen: () => { void startLesson(mode); } },
           { id: 'garden', worldName: 'オモイデ庭園', functionName: '復習して思い出す',
             descriptionJa: '前に学んだことばと再会する', badge: reviewsDue,
-            onOpen: () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); } },
+            onOpen: openReview },
           { id: 'record', worldName: '冒険の記録', functionName: '成長と履歴を見る',
             descriptionJa: 'できるようになったことの記録',
             onOpen: () => { void openGrowth(); } },
-          { id: 'adventure', worldName: 'はじまりの町', functionName: '冒険・ものがたり',
-            descriptionJa: '学んだことばで町の霧を晴らす',
-            onOpen: () => setStep('adventure') },
+          { id: 'adventure', worldName: 'ミナモ列島をめぐる', functionName: '冒険・N3攻略',
+            descriptionJa: '地図のエリアを進んで霧を晴らす',
+            onOpen: () => openArea(currentAreaId) },
         ]}
       >
       <CourseHome

@@ -7,6 +7,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import WorldHomeShell from '../../src/components/ai-course/rpg/WorldHomeShell';
+import { N3AreaPanel } from '../../src/components/ai-course/n3unit/N3AreaPanel';
+import { WORLD_AREAS, areaById } from '../../src/lib/aiLesson/course/rpg/worldAtlas';
 
 const ROOT = process.cwd();
 const cssFile = readdirSync(join(ROOT, 'dist/assets')).find(f => /^index-.*\.css$/.test(f));
@@ -46,6 +48,9 @@ const shell = (
       onStart: noop,
     }}
     facilities={facilities}
+    areas={WORLD_AREAS}
+    currentAreaId="area02-hinode"
+    onOpenArea={noop}
   >
     <div className="bg-white border border-gray-100 rounded-2xl p-4">
       <p className="text-sm font-bold text-gray-900 mb-1">今日の学習</p>
@@ -63,4 +68,18 @@ const OUT = 'docs/ai-course/rpg/generated/';
 writeFileSync(join(ROOT, OUT, 'evidence-world-home-desktop.html'), page(1280, 'desktop-1280'));
 writeFileSync(join(ROOT, OUT, 'evidence-world-home-mobile.html'), page(390, 'mobile-390'));
 writeFileSync(join(ROOT, OUT, 'evidence-world-home-mobile-small.html'), page(320, 'mobile-320'));
-console.log('evidence html written (desktop 1280 / mobile 390 / mobile 320)');
+
+// エリア画面（N3AreaPanel）の証拠。SSRなのでstorage未解決＝一覧は「未完了」表示になる
+const areaShot = (areaId: string, width: number, name: string) => {
+  const area = areaById(areaId)!;
+  const html = renderToStaticMarkup(
+    <N3AreaPanel area={area} onExit={noop} onOpenArea={noop} onOpenReview={noop}
+      onOpenAdventure={area.hasAdventure ? noop : undefined} />
+  );
+  writeFileSync(join(ROOT, OUT, `evidence-${name}.html`),
+    `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><style>body{margin:0;background:#f6f7f9}.frame{width:${width}px;margin:0 auto}</style></head><body><div class="frame">${html}</div></body></html>`);
+};
+areaShot('area01-minato', 390, 'area01-mobile');
+areaShot('area05-yukari', 720, 'area05-desktop');
+areaShot('area07-katachi', 390, 'area07-mobile');
+console.log('evidence html written (world home ×3 / area ×3)');

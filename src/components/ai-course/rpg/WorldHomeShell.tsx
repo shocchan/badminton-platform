@@ -7,7 +7,8 @@
 // - 学習stateはread only。ここから習得度・復習予定を書き換えない。
 // - learner向け画面なので開発表示（試作・sandbox・検証用）は一切出さない。
 import type { ReactNode } from 'react';
-import { HeroSprite, ShokoSprite, TownMapBase, LocationFogOverlay, LanternMarker } from './pixelAssets';
+import type { WorldArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
+import { IslandsMap } from './IslandsMap';
 
 export interface WorldFacility {
   id: string;
@@ -45,15 +46,13 @@ export interface WorldHomeShellProps {
   /** 世界の見え方（学習の鮮度から導出したClarity）。書き戻しはしない */
   clarity: 'clear' | 'light_fog' | 'foggy';
   reducedMotion?: boolean;
+  /** ミナモ列島の10エリア（worldAtlas）とルーティング（FOREST FIRST §7） */
+  areas: WorldArea[];
+  currentAreaId: string;
+  onOpenArea: (areaId: string) => void;
   /** 既存Home（今日の学習・会話の旅など）をそのまま下に置く */
   children?: ReactNode;
 }
-
-const FOG_REGIONS = {
-  'c1-main-street': { x: 12, y: 15, w: 15, h: 16 },
-  'c1-plaza': { x: 24, y: 8, w: 12, h: 12 },
-  'c1-station-front': { x: 35, y: 0, w: 13, h: 13 },
-} as const;
 
 const CLARITY_TEXT: Record<WorldHomeShellProps['clarity'], string> = {
   clear: '世界がはっきり見えています',
@@ -63,11 +62,8 @@ const CLARITY_TEXT: Record<WorldHomeShellProps['clarity'], string> = {
 
 export const WorldHomeShell = ({
   areaName, locationName, todayAction, reviewsDue, onOpenReview,
-  facilities, record, upcoming, clarity, reducedMotion, children,
+  facilities, record, upcoming, clarity, reducedMotion, areas, currentAreaId, onOpenArea, children,
 }: WorldHomeShellProps) => {
-  const discovered = ['c1-town-gate', 'c1-main-street', 'c1-plaza', 'c1-station-front'];
-  const fogLevel = clarity === 'clear' ? 'clear' : clarity === 'light_fog' ? 'light_fog' : 'foggy';
-
   return (
     <div className="w-full">
       {/* ── 世界のヘッダー（現在地・状態をテキストでも提供） ── */}
@@ -80,35 +76,8 @@ export const WorldHomeShell = ({
       {/* ── World（desktop: 地図6割 + 行動4割 / mobile: 縦積み） ── */}
       <div className="lg:grid lg:grid-cols-5 lg:gap-4">
         <section className="lg:col-span-3" aria-label="ミナモ列島の地図">
-          <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-[#9db877]"
-            style={{ aspectRatio: '4/3', minHeight: '46vh' }}>
-            <svg viewBox="0 0 48 36" className="absolute inset-0 w-full h-full" shapeRendering="crispEdges"
-              role="img" aria-label={`${areaName}の地図。現在地は${locationName}。${CLARITY_TEXT[clarity]}`}>
-              <TownMapBase discoveredLocationIds={discovered} />
-              {clarity !== 'clear' && Object.values(FOG_REGIONS).map((r, i) => (
-                <LocationFogOverlay key={i} region={r} level={fogLevel} animate={!reducedMotion} />
-              ))}
-            </svg>
-            {/* 主人公と案内人（装飾。情報はテキストでも提供済み） */}
-            <div className="absolute w-[9%] sm:w-[7%]" style={{ left: '14%', top: '70%' }} title="あなた">
-              <HeroSprite decorative />
-            </div>
-            <div className="absolute w-[9%] sm:w-[7%]" style={{ left: '24%', top: '68%' }} title="翔子先生">
-              <ShokoSprite decorative pose="talk" />
-            </div>
-            {todayAction && (
-              <div className={`absolute w-[5%] ${reducedMotion ? '' : 'animate-pulse'}`}
-                style={{ left: '58%', top: '30%' }} title="今日の行き先">
-                <LanternMarker decorative />
-              </div>
-            )}
-            {/* 地図の上に置く最小限のラベル（読みやすさ優先） */}
-            <div className="absolute left-2 bottom-2 right-2 flex flex-wrap gap-1.5">
-              {[['町の入口', 18], ['ことば通り', 42], ['みなも広場', 62], ['駅前', 84]].map(([name]) => (
-                <span key={String(name)} className="text-[10px] px-1.5 py-0.5 rounded bg-white/85 text-gray-700">{name}</span>
-              ))}
-            </div>
-          </div>
+          <IslandsMap areas={areas} currentAreaId={currentAreaId} clarity={clarity}
+            reducedMotion={reducedMotion} onOpenArea={onOpenArea} />
         </section>
 
         <section className="lg:col-span-2 mt-3 lg:mt-0 flex flex-col" aria-label="今日の行動">
