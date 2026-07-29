@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-07-28T18:27:12.095Z",
+ "generatedAt": "2026-07-29T00:13:41.586Z",
  "productionGo": "NO-GO",
  "summary": {
   "aiActionableBlockers": 0,
@@ -325,6 +325,8 @@
   "vocabularyCovered": 140,
   "orphanVocabulary": [],
   "duplicateAssignments": [],
+  "encounterLinks": 31,
+  "encounterBeforePrimary": [],
   "requiredUntestedTotal": 0,
   "highRiskContrastMissingTotal": 0,
   "unitsFailing": []

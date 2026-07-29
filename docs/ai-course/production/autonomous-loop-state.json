@@ -3,24 +3,24 @@
  "directive": "CEO§0-39 攻略型・完全版v1.0（自律継続・上限8Phase/10時間）",
  "supervisorChat": "AI日本語学習監督（ChatGPTスレッド・タブ200387997）",
  "phasesCompletedThisSession": [
-  "PR1: answer leakage監査基盤＋teach/assess分離（Chapter1のP1 11件→0）",
-  "PR2: cognate-aware出題エンジン（4分類・高リスク12語contrast・同形同義語の意味当て廃止）",
-  "PR3: Production Blocker Manifest（単一集計・ai_actionable/human_gate分離）",
-  "PR4: learner HomeをRPG World Shellへ昇格（実ブラウザ実測でoverflow0・Map58%幅）",
-  "PR5: 開発表示のdevTools隔離＋blocker計測の精度向上（debug13→0・comingSoon5→0）",
-  "PR6: N3 Unit Coverage Contract（12単元・全140語・孤立0）＋Stage1-3実装（活用・産出）",
-  "PR7: Production GO Matrix（pass19/fail7/human_required10・partial禁止）"
+  "G0: 指標訂正（issue instances と gate categories を分離）＋執筆主体をindividually_authored_by_aiへ",
+  "G0b: Unit所属をprimary/encounter/mission/reviewへ分離（再登場31リンク・primary重複0維持）",
+  "G1: 12単元共通のN3攻略learner UI＋ランタイム（全12単元完走テスト・証拠8画面）",
+  "G5: error code 16種＋監視adapter（PII遮断）＋support報告UI",
+  "G4: 進捗Repository＋outbox＋楽観ロック＋決定的merge（模擬サーバで16テスト）",
+  "G6: incident response 9シナリオ＋rollback/backup手順（未実行を明記）",
+  "Gate再評価: pass23/fail3/human_required12"
  ],
  "phaseBudgetUsed": 7,
  "phaseBudgetMax": 8,
  "currentPhase": "完了報告",
- "resumeFrom": "AI解消可能blocker=0。残りfail 7件（N3単元learner UI・RLS/entitlement検証・cross-device・monitoring・support導線・rollback/backup・incident response）はAIで着手可能。human_required 10件はCEO承認/法務/実機/remote DB/本番承認。",
+ "resumeFrom": "AIだけで閉じられるGateは0。残fail 3件（RLS/entitlement実証・cross-device実DB実証・rollback/backup実行）はDocker導入後にAIで実行可能。human_required 12件はCEO承認/法務/実機/remote DB/本番承認。",
  "branch": "feature/ai-course-learning-polish",
  "lastCommit": "（このセッションのN2 Unit2コミット）",
- "testCount": 980,
+ "testCount": 1019,
  "lintBaseline": "45E+6W=51",
  "mainBundleKb": 590.35,
- "stagingDeployedThrough": "PR7（Production Readiness Closure）",
+ "stagingDeployedThrough": "G6（Production Gate Closure）",
  "unfinishedCounts": {
   "note": "単一情報源は production/generated/*.json。主要値のスナップショット",
   "inProgressLabels": 9,
@@ -55,7 +55,7 @@
   "RPG Chapter 1の名称・Story・pixel asset承認（はじまりの町/ことば通り/みなも広場/ハナさん/ゲンさん等は仮称・human_review_candidate）"
  ],
  "stopConditions": "§31のみ。共有Supabase・migration/RLS適用・human_reviewed/approved昇格・権利/規約最終判断・物理端末・本番/main・課金",
- "sessionId": "autonomous-session-9（2026-07-29・Production Readiness Closure）",
+ "sessionId": "autonomous-session-10（2026-07-29・Production Gate Closure）",
  "currentLoopNumber": 0,
  "maxAdditionalPhases": 8,
  "autonomousContinuation": true,
@@ -87,5 +87,12 @@
   "p1Start": 18,
   "p1End": 0,
   "note": "P1（answer leakage・開発表示・coming soon）は全て解消。残るP1はLP文言のCEO/法務判断のみ"
+ },
+ "gateBreakdown": {
+  "aiResolvableIssueInstances": 0,
+  "aiResolvableGateCategories": 0,
+  "envBlockedGateCategories": 3,
+  "humanRequiredGateCategories": 12,
+  "note": "残fail 3件はすべてDocker未導入によりlocal Supabaseを起動できず未実行。AIの実装力ではなく環境が不足"
  }
 }
