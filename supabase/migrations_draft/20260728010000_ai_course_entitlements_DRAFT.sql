@@ -25,6 +25,10 @@ create table if not exists public.ai_course_entitlements (
 alter table public.ai_course_entitlements enable row level security;
 revoke all on public.ai_course_entitlements from anon;
 -- learner本人は自分の行の select のみ。insert/update/deleteの権限そのものを与えない
+-- ⚠️ Supabaseの default privileges が新テーブルへ authenticated に ALL を自動付与するため、
+--    明示revokeが必須（H1 local実測 M07: revoke無しではPATCHが200になる。RLS policy欠如で
+--    実データは変更されないが、grant層でも遮断して二層にする）。
+revoke insert, update, delete on public.ai_course_entitlements from authenticated;
 grant select on public.ai_course_entitlements to authenticated;
 grant all on public.ai_course_entitlements to service_role;
 
@@ -55,9 +59,18 @@ on conflict (learner_id) do nothing;
 -- admin_overrides の変更だけは admin / service_role 以外で拒否する。
 create or replace function public.ai_course_protect_admin_overrides()
 returns trigger language plpgsql security definer as $$
+declare
+  v_claims text := nullif(current_setting('request.jwt.claims', true), '');
 begin
   if new.admin_overrides is distinct from old.admin_overrides then
-    if not (public.ai_is_admin() or current_setting('request.jwt.claims', true) is null) then
+    -- 許可: 管理者JWT / 直接続（claimsなし=migration・psql経路）/ service_role JWT（Data API管理作業）
+    -- H1 local実測 M18: service_role のREST経由PATCHは claims が非nullのため、
+    -- role判定を追加しないと管理作業まで拒否される（実測で確認済み）。
+    if not (
+      public.ai_is_admin()
+      or v_claims is null
+      or (v_claims::jsonb->>'role') = 'service_role'
+    ) then
       raise exception 'admin_overrides can only be changed by admin or service role';
     end if;
   end if;
