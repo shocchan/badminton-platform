@@ -55,6 +55,7 @@ const CourseFoundationLab = lazy(() => import('../../components/ai-course/founda
 const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
 const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
 const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
+const N2QuestLazy = lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -71,7 +72,6 @@ import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import { CoursePreview } from '../../components/ai-course/CoursePreview';
 import { CourseChapterList } from '../../components/ai-course/CourseChapterList';
-import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
@@ -813,8 +813,13 @@ export default function AiCoursePage() {
   }
   if (step === 'n2grammar') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}>
-        <N2GrammarLazy t={t} onBack={() => setStep('roadmap')} learnerId={learner.id} />
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+            <N2QuestLazy onBack={() => setStep('home')} onOpenReview={openReview}
+              onGoConversation={() => { void startLesson(mode); }} />
+          </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
