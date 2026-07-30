@@ -534,7 +534,7 @@ const SelfAssessRow = ({ t, repo, id, onChanged, schedule }: {
 const CompactCard = ({ t, repo, item, onOpen, labPreview }: { t: AiCourseDict; repo: VocabProgressRepository; item: FoundationItem; onOpen: () => void; labPreview: boolean }) => (
   <button type="button" onClick={onOpen} aria-label={item.displayForm}
     className="card-interactive w-full text-left bg-white rounded-xl border border-gray-100 p-3 flex gap-3 items-center min-h-11 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
-    <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} className="w-16 shrink-0" />
+    <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} lang={t.locale === 'zh' ? 'zh' : 'ja'} className="w-16 shrink-0" />
     <div className="flex-1 min-w-0">
       <div className="flex items-baseline gap-2 flex-wrap">
         <span className="text-base font-bold text-gray-900">{item.displayForm}</span>
@@ -618,7 +618,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
       {progressLabel && <p className="text-xs font-mono text-gray-400">{progressLabel}</p>}
       {/* セクションanchor（2E-1.9 §11: hashで意味/例文へ直接移動・focusも移動） */}
       <div id="vsec-meaning" tabIndex={-1} className="bg-white rounded-2xl border border-gray-100 p-5 focus:outline-none">
-        <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />
+        <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} lang={t.locale === 'zh' ? 'zh' : 'ja'} size="detail" className="mb-3" />
         <div className="flex items-baseline gap-2 flex-wrap">
           <span className="text-2xl font-bold text-gray-900">{item.displayForm}</span>
           {showReading && <span className="text-sm text-gray-500">{item.readingKana}</span>}
@@ -844,7 +844,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
       {phase === 'card' && (
         // 視線の順路: 絵 → ことば → 読み → 意味 → 例文 → 次へ。区切り線で塊を分ける
         <div key={item.id} className="motion-safe:animate-[pageFadeIn_260ms_ease-out]">
-          <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />
+          <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} lang={t.locale === 'zh' ? 'zh' : 'ja'} size="detail" className="mb-3" />
           <p className="text-[28px] leading-tight font-bold text-gray-900">{item.displayForm}</p>
           <p className="text-sm text-gray-500 mt-0.5">{item.readingKana}</p>
           <p className="text-base text-gray-800 mt-2 pb-3 border-b border-gray-100">{item.meaningZh}</p>
@@ -859,7 +859,7 @@ const DailyFlowView = ({ t, items, itemById, ids, reasons, repo, schedule, journ
       )}
       {phase === 'quiz' && (
         <div>
-          {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />}
+          {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} lang={t.locale === 'zh' ? 'zh' : 'ja'} decorative size="detail" className="mb-3" />}
           <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
           <div className="space-y-2">
             {order.map((orig) => (
@@ -1351,7 +1351,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
         <span className="text-[11px] text-gray-500">{tv.quickReviewCta}</span>
         <span className="text-xs font-mono text-gray-400">{idx + 1} / {ids.length}</span>
       </div>
-      {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} size="detail" className="mb-3" />}
+      {q.type === 'image_to_word' && <VocabImage item={item} asset={assetForItem(item.id)} labPreview={labPreview} lang={t.locale === 'zh' ? 'zh' : 'ja'} decorative size="detail" className="mb-3" />}
       <p className="text-sm font-bold text-gray-900 mb-3">{zh ? q.promptZh : q.promptJa}</p>
       <div className="space-y-2">
         {order.map((orig) => (
