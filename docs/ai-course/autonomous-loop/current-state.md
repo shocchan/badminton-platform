@@ -1,6 +1,6 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-30（Final Executable Migration Gate: local実証完了・破損2件修正・checksum freeze・remote照合はAUTH_REQUIREDでUNVERIFIED）
+更新: 2026-07-30（Migration Gate完了 → Apply Ready: READY。db push禁止・SQL Editor方式・Andy Target 0確定・remote write 0）
 
 - cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf はテストartifactとして残置・削除は将来の明示承認必須・Production blockerではない）
 

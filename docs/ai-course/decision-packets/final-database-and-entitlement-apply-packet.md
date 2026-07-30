@@ -380,3 +380,64 @@ Docker 29.6.2（desktop-linux）／Supabase CLI 2.101.0／local Postgres 17（su
 - → **適用方法を変更**: `db push` を使わず、対象3本を **SQL Editorで1本ずつトランザクション明示で実行**し、
   その後 `supabase_migrations.schema_migrations` へ対象3versionのみを記録する（§25）
 - 未記録6ファイルの特定には追加SELECT（version一覧）が必要。**特定できるまで READY にしない**（stop条件「unexpected migration history」）
+
+### 24e. 発見2の原因確定（history 14件の内訳と突き合わせ・2026-07-30）
+
+CEO実行の `select version, name from supabase_migrations.schema_migrations order by version`（14行）と
+repo 24ファイルを機械照合した結果:
+
+| 区分 | 件数 | 内容 |
+|---|---|---|
+| 名前つきで一致（適用済み・履歴あり） | 14 | 20260621〜20260722000000 |
+| **history未記録**（SQL自体は適用済みと推定） | **6** | 20260707_coupon_claim / 20260707_rally_game_lottery / 20260707_security_hardening_and_redeem / 20260710_create_members_table / 20260710_game_sessions / 20260712_fix_increment_blog_view_security_definer |
+| **真に未適用** | **1** | 20260726000000_ai_course_avatars_storage |
+| 今回の対象 | 3 | 20260728000000 / 20260728010000 / 20260729000000 |
+
+**原因**: `supabase_migrations.schema_migrations` は **version が主キー**。
+バドミントン側の初期migrationは日付のみのprefix（`20260707_*` 等）で**同一versionが複数ファイル**あるため、
+1 versionにつき1行しか記録できず、残りのファイル名が履歴から落ちている
+（version 20260707: repo 4ファイル→履歴1行／20260710: 3→1／20260712: 2→1 ＝ 計6件欠落）。
+**過去の部分適用や適用漏れではなく、CLIの採番仕様に起因する記録上の欠落**と判定する。
+
+**結論**: 履歴不整合の原因は特定済み（stop条件「unexpected migration history」は解消）。ただし
+- `supabase db push` は **恒久的に使用禁止**（未記録6件＋avatars_storageまで巻き込む）
+- `20260726000000_ai_course_avatars_storage` の未適用は**別件の要確認事項**（アバター用bucketが
+  ダッシュボードで手動作成されている可能性。今回の適用対象外・非ブロッカー）
+
+## 25. 確定した適用手順（ダッシュボードのみ・CLI不要・`db push` 禁止）
+
+### 25a. 事前
+1. Database → Backups で直近のバックアップ日時を確認（read-only）。
+   ※ 対象3本は **additive only**・`ai_learners` への UPDATE/DELETE は静的検証で0件のため既存行は不変
+2. checksum照合（§23e の6値／実行者のworking treeで `shasum -a 256`）
+3. §24a の baseline を再取得（learners_total / item_progress_rows / sessions_rows）
+
+### 25b. 適用（SQL Editorで1本ずつ・各回トランザクション明示）
+```sql
+begin;
+-- ここに supabase/migrations/20260728000000_ai_course_vocab_persistence.sql の全文を貼る
+commit;
+```
+→ 成功を確認してから ② `20260728010000_ai_course_entitlements.sql` → ③ `20260729000000_ai_course_unit_progress.sql`。
+失敗したら `rollback;` を実行し（または自動巻き戻しを確認し）中止する。
+
+### 25c. 履歴の記録（適用が3本すべて成功した後に1回）
+```sql
+insert into supabase_migrations.schema_migrations (version, name) values
+  ('20260728000000','ai_course_vocab_persistence'),
+  ('20260728010000','ai_course_entitlements'),
+  ('20260729000000','ai_course_unit_progress')
+on conflict (version) do nothing;
+```
+
+### 25d. 適用直後の検証（service_role keyなしで実施可能な範囲）
+- **SQL Editor**: 新規5表のRLS enabled／policy 11／index 3／trigger 4／DEFINER 3関数の `search_path=public`／
+  entitlements移行が1行（`6d967731`）／既存3表のcountが baseline と一致
+- **ブラウザ（staging・CEOログイン中のJWT）**: anon拒否・本人read/write・entitlement書き込み拒否・
+  admin_overrides自己昇格拒否・RPC冪等/conflict・probe=active・localStorage進捗のserver引き上げ・
+  reload復元・別context・offline outbox・reconnect・N3/N2 alias進捗
+  （`scripts/ai-course/post-apply-verification.mjs` はservice_role keyがある場合のみ使用）
+
+### 25e. 失敗時
+§23e の rollback①③＋rollback②(feature) を逆順で実行（**admin_overrides保護は残る**）。
+その後 `delete from supabase_migrations.schema_migrations where version in (...)` で履歴も戻す。
