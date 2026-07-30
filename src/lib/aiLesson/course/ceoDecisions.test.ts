@@ -25,13 +25,42 @@ describe('CEO決定の記録（decided/openの分離）', () => {
     expect(decisions.decided.visual_beta.status).toBe('provisionally_accepted_for_beta');
     expect(decisions.decided.support_channel.scopeA_learnerApp.value).toBe('info@kawabado.com');
   });
-  it('人間ゲートはopenのまま（「全ゲート完了」と記録しない）', () => {
+  it('人間しか閉じられないゲートはopenのまま（「全ゲート完了」と記録しない）', () => {
+    // legal / 実機 / 本番承認 は人間の作業と判断が必須。AIの作業では閉じられない
     expect(decisions.openGates.legal).toBe('open');
     expect(decisions.openGates.physical_device_formal_verification).toBe('open');
-    expect(decisions.openGates.remote_migration).toBe('open');
-    expect(decisions.openGates.remote_rls_verification).toBe('open');
     expect(decisions.openGates.production_approval).toBe('open');
     expect(decisions.notAllGatesComplete).toBe(true);
+    expect(decisions.augustPilotProgram.allFiveComplete).toBe(false);
+    // 5ゲート未完のうちはPhase B（8時間Sprint）を開始したと記録してはならない
+    expect(decisions.augustPilotProgram.phaseB_started).toBe(false);
+  });
+  it('remote系ゲートの「closed」は実測evidenceが揃っている場合だけ許す', () => {
+    // 2026-07-30に APPLY_SHARED_SUPABASE_MIGRATIONS を受けて実際に適用・検証した。
+    // 「closedと書いたのに根拠がない」状態を防ぐため、closedならevidenceの実在を必須にする。
+    const closable = ['remote_migration', 'remote_rls_verification'] as const;
+    const g1 = decisions.augustPilotProgram.gate1_remote_db_rls_sync;
+    for (const key of closable) {
+      const v = decisions.openGates[key];
+      expect(/^(open|closed_\d{4}-\d{2}-\d{2})$/.test(v), `${key} の値が不正: ${v}`).toBe(true);
+      if (v === 'open') continue;
+      expect(decisions.augustPilotProgram.approvalReceived).toBe('APPLY_SHARED_SUPABASE_MIGRATIONS');
+      expect(g1.status).toBe('COMPLETE');
+      expect(g1.evidence.appliedVersions).toEqual(['20260728000000', '20260728010000', '20260729000000']);
+      expect(g1.evidence.remoteRlsMatrix).toMatch(/27\/27 PASS/);
+      expect(g1.evidence.remoteSyncE2E).toMatch(/19\/19 PASS/);
+      expect(g1.evidence.backupBeforeApply.length).toBeGreaterThan(0);
+      // 既存learnerデータを壊していないことの記録
+      expect(g1.evidence.baselineUnchanged).toMatch(/learners 1/);
+      expect(g1.evidence.entitlementRowsMigrated).toBe(1);
+    }
+  });
+  it('CEO入力待ちのゲートをCOMPLETEと記録していない', () => {
+    const p = decisions.augustPilotProgram;
+    for (const g of [p.gate2_physical_devices, p.gate3_legal_minimum, p.gate4_content_human_review]) {
+      expect(g.status).toBe('INCOMPLETE');
+      expect(g.blockedBy.length).toBeGreaterThan(0);
+    }
   });
 });
 
