@@ -336,3 +336,47 @@ Docker 29.6.2（desktop-linux）／Supabase CLI 2.101.0／local Postgres 17（su
 27. row count再確認（P1と比較）→ 28. staging smoke → 29. final report
 
 失敗時は §22e stop条件に従い中止し、§23e rollback②(feature)/①/③ を逆順で実行（保護は残る）。
+
+
+## 24. remote preflight 実測（2026-07-30・CEOがダッシュボードSQL Editorで実行・read-only）
+
+### 24a. [A] 対象件数・衝突（判定: 衝突0で通過）
+
+| k | v | 判定 |
+|---|---|---|
+| learners_total | **1** | ⚠️ 発見1（下記24c） |
+| labpreview_match | **1** | ✅ 想定どおり（entitlements移行は1行） |
+| labpreview_ids_redacted | `6d967731` | ✅ CEO検証learner（cleanup packet §3と同一） |
+| non_target_learners | **0** | ⚠️ 他learnerが1件も存在しない |
+| item_progress_rows | 12 | baseline（適用前後で不変を確認する） |
+| sessions_rows | 24 | baseline（同上） |
+| conflict_objects | **0** | ✅ 同名table/function/trigger/indexなし |
+| conflict_policies | **0** | ✅ 同名policyなし |
+| helper_functions | ai_is_admin / ai_my_learner_ids ともに `search_path=public` | ✅ 依存関数は健全 |
+
+### 24b. [B] migration history
+
+| k | v | 判定 |
+|---|---|---|
+| target_versions_applied | **(none)** | ✅ 対象3本は未適用 |
+| duplicate_versions | **(none)** | ✅ version重複なし |
+| latest_applied_version | **20260722000000** | ⚠️ 発見2（下記24d） |
+| applied_total | **14** | ⚠️ 発見2 |
+
+### 24c. 発見1: remoteに learner行は **1件のみ**（Andyさんの行が存在しない）
+
+- `learners_total = 1`・`non_target_learners = 0` → remote `ai_learners` にはCEO検証learner（`6d967731`）だけが存在する
+- したがって **Andy Migration Target = 0（VERIFIED・行そのものが存在しない）**
+- ただし従来の想定（Andyさんが受講中のlearner）と食い違う。**未サインアップ／別環境のいずれか**であり、
+  migrationの安全性判定には影響しないが、事業側の事実確認が必要（本パケットの範囲外）
+
+### 24d. 発見2: migration history 14件 vs repo内 version≤20260722000000 は **20ファイル** → `db push` は使えない
+
+- repoのmigrationは24ファイル。うち version ≤ latest(20260722000000) が20ファイルなのに、historyは14件
+  → **6ファイルがhistory未記録**（バドミントン側は初期にSQL Editorで手動適用した経緯があり、CLI管理外と推定）
+- さらに `20260726000000_ai_course_avatars_storage.sql` は latest より新しく **未適用**
+- ⚠️ この状態で `supabase db push` を実行すると、CLIは「history未記録の6ファイル＋avatars＋対象3本」を
+  **すべてpendingとして適用しようとする**。既にDBへ手動適用済みのDDLを再実行すれば失敗または二重適用になる
+- → **適用方法を変更**: `db push` を使わず、対象3本を **SQL Editorで1本ずつトランザクション明示で実行**し、
+  その後 `supabase_migrations.schema_migrations` へ対象3versionのみを記録する（§25）
+- 未記録6ファイルの特定には追加SELECT（version一覧）が必要。**特定できるまで READY にしない**（stop条件「unexpected migration history」）
