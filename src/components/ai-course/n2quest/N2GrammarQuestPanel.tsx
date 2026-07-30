@@ -15,6 +15,7 @@ import {
 } from '../../../lib/aiLesson/course/n2quest/n2QuestProgress';
 import { ShokoSprite } from '../rpg/pixelAssets';
 import type { AiCourseDict } from '../../../locales/aiCourse';
+import { CourseLoading } from '../CourseLoading';
 
 const browserStore = typeof window === 'undefined' ? null : window.localStorage;
 const safeStore = browserStore ?? { getItem: () => null, setItem: () => {} };
@@ -279,7 +280,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
         </div>
 
         {unitData.status === 'loading' && (
-          <div className="py-10 text-center text-sm text-gray-500" role="status">{t.n2q.loading}</div>
+          <CourseLoading t={t} scene="map" minHeightClass="min-h-[120px]" />
         )}
         {unitData.status === 'error' && (
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">

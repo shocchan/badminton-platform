@@ -290,8 +290,9 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
             </div>
           </div>
         ))}
+        {/* AIの応答待ちは点の動きだけでは伝わらない。role=status で「考えています」を読み上げる（Phase B-3） */}
         {busy && (
-          <div className="flex justify-start">
+          <div className="flex justify-start" role="status" aria-live="polite">
             <div className="px-3.5 py-2.5 rounded-2xl rounded-tl-sm text-sm bg-white/80 text-gray-400 border border-gray-200 border-dashed flex items-center gap-1.5">
               <span className="inline-flex gap-0.5" aria-hidden="true">
                 <span className="w-1.5 h-1.5 rounded-full bg-gray-300 motion-safe:animate-bounce" />

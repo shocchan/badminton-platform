@@ -14,6 +14,7 @@ import {
 } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { HeroSprite, ShokoSprite } from '../rpg/pixelAssets';
 import type { AiCourseDict } from '../../../locales/aiCourse';
+import { CourseLoading } from '../CourseLoading';
 
 export interface N3UnitPanelProps {
   t: AiCourseDict;
@@ -160,7 +161,7 @@ export const N3UnitPanel = ({
   const summary = summarizeRun(state, spec, set);
 
   if (loadKind === 'loading') {
-    return <div className="py-10 text-center text-sm text-gray-500" role="status">{t.n3u.loading}</div>;
+    return <CourseLoading t={t} scene="map" minHeightClass="min-h-[120px]" />;
   }
 
   return (

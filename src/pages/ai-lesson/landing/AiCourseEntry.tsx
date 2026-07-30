@@ -12,9 +12,11 @@ import type { CharacterVariant } from './lpContent';
 
 const AiCoursePage = lazy(() => import('../AiCoursePage'));
 
-const Loader = () => (
-  <div className="min-h-screen grid place-items-center bg-lp-ivory">
-    <div className="w-8 h-8 rounded-full border-2 border-lp-line border-t-lp-coral animate-spin" aria-label="loading" />
+// コース入口の待ち表示。aria-labelが "loading" のままで学習者の言語に翻訳されていなかった（Phase B-3で修正）
+const Loader = ({ lang }: { lang: string }) => (
+  <div className="min-h-screen grid place-items-center bg-lp-ivory" role="status" aria-live="polite">
+    <div className="w-8 h-8 rounded-full border-2 border-lp-line border-t-lp-coral motion-safe:animate-spin" />
+    <span className="sr-only">{lang === 'zh' ? '加载中…' : '読み込み中…'}</span>
   </div>
 );
 
@@ -37,8 +39,8 @@ export function AiCourseEntry({ variant }: { variant?: CharacterVariant }) {
     return () => { alive = false; };
   }, [variant, forceApp]);
 
-  if (mode === 'checking') return <Loader />;
-  if (mode === 'app') return <Suspense fallback={<Loader />}><AiCoursePage /></Suspense>;
+  if (mode === 'checking') return <Loader lang={lang} />;
+  if (mode === 'app') return <Suspense fallback={<Loader lang={lang} />}><AiCoursePage /></Suspense>;
   return (
     <AiCourseLandingPage
       variant={variant || 'shoko'}

@@ -1156,6 +1156,14 @@ const ja = {
     loading: '読み込み中…',
     error: 'エラーが発生しました。',
     retry: 'もう一度',
+    // 待ち時間の共通表示（Phase B-3・CourseLoading）。世界観に沿った一言を場面ごとに出す
+    loadingMist: 'ことばの霧が晴れていきます…',
+    loadingGrains: '記憶の粒を集めています…',
+    loadingMap: '地図の光が進んでいます…',
+    loadingStep: '一歩、進んでいます…',
+    loadingSlow: '時間がかかっています。通信環境が不安定かもしれません。',
+    loadingOffline: 'オフラインのようです。つながると続きから始められます。',
+    loadingReload: '再読み込み',
   },
   // ── RPG World Home（FOREST FIRST・i18n化 2026-07-30） ──
   vocabScope: {
@@ -2685,6 +2693,13 @@ const zh: AiCourseDict = {
     loading: '加载中…',
     error: '发生错误。',
     retry: '重试',
+    loadingMist: '词语的雾正在散开…',
+    loadingGrains: '正在收集记忆的碎片…',
+    loadingMap: '地图上的光正在前进…',
+    loadingStep: '正在向前迈出一步…',
+    loadingSlow: '加载时间有点长，网络可能不太稳定。',
+    loadingOffline: '好像处于离线状态。恢复联网后可以从上次继续。',
+    loadingReload: '重新加载',
   },
   vocabScope: {
     scopeTitle: '本课程使用的核心词汇',

@@ -3,6 +3,7 @@
 // トップは3ブロックのみ（今日のことば／カテゴリー／復習したいことば・§7）。
 // 進捗はsessionStorage試作Repository。自己評価と検証状態は分離（§20）。
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { CourseChunkLoading } from '../../CourseLoading';
 import { ArrowLeft, ArrowRight, BookOpen, Check, MessageCircle, ChevronDown } from 'lucide-react';
 import type { FoundationItem } from '../../../../lib/aiLesson/course/foundationTypes';
 import { allVocabularyItems, vocabByCategory } from '../../../../lib/aiLesson/course/foundationVocabBank';
@@ -366,20 +367,20 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
           onOpenDaily={() => setView('daily')} />
       )}
       {view === 'review' && (
-        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
           <VocabReviewPanelLazy t={t} items={items} initialItemId={itemId}
             onOpenItem={(id) => setView('review', null, id)} onBack={() => setView('top')} />
         </Suspense>
       )}
       {view === 'decisions' && (
-        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
           <VocabDecisionConsoleLazy t={t} onBack={() => setView('top')}
             onOpenItem={(id) => setView('detail', null, id)} />
         </Suspense>
       )}
       {view === 'firstrun' && (
         <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview={labPreview}>
-          <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
             <FirstRunJourneyLazy t={t} sandbox={sandboxOn} storage={store}
               onStartCheck={() => setView('diagnostic')}
               onStartPractice={() => setView('daily')}
@@ -389,24 +390,24 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
         </LearnerErrorBoundary>
       )}
       {view === 'onodrafts' && (
-        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
           <OnoDraftsPanelLazy t={t} onBack={() => setView('top')} />
         </Suspense>
       )}
       {view === 'n3grammar' && (
-        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
           <N3GrammarDraftsPanelLazy t={t} onBack={() => setView('top')} />
         </Suspense>
       )}
       {view === 'adventure' && (
         <LearnerErrorBoundary t={t} onHome={() => setView('top')} labPreview={labPreview}>
-          <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
             <Chapter1AdventurePanelLazy t={t} onBack={() => setView('top')} devTools={labPreview} />
           </Suspense>
         </LearnerErrorBoundary>
       )}
       {view === 'connectivity' && (
-        <Suspense fallback={<div className="py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="grains" />}>
           <VocabConnectivityInspectorLazy t={t} onBack={() => setView('top')}
             onOpenItem={(id) => setView('detail', null, id)} onOpenDecisions={() => setView('decisions')} />
         </Suspense>

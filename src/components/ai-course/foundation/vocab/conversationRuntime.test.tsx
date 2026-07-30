@@ -13,7 +13,7 @@ import { allVocabularyItems } from '../../../../lib/aiLesson/course/foundationVo
 import { N3_ITEMS } from '../../../../lib/aiLesson/course/foundationVocabN3';
 import { levelMetaOf } from '../../../../lib/aiLesson/course/vocabularyLevelMeta';
 import { practiceForItem } from '../../../../lib/aiLesson/course/vocabConversationPractice';
-import type { FoundationItem } from '../../../../lib/aiLesson/course/foundationVocab';
+import type { FoundationItem } from '../../../../lib/aiLesson/course/foundationTypes';
 
 afterEach(cleanup);
 beforeEach(() => { window.sessionStorage.clear(); window.localStorage.clear(); });

@@ -1,6 +1,7 @@
 // 日本語のしくみラボ シェル（UX再設計版）。主要3領域＝今日／単元／記録（§3）。
 // ことば・しくみの全件一覧は単元画面からの補助導線（§7）。labPreview管理者のみ。
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { CourseLoading } from '../CourseLoading';
 import { ArrowLeft, FlaskConical } from 'lucide-react';
 import { FOUNDATION_UNIT_META, loadFoundationUnit, isKnownFoundationUnit } from '../../../lib/aiLesson/course/foundationRegistry';
 import type { FoundationUnitBundle } from '../../../lib/aiLesson/course/foundationRegistry';
@@ -103,7 +104,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
 
       {activeUnitId ? (
         active === 'loading' || active === undefined ? (
-          <p className="text-sm text-gray-400 text-center py-10">{t.common.loading}</p>
+          <CourseLoading t={t} scene="grains" onRetry={() => loadUnit(activeUnitId)} />
         ) : active === 'error' ? (
           <div className="text-center py-10">
             <p className="text-sm text-gray-500 mb-3">{tl.loadError}</p>
@@ -130,7 +131,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
             <FoundationTodayView t={t} meta={FOUNDATION_UNIT_META} summaries={summaries} repo={repo}
               onOpenUnit={openUnit} onGoUnits={() => setView('units')} onGoRecords={() => setView('records')} />
           )}
-          {view !== 'today' && needAll && !loadedAll && !anyError && <p className="text-sm text-gray-400 text-center py-8">{t.common.loading}</p>}
+          {view !== 'today' && needAll && !loadedAll && !anyError && <CourseLoading t={t} scene="grains" minHeightClass="min-h-[80px]" />}
           {view !== 'today' && needAll && anyError && (
             <div className="text-center py-8">
               <p className="text-sm text-gray-500 mb-3">{tl.loadError}</p>

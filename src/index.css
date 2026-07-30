@@ -194,3 +194,10 @@
     .card-interactive, .card-interactive:hover, .card-interactive:active { transform: none !important; transition: none !important; }
   }
 }
+
+/* ── 待ち時間表示の「地図の光が進む」演出（Phase B-3・CourseLoading） ──
+   motion-safe: 経由でのみ適用されるため、prefers-reduced-motion では自動的に静止する。 */
+@keyframes courseLoadingSweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}

@@ -2,6 +2,7 @@
 // 主役=今日の学習カード（CTA内蔵）。補助=前回の続き・今日の復習。詳細は右カラム/下部へ。
 
 import { useEffect, useState } from 'react';
+import { CourseLoading } from './CourseLoading';
 import { Mic, PenLine, Flame, Sparkles, RefreshCw, MapPin, TrendingUp, ArrowRight, CheckCircle2, BookOpen, UserRound } from 'lucide-react';
 import { GrowthJourneyMap } from './GrowthJourneyMap';
 import { LearnerAvatar } from './LearnerAvatar';
@@ -167,7 +168,7 @@ export const CourseHome = ({
             </p>
           </>
         ) : (
-          <p className="text-sm text-blue-100">{t.common.loading}</p>
+          <CourseLoading t={t} scene="step" minHeightClass="min-h-[40px]" textClass="text-blue-100" className="!py-2" />
         )}
         {/* 主CTA（カード内。視線移動ゼロで開始） */}
         {canLearn ? (

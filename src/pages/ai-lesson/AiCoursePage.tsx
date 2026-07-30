@@ -3,6 +3,7 @@
 // ＋ ロードマップ / 履歴 / 設定。進捗は Supabase（RLS）、オフライン時は localStorage。
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { CourseLoading, CourseChunkLoading } from '../../components/ai-course/CourseLoading';
 import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
 import WorldHomeShell from '../../components/ai-course/rpg/WorldHomeShell';
 import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
@@ -655,11 +656,11 @@ export default function AiCoursePage() {
   };
 
   // ── レンダリング ──
-  if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
   if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
   if (step === 'hearing') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
 
-  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
 
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
@@ -776,7 +777,7 @@ export default function AiCoursePage() {
             onBack={() => setStep('home')}
           />
         ) : (
-          <div className="py-16 text-center text-gray-500">{t.common.loading}</div>
+          <CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" />
         )}
       </Shell>
     );
@@ -802,7 +803,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('lab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
-        <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <CourseFoundationLab t={t}
             initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
             onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
@@ -816,7 +817,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
-        <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
             onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
@@ -865,7 +866,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
-          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
@@ -885,7 +886,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
-          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             {/* keyで章ごとに必ず再mount（章切替時に前章のstateを持ち越さない） */}
             <Chapter1AdventureLazy key={adventureChapterId} t={t} chapterId={adventureChapterId} onBack={() => setStep('home')} devTools={labAllowed} />
           </Suspense>
@@ -921,7 +922,7 @@ export default function AiCoursePage() {
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
-          <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N2QuestLazy t={t} onBack={() => setStep('home')} onOpenReview={openReview}
               onGoConversation={() => { void startLesson(mode); }} />
           </Suspense>

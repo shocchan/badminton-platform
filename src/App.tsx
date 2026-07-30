@@ -48,9 +48,15 @@ const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPag
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
 
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" aria-label="読み込み中" />
+/**
+ * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
+ * 中国語ページでもスクリーンリーダーが「読み込み中」と日本語で読んでいた（Phase B-3で修正）。
+ * URLの言語セグメントから表示言語を決める。回転は prefers-reduced-motion では止まる。
+ */
+const PageLoader = ({ lang }: { lang: 'ja' | 'zh' }) => (
+  <div className="flex items-center justify-center min-h-[60vh]" role="status" aria-live="polite">
+    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full motion-safe:animate-spin" />
+    <span className="sr-only">{lang === 'zh' ? '加载中…' : '読み込み中…'}</span>
   </div>
 );
 
@@ -70,7 +76,7 @@ const AiCourseCatchAll = () => {
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader lang={location.pathname.startsWith('/zh') ? 'zh' : 'ja'} />}>
       <div key={location.pathname} className="page-fade">
         <Routes location={location}>
 
