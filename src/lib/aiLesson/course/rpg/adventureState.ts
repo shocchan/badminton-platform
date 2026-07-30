@@ -277,6 +277,11 @@ export const resetAdventureState = (nowMs: number, storage: KVStorage | null = d
   chapterId: string = CHAPTER1_ID): AdventureState =>
   save(emptyAdventureState(nowMs, chapterId), storage);
 
+/** その章を完了済みか（read only・ルーティング判定用） */
+export const isChapterCompleted = (chapterId: string, nowMs: number,
+  storage: KVStorage | null = defaultStorage()): boolean =>
+  loadAdventureState(nowMs, storage, chapterId).chapter.completedAtMs !== null;
+
 /** 全章の冒険XP合計（成長画面の表示用・read only） */
 export const totalAdventureXp = (nowMs: number, storage: KVStorage | null = defaultStorage()): number => {
   let sum = 0;

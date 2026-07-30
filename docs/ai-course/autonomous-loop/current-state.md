@@ -5,7 +5,15 @@
 **方針転換（CEO 7/31）**: 受講者個別設定・リリース手続きは「Release Operations Phase」へ分離。
 中身の完成が最優先。完成判定は「runtime配線＋staging実画面」まで（設計書だけはCOMPLETEにしない）。
 
-### A. Chapter 2以降 — IN_PROGRESS（7/10章・playable・staging実測済み）
+### A. Chapter — **10/10章 完成（playable）**（2026-07-31 夜間ラン）
+- 第8〜10章（施設の導入章）を追加: ソラノ塔=書き言葉の入館証／カタリ港=声に出す日／
+  オモイデ庭園=灯りの消えた花壇。各4Quest・実在fi-*のみ・章間文言重複0（テスト16件PASS）
+- 施設エリアのrouting: **初回だけ導入章を通し、完了後は施設へ直行**（`isChapterCompleted`判定）。
+  Homeの施設カード（塔・広場・庭園・図書庫）は常に機能へ直行＝**ロックではない**
+- **staging実測**: 第8章をMapから開いて Quest 1 完走（XP+20・司書解放・閲覧室解錠）。fixture撤去済み
+- 旧記録: 第1〜7章（commit 541dd89）／第2章はreload復元・zh表示まで実測済み
+
+### （旧）A. Chapter 2以降 — 7/10時点の記録
 - 必要章数の決定: 10Area監査により**全10章**（各Areaに1章）
 - **完成: 第1〜7章**（commit 541dd89）。engine一般化（chapterRegistry / adventureState章対応 /
   Panel chapterId prop / N3AreaPanel全エリア入口 / 辞書パラメータ化）＋検証16テスト
@@ -14,10 +22,16 @@
   fixture撤去済み（auth_users=5 learners=1 に復帰）
 - **残り: 第8〜10章**（ソラノ塔=N2導入・カタリ港=会話導入・オモイデ庭園=復習導入の各章。
   常設施設エリアの「導入章」として設計する。恒久ロックは作らない）
-- **resumeFrom(B-1)**: `chapters8to10Data.ts` を新規作成（ChapterDef契約は chapterRegistry.ts、
-  作例は chapters5to7Data.ts）→ chapterRegistry.CHAPTERS へ追加 → chapterRegistry.test.ts の
-  「7章」期待値を10へ → 8〜10章のQuest素材は再遭遇語彙（N2はn2グロス表示のみ・実在fi-*で確認）
-  → tests/build/staging → stage-verify-session.mjs で実画面確認 → cleanup
+- ~~resumeFrom(B-1)~~ **完了**（chapters8to10Data.ts 作成→registry登録→テスト10章化→staging実測）
+
+### ▼ 次セッションのresumeFrom（優先順）
+1. **B-2 会話文脈 13→140**: 現在値を正準データから再集計 → 語ごとのcontext（starter ja/zh・
+   target・transfer risk・correction・review/mission接続）→ **runtime接続**（データ追加だけでは不可）
+   → starter重複0・dead data 0を機械検査 → 代表8カテゴリをintegration testで実証
+2. **B-3 Loading**: learner-visible asyncを全数監査→対象数確定→共通componentへ（200ms抑制・
+   aria-live・ja/zh・reduced motion・layout shiftなし）
+3. **B-5 横断品質監査** → 4. **B-4 イラスト（SVG fallback可・manifest方式）** → 5. **B-6 lint**
+6. 最後に RC freeze（tag候補 `ai-course-content-rc1`）
 
 ### 検証用ツール（今回作成・再利用可）
 - `scripts/ai-course/stage-verify-session.mjs` — staging実画面検証用の合成learnerセッション

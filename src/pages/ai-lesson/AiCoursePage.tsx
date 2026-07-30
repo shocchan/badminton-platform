@@ -82,6 +82,7 @@ import {
   type FullProbeClient, type UnitSyncMode,
 } from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
 import { chapterForArea } from '../../lib/aiLesson/course/rpg/chapterRegistry';
+import { isChapterCompleted } from '../../lib/aiLesson/course/rpg/adventureState';
 import { CHAPTER1_ID as CHAPTER1_ID_FOR_PAGE } from '../../lib/aiLesson/course/rpg/chapter1Data';
 import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
 import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
@@ -706,10 +707,21 @@ export default function AiCoursePage() {
   const openVocabQuickReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
 
   /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
+  const chapterCompleted = (chapterId: string) =>
+    isChapterCompleted(chapterId, Date.now(), window.localStorage);
+
   const openArea = (areaId: string) => {
     const area = areaById(areaId);
     if (!area) return;
     trackCourse('open_ai_course_world_area');
+    // 施設エリア（塔・港・庭園）は、その施設を使う意味を伝える導入章を「初回だけ」通す。
+    // ロックではない: 章は3〜4分で終わり、Homeの施設カードからは常に機能へ直行できる。
+    if (area.destination.kind !== 'n3area') {
+      const ch = chapterForArea(areaId);
+      if (ch && !chapterCompleted(ch.chapterId)) {
+        setAdventureChapterId(ch.chapterId); setStep('adventure'); return;
+      }
+    }
     switch (area.destination.kind) {
       case 'n3area': setActiveAreaId(areaId); setStep('n3area'); break;
       case 'n2grammar': setStep('n2grammar'); break;

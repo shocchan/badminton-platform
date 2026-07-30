@@ -20,9 +20,8 @@ const allQuestions = [...UNIT1_QUESTIONS, ...UNIT2_QUESTIONS, ...UNIT3_QUESTIONS
 const questionMap = new Map(allQuestions.map(q => [q.id, q]));
 
 describe('章の構成（10Area監査に基づく必要章数）', () => {
-  it('登録章は7章（1〜7・学習エリア）で、orderがArea orderと一致する', () => {
-    // 8〜10章（塔・港・庭園の導入章）は次checkpointで追加予定（current-state.md）
-    expect(CHAPTERS).toHaveLength(7);
+  it('登録章は10章（全Areaに1章）で、orderがArea orderと一致する', () => {
+    expect(CHAPTERS).toHaveLength(10);
     for (const c of CHAPTERS) {
       const area = areaById(c.areaId);
       expect(area, `${c.chapterId}: areaId ${c.areaId} が実在しない`).toBeTruthy();

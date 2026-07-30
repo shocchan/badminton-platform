@@ -343,7 +343,7 @@ const CHAPTER_7: ChapterDef = {
   openingJa: '「石版の文字が、昨日と違う」。案内人のシオリさんは困っていた。変化を言葉にできる人を、遺跡は待っていた。',
   openingZh: '「石板上的文字，和昨天不一样了。」向导诗织很困扰。遗迹在等待一个能把变化说成语言的人。',
   startLocationId: 'c7-ruins-gate',
-  nextChapterId: null,
+  nextChapterId: 'ch8-kotoba-no-tou',
   locations: [
     { locationId: 'c7-ruins-gate', nameJa: '遺跡の入口', nameZh: '遺跡の入口（遗迹入口）', x: 20, y: 74 },
     { locationId: 'c7-stone-hall', nameJa: '石版の間', nameZh: '石版の間（石板之间）', x: 44, y: 56 },

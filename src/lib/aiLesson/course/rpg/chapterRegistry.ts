@@ -5,9 +5,9 @@
 // - questId / locationId / npcId / beatId は全章を通してグローバルに一意（テストで固定）
 // - learningItemIds・grammar questionIds は実在教材IDのみ（chapterRegistry.test.ts が機械検証）
 // - 各章は必ず対象Areaを持ち、World Map のエリアから到達できる
-// - 章数の根拠: 正式10Area（worldAtlas）に1章ずつ＝全10章。
-//   本fileでは1〜7章（学習エリア）を登録。8〜10章（塔・港・庭園=常設施設の導入章）は
-//   次のcheckpointで追加する（resumeFrom: docs/ai-course/autonomous-loop/current-state.md）。
+// - 章数の根拠: 正式10Area（worldAtlas）に1章ずつ＝**全10章**（2026-07-31 完成）。
+//   1〜7章=学習エリア（N3単元を持つ）。8〜10章=常設施設（塔=N2文法／港=AI会話／庭園=復習）の
+//   「その施設を使う意味」を物語にした導入章。施設本体の機能・route・名称は変更しない。
 import {
   CHAPTER1_ID, CHAPTER1_LOCATIONS, CHAPTER1_NPCS, CHAPTER1_STORY_BEATS,
   CHAPTER1_QUESTS, CHAPTER1_FINALE_STEPS, REVIEW_REUNION,
@@ -16,6 +16,7 @@ import {
 } from './chapter1Data';
 import { CHAPTERS_2_TO_4 } from './chapters2to4Data';
 import { CHAPTERS_5_TO_7 } from './chapters5to7Data';
+import { CHAPTERS_8_TO_10 } from './chapters8to10Data';
 
 /** 章の再会Quest（復習期限があるときだけ出る手紙） */
 export interface ChapterReviewReunion {
@@ -63,7 +64,9 @@ const CHAPTER_1: ChapterDef = {
   nextChapterId: 'ch2-hinode-no-asa',
 };
 
-export const CHAPTERS: ChapterDef[] = [CHAPTER_1, ...CHAPTERS_2_TO_4, ...CHAPTERS_5_TO_7];
+export const CHAPTERS: ChapterDef[] = [
+  CHAPTER_1, ...CHAPTERS_2_TO_4, ...CHAPTERS_5_TO_7, ...CHAPTERS_8_TO_10,
+];
 
 export const chapterById = (id: string): ChapterDef | undefined => CHAPTERS.find(c => c.chapterId === id);
 export const chapterForArea = (areaId: string): ChapterDef | undefined => CHAPTERS.find(c => c.areaId === areaId);
