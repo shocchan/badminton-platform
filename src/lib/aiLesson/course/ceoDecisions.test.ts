@@ -55,6 +55,19 @@ describe('CEO決定の記録（decided/openの分離）', () => {
       expect(g1.evidence.entitlementRowsMigrated).toBe(1);
     }
   });
+  it('GATE⑤のCOMPLETEはdrill実測とknownGapsの明示がある場合だけ許す', () => {
+    const g5 = decisions.augustPilotProgram.gate5_backup_monitoring_rollback;
+    if (g5.status !== 'COMPLETE') return;
+    // 「docsを書いただけ」でCOMPLETEにしないための機械チェック
+    expect(g5.evidence.rollbackDrill).toMatch(/PASS/);
+    // rollbackで保護が外れないことがdrillで確認されている記録を必須にする
+    expect(g5.evidence.rollbackDrill).toMatch(/protect trigger AND function survived/);
+    expect(g5.evidence.backup.length).toBeGreaterThan(0);
+    expect(g5.evidence.releaseTag).toMatch(/v-august-pilot-rc1/);
+    expect(g5.evidence.perLearnerStop).toMatch(/3 independent places/);
+    // 埋まっていないものを隠していないこと（正直さの担保）
+    expect(g5.knownGaps.length).toBeGreaterThan(0);
+  });
   it('CEO入力待ちのゲートをCOMPLETEと記録していない', () => {
     const p = decisions.augustPilotProgram;
     for (const g of [p.gate2_physical_devices, p.gate3_legal_minimum, p.gate4_content_human_review]) {

@@ -161,9 +161,20 @@ feature rollbackで失うデータは実測済み（2026-07-30時点）:
 - 新5表を参照する **view は0件** → DROPが予期せぬ連鎖をしない
 - feature rollbackは保護trigger/functionを落とさない（`migrationIntegrity.test.ts` で恒久化）
 
+### rollback drill 結果（2026-07-30・localクリーンDBで実測・PASS）
+
+| 手順 | 結果 |
+|---|---|
+| 1. 3本を適用 | 5テーブル作成・保護trigger 1 |
+| 2. feature rollback ×3 | 5テーブル削除・**admin_overrides保護のtriggerとfunctionは残存**・`ai_learners`健在 |
+| 3. 再適用 | 5テーブル・11policy・RPC すべて復旧 |
+| 4. SECURITY_ONLY rollback | 設計どおり保護triggerが外れる（=明示決定時のみ使う経路） |
+
+drill後に `supabase/config.toml` を復元済み（`git diff` 空）。
+
 > **本番に対するDROPの実行リハーサルは行っていない**（トランザクションで包む形であっても
-> 本番へDROPを流すのは避けた）。SQLの妥当性はlocalクリーンDBでの
-> 適用→rollback→再適用の実測（同一checksum）と、上の対象実在確認で担保している。
+> 本番へDROPを流すのは避けた）。本番向けの担保は「上のlocal drill（同一checksumのファイル）」＋
+> 「本番での対象実在・依存view 0 の確認」の2点。
 
 ---
 
@@ -210,7 +221,7 @@ feature rollbackで失うデータは実測済み（2026-07-30時点）:
 | 項目 | 状態 |
 |---|---|
 | バックアップの全量復元リハーサル | 未実施（部分復元のみ実績あり） |
-| 本番へのDROP実行リハーサル | 意図的に未実施（§4の理由） |
+| 本番へのDROP実行リハーサル | 意図的に未実施（§4の理由。localクリーンDBでのdrillはPASS） |
 | Cloudflare rollbackのコマンド実行 | 未検証（ダッシュボード操作で代替） |
 | アラート（能動通知） | **無し**。上のdashboardを人が見る運用。閾値超過の自動通知は未実装 |
 | 二次対応者 | 不在（しょっちゃん1人が単一障害点） |

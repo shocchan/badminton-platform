@@ -135,20 +135,24 @@
       }
     },
     "gate5_backup_monitoring_rollback": {
-      "status": "INCOMPLETE",
-      "done": [
-        "remote backup taken and verified",
-        "baseline row counts frozen in release manifest",
-        "release branch pushed to origin",
-        "release manifest written",
-        "daily ops dashboard SQL runs against production (read-only)",
-        "incident runbook + per-learner stop procedures verified in code (is_active enforced in 3 places)",
-        "rollback target existence verified on production (tables 5 / functions 2 / trigger 1 / dependent views 0)"
-      ],
-      "remaining": [
-        "rollback drill on a clean local DB (local Supabase environment still booting)",
-        "release tag creation (candidate name v-august-pilot-rc1)",
-        "no active alerting: dashboard is human-reviewed only"
+      "status": "COMPLETE",
+      "evidence": {
+        "backup": "~/ai-company/backups/kawabado/2026-07-30 (public 38 tables + auth_users) + launchd daily 10:00",
+        "baselineFrozen": "release-manifest-august-pilot.md §3",
+        "releaseBranchPushed": "origin/feature/ai-course-learning-polish",
+        "releaseTag": "v-august-pilot-rc1 (created and pushed)",
+        "rollbackDrill": "PASS on clean local DB: apply 3 -> feature rollback x3 (5 tables dropped, admin_overrides protect trigger AND function survived, ai_learners intact) -> reapply (5 tables / 11 policies / RPC restored) -> SECURITY_ONLY rollback removed the protection as designed",
+        "rollbackTargetsOnProduction": "tables 5 / functions 2 / trigger 1 / dependent views 0; data loss quantified (entitlements 1 row, others 0)",
+        "monitoring": "daily-ops-dashboard.sql (6 sections / 30 metrics) executed against production successfully",
+        "incidentRunbook": "pilot-operations.md 12 steps + ja/zh learner notice templates",
+        "perLearnerStop": "is_active=false enforced server-side in 3 independent places (security.sql:193, monthly_cap.sql:59, ai-lesson-token/index.ts:155)",
+        "configRestored": "supabase/config.toml restored after local drill (git diff empty)"
+      },
+      "knownGaps": [
+        "full-restore rehearsal from JSON backup not performed (partial restore has precedent 2026-07-09)",
+        "no active/push alerting: the dashboard must be read by a human",
+        "single owner (no secondary responder)",
+        "Cloudflare rollback verified only as a dashboard procedure, not via CLI"
       ]
     },
     "gate2_physical_devices": { "status": "INCOMPLETE", "blockedBy": "CEO only (checklist prepared: pilot-device-check-20260730.md)" },
