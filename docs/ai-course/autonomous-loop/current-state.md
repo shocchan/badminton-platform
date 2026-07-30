@@ -1,5 +1,22 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
+## 2026-07-30 AUGUST RELEASE COMPLETION PROGRAM（進行中）
+
+- **GATE① COMPLETE**: 承認 `APPLY_SHARED_SUPABASE_MIGRATIONS` に基づき本番へmigration 3本を適用。
+  backup→preflight→atomicity実測→適用→history記録→catalog実査（全期待値一致）→
+  remote RLS matrix R01–R27 27/27 PASS→remote sync E2E S01–S19 19/19 PASS→staging反映。
+  probeを完全probe（table/columns/RLS/RPC/version）へ強化。保存状態表示をja/zhで正直化。
+  合成fixtureは全て撤去（前後row count一致）。remote write監査ログ: `production/remote-apply-audit.log`
+- **GATE⑤ INCOMPLETE（大半done）**: backup取得・baseline凍結・release branch push・release manifest・
+  daily-ops-dashboard（本番でsmoke済み）・incident runbook・learner個別停止手順（is_active enforcementを
+  3箇所で確認）・rollback対象実在確認。**残: localクリーンDBでのrollback drill（環境起動中）・release tag**
+- **GATE②③④ INCOMPLETE**: すべてCEO入力待ち。→ `decision-packets/ceo-action-panel-august-pilot.md`
+- Phase B（8時間Sprint）は未開始（5ゲート未完のため。指示どおり進めない）
+- 本番DBで判明した要対応: 問い合わせ未返信5件（最古 2026-07-06）／未対応不具合報告1件／
+  LPに法務リンク0本・「準備中」表記2箇所／本番learnerは検証用1件のみ（3名は未サインアップ）
+- 招待コードは1件・`max_uses is null`＝**無制限で有効**（誤警報しないようdashboardのSQLを修正済み）
+
+
 更新: 2026-07-30（Gate後の安全網整備完了: migrationIntegrity.test 14件・貼付用SQL生成script・post-apply検証SQL・runbook R1-R6。Apply Ready=READY／適用は承認文字列待ち・remote write 0）
 
 - cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf はテストartifactとして残置・削除は将来の明示承認必須・Production blockerではない）

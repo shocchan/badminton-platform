@@ -50,10 +50,14 @@
 | 24 | mobile responsive | complete | 実測: 7画面で横overflow 0・42px未満ボタン0（320/390）。session-12でharness15画面×320/390/430/768/1280のheadless実測もoverflow 0・小ボタン0 |
 | 25 | 日本語／中国語切替 | complete | uiLang切替（remountなし）。N2/N3は中文説明併記 |
 
-## deferred_to_hardening（Whole Product Completeを妨げない項目）
+## 2026-07-30: GATE① 完了により2項目が deferred から外れた
 
-- 学習進捗の正式DB同期（現在はlocalStorage/sessionStorage。「この端末に保存」と正直表示）
-- RLS/entitlementのlocal実証・cross-device実DB実証・rollback/backup実行（Docker）
+- **学習進捗の正式DB同期: 完了**（remote migration 3本を適用。probeを列/RLS/RPC/version込みへ強化し、
+  保存状態を synced / pending / local_only で正直表示。ja/zh）
+- **RLS/cross-device実DB実証: 完了**（本番DBで R01–R27 27/27 PASS・S01–S19 19/19 PASS）
+- backup: 取得済み。rollback: 対象実在とデータ損失量を実測。localクリーンDBでのdrillは実施中
+
+## deferred_to_hardening（Whole Product Completeを妨げない項目）
 - 実機iPhone/Android・VoiceOver/TalkBack
 - 利用規約・プライバシー（法務）・LP文言・support送信先確定
 - CEO教材承認・ビジュアル承認（human_reviewed/approvedは自動昇格していない）

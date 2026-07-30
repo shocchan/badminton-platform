@@ -116,11 +116,52 @@
       "futureRule": "将来も明示承認（APPROVE_CEO_TEST_SESSION_CLEANUP_A）がない限り削除しない"
     }
   },
+  "augustPilotProgram": {
+    "recordedAt": "2026-07-30",
+    "approvalReceived": "APPLY_SHARED_SUPABASE_MIGRATIONS",
+    "gate1_remote_db_rls_sync": {
+      "status": "COMPLETE",
+      "evidence": {
+        "backupBeforeApply": "~/ai-company/backups/kawabado/2026-07-30 (public 38 tables + auth_users)",
+        "appliedVersions": ["20260728000000", "20260728010000", "20260729000000"],
+        "historyRows": "14 -> 17, duplicates 0",
+        "catalogVerification": "all expected values matched (5 RLS tables / 11 policies / 3 indexes / 3 touch triggers / 1 protect trigger / 2 definer functions with search_path)",
+        "baselineUnchanged": "learners 1 / item_progress 12 / sessions 24",
+        "entitlementRowsMigrated": 1,
+        "remoteRlsMatrix": "R01-R27 27/27 PASS",
+        "remoteSyncE2E": "S01-S19 19/19 PASS",
+        "fixtures": "synthetic .invalid accounts, removed by exact UUID; before/after row counts identical",
+        "probeStrengthened": "table + required columns + RLS + RPC + schema version (RPC probe does not write)"
+      }
+    },
+    "gate5_backup_monitoring_rollback": {
+      "status": "INCOMPLETE",
+      "done": [
+        "remote backup taken and verified",
+        "baseline row counts frozen in release manifest",
+        "release branch pushed to origin",
+        "release manifest written",
+        "daily ops dashboard SQL runs against production (read-only)",
+        "incident runbook + per-learner stop procedures verified in code (is_active enforced in 3 places)",
+        "rollback target existence verified on production (tables 5 / functions 2 / trigger 1 / dependent views 0)"
+      ],
+      "remaining": [
+        "rollback drill on a clean local DB (local Supabase environment still booting)",
+        "release tag creation (candidate name v-august-pilot-rc1)",
+        "no active alerting: dashboard is human-reviewed only"
+      ]
+    },
+    "gate2_physical_devices": { "status": "INCOMPLETE", "blockedBy": "CEO only (checklist prepared: pilot-device-check-20260730.md)" },
+    "gate3_legal_minimum": { "status": "INCOMPLETE", "blockedBy": "CEO answers to 10 facts + professional review" },
+    "gate4_content_human_review": { "status": "INCOMPLETE", "blockedBy": "3 learners' info unknown; no learner has signed up yet" },
+    "allFiveComplete": false,
+    "phaseB_started": false
+  },
   "openGates": {
     "legal": "open",
     "physical_device_formal_verification": "open",
-    "remote_migration": "open",
-    "remote_rls_verification": "open",
+    "remote_migration": "closed_2026-07-30",
+    "remote_rls_verification": "closed_2026-07-30",
     "production_approval": "open"
   },
   "notAllGatesComplete": true
