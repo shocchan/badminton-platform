@@ -14,7 +14,7 @@ tests **1149 PASS**（+22）・tsc 0・lint E46（ベースライン47→46・�
 1. **CEO決定記録**: decisions/ceo-decisions-20260730.json（decided/openGates分離・notAllGatesComplete=true・機械検証テスト付き）
 2. **正式名称**: 世界=ミナモ列島・Chapter1=**霧の港町**・Area10件（オウライ街道/ハタラキ街を含む）。旧称（はじまりの町/トオリミチ/ハタラキ区）learner-visible **0**（テスト固定）。route ID/progress IDは不変
 3. **地名方針B**: atlas nameZh=「日本語固有名詞（中国語gloss）」形式（ソラノ塔（N2语法之塔）等・CEO指定gloss採用）。地図＝ja短縮形、Area detail/塔/庭園/港/第1章＝併記、aria=「进入「X」。学习Y。」。地図⇔詳細の同一性断絶を解消
-4. **Support統一**: learnerアプリ面の人間窓口= **info@kawabado.com のみ**（WeChat/Shocchance/微信=0テスト固定）。設定に「お問い合わせ/联系我们」セクション＋mailto CTA、issue報告失敗時のメールfallback（正直表示）。issue報告成功時の「送信しました」はai_issue_reportsへの実送信のため正直。**LPの無料相談WeChatモーダルは軸1商談導線（learner窓口ではない）と判断し対象外**——別判断が必要ならお知らせください
+4. **Support適用範囲の正式分離（CEO方針確定 2026-07-30）**: A) 学習アプリ内learner窓口= **info@kawabado.com のみ**（WeChat/Shocchance/微信=0を恒久テスト固定・設定にお問い合わせ＋mailto・issue失敗時メールfallback）。B) 未購入者向けLPの無料相談は **WeChat維持＋メール併記を追加**（見出し「無料相談/免费咨询」・info@kawabado.comブロック・LPのWeChat導線維持を恒久テストで保護）。C) バドミントン側変更なし。「コース全体でWeChat=0」テストは意図的に作らない
 5. **World Map主要ナビ化**: 島Visual+状態タグ+名前+chevron=単一button（全10・44px+・overlay重複を幾何テストで0）。hover/focus-visible=浮上(-6px)・拡大(1.04)・影・gloss・テーマ・「この街へ」。Enter/Space遷移。mobile常時chevron+pressed(0.98)。状態別（現在地/復習あり/完了✓/未開放=非活性+開放条件・現在locked該当なし）。reduced motion完全対応（motion-safe接頭辞+animate停止）
 6. **N2統合**: 024→023・104→102（similar/contrast吸収）、独立維持5件を本編昇格 → **canonical 178＋alias 2＝原本180**。進捗はcanonical正規化＋alias元キーのマージ読み取りで引き継ぎ（テスト3件）。塔/テーマ/LPの表記178へ
 7. **教材・Visual**: provisionally_accepted_for_beta として記録（humanReviewed/approved昇格なし・全draft維持）
