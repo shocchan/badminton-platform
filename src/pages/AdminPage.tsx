@@ -547,7 +547,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
         '姓名': e.quantity > 1 ? `${e.name}${suffixes[i] ?? i+1}` : e.name,
         '種別': e.member_type === 'member' ? '会員' : '通常',
         '状態': e.status === 'waitlist' ? '補欠' : '確定',
-        '流入元': sourceLabel(e.source).replace(/[📱💬🌐]\s?/g, ''),
+        '流入元': sourceLabel(e.source).replace(/[📱💬🌐]\s?/gu, ''),
         '備考': e.notes || '',
         '申込日時': new Date(e.created_at).toLocaleString('ja-JP'),
       }))
@@ -718,7 +718,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
               <div>
                 <h3 className="font-bold text-gray-900">{a.title}</h3>
                 <p className="text-sm text-gray-500 mt-0.5">
-                  {formatDateJP(a.date)}　{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}　{a.location}
+                  {formatDateJP(a.date)}{'　'}{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}{'　'}{a.location}
                 </p>
                 <p className="text-sm text-gray-500">¥{a.price.toLocaleString()} ／ 定員{a.capacity}人</p>
               </div>
@@ -766,7 +766,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
                 })}
               </div>
               <p className="border-t border-gray-200 pt-2 mt-2 text-gray-700 font-medium">
-                会員合計: {memberTotal}人　通常合計: {normalTotal}人
+                会員合計: {memberTotal}人{'　'}通常合計: {normalTotal}人
               </p>
             </div>
 
@@ -1704,7 +1704,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     <option value="unlisted">🔗 限定公開（unlisted）</option>
                     <option value="published">✅ 公開（published）</option>
                   </select>
-                  <p className="text-xs text-gray-400 mt-1">非公開：一覧・URLともに非表示　限定公開：URLのみアクセス可　公開：全員に表示</p>
+                  <p className="text-xs text-gray-400 mt-1">非公開：一覧・URLともに非表示{'　'}限定公開：URLのみアクセス可{'　'}公開：全員に表示</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">ステータス</label>

@@ -80,7 +80,7 @@ function loadSlots(): SaveSlot[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch { /* 描画用の任意機能のため失敗は無視 */ }
   return Array.from({ length: MAX_SLOTS }, (_, i) => ({ name: `スロット${i + 1}`, data: null }));
 }
 

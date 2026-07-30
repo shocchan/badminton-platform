@@ -1,6 +1,8 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-30（CEO確認完了反映＋World Map操作性＋Support統一＋N2統合178・decisions/ceo-decisions-20260730.json）
+更新: 2026-07-30（Final Preflight完了: flaky実証修正・lint分類46→29(AIコース0)・migration正式化+full SHA-256・preflight/post-applyスクリプト・legal/device packet・AI単独残=0）
+
+- cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf はテストartifactとして残置・削除は将来の明示承認必須・Production blockerではない）
 
 - 現在のPhase: **CEO判断反映 完了**（正式名称: 霧の港町/オウライ街道/ハタラキ街・地名方針B併記・Support=info@kawabado.com・Map主要ナビ化・N2 178+alias2=180・出身/都合routing・β暫定採用記録。openゲート: legal/実機/remote migration/remote RLS/production）。前Phase: **夜間教材ブラッシュアップ 完了**（動詞56語データ完備・全140語Stage2保証・注意分類21語ノート・QP-1/QP-2解消・cloze18問＋対照13問draft追加・tests 1127 PASS・staging反映済み）。前Phase: **zh-l10n＋図鑑可視化 完了**（RPG/N3/N2全learner画面のzh辞書配線9件・vocabCanonical単一情報源・図鑑ヘッダー/11フィルター/全部終えた定義・completion-reports/zh-localization-vocab-scope-20260730.md）。tests 1120 PASS。前Phase: **2E-1.12 完了**（Journey往復契約・storage登録簿と安全reset・実機で往復不具合を検出し修正。completion-reports/phase-2e1-12-completion-report.md）。前Phase: 2E-1.11（初回4ステップJourney・Recovery UX・Error Boundary。completion-reports/phase-2e1-11-completion-report.md）。前Phase: 2E-1.10（間隔反復・role推薦接続・会話コア接続・学習ループUI・リリース分類。completion-reports/phase-2e1-10-completion-report.md）。前々Phase: 2E-1.9（接続グラフ560edge・Inspector・anchor。completion-reports/phase-2e1-9-completion-report.md）。前Phase: 2E-1.8 完了（完全性監査・P0由来・stale検出・双方向リンク・実ブラウザモバイル検証。completion-reports/phase-2e1-8-completion-report.md）
   判断キュー実数: 91判断事項/72語（example1・cognate11・**meaning_zh20・role57**・sense2）※2E-1.7報告の17/60は誤集計と判明し訂正済み

@@ -1,6 +1,7 @@
 -- ============================================================
--- N3/N2 単元進捗の正式テーブル（Phase H1 §14 草案・未適用）
--- ⚠️ migrations_draft/ は supabase CLI の適用対象外。共有SupabaseへはCEO承認まで適用しない。
+-- N3/N2 単元進捗の正式テーブル（2026-07-30 正式化・remote未適用）
+-- ⚠️ remoteへの適用は APPLY_SHARED_SUPABASE_MIGRATIONS 受領後のみ。localは通常適用。
+-- rollback: supabase/rollbacks/rollback_20260729000000_ai_course_unit_progress.sql
 --
 -- 対応する client 契約: src/lib/aiLesson/course/persistence/unitProgressRepository.ts
 --   - StoredProgress { learnerId, unitId, state(UnitRunState), rowVersion, updatedAtMs }

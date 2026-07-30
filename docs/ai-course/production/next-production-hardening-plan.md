@@ -1,3 +1,5 @@
+> cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf 残置・明示承認なしの削除禁止・blockerではない）
+
 # Next Production Hardening Plan（Whole Product Complete後の次Phase）
 
 前提: Whole Product Complete on Staging = YES（whole-product-completion-matrix.md）。

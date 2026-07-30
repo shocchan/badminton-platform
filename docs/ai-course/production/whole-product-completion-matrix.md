@@ -78,3 +78,9 @@
 - 成長/履歴/設定: 晴れたエリア1/7・N3 1/12・N2 1/180の正確な集計・復習期日一覧・字幕3モードを実確認
 - Recovery/Error: 破損state注入→安全復旧バナー→最初から、reload→続き（残り9問）から再開、存在しないroute→404ページ（復帰導線つき）を実確認
 - 全10エリア: 実画面でIntro・相手・実用ミッション・攻略単元リスト（合計12単元）を確認。カタリ港は旅立ちカード（相手/目的/ことば/所要/残回数）
+
+## Cleanup（CEOテスト会話 cd58eebf）
+
+- cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30）
+- remote write/delete 0。既知のCEOテストartifactとして残置。Production blockerではない
+- 将来も明示承認（APPROVE_CEO_TEST_SESSION_CLEANUP_A）なしに削除しない

@@ -243,7 +243,7 @@ serve(async (req) => {
     try { turn = JSON.parse(content); } catch { return json(502, { error: "bad_turn_json" }); }
 
     // ── サーバー側の最終ガード（モデル出力を上書き・「null」等の擬似空文字列も除去） ──
-    let correction = cleanField(turn.correction, 200);
+    const correction = cleanField(turn.correction, 200);
     let question = cleanField(turn.question, 200);
     let closingMessage = cleanField(turn.closingMessage, 200);
     const shouldClose = closingNow || !!turn.shouldClose;

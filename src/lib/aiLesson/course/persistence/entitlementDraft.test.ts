@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const sql = readFileSync(join(__dirname, '../../../../..',
-  'supabase/migrations_draft/20260728010000_ai_course_entitlements_DRAFT.sql'), 'utf8');
+  'supabase/migrations/20260728010000_ai_course_entitlements.sql'), 'utf8');
 
 describe('ai_course_entitlements 草案の安全性', () => {
   it('learner本人はselectのみ（書き込み系のgrantを与えない）', () => {

@@ -1,6 +1,6 @@
 // 正式DB保存の設計（CEO指示 2026-07-28・草案・未接続）。
 // ⚠️ このモジュールはまだどこからもimportしない。migration適用のCEO承認後に配線する。
-// テーブル定義: supabase/migrations_draft/20260728000000_ai_course_vocab_persistence_DRAFT.sql
+// テーブル定義: supabase/migrations/20260728000000_ai_course_vocab_persistence.sql
 // 方針: docs/ai-course/decision-packets/formal-vocabulary-persistence-implementation-packet.md
 
 import type { SelfAssessment } from '../vocabProgress';

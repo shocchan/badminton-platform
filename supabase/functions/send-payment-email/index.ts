@@ -147,7 +147,6 @@ serve(async (req: Request) => {
 
     // ── 0a. クレジット決済完了メール ──
     if (payment_method === "credit") {
-      const entryFeeYen = (entry_fee ?? 0).toLocaleString();
       const totalYen = (amount_total ?? entry_fee ?? 0).toLocaleString();
       const refundYen = (entry_fee ?? 0) - Math.round((entry_fee ?? 0) * 0.1);
       const refundYenStr = refundYen.toLocaleString();

@@ -5,9 +5,9 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const sql = readFileSync(join(__dirname, '../../../../..',
-  'supabase/migrations_draft/20260728000000_ai_course_vocab_persistence_DRAFT.sql'), 'utf8');
+  'supabase/migrations/20260728000000_ai_course_vocab_persistence.sql'), 'utf8');
 const rollback = readFileSync(join(__dirname, '../../../../..',
-  'supabase/migrations_draft/rollback_20260728000000_ai_course_vocab_persistence.sql'), 'utf8');
+  'supabase/rollbacks/rollback_20260728000000_ai_course_vocab_persistence.sql'), 'utf8');
 
 describe('migration草案の安全性（dry-run検査）', () => {
   it('3つの新テーブルだけを作り、既存テーブルを変更しない', () => {

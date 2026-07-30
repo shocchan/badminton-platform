@@ -170,3 +170,76 @@ cross-device同期・feature/security rollbackを実測した（`production/gene
 entitlement読み込みへの切替（fallbackなし・失敗時は権限なし側へ）／内部chunkのgate／
 検証モードの internal_review 紐づけ＋analytics停止／progress同期outbox。
 いずれも適用と動作確認の後、stagingでCEO確認を経て進める。
+
+---
+
+## 22. 正式化（2026-07-30 Final Preflight・remote未適用のまま）
+
+DRAFTを正式ファイルへ改名し、`supabase/migrations/` に配置した（**remoteへは未適用**。
+localの `supabase start` では通常適用される）。旧参照パスのテスト・コードコメントは全て更新済み。
+
+### 22a. 正式ファイルと full SHA-256（適用直前に `shasum -a 256` で全桁照合・不一致は即中止）
+
+| 種別 | path | sha256 |
+|---|---|---|
+| ① vocab persistence | `supabase/migrations/20260728000000_ai_course_vocab_persistence.sql` | `50cb55ae59bc13a3999cc3ee80c6be21394c67b30ac64588a9b6270486f8b405` |
+| ② entitlements | `supabase/migrations/20260728010000_ai_course_entitlements.sql` | `a4f0bcd5eebcc2a0cc714615b6b8df40c0ce81f73f221131096830ff1053d81a` |
+| ③ unit progress | `supabase/migrations/20260729000000_ai_course_unit_progress.sql` | `92a5606de2efd07760e4b7fa5fe11f93b03a769c2d04666f0536c5fc383a6ee0` |
+| rollback① | `supabase/rollbacks/rollback_20260728000000_ai_course_vocab_persistence.sql` | `e323251eca3deb18bf3ac0c2d2984dae3fb9d7806d764e4fd64fdc83834c1762` |
+| rollback② | `supabase/rollbacks/rollback_20260728010000_ai_course_entitlements.sql` | `9c93eb980e05f3a2f2bcc564890cc3fc905225427ca28a1ed747b0fb7b59cfbf` |
+| rollback③ | `supabase/rollbacks/rollback_20260729000000_ai_course_unit_progress.sql` | `4b3ca07a070f64b1c2fe9eca79ba64c5476f0fed8effbd2b6dd3a8050dff6b92` |
+
+### 22b. 正式化で加えた差分（checksum変更の理由・全てセキュリティ強化のみ）
+
+1. ①: 進捗3表へ `revoke insert, update, delete from authenticated` を明示（default privilegesのALL自動付与への二層目。RLSのdelete policy無しと合わせて二重遮断）
+2. ①: `ai_course_vocab_touch()` に `set search_path = public`（invoker関数だがlinter準拠で固定）
+3. ②: `ai_course_protect_admin_overrides()`（SECURITY DEFINER）に `set search_path = public`
+   — **未固定はschema偽装による権限昇格の定番経路**のため必須修正
+4. ②のrollbackを独立ファイル化（従来は草案末尾コメントのみ）
+
+### 22c. チェックリスト確定値
+
+- additive only: **YES**（既存テーブル変更は ai_learners への trigger 追加のみ・列変更/削除0）
+- new tables 5 / functions 3（`ai_course_vocab_touch`=invoker+search_path固定、
+  `ai_course_protect_admin_overrides`=DEFINER+search_path固定、`ai_upsert_unit_progress`=DEFINER+search_path固定・冒頭本人確認）
+- triggers: 新規4（vocab3表touch＋ai_learners保護）／ indexes 3 ／
+  grants: authenticated=select(+vocab3表はinsert/update)・service_role=all ／
+  revokes: anon=all・authenticated=delete(vocab3表)/insert,update,delete(entitlements・unit_progress)
+- RLS: 全新テーブルenable。select=本人orアドミン。書き込みpolicyはvocab3表の本人insert/updateのみ。
+  entitlements・unit_progressに書き込みpolicyなし（unit書き込みはRPC一本化）
+- privilege escalation: DEFINER 2関数とも search_path 固定＋入口ガード（H1 matrix M10/M15/M18で実測）
+- duplicate migration prefix: 新3本は14桁で一意。**既存のバドミントン側に日付のみprefixの重複（20260707×4等）が
+  歴史的に存在**（適用済み・今回触らない・`supabase migration list` 照合はpreflight P7で実施）
+- transaction境界: 1ファイル=1トランザクション。適用順 ①→②→③・各ファイル成功確認後に次へ
+
+### 22d. コマンド（承認後にワンセットで実行）
+
+```bash
+# 0) 事前バックアップ（対象スキーマのDDL＋既存ai_*データ）
+supabase db dump --linked -f backup_pre_apply_$(date +%Y%m%d%H%M).sql
+# 1) 事前SELECT（読み取りのみ・結果をパケットへ転記）
+#    scripts/ai-course/preflight-remote-selects.sql を SQL Editor で実行
+# 2) checksum照合（22aと全桁一致しなければ中止）
+shasum -a 256 supabase/migrations/2026072{8000000,8010000,9000000}_ai_course_*.sql
+# 3) 適用（順に・1本ずつ）
+supabase db push --linked --include-all   # または migration up を1本ずつ
+# 4) 直後検証
+node scripts/ai-course/post-apply-verification.mjs <env.json>   # 18項目matrix
+#    ＋ クライアント側: syncedUnitStorage統合テスト（probe→localStorage引き上げ→server保存→
+#      reload→別browser context→offline outbox→reconnect→conflict解決→N3/N2進捗・aliasは
+#      既存テスト群で担保。実機はPhysical Device Packetの該当行で確認）
+# 5) 事前SELECT[P1]を再実行し、既存表count不変を記録
+```
+
+### 22e. stop conditions（1つでも該当したら即中止→§19 rollback判断）
+
+1. checksum不一致 ／ 2. preflight P5/P6/P7 で衝突1件以上 ／ 3. P2の対象行数≠1
+4. 適用中エラー（自動巻き戻し後、原因判明まで再適用しない）
+5. post-apply matrix にFAIL ／ 6. 既存3表のcount変動 ／ 7. Andyさんのlearner_idがentitlementsに出現
+
+### 22f. 承認文字列（どちらも有効・いずれか一方で可）
+
+- `APPLY_SHARED_SUPABASE_MIGRATIONS`（現行の標準）
+- `APPLY_STAGING_MIGRATIONS`（本パケット§21の旧表記）
+
+いずれの文字列も無い限り、remoteへのapply・write・RLS変更は一切行わない。

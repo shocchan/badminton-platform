@@ -41,7 +41,7 @@ service_role/adminのみ許可）を入れる。これは案Bの技法を「防�
 
 ## 4. 成果物（作成済み・未適用）
 
-- migration草案: `supabase/migrations_draft/20260728010000_ai_course_entitlements_DRAFT.sql`
+- migration草案: `supabase/migrations/20260728010000_ai_course_entitlements.sql`
   - `ai_course_entitlements`（learner_id PK・4権限列・granted_by/at・expires_at）
   - learner本人は **select のみ**（insert/update/deleteのgrantもpolicyも無し）
   - 書き込みは service_role のみ

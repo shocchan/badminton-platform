@@ -27,7 +27,7 @@ const calculateStrength = (password: string, lang: 'ja' | 'zh' = 'ja'): Strength
     lowercase: /[a-z]/.test(password),
     uppercase: /[A-Z]/.test(password),
     number: /[0-9]/.test(password),
-    special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+    special: /[!@#$%^&*()_+\-={};':"\\|,.<>/?[\]]/.test(password),
   };
 
   Object.values(checks).forEach(check => {

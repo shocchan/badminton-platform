@@ -739,7 +739,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
         </div>
         <h1 className="text-xl font-bold leading-snug" style={{ textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>{activity.title}</h1>
         <div className="mt-3 space-y-1.5 text-green-50 text-sm">
-          <p>📅 {formatDate(activity.date, lang)}　{activity.start_time.slice(0,5)}〜{activity.end_time.slice(0,5)}</p>
+          <p>📅 {formatDate(activity.date, lang)}{'　'}{activity.start_time.slice(0,5)}〜{activity.end_time.slice(0,5)}</p>
           <p>📍 {activity.location}</p>
           {activity.address && <p className="text-green-100 text-xs">{activity.address}</p>}
         </div>
@@ -760,7 +760,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
           <span className="text-lg">👥</span>
           <div className="flex-1">
             <p className="text-xs text-gray-400">{t.participants}</p>
-            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `　${lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
+            <p className="text-sm font-bold text-gray-800">{t.used(confirmedCount, activity.capacity)}{waitlistEntries.length > 0 ? `\u3000${lang === 'ja' ? `補欠${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}人` : `候补${waitlistEntries.reduce((s,e)=>s+e.quantity,0)}名`}` : ''}</p>
           </div>
           <div className="w-20">
             <div className="bg-gray-100 rounded-full h-2 overflow-hidden">

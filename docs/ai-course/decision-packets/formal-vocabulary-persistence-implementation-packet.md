@@ -8,7 +8,7 @@
 
 ## 1. データモデル（最終案）
 
-migration草案: `supabase/migrations_draft/20260728000000_ai_course_vocab_persistence_DRAFT.sql`
+migration草案: `supabase/migrations/20260728000000_ai_course_vocab_persistence.sql`
 rollback: 同ディレクトリの `rollback_20260728000000_ai_course_vocab_persistence.sql`
 
 | テーブル | 1行の単位 | 主キー |

@@ -1,6 +1,7 @@
 -- ============================================================
--- 内部権限（entitlement）の分離（CEO指示 2026-07-28・草案・未適用）
--- ⚠️ migrations_draft/ は supabase CLI の適用対象外。共有SupabaseへはCEO承認まで適用しない。
+-- 内部権限（entitlement）の分離（2026-07-30 正式化・remote未適用）
+-- ⚠️ remoteへの適用は APPLY_SHARED_SUPABASE_MIGRATIONS 受領後のみ。localは通常適用。
+-- rollback: supabase/rollbacks/rollback_20260728010000_ai_course_entitlements.sql
 --
 -- 背景: 現在の内部権限（labPreview等）は ai_learners.admin_overrides (jsonb) にあり、
 --       ai_learners_update policy が本人の全列更新を許すため、
@@ -58,7 +59,10 @@ on conflict (learner_id) do nothing;
 -- learner本人のupdate自体は残す（display_name等の自己更新のため）が、
 -- admin_overrides の変更だけは admin / service_role 以外で拒否する。
 create or replace function public.ai_course_protect_admin_overrides()
-returns trigger language plpgsql security definer as $$
+returns trigger language plpgsql security definer
+-- SECURITY DEFINERのsearch_path固定（未固定はschema偽装による権限昇格の定番経路）
+set search_path = public
+as $
 declare
   v_claims text := nullif(current_setting('request.jwt.claims', true), '');
 begin

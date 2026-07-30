@@ -1,7 +1,8 @@
 -- ============================================================
--- 語彙進捗・診断・復習予定の正式保存（CEO指示 2026-07-28・草案・未適用）
--- ⚠️ migrations_draft/ は supabase CLI の適用対象外。
--- ⚠️ 共有Supabaseへの適用はCEOの明示承認後のみ。この草案作成では一切適用しない。
+-- 語彙進捗・診断・復習予定の正式保存（2026-07-30 正式化・remote未適用）
+-- ⚠️ remote（共有Supabase）への適用はCEOの明示承認文字列 APPLY_SHARED_SUPABASE_MIGRATIONS
+--    受領後のみ。local開発DB（supabase start）には通常どおり適用される。
+-- H1 local実測済み（h1-local-verification.md）。rollback: supabase/rollbacks/ 同名ファイル。
 --
 -- 設計原則:
 --   - 教材固定データ（語・訳・例文・cognate）はTS静的データのまま。DBへは learner進捗のみ
@@ -91,6 +92,9 @@ begin
   ] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('revoke all on public.%I from anon', t);
+    -- default privilegesがauthenticatedへALLを自動付与するため、deleteはgrant層でも明示遮断
+    -- （RLSにdelete policyが無い＝policy層でも拒否。二層防御・H1 M07と同方針）
+    execute format('revoke insert, update, delete on public.%I from authenticated', t);
     execute format('grant select, insert, update on public.%I to authenticated', t);
     execute format('grant all on public.%I to service_role', t);
     execute format('drop policy if exists %I_select on public.%I', t, t);
@@ -109,7 +113,9 @@ end $$;
 
 -- updated_at / row_version の自動更新
 create or replace function public.ai_course_vocab_touch()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql
+set search_path = public
+as $$
 begin
   new.updated_at := now();
   new.row_version := old.row_version + 1;

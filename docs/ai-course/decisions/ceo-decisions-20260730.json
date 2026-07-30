@@ -107,6 +107,13 @@
     },
     "map_interactivity": {
       "status": "requested_and_implemented"
+    },
+    "ceo_test_session_cleanup": {
+      "status": "deferred_not_blocking",
+      "sessionId": "cd58eebf-f4d9-4821-8120-632814721a94",
+      "decision": "CEO決定（2026-07-30）: Cleanupは実行しない。既知のCEOテストartifactとして残す。Production blockerにしない。承認文字列待ちとして扱わない",
+      "remoteWrites": 0,
+      "futureRule": "将来も明示承認（APPROVE_CEO_TEST_SESSION_CLEANUP_A）がない限り削除しない"
     }
   },
   "openGates": {

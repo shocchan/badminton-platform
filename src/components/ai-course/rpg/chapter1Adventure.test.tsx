@@ -7,7 +7,7 @@ import { aiCourseI18n } from '../../../locales/aiCourse';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import Chapter1AdventurePanel from './Chapter1AdventurePanel';
 import { CHAPTER1_QUESTS, CHAPTER1_FINALE_STEPS, CHAPTER1_LOCATIONS } from '../../../lib/aiLesson/course/rpg/chapter1Data';
-import { RPG_SANDBOX_KEY } from '../../../lib/aiLesson/course/rpg/adventureState';
+import { RPG_SANDBOX_KEY, loadAdventureState, startQuest, recordLearningResult, completeQuest, questRequirementKeys } from '../../../lib/aiLesson/course/rpg/adventureState';
 import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocabBank';
 import { UNIT1_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit1';
 import { UNIT5_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit5';
@@ -73,6 +73,28 @@ const clearQuestViaUi = (questOrder: number) => {
     name: quest.isChapterFinale ? 'Chapter 1 の記録へ' : /マップへ（主人公が次の場所へ進みます）/ }));
 };
 
+/**
+ * Quest 1〜N を production の永続API（adventureState）で完了済みにseedする。
+ * reload復元と同一経路（loadAdventureState→sandboxキー）であり、モックではない。
+ * flaky対策（2026-07-30実証）: 「章末誤答」テストがUIでQuest1〜4を再走すると
+ * full並列のCPU競合下で5s timeoutを超えることがあった（実測5333ms・平常1372ms）。
+ * Quest走破のUI検証は上のE2Eが担うため、本テストの目的（章末の誤答遮断）に不要な
+ * UI再走をseedへ置換する。assertionは変更しない。
+ */
+const seedQuestsClearedViaState = (upToOrder: number) => {
+  const now = Date.now();
+  let st = loadAdventureState(now);
+  for (const q of [...CHAPTER1_QUESTS].sort((a, b) => a.order - b.order)) {
+    if (q.order > upToOrder) break;
+    st = startQuest(st, q.questId, now);
+    for (const key of questRequirementKeys(q.questId)) {
+      st = recordLearningResult(st, q.questId, key, true, now);
+    }
+    st = completeQuest(st, q.questId, now, q.isChapterFinale);
+  }
+  return st;
+};
+
 describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
   it('学習内容・時間・完了条件が最初のQuest導線に明示される（§10）', () => {
     render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
@@ -98,7 +120,9 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     fireEvent.click(screen.getByRole('button', { name: aq.choices[aq.answerIndex] }));
     expect(screen.queryByText(/確認 1／/)).toBeNull();
   });
-  it('5 Questを完走→霧が晴れ・人物解放・Story進行・Chapter完了（学習進行=物語進行）', () => {
+  // full並列CPU競合下で最長3426ms実測（平常2272ms）。既定5sだと余裕が薄いため
+  // 「意図的なフルUI完走E2E」であるこのテストだけ根拠つきで15sへ（他テストは既定のまま）
+  it('5 Questを完走→霧が晴れ・人物解放・Story進行・Chapter完了（学習進行=物語進行）', { timeout: 15000 }, () => {
     render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     // 開始時: 未解放の場所は「？？？」・Quest2以降はロック
     expect(screen.getAllByText('？？？').length).toBeGreaterThanOrEqual(3);
@@ -123,8 +147,8 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     for (const loc of CHAPTER1_LOCATIONS) expect(screen.getAllByText(loc.nameJa).length).toBeGreaterThanOrEqual(1);
   });
   it('章末の場面会話は誤答では進まない（10問テストではなく場面攻略）', () => {
+    seedQuestsClearedViaState(4); // Quest1〜4はreloadと同一経路でseed（UI再走はE2Eが担保）
     render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
-    for (let i = 1; i <= 4; i++) clearQuestViaUi(i);
     const q5 = CHAPTER1_QUESTS[4];
     fireEvent.click(screen.getByRole('button', { name: /Quest 5.*を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: '学習を始める' }));

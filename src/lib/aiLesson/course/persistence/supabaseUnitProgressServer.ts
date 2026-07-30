@@ -1,6 +1,6 @@
 // ProgressServerPort の Supabase 実装（§14・H1）。
 //
-// 対応スキーマ: supabase/migrations_draft/20260729000000_ai_course_unit_progress_DRAFT.sql
+// 対応スキーマ: supabase/migrations/20260729000000_ai_course_unit_progress.sql
 //   - table  public.ai_course_unit_progress（select のみ authenticated へ grant）
 //   - RPC    public.ai_upsert_unit_progress（楽観ロック＋mutationId冪等。書き込みは必ずここを通る）
 //

@@ -5,6 +5,7 @@ import { n3UnitsDoneCount, areasDoneCount, n2LearnedCount } from '../../../lib/a
 import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs';
 import { loadAdventureState } from '../../../lib/aiLesson/course/rpg/adventureState';
 import { CHAPTER1_QUESTS } from '../../../lib/aiLesson/course/rpg/chapter1Data';
+import { useState } from 'react';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 
 const browserStore = typeof window === 'undefined' ? null : window.localStorage;
@@ -14,8 +15,9 @@ export const AdventureRecordCard = ({ t }: { t: AiCourseDict }) => {
   const n3Done = browserStore ? n3UnitsDoneCount(browserStore) : 0;
   const n2Done = browserStore ? n2LearnedCount(browserStore) : 0;
   // 第1章クエスト（P2-8: 記録カードにも冒険の物語進行を出す。read only・時計は現在時刻でよい）
-  const questsDone = browserStore
-    ? loadAdventureState(Date.now(), browserStore).chapter.completedQuestIds.length : 0;
+  // renderの純粋性維持のためlazy initializerで1回だけ読む（マウント時点のsnapshot表示）
+  const [questsDone] = useState(() => browserStore
+    ? loadAdventureState(Date.now(), browserStore).chapter.completedQuestIds.length : 0);
 
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 pt-4">

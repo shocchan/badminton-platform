@@ -107,7 +107,7 @@ serve(async (req: Request) => {
       const wasConfirmed = entry.status === "confirmed";
 
       // ── クレジット決済済みの確定参加者は、期限内キャンセルでStripe自動返金 ──
-      let refundResult: { attempted: boolean; success: boolean; amount?: number; error?: string } = { attempted: false, success: false };
+      const refundResult: { attempted: boolean; success: boolean; amount?: number; error?: string } = { attempted: false, success: false };
       if (
         wasConfirmed &&
         entry.payment_method === "credit" &&

@@ -35,3 +35,13 @@
 
 問題品質のP2は `question-quality-backlog.json` へ（§11）。今回のFOREST FIRSTでは
 新規のP1問題（答え漏洩・複数正解・正解なし）は機械検査で0件（n2QuestData.test 180件全数）。
+
+## 2026-07-30 Final Preflight分類（AI単独A/remote承認後B/CEO入力C/法務D/実機E/Production承認F/後日G）
+
+- **A（AI単独で今回完了可能）: 0件**（QP-3ガイド作成・migration正式化・旧パス参照更新まで消化済み）
+- B: post-apply検証実行・entitlement切替配線・sync有効化（APPLY_SHARED_SUPABASE_MIGRATIONS後）
+- C: P2-5（会話Journey週名の扱い）・legal質問10件・価格/返金/保存期間
+- D: 利用規約/プライバシー/特商法の専門家レビュー（legal-draft-packet-20260730.md）
+- E: P2-1画像承認・実機チェック（physical-device-check-packet-20260730.md）
+- F: production deploy（APPROVE_AI_COURSE_PRODUCTION_RELEASE）
+- G（非ブロッカー後日）: P2-2/3/7/9/13/14・P3-1/2/3・contrast残31語・senses拡張
