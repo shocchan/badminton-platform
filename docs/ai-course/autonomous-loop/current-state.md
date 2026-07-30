@@ -1,6 +1,6 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-30（Final Preflight完了: flaky実証修正・lint分類46→29(AIコース0)・migration正式化+full SHA-256・preflight/post-applyスクリプト・legal/device packet・AI単独残=0）
+更新: 2026-07-30（ことば vs 日本語のしくみ 情報設計改善: hubRoles辞書・Home比較カード+ガイド・nav subtitle・両トップheader・tests 1163）
 
 - cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf はテストartifactとして残置・削除は将来の明示承認必須・Production blockerではない）
 
