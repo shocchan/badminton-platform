@@ -50,7 +50,7 @@ export interface WorldArea {
 
 export const WORLD_AREAS: WorldArea[] = [
   {
-    areaId: 'area01-minato', order: 1, nameJa: 'ミナト（はじまりの港町）', nameZh: '米纳托（起始的港町）',
+    areaId: 'area01-minato', order: 1, nameJa: 'ミナト（霧の港町）', nameZh: 'ミナト（雾之港城）',
     storyPurposeJa: '上陸地点。名前を伝えられないと宿に入れない',
     storyPurposeZh: '登陆地点。说不出名字就住不进旅店',
     learningThemeJa: '自己紹介・あいさつ・基礎のことば',
@@ -65,7 +65,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area02-hinode',
   },
   {
-    areaId: 'area02-hinode', order: 2, nameJa: 'ヒノデ台（暮らしの丘）', nameZh: '日出台（生活之丘）',
+    areaId: 'area02-hinode', order: 2, nameJa: 'ヒノデ台（暮らしの丘）', nameZh: 'ヒノデ台（生活之丘）',
     storyPurposeJa: '住まいと日常。生活が回り始める',
     storyPurposeZh: '住处与日常。生活开始运转',
     learningThemeJa: '生活のことば・毎日の動作・ものの様子',
@@ -80,7 +80,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area03-toorimichi',
   },
   {
-    areaId: 'area03-toorimichi', order: 3, nameJa: 'トオリミチ（交通の街道）', nameZh: '通道（交通街道）',
+    areaId: 'area03-toorimichi', order: 3, nameJa: 'オウライ街道（交通の道）', nameZh: 'オウライ街道（交通街道）',
     storyPurposeJa: '移動。乗り換えを間違えると先に進めない',
     storyPurposeZh: '移动。换乘出错就无法前进',
     learningThemeJa: '交通・場所・移動のことば',
@@ -95,7 +95,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area04-ichiba',
   },
   {
-    areaId: 'area04-ichiba', order: 4, nameJa: 'イチバ通り（買い物市場）', nameZh: '市场通（购物市场）',
+    areaId: 'area04-ichiba', order: 4, nameJa: 'イチバ通り（買い物市場）', nameZh: 'イチバ通り（购物市场）',
     storyPurposeJa: '値段と数。欲しいものを言えないと買えない',
     storyPurposeZh: '价格与数量。说不出想要的东西就买不到',
     learningThemeJa: '数量・値段・依頼のことば',
@@ -110,7 +110,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area05-yukari',
   },
   {
-    areaId: 'area05-yukari', order: 5, nameJa: 'ユカリの森（つながりの森）', nameZh: '缘之森（羁绊之森）',
+    areaId: 'area05-yukari', order: 5, nameJa: 'ユカリの森（つながりの森）', nameZh: 'ユカリの森（羁绊之森）',
     storyPurposeJa: '人と親しくなる。誘い方・断り方を知る',
     storyPurposeZh: '与人亲近。学会邀请与拒绝',
     learningThemeJa: '気持ち・人間関係のことば',
@@ -125,7 +125,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area06-hataraki',
   },
   {
-    areaId: 'area06-hataraki', order: 6, nameJa: 'ハタラキ区（仕事の都市）', nameZh: '劳动区（工作之城）',
+    areaId: 'area06-hataraki', order: 6, nameJa: 'ハタラキ街（仕事の街）', nameZh: 'ハタラキ街（工作之街）',
     storyPurposeJa: '働く。報告・相談ができると信頼される',
     storyPurposeZh: '工作。会报告与商量才能获得信任',
     learningThemeJa: '考えの伝達・手続きと段取り',
@@ -140,7 +140,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area07-katachi',
   },
   {
-    areaId: 'area07-katachi', order: 7, nameJa: 'カタチの遺跡（文法の遺跡）', nameZh: '形之遗迹（语法遗迹）',
+    areaId: 'area07-katachi', order: 7, nameJa: 'カタチの遺跡（文法の遺跡）', nameZh: 'カタチの遺跡（语法遗迹）',
     storyPurposeJa: '言葉の骨組みが石に刻まれている',
     storyPurposeZh: '语言的骨架刻在石头上',
     learningThemeJa: '変化と継続・状況の説明・つなぎ言葉',
@@ -155,11 +155,11 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area08-sorano',
   },
   {
-    areaId: 'area08-sorano', order: 8, nameJa: 'ソラノ塔（ことばの塔）', nameZh: '天空塔（言语之塔）',
+    areaId: 'area08-sorano', order: 8, nameJa: 'ソラノ塔（ことばの塔）', nameZh: 'ソラノ塔（N2语法之塔）',
     storyPurposeJa: '高く登るほど抽象・書き言葉になる',
     storyPurposeZh: '越往上越抽象、越书面',
-    learningThemeJa: 'N2文法（180の文型）',
-    learningThemeZh: 'N2语法（180个句型）',
+    learningThemeJa: 'N2文法（178の文型）',
+    learningThemeZh: 'N2语法（178个句型）',
     characterJa: '塔の司書',
     characterZh: '塔中的司书',
     practicalMissionJa: '改まった場面で一段上の表現を使う',
@@ -170,7 +170,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area09-katari',
   },
   {
-    areaId: 'area09-katari', order: 9, nameJa: 'カタリ港（会話の港）', nameZh: '语之港（会话之港）',
+    areaId: 'area09-katari', order: 9, nameJa: 'カタリ港（会話の港）', nameZh: 'カタリ港（会话之港）',
     storyPurposeJa: '外から来た人と話す。声に出して確かめる',
     storyPurposeZh: '与外来的人交谈。开口确认',
     learningThemeJa: 'AI会話（音声・テキスト）',
@@ -185,7 +185,7 @@ export const WORLD_AREAS: WorldArea[] = [
     nextAreaId: 'area10-omoide',
   },
   {
-    areaId: 'area10-omoide', order: 10, nameJa: 'オモイデ庭園（記憶の庭）', nameZh: '回忆庭园（记忆之庭）',
+    areaId: 'area10-omoide', order: 10, nameJa: 'オモイデ庭園（記憶の庭）', nameZh: 'オモイデ庭園（记忆之庭）',
     storyPurposeJa: '昔通った場所が姿を変えて再訪できる',
     storyPurposeZh: '曾经走过的地方换了模样，可以重访',
     learningThemeJa: '期限が来た復習（翌日/3日/7日）',

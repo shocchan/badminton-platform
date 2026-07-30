@@ -89,7 +89,7 @@ import { createUnsetSupportAdapter } from '../../lib/aiLesson/course/ops/support
 
 // support送信先が確定するまでの既定adapter（「受け付けました」と偽らない・§19）
 const supportAdapter = createUnsetSupportAdapter();
-import { deriveCurrentAreaId } from '../../lib/aiLesson/course/rpg/worldProgress';
+import { deriveCurrentAreaId, areaNodeStateOf } from '../../lib/aiLesson/course/rpg/worldProgress';
 
 type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
@@ -977,6 +977,7 @@ export default function AiCoursePage() {
         areas={WORLD_AREAS}
         currentAreaId={currentAreaId}
         onOpenArea={openArea}
+        areaStateOf={(a) => areaNodeStateOf(window.localStorage, a, currentAreaId, reviewsDue)}
         record={{
           daysThisWeek: (() => {
             const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);

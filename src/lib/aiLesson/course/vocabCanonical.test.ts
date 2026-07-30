@@ -12,6 +12,8 @@ import { N3_ITEMS } from './foundationVocabN3';
 import { aggregateCognates } from './vocabularyPacks';
 import { cognateProfileFor } from './quality/cognateProfile';
 import { N3_UNIT_SPECS } from './quality/n3UnitSpecs';
+import { buildAssessQuestions } from './quality/assessQuestionEngine';
+import { STAGE_OF } from './quality/unitCoverage';
 import { createVocabProgressRepository } from './vocabProgress';
 import { createVocabSpacedReviewRepository } from './vocabSpacedReview';
 import { createLearningClock } from './learningClock';
@@ -241,6 +243,43 @@ describe('注意分類語の中国語ノート網羅（夜間ブラッシュア�
       if (!['false_friend', 'partial_overlap', 'japanese_specific'].includes(meta.cognate)) continue;
       const hasNote = !!it2.usageNoteZh || !!contentNoteOf(it2.id)?.learningFocusZh || !!meta.cognateNoteZh;
       expect(hasNote, `${it2.id}（${meta.cognate}）に中国語ノートがない`).toBe(true);
+    }
+  });
+});
+
+describe('語彙問題Coverageの正準実数（§17・2026-07-30）', () => {
+  it('Stage2接続 140/140・使用を直接測る問題（穴埋め∪コロケ）139/140・例外は勉強するのみ', () => {
+    const noDirectUsage: string[] = [];
+    for (const it2 of items) {
+      const dims = new Set(buildAssessQuestions(it2, items, { introduced: false }).map(q => q.dimension));
+      const distinguish = [...dims].filter(d => STAGE_OF[d] === 'distinguish');
+      expect(distinguish.length, `${it2.id} がStage2未接続`).toBeGreaterThan(0);
+      if (!dims.has('context') && !dims.has('collocation')) noDirectUsage.push(it2.id);
+    }
+    expect(noDirectUsage).toEqual(['fi-benkyo']);
+  });
+  it('勉強するは日中対照＋活用で確認される（直接使用問題の代替）', () => {
+    const benkyo = items.find(i => i.id === 'fi-benkyo')!;
+    const dims = new Set(buildAssessQuestions(benkyo, items, { introduced: false }).map(q => q.dimension));
+    expect(dims.has('transfer_error')).toBe(true);
+    expect(dims.has('conjugation')).toBe(true);
+  });
+});
+
+describe('出身・都合の対照問題routing（§16・分類は不変のまま接続）', () => {
+  it('両語とも対照問題が通常出題へ流れる（levelMeta=false_friendのまま・engine分類は不変）', async () => {
+    const { cognateProfileFor } = await import('./quality/cognateProfile');
+    for (const id of ['fi-shusshin', 'fi-tsugou']) {
+      const it2 = items.find(i => i.id === id)!;
+      // taxonomyは変更しない（engine=japanese_specific / UI=false_friend の二層のまま）
+      expect(cognateProfileFor(it2).cognateClass).toBe('japanese_specific');
+      expect(levelMetaOf(id).cognate).toBe('false_friend');
+      const qs = buildAssessQuestions(it2, items, { introduced: false });
+      const contrastDims = qs.filter(q => q.dimension === 'transfer_error' || q.dimension === 'scope_contrast' || q.dimension === 'register');
+      expect(contrastDims.length, `${id} の対照問題が未接続`).toBeGreaterThan(0);
+      // 二重出題なし（questionId一意）・導入問題（core_meaning）が先頭＝初学者負荷に配慮
+      expect(new Set(qs.map(q => q.questionId)).size).toBe(qs.length);
+      expect(qs[0].dimension).toBe('core_meaning');
     }
   });
 });

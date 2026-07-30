@@ -30,6 +30,13 @@ export type LearningDimension =
   | 'register'       // 場面・丁寧さ
   | 'production';    // 産出（並べ替え・応答）
 
+/**
+ * 【二層taxonomyの片側・エンジン用4分類】
+ * この cognateClass は「出題次元の選択」（buildAssessQuestions のルーティング）専用。
+ * UI・図鑑・フィルター・正準統計は vocabularyLevelMeta.ts の7分類（levelMetaOf/aggregateCognates）
+ * を使う。両者は目的が異なる別レイヤーであり、数値を突き合わせる際は必ずどちらの分類かを明記する
+ * （過去報告 ff8/partial10/mostly54/jp68 は本4分類、図鑑の ff9/partial46 は7分類。docs/ai-course/cognate-taxonomy.md）。
+ */
 export interface CognateProfile {
   itemId: string;
   cognateClass: CognateClass;

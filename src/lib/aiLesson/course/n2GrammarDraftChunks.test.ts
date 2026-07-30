@@ -4,11 +4,11 @@ import { N2_GRAMMAR_DRAFTS } from './n2GrammarDrafts';
 import { N2_UNIT_FILE_NUMBERS, loadN2DraftUnitFile, loadN2DraftsByUnit } from './n2GrammarDraftChunks';
 
 describe('N2 draft Unit lazy chunk', () => {
-  it('全Unitファイルの合併 = 集約173件（欠落・重複なし）', async () => {
+  it('全Unitファイルの合併 = 集約178件（欠落・重複なし）', async () => {
     const parts = await Promise.all(N2_UNIT_FILE_NUMBERS.map(loadN2DraftUnitFile));
     const ids = parts.flat().map(d => d.grammarId);
-    expect(ids.length).toBe(173);
-    expect(new Set(ids).size).toBe(173);
+    expect(ids.length).toBe(178);
+    expect(new Set(ids).size).toBe(178);
     expect(new Set(ids)).toEqual(new Set(N2_GRAMMAR_DRAFTS.map(d => d.grammarId)));
   });
   it('unit属性ロードは繰越（Unit4/5ファイル内のunit3/4項目）も正しく回収する', async () => {

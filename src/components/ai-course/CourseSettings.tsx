@@ -160,6 +160,16 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
         )}
       </Section>
 
+      {/* お問い合わせ（人間窓口はメールに統一・個人チャット誘導なし） */}
+      <Section icon={<LifeBuoy className="w-4 h-4 text-emerald-600" />} title={t.support.title}>
+        <p className="text-xs text-gray-600 leading-relaxed">{t.support.emailDescription}</p>
+        <p className="text-sm font-bold text-gray-900 mt-2 select-all">{t.support.email}</p>
+        <a href={`mailto:${t.support.email}`}
+          className="inline-flex items-center justify-center w-full min-h-11 mt-2 py-2.5 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-50">
+          {t.support.contactByEmail}
+        </a>
+      </Section>
+
       <p className="text-[11px] text-gray-400 leading-relaxed my-4">{t.positioning}</p>
 
       <button type="button" onClick={onLogout}

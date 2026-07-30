@@ -114,7 +114,7 @@ describe('Chapter 1 playable vertical slice（UI完走E2E）', () => {
     expect(screen.getAllByText('駅前').length).toBeGreaterThanOrEqual(1);
     clearQuestViaUi(5);
     // Chapter完了画面
-    expect(screen.getByText(/Chapter 1「はじまりの町」完了/)).toBeTruthy();
+    expect(screen.getByText(/Chapter 1「霧の港町」完了/)).toBeTruthy();
     expect(screen.getByText(/完了Quest: 5／5/)).toBeTruthy();
     // 冒険値合計 = 20+20+25+25+40
     expect(screen.getByText(/冒険値: 130/)).toBeTruthy();
@@ -249,7 +249,7 @@ describe('Accessibility（§15）', () => {
   it('aria-live・マップaria-label・現在地/目的地/Fog状態のテキストがある', () => {
     const { container } = render(<Chapter1AdventurePanel t={aiCourseI18n.ja} onBack={() => {}} />);
     expect(container.querySelector('[aria-live="polite"]')).toBeTruthy();
-    expect(screen.getByRole('img', { name: /はじまりの町のマップ。現在地は/ })).toBeTruthy();
+    expect(screen.getByRole('img', { name: /霧の港町のマップ。現在地は/ })).toBeTruthy();
     expect(screen.getByText('現在地:')).toBeTruthy();
     expect(screen.getByText('次の目的地:')).toBeTruthy();
     expect(screen.getAllByText(/霧の中/).length).toBeGreaterThanOrEqual(1); // Fog状態のテキスト併記

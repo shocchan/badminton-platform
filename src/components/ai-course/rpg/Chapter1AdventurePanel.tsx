@@ -1,4 +1,4 @@
-// RPG Chapter 1「はじまりの町」playable polished draft（labPreview限定・lazy chunk）v2。
+// RPG Chapter 1「霧の港町」playable polished draft（labPreview限定・lazy chunk）v2。
 // 学習の進捗＝物語の進行。操作ゲームではない（移動は自動演出）。
 // v2: 文法ミッション（実在FoundationRule/Question）・復習Quest「再会」・responsive 2カラム・
 //     Fog可視化・自動移動演出・aria-live・sandbox時間シミュレーション。

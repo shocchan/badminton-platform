@@ -322,6 +322,12 @@ export interface BuildOptions {
  * 1語ぶんのassess問題を、cognate classに応じた優先順で生成する。
  * 生成できない次元は静かにskipされる（データが足りない語で無理に出題しない）。
  */
+/**
+ * UI/図鑑taxonomy（levelMeta 7分類）では対照注意だが、エンジンtaxonomy（4分類）が
+ * japanese_specificのため対照問題が流れなかった語の明示override（分類自体は変更しない）。
+ */
+const CONTRAST_ROUTED_JAPANESE_SPECIFIC = new Set(['fi-shusshin', 'fi-tsugou']);
+
 export const buildAssessQuestions = (
   item: FoundationItem, pool: FoundationItem[], opts: BuildOptions,
 ): AssessQuestion[] => {
@@ -356,6 +362,11 @@ export const buildAssessQuestions = (
       break;
     case 'japanese_specific':
       push(coreMeaningQuestion(item, pool, profile, opts.introduced));
+      // CEO指示（2026-07-30）: UI/図鑑7分類ではfalse_friend扱いの「出身」「都合」は、
+      // エンジン4分類（japanese_specific）を維持したまま、対照バンクの実問題だけを
+      // 通常出題へ接続する（最小override・二重出題はquestionId dedupeで防止）。
+      // coreMeaningの後に置くことで、初学者は導入問題から始まり対照は追加分になる。
+      if (CONTRAST_ROUTED_JAPANESE_SPECIFIC.has(item.id)) out.push(...contrastQuestions(item));
       push(clozeQuestion(item, pool));
       push(conjugationQuestion(item));
       push(readingQuestion(item, pool));

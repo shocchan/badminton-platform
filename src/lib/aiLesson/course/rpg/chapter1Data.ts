@@ -1,4 +1,4 @@
-// RPG Chapter 1「はじまりの町」data contract（Vertical Slice・labPreview限定）。
+// RPG Chapter 1「霧の港町」data contract（Vertical Slice・labPreview限定）。
 // 完全オリジナルの世界・人物・Story。既存IP（キャラ・地名・設定）は一切参照しない。
 // learningItemIds は実在の教材ID（foundationVocabBank）のみ。存在しないIDの創作は禁止
 // （chapter1Data.test.ts が全IDの実在を機械検証する）。
@@ -77,10 +77,10 @@ export const CHAPTER1_ID = 'ch1-hajimari-no-machi';
 
 /** 町の場所（オリジナル）。座標は見下ろしマップの配置用 */
 export const CHAPTER1_LOCATIONS: Chapter1Location[] = [
-  { locationId: 'c1-town-gate', nameJa: '町の入口', nameZh: '小镇入口', x: 18, y: 78 },
-  { locationId: 'c1-main-street', nameJa: 'ことば通り', nameZh: '言叶大街', x: 42, y: 58 },
-  { locationId: 'c1-plaza', nameJa: 'みなも広場', nameZh: '水面广场', x: 62, y: 40 },
-  { locationId: 'c1-station-front', nameJa: '駅前', nameZh: '车站前', x: 84, y: 22 },
+  { locationId: 'c1-town-gate', nameJa: '町の入口', nameZh: '町の入口（小镇入口）', x: 18, y: 78 },
+  { locationId: 'c1-main-street', nameJa: 'ことば通り', nameZh: 'ことば通り（言叶大街）', x: 42, y: 58 },
+  { locationId: 'c1-plaza', nameJa: 'みなも広場', nameZh: 'みなも広場（水面广场）', x: 62, y: 40 },
+  { locationId: 'c1-station-front', nameJa: '駅前', nameZh: '駅前（车站前）', x: 84, y: 22 },
 ];
 
 /** 登場人物（オリジナル・成人向けトーン） */

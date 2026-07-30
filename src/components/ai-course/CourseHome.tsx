@@ -308,13 +308,13 @@ export const CourseHome = ({
         );
       })()}
 
-      {/* 人間コーチの存在（静的文言＋既存WeChat導線のみ。主CTAより控えめ・§B-1） */}
+      {/* 人間コーチの存在（静的文言＋メール窓口。主CTAより控えめ・§B-1） */}
       <div className="bg-white rounded-2xl border border-gray-100 p-4 mb-4">
         <p className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1">
           <UserRound className="w-3.5 h-3.5 text-emerald-600" />{th.coachCardTitle}
         </p>
         <p className="text-xs text-gray-500 leading-relaxed">{th.coachCardBody}</p>
-        <p className="text-[11px] text-emerald-700 mt-1.5 select-all">{th.coachCardWechat}</p>
+        <a href={`mailto:${t.support.email}`} className="inline-block text-[11px] text-emerald-700 underline mt-1.5 select-all">{th.coachCardContact}</a>
       </div>
 
       {/* 補助情報（連続日数など。主役にしない・§22） */}

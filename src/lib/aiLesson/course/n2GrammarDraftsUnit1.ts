@@ -2,7 +2,7 @@
 // n2GrammarDrafts.ts から分離（Unit単位lazy chunk境界のため）。内容は無変更。
 import type { N2GrammarDraft } from './n2GrammarDrafts';
 
-const g = (p: Omit<N2GrammarDraft, 'level' | 'route' | 'reviewStatus' | 'humanReviewed' | 'approved' | 'reviewKey' | 'runtimeExampleOrigin'> & { reviewKey?: string }): N2GrammarDraft =>
+const g = (p: Omit<N2GrammarDraft, 'level' | 'route' | 'reviewStatus' | 'humanReviewed' | 'approved' | 'reviewKey' | 'runtimeExampleOrigin'> & { reviewKey?: string; runtimeExampleOrigin?: N2GrammarDraft['runtimeExampleOrigin'] }): N2GrammarDraft =>
   ({ level: 'N2', route: 'n2-grammar', reviewStatus: 'draft', humanReviewed: false,
      approved: false, reviewKey: p.grammarId, runtimeExampleOrigin: 'original_authored', ...p });
 
@@ -308,4 +308,32 @@ export const N2_GRAMMAR_DRAFTS_UNIT1: N2GrammarDraft[] = [
     practice: { themeJa: '努力が実った経験を話す', starterJa: '頑張った甲斐があったと感じた経験はありますか？',
       starterZh: '有过觉得努力没白费的经历吗？', targetUse: '〜甲斐があって' },
     vocabularyLinks: ['fi-ganbaru', 'fi-ureshii'] }),
+  // CEO統合判断（2026-07-30）: 独立文型として維持 → 本編昇格（元・同義判断待ちpre-draft）
+  g({ grammarId: 'n2g-007', pattern: '〜上は', reading: 'うえは', unit: 1, zhSourceRowId: null,
+    meaningJa: '〜したからには、当然（覚悟を持って）',
+    explanationZh: '既然…就（要有觉悟）…。比「以上は」更书面、更有破釜沉舟感的表达',
+    formation: '動詞た形・辞書形 ＋上は',
+    usageScene: '下定决心的宣言、接受任务后的表态',
+    nuance: '「以上は」より硬く、覚悟の宣言に寄る。日常会話ではやや大げさ',
+    register: 'written',
+    runtimeExampleOrigin: 'source_confirmed',
+    sourceExample: { text: '目標を決めた上は、覚悟（かくご）を決めてやりきるしかありません。', hash: '8f9f6267c978f59d', rightsStatus: 'teacher_created_confirmed' },
+    examplesJa: ['目標を決めた上は、覚悟（かくご）を決めてやりきるしかありません。',
+                 '引き受けた上は、途中で投げ出すわけにはいきません。'],
+    examplesZh: ['既然定下了目标，就只能下定决心干到底。', '既然接下了，就不能中途撂挑子。'],
+    furigana: 'もくひょうを きめた うえは、かくごを きめて やりきる しか ありません。',
+    commonMistakesZh: '「上は」「以上は」「からには」三者近义：「からには」最口语、「以上は」中间、「上は」最文言。也注意与「〜上で（在…之后/方面）」区分',
+    learnerFocus: '就职表态的最高级：「入社した上は、全力を尽くします」。庄重感强，面试压轴用',
+    similarPatterns: ['〜以上は', '〜からには'],
+    contrast: '「上は」＝文語的な覚悟宣言；「以上は」＝標準的な当然の責任；「からには」＝口語寄り',
+    recognition: { promptZh: '「約束した上は、必ず守ります」的语气是？',
+      options: ['庄重地表明履约的觉悟', '随口敷衍的应付', '拒绝遵守约定', '询问是否要遵守'],
+      answerIndex: 0, distractorReason: '「上は」是带觉悟的郑重表态',
+      explanationZh: '文言色彩的决意宣言' },
+    production: { promptJa: '覚悟の宣言を「〜上は」で言ってください。',
+      promptZh: '用「〜上は」做一个庄重的表态。',
+      expected: ['上は'], acceptable: ['〜た上は'] },
+    practice: { themeJa: '覚悟を宣言する', starterJa: '何かを最後までやり切ると決めた経験はありますか？',
+      starterZh: '有没有下定决心干到底的经历？', targetUse: '〜上は' },
+    vocabularyLinks: ['fi-kimeru', 'fi-ganbaru'] }),
 ];

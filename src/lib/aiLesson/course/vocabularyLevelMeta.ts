@@ -6,6 +6,12 @@ export type VocabularyLevelTag =
   | 'jlpt_n2_estimate' | 'jlpt_n1_estimate' | 'daily_life' | 'conversation_core' | 'business' | 'unclassified';
 export type LevelConfidence = 'high' | 'medium' | 'low' | 'unreviewed';
 import { N3_ITEMS } from './foundationVocabN3';
+/**
+ * 【二層taxonomyの片側・UI/図鑑用7分類】
+ * 図鑑フィルター・バッジ・ヘッダー・正準統計（aggregateCognates）はこの分類を使う。
+ * 出題エンジンのルーティングは quality/cognateProfile.ts の4分類（別レイヤー・統一しない）。
+ * 詳細: docs/ai-course/cognate-taxonomy.md
+ */
 export type ChineseCognateType =
   | 'transparent_same' | 'mostly_same' | 'partial_overlap' | 'false_friend'
   | 'japanese_specific' | 'no_cognate' | 'unreviewed';

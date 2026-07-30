@@ -35,17 +35,9 @@ type ItemPhase = 'detail' | 'quiz' | 'produce' | 'done';
 const UNIT_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 const NO_ITEMS: N2GrammarDraft[] = [];
 
-/** 同義判断待ち7件も学習対象として表示する（内部メタは出さない） */
-const loadUnitItems = async (unit: number): Promise<N2GrammarDraft[]> => {
-  const [drafts, pre] = await Promise.all([
-    loadN2DraftsByUnit(unit),
-    import('../../../lib/aiLesson/course/n2GrammarPredraftsAwaitingMerge')
-      .then(m => m.N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE.filter(d => d.unit === unit)),
-  ]);
-  const seen = new Set(drafts.map(d => d.grammarId));
-  return [...drafts, ...pre.filter(d => !seen.has(d.grammarId))]
-    .sort((a, b) => a.grammarId.localeCompare(b.grammarId));
-};
+/** CEO統合判断（2026-07-30）反映後: 全178文型が本編chunkに存在（予稿の別読みは不要） */
+const loadUnitItems = async (unit: number): Promise<N2GrammarDraft[]> =>
+  (await loadN2DraftsByUnit(unit)).sort((a, b) => a.grammarId.localeCompare(b.grammarId));
 
 export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation }: N2GrammarQuestPanelProps) => {
   const [unit, setUnit] = useState<number | null>(null);

@@ -10,6 +10,7 @@ import type { ReactNode } from 'react';
 import type { WorldArea } from '../../../lib/aiLesson/course/rpg/worldAtlas';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 import { IslandsMap } from './IslandsMap';
+import type { AreaNodeState } from '../../../lib/aiLesson/course/rpg/worldProgress';
 
 export interface WorldFacility {
   id: string;
@@ -52,6 +53,8 @@ export interface WorldHomeShellProps {
   areas: WorldArea[];
   currentAreaId: string;
   onOpenArea: (areaId: string) => void;
+  /** Mapノード状態の導出（read only・current/available/review_due/completed/locked） */
+  areaStateOf?: (area: WorldArea) => AreaNodeState;
   /** 既存Home（今日の学習・会話の旅など）をそのまま下に置く */
   children?: ReactNode;
 }
@@ -60,7 +63,7 @@ export interface WorldHomeShellProps {
 
 export const WorldHomeShell = ({
   t, areaName, locationName, todayAction, reviewsDue, onOpenReview,
-  facilities, record, upcoming, clarity, reducedMotion, areas, currentAreaId, onOpenArea, children,
+  facilities, record, upcoming, clarity, reducedMotion, areas, currentAreaId, onOpenArea, areaStateOf, children,
 }: WorldHomeShellProps) => {
   return (
     <div className="w-full">
@@ -75,7 +78,7 @@ export const WorldHomeShell = ({
       <div className="lg:grid lg:grid-cols-5 lg:gap-4">
         <section className="lg:col-span-3" aria-label={t.world.mapAria}>
           <IslandsMap t={t} areas={areas} currentAreaId={currentAreaId} clarity={clarity}
-            reducedMotion={reducedMotion} onOpenArea={onOpenArea} />
+            reducedMotion={reducedMotion} onOpenArea={onOpenArea} stateOf={areaStateOf} />
         </section>
 
         <section className="lg:col-span-2 mt-3 lg:mt-0 flex flex-col" aria-label={t.world.todayAction}>

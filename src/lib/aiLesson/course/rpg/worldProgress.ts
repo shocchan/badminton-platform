@@ -38,3 +38,15 @@ export const deriveCurrentAreaId = (store: ReadableStore): string => {
   }
   return 'area08-sorano';
 };
+
+/** Mapノードの状態（read only導出・書き込みなし）。lockedは現在未使用（全エリア開放）だがUIは対応する */
+export type AreaNodeState = 'current' | 'available' | 'review_due' | 'completed' | 'locked';
+
+export const areaNodeStateOf = (
+  store: ReadableStore, area: WorldArea, currentAreaId: string, reviewsDue: number,
+): AreaNodeState => {
+  if (area.areaId === currentAreaId) return 'current';
+  if (area.areaId === 'area10-omoide' && reviewsDue > 0) return 'review_due';
+  if (area.destination.kind === 'n3area' && areaProgress(store, area).complete) return 'completed';
+  return 'available';
+};

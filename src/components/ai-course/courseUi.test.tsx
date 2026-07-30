@@ -178,14 +178,14 @@ describe('人間コーチの可視化（§B-1）', () => {
     render(<CourseHome {...homeProps} />);
     expect(screen.getByText(t.home.coachCardTitle)).toBeTruthy();
     expect(screen.getByText(t.home.coachCardBody)).toBeTruthy();
-    expect(screen.getByText(t.home.coachCardWechat)).toBeTruthy();
+    expect(screen.getByText(t.home.coachCardContact)).toBeTruthy();
     expect(screen.getByText(t.home.startLesson)).toBeTruthy(); // 主CTA健在
   });
 
   it('zh: コーチカードが中国語で表示される', () => {
     render(<CourseHome {...homeProps} t={tz} />);
     expect(screen.getByText(tz.home.coachCardTitle)).toBeTruthy();
-    expect(screen.getByText(tz.home.coachCardWechat)).toBeTruthy();
+    expect(screen.getByText(tz.home.coachCardContact)).toBeTruthy();
   });
 
   it('存在しない動的コメント・架空の確認日時を表示しない（静的文言のみ）', () => {

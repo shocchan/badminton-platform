@@ -7,6 +7,7 @@
 //   解けてしまうため）。乱数は使わない（reload再現性・テスト容易性）。
 // - reviewStatus/humanReviewed/approved はここから一切変更しない（自動昇格禁止）。
 import type { N2GrammarDraft } from '../n2GrammarDrafts';
+import { canonicalN2GrammarId, n2AliasSourcesOf } from '../n2GrammarAliases';
 
 export const N2_QUEST_KEY_PREFIX = 'kawabado.aiCourse.v1.n2quest.';
 
@@ -20,7 +21,7 @@ export interface N2ItemProgress {
 type ReadableStore = Pick<Storage, 'getItem'>;
 type WritableStore = Pick<Storage, 'getItem' | 'setItem'>;
 
-export const readItemProgress = (store: ReadableStore, grammarId: string): N2ItemProgress => {
+const readRawProgress = (store: ReadableStore, grammarId: string): N2ItemProgress => {
   try {
     const raw = store.getItem(N2_QUEST_KEY_PREFIX + grammarId);
     if (!raw) return { recognizedAtMs: null, producedAtMs: null };
@@ -36,21 +37,40 @@ export const readItemProgress = (store: ReadableStore, grammarId: string): N2Ite
   }
 };
 
+/**
+ * 進捗読み取り（CEO統合alias対応・2026-07-30）。
+ * 統合前ID（n2g-024/104）で保存された既存学習記録を失わないよう、
+ * canonical本体＋alias元キーをマージして返す（早い方の時刻を採用）。
+ * 書き込みは常にcanonical IDのみ（remote migrationはしない）。
+ */
+export const readItemProgress = (store: ReadableStore, grammarId: string): N2ItemProgress => {
+  const canonical = canonicalN2GrammarId(grammarId);
+  const merged = readRawProgress(store, canonical);
+  for (const legacy of n2AliasSourcesOf(canonical)) {
+    const old = readRawProgress(store, legacy);
+    if (old.recognizedAtMs !== null && (merged.recognizedAtMs === null || old.recognizedAtMs < merged.recognizedAtMs)) merged.recognizedAtMs = old.recognizedAtMs;
+    if (old.producedAtMs !== null && (merged.producedAtMs === null || old.producedAtMs < merged.producedAtMs)) merged.producedAtMs = old.producedAtMs;
+  }
+  return merged;
+};
+
 const write = (store: WritableStore, grammarId: string, p: N2ItemProgress): void => {
   try { store.setItem(N2_QUEST_KEY_PREFIX + grammarId, JSON.stringify(p)); } catch { /* private mode */ }
 };
 
 export const markRecognized = (store: WritableStore, grammarId: string, nowMs: number): N2ItemProgress => {
-  const cur = readItemProgress(store, grammarId);
+  const id = canonicalN2GrammarId(grammarId);
+  const cur = readItemProgress(store, id);
   const next = { ...cur, recognizedAtMs: cur.recognizedAtMs ?? nowMs };
-  write(store, grammarId, next);
+  write(store, id, next);
   return next;
 };
 
 export const markProduced = (store: WritableStore, grammarId: string, nowMs: number): N2ItemProgress => {
-  const cur = readItemProgress(store, grammarId);
+  const id = canonicalN2GrammarId(grammarId);
+  const cur = readItemProgress(store, id);
   const next = { ...cur, producedAtMs: cur.producedAtMs ?? nowMs };
-  write(store, grammarId, next);
+  write(store, id, next);
   return next;
 };
 

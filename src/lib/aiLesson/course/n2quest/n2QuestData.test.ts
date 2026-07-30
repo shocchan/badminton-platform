@@ -1,4 +1,4 @@
-// N2攻略UIが表示する全180項目（完成draft173＋同義判断待ちpre-draft7）の内容保証
+// N2攻略UIが表示する全178項目（CEO統合判断 2026-07-30: canonical 178＋alias 2＝原本180）の内容保証
 // （FOREST FIRST §10: 空field・正解なし・問題不能を許可しない）。
 // reviewStatus等の自動昇格が起きていないこともここで固定する。
 import { describe, it, expect } from 'vitest';
@@ -7,10 +7,10 @@ import { N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE } from '../n2GrammarPredraftsAwaiti
 
 const ALL = [...N2_GRAMMAR_DRAFTS, ...N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE];
 
-describe('N2攻略の表示データ180件', () => {
-  it('180件・grammarId重複なし・unit 1〜12', () => {
-    expect(ALL).toHaveLength(180);
-    expect(new Set(ALL.map(d => d.grammarId)).size).toBe(180);
+describe('N2攻略の表示データ178件', () => {
+  it('178件・grammarId重複なし・unit 1〜12', () => {
+    expect(ALL).toHaveLength(178);
+    expect(new Set(ALL.map(d => d.grammarId)).size).toBe(178);
     for (const d of ALL) {
       expect(d.unit).toBeGreaterThanOrEqual(1);
       expect(d.unit).toBeLessThanOrEqual(12);
@@ -63,8 +63,43 @@ describe('N2攻略の表示データ180件', () => {
     }
   });
 
-  it('恒等式を壊していない（drafts 173・pre-draft 7）', () => {
-    expect(N2_GRAMMAR_DRAFTS).toHaveLength(173);
-    expect(N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE).toHaveLength(7);
+  it('恒等式を壊していない（canonical 178・pre-draft 0）', () => {
+    expect(N2_GRAMMAR_DRAFTS).toHaveLength(178);
+    expect(N2_GRAMMAR_PREDRAFTS_AWAITING_MERGE).toHaveLength(0);
+  });
+});
+
+describe('統合alias（N2 progress compatibility・2026-07-30）', () => {
+  const mem = () => {
+    const m = new Map<string, string>();
+    return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, raw: m };
+  };
+  it('統合前ID（n2g-024）の保存済み進捗が統合先（n2g-023）の読み取りへ引き継がれる', async () => {
+    const { readItemProgress } = await import('./n2QuestProgress');
+    const { N2_QUEST_KEY_PREFIX } = await import('./n2QuestProgress');
+    const st = mem();
+    st.setItem(N2_QUEST_KEY_PREFIX + 'n2g-024', JSON.stringify({ recognizedAtMs: 1000, producedAtMs: 2000 }));
+    const p = readItemProgress(st, 'n2g-023');
+    expect(p.recognizedAtMs).toBe(1000);
+    expect(p.producedAtMs).toBe(2000);
+    // 旧IDで読んでも同じ（canonical正規化）
+    const pOld = readItemProgress(st, 'n2g-024');
+    expect(pOld.recognizedAtMs).toBe(1000);
+  });
+  it('書き込みは常にcanonical IDへ（旧IDでmarkしてもn2g-102キーに保存）', async () => {
+    const { markProduced, N2_QUEST_KEY_PREFIX } = await import('./n2QuestProgress');
+    const st = mem();
+    markProduced(st, 'n2g-104', 5000);
+    expect(st.raw.has(N2_QUEST_KEY_PREFIX + 'n2g-102')).toBe(true);
+    expect(st.raw.has(N2_QUEST_KEY_PREFIX + 'n2g-104')).toBe(false);
+  });
+  it('canonical本体とalias元の両方に記録がある場合は早い時刻を採用', async () => {
+    const { readItemProgress, N2_QUEST_KEY_PREFIX } = await import('./n2QuestProgress');
+    const st = mem();
+    st.setItem(N2_QUEST_KEY_PREFIX + 'n2g-104', JSON.stringify({ recognizedAtMs: 1000, producedAtMs: null }));
+    st.setItem(N2_QUEST_KEY_PREFIX + 'n2g-102', JSON.stringify({ recognizedAtMs: 3000, producedAtMs: 4000 }));
+    const p = readItemProgress(st, 'n2g-102');
+    expect(p.recognizedAtMs).toBe(1000);
+    expect(p.producedAtMs).toBe(4000);
   });
 });
