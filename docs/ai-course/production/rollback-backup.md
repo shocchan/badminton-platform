@@ -108,3 +108,59 @@ psql "$LOCAL_DB_URL" -c "select count(*) from ai_course_vocab_item_progress;"  #
 - SHA-256: generated/h1-local-verification.md に記載（vocab_persistence=パケット一致 aa41ce8e…・
   entitlements=H1修正後 cb954768…・unit_progress=新規 726c59f6…）
 - 対象: **localのみ**。共有Supabaseへは一切未接触（`APPLY_SHARED_SUPABASE_MIGRATIONS` 待ち）
+
+
+---
+
+## 2026-07-30 Final Executable Migration Gate の教訓（恒久ルール）
+
+### R1. `supabase db push` は **このプロジェクトでは使わない**
+
+remoteの `schema_migrations` は14行だが、repoには version ≤ latest(20260722000000) のファイルが20個ある。
+原因は **version が主キー**であるのに、バドミントン側の初期migrationが日付のみのprefixで重複していること
+（`20260707_*` ×4 → 履歴1行、`20260710_*` ×3 → 1行、`20260712_*` ×2 → 1行 ＝ 6件の名前が欠落）。
+`db push` はversion比較でpendingを決めるため、**適用済みDDLの再実行や未意図のmigration（avatars_storage）まで巻き込む**。
+
+→ **適用は SQL Editor で対象ファイルのみ**（`begin; … commit;` で1本ずつ）＋ 完了後に
+`schema_migrations` へ対象versionを手動insert。手順は
+`docs/ai-course/decision-packets/final-database-and-entitlement-apply-packet.md` §25、
+貼り付け用SQLは `node scripts/ai-course/print-apply-sql.mjs <1|2|3|history|verify>` で生成する。
+
+### R2. migrationファイルをスクリプトで書き換えるときは `String.replace()` を使わない
+
+JSの `String.prototype.replace` は置換文字列の `$$` を「リテラルの `$` 1個」として解釈する。
+このためentitlements migrationの関数本体が `as $$` → `as $` に壊れ、**適用不能**になっていた
+（local適用で `ERROR: syntax error at or near "$"` を実測して初めて発覚）。
+`split(a).join(b)` か配列への行代入を使う。
+回帰は `src/lib/aiLesson/course/persistence/migrationIntegrity.test.ts` が検出する
+（`$$` 個数の偶奇・孤立 `$` の検出）。
+
+### R3. rollbackは **feature と security を必ず分ける**
+
+entitlements rollbackが `admin_overrides` 保護（trigger＋function）まで落としていた。
+rollback直後にlearner本人が自己昇格できる状態へ戻るため、**stop条件に該当**。
+→ 通常のrollbackはfeature限定（テーブル撤去のみ）。保護撤去は
+`rollback_20260728010000_ai_course_entitlements_SECURITY_ONLY.sql` を明示判断で実行する。
+回帰はmigrationIntegrity.testが検出する。
+
+### R4. checksum freeze はテストで守る
+
+凍結した7ファイル（migration3＋rollback3＋SECURITY_ONLY）のSHA-256をテストに埋め込み、
+**ファイルが変わればテストが落ちる**ようにした。意図的な変更時は packet §23e とテストを同時に更新し、
+local再実証（clean適用→rollback→再適用→matrix）をやり直す。
+
+### R5. 別件のhardening課題（今回スコープ外・remote適用が必要）
+
+バドミントン側の管理RPC **10関数が SECURITY DEFINER かつ search_path 未固定**のまま本番適用済み:
+`is_admin` / `assert_group_admin` / `admin_archive_activity` / `admin_unarchive_activity` /
+`admin_delete_activity` / `admin_find_coupon` / `admin_redeem_coupon` / `admin_list_coupons` /
+`admin_game_stats` / `admin_list_members`。
+AIコース側（20260718000000以降）は全関数が固定済み。修正には新規migration＋remote適用が必要なため、
+CEO判断待ちの独立課題として記録する。新規追加はmigrationIntegrity.testが防ぐ（既知10件から増えない）。
+
+### R6. local検証環境の作り方（Docker Desktop使用時・2026-07-30実測）
+
+`supabase start` が storage-api / vector・analytics の unhealthy で止まるため、**local検証中のみ**
+`supabase/config.toml` の `[db.migrations] enabled=false`・`[storage] enabled=false`・
+`[analytics] enabled=false` にする。**検証後は必ず元へ戻す**（commitに含めない）。
+psqlはホストに無いので `docker exec -i supabase_db_badminton-platform psql -U postgres -d postgres` を使う。

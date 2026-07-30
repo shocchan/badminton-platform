@@ -1,6 +1,6 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-更新: 2026-07-30（Migration Gate完了 → Apply Ready: READY。db push禁止・SQL Editor方式・Andy Target 0確定・remote write 0）
+更新: 2026-07-30（Gate後の安全網整備完了: migrationIntegrity.test 14件・貼付用SQL生成script・post-apply検証SQL・runbook R1-R6。Apply Ready=READY／適用は承認文字列待ち・remote write 0）
 
 - cleanupStatus: **deferred_not_blocking**（CEO決定 2026-07-30・session cd58eebf はテストartifactとして残置・削除は将来の明示承認必須・Production blockerではない）
 
