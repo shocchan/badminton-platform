@@ -27,6 +27,9 @@ export const VocabularyHubHeader = ({ t, stats, stateCounts, completion, tier }:
   ];
   return (
     <div className="bg-white rounded-2xl border border-indigo-100 p-4 mb-3">
+      {/* ⓪ 役割一文（ことば=材料。しくみとの違いを3秒で・2026-07-30 CEO UX指示） */}
+      <p className="text-xs text-gray-700 leading-relaxed mb-2">{t.hubRoles.vocabRole}</p>
+      <p className="text-[10px] text-gray-400 mb-2">{t.hubRoles.exampleHeading}: {t.hubRoles.vocabExample}／{t.hubRoles.vocabVsLab}</p>
       {/* ① タイトルとスコープ（何の図鑑か・どこまでか） */}
       <p className="text-[11px] font-bold text-indigo-500">{ts.scopeTitle}</p>
       <h2 className="text-base font-bold text-gray-900">{ts.scopeSub(stats.total)}</h2>

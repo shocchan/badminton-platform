@@ -392,6 +392,40 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   missionTitle: string | null;
 }) => {
   const tm = t.homeMenu; const tl = t.lab; const zh = t.locale === 'zh';
+  // ことば/しくみの実進捗（canonical・端末保存のsessionStorage previewから読み取り専用で導出）
+  const GUIDE_KEY = 'kawabado.aiCourse.v1.hubGuideClosed';
+  const [guideOpen] = useState(() => { try { return localStorage.getItem(GUIDE_KEY) !== '1'; } catch { return true; } });
+  const rememberGuideClosed = (open: boolean) => { try { if (open) localStorage.removeItem(GUIDE_KEY); else localStorage.setItem(GUIDE_KEY, '1'); } catch { /* private mode */ } };
+  const labProgressLine = (() => {
+    try {
+      const repo = createFoundationProgressRepository(window.sessionStorage);
+      const done = FOUNDATION_UNIT_META.filter((m) => repo.getUnitSummary(m.id).completedCount > 0).length;
+      return done > 0 ? t.hubRoles.labProgress(done, FOUNDATION_UNIT_META.length) : t.hubRoles.labProgressNone(FOUNDATION_UNIT_META.length);
+    } catch { return t.hubRoles.labProgressNone(FOUNDATION_UNIT_META.length); }
+  })();
+  const [vocabProgressLine, setVocabProgressLine] = useState('');
+  useEffect(() => {
+    let alive = true;
+    // canonical集計は語彙chunkにあるため動的import（メインbundleへ含めない方針を維持）
+    void Promise.all([
+      import('../../lib/aiLesson/course/vocabCanonical'),
+      import('../../lib/aiLesson/course/vocabProgress'),
+      import('../../lib/aiLesson/course/foundationVocabBank'),
+    ]).then(([canon, prog, bank]) => {
+      if (!alive) return;
+      const stats = canon.vocabCanonicalStats();
+      try {
+        const repo = prog.createVocabProgressRepository(window.sessionStorage);
+        const started = bank.allVocabularyItems().filter((i) => {
+          const e = repo.getEntry(i.id);
+          return e.firstSeenAt !== null || e.selfAssessment !== 'unseen' || e.tests.length > 0;
+        }).length;
+        setVocabProgressLine(started > 0 ? t.hubRoles.vocabProgress(started, stats.total) : t.hubRoles.vocabProgressNone(stats.total));
+      } catch { setVocabProgressLine(t.hubRoles.vocabProgressNone(stats.total)); }
+    }).catch(() => { /* 表示なしでもカードは成立 */ });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- 初回のみ（tはlocale切替で再マウント）
+  }, []);
   // 語彙サマリー（現在の目標・パック・カバー）は動的import（語彙データをメインbundleへ入れない・§31）
   const [vocabSummary, setVocabSummary] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabHomeSummary | null>(null);
   useEffect(() => {
@@ -466,16 +500,42 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
           <p className="text-sm font-bold flex items-center gap-1.5"><Mic className="w-4 h-4" aria-hidden />{tm.convTitle}</p>
           <p className="text-xs text-blue-100 mt-0.5">{tm.convBody}</p>
         </button>
-        <button type="button" onClick={() => onOpenVocab('top')}
-          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-white border-2 border-teal-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">
-          <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-teal-600" aria-hidden />{tm.vocabTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
-          <p className="text-xs text-gray-600 mt-0.5">{tm.vocabBody}</p>
-        </button>
-        <button type="button" onClick={() => onOpenLab('today')}
-          className="card-interactive w-full text-left rounded-2xl p-4 min-h-11 bg-indigo-50 border-2 border-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-          <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><PenLine className="w-4 h-4 text-indigo-600" aria-hidden />{tm.labTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
-          <p className="text-xs text-gray-600 mt-0.5">{tm.labBody}</p>
-        </button>
+        {/* ことば vs しくみ: 「材料」と「ルール」が3秒で分かる比較カード（2026-07-30 CEO UX指示） */}
+        <div className="grid sm:grid-cols-2 gap-2">
+          <button type="button" onClick={() => onOpenVocab('top')} aria-label={t.hubRoles.vocabNavAria}
+            className="card-interactive text-left rounded-2xl p-4 min-h-11 bg-white border-2 border-teal-100 hover:border-teal-300 active:scale-[0.99] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600 focus-visible:ring-offset-2">
+            <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-teal-600" aria-hidden />{tm.vocabTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
+            <p className="text-xs font-bold text-teal-700 mt-1">{t.hubRoles.vocabCardRole}</p>
+            <p className="text-[11px] text-gray-600">{t.hubRoles.vocabCardItems}</p>
+            <p className="text-[11px] text-gray-400 mt-1">{vocabProgressLine}</p>
+            <p className="text-[10px] text-gray-400 mt-1">{t.world.facilities.lib.name}・{t.hubRoles.vocabExample}</p>
+            <p className="text-xs font-bold text-teal-700 mt-2">{t.hubRoles.vocabCardCta} →</p>
+          </button>
+          <button type="button" onClick={() => onOpenLab('today')} aria-label={t.hubRoles.labNavAria}
+            className="card-interactive text-left rounded-2xl p-4 min-h-11 bg-indigo-50 border-2 border-indigo-100 hover:border-indigo-300 active:scale-[0.99] motion-reduce:transform-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5"><PenLine className="w-4 h-4 text-indigo-600" aria-hidden />{tm.labTitle}<span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-normal">{tl.betaBadge}</span></p>
+            <p className="text-xs font-bold text-indigo-700 mt-1">{t.hubRoles.labCardRole}</p>
+            <p className="text-[11px] text-gray-600">{t.hubRoles.labCardItems}</p>
+            <p className="text-[11px] text-gray-400 mt-1">{labProgressLine}</p>
+            <p className="text-[10px] text-gray-400 mt-1">{t.world.facilities.workshop.name}・{t.hubRoles.labExample}</p>
+            <p className="text-xs font-bold text-indigo-700 mt-2">{t.hubRoles.labCardCta} →</p>
+          </button>
+        </div>
+
+        {/* どちらを学ぶ？（初回は展開・閉じた状態をlocalStorageへ・閉じなくても学習開始可能） */}
+        <details className="bg-white border border-gray-100 rounded-2xl px-4 py-2.5" open={guideOpen}
+          onToggle={(e) => rememberGuideClosed((e.target as HTMLDetailsElement).open)}>
+          <summary className="text-xs font-bold text-gray-700 cursor-pointer min-h-8 flex items-center gap-1">
+            {t.hubRoles.guideTitle}<span className="text-[10px] font-normal text-gray-400">（{t.hubRoles.guideShow}）</span>
+          </summary>
+          <ul className="mt-1 mb-1 space-y-1">
+            {t.hubRoles.guideRows.map((r) => (
+              <li key={r.q} className="text-[11px] text-gray-600 leading-snug">
+                {r.q} <span className="font-bold text-gray-800">→ {r.a}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
     </div>
   );

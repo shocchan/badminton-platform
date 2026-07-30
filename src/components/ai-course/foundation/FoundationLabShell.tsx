@@ -9,6 +9,7 @@ import { trackCourseOnce, trackCourse } from '../../../lib/aiLesson/course/cours
 import type { AiCourseDict } from '../../../locales/aiCourse';
 import { FoundationUnitPage } from './FoundationUnitPage';
 import { FoundationTodayView } from './FoundationTodayView';
+import { FoundationLabHeader } from './FoundationLabHeader';
 import { FoundationUnitsView } from './FoundationUnitsView';
 import { FoundationRecordsView } from './FoundationRecordsView';
 
@@ -116,6 +117,9 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
         )
       ) : (
         <>
+          {/* 役割ヘッダー（ことば＝材料／しくみ＝ルールの区別・2026-07-30 CEO UX指示） */}
+          <FoundationLabHeader t={t} unitsTotal={FOUNDATION_UNIT_META.length}
+            unitsDone={FOUNDATION_UNIT_META.filter((m) => summaries[m.id]?.completedCount > 0).length} />
           <div className="flex gap-1 mb-4" role="tablist">
             {tabs.map(({ key, label }) => (
               <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)}

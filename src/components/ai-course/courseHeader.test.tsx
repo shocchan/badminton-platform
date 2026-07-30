@@ -19,7 +19,13 @@ describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () =
     expect(screen.queryByText(t.nav.history)).toBeNull();
     const labels = screen.getAllByRole('button').map((b) => b.textContent);
     const navLabels = labels.filter((l) => Object.values(t.nav).some((v2) => l?.includes(v2)));
-    expect(navLabels.join(',')).toContain(`${t.nav.home},${t.nav.conversation},${t.nav.vocab},${t.nav.lab},${t.nav.growth}`);
+    // ことば/しくみは役割subtitle付き（2026-07-30 CEO UX指示）のため、順序と包含で検証
+    const joined = navLabels.join(',');
+    for (const label of [t.nav.home, t.nav.conversation, t.nav.vocab, t.nav.lab, t.nav.growth]) {
+      expect(joined).toContain(label);
+    }
+    expect(joined).toContain(t.hubRoles.vocabNavSub); // ことばのsubtitle
+    expect(joined).toContain(t.hubRoles.labNavSub);   // しくみのsubtitle
   });
   it('モバイル案A（2E-1.5 §16）: 主要4項目＋その他シート（成長・設定）・Escapeで閉じる', () => {
     const onNav = vi.fn();

@@ -147,18 +147,29 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
           {/* lg以上: ナビを中央に1段で出す */}
           {showNav && onNavigate && (
             <nav className="hidden lg:flex items-center gap-1" aria-label={t.brand}>
-              {NAV.map(({ key, icon: Icon }) => (
-                <button
-                  key={key} type="button" onClick={() => onNavigate(key)}
-                  aria-current={current === key ? 'page' : undefined}
-                  className={`min-h-11 px-3 py-2 text-sm font-medium rounded-lg flex items-center gap-1.5 transition-colors action-raised ${
-                    current === key ? 'bg-blue-50 text-blue-700 shadow-inner is-current-pill' : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  {t.nav[key]}
-                </button>
-              ))}
+              {NAV.map(({ key, icon: Icon }) => {
+                // ことば/しくみは役割subtitle＋説明ariaで「何を学ぶ場所か」を一目で示す（2026-07-30 CEO UX指示）
+                const sub = key === 'vocab' ? t.hubRoles.vocabNavSub : key === 'lab' ? t.hubRoles.labNavSub : null;
+                const aria = key === 'vocab' ? t.hubRoles.vocabNavAria : key === 'lab' ? t.hubRoles.labNavAria : undefined;
+                return (
+                  <button
+                    key={key} type="button" onClick={() => onNavigate(key)}
+                    aria-current={current === key ? 'page' : undefined}
+                    aria-label={aria}
+                    className={`min-h-11 px-3 py-1.5 text-sm font-medium rounded-lg flex items-center gap-1.5 transition-colors action-raised ${
+                      current === key ? 'bg-blue-50 text-blue-700 shadow-inner is-current-pill' : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {sub ? (
+                      <span className="flex flex-col items-start leading-tight text-left">
+                        <span>{t.nav[key]}</span>
+                        <span className={`text-[9px] font-normal ${current === key ? 'text-blue-500' : 'text-gray-400'}`}>{sub}</span>
+                      </span>
+                    ) : t.nav[key]}
+                  </button>
+                );
+              })}
             </nav>
           )}
 
