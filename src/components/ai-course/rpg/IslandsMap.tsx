@@ -217,8 +217,9 @@ export const IslandsMap = ({
               )}
 
               {/* 街名（常時表示・§8）＋常時chevron（mobileでもhover無しで押せると分かる・§10） */}
-              <span className={`flex items-center justify-center gap-0.5 w-fit max-w-full mx-auto px-1.5 py-0.5 rounded shadow-sm text-[10px] sm:text-[11px] font-bold leading-tight ${chip} ${locked ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-focus-visible:bg-indigo-600 group-focus-visible:text-white'}`}>
-                <span className="truncate">{nameShort}</span>
+              {/* 街名chipはノード幅に切り詰めない（390pxでも全名表示・whitespace-nowrap） */}
+              <span className={`flex items-center justify-center gap-0.5 w-fit mx-auto px-1.5 py-0.5 rounded shadow-sm text-[9px] sm:text-[11px] font-bold leading-tight whitespace-nowrap ${chip} ${locked ? '' : 'group-hover:bg-indigo-600 group-hover:text-white group-focus-visible:bg-indigo-600 group-focus-visible:text-white'}`}>
+                <span>{nameShort}</span>
                 {!locked && <span aria-hidden className="shrink-0">›</span>}
               </span>
 
