@@ -7,7 +7,7 @@
 //   サーバへは unitProgressRepository（楽観ロック・決定的merge・outbox）経由で送る。
 // - 同期前から端末にある進捗は、サーバ側が空なら初回loadで自動的に引き上げる（学習を失わない）。
 // - 「保存しました（同期済み）」等のUI文言変更は migration 適用後の H2#4 で行う。ここでは変えない。
-import type { StoragePort, UnitRunState } from '../n3unit/unitRuntime';
+import { SCHEMA_VERSION, type StoragePort, type UnitRunState } from '../n3unit/unitRuntime';
 import { createLocalUnitStorage } from '../n3unit/localUnitStorage';
 import {
   createUnitProgressRepository, type UnitProgressRepository,
@@ -24,6 +24,32 @@ export interface ProbeClient {
   };
 }
 
+/** 完全probe（table＋列＋RLS＋RPC＋schema version）で使うclient */
+export interface FullProbeClient extends ProbeClient {
+  rpc(fn: string, args: Record<string, unknown>): Promise<{ data: unknown; error: { code?: string; message: string } | null }>;
+}
+
+/**
+ * 学習記録の保存先として、いま実際に何が起きているかの表示用状態。
+ *   local_only … 同期が無効（テーブル未適用・列不足・RPCなし等）。端末内保存のみ
+ *   synced     … サーバ確定済み。別端末でも続けられる
+ *   pending    … 端末には保存済みだが未送信が残っている（オフライン等）
+ * 「同期済み」は実際にサーバ確定した場合だけ使う（見込みで表示しない）。
+ */
+export type UnitSyncMode = 'local_only' | 'synced' | 'pending';
+
+export interface SyncProbeResult {
+  enabled: boolean;
+  checks: { table: boolean; columns: boolean; rls: boolean; rpc: boolean; version: boolean };
+  /** 無効化した理由（enabled=falseのときのみ）。UI表示・診断用 */
+  reason?: string;
+}
+
+/** repositoryが実際に読む列。1つでも欠けたら同期を有効化しない */
+const REQUIRED_COLUMNS = 'learner_id, unit_id, state, row_version, last_mutation_id, updated_at';
+/** RPC probe用の予約unit_id。expected_row_version=-1 は「行なし」分岐で必ずP0409になり書き込まない */
+const PROBE_UNIT_ID = '__sync_probe__';
+
 /**
  * ai_course_unit_progress が使える状態かを調べる。
  * - 存在しない（PGRST205/42P01等）→ false（純local運用）
@@ -38,6 +64,63 @@ export const probeUnitProgressTable = async (client: ProbeClient): Promise<boole
     return !error && Array.isArray(data);
   } catch {
     return false;
+  }
+};
+
+/**
+ * 完全probe（2026-07-30 GATE①）。「テーブルがあるだけ」で同期を有効化しない。
+ *
+ * 確認するもの:
+ *   table    … 読める（存在する）
+ *   columns  … repositoryが読む列がすべて存在する（1つ欠けてもPostgRESTが42703を返す）
+ *   rls      … 返る行が自分のlearner_idのみ（他人の行が見えたら無効化する）
+ *   rpc      … ai_upsert_unit_progress が存在し楽観ロックが効く（P0409）。**書き込まない**
+ *   version  … サーバ上のstateが自分のSCHEMA_VERSIONより新しくない（新しければ触らない）
+ *
+ * どれか1つでも満たさなければ enabled=false → 端末内保存のみで従来どおり動く（学習は止めない）。
+ * 0行のときの rls/version は「反例が無い」ことしか言えないため、trueとして扱う（reasonに残さない）。
+ */
+export const probeUnitProgressSync = async (
+  client: FullProbeClient, learnerId: string,
+): Promise<SyncProbeResult> => {
+  const checks = { table: false, columns: false, rls: false, rpc: false, version: false };
+  const fail = (reason: string): SyncProbeResult => ({ enabled: false, checks, reason });
+  try {
+    const { data, error } = await client.from('ai_course_unit_progress')
+      .select(REQUIRED_COLUMNS).limit(5);
+    if (error) {
+      // 42P01/PGRST205=テーブル無し、42703=列不足。どちらも「未適用」として静かにlocal運用
+      return fail(`select:${error.code ?? 'unknown'}`);
+    }
+    if (!Array.isArray(data)) return fail('select:not-array');
+    checks.table = true;
+    checks.columns = true;
+
+    const rows = data as { learner_id?: string; state?: { version?: number } }[];
+    const foreign = rows.filter(r => r.learner_id && r.learner_id !== learnerId);
+    if (foreign.length > 0) return fail('rls:foreign-rows-visible');
+    checks.rls = true;
+
+    const newer = rows.filter(r => typeof r.state?.version === 'number' && r.state.version > SCHEMA_VERSION);
+    if (newer.length > 0) return fail('version:server-newer');
+    checks.version = true;
+
+    // RPC probe: 行が無い状態で expected=-1（≠0）→ P0409。insertには入らないので副作用なし
+    const { error: rpcError } = await client.rpc('ai_upsert_unit_progress', {
+      p_learner_id: learnerId,
+      p_unit_id: PROBE_UNIT_ID,
+      p_state: {},
+      p_expected_row_version: -1,
+      p_mutation_id: 'sync-probe',
+    });
+    // P0409（conflict）= 期待どおり関数が存在し検証も効いている。
+    // 関数が無い場合は PGRST202 / 42883 が返る → 同期を有効化しない
+    if (rpcError && rpcError.code !== 'P0409') return fail(`rpc:${rpcError.code ?? 'unknown'}`);
+    checks.rpc = true;
+
+    return { enabled: true, checks };
+  } catch {
+    return fail('exception');
   }
 };
 

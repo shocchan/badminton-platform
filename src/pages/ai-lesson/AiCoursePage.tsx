@@ -77,7 +77,10 @@ import type { Mission } from '../../lib/aiLesson/course/types';
 import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
 import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
 import { n3FirstReviewAreaId } from '../../lib/aiLesson/course/rpg/gardenCounts';
-import { probeUnitProgressTable, createSyncedUnitStorage, type ProbeClient } from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
+import {
+  probeUnitProgressSync, createSyncedUnitStorage,
+  type FullProbeClient, type UnitSyncMode,
+} from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
 import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
 import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
 import { supabase } from '../../services/supabaseClient';
@@ -193,19 +196,25 @@ export default function AiCoursePage() {
   // 単元進捗の保存先（H2準備）: ai_course_unit_progress がremoteに存在する時だけ同期つきへ切替。
   // 未適用の現在は probe が false → undefined のまま（N3AreaPanelは従来の端末内保存）。
   const [unitStorage, setUnitStorage] = useState<StoragePort | undefined>(undefined);
+  // 保存先の実状態（表示用）。probeが通らない間は local_only のまま＝正直に「この端末」と出す
+  const [syncMode, setSyncMode] = useState<UnitSyncMode>('local_only');
   useEffect(() => {
     let alive = true;
     void (async () => {
-      if (!learner) { if (alive) setUnitStorage(undefined); return; }
-      const enabled = await probeUnitProgressTable(supabase as unknown as ProbeClient);
-      if (!alive || !enabled) return;
+      if (!learner) { if (alive) { setUnitStorage(undefined); setSyncMode('local_only'); } return; }
+      // table単体ではなく、列・RLS・RPC・schema versionまで確認してから同期を有効化する
+      const probe = await probeUnitProgressSync(supabase as unknown as FullProbeClient, learner.id);
+      if (!alive || !probe.enabled) return;
       const synced = createSyncedUnitStorage({
         learnerId: learner.id,
         supabase: supabase as unknown as SupabaseLike,
         localStore: window.localStorage,
       });
-      void synced.flushOutbox(); // 前回未送信分を先に流す
-      if (alive) setUnitStorage(synced);
+      // 前回未送信分を先に流し、残があれば「未送信あり」と表示する
+      const flushed = await synced.flushOutbox();
+      if (!alive) return;
+      setUnitStorage(synced);
+      setSyncMode(flushed.remaining > 0 ? 'pending' : 'synced');
     })();
     return () => { alive = false; };
   }, [learner]);
@@ -841,7 +850,7 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <N3AreaPanelLazy t={t} area={area} storage={unitStorage}
+            <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
               onOpenAdventure={area.hasAdventure ? () => setStep('adventure') : undefined}

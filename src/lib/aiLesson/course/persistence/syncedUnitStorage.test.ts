@@ -2,7 +2,10 @@
 // - probeが失敗する環境（remote未適用の現在）では配線されず、従来挙動が変わらないこと
 // - 有効時: local一次保存＋サーバ送出、サーバ空なら既存local進捗の引き上げ、サーバ断でも学習継続
 import { describe, it, expect } from 'vitest';
-import { probeUnitProgressTable, createSyncedUnitStorage, type ProbeClient } from './syncedUnitStorage';
+import {
+  probeUnitProgressTable, probeUnitProgressSync, createSyncedUnitStorage,
+  type ProbeClient, type FullProbeClient,
+} from './syncedUnitStorage';
 import { createLocalStorageCachePort } from './localStorageCachePort';
 import { localUnitStorageKey } from '../n3unit/localUnitStorage';
 import { emptyRunState } from '../n3unit/unitRuntime';
@@ -86,6 +89,92 @@ describe('probeUnitProgressTable', () => {
       from: () => ({ select: () => ({ limit: async () => ({ data: null, error: null }) }) }),
     } as unknown as ProbeClient;
     expect(await probeUnitProgressTable(headLike)).toBe(false);
+  });
+});
+
+describe('probeUnitProgressSync（完全probe・GATE①）', () => {
+  /** 列・行・RPCの応答を差し替えられるprobe用client */
+  const probeClient = (o: {
+    selectError?: { code?: string };
+    rows?: unknown[];
+    rpcError?: { code?: string } | null;
+    throwOnFrom?: boolean;
+  }): FullProbeClient => ({
+    from: () => {
+      if (o.throwOnFrom) throw new Error('boom');
+      return {
+        select: () => ({
+          limit: async () => (o.selectError
+            ? { data: null, error: { ...o.selectError, message: 'x' } }
+            : { data: o.rows ?? [], error: null }),
+        }),
+      };
+    },
+    rpc: async () => (o.rpcError ? { data: null, error: { ...o.rpcError, message: 'x' } } : { data: {}, error: null }),
+  });
+
+  it('すべて満たせば enabled=true（RPCはP0409＝存在＋楽観ロックが効いている）', async () => {
+    const r = await probeUnitProgressSync(probeClient({ rows: [], rpcError: { code: 'P0409' } }), L);
+    expect(r.enabled).toBe(true);
+    expect(r.checks).toEqual({ table: true, columns: true, rls: true, rpc: true, version: true });
+  });
+  it('列不足（42703）は無効化する = tableだけでは有効化しない', async () => {
+    const r = await probeUnitProgressSync(probeClient({ selectError: { code: '42703' } }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('select:42703');
+    expect(r.checks.columns).toBe(false);
+  });
+  it('テーブル無し（PGRST205）は無効化する', async () => {
+    const r = await probeUnitProgressSync(probeClient({ selectError: { code: 'PGRST205' } }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('select:PGRST205');
+  });
+  it('他人の行が見えたら無効化する（RLSが効いていない疑い）', async () => {
+    const r = await probeUnitProgressSync(probeClient({
+      rows: [{ learner_id: 'someone-else', state: { version: 1 } }], rpcError: { code: 'P0409' },
+    }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('rls:foreign-rows-visible');
+    expect(r.checks.rls).toBe(false);
+  });
+  it('サーバのstateが新しいschema versionなら無効化する（新しいデータを壊さない）', async () => {
+    const r = await probeUnitProgressSync(probeClient({
+      rows: [{ learner_id: L, state: { version: 99 } }], rpcError: { code: 'P0409' },
+    }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('version:server-newer');
+  });
+  it('RPCが存在しない（PGRST202）なら無効化する', async () => {
+    const r = await probeUnitProgressSync(probeClient({ rows: [], rpcError: { code: 'PGRST202' } }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('rpc:PGRST202');
+    expect(r.checks.rpc).toBe(false);
+  });
+  it('HEAD風の data:null / error:null では有効化しない', async () => {
+    const headLike = {
+      from: () => ({ select: () => ({ limit: async () => ({ data: null, error: null }) }) }),
+      rpc: async () => ({ data: null, error: null }),
+    } as unknown as FullProbeClient;
+    const r = await probeUnitProgressSync(headLike, L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('select:not-array');
+  });
+  it('例外は無効化（学習を止めない）', async () => {
+    const r = await probeUnitProgressSync(probeClient({ throwOnFrom: true }), L);
+    expect(r.enabled).toBe(false);
+    expect(r.reason).toBe('exception');
+  });
+  it('probeはサーバへ書き込まない（RPC成功でも行を作らない引数を使う）', async () => {
+    const seen: Record<string, unknown>[] = [];
+    const client = {
+      from: () => ({ select: () => ({ limit: async () => ({ data: [], error: null }) }) }),
+      rpc: async (_fn: string, args: Record<string, unknown>) => { seen.push(args); return { data: null, error: { code: 'P0409', message: 'conflict' } }; },
+    } as unknown as FullProbeClient;
+    await probeUnitProgressSync(client, L);
+    expect(seen).toHaveLength(1);
+    // expected=-1 は「行なし→P0409」分岐に必ず入る（0だけがinsertに進む）
+    expect(seen[0].p_expected_row_version).toBe(-1);
+    expect(seen[0].p_unit_id).toBe('__sync_probe__');
   });
 });
 

@@ -11,6 +11,7 @@ import { areaProgress, unitCompletedLocally } from '../../../lib/aiLesson/course
 import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocabBank';
 import { createLocalUnitStorage } from '../../../lib/aiLesson/course/n3unit/localUnitStorage';
 import type { StoragePort } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
+import type { UnitSyncMode } from '../../../lib/aiLesson/course/persistence/syncedUnitStorage';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 import { worldChangeFor } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { N3UnitPanel } from './N3UnitPanel';
@@ -36,9 +37,17 @@ export interface N3AreaPanelProps {
    * ai_course_unit_progress の存在をprobeして同期つきstorageを渡す。
    */
   storage?: StoragePort;
+  /**
+   * 保存先の実状態（表示のみ）。未指定＝local_only として扱う。
+   * 「同期済み」はサーバ確定した場合だけAiCoursePageが渡す（見込みでsyncedにしない）。
+   */
+  syncMode?: UnitSyncMode;
 }
 
-export const N3AreaPanel = ({ t, area, onExit, onOpenArea, onOpenAdventure, onOpenReview, storage: injectedStorage }: N3AreaPanelProps) => {
+export const N3AreaPanel = ({
+  t, area, onExit, onOpenArea, onOpenAdventure, onOpenReview,
+  storage: injectedStorage, syncMode = 'local_only',
+}: N3AreaPanelProps) => {
   const zh = t.locale === 'zh';
   const pool = useMemo(() => allVocabularyItems(), []);
   const storage = useMemo(
@@ -175,6 +184,12 @@ export const N3AreaPanel = ({ t, area, onExit, onOpenArea, onOpenAdventure, onOp
       ) : (
         <p className="text-[11px] text-gray-400">
           {t.n3a.footNote}
+          {' '}
+          <span data-sync-mode={syncMode}>
+            {syncMode === 'synced' ? t.n3a.saveStateSynced
+              : syncMode === 'pending' ? t.n3a.saveStatePending
+                : t.n3a.saveStateLocalOnly}
+          </span>
         </p>
       )}
     </div>

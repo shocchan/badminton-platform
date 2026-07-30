@@ -76,6 +76,38 @@ describe('N3AreaPanel（エリア共通ループ）', () => {
     expect(screen.queryByText('第1章「霧の港町」を進める')).toBeNull();
   });
 
+  describe('保存状態の正直な表示（GATE①: remote適用後）', () => {
+    const area = () => areaById('area02-hinode')!;
+    const modes = [
+      { mode: 'synced' as const, ja: 'アカウントに保存', zh: '保存在你的账号中' },
+      { mode: 'pending' as const, ja: '未送信の学習記録があります', zh: '尚未上传的学习记录' },
+      { mode: 'local_only' as const, ja: 'この端末に保存', zh: '保存在本设备上' },
+    ];
+    for (const { mode, ja, zh } of modes) {
+      it(`syncMode=${mode} を ja/zh で正しく表示する`, () => {
+        const { container } = render(<N3AreaPanel t={aiCourseI18n.ja} {...baseProps} area={area()} syncMode={mode} />);
+        expect(container.querySelector(`[data-sync-mode="${mode}"]`)?.textContent).toContain(ja);
+        cleanup();
+        const zhRender = render(<N3AreaPanel t={aiCourseI18n.zh} {...baseProps} area={area()} syncMode={mode} />);
+        expect(zhRender.container.querySelector(`[data-sync-mode="${mode}"]`)?.textContent).toContain(zh);
+      });
+    }
+    it('syncMode未指定なら local_only 扱い（同期していると誤表示しない）', () => {
+      const { container } = render(<N3AreaPanel t={aiCourseI18n.ja} {...baseProps} area={area()} />);
+      expect(container.querySelector('[data-sync-mode="local_only"]')).toBeTruthy();
+      expect(container.textContent).not.toContain('アカウントに保存');
+    });
+    it('local_onlyのとき「同期は公開前に有効になります」等の未来の約束を書かない', () => {
+      for (const t of [aiCourseI18n.ja, aiCourseI18n.zh]) {
+        const { container } = render(<N3AreaPanel t={t} {...baseProps} area={area()} syncMode="local_only" />);
+        for (const banned of ['公開前に', '同期は', '将在公开前']) {
+          expect(container.textContent?.includes(banned), banned).toBe(false);
+        }
+        cleanup();
+      }
+    });
+  });
+
   it('learner向け画面に開発ラベルを出さない', () => {
     const area = areaById('area02-hinode')!;
     const { container } = render(<N3AreaPanel t={aiCourseI18n.ja} {...baseProps} area={area} />);
