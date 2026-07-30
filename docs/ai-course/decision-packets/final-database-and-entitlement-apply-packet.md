@@ -243,3 +243,96 @@ node scripts/ai-course/post-apply-verification.mjs <env.json>   # 18項目matrix
 - `APPLY_STAGING_MIGRATIONS`（本パケット§21の旧表記）
 
 いずれの文字列も無い限り、remoteへのapply・write・RLS変更は一切行わない。
+
+
+---
+
+## 23. Final Executable Migration Gate 実測（2026-07-30・local実証＋remote read-only）
+
+HEAD 1bdab44（migration関連ファイルはUI改善commit 46e4b74/1bdab44で**無変更**＝6451d04時点のまま）。
+Docker 29.6.2（desktop-linux）／Supabase CLI 2.101.0／local Postgres 17（supabase_db_badminton-platform）。
+
+### 23a. Gateで発見・修正した2件（**この検証をせずに適用したら失敗していた**）
+
+1. **🔴 entitlements migrationのdollar-quote破損**（適用不能）
+   前セッション（Preflight）で `set search_path` を挿入した際、JSの `String.replace()` の
+   置換パターン仕様により `$$` が `$` へ変換され、関数本体が `as $` になっていた。
+   local適用で `ERROR: syntax error at or near "$"` を実測。**修正**（`as $$`）後は適用成功。
+   → 副産物として **transaction atomicityの実証**（失敗時に table/function/trigger が一切残らないことを確認）。
+   → 全migration/rollbackのdollar-quote対称性チェックを実施し、他ファイルに同種破損なし。
+
+2. **🟠 entitlements rollbackが admin_overrides 保護まで削除**（stop条件§18に該当）
+   旧rollbackは trigger＋function も落としていたため、rollback直後にlearner本人が
+   admin_overrides を自己書き換えできる状態へ戻ってしまう。
+   **修正**: rollbackを **feature限定**（`ai_course_entitlements` テーブルのみ撤去）へ変更し、
+   保護撤去は `rollback_20260728010000_ai_course_entitlements_SECURITY_ONLY.sql`（明示判断時のみ）へ分離。
+   → local実測: feature rollback後も `ai_learners_protect_admin_overrides` trigger＋function が**残存**。
+
+### 23b. local実証の結果（すべて実DB catalog／実RESTで測定）
+
+| 項目 | 結果 |
+|---|---|
+| clean DB適用（①→②→③） | PASS（前提4本適用後の空DBから） |
+| 再適用（idempotency） | PASS（2回・`if not exists`/`drop..if exists` により差分なし） |
+| catalog実査 | 新規table 5（すべてRLS enabled・owner postgres）／policy 11／index 3／trigger 4／FK 5／check 10 |
+| grants実測 | anon=**全対象テーブルで0権限**／authenticated=vocab3表 select+insert+update・entitlements/unit_progress は select のみ／service_role=全操作 |
+| DEFINER関数 | 3件すべて `search_path=public` が **catalogで固定を確認**（ai_course_protect_admin_overrides・ai_upsert_unit_progress・ai_is_admin/ai_my_learner_ids も同様） |
+| RLS matrix M01–M25 | **26/26 PASS**（M15は「keyがある状態からの削除拒否」へ実シナリオ修正後PASS。空jsonb→空jsonbはtrigger非発火＝仕様どおり） |
+| A/B分離 | RLSで0行になるケース（select/他人行update対象0）と permission denied（42501）を区別して記録 |
+| H1 local DB統合テスト | **STILL_SKIPPED を解消 → 3/3 PASS**（`H1_LOCAL_STATUS` 指定で実行: cross-device・mutationId冪等・他人learner拒否） |
+| probe安全性 P1–P6 | **6/6 PASS**（不存在→inactive／正常→active／anon→inactive／column不足→inactive／RPC不存在は404で検出／旧HEAD probeの誤判定は再発せず） |
+| rollback→reapply→再matrix | PASS（feature 3本撤去→保護残存確認→再適用→matrix 26/26・probe 6/6・H1 3/3 再PASS） |
+| failure injection | PASS（コピーへ意図的エラーを追記して適用→table/policy/function/index すべて0＝部分適用なし） |
+| 既存データ非破壊 | 基盤 ai_* テーブル14件・learner行8件がrollback前後で不変 |
+
+### 23c. migration write文の静的検証（Andyさん非対象の構造的保証）
+
+| 検査 | 結果 |
+|---|---|
+| selection condition | `admin_overrides ? 'labPreview'`（entitlements移行insertのみ） |
+| INSERT対象 | `public.ai_course_entitlements`（新規表）／`public.ai_course_unit_progress`（新規表・RPC内） |
+| UPDATE ... set | `public.ai_course_unit_progress` のみ（新規表・RPC内） |
+| DELETE FROM | **0件** |
+| `ai_learners` への UPDATE/DELETE | **0件**（既存learner行は構造的に変更されない） |
+| ALTER TABLE | 新規2表の `enable row level security` のみ（既存表の列変更なし） |
+
+→ **Andyさんのlearner行は、条件に一致するか否かに関わらずwrite対象にならない**（構造的保証）。
+   条件一致件数の実数（想定1件＝CEO検証learner）は remote SELECT が必要 → §23d。
+
+### 23d. remote read-only照合（今回**未完**・remote write 0）
+
+- `supabase migration list --linked`: **未実行**（`Access token not provided` → CLIログインが必要）
+- SQL Editor（§13B）: CEOブラウザのSupabaseセッションは有効だが、SQL Editor画面がこの実行環境で
+  レンダリングされず（Monaco未ロード）実行不可。Platform APIはcookieのみでは401（Bearer必須）
+- → **Remote Migration History: UNVERIFIED / Remote Preflight SELECT: UNVERIFIED /
+  Andy Migration Target: UNVERIFIED（構造的には0）**
+- remoteへのwrite・DDL・DMLは **0件**（GETすら今回は実行していない）
+
+### 23e. checksum freeze（2026-07-30・§23a修正後の最終値）
+
+| 種別 | path | sha256 |
+|---|---|---|
+| ① vocab persistence | `supabase/migrations/20260728000000_ai_course_vocab_persistence.sql` | `50cb55ae59bc13a3999cc3ee80c6be21394c67b30ac64588a9b6270486f8b405`（変更なし） |
+| ② entitlements | `supabase/migrations/20260728010000_ai_course_entitlements.sql` | `e8d2f37c0cd292b948f2be079f169e55854c037e6ccac41ac184078ec7fb5e79`（**旧a4f0bcd5…は破損版**） |
+| ③ unit progress | `supabase/migrations/20260729000000_ai_course_unit_progress.sql` | `92a5606de2efd07760e4b7fa5fe11f93b03a769c2d04666f0536c5fc383a6ee0`（変更なし） |
+| rollback① | `supabase/rollbacks/rollback_20260728000000_ai_course_vocab_persistence.sql` | `e323251eca3deb18bf3ac0c2d2984dae3fb9d7806d764e4fd64fdc83834c1762`（変更なし） |
+| rollback②(feature) | `supabase/rollbacks/rollback_20260728010000_ai_course_entitlements.sql` | `b68d11cf5bc6cba39c500dc6625e7785bc11bfb5aa5b0d809e1c6324ffa8a720`（**保護を残す版**） |
+| rollback③ | `supabase/rollbacks/rollback_20260729000000_ai_course_unit_progress.sql` | `4b3ca07a070f64b1c2fe9eca79ba64c5476f0fed8effbd2b6dd3a8050dff6b92`（変更なし） |
+| rollback②(security・通常使わない) | `supabase/rollbacks/rollback_20260728010000_ai_course_entitlements_SECURITY_ONLY.sql` | `e200274f2a12b8867dded98d62f746ee4ad3b18567836442758347875d29bcbe` |
+
+適用直前に `shasum -a 256` で全桁再照合。1件でも不一致なら中止（§22e stop条件）。
+**freeze後はファイルを変更しない。**
+
+### 23f. 適用シーケンス（承認後にワンセットで実行・分割しない）
+
+1. branch/HEAD確認 → 2. working tree clean確認 → 3. checksum 6件照合（§23e）→
+4. linked project確認（`supabase projects list` / ref先頭 jdkwijdp***）→ 5. `supabase db dump --linked` backup →
+6. migration history再確認（`supabase migration list --linked`）→ 7. preflight SELECT（`scripts/ai-course/preflight-remote-selects.sql`）→
+8. baseline row count保存（P1）→ 9–11. migration ①→②→③ を1本ずつ適用（各成功確認後に次へ）→
+12. object確認（catalog）→ 13. remote RLS matrix（`scripts/ai-course/post-apply-verification.mjs`）→
+14. entitlement保護 → 15. admin_overrides保護 → 16. learner A/B分離 → 17. probe=true確認 →
+18. CEO test learnerのlocal進捗引き上げ → 19. reload → 20. 別browser context → 21. offline outbox →
+22. reconnect → 23. conflict → 24. N3 progress → 25. N2 alias progress → 26. review schedule →
+27. row count再確認（P1と比較）→ 28. staging smoke → 29. final report
+
+失敗時は §22e stop条件に従い中止し、§23e rollback②(feature)/①/③ を逆順で実行（保護は残る）。

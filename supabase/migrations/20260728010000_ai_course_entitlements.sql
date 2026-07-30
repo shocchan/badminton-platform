@@ -62,7 +62,7 @@ create or replace function public.ai_course_protect_admin_overrides()
 returns trigger language plpgsql security definer
 -- SECURITY DEFINERのsearch_path固定（未固定はschema偽装による権限昇格の定番経路）
 set search_path = public
-as $
+as $$
 declare
   v_claims text := nullif(current_setting('request.jwt.claims', true), '');
 begin

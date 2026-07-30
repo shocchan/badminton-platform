@@ -1,7 +1,12 @@
--- rollback for 20260728010000_ai_course_entitlements.sql
--- 撤去順: trigger → function → table（依存順）。
--- 注意: これはfeature rollback。移行insertで作られた行もtableごと消える。
---       実行前に `select * from public.ai_course_entitlements;` のdumpを取得すること。
-drop trigger if exists ai_learners_protect_admin_overrides on public.ai_learners;
-drop function if exists public.ai_course_protect_admin_overrides();
+-- rollback for 20260728010000_ai_course_entitlements.sql（**feature rollback のみ**）
+--
+-- ⚠️ 2026-07-30 Gate実測での修正:
+--    旧版は admin_overrides 保護trigger/functionまで落としていた。
+--    それでは rollback した瞬間に learner本人が admin_overrides を自己書き換えできる状態へ戻り、
+--    「rollbackで既存の権限昇格防止が外れる」= stop条件に該当してしまう。
+--    そのため本ファイルは entitlements テーブルのみを撤去し、**保護は残す**。
+--    保護triggerは entitlements テーブルに依存しないため、単独で機能する（Gate実測で確認）。
+--
+-- 実行前に必ず `select * from public.ai_course_entitlements;` のdumpを取得すること
+-- （移行insertで作られた行もtableごと消える）。
 drop table if exists public.ai_course_entitlements;
