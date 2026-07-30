@@ -1,5 +1,36 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
+## 2026-07-31 PRODUCT CONTENT SPRINT（Phase B・進行中）
+
+**方針転換（CEO 7/31）**: 受講者個別設定・リリース手続きは「Release Operations Phase」へ分離。
+中身の完成が最優先。完成判定は「runtime配線＋staging実画面」まで（設計書だけはCOMPLETEにしない）。
+
+### A. Chapter 2以降 — IN_PROGRESS（7/10章・playable・staging実測済み）
+- 必要章数の決定: 10Area監査により**全10章**（各Areaに1章）
+- **完成: 第1〜7章**（commit 541dd89）。engine一般化（chapterRegistry / adventureState章対応 /
+  Panel chapterId prop / N3AreaPanel全エリア入口 / 辞書パラメータ化）＋検証16テスト
+- **staging実画面で実測済み**: 合成learnerで第2章に入り Quest 1 を実プレイ
+  （teach→assess 2語→完了XP+20→beat/NPC解放→**reload後に完全復元**→zh表示も確認・console 0）。
+  fixture撤去済み（auth_users=5 learners=1 に復帰）
+- **残り: 第8〜10章**（ソラノ塔=N2導入・カタリ港=会話導入・オモイデ庭園=復習導入の各章。
+  常設施設エリアの「導入章」として設計する。恒久ロックは作らない）
+- **resumeFrom(B-1)**: `chapters8to10Data.ts` を新規作成（ChapterDef契約は chapterRegistry.ts、
+  作例は chapters5to7Data.ts）→ chapterRegistry.CHAPTERS へ追加 → chapterRegistry.test.ts の
+  「7章」期待値を10へ → 8〜10章のQuest素材は再遭遇語彙（N2はn2グロス表示のみ・実在fi-*で確認）
+  → tests/build/staging → stage-verify-session.mjs で実画面確認 → cleanup
+
+### 検証用ツール（今回作成・再利用可）
+- `scripts/ai-course/stage-verify-session.mjs` — staging実画面検証用の合成learnerセッション
+  （--create --out で発行 / ブラウザlocalStorageへ `storageKey` のJSONを注入 / --cleanup <userId> 必須）
+
+### B〜F 未着手（優先順）
+- B-2 会話文脈接続 13→140（正準の現在値はconversation側データの再集計から）
+- B-3 Loading演出（25領域監査→共通component）
+- B-4 語彙イラスト115枚（deterministic SVG scene・状態分離・AI承認なし）
+- B-5 横断品質監査（Chapter全体・N3/N2・ja/zh・mobile・a11y）
+- B-6 バドミントンlint 29E/6W→0/0（コンテンツ完了後）
+
+
 ## 2026-07-30 AUGUST RELEASE COMPLETION PROGRAM（進行中）
 
 - **GATE① COMPLETE**: 承認 `APPLY_SHARED_SUPABASE_MIGRATIONS` に基づき本番へmigration 3本を適用。
