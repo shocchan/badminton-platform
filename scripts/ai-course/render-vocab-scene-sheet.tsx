@@ -8,7 +8,7 @@ import { VocabScene } from '../../src/components/ai-course/foundation/vocab/Voca
 import { ALL_SCENES } from '../../src/lib/aiLesson/course/vocabIllustrationManifest';
 import { allVocabularyItems } from '../../src/lib/aiLesson/course/foundationVocabBank';
 
-const label = new Map(allVocabularyItems().map((i) => [i.id, (i as any).displayForm ?? i.id]));
+const label = new Map(allVocabularyItems().map((i) => [i.id, i.displayForm ?? i.id]));
 const PAGE = Number(process.env.SHEET_PAGE ?? '0');
 const PER = 24;
 const SLICE = PAGE ? ALL_SCENES.slice((PAGE - 1) * PER, PAGE * PER) : ALL_SCENES;

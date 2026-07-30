@@ -2,10 +2,9 @@
 //
 // 「文字を描かない」を機構として守るため、この描画器はテキスト要素を一切出さない。
 // 意味は場所・人物のポーズ・小物・方向で表し、altは支援技術のためだけに使う。
-import {
-  SCENE_W, SCENE_H, Place, Figure, Prop, Arrow, SizePair, Bubble, C,
-  type PlaceKey, type Pose, type Mood, type PropKey, type Dir,
-} from './vocabSceneKit';
+import { Place, Figure, Prop, Arrow, SizePair, Bubble } from './vocabSceneKit';
+import { SCENE_W, SCENE_H, C } from './vocabSceneTokens';
+import type { PlaceKey, Pose, Mood, PropKey, Dir } from './vocabSceneTokens';
 
 export interface VocabSceneSpec {
   itemId: string;
