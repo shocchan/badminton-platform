@@ -2,7 +2,7 @@
 
 ## 2026-07-31 PHASE B 完了 — Content RC1 凍結
 
-**RC HEAD: `ed92454`** / branch `feature/ai-course-learning-polish` / clean / origin push済
+**RC HEAD: `8290177`**（コードは `ed92454`。以降はdocsのみ） / branch `feature/ai-course-learning-polish` / clean / origin push済
 release manifest: `docs/ai-course/production/release-manifest-content-rc1.md`
 RC tag候補: `ai-course-content-rc1`（**未作成・未push**。承認後に打つ）
 

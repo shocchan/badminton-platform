@@ -13,7 +13,8 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 | 項目 | 値 |
 |---|---|
 | release branch | `feature/ai-course-learning-polish` |
-| RC HEAD | `ed92454` |
+| RC HEAD（コード） | `ed92454` |
+| HEAD（この文書を含む） | `8290177` — docsのみ。コードは `ed92454` と同一 |
 | working tree | clean |
 | origin push | 済 |
 | main | 未merge（本番は従来系統のまま） |
@@ -28,6 +29,7 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 | `af01f63` | 横断品質監査のP1修正（中国語learnerへの日本語露出）（B-5） |
 | `df2580b` | 語彙イラスト140語を自前SVGで用意し学習者画面へ接続（B-4） |
 | `ed92454` | 今回追加分のlintを0にする（B-6） |
+| `8290177` | RC凍結の記録（docsのみ・コード変更なし） |
 
 ---
 
