@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  AIコース日次チェックの自動実行（毎朝10:05・backupの直後）。
+  異常があれば macOS通知＋ ~/ai-company/logs/daily-pf-analytics/ops-check-*.log に記録。
+
+  導入（CEOが1回だけ実行）:
+    cp ~/badminton-platform/scripts/ai-course/com.kawabado.daily-ops-check.plist ~/Library/LaunchAgents/
+    launchctl load ~/Library/LaunchAgents/com.kawabado.daily-ops-check.plist
+  手動実行:
+    launchctl start com.kawabado.daily-ops-check
+  解除:
+    launchctl unload ~/Library/LaunchAgents/com.kawabado.daily-ops-check.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.kawabado.daily-ops-check</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/node</string>
+    <string>/Users/shocchan/badminton-platform/scripts/ai-course/daily-ops-check.mjs</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>10</integer><key>Minute</key><integer>5</integer></dict>
+  <key>StandardOutPath</key><string>/Users/shocchan/ai-company/backups/ops-check-launchd.log</string>
+  <key>StandardErrorPath</key><string>/Users/shocchan/ai-company/backups/ops-check-launchd.log</string>
+</dict>
+</plist>

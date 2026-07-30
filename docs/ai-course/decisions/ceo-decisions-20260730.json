@@ -148,11 +148,18 @@
         "perLearnerStop": "is_active=false enforced server-side in 3 independent places (security.sql:193, monthly_cap.sql:59, ai-lesson-token/index.ts:155)",
         "configRestored": "supabase/config.toml restored after local drill (git diff empty)"
       },
+      "evidence20260731": {
+        "restoreRehearsal": "PASS 21/21 on isolated local DB from real daily backup JSON (auth.users 5 + 18 AI-course tables incl. utterances 219; canonical jsonb_populate_recordset procedure; found+fixed identity-column defect via OVERRIDING SYSTEM VALUE; backup refreshed to include the 5 new tables = 43 tables)",
+        "syntheticEventDetection": "PASS on production: insert labeled synthetic issue report -> daily-ops detected unresolved 1->2 -> removed by exact UUID -> back to 1",
+        "alertAutomation": "daily-ops-check.mjs evaluates thresholds, logs to ~/ai-company/logs/daily-pf-analytics/, macOS notification on abnormal (2 real alerts fired on first run; 1 false-positive rule fixed). launchd plist prepared, NOT installed (CEO one-command opt-in)",
+        "tokenSecurity": "permission 600 / outside git / zero leakage in audit log, scripts, docs (grep-verified). No expiry -> quarterly rotation recommended (next 2026-10-01)",
+        "gate1Reverify": "15/15 OK read-only re-check (history/catalog/fixtures 0/baseline unchanged)"
+      },
       "knownGaps": [
-        "full-restore rehearsal from JSON backup not performed (partial restore has precedent 2026-07-09)",
-        "no active/push alerting: the dashboard must be read by a human",
+        "no email/push alerting (macOS notification + human-read dashboard; launchd automation prepared but not installed)",
         "single owner (no secondary responder)",
-        "Cloudflare rollback verified only as a dashboard procedure, not via CLI"
+        "Cloudflare rollback verified only as a dashboard procedure, not via CLI",
+        "badminton-side tables excluded from full-restore rehearsal (legacy schema chain cannot stand up locally; partial-restore precedent 2026-07-09)"
       ]
     },
     "gate2_physical_devices": { "status": "INCOMPLETE", "blockedBy": "CEO only (checklist prepared: pilot-device-check-20260730.md)" },

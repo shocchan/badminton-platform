@@ -57,11 +57,26 @@ migration適用**前**の状態を保存してある。
 
 ```sql
 -- 該当日のJSONを読み、jsonb_populate_recordset でINSERT（ドル引用符のタグにバックスラッシュを付けない）
-insert into public.<table>
+-- ⚠️ identity列（GENERATED ALWAYS）を持つ表は overriding system value が必須
+--   （2026-07-31のリハーサルで ai_session_utterances が実際に失敗して発覚）
+insert into public.<table> overriding system value
 select * from jsonb_populate_recordset(null::public.<table>, $tag$<JSON配列>$tag$::jsonb);
 ```
 
-> 復元の全量リハーサルは**未実施**。部分復元は 2026-07-09 の blog_posts 事故で実績あり。
+全量（AIコース側）は自動化済み:
+
+```bash
+node scripts/ai-course/restore-rehearsal-local.mjs 2026-07-30
+```
+
+### 全量restore rehearsal 結果（2026-07-31・隔離local DB・PASS 21/21）
+
+- auth.users 5 → AIコース系18テーブル（learners 1 / sessions 24 / utterances 219 / 新5表含む）まで
+  **実際の日次backup JSONから正準手順どおり復元**し、全テーブルでrow countがbackupと一致
+- catalog（policy 11 / trigger 1 / RPC 1）健在・join整合smoke PASS
+- 発見した欠陥2件は手順とスクリプトに反映済み（identity列 / backupがmigration前だった→取り直し済み）
+- 制約（正直な記録）: auth.usersはbackupに含まれる範囲のみ（passwordハッシュなし＝learnerはOTPで再ログイン可能なので実害なし）。
+  バドミントン側テーブルはlocalに旧スキーマchainが立たないため対象外（部分復元の実績 2026-07-09 で代替）
 
 ---
 
@@ -220,8 +235,10 @@ drill後に `supabase/config.toml` を復元済み（`git diff` 空）。
 
 | 項目 | 状態 |
 |---|---|
-| バックアップの全量復元リハーサル | 未実施（部分復元のみ実績あり） |
+| ~~バックアップの全量復元リハーサル~~ | **完了（2026-07-31）**: AIコース側全テーブル 21/21 PASS（§1参照） |
 | 本番へのDROP実行リハーサル | 意図的に未実施（§4の理由。localクリーンDBでのdrillはPASS） |
 | Cloudflare rollbackのコマンド実行 | 未検証（ダッシュボード操作で代替） |
-| アラート（能動通知） | **無し**。上のdashboardを人が見る運用。閾値超過の自動通知は未実装 |
+| アラート（能動通知） | **半自動**: `daily-ops-check.mjs` が閾値を機械判定し、異常時はmacOS通知＋log。synthetic eventで検出実測済み（挿入→検出→厳密ID撤去）。launchd定義は `com.kawabado.daily-ops-check.plist`（**導入はCEOの1コマンド・未導入**）。メール通知は未実装 |
+| 手動監視の運用値 | 確認: 毎朝10:05（backup 10:00の直後）／未確認時: 翌朝まとめて確認（Pilot 3名なら許容）／異常基準: §0の表／対応目標: S1=当日・S2=24h・S3=72h |
+| token | `~/.supabase_backup_token` 600・git外・log露出0を実測確認。personal access tokenのため無期限＝**四半期ごとにダッシュボードでrotate推奨**（次回: 2026-10-01） |
 | 二次対応者 | 不在（しょっちゃん1人が単一障害点） |
