@@ -23,7 +23,7 @@ describe('CEO決定の記録（decided/openの分離）', () => {
     expect(decisions.decided.n2_merge.merged['n2g-104']).toBe('n2g-102');
     expect(decisions.decided.materials_beta.status).toBe('provisionally_accepted_for_beta');
     expect(decisions.decided.visual_beta.status).toBe('provisionally_accepted_for_beta');
-    expect(decisions.decided.support_channel.value).toBe('info@kawabado.com');
+    expect(decisions.decided.support_channel.scopeA_learnerApp.value).toBe('info@kawabado.com');
   });
   it('人間ゲートはopenのまま（「全ゲート完了」と記録しない）', () => {
     expect(decisions.openGates.legal).toBe('open');
@@ -55,13 +55,27 @@ describe('旧名称のlearner-visible 0（§3）', () => {
   });
 });
 
-describe('Support窓口の統一（§5）', () => {
-  it('learner辞書にWeChat/Shocchance/微信が0・info@kawabado.comが存在', () => {
+describe('Support窓口の適用範囲分離（CEO正式方針 2026-07-30）', () => {
+  // 注意: 「AI日本語コース全体でWeChat=0」というテストは意図的に作らない。
+  // 対象は【学習アプリ内（購入後learner向け）】のみ。LPの購入前相談導線は別方針（下のテスト）。
+  it('A: 学習アプリ内のlearner-visible WeChat/Shocchance/微信 = 0', () => {
     const banned = ['WeChat', 'Shocchance', '微信'];
-    for (const s of allDictStrings) for (const b of banned) expect(s.includes(b), `辞書に禁止語: ${b} :: ${s.slice(0, 40)}`).toBe(false);
+    for (const s of allDictStrings) for (const b of banned) expect(s.includes(b), `learner辞書に禁止語: ${b} :: ${s.slice(0, 40)}`).toBe(false);
+  });
+  it('A: 学習アプリ内の公開人間窓口は info@kawabado.com（ja/zh両方に表示文言あり）', () => {
     expect(aiCourseI18n.ja.support.email).toBe('info@kawabado.com');
     expect(aiCourseI18n.zh.support.email).toBe('info@kawabado.com');
     expect(aiCourseI18n.ja.support.contactByEmail.length).toBeGreaterThan(0);
     expect(aiCourseI18n.zh.support.contactByEmail.length).toBeGreaterThan(0);
+  });
+  it('B: LP（未購入者向け）の購入前WeChat相談導線は許可・維持されている', async () => {
+    const { LP } = await import('../../../pages/ai-lesson/landing/lpContent');
+    // 営業導線としてのWeChat IDは維持（learner appの禁止対象ではない）
+    expect(LP.consultation.wechatIdPlaceholder).toBe('Shocchance');
+    expect(LP.consultation.wechatLabel.ja.length).toBeGreaterThan(0);
+    // メール相談の併記（維持または追加）
+    expect(LP.consultation.email).toBe('info@kawabado.com');
+    expect(LP.consultation.emailCta.ja.length).toBeGreaterThan(0);
+    expect(LP.consultation.emailCta.zh.length).toBeGreaterThan(0);
   });
 });

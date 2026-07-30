@@ -3,26 +3,111 @@
   "source": "CEO直接指示（商品全体確認と主要判断の完了セッション）",
   "decided": {
     "staging_whole_product_check": "completed",
-    "world_name": { "status": "decided", "value": "ミナモ列島" },
-    "chapter1_name": { "status": "decided", "value": "霧の港町", "replaces": "はじまりの町" },
+    "world_name": {
+      "status": "decided",
+      "value": "ミナモ列島"
+    },
+    "chapter1_name": {
+      "status": "decided",
+      "value": "霧の港町",
+      "replaces": "はじまりの町"
+    },
     "area_names": {
       "status": "decided",
-      "values": ["ミナト", "ヒノデ台", "オウライ街道", "イチバ通り", "ユカリの森", "ハタラキ街", "カタチの遺跡", "ソラノ塔", "カタリ港", "オモイデ庭園"],
-      "removedOldNames": ["トオリミチ", "ハタラキ区"],
+      "values": [
+        "ミナト",
+        "ヒノデ台",
+        "オウライ街道",
+        "イチバ通り",
+        "ユカリの森",
+        "ハタラキ街",
+        "カタチの遺跡",
+        "ソラノ塔",
+        "カタリ港",
+        "オモイデ庭園"
+      ],
+      "removedOldNames": [
+        "トオリミチ",
+        "ハタラキ区"
+      ],
       "note": "表示名のみ変更。route ID・保存済みprogress IDは不変（areaId据え置き）"
     },
-    "area_name_display_policy": { "status": "decided", "value": "B: 日本語固有名詞＋中国語gloss併記（地図ラベルは日本語短縮形・ariaは中国語localeで動作+名前+テーマ読み上げ）" },
+    "area_name_display_policy": {
+      "status": "decided",
+      "value": "B: 日本語固有名詞＋中国語gloss併記（地図ラベルは日本語短縮形・ariaは中国語localeで動作+名前+テーマ読み上げ）"
+    },
     "n2_merge": {
       "status": "decided",
-      "merged": { "n2g-024": "n2g-023", "n2g-104": "n2g-102" },
-      "keptIndependent": ["n2g-007", "n2g-018", "n2g-064", "n2g-099", "n2g-162"],
+      "merged": {
+        "n2g-024": "n2g-023",
+        "n2g-104": "n2g-102"
+      },
+      "keptIndependent": [
+        "n2g-007",
+        "n2g-018",
+        "n2g-064",
+        "n2g-099",
+        "n2g-162"
+      ],
       "identity": "canonical 178 + alias 2 = 原本180"
     },
-    "materials_beta": { "status": "provisionally_accepted_for_beta", "note": "β版で暫定採用。human_reviewed/approvedの一括昇格ではない" },
-    "visual_beta": { "status": "provisionally_accepted_for_beta", "scope": ["世界トーン", "World Map", "主人公", "翔子先生", "NPC", "Area Visual", "中立語彙図形"], "note": "正式approvedとは別状態" },
-    "support_channel": { "status": "decided", "value": "info@kawabado.com", "banned": ["WeChat", "Shocchance", "QRコード", "個人チャット誘導"], "scope": "AI日本語コースのlearner-visible面（LPの軸1商談導線は対象外）", "incidentOwner": "しょっちゃん", "backupOwner": "しょっちゃん" },
-    "lp_wording": { "status": "decided", "note": "ベータ/先行モニター/N2はAI草稿で先生確認継続の表現を維持。「N2準備中」→ソラノ塔で学べる表現へ。「人間確認済みの教材から公開」の虚偽文言は削除" },
-    "map_interactivity": { "status": "requested_and_implemented" }
+    "materials_beta": {
+      "status": "provisionally_accepted_for_beta",
+      "note": "β版で暫定採用。human_reviewed/approvedの一括昇格ではない"
+    },
+    "visual_beta": {
+      "status": "provisionally_accepted_for_beta",
+      "scope": [
+        "世界トーン",
+        "World Map",
+        "主人公",
+        "翔子先生",
+        "NPC",
+        "Area Visual",
+        "中立語彙図形"
+      ],
+      "note": "正式approvedとは別状態"
+    },
+    "support_channel": {
+      "status": "decided",
+      "scopeA_learnerApp": {
+        "value": "info@kawabado.com",
+        "banned": [
+          "WeChat",
+          "Shocchance",
+          "WeChat ID",
+          "QRコード",
+          "個人チャット誘導"
+        ],
+        "surfaces": [
+          "Settings",
+          "Support",
+          "Help",
+          "Error fallback",
+          "Privacy問い合わせ",
+          "footer",
+          "toast",
+          "empty state",
+          "aria-label",
+          "ja",
+          "zh"
+        ]
+      },
+      "scopeB_publicLP": {
+        "value": "購入前相談はメール・WeChatのどちらも表示可。既存の無料相談WeChatモーダルは営業導線として維持。メール（info@kawabado.com）を併記追加"
+      },
+      "scopeC_badminton": "変更なし",
+      "incidentOwner": "しょっちゃん",
+      "backupOwner": "しょっちゃん",
+      "note": "「AIコース全体でWeChat=0」というテストは作らない（learner appスコープのみ恒久テスト化）"
+    },
+    "lp_wording": {
+      "status": "decided",
+      "note": "ベータ/先行モニター/N2はAI草稿で先生確認継続の表現を維持。「N2準備中」→ソラノ塔で学べる表現へ。「人間確認済みの教材から公開」の虚偽文言は削除"
+    },
+    "map_interactivity": {
+      "status": "requested_and_implemented"
+    }
   },
   "openGates": {
     "legal": "open",

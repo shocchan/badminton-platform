@@ -138,7 +138,8 @@ export interface LpContent {
   };
   faq: { heading: Str; items: L<{ q: string; a: string }[]> };
   finalCta: { heading: Str; body: Str };
-  consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str };
+  consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str;
+    emailLabel: Str; email: string; emailCta: Str };
   footerTagline: Str;
 }
 
@@ -543,10 +544,12 @@ export const LP: LpContent = {
   },
 
   consultation: {
-    heading: { ja: '無料個別相談（WeChat）', zh: '免费一对一咨询（微信）' },
+    // 未購入者向けの営業・相談導線（CEO方針 2026-07-30: LPではWeChat維持＋メール併記可）。
+    // 学習アプリ内のlearner向け人間窓口は info@kawabado.com のみ（こちらとは別管理）。
+    heading: { ja: '無料相談', zh: '免费咨询' },
     body: {
-      ja: 'まずはWeChatでお気軽に。あなたの今の状況を聞いて、合うかどうかを一緒に確かめます。むりな勧誘はしません。',
-      zh: '先加微信聊聊。了解你现在的情况，一起确认是否适合。绝不强行推销。',
+      ja: 'メールまたはWeChatでお気軽にご相談ください。あなたの今の状況を聞いて、合うかどうかを一緒に確かめます。むりな勧誘はしません。',
+      zh: '可以通过电子邮件或微信联系我们。了解你现在的情况，一起确认是否适合。绝不强行推销。',
     },
     wechatLabel: { ja: 'WeChat ID', zh: '微信号' },
     wechatIdPlaceholder: 'Shocchance', // WeChat ID（本番）
@@ -558,6 +561,9 @@ export const LP: LpContent = {
       ja: '合わなければ、それでOK。むりな勧誘はしません。',
       zh: '如果不合适，也完全没关系。绝不强行推销。',
     },
+    emailLabel: { ja: 'メールで相談', zh: '邮件咨询' },
+    email: 'info@kawabado.com',
+    emailCta: { ja: 'メールを送る', zh: '发送邮件' },
   },
 
   footerTagline: {
