@@ -984,12 +984,16 @@ export default function AiCoursePage() {
         />
         {/* 問い合わせ（§19）。送信先未確定の間は「この端末に控えました」と正直に表示する */}
         <div className="max-w-md lg:max-w-2xl mx-auto px-4 pb-8">
-          <p className="text-xs font-bold text-gray-500 mb-1">こまったとき</p>
+          <p className="text-xs font-bold text-gray-500 mb-1">{uiLang === 'zh' ? '遇到问题时' : 'こまったとき'}</p>
           <SupportReportButton
             adapter={supportAdapter}
+            lang={uiLang === 'zh' ? 'zh' : 'ja'}
             context={{ route: 'settings', feature: 'support', locale: uiLang,
               appVersion: 'staging', contentVersion: 'course-v1', deviceClass: 'unknown' }}
-            contactFallbackJa="うまくいかない状態が続くときは、先生に直接お知らせください。"
+            contactFallback={{
+              ja: 'うまくいかない状態が続くときは、先生に直接お知らせください。',
+              zh: '如果问题一直没有解决，请直接告诉老师。',
+            }}
           />
         </div>
       </Shell>

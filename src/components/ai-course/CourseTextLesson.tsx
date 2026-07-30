@@ -328,7 +328,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
                 disabled={busy}
                 placeholder={t.locale === 'zh' ? '用日语输入…' : '日本語で入力…'}
                 className="flex-1 min-h-12 px-4 py-3 border border-gray-300 rounded-xl bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 disabled:bg-gray-100" />
-              <button type="button" onClick={() => void send()} disabled={!input.trim() || busy} aria-label="send"
+              <button type="button" onClick={() => void send()} disabled={!input.trim() || busy}
+                aria-label={t.locale === 'zh' ? '发送' : '送信'}
                 className="min-h-12 min-w-12 px-4 bg-blue-600 text-white rounded-xl disabled:opacity-40 flex items-center justify-center shrink-0"><Send className="w-5 h-5" /></button>
             </div>
           </>
