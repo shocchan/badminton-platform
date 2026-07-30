@@ -34,10 +34,10 @@ export interface Chapter1StoryBeat {
 
 /** 文法ミッション（実在のFoundationRule/Questionのみ参照。教材の複製はしない） */
 export interface GrammarMission {
-  /** 実在のFoundationRule ID（foundationUnit1/5/6） */
+  /** 実在のFoundationRule ID（foundationUnit1〜6） */
   ruleId: string;
-  /** ルールと問題が属するfoundation unitファイル番号（lazy import用） */
-  unitFile: 1 | 5 | 6;
+  /** ルールと問題が属するfoundation unitファイル番号（provenance。2026-07-31: 全章対応で1〜6へ拡張） */
+  unitFile: 1 | 2 | 3 | 4 | 5 | 6;
   /** そのルールを対象とする実在のFoundationQuestion ID（choice系） */
   questionIds: string[];
   /** 短い産出: トークンを正しい順に並べる（Quest場面用の文。教材の複製ではなく使用場面） */

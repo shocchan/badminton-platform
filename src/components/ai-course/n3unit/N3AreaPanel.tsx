@@ -12,6 +12,7 @@ import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocab
 import { createLocalUnitStorage } from '../../../lib/aiLesson/course/n3unit/localUnitStorage';
 import type { StoragePort } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import type { UnitSyncMode } from '../../../lib/aiLesson/course/persistence/syncedUnitStorage';
+import { chapterForArea } from '../../../lib/aiLesson/course/rpg/chapterRegistry';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 import { worldChangeFor } from '../../../lib/aiLesson/course/n3unit/unitRuntime';
 import { N3UnitPanel } from './N3UnitPanel';
@@ -49,6 +50,7 @@ export const N3AreaPanel = ({
   storage: injectedStorage, syncMode = 'local_only',
 }: N3AreaPanelProps) => {
   const zh = t.locale === 'zh';
+  const areaChapter = chapterForArea(area.areaId);
   const pool = useMemo(() => allVocabularyItems(), []);
   const storage = useMemo(
     () => injectedStorage ?? (browserStore ? createLocalUnitStorage(browserStore)
@@ -126,13 +128,13 @@ export const N3AreaPanel = ({
         </dl>
       </div>
 
-      {/* Chapter 1 冒険（エリア1のみ） */}
-      {area.hasAdventure && onOpenAdventure && (
-        <button type="button" onClick={onOpenAdventure}
+      {/* 章冒険（2026-07-31: 全エリアに章ができたため、chapterがあるエリアすべてに入口を出す） */}
+      {areaChapter && onOpenAdventure && (
+        <button type="button" onClick={onOpenAdventure} data-chapter-entry={areaChapter.chapterId}
           className="w-full text-left mb-3 p-4 bg-indigo-600 text-white rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
           <p className="text-[11px] font-bold text-indigo-200">{t.n3a.story}</p>
-          <p className="text-base font-bold">{t.n3a.ch1Enter}</p>
-          <p className="text-[11px] text-indigo-100 mt-0.5">{t.n3a.ch1Body}</p>
+          <p className="text-base font-bold">{t.n3a.chapterEnter(areaChapter.order, zh ? areaChapter.titleZh : areaChapter.titleJa)}</p>
+          <p className="text-[11px] text-indigo-100 mt-0.5">{zh ? areaChapter.incidentZh : areaChapter.incidentJa}</p>
         </button>
       )}
 

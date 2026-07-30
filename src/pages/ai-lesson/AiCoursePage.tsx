@@ -81,6 +81,8 @@ import {
   probeUnitProgressSync, createSyncedUnitStorage,
   type FullProbeClient, type UnitSyncMode,
 } from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
+import { chapterForArea } from '../../lib/aiLesson/course/rpg/chapterRegistry';
+import { CHAPTER1_ID as CHAPTER1_ID_FOR_PAGE } from '../../lib/aiLesson/course/rpg/chapter1Data';
 import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
 import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
 import { supabase } from '../../services/supabaseClient';
@@ -192,6 +194,8 @@ export default function AiCoursePage() {
   const [previewReturnStep, setPreviewReturnStep] = useState<Step>('chapters');
   // World Map（ミナモ列島）: 開いているエリアと現在地（localStorageから導出・read only）
   const [activeAreaId, setActiveAreaId] = useState<string | null>(null);
+  // 開いている章（'adventure' step用）。既定はChapter 1（庭園の再会導線などの後方互換）
+  const [adventureChapterId, setAdventureChapterId] = useState<string>(CHAPTER1_ID_FOR_PAGE);
   const [currentAreaId, setCurrentAreaId] = useState<string>(() => deriveCurrentAreaId(window.localStorage));
   // 単元進捗の保存先（H2準備）: ai_course_unit_progress がremoteに存在する時だけ同期つきへ切替。
   // 未適用の現在は probe が false → undefined のまま（N3AreaPanelは従来の端末内保存）。
@@ -853,7 +857,11 @@ export default function AiCoursePage() {
             <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
-              onOpenAdventure={area.hasAdventure ? () => setStep('adventure') : undefined}
+              onOpenAdventure={(() => {
+                // 2026-07-31: 全学習エリアに章ができた。エリア対応の章を開く
+                const ch = chapterForArea(area.areaId);
+                return ch ? () => { setAdventureChapterId(ch.chapterId); setStep('adventure'); } : undefined;
+              })()}
               onOpenReview={openReview}
             />
           </Suspense>
@@ -866,7 +874,8 @@ export default function AiCoursePage() {
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<div className="max-w-md mx-auto px-4 py-10 text-center text-sm text-gray-400">{t.common.loading}</div>}>
-            <Chapter1AdventureLazy t={t} onBack={() => setStep('home')} devTools={labAllowed} />
+            {/* keyで章ごとに必ず再mount（章切替時に前章のstateを持ち越さない） */}
+            <Chapter1AdventureLazy key={adventureChapterId} t={t} chapterId={adventureChapterId} onBack={() => setStep('home')} devTools={labAllowed} />
           </Suspense>
         </LearnerErrorBoundary>
       </Shell>

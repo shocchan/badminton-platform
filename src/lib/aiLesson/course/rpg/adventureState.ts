@@ -10,10 +10,19 @@
 // 5. Adventure XPはQuest単位の台帳で冪等（reload・再実行で二重加算しない）。
 // 6. XPはJapanese Masteryではない（表示・判定に使わない）。
 import type { KVStorage } from '../n2Recent';
-import { CHAPTER1_ID, CHAPTER1_QUESTS, chapter1QuestById } from './chapter1Data';
+import { CHAPTER1_ID } from './chapter1Data';
+import { CHAPTERS, chapterById, questById, type ChapterDef } from './chapterRegistry';
 
 /** sandbox専用キー。learner系キーとは別namespace */
 export const RPG_SANDBOX_KEY = 'kawabado.aiCourse.v1.rpgLabSandbox';
+
+/**
+ * 章ごとの保存キー（2026-07-31 多章対応）。
+ * Chapter 1 は従来キーのまま＝既存learnerの進行を失わない（migration不要）。
+ * 2章以降は章IDを含む別キー。学習記録・XP台帳は章ごとに独立して保持する。
+ */
+export const chapterStorageKey = (chapterId: string): string =>
+  chapterId === CHAPTER1_ID ? RPG_SANDBOX_KEY : `${RPG_SANDBOX_KEY}.${chapterId}`;
 
 export type FogLevel = 'clear' | 'light_fog' | 'foggy' | 'review_needed';
 
@@ -61,32 +70,41 @@ const defaultStorage = (): KVStorage | null => {
   try { return typeof localStorage !== 'undefined' ? localStorage : null; } catch { return null; }
 };
 
-const FIRST_QUEST = CHAPTER1_QUESTS[0].questId;
+/** 章定義（stateのchapterIdから引く。未登録IDはChapter 1へフォールバックしない=空章を作らない） */
+const chapterOf = (chapterId: string): ChapterDef => {
+  const c = chapterById(chapterId);
+  if (!c) throw new Error(`unknown chapter: ${chapterId}`);
+  return c;
+};
 
-export const emptyAdventureState = (nowMs: number): AdventureState => ({
-  version: 1,
-  chapter: {
-    chapterId: CHAPTER1_ID, discoveredAtMs: nowMs, completedAtMs: null,
-    currentQuestId: FIRST_QUEST, unlockedQuestIds: [FIRST_QUEST],
-    completedQuestIds: [], encounteredNpcIds: [], discoveredLocationIds: ['c1-town-gate'],
-    seenStoryBeatIds: [],
-  },
-  quests: {}, learning: {}, adventureXp: 0, xpLedger: {}, simulatedOffsetMs: 0,
-});
+export const emptyAdventureState = (nowMs: number, chapterId: string = CHAPTER1_ID): AdventureState => {
+  const chapter = chapterOf(chapterId);
+  return {
+    version: 1,
+    chapter: {
+      chapterId, discoveredAtMs: nowMs, completedAtMs: null,
+      currentQuestId: chapter.quests[0].questId, unlockedQuestIds: [chapter.quests[0].questId],
+      completedQuestIds: [], encounteredNpcIds: [], discoveredLocationIds: [chapter.startLocationId],
+      seenStoryBeatIds: [],
+    },
+    quests: {}, learning: {}, adventureXp: 0, xpLedger: {}, simulatedOffsetMs: 0,
+  };
+};
 
-export const loadAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState => {
-  if (!storage) return emptyAdventureState(nowMs);
+export const loadAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage(),
+  chapterId: string = CHAPTER1_ID): AdventureState => {
+  if (!storage) return emptyAdventureState(nowMs, chapterId);
   try {
-    const raw = storage.getItem(RPG_SANDBOX_KEY);
-    if (!raw) return emptyAdventureState(nowMs);
+    const raw = storage.getItem(chapterStorageKey(chapterId));
+    if (!raw) return emptyAdventureState(nowMs, chapterId);
     const parsed = JSON.parse(raw) as AdventureState;
-    if (parsed?.version !== 1 || parsed.chapter?.chapterId !== CHAPTER1_ID) return emptyAdventureState(nowMs);
+    if (parsed?.version !== 1 || parsed.chapter?.chapterId !== chapterId) return emptyAdventureState(nowMs, chapterId);
     return { ...parsed, simulatedOffsetMs: parsed.simulatedOffsetMs ?? 0 };
-  } catch { return emptyAdventureState(nowMs); }
+  } catch { return emptyAdventureState(nowMs, chapterId); }
 };
 
 const save = (state: AdventureState, storage: KVStorage | null): AdventureState => {
-  try { storage?.setItem(RPG_SANDBOX_KEY, JSON.stringify(state)); } catch { /* private mode等は無視 */ }
+  try { storage?.setItem(chapterStorageKey(state.chapter.chapterId), JSON.stringify(state)); } catch { /* private mode等は無視 */ }
   return state;
 };
 
@@ -106,9 +124,9 @@ export const startQuest = (state: AdventureState, questId: string, nowMs: number
   return save(next, storage);
 };
 
-/** Questの全要件キー（語彙ID＋文法rule:キー） */
+/** Questの全要件キー（語彙ID＋文法rule:キー）。questIdは全章で一意（registry横断で解決） */
 export const questRequirementKeys = (questId: string): string[] => {
-  const quest = chapter1QuestById(questId);
+  const quest = questById(questId)?.quest;
   if (!quest) return [];
   return [...quest.learningItemIds, ...(quest.grammarRequirements ?? []).map(g => `rule:${g.ruleId}`)];
 };
@@ -116,7 +134,7 @@ export const questRequirementKeys = (questId: string): string[] => {
 /** sandbox学習結果を記録（正解でQuest要件を充足）。実在Quest対象キーのみ充足に数える */
 export const recordLearningResult = (state: AdventureState, questId: string, itemId: string,
   correct: boolean, nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState => {
-  const quest = chapter1QuestById(questId);
+  const quest = questById(questId)?.quest;
   if (!quest) return state;
   const rec = state.learning[itemId] ?? { itemId, correctCount: 0, lastCorrectAtMs: null, lastAnswerCorrect: false };
   const learning = {
@@ -140,7 +158,7 @@ export const recordLearningResult = (state: AdventureState, questId: string, ite
 
 /** Quest要件がすべて充足済みか（章末Questは場面会話成立も必要 → finaleCleared引数） */
 export const questRequirementsMet = (state: AdventureState, questId: string, finaleCleared = false): boolean => {
-  const quest = chapter1QuestById(questId);
+  const quest = questById(questId)?.quest;
   if (!quest) return false;
   const qp = state.quests[questId];
   if (!qp) return false;
@@ -154,13 +172,14 @@ export const questRequirementsMet = (state: AdventureState, questId: string, fin
  */
 export const completeQuest = (state: AdventureState, questId: string, nowMs: number,
   finaleCleared = false, storage: KVStorage | null = defaultStorage()): AdventureState => {
-  const quest = chapter1QuestById(questId);
-  if (!quest || !questRequirementsMet(state, questId, finaleCleared)) return state;
+  const hit = questById(questId);
+  if (!hit || !questRequirementsMet(state, questId, finaleCleared)) return state;
+  const quest = hit.quest;
   const qp = state.quests[questId];
   const ledgerKey = `quest:${questId}`;
   const alreadyPaid = ledgerKey in state.xpLedger;
   const nextOrder = quest.order + 1;
-  const nextQuest = CHAPTER1_QUESTS.find(q => q.order === nextOrder);
+  const nextQuest = hit.chapter.quests.find(q => q.order === nextOrder);
   const chapter: ChapterProgress = {
     ...state.chapter,
     completedQuestIds: addUnique(state.chapter.completedQuestIds, [questId]),
@@ -200,8 +219,9 @@ export const deriveItemFog = (state: AdventureState, itemId: string, nowMs: numb
 /** 場所のFog: その場所を解放したQuestの教材群のうち最も濃いFog。未解放はfoggy固定 */
 export const deriveLocationFog = (state: AdventureState, locationId: string, nowMs: number): FogLevel => {
   if (!state.chapter.discoveredLocationIds.includes(locationId)) return 'foggy';
-  const quests = CHAPTER1_QUESTS.filter(q =>
-    q.unlocks.locationIds.includes(locationId) || (locationId === 'c1-town-gate' && q.order === 1));
+  const chapter = chapterOf(state.chapter.chapterId);
+  const quests = chapter.quests.filter(q =>
+    q.unlocks.locationIds.includes(locationId) || (locationId === chapter.startLocationId && q.order === 1));
   const order: FogLevel[] = ['clear', 'light_fog', 'foggy', 'review_needed'];
   let worst: FogLevel = 'clear';
   for (const q of quests) {
@@ -253,5 +273,13 @@ export const claimReviewReward = (state: AdventureState, rewardXp: number, nowMs
 };
 
 /** sandboxリセット（labPreview内の「最初からやり直す」用） */
-export const resetAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage()): AdventureState =>
-  save(emptyAdventureState(nowMs), storage);
+export const resetAdventureState = (nowMs: number, storage: KVStorage | null = defaultStorage(),
+  chapterId: string = CHAPTER1_ID): AdventureState =>
+  save(emptyAdventureState(nowMs, chapterId), storage);
+
+/** 全章の冒険XP合計（成長画面の表示用・read only） */
+export const totalAdventureXp = (nowMs: number, storage: KVStorage | null = defaultStorage()): number => {
+  let sum = 0;
+  for (const c of CHAPTERS) sum += loadAdventureState(nowMs, storage, c.chapterId).adventureXp;
+  return sum;
+};

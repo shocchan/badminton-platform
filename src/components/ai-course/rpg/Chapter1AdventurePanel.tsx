@@ -1,14 +1,12 @@
-// RPG Chapter 1「霧の港町」playable polished draft（labPreview限定・lazy chunk）v2。
+// RPG 章冒険パネル（旧: Chapter 1専用 → 2026-07-31 全章対応へ一般化）。
 // 学習の進捗＝物語の進行。操作ゲームではない（移動は自動演出）。
-// v2: 文法ミッション（実在FoundationRule/Question）・復習Quest「再会」・responsive 2カラム・
-//     Fog可視化・自動移動演出・aria-live・sandbox時間シミュレーション。
-// 進捗はsandbox専用キーのみ（通常learnerの学習記録には読み書きしない）。
-import { useMemo, useRef, useState } from 'react';
-import {
-  CHAPTER1_LOCATIONS, CHAPTER1_NPCS, CHAPTER1_QUESTS, CHAPTER1_STORY_BEATS,
-  CHAPTER1_FINALE_STEPS, REVIEW_REUNION, chapter1QuestById,
-  type Chapter1Quest, type GrammarMission,
-} from '../../../lib/aiLesson/course/rpg/chapter1Data';
+// - 章データはchapterRegistryから受け取る（chapterIdプロップ。既定はChapter 1＝後方互換）
+// - 文法ミッション（実在FoundationRule/Question・全6 unit対応）・復習Quest「再会」・
+//   responsive 2カラム・Fog可視化・自動移動演出・aria-live。
+// - 進捗は章ごとのsandboxキーのみ（通常learnerの学習記録には読み書きしない）
+import { useEffect, useMemo, useState } from 'react';
+import { CHAPTER1_ID, type Chapter1Quest, type GrammarMission } from '../../../lib/aiLesson/course/rpg/chapter1Data';
+import { chapterById } from '../../../lib/aiLesson/course/rpg/chapterRegistry';
 import {
   loadAdventureState, startQuest, recordLearningResult, completeQuest,
   deriveLocationFog, reviewNeededItems, resetAdventureState,
@@ -20,6 +18,9 @@ import { buildAssessQuestions } from '../../../lib/aiLesson/course/quality/asses
 import { cognateProfileFor } from '../../../lib/aiLesson/course/quality/cognateProfile';
 import type { FoundationItem, FoundationRule, FoundationQuestion } from '../../../lib/aiLesson/course/foundationTypes';
 import { UNIT1_RULES, UNIT1_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit1';
+import { UNIT2_RULES, UNIT2_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit2';
+import { UNIT3_RULES, UNIT3_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit3';
+import { UNIT4_RULES, UNIT4_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit4';
 import { UNIT5_RULES, UNIT5_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit5';
 import { UNIT6_RULES, UNIT6_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit6';
 import {
@@ -43,6 +44,8 @@ type Screen =
 interface Props {
   t: AiCourseDict;
   onBack: () => void;
+  /** 開く章（chapterRegistryの実在ID）。未指定はChapter 1＝後方互換 */
+  chapterId?: string;
   /**
    * 開発者ツール（時間送り・sandbox注記）。learner viewでは必ず false。
    * §6: learner画面に「試作」「sandbox」「検証用」等の開発表示を出さない。
@@ -50,23 +53,38 @@ interface Props {
   devTools?: boolean;
 }
 
-const NPC_SPRITE: Record<string, (p: { className?: string; pose?: SpritePose; decorative?: boolean }) => React.ReactElement> = {
+type SpriteComp = (p: { className?: string; pose?: SpritePose; decorative?: boolean }) => React.ReactElement;
+const NPC_SPRITE: Record<string, SpriteComp> = {
   'c1-npc-shoko': ShokoSprite, 'c1-npc-hana': NpcHanaSprite, 'c1-npc-gen': NpcGenSprite,
 };
-
-const FOG_REGIONS: Record<string, { x: number; y: number; w: number; h: number }> = {
-  'c1-town-gate': { x: 0, y: 22, w: 13, h: 14 },
-  'c1-main-street': { x: 12, y: 15, w: 15, h: 16 },
-  'c1-plaza': { x: 24, y: 8, w: 12, h: 12 },
-  'c1-station-front': { x: 35, y: 0, w: 13, h: 13 },
+/** 章2以降の固有NPCは専用ドット絵ができるまで既存の汎用スプライトを役割で使い回す
+ *（新規IPは作らない・human_review_candidate段階のvisual）。決定的: npcIdのハッシュで安定選択 */
+const FALLBACK_SPRITES: SpriteComp[] = [NpcHanaSprite, NpcGenSprite, ShokoSprite];
+const spriteFor = (npcId: string): SpriteComp => {
+  if (NPC_SPRITE[npcId]) return NPC_SPRITE[npcId];
+  let h = 0;
+  for (const c of npcId) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  return FALLBACK_SPRITES[h % FALLBACK_SPRITES.length];
 };
+
+/** 場所→霧領域。全章とも4拠点（テストで固定）なので、拠点の並び順でslotを割り当てる */
+const FOG_REGION_SLOTS: { x: number; y: number; w: number; h: number }[] = [
+  { x: 0, y: 22, w: 13, h: 14 },
+  { x: 12, y: 15, w: 15, h: 16 },
+  { x: 24, y: 8, w: 12, h: 12 },
+  { x: 35, y: 0, w: 13, h: 13 },
+];
 
 const fogLabelOf = (t: AiCourseDict): Record<FogLevel, string> => ({
   clear: t.ch1.fogClear, light_fog: t.ch1.fogLight, foggy: t.ch1.fogDeep, review_needed: t.ch1.fogReview,
 });
 
-const ALL_RULES: FoundationRule[] = [...UNIT1_RULES, ...UNIT5_RULES, ...UNIT6_RULES];
-const ALL_RULE_QUESTIONS: FoundationQuestion[] = [...UNIT1_QUESTIONS, ...UNIT5_QUESTIONS, ...UNIT6_QUESTIONS];
+const ALL_RULES: FoundationRule[] = [
+  ...UNIT1_RULES, ...UNIT2_RULES, ...UNIT3_RULES, ...UNIT4_RULES, ...UNIT5_RULES, ...UNIT6_RULES,
+];
+const ALL_RULE_QUESTIONS: FoundationQuestion[] = [
+  ...UNIT1_QUESTIONS, ...UNIT2_QUESTIONS, ...UNIT3_QUESTIONS, ...UNIT4_QUESTIONS, ...UNIT5_QUESTIONS, ...UNIT6_QUESTIONS,
+];
 const ruleById = new Map(ALL_RULES.map(r => [r.id, r]));
 const questionById = new Map(ALL_RULE_QUESTIONS.map(q => [q.id, q]));
 
@@ -77,9 +95,14 @@ const rotatedTokens = (tokens: string[]): string[] =>
 const initialNowMs = Date.now();
 const clockNow = () => Date.now();
 
-export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) => {
+export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, devTools = false }: Props) => {
   const zh = t.locale === 'zh';
-  const [state, setState] = useState<AdventureState>(() => loadAdventureState(initialNowMs));
+  // 章定義（実在IDのみ・chapterIdに対して安定＝React Compilerがmemoを保存できる）
+  const chapter = useMemo(() => chapterById(chapterId) ?? chapterById(CHAPTER1_ID)!, [chapterId]);
+  const questInChapter = (questId: string): Chapter1Quest | undefined =>
+    chapter.quests.find(q => q.questId === questId);
+  const [state, setState] = useState<AdventureState>(
+    () => loadAdventureState(initialNowMs, undefined, chapter.chapterId));
   const [screen, setScreen] = useState<Screen>({ kind: 'map' });
   const [simpleMode, setSimpleMode] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(() => {
@@ -87,7 +110,12 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
   });
   const [announcement, setAnnouncement] = useState('');
   const [heroPose, setHeroPose] = useState<SpritePose>('idle');
-  const walkTimer = useRef<number | null>(null);
+  // 歩行演出はeffectで自動停止（refのtimer管理はReact Compilerと相性が悪い）
+  useEffect(() => {
+    if (heroPose !== 'walk') return;
+    const id = window.setTimeout(() => setHeroPose('idle'), 1400);
+    return () => window.clearTimeout(id);
+  }, [heroPose]);
   // 実時間＋sandboxシミュレーションoffset。renderではnowMs（state由来）を使い、handlerでnow()を呼ぶ
   const [realNowMs, setRealNowMs] = useState(initialNowMs);
   const now = () => { const t = clockNow(); setRealNowMs(t); return t + state.simulatedOffsetMs; };
@@ -95,9 +123,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
 
   const itemById = useMemo(() => new Map(allVocabularyItems().map(i => [i.id, i])), []);
   const chapterPool = useMemo(() => {
-    const ids = CHAPTER1_QUESTS.flatMap(q => q.learningItemIds);
+    const ids = chapter.quests.flatMap(q => q.learningItemIds);
     return ids.map(id => itemById.get(id)).filter((x): x is FoundationItem => !!x);
-  }, [itemById]);
+  }, [itemById, chapter]);
 
   /** 語ごとのassess問題（決定的生成・teach内容は含めない）。Chapter開始時に一括構築 */
   const assessByItem = useMemo(() => {
@@ -110,7 +138,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
     assessByItem.get(item.id) ?? buildAssessQuestions(item, allVocabularyItems(), { introduced: false, max: 2 });
 
   const nextQuest: Chapter1Quest | null = state.chapter.currentQuestId
-    ? chapter1QuestById(state.chapter.currentQuestId) ?? null : null;
+    ? questInChapter(state.chapter.currentQuestId) ?? null : null;
   const reviewKeys = reviewNeededItems(state, nowMs);
   const chapterDone = state.chapter.completedAtMs !== null;
 
@@ -120,11 +148,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
   const returnToMap = (walkMsg?: string) => {
     setScreen({ kind: 'map' });
     if (walkMsg) announce(walkMsg);
-    if (!reducedMotion) {
-      setHeroPose('walk');
-      if (walkTimer.current) window.clearTimeout(walkTimer.current);
-      walkTimer.current = window.setTimeout(() => setHeroPose('idle'), 1400);
-    }
+    if (!reducedMotion) setHeroPose('walk'); // 停止はheroPose effectが受け持つ
   };
 
   const beginQuest = (q: Chapter1Quest) => {
@@ -138,8 +162,8 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
     setState(done);
     setScreen({ kind: 'questComplete', questId: quest.questId, xpGained: quest.adventureXpReward });
     const opened = [
-      ...quest.unlocks.locationIds.map(id => { const l = CHAPTER1_LOCATIONS.find(x => x.locationId === id); return zh ? l?.nameZh : l?.nameJa; }),
-      ...quest.unlocks.npcIds.map(id => { const n = CHAPTER1_NPCS.find(x => x.npcId === id); return zh ? n?.nameZh : n?.nameJa; }),
+      ...quest.unlocks.locationIds.map(id => { const l = chapter.locations.find(x => x.locationId === id); return zh ? l?.nameZh : l?.nameJa; }),
+      ...quest.unlocks.npcIds.map(id => { const n = chapter.npcs.find(x => x.npcId === id); return zh ? n?.nameZh : n?.nameJa; }),
     ].filter(Boolean);
     announce(t.ch1.announceQuestDone(quest.order, opened.join('・')));
   };
@@ -157,7 +181,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
 
   /** assess問題への解答。正解した問題数がその語の全問に達したら次の語へ */
   const answerAssess = (s: Extract<Screen, { kind: 'learning' }>, item: FoundationItem, correct: boolean) => {
-    const quest = chapter1QuestById(s.questId)!;
+    const quest = questInChapter(s.questId)!;
     const qs = assessFor(item);
     if (!correct) {
       // 誤答は記録するが要件は充足しない（同じ問題をもう一度）
@@ -180,7 +204,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
 
   /** 文法ミッション: step 0=ルール理解 / 1..n=確認問題 / n+1=産出（並べ替え） */
   const grammarMission = (s: Extract<Screen, { kind: 'grammar' }>): GrammarMission =>
-    chapter1QuestById(s.questId)!.grammarRequirements![s.missionIndex];
+    questInChapter(s.questId)!.grammarRequirements![s.missionIndex];
 
   const answerGrammarQuestion = (s: Extract<Screen, { kind: 'grammar' }>, q: FoundationQuestion, choiceIndex: number) => {
     if (choiceIndex !== q.answerIndex) { setScreen({ ...s, wrongOnce: true }); return; }
@@ -193,7 +217,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
     if (built.length < m.production.tokens.length) { setScreen({ ...s, built }); return; }
     const ok = built.join('') === m.production.tokens.join('');
     if (!ok) { setScreen({ ...s, built: [], wrongOnce: true }); return; }
-    const quest = chapter1QuestById(s.questId)!;
+    const quest = questInChapter(s.questId)!;
     const next = recordLearningResult(state, s.questId, `rule:${m.ruleId}`, true, now());
     setState(next);
     const nextMission = s.missionIndex + 1;
@@ -207,13 +231,13 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
   };
 
   const answerFinale = (questId: string, stepIndex: number, choice: string) => {
-    const step = CHAPTER1_FINALE_STEPS[stepIndex];
+    const step = chapter.finaleSteps[stepIndex];
     if (choice !== step.correctJa) { setScreen(s => s.kind === 'finale' ? { ...s, wrongOnce: true } : s); return; }
-    if (stepIndex + 1 < CHAPTER1_FINALE_STEPS.length) {
+    if (stepIndex + 1 < chapter.finaleSteps.length) {
       setScreen({ kind: 'finale', questId, stepIndex: stepIndex + 1, wrongOnce: false });
       return;
     }
-    finishQuest(chapter1QuestById(questId)!, state, true);
+    finishQuest(questInChapter(questId)!, state, true);
   };
 
   /** 復習「再会」: 学習済みの語を別文脈（例文の中）で再確認。ruleは確認問題を再出題 */
@@ -225,7 +249,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
     if (s.index + 1 < s.keys.length) {
       setScreen({ kind: 'reviewCheck', keys: s.keys, index: s.index + 1, built: [], wrongOnce: false });
     } else {
-      const rewarded = claimReviewReward(next, REVIEW_REUNION.adventureXpReward, now());
+      const rewarded = claimReviewReward(next, chapter.reviewReunion.adventureXpReward, now());
       setState(rewarded);
       setScreen({ kind: 'reviewDone', count: s.keys.length });
       announce(t.ch1.reviewCleared);
@@ -258,14 +282,14 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
   );
 
   const heroLoc = useMemo(() => {
-    const site = nextQuest?.siteLocationId ?? CHAPTER1_QUESTS[CHAPTER1_QUESTS.length - 1].siteLocationId;
-    return CHAPTER1_LOCATIONS.find(l => l.locationId === site) ?? CHAPTER1_LOCATIONS[0];
-  }, [nextQuest]);
+    const site = nextQuest?.siteLocationId ?? chapter.quests[chapter.quests.length - 1].siteLocationId;
+    return chapter.locations.find(l => l.locationId === site) ?? chapter.locations[0];
+  }, [nextQuest, chapter]);
   const transitionStyle = reducedMotion ? undefined : { transition: 'left 1.2s ease, top 1.2s ease' };
 
   const currentLocationName = zh ? heroLoc.nameZh : heroLoc.nameJa;
   const nextDestName = nextQuest
-    ? (l => (zh ? l?.nameZh : l?.nameJa) ?? '')(CHAPTER1_LOCATIONS.find(l => l.locationId === nextQuest.siteLocationId)) : '';
+    ? (l => (zh ? l?.nameZh : l?.nameJa) ?? '')(chapter.locations.find(l => l.locationId === nextQuest.siteLocationId)) : '';
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -301,22 +325,22 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
         <div className="md:grid md:grid-cols-5 md:gap-4">
           {/* ── 左（desktop 60%）: マップ ── */}
           <div className="md:col-span-3">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">{t.ch1.title}</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-1">{t.ch1.title(chapter.order, zh ? chapter.titleZh : chapter.titleJa)}</h2>
             <p className="text-xs text-gray-500 mb-2">{t.ch1.subtitle}</p>
             <div className="relative w-full rounded-2xl overflow-hidden border border-gray-200 bg-[#9db877]" style={{ aspectRatio: '4/3' }}>
               <svg viewBox="0 0 48 36" className="absolute inset-0 w-full h-full" shapeRendering="crispEdges"
-                role="img" aria-label={t.ch1.mapAria(currentLocationName, nextDestName)}>
+                role="img" aria-label={t.ch1.mapAria(zh ? chapter.titleZh : chapter.titleJa, currentLocationName, nextDestName)}>
                 <TownMapBase discoveredLocationIds={state.chapter.discoveredLocationIds} />
-                {CHAPTER1_LOCATIONS.map(loc => {
+                {chapter.locations.map(loc => {
                   const discovered = state.chapter.discoveredLocationIds.includes(loc.locationId);
                   const fog = discovered ? deriveLocationFog(state, loc.locationId, nowMs) : 'foggy';
-                  return <LocationFogOverlay key={loc.locationId} region={FOG_REGIONS[loc.locationId]}
+                  return <LocationFogOverlay key={loc.locationId} region={FOG_REGION_SLOTS[chapter.locations.indexOf(loc)] ?? FOG_REGION_SLOTS[0]}
                     level={fog} animate={!reducedMotion} />;
                 })}
                 {/* 未出会いNPCの人影（霧の中・解放済みエリアのみ） */}
-                {CHAPTER1_NPCS.filter(n => !state.chapter.encounteredNpcIds.includes(n.npcId)
+                {chapter.npcs.filter(n => !state.chapter.encounteredNpcIds.includes(n.npcId)
                   && state.chapter.discoveredLocationIds.includes(n.locationId)).map(n => {
-                  const loc = CHAPTER1_LOCATIONS.find(l => l.locationId === n.locationId)!;
+                  const loc = chapter.locations.find(l => l.locationId === n.locationId)!;
                   return (
                     <g key={n.npcId} transform={`translate(${loc.x * 0.48 + 2.2}, ${loc.y * 0.36 - 3.4}) scale(0.36)`} opacity={0.8}>
                       <NpcSilhouette />
@@ -324,9 +348,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
                   );
                 })}
               </svg>
-              {CHAPTER1_NPCS.filter(n => state.chapter.encounteredNpcIds.includes(n.npcId)).map(n => {
-                const loc = CHAPTER1_LOCATIONS.find(l => l.locationId === n.locationId)!;
-                const S = NPC_SPRITE[n.npcId];
+              {chapter.npcs.filter(n => state.chapter.encounteredNpcIds.includes(n.npcId)).map(n => {
+                const loc = chapter.locations.find(l => l.locationId === n.locationId)!;
+                const S = spriteFor(n.npcId);
                 return (
                   <div key={n.npcId} className="absolute w-[7%]" title={`${n.nameJa}（${n.roleJa}）`}
                     style={{ left: `${loc.x + 5}%`, top: `${loc.y - 8}%` }}>
@@ -339,7 +363,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
                 <HeroSprite pose={heroPose} decorative />
               </div>
               {nextQuest && (() => {
-                const site = CHAPTER1_LOCATIONS.find(l => l.locationId === nextQuest.siteLocationId);
+                const site = chapter.locations.find(l => l.locationId === nextQuest.siteLocationId);
                 return site ? (
                   <div className={`absolute w-[4.5%] ${reducedMotion ? '' : 'animate-pulse'}`}
                     style={{ left: `${site.x + 1}%`, top: `${site.y - 14}%` }} title={t.ch1.nextQuestMark}>
@@ -347,7 +371,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
                   </div>
                 ) : null;
               })()}
-              {CHAPTER1_LOCATIONS.map(loc => (
+              {chapter.locations.map(loc => (
                 <span key={loc.locationId}
                   className="absolute -translate-x-1/2 text-[10px] px-1 rounded bg-white/85 text-gray-700"
                   style={{ left: `${loc.x}%`, top: `${loc.y + 6}%` }}>
@@ -361,7 +385,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
               {nextDestName && <div><dt className="inline font-bold">{t.ch1.nextPlace} </dt><dd className="inline">{nextDestName}</dd></div>}
             </dl>
             <ul className="mt-1 text-[11px] text-gray-500 space-y-0.5">
-              {CHAPTER1_LOCATIONS.map(loc => {
+              {chapter.locations.map(loc => {
                 const discovered = state.chapter.discoveredLocationIds.includes(loc.locationId);
                 const fog = discovered ? deriveLocationFog(state, loc.locationId, nowMs) : 'foggy';
                 return <li key={loc.locationId}>{discovered ? (zh ? loc.nameZh : loc.nameJa) : '？？？'}: {fogLabelOf(t)[fog]}</li>;
@@ -373,7 +397,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
           <div className="md:col-span-2 mt-3 md:mt-8">
             {nextQuest && !chapterDone && (
               <div className="bg-white border border-indigo-200 rounded-2xl p-3 mb-3">
-                <p className="text-[11px] text-indigo-500 font-bold">{t.ch1.nextQuest(nextQuest.order, CHAPTER1_QUESTS.length)}</p>
+                <p className="text-[11px] text-indigo-500 font-bold">{t.ch1.nextQuest(nextQuest.order, chapter.quests.length)}</p>
                 <p className="text-sm font-bold text-gray-900 mb-1">{zh ? nextQuest.titleZh : nextQuest.titleJa}</p>
                 <p className="text-xs text-gray-500 mb-2">{zh ? nextQuest.learnGoalZh : nextQuest.learnGoalJa}・{t.ch1.minutes(nextQuest.estimatedMinutes)}</p>
                 <button type="button" onClick={() => beginQuest(nextQuest)}
@@ -390,7 +414,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
             )}
             {reviewKeys.length > 0 && (
               <div className="mb-3 p-3 bg-violet-50 border border-violet-200 rounded-2xl">
-                <p className="text-xs font-bold text-violet-800 mb-1">🏮 {zh ? REVIEW_REUNION.titleZh : REVIEW_REUNION.titleJa}</p>
+                <p className="text-xs font-bold text-violet-800 mb-1">🏮 {zh ? chapter.reviewReunion.titleZh : chapter.reviewReunion.titleJa}</p>
                 <p className="text-[11px] text-violet-700 mb-2">
                   {t.ch1.wordsFading(reviewKeys.length)}
                 </p>
@@ -399,7 +423,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
               </div>
             )}
             <div className="grid grid-cols-1 gap-1.5">
-              {CHAPTER1_QUESTS.map(q => {
+              {chapter.quests.map(q => {
                 const done = state.chapter.completedQuestIds.includes(q.questId);
                 const unlocked = state.chapter.unlockedQuestIds.includes(q.questId);
                 return (
@@ -418,7 +442,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
                   onClick={() => { setState(advanceSimulatedTime(state, 3)); announce('時間を3日進めました。'); }}
                   className="min-h-11 px-3 text-[11px] text-gray-500 border border-gray-200 rounded-xl">時間を＋3日</button>
                 <button type="button"
-                  onClick={() => { if (window.confirm('冒険の進行を最初からやり直しますか？')) { setState(resetAdventureState(clockNow())); setScreen({ kind: 'map' }); } }}
+                  onClick={() => { if (window.confirm('冒険の進行を最初からやり直しますか？')) { setState(resetAdventureState(clockNow(), undefined, chapter.chapterId)); setScreen({ kind: 'map' }); } }}
                   className="min-h-11 px-3 text-[11px] text-gray-400 underline">最初からやり直す</button>
               </div>
             )}
@@ -428,7 +452,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       )}
 
       {screen.kind === 'questIntro' && (() => {
-        const q = chapter1QuestById(screen.questId)!;
+        const q = questInChapter(screen.questId)!;
         return (
           <div className="max-w-2xl bg-white rounded-2xl border border-gray-200 p-4">
             <p className="text-[11px] text-indigo-500 font-bold mb-1">{t.ch1.questN(q.order)}</p>
@@ -456,7 +480,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       })()}
 
       {screen.kind === 'learning' && (() => {
-        const q = chapter1QuestById(screen.questId)!;
+        const q = questInChapter(screen.questId)!;
         const item = itemById.get(q.learningItemIds[screen.itemIndex])!;
         const profile = cognateProfileFor(item);
         const qs = assessFor(item);
@@ -535,7 +559,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       })()}
 
       {screen.kind === 'grammar' && (() => {
-        const q = chapter1QuestById(screen.questId)!;
+        const q = questInChapter(screen.questId)!;
         const m = grammarMission(screen);
         const rule = ruleById.get(m.ruleId)!;
         const totalSteps = 1 + m.questionIds.length + 1;
@@ -601,12 +625,12 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       })()}
 
       {screen.kind === 'finale' && (() => {
-        const step = CHAPTER1_FINALE_STEPS[screen.stepIndex];
+        const step = chapter.finaleSteps[screen.stepIndex];
         return (
           <div className="max-w-2xl bg-white rounded-2xl border border-gray-200 p-4">
-            <p className="text-[11px] text-indigo-500 font-bold mb-2">{t.ch1.finaleProgress(screen.stepIndex + 1, CHAPTER1_FINALE_STEPS.length)}</p>
+            <p className="text-[11px] text-indigo-500 font-bold mb-2">{t.ch1.finaleProgress(screen.stepIndex + 1, chapter.finaleSteps.length)}</p>
             <div className="flex items-start gap-2 mb-3">
-              <div className="w-10 shrink-0"><NpcGenSprite pose="talk" /></div>
+              <div className="w-10 shrink-0">{(() => { const fq = chapter.quests.find(q => q.isChapterFinale); const npc = chapter.npcs.find(n => n.locationId === fq?.siteLocationId) ?? chapter.npcs[chapter.npcs.length - 1]; const S = spriteFor(npc.npcId); return <S pose="talk" />; })()}</div>
               <div className="p-3 bg-slate-50 rounded-xl text-sm text-gray-800 flex-1">
                 <p>{step.npcLineJa}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{step.npcLineZh}</p>
@@ -626,9 +650,13 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       })()}
 
       {screen.kind === 'questComplete' && (() => {
-        const q = chapter1QuestById(screen.questId)!;
-        const unlockedNpcs = CHAPTER1_NPCS.filter(n => q.unlocks.npcIds.includes(n.npcId));
-        const beats = CHAPTER1_STORY_BEATS.filter(b => q.unlocks.storyBeatIds.includes(b.beatId));
+        const q = questInChapter(screen.questId)!;
+        const unlockedNpcs = chapter.npcs.filter(n => q.unlocks.npcIds.includes(n.npcId));
+        const beats = chapter.storyBeats.filter(b => q.unlocks.storyBeatIds.includes(b.beatId));
+        // 次の行き先ラベルはrender時に確定させる（onClick内の複雑な式はcompilerがref誤検知する）
+        const nextSiteId = chapter.quests.find(x => x.order === q.order + 1)?.siteLocationId ?? q.siteLocationId;
+        const nextSiteLoc = chapter.locations.find(l => l.locationId === nextSiteId);
+        const nextSiteName = (zh ? nextSiteLoc?.nameZh : nextSiteLoc?.nameJa) ?? t.ch1.nextSpot;
         return (
           <div className="max-w-2xl bg-white rounded-2xl border border-emerald-200 p-4">
             <div className="flex items-center gap-2 mb-1">
@@ -648,7 +676,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
             </div>
             {unlockedNpcs.map(n => (
               <div key={n.npcId} className="flex items-center gap-2 p-2 border border-gray-100 rounded-xl mb-2">
-                <div className="w-9 shrink-0">{NPC_SPRITE[n.npcId]({ pose: 'happy' })}</div>
+                <div className="w-9 shrink-0">{spriteFor(n.npcId)({ pose: 'happy' })}</div>
                 <div className="text-sm">
                   <p className="font-bold text-gray-800">{n.nameJa} <span className="text-[10px] text-gray-400">{n.roleJa}</span></p>
                   <p className="text-xs text-gray-600">「{n.greetingJa}」</p>
@@ -657,9 +685,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
             ))}
             <button type="button"
               onClick={() => q.isChapterFinale ? setScreen({ kind: 'chapterComplete' })
-                : returnToMap(t.ch1.heroMovesTo((l => (zh ? l?.nameZh : l?.nameJa) ?? t.ch1.nextSpot)(CHAPTER1_LOCATIONS.find(l => l.locationId === (CHAPTER1_QUESTS.find(x => x.order === q.order + 1)?.siteLocationId ?? q.siteLocationId)))))}
+                : returnToMap(t.ch1.heroMovesTo(nextSiteName))}
               className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm mt-1">
-              {q.isChapterFinale ? t.ch1.toCh1Record : t.ch1.toMapHeroMoves}
+              {q.isChapterFinale ? t.ch1.toCh1Record(chapter.order) : t.ch1.toMapHeroMoves}
             </button>
           </div>
         );
@@ -667,16 +695,16 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
 
       {screen.kind === 'chapterComplete' && (
         <div className="max-w-2xl bg-white rounded-2xl border border-amber-200 p-4">
-          <h3 className="text-lg font-bold text-amber-700 mb-2">{t.ch1.ch1Done}</h3>
+          <h3 className="text-lg font-bold text-amber-700 mb-2">{t.ch1.ch1Done(chapter.order, zh ? chapter.titleZh : chapter.titleJa)}</h3>
           <div className="p-3 bg-slate-50 rounded-xl text-sm text-gray-700 mb-3">
-            <p>{CHAPTER1_STORY_BEATS.find(b => b.beatId === 'c1-beat-chapter-end')?.textJa}</p>
-            <p className="text-xs text-gray-400 mt-1">{CHAPTER1_STORY_BEATS.find(b => b.beatId === 'c1-beat-chapter-end')?.textZh}</p>
+            <p>{chapter.storyBeats[chapter.storyBeats.length - 1]?.textJa}</p>
+            <p className="text-xs text-gray-400 mt-1">{chapter.storyBeats[chapter.storyBeats.length - 1]?.textZh}</p>
           </div>
           <ul className="text-sm text-gray-800 space-y-1 mb-3">
-            <li>✓ {t.ch1.doneQuests(state.chapter.completedQuestIds.length, CHAPTER1_QUESTS.length)}</li>
-            <li>✓ {t.ch1.metPeople(state.chapter.encounteredNpcIds.length, CHAPTER1_NPCS.filter(n => state.chapter.encounteredNpcIds.includes(n.npcId)).map(n => zh ? n.nameZh : n.nameJa).join('・'))}</li>
+            <li>✓ {t.ch1.doneQuests(state.chapter.completedQuestIds.length, chapter.quests.length)}</li>
+            <li>✓ {t.ch1.metPeople(state.chapter.encounteredNpcIds.length, chapter.npcs.filter(n => state.chapter.encounteredNpcIds.includes(n.npcId)).map(n => zh ? n.nameZh : n.nameJa).join('・'))}</li>
             <li>✓ {t.ch1.xpLabel}: {state.adventureXp}</li>
-            <li>🏮 {t.ch1.ch2Coming}</li>
+            <li>🏮 {t.ch1.ch2Coming((() => { const nid = chapter.nextChapterId; if (!nid) return null; const nc = chapterById(nid); return nc ? (zh ? nc.titleZh : nc.titleJa) : null; })())}</li>
           </ul>
           <p className="text-xs text-gray-500 mb-3">
             {t.ch1.fogNote}
@@ -689,11 +717,11 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       {screen.kind === 'reviewLetter' && (
         <div className="max-w-2xl bg-white rounded-2xl border border-violet-200 p-4">
           <div className="flex items-start gap-2 mb-3">
-            <div className="w-10 shrink-0"><NpcHanaSprite pose="talk" /></div>
+            <div className="w-10 shrink-0">{(() => { const S = spriteFor((chapter.npcs[1] ?? chapter.npcs[0]).npcId); return <S pose="talk" />; })()}</div>
             <div className="p-3 bg-violet-50 rounded-xl text-sm text-gray-800 flex-1">
-              <p className="font-bold text-violet-800 mb-1">{zh ? REVIEW_REUNION.titleZh : REVIEW_REUNION.titleJa}</p>
-              <p>{REVIEW_REUNION.letterJa}</p>
-              <p className="text-xs text-gray-400 mt-1">{REVIEW_REUNION.letterZh}</p>
+              <p className="font-bold text-violet-800 mb-1">{zh ? chapter.reviewReunion.titleZh : chapter.reviewReunion.titleJa}</p>
+              <p>{chapter.reviewReunion.letterJa}</p>
+              <p className="text-xs text-gray-400 mt-1">{chapter.reviewReunion.letterZh}</p>
             </div>
           </div>
           <p className="text-xs text-gray-500 mb-3">{t.ch1.fadingWords(reviewKeys.length)}</p>
@@ -709,7 +737,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
         const key = screen.keys[screen.index];
         if (key.startsWith('rule:')) {
           const rule = ruleById.get(key.slice(5))!;
-          const mission = CHAPTER1_QUESTS.flatMap(q => q.grammarRequirements ?? []).find(g => g.ruleId === rule.id)!;
+          const mission = chapter.quests.flatMap(q => q.grammarRequirements ?? []).find(g => g.ruleId === rule.id)!;
           const question = questionById.get(mission.questionIds[0])!;
           return (
             <div className="max-w-2xl bg-white rounded-2xl border border-violet-200 p-4">
@@ -761,14 +789,14 @@ export const Chapter1AdventurePanel = ({ t, onBack, devTools = false }: Props) =
       {screen.kind === 'reviewDone' && (
         <div className="max-w-2xl bg-white rounded-2xl border border-violet-200 p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-8"><NpcHanaSprite pose="happy" /></div>
+            <div className="w-8">{(() => { const S = spriteFor((chapter.npcs[1] ?? chapter.npcs[0]).npcId); return <S pose="happy" />; })()}</div>
             <h3 className="text-base font-bold text-violet-700">{t.ch1.reunionDone(screen.count)}</h3>
           </div>
           <div className="p-3 bg-violet-50 rounded-xl text-sm text-gray-800 mb-2">
-            <p>{REVIEW_REUNION.outcomeJa}</p>
-            <p className="text-xs text-gray-400 mt-1">{REVIEW_REUNION.outcomeZh}</p>
+            <p>{chapter.reviewReunion.outcomeJa}</p>
+            <p className="text-xs text-gray-400 mt-1">{chapter.reviewReunion.outcomeZh}</p>
           </div>
-          <p className="text-xs text-amber-700 mb-3">{t.ch1.reviewReward(REVIEW_REUNION.adventureXpReward)}</p>
+          <p className="text-xs text-amber-700 mb-3">{t.ch1.reviewReward(chapter.reviewReunion.adventureXpReward)}</p>
           <button type="button" onClick={() => returnToMap(t.ch1.wordFogCleared)}
             className="w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm">{t.ch1.checkOnMap}</button>
         </div>
