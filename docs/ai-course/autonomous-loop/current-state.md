@@ -1,5 +1,33 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
+## 2026-07-31 招待前UX hotfix 完了 — staging確認済み・本番未反映
+
+branch `hotfix/ai-course-preinvite-ux` / RC tag候補 `ai-course-ux-hotfix-rc1` / origin push済
+
+### 修正内容（UX監査 0e08833 のP1/P2）
+| 項目 | 状態 |
+|---|---|
+| A. LPログイン導線（UX-001 P1） | ✅ ヘッダー44px・ja/zh・mobile応答ラベル・staging実測でlogin画面へ遷移 |
+| B. fi-chugoku（UX-011） | ✅ 地図廃止→提灯＋門の生活場面 |
+| C. レポートzh補助（UX-004） | ✅ schema+fallback+描画+tests4。**Edge Functionはコード変更のみ・deployは本番リリース時** |
+| D. 施設zh gloss（UX-002） | ✅ 7施設（tower含む）をstaging実測 |
+| E. zh価格（UX-005） | ✅ 100,000日元（含税）をstaging実測 |
+| F. 抽象語4枚+kanashii | ✅ 両評価者REPLACE一致分。目視シートで確認 |
+| G. N2発見性 | ✅ **状態B**（runtime正常・導線が弱かった）。Home施設カード追加でN2へ1クリック |
+
+### N2実測値
+canonical **178** + alias **2** = 180 / duplicate 0 / missing 0 / route正常 / Chapter8接続あり
+
+### 検証
+tests **1306 PASS**（+8）/ build PASS / AIコース+Edge lint 0E0W / staging console 0
+
+### 次のCEOアクション
+staging確認 → 承認後に main merge + 本番deploy（**Edge Function deployも同時に必要**:
+`supabase functions deploy ai-lesson-report` — レポートzh補助のAI生成分）
+確認URL: https://staging.badminton-platform.pages.dev/zh/ai-course
+
+---
+
 ## 2026-07-31 本番公開 入力パック 完成 — CEO記入待ち
 
 branch `feature/ai-course-learning-polish` / clean / origin push済
