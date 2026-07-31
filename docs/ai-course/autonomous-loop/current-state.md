@@ -1,49 +1,38 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-## 2026-07-31 PHASE B 完了 — Content RC1 凍結
+## 2026-07-31 RELEASE CLOSURE 完了 — RC tag `ai-course-content-rc1` を発行
 
-**RC HEAD: `8290177`**（コードは `ed92454`。以降はdocsのみ） / branch `feature/ai-course-learning-polish` / clean / origin push済
-release manifest: `docs/ai-course/production/release-manifest-content-rc1.md`
-RC tag候補: `ai-course-content-rc1`（**未作成・未push**。承認後に打つ）
+branch `feature/ai-course-learning-polish` / clean / origin push済 / **RC tag push済**
 
-### 実測値（このHEAD）
-- tests **1278 PASS / 0 FAIL**（Phase B開始時1212 → +66）
-- `tsc -b` PASS ／ production build PASS
-- lint **29 errors / 6 warnings**（全てバドミントン本体側の既存分。**AIコース側は0**）
-  ⚠ `npx tsc --noEmit` はCLI proxy経由で実エラーを取りこぼす。型判定は必ず `npm run build`
-
-### Phase B の結果
-| 項目 | 結果 | 根拠 |
+### ゲート状態（実測）
+| ゲート | 状態 | 根拠 |
 |---|---|---|
-| A Chapters | 10/10 playable | 696a515・staging実測済 |
-| B 会話文脈 | data 140/140・**runtime 140/140** | 3P-3(041b3c3)で既にデータは140だった。今回はruntime接続を実証（`conversationRuntime.test.tsx` 代表8分類）。starter重複 ja0/zh0・dead 0・generic誤落下 0 |
-| C Loading | 主要20領域へ接続 | `docs/ai-course/loading-manifest.md`。generic-only主要画面 0 |
-| D イラスト | asset 140/140・**learner visible 140/140** | 開始時の実測は **0/140**（既存25枚は全てdraftでlabPreviewのみ）。自前SVGで140枚。broken 0・構図重複 0 |
-| E 横断品質 | P0 0 / P1 0 | `scripts/ai-course/audit-cross-product.mjs` |
-| F lint | AIコース側 0 | 残29件は本体側（manifest §8に file/rule/risk/理由/次手を記載） |
+| ① Remote DB・RLS・Sync | **COMPLETE** | `production/gate1-integrity-recheck.md`（read-onlyで再照合・baseline完全一致） |
+| ② 実機確認 | **BLOCKED_EXTERNAL** | 物理端末が要る。packetに記入なし |
+| ③ 法務 | **BLOCKED_EXTERNAL** | 実装は完了。残は事実14項目（`legalFacts.ts` の null） |
+| ④ 公開教材の人間確認 | **BLOCKED_EXTERNAL** | CEO目視結果がrepo内に無い |
+| ⑤ Backup・Rollback | **COMPLETE** | GATE⑤ |
 
-### 今回直したP1
-- `fi-tanoshii` と `fi-ureshii` の中国語starterが完全一致（どちらも「开心」）→ 嬉しい側を「高兴（瞬間）」へ
-- SupportReportButton が全文日本語（困っている中国語learnerが読めない）→ ja/zh 対応
-- CourseTextLesson の送信ボタン `aria-label="send"` 未翻訳
-- App.tsx PageLoader の aria-label が日本語固定 → 中国語ページでも日本語で読まれていた
-- CourseTextLesson のAI応答待ちに role=status が無く、処理中が読み上げられなかった
-- LPの「準備中」空枠を非表示化（架空UIは作らない方針は維持）
+### 今回やったこと
+- **法務8ページ実装**（ja/zh・route・LP footer 8リンク・公開ガード・test 17件）。
+  事実が未確定の節は描画せず、作文も「準備中」もしない設計
+- **認証済み staging smoke**（前回未実施だった項目）。SVGイラスト56枚が実画面で描画・
+  会話文脈が語固有・zh切替・法務16URL全200・console error 0（未認証タブ）
+  fixtureは撤去済みで行数完全一致（auth_users 5 / learners 1 / progress 12 / sessions 24）
+- **Gate① 維持検証**（read-only・remote write 0）
+- **production preflight**（env名のみ・VITE_で露出する秘密0件・OPENAI鍵はEdge側のみ）
+- 正準カウント再実測script `audit-release-inventory.mjs`
 
-### 新しく作った検査（再利用可）
-- `scripts/ai-course/audit-conversation-contexts.mjs` — 会話文脈の欠損・重複・訳漏れ
-- `scripts/ai-course/audit-cross-product.mjs` — 日本語直書き・placeholder・console・未翻訳a11y
-- `scripts/ai-course/render-vocab-scene-sheet.tsx` — イラスト140枚の目視シート（`SHEET_PAGE=3` でページ指定）
+### 実測値
+tests **1295 PASS / 0 FAIL** ／ build PASS ／ lint 29E/6W（全てバドミントン本体側・AIコース側0）
+chapters 10 ／ 会話文脈 140/140 ／ イラスト 140/140 learner visible ／ Loading 21箇所
 
-### 残（人間のみ）
-- 実機確認 → `docs/ai-course/production/device-check-packet.md`（20〜30分・PASS/FAILで回答）
-- 法務 → `docs/ai-course/production/legal-decision-packet.md`（10問・「推奨で承認」で可）
-- 受講者アカウント・招待 → Release Operations Phase（今回は実装も発行もしていない）
-- 本番リリース承認 → `APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE`
+### 次にやること
+`docs/ai-course/autonomous-loop/next-session-prompt.md` を参照。
+Phase B と Release Closure は完了。**やり直さないこと。**
 
-### resumeFrom（次セッション）
-`docs/ai-course/autonomous-loop/next-session-prompt.md` をそのまま貼る。
-Phase Bは完了しているので、**やり直さないこと**。
+⚠ 型判定は必ず `npm run build`（tsc -b）。`npx tsc --noEmit` はproxy経由で実エラーを取りこぼす。
+⚠ `device-check-packet.md` 末尾の「A1〜A8 PASS」は**回答例**であってCEOの結果ではない。
 
 ---
 
