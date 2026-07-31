@@ -1,0 +1,201 @@
+{
+ "generatedAt": "2026-07-31T13:07:17.029Z",
+ "n2": {
+  "indexTotal": 180,
+  "canonical": 178,
+  "aliases": 2,
+  "identity": "178 + 2 = 180",
+  "byReviewStatus": {
+   "draft": 10,
+   "reviewed": 5,
+   "imported": 163
+  },
+  "draftBodies": 178,
+  "withRecognitionQuestion": 178,
+  "recognitionQuestions": 178,
+  "itemsWithZeroQuestions": [],
+  "battlePoolGap": "N2は1項目1問（recognition）のみ。§18の複数variant要件に対する最大ギャップ"
+ },
+ "n3": {
+  "grammarDrafts": 76,
+  "grammarByStatus": {
+   "draft": 76
+  },
+  "units": 12,
+  "unitIds": [
+   "n3u-01-self",
+   "n3u-02-daily",
+   "n3u-03-move",
+   "n3u-04-things",
+   "n3u-05-adjpair",
+   "n3u-06-feeling",
+   "n3u-07-people",
+   "n3u-08-change",
+   "n3u-09-think",
+   "n3u-10-arrange",
+   "n3u-11-situation",
+   "n3u-12-adverb"
+  ],
+  "generatedQuestionTotal": 608,
+  "unitQuestionCounts": {
+   "n3u-01-self": {
+    "total": 39,
+    "diagnostic": 12,
+    "understand": 16,
+    "distinguish": 7,
+    "apply": 4
+   },
+   "n3u-02-daily": {
+    "total": 89,
+    "diagnostic": 18,
+    "understand": 35,
+    "distinguish": 35,
+    "apply": 1
+   },
+   "n3u-03-move": {
+    "total": 43,
+    "diagnostic": 10,
+    "understand": 14,
+    "distinguish": 16,
+    "apply": 3
+   },
+   "n3u-04-things": {
+    "total": 35,
+    "diagnostic": 12,
+    "understand": 13,
+    "distinguish": 8,
+    "apply": 2
+   },
+   "n3u-05-adjpair": {
+    "total": 42,
+    "diagnostic": 12,
+    "understand": 12,
+    "distinguish": 6,
+    "apply": 12
+   },
+   "n3u-06-feeling": {
+    "total": 60,
+    "diagnostic": 16,
+    "understand": 17,
+    "distinguish": 10,
+    "apply": 17
+   },
+   "n3u-07-people": {
+    "total": 36,
+    "diagnostic": 7,
+    "understand": 11,
+    "distinguish": 11,
+    "apply": 7
+   },
+   "n3u-08-change": {
+    "total": 67,
+    "diagnostic": 12,
+    "understand": 23,
+    "distinguish": 28,
+    "apply": 4
+   },
+   "n3u-09-think": {
+    "total": 57,
+    "diagnostic": 12,
+    "understand": 16,
+    "distinguish": 25,
+    "apply": 4
+   },
+   "n3u-10-arrange": {
+    "total": 65,
+    "diagnostic": 13,
+    "understand": 20,
+    "distinguish": 28,
+    "apply": 4
+   },
+   "n3u-11-situation": {
+    "total": 38,
+    "diagnostic": 8,
+    "understand": 8,
+    "distinguish": 15,
+    "apply": 7
+   },
+   "n3u-12-adverb": {
+    "total": 37,
+    "diagnostic": 8,
+    "understand": 9,
+    "distinguish": 15,
+    "apply": 5
+   }
+  }
+ },
+ "vocabulary": {
+  "total": 140,
+  "byLevelTag": {
+   "untagged": 140
+  }
+ },
+ "world": {
+  "areas": 10,
+  "areaList": [
+   {
+    "nameJa": "ミナト（霧の港町）"
+   },
+   {
+    "nameJa": "ヒノデ台（暮らしの丘）"
+   },
+   {
+    "nameJa": "オウライ街道（交通の道）"
+   },
+   {
+    "nameJa": "イチバ通り（買い物市場）"
+   },
+   {
+    "nameJa": "ユカリの森（つながりの森）"
+   },
+   {
+    "nameJa": "ハタラキ街（仕事の街）"
+   },
+   {
+    "nameJa": "カタチの遺跡（文法の遺跡）"
+   },
+   {
+    "nameJa": "ソラノ塔（ことばの塔）"
+   },
+   {
+    "nameJa": "カタリ港（会話の港）"
+   },
+   {
+    "nameJa": "オモイデ庭園（記憶の庭）"
+   }
+  ],
+  "chapters": 10,
+  "chapterQuests": [
+   {
+    "quests": 5
+   },
+   {
+    "quests": 5
+   },
+   {
+    "quests": 5
+   },
+   {
+    "quests": 5
+   },
+   {
+    "quests": 6
+   },
+   {
+    "quests": 5
+   },
+   {
+    "quests": 6
+   },
+   {
+    "quests": 4
+   },
+   {
+    "quests": 4
+   },
+   {
+    "quests": 4
+   }
+  ]
+ }
+}
