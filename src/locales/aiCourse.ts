@@ -1293,6 +1293,8 @@ const ja = {
       garden: { name: 'オモイデ庭園', fn: '復習して思い出す', body: '前に学んだことばと再会する' },
       record: { name: '冒険の記録', fn: '成長と履歴を見る', body: 'できるようになったことの記録' },
       adventure: { name: 'ミナモ列島をめぐる', fn: '冒険・N3攻略', body: '地図のエリアを進んで霧を晴らす' },
+      // N2はこれまでMap経由のみで、ja表示にはN2の文字が無く発見できなかった（UX監査G）
+      tower: { name: 'ソラノ塔', fn: 'N2文法を場面別に練習', body: '180項目（178の基本項目＋別名索引2件）' },
     },
   },
   // ── N3エリアパネル ──
@@ -2827,12 +2829,14 @@ const zh: AiCourseDict = {
     weekLabel: (name: string, week: number) => `${name}（第${week}周）`,
     retainedDetail: (theme: string, retained: number, total: number) => `${theme}・已掌握 ${retained}/${total} 个词`,
     facilities: {
-      lib: { name: '記憶の書庫', fn: '学习・复习词汇', body: '词汇学习与巩固确认' },
-      workshop: { name: '文法の工房', fn: '学习日语的结构', body: '句型与用法区分练习' },
-      plaza: { name: '会話の広場', fn: '用AI会话开口说', body: '和翔子老师对话来确认' },
-      garden: { name: 'オモイデ庭園', fn: '通过复习唤起记忆', body: '与学过的词汇再会' },
-      record: { name: '冒険の記録', fn: '查看成长与历史', body: '记录你已能做到的事' },
-      adventure: { name: 'ミナモ列島をめぐる', fn: '冒险・攻略N3', body: '推进地图区域驱散迷雾' },
+      // 日本語固有名詞は世界観として維持し、中国語の意味glossを先頭に併記する（UX-002）
+      lib: { name: '記憶の書庫', fn: '记忆书库｜学习・复习词汇', body: '词汇学习与巩固确认' },
+      workshop: { name: '文法の工房', fn: '语法工坊｜学习日语的结构', body: '句型与用法区分练习' },
+      plaza: { name: '会話の広場', fn: '会话广场｜用AI会话开口说', body: '和翔子老师对话来确认' },
+      garden: { name: 'オモイデ庭園', fn: '回忆庭园｜通过复习唤起记忆', body: '与学过的词汇再会' },
+      record: { name: '冒険の記録', fn: '冒险记录｜查看成长与历史', body: '记录你已能做到的事' },
+      adventure: { name: 'ミナモ列島をめぐる', fn: '环游列岛｜冒险・攻略N3', body: '推进地图区域驱散迷雾' },
+      tower: { name: 'ソラノ塔', fn: '天空塔｜N2语法练习', body: 'N2语法180项（178个核心项目＋2个别名索引）' },
     },
   },
   n3a: {

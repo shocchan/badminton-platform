@@ -45,6 +45,9 @@ const REPORT_SCHEMA = {
     naturalPhrases: { type: "array", items: { type: "string" }, maxItems: 2 },
     targetUsage: { type: "string", enum: ["self", "hint", "none"] },
     encouragementJa: { type: "string" },
+    // 中国語補助（UX-004）。requiredに含めない=生成失敗してもreport全体を壊さない
+    achievementsZh: { type: "array", items: { type: "string" }, maxItems: 3 },
+    encouragementZh: { type: "string" },
   },
   required: ["todaySummaryJa", "todaySummaryZh", "achievements", "corrections", "naturalPhrases", "targetUsage", "encouragementJa"],
 };
@@ -157,6 +160,8 @@ serve(async (req) => {
       "    none = S の発話に目標表現が現れない",
       "  あいまいな場合は必ず低いほう（self より hint、hint より none）に倒してください。",
       "・encouragementJa: 短い励まし（1文）",
+      "・achievementsZh: achievements の各項目と同じ順序の自然な簡体字中国語訳",
+      "・encouragementZh: encouragementJa と同じ内容の自然な簡体字中国語",
     ].join("\n");
 
     const user = [

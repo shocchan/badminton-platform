@@ -45,4 +45,4 @@ export type PropKey =
   | 'handshake' | 'bigBox' | 'smallBox' | 'newTag' | 'oldTag' | 'priceHigh'
   | 'priceLow' | 'manyDots' | 'fewDots' | 'speechPair' | 'mirror' | 'stack'
   | 'tapeStart' | 'tapeGoal' | 'freePath' | 'tangle' | 'quietMark' | 'starMark'
-  | 'landMass' | 'islandChain';
+  | 'landMass' | 'islandChain' | 'lantern' | 'gateRoof' | 'puzzleFit' | 'sweat';

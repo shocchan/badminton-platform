@@ -111,6 +111,10 @@ describe('未確定の事実を作文しない・「準備中」も出さない'
     expect(headings).toContain('販売事業者');
     expect(headings).toContain('販売価格');
     expect(r.sections.find((s) => s.heading === '販売価格')!.body[0]).toContain('100,000円（税込）');
+    // zhでは「日元（含税）」表記になる（UX-005）
+    const zhPage = buildLegalPages('zh', filled).find((p) => p.id === 'tokushoho')!;
+    const zhR = renderableLegalPage(zhPage, filled);
+    expect(zhR.sections.find((s) => s.heading === '销售价格')!.body[0]).toContain('100,000日元（含税）');
     expect(pendingLegalFacts(filled)).toEqual([]);
   });
 

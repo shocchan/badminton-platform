@@ -38,6 +38,8 @@ export interface ReviewNote {
   /** 翔子先生から一言（report 由来。無ければ既定の励まし） */
   encouragementJa: string;
   encouragementZh: string;
+  /** 達成の中国語補助（旧sessionは空配列） */
+  achievementsZh: string[];
   /** 今日の達成（report.achievements） */
   achievements: string[];
   expression: ReviewNoteExpression;
@@ -94,8 +96,9 @@ export const buildReviewNote = (input: BuildReviewNoteInput): ReviewNote => {
     themeZh: mission.titleZh,
     isReview: input.isReview,
     encouragementJa: report?.encouragementJa?.trim() || report?.todaySummaryJa?.trim() || DEFAULT_ENCOURAGE_JA,
-    encouragementZh: report?.todaySummaryZh?.trim() || DEFAULT_ENCOURAGE_ZH,
+    encouragementZh: report?.encouragementZh?.trim() || report?.todaySummaryZh?.trim() || DEFAULT_ENCOURAGE_ZH,
     achievements: report?.achievements?.filter((a) => a?.trim()) ?? [],
+    achievementsZh: report?.achievementsZh ?? [],
     expression: {
       targetExpression: mission.targetExpression,
       reading: mission.targetExpressionReading,

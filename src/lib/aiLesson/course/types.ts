@@ -198,6 +198,9 @@ export interface LessonReport {
   naturalPhrases: string[];
   targetUsage: 'self' | 'hint' | 'none';
   encouragementJa: string;
+  /** 中国語補助（UX-004）。旧sessionには無いためoptional。欠損時はja表示のみにfallback */
+  achievementsZh?: string[];
+  encouragementZh?: string;
 }
 
 /** 今日のレッスンプラン（復習1＋新規1を基本に3〜4分へ収める） */

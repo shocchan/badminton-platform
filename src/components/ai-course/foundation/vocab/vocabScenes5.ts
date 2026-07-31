@@ -71,10 +71,20 @@ export const SCENES_BATCH5: VocabSceneSpec[] = [
     altJa: '二人が手を交わし、先の日付が示されている場面', altZh: '两个人握手、并标出今后的日期的场景' }),
 
   // ── 状況 / 興味 ──
+  // 人+空枠+!では手掛かりゼロだった（両評価者REPLACE）。
+  // 周囲の複数の出来事（会話・時刻・天気）を見渡して把握する場面へ
   s({ itemId: 'fi-joukyou', place: 'street',
-    figures: [{ x: 30, dir: 'right', pose: 'stand', mood: 'surprised' }],
-    props: [{ kind: 'screen', x: 76, y: 48, scale: 1.5 }, { kind: 'bang', x: 104, y: 32, scale: 0.9 }],
-    altJa: '今まわりで何が起きているかを見渡している場面', altZh: '环顾四周、了解正在发生什么的场景' }),
+    figures: [
+      { x: 58, dir: 'right', pose: 'think', mood: 'stern' },
+      { x: 18, dir: 'right', pose: 'talk', scale: 0.65, color: '#f2a08c' },
+      { x: 34, dir: 'left', pose: 'listen', scale: 0.65, color: '#9ed9a6' },
+    ],
+    props: [
+      { kind: 'clock', x: 90, y: 30, scale: 1 }, { kind: 'cloudHot', x: 110, y: 24, scale: 0.7 },
+      { kind: 'bus', x: 98, y: 66, scale: 0.9 },
+    ],
+    altJa: '人が、まわりの会話・時刻・乗り物などいま起きていることを見渡して把握している場面',
+    altZh: '人环顾四周的对话、时间、车辆等，把握当下正在发生的事情的场景' }),
   s({ itemId: 'fi-kyoumi', place: 'shop',
     figures: [{ x: 36, dir: 'right', pose: 'point', mood: 'happy' }],
     props: [{ kind: 'book', x: 72, y: 56, scale: 1.3 }, { kind: 'heart', x: 96, y: 36, scale: 1 }],

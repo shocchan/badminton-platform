@@ -171,7 +171,16 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                   {r.achievements.length > 0 && (
                     <ul className="mt-2 space-y-1">
                       {r.achievements.map((a, i) => (
-                        <li key={i} className="text-sm text-gray-700 flex gap-1.5"><Sparkles className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />{a}</li>
+                        <li key={i} className="text-sm text-gray-700 flex gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-400 mt-0.5 shrink-0" />
+                          <span>
+                            {a}
+                            {/* 中国語補助（UX-004）: 旧sessionはachievementsZhが無いためja表示のみ */}
+                            {t.locale === 'zh' && !!r.achievementsZh?.[i] && (
+                              <span className="block text-xs text-gray-500">{r.achievementsZh[i]}</span>
+                            )}
+                          </span>
+                        </li>
                       ))}
                     </ul>
                   )}

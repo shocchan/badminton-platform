@@ -77,6 +77,15 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             <span>{lang === 'ja' ? `${v.name.ja}の日本語会話` : `${v.name.zh}的日语会话`}</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* 受講中learnerのログイン導線（UX-001 P1: これまでLPに0本で、招待URLを
+                知らない限り2回目以降に学習画面へ戻れなかった）。
+                主申込CTAより視覚優先度を下げたテキストリンク。認証済みなら app entry が学習Homeへ振り分ける */}
+            <a href={`/${lang}/ai-course?app=1`} data-lp-login-cta
+              aria-label={lang === 'ja' ? '受講中の方はこちら（学習画面にログイン）' : '已报名的学员（登录学习系统）'}
+              className="flex text-[0.88rem] text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 items-center">
+              <span className="hidden sm:inline">{lang === 'ja' ? '受講中の方はこちら' : '已报名的学员'}</span>
+              <span className="sm:hidden">{lang === 'ja' ? 'ログイン' : '登录'}</span>
+            </a>
             {/* 言語切替（2026-07-31 P1修正: /zh LPは存在するのに/jaから到達不能だった。
                 issue report「中国語にならない」の根本原因。aタグ=JSなしでも遷移・SEO可読） */}
             <a href={`/${other}/${path}`} data-lp-lang-switch
@@ -120,6 +129,14 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
           <a href={`/${other}/${path}`} data-lp-lang-switch-footer
             className="underline underline-offset-4 hover:text-lp-ink">
             {lang === 'ja' ? '中文版' : '日本語版'}
+          </a>
+        </div>
+        {/* mobile用ログイン導線: ヘッダーは幅不足のためfooter直上に配置（UX-001） */}
+        <div className="sm:hidden mx-auto max-w-6xl px-5 pb-2">
+          <a href={`/${lang}/ai-course?app=1`} data-lp-login-cta-mobile
+            aria-label={lang === 'ja' ? '受講中の方はこちら（学習画面にログイン）' : '已报名的学员（登录学习系统）'}
+            className="inline-flex items-center min-h-11 text-[0.9rem] text-lp-ink-soft underline underline-offset-4">
+            {lang === 'ja' ? '受講中の方はこちら → 学習画面にログイン' : '已报名的学员 → 登录学习系统'}
           </a>
         </div>
         {/* 法務リンク。事実が確定するまで LegalPage 側が入口へ戻すので、

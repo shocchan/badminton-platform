@@ -250,6 +250,14 @@ export const Prop = ({ kind, x, y, scale = 1, dir = 'right' }: PropProps & { kin
       case 'quietMark': return <><path d="M-6 -1 h4 l5 -5 v12 l-5 -5 h-4 z" fill={C.metal} /><path d="M4 -6 l8 12 M12 -6 l-8 12" stroke={C.accent} strokeWidth="1.6" strokeLinecap="round" /></>;
       case 'landMass': return <path d="M-22 8 q-6 -10 2 -14 q10 -6 16 -12 q10 -4 16 2 q8 6 4 14 q-4 10 -14 10 z" fill="#d9c9a8" />;
       case 'islandChain': return <><path d="M-2 8 q-5 -4 -3 -10 q2 -7 7 -6 q5 1 4 7 q-1 6 -8 9 z" fill="#d9c9a8" /><ellipse cx="-9" cy="9" rx="4" ry="2.2" fill="#d9c9a8" /><ellipse cx="9" cy="-11" rx="3" ry="2" fill="#d9c9a8" /></>;
+      // 赤提灯（fi-chugoku差し替え用・文字なし。生活場面の記号として）
+      case 'lantern': return <><rect x="-0.8" y="-14" width="1.6" height="3" fill={C.wood} /><ellipse cx="0" cy="-6" rx="4.5" ry="5.5" fill="#e05a4e" /><path d="M-4.5 -6 h9 M-4 -8.5 h8 M-4 -3.5 h8" stroke="#c24338" strokeWidth="0.7" /><rect x="-1.5" y="-0.8" width="3" height="1.6" fill="#f0b955" /><path d="M0 0.8 v2.4" stroke="#f0b955" strokeWidth="1" /></>;
+      // 反り屋根の門（特定の実在建築を模倣しない一般化した伝統要素）
+      case 'gateRoof': return <><path d="M-16 0 q16 -7 32 0 l-3 -4 q-13 -5.5 -26 0 z" fill="#7a4a3a" /><rect x="-12" y="0" width="3" height="14" fill="#8a5a48" /><rect x="9" y="0" width="3" height="14" fill="#8a5a48" /></>;
+      // はまっているパズルピース（簡単＝迷わず完了の記号）
+      case 'puzzleFit': return <><rect x="-9" y="-7" width="18" height="14" rx="2" fill={C.wall2} /><path d="M-2 -7 v4 a2 2 0 0 0 4 0 v-4 z" fill={C.body} /><rect x="-9" y="-7" width="9" height="14" rx="2" fill={C.body} opacity="0.85" /></>;
+      // 汗の滴（緊張の記号）
+      case 'sweat': return <path d="M0 -3 q3 4 0 6 q-3 -2 0 -6 z" fill={C.cool} />;
       case 'starMark': return <path d="M0 -8 l2.4 5 l5.4 0.6 l-4 3.6 l1.2 5.4 l-5 -2.8 l-5 2.8 l1.2 -5.4 l-4 -3.6 l5.4 -0.6 z" fill={C.warn} />;
       default: return null;
     }

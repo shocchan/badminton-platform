@@ -133,6 +133,9 @@ const generateReport = async (
     corrections: [], naturalPhrases: [],
     targetUsage: (detectedUsage === 'self' || detectedUsage === 'hint' ? detectedUsage : 'none'),
     encouragementJa: 'よくがんばりました。次も続けましょう！',
+    // 中国語補助（UX-004）。fallbackでも中国語localeのlearnerが成果を読めるようにする
+    achievementsZh: [detectedUsage === 'self' ? '靠自己的力量用出来了' : detectedUsage === 'hint' ? '借助提示说出来了' : '确认了意思'],
+    encouragementZh: '做得很好。下次也继续吧！',
   };
   if (!SUPA_URL || utterances.filter((u) => u.speaker === 'student').length === 0) return { report: localFallback, fromAi: false };
   try {
@@ -1052,6 +1055,10 @@ export default function AiCoursePage() {
           { id: 'adventure', worldName: t.world.facilities.adventure.name, functionName: t.world.facilities.adventure.fn,
             descriptionJa: t.world.facilities.adventure.body,
             onOpen: () => openArea(currentAreaId) },
+          // N2文法への直行（UX監査G: Map経由のみでja表示にN2の文字が無く発見不能だった）
+          { id: 'tower', worldName: t.world.facilities.tower.name, functionName: t.world.facilities.tower.fn,
+            descriptionJa: t.world.facilities.tower.body,
+            onOpen: () => setStep('n2grammar') },
         ]}
       >
       <CourseHome

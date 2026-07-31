@@ -115,10 +115,22 @@ export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, self
         <Card>
           <Label icon={<ShokoAvatar size={16} />}>{tn.fromShoko}</Label>
           <p className="text-sm text-gray-800 leading-relaxed">{note.encouragementJa}</p>
+          {/* 中国語補助（UX-004）: 日本語は学習内容として残し、zh localeでは意味を下に併記 */}
+          {t.locale === 'zh' && !!note.encouragementZh && (
+            <p className="text-xs text-gray-500 leading-relaxed mt-1">{note.encouragementZh}</p>
+          )}
           {note.achievements.length > 0 && (
             <ul className="mt-2 space-y-1">
               {note.achievements.map((a, i) => (
-                <li key={i} className="text-sm text-gray-700 flex gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />{a}</li>
+                <li key={i} className="text-sm text-gray-700 flex gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
+                  <span>
+                    {a}
+                    {t.locale === 'zh' && !!note.achievementsZh[i] && (
+                      <span className="block text-xs text-gray-500">{note.achievementsZh[i]}</span>
+                    )}
+                  </span>
+                </li>
               ))}
             </ul>
           )}

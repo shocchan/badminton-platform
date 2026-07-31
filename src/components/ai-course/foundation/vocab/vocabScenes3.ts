@@ -15,9 +15,14 @@ export const SCENES_BATCH3: VocabSceneSpec[] = [
     props: [{ kind: 'sign', x: 26, y: 68 }],
     arrows: [{ x: 56, y: 48, dir: 'right', length: 24 }],
     altJa: '生まれた土地から今いる場所へ矢印が伸びている図', altZh: '箭头从出生的地方指向现在所在地的图' }),
-  s({ itemId: 'fi-chugoku', place: 'plain',
-    props: [{ kind: 'landMass', x: 48, y: 52, scale: 1.7 }, { kind: 'starMark', x: 40, y: 30, scale: 1.1 }],
-    altJa: '広い大陸のかたちに星の印がある地図の図', altZh: '在辽阔大陆形状上标着星形记号的地图' }),
+  // 地図表現は廃止（不正確な国境線は政治的リスク・UX-011）。生活場面で表す
+  s({ itemId: 'fi-chugoku', place: 'street',
+    props: [
+      { kind: 'gateRoof', x: 38, y: 46, scale: 1.3 },
+      { kind: 'lantern', x: 24, y: 60, scale: 1.1 }, { kind: 'lantern', x: 52, y: 60, scale: 1.1 },
+    ],
+    figures: [{ x: 84, dir: 'left', pose: 'walk', mood: 'happy' }],
+    altJa: '赤い提灯と反り屋根の門がある通りを人が歩いている場面', altZh: '人走在挂着红灯笼、有翘檐门楼的街道上的场景' }),
   s({ itemId: 'fi-nihon', place: 'plain',
     props: [{ kind: 'islandChain', x: 66, y: 52, scale: 1.8 }, { kind: 'cloudHot', x: 30, y: 28, scale: 1 }],
     altJa: '海に浮かぶ細長い島の連なりに日の印がある地図の図', altZh: '海上细长的岛链上带有太阳记号的地图' }),

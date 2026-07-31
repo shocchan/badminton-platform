@@ -100,9 +100,13 @@ export const SCENES_BATCH4: VocabSceneSpec[] = [
     figures: [{ x: 32, dir: 'right', pose: 'hold', mood: 'happy' }],
     props: [{ kind: 'phone', x: 50, y: 56, scale: 1.2 }, { kind: 'check', x: 86, y: 42, scale: 1.2 }],
     altJa: '道具ひとつで用が足りている場面', altZh: '用一件工具就能把事情办好的场景' }),
-  s({ itemId: 'fi-kantan', place: 'plain',
-    props: [{ kind: 'freePath', x: 60, y: 50, scale: 2 }, { kind: 'check', x: 100, y: 34, scale: 1 }],
-    altJa: 'まっすぐで分かれ道のない一本道の図', altZh: '笔直、没有岔路的一条路的图' }),
+  // S字+✓が「慣れる」と同一で相互識別不能だった（両評価者REPLACE）。
+  // ぴったりはまるパズルを迷わず完了する場面へ。altも実描画と一致させる（UX-012対策）
+  s({ itemId: 'fi-kantan', place: 'room',
+    figures: [{ x: 36, dir: 'right', pose: 'hold', mood: 'happy' }],
+    props: [{ kind: 'puzzleFit', x: 72, y: 50, scale: 1.6 }],
+    altJa: '人が形の合うピースを迷わずはめて、すぐに終えられる場面',
+    altZh: '人毫不犹豫地把形状吻合的拼块放进去、很快完成的场景' }),
   s({ itemId: 'fi-yuumei', place: 'street',
     figures: [{ x: 34, dir: 'right', pose: 'raise' }, { x: 74, dir: 'left', pose: 'stand', scale: 0.8, color: '#f2a08c' }, { x: 92, dir: 'left', pose: 'stand', scale: 0.8, color: '#9ed9a6' }],
     props: [{ kind: 'starMark', x: 34, y: 30, scale: 1.2 }],
@@ -117,9 +121,9 @@ export const SCENES_BATCH4: VocabSceneSpec[] = [
     figures: [{ x: 54, dir: 'right', pose: 'cheer', mood: 'happy' }],
     props: [{ kind: 'bang', x: 88, y: 34, scale: 1.1 }],
     altJa: 'よい知らせを受けた瞬間に人が両手を上げる場面', altZh: '收到好消息的瞬间、人举起双手的场景' }),
+  // 雪の結晶は「寒い」と交差誤読を招くため除去（評価者A REPLACE/B IMPROVE・姿勢で十分伝わる）
   s({ itemId: 'fi-kanashii', place: 'room',
     figures: [{ x: 54, dir: 'right', pose: 'slump', mood: 'sad' }],
-    props: [{ kind: 'snow', x: 88, y: 40, scale: 0.9 }],
     altJa: '人がうつむいて肩を落としている場面', altZh: '人低着头、肩膀垂下来的场景' }),
   s({ itemId: 'fi-sabishii', place: 'night',
     figures: [{ x: 54, dir: 'right', pose: 'sit', mood: 'sad' }],
