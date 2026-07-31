@@ -1,0 +1,119 @@
+{
+  "updatedAt": "2026-07-31T00:00:00+09:00",
+  "currentHead": "6adde18",
+  "note": "status は実行のたびに更新する。blocked_external は evidence と解除操作を必ず書く。",
+  "tasks": [
+    {
+      "id": "T01-ceo-evidence-intake",
+      "priority": 1,
+      "status": "pending",
+      "acceptanceCommand": "grep -rlE 'APPROVE_AI_COURSE|device.*PASS' docs/ai-course/decisions/",
+      "evidencePath": "docs/ai-course/production/human-gate-evidence.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T02-technical-reaudit",
+      "priority": 2,
+      "status": "pending",
+      "acceptanceCommand": "node scripts/ai-course/audit-release-inventory.mjs",
+      "evidencePath": "docs/ai-course/production/generated/release-inventory.json",
+      "blockedReason": null
+    },
+    {
+      "id": "T03-gate1-integrity-readonly",
+      "priority": 3,
+      "status": "pending",
+      "acceptanceCommand": "node scripts/ai-course/remote-sql.mjs --probe",
+      "evidencePath": "docs/ai-course/production/gate1-integrity-recheck.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T04-authenticated-staging-smoke",
+      "priority": 4,
+      "status": "pending",
+      "acceptanceCommand": "node scripts/ai-course/stage-verify-session.mjs --create",
+      "evidencePath": "docs/ai-course/production/authenticated-staging-smoke.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T05-legal-pages-structure",
+      "priority": 5,
+      "status": "pending",
+      "acceptanceCommand": "npx vitest run src/pages/ai-lesson/legal",
+      "evidencePath": "src/pages/ai-lesson/legal/",
+      "blockedReason": null
+    },
+    {
+      "id": "T06-legal-routes-footer-consent",
+      "priority": 6,
+      "status": "pending",
+      "acceptanceCommand": "npx vitest run src/pages/ai-lesson/legal/legalRoutes.test.tsx",
+      "evidencePath": "src/App.tsx",
+      "blockedReason": null
+    },
+    {
+      "id": "T07-legal-browser-verification",
+      "priority": 7,
+      "status": "pending",
+      "acceptanceCommand": "staging 16ページ(ja8+zh8)を実ブラウザで開く",
+      "evidencePath": "docs/ai-course/production/legal-browser-verification.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T08-device-evidence-freeze",
+      "priority": 8,
+      "status": "pending",
+      "acceptanceCommand": "device-check-packet への CEO 記入を確認",
+      "evidencePath": "docs/ai-course/production/human-gate-evidence.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T09-content-human-review-freeze",
+      "priority": 9,
+      "status": "pending",
+      "acceptanceCommand": "公開範囲の CEO 目視結果を確認",
+      "evidencePath": "docs/ai-course/production/human-gate-evidence.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T10-full-regression",
+      "priority": 10,
+      "status": "pending",
+      "acceptanceCommand": "npx vitest run && npm run build && npx eslint .",
+      "evidencePath": "docs/ai-course/production/release-manifest-content-rc1.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T11-production-preflight",
+      "priority": 11,
+      "status": "pending",
+      "acceptanceCommand": "npx wrangler pages project list / secret list（値は出さない）",
+      "evidencePath": "docs/ai-course/production/production-preflight.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T12-rc-freeze-and-tag",
+      "priority": 12,
+      "status": "pending",
+      "acceptanceCommand": "git tag -a ai-course-content-rc1 && git push origin ai-course-content-rc1",
+      "evidencePath": "docs/ai-course/production/release-manifest-content-rc1.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T13-deployment-rollback-packet",
+      "priority": 13,
+      "status": "pending",
+      "acceptanceCommand": "manifest §5-§7 の手順が実値で埋まっている",
+      "evidencePath": "docs/ai-course/production/release-manifest-content-rc1.md",
+      "blockedReason": null
+    },
+    {
+      "id": "T14-final-release-decision",
+      "priority": 14,
+      "status": "pending",
+      "acceptanceCommand": "5ゲート全COMPLETE かつ承認文字列受領",
+      "evidencePath": "docs/ai-course/production/release-manifest-content-rc1.md",
+      "blockedReason": null
+    }
+  ]
+}
