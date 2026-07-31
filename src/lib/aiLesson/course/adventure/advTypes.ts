@@ -147,6 +147,8 @@ export interface AdvTodayQuest {
   questId: string;
   dateKey: string;
   goalType: AdvGoalType;
+  /** 主対象ID（完了時に lastQuest.primaryTargets へ保存＝翌日の重複回避） */
+  primaryTargets: string[];
   steps: AdvQuestStep[];
   whyJa: string; whyZh: string;
   estimatedMinutes: number;

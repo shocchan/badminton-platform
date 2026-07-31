@@ -144,7 +144,7 @@ export interface DiagnosisOutcome {
 
 /** 診断の採点→skill profile＋診断結果（§10）。router向けの帯もここで確定 */
 export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => {
-  const { questions, answers, convSamples, conversationSampled, targetJlpt, goalType, nowISO } = input;
+  const { questions, answers, convSamples, conversationSampled, goalType, nowISO } = input;
   const amap = new Map(answers.map((a) => [a.key, a.choiceIndex]));
 
   const vFound = bucketOf(questions, amap, 'foundation', 'vocabulary');
