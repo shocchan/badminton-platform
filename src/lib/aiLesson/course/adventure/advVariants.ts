@@ -26,9 +26,10 @@ export type AdvQuestionType = 'rec' | 'cloze' | 'meaning' | 'form';
 export interface AdvBattleQuestion {
   /** `${type}:${grammarId}` or `${type}:${grammarId}:${i}`（未出判定・台帳共有キー） */
   key: string;
-  type: AdvQuestionType;
-  level: 'n3' | 'n2';
-  skill: 'grammar';
+  /** 文法variantは AdvQuestionType。単元問題は `u-${dimension}`（タイプ多様性判定に使う） */
+  type: string;
+  level: 'foundation' | 'n3' | 'n2';
+  skill: 'grammar' | 'vocabulary';
   promptJa: string | null;
   promptZh: string;
   choices: string[];
@@ -281,7 +282,7 @@ export const buildVariantPool = (
       else rejected.push({ key: q.key, issues });
     }
     byItem.set(self.grammarId, ok);
-    for (const q of ok) byType[q.type] += 1;
+    for (const q of ok) byType[q.type as AdvQuestionType] += 1; // 生成器は4タイプのみemitする
   }
 
   const questions = [...byItem.values()].reduce((n, qs) => n + qs.length, 0);

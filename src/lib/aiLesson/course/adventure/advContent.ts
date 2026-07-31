@@ -29,12 +29,44 @@ export const N2_ALIAS_IDS = new Set(Object.keys(N2_GRAMMAR_ALIASES));
 
 // ── バトル用問題プール ──
 export interface GrammarPools {
-  /** grammarId → 問題（validated_beta以上のみ） */
+  /** grammarId / unitId → 問題（validated_beta以上のみ） */
   byItem: Map<string, AdvBattleQuestion[]>;
   n3Ids: string[];
   n2Ids: string[];
   n2ByUnit: Map<number, string[]>;
 }
+
+/** N3単元の生成問題（choice型のみ）をバトル問題へ正規化。unitId をtargetにした敵編成で使う */
+const buildUnitBattlePools = (): Map<string, AdvBattleQuestion[]> => {
+  const vocab = allVocabularyItems();
+  const out = new Map<string, AdvBattleQuestion[]>();
+  for (const spec of N3_UNIT_SPECS) {
+    const set = buildUnitQuestions(spec, vocab);
+    const seen = new Set<string>();
+    const qs: AdvBattleQuestion[] = [];
+    const push = (q: AssessQuestion) => {
+      if (q.kind !== 'choice' || q.choices.length < 2 || seen.has(q.questionId)) return;
+      seen.add(q.questionId);
+      qs.push({
+        key: `u${q.dimension}:${spec.unitId}:${q.questionId}`,
+        type: `u-${q.dimension}`,
+        level: spec.order <= 2 ? 'foundation' : 'n3',
+        skill: 'vocabulary',
+        promptJa: q.promptJa, promptZh: q.promptZh,
+        choices: q.choices, answerIndex: q.answerIndex,
+        explanationZh: q.explanationZh,
+        sourceId: q.itemId,
+        status: 'authored',
+      });
+    };
+    for (const q of set.diagnostic) push(q);
+    for (const q of set.byStage.understand) push(q);
+    for (const q of set.byStage.distinguish) push(q);
+    for (const q of set.byStage.apply) push(q);
+    out.set(spec.unitId, qs);
+  }
+  return out;
+};
 
 let poolCache: GrammarPools | null = null;
 export const loadGrammarPools = async (): Promise<GrammarPools> => {
@@ -42,7 +74,7 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
   const n2 = await loadAllN2Drafts();
   const n2Pool = buildVariantPool(n2 as unknown as GrammarDraftLike[], 'n2', N2_ALIAS_IDS);
   const n3Pool = buildVariantPool(N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[], 'n3');
-  const byItem = new Map<string, AdvBattleQuestion[]>([...n3Pool.byItem, ...n2Pool.byItem]);
+  const byItem = new Map<string, AdvBattleQuestion[]>([...n3Pool.byItem, ...n2Pool.byItem, ...buildUnitBattlePools()]);
   const n2ByUnit = new Map<number, string[]>();
   for (const d of n2) {
     if (N2_ALIAS_IDS.has(d.grammarId)) continue;
@@ -63,7 +95,8 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
 const toDiagFromUnit = (q: AssessQuestion, level: 'foundation' | 'n3', unitId: string): DiagQuestion | null => {
   if (q.kind !== 'choice' || q.choices.length < 2) return null; // 並べ替えは診断で使わない（時間短縮）
   return {
-    key: `n3q:${unitId}:${q.questionId}`,
+    // バトル側と同一キー（診断で出した問題はバトルで「既出」扱いになる）
+    key: `u${q.dimension}:${unitId}:${q.questionId}`,
     level, skill: 'vocabulary',
     promptJa: q.promptJa, promptZh: q.promptZh,
     choices: q.choices, answerIndex: q.answerIndex,

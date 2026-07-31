@@ -110,8 +110,9 @@ export default function AdvShell(props: AdvShellProps) {
       const weak = Object.entries(profile.mastery)
         .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at.length > 0 && at[at.length - 1].scorePct < 80)
         .map(([id]) => id).slice(0, 5);
+      // 表示側（home）と同じdateKey起点で日数を出す（129/128のような食い違い防止）
       const daysToExam = profile.examDateISO
-        ? Math.max(0, Math.ceil((new Date(profile.examDateISO).getTime() - Date.now()) / 86400000))
+        ? Math.max(0, Math.ceil((new Date(profile.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000))
         : null;
       setQuest(generateTodayQuest({
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
@@ -171,6 +172,7 @@ export default function AdvShell(props: AdvShellProps) {
     }
     return (
       <AdvBattleRunner
+        key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
         targetIds={battle.targetIds} pool={pools.byItem}
         seenKeys={seen} recentWrongKeys={wrong}

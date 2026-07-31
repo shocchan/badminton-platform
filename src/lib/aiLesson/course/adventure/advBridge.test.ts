@@ -98,6 +98,29 @@ describe('advContent（実データ組立）', () => {
     }
   });
 
+  it('単元(unitId)にもバトルプールがある（staging実画面P1の回帰ガード）', async () => {
+    const pools = await loadGrammarPools();
+    const { N3_UNIT_SPECS } = await import('../quality/n3UnitSpecs');
+    for (const spec of N3_UNIT_SPECS) {
+      const qs = pools.byItem.get(spec.unitId) ?? [];
+      expect(qs.length).toBeGreaterThanOrEqual(5);
+      // タイプ（u-dimension）が複数ある＝§15のタイプ多様性条件が機能する
+      expect(new Set(qs.map((q) => q.type)).size).toBeGreaterThanOrEqual(2);
+      for (const q of qs.slice(0, 10)) {
+        expect(q.choices.length).toBeGreaterThanOrEqual(2);
+        expect(q.explanationZh.length).toBeGreaterThan(0);
+      }
+    }
+    // 基礎キャンプstageの全バトル対象がプールを持つ（空バトル行き止まりの根絶）
+    const route = generateRoute({ goalType: 'jlpt', targetJlpt: 'N2', knowledgeBand: 'pre_n5', conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW });
+    const camp = route.stages[0];
+    const ct = await stageContent(camp, new Set());
+    expect(ct.battleTargetIds.length).toBeGreaterThan(0);
+    for (const t2 of ct.battleTargetIds) {
+      expect((pools.byItem.get(t2) ?? []).length).toBeGreaterThanOrEqual(1);
+    }
+  });
+
   it('stageContentがmastered除外で次の対象と会話ミッションを返す', async () => {
     const route = generateRoute({ goalType: 'jlpt', targetJlpt: 'N2', knowledgeBand: 'n3_late', conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW });
     const n3g = route.stages.find((s) => s.kind === 'n3_grammar');

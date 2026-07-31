@@ -1,10 +1,15 @@
 # Adventure V2 — 次セッション開始プロンプト
 
-~/badminton-platform の `feature/ai-course-adaptive-adventure-v2` で ADAPTIVE ADVENTURE V2 sprint を継続してください。
+~/badminton-platform の `feature/ai-course-adaptive-adventure-v2` で継続してください。
 
-1. `docs/ai-course/adventure-v2/current-state.md` と `work-queue.json` を読む
-2. resumeFrom のタスクから再開（pending の最小ID）
-3. 制約: 本番/main/remote migration/learner invite 禁止。既存learnerデータ非破壊。
-   canonical教材の大量書き換え禁止。human_reviewed/approved昇格禁止
-4. 各Phase完了時: tests → commit → work-queue/current-state/next-session-prompt 更新
-5. 仕様の正準は CEO指示（ONE-WEEK ADAPTIVE ADVENTURE V2 SPRINT §0〜§34）＋ decision-log.md
+状態: **V2 Technical Complete（RC tag `ai-course-adventure-v2-rc1`）・staging反映済み・CEO確認待ち**
+
+1. `docs/ai-course/adventure-v2/current-state.md` と `final-report.md` §43（P2/P3残）を読む
+2. CEOフィードバックがあれば最優先で反映 → staging再デプロイ → 実画面確認
+3. フィードバック待ちの間に着手可能な残タスク（優先順）:
+   - P2-a: 読解専用問題（既存例文からの内容一致型・validated_beta基準）
+   - P3-a: 診断の会話診断を既存text会話runtime 1〜2往復に接続（D-011の本実装）
+   - P2-c: 言い直しstepの素材0時の代替（今日の表現の復唱練習）
+4. 制約: 本番/main/remote migration/learner invite禁止。教材昇格は人間のみ。
+   staging検証は stage-verify-session.mjs のfixtureを使い**必ず--cleanup**
+5. 仕様正準: CEO指示（ADAPTIVE ADVENTURE V2 §0〜§34）＋ decision-log.md

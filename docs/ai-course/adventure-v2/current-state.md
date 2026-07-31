@@ -1,11 +1,13 @@
 # Adventure V2 — current state
 
-更新: 2026-07-31（session 1・Phase 1完了時点）
+更新: 2026-07-31（session 1完了時点）
 
-- branch: `feature/ai-course-adaptive-adventure-v2`（base = hotfix tip 2795685 = origin/main + UX修正2commits）
-- テストベースライン: **1306全PASS**（V2開始時点）
-- 本番: kawabado.com = August Pilot（deploy f7b401b6）。**非接触を維持**
-- 完了: P1-1〜P1-3（監査・reuse map・decision log・work queue）
-- resumeFrom: **P2-1**（advTypes.ts + advProfile.ts から実装開始）
-- 正準ドキュメント: current-inventory.md / content-reuse-map.md / decision-log.md / work-queue.json
-- 再集計: `./node_modules/.bin/vite-node scripts/ai-course/adventure-v2-inventory.ts`
+- **V2 Technical Complete: YES ／ Staging Ready: YES ／ Production: NOT_EXECUTED**
+- branch: `feature/ai-course-adaptive-adventure-v2`（origin push済・RC tag `ai-course-adventure-v2-rc1`）
+- staging: deploy `b7f82110` → https://staging.badminton-platform.pages.dev
+  - CEO確認URL: `/ja/ai-course?v2=1`（従来Homeに戻すボタンあり・既存learnerは非影響）
+- テスト: **1360全PASS**／build PASS／AIコース側lint 0
+- 検証fixture: 撤去済み（auth_users=5 / learners=1 原状一致）
+- 正準ドキュメント: final-report.md（§33形式）／ evidence/staging-smoke.md ／ work-queue.json（全complete）
+- resumeFrom: **CEO staging確認待ち** → フィードバック反映。次セッションは next-session-prompt.md 参照
+- 制約維持: main非接触・本番非接触・remote migration 0・learnerデータ非破壊・教材昇格なし

@@ -36,14 +36,14 @@ export interface BattleProps {
 
 export function AdvBattleRunner(props: BattleProps) {
   const { lang } = props;
-  const enc = useMemo(
-    () => buildEncounter({
-      tier: props.tier, targetIds: props.targetIds, pool: props.pool,
-      seenKeys: props.seenKeys, recentWrongKeys: props.recentWrongKeys,
-      seed: [...props.dateKey].reduce((h, c) => h * 31 + c.charCodeAt(0), props.tier.length),
-    }),
-    [props.tier, props.targetIds, props.pool, props.seenKeys, props.recentWrongKeys, props.dateKey],
-  );
+  // 編成はmount時に1回だけ確定して凍結する。
+  // onFinish→profile保存→親再レンダーで seenKeys が新objectになっても、
+  // 進行中/結果表示中の編成・採点が再構築されない（staging実測で0%表示になった不具合の恒久対策）。
+  const [enc] = useState(() => buildEncounter({
+    tier: props.tier, targetIds: props.targetIds, pool: props.pool,
+    seenKeys: props.seenKeys, recentWrongKeys: props.recentWrongKeys,
+    seed: [...props.dateKey].reduce((h, c) => h * 31 + c.charCodeAt(0), props.tier.length),
+  }));
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<EncounterAnswer[]>([]);
   const [picked, setPicked] = useState<number | null>(null);
@@ -171,8 +171,12 @@ function BattleResult(props: BattleProps & { enc: ReturnType<typeof buildEncount
     [props.enc, props.answers, props.dateKey, props.nowISO, props.elapsedSec],
   );
   const mastery = useMemo(
-    () => computeMastery([...props.priorAttempts, result.attempt], props.nowISO),
-    [props.priorAttempts, result.attempt, props.nowISO],
+    () => {
+      // プールに複数問題タイプがあるときだけタイプ多様性条件を課す（§15⑥）
+      const types = new Set(props.targetIds.flatMap((t) => (props.pool.get(t) ?? []).map((x) => x.type)));
+      return computeMastery([...props.priorAttempts, result.attempt], props.nowISO, types.size >= 2);
+    },
+    [props.priorAttempts, result.attempt, props.nowISO, props.targetIds, props.pool],
   );
   const reported = useRef(false);
   useEffect(() => {
