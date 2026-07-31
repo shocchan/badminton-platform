@@ -15,14 +15,29 @@ const SIMULATE = process.argv.includes('--simulate-filled');
 const FILLED: LegalFacts = {
   ...LEGAL_FACTS,
   operatorName: 'サンプル事業者', address: 'on_request', phone: 'on_request',
-  priceJpyTaxIncluded: 100000, paymentMethods: ['銀行振込'], paymentTiming: '申込時',
-  serviceStartTiming: '決済確認後', refundPolicy: '開始前は全額返金します。',
-  retentionPeriod: '受講終了後1年', deletionSlaDays: 30, improvementUseAllowed: false,
-  minimumAge: 18, externalAiVendors: ['OpenAI'], governingLaw: '日本法・東京地方裁判所',
+  priceJpyTaxIncluded: 100000,
+  paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
+  paymentTiming: { ja: '申込時', zh: '报名时' },
+  serviceStartTiming: { ja: '決済確認後', zh: '确认付款后' },
+  refundPolicy: { ja: '開始前は全額返金します。', zh: '开始前可全额退款。' },
+  retentionPeriod: { ja: '受講終了後1年', zh: '结束后1年' },
+  deletionSlaDays: 30, improvementUseAllowed: false,
+  minimumAge: 18, externalAiVendors: ['OpenAI'],
+  governingLaw: { ja: '日本法・東京地方裁判所', zh: '日本法・东京地方法院' },
 };
 const f: LegalFacts = SIMULATE ? FILLED : LEGAL_FACTS;
 const errors: string[] = [];
 const warn: string[] = [];
+
+/** ja/zh の対が揃っているか。片方だけだと、その言語のページに他方の言語が出てしまう */
+const bilingual = (min: number) => (v: unknown): string | null => {
+  if (!v || typeof v !== 'object') return 'ja/zh を対で持つ必要がある';
+  const b = v as { ja?: unknown; zh?: unknown };
+  if (typeof b.ja !== 'string' || b.ja.trim().length < min) return `ja が${min}文字以上必要`;
+  if (typeof b.zh !== 'string' || b.zh.trim().length < min) return `zh が${min}文字以上必要`;
+  if (/[ぁ-んァ-ヴ]/.test(b.zh)) return 'zh に日本語のかなが混ざっている';
+  return null;
+};
 
 /** 値の形が正しいか。埋まっている項目だけを見る（未入力は pending 側で扱う） */
 const validators: Partial<Record<keyof LegalFacts, (v: unknown) => string | null>> = {
@@ -33,12 +48,12 @@ const validators: Partial<Record<keyof LegalFacts, (v: unknown) => string | null
     ? null : "電話番号か 'on_request' が必要"),
   priceJpyTaxIncluded: (v) => (typeof v === 'number' && Number.isInteger(v) && v > 0
     ? null : '正の整数（税込・円）が必要'),
-  paymentMethods: (v) => (Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === 'string' && x.trim())
-    ? null : '1件以上の支払方法が必要'),
-  paymentTiming: (v) => (typeof v === 'string' && v.trim().length >= 2 ? null : '支払時期の記載が必要'),
-  serviceStartTiming: (v) => (typeof v === 'string' && v.trim().length >= 2 ? null : '提供時期の記載が必要'),
-  refundPolicy: (v) => (typeof v === 'string' && v.trim().length >= 5 ? null : '返金・解約方針の記載が必要'),
-  retentionPeriod: (v) => (typeof v === 'string' && v.trim().length >= 2 ? null : '保存期間の記載が必要'),
+  paymentMethods: (v) => (Array.isArray(v) && v.length > 0
+    ? (v.map(bilingual(1)).find((m) => m) ?? null) : '1件以上の支払方法が必要'),
+  paymentTiming: bilingual(2),
+  serviceStartTiming: bilingual(2),
+  refundPolicy: bilingual(5),
+  retentionPeriod: bilingual(2),
   deletionSlaDays: (v) => (typeof v === 'number' && Number.isInteger(v) && v > 0 && v <= 180
     ? null : '1〜180の整数（日数）が必要'),
   improvementUseAllowed: (v) => (typeof v === 'boolean' ? null : 'true / false のどちらかが必要'),
@@ -46,7 +61,7 @@ const validators: Partial<Record<keyof LegalFacts, (v: unknown) => string | null
     ? null : '0〜30の整数（歳）が必要'),
   externalAiVendors: (v) => (Array.isArray(v) && v.length > 0 && v.every((x) => typeof x === 'string' && x.trim())
     ? null : '1件以上の事業者名が必要'),
-  governingLaw: (v) => (typeof v === 'string' && v.trim().length >= 2 ? null : '準拠法・管轄の記載が必要'),
+  governingLaw: bilingual(2),
 };
 
 const pending = pendingLegalFacts(f);

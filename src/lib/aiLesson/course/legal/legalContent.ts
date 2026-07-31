@@ -36,9 +36,13 @@ export interface LegalPage {
 
 const yen = (n: number | null) => (n === null ? null : `${n.toLocaleString('ja-JP')}円（税込）`);
 
+/** ja/zh を対で持つ事実から、表示言語のほうを取り出す */
+const pick = (v: { ja: string; zh: string } | null, lang: 'ja' | 'zh'): string | null => (v ? v[lang] : null);
+
 export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS): LegalPage[] => {
   const ja = lang === 'ja';
   const t = (a: string, b: string) => (ja ? a : b);
+  const L = (v: { ja: string; zh: string } | null) => pick(v, lang);
 
   return [
     {
@@ -77,6 +81,12 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
               `本サービスは${f.minimumAge}歳以上の方を対象とします。`,
               `本服务面向${f.minimumAge}周岁以上的用户。`,
             ),
+            // 最低年齢が18歳未満のときは、保護者の関与条件も併せて書かないと
+            // 「13歳以上なら誰でも単独で契約できる」と読めてしまう（CEO決定 2026-07-31）
+            f.minimumAge === null || f.minimumAge >= 18 ? null : t(
+              '18歳未満の方が本サービスを利用する場合は、保護者が契約者となるか、保護者の同意を得たうえでお申し込みください。',
+              '未满18周岁的用户使用本服务时，请由监护人作为签约人，或在取得监护人同意后再报名。',
+            ),
           ],
         },
         {
@@ -103,7 +113,7 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
         {
           heading: t('第7条 準拠法・管轄', '第7条 准据法与管辖'),
           requires: ['governingLaw'],
-          body: [f.governingLaw],
+          body: [L(f.governingLaw)],
         },
       ],
     },
@@ -150,7 +160,7 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
         {
           heading: t('保存期間', '保存期限'),
           requires: ['retentionPeriod'],
-          body: [f.retentionPeriod],
+          body: [L(f.retentionPeriod)],
         },
         {
           heading: t('学習内容の改善への利用', '用于改进学习内容'),
@@ -285,22 +295,22 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
         {
           heading: t('支払方法', '支付方式'),
           requires: ['paymentMethods'],
-          body: [f.paymentMethods === null ? null : f.paymentMethods.join('、')],
+          body: [f.paymentMethods === null ? null : f.paymentMethods.map((m) => m[lang]).join('、')],
         },
         {
           heading: t('支払時期', '支付时间'),
           requires: ['paymentTiming'],
-          body: [f.paymentTiming],
+          body: [L(f.paymentTiming)],
         },
         {
           heading: t('役務の提供時期', '服务提供时间'),
           requires: ['serviceStartTiming'],
-          body: [f.serviceStartTiming],
+          body: [L(f.serviceStartTiming)],
         },
         {
           heading: t('返品・キャンセル', '退款与取消'),
           requires: ['refundPolicy'],
-          body: [f.refundPolicy],
+          body: [L(f.refundPolicy)],
         },
       ],
     },
@@ -316,7 +326,7 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
         {
           heading: t('方針', '方针'),
           requires: ['refundPolicy'],
-          body: [f.refundPolicy],
+          body: [L(f.refundPolicy)],
         },
         {
           heading: t('手続き', '办理方式'),

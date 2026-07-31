@@ -95,10 +95,15 @@ describe('未確定の事実を作文しない・「準備中」も出さない'
     const filled: LegalFacts = {
       ...LEGAL_FACTS,
       operatorName: 'テスト事業者', address: 'on_request', phone: 'on_request',
-      priceJpyTaxIncluded: 100000, paymentMethods: ['銀行振込'], paymentTiming: '申込時',
-      serviceStartTiming: '決済確認後', refundPolicy: '開始前は全額返金',
-      retentionPeriod: '受講終了後1年', deletionSlaDays: 30, improvementUseAllowed: false,
-      minimumAge: 18, externalAiVendors: ['OpenAI'], governingLaw: '日本法',
+      priceJpyTaxIncluded: 100000,
+      paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
+      paymentTiming: { ja: '申込時', zh: '报名时' },
+      serviceStartTiming: { ja: '決済確認後', zh: '确认付款后' },
+      refundPolicy: { ja: '開始前は全額返金', zh: '开始前全额退款' },
+      retentionPeriod: { ja: '受講終了後1年', zh: '结束后1年' },
+      deletionSlaDays: 30, improvementUseAllowed: false,
+      minimumAge: 18, externalAiVendors: ['OpenAI'],
+      governingLaw: { ja: '日本法', zh: '日本法' },
     };
     const page = buildLegalPages('ja', filled).find((p) => p.id === 'tokushoho')!;
     const r = renderableLegalPage(page, filled);
@@ -109,28 +114,33 @@ describe('未確定の事実を作文しない・「準備中」も出さない'
     expect(pendingLegalFacts(filled)).toEqual([]);
   });
 
-  it('現時点では未確定の事実が残っており、公開フラグは立っていない', () => {
-    // ここが true になったら、CEOの回答が入って公開できる状態という意味
-    expect(pendingLegalFacts().length).toBeGreaterThan(0);
-    expect(LEGAL_PUBLISH).toBe(false);
+  it('CEO入力が完了し、14項目すべてが埋まっている（公開可能）', () => {
+    expect(pendingLegalFacts()).toEqual([]);
+    expect(LEGAL_PUBLISH).toBe(true);
   });
 });
 
 describe('公開ガードと導線', () => {
-  it('未公開のあいだ、法務URLは404にならずコース入口へ戻る', () => {
+  it('公開後は法務URLがそのまま表示される（入口へ戻されない）', () => {
     renderAt('/ja/ai-course/terms');
-    expect(screen.getByTestId('course-entry')).toBeTruthy();
-  });
-
-  it('?legal=preview なら中身を表示し、未確定である旨をCEOに示す', () => {
-    renderAt('/ja/ai-course/terms?legal=preview');
+    expect(screen.queryByTestId('course-entry')).toBeNull();
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('利用規約');
-    expect(screen.getByRole('note').textContent).toContain('未確定');
   });
 
-  it('中国語のpreviewは中国語で出る', () => {
-    renderAt('/zh/ai-course/privacy?legal=preview');
+  it('公開後は未確定の注記を出さない', () => {
+    renderAt('/ja/ai-course/terms');
+    expect(screen.queryByRole('note')).toBeNull();
+  });
+
+  it('中国語ページは中国語で出る', () => {
+    renderAt('/zh/ai-course/privacy');
     expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('隐私政策');
+  });
+
+  it('公開後は noindex を付けない（検索エンジンに拾わせる）', () => {
+    renderAt('/ja/ai-course/privacy');
+    // LEGAL_PUBLISH=true なので robots メタは出さない
+    expect(document.head.querySelector('meta[name="robots"][content*="noindex"]')).toBeNull();
   });
 
   it('footerリンクが8本あり、言語ごとに正しいURLを指す', () => {
@@ -148,6 +158,15 @@ describe('公開ガードと導線', () => {
     for (const lang of ['ja', 'zh'] as const) {
       const contact = renderableLegalPage(buildLegalPages(lang).find((p) => p.id === 'contact')!);
       expect(contact.sections.flatMap((s) => s.body).join(' ')).toContain('info@kawabado.com');
+    }
+  });
+
+  it('最低年齢が18未満のときは保護者同意の条項も出る（CEO決定）', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      const terms = renderableLegalPage(buildLegalPages(lang).find((p) => p.id === 'terms')!);
+      const sec = terms.sections.find((s) => s.heading.includes('受講資格') || s.heading.includes('报名资格'))!;
+      expect(sec.body.length, `${lang}: 年齢＋保護者同意の2文が要る`).toBe(2);
+      expect(sec.body.join('')).toMatch(lang === 'ja' ? /保護者/ : /监护人/);
     }
   });
 
