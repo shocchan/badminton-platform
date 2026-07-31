@@ -307,7 +307,11 @@ export default function AdvShell(props: AdvShellProps) {
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-gray-900">
                     {tx(lang, row.labelJa, row.labelZh)}
-                    <span className="ml-1 text-[11px] font-normal text-gray-400">{tx(lang, row.sectionJa, row.sectionZh)}</span>
+                    {row.sectionJa && (
+                      <span className="ml-1 text-[11px] font-normal text-gray-400">
+                        （{tx(lang, row.sectionJa, row.sectionZh ?? row.sectionJa)}）
+                      </span>
+                    )}
                     {row.provisional && row.pct !== null && <span className="ml-1 text-xs text-amber-700">（{term('provisional', lang)}）</span>}
                   </p>
                   {(row.noteJa || row.noteZh) && <p className="text-xs text-gray-500">{tx(lang, row.noteJa ?? '', row.noteZh ?? '')}</p>}

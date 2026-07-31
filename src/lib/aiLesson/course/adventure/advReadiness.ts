@@ -30,7 +30,8 @@ export interface SkillEvidence {
 export interface ReadinessRow {
   key: ExamSkill;
   labelJa: string; labelZh: string;
-  sectionJa: string; sectionZh: string;
+  /** 試験当日のどのセクションで問われるか。時間配分は特定セクションに属さないため null */
+  sectionJa: string | null; sectionZh: string | null;
   /** null = 未判定（0%と混同させない） */
   pct: number | null;
   confidence: AdvConfidence;
@@ -183,8 +184,11 @@ export const computeReadiness = (
     return {
       key,
       labelJa: EXAM_SKILL_LABELS[key].ja, labelZh: EXAM_SKILL_LABELS[key].zh,
-      sectionJa: sec === 'languageKnowledge' ? '言語知識' : sec === 'reading' ? '読解' : '聴解',
-      sectionZh: sec === 'languageKnowledge' ? '语言知识' : sec === 'reading' ? '阅读' : '听力',
+      // 時間配分は「どのセクションか」ではなく全体に効く指標なのでセクション名を出さない
+      sectionJa: key === 'timeManagement' ? null
+        : sec === 'languageKnowledge' ? '言語知識' : sec === 'reading' ? '読解' : '聴解',
+      sectionZh: key === 'timeManagement' ? null
+        : sec === 'languageKnowledge' ? '语言知识' : sec === 'reading' ? '阅读' : '听力',
       pct,
       confidence: conf,
       provisional: conf === 'low' || conf === 'none',
