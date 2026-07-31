@@ -4,6 +4,7 @@
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { CourseLoading, CourseChunkLoading } from '../../components/ai-course/CourseLoading';
+import { LegalFooterLinks } from './legal/LegalPage';
 import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
 import WorldHomeShell from '../../components/ai-course/rpg/WorldHomeShell';
 import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
@@ -1188,6 +1189,13 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false }: {
         lang={lang} onToggleLang={onToggleLang} showLab={showLab}
       />
       {children}
+      {/* 学習アプリ側にも法務導線を置く（LPだけにあると、
+          ログイン後の学習者が規約・削除申請へ辿り着けない） */}
+      <footer className="mt-10 border-t border-gray-100 py-6">
+        <div className="max-w-md lg:max-w-2xl mx-auto px-4 text-gray-500">
+          <LegalFooterLinks lang={lang} />
+        </div>
+      </footer>
     </>
   );
 };

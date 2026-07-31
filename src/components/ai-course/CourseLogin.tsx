@@ -5,6 +5,9 @@
 // 継続ログイン（learner作成済み）では招待コードは不要。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
+import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
 import { Mail, ArrowRight, KeyRound, RotateCcw } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
 import { sendEmailOtp, verifyEmailOtp } from '../../lib/aiLesson/course/courseAuth';
@@ -21,6 +24,7 @@ const RESEND_COOLDOWN_SEC = 60;
 
 export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   const tl = t.login;
+  const lang: 'ja' | 'zh' = t.locale === 'zh' ? 'zh' : 'ja';
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [invite, setInvite] = useState('');
   const [email, setEmail] = useState('');
@@ -29,6 +33,9 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   const [error, setError] = useState('');
   const [sentNotice, setSentNotice] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  // 申込前の同意（Gate③）。法務ページが公開されるまでは要求しない
+  //   ＝まだ読めない文書への同意を求めない、が公開後は必須になる
+  const [consented, setConsented] = useState(false);
   const timerRef = useRef<number | null>(null);
 
   // 再送カウントダウン
@@ -116,10 +123,28 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
                 className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            {LEGAL_PUBLISH && (
+              <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+                <label className="flex items-start gap-2 text-xs text-gray-700 cursor-pointer">
+                  <input
+                    type="checkbox" checked={consented}
+                    onChange={(e) => { setConsented(e.target.checked); setError(''); }}
+                    className="mt-0.5 w-4 h-4 shrink-0"
+                    aria-describedby="course-consent-links"
+                  />
+                  <span>{tl.consentLabel}</span>
+                </label>
+                <p id="course-consent-links" className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px]">
+                  <Link to={legalPathFor(lang, 'terms')} className="underline underline-offset-2 text-blue-700">{tl.consentTerms}</Link>
+                  <Link to={legalPathFor(lang, 'privacy')} className="underline underline-offset-2 text-blue-700">{tl.consentPrivacy}</Link>
+                  <Link to={legalPathFor(lang, 'ai-disclosure')} className="underline underline-offset-2 text-blue-700">{tl.consentAi}</Link>
+                </p>
+              </div>
+            )}
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="button" onClick={() => void send(false)}
-              disabled={busy || !email.trim() || cooldown > 0}
+              disabled={busy || !email.trim() || cooldown > 0 || (LEGAL_PUBLISH && !consented)}
               className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
             >
               {busy ? tl.sending : cooldown > 0 ? tl.resendIn(cooldown) : tl.sendCode}
