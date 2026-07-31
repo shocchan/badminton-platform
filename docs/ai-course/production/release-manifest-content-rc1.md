@@ -198,6 +198,23 @@ BLOCKED ではなく **DEFERRED_BY_CEO_UNTIL_RELEASE** として扱う。
 
 専門家レビューは Public General Release の条件とし、August Pilot とは分離する。
 
+## 11. 本番公開への入力パック（2026-07-31 追加）
+
+CEOが記入する内容を1ファイルへ集約した。runtimeは変更していない（RC2のコードのまま）。
+
+| 目的 | ファイル |
+|---|---|
+| CEO記入（これ1枚） | `final-release-input.md` |
+| 機械可読（秘密値なし） | `final-release-input.json` |
+| 実行手順 Phase1〜6 | `pilot-release-execution.md` |
+| 次セッションprompt | `../autonomous-loop/production-release-prompt.md` |
+
+入力項目: 法務 **14** ／ 実機 **34** ／ 教材目視 **11** ／ 本番環境 **20** ／ 承認文字列 1
+
+検証command:
+- `npm run validate:ai-course-legal`（現在 FAIL＝未入力14件。入力後にPASS）
+- `npm run validate:ai-course-env`（現在 P0 0 / P1 0）
+
 ## 10. 本番環境の検査
 
 `node scripts/ai-course/verify-production-env.mjs` → **P0 FAIL 0 / P1 FAIL 0**

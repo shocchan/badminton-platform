@@ -1,5 +1,38 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
+## 2026-07-31 本番公開 入力パック 完成 — CEO記入待ち
+
+branch `feature/ai-course-learning-polish` / clean / origin push済
+**RC tag `ai-course-content-rc2`（code `57a8804`）は据え置き。runtime未変更。**
+
+### 今回の成果物（docs・validation scriptのみ／製品コードは触っていない）
+| ファイル | 内容 |
+|---|---|
+| `production/final-release-input.md` | **CEOはこれ1枚に記入すればよい。** 法務14 + 実機34 + 教材11 + 環境20 + 承認 |
+| `production/final-release-input.json` | 機械可読版（秘密値は持たない・状態のみ） |
+| `production/pilot-release-execution.md` | Phase1〜6の実行手順（入力取込→preflight→main統合→deploy→smoke→rollback） |
+| `autonomous-loop/production-release-prompt.md` | 記入後にそのまま貼る次セッションprompt |
+| `scripts/ai-course/validate-legal.mts` | `npm run validate:ai-course-legal` |
+
+### 追加したcommand
+- `npm run validate:ai-course-legal` — 未入力field・不正field・LEGAL_PUBLISH判定・route16・placeholder検出
+  - `-- --simulate-filled` で「値を入れたらPASSするか」を実ファイル無変更で自己診断できる
+- `npm run validate:ai-course-env` — 既存 `verify-production-env.mjs` をnpm scriptへ登録
+
+### 現在値
+tests（法務関連）22 PASS ／ build PASS ／ AIコース側 lint 0E/0W
+legal validation: FAIL（未入力14件＝正常。入力後にPASSへ変わる）
+env validation: P0 0 / P1 0
+
+### CEOが次にすること
+`docs/ai-course/production/final-release-input.md` に記入 →
+`docs/ai-course/autonomous-loop/production-release-prompt.md` を新セッションへ貼る
+
+⚠ 型判定は必ず `npm run build`（tsc -b）。`npx tsc --noEmit` はproxy経由で実エラーを取りこぼす。
+⚠ `device-check-packet.md` 末尾の「A1〜A8 PASS」は**回答例**であってCEOの結果ではない。
+
+---
+
 ## 2026-07-31 AI側リリース準備 完了 — RC tag `ai-course-content-rc2`
 
 branch `feature/ai-course-learning-polish` / HEAD `57a8804` / clean / origin push済 / staging最新

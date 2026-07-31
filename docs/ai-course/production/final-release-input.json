@@ -1,0 +1,269 @@
+{
+  "generatedAt": "2026-07-31",
+  "head": "3069363",
+  "rcTag": "ai-course-content-rc2",
+  "rcCodeCommit": "57a8804",
+  "note": "秘密値は記録しない。状態・field名・evidence pathのみ。",
+  "legal": {
+    "totalFields": 14,
+    "requiredFields": 14,
+    "filled": 0,
+    "pending": 14,
+    "legalPublish": false,
+    "validateCommand": "npm run validate:ai-course-legal",
+    "selfCheckCommand": "npm run validate:ai-course-legal -- --simulate-filled",
+    "sourceOfTruth": "src/lib/aiLesson/course/legal/legalFacts.ts",
+    "fields": [
+      {
+        "id": "L01",
+        "field": "operatorName",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L02",
+        "field": "address",
+        "type": "string|on_request",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L03",
+        "field": "phone",
+        "type": "string|on_request",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L04",
+        "field": "priceJpyTaxIncluded",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L05",
+        "field": "paymentMethods",
+        "type": "string[]",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L06",
+        "field": "paymentTiming",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L07",
+        "field": "serviceStartTiming",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L08",
+        "field": "refundPolicy",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho",
+          "cancel-policy"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L09",
+        "field": "retentionPeriod",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "privacy"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null
+      },
+      {
+        "id": "L10",
+        "field": "deletionSlaDays",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "data-deletion",
+          "account-deletion"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L11",
+        "field": "improvementUseAllowed",
+        "type": "boolean",
+        "required": true,
+        "pages": [
+          "privacy"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L12",
+        "field": "minimumAge",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "terms"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null
+      },
+      {
+        "id": "L13",
+        "field": "externalAiVendors",
+        "type": "string[]",
+        "required": true,
+        "pages": [
+          "privacy",
+          "ai-disclosure"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null
+      },
+      {
+        "id": "L14",
+        "field": "governingLaw",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "terms"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null
+      }
+    ]
+  },
+  "device": {
+    "totalItems": 34,
+    "iphone": 16,
+    "android": 15,
+    "accessibility": 3,
+    "answerFormat": [
+      "PASS",
+      "FAIL",
+      "NOT_TESTED"
+    ],
+    "status": "pending",
+    "evidencePath": "docs/ai-course/production/final-release-input.md#b-実機チェック20-30分"
+  },
+  "contentReview": {
+    "totalItems": 11,
+    "answerFormat": [
+      "CONTENT_REVIEW_PASS",
+      "CONTENT_REVIEW_FAIL"
+    ],
+    "status": "pending",
+    "bulkPromotionAllowed": false,
+    "note": "結果はPilot公開範囲のevidenceとしてのみ使用。human_reviewed/approvedの一括更新はしない"
+  },
+  "productionEnv": {
+    "totalItems": 20,
+    "status": "pending",
+    "allowedValues": [
+      "VERIFIED_PRESENT",
+      "SET_IN_CLOUDFLARE",
+      "MISSING",
+      "NOT_REQUIRED"
+    ],
+    "validateCommand": "npm run validate:ai-course-env",
+    "lastAutomatedResult": {
+      "p0Fail": 0,
+      "p1Fail": 0,
+      "checkedAt": "2026-07-31"
+    },
+    "valueConfirmation": "VALUE_CONFIRMATION_DEFERRED_BY_CEO"
+  },
+  "authorization": {
+    "required": "APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE",
+    "received": false,
+    "receivedAt": null
+  },
+  "urls": {
+    "stagingBase": "https://staging.badminton-platform.pages.dev",
+    "productionBase": "https://kawabado.com",
+    "legalRouteCount": 16,
+    "authRequired": [
+      "/{lang}/ai-course?app=1",
+      "/{lang}/ai-course/admin"
+    ]
+  },
+  "gates": {
+    "remoteDbRlsSync": "COMPLETE",
+    "backupMonitoringRollback": "COMPLETE",
+    "physicalDevices": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "legalFinalApproval": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "contentHumanReview": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "learnerAccountsInvites": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "productionAuthorization": "DEFERRED_BY_CEO_UNTIL_RELEASE"
+  },
+  "executionProcedure": "docs/ai-course/production/pilot-release-execution.md",
+  "nextSessionPrompt": "docs/ai-course/autonomous-loop/production-release-prompt.md"
+}

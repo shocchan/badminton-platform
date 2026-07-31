@@ -10,7 +10,9 @@
     "build:staging": "tsc -b && vite build --mode staging && node scripts/generate-worker.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "validate:ai-course-legal": "vite-node scripts/ai-course/validate-legal.mts",
+    "validate:ai-course-env": "node scripts/ai-course/verify-production-env.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",
