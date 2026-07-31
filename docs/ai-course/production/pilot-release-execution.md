@@ -12,7 +12,7 @@ branch: `feature/ai-course-learning-polish` → `main`
 
 | # | 作業 | 完了条件 |
 |---|---|---|
-| 1-1 | `legalFacts.ts` の14項目へCEOの値を記入 | `npm run validate:ai-course-legal` が **PASS** |
+| 1-1 | `src/lib/aiLesson/course/legal/legalFacts.ts` の14項目へCEOの値を記入 | `npm run validate:ai-course-legal` が **PASS** |
 | 1-2 | 実機結果を `human-gate-evidence.md` へ日付・確認者つきで記録 | D01〜D34 が PASS / FAIL / NOT_TESTED で埋まる |
 | 1-3 | 教材目視結果を同ファイルへ記録 | `CONTENT_REVIEW_PASS` または FAIL対象ID |
 | 1-4 | 本番env確認結果（E01〜E20）を記録 | `npm run validate:ai-course-env` が P0 0 |
@@ -43,7 +43,7 @@ node scripts/ai-course/audit-release-inventory.mjs   # chapters10・context140�
 
 | 対象 | ファイル |
 |---|---|
-| migration / RLS / sync | `gate1-integrity-recheck.md`・`ceo-decisions-20260730.json` |
+| migration / RLS / sync | `gate1-integrity-recheck.md`・`docs/ai-course/decisions/ceo-decisions-20260730.json` |
 | backup / restore / rollback | `release-manifest-august-pilot.md`・`rollback-backup.md` |
 | 認証済みsmoke | `authenticated-staging-smoke.md` |
 | a11y / mobile | `accessibility-mobile-smoke.md` |

@@ -25,7 +25,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案は形のみ（屋号kawabado＋代表者名）。代表者名は未提供の事実"
       },
       {
         "id": "L02",
@@ -38,7 +40,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L03",
@@ -51,7 +55,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L04",
@@ -64,7 +70,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L05",
@@ -77,7 +85,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L06",
@@ -90,7 +100,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L07",
@@ -103,7 +115,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L08",
@@ -117,7 +131,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L09",
@@ -130,7 +146,9 @@
         "status": "pending",
         "existingRecommendation": false,
         "recommendationSource": null,
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし（draft packetでCEO方針待ち）"
       },
       {
         "id": "L10",
@@ -144,7 +162,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L11",
@@ -157,7 +177,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L12",
@@ -170,7 +192,9 @@
         "status": "pending",
         "existingRecommendation": false,
         "recommendationSource": null,
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし（draft packetで方針待ち）"
       },
       {
         "id": "L13",
@@ -184,7 +208,9 @@
         "status": "pending",
         "existingRecommendation": true,
         "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
       },
       {
         "id": "L14",
@@ -197,9 +223,19 @@
         "status": "pending",
         "existingRecommendation": false,
         "recommendationSource": null,
-        "ceoValue": null
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし"
       }
-    ]
+    ],
+    "ceoInputRequiredCount": 4,
+    "recommendationApprovableCount": 10,
+    "bulkApprovalToken": "LEGAL_RECOMMENDATIONS_APPROVED",
+    "contradictionResolved": {
+      "issue": "前回説明で「推奨案が無いのはL01/L12/L14」と記載したが誤り",
+      "correct": "推奨案が無いのは L09/L12/L14。L01は推奨案の形はあるが代表者名が未提供",
+      "result": "CEO入力が必要なのは L01/L09/L12/L14 の4件（回答テンプレートと一致）"
+    }
   },
   "device": {
     "totalItems": 34,
@@ -212,7 +248,10 @@
       "NOT_TESTED"
     ],
     "status": "pending",
-    "evidencePath": "docs/ai-course/production/final-release-input.md#b-実機チェック20-30分"
+    "evidencePath": "docs/ai-course/production/final-release-input.md#b-実機チェック20-30分",
+    "bulkToken": "DEVICE_ALL_PASS",
+    "failToken": "DEVICE_FAIL",
+    "intakeReady": true
   },
   "contentReview": {
     "totalItems": 11,
@@ -222,7 +261,10 @@
     ],
     "status": "pending",
     "bulkPromotionAllowed": false,
-    "note": "結果はPilot公開範囲のevidenceとしてのみ使用。human_reviewed/approvedの一括更新はしない"
+    "note": "結果はPilot公開範囲のevidenceとしてのみ使用。human_reviewed/approvedの一括更新はしない",
+    "bulkToken": "CONTENT_REVIEW_PASS",
+    "failToken": "CONTENT_REVIEW_FAIL",
+    "intakeReady": true
   },
   "productionEnv": {
     "totalItems": 20,
@@ -239,7 +281,26 @@
       "p1Fail": 0,
       "checkedAt": "2026-07-31"
     },
-    "valueConfirmation": "VALUE_CONFIRMATION_DEFERRED_BY_CEO"
+    "valueConfirmation": "VALUE_CONFIRMATION_DEFERRED_BY_CEO",
+    "bulkToken": "ENV_ALL_VERIFIED",
+    "failToken": "ENV_FAIL",
+    "intakeReady": true,
+    "autoVerifiable": [
+      "E03",
+      "E04",
+      "E05",
+      "E12",
+      "E16",
+      "E17"
+    ],
+    "humanOnly": [
+      "E01",
+      "E02",
+      "E06",
+      "E08",
+      "E19",
+      "E20"
+    ]
   },
   "authorization": {
     "required": "APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE",
@@ -265,5 +326,6 @@
     "productionAuthorization": "DEFERRED_BY_CEO_UNTIL_RELEASE"
   },
   "executionProcedure": "docs/ai-course/production/pilot-release-execution.md",
-  "nextSessionPrompt": "docs/ai-course/autonomous-loop/production-release-prompt.md"
+  "nextSessionPrompt": "docs/ai-course/autonomous-loop/production-release-prompt.md",
+  "evidenceIntakePath": "docs/ai-course/production/human-gate-evidence.md"
 }

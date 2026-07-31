@@ -20,12 +20,37 @@ APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE
 無い場合は Phase 2 までで止め、何が足りないかを報告してください。
 
 【Phase 1: 入力の取り込み】
-- final-release-input.md の A（法務14項目）を
-  src/lib/aiLesson/course/legal/legalFacts.ts へ記入する
-  ※ CEOが書いた値だけを入れる。書かれていない事実を推測で補わないこと
-- B（実機 D01〜D34）・C（教材 C01〜C11）・D（環境 E01〜E20）の結果を
-  docs/ai-course/production/human-gate-evidence.md へ日付つきで記録する
-- FAIL があれば P0/P1 は先に修正する
+
+CEOの回答は一括トークンで届きます。次のとおり解釈してください。
+
+1. 法務（legalFacts.ts へ記入）
+   - `LEGAL_RECOMMENDATIONS_APPROVED` があれば、
+     L02〜L08・L10・L11・L13 の10件を final-release-input.md
+     「一括承認できる10件（実際に入る値）」の表の値どおりに入れる
+   - L01・L09・L12・L14 は **CEOが書いた値だけ** を入れる。
+     書かれていなければ入れず、不足として報告して停止する（推測で補わない）
+   - 個別に「L05 = …」等の上書きがあれば、そちらを優先する
+
+2. 実機
+   - `DEVICE_ALL_PASS` → D01〜D34 を CEO確認済みPASS として
+     human-gate-evidence.md の取り込み欄へ一括記録
+     （evidence source / recordedAt / HEAD / CEO confirmation を必ず埋める）
+   - `DEVICE_FAIL：D番号 …` → その番号のみFAILとして記録し、P0/P1なら先に修正
+
+3. 教材
+   - `CONTENT_REVIEW_PASS` → Pilot公開範囲のevidenceとして記録（P0 0 / P1 0）
+   - **human_reviewed / approved への一括昇格はしない**
+   - `CONTENT_REVIEW_FAIL：対象ID …` → 該当だけ修正
+
+4. 環境
+   - `ENV_ALL_VERIFIED` → **無条件PASSにしない**。
+     自動検証できる E03/E04/E05/E12/E16/E17 は `npm run validate:ai-course-env` の
+     実結果を使い、人間しか確認できない E01/E02/E06/E08/E19/E20 等だけを
+     CEO evidence として `VERIFIED_PRESENT` で記録する
+   - `ENV_FAIL：E番号 …` → 該当を解消するまで本番へ進まない
+
+【重要】`npm run validate:ai-course-legal` は**通常モードでPASS**すること。
+`--simulate-filled` のPASSは自己診断でしかなく、Legal Complete の根拠にしない。
 
 【Phase 2: Preflight】
 npm run validate:ai-course-legal     → PASS（LEGAL_PUBLISH: true）

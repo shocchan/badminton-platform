@@ -16,10 +16,21 @@
 **14項目すべてが必須**です（1つでも欠けると8ページは公開されません）。
 
 「既存推奨案」は `legal-decision-packet.md` からの転記で、**私が新しく作った値ではありません**。
-推奨案が無い項目は空欄です。事実は創作していません。
+事実は創作していません。
 
-一括で承認する場合は **「L01〜L14、既存推奨案どおりで承認」** と書いてください。
-推奨案が無い L01 / L12 / L14 だけは、必ず個別に値が要ります。
+### CEO入力が必要なのは 4 件だけです
+
+| 区分 | field | 理由 |
+|---|---|---|
+| 推奨案どおりで承認できる | L02〜L08・L10・L11・L13（**10件**） | packetに具体値がある。`LEGAL_RECOMMENDATIONS_APPROVED` の一行で承認可 |
+| **CEO入力が必要** | **L01**（`operatorName`） | 推奨案は「屋号 kawabado ＋ **代表者名**」という**形**まで。代表者名そのものは提供されていない事実 |
+| **CEO入力が必要** | **L09**（`retentionPeriod`） | packetに推奨案なし（draft packetで「CEO方針待ち」） |
+| **CEO入力が必要** | **L12**（`minimumAge`） | packetに推奨案なし（draft packetで「方針待ち」） |
+| **CEO入力が必要** | **L14**（`governingLaw`） | packetに推奨案なし |
+
+> 前回の説明で「推奨案が無いのは L01/L12/L14」と書いたのは誤りでした。
+> 正しくは **推奨案が無いのは L09・L12・L14**、**L01は推奨案はあるが代表者名が未提供**です。
+> 結果として **CEO入力が必要なのは L01・L09・L12・L14 の4件**で、これは回答テンプレートと一致します。
 
 ---
 
@@ -29,9 +40,10 @@
 - 必須: はい
 - 掲載: 特商法「販売事業者」
 - 現在値: `null`
-- 既存推奨案: 屋号「kawabado」＋**代表者名**（個人事業なら氏名の表示が要る）
+- 既存推奨案: **形のみあり** — 屋号「kawabado」＋**代表者名**（個人事業なら氏名の表示が要る）
 - 根拠: `legal-decision-packet.md` #1
-- **CEO入力**: `________________`
+- **CEO入力が必要な理由**: 代表者名は私が知り得ない事実で、推測で書くことができないため
+- **CEO入力**: `kawabado ______________`（例の形: `kawabado 山田太郎`）
 - validation: 2文字以上
 - 未入力時: 特商法ページの「販売事業者」節が出ない＋8ページ全部が非公開
 
@@ -195,6 +207,31 @@
 
 ---
 
+### 一括承認できる10件（実際に入る値）
+
+次の一行で、この10件を推奨案どおり確定できます。
+
+```
+LEGAL_RECOMMENDATIONS_APPROVED
+```
+
+| field | 実際に入る値 |
+|---|---|
+| L02 `address` | `'on_request'`（請求があれば遅滞なく開示） |
+| L03 `phone` | `'on_request'`（メールは info@kawabado.com） |
+| L04 `priceJpyTaxIncluded` | `100000` |
+| L05 `paymentMethods` | `['銀行振込']` |
+| L06 `paymentTiming` | `'申込時に一括'` |
+| L07 `serviceStartTiming` | `'決済確認後、招待コードの発行をもって開始'` |
+| L08 `refundPolicy` | `'開始前は全額返金します。開始後は未提供分を月割で返金します。'` |
+| L10 `deletionSlaDays` | `30` |
+| L11 `improvementUseAllowed` | `false`（発話・作文を教材改善に使わない） |
+| L13 `externalAiVendors` | `['OpenAI']` |
+
+個別に変えたい項目だけ「L05 = …」の形で上書きしてください。
+
+---
+
 ### 法務の公開条件（コードの実挙動）
 
 | 条件 | 内容 |
@@ -231,12 +268,26 @@ npm run validate:ai-course-legal -- --simulate-filled
 
 ---
 
-## B. 実機チェック（20〜30分）
+## B. 実機チェック
 
-staging URL: **https://staging.badminton-platform.pages.dev/ja/ai-course?app=1**
-中国語: 上の `/ja/` を `/zh/` に変えるだけ。
+> **CEOは実施済み。** 再実施は不要です。次の一行で D01〜D34 をまとめて記録します。
+>
+> ```
+> DEVICE_ALL_PASS
+> ```
+>
+> FAILがあった項目だけ:
+> ```
+> DEVICE_FAIL：D08 音声が始まらない
+> ```
+>
+> `DEVICE_ALL_PASS` を受け取った場合、D01〜D34 を **CEO確認済みPASS** として
+> `human-gate-evidence.md` へ evidence source / recordedAt / HEAD / CEO confirmation つきで記録します。
+> 以前 packet に書かれていた「回答例」とは区別して扱います。
 
-回答は **番号 + PASS / FAIL / NOT_TESTED** だけで結構です。FAILは一言添えてください。
+以下は記録される項目の一覧（回答の必要はありません）。
+
+staging URL: https://staging.badminton-platform.pages.dev/ja/ai-course?app=1
 
 ### iPhone Safari
 
@@ -287,20 +338,12 @@ staging URL: **https://staging.badminton-platform.pages.dev/ja/ai-course?app=1**
 | D33 | TalkBack: 同上 | 同上 |
 | D34 | 中国語表示での読み上げ | 中国語で読まれる（日本語が混ざらない） |
 
-**回答欄**
-
-```
-D01 
-D02 
-...
-D34 
-```
 
 ---
 
-## C. 公開教材の目視確認（10分）
+## C. 公開教材の目視確認
 
-**全140件を見る必要はありません。** Pilot公開を止めるほどの問題が無いかだけを確認します。
+> **CEOは実施済み。** 再実施は不要です。以下は記録される確認範囲の一覧です。
 
 | # | 対象 | 見るところ |
 |---|---|---|
@@ -316,7 +359,13 @@ D34
 | C10 | Support / エラー文言 | 中国語表示で日本語が出ない |
 | C11 | ja / zh 切替 | 主要画面で崩れない |
 
-**回答**: `CONTENT_REVIEW_PASS` または `CONTENT_REVIEW_FAIL: <対象ID>`
+**回答**: 次の一行だけで結構です。
+
+```
+CONTENT_REVIEW_PASS
+```
+
+FAILがある場合のみ `CONTENT_REVIEW_FAIL：C05 感情語の区別がつかない` の形式で。
 
 この結果は **Pilot公開範囲のevidence** としてのみ使います。
 教材の `human_reviewed` / `approved` を一括更新することはしません。
@@ -325,9 +374,21 @@ D34
 
 ## D. 本番環境の確認
 
-**秘密の値はこのファイルにもJSONにも書かないでください。** 状態だけを記入します。
+**秘密の値はこのファイルにもJSONにも書かないでください。** 状態だけを記録します。
 
-記入値: `VERIFIED_PRESENT` / `SET_IN_CLOUDFLARE` / `MISSING` / `NOT_REQUIRED`
+> 次の一行で E01〜E20 をまとめて記録します。
+>
+> ```
+> ENV_ALL_VERIFIED
+> ```
+>
+> ただし**無条件PASSにはしません。** 自動検証できる項目（E03/E04/E05/E12/E16/E17）は
+> `npm run validate:ai-course-env` の実結果を使い、
+> 人間しか確認できない項目（E01/E02/E06/E08/E19/E20 など）だけをCEO evidenceとして記録します。
+>
+> 不一致があれば `ENV_FAIL：E06 本番のredirect URLが未登録` の形式で。
+
+記録値: `VERIFIED_PRESENT` / `MISSING` / `NOT_REQUIRED` / `CEO_CONFIRMATION_REQUIRED`
 
 | # | 項目 | 用途 | client/server | 必須 | staging | production | 確認方法 | CEO記入 |
 |---|---|---|---|---|---|---|---|---|
@@ -348,7 +409,7 @@ D34
 | E15 | CSP | 安全 | — | 任意 | `public/_headers` | 同一 | — | |
 | E16 | noindex | SEO | — | 必須 | 学習アプリはnoindex | 同一 | `validate:ai-course-env` | |
 | E17 | source maps | 安全 | — | 必須 | 無効 | 無効 | 同上 | |
-| E18 | monitoring | 運用 | — | 必須 | `daily-ops-check.mjs` | 同一 | launchd 10:00 | |
+| E18 | monitoring | 運用 | — | 必須 | `scripts/ai-course/daily-ops-check.mjs` | 同一 | launchd 10:00 | |
 | E19 | previous production deploy ID | rollback先 | — | 必須 | — | **deploy直前に控える** | Cloudflare deployments | |
 | E20 | rollback target | 復旧 | — | 必須 | — | 直前deployment | 同上 | |
 
@@ -420,25 +481,25 @@ APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE
 
 ```
 【A. 法務】
-L01〜L14、既存推奨案どおりで承認
-（推奨案が無い項目は個別に）
-L01 =
-L09 =
-L12 =
-L14 =
-（推奨案を変える項目だけ追記）
+LEGAL_RECOMMENDATIONS_APPROVED
+
+L01：kawabado ＿＿＿＿＿＿（代表者名）
+L09：＿＿＿＿＿＿（会話音声・履歴の保存期間）
+L12：＿＿（受講可能な最低年齢・数字）
+L14：＿＿＿＿＿＿（準拠法・管轄）
 
 【B. 実機】
-D01 PASS
-...
-D34 PASS
+DEVICE_ALL_PASS
 
 【C. 教材】
 CONTENT_REVIEW_PASS
 
 【D. 環境】
-E01〜E20 確認済み（違う項目だけ記載）
+ENV_ALL_VERIFIED
 
 【E. 承認】
 APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE
 ```
+
+FAILがある場合だけ、該当行を
+`DEVICE_FAIL：D08 …` / `CONTENT_REVIEW_FAIL：C05 …` / `ENV_FAIL：E06 …` に置き換えてください。
