@@ -1,6 +1,6 @@
 {
   "updatedAt": "2026-07-31T03:10:00+09:00",
-  "currentHead": "85ce112",
+  "currentHead": "57a8804",
   "note": "status は実行のたびに更新する。blocked_external は evidence と解除操作を必ず書く。",
   "tasks": [
     {
@@ -150,16 +150,16 @@
     {
       "id": "T19-rc2-freeze",
       "priority": 19,
-      "status": "in_progress",
+      "status": "complete",
       "acceptanceCommand": "git tag ai-course-content-rc2 && git push",
-      "evidencePath": "docs/ai-course/production/release-manifest-content-rc1.md",
+      "evidencePath": "tag ai-course-content-rc2 (57a8804, pushed)",
       "blockedReason": null
     }
   ],
-  "rcTag": "ai-course-content-rc1",
+  "rcTag": "ai-course-content-rc2",
   "summary": {
-    "complete": 15,
-    "in_progress": 1,
+    "complete": 16,
+    "in_progress": 0,
     "failed_internal": 0,
     "blocked_external": 0,
     "deferred_by_ceo": 3

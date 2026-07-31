@@ -1,35 +1,42 @@
 # 現在の状態（自律ループ用・各Phase完了時に更新）
 
-## 2026-07-31 RELEASE CLOSURE 完了 — RC tag `ai-course-content-rc1` を発行
+## 2026-07-31 AI側リリース準備 完了 — RC tag `ai-course-content-rc2`
 
-branch `feature/ai-course-learning-polish` / clean / origin push済 / **RC tag push済**
+branch `feature/ai-course-learning-polish` / HEAD `57a8804` / clean / origin push済 / staging最新
 
-### ゲート状態（実測）
-| ゲート | 状態 | 根拠 |
-|---|---|---|
-| ① Remote DB・RLS・Sync | **COMPLETE** | `production/gate1-integrity-recheck.md`（read-onlyで再照合・baseline完全一致） |
-| ② 実機確認 | **BLOCKED_EXTERNAL** | 物理端末が要る。packetに記入なし |
-| ③ 法務 | **BLOCKED_EXTERNAL** | 実装は完了。残は事実14項目（`legalFacts.ts` の null） |
-| ④ 公開教材の人間確認 | **BLOCKED_EXTERNAL** | CEO目視結果がrepo内に無い |
-| ⑤ Backup・Rollback | **COMPLETE** | GATE⑤ |
+**CEO決定（2026-07-31）**: 実機確認・法務事実・公開教材の目視・招待・本番承認は
+本番公開直前にCEO本人がまとめて実施する。よってこれらは BLOCKED ではなく
+**DEFERRED_BY_CEO_UNTIL_RELEASE**。AI側キューの終了条件から外した。
 
-### 今回やったこと
-- **法務8ページ実装**（ja/zh・route・LP footer 8リンク・公開ガード・test 17件）。
-  事実が未確定の節は描画せず、作文も「準備中」もしない設計
-- **認証済み staging smoke**（前回未実施だった項目）。SVGイラスト56枚が実画面で描画・
-  会話文脈が語固有・zh切替・法務16URL全200・console error 0（未認証タブ）
-  fixtureは撤去済みで行数完全一致（auth_users 5 / learners 1 / progress 12 / sessions 24）
-- **Gate① 維持検証**（read-only・remote write 0）
-- **production preflight**（env名のみ・VITE_で露出する秘密0件・OPENAI鍵はEdge側のみ）
-- 正準カウント再実測script `audit-release-inventory.mjs`
+### AI側 status
+| 項目 | 状態 |
+|---|---|
+| Product Technical Complete | **YES** |
+| Content Technical Complete | **YES** |
+| Illustration Technical Complete | **YES** |
+| Legal Code Complete | **YES** |
+| Production Preflight Package | **YES** |
+| Production Release Candidate Ready | **YES** |
+| AI-side Tasks Complete | **YES** |
+| Actual Production Release Ready | **NO**（人間ゲート前） |
 
-### 実測値
-tests **1295 PASS / 0 FAIL** ／ build PASS ／ lint 29E/6W（全てバドミントン本体側・AIコース側0）
+work queue: complete 16 / in_progress 0 / failed_internal 0 / blocked_external 0 / deferred_by_ceo 3
+
+### 実測値（RC2）
+tests **1300 PASS / 0 FAIL** ／ build PASS ／ **AIコース側 lint 0E/0W**（全体29E/6Wは本体側の既存分）
 chapters 10 ／ 会話文脈 140/140 ／ イラスト 140/140 learner visible ／ Loading 21箇所
+env検査 P0 0 / P1 0（クライアント鍵 role=anon 実確認）
 
-### 次にやること
-`docs/ai-course/autonomous-loop/next-session-prompt.md` を参照。
-Phase B と Release Closure は完了。**やり直さないこと。**
+### 今回追加したもの
+- 申込前の同意ゲート（**法務ページ未公開のあいだは同意欄を出さない**＝読めない文書に同意させない）
+- 学習アプリ側 footer の法務リンク8本（LPだけでは学習者が規約・削除申請へ辿り着けなかった）
+- `scripts/ai-course/verify-production-env.mjs`（秘密の値は出さず構成だけ検査）
+- 法務リンクのタップ標的 19px → **44px**（mobile実測で発見して修正）
+- `accessibility-mobile-smoke.md`（ja/zh とも横スクロール0・無名操作要素0・console 0）
+
+### 法務の残り
+`src/lib/aiLesson/course/legal/legalFacts.ts` の null **14項目のみ**。
+値を入れると `LEGAL_PUBLISH` が自動でtrueになり、8ページ公開＋同意チェックが有効になる。
 
 ⚠ 型判定は必ず `npm run build`（tsc -b）。`npx tsc --noEmit` はproxy経由で実エラーを取りこぼす。
 ⚠ `device-check-packet.md` 末尾の「A1〜A8 PASS」は**回答例**であってCEOの結果ではない。
