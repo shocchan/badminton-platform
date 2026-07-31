@@ -12,9 +12,14 @@ import { LEGAL_PUBLISH, isLegalPreview, pendingLegalFacts } from '../../../lib/a
 export const LegalFooterLinks = ({ lang, className = '' }: { lang: 'ja' | 'zh'; className?: string }) => {
   const pages = buildLegalPages(lang);
   return (
-    <nav className={`flex flex-wrap gap-x-4 gap-y-1.5 ${className}`} aria-label={lang === 'zh' ? '法律信息' : '法務情報'}>
+    <nav className={`flex flex-wrap gap-x-4 ${className}`} aria-label={lang === 'zh' ? '法律信息' : '法務情報'}>
       {pages.map((p) => (
-        <Link key={p.id} to={legalPathFor(lang, p.id)} className="text-[0.78rem] underline underline-offset-2 opacity-80 hover:opacity-100">
+        // モバイルで指が届く高さを確保する（文字は小さいまま、当たり判定だけ広げる）
+        <Link
+          key={p.id}
+          to={legalPathFor(lang, p.id)}
+          className="inline-flex items-center min-h-11 py-1 text-[0.78rem] underline underline-offset-2 opacity-80 hover:opacity-100"
+        >
           {p.title}
         </Link>
       ))}
