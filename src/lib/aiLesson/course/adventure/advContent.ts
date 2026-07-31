@@ -7,7 +7,7 @@ import { N2_UNIT_FILE_NUMBERS, loadN2DraftUnitFile } from '../n2GrammarDraftChun
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
 import { buildUnitQuestions } from '../n3unit/unitRuntime';
 import { allVocabularyItems } from '../foundationVocabBank';
-import { mechanicOf, type FoundationQuestion } from '../foundationTypes';
+import type { AssessQuestion } from '../quality/assessQuestionEngine';
 import type { N2GrammarDraft } from '../n2GrammarDrafts';
 import type { DiagQuestion, DiagnosisPools } from './advDiagnosis';
 import { buildVariantPool, type AdvBattleQuestion, type GrammarDraftLike } from './advVariants';
@@ -60,16 +60,15 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
 };
 
 // ── 診断プール（既存validated問題のみ・§10） ──
-const toDiagFromFoundation = (q: FoundationQuestion, level: 'foundation' | 'n3', unitId: string): DiagQuestion | null => {
-  if (mechanicOf(q.type) !== 'choice' || !q.choices || q.answerIndex === undefined) return null;
-  if (q.imageAssetId) return null; // 画像問題は診断に使わない（承認状態に依存させない）
+const toDiagFromUnit = (q: AssessQuestion, level: 'foundation' | 'n3', unitId: string): DiagQuestion | null => {
+  if (q.kind !== 'choice' || q.choices.length < 2) return null; // 並べ替えは診断で使わない（時間短縮）
   return {
-    key: `n3q:${unitId}:${q.id}`,
+    key: `n3q:${unitId}:${q.questionId}`,
     level, skill: 'vocabulary',
     promptJa: q.promptJa, promptZh: q.promptZh,
     choices: q.choices, answerIndex: q.answerIndex,
     explanationZh: q.explanationZh,
-    refId: q.targetItemId ?? q.id,
+    refId: q.itemId,
   };
 };
 
@@ -94,7 +93,7 @@ export const buildDiagnosisPools = async (): Promise<DiagnosisPools> => {
     const set = buildUnitQuestions(spec, vocab);
     const isEarly = spec.order <= 2;
     for (const q of set.diagnostic) {
-      const d = toDiagFromFoundation(q, isEarly ? 'foundation' : 'n3', spec.unitId);
+      const d = toDiagFromUnit(q, isEarly ? 'foundation' : 'n3', spec.unitId);
       if (d) (isEarly ? foundationVocab : n3Vocab).push(d);
     }
   }
