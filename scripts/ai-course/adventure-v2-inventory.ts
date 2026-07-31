@@ -40,9 +40,11 @@ const run = async () => {
   // N3 grammar drafts
   const n3Grammar = N3_GRAMMAR_DRAFTS;
   const n3GrammarByStatus: Record<string, number> = {};
-  for (const g of n3Grammar as unknown as { reviewStatus?: string; status?: string }[]) {
+  let n3GrammarWithRecognition = 0;
+  for (const g of n3Grammar as unknown as { reviewStatus?: string; status?: string; recognition?: unknown }[]) {
     const s = g.reviewStatus ?? g.status ?? 'unknown';
     n3GrammarByStatus[s] = (n3GrammarByStatus[s] ?? 0) + 1;
+    if (g.recognition) n3GrammarWithRecognition += 1;
   }
 
   // 語彙
@@ -88,6 +90,7 @@ const run = async () => {
     },
     n3: {
       grammarDrafts: n3Grammar.length,
+      grammarWithRecognition: n3GrammarWithRecognition,
       grammarByStatus: n3GrammarByStatus,
       units: N3_UNIT_SPECS.length,
       unitIds: N3_UNIT_SPECS.map((s) => s.unitId),

@@ -32,17 +32,19 @@ AIコースUX修正（UX-001 P1のLPログイン導線を含む）であり、or
 | N3 grammar drafts | 推測禁止 | **76**（N3_GRAMMAR_DRAFTS実数） | 実測確定 |
 | N3 units | — | **12**（N3_UNIT_SPECS） | 実測確定 |
 | N3 生成問題 | — | **608**（12単元・diagnostic/understand/distinguish/apply） | 実測確定 |
+| N3 文法recognition | — | **76**（= 1項目1問） | ⚠️ variant不足 |
 | N2 バトル問題 | — | **178**（= 1項目1問のrecognitionのみ） | ⚠️ 最大ギャップ |
 | AI会話context | — | 140（release-inventory.json: contextData 140・dead 0） | ✅ |
 | 60ミッション | — | courseData.ts 12週×5（従来コース・温存） | ✅ |
 
 ### ⚠️ V2にとっての最重要ギャップ
 
-1. **N2問題プール = 1項目1問**。§18「複数variant・80%攻略が問題ID暗記で達成できない」を
-   満たすには variant生成architecture が必須（§15の未出問題条件も現状は不成立）。
-2. **N3文法76項目には出題データが未接続**（608問は語彙ベースの単元問題。文法ドラフト76件の
-   問題は recognition 相当も無い）→ N3文法バトルはvariant生成で新設する。
-3. 読解・聴解・並べ替え・誤文訂正など§14の問題タイプは**現状ほぼ無い**（N3にorder型あり）。
+1. **文法問題プール = 1項目1問**（N2 178問・N3文法76問、いずれも authored recognition のみ）。
+   §18「複数variant・80%攻略が問題ID暗記で達成できない」を満たすには variant生成architecture が
+   必須（§15の未出問題条件も現状は不成立）。draft本文は例文2〜3・similarPatterns・formation・
+   contrast 等を持ち、決定的variant生成の材料は揃っている。
+2. 読解・聴解・並べ替え・誤文訂正など§14の問題タイプは**現状ほぼ無い**（N3単元にorder型あり）。
+3. テスト実測: **1306件全PASS**（V2 base = hotfix tip 2795685 で確認。state fileの1078は stale）。
 
 ## 3. Runtime機能の現況（V2が再利用する土台）
 
