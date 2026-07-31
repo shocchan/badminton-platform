@@ -13,12 +13,12 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 | 項目 | 値 |
 |---|---|
 | release branch | `feature/ai-course-learning-polish` |
-| RC HEAD（コード） | `ed92454` |
-| HEAD（この文書を含む） | `8290177` — docsのみ。コードは `ed92454` と同一 |
+| RC HEAD | 下記「RC tag」の指す commit |
+| RC tag | `ai-course-content-rc1` |
 | working tree | clean |
 | origin push | 済 |
 | main | 未merge（本番は従来系統のまま） |
-| RC tag候補 | `ai-course-content-rc1`（**未作成・未push**。承認後に打つ） |
+
 
 ### このRCで入ったcommit
 
@@ -30,6 +30,8 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 | `df2580b` | 語彙イラスト140語を自前SVGで用意し学習者画面へ接続（B-4） |
 | `ed92454` | 今回追加分のlintを0にする（B-6） |
 | `8290177` | RC凍結の記録（docsのみ・コード変更なし） |
+| `e72580d` | 法務8ページをja/zhで実装（Gate③のAI作業分） |
+| （以降） | Gate①維持検証・認証済みstaging smoke・production preflight |
 
 ---
 
@@ -37,7 +39,7 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 
 | 検査 | 結果 |
 |---|---|
-| tests | **1278 PASS / 0 FAIL**（Phase B開始時 1212 → +66） |
+| tests | **1295 PASS / 0 FAIL**（Phase B開始時 1212 → +83） |
 | tsc（`tsc -b`） | PASS |
 | production build | PASS（`dist/_worker.js` 生成まで） |
 | lint | **29 errors / 6 warnings**（すべてバドミントン本体側の既存分。AIコース側 0） |
@@ -158,11 +160,27 @@ warnings 6件はすべて `react-hooks/exhaustive-deps`（同ファイル群）�
 
 ## 9. 人間ゲート（コード側では閉じられない）
 
-| ゲート | 状態 |
-|---|---|
-| Remote DB・RLS・Server Sync | COMPLETE（GATE①・7/30適用済み） |
-| Backup・Monitoring・Rollback | COMPLETE（GATE⑤） |
-| 実機確認（iPhone / Android） | DEFERRED_UNTIL_RELEASE → `device-check-packet.md` |
-| 法務（8ページ ja/zh） | DEFERRED_UNTIL_RELEASE → `legal-decision-packet.md` |
-| 受講者アカウント・招待 | DEFERRED_UNTIL_RELEASE（Release Operations Phaseへ分離） |
-| 本番リリース承認 | 未取得（`APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE`） |
+| ゲート | 状態 | 根拠 / 残 |
+|---|---|---|
+| ① Remote DB・RLS・Server Sync | **COMPLETE** | `gate1-integrity-recheck.md`（リリース直前にread-onlyで再照合。baseline完全一致） |
+| ② 実機確認（iPhone / Android / VO / TalkBack） | **BLOCKED_EXTERNAL** | 物理端末でしか確認できない。`device-check-packet.md` に記入が無い |
+| ③ 法務 | **BLOCKED_EXTERNAL** | ページ実装・route・i18n・footer・testはAI側で完了（`e72580d`）。残るのはCEOしか答えられない事実14項目 |
+| ④ 公開教材範囲の人間確認 | **BLOCKED_EXTERNAL** | CEOの目視結果がrepo内に存在しない |
+| ⑤ Backup・Monitoring・Rollback | **COMPLETE** | GATE⑤（`release-manifest-august-pilot.md`） |
+| 認証済み staging smoke | **COMPLETE** | `authenticated-staging-smoke.md`（前回未実施だった項目を今回実施） |
+| production preflight | **COMPLETE** | `production-preflight.md` |
+| 本番リリース承認 | 未取得 | `APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE` |
+
+### Gate③ の残（CEOしか答えられない事実・14項目）
+
+`src/lib/aiLesson/course/legal/legalFacts.ts` の null 項目がそのまま残作業:
+
+`operatorName` / `address` / `phone` / `priceJpyTaxIncluded` / `paymentMethods` /
+`paymentTiming` / `serviceStartTiming` / `refundPolicy` / `retentionPeriod` /
+`deletionSlaDays` / `improvementUseAllowed` / `minimumAge` / `externalAiVendors` / `governingLaw`
+
+この14項目が埋まると `LEGAL_PUBLISH` が自動で true になり、8ページが公開される。
+コード変更は値の記入だけで済む。
+
+なお **専門家レビューは Public General Release の条件**であり、
+August Pilot の Gate③ とは分離して扱う（`legal-draft-packet-20260730.md` の方針）。
