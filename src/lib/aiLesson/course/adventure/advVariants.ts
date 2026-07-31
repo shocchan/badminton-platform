@@ -1,11 +1,17 @@
-// 文法問題のvariant決定的生成（§18・D-007/D-008）。
-// 狙い: 1項目1問（authored recognition）の暗記で80%攻略できてしまう構造を壊す。
+// 文法問題のvariant決定的生成（§18・D-007/D-008 ＋ ASSESSMENT INTEGRITY §10〜§15）。
+//
 // 原則:
 // - 実行時LLM生成はしない。既存draft本文からの決定的変換のみ（seed固定・テストで全件検査可能）
-// - distractorは「同義・類似」を両方向に除外（複数正解の主因＝G2教訓）
-// - 生成できない項目は生成しない（存在するふりをしない・§18）
-// - 機械検査（漏洩0・重複0・解説必須・出典必須）を通った問題だけ emit ＝ validated_beta
+// - distractorは「同義・類似」を両方向に除外し、接続互換・文末互換を満たすものだけ採る
+// - **正解はindexではなくchoiceIdで保持**（表示順はattempt時にシャッフルする＝位置バイアス排除）
+// - 生成できない項目は生成しない（存在するふりをしない）
+// - 機械検査（漏洩0・重複0・複数正解0・解説必須・出典必須・妥当性）を通った問題だけ emit
 import { seededShuffle } from './advDiagnosis';
+import {
+  checkQuestionValidity, connectionHead, isConnectionCompatible, endingCategory,
+  type ValidityIssue,
+} from './advQuestionValidity';
+import { skillOfQuestionType, SECTION_OF_SKILL, type ExamSection, type ExamSkill } from './advExamSkills';
 
 /** N2GrammarDraft / N3GrammarDraft 共通の構造（structural typing・両方に適合） */
 export interface GrammarDraftLike {
@@ -17,25 +23,63 @@ export interface GrammarDraftLike {
   examplesJa: string[];
   examplesZh: string[];
   similarPatterns: string[];
-  recognition: { promptZh: string; options: string[]; answerIndex: number; explanationZh: string };
+  recognition: {
+    promptZh: string; options: string[]; answerIndex: number; explanationZh: string;
+    distractorReason?: string;
+  };
+  contrast?: string;
   matchKeys?: string[];
 }
 
 export type AdvQuestionType = 'rec' | 'cloze' | 'meaning' | 'form';
 
+/** 選択肢。正解は **isCorrect** が持ち、表示位置では判定しない（§11） */
+export interface AdvChoice {
+  /** 安定ID。表示順が変わっても不変（採点キー） */
+  choiceId: string;
+  textJa: string;
+  /** 中国語gloss（あれば）。無い場合はtextJaをそのまま表示 */
+  textZh?: string;
+  isCorrect: boolean;
+  /** なぜ違うか（§4「他の選択肢が違う理由」） */
+  whyWrongJa?: string;
+  whyWrongZh?: string;
+}
+
+/** 正解後に表示する説明（§4の必須項目） */
+export interface AdvExplanation {
+  meaningJa: string;
+  meaningZh: string;
+  whyCorrectJa: string;
+  whyCorrectZh: string;
+  exampleJa: string | null;
+  exampleZh: string | null;
+  sourceItemId: string;
+  /** 出典の文法項目の表記（〜以上は 等） */
+  sourceLabel: string;
+}
+
 export interface AdvBattleQuestion {
   /** `${type}:${grammarId}` or `${type}:${grammarId}:${i}`（未出判定・台帳共有キー） */
   key: string;
-  /** 文法variantは AdvQuestionType。単元問題は `u-${dimension}`（タイプ多様性判定に使う） */
+  /** 文法variantは AdvQuestionType。単元問題は `u-${dimension}` */
   type: string;
   level: 'foundation' | 'n3' | 'n2';
-  skill: 'grammar' | 'vocabulary';
-  promptJa: string | null;
-  promptZh: string;
-  choices: string[];
-  answerIndex: number;
-  explanationZh: string;
-  sourceId: string;
+  /** 鍛えている試験科目（§10） */
+  skill: ExamSkill;
+  examSection: ExamSection;
+  /** 学習対象の日本語（zh画面でもそのまま表示する・§2） */
+  targetJapanese: string | null;
+  /** 設問文（ja / zh を分離。片方しか無い場合はnull） */
+  questionJa: string | null;
+  questionZh: string;
+  choices: AdvChoice[];
+  explanation: AdvExplanation;
+  sourceItemId: string;
+  difficulty: 1 | 2 | 3;
+  timed: boolean;
+  variantId: string;
+  reviewState: 'generated_draft' | 'validated_beta' | 'authored';
   status: 'authored' | 'validated_beta';
 }
 
@@ -50,30 +94,9 @@ export const matchKeysOf = (d: GrammarDraftLike): string[] => {
 const normalizePattern = (p: string): string => p.replace(/[〜～（）()／/\s]/g, '');
 
 /**
- * 同義・類似の除外集合（両方向）。
- * - 自分の similarPatterns
- * - 相手の similarPatterns に自分が入っている項目
- * - 正規化patternが2文字以上の連続部分を共有する項目（一方だ/一方で・上は/上で 等の同族）
- */
-export const buildExclusionSet = (self: GrammarDraftLike, all: GrammarDraftLike[]): Set<string> => {
-  const ex = new Set<string>([self.grammarId]);
-  const selfNorm = normalizePattern(self.pattern);
-  const selfSims = new Set(self.similarPatterns.map(normalizePattern));
-  for (const o of all) {
-    if (o.grammarId === self.grammarId) continue;
-    const oNorm = normalizePattern(o.pattern);
-    if (selfSims.has(oNorm)) { ex.add(o.grammarId); continue; }
-    if (o.similarPatterns.some((sp) => normalizePattern(sp) === selfNorm)) { ex.add(o.grammarId); continue; }
-    if (sharesStem(selfNorm, oNorm)) { ex.add(o.grammarId); continue; }
-  }
-  return ex;
-};
-
-/**
  * 同族文型の保守的検出:
  * ① 2文字以上の連続部分文字列を共有（一方だ/一方で 等）
- * ② 漢字を1文字でも共有（上では/上は/以上は の「上」族 等。かな機能語は対象外）
- * 除外しすぎてもdistractor候補は十分残る（N2 178/N3 76）ため保守側に倒す。
+ * ② 漢字を1文字でも共有（上では/上は/以上は の「上」族 等）
  */
 const sharesStem = (a: string, b: string): boolean => {
   const [s, l] = a.length <= b.length ? [a, b] : [b, a];
@@ -88,44 +111,98 @@ const sharesStem = (a: string, b: string): boolean => {
   return false;
 };
 
+/** 同義・類似の除外集合（両方向） */
+export const buildExclusionSet = (self: GrammarDraftLike, all: GrammarDraftLike[]): Set<string> => {
+  const ex = new Set<string>([self.grammarId]);
+  const selfNorm = normalizePattern(self.pattern);
+  const selfSims = new Set(self.similarPatterns.map(normalizePattern));
+  for (const o of all) {
+    if (o.grammarId === self.grammarId) continue;
+    const oNorm = normalizePattern(o.pattern);
+    if (selfSims.has(oNorm)) { ex.add(o.grammarId); continue; }
+    if (o.similarPatterns.some((sp) => normalizePattern(sp) === selfNorm)) { ex.add(o.grammarId); continue; }
+    if (sharesStem(selfNorm, oNorm)) { ex.add(o.grammarId); continue; }
+  }
+  return ex;
+};
+
 /** 機械検査（§18/§30）。1つでも失敗した問題はemitしない */
 export const validateQuestion = (q: AdvBattleQuestion): string[] => {
   const issues: string[] = [];
   if (q.choices.length < 3) issues.push('choices<3');
-  if (new Set(q.choices.map((c) => c.trim())).size !== q.choices.length) issues.push('duplicate_choice');
-  if (q.answerIndex < 0 || q.answerIndex >= q.choices.length) issues.push('answer_index_range');
-  const correct = q.choices[q.answerIndex]?.trim() ?? '';
+  const texts = q.choices.map((c) => c.textJa.trim());
+  if (new Set(texts).size !== texts.length) issues.push('duplicate_choice');
+  const correctList = q.choices.filter((c) => c.isCorrect);
+  if (correctList.length !== 1) issues.push(correctList.length === 0 ? 'no_correct' : 'multiple_correct');
+  const ids = q.choices.map((c) => c.choiceId);
+  if (new Set(ids).size !== ids.length) issues.push('duplicate_choice_id');
+  const correct = correctList[0]?.textJa.trim() ?? '';
   if (correct.length === 0) issues.push('empty_correct');
-  if (correct.length > 0 && q.promptZh.includes(correct)) issues.push('answer_leakage_zh');
-  if (correct.length > 0 && q.promptJa !== null && q.promptJa.includes(correct)) issues.push('answer_leakage_ja');
-  if (q.explanationZh.trim().length === 0) issues.push('missing_explanation');
-  if (q.sourceId.trim().length === 0) issues.push('missing_source');
+  if (correct.length > 0 && q.questionZh.includes(correct)) issues.push('answer_leakage_zh');
+  if (correct.length > 0 && q.questionJa !== null && q.questionJa.includes(correct)) issues.push('answer_leakage_ja');
+  if (q.explanation.whyCorrectZh.trim().length === 0) issues.push('missing_explanation_zh');
+  if (q.explanation.whyCorrectJa.trim().length === 0) issues.push('missing_explanation_ja');
+  if (q.explanation.sourceItemId.trim().length === 0) issues.push('missing_source');
   return issues;
 };
 
-const shuffleChoices = (choices: string[], correctIdx: number, seed: number): { choices: string[]; answerIndex: number } => {
-  const idx = choices.map((_, i) => i);
-  const shuffled = seededShuffle(idx, seed);
-  return {
-    choices: shuffled.map((i) => choices[i]),
-    answerIndex: shuffled.indexOf(correctIdx),
-  };
-};
-
 /** 文字列seed（キーから決定的に） */
-const hashSeed = (s: string): number => {
+export const hashSeed = (s: string): number => {
   let h = 2166136261 >>> 0;
   for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   return h;
 };
 
-/** 説明文の先頭節（distractor・meaning選択肢用）。pattern自体が含まれる説明は使わない（漏洩） */
+const CHOICE_IDS = ['choice-a', 'choice-b', 'choice-c', 'choice-d', 'choice-e'];
+
+/** 選択肢配列を作る。**correctは常に配列先頭に置かず、choiceIdは元の並びで固定**（採点はisCorrect） */
+const mkChoices = (
+  correct: { ja: string; zh?: string },
+  wrongs: { ja: string; zh?: string; whyJa?: string; whyZh?: string }[],
+): AdvChoice[] => {
+  const all = [
+    { ...correct, isCorrect: true, whyJa: undefined as string | undefined, whyZh: undefined as string | undefined },
+    ...wrongs.map((w) => ({ ...w, isCorrect: false })),
+  ];
+  return all.map((c, i) => ({
+    choiceId: CHOICE_IDS[i] ?? `choice-${i}`,
+    textJa: c.ja,
+    textZh: c.zh,
+    isCorrect: c.isCorrect,
+    whyWrongJa: c.isCorrect ? undefined : c.whyJa,
+    whyWrongZh: c.isCorrect ? undefined : c.whyZh,
+  }));
+};
+
+/**
+ * 選択肢の長さ均質性（§3「文体・時制・registerが揃う」の機械的近似）。
+ * 長さが極端に違うと、内容を読まずに正解を推測できてしまう。
+ * 検査（lengthSpread 3.2）より厳しめの 2.2 倍以内で採る。
+ */
+const lengthCompatible = (correct: string, cand: string): boolean => {
+  const a = correct.length; const b = cand.length;
+  if (a === 0 || b === 0) return false;
+  const ratio = a >= b ? a / b : b / a;
+  return ratio <= 2.2;
+};
+
 const meaningClause = (d: GrammarDraftLike): string | null => {
   const first = d.explanationZh.split('。')[0]?.trim() ?? '';
   if (first.length < 2 || first.length > 40) return null;
   for (const k of matchKeysOf(d)) if (first.includes(k)) return null;
   return first;
 };
+
+const mkExplanation = (d: GrammarDraftLike, whyJa: string, whyZh: string, exIdx = 0): AdvExplanation => ({
+  meaningJa: d.meaningJa,
+  meaningZh: d.explanationZh,
+  whyCorrectJa: whyJa,
+  whyCorrectZh: whyZh,
+  exampleJa: d.examplesJa[exIdx] ?? d.examplesJa[0] ?? null,
+  exampleZh: d.examplesZh[exIdx] ?? d.examplesZh[0] ?? null,
+  sourceItemId: d.grammarId,
+  sourceLabel: d.pattern,
+});
 
 interface GenContext {
   self: GrammarDraftLike;
@@ -134,26 +211,54 @@ interface GenContext {
   distractorPool: GrammarDraftLike[];
 }
 
-/** 1) authored recognition（既存問題の取り込み。G2監査済＝authored） */
-const genRecognition = (ctx: GenContext): AdvBattleQuestion => ({
-  key: `rec:${ctx.self.grammarId}`,
-  type: 'rec', level: ctx.level, skill: 'grammar',
-  promptJa: null,
-  promptZh: ctx.self.recognition.promptZh,
-  choices: ctx.self.recognition.options,
-  answerIndex: ctx.self.recognition.answerIndex,
-  explanationZh: ctx.self.recognition.explanationZh,
-  sourceId: ctx.self.grammarId,
-  status: 'authored',
-});
+const baseFields = (type: AdvQuestionType, level: 'n3' | 'n2', d: GrammarDraftLike) => {
+  const skill = skillOfQuestionType(type);
+  return {
+    type, level, skill, examSection: SECTION_OF_SKILL[skill],
+    sourceItemId: d.grammarId,
+    timed: false,
+    reviewState: (type === 'rec' ? 'authored' : 'validated_beta') as AdvBattleQuestion['reviewState'],
+    status: (type === 'rec' ? 'authored' : 'validated_beta') as AdvBattleQuestion['status'],
+  };
+};
 
-/**
- * 2) cloze（例文の文型部分を＿＿に）。original_authored例文（index≥1）を優先し、
- *    どの例文にも照合キーが現れない場合は生成しない。
- */
+/** 1) authored recognition（既存問題の取り込み）。妥当性検査を通ったものだけ採用 */
+const genRecognition = (ctx: GenContext): AdvBattleQuestion | null => {
+  const { self } = ctx;
+  const rec = self.recognition;
+  const validity = checkQuestionValidity({
+    promptJa: null, promptZh: rec.promptZh, choices: rec.options, answerIndex: rec.answerIndex,
+    synonymGroups: [self.similarPatterns],
+  });
+  if (!validity.ok) return null; // 不適切なauthored問題はHOLD（呼び出し側で記録）
+
+  const correctText = rec.options[rec.answerIndex];
+  const wrongs = rec.options
+    .map((o, i) => ({ o, i }))
+    .filter(({ i }) => i !== rec.answerIndex)
+    .map(({ o }) => ({
+      ja: o,
+      whyJa: rec.distractorReason ?? `「${self.pattern}」の使い方に合いません。`,
+      whyZh: rec.distractorReason ?? `不符合「${self.pattern}」的用法。`,
+    }));
+  return {
+    ...baseFields('rec', ctx.level, self),
+    key: `rec:${self.grammarId}`,
+    targetJapanese: self.pattern,
+    questionJa: null,
+    questionZh: rec.promptZh,
+    choices: mkChoices({ ja: correctText }, wrongs),
+    explanation: mkExplanation(self, `「${self.pattern}」は${self.meaningJa}という意味です。`, rec.explanationZh),
+    difficulty: 2,
+    variantId: `rec-${self.grammarId}`,
+  };
+};
+
+/** 2) cloze（例文の文型部分を＿＿に）。distractorは接続互換のある別文型のみ */
 const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
   const { self } = ctx;
   const keys = matchKeysOf(self);
+  const selfHead = connectionHead(self.formation);
   const out: AdvBattleQuestion[] = [];
   const order = self.examplesJa.map((_, i) => i).sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b));
   for (const exIdx of order) {
@@ -162,92 +267,138 @@ const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
     if (!hit) continue;
     const blanked = ex.replace(hit, '＿＿');
     if (blanked === ex) continue;
-    const distractors = ctx.distractorPool
-      .map((d) => matchKeysOf(d).find((k) => k.length >= 2 && !ex.includes(k)))
-      .filter((k): k is string => !!k && k !== hit)
-      .filter((k, i, arr) => arr.indexOf(k) === i)
-      .slice(0, 3);
-    if (distractors.length < 3) continue;
-    const seed = hashSeed(`cloze:${self.grammarId}:${exIdx}`);
-    const { choices, answerIndex } = shuffleChoices([hit, ...distractors], 0, seed);
+    // §3: 文法的に接続できる（接続互換）distractorのみ
+    const cands = ctx.distractorPool
+      .filter((d) => isConnectionCompatible(selfHead, connectionHead(d.formation)))
+      .map((d) => ({ d, k: matchKeysOf(d).find((k) => k.length >= 2 && !ex.includes(k)) }))
+      .filter((x): x is { d: GrammarDraftLike; k: string } => !!x.k && x.k !== hit);
+    const picked: { d: GrammarDraftLike; k: string }[] = [];
+    for (const c of cands) {
+      if (!lengthCompatible(hit, c.k)) continue;
+      if (picked.some((p) => p.k === c.k || sharesStem(normalizePattern(p.k), normalizePattern(c.k)))) continue;
+      picked.push(c);
+      if (picked.length >= 3) break;
+    }
+    if (picked.length < 3) continue;
     out.push({
+      ...baseFields('cloze', ctx.level, self),
       key: `cloze:${self.grammarId}:${exIdx}`,
-      type: 'cloze', level: ctx.level, skill: 'grammar',
-      promptJa: blanked,
-      promptZh: '＿＿に入る言葉はどれ？／填入＿＿的是哪个？',
-      choices, answerIndex,
-      explanationZh: `${self.pattern}：${self.explanationZh.split('。')[0]}。${self.examplesZh[exIdx] ?? ''}`,
-      sourceId: self.grammarId,
-      status: 'validated_beta',
+      targetJapanese: blanked,
+      questionJa: '＿＿に入る言葉はどれですか。',
+      questionZh: '填入＿＿的是哪一个？',
+      choices: mkChoices(
+        { ja: hit },
+        picked.map(({ d, k }) => ({
+          ja: k,
+          whyJa: `「${d.pattern}」は${d.meaningJa}の意味で、この文には合いません。`,
+          whyZh: `「${d.pattern}」的意思不同，与此句不符。`,
+        })),
+      ),
+      explanation: mkExplanation(
+        self,
+        `この文は${self.meaningJa}を表すので「${self.pattern}」が入ります。接続は${self.formation}です。`,
+        `${self.explanationZh}・接续：「${self.formation}」`,
+        exIdx,
+      ),
+      difficulty: 2,
+      variantId: `cloze-${self.grammarId}-${exIdx}`,
     });
-    if (out.length >= 2) break; // 1項目のclozeは最大2問（例文の使い切り防止）
+    if (out.length >= 2) break;
   }
   return out;
 };
 
-/** 3) meaning（意味の選択）。説明文先頭節が漏洩なしで採れる項目のみ */
+/** 3) meaning（意味の選択）。選択肢は全て中国語gloss＝構造均質 */
 const genMeaning = (ctx: GenContext): AdvBattleQuestion | null => {
   const { self } = ctx;
   const correct = meaningClause(self);
   if (!correct) return null;
-  const distractors: string[] = [];
+  const wrongs: { ja: string; whyJa?: string; whyZh?: string }[] = [];
   for (const d of ctx.distractorPool) {
     const m = meaningClause(d);
-    if (m && m !== correct && !distractors.includes(m)) distractors.push(m);
-    if (distractors.length >= 3) break;
+    if (!m || m === correct || wrongs.some((w) => w.ja === m)) continue;
+    if (!lengthCompatible(correct, m)) continue;
+    wrongs.push({
+      ja: m,
+      whyJa: `これは「${d.pattern}」の意味です。`,
+      whyZh: `这是「${d.pattern}」的意思。`,
+    });
+    if (wrongs.length >= 3) break;
   }
-  if (distractors.length < 3) return null;
-  const seed = hashSeed(`meaning:${self.grammarId}`);
-  const { choices, answerIndex } = shuffleChoices([correct, ...distractors], 0, seed);
+  if (wrongs.length < 3) return null;
   return {
+    ...baseFields('meaning', ctx.level, self),
     key: `meaning:${self.grammarId}`,
-    type: 'meaning', level: ctx.level, skill: 'grammar',
-    promptJa: null,
-    promptZh: `「${self.pattern}」的意思最接近哪个？`,
-    choices, answerIndex,
-    explanationZh: self.explanationZh,
-    sourceId: self.grammarId,
-    status: 'validated_beta',
+    targetJapanese: self.pattern,
+    questionJa: `「${self.pattern}」の意味に最も近いものはどれですか。`,
+    questionZh: `「${self.pattern}」的意思最接近哪一个？`,
+    choices: mkChoices({ ja: correct }, wrongs),
+    explanation: mkExplanation(
+      self,
+      `「${self.pattern}」は${self.meaningJa}という意味です。`,
+      self.explanationZh,
+    ),
+    difficulty: 1,
+    variantId: `meaning-${self.grammarId}`,
   };
 };
 
-/** 4) formation（接続の選択）。formation文字列が十分異なる項目のみ */
+/** 4) formation（接続の選択） */
 const genFormation = (ctx: GenContext): AdvBattleQuestion | null => {
   const { self } = ctx;
-  const correct = self.formation.trim();
-  if (correct.length < 4) return null;
-  // 接続文字列に文型そのものが含まれるのは通常（「＋あげく」等）＝漏洩ではなく成立条件。
-  // ただし選択肢同士の識別性を保つため、末尾の「＋文型」部分を取り除いた形で比較する
   const stripTail = (f: string): string => f.split('＋')[0].trim();
-  const correctBody = stripTail(correct);
+  const correctBody = stripTail(self.formation.trim());
   if (correctBody.length < 3) return null;
-  const distractors: string[] = [];
+  const wrongs: { ja: string; whyJa?: string; whyZh?: string }[] = [];
   for (const d of ctx.distractorPool) {
     const body = stripTail(d.formation.trim());
-    if (body.length >= 3 && body !== correctBody && !distractors.includes(body)) distractors.push(body);
-    if (distractors.length >= 3) break;
+    if (body.length < 3 || body === correctBody || wrongs.some((w) => w.ja === body)) continue;
+    if (!lengthCompatible(correctBody, body)) continue;
+    wrongs.push({
+      ja: body,
+      whyJa: `これは「${d.pattern}」の接続です。`,
+      whyZh: `这是「${d.pattern}」的接续。`,
+    });
+    if (wrongs.length >= 3) break;
   }
-  if (distractors.length < 3) return null;
-  const seed = hashSeed(`form:${self.grammarId}`);
-  const { choices, answerIndex } = shuffleChoices([correctBody, ...distractors], 0, seed);
+  if (wrongs.length < 3) return null;
   return {
+    ...baseFields('form', ctx.level, self),
     key: `form:${self.grammarId}`,
-    type: 'form', level: ctx.level, skill: 'grammar',
-    promptJa: null,
-    promptZh: `「${self.pattern}」的接续是哪个？`,
-    choices, answerIndex,
-    explanationZh: `接续：${self.formation}`,
-    sourceId: self.grammarId,
-    status: 'validated_beta',
+    targetJapanese: self.pattern,
+    questionJa: `「${self.pattern}」の接続はどれですか。`,
+    questionZh: `「${self.pattern}」的接续是哪一个？`,
+    choices: mkChoices({ ja: correctBody }, wrongs),
+    explanation: mkExplanation(
+      self,
+      `「${self.pattern}」の接続は「${self.formation}」です。`,
+      `接续：「${self.formation}」`,
+    ),
+    difficulty: 3,
+    variantId: `form-${self.grammarId}`,
   };
 };
 
+export interface HeldQuestion {
+  key: string;
+  sourceItemId: string;
+  issues: ValidityIssue[];
+  disposition: 'HOLD' | 'SAFE_FALLBACK';
+  /** 参考: 正解の文末カテゴリ */
+  correctCategory: string;
+}
+
 export interface VariantPoolResult {
-  /** grammarId → 検査PASSした問題（recognition含む） */
   byItem: Map<string, AdvBattleQuestion[]>;
-  /** 生成できなかった/検査で落ちた集計（存在するふりをしないための可視化） */
   rejected: { key: string; issues: string[] }[];
-  stats: { items: number; questions: number; byType: Record<AdvQuestionType, number>; multiVariantItems: number };
+  /** 妥当性で保留した authored 問題（監査対象・§3のHOLD分類） */
+  held: HeldQuestion[];
+  stats: {
+    items: number; questions: number;
+    byType: Record<AdvQuestionType, number>;
+    multiVariantItems: number;
+    itemsWithZeroQuestions: string[];
+  };
 }
 
 /**
@@ -260,17 +411,31 @@ export const buildVariantPool = (
   const canonical = drafts.filter((d) => !aliasIds.has(d.grammarId));
   const byItem = new Map<string, AdvBattleQuestion[]>();
   const rejected: { key: string; issues: string[] }[] = [];
+  const held: HeldQuestion[] = [];
   const byType: Record<AdvQuestionType, number> = { rec: 0, cloze: 0, meaning: 0, form: 0 };
 
   for (const self of canonical) {
     const exclusion = buildExclusionSet(self, canonical);
-    // distractor候補は決定的順（grammarId昇順を項目ごとにseed回転）
     const pool = canonical.filter((d) => !exclusion.has(d.grammarId));
     const rotated = seededShuffle(pool, hashSeed(self.grammarId));
     const ctx: GenContext = { self, level, distractorPool: rotated };
 
+    const rec = genRecognition(ctx);
+    if (!rec) {
+      const v = checkQuestionValidity({
+        promptJa: null, promptZh: self.recognition.promptZh,
+        choices: self.recognition.options, answerIndex: self.recognition.answerIndex,
+        synonymGroups: [self.similarPatterns],
+      });
+      held.push({
+        key: `rec:${self.grammarId}`, sourceItemId: self.grammarId,
+        issues: v.issues, disposition: 'HOLD',
+        correctCategory: v.detail.correctCategory,
+      });
+    }
+
     const candidates: AdvBattleQuestion[] = [
-      genRecognition(ctx),
+      ...(rec ? [rec] : []),
       ...genCloze(ctx),
       ...[genMeaning(ctx)].filter((q): q is AdvBattleQuestion => q !== null),
       ...[genFormation(ctx)].filter((q): q is AdvBattleQuestion => q !== null),
@@ -278,14 +443,33 @@ export const buildVariantPool = (
     const ok: AdvBattleQuestion[] = [];
     for (const q of candidates) {
       const issues = validateQuestion(q);
-      if (issues.length === 0) ok.push(q);
-      else rejected.push({ key: q.key, issues });
+      // 生成問題にも同じ妥当性基準を課す（選択肢の不均質・意味的断絶を出さない）
+      const validity = checkQuestionValidity({
+        promptJa: q.questionJa, promptZh: q.questionZh,
+        choices: q.choices.map((c) => c.textJa),
+        answerIndex: q.choices.findIndex((c) => c.isCorrect),
+      });
+      const all = [...issues, ...validity.blocking];
+      if (all.length === 0) ok.push(q);
+      else rejected.push({ key: q.key, issues: all });
     }
     byItem.set(self.grammarId, ok);
-    for (const q of ok) byType[q.type as AdvQuestionType] += 1; // 生成器は4タイプのみemitする
+    for (const q of ok) byType[q.type as AdvQuestionType] += 1;
+    // HOLDで0問になった項目は SAFE_FALLBACK として記録（存在するふりをしない）
+    if (ok.length === 0) {
+      const h = held.find((x) => x.sourceItemId === self.grammarId);
+      if (h) h.disposition = 'SAFE_FALLBACK';
+    }
   }
 
   const questions = [...byItem.values()].reduce((n, qs) => n + qs.length, 0);
   const multiVariantItems = [...byItem.values()].filter((qs) => new Set(qs.map((q) => q.type)).size >= 2).length;
-  return { byItem, rejected, stats: { items: canonical.length, questions, byType, multiVariantItems } };
+  const itemsWithZeroQuestions = [...byItem.entries()].filter(([, qs]) => qs.length === 0).map(([id]) => id);
+  return {
+    byItem, rejected, held,
+    stats: { items: canonical.length, questions, byType, multiVariantItems, itemsWithZeroQuestions },
+  };
 };
+
+/** 監査用: endingCategory を再エクスポート（scriptから使う） */
+export { endingCategory };

@@ -1,0 +1,24 @@
+{
+ "generatedAt": "2026-07-31T15:54:33.840Z",
+ "battles": 10000,
+ "totalQuestions": 37890,
+ "positionCounts": [
+  9469,
+  9481,
+  9463,
+  9477
+ ],
+ "positionPct": [
+  24.99,
+  25.02,
+  24.97,
+  25.01
+ ],
+ "maxStreak": 2,
+ "chiSquare": 0.02,
+ "failedBattleIds": [],
+ "failedBattleCount": 0,
+ "seedFormula": "attemptSeed = b * 104729 + 7",
+ "pass": true,
+ "failures": []
+}

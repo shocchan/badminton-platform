@@ -1,8 +1,9 @@
-// Adventure V2 オーケストレーター（§12・§13・§21・§22）。
-// AiCoursePageからlearner単位flag（settings.adventureV2.enabled）で切替される。
-// 学習の正準状態は profile（jsonb）＋mastery台帳。既存learnerデータへは書き込まない。
+// Adventure V2 オーケストレーター。
+// UX CLARITY: 「1画面、1つの決断」— 現在地と先のルートは見せるが、押すCTAは常に一つ。
+// ASSESSMENT INTEGRITY: 「今どの試験科目を鍛えているか」を必ず表示し、
+//                       準備度は技能別・データ不足は未判定。
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Learner, LearnerSettings, CourseSessionRecord } from '../../../lib/aiLesson/course/types';
+import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvRouteStage, AdvTodayQuest, AdventureV2Profile,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -21,13 +22,15 @@ import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advD
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { nowTrainingLabel, masteryScopeName, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
+import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
 import { AdvBattleRunner } from './AdvBattleRunner';
-import type { ItemProgress } from '../../../lib/aiLesson/course/types';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
-const dateKeyOf = (d = new Date()): string => d.toLocaleDateString('sv-SE'); // 端末ローカル日付（別日判定）
+const term = (k: keyof typeof TERMS, lang: L) => TERMS[k][lang];
+const dateKeyOf = (d = new Date()): string => d.toLocaleDateString('sv-SE');
 
 export interface AdvShellProps {
   lang: L;
@@ -46,11 +49,20 @@ export interface AdvShellProps {
 }
 
 type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep';
-
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
-const primary = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-40';
+const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
+
+/** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
+const skillOfStep = (kind: string): ExamSkill => {
+  if (kind === 'grammar_new' || kind === 'weak_reinforce' || kind === 'battle') return 'grammar';
+  if (kind === 'vocab_new' || kind === 'review_due') return 'charactersVocabulary';
+  if (kind === 'reading_short') return 'reading';
+  return 'grammar';
+};
+/** 会話・言い直しはJLPT科目ではない（別軸） */
+const isPracticalStep = (kind: string) => kind === 'conversation_mission' || kind === 'restate';
 
 export default function AdvShell(props: AdvShellProps) {
   const { lang, learner } = props;
@@ -67,17 +79,16 @@ export default function AdvShell(props: AdvShellProps) {
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
+  const [showMore, setShowMore] = useState(false);
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
   }, [learner.settings, props]);
 
-  // 完了チェックはprofile（jsonb）に保存＝reload/端末間で復元（§25）。攻略の正準はmastery台帳
   const doneSteps = useMemo(() => {
     const ts = profile?.todaySteps;
     return new Set(ts && ts.dateKey === dateKey ? ts.done : []);
   }, [profile?.todaySteps, dateKey]);
-  /** profileへstep完了を合成して返す（1イベント1保存にまとめるための純ヘルパー） */
   const withStepDone = useCallback((p: AdventureV2Profile, i: number): AdventureV2Profile => {
     const done = p.todaySteps && p.todaySteps.dateKey === dateKey ? p.todaySteps.done : [];
     return done.includes(i) ? p : { ...p, todaySteps: { dateKey, done: [...done, i] } };
@@ -87,14 +98,12 @@ export default function AdvShell(props: AdvShellProps) {
     save(withStepDone(profile, i));
   }, [profile, doneSteps, save, withStepDone]);
 
-  // 診断プール（onboarding時のみ必要）
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
   useEffect(() => {
     if (!needsOnboarding || diagPools) return;
     void buildDiagnosisPools().then(setDiagPools);
   }, [needsOnboarding, diagPools]);
 
-  // 問題プール＋今日のクエスト生成
   useEffect(() => {
     if (needsOnboarding || !profile?.route) return;
     let alive = true;
@@ -110,7 +119,6 @@ export default function AdvShell(props: AdvShellProps) {
       const weak = Object.entries(profile.mastery)
         .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at.length > 0 && at[at.length - 1].scorePct < 80)
         .map(([id]) => id).slice(0, 5);
-      // 表示側（home）と同じdateKey起点で日数を出す（129/128のような食い違い防止）
       const daysToExam = profile.examDateISO
         ? Math.max(0, Math.ceil((new Date(profile.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000))
         : null;
@@ -128,7 +136,6 @@ export default function AdvShell(props: AdvShellProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsOnboarding, profile?.route, profile?.mastery, props.reviewsDue, dateKey]);
 
-  // 会話ステップの自動完了（今日のセッションが存在したら）
   useEffect(() => {
     if (!quest) return;
     const idx = quest.steps.findIndex((s) => s.kind === 'conversation_mission');
@@ -161,6 +168,7 @@ export default function AdvShell(props: AdvShellProps) {
   }
   const prof = profile!;
   const route = prof.route!;
+  const level: 'N2' | 'N3' = prof.targetJlpt === 'N3' ? 'N3' : 'N2';
 
   // ── battle ──
   if (view === 'battle' && battle && pools) {
@@ -168,26 +176,24 @@ export default function AdvShell(props: AdvShellProps) {
     const wrong = new Set<string>();
     for (const at of Object.values(prof.mastery)) {
       const last = at?.[at.length - 1];
-      if (last) for (const k of last.questionKeys) if (last.scorePct < 80) wrong.add(k);
+      if (last && last.scorePct < 80) for (const k of last.questionKeys) wrong.add(k);
     }
     return (
       <AdvBattleRunner
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
-        targetIds={battle.targetIds} pool={pools.byItem}
+        targetIds={battle.targetIds} pool={pools.byItem} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
         onFinish={(attempt: AdvMasteryAttempt, mastery: MasteryStatus) => {
           let ledger = recordAttempt(prof.mastery, battle.targetId, attempt);
-          // stage束にも記録（boss系のみ。通常敵でstageを埋めない）
           if (battle.tier === 'midboss' || battle.tier === 'rankboss') {
             ledger = recordAttempt(ledger, currentStageOf(route, masteredTargetIds(ledger, nowISO))?.stageId ?? battle.targetId, attempt);
           }
           if (mastery.state === 'mastered') trackAdv('delayed_mastery_reached', { locale: lang });
           else if (mastery.qualifyingDays.length >= 1 && attempt.scorePct >= 80) trackAdv('mastery_80_reached', { locale: lang });
           setLastMastery(mastery);
-          // mastery更新とstep完了を1回のsaveへ合成（2回saveすると片方が失われる）
           const battleIdx = quest?.steps.findIndex((s) => s.kind === 'battle' || s.kind === 'weak_reinforce') ?? -1;
           const next = { ...prof, mastery: ledger };
           save(battleIdx >= 0 ? withStepDone(next, battleIdx) : next);
@@ -215,75 +221,133 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
-  // ── map ──
+  // ── map（縦型roadmap・§9） ──
   if (view === 'map') {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
     const cur = currentStageOf(route, mastered);
+    const curIdx = cur ? route.stages.findIndex((s) => s.stageId === cur.stageId) : route.stages.length;
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '攻略マップ', '攻略地图')} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={term('route', lang)} />
         <div className={`${card} mb-4`}>
-          <p className="text-xs text-gray-500">{tx(lang, '最終目的地', '最终目的地')}</p>
+          <p className="text-xs text-gray-500">{term('destination', lang)}</p>
           <p className="font-bold text-blue-900">{tx(lang, route.destinationLabelJa, route.destinationLabelZh)}</p>
-          <p className="mt-1 text-xs text-gray-600">{tx(lang, `攻略率 ${routeProgressPct(route, mastered)}%`, `攻略率 ${routeProgressPct(route, mastered)}%`)}</p>
+          <p className="mt-1 text-xs text-gray-600">{term('masteryRate', lang)} {routeProgressPct(route, mastered)}%</p>
         </div>
-        <ol className="space-y-2">
-          {route.stages.map((s) => {
+        <ol className="relative border-l-2 border-gray-200 pl-5">
+          {route.stages.map((s, i) => {
             const st = computeMastery(prof.mastery[s.stageId], nowISO);
-            const isCur = cur?.stageId === s.stageId;
             const done = mastered.has(s.stageId);
-            const reviewDue = st.state === 'cleared_pending_delay' && st.delayCheckOpensAt !== null && nowISO >= st.delayCheckOpensAt;
+            const isCur = cur?.stageId === s.stageId;
+            const isNext = i === curIdx + 1;
+            const isBoss = s.kind === 'mock_boss';
+            // 総合模試は技能が揃うまで「準備できません」（§9・存在するふりをしない）
+            const bossNotReady = isBoss && !done;
+            const stateLabel = done ? term('cleared', lang)
+              : isCur ? term('currentLocation', lang)
+              : isNext ? term('recommended', lang)
+              : bossNotReady ? term('notReady', lang)
+              : term('viewable', lang);
             return (
-              <li key={s.stageId} className={`rounded-xl border p-3 ${isCur ? 'border-blue-500 bg-blue-50' : done ? 'border-emerald-300 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {done ? '✅ ' : isCur ? '📍 ' : ''}{tx(lang, s.titleJa, s.titleZh)}
-                      {reviewDue && <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">{tx(lang, '復習推奨', '建议复习')}</span>}
-                    </p>
-                    <p className="text-xs text-gray-600">{tx(lang, s.purposeJa, s.purposeZh)}</p>
-                    {isCur && <p className="mt-1 text-xs text-blue-700">{tx(lang, st.nextJa, st.nextZh)}</p>}
-                  </div>
-                  <button type="button" className="min-h-[44px] shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold"
-                    onClick={() => startStageBoss(s)}>
-                    {tx(lang, '挑戦', '挑战')}
-                  </button>
+              <li key={s.stageId} className="relative mb-3">
+                <span aria-hidden
+                  className={`absolute -left-[27px] top-3 h-3 w-3 rounded-full border-2 border-white ${
+                    done ? 'bg-emerald-500' : isCur ? 'bg-blue-600 ring-4 ring-blue-100' : 'bg-gray-300'}`} />
+                <div className={`rounded-xl border p-3 ${isCur ? 'border-blue-500 bg-blue-50' : done ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white'}`}>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{stateLabel}</p>
+                  <p className="mt-0.5 text-sm font-bold text-gray-900">{tx(lang, s.titleJa, s.titleZh)}</p>
+                  <p className="text-xs text-gray-600">{tx(lang, s.purposeJa, s.purposeZh)}</p>
+                  {isCur && (
+                    <>
+                      <p className="mt-1 text-xs text-blue-800">{tx(lang, st.nextJa, st.nextZh)}</p>
+                      <button type="button" className={`${primaryBtn} mt-2`} onClick={() => { setView('home'); }}>
+                        {term('continueHere', lang)}
+                      </button>
+                    </>
+                  )}
+                  {!isCur && (
+                    <button type="button"
+                      className="mt-2 min-h-[44px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700"
+                      onClick={() => openStageDetail(s)}>
+                      {term('viewContents', lang)}
+                    </button>
+                  )}
                 </div>
               </li>
             );
           })}
         </ol>
-        <p className="mt-3 text-xs text-gray-500">{tx(lang, '上のエリアもいつでも見られます。ロックはありません。', '上面的区域随时可以查看，没有锁定。')}</p>
+        <p className="mt-2 text-xs text-gray-500">
+          {tx(lang, '先のエリアもいつでも見られます。ロックはありません。', '前面的区域随时可以查看，没有锁定。')}
+        </p>
       </div>
     );
   }
 
-  // ── readiness ──
+  // ── readiness（技能別・§9） ──
   if (view === 'readiness') {
-    const target = prof.targetJlpt ?? 'N2';
-    const r = computeReadiness(target, prof.skills, prof.mastery);
+    const r = computeReadiness(prof.targetJlpt ?? 'N2', prof.skills, prof.mastery);
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, `${target}攻略準備度`, `${target}攻略准备度`)} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={`${prof.targetJlpt ?? 'N2'}${term('readiness', lang)}`} />
+        <div className={`${card} mb-3 bg-gray-50`}>
+          <p className="text-xs font-semibold text-gray-700">{tx(lang, '本試験の構成', '本考试的构成')}</p>
+          <ul className="mt-1 space-y-0.5">
+            {r.examParts.map((p) => (
+              <li key={p.labelJa} className="text-xs text-gray-600">
+                ・{tx(lang, p.labelJa, p.labelZh)}（{p.minutes}{tx(lang, '分', '分钟')}）
+              </li>
+            ))}
+          </ul>
+        </div>
         <div className="space-y-2">
           {r.rows.map((row) => (
-            <div key={row.key} className={`${card} flex items-center justify-between`}>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">{tx(lang, row.labelJa, row.labelZh)}
-                  {row.provisional && row.pct !== null && <span className="ml-1 text-xs text-amber-700">{tx(lang, '（暫定）', '（暂定）')}</span>}
+            <div key={row.key} className={card}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-900">
+                    {tx(lang, row.labelJa, row.labelZh)}
+                    <span className="ml-1 text-[11px] font-normal text-gray-400">{tx(lang, row.sectionJa, row.sectionZh)}</span>
+                    {row.provisional && row.pct !== null && <span className="ml-1 text-xs text-amber-700">（{term('provisional', lang)}）</span>}
+                  </p>
+                  {(row.noteJa || row.noteZh) && <p className="text-xs text-gray-500">{tx(lang, row.noteJa ?? '', row.noteZh ?? '')}</p>}
+                  <p className="mt-1 text-[11px] text-gray-400">
+                    {tx(lang, '出題', '出题')}{row.evidence.evidenceCount}・{tx(lang, '未出', '未见过')}{row.evidence.unseenQuestionCount}・
+                    {tx(lang, '7日後', '7天后')}{row.evidence.delayedEvidenceCount}・{tx(lang, '時間つき', '限时')}{row.evidence.timedEvidenceCount}
+                  </p>
+                </div>
+                <p className={`shrink-0 text-xl font-bold ${row.pct === null ? 'text-gray-400' : 'text-blue-800'}`}>
+                  {row.pct === null ? term('undetermined', lang) : `${row.pct}%`}
                 </p>
-                {(row.noteJa || row.noteZh) && <p className="text-xs text-gray-500">{tx(lang, row.noteJa ?? '', row.noteZh ?? '')}</p>}
               </div>
-              <p className="text-xl font-bold text-blue-800">{row.pct === null ? tx(lang, '未判定', '未判定') : `${row.pct}%`}</p>
             </div>
           ))}
         </div>
         <div className={`${card} mt-4 bg-blue-50`}>
           <p className="text-sm font-bold text-gray-900">
-            {tx(lang, '総合準備度', '综合准备度')}：{r.overallPct === null ? tx(lang, '未判定', '未判定') : `${r.overallPct}%`}
+            {tx(lang, '総合', '综合')}：{r.overallPct === null ? term('undetermined', lang) : `${r.overallPct}%`}
           </p>
+          {r.overallPct === null && (
+            <ul className="mt-1 space-y-0.5">
+              {(lang === 'zh' ? r.overallBlockersZh : r.overallBlockersJa).slice(0, 3).map((b) => (
+                <li key={b} className="text-xs text-gray-700">・{b}</li>
+              ))}
+            </ul>
+          )}
           {r.topIssueJa && <p className="mt-1 text-sm text-gray-700">{tx(lang, r.topIssueJa, r.topIssueZh ?? '')}</p>}
           <p className="mt-2 text-xs leading-relaxed text-gray-600">{tx(lang, r.summaryJa, r.summaryZh)}</p>
+        </div>
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-bold text-gray-900">{tx(lang, '会話・実践力（JLPTとは別）', '会话・实践力（与JLPT分开）')}</p>
+          {r.practical.map((p) => (
+            <div key={p.key} className="mt-1 flex items-center justify-between">
+              <span className="text-sm text-gray-700">{tx(lang, p.labelJa, p.labelZh)}</span>
+              <span className={`text-sm font-bold ${p.pct === null ? 'text-gray-400' : 'text-emerald-700'}`}>
+                {p.pct === null ? term('undetermined', lang) : `${p.pct}%`}
+              </span>
+            </div>
+          ))}
+          <p className="mt-1 text-xs text-gray-500">{tx(lang, r.practical[0].noteJa, r.practical[0].noteZh)}</p>
         </div>
       </div>
     );
@@ -294,7 +358,7 @@ export default function AdvShell(props: AdvShellProps) {
     const s = buildLessonPrepSummary(prof, nowISO);
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '次の先生レッスン', '下次真人课')} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={term('seeTeacherPrep', lang)} />
         <div className={card}>
           <p className="text-sm text-gray-700">{tx(lang, `今週の学習：${s.weekStudyDays}日`, `本周学习：${s.weekStudyDays}天`)}</p>
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の先生レッスンで扱うこと', '下次真人课要处理的内容')}</p>
@@ -310,7 +374,7 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
-  // ── complete（§22の表示順） ──
+  // ── complete ──
   if (view === 'complete' && quest) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
     return (
@@ -337,30 +401,31 @@ export default function AdvShell(props: AdvShellProps) {
           </div>
         )}
         <div className={`${card} mt-3`}>
-          <p className="text-sm font-semibold text-gray-900">{tx(lang, '攻略率', '攻略率')}</p>
+          <p className="text-sm font-semibold text-gray-900">{term('masteryRate', lang)}</p>
           <p className="mt-1 text-sm text-gray-700">{routeProgressPct(route, mastered)}%</p>
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の復習', '下次复习')}</p>
           <p className="mt-1 text-sm text-gray-700">
             {props.reviewsDue > 0 ? tx(lang, `残り${props.reviewsDue}件`, `还剩${props.reviewsDue}项`) : tx(lang, '明日・約3分', '明天・约3分钟')}
           </p>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-500">XP +{[...doneSteps].length * 10}</p>
-        <button type="button" className={`${primary} mt-4`} onClick={() => setView('home')}>
+        <p className="mt-3 text-center text-xs text-gray-500">XP +{doneSteps.size * 10}</p>
+        <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
           {tx(lang, 'ホームへ', '回到主页')}
         </button>
       </div>
     );
   }
 
-  // ── home（第一CTAは一つ・§12） ──
+  // ── home（1画面1決断） ──
   const mastered = masteredTargetIds(prof.mastery, nowISO);
   const stage = currentStageOf(route, mastered);
   const comp = companionById(prof.companionId);
-  // render中はDate.now()を使わない（dateKey起点の純計算・react-hooks/purity）
   const daysToExam = prof.examDateISO
     ? Math.max(0, Math.ceil((new Date(prof.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000)) : null;
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
   const allDone = quest !== null && nextStepIdx === -1;
+  const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
+  const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
 
   const runStep = (i: number) => {
     if (!quest) return;
@@ -371,8 +436,7 @@ export default function AdvShell(props: AdvShellProps) {
     if (s.kind === 'restate') { markStep(i); if (props.restateAvailable) props.onStartRestate(); return; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
       markStep(i);
-      const areaEntry = Object.entries(AREA_BY_UNIT).find(([u]) => u === s.refIds[0]);
-      props.onOpenArea(areaEntry ? areaEntry[1] : 'area01-minato');
+      props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
       return;
     }
     if (s.kind === 'grammar_new' && s.refIds[0]) { setStudyGrammarId(s.refIds[0]); setView('grammar'); return; }
@@ -387,61 +451,92 @@ export default function AdvShell(props: AdvShellProps) {
     }
   };
 
-  return (
-    <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={tx(lang, '今日の冒険', '今天的冒险')}>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="h-12 w-12 shrink-0" dangerouslySetInnerHTML={{ __html: companionSvg(comp.id) }} />
-        <div>
-          <p className="text-sm text-gray-600">{tx(lang, comp.greetJa, comp.greetZh)}</p>
-          <h1 className="text-lg font-bold text-gray-900">
-            {prof.goalType === 'conversation'
-              ? tx(lang, '会話力を上げる今日の冒険', '提升会话能力的今日冒险')
-              : tx(lang, `${prof.targetJlpt ?? ''}合格への今日の冒険`, `通往${prof.targetJlpt ?? ''}合格的今日冒险`)}
-          </h1>
-        </div>
-      </div>
+  /** 第一CTAの文言は「次の1動作」を名指しする */
+  const ctaLabel = (): string => {
+    if (!nextStep) return term('startToday', lang);
+    if (doneSteps.size === 0) {
+      return nextStep.kind === 'review_due'
+        ? tx(lang, 'まず復習から始める', '先从复习开始')
+        : tx(lang, `まず「${nextStep.titleJa}」から始める`, `先从「${nextStep.titleZh}」开始`);
+    }
+    return term('continueNext', lang);
+  };
 
-      <div className={`${card} mb-4`}>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-600">
-          <span>🏁 {tx(lang, route.destinationLabelJa, route.destinationLabelZh)}</span>
-          <span>📍 {stage ? tx(lang, stage.titleJa, stage.titleZh) : tx(lang, '全stage攻略済み', '全部阶段已攻克')}</span>
-          {daysToExam !== null && <span>🗓 {tx(lang, `試験まで${daysToExam}日`, `距考试${daysToExam}天`)}</span>}
-          <span>📅 {tx(lang, `今週 ${weekDaysOf(prof, dateKey)}/${prof.weeklyDays ?? 5}日`, `本周 ${weekDaysOf(prof, dateKey)}/${prof.weeklyDays ?? 5}天`)}</span>
-        </div>
+  return (
+    <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={term('todayAdventure', lang)}>
+      {/* 1. 目標と残日数 */}
+      <p className="text-sm font-semibold text-gray-600">
+        {prof.goalType === 'conversation'
+          ? tx(lang, '会話力を上げる', '提升会话能力')
+          : daysToExam !== null
+            ? tx(lang, `${prof.targetJlpt ?? ''}合格まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}合格还有${daysToExam}天`)
+            : tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)}
+      </p>
+
+      {/* 相棒の一文（次の行動を言う） */}
+      <div className="mt-2 mb-4 flex items-center gap-3">
+        <span className="h-12 w-12 shrink-0" role="img"
+          aria-label={tx(lang, `相棒 ${comp.nameJa}`, `伙伴 ${comp.nameZh}`)}
+          dangerouslySetInnerHTML={{ __html: companionSvg(comp.id) }} />
+        <p className="text-sm leading-snug text-gray-700">
+          {quest
+            ? tx(lang,
+              `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めよう！` : '今日のぶんは終わりました！'}`,
+              `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧！` : '今天的份量已经完成了！'}`)
+            : tx(lang, comp.greetJa, comp.greetZh)}
+        </p>
       </div>
 
       {!quest && <AdvLoading lang={lang} inline />}
 
       {quest && (
         <div className={`${card} mb-4 border-blue-200`}>
-          <p className="text-sm font-semibold text-gray-900">
-            {tx(lang, `今日やること（約${quest.estimatedMinutes}分）`, `今天要做的（约${quest.estimatedMinutes}分钟）`)}
+          <h1 className="text-lg font-bold text-gray-900">{term('todayAdventure', lang)}</h1>
+          <p className="mt-0.5 text-sm text-gray-600">
+            {tx(lang, `今日はこの${quest.steps.length}つだけ・約${quest.estimatedMinutes}分`,
+              `今天只做这${quest.steps.length}项・约${quest.estimatedMinutes}分钟`)}
           </p>
-          <p className="mt-1 text-xs text-gray-600">{tx(lang, quest.whyJa, quest.whyZh)}</p>
-          <ol className="mt-3 space-y-2">
-            {quest.steps.map((s, i) => (
-              <li key={s.titleJa + i}>
-                <button type="button"
-                  className={`flex w-full min-h-[44px] items-center gap-2 rounded-xl border px-3 py-2 text-left ${
-                    doneSteps.has(i) ? 'border-emerald-300 bg-emerald-50' : i === nextStepIdx ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white'}`}
-                  onClick={() => runStep(i)}
-                  disabled={s.kind === 'conversation_mission' && !props.conversationAvailable}>
-                  <span aria-hidden>{doneSteps.has(i) ? '✅' : `${i + 1}.`}</span>
-                  <span className="flex-1">
-                    <span className="block text-sm font-semibold text-gray-900">{tx(lang, s.titleJa, s.titleZh)}</span>
-                    <span className="block text-xs text-gray-500">{tx(lang, `約${s.estMinutes}分`, `约${s.estMinutes}分钟`)}</span>
+          {/* 今鍛えている試験科目（§8） */}
+          {!isPracticalStep(nextStep?.kind ?? '') && (
+            <p className="mt-2 inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
+              {term('nowTraining', lang)}：{nowTrainingLabel(trainingSkill, lang)}
+            </p>
+          )}
+
+          {/* 2. 今日行う全step（番号は必ず連番） */}
+          <ol className="mt-3 space-y-1.5">
+            {quest.steps.map((s, i) => {
+              const done = doneSteps.has(i);
+              const isNext = i === nextStepIdx;
+              return (
+                <li key={s.titleJa + i}
+                  className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isNext ? 'bg-blue-50 font-semibold' : ''}`}>
+                  <span className={`w-5 shrink-0 text-center text-sm ${done ? 'text-emerald-600' : 'text-gray-400'}`} aria-hidden>
+                    {done ? '✓' : i + 1}
                   </span>
-                </button>
-              </li>
-            ))}
+                  <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                    {tx(lang, s.titleJa, s.titleZh)}
+                  </span>
+                  <span className="shrink-0 text-xs text-gray-500">{tx(lang, `約${s.estMinutes}分`, `约${s.estMinutes}分钟`)}</span>
+                </li>
+              );
+            })}
           </ol>
+
+          {/* 3. 今日のゴール */}
+          <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
+            <p className="text-xs font-semibold text-gray-600">{term('todayGoal', lang)}</p>
+            <p className="text-sm text-gray-800">{tx(lang, quest.successConditionJa, quest.successConditionZh)}</p>
+          </div>
+
+          {/* 4. 主要CTAは常に一つ＝次の1動作 */}
           {!allDone && nextStepIdx >= 0 && (
-            <button type="button" className={`${primary} mt-4`} onClick={() => runStep(nextStepIdx)}>
-              {tx(lang, '今日の冒険を始める', '开始今天的冒险')}
+            <button type="button" className={`${primaryBtn} mt-4`} onClick={() => runStep(nextStepIdx)}>
+              {ctaLabel()}
             </button>
           )}
           {allDone && (
-            <button type="button" className={`${primary} mt-4 bg-emerald-600`}
+            <button type="button" className={`${primaryBtn} mt-4 bg-emerald-600`}
               onClick={() => {
                 const log = prof.questLog.filter((e) => e.dateKey !== dateKey);
                 save({
@@ -455,17 +550,29 @@ export default function AdvShell(props: AdvShellProps) {
               {tx(lang, '今日の冒険を締めくくる', '结束今天的冒险')}
             </button>
           )}
-          <p className="mt-2 text-xs text-gray-500">
-            {tx(lang, `成功条件：${quest.successConditionJa}`, `成功条件：${quest.successConditionZh}`)}
-          </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-2">
-        <SubLink lang={lang} ja="攻略マップ" zh="攻略地图" onClick={() => setView('map')} />
-        <SubLink lang={lang} ja="合格準備度" zh="合格准备度" onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
-        <SubLink lang={lang} ja="復習の庭" zh="复习之庭" badge={props.reviewsDue} onClick={props.onOpenReview} />
-        <SubLink lang={lang} ja="先生レッスン準備" zh="真人课准备" onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+      {/* 5. 二次メニューは折りたたみ（第一CTAより強い表現を使わない） */}
+      <div className="mt-2">
+        <button type="button" aria-expanded={showMore}
+          className="flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600"
+          onClick={() => setShowMore((v) => !v)}>
+          <span>{term('otherLearning', lang)}</span>
+          <span aria-hidden>{showMore ? '▲' : '▼'}</span>
+        </button>
+        {showMore && (
+          <div className="mt-2 space-y-1.5">
+            <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
+            <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
+            <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+            <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+            <p className="px-1 pt-1 text-[11px] text-gray-400">
+              {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
+                `${term('masteryRate', 'zh')}＝各单元的巩固度／${term('readiness', 'zh')}＝考试整体的能力评估`)}
+            </p>
+          </div>
+        )}
       </div>
 
       <button type="button" className="mt-6 w-full min-h-[44px] text-xs text-gray-400 underline" onClick={props.onExitV2}>
@@ -474,28 +581,24 @@ export default function AdvShell(props: AdvShellProps) {
     </div>
   );
 
-  function startStageBoss(s: AdvRouteStage) {
-    const tier: AdvEnemyTier = s.kind === 'mock_boss' ? 'rankboss' : s.kind === 'n2_gate' ? 'midboss' : 'strong';
+  function openStageDetail(s: AdvRouteStage) {
+    // 先の地点は「内容を見る」= 対象と到達条件の確認（強敵バトルへは飛ばさない）
     void (async () => {
       const mastered2 = masteredTargetIds(prof.mastery, nowISO);
       const ct = await stageContent(s, mastered2);
-      const targets = ct.battleTargetIds.length > 0 ? ct.battleTargetIds : [s.stageId];
-      setBattle({ tier, targetId: s.stageId, targetLabel: tx(lang, s.titleJa, s.titleZh), targetIds: targets });
-      setView('battle');
+      const label = tx(lang, s.titleJa, s.titleZh);
+      const count = ct.battleTargetIds.length;
+      const scope = masteryScopeName([s.kind === 'n2_grammar' || s.kind === 'n3_grammar' ? 'grammar' : 'charactersVocabulary'], level, lang);
+      window.alert(tx(lang,
+        `${label}\n\n${s.purposeJa}\n\n攻略対象：${count}件\n到達条件：${s.clearConditionJa}\n評価：${scope}`,
+        `${label}\n\n${s.purposeZh}\n\n攻略对象：${count}项\n达成条件：${s.clearConditionZh}\n评估：${scope}`));
     })();
   }
 }
 
-/** unit → area 逆引き（advRoute.AREA_UNIT_MAPと同期・ガードテストあり） */
 const AREA_BY_UNIT: Record<string, string> = Object.fromEntries(
   Object.entries(AREA_UNIT_MAP).flatMap(([area, units]) => units.map((u) => [u, area])),
 );
-
-const weekDaysOf = (p: AdventureV2Profile, dateKey: string): number => {
-  const now = new Date(`${dateKey}T00:00:00`);
-  const monday = new Date(now); monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  return new Set(p.questLog.filter((e) => new Date(`${e.dateKey}T00:00:00`) >= monday && e.completedSteps > 0).map((e) => e.dateKey)).size;
-};
 
 function AdvLoading({ lang, inline }: { lang: L; inline?: boolean }) {
   return (
@@ -514,18 +617,21 @@ function BackBar({ lang, onBack, title }: { lang: L; onBack: () => void; title: 
   );
 }
 
-function SubLink({ lang, ja, zh, badge, onClick }: { lang: L; ja: string; zh: string; badge?: number; onClick: () => void }) {
+function SubLink({ lang, label, badge, onClick }: { lang: L; label: string; badge?: number; onClick: () => void }) {
   return (
-    <button type="button" className="relative min-h-[44px] rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-gray-800" onClick={onClick}>
-      {tx(lang, ja, zh)}
+    <button type="button"
+      className="flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700"
+      onClick={onClick}>
+      <span>{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="absolute -right-1 -top-1 rounded-full bg-amber-500 px-1.5 text-xs font-bold text-white">{badge}</span>
+        <span className="rounded-full bg-amber-500 px-2 text-xs font-bold text-white">{badge}</span>
       )}
+      {(badge === undefined || badge === 0) && <span aria-hidden className="text-gray-300">›</span>}
+      <span className="sr-only">{tx(lang, '開く', '打开')}</span>
     </button>
   );
 }
 
-/** 文法学習カード（draft本文をそのまま学ぶ→バトルへ） */
 function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLearned }: {
   lang: L; grammarId: string; doc: N2GrammarDraft | null;
   setDoc: (d: N2GrammarDraft | null) => void;
@@ -542,7 +648,7 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
     return () => { alive = false; };
   }, [grammarId, setDoc]);
 
-  useEffect(() => { if (doc) onLearned(); // 表示できた時点で「学んだ」チェック（攻略は別途バトルで判定）
+  useEffect(() => { if (doc) onLearned();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc]);
 
@@ -550,6 +656,9 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <BackBar lang={lang} onBack={onBack} title={doc.pattern} />
+      <p className="mb-2 inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
+        {TERMS.nowTraining[lang]}：{nowTrainingLabel('grammar', lang)}
+      </p>
       <div className={card}>
         <p className="text-sm text-gray-600">{doc.meaningJa}</p>
         <p className="mt-2 text-sm leading-relaxed text-gray-800">{doc.explanationZh}</p>
@@ -562,12 +671,10 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
             </div>
           ))}
         </div>
-        {doc.commonMistakesZh && (
-          <p className="mt-3 text-xs leading-relaxed text-amber-800">⚠️ {doc.commonMistakesZh}</p>
-        )}
+        {doc.commonMistakesZh && <p className="mt-3 text-xs leading-relaxed text-amber-800">⚠️ {doc.commonMistakesZh}</p>}
         {doc.contrast && <p className="mt-2 text-xs leading-relaxed text-gray-600">{doc.contrast}</p>}
       </div>
-      <button type="button" className={`${primary} mt-4`} onClick={onBattle}>
+      <button type="button" className={`${primaryBtn} mt-4`} onClick={onBattle}>
         {tx(lang, 'この文法でバトルに挑む', '用这个语法挑战战斗')}
       </button>
     </div>

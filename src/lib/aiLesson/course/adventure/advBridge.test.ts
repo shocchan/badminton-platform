@@ -107,8 +107,9 @@ describe('advContent（実データ組立）', () => {
       // タイプ（u-dimension）が複数ある＝§15のタイプ多様性条件が機能する
       expect(new Set(qs.map((q) => q.type)).size).toBeGreaterThanOrEqual(2);
       for (const q of qs.slice(0, 10)) {
-        expect(q.choices.length).toBeGreaterThanOrEqual(2);
-        expect(q.explanationZh.length).toBeGreaterThan(0);
+        expect(q.choices.length).toBeGreaterThanOrEqual(3);
+        expect(q.explanation.whyCorrectZh.length).toBeGreaterThan(0);
+        expect(q.choices.filter((c) => c.isCorrect)).toHaveLength(1);
       }
     }
     // 基礎キャンプstageの全バトル対象がプールを持つ（空バトル行き止まりの根絶）

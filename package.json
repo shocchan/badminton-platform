@@ -6,13 +6,16 @@
   "scripts": {
     "dev": "vite",
     "dev:staging": "vite --mode staging --port 5176",
-    "build": "tsc -b && vite build && node scripts/generate-worker.mjs",
-    "build:staging": "tsc -b && vite build --mode staging && node scripts/generate-worker.mjs",
+    "build": "npm run validate:ai-course-language-integrity && tsc -b && vite build && node scripts/generate-worker.mjs",
+    "build:staging": "npm run validate:ai-course-language-integrity && tsc -b && vite build --mode staging && node scripts/generate-worker.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "validate:ai-course-legal": "vite-node scripts/ai-course/validate-legal.mts",
-    "validate:ai-course-env": "node scripts/ai-course/verify-production-env.mjs"
+    "validate:ai-course-env": "node scripts/ai-course/verify-production-env.mjs",
+    "validate:ai-course-language-integrity": "vite-node scripts/ai-course/validate-language-integrity.ts",
+    "validate:ai-course-answer-distribution": "vite-node scripts/ai-course/validate-answer-distribution.ts",
+    "validate:ai-course": "npm run validate:ai-course-language-integrity && npm run validate:ai-course-answer-distribution"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",

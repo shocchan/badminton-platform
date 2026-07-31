@@ -109,7 +109,7 @@ export const N3_GRAMMAR_DRAFTS_BATCH4: N3GrammarDraft[] = [
     furigana: 'かいしゃは えきから とおい かわりに、やちんが やすいです。',
     commonMistakesZh: '名詞接续要加「の」：「私のかわりに」。人称代词也一样',
     learnerFocus: '「〜かわりに」表示交换关系，比只说缺点更客观、更成熟的表达方式',
-    similarPatterns: ['〜代わりに', '〜반面'],
+    similarPatterns: ['〜代わりに', '〜反面'],
     contrast: '「かわりに」＝代替或交换；「〜が」＝单纯转折',
     recognition: { promptZh: '「給料は安いかわりに、時間の自由がある」是什么意思？',
       options: ['工资低但时间自由（有得有失）', '工资低而且不自由', '工资高且自由', '没有工作'],

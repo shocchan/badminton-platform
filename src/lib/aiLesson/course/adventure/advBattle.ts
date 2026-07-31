@@ -1,9 +1,11 @@
-// 問題バトルの出題選択と採点（§14・§15・§18）。
-// 選択時に考慮: recent exposure / previous correctness / time since last seen /
-// question variant / unseen ratio / target coverage。固定メニュー化を防ぐ。
+// 問題バトルの出題選択と採点（§14・§15・§18 ＋ ASSESSMENT INTEGRITY §10〜§14）。
+// 選択時に考慮: recent exposure / previous correctness / question variant / unseen ratio / target coverage。
+// 採点は **correctChoiceId** のみで行い、表示位置は使わない。
 import type { AdvEnemyTier, AdvMasteryAttempt } from './advTypes';
 import type { AdvBattleQuestion } from './advVariants';
 import { seededShuffle } from './advDiagnosis';
+import { presentBattle, isCorrectAnswer, type PresentedQuestion } from './advChoiceOrder';
+import { battleScopeName, type ExamSkill } from './advExamSkills';
 
 export interface EncounterSpec {
   tier: AdvEnemyTier;
@@ -21,11 +23,16 @@ export interface EncounterSpec {
 export interface Encounter {
   tier: AdvEnemyTier;
   questions: AdvBattleQuestion[];
+  /** 提示順つき（表示・採点はこちらを使う） */
+  presented: PresentedQuestion[];
   /** この編成での未出比率（§15の判定に使う実測値） */
   unseenRatio: number;
   timed: boolean;
   /** 制限時間（秒）。timed=falseなら null */
   timeLimitSec: number | null;
+  /** この編成が鍛えている試験科目（§10・表示必須） */
+  skills: ExamSkill[];
+  attemptSeed: number;
 }
 
 const TIER_SIZE: Record<AdvEnemyTier, { size: number; timed: boolean; secPerQ: number }> = {
@@ -36,28 +43,24 @@ const TIER_SIZE: Record<AdvEnemyTier, { size: number; timed: boolean; secPerQ: n
 };
 
 /**
- * 敵編成（§14）。
- * - normal: 1テーマ（targetIds先頭）5〜10問・理解確認
- * - strong: 複数テーマ・未出中心・ランダム
- * - midboss/rankboss: 制限時間つき・混合
- * プール不足時は size を実プールへ切り詰める（存在するふりをしない）。
+ * 敵編成（§14）。プール不足時は size を実プールへ切り詰める（存在するふりをしない）。
+ * attemptSeed は「この挑戦」固有の値を渡すこと（同一attemptで安定・次attemptで変化）。
  */
-export const buildEncounter = (spec: EncounterSpec): Encounter => {
+export const buildEncounter = (spec: EncounterSpec & { attemptSeed?: number }): Encounter => {
   const cfg = TIER_SIZE[spec.tier];
   const targets = spec.tier === 'normal' ? spec.targetIds.slice(0, 1) : spec.targetIds;
   const candidates: AdvBattleQuestion[] = [];
   for (const t of targets) candidates.push(...(spec.pool.get(t) ?? []));
 
-  // 選択スコア: 未出+3 / 直近誤答+2 / タイプ多様性はグループ選抜で担保
+  // 選択スコア: 未出+3 / 直近誤答+2
   const scored = candidates.map((q) => ({
     q,
     score: (spec.seenKeys.has(q.key) ? 0 : 3) + (spec.recentWrongKeys.has(q.key) ? 2 : 0),
   }));
-  // 同点はseedで決定的に混ぜる（毎回同じ並びを防ぐ・再現は可能）
   const shuffled = seededShuffle(scored, spec.seed);
   shuffled.sort((a, b) => b.score - a.score);
 
-  // タイプの偏り防止: 同一タイプが上位を占めないよう round-robin で拾う
+  // タイプの偏り防止: round-robin で拾う
   const byType = new Map<string, AdvBattleQuestion[]>();
   for (const { q } of shuffled) {
     const list = byType.get(q.type) ?? [];
@@ -78,38 +81,57 @@ export const buildEncounter = (spec: EncounterSpec): Encounter => {
   }
   const finalQs = seededShuffle(picked, spec.seed + 7);
   const unseen = finalQs.filter((q) => !spec.seenKeys.has(q.key)).length;
+  const attemptSeed = spec.attemptSeed ?? spec.seed;
   return {
     tier: spec.tier,
     questions: finalQs,
+    presented: presentBattle(finalQs, attemptSeed),
     unseenRatio: finalQs.length === 0 ? 0 : Math.round((unseen / finalQs.length) * 100) / 100,
     timed: cfg.timed,
     timeLimitSec: cfg.timed ? finalQs.length * cfg.secPerQ : null,
+    skills: [...new Set(finalQs.map((q) => q.skill))],
+    attemptSeed,
   };
 };
 
-export interface EncounterAnswer { key: string; choiceIndex: number | null; }
+/** この編成の名前（文法だけなら「文法バトル」・§5） */
+export const encounterName = (enc: Encounter, level: 'N2' | 'N3', lang: 'ja' | 'zh'): string =>
+  battleScopeName(enc.skills, level, lang);
+
+/** 回答（choiceId。未回答はnull） */
+export interface EncounterAnswer { key: string; choiceId: string | null; }
 
 export interface EncounterResult {
   scorePct: number;
   correctKeys: string[];
   wrongKeys: string[];
-  /** 出題の未出比率（編成時の実測） */
   unseenRatio: number;
   withinTime: boolean | null;
   attempt: AdvMasteryAttempt;
+  /** skill別の正誤（準備度へ渡す・§9） */
+  bySkill: Record<string, { correct: number; total: number; unseen: number }>;
 }
 
-/** 採点（未回答は誤答扱い＝バトルは逃げると倒せない）。mastery台帳用attemptも作る */
+/** 採点（未回答は誤答扱い）。mastery台帳用attemptも作る */
 export const gradeEncounter = (
   enc: Encounter, answers: EncounterAnswer[], dateKey: string, nowISO: string, elapsedSec: number | null,
+  seenKeysAtStart?: Set<string>,
 ): EncounterResult => {
-  const amap = new Map(answers.map((a) => [a.key, a.choiceIndex]));
+  const amap = new Map(answers.map((a) => [a.key, a.choiceId]));
+  const pmap = new Map(enc.presented.map((p) => [p.key, p]));
   const correctKeys: string[] = [];
   const wrongKeys: string[] = [];
+  const bySkill: EncounterResult['bySkill'] = {};
   for (const q of enc.questions) {
-    const a = amap.get(q.key);
-    if (a !== null && a !== undefined && a === q.answerIndex) correctKeys.push(q.key);
-    else wrongKeys.push(q.key);
+    const p = pmap.get(q.key);
+    const picked = amap.get(q.key) ?? null;
+    const ok = p ? isCorrectAnswer(p, picked ?? null) : false;
+    (ok ? correctKeys : wrongKeys).push(q.key);
+    const row = bySkill[q.skill] ?? { correct: 0, total: 0, unseen: 0 };
+    row.total += 1;
+    if (ok) row.correct += 1;
+    if (seenKeysAtStart && !seenKeysAtStart.has(q.key)) row.unseen += 1;
+    bySkill[q.skill] = row;
   }
   const total = enc.questions.length;
   const scorePct = total === 0 ? 0 : Math.round((correctKeys.length / total) * 100);
@@ -117,11 +139,13 @@ export const gradeEncounter = (
     ? (elapsedSec !== null && elapsedSec <= enc.timeLimitSec)
     : null;
   return {
-    scorePct, correctKeys, wrongKeys, unseenRatio: enc.unseenRatio, withinTime,
+    scorePct, correctKeys, wrongKeys, unseenRatio: enc.unseenRatio, withinTime, bySkill,
     attempt: {
       dateKey, scorePct, unseenRatio: enc.unseenRatio,
       questionKeys: enc.questions.map((q) => q.key),
       tier: enc.tier, timed: enc.timed, completedAt: nowISO,
+      skills: enc.skills,
+      bySkill,
     },
   };
 };

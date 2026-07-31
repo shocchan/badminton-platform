@@ -1,74 +1,153 @@
-// 合格準備度（§16）。単純正答率ではなく技能別＋confidence＋遅延定着＋未出成績＋時間配分。
-// 鉄則: 合格を保証しない／データが少ない項目は暫定・未判定と正直に出す（D-012）。
-import type { AdvMasteryLedger, AdvSkillProfile, JlptLevel } from './advTypes';
-import { MASTERY_RULES, questionTypeOf } from './advMastery';
+// 合格準備度（UX CLARITY §5・ASSESSMENT INTEGRITY §9）。
+//
+// 鉄則:
+// - **文法だけの結果から「総合準備度」を出さない。**
+// - データ不足は 0% ではなく「未判定」。
+// - AI会話の成績を JLPT本試験の準備度へ直接加算しない（別軸で表示）。
+// - 各skillに evidenceCount / unseen / delayed / timed / confidence / lastAssessedAt を保持・表示。
+import type { AdvConfidence, AdvMasteryLedger, AdvSkillProfile, JlptLevel } from './advTypes';
+import { MASTERY_RULES } from './advMastery';
+import {
+  EXAM_SKILLS, EXAM_SKILL_LABELS, EXAM_STRUCTURE, OVERALL_READINESS_REQUIREMENT,
+  PRACTICAL_SKILL_LABELS, SECTION_OF_SKILL, type ExamSkill,
+} from './advExamSkills';
+
+export interface SkillEvidence {
+  evidenceCount: number;
+  unseenQuestionCount: number;
+  delayedEvidenceCount: number;
+  timedEvidenceCount: number;
+  correct: number;
+  /** 未出問題での正答率（暗記を除いた実力の目安）。証拠が無ければ null */
+  unseenPct: number | null;
+  /** 遅延（7日以降）での正答率 */
+  delayedPct: number | null;
+  /** 制限時間つきでの正答率 */
+  timedPct: number | null;
+  lastAssessedAt: string | null;
+}
 
 export interface ReadinessRow {
-  key: 'vocabulary' | 'grammar' | 'reading' | 'listening' | 'timing';
+  key: ExamSkill;
   labelJa: string; labelZh: string;
-  /** null = 未判定（表示側は「未判定」を出す。0%と混同させない） */
+  sectionJa: string; sectionZh: string;
+  /** null = 未判定（0%と混同させない） */
   pct: number | null;
+  confidence: AdvConfidence;
   provisional: boolean;
+  evidence: SkillEvidence;
   noteJa: string | null; noteZh: string | null;
+}
+
+export interface PracticalRow {
+  key: string;
+  labelJa: string; labelZh: string;
+  pct: number | null;
+  noteJa: string; noteZh: string;
 }
 
 export interface ReadinessReport {
   target: JlptLevel;
+  /** 本試験の構造（表示の裏づけ） */
+  examParts: { labelJa: string; labelZh: string; minutes: number; skills: ExamSkill[] }[];
   rows: ReadinessRow[];
-  /** 総合。判定可能な行が2未満なら null（総合も未判定） */
+  /** 総合。要件を満たさない限り必ず null（§9） */
   overallPct: number | null;
-  overallProvisional: boolean;
+  /** 総合を出せない理由（機械判定の結果） */
+  overallBlockersJa: string[];
+  overallBlockersZh: string[];
+  /** JLPTへ加算しない別軸（§5） */
+  practical: PracticalRow[];
   topIssueJa: string | null; topIssueZh: string | null;
   summaryJa: string; summaryZh: string;
 }
 
-interface LedgerStats {
-  /** 未出比率が高い試行（暗記でない実力）の平均点 */
-  unseenPerfPct: number | null;
-  /** 遅延確認（7日後以降のqualifying相当）の平均点 */
-  delayedPct: number | null;
-  /** timed試行の時間内完了率 */
-  timedAttempts: number;
-  timedScorePct: number | null;
-  attempts: number;
-}
+const emptyEvidence = (): SkillEvidence => ({
+  evidenceCount: 0, unseenQuestionCount: 0, delayedEvidenceCount: 0, timedEvidenceCount: 0,
+  correct: 0, unseenPct: null, delayedPct: null, timedPct: null, lastAssessedAt: null,
+});
 
-const ledgerStats = (ledger: AdvMasteryLedger, targetPrefix: (id: string) => boolean): LedgerStats => {
-  let unseenSum = 0; let unseenN = 0;
-  let timedSum = 0; let timedN = 0;
-  let attempts = 0;
+const confidenceOf = (e: SkillEvidence): AdvConfidence => {
+  if (e.evidenceCount === 0) return 'none';
+  if (e.evidenceCount < OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill) return 'low';
+  if (e.unseenQuestionCount < OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill) return 'medium';
+  return 'high';
+};
+
+/**
+ * 台帳から skill 別の証拠を集計する。
+ * 旧attempt（bySkill無し）は skill 不明として集計に入れない（推測しない）。
+ */
+export const collectSkillEvidence = (ledger: AdvMasteryLedger): Record<ExamSkill, SkillEvidence> => {
+  const out = {} as Record<ExamSkill, SkillEvidence>;
+  for (const s of EXAM_SKILLS) out[s] = emptyEvidence();
   const firstAt = new Map<string, string>();
-  let delayedSum = 0; let delayedN = 0;
-  for (const [id, list] of Object.entries(ledger)) {
-    if (!targetPrefix(id)) continue;
-    for (const a of list ?? []) {
-      attempts += 1;
-      if (a.unseenRatio >= MASTERY_RULES.minUnseenRatio) { unseenSum += a.scorePct; unseenN += 1; }
-      if (a.timed) { timedSum += a.scorePct; timedN += 1; }
-      const f = firstAt.get(id);
-      if (!f) firstAt.set(id, a.completedAt);
-      else {
-        const days = (new Date(a.completedAt).getTime() - new Date(f).getTime()) / 86400000;
-        if (days >= MASTERY_RULES.delayDays) { delayedSum += a.scorePct; delayedN += 1; }
+  const delayedAcc: Record<string, { c: number; t: number }> = {};
+  const timedAcc: Record<string, { c: number; t: number }> = {};
+  const unseenAcc: Record<string, { c: number; t: number }> = {};
+
+  for (const [targetId, attempts] of Object.entries(ledger)) {
+    for (const a of attempts ?? []) {
+      if (!a.bySkill) continue;
+      const f = firstAt.get(targetId);
+      if (!f) firstAt.set(targetId, a.completedAt);
+      const daysSinceFirst = f
+        ? (new Date(a.completedAt).getTime() - new Date(f).getTime()) / 86400000
+        : 0;
+      const isDelayed = daysSinceFirst >= MASTERY_RULES.delayDays;
+      for (const [skill, row] of Object.entries(a.bySkill)) {
+        if (!EXAM_SKILLS.includes(skill as ExamSkill)) continue;
+        const e = out[skill as ExamSkill];
+        e.evidenceCount += row.total;
+        e.correct += row.correct;
+        e.unseenQuestionCount += row.unseen;
+        if (!e.lastAssessedAt || a.completedAt > e.lastAssessedAt) e.lastAssessedAt = a.completedAt;
+        if (row.unseen > 0) {
+          const u = unseenAcc[skill] ?? { c: 0, t: 0 };
+          // 未出分の正答は全体正答率で近似する（問題単位の未出フラグは attempt に持たないため）
+          u.c += Math.round((row.correct / Math.max(1, row.total)) * row.unseen);
+          u.t += row.unseen;
+          unseenAcc[skill] = u;
+        }
+        if (isDelayed) {
+          e.delayedEvidenceCount += row.total;
+          const d = delayedAcc[skill] ?? { c: 0, t: 0 };
+          d.c += row.correct; d.t += row.total; delayedAcc[skill] = d;
+        }
+        if (a.timed) {
+          e.timedEvidenceCount += row.total;
+          const tt = timedAcc[skill] ?? { c: 0, t: 0 };
+          tt.c += row.correct; tt.t += row.total; timedAcc[skill] = tt;
+          // 時間配分は「制限時間つきでどれだけ解けたか」なので、科目を問わず集約する
+          const tm = out.timeManagement;
+          tm.evidenceCount += row.total;
+          tm.correct += row.correct;
+          tm.timedEvidenceCount += row.total;
+          tm.unseenQuestionCount += row.unseen;
+          if (!tm.lastAssessedAt || a.completedAt > tm.lastAssessedAt) tm.lastAssessedAt = a.completedAt;
+          const tmAcc = timedAcc.timeManagement ?? { c: 0, t: 0 };
+          tmAcc.c += row.correct; tmAcc.t += row.total; timedAcc.timeManagement = tmAcc;
+        }
       }
     }
   }
-  return {
-    unseenPerfPct: unseenN > 0 ? Math.round(unseenSum / unseenN) : null,
-    delayedPct: delayedN > 0 ? Math.round(delayedSum / delayedN) : null,
-    timedAttempts: timedN,
-    timedScorePct: timedN > 0 ? Math.round(timedSum / timedN) : null,
-    attempts,
-  };
+  for (const s of EXAM_SKILLS) {
+    const e = out[s];
+    const u = unseenAcc[s]; const d = delayedAcc[s]; const tt = timedAcc[s];
+    e.unseenPct = u && u.t > 0 ? Math.round((u.c / u.t) * 100) : null;
+    e.delayedPct = d && d.t > 0 ? Math.round((d.c / d.t) * 100) : null;
+    e.timedPct = tt && tt.t > 0 ? Math.round((tt.c / tt.t) * 100) : null;
+  }
+  return out;
 };
 
-/** skillスコアと台帳統計の合成（実測がある側を優先し、暗記成分を混ぜない） */
-const combine = (skillPct: number | null, unseenPct: number | null, delayedPct: number | null): number | null => {
-  const parts: { v: number; w: number }[] = [];
-  if (skillPct !== null) parts.push({ v: skillPct, w: 0.4 });
-  if (unseenPct !== null) parts.push({ v: unseenPct, w: 0.4 });
-  if (delayedPct !== null) parts.push({ v: delayedPct, w: 0.2 });
-  if (parts.length === 0) return null;
+/** 表示スコア: 未出・遅延を重視し、暗記成分（既出のみの高得点）に寄りかからない */
+const scoreOf = (e: SkillEvidence): number | null => {
+  if (e.evidenceCount === 0) return null;
+  const overall = Math.round((e.correct / Math.max(1, e.evidenceCount)) * 100);
+  const parts: { v: number; w: number }[] = [{ v: overall, w: 0.4 }];
+  if (e.unseenPct !== null) parts.push({ v: e.unseenPct, w: 0.4 });
+  if (e.delayedPct !== null) parts.push({ v: e.delayedPct, w: 0.2 });
   const wsum = parts.reduce((n, p) => n + p.w, 0);
   return Math.round(parts.reduce((n, p) => n + p.v * (p.w / wsum), 0));
 };
@@ -76,84 +155,114 @@ const combine = (skillPct: number | null, unseenPct: number | null, delayedPct: 
 export const computeReadiness = (
   target: JlptLevel, skills: AdvSkillProfile, ledger: AdvMasteryLedger,
 ): ReadinessReport => {
-  const grammarStats = ledgerStats(ledger, (id) => id.startsWith('n2g-') || id.startsWith('n3g-') || id.startsWith('stg-'));
-  const vocabStats = ledgerStats(ledger, (id) => id.startsWith('n3u-') || id.startsWith('fi-') || id.startsWith('n3-'));
+  const level: 'N2' | 'N3' = target === 'N3' ? 'N3' : 'N2';
+  const evidence = collectSkillEvidence(ledger);
 
-  const vocabPct = skills.vocabulary.confidence === 'none' ? null : skills.vocabulary.currentScore;
-  const grammarPct = skills.grammar.confidence === 'none' ? null : skills.grammar.currentScore;
+  const rows: ReadinessRow[] = EXAM_SKILLS.map((key) => {
+    const e = evidence[key];
+    const conf = confidenceOf(e);
+    // 時間配分は timed 実績のみで測る（無ければ未判定）
+    const pct = key === 'timeManagement'
+      ? (e.timedEvidenceCount > 0 ? e.timedPct : null)
+      : scoreOf(e);
+    const sec = SECTION_OF_SKILL[key];
+    const noteJa = pct === null
+      ? (key === 'listening' ? '未判定（音声での聴解はまだ測定していません）'
+        : key === 'reading' ? '未判定（読解問題のデータがまだありません）'
+        : key === 'timeManagement' ? '未判定（制限時間つきのボスで測ります）'
+        : '未判定（この科目の問題をまだ解いていません）')
+      : conf === 'low' ? `暫定（出題${e.evidenceCount}問・未出${e.unseenQuestionCount}問）`
+      : e.delayedPct === null ? '7日後の定着データはこれから' : null;
+    const noteZh = pct === null
+      ? (key === 'listening' ? '尚未判定（还没有测定音频听力）'
+        : key === 'reading' ? '尚未判定（还没有阅读题数据）'
+        : key === 'timeManagement' ? '尚未判定（通过限时Boss测定）'
+        : '尚未判定（还没有做过这个科目的题）')
+      : conf === 'low' ? `暂定（已出${e.evidenceCount}题・未见过${e.unseenQuestionCount}题）`
+      : e.delayedPct === null ? '7天后的巩固数据尚在积累' : null;
+    return {
+      key,
+      labelJa: EXAM_SKILL_LABELS[key].ja, labelZh: EXAM_SKILL_LABELS[key].zh,
+      sectionJa: sec === 'languageKnowledge' ? '言語知識' : sec === 'reading' ? '読解' : '聴解',
+      sectionZh: sec === 'languageKnowledge' ? '语言知识' : sec === 'reading' ? '阅读' : '听力',
+      pct,
+      confidence: conf,
+      provisional: conf === 'low' || conf === 'none',
+      evidence: e,
+      noteJa, noteZh,
+    };
+  });
 
-  // 読解: reading_shortバトル由来（key接頭辞 read:）の統計。無ければ未判定
-  const readingStats = ledgerStats(ledger, (id) => id.startsWith('read:'));
-  const hasReading = readingStats.attempts > 0;
+  // ── 総合の可否を機械判定（§9） ──
+  const blockersJa: string[] = [];
+  const blockersZh: string[] = [];
+  for (const key of OVERALL_READINESS_REQUIREMENT.requiredSkills) {
+    const e = evidence[key];
+    const label = EXAM_SKILL_LABELS[key];
+    if (e.evidenceCount < OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill) {
+      blockersJa.push(`${label.ja}のデータが不足しています（${e.evidenceCount}/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}問）`);
+      blockersZh.push(`${label.zh}的数据不足（${e.evidenceCount}/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}题）`);
+    } else if (e.unseenQuestionCount < OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill) {
+      blockersJa.push(`${label.ja}の未出問題が不足しています（${e.unseenQuestionCount}/${OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill}問）`);
+      blockersZh.push(`${label.zh}的未见过的题不足（${e.unseenQuestionCount}/${OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill}题）`);
+    }
+  }
+  const measuredRequired = OVERALL_READINESS_REQUIREMENT.requiredSkills
+    .map((k) => rows.find((r) => r.key === k))
+    .filter((r): r is ReadinessRow => !!r && r.pct !== null);
+  const overallPct = blockersJa.length === 0 && measuredRequired.length === OVERALL_READINESS_REQUIREMENT.requiredSkills.length
+    ? Math.round(measuredRequired.reduce((n, r) => n + (r.pct ?? 0), 0) / measuredRequired.length)
+    : null;
 
-  const rows: ReadinessRow[] = [
+  // ── 別軸（JLPTへ加算しない）──
+  const conv = skills.conversation;
+  const practical: PracticalRow[] = [
     {
-      key: 'vocabulary', labelJa: '語彙', labelZh: '词汇',
-      pct: combine(vocabPct, vocabStats.unseenPerfPct, vocabStats.delayedPct),
-      provisional: skills.vocabulary.confidence === 'low' || skills.vocabulary.confidence === 'none',
-      noteJa: null, noteZh: null,
+      key: 'conversation',
+      labelJa: PRACTICAL_SKILL_LABELS.conversation.ja, labelZh: PRACTICAL_SKILL_LABELS.conversation.zh,
+      pct: conv.confidence === 'none' ? null : conv.currentScore,
+      noteJa: 'AI会話の記録です。JLPTの点数には足しません。',
+      noteZh: '这是AI会话的记录，不计入JLPT分数。',
     },
     {
-      key: 'grammar', labelJa: '文法', labelZh: '语法',
-      pct: combine(grammarPct, grammarStats.unseenPerfPct, grammarStats.delayedPct),
-      provisional: skills.grammar.confidence === 'low' || skills.grammar.confidence === 'none',
-      noteJa: grammarStats.delayedPct === null ? '7日後の定着データはこれから' : null,
-      noteZh: grammarStats.delayedPct === null ? '7天后的巩固数据尚在积累' : null,
-    },
-    {
-      key: 'reading', labelJa: '読解', labelZh: '阅读',
-      pct: hasReading ? combine(null, readingStats.unseenPerfPct ?? readingStats.timedScorePct, readingStats.delayedPct) : null,
-      provisional: true,
-      noteJa: hasReading ? 'データが少ないため暫定' : '未判定（読解バトルのデータがまだありません）',
-      noteZh: hasReading ? '数据较少・暂定' : '尚未判定（还没有阅读战斗数据）',
-    },
-    {
-      key: 'listening', labelJa: '聴解', labelZh: '听力',
-      // D-009: 音声聴解は測っていない。会話理解で代替もUI上は聴解と表示しない方針＝ここでは常に未判定
-      pct: null,
-      provisional: true,
-      noteJa: '未判定（音声での聴解はまだ測定していません）',
-      noteZh: '尚未判定（还没有测定音频听力）',
-    },
-    {
-      key: 'timing', labelJa: '時間配分', labelZh: '时间分配',
-      pct: grammarStats.timedAttempts > 0 ? grammarStats.timedScorePct : null,
-      provisional: grammarStats.timedAttempts < 3,
-      noteJa: grammarStats.timedAttempts === 0 ? '未判定（中ボス・模擬ボスで測ります）' : null,
-      noteZh: grammarStats.timedAttempts === 0 ? '尚未判定（通过中Boss・模拟Boss测定）' : null,
+      key: 'practicalUsage',
+      labelJa: PRACTICAL_SKILL_LABELS.practicalUsage.ja, labelZh: PRACTICAL_SKILL_LABELS.practicalUsage.zh,
+      pct: skills.practical.confidence === 'none' ? null : skills.practical.currentScore,
+      noteJa: '学んだ表現を会話で実際に使えたかの記録です。',
+      noteZh: '记录学过的表达是否真的用在了会话里。',
     },
   ];
 
   const measured = rows.filter((r) => r.pct !== null) as (ReadinessRow & { pct: number })[];
-  const overallPct = measured.length >= 2
-    ? Math.round(measured.reduce((n, r) => n + r.pct, 0) / measured.length)
-    : null;
-  const overallProvisional = measured.length < 4 || measured.some((r) => r.provisional);
-
   const weakest = measured.slice().sort((a, b) => a.pct - b.pct)[0] ?? null;
-  const unmeasured = rows.filter((r) => r.pct === null);
-  const topIssueJa = weakest ? `現在の課題：${weakest.labelJa}` : null;
-  const topIssueZh = weakest ? `当前课题：${weakest.labelZh}` : null;
+  const undet = rows.filter((r) => r.pct === null);
 
-  const summaryJa = (overallPct === null
-    ? 'まだデータが少ないため、準備度は判定できません。バトルと復習を重ねると表示されます。'
-    : `現在の学習データでは、${target}攻略準備度は${overallPct}%です（${overallProvisional ? '暫定' : '実測'}）。` +
-      (unmeasured.length > 0 ? `${unmeasured.map((r) => r.labelJa).join('・')}は未判定です。` : ''))
-    + 'この表示は合格を保証するものではありません。';
-  const summaryZh = (overallPct === null
-    ? '数据还不足，暂时无法判定准备度。多打战斗和复习后会显示。'
-    : `按当前学习数据，${target}攻略准备度为${overallPct}%（${overallProvisional ? '暂定' : '实测'}）。` +
-      (unmeasured.length > 0 ? `${unmeasured.map((r) => r.labelZh).join('・')}尚未判定。` : ''))
-    + '此显示不构成合格保证。';
+  const summaryJa = overallPct === null
+    ? `総合準備度はまだ判定できません。${blockersJa.length > 0 ? blockersJa[0] + '。' : ''}いま出せるのは科目ごとの状況だけです。この表示は合格を保証するものではありません。`
+    : `現在の学習データでは、${target}の総合準備度は${overallPct}%です。${undet.length > 0 ? `${undet.map((r) => r.labelJa).join('・')}は未判定です。` : ''}この表示は合格を保証するものではありません。`;
+  const summaryZh = overallPct === null
+    ? `综合准备度还无法判定。${blockersZh.length > 0 ? blockersZh[0] + '。' : ''}目前只能显示各科目的情况。此显示不构成合格保证。`
+    : `按当前学习数据，${target}的综合准备度为${overallPct}%。${undet.length > 0 ? `${undet.map((r) => r.labelZh).join('・')}尚未判定。` : ''}此显示不构成合格保证。`;
 
-  return { target, rows, overallPct, overallProvisional, topIssueJa, topIssueZh, summaryJa, summaryZh };
+  return {
+    target,
+    examParts: EXAM_STRUCTURE[level],
+    rows,
+    overallPct,
+    overallBlockersJa: blockersJa,
+    overallBlockersZh: blockersZh,
+    practical,
+    topIssueJa: weakest ? `いちばん弱いのは${weakest.labelJa}です` : null,
+    topIssueZh: weakest ? `目前最弱的是${weakest.labelZh}` : null,
+    summaryJa, summaryZh,
+  };
 };
 
 /** 「同じ問題の暗記」を除いた実力の目安があるか（表示分岐用） */
 export const hasUnseenEvidence = (ledger: AdvMasteryLedger): boolean => {
   for (const list of Object.values(ledger)) {
     for (const a of list ?? []) {
-      if (a.unseenRatio >= MASTERY_RULES.minUnseenRatio && a.questionKeys.some((k) => questionTypeOf(k) !== 'rec')) return true;
+      if (a.unseenRatio >= MASTERY_RULES.minUnseenRatio) return true;
     }
   }
   return false;

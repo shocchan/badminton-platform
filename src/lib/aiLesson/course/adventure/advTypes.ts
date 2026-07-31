@@ -122,6 +122,10 @@ export interface AdvMasteryAttempt {
   tier: AdvEnemyTier;
   timed: boolean;
   completedAt: string;
+  /** この試行が鍛えた試験科目（ASSESSMENT INTEGRITY §10）。旧データには無い */
+  skills?: string[];
+  /** 試験科目別の正誤・未出数（準備度をskill別に出すための証拠・§9） */
+  bySkill?: Record<string, { correct: number; total: number; unseen: number }>;
 }
 
 /** targetId（unitId / grammarId / stage束ID）→ 試行履歴 */

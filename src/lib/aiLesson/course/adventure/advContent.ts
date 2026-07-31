@@ -10,7 +10,8 @@ import { allVocabularyItems } from '../foundationVocabBank';
 import type { AssessQuestion } from '../quality/assessQuestionEngine';
 import type { N2GrammarDraft } from '../n2GrammarDrafts';
 import type { DiagQuestion, DiagnosisPools } from './advDiagnosis';
-import { buildVariantPool, type AdvBattleQuestion, type GrammarDraftLike } from './advVariants';
+import { buildVariantPool, type AdvBattleQuestion, type AdvChoice, type GrammarDraftLike } from './advVariants';
+import { skillOfQuestionType, SECTION_OF_SKILL } from './advExamSkills';
 import { buildConversationMission, type ConversationMissionSpec } from './advConversationBridge';
 import type { AdvRouteStage } from './advTypes';
 import { AREA_UNIT_MAP } from './advRoute';
@@ -45,17 +46,42 @@ const buildUnitBattlePools = (): Map<string, AdvBattleQuestion[]> => {
     const seen = new Set<string>();
     const qs: AdvBattleQuestion[] = [];
     const push = (q: AssessQuestion) => {
-      if (q.kind !== 'choice' || q.choices.length < 2 || seen.has(q.questionId)) return;
+      if (q.kind !== 'choice' || q.choices.length < 3 || seen.has(q.questionId)) return;
       seen.add(q.questionId);
+      const type = `u-${q.dimension}`;
+      const skill = skillOfQuestionType(type);
+      // 正解はindexではなくchoiceIdで保持する（§11）。元の並びでIDを固定し、表示順は提示時に決める
+      const choices: AdvChoice[] = q.choices.map((text, i) => ({
+        choiceId: `choice-${String.fromCharCode(97 + i)}`,
+        textJa: text,
+        isCorrect: i === q.answerIndex,
+        whyWrongJa: i === q.answerIndex ? undefined : 'この文脈には合いません。',
+        whyWrongZh: i === q.answerIndex ? undefined : '不适合这个语境。',
+      }));
       qs.push({
         key: `u${q.dimension}:${spec.unitId}:${q.questionId}`,
-        type: `u-${q.dimension}`,
+        type,
         level: spec.order <= 2 ? 'foundation' : 'n3',
-        skill: 'vocabulary',
-        promptJa: q.promptJa, promptZh: q.promptZh,
-        choices: q.choices, answerIndex: q.answerIndex,
-        explanationZh: q.explanationZh,
-        sourceId: q.itemId,
+        skill,
+        examSection: SECTION_OF_SKILL[skill],
+        targetJapanese: q.promptJa,
+        questionJa: q.promptJa,
+        questionZh: q.promptZh,
+        choices,
+        explanation: {
+          meaningJa: q.explanationJa,
+          meaningZh: q.explanationZh,
+          whyCorrectJa: q.explanationJa,
+          whyCorrectZh: q.explanationZh,
+          exampleJa: null, exampleZh: null,
+          sourceItemId: q.itemId,
+          sourceLabel: q.itemId,
+        },
+        sourceItemId: q.itemId,
+        difficulty: 1,
+        timed: false,
+        variantId: q.questionId,
+        reviewState: 'authored',
         status: 'authored',
       });
     };

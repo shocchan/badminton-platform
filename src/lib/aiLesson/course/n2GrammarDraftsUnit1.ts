@@ -76,7 +76,7 @@ export const N2_GRAMMAR_DRAFTS_UNIT1: N2GrammarDraft[] = [
     recognition: { promptZh: '「日本で働く以上は、＿＿」后面最自然的是？',
       options: ['敬語を覚えるべきです', '日本は島国です', '天気がいいです', '桜がきれいです'],
       answerIndex: 0, distractorReason: '「以上は」后面要接义务・决心・忠告',
-      explanationZh: '「〜以上は＋должен」的结构' },
+      explanationZh: '「〜以上は」＋义务・决心・忠告 的结构' },
     production: { promptJa: '自分の決意を「〜以上は」で言ってください。',
       promptZh: '用「〜以上は」表达你的决心。',
       expected: ['以上は'], acceptable: ['〜する以上は', '〜した以上は'] },

@@ -1,7 +1,7 @@
 // src/lib/shuttleCounterI18n.ts
 //
 // シャトル供養カウンターの表示文言。日本語・中国語の両方を定義。
-// 既存のサイトのロケール判定(URLの /ja/ 또는 /zh/ など)から
+// 既存のサイトのロケール判定(URLの /ja/ または /zh/ など)から
 // 'ja' | 'zh' を渡してもらう想定。
 
 export type ShuttleLocale = 'ja' | 'zh';

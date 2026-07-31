@@ -17,7 +17,12 @@ describe('advVariants 実データ全件検査', () => {
     const drafts = await loadAllN2();
     const pool = buildVariantPool(drafts, 'n2', new Set(Object.keys(N2_GRAMMAR_ALIASES)));
     expect(pool.stats.items).toBe(178);
-    expect(pool.stats.byType.rec).toBe(178);
+    // 妥当性検査で保留した authored rec を除いた実数（存在するふりをしない）
+    expect(pool.stats.byType.rec + pool.held.filter((h) => h.key.startsWith('rec:')).length).toBe(178);
+    expect(pool.held.length).toBeGreaterThan(0);
+    // CEOが実画面で見つけた不正問題は必ず保留されている
+    expect(pool.held.some((h) => h.sourceItemId === 'n2g-003')).toBe(true);
+    expect(pool.byItem.get('n2g-003')?.some((q) => q.type === 'rec')).toBeFalsy();
     const keys = new Set<string>();
     for (const qs of pool.byItem.values()) {
       expect(qs.length).toBeGreaterThanOrEqual(1);
@@ -30,14 +35,17 @@ describe('advVariants 実データ全件検査', () => {
     // §18: 複数variant（タイプ2種以上）を持つ項目が大多数であること（暗記対策の実効性）
     expect(pool.stats.multiVariantItems).toBeGreaterThanOrEqual(150);
     expect(pool.stats.questions).toBeGreaterThanOrEqual(400);
+    // 妥当性で1問も残らない項目は「存在するふり」になるため0であること
+    expect(pool.stats.itemsWithZeroQuestions).toEqual([]);
   });
 
   it('N3: 76全項目にプールが生成され、全問PASS', () => {
     const pool = buildVariantPool(N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[], 'n3');
     expect(pool.stats.items).toBe(76);
-    expect(pool.stats.byType.rec).toBe(76);
+    expect(pool.stats.byType.rec + pool.held.filter((h) => h.key.startsWith('rec:')).length).toBe(76);
     for (const qs of pool.byItem.values()) for (const q of qs) expect(validateQuestion(q)).toEqual([]);
     expect(pool.stats.multiVariantItems).toBeGreaterThanOrEqual(60);
+    expect(pool.stats.itemsWithZeroQuestions).toEqual([]);
   });
 
   it('決定的: 2回ビルドで同一結果', async () => {
@@ -74,9 +82,9 @@ describe('advVariants 実データ全件検査', () => {
       const ex = buildExclusionSet(self, drafts.filter((d) => !(d.grammarId in N2_GRAMMAR_ALIASES)));
       for (const q of qs) {
         if (q.type !== 'cloze') continue;
-        for (let i = 0; i < q.choices.length; i++) {
-          if (i === q.answerIndex) continue;
-          const owner = keyToId.get(q.choices[i]);
+        for (const c of q.choices) {
+          if (c.isCorrect) continue;
+          const owner = keyToId.get(c.textJa);
           if (owner) expect(ex.has(owner)).toBe(false);
         }
       }
@@ -90,8 +98,13 @@ describe('advVariants 実データ全件検査', () => {
       recognition: { promptZh: 'p', options: ['a', 'a', 'b', 'c'], answerIndex: 0, explanationZh: 'e' },
     };
     const pool = buildVariantPool([minimal], 'n3');
-    // recognitionは重複選択肢で機械検査に落ち、cloze/meaning/formは材料不足で生成なし
+    // recognitionは重複選択肢で妥当性検査に落ち、cloze/meaning/formは材料不足で生成なし
     expect(pool.byItem.get('x-001') ?? []).toHaveLength(0);
-    expect(pool.rejected.some((r) => r.key === 'rec:x-001' && r.issues.includes('duplicate_choice'))).toBe(true);
+    const held = pool.held.find((h) => h.key === 'rec:x-001');
+    expect(held).toBeTruthy();
+    expect(held?.issues).toContain('duplicate_choice');
+    // 0問になった項目は SAFE_FALLBACK として明示される
+    expect(held?.disposition).toBe('SAFE_FALLBACK');
+    expect(pool.stats.itemsWithZeroQuestions).toContain('x-001');
   });
 });

@@ -31,7 +31,7 @@ export const ONOMATOPOEIA_DRAFTS_BATCH4: OnomatopoeiaDraft[] = [
   d({ id: 'ono-hyorohyoro', sourceCandidateId: 'b70a57b8fd1cd541', surface: 'ひょろひょろ', kana: 'ひょろひょろ',
     category: 'gitaigo', usagePatterns: ['suru', 'da-na'],
     meaningJa: '細長くて弱々しい様子', meaningZh: '（状态）细高瘦弱、豆芽菜似的',
-    nuanceZh: '背が高いのに細くて頼りない体型・植物の徒長。やや негативные評価を含むので人に直接言うのは注意',
+    nuanceZh: '背が高いのに細くて頼りない体型・植物の徒長。やや否定的な評価を含むので人に直接言うのは注意',
     similarJa: ['がりがり', 'ひょろり'],
     examples: [
       { ja: '日光が足りなくて、野菜の苗がひょろひょろしています。', zh: '光照不够，菜苗长得细弱。' },
@@ -325,7 +325,7 @@ export const ONOMATOPOEIA_DRAFTS_BATCH4: OnomatopoeiaDraft[] = [
   d({ id: 'ono-pekopeko', sourceCandidateId: '79e4f58e9227a550', surface: 'ぺこぺこ', kana: 'ぺこぺこ',
     category: 'gijougo', usagePatterns: ['da-na', 'suru'],
     meaningJa: '①お腹がとても空いている様子 ②何度も頭を下げる様子', meaningZh: '（状态）①肚子饿瘪了 ②点头哈腰',
-    nuanceZh: '①「お腹がぺこぺこ」は空腹の定番表現（カジュアル）。②「ぺこぺこ謝る」は卑屈な平身低頭（やや негатив）',
+    nuanceZh: '①「お腹がぺこぺこ」は空腹の定番表現（カジュアル）。②「ぺこぺこ謝る」は卑屈な平身低頭（やや否定的）',
     similarJa: ['はらぺこ', 'ぐうぐう'],
     examples: [
       { ja: '朝から何も食べていなくて、お腹がぺこぺこです。', zh: '从早上就没吃东西，肚子饿瘪了。' },

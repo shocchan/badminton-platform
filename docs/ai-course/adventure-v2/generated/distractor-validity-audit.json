@@ -1,0 +1,251 @@
+{
+ "N2": {
+  "total": 178,
+  "failed": 28,
+  "issueCount": {
+   "ending_category_giveaway": 4,
+   "semantic_disconnection": 14,
+   "structural_inhomogeneity": 14
+  },
+  "sample": [
+   {
+    "id": "n2g-001",
+    "issues": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "correctCat": "negative",
+    "spread": 1.42,
+    "opts": [
+     "さんざん迷ったあげく、買わなかった",
+     "努力したあげく、合格した",
+     "寝たあげく、元気になった",
+     "食べたあげく、おいしかった"
+    ]
+   },
+   {
+    "id": "n2g-003",
+    "issues": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "correctCat": "obligation",
+    "spread": 1.43,
+    "opts": [
+     "敬語を覚えるべきです",
+     "日本は島国です",
+     "天気がいいです",
+     "桜がきれいです"
+    ]
+   },
+   {
+    "id": "n2g-011",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "negative",
+    "spread": 1.5,
+    "opts": [
+     "ありえない",
+     "ありうない",
+     "ありとくない",
+     "あります"
+    ]
+   },
+   {
+    "id": "n2g-020",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "nounPhrase",
+    "spread": 1.33,
+    "opts": [
+     "忘れがたい思い出",
+     "書きがたいペン",
+     "歩きがたい道",
+     "見がたいテレビ"
+    ]
+   },
+   {
+    "id": "n2g-021",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "plainState",
+    "spread": 1.33,
+    "opts": [
+     "最近、成績が上がりがちだ",
+     "疲れると忘れがちだ",
+     "雨の日は遅刻しがちだ",
+     "冬は風邪をひきがちだ"
+    ]
+   },
+   {
+    "id": "n2g-029",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "nounPhrase",
+    "spread": 2.67,
+    "opts": [
+     "「かのようだ」比喻性更强、更书面",
+     "意思完全相同",
+     "「かのようだ」更口语",
+     "「かのようだ」表示确定"
+    ]
+   },
+   {
+    "id": "n2g-035",
+    "issues": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "correctCat": "negative",
+    "spread": 2.25,
+    "opts": [
+     "買いすぎはよくない",
+     "たくさん買います",
+     "嬉しいです",
+     "高いです"
+    ]
+   },
+   {
+    "id": "n2g-036",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "plainState",
+    "spread": 2,
+    "opts": [
+     "最後までやります",
+     "やめるかもしれません",
+     "知りません",
+     "関係ありません"
+    ]
+   }
+  ]
+ },
+ "N3": {
+  "total": 76,
+  "failed": 17,
+  "issueCount": {
+   "semantic_disconnection": 8,
+   "structural_inhomogeneity": 9,
+   "ending_category_giveaway": 1
+  },
+  "sample": [
+   {
+    "id": "n3g-gachi",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "plainState",
+    "spread": 1.56,
+    "opts": [
+     "この時期は成績が上がりがちだ",
+     "雨の日は遅刻しがちだ",
+     "疲れると忘れがちだ",
+     "冬は風邪をひきがちだ"
+    ]
+   },
+   {
+    "id": "n3g-gasuru",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "plainState",
+    "spread": 1,
+    "opts": [
+     "いいにおいがします",
+     "いいにおいをします",
+     "いいにおいにします",
+     "いいにおいでします"
+    ]
+   },
+   {
+    "id": "n3g-toku",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "nonJapanese",
+    "spread": 4.5,
+    "opts": [
+     "事先买好（为以后）",
+     "买错了",
+     "不买",
+     "正在买"
+    ]
+   },
+   {
+    "id": "n3g-temoii",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "question",
+    "spread": 5.67,
+    "opts": [
+     "お先に失礼してもよろしいでしょうか",
+     "帰ってもいい？",
+     "帰るよ",
+     "帰ってもいいですか"
+    ]
+   },
+   {
+    "id": "n3g-nakerebanaranai",
+    "issues": [
+     "semantic_disconnection"
+    ],
+    "correctCat": "nounPhrase",
+    "spread": 1.25,
+    "opts": [
+     "〜なければ",
+     "〜ながら",
+     "〜なさい",
+     "〜ないで"
+    ]
+   },
+   {
+    "id": "n3g-node",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "plainState",
+    "spread": 4.25,
+    "opts": [
+     "熱があるので、休ませていただきます",
+     "熱があるから休む",
+     "熱があるので休め",
+     "熱がある"
+    ]
+   },
+   {
+    "id": "n3g-tsuzukeru-fukugou",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "nonJapanese",
+    "spread": 3.25,
+    "opts": [
+     "持续工作了10年，现在还在",
+     "10年前工作过",
+     "要工作10年",
+     "不想工作"
+    ]
+   },
+   {
+    "id": "n3g-bakari",
+    "issues": [
+     "structural_inhomogeneity"
+    ],
+    "correctCat": "nonJapanese",
+    "spread": 5,
+    "opts": [
+     "带批评（老是打游戏）",
+     "表扬",
+     "中立描述",
+     "羡慕"
+    ]
+   }
+  ]
+ }
+}

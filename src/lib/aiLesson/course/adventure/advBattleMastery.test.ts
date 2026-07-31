@@ -64,10 +64,21 @@ describe('advMastery（§15）', () => {
   });
 });
 
-const q = (key: string, type: AdvBattleQuestion['type'], answerIndex = 0): AdvBattleQuestion => ({
-  key, type, level: 'n2', skill: 'grammar', promptJa: null, promptZh: `prompt ${key}`,
-  choices: ['正', '誤1', '誤2', '誤3'], answerIndex, explanationZh: 'e', sourceId: key.split(':')[1] ?? 'x',
-  status: 'validated_beta',
+const q = (key: string, type: AdvBattleQuestion['type']): AdvBattleQuestion => ({
+  key, type, level: 'n2', skill: 'grammar', examSection: 'languageKnowledge',
+  targetJapanese: null, questionJa: null, questionZh: `prompt ${key}`,
+  choices: [
+    { choiceId: 'choice-a', textJa: '正', isCorrect: true },
+    { choiceId: 'choice-b', textJa: '誤1', isCorrect: false },
+    { choiceId: 'choice-c', textJa: '誤2', isCorrect: false },
+    { choiceId: 'choice-d', textJa: '誤3', isCorrect: false },
+  ],
+  explanation: {
+    meaningJa: 'm', meaningZh: 'm', whyCorrectJa: 'w', whyCorrectZh: 'w',
+    exampleJa: null, exampleZh: null, sourceItemId: key.split(':')[1] ?? 'x', sourceLabel: 'p',
+  },
+  sourceItemId: key.split(':')[1] ?? 'x', difficulty: 2, timed: false,
+  variantId: key, reviewState: 'validated_beta', status: 'validated_beta',
 });
 
 describe('advBattle（§14/§18）', () => {
@@ -79,7 +90,7 @@ describe('advBattle（§14/§18）', () => {
 
   it('normalは1テーマ・未出優先・タイプが偏らない', () => {
     const enc = buildEncounter({ tier: 'normal', targetIds: ['g1', 'g2'], pool, seenKeys: new Set(['rec:g1']), recentWrongKeys: new Set(), seed: 1 });
-    expect(enc.questions.every((x) => x.sourceId === 'g1')).toBe(true);
+    expect(enc.questions.every((x) => x.sourceItemId === 'g1')).toBe(true);
     const types = new Set(enc.questions.map((x) => x.type));
     expect(types.size).toBeGreaterThanOrEqual(2);
     expect(enc.timed).toBe(false);
@@ -89,7 +100,7 @@ describe('advBattle（§14/§18）', () => {
     const seen = new Set(['rec:g1', 'rec:g2', 'rec:g3']);
     const enc = buildEncounter({ tier: 'strong', targetIds: ['g1', 'g2', 'g3'], pool, seenKeys: seen, recentWrongKeys: new Set(), seed: 2 });
     expect(enc.unseenRatio).toBeGreaterThan(0.5);
-    const sources = new Set(enc.questions.map((x) => x.sourceId));
+    const sources = new Set(enc.questions.map((x) => x.sourceItemId));
     expect(sources.size).toBeGreaterThan(1);
   });
 
@@ -106,7 +117,10 @@ describe('advBattle（§14/§18）', () => {
 
   it('採点: 未回答は誤答・attemptに未出比率と問題キーが載る', () => {
     const enc = buildEncounter({ tier: 'normal', targetIds: ['g1'], pool, seenKeys: new Set(), recentWrongKeys: new Set(), seed: 5 });
-    const answers = enc.questions.map((x, i) => ({ key: x.key, choiceIndex: i === 0 ? x.answerIndex : null }));
+    const answers = enc.questions.map((x, i) => ({
+      key: x.key,
+      choiceId: i === 0 ? (enc.presented.find((p) => p.key === x.key)?.correctChoiceId ?? null) : null,
+    }));
     const r = gradeEncounter(enc, answers, '2026-07-31', NOW, null);
     expect(r.scorePct).toBe(Math.round((1 / enc.questions.length) * 100));
     expect(r.attempt.questionKeys).toHaveLength(enc.questions.length);
@@ -174,7 +188,14 @@ describe('advQuest（§13）', () => {
   });
 });
 
-describe('advReadiness（§16）', () => {
+describe('advReadiness（ASSESSMENT INTEGRITY §9）', () => {
+  const gAtt = (dateKey: string, correct: number, total: number, over: Partial<AdvMasteryAttempt> = {}): AdvMasteryAttempt => ({
+    ...att(dateKey, Math.round((correct / total) * 100), over),
+    bySkill: { grammar: { correct, total, unseen: Math.round(total / 2) } },
+    skills: ['grammar'],
+    ...over,
+  });
+
   it('データ無し→総合も各行も未判定（0%と混同しない）', () => {
     const r = computeReadiness('N2', emptySkillProfile(), {});
     expect(r.overallPct).toBeNull();
@@ -182,28 +203,71 @@ describe('advReadiness（§16）', () => {
     expect(r.summaryJa).toContain('判定できません');
   });
 
-  it('聴解は常に未判定・時間配分はtimed試行が無ければ未判定（D-009/D-012）', () => {
-    const skills = emptySkillProfile();
-    skills.grammar = { currentScore: 80, confidence: 'medium', evidenceCount: 20, lastAssessedAt: NOW, band: 'n3' };
-    const ledger: AdvMasteryLedger = { 'n2g-001': [att('2026-07-30', 85)] };
-    const r = computeReadiness('N2', skills, ledger);
-    const listening = r.rows.find((x) => x.key === 'listening');
-    const timing = r.rows.find((x) => x.key === 'timing');
-    expect(listening?.pct).toBeNull();
-    expect(timing?.pct).toBeNull();
+  it('本試験の構成（N2 105分＋50分 / N3 30+70+40分）を持つ', () => {
+    expect(computeReadiness('N2', emptySkillProfile(), {}).examParts.map((p) => p.minutes)).toEqual([105, 50]);
+    expect(computeReadiness('N3', emptySkillProfile(), {}).examParts.map((p) => p.minutes)).toEqual([30, 70, 40]);
+  });
+
+  it('**文法だけの結果から総合準備度を出さない**（§9の中核）', () => {
+    const ledger: AdvMasteryLedger = {
+      'n2g-001': [gAtt('2026-07-20', 24, 30), gAtt('2026-07-25', 26, 30), gAtt('2026-07-30', 25, 30)],
+    };
+    const r = computeReadiness('N2', emptySkillProfile(), ledger);
+    const grammar = r.rows.find((x) => x.key === 'grammar');
+    expect(grammar?.pct).not.toBeNull();          // 文法は実測される
+    expect(r.overallPct).toBeNull();               // が、総合は出ない
+    expect(r.overallBlockersJa.some((b) => b.includes('読解'))).toBe(true);
+    expect(r.overallBlockersJa.some((b) => b.includes('聴解'))).toBe(true);
     expect(r.summaryJa).toContain('合格を保証するものではありません');
   });
 
-  it('timed試行があると時間配分が実測される', () => {
-    const skills = emptySkillProfile();
-    skills.grammar = { currentScore: 80, confidence: 'medium', evidenceCount: 20, lastAssessedAt: NOW, band: 'n3' };
+  it('skill別にevidence（出題・未出・遅延・時間つき）を保持する', () => {
     const ledger: AdvMasteryLedger = {
-      'stg-n2boss': [att('2026-07-28', 70, { timed: true, tier: 'rankboss' }), att('2026-07-30', 74, { timed: true, tier: 'rankboss' })],
+      'n2g-002': [gAtt('2026-07-01', 8, 10), gAtt('2026-07-20', 9, 10, { timed: true, tier: 'rankboss' })],
     };
+    const r = computeReadiness('N2', emptySkillProfile(), ledger);
+    const g = r.rows.find((x) => x.key === 'grammar')!;
+    expect(g.evidence.evidenceCount).toBe(20);
+    expect(g.evidence.unseenQuestionCount).toBe(10);
+    expect(g.evidence.delayedEvidenceCount).toBe(10);   // 19日後＝遅延
+    expect(g.evidence.timedEvidenceCount).toBe(10);
+    expect(g.evidence.lastAssessedAt).not.toBeNull();
+  });
+
+  it('聴解・読解は測っていないので常に未判定（0%にしない）', () => {
+    const ledger: AdvMasteryLedger = { 'n2g-003': [gAtt('2026-07-30', 20, 25)] };
+    const r = computeReadiness('N2', emptySkillProfile(), ledger);
+    expect(r.rows.find((x) => x.key === 'listening')?.pct).toBeNull();
+    expect(r.rows.find((x) => x.key === 'reading')?.pct).toBeNull();
+    expect(r.rows.find((x) => x.key === 'listening')?.noteJa).toContain('未判定');
+  });
+
+  it('時間配分はtimed実績からのみ算出する', () => {
+    const noTimed: AdvMasteryLedger = { 'n2g-004': [gAtt('2026-07-30', 8, 10)] };
+    expect(computeReadiness('N2', emptySkillProfile(), noTimed).rows.find((x) => x.key === 'timeManagement')?.pct).toBeNull();
+    const timed: AdvMasteryLedger = {
+      'stg-n2boss': [gAtt('2026-07-28', 14, 20, { timed: true, tier: 'rankboss' })],
+    };
+    const row = computeReadiness('N2', emptySkillProfile(), timed).rows.find((x) => x.key === 'timeManagement');
+    expect(row?.pct).toBe(70);
+  });
+
+  it('AI会話の成績はJLPT準備度に加算せず、別軸で表示する（§5）', () => {
+    const skills = emptySkillProfile();
+    skills.conversation = { currentScore: 90, confidence: 'medium', evidenceCount: 12, lastAssessedAt: NOW, band: 'n3' };
+    const ledger: AdvMasteryLedger = { 'n2g-005': [gAtt('2026-07-30', 10, 20)] };
     const r = computeReadiness('N2', skills, ledger);
-    const timing = r.rows.find((x) => x.key === 'timing');
-    expect(timing?.pct).toBe(72);
-    expect(timing?.provisional).toBe(true); // 3回未満は暫定
-    expect(r.overallPct).not.toBeNull();
+    // 会話90%があっても文法の実測値は引き上がらない
+    expect(r.rows.find((x) => x.key === 'grammar')?.pct).toBeLessThan(60);
+    expect(r.overallPct).toBeNull();
+    const conv = r.practical.find((p) => p.key === 'conversation');
+    expect(conv?.pct).toBe(90);
+    expect(conv?.noteJa).toContain('JLPTの点数には足しません');
+  });
+
+  it('bySkillの無い旧attemptは推測せず集計に入れない（後方互換）', () => {
+    const legacy: AdvMasteryLedger = { 'n2g-006': [att('2026-07-30', 100)] };
+    const r = computeReadiness('N2', emptySkillProfile(), legacy);
+    expect(r.rows.every((row) => row.pct === null)).toBe(true);
   });
 });
