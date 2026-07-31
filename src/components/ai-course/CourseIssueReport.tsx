@@ -60,7 +60,13 @@ export const CourseIssueReport = ({ t, learnerId, sessionId, errorCode, onClose 
       />
       <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">{ti.attachNote}</p>
 
-      {failed && <p className="text-sm text-red-600 mt-2">{ti.failed}</p>}
+      {failed && (
+        <div className="mt-2">
+          <p className="text-sm text-red-600">{ti.failed}</p>
+          <p className="text-xs text-gray-600 mt-1">{t.support.emailDescription}</p>
+          <a href={`mailto:${t.support.email}`} className="text-xs font-bold text-blue-700 underline">{t.support.contactByEmail}（{t.support.email}）</a>
+        </div>
+      )}
 
       <div className="flex gap-2 mt-3">
         <button type="button" onClick={() => void submit()} disabled={busy || !comment.trim()}

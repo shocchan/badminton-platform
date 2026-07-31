@@ -1,7 +1,7 @@
 // 設定画面。利用案内の再確認（§17）・プライバシー（§13）・問題報告（§18）・ログアウト。
 
-import { useState } from 'react';
-import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users, UserRound } from 'lucide-react';
 import { CourseIssueReport } from './CourseIssueReport';
 import { deleteMyUtterances } from '../../lib/aiLesson/course/courseIssueApi';
 import { effectiveSubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
@@ -15,13 +15,15 @@ interface Props {
   onShowGuide: () => void;
   /** 設定変更を learner に保存（Supabaseへ。複数端末で同期） */
   onSaveSettings: (patch: Partial<LearnerSettings>) => void;
+  /** ニックネーム（学習世界内の表示名）保存。表示層のみ・二重保存はrefで防止 */
+  onSaveNickname: (name: string) => Promise<boolean>;
   onLogout: () => void;
   onBack: () => void;
 }
 
 const SUBTITLE_MODES: SubtitleMode[] = ['ja', 'ja_zh', 'whenStuck'];
 
-export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogout, onBack }: Props) => {
+export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSaveSettings, onLogout, onBack }: Props) => {
   const ts = t.settings;
   const learnerId = learner.id;
   const [showIssue, setShowIssue] = useState(false);
@@ -122,6 +124,30 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
         )}
       </Section>
 
+      {/* ニックネーム（本名不要・後から変更可・§Avatar1A） */}
+      <Section icon={<UserRound className="w-4 h-4 text-blue-600" />} title={ts.nicknameTitle}>
+        <NicknameEditor t={t} current={learner.displayName} onSave={onSaveNickname} />
+      </Section>
+
+      {/* AI先生と人間コーチの役割（混同させない・§B-1） */}
+      <Section icon={<Users className="w-4 h-4 text-emerald-600" />} title={ts.rolesTitle}>
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <p className="text-xs font-bold text-blue-700 mb-1">{ts.rolesAiLabel}</p>
+            <ul className="space-y-0.5">
+              {ts.rolesAi.map((r, i) => <li key={i} className="text-xs text-gray-600">・{r}</li>)}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-emerald-700 mb-1">{ts.rolesCoachLabel}</p>
+            <ul className="space-y-0.5">
+              {ts.rolesCoach.map((r, i) => <li key={i} className="text-xs text-gray-600">・{r}</li>)}
+            </ul>
+          </div>
+        </div>
+        <p className="text-[11px] text-gray-500 leading-relaxed mt-3 select-all">{ts.rolesWechatHint}</p>
+      </Section>
+
       {/* 問題を報告する */}
       <Section icon={<LifeBuoy className="w-4 h-4 text-blue-600" />} title={ts.supportTitle}>
         {showIssue ? (
@@ -132,6 +158,16 @@ export const CourseSettings = ({ t, learner, onShowGuide, onSaveSettings, onLogo
             {ts.reportIssue}
           </button>
         )}
+      </Section>
+
+      {/* お問い合わせ（人間窓口はメールに統一・個人チャット誘導なし） */}
+      <Section icon={<LifeBuoy className="w-4 h-4 text-emerald-600" />} title={t.support.title}>
+        <p className="text-xs text-gray-600 leading-relaxed">{t.support.emailDescription}</p>
+        <p className="text-sm font-bold text-gray-900 mt-2 select-all">{t.support.email}</p>
+        <a href={`mailto:${t.support.email}`}
+          className="inline-flex items-center justify-center w-full min-h-11 mt-2 py-2.5 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-50">
+          {t.support.contactByEmail}
+        </a>
       </Section>
 
       <p className="text-[11px] text-gray-400 leading-relaxed my-4">{t.positioning}</p>
@@ -150,3 +186,47 @@ const Section = ({ icon, title, children }: { icon: React.ReactNode; title: stri
     {children}
   </div>
 );
+
+
+const NICKNAME_MAX = 20; // DB制約なし（text型）のため表示崩れ防止の上限
+
+/** ニックネーム編集（trim・空/空白拒否・制御文字拒否・二重保存防止・入力保持） */
+const NicknameEditor = ({ t, current, onSave }: { t: AiCourseDict; current: string; onSave: (name: string) => Promise<boolean> }) => {
+  const ts = t.settings;
+  const [value, setValue] = useState(current);
+  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [error, setError] = useState('');
+  const savingRef = useRef(false);
+  const submit = async () => {
+    if (savingRef.current) return;
+    // eslint-disable-next-line no-control-regex -- 制御文字の拒否は意図的（§Avatar1A要件）
+    const trimmed = value.trim().replace(/[\u0000-\u001F\u007F]/g, '');
+    if (!trimmed) { setError(ts.nicknameEmpty); setState('error'); return; }
+    if (Array.from(trimmed).length > NICKNAME_MAX) { setError(ts.nicknameTooLong(NICKNAME_MAX)); setState('error'); return; }
+    savingRef.current = true; setState('saving'); setError('');
+    const ok = await onSave(trimmed);
+    savingRef.current = false;
+    setState(ok ? 'saved' : 'error');
+    if (!ok) setError(t.common.error); // 失敗しても入力値は保持
+  };
+  return (
+    <div>
+      <p className="text-xs text-gray-500 mb-2">{ts.nicknameHelp}</p>
+      <label className="block">
+        <span className="sr-only">{ts.nicknameTitle}</span>
+        <input type="text" value={value} onChange={(e) => { setValue(e.target.value); setState('idle'); }}
+          aria-describedby="nickname-msg"
+          className="w-full min-h-11 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      </label>
+      <div className="flex items-center gap-2 mt-2">
+        <button type="button" onClick={() => { void submit(); }} disabled={state === 'saving'}
+          className="min-h-10 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50">
+          {state === 'saving' ? t.common.loading : ts.nicknameSave}
+        </button>
+        <p id="nickname-msg" aria-live="polite" className={`text-xs ${state === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>
+          {state === 'saved' ? ts.nicknameSaved : state === 'error' ? error : ''}
+        </p>
+      </div>
+    </div>
+  );
+};

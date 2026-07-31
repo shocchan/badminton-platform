@@ -1,0 +1,52 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "generatorVersion": "3p2.1",
+ "workbookSha16": "8b365e6186b9189d",
+ "sheets": {
+  "total": 40,
+  "byState": {
+   "excluded_by_explicit_rule": 7,
+   "deferred_to_phase": 13,
+   "already_integrated": 11,
+   "first_wave_classified": 4,
+   "duplicate_source_sheet": 2,
+   "awaiting_rights_rewrite": 3
+  }
+ },
+ "rowCountNote": "nonEmptyはtrim後の非空行。3A監査の4417はセル単位計上で、空白のみ行を含む",
+ "rows": {
+  "nonEmptyTotal": 3417,
+  "structural": 239,
+  "registeredCandidates": 2089,
+  "nonRegisteredSheetRows": 1089
+ },
+ "intakeStatus": {
+  "deferred_to_phase": 662,
+  "duplicate_source_row": 555,
+  "classified": 493,
+  "awaiting_rights_rewrite": 379
+ },
+ "unclassified": 0,
+ "duplicateContent": 272,
+ "firstWave": {
+  "sheets": [
+   "オノマトペ100集（完成版）",
+   "複合動詞一覧",
+   "頻出表現",
+   "最初に覚える最低限表現"
+  ],
+  "candidates": 614,
+  "byRelationship": {
+   "new_item": 412,
+   "reuse_existing": 63,
+   "expression": 120,
+   "new_grammar_pattern": 19
+  }
+ },
+ "provenance": {
+  "complete": 2089,
+  "errors": 0
+ },
+ "generationSeconds": 0.9
+}

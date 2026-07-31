@@ -1,0 +1,21 @@
+{
+  "vocabItems": 140,
+  "chapters": 10,
+  "contextData": 140,
+  "contextMissing": [],
+  "contextDead": [],
+  "dupStarterJa": 0,
+  "dupStarterZh": 0,
+  "scenes": 140,
+  "illustrationManifest": 140,
+  "illustrationAssetExists": 140,
+  "illustrationLearnerVisible": 140,
+  "illustrationMissing": [],
+  "illustrationHumanApproved": 0,
+  "loadingConnections": 21,
+  "loadingGenericLeft": 1,
+  "learnerVisibleBanned": [
+    "src/pages/ai-lesson/landing/sectionsB.tsx"
+  ],
+  "generatedAt": "2026-07-31T06:58:10.292Z"
+}

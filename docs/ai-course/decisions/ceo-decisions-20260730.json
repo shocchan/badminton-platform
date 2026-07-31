@@ -1,0 +1,179 @@
+{
+  "recordedAt": "2026-07-30",
+  "source": "CEO直接指示（商品全体確認と主要判断の完了セッション）",
+  "decided": {
+    "staging_whole_product_check": "completed",
+    "world_name": {
+      "status": "decided",
+      "value": "ミナモ列島"
+    },
+    "chapter1_name": {
+      "status": "decided",
+      "value": "霧の港町",
+      "replaces": "はじまりの町"
+    },
+    "area_names": {
+      "status": "decided",
+      "values": [
+        "ミナト",
+        "ヒノデ台",
+        "オウライ街道",
+        "イチバ通り",
+        "ユカリの森",
+        "ハタラキ街",
+        "カタチの遺跡",
+        "ソラノ塔",
+        "カタリ港",
+        "オモイデ庭園"
+      ],
+      "removedOldNames": [
+        "トオリミチ",
+        "ハタラキ区"
+      ],
+      "note": "表示名のみ変更。route ID・保存済みprogress IDは不変（areaId据え置き）"
+    },
+    "area_name_display_policy": {
+      "status": "decided",
+      "value": "B: 日本語固有名詞＋中国語gloss併記（地図ラベルは日本語短縮形・ariaは中国語localeで動作+名前+テーマ読み上げ）"
+    },
+    "n2_merge": {
+      "status": "decided",
+      "merged": {
+        "n2g-024": "n2g-023",
+        "n2g-104": "n2g-102"
+      },
+      "keptIndependent": [
+        "n2g-007",
+        "n2g-018",
+        "n2g-064",
+        "n2g-099",
+        "n2g-162"
+      ],
+      "identity": "canonical 178 + alias 2 = 原本180"
+    },
+    "materials_beta": {
+      "status": "provisionally_accepted_for_beta",
+      "note": "β版で暫定採用。human_reviewed/approvedの一括昇格ではない"
+    },
+    "visual_beta": {
+      "status": "provisionally_accepted_for_beta",
+      "scope": [
+        "世界トーン",
+        "World Map",
+        "主人公",
+        "翔子先生",
+        "NPC",
+        "Area Visual",
+        "中立語彙図形"
+      ],
+      "note": "正式approvedとは別状態"
+    },
+    "support_channel": {
+      "status": "decided",
+      "scopeA_learnerApp": {
+        "value": "info@kawabado.com",
+        "banned": [
+          "WeChat",
+          "Shocchance",
+          "WeChat ID",
+          "QRコード",
+          "個人チャット誘導"
+        ],
+        "surfaces": [
+          "Settings",
+          "Support",
+          "Help",
+          "Error fallback",
+          "Privacy問い合わせ",
+          "footer",
+          "toast",
+          "empty state",
+          "aria-label",
+          "ja",
+          "zh"
+        ]
+      },
+      "scopeB_publicLP": {
+        "value": "購入前相談はメール・WeChatのどちらも表示可。既存の無料相談WeChatモーダルは営業導線として維持。メール（info@kawabado.com）を併記追加"
+      },
+      "scopeC_badminton": "変更なし",
+      "incidentOwner": "しょっちゃん",
+      "backupOwner": "しょっちゃん",
+      "note": "「AIコース全体でWeChat=0」というテストは作らない（learner appスコープのみ恒久テスト化）"
+    },
+    "lp_wording": {
+      "status": "decided",
+      "note": "ベータ/先行モニター/N2はAI草稿で先生確認継続の表現を維持。「N2準備中」→ソラノ塔で学べる表現へ。「人間確認済みの教材から公開」の虚偽文言は削除"
+    },
+    "map_interactivity": {
+      "status": "requested_and_implemented"
+    },
+    "ceo_test_session_cleanup": {
+      "status": "deferred_not_blocking",
+      "sessionId": "cd58eebf-f4d9-4821-8120-632814721a94",
+      "decision": "CEO決定（2026-07-30）: Cleanupは実行しない。既知のCEOテストartifactとして残す。Production blockerにしない。承認文字列待ちとして扱わない",
+      "remoteWrites": 0,
+      "futureRule": "将来も明示承認（APPROVE_CEO_TEST_SESSION_CLEANUP_A）がない限り削除しない"
+    }
+  },
+  "augustPilotProgram": {
+    "recordedAt": "2026-07-30",
+    "approvalReceived": "APPLY_SHARED_SUPABASE_MIGRATIONS",
+    "gate1_remote_db_rls_sync": {
+      "status": "COMPLETE",
+      "evidence": {
+        "backupBeforeApply": "~/ai-company/backups/kawabado/2026-07-30 (public 38 tables + auth_users)",
+        "appliedVersions": ["20260728000000", "20260728010000", "20260729000000"],
+        "historyRows": "14 -> 17, duplicates 0",
+        "catalogVerification": "all expected values matched (5 RLS tables / 11 policies / 3 indexes / 3 touch triggers / 1 protect trigger / 2 definer functions with search_path)",
+        "baselineUnchanged": "learners 1 / item_progress 12 / sessions 24",
+        "entitlementRowsMigrated": 1,
+        "remoteRlsMatrix": "R01-R27 27/27 PASS",
+        "remoteSyncE2E": "S01-S19 19/19 PASS",
+        "fixtures": "synthetic .invalid accounts, removed by exact UUID; before/after row counts identical",
+        "probeStrengthened": "table + required columns + RLS + RPC + schema version (RPC probe does not write)"
+      }
+    },
+    "gate5_backup_monitoring_rollback": {
+      "status": "COMPLETE",
+      "evidence": {
+        "backup": "~/ai-company/backups/kawabado/2026-07-30 (public 38 tables + auth_users) + launchd daily 10:00",
+        "baselineFrozen": "release-manifest-august-pilot.md §3",
+        "releaseBranchPushed": "origin/feature/ai-course-learning-polish",
+        "releaseTag": "v-august-pilot-rc1 (created and pushed)",
+        "rollbackDrill": "PASS on clean local DB: apply 3 -> feature rollback x3 (5 tables dropped, admin_overrides protect trigger AND function survived, ai_learners intact) -> reapply (5 tables / 11 policies / RPC restored) -> SECURITY_ONLY rollback removed the protection as designed",
+        "rollbackTargetsOnProduction": "tables 5 / functions 2 / trigger 1 / dependent views 0; data loss quantified (entitlements 1 row, others 0)",
+        "monitoring": "daily-ops-dashboard.sql (6 sections / 30 metrics) executed against production successfully",
+        "incidentRunbook": "pilot-operations.md 12 steps + ja/zh learner notice templates",
+        "perLearnerStop": "is_active=false enforced server-side in 3 independent places (security.sql:193, monthly_cap.sql:59, ai-lesson-token/index.ts:155)",
+        "configRestored": "supabase/config.toml restored after local drill (git diff empty)"
+      },
+      "evidence20260731": {
+        "restoreRehearsal": "PASS 21/21 on isolated local DB from real daily backup JSON (auth.users 5 + 18 AI-course tables incl. utterances 219; canonical jsonb_populate_recordset procedure; found+fixed identity-column defect via OVERRIDING SYSTEM VALUE; backup refreshed to include the 5 new tables = 43 tables)",
+        "syntheticEventDetection": "PASS on production: insert labeled synthetic issue report -> daily-ops detected unresolved 1->2 -> removed by exact UUID -> back to 1",
+        "alertAutomation": "daily-ops-check.mjs evaluates thresholds, logs to ~/ai-company/logs/daily-pf-analytics/, macOS notification on abnormal (2 real alerts fired on first run; 1 false-positive rule fixed). launchd plist prepared, NOT installed (CEO one-command opt-in)",
+        "tokenSecurity": "permission 600 / outside git / zero leakage in audit log, scripts, docs (grep-verified). No expiry -> quarterly rotation recommended (next 2026-10-01)",
+        "gate1Reverify": "15/15 OK read-only re-check (history/catalog/fixtures 0/baseline unchanged)"
+      },
+      "knownGaps": [
+        "no email/push alerting (macOS notification + human-read dashboard; launchd automation prepared but not installed)",
+        "single owner (no secondary responder)",
+        "Cloudflare rollback verified only as a dashboard procedure, not via CLI",
+        "badminton-side tables excluded from full-restore rehearsal (legacy schema chain cannot stand up locally; partial-restore precedent 2026-07-09)"
+      ]
+    },
+    "gate2_physical_devices": { "status": "INCOMPLETE", "blockedBy": "CEO only (checklist prepared: pilot-device-check-20260730.md)" },
+    "gate3_legal_minimum": { "status": "INCOMPLETE", "blockedBy": "CEO answers to 10 facts + professional review" },
+    "gate4_content_human_review": { "status": "INCOMPLETE", "blockedBy": "3 learners' info unknown; no learner has signed up yet" },
+    "allFiveComplete": false,
+    "phaseB_started": false
+  },
+  "openGates": {
+    "legal": "open",
+    "physical_device_formal_verification": "open",
+    "remote_migration": "closed_2026-07-30",
+    "remote_rls_verification": "closed_2026-07-30",
+    "production_approval": "open"
+  },
+  "notAllGatesComplete": true
+}

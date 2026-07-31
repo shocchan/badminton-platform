@@ -138,7 +138,8 @@ export interface LpContent {
   };
   faq: { heading: Str; items: L<{ q: string; a: string }[]> };
   finalCta: { heading: Str; body: Str };
-  consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str };
+  consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str;
+    emailLabel: Str; email: string; emailCta: Str };
   footerTagline: Str;
 }
 
@@ -157,8 +158,8 @@ export const LP: LpContent = {
   ctaSecondary: { ja: '学習システムを見る', zh: '查看学习系统' },
   ctaContents: { ja: 'コース内容を確認する', zh: '了解课程内容' },
   heroChips: {
-    ja: ['AI音声で1対1', '個別レッスン 全24回', 'N2文法180項目', '好きな時間にAIと練習'],
-    zh: ['AI语音一对一', '一对一课程 共24次', 'N2语法180项', '随时和AI练习'],
+    ja: ['AI音声で1対1', '個別レッスン 全24回', 'N2文法178項目', '好きな時間にAIと練習'],
+    zh: ['AI语音一对一', '一对一课程 共24次', 'N2语法178项', '随时和AI练习'],
   },
   mockNote: {
     ja: '一部の教材はベータ版として順次更新しています。',
@@ -261,7 +262,7 @@ export const LP: LpContent = {
     items: {
       ja: [
         { title: 'AI会話', value: '授業のない日も、毎日話せる' },
-        { title: 'N2文法180', value: '中国語解説・例文・問題で自由に学べる' },
+        { title: 'N2文法178', value: '中国語解説・例文・問題で自由に学べる' },
         { title: '復習システム', value: '忘れそうな日に、もう一度思い出す' },
         { title: '学習記録', value: 'がんばりと成長が、目に見える' },
         { title: '12週間ロードマップ', value: '何を学べばよいか、迷わない' },
@@ -270,7 +271,7 @@ export const LP: LpContent = {
       ],
       zh: [
         { title: 'AI会话', value: '没课的日子，也能天天开口' },
-        { title: 'N2语法180', value: '中文讲解・例句・练习，自由学习' },
+        { title: 'N2语法178', value: '中文讲解・例句・练习，自由学习' },
         { title: '复习系统', value: '在快忘记的那天，再想起一次' },
         { title: '学习记录', value: '努力和成长，看得见' },
         { title: '12周路线图', value: '该学什么，不再迷茫' },
@@ -543,10 +544,12 @@ export const LP: LpContent = {
   },
 
   consultation: {
-    heading: { ja: '無料個別相談（WeChat）', zh: '免费一对一咨询（微信）' },
+    // 未購入者向けの営業・相談導線（CEO方針 2026-07-30: LPではWeChat維持＋メール併記可）。
+    // 学習アプリ内のlearner向け人間窓口は info@kawabado.com のみ（こちらとは別管理）。
+    heading: { ja: '無料相談', zh: '免费咨询' },
     body: {
-      ja: 'まずはWeChatでお気軽に。あなたの今の状況を聞いて、合うかどうかを一緒に確かめます。むりな勧誘はしません。',
-      zh: '先加微信聊聊。了解你现在的情况，一起确认是否适合。绝不强行推销。',
+      ja: 'メールまたはWeChatでお気軽にご相談ください。あなたの今の状況を聞いて、合うかどうかを一緒に確かめます。むりな勧誘はしません。',
+      zh: '可以通过电子邮件或微信联系我们。了解你现在的情况，一起确认是否适合。绝不强行推销。',
     },
     wechatLabel: { ja: 'WeChat ID', zh: '微信号' },
     wechatIdPlaceholder: 'Shocchance', // WeChat ID（本番）
@@ -558,6 +561,9 @@ export const LP: LpContent = {
       ja: '合わなければ、それでOK。むりな勧誘はしません。',
       zh: '如果不合适，也完全没关系。绝不强行推销。',
     },
+    emailLabel: { ja: 'メールで相談', zh: '邮件咨询' },
+    email: 'info@kawabado.com',
+    emailCta: { ja: 'メールを送る', zh: '发送邮件' },
   },
 
   footerTagline: {

@@ -1,0 +1,125 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "status": "design_draft",
+ "note": "設計草案。実装はRPG Vertical Slice Phase（CEO承認後）で開始する",
+ "worldName": "ミナモ列島",
+ "nameStatus": "provisional",
+ "coreMechanic": {
+  "id": "kotoba-no-kiri",
+  "nameJa": "ことばの霧",
+  "rule": "未習得の語彙・文法が多い場所ほど霧が濃い。習得すると霧が晴れ、道と会話が開く",
+  "dataSource": "masteryState と復習スケジュールから fogLevel を導出（RPG層は読むだけ・書き込み禁止）"
+ },
+ "protagonist": {
+  "id": "player",
+  "isUser": true,
+  "initialScope": [
+   "name",
+   "title"
+  ],
+  "avatarCustomization": "deferred"
+ },
+ "guide": {
+  "id": "shoko-sensei",
+  "role": "ことばの案内人（伴走者・師匠）",
+  "isProtagonist": false,
+  "visualSpec": "既存仕様（黒髪ボブ・黒メガネ・ブルーグレージャケット）を維持"
+ },
+ "areas": [
+  {
+   "id": "area-minato",
+   "nameJa": "ミナト（はじまりの港町）",
+   "order": 1,
+   "chapter": 1,
+   "learningFocus": "自己紹介・あいさつ・基礎名詞",
+   "palette": "青灰＋朝の白"
+  },
+  {
+   "id": "area-hinode",
+   "nameJa": "ヒノデ台（暮らしの丘）",
+   "order": 2,
+   "chapter": 2,
+   "learningFocus": "生活語彙・日課の動詞",
+   "palette": "薄橙＋若草"
+  },
+  {
+   "id": "area-toorimichi",
+   "nameJa": "トオリミチ（交通の街道）",
+   "order": 3,
+   "chapter": 3,
+   "learningFocus": "交通・場所・移動の動詞",
+   "palette": "灰＋標識の青"
+  },
+  {
+   "id": "area-ichiba",
+   "nameJa": "イチバ通り（買い物市場）",
+   "order": 4,
+   "chapter": 4,
+   "learningFocus": "数量・値段・依頼表現",
+   "palette": "暖色"
+  },
+  {
+   "id": "area-yukari",
+   "nameJa": "ユカリの森（つながりの森）",
+   "order": 5,
+   "chapter": 5,
+   "learningFocus": "感情・人間関係・授受",
+   "palette": "深緑＋木漏れ日"
+  },
+  {
+   "id": "area-hataraki",
+   "nameJa": "ハタラキ区（仕事の都市）",
+   "order": 6,
+   "chapter": 6,
+   "learningFocus": "ビジネス語彙・敬語・N3文法",
+   "palette": "濃紺＋ガラス"
+  },
+  {
+   "id": "area-katachi",
+   "nameJa": "カタチの遺跡（文法の遺跡）",
+   "order": 7,
+   "chapter": 7,
+   "learningFocus": "N3文法の体系",
+   "palette": "砂＋苔"
+  },
+  {
+   "id": "area-sorano",
+   "nameJa": "ソラノ塔（ことばの塔）",
+   "order": 8,
+   "chapter": 8,
+   "learningFocus": "N2文法",
+   "palette": "藍＋星"
+  },
+  {
+   "id": "area-katari",
+   "nameJa": "カタリ港（会話の港）",
+   "order": 9,
+   "chapter": 9,
+   "learningFocus": "AI自由会話・音声",
+   "palette": "夕焼け＋灯り"
+  },
+  {
+   "id": "area-omoide",
+   "nameJa": "オモイデ庭園（記憶の庭）",
+   "order": 10,
+   "chapter": null,
+   "learningFocus": "間隔反復（翌日/3日/7日）",
+   "palette": "淡い全色",
+   "note": "章ではなく、全章から再訪する場所"
+  }
+ ],
+ "worldRules": [
+  "言葉は力ではなく鍵である（戦闘なし）",
+  "霧は敵ではなく状態",
+  "人は待っていてくれる（失敗しても人物は去らない）",
+  "同じ場所も季節と時間で違う顔を見せる",
+  "主人公は最初から特別ではない"
+ ],
+ "prohibited": [
+  "既存ゲーム作品・キャラクター・名称・意匠の模倣",
+  "剣・魔法・モンスター",
+  "幼児向けの絵柄と語り口",
+  "ガチャ・課金抽選・pay to win"
+ ]
+}

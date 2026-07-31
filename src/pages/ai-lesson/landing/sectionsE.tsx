@@ -61,7 +61,8 @@ export function FinalCtaSection({ v, lang, onConsult }: { v: VariantConfig; lang
   );
 }
 
-/** WeChat相談モーダル（ID: Shocchance）。将来フォーム/リンクに切替可能な単一導線 */
+/** 無料相談モーダル（未購入者向け営業導線・CEO方針2026-07-30: WeChat維持＋メール併記）。
+ * 学習アプリ内のlearner向け人間窓口（info@kawabado.comのみ）とは別管理。 */
 export function ConsultationModal({ open, onClose, lang, variant }: {
   open: boolean; onClose: () => void; lang: Lang; variant: string;
 }) {
@@ -120,6 +121,16 @@ export function ConsultationModal({ open, onClose, lang, variant }: {
         </div>
         <p aria-live="polite" className="sr-only">{copied ? (lang === 'ja' ? 'コピーしました' : '已复制') : ''}</p>
         <p className="mt-4 text-[0.9rem] text-lp-ink leading-relaxed">{c.searchHint[lang]}</p>
+
+        {/* メール相談（併記・購入前でも学習アプリと同じ公開アドレス） */}
+        <div className="mt-4 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-4">
+          <p className="text-[0.8rem] font-bold text-lp-ink-soft">{c.emailLabel[lang]}</p>
+          <p className="mt-1 font-extrabold text-lp-ink text-base tracking-wide select-all">{c.email}</p>
+          <a href={`mailto:${c.email}`} onClick={() => track('generate_lead', { method: 'email', variant })}
+            className="mt-2 inline-flex items-center gap-1 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+            {c.emailCta[lang]}
+          </a>
+        </div>
         <p className="mt-3 text-[0.84rem] text-lp-ink-soft">{c.fallbackNote[lang]}</p>
       </div>
     </div>

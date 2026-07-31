@@ -1,0 +1,61 @@
+{
+ "generatedAt": "2026-07-28",
+ "target": "AI日本語伴走コース 攻略型・完全版 v1.0",
+ "counts": {
+  "generalScreens": 15,
+  "labGatedScreensToPublish": 19,
+  "inProgressLabels": 9,
+  "prototypeLabels": 14,
+  "betaLabels": 6,
+  "notPersistedLabels": 0,
+  "disabledCards": 0,
+  "placeholders": 9,
+  "missingIllustrations": 115,
+  "illustrationCoveragePct": 17.9,
+  "n3GrammarComplete": 0,
+  "n3GrammarIncomplete": 120,
+  "n2GrammarComplete": 0,
+  "n2GrammarIncomplete": 180,
+  "zhMissing": {
+   "vocab": 0,
+   "n2Grammar": 180,
+   "n3Grammar": 120
+  },
+  "questionMissing": {
+   "vocab": 0,
+   "n2Grammar": 180,
+   "n3Grammar": 120
+  },
+  "conversationMissing": {
+   "vocabContextualGap": 0,
+   "n2Grammar": 180,
+   "n3Grammar": 120,
+   "note": "3P-3で127→0（4バッチ・全draft）。ベースラインはfull-production-roadmap.md参照"
+  },
+  "reviewMissing": {
+   "vocab": 0,
+   "n2Grammar": 180,
+   "n3Grammar": 120
+  },
+  "excelUnintegratedSheets": 26,
+  "rightsActionNeeded": 3,
+  "humanApprovalFieldsEstimate": 4720,
+  "routeOrphanItems": {
+   "vocab": 0,
+   "n2Grammar": 180,
+   "n3Grammar": 120
+  },
+  "estimatedPhasesToGo": [
+   "3P-2",
+   "3P-3",
+   "3P-4",
+   "3P-5",
+   "3P-6",
+   "3P-7",
+   "3P-8",
+   "3P-9",
+   "3P-10",
+   "3P-11"
+  ]
+ }
+}

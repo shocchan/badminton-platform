@@ -1,0 +1,54 @@
+{
+  "total": 140,
+  "foundation": 78,
+  "n3Prep": 62,
+  "packLifeItemCount": 78,
+  "packLifeExcludedCoreLevelB": 0,
+  "packN3ItemCount": 62,
+  "roles": {
+    "required": 95,
+    "diagnostic": 37,
+    "optional": 7,
+    "enrichment": 1
+  },
+  "roleIdsNonRequired": {
+    "optional": [
+      "fi-kanjiru",
+      "fi-kuraberu",
+      "fi-kanashii",
+      "fi-sabishii",
+      "fi-hazukashii",
+      "fi-nakanaka",
+      "fi-yatto"
+    ],
+    "enrichment": [
+      "fi-tsumari"
+    ]
+  },
+  "cognates": {
+    "transparent_same": 54,
+    "mostly_same": 2,
+    "partial_overlap": 46,
+    "false_friend": 9,
+    "japanese_specific": 13,
+    "no_cognate": 16,
+    "unreviewed": 0
+  },
+  "highRiskCount": 12,
+  "n3UnitCoverage": {
+    "units": 12,
+    "covered": 140,
+    "orphans": 0,
+    "orphanIds": [],
+    "duplicates": [],
+    "encounterLinks": 31,
+    "unitsFailing": []
+  },
+  "levelTags": {
+    "foundation": 78,
+    "daily_life": 9,
+    "conversation_core": 73,
+    "jlpt_n3_estimate": 62
+  },
+  "duplicateIdCheck": "OK（重複0）"
+}

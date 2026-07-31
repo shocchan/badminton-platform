@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -47,17 +47,38 @@ const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPag
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
+// 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
+const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-[60vh]">
-    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" aria-label="読み込み中" />
+/**
+ * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
+ * 中国語ページでもスクリーンリーダーが「読み込み中」と日本語で読んでいた（Phase B-3で修正）。
+ * URLの言語セグメントから表示言語を決める。回転は prefers-reduced-motion では止まる。
+ */
+const PageLoader = ({ lang }: { lang: 'ja' | 'zh' }) => (
+  <div className="flex items-center justify-center min-h-[60vh]" role="status" aria-live="polite">
+    <div className="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full motion-safe:animate-spin" />
+    <span className="sr-only">{lang === 'zh' ? '加载中…' : '読み込み中…'}</span>
   </div>
 );
+
+/**
+ * /:lang/ai-course 配下の不明URL（P2-15）。絶対パスでコース入口へ戻す。
+ * splatは空文字でもマッチするため、空のときはリダイレクトせず入口をそのまま描画する
+ * （相対Navigateだと自分自身への無限リダイレクト＝空白画面になる）。
+ */
+const AiCourseCatchAll = () => {
+  const params = useParams();
+  const splat = params['*'] ?? '';
+  const lang = params.lang === 'zh' ? 'zh' : 'ja';
+  if (splat === '' || splat === '/') return <AiCourseEntry />;
+  return <Navigate to={`/${lang}/ai-course`} replace />;
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<PageLoader lang={location.pathname.startsWith('/zh') ? 'zh' : 'ja'} />}>
       <div key={location.pathname} className="page-fade">
         <Routes location={location}>
 
@@ -96,6 +117,18 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
               <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
+              {/* 法務8ページ。catch-allより前に置かないと全部入口へ吸われる */}
+              <Route path="ai-course/terms"            element={<LegalPage id="terms" />} />
+              <Route path="ai-course/privacy"          element={<LegalPage id="privacy" />} />
+              <Route path="ai-course/ai-disclosure"    element={<LegalPage id="ai-disclosure" />} />
+              <Route path="ai-course/tokushoho"        element={<LegalPage id="tokushoho" />} />
+              <Route path="ai-course/cancel-policy"    element={<LegalPage id="cancel-policy" />} />
+              <Route path="ai-course/data-deletion"    element={<LegalPage id="data-deletion" />} />
+              <Route path="ai-course/account-deletion" element={<LegalPage id="account-deletion" />} />
+              <Route path="ai-course/contact"          element={<LegalPage id="contact" />} />
+              {/* コース配下の不明URLはコース入口へ戻す（P2-15: バドミントン側404へ落とさない）。
+                  注意: splatは空文字にもマッチするため、空なら入口を描画して自己リダイレクトのループを防ぐ */}
+              <Route path="ai-course/*"     element={<AiCourseCatchAll />} />
             <Route path="auth-landing"    element={<AuthLandingPage />} />
             <Route path="login"           element={<LoginPage />} />
             <Route path="signup"          element={<SignupPage />} />

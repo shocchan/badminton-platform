@@ -1,0 +1,331 @@
+{
+  "generatedAt": "2026-07-31",
+  "head": "3069363",
+  "rcTag": "ai-course-content-rc2",
+  "rcCodeCommit": "57a8804",
+  "note": "秘密値は記録しない。状態・field名・evidence pathのみ。",
+  "legal": {
+    "totalFields": 14,
+    "requiredFields": 14,
+    "filled": 0,
+    "pending": 14,
+    "legalPublish": false,
+    "validateCommand": "npm run validate:ai-course-legal",
+    "selfCheckCommand": "npm run validate:ai-course-legal -- --simulate-filled",
+    "sourceOfTruth": "src/lib/aiLesson/course/legal/legalFacts.ts",
+    "fields": [
+      {
+        "id": "L01",
+        "field": "operatorName",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案は形のみ（屋号kawabado＋代表者名）。代表者名は未提供の事実"
+      },
+      {
+        "id": "L02",
+        "field": "address",
+        "type": "string|on_request",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L03",
+        "field": "phone",
+        "type": "string|on_request",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L04",
+        "field": "priceJpyTaxIncluded",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L05",
+        "field": "paymentMethods",
+        "type": "string[]",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L06",
+        "field": "paymentTiming",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L07",
+        "field": "serviceStartTiming",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L08",
+        "field": "refundPolicy",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "tokushoho",
+          "cancel-policy"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L09",
+        "field": "retentionPeriod",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "privacy"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし（draft packetでCEO方針待ち）"
+      },
+      {
+        "id": "L10",
+        "field": "deletionSlaDays",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "data-deletion",
+          "account-deletion"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L11",
+        "field": "improvementUseAllowed",
+        "type": "boolean",
+        "required": true,
+        "pages": [
+          "privacy"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L12",
+        "field": "minimumAge",
+        "type": "number",
+        "required": true,
+        "pages": [
+          "terms"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし（draft packetで方針待ち）"
+      },
+      {
+        "id": "L13",
+        "field": "externalAiVendors",
+        "type": "string[]",
+        "required": true,
+        "pages": [
+          "privacy",
+          "ai-disclosure"
+        ],
+        "status": "pending",
+        "existingRecommendation": true,
+        "recommendationSource": "docs/ai-course/production/legal-decision-packet.md",
+        "ceoValue": null,
+        "ceoInputRequired": false,
+        "approvableBy": "LEGAL_RECOMMENDATIONS_APPROVED"
+      },
+      {
+        "id": "L14",
+        "field": "governingLaw",
+        "type": "string",
+        "required": true,
+        "pages": [
+          "terms"
+        ],
+        "status": "pending",
+        "existingRecommendation": false,
+        "recommendationSource": null,
+        "ceoValue": null,
+        "ceoInputRequired": true,
+        "reason": "推奨案なし"
+      }
+    ],
+    "ceoInputRequiredCount": 4,
+    "recommendationApprovableCount": 10,
+    "bulkApprovalToken": "LEGAL_RECOMMENDATIONS_APPROVED",
+    "contradictionResolved": {
+      "issue": "前回説明で「推奨案が無いのはL01/L12/L14」と記載したが誤り",
+      "correct": "推奨案が無いのは L09/L12/L14。L01は推奨案の形はあるが代表者名が未提供",
+      "result": "CEO入力が必要なのは L01/L09/L12/L14 の4件（回答テンプレートと一致）"
+    }
+  },
+  "device": {
+    "totalItems": 34,
+    "iphone": 16,
+    "android": 15,
+    "accessibility": 3,
+    "answerFormat": [
+      "PASS",
+      "FAIL",
+      "NOT_TESTED"
+    ],
+    "status": "pending",
+    "evidencePath": "docs/ai-course/production/final-release-input.md#b-実機チェック20-30分",
+    "bulkToken": "DEVICE_ALL_PASS",
+    "failToken": "DEVICE_FAIL",
+    "intakeReady": true
+  },
+  "contentReview": {
+    "totalItems": 11,
+    "answerFormat": [
+      "CONTENT_REVIEW_PASS",
+      "CONTENT_REVIEW_FAIL"
+    ],
+    "status": "pending",
+    "bulkPromotionAllowed": false,
+    "note": "結果はPilot公開範囲のevidenceとしてのみ使用。human_reviewed/approvedの一括更新はしない",
+    "bulkToken": "CONTENT_REVIEW_PASS",
+    "failToken": "CONTENT_REVIEW_FAIL",
+    "intakeReady": true
+  },
+  "productionEnv": {
+    "totalItems": 20,
+    "status": "pending",
+    "allowedValues": [
+      "VERIFIED_PRESENT",
+      "SET_IN_CLOUDFLARE",
+      "MISSING",
+      "NOT_REQUIRED"
+    ],
+    "validateCommand": "npm run validate:ai-course-env",
+    "lastAutomatedResult": {
+      "p0Fail": 0,
+      "p1Fail": 0,
+      "checkedAt": "2026-07-31"
+    },
+    "valueConfirmation": "VALUE_CONFIRMATION_DEFERRED_BY_CEO",
+    "bulkToken": "ENV_ALL_VERIFIED",
+    "failToken": "ENV_FAIL",
+    "intakeReady": true,
+    "autoVerifiable": [
+      "E03",
+      "E04",
+      "E05",
+      "E12",
+      "E16",
+      "E17"
+    ],
+    "humanOnly": [
+      "E01",
+      "E02",
+      "E06",
+      "E08",
+      "E19",
+      "E20"
+    ]
+  },
+  "authorization": {
+    "required": "APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE",
+    "received": false,
+    "receivedAt": null
+  },
+  "urls": {
+    "stagingBase": "https://staging.badminton-platform.pages.dev",
+    "productionBase": "https://kawabado.com",
+    "legalRouteCount": 16,
+    "authRequired": [
+      "/{lang}/ai-course?app=1",
+      "/{lang}/ai-course/admin"
+    ]
+  },
+  "gates": {
+    "remoteDbRlsSync": "COMPLETE",
+    "backupMonitoringRollback": "COMPLETE",
+    "physicalDevices": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "legalFinalApproval": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "contentHumanReview": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "learnerAccountsInvites": "DEFERRED_BY_CEO_UNTIL_RELEASE",
+    "productionAuthorization": "DEFERRED_BY_CEO_UNTIL_RELEASE"
+  },
+  "executionProcedure": "docs/ai-course/production/pilot-release-execution.md",
+  "nextSessionPrompt": "docs/ai-course/autonomous-loop/production-release-prompt.md",
+  "evidenceIntakePath": "docs/ai-course/production/human-gate-evidence.md"
+}

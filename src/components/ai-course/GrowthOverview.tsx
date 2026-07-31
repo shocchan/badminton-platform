@@ -97,7 +97,14 @@ export const GrowthOverview = ({ t, metrics, journey, currentWeek, canDos, befor
           </Section>
         )}
 
-        {/* ⑥ 12週後に目指す姿（断定しない注記つき） */}
+        {/* ⑥ 人間コーチとの接続（記録→レッスンの方向調整・常時監視ではない・§B-1） */}
+        <Section icon={<Info className="w-4 h-4 text-emerald-600" />} title={tg.coachTitle}>
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <p className="text-sm text-gray-700 leading-relaxed">{tg.coachBody}</p>
+          </div>
+        </Section>
+
+        {/* ⑦ 12週後に目指す姿（断定しない注記つき） */}
         <Section icon={<Target className="w-4 h-4 text-amber-500" />} title={tg.goalTitle}>
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <ul className="space-y-2">

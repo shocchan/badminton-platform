@@ -1,0 +1,54 @@
+{
+ "generatedAt": "2026-07-30",
+ "source": "g2-question-audit.md（G2全数監査）",
+ "p0": [],
+ "p1": [],
+ "p1FixedInG2": [
+  {
+   "id": "n2g-012",
+   "kind": "misleading_design",
+   "fix": "recognitionを文型の意味を問う設問へ差し替え"
+  },
+  {
+   "id": "n2g-125",
+   "kind": "text_defect",
+   "fix": "選択肢内の英字plan→プラン"
+  },
+  {
+   "class": "context_open_frame",
+   "count": 18,
+   "kind": "multiple_correct",
+   "fix": "24語のexampleJa/Zh改稿＋furigana同期（distractor排除フレーム）"
+  },
+  {
+   "class": "collocation_dup_target",
+   "count": 2,
+   "kind": "multiple_correct",
+   "fix": "assessQuestionEngineで対象語を含むdistractorを恒久除外"
+  }
+ ],
+ "p2": [],
+ "p3": [
+  {
+   "id": "QP-4",
+   "area": "zenzen_affirmative",
+   "note": "「全然＋肯定」は教材では標準形（〜ない）を正とする方針を維持"
+  }
+ ],
+ "resolved20260730": [
+  {
+   "id": "QP-1",
+   "fix": "pickDistractors/clozeにitem idシードの決定的ローテーションを導入。core_meaning誤答の多様性をテストで担保（≥30語）"
+  },
+  {
+   "id": "QP-2",
+   "fix": "語幹フレームclozeの誤答をconjFits（ます/ました/て/た形の実在活用）で制限。2文字動詞の漢字語幹ルールで新規cloze18問を追加し、意味的複数正解は目視監査でCLOZE_DISTRACTOR_UNSAFE/CLOZE_SUPPRESSに固定"
+  }
+ ],
+ "resolved20260730b": [
+  {
+   "id": "QP-3",
+   "fix": "question-authoring-guide.md（新語追加時のcloze単一正解チェック手順）を作成しクローズ"
+  }
+ ]
+}

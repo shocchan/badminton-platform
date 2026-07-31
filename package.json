@@ -10,7 +10,9 @@
     "build:staging": "tsc -b && vite build --mode staging && node scripts/generate-worker.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "validate:ai-course-legal": "vite-node scripts/ai-course/validate-legal.mts",
+    "validate:ai-course-env": "node scripts/ai-course/verify-production-env.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",
@@ -36,6 +38,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
+    "@testing-library/jest-dom": "^7.0.0",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.12.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
@@ -45,6 +50,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
+    "jsdom": "^29.1.1",
     "postcss": "^8.5.15",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",

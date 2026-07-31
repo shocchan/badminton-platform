@@ -2,7 +2,13 @@
 // 認証 → 初回診断 → 学習ホーム → レッスン（音声/テキスト）→ レポート → ホーム
 // ＋ ロードマップ / 履歴 / 設定。進捗は Supabase（RLS）、オフライン時は localStorage。
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { CourseLoading, CourseChunkLoading } from '../../components/ai-course/CourseLoading';
+import { LegalFooterLinks } from './legal/LegalPage';
+import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
+import WorldHomeShell from '../../components/ai-course/rpg/WorldHomeShell';
+import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
+import type { LabUrlInput } from '../../lib/aiLesson/course/labUrlState';
 import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLessonFocus } from '../../contexts/LessonFocusContext';
@@ -27,8 +33,11 @@ import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
 import { otherLang, swapCourseLocaleInPath } from '../../lib/aiLesson/course/courseLanguage';
 import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
 import { calcLessonXp } from '../../lib/aiLesson/course/courseLesson';
-import { COURSE_DIAGNOSIS_MIN_SESSIONS } from '../../lib/aiLesson/course/courseConfig';
 import { getUsageLimits, getTodayUsage, remainingSessionsToday } from '../../lib/aiLesson/course/courseUsage';
+import { accessTierOf, isMissionLockedByTier } from '../../lib/aiLesson/course/courseWeekMapping';
+import { trackCourse, trackCourseOnce } from '../../lib/aiLesson/course/courseAnalytics';
+import { buildResumeFromUtterances } from '../../lib/aiLesson/course/courseTextResume';
+import type { ResumedTextLesson } from '../../lib/aiLesson/course/courseTextResume';
 import { needsHearing } from '../../lib/aiLesson/course/courseFlow';
 import type {
   CourseSessionRecord, FeedbackInput, ItemProgress, Learner, LessonPlan, LessonReport,
@@ -40,6 +49,16 @@ import { CourseOnboarding } from '../../components/ai-course/CourseOnboarding';
 import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
+import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
+import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
+import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
+// しくみラボ・ことば図鑑・冒険は lazy chunk（教材・画像manifestをメインbundleへ含めない・§17）
+const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
+const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
+const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
+const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
+const N2QuestLazy = lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'));
+import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
 import { CourseVoiceLesson } from '../../components/ai-course/CourseVoiceLesson';
@@ -55,11 +74,32 @@ import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import { CoursePreview } from '../../components/ai-course/CoursePreview';
 import { CourseChapterList } from '../../components/ai-course/CourseChapterList';
-import { N2GrammarLazy } from '../../components/ai-course/N2GrammarLazy';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
+import { LearnerErrorBoundary } from '../../components/ai-course/foundation/vocab/LearnerRecovery';
+import { WORLD_AREAS, areaById } from '../../lib/aiLesson/course/rpg/worldAtlas';
+import { n3FirstReviewAreaId } from '../../lib/aiLesson/course/rpg/gardenCounts';
+import {
+  probeUnitProgressSync, createSyncedUnitStorage,
+  type FullProbeClient, type UnitSyncMode,
+} from '../../lib/aiLesson/course/persistence/syncedUnitStorage';
+import { chapterForArea } from '../../lib/aiLesson/course/rpg/chapterRegistry';
+import { isChapterCompleted } from '../../lib/aiLesson/course/rpg/adventureState';
+import { CHAPTER1_ID as CHAPTER1_ID_FOR_PAGE } from '../../lib/aiLesson/course/rpg/chapter1Data';
+import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
+import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
+import { supabase } from '../../services/supabaseClient';
+import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
+import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
+import { AdventureRecordCard } from '../../components/ai-course/rpg/AdventureRecordCard';
+import { SupportReportButton } from '../../components/ai-course/ops/SupportReportButton';
+import { createUnsetSupportAdapter } from '../../lib/aiLesson/course/ops/supportReport';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar';
+// support送信先が確定するまでの既定adapter（「受け付けました」と偽らない・§19）
+const supportAdapter = createUnsetSupportAdapter();
+import { deriveCurrentAreaId, areaNodeStateOf } from '../../lib/aiLesson/course/rpg/worldProgress';
+
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -123,6 +163,9 @@ export default function AiCoursePage() {
 
   const [step, setStep] = useState<Step>('loading');
   const [learner, setLearner] = useState<Learner | null>(null);
+  // labPreview（管理者）は内部レビュー画面の表示にのみ使う。
+  // 学習機能（ことば図鑑・しくみラボ・冒険）は全learnerが利用できる（FOREST FIRST §5-§6）。
+  const labAllowed = hasLabPreview(learner?.adminOverrides);
   const [progress, setProgress] = useState<ItemProgress[]>([]);
   const [sessions, setSessions] = useState<CourseSessionRecord[]>([]);
   const [plan, setPlan] = useState<LessonPlan | null>(null);
@@ -134,6 +177,10 @@ export default function AiCoursePage() {
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
+  // 別端末で進行中のセッション（エラーではなく復旧選択肢を出す・§B）
+  const [recovery, setRecovery] = useState<CourseSessionRecord | null>(null);
+  const [pendingMode, setPendingMode] = useState<'voice' | 'text'>('voice');
+  const [textResume, setTextResume] = useState<ResumedTextLesson | null>(null);
   const [guideMode, setGuideMode] = useState<'first' | 'review'>('first');
   const [growthData, setGrowthData] = useState<{
     metrics: GrowthMetrics; journey: JourneyPlace[]; canDos: AchievedCanDo[];
@@ -148,19 +195,76 @@ export default function AiCoursePage() {
   // テキスト予習（全章・鍵付き章の閲覧）
   const [activeMission, setActiveMission] = useState<Mission | null>(null);
   const [previewReturnStep, setPreviewReturnStep] = useState<Step>('chapters');
+  // World Map（ミナモ列島）: 開いているエリアと現在地（localStorageから導出・read only）
+  const [activeAreaId, setActiveAreaId] = useState<string | null>(null);
+  // 開いている章（'adventure' step用）。既定はChapter 1（庭園の再会導線などの後方互換）
+  const [adventureChapterId, setAdventureChapterId] = useState<string>(CHAPTER1_ID_FOR_PAGE);
+  const [currentAreaId, setCurrentAreaId] = useState<string>(() => deriveCurrentAreaId(window.localStorage));
+  // 単元進捗の保存先（H2準備）: ai_course_unit_progress がremoteに存在する時だけ同期つきへ切替。
+  // 未適用の現在は probe が false → undefined のまま（N3AreaPanelは従来の端末内保存）。
+  const [unitStorage, setUnitStorage] = useState<StoragePort | undefined>(undefined);
+  // 保存先の実状態（表示用）。probeが通らない間は local_only のまま＝正直に「この端末」と出す
+  const [syncMode, setSyncMode] = useState<UnitSyncMode>('local_only');
+  useEffect(() => {
+    let alive = true;
+    void (async () => {
+      if (!learner) { if (alive) { setUnitStorage(undefined); setSyncMode('local_only'); } return; }
+      // table単体ではなく、列・RLS・RPC・schema versionまで確認してから同期を有効化する
+      const probe = await probeUnitProgressSync(supabase as unknown as FullProbeClient, learner.id);
+      if (!alive || !probe.enabled) return;
+      const synced = createSyncedUnitStorage({
+        learnerId: learner.id,
+        supabase: supabase as unknown as SupabaseLike,
+        localStore: window.localStorage,
+      });
+      // 前回未送信分を先に流し、残があれば「未送信あり」と表示する
+      const flushed = await synced.flushOutbox();
+      if (!alive) return;
+      setUnitStorage(synced);
+      setSyncMode(flushed.remaining > 0 ? 'pending' : 'synced');
+    })();
+    return () => { alive = false; };
+  }, [learner]);
 
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
 
+  // 画面計測（個人情報なし。gtag未存在なら何もしない）
+  useEffect(() => {
+    if (step === 'home') trackCourseOnce('view_ai_course_home');
+    else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
+    else if (step === 'history') trackCourse('open_ai_course_review');
+    else if (step === 'notebook') trackCourse('view_ai_course_notebook'); // 名前・本文は送らない
+  }, [step]);
+
   // 表示言語を反映（navigateせず、URLの locale segment だけ replaceState で同期）
   useEffect(() => { try { document.documentElement.lang = uiLang; } catch { /* noop */ } }, [uiLang]);
 
+  // loadAllのdepsからuiLangを外すためのref（言語切替でinitial-load effectが再発火しstepがhomeへ戻るバグの根本修正）
+  const uiLangRef = useRef(uiLang);
   const applyLang = useCallback((next: 'ja' | 'zh') => {
+    uiLangRef.current = next;
     setUiLang(next);
     try {
       document.documentElement.lang = next;
       const path = swapCourseLocaleInPath(window.location.pathname, next);
       window.history.replaceState(window.history.state, '', path + window.location.search + window.location.hash);
+    } catch { /* noop */ }
+  }, []);
+
+  /** ラボの表示位置をURLへ同期（app=1等は維持・回答内容は入れない・§7/§9） */
+  const syncLabUrl = useCallback((state: LabUrlInput | null) => {
+    try {
+      const search = buildLabSearch(window.location.search, state);
+      window.history.replaceState(window.history.state, '', window.location.pathname + search + window.location.hash);
+    } catch { /* noop */ }
+  }, []);
+
+  /** ことば図鑑の表示位置をURLへ同期（§59） */
+  const syncVocabUrl = useCallback((state: { view: VocabUrlView; category: string | null; itemId: string | null } | null) => {
+    try {
+      const search = buildVocabSearch(window.location.search, state);
+      window.history.replaceState(window.history.state, '', window.location.pathname + search + window.location.hash);
     } catch { /* noop */ }
   }, []);
 
@@ -194,10 +298,19 @@ export default function AiCoursePage() {
     setHasResume(courseRepository.loadResume<unknown>() !== null);
     // 保存済みの表示言語があれば反映（複数端末で同じ言語に）。無ければURL言語のまま。
     const saved = l.settings.uiLanguage;
-    if ((saved === 'ja' || saved === 'zh') && saved !== uiLang) applyLang(saved);
-    // 初回だけ利用開始案内を挟む。以降はホームへ直行する
-    setStep(hasSeenGuide() ? 'home' : 'guide');
-  }, [uiLang, applyLang]);
+    if ((saved === 'ja' || saved === 'zh') && saved !== uiLangRef.current) applyLang(saved);
+    // URLにラボ位置があれば復元（言語切替・リロード・再マウント対応・§7）。
+    // labPreviewが無い場合はURLからラボparamsを外してホームへ（教材非表示・attempt非生成・§11）
+    const labUrl = parseLabUrl(window.location.search);
+    const vocabUrl = parseVocabUrl(window.location.search);
+    const allowed = hasLabPreview(l.adminOverrides);
+    if (!hasSeenGuide()) { setStep('guide'); return; }
+    if (labUrl.lab && allowed) { setStep('lab'); return; }
+    if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
+    if (labUrl.lab) syncLabUrl(null);
+    if (vocabUrl.vocab) syncVocabUrl(null);
+    setStep('home');
+  }, [applyLang, syncLabUrl, syncVocabUrl]);
 
   // 初回ロードは1tick遅らせ、effect内の同期setStateを避ける
   useEffect(() => {
@@ -225,6 +338,11 @@ export default function AiCoursePage() {
    */
   const startLesson = async (m: 'voice' | 'text', planArg: LessonPlan | null = plan) => {
     if (!learner || !planArg || starting) return;
+    // §24W: starter_12w は第4章以降（内部7週〜）を開始不可（UI非表示だけに依存しない）
+    if (isMissionLockedByTier(accessTierOf(learner), planArg.main.mission)) {
+      setStartError(t.roadmap.lockedStart);
+      return;
+    }
     setStarting(true);
     setStartError('');
     const r = await courseRepository.createSession(learner.id, {
@@ -236,18 +354,70 @@ export default function AiCoursePage() {
     });
     setStarting(false);
     if (!r.ok) {
+      // 進行中セッション → 赤エラーではなく復旧選択肢（この端末で再開/新規/キャンセル）
+      if (r.code === 'session_already_active') {
+        const act = await courseRepository.getActiveSession();
+        if (act) { setPendingMode(m); setRecovery(act); setStartError(''); return; }
+      }
       setStartError(t.limits[r.code ?? 'unknown'] ?? t.limits.unknown);
       // 上限に当たったら表示も実際の状態に合わせる（日次・月次いずれも今は開始できない）
       if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit'
         || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit') setRemaining(0);
       return;
     }
+    setTextResume(null);
     setMode(m);
     setActiveSessionId(r.sessionId ?? null);
     setRemaining(r.remainingSessions ?? 0);
+    trackCourse('start_ai_course_lesson', { mode: m, kind: planArg.main.kind, week: learner.currentWeek });
     courseRepository.saveResume({ missionId: planArg.main.mission.id, kind: planArg.main.kind, at: Date.now() });
     setHasResume(false);
     setStep('lesson');
+  };
+
+  /** 進行中セッションのミッションから復元用の LessonPlan を組む */
+  const planForSession = (s: CourseSessionRecord): LessonPlan | null => {
+    const mission = missionById(s.missionId);
+    if (!mission) return null;
+    const hide = ['review_day7', 'review_day30', 'weekly_practice'].includes(s.lessonKind);
+    return { main: { mission, kind: s.lessonKind, hideTarget: hide }, review: null, reasonKey: 'resume' };
+  };
+
+  /** 【B-3】この端末で続きを再開（本人所有の in_progress セッション） */
+  const resumeActiveSession = async () => {
+    if (!recovery || !learner) return;
+    const freshPlan = planForSession(recovery);
+    if (!freshPlan) { await discardActiveAndStartNew(); return; } // 不明ミッション（想定外）は新規へ
+    trackCourse('resume_ai_course_other_device', { mode: recovery.mode });
+    if (recovery.mode === 'text') {
+      // テキスト: 同じ sessionId を引き継ぎ、保存済み発話から履歴・ターン・出題済み質問を復元
+      const utts = await courseRepository.listSessionUtterances(recovery.id);
+      setTextResume(buildResumeFromUtterances(utts));
+      setPlan(freshPlan);
+      setActiveSessionId(recovery.id);
+      setMode('text');
+      setRecovery(null);
+      setStep('lesson');
+      return;
+    }
+    // 音声: 古いWebRTC接続は引き継げないため、旧セッションを中断扱いにして
+    // 同じミッションを新しい音声セッションとして開始（二重接続・二重課金なし）
+    await courseRepository.finalizeSession(recovery.id, {
+      endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'superseded-resume',
+    }, [], learner.id);
+    setRecovery(null);
+    await startLesson('voice', freshPlan);
+  };
+
+  /** 【B-4】前のレッスンを終了して新しく始める（完了扱いにしない＝XP・復習登録なし） */
+  const discardActiveAndStartNew = async () => {
+    if (!recovery || !learner) return;
+    trackCourse('abandon_ai_course_previous', { mode: recovery.mode });
+    await courseRepository.finalizeSession(recovery.id, {
+      endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'superseded-new',
+    }, [], learner.id);
+    setRecovery(null);
+    await startLesson(pendingMode);
   };
 
   /**
@@ -366,7 +536,8 @@ export default function AiCoursePage() {
         targetUsed: result.targetUsed, targetUsedIndependently: result.targetUsedIndependently,
         chineseSupportUsed: result.chineseSupportUsed, estimatedCostUsd: cost,
         speechMetrics,
-      }, result.utterances, learner.id);
+        // ターン毎チェックポイント保存済み（テキスト会話）なら一括insertしない（重複保存防止）
+      }, result.utterancesAlreadySaved ? [] : result.utterances, learner.id);
     }
     await courseRepository.recordUsage(learner.id, result.durationSeconds, cost);
 
@@ -424,6 +595,10 @@ export default function AiCoursePage() {
       isReview, nextReviewISO: updated.nextReviewAt,
     }));
     setStep('report');
+    trackCourse('complete_ai_course_lesson', {
+      kind: mainStep.kind, usage: result.usage, duration_seconds: result.durationSeconds,
+      status: result.completionStatus,
+    });
 
     // 成長スナップショット（マイルストーン到達時に1回だけ・非同期・失敗しても学習に影響しない）
     void maybeCaptureSnapshot(learner, freshProgress);
@@ -464,9 +639,10 @@ export default function AiCoursePage() {
     if (!learner) return;
     setGrowthData(null);
     setStep('growth');
+    // 通信失敗でも成長画面を行き止まりにしない（ローカルで計算できる分は必ず出す・§16）
     const [samples, snapshots] = await Promise.all([
-      courseRepository.loadStudentUtterances(learner.id),
-      courseRepository.listGrowthSnapshots(learner.id),
+      courseRepository.loadStudentUtterances(learner.id).catch(() => []),
+      courseRepository.listGrowthSnapshots(learner.id).catch(() => []),
     ]);
     // 自力使用フラグを Before/After サンプルへ付与（該当セッションの targetUsedIndependently）
     const selfSessions = new Set(sessions.filter((s) => s.targetUsedIndependently).map((s) => s.id));
@@ -481,49 +657,120 @@ export default function AiCoursePage() {
   };
 
   // ── レンダリング ──
-  if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
   if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
   if (step === 'hearing') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
 
-  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><div className="py-16 text-center text-gray-500">{t.common.loading}</div></Shell>;
+  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
 
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
-  const goNav = (k: CourseNavKey) => { if (k === 'growth') { void openGrowth(); } else { setStep(k); } };
+  const goNav = (k: CourseNavKey) => {
+    if (k === 'growth') { void openGrowth(); return; }
+    if (k === 'conversation') {
+      // AI会話の主要ナビ入口（§19）: ホームの会話開始カードへ直行
+      trackCourse('click_ai_course_conversation_nav');
+      setStep('home');
+      setTimeout(() => {
+        try {
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          document.getElementById('ai-course-conversation-entry')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+        } catch { /* noop */ }
+      }, 80);
+      return;
+    }
+    if (k === 'lab') {
+      trackCourse('click_ai_course_foundation_nav');
+      syncVocabUrl(null);
+      syncLabUrl({ section: 'today', unit: null, step: null });
+      setStep('lab');
+      return;
+    }
+    if (k === 'vocab') {
+      trackCourse('click_ai_course_foundation_nav');
+      syncLabUrl(null);
+      syncVocabUrl({ view: 'top', category: null, itemId: null });
+      setStep('vocab');
+      return;
+    }
+    setStep(k);
+  };
   const navFor = (current: CourseNavKey) => ({
     current,
     onNavigate: goNav,
     onLogout: () => { void handleLogout(); },
   });
 
+  /** オモイデ庭園（復習の統合入口・§13）。語彙/文法/会話の復習はここから分岐する */
+  const openReview = () => setStep('garden');
+  /** ことばの3分復習（庭園の中の実復習フロー） */
+  const openVocabQuickReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
+
+  /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
+  const chapterCompleted = (chapterId: string) =>
+    isChapterCompleted(chapterId, Date.now(), window.localStorage);
+
+  const openArea = (areaId: string) => {
+    const area = areaById(areaId);
+    if (!area) return;
+    trackCourse('open_ai_course_world_area');
+    // 施設エリア（塔・港・庭園）は、その施設を使う意味を伝える導入章を「初回だけ」通す。
+    // ロックではない: 章は3〜4分で終わり、Homeの施設カードからは常に機能へ直行できる。
+    if (area.destination.kind !== 'n3area') {
+      const ch = chapterForArea(areaId);
+      if (ch && !chapterCompleted(ch.chapterId)) {
+        setAdventureChapterId(ch.chapterId); setStep('adventure'); return;
+      }
+    }
+    switch (area.destination.kind) {
+      case 'n3area': setActiveAreaId(areaId); setStep('n3area'); break;
+      case 'n2grammar': setStep('n2grammar'); break;
+      // 会話は「カタリ港の旅立ちカード」を経由（場所・相手・目的・所要時間を先に示す・§12）
+      case 'conversation': setStep(plan ? 'conversationIntro' : 'home'); break;
+      case 'review': openReview(); break;
+    }
+  };
+
   if (step === 'lesson' && plan) {
     return mode === 'voice'
       ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
-      : <CourseTextLesson t={t} step={plan.main} onComplete={handleLessonComplete} onExit={backHome} />;
+      : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
-    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive}
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive}
-      onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined} /></Shell>;
+      onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
+      onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
+      learnerName={learner.displayName}
+      worldLineJa={t.katari.fogClearedToday} /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
-    const est = sessions.length < COURSE_DIAGNOSIS_MIN_SESSIONS
-      ? { mode: 'diagnosing' as const, remaining: COURSE_DIAGNOSIS_MIN_SESSIONS - sessions.length }
-      : (() => {
-        const remainingMissions = 60 - progress.length;
-        const wk = Math.max(learner.settings.weeklyTarget, 1);
-        return { mode: 'ready' as const, minWeeks: Math.ceil(remainingMissions / wk), maxWeeks: Math.ceil((remainingMissions * 1.5) / wk) };
-      })();
-    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} estimate={est} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
+    return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')} showLab={labAllowed}>
+        {/* 冒険の進み（Adventure）と日本語の実力は分けて見せる（§14） */}
+        <AdventureRecordCard t={t} />
+        {labAllowed && (
+          <div className="max-w-md mx-auto px-4 pt-4 flex gap-2">
+            <button type="button" onClick={() => setStep('roadmap')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.roadmap}</button>
+            <button type="button" onClick={() => setStep('history')} className="card-interactive flex-1 min-h-11 py-2 text-sm font-bold text-gray-700 bg-white border border-gray-200 rounded-xl">{t.nav.history}</button>
+          </div>
+        )}
+        {labAllowed && (
+          <GrowthVocabCard t={t} onAction={(view) => {
+            trackCourse('click_ai_course_growth_next_action', { view });
+            syncLabUrl(null);
+            syncVocabUrl({ view, category: null, itemId: null });
+            setStep('vocab');
+          }} />
+        )}
         {growthData ? (
           <GrowthOverview
             t={t} metrics={growthData.metrics} journey={growthData.journey} currentWeek={learner.currentWeek}
@@ -531,23 +778,142 @@ export default function AiCoursePage() {
             onBack={() => setStep('home')}
           />
         ) : (
-          <div className="py-16 text-center text-gray-500">{t.common.loading}</div>
+          <CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" />
         )}
       </Shell>
     );
   }
   if (step === 'reviewNote' && activeNote) {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
         <CourseReviewNote t={t} note={activeNote} selfEvaluated={reviewedNoteIds.has(activeNote.sessionId)}
           onSelfEval={(kind) => handleSelfEval(activeNote, kind)}
           onBack={() => setStep(noteReturnStep)} />
       </Shell>
     );
   }
+  if (step === 'light') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <CourseLightPractice t={t} progress={progress}
+          practiceAgainIds={learner.settings.practiceAgainIds ?? []} onExit={() => setStep('home')} />
+      </Shell>
+    );
+  }
+  if (step === 'lab') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('lab')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+          <CourseFoundationLab t={t}
+            initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
+            onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
+            onBack={() => { syncLabUrl(null); setStep('home'); }} />
+        </Suspense>
+        </LearnerErrorBoundary>
+      </Shell>
+    );
+  }
+  if (step === 'vocab') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+          <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
+            initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
+            onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
+            onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
+            onBack={() => { syncVocabUrl(null); setStep('home'); }} />
+        </Suspense>
+        </LearnerErrorBoundary>
+      </Shell>
+    );
+  }
+  if (step === 'garden') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <OmoideGardenPanel
+          t={t}
+          conversationReviewsDue={reviewsDue}
+          onOpenVocabReview={openVocabQuickReview}
+          onOpenConversationHistory={() => setStep('history')}
+          onOpenN3={() => openArea(n3FirstReviewAreaId(window.localStorage) ?? currentAreaId)}
+          onOpenN2={() => setStep('n2grammar')}
+          onOpenAdventure={() => setStep('adventure')}
+          onBack={() => setStep('home')}
+        />
+      </Shell>
+    );
+  }
+  if (step === 'conversationIntro' && plan) {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <KatariPortIntro
+          t={t}
+          purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
+          targetExpression={plan.main.mission.targetExpression}
+          estimatedMinutes={plan.main.mission.estimatedMinutes}
+          remainingToday={remaining}
+          starting={starting}
+          onStartVoice={() => { void startLesson('voice'); }}
+          onStartText={() => { void startLesson('text'); }}
+          onBack={() => setStep('home')}
+        />
+      </Shell>
+    );
+  }
+  if (step === 'n3area' && activeAreaId && areaById(activeAreaId)) {
+    const area = areaById(activeAreaId)!;
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+            <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
+              onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
+              onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
+              onOpenAdventure={(() => {
+                // 2026-07-31: 全学習エリアに章ができた。エリア対応の章を開く
+                const ch = chapterForArea(area.areaId);
+                return ch ? () => { setAdventureChapterId(ch.chapterId); setStep('adventure'); } : undefined;
+              })()}
+              onOpenReview={openReview}
+            />
+          </Suspense>
+        </LearnerErrorBoundary>
+      </Shell>
+    );
+  }
+  if (step === 'adventure') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+            {/* keyで章ごとに必ず再mount（章切替時に前章のstateを持ち越さない） */}
+            <Chapter1AdventureLazy key={adventureChapterId} t={t} chapterId={adventureChapterId} onBack={() => setStep('home')} devTools={labAllowed} />
+          </Suspense>
+        </LearnerErrorBoundary>
+      </Shell>
+    );
+  }
+  if (step === 'notebook') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
+        <CourseNotebook t={t} learner={learner} sessions={sessions} progress={progress}
+          onStartToday={() => setStep('home')} onBack={() => setStep('history')} />
+      </Shell>
+    );
+  }
+  if (step === 'expressions') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
+        <CourseMyExpressions t={t} progress={progress}
+          practiceAgainIds={learner.settings.practiceAgainIds ?? []} onBack={() => setStep('history')} />
+      </Shell>
+    );
+  }
   if (step === 'chapters') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}>
         <CourseChapterList t={t} progress={progress}
           onOpenPreview={(m) => openPreview(m, 'chapters')} onBack={() => setStep('roadmap')} />
       </Shell>
@@ -555,8 +921,13 @@ export default function AiCoursePage() {
   }
   if (step === 'n2grammar') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
-        <N2GrammarLazy t={t} onBack={() => setStep('roadmap')} learnerId={learner.id} />
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+            <N2QuestLazy t={t} onBack={() => setStep('home')} onOpenReview={openReview}
+              onGoConversation={() => { void startLesson(mode); }} />
+          </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }
@@ -567,7 +938,7 @@ export default function AiCoursePage() {
       .filter(Boolean);
     const isCurrentNext = access === 'current' && plan?.main.mission.id === activeMission.id;
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}>
         <CoursePreview t={t} mission={activeMission} access={access} prereqTitles={prereqTitles}
           estMinutes={activeMission.estimatedMinutes}
           onStartVoice={isCurrentNext && remaining > 0 && learner.isActive ? () => { void startLesson(mode); } : undefined}
@@ -578,7 +949,7 @@ export default function AiCoursePage() {
   }
   if (step === 'guide') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
         <CourseOnboarding
           t={t} mode={guideMode}
           onDone={() => { markGuideSeen(); setStep(guideMode === 'first' ? 'home' : 'settings'); }}
@@ -588,9 +959,21 @@ export default function AiCoursePage() {
   }
   if (step === 'settings') {
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')} showLab={labAllowed}>
         <CourseSettings
           t={t} learner={learner}
+          onSaveNickname={async (name) => {
+            const prev = learner.displayName;
+            setLearner({ ...learner, displayName: name });
+            try {
+              await courseRepository.updateLearner({ displayName: name });
+              trackCourse('save_ai_course_nickname'); // 本文は送らない
+              return true;
+            } catch {
+              setLearner({ ...learner, displayName: prev });
+              return false;
+            }
+          }}
           onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
           onSaveSettings={(patch) => {
             const nextSettings = { ...learner.settings, ...patch };
@@ -600,18 +983,108 @@ export default function AiCoursePage() {
           onLogout={() => { void handleLogout(); }}
           onBack={() => setStep('home')}
         />
+        {/* 問い合わせ（§19）。送信先未確定の間は「この端末に控えました」と正直に表示する */}
+        <div className="max-w-md lg:max-w-2xl mx-auto px-4 pb-8">
+          <p className="text-xs font-bold text-gray-500 mb-1">{uiLang === 'zh' ? '遇到问题时' : 'こまったとき'}</p>
+          <SupportReportButton
+            adapter={supportAdapter}
+            lang={uiLang === 'zh' ? 'zh' : 'ja'}
+            context={{ route: 'settings', feature: 'support', locale: uiLang,
+              appVersion: 'staging', contentVersion: 'course-v1', deviceClass: 'unknown' }}
+            contactFallback={{
+              ja: 'うまくいかない状態が続くときは、先生に直接お知らせください。',
+              zh: '如果问题一直没有解决，请直接告诉老师。',
+            }}
+          />
+        </div>
       </Shell>
     );
   }
 
   return (
-    <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')}>
+    <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <WorldHomeShell
+        t={t}
+        areaName={t.world.islandsName}
+        locationName={(areaById(currentAreaId)?.nameJa ?? 'ミナト').split('（')[0]}
+        clarity={reviewsDue === 0 ? 'clear' : reviewsDue <= 5 ? 'light_fog' : 'foggy'}
+        reviewsDue={reviewsDue}
+        onOpenReview={openReview}
+        areas={WORLD_AREAS}
+        currentAreaId={currentAreaId}
+        onOpenArea={openArea}
+        areaStateOf={(a) => areaNodeStateOf(window.localStorage, a, currentAreaId, reviewsDue)}
+        record={{
+          daysThisWeek: (() => {
+            const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
+            return new Set(sessions.filter((s2) => new Date(s2.startedAt) >= monday).map((s2) => s2.startedAt.slice(0, 10))).size;
+          })(),
+          totalSessions: sessions.length,
+        }}
+        todayAction={plan ? {
+          worldLead: hasResume ? t.world.worldLeadResume : t.world.worldLeadGo,
+          learningTitle: t.locale === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa,
+          learningDetail: t.world.todaySub(plan.main.mission.targetExpression, remaining),
+          ctaLabel: hasResume ? t.world.ctaResume : t.world.ctaStart,
+          onStart: () => { setHasResume(false); void startLesson(mode); },
+        } : null}
+        upcoming={buildJourney(progress, learner.currentWeek).slice(0, 6).map((j) => ({
+          label: t.world.weekLabel(t.locale === 'zh' ? j.nameZh : j.nameJa, j.week),
+          detail: t.world.retainedDetail(t.locale === 'zh' ? j.themeZh : j.themeJa, j.retained, j.total),
+          unlocked: j.state === 'done',
+        }))}
+        facilities={[
+          { id: 'lib', worldName: t.world.facilities.lib.name, functionName: t.world.facilities.lib.fn,
+            descriptionJa: t.world.facilities.lib.body, badge: reviewsDue,
+            onOpen: () => { syncLabUrl(null); syncVocabUrl({ view: 'top', category: null, itemId: null }); setStep('vocab'); } },
+          { id: 'workshop', worldName: t.world.facilities.workshop.name, functionName: t.world.facilities.workshop.fn,
+            descriptionJa: t.world.facilities.workshop.body,
+            onOpen: () => { syncVocabUrl(null); syncLabUrl({ section: 'units', unit: null, step: null }); setStep('lab'); } },
+          { id: 'plaza', worldName: t.world.facilities.plaza.name, functionName: t.world.facilities.plaza.fn,
+            descriptionJa: t.world.facilities.plaza.body,
+            onOpen: () => setStep(plan ? 'conversationIntro' : 'home') },
+          { id: 'garden', worldName: t.world.facilities.garden.name, functionName: t.world.facilities.garden.fn,
+            descriptionJa: t.world.facilities.garden.body, badge: reviewsDue,
+            onOpen: openReview },
+          { id: 'record', worldName: t.world.facilities.record.name, functionName: t.world.facilities.record.fn,
+            descriptionJa: t.world.facilities.record.body,
+            onOpen: () => { void openGrowth(); } },
+          { id: 'adventure', worldName: t.world.facilities.adventure.name, functionName: t.world.facilities.adventure.fn,
+            descriptionJa: t.world.facilities.adventure.body,
+            onOpen: () => openArea(currentAreaId) },
+        ]}
+      >
       <CourseHome
         t={t} learner={learner} plan={plan} stats={stats}
         reviewsDue={reviewsDue}
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}
+        weekLearningDays={(() => {
+          const monday = new Date(); monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7)); monday.setHours(0, 0, 0, 0);
+          return new Set(sessions.filter((s2) => new Date(s2.startedAt) >= monday).map((s2) => s2.startedAt.slice(0, 10))).size;
+        })()}
+        hasLightMaterial={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
+        onStartLight={() => setStep('light')}
+        sessions={sessions}
+        onOpenNotebook={() => setStep('notebook')}
+        onOpenLab={(section) => { syncVocabUrl(null); syncLabUrl({ section: section === 'units' ? 'units' : section === 'records' ? 'records' : 'today', unit: null, step: null }); setStep('lab'); }}
+        onOpenVocab={(view) => {
+          syncLabUrl(null);
+          // 期限復習・今日の3語・トップの3系統（第一CTAから直接開く・2E-1.10 §15）
+          const v = view === 'daily' ? 'daily' : view === 'quickreview' ? 'quickreview' : 'top';
+          syncVocabUrl({ view: v, category: null, itemId: null });
+          setStep('vocab');
+        }}
+        onUpdateAvatarSettings={(patch) => {
+          const nextSettings = { ...learner.settings, ...patch };
+          setLearner({ ...learner, settings: nextSettings });
+          void courseRepository.updateLearner({ settings: nextSettings });
+        }}
         starting={starting} startError={startError}
+        recovery={recovery ? { mode: recovery.mode } : null}
+        onResumeActive={() => { void resumeActiveSession(); }}
+        onDiscardActive={() => { void discardActiveAndStartNew(); }}
+        onCancelRecovery={() => setRecovery(null)}
         currentStageLabel={weekLevelCanDo(learner.currentWeek, t.locale === 'zh' ? 'zh' : 'ja')}
         thisWeekCanDos={canDosThisWeek(progress, learner.currentWeek)}
         nextAbility={nextAbility(selectNextMission(learner, progress)?.id ?? null)}
@@ -623,20 +1096,77 @@ export default function AiCoursePage() {
         onSeePastNotes={() => { setStep('history'); }}
         onPreview={() => { if (plan) openPreview(plan.main.mission, 'home'); }}
       />
+      </WorldHomeShell>
     </Shell>
   );
 }
 
 const missionsInWeek = (week: number) => missionById(`w${String(week).padStart(2, '0')}m1`) ? [1, 2, 3, 4, 5].map((o) => missionById(`w${String(week).padStart(2, '0')}m${o}`)!).filter(Boolean) : [];
 
+/**
+ * 成長画面の語彙状態カード（Phase 2E-1 §25・labPreviewのみ）。
+ * 語彙データは動的import（メインbundleへ入れない・§31）。自己評価は問題確認と別行で表示し、
+ * 「語彙力◯◯」のような断定スコアは出さない。
+ */
+const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: 'quickreview' | 'daily') => void }) => {
+  const tv = t.vocab;
+  const [sum, setSum] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabGrowthSummary | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void import('../../lib/aiLesson/course/vocabHomeSummary')
+      .then((m) => { if (alive) setSum(m.getVocabGrowthSummary()); })
+      .catch(() => { /* 表示なしで成立 */ });
+    return () => { alive = false; };
+  }, []);
+  if (!sum || sum.startedCount === 0) return null;
+  const d = sum.confirmedByDimension;
+  const rows: [string, number][] = [
+    [tv.growthVocabStarted, sum.startedCount],
+    [`${tv.diagDims.reading}${tv.dimStates.confirmed}`, d.reading],
+    [`${tv.diagDims.meaning}${tv.dimStates.confirmed}`, d.meaning],
+    [`${tv.diagDims.usage}・${tv.diagDims.collocation}${tv.dimStates.confirmed}`, d.usage + d.collocation + d.particle + d.conjugation],
+    [tv.statRetainedLabel, sum.retainedCandidateCount],
+    [tv.growthVocabNeedsReview, sum.needsReviewCount],
+  ];
+  return (
+    <div className="max-w-md mx-auto px-4 pt-3">
+      <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <p className="text-xs font-bold text-gray-500 mb-2">{tv.growthVocabHeading}</p>
+        <div className="space-y-1">
+          {rows.map(([label, n]) => (
+            <p key={label} className="text-xs text-gray-700 flex justify-between"><span>{label}</span><span className="font-mono">{n}</span></p>
+          ))}
+        </div>
+        {/* 自己評価は別表示（問題確認と混ぜない・§25） */}
+        <p className="text-[11px] text-gray-400 mt-2">{tv.statsSelfKnown}: {sum.selfKnownCount}。{tv.growthVocabSelfNote}</p>
+        {/* 次の一手は一つだけ（2E-1.5 §33・数値を見るだけにしない） */}
+        {onAction && (
+          sum.needsReviewCount > 0 ? (
+            <button type="button" onClick={() => onAction('quickreview')}
+              className="action-raised w-full min-h-11 mt-2 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl">
+              {tv.quickReviewChip(sum.needsReviewCount)}
+            </button>
+          ) : (
+            <button type="button" onClick={() => onAction('daily')}
+              className="action-raised w-full min-h-11 mt-2 py-2 text-sm font-bold text-indigo-700 bg-white border border-indigo-200 rounded-xl">
+              {tv.dailyCta}
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+};
+
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
-const Shell = ({ children, nav, t, lang, onToggleLang }: {
+const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
   nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
   t: AiCourseDict;
   lang: 'ja' | 'zh';
   onToggleLang: () => void;
+  showLab?: boolean;
 }) => {
   return (
     <>
@@ -656,9 +1186,16 @@ const Shell = ({ children, nav, t, lang, onToggleLang }: {
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
-        lang={lang} onToggleLang={onToggleLang}
+        lang={lang} onToggleLang={onToggleLang} showLab={showLab}
       />
       {children}
+      {/* 学習アプリ側にも法務導線を置く（LPだけにあると、
+          ログイン後の学習者が規約・削除申請へ辿り着けない） */}
+      <footer className="mt-10 border-t border-gray-100 py-6">
+        <div className="max-w-md lg:max-w-2xl mx-auto px-4 text-gray-500">
+          <LegalFooterLinks lang={lang} />
+        </div>
+      </footer>
     </>
   );
 };

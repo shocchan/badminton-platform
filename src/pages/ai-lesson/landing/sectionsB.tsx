@@ -7,6 +7,9 @@ import {
 
 const featIcon = [MessageCircle, BookOpen, RefreshCw, LineChart, Map, Headphones, UserRound];
 
+// 実際の学習画面の撮影が済むまでは枠ごと出さない（「準備中」を訪問者に見せない・Phase B-5）
+const SHOW_SCREENSHOT_FRAME = false;
+
 export function PlatformFeatures({ lang }: { lang: Lang }) {
   return (
     <section id="features" className="bg-lp-ivory-2 py-16 sm:py-24">
@@ -28,7 +31,10 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
             );
           })}
         </div>
-        {/* 実画面プレースホルダー：デモは招待制で自動取得不可のため、撮影待ちを明示（架空UIは作らない） */}
+        {/* 実画面プレースホルダー：デモは招待制で自動取得不可のため、撮影待ち（架空UIは作らない）。
+            「準備中」の空枠を訪問者に見せる意味はないので、実画像が入るまで出さない。
+            撮影できたら SHOW_SCREENSHOT_FRAME を true にして中身を実画像へ差し替える。 */}
+        {SHOW_SCREENSHOT_FRAME && (
         <Reveal delay={80}>
           <figure className="mt-8 rounded-2xl border border-lp-line bg-lp-card overflow-hidden shadow-[0_10px_26px_rgba(55,43,38,0.08)]">
             <div className="flex items-center gap-1.5 px-4 py-2.5 bg-lp-ivory-2 border-b border-lp-line">
@@ -44,6 +50,7 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
           </figure>
           <p className="text-center text-[0.86rem] text-lp-ink-soft mt-3">{LP.features.screenshotNote[lang]}</p>
         </Reveal>
+        )}
       </div>
     </section>
   );

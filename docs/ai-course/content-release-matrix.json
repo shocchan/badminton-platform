@@ -1,0 +1,111 @@
+{
+ "generatedAt": "2026-07-28",
+ "vocabulary": {
+  "total": 140,
+  "byReview": {
+   "draft": 140,
+   "human_review_candidate_fields": 14,
+   "human_reviewed": 0,
+   "approved": 0
+  },
+  "byRole": {
+   "required": 95,
+   "diagnostic": 37,
+   "optional": 7,
+   "enrichment": 1
+  },
+  "sourceVerified": 93,
+  "sourceExternalOnly": 47,
+  "chineseVerified": 140,
+  "exampleVerified": 140,
+  "furiganaVerified": 140,
+  "imageImported": 25,
+  "imagePlannedOrNone": 115,
+  "conversationConnected": 140,
+  "reviewConnected": 140,
+  "releasableNow": 0
+ },
+ "grammar": {
+  "total": 180,
+  "contentComplete": 10,
+  "exampleComplete": 180,
+  "chineseComplete": 0,
+  "diagnosticComplete": 0,
+  "conversationConnected": 0,
+  "reviewConnected": 0,
+  "humanReviewed": 0,
+  "approved": 0
+ },
+ "fieldDecisions": {
+  "total": 14,
+  "humanReviewCandidate": 14
+ },
+ "decisionQueue": {
+  "open": 77,
+  "rootP0": 0,
+  "rootP1": 0
+ },
+ "usedExcelSheets": [
+  "3単語例文",
+  "N3の文法120例文集",
+  "動詞使用頻度順",
+  "動詞活用形",
+  "原：ビジネス敬語",
+  "原：副詞使用頻度順",
+  "原：動詞使用頻度順",
+  "原：接続詞使用頻度順（話し言葉）",
+  "基礎会話練習GW のコピー",
+  "性格（動画1）",
+  "最初に覚える最低限表現",
+  "自動詞・他動詞46選"
+ ],
+ "sourceRefTotal": 182,
+ "excel": {
+  "workbook": "scratchpad/source-data/foundation-learning-source.xlsx",
+  "sha256_16": "8b365e6186b9189d",
+  "sheetCount": 40,
+  "usedSheets": 12,
+  "unusedSheets": 28,
+  "totalNonEmptyRows": 4417,
+  "vocabCandidateRows": 1242,
+  "overlapWithExisting140": 113,
+  "duplicateSheets": [
+   "原：オノマトペ100集",
+   "原：N2の文法180例文集（王さん）",
+   "原：動詞使用頻度順"
+  ],
+  "rightsReviewRequired": [
+   "営業・ビジネス用語集200集",
+   "原：慣用句110集 ",
+   "日本の29歳以下のビジネスメッセージ67選"
+  ],
+  "images": 9,
+  "byClassification": {
+   "metadata_only": 7,
+   "example_source": 5,
+   "vocabulary_source": 11,
+   "duplicate": 3,
+   "grammar_source": 6,
+   "exercise_source": 2,
+   "frequency_reference": 4,
+   "unknown": 1,
+   "transitive_intransitive_source": 1
+  }
+ },
+ "n2QuestionSources": {
+  "registered": 0,
+  "years": 0,
+  "legacyPre2010": 0,
+  "currentFormat": 0,
+  "original": 0,
+  "licensed": 0,
+  "privateReferenceOnly": 0,
+  "rightsUnknown": 0,
+  "blocked": 0,
+  "publishableQuestions": 0,
+  "answerVerified": 0,
+  "humanReviewed": 0,
+  "approved": 0,
+  "note": "問題Sourceは未登録。ローカル環境に過去問ファイルは存在しない。CEOからのSource提供と権利情報の登録が起点になる（rights_unknownからの公開Question生成は禁止）"
+ }
+}

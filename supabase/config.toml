@@ -52,6 +52,10 @@ max_client_conn = 100
 
 [db.migrations]
 # If disabled, migrations will be skipped during a db push or reset.
+# ⚠️ local検証（supabase start）では一時的に false にする必要がある:
+#   歴史chainが fresh 適用不能（20260629がchain外作成のblog_postsに依存・H1実測）。
+#   手順は docs/ai-course/production/rollback-backup.md の「local環境の作り方」を参照。
+#   remote への db push を行う H2 では必ず true のままにすること。
 enabled = true
 # Specifies an ordered list of schema files that describe your database.
 # Supports glob patterns relative to supabase directory: "./schemas/*.sql"

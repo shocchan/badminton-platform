@@ -1,0 +1,1605 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "generatorVersion": "3p2.1",
+ "workbookSha16": "8b365e6186b9189d",
+ "sheets": [
+  {
+   "sheet": "基礎日本語計画",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 22,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "注文・買い物表現",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 34,
+   "structuralRows": 0,
+   "registeredCandidates": 34,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "道案内・店名一覧",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 34,
+   "structuralRows": 0,
+   "registeredCandidates": 34,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "性格（動画1）",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 25,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "3単語例文",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 31,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "50音（平仮名・片仮名）",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 45,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "sheetState": "first_wave_classified",
+   "reason": "権利クリア第一弾・意味分類対象",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 418,
+   "structuralRows": 25,
+   "registeredCandidates": 393,
+   "targetPhase": "3P-2"
+  },
+  {
+   "sheet": "原：オノマトペ100集",
+   "sheetState": "duplicate_source_sheet",
+   "reason": "完成版シートと同内容の旧版",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 101,
+   "structuralRows": 0,
+   "registeredCandidates": 101,
+   "targetPhase": null
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "sheetState": "first_wave_classified",
+   "reason": "権利クリア第一弾・意味分類対象",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 30,
+   "structuralRows": 7,
+   "registeredCandidates": 23,
+   "targetPhase": "3P-2"
+  },
+  {
+   "sheet": "原：N2の文法180例文集",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 182,
+   "structuralRows": 0,
+   "registeredCandidates": 182,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "N3の文法120例文集",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 121,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "原：N2の文法180例文集（王さん）",
+   "sheetState": "duplicate_source_sheet",
+   "reason": "完成版シートと同内容の旧版",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 182,
+   "structuralRows": 0,
+   "registeredCandidates": 182,
+   "targetPhase": null
+  },
+  {
+   "sheet": "現状把握・目標設計",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 0,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "営業・ビジネス用語集200集",
+   "sheetState": "awaiting_rights_rewrite",
+   "reason": "rights_unknown（CEO権利判断待ち・独自教材へ置換予定）",
+   "rightsStatus": "rights_review_required",
+   "nonEmptyRows": 200,
+   "structuralRows": 0,
+   "registeredCandidates": 200,
+   "targetPhase": "3P-5"
+  },
+  {
+   "sheet": "原：ビジネス敬語",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 27,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 244,
+   "structuralRows": 201,
+   "registeredCandidates": 43,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "原：慣用句110集 ",
+   "sheetState": "awaiting_rights_rewrite",
+   "reason": "rights_unknown（CEO権利判断待ち・独自教材へ置換予定）",
+   "rightsStatus": "rights_review_required",
+   "nonEmptyRows": 111,
+   "structuralRows": 0,
+   "registeredCandidates": 111,
+   "targetPhase": "3P-5"
+  },
+  {
+   "sheet": "原：接続詞使用頻度順（話し言葉）",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 101,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "原：接続詞使用頻度順（書き言葉）",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 101,
+   "structuralRows": 0,
+   "registeredCandidates": 101,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "原：副詞使用頻度順",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 103,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "原：動詞使用頻度順",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 101,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "しりとり・連想ゲーム",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 2,
+   "structuralRows": 0,
+   "registeredCandidates": 2,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "雑談（リアクション会話のコツ）",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 12,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "動詞使用頻度順",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 101,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "ファシリテーション",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 64,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "日本の29歳以下のビジネスメッセージ67選",
+   "sheetState": "awaiting_rights_rewrite",
+   "reason": "rights_unknown（CEO権利判断待ち・独自教材へ置換予定）",
+   "rightsStatus": "rights_review_required",
+   "nonEmptyRows": 68,
+   "structuralRows": 0,
+   "registeredCandidates": 68,
+   "targetPhase": "3P-5"
+  },
+  {
+   "sheet": "原：接続詞（種類順）",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 98,
+   "structuralRows": 0,
+   "registeredCandidates": 98,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "オノマトペ100集（完成版）",
+   "sheetState": "first_wave_classified",
+   "reason": "権利クリア第一弾・意味分類対象",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 102,
+   "structuralRows": 2,
+   "registeredCandidates": 100,
+   "targetPhase": "3P-2"
+  },
+  {
+   "sheet": "会話力UPネタ17集",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 19,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "自動詞・他動詞46選",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 54,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "頻出表現",
+   "sheetState": "first_wave_classified",
+   "reason": "権利クリア第一弾・意味分類対象",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 102,
+   "structuralRows": 4,
+   "registeredCandidates": 98,
+   "targetPhase": "3P-2"
+  },
+  {
+   "sheet": "疑問詞（ぎもんし）",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 52,
+   "structuralRows": 0,
+   "registeredCandidates": 52,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "指示語",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 14,
+   "structuralRows": 0,
+   "registeredCandidates": 14,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "数字表現",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 184,
+   "structuralRows": 0,
+   "registeredCandidates": 184,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "基礎会話練習GW のコピー",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 51,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "基礎計画表（全24回）",
+   "sheetState": "excluded_by_explicit_rule",
+   "reason": "計画・メモ等のメタデータシート（教材行なし）",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 25,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  },
+  {
+   "sheet": "助詞①",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 14,
+   "structuralRows": 0,
+   "registeredCandidates": 14,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "助詞②",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 11,
+   "structuralRows": 0,
+   "registeredCandidates": 11,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "「です・ます」文（敬语句型） のコピー",
+   "sheetState": "deferred_to_phase",
+   "reason": "後続Phase（3P-3以降）で意味分類",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 44,
+   "structuralRows": 0,
+   "registeredCandidates": 44,
+   "targetPhase": "3P-3以降"
+  },
+  {
+   "sheet": "動詞活用形",
+   "sheetState": "already_integrated",
+   "reason": "既存140語のsourceRefで使用済み",
+   "rightsStatus": "teacher_created_assumed",
+   "nonEmptyRows": 187,
+   "structuralRows": 0,
+   "registeredCandidates": 0,
+   "targetPhase": null
+  }
+ ],
+ "structuralRows": [
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 1,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 3,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 12,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 25,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 38,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 50,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 53,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 70,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 86,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 103,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 113,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 129,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 150,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 168,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 171,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 218,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 261,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 263,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 280,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 282,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 304,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 306,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 323,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 325,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "最初に覚える最低限表現",
+   "excelRow": 347,
+   "reason": "header_or_section"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 1,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 2,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 7,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 12,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 18,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 24,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "複合動詞一覧",
+   "excelRow": 31,
+   "reason": "section_or_header"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 9,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 10,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 11,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 12,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 15,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 16,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 17,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 18,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 21,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 22,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 23,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 24,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 27,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 28,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 29,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 30,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 33,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 34,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 35,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 36,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 39,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 40,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 41,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 42,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 45,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 46,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 48,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 51,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 52,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 53,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 54,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 57,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 58,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 59,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 60,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 63,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 64,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 65,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 66,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 69,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 70,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 71,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 72,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 75,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 76,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 77,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 78,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 81,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 82,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 83,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 84,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 87,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 88,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 89,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 90,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 93,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 94,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 95,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 96,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 99,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 100,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 101,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 102,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 105,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 106,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 107,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 108,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 111,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 112,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 113,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 114,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 117,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 118,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 119,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 120,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 123,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 124,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 125,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 126,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 129,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 130,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 131,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 132,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 135,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 136,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 137,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 138,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 141,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 142,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 143,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 144,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 147,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 148,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 149,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 150,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 153,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 154,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 155,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 156,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 159,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 160,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 161,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 162,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 165,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 166,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 167,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 168,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 171,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 172,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 173,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 174,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 178,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 179,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 180,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 183,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 184,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 185,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 186,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 189,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 190,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 191,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 192,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 196,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 197,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 198,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 201,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 202,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 203,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 204,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 207,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 208,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 209,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 210,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 213,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 214,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 215,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 216,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 219,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 220,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 221,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 222,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 225,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 226,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 227,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 228,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 231,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 232,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 233,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 234,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 237,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 238,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 239,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 240,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 243,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 244,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 245,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 246,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 249,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 250,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 251,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 252,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 255,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 256,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 257,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 258,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 261,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 262,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 263,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 264,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 267,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 268,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 269,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 270,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 273,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 274,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 275,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 276,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 279,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 280,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 281,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 282,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 285,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 286,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 287,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 288,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 291,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 292,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 293,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 294,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 297,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 298,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 299,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 300,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 303,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 304,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 305,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 306,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 309,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 310,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 311,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "原：PREP特訓",
+   "excelRow": 312,
+   "reason": "no_japanese_content"
+  },
+  {
+   "sheet": "オノマトペ100集（完成版）",
+   "excelRow": 2,
+   "reason": "header"
+  },
+  {
+   "sheet": "オノマトペ100集（完成版）",
+   "excelRow": 103,
+   "reason": "header"
+  },
+  {
+   "sheet": "頻出表現",
+   "excelRow": 1,
+   "reason": "header"
+  },
+  {
+   "sheet": "頻出表現",
+   "excelRow": 2,
+   "reason": "header"
+  },
+  {
+   "sheet": "頻出表現",
+   "excelRow": 54,
+   "reason": "header"
+  },
+  {
+   "sheet": "頻出表現",
+   "excelRow": 55,
+   "reason": "header"
+  }
+ ]
+}

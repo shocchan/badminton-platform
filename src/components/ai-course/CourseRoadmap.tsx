@@ -2,13 +2,17 @@
 // 鍵付きの週もタップ可＝テキスト予習を開ける（音声のみ未解放）。
 
 import { useState } from 'react';
-import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Stethoscope, Target, BookOpen, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Lock, CheckCircle2, Circle, RotateCcw, PlayCircle, Star, Target, BookOpen, ArrowRight, ChevronDown, ChevronRight } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
 import type { ItemProgress, Mission } from '../../lib/aiLesson/course/types';
 import { COURSE_GOAL_CANDOS } from '../../lib/aiLesson/course/courseCanDo';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
 import { missionAccessState } from '../../lib/aiLesson/course/coursePreview';
+import {
+  chapterOfInternalWeek, displayWeeksOfChapter, currentDisplayWeek, isInternalWeekLocked, CHAPTER_COUNT,
+} from '../../lib/aiLesson/course/courseWeekMapping';
+import type { AccessTier } from '../../lib/aiLesson/course/courseWeekMapping';
 
 interface Props {
   t: AiCourseDict;
@@ -16,7 +20,10 @@ interface Props {
   currentWeek: number;
   nextMission: Mission | null;
   progress: ItemProgress[];
-  estimate: { mode: 'diagnosing'; remaining: number } | { mode: 'ready'; minWeeks: number; maxWeeks: number };
+  /** アクセス層（starter_12w=Week13以降鍵付き・§24W） */
+  accessTier: AccessTier;
+  /** 現在の内部週の完了ミッション数（表示週の前半/後半判定用） */
+  doneInCurrentWeek: number;
   /** 全ての章のテキスト予習一覧を開く（補助導線） */
   onSeeChapters: () => void;
   /** 章（ミッション）のテキスト予習を開く */
@@ -37,7 +44,7 @@ const stateIcon = (state: WeekStat['state']) => {
   }
 };
 
-export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, estimate, onSeeChapters, onOpenPreview, onSeeN2Grammar, onBack }: Props) => {
+export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, accessTier, doneInCurrentWeek, onSeeChapters, onOpenPreview, onSeeN2Grammar, onBack }: Props) => {
   const tr = t.roadmap;
   const tp = t.preview;
   const zh = t.locale === 'zh';
@@ -57,56 +64,55 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
         <h1 className="text-lg font-bold text-gray-900">{tr.title}</h1>
       </div>
 
-      {/* 全ての章をテキスト予習（鍵付き章も閲覧可） */}
-      <button type="button" onClick={onSeeChapters}
-        className="w-full text-left bg-white rounded-xl border border-blue-100 p-4 mb-4 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
-        <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900">{t.preview.allChaptersTitle}</p>
-          <p className="text-[11px] text-gray-400 truncate">{t.preview.open} ・ {t.preview.anytime}</p>
-        </div>
-        <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-      </button>
+      {/* 【最初に】今週サマリー（現在の週・今週の進捗・次のミッション・推定修了・§14） */}
+      {(() => {
+        const cw = weeks.find((w) => w.week === currentWeek);
+        if (!cw) return null;
+        return (
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
+            <p className="text-xs text-blue-700 flex items-center gap-1.5 mb-1">
+              <Target className="w-3.5 h-3.5" />{tr.current} ・ {tr.weekOf24(currentDisplayWeek(currentWeek, doneInCurrentWeek))} ・ {tr.chapterLabel(chapterOfInternalWeek(currentWeek))} {tr.chapters[chapterOfInternalWeek(currentWeek) - 1]?.title}
+            </p>
+            <p className="text-base font-bold text-gray-900 leading-snug">{zh ? cw.themeZh : cw.themeJa}</p>
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1.5 text-xs text-gray-600">
+              <span>{tr.done(cw.learned, cw.total)}</span>
+              {nextMission && <span>{tr.nextMission}: <span className="font-medium text-blue-700">{nextMission.targetExpression}</span></span>}
+            </div>
+            {accessTier === 'starter_12w' && (
+              <p className="text-[11px] text-gray-500 mt-1.5">{tr.availableRange}</p>
+            )}
+          </div>
+        );
+      })()}
 
-      {/* N2文法トラック（準備中・レビュー） */}
-      <button type="button" onClick={onSeeN2Grammar}
-        className="w-full text-left bg-white rounded-xl border border-indigo-100 p-4 mb-4 hover:bg-indigo-50 transition-colors flex items-center gap-2.5">
-        <BookOpen className="w-4 h-4 text-indigo-600 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-gray-900">{t.n2grammar.navTitle}</p>
-          <p className="text-[11px] text-gray-400 truncate">{t.n2grammar.subtitle}</p>
-        </div>
-        <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-      </button>
-
-      {/* 12週後に目指す会話（§24。断定しない） */}
-      <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
-        <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-2">
-          <Target className="w-4 h-4 text-amber-500" />{t.growth.goalTitle}
-        </p>
-        <ul className="space-y-1">
-          {COURSE_GOAL_CANDOS.slice(0, 4).map((g, i) => (
-            <li key={i} className="text-xs text-gray-700 flex items-start gap-1.5"><span className="text-amber-400">◇</span>{t.locale === 'zh' ? g.zh : g.ja}</li>
-          ))}
-        </ul>
-        <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">{t.growth.goalNote}</p>
-      </div>
-
-      {/* 推定修了（診断中 or 週数レンジ） */}
-      <div className="bg-blue-50 rounded-xl p-4 mb-4">
-        <p className="text-xs text-blue-700">{tr.estimatedCompletion}</p>
-        {estimate.mode === 'diagnosing' ? (
-          <p className="font-bold text-gray-900 flex items-center gap-1.5">
-            <Stethoscope className="w-4 h-4 text-blue-600" />
-            {tr.diagnosing.replace('{n}', String(estimate.remaining))}
-          </p>
-        ) : (
-          <p className="font-bold text-gray-900 text-lg">{tr.completionValue(estimate.minWeeks, estimate.maxWeeks)}</p>
-        )}
-      </div>
-
-      <div className="space-y-2">
-        {weeks.map((w) => {
+      <div className="space-y-4">
+        {Array.from({ length: CHAPTER_COUNT }, (_, ci) => ci + 1).map((c) => {
+          const [wStart, wEnd] = [c * 2 - 1, c * 2];
+          const chapterWeeks = weeks.filter((w) => w.week >= wStart && w.week <= wEnd);
+          const locked = isInternalWeekLocked(accessTier, wStart);
+          const [dwS, dwE] = displayWeeksOfChapter(c);
+          const chDef = tr.chapters[c - 1];
+          if (locked) {
+            // 鍵付き章（§24W-10）: 章タイトル＋概要＋相談導線のみ。料金・申込み・教材本文・完了は出さない
+            return (
+              <div key={c} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <p className="text-xs text-gray-500 flex items-center gap-1.5 mb-1">
+                  <Lock className="w-3.5 h-3.5" aria-hidden="true" />{tr.chapterLabel(c)} ・ Week {dwS}〜{dwE}
+                </p>
+                <p className="text-sm font-bold text-gray-700">{chDef?.title}</p>
+                <p className="text-xs text-gray-500 mt-1 leading-relaxed">{chDef?.summary}</p>
+                <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">{tr.lockedChapterNote}</p>
+                <p className="text-xs font-bold text-emerald-700 mt-1.5 select-all">{tr.consultCta}</p>
+              </div>
+            );
+          }
+          return (
+            <div key={c}>
+              <p className="text-xs font-bold text-gray-500 mb-1.5">
+                {tr.chapterLabel(c)} ・ Week {dwS}〜{dwE} ・ {chDef?.title}
+              </p>
+              <div className="space-y-2">
+        {chapterWeeks.map((w) => {
           const isCurrent = w.week === currentWeek;
           const isOpen = expanded.has(w.week);
           const locked = w.state === 'locked';
@@ -116,7 +122,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
               className={`rounded-xl border overflow-hidden ${isCurrent ? 'border-blue-300 bg-blue-50/40' : 'border-gray-200 bg-white'}`}>
               {/* 週カード全体をタップ＝展開（鍵付きでも押せる） */}
               <button type="button" onClick={() => toggle(w.week)} aria-expanded={isOpen}
-                className="w-full text-left p-3 flex items-start gap-2 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-xl transition-colors">
+                className="w-full text-left p-3 flex items-start gap-2 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 rounded-xl transition-colors">
                 <span className="mt-0.5 shrink-0">{stateIcon(w.state)}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-gray-900 truncate">
@@ -154,7 +160,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
                       const access = missionAccessState(m, progress);
                       return (
                         <button key={m.id} type="button" onClick={() => onOpenPreview(m)}
-                          className="w-full text-left bg-gray-50 hover:bg-blue-50 rounded-lg p-2.5 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-colors">
+                          className="w-full text-left bg-gray-50 hover:bg-blue-50 rounded-lg p-2.5 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 transition-colors">
                           <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                             access === 'locked' ? 'bg-gray-200' : access === 'completed' ? 'bg-emerald-100' : 'bg-blue-100'}`}>
                             {access === 'locked' ? <Lock className="w-3 h-3 text-gray-500" />
@@ -187,6 +193,48 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, es
             </div>
           );
         })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── 補助導線（週一覧の後ろへ・§14） ── */}
+      <div className="mt-5 space-y-3">
+        {/* 全ての章をテキスト予習（鍵付き章も閲覧可） */}
+        <button type="button" onClick={onSeeChapters}
+          className="w-full text-left bg-white rounded-xl border border-blue-100 p-4 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
+          <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900">{t.preview.allChaptersTitle}</p>
+            <p className="text-[11px] text-gray-400 truncate">{t.preview.open} ・ {t.preview.anytime}</p>
+          </div>
+          <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+        </button>
+
+        {/* N2文法トラック */}
+        <button type="button" onClick={onSeeN2Grammar}
+          className="w-full text-left bg-white rounded-xl border border-indigo-100 p-4 hover:bg-indigo-50 transition-colors flex items-center gap-2.5">
+          <BookOpen className="w-4 h-4 text-indigo-600 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900">{t.n2grammar.navTitle}</p>
+            <p className="text-[11px] text-gray-400 truncate">{t.n2grammar.subtitle}</p>
+          </div>
+          <ArrowRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+        </button>
+
+        {/* 12週後に目指す会話（§24。断定しない） */}
+        <div className="bg-white rounded-xl border border-gray-100 p-4">
+          <p className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-2">
+            <Target className="w-4 h-4 text-amber-500" />{t.growth.goalTitle}
+          </p>
+          <ul className="space-y-1">
+            {COURSE_GOAL_CANDOS.slice(0, 4).map((g, i) => (
+              <li key={i} className="text-xs text-gray-700 flex items-start gap-1.5"><span className="text-amber-400">◇</span>{t.locale === 'zh' ? g.zh : g.ja}</li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-gray-400 mt-2 leading-relaxed">{t.growth.goalNote}</p>
+        </div>
       </div>
     </div>
   );

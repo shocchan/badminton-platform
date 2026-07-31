@@ -1,0 +1,2287 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "generatorVersion": "3p2.1",
+ "workbookSha16": "8b365e6186b9189d",
+ "totals": {
+  "awaiting_rights_rewrite": 379
+ },
+ "queues": {
+  "awaiting_rights_rewrite": [
+   {
+    "sourceCandidateId": "876fe9587c23e6d7",
+    "surface": "営業職1,2年目・新卒・インターン生 営業マンが学ぶべき営業用語100選",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "90ed90f8cefba632",
+    "surface": "チェック",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "eff6d4888fe2521c",
+    "surface": "ABM(アカウントベースドマーケティング)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6f9b9e8d55f07f6e",
+    "surface": "ABテスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f956041de873ce60",
+    "surface": "BANT情報",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3ae8a83cd710224f",
+    "surface": "BAツール",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f19abe9992fb0774",
+    "surface": "BDR体制 Business Development Representative",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a31ad0caf8452491",
+    "surface": "BIツール",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "25e2da0c337b98eb",
+    "surface": "CEO(シーイーオー)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e0c6a7d88904edf6",
+    "surface": "CFO(シーエフオー)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "98bca53c91a30b78",
+    "surface": "COO(シーオーオー)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e12881fefba67855",
+    "surface": "「顧客獲得単価」顧客・成果を獲得するために、1人あたりにかかった費用のこと",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "127aa5ce117212db",
+    "surface": "1クリック課金型の広告そのもの 2クリック課金型の広告におけるクリック単価",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "33a587348390db82",
+    "surface": "顧客関係管理を行うツール・システムのこと",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1972d6fddc2b6472",
+    "surface": "11と重複のため略",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a5acf5cc04751bcd",
+    "surface": "CTO(シーティーオー)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b1766ba3ddff06cd",
+    "surface": "Webサイトや特定のページに訪れたユーザーの内、どの程度CV(コンバージョン)に至ったかを表す数値。",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "850f05f5939b8b44",
+    "surface": "DX(デジタルトランスフォーメーション) Digital Transformation",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0a9bb5f0e9a87395",
+    "surface": "HR(ヒューマンリソース) Human Resources",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "eef6ff104e4550f8",
+    "surface": "ビジネスの最終目標を定量的に評価するための指標。",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "710ec0d13c5c6ea9",
+    "surface": "最重要プロセス目標数値",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "366c0d5ca219bbfe",
+    "surface": "LP(ランディングページ) Landing Page",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ae3180970118b93f",
+    "surface": "顧客生涯価値",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b7e19048d29ff6b4",
+    "surface": "MaaS(マース)事業 Mobility as a Service",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "137fe18c9dac7932",
+    "surface": "MAツール Marketing Automation",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "28b2394a19e5d200",
+    "surface": "MTG / エムティージー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b7f830f387ca5004",
+    "surface": "MVP検証",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b9859be902c81e3a",
+    "surface": "NR(エヌアール)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "edcccb7121cce552",
+    "surface": "OJT(オンザジョブトレーニング) On the Job Training",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f2d53508e4b99e4e",
+    "surface": "OKR(オーケーアール) Objectives and Key Results",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b049e924d19593b9",
+    "surface": "プロジェクトマネージャー。プロジェクトの管理者。",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "581c606f5eeda2ff",
+    "surface": "PPC広告 Pay Per Click Advertising",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b6257bcc53768f6c",
+    "surface": "PREP法",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cf73c462780228a9",
+    "surface": "「投資収益率」「投資利益率」のこと。",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d42e3e31aee63e09",
+    "surface": "SaaS(サース) Software as a Service",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "836cc97e75c48e6c",
+    "surface": "(特徴)反響型・インバウンド・中小/中堅企業中心",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "da30e0cbd7a98222",
+    "surface": "SE(システムエンジニア)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a75092c72c3208c7",
+    "surface": "SES(システムエンジニアリングサービス)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c63dcc6ea0589ceb",
+    "surface": "SFAツール Sales Force Automation",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c971e63396ca7261",
+    "surface": "VC(ブイシー)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d24cb0bbeb0116d4",
+    "surface": "アーリー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c3bdbfe544498965",
+    "surface": "アーンドメディア",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1292abec201fac19",
+    "surface": "アウトバウンド",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "7ee472e9cd2bba13",
+    "surface": "アグリー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b5f09e8e963ec537",
+    "surface": "アサイン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "99a32baf51acb3cc",
+    "surface": "アジェンダ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0a6a4ed84df8feb1",
+    "surface": "アジャイル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4a093046f8a9f678",
+    "surface": "アジャスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "88f4b3a83ac7c413",
+    "surface": "アセット",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "60508e5644aeb3db",
+    "surface": "アップセル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a24a5820ad1c6042",
+    "surface": "アドオン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "13d0d2cb9c05bc67",
+    "surface": "アフィリエイト広告",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0060875c91ac5c18",
+    "surface": "アライアンス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3b1d4a597dd8b0e7",
+    "surface": "アルゴリズム",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "019df92f1e641eeb",
+    "surface": "アンカリング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "590830e0eb77b9d8",
+    "surface": "イグジット",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e005b9e23f453f36",
+    "surface": "イシュー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "52cb47ccc3528e60",
+    "surface": "イニシアチブ initiative",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d5fb111fae7f3406",
+    "surface": "イニシャルコスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "93239b4bdfb078c2",
+    "surface": "インサイドセールス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fae49d9ce7918289",
+    "surface": "インストリーム広告",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8e80953004ea2963",
+    "surface": "インバウンド",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "38ff7a3c6cbde8fa",
+    "surface": "インフィード広告",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6d40c316dcac825f",
+    "surface": "インプレッション",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f2113a6d01ea8e90",
+    "surface": "インライン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "361c1bf5eb4b77c1",
+    "surface": "ウェビナー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "81c4ab92344ac33f",
+    "surface": "エクイティファイナンス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "003fdc0b013fdbfe",
+    "surface": "エスカレーション",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9b70b2313002a2e3",
+    "surface": "エンゲージメント",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e35340e63f7f739b",
+    "surface": "エンジェル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "405734126ca65c2f",
+    "surface": "エンタープライズ営業",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ccc0bc28f4df71d5",
+    "surface": "オウンドメディア Owned Media",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cbae7575b45e1c72",
+    "surface": "オーガニック検索",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d4837ae149b2d405",
+    "surface": "オーソライズ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6786c7bb52ea7e9c",
+    "surface": "オプトアウト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "60b679619907d2d3",
+    "surface": "オプトイン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "56c9f7887677127d",
+    "surface": "オポチュニティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "472e265af0a2417a",
+    "surface": "オムニチャネル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4e98dab4d33b8fd7",
+    "surface": "オルタナティブ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "241ef076b77a9174",
+    "surface": "オンスケ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "109965d061f30532",
+    "surface": "オンボーディング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a530d9d296d16d08",
+    "surface": "カスタマーサクセス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a4129206fa806751",
+    "surface": "カスタマーサポート",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8d257dc821e867dd",
+    "surface": "カスタマージャーニー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2fc2c8bc3b880380",
+    "surface": "カバレッジ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "732efad10f360b6f",
+    "surface": "キャズム",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "86d12af06aae9804",
+    "surface": "キャッシュフロー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b1259bcb0139c449",
+    "surface": "キャパシティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1659fa22117c3428",
+    "surface": "キャピタルゲイン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2cb37a2a37c09969",
+    "surface": "クエリ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "290e4aaa3958e4f6",
+    "surface": "クロージング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d169d8ed68956f72",
+    "surface": "グロースハック",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bf1169eedba884d0",
+    "surface": "グローバルスタンダード",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ce58b609f916e933",
+    "surface": "クロスセル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3a3737011cf0ef56",
+    "surface": "ケイパビリティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f102547df0c90a16",
+    "surface": "コアコンピタンス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "db9c75d5fbee8e9d",
+    "surface": "コストリダクション",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6dc45f4c6486c704",
+    "surface": "コミット",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b26934138fb510d1",
+    "surface": "コモディティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4bdf0f3af71748f4",
+    "surface": "コンサルティング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "01b7866e69323eed",
+    "surface": "コンセンサス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f48fe317d6010d58",
+    "surface": "コンティンジェンシープラン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2a3c1dbceb1e101a",
+    "surface": "コンバージョン(CV)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fc186f40b844fbb5",
+    "surface": "コンピテンシー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cae8140ee3451cc7",
+    "surface": "コンペティター competitor",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c07ff4b9042816a3",
+    "surface": "ザイオンス効果 (単純接触効果)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bb9339004b53d6e6",
+    "surface": "サブスクリプション型",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "33d462a99148b2f4",
+    "surface": "サマリー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "978293428348b03d",
+    "surface": "サンクコスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bc7126aa0b393ae7",
+    "surface": "シード",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1944a1bc52d63692",
+    "surface": "シナジー効果",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1051ec697f36e57e",
+    "surface": "シュリンク",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "887ca5e4454dc89f",
+    "surface": "ジョイン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2bd494533151ecd1",
+    "surface": "シリーズA",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "377a7364e3a25380",
+    "surface": "シリーズB",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "19004a3cba9d5fd2",
+    "surface": "シリーズC",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6c11295eb37d5586",
+    "surface": "スキーム",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "524cd319a3dc43a5",
+    "surface": "スクリーニング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ff1e4bda94cc3d73",
+    "surface": "スコープ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "01b7dd3095235488",
+    "surface": "ステークホルダー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6fe8cf9214f5981d",
+    "surface": "セールスイネーブルメント",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6930eb79bc345f70",
+    "surface": "セグメント",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "51d456c94f6a1013",
+    "surface": "ソーシャルセリング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6241ff7ef1163dc3",
+    "surface": "タイト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1c55eb80f4e76d3f",
+    "surface": "ダイバーシティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fce77d90bac91378",
+    "surface": "ダイレクトレスポンス広告(レスポンス広告)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "55d100c7dd8768d6",
+    "surface": "タスク",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d57b08a0b818316b",
+    "surface": "タスクフォース",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1972231f35381c01",
+    "surface": "たたき台",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bc6e34e1b9e7b71c",
+    "surface": "チャーン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "89d79fcf41d2b3f8",
+    "surface": "チャーンレート",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fb3c559e86dded46",
+    "surface": "チューニング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "35fab15701d60b2d",
+    "surface": "ティーアップ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4e8137cae7816abb",
+    "surface": "ディテール",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5fa0073576f3e53e",
+    "surface": "データドリブン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e15c709f6df8821e",
+    "surface": "デットファイナンス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "dacc259136321358",
+    "surface": "デッドライン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f03d7e3858e9ad74",
+    "surface": "デファクトスタンダード",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cf1fa3a826e121ef",
+    "surface": "デフォルト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f6df27e6f4d39ca2",
+    "surface": "トップダウン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5b3ce86b0bb12658",
+    "surface": "ドライブ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "17d3ff7f73cf83c9",
+    "surface": "ドラスティック",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a4415a946053f6f9",
+    "surface": "トラッキング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f930f97af7b58e3a",
+    "surface": "トリガー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "54dbe12dafa1d7e1",
+    "surface": "なるはや",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "7daf1697bb8dc237",
+    "surface": "ナレッジ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8ba9c85135edf6a4",
+    "surface": "ネゴ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3f1d87467669367c",
+    "surface": "ネットリテラシー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "be045a96ed6430d3",
+    "surface": "ノーティス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "98d096a2ce63bf3d",
+    "surface": "バズ・マーケティング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0fb19feffe6738d6",
+    "surface": "バッファ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fe81cc5e6a32d11c",
+    "surface": "ハレーション",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f6bf53bd20152211",
+    "surface": "ピボット",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a5bd460048dcb509",
+    "surface": "ファクトベース",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d7930b933b816581",
+    "surface": "ファシリテーター",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b8d5e1d01e4c884f",
+    "surface": "フィールドセールス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "426c26a996c77262",
+    "surface": "フィジビリ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "7e1f86abab280cdc",
+    "surface": "フィックス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e648c72ac77ca40d",
+    "surface": "フェーズ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "008cee5c0afe2519",
+    "surface": "フットイン・ザ・ドア (段階的要請法)",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "06f238607c6d4b1b",
+    "surface": "プライオリティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4a0e632a75798713",
+    "surface": "ブラックボックス化",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "86f0b30530e8bea1",
+    "surface": "ブラッシュアップ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0e64f72e5f0b8afb",
+    "surface": "フラット",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2fa0c92873319c55",
+    "surface": "ブランディング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "467d6435f819d400",
+    "surface": "ブルーオーシャン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d03b63b9971a113b",
+    "surface": "ブレインストーミング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "297ce4d9774802c5",
+    "surface": "フレーミング効果",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "37451abdb4b765ac",
+    "surface": "フレームワーク",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9f84456c07671ed4",
+    "surface": "プレゼン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "65f22c03ae83e4b1",
+    "surface": "ペイ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5a8ea2541171139e",
+    "surface": "ベクトル",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6c8e7acd3cf73ffa",
+    "surface": "ベストプラクティス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a0ad5a694a96138c",
+    "surface": "ペルソナ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3b927345455c7d32",
+    "surface": "ペンディング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "798ea6e493546168",
+    "surface": "ボトムアップ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2764b5009d9f7c39",
+    "surface": "ホワイトペーパー",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "efa108e15c47fa5d",
+    "surface": "マーケティング",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2aeecf5c31f17a21",
+    "surface": "マーケティングミックス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "87b0c5e0de3c0d35",
+    "surface": "マージン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "170df8f5c1f43ee8",
+    "surface": "マーチャント",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f0410abf92cc2794",
+    "surface": "マスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "617b81acea98d5f9",
+    "surface": "マター",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4a42e0de662b21c1",
+    "surface": "メソッド",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9d89f776fd0edaa6",
+    "surface": "メルクマール",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "efd69be23899723d",
+    "surface": "メンター",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4a74fcb5b798f2a7",
+    "surface": "ユーザビリティ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cffcf151061d2ada",
+    "surface": "ラポール",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bed78bee7b26429b",
+    "surface": "ランニングコスト",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e3eae5ed812789fd",
+    "surface": "リード",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8ea734e83c1b7d42",
+    "surface": "リスクヘッジ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "55b328010bc97fd5",
+    "surface": "リスクマネジメント",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4f4b5515c1b2ca0a",
+    "surface": "リスティング広告",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "811ce7841b317ec4",
+    "surface": "リソース",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a878fb4130f6bb3e",
+    "surface": "リテンション",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "376d83f7b4efca66",
+    "surface": "リバイズ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d6a6dc6897e3bd77",
+    "surface": "レッドオーシャン",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5ab63d71d160c0db",
+    "surface": "ローンチ",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "167b04f9b5fa07e4",
+    "surface": "ロングテールSEO",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cba1a42c3ae83e41",
+    "surface": "ワーク・ライフ・バランス",
+    "sheet": "営業・ビジネス用語集200集",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c1cee8efb009c75c",
+    "surface": "重複",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d271695df5d6cfc2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2287ccec0d93d56f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f74a3bfbfb82c000",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4d8f5772cd915799",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d1e04a8a450fe344",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4ede9f3653461961",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "36e0086e66f011f3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "18b8429e755d1e09",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4c8f165bbd0ae045",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fd5ad986f6aea427",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "da15cb8e6d586412",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0fa23e7d42e01b70",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2e1e87f5aaae9020",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d79b5ab0b91fe452",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f5709c1709700a6d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ce9ba670fdf82a56",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "332305c29b30cb2d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "209e56d5ad227199",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8524bcfa73dbe0c3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cac5ed4709345acd",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "251c77138573adc3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ee8c09718d5db348",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "954aea1cad0ce0a7",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "69a52b6140673ba9",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e322f4c763ce038f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5de850fee72eb997",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e15598aab07e6e4d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "eb78536bdcaf0741",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f0386da5692963a2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c69d5f5b07f7d19a",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "39a072a96bc8b147",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "679d33d347bd93a3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c61dd0e53f1d3c77",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8a4188738b7d0316",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "da0b9c69df715c81",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "67669499cf8c3e7d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "512b7bb4e8ab570a",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "823b9a11c400a906",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5ae4b8ffcde79678",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "7210b63b92793797",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "712b44830ab4852e",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5165f994749ab2c6",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9b9438cffe1d47d5",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ddbdce40088167c4",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f0c519fe7d21e791",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a96c826cb095eb03",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5b6202c8cb27c195",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8c706efae2164eca",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a640c2c1f2a28400",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "22f3dbe50d736e6a",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0609b7553a365e6b",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8e15aa71671a8f7f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "03302de8bb9ee03d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9335d42871593173",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "77fd4bd56b17ad26",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e04076263b4a52d7",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8be3f05685d58d03",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1ec7fea067a6b2ad",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "05fc4a88e889eaf9",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "719a925b386ab6f9",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "97584a5c87c1dd42",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "95d51be79ff67be7",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f93e000617eed0ba",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "077b42ea2649f63d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "efba8a1e8fde8c5e",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "32b5979b509b1cbb",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9f934177a19ebe42",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "222b1909fd196aa2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "5e2d64a70b203fe9",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "975fd3f371c095dc",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e82752cc20713c33",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6f2c85c238b64e4c",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c9828a284f01c6fd",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d1e36f8204b9b4de",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "def6389b2edc1c82",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8e60fc2fc72b5302",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a93399dac882febf",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c99f3fd3a639692f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "78d9bbd2bc7cd535",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fc3c1c5b88ae2b51",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9a9c634e82ce525f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4f0ea03e286844b2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e975305c31e3557a",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "cc2993664c5a9047",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b65687dc3c62a2f3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c0661ecb07178b50",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "860a6bd449a90b44",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e459a30e6a4bc6e3",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "71fa56846777c820",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a1724dfe2e4da63b",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "55f8556ab206eb83",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "276a4a1f39668c35",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "34f99e53333d5509",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a9d59f9ab374542b",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "81c4a0cb92a52ac2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "529b2ce0b4d9d75a",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "18153a3c0860b20d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3402ddd204928117",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3783043a9fb6f801",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "01df0f63603bb8d2",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e6af2ba5dbf09093",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "aca98029a38b23cb",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "457fcd346b5c73a4",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "30be8d6bd1739abb",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "502ef2605c7b2c13",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "80fda9d039a30c1f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "d2ebd8fdcb27378d",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "831374ae6e344f8f",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "853a84feb1691c95",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6dd288509d288587",
+    "surface": "1回目",
+    "sheet": "原：慣用句110集 ",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "464804e7361dec15",
+    "surface": "重複",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fbde9f569cf38f27",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4b5fc0cbcec87674",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "09af9c5380a45702",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "db3ba9e3e496658c",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e2c10b95658f2904",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c4e9406b3e2d1699",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "99866814d053a23f",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f9fcd5ebfd690c34",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8ddf1c959f300b49",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "ebe15d041835efa0",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b0ed914f9ff24697",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "87f3b9db8fcf0919",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6110c7a7c73933f1",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3ea5eb9968259245",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3aa02e423dbf9931",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f8b10d794e5930ee",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "7f57e9844b833fef",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "adf1845fb3d1974b",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f6f9283312945f6e",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "075913729c732d5d",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "885b8a1ceb10f48f",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c921ad99efdfa838",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "dd74da04bd1e0463",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a1d210647cba56f3",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f240a4880395b063",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "23eafbf58f490450",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c204b1d0ff4a625d",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "c0de8d7c4bda3152",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fc18ccc2c30aa66b",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "dcc93683d917f99e",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "4ebaafddaa7bbfa2",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "872e3c4a2a7d35aa",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1d3cab2ff50a905a",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "bc915ac9e7e9d6c9",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3b34e7e291893dbe",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2232f9e40a89679a",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "1b44f8aeb3cdd045",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a8f52d8739eb5934",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "dd054a922b2b750a",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "159c364cdc82b9be",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "9967ecba071bbe41",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e37a8b33556c2edb",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "f5b8d8eeb16eb2cd",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "a617e49467a1405f",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "04322812966ee096",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "e9e27d39d74c3a7d",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "6a00a5feae7c9d1a",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b50c5e92035845c6",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0bf0cd97a87cdddb",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "eee83cb7d49a5c33",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b51c795739b4486d",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "33fc1d5f52001bec",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "dc8d02923c7f7d76",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3d27f96f69858be8",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "2f90c4600a8213ef",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "0d2fb1b4b9f99200",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "62a8dac9fcab1b39",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "550e262c7c145c88",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "3a99e9daccc77d05",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "71c6b2d1d379afe4",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "122d423c5544a81e",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "fd6c33c3448b2e06",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "b088ec940212d078",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "8056e2df47c3bda7",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "84ba98f59d251279",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "297291c937625d7a",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   },
+   {
+    "sourceCandidateId": "72a340b0605c062c",
+    "surface": "1回目",
+    "sheet": "日本の29歳以下のビジネスメッセージ67選",
+    "reason": "rights_unknownシート。非採用・非削除・独自教材への置換対象"
+   }
+  ]
+ }
+}

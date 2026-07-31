@@ -1,0 +1,271 @@
+{
+ "generatedAt": "2026-07-28",
+ "method": "型union・ファイル走査による機械集計",
+ "screens": {
+  "courseSteps": [
+   "loading",
+   "login",
+   "hearing",
+   "guide",
+   "home",
+   "lesson",
+   "report",
+   "growth",
+   "roadmap",
+   "history",
+   "settings",
+   "preview",
+   "chapters",
+   "n2grammar",
+   "light",
+   "expressions",
+   "notebook",
+   "lab",
+   "vocab"
+  ],
+  "courseStepCount": 19,
+  "labGatedSteps": [
+   "lab",
+   "n2grammar",
+   "vocab"
+  ],
+  "generalStepCount": 15,
+  "vocabViews": [
+   "top",
+   "category",
+   "detail",
+   "daily",
+   "all",
+   "practice",
+   "roadmap",
+   "diagnostic",
+   "quickreview",
+   "review",
+   "decisions",
+   "connectivity",
+   "firstrun"
+  ],
+  "vocabViewCount": 13,
+  "internalVocabViews": [
+   "connectivity",
+   "decisions",
+   "review"
+  ],
+  "shikumiUnits": 6
+ },
+ "markers": {
+  "total": 29,
+  "byKind": {
+   "prototype_label": 14,
+   "beta_label": 6,
+   "in_progress_label": 9
+  },
+  "findings": [
+   {
+    "file": "components/ai-course/CourseHome.tsx",
+    "line": 61,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "/** しくみラボ試作（adminOverrides.labPreview=true のテストアカウントのみ・§2A-6） */"
+   },
+   {
+    "file": "components/ai-course/CourseN2Grammar.tsx",
+    "line": 55,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "const visible = useMemo(() => publiclyVisibleIndex(N2_GRAMMAR_INDEX), []); // 限定ベータ: 180件表示"
+   },
+   {
+    "file": "components/ai-course/CourseN2Grammar.tsx",
+    "line": 112,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "{/* ベータ告知（初回に一度・各項目には繰り返さない） */}"
+   },
+   {
+    "file": "components/ai-course/CourseN2Grammar.tsx",
+    "line": 247,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "{/* 未作成項目（ベータ）: 表現＋例文で確認 */}"
+   },
+   {
+    "file": "components/ai-course/CourseRoadmap.tsx",
+    "line": 31,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "/** N2文法トラック（準備中/レビュー）を開く */"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 340,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "subtitleTranslating: '中国語訳を準備中…',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 542,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "n2GoalN3: 'N2文法へ進むための足場（N3レベル）。N2文法トラックは準備中です。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 543,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "n2GoalBridge: 'N3〜N2の橋渡し表現。対応するN2文法・問題は準備中です（順次追加）。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 544,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "trackPreparing: 'N2文法・聴解・読解・語彙の専用トラックは準備中です（段階的に追加）。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 548,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "axisPreparing: '準備中',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 563,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "learnerEmpty: 'N2文法トラックは準備中です。内容を人間レビューで確認し、順次公開します。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 608,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "betaBadge: 'ベータ',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 609,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "betaBanner: 'このN2文法教材はベータ版です。原本教材をもとにAIで解説・問題を補完しています。内容は順次確認・改善しています。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 610,
+    "kind": "beta_label",
+    "needle": "ベータ",
+    "text": "contentComing: 'この項目の解説・問題は順次追加中です（ベータ）。まずは表現と例文で確認しましょう。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 839,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "practiceNote: '※この練習は試作のスクリプト会話です。結果は保存されません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 844,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "mvpPackNote: '現在は基礎・生活語彙の初期パック（試作）です。N3・N2向けパックは準備中です。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 995,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "notSavedVocab: '※試作確認のため、この記録は正式保存されません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1042,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "title: '日本語のしくみラボ（試作）',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1043,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "draftNote: 'この単元は試作確認用（draft）です。結果は正式保存されません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1061,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "notSaved: '※現在は試作確認のため、この結果は正式保存されません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1081,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "recAllDone: '全単元の試作を確認済みです。復習候補を見直しましょう。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1083,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "unitListHeading: '単元一覧（試作・draft）',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1093,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "reviewNote: 'この復習候補は試作セッション内の記録から表示しています。正式な復習予定としては保存されていません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1100,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "historyNote: 'この履歴は現在の試作確認用で、このブラウザセッション内だけ保存されます。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1103,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "resetButton: 'この試作履歴を削除',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1104,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "resetConfirm: 'この試作セッションのしくみラボ履歴だけを削除します。会話レッスンの進捗には影響しません。',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1110,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "betaBadge: '試作',"
+   },
+   {
+    "file": "locales/aiCourse.ts",
+    "line": 1147,
+    "kind": "prototype_label",
+    "needle": "試作",
+    "text": "homeEntry: '日本語のしくみラボ（試作）',"
+   },
+   {
+    "file": "pages/ai-lesson/landing/sectionsB.tsx",
+    "line": 42,
+    "kind": "in_progress_label",
+    "needle": "準備中",
+    "text": "<span>{lang === 'ja' ? '実際の学習画面を掲載予定（準備中）' : '真实学习界面即将展示（准备中）'}</span>"
+   }
+  ]
+ },
+ "disabledCards": 0,
+ "note": "v1.0では lab/vocab/n2grammar のlabPreviewゲートを外して一般公開する前提のため、ゲート内の試作・未保存表示もすべて解消対象として数えている"
+}

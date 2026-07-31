@@ -1,0 +1,139 @@
+{
+ "schemaVersion": 1,
+ "generatedAt": "2026-07-28",
+ "status": "design_draft",
+ "note": "設計草案。実装はRPG Vertical Slice Phase（CEO承認後）で開始する",
+ "chapters": [
+  {
+   "id": "ch-1",
+   "areaId": "area-minato",
+   "titleJa": "はじまりの港町",
+   "order": 1,
+   "storyGoal": "霧の港に上陸し、名前と出身を伝えて宿に泊まる",
+   "languageGoal": "自己紹介ができ、名前と出身を伝えられる",
+   "questIds": [
+    "q-1-1",
+    "q-1-2",
+    "q-1-3",
+    "q-1-4",
+    "q-1-5"
+   ],
+   "finalQuestId": "q-1-5",
+   "unlocks": [
+    "area-hinode"
+   ],
+   "contentStatus": "planned",
+   "verticalSlice": true
+  },
+  {
+   "id": "ch-2",
+   "areaId": "area-hinode",
+   "titleJa": "暮らしの丘",
+   "order": 2,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-3",
+   "areaId": "area-toorimichi",
+   "titleJa": "交通の街道",
+   "order": 3,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-4",
+   "areaId": "area-ichiba",
+   "titleJa": "買い物市場",
+   "order": 4,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-5",
+   "areaId": "area-yukari",
+   "titleJa": "つながりの森",
+   "order": 5,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-6",
+   "areaId": "area-hataraki",
+   "titleJa": "仕事の都市",
+   "order": 6,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-7",
+   "areaId": "area-katachi",
+   "titleJa": "文法の遺跡",
+   "order": 7,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-8",
+   "areaId": "area-sorano",
+   "titleJa": "ことばの塔",
+   "order": 8,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  },
+  {
+   "id": "ch-9",
+   "areaId": "area-katari",
+   "titleJa": "会話の港",
+   "order": 9,
+   "storyGoal": "未設計",
+   "languageGoal": "未設計",
+   "questIds": [],
+   "finalQuestId": null,
+   "unlocks": [],
+   "contentStatus": "not_designed",
+   "verticalSlice": false
+  }
+ ],
+ "totals": {
+  "chapters": 9,
+  "designed": 1,
+  "notDesigned": 8,
+  "implemented": 0
+ }
+}

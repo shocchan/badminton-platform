@@ -95,6 +95,13 @@ export interface LearnerSettings {
    * 最後に選んだ言語を learner 単位で保持し、複数端末で同期する。
    */
   uiLanguage?: 'ja' | 'zh';
+  /** 承認済みアバターの private Storage オブジェクトパス（signed URLは保存しない・§PW-V1） */
+  avatarObjectPath?: string;
+  /** プレビュー待ち候補のオブジェクトパス（管理者が登録・本人が承認/作り直しを選ぶ） */
+  pendingAvatarObjectPath?: string;
+  /** アバター確認状態 */
+  avatarReviewStatus?: 'none' | 'pending' | 'approved' | 'revision_requested';
+  avatarUpdatedAt?: string;
   /** サインアップ時の招待コード（Edge Function側でSecretと照合） */
   inviteCode?: string;
   /**

@@ -10,6 +10,7 @@ import { PlatformFeatures, SixMonthRoadmap, FutureOutcomes } from './sectionsB';
 import { HumanCoachSection, AiTeachersSection, TestimonialsSection } from './sectionsC';
 import { ComparisonSection, CourseContentsSection, PricingSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
+import { LegalFooterLinks } from '../legal/LegalPage';
 
 const SITE = 'https://kawabado.com';
 
@@ -75,9 +76,18 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             <span className="inline-grid place-items-center w-8 h-8 rounded-full bg-lp-coral text-white text-sm" aria-hidden="true">和</span>
             <span>{lang === 'ja' ? `${v.name.ja}の日本語会話` : `${v.name.zh}的日语会话`}</span>
           </div>
-          <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem]" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
-            {LP.ctaPrimary[lang]}
-          </CtaButton>
+          <div className="flex items-center gap-3">
+            {/* 言語切替（2026-07-31 P1修正: /zh LPは存在するのに/jaから到達不能だった。
+                issue report「中国語にならない」の根本原因。aタグ=JSなしでも遷移・SEO可読） */}
+            <a href={`/${other}/${path}`} data-lp-lang-switch
+              aria-label={lang === 'ja' ? '切换到中文页面' : '日本語ページへ切り替え'}
+              className="text-[0.92rem] font-bold text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 flex items-center">
+              {lang === 'ja' ? '中文' : '日本語'}
+            </a>
+            <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem]" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
+              {LP.ctaPrimary[lang]}
+            </CtaButton>
+          </div>
         </div>
       </header>
 
@@ -107,6 +117,15 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             {lang === 'ja' ? `${v.name.ja}の日本語会話` : `${v.name.zh}的日语会话`}
           </div>
           <span>{LP.footerTagline[lang]}</span>
+          <a href={`/${other}/${path}`} data-lp-lang-switch-footer
+            className="underline underline-offset-4 hover:text-lp-ink">
+            {lang === 'ja' ? '中文版' : '日本語版'}
+          </a>
+        </div>
+        {/* 法務リンク。事実が確定するまで LegalPage 側が入口へ戻すので、
+            リンク自体は常に置いておき、公開時に一箇所の切替だけで有効になる */}
+        <div className="mx-auto max-w-6xl px-5 mt-6 text-lp-ink-soft" data-lp-legal-links>
+          <LegalFooterLinks lang={lang} />
         </div>
       </footer>
 

@@ -1,0 +1,708 @@
+{
+ "total": 140,
+ "imported": 25,
+ "missing": 115,
+ "humanApproved": 0,
+ "items": [
+  {
+   "id": "fi-namae",
+   "lemma": "名前",
+   "status": "none"
+  },
+  {
+   "id": "fi-shusshin",
+   "lemma": "出身",
+   "status": "none"
+  },
+  {
+   "id": "fi-chugoku",
+   "lemma": "中国",
+   "status": "none"
+  },
+  {
+   "id": "fi-nihon",
+   "lemma": "日本",
+   "status": "none"
+  },
+  {
+   "id": "fi-gakusei",
+   "lemma": "学生",
+   "status": "none"
+  },
+  {
+   "id": "fi-kaishain",
+   "lemma": "会社員",
+   "status": "none"
+  },
+  {
+   "id": "fi-kaisha",
+   "lemma": "会社",
+   "status": "none"
+  },
+  {
+   "id": "fi-nihongo",
+   "lemma": "日本語",
+   "status": "none"
+  },
+  {
+   "id": "fi-sumu",
+   "lemma": "住む",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-hataraku",
+   "lemma": "働く",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-benkyo",
+   "lemma": "勉強する",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-iku",
+   "lemma": "行く",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-kuru",
+   "lemma": "来る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-suru",
+   "lemma": "する",
+   "status": "none"
+  },
+  {
+   "id": "fi-taberu",
+   "lemma": "食べる",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-miru",
+   "lemma": "見る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-hanasu",
+   "lemma": "話す",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-kiku",
+   "lemma": "聞く",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-kaku",
+   "lemma": "書く",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-yomu",
+   "lemma": "読む",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-kau",
+   "lemma": "買う",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-kaeru",
+   "lemma": "帰る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-wakaru",
+   "lemma": "分かる",
+   "status": "none"
+  },
+  {
+   "id": "fi-aru",
+   "lemma": "ある",
+   "status": "none"
+  },
+  {
+   "id": "fi-iru-exist",
+   "lemma": "いる",
+   "status": "none"
+  },
+  {
+   "id": "fi-neko",
+   "lemma": "猫",
+   "status": "none"
+  },
+  {
+   "id": "fi-densha",
+   "lemma": "電車",
+   "status": "none"
+  },
+  {
+   "id": "fi-okiru",
+   "lemma": "起きる",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-ikura",
+   "lemma": "いくら",
+   "status": "none"
+  },
+  {
+   "id": "fi-ikutsu",
+   "lemma": "いくつ",
+   "status": "none"
+  },
+  {
+   "id": "fi-nanji",
+   "lemma": "何時",
+   "status": "none"
+  },
+  {
+   "id": "fi-kore",
+   "lemma": "これ",
+   "status": "none"
+  },
+  {
+   "id": "fi-en",
+   "lemma": "円",
+   "status": "none"
+  },
+  {
+   "id": "fi-kudasai",
+   "lemma": "ください",
+   "status": "none"
+  },
+  {
+   "id": "fi-nomu",
+   "lemma": "飲む",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-tsukau",
+   "lemma": "使う",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-tsukuru",
+   "lemma": "作る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-au",
+   "lemma": "会う",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-neru",
+   "lemma": "寝る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-hairu",
+   "lemma": "入る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-deru",
+   "lemma": "出る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-noru",
+   "lemma": "乗る",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-oriru",
+   "lemma": "降りる",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-ookii",
+   "lemma": "大きい",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-chiisai",
+   "lemma": "小さい",
+   "status": "none"
+  },
+  {
+   "id": "fi-takai",
+   "lemma": "高い",
+   "status": "planned"
+  },
+  {
+   "id": "fi-yasui",
+   "lemma": "安い",
+   "status": "none"
+  },
+  {
+   "id": "fi-atarashii",
+   "lemma": "新しい",
+   "status": "planned"
+  },
+  {
+   "id": "fi-furui",
+   "lemma": "古い",
+   "status": "none"
+  },
+  {
+   "id": "fi-atsui",
+   "lemma": "暑い",
+   "status": "imported_draft"
+  },
+  {
+   "id": "fi-samui",
+   "lemma": "寒い",
+   "status": "none"
+  },
+  {
+   "id": "fi-isogashii",
+   "lemma": "忙しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-tanoshii",
+   "lemma": "楽しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-muzukashii",
+   "lemma": "難しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-chikai",
+   "lemma": "近い",
+   "status": "planned"
+  },
+  {
+   "id": "fi-tooi",
+   "lemma": "遠い",
+   "status": "none"
+  },
+  {
+   "id": "fi-ooi",
+   "lemma": "多い",
+   "status": "planned"
+  },
+  {
+   "id": "fi-sukunai",
+   "lemma": "少ない",
+   "status": "none"
+  },
+  {
+   "id": "fi-oishii",
+   "lemma": "おいしい",
+   "status": "planned"
+  },
+  {
+   "id": "fi-suki",
+   "lemma": "好き",
+   "status": "none"
+  },
+  {
+   "id": "fi-genki",
+   "lemma": "元気",
+   "status": "none"
+  },
+  {
+   "id": "fi-shizuka",
+   "lemma": "静か",
+   "status": "none"
+  },
+  {
+   "id": "fi-benri",
+   "lemma": "便利",
+   "status": "none"
+  },
+  {
+   "id": "fi-kantan",
+   "lemma": "簡単",
+   "status": "none"
+  },
+  {
+   "id": "fi-yuumei",
+   "lemma": "有名",
+   "status": "none"
+  },
+  {
+   "id": "fi-jouzu",
+   "lemma": "上手",
+   "status": "none"
+  },
+  {
+   "id": "fi-ie",
+   "lemma": "家",
+   "status": "none"
+  },
+  {
+   "id": "fi-eki",
+   "lemma": "駅",
+   "status": "planned"
+  },
+  {
+   "id": "fi-gakkou",
+   "lemma": "学校",
+   "status": "none"
+  },
+  {
+   "id": "fi-byouin",
+   "lemma": "病院",
+   "status": "planned"
+  },
+  {
+   "id": "fi-kusuri",
+   "lemma": "薬",
+   "status": "none"
+  },
+  {
+   "id": "fi-mizu",
+   "lemma": "水",
+   "status": "none"
+  },
+  {
+   "id": "fi-tomodachi",
+   "lemma": "友達",
+   "status": "none"
+  },
+  {
+   "id": "fi-kazoku",
+   "lemma": "家族",
+   "status": "none"
+  },
+  {
+   "id": "fi-shigoto",
+   "lemma": "仕事",
+   "status": "none"
+  },
+  {
+   "id": "fi-okane",
+   "lemma": "お金",
+   "status": "none"
+  },
+  {
+   "id": "fi-basu",
+   "lemma": "バス",
+   "status": "none"
+  },
+  {
+   "id": "fi-sensei",
+   "lemma": "先生",
+   "status": "none"
+  },
+  {
+   "id": "fi-kawaru",
+   "lemma": "変わる",
+   "status": "none"
+  },
+  {
+   "id": "fi-kaeru-change",
+   "lemma": "変える",
+   "status": "none"
+  },
+  {
+   "id": "fi-fueru",
+   "lemma": "増える",
+   "status": "none"
+  },
+  {
+   "id": "fi-heru",
+   "lemma": "減る",
+   "status": "none"
+  },
+  {
+   "id": "fi-hajimeru",
+   "lemma": "始める",
+   "status": "none"
+  },
+  {
+   "id": "fi-owaru",
+   "lemma": "終わる",
+   "status": "none"
+  },
+  {
+   "id": "fi-tsuzukeru",
+   "lemma": "続ける",
+   "status": "none"
+  },
+  {
+   "id": "fi-tsuzuku",
+   "lemma": "続く",
+   "status": "none"
+  },
+  {
+   "id": "fi-kimeru",
+   "lemma": "決める",
+   "status": "none"
+  },
+  {
+   "id": "fi-kimaru",
+   "lemma": "決まる",
+   "status": "none"
+  },
+  {
+   "id": "fi-omou",
+   "lemma": "思う",
+   "status": "none"
+  },
+  {
+   "id": "fi-kangaeru",
+   "lemma": "考える",
+   "status": "none"
+  },
+  {
+   "id": "fi-kanjiru",
+   "lemma": "感じる",
+   "status": "none"
+  },
+  {
+   "id": "fi-tsutaeru",
+   "lemma": "伝える",
+   "status": "none"
+  },
+  {
+   "id": "fi-setsumei",
+   "lemma": "説明する",
+   "status": "none"
+  },
+  {
+   "id": "fi-soudan",
+   "lemma": "相談する",
+   "status": "none"
+  },
+  {
+   "id": "fi-renraku",
+   "lemma": "連絡する",
+   "status": "none"
+  },
+  {
+   "id": "fi-kakunin",
+   "lemma": "確認する",
+   "status": "none"
+  },
+  {
+   "id": "fi-junbi",
+   "lemma": "準備する",
+   "status": "none"
+  },
+  {
+   "id": "fi-yoyaku",
+   "lemma": "予約する",
+   "status": "none"
+  },
+  {
+   "id": "fi-riyou",
+   "lemma": "利用する",
+   "status": "none"
+  },
+  {
+   "id": "fi-erabu",
+   "lemma": "選ぶ",
+   "status": "none"
+  },
+  {
+   "id": "fi-shiraberu",
+   "lemma": "調べる",
+   "status": "none"
+  },
+  {
+   "id": "fi-oboeru",
+   "lemma": "覚える",
+   "status": "none"
+  },
+  {
+   "id": "fi-wasureru",
+   "lemma": "忘れる",
+   "status": "none"
+  },
+  {
+   "id": "fi-kuraberu",
+   "lemma": "比べる",
+   "status": "none"
+  },
+  {
+   "id": "fi-nareru",
+   "lemma": "慣れる",
+   "status": "none"
+  },
+  {
+   "id": "fi-komaru",
+   "lemma": "困る",
+   "status": "none"
+  },
+  {
+   "id": "fi-ganbaru",
+   "lemma": "頑張る",
+   "status": "none"
+  },
+  {
+   "id": "fi-kimochi",
+   "lemma": "気持ち",
+   "status": "none"
+  },
+  {
+   "id": "fi-kibun",
+   "lemma": "気分",
+   "status": "none"
+  },
+  {
+   "id": "fi-riyuu",
+   "lemma": "理由",
+   "status": "none"
+  },
+  {
+   "id": "fi-iken",
+   "lemma": "意見",
+   "status": "none"
+  },
+  {
+   "id": "fi-keiken",
+   "lemma": "経験",
+   "status": "none"
+  },
+  {
+   "id": "fi-yotei",
+   "lemma": "予定",
+   "status": "none"
+  },
+  {
+   "id": "fi-shuukan",
+   "lemma": "習慣",
+   "status": "none"
+  },
+  {
+   "id": "fi-houhou",
+   "lemma": "方法",
+   "status": "none"
+  },
+  {
+   "id": "fi-mondai",
+   "lemma": "問題",
+   "status": "none"
+  },
+  {
+   "id": "fi-joukyou",
+   "lemma": "状況",
+   "status": "none"
+  },
+  {
+   "id": "fi-kankei",
+   "lemma": "関係",
+   "status": "none"
+  },
+  {
+   "id": "fi-jouhou",
+   "lemma": "情報",
+   "status": "none"
+  },
+  {
+   "id": "fi-tsugou",
+   "lemma": "都合",
+   "status": "none"
+  },
+  {
+   "id": "fi-yakusoku",
+   "lemma": "約束",
+   "status": "none"
+  },
+  {
+   "id": "fi-kyoumi",
+   "lemma": "興味",
+   "status": "none"
+  },
+  {
+   "id": "fi-ureshii",
+   "lemma": "嬉しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-kanashii",
+   "lemma": "悲しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-sabishii",
+   "lemma": "寂しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-hazukashii",
+   "lemma": "恥ずかしい",
+   "status": "none"
+  },
+  {
+   "id": "fi-kibishii",
+   "lemma": "厳しい",
+   "status": "none"
+  },
+  {
+   "id": "fi-taihen",
+   "lemma": "大変",
+   "status": "none"
+  },
+  {
+   "id": "fi-hitsuyou",
+   "lemma": "必要",
+   "status": "none"
+  },
+  {
+   "id": "fi-muri",
+   "lemma": "無理",
+   "status": "none"
+  },
+  {
+   "id": "fi-fukuzatsu",
+   "lemma": "複雑",
+   "status": "none"
+  },
+  {
+   "id": "fi-jiyuu",
+   "lemma": "自由",
+   "status": "none"
+  },
+  {
+   "id": "fi-tabun",
+   "lemma": "たぶん",
+   "status": "none"
+  },
+  {
+   "id": "fi-kanarazu",
+   "lemma": "必ず",
+   "status": "none"
+  },
+  {
+   "id": "fi-saikin",
+   "lemma": "最近",
+   "status": "none"
+  },
+  {
+   "id": "fi-zenzen",
+   "lemma": "全然",
+   "status": "none"
+  },
+  {
+   "id": "fi-nakanaka",
+   "lemma": "なかなか",
+   "status": "none"
+  },
+  {
+   "id": "fi-yatto",
+   "lemma": "やっと",
+   "status": "none"
+  },
+  {
+   "id": "fi-tsumari",
+   "lemma": "つまり",
+   "status": "none"
+  },
+  {
+   "id": "fi-sorede",
+   "lemma": "それで",
+   "status": "none"
+  }
+ ]
+}
