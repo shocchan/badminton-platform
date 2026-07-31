@@ -14,7 +14,7 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 |---|---|
 | release branch | `feature/ai-course-learning-polish` |
 | RC HEAD | 下記「RC tag」の指す commit |
-| RC tag | `ai-course-content-rc1` |
+| RC tag | `ai-course-content-rc2`（rc1 は `e85c3c8` を指したまま残す。上書きしない） |
 | working tree | clean |
 | origin push | 済 |
 | main | 未merge（本番は従来系統のまま） |
@@ -39,10 +39,10 @@ Phase B（会話文脈・Loading・横断品質・イラスト・lint）を終�
 
 | 検査 | 結果 |
 |---|---|
-| tests | **1295 PASS / 0 FAIL**（Phase B開始時 1212 → +83） |
+| tests | **1300 PASS / 0 FAIL**（Phase B開始時 1212 → +88） |
 | tsc（`tsc -b`） | PASS |
 | production build | PASS（`dist/_worker.js` 生成まで） |
-| lint | **29 errors / 6 warnings**（すべてバドミントン本体側の既存分。AIコース側 0） |
+| lint | 全体 **29E / 6W**（すべてバドミントン本体側の既存分）／**AIコース側 0E / 0W** |
 
 > 注: `npx tsc --noEmit` は本環境のCLI proxy経由だと実エラーを取りこぼすことがあった。
 > 型の判定は必ず `npm run build`（`tsc -b`）で行うこと。
@@ -158,29 +158,54 @@ warnings 6件はすべて `react-hooks/exhaustive-deps`（同ファイル群）�
 
 ---
 
-## 9. 人間ゲート（コード側では閉じられない）
+## 9. 人間ゲート（CEO決定 2026-07-31: 本番公開直前にまとめて実施）
 
-| ゲート | 状態 | 根拠 / 残 |
+CEOの決定により、以下は**本番公開直前・本番用の認証情報や承認を渡す前に**
+CEO本人がまとめて実施する。コード側の完成を待たせないため、
+BLOCKED ではなく **DEFERRED_BY_CEO_UNTIL_RELEASE** として扱う。
+
+| ゲート | 状態 | コード側の準備 |
 |---|---|---|
-| ① Remote DB・RLS・Server Sync | **COMPLETE** | `gate1-integrity-recheck.md`（リリース直前にread-onlyで再照合。baseline完全一致） |
-| ② 実機確認（iPhone / Android / VO / TalkBack） | **BLOCKED_EXTERNAL** | 物理端末でしか確認できない。`device-check-packet.md` に記入が無い |
-| ③ 法務 | **BLOCKED_EXTERNAL** | ページ実装・route・i18n・footer・testはAI側で完了（`e72580d`）。残るのはCEOしか答えられない事実14項目 |
-| ④ 公開教材範囲の人間確認 | **BLOCKED_EXTERNAL** | CEOの目視結果がrepo内に存在しない |
-| ⑤ Backup・Monitoring・Rollback | **COMPLETE** | GATE⑤（`release-manifest-august-pilot.md`） |
-| 認証済み staging smoke | **COMPLETE** | `authenticated-staging-smoke.md`（前回未実施だった項目を今回実施） |
-| production preflight | **COMPLETE** | `production-preflight.md` |
-| 本番リリース承認 | 未取得 | `APPROVE_AI_COURSE_AUGUST_PILOT_RELEASE` |
+| ① Remote DB・RLS・Server Sync | **COMPLETE** | `gate1-integrity-recheck.md`（read-onlyで再照合・baseline完全一致） |
+| ⑤ Backup・Monitoring・Rollback | **COMPLETE** | GATE⑤ |
+| 実機確認（iPhone/Android/VO/TalkBack） | DEFERRED_BY_CEO_UNTIL_RELEASE | `device-check-packet.md`（20〜30分・番号にPASS/FAILで回答） |
+| 法務事実の最終確認 | DEFERRED_BY_CEO_UNTIL_RELEASE | **Legal Code Complete**。`legalFacts.ts` の14項目を埋めるだけで公開される |
+| 公開教材範囲の目視 | DEFERRED_BY_CEO_UNTIL_RELEASE | 教材はruntime接続・test・staging確認まで完了。昇格は未実施 |
+| Learner account／invite | DEFERRED_BY_CEO_UNTIL_RELEASE | Release Operations Phase（今回は実装も発行もしない） |
+| production認証情報・承認 | DEFERRED_BY_CEO_UNTIL_RELEASE | `verify-production-env.mjs` で構成側は P0 0 / P1 0 |
 
-### Gate③ の残（CEOしか答えられない事実・14項目）
+### 法務: コード側は完成済み
 
-`src/lib/aiLesson/course/legal/legalFacts.ts` の null 項目がそのまま残作業:
+| 項目 | 状態 |
+|---|---|
+| 8ページ ja/zh | 完了 |
+| route（16URL） | 完了・staging で全 **200** |
+| LP footer | 8リンク（従来0本） |
+| 学習アプリ footer | 8リンク |
+| 申込前の同意チェック | 完了（未公開のあいだは同意欄自体を出さない＝読めない文書に同意させない） |
+| 削除申請・アカウント削除の導線 | 完了 |
+| mobile タップ標的 | 44px |
+| noindex（未公開時） | 完了 |
+| canonical / hreflang | 完了 |
+| tests | 22件（legal 17 + consent 5） |
+
+**残るのは `src/lib/aiLesson/course/legal/legalFacts.ts` の null 14項目のみ。**
+値を入れると `LEGAL_PUBLISH` が自動で true になり、8ページが公開され同意チェックが有効になる。
 
 `operatorName` / `address` / `phone` / `priceJpyTaxIncluded` / `paymentMethods` /
 `paymentTiming` / `serviceStartTiming` / `refundPolicy` / `retentionPeriod` /
 `deletionSlaDays` / `improvementUseAllowed` / `minimumAge` / `externalAiVendors` / `governingLaw`
 
-この14項目が埋まると `LEGAL_PUBLISH` が自動で true になり、8ページが公開される。
-コード変更は値の記入だけで済む。
+専門家レビューは Public General Release の条件とし、August Pilot とは分離する。
 
-なお **専門家レビューは Public General Release の条件**であり、
-August Pilot の Gate③ とは分離して扱う（`legal-draft-packet-20260730.md` の方針）。
+## 10. 本番環境の検査
+
+`node scripts/ai-course/verify-production-env.mjs` → **P0 FAIL 0 / P1 FAIL 0**
+
+- `VITE_` 接頭辞での秘密露出 **0件**
+- ソースへの秘密ベタ書き **0件**
+- クライアント鍵が service_role でない（JWT `role=anon` を実確認）
+- source map 無効 / 学習アプリ noindex / 窓口が info@kawabado.com に集約
+- Supabase は staging と production で同一プロジェクト（既知の構成・fixture作法で運用）
+
+ダッシュボード上の実値確認は **VALUE_CONFIRMATION_DEFERRED_BY_CEO**。
