@@ -42,11 +42,11 @@ export interface AdvBattleQuestion {
 export const matchKeysOf = (d: GrammarDraftLike): string[] => {
   if (d.matchKeys && d.matchKeys.length > 0) return d.matchKeys;
   const base = d.pattern.replace(/[〜～]/g, '');
-  const parts = base.split(/[／\/]/).map((p) => p.replace(/（[^）]*）/g, '').trim()).filter((p) => p.length > 0);
+  const parts = base.split(/[／/]/).map((p) => p.replace(/（[^）]*）/g, '').trim()).filter((p) => p.length > 0);
   return parts.length > 0 ? parts : [base];
 };
 
-const normalizePattern = (p: string): string => p.replace(/[〜～（）()／\/\s]/g, '');
+const normalizePattern = (p: string): string => p.replace(/[〜～（）()／/\s]/g, '');
 
 /**
  * 同義・類似の除外集合（両方向）。

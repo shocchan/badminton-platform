@@ -31,6 +31,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   route: null,
   mastery: {},
   lastQuest: null,
+  todaySteps: null,
   questLog: [],
   humanLesson: {},
   createdAt: nowISO,
@@ -95,6 +96,9 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     mastery: isRecord(raw.mastery) ? (raw.mastery as AdventureV2Profile['mastery']) : {},
     lastQuest: isRecord(raw.lastQuest) && typeof raw.lastQuest.dateKey === 'string'
       ? (raw.lastQuest as unknown as AdventureV2Profile['lastQuest']) : null,
+    todaySteps: isRecord(raw.todaySteps) && typeof raw.todaySteps.dateKey === 'string' && Array.isArray(raw.todaySteps.done)
+      ? { dateKey: raw.todaySteps.dateKey, done: (raw.todaySteps.done as unknown[]).filter((n): n is number => typeof n === 'number') }
+      : null,
     questLog: Array.isArray(raw.questLog)
       ? (raw.questLog.filter((e) => isRecord(e) && typeof e.dateKey === 'string') as AdventureV2Profile['questLog'])
       : [],

@@ -58,6 +58,8 @@ const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundati
 const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
 const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
 const N2QuestLazy = lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'));
+// Adventure V2（learner単位flag・adventure-v2 D-004）。flag無効のlearnerには一切ロードされない
+const AdvShellLazy = lazy(() => import('../../components/ai-course/adventure/AdvShell'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -98,6 +100,7 @@ import { createUnsetSupportAdapter } from '../../lib/aiLesson/course/ops/support
 // support送信先が確定するまでの既定adapter（「受け付けました」と偽らない・§19）
 const supportAdapter = createUnsetSupportAdapter();
 import { deriveCurrentAreaId, areaNodeStateOf } from '../../lib/aiLesson/course/rpg/worldProgress';
+import { isAdvEnabled, readAdvProfile, writeAdvProfile, defaultAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
 
 type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
@@ -999,6 +1002,68 @@ export default function AiCoursePage() {
               zh: '如果问题一直没有解决，请直接告诉老师。',
             }}
           />
+        </div>
+      </Shell>
+    );
+  }
+
+  // ── Adventure V2（learner単位feature flag・adventure-v2 §2/D-004）──
+  // 有効learnerのみHomeをV2へ切替。lesson/report/設定など他stepは共通（既存runtime再利用・§19）。
+  if (isAdvEnabled(learner.settings)) {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+          <AdvShellLazy
+            lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
+            onSaveSettings={(next) => {
+              setLearner({ ...learner, settings: next });
+              void courseRepository.updateLearner({ settings: next });
+            }}
+            onOpenReview={openReview}
+            onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
+            conversationAvailable={!!plan && remaining > 0}
+            onStartRestate={() => setStep('light')}
+            restateAvailable={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
+            onOpenArea={openArea}
+            onExitV2={() => {
+              const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
+              const next = writeAdvProfile(learner.settings, { ...prof, enabled: false }, new Date().toISOString());
+              setLearner({ ...learner, settings: next });
+              void courseRepository.updateLearner({ settings: next });
+            }}
+          />
+        </Suspense>
+      </Shell>
+    );
+  }
+  // V2の入口: URLに ?v2=1 があるときだけ表示（既存learnerを自動移行しない・§2/§23）
+  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+        <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
+          <h2 className="text-lg font-bold text-gray-900">
+            {uiLang === 'zh' ? '要开始「冒险模式V2（测试版）」吗？' : '「冒険モードV2（ベータ）」を始めますか？'}
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-gray-600">
+            {uiLang === 'zh'
+              ? '目的地由你选择，当前位置由AI判断，每天的学习冒险由AI为你安排。现在的学习数据不会被删除，随时可以回到原来的主页。'
+              : '目的地はあなたが選び、現在地はAIが測り、今日の冒険はAIが案内します。いまの学習データは消えません。いつでも従来のホームに戻せます。'}
+          </p>
+          <button type="button"
+            className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white"
+            onClick={() => {
+              trackCourse('adv_onboarding_started');
+              const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
+              const next = writeAdvProfile(learner.settings, { ...prof, enabled: true }, new Date().toISOString());
+              setLearner({ ...learner, settings: next });
+              void courseRepository.updateLearner({ settings: next });
+            }}>
+            {uiLang === 'zh' ? '开始冒险' : '冒険を始める'}
+          </button>
+          <button type="button" className="mt-3 w-full min-h-[44px] text-sm text-gray-500 underline"
+            onClick={() => { window.history.replaceState(null, '', window.location.pathname); setStep('home'); }}>
+            {uiLang === 'zh' ? '回到原来的主页' : '従来のホームへ'}
+          </button>
         </div>
       </Shell>
     );

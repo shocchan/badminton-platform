@@ -194,6 +194,8 @@ export interface AdventureV2Profile {
   mastery: AdvMasteryLedger;
   /** 前日クエストの重複回避（§13） */
   lastQuest: { dateKey: string; primaryTargets: string[]; stepKinds: string[] } | null;
+  /** 今日のステップ完了チェック（reload/端末間で復元・§25。攻略の正準はmastery台帳） */
+  todaySteps: { dateKey: string; done: number[] } | null;
   /** クエスト完了の連続性（consistency能力の証拠） */
   questLog: { dateKey: string; completedSteps: number; totalSteps: number }[];
   humanLesson: AdvHumanLessonState;
