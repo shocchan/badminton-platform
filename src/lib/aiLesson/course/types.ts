@@ -109,6 +109,12 @@ export interface LearnerSettings {
    * 既存 settings(jsonb) への追加フィールド＝新規テーブル不要・非破壊。
    */
   practiceAgainIds?: string[];
+  /**
+   * Adventure V2 プロファイル（learner単位feature flag込み・D-003/D-004）。
+   * 未定義 = V2未使用（従来Home）。型は adventure/advTypes.ts の AdventureV2Profile。
+   * jsonbへの追加フィールド＝migration不要・既存learner非破壊。
+   */
+  adventureV2?: unknown;
 }
 
 export interface AdminOverrides {
