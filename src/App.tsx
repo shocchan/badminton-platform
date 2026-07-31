@@ -47,6 +47,8 @@ const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPag
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
+// 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
+const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 
 /**
  * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
@@ -115,6 +117,15 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
               <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
+              {/* 法務8ページ。catch-allより前に置かないと全部入口へ吸われる */}
+              <Route path="ai-course/terms"            element={<LegalPage id="terms" />} />
+              <Route path="ai-course/privacy"          element={<LegalPage id="privacy" />} />
+              <Route path="ai-course/ai-disclosure"    element={<LegalPage id="ai-disclosure" />} />
+              <Route path="ai-course/tokushoho"        element={<LegalPage id="tokushoho" />} />
+              <Route path="ai-course/cancel-policy"    element={<LegalPage id="cancel-policy" />} />
+              <Route path="ai-course/data-deletion"    element={<LegalPage id="data-deletion" />} />
+              <Route path="ai-course/account-deletion" element={<LegalPage id="account-deletion" />} />
+              <Route path="ai-course/contact"          element={<LegalPage id="contact" />} />
               {/* コース配下の不明URLはコース入口へ戻す（P2-15: バドミントン側404へ落とさない）。
                   注意: splatは空文字にもマッチするため、空なら入口を描画して自己リダイレクトのループを防ぐ */}
               <Route path="ai-course/*"     element={<AiCourseCatchAll />} />

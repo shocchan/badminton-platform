@@ -10,6 +10,7 @@ import { PlatformFeatures, SixMonthRoadmap, FutureOutcomes } from './sectionsB';
 import { HumanCoachSection, AiTeachersSection, TestimonialsSection } from './sectionsC';
 import { ComparisonSection, CourseContentsSection, PricingSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
+import { LegalFooterLinks } from '../legal/LegalPage';
 
 const SITE = 'https://kawabado.com';
 
@@ -120,6 +121,11 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             className="underline underline-offset-4 hover:text-lp-ink">
             {lang === 'ja' ? '中文版' : '日本語版'}
           </a>
+        </div>
+        {/* 法務リンク。事実が確定するまで LegalPage 側が入口へ戻すので、
+            リンク自体は常に置いておき、公開時に一箇所の切替だけで有効になる */}
+        <div className="mx-auto max-w-6xl px-5 mt-6 text-lp-ink-soft" data-lp-legal-links>
+          <LegalFooterLinks lang={lang} />
         </div>
       </footer>
 
