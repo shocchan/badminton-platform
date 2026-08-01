@@ -6,9 +6,20 @@ import { describe, it, expect } from 'vitest';
 import { buildAdventureMap, availableRouteKinds } from './advMapModel';
 import { generateRoute } from './advRoute';
 import { defaultAdvProfile } from './advProfile';
-import type { AdventureV2Profile, AdvGoalType } from './advTypes';
+import type { AdventureV2Profile, AdvGoalType, AdvMasteryAttempt } from './advTypes';
 
 const NOW = '2026-08-02T00:00:00.000Z';
+
+/** 攻略にカウントされる試行（80%以上・未出3割以上・複数タイプ） */
+const qualifying = (dateKey: string): AdvMasteryAttempt => ({
+  dateKey,
+  scorePct: 90,
+  unseenRatio: 0.5,
+  questionKeys: ['rec:a', 'rec:b', 'cloze:c', 'cloze:d', 'meaning:e'],
+  tier: 'normal',
+  timed: false,
+  completedAt: `${dateKey}T09:00:00.000Z`,
+});
 
 const profileFor = (goalType: AdvGoalType): AdventureV2Profile => ({
   ...defaultAdvProfile(NOW),
@@ -77,6 +88,126 @@ describe('冒険マップ — 表示の誠実さ', () => {
     const prof = profileFor('hybrid');
     const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'combined');
     expect(new Set(m.regions.map((r) => r.landmark)).size).toBeGreaterThan(4);
+  });
+});
+
+describe('成長マップ — 行き止まりを作らない（原則15）', () => {
+  it('**すべての地域が押せる行動を1つ持つ**（ラベルと理由が空でない）', () => {
+    for (const goal of ['jlpt', 'conversation', 'hybrid'] as AdvGoalType[]) {
+      const prof = profileFor(goal);
+      for (const kind of availableRouteKinds(goal)) {
+        for (const r of buildAdventureMap(prof, prof.route, new Set(), 1, kind, NOW).regions) {
+          const where = `${goal}/${kind}/${r.id}`;
+          expect(r.action.labelJa.length, where).toBeGreaterThan(0);
+          expect(r.action.labelZh.length, where).toBeGreaterThan(0);
+          expect(r.action.reasonJa.length, where).toBeGreaterThan(0);
+          expect(r.action.reasonZh.length, where).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('攻略済みの地域は「復習で維持」へ繋がる', () => {
+    const prof = profileFor('jlpt');
+    const first = prof.route!.stages[0].stageId;
+    const m = buildAdventureMap(prof, prof.route, new Set([first]), 1, 'exam', NOW);
+    expect(m.regions.find((r) => r.id === first)!.action.kind).toBe('review');
+  });
+
+  it('模試の地域が現在地になったら模試へ繋がる', () => {
+    const prof = profileFor('jlpt');
+    const stages = prof.route!.stages;
+    const boss = stages[stages.length - 1];
+    expect(boss.kind).toBe('mock_boss');
+    // 手前を全部攻略すると模試が現在地になる
+    const done = new Set(stages.slice(0, -1).map((s) => s.stageId));
+    const m = buildAdventureMap(prof, prof.route, done, 1, 'exam', NOW);
+    expect(m.currentRegionId).toBe(boss.stageId);
+    expect(m.regions.find((r) => r.id === boss.stageId)!.action.kind).toBe('mock');
+  });
+
+  it('会話は**現在地だけ**AI会話へ繋ぐ（先の週の会話へ飛ばさない）', () => {
+    const prof = profileFor('conversation');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'conversation', NOW);
+    const cur = m.regions.find((r) => r.id === m.currentRegionId)!;
+    expect(cur.action.kind).toBe('conversation');
+    // まだ着いていない地域から会話を始めると、いまの週の会話が出て話が噛み合わない
+    for (const r of m.regions.filter((x) => x.state === 'next' || x.state === 'locked')) {
+      expect(r.action.kind, r.id).toBe('today');
+    }
+  });
+
+  it('**未解放の地域は「どうすれば開くか」を必ず持つ**', () => {
+    const prof = profileFor('jlpt');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'exam', NOW);
+    const ahead = m.regions.filter((r) => r.state === 'next' || r.state === 'locked');
+    expect(ahead.length).toBeGreaterThan(0);
+    for (const r of ahead) {
+      expect(r.unlockJa.length, r.id).toBeGreaterThan(0);
+      expect(r.unlockZh.length, r.id).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('成長マップ — 場所の違いが伝わる', () => {
+  it('全地域が章・短い説明・色調を持つ', () => {
+    for (const goal of ['jlpt', 'conversation', 'hybrid'] as AdvGoalType[]) {
+      const prof = profileFor(goal);
+      for (const kind of availableRouteKinds(goal)) {
+        for (const r of buildAdventureMap(prof, prof.route, new Set(), 1, kind, NOW).regions) {
+          const where = `${goal}/${kind}/${r.id}`;
+          expect(r.chapterJa.length, where).toBeGreaterThan(0);
+          expect(r.chapterZh.length, where).toBeGreaterThan(0);
+          expect(r.blurbJa.length, where).toBeGreaterThan(0);
+          expect(r.blurbZh.length, where).toBeGreaterThan(0);
+          expect(r.tone.length, where).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it('**隣り合う地域の色調が同じにならない**（並べたとき「どこも同じ」に見せない）', () => {
+    const prof = profileFor('hybrid');
+    const regions = buildAdventureMap(prof, prof.route, new Set(), 1, 'combined', NOW).regions;
+    for (let i = 1; i < regions.length; i += 1) {
+      expect(regions[i].tone, `${regions[i - 1].id} → ${regions[i].id}`).not.toBe(regions[i - 1].tone);
+    }
+  });
+
+  it('章は1つではない（進むと章が変わる）', () => {
+    const prof = profileFor('hybrid');
+    const regions = buildAdventureMap(prof, prof.route, new Set(), 1, 'combined', NOW).regions;
+    expect(new Set(regions.map((r) => r.chapterJa)).size).toBeGreaterThan(2);
+  });
+});
+
+describe('成長マップ — 現在地の進み具合は実測値', () => {
+  it('別日2回の80%で、現在地の定着率が0%より上になる（0%固定にしない）', () => {
+    const base = profileFor('jlpt');
+    const stageId = base.route!.stages[0].stageId;
+    const prof: AdventureV2Profile = {
+      ...base,
+      mastery: { [stageId]: [qualifying('2026-07-28'), qualifying('2026-07-29')] },
+    };
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'exam', NOW);
+    const cur = m.regions.find((r) => r.id === m.currentRegionId)!;
+    expect(cur.id).toBe(stageId);
+    expect(cur.masteryPct).toBeGreaterThan(0);
+    expect(cur.masteryPct).toBeLessThan(100);
+    // 何回足りないかを出す（攻略条件の丸写しにしない）
+    expect(cur.nextJa).toContain('あと1回');
+  });
+
+  it('記録が無ければ現在地は0%（実測の0であって、未計測ではない）', () => {
+    const prof = profileFor('jlpt');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'exam', NOW);
+    expect(m.regions.find((r) => r.id === m.currentRegionId)!.masteryPct).toBe(0);
+  });
+
+  it('**会話が現在地でも定着率は未判定のまま**（測っていない）', () => {
+    const prof = profileFor('conversation');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'conversation', NOW);
+    expect(m.regions.find((r) => r.id === m.currentRegionId)!.masteryPct).toBeNull();
   });
 });
 

@@ -47,6 +47,12 @@ const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPag
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
+// 問題バンク監査コンソール。
+// **production ビルドではこの import 式ごと消える**（MODE が定数畳み込みされ、
+// 三項の false 側が dead code として除去される）ので、chunk すら生成されない。
+const QuestionBankConsole = import.meta.env.MODE === 'production'
+  ? null
+  : lazy(() => import('./pages/internal/QuestionBankConsole'));
 // 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
 const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 
@@ -153,6 +159,19 @@ const AnimatedRoutes = () => {
             <Route path="admin"        element={<AssistantAdminPage />} />
             <Route path="*"            element={<NotFoundPage />} />
           </Route>
+
+          {/*
+            問題バンク監査コンソール（CEO・管理者用・読み取り専用）。
+            **production ビルドには含めない。** MODE が production のときは
+            ルートも lazy import も評価されないので、一般learnerのバンドルにコードが入らない。
+          */}
+          {QuestionBankConsole !== null && (
+            <Route path="/internal/qa/question-bank" element={
+              <Suspense fallback={<div className="p-6 text-sm text-gray-600">読み込み中…</div>}>
+                <QuestionBankConsole />
+              </Suspense>
+            } />
+          )}
 
           {/* ── 言語によらないページ ── */}
           <Route path="/cancel"      element={<CancelEntryPage />} />

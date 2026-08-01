@@ -32,3 +32,9 @@ dist-scene-sheet*.html
 
 # AIコース語彙: JMdict由来の中間index（再生成可能・harvest scriptで再取得する）
 docs/ai-course/adventure-v2/generated/vocab-jmdict-index.json
+
+# 問題バンク監査CSV（1問1行・計32MB。scriptで再生成できるのでgitには入れない）
+#   再生成: ./node_modules/.bin/vite-node scripts/ai-course/question-bank-audit.ts
+# サマリだけは数字の履歴を追えるようcommitする
+docs/ai-course/adventure-v2/generated/question-bank/*.csv
+!docs/ai-course/adventure-v2/generated/question-bank/question-bank-summary.csv

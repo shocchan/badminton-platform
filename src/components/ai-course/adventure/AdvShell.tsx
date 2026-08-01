@@ -512,9 +512,13 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
-  // ── map（縦型roadmap・§9） ──
-  // ── 冒険マップ（旧「成長」の12週リストと旧ルート表示をここへ統合・canon §5） ──
+  // ── 成長マップ（旧「成長」の12週リストと旧ルート表示をここへ統合・canon §5） ──
+  //
+  // 地図の各地域のCTAは**実際の行動へ繋ぐ**（原則15・行き止まりを作らない）。
+  // 使えない行き先（復習が0件・会話が未開放）は AdvAdventureMap 側で今日の冒険へ倒れる。
   if (view === 'map') {
+    const mapNextIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
+    const mapNextStep = quest && mapNextIdx >= 0 ? quest.steps[mapNextIdx] : null;
     return (
       <AdvAdventureMap
         lang={lang}
@@ -523,8 +527,18 @@ export default function AdvShell(props: AdvShellProps) {
         mastered={masteredTargetIds(prof.mastery, nowISO)}
         currentWeek={learner.currentWeek ?? 1}
         quest={quest}
+        nextStepTitleJa={mapNextStep?.titleJa ?? null}
+        nextStepTitleZh={mapNextStep?.titleZh ?? null}
         onStartToday={() => setView('home')}
         onBack={() => setView('home')}
+        onOpenReview={props.onOpenReview}
+        reviewAvailable={props.reviewsDue > 0}
+        onStartConversation={() => {
+          trackAdv('conversation_started', { locale: lang });
+          props.onStartConversation();
+        }}
+        conversationAvailable={props.conversationAvailable}
+        onOpenMock={() => setView('mock')}
       />
     );
   }

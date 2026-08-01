@@ -1,0 +1,43 @@
+{
+  "generatedAt": "2026-08-01T16:47:06.913Z",
+  "countingRules": {
+    "note": "報告値を単純合計しない。questionId で集合演算する",
+    "questionId": "AdvBattleQuestion.key（例 vocab:勉強:べんきょう:meaning）",
+    "why": "N3スコープ(N5+N4+N3)は N2スコープ(N5+N4+N3+N2)の部分集合。足すと二重計上になる",
+    "poolNote": "同じ questionId でも N3プールと N2プールでは誤答の抽選seedが異なるため、選択肢が違う場合がある（正解は同じ）"
+  },
+  "uniqueQuestions": 11465,
+  "coreQuestions": 10125,
+  "n3Questions": 9767,
+  "n2Questions": 10125,
+  "n2n3Overlap": 9767,
+  "n3Only": 0,
+  "n2Only": 358,
+  "unitVocabularyQuestions": 463,
+  "unitGrammarQuestions": 877,
+  "unusedQuestions": 0,
+  "reportedFigures": {
+    "note": "これまでの報告値。合計してはいけない",
+    "coreVocabularyQuestions": 10125,
+    "n3CharactersVocabulary": 10230,
+    "n2CharactersVocabulary": 10588,
+    "naiveSum": 30017,
+    "actualUnique": 11465
+  },
+  "reviewState": {
+    "active": 11465,
+    "hold": 0,
+    "excludedFromCoreWords": 287,
+    "humanReviewed": 0
+  },
+  "warnings": {
+    "info:readiness_overcount": 9783,
+    "defect:length_skew": 1316,
+    "defect:correct_longest": 953,
+    "defect:duplicate_question_text": 522,
+    "defect:duplicate_choice_set": 202
+  },
+  "warningRows": 2409,
+  "infoRows": 9783,
+  "severityNote": "defect=直す候補 / info=事実の分類（readiness_overcount は設計どおりだが N2 readiness へ数えてはいけない）"
+}
