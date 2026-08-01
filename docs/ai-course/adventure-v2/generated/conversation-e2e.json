@@ -1,0 +1,98 @@
+{
+  "generatedAt": "2026-08-01T13:59:49.166Z",
+  "teacherId": "yuto",
+  "steps": [
+    {
+      "name": "ai_start_session（実RPC・利用上限を通過して予約）",
+      "ok": true,
+      "code": null,
+      "remainingSessions": 8
+    },
+    {
+      "name": "ai-lesson-token（実Edge Function・teacherId受け渡し）",
+      "ok": true,
+      "effectiveTeacherId": "yuto",
+      "effectiveVoice": "cedar",
+      "model": "gpt-realtime-2.1",
+      "secretRef": "3cac4f882411"
+    },
+    {
+      "name": "Realtime 会話（実音声・2往復）",
+      "ok": true,
+      "sessionVoice": "cedar",
+      "audioBytes": 2356686,
+      "tutorTurns": 3,
+      "studentTurns": 3,
+      "errors": []
+    },
+    {
+      "name": "目標表現が会話へ渡っている（サーバー側instructions）",
+      "ok": true,
+      "targetExpression": "〜たことがあります"
+    },
+    {
+      "name": "発話ログの保存（実DB・RLS通過）",
+      "ok": true,
+      "saved": 6,
+      "expected": 6,
+      "httpStatus": 201
+    },
+    {
+      "name": "ai-lesson-report（実Edge Function・実LLM）",
+      "ok": true,
+      "httpStatus": 200,
+      "reportKeys": [
+        "todaySummaryJa",
+        "todaySummaryZh",
+        "achievements",
+        "corrections",
+        "naturalPhrases",
+        "targetUsage",
+        "encouragementJa"
+      ],
+      "cached": false
+    },
+    {
+      "name": "言い直しの素材が生成されている（corrections / naturalPhrases）",
+      "ok": true,
+      "corrections": 0,
+      "naturalPhrases": 2,
+      "sampleCorrectionKeys": []
+    },
+    {
+      "name": "学習レポートの本文が日本語・中国語の両方で出ている",
+      "ok": true,
+      "hasAchievements": 2,
+      "targetUsage": "self"
+    },
+    {
+      "name": "セッション完了の記録（実DB）",
+      "ok": true,
+      "httpStatus": 200,
+      "completionStatus": "completed",
+      "reportPersisted": true
+    },
+    {
+      "name": "復習登録（実DB・翌日にスケジュール）",
+      "ok": true,
+      "httpStatus": 201,
+      "nextReviewAt": "2026-08-02",
+      "masteryState": "introduced",
+      "reviewStage": "1",
+      "detail": null
+    },
+    {
+      "name": "reload後もサーバー値が残る（会話→レポート→完了が確定している）",
+      "ok": true,
+      "durationSeconds": 180
+    },
+    {
+      "name": "発話ログがサーバーに残っている",
+      "ok": true,
+      "count": 6
+    }
+  ],
+  "verdict": "PASS",
+  "blockedReason": null,
+  "sessionRef": "652910381e5f"
+}

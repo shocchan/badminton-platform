@@ -195,8 +195,11 @@ const realtimeRoundTrip = (clientSecret, model) => new Promise((done) => {
 
 const HAS_JA = (s) => /[ぁ-んァ-ヶ一-龥]/.test(s);
 
-const runCase = async ({ label, teacherId, sendTeacherId, expectVoice, withAudio }) => {
-  const res = await reserveSession(label);
+const runCase = async ({ label, teacherId, sendTeacherId, expectVoice, withAudio, reuseSessionId }) => {
+  // 1日のセッション上限があるため、音声を鳴らさない検査は1つのセッションを使い回す
+  const res = reuseSessionId
+    ? { ok: true, sessionId: reuseSessionId }
+    : await reserveSession(label);
   if (!res.ok) return { label, ok: false, error: `reserve_failed:${res.code}` };
   const mint = await mintSecret({ sessionId: res.sessionId, teacherId, sendTeacherId });
   const row = {
@@ -212,7 +215,7 @@ const runCase = async ({ label, teacherId, sendTeacherId, expectVoice, withAudio
     error: mint.error,
   };
   if (!mint.ok || !mint.clientSecret) {
-    await closeSession(res.sessionId);
+    if (!reuseSessionId) await closeSession(res.sessionId);
     return { ...row, ok: false };
   }
   if (withAudio) {
@@ -233,7 +236,7 @@ const runCase = async ({ label, teacherId, sendTeacherId, expectVoice, withAudio
   } else {
     row.ok = mint.reportedVoice === expectVoice;
   }
-  await closeSession(res.sessionId);
+  if (!reuseSessionId) await closeSession(res.sessionId);
   return row;
 };
 
@@ -248,13 +251,26 @@ const main = async () => {
     { label: 'legacy-no-teacherId', teacherId: null, sendTeacherId: false, expectVoice: 'marin', withAudio: true },
     { label: 'shoko', teacherId: 'shoko', sendTeacherId: true, expectVoice: 'marin', withAudio: true },
     { label: 'yuto', teacherId: 'yuto', sendTeacherId: true, expectVoice: 'cedar', withAudio: true },
-    // 任意 voice の注入ができないこと（不正値は既定へ）
-    { label: 'invalid-teacherId', teacherId: '../../etc/passwd', sendTeacherId: true, expectVoice: 'marin', withAudio: false },
+    // 任意 voice の注入ができないこと（不正値は既定へ倒れる）
+    // 注: パストラバーサル風の文字列は Supabase 前段の WAF が 403 で弾き、関数まで届かない。
+    //     ここで見たいのは「関数のallowlistが効くか」なので、届く値で検査する。
     { label: 'voice-string-as-teacherId', teacherId: 'alloy', sendTeacherId: true, expectVoice: 'marin', withAudio: false },
+    { label: 'unknown-teacherId', teacherId: 'yuto2', sendTeacherId: true, expectVoice: 'marin', withAudio: false },
+    { label: 'wrong-case-teacherId', teacherId: 'YUTO', sendTeacherId: true, expectVoice: 'marin', withAudio: false },
+    { label: 'non-string-teacherId', teacherId: 12345, sendTeacherId: true, expectVoice: 'marin', withAudio: false },
   ];
 
+  // 不正値の検査（音声を鳴らさない4件）は1セッションを共有する。
+  // **同時に開けるセッションは1つ**なので、音声ケースを全部終えてから予約する（遅延確保）。
+  let shared = null;
   for (const c of cases) {
-    const row = await runCase(c);
+    // Edge Function の簡易レート制限（直近1分に5件）に当たらないよう間隔を空ける
+    await new Promise((r) => setTimeout(r, 13_000));
+    if (!c.withAudio && shared === null) {
+      shared = await reserveSession('invalid-values');
+      if (!shared.ok) { report.blockedReason = `reserve_failed:${shared.code}`; finish(0); }
+    }
+    const row = await runCase(c.withAudio ? c : { ...c, reuseSessionId: shared.sessionId });
     report.cases.push(row);
     console.log(
       `${row.label}: voice=${row.reportedVoice ?? '-'} `
@@ -263,6 +279,7 @@ const main = async () => {
     );
   }
 
+  if (shared?.sessionId) await closeSession(shared.sessionId);
   const byLabel = Object.fromEntries(report.cases.map((c) => [c.label, c]));
   const shoko = byLabel.shoko;
   const yuto = byLabel.yuto;
@@ -277,8 +294,8 @@ const main = async () => {
       shoko?.realtime?.sessionVoice && yuto?.realtime?.sessionVoice
       && shoko.realtime.sessionVoice !== yuto.realtime.sessionVoice,
     ),
-    arbitraryVoiceRejected: byLabel['invalid-teacherId']?.ok === true
-      && byLabel['voice-string-as-teacherId']?.ok === true,
+    arbitraryVoiceRejected: ['voice-string-as-teacherId', 'unknown-teacherId',
+      'wrong-case-teacherId', 'non-string-teacherId'].every((k) => byLabel[k]?.ok === true),
     japaneseAudioProduced: Boolean(shoko?.realtime?.audioBytes > 0 && yuto?.realtime?.audioBytes > 0),
   };
 

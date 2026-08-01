@@ -8,7 +8,7 @@
 // - 中国語訳にかなが残る
 import { describe, it, expect } from 'vitest';
 import { ALL_VOCAB_CONTENT } from './content/vocabContentBank';
-import { activeContent, VOCAB_ASPECTS, summarizeBatch } from './vocabContent';
+import { activeContent, VOCAB_ASPECTS, summarizeBatch, toSenseRecord } from './vocabContent';
 import { buildVocabQuestions, vocabPool, vocabQuestionCoverage } from './vocabQuestions';
 
 const FOREIGN = /[\p{Script=Cyrillic}\p{Script=Hangul}\p{Script=Arabic}\p{Script=Thai}\p{Script=Devanagari}\p{Script=Hebrew}\p{Script=Greek}]/u;
@@ -61,20 +61,41 @@ describe('§5 層Cコンテンツ', () => {
     }
   });
 
-  it('**レビューで疑いが出た語は active_beta になっていない**（§6の昇格ルール）', () => {
-    const flagged = ALL_VOCAB_CONTENT.filter((c) => c.state === 'needs_human_review');
-    expect(flagged.length).toBeGreaterThan(0);   // 全部OKと言い切らない（正直な状態）
-    for (const c of flagged) {
+  it('**CORE から外した語は active_beta になっていない**（§6の昇格ルール）', () => {
+    const excluded = ALL_VOCAB_CONTENT.filter((c) => c.state === 'excluded_from_core');
+    expect(excluded.length).toBeGreaterThan(0);   // 全部OKと言い切らない（正直な状態）
+    for (const c of excluded) {
+      // 外した理由を型と文章の両方で残す
+      expect(c.exclusionReason, c.surface).toBeTruthy();
       expect(c.reviewNotes.length, c.surface).toBeGreaterThan(0);
       expect(activeContent(ALL_VOCAB_CONTENT).some((a) => a.surface === c.surface && a.reading === c.reading)).toBe(false);
     }
   });
 
-  it('バッチ状態の集計が取れる', () => {
-    const s = summarizeBatch(1, ALL_VOCAB_CONTENT, false);
-    expect(s.words).toBeGreaterThan(0);
-    expect(s.activeBeta).toBe(s.words - s.needsHumanReview);
-    expect(s.stagingSmokePassed).toBe(false);
+  it('**保留のまま放置された語が無い**（最終状態は active_beta か excluded_from_core の2つだけ）', () => {
+    const stray = ALL_VOCAB_CONTENT.filter(
+      (c) => c.state !== 'active_beta' && c.state !== 'excluded_from_core',
+    );
+    expect(stray.map((c) => `${c.surface}|${c.reading}:${c.state}`)).toEqual([]);
+    // 移行期の中間状態が残っていないこと
+    expect(ALL_VOCAB_CONTENT.filter((c) => c.state === 'needs_human_review')).toEqual([]);
+  });
+
+  it('**active_beta の語は必須10項目が揃っている**（要件B）', () => {
+    const missing = activeContent(ALL_VOCAB_CONTENT)
+      .filter((c) => toSenseRecord(c) === null)
+      .map((c) => `${c.surface}|${c.reading}`);
+    expect(missing).toEqual([]);
+  });
+
+  it('バッチ状態の集計が取れる（pending 0）', () => {
+    for (const batchNo of [...new Set(ALL_VOCAB_CONTENT.map((c) => c.batchNo))]) {
+      const s = summarizeBatch(batchNo, ALL_VOCAB_CONTENT, false);
+      expect(s.words, `batch${batchNo}`).toBeGreaterThan(0);
+      expect(s.pending, `batch${batchNo}: 未処理が残っている`).toBe(0);
+      expect(s.activeBeta + s.excludedFromCore, `batch${batchNo}`).toBe(s.words);
+      expect(s.needsHumanReview, `batch${batchNo}`).toBe(0);
+    }
   });
 });
 

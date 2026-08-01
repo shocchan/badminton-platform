@@ -1,13 +1,139 @@
 {
-  "generatedAt": "2026-08-01T07:49:11.328Z",
-  "model": "gpt-realtime-2.1",
+  "generatedAt": "2026-08-01T13:53:51.369Z",
   "mapping": {
     "shoko": "marin",
     "yuto": "cedar"
   },
-  "route": null,
-  "results": [],
-  "verdict": "BLOCKED",
-  "blockedReason": "AI_LESSON_TOKEN_URL/AI_LESSON_JWT/AI_LESSON_SESSION_ID も OPENAI_API_KEY も無い。 OpenAIキーは Supabase Secret にのみ存在し、Edge Function は staging と production が 同一Supabaseプロジェクト（1つ）を共有するためデプロイできない（production Edge Function deploy 禁止）。",
-  "note": "このファイルが verdict=PASS になるまで advTeacher.ts の voiceSwitchAvailable を true にしない。"
+  "cases": [
+    {
+      "label": "legacy-no-teacherId",
+      "requestedTeacherId": "(送っていない＝旧クライアント相当)",
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "73779dd4951c",
+      "latencyMs": 505,
+      "error": null,
+      "realtime": {
+        "connected": true,
+        "sessionVoice": "marin",
+        "audioBytes": 304462,
+        "transcriptHasJapanese": true,
+        "transcriptLength": 20,
+        "responseDone": true,
+        "errors": []
+      },
+      "ok": true
+    },
+    {
+      "label": "shoko",
+      "requestedTeacherId": "shoko",
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "125c6d2d2569",
+      "latencyMs": 556,
+      "error": null,
+      "realtime": {
+        "connected": true,
+        "sessionVoice": "marin",
+        "audioBytes": 355462,
+        "transcriptHasJapanese": true,
+        "transcriptLength": 20,
+        "responseDone": true,
+        "errors": []
+      },
+      "ok": true
+    },
+    {
+      "label": "yuto",
+      "requestedTeacherId": "yuto",
+      "expectedVoice": "cedar",
+      "effectiveTeacherId": "yuto",
+      "reportedVoice": "cedar",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "cdd5c4a047fa",
+      "latencyMs": 643,
+      "error": null,
+      "realtime": {
+        "connected": true,
+        "sessionVoice": "cedar",
+        "audioBytes": 274882,
+        "transcriptHasJapanese": true,
+        "transcriptLength": 20,
+        "responseDone": true,
+        "errors": []
+      },
+      "ok": true
+    },
+    {
+      "label": "voice-string-as-teacherId",
+      "requestedTeacherId": "alloy",
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "c9665d92a360",
+      "latencyMs": 457,
+      "error": null,
+      "ok": true
+    },
+    {
+      "label": "unknown-teacherId",
+      "requestedTeacherId": "yuto2",
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "2856d9dab5bf",
+      "latencyMs": 548,
+      "error": null,
+      "ok": true
+    },
+    {
+      "label": "wrong-case-teacherId",
+      "requestedTeacherId": "YUTO",
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "547a25020602",
+      "latencyMs": 511,
+      "error": null,
+      "ok": true
+    },
+    {
+      "label": "non-string-teacherId",
+      "requestedTeacherId": 12345,
+      "expectedVoice": "marin",
+      "effectiveTeacherId": "shoko",
+      "reportedVoice": "marin",
+      "model": "gpt-realtime-2.1",
+      "httpStatus": 200,
+      "secretRef": "ac852c9c8fbb",
+      "latencyMs": 527,
+      "error": null,
+      "ok": true
+    }
+  ],
+  "verdict": "PASS",
+  "blockedReason": null,
+  "note": "このファイルが verdict=PASS になるまで advTeacher.ts の voiceSwitchAvailable を true にしない。",
+  "checks": {
+    "legacyClientStillMarin": true,
+    "shokoIsMarin": true,
+    "yutoIsCedar": true,
+    "newSessionOnTeacherChange": true,
+    "effectiveVoiceDiffers": true,
+    "arbitraryVoiceRejected": true,
+    "japaneseAudioProduced": true
+  }
 }

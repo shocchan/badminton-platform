@@ -92,11 +92,10 @@ const TEACHER_DEFS: Record<AdvTeacherId, AdvTeacherDef> = {
     realtimeVoice: 'cedar',
     voiceToneJa: '穏やかで低めのAI音声',
     voiceToneZh: '沉稳低沉的AI语音',
-    // Edge Function 側の allowlist は実装済みだが、**staging の実音声smokeがPASSするまで
-    // false のまま**にする（実際に切り替わることを確認する前に注意書きを消さない）。
-    voiceSwitchAvailable: false,
-    voiceNoteJa: 'AI会話の声は、いまはまだ切り替わりません（画面と文章は悠斗先生になります）。',
-    voiceNoteZh: 'AI会话的声音目前还无法切换（画面和文字会变成悠斗老师）。',
+    // 2026-08-01 実走smokePASS後に true にした。
+    // 実測: session.created の voice=cedar・音声274,882バイト・日本語transcript あり
+    // （証跡: docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json）
+    voiceSwitchAvailable: true,
   },
 };
 

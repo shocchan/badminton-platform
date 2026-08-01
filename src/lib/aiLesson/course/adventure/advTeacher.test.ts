@@ -84,6 +84,16 @@ describe('先生の定義', () => {
       }
     }
   });
+
+  it('実走smokeがPASSした先生は注意書きを持たない（消し忘れ・出し忘れの両方を防ぐ）', () => {
+    // 2026-08-01 の実走smokeで shoko=marin / yuto=cedar を実音声つきで確認した。
+    // 証跡: docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json（verdict=PASS）
+    for (const t of ALL_TEACHERS) {
+      expect(t.voiceSwitchAvailable, `${t.id}: 実走PASS済みなので true`).toBe(true);
+      expect(t.voiceNoteJa, `${t.id}: 切り替わるのに注意書きが残っている`).toBeUndefined();
+      expect(t.voiceNoteZh, `${t.id}: 切り替わるのに注意書きが残っている`).toBeUndefined();
+    }
+  });
 });
 
 describe('保存と復元', () => {
