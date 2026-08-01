@@ -2,8 +2,9 @@
 import type { VocabOriginalContent } from '../vocabContent';
 import { CORE_BATCH_01 } from './coreBatch01';
 import { CORE_BATCH_02 } from './coreBatch02';
+import { CORE_BATCH_03 } from './coreBatch03';
 
-export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [...CORE_BATCH_01, ...CORE_BATCH_02];
+export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [...CORE_BATCH_01, ...CORE_BATCH_02, ...CORE_BATCH_03];
 
 export const contentBySurfaceReading = (): Map<string, VocabOriginalContent> => {
   const m = new Map<string, VocabOriginalContent>();

@@ -1,0 +1,112 @@
+{
+ "generatedAt": "2026-08-01T13:19:45.782Z",
+ "batchNo": 3,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 11,
+  "blocking": 11,
+  "byKind": {
+   "no_dictionary_entry": 11
+  }
+ },
+ "eligibleForActiveBeta": 239,
+ "needsHumanReview": [
+  "vc-03-019",
+  "vc-03-028",
+  "vc-03-030",
+  "vc-03-042",
+  "vc-03-045",
+  "vc-03-056",
+  "vc-03-057",
+  "vc-03-073",
+  "vc-03-080",
+  "vc-03-186",
+  "vc-03-188"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-03-019",
+   "surface": "相談",
+   "kind": "no_dictionary_entry",
+   "detail": "相談|そうだんする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-028",
+   "surface": "ごみ",
+   "kind": "no_dictionary_entry",
+   "detail": "ごみ|ごみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-030",
+   "surface": "生活",
+   "kind": "no_dictionary_entry",
+   "detail": "生活|せいかつする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-042",
+   "surface": "案内",
+   "kind": "no_dictionary_entry",
+   "detail": "案内|あんないする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-045",
+   "surface": "準備",
+   "kind": "no_dictionary_entry",
+   "detail": "準備|じゅんびする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-056",
+   "surface": "計画",
+   "kind": "no_dictionary_entry",
+   "detail": "計画|けいかくする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-057",
+   "surface": "経験",
+   "kind": "no_dictionary_entry",
+   "detail": "経験|けいけんする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-073",
+   "surface": "運動",
+   "kind": "no_dictionary_entry",
+   "detail": "運動|うんどうする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-080",
+   "surface": "出発",
+   "kind": "no_dictionary_entry",
+   "detail": "出発|しゅっぱつする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-186",
+   "surface": "食事",
+   "kind": "no_dictionary_entry",
+   "detail": "食事|しょくじする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-03-188",
+   "surface": "心配",
+   "kind": "no_dictionary_entry",
+   "detail": "心配|しんぱいする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}
