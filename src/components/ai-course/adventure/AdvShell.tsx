@@ -28,6 +28,7 @@ import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAn
 import { nowTrainingLabel, masteryScopeName, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
+import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
@@ -36,7 +37,6 @@ import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
-import { vocabPool } from '../../../lib/aiLesson/course/adventure/vocab/vocabQuestions';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -98,6 +98,19 @@ export default function AdvShell(props: AdvShellProps) {
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
   const weeklyTracked = useRef(false);
+  /**
+   * 語彙bankの遅延ロード。模試でしか使わないので、Homeの初回転送量から外す。
+   * （実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
+   */
+  const [vocabPoolFn, setVocabPoolFn] = useState<null | ((lv: 'N2' | 'N3') => Map<string, AdvBattleQuestion[]>)>(null);
+  useEffect(() => {
+    if (view !== 'mock' || vocabPoolFn) return;
+    let alive = true;
+    void import('../../../lib/aiLesson/course/adventure/vocab/vocabQuestions').then((m) => {
+      if (alive) setVocabPoolFn(() => m.vocabPool);
+    });
+    return () => { alive = false; };
+  }, [view, vocabPoolFn]);
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
@@ -377,10 +390,12 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── ミニ模試（§9）──
   if (view === 'mock') {
-    if (!pools) return <AdvLoading lang={lang} />;
+    // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
+    // Homeを開くたびに読ませないよう、この画面へ来てから動的importで取りに行く。
+    if (!pools || !vocabPoolFn) return <AdvLoading lang={lang} />;
     const rPool = readingPool(level);
     const lPool = listeningPool(level);
-    const vPool = vocabPool(level);
+    const vPool = vocabPoolFn(level);
     const merged = new Map(pools.byItem);
     for (const [k, v] of rPool) merged.set(k, v);
     for (const [k, v] of lPool) merged.set(k, v);

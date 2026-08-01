@@ -20,14 +20,45 @@ const RATE = 175;            // words per minute 相当。JLPT聴解に近い自
 const FORCE = process.argv.includes('--force');
 const VERIFY_ONLY = process.argv.includes('--verify');
 
-/** transcript から読み上げ用テキストを作る。話者記号は読ませない */
+/**
+ * TTSが誤読する表記だけを、**読み上げ用テキストでのみ**置き換える。
+ * 画面に出す原稿（transcriptJa）は自然な日本語表記のまま残す。
+ *
+ * 実測（say -v Kyoko の出力ハッシュで確認）:
+ *   十分 → じゅうぶん（「10分」の意図なのに"充分"と読まれる）
+ *   一日 → ついたち  （「いちにち」の意図なのに"1日(月初)"と読まれる）
+ *   一行 → いっこう  （「いちぎょう」の意図なのに"一行(いっこう)"と読まれる）
+ *
+ * 前に数字・漢数字が付く「三十分」「十一日」は正しく読まれるので置換しない。
+ */
+const READING_FIXES = [
+  [/(?<![0-9０-９一二三四五六七八九十百千])十分/g, 'じゅっぷん'],
+  [/(?<![0-9０-９十一二三四五六七八九])一日/g, 'いちにち'],
+  [/(?<![0-9０-９])一行/g, 'いちぎょう'],
+];
+
+/**
+ * transcript から読み上げ用テキストを作る。話者記号は読ませない。
+ *
+ * 話者ラベルの取りこぼしがあると、片方の話者にだけ「きょういん」「かちょう」が
+ * 音声へ混入して不自然になる（Pilotサンプル監査 L-P0-3）。
+ * 「〜「」の形をとる語はすべて話者として扱う。
+ */
+const SPEAKERS = [
+  '男', '女', '先生', '店員', '客', '係', '上司', '部下', '学生', '店長',
+  '教員', '担当', '課長', '部長', '先輩', '後輩', '相談員', '社員', '職員',
+  '医師', '看護師', '受付', '窓口', '案内', '講師', '司会', '母', '父', '友人',
+];
 const toSpeech = (transcript) => transcript
   .replace(/男１|女１/g, '')
   .replace(/男２|女２/g, '')
   .replace(/学生１|学生２/g, '')
-  .replace(/([男女]|先生|店員|客|係|上司|部下|学生|店長)「/g, '。')
+  .replace(new RegExp(`(${SPEAKERS.join('|')})「`, 'g'), '。')
   .replace(/」/g, '。')
   .replace(/。+/g, '。')
+  .replace(READING_FIXES[0][0], READING_FIXES[0][1])
+  .replace(READING_FIXES[1][0], READING_FIXES[1][1])
+  .replace(READING_FIXES[2][0], READING_FIXES[2][1])
   .trim();
 
 const durationOf = (file) => {

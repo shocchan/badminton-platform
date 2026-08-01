@@ -44,29 +44,33 @@ const choice = (id: string, textJa: string, isCorrect: boolean, whyWrongZh?: str
   choiceId: id, textJa, isCorrect, whyWrongZh,
 });
 
-/** かなを1文字だけ入れ替えた読み（読み問題の誤答用。実在語と衝突しにくい） */
-const perturbReading = (reading: string, seed: number): string => {
-  const rows: string[][] = [
-    ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'ら'],
-    ['い', 'き', 'し', 'ち', 'に', 'ひ', 'み', 'り'],
-    ['う', 'く', 'す', 'つ', 'ぬ', 'ふ', 'む', 'る'],
-    ['え', 'け', 'せ', 'て', 'ね', 'へ', 'め', 'れ'],
-    ['お', 'こ', 'そ', 'と', 'の', 'ほ', 'も', 'ろ'],
-  ];
-  const chars = [...reading];
-  const r = rng(seed);
-  for (let attempt = 0; attempt < 8; attempt += 1) {
-    const pos = Math.floor(r() * chars.length);
-    const row = rows.find((x) => x.includes(chars[pos]));
-    if (!row) continue;
-    const alt = row[(row.indexOf(chars[pos]) + 1 + Math.floor(r() * (row.length - 1))) % row.length];
-    if (alt === chars[pos]) continue;
-    const out = [...chars];
-    out[pos] = alt;
-    return out.join('');
-  }
-  return `${reading}う`;
+/**
+ * 訳が実質同じかどうか。
+ *
+ * 完全一致だけを見ていたため、「学习」（勉強）と「学习（有计划地学）」（学習）が
+ * 別物として扱われ、**意味問題に正解が2つ**入っていた（Pilotサンプル監査で発覚）。
+ * 括弧の補足・区切り記号を落とし、語義の中心が重なるかで判定する。
+ */
+const glossCore = (g: string): string[] => g
+  .replace(/[（(][^）)]*[）)]/g, '')     // 括弧の補足は語義の中心ではない
+  .split(/[；;、,／/]/)
+  .map((x) => x.trim())
+  .filter((x) => x.length > 0);
+
+/** どちらかの語義がもう一方に含まれていたら「近すぎる」＝誤答に使わない */
+const glossTooClose = (a: string, b: string): boolean => {
+  const A = glossCore(a); const B = glossCore(b);
+  if (A.length === 0 || B.length === 0) return a === b;
+  return A.some((x) => B.some((y) => x === y || (x.length >= 2 && y.includes(x)) || (y.length >= 2 && x.includes(y))));
 };
+
+/**
+ * 中国語の訳が日本語表記をそのまま含む語（日中同形語）。
+ * 「表示『温泉』的词是哪个？→ 温泉」のように、**中国語の設問文に答えがそのまま出る**ため、
+ * 訳を手がかりにする観点（意味・紛らわしい語）は出題しない。
+ */
+const glossRevealsSurface = (c: VocabOriginalContent): boolean =>
+  c.glossZh.includes(c.surface) || c.surface.includes(c.glossZh);
 
 /**
  * 選択肢を確定する。表示テキストが重複したものは落とす
@@ -130,8 +134,9 @@ export const buildVocabQuestions = (
   const sameLevel = pool.filter((o) => o.level === c.level && o.surface !== c.surface && o.state === 'active_beta');
 
   // ① 意味: 見出し語 → 正しい中国語訳
-  const meaningWrong = pickDistinct(sameLevel, 3, seed + 1, (o) => o.glossZh === c.glossZh);
-  if (meaningWrong.length === 3) {
+  //   日中同形語（訳が表記をそのまま含む）は、設問を読むだけで答えが分かるので出さない
+  const meaningWrong = pickDistinct(sameLevel, 3, seed + 1, (o) => glossTooClose(o.glossZh, c.glossZh));
+  if (!glossRevealsSurface(c) && meaningWrong.length === 3) {
     const ch = finalizeChoices([
       choice(`${c.wordId}-m0`, c.glossZh, true),
       ...meaningWrong.map((o, i) => choice(`${c.wordId}-m${i + 1}`, o.glossZh, false, `这是「${o.surface}」的意思`)),
@@ -143,13 +148,19 @@ export const buildVocabQuestions = (
   }
 
   // ② 読み: 漢字を含む語だけ（かな語は読み問題にならない）
+  //   誤答は**実在する語の読み**から採る。かなを1文字ずらした「ふきゅぬ」のような
+  //   非語を並べると、日本語を知らなくても消去法で当たってしまい、何も測れない
+  //   （Pilotサンプル監査: reading観点38問中28問が機能していなかった）。
   if (/[一-鿿]/.test(c.surface)) {
-    const readingWrong = [1, 2, 3].map((k) => perturbReading(c.reading, seed + k * 17));
-    const uniq = [...new Set(readingWrong)].filter((r) => r !== c.reading);
+    const realReadings = pickDistinct(
+      sameLevel.filter((o) => Math.abs([...o.reading].length - [...c.reading].length) <= 1),
+      3, seed + 17, (o) => o.reading === c.reading,
+    ).map((o) => o.reading);
+    const uniq = [...new Set(realReadings)].filter((r) => r !== c.reading);
     if (uniq.length === 3) {
       const ch = finalizeChoices([
         choice(`${c.wordId}-r0`, c.reading, true),
-        ...uniq.map((r, i) => choice(`${c.wordId}-r${i + 1}`, r, false, '读音不对')),
+        ...uniq.map((r, i) => choice(`${c.wordId}-r${i + 1}`, r, false, '这是别的词的读音')),
       ]);
       if (ch) {
         out.push(baseQuestion(c, 'reading', 1,
@@ -177,7 +188,7 @@ export const buildVocabQuestions = (
   }
 
   // ④ 用法: よく一緒に使う形
-  if (c.collocationsJa.length > 0) {
+  if (c.collocationsJa.length > 0 && !glossRevealsSurface(c)) {
     const usageWrong = pickDistinct(
       sameLevel.filter((o) => o.collocationsJa.length > 0), 3, seed + 3,
       (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
@@ -196,7 +207,7 @@ export const buildVocabQuestions = (
 
   // ⑤ 文脈: 例文の見出し語を空欄にして選ばせる
   if (c.exampleJa.includes(c.surface)) {
-    const ctxWrong = pickDistinct(sameLevel, 3, seed + 4, (o) => o.glossZh === c.glossZh);
+    const ctxWrong = pickDistinct(sameLevel, 3, seed + 4, (o) => glossTooClose(o.glossZh, c.glossZh));
     if (ctxWrong.length === 3) {
       const blanked = c.exampleJa.replace(c.surface, '＿＿＿');
       const ch = finalizeChoices([
@@ -213,10 +224,10 @@ export const buildVocabQuestions = (
   // ⑥ 紛らわしい語: 明示的に登録したものだけ（勝手に近い語を選ばない）
   const confusables = c.confusableSurfaces
     .map((s) => pool.find((o) => o.surface === s && o.state === 'active_beta'))
-    .filter((o): o is VocabOriginalContent => !!o && o.glossZh !== c.glossZh);
-  if (confusables.length >= 2) {
+    .filter((o): o is VocabOriginalContent => !!o && !glossTooClose(o.glossZh, c.glossZh));
+  if (confusables.length >= 2 && !glossRevealsSurface(c)) {
     const extra = pickDistinct(sameLevel, 3 - confusables.length, seed + 5,
-      (o) => o.glossZh === c.glossZh || confusables.some((x) => x.surface === o.surface));
+      (o) => glossTooClose(o.glossZh, c.glossZh) || confusables.some((x) => x.surface === o.surface));
     const wrong = [...confusables, ...extra].slice(0, 3);
     if (wrong.length === 3) {
       const ch = finalizeChoices([

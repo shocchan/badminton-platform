@@ -107,9 +107,12 @@ describe('正準Journey — 4 Persona 共通', () => {
 
       it('**目的地を本人から奪わない**（原則1）', () => {
         if (p.targetJlpt) {
-          // 実力が届いていなくても、ルートの目的地は選んだレベルのまま
-          expect(prof.route!.targetJlpt ?? p.targetJlpt).toBe(p.targetJlpt);
+          // 実力が届いていなくても、**ルートの最終目的地は選んだレベルのまま**
+          expect(prof.route!.destinationJlpt).toBe(p.targetJlpt);
           expect(prof.targetJlpt).toBe(p.targetJlpt);
+          // 「なぜこのルートか」の説明が必ずある（基礎補強を恥にしない文・原則2）
+          expect(prof.route!.explanationJa.length).toBeGreaterThan(0);
+          expect(prof.route!.explanationZh.length).toBeGreaterThan(0);
         }
       });
 

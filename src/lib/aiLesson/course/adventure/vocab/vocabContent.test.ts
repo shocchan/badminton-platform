@@ -101,6 +101,25 @@ describe('§5 層Cコンテンツ', () => {
 
 describe('§6 語彙問題（選択式のみ）', () => {
   const active = activeContent(ALL_VOCAB_CONTENT);
+  /**
+   * 全語ぶんの生成は重い（2,000語×約5問）。テストごとに作り直すと
+   * vitest の worker RPC がタイムアウトして偽の unhandled error が出るので、1回だけ作って共有する。
+   */
+  //
+  // さらに、2,000語を一気に回すとイベントループを長時間ふさぎ、vitest の worker が
+  // onTaskUpdate を返せず「unhandled error」で全体が失敗扱いになる。
+  // 100語ごとに一度制御を返して、レポーターが動けるようにする。
+  let allCache: { c: typeof active[number]; qs: ReturnType<typeof buildVocabQuestions> }[] | null = null;
+  const allQuestions = async () => {
+    if (allCache) return allCache;
+    const out: { c: typeof active[number]; qs: ReturnType<typeof buildVocabQuestions> }[] = [];
+    for (let i = 0; i < active.length; i += 1) {
+      out.push({ c: active[i], qs: buildVocabQuestions(active[i], active, 20260801) });
+      if (i % 100 === 99) await new Promise((r) => { setTimeout(r, 0); });
+    }
+    allCache = out;
+    return out;
+  };
 
   it('**レビュー未了の語からは問題を作らない**', () => {
     const flagged = ALL_VOCAB_CONTENT.filter((c) => c.state !== 'active_beta');
@@ -109,21 +128,65 @@ describe('§6 語彙問題（選択式のみ）', () => {
     }
   }, 30_000);
 
-  it('**active_beta の全語に有効な選択問題が2問以上ある**（要件C）', () => {
+  it('**active_beta の全語に有効な選択問題が2問以上ある**（要件C）', async () => {
     // 2問未満しか作れない語は「無理に水増しせず CORE から外す」のが方針。
     // ここを通らない語が残っていたら、内容を足すか excluded_from_core へ移す。
-    const under = active
-      .map((c) => ({ id: `${c.surface}|${c.reading}`, n: buildVocabQuestions(c, active, 20260801).length }))
+    const under = (await allQuestions())
+      .map(({ c, qs }) => ({ id: `${c.surface}|${c.reading}`, n: qs.length }))
       .filter((x) => x.n < 2);
     expect(under.map((x) => `${x.id}:${x.n}`)).toEqual([]);
   }, 30_000);
 
-  it('CORE の大半が4形式以上（水増しはしないが、薄すぎもしない）', () => {
-    const counts = active.map((c) => buildVocabQuestions(c, active, 20260801).length);
+  it('CORE の大半が4形式以上（水増しはしないが、薄すぎもしない）', async () => {
+    const counts = (await allQuestions()).map(({ qs }) => qs.length);
     const fourPlus = counts.filter((n) => n >= 4).length;
     // かな語は読み・表記の観点が構造上作れないため100%にはならない。7割を下限にする
     expect(fourPlus / counts.length).toBeGreaterThan(0.7);
   }, 30_000);
+
+  it('**複数正解を作らない**（同じ意味の語を誤答に入れない・Pilot監査P0）', async () => {
+    // 訳の完全一致だけを見ていたため「学习」と「学习（有计划地学）」が別物になり、
+    // 意味問題に正解が2つ入っていた。実データ全件で0件であることを固定する。
+    const bySurface = new Map(active.map((c) => [c.surface, c]));
+    const dup: string[] = [];
+    for (const { qs } of await allQuestions()) {
+      for (const q of qs) {
+        const correct = q.choices.find((x) => x.isCorrect)!;
+        for (const other of q.choices.filter((x) => !x.isCorrect)) {
+          const a = bySurface.get(correct.textJa); const b = bySurface.get(other.textJa);
+          if (a && b && a.glossZh === b.glossZh) dup.push(`${q.key} ${correct.textJa}/${other.textJa}`);
+        }
+      }
+    }
+    expect(dup).toEqual([]);
+  }, 60_000);
+
+  it('**設問に正解が露出しない**（日中同形語で中国語の設問が答えを見せない・Pilot監査P1）', async () => {
+    const leaked: string[] = [];
+    for (const { qs } of await allQuestions()) {
+      for (const q of qs) {
+        const correct = q.choices.find((x) => x.isCorrect)!;
+        if (correct.textJa.length >= 2 && q.questionZh.includes(correct.textJa)) {
+          leaked.push(`${q.key} :: ${q.questionZh}`);
+        }
+      }
+    }
+    expect(leaked).toEqual([]);
+  }, 60_000);
+
+  it('**読みの誤答は実在する語の読みだけ**（非語を並べて消去法で当てさせない・Pilot監査P1）', async () => {
+    const realReadings = new Set(active.map((c) => c.reading));
+    const fake: string[] = [];
+    for (const { qs } of await allQuestions()) {
+      for (const q of qs) {
+        if (q.type !== 'vocab-reading') continue;
+        for (const ch of q.choices.filter((x) => !x.isCorrect)) {
+          if (!realReadings.has(ch.textJa)) fake.push(`${q.key}:${ch.textJa}`);
+        }
+      }
+    }
+    expect(fake).toEqual([]);
+  }, 60_000);
 
   it('全問が選択式で、正解choiceIdが一意', () => {
     const pool = vocabPool('N2');
