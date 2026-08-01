@@ -286,8 +286,71 @@
    "evidencePath": "docs/ai-course/adventure-v2/completion-final-report.md",
    "blockedReason": "実API課金＋実learnerセッションが必要。導線・データ受け渡しは実装済み",
    "remainingCount": 1
+  },
+  {
+   "id": "V-1",
+   "phase": "V",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "scripts/ai-course/harvest-vocab-candidates.mjs",
+    "src/lib/aiLesson/course/adventure/vocab/vocabTypes.ts"
+   ],
+   "acceptanceCommand": "node scripts/ai-course/harvest-vocab-candidates.mjs",
+   "evidencePath": "docs/ai-course/adventure-v2/vocab-harvest-report.md",
+   "blockedReason": null,
+   "remainingCount": 0,
+   "note": "Vocabulary Harvest Complete = YES（4 sourceFamily・8,131候補）"
+  },
+  {
+   "id": "V-2",
+   "phase": "V",
+   "priority": "P0",
+   "status": "in_progress",
+   "files": [
+    "scripts/ai-course/build-canonical-vocab.ts"
+   ],
+   "acceptanceCommand": "vite-node scripts/ai-course/build-canonical-vocab.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/vocab-canonical.json",
+   "blockedReason": null,
+   "remainingCount": 1220,
+   "note": "Canonical Bank Complete = NO。JMdict未照合1,220語のsense分離と読み確認が残る"
+  },
+  {
+   "id": "V-3",
+   "phase": "V",
+   "priority": "P0",
+   "status": "pending",
+   "files": [
+    "src/lib/aiLesson/course/adventure/vocab/(層C: 独自の訳・例文・問題)"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advVocabPolicy.test.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/vocab-harvest-report.md",
+   "blockedReason": null,
+   "remainingCount": 2520,
+   "note": "CORE Question Coverage Complete = NO。CORE 2,520語へ観点別問題（4〜6種）。§9により一括大量生成はしない"
+  },
+  {
+   "id": "V-4",
+   "phase": "V",
+   "priority": "P1",
+   "status": "pending",
+   "files": [
+    "src/lib/aiLesson/course/adventure/vocab/"
+   ],
+   "acceptanceCommand": "vite-node scripts/ai-course/vocab-coverage-report.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/vocab-coverage-report.json",
+   "blockedReason": null,
+   "remainingCount": 4452,
+   "note": "Exam Vocabulary Coverage Complete = NO。LIKELY/EXTENDEDへの拡張はCORE完了後"
   }
  ],
  "pilotComplete": false,
- "resumeFrom": "E-3"
+ "resumeFrom": "E-3",
+ "vocabCompletion": {
+  "vocabularyHarvestComplete": true,
+  "canonicalBankComplete": false,
+  "coreQuestionCoverageComplete": false,
+  "examVocabularyCoverageComplete": false
+ }
 }
