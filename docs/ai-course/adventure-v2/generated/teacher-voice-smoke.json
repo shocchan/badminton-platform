@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-08-01T07:49:11.328Z",
+  "model": "gpt-realtime-2.1",
+  "mapping": {
+    "shoko": "marin",
+    "yuto": "cedar"
+  },
+  "route": null,
+  "results": [],
+  "verdict": "BLOCKED",
+  "blockedReason": "AI_LESSON_TOKEN_URL/AI_LESSON_JWT/AI_LESSON_SESSION_ID も OPENAI_API_KEY も無い。 OpenAIキーは Supabase Secret にのみ存在し、Edge Function は staging と production が 同一Supabaseプロジェクト（1つ）を共有するためデプロイできない（production Edge Function deploy 禁止）。",
+  "note": "このファイルが verdict=PASS になるまで advTeacher.ts の voiceSwitchAvailable を true にしない。"
+}

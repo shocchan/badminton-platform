@@ -16,3 +16,8 @@
 | D-012 | 「時間配分」readinessは中ボス/ランクボス（制限時間つき）の実測のみから算出。データ無しは「未判定」 | §16 誠実表示。無データで高精度表示しない |
 | D-013 | 人間レッスンbridgeはprofile内 `humanLesson`（nextHumanLessonAt / teacherFocusNotes / lessonPrepSummary）＋管理画面表示。カレンダー連携なし | §20の指示どおり |
 | D-014 | XHS関連機能なし。分析は既存 courseAnalytics（匿名イベント）へ§24イベントを追加 | 全社ルール0・§24送信禁止項目の遵守 |
+| D-015 | 先生別realtime音声の変換は **Edge Function 側の allowlist のみ**（`TEACHER_VOICE = { shoko: 'marin', yuto: 'cedar' }`）。クライアントは teacherId しか送らない | 任意のvoice文字列を受け取ると未対応値・第三者音声を注入されうる。クライアント側の写し（`CANONICAL_TEACHER_VOICE`）はテストがEdge Functionのソースを読んで一致を固定 |
+| D-016 | 先生名・話し方（ペルソナ1文）もサーバー側 `TEACHER_PERSONA` で決める。`voiceTutorPrompt.ts` の「翔子先生」ハードコードは廃止 | 画面が悠斗先生なのにAIが「翔子先生です」と名乗る不整合を消すため。教材・出題・難易度・レベル判定は teacherId で一切変えない |
+| D-017 | `effectiveVoice`（marin / cedar）は **analyticsへ送らない**。検証はサーバーログと `generated/teacher-voice-smoke.json` で行う | どのTTS音声かはlearnerの学習計測に不要な内部運用情報。§19の「不適切ならserver-side diagnosticのみ」に従った |
+| D-018 | 悠斗先生の `voiceSwitchAvailable` は **false のまま据え置き**、ja/zhの注意書きも残す | staging と production が同一Supabaseプロジェクト（`jdkwijdphlkrcoiggfqw`）を共有しており、`ai-lesson-token` のデプロイは **production Edge Function deploy に等しい＝禁止事項**。実音声smokeを実走できていない以上、「切り替わる」と表示してはならない（§7・§27） |
+| D-019 | 先生変更時は既存realtime sessionを `stop()` で正常終了してから新規sessionを作る（依存は `teacher.id` のみ） | 音声は session 作成時に確定するため、生成済みsessionのvoiceは差し替えない。言語切替（§4のmount1回設計）では発火させない |

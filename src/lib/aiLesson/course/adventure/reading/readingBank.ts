@@ -4,12 +4,30 @@ import type { AdvBattleQuestion } from '../advVariants';
 import { SECTION_OF_SKILL } from '../advExamSkills';
 import { N2_READING_SETS } from './n2ReadingSets';
 import { N3_READING_SETS } from './n3ReadingSets';
+// 拡張バッチ（FINAL COMPLETION §13）。type別にファイルを分けて増やしていく
+import { N3_READING_SHORT_B } from './n3ReadingShortB';
+import { N3_READING_MID_B } from './n3ReadingMidB';
+import { N3_READING_LONG_B } from './n3ReadingLongB';
+import { N3_READING_INFO_B } from './n3ReadingInfoB';
+import { N3_READING_KEY_B } from './n3ReadingKeyB';
+import { N2_READING_SHORT_B } from './n2ReadingShortB';
+import { N2_READING_MID_B } from './n2ReadingMidB';
+import { N2_READING_INT_B } from './n2ReadingIntB';
+import { N2_READING_THEME_B } from './n2ReadingThemeB';
+import { N2_READING_INFO_B } from './n2ReadingInfoB';
 import { READING_TYPE_LABELS, readingKeyOf, type ReadingSet, type ReadingType } from './readingTypes';
 
 export { READING_TYPE_LABELS, readingKeyOf };
 export type { ReadingSet, ReadingType };
 
-export const ALL_READING_SETS: ReadingSet[] = [...N3_READING_SETS, ...N2_READING_SETS];
+export const ALL_READING_SETS: ReadingSet[] = [
+  ...N3_READING_SETS,
+  ...N3_READING_SHORT_B, ...N3_READING_MID_B, ...N3_READING_LONG_B,
+  ...N3_READING_INFO_B, ...N3_READING_KEY_B,
+  ...N2_READING_SETS,
+  ...N2_READING_SHORT_B, ...N2_READING_MID_B, ...N2_READING_INT_B,
+  ...N2_READING_THEME_B, ...N2_READING_INFO_B,
+];
 
 export const readingSetsFor = (level: 'N2' | 'N3'): ReadingSet[] =>
   ALL_READING_SETS.filter((s) => s.sourceLevel === level);

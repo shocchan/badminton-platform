@@ -13,8 +13,13 @@
     "staging と production が同一DBのため、CEO test learner 以外の remote learner を作らない"
   ],
   "statusVocabulary": [
-    "pending", "in_progress", "complete",
-    "failed_internal", "blocked_external", "deferred_by_quality", "deferred_by_scope"
+    "pending",
+    "in_progress",
+    "complete",
+    "failed_internal",
+    "blocked_external",
+    "deferred_by_quality",
+    "deferred_by_scope"
   ],
   "tasks": [
     {
@@ -23,7 +28,9 @@
       "priority": "P0",
       "status": "complete",
       "title": "環境・git・tag・staging・実数の監査",
-      "files": ["docs/ai-course/adventure-v2/final-completion-work-queue.json"],
+      "files": [
+        "docs/ai-course/adventure-v2/final-completion-work-queue.json"
+      ],
       "inputCount": 1,
       "completedCount": 1,
       "remainingCount": 0,
@@ -36,12 +43,14 @@
       "id": "B-1",
       "phase": "B",
       "priority": "P0",
-      "status": "pending",
+      "status": "complete",
       "title": "Edge Function に teacherId → voice allowlist mapping を実装",
-      "files": ["supabase/functions/ai-lesson-token/index.ts"],
+      "files": [
+        "supabase/functions/ai-lesson-token/index.ts"
+      ],
       "inputCount": 1,
-      "completedCount": 0,
-      "remainingCount": 1,
+      "completedCount": 1,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advTeacherVoice.test.ts",
       "evidencePath": "docs/ai-course/adventure-v2/generated/teacher-voice-routing.json",
       "blockedReason": null,
@@ -51,15 +60,15 @@
       "id": "B-2",
       "phase": "B",
       "priority": "P0",
-      "status": "pending",
+      "status": "complete",
       "title": "クライアントから teacherId のみを送る（voice文字列は送らない）",
       "files": [
         "src/lib/aiLesson/voiceSession.ts",
         "src/components/ai-course/CourseVoiceLesson.tsx"
       ],
       "inputCount": 2,
-      "completedCount": 0,
-      "remainingCount": 2,
+      "completedCount": 2,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advTeacherVoice.test.ts",
       "evidencePath": null,
       "blockedReason": null,
@@ -69,12 +78,15 @@
       "id": "B-3",
       "phase": "B",
       "priority": "P0",
-      "status": "pending",
+      "status": "complete",
       "title": "先生変更時に既存sessionを正常終了し新規sessionを作る",
-      "files": ["src/lib/aiLesson/voiceSession.ts", "src/components/ai-course/CourseVoiceLesson.tsx"],
+      "files": [
+        "src/lib/aiLesson/voiceSession.ts",
+        "src/components/ai-course/CourseVoiceLesson.tsx"
+      ],
       "inputCount": 1,
-      "completedCount": 0,
-      "remainingCount": 1,
+      "completedCount": 1,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advTeacherVoice.test.ts",
       "evidencePath": null,
       "blockedReason": null,
@@ -84,37 +96,41 @@
       "id": "B-4",
       "phase": "B",
       "priority": "P1",
-      "status": "pending",
+      "status": "blocked_external",
       "title": "voiceSwitchAvailable の解除と注意書き撤去（staging実音声PASS後のみ）",
-      "files": ["src/lib/aiLesson/course/adventure/advTeacher.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/advTeacher.ts"
+      ],
       "inputCount": 1,
       "completedCount": 0,
       "remainingCount": 1,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advTeacher.test.ts",
       "evidencePath": "docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json",
-      "blockedReason": null,
-      "nextAction": "C-1 の実音声PASSが前提。PASS前に注意書きを消さない"
+      "blockedReason": "C-1が未実走のため注意書きを消せない（実音声確認前にvoiceSwitchAvailableをtrueにしない）",
+      "nextAction": "C-1のPASS後にtrueへ"
     },
     {
       "id": "C-1",
       "phase": "C",
       "priority": "P0",
-      "status": "pending",
+      "status": "blocked_external",
       "title": "staging Realtime で cedar 受理を実証（session作成・日本語発話）",
-      "files": ["scripts/ai-course/verify-teacher-voice.mjs"],
+      "files": [
+        "scripts/ai-course/verify-teacher-voice.mjs"
+      ],
       "inputCount": 2,
       "completedCount": 0,
       "remainingCount": 2,
       "acceptanceCommand": "node scripts/ai-course/verify-teacher-voice.mjs",
       "evidencePath": "docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json",
-      "blockedReason": null,
-      "nextAction": "cedar が不可なら利用可能voice一覧から代替を選び decision log へ記録"
+      "blockedReason": "staging と production が同一Supabaseプロジェクト jdkwijdphlkrcoiggfqw を共有しており、ai-lesson-token のデプロイ＝production Edge Function deploy（禁止）。OPENAI_API_KEY は Supabase Secret にのみ存在しローカルに無いため、OpenAIへの直接実走もできない。",
+      "nextAction": "CEOがEdge Functionデプロイを承認したら SUPABASE_ACCESS_TOKEN=$(cat ~/.supabase_backup_token) npx supabase functions deploy ai-lesson-token --no-verify-jwt --project-ref jdkwijdphlkrcoiggfqw のうえ node scripts/ai-course/verify-teacher-voice.mjs"
     },
     {
       "id": "C-2",
       "phase": "C",
       "priority": "P1",
-      "status": "pending",
+      "status": "blocked_external",
       "title": "AI会話 E2E 1周（実API・CEO test learner のみ）",
       "files": [],
       "inputCount": 1,
@@ -122,8 +138,8 @@
       "remainingCount": 1,
       "acceptanceCommand": "node scripts/ai-course/stage-verify-session.mjs --create",
       "evidencePath": "docs/ai-course/adventure-v2/generated/conversation-e2e.json",
-      "blockedReason": null,
-      "nextAction": "learner認証情報が取れない場合は blocked_external。mockだけでCOMPLETE扱いにしない"
+      "blockedReason": "C-1と同じ。実learnerのJWT/セッションが取得できず、共有DBへtest learnerを勝手に作らない方針のため実API E2Eは実走不能。",
+      "nextAction": "CEOがstagingのlearnerログイン情報を提供したら stage-verify-session.mjs --create で1周"
     },
     {
       "id": "D-1",
@@ -131,7 +147,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "CORE語彙 層C batch02〜（残り2,398語）",
-      "files": ["src/lib/aiLesson/course/adventure/vocab/content/"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/vocab/content/"
+      ],
       "inputCount": 2398,
       "completedCount": 0,
       "remainingCount": 2398,
@@ -146,7 +164,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "CORE語彙の選択式問題（batchごと）",
-      "files": ["src/lib/aiLesson/course/adventure/vocab/vocabQuestions.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/vocab/vocabQuestions.ts"
+      ],
       "inputCount": 2398,
       "completedCount": 0,
       "remainingCount": 2398,
@@ -161,7 +181,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "N3読解 30 → 100セット",
-      "files": ["src/lib/aiLesson/course/adventure/reading/n3ReadingSets.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/reading/n3ReadingSets.ts"
+      ],
       "inputCount": 100,
       "completedCount": 30,
       "remainingCount": 70,
@@ -176,7 +198,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "N2読解 30 → 120セット",
-      "files": ["src/lib/aiLesson/course/adventure/reading/n2ReadingSets.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/reading/n2ReadingSets.ts"
+      ],
       "inputCount": 120,
       "completedCount": 30,
       "remainingCount": 90,
@@ -191,7 +215,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "N3聴解 25 → 100セット（音声生成込み）",
-      "files": ["src/lib/aiLesson/course/adventure/listening/n3ListeningSets.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/listening/n3ListeningSets.ts"
+      ],
       "inputCount": 100,
       "completedCount": 25,
       "remainingCount": 75,
@@ -206,7 +232,9 @@
       "priority": "P1",
       "status": "pending",
       "title": "N2聴解 25 → 100セット（音声生成込み）",
-      "files": ["src/lib/aiLesson/course/adventure/listening/n2ListeningSets.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/listening/n2ListeningSets.ts"
+      ],
       "inputCount": 100,
       "completedCount": 25,
       "remainingCount": 75,
@@ -221,7 +249,9 @@
       "priority": "P2",
       "status": "pending",
       "title": "ミニ模試・準備度ゲートの回帰",
-      "files": ["src/lib/aiLesson/course/adventure/advMockSession.test.ts"],
+      "files": [
+        "src/lib/aiLesson/course/adventure/advMockSession.test.ts"
+      ],
       "inputCount": 1,
       "completedCount": 0,
       "remainingCount": 1,
@@ -236,7 +266,9 @@
       "priority": "P2",
       "status": "pending",
       "title": "先生表示の全画面回帰・ja/zh・mobile・accessibility",
-      "files": ["src/components/ai-course/"],
+      "files": [
+        "src/components/ai-course/"
+      ],
       "inputCount": 9,
       "completedCount": 0,
       "remainingCount": 9,

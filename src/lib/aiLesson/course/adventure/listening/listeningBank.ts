@@ -4,13 +4,31 @@ import type { AdvBattleQuestion } from '../advVariants';
 import { SECTION_OF_SKILL } from '../advExamSkills';
 import { N2_LISTENING_SETS } from './n2ListeningSets';
 import { N3_LISTENING_SETS } from './n3ListeningSets';
+// 拡張バッチ（FINAL COMPLETION §14）。type別にファイルを分けて増やしていく
+import { N3_LISTENING_TASK_B } from './n3ListeningTaskB';
+import { N3_LISTENING_POINT_B } from './n3ListeningPointB';
+import { N3_LISTENING_OUTLINE_B } from './n3ListeningOutlineB';
+import { N3_LISTENING_QUICK_B } from './n3ListeningQuickB';
+import { N3_LISTENING_INT_B } from './n3ListeningIntB';
+import { N2_LISTENING_TASK_B } from './n2ListeningTaskB';
+import { N2_LISTENING_POINT_B } from './n2ListeningPointB';
+import { N2_LISTENING_OUTLINE_B } from './n2ListeningOutlineB';
+import { N2_LISTENING_QUICK_B } from './n2ListeningQuickB';
+import { N2_LISTENING_INT_B } from './n2ListeningIntB';
 import { LISTENING_TYPE_LABELS, listeningKeyOf, type ListeningSet, type ListeningType } from './listeningTypes';
 import audioManifest from '../../../../../../docs/ai-course/adventure-v2/generated/audio-manifest.json';
 
 export { LISTENING_TYPE_LABELS, listeningKeyOf };
 export type { ListeningSet, ListeningType };
 
-export const ALL_LISTENING_SETS: ListeningSet[] = [...N3_LISTENING_SETS, ...N2_LISTENING_SETS];
+export const ALL_LISTENING_SETS: ListeningSet[] = [
+  ...N3_LISTENING_SETS,
+  ...N3_LISTENING_TASK_B, ...N3_LISTENING_POINT_B, ...N3_LISTENING_OUTLINE_B,
+  ...N3_LISTENING_QUICK_B, ...N3_LISTENING_INT_B,
+  ...N2_LISTENING_SETS,
+  ...N2_LISTENING_TASK_B, ...N2_LISTENING_POINT_B, ...N2_LISTENING_OUTLINE_B,
+  ...N2_LISTENING_QUICK_B, ...N2_LISTENING_INT_B,
+];
 
 interface AudioEntry { setId: string; path: string; durationSeconds: number; bytes: number }
 const MANIFEST_ENTRIES: AudioEntry[] = (audioManifest as { entries?: AudioEntry[] }).entries ?? [];
