@@ -13,7 +13,10 @@ import { recordAttempt, seenQuestionKeys, masteredTargetIds, computeMastery, typ
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
-import { companionById, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import {
+  ALL_TEACHERS, resolveTeacher, teacherName, type AdvTeacherId,
+} from '../../../lib/aiLesson/course/adventure/advTeacher';
+import { TeacherAvatar } from '../TeacherAvatar';
 import {
   loadGrammarPools, buildDiagnosisPools, stageContent, loadAllN2Drafts,
   type GrammarPools, type StageContent,
@@ -58,7 +61,7 @@ export interface AdvShellProps {
   onExitV2: () => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
@@ -209,6 +212,7 @@ export default function AdvShell(props: AdvShellProps) {
             ...withLegacy, enabled: true,
             goalType: o.goalType, targetJlpt: o.targetJlpt, examDateISO: o.examDateISO,
             weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
+            teacherId: o.teacherId,
             diagnosis: o.diagnosis,
             skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
             route: o.route,
@@ -221,6 +225,10 @@ export default function AdvShell(props: AdvShellProps) {
   const prof = profile!;
   const route = prof.route!;
   const level: 'N2' | 'N3' = prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
+  const teacher = resolveTeacher(prof.teacherId);
+  const teacherLabel = teacherName(teacher, lang);
+  const pickTeacher = (id: AdvTeacherId) => save({ ...prof, teacherId: id });
 
   // ── battle ──
   if (view === 'battle' && battle && pools) {
@@ -278,6 +286,50 @@ export default function AdvShell(props: AdvShellProps) {
         onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx); }}
         onClose={() => setView('home')}
       />
+    );
+  }
+
+  // ── 先生の設定（あとから変更できる） ──
+  if (view === 'teacher') {
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '案内の先生', '引导你的老师')} />
+        <p className="mb-4 text-sm leading-relaxed text-gray-600">
+          {tx(lang,
+            '学習内容・出題・レベル判定は変わりません。話し方と見た目が変わります。いつでも変えられます。',
+            '学习内容、出题和级别判定都不会改变，改变的是说话方式和外观。随时可以更改。')}
+        </p>
+        <div className="space-y-3" role="radiogroup" aria-label={tx(lang, '先生', '老师')}>
+          {ALL_TEACHERS.map((tc) => {
+            const on = teacher.id === tc.id;
+            return (
+              <button key={tc.id} type="button" role="radio" aria-checked={on}
+                className={`flex w-full min-h-[44px] items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+                  on ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}`}
+                onClick={() => pickTeacher(tc.id)}>
+                <TeacherAvatar teacher={tc} size={56} lang={lang} labeled={false} className={`ring-2 ${tc.ringClass}`} />
+                <span className="min-w-0 flex-1">
+                  <span className="block font-semibold text-gray-900">{tx(lang, tc.nameJa, tc.nameZh)}</span>
+                  <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
+                  {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
+                    <span className="mt-1 block text-xs text-amber-800">
+                      {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}
+                    </span>
+                  )}
+                </span>
+                {on && <span className="shrink-0 text-sm font-bold text-blue-700">{tx(lang, '選択中', '已选择')}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-4 text-xs text-gray-500">
+          {tx(lang, '選んだ先生は、今日の冒険・AI会話・学習レポート・言い直し・復習・先生レッスン準備のすべてに表示されます。',
+            '所选的老师会显示在今天的冒险、AI会话、学习报告、改口练习、复习和真人课准备的所有页面。')}
+        </p>
+        <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
+          {tx(lang, 'ホームへもどる', '返回主页')}
+        </button>
+      </div>
     );
   }
 
@@ -341,7 +393,7 @@ export default function AdvShell(props: AdvShellProps) {
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'restate') ?? -1;
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '言い直し', '改口练习')} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '言い直し', '改口练习')} teacherLang={lang} />
         <div className={card}>
           <p className="text-sm font-semibold text-gray-900">{tx(lang, material.titleJa, material.titleZh)}</p>
           {material.beforeJa && (
@@ -459,7 +511,8 @@ export default function AdvShell(props: AdvShellProps) {
     ];
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={`${prof.targetJlpt ?? 'N2'}${term('readiness', lang)}`} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={`${prof.targetJlpt ?? 'N2'}${term('readiness', lang)}`}
+          teacherLang={lang} />
         <div className={`${card} mb-3 bg-gray-50`}>
           <p className="text-xs font-semibold text-gray-700">{tx(lang, '本試験の構成', '本考试的构成')}</p>
           <ul className="mt-1 space-y-0.5">
@@ -552,7 +605,7 @@ export default function AdvShell(props: AdvShellProps) {
     const s = buildLessonPrepSummary(prof, nowISO);
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={term('seeTeacherPrep', lang)} />
+        <BackBar lang={lang} onBack={() => setView('home')} title={term('seeTeacherPrep', lang)} teacherLang={lang} />
         <div className={card}>
           <p className="text-sm text-gray-700">{tx(lang, `今週の学習：${s.weekStudyDays}日`, `本周学习：${s.weekStudyDays}天`)}</p>
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の先生レッスンで扱うこと', '下次真人课要处理的内容')}</p>
@@ -573,7 +626,10 @@ export default function AdvShell(props: AdvShellProps) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <h2 className="text-lg font-bold text-gray-900">{tx(lang, '今日の冒険 おつかれさま！', '今天的冒险辛苦了！')}</h2>
+        <div className="flex items-center gap-3">
+          <TeacherAvatar size={44} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
+          <h2 className="text-lg font-bold text-gray-900">{tx(lang, '今日の冒険 おつかれさま！', '今天的冒险辛苦了！')}</h2>
+        </div>
         <div className={`${card} mt-3`}>
           <p className="text-sm font-semibold text-gray-900">{tx(lang, '今日できたこと', '今天做到的事')}</p>
           <ul className="mt-1 space-y-1 text-sm text-gray-700">
@@ -613,7 +669,6 @@ export default function AdvShell(props: AdvShellProps) {
   // ── home（1画面1決断） ──
   const mastered = masteredTargetIds(prof.mastery, nowISO);
   const stage = currentStageOf(route, mastered);
-  const comp = companionById(prof.companionId);
   const daysToExam = prof.examDateISO
     ? Math.max(0, Math.ceil((new Date(prof.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000)) : null;
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
@@ -669,18 +724,20 @@ export default function AdvShell(props: AdvShellProps) {
             : tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)}
       </p>
 
-      {/* 相棒の一文（次の行動を言う） */}
+      {/* 案内の先生の一文（次の行動を言う）。7画面すべてで同じ先生に揃える */}
       <div className="mt-2 mb-4 flex items-center gap-3">
-        <span className="h-12 w-12 shrink-0" role="img"
-          aria-label={tx(lang, `相棒 ${comp.nameJa}`, `伙伴 ${comp.nameZh}`)}
-          dangerouslySetInnerHTML={{ __html: companionSvg(comp.id) }} />
-        <p className="text-sm leading-snug text-gray-700">
-          {quest
-            ? tx(lang,
-              `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めよう！` : '今日のぶんは終わりました！'}`,
-              `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧！` : '今天的份量已经完成了！'}`)
-            : tx(lang, comp.greetJa, comp.greetZh)}
-        </p>
+        <TeacherAvatar size={48} expression="smile" lang={lang}
+          className={`shrink-0 ring-2 ${teacher.ringClass}`} />
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-gray-500">{teacherLabel}</p>
+          <p className="text-sm leading-snug text-gray-700">
+            {quest
+              ? tx(lang,
+                `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めましょう。` : '今日のぶんは終わりました！'}`,
+                `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧。` : '今天的份量已经完成了！'}`)
+              : tx(lang, teacher.greetJa, teacher.greetZh)}
+          </p>
+        </div>
       </div>
 
       {/* 中断したミニ模試があれば、他の何より先に再開させる（§9 reload recovery） */}
@@ -709,7 +766,10 @@ export default function AdvShell(props: AdvShellProps) {
 
       {quest && (
         <div className={`${card} mb-4 border-blue-200`}>
-          <h1 className="text-lg font-bold text-gray-900">{term('todayAdventure', lang)}</h1>
+          <div className="flex items-center gap-2">
+            <TeacherAvatar size={28} lang={lang} labeled={false} className="shrink-0" />
+            <h1 className="text-lg font-bold text-gray-900">{term('todayAdventure', lang)}</h1>
+          </div>
           <p className="mt-0.5 text-sm text-gray-600">
             {tx(lang, `今日はこの${quest.steps.length}つだけ・約${quest.estimatedMinutes}分`,
               `今天只做这${quest.steps.length}项・约${quest.estimatedMinutes}分钟`)}
@@ -787,6 +847,9 @@ export default function AdvShell(props: AdvShellProps) {
             <SubLink lang={lang}
               label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
               onClick={() => setView('mock')} />
+            <SubLink lang={lang}
+              label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
+              onClick={() => setView('teacher')} />
             <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
             <p className="px-1 pt-1 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
@@ -829,10 +892,15 @@ function AdvLoading({ lang, inline }: { lang: L; inline?: boolean }) {
   );
 }
 
-function BackBar({ lang, onBack, title }: { lang: L; onBack: () => void; title: string }) {
+function BackBar({ lang, onBack, title, teacherLang }: {
+  lang: L; onBack: () => void; title: string;
+  /** 指定すると案内の先生のアバターを出す（画面間で案内キャラクターを揃えるため） */
+  teacherLang?: L;
+}) {
   return (
     <div className="mb-4 flex items-center gap-2">
       <button type="button" className="min-h-[44px] min-w-[44px] rounded-lg border border-gray-200 px-3" onClick={onBack} aria-label={tx(lang, 'もどる', '返回')}>←</button>
+      {teacherLang && <TeacherAvatar size={32} lang={teacherLang} labeled={false} className="shrink-0" />}
       <h2 className="text-lg font-bold text-gray-900">{title}</h2>
     </div>
   );

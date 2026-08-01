@@ -6,6 +6,7 @@ import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
+import { isTeacherId } from './advTeacher';
 
 const emptySkill = (): AdvSkillScore => ({
   currentScore: 0, confidence: 'none', evidenceCount: 0, lastAssessedAt: null, band: 'needs_assessment',
@@ -26,6 +27,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   weeklyDays: null,
   dailyMinutes: null,
   companionId: null,
+  teacherId: null,
   diagnosis: null,
   skills: emptySkillProfile(),
   route: null,
@@ -121,6 +123,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     weeklyDays: typeof raw.weeklyDays === 'number' && raw.weeklyDays >= 1 && raw.weeklyDays <= 7 ? Math.floor(raw.weeklyDays) : null,
     dailyMinutes: VALID_MINUTES.has(raw.dailyMinutes as number) ? (raw.dailyMinutes as AdventureV2Profile['dailyMinutes']) : null,
     companionId: VALID_COMPANIONS.has(raw.companionId as string) ? (raw.companionId as AdventureV2Profile['companionId']) : null,
+    // 未選択（null）は既定の先生で表示する。保存値は書き換えない（既存learner非破壊）
+    teacherId: isTeacherId(raw.teacherId) ? raw.teacherId : null,
     diagnosis: isRecord(raw.diagnosis) && typeof raw.diagnosis.completedAt === 'string'
       ? (raw.diagnosis as unknown as AdventureV2Profile['diagnosis']) : null,
     skills,

@@ -1,6 +1,7 @@
 // Adventure V2 の型定義（§3〜§16の契約）。
 // 原則: 目的地は本人が選ぶ／現在地は診断で測る／今日の一歩はAIが決める。
 // JLPTレベル（知識）と会話力は別能力として厳密に分離する（§9・§34）。
+import type { AdvTeacherId } from './advTeacher';
 
 /** 冒険の目的（§4）。既存schemaに該当命名がないため新設（D-005） */
 export type AdvGoalType = 'jlpt' | 'conversation' | 'hybrid';
@@ -230,6 +231,12 @@ export interface AdventureV2Profile {
   weeklyDays: number | null;
   dailyMinutes: 5 | 15 | 30 | null;
   companionId: AdvCompanionId | null;
+  /**
+   * 案内の先生（Teacher Selection）。null は未選択。
+   * 未選択learnerは既定（翔子先生）で表示され、保存値は書き換えない
+   * ＝既存learnerのデフォルトを勝手に変更しない。
+   */
+  teacherId: AdvTeacherId | null;
   diagnosis: AdvDiagnosisResult | null;
   skills: AdvSkillProfile;
   route: AdvRoute | null;

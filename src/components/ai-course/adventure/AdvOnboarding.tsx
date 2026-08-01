@@ -1,4 +1,4 @@
-// V2 onboarding（§4〜§7・§10）: 目的 → 目標 → 受験日 → 学習スケジュール → 相棒 → 診断 → ルート提示。
+// V2 onboarding（§4〜§7・§10）: 目的 → 目標 → 受験日 → 学習スケジュール → 先生 → 相棒 → 診断 → ルート提示。
 // 原則: 最初に選ぶのはレベルではなく目的。目標は本人から奪わない。診断は5〜8分で終える。
 import { useMemo, useState } from 'react';
 import type {
@@ -6,6 +6,8 @@ import type {
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { ACTIVE_TARGET_LEVELS, GOAL_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { COMPANIONS, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
+import { TeacherAvatar } from '../TeacherAvatar';
 import {
   selectDiagnosisQuestions, scoreDiagnosis, type DiagQuestion, type DiagnosisPools, type ConvSample,
 } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
@@ -24,6 +26,8 @@ export interface OnboardingOutcome {
   weeklyDays: number;
   dailyMinutes: 5 | 15 | 30;
   companionId: AdvCompanionId;
+  /** 案内の先生（teacherIdで管理。性別は条件にしない） */
+  teacherId: AdvTeacherId;
   diagnosis: AdvDiagnosisResult;
   skills: AdvSkillProfile;
   route: AdvRoute;
@@ -37,7 +41,7 @@ interface Props {
   onCancel: () => void;
 }
 
-type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'companion' | 'diagIntro' | 'diag' | 'conv' | 'route';
+type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'conv' | 'route';
 
 const CONV_PROMPTS: { ja: string; zh: string }[] = [
   { ja: '週末は何をしましたか。日本語で書いてみてください。', zh: '周末做了什么？请试着用日语写一句。' },
@@ -57,6 +61,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
   const [weeklyDays, setWeeklyDays] = useState(5);
   const [minutes, setMinutes] = useState<5 | 15 | 30>(15);
   const [companion, setCompanion] = useState<AdvCompanionId>('fukuro');
+  const [teacher, setTeacher] = useState<AdvTeacherId>(DEFAULT_TEACHER_ID);
   const [answers, setAnswers] = useState<Map<string, number>>(new Map());
   const [qIndex, setQIndex] = useState(0);
   const [convTexts, setConvTexts] = useState<string[]>(['', '']);
@@ -88,7 +93,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
     trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
     setOutcome({
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, diagnosis, skills, route,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, diagnosis, skills, route,
     });
     setPhase('route');
   };
@@ -175,6 +180,35 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
             {([5, 15, 30] as const).map((m) => (
               <button key={m} type="button" className={`${minutes === m ? btnOn : btnIdle} text-center`} onClick={() => setMinutes(m)}>
                 {m}{tx(lang, '分', '分钟')}
+              </button>
+            ))}
+          </div>
+          <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('teacher')}>
+            {tx(lang, 'つぎへ', '下一步')}
+          </button>
+        </section>
+      )}
+
+      {phase === 'teacher' && (
+        <section aria-label={tx(lang, '案内の先生', '引导你的老师')}>
+          {header('案内してくれる先生を選んでください', '请选择引导你的老师',
+            '学習内容・出題・レベル判定は変わりません。話し方と見た目が変わります。あとで設定から変えられます。',
+            '学习内容、出题和级别判定都不会改变，改变的是说话方式和外观。之后可以在设置里更改。')}
+          <div className="space-y-3" role="radiogroup" aria-label={tx(lang, '先生', '老师')}>
+            {ALL_TEACHERS.map((tc) => (
+              <button key={tc.id} type="button" role="radio" aria-checked={teacher === tc.id}
+                className={`${teacher === tc.id ? btnOn : btnIdle} flex items-center gap-3`}
+                onClick={() => setTeacher(tc.id)}>
+                <TeacherAvatar teacher={tc} size={56} lang={lang} labeled={false} className={`ring-2 ${tc.ringClass}`} />
+                <span className="min-w-0">
+                  <span className="block font-semibold">{tx(lang, tc.nameJa, tc.nameZh)}</span>
+                  <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
+                  {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
+                    <span className="mt-1 block text-xs text-amber-800">
+                      {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}
+                    </span>
+                  )}
+                </span>
               </button>
             ))}
           </div>
