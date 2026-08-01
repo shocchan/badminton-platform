@@ -1,0 +1,87 @@
+{
+ "generatedAt": "2026-08-01T05:44:45.223Z",
+ "sources": [
+  {
+   "sourceId": "opensubtitles-ja-50k",
+   "sourceFamily": "opensubtitles-opus",
+   "license": "attribution_share",
+   "attribution": "OpenSubtitles / OPUS corpus, frequency list compiled by hermitdave (FrequencyWords, MIT). Corpus text © respective subtitle authors, distributed via OPUS under CC BY-SA-compatible terms.",
+   "origin": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/ja/ja_50k.txt",
+   "sha256": "6f734851c4881295d66947e09987ccb17010bb71cd9df7b6e326870c847508d6",
+   "bytes": 624618,
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": true,
+   "lineage": "字幕コーパスの実測頻度。JLPT出題基準系統とは独立",
+   "fieldsTaken": [
+    "surface(token)",
+    "frequency rank"
+   ],
+   "fieldsDeliberatelyNotTaken": [
+    "翻訳",
+    "例文",
+    "文脈行",
+    "字幕本文",
+    "リストの並びそのもの"
+   ],
+   "rows": 50001,
+   "japaneseTokens": 46193
+  },
+  {
+   "sourceId": "jmdict-eng-common-inventory",
+   "sourceFamily": "jmdict",
+   "license": "attribution_share",
+   "attribution": "JMdict © Electronic Dictionary Research and Development Group, CC BY-SA 4.0. Priority markers derive from Mainichi Shimbun frequency and Ichimango goi bunruishuu.",
+   "origin": "https://github.com/scriptin/jmdict-simplified",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": true,
+   "lineage": "新聞頻度・一万語彙分類集ベースの優先度マーカー。JLPT出題基準系統とは独立",
+   "fieldsTaken": [
+    "surface",
+    "reading",
+    "partOfSpeech",
+    "priority marker"
+   ],
+   "fieldsDeliberatelyNotTaken": [
+    "英訳グロス",
+    "例文"
+   ],
+   "japaneseTokens": 30726
+  },
+  {
+   "sourceId": "ninjal-bccwj-suw",
+   "sourceFamily": "ninjal-bccwj",
+   "license": "permissive",
+   "attribution": "国立国語研究所『現代日本語書き言葉均衡コーパス』語彙表",
+   "origin": "https://repository.ninjal.ac.jp/record/3234/files/BCCWJ_frequencylist_suw_ver1_0.zip",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": false,
+   "reason": "Command failed: curl -sSL -f -m 90 -o /private/tmp/claude-501/-Users-shocchan-ai-company/ca909b0c-621c-47d2-a80a-8dfb7b3ec661/scratchpad/vocab-harvest/bccwj-suw.zip https://repository.ninjal.ac.jp/rec",
+   "note": "repository.ninjal.ac.jp が応答しないため未取得。取得できたら独立familyとして追加する"
+  },
+  {
+   "sourceId": "jev-vocabulary-table",
+   "sourceFamily": "jev",
+   "license": "reference_only",
+   "attribution": "日本語教育語彙表（砂川有里子ほか, 科研費基盤研究(A) 23242026）https://jreadability.net/jev/",
+   "origin": "https://jreadability.net/jev/",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": false,
+   "reason": "ダウンロードが申請フォーム経由のため自動取得しない（人間が申請する）",
+   "usagePolicy": [
+    "reference_only：learnerに見えるDBへ入れない",
+    "再配布しない",
+    "訳・例文・語義・並び順を取り込まない",
+    "取得できた場合もレベル判定の「照合材料」としてのみ使い、統計だけを残す"
+   ],
+   "fieldsTaken": [],
+   "fieldsDeliberatelyNotTaken": [
+    "見出し語リストそのもの",
+    "6段階難易度値",
+    "語義",
+    "用例",
+    "品詞",
+    "アクセント"
+   ]
+  }
+ ]
+}

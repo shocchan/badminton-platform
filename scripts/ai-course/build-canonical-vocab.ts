@@ -34,6 +34,11 @@ const run = async () => {
     console.error('run harvest-vocab-candidates.mjs first'); process.exit(2);
   }
   const cand = JSON.parse(readFileSync(candPath, 'utf8')) as { candidates: RawCandidate[] };
+  // 独立ソース（字幕コーパス頻度ほか・§2）。無ければ従来どおり動く
+  const indepPath = `${OUT}/vocab-candidates-independent.json`;
+  const independent: RawCandidate[] = existsSync(indepPath)
+    ? (JSON.parse(readFileSync(indepPath, 'utf8')) as { candidates: RawCandidate[] }).candidates
+    : [];
   const jm: Record<string, JmEntry> = existsSync(`${OUT}/vocab-jmdict-index.json`)
     ? JSON.parse(readFileSync(`${OUT}/vocab-jmdict-index.json`, 'utf8')).entries : {};
   const kanjiGrade: Record<string, number> = existsSync(`${OUT}/vocab-kanji-grade.json`)
@@ -58,7 +63,7 @@ const run = async () => {
 
   // ── 候補を surface|reading で統合（union）──
   const merged = new Map<string, { surface: string; reading: string; ev: SourceEvidence[]; positions: number[] }>();
-  for (const c of cand.candidates) {
+  for (const c of [...cand.candidates, ...independent]) {
     const key = `${c.surface}|${c.reading}`;
     const cur = merged.get(key) ?? { surface: c.surface, reading: c.reading, ev: [], positions: [] };
     cur.ev.push({ sourceId: c.sourceId, sourceFamily: c.sourceFamily as SourceEvidence['sourceFamily'], suggestedLevel: c.sourceSuggestedLevel });
@@ -125,11 +130,15 @@ const run = async () => {
     // 独自判定: sourceがあれば source と signal の平均へ寄せる（sourceを鵜呑みにしない）
     // sourceを鵜呑みにしないが、2段以上ずらすと別レベルの語をN2圏へ引き込んでしまう。
     // 独自判定は source から ±1段までに制限する（sourceは根拠であって権威ではない・§5）
+    // レベル主張を持つsourceが1つも無い語（独立頻度ソースのみで拾った語）は
+    // 「標準的なN5/N4語彙リストに載っていない」ことが判明している語である。
+    // それをN5/N4へ落とすと根拠と矛盾するため、下限をN3（idx=2）にする。
     const rawAssigned = sourceIdx === null
       ? Math.min(4, signalIdx + 1)
       : Math.round((sourceIdx * 2 + signalIdx) / 3);
+    // ただし自社教材に出ている語は「学習者が実際に出会う語」なので下限を課さない
     const assignedIdx = sourceIdx === null
-      ? rawAssigned
+      ? (internalOccurrences > 0 ? rawAssigned : Math.max(2, rawAssigned))
       : Math.max(sourceIdx - 1, Math.min(sourceIdx + 1, rawAssigned));
     const independentlyAssignedLevel = LEVEL_ORDER[Math.max(0, Math.min(4, assignedIdx))];
 
@@ -169,8 +178,10 @@ const run = async () => {
     const verified = !!jmEntry || internalOccurrences > 0;
     // core は「必ず先に押さえる語」に絞る。部分一致1回だけでcoreにしない
     const strongInternal = m.surface.length >= 2 ? internalOccurrences >= 2 : internalOccurrences >= 1;
+    // core は「先に必ず押さえる語」。頻度コーパスだけで拾った語（レベル主張なし）は
+    // 自社教材に何度も出ていない限り core にしない＝JLPT語彙リスト由来の語を優先する
     if (!m.reading || !verified) priority = 'hold';
-    else if (strongInternal || (jmEntry?.common && assignedIdx <= 1)) priority = 'core';
+    else if (strongInternal || (sourceIdx !== null && jmEntry?.common && assignedIdx <= 1)) priority = 'core';
     else if (jmEntry?.common || assignedIdx <= 2) priority = 'likely';
     else priority = 'extended';
     if (!m.reading) stats.missingReading += 1;

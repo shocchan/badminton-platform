@@ -14,10 +14,13 @@
 
 /** 同一原典から派生した複数repositoryを1つに束ねるためのキー（§2） */
 export type SourceFamily =
-  | 'tanos-waller'      // 一般に流通するJLPT語彙リスト群（多数の派生repoが存在する）
-  | 'jmdict'            // JMdict/EDICT（EDRDG・CC BY-SA）
-  | 'kanjidic2'         // KANJIDIC2（EDRDG・CC BY-SA）
-  | 'kawabado-internal';// 自社の既存教材（語彙・文法・読解・聴解）
+  | 'tanos-waller'       // 一般に流通するJLPT語彙リスト群（多数の派生repoが存在する）
+  | 'jmdict'             // JMdict/EDICT（EDRDG・CC BY-SA）
+  | 'kanjidic2'          // KANJIDIC2（EDRDG・CC BY-SA）
+  | 'opensubtitles-opus' // 字幕コーパスの実測頻度（JLPT出題基準系統とは独立・§2）
+  | 'ninjal-bccwj'       // 国立国語研究所『BCCWJ』語彙表（均衡コーパス頻度）
+  | 'jev'                // 日本語教育語彙表（reference_only。DBへは入れない）
+  | 'kawabado-internal'; // 自社の既存教材（語彙・文法・読解・聴解）
 
 export type SourceLicense =
   | 'permissive'        // MIT等・条件内でimport可

@@ -1,23 +1,23 @@
 {
- "generatedAt": "2026-08-01T04:43:12.926Z",
+ "generatedAt": "2026-08-01T05:44:54.564Z",
  "title": "複数の主要公開語彙データを統合し、重複・意味・レベルを独自に再整理したN2／N3累積語彙バンク",
  "disclaimer": "公式出題基準の100%網羅を主張するものではない。公開候補の統合と独自再判定の結果である。",
  "totals": {
-  "canonicalWords": 8056,
-  "uniqueExpressions": 7915,
-  "uniqueReadings": 7217,
-  "uniqueSurfaceReading": 8056,
+  "canonicalWords": 10505,
+  "uniqueExpressions": 10290,
+  "uniqueReadings": 9168,
+  "uniqueSurfaceReading": 10505,
   "byLevel": {
-   "N3": 2393,
+   "N3": 4199,
    "N5": 642,
-   "N4": 1866,
+   "N4": 2037,
    "N1": 87,
-   "N2": 3068
+   "N2": 3540
   },
   "byPriority": {
    "hold": 1084,
-   "core": 2520,
-   "likely": 4442,
+   "core": 2652,
+   "likely": 6759,
    "extended": 10
   }
  },
@@ -25,16 +25,16 @@
   "target": "N3",
   "candidateLevels": {
    "N5": 642,
-   "N4": 1866,
-   "N3": 2393
+   "N4": 2037,
+   "N3": 4199
   },
-  "uniqueExpressions": 4810,
-  "uniqueSenses": 9082,
-  "core": 2441,
-  "likely": 1870,
+  "uniqueExpressions": 6728,
+  "uniqueSenses": 12407,
+  "core": 2568,
+  "likely": 3720,
   "extended": 0,
   "hold": 590,
-  "canonicalCompleteFields": 4196,
+  "canonicalCompleteFields": 6173,
   "questionCoverageByType": {},
   "wordsWithOriginalContent": 0,
   "aspectTargetForCore": {
@@ -46,17 +46,17 @@
   "target": "N2",
   "candidateLevels": {
    "N5": 642,
-   "N4": 1866,
-   "N3": 2393,
-   "N2": 3068
+   "N4": 2037,
+   "N3": 4199,
+   "N2": 3540
   },
-  "uniqueExpressions": 7836,
-  "uniqueSenses": 13909,
-  "core": 2520,
-  "likely": 4442,
+  "uniqueExpressions": 10211,
+  "uniqueSenses": 17979,
+  "core": 2652,
+  "likely": 6759,
   "extended": 8,
   "hold": 999,
-  "canonicalCompleteFields": 6836,
+  "canonicalCompleteFields": 9285,
   "questionCoverageByType": {},
   "wordsWithOriginalContent": 0,
   "aspectTargetForCore": {
@@ -71,11 +71,11 @@
   "examVocabularyCoverageComplete": false
  },
  "warnings": {
-  "singleSourceFamily": 7938,
+  "singleSourceFamily": 7329,
   "levelConflict": 96,
   "lowFrequency": 1220,
-  "ambiguousSense": 1703,
-  "lowConfidence": 5177
+  "ambiguousSense": 2149,
+  "lowConfidence": 5730
  },
- "nextStep": "層C（独自の訳・例文・問題）をCORE 2520語から作成する。§9の順番に従い一括大量生成はしない"
+ "nextStep": "層C（独自の訳・例文・問題）をCORE 2652語から作成する。§9の順番に従い一括大量生成はしない"
 }

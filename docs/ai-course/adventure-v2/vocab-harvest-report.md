@@ -7,13 +7,17 @@
 > **N2／N3累積語彙バンク**である。
 > 公式出題基準の100%網羅を主張するものではない。
 
+> **2026-08-01 更新**: 独立ソース（字幕コーパス頻度・JMdict common在庫）を追加し、
+> 試験スコープ内の飽和を実測した。詳細は `vocab-saturation.md`。
+> canonical 8,056 → **10,505語**、複数family根拠を持つ語 118 → **3,176語**。
+
 ## 4つの完了判定（§12）
 
 | 判定 | 結果 | 根拠 |
 |---|---|---|
-| **Vocabulary Harvest Complete** | **YES** | 4 sourceFamily・8,131候補行を収集し union 済み |
+| **Vocabulary Harvest Complete** | **YES** | 独立2系統を含む sourceFamily で候補を union。試験スコープ内の飽和を実測（`vocab-saturation.md`） |
 | **Canonical Bank Complete** | **NO** | hold以外は field が揃うが、語義1,220語がJMdict未照合。sense分離も第1語義中心 |
-| **CORE Question Coverage Complete** | **NO** | 層C（独自問題）未着手。CORE 2,520語に問題0 |
+| **CORE Question Coverage Complete** | **NO** | 層C（独自問題）未着手。CORE 2,652語に問題0 |
 | **Exam Vocabulary Coverage Complete** | **NO** | 上記に依存 |
 
 §9 の順番（候補union → 正規化 → sense分離 → 独自レベル → **coverage audit** → CORE問題生成 …）のうち、

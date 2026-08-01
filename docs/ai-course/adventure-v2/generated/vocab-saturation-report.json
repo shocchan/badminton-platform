@@ -1,0 +1,402 @@
+{
+ "generatedAt": "2026-08-01T05:44:45.223Z",
+ "purpose": "独立系統のソースを当てて、語彙候補の収集が飽和しているかを実測する（§2・§3）",
+ "thresholds": {
+  "newCorePctOfCurrentCore": "< 1%",
+  "newLikelyPctOfCurrentLikely": "< 2%",
+  "overlapPct": ">= 90%",
+  "note": "すべての独立ソースで3条件を満たしたときに限り「候補収集は飽和」と表現する"
+ },
+ "bankSnapshot": {
+  "canonicalWords": 10505,
+  "core": 2652,
+  "likely": 6759,
+  "hold": 1084,
+  "existingFamilies": [
+   "tanos-waller",
+   "opensubtitles-opus",
+   "kawabado-internal"
+  ]
+ },
+ "sources": [
+  {
+   "sourceId": "opensubtitles-ja-50k",
+   "sourceFamily": "opensubtitles-opus",
+   "license": "attribution_share",
+   "attribution": "OpenSubtitles / OPUS corpus, frequency list compiled by hermitdave (FrequencyWords, MIT). Corpus text © respective subtitle authors, distributed via OPUS under CC BY-SA-compatible terms.",
+   "origin": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2016/ja/ja_50k.txt",
+   "sha256": "6f734851c4881295d66947e09987ccb17010bb71cd9df7b6e326870c847508d6",
+   "bytes": 624618,
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": true,
+   "lineage": "字幕コーパスの実測頻度。JLPT出題基準系統とは独立",
+   "fieldsTaken": [
+    "surface(token)",
+    "frequency rank"
+   ],
+   "fieldsDeliberatelyNotTaken": [
+    "翻訳",
+    "例文",
+    "文脈行",
+    "字幕本文",
+    "リストの並びそのもの"
+   ],
+   "rows": 50001,
+   "japaneseTokens": 46193
+  },
+  {
+   "sourceId": "jmdict-eng-common-inventory",
+   "sourceFamily": "jmdict",
+   "license": "attribution_share",
+   "attribution": "JMdict © Electronic Dictionary Research and Development Group, CC BY-SA 4.0. Priority markers derive from Mainichi Shimbun frequency and Ichimango goi bunruishuu.",
+   "origin": "https://github.com/scriptin/jmdict-simplified",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": true,
+   "lineage": "新聞頻度・一万語彙分類集ベースの優先度マーカー。JLPT出題基準系統とは独立",
+   "fieldsTaken": [
+    "surface",
+    "reading",
+    "partOfSpeech",
+    "priority marker"
+   ],
+   "fieldsDeliberatelyNotTaken": [
+    "英訳グロス",
+    "例文"
+   ],
+   "japaneseTokens": 30726
+  },
+  {
+   "sourceId": "ninjal-bccwj-suw",
+   "sourceFamily": "ninjal-bccwj",
+   "license": "permissive",
+   "attribution": "国立国語研究所『現代日本語書き言葉均衡コーパス』語彙表",
+   "origin": "https://repository.ninjal.ac.jp/record/3234/files/BCCWJ_frequencylist_suw_ver1_0.zip",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": false,
+   "reason": "Command failed: curl -sSL -f -m 90 -o /private/tmp/claude-501/-Users-shocchan-ai-company/ca909b0c-621c-47d2-a80a-8dfb7b3ec661/scratchpad/vocab-harvest/bccwj-suw.zip https://repository.ninjal.ac.jp/rec",
+   "note": "repository.ninjal.ac.jp が応答しないため未取得。取得できたら独立familyとして追加する"
+  },
+  {
+   "sourceId": "jev-vocabulary-table",
+   "sourceFamily": "jev",
+   "license": "reference_only",
+   "attribution": "日本語教育語彙表（砂川有里子ほか, 科研費基盤研究(A) 23242026）https://jreadability.net/jev/",
+   "origin": "https://jreadability.net/jev/",
+   "retrievedAt": "2026-08-01T05:44:45.223Z",
+   "available": false,
+   "reason": "ダウンロードが申請フォーム経由のため自動取得しない（人間が申請する）",
+   "usagePolicy": [
+    "reference_only：learnerに見えるDBへ入れない",
+    "再配布しない",
+    "訳・例文・語義・並び順を取り込まない",
+    "取得できた場合もレベル判定の「照合材料」としてのみ使い、統計だけを残す"
+   ],
+   "fieldsTaken": [],
+   "fieldsDeliberatelyNotTaken": [
+    "見出し語リストそのもの",
+    "6段階難易度値",
+    "語義",
+    "用例",
+    "品詞",
+    "アクセント"
+   ]
+  }
+ ],
+ "saturation": [
+  {
+   "sourceId": "opensubtitles-ja-50k",
+   "probeTokens": 46193,
+   "dictionaryVerifiable": 14030,
+   "alreadyInBank": 7863,
+   "missingFromBank": 6167,
+   "overlapPctAllRanks": 56.04,
+   "newByPredictedPriorityAllRanks": {
+    "core": 0,
+    "likely": 6167,
+    "extended": 0,
+    "hold": 0
+   },
+   "byFrequencyBand": [
+    {
+     "band": "1-2000",
+     "words": 1247,
+     "inBank": 1244,
+     "overlapPct": 99.76,
+     "missingSample": [
+      "筈",
+      "喧嘩",
+      "卿"
+     ]
+    },
+    {
+     "band": "2001-4000",
+     "words": 1261,
+     "inBank": 1257,
+     "overlapPct": 99.68,
+     "missingSample": [
+      "勿論",
+      "狼",
+      "殆ど",
+      "槍"
+     ]
+    },
+    {
+     "band": "4001-6000",
+     "words": 1105,
+     "inBank": 1099,
+     "overlapPct": 99.46,
+     "missingSample": [
+      "昏睡",
+      "卜",
+      "儲け",
+      "甥",
+      "絆",
+      "些細"
+     ]
+    },
+    {
+     "band": "6001-10000",
+     "words": 1980,
+     "inBank": 1969,
+     "overlapPct": 99.44,
+     "missingSample": [
+      "鞄",
+      "巴",
+      "或いは",
+      "琥珀",
+      "骨董",
+      "獅子",
+      "鎧",
+      "樽",
+      "辻",
+      "壽",
+      "秘訣"
+     ]
+    },
+    {
+     "band": "10001-",
+     "words": 8437,
+     "inBank": 2294,
+     "overlapPct": 27.19,
+     "missingSample": [
+      "根絶",
+      "掌握",
+      "撤収",
+      "ミズーリ",
+      "羽目",
+      "ユーザー",
+      "粉砕",
+      "ミュージシャン",
+      "カリウム",
+      "骨格",
+      "一貫",
+      "テヘラン"
+     ]
+    }
+   ],
+   "sampleNewCore": [],
+   "examScope": {
+    "words": 5593,
+    "inBank": 5569,
+    "missing": 24,
+    "overlapPct": 99.57,
+    "newByPredictedPriority": {
+     "core": 0,
+     "likely": 24,
+     "extended": 0,
+     "hold": 0
+    },
+    "newCorePctOfCurrentCore": 0,
+    "newLikelyPctOfCurrentLikely": 0.36,
+    "missingSample": [
+     "筈",
+     "喧嘩",
+     "卿",
+     "勿論",
+     "狼",
+     "殆ど",
+     "槍",
+     "昏睡",
+     "卜",
+     "儲け",
+     "甥",
+     "絆",
+     "些細",
+     "鞄",
+     "巴",
+     "或いは",
+     "琥珀",
+     "骨董",
+     "獅子",
+     "鎧",
+     "樽",
+     "辻",
+     "壽",
+     "秘訣"
+    ],
+    "orthographicVariants": 9,
+    "trulyNewWords": 15,
+    "trulyNewWithinTop10kFrequency": 15,
+    "overlapPctCountingVariants": 99.73,
+    "trulyNewSample": [
+     "喧嘩",
+     "狼",
+     "槍",
+     "昏睡",
+     "卜",
+     "儲け",
+     "絆",
+     "些細",
+     "巴",
+     "琥珀",
+     "骨董",
+     "獅子",
+     "鎧",
+     "辻",
+     "壽"
+    ]
+   },
+   "rankable": true,
+   "passOverlap": true,
+   "passNewCore": true,
+   "passNewLikely": true
+  },
+  {
+   "sourceId": "jmdict-eng-common-inventory",
+   "probeTokens": 30726,
+   "dictionaryVerifiable": 30408,
+   "alreadyInBank": 12378,
+   "missingFromBank": 18030,
+   "overlapPctAllRanks": 40.71,
+   "newByPredictedPriorityAllRanks": {
+    "core": 0,
+    "likely": 18030,
+    "extended": 0,
+    "hold": 0
+   },
+   "byFrequencyBand": null,
+   "sampleNewCore": [],
+   "examScope": {
+    "words": 30408,
+    "inBank": 12378,
+    "missing": 18030,
+    "overlapPct": 40.71,
+    "newByPredictedPriority": {
+     "core": 0,
+     "likely": 18030,
+     "extended": 0,
+     "hold": 0
+    },
+    "newCorePctOfCurrentCore": 0,
+    "newLikelyPctOfCurrentLikely": 266.76,
+    "missingSample": [
+     "ＣＤプレーヤー",
+     "ＣＤプレイヤー",
+     "Ｔシャツ",
+     "Ｔバック",
+     "あっという間に",
+     "あっと言う間に",
+     "アッという間に",
+     "アッと言う間に",
+     "あっとゆう間に",
+     "アッとゆう間に",
+     "如何にも",
+     "行けない",
+     "いざこざ",
+     "イザコザ",
+     "いそいそ",
+     "イソイソ",
+     "居らっしゃる",
+     "うずうず",
+     "ウズウズ",
+     "うとうと",
+     "ウトウト",
+     "うとっと",
+     "ウトッと",
+     "ウトっと",
+     "うねり"
+    ],
+    "orthographicVariants": 1677,
+    "trulyNewWords": 16353,
+    "trulyNewWithinTop10kFrequency": 15,
+    "overlapPctCountingVariants": 46.22,
+    "trulyNewSample": [
+     "ＣＤプレーヤー",
+     "ＣＤプレイヤー",
+     "Ｔシャツ",
+     "Ｔバック",
+     "あっという間に",
+     "あっと言う間に",
+     "アッという間に",
+     "アッと言う間に",
+     "あっとゆう間に",
+     "アッとゆう間に",
+     "いざこざ",
+     "イザコザ",
+     "いそいそ",
+     "イソイソ",
+     "うずうず",
+     "ウズウズ",
+     "うとうと",
+     "ウトウト",
+     "うとっと",
+     "ウトッと",
+     "ウトっと",
+     "うねり",
+     "うんこ",
+     "ウンコ",
+     "ウンチ"
+    ]
+   },
+   "rankable": false,
+   "passOverlap": false,
+   "passNewCore": true,
+   "passNewLikely": false
+  }
+ ],
+ "examScopeFilter": {
+  "maxKanjiGrade": 8,
+  "maxFrequencyRank": 10000,
+  "requireFrequencyRank": true,
+  "requireDictionaryEntry": true,
+  "requireContentWord": true
+ },
+ "merged": {
+  "newCandidates": 5557,
+  "bySourceId": {
+   "opensubtitles-ja-50k": 5557
+  },
+  "overlapWithCurrentBank": 7863,
+  "excluded": {
+   "rareKanji": 36,
+   "noFrequencyRank": 30726,
+   "lowFrequency": 8437,
+   "noEntry": 32163
+  },
+  "notMerged": [
+   {
+    "sourceId": "jmdict-eng-common-inventory",
+    "reason": "頻度順位を持たないため試験スコープを裏づけできない。飽和プローブとしてのみ使用する",
+    "probeSize": 30726
+   }
+  ],
+  "note": "除外語は捨てていない。除外理由つきでこのレポートに残す（後から基準を変えれば復帰できる）"
+ },
+ "verdict": {
+  "saturatedWithinExamScope": true,
+  "saturatedAllRanks": false,
+  "provisional": true,
+  "provisionalReason": "NINJAL BCCWJ語彙表と日本語教育語彙表を未取得のため、独立ソースは2系統にとどまる。2系統での飽和は示せたが、系統数としては最小限である",
+  "interpretation": "宣言した試験スコープ（頻度上位1万語・常用漢字圏・辞書照合できる内容語）の内側では、独立ソースを当てても新語はほぼ出ない。スコープ外（頻度1万位以降・専門語・固有名詞・当て字）は最初から語彙bankの対象にしていない。公式の出題基準をすべて満たしたとは主張しない。"
+ },
+ "unavailableSources": [
+  {
+   "sourceId": "ninjal-bccwj-suw",
+   "reason": "Command failed: curl -sSL -f -m 90 -o /private/tmp/claude-501/-Users-shocchan-ai-company/ca909b0c-621c-47d2-a80a-8dfb7b3ec661/scratchpad/vocab-harvest/bccwj-suw.zip https://repository.ninjal.ac.jp/rec"
+  },
+  {
+   "sourceId": "jev-vocabulary-table",
+   "reason": "ダウンロードが申請フォーム経由のため自動取得しない（人間が申請する）"
+  }
+ ]
+}

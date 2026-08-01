@@ -154,6 +154,73 @@ describe('§1/§3 他ソースの訳・例文を取り込んでいない', () =>
     }
   });
 
+  it('独立ソースの候補も surface / reading / 出典 のみで、レベル主張を持ち込まない（§2）', () => {
+    const p = `${GEN}/vocab-candidates-independent.json`;
+    if (!existsSync(p)) return;                    // 独立ソース未取得の環境ではスキップ
+    const indep = JSON.parse(readFileSync(p, 'utf8'));
+    const allowed = new Set([
+      'surface', 'reading', 'sourceSuggestedLevel', 'sourceId', 'sourceFamily', 'sourcePosition', 'retrievedAt',
+    ]);
+    for (const c of indep.candidates.slice(0, 500)) {
+      for (const k of Object.keys(c)) expect(allowed.has(k), `unexpected field: ${k}`).toBe(true);
+      // 独立ソースは頻度リストであってJLPTレベルの権威ではない
+      expect(c.sourceSuggestedLevel).toBeNull();
+    }
+    const blob = JSON.stringify(indep.candidates.slice(0, 2000));
+    for (const forbidden of ['meaning', 'gloss', 'translation', 'example', 'sentence', 'definition']) {
+      expect(blob.includes(`"${forbidden}"`), forbidden).toBe(false);
+    }
+  });
+
+  it('reference_only のソースは canonical bank に取り込まれていない（§2）', () => {
+    const p = `${GEN}/vocab-independent-sources.json`;
+    if (!existsSync(p)) return;
+    const { sources } = JSON.parse(readFileSync(p, 'utf8'));
+    const refOnly = sources.filter((s: { license: string }) => s.license === 'reference_only');
+    expect(refOnly.length).toBeGreaterThan(0);     // JEVはreference_onlyとして記録されている
+    const bank = loadBank()!;
+    const refFamilies = new Set(refOnly.map((s: { sourceFamily: string }) => s.sourceFamily));
+    for (const w of bank.words) {
+      for (const e of w.sourceEvidence) {
+        expect(refFamilies.has(e.sourceFamily), `${w.wordId} が reference_only ソース由来`).toBe(false);
+      }
+    }
+    // reference_only は「取らなかったfield」を明記し、取得もしていない
+    for (const s of refOnly) {
+      expect(s.available).toBe(false);
+      expect(s.fieldsTaken).toEqual([]);
+      expect(s.fieldsDeliberatelyNotTaken.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('取得できなかったソースを「取得できた」と書いていない（§2）', () => {
+    const p = `${GEN}/vocab-independent-sources.json`;
+    if (!existsSync(p)) return;
+    const { sources } = JSON.parse(readFileSync(p, 'utf8'));
+    for (const s of sources) {
+      if (s.available === false) {
+        expect(typeof s.reason, s.sourceId).toBe('string');
+        expect(s.sha256, s.sourceId).toBeUndefined();
+      } else {
+        // 取得できたと書くならバイト列のハッシュか件数の裏づけがある
+        expect(s.sha256 ?? s.japaneseTokens, s.sourceId).toBeDefined();
+      }
+    }
+  });
+
+  it('飽和は「公式100%網羅」と言い換えられていない（§3）', () => {
+    const p = `${GEN}/vocab-saturation-report.json`;
+    if (!existsSync(p)) return;
+    const r = JSON.parse(readFileSync(p, 'utf8'));
+    const blob = JSON.stringify(r);
+    expect(blob).not.toContain('100%網羅');
+    expect(blob).not.toContain('公式出題基準を完全に');
+    // 判定はスコープつきで、暫定であることを明記している
+    expect(r.verdict.provisional).toBe(true);
+    expect(typeof r.verdict.provisionalReason).toBe('string');
+    expect(r.examScopeFilter.maxFrequencyRank).toBeGreaterThan(0);
+  });
+
   it('各sourceが「取ったfield」「あえて取らなかったfield」を記録している', () => {
     for (const s of cand.sources) {
       expect(s.fieldsTaken.length).toBeGreaterThan(0);
@@ -177,7 +244,8 @@ describe('§1/§3 他ソースの訳・例文を取り込んでいない', () =>
       /^kv-\d+$/.test(t)
       || /^[^|]*-[ぁ-ゟァ-ヺ一-鿿]*-s\d+$/.test(t)
       || /^(openanki-jlpt-n[1-5]|kawabado-vocab-140|jmdict-eng-common|kanjidic2-en)$/.test(t)
-      || /^(tanos-waller|jmdict|kanjidic2|kawabado-internal)$/.test(t)
+      || /^(opensubtitles-ja-50k|jmdict-eng-common-inventory|ninjal-bccwj-suw|jev-vocabulary-table)$/.test(t)
+      || /^(tanos-waller|jmdict|kanjidic2|kawabado-internal|opensubtitles-opus|ninjal-bccwj|jev)$/.test(t)
       || /^N[1-5]$/.test(t)
       || /^(core|likely|extended|hold|high|medium|low|very_common|common|uncommon|unknown|candidate|canonical_draft|active_beta|human_review_candidate)$/.test(t)
       || /^[a-z0-9-]{1,12}$/.test(t); // JMdict品詞タグ（n, v5k, adj-i 等）

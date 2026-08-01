@@ -34,7 +34,12 @@ const q = (
     textJa: `選択${c}`,
     isCorrect: `${key}-${c}` === correctId,
   })),
-  explanation: { ja: '解説', zh: '解说' },
+  explanation: {
+    meaningJa: '意味', meaningZh: '意思',
+    whyCorrectJa: '正解の理由', whyCorrectZh: '正确的理由',
+    exampleJa: null, exampleZh: null,
+    sourceItemId: `src-${key}`, sourceLabel: key,
+  },
   sourceItemId: `src-${key}`,
   difficulty: 2,
   timed: true,
