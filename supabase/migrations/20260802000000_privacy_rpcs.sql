@@ -11,56 +11,65 @@
 -- SECURITY DEFINER の RPC で必要最小限だけを返すようにする。
 -- ===================================================
 
+-- 注: entries は id / tournament_id が bigint、cancel_token が uuid、
+-- email / payment_status が varchar。戻り値の型は実スキーマに合わせること。
+
 -- ── 1) 大会の確定エントリー数（個人情報は返さない） ──
 -- HomePage: 全大会の残り枠表示に使用
 CREATE OR REPLACE FUNCTION public.get_tournament_entry_counts()
-RETURNS TABLE (tournament_id UUID, confirmed_count BIGINT)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+RETURNS TABLE (tournament_id BIGINT, confirmed_count BIGINT)
+LANGUAGE sql STABLE SECURITY DEFINER set search_path = public
 AS $$
-  SELECT e.tournament_id, count(*)
-  FROM entries e
-  WHERE e.status = 'confirmed'
-  GROUP BY e.tournament_id
+  SELECT x.tid, x.cnt FROM (
+    SELECT e.tournament_id AS tid, count(*)::bigint AS cnt
+    FROM entries e
+    WHERE e.status = 'confirmed'
+    GROUP BY e.tournament_id
+  ) x
 $$;
 GRANT EXECUTE ON FUNCTION public.get_tournament_entry_counts() TO anon, authenticated;
 
 -- TournamentDetailPage / EntryForm: 1大会ぶんの確定数
-CREATE OR REPLACE FUNCTION public.get_tournament_entry_count(p_tournament_id UUID)
+CREATE OR REPLACE FUNCTION public.get_tournament_entry_count(p_tournament_id BIGINT)
 RETURNS BIGINT
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+LANGUAGE sql STABLE SECURITY DEFINER set search_path = public
 AS $$
-  SELECT count(*) FROM entries
-  WHERE tournament_id = p_tournament_id AND status = 'confirmed'
+  SELECT count(*)::bigint FROM entries e
+  WHERE e.tournament_id = p_tournament_id AND e.status = 'confirmed'
 $$;
-GRANT EXECUTE ON FUNCTION public.get_tournament_entry_count(UUID) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_tournament_entry_count(BIGINT) TO anon, authenticated;
 
 -- ── 2) 重複申込チェック／未払いエントリーの再開 ──
 -- 申込フォームが「同じメールで既に申し込んでいないか」を確認するために使う。
 -- テーブル全体を読ませる代わりに、大会×メールが完全一致した1件だけを返す。
-CREATE OR REPLACE FUNCTION public.find_entry_for_resume(p_tournament_id UUID, p_email TEXT)
-RETURNS TABLE (id UUID, status TEXT, cancel_token TEXT, payment_status TEXT)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+CREATE OR REPLACE FUNCTION public.find_entry_for_resume(p_tournament_id BIGINT, p_email TEXT)
+RETURNS TABLE (id BIGINT, status TEXT, cancel_token UUID, payment_status TEXT)
+LANGUAGE sql STABLE SECURITY DEFINER set search_path = public
 AS $$
-  SELECT e.id, e.status, e.cancel_token, e.payment_status
-  FROM entries e
-  WHERE e.tournament_id = p_tournament_id
-    AND lower(e.email) = lower(trim(p_email))
-    AND e.status <> 'cancelled'
-  LIMIT 1
+  SELECT x.eid, x.st, x.tok, x.pay FROM (
+    SELECT e.id AS eid, e.status::text AS st, e.cancel_token AS tok, e.payment_status::text AS pay
+    FROM entries e
+    WHERE e.tournament_id = p_tournament_id
+      AND lower(e.email) = lower(trim(p_email))
+      AND e.status <> 'cancelled'
+    LIMIT 1
+  ) x
 $$;
-GRANT EXECUTE ON FUNCTION public.find_entry_for_resume(UUID, TEXT) TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.find_entry_for_resume(BIGINT, TEXT) TO anon, authenticated;
 
 -- ── 3) ログイン中ユーザー自身の大会エントリー（MyPage） ──
 -- メールを引数で受け取らず、JWTのメールで引くので他人のぶんは取得できない。
 CREATE OR REPLACE FUNCTION public.get_my_entries()
-RETURNS TABLE (id UUID, tournament_id UUID, status TEXT)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+RETURNS TABLE (id BIGINT, tournament_id BIGINT, status TEXT)
+LANGUAGE sql STABLE SECURITY DEFINER set search_path = public
 AS $$
-  SELECT e.id, e.tournament_id, e.status
-  FROM entries e
-  WHERE auth.jwt() ->> 'email' IS NOT NULL
-    AND lower(e.email) = lower(auth.jwt() ->> 'email')
-    AND e.status <> 'cancelled'
+  SELECT x.eid, x.tid, x.st FROM (
+    SELECT e.id AS eid, e.tournament_id AS tid, e.status::text AS st
+    FROM entries e
+    WHERE auth.jwt() ->> 'email' IS NOT NULL
+      AND lower(e.email) = lower(auth.jwt() ->> 'email')
+      AND e.status <> 'cancelled'
+  ) x
 $$;
 GRANT EXECUTE ON FUNCTION public.get_my_entries() TO authenticated;
 
@@ -75,7 +84,7 @@ CREATE OR REPLACE FUNCTION public.cancel_activity_entry(
   p_qty INT
 )
 RETURNS TABLE (cancelled INT, remaining INT)
-LANGUAGE plpgsql SECURITY DEFINER SET search_path = public
+LANGUAGE plpgsql SECURITY DEFINER set search_path = public
 AS $$
 DECLARE
   v_row RECORD;

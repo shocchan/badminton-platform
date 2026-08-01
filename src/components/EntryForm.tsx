@@ -93,14 +93,14 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
 
-      // 重複申し込みチェック（同メール×同大会、cancelled 以外）
-      const { data: existing } = await supabase
-        .from('entries')
-        .select('id, status, cancel_token, payment_status')
-        .eq('tournament_id', tournament.id)
-        .eq('email', formData.email)
-        .neq('status', 'cancelled')
-        .maybeSingle();
+      // 重複申し込みチェック（同メール×同大会、cancelled 以外）。
+      // entries を直接読むと他人の氏名・電話・メールまで取得できてしまうため、
+      // 大会×メールが一致した1件だけを返すRPCを使う（大文字小文字と前後空白は無視）。
+      const { data: found } = await supabase.rpc('find_entry_for_resume', {
+        p_tournament_id: tournament.id,
+        p_email: formData.email,
+      });
+      const existing = (found as { id: number; status: string; cancel_token: string; payment_status: string }[] | null)?.[0] ?? null;
 
       if (existing) {
         // 支払い前（未完了）に画面を閉じただけの場合は「申し込み済み」として弾かず、
@@ -121,13 +121,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       }
 
       // 最新の confirmed カウントを再チェック（競合防止）
-      const { count: confirmedCount } = await supabase
-        .from('entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('tournament_id', tournament.id)
-        .eq('status', 'confirmed');
+      const { data: confirmedCount } = await supabase.rpc('get_tournament_entry_count', {
+        p_tournament_id: tournament.id,
+      });
 
-      const actualIsWaitlist = (confirmedCount ?? 0) >= tournament.capacity;
+      const actualIsWaitlist = Number(confirmedCount ?? 0) >= tournament.capacity;
       const status = actualIsWaitlist ? 'waitlist' : 'confirmed';
 
       const { data: inserted, error: insertError } = await supabase

@@ -181,15 +181,13 @@ export const HomePage = () => {
 
   useEffect(() => {
     const fetchEntryCounts = async () => {
-      // confirmed のみカウント（waitlist・cancelled は残席に影響しない）
-      const { data } = await supabase
-        .from('entries')
-        .select('tournament_id')
-        .eq('status', 'confirmed');
+      // confirmed のみカウント（waitlist・cancelled は残席に影響しない）。
+      // entries には氏名・電話・メールが入っているため直接読まず、件数だけを返すRPCを使う。
+      const { data } = await supabase.rpc('get_tournament_entry_counts');
       if (data) {
         const counts: Record<number, number> = {};
-        data.forEach(e => {
-          counts[e.tournament_id] = (counts[e.tournament_id] || 0) + 1;
+        (data as { tournament_id: number; confirmed_count: number }[]).forEach(row => {
+          counts[row.tournament_id] = Number(row.confirmed_count);
         });
         setEntryCounts(counts);
       }

@@ -60,12 +60,11 @@ export const TournamentDetailPage = () => {
       if (tErr || !t) { setError('大会が見つかりませんでした'); setLoading(false); return; }
       setTournament(t);
 
-      const { data: entries } = await supabase
-        .from('entries')
-        .select('id')
-        .eq('tournament_id', id)
-        .eq('status', 'confirmed');
-      setEntryCount(entries?.length ?? 0);
+      // 残り枠の表示に必要なのは件数だけ。個人情報を含む entries は直接読まない
+      const { data: confirmed } = await supabase.rpc('get_tournament_entry_count', {
+        p_tournament_id: Number(id),
+      });
+      setEntryCount(Number(confirmed ?? 0));
       setLoading(false);
     };
     fetchData();

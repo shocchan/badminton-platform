@@ -180,11 +180,11 @@ export default function MyPage() {
     (async () => {
       const result: MyEntry[] = [];
       try {
-        const { data: tEntries } = await supabase
-          .from('entries')
-          .select('id, tournament_id, status')
-          .eq('email', email)
-          .neq('status', 'cancelled');
+        // ログイン中ユーザー自身のエントリーのみ。メールを引数で渡さず
+        // サーバー側でJWTのメールと突き合わせるため、他人のぶんは取得できない。
+        const { data: tEntries } = await supabase.rpc('get_my_entries') as {
+          data: { id: number; tournament_id: number; status: string }[] | null;
+        };
         const ids = [...new Set((tEntries ?? []).map((e) => e.tournament_id))];
         if (ids.length > 0) {
           const { data: ts } = await supabase

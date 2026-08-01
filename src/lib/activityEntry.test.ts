@@ -1,11 +1,6 @@
 // 通常活動の定員・補欠・キャンセルの計算。金額と信用に直結するので網羅的に固定する。
 import { describe, it, expect } from 'vitest';
-import {
-  calcRemaining,
-  splitEntryQuantity,
-  planCancellation,
-  remainingAfterCancel,
-} from './activityEntry';
+import { calcRemaining, splitEntryQuantity } from './activityEntry';
 
 describe('calcRemaining: 残り枠', () => {
   it('定員から確定人数を引く', () => {
@@ -44,58 +39,5 @@ describe('splitEntryQuantity: 確定と補欠の振り分け', () => {
 
   it('負の申込人数は0として扱う', () => {
     expect(splitEntryQuantity(-1, 20, 0)).toEqual({ confirmedQty: 0, waitlistQty: 0 });
-  });
-});
-
-describe('planCancellation: キャンセルの割り当て', () => {
-  it('1行ぶんちょうど取り消すなら行ごと削除', () => {
-    expect(planCancellation([{ id: 'a', quantity: 2 }], 2)).toEqual([{ id: 'a', type: 'delete' }]);
-  });
-
-  it('一部だけ取り消すなら人数を減らす', () => {
-    expect(planCancellation([{ id: 'a', quantity: 3 }], 1)).toEqual([
-      { id: 'a', type: 'decrement', nextQuantity: 2 },
-    ]);
-  });
-
-  it('複数行にまたがるときは先頭から消費する', () => {
-    expect(
-      planCancellation([{ id: 'w', quantity: 2 }, { id: 'c', quantity: 3 }], 4)
-    ).toEqual([
-      { id: 'w', type: 'delete' },
-      { id: 'c', type: 'decrement', nextQuantity: 1 },
-    ]);
-  });
-
-  it('必要な行だけ触り、それ以降の行には手を出さない', () => {
-    const actions = planCancellation(
-      [{ id: 'a', quantity: 1 }, { id: 'b', quantity: 5 }],
-      1
-    );
-    expect(actions).toEqual([{ id: 'a', type: 'delete' }]);
-  });
-
-  it('申込総数より多くキャンセルしてもある分しか消さない', () => {
-    expect(planCancellation([{ id: 'a', quantity: 2 }], 99)).toEqual([
-      { id: 'a', type: 'delete' },
-    ]);
-  });
-
-  it('キャンセル0件なら何もしない', () => {
-    expect(planCancellation([{ id: 'a', quantity: 2 }], 0)).toEqual([]);
-  });
-});
-
-describe('remainingAfterCancel: キャンセル後の残り人数', () => {
-  it('一部キャンセル', () => {
-    expect(remainingAfterCancel([{ id: 'a', quantity: 3 }], 1)).toBe(2);
-  });
-
-  it('全部キャンセルなら0', () => {
-    expect(remainingAfterCancel([{ id: 'a', quantity: 2 }, { id: 'b', quantity: 1 }], 3)).toBe(0);
-  });
-
-  it('多くキャンセルしてもマイナスにならない', () => {
-    expect(remainingAfterCancel([{ id: 'a', quantity: 2 }], 5)).toBe(0);
   });
 });

@@ -9,7 +9,7 @@ import { FAQSchema } from '../components/seo/FAQSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
-import { calcRemaining, splitEntryQuantity, planCancellation, remainingAfterCancel } from '../lib/activityEntry';
+import { calcRemaining, splitEntryQuantity } from '../lib/activityEntry';
 
 interface Group {
   id: string;
@@ -44,7 +44,7 @@ interface ActivityEntry {
   name: string;
   member_type: 'member' | 'normal';
   source: 'line' | 'wechat' | 'web';
-  cancel_code: string;
+  // cancel_code はクライアントに渡さない（照合は cancel_activity_entry RPC がサーバー側で行う）
   quantity: number;
   status: 'confirmed' | 'waitlist';
   notes: string;
@@ -486,7 +486,8 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     if (!id) return;
     const { data } = await supabase
       .from('activity_entries')
-      .select('*')
+      // cancel_code は列単位で非公開にしているため明示的に列を並べる（select('*') は 42501 になる）
+      .select('id, activity_id, name, member_type, source, quantity, created_at, status, notes')
       .eq('activity_id', id)
       .order('created_at', { ascending: true });
     if (data) setEntries(data);
@@ -557,30 +558,25 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     setCancelError('');
     setCancelMsg('');
 
-    const { data: rows } = await supabase
-      .from('activity_entries')
-      .select('*')
-      .eq('activity_id', id)
-      .eq('name', cancelName.trim())
-      .eq('cancel_code', cancelCode.trim())
-      .order('status', { ascending: false });
+    // キャンセルコードの照合と削除はサーバー側（RPC）で行う。
+    // クライアントがコードを読めると、公開表示されている氏名と合わせて
+    // 誰でも他人の申し込みを取り消せてしまうため。
+    const { data, error } = await supabase.rpc('cancel_activity_entry', {
+      p_activity_id: id,
+      p_name: cancelName.trim(),
+      p_code: cancelCode.trim(),
+      p_qty: cancelQty,
+    });
 
-    if (!rows || rows.length === 0) {
+    const result = (data as { cancelled: number; remaining: number }[] | null)?.[0];
+    if (error || !result) {
       setCancelError(t.cancelError);
       setCancelSubmitting(false);
       return;
     }
 
-    for (const action of planCancellation(rows, cancelQty)) {
-      if (action.type === 'delete') {
-        await supabase.from('activity_entries').delete().eq('id', action.id);
-      } else {
-        await supabase.from('activity_entries').update({ quantity: action.nextQuantity }).eq('id', action.id);
-      }
-    }
-
-    const leftQty = remainingAfterCancel(rows, cancelQty);
-    setCancelMsg(leftQty <= 0 ? t.cancelSuccess : t.cancelPartial(cancelQty, leftQty));
+    const leftQty = result.remaining;
+    setCancelMsg(leftQty <= 0 ? t.cancelSuccess : t.cancelPartial(result.cancelled, leftQty));
     setCancelSubmitting(false);
     setCancelName(''); setCancelCode(''); setCancelQty(1);
     fetchEntries();
