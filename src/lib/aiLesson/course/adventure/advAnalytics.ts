@@ -10,18 +10,30 @@ export type AdvEventName =
   | 'battle_started' | 'battle_completed'
   | 'mastery_80_reached' | 'delayed_mastery_reached'
   | 'conversation_started' | 'conversation_completed'
-  | 'report_viewed' | 'next_quest_started' | 'human_lesson_summary_viewed';
+  | 'report_viewed' | 'next_quest_started' | 'human_lesson_summary_viewed'
+  // COMPLETION §19（読解・聴解・中ボス・模試・準備度）
+  | 'reading_started' | 'reading_completed'
+  | 'listening_started' | 'listening_completed' | 'audio_played'
+  | 'midboss_started' | 'midboss_completed'
+  | 'mock_started' | 'mock_section_completed' | 'mock_completed'
+  | 'readiness_skill_updated' | 'today_adventure_completed'
+  | 'retry_completed' | 'review_scheduled' | 'teacher_summary_viewed';
 
 export interface AdvEventParams {
   goalType?: AdvGoalType;
   targetLevel?: JlptLevel;
   routeStage?: string;
-  skillType?: AdvSkill;
+  /** 旧V2の能力軸 or 試験科目（どちらも文字列。本文は送らない） */
+  skillType?: AdvSkill | 'charactersVocabulary' | 'reading' | 'listening' | 'timeManagement';
+  /** 問題タイプ（read-shortPassage / listen-taskComprehension 等） */
+  questionType?: string;
   durationBucket?: '5' | '15' | '30';
   locale?: 'ja' | 'zh';
 }
 
-const ALLOWED_KEYS = new Set(['goalType', 'targetLevel', 'routeStage', 'skillType', 'durationBucket', 'locale']);
+const ALLOWED_KEYS = new Set([
+  'goalType', 'targetLevel', 'routeStage', 'skillType', 'questionType', 'durationBucket', 'locale',
+]);
 
 /** 許可キー以外は送らない（誤って本文等が混ざるのを型と実行時の二重で防ぐ） */
 export const trackAdv = (event: AdvEventName, params: AdvEventParams = {}): void => {

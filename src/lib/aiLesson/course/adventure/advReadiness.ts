@@ -197,9 +197,15 @@ export const computeReadiness = (
     };
   });
 
-  // ── 総合の可否を機械判定（§9） ──
+  // ── 総合の可否を機械判定（§9・COMPLETION §11） ──
+  // 条件: 全技能に最低evidence／読解・聴解が未判定でない／timed evidenceあり／unseen evidenceあり
   const blockersJa: string[] = [];
   const blockersZh: string[] = [];
+  const timing = evidence.timeManagement;
+  if (timing.timedEvidenceCount === 0) {
+    blockersJa.push('制限時間つきの記録がありません（中ボス・ミニ模試で測ります）');
+    blockersZh.push('还没有限时记录（通过中Boss・迷你模拟考测定）');
+  }
   for (const key of OVERALL_READINESS_REQUIREMENT.requiredSkills) {
     const e = evidence[key];
     const label = EXAM_SKILL_LABELS[key];

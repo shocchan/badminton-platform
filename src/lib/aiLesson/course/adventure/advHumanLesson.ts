@@ -3,6 +3,8 @@
 import type { AdvMasteryLedger, AdvSkillProfile, AdventureV2Profile } from './advTypes';
 import { SKILL_LABELS } from './advSkillProfile';
 import { computeMastery } from './advMastery';
+import { collectSkillEvidence } from './advReadiness';
+import { EXAM_SKILL_LABELS, EXAM_SKILLS, type ExamSkill } from './advExamSkills';
 
 export interface LessonPrepSummary {
   generatedAt: string;
@@ -16,9 +18,22 @@ export interface LessonPrepSummary {
   focusCandidates: { targetId: string; reasonJa: string; reasonZh: string }[];
   /** 学習者が相談したいこと（本人入力） */
   learnerTopics: string[];
-  /** 学習者向け表示「次の先生レッスンで扱うこと」 */
+  /** 学習者向け表示「次の先生レッスンで扱うこと」（最大3件） */
   learnerViewJa: string[];
   learnerViewZh: string[];
+  /** 先生向け: 試験科目別の状況（COMPLETION §15） */
+  teacherSkillRows: {
+    skill: ExamSkill;
+    labelJa: string;
+    evidenceCount: number;
+    unseenCount: number;
+    delayedCount: number;
+    timedCount: number;
+    recentAccuracy: number | null;
+  }[];
+  /** 先生向け: 目標試験・試験日 */
+  targetLevel: string | null;
+  examDateISO: string | null;
 }
 
 const weekDays = (questLog: AdventureV2Profile['questLog'], nowISO: string): number => {
@@ -64,16 +79,33 @@ export const buildLessonPrepSummary = (
   const focus = focusCandidates(profile.mastery, nowISO);
   const goalLabelJa = profile.goalType === 'conversation' ? '会話力向上'
     : profile.goalType === 'hybrid' ? `${profile.targetJlpt ?? ''}合格＋会話` : `${profile.targetJlpt ?? ''}合格`;
+  // 本人が相談したいことを最優先にする（3件に絞っても必ず残るように）
+  const topics = profile.humanLesson.learnerTopics ?? [];
   const learnerViewJa = [
+    ...topics,
     ...focus.map((f) => `${f.targetId} の攻略（${f.reasonJa}）`),
     ...weak.ja.slice(0, 2).map((s) => `${s}の底上げ`),
-    ...(profile.humanLesson.learnerTopics ?? []),
-  ].slice(0, 5);
+  ];
   const learnerViewZh = [
+    ...topics,
     ...focus.map((f) => `攻克 ${f.targetId}（${f.reasonZh}）`),
     ...weak.zh.slice(0, 2).map((s) => `提升${s}`),
-    ...(profile.humanLesson.learnerTopics ?? []),
-  ].slice(0, 5);
+  ];
+  // 先生向けの試験科目別状況（会話全文は載せない・要約のみ）
+  const ev = collectSkillEvidence(profile.mastery);
+  const teacherSkillRows = EXAM_SKILLS.map((skill) => {
+    const e = ev[skill];
+    return {
+      skill,
+      labelJa: EXAM_SKILL_LABELS[skill].ja,
+      evidenceCount: e.evidenceCount,
+      unseenCount: e.unseenQuestionCount,
+      delayedCount: e.delayedEvidenceCount,
+      timedCount: e.timedEvidenceCount,
+      recentAccuracy: e.evidenceCount > 0 ? Math.round((e.correct / e.evidenceCount) * 100) : null,
+    };
+  });
+
   return {
     generatedAt: nowISO,
     weekStudyDays: weekDays(profile.questLog, nowISO),
@@ -81,6 +113,11 @@ export const buildLessonPrepSummary = (
     weakSkillsJa: weak.ja, weakSkillsZh: weak.zh,
     focusCandidates: focus,
     learnerTopics: profile.humanLesson.learnerTopics ?? [],
-    learnerViewJa, learnerViewZh,
+    // 学習者側は最大3件（§15）
+    learnerViewJa: learnerViewJa.slice(0, 3),
+    learnerViewZh: learnerViewZh.slice(0, 3),
+    teacherSkillRows,
+    targetLevel: profile.targetJlpt,
+    examDateISO: profile.examDateISO,
   };
 };

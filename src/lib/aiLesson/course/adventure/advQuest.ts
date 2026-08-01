@@ -27,6 +27,20 @@ export interface GenerateQuestInput {
   availability: QuestContentAvailability;
   /** 試験日までの残日数（examDate未設定は null） */
   daysToExam: number | null;
+  /**
+   * 試験技能の状況（COMPLETION §12）。読解・聴解を毎日必ず入れるのではなく、
+   * 弱点・試験日・直近履歴から配分するために使う。
+   */
+  examSkills?: {
+    /** いま最も弱い試験科目（evidenceがある中で最低スコア。無ければnull） */
+    weakestSkill: 'charactersVocabulary' | 'grammar' | 'reading' | 'listening' | 'timeManagement' | null;
+    /** 各技能のevidence数（0なら「まだ触れていない」＝優先度が上がる） */
+    readingEvidence: number;
+    listeningEvidence: number;
+    /** 出題可能な読解・聴解の対象ID（空なら出題しない＝存在するふりをしない） */
+    readingTargetIds: string[];
+    listeningTargetIds: string[];
+  };
 }
 
 const est = (kind: AdvQuestStep['kind']): number =>
@@ -36,6 +50,7 @@ const est = (kind: AdvQuestStep['kind']): number =>
   : kind === 'vocab_new' ? 4
   : kind === 'battle' ? 6
   : kind === 'reading_short' ? 5
+  : kind === 'listening_practice' ? 5
   : kind === 'conversation_mission' ? 4
   : 2; // restate
 
@@ -101,6 +116,37 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const steps: AdvQuestStep[] = [];
   const push = (s: AdvQuestStep | null | undefined) => { if (s) steps.push(s); };
 
+  // ── 試験技能（読解・聴解）の配分（COMPLETION §12） ──
+  // 毎日必ず入れるのではなく「未着手 > 最弱 > 試験が近い」の順で必要なときだけ入れる。
+  // 出題対象が無い場合は絶対に入れない（存在するふりをしない）。
+  const ex = input.examSkills;
+  const examCandidates = (): AdvQuestStep[] => {
+    if (!ex || goalType === 'conversation') return [];
+    const out: AdvQuestStep[] = [];
+    const readingAvailable = ex.readingTargetIds.length > 0;
+    const listeningAvailable = ex.listeningTargetIds.length > 0;
+    const readingNeeded = readingAvailable
+      && (ex.readingEvidence === 0 || ex.weakestSkill === 'reading' || (daysToExam !== null && daysToExam < 60));
+    const listeningNeeded = listeningAvailable
+      && (ex.listeningEvidence === 0 || ex.weakestSkill === 'listening' || (daysToExam !== null && daysToExam < 60));
+    // 未着手のほうを先に。両方未着手なら曜日で交互にして偏らせない
+    const alternate = Number(dateKey.slice(-2)) % 2 === 0;
+    const readingStep = step('reading_short', ex.readingTargetIds.slice(0, 1), '短文読解', '短文阅读');
+    const listeningStep = step('listening_practice', ex.listeningTargetIds.slice(0, 1), '聴解トレーニング', '听力训练');
+    if (readingNeeded && listeningNeeded) out.push(alternate ? readingStep : listeningStep);
+    else if (readingNeeded) out.push(readingStep);
+    else if (listeningNeeded) out.push(listeningStep);
+    return out;
+  };
+  const examStep = examCandidates()[0] ?? null;
+  const examSkillStep = (): AdvQuestStep | null => examStep;
+  // 試験技能のevidenceが全く無い、または最弱が読解・聴解なら文法より優先する
+  const shouldPrioritizeExamSkill = (): boolean => {
+    if (!ex) return false;
+    if (ex.readingEvidence === 0 || ex.listeningEvidence === 0) return true;
+    return ex.weakestSkill === 'reading' || ex.weakestSkill === 'listening';
+  };
+
   // ① 復習は常に先頭（期限切れ/当日分がある場合）
   if (dueReviewCount > 0) push(step('review_due', [], `復習 ${Math.min(dueReviewCount, 9)}件`, `复习 ${Math.min(dueReviewCount, 9)}项`));
 
@@ -112,17 +158,16 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   } else if (minutes === 15) {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 2), '弱点補強', '弱点补强'));
     push(parts.learn);
-    push(parts.battle);
+    // 15分では文法と試験技能のどちらかを入れる（両方入れると時間超過する）
+    if (examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
+    else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     push(step('restate', [], '言い直し', '改口练习'));
   } else {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 3), '弱点補強', '弱点补强'));
     push(parts.learn);
     push(parts.battle);
-    // 試験が近い（45日未満）なら読解/混合を足す（§13③）
-    if (goalType !== 'conversation' && daysToExam !== null && daysToExam < 45) {
-      push(step('reading_short', [stage.stageId], '短文読解', '短文阅读'));
-    }
+    push(examSkillStep());
     push(parts.conv);
     push(step('restate', [], '言い直し', '改口练习'));
   }

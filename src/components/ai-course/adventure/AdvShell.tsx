@@ -26,6 +26,12 @@ import { nowTrainingLabel, masteryScopeName, type ExamSkill } from '../../../lib
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
 import { AdvBattleRunner } from './AdvBattleRunner';
+import { AdvReadingRunner } from './AdvReadingRunner';
+import { AdvListeningRunner } from './AdvListeningRunner';
+import { readingSetsFor, readingTargetIds } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
+import { listeningSetsFor, listeningTargetIds } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
+import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
+import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -48,7 +54,7 @@ export interface AdvShellProps {
   onExitV2: () => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
@@ -59,6 +65,7 @@ const skillOfStep = (kind: string): ExamSkill => {
   if (kind === 'grammar_new' || kind === 'weak_reinforce' || kind === 'battle') return 'grammar';
   if (kind === 'vocab_new' || kind === 'review_due') return 'charactersVocabulary';
   if (kind === 'reading_short') return 'reading';
+  if (kind === 'listening_practice') return 'listening';
   return 'grammar';
 };
 /** 会話・言い直しはJLPT科目ではない（別軸） */
@@ -70,6 +77,7 @@ export default function AdvShell(props: AdvShellProps) {
   const dateKey = dateKeyOf();
 
   const profile = useMemo(() => readAdvProfile(learner.settings), [learner.settings]);
+  const prof0 = useCallback(() => profile, [profile]);
   const [view, setView] = useState<View>('home');
   const [pools, setPools] = useState<GrammarPools | null>(null);
   const [diagPools, setDiagPools] = useState<DiagnosisPools | null>(null);
@@ -98,6 +106,30 @@ export default function AdvShell(props: AdvShellProps) {
     save(withStepDone(profile, i));
   }, [profile, doneSteps, save, withStepDone]);
 
+  /** 読解・聴解の結果を mastery台帳へ skill evidence つきで記録する（準備度へ反映される） */
+  const recordSkillResult = useCallback((
+    p: AdventureV2Profile, skill: 'reading' | 'listening',
+    r: { correct: number; total: number; keys: string[]; wrongKeys: string[]; elapsedSec: number },
+    stepIndex: number,
+  ) => {
+    const targetId = `${skill}-${prof0()?.targetJlpt ?? 'N2'}`.toLowerCase();
+    const attempt: AdvMasteryAttempt = {
+      dateKey,
+      scorePct: r.total === 0 ? 0 : Math.round((r.correct / r.total) * 100),
+      unseenRatio: 1,
+      questionKeys: r.keys,
+      tier: 'normal',
+      timed: false,
+      completedAt: new Date().toISOString(),
+      skills: [skill],
+      bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: r.total } },
+    };
+    const ledger = recordAttempt(p.mastery, targetId, attempt);
+    save(withStepDone({ ...p, mastery: ledger }, stepIndex));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateKey, save, withStepDone]);
+
+
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
   useEffect(() => {
     if (!needsOnboarding || diagPools) return;
@@ -122,12 +154,28 @@ export default function AdvShell(props: AdvShellProps) {
       const daysToExam = profile.examDateISO
         ? Math.max(0, Math.ceil((new Date(profile.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000))
         : null;
+      // 試験技能の状況（読解・聴解を毎日ではなく弱点・試験日で配分する・§12）
+      const ev = collectSkillEvidence(profile.mastery);
+      const measured = (['charactersVocabulary', 'grammar', 'reading', 'listening'] as const)
+        .filter((k) => ev[k].evidenceCount > 0);
+      const weakestSkill = measured.length > 0
+        ? measured.slice().sort((a, b) =>
+          (ev[a].correct / Math.max(1, ev[a].evidenceCount)) - (ev[b].correct / Math.max(1, ev[b].evidenceCount)))[0]
+        : null;
+      const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
       setQuest(generateTodayQuest({
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
         availability: {
           nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
+        },
+        examSkills: {
+          weakestSkill,
+          readingEvidence: ev.reading.evidenceCount,
+          listeningEvidence: ev.listening.evidenceCount,
+          readingTargetIds: readingTargetIds(lvl),
+          listeningTargetIds: listeningTargetIds(lvl),
         },
       }));
       trackAdv('today_quest_viewed', { goalType: profile.goalType ?? undefined, targetLevel: profile.targetJlpt ?? undefined, locale: lang });
@@ -200,6 +248,70 @@ export default function AdvShell(props: AdvShellProps) {
         }}
         onClose={() => { setBattle(null); setView('home'); }}
       />
+    );
+  }
+
+  // ── 読解 ──
+  if (view === 'reading') {
+    const sets = readingSetsFor(level).slice(0, 3);
+    const stepIdx = quest?.steps.findIndex((s) => s.kind === 'reading_short') ?? -1;
+    return (
+      <AdvReadingRunner
+        lang={lang} sets={sets}
+        onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'reading', r, stepIdx); }}
+        onClose={() => setView('home')}
+      />
+    );
+  }
+
+  // ── 聴解 ──
+  if (view === 'listening') {
+    const sets = listeningSetsFor(level).slice(0, 3);
+    const stepIdx = quest?.steps.findIndex((s) => s.kind === 'listening_practice') ?? -1;
+    return (
+      <AdvListeningRunner
+        lang={lang} sets={sets}
+        onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx); }}
+        onClose={() => setView('home')}
+      />
+    );
+  }
+
+  // ── 言い直し（素材0件でも必ず進める・§14）──
+  if (view === 'restate') {
+    const wrongExpressions = Object.entries(prof.mastery)
+      .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at[at.length - 1]?.scorePct < 80)
+      .slice(0, 3)
+      .map(([id]) => ({ expression: id, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
+    const material = pickRestateMaterial({
+      conversationCorrection: null,
+      battleMistakes: wrongExpressions,
+      targetExpressions: quest?.targetExpressions ?? [],
+      usedExpressions: [],
+    });
+    const stepIdx = quest?.steps.findIndex((s) => s.kind === 'restate') ?? -1;
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '言い直し', '改口练习')} />
+        <div className={card}>
+          <p className="text-sm font-semibold text-gray-900">{tx(lang, material.titleJa, material.titleZh)}</p>
+          {material.beforeJa && (
+            <p className="mt-2 rounded bg-red-50 px-2 py-1 text-sm text-gray-900">✕ {material.beforeJa}</p>
+          )}
+          {material.afterJa && (
+            <p className="mt-1 rounded bg-emerald-50 px-2 py-1 text-sm text-gray-900">◯ {material.afterJa}</p>
+          )}
+          <p className="mt-3 text-sm leading-relaxed text-gray-700">
+            {tx(lang, material.instructionJa, material.instructionZh)}
+          </p>
+        </div>
+        <button type="button" className={`${primaryBtn} mt-4`}
+          onClick={() => { if (stepIdx >= 0) markStep(stepIdx); setView('home'); }}>
+          {material.source === 'none'
+            ? tx(lang, '次に進む', '继续')
+            : tx(lang, '言えた（次に進む）', '说出来了（继续）')}
+        </button>
+      </div>
     );
   }
 
@@ -437,7 +549,9 @@ export default function AdvShell(props: AdvShellProps) {
     trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
     if (s.kind === 'review_due') { markStep(i); props.onOpenReview(); return; }
     if (s.kind === 'conversation_mission') { if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); } return; }
-    if (s.kind === 'restate') { markStep(i); if (props.restateAvailable) props.onStartRestate(); return; }
+    if (s.kind === 'restate') { setView('restate'); return; }
+    if (s.kind === 'reading_short') { setView('reading'); return; }
+    if (s.kind === 'listening_practice') { setView('listening'); return; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
       markStep(i);
       props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
@@ -448,7 +562,7 @@ export default function AdvShell(props: AdvShellProps) {
       setBattle({ tier: 'normal', targetId: s.refIds[0], targetLabel: tx(lang, '弱点補強', '弱点补强'), targetIds: s.refIds });
       setView('battle'); return;
     }
-    if (s.kind === 'battle' || s.kind === 'reading_short') {
+    if (s.kind === 'battle') {
       const targets = s.refIds.length > 0 ? s.refIds : (stageCt?.battleTargetIds ?? []);
       setBattle({ tier: (s.tier ?? 'normal'), targetId: targets[0] ?? (stage?.stageId ?? 'stage'), targetLabel: stage ? tx(lang, stage.titleJa, stage.titleZh) : '', targetIds: targets });
       setView('battle'); return;

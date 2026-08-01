@@ -156,12 +156,44 @@ describe('advQuest（§13）', () => {
     expect(quest.whyJa).toContain('試験まで124日');
   });
 
-  it('5分は軽量構成・30分は読解を含む（試験45日前）', () => {
+  it('5分は軽量構成・30分は試験技能（読解/聴解）を含む', () => {
     const q5 = generateTodayQuest(mkInput({ profile: { ...mkInput().profile, dailyMinutes: 5 } }));
     expect(q5.estimatedMinutes).toBeLessThanOrEqual(8);
-    const q30 = generateTodayQuest(mkInput({ profile: { ...mkInput().profile, dailyMinutes: 30 }, daysToExam: 40 }));
-    expect(q30.steps.some((s) => s.kind === 'reading_short')).toBe(true);
+    const q30 = generateTodayQuest(mkInput({
+      profile: { ...mkInput().profile, dailyMinutes: 30 }, daysToExam: 40,
+      examSkills: {
+        weakestSkill: null, readingEvidence: 0, listeningEvidence: 0,
+        readingTargetIds: ['read-n2-shortPassage'], listeningTargetIds: ['listen-n2-taskComprehension'],
+      },
+    }));
+    expect(q30.steps.some((s) => s.kind === 'reading_short' || s.kind === 'listening_practice')).toBe(true);
     expect(q30.estimatedMinutes).toBeGreaterThan(q5.estimatedMinutes);
+  });
+
+  it('**出題できる読解・聴解が無ければstepを作らない**（存在するふりをしない）', () => {
+    const q = generateTodayQuest(mkInput({
+      profile: { ...mkInput().profile, dailyMinutes: 30 }, daysToExam: 10,
+      examSkills: {
+        weakestSkill: 'reading', readingEvidence: 0, listeningEvidence: 0,
+        readingTargetIds: [], listeningTargetIds: [],
+      },
+    }));
+    expect(q.steps.some((s) => s.kind === 'reading_short')).toBe(false);
+    expect(q.steps.some((s) => s.kind === 'listening_practice')).toBe(false);
+  });
+
+  it('会話目的では試験技能stepを積まない', () => {
+    const base = mkInput();
+    const convRoute = generateRoute({ goalType: 'conversation', targetJlpt: null, knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW });
+    const q = generateTodayQuest({
+      ...base, route: convRoute,
+      profile: { ...base.profile, goalType: 'conversation', targetJlpt: null, dailyMinutes: 30 },
+      examSkills: {
+        weakestSkill: 'reading', readingEvidence: 0, listeningEvidence: 0,
+        readingTargetIds: ['read-n2-shortPassage'], listeningTargetIds: ['listen-n2-taskComprehension'],
+      },
+    });
+    expect(q.steps.some((s) => s.kind === 'reading_short' || s.kind === 'listening_practice')).toBe(false);
   });
 
   it('前日と同じ主対象を避ける（代替があるとき）', () => {

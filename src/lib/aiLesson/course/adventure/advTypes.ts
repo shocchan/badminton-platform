@@ -139,7 +139,7 @@ export type AdvMasteryState =
 /** 今日の冒険（§13）。生成結果は必ず why / 所要 / 成功条件 / 次 を持つ */
 export interface AdvQuestStep {
   kind: 'review_due' | 'weak_reinforce' | 'grammar_new' | 'vocab_new'
-      | 'battle' | 'reading_short' | 'conversation_mission' | 'restate';
+      | 'battle' | 'reading_short' | 'listening_practice' | 'conversation_mission' | 'restate';
   refIds: string[];
   titleJa: string; titleZh: string;
   estMinutes: number;
