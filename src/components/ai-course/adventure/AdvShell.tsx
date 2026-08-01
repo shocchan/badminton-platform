@@ -33,6 +33,7 @@ import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
+import { vocabPool } from '../../../lib/aiLesson/course/adventure/vocab/vocabQuestions';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
 
@@ -285,11 +286,13 @@ export default function AdvShell(props: AdvShellProps) {
     if (!pools) return <AdvLoading lang={lang} />;
     const rPool = readingPool(level);
     const lPool = listeningPool(level);
+    const vPool = vocabPool(level);
     const merged = new Map(pools.byItem);
     for (const [k, v] of rPool) merged.set(k, v);
     for (const [k, v] of lPool) merged.set(k, v);
+    for (const [k, v] of vPool) merged.set(k, v);
     let vocabCount = 0; let grammarCount = 0;
-    for (const qs of pools.byItem.values()) {
+    for (const qs of [...pools.byItem.values(), ...vPool.values()]) {
       for (const q of qs) {
         if (q.skill === 'charactersVocabulary') vocabCount += 1;
         else if (q.skill === 'grammar') grammarCount += 1;

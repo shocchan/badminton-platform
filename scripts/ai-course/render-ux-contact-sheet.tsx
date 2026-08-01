@@ -38,6 +38,6 @@ figcaption{font-size:11px;line-height:1.45;margin-top:6px}
 .zh{color:#c2554a}.meta{color:#888;font-size:10px}.alt{color:#aaa;font-size:9px}
 code{font-size:9px;color:#666}.dup{background:#fff3cd;padding:8px;border-radius:8px;margin-bottom:12px;font-size:12px}</style>
 <h1 style="font-size:16px">語彙イラスト contact sheet — ${ILLUSTRATION_MANIFEST.length}語（UX監査 2026-07-31）</h1>
-${dups.length ? `<div class="dup">⚠ 同一hash: ${dups.map(([h, ids]) => ids.join('=')).join(' / ')}</div>` : '<p style="font-size:12px;color:#2f8f4e">duplicate hash: 0</p>'}
+${dups.length ? `<div class="dup">⚠ 同一hash: ${dups.map(([, ids]) => ids.join('=')).join(' / ')}</div>` : '<p style="font-size:12px;color:#2f8f4e">duplicate hash: 0</p>'}
 <div class="grid">${cells}</div>`);
 console.log(`wrote contact sheet: 140 cells, duplicate hashes: ${dups.length}`);

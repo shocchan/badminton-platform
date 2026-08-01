@@ -1,22 +1,22 @@
 {
- "generatedAt": "2026-08-01T05:44:54.564Z",
+ "generatedAt": "2026-08-01T06:09:43.705Z",
  "title": "複数の主要公開語彙データを統合し、重複・意味・レベルを独自に再整理したN2／N3累積語彙バンク",
  "disclaimer": "公式出題基準の100%網羅を主張するものではない。公開候補の統合と独自再判定の結果である。",
  "totals": {
-  "canonicalWords": 10505,
+  "canonicalWords": 10499,
   "uniqueExpressions": 10290,
-  "uniqueReadings": 9168,
-  "uniqueSurfaceReading": 10505,
+  "uniqueReadings": 9134,
+  "uniqueSurfaceReading": 10499,
   "byLevel": {
-   "N3": 4199,
-   "N5": 642,
-   "N4": 2037,
+   "N3": 4197,
+   "N5": 644,
+   "N4": 2031,
    "N1": 87,
    "N2": 3540
   },
   "byPriority": {
-   "hold": 1084,
-   "core": 2652,
+   "hold": 1083,
+   "core": 2647,
    "likely": 6759,
    "extended": 10
   }
@@ -24,19 +24,28 @@
  "n3Cumulative": {
   "target": "N3",
   "candidateLevels": {
-   "N5": 642,
-   "N4": 2037,
-   "N3": 4199
+   "N5": 644,
+   "N4": 2031,
+   "N3": 4197
   },
   "uniqueExpressions": 6728,
-  "uniqueSenses": 12407,
-  "core": 2568,
+  "uniqueSenses": 12404,
+  "core": 2563,
   "likely": 3720,
   "extended": 0,
-  "hold": 590,
-  "canonicalCompleteFields": 6173,
-  "questionCoverageByType": {},
-  "wordsWithOriginalContent": 0,
+  "hold": 589,
+  "canonicalCompleteFields": 6174,
+  "questionCoverageByType": {
+   "meaning": 249,
+   "orthography": 200,
+   "usage": 139,
+   "context": 204,
+   "reading": 133,
+   "confusable": 50
+  },
+  "activeQuestions": 975,
+  "wordsBelowAspectTarget": 77,
+  "wordsWithOriginalContent": 249,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -45,20 +54,29 @@
  "n2Cumulative": {
   "target": "N2",
   "candidateLevels": {
-   "N5": 642,
-   "N4": 2037,
-   "N3": 4199,
+   "N5": 644,
+   "N4": 2031,
+   "N3": 4197,
    "N2": 3540
   },
   "uniqueExpressions": 10211,
-  "uniqueSenses": 17979,
-  "core": 2652,
+  "uniqueSenses": 17976,
+  "core": 2647,
   "likely": 6759,
   "extended": 8,
-  "hold": 999,
-  "canonicalCompleteFields": 9285,
-  "questionCoverageByType": {},
-  "wordsWithOriginalContent": 0,
+  "hold": 998,
+  "canonicalCompleteFields": 9286,
+  "questionCoverageByType": {
+   "meaning": 249,
+   "orthography": 200,
+   "usage": 139,
+   "context": 204,
+   "reading": 133,
+   "confusable": 50
+  },
+  "activeQuestions": 975,
+  "wordsBelowAspectTarget": 77,
+  "wordsWithOriginalContent": 249,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -70,12 +88,29 @@
   "coreQuestionCoverageComplete": false,
   "examVocabularyCoverageComplete": false
  },
- "warnings": {
-  "singleSourceFamily": 7329,
-  "levelConflict": 96,
-  "lowFrequency": 1220,
-  "ambiguousSense": 2149,
-  "lowConfidence": 5730
+ "layerC": {
+  "batches": [
+   {
+    "batchNo": 1,
+    "words": 251,
+    "validated": 249,
+    "semanticallyReviewed": 249,
+    "activeBeta": 249,
+    "needsHumanReview": 2,
+    "stagingSmokePassed": false
+   }
+  ],
+  "coreWords": 2647,
+  "coreWithOriginalContent": 249,
+  "remainingCoreWords": 2398,
+  "note": "一括生成はしない。250語単位で 生成→機械検査→意味レビュー→active_beta→staging smoke を繰り返す（§6）"
  },
- "nextStep": "層C（独自の訳・例文・問題）をCORE 2652語から作成する。§9の順番に従い一括大量生成はしない"
+ "warnings": {
+  "singleSourceFamily": 7317,
+  "levelConflict": 96,
+  "lowFrequency": 1213,
+  "ambiguousSense": 2150,
+  "lowConfidence": 5722
+ },
+ "nextStep": "層C（独自の訳・例文・問題）をCORE 2647語から作成する。§9の順番に従い一括大量生成はしない"
 }

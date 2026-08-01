@@ -10,6 +10,9 @@ import type {
   CanonicalVocabWord, JlptLevelTag, VocabCompletionFlags,
 } from '../../src/lib/aiLesson/course/adventure/vocab/vocabTypes';
 import { ASPECT_TARGET_BY_PRIORITY } from '../../src/lib/aiLesson/course/adventure/vocab/vocabTypes';
+import { ALL_VOCAB_CONTENT } from '../../src/lib/aiLesson/course/adventure/vocab/content/vocabContentBank';
+import { activeContent, summarizeBatch } from '../../src/lib/aiLesson/course/adventure/vocab/vocabContent';
+import { vocabQuestionCoverage } from '../../src/lib/aiLesson/course/adventure/vocab/vocabQuestions';
 
 const OUT = 'docs/ai-course/adventure-v2/generated';
 const CUMULATIVE: Record<'N3' | 'N2', JlptLevelTag[]> = {
@@ -37,8 +40,11 @@ const run = () => {
     const canonicalComplete = inScope.filter((w) =>
       w.reading && w.senses.length > 0 && w.independentlyAssignedLevel
       && w.sourceEvidence.length > 0 && w.priority !== 'hold').length;
-    // 問題は層Cで独自作成する。現時点で active な語彙問題は未作成
-    const withOriginalContent = inScope.filter((w) => w.senses.some((s) => s.hasOriginalContent)).length;
+    // 層C（独自コンテンツ）を持つ語。canonical bank の senses ではなく層Cバンクを正準とする
+    const contentKeys = new Set(activeContent(ALL_VOCAB_CONTENT).map((c) => `${c.surface}|${c.reading}`));
+    const withOriginalContent = inScope.filter((w) =>
+      contentKeys.has(`${w.canonicalSurface}|${w.reading}`)).length;
+    const qCov = vocabQuestionCoverage(target);
 
     return {
       target,
@@ -50,7 +56,9 @@ const run = () => {
       extended: byPriority.extended ?? 0,
       hold: byPriority.hold ?? 0,
       canonicalCompleteFields: canonicalComplete,
-      questionCoverageByType: {},           // 層C未着手のため空（存在するふりをしない）
+      questionCoverageByType: qCov.byAspect,
+      activeQuestions: qCov.questions,
+      wordsBelowAspectTarget: qCov.belowAspectTarget.length,
       wordsWithOriginalContent: withOriginalContent,
       aspectTargetForCore: ASPECT_TARGET_BY_PRIORITY.core,
     };
@@ -61,7 +69,11 @@ const run = () => {
 
   // ── 4つの完了判定（§12）──
   const coreWords = words.filter((w) => w.priority === 'core');
-  const coreWithQuestions = coreWords.filter((w) => w.senses.some((s) => s.hasOriginalContent)).length;
+  const activeKeys = new Set(activeContent(ALL_VOCAB_CONTENT).map((c) => `${c.surface}|${c.reading}`));
+  const coreWithQuestions = coreWords.filter((w) =>
+    activeKeys.has(`${w.canonicalSurface}|${w.reading}`)).length;
+  const batches = [...new Set(ALL_VOCAB_CONTENT.map((c) => c.batchNo))]
+    .map((n) => summarizeBatch(n, ALL_VOCAB_CONTENT, false));
   const flags: VocabCompletionFlags = {
     // 公開候補の収集と統合が完了（複数sourceのunion・sourceFamily統合済み）
     vocabularyHarvestComplete: words.length > 0 && (bank.stats.total as number) > 0,
@@ -98,6 +110,13 @@ const run = () => {
     n3Cumulative: n3,
     n2Cumulative: n2,
     completion: flags,
+    layerC: {
+      batches,
+      coreWords: coreWords.length,
+      coreWithOriginalContent: coreWithQuestions,
+      remainingCoreWords: coreWords.length - coreWithQuestions,
+      note: '一括生成はしない。250語単位で 生成→機械検査→意味レビュー→active_beta→staging smoke を繰り返す（§6）',
+    },
     warnings,
     nextStep: flags.coreQuestionCoverageComplete
       ? 'LIKELY／EXTENDEDの問題拡張へ'
@@ -109,6 +128,7 @@ const run = () => {
   console.log(`canonical=${report.totals.canonicalWords} uniqueExpr=${report.totals.uniqueExpressions} uniqueReading=${report.totals.uniqueReadings}`);
   console.log(`N3累積: expr=${n3.uniqueExpressions} senses=${n3.uniqueSenses} core=${n3.core} likely=${n3.likely} ext=${n3.extended} hold=${n3.hold}`);
   console.log(`N2累積: expr=${n2.uniqueExpressions} senses=${n2.uniqueSenses} core=${n2.core} likely=${n2.likely} ext=${n2.extended} hold=${n2.hold}`);
+  console.log('layerC', report.layerC.coreWithOriginalContent, '/', report.layerC.coreWords, 'batches', batches);
   console.log('completion', flags);
   console.log('warnings', warnings);
 };

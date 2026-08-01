@@ -61,11 +61,23 @@ const run = async () => {
     (allVocabularyItems() as unknown as Record<string, unknown>[]).map((v) => String(v.lemma ?? '')),
   );
 
+  // 読みの正規化。公開リストの読み欄には「べんきょう (する)」「いく; ゆく」のような
+  // 注記つきの値が混ざる。そのままだと読み問題の正解が壊れるため、見出し読みだけを取り出す。
+  // （複数読みは先頭を採用。別語として立っている「一日 いちにち／ついたち」は表記が同じでも別行のまま残る）
+  const normalizeReading = (raw: string): string => {
+    let r = raw.trim();
+    r = r.replace(/[（(][^）)]*[）)]/g, '');       // 「(する)」「（〜）」を落とす
+    r = r.split(/[;；,、/／]/)[0];                  // 複数読みは先頭
+    return r.replace(/\s+/g, '').trim();
+  };
+
   // ── 候補を surface|reading で統合（union）──
   const merged = new Map<string, { surface: string; reading: string; ev: SourceEvidence[]; positions: number[] }>();
   for (const c of [...cand.candidates, ...independent]) {
-    const key = `${c.surface}|${c.reading}`;
-    const cur = merged.get(key) ?? { surface: c.surface, reading: c.reading, ev: [], positions: [] };
+    const reading = normalizeReading(c.reading);
+    if (!reading) continue;
+    const key = `${c.surface}|${reading}`;
+    const cur = merged.get(key) ?? { surface: c.surface, reading, ev: [], positions: [] };
     cur.ev.push({ sourceId: c.sourceId, sourceFamily: c.sourceFamily as SourceEvidence['sourceFamily'], suggestedLevel: c.sourceSuggestedLevel });
     if (c.sourcePosition != null) cur.positions.push(c.sourcePosition);
     merged.set(key, cur);
