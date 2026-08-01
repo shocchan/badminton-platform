@@ -26,6 +26,7 @@ const PasswordResetSuccessPage = lazy(() => import('./pages/PasswordResetSuccess
 const NotFoundPage         = lazy(() => import('./pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LevelGuidePage       = lazy(() => import('./pages/LevelGuidePage').then(m => ({ default: m.LevelGuidePage })));
 const CancelPolicyPage     = lazy(() => import('./pages/CancelPolicyPage').then(m => ({ default: m.CancelPolicyPage })));
+const KawabadoLegalPage    = lazy(() => import('./pages/KawabadoLegalPage').then(m => ({ default: m.KawabadoLegalPage })));
 const FaqPage              = lazy(() => import('./pages/FaqPage').then(m => ({ default: m.FaqPage })));
 const CancelEntryPage      = lazy(() => import('./pages/CancelEntryPage').then(m => ({ default: m.CancelEntryPage })));
 // chaoxianzu グループ用
@@ -104,6 +105,10 @@ const AnimatedRoutes = () => {
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
+            {/* 法務3ページ（特商法・プライバシー・利用規約） */}
+            <Route path="tokushoho"       element={<KawabadoLegalPage id="tokushoho" />} />
+            <Route path="privacy"         element={<KawabadoLegalPage id="privacy" />} />
+            <Route path="terms"           element={<KawabadoLegalPage id="terms" />} />
             <Route path="admin"           element={<AdminPage groupSlug="kawaguchi-warabi" />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />

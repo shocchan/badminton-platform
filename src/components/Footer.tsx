@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { CalendarDays, Footprints, Feather, Zap, MapPin, Users, ChevronRight } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LogoMark } from './LogoMark';
+import { KawabadoLegalLinks } from '../pages/KawabadoLegalPage';
 
 export const Footer = () => {
   const year = new Date().getFullYear();
@@ -92,9 +93,10 @@ export const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
             <Link to="/faq" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
             <Link to="/cancel-policy" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
+            <KawabadoLegalLinks className="hover:text-gray-200 transition-colors" />
           </div>
         </div>
       </div>
