@@ -109,6 +109,22 @@ describe('§6 語彙問題（選択式のみ）', () => {
     }
   });
 
+  it('**active_beta の全語に有効な選択問題が2問以上ある**（要件C）', () => {
+    // 2問未満しか作れない語は「無理に水増しせず CORE から外す」のが方針。
+    // ここを通らない語が残っていたら、内容を足すか excluded_from_core へ移す。
+    const under = active
+      .map((c) => ({ id: `${c.surface}|${c.reading}`, n: buildVocabQuestions(c, active, 20260801).length }))
+      .filter((x) => x.n < 2);
+    expect(under.map((x) => `${x.id}:${x.n}`)).toEqual([]);
+  });
+
+  it('CORE の大半が4形式以上（水増しはしないが、薄すぎもしない）', () => {
+    const counts = active.map((c) => buildVocabQuestions(c, active, 20260801).length);
+    const fourPlus = counts.filter((n) => n >= 4).length;
+    // かな語は読み・表記の観点が構造上作れないため100%にはならない。7割を下限にする
+    expect(fourPlus / counts.length).toBeGreaterThan(0.7);
+  });
+
   it('全問が選択式で、正解choiceIdが一意', () => {
     const pool = vocabPool('N2');
     let total = 0;
