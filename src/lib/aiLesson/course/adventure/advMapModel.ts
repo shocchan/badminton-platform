@@ -369,6 +369,11 @@ export const buildAdventureMap = (
         ...r,
         state: 'current' as RegionState,
         masteryPct: r.layer === 'exam' ? masteryProgressPct(ledger[r.id], nowISO) : null,
+        // 画面上部の主要CTAと**同じ文言のボタンを2つ並べない**。
+        // どちらも今日の冒険へ行くが、ここは「この地域を進める」と場所を名指しする
+        action: r.action.kind === 'today'
+          ? { ...r.action, labelJa: '今日の冒険でここを進める', labelZh: '在今天的冒险中推进这里' }
+          : r.action,
       };
     }
     if (i === firstOpen + 1) {
