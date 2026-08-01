@@ -1,0 +1,828 @@
+{
+ "level": "N2",
+ "sampledFrom": 120,
+ "sampleSize": 20,
+ "note": "本文を読まないと解けるか・根拠が本文にあるか・複数正解・中国語の自然さを見る",
+ "sets": [
+  {
+   "setId": "n2r-info-23",
+   "sourceLevel": "N2",
+   "readingType": "infoSearch",
+   "passageJa": "【粗大ごみ 収集の申込方法】\n・申込：収集希望日の7日前までに電話または受付ページから\n・手数料：品目ごとに400円・800円・1,200円のいずれか\n・支払い：手数料券を店で買い、氏名を書いて品物に貼ります\n・1回の申込は5点まで、玄関前か建物の1階まで自分で出します\n※一辺が2メートルを超えるものは収集できません\n※家電4品目（テレビ・冷蔵庫・洗濯機・エアコン）は別の手続きが必要です",
+   "contextZh": "这是大型垃圾收运的申请方法说明。",
+   "questionJa": "一辺が2メートル以内の机1点（800円）と本棚1点（1,200円）と洗濯機1点を同時に出したい。正しいものはどれか。",
+   "questionZh": "想同时丢弃单边2米以内的书桌1件（800日元）、书架1件（1,200日元）和洗衣机1件。正确的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "3点まとめて申し込み、2,000円を払う",
+     "isCorrect": false,
+     "whyWrongJa": "洗濯機は家電4品目にあたり、別の手続きが必要です。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "机と本棚だけ申し込み、2,000円を払う",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "机と本棚だけ申し込み、1,200円を払う",
+     "isCorrect": false,
+     "whyWrongJa": "手数料は品目ごとにかかるので、800円と1,200円の合計になります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "一辺が2メートル以内なので3点とも出せる",
+     "isCorrect": false,
+     "whyWrongJa": "大きさの条件は満たしますが、洗濯機は別の手続きが必要です。"
+    }
+   ],
+   "rationaleSpan": "家電4品目（テレビ・冷蔵庫・洗濯機・エアコン）は別の手続きが必要です",
+   "explanationJa": "洗濯機は家電4品目なので粗大ごみとしては出せません。机800円と本棚1,200円で合計2,000円です。",
+   "explanationZh": "洗衣机属于家电4品目，不能作为大型垃圾丢弃。书桌800日元和书架1,200日元，合计2,000日元。",
+   "difficulty": 2,
+   "estimatedSeconds": 140,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-info-23"
+  },
+  {
+   "setId": "n2r-info-01",
+   "sourceLevel": "N2",
+   "readingType": "infoSearch",
+   "passageJa": "【社内研修 申込要項】\n・対象：入社2年目以上\n・申込期間：4/1〜4/20（先着30名）\n・受講料：無料（教材費2,000円は自己負担）\n・欠席する場合は前日までに連絡（無断欠席は次年度の申込不可）\n・オンライン受講可（申込時に選択、後からの変更不可）\n・修了証は8割以上出席した方に発行",
+   "contextZh": "这是公司培训的报名须知。",
+   "questionJa": "入社3年目の社員がオンラインで受講したい場合、正しいものはどれか。",
+   "questionZh": "入职第3年的员工想在线上课，正确的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "申込時にオンラインを選ぶ必要がある",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "受講料と教材費の両方が無料になる",
+     "isCorrect": false,
+     "whyWrongJa": "教材費は自己負担です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "後からオンラインに変更できる",
+     "isCorrect": false,
+     "whyWrongJa": "後からの変更は不可と書かれています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "入社2年目以上は対象外である",
+     "isCorrect": false,
+     "whyWrongJa": "2年目以上が対象です。"
+    }
+   ],
+   "rationaleSpan": "オンライン受講可（申込時に選択、後からの変更不可）",
+   "explanationJa": "条件が括弧内に書かれています。細かい但し書きを見落とさないようにします。",
+   "explanationZh": "条件写在括号里。注意不要漏看细节备注。",
+   "difficulty": 2,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-info-01"
+  },
+  {
+   "setId": "n2r-info-02",
+   "sourceLevel": "N2",
+   "readingType": "infoSearch",
+   "passageJa": "【引越しサービス 料金表】\n基本料金（10km以内）：30,000円\n追加距離：10kmごとに +3,000円\n作業員追加（1名）：+8,000円\n土日祝：基本料金の20%増\n梱包資材：段ボール20枚まで無料、以降1枚150円\n※キャンセルは3日前まで無料、前日以降は基本料金の50%",
+   "contextZh": "这是搬家服务的价目表。",
+   "questionJa": "平日に25km先へ引っ越し、作業員を1名追加した場合の料金はいくらか。",
+   "questionZh": "平日搬到25公里外并追加1名工人，费用是多少？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "44,000円",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "41,000円",
+     "isCorrect": false,
+     "whyWrongJa": "作業員追加が入っていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "38,000円",
+     "isCorrect": false,
+     "whyWrongJa": "追加距離の計算が足りません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "52,800円",
+     "isCorrect": false,
+     "whyWrongJa": "土日祝の割増を入れた金額です。"
+    }
+   ],
+   "rationaleSpan": "追加距離：10kmごとに +3,000円",
+   "explanationJa": "25kmは10km超過が2回分（20kmまで+3,000、30kmまでさらに+3,000）＝+6,000円。30,000＋6,000＋8,000＝44,000円。",
+   "explanationZh": "25公里超出部分按2次计（到20km +3,000，到30km再+3,000）＝+6,000。30,000＋6,000＋8,000＝44,000日元。",
+   "difficulty": 3,
+   "estimatedSeconds": 120,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-info-02"
+  },
+  {
+   "setId": "n2r-info-19",
+   "sourceLevel": "N2",
+   "readingType": "infoSearch",
+   "passageJa": "【海外あて送金 手数料のご案内】\n・送金手数料：窓口 4,000円／インターネット 2,000円\n・関係銀行手数料（受取人の負担）：2,500円\n・関係銀行手数料を送金人が負担する場合：＋2,500円\n・円から外貨に替える際の為替手数料は上記に含みません\n※送金額が10万円未満のときは、窓口の送金手数料が1,500円引きになります\n※同じ受取人へ2回目以降に送る場合、インターネットの送金手数料が半額になります",
+   "contextZh": "这是海外汇款手续费的说明。",
+   "questionJa": "8万円を窓口から送り、関係銀行手数料も送金人が負担する場合、支払う手数料の合計はいくらか。",
+   "questionZh": "从柜台汇出8万日元，关联银行手续费也由汇款人承担，需要支付的手续费合计是多少？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "6,500円",
+     "isCorrect": false,
+     "whyWrongJa": "8万円は10万円未満なので、窓口の送金手数料が1,500円引きになります。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "2,500円",
+     "isCorrect": false,
+     "whyWrongJa": "関係銀行手数料を送金人が負担するため、その分を加える必要があります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "4,000円",
+     "isCorrect": false,
+     "whyWrongJa": "割引前の窓口の送金手数料だけの額です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "5,000円",
+     "isCorrect": true
+    }
+   ],
+   "rationaleSpan": "送金額が10万円未満のときは、窓口の送金手数料が1,500円引きになります",
+   "explanationJa": "窓口4,000円から1,500円を引いて2,500円。関係銀行手数料2,500円を送金人が負担するので、合計5,000円です。",
+   "explanationZh": "柜台手续费4,000日元减去1,500日元为2,500日元。汇款人还要承担关联银行手续费2,500日元，合计5,000日元。",
+   "difficulty": 3,
+   "estimatedSeconds": 150,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-info-19"
+  },
+  {
+   "setId": "n2r-int-22",
+   "sourceLevel": "N2",
+   "readingType": "integrated",
+   "passageJa": "【Ａ】会議は三十分で終わらせると決めてしまえばよい。終わりが決まっていれば、話は自然と要点に向かう。長いから中身が濃いということはない。\n\n【Ｂ】短くすること自体には賛成する。ただ、短くしただけの会議は、声の大きい人の意見だけが通って終わる。前の日までに材料を配り、読んでから集まる形にしなければ、時間を削っただけになる。",
+   "contextZh": "这是关于缩短会议时间的两种意见。",
+   "questionJa": "ＢがＡに付け加えている条件はどれか。",
+   "questionZh": "Ｂ给Ａ附加的条件是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "会議の時間をさらに長くすること",
+     "isCorrect": false,
+     "whyWrongJa": "Ｂは短くすること自体には賛成しています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "前もって材料を配り読んでから集まること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "長いほど中身が濃くなると考えること",
+     "isCorrect": false,
+     "whyWrongJa": "Ａは長いから中身が濃いとは限らないとしています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "声の大きい人の意見を先に聞くこと",
+     "isCorrect": false,
+     "whyWrongJa": "Ｂはその状態を問題として挙げています。"
+    }
+   ],
+   "rationaleSpan": "前の日までに材料を配り、読んでから集まる形にしなければ",
+   "explanationJa": "Ｂは時間の短縮に賛成しつつ、事前に材料を配ることを条件に加えています。",
+   "explanationZh": "Ｂ赞成缩短时间，同时附加了事先分发材料这一条件。",
+   "difficulty": 2,
+   "estimatedSeconds": 155,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-int-22"
+  },
+  {
+   "setId": "n2r-int-23",
+   "sourceLevel": "N2",
+   "readingType": "integrated",
+   "passageJa": "【Ａ】図書館は、借りられない古い本を思いきって減らすべきだ。棚が詰まっていると、今読まれるべき本が見つけられない。置いておくこと自体が目的になってはいけない。\n\n【Ｂ】棚を整えることには反対しない。だが、何をどんな理由で外したかを残さないまま進めると、後から確かめようがない。外す作業と、記録を残す作業は同じ重さで扱うべきだ。",
+   "contextZh": "这是关于图书馆淘汰旧书的两种意见。",
+   "questionJa": "ＡとＢに共通している考えはどれか。",
+   "questionZh": "Ａ和Ｂ共同的想法是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "古い本はすべて残しておくべきだということ",
+     "isCorrect": false,
+     "whyWrongJa": "Ｂも棚を整えることには反対しないとしています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "棚の本を整理する必要があるということ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "外した本の記録は要らないということ",
+     "isCorrect": false,
+     "whyWrongJa": "Ｂは記録を同じ重さで扱うべきだとしています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "置いておくこと自体を目的にすべきだということ",
+     "isCorrect": false,
+     "whyWrongJa": "Ａはそれを目的にしてはいけないとしています。"
+    }
+   ],
+   "rationaleSpan": "棚を整えることには反対しない",
+   "explanationJa": "Ｂは整理そのものは認めており、記録の扱いを条件として加えています。",
+   "explanationZh": "Ｂ认可整理本身，只是把保留记录作为附加条件。",
+   "difficulty": 2,
+   "estimatedSeconds": 150,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-int-23"
+  },
+  {
+   "setId": "n2r-int-10",
+   "sourceLevel": "N2",
+   "readingType": "integrated",
+   "passageJa": "【Ａ】学校の部活動は、外部の指導者に任せていくべきだ。教員が休日まで指導に出る状態は長くは続かない。専門の指導を受けられる点も、生徒にとって悪い話ではない。\n\n【Ｂ】教員の負担が重すぎることには反対しない。ただ、外部に任せると多くの場合、家庭が費用を払うことになる。払える家の子だけが続けられる形にならないよう、費用の出どころを先に決めておく必要がある。",
+   "contextZh": "这是关于把学校社团活动委托给外部指导者的两种意见。",
+   "questionJa": "ＢがＡの案について条件をつけているのはどの点か。",
+   "questionZh": "Ｂ对Ａ的方案在哪一点上附加了条件？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "誰が費用を負担するのかという点",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "教員の負担が重いかどうかという点",
+     "isCorrect": false,
+     "whyWrongJa": "Ｂは負担が重いことには反対しないと述べています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "専門の指導に効果があるかという点",
+     "isCorrect": false,
+     "whyWrongJa": "指導の質はＡが挙げた利点で、Ｂの条件ではありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "休日に活動を行うかどうかという点",
+     "isCorrect": false,
+     "whyWrongJa": "休日の指導はＡが挙げた教員側の事情です。"
+    }
+   ],
+   "rationaleSpan": "費用の出どころを先に決めておく必要がある",
+   "explanationJa": "Ｂは外部委託そのものではなく、費用を誰が持つのかを先に決めよと述べています。",
+   "explanationZh": "Ｂ并非反对委托外部，而是要求先确定由谁承担费用。",
+   "difficulty": 3,
+   "estimatedSeconds": 160,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-int-10"
+  },
+  {
+   "setId": "n2r-int-06",
+   "sourceLevel": "N2",
+   "readingType": "integrated",
+   "passageJa": "【A】買い物は近所の店でするのがよい。店がなくなれば、車に乗れない高齢者が困る。少し高くても、近くの店を使い続けることに意味がある。\n\n【B】気持ちは分かるが、値段の差が家計に響く人もいる。個人の努力に頼るのではなく、店が続けられる仕組みを地域で考えるべきだ。負担を誰か一人に求める形にしてはいけない。",
+   "contextZh": "这是关于社区商店的两种意见。",
+   "questionJa": "Bが提案していることはどれか。",
+   "questionZh": "B提议的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "地域として店が続く仕組みを考えること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "近所の店を使わないこと",
+     "isCorrect": false,
+     "whyWrongJa": "使うこと自体は否定していません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "値段を下げるよう店に求めること",
+     "isCorrect": false,
+     "whyWrongJa": "店への要求は述べていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "高齢者が車に乗れるようにすること",
+     "isCorrect": false,
+     "whyWrongJa": "高齢者の移動手段の話は出ていません。"
+    }
+   ],
+   "rationaleSpan": "個人の努力に頼るのではなく、店が続けられる仕組みを地域で考えるべきだ",
+   "explanationJa": "「個人の努力」と「地域の仕組み」の対比がBの主張です。",
+   "explanationZh": "「个人努力」与「地区机制」的对比是B的主张。",
+   "difficulty": 3,
+   "estimatedSeconds": 145,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-int-06"
+  },
+  {
+   "setId": "n2r-mid-15",
+   "sourceLevel": "N2",
+   "readingType": "midPassage",
+   "passageJa": "案内に従って歩けば迷わずに着く。ところが、同じ道をもう一度歩こうとすると、思い出せないことがある。指示どおりに曲がっただけで、どこを曲がったのかを自分では選んでいないからである。\n\n道を覚えるとき、人は目印と方角を手がかりにしている。あの店の角を右、坂を下って川、というように、周囲との関係で位置をつかむ。同じ道を何度も通るうちに、こうした目印は少しずつ増えていく。画面の指示は、その関係を作る手間を省いてくれる。省かれた手間は、そのまま覚えられなかった部分になる。\n\nもっとも、これは案内を使うなという話ではない。急ぐときには迷わないことのほうが大切だろう。ただ、その土地を知りたいと思うなら、多少遠回りでも自分で道を選ぶ時間がいる。迷った日のほうが地形をよく覚えているというのも、珍しい話ではない。目的によって、便利さの意味は変わる。",
+   "contextZh": "这是一篇关于导航与记路的文章。",
+   "questionJa": "筆者の考えとして最も適切なものはどれか。",
+   "questionZh": "最符合作者想法的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "何を目的とするかによって案内の使い方は変わる",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "案内に従うのをやめて自分で道を選ぶべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "「案内を使うなという話ではない」と述べられています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "道を覚えるには目印より方角が大切である",
+     "isCorrect": false,
+     "whyWrongJa": "目印と方角はどちらも手がかりとされ、優劣は述べられていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "急ぐときでも遠回りをしたほうがよい",
+     "isCorrect": false,
+     "whyWrongJa": "急ぐときは迷わないことのほうが大切だとしています。"
+    }
+   ],
+   "rationaleSpan": "目的によって、便利さの意味は変わる",
+   "explanationJa": "最終文が筆者の立場です。便利さを一律に評価せず、目的によって使い分ける態度を示しています。",
+   "explanationZh": "最后一句是作者的立场：不一概评价便利，而是按目的区分使用。",
+   "difficulty": 2,
+   "estimatedSeconds": 145,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-mid-15"
+  },
+  {
+   "setId": "n2r-mid-19",
+   "sourceLevel": "N2",
+   "readingType": "midPassage",
+   "passageJa": "旅行先で写真を撮り続けた日のことを、あとになってあまり思い出せないという経験はないだろうか。記録は残っているのに、記憶は薄い。一方で、何も撮らずに眺めていただけの日のほうが、細部まで浮かんでくることがある。\n\n目の前のものを撮ろうと決めた瞬間、注意は対象そのものから、どう写るかへ移っている。構図を選び、明るさを気にしている間、目は見ているが、心は別の作業をしている。同じ場所に立っていても、見ている中身は入れ替わっているのである。あとで見返せるという安心も、その場で覚えておこうとする働きを弱めてしまう。\n\n写真をやめるべきだとは思わない。写真がなければ、そもそも思い出せない場面もある。ただ、撮り終えたあとに、もう一度何も持たずに眺める時間を取ると、残り方が変わる。記録は残すためのもので、覚えるためのものではない。記録と記憶は、放っておくと入れ替わってしまう。",
+   "contextZh": "这是一篇关于拍照与记忆的文章。",
+   "questionJa": "写真を撮り続けた日の記憶が薄くなるのはなぜだと述べられているか。",
+   "questionZh": "文中说不断拍照的那天记忆变淡，理由是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "注意が対象からどう写るかへ移ってしまうから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "写真の枚数が多すぎて見返さなくなるから",
+     "isCorrect": false,
+     "whyWrongJa": "本文が挙げるのは見返せるという安心の影響で、枚数のことではありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "撮り終えたあとに何も持たずに眺めたから",
+     "isCorrect": false,
+     "whyWrongJa": "それは記憶の残り方を変えるための工夫として挙げられています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "写真がなければ思い出せない場面もあるから",
+     "isCorrect": false,
+     "whyWrongJa": "これは写真の利点として述べられた内容です。"
+    }
+   ],
+   "rationaleSpan": "注意は対象そのものから、どう写るかへ移っている",
+   "explanationJa": "理由は二つ挙げられており、選択肢は一つ目の「注意の移動」に対応します。",
+   "explanationZh": "文章列举了两个理由，选项对应第一个，即注意力的转移。",
+   "difficulty": 2,
+   "estimatedSeconds": 145,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-mid-19"
+  },
+  {
+   "setId": "n2r-mid-06",
+   "sourceLevel": "N2",
+   "readingType": "midPassage",
+   "passageJa": "飲食店の口コミ評価には、ある偏りがあることが知られている。強い感情を持った人ほど書き込む傾向があるためだ。とても満足した人と、強い不満を持った人の声が集まりやすい。\n\nそのため、評価が三点台の店が実際に「普通」とは限らない。高評価と低評価が両方多く、平均すると中間になっている場合があるからだ。逆に、目立った不満も感動もない店は、そもそも書き込みが少なく、評価の数自体が伸びない。\n\n平均点だけを見て店を選ぶと、こうした構造を見落とすことになる。",
+   "contextZh": "这是关于餐厅点评的文章。",
+   "questionJa": "評価が三点台の店について、本文で述べられていることはどれか。",
+   "questionZh": "关于评分在三分左右的店，文章说的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "高評価と低評価が両方多い場合がある",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "書き込みの数が必ず少ない",
+     "isCorrect": false,
+     "whyWrongJa": "書き込みが少ないのは目立たない店です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "実際に必ず普通の店である",
+     "isCorrect": false,
+     "whyWrongJa": "「限らない」と否定されています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "不満を持った人だけが書き込んでいる",
+     "isCorrect": false,
+     "whyWrongJa": "満足した人も書き込むと書かれています。"
+    }
+   ],
+   "rationaleSpan": "高評価と低評価が両方多く、平均すると中間になっている場合がある",
+   "explanationJa": "平均値が同じでも分布が異なるという指摘です。",
+   "explanationZh": "指出平均值相同但分布不同这一点。",
+   "difficulty": 3,
+   "estimatedSeconds": 135,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-mid-06"
+  },
+  {
+   "setId": "n2r-mid-08",
+   "sourceLevel": "N2",
+   "readingType": "midPassage",
+   "passageJa": "翻訳された小説を読んでいると、注が付いていることがある。原文の一語に、数行の説明が添えられる。訳者が怠けた結果だと考える人もいるだろうが、必ずしもそうではない。\n\nある語が持つ意味の範囲は、その言葉が使われてきた場面の積み重ねによって決まる。同じものを指す語であっても、どんな場面で使われ、どんな感情と結びついてきたかは言語ごとに違う。花や色の名前を思い浮かべると分かりやすい。指すものは同じでも、その語が呼び起こす季節や記憶までは重ならない。一語を一語に置き換えれば、その差は消えてしまう。\n\n注は、消えた差を読者に渡し直すための手段である。読みが中断されるという代償はあるが、なめらかに読めることだけを優先すれば、作品はもとの姿から遠ざかっていく。どちらを選んでも失われるものがある以上、あらかじめ決まった正解はない。訳者はその間で選んでいる。",
+   "contextZh": "这是一篇关于文学翻译与译注的文章。",
+   "questionJa": "注について、筆者が述べていることはどれか。",
+   "questionZh": "关于译注，作者说的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "訳者の力が足りないことを示している",
+     "isCorrect": false,
+     "whyWrongJa": "怠けた結果だという見方は「必ずしもそうではない」と退けられています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "読みやすさを高めるために必要である",
+     "isCorrect": false,
+     "whyWrongJa": "注によって読みが中断されるという代償が述べられています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "読みは中断されるが失われた差を補う働きがある",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "原文の語数を増やすために行われる",
+     "isCorrect": false,
+     "whyWrongJa": "語数を増やすことが目的だとは述べられていません。"
+    }
+   ],
+   "rationaleSpan": "注は、消えた差を読者に渡し直すための手段である",
+   "explanationJa": "注の役割は「一語を一語に置き換えると消えてしまう差」を補うことです。なめらかさとの間で選択が生じると述べられています。",
+   "explanationZh": "文章说注释的作用是补足「一語を一語に置き換えると消えてしまう差」。它与流畅阅读之间存在取舍。",
+   "difficulty": 3,
+   "estimatedSeconds": 155,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-mid-08"
+  },
+  {
+   "setId": "n2r-short-06",
+   "sourceLevel": "N2",
+   "readingType": "shortPassage",
+   "passageJa": "子どもに失敗させたくないと思うのは自然な感情である。しかし、失敗を避けさせ続けると、失敗から立ち直る方法を学ぶ機会まで奪ってしまう。大人になってから初めて大きな失敗に出会うと、立ち直り方が分からず、深刻な影響を受けかねない。小さいうちに小さく失敗しておくことには、それ自体に価値がある。",
+   "contextZh": "这是关于育儿的短文。",
+   "questionJa": "筆者が小さいうちの失敗に価値があると考える理由はどれか。",
+   "questionZh": "作者认为小时候的失败有价值，理由是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "立ち直る方法を学べるから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "失敗の数が減るから",
+     "isCorrect": false,
+     "whyWrongJa": "失敗の数の話は本文にありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "大人になってから失敗しなくなるから",
+     "isCorrect": false,
+     "whyWrongJa": "大人になってからも失敗はあるという前提です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "親が安心できるから",
+     "isCorrect": false,
+     "whyWrongJa": "親の感情は冒頭で触れただけです。"
+    }
+   ],
+   "rationaleSpan": "失敗から立ち直る方法を学ぶ機会まで奪ってしまう",
+   "explanationJa": "「奪ってしまう」の裏返しが価値の説明になっています。",
+   "explanationZh": "「会剥夺～」的反面就是价值的说明。",
+   "difficulty": 2,
+   "estimatedSeconds": 95,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-short-06"
+  },
+  {
+   "setId": "n2r-short-13",
+   "sourceLevel": "N2",
+   "readingType": "shortPassage",
+   "passageJa": "職人の技を手順書に残す試みは各地で進んでいる。ただ、書き出せるのは手の動きまでで、いつやり直すかという判断は残しにくい。同じ工程でも、その日の材料の状態によって止めるべき時が違うからだ。継承が難しいのは、動作そのものではなく、条件を読む目のほうである。書いて残す作業に意味がないとは言わない。だが、それだけで受け継げると考えるのは早すぎる。",
+   "contextZh": "这是一篇关于技艺传承的短文。",
+   "questionJa": "筆者によると、技の継承が難しいのはなぜか。",
+   "questionZh": "作者认为技艺传承困难的原因是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "条件を読んで判断する力は書き残しにくいから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "手の動きを書き出す方法がないから",
+     "isCorrect": false,
+     "whyWrongJa": "書き出せるのは手の動きまでだと述べられています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "手順書を作る職人が減っているから",
+     "isCorrect": false,
+     "whyWrongJa": "手順書に残す試みは各地で進んでいると書かれています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "材料の状態が毎回同じだから",
+     "isCorrect": false,
+     "whyWrongJa": "材料の状態によって止めるべき時が違うと述べられています。"
+    }
+   ],
+   "rationaleSpan": "継承が難しいのは、動作そのものではなく、条件を読む目のほうである",
+   "explanationJa": "「〜ではなく〜のほう」で、難しさの所在を一文で言い当てています。",
+   "explanationZh": "用「～ではなく～のほう」一句话指明困难究竟在哪里。",
+   "difficulty": 2,
+   "estimatedSeconds": 95,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-short-13"
+  },
+  {
+   "setId": "n2r-short-08",
+   "sourceLevel": "N2",
+   "readingType": "shortPassage",
+   "passageJa": "専門家の説明は分かりにくいという不満をよく聞く。だが、分かりやすさだけを基準に選んでいくと、断定的に語る人ほど信頼されるという逆転が起きる。実際には、条件を細かく付ける説明のほうが誠実である場合が多い。歯切れの悪さは無知の表れとは限らず、どこまでが分かっていてどこからが分かっていないのかを正確に示している証拠でもある。聞く側にも、その区別を見抜く力が求められる。",
+   "contextZh": "这是一篇关于如何看待专家说明的短文。",
+   "questionJa": "筆者は聞く側に何が必要だと述べているか。",
+   "questionZh": "作者认为听的一方需要什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "歯切れの悪さが誠実さか無知かを見分けること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "分かりやすく話す専門家を選ぶこと",
+     "isCorrect": false,
+     "whyWrongJa": "分かりやすさだけを基準にすると逆転が起きると批判されています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "断定的な説明をそのまま受け入れること",
+     "isCorrect": false,
+     "whyWrongJa": "断定的に語る人ほど信頼されるという状態こそ問題視されています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "条件を細かく付ける説明を避けること",
+     "isCorrect": false,
+     "whyWrongJa": "条件を細かく付ける説明のほうが誠実だと述べられています。"
+    }
+   ],
+   "rationaleSpan": "聞く側にも、その区別を見抜く力が求められる",
+   "explanationJa": "「〜とは限らず」で通念を退けたあと、最終文で聞く側の課題を示しています。",
+   "explanationZh": "用「～とは限らず」否定通常看法，最后一句指出听者一方的课题。",
+   "difficulty": 3,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-short-08"
+  },
+  {
+   "setId": "n2r-short-11",
+   "sourceLevel": "N2",
+   "readingType": "shortPassage",
+   "passageJa": "試験の点数で順位をつける評価には、学習の到達度を測るという本来の目的からずれてしまう危うさがある。順位は他人との比較で動くため、同じだけ力がついても周りが伸びれば下がる。生徒が見ているものが順位だけになると、自分が何をできるようになったかが見えなくなる。評価のやり方を変えるだけで学力が上がるわけではないが、何を見せるかは学び方を確実に変える。",
+   "contextZh": "这是一篇关于学校评价方式的短文。",
+   "questionJa": "筆者が順位による評価を危ういと考えるのはなぜか。",
+   "questionZh": "作者为什么认为按名次评价有问题？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "自分ができるようになったことが見えなくなるから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "評価を変えれば学力そのものが上がるから",
+     "isCorrect": false,
+     "whyWrongJa": "評価を変えるだけで学力が上がるわけではないと述べられています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "試験の点数が正確に測れないから",
+     "isCorrect": false,
+     "whyWrongJa": "点数の正確さではなく、順位が比較で動くことを問題にしています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "周りの生徒の点数が下がるから",
+     "isCorrect": false,
+     "whyWrongJa": "周りが伸びれば順位が下がるという説明で、点数が下がるとは述べていません。"
+    }
+   ],
+   "rationaleSpan": "自分が何をできるようになったかが見えなくなる",
+   "explanationJa": "順位は相対的な数字なので、到達度という本来の目的からずれるという論です。",
+   "explanationZh": "名次是相对的数字，因此偏离了衡量达成度这一本来目的。",
+   "difficulty": 3,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-short-11"
+  },
+  {
+   "setId": "n2r-theme-22",
+   "sourceLevel": "N2",
+   "readingType": "thematic",
+   "passageJa": "調べればすぐ分かることを覚える必要はない、と言われるようになって久しい。暗記に費やす時間を減らせという主張は、学校でも職場でも珍しくなくなった。手元の道具で数秒後に出てくる事柄を、時間をかけて頭に入れるのは無駄だという理屈は、それだけ聞けばもっともである。限られた時間は、考えることのほうに使えばよい、という言い方もされる。\n\nただ、調べるという行為には前提がある。何を調べればよいかが分かっていなければ、調べようがないということだ。ある言葉がどうも引っかかる、示された数字が前に見たものと合わない。説明の順序がどこかおかしい、と感じることもある。そう感じるためには、比べる材料が頭の中に入っていなければならない。覚えていない事柄については、疑問そのものが生まれない。知らないことは、知らないと気づくこともできないからである。調べる力は、覚えている量の上に立っている。\n\n覚えることのもう一つの働きは、知識どうしが結びつくことである。手元にある事柄は、別の場面でひとりでに引き出され、思いがけない組み合わせを作る。昔読んだ話と、今日の出来事が、こちらの意思とは関係なく重なる。外に置いた情報は、こちらが呼びに行かない限り出てこない。そして組み合わせは、呼びに行こうと思いつく前に起きる。思いつくためには、すでに手元にあることが条件になる。\n\nだから、覚えることと調べることは、置き換えの関係にはない。何をどれだけ手元に置くかは、調べる力を高めるための選択でもある。",
+   "contextZh": "这是一篇关于记忆与查阅的文章。",
+   "questionJa": "この文章の主題はどれか。",
+   "questionZh": "这篇文章的主旨是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "覚えることは調べる力を支えるので置き換えられない",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "調べられることは覚えなくてよい",
+     "isCorrect": false,
+     "whyWrongJa": "本文が疑問を投げかけている考え方です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "外に置いた情報は呼ばなければ出てこない",
+     "isCorrect": false,
+     "whyWrongJa": "第三段落の説明の一部で、結論ではありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "必要な知識はすべて暗記しておくべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "すべてとは述べておらず、言い過ぎです。"
+    }
+   ],
+   "rationaleSpan": "覚えることと調べることは、置き換えの関係にはない。何をどれだけ手元に置くかは、調べる力を高めるための選択でもある",
+   "explanationJa": "最終段落が主題です。第一段落の通説と筆者の立場を取り違えないようにします。",
+   "explanationZh": "最后一段是主旨。不要把第一段的通行说法当成作者的立场。",
+   "difficulty": 2,
+   "estimatedSeconds": 240,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-theme-22"
+  },
+  {
+   "setId": "n2r-theme-12",
+   "sourceLevel": "N2",
+   "readingType": "thematic",
+   "passageJa": "包丁を研ぐ人が減ったという。砥石を置いている家のほうが少なく、持っていても、しまい込んだままだという人が多い。研ぎ屋に出す人はさらに少なく、切れなくなったら買い替えるほうが早い。値段だけを考えれば、それは合理的な判断である。研ぎに出す手間と費用を足すと、新しい一本と大きくは変わらないこともある。手元に戻るまでの数日、台所の仕事が滞ることまで考えれば、なおさらである。\n\nただ、研ぐという作業には、切れ味を戻す以外の働きがある。刃を当てる角度を探し、どこが丸くなっているかを指で確かめるうちに、その道具がどう作られ、どう傷むのかが分かってくる。刃の中ほどだけが減っているのは、いつも同じ場所に力をかけている証拠だと気づく。使う前に道具の状態が読めるようになれば、無理な使い方をしなくなる。切れないまま力で押し切ろうとして、かえって刃を傷めることも起きなくなる。手入れは、道具を長持ちさせるだけでなく、使い手のほうを変えていく。道具に合わせて手つきが直っていくのである。\n\n買い替えは、この過程をまるごと省く。省いても困らないように見えるのは、壊れるまで気づかない使い方をしていても、とりあえず仕事が進んでしまうからである。不具合はいつも、取り返しのつかない場面で初めて姿を見せる。\n\n手入れとは、直すための作業であると同時に、その道具を知るための時間でもある。手放しているのは費用ではなく、知る機会のほうかもしれない。",
+   "contextZh": "这是一篇关于保养工具的文章。",
+   "questionJa": "この文章の主題はどれか。",
+   "questionZh": "这篇文章的主旨是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "手入れは道具を知るための時間でもある",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "包丁は買い替えるより研ぐほうが安い",
+     "isCorrect": false,
+     "whyWrongJa": "大きくは変わらないこともあると書かれています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "道具は壊れるまで使い切るのがよい",
+     "isCorrect": false,
+     "whyWrongJa": "そのような勧めは本文にありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "手入れをしない人は仕事が遅くなる",
+     "isCorrect": false,
+     "whyWrongJa": "仕事は進んでしまうと述べられています。"
+    }
+   ],
+   "rationaleSpan": "手入れとは、直すための作業であると同時に、その道具を知るための時間でもある",
+   "explanationJa": "最終段落が主題です。費用の比較は導入で、主張ではありません。",
+   "explanationZh": "最后一段是主旨。费用比较只是引子，不是主张。",
+   "difficulty": 2,
+   "estimatedSeconds": 230,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-theme-12"
+  },
+  {
+   "setId": "n2r-theme-15",
+   "sourceLevel": "N2",
+   "readingType": "thematic",
+   "passageJa": "大人と子どもの境目はどこかと聞かれて、すぐに答えられる人は少ない。年齢で線を引けば、その前日と当日で何が変わるのかと問い返される。かといって、成熟の度合いで決めるとすれば、誰がどう測るのかが問題になる。同じ年齢でも任せられる人と任せられない人がいるという言い分は、線を引く側にも引かれる側にも通用してしまう。それでも社会は、どこかに線を引かなければ、契約も責任も扱えない。線がなければ、誰に何を任せてよいのかも決められない。\n\n線は、現実の中に見つけるものではなく、必要に応じてこちらが引くものである。虹の色の数が国によって違うのは、空にかかる光が違うからではない。同じ空を見ていても、いくつに分けて呼ぶかは土地ごとに違う。どこで区切るかの取り決めが違うからだ。区切りは、世界を扱いやすくするための道具である。道具である以上、目的が変われば区切り方も変わってよい。\n\nところが、いったん引かれた線は、だんだんもとからあったもののように見えてくる。線の内と外で扱いを変えているうちに、扱いの違いのほうが線を正しく見せていく。扱いが違うのだから、やはり中身も違うのだろう、という順序で納得が生まれる。境界のそばにいる人ほど、この転倒の影響を強く受ける。わずかな差で線の外に置かれた人に、その差に見合わない説明が押しつけられるからである。\n\n線を引くこと自体は避けられない。避けられないからこそ、それが誰かの都合で引かれた線であることを、引いた側は覚えておかなければならない。",
+   "contextZh": "这是一篇关于边界模糊性的文章。",
+   "questionJa": "筆者の主張として最も適切なものはどれか。",
+   "questionZh": "最符合作者主张的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "線引きが人の都合であることを引いた側は忘れてはならない",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "大人と子どもは年齢で区切るのが正しい",
+     "isCorrect": false,
+     "whyWrongJa": "年齢で引く難しさを述べており、正しいとはしていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "虹の色の数は国によって違っている",
+     "isCorrect": false,
+     "whyWrongJa": "第二段落の例で、主張ではありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "あいまいな境界には線を引くべきでない",
+     "isCorrect": false,
+     "whyWrongJa": "線を引くこと自体は避けられないと書かれています。"
+    }
+   ],
+   "rationaleSpan": "それが誰かの都合で引かれた線であることを、引いた側は覚えておかなければならない",
+   "explanationJa": "最終文が主張です。線引きを否定するのではなく、その性格を忘れるなという条件つきの結論です。",
+   "explanationZh": "最后一句是主张。作者不是否定划界，而是提出附加条件的结论。",
+   "difficulty": 3,
+   "estimatedSeconds": 260,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-theme-15"
+  },
+  {
+   "setId": "n2r-theme-01",
+   "sourceLevel": "N2",
+   "readingType": "thematic",
+   "passageJa": "ある調査で、締め切りを設けたグループと設けなかったグループに同じ課題を与えたところ、締め切りのあるグループのほうが提出率が高かった。ここまでは予想どおりである。\n\n興味深いのは、締め切りを自分で決めたグループと、他人に決められたグループを比べた結果だ。提出率は自分で決めたほうが高かったが、締め切り自体は他人が決めた場合より遅めに設定される傾向があった。つまり、自分で決めると期限は緩くなるが、守られやすくなる。\n\n期限の厳しさと守られやすさは、必ずしも同じ方向を向いていない。",
+   "contextZh": "这是关于截止期限的研究文章。",
+   "questionJa": "この文章の主題はどれか。",
+   "questionZh": "这篇文章的主旨是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "期限の厳しさと守られやすさは一致しない",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "締め切りは他人が決めるべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "自分で決めたほうが提出率は高いという結果です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "締め切りは厳しいほど効果がある",
+     "isCorrect": false,
+     "whyWrongJa": "緩いほうが守られたという結果です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "締め切りがなくても提出率は変わらない",
+     "isCorrect": false,
+     "whyWrongJa": "締め切りがあるほうが高かったと書かれています。"
+    }
+   ],
+   "rationaleSpan": "期限の厳しさと守られやすさは、必ずしも同じ方向を向いていない",
+   "explanationJa": "最終文が主題です。データの説明と結論を区別します。",
+   "explanationZh": "最后一句是主旨。要区分数据说明和结论。",
+   "difficulty": 3,
+   "estimatedSeconds": 140,
+   "reviewState": "validated_beta",
+   "variantId": "n2r-theme-01"
+  }
+ ]
+}

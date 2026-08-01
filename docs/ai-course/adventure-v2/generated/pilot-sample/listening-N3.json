@@ -1,0 +1,868 @@
+{
+ "level": "N3",
+ "sampledFrom": 100,
+ "sampleSize": 20,
+ "note": "原稿と設問の整合・複数正解・音声で聞き取れるか（読み間違いを誘う表記）・中国語の自然さを見る",
+ "sets": [
+  {
+   "setId": "n3l-int-19",
+   "sourceLevel": "N3",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n3l-int-19.m4a",
+   "transcriptJa": "歓迎会の店を選んでいます。みなとは駅から歩いて三分で、個室があり、肉の料理が中心です。たけのは駅から歩いて十分で、個室があり、魚と野菜の料理が中心です。あおぞらは駅から歩いて三分で魚と野菜が中心ですが、個室はありません。ほしのは駅から歩いて五分で個室があり、魚と野菜が中心です。男「今度入る人、肉が食べられないそうだよ。」女「じゃあ、魚と野菜のお店ね。」男「みんなで静かに話をしたいから、個室があるといいね。」女「あと、駅から遠いと来にくいわ。五分以内にしましょう。」男「じゃあ、ここだね。」",
+   "situationJa": "二人が歓迎会の店を選んでいます。",
+   "situationZh": "两人在挑选迎新会的餐厅。",
+   "questionJa": "二人はどの店にしますか。",
+   "questionZh": "两人要选哪家店？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "みなと",
+     "isCorrect": false,
+     "whyWrongJa": "肉の料理が中心なので、魚と野菜の店がいいという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "たけの",
+     "isCorrect": false,
+     "whyWrongJa": "駅から歩いて十分なので、五分以内という条件に合いません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "あおぞら",
+     "isCorrect": false,
+     "whyWrongJa": "個室がないので、静かに話をしたいという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "ほしの",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "「魚と野菜が中心」「個室あり」「駅から五分以内」の三つを満たす店は一つだけです。",
+   "explanationZh": "同时满足「以鱼和蔬菜为主」「有包间」「离车站五分钟以内」三个条件的店只有一家。",
+   "difficulty": 2,
+   "durationSeconds": 44,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-int-19"
+  },
+  {
+   "setId": "n3l-int-18",
+   "sourceLevel": "N3",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n3l-int-18.m4a",
+   "transcriptJa": "通信講座を選んでいます。基礎講座は三か月で、月五千円、分からない所は質問できます。実力講座は六か月で月六千円ですが、質問はできません。集中講座は六か月で質問もできますが、月八千円かかります。本気講座は六か月で、月七千円、質問もできます。女「試験まで半年あるから、六か月のものにしたいな。」男「うん。それに一人だと分からない所で止まっちゃうよ。」女「そうね、質問できるほうがいい。」男「お金は月七千円までって言ってたよね。」女「うん。じゃあ、これに申し込むね。」",
+   "situationJa": "二人が通信講座を選んでいます。",
+   "situationZh": "两人在挑选函授课程。",
+   "questionJa": "二人はどの講座を選びますか。",
+   "questionZh": "两人要选哪个课程？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "基礎講座",
+     "isCorrect": false,
+     "whyWrongJa": "三か月なので、六か月のものにしたいという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "実力講座",
+     "isCorrect": false,
+     "whyWrongJa": "質問ができないので、質問できるほうがいいという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "集中講座",
+     "isCorrect": false,
+     "whyWrongJa": "月八千円なので、七千円までという条件を超えています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "本気講座",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "「六か月」「質問できる」「月七千円まで」の三つを満たすのは本気講座です。",
+   "explanationZh": "同时满足「六个月」「可以提问」「每月七千日元以内」三个条件的是那个名为「本気講座」的课程。",
+   "difficulty": 2,
+   "durationSeconds": 41.3,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-int-18"
+  },
+  {
+   "setId": "n3l-int-03",
+   "sourceLevel": "N3",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n3l-int-03.m4a",
+   "transcriptJa": "先生と学生が話しています。先生「発表は十分です。」学生「はい。資料は何枚くらいがいいですか。」先生「多くても五枚。それより、最初に結論を言ってください。」学生「わかりました。あと、質問の時間は。」先生「発表のあと五分あります。」",
+   "situationJa": "発表について先生と学生が話しています。",
+   "situationZh": "老师和学生在谈发表。",
+   "questionJa": "発表について正しいものはどれですか。",
+   "questionZh": "关于发表，正确的是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "発表十分、質問五分、資料は五枚まで",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "発表五分、質問十分、資料は五枚まで",
+     "isCorrect": false,
+     "whyWrongJa": "発表が十分、質問が五分です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "発表十分、質問五分、資料は十枚まで",
+     "isCorrect": false,
+     "whyWrongJa": "資料は多くても五枚です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "発表十分、質問なし、資料は自由",
+     "isCorrect": false,
+     "whyWrongJa": "質問の時間は五分あります。"
+    }
+   ],
+   "explanationJa": "三つの情報（発表10分・資料5枚まで・質問5分）をまとめます。",
+   "explanationZh": "要综合三个信息（发表10分钟・资料最多5页・提问5分钟）。",
+   "difficulty": 3,
+   "durationSeconds": 16.9,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-int-03"
+  },
+  {
+   "setId": "n3l-int-08",
+   "sourceLevel": "N3",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n3l-int-08.m4a",
+   "transcriptJa": "不動産屋で部屋を四つ紹介されています。一号室は駅から歩いて五分で、家賃は八万五千円、猫を飼えます。二号室は駅から歩いて十五分、家賃は六万円で、猫も大丈夫です。三号室は駅から歩いて十分、家賃は七万円ですが、動物は飼えません。四号室は駅から歩いて十分、家賃は七万五千円で、猫を飼えます。女「駅から十分より遠いと、雨の日がつらいわ。」男「じゃあ、歩いて十分までだね。」女「それと、家賃は八万円までにしたいの。」男「猫も連れていくんだよね。」女「うん、それは絶対。」男「じゃあ、決まりだ。」",
+   "situationJa": "二人が不動産屋で部屋を選んでいます。",
+   "situationZh": "两人在房产中介挑选出租的房间。",
+   "questionJa": "二人はどの部屋を借りますか。",
+   "questionZh": "两人要租哪个房间？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "一号室",
+     "isCorrect": false,
+     "whyWrongJa": "家賃が八万五千円なので、八万円までという条件を超えています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "二号室",
+     "isCorrect": false,
+     "whyWrongJa": "駅から歩いて十五分なので、十分までという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "三号室",
+     "isCorrect": false,
+     "whyWrongJa": "動物が飼えないので、猫を連れていくという条件に合いません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "四号室",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "「駅から十分以内」「家賃八万円まで」「猫が飼える」の三つを全部満たすのは四号室だけです。",
+   "explanationZh": "同时满足「离车站步行十分钟以内」「房租八万日元以内」「可以养猫」三个条件的只有四号房。",
+   "difficulty": 3,
+   "durationSeconds": 43.5,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-int-08"
+  },
+  {
+   "setId": "n3l-outline-06",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-06.m4a",
+   "transcriptJa": "店長が話しています。店長「あしたから、この商店街でパンの店を始めます。前は駅の向こうで十年やっていましたが、こちらへ移ってきました。朝は六時から焼きますので、出勤の前に寄ってください。数は多くありませんが、その日に焼いたものだけを並べます。前の店で買ってくださっていた方も、どうぞまた顔を見せてください。」",
+   "situationJa": "店の人が新しく開く店について話しています。",
+   "situationZh": "店主在介绍新开的店。",
+   "questionJa": "店長は何について話していますか。",
+   "questionZh": "店长在谈什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "商店街に移って店を開くこと",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "駅の向こうに店を増やすこと",
+     "isCorrect": false,
+     "whyWrongJa": "駅の向こうの店から移ってきたと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "パンの作り方を教える教室のこと",
+     "isCorrect": false,
+     "whyWrongJa": "教室の話は出ていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "十年で店をやめてしまうこと",
+     "isCorrect": false,
+     "whyWrongJa": "前の店を十年やっていたという話です。"
+    }
+   ],
+   "explanationJa": "「こちらへ移ってきました」「あしたから始めます」と、移転して開店することを知らせています。",
+   "explanationZh": "通过「搬到了这边」「明天开始营业」，告知的是搬迁并开张的消息。",
+   "difficulty": 1,
+   "durationSeconds": 25.6,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-06"
+  },
+  {
+   "setId": "n3l-outline-11",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-11.m4a",
+   "transcriptJa": "男の人が話しています。男「運動をしようと思って走り始めたのですが、二週間で行かなくなりました。それで、走るのはやめて、駅で階段を使うことにしたんです。わざわざ時間を作らなくていいので、これは一年続いています。始めのころは息が上がりましたが、今は平気です。大きなことをするより、毎日できる小さなことのほうがいいと思います。」",
+   "situationJa": "男の人が体を動かすことについて話しています。",
+   "situationZh": "男人在谈锻炼身体的事。",
+   "questionJa": "男の人が言いたいことは何ですか。",
+   "questionZh": "男人想说的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "毎日続けられる小さな運動がよい",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "走る運動が一番効果がある",
+     "isCorrect": false,
+     "whyWrongJa": "走るのは二週間でやめたと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "運動する時間を長く取るべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "わざわざ時間を作らなくていいのがよいと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "階段は体に悪いので使わない",
+     "isCorrect": false,
+     "whyWrongJa": "階段を使うことを続けていると言っています。"
+    }
+   ],
+   "explanationJa": "「大きなことをするより、毎日できる小さなことのほうがいい」がまとめです。",
+   "explanationZh": "「与其做大事，不如做每天都能做到的小事」是总结。",
+   "difficulty": 1,
+   "durationSeconds": 27.2,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-11"
+  },
+  {
+   "setId": "n3l-outline-14",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-14.m4a",
+   "transcriptJa": "上司が話しています。上司「新しく入った皆さんに一つだけ言っておきます。分からないことがあったら、その日のうちに聞いてください。三日たってから聞かれると、直すのに何倍も時間がかかります。聞くのは恥ずかしいと思うかもしれませんが、黙っているほうが、後で周りに迷惑をかけます。今は聞ける時期です。遠慮しないでください。」",
+   "situationJa": "会社で上司が新しく入った人たちに話しています。",
+   "situationZh": "公司里上司在对新员工讲话。",
+   "questionJa": "上司は何を伝えていますか。",
+   "questionZh": "上司在传达什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "分からないことはその日のうちに聞くべきだ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "分からないことは自分で調べるべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "聞いてくださいと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "三日待ってからまとめて聞くとよい",
+     "isCorrect": false,
+     "whyWrongJa": "三日たつと直すのに時間がかかると言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "聞くのは恥ずかしいので黙っていてよい",
+     "isCorrect": false,
+     "whyWrongJa": "黙っているほうが迷惑になると言っています。"
+    }
+   ],
+   "explanationJa": "「その日のうちに聞いてください」「遠慮しないでください」が話の中心です。",
+   "explanationZh": "重点是「当天就要问」「不要客气」。",
+   "difficulty": 2,
+   "durationSeconds": 25.5,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-14"
+  },
+  {
+   "setId": "n3l-outline-04",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-04.m4a",
+   "transcriptJa": "男の人が話しています。男「うちの会社では、月に一度、部署の違う人と昼ごはんを食べる日があります。最初は面倒だと思いました。でも、話してみると、自分の仕事が相手にどう見えているかが分かって、面白いんです。仕事の相談がしやすくなったという人も多いですよ。」",
+   "situationJa": "男の人が会社の取り組みについて話しています。",
+   "situationZh": "男人在谈公司的活动。",
+   "questionJa": "男の人は何について話していますか。",
+   "questionZh": "男人在谈什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "他の部署の人と食事をする取り組みのよさ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "昼ごはんの値段",
+     "isCorrect": false,
+     "whyWrongJa": "値段の話は出ていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "部署を変えたいということ",
+     "isCorrect": false,
+     "whyWrongJa": "異動の話は出ていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "会社をやめたいということ",
+     "isCorrect": false,
+     "whyWrongJa": "退職の話は出ていません。"
+    }
+   ],
+   "explanationJa": "「最初は面倒 → 実際はよい」という評価の変化を述べています。",
+   "explanationZh": "讲的是评价的转变：「起初觉得麻烦 → 实际上很好」。",
+   "difficulty": 2,
+   "durationSeconds": 21.5,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-04"
+  },
+  {
+   "setId": "n3l-outline-10",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-10.m4a",
+   "transcriptJa": "女の人が話しています。女「この夏は雨が少なくて、畑の野菜がなかなか育ちませんでした。とくに葉の野菜は水がいりますから、うちでも半分ほどしか取れていません。ただ、日がよく当たったので、果物のほうは例年より甘いものができました。同じ天気でも、育てているものによって、いいことと困ることの両方があるのだと感じています。」",
+   "situationJa": "畑をしている女の人が今年の天気について話しています。",
+   "situationZh": "种地的女人在谈今年的天气。",
+   "questionJa": "女の人が伝えたいことは何ですか。",
+   "questionZh": "女人想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "同じ天気でも作物によって影響が違う",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "雨が少ないと何も育たなくなる",
+     "isCorrect": false,
+     "whyWrongJa": "果物は例年より甘くできたと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "今年は果物も野菜もよく育った",
+     "isCorrect": false,
+     "whyWrongJa": "葉の野菜は半分ほどしか取れていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "果物は水が多いほど甘くなる",
+     "isCorrect": false,
+     "whyWrongJa": "甘くなったのは日がよく当たったからだと言っています。"
+    }
+   ],
+   "explanationJa": "最後の「いいことと困ることの両方がある」が話のまとめです。",
+   "explanationZh": "最后一句「有好处也有难处」是整段话的总结。",
+   "difficulty": 3,
+   "durationSeconds": 26.8,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-10"
+  },
+  {
+   "setId": "n3l-outline-19",
+   "sourceLevel": "N3",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n3l-outline-19.m4a",
+   "transcriptJa": "係の人が話しています。係「駅の前に置かれたままの自転車が、去年の三分の一まで減りました。減らすために置き場を増やしたのではありません。増やしたのは、置き場までの道の明るさです。夜でも安心して止められるようになったので、人が中まで入れるようになりました。物を増やすより、使いにくい理由をなくすほうが効くと分かりました。」",
+   "situationJa": "係の人が駅前の自転車について話しています。",
+   "situationZh": "工作人员在谈车站前的自行车问题。",
+   "questionJa": "係の人が伝えたいことは何ですか。",
+   "questionZh": "工作人员想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "使いにくい理由をなくすほうが効くこと",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "置き場を増やしたので自転車が減ったこと",
+     "isCorrect": false,
+     "whyWrongJa": "増やしたのは道の明るさだと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "自転車を止める人が増えて困っていること",
+     "isCorrect": false,
+     "whyWrongJa": "置き場の中まで入れるようになったという話です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "夜は自転車を止めてはいけないこと",
+     "isCorrect": false,
+     "whyWrongJa": "夜でも安心して止められると言っています。"
+    }
+   ],
+   "explanationJa": "最後の「物を増やすより、使いにくい理由をなくすほうが効く」がまとめです。",
+   "explanationZh": "最后一句「与其增加设施，不如消除难用的原因更有效」是总结。",
+   "difficulty": 3,
+   "durationSeconds": 25.3,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-outline-19"
+  },
+  {
+   "setId": "n3l-point-18",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-18.m4a",
+   "transcriptJa": "男の人と女の人が話しています。女の人はどうして近所の八百屋で野菜を買っているのですか。男「野菜、いつも同じ店で買っていますね。」女「ええ、うちのすぐ近くの八百屋です。」男「大きい店より安いんですか。」女「いえ、値段はほとんど同じですし、品物の数はずっと少ないです。でも、あの店の人は、その日の野菜のおいしい食べ方を必ず教えてくれるんです。おかげで、作れる料理が増えました。」",
+   "situationJa": "二人が野菜を買う店について話しています。",
+   "situationZh": "两个人在谈买菜的店。",
+   "questionJa": "女の人はどうして近所の八百屋で野菜を買っているのですか。",
+   "questionZh": "女人为什么在附近的蔬菜店买菜？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "野菜の食べ方を教えてくれるから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "大きい店より値段が安いから",
+     "isCorrect": false,
+     "whyWrongJa": "値段はほとんど同じだと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "野菜の種類がとても多いから",
+     "isCorrect": false,
+     "whyWrongJa": "品物の数はずっと少ないと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "家からいちばん近い店だから",
+     "isCorrect": false,
+     "whyWrongJa": "近いことは述べていますが、理由には挙げていません。"
+    }
+   ],
+   "explanationJa": "「でも」の後ろが理由です。店の人がその日の野菜のおいしい食べ方を教えてくれます。",
+   "explanationZh": "「でも」之后才是理由：店里的人会告诉她当天蔬菜好吃的做法。",
+   "difficulty": 1,
+   "durationSeconds": 30.5,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-18"
+  },
+  {
+   "setId": "n3l-point-09",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-09.m4a",
+   "transcriptJa": "女の人と男の人が話しています。女の人はどうして美容院を変えたのですか。男「髪、切ったんだね。いつもの店？」女「ううん、別の店にしたの。前の店、切り方は上手だったし、値段も安かったんだけどね。」男「じゃあ、どうして。」女「休みの日に行こうとすると、いつも一か月先までいっぱいで。急に予定が空いたときに行けないのが、だんだん困るようになって。」",
+   "situationJa": "二人が美容院について話しています。",
+   "situationZh": "两个人在谈理发店的事。",
+   "questionJa": "女の人はどうして美容院を変えたのですか。",
+   "questionZh": "女人为什么换了理发店？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "予約がなかなか取れないから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "切り方が下手だったから",
+     "isCorrect": false,
+     "whyWrongJa": "切り方は上手だったと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "値段が高かったから",
+     "isCorrect": false,
+     "whyWrongJa": "値段は安かったと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "休みの日は店が閉まるから",
+     "isCorrect": false,
+     "whyWrongJa": "閉まっているのではなく、予約がいっぱいです。"
+    }
+   ],
+   "explanationJa": "よかった点を先に述べ、「一か月先までいっぱい」で行けないことが本当の理由です。",
+   "explanationZh": "先说了优点，真正的理由是休息日想去时，一个月内都约满了。",
+   "difficulty": 1,
+   "durationSeconds": 27.3,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-09"
+  },
+  {
+   "setId": "n3l-point-02",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-02.m4a",
+   "transcriptJa": "女の人が話しています。女の人が料理教室をやめた一番の理由は何ですか。女「料理教室、三か月でやめちゃったんです。先生はとても親切でしたし、習ったことも役に立ちました。ただ、場所が家から一時間かかって。仕事のあとに通うのが、だんだんつらくなってしまって。」",
+   "situationJa": "女の人が料理教室について話しています。",
+   "situationZh": "女人在谈烹饪班的事。",
+   "questionJa": "女の人が料理教室をやめた一番の理由は何ですか。",
+   "questionZh": "女人退出烹饪班最主要的理由是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "通うのに時間がかかったから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "先生が親切ではなかったから",
+     "isCorrect": false,
+     "whyWrongJa": "先生はとても親切だったと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "習ったことが役に立たなかったから",
+     "isCorrect": false,
+     "whyWrongJa": "役に立ったと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "料金が高かったから",
+     "isCorrect": false,
+     "whyWrongJa": "料金の話は出ていません。"
+    }
+   ],
+   "explanationJa": "「ただ、〜」の後ろが本当の理由です。良かった点を先に述べています。",
+   "explanationZh": "「不过，～」之后才是真正的理由。先说了优点。",
+   "difficulty": 2,
+   "durationSeconds": 22.9,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-02"
+  },
+  {
+   "setId": "n3l-point-04",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-04.m4a",
+   "transcriptJa": "男の人が話しています。男の人が朝、走るようにしているのはなぜですか。男「毎朝、三十分走っています。体のためというより、頭のためですね。走っていると、その日にやることの順番が自然に決まるんです。机に向かってから考えると、なかなか決まらなくて。」",
+   "situationJa": "男の人が朝の習慣について話しています。",
+   "situationZh": "男人在谈早晨的习惯。",
+   "questionJa": "男の人が朝、走るようにしているのはなぜですか。",
+   "questionZh": "男人为什么坚持早晨跑步？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "その日の予定の順番が決まるから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "体を強くしたいから",
+     "isCorrect": false,
+     "whyWrongJa": "「体のためというより」と言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "走るのが好きだから",
+     "isCorrect": false,
+     "whyWrongJa": "好きかどうかは言っていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "朝早く起きたいから",
+     "isCorrect": false,
+     "whyWrongJa": "起きる時間の話は出ていません。"
+    }
+   ],
+   "explanationJa": "「体のためというより、頭のため」＝考えが整理できることが理由です。",
+   "explanationZh": "「与其说是为了身体，不如说是为了头脑」＝理由是能整理思路。",
+   "difficulty": 2,
+   "durationSeconds": 21.4,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-04"
+  },
+  {
+   "setId": "n3l-point-11",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-11.m4a",
+   "transcriptJa": "女の人と男の人が話しています。女の人はどうして犬の散歩を夜にしているのですか。男「最近、夜に犬を連れて歩いていますね。」女「ええ、先月からそうしているんです。」男「昼は暑いですし、人も多いですからね。」女「それもあるんですが、人は平気なんです。うちの犬は音に弱くて、昼は近くの工事の音で立ち止まってしまうんです。夜は静かなので、最後まで歩けます。」男「犬も夜が好きなんですね。」女「いえ、寒がりなので、本当は昼のほうが好きですよ。」",
+   "situationJa": "二人が犬の散歩について話しています。",
+   "situationZh": "两个人在谈遛狗的事。",
+   "questionJa": "女の人はどうして犬の散歩を夜にしているのですか。",
+   "questionZh": "女人为什么在晚上遛狗？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "昼は工事の音で犬が歩かないから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "昼は気温が高くて暑いから",
+     "isCorrect": false,
+     "whyWrongJa": "「それもあるんですが」と言い、一番の理由ではありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "昼は人が多くて危ないから",
+     "isCorrect": false,
+     "whyWrongJa": "人は平気だと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "犬が夜の散歩を好きだから",
+     "isCorrect": false,
+     "whyWrongJa": "犬は本当は昼のほうが好きだと言っています。"
+    }
+   ],
+   "explanationJa": "「それもあるんですが」の後で本当の理由を述べています。工事の音で犬が立ち止まってしまうのが理由です。",
+   "explanationZh": "「それもあるんですが」（那也是原因之一）之后才说出真正的理由：施工的声音会让狗停下不走。",
+   "difficulty": 3,
+   "durationSeconds": 35.3,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-11"
+  },
+  {
+   "setId": "n3l-point-19",
+   "sourceLevel": "N3",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n3l-point-19.m4a",
+   "transcriptJa": "会社で二人が話しています。男の人はどうして打ち合わせを外の店でしているのですか。女「打ち合わせ、最近はいつも近くの店ですね。会議室が足りないんですか。」男「いえ、会議室は空いています。静かさなら会議室のほうが上ですよ。」女「お茶が出るからですか。」男「それはついでですね。会議室だと座る場所が決まっていて、若い人が話しにくそうなんです。丸い席だと、意見がよく出ます。」",
+   "situationJa": "会社で打ち合わせの場所について話しています。",
+   "situationZh": "公司里在谈开小会的地点。",
+   "questionJa": "男の人はどうして打ち合わせを外の店でしているのですか。",
+   "questionZh": "男人为什么在外面的店里开小会？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "若い人が意見を出しやすいから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "会議室が足りなくなったから",
+     "isCorrect": false,
+     "whyWrongJa": "会議室は空いていると言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "店のほうが静かだから",
+     "isCorrect": false,
+     "whyWrongJa": "静かさは会議室のほうが上だと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "店ではお茶が出るから",
+     "isCorrect": false,
+     "whyWrongJa": "お茶は「ついで」だと言っています。"
+    }
+   ],
+   "explanationJa": "会議室では座る場所が決まっていて若い人が話しにくいため、丸い席の店を選んでいます。",
+   "explanationZh": "因为会议室的座位是固定的，年轻人不好开口，所以选了有圆桌的店。",
+   "difficulty": 3,
+   "durationSeconds": 29.8,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-point-19"
+  },
+  {
+   "setId": "n3l-quick-06",
+   "sourceLevel": "N3",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n3l-quick-06.m4a",
+   "transcriptJa": "悪いんだけど、この箱、向こうの部屋まで一緒に運んでもらえないかな。",
+   "situationJa": "友だちに手伝いを頼まれます。返事を選びます。",
+   "situationZh": "朋友请你帮忙。选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "いいよ、じゃあそっち持つね。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "うん、運んでくれてありがとう。",
+     "isCorrect": false,
+     "whyWrongJa": "運んだのが相手になっていて、頼まれた側の返事になっていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "はい、もう向こうへ移しました。",
+     "isCorrect": false,
+     "whyWrongJa": "もう終わったという返事で、これから頼まれたことに合いません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "ごめん、その箱は空だと思うよ。",
+     "isCorrect": false,
+     "whyWrongJa": "箱の中身の話で、頼みを受けるかどうかを答えていません。"
+    }
+   ],
+   "explanationJa": "「〜てもらえないかな」は親しい人への頼みです。引き受けるなら「いいよ」と答えます。",
+   "explanationZh": "「〜てもらえないかな」是对熟人的请托。答应时用「いいよ」回答。",
+   "difficulty": 1,
+   "durationSeconds": 5.3,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-quick-06"
+  },
+  {
+   "setId": "n3l-quick-16",
+   "sourceLevel": "N3",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n3l-quick-16.m4a",
+   "transcriptJa": "あの、今、かばんから何か落ちましたよ。この手帳、お客様のじゃありませんか。",
+   "situationJa": "店の人に声をかけられます。",
+   "situationZh": "店员叫住你。选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "あ、私のです。ありがとうございます。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "はい、手帳を拾ってあげますね。",
+     "isCorrect": false,
+     "whyWrongJa": "拾う側の言い方になっていて、役割が逆です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "いいえ、かばんは落としていません。",
+     "isCorrect": false,
+     "whyWrongJa": "かばんの話にすり替わっていて、手帳のことに答えていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "そうですか、では新しいのを買います。",
+     "isCorrect": false,
+     "whyWrongJa": "買い替えの話で、落とし物を受け取る返事になっていません。"
+    }
+   ],
+   "explanationJa": "落とし物を教えてもらったら、自分のものだと認めてお礼を言います。",
+   "explanationZh": "别人提醒你掉了东西时，要承认是自己的并道谢。",
+   "difficulty": 1,
+   "durationSeconds": 6.2,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-quick-16"
+  },
+  {
+   "setId": "n3l-quick-02",
+   "sourceLevel": "N3",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n3l-quick-02.m4a",
+   "transcriptJa": "その資料、もう送っていただけましたか。",
+   "situationJa": "短い問いかけを聞いて、返事を選びます。",
+   "situationZh": "听一句简短的问话，选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "すみません、まだなんです。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "はい、送ってください。",
+     "isCorrect": false,
+     "whyWrongJa": "自分が送る側です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "いいえ、送りましょうか。",
+     "isCorrect": false,
+     "whyWrongJa": "質問への答えになっていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "ええ、いただきます。",
+     "isCorrect": false,
+     "whyWrongJa": "もらう側の言い方です。"
+    }
+   ],
+   "explanationJa": "「送っていただけましたか」＝送ったかの確認。まだなら「まだなんです」と答えます。",
+   "explanationZh": "「已经发了吗」是确认是否发送。还没发就回答「还没有」。",
+   "difficulty": 2,
+   "durationSeconds": 2.9,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-quick-02"
+  },
+  {
+   "setId": "n3l-quick-14",
+   "sourceLevel": "N3",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n3l-quick-14.m4a",
+   "transcriptJa": "雨がひどくなってきましたね。よろしければ、駅まで車でお送りしましょうか。",
+   "situationJa": "知り合いが車で送ると言ってくれます。",
+   "situationZh": "熟人说要开车送你。选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "いえ、傘がありますので大丈夫です。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "はい、私の車でお送りしますよ。",
+     "isCorrect": false,
+     "whyWrongJa": "送る側の言い方になっていて、役割が逆です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "そうですね、雨はやんだようです。",
+     "isCorrect": false,
+     "whyWrongJa": "天気の感想だけで、申し出を受けるかどうかを答えていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "ありがとう、駅まで歩いてきました。",
+     "isCorrect": false,
+     "whyWrongJa": "過去の話で、これからの申し出への返事になっていません。"
+    }
+   ],
+   "explanationJa": "申し出を断るときは「いえ」と受けて、断る理由を短く添えます。",
+   "explanationZh": "谢绝对方的好意时，先说「いえ」，再简短说明理由。",
+   "difficulty": 2,
+   "durationSeconds": 6,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n3l-quick-14"
+  }
+ ]
+}

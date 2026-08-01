@@ -21,7 +21,17 @@ export type AdvEventName =
   // FINAL COMPLETION §19（先生選択・realtime音声ルーティング）
   | 'teacher_selected' | 'teacher_changed'
   | 'realtime_session_started' | 'realtime_voice_routed' | 'realtime_session_completed'
-  | 'conversation_e2e_completed' | 'readiness_updated';
+  | 'conversation_e2e_completed' | 'readiness_updated'
+  // ── Paid Pilot の獲得・継続・成果・離脱リスク（PRODUCT_CANON §10） ──
+  // 売上そのものではなく、「学習が成立しているか」「離脱しかけていないか」を見るための最小セット。
+  // 会話本文・音声・氏名・メール・自由記述は**一切送らない**（下の ALLOWED_KEYS で二重に防ぐ）。
+  | 'pilot_application_received' | 'learner_account_created'
+  | 'day_2_returned' | 'day_7_active'
+  | 'weekly_learning_days' | 'weekly_quest_completion'
+  | 'review_completion' | 'ai_conversation_completion'
+  | 'skill_evidence_added' | 'weekly_progress_viewed'
+  | 'onboarding_abandoned' | 'quest_abandoned'
+  | 'seven_days_inactive' | 'repeated_learning_error';
 
 export interface AdvEventParams {
   goalType?: AdvGoalType;
@@ -35,6 +45,13 @@ export interface AdvEventParams {
   locale?: 'ja' | 'zh';
   /** 案内の先生（'shoko' | 'yuto'）。個人情報ではない */
   teacherId?: string;
+  /**
+   * 数を階級で送る（'0' | '1' | '2' | '3-4' | '5-7' 等）。
+   * 生の回数・日数をそのまま送ると個人の特定に近づくため、必ず階級化した文字列にする。
+   */
+  countBucket?: string;
+  /** どこで離脱したか（画面・step種別）。自由記述は入れない */
+  stageKey?: string;
 }
 
 // **effectiveVoice（marin / cedar 等）はここに含めない。**
@@ -43,7 +60,7 @@ export interface AdvEventParams {
 // docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json で行う。
 const ALLOWED_KEYS = new Set([
   'goalType', 'targetLevel', 'routeStage', 'skillType', 'questionType', 'durationBucket', 'locale',
-  'teacherId',
+  'teacherId', 'countBucket', 'stageKey',
 ]);
 
 /** 許可キー以外は送らない（誤って本文等が混ざるのを型と実行時の二重で防ぐ） */
@@ -54,4 +71,19 @@ export const trackAdv = (event: AdvEventName, params: AdvEventParams = {}): void
     safe[k] = v.slice(0, 40);
   }
   trackCourse(`adv_${event}`, safe);
+};
+
+/**
+ * 回数・日数を階級へ落とす。
+ * 生の値を送らないのは、少人数のPaid Pilotでは「7日連続」のような値が
+ * ほぼ個人を指してしまうため。傾向を見るのに十分な粒度だけを残す。
+ */
+export const bucketOf = (n: number): string => {
+  if (n <= 0) return '0';
+  if (n === 1) return '1';
+  if (n === 2) return '2';
+  if (n <= 4) return '3-4';
+  if (n <= 7) return '5-7';
+  if (n <= 14) return '8-14';
+  return '15+';
 };

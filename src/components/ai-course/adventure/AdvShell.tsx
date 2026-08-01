@@ -2,7 +2,7 @@
 // UX CLARITY: 「1画面、1つの決断」— 現在地と先のルートは見せるが、押すCTAは常に一つ。
 // ASSESSMENT INTEGRITY: 「今どの試験科目を鍛えているか」を必ず表示し、
 //                       準備度は技能別・データ不足は未判定。
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvRouteStage, AdvTodayQuest, AdventureV2Profile,
@@ -24,7 +24,7 @@ import {
 import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
-import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { nowTrainingLabel, masteryScopeName, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
@@ -38,6 +38,7 @@ import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLe
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { vocabPool } from '../../../lib/aiLesson/course/adventure/vocab/vocabQuestions';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
+import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
 
 type L = 'ja' | 'zh';
@@ -61,10 +62,11 @@ export interface AdvShellProps {
   onExitV2: () => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
+const secondaryBtn = 'w-full min-h-[48px] rounded-xl border border-blue-200 bg-white px-4 py-3 text-base font-semibold text-blue-700';
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
 
 /** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
@@ -95,6 +97,7 @@ export default function AdvShell(props: AdvShellProps) {
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
+  const weeklyTracked = useRef(false);
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
@@ -132,6 +135,7 @@ export default function AdvShell(props: AdvShellProps) {
       bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: r.total } },
     };
     const ledger = recordAttempt(p.mastery, targetId, attempt);
+    trackAdv('skill_evidence_added', { skillType: skill, countBucket: bucketOf(r.total) });
     save(withStepDone({ ...p, mastery: ledger }, stepIndex));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateKey, save, withStepDone]);
@@ -190,6 +194,35 @@ export default function AdvShell(props: AdvShellProps) {
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsOnboarding, profile?.route, profile?.mastery, props.reviewsDue, dateKey]);
+
+  /**
+   * 継続・離脱の signal（PRODUCT_CANON §10）。
+   * Paid Pilot で「学習が続いているか／離脱しかけていないか」を見るための最小の計測。
+   * 日数は必ず階級（bucketOf）で送り、生の値・本文・個人情報は送らない。
+   * 1日1回だけ（dateKey が変わったときだけ）発火する。
+   */
+  useEffect(() => {
+    if (needsOnboarding || !profile) return;
+    const log = profile.questLog ?? [];
+    if (log.length === 0) return;
+    const days = [...new Set(log.map((q) => q.dateKey))].sort();
+    const first = days[0];
+    const last = days[days.length - 1];
+    const dayDiff = (a: string, b: string) =>
+      Math.round((new Date(`${b}T00:00:00`).getTime() - new Date(`${a}T00:00:00`).getTime()) / 86400000);
+    const sinceFirst = dayDiff(first, dateKey);
+    const sinceLast = dayDiff(last, dateKey);
+    const common = { targetLevel: profile.targetJlpt ?? undefined, locale: lang };
+    // 初日の翌日に戻ってきたか（最初の離脱ポイント）
+    if (sinceFirst === 1 && days.includes(dateKey)) trackAdv('day_2_returned', common);
+    // 初日から7日目に、まだ学習しているか
+    if (sinceFirst >= 6 && sinceFirst <= 8 && days.includes(dateKey)) trackAdv('day_7_active', common);
+    // 7日以上あいた（離脱リスク）
+    if (sinceLast >= 7) {
+      trackAdv('seven_days_inactive', { ...common, countBucket: bucketOf(sinceLast) });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsOnboarding, dateKey]);
 
   useEffect(() => {
     if (!quest) return;
@@ -630,9 +663,108 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  // ── 週のまとめ（PRODUCT_CANON §6）。数値の羅列ではなく「何ができるようになったか」を先に出す ──
+  if (view === 'weekly') {
+    const wk = buildWeeklySummary(prof, nowISO);
+    weeklyTracked.current ||= (() => {
+      trackAdv('weekly_learning_days', { countBucket: bucketOf(wk.studyDays), targetLevel: prof.targetJlpt ?? undefined, locale: lang });
+      trackAdv('weekly_quest_completion', { countBucket: bucketOf(wk.completedQuests), locale: lang });
+      return true;
+    })();
+    const measurable = wk.skillChanges.filter((c) => c.deltaPct !== null);
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '今週のまとめ', '本周小结')} teacherLang={lang} />
+
+        {/* いちばん上は数値ではなく「何ができるようになったか」 */}
+        <div className={`${card} border-blue-200`}>
+          <div className="flex items-start gap-3">
+            <TeacherAvatar size={40} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
+            <p className="text-sm leading-relaxed text-gray-800">{tx(lang, wk.headlineJa, wk.headlineZh)}</p>
+          </div>
+        </div>
+
+        <div className={`${card} mt-3`}>
+          <p className="text-sm text-gray-700">
+            {tx(lang, `学習した日：${wk.studyDays}日`, `学习天数：${wk.studyDays}天`)}
+            {' ／ '}
+            {tx(lang, `やりきった冒険：${wk.completedQuests}回`, `完成的冒险：${wk.completedQuests}次`)}
+            {wk.mockCount > 0 && ` ／ ${tx(lang, `ミニ模試：${wk.mockCount}回`, `迷你模拟考：${wk.mockCount}次`)}`}
+          </p>
+          {wk.estimatedMinutes !== null && (
+            <p className="mt-1 text-xs text-gray-400">
+              {tx(lang, `学習時間はおおよそ${wk.estimatedMinutes}分（設定した1日の時間からの目安です）`,
+                `学习时间大约${wk.estimatedMinutes}分钟（根据设定的每日时长估算）`)}
+            </p>
+          )}
+        </div>
+
+        {wk.newlyMastered.length > 0 && (
+          <div className={`${card} mt-3`}>
+            <p className="text-sm font-semibold text-gray-900">{tx(lang, '今週あたらしく定着したもの', '本周新巩固的内容')}</p>
+            <p className="mt-1 text-sm text-gray-700">
+              {tx(lang, `${wk.newlyMastered.length}項目`, `${wk.newlyMastered.length}个项目`)}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {tx(lang, '別の日に3回できて、時間をおいた確認も通ったものだけを数えています。',
+                '只统计在不同日子做对3次、并且隔一段时间再确认也通过的内容。')}
+            </p>
+          </div>
+        )}
+
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-semibold text-gray-900">{tx(lang, '技能ごとの変化', '各项能力的变化')}</p>
+          <ul className="mt-1 space-y-1 text-sm">
+            {wk.skillChanges.map((c) => (
+              <li key={c.skill} className="flex items-center justify-between gap-2">
+                <span className="text-gray-700">{tx(lang, c.labelJa, c.labelZh)}</span>
+                <span className={c.deltaPct === null ? 'text-gray-400' : c.deltaPct > 0 ? 'text-emerald-700 font-semibold' : 'text-gray-600'}>
+                  {c.deltaPct === null
+                    ? tx(lang, '未判定', '尚未判定')
+                    : `${c.deltaPct > 0 ? '+' : ''}${c.deltaPct}${tx(lang, 'ポイント', '个百分点')}`}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {measurable.length === 0 && (
+            <p className="mt-2 text-xs text-gray-500">
+              {tx(lang, '変化を出すには、同じ技能を2週続けて10問以上解く必要があります。数字を作らず「未判定」と表示しています。',
+                '要判断变化，需要同一项能力连续两周各做满10题以上。在此之前显示「尚未判定」，不编造数字。')}
+            </p>
+          )}
+        </div>
+
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-semibold text-gray-900">{tx(lang, '来週の重点', '下周的重点')}</p>
+          <p className="mt-1 text-sm text-gray-700">{tx(lang, wk.nextWeekJa, wk.nextWeekZh)}</p>
+        </div>
+
+        <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
+          {tx(lang, '今日の冒険へ', '去今天的冒险')}
+        </button>
+        <div className="mt-2">
+          <SubLink lang={lang} label={term('seeTeacherPrep', lang)}
+            onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+        </div>
+      </div>
+    );
+  }
+
   // ── complete ──
   if (view === 'complete' && quest) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
+    const daily = buildDailySummary(prof, dateKey, nowISO);
+    // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
+    const todayRestate = pickRestateMaterial({
+      conversationCorrection: null,
+      battleMistakes: Object.entries(prof.mastery)
+        .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-'))
+          && at && at[at.length - 1]?.dateKey === dateKey && at[at.length - 1]?.scorePct < 80)
+        .slice(0, 1)
+        .map(([id]) => ({ expression: id, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') })),
+      targetExpressions: quest.targetExpressions,
+      usedExpressions: [],
+    });
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <div className="flex items-center gap-3">
@@ -659,6 +791,40 @@ export default function AdvShell(props: AdvShellProps) {
             <p className="mt-1 text-sm text-gray-700">{tx(lang, lastMastery.nextJa, lastMastery.nextZh)}</p>
           </div>
         )}
+        {/* 今回伸びた技能。**解いていない技能は出さない**（0%と並べて誤読させない・canon 原則13） */}
+        {daily.skillResults.length > 0 && (
+          <div className={`${card} mt-3`}>
+            <p className="text-sm font-semibold text-gray-900">{tx(lang, '今日の手ごたえ', '今天的手感')}</p>
+            <ul className="mt-1 space-y-1 text-sm text-gray-700">
+              {daily.skillResults.map((r) => (
+                <li key={r.skill} className="flex items-center justify-between gap-2">
+                  <span>{tx(lang, r.labelJa, r.labelZh)}</span>
+                  <span className="text-gray-600">{r.correct}/{r.total}（{r.pct}%）</span>
+                </li>
+              ))}
+            </ul>
+            {daily.newlyMasteredToday > 0 && (
+              <p className="mt-2 text-sm font-semibold text-emerald-700">
+                {tx(lang, `今日、${daily.newlyMasteredToday}項目が定着まで届きました`,
+                  `今天有${daily.newlyMasteredToday}个项目达到了巩固`)}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* 直した表現（AI会話の言い直し素材）。無いときは出さない */}
+        {todayRestate.source !== 'none' && (todayRestate.beforeJa || todayRestate.afterJa) && (
+          <div className={`${card} mt-3`}>
+            <p className="text-sm font-semibold text-gray-900">{tx(lang, '直した表現', '改正的表达')}</p>
+            {todayRestate.beforeJa && (
+              <p className="mt-1 rounded bg-red-50 px-2 py-1 text-sm text-gray-900">✕ {todayRestate.beforeJa}</p>
+            )}
+            {todayRestate.afterJa && (
+              <p className="mt-1 rounded bg-emerald-50 px-2 py-1 text-sm text-gray-900">◯ {todayRestate.afterJa}</p>
+            )}
+          </div>
+        )}
+
         <div className={`${card} mt-3`}>
           <p className="text-sm font-semibold text-gray-900">{term('masteryRate', lang)}</p>
           <p className="mt-1 text-sm text-gray-700">{routeProgressPct(route, mastered)}%</p>
@@ -666,11 +832,21 @@ export default function AdvShell(props: AdvShellProps) {
           <p className="mt-1 text-sm text-gray-700">
             {props.reviewsDue > 0 ? tx(lang, `残り${props.reviewsDue}件`, `还剩${props.reviewsDue}项`) : tx(lang, '明日・約3分', '明天・约3分钟')}
           </p>
+          {/* 次の冒険を必ず示す（canon 原則15: 行き止まりを作らない） */}
+          <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の冒険', '下次冒险')}</p>
+          <p className="mt-1 text-sm text-gray-700">
+            {tx(lang, `明日・約${prof.dailyMinutes ?? 15}分。${teacherLabel}が続きを用意します。`,
+              `明天・约${prof.dailyMinutes ?? 15}分钟。${teacherLabel}会准备好接下来的内容。`)}
+          </p>
         </div>
         <p className="mt-3 text-center text-xs text-gray-500">XP +{doneSteps.size * 10}</p>
         <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
           {tx(lang, 'ホームへ', '回到主页')}
         </button>
+        <div className="mt-2">
+          <SubLink lang={lang} label={tx(lang, '今週のまとめを見る', '查看本周小结')}
+            onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
+        </div>
       </div>
     );
   }
@@ -684,6 +860,9 @@ export default function AdvShell(props: AdvShellProps) {
   const allDone = quest !== null && nextStepIdx === -1;
   const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
   const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
+  // 中断した模試は残り時間が動いているので、そのときだけ「今日の一手」を模試の再開にする。
+  // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
+  const mockPending = prof.mockSession !== null;
 
   const runStep = (i: number) => {
     if (!quest) return;
@@ -733,6 +912,23 @@ export default function AdvShell(props: AdvShellProps) {
             : tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)}
       </p>
 
+      {/*
+        現在地（PRODUCT_CANON §5-2）。目的地の下に必ず出す。
+        基礎が足りない学習者にも「N3へ降格」ではなく「N2攻略の経由地としていまここ」と見せる（原則2）。
+      */}
+      {stage && (
+        <p className="mt-1 text-xs text-gray-500">
+          {tx(lang,
+            `現在地：${stage.titleJa}（${term('masteryRate', 'ja')} ${routeProgressPct(route, mastered)}%）`,
+            `当前位置：${stage.titleZh}（${term('masteryRate', 'zh')} ${routeProgressPct(route, mastered)}%）`)}
+          {prof.targetJlpt === 'N2' && stage.kind !== 'n2_grammar' && stage.kind !== 'n2_gate' && (
+            <span className="ml-1 text-gray-400">
+              {tx(lang, '＝N2攻略の経由地', '＝通往N2的中途站')}
+            </span>
+          )}
+        </p>
+      )}
+
       {/* 案内の先生の一文（次の行動を言う）。7画面すべてで同じ先生に揃える */}
       <div className="mt-2 mb-4 flex items-center gap-3">
         <TeacherAvatar size={48} expression="smile" lang={lang}
@@ -759,7 +955,7 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, '同じ問題・同じ残り時間から再開できます。', '可以从相同的题目和剩余时间继续。')}
           </p>
           <div className="mt-2 flex gap-2">
-            <button type="button" className="min-h-[44px] flex-1 rounded-xl bg-amber-600 px-3 py-2 text-sm font-bold text-white"
+            <button type="button" className="min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white"
               onClick={() => setView('mock')}>
               {tx(lang, '模試を再開する', '继续模拟考')}
             </button>
@@ -818,8 +1014,10 @@ export default function AdvShell(props: AdvShellProps) {
 
           {/* 4. 主要CTAは常に一つ＝次の1動作 */}
           {!allDone && nextStepIdx >= 0 && (
-            <button type="button" className={`${primaryBtn} mt-4`} onClick={() => runStep(nextStepIdx)}>
-              {ctaLabel()}
+            <button type="button"
+              className={mockPending ? `${secondaryBtn} mt-4` : `${primaryBtn} mt-4`}
+              onClick={() => runStep(nextStepIdx)}>
+              {mockPending ? tx(lang, '模試のあとで今日の冒険をする', '模拟考之后再做今天的冒险') : ctaLabel()}
             </button>
           )}
           {allDone && (
@@ -859,6 +1057,8 @@ export default function AdvShell(props: AdvShellProps) {
             <SubLink lang={lang}
               label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
               onClick={() => setView('teacher')} />
+            <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
+              onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
             <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
             <p className="px-1 pt-1 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,

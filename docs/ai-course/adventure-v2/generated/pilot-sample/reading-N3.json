@@ -1,0 +1,828 @@
+{
+ "level": "N3",
+ "sampledFrom": 100,
+ "sampleSize": 20,
+ "note": "本文を読まないと解けるか・根拠が本文にあるか・複数正解・中国語の自然さを見る",
+ "sets": [
+  {
+   "setId": "n3r-info-10",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【みんなのこども食堂】\n・毎月第2土曜と第4土曜の11:30〜13:30\n・場所：さくら会館の1階\n・こどもは無料、大人は300円\n・中学生までは一人で来られます。小学生より小さい子は大人と一緒に来てください\n・第4土曜はカレーの日です\n・申し込みはいりませんが、材料がなくなったら終わりです",
+   "contextZh": "这是社区儿童食堂的通知。",
+   "questionJa": "5歳の子どもとお母さんが、カレーを食べに行きます。正しいのはどれですか。",
+   "questionZh": "5岁的孩子和妈妈想去吃咖喱饭。正确的是哪一项？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "第4土曜に二人で行き、300円払う",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "第2土曜に二人で行き、300円払う",
+     "isCorrect": false,
+     "whyWrongJa": "カレーの日は第4土曜です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "第4土曜に子どもだけで行き、無料で食べる",
+     "isCorrect": false,
+     "whyWrongJa": "小学生より小さい子は大人と一緒に来る必要があります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "第4土曜に二人で行き、申し込んでから600円払う",
+     "isCorrect": false,
+     "whyWrongJa": "申し込みはいらず、こどもは無料です。"
+    }
+   ],
+   "rationaleSpan": "第4土曜はカレーの日です",
+   "explanationJa": "カレーが出るのは第4土曜です。こどもは無料で大人だけ300円なので、二人で300円になります。",
+   "explanationZh": "咖喱在第四个星期六供应。儿童免费、成人300日元，两人一共300日元。",
+   "difficulty": 1,
+   "estimatedSeconds": 85,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-10"
+  },
+  {
+   "setId": "n3r-info-13",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【防災用品を配ります】\n・一つの世帯に一組です\n・配る物：水のふくろ、ラジオ、笛のどれか一つを選べます\n・受け取れる日：11月8日（土）と11月9日（日）の10:00〜16:00\n・場所：8日は北公民館、9日は南公民館\n・受け取るときは、住所がわかるもの（電気の紙など）を見せてください\n・電池は入っていません。自分で用意してください",
+   "contextZh": "这是防灾用品发放的通知。",
+   "questionJa": "南公民館で笛を受け取りたい人は、何をしなければなりませんか。",
+   "questionZh": "想在南公民馆领取哨子的人，必须做什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "11月9日に行き、住所がわかるものを見せる",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "11月8日に行き、住所がわかるものを見せる",
+     "isCorrect": false,
+     "whyWrongJa": "8日の会場は北公民館です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "11月9日に行き、電池も受け取る",
+     "isCorrect": false,
+     "whyWrongJa": "電池は入っていないので、自分で用意します。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "11月9日に行き、水のふくろと笛を両方もらう",
+     "isCorrect": false,
+     "whyWrongJa": "一つの世帯に一組で、配る物はどれか一つだけです。"
+    }
+   ],
+   "rationaleSpan": "9日は南公民館",
+   "explanationJa": "南公民館で配るのは9日です。受け取るときには住所がわかるものが必要です。",
+   "explanationZh": "在南公民馆发放的日子是9日。领取时要出示能确认住址的东西。",
+   "difficulty": 1,
+   "estimatedSeconds": 90,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-13"
+  },
+  {
+   "setId": "n3r-info-01",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【市民プール 利用案内】\n・平日 9:00〜21:00／土日 9:00〜18:00\n・毎週火曜は休み\n・大人400円、子ども200円\n・回数券（11回分）は大人4,000円\n・水泳帽が必要です（貸し出しあり・100円）\n・小学生以下は保護者と一緒に入ってください",
+   "contextZh": "这是市民游泳池的使用指南。",
+   "questionJa": "大人一人が水泳帽を借りて土曜日に一回泳ぐと、いくらかかりますか。",
+   "questionZh": "一位成人周六游一次并租借泳帽，需要多少钱？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "500円",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "400円",
+     "isCorrect": false,
+     "whyWrongJa": "水泳帽の貸し出し代が入っていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "600円",
+     "isCorrect": false,
+     "whyWrongJa": "子ども料金を足した金額です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "4,100円",
+     "isCorrect": false,
+     "whyWrongJa": "回数券の値段が入っています。"
+    }
+   ],
+   "rationaleSpan": "大人400円",
+   "explanationJa": "大人400円＋水泳帽の貸し出し100円＝500円です。土曜日でも料金は同じです。",
+   "explanationZh": "成人400日元＋租泳帽100日元＝500日元。周六价格相同。",
+   "difficulty": 2,
+   "estimatedSeconds": 90,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-01"
+  },
+  {
+   "setId": "n3r-info-12",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【春のフリーマーケット 出店者募集】\n・日時：4月12日（日）10:00〜15:00\n・場所：中央公園の広場\n・小さい区画（2メートル四方）1,500円\n・大きい区画（3メートル四方）2,500円\n・机やいすは自分で持ってきてください。貸し出しはありません\n・食べ物と飲み物は売れません\n・申し込みは3月20日まで。定員は40組で、多いときは抽選です",
+   "contextZh": "这是春季跳蚤市场的摊位招募通知。",
+   "questionJa": "古着を大きい区画で売りたい人が、机も使いたいそうです。正しいのはどれですか。",
+   "questionZh": "想用大摊位卖旧衣服、并且要用桌子的人，正确的是哪一项？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "2,500円払い、机は自分で持っていく",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "2,500円払い、机は会場で借りる",
+     "isCorrect": false,
+     "whyWrongJa": "机やいすの貸し出しはありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "1,500円払い、机は自分で持っていく",
+     "isCorrect": false,
+     "whyWrongJa": "1,500円は小さい区画の値段です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "2,500円払い、飲み物も一緒に売る",
+     "isCorrect": false,
+     "whyWrongJa": "食べ物と飲み物は売れないと書いてあります。"
+    }
+   ],
+   "rationaleSpan": "机やいすは自分で持ってきてください",
+   "explanationJa": "大きい区画は2,500円です。机の貸し出しはないので、自分で持っていくことになります。",
+   "explanationZh": "大摊位是2,500日元。会场不出租桌子，所以要自己带来。",
+   "difficulty": 2,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-12"
+  },
+  {
+   "setId": "n3r-info-15",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【税の申告 相談会のお知らせ】\n・期間：2月16日から3月15日まで\n・平日9:00〜16:00（12:00〜13:00は休み）\n・第1日曜と第3日曜も9:00〜12:00に開きます\n・予約は不要ですが、日曜は混みますので早い時間にお越しください\n・持ち物：昨年の収入がわかる紙、はんこ、通帳\n・パソコンでの申告を手伝う席は、平日だけです",
+   "contextZh": "这是税务申报咨询会的通知。",
+   "questionJa": "土日しか休めない人が、パソコンを使った申告を手伝ってほしいと思っています。この相談会について正しいのはどれですか。",
+   "questionZh": "只有周末休息的人想请人帮忙用电脑申报。关于这个咨询会，正确的是哪一项？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "日曜に来ても、手伝う席は使えない",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "第1日曜と第3日曜なら、手伝う席を使える",
+     "isCorrect": false,
+     "whyWrongJa": "手伝う席が使えるのは平日だけです。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "土曜に来れば、手伝う席を使える",
+     "isCorrect": false,
+     "whyWrongJa": "土曜に開くとはどこにも書いてありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "予約をすれば、日曜でも手伝う席を使える",
+     "isCorrect": false,
+     "whyWrongJa": "予約は不要で、予約しても日曜には使えません。"
+    }
+   ],
+   "rationaleSpan": "パソコンでの申告を手伝う席は、平日だけです",
+   "explanationJa": "相談会は平日と第1・第3日曜に開きますが、パソコンを手伝う席は平日だけです。土曜は開きません。",
+   "explanationZh": "咨询会在平日和第一、第三个星期日开放，但用电脑申报的协助只在平日。星期六不开放。",
+   "difficulty": 3,
+   "estimatedSeconds": 110,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-15"
+  },
+  {
+   "setId": "n3r-info-02",
+   "sourceLevel": "N3",
+   "readingType": "infoSearch",
+   "passageJa": "【日本語教室のご案内】\n初級A：月・水 19:00〜20:30\n初級B：火・木 19:00〜20:30\n中級 ：土 10:00〜12:00\n※初級Aと初級Bは同じ内容です。都合のよいほうを選んでください。\n※中級は初級を終えた方が対象です。\n※見学は各クラス一回まで無料です。",
+   "contextZh": "这是日语教室的介绍。",
+   "questionJa": "平日の夜は働いていて、土曜日だけ時間がある初級の人はどうすればよいですか。",
+   "questionZh": "平日晚上要工作、只有周六有时间的初级学习者该怎么办？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "今は通えるクラスがない",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "中級クラスに入る",
+     "isCorrect": false,
+     "whyWrongJa": "中級は初級を終えた人が対象です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "初級Aに入る",
+     "isCorrect": false,
+     "whyWrongJa": "初級Aは月・水の夜です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "見学を何回も申し込む",
+     "isCorrect": false,
+     "whyWrongJa": "見学は一回までです。"
+    }
+   ],
+   "rationaleSpan": "中級は初級を終えた方が対象です",
+   "explanationJa": "初級は平日夜のみ、土曜は中級だけ。しかも中級は初級修了者が対象なので、条件に合うクラスはありません。",
+   "explanationZh": "初级只在平日晚上，周六只有中级；而中级要求学完初级，所以没有符合条件的班。",
+   "difficulty": 3,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-info-02"
+  },
+  {
+   "setId": "n3r-key-07",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "休憩室をお使いのみなさまへ\n\nこのごろ、飲み終わった紙コップや食べ物の袋がテーブルに残っていることが増えました。次に使う人が、まず机をふくところから始めることになり、こまっているという声が届いています。掃除の当番を決めることも考えましたが、当番を作ると「自分の番でなければやらなくてよい」という気持ちになりやすいと思います。ですから、当番は作りません。使った人がその場でかたづける。それだけで休憩室はきれいなままです。\n\n総務課",
+   "contextZh": "这是贴在公司休息室里的通知。",
+   "questionJa": "この張り紙が最も伝えたいことは何ですか。",
+   "questionZh": "这张告示最想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "使った人がその場でかたづけること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "掃除の当番を新しく決めること",
+     "isCorrect": false,
+     "whyWrongJa": "当番を作るとかえって守られにくいので「当番は作りません」と書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "休憩室で食べ物を食べないこと",
+     "isCorrect": false,
+     "whyWrongJa": "食べ物を食べてはいけないとは書いていません。困っているのは残された袋です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "紙コップの数をへらしていくこと",
+     "isCorrect": false,
+     "whyWrongJa": "紙コップは残されている物の例で、数をへらすようにとは書いてありません。"
+    }
+   ],
+   "rationaleSpan": "使った人がその場でかたづける",
+   "explanationJa": "当番を作らない理由を説明したうえで、最後に「使った人がその場でかたづける」という一点だけを求めています。",
+   "explanationZh": "文章先说明不设值日的理由，最后只提出一点要求：谁使用谁当场收拾。",
+   "difficulty": 1,
+   "estimatedSeconds": 85,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-07"
+  },
+  {
+   "setId": "n3r-key-15",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "コピー機をお使いになる方へ\n\n紙がつまったときは、無理に引っぱらないでください。やぶれた紙のかけらが中に残ると、次に使う人がまた紙をつまらせます。そうなると、部品を外して取り出す修理が必要になり、半日は使えなくなります。先月はこの修理が三回ありました。前の面を開けて、緑色のつまみを回せば、紙はゆっくり出てきます。かけらが残ることもありません。それでも出ないときは、そのままにして三階の事務室へお知らせください。\n\n事務室",
+   "contextZh": "这是贴在复印机旁边的使用注意事项。",
+   "questionJa": "この注意書きが最も伝えたいことは何ですか。",
+   "questionZh": "这份注意事项最想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "つまった紙を無理に引っぱらないこと",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "紙がつまったらすぐ事務室へ行くこと",
+     "isCorrect": false,
+     "whyWrongJa": "つまみを回しても出ないときに知らせるように書いてあります。すぐにではありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "緑色のつまみを回してから紙を引くこと",
+     "isCorrect": false,
+     "whyWrongJa": "つまみを回せば紙はゆっくり出てきます。引く必要はありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "修理の道具を用意しておくこと",
+     "isCorrect": false,
+     "whyWrongJa": "修理は事務室に任せるもので、自分で道具を用意する話は出ていません。"
+    }
+   ],
+   "rationaleSpan": "無理に引っぱらないでください",
+   "explanationJa": "最初の一文が注意の中心で、そのあとは理由と正しい手順の説明です。",
+   "explanationZh": "第一句是提醒的核心，后面是原因说明和正确的操作步骤。",
+   "difficulty": 1,
+   "estimatedSeconds": 85,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-15"
+  },
+  {
+   "setId": "n3r-key-05",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "会議で意見が出ないとき、司会が「何かありませんか」と聞いても、たいてい何も出ません。人は、何について話すのかがはっきりしないと発言しにくいからです。「この案の心配な点はどこですか」のように、答える範囲をせまくすると意見が出やすくなります。",
+   "contextZh": "这是关于开会的短文。",
+   "questionJa": "この文章によると、意見を出やすくする方法はどれですか。",
+   "questionZh": "根据这篇文章，让大家更容易发言的方法是哪一个？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "答える範囲をせまくして質問する",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "「何かありませんか」と何度も聞く",
+     "isCorrect": false,
+     "whyWrongJa": "それでは出ないと書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "司会を変える",
+     "isCorrect": false,
+     "whyWrongJa": "司会者を変える話は本文にありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "会議の時間を長くする",
+     "isCorrect": false,
+     "whyWrongJa": "時間の話は本文にありません。"
+    }
+   ],
+   "rationaleSpan": "答える範囲をせまくすると意見が出やすくなります",
+   "explanationJa": "原因（範囲が不明だと発言しにくい）と対策（範囲をせまく）の関係です。",
+   "explanationZh": "原因（范围不明确就难发言）与对策（缩小范围）的关系。",
+   "difficulty": 2,
+   "estimatedSeconds": 90,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-05"
+  },
+  {
+   "setId": "n3r-key-08",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "バドミントン部のみなさんへ\n\n来週の火曜日は、体育館の床をぬり直す工事のため使えません。そこで、その日は外の広場で走る練習をします。雨が降った場合も、工事は続くので体育館には入れません。雨のときは走る練習を中止にして、かわりに教室で試合の映像を見ながら作戦を話し合います。どちらになっても集合は四時、場所は部室の前です。天気は当日にならないとわかりませんので、走れる服とノートの両方を用意してきてください。\n\n部長 森",
+   "contextZh": "这是发给羽毛球部成员的通知。",
+   "questionJa": "この連絡で、部員が必ずしなければならないことは何ですか。",
+   "questionZh": "根据这则通知，部员必须做的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "走れる服とノートを両方用意する",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "雨のときは体育館に集まって待つ",
+     "isCorrect": false,
+     "whyWrongJa": "工事は雨でも続くので、体育館には入れないと書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "四時までに外の広場へ行く",
+     "isCorrect": false,
+     "whyWrongJa": "集合場所は部室の前です。広場は雨が降らなかったときの練習場所です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "試合の映像を家で見てくる",
+     "isCorrect": false,
+     "whyWrongJa": "映像を見るのは雨のときに教室で行います。家で見るようにとは書いてありません。"
+    }
+   ],
+   "rationaleSpan": "走れる服とノートの両方を用意してきてください",
+   "explanationJa": "晴れと雨で予定が分かれるため、どちらになってもよいように両方の用意を求めています。",
+   "explanationZh": "因为晴天和雨天的安排不同，所以要求两种准备都做好。",
+   "difficulty": 2,
+   "estimatedSeconds": 95,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-08"
+  },
+  {
+   "setId": "n3r-key-17",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "ご案内いたします。\n\n今度の日曜日、みどり駅と川口駅の間で線路の工事を行うため、この区間の電車は一日中止まります。かわりにバスを走らせますが、バスは電車より時間がかかり、道の混み具合によっては三十分以上遅れることがあります。空港へ向かうお客様は、いつもより早い時間の便をお選びください。バス乗り場は各駅の東口で、案内の係の者が立っております。切符はそのままお使いいただけますので、買い直す必要はございません。",
+   "contextZh": "这是电车里播放的通知。",
+   "questionJa": "この案内が乗客にいちばん伝えたいことは何ですか。",
+   "questionZh": "这则通知最想告诉乘客的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "空港へ行く人は早めに出発したほうがよいということ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "日曜日は切符を買い直す必要があるということ",
+     "isCorrect": false,
+     "whyWrongJa": "切符はそのまま使えると書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "バス乗り場が駅の西口に変わるということ",
+     "isCorrect": false,
+     "whyWrongJa": "バス乗り場は各駅の東口だと書いてあります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "工事のため一週間電車が止まるということ",
+     "isCorrect": false,
+     "whyWrongJa": "止まるのは今度の日曜日の一日で、一週間ではありません。"
+    }
+   ],
+   "rationaleSpan": "空港へ向かうお客様は、いつもより早い時間の便をお選びください",
+   "explanationJa": "工事と代行バスの説明が続きますが、乗客への具体的な依頼はこの一文です。",
+   "explanationZh": "在说明施工和代替巴士之后，向乘客提出的具体请求才是核心。",
+   "difficulty": 3,
+   "estimatedSeconds": 105,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-17"
+  },
+  {
+   "setId": "n3r-key-13",
+   "sourceLevel": "N3",
+   "readingType": "keyPoint",
+   "passageJa": "地域の子ども図書室から、みなさまへお願いです。\n\n先月、読み終わった本をゆずってくださる方をさがしたところ、たくさんの本が集まりました。ありがとうございました。ただ、集まった本の多くは大人向けのもので、子どもが手に取れるものは多くありませんでした。今おねがいしたいのは、本の数ではなく、小学生が一人で読める本です。もう出してくださった方も、お子さんが小さいころに読んでいた本をもう一度さがしてみていただけないでしょうか。",
+   "contextZh": "这是社区儿童图书室发出的募捐请求。",
+   "questionJa": "この文章で、書き手がお願いしていることは何ですか。",
+   "questionZh": "在这篇文章中，写信人请求的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "小学生が自分で読める本をゆずること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "できるだけ多くの本を集めて送ること",
+     "isCorrect": false,
+     "whyWrongJa": "「本の数ではなく」と書いてあり、数を求めてはいません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "大人向けの本を新しく買って送ること",
+     "isCorrect": false,
+     "whyWrongJa": "大人向けの本はすでに多く集まっていると書いてあります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "子どもを図書室へ連れてくること",
+     "isCorrect": false,
+     "whyWrongJa": "本をゆずってほしいという依頼で、子どもを連れてくる話は出ていません。"
+    }
+   ],
+   "rationaleSpan": "今おねがいしたいのは、本の数ではなく、小学生が一人で読める本です",
+   "explanationJa": "お礼のあとに「〜ではなく」と続けて、本当に必要なものを言い直しています。",
+   "explanationZh": "在道谢之后，用「ではなく」这一转折重新说明真正需要的东西。",
+   "difficulty": 3,
+   "estimatedSeconds": 105,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-key-13"
+  },
+  {
+   "setId": "n3r-long-13",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "二年前から、朝、家のまわりを三十分ほど歩いています。始めたのは、健康診断で運動をすすめられたからでした。医者に、一日に少しでいいから体を動かしなさいと言われたのです。\n\nはじめの半年は、決めた道を同じ速さで歩き、時計ばかり見ていました。歩数を数える道具も買って、毎日、紙に書いていました。前の日より少ないと、なんとなく負けたような気持ちになります。何分で何歩、と数えるのが目的になっていて、正直に言うと、あまりおもしろくありませんでした。雨で歩けない日は、少しうれしいくらいでした。\n\nある朝、工事で通れない道があり、遠回りをしました。すると、いつも通る道の一本となりに、小さな川と、庭に花をたくさん植えている家があることに気づきました。二年住んでいて、まったく知らなかったのです。次の日から、私は歩く道を毎回変えることにしました。\n\n今は、遠回りをする日もあれば、川ぞいをゆっくり歩く日もあります。歩く時間も歩数もあまり変わっていませんが、続けるのは楽になりました。同じことをくり返すのがつらいのではなく、何も新しいことが起きないのがつらかったのだと分かりました。",
+   "contextZh": "这是一篇关于晨间散步习惯的长文。",
+   "questionJa": "遠回りをしたあと、筆者は何をするようになりましたか。",
+   "questionZh": "绕远路之后，作者开始做什么了？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "毎回ちがう道を選んで歩くようになった",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "時計を見て歩く速さを上げるようになった",
+     "isCorrect": false,
+     "whyWrongJa": "時計ばかり見ていたのは、始めたばかりのころのやり方です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "歩く時間を三十分より長くするようになった",
+     "isCorrect": false,
+     "whyWrongJa": "歩く時間も歩数もあまり変わっていないと書いてあります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "雨の日にも必ず歩くようになった",
+     "isCorrect": false,
+     "whyWrongJa": "雨で歩けない日はうれしいくらいで、必ず歩くとは書かれていません。"
+    }
+   ],
+   "rationaleSpan": "次の日から、私は歩く道を毎回変えることにしました",
+   "explanationJa": "第三段落の最後の一文が答えです。第二段落は変わる前のやり方なので、混ぜないようにします。",
+   "explanationZh": "第三段最后一句是答案。第二段是改变之前的做法，不要混在一起。",
+   "difficulty": 1,
+   "estimatedSeconds": 155,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-13"
+  },
+  {
+   "setId": "n3r-long-08",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "父が二十年前に買った自転車が、物置に置いたままになっていました。さびていて、タイヤの空気も抜けています。捨てるつもりで外に出したのですが、今は見ない形をしていて、もったいない気がしました。\n\n近所の自転車屋に持っていくと、店の人はあちこちを触ってから、「直せますよ。ただ、部品を入れかえるので、新しいものを買うのと同じくらいかかります」と言いました。私は少し迷いました。値段だけを考えれば、新しい自転車を買うほうがいいからです。\n\nそれでも直してもらうことにしました。一週間後に連絡が来て、店に行くと、さびが落ちて、色までよみがえっていました。乗ってみると、思ったより軽く進みます。店の人は「この時代の自転車は、部品がしっかり作られている。今の安いものより長くもちますよ」と教えてくれました。\n\n今は毎日この自転車に乗っています。雨の日はできるだけ乗らないようにして、月に一度は自分でみがいています。直すかどうかを決めるとき、私は値段ばかりを比べていました。しかし本当に大事だったのは、その物をこれからも使いたいと思えるかどうかでした。",
+   "contextZh": "这是一篇关于修好一辆旧自行车继续使用的长文。",
+   "questionJa": "筆者は店で値段の話を聞いたあと、どうしましたか。",
+   "questionZh": "作者在店里听到价格之后，做了什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "同じくらいの費用でも修理をたのんだ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "値段が高かったので新しい自転車を買った",
+     "isCorrect": false,
+     "whyWrongJa": "新しいものを買うのは迷ったときに比べた案で、実際には選んでいません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "さびていたので自転車を捨てることにした",
+     "isCorrect": false,
+     "whyWrongJa": "捨てるつもりで外に出しましたが、もったいないと思ってやめました。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "一週間待ってから別の店に持っていった",
+     "isCorrect": false,
+     "whyWrongJa": "一週間は修理にかかった期間で、別の店の話は本文にありません。"
+    }
+   ],
+   "rationaleSpan": "それでも直してもらうことにしました",
+   "explanationJa": "「少し迷いました」のあとに「それでも直してもらうことにしました」とあります。迷った内容と決めた内容を区別しましょう。",
+   "explanationZh": "在「少し迷いました」之后写着「それでも直してもらうことにしました」。要区分犹豫的内容和最终的决定。",
+   "difficulty": 1,
+   "estimatedSeconds": 155,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-08"
+  },
+  {
+   "setId": "n3r-long-10",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "春の終わりに、友人と近くの山に登りました。前の日の予報は晴れで、朝も雲一つありませんでした。山といっても高さは千メートルほどで、道もよく整えられている、家族連れの多い山です。私たちは軽い上着だけを持って、朝七時に登り始めました。\n\n半分ほど登ったところで、風が急に冷たくなりました。下を見ると、白い雲が谷から上がってきています。三十分もたたないうちに、まわりが白くなって、少し先の道も見えなくなりました。気温は下がり、あせをかいた背中がすぐに冷たくなりました。\n\n友人は「頂上まであと少しだから行こう」と言いました。私も同じ気持ちでした。しかし、道が見えにくくなっていたので、いったん座って地図を出し、現在地を確かめ、二人で話して引き返すことにしました。下りはじめて一時間ほどで、雨が降ってきました。\n\n家に帰ってから調べると、山の天気は、ふもとの予報とは別のものとして考えなければならないと書いてありました。私は晴れという言葉を信じたのではなく、下の町の空を信じてしまったのです。山では、出発したときの計画より、今目の前に見えているものを大事にするべきでした。",
+   "contextZh": "这是一篇关于登山途中天气突变的长文。",
+   "questionJa": "雲が上がってきたあと、二人はどうしましたか。",
+   "questionZh": "云涌上来之后，两个人做了什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "地図で場所を確かめてから引き返した",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "頂上まで登ってから下りはじめた",
+     "isCorrect": false,
+     "whyWrongJa": "行こうという気持ちはありましたが、話し合って引き返しています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "雨がやむのを待ってから下りた",
+     "isCorrect": false,
+     "whyWrongJa": "雨が降ったのは下りはじめて一時間ほどたってからです。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "上着を着てそのまま登り続けた",
+     "isCorrect": false,
+     "whyWrongJa": "軽い上着は持っていましたが、着て登り続けたとは書かれていません。"
+    }
+   ],
+   "rationaleSpan": "地図を出し、現在地を確かめ、二人で話して引き返すことにしました",
+   "explanationJa": "「〜と言いました。私も同じ気持ちでした。しかし〜」の「しかし」のあとが実際の行動です。",
+   "explanationZh": "「〜と言いました。私も同じ気持ちでした。しかし〜」中「しかし」后面才是实际采取的行动。",
+   "difficulty": 2,
+   "estimatedSeconds": 170,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-10"
+  },
+  {
+   "setId": "n3r-long-03",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "「早起きは体にいい」とよく言われます。しかし、だれにとっても同じだとは限りません。\n\n人には、朝に調子が上がりやすい人と、夜に調子が上がりやすい人がいます。これは生まれつきの性質が関係していて、努力だけで変えられるものではないそうです。夜型の人が無理に早起きを続けると、睡眠時間が足りなくなり、かえって体調をくずすことがあります。\n\n大切なのは、早いか遅いかよりも、毎日同じ時間に寝て、同じ時間に起きることだと言われています。時間がばらばらだと、体は次にいつ休めばいいのか分からなくなります。自分に合う時間を見つけて、それを続けるほうがよいのです。",
+   "contextZh": "这是关于早起与睡眠的长文。",
+   "questionJa": "この文章で最も大切だと言われていることはどれですか。",
+   "questionZh": "这篇文章说最重要的是哪一点？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "毎日同じ時間に寝て、同じ時間に起きること",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "できるだけ早く起きること",
+     "isCorrect": false,
+     "whyWrongJa": "「早いか遅いかよりも」と書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "夜型の人も早起きに変えること",
+     "isCorrect": false,
+     "whyWrongJa": "無理に変えると体調をくずすと書いてあります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "睡眠時間を短くすること",
+     "isCorrect": false,
+     "whyWrongJa": "睡眠不足はよくないと書いてあります。"
+    }
+   ],
+   "rationaleSpan": "早いか遅いかよりも、毎日同じ時間に寝て、同じ時間に起きること",
+   "explanationJa": "「AよりもB」の形で、Bのほうが大切だと述べられています。",
+   "explanationZh": "用「比起A，B更重要」的形式，说明B更重要。",
+   "difficulty": 2,
+   "estimatedSeconds": 140,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-03"
+  },
+  {
+   "setId": "n3r-long-16",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "駅から少し歩いたところに、朝だけ開く市場があります。テントのような屋根の下に十軒ほどの店が並んでいて、昼前には片づけが始まります。私は月に二度ほど、そこへ魚を買いに行きます。\n\nここのある店の主人は、こちらが聞く前に「今日はこれはやめておきなさい」と言うことがあります。はじめて言われたときは驚きました。売る側が、自分の店に並べた品物をすすめないのですから。そのときは、私が手に取った魚をそっと元にもどして、別の箱を指さしました。理由を聞くと、前の日に海があれていて、いい魚が入らなかったのだと言います。\n\nそういう日は、かわりに別の魚を教えてくれます。ねだんは安いのに、家で焼くととてもおいしいことが多いのです。名前も知らなかった魚の焼き方や、合う調味料まで教えてくれます。おかげで、私は自分では選ばなかった魚を食べるようになりました。\n\nその日一日の売り上げだけを見れば、主人のやり方は損に見えます。しかし私は、それからこの店以外で魚を買わなくなりました。主人は、今日いくら売るかではなく、この人が来年もここに来るかどうかを見ているのだと思います。",
+   "contextZh": "这是一篇关于早市鱼店老板的长文。",
+   "questionJa": "筆者は主人のやり方をどう考えていますか。",
+   "questionZh": "作者认为老板的做法怎么样？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "その日は損に見えても客が続けて来るようになる",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "その日の売り上げを増やすためのやり方だ",
+     "isCorrect": false,
+     "whyWrongJa": "その日の売り上げだけを見れば損に見えると書いてあります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "品物が悪い日は店を閉めるほうがよい",
+     "isCorrect": false,
+     "whyWrongJa": "店を閉めるのではなく、かわりに別の魚を教えてくれます。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "安い魚をすすめるのは客に失礼だ",
+     "isCorrect": false,
+     "whyWrongJa": "安い魚は家で焼くとおいしいことが多いと書かれています。"
+    }
+   ],
+   "rationaleSpan": "今日いくら売るかではなく、この人が来年もここに来るかどうかを見ている",
+   "explanationJa": "最後の段落の「損に見えます。しかし〜」が、筆者の評価です。",
+   "explanationZh": "最后一段的「損に見えます。しかし〜」是作者的评价。",
+   "difficulty": 3,
+   "estimatedSeconds": 180,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-16"
+  },
+  {
+   "setId": "n3r-long-05",
+   "sourceLevel": "N3",
+   "readingType": "longPassage",
+   "passageJa": "町の図書館が、去年から本の貸し出し以外のサービスを始めました。空いている部屋を、勉強や会議のために貸し出すサービスです。\n\n始めたときは、「図書館は静かに本を読む場所なのに」という意見もありました。しかし、部屋は建物のはしにあり、読書の場所とは離れています。実際に始めてみると、うるさいという苦情はほとんどありませんでした。\n\n利用者からは「近くに安く使える場所がなかったので助かる」という声が多く聞かれます。図書館の職員は「本を借りない人にも来てもらえるようになった。そこから本を読むようになる人もいる」と話しています。場所の使い方を変えることで、来る人の種類が広がったと言えます。",
+   "contextZh": "这是关于图书馆新服务的长文。",
+   "questionJa": "図書館の職員は、新しいサービスのどんな点をよいと考えていますか。",
+   "questionZh": "图书馆职员认为新服务好在哪一点？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "本を借りない人も来るようになり、本を読み始める人もいる点",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "苦情がまったくなくなった点",
+     "isCorrect": false,
+     "whyWrongJa": "「ほとんどなかった」で、まったくとは書いていません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "部屋を貸して多くのお金が入る点",
+     "isCorrect": false,
+     "whyWrongJa": "お金の話は本文にありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "静かに本を読む人が増えた点",
+     "isCorrect": false,
+     "whyWrongJa": "来る人の種類が広がったという話です。"
+    }
+   ],
+   "rationaleSpan": "本を借りない人にも来てもらえるようになった。そこから本を読むようになる人もいる",
+   "explanationJa": "職員の発言部分が答えの根拠です。発言と筆者のまとめを区別しましょう。",
+   "explanationZh": "职员的发言部分是答案依据。要区分发言和作者的总结。",
+   "difficulty": 3,
+   "estimatedSeconds": 150,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-long-05"
+  },
+  {
+   "setId": "n3r-mid-12",
+   "sourceLevel": "N3",
+   "readingType": "midPassage",
+   "passageJa": "二年前から、一日に一枚だけ写真を撮っています。旅行に行った日も、家から出なかった日も、必ず一枚です。よく撮れた写真を選ぶのではなく、その日に一枚と決めているところが大事だと思っています。\n\nたくさん撮っていたころは、あとで見返すことがほとんどありませんでした。枚数が多すぎて、どれを見ればいいのか分からなかったからです。今は一年で三百六十五枚しかないので、月ごとに並べても短い時間で見終わります。去年の分は、もう二度も見返しました。\n\n写真を残す目的が、うまく撮ることから、その日を思い出すことに変わりました。だから、ぶれていても消しません。",
+   "contextZh": "这是一篇关于每天拍一张照片的文章。",
+   "questionJa": "筆者にとって、写真を残す目的はどのように変わりましたか。",
+   "questionZh": "对作者来说，留下照片的目的发生了怎样的变化？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "人に見せることから、自分で見返すことへ",
+     "isCorrect": false,
+     "whyWrongJa": "人に見せるという話は本文に出てきません。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "うまく撮ることから、その日を思い出すことへ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "枚数を増やすことから、選び方を学ぶことへ",
+     "isCorrect": false,
+     "whyWrongJa": "枚数が多いと見返さなくなったとはありますが、選び方を学ぶ話ではありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "旅行を写すことから、毎日を写すことへ",
+     "isCorrect": false,
+     "whyWrongJa": "毎日一枚と決めているのはやり方の説明で、目的の変化としては述べられていません。"
+    }
+   ],
+   "rationaleSpan": "写真を残す目的が、うまく撮ることから、その日を思い出すことに変わりました",
+   "explanationJa": "最後の段落に「目的が〜から〜に変わりました」とはっきり書かれています。",
+   "explanationZh": "最后一段明确写着目的从「拍得好」变成了「回想那一天」。",
+   "difficulty": 1,
+   "estimatedSeconds": 95,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-mid-12"
+  },
+  {
+   "setId": "n3r-mid-08",
+   "sourceLevel": "N3",
+   "readingType": "midPassage",
+   "passageJa": "三年前、家から会社まで自転車で通うことにしました。運動になるし、電車代もかからないと思ったからです。実際、はじめの一年はよく眠れるようになり、体の調子もよくなりました。\n\nしかし、雨の日と風の強い日が続いた冬に、走るのがつらくなりました。無理をすると休みの日まで疲れが残るようになり、結局、週に二日だけ自転車、あとは電車という形に変えました。全部やめてしまうと、また体を動かさなくなると思ったからです。今の形にしてから二年たちますが、一度も長く休まずに続いています。毎日やろうとしていたころより、続ける力は強くなった気がします。",
+   "contextZh": "这是一篇关于骑车通勤的文章。",
+   "questionJa": "全部やめないで週に二日だけ自転車を続けることにしたのはなぜですか。",
+   "questionZh": "这个人为什么没有完全放弃，而是保留了每周两天骑车？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "毎日走ると夜よく眠れなくなるから",
+     "isCorrect": false,
+     "whyWrongJa": "自転車で通い始めてからはよく眠れるようになったと書かれています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "電車代をできるだけ減らしたかったから",
+     "isCorrect": false,
+     "whyWrongJa": "電車代の話は自転車通勤を始めた最初の理由で、二日に減らした理由ではありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "全部やめると体を動かさなくなると思ったから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "冬でも風の強い日なら走れると思ったから",
+     "isCorrect": false,
+     "whyWrongJa": "風の強い日が続いて走るのがつらくなったと書かれています。"
+    }
+   ],
+   "rationaleSpan": "全部やめてしまうと、また体を動かさなくなると思ったからです",
+   "explanationJa": "「全部やめる」と運動しなくなってしまうので二日だけ残した、という理由が本文にあります。",
+   "explanationZh": "原文说明了理由：如果完全放弃就又不运动了，所以保留了每周两天。",
+   "difficulty": 1,
+   "estimatedSeconds": 100,
+   "reviewState": "validated_beta",
+   "variantId": "n3r-mid-08"
+  }
+ ]
+}

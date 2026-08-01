@@ -1,0 +1,43 @@
+{
+ "level": "N2",
+ "ready": true,
+ "blockersJa": [],
+ "blockersZh": [],
+ "titleJa": "N2総合ミニ模試",
+ "titleZh": "N2综合迷你模拟考",
+ "sections": [
+  {
+   "sectionId": "languageKnowledge",
+   "labelJa": "言語知識（文字・語彙・文法）",
+   "labelZh": "语言知识（文字・词汇・语法）",
+   "skills": [
+    "charactersVocabulary",
+    "grammar"
+   ],
+   "questionCount": 10,
+   "timeLimitSec": 450
+  },
+  {
+   "sectionId": "reading",
+   "labelJa": "読解",
+   "labelZh": "阅读",
+   "skills": [
+    "reading"
+   ],
+   "questionCount": 5,
+   "timeLimitSec": 500
+  },
+  {
+   "sectionId": "listening",
+   "labelJa": "聴解",
+   "labelZh": "听力",
+   "skills": [
+    "listening"
+   ],
+   "questionCount": 5,
+   "timeLimitSec": 350
+  }
+ ],
+ "disclaimerJa": "本番の試験と同じ問題数・時間ではありません。時間配分と科目バランスを試すためのミニ版です。",
+ "disclaimerZh": "题量和时间与真实考试不同。这是用来练习时间分配和科目平衡的迷你版。"
+}

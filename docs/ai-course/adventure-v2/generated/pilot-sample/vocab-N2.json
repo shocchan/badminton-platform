@@ -1,0 +1,3608 @@
+{
+ "level": "N2",
+ "sampledFrom": 10702,
+ "sampleSize": 100,
+ "note": "active_beta から観点×語レベル×難易度で層化抽出。複数正解・不自然な訳・解説の誤りを見る",
+ "questions": [
+  {
+   "questionId": "vocab:慣れ:なれ:confusable",
+   "aspect": "confusable",
+   "sourceWord": "慣れ|なれ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「熟练；习惯了的状态」という意味の言葉はどれですか。",
+   "questionZh": "表示「熟练；习惯了的状态」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-128-x0",
+     "ja": "慣れ",
+     "correct": true
+    },
+    {
+     "id": "vc-10-128-x1",
+     "ja": "覚え",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-x2",
+     "ja": "動き",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-x3",
+     "ja": "事業",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この仕事には慣れが必要です。",
+   "explanationZh": "这个工作需要熟练。",
+   "wordGlossZh": "熟练；习惯了的状态",
+   "wordExplanationJa": "「慣れ」は動詞「慣れる」からできた名詞で、経験を重ねて身につく感覚を指します。「慣れが必要だ」のように使います。"
+  },
+  {
+   "questionId": "vocab:本文:ほんぶん:confusable",
+   "aspect": "confusable",
+   "sourceWord": "本文|ほんぶん",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「正文」という意味の言葉はどれですか。",
+   "questionZh": "表示「正文」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-131-x0",
+     "ja": "本文",
+     "correct": true
+    },
+    {
+     "id": "vc-10-131-x1",
+     "ja": "文書",
+     "correct": false
+    },
+    {
+     "id": "vc-10-131-x2",
+     "ja": "主題",
+     "correct": false
+    },
+    {
+     "id": "vc-10-131-x3",
+     "ja": "思考",
+     "correct": false
+    }
+   ],
+   "explanationJa": "本文をよく読んで答えてください。",
+   "explanationZh": "请仔细读正文后回答。",
+   "wordGlossZh": "正文",
+   "wordExplanationJa": "「本文」は前書きや注を除いた中心の文章です。試験の問題でよく使います。"
+  },
+  {
+   "questionId": "vocab:情勢:じょうせい:confusable",
+   "aspect": "confusable",
+   "sourceWord": "情勢|じょうせい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「形势；局势」という意味の言葉はどれですか。",
+   "questionZh": "表示「形势；局势」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-180-x0",
+     "ja": "情勢",
+     "correct": true
+    },
+    {
+     "id": "vc-10-180-x1",
+     "ja": "動き",
+     "correct": false
+    },
+    {
+     "id": "vc-10-180-x2",
+     "ja": "災害",
+     "correct": false
+    },
+    {
+     "id": "vc-10-180-x3",
+     "ja": "対面",
+     "correct": false
+    }
+   ],
+   "explanationJa": "世界の情勢が大きく変わりました。",
+   "explanationZh": "世界的形势发生了很大变化。",
+   "wordGlossZh": "形势；局势",
+   "wordExplanationJa": "「情勢」は社会や世界の移り変わる様子です。ニュースでよく使うかたい言葉です。"
+  },
+  {
+   "questionId": "vocab:成果:せいか:confusable",
+   "aspect": "confusable",
+   "sourceWord": "成果|せいか",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「成果」という意味の言葉はどれですか。",
+   "questionZh": "表示「成果」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-154-x0",
+     "ja": "成果",
+     "correct": true
+    },
+    {
+     "id": "vc-10-154-x1",
+     "ja": "効率",
+     "correct": false
+    },
+    {
+     "id": "vc-10-154-x2",
+     "ja": "利点",
+     "correct": false
+    },
+    {
+     "id": "vc-10-154-x3",
+     "ja": "不良",
+     "correct": false
+    }
+   ],
+   "explanationJa": "一年の練習の成果が出ました。",
+   "explanationZh": "一年练习的成果出来了。",
+   "wordGlossZh": "成果",
+   "wordExplanationJa": "「成果」は努力してできた良い結果です。「成果が出る」「成果を上げる」の形で使います。"
+  },
+  {
+   "questionId": "vocab:相違:そうい:confusable",
+   "aspect": "confusable",
+   "sourceWord": "相違|そうい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「不同；差异」という意味の言葉はどれですか。",
+   "questionZh": "表示「不同；差异」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-185-x0",
+     "ja": "相違",
+     "correct": true
+    },
+    {
+     "id": "vc-10-185-x1",
+     "ja": "行き違い",
+     "correct": false
+    },
+    {
+     "id": "vc-10-185-x2",
+     "ja": "間違い",
+     "correct": false
+    },
+    {
+     "id": "vc-10-185-x3",
+     "ja": "恐れ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "二人の意見には相違があります。",
+   "explanationZh": "两个人的意见有差异。",
+   "wordGlossZh": "不同；差异",
+   "wordExplanationJa": "「相違」は二つのものの間の違いです。かたい言い方で、書類でよく使います。"
+  },
+  {
+   "questionId": "vocab:見直す:みなおす:confusable",
+   "aspect": "confusable",
+   "sourceWord": "見直す|みなおす",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「重新审视；重新检查」という意味の言葉はどれですか。",
+   "questionZh": "表示「重新审视；重新检查」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-114-x0",
+     "ja": "見直す",
+     "correct": true
+    },
+    {
+     "id": "vc-10-114-x1",
+     "ja": "訂正",
+     "correct": false
+    },
+    {
+     "id": "vc-10-114-x2",
+     "ja": "確認",
+     "correct": false
+    },
+    {
+     "id": "vc-10-114-x3",
+     "ja": "かなり",
+     "correct": false
+    }
+   ],
+   "explanationJa": "答えを見直して間違いを直します。",
+   "explanationZh": "重新检查答案，改正错误。",
+   "wordGlossZh": "重新审视；重新检查",
+   "wordExplanationJa": "「見直す」はもう一度よく見て確かめることです。人について使うと「よく思うようになる」意味になります。"
+  },
+  {
+   "questionId": "vocab:省略:しょうりゃく:confusable",
+   "aspect": "confusable",
+   "sourceWord": "省略|しょうりゃく",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「省略」という意味の言葉はどれですか。",
+   "questionZh": "表示「省略」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-085-x0",
+     "ja": "省略",
+     "correct": true
+    },
+    {
+     "id": "vc-10-085-x1",
+     "ja": "追加",
+     "correct": false
+    },
+    {
+     "id": "vc-10-085-x2",
+     "ja": "変更",
+     "correct": false
+    },
+    {
+     "id": "vc-10-085-x3",
+     "ja": "商店",
+     "correct": false
+    }
+   ],
+   "explanationJa": "時間がないので説明を省略します。",
+   "explanationZh": "因为没有时间，省略说明。",
+   "wordGlossZh": "省略",
+   "wordExplanationJa": "「省略する」は要らない部分を書いたり言ったりしないことです。「〜を省略する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:初級:しょきゅう:confusable",
+   "aspect": "confusable",
+   "sourceWord": "初級|しょきゅう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「初级」という意味の言葉はどれですか。",
+   "questionZh": "表示「初级」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-004-x0",
+     "ja": "初級",
+     "correct": true
+    },
+    {
+     "id": "vc-10-004-x1",
+     "ja": "基礎",
+     "correct": false
+    },
+    {
+     "id": "vc-10-004-x2",
+     "ja": "段階",
+     "correct": false
+    },
+    {
+     "id": "vc-10-004-x3",
+     "ja": "点数",
+     "correct": false
+    }
+   ],
+   "explanationJa": "初級のクラスから日本語を習いました。",
+   "explanationZh": "从初级班开始学了日语。",
+   "wordGlossZh": "初级",
+   "wordExplanationJa": "「初級」は学習の一番はじめの段階です。「初級・中級・上級」の順に上がります。"
+  },
+  {
+   "questionId": "vocab:集合:しゅうごう:confusable",
+   "aspect": "confusable",
+   "sourceWord": "集合|しゅうごう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「集合」という意味の言葉はどれですか。",
+   "questionZh": "表示「集合」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-080-x0",
+     "ja": "集合",
+     "correct": true
+    },
+    {
+     "id": "vc-10-080-x1",
+     "ja": "混雑",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-x2",
+     "ja": "移動",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-x3",
+     "ja": "影響",
+     "correct": false
+    }
+   ],
+   "explanationJa": "八時に駅前に集合してください。",
+   "explanationZh": "请八点在车站前集合。",
+   "wordGlossZh": "集合",
+   "wordExplanationJa": "「集合する」は決めた場所に人が集まることです。場所は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:挑戦:ちょうせん:confusable",
+   "aspect": "confusable",
+   "sourceWord": "挑戦|ちょうせん",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「挑战；尝试」という意味の言葉はどれですか。",
+   "questionZh": "表示「挑战；尝试」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-028-x0",
+     "ja": "挑戦",
+     "correct": true
+    },
+    {
+     "id": "vc-10-028-x1",
+     "ja": "工夫",
+     "correct": false
+    },
+    {
+     "id": "vc-10-028-x2",
+     "ja": "改善",
+     "correct": false
+    },
+    {
+     "id": "vc-10-028-x3",
+     "ja": "自己",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今年は新しい仕事に挑戦します。",
+   "explanationZh": "今年要挑战新的工作。",
+   "wordGlossZh": "挑战；尝试",
+   "wordExplanationJa": "「挑戦する」は難しいことにあえてやってみることです。相手や目標は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:制度:せいど:confusable",
+   "aspect": "confusable",
+   "sourceWord": "制度|せいど",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「制度」という意味の言葉はどれですか。",
+   "questionZh": "表示「制度」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-03-035-x0",
+     "ja": "制度",
+     "correct": true
+    },
+    {
+     "id": "vc-03-035-x1",
+     "ja": "条件",
+     "correct": false
+    },
+    {
+     "id": "vc-03-035-x2",
+     "ja": "決まり",
+     "correct": false
+    },
+    {
+     "id": "vc-03-035-x3",
+     "ja": "共同",
+     "correct": false
+    }
+   ],
+   "explanationJa": "会社の休みの制度が変わりました。",
+   "explanationZh": "公司的休假制度改了。",
+   "wordGlossZh": "制度",
+   "wordExplanationJa": "「制度」は社会や会社で決められている仕組みのことです。「制度が変わる」「休みの制度」のように使います。"
+  },
+  {
+   "questionId": "vocab:祖母:そぼ:confusable",
+   "aspect": "confusable",
+   "sourceWord": "祖母|そぼ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「祖母；奶奶（外婆）」という意味の言葉はどれですか。",
+   "questionZh": "表示「祖母；奶奶（外婆）」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-07-177-x0",
+     "ja": "祖母",
+     "correct": true
+    },
+    {
+     "id": "vc-07-177-x1",
+     "ja": "姉妹",
+     "correct": false
+    },
+    {
+     "id": "vc-07-177-x2",
+     "ja": "親友",
+     "correct": false
+    },
+    {
+     "id": "vc-07-177-x3",
+     "ja": "安定",
+     "correct": false
+    }
+   ],
+   "explanationJa": "祖母は今年九十歳になります。",
+   "explanationZh": "祖母今年九十岁。",
+   "wordGlossZh": "祖母；奶奶（外婆）",
+   "wordExplanationJa": "「祖母」は自分の父母の母のことです。他人の家族には「おばあさん」を使います。"
+  },
+  {
+   "questionId": "vocab:四季:しき:confusable",
+   "aspect": "confusable",
+   "sourceWord": "四季|しき",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「四季」という意味の言葉はどれですか。",
+   "questionZh": "表示「四季」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-07-003-x0",
+     "ja": "四季",
+     "correct": true
+    },
+    {
+     "id": "vc-07-003-x1",
+     "ja": "正月",
+     "correct": false
+    },
+    {
+     "id": "vc-07-003-x2",
+     "ja": "気温",
+     "correct": false
+    },
+    {
+     "id": "vc-07-003-x3",
+     "ja": "隅",
+     "correct": false
+    }
+   ],
+   "explanationJa": "日本には四季がはっきりあります。",
+   "explanationZh": "日本四季分明。",
+   "wordGlossZh": "四季",
+   "wordExplanationJa": "「四季」は春・夏・秋・冬の四つの季節をまとめて言う言葉です。"
+  },
+  {
+   "questionId": "vocab:スケジュール:スケジュール:confusable",
+   "aspect": "confusable",
+   "sourceWord": "スケジュール|スケジュール",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「日程；行程安排」という意味の言葉はどれですか。",
+   "questionZh": "表示「日程；行程安排」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-04-232-x0",
+     "ja": "スケジュール",
+     "correct": true
+    },
+    {
+     "id": "vc-04-232-x1",
+     "ja": "予約",
+     "correct": false
+    },
+    {
+     "id": "vc-04-232-x2",
+     "ja": "順番",
+     "correct": false
+    },
+    {
+     "id": "vc-04-232-x3",
+     "ja": "発表",
+     "correct": false
+    }
+   ],
+   "explanationJa": "来週のスケジュールを教えてください。",
+   "explanationZh": "请告诉我下周的日程。",
+   "wordGlossZh": "日程；行程安排",
+   "wordExplanationJa": "「スケジュール」はいつ何をするかを並べた予定のことです。「スケジュールを立てる」の形で使います。"
+  },
+  {
+   "questionId": "vocab:列車:れっしゃ:confusable",
+   "aspect": "confusable",
+   "sourceWord": "列車|れっしゃ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「列车」という意味の言葉はどれですか。",
+   "questionZh": "表示「列车」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-09-217-x0",
+     "ja": "列車",
+     "correct": true
+    },
+    {
+     "id": "vc-09-217-x1",
+     "ja": "ホーム",
+     "correct": false
+    },
+    {
+     "id": "vc-09-217-x2",
+     "ja": "便",
+     "correct": false
+    },
+    {
+     "id": "vc-09-217-x3",
+     "ja": "借り",
+     "correct": false
+    }
+   ],
+   "explanationJa": "次の列車は八時に出ます。",
+   "explanationZh": "下一班列车八点开。",
+   "wordGlossZh": "列车",
+   "wordExplanationJa": "「列車」は何両もつないで走る鉄道の車両です。「列車に乗る」の形で使います。"
+  },
+  {
+   "questionId": "vocab:八:はち:confusable",
+   "aspect": "confusable",
+   "sourceWord": "八|はち",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「八」という意味の言葉はどれですか。",
+   "questionZh": "表示「八」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-137-x0",
+     "ja": "八",
+     "correct": true
+    },
+    {
+     "id": "vc-02-137-x1",
+     "ja": "七",
+     "correct": false
+    },
+    {
+     "id": "vc-02-137-x2",
+     "ja": "九",
+     "correct": false
+    },
+    {
+     "id": "vc-02-137-x3",
+     "ja": "呼ぶ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "毎朝八時に家を出ます。",
+   "explanationZh": "每天早上八点出门。",
+   "wordGlossZh": "八",
+   "wordExplanationJa": "「八」は数字の八です。物を数えるときは「八つ」、日付では「八日」と読みが変わります。"
+  },
+  {
+   "questionId": "vocab:デパート:デパート:confusable",
+   "aspect": "confusable",
+   "sourceWord": "デパート|デパート",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「百货商店」という意味の言葉はどれですか。",
+   "questionZh": "表示「百货商店」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-102-x0",
+     "ja": "デパート",
+     "correct": true
+    },
+    {
+     "id": "vc-02-102-x1",
+     "ja": "店",
+     "correct": false
+    },
+    {
+     "id": "vc-02-102-x2",
+     "ja": "八百屋",
+     "correct": false
+    },
+    {
+     "id": "vc-02-102-x3",
+     "ja": "消える",
+     "correct": false
+    }
+   ],
+   "explanationJa": "デパートで洋服を買いました。",
+   "explanationZh": "在百货商店买了衣服。",
+   "wordGlossZh": "百货商店",
+   "wordExplanationJa": "「デパート」は多くの種類の商品を階ごとに売る大きな店です。野菜だけを売る「八百屋」のような専門の店とは規模が違います。"
+  },
+  {
+   "questionId": "vocab:花:はな:confusable",
+   "aspect": "confusable",
+   "sourceWord": "花|はな",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「花」という意味の言葉はどれですか。",
+   "questionZh": "表示「花」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-139-x0",
+     "ja": "花",
+     "correct": true
+    },
+    {
+     "id": "vc-02-139-x1",
+     "ja": "木",
+     "correct": false
+    },
+    {
+     "id": "vc-02-139-x2",
+     "ja": "草",
+     "correct": false
+    },
+    {
+     "id": "vc-02-139-x3",
+     "ja": "勉強",
+     "correct": false
+    }
+   ],
+   "explanationJa": "庭に赤い花が咲いています。",
+   "explanationZh": "院子里开着红花。",
+   "wordGlossZh": "花",
+   "wordExplanationJa": "「花」は植物の咲く部分を指します。咲く動作は「花が咲く」と自動詞で表し、同じ音の「鼻」とはアクセントが違います。"
+  },
+  {
+   "questionId": "vocab:背広:せびろ:confusable",
+   "aspect": "confusable",
+   "sourceWord": "背広|せびろ",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「西装」という意味の言葉はどれですか。",
+   "questionZh": "表示「西装」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-080-x0",
+     "ja": "背広",
+     "correct": true
+    },
+    {
+     "id": "vc-02-080-x1",
+     "ja": "洋服",
+     "correct": false
+    },
+    {
+     "id": "vc-02-080-x2",
+     "ja": "上着",
+     "correct": false
+    },
+    {
+     "id": "vc-02-080-x3",
+     "ja": "止まる",
+     "correct": false
+    }
+   ],
+   "explanationJa": "父は背広を着て会社へ行きます。",
+   "explanationZh": "我爸爸穿西装去公司。",
+   "wordGlossZh": "西装",
+   "wordExplanationJa": "「背広」は男性の正式な上下の服を指す古い言い方です。今は「スーツ」と言うほうがふつうです。"
+  },
+  {
+   "questionId": "vocab:所:ところ:confusable",
+   "aspect": "confusable",
+   "sourceWord": "所|ところ",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「地方」という意味の言葉はどれですか。",
+   "questionZh": "表示「地方」的词是哪个？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-108-x0",
+     "ja": "所",
+     "correct": true
+    },
+    {
+     "id": "vc-02-108-x1",
+     "ja": "町",
+     "correct": false
+    },
+    {
+     "id": "vc-02-108-x2",
+     "ja": "店",
+     "correct": false
+    },
+    {
+     "id": "vc-02-108-x3",
+     "ja": "魚",
+     "correct": false
+    }
+   ],
+   "explanationJa": "静かな所に住みたいです。",
+   "explanationZh": "我想住在安静的地方。",
+   "wordGlossZh": "地方",
+   "wordExplanationJa": "「所」は場所を広く指す名詞です。形容詞や動詞に続けて「静かな所」「行った所」のように使えます。"
+  },
+  {
+   "questionId": "vocab:覚え:おぼえ:context",
+   "aspect": "context",
+   "sourceWord": "覚え|おぼえ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "そんな話をした＿＿＿はありません。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "そんな話をした＿＿＿はありません。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-121-c0",
+     "ja": "覚え",
+     "correct": true
+    },
+    {
+     "id": "vc-10-121-c1",
+     "ja": "効率",
+     "correct": false
+    },
+    {
+     "id": "vc-10-121-c2",
+     "ja": "慣れ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-121-c3",
+     "ja": "前提",
+     "correct": false
+    }
+   ],
+   "explanationJa": "そんな話をした覚えはありません。",
+   "explanationZh": "我不记得说过那样的话。",
+   "wordGlossZh": "记得（心里有这回事的印象）",
+   "wordExplanationJa": "「覚え」は動詞「覚える」からできた名詞で、記憶があるかどうかを言うときに使います。「覚えがない」の形が多いです。"
+  },
+  {
+   "questionId": "vocab:慣れ:なれ:context",
+   "aspect": "context",
+   "sourceWord": "慣れ|なれ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "この仕事には＿＿＿が必要です。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "この仕事には＿＿＿が必要です。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-128-c0",
+     "ja": "慣れ",
+     "correct": true
+    },
+    {
+     "id": "vc-10-128-c1",
+     "ja": "事業",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-c2",
+     "ja": "仕組",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-c3",
+     "ja": "一斉",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この仕事には慣れが必要です。",
+   "explanationZh": "这个工作需要熟练。",
+   "wordGlossZh": "熟练；习惯了的状态",
+   "wordExplanationJa": "「慣れ」は動詞「慣れる」からできた名詞で、経験を重ねて身につく感覚を指します。「慣れが必要だ」のように使います。"
+  },
+  {
+   "questionId": "vocab:対面:たいめん:context",
+   "aspect": "context",
+   "sourceWord": "対面|たいめん",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "今回は＿＿＿で打ち合わせをします。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "今回は＿＿＿で打ち合わせをします。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-138-c0",
+     "ja": "対面",
+     "correct": true
+    },
+    {
+     "id": "vc-10-138-c1",
+     "ja": "相違",
+     "correct": false
+    },
+    {
+     "id": "vc-10-138-c2",
+     "ja": "セール",
+     "correct": false
+    },
+    {
+     "id": "vc-10-138-c3",
+     "ja": "正解",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今回は対面で打ち合わせをします。",
+   "explanationZh": "这次面对面开碰头会。",
+   "wordGlossZh": "当面；面对面",
+   "wordExplanationJa": "「対面」は直接会うことです。近ごろは「対面で」「対面授業」の形でよく使います。"
+  },
+  {
+   "questionId": "vocab:仕組:しくみ:context",
+   "aspect": "context",
+   "sourceWord": "仕組|しくみ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "この機械の＿＿＿を説明します。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "この機械の＿＿＿を説明します。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-145-c0",
+     "ja": "仕組",
+     "correct": true
+    },
+    {
+     "id": "vc-10-145-c1",
+     "ja": "導入",
+     "correct": false
+    },
+    {
+     "id": "vc-10-145-c2",
+     "ja": "あっさり",
+     "correct": false
+    },
+    {
+     "id": "vc-10-145-c3",
+     "ja": "パンク",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この機械の仕組を説明します。",
+   "explanationZh": "说明这台机器的构造。",
+   "wordGlossZh": "结构；机制",
+   "wordExplanationJa": "「仕組」は物事がどう動いているかの作りです。ふつうは送りがなを付けて「仕組み」と書きます。"
+  },
+  {
+   "questionId": "vocab:正解:せいかい:context",
+   "aspect": "context",
+   "sourceWord": "正解|せいかい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "三番の＿＿＿は二番目の文です。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "三番の＿＿＿は二番目の文です。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-147-c0",
+     "ja": "正解",
+     "correct": true
+    },
+    {
+     "id": "vc-10-147-c1",
+     "ja": "導入",
+     "correct": false
+    },
+    {
+     "id": "vc-10-147-c2",
+     "ja": "勤務",
+     "correct": false
+    },
+    {
+     "id": "vc-10-147-c3",
+     "ja": "行い",
+     "correct": false
+    }
+   ],
+   "explanationJa": "三番の正解は二番目の文です。",
+   "explanationZh": "第三题的正确答案是第二个句子。",
+   "wordGlossZh": "正确答案",
+   "wordExplanationJa": "「正解」は問題の正しい答えです。「正解する」で「正しく答える」意味になります。"
+  },
+  {
+   "questionId": "vocab:役割:やくわり:context",
+   "aspect": "context",
+   "sourceWord": "役割|やくわり",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "一人一人の＿＿＿を決めましょう。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "一人一人の＿＿＿を決めましょう。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-118-c0",
+     "ja": "役割",
+     "correct": true
+    },
+    {
+     "id": "vc-10-118-c1",
+     "ja": "傾向",
+     "correct": false
+    },
+    {
+     "id": "vc-10-118-c2",
+     "ja": "資料",
+     "correct": false
+    },
+    {
+     "id": "vc-10-118-c3",
+     "ja": "かなり",
+     "correct": false
+    }
+   ],
+   "explanationJa": "一人一人の役割を決めましょう。",
+   "explanationZh": "定一下每个人的职责吧。",
+   "wordGlossZh": "作用；职责",
+   "wordExplanationJa": "「役割」はその人やものが受け持つ仕事・働きです。「役割を果たす」の形で使います。"
+  },
+  {
+   "questionId": "vocab:意識:いしき:context",
+   "aspect": "context",
+   "sourceWord": "意識|いしき",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "時間を＿＿＿して話しましょう。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "時間を＿＿＿して話しましょう。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-048-c0",
+     "ja": "意識",
+     "correct": true
+    },
+    {
+     "id": "vc-10-048-c1",
+     "ja": "通知",
+     "correct": false
+    },
+    {
+     "id": "vc-10-048-c2",
+     "ja": "描く",
+     "correct": false
+    },
+    {
+     "id": "vc-10-048-c3",
+     "ja": "済ませる",
+     "correct": false
+    }
+   ],
+   "explanationJa": "時間を意識して話しましょう。",
+   "explanationZh": "说话时要注意时间。",
+   "wordGlossZh": "意识；自觉",
+   "wordExplanationJa": "「意識する」は頭の中ではっきり気づいて注意することです。「〜を意識する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:集合:しゅうごう:context",
+   "aspect": "context",
+   "sourceWord": "集合|しゅうごう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "八時に駅前に＿＿＿してください。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "八時に駅前に＿＿＿してください。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-080-c0",
+     "ja": "集合",
+     "correct": true
+    },
+    {
+     "id": "vc-10-080-c1",
+     "ja": "影響",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-c2",
+     "ja": "用語",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-c3",
+     "ja": "送料",
+     "correct": false
+    }
+   ],
+   "explanationJa": "八時に駅前に集合してください。",
+   "explanationZh": "请八点在车站前集合。",
+   "wordGlossZh": "集合",
+   "wordExplanationJa": "「集合する」は決めた場所に人が集まることです。場所は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:移動:いどう:context",
+   "aspect": "context",
+   "sourceWord": "移動|いどう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "次の教室へ＿＿＿してください。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "次の教室へ＿＿＿してください。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-10-051-c0",
+     "ja": "移動",
+     "correct": true
+    },
+    {
+     "id": "vc-10-051-c1",
+     "ja": "日帰り",
+     "correct": false
+    },
+    {
+     "id": "vc-10-051-c2",
+     "ja": "平均",
+     "correct": false
+    },
+    {
+     "id": "vc-10-051-c3",
+     "ja": "意識",
+     "correct": false
+    }
+   ],
+   "explanationJa": "次の教室へ移動してください。",
+   "explanationZh": "请移动到下一个教室。",
+   "wordGlossZh": "移动；转移",
+   "wordExplanationJa": "「移動する」は場所を変えて動くことです。行き先は「へ」「に」で示します。"
+  },
+  {
+   "questionId": "vocab:研修:けんしゅう:context",
+   "aspect": "context",
+   "sourceWord": "研修|けんしゅう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "来週から新しい社員の＿＿＿が始まります。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "来週から新しい社員の＿＿＿が始まります。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-09-241-c0",
+     "ja": "研修",
+     "correct": true
+    },
+    {
+     "id": "vc-09-241-c1",
+     "ja": "商店",
+     "correct": false
+    },
+    {
+     "id": "vc-09-241-c2",
+     "ja": "範囲",
+     "correct": false
+    },
+    {
+     "id": "vc-09-241-c3",
+     "ja": "印象",
+     "correct": false
+    }
+   ],
+   "explanationJa": "来週から新しい社員の研修が始まります。",
+   "explanationZh": "下周开始新员工培训。",
+   "wordGlossZh": "培训；进修",
+   "wordExplanationJa": "「研修」は仕事に必要な知識や技術を学ぶ期間のことです。「研修を受ける」の形でよく使います。"
+  },
+  {
+   "questionId": "vocab:お土産:おみやげ:context",
+   "aspect": "context",
+   "sourceWord": "お土産|おみやげ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "旅行の＿＿＿を買いました。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "旅行の＿＿＿を買いました。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-05-206-c0",
+     "ja": "お土産",
+     "correct": true
+    },
+    {
+     "id": "vc-05-206-c1",
+     "ja": "キャンプ",
+     "correct": false
+    },
+    {
+     "id": "vc-05-206-c2",
+     "ja": "注文",
+     "correct": false
+    },
+    {
+     "id": "vc-05-206-c3",
+     "ja": "意地",
+     "correct": false
+    }
+   ],
+   "explanationJa": "旅行のお土産を買いました。",
+   "explanationZh": "买了旅行的特产。",
+   "wordGlossZh": "（旅行带回的）特产礼物",
+   "wordExplanationJa": "「お土産」は出かけた先で買って人にあげる品物です。「お土産を買う」の形で使います。"
+  },
+  {
+   "questionId": "vocab:将来:しょうらい:context",
+   "aspect": "context",
+   "sourceWord": "将来|しょうらい",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "＿＿＿は先生になりたいです。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "＿＿＿は先生になりたいです。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-07-061-c0",
+     "ja": "将来",
+     "correct": true
+    },
+    {
+     "id": "vc-07-061-c1",
+     "ja": "受け取る",
+     "correct": false
+    },
+    {
+     "id": "vc-07-061-c2",
+     "ja": "期待",
+     "correct": false
+    },
+    {
+     "id": "vc-07-061-c3",
+     "ja": "作業",
+     "correct": false
+    }
+   ],
+   "explanationJa": "将来は先生になりたいです。",
+   "explanationZh": "将来想当老师。",
+   "wordGlossZh": "将来；未来",
+   "wordExplanationJa": "「将来」はこれから先のことを指します。「将来の夢」「将来は〜になりたい」の形で使います。"
+  },
+  {
+   "questionId": "vocab:陽気:ようき:context",
+   "aspect": "context",
+   "sourceWord": "陽気|ようき",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "彼女は＿＿＿な人です。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "彼女は＿＿＿な人です。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-09-181-c0",
+     "ja": "陽気",
+     "correct": true
+    },
+    {
+     "id": "vc-09-181-c1",
+     "ja": "仕方",
+     "correct": false
+    },
+    {
+     "id": "vc-09-181-c2",
+     "ja": "ノック",
+     "correct": false
+    },
+    {
+     "id": "vc-09-181-c3",
+     "ja": "裏",
+     "correct": false
+    }
+   ],
+   "explanationJa": "彼女は陽気な人です。",
+   "explanationZh": "她是个开朗的人。",
+   "wordGlossZh": "开朗；活泼",
+   "wordExplanationJa": "「陽気」は性格が明るく元気なようすを表すな形容詞です。「陽気な」「陽気に」の形で使います。"
+  },
+  {
+   "questionId": "vocab:重要:じゅうよう:context",
+   "aspect": "context",
+   "sourceWord": "重要|じゅうよう",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "これはとても＿＿＿な問題です。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "これはとても＿＿＿な問題です。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-04-091-c0",
+     "ja": "重要",
+     "correct": true
+    },
+    {
+     "id": "vc-04-091-c1",
+     "ja": "客",
+     "correct": false
+    },
+    {
+     "id": "vc-04-091-c2",
+     "ja": "出来事",
+     "correct": false
+    },
+    {
+     "id": "vc-04-091-c3",
+     "ja": "単に",
+     "correct": false
+    }
+   ],
+   "explanationJa": "これはとても重要な問題です。",
+   "explanationZh": "这是非常重要的问题。",
+   "wordGlossZh": "重要",
+   "wordExplanationJa": "「重要」はナ形容詞で、名詞の前では「重要な」の形になります。「大事」より少し硬い言い方です。"
+  },
+  {
+   "questionId": "vocab:負け:まけ:context",
+   "aspect": "context",
+   "sourceWord": "負け|まけ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "今日の試合は三対一で＿＿＿でした。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "今日の試合は三対一で＿＿＿でした。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-04-152-c0",
+     "ja": "負け",
+     "correct": true
+    },
+    {
+     "id": "vc-04-152-c1",
+     "ja": "いただきます",
+     "correct": false
+    },
+    {
+     "id": "vc-04-152-c2",
+     "ja": "事実",
+     "correct": false
+    },
+    {
+     "id": "vc-04-152-c3",
+     "ja": "真面目",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今日の試合は三対一で負けでした。",
+   "explanationZh": "今天的比赛以三比一输了。",
+   "wordGlossZh": "输；输掉的结果",
+   "wordExplanationJa": "「負け」は動詞「負ける」からできた名詞で、勝負に負けた結果を指します。反対は「勝ち」です。"
+  },
+  {
+   "questionId": "vocab:秋:あき:context",
+   "aspect": "context",
+   "sourceWord": "秋|あき",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "＿＿＿は果物がおいしい季節です。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "＿＿＿は果物がおいしい季節です。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-01-199-c0",
+     "ja": "秋",
+     "correct": true
+    },
+    {
+     "id": "vc-01-199-c1",
+     "ja": "多分",
+     "correct": false
+    },
+    {
+     "id": "vc-01-199-c2",
+     "ja": "ズボン",
+     "correct": false
+    },
+    {
+     "id": "vc-01-199-c3",
+     "ja": "欲しい",
+     "correct": false
+    }
+   ],
+   "explanationJa": "秋は果物がおいしい季節です。",
+   "explanationZh": "秋天是水果好吃的季节。",
+   "wordGlossZh": "秋天",
+   "wordExplanationJa": "「秋」は夏の次に来る季節です。「春」「夏」「秋」「冬」を順に並べて覚えると忘れにくくなります。"
+  },
+  {
+   "questionId": "vocab:九つ:ここのつ:context",
+   "aspect": "context",
+   "sourceWord": "九つ|ここのつ",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "みかんを＿＿＿買いました。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "みかんを＿＿＿買いました。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-043-c0",
+     "ja": "九つ",
+     "correct": true
+    },
+    {
+     "id": "vc-02-043-c1",
+     "ja": "人",
+     "correct": false
+    },
+    {
+     "id": "vc-02-043-c2",
+     "ja": "橋",
+     "correct": false
+    },
+    {
+     "id": "vc-02-043-c3",
+     "ja": "シャツ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "みかんを九つ買いました。",
+   "explanationZh": "买了九个橘子。",
+   "wordGlossZh": "九个",
+   "wordExplanationJa": "「九つ」は物を数えるときの九個です。和語の数え方はここまでで、十からは「十」と言います。"
+  },
+  {
+   "questionId": "vocab:花:はな:context",
+   "aspect": "context",
+   "sourceWord": "花|はな",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "庭に赤い＿＿＿が咲いています。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "庭に赤い＿＿＿が咲いています。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-02-139-c0",
+     "ja": "花",
+     "correct": true
+    },
+    {
+     "id": "vc-02-139-c1",
+     "ja": "勉強",
+     "correct": false
+    },
+    {
+     "id": "vc-02-139-c2",
+     "ja": "デパート",
+     "correct": false
+    },
+    {
+     "id": "vc-02-139-c3",
+     "ja": "一人",
+     "correct": false
+    }
+   ],
+   "explanationJa": "庭に赤い花が咲いています。",
+   "explanationZh": "院子里开着红花。",
+   "wordGlossZh": "花",
+   "wordExplanationJa": "「花」は植物の咲く部分を指します。咲く動作は「花が咲く」と自動詞で表し、同じ音の「鼻」とはアクセントが違います。"
+  },
+  {
+   "questionId": "vocab:去年:きょねん:context",
+   "aspect": "context",
+   "sourceWord": "去年|きょねん",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "＿＿＿、日本に来ました。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "＿＿＿、日本に来ました。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-01-081-c0",
+     "ja": "去年",
+     "correct": true
+    },
+    {
+     "id": "vc-01-081-c1",
+     "ja": "病気",
+     "correct": false
+    },
+    {
+     "id": "vc-01-081-c2",
+     "ja": "大使館",
+     "correct": false
+    },
+    {
+     "id": "vc-01-081-c3",
+     "ja": "池",
+     "correct": false
+    }
+   ],
+   "explanationJa": "去年、日本に来ました。",
+   "explanationZh": "去年来了日本。",
+   "wordGlossZh": "去年",
+   "wordExplanationJa": "「去年」は今年の一つ前の年を指します。「去年」「今年」「来年」を並べて、年を数える言い方をまとめて覚えます。"
+  },
+  {
+   "questionId": "vocab:階段:かいだん:context",
+   "aspect": "context",
+   "sourceWord": "階段|かいだん",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "＿＿＿で三階まで上がりました。\n＿＿＿に入る言葉はどれですか。",
+   "questionZh": "＿＿＿で三階まで上がりました。\n空格里应该填哪个词？",
+   "targetJapanese": null,
+   "choices": [
+    {
+     "id": "vc-01-128-c0",
+     "ja": "階段",
+     "correct": true
+    },
+    {
+     "id": "vc-01-128-c1",
+     "ja": "冬",
+     "correct": false
+    },
+    {
+     "id": "vc-01-128-c2",
+     "ja": "フィルム",
+     "correct": false
+    },
+    {
+     "id": "vc-01-128-c3",
+     "ja": "大人",
+     "correct": false
+    }
+   ],
+   "explanationJa": "階段で三階まで上がりました。",
+   "explanationZh": "走楼梯上到了三楼。",
+   "wordGlossZh": "楼梯",
+   "wordExplanationJa": "「階段」は段を上り下りして階を移動する設備です。機械で運ぶ設備は「エレベーター」と言い分けます。"
+  },
+  {
+   "questionId": "vocab:動き:うごき:meaning",
+   "aspect": "meaning",
+   "sourceWord": "動き|うごき",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「動き」の意味はどれですか。",
+   "questionZh": "「動き」是什么意思？",
+   "targetJapanese": "動き",
+   "choices": [
+    {
+     "id": "vc-10-165-m0",
+     "ja": "动向；活动的样子",
+     "correct": true
+    },
+    {
+     "id": "vc-10-165-m1",
+     "ja": "记得（心里有这回事的印象）",
+     "correct": false
+    },
+    {
+     "id": "vc-10-165-m2",
+     "ja": "完美；无可挑剔",
+     "correct": false
+    },
+    {
+     "id": "vc-10-165-m3",
+     "ja": "估价；报价单",
+     "correct": false
+    }
+   ],
+   "explanationJa": "市場の動きを毎日見ています。",
+   "explanationZh": "每天关注市场的动向。",
+   "wordGlossZh": "动向；活动的样子",
+   "wordExplanationJa": "「動き」は動詞「動く」からできた名詞で、物事が変わっていく様子を表します。「動きがある」の形で使います。"
+  },
+  {
+   "questionId": "vocab:仕組:しくみ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "仕組|しくみ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「仕組」の意味はどれですか。",
+   "questionZh": "「仕組」是什么意思？",
+   "targetJapanese": "仕組",
+   "choices": [
+    {
+     "id": "vc-10-145-m0",
+     "ja": "结构；机制",
+     "correct": true
+    },
+    {
+     "id": "vc-10-145-m1",
+     "ja": "引进；导入",
+     "correct": false
+    },
+    {
+     "id": "vc-10-145-m2",
+     "ja": "当面；面对面",
+     "correct": false
+    },
+    {
+     "id": "vc-10-145-m3",
+     "ja": "安排（事先准备好）",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この機械の仕組を説明します。",
+   "explanationZh": "说明这台机器的构造。",
+   "wordGlossZh": "结构；机制",
+   "wordExplanationJa": "「仕組」は物事がどう動いているかの作りです。ふつうは送りがなを付けて「仕組み」と書きます。"
+  },
+  {
+   "questionId": "vocab:恐れ:おそれ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "恐れ|おそれ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「恐れ」の意味はどれですか。",
+   "questionZh": "「恐れ」是什么意思？",
+   "targetJapanese": "恐れ",
+   "choices": [
+    {
+     "id": "vc-10-141-m0",
+     "ja": "担心（可能发生不好的事）",
+     "correct": true
+    },
+    {
+     "id": "vc-10-141-m1",
+     "ja": "丈夫（口语说法）",
+     "correct": false
+    },
+    {
+     "id": "vc-10-141-m2",
+     "ja": "文献；参考资料",
+     "correct": false
+    },
+    {
+     "id": "vc-10-141-m3",
+     "ja": "质量；品质",
+     "correct": false
+    }
+   ],
+   "explanationJa": "大雨で電車が止まる恐れがあります。",
+   "explanationZh": "有因大雨电车停运的可能。",
+   "wordGlossZh": "担心（可能发生不好的事）",
+   "wordExplanationJa": "「恐れ」は悪いことが起こるかもしれないという心配です。「〜恐れがある」の形でニュースによく出ます。"
+  },
+  {
+   "questionId": "vocab:削る:けずる:meaning",
+   "aspect": "meaning",
+   "sourceWord": "削る|けずる",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「削る」の意味はどれですか。",
+   "questionZh": "「削る」是什么意思？",
+   "targetJapanese": "削る",
+   "choices": [
+    {
+     "id": "vc-10-173-m0",
+     "ja": "削减；削掉",
+     "correct": true
+    },
+    {
+     "id": "vc-10-173-m1",
+     "ja": "行为；品行",
+     "correct": false
+    },
+    {
+     "id": "vc-10-173-m2",
+     "ja": "担心（可能发生不好的事）",
+     "correct": false
+    },
+    {
+     "id": "vc-10-173-m3",
+     "ja": "完美；无可挑剔",
+     "correct": false
+    }
+   ],
+   "explanationJa": "予算を少し削ることになりました。",
+   "explanationZh": "决定稍微削减一点预算。",
+   "wordGlossZh": "削减；削掉",
+   "wordExplanationJa": "「削る」は表面をこすって減らすこと、数や費用を減らすことです。「〜を削る」の形で使います。"
+  },
+  {
+   "questionId": "vocab:慣れ:なれ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "慣れ|なれ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「慣れ」の意味はどれですか。",
+   "questionZh": "「慣れ」是什么意思？",
+   "targetJapanese": "慣れ",
+   "choices": [
+    {
+     "id": "vc-10-128-m0",
+     "ja": "熟练；习惯了的状态",
+     "correct": true
+    },
+    {
+     "id": "vc-10-128-m1",
+     "ja": "灾害",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-m2",
+     "ja": "拥有；具有",
+     "correct": false
+    },
+    {
+     "id": "vc-10-128-m3",
+     "ja": "订正；更正",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この仕事には慣れが必要です。",
+   "explanationZh": "这个工作需要熟练。",
+   "wordGlossZh": "熟练；习惯了的状态",
+   "wordExplanationJa": "「慣れ」は動詞「慣れる」からできた名詞で、経験を重ねて身につく感覚を指します。「慣れが必要だ」のように使います。"
+  },
+  {
+   "questionId": "vocab:通勤:つうきん:meaning",
+   "aspect": "meaning",
+   "sourceWord": "通勤|つうきん",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「通勤」の意味はどれですか。",
+   "questionZh": "「通勤」是什么意思？",
+   "targetJapanese": "通勤",
+   "choices": [
+    {
+     "id": "vc-10-104-m0",
+     "ja": "通勤；上下班往返",
+     "correct": true
+    },
+    {
+     "id": "vc-10-104-m1",
+     "ja": "意识；自觉",
+     "correct": false
+    },
+    {
+     "id": "vc-10-104-m2",
+     "ja": "进公司（成为公司的员工）",
+     "correct": false
+    },
+    {
+     "id": "vc-10-104-m3",
+     "ja": "观测",
+     "correct": false
+    }
+   ],
+   "explanationJa": "毎日、電車で一時間通勤します。",
+   "explanationZh": "每天坐电车通勤一个小时。",
+   "wordGlossZh": "通勤；上下班往返",
+   "wordExplanationJa": "「通勤する」は家と会社の間を行き来することです。学校の場合は「通学」と言います。"
+  },
+  {
+   "questionId": "vocab:基礎:きそ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "基礎|きそ",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「基礎」の意味はどれですか。",
+   "questionZh": "「基礎」是什么意思？",
+   "targetJapanese": "基礎",
+   "choices": [
+    {
+     "id": "vc-10-008-m0",
+     "ja": "基础",
+     "correct": true
+    },
+    {
+     "id": "vc-10-008-m1",
+     "ja": "（工作上要处理的）事项",
+     "correct": false
+    },
+    {
+     "id": "vc-10-008-m2",
+     "ja": "搬家",
+     "correct": false
+    },
+    {
+     "id": "vc-10-008-m3",
+     "ja": "追加；后来再加上",
+     "correct": false
+    }
+   ],
+   "explanationJa": "毎日練習して基礎を作ります。",
+   "explanationZh": "每天练习打基础。",
+   "wordGlossZh": "基础",
+   "wordExplanationJa": "「基礎」は物事の土台になる部分です。勉強でも建物でも使います。"
+  },
+  {
+   "questionId": "vocab:主語:しゅご:meaning",
+   "aspect": "meaning",
+   "sourceWord": "主語|しゅご",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「主語」の意味はどれですか。",
+   "questionZh": "「主語」是什么意思？",
+   "targetJapanese": "主語",
+   "choices": [
+    {
+     "id": "vc-10-082-m0",
+     "ja": "主语",
+     "correct": true
+    },
+    {
+     "id": "vc-10-082-m1",
+     "ja": "温泉",
+     "correct": false
+    },
+    {
+     "id": "vc-10-082-m2",
+     "ja": "观测",
+     "correct": false
+    },
+    {
+     "id": "vc-10-082-m3",
+     "ja": "应答；回应",
+     "correct": false
+    }
+   ],
+   "explanationJa": "日本語では主語をよく省略します。",
+   "explanationZh": "日语里经常省略主语。",
+   "wordGlossZh": "主语",
+   "wordExplanationJa": "「主語」は文の中で「だれが」「何が」を表す部分です。日本語では省くことが多いです。"
+  },
+  {
+   "questionId": "vocab:女の人:おんなのひと:meaning",
+   "aspect": "meaning",
+   "sourceWord": "女の人|おんなのひと",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「女の人」の意味はどれですか。",
+   "questionZh": "「女の人」是什么意思？",
+   "targetJapanese": "女の人",
+   "choices": [
+    {
+     "id": "vc-09-239-m0",
+     "ja": "女性",
+     "correct": true
+    },
+    {
+     "id": "vc-09-239-m1",
+     "ja": "手机；随身携带",
+     "correct": false
+    },
+    {
+     "id": "vc-09-239-m2",
+     "ja": "资料",
+     "correct": false
+    },
+    {
+     "id": "vc-09-239-m3",
+     "ja": "翻译",
+     "correct": false
+    }
+   ],
+   "explanationJa": "受付に女の人が立っています。",
+   "explanationZh": "接待处站着一位女性。",
+   "wordGlossZh": "女性",
+   "wordExplanationJa": "「女の人」は成人の女性を指す話し言葉です。丁寧に言うときは「女性」を使います。"
+  },
+  {
+   "questionId": "vocab:冗談:じょうだん:meaning",
+   "aspect": "meaning",
+   "sourceWord": "冗談|じょうだん",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「冗談」の意味はどれですか。",
+   "questionZh": "「冗談」是什么意思？",
+   "targetJapanese": "冗談",
+   "choices": [
+    {
+     "id": "vc-10-083-m0",
+     "ja": "玩笑",
+     "correct": true
+    },
+    {
+     "id": "vc-10-083-m1",
+     "ja": "标准；依据",
+     "correct": false
+    },
+    {
+     "id": "vc-10-083-m2",
+     "ja": "难受；痛苦",
+     "correct": false
+    },
+    {
+     "id": "vc-10-083-m3",
+     "ja": "明白；接受对方的话",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今のは冗談だから気にしないで。",
+   "explanationZh": "刚才是玩笑，别在意。",
+   "wordGlossZh": "玩笑",
+   "wordExplanationJa": "「冗談」は本気ではない、笑わせるための話です。「冗談を言う」の形で使います。"
+  },
+  {
+   "questionId": "vocab:近代:きんだい:meaning",
+   "aspect": "meaning",
+   "sourceWord": "近代|きんだい",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「近代」の意味はどれですか。",
+   "questionZh": "「近代」是什么意思？",
+   "targetJapanese": "近代",
+   "choices": [
+    {
+     "id": "vc-04-203-m0",
+     "ja": "近代",
+     "correct": true
+    },
+    {
+     "id": "vc-04-203-m1",
+     "ja": "大气；空气层",
+     "correct": false
+    },
+    {
+     "id": "vc-04-203-m2",
+     "ja": "成年人",
+     "correct": false
+    },
+    {
+     "id": "vc-04-203-m3",
+     "ja": "极好的；出色的",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この建物は近代の日本を表しています。",
+   "explanationZh": "这座建筑代表了近代的日本。",
+   "wordGlossZh": "近代",
+   "wordExplanationJa": "「近代」は歴史の区分の一つで、今より少し前の新しい時代を指します。「近代の〜」の形で使います。"
+  },
+  {
+   "questionId": "vocab:倒れる:たおれる:meaning",
+   "aspect": "meaning",
+   "sourceWord": "倒れる|たおれる",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「倒れる」の意味はどれですか。",
+   "questionZh": "「倒れる」是什么意思？",
+   "targetJapanese": "倒れる",
+   "choices": [
+    {
+     "id": "vc-07-206-m0",
+     "ja": "倒下；病倒",
+     "correct": true
+    },
+    {
+     "id": "vc-07-206-m1",
+     "ja": "四季",
+     "correct": false
+    },
+    {
+     "id": "vc-07-206-m2",
+     "ja": "开始；开端",
+     "correct": false
+    },
+    {
+     "id": "vc-07-206-m3",
+     "ja": "恶；坏事",
+     "correct": false
+    }
+   ],
+   "explanationJa": "強い風で木が倒れました。",
+   "explanationZh": "大风把树刮倒了。",
+   "wordGlossZh": "倒下；病倒",
+   "wordExplanationJa": "「倒れる」は立っていた物が横になることです。自動詞なので、人が倒すときは「倒す」を使います。"
+  },
+  {
+   "questionId": "vocab:頼む:たのむ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "頼む|たのむ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「頼む」の意味はどれですか。",
+   "questionZh": "「頼む」是什么意思？",
+   "targetJapanese": "頼む",
+   "choices": [
+    {
+     "id": "vc-07-234-m0",
+     "ja": "请求；拜托",
+     "correct": true
+    },
+    {
+     "id": "vc-07-234-m1",
+     "ja": "反省；检讨（自己）",
+     "correct": false
+    },
+    {
+     "id": "vc-07-234-m2",
+     "ja": "（气氛、程度）高涨",
+     "correct": false
+    },
+    {
+     "id": "vc-07-234-m3",
+     "ja": "场面；场景",
+     "correct": false
+    }
+   ],
+   "explanationJa": "友達に仕事を頼みました。",
+   "explanationZh": "拜托朋友做工作。",
+   "wordGlossZh": "请求；拜托",
+   "wordExplanationJa": "「頼む」は人に何かをしてもらうようお願いすることです。店で注文するときにも使います。"
+  },
+  {
+   "questionId": "vocab:集まり:あつまり:meaning",
+   "aspect": "meaning",
+   "sourceWord": "集まり|あつまり",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「集まり」の意味はどれですか。",
+   "questionZh": "「集まり」是什么意思？",
+   "targetJapanese": "集まり",
+   "choices": [
+    {
+     "id": "vc-03-120-m0",
+     "ja": "聚会；集合",
+     "correct": true
+    },
+    {
+     "id": "vc-03-120-m1",
+     "ja": "备好（需要的东西）",
+     "correct": false
+    },
+    {
+     "id": "vc-03-120-m2",
+     "ja": "积极的",
+     "correct": false
+    },
+    {
+     "id": "vc-03-120-m3",
+     "ja": "阳光",
+     "correct": false
+    }
+   ],
+   "explanationJa": "土曜の集まりに参加します。",
+   "explanationZh": "参加星期六的聚会。",
+   "wordGlossZh": "聚会；集合",
+   "wordExplanationJa": "「集まり」は人が集まる会のことです。動詞「集まる」から作られた名詞で、「集まりがある」の形で使います。"
+  },
+  {
+   "questionId": "vocab:部分:ぶぶん:meaning",
+   "aspect": "meaning",
+   "sourceWord": "部分|ぶぶん",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「部分」の意味はどれですか。",
+   "questionZh": "「部分」是什么意思？",
+   "targetJapanese": "部分",
+   "choices": [
+    {
+     "id": "vc-03-115-m0",
+     "ja": "部分",
+     "correct": true
+    },
+    {
+     "id": "vc-03-115-m1",
+     "ja": "手机应用；应用程序",
+     "correct": false
+    },
+    {
+     "id": "vc-03-115-m2",
+     "ja": "（书的）章",
+     "correct": false
+    },
+    {
+     "id": "vc-03-115-m3",
+     "ja": "中心；中心机构",
+     "correct": false
+    }
+   ],
+   "explanationJa": "分からない部分に線を引きます。",
+   "explanationZh": "在不懂的部分画线。",
+   "wordGlossZh": "部分",
+   "wordExplanationJa": "「部分」は全体の中の一部のことです。「分からない部分」のように、区切って指すときに使います。"
+  },
+  {
+   "questionId": "vocab:ボールペン:ボールペン:meaning",
+   "aspect": "meaning",
+   "sourceWord": "ボールペン|ボールペン",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「ボールペン」の意味はどれですか。",
+   "questionZh": "「ボールペン」是什么意思？",
+   "targetJapanese": "ボールペン",
+   "choices": [
+    {
+     "id": "vc-02-167-m0",
+     "ja": "圆珠笔",
+     "correct": true
+    },
+    {
+     "id": "vc-02-167-m1",
+     "ja": "茶",
+     "correct": false
+    },
+    {
+     "id": "vc-02-167-m2",
+     "ja": "慢；晚",
+     "correct": false
+    },
+    {
+     "id": "vc-02-167-m3",
+     "ja": "明年",
+     "correct": false
+    }
+   ],
+   "explanationJa": "ボールペンで名前を書きます。",
+   "explanationZh": "用圆珠笔写名字。",
+   "wordGlossZh": "圆珠笔",
+   "wordExplanationJa": "「ボールペン」は先の玉が回ってインクを出す筆記具です。インクを吸わせて使うものは「万年筆」と呼び分けます。"
+  },
+  {
+   "questionId": "vocab:空:そら:meaning",
+   "aspect": "meaning",
+   "sourceWord": "空|そら",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「空」の意味はどれですか。",
+   "questionZh": "「空」是什么意思？",
+   "targetJapanese": "空",
+   "choices": [
+    {
+     "id": "vc-02-083-m0",
+     "ja": "天空",
+     "correct": true
+    },
+    {
+     "id": "vc-02-083-m1",
+     "ja": "危险",
+     "correct": false
+    },
+    {
+     "id": "vc-02-083-m2",
+     "ja": "相同",
+     "correct": false
+    },
+    {
+     "id": "vc-02-083-m3",
+     "ja": "茶",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今日は空がとてもきれいです。",
+   "explanationZh": "今天天空非常漂亮。",
+   "wordGlossZh": "天空",
+   "wordExplanationJa": "「空」は頭の上に広がる空間を指します。「空が青い」「空を飛ぶ」のように、状態にも通り道にも使えます。"
+  },
+  {
+   "questionId": "vocab:トイレ:トイレ:meaning",
+   "aspect": "meaning",
+   "sourceWord": "トイレ|トイレ",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「トイレ」の意味はどれですか。",
+   "questionZh": "「トイレ」是什么意思？",
+   "targetJapanese": "トイレ",
+   "choices": [
+    {
+     "id": "vc-02-105-m0",
+     "ja": "厕所",
+     "correct": true
+    },
+    {
+     "id": "vc-02-105-m1",
+     "ja": "今天早上",
+     "correct": false
+    },
+    {
+     "id": "vc-02-105-m2",
+     "ja": "下（雨、雪）",
+     "correct": false
+    },
+    {
+     "id": "vc-02-105-m3",
+     "ja": "二号；两天",
+     "correct": false
+    }
+   ],
+   "explanationJa": "トイレはあちらです。",
+   "explanationZh": "厕所在那边。",
+   "wordGlossZh": "厕所",
+   "wordExplanationJa": "「トイレ」は用を足すための場所です。改まった場面では丁寧な「お手洗い」を選びます。"
+  },
+  {
+   "questionId": "vocab:洋服:ようふく:meaning",
+   "aspect": "meaning",
+   "sourceWord": "洋服|ようふく",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「洋服」の意味はどれですか。",
+   "questionZh": "「洋服」是什么意思？",
+   "targetJapanese": "洋服",
+   "choices": [
+    {
+     "id": "vc-02-209-m0",
+     "ja": "西式服装",
+     "correct": true
+    },
+    {
+     "id": "vc-02-209-m1",
+     "ja": "手帕",
+     "correct": false
+    },
+    {
+     "id": "vc-02-209-m2",
+     "ja": "新闻",
+     "correct": false
+    },
+    {
+     "id": "vc-02-209-m3",
+     "ja": "明信片",
+     "correct": false
+    }
+   ],
+   "explanationJa": "デパートで洋服を選びます。",
+   "explanationZh": "在百货商店挑衣服。",
+   "wordGlossZh": "西式服装",
+   "wordExplanationJa": "「洋服」は西洋式の衣服を指します。日本の伝統的な衣服は「着物」または「和服」と呼び分けます。"
+  },
+  {
+   "questionId": "vocab:階段:かいだん:meaning",
+   "aspect": "meaning",
+   "sourceWord": "階段|かいだん",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「階段」の意味はどれですか。",
+   "questionZh": "「階段」是什么意思？",
+   "targetJapanese": "階段",
+   "choices": [
+    {
+     "id": "vc-01-128-m0",
+     "ja": "楼梯",
+     "correct": true
+    },
+    {
+     "id": "vc-01-128-m1",
+     "ja": "粗",
+     "correct": false
+    },
+    {
+     "id": "vc-01-128-m2",
+     "ja": "黑的",
+     "correct": false
+    },
+    {
+     "id": "vc-01-128-m3",
+     "ja": "文章",
+     "correct": false
+    }
+   ],
+   "explanationJa": "階段で三階まで上がりました。",
+   "explanationZh": "走楼梯上到了三楼。",
+   "wordGlossZh": "楼梯",
+   "wordExplanationJa": "「階段」は段を上り下りして階を移動する設備です。機械で運ぶ設備は「エレベーター」と言い分けます。"
+  },
+  {
+   "questionId": "vocab:申込:もうしこみ:orthography",
+   "aspect": "orthography",
+   "sourceWord": "申込|もうしこみ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「もうしこみ」を漢字で書くとどれですか。",
+   "questionZh": "「もうしこみ」的汉字写法是哪个？",
+   "targetJapanese": "申込",
+   "choices": [
+    {
+     "id": "vc-10-140-o0",
+     "ja": "申込",
+     "correct": true
+    },
+    {
+     "id": "vc-10-140-o1",
+     "ja": "助け",
+     "correct": false
+    },
+    {
+     "id": "vc-10-140-o2",
+     "ja": "恐れ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-140-o3",
+     "ja": "設定",
+     "correct": false
+    }
+   ],
+   "explanationJa": "講座の申込はもう終わりました。",
+   "explanationZh": "讲座的报名已经结束了。",
+   "wordGlossZh": "申请；报名",
+   "wordExplanationJa": "「申込」は参加や契約をしたいと伝えることです。書類では送りがなを省いて「申込」と書きます。"
+  },
+  {
+   "questionId": "vocab:訂正:ていせい:orthography",
+   "aspect": "orthography",
+   "sourceWord": "訂正|ていせい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「ていせい」を漢字で書くとどれですか。",
+   "questionZh": "「ていせい」的汉字写法是哪个？",
+   "targetJapanese": "訂正",
+   "choices": [
+    {
+     "id": "vc-10-158-o0",
+     "ja": "訂正",
+     "correct": true
+    },
+    {
+     "id": "vc-10-158-o1",
+     "ja": "待ち合わせ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-158-o2",
+     "ja": "距離",
+     "correct": false
+    },
+    {
+     "id": "vc-10-158-o3",
+     "ja": "完璧",
+     "correct": false
+    }
+   ],
+   "explanationJa": "書き間違えた数字を訂正します。",
+   "explanationZh": "更正写错的数字。",
+   "wordGlossZh": "订正；更正",
+   "wordExplanationJa": "「訂正する」は間違って書いた・言ったところを正しく直すことです。「〜を訂正する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:応募:おうぼ:orthography",
+   "aspect": "orthography",
+   "sourceWord": "応募|おうぼ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「おうぼ」を漢字で書くとどれですか。",
+   "questionZh": "「おうぼ」的汉字写法是哪个？",
+   "targetJapanese": "応募",
+   "choices": [
+    {
+     "id": "vc-10-167-o0",
+     "ja": "応募",
+     "correct": true
+    },
+    {
+     "id": "vc-10-167-o1",
+     "ja": "慣れ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-167-o2",
+     "ja": "業務",
+     "correct": false
+    },
+    {
+     "id": "vc-10-167-o3",
+     "ja": "還元",
+     "correct": false
+    }
+   ],
+   "explanationJa": "作文コンクールに応募しました。",
+   "explanationZh": "参加了作文比赛的投稿。",
+   "wordGlossZh": "应征；投稿（对招募做出回应）",
+   "wordExplanationJa": "「応募する」は募集に対して申し込むことです。募集の内容は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:手配:てはい:orthography",
+   "aspect": "orthography",
+   "sourceWord": "手配|てはい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「てはい」を漢字で書くとどれですか。",
+   "questionZh": "「てはい」的汉字写法是哪个？",
+   "targetJapanese": "手配",
+   "choices": [
+    {
+     "id": "vc-10-189-o0",
+     "ja": "手配",
+     "correct": true
+    },
+    {
+     "id": "vc-10-189-o1",
+     "ja": "業務",
+     "correct": false
+    },
+    {
+     "id": "vc-10-189-o2",
+     "ja": "半端",
+     "correct": false
+    },
+    {
+     "id": "vc-10-189-o3",
+     "ja": "対面",
+     "correct": false
+    }
+   ],
+   "explanationJa": "出張の飛行機を手配しました。",
+   "explanationZh": "安排好了出差的飞机。",
+   "wordGlossZh": "安排（事先准备好）",
+   "wordExplanationJa": "「手配する」は必要なものを前もって用意することです。「〜を手配する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:収集:しゅうしゅう:orthography",
+   "aspect": "orthography",
+   "sourceWord": "収集|しゅうしゅう",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「しゅうしゅう」を漢字で書くとどれですか。",
+   "questionZh": "「しゅうしゅう」的汉字写法是哪个？",
+   "targetJapanese": "収集",
+   "choices": [
+    {
+     "id": "vc-10-152-o0",
+     "ja": "収集",
+     "correct": true
+    },
+    {
+     "id": "vc-10-152-o1",
+     "ja": "不良",
+     "correct": false
+    },
+    {
+     "id": "vc-10-152-o2",
+     "ja": "正解",
+     "correct": false
+    },
+    {
+     "id": "vc-10-152-o3",
+     "ja": "購入",
+     "correct": false
+    }
+   ],
+   "explanationJa": "必要な情報を収集しています。",
+   "explanationZh": "正在收集需要的信息。",
+   "wordGlossZh": "收集",
+   "wordExplanationJa": "「収集する」は必要なものを集めることです。「情報を収集する」のように使います。"
+  },
+  {
+   "questionId": "vocab:同僚:どうりょう:orthography",
+   "aspect": "orthography",
+   "sourceWord": "同僚|どうりょう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「どうりょう」を漢字で書くとどれですか。",
+   "questionZh": "「どうりょう」的汉字写法是哪个？",
+   "targetJapanese": "同僚",
+   "choices": [
+    {
+     "id": "vc-10-042-o0",
+     "ja": "同僚",
+     "correct": true
+    },
+    {
+     "id": "vc-10-042-o1",
+     "ja": "絶対",
+     "correct": false
+    },
+    {
+     "id": "vc-10-042-o2",
+     "ja": "案件",
+     "correct": false
+    },
+    {
+     "id": "vc-10-042-o3",
+     "ja": "締め切り",
+     "correct": false
+    }
+   ],
+   "explanationJa": "同僚と昼ご飯を食べに行きます。",
+   "explanationZh": "和同事一起去吃午饭。",
+   "wordGlossZh": "同事",
+   "wordExplanationJa": "「同僚」は同じ職場で働く仲間です。上下の関係は表しません。"
+  },
+  {
+   "questionId": "vocab:回数:かいすう:orthography",
+   "aspect": "orthography",
+   "sourceWord": "回数|かいすう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「かいすう」を漢字で書くとどれですか。",
+   "questionZh": "「かいすう」的汉字写法是哪个？",
+   "targetJapanese": "回数",
+   "choices": [
+    {
+     "id": "vc-10-007-o0",
+     "ja": "回数",
+     "correct": true
+    },
+    {
+     "id": "vc-10-007-o1",
+     "ja": "普及",
+     "correct": false
+    },
+    {
+     "id": "vc-10-007-o2",
+     "ja": "意識",
+     "correct": false
+    },
+    {
+     "id": "vc-10-007-o3",
+     "ja": "体制",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今月は通う回数を減らしました。",
+   "explanationZh": "这个月减少了去的次数。",
+   "wordGlossZh": "次数",
+   "wordExplanationJa": "「回数」は何回あったかを数えた数です。「回数が多い／少ない」のように使います。"
+  },
+  {
+   "questionId": "vocab:設計:せっけい:orthography",
+   "aspect": "orthography",
+   "sourceWord": "設計|せっけい",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「せっけい」を漢字で書くとどれですか。",
+   "questionZh": "「せっけい」的汉字写法是哪个？",
+   "targetJapanese": "設計",
+   "choices": [
+    {
+     "id": "vc-10-092-o0",
+     "ja": "設計",
+     "correct": true
+    },
+    {
+     "id": "vc-10-092-o1",
+     "ja": "記憶",
+     "correct": false
+    },
+    {
+     "id": "vc-10-092-o2",
+     "ja": "訳す",
+     "correct": false
+    },
+    {
+     "id": "vc-10-092-o3",
+     "ja": "用語",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この建物は有名な人が設計しました。",
+   "explanationZh": "这座建筑是有名的人设计的。",
+   "wordGlossZh": "设计（建筑、机器等）",
+   "wordExplanationJa": "「設計する」は建物や機械の形や仕組みを図で決めることです。「〜を設計する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:違い:ちがい:orthography",
+   "aspect": "orthography",
+   "sourceWord": "違い|ちがい",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「ちがい」を漢字で書くとどれですか。",
+   "questionZh": "「ちがい」的汉字写法是哪个？",
+   "targetJapanese": "違い",
+   "choices": [
+    {
+     "id": "vc-09-242-o0",
+     "ja": "違い",
+     "correct": true
+    },
+    {
+     "id": "vc-09-242-o1",
+     "ja": "挑戦",
+     "correct": false
+    },
+    {
+     "id": "vc-09-242-o2",
+     "ja": "各地",
+     "correct": false
+    },
+    {
+     "id": "vc-09-242-o3",
+     "ja": "記憶",
+     "correct": false
+    }
+   ],
+   "explanationJa": "二つの言葉の違いが分かりません。",
+   "explanationZh": "我不知道两个词的区别。",
+   "wordGlossZh": "区别；不同",
+   "wordExplanationJa": "「違い」は二つ以上のものが同じでない点のことです。「違いが分かる」「違いが大きい」のように使います。"
+  },
+  {
+   "questionId": "vocab:物価:ぶっか:orthography",
+   "aspect": "orthography",
+   "sourceWord": "物価|ぶっか",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「ぶっか」を漢字で書くとどれですか。",
+   "questionZh": "「ぶっか」的汉字写法是哪个？",
+   "targetJapanese": "物価",
+   "choices": [
+    {
+     "id": "vc-10-111-o0",
+     "ja": "物価",
+     "correct": true
+    },
+    {
+     "id": "vc-10-111-o1",
+     "ja": "驚き",
+     "correct": false
+    },
+    {
+     "id": "vc-10-111-o2",
+     "ja": "出張",
+     "correct": false
+    },
+    {
+     "id": "vc-10-111-o3",
+     "ja": "形式",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この町は物価が高いです。",
+   "explanationZh": "这个城市物价高。",
+   "wordGlossZh": "物价",
+   "wordExplanationJa": "「物価」は品物全体の値段のことです。一つの物の値段は「値段」と言います。"
+  },
+  {
+   "questionId": "vocab:熱中:ねっちゅう:orthography",
+   "aspect": "orthography",
+   "sourceWord": "熱中|ねっちゅう",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「ねっちゅう」を漢字で書くとどれですか。",
+   "questionZh": "「ねっちゅう」的汉字写法是哪个？",
+   "targetJapanese": "熱中",
+   "choices": [
+    {
+     "id": "vc-08-166-o0",
+     "ja": "熱中",
+     "correct": true
+    },
+    {
+     "id": "vc-08-166-o1",
+     "ja": "同時",
+     "correct": false
+    },
+    {
+     "id": "vc-08-166-o2",
+     "ja": "説",
+     "correct": false
+    },
+    {
+     "id": "vc-08-166-o3",
+     "ja": "可能",
+     "correct": false
+    }
+   ],
+   "explanationJa": "弟はゲームに熱中しています。",
+   "explanationZh": "弟弟沉迷于游戏。",
+   "wordGlossZh": "入迷；沉迷",
+   "wordExplanationJa": "「熱中」は一つのことに夢中になることです。「〜に熱中する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:差し上げる:さしあげる:orthography",
+   "aspect": "orthography",
+   "sourceWord": "差し上げる|さしあげる",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「さしあげる」を漢字で書くとどれですか。",
+   "questionZh": "「さしあげる」的汉字写法是哪个？",
+   "targetJapanese": "差し上げる",
+   "choices": [
+    {
+     "id": "vc-06-216-o0",
+     "ja": "差し上げる",
+     "correct": true
+    },
+    {
+     "id": "vc-06-216-o1",
+     "ja": "聞こえる",
+     "correct": false
+    },
+    {
+     "id": "vc-06-216-o2",
+     "ja": "帰す",
+     "correct": false
+    },
+    {
+     "id": "vc-06-216-o3",
+     "ja": "危険",
+     "correct": false
+    }
+   ],
+   "explanationJa": "この本を先生に差し上げます。",
+   "explanationZh": "把这本书送给老师。",
+   "wordGlossZh": "（谦让语）给；送给",
+   "wordExplanationJa": "「差し上げる」は「あげる」の謙譲語で、目上の人に物を渡すときに使います。"
+  },
+  {
+   "questionId": "vocab:辞める:やめる:orthography",
+   "aspect": "orthography",
+   "sourceWord": "辞める|やめる",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「やめる」を漢字で書くとどれですか。",
+   "questionZh": "「やめる」的汉字写法是哪个？",
+   "targetJapanese": "辞める",
+   "choices": [
+    {
+     "id": "vc-09-165-o0",
+     "ja": "辞める",
+     "correct": true
+    },
+    {
+     "id": "vc-09-165-o1",
+     "ja": "会計",
+     "correct": false
+    },
+    {
+     "id": "vc-09-165-o2",
+     "ja": "自然",
+     "correct": false
+    },
+    {
+     "id": "vc-09-165-o3",
+     "ja": "家賃",
+     "correct": false
+    }
+   ],
+   "explanationJa": "来月で会社を辞めます。",
+   "explanationZh": "下个月从公司辞职。",
+   "wordGlossZh": "辞职；退出",
+   "wordExplanationJa": "「辞める」は仕事や役目を自分から離れることです。やめる対象は「を」で示します。"
+  },
+  {
+   "questionId": "vocab:痩せる:やせる:orthography",
+   "aspect": "orthography",
+   "sourceWord": "痩せる|やせる",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「やせる」を漢字で書くとどれですか。",
+   "questionZh": "「やせる」的汉字写法是哪个？",
+   "targetJapanese": "痩せる",
+   "choices": [
+    {
+     "id": "vc-09-160-o0",
+     "ja": "痩せる",
+     "correct": true
+    },
+    {
+     "id": "vc-09-160-o1",
+     "ja": "衣服",
+     "correct": false
+    },
+    {
+     "id": "vc-09-160-o2",
+     "ja": "曜日",
+     "correct": false
+    },
+    {
+     "id": "vc-09-160-o3",
+     "ja": "用いる",
+     "correct": false
+    }
+   ],
+   "explanationJa": "運動して三キロ痩せました。",
+   "explanationZh": "运动后瘦了三公斤。",
+   "wordGlossZh": "变瘦",
+   "wordExplanationJa": "「痩せる」は体が細く軽くなることです。今の状態を言うときは「痩せている」の形にします。"
+  },
+  {
+   "questionId": "vocab:好む:このむ:orthography",
+   "aspect": "orthography",
+   "sourceWord": "好む|このむ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「このむ」を漢字で書くとどれですか。",
+   "questionZh": "「このむ」的汉字写法是哪个？",
+   "targetJapanese": "好む",
+   "choices": [
+    {
+     "id": "vc-06-190-o0",
+     "ja": "好む",
+     "correct": true
+    },
+    {
+     "id": "vc-06-190-o1",
+     "ja": "要求",
+     "correct": false
+    },
+    {
+     "id": "vc-06-190-o2",
+     "ja": "物事",
+     "correct": false
+    },
+    {
+     "id": "vc-06-190-o3",
+     "ja": "連れ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "母は静かな場所を好みます。",
+   "explanationZh": "母亲偏爱安静的地方。",
+   "wordGlossZh": "爱好；偏爱",
+   "wordExplanationJa": "「好む」は書き言葉で、いつもそちらを選ぶという意味です。話すときは「好きだ」を使います。"
+  },
+  {
+   "questionId": "vocab:灰皿:はいざら:orthography",
+   "aspect": "orthography",
+   "sourceWord": "灰皿|はいざら",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「はいざら」を漢字で書くとどれですか。",
+   "questionZh": "「はいざら」的汉字写法是哪个？",
+   "targetJapanese": "灰皿",
+   "choices": [
+    {
+     "id": "vc-02-131-o0",
+     "ja": "灰皿",
+     "correct": true
+    },
+    {
+     "id": "vc-02-131-o1",
+     "ja": "右",
+     "correct": false
+    },
+    {
+     "id": "vc-02-131-o2",
+     "ja": "二人",
+     "correct": false
+    },
+    {
+     "id": "vc-02-131-o3",
+     "ja": "降る",
+     "correct": false
+    }
+   ],
+   "explanationJa": "灰皿はテーブルの上にあります。",
+   "explanationZh": "烟灰缸在桌子上。",
+   "wordGlossZh": "烟灰缸",
+   "wordExplanationJa": "「灰皿」はたばこの灰を受ける器です。「灰」と「皿」を合わせた語で、意味が字から読み取れます。"
+  },
+  {
+   "questionId": "vocab:青:あお:orthography",
+   "aspect": "orthography",
+   "sourceWord": "青|あお",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「あお」を漢字で書くとどれですか。",
+   "questionZh": "「あお」的汉字写法是哪个？",
+   "targetJapanese": "青",
+   "choices": [
+    {
+     "id": "vc-01-194-o0",
+     "ja": "青",
+     "correct": true
+    },
+    {
+     "id": "vc-01-194-o1",
+     "ja": "辞書",
+     "correct": false
+    },
+    {
+     "id": "vc-01-194-o2",
+     "ja": "色",
+     "correct": false
+    },
+    {
+     "id": "vc-01-194-o3",
+     "ja": "頭",
+     "correct": false
+    }
+   ],
+   "explanationJa": "青が一番好きな色です。",
+   "explanationZh": "蓝色是我最喜欢的颜色。",
+   "wordGlossZh": "蓝色",
+   "wordExplanationJa": "「青」は色の名前を表す名詞です。名詞に続けるときは「青い空」のようにい形容詞「青い」を使います。"
+  },
+  {
+   "questionId": "vocab:二日:ふつか:orthography",
+   "aspect": "orthography",
+   "sourceWord": "二日|ふつか",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「ふつか」を漢字で書くとどれですか。",
+   "questionZh": "「ふつか」的汉字写法是哪个？",
+   "targetJapanese": "二日",
+   "choices": [
+    {
+     "id": "vc-01-149-o0",
+     "ja": "二日",
+     "correct": true
+    },
+    {
+     "id": "vc-01-149-o1",
+     "ja": "生徒",
+     "correct": false
+    },
+    {
+     "id": "vc-01-149-o2",
+     "ja": "勤める",
+     "correct": false
+    },
+    {
+     "id": "vc-01-149-o3",
+     "ja": "色",
+     "correct": false
+    }
+   ],
+   "explanationJa": "二日間、東京にいました。",
+   "explanationZh": "在东京待了两天。",
+   "wordGlossZh": "二号；两天",
+   "wordExplanationJa": "「二日」は月の二番目の日と、二日間という長さの両方を表します。読みは「ふつか」で、数字どおりには読みません。"
+  },
+  {
+   "questionId": "vocab:山:やま:orthography",
+   "aspect": "orthography",
+   "sourceWord": "山|やま",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「やま」を漢字で書くとどれですか。",
+   "questionZh": "「やま」的汉字写法是哪个？",
+   "targetJapanese": "山",
+   "choices": [
+    {
+     "id": "vc-02-203-o0",
+     "ja": "山",
+     "correct": true
+    },
+    {
+     "id": "vc-02-203-o1",
+     "ja": "七つ",
+     "correct": false
+    },
+    {
+     "id": "vc-02-203-o2",
+     "ja": "風",
+     "correct": false
+    },
+    {
+     "id": "vc-02-203-o3",
+     "ja": "入口",
+     "correct": false
+    }
+   ],
+   "explanationJa": "春に近くの山に登りました。",
+   "explanationZh": "春天爬了附近的山。",
+   "wordGlossZh": "山",
+   "wordExplanationJa": "「山」は周りより高く盛り上がった地形です。上る動作は「登る」を使い、「山に登る」の形になります。"
+  },
+  {
+   "questionId": "vocab:外:ほか:orthography",
+   "aspect": "orthography",
+   "sourceWord": "外|ほか",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「ほか」を漢字で書くとどれですか。",
+   "questionZh": "「ほか」的汉字写法是哪个？",
+   "targetJapanese": "外",
+   "choices": [
+    {
+     "id": "vc-02-168-o0",
+     "ja": "外",
+     "correct": true
+    },
+    {
+     "id": "vc-02-168-o1",
+     "ja": "時計",
+     "correct": false
+    },
+    {
+     "id": "vc-02-168-o2",
+     "ja": "映画",
+     "correct": false
+    },
+    {
+     "id": "vc-02-168-o3",
+     "ja": "開く",
+     "correct": false
+    }
+   ],
+   "explanationJa": "外の店も見てみましょう。",
+   "explanationZh": "也看看别的店吧。",
+   "wordGlossZh": "别的；其他",
+   "wordExplanationJa": "「外」を「ほか」と読むと、それ以外のものという意味になります。同じ漢字を「そと」と読むと場所の外側になるので、読みで意味が変わります。"
+  },
+  {
+   "questionId": "vocab:行き違い:いきちがい:reading",
+   "aspect": "reading",
+   "sourceWord": "行き違い|いきちがい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「行き違い」の読み方はどれですか。",
+   "questionZh": "「行き違い」怎么读？",
+   "targetJapanese": "行き違い",
+   "choices": [
+    {
+     "id": "vc-10-163-r0",
+     "ja": "いきちがい",
+     "correct": true
+    },
+    {
+     "id": "vc-10-163-r1",
+     "ja": "いきちがち",
+     "correct": false
+    },
+    {
+     "id": "vc-10-163-r2",
+     "ja": "いきちがり",
+     "correct": false
+    },
+    {
+     "id": "vc-10-163-r3",
+     "ja": "にきちがい",
+     "correct": false
+    }
+   ],
+   "explanationJa": "連絡の行き違いで会えませんでした。",
+   "explanationZh": "因为联系上的错过没能见面。",
+   "wordGlossZh": "（联系上的）错过；误会",
+   "wordExplanationJa": "「行き違い」は連絡や気持ちがうまく合わないことです。「行き違いがある」の形で使います。"
+  },
+  {
+   "questionId": "vocab:勤務:きんむ:reading",
+   "aspect": "reading",
+   "sourceWord": "勤務|きんむ",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「勤務」の読み方はどれですか。",
+   "questionZh": "「勤務」怎么读？",
+   "targetJapanese": "勤務",
+   "choices": [
+    {
+     "id": "vc-10-143-r0",
+     "ja": "きんむ",
+     "correct": true
+    },
+    {
+     "id": "vc-10-143-r1",
+     "ja": "きんふ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-143-r2",
+     "ja": "きんす",
+     "correct": false
+    },
+    {
+     "id": "vc-10-143-r3",
+     "ja": "きんる",
+     "correct": false
+    }
+   ],
+   "explanationJa": "父は市役所に勤務しています。",
+   "explanationZh": "父亲在市政府工作。",
+   "wordGlossZh": "上班；在某处工作",
+   "wordExplanationJa": "「勤務する」は決まった場所で職員として働くことです。場所は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:旦那:だんな:reading",
+   "aspect": "reading",
+   "sourceWord": "旦那|だんな",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「旦那」の読み方はどれですか。",
+   "questionZh": "「旦那」怎么读？",
+   "targetJapanese": "旦那",
+   "choices": [
+    {
+     "id": "vc-10-187-r0",
+     "ja": "だんな",
+     "correct": true
+    },
+    {
+     "id": "vc-10-187-r1",
+     "ja": "だんなう",
+     "correct": false
+    },
+    {
+     "id": "vc-10-187-r2",
+     "ja": "だんた",
+     "correct": false
+    },
+    {
+     "id": "vc-10-187-r3",
+     "ja": "だんら",
+     "correct": false
+    }
+   ],
+   "explanationJa": "うちの旦那は料理が上手です。",
+   "explanationZh": "我家的丈夫做菜很拿手。",
+   "wordGlossZh": "丈夫（口语说法）",
+   "wordExplanationJa": "「旦那」は話し言葉で夫を指します。改まった場面では「夫」「ご主人」を使います。"
+  },
+  {
+   "questionId": "vocab:手配:てはい:reading",
+   "aspect": "reading",
+   "sourceWord": "手配|てはい",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「手配」の読み方はどれですか。",
+   "questionZh": "「手配」怎么读？",
+   "targetJapanese": "手配",
+   "choices": [
+    {
+     "id": "vc-10-189-r0",
+     "ja": "てはい",
+     "correct": true
+    },
+    {
+     "id": "vc-10-189-r1",
+     "ja": "へはい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-189-r2",
+     "ja": "けはい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-189-r3",
+     "ja": "めはい",
+     "correct": false
+    }
+   ],
+   "explanationJa": "出張の飛行機を手配しました。",
+   "explanationZh": "安排好了出差的飞机。",
+   "wordGlossZh": "安排（事先准备好）",
+   "wordExplanationJa": "「手配する」は必要なものを前もって用意することです。「〜を手配する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:動き:うごき:reading",
+   "aspect": "reading",
+   "sourceWord": "動き|うごき",
+   "wordLevel": "N2",
+   "difficulty": 3,
+   "questionJa": "「動き」の読み方はどれですか。",
+   "questionZh": "「動き」怎么读？",
+   "targetJapanese": "動き",
+   "choices": [
+    {
+     "id": "vc-10-165-r0",
+     "ja": "うごき",
+     "correct": true
+    },
+    {
+     "id": "vc-10-165-r1",
+     "ja": "るごき",
+     "correct": false
+    },
+    {
+     "id": "vc-10-165-r2",
+     "ja": "ぬごき",
+     "correct": false
+    },
+    {
+     "id": "vc-10-165-r3",
+     "ja": "くごき",
+     "correct": false
+    }
+   ],
+   "explanationJa": "市場の動きを毎日見ています。",
+   "explanationZh": "每天关注市场的动向。",
+   "wordGlossZh": "动向；活动的样子",
+   "wordExplanationJa": "「動き」は動詞「動く」からできた名詞で、物事が変わっていく様子を表します。「動きがある」の形で使います。"
+  },
+  {
+   "questionId": "vocab:集合:しゅうごう:reading",
+   "aspect": "reading",
+   "sourceWord": "集合|しゅうごう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「集合」の読み方はどれですか。",
+   "questionZh": "「集合」怎么读？",
+   "targetJapanese": "集合",
+   "choices": [
+    {
+     "id": "vc-10-080-r0",
+     "ja": "しゅうごう",
+     "correct": true
+    },
+    {
+     "id": "vc-10-080-r1",
+     "ja": "しゅくごう",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-r2",
+     "ja": "しゅうごふ",
+     "correct": false
+    },
+    {
+     "id": "vc-10-080-r3",
+     "ja": "しゅつごう",
+     "correct": false
+    }
+   ],
+   "explanationJa": "八時に駅前に集合してください。",
+   "explanationZh": "请八点在车站前集合。",
+   "wordGlossZh": "集合",
+   "wordExplanationJa": "「集合する」は決めた場所に人が集まることです。場所は「に」で示します。"
+  },
+  {
+   "questionId": "vocab:賛成:さんせい:reading",
+   "aspect": "reading",
+   "sourceWord": "賛成|さんせい",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「賛成」の読み方はどれですか。",
+   "questionZh": "「賛成」怎么读？",
+   "targetJapanese": "賛成",
+   "choices": [
+    {
+     "id": "vc-10-075-r0",
+     "ja": "さんせい",
+     "correct": true
+    },
+    {
+     "id": "vc-10-075-r1",
+     "ja": "はんせい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-075-r2",
+     "ja": "かんせい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-075-r3",
+     "ja": "まんせい",
+     "correct": false
+    }
+   ],
+   "explanationJa": "私はその計画に賛成します。",
+   "explanationZh": "我赞成那个计划。",
+   "wordGlossZh": "赞成（认可某个意见或提案）",
+   "wordExplanationJa": "「賛成する」は相手の意見や案をよいと認めることです。反対は「反対する」です。"
+  },
+  {
+   "questionId": "vocab:絶対:ぜったい:reading",
+   "aspect": "reading",
+   "sourceWord": "絶対|ぜったい",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「絶対」の読み方はどれですか。",
+   "questionZh": "「絶対」怎么读？",
+   "targetJapanese": "絶対",
+   "choices": [
+    {
+     "id": "vc-10-093-r0",
+     "ja": "ぜったい",
+     "correct": true
+    },
+    {
+     "id": "vc-10-093-r1",
+     "ja": "ぜっらい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-093-r2",
+     "ja": "ぜっまい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-093-r3",
+     "ja": "ぜっない",
+     "correct": false
+    }
+   ],
+   "explanationJa": "明日は絶対に遅れないでください。",
+   "explanationZh": "明天请绝对不要迟到。",
+   "wordGlossZh": "绝对；一定",
+   "wordExplanationJa": "「絶対」は強く言い切るときの副詞で、「絶対に」の形でよく使います。否定と一緒だと強い禁止になります。"
+  },
+  {
+   "questionId": "vocab:出張:しゅっちょう:reading",
+   "aspect": "reading",
+   "sourceWord": "出張|しゅっちょう",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「出張」の読み方はどれですか。",
+   "questionZh": "「出張」怎么读？",
+   "targetJapanese": "出張",
+   "choices": [
+    {
+     "id": "vc-10-010-r0",
+     "ja": "しゅっちょう",
+     "correct": true
+    },
+    {
+     "id": "vc-10-010-r1",
+     "ja": "しゅっいょう",
+     "correct": false
+    },
+    {
+     "id": "vc-10-010-r2",
+     "ja": "ちゅっちょう",
+     "correct": false
+    },
+    {
+     "id": "vc-10-010-r3",
+     "ja": "りゅっちょう",
+     "correct": false
+    }
+   ],
+   "explanationJa": "来週、大阪へ出張します。",
+   "explanationZh": "下周去大阪出差。",
+   "wordGlossZh": "出差",
+   "wordExplanationJa": "「出張する」は仕事で普段と違う場所へ行くことです。行き先は「へ」「に」で示します。"
+  },
+  {
+   "questionId": "vocab:信頼:しんらい:reading",
+   "aspect": "reading",
+   "sourceWord": "信頼|しんらい",
+   "wordLevel": "N3",
+   "difficulty": 2,
+   "questionJa": "「信頼」の読み方はどれですか。",
+   "questionZh": "「信頼」怎么读？",
+   "targetJapanese": "信頼",
+   "choices": [
+    {
+     "id": "vc-10-026-r0",
+     "ja": "しんらい",
+     "correct": true
+    },
+    {
+     "id": "vc-10-026-r1",
+     "ja": "しんかい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-026-r2",
+     "ja": "しんはい",
+     "correct": false
+    },
+    {
+     "id": "vc-10-026-r3",
+     "ja": "しんさい",
+     "correct": false
+    }
+   ],
+   "explanationJa": "あの人は皆から信頼されています。",
+   "explanationZh": "那个人受到大家的信任。",
+   "wordGlossZh": "信赖；信任",
+   "wordExplanationJa": "「信頼する」は相手を信じて任せられると思うことです。「〜を信頼する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:波:なみ:reading",
+   "aspect": "reading",
+   "sourceWord": "波|なみ",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「波」の読み方はどれですか。",
+   "questionZh": "「波」怎么读？",
+   "targetJapanese": "波",
+   "choices": [
+    {
+     "id": "vc-08-139-r0",
+     "ja": "なみ",
+     "correct": true
+    },
+    {
+     "id": "vc-08-139-r1",
+     "ja": "あみ",
+     "correct": false
+    },
+    {
+     "id": "vc-08-139-r2",
+     "ja": "はみ",
+     "correct": false
+    },
+    {
+     "id": "vc-08-139-r3",
+     "ja": "なち",
+     "correct": false
+    }
+   ],
+   "explanationJa": "今日は波が高くて泳げません。",
+   "explanationZh": "今天浪高，不能游泳。",
+   "wordGlossZh": "波浪",
+   "wordExplanationJa": "「波」は水の表面が上下に動くものです。「人の波」のようにたとえにも使います。"
+  },
+  {
+   "questionId": "vocab:集まり:あつまり:reading",
+   "aspect": "reading",
+   "sourceWord": "集まり|あつまり",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「集まり」の読み方はどれですか。",
+   "questionZh": "「集まり」怎么读？",
+   "targetJapanese": "集まり",
+   "choices": [
+    {
+     "id": "vc-03-120-r0",
+     "ja": "あつまり",
+     "correct": true
+    },
+    {
+     "id": "vc-03-120-r1",
+     "ja": "かつまり",
+     "correct": false
+    },
+    {
+     "id": "vc-03-120-r2",
+     "ja": "はつまり",
+     "correct": false
+    },
+    {
+     "id": "vc-03-120-r3",
+     "ja": "あふまり",
+     "correct": false
+    }
+   ],
+   "explanationJa": "土曜の集まりに参加します。",
+   "explanationZh": "参加星期六的聚会。",
+   "wordGlossZh": "聚会；集合",
+   "wordExplanationJa": "「集まり」は人が集まる会のことです。動詞「集まる」から作られた名詞で、「集まりがある」の形で使います。"
+  },
+  {
+   "questionId": "vocab:共有:きょうゆう:reading",
+   "aspect": "reading",
+   "sourceWord": "共有|きょうゆう",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「共有」の読み方はどれですか。",
+   "questionZh": "「共有」怎么读？",
+   "targetJapanese": "共有",
+   "choices": [
+    {
+     "id": "vc-03-128-r0",
+     "ja": "きょうゆう",
+     "correct": true
+    },
+    {
+     "id": "vc-03-128-r1",
+     "ja": "きょうゆつ",
+     "correct": false
+    },
+    {
+     "id": "vc-03-128-r2",
+     "ja": "きょうゆぬ",
+     "correct": false
+    },
+    {
+     "id": "vc-03-128-r3",
+     "ja": "きょうゆふ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "会議の資料はみんなで共有します。",
+   "explanationZh": "会议的资料大家共享。",
+   "wordGlossZh": "共享；共同拥有",
+   "wordExplanationJa": "「共有」は一つの物や情報を何人かで一緒に持つことです。「情報を共有する」の形でよく使います。"
+  },
+  {
+   "questionId": "vocab:上司:じょうし:reading",
+   "aspect": "reading",
+   "sourceWord": "上司|じょうし",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「上司」の読み方はどれですか。",
+   "questionZh": "「上司」怎么读？",
+   "targetJapanese": "上司",
+   "choices": [
+    {
+     "id": "vc-03-064-r0",
+     "ja": "じょうし",
+     "correct": true
+    },
+    {
+     "id": "vc-03-064-r1",
+     "ja": "じょむし",
+     "correct": false
+    },
+    {
+     "id": "vc-03-064-r2",
+     "ja": "じょうひ",
+     "correct": false
+    },
+    {
+     "id": "vc-03-064-r3",
+     "ja": "じょうき",
+     "correct": false
+    }
+   ],
+   "explanationJa": "上司に休みの相談をしました。",
+   "explanationZh": "和上司商量了请假的事。",
+   "wordGlossZh": "上司",
+   "wordExplanationJa": "「上司」は会社で自分より上の立場の人のことです。反対は「部下」で、役職名の「部長」とは言い方が違います。"
+  },
+  {
+   "questionId": "vocab:発行:はっこう:reading",
+   "aspect": "reading",
+   "sourceWord": "発行|はっこう",
+   "wordLevel": "N4",
+   "difficulty": 1,
+   "questionJa": "「発行」の読み方はどれですか。",
+   "questionZh": "「発行」怎么读？",
+   "targetJapanese": "発行",
+   "choices": [
+    {
+     "id": "vc-05-022-r0",
+     "ja": "はっこう",
+     "correct": true
+    },
+    {
+     "id": "vc-05-022-r1",
+     "ja": "まっこう",
+     "correct": false
+    },
+    {
+     "id": "vc-05-022-r2",
+     "ja": "はっもう",
+     "correct": false
+    },
+    {
+     "id": "vc-05-022-r3",
+     "ja": "あっこう",
+     "correct": false
+    }
+   ],
+   "explanationJa": "新しい会員証を発行してもらいました。",
+   "explanationZh": "让对方给我发放了新的会员证。",
+   "wordGlossZh": "发行；发放",
+   "wordExplanationJa": "「発行」は本や券などを作って世に出すことです。「〜を発行する」の形で使います。"
+  },
+  {
+   "questionId": "vocab:牛乳:ぎゅうにゅう:reading",
+   "aspect": "reading",
+   "sourceWord": "牛乳|ぎゅうにゅう",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「牛乳」の読み方はどれですか。",
+   "questionZh": "「牛乳」怎么读？",
+   "targetJapanese": "牛乳",
+   "choices": [
+    {
+     "id": "vc-01-168-r0",
+     "ja": "ぎゅうにゅう",
+     "correct": true
+    },
+    {
+     "id": "vc-01-168-r1",
+     "ja": "ぎゅふにゅう",
+     "correct": false
+    },
+    {
+     "id": "vc-01-168-r2",
+     "ja": "ぎゅすにゅう",
+     "correct": false
+    },
+    {
+     "id": "vc-01-168-r3",
+     "ja": "ぎゅむにゅう",
+     "correct": false
+    }
+   ],
+   "explanationJa": "毎朝、牛乳を飲みます。",
+   "explanationZh": "每天早上喝牛奶。",
+   "wordGlossZh": "牛奶",
+   "wordExplanationJa": "「牛乳」は牛から取った乳です。「牛」と「乳」を合わせた語で、読みは音読みになります。"
+  },
+  {
+   "questionId": "vocab:青:あお:reading",
+   "aspect": "reading",
+   "sourceWord": "青|あお",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「青」の読み方はどれですか。",
+   "questionZh": "「青」怎么读？",
+   "targetJapanese": "青",
+   "choices": [
+    {
+     "id": "vc-01-194-r0",
+     "ja": "あお",
+     "correct": true
+    },
+    {
+     "id": "vc-01-194-r1",
+     "ja": "あも",
+     "correct": false
+    },
+    {
+     "id": "vc-01-194-r2",
+     "ja": "あと",
+     "correct": false
+    },
+    {
+     "id": "vc-01-194-r3",
+     "ja": "あろ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "青が一番好きな色です。",
+   "explanationZh": "蓝色是我最喜欢的颜色。",
+   "wordGlossZh": "蓝色",
+   "wordExplanationJa": "「青」は色の名前を表す名詞です。名詞に続けるときは「青い空」のようにい形容詞「青い」を使います。"
+  },
+  {
+   "questionId": "vocab:戸:と:reading",
+   "aspect": "reading",
+   "sourceWord": "戸|と",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「戸」の読み方はどれですか。",
+   "questionZh": "「戸」怎么读？",
+   "targetJapanese": "戸",
+   "choices": [
+    {
+     "id": "vc-02-104-r0",
+     "ja": "と",
+     "correct": true
+    },
+    {
+     "id": "vc-02-104-r1",
+     "ja": "ろ",
+     "correct": false
+    },
+    {
+     "id": "vc-02-104-r2",
+     "ja": "の",
+     "correct": false
+    },
+    {
+     "id": "vc-02-104-r3",
+     "ja": "お",
+     "correct": false
+    }
+   ],
+   "explanationJa": "風で戸が閉まりました。",
+   "explanationZh": "门被风关上了。",
+   "wordGlossZh": "门；门扇",
+   "wordExplanationJa": "「戸」は日本式の引き戸を含む出入り口の建具です。西洋式の開き戸は「ドア」と言うことが多いです。"
+  },
+  {
+   "questionId": "vocab:夕方:ゆうがた:reading",
+   "aspect": "reading",
+   "sourceWord": "夕方|ゆうがた",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「夕方」の読み方はどれですか。",
+   "questionZh": "「夕方」怎么读？",
+   "targetJapanese": "夕方",
+   "choices": [
+    {
+     "id": "vc-01-190-r0",
+     "ja": "ゆうがた",
+     "correct": true
+    },
+    {
+     "id": "vc-01-190-r1",
+     "ja": "ゆうがな",
+     "correct": false
+    },
+    {
+     "id": "vc-01-190-r2",
+     "ja": "ゆむがた",
+     "correct": false
+    },
+    {
+     "id": "vc-01-190-r3",
+     "ja": "ゆくがた",
+     "correct": false
+    }
+   ],
+   "explanationJa": "夕方から雨が降りました。",
+   "explanationZh": "傍晚开始下雨了。",
+   "wordGlossZh": "傍晚",
+   "wordExplanationJa": "「夕方」は日が暮れかけるころを指します。「朝」「昼」「夕方」「夜」と並べて一日の流れで覚えます。"
+  },
+  {
+   "questionId": "vocab:後:あと:reading",
+   "aspect": "reading",
+   "sourceWord": "後|あと",
+   "wordLevel": "N5",
+   "difficulty": 1,
+   "questionJa": "「後」の読み方はどれですか。",
+   "questionZh": "「後」怎么读？",
+   "targetJapanese": "後",
+   "choices": [
+    {
+     "id": "vc-01-207-r0",
+     "ja": "あと",
+     "correct": true
+    },
+    {
+     "id": "vc-01-207-r1",
+     "ja": "あも",
+     "correct": false
+    },
+    {
+     "id": "vc-01-207-r2",
+     "ja": "あそ",
+     "correct": false
+    },
+    {
+     "id": "vc-01-207-r3",
+     "ja": "あろ",
+     "correct": false
+    }
+   ],
+   "explanationJa": "食事の後で散歩します。",
+   "explanationZh": "饭后散步。",
+   "wordGlossZh": "之后；后面",
+   "wordExplanationJa": "「後」は時間的にのちであることを表します。「食事の後で」のように「で」を続けると、その時点より後という意味になります。"
+  }
+ ]
+}

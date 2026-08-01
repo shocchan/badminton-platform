@@ -1,0 +1,868 @@
+{
+ "level": "N2",
+ "sampledFrom": 100,
+ "sampleSize": 20,
+ "note": "原稿と設問の整合・複数正解・音声で聞き取れるか（読み間違いを誘う表記）・中国語の自然さを見る",
+ "sets": [
+  {
+   "setId": "n2l-int-17",
+   "sourceLevel": "N2",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n2l-int-17.m4a",
+   "transcriptJa": "会社の社宅の部屋について、担当の人と社員が話しています。空いているのは四つです。一つ目は一階の部屋で、会社まで乗り換えなしで行けて、自分で払うのは月一万五千円です。二つ目は三階の部屋で、乗り換えが一回あり、月一万八千円です。三つ目は四階の部屋で、乗り換えなしで行けますが、月二万五千円です。四つ目は二階の部屋で、乗り換えなしで行けて月二万円ですが、ほかより少し狭いです。女「一階は人の通りが気になりますので、上の階がいいです。」男「なるほど。」女「それから、朝は乗り換えなしで行きたいです。子どもを預けてから出ますので。」男「自分で払う分は、月二万円までと決まっています。」女「狭くても構いません。それでお願いします。」",
+   "situationJa": "社宅の部屋を選んでいます。",
+   "situationZh": "在挑选公司宿舍的房间。",
+   "questionJa": "女の人はどの部屋を選びますか。",
+   "questionZh": "女士选择哪个房间？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "二階で乗り換えなしの月二万円の部屋",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "一階で乗り換えなしの月一万五千円の部屋",
+     "isCorrect": false,
+     "whyWrongJa": "乗り換えもなく安いですが、一階は避けたいと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "三階で乗り換えが一回の月一万八千円の部屋",
+     "isCorrect": false,
+     "whyWrongJa": "階も自分で払う額も合いますが、乗り換えが一回あります。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "四階で乗り換えなしの月二万五千円の部屋",
+     "isCorrect": false,
+     "whyWrongJa": "階も乗り換えも合いますが、月二万円を超えます。"
+    }
+   ],
+   "explanationJa": "「二階以上」「乗り換えなし」「自分で払う分は月二万円まで」の三つを満たすのは二階の部屋です。狭さは構わないと言っています。",
+   "explanationZh": "满足「二楼以上」「不用换乘」「自付部分每月不超过两万日元」三个条件的是二楼的房间。房间窄一点她说没关系。",
+   "difficulty": 2,
+   "durationSeconds": 53.8,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-int-17"
+  },
+  {
+   "setId": "n2l-int-13",
+   "sourceLevel": "N2",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n2l-int-13.m4a",
+   "transcriptJa": "事務所のコピー機を借りる話をしています。すすめられたのは四つです。一つ目は月三千枚まで含まれ、故障のときはその日のうちに人が来て、契約は二年です。二つ目は月五千枚まで含まれますが、人が来るのは次の日で、契約は二年です。三つ目は月五千枚まで含まれ、その日のうちに人が来ますが、契約は五年です。四つ目は月五千枚まで含まれ、その日のうちに人が来て、契約も二年ですが、月々の料金は少し高くなります。女「うちは毎月四千枚は刷ります。三千枚では足りません。」男「止まると仕事が全部止まりますから、その日のうちに来てもらえないと困ります。」女「それから、引っ越しの話も出ていますので、長い契約は避けたいです。二年までにしましょう。」男「では、少し高くてもこれですね。」",
+   "situationJa": "コピー機のリースの案を選んでいます。",
+   "situationZh": "在挑选复印机的租赁方案。",
+   "questionJa": "どの案を選びますか。",
+   "questionZh": "他们选择哪个方案？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "月五千枚で当日に来て二年契約の案",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "月三千枚で当日に来て二年契約の案",
+     "isCorrect": false,
+     "whyWrongJa": "対応も契約も合いますが、毎月四千枚には枚数が足りません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "月五千枚で翌日に来て二年契約の案",
+     "isCorrect": false,
+     "whyWrongJa": "枚数と契約は合いますが、その日のうちに来てもらえません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "月五千枚で当日に来て五年契約の案",
+     "isCorrect": false,
+     "whyWrongJa": "枚数も対応も合いますが、契約が二年を超えます。"
+    }
+   ],
+   "explanationJa": "「月五千枚まで」「その日のうちに来る」「契約は二年まで」の三つを満たすのは四つ目の案です。料金が高いことは受け入れています。",
+   "explanationZh": "满足「每月五千张」「当天上门」「合同两年」三个条件的是第四个方案。价格稍高但对方接受了。",
+   "difficulty": 2,
+   "durationSeconds": 59,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-int-13"
+  },
+  {
+   "setId": "n2l-int-16",
+   "sourceLevel": "N2",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n2l-int-16.m4a",
+   "transcriptJa": "会社で社員の健康のための取り組みについて話しています。案は四つです。一つ目は昼休みに集まって体操をする案で、誰でもでき、お金もかかりません。二つ目は仕事の時間の中で走る会を開く案で、こちらもお金はかかりません。三つ目は仕事の時間の中で専門の人を呼んで講座を開く案で、誰でも参加でき、一人三千円かかります。四つ目は仕事の時間の中で肩や腰を伸ばす時間を作る案で、誰でもでき、一人八百円です。男「休み時間にやらせるのは無理ですよ。休むための時間ですから。」女「そうですね。それに、年配の社員もいますから、体力のいるものは全員では難しいです。」男「予算は一人千円までと言われています。」女「では、これですね。」",
+   "situationJa": "社員の健康のための取り組みを選んでいます。",
+   "situationZh": "在挑选员工健康方面的举措。",
+   "questionJa": "二人はどの案を選びますか。",
+   "questionZh": "两个人选择哪个方案？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "仕事の時間に肩や腰を伸ばす案",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "昼休みに集まって体操をする案",
+     "isCorrect": false,
+     "whyWrongJa": "誰でもできてお金もかかりませんが、休み時間に行う案です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "仕事の時間に走る会を開く案",
+     "isCorrect": false,
+     "whyWrongJa": "仕事の時間の中で費用もかかりませんが、体力のない人は参加できません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "仕事の時間に専門の人を呼ぶ案",
+     "isCorrect": false,
+     "whyWrongJa": "時間も参加できる人も合いますが、一人三千円で予算を超えます。"
+    }
+   ],
+   "explanationJa": "「仕事の時間の中で行う」「誰でも参加できる」「一人千円まで」の三つを満たすのは肩や腰を伸ばす案です。",
+   "explanationZh": "满足「在工作时间内进行」「谁都能参加」「每人不超过一千日元」三个条件的是伸展肩背的方案。",
+   "difficulty": 3,
+   "durationSeconds": 55.2,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-int-16"
+  },
+  {
+   "setId": "n2l-int-14",
+   "sourceLevel": "N2",
+   "listeningType": "integrated",
+   "audioAsset": "/audio/ai-course/n2l-int-14.m4a",
+   "transcriptJa": "合宿に使う場所について二人が相談しています。候補は四つです。一つ目は五十人が入る部屋があり、駅から送りのバスも出ますが、食事は付かず、外へ食べに行くことになります。二つ目は食事が付いて送りのバスも出ますが、一つの部屋に入れるのは二十人までです。三つ目は四十人の部屋があって食事も付きますが、駅から歩いて三十分かかり、送りのバスはありません。四つ目は四十人の部屋があり、食事も付いて送りのバスも出ますが、まわりに店が何もありません。男「参加は三十人です。全員が同じ部屋で講義を受けられないと困ります。」女「はい。荷物も多いので、駅から歩かせるわけにはいきません。」男「食事も中で済ませたいですね。外に出ると時間が読めません。」女「まわりに何もないのは、かえって集中できていいですね。」",
+   "situationJa": "合宿に使う施設を選んでいます。",
+   "situationZh": "在挑选集训要用的场地。",
+   "questionJa": "二人はどの施設を選びますか。",
+   "questionZh": "两个人选择哪个场地？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "四十人の部屋があり食事も送りもある所",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "五十人の部屋はあるが食事が付かない所",
+     "isCorrect": false,
+     "whyWrongJa": "人数も送りのバスも合いますが、食事が付きません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "食事も送りもあるが二十人までの所",
+     "isCorrect": false,
+     "whyWrongJa": "食事も送りもありますが、三十人が同じ部屋に入れません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "食事は付くが駅から歩いて三十分の所",
+     "isCorrect": false,
+     "whyWrongJa": "人数と食事は合いますが、駅からの送りがなく歩くことになります。"
+    }
+   ],
+   "explanationJa": "「三十人が一部屋に入る」「駅から送りのバスがある」「食事が付く」の三つを満たすのは四つ目です。店がないことはむしろよいと言っています。",
+   "explanationZh": "满足「三十人能进同一个房间」「有车站接送车」「含餐」三个条件的是第四家。周围没有店铺反而被认为是优点。",
+   "difficulty": 3,
+   "durationSeconds": 58.7,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-int-14"
+  },
+  {
+   "setId": "n2l-outline-14",
+   "sourceLevel": "N2",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n2l-outline-14.m4a",
+   "transcriptJa": "市の会議で女の人が話しています。女「連休の混雑について、入場を制限してはどうかという声をいただきます。ただ、数えてみると、一日の来訪者はそれほど多くありません。問題は、その七割が昼前後の三時間に集まることです。ですから私たちは、人数を減らすのではなく、時間を散らす方向で考えています。朝早い時間と夕方に、その時間しか見られない案内を用意しました。同じ人数でも、来る時刻が分かれれば、混雑は感じにくくなります。」",
+   "situationJa": "市の会議で観光地の混雑について説明しています。",
+   "situationZh": "市里的会议上在谈旅游地的拥挤对策。",
+   "questionJa": "女の人はどうすると説明していますか。",
+   "questionZh": "女人说明将如何应对？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "来る時刻が分かれるように工夫する",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "入場できる人数を制限する",
+     "isCorrect": false,
+     "whyWrongJa": "人数を減らす方向ではないと述べています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "連休の来訪者を大幅に増やす",
+     "isCorrect": false,
+     "whyWrongJa": "来訪者を増やす話ではありません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "昼前後の案内をやめてしまう",
+     "isCorrect": false,
+     "whyWrongJa": "朝と夕方に案内を加えると述べています。"
+    }
+   ],
+   "explanationJa": "「人数を減らすのではなく、時間を散らす」が方針です。",
+   "explanationZh": "方针是「不减少人数，而是分散时间」。",
+   "difficulty": 2,
+   "durationSeconds": 38.1,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-outline-14"
+  },
+  {
+   "setId": "n2l-outline-09",
+   "sourceLevel": "N2",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n2l-outline-09.m4a",
+   "transcriptJa": "講演で男の人が話しています。男「災害の備えというと、水や食べ物を箱に詰めて、押し入れにしまう姿を思い浮かべる方が多いでしょう。ところが、そうやってしまい込んだ備えは、いつの間にか期限が切れています。私がお勧めしているのは、普段使う棚に少し多めに置き、使ったら買い足すやり方です。これなら中身が古くなりませんし、どこに何があるかも体で覚えられる。備えは、特別な準備ではなく、毎日の買い物の延長にあるほうが続きます。」",
+   "situationJa": "講演で災害への備えについて話しています。",
+   "situationZh": "演讲中在谈防灾的准备。",
+   "questionJa": "男の人が最も伝えたいことは何ですか。",
+   "questionZh": "男人最想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "備えは普段の買い物の中で続けるのがよい",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "水や食べ物は押し入れにしまうのがよい",
+     "isCorrect": false,
+     "whyWrongJa": "しまい込むと期限が切れると述べています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "期限が切れた食品でもそのまま使ってよい",
+     "isCorrect": false,
+     "whyWrongJa": "中身が古くならないようにする話です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "備えの量をできるだけ増やすべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "量を増やすことは求めていません。"
+    }
+   ],
+   "explanationJa": "「使ったら買い足す」「毎日の買い物の延長」が主張です。",
+   "explanationZh": "主张是「用了就补买」「让备灾成为日常购物的延伸」。",
+   "difficulty": 2,
+   "durationSeconds": 37,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-outline-09"
+  },
+  {
+   "setId": "n2l-outline-17",
+   "sourceLevel": "N2",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n2l-outline-17.m4a",
+   "transcriptJa": "研修会で相談員が話しています。相談員「窓口に来られる方の多くは、使える制度を知りたいのだと、初めは思っていました。ところが、話を聞いていくと、何に困っているのか自分でも整理できていない方が少なくありません。制度の一覧をお渡ししても、選べないのです。ですから私たちは、まず一時間かけて、今の暮らしを順に伺うことにしました。困りごとの形が見えれば、必要な制度は自然に決まります。私たちの仕事は、案内より前にあります。」",
+   "situationJa": "研修会で相談窓口の仕事について話しています。",
+   "situationZh": "研修会上在谈咨询窗口的工作。",
+   "questionJa": "相談員が最も伝えたいことは何ですか。",
+   "questionZh": "咨询员最想传达的是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "困りごとを一緒に整理することが先だ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "制度の一覧を早く渡すことが大切だ",
+     "isCorrect": false,
+     "whyWrongJa": "一覧を渡しても選べないと述べています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "相談の時間を短くする必要がある",
+     "isCorrect": false,
+     "whyWrongJa": "まず一時間かけて伺うことにしています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "使える制度の数を増やすべきだ",
+     "isCorrect": false,
+     "whyWrongJa": "制度を増やす話は出ていません。"
+    }
+   ],
+   "explanationJa": "「私たちの仕事は、案内より前にあります」＝整理を助けることが先だという主張です。",
+   "explanationZh": "「我们的工作在指引之前」＝主张先帮对方梳理困难。",
+   "difficulty": 3,
+   "durationSeconds": 37.8,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-outline-17"
+  },
+  {
+   "setId": "n2l-outline-13",
+   "sourceLevel": "N2",
+   "listeningType": "outlineComprehension",
+   "audioAsset": "/audio/ai-course/n2l-outline-13.m4a",
+   "transcriptJa": "商品の説明会で男の人が話しています。男「回収した布から作った鞄を三年前に売り出しました。初めは、環境にやさしいという点だけを前に出していましたが、思ったほど売れませんでした。買ってくださる方に聞くと、良いことだとは思うが、それだけでは選ばないと言われる。そこで、丈夫さと軽さを作り直し、値段も普通の商品と並べました。売れ始めたのはそれからです。素材の物語ではなく、道具としての出来で選ばれなければ、続きません。」",
+   "situationJa": "商品の説明会で鞄の開発について話しています。",
+   "situationZh": "产品说明会上在谈包的开发。",
+   "questionJa": "男の人の話の要点は何ですか。",
+   "questionZh": "男人讲话的要点是什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "商品としての出来で選ばれることが必要だ",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "環境にやさしいと伝えれば売れる",
+     "isCorrect": false,
+     "whyWrongJa": "それだけでは選ばないと言われたと述べています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "値段を他より安くすることが必要だ",
+     "isCorrect": false,
+     "whyWrongJa": "値段は普通の商品と並べたと述べています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "回収した布を使うのはやめたほうがよい",
+     "isCorrect": false,
+     "whyWrongJa": "素材は変えずに作り直しています。"
+    }
+   ],
+   "explanationJa": "「素材の物語ではなく、道具としての出来で選ばれなければ続かない」が結論です。",
+   "explanationZh": "「不是靠材料的故事，而要靠作为用品的品质被选择，否则无法持续」是结论。",
+   "difficulty": 3,
+   "durationSeconds": 36.1,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-outline-13"
+  },
+  {
+   "setId": "n2l-point-18",
+   "sourceLevel": "N2",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n2l-point-18.m4a",
+   "transcriptJa": "男の人と女の人が話しています。男の人はどうして時給の高いほうをやめたのですか。女「前のところ、時給よかったんじゃないの。」男「うん、今のより二百円高かった。」女「仕事がきつかったとか。」男「体はきつくなかったよ。ただ、次の週の予定が金曜の夜になってやっと出るんだ。用事も試験の勉強も、いつ入れていいか分からなくて。今のところは一か月先まで決まってるから、その分ほかを組める。」",
+   "situationJa": "二人がアルバイトについて話しています。",
+   "situationZh": "两个人在谈打工的事。",
+   "questionJa": "男の人はどうして時給の高いほうをやめたのですか。",
+   "questionZh": "男人为什么辞掉了时薪高的那份工作？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "先の予定が立てられない働き方だったから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "時給が今より低かったから",
+     "isCorrect": false,
+     "whyWrongJa": "今より二百円高かったと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "仕事の内容がきつかったから",
+     "isCorrect": false,
+     "whyWrongJa": "体はきつくなかったと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "試験に落ちてしまったから",
+     "isCorrect": false,
+     "whyWrongJa": "試験は勉強の予定として触れられただけです。"
+    }
+   ],
+   "explanationJa": "時給ときつさを先に否定しています。「いつ入れていいか分からなくて」＝先の予定が組めないことが理由です。",
+   "explanationZh": "先否定了时薪和辛苦程度。理由是「いつ入れていいか分からなくて」＝无法安排今后的计划。",
+   "difficulty": 2,
+   "durationSeconds": 31.4,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-point-18"
+  },
+  {
+   "setId": "n2l-point-13",
+   "sourceLevel": "N2",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n2l-point-13.m4a",
+   "transcriptJa": "男の人と女の人が話しています。女の人はどうして車を手放したのですか。男「車、売ったんだって。維持費が大変だった？」女「かかってはいたけど、払えない額じゃなかったの。」男「じゃあ、どうして。」女「近所の買い物まで車で行くようになって、気がついたら歩くのが十分もない日が続いてて。同じ道しか通らないから、隣の通りに何ができたのかも知らないの。それが急に嫌になって。」男「それで歩くようにしたんだ。」",
+   "situationJa": "二人が車を手放したことについて話しています。",
+   "situationZh": "两个人在谈卖掉汽车的事。",
+   "questionJa": "女の人はどうして車を手放したのですか。",
+   "questionZh": "女人为什么把车处理掉了？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "歩かなくなって町のことを知らなくなったから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "維持費が払えなくなったから",
+     "isCorrect": false,
+     "whyWrongJa": "払えない額ではなかったと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "車の調子が悪くなったから",
+     "isCorrect": false,
+     "whyWrongJa": "故障の話は出ていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "近所に買い物する店がないから",
+     "isCorrect": false,
+     "whyWrongJa": "近所の買い物には行けています。"
+    }
+   ],
+   "explanationJa": "維持費を先に否定しています。「歩くのが十分もない」「隣の通りに何ができたのかも知らない」が理由です。",
+   "explanationZh": "先否定了养车费用。理由是「歩くのが十分もない」「隣の通りに何ができたのかも知らない」。",
+   "difficulty": 2,
+   "durationSeconds": 31.9,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-point-13"
+  },
+  {
+   "setId": "n2l-point-09",
+   "sourceLevel": "N2",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n2l-point-09.m4a",
+   "transcriptJa": "男の人と女の人が話しています。女の人はどうして食事を見直すことにしたのですか。男「最近、昼ご飯の中身が変わったね。検査の数字、悪かったの？」女「ううん、去年と同じで、特に何も言われなかった。」男「じゃあ、どうして急に。」女「春に父が入院して、母が毎日付き添ってたの。仕事も家のことも全部止まってしまって。あれを見てから、自分が同じことになったとき、誰にどれだけ時間を使わせるかを考えるようになって。」",
+   "situationJa": "二人が食事の習慣について話しています。",
+   "situationZh": "两个人在谈饮食习惯。",
+   "questionJa": "女の人はどうして食事を見直すことにしたのですか。",
+   "questionZh": "女人为什么决定重新调整饮食？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "家族に負担をかける様子を見て考えが変わったから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "検査の数字が悪くなったから",
+     "isCorrect": false,
+     "whyWrongJa": "特に何も言われなかったと言っています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "父親に食事のことを注意されたから",
+     "isCorrect": false,
+     "whyWrongJa": "父親は入院した側で、注意はしていません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "母親と同じ料理を作りたいから",
+     "isCorrect": false,
+     "whyWrongJa": "母親は付き添いをしていたという話です。"
+    }
+   ],
+   "explanationJa": "検査の数字は先に否定されています。「誰にどれだけ時間を使わせるかを考えるようになって」が理由です。",
+   "explanationZh": "体检数字先被否定了。理由是「誰にどれだけ時間を使わせるかを考えるようになって」。",
+   "difficulty": 3,
+   "durationSeconds": 33.8,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-point-09"
+  },
+  {
+   "setId": "n2l-point-04",
+   "sourceLevel": "N2",
+   "listeningType": "pointComprehension",
+   "audioAsset": "/audio/ai-course/n2l-point-04.m4a",
+   "transcriptJa": "女の人が話しています。女の人が習慣を続けられるようになったのはなぜですか。女「毎日続けようと決めると、一度できなかった日に、そのままやめてしまうんです。それで、週に何回と決めるようにしました。三回でいいと思うと、できなかった日があっても取り返せる。目標を下げたというより、失敗の意味を変えたという感じです。」",
+   "situationJa": "女の人が習慣について話しています。",
+   "situationZh": "女人在谈习惯。",
+   "questionJa": "女の人が習慣を続けられるようになったのはなぜですか。",
+   "questionZh": "女人为什么能坚持下来了？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "できない日があっても続けられる決め方にしたから",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "目標を大きく下げたから",
+     "isCorrect": false,
+     "whyWrongJa": "「目標を下げたというより」と否定しています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "毎日必ずやると決めたから",
+     "isCorrect": false,
+     "whyWrongJa": "毎日と決めるとやめてしまうと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "失敗しなくなったから",
+     "isCorrect": false,
+     "whyWrongJa": "失敗はある前提です。"
+    }
+   ],
+   "explanationJa": "「週に何回」＝失敗を取り返せる設計にしたことが理由です。",
+   "explanationZh": "「一周几次」＝设计成失败也能补回来，这是理由。",
+   "difficulty": 3,
+   "durationSeconds": 25.7,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-point-04"
+  },
+  {
+   "setId": "n2l-quick-14",
+   "sourceLevel": "N2",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n2l-quick-14.m4a",
+   "transcriptJa": "ご連絡が遅くなってしまい、ご迷惑をおかけして申し訳ありませんでした。",
+   "situationJa": "電話で、短い問いかけを聞いて返事を選びます。",
+   "situationZh": "在电话里，听一句简短的问话，选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "ありがとうございます。とても助かりました。",
+     "isCorrect": false,
+     "whyWrongJa": "謝られている場面で、お礼を返すのはかみ合いません。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "では、私からもお詫び申し上げます。",
+     "isCorrect": false,
+     "whyWrongJa": "こちらに謝る理由がないのに、並んで詫びる形になっています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "いえ、こちらこそ急かしてしまってすみません。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "そうですか。連絡はまだ届いていません。",
+     "isCorrect": false,
+     "whyWrongJa": "連絡が来たうえでの謝罪なので、届いていないという返事は合いません。"
+    }
+   ],
+   "explanationJa": "謝罪には、責めずに相手の気持ちを軽くする返事をします。",
+   "explanationZh": "面对道歉，不要责备对方，要用让对方轻松一些的说法回应。",
+   "difficulty": 2,
+   "durationSeconds": 5.9,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-quick-14"
+  },
+  {
+   "setId": "n2l-quick-18",
+   "sourceLevel": "N2",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n2l-quick-18.m4a",
+   "transcriptJa": "明日の会議ですが、もしご都合が悪ければ、私が代わりに出ておきましょうか。",
+   "situationJa": "会社の帰りぎわに、短い問いかけを聞いて返事を選びます。",
+   "situationZh": "在下班之前，听一句简短的问话，选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "はい、代わりに出ておきます。",
+     "isCorrect": false,
+     "whyWrongJa": "代わりに出ると申し出たのは相手なので、立場が逆です。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "いいえ、明日は会議室が空いています。",
+     "isCorrect": false,
+     "whyWrongJa": "出られるかどうかの話で、部屋が空いているかは関係ありません。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "助かります。では、お願いしてもよろしいですか。",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "では、私が代わりを探しておきます。",
+     "isCorrect": false,
+     "whyWrongJa": "目の前の相手が申し出ているのに、別の人を探す返事になっています。"
+    }
+   ],
+   "explanationJa": "代理を申し出られたら、礼を述べ、頼むかどうかをはっきり示します。",
+   "explanationZh": "对方提出代为出席时，要先道谢，再明确表示是否拜托对方。",
+   "difficulty": 2,
+   "durationSeconds": 6,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-quick-18"
+  },
+  {
+   "setId": "n2l-quick-12",
+   "sourceLevel": "N2",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n2l-quick-12.m4a",
+   "transcriptJa": "あの、こちらの合計の数ですが、少し違っているように思うのですが。",
+   "situationJa": "お店の会計で、短い問いかけを聞いて返事を選びます。",
+   "situationZh": "在店里结账时，听一句简短的问话，选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "はい、合計はそちらで出してください。",
+     "isCorrect": false,
+     "whyWrongJa": "間違いを指摘された側が、相手に作業を任せる返事になっています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "ええ、数が多いほうがいいですね。",
+     "isCorrect": false,
+     "whyWrongJa": "数の多さの話ではなく、合っているかどうかの指摘です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "いいえ、まだ計算しておりません。",
+     "isCorrect": false,
+     "whyWrongJa": "すでに出した数についての指摘なので、まだという返事は合いません。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "失礼いたしました。すぐに計算し直します。",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "「違っているように思う」は遠回しの指摘です。認めて、直すことを伝えます。",
+   "explanationZh": "「好像有点不对」是委婉地指出错误。要承认，并表示马上改正。",
+   "difficulty": 3,
+   "durationSeconds": 5.4,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-quick-12"
+  },
+  {
+   "setId": "n2l-quick-11",
+   "sourceLevel": "N2",
+   "listeningType": "quickResponse",
+   "audioAsset": "/audio/ai-course/n2l-quick-11.m4a",
+   "transcriptJa": "もしこの場でお返事をいただけましたら、こちらとしても大変助かるのですが。",
+   "situationJa": "申し込みの相談で、短い問いかけを聞いて返事を選びます。",
+   "situationZh": "在办理申请的洽谈中，听一句简短的问话，选择合适的回答。",
+   "questionJa": "なんと答えますか。",
+   "questionZh": "应该怎么回答？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "はい、助かりました。ありがとうございます。",
+     "isCorrect": false,
+     "whyWrongJa": "助かるのは相手のほうなので、お礼の形は合いません。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "では、私からもお返事をお待ちします。",
+     "isCorrect": false,
+     "whyWrongJa": "返事を待っているのは相手で、立場が逆になっています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "いいえ、この場所ではありません。",
+     "isCorrect": false,
+     "whyWrongJa": "「この場で」は場所ではなく「今すぐ」という意味です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "申し訳ありません、少し考えさせていただけますか。",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "すぐに決められないときは、断らずに保留する言い方を選びます。",
+   "explanationZh": "无法当场决定时，选择既不拒绝也不答应的保留说法。",
+   "difficulty": 3,
+   "durationSeconds": 5.9,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-quick-11"
+  },
+  {
+   "setId": "n2l-task-02",
+   "sourceLevel": "N2",
+   "listeningType": "taskComprehension",
+   "audioAsset": "/audio/ai-course/n2l-task-02.m4a",
+   "transcriptJa": "大学で教員と学生が話しています。学生はこのあと何をしなければなりませんか。教員「レポート、提出は来週でいいですが、テーマだけは今週中に出してください。」学生「はい。参考文献のリストも一緒でしょうか。」教員「それは本文と一緒で構いません。テーマは、一行でいいので今週中に。」学生「わかりました。今日中に送ります。」",
+   "situationJa": "大学でレポートについて話しています。",
+   "situationZh": "大学里在谈报告的事。",
+   "questionJa": "学生はこのあと何をしなければなりませんか。",
+   "questionZh": "学生接下来必须做什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "テーマを今週中に提出する",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "参考文献のリストを今週中に出す",
+     "isCorrect": false,
+     "whyWrongJa": "文献リストは本文と一緒でよいと言われています。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "レポート本文を今日中に出す",
+     "isCorrect": false,
+     "whyWrongJa": "本文の提出は来週です。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "来週テーマを決める",
+     "isCorrect": false,
+     "whyWrongJa": "テーマは今週中です。"
+    }
+   ],
+   "explanationJa": "「テーマだけは今週中」という条件が繰り返されています。",
+   "explanationZh": "「只有题目要在本周内」这一条件被重复强调。",
+   "difficulty": 2,
+   "durationSeconds": 27.2,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-task-02"
+  },
+  {
+   "setId": "n2l-task-18",
+   "sourceLevel": "N2",
+   "listeningType": "taskComprehension",
+   "audioAsset": "/audio/ai-course/n2l-task-18.m4a",
+   "transcriptJa": "会社で情報の担当者と女の人が話しています。女の人はこのあとまず何をしますか。担当「金曜の夜に社内の仕組みを入れ替えます。」女「土曜に出勤しても使えないんですか。」担当「日曜の昼には戻る予定です。それより、ご自分の端末にだけ置いてあるものは、入れ替えのときに消えてしまいます。共有の場所へ移しておいてください。こちらは今日中にお願いします。パスワードの変更は、新しくなってから画面の案内に沿って行えば結構です。」女「では、今から移します。」",
+   "situationJa": "会社で社内の仕組みの入れ替えについて話しています。",
+   "situationZh": "公司里在谈内部系统的更换。",
+   "questionJa": "女の人はこのあとまず何をしますか。",
+   "questionZh": "女人接下来首先要做什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "パスワードを今日中に変える",
+     "isCorrect": false,
+     "whyWrongJa": "パスワードは新しくなってからでよいと言われています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "土曜に出勤して仕事を進める",
+     "isCorrect": false,
+     "whyWrongJa": "土曜は使えず、戻るのは日曜の昼です。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "入れ替えの作業を手伝う",
+     "isCorrect": false,
+     "whyWrongJa": "入れ替えは担当者が行います。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "端末の中のものを共有の場所へ移す",
+     "isCorrect": true
+    }
+   ],
+   "explanationJa": "「今日中にお願いします」と期限がついているのは、共有の場所へ移す作業だけです。",
+   "explanationZh": "被指定「今日中にお願いします」的只有把资料移到共享位置这件事。",
+   "difficulty": 2,
+   "durationSeconds": 38.8,
+   "playLimit": 1,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-task-18"
+  },
+  {
+   "setId": "n2l-task-17",
+   "sourceLevel": "N2",
+   "listeningType": "taskComprehension",
+   "audioAsset": "/audio/ai-course/n2l-task-17.m4a",
+   "transcriptJa": "会社で先輩と後輩が話しています。後輩はこのあとまず何をしますか。後輩「先方に届いた数が、注文より二つ少なかったそうです。」先輩「不足の分の発送は倉庫に頼んだ？」後輩「はい、今日中に出してもらえます。」先輩「なら、それを先方に電話で伝えて。荷物が着く日が分かれば、向こうも次の手が打てるから。社内向けの報告書は、原因が分かってからでいい。おわびに伺うかどうかは、先方のご返事を聞いてから決めよう。」後輩「すぐかけます。」",
+   "situationJa": "会社で取引先への対応について話しています。",
+   "situationZh": "公司里在谈对客户的应对。",
+   "questionJa": "後輩はこのあとまず何をしますか。",
+   "questionZh": "后辈接下来首先要做什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "社内向けの報告書を書く",
+     "isCorrect": false,
+     "whyWrongJa": "報告書は原因が分かってからでよいと言われています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "倉庫に不足の分の発送を頼む",
+     "isCorrect": false,
+     "whyWrongJa": "発送はすでに倉庫に頼んであります。"
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "先方に電話で発送の予定を伝える",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "先方の会社へおわびに行く",
+     "isCorrect": false,
+     "whyWrongJa": "訪問するかどうかは先方の返事を聞いてから決めます。"
+    }
+   ],
+   "explanationJa": "「それを先方に電話で伝えて」が指示で、後輩も「すぐかけます」と答えています。",
+   "explanationZh": "指示是「それを先方に電話で伝えて」，后辈也回答「すぐかけます」。",
+   "difficulty": 3,
+   "durationSeconds": 38.5,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-task-17"
+  },
+  {
+   "setId": "n2l-task-11",
+   "sourceLevel": "N2",
+   "listeningType": "taskComprehension",
+   "audioAsset": "/audio/ai-course/n2l-task-11.m4a",
+   "transcriptJa": "会社で人事の女の人と課長が話しています。課長はこのあとまず何をしますか。女「来週の面接ですが、候補の方が三名に増えました。」課長「では、部屋を大きいほうに変えたほうがいいね。」女「会議室の予約は私が取り直します。候補の方へのご連絡もこちらで出します。」課長「じゃあ、僕は評価の用紙を作ればいいかな。」女「用紙は前回のものがそのまま使えます。それより、面接に入る現場の方がまだ決まっていません。そこだけお願いできますか。」課長「そうか、すぐ聞いてみるよ。」",
+   "situationJa": "会社で来週の面接の準備について話しています。",
+   "situationZh": "公司里在谈下周面试的准备。",
+   "questionJa": "課長はこのあとまず何をしますか。",
+   "questionZh": "科长接下来首先要做什么？",
+   "choices": [
+    {
+     "choiceId": "choice-a",
+     "textJa": "大きい会議室を予約し直す",
+     "isCorrect": false,
+     "whyWrongJa": "会議室の予約は女の人が取り直すと言っています。"
+    },
+    {
+     "choiceId": "choice-b",
+     "textJa": "面接に入る現場の人を決める",
+     "isCorrect": true
+    },
+    {
+     "choiceId": "choice-c",
+     "textJa": "候補の人に日程の連絡を出す",
+     "isCorrect": false,
+     "whyWrongJa": "連絡は人事のほうで出すと言っています。"
+    },
+    {
+     "choiceId": "choice-d",
+     "textJa": "評価の用紙を新しく作る",
+     "isCorrect": false,
+     "whyWrongJa": "用紙は前回のものがそのまま使えます。"
+    }
+   ],
+   "explanationJa": "女の人が引き受けていない仕事は現場の面接官だけで、「そこだけお願いできますか」と頼まれています。",
+   "explanationZh": "女人没有承担的只有现场面试官这件事，她说「そこだけお願いできますか」。",
+   "difficulty": 3,
+   "durationSeconds": 39.8,
+   "playLimit": 2,
+   "reviewState": "validated_beta",
+   "sourceId": "n2l-task-11"
+  }
+ ]
+}
