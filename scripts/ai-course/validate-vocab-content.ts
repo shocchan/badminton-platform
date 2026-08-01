@@ -7,6 +7,7 @@
 //
 // このスクリプトは**判定結果をレポートに書く**。昇格の反映はコンテンツ側の state を書き換えて行う。
 // 実行: ./node_modules/.bin/vite-node scripts/ai-course/validate-vocab-content.ts [batchNo]
+//       batchNo を省略すると、bank にある**全バッチ**を検査する（npm run validate:ai-course から呼ぶ形）
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { ALL_VOCAB_CONTENT } from '../../src/lib/aiLesson/course/adventure/vocab/content/vocabContentBank';
 import type { VocabOriginalContent } from '../../src/lib/aiLesson/course/adventure/vocab/vocabContent';
@@ -23,8 +24,7 @@ const KANA = /[぀-ゟ゠-ヺ]/;
 
 interface Finding { wordId: string; surface: string; kind: string; detail: string; blocking: boolean }
 
-const run = () => {
-  const batchNo = Number(process.argv[2] ?? '1');
+const runBatch = (batchNo: number) => {
   const items = (ALL_VOCAB_CONTENT as VocabOriginalContent[]).filter((c) => c.batchNo === batchNo);
   if (items.length === 0) { console.error(`batch ${batchNo} is empty`); process.exit(2); }
 
@@ -160,6 +160,16 @@ const run = () => {
   console.log('machine', report.machineCheck.byKind);
   console.log('semantic', report.semanticReview.byKind);
   for (const f of blocking.slice(0, 40)) console.log(`  BLOCK ${f.surface} [${f.kind}] ${f.detail}`);
+};
+
+const run = () => {
+  const arg = process.argv[2];
+  if (arg && Number.isFinite(Number(arg))) { runBatch(Number(arg)); return; }
+  // 引数なし＝bankにある全バッチ。バッチを足したのに検査から漏れる事故を防ぐ
+  const batches = [...new Set((ALL_VOCAB_CONTENT as VocabOriginalContent[]).map((c) => c.batchNo))]
+    .sort((a, b) => a - b);
+  if (batches.length === 0) { console.error('no vocab content'); process.exit(2); }
+  for (const b of batches) runBatch(b);
 };
 
 run();

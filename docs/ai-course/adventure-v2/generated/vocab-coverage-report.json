@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T06:09:43.705Z",
+ "generatedAt": "2026-08-01T12:58:11.048Z",
  "title": "複数の主要公開語彙データを統合し、重複・意味・レベルを独自に再整理したN2／N3累積語彙バンク",
  "disclaimer": "公式出題基準の100%網羅を主張するものではない。公開候補の統合と独自再判定の結果である。",
  "totals": {
@@ -36,16 +36,16 @@
   "hold": 589,
   "canonicalCompleteFields": 6174,
   "questionCoverageByType": {
-   "meaning": 249,
-   "orthography": 200,
-   "usage": 139,
-   "context": 204,
-   "reading": 133,
-   "confusable": 50
+   "meaning": 482,
+   "orthography": 400,
+   "usage": 183,
+   "context": 411,
+   "reading": 255,
+   "confusable": 197
   },
-  "activeQuestions": 975,
-  "wordsBelowAspectTarget": 77,
-  "wordsWithOriginalContent": 249,
+  "activeQuestions": 1928,
+  "wordsBelowAspectTarget": 140,
+  "wordsWithOriginalContent": 482,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -67,16 +67,16 @@
   "hold": 998,
   "canonicalCompleteFields": 9286,
   "questionCoverageByType": {
-   "meaning": 249,
-   "orthography": 200,
-   "usage": 139,
-   "context": 204,
-   "reading": 133,
-   "confusable": 50
+   "meaning": 482,
+   "orthography": 400,
+   "usage": 183,
+   "context": 411,
+   "reading": 255,
+   "confusable": 197
   },
-  "activeQuestions": 975,
-  "wordsBelowAspectTarget": 77,
-  "wordsWithOriginalContent": 249,
+  "activeQuestions": 1928,
+  "wordsBelowAspectTarget": 140,
+  "wordsWithOriginalContent": 482,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -98,11 +98,20 @@
     "activeBeta": 249,
     "needsHumanReview": 2,
     "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 2,
+    "words": 250,
+    "validated": 233,
+    "semanticallyReviewed": 233,
+    "activeBeta": 233,
+    "needsHumanReview": 17,
+    "stagingSmokePassed": false
    }
   ],
   "coreWords": 2647,
-  "coreWithOriginalContent": 249,
-  "remainingCoreWords": 2398,
+  "coreWithOriginalContent": 482,
+  "remainingCoreWords": 2165,
   "note": "一括生成はしない。250語単位で 生成→機械検査→意味レビュー→active_beta→staging smoke を繰り返す（§6）"
  },
  "warnings": {

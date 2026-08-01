@@ -1,0 +1,120 @@
+{
+ "generatedAt": "2026-08-01T12:57:49.457Z",
+ "batchNo": 2,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 13,
+  "blocking": 3,
+  "byKind": {
+   "no_dictionary_entry": 3,
+   "ambiguous_sense_unmarked": 10
+  }
+ },
+ "eligibleForActiveBeta": 247,
+ "needsHumanReview": [
+  "vc-02-220",
+  "vc-02-232",
+  "vc-02-241"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-02-220",
+   "surface": "日本",
+   "kind": "no_dictionary_entry",
+   "detail": "日本|にっぽん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-02-232",
+   "surface": "今日",
+   "kind": "no_dictionary_entry",
+   "detail": "今日|こんにち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-02-241",
+   "surface": "明日",
+   "kind": "no_dictionary_entry",
+   "detail": "明日|あす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [
+  {
+   "wordId": "vc-02-221",
+   "surface": "話し",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-222",
+   "surface": "たい",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-224",
+   "surface": "考え",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-226",
+   "surface": "始め",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-227",
+   "surface": "思い",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-229",
+   "surface": "より",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-233",
+   "surface": "ただ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-234",
+   "surface": "つい",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-240",
+   "surface": "受け",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-02-243",
+   "surface": "行き",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}
