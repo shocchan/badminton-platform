@@ -116,7 +116,19 @@ N2ルートには、N3以下の語から作った問題が**9,783件**含まれ�
 
 ## 5. 監査コンソール（画面）
 
-`/internal/qa/question-bank`
+**https://qa-question-bank.badminton-platform.pages.dev/internal/qa/question-bank**
+
+> `staging.badminton-platform.pages.dev` は別ブランチのgit連携ビルドに上書きされるため、
+> この画面専用のalias（`qa-question-bank`）に出している。
+
+実測（2026-08-02、実ブラウザ）:
+
+| 確認 | 結果 |
+|---|---|
+| 上記URLでルートが解決する（リダイレクトされない） | ✅ `/internal/qa/question-bank` に留まる |
+| 未ログインでは中身が出ない | ✅「管理者専用です」のみ |
+| **kawabado.com（本番）で同じURLを開く** | ✅ `/ja/` に落ちる。コンソールも権限メッセージも出ない |
+| 本番bundle内の該当文字列 | ✅ 0件 |
 
 - **読み取り専用。** この画面から教材データは変更できない（保存・編集・削除の導線が無い）
 - **本番ビルドには含まれない。** `import.meta.env.MODE === 'production'` のとき
