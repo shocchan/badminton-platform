@@ -9,6 +9,7 @@ import { FAQSchema } from '../components/seo/FAQSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
+import { calcRemaining, splitEntryQuantity, planCancellation, remainingAfterCancel } from '../lib/activityEntry';
 
 interface Group {
   id: string;
@@ -415,7 +416,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const confirmedEntries = entries.filter(e => e.status === 'confirmed');
   const waitlistEntries = entries.filter(e => e.status === 'waitlist');
   const confirmedCount = confirmedEntries.reduce((s, e) => s + e.quantity, 0);
-  const remaining = activity ? Math.max(0, activity.capacity - confirmedCount) : 0;
+  const remaining = activity ? calcRemaining(activity.capacity, confirmedCount) : 0;
   const isFull = remaining <= 0;
 
   const deadline = activity ? getDeadline(activity.date, activity.start_time) : null;
@@ -526,8 +527,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
     setSubmitting(true);
     const code = generateCode();
     const cap = activity?.capacity ?? 0;
-    const confirmedQty = Math.min(qty, Math.max(0, cap - confirmedCount));
-    const waitlistQty = qty - confirmedQty;
+    const { confirmedQty, waitlistQty } = splitEntryQuantity(qty, cap, confirmedCount);
     const base = { activity_id: id, name: submitName, member_type: memberType, source, cancel_code: code, notes: entryNotes.trim() };
 
     const results: { error: unknown }[] = [];
@@ -571,20 +571,15 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       return;
     }
 
-    let remaining = cancelQty;
-    for (const row of rows) {
-      if (remaining <= 0) break;
-      const toRemove = Math.min(remaining, row.quantity);
-      remaining -= toRemove;
-      if (toRemove >= row.quantity) {
-        await supabase.from('activity_entries').delete().eq('id', row.id);
+    for (const action of planCancellation(rows, cancelQty)) {
+      if (action.type === 'delete') {
+        await supabase.from('activity_entries').delete().eq('id', action.id);
       } else {
-        await supabase.from('activity_entries').update({ quantity: row.quantity - toRemove }).eq('id', row.id);
+        await supabase.from('activity_entries').update({ quantity: action.nextQuantity }).eq('id', action.id);
       }
     }
 
-    const totalQty = rows.reduce((s: number, r: ActivityEntry) => s + r.quantity, 0);
-    const leftQty = totalQty - cancelQty;
+    const leftQty = remainingAfterCancel(rows, cancelQty);
     setCancelMsg(leftQty <= 0 ? t.cancelSuccess : t.cancelPartial(cancelQty, leftQty));
     setCancelSubmitting(false);
     setCancelName(''); setCancelCode(''); setCancelQty(1);
