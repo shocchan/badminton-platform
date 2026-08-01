@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T13:20:00.674Z",
+ "generatedAt": "2026-08-01T14:26:55.236Z",
  "title": "複数の主要公開語彙データを統合し、重複・意味・レベルを独自に再整理したN2／N3累積語彙バンク",
  "disclaimer": "公式出題基準の100%網羅を主張するものではない。公開候補の統合と独自再判定の結果である。",
  "totals": {
@@ -36,16 +36,16 @@
   "hold": 589,
   "canonicalCompleteFields": 6174,
   "questionCoverageByType": {
-   "meaning": 686,
-   "orthography": 576,
-   "usage": 379,
-   "context": 599,
-   "confusable": 387,
-   "reading": 372
+   "meaning": 2104,
+   "orthography": 1795,
+   "usage": 1798,
+   "context": 1765,
+   "confusable": 1712,
+   "reading": 1167
   },
-  "activeQuestions": 2999,
-  "wordsBelowAspectTarget": 154,
-  "wordsWithOriginalContent": 686,
+  "activeQuestions": 10341,
+  "wordsBelowAspectTarget": 174,
+  "wordsWithOriginalContent": 2104,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -67,16 +67,16 @@
   "hold": 998,
   "canonicalCompleteFields": 9286,
   "questionCoverageByType": {
-   "meaning": 686,
-   "orthography": 576,
-   "usage": 379,
-   "context": 599,
-   "confusable": 387,
-   "reading": 372
+   "meaning": 2167,
+   "orthography": 1852,
+   "usage": 1861,
+   "context": 1828,
+   "confusable": 1792,
+   "reading": 1202
   },
-  "activeQuestions": 2999,
-  "wordsBelowAspectTarget": 154,
-  "wordsWithOriginalContent": 686,
+  "activeQuestions": 10702,
+  "wordsBelowAspectTarget": 174,
+  "wordsWithOriginalContent": 2167,
   "aspectTargetForCore": {
    "min": 4,
    "max": 6
@@ -93,34 +93,117 @@
    {
     "batchNo": 1,
     "words": 251,
-    "validated": 249,
+    "validated": 251,
     "semanticallyReviewed": 249,
     "activeBeta": 249,
-    "needsHumanReview": 2,
+    "needsHumanReview": 0,
+    "excludedFromCore": 2,
+    "pending": 0,
     "stagingSmokePassed": false
    },
    {
     "batchNo": 2,
     "words": 250,
-    "validated": 233,
+    "validated": 250,
     "semanticallyReviewed": 233,
     "activeBeta": 233,
-    "needsHumanReview": 17,
+    "needsHumanReview": 0,
+    "excludedFromCore": 17,
+    "pending": 0,
     "stagingSmokePassed": false
    },
    {
     "batchNo": 3,
     "words": 250,
-    "validated": 204,
+    "validated": 250,
     "semanticallyReviewed": 204,
     "activeBeta": 204,
-    "needsHumanReview": 46,
+    "needsHumanReview": 0,
+    "excludedFromCore": 46,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 4,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 217,
+    "activeBeta": 217,
+    "needsHumanReview": 0,
+    "excludedFromCore": 33,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 5,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 223,
+    "activeBeta": 223,
+    "needsHumanReview": 0,
+    "excludedFromCore": 27,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 6,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 229,
+    "activeBeta": 229,
+    "needsHumanReview": 0,
+    "excludedFromCore": 21,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 7,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 197,
+    "activeBeta": 197,
+    "needsHumanReview": 0,
+    "excludedFromCore": 53,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 8,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 223,
+    "activeBeta": 223,
+    "needsHumanReview": 0,
+    "excludedFromCore": 27,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 9,
+    "words": 250,
+    "validated": 250,
+    "semanticallyReviewed": 223,
+    "activeBeta": 223,
+    "needsHumanReview": 0,
+    "excludedFromCore": 27,
+    "pending": 0,
+    "stagingSmokePassed": false
+   },
+   {
+    "batchNo": 10,
+    "words": 203,
+    "validated": 203,
+    "semanticallyReviewed": 169,
+    "activeBeta": 169,
+    "needsHumanReview": 0,
+    "excludedFromCore": 34,
+    "pending": 0,
     "stagingSmokePassed": false
    }
   ],
   "coreWords": 2647,
-  "coreWithOriginalContent": 686,
-  "remainingCoreWords": 1961,
+  "coreWithOriginalContent": 2167,
+  "remainingCoreWords": 480,
   "note": "一括生成はしない。250語単位で 生成→機械検査→意味レビュー→active_beta→staging smoke を繰り返す（§6）"
  },
  "warnings": {

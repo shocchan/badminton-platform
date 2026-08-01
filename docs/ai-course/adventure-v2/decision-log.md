@@ -21,3 +21,10 @@
 | D-017 | `effectiveVoice`（marin / cedar）は **analyticsへ送らない**。検証はサーバーログと `generated/teacher-voice-smoke.json` で行う | どのTTS音声かはlearnerの学習計測に不要な内部運用情報。§19の「不適切ならserver-side diagnosticのみ」に従った |
 | D-018 | 悠斗先生の `voiceSwitchAvailable` は **false のまま据え置き**、ja/zhの注意書きも残す | staging と production が同一Supabaseプロジェクト（`jdkwijdphlkrcoiggfqw`）を共有しており、`ai-lesson-token` のデプロイは **production Edge Function deploy に等しい＝禁止事項**。実音声smokeを実走できていない以上、「切り替わる」と表示してはならない（§7・§27） |
 | D-019 | 先生変更時は既存realtime sessionを `stop()` で正常終了してから新規sessionを作る（依存は `teacher.id` のみ） | 音声は session 作成時に確定するため、生成済みsessionのvoiceは差し替えない。言語切替（§4のmount1回設計）では発火させない |
+| D-020 | 語彙の最終状態を **`active_beta` / `excluded_from_core` の2つだけ**にし、`needs_human_review` を全廃 | 「保留」を残すと未完了が永久に積み上がる。教材化できない見出しは理由（`VocabExclusionReason` 8種）を型と文章で残して CORE から外す＝どちらに倒したかが必ず説明できる状態にする |
+| D-021 | active_beta には `explanationJa` / `explanationZh` を必須にし、`toSenseRecord()` が必須10項目を機械検査する | 「訳と例文だけ」では学習者が使い方を判断できない。既存686語にも遡って backfill した |
+| D-022 | 選択問題が2問未満の語は CORE から外す（`question_unbuildable`） | 1問しか作れない語を無理に水増しすると、語尾や長さで当てられる問題が混ざる。実測で外したのは45語 |
+| D-023 | 同音異表記が密集する語群（点く/付く、計る/図る/量る 等）は最も基本的な1語だけ active にする | 表記問題の誤答をactive語から選ぶ設計のため、同読みの別表記が複数activeだと**正解が2つ**になる |
+| D-024 | Edge Function は teacherId を**明示送信したリクエストにだけ**話し方の方針を足す | 共有Supabaseのため production frontend も同じ関数を使う。旧クライアントの instructions を1バイトも変えないための後方互換策。実APIで marin 継続を確認した |
+| D-025 | 教材データ（層C語彙・読解・聴解）を `manualChunks` で画面コードから分離 | AdvShell が gzip 568kB まで膨らみ、UIを1行直すたびに教材ぜんぶを再取得させていた。分離後 AdvShell は 43kB。初回総量は変わらない（静的importのため）ので、動的import化はP2として残す |
+| D-026 | 一時QA learner は `.invalid` ドメイン＋`temporary_qa` メタデータで作り、作業後に削除して前後件数を照合 | 実learnerへ誤配信・誤削除しないため。orphan行が残っていないことも機械確認した |
