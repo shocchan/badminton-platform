@@ -96,6 +96,8 @@ const STAGE_LANDMARK: Record<string, LandmarkKind> = {
   n2_grammar: 'tower',
   reading_listening: 'library',
   mock_boss: 'castle',
+  conversation_start: 'plaza',
+  conversation_growth: 'city',
 };
 
 /** 試験レイヤーの色調。基礎→朝、N3→昼、N2→夕、模試→夜。進むほど空が変わる */
@@ -108,6 +110,31 @@ const STAGE_TONE: Record<string, MapTone> = {
   n2_grammar: 'sky',
   reading_listening: 'forest',
   mock_boss: 'night',
+  conversation_start: 'meadow',
+  conversation_growth: 'sunset',
+};
+
+/**
+ * 色調の並び。隣り合う地域が同じ色調になったとき、次の候補へずらすのに使う。
+ * ルートの組み合わせは診断結果で変わるので、対応表を手で書くだけでは重複を防げない。
+ */
+const TONE_CYCLE: MapTone[] = ['dawn', 'meadow', 'forest', 'water', 'stone', 'sunset', 'sky', 'night'];
+
+/** 隣り合う地域の色調をずらす。並べたときに「どこも同じ」に見せないための処理 */
+const spreadTones = (regions: MapRegion[]): MapRegion[] => {
+  let prev: MapTone | null = null;
+  return regions.map((r) => {
+    let tone = r.tone;
+    if (tone === prev) {
+      const i = TONE_CYCLE.indexOf(r.tone);
+      for (let k = 1; k <= TONE_CYCLE.length; k += 1) {
+        const cand = TONE_CYCLE[(i + k) % TONE_CYCLE.length];
+        if (cand !== prev) { tone = cand; break; }
+      }
+    }
+    prev = tone;
+    return tone === r.tone ? r : { ...r, tone };
+  });
 };
 
 /** 試験レイヤーの章。地域を1つずつ見るのではなく「いま何編か」を掴ませる */
@@ -120,6 +147,10 @@ const STAGE_CHAPTER: Record<string, { ja: string; zh: string }> = {
   n2_grammar: { ja: '第3章　N2へ挑む', zh: '第3章　挑战N2' },
   reading_listening: { ja: '第3章　N2へ挑む', zh: '第3章　挑战N2' },
   mock_boss: { ja: '最終章　本番へ', zh: '最终章　迎接考试' },
+  // 試験ルートに編み込まれる会話stage。会話レイヤー12地域の章名（会話の旅N）と
+  // 見分けがつくよう「番外編」にする（似た章名が2つ並ぶと、どちらの話か分からなくなる）
+  conversation_start: { ja: '番外編　いま話せる場面から', zh: '番外篇　从现在能说的场景开始' },
+  conversation_growth: { ja: '番外編　実戦で伸ばす', zh: '番外篇　实战提升' },
 };
 
 const STAGE_ABILITY: Record<string, { ja: string; zh: string }> = {
@@ -131,6 +162,8 @@ const STAGE_ABILITY: Record<string, { ja: string; zh: string }> = {
   n2_grammar: { ja: 'N2語彙・文法', zh: 'N2词汇与语法' },
   reading_listening: { ja: '読解と聴解', zh: '阅读与听力' },
   mock_boss: { ja: '時間配分と総合力', zh: '时间分配与综合能力' },
+  conversation_start: { ja: 'いま話せる場面を増やす', zh: '增加现在能开口的场景' },
+  conversation_growth: { ja: '理由説明・言い直し・聞き返し', zh: '说明理由・改口・追问' },
 };
 
 /**
@@ -175,11 +208,11 @@ const CONVERSATION_BLURB: { ja: string; zh: string }[] = [
   { ja: '相手の話を受けて会話を続けられるようにする', zh: '让你能承接对方的话并把会话延续下去' },
   { ja: '話題が変わっても崩れない会話力にする', zh: '让你的会话在话题变化时也不会崩溃' },
 ];
-/** 会話編の章。4地域ずつ区切る */
+/** 会話レイヤーの章。4地域ずつ区切る */
 const conversationChapter = (i: number): { ja: string; zh: string } => {
-  if (i < 4) return { ja: '会話編1　話しはじめる', zh: '会话篇1　开口说话' };
-  if (i < 8) return { ja: '会話編2　伝える・頼む', zh: '会话篇2　表达与请求' };
-  return { ja: '会話編3　考えを語る', zh: '会话篇3　讲述想法' };
+  if (i < 4) return { ja: '会話の旅1　話しはじめる', zh: '会话之旅1　开口说话' };
+  if (i < 8) return { ja: '会話の旅2　伝える・頼む', zh: '会话之旅2　表达与请求' };
+  return { ja: '会話の旅3　考えを語る', zh: '会话之旅3　讲述想法' };
 };
 
 /** 攻略済みの地域に出す共通の行動（維持は復習でやる） */
@@ -205,6 +238,15 @@ const examRegions = (
   const done = mastered.has(s.stageId);
   // 攻略条件そのものではなく「**いま何回足りないか**」を出す（advMasteryの正直な文言を使う）
   const st = computeMastery(ledger[s.stageId], nowISO);
+  // 「ここまで」は台帳の実績をそのまま言う。
+  // 定着50%と出しているのに「まだ攻略していません」だけだと、数字と言葉が食い違う
+  const soFar = done || st.state === 'mastered'
+    ? { ja: 'この地域は攻略済みです', zh: '这个地区已经攻略完成' }
+    : st.state === 'cleared_pending_delay'
+      ? { ja: '別の日に3回クリア。7日後の確認待ちです', zh: '已在不同的日子通过3次。等待7天后的复查' }
+      : st.qualifyingDays.length > 0
+        ? { ja: `別の日に${st.qualifyingDays.length}回、80%以上を達成しています`, zh: `已在${st.qualifyingDays.length}个不同的日子达到80%以上` }
+        : { ja: 'まだ挑戦していません', zh: '还没有挑战过' };
   return {
     id: s.stageId,
     layer: 'exam' as const,
@@ -220,8 +262,8 @@ const examRegions = (
     tone: STAGE_TONE[s.kind] ?? 'meadow',
     state: (done ? 'done' : 'locked') as RegionState,
     masteryPct: done ? 100 : null,
-    doneJa: done ? 'この地域は攻略済みです' : 'まだ攻略していません',
-    doneZh: done ? '这个地区已经攻略完成' : '还没有攻略',
+    doneJa: soFar.ja,
+    doneZh: soFar.zh,
     nextJa: done ? '攻略済み。ときどき復習で維持する' : st.nextJa,
     nextZh: done ? '已攻克。偶尔复习保持' : st.nextZh,
     unlockJa: '', unlockZh: '',
@@ -229,7 +271,11 @@ const examRegions = (
       ? { kind: 'mock' as const, labelJa: 'ミニ模試を受ける', labelZh: '参加迷你模拟考',
           reasonJa: '本番と同じ形式で、時間配分ごと試す場所です',
           reasonZh: '这里用与正式考试相同的形式，连时间分配一起练' }
-      : todayAction(s.clearConditionJa, s.clearConditionZh)),
+      // 攻略条件は上の「次にすること」に出しているので、ここは**なぜ押すのか**を書く
+      : todayAction(
+        '今日の冒険には、この地域を攻略するための問題が入っています',
+        '今天的冒险里，就有攻略这个地区所需要的题目',
+      )),
     estMinutes: dailyMinutes,
   };
 });
@@ -294,17 +340,20 @@ export const buildAdventureMap = (
   const exam = route ? examRegions(route, mastered, daily, ledger, nowISO) : [];
   const conv = conversationRegions(currentWeek, daily);
 
-  let regions: MapRegion[];
+  let built: MapRegion[];
   let mergeIndex: number | null = null;
-  if (routeKind === 'exam') regions = exam;
-  else if (routeKind === 'conversation') regions = conv;
+  if (routeKind === 'exam') built = exam;
+  else if (routeKind === 'conversation') built = conv;
   else {
     // 総合: 目的に応じて主レイヤーを先に置き、もう一方を合流させる
     const examFirst = prof.goalType !== 'conversation';
-    regions = examFirst ? [...exam, ...conv] : [...conv, ...exam];
+    built = examFirst ? [...exam, ...conv] : [...conv, ...exam];
     mergeIndex = examFirst ? exam.length : conv.length;
-    if (mergeIndex === 0 || mergeIndex === regions.length) mergeIndex = null;
+    if (mergeIndex === 0 || mergeIndex === built.length) mergeIndex = null;
   }
+
+  // 診断結果で stage の組み合わせが変わるので、並べ終えてから色調の重複をならす
+  const regions = spreadTones(built);
 
   // 現在地＝未攻略の先頭。1つだけに確定させる
   const firstOpen = regions.findIndex((r) => r.state !== 'done');

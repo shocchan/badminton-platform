@@ -287,12 +287,16 @@ export const AdvAdventureMap = ({
               style={{ width: `${overallPct}%` }} />
           </div>
           {nextRegion && (
-            <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden />
-              {tx(lang, '次の目的地：', '下一个目的地：')}
-              <span className="font-semibold text-gray-800">{tx(lang, nextRegion.nameJa, nextRegion.nameZh)}</span>
-              <span className="truncate text-gray-500">（{tx(lang, nextRegion.abilityJa, nextRegion.abilityZh)}）</span>
-            </p>
+            // 地域名は長いことがある（例「会話の開始地点：ヒノデ台（暮らしの会話）」）。
+            // 1行に押し込まず、素直に折り返させる
+            <div className="mt-2 flex items-start gap-1.5 text-xs text-gray-600">
+              <ChevronRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" aria-hidden />
+              <p className="min-w-0">
+                {tx(lang, '次の目的地：', '下一个目的地：')}
+                <span className="font-semibold text-gray-800">{tx(lang, nextRegion.nameJa, nextRegion.nameZh)}</span>
+                <span className="text-gray-500">（{tx(lang, nextRegion.abilityJa, nextRegion.abilityZh)}）</span>
+              </p>
+            </div>
           )}
         </div>
       </section>
@@ -382,21 +386,27 @@ export const AdvAdventureMap = ({
               const isLast = i === map.regions.length - 1;
               // 攻略済みの区間は実線で明るく、これからの区間は点線
               const railDone = r.state === 'done';
+              // 章の見出しが挟まる行は、その高さぶんだけ道の始点が下がる
+              const chapterOffset = newChapter ? 30 : 0;
               return (
                 <li key={r.id} ref={isCurrent ? currentRef : undefined} className="relative">
+                  {/*
+                    冒険の道。**<li>全体を貫く**ように引く。
+                    行の中だけに引くと、地域カードを開いたときに道が途切れて見える
+                  */}
+                  <span aria-hidden
+                    className={`absolute left-[38px] -translate-x-1/2 border-l-4 ${
+                      railDone ? 'border-emerald-400' : isCurrent ? 'border-blue-400 border-dashed' : 'border-gray-300 border-dashed'
+                    }`}
+                    style={{ top: chapterOffset, height: isLast ? 44 : `calc(100% - ${chapterOffset}px)` }} />
                   {newChapter && (
                     <p className={`relative z-10 -mx-1 mb-1 rounded-lg bg-gray-900/85 px-3 py-1 text-[11px] font-bold text-white ${i === 0 ? '' : 'mt-3'}`}>
                       {tx(lang, r.chapterJa, r.chapterZh)}
                     </p>
                   )}
                   <div className="flex gap-3">
-                    {/* 道（縦のレール）＋地域のイラスト */}
+                    {/* 地域のイラスト（道の上に立つ） */}
                     <div className="relative w-[76px] shrink-0">
-                      <span aria-hidden
-                        className={`absolute left-1/2 -translate-x-1/2 border-l-4 ${
-                          railDone ? 'border-emerald-400' : isCurrent ? 'border-blue-400 border-dashed' : 'border-gray-300 border-dashed'
-                        }`}
-                        style={{ top: 0, height: isLast ? 44 : '100%' }} />
                       <button type="button"
                         onClick={() => setOpenId(openId === r.id ? null : r.id)}
                         aria-label={regionAria(r)} aria-expanded={openId === r.id}
@@ -450,9 +460,17 @@ export const AdvAdventureMap = ({
                           {tx(lang, r.abilityJa, r.abilityZh)}
                         </span>
                       </button>
-                      {openRegion?.id === r.id && <RegionDetail r={r} />}
                     </div>
                   </div>
+                  {/*
+                    詳細は**行の外・画面幅いっぱい**に出す。
+                    細い右カラムの中に入れると、スマホで文章もボタンも潰れる
+                  */}
+                  {openRegion?.id === r.id && (
+                    <div className="relative z-10 pb-3">
+                      <RegionDetail r={r} />
+                    </div>
+                  )}
                 </li>
               );
             })}

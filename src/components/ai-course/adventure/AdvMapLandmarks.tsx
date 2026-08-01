@@ -413,13 +413,17 @@ export const LandmarkScene = ({ kind, tone, fogged = false, className }: ScenePr
       <Backdrop c={c} gid={`sky-${gid}`} />
       {landmarkOf(kind, c)}
       <Foreground c={c} />
-      {/* ことばの霧。イラストを消さずに「まだ見えない」を表す */}
+      {/*
+        ことばの霧。**イラストを消してしまわない濃さ**にする。
+        濃くしすぎると未解放の地域がどれも同じ白い板になり、
+        「この先に何があるか」が想像できなくなる（＝行きたくならない）
+      */}
       {fogged && (
         <>
-          <rect x="0" y="0" width="160" height="110" fill="#cbd5e1" opacity="0.72" />
-          <path d="M-6 62 q28 -9 56 0 q28 9 56 0 q28 -9 56 0 V114 H-6 Z" fill="#f1f5f9" opacity="0.85" />
-          <path d="M-6 44 q24 -7 48 0 q24 7 48 0 q24 -7 48 0" stroke="#fff" strokeWidth="7"
-            fill="none" opacity="0.7" strokeLinecap="round" />
+          <rect x="0" y="0" width="160" height="110" fill="#cbd5e1" opacity="0.5" />
+          <path d="M-6 66 q28 -9 56 0 q28 9 56 0 q28 -9 56 0 V114 H-6 Z" fill="#f1f5f9" opacity="0.7" />
+          <path d="M-6 46 q24 -7 48 0 q24 7 48 0 q24 -7 48 0" stroke="#fff" strokeWidth="6"
+            fill="none" opacity="0.6" strokeLinecap="round" />
         </>
       )}
     </svg>

@@ -15,7 +15,8 @@ import type {
   AdventureV2Profile, AdvGoalType, AdvTodayQuest, AdvMasteryAttempt,
 } from '../../src/lib/aiLesson/course/adventure/advTypes';
 
-const OUT = 'docs/ai-course/adventure-v2/generated/growth-map-sheet.html';
+const DIR = 'docs/ai-course/adventure-v2/generated/';
+const OUT = `${DIR}growth-map-sheet.html`;
 const NOW = new Date().toISOString();
 
 const qualifying = (dateKey: string): AdvMasteryAttempt => ({
@@ -100,25 +101,30 @@ const cssFile = readdirSync('dist/assets').find((f) => f.endsWith('.css'));
 if (!cssFile) throw new Error('dist/assets に CSS がありません。先に npm run build を実行してください');
 const css = readFileSync(`dist/assets/${cssFile}`, 'utf8');
 
-const frames = VARIANTS.map((v) => `
-  <figure style="margin:0">
-    <figcaption style="font:600 12px/1.5 system-ui;color:#334155;margin-bottom:6px">${v.caption}</figcaption>
-    <div style="width:${v.width}px;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#fff">
-      ${renderToStaticMarkup(v.node)}
-    </div>
-  </figure>`).join('\n');
+// CSSは1ファイルにまとめて全ページから参照する（各ページに埋めると140KB×枚数になる）
+writeFileSync(`${DIR}growth-map-sheet.css`, `${css}\nbody{margin:0;padding:16px;background:#f1f5f9;font-family:system-ui}\n`);
 
-writeFileSync(OUT, `<!doctype html>
+const page = (title: string, body: string) => `<!doctype html>
 <html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>成長マップ 見た目確認シート</title>
-<style>${css}</style>
-<style>body{margin:0;padding:20px;background:#f1f5f9;font-family:system-ui}
-.sheet{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}</style>
-</head><body>
+<title>${title}</title>
+<link rel="stylesheet" href="growth-map-sheet.css">
+</head><body>${body}</body></html>`;
+
+// 1画面ずつ別ファイルにする。1枚に並べると縦に長すぎて全体を撮れない
+for (const v of VARIANTS) {
+  writeFileSync(`${DIR}growth-map-${v.id}.html`, page(v.caption, `
+    <p style="font:600 12px/1.5 system-ui;color:#334155;margin:0 0 8px">${v.caption}</p>
+    <div style="width:${v.width}px;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#fff">
+      ${renderToStaticMarkup(v.node)}
+    </div>`));
+}
+
+writeFileSync(OUT, page('成長マップ 見た目確認シート', `
 <h1 style="font:700 16px/1.4 system-ui;color:#0f172a">成長マップ 見た目確認シート（レビュー専用・製品には含まれない）</h1>
-<p style="font:400 12px/1.6 system-ui;color:#475569">生成: ${NOW}／操作はできません（静的HTML）。押したときの遷移は実機で確認すること。</p>
-<div class="sheet">${frames}</div>
-</body></html>`);
+<p style="font:400 12px/1.6 system-ui;color:#475569">生成: ${NOW}／静的HTMLなので操作はできない。押したときの遷移は実機で確認すること。</p>
+<ul style="font:400 13px/2 system-ui">
+${VARIANTS.map((v) => `<li><a href="growth-map-${v.id}.html">${v.caption}</a></li>`).join('\n')}
+</ul>`));
 
 console.log(`✅ ${OUT} (${VARIANTS.length} variants)`);
