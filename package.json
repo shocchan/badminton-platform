@@ -15,7 +15,9 @@
     "validate:ai-course-env": "node scripts/ai-course/verify-production-env.mjs",
     "validate:ai-course-language-integrity": "vite-node scripts/ai-course/validate-language-integrity.ts",
     "validate:ai-course-answer-distribution": "vite-node scripts/ai-course/validate-answer-distribution.ts",
-    "validate:ai-course": "npm run validate:ai-course-language-integrity && npm run validate:ai-course-answer-distribution"
+    "validate:ai-course": "npm run validate:ai-course-language-integrity && npm run validate:ai-course-answer-distribution && npm run validate:ai-course-vocab-content",
+    "validate:ai-course-vocab-content": "vite-node scripts/ai-course/validate-vocab-content.ts 1",
+    "report:ai-course-coverage": "vite-node scripts/ai-course/exam-coverage-matrix.ts"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",

@@ -1,0 +1,162 @@
+{
+ "generatedAt": "2026-08-01T06:11:51.003Z",
+ "purpose": "試験の5区分（文字・語彙／文法／読解／聴解／時間配分）が、N3とN2それぞれで学習と測定に接続されているかの実測",
+ "rows": [
+  {
+   "level": "N3",
+   "skills": {
+    "charactersVocabulary": {
+     "label": "文字・語彙",
+     "activeQuestions": 1438,
+     "fromOriginalVocabContent": 975,
+     "fromUnitQuestions": 463,
+     "wordsWithContent": 249,
+     "aspects": {
+      "meaning": 249,
+      "orthography": 200,
+      "usage": 139,
+      "context": 204,
+      "reading": 133,
+      "confusable": 50
+     },
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "grammar": {
+     "label": "文法",
+     "activeQuestions": 877,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "reading": {
+     "label": "読解",
+     "sets": 30,
+     "activeQuestions": 30,
+     "byType": {
+      "shortPassage": 6,
+      "midPassage": 6,
+      "longPassage": 6,
+      "infoSearch": 6,
+      "keyPoint": 6
+     },
+     "target": "100〜120セット",
+     "shortfall": 70,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "listening": {
+     "label": "聴解",
+     "sets": 25,
+     "playable": 25,
+     "activeQuestions": 25,
+     "byType": {
+      "taskComprehension": 5,
+      "pointComprehension": 5,
+      "outlineComprehension": 5,
+      "quickResponse": 5,
+      "integrated": 5
+     },
+     "missingAudio": 0,
+     "target": "100〜100セット",
+     "shortfall": 75,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "timeManagement": {
+     "label": "時間配分",
+     "mockRunnable": true,
+     "mockSections": [
+      "languageKnowledge",
+      "reading",
+      "listening"
+     ],
+     "mockTitleJa": "N3総合ミニ模試",
+     "mockReady": true,
+     "blockersJa": [],
+     "requiredMockRuns": 3
+    }
+   }
+  },
+  {
+   "level": "N2",
+   "skills": {
+    "charactersVocabulary": {
+     "label": "文字・語彙",
+     "activeQuestions": 1438,
+     "fromOriginalVocabContent": 975,
+     "fromUnitQuestions": 463,
+     "wordsWithContent": 249,
+     "aspects": {
+      "meaning": 249,
+      "orthography": 200,
+      "usage": 139,
+      "context": 204,
+      "reading": 133,
+      "confusable": 50
+     },
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "grammar": {
+     "label": "文法",
+     "activeQuestions": 877,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "reading": {
+     "label": "読解",
+     "sets": 30,
+     "activeQuestions": 30,
+     "byType": {
+      "shortPassage": 6,
+      "midPassage": 6,
+      "integrated": 6,
+      "thematic": 6,
+      "infoSearch": 6
+     },
+     "target": "120〜150セット",
+     "shortfall": 90,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "listening": {
+     "label": "聴解",
+     "sets": 25,
+     "playable": 25,
+     "activeQuestions": 25,
+     "byType": {
+      "taskComprehension": 5,
+      "pointComprehension": 5,
+      "outlineComprehension": 5,
+      "quickResponse": 5,
+      "integrated": 5
+     },
+     "missingAudio": 0,
+     "target": "100〜125セット",
+     "shortfall": 75,
+     "meetsMockMinimum": true,
+     "meetsReadinessMinimum": true
+    },
+    "timeManagement": {
+     "label": "時間配分",
+     "mockRunnable": true,
+     "mockSections": [
+      "languageKnowledge",
+      "reading",
+      "listening"
+     ],
+     "mockTitleJa": "N2総合ミニ模試",
+     "mockReady": true,
+     "blockersJa": [],
+     "requiredMockRuns": 3
+    }
+   }
+  }
+ ],
+ "verdict": {
+  "allFiveSkillsConnected": true,
+  "readingTargetMet": false,
+  "listeningTargetMet": false,
+  "note": "「接続されている」は模試の最低問題数を満たし出題経路があること。§8の到達目標（読解100〜150・聴解100〜125セット）とは別の基準である"
+ }
+}
