@@ -1064,9 +1064,14 @@ export default function AiCoursePage() {
     );
   }
   // V2の入口: URLに ?v2=1 があるときだけ表示（既存learnerを自動移行しない・§2/§23）
+  //
+  // ここは**初回ログインで全員が必ず1回通る画面**（enabled既定OFF＋案内文が ?v2=1 を開かせる）。
+  // ナビのタブは出さない: この画面はまだ v2Mode ではないので旧コースのナビが出てしまい、
+  // 「冒険を始める」を押す前の学習者が旧コースへ迷い込める（canon 原則3「1画面1決断」）。
+  // 旧コースへ行きたい人の道は下の「従来のホームへ」で残している。
   if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed} navHidden>
         <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
           <h2 className="text-lg font-bold text-gray-900">
             {uiLang === 'zh' ? '要开始「冒险模式V2（测试版）」吗？' : '「冒険モードV2（ベータ）」を始めますか？'}
@@ -1258,7 +1263,7 @@ const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: '
 };
 
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
-const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false }: {
+const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false, navHidden = false }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
   nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
@@ -1273,6 +1278,8 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
   teacherId?: AdvTeacherId | null;
   /** V2有効時はナビを「今日の冒険 / 冒険マップ / 設定」の3つへ絞る（canon §5） */
   v2Mode?: boolean;
+  /** ナビのタブだけ隠す（ログアウト・言語切替は残す）。V2の入場画面で使う */
+  navHidden?: boolean;
 }) => {
   return (
     <TeacherProvider teacherId={teacherId}>
@@ -1292,7 +1299,7 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
-        lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode}
+        lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode} navHidden={navHidden}
       />
       {children}
       {/* 学習アプリ側にも法務導線を置く（LPだけにあると、

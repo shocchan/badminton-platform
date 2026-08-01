@@ -84,3 +84,23 @@ describe('ヘッダーの「日本語のしくみ」主要ナビ（§1）', () =
     expect(screen.queryByText('日语构造实验室')).toBeNull();
   });
 });
+
+describe('V2入場画面のナビ（navHidden）', () => {
+  it('**タブを1つも出さない**（冒険を始める前に旧コースへ迷い込ませない）', () => {
+    render(<CourseHeader {...base} showLab navHidden />);
+    for (const key of ['home', 'conversation', 'vocab', 'lab', 'growth', 'roadmap', 'history'] as const) {
+      expect(screen.queryByText(t.nav[key]), key).toBeNull();
+    }
+  });
+
+  it('ログアウトと言語切替は残す（ログイン済みの人を閉じ込めない）', () => {
+    render(<CourseHeader {...base} showLab navHidden lang="ja" onToggleLang={() => {}} />);
+    expect(screen.getByText(t.login.logout)).toBeTruthy();
+    expect(screen.getByText('中文')).toBeTruthy();
+  });
+
+  it('navHiddenを付けなければ従来どおりタブが出る', () => {
+    render(<CourseHeader {...base} showLab />);
+    expect(screen.getAllByText(t.nav.growth).length).toBeGreaterThan(0);
+  });
+});

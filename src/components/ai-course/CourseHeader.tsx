@@ -27,6 +27,14 @@ interface Props {
    * 進捗の表示は冒険マップへ一本化する。
    */
   v2Mode?: boolean;
+  /**
+   * ナビのタブだけを隠す（ブランド・言語切替・ログアウトは残す）。
+   *
+   * V2の入場画面のように「ここで決めることが1つしかない」画面で使う。
+   * その画面はまだ v2Mode ではない＝旧コースのナビが出てしまい、
+   * 冒険を始める前の学習者が旧コースへ迷い込めてしまうため（canon 原則3/16）。
+   */
+  navHidden?: boolean;
   current?: CourseNavKey;
   onNavigate?: (key: CourseNavKey) => void;
   onLogout?: () => void;
@@ -159,9 +167,11 @@ const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: ()
   </button>
 );
 
-export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false, v2Mode = false }: Props) => {
+export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false, v2Mode = false, navHidden = false }: Props) => {
   const toggleLabel = lang === 'ja' ? '中文' : '日本語';
   const NAV = navItems(showLab, v2Mode);
+  // タブを出すか。ログアウト・言語切替は navHidden でも残す（ログイン済みの人を閉じ込めない）
+  const showTabs = showNav && !navHidden;
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4">
@@ -173,7 +183,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
           </div>
 
           {/* lg以上: ナビを中央に1段で出す */}
-          {showNav && onNavigate && (
+          {showTabs && onNavigate && (
             <nav className="hidden lg:flex items-center gap-1" aria-label={t.brand}>
               {NAV.map(({ key, icon: Icon }) => {
                 // ことば/しくみは役割subtitle＋説明ariaで「何を学ぶ場所か」を一目で示す（2026-07-30 CEO UX指示）
@@ -218,7 +228,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
         {/* ── 下段: スマホ/タブレット用タブ（lg未満のみ）。
              labPreviewは案A（2E-1.5 §16）: 主要4項目＋「その他」（成長・設定は軽量シート）。
              一般受講生は従来の5項目のまま。 ── */}
-        {showNav && onNavigate && (
+        {showTabs && onNavigate && (
           showLab
             ? <MobileLabNav t={t} current={current} onNavigate={onNavigate} />
             : (
