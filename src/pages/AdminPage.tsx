@@ -342,6 +342,7 @@ interface Activity {
   archived_at?: string | null;
   created_at: string;
   view_count?: number;
+  group_id?: string | null;
 }
 
 interface ActivityEntry {
@@ -398,6 +399,10 @@ const formatDateJP = (dateStr: string) => {
 
 const sourceLabel = (s: string) => s === 'line' ? '📱 LINE' : s === 'wechat' ? '💬 WeChat' : '🌐 サイト';
 
+// メイン管理画面（川口・蕨）に統合表示するサブグループ。
+// 公開一覧（ActivityPage の MERGED_SUBGROUP_SLUGS）と同じ対象を管理画面でも扱う。
+const MERGED_SUBGROUP_SLUGS = ['assistant'];
+
 const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?: string }) => {
   const isSubGroupTab = !!groupSlug;
   const INITIAL_ACTIVITY = isSubGroupTab
@@ -417,31 +422,63 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
   const [copyToast, setCopyToast] = useState('');
   // 場所選択: プリセット名 または VENUE_OTHER（その他＝自由入力）
   const [venueSelect, setVenueSelect] = useState<string>('');
+  // 統合表示しているサブグループの情報（group_id → slug/表示名）。バッジ表示と公開URLの組み立てに使う
+  const [subGroupMeta, setSubGroupMeta] = useState<Record<string, { slug: string; name: string }>>({});
 
   const fetchAll = useCallback(async () => {
-    let query = supabase.from('activities').select('*').order('date', { ascending: true });
-    if (groupId) query = query.eq('group_id', groupId);
-    const { data: acts } = await query;
-    if (acts) {
-      setActivities(acts);
-      if (acts.length) {
-        const { data: ents } = await supabase
-          .from('activity_entries')
-          .select('*')
-          .in('activity_id', acts.map((a: Activity) => a.id))
-          .order('created_at', { ascending: true });
-        if (ents) {
-          const grouped: Record<string, ActivityEntry[]> = {};
-          for (const e of ents) {
-            if (!grouped[e.activity_id]) grouped[e.activity_id] = [];
-            grouped[e.activity_id].push(e);
-          }
-          setEntries(grouped);
+    const fetchForGroup = (gid: string) =>
+      supabase
+        .from('activities')
+        .select('*')
+        .eq('group_id', gid)
+        .order('date', { ascending: true })
+        .then(({ data }) => (data ?? []) as Activity[]);
+
+    let acts: Activity[];
+    if (isSubGroupTab) {
+      // サブグループ管理者は自グループのみ
+      acts = groupId ? await fetchForGroup(groupId) : [];
+    } else {
+      // メイン管理画面はスタッフ（assistant等）が作った活動も一緒に表示する
+      const subGroups = await Promise.all(
+        MERGED_SUBGROUP_SLUGS.map(slug =>
+          supabase
+            .rpc('get_group_info', { group_slug: slug })
+            .single()
+            .then(({ data }) => data as { id: string; slug: string; name: string; badge_label: string | null } | null)
+        )
+      );
+      const meta: Record<string, { slug: string; name: string }> = {};
+      for (const g of subGroups) {
+        if (g) meta[g.id] = { slug: g.slug, name: g.badge_label || g.name };
+      }
+      setSubGroupMeta(meta);
+      const ids = [groupId, ...Object.keys(meta)].filter((v): v is string => !!v);
+      acts = (await Promise.all(ids.map(fetchForGroup))).flat();
+    }
+
+    acts.sort((a, b) =>
+      a.date !== b.date ? a.date.localeCompare(b.date) : a.start_time.localeCompare(b.start_time)
+    );
+
+    setActivities(acts);
+    if (acts.length) {
+      const { data: ents } = await supabase
+        .from('activity_entries')
+        .select('*')
+        .in('activity_id', acts.map((a: Activity) => a.id))
+        .order('created_at', { ascending: true });
+      if (ents) {
+        const grouped: Record<string, ActivityEntry[]> = {};
+        for (const e of ents) {
+          if (!grouped[e.activity_id]) grouped[e.activity_id] = [];
+          grouped[e.activity_id].push(e);
         }
+        setEntries(grouped);
       }
     }
     setLoading(false);
-  }, []);
+  }, [groupId, isSubGroupTab]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -472,7 +509,9 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
       if (error) { setSaveError(`保存エラー: ${error.message}`); return; }
     } else {
       // kawaguchi-warabi: 直接保存（Supabase Auth認証済み）
-      const payload = { ...form, title, ...(groupId ? { group_id: groupId } : {}) };
+      // 編集時は group_id を渡さない（スタッフ作成の活動を編集しても所属グループを奪わないため）。
+      // 新規作成時のみメイングループに紐付ける。
+      const payload = { ...form, title, ...(!editId && groupId ? { group_id: groupId } : {}) };
       const { error } = editId
         ? await supabase.from('activities').update(payload).eq('id', editId)
         : await supabase.from('activities').insert(payload);
@@ -712,11 +751,22 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
         const memberTotal = actEntries.filter(e => e.member_type === 'member').reduce((s, e) => s + e.quantity, 0);
         const normalTotal = actEntries.filter(e => e.member_type === 'normal').reduce((s, e) => s + e.quantity, 0);
 
+        // スタッフ（統合表示サブグループ）が作った活動は公開URLもそのグループ配下になる
+        const subGroup = a.group_id ? subGroupMeta[a.group_id] : undefined;
+        const urlBase = groupSlug ? `/${groupSlug}` : subGroup ? `/${subGroup.slug}` : '';
+
         return (
           <div key={a.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-bold text-gray-900">{a.title}</h3>
+                <h3 className="font-bold text-gray-900">
+                  {a.title}
+                  {subGroup && (
+                    <span className="ml-2 align-middle text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      {subGroup.name}
+                    </span>
+                  )}
+                </h3>
                 <p className="text-sm text-gray-500 mt-0.5">
                   {formatDateJP(a.date)}{'　'}{a.start_time.slice(0,5)}〜{a.end_time.slice(0,5)}{'　'}{a.location}
                 </p>
@@ -724,8 +774,8 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
               </div>
               <div className="flex gap-2 flex-shrink-0 ml-3 flex-wrap justify-end">
                 {!a.archived_at && <>
-                  <button onClick={() => { const base = groupSlug ? `/${groupSlug}` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
-                  <button onClick={() => { const base = groupSlug ? `/${groupSlug}` : ''; navigator.clipboard.writeText(`https://kawabado.com${base}/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
+                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com${urlBase}/activity/${a.id}`); setCopyToast('🇯🇵URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="日本語URL">🇯🇵URL</button>
+                  <button onClick={() => { navigator.clipboard.writeText(`https://kawabado.com${urlBase}/activity-cn/${a.id}?from=wechat`); setCopyToast('🇨🇳URLコピー'); setTimeout(()=>setCopyToast(''),2000); }} className="text-xs text-gray-500 hover:underline" title="中国語URL">🇨🇳URL</button>
                   <button onClick={() => copyWechatText(a, actEntries)} className="text-xs text-purple-500 hover:underline" title="WeChatテキストコピー">📋WeChat</button>
                   <button onClick={() => exportExcel(a, actEntries)} className="text-xs text-green-600 hover:underline" title="Excel出力">📊Excel</button>
                   <button onClick={() => handleEdit(a)} className="text-xs text-blue-500 hover:underline">編集</button>
