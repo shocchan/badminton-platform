@@ -1,7 +1,7 @@
 # 【N2／N3 ADAPTIVE ADVENTURE FINAL COMPLETION】
 
 作成: 2026-08-01 ／ branch `feature/ai-course-adventure-v2-final-completion`
-staging: https://staging.badminton-platform.pages.dev （deploy `6fba10e2`）
+staging: https://staging.badminton-platform.pages.dev （deploy `55ed015e`）
 **production へは一切反映していない。**
 
 ---
@@ -20,10 +20,10 @@ AI Conversation E2E           : INCOMPLETE（同上）
 
 Canonical Vocabulary          : 10,499語
 CORE Total                    : 2,647語
-CORE Content Complete         : 482 / 2,647
-CORE Question Coverage        : 482 / 2,647 Sense
-N3 Active Vocabulary Questions: 1,928問（層C）＋ 463問（単元）＝ 2,391問
-N2 Active Vocabulary Questions: 同上 2,391問
+CORE Content Complete         : 686 / 2,647
+CORE Question Coverage        : 686 / 2,647 Sense
+N3 Active Vocabulary Questions: 2,999問（層C）＋ 463問（単元）＝ 3,462問
+N2 Active Vocabulary Questions: 同上 3,462問
 JLPT Active Free-text         : 0件
 
 N3 Reading                    : 100 / 100
@@ -44,7 +44,7 @@ P1 : 2件（いずれも外部要因でブロック）
 P2 : 2件
 P3 : 1件
 
-N2 Exam Coverage Complete     : NO（語彙 482/2,647）
+N2 Exam Coverage Complete     : NO（語彙 686/2,647）
 N3 Exam Coverage Complete     : NO（同上）
 Pilot Complete                : NO
 Staging Ready                 : YES
@@ -62,8 +62,8 @@ Production Deploy             : NOT_EXECUTED
 | N3聴解 | 25 | **100**（実音声100件） |
 | N2聴解 | 25 | **100**（実音声100件） |
 | 聴解の音声 | 50件 / 975秒 | **200件 / 5,515秒**・失敗0 |
-| CORE語彙 層C | 249語 | **482語**（batch02で+233・保留17） |
-| 語彙の選択式問題 | 975問 | **1,928問** |
+| CORE語彙 層C | 249語 | **686語**（batch02 +233／batch03 +204・保留計63） |
+| 語彙の選択式問題 | 975問 | **2,999問** |
 | テスト | 1,509 | **1,536** |
 | 先生別realtime音声 | 未実装 | **実装済み**（allowlist・実走待ち） |
 
@@ -170,6 +170,11 @@ const resolveTeacherId = (v: unknown) =>
 |---|---|---|---|
 | 01 | 251 | 249 | 2 |
 | 02 | 250 | **233** | **17** |
+| 03 | 250 | **204** | **46** |
+
+batch03 の保留46語は、サ変語幹に「する」が付いたまま採取された見出し（`相談|そうだんする` 等11語）、
+動詞連用形の見出し（切り・使い・持ち・読み・働き等17語）、機能語（まま・たり・はず・つもり・みたい等11語）、
+読みが辞書索引と合わない語（`目標|めじるし`・`故郷|くに`・`いくら|イクラ`・`降り|くだり`）。
 
 batch02 の保留17語は、動詞連用形が見出しとして採取されただけのもの（「話し」「決め」「考え」「受け」等）、
 機能語（「たい」「より」「そう」等）、読みが辞書索引で確認できない語（日本|にっぽん・今日|こんにち・明日|あす）。
@@ -221,16 +226,17 @@ eslint         src/components/ai-course・src/lib/aiLesson・src/pages/ai-lesson
 build:staging  成功（language integrity validator を通過）
 language integrity  blocking 0 ／ warning 970（中国語解説内の未引用日本語＝教材の表記様式）
 answer distribution 24.99 / 25.02 / 24.97 / 25.01 %
-vocab content       batch1 blocking 2・batch2 blocking 3（**いずれも needs_human_review 側。active は 0**）
+vocab content       batch1 2 / batch2 3 / batch3 11 の blocking
+                    → **全件が needs_human_review 側。active_beta の blocking は 0**（機械照合済み）
 audio manifest      200 / 200・失敗0
-staging deploy      6fba10e2
+staging deploy      55ed015e
 ```
 
 ### staging 実配信の確認
 
 | 確認 | 結果 |
 |---|---|
-| `AdvShell-CWS0q1KB.js` が dist と一致し 200 | ✅ |
+| `AdvShell-B2ivojCZ.js` が dist と一致し 200 | ✅ |
 | 新規setId（`n3r-key-20` / `n2r-theme-24` / `n3l-int-20` / `n2l-quick-20`）が配信バンドルに含まれる | ✅ |
 | 新規音声（`n3l-task-20` / `n2l-outline-20` / `n2l-point-06`）が 200 | ✅ |
 | 「本番同等」が含まれない | ✅ |
@@ -254,8 +260,8 @@ staging deploy      6fba10e2
 
 | # | 内容 | 補足 |
 |---|---|---|
-| P2-1 | CORE語彙 層C の残り **1,916語**（約8バッチ） | batch03・04 の対象リストは切り出し済み |
-| P2-2 | `AdvShell` チャンクが 900 kB（gzip 263 kB）へ肥大 | 読解・聴解bankを取り込んだため。lazy chunkなので初回表示は影響しないが、冒険を開くときに読み込む。`readingPool()`/`listeningPool()` を動的importへ変える改修が要る（AdvShell・AdvMockRunner・クエスト生成に波及するため、実機検証できないこのセッションでは行わなかった） |
+| P2-1 | CORE語彙 層C の残り **1,703語**（約7バッチ・`select-core-batch.ts` の実測 pending） | batch04 の対象リストは切り出し済み（`core-batch-04.json`） |
+| P2-2 | `AdvShell` チャンクが 940 kB（gzip 約275 kB）へ肥大 | 読解・聴解bankを取り込んだため。lazy chunkなので初回表示は影響しないが、冒険を開くときに読み込む。`readingPool()`/`listeningPool()` を動的importへ変える改修が要る（AdvShell・AdvMockRunner・クエスト生成に波及するため、実機検証できないこのセッションでは行わなかった） |
 
 ### P3
 

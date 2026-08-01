@@ -151,12 +151,12 @@
         "src/lib/aiLesson/course/adventure/vocab/content/"
       ],
       "inputCount": 2398,
-      "completedCount": 482,
-      "remainingCount": 1916,
+      "completedCount": 686,
+      "remainingCount": 1703,
       "acceptanceCommand": "npm run validate:ai-course-vocab-content",
       "evidencePath": "docs/ai-course/adventure-v2/generated/vocab-content-validation-*.json",
       "blockedReason": null,
-      "nextAction": "batch03（core-batch-03.json 250語）を coreBatch03.ts へ。batch04用のリストは core-batch-04.json に切り出し済み"
+      "nextAction": "batch04（core-batch-04.json 250語）を coreBatch04.ts へ。coreBatch03.ts と同じ構造"
     },
     {
       "id": "E-1",
@@ -168,12 +168,12 @@
         "src/lib/aiLesson/course/adventure/vocab/vocabQuestions.ts"
       ],
       "inputCount": 2398,
-      "completedCount": 482,
-      "remainingCount": 1916,
+      "completedCount": 686,
+      "remainingCount": 1703,
       "acceptanceCommand": "npm run validate:ai-course-answer-distribution",
       "evidencePath": "docs/ai-course/adventure-v2/generated/answer-distribution.json",
       "blockedReason": null,
-      "nextAction": "語彙問題は層Cコンテンツから自動生成されるため、D-1が進めば同時に増える（現在1,928問）"
+      "nextAction": "層Cから自動生成。現在2,999問"
     },
     {
       "id": "F-1",

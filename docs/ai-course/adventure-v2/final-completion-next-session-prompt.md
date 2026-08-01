@@ -14,24 +14,23 @@
 - **聴解 N3 100/100・N2 100/100・実音声200件**（manifest失敗0）
 - 先生別realtime音声ルーティング（Edge Function allowlist・teacherIdのみ受信）
 - 準備度gateの条件別テスト・先生表示の全画面整合
-- CORE語彙 層C **482語 / 2,647**・選択式問題 1,928問
-- vitest **1,536 PASS** / tsc 0 / lint 0 / staging deploy `6fba10e2`
+- CORE語彙 層C **686語 / 2,647**・選択式問題 2,999問
+- vitest **1,536 PASS** / tsc 0 / lint 0 / staging deploy `55ed015e`
 
 ## 残数
 
 | task | 残り |
 |---|---|
-| D-1 CORE語彙 層C | **1,916語**（約8バッチ） |
+| D-1 CORE語彙 層C | **1,703語**（約7バッチ） |
 | C-1 cedar実走確認 | 1（CEO承認待ち） |
 | C-2 AI会話E2E | 1（learner認証情報待ち） |
 | P2-2 AdvShellチャンク肥大 | 1 |
 
-## 次のtask: D-1 batch03
+## 次のtask: D-1 batch04
 
-対象リストは切り出し済み: `docs/ai-course/adventure-v2/generated/core-batch-03.json`（250語）
-`core-batch-04.json` も同様に用意済み。
+対象リストは切り出し済み: `docs/ai-course/adventure-v2/generated/core-batch-04.json`（250語）
 
-作り方は `src/lib/aiLesson/course/adventure/vocab/content/coreBatch02.ts` と**同じ構造**。
+作り方は `src/lib/aiLesson/course/adventure/vocab/content/coreBatch03.ts` と**同じ構造**。
 `vocabContentBank.ts` に import を足す。多義語には必ず `senseNoteZh` を付ける。
 動詞連用形の見出し・機能語・読みが確認できない語は `NEEDS_HUMAN_REVIEW` に落とす（でっち上げない）。
 

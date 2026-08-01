@@ -1,9 +1,9 @@
 {
- "generatedAt": "2026-08-01T12:40:39.103Z",
+ "generatedAt": "2026-08-01T13:24:24.167Z",
  "batchNo": 4,
  "batchSize": 250,
- "totalCorePending": 2203,
- "alreadyCovered": 391,
+ "totalCorePending": 1703,
+ "alreadyCovered": 891,
  "functionWordsRoutedToGrammar": 56,
  "functionWordSample": [
   "あちら",
