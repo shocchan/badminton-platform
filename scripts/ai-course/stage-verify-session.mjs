@@ -44,6 +44,7 @@ if (process.argv.includes('--cleanup')) {
   const userId = process.argv[process.argv.indexOf('--cleanup') + 1];
   if (!/^[0-9a-f-]{36}$/.test(userId ?? '')) { console.error('refuse: invalid userId'); process.exit(2); }
   const v = await mgmtSql(`select email from auth.users where id = '${userId}'::uuid`);
+  // 合成ドメインでなければ絶対に消さない（実learnerの誤削除防止）
   if (v[0]?.email?.endsWith(`@${SYNTH_DOMAIN}`)) {
     const r = await fetch(`${API}/auth/v1/admin/users/${userId}`, {
       method: 'DELETE', headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` },
@@ -64,12 +65,21 @@ if (!process.argv.includes('--create') || outIdx < 0) {
 }
 const outPath = process.argv[outIdx + 1];
 
-const email = `stage-verify-${Date.now()}@${SYNTH_DOMAIN}`;
+// 作成前の件数を記録する（撤去後に一致することを確認するため）
+const before = await mgmtSql(`select 'learners' k, count(*)::text v from public.ai_learners
+  union all select 'auth_users', count(*)::text from auth.users order by 1`);
+console.log(`before: ${before.map(r => `${r.k}=${r.v}`).join(' ')}`);
+
+const email = `qa-temporary-${Date.now()}@${SYNTH_DOMAIN}`;
 const password = `stage-${Math.random().toString(36).slice(2)}-Aa1!`;
 const uRes = await fetch(`${API}/auth/v1/admin/users`, {
   method: 'POST',
   headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ email, password, email_confirm: true }),
+  body: JSON.stringify({
+    email, password, email_confirm: true,
+    // 一時QA用であることを機械可読に残す（撤去漏れの検出に使う）
+    user_metadata: { temporary_qa: true, purpose: 'teacher-voice-and-conversation-e2e' },
+  }),
 });
 const uBody = await uRes.json();
 if (!uRes.ok) { console.error(`createUser: ${uRes.status}`); process.exit(1); }
@@ -79,8 +89,8 @@ const lRes = await fetch(`${API}/rest/v1/ai_learners`, {
   method: 'POST',
   headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, 'Content-Type': 'application/json', Prefer: 'return=representation' },
   body: JSON.stringify({
-    user_id: uBody.id, display_name: 'STAGE VERIFY', is_test: true,
-    estimated_level: 'N4', hearing: { done: true, source: 'stage-verify' },
+    user_id: uBody.id, display_name: 'QA TEMPORARY', is_test: true,
+    estimated_level: 'N4', hearing: { done: true, source: 'stage-verify', temporary_qa: true },
   }),
 });
 const lBody = await lRes.json();

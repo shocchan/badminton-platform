@@ -1,0 +1,3264 @@
+{
+ "generatedAt": "2026-08-01T13:37:01.265Z",
+ "batchNo": 8,
+ "batchSize": 250,
+ "totalCorePending": 1703,
+ "alreadyCovered": 891,
+ "functionWordsRoutedToGrammar": 56,
+ "functionWordSample": [
+  "あちら",
+  "あの",
+  "あんな",
+  "いいえ",
+  "いつ",
+  "いらっしゃい",
+  "うん",
+  "大きな",
+  "お願いします",
+  "彼ら",
+  "下さい",
+  "位",
+  "ここ",
+  "こちら",
+  "この",
+  "こんな",
+  "さあ",
+  "さて",
+  "しかし",
+  "しかも",
+  "自分",
+  "すると",
+  "そこ",
+  "そこで",
+  "そして",
+  "そちら",
+  "その",
+  "そん",
+  "それでも",
+  "それとも",
+  "それなら",
+  "それに",
+  "そんな",
+  "大した",
+  "だが",
+  "だから",
+  "だけど",
+  "だって",
+  "誰",
+  "誰か"
+ ],
+ "words": [
+  {
+   "wordId": "kv-06069",
+   "surface": "チーズ",
+   "reading": "チーズ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "int"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06097",
+   "surface": "力",
+   "reading": "ちから",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06102",
+   "surface": "地区",
+   "reading": "ちく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06111",
+   "surface": "知事",
+   "reading": "ちじ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06121",
+   "surface": "父親",
+   "reading": "ちちおや",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06129",
+   "surface": "ちっとも",
+   "reading": "ちっとも",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06135",
+   "surface": "地平線",
+   "reading": "ちへいせん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06138",
+   "surface": "茶",
+   "reading": "ちゃ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-na"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06140",
+   "surface": "チャイム",
+   "reading": "チャイム",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06158",
+   "surface": "茶碗",
+   "reading": "ちゃわん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06159",
+   "surface": "チャンス",
+   "reading": "チャンス",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06164",
+   "surface": "中",
+   "reading": "ちゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06165",
+   "surface": "注",
+   "reading": "ちゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06168",
+   "surface": "中央",
+   "reading": "ちゅうおう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06172",
+   "surface": "中学",
+   "reading": "ちゅうがく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06173",
+   "surface": "中学校",
+   "reading": "ちゅうがっこう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06176",
+   "surface": "中古",
+   "reading": "ちゅうこ",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06182",
+   "surface": "注射",
+   "reading": "ちゅうしゃ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06184",
+   "surface": "駐車場",
+   "reading": "ちゅうしゃじょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06189",
+   "surface": "昼食",
+   "reading": "ちゅうしょく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06206",
+   "surface": "注目",
+   "reading": "ちゅうもく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06220",
+   "surface": "長期",
+   "reading": "ちょうき",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06283",
+   "surface": "散らす",
+   "reading": "ちらす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06286",
+   "surface": "地理",
+   "reading": "ちり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06291",
+   "surface": "散る",
+   "reading": "ちる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06300",
+   "surface": "対",
+   "reading": "つい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "ctr"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06314",
+   "surface": "通貨",
+   "reading": "つうか",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06316",
+   "surface": "通学",
+   "reading": "つうがく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06322",
+   "surface": "通じる",
+   "reading": "つうじる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06323",
+   "surface": "通信",
+   "reading": "つうしん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06341",
+   "surface": "捕まえる",
+   "reading": "つかまえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06343",
+   "surface": "掴む",
+   "reading": "つかむ",
+   "level": "N4",
+   "pos": [
+    "v5m",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06346",
+   "surface": "月",
+   "reading": "つき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06350",
+   "surface": "付き合い",
+   "reading": "つきあい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06351",
+   "surface": "付合う",
+   "reading": "つきあう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06354",
+   "surface": "次々",
+   "reading": "つぎつぎ",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adv-to",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06361",
+   "surface": "点く",
+   "reading": "つく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06363",
+   "surface": "付く",
+   "reading": "つく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vi",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06365",
+   "surface": "次ぐ",
+   "reading": "つぐ",
+   "level": "N4",
+   "pos": [
+    "v5g",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06367",
+   "surface": "注ぐ",
+   "reading": "つぐ",
+   "level": "N4",
+   "pos": [
+    "v5g",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06380",
+   "surface": "着ける",
+   "reading": "つける",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06381",
+   "surface": "漬ける",
+   "reading": "つける",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06382",
+   "surface": "付ける",
+   "reading": "つける",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06388",
+   "surface": "土",
+   "reading": "つち",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06398",
+   "surface": "包み",
+   "reading": "つつみ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "ctr"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06399",
+   "surface": "包む",
+   "reading": "つつむ",
+   "level": "N4",
+   "pos": [
+    "v5m",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06410",
+   "surface": "繋がる",
+   "reading": "つながる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06411",
+   "surface": "繋ぐ",
+   "reading": "つなぐ",
+   "level": "N4",
+   "pos": [
+    "v5g",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06429",
+   "surface": "妻",
+   "reading": "つま",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06437",
+   "surface": "積む",
+   "reading": "つむ",
+   "level": "N4",
+   "pos": [
+    "v5m",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06444",
+   "surface": "積もる",
+   "reading": "つもる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06446",
+   "surface": "梅雨",
+   "reading": "つゆ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06450",
+   "surface": "強まる",
+   "reading": "つよまる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06451",
+   "surface": "強める",
+   "reading": "つよめる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06464",
+   "surface": "釣る",
+   "reading": "つる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06467",
+   "surface": "連れ",
+   "reading": "つれ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06468",
+   "surface": "連れる",
+   "reading": "つれる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06470",
+   "surface": "出",
+   "reading": "で",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06473",
+   "surface": "出合い",
+   "reading": "であい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06486",
+   "surface": "定期",
+   "reading": "ていき",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06527",
+   "surface": "デート",
+   "reading": "デート",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06555",
+   "surface": "出来事",
+   "reading": "できごと",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06556",
+   "surface": "テキスト",
+   "reading": "テキスト",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06562",
+   "surface": "適当",
+   "reading": "てきとう",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06578",
+   "surface": "デザート",
+   "reading": "デザート",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06579",
+   "surface": "デザイン",
+   "reading": "デザイン",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06582",
+   "surface": "手品",
+   "reading": "てじな",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06593",
+   "surface": "鉄",
+   "reading": "てつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no",
+    "n-suf",
+    "n-pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06605",
+   "surface": "手伝う",
+   "reading": "てつだう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06609",
+   "surface": "鉄道",
+   "reading": "てつどう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06615",
+   "surface": "テニス",
+   "reading": "テニス",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06628",
+   "surface": "手袋",
+   "reading": "てぶくろ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06636",
+   "surface": "デモ",
+   "reading": "デモ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06639",
+   "surface": "寺",
+   "reading": "てら",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06650",
+   "surface": "点",
+   "reading": "てん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "ctr"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06673",
+   "surface": "伝言",
+   "reading": "でんごん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06678",
+   "surface": "電子",
+   "reading": "でんし",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-f"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06696",
+   "surface": "テント",
+   "reading": "テント",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06698",
+   "surface": "電灯",
+   "reading": "でんとう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06705",
+   "surface": "電報",
+   "reading": "でんぽう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06708",
+   "surface": "展覧会",
+   "reading": "てんらんかい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06712",
+   "surface": "と",
+   "reading": "と",
+   "level": "N4",
+   "pos": [
+    "prt",
+    "conj",
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06726",
+   "surface": "問う",
+   "reading": "とう",
+   "level": "N4",
+   "pos": [
+    "v5u-s",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06734",
+   "surface": "答案",
+   "reading": "とうあん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06738",
+   "surface": "同一",
+   "reading": "どういつ",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06777",
+   "surface": "同時",
+   "reading": "どうじ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-f"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06780",
+   "surface": "どうしても",
+   "reading": "どうしても",
+   "level": "N4",
+   "pos": [
+    "exp",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06808",
+   "surface": "とうとう",
+   "reading": "とうとう",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06811",
+   "surface": "道徳",
+   "reading": "どうとく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06820",
+   "surface": "投票",
+   "reading": "とうひょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06825",
+   "surface": "動物園",
+   "reading": "どうぶつえん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06839",
+   "surface": "東洋",
+   "reading": "とうよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06841",
+   "surface": "同様",
+   "reading": "どうよう",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06857",
+   "surface": "通す",
+   "reading": "とおす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06866",
+   "surface": "通る",
+   "reading": "とおる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06883",
+   "surface": "説く",
+   "reading": "とく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06904",
+   "surface": "特長",
+   "reading": "とくちょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06928",
+   "surface": "床屋",
+   "reading": "とこや",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06934",
+   "surface": "登山",
+   "reading": "とざん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06939",
+   "surface": "年月",
+   "reading": "としつき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06953",
+   "surface": "土地",
+   "reading": "とち",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06956",
+   "surface": "特急",
+   "reading": "とっきゅう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06970",
+   "surface": "トップ",
+   "reading": "トップ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06977",
+   "surface": "届ける",
+   "reading": "とどける",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06986",
+   "surface": "隣",
+   "reading": "となり",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06988",
+   "surface": "とにかく",
+   "reading": "とにかく",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06992",
+   "surface": "飛ばす",
+   "reading": "とばす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt",
+    "aux-v"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06994",
+   "surface": "飛び出す",
+   "reading": "とびだす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07010",
+   "surface": "止める",
+   "reading": "とめる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07015",
+   "surface": "友",
+   "reading": "とも",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07021",
+   "surface": "共に",
+   "reading": "ともに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07034",
+   "surface": "トラック",
+   "reading": "トラック",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07042",
+   "surface": "トランプ",
+   "reading": "トランプ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07045",
+   "surface": "取り上げる",
+   "reading": "とりあげる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07055",
+   "surface": "取り替える",
+   "reading": "とりかえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07074",
+   "surface": "鶏肉",
+   "reading": "とりにく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07087",
+   "surface": "撮る",
+   "reading": "とる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07096",
+   "surface": "トレーニング",
+   "reading": "トレーニング",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07098",
+   "surface": "ドレス",
+   "reading": "ドレス",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07099",
+   "surface": "取れる",
+   "reading": "とれる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07106",
+   "surface": "泥棒",
+   "reading": "どろぼう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07109",
+   "surface": "トン",
+   "reading": "トン",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07113",
+   "surface": "どんどん",
+   "reading": "どんどん",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adv-to"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07116",
+   "surface": "トンネル",
+   "reading": "トンネル",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07120",
+   "surface": "名",
+   "reading": "な",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07146",
+   "surface": "治る",
+   "reading": "なおる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07149",
+   "surface": "仲",
+   "reading": "なか",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07155",
+   "surface": "流す",
+   "reading": "ながす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt",
+    "vi",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07158",
+   "surface": "中々",
+   "reading": "なかなか",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adj-na",
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07162",
+   "surface": "半ば",
+   "reading": "なかば",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07165",
+   "surface": "仲間",
+   "reading": "なかま",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07167",
+   "surface": "中味",
+   "reading": "なかみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07178",
+   "surface": "泣く",
+   "reading": "なく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vi",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07183",
+   "surface": "亡くなる",
+   "reading": "なくなる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07184",
+   "surface": "無くなる",
+   "reading": "なくなる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07189",
+   "surface": "投げる",
+   "reading": "なげる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07197",
+   "surface": "無し",
+   "reading": "なし",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf",
+    "adj-ku"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07239",
+   "surface": "生",
+   "reading": "なま",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n",
+    "pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07250",
+   "surface": "波",
+   "reading": "なみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07266",
+   "surface": "鳴らす",
+   "reading": "ならす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07274",
+   "surface": "生る",
+   "reading": "なる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07275",
+   "surface": "鳴る",
+   "reading": "なる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07283",
+   "surface": "縄",
+   "reading": "なわ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07299",
+   "surface": "何でも",
+   "reading": "なんでも",
+   "level": "N4",
+   "pos": [
+    "exp",
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07301",
+   "surface": "何とか",
+   "reading": "なんとか",
+   "level": "N4",
+   "pos": [
+    "exp",
+    "adv",
+    "vs"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07317",
+   "surface": "匂い",
+   "reading": "におい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07319",
+   "surface": "苦い",
+   "reading": "にがい",
+   "level": "N4",
+   "pos": [
+    "adj-i"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07338",
+   "surface": "逃げる",
+   "reading": "にげる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07350",
+   "surface": "日",
+   "reading": "にち",
+   "level": "N4",
+   "pos": [
+    "n",
+    "suf",
+    "ctr"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07359",
+   "surface": "日記",
+   "reading": "にっき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07362",
+   "surface": "日光",
+   "reading": "にっこう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07363",
+   "surface": "にっこり",
+   "reading": "にっこり",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adv-to",
+    "vs"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07387",
+   "surface": "入場",
+   "reading": "にゅうじょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07396",
+   "surface": "似る",
+   "reading": "にる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07405",
+   "surface": "人形",
+   "reading": "にんぎょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07422",
+   "surface": "脱ぐ",
+   "reading": "ぬぐ",
+   "level": "N4",
+   "pos": [
+    "v5g",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07427",
+   "surface": "盗む",
+   "reading": "ぬすむ",
+   "level": "N4",
+   "pos": [
+    "v5m",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07431",
+   "surface": "塗る",
+   "reading": "ぬる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07433",
+   "surface": "濡れる",
+   "reading": "ぬれる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07434",
+   "surface": "音",
+   "reading": "ね",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07435",
+   "surface": "根",
+   "reading": "ね",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07445",
+   "surface": "願う",
+   "reading": "ねがう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vt",
+    "aux-v"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07460",
+   "surface": "熱",
+   "reading": "ねつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07464",
+   "surface": "熱心",
+   "reading": "ねっしん",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07466",
+   "surface": "熱帯",
+   "reading": "ねったい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07467",
+   "surface": "熱中",
+   "reading": "ねっちゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07475",
+   "surface": "寝坊",
+   "reading": "ねぼう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi",
+    "adj-na",
+    "adj-no"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07479",
+   "surface": "眠い",
+   "reading": "ねむい",
+   "level": "N4",
+   "pos": [
+    "adj-i"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07482",
+   "surface": "眠る",
+   "reading": "ねむる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07495",
+   "surface": "年中",
+   "reading": "ねんじゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07503",
+   "surface": "野",
+   "reading": "の",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-pref"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07507",
+   "surface": "農家",
+   "reading": "のうか",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07508",
+   "surface": "農業",
+   "reading": "のうぎょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07516",
+   "surface": "農民",
+   "reading": "のうみん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07532",
+   "surface": "乗せる",
+   "reading": "のせる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07534",
+   "surface": "覗く",
+   "reading": "のぞく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07536",
+   "surface": "望み",
+   "reading": "のぞみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07537",
+   "surface": "望む",
+   "reading": "のぞむ",
+   "level": "N4",
+   "pos": [
+    "v5m",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07539",
+   "surface": "後",
+   "reading": "のち",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv",
+    "adj-no"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07540",
+   "surface": "ノック",
+   "reading": "ノック",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07542",
+   "surface": "喉",
+   "reading": "のど",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07555",
+   "surface": "上る",
+   "reading": "のぼる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07564",
+   "surface": "乗り換える",
+   "reading": "のりかえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07567",
+   "surface": "乗り物",
+   "reading": "のりもの",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07574",
+   "surface": "のんびり",
+   "reading": "のんびり",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adv-to",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07578",
+   "surface": "葉",
+   "reading": "は",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07579",
+   "surface": "場",
+   "reading": "ば",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07591",
+   "surface": "パーセント",
+   "reading": "パーセント",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07612",
+   "surface": "倍",
+   "reading": "ばい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no",
+    "ctr"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07618",
+   "surface": "バイオリン",
+   "reading": "バイオリン",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07625",
+   "surface": "ハイキング",
+   "reading": "ハイキング",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07637",
+   "surface": "歯医者",
+   "reading": "はいしゃ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07658",
+   "surface": "パイプ",
+   "reading": "パイプ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07668",
+   "surface": "パイロット",
+   "reading": "パイロット",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07672",
+   "surface": "生える",
+   "reading": "はえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07674",
+   "surface": "馬鹿",
+   "reading": "ばか",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-na",
+    "n-pref",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07686",
+   "surface": "計る",
+   "reading": "はかる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07688",
+   "surface": "図る",
+   "reading": "はかる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07690",
+   "surface": "量る",
+   "reading": "はかる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07714",
+   "surface": "博物館",
+   "reading": "はくぶつかん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07727",
+   "surface": "運ぶ",
+   "reading": "はこぶ",
+   "level": "N4",
+   "pos": [
+    "v5b",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07734",
+   "surface": "箸",
+   "reading": "はし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07739",
+   "surface": "始まり",
+   "reading": "はじまり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07762",
+   "surface": "パス",
+   "reading": "パス",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07765",
+   "surface": "外す",
+   "reading": "はずす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07766",
+   "surface": "パスポート",
+   "reading": "パスポート",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07771",
+   "surface": "外れる",
+   "reading": "はずれる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07775",
+   "surface": "旗",
+   "reading": "はた",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07782",
+   "surface": "畑",
+   "reading": "はたけ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07787",
+   "surface": "二十歳",
+   "reading": "はたち",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07811",
+   "surface": "バッグ",
+   "reading": "バッグ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07815",
+   "surface": "発見",
+   "reading": "はっけん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07820",
+   "surface": "発車",
+   "reading": "はっしゃ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07826",
+   "surface": "発達",
+   "reading": "はったつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07843",
+   "surface": "発明",
+   "reading": "はつめい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "adj-na"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07856",
+   "surface": "話し合う",
+   "reading": "はなしあう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07859",
+   "surface": "放す",
+   "reading": "はなす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07870",
+   "surface": "花見",
+   "reading": "はなみ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07873",
+   "surface": "放れる",
+   "reading": "はなれる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07876",
+   "surface": "羽",
+   "reading": "はね",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07877",
+   "surface": "羽根",
+   "reading": "はね",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07884",
+   "surface": "パパ",
+   "reading": "パパ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07885",
+   "surface": "母親",
+   "reading": "ははおや",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07889",
+   "surface": "省く",
+   "reading": "はぶく",
+   "level": "N4",
+   "pos": [
+    "v5k",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07905",
+   "surface": "林",
+   "reading": "はやし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07906",
+   "surface": "生やす",
+   "reading": "はやす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07908",
+   "surface": "流行る",
+   "reading": "はやる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07909",
+   "surface": "原",
+   "reading": "はら",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07920",
+   "surface": "バランス",
+   "reading": "バランス",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07970",
+   "surface": "番組",
+   "reading": "ばんぐみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07978",
+   "surface": "晩御飯",
+   "reading": "ばんごはん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07981",
+   "surface": "ハンサム",
+   "reading": "ハンサム",
+   "level": "N4",
+   "pos": [
+    "adj-na"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07989",
+   "surface": "反省",
+   "reading": "はんせい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08011",
+   "surface": "ハンバーグ",
+   "reading": "ハンバーグ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08020",
+   "surface": "火",
+   "reading": "ひ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08021",
+   "surface": "灯",
+   "reading": "ひ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08022",
+   "surface": "日",
+   "reading": "ひ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08041",
+   "surface": "ビール",
+   "reading": "ビール",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08045",
+   "surface": "冷える",
+   "reading": "ひえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08058",
+   "surface": "光",
+   "reading": "ひかり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08059",
+   "surface": "光る",
+   "reading": "ひかる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08074",
+   "surface": "引き出し",
+   "reading": "ひきだし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08088",
+   "surface": "ピクニック",
+   "reading": "ピクニック",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08093",
+   "surface": "飛行",
+   "reading": "ひこう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08096",
+   "surface": "飛行場",
+   "reading": "ひこうじょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08105",
+   "surface": "久しぶり",
+   "reading": "ひさしぶり",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "n",
+    "exp"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08118",
+   "surface": "非常に",
+   "reading": "ひじょうに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08120",
+   "surface": "美人",
+   "reading": "びじん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08143",
+   "surface": "日付",
+   "reading": "ひづけ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08148",
+   "surface": "必死",
+   "reading": "ひっし",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "adj-no",
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 0,
+   "sourceFamilyCount": 2
+  }
+ ]
+}
