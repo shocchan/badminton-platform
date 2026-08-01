@@ -171,6 +171,12 @@ export default function AiCoursePage() {
   const baseDict = aiCourseI18n[uiLang];
 
   const [step, setStep] = useState<Step>('loading');
+  /**
+   * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
+   * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
+   */
+  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map'; n: number } | null>(null);
+  const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
   const [learner, setLearner] = useState<Learner | null>(null);
   // 選んだ先生（未選択は null＝既定の先生）。全画面のアバターと文言をこれに揃える
   const advTeacherId: AdvTeacherId | null = readAdvProfile(learner?.settings)?.teacherId ?? null;
@@ -681,6 +687,17 @@ export default function AiCoursePage() {
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
+    // V2有効時のナビは「今日の冒険 / 冒険マップ / 設定」だけ。
+    // 旧コースの成長・ロードマップ・学習記録（別の進捗モデル）へは飛ばさない（canon §5）
+    if (isAdvEnabled(learner?.settings)) {
+      if (k === 'home' || k === 'roadmap') {
+        const view = k === 'roadmap' ? 'map' : 'home';
+        setAdvNavKey(k);
+        setAdvRequest((p) => ({ view, n: (p?.n ?? 0) + 1 }));
+        setStep('home');
+        return;
+      }
+    }
     if (k === 'growth') { void openGrowth(); return; }
     if (k === 'conversation') {
       // AI会話の主要ナビ入口（§19）: ホームの会話開始カードへ直行
@@ -1018,10 +1035,13 @@ export default function AiCoursePage() {
   // 有効learnerのみHomeをV2へ切替。lesson/report/設定など他stepは共通（既存runtime再利用・§19）。
   if (isAdvEnabled(learner.settings)) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
+        nav={navFor(advNavKey)} showLab={labAllowed} v2Mode>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
+            requestView={advRequest}
+            onViewChange={(v) => setAdvNavKey(v === 'map' ? 'roadmap' : 'home')}
             onSaveSettings={(next) => {
               setLearner({ ...learner, settings: next });
               void courseRepository.updateLearner({ settings: next });
@@ -1238,7 +1258,7 @@ const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: '
 };
 
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
-const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null }: {
+const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
   nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
@@ -1251,6 +1271,8 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
    * 画面ツリー全体へ配るので、AI会話・復習・レポートのアバターも選択結果に揃う。
    */
   teacherId?: AdvTeacherId | null;
+  /** V2有効時はナビを「今日の冒険 / 冒険マップ / 設定」の3つへ絞る（canon §5） */
+  v2Mode?: boolean;
 }) => {
   return (
     <TeacherProvider teacherId={teacherId}>
@@ -1270,7 +1292,7 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
-        lang={lang} onToggleLang={onToggleLang} showLab={showLab}
+        lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode}
       />
       {children}
       {/* 学習アプリ側にも法務導線を置く（LPだけにあると、

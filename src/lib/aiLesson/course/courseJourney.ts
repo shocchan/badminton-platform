@@ -21,7 +21,9 @@ export interface JourneyPlace {
 }
 
 // 週テーマ → 旅の場所名（大人向けの落ち着いた比喩）
-const PLACE_NAME: Record<number, { ja: string; zh: string }> = {
+// 冒険マップ（advMapModel）の会話レイヤーからも参照するので export する。
+// 旧コースの12週マップとV2の冒険マップで**別々の地名を持たない**ようにするため、正準はここ1か所。
+export const PLACE_NAME: Record<number, { ja: string; zh: string }> = {
   1: { ja: '自己紹介の村', zh: '自我介绍之村' },
   2: { ja: '思い出の道', zh: '回忆之路' },
   3: { ja: '変化の丘', zh: '变化之丘' },

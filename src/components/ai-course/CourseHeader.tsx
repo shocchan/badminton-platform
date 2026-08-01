@@ -18,6 +18,15 @@ interface Props {
   t: AiCourseDict;
   /** 未ログイン・初回診断中はナビを出さない（押しても行き先がないため） */
   showNav?: boolean;
+  /**
+   * Adventure V2 が有効な learner のナビ（PRODUCT_CANON §5・原則3/16）。
+   *
+   * 旧ナビは「成長」「ロードマップ」「学習記録」がV2とは別の進捗モデルへ飛び、
+   * 学習者が自分の現在地を2つの指標で見ることになっていた（Pilot監査 AUD-02）。
+   * V2では **今日の冒険 / 冒険マップ / 設定 の3つだけ**にし、
+   * 進捗の表示は冒険マップへ一本化する。
+   */
+  v2Mode?: boolean;
   current?: CourseNavKey;
   onNavigate?: (key: CourseNavKey) => void;
   onLogout?: () => void;
@@ -32,7 +41,26 @@ interface Props {
 // 案A改（Phase 2E-1 §19・labPreviewのみ）: 中核機能のAI会話を主要ナビへ明示。
 // ロードマップ・学習記録は成長内へ統合（旧URL・旧画面は削除せず直接アクセス可能）。
 // 一般受講生は従来の5項目のまま変更しない。
-const navItems = (showLab: boolean): { key: CourseNavKey; icon: typeof Home }[] => (showLab
+/**
+ * V2でのナビ表示名。
+ * 「ロードマップ」は旧コースの週次リストを指す語だったので、
+ * V2では地図そのものを表す「冒険マップ」にする（同じ機能へ別名で入らせない）。
+ */
+const navLabel = (key: CourseNavKey, t: AiCourseDict, v2Mode: boolean): string => {
+  if (!v2Mode) return t.nav[key];
+  const zh = t.locale === 'zh';
+  if (key === 'roadmap') return zh ? '冒险地图' : '冒険マップ';
+  if (key === 'home') return zh ? '今天的冒险' : '今日の冒険';
+  return t.nav[key];
+};
+
+const navItems = (showLab: boolean, v2Mode = false): { key: CourseNavKey; icon: typeof Home }[] => (v2Mode
+  ? [
+    { key: 'home', icon: Home },
+    { key: 'roadmap', icon: Map },
+    { key: 'settings', icon: Settings },
+  ]
+  : showLab
   ? [
     { key: 'home', icon: Home },
     { key: 'conversation', icon: Mic },
@@ -131,9 +159,9 @@ const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: ()
   </button>
 );
 
-export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false }: Props) => {
+export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false, v2Mode = false }: Props) => {
   const toggleLabel = lang === 'ja' ? '中文' : '日本語';
-  const NAV = navItems(showLab);
+  const NAV = navItems(showLab, v2Mode);
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
       <div className="max-w-6xl mx-auto px-4">
@@ -163,10 +191,10 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
                     <Icon className="w-4 h-4" />
                     {sub ? (
                       <span className="flex flex-col items-start leading-tight text-left">
-                        <span>{t.nav[key]}</span>
+                        <span>{navLabel(key, t, v2Mode)}</span>
                         <span className={`text-[9px] font-normal ${current === key ? 'text-blue-500' : 'text-gray-400'}`}>{sub}</span>
                       </span>
-                    ) : t.nav[key]}
+                    ) : navLabel(key, t, v2Mode)}
                   </button>
                 );
               })}
@@ -204,7 +232,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
                     }`}
                   >
                     <Icon className="w-3.5 h-3.5" />
-                    {t.nav[key]}
+                    {navLabel(key, t, v2Mode)}
                   </button>
                 ))}
               </nav>

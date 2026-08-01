@@ -5,11 +5,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
-  AdvEnemyTier, AdvMasteryAttempt, AdvRouteStage, AdvTodayQuest, AdventureV2Profile,
+  AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, AREA_UNIT_MAP } from '../../../lib/aiLesson/course/adventure/advRoute';
-import { recordAttempt, seenQuestionKeys, masteredTargetIds, computeMastery, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
+import { recordAttempt, seenQuestionKeys, masteredTargetIds, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
@@ -25,7 +25,7 @@ import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advD
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
-import { nowTrainingLabel, masteryScopeName, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
+import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
@@ -33,6 +33,7 @@ import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
+import { AdvAdventureMap } from './AdvAdventureMap';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
@@ -60,6 +61,10 @@ export interface AdvShellProps {
   restateAvailable: boolean;
   onOpenArea: (areaId: string) => void;
   onExitV2: () => void;
+  /** ヘッダーからの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ */
+  requestView?: { view: 'home' | 'map'; n: number } | null;
+  /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
+  onViewChange?: (view: 'home' | 'map') => void;
 }
 
 type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly';
@@ -98,6 +103,22 @@ export default function AdvShell(props: AdvShellProps) {
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
   const weeklyTracked = useRef(false);
+
+  // ヘッダー（今日の冒険／冒険マップ）からの切替要求を反映する。
+  // effect ではなく **render中にpropsの変化へ合わせて調整する**（Reactが推奨する形）。
+  // effectでsetStateすると1フレーム古い画面が挟まる。
+  const reqN = props.requestView?.n ?? 0;
+  const [seenReq, setSeenReq] = useState(0);
+  if (reqN !== seenReq) {
+    setSeenReq(reqN);
+    if (props.requestView) setView(props.requestView.view === 'map' ? 'map' : 'home');
+  }
+
+  // ナビのハイライトを実際の画面に合わせる
+  const notifyView = props.onViewChange;
+  useEffect(() => {
+    notifyView?.(view === 'map' ? 'map' : 'home');
+  }, [view, notifyView]);
   /**
    * 語彙bankの遅延ロード。模試でしか使わないので、Homeの初回転送量から外す。
    * （実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
@@ -492,69 +513,22 @@ export default function AdvShell(props: AdvShellProps) {
   }
 
   // ── map（縦型roadmap・§9） ──
+  // ── 冒険マップ（旧「成長」の12週リストと旧ルート表示をここへ統合・canon §5） ──
   if (view === 'map') {
-    const mastered = masteredTargetIds(prof.mastery, nowISO);
-    const cur = currentStageOf(route, mastered);
-    const curIdx = cur ? route.stages.findIndex((s) => s.stageId === cur.stageId) : route.stages.length;
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={term('route', lang)} />
-        <div className={`${card} mb-4`}>
-          <p className="text-xs text-gray-500">{term('destination', lang)}</p>
-          <p className="font-bold text-blue-900">{tx(lang, route.destinationLabelJa, route.destinationLabelZh)}</p>
-          <p className="mt-1 text-xs text-gray-600">{term('masteryRate', lang)} {routeProgressPct(route, mastered)}%</p>
-        </div>
-        <ol className="relative border-l-2 border-gray-200 pl-5">
-          {route.stages.map((s, i) => {
-            const st = computeMastery(prof.mastery[s.stageId], nowISO);
-            const done = mastered.has(s.stageId);
-            const isCur = cur?.stageId === s.stageId;
-            const isNext = i === curIdx + 1;
-            const isBoss = s.kind === 'mock_boss';
-            // 総合模試は技能が揃うまで「準備できません」（§9・存在するふりをしない）
-            const bossNotReady = isBoss && !done;
-            const stateLabel = done ? term('cleared', lang)
-              : isCur ? term('currentLocation', lang)
-              : isNext ? term('recommended', lang)
-              : bossNotReady ? term('notReady', lang)
-              : term('viewable', lang);
-            return (
-              <li key={s.stageId} className="relative mb-3">
-                <span aria-hidden
-                  className={`absolute -left-[27px] top-3 h-3 w-3 rounded-full border-2 border-white ${
-                    done ? 'bg-emerald-500' : isCur ? 'bg-blue-600 ring-4 ring-blue-100' : 'bg-gray-300'}`} />
-                <div className={`rounded-xl border p-3 ${isCur ? 'border-blue-500 bg-blue-50' : done ? 'border-emerald-200 bg-emerald-50/50' : 'border-gray-200 bg-white'}`}>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{stateLabel}</p>
-                  <p className="mt-0.5 text-sm font-bold text-gray-900">{tx(lang, s.titleJa, s.titleZh)}</p>
-                  <p className="text-xs text-gray-600">{tx(lang, s.purposeJa, s.purposeZh)}</p>
-                  {isCur && (
-                    <>
-                      <p className="mt-1 text-xs text-blue-800">{tx(lang, st.nextJa, st.nextZh)}</p>
-                      <button type="button" className={`${primaryBtn} mt-2`} onClick={() => { setView('home'); }}>
-                        {term('continueHere', lang)}
-                      </button>
-                    </>
-                  )}
-                  {!isCur && (
-                    <button type="button"
-                      className="mt-2 min-h-[44px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700"
-                      onClick={() => (isBoss ? setView('mock') : openStageDetail(s))}>
-                      {isBoss ? tx(lang, '模試の内容を見る', '查看模拟考内容') : term('viewContents', lang)}
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-        <p className="mt-2 text-xs text-gray-500">
-          {tx(lang, '先のエリアもいつでも見られます。ロックはありません。', '前面的区域随时可以查看，没有锁定。')}
-        </p>
-      </div>
+      <AdvAdventureMap
+        lang={lang}
+        profile={prof}
+        route={route}
+        mastered={masteredTargetIds(prof.mastery, nowISO)}
+        currentWeek={learner.currentWeek ?? 1}
+        quest={quest}
+        onStartToday={() => setView('home')}
+        onBack={() => setView('home')}
+      />
     );
   }
 
-  // ── readiness（技能別・§9） ──
   if (view === 'readiness') {
     const r = computeReadiness(prof.targetJlpt ?? 'N2', prof.skills, prof.mastery, prof.mockLog);
     const gateRows: { key: keyof typeof r.overallGate; ja: string; zh: string }[] = [
@@ -674,6 +648,10 @@ export default function AdvShell(props: AdvShellProps) {
         <p className="mt-3 text-xs text-gray-500">
           {tx(lang, 'AIが毎日の量を担当し、先生は難所攻略と方向修正に集中します。', 'AI负责每天的练习量，老师专注于攻克难点和调整方向。')}
         </p>
+        {/* 次の一歩を必ず示す（canon 原則15）。戻る矢印だけを次の一歩にしない */}
+        <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
+          {tx(lang, '今日の冒険へ戻る', '回到今天的冒险')}
+        </button>
       </div>
     );
   }
@@ -1089,19 +1067,6 @@ export default function AdvShell(props: AdvShellProps) {
     </div>
   );
 
-  function openStageDetail(s: AdvRouteStage) {
-    // 先の地点は「内容を見る」= 対象と到達条件の確認（強敵バトルへは飛ばさない）
-    void (async () => {
-      const mastered2 = masteredTargetIds(prof.mastery, nowISO);
-      const ct = await stageContent(s, mastered2);
-      const label = tx(lang, s.titleJa, s.titleZh);
-      const count = ct.battleTargetIds.length;
-      const scope = masteryScopeName([s.kind === 'n2_grammar' || s.kind === 'n3_grammar' ? 'grammar' : 'charactersVocabulary'], level, lang);
-      window.alert(tx(lang,
-        `${label}\n\n${s.purposeJa}\n\n攻略対象：${count}件\n到達条件：${s.clearConditionJa}\n評価：${scope}`,
-        `${label}\n\n${s.purposeZh}\n\n攻略对象：${count}项\n达成条件：${s.clearConditionZh}\n评估：${scope}`));
-    })();
-  }
 }
 
 const AREA_BY_UNIT: Record<string, string> = Object.fromEntries(
