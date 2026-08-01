@@ -10,6 +10,8 @@
 import { useMemo, useRef, useState, useEffect } from 'react';
 import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2, WifiOff, Languages, ChevronDown } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { useTeacher } from './teacherContext';
+import { teacherName } from '../../lib/aiLesson/course/adventure/advTeacher';
 import { detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
 import { nextTextTurn, initialTextTurnState, TEXT_MAX_TURNS_DEFAULT } from '../../lib/aiLesson/course/courseTextTurn';
 import type { TextTurnState } from '../../lib/aiLesson/course/courseTextTurn';
@@ -71,6 +73,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
   const tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
+  // 発話の話者名は選んだ先生に揃える（音声レッスンと表示がずれないように・§18）
+  const teacherLabel = teacherName(useTeacher(), t.locale === 'zh' ? 'zh' : 'ja');
   // 再開時は保存済み履歴から復元。新規は導入メッセージから
   const [msgs, setMsgs] = useState<Msg[]>(() =>
     resume && resume.msgs.length > 0 ? resume.msgs : [{ role: 'tutor', text: introText(step) }]);
@@ -269,7 +273,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
         {msgs.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'student' ? 'justify-end' : 'justify-start'}`}>
             <div className="max-w-[85%]">
-              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>
+              <p className="text-[10px] text-gray-400 mb-0.5 px-1">{m.role === 'student' ? (t.locale === 'zh' ? '你' : 'あなた') : teacherLabel}</p>
               <div className={`px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${m.role === 'student' ? 'bg-blue-600 text-white rounded-tr-sm' : 'bg-white text-gray-800 border border-gray-200 rounded-tl-sm'}`}>
                 {m.role === 'tutor' ? <RubyText text={m.text} aids={m.aids} /> : m.text}
               </div>

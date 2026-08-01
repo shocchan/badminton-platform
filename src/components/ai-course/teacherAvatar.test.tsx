@@ -11,6 +11,7 @@ import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { TeacherAvatar, TeacherProvider } from './TeacherAvatar';
 import { ShokoAvatar } from './ShokoAvatar';
 import { ALL_TEACHERS } from '../../lib/aiLesson/course/adventure/advTeacher';
+import { CourseIllustration } from './CourseIllustration';
 
 afterEach(() => cleanup());
 
@@ -59,5 +60,59 @@ describe('TeacherAvatar', () => {
   it('装飾用途（labeled=false）は読み上げ対象にしない', () => {
     wrap('shoko', <TeacherAvatar size={16} labeled={false} />);
     expect(screen.queryByAltText('翔子先生')).toBeNull();
+  });
+});
+
+// FINAL COMPLETION §18: 場面イラスト・テキスト会話の話者名も選んだ先生に揃える。
+// 画面のどこかに既定の先生が残ると「案内している人が誰か」がぶれる。
+describe('場面イラストが選んだ先生に追随する', () => {
+  it('未選択なら従来どおり翔子先生の専用ポーズを使う', () => {
+    render(
+      <TeacherProvider teacherId={null}>
+        <CourseIllustration slot="complete" lang="ja" />
+      </TeacherProvider>,
+    );
+    const img = screen.getByAltText('翔子先生が拍手して喜んでいる') as HTMLImageElement;
+    expect(img.getAttribute('src')).toContain('shoko-sensei-cheer');
+  });
+
+  it('悠斗先生を選ぶと悠斗先生の絵とalt文になる（無いポーズはbaseへ落ちる）', () => {
+    render(
+      <TeacherProvider teacherId="yuto">
+        <CourseIllustration slot="complete" lang="ja" />
+      </TeacherProvider>,
+    );
+    const img = screen.getByAltText('悠斗先生が拍手して喜んでいる') as HTMLImageElement;
+    expect(img.getAttribute('src')).toContain('yuto-sensei');
+    expect(img.getAttribute('src')).not.toContain('shoko');
+  });
+
+  it('zh表示でも先生名が中国語になる', () => {
+    render(
+      <TeacherProvider teacherId="yuto">
+        <CourseIllustration slot="roadmapGoal" lang="zh" />
+      </TeacherProvider>,
+    );
+    expect(screen.getByAltText('悠斗老师用平板讲解')).toBeTruthy();
+  });
+
+  it('専用画像が無い用途は描画しない（無い絵をでっち上げない）', () => {
+    const { container } = render(
+      <TeacherProvider teacherId="yuto">
+        <CourseIllustration slot="growth" lang="ja" />
+      </TeacherProvider>,
+    );
+    expect(container.querySelector('img')).toBeNull();
+  });
+
+  it('装飾用途では読み上げ対象にしない', () => {
+    render(
+      <TeacherProvider teacherId="yuto">
+        <CourseIllustration slot="complete" lang="ja" decorative />
+      </TeacherProvider>,
+    );
+    const img = document.querySelector('img');
+    expect(img?.getAttribute('alt')).toBe('');
+    expect(img?.getAttribute('aria-hidden')).toBe('true');
   });
 });

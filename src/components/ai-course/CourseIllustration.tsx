@@ -5,6 +5,10 @@
 //
 // アニメーションは控えめなフェードインのみ（motion-safe ＝ prefers-reduced-motion では動かない）。
 // 会話中画面では使わないこと（集中を妨げない・§9）。
+import {
+  teacherAsset, teacherName, DEFAULT_TEACHER_ID, type TeacherExpression,
+} from '../../lib/aiLesson/course/adventure/advTeacher';
+import { useTeacher } from './teacherContext';
 
 export type IllustrationSlot =
   | 'complete'      // レッスン/会話 完了（達成感）
@@ -15,28 +19,35 @@ export type IllustrationSlot =
   | 'growth';       // 成長画面
 
 /**
- * slot → 既存アセットの対応。null は「専用画像が未作成」＝描画しない。
- * 新画像を /public/images/ai-course/ に置いたら、ここを差し替えるだけでよい。
+ * slot → 先生の表情。null は「この用途の絵をまだ作っていない」＝描画しない。
+ *
+ * **選んだ先生の絵を出す。** 学習者が悠斗先生を選んでいるのに翔子先生の絵が出ると、
+ * 「案内している人が誰なのか」がぶれる（§18）。表情のアセットが無い先生は
+ * `teacherAsset()` が base へ落とすので、無い絵をでっち上げることにはならない。
  */
-const SLOT_MAP: Record<IllustrationSlot, { src: string; alt: { ja: string; zh: string } } | null> = {
-  complete: {
-    src: '/images/ai-course/shoko-sensei-cheer.webp',
-    alt: { ja: '翔子先生が拍手して喜んでいる', zh: '翔子老师在鼓掌庆祝' },
-  },
-  emptyReview: {
-    src: '/images/ai-course/shoko-sensei-base.webp',
-    alt: { ja: '翔子先生がにこやかに休憩をすすめている', zh: '翔子老师微笑着建议休息' },
-  },
-  welcome: {
-    src: '/images/ai-course/shoko-sensei-wave.webp',
-    alt: { ja: '翔子先生が手をふって迎えている', zh: '翔子老师挥手欢迎' },
-  },
+const SLOT_EXPRESSION: Record<IllustrationSlot, TeacherExpression | null> = {
+  complete: 'smile',
+  emptyReview: 'neutral',
+  welcome: 'neutral',
   error: null,        // 専用画像（困り顔）ができるまで描画しない（アイコン表示のまま）
-  roadmapGoal: {
-    src: '/images/ai-course/shoko-sensei-teaching.webp',
-    alt: { ja: '翔子先生がタブレットで説明している', zh: '翔子老师用平板讲解' },
-  },
+  roadmapGoal: 'teaching',
   growth: null,       // 専用画像（望遠鏡/地図）ができるまで描画しない
+};
+
+/** 翔子先生だけが持つ専用ポーズ。他の先生は SLOT_EXPRESSION 側へ落ちる */
+const SHOKO_ONLY_SRC: Partial<Record<IllustrationSlot, string>> = {
+  complete: '/images/ai-course/shoko-sensei-cheer.webp',
+  welcome: '/images/ai-course/shoko-sensei-wave.webp',
+};
+
+/** alt文。先生名だけを差し替える（絵の内容そのものは変わらない） */
+const SLOT_ALT: Record<IllustrationSlot, { ja: (n: string) => string; zh: (n: string) => string }> = {
+  complete: { ja: (n) => `${n}が拍手して喜んでいる`, zh: (n) => `${n}在鼓掌庆祝` },
+  emptyReview: { ja: (n) => `${n}がにこやかに休憩をすすめている`, zh: (n) => `${n}微笑着建议休息` },
+  welcome: { ja: (n) => `${n}が手をふって迎えている`, zh: (n) => `${n}挥手欢迎` },
+  error: { ja: (n) => `${n}`, zh: (n) => `${n}` },
+  roadmapGoal: { ja: (n) => `${n}がタブレットで説明している`, zh: (n) => `${n}用平板讲解` },
+  growth: { ja: (n) => `${n}`, zh: (n) => `${n}` },
 };
 
 interface Props {
@@ -50,13 +61,16 @@ interface Props {
 }
 
 export const CourseIllustration = ({ slot, width = 120, lang = 'ja', className = '', decorative = false }: Props) => {
-  const entry = SLOT_MAP[slot];
-  if (!entry) return null; // 画像なしでも成立するUIを維持
+  const teacher = useTeacher();
+  const expression = SLOT_EXPRESSION[slot];
+  if (!expression) return null; // 画像なしでも成立するUIを維持
+  const src = (teacher.id === DEFAULT_TEACHER_ID && SHOKO_ONLY_SRC[slot])
+    || teacherAsset(teacher, expression);
   return (
     <img
-      src={entry.src}
+      src={src}
       width={width}
-      alt={decorative ? '' : entry.alt[lang]}
+      alt={decorative ? '' : SLOT_ALT[slot][lang](teacherName(teacher, lang))}
       aria-hidden={decorative ? true : undefined}
       loading="lazy"
       decoding="async"
