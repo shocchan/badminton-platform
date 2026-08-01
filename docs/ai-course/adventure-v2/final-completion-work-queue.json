@@ -145,48 +145,48 @@
       "id": "D-1",
       "phase": "D",
       "priority": "P1",
-      "status": "pending",
+      "status": "in_progress",
       "title": "CORE語彙 層C batch02〜（残り2,398語）",
       "files": [
         "src/lib/aiLesson/course/adventure/vocab/content/"
       ],
       "inputCount": 2398,
-      "completedCount": 0,
-      "remainingCount": 2398,
+      "completedCount": 482,
+      "remainingCount": 1916,
       "acceptanceCommand": "npm run validate:ai-course-vocab-content",
       "evidencePath": "docs/ai-course/adventure-v2/generated/vocab-content-validation-*.json",
       "blockedReason": null,
-      "nextAction": "1batch 200〜250語。batchごとに commit・validation・意味レビュー"
+      "nextAction": "batch03（core-batch-03.json 250語）を coreBatch03.ts へ。batch04用のリストは core-batch-04.json に切り出し済み"
     },
     {
       "id": "E-1",
       "phase": "E",
       "priority": "P1",
-      "status": "pending",
+      "status": "in_progress",
       "title": "CORE語彙の選択式問題（batchごと）",
       "files": [
         "src/lib/aiLesson/course/adventure/vocab/vocabQuestions.ts"
       ],
       "inputCount": 2398,
-      "completedCount": 0,
-      "remainingCount": 2398,
+      "completedCount": 482,
+      "remainingCount": 1916,
       "acceptanceCommand": "npm run validate:ai-course-answer-distribution",
       "evidencePath": "docs/ai-course/adventure-v2/generated/answer-distribution.json",
       "blockedReason": null,
-      "nextAction": "自由入力を作らない。かな語は読み・表記の観点を作らない"
+      "nextAction": "語彙問題は層Cコンテンツから自動生成されるため、D-1が進めば同時に増える（現在1,928問）"
     },
     {
       "id": "F-1",
       "phase": "F",
       "priority": "P1",
-      "status": "pending",
+      "status": "complete",
       "title": "N3読解 30 → 100セット",
       "files": [
         "src/lib/aiLesson/course/adventure/reading/n3ReadingSets.ts"
       ],
       "inputCount": 100,
-      "completedCount": 30,
-      "remainingCount": 70,
+      "completedCount": 100,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
       "evidencePath": null,
       "blockedReason": null,
@@ -196,14 +196,14 @@
       "id": "F-2",
       "phase": "F",
       "priority": "P1",
-      "status": "pending",
+      "status": "complete",
       "title": "N2読解 30 → 120セット",
       "files": [
         "src/lib/aiLesson/course/adventure/reading/n2ReadingSets.ts"
       ],
       "inputCount": 120,
-      "completedCount": 30,
-      "remainingCount": 90,
+      "completedCount": 120,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
       "evidencePath": null,
       "blockedReason": null,
@@ -213,14 +213,14 @@
       "id": "G-1",
       "phase": "G",
       "priority": "P1",
-      "status": "pending",
+      "status": "complete",
       "title": "N3聴解 25 → 100セット（音声生成込み）",
       "files": [
         "src/lib/aiLesson/course/adventure/listening/n3ListeningSets.ts"
       ],
       "inputCount": 100,
-      "completedCount": 25,
-      "remainingCount": 75,
+      "completedCount": 100,
+      "remainingCount": 0,
       "acceptanceCommand": "node scripts/ai-course/generate-listening-audio.mjs --verify",
       "evidencePath": "docs/ai-course/adventure-v2/generated/audio-manifest.json",
       "blockedReason": null,
@@ -230,14 +230,14 @@
       "id": "G-2",
       "phase": "G",
       "priority": "P1",
-      "status": "pending",
+      "status": "complete",
       "title": "N2聴解 25 → 100セット（音声生成込み）",
       "files": [
         "src/lib/aiLesson/course/adventure/listening/n2ListeningSets.ts"
       ],
       "inputCount": 100,
-      "completedCount": 25,
-      "remainingCount": 75,
+      "completedCount": 100,
+      "remainingCount": 0,
       "acceptanceCommand": "node scripts/ai-course/generate-listening-audio.mjs --verify",
       "evidencePath": "docs/ai-course/adventure-v2/generated/audio-manifest.json",
       "blockedReason": null,
@@ -247,41 +247,41 @@
       "id": "H-1",
       "phase": "H",
       "priority": "P2",
-      "status": "pending",
+      "status": "complete",
       "title": "ミニ模試・準備度ゲートの回帰",
       "files": [
         "src/lib/aiLesson/course/adventure/advMockSession.test.ts"
       ],
       "inputCount": 1,
-      "completedCount": 0,
-      "remainingCount": 1,
+      "completedCount": 1,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advMockSession.test.ts src/lib/aiLesson/course/adventure/advExam.test.ts",
       "evidencePath": null,
       "blockedReason": null,
-      "nextAction": null
+      "nextAction": "§17の欠落条件6パターンを個別testで固定済み"
     },
     {
       "id": "I-1",
       "phase": "I",
       "priority": "P2",
-      "status": "pending",
+      "status": "complete",
       "title": "先生表示の全画面回帰・ja/zh・mobile・accessibility",
       "files": [
         "src/components/ai-course/"
       ],
       "inputCount": 9,
-      "completedCount": 0,
-      "remainingCount": 9,
+      "completedCount": 9,
+      "remainingCount": 0,
       "acceptanceCommand": "npx vitest run src/components/ai-course/teacherAvatar.test.tsx",
       "evidencePath": null,
       "blockedReason": null,
-      "nextAction": null
+      "nextAction": "CourseIllustration / CourseTextLesson の先生固定を解消。ja/zh/375px/console 0 を staging で確認"
     },
     {
       "id": "J-1",
       "phase": "J",
       "priority": "P0",
-      "status": "pending",
+      "status": "in_progress",
       "title": "全検証 → staging deploy → fixture撤去 → RC tag候補",
       "files": [],
       "inputCount": 1,
@@ -290,7 +290,7 @@
       "acceptanceCommand": "npm run validate:ai-course && npx vitest run && npm run build",
       "evidencePath": "docs/ai-course/adventure-v2/final-completion-report.md",
       "blockedReason": null,
-      "nextAction": "tag候補 ai-course-adventure-v2-rc2（rc1のみ既存のため次番はrc2）"
+      "nextAction": "RC tag候補 ai-course-adventure-v2-rc2"
     }
   ]
 }
