@@ -29,3 +29,6 @@ dist-ssr
 *.sln
 *.sw?
 dist-scene-sheet*.html
+
+# AIコース語彙: JMdict由来の中間index（再生成可能・harvest scriptで再取得する）
+docs/ai-course/adventure-v2/generated/vocab-jmdict-index.json

@@ -1,0 +1,81 @@
+{
+ "generatedAt": "2026-08-01T04:43:12.926Z",
+ "title": "複数の主要公開語彙データを統合し、重複・意味・レベルを独自に再整理したN2／N3累積語彙バンク",
+ "disclaimer": "公式出題基準の100%網羅を主張するものではない。公開候補の統合と独自再判定の結果である。",
+ "totals": {
+  "canonicalWords": 8056,
+  "uniqueExpressions": 7915,
+  "uniqueReadings": 7217,
+  "uniqueSurfaceReading": 8056,
+  "byLevel": {
+   "N3": 2393,
+   "N5": 642,
+   "N4": 1866,
+   "N1": 87,
+   "N2": 3068
+  },
+  "byPriority": {
+   "hold": 1084,
+   "core": 2520,
+   "likely": 4442,
+   "extended": 10
+  }
+ },
+ "n3Cumulative": {
+  "target": "N3",
+  "candidateLevels": {
+   "N5": 642,
+   "N4": 1866,
+   "N3": 2393
+  },
+  "uniqueExpressions": 4810,
+  "uniqueSenses": 9082,
+  "core": 2441,
+  "likely": 1870,
+  "extended": 0,
+  "hold": 590,
+  "canonicalCompleteFields": 4196,
+  "questionCoverageByType": {},
+  "wordsWithOriginalContent": 0,
+  "aspectTargetForCore": {
+   "min": 4,
+   "max": 6
+  }
+ },
+ "n2Cumulative": {
+  "target": "N2",
+  "candidateLevels": {
+   "N5": 642,
+   "N4": 1866,
+   "N3": 2393,
+   "N2": 3068
+  },
+  "uniqueExpressions": 7836,
+  "uniqueSenses": 13909,
+  "core": 2520,
+  "likely": 4442,
+  "extended": 8,
+  "hold": 999,
+  "canonicalCompleteFields": 6836,
+  "questionCoverageByType": {},
+  "wordsWithOriginalContent": 0,
+  "aspectTargetForCore": {
+   "min": 4,
+   "max": 6
+  }
+ },
+ "completion": {
+  "vocabularyHarvestComplete": true,
+  "canonicalBankComplete": false,
+  "coreQuestionCoverageComplete": false,
+  "examVocabularyCoverageComplete": false
+ },
+ "warnings": {
+  "singleSourceFamily": 7938,
+  "levelConflict": 96,
+  "lowFrequency": 1220,
+  "ambiguousSense": 1703,
+  "lowConfidence": 5177
+ },
+ "nextStep": "層C（独自の訳・例文・問題）をCORE 2520語から作成する。§9の順番に従い一括大量生成はしない"
+}
