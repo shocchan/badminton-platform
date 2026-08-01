@@ -152,7 +152,7 @@ describe('総合準備度のgating（§11）', () => {
     expect(noTimed.overallBlockersJa.some((b) => b.includes('制限時間'))).toBe(true);
   });
 
-  it('4技能＋timedが揃えば総合が出る（ただし合格保証はしない）', () => {
+  it('**4技能＋timedだけでは総合を出さない**（遅延・模試3回が必要・COMPLETION §10）', () => {
     const ledger: AdvMasteryLedger = {};
     for (const [id, skill] of [['a', 'charactersVocabulary'], ['b', 'grammar'], ['c', 'reading'], ['d', 'listening']] as const) {
       ledger[id] = Array.from({ length: 3 }, (_, i) =>
@@ -160,9 +160,29 @@ describe('総合準備度のgating（§11）', () => {
     }
     ledger.mock = [att('2026-07-20', { grammar: { correct: 8, total: 10, unseen: 5 } }, { timed: true, tier: 'rankboss' })];
     const r = computeReadiness('N2', emptySkillProfile(), ledger);
+    expect(r.rows.find((x) => x.key === 'timeManagement')?.pct).not.toBeNull();
+    expect(r.overallGate.timedEvidence).toBe(true);
+    expect(r.overallGate.delayedEvidence).toBe(false);
+    expect(r.overallGate.mockCount).toBe(false);
+    expect(r.overallPct).toBeNull();
+  });
+
+  it('4技能＋timed＋7日後の測り直し＋模試3回で総合が出る（ただし合格保証はしない）', () => {
+    const ledger: AdvMasteryLedger = {};
+    for (const [id, skill] of [['a', 'charactersVocabulary'], ['b', 'grammar'], ['c', 'reading'], ['d', 'listening']] as const) {
+      ledger[id] = [
+        att('2026-07-01', { [skill]: { correct: 9, total: 10, unseen: 5 } }, { timed: true }),
+        att('2026-07-02', { [skill]: { correct: 9, total: 10, unseen: 5 } }, { timed: true }),
+        // 初回から7日以降＝遅延evidence
+        att('2026-07-15', { [skill]: { correct: 9, total: 10, unseen: 5 } }, { timed: true }),
+      ];
+    }
+    const mocks = Array.from({ length: 3 }, () => ({ completedAt: '2026-07-20T00:00:00.000Z' }));
+    const r = computeReadiness('N2', emptySkillProfile(), ledger, mocks);
+    expect(r.overallBlockersJa).toEqual([]);
     expect(r.overallPct).not.toBeNull();
     expect(r.summaryJa).toContain('合格を保証するものではありません');
-    expect(r.rows.find((x) => x.key === 'timeManagement')?.pct).not.toBeNull();
+    expect(r.mockCount).toBe(3);
   });
 
   it('会話・実践は別軸のまま（JLPT加算しない）', () => {

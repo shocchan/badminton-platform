@@ -173,6 +173,44 @@ export interface AdvCompanionDef {
   greetJa: string; greetZh: string;
 }
 
+/**
+ * 進行中のミニ模試の直列化状態（COMPLETION §9）。
+ * reload・端末復帰で同じ問題・同じ提示順・同じ残り時間から再開するために保存する。
+ * 型はプリミティブのみ（jsonbへそのまま入る）。
+ */
+export interface AdvMockSessionState {
+  mockId: string;
+  level: 'N2' | 'N3';
+  /** 短時間版か本番時間版か（§9: 「本番同等」と偽らないため明示的に分ける） */
+  mode: 'short' | 'fullTime';
+  attemptSeed: number;
+  startedAt: string;
+  sectionIndex: number;
+  /** sectionごとの残り秒。タイマーは保存値から再開する */
+  remainingSecBySection: number[];
+  /** questionKey → choiceId（未回答はキー無し） */
+  answers: Record<string, string | null>;
+  completedSections: string[];
+  finishedAt: string | null;
+}
+
+/** 完了したミニ模試1回分の記録（§10: 総合準備度は模試3回以上を要求する） */
+export interface AdvMockLogEntry {
+  mockId: string;
+  dateKey: string;
+  level: 'N2' | 'N3';
+  mode: 'short' | 'fullTime';
+  totalCorrect: number;
+  totalQuestions: number;
+  totalUnanswered: number;
+  /** 制限時間内に終えたsection数／全section数 */
+  sectionsFinishedInTime: number;
+  sectionCount: number;
+  /** この回で扱った試験科目 */
+  skills: string[];
+  completedAt: string;
+}
+
 /** 人間レッスンbridge（§20・D-013）。カレンダー連携なし */
 export interface AdvHumanLessonState {
   nextHumanLessonAt?: string | null;
@@ -202,6 +240,10 @@ export interface AdventureV2Profile {
   todaySteps: { dateKey: string; done: number[] } | null;
   /** クエスト完了の連続性（consistency能力の証拠） */
   questLog: { dateKey: string; completedSteps: number; totalSteps: number }[];
+  /** 進行中のミニ模試（reload復帰用）。終了・破棄でnull */
+  mockSession: AdvMockSessionState | null;
+  /** 完了したミニ模試の履歴（§10の mock count >= 3 判定に使う） */
+  mockLog: AdvMockLogEntry[];
   humanLesson: AdvHumanLessonState;
   createdAt: string;
   updatedAt: string;

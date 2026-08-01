@@ -28,8 +28,11 @@ import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
-import { readingSetsFor, readingTargetIds } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
-import { listeningSetsFor, listeningTargetIds } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
+import { AdvMockRunner } from './AdvMockRunner';
+import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
+import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
+import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
+import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
 
@@ -54,7 +57,7 @@ export interface AdvShellProps {
   onExitV2: () => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
@@ -277,6 +280,49 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  // ── ミニ模試（§9）──
+  if (view === 'mock') {
+    if (!pools) return <AdvLoading lang={lang} />;
+    const rPool = readingPool(level);
+    const lPool = listeningPool(level);
+    const merged = new Map(pools.byItem);
+    for (const [k, v] of rPool) merged.set(k, v);
+    for (const [k, v] of lPool) merged.set(k, v);
+    let vocabCount = 0; let grammarCount = 0;
+    for (const qs of pools.byItem.values()) {
+      for (const q of qs) {
+        if (q.skill === 'charactersVocabulary') vocabCount += 1;
+        else if (q.skill === 'grammar') grammarCount += 1;
+      }
+    }
+    const readingCount = [...rPool.values()].reduce((n, v) => n + v.length, 0);
+    const listeningCount = [...lPool.values()].reduce((n, v) => n + v.length, 0);
+    const spec = buildMockSpec(level, { vocabCount, grammarCount, readingCount, listeningCount });
+    return (
+      <AdvMockRunner
+        lang={lang} spec={spec} pools={merged}
+        seenKeys={seenQuestionKeys(prof.mastery)}
+        savedState={prof.mockSession}
+        onPersist={(s: MockSessionState | null) => save({ ...prof, mockSession: s })}
+        onFinish={(r: MockResult) => {
+          const completedAt = new Date().toISOString();
+          const seen = seenQuestionKeys(prof.mastery);
+          // 模試は timed evidence と skill別evidenceを同時に台帳へ入れる（準備度へ反映）
+          const attempt = toMockAttempt(r, dateKey, seen, completedAt) as unknown as AdvMasteryAttempt;
+          const ledger = recordAttempt(prof.mastery, `mock-${level.toLowerCase()}`, attempt);
+          save({
+            ...prof,
+            mastery: ledger,
+            mockSession: null,
+            mockLog: [...prof.mockLog, toMockLogEntry(r, dateKey, completedAt)].slice(-30),
+          });
+          for (const s of r.skills) trackAdv('readiness_skill_updated', { locale: lang, skillType: s as ExamSkill });
+        }}
+        onClose={() => setView('home')}
+      />
+    );
+  }
+
   // ── 言い直し（素材0件でも必ず進める・§14）──
   if (view === 'restate') {
     const wrongExpressions = Object.entries(prof.mastery)
@@ -380,8 +426,8 @@ export default function AdvShell(props: AdvShellProps) {
                   {!isCur && (
                     <button type="button"
                       className="mt-2 min-h-[44px] rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700"
-                      onClick={() => openStageDetail(s)}>
-                      {term('viewContents', lang)}
+                      onClick={() => (isBoss ? setView('mock') : openStageDetail(s))}>
+                      {isBoss ? tx(lang, '模試の内容を見る', '查看模拟考内容') : term('viewContents', lang)}
                     </button>
                   )}
                 </div>
@@ -398,7 +444,16 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── readiness（技能別・§9） ──
   if (view === 'readiness') {
-    const r = computeReadiness(prof.targetJlpt ?? 'N2', prof.skills, prof.mastery);
+    const r = computeReadiness(prof.targetJlpt ?? 'N2', prof.skills, prof.mastery, prof.mockLog);
+    const gateRows: { key: keyof typeof r.overallGate; ja: string; zh: string }[] = [
+      { key: 'languageKnowledgeEvidence', ja: '言語知識（文字・語彙・文法）のデータ', zh: '语言知识（文字・词汇・语法）数据' },
+      { key: 'readingEvidence', ja: '読解のデータ', zh: '阅读数据' },
+      { key: 'listeningEvidence', ja: '聴解のデータ', zh: '听力数据' },
+      { key: 'timedEvidence', ja: '制限時間つきの記録', zh: '限时记录' },
+      { key: 'unseenEvidence', ja: '初めて見る問題での記録', zh: '首次见到的题的记录' },
+      { key: 'delayedEvidence', ja: '7日後の測り直し', zh: '7天后的复测' },
+      { key: 'mockCount', ja: `ミニ模試 ${r.mockCount}/3回`, zh: `迷你模拟考 ${r.mockCount}/3次` },
+    ];
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <BackBar lang={lang} onBack={() => setView('home')} title={`${prof.targetJlpt ?? 'N2'}${term('readiness', lang)}`} />
@@ -452,6 +507,26 @@ export default function AdvShell(props: AdvShellProps) {
           )}
           {r.topIssueJa && <p className="mt-1 text-sm text-gray-700">{tx(lang, r.topIssueJa, r.topIssueZh ?? '')}</p>}
           <p className="mt-2 text-xs leading-relaxed text-gray-600">{tx(lang, r.summaryJa, r.summaryZh)}</p>
+        </div>
+
+        {/* 総合を出すための条件（§10）。何が足りないかを隠さない */}
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-bold text-gray-900">{tx(lang, '総合準備度を出す条件', '给出综合准备度的条件')}</p>
+          <ul className="mt-1 space-y-0.5">
+            {gateRows.map((g) => (
+              <li key={g.key} className="flex items-center gap-2 text-xs">
+                <span aria-hidden className={r.overallGate[g.key] ? 'text-emerald-600' : 'text-gray-300'}>
+                  {r.overallGate[g.key] ? '✓' : '○'}
+                </span>
+                <span className={r.overallGate[g.key] ? 'text-gray-700' : 'text-gray-500'}>{tx(lang, g.ja, g.zh)}</span>
+              </li>
+            ))}
+          </ul>
+          {!r.overallGate.mockCount && (
+            <button type="button" className={`${primaryBtn} mt-3`} onClick={() => setView('mock')}>
+              {tx(lang, 'ミニ模試を受ける', '参加迷你模拟考')}
+            </button>
+          )}
         </div>
         <div className={`${card} mt-3`}>
           <p className="text-sm font-bold text-gray-900">{tx(lang, '会話・実践力（JLPTとは別）', '会话・实践力（与JLPT分开）')}</p>
@@ -605,6 +680,28 @@ export default function AdvShell(props: AdvShellProps) {
         </p>
       </div>
 
+      {/* 中断したミニ模試があれば、他の何より先に再開させる（§9 reload recovery） */}
+      {prof.mockSession && (
+        <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
+          <p className="text-sm font-semibold text-gray-900">
+            {tx(lang, 'ミニ模試が途中です', '迷你模拟考进行到一半')}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-600">
+            {tx(lang, '同じ問題・同じ残り時間から再開できます。', '可以从相同的题目和剩余时间继续。')}
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button type="button" className="min-h-[44px] flex-1 rounded-xl bg-amber-600 px-3 py-2 text-sm font-bold text-white"
+              onClick={() => setView('mock')}>
+              {tx(lang, '模試を再開する', '继续模拟考')}
+            </button>
+            <button type="button" className="min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900"
+              onClick={() => save({ ...prof, mockSession: null })}>
+              {tx(lang, '破棄', '放弃')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {!quest && <AdvLoading lang={lang} inline />}
 
       {quest && (
@@ -684,6 +781,9 @@ export default function AdvShell(props: AdvShellProps) {
             <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
             <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
             <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+            <SubLink lang={lang}
+              label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
+              onClick={() => setView('mock')} />
             <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
             <p className="px-1 pt-1 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,

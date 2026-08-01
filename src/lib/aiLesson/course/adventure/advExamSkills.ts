@@ -112,6 +112,13 @@ export const OVERALL_READINESS_REQUIREMENT = {
   minEvidencePerSkill: 20,
   /** 各skillに必要な最低「未出問題」数（暗記でない証拠） */
   minUnseenPerSkill: 10,
+  /** 遅延（7日以降）に測り直した証拠が最低これだけ必要（COMPLETION §10） */
+  minDelayedEvidence: 10,
+  /**
+   * 時間つきミニ模試の完了回数（COMPLETION §10）。
+   * 1回の結果で総合準備度を名乗らない。
+   */
+  minMockCount: 3,
 } as const;
 
 /** バトルの名前をscopeに合わせて決める（§5: 文法だけを「模擬ボス」と呼ばない） */

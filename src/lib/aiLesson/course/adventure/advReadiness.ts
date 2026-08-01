@@ -57,6 +57,10 @@ export interface ReadinessReport {
   /** 総合を出せない理由（機械判定の結果） */
   overallBlockersJa: string[];
   overallBlockersZh: string[];
+  /** §10の各条件の充足状況（1つでもfalseなら overallPct は null） */
+  overallGate: OverallGate;
+  /** 完了したミニ模試の回数 */
+  mockCount: number;
   /** JLPTへ加算しない別軸（§5） */
   practical: PracticalRow[];
   topIssueJa: string | null; topIssueZh: string | null;
@@ -153,8 +157,24 @@ const scoreOf = (e: SkillEvidence): number | null => {
   return Math.round(parts.reduce((n, p) => n + p.v * (p.w / wsum), 0));
 };
 
+/**
+ * 総合準備度を出すための条件（COMPLETION §10）。
+ * 一つでも欠ければ overallPct は null（未判定）。文法攻略率を総合へ流用しない。
+ */
+export interface OverallGate {
+  languageKnowledgeEvidence: boolean;
+  readingEvidence: boolean;
+  listeningEvidence: boolean;
+  timedEvidence: boolean;
+  unseenEvidence: boolean;
+  delayedEvidence: boolean;
+  mockCount: boolean;
+}
+
 export const computeReadiness = (
   target: JlptLevel, skills: AdvSkillProfile, ledger: AdvMasteryLedger,
+  /** 完了したミニ模試の履歴（§10: 3回以上で初めて総合を出す） */
+  mockLog: { completedAt: string }[] = [],
 ): ReadinessReport => {
   const level: 'N2' | 'N3' = target === 'N3' ? 'N3' : 'N2';
   const evidence = collectSkillEvidence(ledger);
@@ -217,12 +237,39 @@ export const computeReadiness = (
       blockersZh.push(`${label.zh}的未见过的题不足（${e.unseenQuestionCount}/${OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill}题）`);
     }
   }
+  // 遅延（7日以降）の測り直しが無いうちは総合を出さない（§10）
+  const delayedTotal = OVERALL_READINESS_REQUIREMENT.requiredSkills
+    .reduce((n, k) => n + evidence[k].delayedEvidenceCount, 0);
+  if (delayedTotal < OVERALL_READINESS_REQUIREMENT.minDelayedEvidence) {
+    blockersJa.push(`7日後の測り直しが不足しています（${delayedTotal}/${OVERALL_READINESS_REQUIREMENT.minDelayedEvidence}問）`);
+    blockersZh.push(`7天后的复测不足（${delayedTotal}/${OVERALL_READINESS_REQUIREMENT.minDelayedEvidence}题）`);
+  }
+  // 時間つきミニ模試の完了回数（§10）
+  const mockCount = mockLog.length;
+  if (mockCount < OVERALL_READINESS_REQUIREMENT.minMockCount) {
+    blockersJa.push(`時間つきミニ模試の回数が不足しています（${mockCount}/${OVERALL_READINESS_REQUIREMENT.minMockCount}回）`);
+    blockersZh.push(`限时迷你模拟考的次数不足（${mockCount}/${OVERALL_READINESS_REQUIREMENT.minMockCount}次）`);
+  }
+
   const measuredRequired = OVERALL_READINESS_REQUIREMENT.requiredSkills
     .map((k) => rows.find((r) => r.key === k))
     .filter((r): r is ReadinessRow => !!r && r.pct !== null);
   const overallPct = blockersJa.length === 0 && measuredRequired.length === OVERALL_READINESS_REQUIREMENT.requiredSkills.length
     ? Math.round(measuredRequired.reduce((n, r) => n + (r.pct ?? 0), 0) / measuredRequired.length)
     : null;
+
+  const gate: OverallGate = {
+    languageKnowledgeEvidence:
+      evidence.charactersVocabulary.evidenceCount >= OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill
+      && evidence.grammar.evidenceCount >= OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill,
+    readingEvidence: evidence.reading.evidenceCount >= OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill,
+    listeningEvidence: evidence.listening.evidenceCount >= OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill,
+    timedEvidence: timing.timedEvidenceCount > 0,
+    unseenEvidence: OVERALL_READINESS_REQUIREMENT.requiredSkills
+      .every((k) => evidence[k].unseenQuestionCount >= OVERALL_READINESS_REQUIREMENT.minUnseenPerSkill),
+    delayedEvidence: delayedTotal >= OVERALL_READINESS_REQUIREMENT.minDelayedEvidence,
+    mockCount: mockCount >= OVERALL_READINESS_REQUIREMENT.minMockCount,
+  };
 
   // ── 別軸（JLPTへ加算しない）──
   const conv = skills.conversation;
@@ -261,6 +308,8 @@ export const computeReadiness = (
     overallPct,
     overallBlockersJa: blockersJa,
     overallBlockersZh: blockersZh,
+    overallGate: gate,
+    mockCount,
     practical,
     topIssueJa: weakest ? `いちばん弱いのは${weakest.labelJa}です` : null,
     topIssueZh: weakest ? `目前最弱的是${weakest.labelZh}` : null,

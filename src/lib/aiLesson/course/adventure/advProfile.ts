@@ -3,7 +3,7 @@
 // 既存進捗からの能力認定はしない（unknown/needs_assessment・§23）。
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
-  AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand,
+  AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
 
@@ -33,6 +33,8 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   lastQuest: null,
   todaySteps: null,
   questLog: [],
+  mockSession: null,
+  mockLog: [],
   humanLesson: {},
   createdAt: nowISO,
   updatedAt: nowISO,
@@ -62,6 +64,37 @@ const restoreSkill = (v: unknown): AdvSkillScore => {
     evidenceCount: typeof v.evidenceCount === 'number' && v.evidenceCount >= 0 ? Math.floor(v.evidenceCount) : 0,
     lastAssessedAt: typeof v.lastAssessedAt === 'string' ? v.lastAssessedAt : null,
     band,
+  };
+};
+
+/**
+ * 進行中ミニ模試の復元（§9 reload recovery）。
+ * 形が壊れていれば null（＝模試は最初からになるが、学習は止まらない）。
+ */
+const restoreMockSessionState = (v: unknown): AdvMockSessionState | null => {
+  if (!isRecord(v)) return null;
+  const level = v.level === 'N2' || v.level === 'N3' ? v.level : null;
+  const mode = v.mode === 'short' || v.mode === 'fullTime' ? v.mode : null;
+  if (!level || !mode) return null;
+  if (typeof v.mockId !== 'string' || typeof v.attemptSeed !== 'number' || typeof v.startedAt !== 'string') return null;
+  if (!Array.isArray(v.remainingSecBySection)) return null;
+  const remaining = v.remainingSecBySection
+    .filter((n): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0);
+  if (remaining.length !== v.remainingSecBySection.length || remaining.length === 0) return null;
+  const idx = typeof v.sectionIndex === 'number' ? Math.floor(v.sectionIndex) : 0;
+  if (idx < 0 || idx >= remaining.length) return null;
+  const answers: Record<string, string | null> = {};
+  if (isRecord(v.answers)) {
+    for (const [k, val] of Object.entries(v.answers)) if (typeof val === 'string') answers[k] = val;
+  }
+  return {
+    mockId: v.mockId, level, mode, attemptSeed: v.attemptSeed, startedAt: v.startedAt,
+    sectionIndex: idx,
+    remainingSecBySection: remaining,
+    answers,
+    completedSections: Array.isArray(v.completedSections)
+      ? v.completedSections.filter((s): s is string => typeof s === 'string') : [],
+    finishedAt: typeof v.finishedAt === 'string' ? v.finishedAt : null,
   };
 };
 
@@ -101,6 +134,12 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
       : null,
     questLog: Array.isArray(raw.questLog)
       ? (raw.questLog.filter((e) => isRecord(e) && typeof e.dateKey === 'string') as AdventureV2Profile['questLog'])
+      : [],
+    mockSession: restoreMockSessionState(raw.mockSession),
+    mockLog: Array.isArray(raw.mockLog)
+      ? (raw.mockLog.filter((e) =>
+        isRecord(e) && typeof e.mockId === 'string' && typeof e.completedAt === 'string'
+        && typeof e.totalQuestions === 'number') as AdventureV2Profile['mockLog']).slice(-30)
       : [],
     humanLesson: isRecord(raw.humanLesson) ? (raw.humanLesson as AdventureV2Profile['humanLesson']) : {},
     updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : nowISO,
