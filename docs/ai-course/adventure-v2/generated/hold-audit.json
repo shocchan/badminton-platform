@@ -1,0 +1,990 @@
+{
+ "generatedAt": "2026-08-01T02:47:17.863Z",
+ "N2": {
+  "canonicalItems": 178,
+  "activeQuestions": 554,
+  "byType": {
+   "rec": 150,
+   "cloze": 199,
+   "meaning": 172,
+   "form": 33
+  },
+  "heldCount": 28,
+  "byDisposition": {
+   "REPLACE_WITH_SAFE_VARIANT": 18,
+   "REPAIR_AND_RELEASE": 10
+  },
+  "itemsWithZeroQuestions": [],
+  "held": [
+   {
+    "sourceItemId": "n2g-001",
+    "questionId": "rec:n2g-001",
+    "holdReasons": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": true,
+    "languageIssue": false,
+    "correctCategory": "negative",
+    "lengthSpread": 1.42,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-003",
+    "questionId": "rec:n2g-003",
+    "holdReasons": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": true,
+    "languageIssue": false,
+    "correctCategory": "obligation",
+    "lengthSpread": 1.43,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-011",
+    "questionId": "rec:n2g-011",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "negative",
+    "lengthSpread": 1.5,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-020",
+    "questionId": "rec:n2g-020",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.33,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-021",
+    "questionId": "rec:n2g-021",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1.33,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-029",
+    "questionId": "rec:n2g-029",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 2.67,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-035",
+    "questionId": "rec:n2g-035",
+    "holdReasons": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": true,
+    "languageIssue": false,
+    "correctCategory": "negative",
+    "lengthSpread": 2.25,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-036",
+    "questionId": "rec:n2g-036",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 2,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-042",
+    "questionId": "rec:n2g-042",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 3.33,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-047",
+    "questionId": "rec:n2g-047",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1.83,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-048",
+    "questionId": "rec:n2g-048",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.67,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-051",
+    "questionId": "rec:n2g-051",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 3.5,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-059",
+    "questionId": "rec:n2g-059",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 4.5,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-034",
+    "questionId": "rec:n2g-034",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1.67,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-061",
+    "questionId": "rec:n2g-061",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 4,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-065",
+    "questionId": "rec:n2g-065",
+    "holdReasons": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": true,
+    "languageIssue": false,
+    "correctCategory": "past",
+    "lengthSpread": 2,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-068",
+    "questionId": "rec:n2g-068",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.4,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-073",
+    "questionId": "rec:n2g-073",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.57,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "cloze"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-081",
+    "questionId": "rec:n2g-081",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.5,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-087",
+    "questionId": "rec:n2g-087",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.33,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-088",
+    "questionId": "rec:n2g-088",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 2,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-089",
+    "questionId": "rec:n2g-089",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.25,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-090",
+    "questionId": "rec:n2g-090",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.5,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-091",
+    "questionId": "rec:n2g-091",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.25,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-093",
+    "questionId": "rec:n2g-093",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 4.5,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n2g-100",
+    "questionId": "rec:n2g-100",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "negative",
+    "lengthSpread": 1.6,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-106",
+    "questionId": "rec:n2g-106",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "past",
+    "lengthSpread": 1.27,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n2g-177",
+    "questionId": "rec:n2g-177",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.33,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   }
+  ]
+ },
+ "N3": {
+  "canonicalItems": 76,
+  "activeQuestions": 248,
+  "byType": {
+   "rec": 59,
+   "cloze": 84,
+   "meaning": 72,
+   "form": 33
+  },
+  "heldCount": 17,
+  "byDisposition": {
+   "REPLACE_WITH_SAFE_VARIANT": 15,
+   "REPAIR_AND_RELEASE": 2
+  },
+  "itemsWithZeroQuestions": [],
+  "held": [
+   {
+    "sourceItemId": "n3g-gachi",
+    "questionId": "rec:n3g-gachi",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1.56,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-gasuru",
+    "questionId": "rec:n3g-gasuru",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-toku",
+    "questionId": "rec:n3g-toku",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 4.5,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-temoii",
+    "questionId": "rec:n3g-temoii",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "question",
+    "lengthSpread": 5.67,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-nakerebanaranai",
+    "questionId": "rec:n3g-nakerebanaranai",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.25,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-node",
+    "questionId": "rec:n3g-node",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 4.25,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-tsuzukeru-fukugou",
+    "questionId": "rec:n3g-tsuzukeru-fukugou",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.25,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n3g-bakari",
+    "questionId": "rec:n3g-bakari",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 5,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-souda-yousu",
+    "questionId": "rec:n3g-souda-yousu",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "plainState",
+    "lengthSpread": 1.29,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-nikuwaete",
+    "questionId": "rec:n3g-nikuwaete",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 5,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-aidani",
+    "questionId": "rec:n3g-aidani",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.33,
+    "activeQuestionCount": 4,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning",
+     "form"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-osoregaaru",
+    "questionId": "rec:n3g-osoregaaru",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.3,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-kawarini",
+    "questionId": "rec:n3g-kawarini",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 3.5,
+    "activeQuestionCount": 1,
+    "activeQuestionTypes": [
+     "meaning"
+    ],
+    "fixability": "single_variant",
+    "disposition": "REPAIR_AND_RELEASE"
+   },
+   {
+    "sourceItemId": "n3g-kiri",
+    "questionId": "rec:n3g-kiri",
+    "holdReasons": [
+     "ending_category_giveaway",
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": true,
+    "languageIssue": false,
+    "correctCategory": "negative",
+    "lengthSpread": 2,
+    "activeQuestionCount": 3,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-noyouna",
+    "questionId": "rec:n3g-noyouna",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nounPhrase",
+    "lengthSpread": 1.5,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-nookagede",
+    "questionId": "rec:n3g-nookagede",
+    "holdReasons": [
+     "structural_inhomogeneity"
+    ],
+    "semanticDisconnect": false,
+    "structuralMismatch": true,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "nonJapanese",
+    "lengthSpread": 5.33,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   },
+   {
+    "sourceItemId": "n3g-noseide",
+    "questionId": "rec:n3g-noseide",
+    "holdReasons": [
+     "semantic_disconnection"
+    ],
+    "semanticDisconnect": true,
+    "structuralMismatch": false,
+    "multipleAnswerRisk": false,
+    "giveaway": false,
+    "languageIssue": false,
+    "correctCategory": "past",
+    "lengthSpread": 2.5,
+    "activeQuestionCount": 2,
+    "activeQuestionTypes": [
+     "cloze",
+     "meaning"
+    ],
+    "fixability": "covered_by_variants",
+    "disposition": "REPLACE_WITH_SAFE_VARIANT"
+   }
+  ]
+ },
+ "summary": {
+  "totalHold": 45,
+  "zeroQuestionItems": [],
+  "pass": true
+ }
+}

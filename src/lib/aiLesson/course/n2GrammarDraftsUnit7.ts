@@ -260,7 +260,7 @@ export const N2_GRAMMAR_DRAFTS_UNIT7: N2GrammarDraft[] = [
                  '今日中に終わらせられないことはないですが、かなり大変です。'],
     examplesZh: ['虽然有点辣，也不是不能吃。', '今天之内也不是做不完，但相当吃力。'],
     furigana: 'ちょっと からいですが、たべられない ことは ないです。',
-    commonMistakesZh: '弱い肯定であって快諾ではない。相手には「條件付き」と伝わる',
+    commonMistakesZh: '是勉强的肯定，不是爽快答应。对方会理解为「有条件的同意」',
     learnerFocus: '無理な依頼への含みのある返事。「できなくはないですが…」で条件交渉へ',
     similarPatterns: ['〜なくはない', '〜わけではない'],
     contrast: '「ないことはない」＝条件つき可能；「わけではない」＝部分否定',
