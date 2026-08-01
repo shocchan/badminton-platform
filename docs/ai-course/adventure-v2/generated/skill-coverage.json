@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T12:53:30.496Z",
+ "generatedAt": "2026-08-01T13:01:57.573Z",
  "note": "件数の到達だけで saturated にしない（§15）。本文の重複・構造の重複・難易度の偏りを見る。",
  "reading": [
   {
@@ -153,242 +153,166 @@
   {
    "level": "N3",
    "total": 100,
-   "playable": 25,
-   "target": 100,
-   "pilotPass": false,
-   "missingAudio": 75,
-   "byType": {
-    "taskComprehension": {
-     "labelJa": "課題理解",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 15,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      2,
-      3,
-      0
-     ],
-     "stage": "insufficient"
-    },
-    "pointComprehension": {
-     "labelJa": "ポイント理解",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 15,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      1,
-      4,
-      0
-     ],
-     "stage": "insufficient"
-    },
-    "outlineComprehension": {
-     "labelJa": "概要理解",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 15,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      0,
-      5,
-      0
-     ],
-     "stage": "insufficient"
-    },
-    "quickResponse": {
-     "labelJa": "即時応答",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 15,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      3,
-      2,
-      0
-     ],
-     "stage": "insufficient"
-    },
-    "integrated": {
-     "labelJa": "統合理解",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 15,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      0,
-      0,
-      5
-     ],
-     "stage": "insufficient"
-    }
-   }
-  },
-  {
-   "level": "N2",
-   "total": 25,
-   "playable": 25,
+   "playable": 100,
    "target": 100,
    "pilotPass": true,
    "missingAudio": 0,
    "byType": {
     "taskComprehension": {
      "labelJa": "課題理解",
-     "active": 5,
+     "active": 20,
      "target": 20,
-     "uniqueAudio": 5,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      5,
+      11,
+      4
+     ],
+     "stage": "saturated"
+    },
+    "pointComprehension": {
+     "labelJa": "ポイント理解",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      4,
+      11,
+      5
+     ],
+     "stage": "saturated"
+    },
+    "outlineComprehension": {
+     "labelJa": "概要理解",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      3,
+      14,
+      3
+     ],
+     "stage": "saturated"
+    },
+    "quickResponse": {
+     "labelJa": "即時応答",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      8,
+      9,
+      3
+     ],
+     "stage": "saturated"
+    },
+    "integrated": {
+     "labelJa": "統合理解",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      7,
+      13
+     ],
+     "stage": "saturated"
+    }
+   }
+  },
+  {
+   "level": "N2",
+   "total": 100,
+   "playable": 100,
+   "target": 100,
+   "pilotPass": true,
+   "missingAudio": 0,
+   "byType": {
+    "taskComprehension": {
+     "labelJa": "課題理解",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      13,
+      7
+     ],
+     "stage": "saturated"
+    },
+    "pointComprehension": {
+     "labelJa": "ポイント理解",
+     "active": 20,
+     "target": 20,
+     "uniqueAudio": 20,
      "heldForMissingAudio": 0,
      "duplicateStructures": 0,
      "difficultyDistribution": [
       0,
       4,
-      1
+      16
      ],
-     "stage": "insufficient"
-    },
-    "pointComprehension": {
-     "labelJa": "ポイント理解",
-     "active": 5,
-     "target": 20,
-     "uniqueAudio": 5,
-     "heldForMissingAudio": 0,
-     "duplicateStructures": 0,
-     "difficultyDistribution": [
-      0,
-      0,
-      5
-     ],
-     "stage": "insufficient"
+     "stage": "saturated"
     },
     "outlineComprehension": {
      "labelJa": "概要理解",
-     "active": 5,
+     "active": 20,
      "target": 20,
-     "uniqueAudio": 5,
+     "uniqueAudio": 20,
      "heldForMissingAudio": 0,
      "duplicateStructures": 0,
      "difficultyDistribution": [
       0,
-      0,
-      5
+      7,
+      13
      ],
-     "stage": "insufficient"
+     "stage": "saturated"
     },
     "quickResponse": {
      "labelJa": "即時応答",
-     "active": 5,
+     "active": 20,
      "target": 20,
-     "uniqueAudio": 5,
+     "uniqueAudio": 20,
      "heldForMissingAudio": 0,
      "duplicateStructures": 0,
      "difficultyDistribution": [
       0,
-      2,
-      3
+      10,
+      10
      ],
-     "stage": "insufficient"
+     "stage": "saturated"
     },
     "integrated": {
      "labelJa": "統合理解",
-     "active": 5,
+     "active": 20,
      "target": 20,
-     "uniqueAudio": 5,
+     "uniqueAudio": 20,
      "heldForMissingAudio": 0,
      "duplicateStructures": 0,
      "difficultyDistribution": [
       0,
-      0,
-      5
+      4,
+      16
      ],
-     "stage": "insufficient"
+     "stage": "saturated"
     }
    }
   }
  ],
  "audio": {
-  "playable": 50,
-  "missing": [
-   "n3l-task-06",
-   "n3l-task-07",
-   "n3l-task-08",
-   "n3l-task-09",
-   "n3l-task-10",
-   "n3l-task-11",
-   "n3l-task-12",
-   "n3l-task-13",
-   "n3l-task-14",
-   "n3l-task-15",
-   "n3l-task-16",
-   "n3l-task-17",
-   "n3l-task-18",
-   "n3l-task-19",
-   "n3l-task-20",
-   "n3l-point-06",
-   "n3l-point-07",
-   "n3l-point-08",
-   "n3l-point-09",
-   "n3l-point-10",
-   "n3l-point-11",
-   "n3l-point-12",
-   "n3l-point-13",
-   "n3l-point-14",
-   "n3l-point-15",
-   "n3l-point-16",
-   "n3l-point-17",
-   "n3l-point-18",
-   "n3l-point-19",
-   "n3l-point-20",
-   "n3l-outline-06",
-   "n3l-outline-07",
-   "n3l-outline-08",
-   "n3l-outline-09",
-   "n3l-outline-10",
-   "n3l-outline-11",
-   "n3l-outline-12",
-   "n3l-outline-13",
-   "n3l-outline-14",
-   "n3l-outline-15",
-   "n3l-outline-16",
-   "n3l-outline-17",
-   "n3l-outline-18",
-   "n3l-outline-19",
-   "n3l-outline-20",
-   "n3l-quick-06",
-   "n3l-quick-07",
-   "n3l-quick-08",
-   "n3l-quick-09",
-   "n3l-quick-10",
-   "n3l-quick-11",
-   "n3l-quick-12",
-   "n3l-quick-13",
-   "n3l-quick-14",
-   "n3l-quick-15",
-   "n3l-quick-16",
-   "n3l-quick-17",
-   "n3l-quick-18",
-   "n3l-quick-19",
-   "n3l-quick-20",
-   "n3l-int-06",
-   "n3l-int-07",
-   "n3l-int-08",
-   "n3l-int-09",
-   "n3l-int-10",
-   "n3l-int-11",
-   "n3l-int-12",
-   "n3l-int-13",
-   "n3l-int-14",
-   "n3l-int-15",
-   "n3l-int-16",
-   "n3l-int-17",
-   "n3l-int-18",
-   "n3l-int-19",
-   "n3l-int-20"
-  ]
+  "playable": 200,
+  "missing": []
  }
 }
