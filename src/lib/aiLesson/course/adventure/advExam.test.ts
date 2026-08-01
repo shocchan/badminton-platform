@@ -193,3 +193,64 @@ describe('総合準備度のgating（§11）', () => {
     expect(r.practical.find((p) => p.key === 'conversation')?.pct).toBe(95);
   });
 });
+
+// FINAL COMPLETION §17: 「1つでも欠ければ未判定」を条件ごとに個別固定する。
+// 総合準備度は学習者の進路判断に直結するため、抜けた条件が何であっても出してはいけない。
+describe('総合準備度のgating — 欠けている条件ごとの個別確認（§17）', () => {
+  /** 4技能をすべて満たした台帳を作り、指定の技能だけ落とす */
+  const fullLedger = (drop?: 'reading' | 'listening' | 'charactersVocabulary' | 'grammar',
+    opts: { unseen?: number } = {}): AdvMasteryLedger => {
+    const ledger: AdvMasteryLedger = {};
+    const unseen = opts.unseen ?? 5;
+    for (const [id, skill] of [
+      ['a', 'charactersVocabulary'], ['b', 'grammar'], ['c', 'reading'], ['d', 'listening'],
+    ] as const) {
+      if (skill === drop) continue;
+      ledger[id] = [
+        att('2026-07-01', { [skill]: { correct: 9, total: 10, unseen } }, { timed: true }),
+        att('2026-07-02', { [skill]: { correct: 9, total: 10, unseen } }, { timed: true }),
+        att('2026-07-15', { [skill]: { correct: 9, total: 10, unseen } }, { timed: true }),
+      ];
+    }
+    return ledger;
+  };
+  const mocks = (n: number) => Array.from({ length: n }, () => ({ completedAt: '2026-07-20T00:00:00.000Z' }));
+
+  it('聴解の記録が無ければ、模試を5回やっても未判定', () => {
+    const r = computeReadiness('N2', emptySkillProfile(), fullLedger('listening'), mocks(5));
+    expect(r.overallGate.listeningEvidence).toBe(false);
+    expect(r.overallPct).toBeNull();
+    expect(r.overallBlockersJa.some((b) => b.includes('聴解'))).toBe(true);
+  });
+
+  it('読解の記録が無ければ未判定', () => {
+    const r = computeReadiness('N2', emptySkillProfile(), fullLedger('reading'), mocks(5));
+    expect(r.overallGate.readingEvidence).toBe(false);
+    expect(r.overallPct).toBeNull();
+    expect(r.overallBlockersJa.some((b) => b.includes('読解'))).toBe(true);
+  });
+
+  it('文字・語彙の記録が無ければ未判定（言語知識は2科目そろって初めて満たす）', () => {
+    const r = computeReadiness('N2', emptySkillProfile(), fullLedger('charactersVocabulary'), mocks(5));
+    expect(r.overallGate.languageKnowledgeEvidence).toBe(false);
+    expect(r.overallPct).toBeNull();
+  });
+
+  it('未出問題の記録が無ければ未判定（覚えた問題の再演では測れない）', () => {
+    const r = computeReadiness('N2', emptySkillProfile(), fullLedger(undefined, { unseen: 0 }), mocks(5));
+    expect(r.overallGate.unseenEvidence).toBe(false);
+    expect(r.overallPct).toBeNull();
+  });
+
+  it('模試が2回では未判定（3回目で初めて条件を満たす）', () => {
+    const ledger = fullLedger();
+    expect(computeReadiness('N2', emptySkillProfile(), ledger, mocks(2)).overallPct).toBeNull();
+    expect(computeReadiness('N2', emptySkillProfile(), ledger, mocks(2)).overallGate.mockCount).toBe(false);
+    expect(computeReadiness('N2', emptySkillProfile(), ledger, mocks(3)).overallPct).not.toBeNull();
+  });
+
+  it('N3でも同じgateが働く（レベルで甘くしない）', () => {
+    expect(computeReadiness('N3', emptySkillProfile(), fullLedger('listening'), mocks(5)).overallPct).toBeNull();
+    expect(computeReadiness('N3', emptySkillProfile(), fullLedger(), mocks(3)).overallPct).not.toBeNull();
+  });
+});

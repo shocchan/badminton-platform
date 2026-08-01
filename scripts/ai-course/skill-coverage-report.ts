@@ -122,14 +122,14 @@ const run = () => {
 
   for (const r of report.reading) {
     console.log(`読解 ${r.level}: ${r.total}/${r.target}`);
-    for (const [t, v] of Object.entries(r.byType)) {
+    for (const v of Object.values(r.byType)) {
       const x = v as Record<string, unknown>;
       console.log(`  ${x.labelJa}: ${x.active}/${x.target} stage=${x.stage} 本文重複=${(x.active as number) - (x.uniqueBodies as number)} 構造重複=${x.duplicateStructures}`);
     }
   }
   for (const r of report.listening) {
     console.log(`聴解 ${r.level}: 再生可 ${r.playable}/${r.target}（総数 ${r.total}・音声なし ${r.missingAudio}）`);
-    for (const [t, v] of Object.entries(r.byType)) {
+    for (const v of Object.values(r.byType)) {
       const x = v as Record<string, unknown>;
       console.log(`  ${x.labelJa}: ${x.active}/${x.target} stage=${x.stage} HOLD=${x.heldForMissingAudio} 構造重複=${x.duplicateStructures}`);
     }
