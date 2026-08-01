@@ -2,102 +2,292 @@
  "sprint": "N2／N3 ADAPTIVE ADVENTURE COMPLETION",
  "branch": "feature/ai-course-adventure-v2-completion",
  "baseHead": "b346edf",
- "statusValues": ["pending", "in_progress", "complete", "failed_internal", "blocked_external", "deferred_by_scope"],
+ "statusValues": [
+  "pending",
+  "in_progress",
+  "complete",
+  "failed_internal",
+  "blocked_external",
+  "deferred_by_scope"
+ ],
  "tasks": [
-  { "id": "A-1", "phase": "A", "priority": "P0", "status": "pending",
-    "files": ["scripts/ai-course/completion-inventory.ts"],
-    "acceptanceCommand": "vite-node scripts/ai-course/completion-inventory.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "A-2", "phase": "A", "priority": "P0", "status": "pending",
-    "files": ["scripts/ai-course/audit-hold-questions.ts"],
-    "acceptanceCommand": "vite-node scripts/ai-course/audit-hold-questions.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/hold-audit.json",
-    "blockedReason": null, "remainingCount": 45 },
-  { "id": "B-1", "phase": "B", "priority": "P1", "status": "pending",
-    "files": ["scripts/ai-course/audit-zh-explanations.ts"],
-    "acceptanceCommand": "vite-node scripts/ai-course/audit-zh-explanations.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/zh-explanation-audit.json",
-    "blockedReason": null, "remainingCount": 974 },
-  { "id": "C-1", "phase": "C", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/reading/readingTypes.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advReading.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "C-2", "phase": "C", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/reading/n3ReadingSets.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
-    "blockedReason": null, "remainingCount": 30 },
-  { "id": "C-3", "phase": "C", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/reading/n2ReadingSets.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
-    "blockedReason": null, "remainingCount": 30 },
-  { "id": "C-4", "phase": "C", "priority": "P0", "status": "pending",
-    "files": ["src/components/ai-course/adventure/AdvReadingRunner.tsx"],
-    "acceptanceCommand": "npm run build",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "D-1", "phase": "D", "priority": "P0", "status": "pending",
-    "files": ["scripts/ai-course/generate-listening-audio.mjs"],
-    "acceptanceCommand": "node scripts/ai-course/generate-listening-audio.mjs --verify",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/audio-manifest.json",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "D-2", "phase": "D", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/listening/n3ListeningSets.ts", "src/lib/aiLesson/course/adventure/listening/n2ListeningSets.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advListening.test.ts",
-    "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
-    "blockedReason": null, "remainingCount": 50 },
-  { "id": "D-3", "phase": "D", "priority": "P0", "status": "pending",
-    "files": ["src/components/ai-course/adventure/AdvListeningRunner.tsx"],
-    "acceptanceCommand": "npm run build",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "E-1", "phase": "E", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advTiming.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advExam.test.ts",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advExam.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "E-2", "phase": "E", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advMock.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advExam.test.ts",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advExam.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "F-1", "phase": "F", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advReadiness.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advBattleMastery.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "G-1", "phase": "G", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advQuest.ts", "src/components/ai-course/adventure/AdvShell.tsx"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "G-2", "phase": "G", "priority": "P0", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advRestate.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advBridge.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "H-1", "phase": "H", "priority": "P1", "status": "pending",
-    "files": ["src/lib/aiLesson/course/adventure/advHumanLesson.ts"],
-    "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advBridge.test.ts",
-    "evidencePath": "src/lib/aiLesson/course/adventure/advBridge.test.ts",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "I-1", "phase": "I", "priority": "P1", "status": "pending",
-    "files": ["src/components/ai-course/adventure/"],
-    "acceptanceCommand": "npm run validate:ai-course",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "J-1", "phase": "J", "priority": "P0", "status": "pending",
-    "files": ["scripts/deploy-staging.sh"],
-    "acceptanceCommand": "npm run validate:ai-course && npx vitest run && npm run build",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
-    "blockedReason": null, "remainingCount": 1 },
-  { "id": "J-2", "phase": "J", "priority": "P0", "status": "pending",
-    "files": ["docs/ai-course/adventure-v2/completion-final-report.md"],
-    "acceptanceCommand": "test -s docs/ai-course/adventure-v2/completion-final-report.md",
-    "evidencePath": "docs/ai-course/adventure-v2/completion-final-report.md",
-    "blockedReason": null, "remainingCount": 1 }
- ]
+  {
+   "id": "A-1",
+   "phase": "A",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "scripts/ai-course/completion-inventory.ts"
+   ],
+   "acceptanceCommand": "vite-node scripts/ai-course/completion-inventory.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "A-2",
+   "phase": "A",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "scripts/ai-course/audit-hold-questions.ts"
+   ],
+   "acceptanceCommand": "vite-node scripts/ai-course/audit-hold-questions.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/hold-audit.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "B-1",
+   "phase": "B",
+   "priority": "P1",
+   "status": "complete",
+   "files": [
+    "scripts/ai-course/audit-zh-explanations.ts"
+   ],
+   "acceptanceCommand": "vite-node scripts/ai-course/audit-zh-explanations.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/zh-explanation-audit.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "C-1",
+   "phase": "C",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/reading/readingTypes.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advReading.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "C-2",
+   "phase": "C",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/reading/n3ReadingSets.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "C-3",
+   "phase": "C",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/reading/n2ReadingSets.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advReading.test.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "C-4",
+   "phase": "C",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/components/ai-course/adventure/AdvReadingRunner.tsx"
+   ],
+   "acceptanceCommand": "npm run build",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "D-1",
+   "phase": "D",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "scripts/ai-course/generate-listening-audio.mjs"
+   ],
+   "acceptanceCommand": "node scripts/ai-course/generate-listening-audio.mjs --verify",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/audio-manifest.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "D-2",
+   "phase": "D",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/listening/n3ListeningSets.ts",
+    "src/lib/aiLesson/course/adventure/listening/n2ListeningSets.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advListening.test.ts",
+   "evidencePath": "docs/ai-course/adventure-v2/generated/completion-inventory.json",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "D-3",
+   "phase": "D",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/components/ai-course/adventure/AdvListeningRunner.tsx"
+   ],
+   "acceptanceCommand": "npm run build",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "E-1",
+   "phase": "E",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advTiming.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advExam.test.ts",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advExam.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "E-2",
+   "phase": "E",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advMock.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advExam.test.ts",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advExam.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "F-1",
+   "phase": "F",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advReadiness.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advBattleMastery.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "G-1",
+   "phase": "G",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advQuest.ts",
+    "src/components/ai-course/adventure/AdvShell.tsx"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "G-2",
+   "phase": "G",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advRestate.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advBridge.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "H-1",
+   "phase": "H",
+   "priority": "P1",
+   "status": "complete",
+   "files": [
+    "src/lib/aiLesson/course/adventure/advHumanLesson.ts"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advBridge.test.ts",
+   "evidencePath": "src/lib/aiLesson/course/adventure/advBridge.test.ts",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "I-1",
+   "phase": "I",
+   "priority": "P1",
+   "status": "complete",
+   "files": [
+    "src/components/ai-course/adventure/"
+   ],
+   "acceptanceCommand": "npm run validate:ai-course",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "J-1",
+   "phase": "J",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "scripts/deploy-staging.sh"
+   ],
+   "acceptanceCommand": "npm run validate:ai-course && npx vitest run && npm run build",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-staging-smoke.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "J-2",
+   "phase": "J",
+   "priority": "P0",
+   "status": "complete",
+   "files": [
+    "docs/ai-course/adventure-v2/completion-final-report.md"
+   ],
+   "acceptanceCommand": "test -s docs/ai-course/adventure-v2/completion-final-report.md",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-final-report.md",
+   "blockedReason": null,
+   "remainingCount": 0
+  },
+  {
+   "id": "E-3",
+   "phase": "E",
+   "priority": "P0",
+   "status": "pending",
+   "files": [
+    "src/components/ai-course/adventure/AdvMockRunner.tsx"
+   ],
+   "acceptanceCommand": "npx vitest run src/lib/aiLesson/course/adventure/advExam.test.ts && npm run build",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-final-report.md",
+   "blockedReason": null,
+   "remainingCount": 1,
+   "note": "ミニ模試のsection遷移UI。仕様はadvMock.tsに実装済み・画面のみ未実装。timed attemptが記録できるようになると総合準備度が判定可能になる"
+  },
+  {
+   "id": "G-3",
+   "phase": "G",
+   "priority": "P0",
+   "status": "blocked_external",
+   "files": [
+    "src/components/ai-course/adventure/AdvShell.tsx"
+   ],
+   "acceptanceCommand": "staging実走（CEO test learner）",
+   "evidencePath": "docs/ai-course/adventure-v2/completion-final-report.md",
+   "blockedReason": "実API課金＋実learnerセッションが必要。導線・データ受け渡しは実装済み",
+   "remainingCount": 1
+  }
+ ],
+ "pilotComplete": false,
+ "resumeFrom": "E-3"
 }
