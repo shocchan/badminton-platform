@@ -1,0 +1,100 @@
+{
+ "generatedAt": "2026-08-01T14:16:02.322Z",
+ "batchNo": 6,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 11,
+  "blocking": 0,
+  "byKind": {
+   "ambiguous_sense_unmarked": 11
+  }
+ },
+ "eligibleForActiveBeta": 250,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [
+  {
+   "wordId": "vc-06-029",
+   "surface": "上",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-034",
+   "surface": "空",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-039",
+   "surface": "代る",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-040",
+   "surface": "管",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-098",
+   "surface": "金",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に12語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-131",
+   "surface": "軍",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-135",
+   "surface": "計",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-187",
+   "surface": "事",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-209",
+   "surface": "下る",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-212",
+   "surface": "作",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-06-243",
+   "surface": "氏",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

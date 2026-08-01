@@ -1,0 +1,147 @@
+{
+ "generatedAt": "2026-08-01T14:16:04.064Z",
+ "batchNo": 10,
+ "words": 203,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 16,
+  "blocking": 9,
+  "byKind": {
+   "ambiguous_sense_unmarked": 7,
+   "no_dictionary_entry": 9
+  }
+ },
+ "eligibleForActiveBeta": 194,
+ "needsHumanReview": [
+  "vc-10-027",
+  "vc-10-055",
+  "vc-10-122",
+  "vc-10-125",
+  "vc-10-153",
+  "vc-10-157",
+  "vc-10-160",
+  "vc-10-177",
+  "vc-10-194"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-10-027",
+   "surface": "そのため",
+   "kind": "no_dictionary_entry",
+   "detail": "そのため|そのため が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-055",
+   "surface": "遠慮",
+   "kind": "no_dictionary_entry",
+   "detail": "遠慮|えんりょする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-122",
+   "surface": "だと",
+   "kind": "no_dictionary_entry",
+   "detail": "だと|だと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-125",
+   "surface": "来る",
+   "kind": "no_dictionary_entry",
+   "detail": "来る|きたる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-153",
+   "surface": "ずれ",
+   "kind": "no_dictionary_entry",
+   "detail": "ずれ|ずれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-157",
+   "surface": "違える",
+   "kind": "no_dictionary_entry",
+   "detail": "違える|ちがえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-160",
+   "surface": "まと",
+   "kind": "no_dictionary_entry",
+   "detail": "まと|まと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-177",
+   "surface": "最中",
+   "kind": "no_dictionary_entry",
+   "detail": "最中|さなか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-10-194",
+   "surface": "人気",
+   "kind": "no_dictionary_entry",
+   "detail": "人気|ひとけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [
+  {
+   "wordId": "vc-10-003",
+   "surface": "まく",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-053",
+   "surface": "うなる",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-097",
+   "surface": "たまらない",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-123",
+   "surface": "作り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-132",
+   "surface": "上がり",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-159",
+   "surface": "ポイント",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に13語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-10-168",
+   "surface": "替え",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

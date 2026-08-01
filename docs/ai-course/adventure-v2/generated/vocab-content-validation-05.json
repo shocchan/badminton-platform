@@ -1,0 +1,170 @@
+{
+ "generatedAt": "2026-08-01T14:16:01.748Z",
+ "batchNo": 5,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 21,
+  "blocking": 0,
+  "byKind": {
+   "ambiguous_sense_unmarked": 21
+  }
+ },
+ "eligibleForActiveBeta": 250,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [
+  {
+   "wordId": "vc-05-011",
+   "surface": "通り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-041",
+   "surface": "円",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-068",
+   "surface": "空き",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-071",
+   "surface": "空く",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-073",
+   "surface": "明ける",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-081",
+   "surface": "当り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-085",
+   "surface": "アップ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-123",
+   "surface": "一杯",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-145",
+   "surface": "内",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に12語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-177",
+   "surface": "オーバー",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-194",
+   "surface": "落る",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に27語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-197",
+   "surface": "落す",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-208",
+   "surface": "表",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-217",
+   "surface": "下す",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-218",
+   "surface": "音",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-231",
+   "surface": "代える",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-232",
+   "surface": "反る",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-241",
+   "surface": "角",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-243",
+   "surface": "掻く",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-248",
+   "surface": "掛ける",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に25語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-05-249",
+   "surface": "欠ける",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

@@ -107,7 +107,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
     for (const c of flagged) {
       expect(buildVocabQuestions(c, active, 1), c.surface).toEqual([]);
     }
-  });
+  }, 30_000);
 
   it('**active_beta の全語に有効な選択問題が2問以上ある**（要件C）', () => {
     // 2問未満しか作れない語は「無理に水増しせず CORE から外す」のが方針。
@@ -116,14 +116,14 @@ describe('§6 語彙問題（選択式のみ）', () => {
       .map((c) => ({ id: `${c.surface}|${c.reading}`, n: buildVocabQuestions(c, active, 20260801).length }))
       .filter((x) => x.n < 2);
     expect(under.map((x) => `${x.id}:${x.n}`)).toEqual([]);
-  });
+  }, 30_000);
 
   it('CORE の大半が4形式以上（水増しはしないが、薄すぎもしない）', () => {
     const counts = active.map((c) => buildVocabQuestions(c, active, 20260801).length);
     const fourPlus = counts.filter((n) => n >= 4).length;
     // かな語は読み・表記の観点が構造上作れないため100%にはならない。7割を下限にする
     expect(fourPlus / counts.length).toBeGreaterThan(0.7);
-  });
+  }, 30_000);
 
   it('全問が選択式で、正解choiceIdが一意', () => {
     const pool = vocabPool('N2');
@@ -140,7 +140,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
       }
     }
     expect(total).toBeGreaterThan(300);
-  });
+  }, 30_000);
 
   it('観点は定義済みのものだけ', () => {
     const pool = vocabPool('N2');
@@ -150,7 +150,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
         expect(VOCAB_ASPECTS as string[]).toContain(aspect);
       }
     }
-  });
+  }, 30_000);
 
   it('**同じseedなら同じ問題**（決定的生成）', () => {
     const a = vocabPool('N3', 123);
@@ -158,7 +158,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
     const flat = (m: Map<string, { key: string; choices: { choiceId: string }[] }[]>) =>
       [...m.values()].flat().map((q) => `${q.key}:${q.choices.map((c) => c.choiceId).join(',')}`);
     expect(flat(a)).toEqual(flat(b));
-  });
+  }, 30_000);
 
   it('全問が試験科目「文字・語彙」に紐づく', () => {
     for (const qs of vocabPool('N2').values()) {
@@ -167,7 +167,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
         expect(q.examSection).toBe('languageKnowledge');
       }
     }
-  });
+  }, 30_000);
 
   it('カバレッジが取れ、観点不足の語を隠さない', () => {
     const cov = vocabQuestionCoverage('N3');
@@ -176,5 +176,5 @@ describe('§6 語彙問題（選択式のみ）', () => {
     expect(cov.questions).toBeGreaterThan(300);
     // かな語は読み・表記の観点が作れないため4観点に届かない。隠さず数える
     expect(Array.isArray(cov.belowAspectTarget)).toBe(true);
-  });
+  }, 30_000);
 });

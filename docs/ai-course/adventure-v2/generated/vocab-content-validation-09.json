@@ -1,0 +1,170 @@
+{
+ "generatedAt": "2026-08-01T14:16:03.597Z",
+ "batchNo": 9,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 21,
+  "blocking": 0,
+  "byKind": {
+   "ambiguous_sense_unmarked": 21
+  }
+ },
+ "eligibleForActiveBeta": 250,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [
+  {
+   "wordId": "vc-09-018",
+   "surface": "品",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-029",
+   "surface": "節",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-035",
+   "surface": "打つ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-049",
+   "surface": "分",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-058",
+   "surface": "方",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に7語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-059",
+   "surface": "法",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-073",
+   "surface": "程",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-079",
+   "surface": "間",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-080",
+   "surface": "まあ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-097",
+   "surface": "祭",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-101",
+   "surface": "丸",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-106",
+   "surface": "見送り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-141",
+   "surface": "面",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-148",
+   "surface": "元",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に11語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-168",
+   "surface": "有機",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-177",
+   "surface": "世",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-179",
+   "surface": "様",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-231",
+   "surface": "訳",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-236",
+   "surface": "笑い",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-245",
+   "surface": "締め",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-09-247",
+   "surface": "限り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に10語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

@@ -1,0 +1,135 @@
+{
+ "generatedAt": "2026-08-01T14:16:03.231Z",
+ "batchNo": 8,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 16,
+  "blocking": 0,
+  "byKind": {
+   "ambiguous_sense_unmarked": 16
+  }
+ },
+ "eligibleForActiveBeta": 250,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [
+  {
+   "wordId": "vc-08-012",
+   "surface": "中",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-026",
+   "surface": "対",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-041",
+   "surface": "着ける",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に17語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-058",
+   "surface": "出",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に7語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-059",
+   "surface": "出合い",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-082",
+   "surface": "と",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-125",
+   "surface": "名",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-132",
+   "surface": "中味",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-135",
+   "surface": "無くなる",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-137",
+   "surface": "無し",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-149",
+   "surface": "日",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-171",
+   "surface": "野",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-187",
+   "surface": "場",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-198",
+   "surface": "図る",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-221",
+   "surface": "羽根",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-08-237",
+   "surface": "日",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

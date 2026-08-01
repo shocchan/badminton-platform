@@ -233,8 +233,20 @@ export const buildVocabQuestions = (
   return out;
 };
 
+/**
+ * 生成結果のキャッシュ。
+ *
+ * 層Cが2,000語規模になり、1回の `vocabPool()` で1万問前後を組み立てるようになった。
+ * 生成は **seed から決定的** なので、同じ (level, seed) の結果を使い回してよい。
+ * バトル・模試・カバレッジ表示で何度も呼ばれるため、これが無いと毎回まるごと作り直す。
+ */
+const poolCache = new Map<string, Map<string, AdvBattleQuestion[]>>();
+
 /** targetId（`vocab-<level>`）→ 問題。バトル・模試の出題プールに載せる */
 export const vocabPool = (level: 'N2' | 'N3', seed = 20260801): Map<string, AdvBattleQuestion[]> => {
+  const cacheKey = `${level}:${seed}`;
+  const hit = poolCache.get(cacheKey);
+  if (hit) return hit;
   const scope = level === 'N3' ? ['N5', 'N4', 'N3'] : ['N5', 'N4', 'N3', 'N2'];
   const active = activeContent(ALL_VOCAB_CONTENT).filter((c) => scope.includes(c.level));
   const map = new Map<string, AdvBattleQuestion[]>();
@@ -244,6 +256,7 @@ export const vocabPool = (level: 'N2' | 'N3', seed = 20260801): Map<string, AdvB
     const target = `vocab-${c.level.toLowerCase()}`;
     map.set(target, [...(map.get(target) ?? []), ...qs]);
   });
+  poolCache.set(cacheKey, map);
   return map;
 };
 

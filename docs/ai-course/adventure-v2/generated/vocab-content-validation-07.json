@@ -1,0 +1,184 @@
+{
+ "generatedAt": "2026-08-01T14:16:02.823Z",
+ "batchNo": 7,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 23,
+  "blocking": 0,
+  "byKind": {
+   "ambiguous_sense_unmarked": 23
+  }
+ },
+ "eligibleForActiveBeta": 250,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [
+  {
+   "wordId": "vc-07-004",
+   "surface": "直",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-019",
+   "surface": "品",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-024",
+   "surface": "締める",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-028",
+   "surface": "州",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-042",
+   "surface": "小",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に7語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-045",
+   "surface": "上",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-073",
+   "surface": "印",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-097",
+   "surface": "数",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-102",
+   "surface": "末",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-128",
+   "surface": "清む",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-131",
+   "surface": "正",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-150",
+   "surface": "節",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に8語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-156",
+   "surface": "線",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-159",
+   "surface": "先行",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-169",
+   "surface": "相当",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-180",
+   "surface": "対",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-181",
+   "surface": "大",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に7語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-182",
+   "surface": "題",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-226",
+   "surface": "立てる",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に11語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-231",
+   "surface": "種",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-238",
+   "surface": "球",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に17語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-241",
+   "surface": "為",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-07-249",
+   "surface": "地",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

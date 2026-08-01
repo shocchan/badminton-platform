@@ -1,0 +1,164 @@
+{
+ "generatedAt": "2026-08-01T14:16:01.273Z",
+ "batchNo": 4,
+ "words": 250,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 19,
+  "blocking": 5,
+  "byKind": {
+   "ambiguous_sense_unmarked": 14,
+   "no_dictionary_entry": 5
+  }
+ },
+ "eligibleForActiveBeta": 245,
+ "needsHumanReview": [
+  "vc-04-039",
+  "vc-04-052",
+  "vc-04-093",
+  "vc-04-096",
+  "vc-04-157"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-04-039",
+   "surface": "本当",
+   "kind": "no_dictionary_entry",
+   "detail": "本当|ほんと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-04-052",
+   "surface": "建て",
+   "kind": "no_dictionary_entry",
+   "detail": "建て|～だて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-04-093",
+   "surface": "出席",
+   "kind": "no_dictionary_entry",
+   "detail": "出席|しゅっせきする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-04-096",
+   "surface": "承知",
+   "kind": "no_dictionary_entry",
+   "detail": "承知|しょうちする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-04-157",
+   "surface": "文字",
+   "kind": "no_dictionary_entry",
+   "detail": "文字|もんじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [
+  {
+   "wordId": "vc-04-008",
+   "surface": "次第",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-016",
+   "surface": "セル",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-021",
+   "surface": "たしか",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-033",
+   "surface": "一時",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-056",
+   "surface": "生き",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-081",
+   "surface": "込む",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に6語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-109",
+   "surface": "タイ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-137",
+   "surface": "走り",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-149",
+   "surface": "ポート",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-161",
+   "surface": "良く",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に4語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-164",
+   "surface": "分け",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に3語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-202",
+   "surface": "切れ",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-244",
+   "surface": "対する",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に5語義あるが senseNoteZh が無い",
+   "blocking": false
+  },
+  {
+   "wordId": "vc-04-247",
+   "surface": "ダウン",
+   "kind": "ambiguous_sense_unmarked",
+   "detail": "辞書に9語義あるが senseNoteZh が無い",
+   "blocking": false
+  }
+ ],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}
