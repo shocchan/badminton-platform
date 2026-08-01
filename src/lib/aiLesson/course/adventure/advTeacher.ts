@@ -33,12 +33,15 @@ export interface AdvTeacherDef {
   accentClass: string;
   ringClass: string;
   /**
-   * AI会話（realtime）で使いたい音声。
-   * サーバー側（supabase/functions/ai-lesson-token）は現在この値を受け取らず
-   * 固定の音声を返すため、**選択しても声はまだ変わらない**。
-   * 学習者に誤解させないよう voiceSwitchAvailable=false の先生には注意書きを出す。
+   * AI会話（realtime）で使う音声。**これは表示・記録用の写しであって、送信値ではない。**
+   * クライアントは teacherId しか送らず、実際の音声は
+   * `supabase/functions/ai-lesson-token` の allowlist（TEACHER_VOICE）が決める。
+   * 両者が一致することは advTeacherVoice.test.ts が Edge Function のソースを読んで固定している。
    */
   realtimeVoice: string;
+  /** 音声の印象（学習者向け）。公式の性別分類ではないので「女性声／男性声」とは書かない */
+  voiceToneJa: string;
+  voiceToneZh: string;
   voiceSwitchAvailable: boolean;
   /** 声がまだ切り替わらないことの説明（voiceSwitchAvailable=false のときだけ表示） */
   voiceNoteJa?: string;
@@ -64,6 +67,8 @@ const TEACHER_DEFS: Record<AdvTeacherId, AdvTeacherDef> = {
     accentClass: 'bg-lp-coral-soft',
     ringClass: 'ring-rose-100',
     realtimeVoice: 'marin',
+    voiceToneJa: 'やさしく落ち着いたAI音声',
+    voiceToneZh: '温和沉稳的AI语音',
     voiceSwitchAvailable: true,
   },
   yuto: {
@@ -85,11 +90,25 @@ const TEACHER_DEFS: Record<AdvTeacherId, AdvTeacherDef> = {
     accentClass: 'bg-sky-100',
     ringClass: 'ring-sky-100',
     realtimeVoice: 'cedar',
-    // サーバー側の音声はまだ固定。ここを true にするのは Edge Function 対応後
+    voiceToneJa: '穏やかで低めのAI音声',
+    voiceToneZh: '沉稳低沉的AI语音',
+    // Edge Function 側の allowlist は実装済みだが、**staging の実音声smokeがPASSするまで
+    // false のまま**にする（実際に切り替わることを確認する前に注意書きを消さない）。
     voiceSwitchAvailable: false,
     voiceNoteJa: 'AI会話の声は、いまはまだ切り替わりません（画面と文章は悠斗先生になります）。',
     voiceNoteZh: 'AI会话的声音目前还无法切换（画面和文字会变成悠斗老师）。',
   },
+};
+
+/**
+ * 正準の 先生 → realtime音声 対応表。
+ * **サーバー側（supabase/functions/ai-lesson-token の TEACHER_VOICE）が正。**
+ * ここはクライアント側の写しで、テストで両者の一致を固定している。
+ * クライアントはこの値をリクエストへ載せない（載せると任意音声の注入経路になる）。
+ */
+export const CANONICAL_TEACHER_VOICE: Record<AdvTeacherId, string> = {
+  shoko: 'marin',
+  yuto: 'cedar',
 };
 
 export const ALL_TEACHERS: AdvTeacherDef[] = ADV_TEACHER_IDS.map((id) => TEACHER_DEFS[id]);

@@ -8,6 +8,8 @@ import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
 import { ShokoAvatar } from './ShokoAvatar';
+import { useTeacher } from './teacherContext';
+import { trackAdv } from '../../lib/aiLesson/course/adventure/advAnalytics';
 import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
@@ -68,6 +70,8 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const tv = t.voice, tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
+  // 案内の先生。**音声名はここでは決めない**（サーバーの allowlist が teacherId から決める）
+  const teacher = useTeacher();
   // 復習の種類（翌日/3日後/7日後/追加）をバッジに出す
   const kindLabel = step.kind === 'new' ? tl.newBadge
     : step.kind === 'review_day1' ? tl.reviewDay1
@@ -100,6 +104,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const targetHint = `${mission.targetExpression}（${mission.meaningZh}）`;
 
   const sessionRef = useRef<VoiceSessionHandle | null>(null);
+  // サーバーが実際に適用した先生・音声（診断用。会話本文は持たない）
+  const routedRef = useRef<{ teacherId: string | null; voice: string | null; model: string } | null>(null);
+  // セッション開始時の先生。途中で先生が変わったかの判定に使う
+  const startedTeacherRef = useRef<string | null>(null);
   const uttRef = useRef<CourseUtterance[]>([]);
   const msgsRef = useRef<{ role: 'student' | 'tutor'; text: string }[]>([]);
   const startAtRef = useRef<number | null>(null);
@@ -115,6 +123,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const complete = useCallback((endReason: string, statusKind: VoiceLessonResult['completionStatus'], overlay: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
+    trackAdv('realtime_session_completed', { teacherId: startedTeacherRef.current ?? undefined });
     sessionRef.current?.stop();
     const turns = msgsRef.current;
     const { usage, count } = detectTargetUsage(turns, mission.detect);
@@ -143,10 +152,18 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     // （始めてしまうと cleanup 済みの後にセッションが動き出し、マイクが残る）
     if (isCancelled()) return;
     const payload = buildVoicePayload(mission, learner, step);
+    startedTeacherRef.current = teacher.id;
+    trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja' });
     sessionRef.current = startVoiceSession({
       sessionId, accessToken, plan: payload,
+      teacherId: teacher.id,
       turnDetection: COURSE_TURN_DETECTION,
       callbacks: {
+        // 実際に適用された先生（サーバー決定）。voice名はanalyticsへ送らない
+        onVoiceRouted: (info) => {
+          routedRef.current = info;
+          trackAdv('realtime_voice_routed', { teacherId: info.teacherId ?? teacher.id });
+        },
         onStatus: (s) => {
           setStatus(s);
           if (s === 'connected' && startAtRef.current === null) { startAtRef.current = Date.now(); log({ speaker: 'system', transcript: 'connected', atMs: 0, isFinal: true, relatedTarget: false }); }
@@ -182,7 +199,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
     });
-  }, [learner, mission, step, complete, sessionId]);
+  }, [learner, mission, step, complete, sessionId, teacher.id, t.locale]);
 
   // start は毎renderで identity が変わりうる（onComplete等に依存）。
   // ref経由で「最新のstart」を保持し、マウント時に1回だけ起動する。
@@ -201,6 +218,25 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       sessionRef.current?.stop();
     };
   }, []);
+
+  // 先生が変わったら、**いまのrealtime sessionを正常終了してから**新しい音声で作り直す。
+  // 音声は session 作成時に決まるため、生成済みsessionのvoiceを途中で差し替えない。
+  // 言語切替（§4）では発火しない＝teacher.id だけを依存にしている。
+  useEffect(() => {
+    const started = startedTeacherRef.current;
+    if (started === null || started === teacher.id) return; // 未開始 or 同じ先生なら何もしない
+    if (doneRef.current) return;                            // 終了済みのレッスンは触らない
+    trackAdv('teacher_changed', { teacherId: teacher.id });
+    sessionRef.current?.stop();   // 既存sessionを正常終了（マイク・PeerConnectionも閉じる）
+    sessionRef.current = null;
+    routedRef.current = null;
+    setStatus('idle'); setErrorKind(null);
+    startAtRef.current = null; setElapsed(0);
+    let cancelled = false;
+    const id = setTimeout(() => { void startRef.current(() => cancelled); }, 0);
+    timers.current.push(id);
+    return () => { cancelled = true; clearTimeout(id); };
+  }, [teacher.id]);
 
   useEffect(() => {
     if (status !== 'connected') return;

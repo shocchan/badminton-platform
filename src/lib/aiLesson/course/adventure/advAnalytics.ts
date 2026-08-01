@@ -17,7 +17,11 @@ export type AdvEventName =
   | 'midboss_started' | 'midboss_completed'
   | 'mock_started' | 'mock_section_completed' | 'mock_completed'
   | 'readiness_skill_updated' | 'today_adventure_completed'
-  | 'retry_completed' | 'review_scheduled' | 'teacher_summary_viewed';
+  | 'retry_completed' | 'review_scheduled' | 'teacher_summary_viewed'
+  // FINAL COMPLETION §19（先生選択・realtime音声ルーティング）
+  | 'teacher_selected' | 'teacher_changed'
+  | 'realtime_session_started' | 'realtime_voice_routed' | 'realtime_session_completed'
+  | 'conversation_e2e_completed' | 'readiness_updated';
 
 export interface AdvEventParams {
   goalType?: AdvGoalType;
@@ -29,10 +33,17 @@ export interface AdvEventParams {
   questionType?: string;
   durationBucket?: '5' | '15' | '30';
   locale?: 'ja' | 'zh';
+  /** 案内の先生（'shoko' | 'yuto'）。個人情報ではない */
+  teacherId?: string;
 }
 
+// **effectiveVoice（marin / cedar 等）はここに含めない。**
+// どのTTS音声を使っているかは内部の運用情報であり、learnerの計測に必要ない。
+// 音声ルーティングの検証はサーバー側ログ（Edge Functionのエラー行）と
+// docs/ai-course/adventure-v2/generated/teacher-voice-smoke.json で行う。
 const ALLOWED_KEYS = new Set([
   'goalType', 'targetLevel', 'routeStage', 'skillType', 'questionType', 'durationBucket', 'locale',
+  'teacherId',
 ]);
 
 /** 許可キー以外は送らない（誤って本文等が混ざるのを型と実行時の二重で防ぐ） */

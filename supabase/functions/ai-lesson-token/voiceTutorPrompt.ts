@@ -1,8 +1,15 @@
-// 翔子先生（音声レッスン）の system instructions ビルダー
+// 案内の先生（音声レッスン）の system instructions ビルダー
 // サーバー側（Edge Function）でのみ組み立てる。クライアントから任意の instructions を
 // 注入させないため、受け取るのは構造化されたプラン項目（テーマ・目標表現・レベル等）だけ。
+//
+// 先生名・話し方は teacherId から index.ts が解決した値だけを渡す
+// （クライアントから任意の名前・ペルソナ文字列を注入させない）。
 
 export interface VoicePromptParams {
+  /** 案内の先生の名前。index.ts が teacherId から解決する（既定は翔子先生） */
+  teacherName?: string;
+  /** 話し方の方針（1文）。教材・出題・レベル判定には影響しない */
+  teacherStyle?: string;
   themeLabel: string;
   estimatedLevel: string;
   zhSupport: 'whenStuck' | 'grammar' | 'often' | 'none';
@@ -101,7 +108,8 @@ const CORRECTION_RULES: Record<VoicePromptParams['correction'], string> = {
 
 export const buildVoiceInstructions = (p: VoicePromptParams): string => `
 【役割】
-あなたは中国語母語話者向けのAI日本語コーチ「翔子先生」です。音声で自然な会話レッスンを行います。
+あなたは中国語母語話者向けのAI日本語コーチ「${p.teacherName ?? '翔子先生'}」です。音声で自然な会話レッスンを行います。
+${p.teacherStyle ? `- 話し方の方針: ${p.teacherStyle}（教える内容・難易度は変えない）` : ''}
 
 【今日のレッスン設定】
 - テーマ: ${p.themeLabel}

@@ -27,8 +27,35 @@ const corsHeaders = {
 // 2026-07時点の正式モデルID（developers.openai.com で確認済み）。
 // 安価な代替: gpt-realtime-2.1-mini（音声 $10/$20 per 1M tokens）
 const REALTIME_MODEL = Deno.env.get("AI_LESSON_REALTIME_MODEL") ?? "gpt-realtime-2.1";
-const VOICE = "marin"; // 公式推奨（marin / cedar）
 const OPENAI_CLIENT_SECRETS_URL = "https://api.openai.com/v1/realtime/client_secrets";
+
+// ── 案内の先生 → realtime音声（allowlist） ──
+//
+// **クライアントからは teacherId しか受け取らない。** voice文字列を直接受け取ると、
+// 任意の音声（あるいは未対応の値）を注入されうるため、変換はここでのみ行う。
+// 未指定・不正値は既定の先生（翔子先生 / marin）へ倒す＝フェイルセーフ。
+//
+// この対応表は src/lib/aiLesson/course/adventure/advTeacher.ts の
+// CANONICAL_TEACHER_VOICE と一致していること（vitest で本ファイルを読んで固定している）。
+const TEACHER_VOICE = {
+  shoko: "marin",
+  yuto: "cedar",
+} as const;
+
+// 先生名・話し方もサーバー側で決める（クライアントから任意の文字列を注入させない）。
+// 教材・出題・難易度・レベル判定は先生で一切変えない。変わるのは名乗りと話し方だけ。
+const TEACHER_PERSONA: Record<string, { name: string; style: string }> = {
+  shoko: { name: "翔子先生", style: "ていねいに、一つずつ確かめながら進める" },
+  yuto: { name: "悠斗先生", style: "テンポよく、要点から先に伝える" },
+};
+
+type TeacherId = keyof typeof TEACHER_VOICE;
+
+const DEFAULT_TEACHER: TeacherId = "shoko";
+
+/** 受信値 → 先生ID。未指定・不正値・型違いはすべて既定へ倒す */
+const resolveTeacherId = (v: unknown): TeacherId =>
+  (typeof v === "string" && v in TEACHER_VOICE) ? (v as TeacherId) : DEFAULT_TEACHER;
 
 // N3相当の学習者向けに正式パラメータで減速（audio.output.speed: 0.25〜1.5、既定1.0）
 // 2〜3割ゆっくり = 0.8。話し方自体の減速は instructions 側でも指示している。
@@ -214,12 +241,18 @@ serve(async (req) => {
       return json(429, { error: "rate_limited" });
     }
 
+    // 案内の先生。**voice文字列ではなく teacherId だけ**を受け取り、ここで変換する
+    const teacherId = resolveTeacherId(body.teacherId);
+    const voice = TEACHER_VOICE[teacherId];
+
     const plan = (body.plan ?? {}) as Record<string, unknown>;
     const target = (plan.target ?? {}) as Record<string, unknown>;
     const zhSupport = ZH_SUPPORT.find((v) => v === plan.zhSupport) ?? "whenStuck";
     const correction = CORRECTION.find((v) => v === plan.correction) ?? "summary";
 
     const params: VoicePromptParams = {
+      teacherName: TEACHER_PERSONA[teacherId].name,
+      teacherStyle: TEACHER_PERSONA[teacherId].style,
       themeLabel: cleanText(plan.themeLabel, 60) ?? "今日あったこと",
       estimatedLevel: cleanText(plan.estimatedLevel, 30) ?? "N4〜N3",
       zhSupport,
@@ -262,7 +295,7 @@ serve(async (req) => {
               transcription: { model: "gpt-4o-transcribe" },
               turn_detection: TURN_DETECTION,
             },
-            output: { voice: VOICE, speed: OUTPUT_SPEED },
+            output: { voice, speed: OUTPUT_SPEED },
           },
         },
       }),
@@ -275,7 +308,10 @@ serve(async (req) => {
         const err = (await openaiRes.json()) as { error?: { type?: string; code?: string } };
         kind = err.error?.code ?? err.error?.type ?? "unknown";
       } catch { /* noop */ }
-      console.error(`openai client_secrets error: status=${openaiRes.status} kind=${kind}`);
+      // teacherId / voice は秘密値ではないので、音声未対応の切り分けのために残す
+      console.error(
+        `openai client_secrets error: status=${openaiRes.status} kind=${kind} teacher=${teacherId} voice=${voice}`,
+      );
       return json(502, { error: "openai_error", status: openaiRes.status, kind });
     }
 
@@ -292,7 +328,9 @@ serve(async (req) => {
       clientSecret: secret.value,
       expiresAt: secret.expires_at ?? null,
       model: REALTIME_MODEL,
-      voice: VOICE,
+      // 実際に適用した先生と音声（クライアントの指定が通ったかを検証できるようにする）
+      teacherId,
+      voice,
       wrapUpInstructions: buildWrapUpInstructions(params),
     });
   } catch (e) {

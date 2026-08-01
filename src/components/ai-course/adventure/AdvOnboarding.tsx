@@ -198,11 +198,15 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
             {ALL_TEACHERS.map((tc) => (
               <button key={tc.id} type="button" role="radio" aria-checked={teacher === tc.id}
                 className={`${teacher === tc.id ? btnOn : btnIdle} flex items-center gap-3`}
-                onClick={() => setTeacher(tc.id)}>
+                onClick={() => { setTeacher(tc.id); trackAdv('teacher_selected', { teacherId: tc.id, locale: lang }); }}>
                 <TeacherAvatar teacher={tc} size={56} lang={lang} labeled={false} className={`ring-2 ${tc.ringClass}`} />
                 <span className="min-w-0">
                   <span className="block font-semibold">{tx(lang, tc.nameJa, tc.nameZh)}</span>
                   <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
+                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない */}
+                  <span className="block text-xs text-gray-500">
+                    {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
+                  </span>
                   {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
                     <span className="mt-1 block text-xs text-amber-800">
                       {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}

@@ -228,7 +228,12 @@ export default function AdvShell(props: AdvShellProps) {
   // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
   const teacher = resolveTeacher(prof.teacherId);
   const teacherLabel = teacherName(teacher, lang);
-  const pickTeacher = (id: AdvTeacherId) => save({ ...prof, teacherId: id });
+  const pickTeacher = (id: AdvTeacherId) => {
+    if (id === prof.teacherId) return;                 // 同じ先生の再選択は保存も計測もしない
+    // 初回選択（未選択→選択）と変更を区別して計測する。先生名・本文は送らない
+    trackAdv(prof.teacherId ? 'teacher_changed' : 'teacher_selected', { teacherId: id, locale: lang });
+    save({ ...prof, teacherId: id });
+  };
 
   // ── battle ──
   if (view === 'battle' && battle && pools) {
@@ -311,6 +316,10 @@ export default function AdvShell(props: AdvShellProps) {
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-gray-900">{tx(lang, tc.nameJa, tc.nameZh)}</span>
                   <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
+                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない */}
+                  <span className="block text-xs text-gray-500">
+                    {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
+                  </span>
                   {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
                     <span className="mt-1 block text-xs text-amber-800">
                       {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}

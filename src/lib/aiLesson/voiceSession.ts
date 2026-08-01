@@ -40,8 +40,13 @@ export interface VoiceSessionCallbacks {
   onTutorSpeaking: (speaking: boolean) => void;
   onUserSpeaking: (speaking: boolean) => void;
   onError: (kind: VoiceErrorKind, message?: string) => void;
-  /** 翔子先生が finish_lesson ツールを呼び、最終音声の再生完了を検出した時に1回だけ発火 */
+  /** 先生が finish_lesson ツールを呼び、最終音声の再生完了を検出した時に1回だけ発火 */
   onFinishLesson: (reason: string) => void;
+  /**
+   * サーバーが実際に適用した先生・音声。診断／analytics用。
+   * **会話本文・secretは含まない。**
+   */
+  onVoiceRouted?: (info: { teacherId: string | null; voice: string | null; model: string }) => void;
 }
 
 export interface SendCueOptions {
@@ -74,6 +79,12 @@ interface StartOptions {
   sessionId?: string | null;
   /** コースモードでのみ必要な Supabase のアクセストークン（JWT） */
   accessToken?: string | null;
+  /**
+   * 案内の先生のID（'shoko' | 'yuto'）。
+   * **音声名（voice文字列）はクライアントから送らない。** サーバー側の allowlist で
+   * teacherId → voice に変換する。未指定・不正値はサーバー側で既定の先生へ倒れる。
+   */
+  teacherId?: string | null;
   plan: VoicePlanPayload;
   /**
    * turn_detection（VAD）の上書き設定。短い咳・雑音での誤割り込みを防ぐため、
@@ -262,6 +273,8 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
         body: JSON.stringify({
           code: opts.code,
           sessionId: opts.sessionId ?? undefined,
+          // 送るのは先生IDだけ（voice名は送らない＝任意音声の注入経路を作らない）
+          teacherId: opts.teacherId ?? undefined,
           plan: opts.plan,
         }),
       }, 15000);
@@ -272,10 +285,17 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
       }
       const data = (await res.json()) as {
         clientSecret: string; model: string; wrapUpInstructions?: string;
+        teacherId?: string; voice?: string;
       };
       clientSecret = data.clientSecret;
       model = data.model;
       wrapUpInstructions = data.wrapUpInstructions ?? null;
+      // 実際に適用された先生・音声（サーバーが決めた値）。会話本文は含まない
+      callbacks.onVoiceRouted?.({
+        teacherId: data.teacherId ?? null,
+        voice: data.voice ?? null,
+        model: data.model,
+      });
     } catch {
       fail('token', 'network');
       return;
