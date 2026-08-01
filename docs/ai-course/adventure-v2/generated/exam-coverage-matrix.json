@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T07:36:36.526Z",
+ "generatedAt": "2026-08-01T13:02:39.026Z",
  "purpose": "試験の5区分（文字・語彙／文法／読解／聴解／時間配分）が、N3とN2それぞれで学習と測定に接続されているかの実測",
  "rows": [
   {
@@ -7,17 +7,17 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 1438,
-     "fromOriginalVocabContent": 975,
+     "activeQuestions": 2391,
+     "fromOriginalVocabContent": 1928,
      "fromUnitQuestions": 463,
-     "wordsWithContent": 249,
+     "wordsWithContent": 482,
      "aspects": {
-      "meaning": 249,
-      "orthography": 200,
-      "usage": 139,
-      "context": 204,
-      "reading": 133,
-      "confusable": 50
+      "meaning": 482,
+      "orthography": 400,
+      "usage": 183,
+      "context": 411,
+      "reading": 255,
+      "confusable": 197
      },
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
@@ -30,35 +30,35 @@
     },
     "reading": {
      "label": "読解",
-     "sets": 30,
-     "activeQuestions": 30,
+     "sets": 100,
+     "activeQuestions": 100,
      "byType": {
-      "shortPassage": 6,
-      "midPassage": 6,
-      "longPassage": 6,
-      "infoSearch": 6,
-      "keyPoint": 6
+      "shortPassage": 20,
+      "midPassage": 20,
+      "longPassage": 20,
+      "infoSearch": 20,
+      "keyPoint": 20
      },
      "target": "100〜120セット",
-     "shortfall": 70,
+     "shortfall": 0,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
     "listening": {
      "label": "聴解",
-     "sets": 25,
-     "playable": 25,
-     "activeQuestions": 25,
+     "sets": 100,
+     "playable": 100,
+     "activeQuestions": 100,
      "byType": {
-      "taskComprehension": 5,
-      "pointComprehension": 5,
-      "outlineComprehension": 5,
-      "quickResponse": 5,
-      "integrated": 5
+      "taskComprehension": 20,
+      "pointComprehension": 20,
+      "outlineComprehension": 20,
+      "quickResponse": 20,
+      "integrated": 20
      },
      "missingAudio": 0,
      "target": "100〜100セット",
-     "shortfall": 75,
+     "shortfall": 0,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
@@ -82,17 +82,17 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 1438,
-     "fromOriginalVocabContent": 975,
+     "activeQuestions": 2391,
+     "fromOriginalVocabContent": 1928,
      "fromUnitQuestions": 463,
-     "wordsWithContent": 249,
+     "wordsWithContent": 482,
      "aspects": {
-      "meaning": 249,
-      "orthography": 200,
-      "usage": 139,
-      "context": 204,
-      "reading": 133,
-      "confusable": 50
+      "meaning": 482,
+      "orthography": 400,
+      "usage": 183,
+      "context": 411,
+      "reading": 255,
+      "confusable": 197
      },
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
@@ -105,35 +105,35 @@
     },
     "reading": {
      "label": "読解",
-     "sets": 30,
-     "activeQuestions": 30,
+     "sets": 120,
+     "activeQuestions": 120,
      "byType": {
-      "shortPassage": 6,
-      "midPassage": 6,
-      "integrated": 6,
-      "thematic": 6,
-      "infoSearch": 6
+      "shortPassage": 24,
+      "midPassage": 24,
+      "integrated": 24,
+      "thematic": 24,
+      "infoSearch": 24
      },
      "target": "120〜150セット",
-     "shortfall": 90,
+     "shortfall": 0,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
     "listening": {
      "label": "聴解",
-     "sets": 25,
-     "playable": 25,
-     "activeQuestions": 25,
+     "sets": 100,
+     "playable": 100,
+     "activeQuestions": 100,
      "byType": {
-      "taskComprehension": 5,
-      "pointComprehension": 5,
-      "outlineComprehension": 5,
-      "quickResponse": 5,
-      "integrated": 5
+      "taskComprehension": 20,
+      "pointComprehension": 20,
+      "outlineComprehension": 20,
+      "quickResponse": 20,
+      "integrated": 20
      },
      "missingAudio": 0,
      "target": "100〜125セット",
-     "shortfall": 75,
+     "shortfall": 0,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
@@ -155,8 +155,8 @@
  ],
  "verdict": {
   "allFiveSkillsConnected": true,
-  "readingTargetMet": false,
-  "listeningTargetMet": false,
+  "readingTargetMet": true,
+  "listeningTargetMet": true,
   "note": "「接続されている」は模試の最低問題数を満たし出題経路があること。§8の到達目標（読解100〜150・聴解100〜125セット）とは別の基準である"
  }
 }
