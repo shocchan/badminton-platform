@@ -146,7 +146,6 @@ const main = async () => {
 
   const run = hasEdge ? viaEdgeFunction : viaOpenAi;
   for (const teacherId of ['shoko', 'yuto']) {
-    // eslint-disable-next-line no-await-in-loop
     const r = await run(teacherId);
     report.results.push(r);
     console.log(

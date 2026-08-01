@@ -53,7 +53,12 @@ const run = () => {
       return a.reading.localeCompare(b.reading, 'ja');
     });
 
-  const start = (batchNo - 1) * BATCH_SIZE;
+  // 完了済みバッチの語は `covered` で既に除外されている。
+  // したがって「次のバッチ」は常に pending の先頭であり、batchNo でオフセットしてはいけない
+  // （オフセットすると完了済みの分だけ語が飛ばされ、埋まらない穴ができる）。
+  // --offset は「まだ取り込んでいないバッチを先に切り出しておきたい」ときだけ使う。
+  const offArg = process.argv.find((a) => a.startsWith('--offset='));
+  const start = offArg ? Number(offArg.slice('--offset='.length)) : 0;
   const batch = pending.slice(start, start + BATCH_SIZE);
 
   const rows = batch.map((w) => ({

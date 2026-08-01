@@ -1,0 +1,3238 @@
+{
+ "generatedAt": "2026-08-01T12:40:38.103Z",
+ "batchNo": 3,
+ "batchSize": 250,
+ "totalCorePending": 2203,
+ "alreadyCovered": 391,
+ "functionWordsRoutedToGrammar": 56,
+ "functionWordSample": [
+  "あちら",
+  "あの",
+  "あんな",
+  "いいえ",
+  "いつ",
+  "いらっしゃい",
+  "うん",
+  "大きな",
+  "お願いします",
+  "彼ら",
+  "下さい",
+  "位",
+  "ここ",
+  "こちら",
+  "この",
+  "こんな",
+  "さあ",
+  "さて",
+  "しかし",
+  "しかも",
+  "自分",
+  "すると",
+  "そこ",
+  "そこで",
+  "そして",
+  "そちら",
+  "その",
+  "そん",
+  "それでも",
+  "それとも",
+  "それなら",
+  "それに",
+  "そんな",
+  "大した",
+  "だが",
+  "だから",
+  "だけど",
+  "だって",
+  "誰",
+  "誰か"
+ ],
+ "words": [
+  {
+   "wordId": "kv-03125",
+   "surface": "効果",
+   "reading": "こうか",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 15,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04129",
+   "surface": "失敗",
+   "reading": "しっぱい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 15,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07023",
+   "surface": "土曜",
+   "reading": "どよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 15,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10236",
+   "surface": "利用",
+   "reading": "りよう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 15,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00238",
+   "surface": "相手",
+   "reading": "あいて",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01751",
+   "surface": "確認",
+   "reading": "かくにん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02572",
+   "surface": "切り",
+   "reading": "きり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "ctr",
+    "prt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04113",
+   "surface": "実際",
+   "reading": "じっさい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04248",
+   "surface": "社員",
+   "reading": "しゃいん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04383",
+   "surface": "十分",
+   "reading": "じゅうぶん",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "adv",
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08244",
+   "surface": "評価",
+   "reading": "ひょうか",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 14,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02026",
+   "surface": "借り",
+   "reading": "かり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 13,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06652",
+   "surface": "店員",
+   "reading": "てんいん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 13,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07298",
+   "surface": "何で",
+   "reading": "なんで",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 13,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07840",
+   "surface": "発表",
+   "reading": "はっぴょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 13,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09225",
+   "surface": "まま",
+   "reading": "まま",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 13,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03984",
+   "surface": "試験",
+   "reading": "しけん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05489",
+   "surface": "相談",
+   "reading": "そうだん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05490",
+   "surface": "相談",
+   "reading": "そうだんする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08666",
+   "surface": "文法",
+   "reading": "ぶんぽう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09511",
+   "surface": "無料",
+   "reading": "むりょう",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09999",
+   "surface": "曜日",
+   "reading": "ようび",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10359",
+   "surface": "連絡",
+   "reading": "れんらく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 12,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00636",
+   "surface": "以上",
+   "reading": "いじょう",
+   "level": "N4",
+   "pos": [
+    "n-suf",
+    "adj-no",
+    "n",
+    "conj",
+    "exp"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01734",
+   "surface": "学習",
+   "reading": "がくしゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02117",
+   "surface": "感じ",
+   "reading": "かんじ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02943",
+   "surface": "結果",
+   "reading": "けっか",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03486",
+   "surface": "ごみ",
+   "reading": "ごみ",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05134",
+   "surface": "生活",
+   "reading": "せいかつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05135",
+   "surface": "生活",
+   "reading": "せいかつする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05984",
+   "surface": "たり",
+   "reading": "たり",
+   "level": "N4",
+   "pos": [
+    "prt",
+    "cop",
+    "aux-v",
+    "vr"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07459",
+   "surface": "値段",
+   "reading": "ねだん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 11,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01653",
+   "surface": "会話",
+   "reading": "かいわ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04323",
+   "surface": "週間",
+   "reading": "しゅうかん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05200",
+   "surface": "制度",
+   "reading": "せいど",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06334",
+   "surface": "使い",
+   "reading": "つかい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf",
+    "n-pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06941",
+   "surface": "図書",
+   "reading": "としょ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07994",
+   "surface": "判断",
+   "reading": "はんだん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10127",
+   "surface": "ライン",
+   "reading": "ライン",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10244",
+   "surface": "料金",
+   "reading": "りょうきん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 10,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00541",
+   "surface": "案内",
+   "reading": "あんない",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00542",
+   "surface": "案内",
+   "reading": "あんないする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01295",
+   "surface": "教え",
+   "reading": "おしえ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04501",
+   "surface": "準備",
+   "reading": "じゅんび",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04502",
+   "surface": "準備",
+   "reading": "じゅんびする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06442",
+   "surface": "つもり",
+   "reading": "つもり",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06718",
+   "surface": "問い",
+   "reading": "とい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07145",
+   "surface": "直す",
+   "reading": "なおす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07444",
+   "surface": "願い",
+   "reading": "ねがい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08439",
+   "surface": "部署",
+   "reading": "ぶしょ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09133",
+   "surface": "まず",
+   "reading": "まず",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09676",
+   "surface": "持ち",
+   "reading": "もち",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 9,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00892",
+   "surface": "受付",
+   "reading": "うけつけ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01587",
+   "surface": "会場",
+   "reading": "かいじょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02854",
+   "surface": "計画",
+   "reading": "けいかく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02855",
+   "surface": "計画",
+   "reading": "けいかくする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02863",
+   "surface": "経験",
+   "reading": "けいけんする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02905",
+   "surface": "ケーキ",
+   "reading": "ケーキ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03070",
+   "surface": "現場",
+   "reading": "げんば",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03326",
+   "surface": "国語",
+   "reading": "こくご",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03620",
+   "surface": "最初",
+   "reading": "さいしょ",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "n",
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04060",
+   "surface": "自体",
+   "reading": "じたい",
+   "level": "N4",
+   "pos": [
+    "n-suf",
+    "n",
+    "adv"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04367",
+   "surface": "集中",
+   "reading": "しゅうちゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04570",
+   "surface": "上司",
+   "reading": "じょうし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05421",
+   "surface": "専門",
+   "reading": "せんもん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07222",
+   "surface": "何か",
+   "reading": "なにか",
+   "level": "N4",
+   "pos": [
+    "pn",
+    "adv",
+    "int"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07759",
+   "surface": "はず",
+   "reading": "はず",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08065",
+   "surface": "引き受け",
+   "reading": "ひきうけ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09663",
+   "surface": "もし",
+   "reading": "もし",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10083",
+   "surface": "読み",
+   "reading": "よみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 8,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00901",
+   "surface": "受ける",
+   "reading": "うける",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01028",
+   "surface": "運動",
+   "reading": "うんどう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01029",
+   "surface": "運動",
+   "reading": "うんどうする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01270",
+   "surface": "行う",
+   "reading": "おこなう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01666",
+   "surface": "帰り",
+   "reading": "かえり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02631",
+   "surface": "金曜",
+   "reading": "きんよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02697",
+   "surface": "降り",
+   "reading": "くだり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no",
+    "n-pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03609",
+   "surface": "最後",
+   "reading": "さいご",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no",
+    "exp"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04459",
+   "surface": "出発",
+   "reading": "しゅっぱつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04460",
+   "surface": "出発",
+   "reading": "しゅっぱつする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04560",
+   "surface": "条件",
+   "reading": "じょうけん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05116",
+   "surface": "せい",
+   "reading": "せい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06500",
+   "surface": "提出",
+   "reading": "ていしゅつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07365",
+   "surface": "日中",
+   "reading": "にっちゅう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07993",
+   "surface": "反対",
+   "reading": "はんたい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi",
+    "adj-no",
+    "adj-na"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09024",
+   "surface": "本人",
+   "reading": "ほんにん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09282",
+   "surface": "見え",
+   "reading": "みえ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09573",
+   "surface": "目標",
+   "reading": "めじるし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09655",
+   "surface": "目標",
+   "reading": "もくひょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 7,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00607",
+   "surface": "いくら",
+   "reading": "イクラ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01444",
+   "surface": "思い出",
+   "reading": "おもいで",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01497",
+   "surface": "終わり",
+   "reading": "おわり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01560",
+   "surface": "会議室",
+   "reading": "かいぎしつ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01565",
+   "surface": "解決",
+   "reading": "かいけつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01807",
+   "surface": "貸し",
+   "reading": "かし",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01888",
+   "surface": "価値",
+   "reading": "かち",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02066",
+   "surface": "変わり",
+   "reading": "かわり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02216",
+   "surface": "機会",
+   "reading": "きかい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02454",
+   "surface": "急に",
+   "reading": "きゅうに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02949",
+   "surface": "結局",
+   "reading": "けっきょく",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03109",
+   "surface": "こう",
+   "reading": "こう",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "int"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03481",
+   "surface": "細か",
+   "reading": "こまか",
+   "level": "N4",
+   "pos": [
+    "adj-na"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03536",
+   "surface": "今回",
+   "reading": "こんかい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03653",
+   "surface": "材料",
+   "reading": "ざいりょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05362",
+   "surface": "前日",
+   "reading": "ぜんじつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05696",
+   "surface": "大事",
+   "reading": "だいじ",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06013",
+   "surface": "単語",
+   "reading": "たんご",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06066",
+   "surface": "地域",
+   "reading": "ちいき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07081",
+   "surface": "努力",
+   "reading": "どりょく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07115",
+   "surface": "どんなに",
+   "reading": "どんなに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07355",
+   "surface": "日曜",
+   "reading": "にちよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07561",
+   "surface": "乗り",
+   "reading": "のり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07788",
+   "surface": "働き",
+   "reading": "はたらき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07802",
+   "surface": "発音",
+   "reading": "はつおん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08516",
+   "surface": "部分",
+   "reading": "ぶぶん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09689",
+   "surface": "最も",
+   "reading": "もっとも",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09808",
+   "surface": "家賃",
+   "reading": "やちん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10178",
+   "surface": "理解",
+   "reading": "りかい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10282",
+   "surface": "ルー",
+   "reading": "ルー",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 6,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00384",
+   "surface": "集まり",
+   "reading": "あつまり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00570",
+   "surface": "以外",
+   "reading": "いがい",
+   "level": "N4",
+   "pos": [
+    "n-suf"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00695",
+   "surface": "一部",
+   "reading": "いちぶ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00806",
+   "surface": "入り",
+   "reading": "いり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02352",
+   "surface": "機能",
+   "reading": "きのう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02371",
+   "surface": "希望",
+   "reading": "きぼう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02389",
+   "surface": "気持",
+   "reading": "きもち",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02464",
+   "surface": "給料",
+   "reading": "きゅうりょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02534",
+   "surface": "共有",
+   "reading": "きょうゆう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02790",
+   "surface": "グループ",
+   "reading": "グループ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02975",
+   "surface": "月曜",
+   "reading": "げつよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03587",
+   "surface": "サービス",
+   "reading": "サービス",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03687",
+   "surface": "作業",
+   "reading": "さぎょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03843",
+   "surface": "残業",
+   "reading": "ざんぎょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04043",
+   "surface": "自然",
+   "reading": "しぜん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-na",
+    "adv",
+    "adv-to"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04386",
+   "surface": "週末",
+   "reading": "しゅうまつ",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04733",
+   "surface": "書類",
+   "reading": "しょるい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05523",
+   "surface": "速度",
+   "reading": "そくど",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-05863",
+   "surface": "正しい",
+   "reading": "ただしい",
+   "level": "N4",
+   "pos": [
+    "adj-i"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05868",
+   "surface": "立ち",
+   "reading": "たち",
+   "level": "N4",
+   "pos": [
+    "n",
+    "pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06112",
+   "surface": "知識",
+   "reading": "ちしき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06207",
+   "surface": "注文",
+   "reading": "ちゅうもん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06390",
+   "surface": "続き",
+   "reading": "つづき",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06471",
+   "surface": "出会",
+   "reading": "であい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06630",
+   "surface": "手間",
+   "reading": "てま",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07742",
+   "surface": "初め",
+   "reading": "はじめ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07807",
+   "surface": "はっきり",
+   "reading": "はっきり",
+   "level": "N4",
+   "pos": [
+    "adv",
+    "adv-to",
+    "vs"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08471",
+   "surface": "部長",
+   "reading": "ぶちょう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09036",
+   "surface": "翻訳",
+   "reading": "ほんやく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09194",
+   "surface": "祭り",
+   "reading": "まつり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09338",
+   "surface": "みたい",
+   "reading": "みたい",
+   "level": "N4",
+   "pos": [
+    "suf",
+    "adj-na"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09654",
+   "surface": "目的",
+   "reading": "もくてき",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09737",
+   "surface": "もらう",
+   "reading": "もらう",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09880",
+   "surface": "友人",
+   "reading": "ゆうじん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09997",
+   "surface": "要点",
+   "reading": "ようてん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10188",
+   "surface": "リス",
+   "reading": "リス",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10190",
+   "surface": "リスト",
+   "reading": "リスト",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10285",
+   "surface": "ループ",
+   "reading": "ループ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 5,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00299",
+   "surface": "上げ",
+   "reading": "あげ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00385",
+   "surface": "集まる",
+   "reading": "あつまる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00386",
+   "surface": "集める",
+   "reading": "あつめる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00486",
+   "surface": "ありがとう",
+   "reading": "ありがとう",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00533",
+   "surface": "安心",
+   "reading": "あんしん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-na",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00744",
+   "surface": "一方",
+   "reading": "いっぽう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "conj",
+    "n-suf",
+    "adv"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00839",
+   "surface": "印刷",
+   "reading": "いんさつ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01257",
+   "surface": "送り",
+   "reading": "おくり",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02065",
+   "surface": "代わり",
+   "reading": "かわり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02129",
+   "surface": "感情",
+   "reading": "かんじょう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02217",
+   "surface": "機械",
+   "reading": "きかい",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02372",
+   "surface": "基本",
+   "reading": "きほん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02377",
+   "surface": "決まり",
+   "reading": "きまり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02618",
+   "surface": "近所",
+   "reading": "きんじょ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02767",
+   "surface": "比べ",
+   "reading": "くらべ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02805",
+   "surface": "くれる",
+   "reading": "くれる",
+   "level": "N4",
+   "pos": [
+    "v1-s",
+    "vt",
+    "aux-v"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02873",
+   "surface": "計算",
+   "reading": "けいさん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02977",
+   "surface": "結論",
+   "reading": "けつろん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03305",
+   "surface": "ゴール",
+   "reading": "ゴール",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03311",
+   "surface": "語学",
+   "reading": "ごがく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03389",
+   "surface": "個人",
+   "reading": "こじん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03521",
+   "surface": "これから",
+   "reading": "これから",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03716",
+   "surface": "下げる",
+   "reading": "さげる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03717",
+   "surface": "支える",
+   "reading": "ささえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-03979",
+   "surface": "仕組み",
+   "reading": "しくみ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04029",
+   "surface": "自信",
+   "reading": "じしん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04500",
+   "surface": "順番",
+   "reading": "じゅんばん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-04670",
+   "surface": "食事",
+   "reading": "しょくじ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04671",
+   "surface": "食事",
+   "reading": "しょくじする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04851",
+   "surface": "心配",
+   "reading": "しんぱい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "adj-na"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-04852",
+   "surface": "心配",
+   "reading": "しんぱいする",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-05912",
+   "surface": "たとえ",
+   "reading": "たとえ",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06042",
+   "surface": "担当",
+   "reading": "たんとう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06048",
+   "surface": "単に",
+   "reading": "たんに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06320",
+   "surface": "通じ",
+   "reading": "つうじ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-06792",
+   "surface": "当然",
+   "reading": "とうぜん",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06897",
+   "surface": "読書",
+   "reading": "どくしょ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-06932",
+   "surface": "ところで",
+   "reading": "ところで",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07392",
+   "surface": "入力",
+   "reading": "にゅうりょく",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07490",
+   "surface": "年間",
+   "reading": "ねんかん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv",
+    "n-suf"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07527",
+   "surface": "残す",
+   "reading": "のこす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-07529",
+   "surface": "残り",
+   "reading": "のこり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-07663",
+   "surface": "俳優",
+   "reading": "はいゆう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08146",
+   "surface": "引っ越す",
+   "reading": "ひっこす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08240",
+   "surface": "費用",
+   "reading": "ひよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08366",
+   "surface": "不可",
+   "reading": "ふか",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08474",
+   "surface": "普通",
+   "reading": "ふつう",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "adv",
+    "n"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08671",
+   "surface": "分野",
+   "reading": "ぶんや",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08732",
+   "surface": "減らす",
+   "reading": "へらす",
+   "level": "N4",
+   "pos": [
+    "v5s",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-08741",
+   "surface": "ベル",
+   "reading": "ベル",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08764",
+   "surface": "返事",
+   "reading": "へんじ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-08976",
+   "surface": "ほとんど",
+   "reading": "ほとんど",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09205",
+   "surface": "学ぶ",
+   "reading": "まなぶ",
+   "level": "N4",
+   "pos": [
+    "v5b",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09554",
+   "surface": "メール",
+   "reading": "メール",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-09636",
+   "surface": "申し訳",
+   "reading": "もうしわけ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-09645",
+   "surface": "燃える",
+   "reading": "もえる",
+   "level": "N4",
+   "pos": [
+    "v1",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10080",
+   "surface": "予報",
+   "reading": "よほう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10100",
+   "surface": "よろしい",
+   "reading": "よろしい",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-10259",
+   "surface": "両方",
+   "reading": "りょうほう",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adj-no"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10334",
+   "surface": "レベル",
+   "reading": "レベル",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-10385",
+   "surface": "録画",
+   "reading": "ろくが",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 4,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00249",
+   "surface": "合う",
+   "reading": "あう",
+   "level": "N4",
+   "pos": [
+    "v5u",
+    "vi",
+    "aux-v"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00361",
+   "surface": "当たり",
+   "reading": "あたり",
+   "level": "N4",
+   "pos": [
+    "n",
+    "suf"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00483",
+   "surface": "現れ",
+   "reading": "あらわれ",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00524",
+   "surface": "アンケート",
+   "reading": "アンケート",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00611",
+   "surface": "いけない",
+   "reading": "いけない",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00649",
+   "surface": "以前",
+   "reading": "いぜん",
+   "level": "N4",
+   "pos": [
+    "n-suf",
+    "n",
+    "adv"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00667",
+   "surface": "いただきます",
+   "reading": "いただきます",
+   "level": "N4",
+   "pos": [],
+   "senseCount": 0,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00672",
+   "surface": "イタリア",
+   "reading": "イタリア",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00685",
+   "surface": "一時",
+   "reading": "いちじ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "adv",
+    "adj-no",
+    "n-pref"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00691",
+   "surface": "一度に",
+   "reading": "いちどに",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-00759",
+   "surface": "以内",
+   "reading": "いない",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf",
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-00967",
+   "surface": "生まれ",
+   "reading": "うまれ",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf",
+    "adj-no"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01260",
+   "surface": "送る",
+   "reading": "おくる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vt"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01526",
+   "surface": "カー",
+   "reading": "カー",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01531",
+   "surface": "カード",
+   "reading": "カード",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01548",
+   "surface": "会員",
+   "reading": "かいいん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01685",
+   "surface": "価格",
+   "reading": "かかく",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-01798",
+   "surface": "重なる",
+   "reading": "かさなる",
+   "level": "N4",
+   "pos": [
+    "v5r",
+    "vi"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01947",
+   "surface": "必ずしも",
+   "reading": "かならずしも",
+   "level": "N4",
+   "pos": [
+    "adv"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-01958",
+   "surface": "可能",
+   "reading": "かのう",
+   "level": "N4",
+   "pos": [
+    "adj-na",
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02010",
+   "surface": "火曜",
+   "reading": "かよう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02151",
+   "surface": "感想",
+   "reading": "かんそう",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02214",
+   "surface": "気温",
+   "reading": "きおん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02228",
+   "surface": "期間",
+   "reading": "きかん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02249",
+   "surface": "期限",
+   "reading": "きげん",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02416",
+   "surface": "キャンセル",
+   "reading": "キャンセル",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 2,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02522",
+   "surface": "共通",
+   "reading": "きょうつう",
+   "level": "N4",
+   "pos": [
+    "adj-no",
+    "adj-na",
+    "n",
+    "vs",
+    "vi",
+    "n-suf"
+   ],
+   "senseCount": 3,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02594",
+   "surface": "議論",
+   "reading": "ぎろん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02724",
+   "surface": "故郷",
+   "reading": "くに",
+   "level": "N4",
+   "pos": [
+    "n"
+   ],
+   "senseCount": 4,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 1
+  },
+  {
+   "wordId": "kv-02760",
+   "surface": "暮らし",
+   "reading": "くらし",
+   "level": "N4",
+   "pos": [
+    "n",
+    "n-suf"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-02968",
+   "surface": "決定",
+   "reading": "けってい",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vt",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  },
+  {
+   "wordId": "kv-03002",
+   "surface": "原因",
+   "reading": "げんいん",
+   "level": "N4",
+   "pos": [
+    "n",
+    "vs",
+    "vi"
+   ],
+   "senseCount": 1,
+   "internalOccurrences": 3,
+   "sourceFamilyCount": 2
+  }
+ ]
+}

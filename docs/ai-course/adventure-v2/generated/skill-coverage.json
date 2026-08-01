@@ -1,0 +1,318 @@
+{
+ "generatedAt": "2026-08-01T12:43:12.970Z",
+ "note": "件数の到達だけで saturated にしない（§15）。本文の重複・構造の重複・難易度の偏りを見る。",
+ "reading": [
+  {
+   "level": "N3",
+   "total": 100,
+   "target": 100,
+   "pilotPass": true,
+   "byType": {
+    "shortPassage": {
+     "labelJa": "短文理解",
+     "active": 20,
+     "target": 20,
+     "uniqueBodies": 20,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      7,
+      9,
+      4
+     ],
+     "stage": "saturated"
+    },
+    "midPassage": {
+     "labelJa": "中文理解",
+     "active": 20,
+     "target": 20,
+     "uniqueBodies": 20,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      3,
+      11,
+      6
+     ],
+     "stage": "saturated"
+    },
+    "longPassage": {
+     "labelJa": "長文理解",
+     "active": 20,
+     "target": 20,
+     "uniqueBodies": 20,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      2,
+      7,
+      11
+     ],
+     "stage": "saturated"
+    },
+    "infoSearch": {
+     "labelJa": "情報検索",
+     "active": 20,
+     "target": 20,
+     "uniqueBodies": 20,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      2,
+      10,
+      8
+     ],
+     "stage": "saturated"
+    },
+    "keyPoint": {
+     "labelJa": "要点理解",
+     "active": 20,
+     "target": 20,
+     "uniqueBodies": 20,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      2,
+      15,
+      3
+     ],
+     "stage": "saturated"
+    }
+   }
+  },
+  {
+   "level": "N2",
+   "total": 30,
+   "target": 120,
+   "pilotPass": true,
+   "byType": {
+    "shortPassage": {
+     "labelJa": "短文理解",
+     "active": 6,
+     "target": 24,
+     "uniqueBodies": 6,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      5,
+      1
+     ],
+     "stage": "pilot"
+    },
+    "midPassage": {
+     "labelJa": "中文理解",
+     "active": 6,
+     "target": 24,
+     "uniqueBodies": 6,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      6
+     ],
+     "stage": "pilot"
+    },
+    "integrated": {
+     "labelJa": "統合理解",
+     "active": 6,
+     "target": 24,
+     "uniqueBodies": 6,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      6
+     ],
+     "stage": "pilot"
+    },
+    "thematic": {
+     "labelJa": "主題理解",
+     "active": 6,
+     "target": 24,
+     "uniqueBodies": 6,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      1,
+      5
+     ],
+     "stage": "pilot"
+    },
+    "infoSearch": {
+     "labelJa": "情報検索",
+     "active": 6,
+     "target": 24,
+     "uniqueBodies": 6,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      3,
+      3
+     ],
+     "stage": "pilot"
+    }
+   }
+  }
+ ],
+ "listening": [
+  {
+   "level": "N3",
+   "total": 25,
+   "playable": 25,
+   "target": 100,
+   "pilotPass": true,
+   "missingAudio": 0,
+   "byType": {
+    "taskComprehension": {
+     "labelJa": "課題理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      2,
+      3,
+      0
+     ],
+     "stage": "insufficient"
+    },
+    "pointComprehension": {
+     "labelJa": "ポイント理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      1,
+      4,
+      0
+     ],
+     "stage": "insufficient"
+    },
+    "outlineComprehension": {
+     "labelJa": "概要理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      5,
+      0
+     ],
+     "stage": "insufficient"
+    },
+    "quickResponse": {
+     "labelJa": "即時応答",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      3,
+      2,
+      0
+     ],
+     "stage": "insufficient"
+    },
+    "integrated": {
+     "labelJa": "統合理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      5
+     ],
+     "stage": "insufficient"
+    }
+   }
+  },
+  {
+   "level": "N2",
+   "total": 25,
+   "playable": 25,
+   "target": 100,
+   "pilotPass": true,
+   "missingAudio": 0,
+   "byType": {
+    "taskComprehension": {
+     "labelJa": "課題理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      4,
+      1
+     ],
+     "stage": "insufficient"
+    },
+    "pointComprehension": {
+     "labelJa": "ポイント理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      5
+     ],
+     "stage": "insufficient"
+    },
+    "outlineComprehension": {
+     "labelJa": "概要理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      5
+     ],
+     "stage": "insufficient"
+    },
+    "quickResponse": {
+     "labelJa": "即時応答",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      2,
+      3
+     ],
+     "stage": "insufficient"
+    },
+    "integrated": {
+     "labelJa": "統合理解",
+     "active": 5,
+     "target": 20,
+     "uniqueAudio": 5,
+     "heldForMissingAudio": 0,
+     "duplicateStructures": 0,
+     "difficultyDistribution": [
+      0,
+      0,
+      5
+     ],
+     "stage": "insufficient"
+    }
+   }
+  }
+ ],
+ "audio": {
+  "playable": 50,
+  "missing": []
+ }
+}
