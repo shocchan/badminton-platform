@@ -18,26 +18,20 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
-  loadGrammarPools, buildDiagnosisPools, stageContent, loadAllN2Drafts,
-  type GrammarPools, type StageContent,
-} from '../../../lib/aiLesson/course/adventure/advContent';
-import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
-import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
-import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
+  fetchStageContent, fetchGrammarDoc,
+  type StageContentResponse, type GrammarDocPayload,
+} from '../../../lib/aiLesson/course/adventure/activityClient';
+import { useAdvRuntime } from './AdvRuntimeContext';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
-import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
-import { AdvMockRunner } from './AdvMockRunner';
+import { AdvMockRunner, type ServerMockResult } from './AdvMockRunner';
 import { AdvAdventureMap } from './AdvAdventureMap';
-import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
-import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
-import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -87,19 +81,18 @@ const isPracticalStep = (kind: string) => kind === 'conversation_mission' || kin
 
 export default function AdvShell(props: AdvShellProps) {
   const { lang, learner } = props;
+  const runtime = useAdvRuntime();
   const nowISO = new Date().toISOString();
   const dateKey = dateKeyOf();
 
   const profile = useMemo(() => readAdvProfile(learner.settings), [learner.settings]);
   const prof0 = useCallback(() => profile, [profile]);
   const [view, setView] = useState<View>('home');
-  const [pools, setPools] = useState<GrammarPools | null>(null);
-  const [diagPools, setDiagPools] = useState<DiagnosisPools | null>(null);
-  const [stageCt, setStageCt] = useState<StageContent | null>(null);
+  const [stageCt, setStageCt] = useState<StageContentResponse | null>(null);
   const [quest, setQuest] = useState<AdvTodayQuest | null>(null);
   const [battle, setBattle] = useState<BattleCtx | null>(null);
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
-  const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
+  const [grammarDoc, setGrammarDoc] = useState<GrammarDocPayload | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
   const weeklyTracked = useRef(false);
@@ -119,20 +112,6 @@ export default function AdvShell(props: AdvShellProps) {
   useEffect(() => {
     notifyView?.(view === 'map' ? 'map' : 'home');
   }, [view, notifyView]);
-  /**
-   * 語彙bankの遅延ロード。模試でしか使わないので、Homeの初回転送量から外す。
-   * （実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
-   */
-  const [vocabPoolFn, setVocabPoolFn] = useState<null | ((lv: 'N2' | 'N3') => Map<string, AdvBattleQuestion[]>)>(null);
-  useEffect(() => {
-    if (view !== 'mock' || vocabPoolFn) return;
-    let alive = true;
-    void import('../../../lib/aiLesson/course/adventure/vocab/vocabQuestions').then((m) => {
-      if (alive) setVocabPoolFn(() => m.vocabPool);
-    });
-    return () => { alive = false; };
-  }, [view, vocabPoolFn]);
-
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
   }, [learner.settings, props]);
@@ -176,22 +155,20 @@ export default function AdvShell(props: AdvShellProps) {
 
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
-  useEffect(() => {
-    if (!needsOnboarding || diagPools) return;
-    void buildDiagnosisPools().then(setDiagPools);
-  }, [needsOnboarding, diagPools]);
 
   useEffect(() => {
     if (needsOnboarding || !profile?.route) return;
     let alive = true;
     void (async () => {
-      const p = await loadGrammarPools();
-      if (!alive) return;
-      setPools(p);
       const mastered = masteredTargetIds(profile.mastery, nowISO);
       const stage = currentStageOf(profile.route!, mastered) ?? profile.route!.stages[profile.route!.stages.length - 1];
-      const ct = await stageContent(stage, mastered);
+      // stage の展開（次の学習対象・会話ターゲット）はサーバーが返す。教材本文は含まれない
+      const ctRes = await fetchStageContent(runtime.auth, {
+        targets: stage.targets, stageKind: stage.kind, masteredIds: [...mastered],
+      });
       if (!alive) return;
+      if (!ctRes.ok) return; // 利用権切れ等は各画面が入口で案内する。ここでは静かに止まる
+      const ct = ctRes.data;
       setStageCt(ct);
       const weak = Object.entries(profile.mastery)
         .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at.length > 0 && at[at.length - 1].scorePct < 80)
@@ -207,7 +184,6 @@ export default function AdvShell(props: AdvShellProps) {
         ? measured.slice().sort((a, b) =>
           (ev[a].correct / Math.max(1, ev[a].evidenceCount)) - (ev[b].correct / Math.max(1, ev[b].evidenceCount)))[0]
         : null;
-      const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
       setQuest(generateTodayQuest({
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
@@ -219,8 +195,8 @@ export default function AdvShell(props: AdvShellProps) {
           weakestSkill,
           readingEvidence: ev.reading.evidenceCount,
           listeningEvidence: ev.listening.evidenceCount,
-          readingTargetIds: readingTargetIds(lvl),
-          listeningTargetIds: listeningTargetIds(lvl),
+          readingTargetIds: ct.readingTargetIds,
+          listeningTargetIds: ct.listeningTargetIds,
         },
       }));
       trackAdv('today_quest_viewed', { goalType: profile.goalType ?? undefined, targetLevel: profile.targetJlpt ?? undefined, locale: lang });
@@ -268,10 +244,9 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── onboarding ──
   if (needsOnboarding) {
-    if (!diagPools) return <AdvLoading lang={lang} />;
     return (
       <AdvOnboarding
-        lang={lang} pools={diagPools} nowISO={nowISO}
+        lang={lang} nowISO={nowISO}
         onComplete={(o: OnboardingOutcome) => {
           const base = profile ?? defaultAdvProfile(nowISO);
           const withLegacy = migrateLegacyEvidence(base, props.progress, nowISO);
@@ -303,7 +278,7 @@ export default function AdvShell(props: AdvShellProps) {
   };
 
   // ── battle ──
-  if (view === 'battle' && battle && pools) {
+  if (view === 'battle' && battle) {
     const seen = seenQuestionKeys(prof.mastery);
     const wrong = new Set<string>();
     for (const at of Object.values(prof.mastery)) {
@@ -314,7 +289,7 @@ export default function AdvShell(props: AdvShellProps) {
       <AdvBattleRunner
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
-        targetIds={battle.targetIds} pool={pools.byItem} level={level}
+        targetIds={battle.targetIds} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
@@ -337,11 +312,10 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 読解 ──
   if (view === 'reading') {
-    const sets = readingSetsFor(level).slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'reading_short') ?? -1;
     return (
       <AdvReadingRunner
-        lang={lang} sets={sets}
+        lang={lang} seenKeys={seenQuestionKeys(prof.mastery)}
         onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'reading', r, stepIdx); }}
         onClose={() => setView('home')}
       />
@@ -350,11 +324,10 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 聴解 ──
   if (view === 'listening') {
-    const sets = listeningSetsFor(level).slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'listening_practice') ?? -1;
     return (
       <AdvListeningRunner
-        lang={lang} sets={sets}
+        lang={lang} seenKeys={seenQuestionKeys(prof.mastery)}
         onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx); }}
         onClose={() => setView('home')}
       />
@@ -411,33 +384,15 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── ミニ模試（§9）──
   if (view === 'mock') {
-    // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
-    // Homeを開くたびに読ませないよう、この画面へ来てから動的importで取りに行く。
-    if (!pools || !vocabPoolFn) return <AdvLoading lang={lang} />;
-    const rPool = readingPool(level);
-    const lPool = listeningPool(level);
-    const vPool = vocabPoolFn(level);
-    const merged = new Map(pools.byItem);
-    for (const [k, v] of rPool) merged.set(k, v);
-    for (const [k, v] of lPool) merged.set(k, v);
-    for (const [k, v] of vPool) merged.set(k, v);
-    let vocabCount = 0; let grammarCount = 0;
-    for (const qs of [...pools.byItem.values(), ...vPool.values()]) {
-      for (const q of qs) {
-        if (q.skill === 'charactersVocabulary') vocabCount += 1;
-        else if (q.skill === 'grammar') grammarCount += 1;
-      }
-    }
-    const readingCount = [...rPool.values()].reduce((n, v) => n + v.length, 0);
-    const listeningCount = [...lPool.values()].reduce((n, v) => n + v.length, 0);
-    const spec = buildMockSpec(level, { vocabCount, grammarCount, readingCount, listeningCount });
+    // 模試の構成・出題・採点はすべてサーバー。client は进行状態だけ持つ
     return (
       <AdvMockRunner
-        lang={lang} spec={spec} pools={merged}
+        lang={lang} level={level}
         seenKeys={seenQuestionKeys(prof.mastery)}
         savedState={prof.mockSession}
         onPersist={(s: MockSessionState | null) => save({ ...prof, mockSession: s })}
-        onFinish={(r: MockResult) => {
+        onFinish={(sr: ServerMockResult) => {
+          const r = sr as unknown as MockResult;
           const completedAt = new Date().toISOString();
           const seen = seenQuestionKeys(prof.mastery);
           // 模試は timed evidence と skill別evidenceを同時に台帳へ入れる（準備度へ反映）
@@ -1125,19 +1080,19 @@ function SubLink({ lang, label, badge, onClick }: { lang: L; label: string; badg
 }
 
 function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLearned }: {
-  lang: L; grammarId: string; doc: N2GrammarDraft | null;
-  setDoc: (d: N2GrammarDraft | null) => void;
+  lang: L; grammarId: string; doc: GrammarDocPayload | null;
+  setDoc: (d: GrammarDocPayload | null) => void;
   onBattle: () => void; onBack: () => void; onLearned: () => void;
 }) {
+  const runtime = useAdvRuntime();
   useEffect(() => {
     let alive = true;
-    void (async () => {
-      const n3 = (N3_GRAMMAR_DRAFTS as unknown as N2GrammarDraft[]).find((d) => d.grammarId === grammarId);
-      if (n3) { if (alive) setDoc(n3); return; }
-      const n2 = (await loadAllN2Drafts()).find((d) => d.grammarId === grammarId);
-      if (alive) setDoc(n2 ?? null);
-    })();
+    // 学習ドキュメントもサーバーから。開放外の文法は stage_locked で返らない
+    void fetchGrammarDoc(runtime.auth, grammarId).then((r) => {
+      if (alive) setDoc(r.ok ? r.data.doc : null);
+    });
     return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grammarId, setDoc]);
 
   useEffect(() => { if (doc) onLearned();

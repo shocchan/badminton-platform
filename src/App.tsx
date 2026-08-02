@@ -48,11 +48,12 @@ const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPag
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
 // 問題バンク監査コンソール。
-// **production ビルドではこの import 式ごと消える**（MODE が定数畳み込みされ、
-// 三項の false 側が dead code として除去される）ので、chunk すら生成されない。
-const QuestionBankConsole = import.meta.env.MODE === 'production'
-  ? null
-  : lazy(() => import('./pages/internal/QuestionBankConsole'));
+// **ローカル dev サーバー以外ではこの import 式ごと消える**（DEV がビルド時に
+// false へ定数畳み込みされ、三項の false 側が dead code として除去される）ので、
+// chunk すら生成されない。staging も公開URLなので production と同じく除外する（P0）。
+const QuestionBankConsole = import.meta.env.DEV
+  ? lazy(() => import('./pages/internal/QuestionBankConsole'))
+  : null;
 // 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
 const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 // 料金ページと購入・相談の入口（セルフサービス販売）

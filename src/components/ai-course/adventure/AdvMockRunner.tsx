@@ -1,83 +1,105 @@
 // ミニ模試 runtime（COMPLETION §9）。
 // section intro → タイマー付き解答 → 未回答警告 → section提出 → section遷移 → 最終提出 → 技能別結果。
 // reload しても同じ問題・同じ提示順・同じ残り時間で再開する（seed＋保存状態）。
-// 「本番同等」とは表示しない。短時間版／本番時間版を明示的に分ける。
+//
+// P0以降の形:
+// - 問題は**サーバーが構成して**返す（正解なし・提示順はサーバー確定）
+// - 採点は最後に**サーバーが一括で**行う。正誤・正解はそれまで client に存在しない
+// - 再開は保存した attemptSeed で同じ構成をサーバーへ再要求する
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { MockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
-import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import {
-  startMockSession, restoreMockSession, gradeMock, unansweredIndexes,
-  sectionTimeLimit, MOCK_MODE_LABEL,
-  type MockRuntime, type MockSessionState, type MockResult,
-} from '../../../lib/aiLesson/course/adventure/advMockSession';
-import { EXAM_SKILL_LABELS, nowTrainingLabel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
-import { listeningSetById } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
-import { readingSetById } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
+  startMock, gradeMockSession, audioUrl, isRetryable,
+  type ServerMock, type ServerQuestion, type ActivityDenial,
+} from '../../../lib/aiLesson/course/adventure/activityClient';
+import { useAdvRuntime } from './AdvRuntimeContext';
+import { DeniedView } from './AdvBattleRunner';
+import { MOCK_MODE_LABEL } from '../../../lib/aiLesson/course/adventure/advMockSession';
+import type { AdvMockSessionState } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { EXAM_SKILL_LABELS, nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-/** 試行のseedと開始時刻。render中には呼ばない（イベントハンドラ専用） */
-const newAttempt = (): { seed: number; iso: string } => {
-  const d = new Date();
-  return { seed: d.getTime(), iso: d.toISOString() };
-};
+
+/** サーバー採点の結果（gradeMockSession の result） */
+export interface ServerMockResult {
+  totalCorrect: number; totalQuestions: number; totalUnanswered: number;
+  sections: {
+    sectionId: string; labelJa: string; labelZh: string;
+    correct: number; total: number; unanswered: number;
+    elapsedSec: number; finishedInTime: boolean;
+    bySkill: Record<string, { correct: number; total: number; unseen: number }>;
+  }[];
+  bySkill: Record<string, { correct: number; total: number; unseen: number }>;
+  skills: string[]; allQuestionKeys: string[]; unseenRatio: number;
+  mockId: string; level: 'N2' | 'N3'; mode: 'short' | 'fullTime';
+}
 
 export interface AdvMockRunnerProps {
   lang: L;
-  spec: MockSpec;
-  pools: Map<string, AdvBattleQuestion[]>;
+  level: 'N2' | 'N3';
   seenKeys: Set<string>;
-  /** 保存済みセッション（reload復帰） */
-  savedState: MockSessionState | null;
-  onPersist: (state: MockSessionState | null) => void;
-  onFinish: (result: MockResult) => void;
+  /** 保存済みセッション（reload復帰）。attemptSeed から同じ構成を再要求する */
+  savedState: AdvMockSessionState | null;
+  onPersist: (state: AdvMockSessionState | null) => void;
+  onFinish: (result: ServerMockResult) => void;
   onClose: () => void;
 }
 
-type Phase = 'chooseMode' | 'sectionIntro' | 'answering' | 'sectionResult' | 'finished';
+type Phase = 'chooseMode' | 'restoring' | 'sectionIntro' | 'answering' | 'sectionResult' | 'grading' | 'finished';
 
 export function AdvMockRunner(props: AdvMockRunnerProps) {
-  const { lang, spec } = props;
-  const [rt, setRt] = useState<MockRuntime | null>(() => (
-    props.savedState ? restoreMockSession(spec, props.pools, props.savedState) : null
-  ));
-  const [phase, setPhase] = useState<Phase>(() => (props.savedState ? 'sectionIntro' : 'chooseMode'));
+  const { lang } = props;
+  const runtime = useAdvRuntime();
+  const [mock, setMock] = useState<ServerMock | null>(null);
+  const [denied, setDenied] = useState<ActivityDenial | null>(null);
+  const [state, setState] = useState<AdvMockSessionState | null>(props.savedState);
+  const [phase, setPhase] = useState<Phase>(() => (props.savedState ? 'restoring' : 'chooseMode'));
   const [qIdx, setQIdx] = useState(0);
   const [warnUnanswered, setWarnUnanswered] = useState<number[] | null>(null);
-  const [result, setResult] = useState<MockResult | null>(null);
-  const [seenAtStart] = useState(() => new Set(props.seenKeys));
+  const [result, setResult] = useState<ServerMockResult | null>(null);
   const persistRef = useRef(props.onPersist);
-  const rtRef = useRef<MockRuntime | null>(null);
+  const stateRef = useRef<AdvMockSessionState | null>(props.savedState);
   useEffect(() => { persistRef.current = props.onPersist; }, [props.onPersist]);
-  useEffect(() => { rtRef.current = rt; }, [rt]);
+  useEffect(() => { stateRef.current = state; }, [state]);
 
-  const section = rt ? rt.sections[rt.state.sectionIndex] : null;
+  // reload復帰: 保存済み attemptSeed で同じ構成をサーバーへ再要求する
+  useEffect(() => {
+    if (phase !== 'restoring' || !props.savedState) return;
+    let alive = true;
+    void startMock(runtime.auth, { mode: props.savedState.mode, attemptSeed: props.savedState.attemptSeed }).then((r) => {
+      if (!alive) return;
+      if (!r.ok) { setDenied(r.denial); return; }
+      setMock(r.data);
+      setPhase('sectionIntro');
+    });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
-  // タイマー: 1秒ごとに残り秒を減らし、0で自動的にセクション終了へ移す。
-  // 状態の読み書きはrefを通す（setStateの更新関数の中で他のsetStateを呼ばない）。
+  const section = mock && state ? mock.sections[state.sectionIndex] : null;
+
+  // タイマー: 1秒ごとに残り秒を減らし、0で自動的にセクション終了へ移す
   useEffect(() => {
     if (phase !== 'answering') return;
     const t = setInterval(() => {
-      const cur = rtRef.current;
+      const cur = stateRef.current;
       if (!cur) return;
-      const idx = cur.state.sectionIndex;
-      const rem = cur.state.remainingSecBySection[idx] ?? 0;
+      const idx = cur.sectionIndex;
+      const rem = cur.remainingSecBySection[idx] ?? 0;
       if (rem <= 0) return;
       const nextRem = rem - 1;
-      const nextState: MockSessionState = {
-        ...cur.state,
-        remainingSecBySection: cur.state.remainingSecBySection.map((v, i) => (i === idx ? nextRem : v)),
+      const next: AdvMockSessionState = {
+        ...cur,
+        remainingSecBySection: cur.remainingSecBySection.map((v, i) => (i === idx ? nextRem : v)),
       };
-      const next = { ...cur, state: nextState };
-      rtRef.current = next;
-      setRt(next);
-      // 10秒ごとに保存（毎秒書き込まない）
-      if (nextRem % 10 === 0) persistRef.current(nextState);
+      stateRef.current = next;
+      setState(next);
+      if (nextRem % 10 === 0) persistRef.current(next);
       if (nextRem === 0) {
-        persistRef.current(nextState);
+        persistRef.current(next);
         setPhase('sectionResult');
       }
     }, 1000);
@@ -85,97 +107,102 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   }, [phase]);
 
   const begin = useCallback((mode: 'short' | 'fullTime') => {
-    const now = newAttempt();
-    const created = startMockSession(spec, props.pools, mode, now.seed, now.iso);
-    if (!created) return;
-    rtRef.current = created;
-    setRt(created);
-    props.onPersist(created.state);
-    trackAdv('mock_started', { locale: lang, targetLevel: spec.level });
-    setPhase('sectionIntro');
-  }, [spec, lang, props]);
+    const seed = Date.now();
+    void startMock(runtime.auth, { mode, attemptSeed: seed }).then((r) => {
+      if (!r.ok) { setDenied(r.denial); return; }
+      const created: AdvMockSessionState = {
+        mockId: r.data.mockId, level: r.data.level, mode, attemptSeed: seed,
+        startedAt: new Date().toISOString(),
+        sectionIndex: 0,
+        remainingSecBySection: r.data.sections.map((s) => s.timeLimitSec),
+        answers: {},
+        completedSections: [],
+        finishedAt: null,
+      };
+      setMock(r.data);
+      stateRef.current = created;
+      setState(created);
+      props.onPersist(created);
+      trackAdv('mock_started', { locale: lang, targetLevel: r.data.level });
+      setPhase('sectionIntro');
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lang, runtime.auth]);
 
-  const answer = (questionKey: string, choiceId: string) => {
-    const cur = rtRef.current ?? rt;
+  const answer = (questionKey: string, choiceKey: string) => {
+    const cur = stateRef.current;
     if (!cur) return;
-    const next = { ...cur, state: { ...cur.state, answers: { ...cur.state.answers, [questionKey]: choiceId } } };
-    rtRef.current = next;
-    setRt(next);
-    persistRef.current(next.state);
+    const next = { ...cur, answers: { ...cur.answers, [questionKey]: choiceKey } };
+    stateRef.current = next;
+    setState(next);
+    persistRef.current(next);
   };
 
+  const unansweredOf = (sec: { questions: ServerQuestion[] }, st: AdvMockSessionState): number[] =>
+    sec.questions.map((q, i) => ((st.answers[q.key] ?? null) === null ? i + 1 : -1)).filter((v) => v > 0);
+
   const submitSection = (force: boolean) => {
-    if (!rt) return;
-    const missing = unansweredIndexes(rt, rt.state.sectionIndex);
+    if (!mock || !state || !section) return;
+    const missing = unansweredOf(section, state);
     if (!force && missing.length > 0) { setWarnUnanswered(missing); return; }
     setWarnUnanswered(null);
-    trackAdv('mock_section_completed', { locale: lang, targetLevel: spec.level });
+    trackAdv('mock_section_completed', { locale: lang, targetLevel: mock.level });
     setPhase('sectionResult');
   };
 
   const nextSection = useCallback(() => {
-    if (!rt) return;
-    const isLast = rt.state.sectionIndex >= rt.sections.length - 1;
+    if (!mock || !state) return;
+    const isLast = state.sectionIndex >= mock.sections.length - 1;
     if (isLast) {
-      const graded = gradeMock(rt, seenAtStart);
-      const done = { ...rt, state: { ...rt.state, finishedAt: new Date().toISOString() } };
-      rtRef.current = done;
-      setRt(done);
-      setResult(graded);
-      props.onPersist(null); // セッション終了＝保存状態を破棄
-      trackAdv('mock_completed', { locale: lang, targetLevel: spec.level });
-      props.onFinish(graded);
-      setPhase('finished');
+      setPhase('grading');
+      // null（未回答）はサーバーへ送らない（Record<string,string>へ落とす）
+      const answered: Record<string, string> = {};
+      for (const [k, v] of Object.entries(state.answers)) if (v !== null) answered[k] = v;
+      void gradeMockSession(runtime.auth, {
+        attemptSeed: state.attemptSeed, mode: state.mode, startedAt: state.startedAt,
+        answers: answered, seenKeys: [...props.seenKeys].slice(0, 800),
+        remainingSecBySection: state.remainingSecBySection,
+      }).then((r) => {
+        if (!r.ok) { setDenied(r.denial); return; }
+        const graded = r.data.result as ServerMockResult;
+        setResult(graded);
+        props.onPersist(null); // セッション終了＝保存状態を破棄
+        trackAdv('mock_completed', { locale: lang, targetLevel: mock.level });
+        props.onFinish(graded);
+        setPhase('finished');
+      });
       return;
     }
-    const next = {
-      ...rt,
-      state: {
-        ...rt.state,
-        sectionIndex: rt.state.sectionIndex + 1,
-        completedSections: [...rt.state.completedSections, rt.sections[rt.state.sectionIndex].section.sectionId],
-      },
+    const next: AdvMockSessionState = {
+      ...state,
+      sectionIndex: state.sectionIndex + 1,
+      completedSections: [...state.completedSections, mock.sections[state.sectionIndex].sectionId],
     };
-    rtRef.current = next;
-    setRt(next);
-    props.onPersist(next.state);
+    stateRef.current = next;
+    setState(next);
+    props.onPersist(next);
     setQIdx(0);
     setPhase('sectionIntro');
-  }, [rt, seenAtStart, lang, spec.level, props]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mock, state, lang, props, runtime.auth]);
 
-  // ── 模試が組めない（技能が足りない）──
-  if (spec.sections.length === 0) {
-    return (
-      <div className="mx-auto w-full max-w-xl px-4 py-8">
-        <h2 className="text-lg font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
-        <ul className="mt-3 space-y-1">
-          {(lang === 'zh' ? spec.blockersZh : spec.blockersJa).map((b) => (
-            <li key={b} className="text-sm text-gray-700">・{b}</li>
-          ))}
-        </ul>
-        <button type="button" className={`${primaryBtn} mt-6`} onClick={props.onClose}>
-          {tx(lang, 'もどる', '返回')}
-        </button>
-      </div>
-    );
+  if (denied) {
+    return <DeniedView lang={lang} denial={denied} onClose={props.onClose}
+      onRetry={isRetryable(denied) ? () => window.location.reload() : undefined} />;
   }
 
   // ── モード選択 ──
-  if (phase === 'chooseMode' || !rt || !section) {
+  if (phase === 'chooseMode') {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <h2 className="text-lg font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-gray-600">{tx(lang, spec.disclaimerJa, spec.disclaimerZh)}</p>
-        {!spec.ready && (
-          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
-            <p className="text-xs font-semibold text-amber-900">{tx(lang, '含まれない科目があります', '有未包含的科目')}</p>
-            <ul className="mt-1 space-y-0.5">
-              {(lang === 'zh' ? spec.blockersZh : spec.blockersJa).map((b) => (
-                <li key={b} className="text-xs text-amber-900">・{b}</li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <h2 className="text-lg font-bold text-gray-900">
+          {tx(lang, `${props.level}ミニ模試`, `${props.level}迷你模拟考`)}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+          {tx(lang,
+            '本番と同じ科目構成のミニ版です。問題数は本番より少なく、結果は準備度の参考として使います。',
+            '与真实考试科目构成相同的迷你版。题量少于真实考试，结果用作准备度的参考。')}
+        </p>
         <div className="mt-4 space-y-2">
           {(['short', 'fullTime'] as const).map((mode) => (
             <button key={mode} type="button"
@@ -186,16 +213,6 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
             </button>
           ))}
         </div>
-        <div className="mt-4 rounded-xl bg-gray-50 p-3">
-          <p className="text-xs font-semibold text-gray-700">{tx(lang, '構成', '构成')}</p>
-          <ul className="mt-1 space-y-0.5">
-            {spec.sections.map((s) => (
-              <li key={s.sectionId} className="text-xs text-gray-600">
-                ・{tx(lang, s.labelJa, s.labelZh)} — {s.questionCount}{tx(lang, '問', '题')}
-              </li>
-            ))}
-          </ul>
-        </div>
         <button type="button" className="mt-4 w-full min-h-[44px] text-sm text-gray-500 underline" onClick={props.onClose}>
           {tx(lang, 'もどる', '返回')}
         </button>
@@ -203,25 +220,34 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
     );
   }
 
-  const remaining = rt.state.remainingSecBySection[rt.state.sectionIndex] ?? 0;
-  const answeredCount = section.questions.filter((q) => (rt.state.answers[q.key] ?? null) !== null).length;
+  if (phase === 'restoring' || phase === 'grading' || !mock || !state || !section) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center" role="status">
+        <p className="text-sm text-gray-500">
+          {phase === 'grading' ? tx(lang, '採点しています…', '正在评分…') : tx(lang, '模試を用意しています…', '正在准备模拟考…')}
+        </p>
+      </div>
+    );
+  }
+
+  const remaining = state.remainingSecBySection[state.sectionIndex] ?? 0;
+  const answeredCount = section.questions.filter((q) => (state.answers[q.key] ?? null) !== null).length;
 
   // ── section intro ──
   if (phase === 'sectionIntro') {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <p className="text-xs text-gray-500">
-          {tx(lang, `${rt.state.sectionIndex + 1}／${rt.sections.length} セクション`, `第${rt.state.sectionIndex + 1}／${rt.sections.length} 部分`)}
-          ・{tx(lang, MOCK_MODE_LABEL[rt.state.mode].ja, MOCK_MODE_LABEL[rt.state.mode].zh)}
+          {tx(lang, `${state.sectionIndex + 1}／${mock.sections.length} セクション`, `第${state.sectionIndex + 1}／${mock.sections.length} 部分`)}
+          ・{tx(lang, MOCK_MODE_LABEL[state.mode].ja, MOCK_MODE_LABEL[state.mode].zh)}
         </p>
-        <h2 className="mt-1 text-xl font-bold text-gray-900">{tx(lang, section.section.labelJa, section.section.labelZh)}</h2>
+        <h2 className="mt-1 text-xl font-bold text-gray-900">{tx(lang, section.labelJa, section.labelZh)}</h2>
         <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-700">
             {tx(lang, `問題数 ${section.questions.length}問`, `题量 ${section.questions.length}题`)}
           </p>
           <p className="mt-1 text-sm text-gray-700">
-            {tx(lang, `制限時間 ${mmss(sectionTimeLimit(section.section, rt.state.level, rt.state.mode))}`,
-              `限时 ${mmss(sectionTimeLimit(section.section, rt.state.level, rt.state.mode))}`)}
+            {tx(lang, `制限時間 ${mmss(remaining)}`, `限时 ${mmss(remaining)}`)}
           </p>
           <p className="mt-1 text-xs text-gray-500">
             {tx(lang, '時間内に終わらなかった分は未回答として採点されます。', '未在时间内完成的部分按未作答计分。')}
@@ -236,12 +262,12 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
 
   // ── section result ──
   if (phase === 'sectionResult') {
-    const missing = unansweredIndexes(rt, rt.state.sectionIndex);
-    const isLast = rt.state.sectionIndex >= rt.sections.length - 1;
+    const missing = unansweredOf(section, state);
+    const isLast = state.sectionIndex >= mock.sections.length - 1;
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-lg font-bold text-gray-900">
-          {tx(lang, `${section.section.labelJa} 終了`, `${section.section.labelZh} 结束`)}
+          {tx(lang, `${section.labelJa} 終了`, `${section.labelZh} 结束`)}
         </h2>
         <div className="mt-3 rounded-xl border border-gray-200 bg-white p-4">
           <p className="text-sm text-gray-700">
@@ -267,7 +293,9 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   if (phase === 'finished' && result) {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <h2 className="text-xl font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
+        <h2 className="text-xl font-bold text-gray-900">
+          {tx(lang, `${result.level}ミニ模試`, `${result.level}迷你模拟考`)}
+        </h2>
         <p className="mt-1 text-xs text-gray-500">{tx(lang, MOCK_MODE_LABEL[result.mode].note.ja, MOCK_MODE_LABEL[result.mode].note.zh)}</p>
         <p className="mt-3 text-3xl font-bold text-blue-700">
           {result.totalCorrect}／{result.totalQuestions}
@@ -298,8 +326,8 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
           {Object.entries(result.bySkill).map(([skill, row]) => (
             <div key={skill} className="mt-1 flex items-center justify-between text-sm">
               <span className="text-gray-700">
-                {tx(lang, EXAM_SKILL_LABELS[skill as keyof typeof EXAM_SKILL_LABELS]?.ja ?? skill,
-                  EXAM_SKILL_LABELS[skill as keyof typeof EXAM_SKILL_LABELS]?.zh ?? skill)}
+                {tx(lang, EXAM_SKILL_LABELS[skill as ExamSkill]?.ja ?? skill,
+                  EXAM_SKILL_LABELS[skill as ExamSkill]?.zh ?? skill)}
               </span>
               <span className="font-semibold text-gray-900">{row.correct}／{row.total}</span>
             </div>
@@ -318,25 +346,22 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   }
 
   // ── 解答中 ──
-  const q = section.questions[qIdx];
-  const presented = section.presented.find((p) => p.key === q.key)!;
-  const picked = rt.state.answers[q.key] ?? null;
-  const listening = q.skill === 'listening' ? listeningSetById(q.sourceItemId) : undefined;
-  const reading = q.skill === 'reading' ? readingSetById(q.sourceItemId) : undefined;
+  const q = section.questions[qIdx] as ServerQuestion & { audioToken?: string };
+  const picked = state.answers[q.key] ?? null;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       {/* ヘッダー: セクション・残り時間・進捗 */}
       <div className="sticky top-0 z-10 -mx-4 mb-3 bg-white/95 px-4 py-2 backdrop-blur">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-gray-600">{tx(lang, section.section.labelJa, section.section.labelZh)}</span>
+          <span className="text-gray-600">{tx(lang, section.labelJa, section.labelZh)}</span>
           <span className={`font-bold ${remaining <= 60 ? 'text-red-600' : 'text-gray-800'}`} aria-live="polite">
             ⏱ {mmss(remaining)}
           </span>
         </div>
         <div className="mt-1 flex flex-wrap gap-1" role="group" aria-label={tx(lang, '問題の移動', '题目导航')}>
           {section.questions.map((sq, i) => {
-            const done = (rt.state.answers[sq.key] ?? null) !== null;
+            const done = (state.answers[sq.key] ?? null) !== null;
             return (
               <button key={sq.key} type="button"
                 aria-current={i === qIdx}
@@ -353,30 +378,32 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       </div>
 
       <p className="mb-2 inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
-        {nowTrainingLabel(q.skill, lang)}
+        {nowTrainingLabel(q.skill as ExamSkill, lang)}
       </p>
 
-      {/* 読解は本文、聴解は音声 */}
-      {reading && (
+      {/* 読解は本文（targetJapanese に載っている）、聴解は音声トークン */}
+      {q.skill === 'reading' && q.targetJapanese && (
         <div className="mb-3 max-h-[40vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4">
-          <p lang="ja" className="whitespace-pre-wrap text-[15px] leading-8 text-gray-900">{reading.passageJa}</p>
+          <p lang="ja" className="whitespace-pre-wrap text-[15px] leading-8 text-gray-900">{q.targetJapanese}</p>
         </div>
       )}
-      {listening && <MockAudio key={listening.setId} lang={lang} src={listening.audioAsset} playLimit={listening.playLimit} />}
+      {q.skill === 'listening' && q.audioToken && (
+        <MockAudio key={q.key} lang={lang} src={audioUrl(q.audioToken)} playLimit={2} />
+      )}
 
-      {q.targetJapanese && !reading && (
+      {q.targetJapanese && q.skill !== 'reading' && q.skill !== 'listening' && q.targetJapanese !== q.questionJa && (
         <p className="mb-1 rounded-lg bg-gray-50 px-3 py-2 text-base font-semibold leading-relaxed text-gray-900">{q.targetJapanese}</p>
       )}
       {q.questionJa && <p className="mb-1 text-base font-semibold text-gray-900">{q.questionJa}</p>}
       {lang === 'zh' && <p className="mb-3 text-sm text-gray-600">{q.questionZh}</p>}
 
       <div className="space-y-2">
-        {presented.choices.map((c) => (
-          <button key={c.choiceId} type="button"
-            aria-pressed={picked === c.choiceId}
+        {q.choices.map((c) => (
+          <button key={c.key} type="button"
+            aria-pressed={picked === c.key}
             className={`w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm ${
-              picked === c.choiceId ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-400'}`}
-            onClick={() => answer(q.key, c.choiceId)}>
+              picked === c.key ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-400'}`}
+            onClick={() => answer(q.key, c.key)}>
             {c.textJa}
           </button>
         ))}

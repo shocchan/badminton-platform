@@ -1,6 +1,9 @@
 // V2 onboarding（§4〜§7・§10）: 目的 → 目標 → 受験日 → 学習スケジュール → 先生 → 相棒 → 診断 → ルート提示。
 // 原則: 最初に選ぶのはレベルではなく目的。目標は本人から奪わない。診断は5〜8分で終える。
-import { useMemo, useState } from 'react';
+//
+// P0以降: 診断問題は**サーバーが選んで**返す（answerIndexは含まれない）。
+// 正誤はサーバー採点で受け取り、診断UXは従来どおり正誤を見せずに進む。
+import { useEffect, useState } from 'react';
 import type {
   AdvCompanionId, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvSkillProfile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -9,8 +12,14 @@ import { COMPANIONS, companionSvg } from '../../../lib/aiLesson/course/adventure
 import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
-  selectDiagnosisQuestions, scoreDiagnosis, type DiagQuestion, type DiagnosisPools, type ConvSample,
+  scoreDiagnosis, type DiagQuestion, type ConvSample,
 } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
+import {
+  startDiagnosis, gradeAttempt, isRetryable,
+  type ServerDiagnosisQuestion, type ActivityDenial,
+} from '../../../lib/aiLesson/course/adventure/activityClient';
+import { useAdvRuntime } from './AdvRuntimeContext';
+import { DeniedView } from './AdvBattleRunner';
 import { generateRoute } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { BAND_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { knowledgeBandOf } from '../../../lib/aiLesson/course/adventure/advSkillProfile';
@@ -35,7 +44,6 @@ export interface OnboardingOutcome {
 
 interface Props {
   lang: L;
-  pools: DiagnosisPools;
   nowISO: string;
   onComplete: (o: OnboardingOutcome) => void;
   onCancel: () => void;
@@ -53,7 +61,8 @@ const btnIdle = `${btn} border-gray-200 bg-white hover:border-blue-400`;
 const btnOn = `${btn} border-blue-600 bg-blue-50`;
 const primary = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-40';
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Props) {
+export function AdvOnboarding({ lang, nowISO, onComplete, onCancel }: Props) {
+  const runtime = useAdvRuntime();
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
   const [target, setTarget] = useState<JlptLevel | null>(null);
@@ -62,24 +71,44 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
   const [minutes, setMinutes] = useState<5 | 15 | 30>(15);
   const [companion, setCompanion] = useState<AdvCompanionId>('fukuro');
   const [teacher, setTeacher] = useState<AdvTeacherId>(DEFAULT_TEACHER_ID);
-  const [answers, setAnswers] = useState<Map<string, number>>(new Map());
+  /** サーバー採点の正誤（診断中は表示せず、最後の scoreDiagnosis にだけ使う） */
+  const [verdicts, setVerdicts] = useState<Map<string, boolean>>(new Map());
   const [qIndex, setQIndex] = useState(0);
   const [convTexts, setConvTexts] = useState<string[]>(['', '']);
   const [convSkipped, setConvSkipped] = useState(false);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
+  const [questions, setQuestions] = useState<ServerDiagnosisQuestion[] | null>(null);
+  const [denied, setDenied] = useState<ActivityDenial | null>(null);
 
-  const questions = useMemo(
-    () => (goal ? selectDiagnosisQuestions(pools, target, goal, 20260731) : []),
-    [pools, goal, target],
-  );
+  // 診断問題はサーバーが選ぶ。目的・目標が決まったら取りに行く
+  useEffect(() => {
+    if (phase !== 'diagIntro' || questions) return;
+    let alive = true;
+    void startDiagnosis(runtime.auth, { targetJlpt: target === 'N2' ? 'N2' : target === 'N3' ? 'N3' : null, goalType: goal ?? 'exam' })
+      .then((r) => {
+        if (!alive) return;
+        if (!r.ok) { setDenied(r.denial); return; }
+        setQuestions(r.data.questions);
+      });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const finishDiagnosis = (skipConv: boolean, texts: string[]) => {
-    if (!goal) return;
+    if (!goal || !questions) return;
     const convSamples: ConvSample[] = skipConv ? [] : texts.filter((t2) => t2.trim().length > 0).map((t2) => ({ studentText: t2 }));
     const sampled = !skipConv && convSamples.length > 0;
+    // サーバー採点の正誤から scoreDiagnosis の入力を合成する。
+    // answerIndex=1 を置き、正解なら choiceIndex=1（一致）・誤答なら 0（不一致）にすると、
+    // 既存の採点ロジック（帯の判定・gap抽出）がそのまま使える。未回答は answers に入れない
+    const synthQuestions: DiagQuestion[] = questions.map((q) => ({
+      key: q.key, level: q.level, skill: q.skill, refId: q.refId,
+      promptJa: q.promptJa, promptZh: q.promptZh,
+      choices: q.choices.map((c) => c.text), answerIndex: 1, explanationZh: '',
+    }));
     const { result, skills } = scoreDiagnosis({
-      questions,
-      answers: [...answers.entries()].map(([key, choiceIndex]) => ({ key, choiceIndex })),
+      questions: synthQuestions,
+      answers: [...verdicts.entries()].map(([key, correct]) => ({ key, choiceIndex: correct ? 1 : 0 })),
       convSamples, conversationSampled: sampled,
       targetJlpt: target, goalType: goal, nowISO,
     });
@@ -242,7 +271,11 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
         </section>
       )}
 
-      {phase === 'diagIntro' && (
+      {phase === 'diagIntro' && denied && (
+        <DeniedView lang={lang} denial={denied} onClose={onCancel}
+          onRetry={isRetryable(denied) ? () => { setDenied(null); setQuestions(null); } : undefined} />
+      )}
+      {phase === 'diagIntro' && !denied && (
         <section>
           {header('現在地を測ります（約5分）', '测一下当前位置（约5分钟）',
             '正確なルートを作るための診断です。わからない問題は「わからない」でOK。', '这是为了生成准确路线的诊断。不会的题选"不知道"就好。')}
@@ -250,22 +283,26 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
             <li>{tx(lang, '第1戦：ことば・文法の問題（12問）', '第1战：词汇・语法题（12题）')}</li>
             <li>{tx(lang, '第2戦：日本語で2文だけ書く（スキップ可）', '第2战：用日语写2句（可跳过）')}</li>
           </ul>
-          <button type="button" className={primary} onClick={() => setPhase('diag')}>
-            {tx(lang, '診断を始める', '开始诊断')}
+          <button type="button" className={primary} disabled={!questions} onClick={() => setPhase('diag')}>
+            {questions ? tx(lang, '診断を始める', '开始诊断') : tx(lang, '問題を用意しています…', '正在准备题目…')}
           </button>
         </section>
       )}
 
-      {phase === 'diag' && questions.length > 0 && (
+      {phase === 'diag' && questions && questions.length > 0 && (
         <DiagQuestionView
           lang={lang}
           q={questions[qIndex]}
           index={qIndex}
           total={questions.length}
-          onAnswer={(choiceIndex) => {
-            const next = new Map(answers);
-            if (choiceIndex !== null) next.set(questions[qIndex].key, choiceIndex);
-            setAnswers(next);
+          onAnswer={(choiceKey) => {
+            const q = questions[qIndex];
+            if (choiceKey !== null) {
+              // 正誤はサーバーが判定する。診断中は結果を見せないので、応答を待たずに進む
+              void gradeAttempt(runtime.auth, { attemptToken: q.attemptToken, choiceKey }).then((r) => {
+                if (r.ok) setVerdicts((prev) => new Map(prev).set(q.key, r.data.correct));
+              });
+            }
             if (qIndex + 1 < questions.length) setQIndex(qIndex + 1);
             else setPhase('conv');
           }}
@@ -304,7 +341,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
 }
 
 function DiagQuestionView({ lang, q, index, total, onAnswer }: {
-  lang: L; q: DiagQuestion; index: number; total: number; onAnswer: (i: number | null) => void;
+  lang: L; q: ServerDiagnosisQuestion; index: number; total: number; onAnswer: (choiceKey: string | null) => void;
 }) {
   return (
     <section aria-label={tx(lang, `診断 ${index + 1}/${total}`, `诊断 ${index + 1}/${total}`)}>
@@ -315,8 +352,8 @@ function DiagQuestionView({ lang, q, index, total, onAnswer }: {
       {q.promptJa && <p className="mb-1 text-base font-semibold text-gray-900">{q.promptJa}</p>}
       <p className="mb-4 text-sm text-gray-700">{q.promptZh}</p>
       <div className="space-y-2">
-        {q.choices.map((c, i) => (
-          <button key={c} type="button" className={btnIdle} onClick={() => onAnswer(i)}>{c}</button>
+        {q.choices.map((c) => (
+          <button key={c.key} type="button" className={btnIdle} onClick={() => onAnswer(c.key)}>{c.text}</button>
         ))}
         <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={() => onAnswer(null)}>
           {tx(lang, 'わからない', '不知道')}

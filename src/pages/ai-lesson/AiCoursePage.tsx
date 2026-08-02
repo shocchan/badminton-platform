@@ -53,13 +53,44 @@ import { CourseLightPractice } from '../../components/ai-course/CourseLightPract
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 // しくみラボ・ことば図鑑・冒険は lazy chunk（教材・画像manifestをメインbundleへ含めない・§17）
-const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
-const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
-const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
-const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
-const N2QuestLazy = lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'));
+/**
+ * 旧コース（foundation）の画面は教材bankを静的importしているため、
+ * **公開ビルドには含めない**（P0: 認証なしで教材が取れる経路を作らない）。
+ * **ローカルの dev サーバー（import.meta.env.DEV）でだけ**読み込む。
+ * DEV はビルド時に必ず false へ定数畳み込みされるため、staging/production の
+ * 成果物には dead branch の dynamic import ごと chunk が消える（measure で確認）。
+ * ローカルenvの値に依存させない: env の設定漏れで教材が公開される事故を防ぐ。
+ */
+const LegacyGate = () => (
+  <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
+    <p className="text-sm font-semibold text-gray-900">この機能は現在、冒険モードへ移行中です</p>
+    <p className="mt-2 text-sm text-gray-600">学習は「今日の冒険」から続けられます。データは残っています。</p>
+    <button type="button" className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white"
+      onClick={() => { window.location.href = window.location.pathname; }}>
+      ホームへもどる
+    </button>
+  </div>
+);
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const CourseFoundationLab = (import.meta.env.DEV
+  ? lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'))
+  : LegacyGate) as React.ComponentType<any>;
+const VocabularyHubLazy = (import.meta.env.DEV
+  ? lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'))
+  : LegacyGate) as React.ComponentType<any>;
+const Chapter1AdventureLazy = (import.meta.env.DEV
+  ? lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'))
+  : LegacyGate) as React.ComponentType<any>;
+const N3AreaPanelLazy = (import.meta.env.DEV
+  ? lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'))
+  : LegacyGate) as React.ComponentType<any>;
+const N2QuestLazy = (import.meta.env.DEV
+  ? lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'))
+  : LegacyGate) as React.ComponentType<any>;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 // Adventure V2（learner単位flag・adventure-v2 D-004）。flag無効のlearnerには一切ロードされない
 const AdvShellLazy = lazy(() => import('../../components/ai-course/adventure/AdvShell'));
+const AdvRuntimeGateLazy = lazy(() => import('../../components/ai-course/adventure/AdvRuntimeGate'));
 import { buildLightSession } from '../../lib/aiLesson/course/courseLightPractice';
 import { CourseRoadmap } from '../../components/ai-course/CourseRoadmap';
 import { CourseHistory } from '../../components/ai-course/CourseHistory';
@@ -837,7 +868,7 @@ export default function AiCoursePage() {
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <CourseFoundationLab t={t}
             initial={(() => { const u = parseLabUrl(window.location.search); return { section: u.section, unit: u.unit, step: u.step }; })()}
-            onStateChange={(st) => syncLabUrl({ section: st.section, unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
+            onStateChange={(st: { section: string; unit: string | null; step?: string | null }) => syncLabUrl({ section: st.section as LabUrlInput['section'], unit: st.unit, step: (st.step ?? null) as LabUrlInput['step'] })}
             onBack={() => { syncLabUrl(null); setStep('home'); }} />
         </Suspense>
         </LearnerErrorBoundary>
@@ -851,7 +882,7 @@ export default function AiCoursePage() {
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
-            onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
+            onStateChange={(st: { view: VocabUrlView; category: string | null; itemId: string | null }) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
@@ -900,7 +931,7 @@ export default function AiCoursePage() {
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
               onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }}
-              onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
+              onOpenArea={(id: string) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
               onOpenAdventure={(() => {
                 // 2026-07-31: 全学習エリアに章ができた。エリア対応の章を開く
                 const ch = chapterForArea(area.areaId);
@@ -1038,6 +1069,7 @@ export default function AiCoursePage() {
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
         nav={navFor(advNavKey)} showLab={labAllowed} v2Mode>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+          <AdvRuntimeGateLazy lang={uiLang} learner={learner}>
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
             requestView={advRequest}
@@ -1059,6 +1091,7 @@ export default function AiCoursePage() {
               void courseRepository.updateLearner({ settings: next });
             }}
           />
+          </AdvRuntimeGateLazy>
         </Suspense>
       </Shell>
     );
@@ -1216,6 +1249,10 @@ const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: '
   const tv = t.vocab;
   const [sum, setSum] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabGrowthSummary | null>(null);
   useEffect(() => {
+    // vocabHomeSummary は foundation語彙bank全体を引き込む（P0）。
+    // 旧ホームの成長カードのためだけに教材を公開bundleへ入れられないので、dev限定にする。
+    // 公開ビルドではカード非表示（null で成立する設計は従来どおり）
+    if (!import.meta.env.DEV) return;
     let alive = true;
     void import('../../lib/aiLesson/course/vocabHomeSummary')
       .then((m) => { if (alive) setSum(m.getVocabGrowthSummary()); })

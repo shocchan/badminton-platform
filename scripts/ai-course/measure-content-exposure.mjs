@@ -10,30 +10,51 @@
 //   npm run build:staging
 //   node scripts/ai-course/measure-content-exposure.mjs [--json]
 //
-// 判定は「教材データ固有のキー」で行う。最小化しても**データのキー名は残る**ため、
-// コードの識別子と違って圧縮で消えない。
+// 判定（v2で精緻化）:
+//   1. **教材の本文サンプル**（各バンクから採った実文字列）を含む → 教材混入で FAIL
+//   2. 教材データ固有の**キー名が1ファイルに10回以上** → データ規模の混入で FAIL
+//      （キー名はUIコードの `reveal.explanationJa` のような参照にも現れるため、
+//        少数の出現はコードとみなす。データファイルはキーが数十〜数百回現れる）
+//   3. キー名が10回未満のファイルは情報表示のみ（コード参照・合否に含めない）
 
 import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 
 const ASSETS = 'dist/assets';
 
-/**
- * 教材データにしか現れないキー。
- * コンポーネントのpropsや型名と重ならないものを選ぶ（誤検出を避ける）。
- */
+/** 教材データにしか現れないキー */
 const CONTENT_KEYS = [
   'explanationJa', 'explanationZh',   // 問題の解説
   'correctChoiceId',                  // 正解
   'passageJa',                        // 読解本文
-  'scriptJa',                         // 聴解スクリプト
+  'scriptJa', 'transcriptJa',         // 聴解スクリプト
   'meaningZh',                        // 語彙の訳
+  'whyWrongJa',                       // 誤答の理由
 ];
 
-/** 教材本文そのもの。キーではなく中身が入っていないかを見る */
+/** キー出現がこの回数以上なら「データ」とみなす */
+const KEY_DATA_THRESHOLD = 10;
+
+/**
+ * 教材本文そのもの（各バンクから採った実文字列）。
+ * 1件でも含まれていたら教材の混入で、キー数によらず FAIL。
+ */
 const CONTENT_SAMPLES = [
+  // 文法（N3 unit生成問題・draft）
   'ことになりました',
+  'この文脈には合いません',
+  // 読解・聴解（設問・選択肢の実文）
+  '資料を用意して持っていく',
+  '会議の時間を変える',
+  // 語彙（設問の定型）
+  'という意味の言葉はどれですか',
+  // N2文法draft
+  '約束した（　）は、守らなければならない',
+  // foundation単元・文法本文
   'なければならない',
+  // 会話コース（courseData の mission 本文）
+  '礼貌地介绍自己名字的说法',
+  'しなければならないことを言ってみましょう',
 ];
 
 const listAssets = () => {
@@ -44,56 +65,80 @@ const listAssets = () => {
   return readdirSync(ASSETS).filter((f) => f.endsWith('.js') || f.endsWith('.js.map'));
 };
 
+/**
+ * 「データ定義」の出現だけを数える: `key:"..."` / `key:\`...\`` の形。
+ * `x.meaningZh`（参照）や `meaningZh:e.meaningZh`（変数からの詰め替え）はコードなので数えない。
+ * minifyでクォート形が変わっても拾えるよう、`"` `'` バッククォートの3種を見る。
+ */
+const countDataOccurrences = (text, key) => {
+  const re = new RegExp(`${key}\\s*:\\s*[\`"']`, 'g');
+  return (text.match(re) ?? []).length;
+};
+
 const scan = () => {
-  const rows = [];
+  const failures = [];
+  const codeRefs = [];
   for (const name of listAssets()) {
     const path = join(ASSETS, name);
     const text = readFileSync(path, 'utf8');
-    const hits = CONTENT_KEYS.filter((k) => text.includes(`"${k}"`) || text.includes(`${k}:`));
     const samples = CONTENT_SAMPLES.filter((s) => text.includes(s));
-    if (hits.length === 0 && samples.length === 0) continue;
-    rows.push({
+    const keyCounts = CONTENT_KEYS
+      .map((k) => ({ key: k, count: countDataOccurrences(text, k) }))
+      .filter((k) => k.count > 0);
+    const maxKeyCount = keyCounts.reduce((m, k) => Math.max(m, k.count), 0);
+    const row = {
       file: name,
       bytes: statSync(path).size,
       isSourceMap: name.endsWith('.map'),
-      keys: hits,
+      keys: keyCounts.map((k) => `${k.key}x${k.count}`),
       samples,
-    });
+    };
+    if (samples.length > 0 || maxKeyCount >= KEY_DATA_THRESHOLD) failures.push(row);
+    else if (keyCounts.length > 0) codeRefs.push(row);
   }
-  return rows.sort((a, b) => b.bytes - a.bytes);
+  return {
+    failures: failures.sort((a, b) => b.bytes - a.bytes),
+    codeRefs: codeRefs.sort((a, b) => b.bytes - a.bytes),
+  };
 };
 
-const rows = scan();
-const total = rows.reduce((n, r) => n + r.bytes, 0);
-const mapBytes = rows.filter((r) => r.isSourceMap).reduce((n, r) => n + r.bytes, 0);
+const { failures, codeRefs } = scan();
+const total = failures.reduce((n, r) => n + r.bytes, 0);
+const mapBytes = failures.filter((r) => r.isSourceMap).reduce((n, r) => n + r.bytes, 0);
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({
     generatedAt: new Date().toISOString(),
-    chunkCount: rows.length,
+    chunkCount: failures.length,
     totalBytes: total,
     sourceMapBytes: mapBytes,
-    passed: rows.length === 0,
-    rows,
+    passed: failures.length === 0,
+    rows: failures,
+    codeRefs,
   }, null, 2));
 } else {
   console.log('教材本文を含む公開アセット（§14 A）\n');
-  if (rows.length === 0) {
+  if (failures.length === 0) {
     console.log('  なし。client bundle に教材は含まれていません。');
   } else {
-    for (const r of rows) {
+    for (const r of failures) {
       console.log(
         `  ${String(r.bytes).padStart(9)}  ${r.file}` +
         `${r.isSourceMap ? '  [source map]' : ''}` +
         `\n              keys: ${r.keys.join(', ') || '-'}` +
-        `${r.samples.length ? `  本文: ${r.samples.join(', ')}` : ''}`,
+        `${r.samples.length ? `  本文: ${r.samples.join(' / ')}` : ''}`,
       );
     }
-    console.log(`\n  ${rows.length} ファイル / 合計 ${total.toLocaleString()} bytes`);
+    console.log(`\n  ${failures.length} ファイル / 合計 ${total.toLocaleString()} bytes`);
     if (mapBytes > 0) console.log(`  うち source map: ${mapBytes.toLocaleString()} bytes`);
     console.log('\n  ⚠️ P0 未解決。これらは認証なしで取得できます。');
   }
+  if (codeRefs.length > 0) {
+    console.log(`\n  ℹ️ キー名の少数出現（コードのproperty参照・合否に含めない）: ${codeRefs.length}件`);
+    for (const r of codeRefs.slice(0, 6)) {
+      console.log(`     ${r.file} — ${r.keys.join(', ')}`);
+    }
+  }
 }
 
-// 0 でなければ非ゼロ終了。CIやビルド後の確認で気づけるようにする
-process.exit(rows.length === 0 ? 0 : 1);
+process.exit(failures.length === 0 ? 0 : 1);

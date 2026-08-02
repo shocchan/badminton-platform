@@ -406,6 +406,9 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   })();
   const [vocabProgressLine, setVocabProgressLine] = useState('');
   useEffect(() => {
+    // 語彙bank一式を引き込むため、公開ビルドでは読み込まない（P0）。
+    // 進捗ラインは無くてもカードは成立する設計（従来のcatch経路と同じ見え方）
+    if (!import.meta.env.DEV) return;
     let alive = true;
     // canonical集計は語彙chunkにあるため動的import（メインbundleへ含めない方針を維持）
     void Promise.all([
@@ -430,6 +433,7 @@ const PlatformLearningMenu = ({ t, onOpenLab, onOpenVocab, onStartConversation, 
   // 語彙サマリー（現在の目標・パック・カバー）は動的import（語彙データをメインbundleへ入れない・§31）
   const [vocabSummary, setVocabSummary] = useState<import('../../lib/aiLesson/course/vocabHomeSummary').VocabHomeSummary | null>(null);
   useEffect(() => {
+    if (!import.meta.env.DEV) return; // 語彙bankを引き込むため公開ビルドでは読まない（P0）
     let alive = true;
     void import('../../lib/aiLesson/course/vocabHomeSummary')
       .then((m) => { if (alive) setVocabSummary(m.getVocabHomeSummary()); })

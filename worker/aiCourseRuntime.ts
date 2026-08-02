@@ -340,11 +340,18 @@ export const handleSessionIssue = async (request: Request, env: RuntimeEnv): Pro
     return json({ error: 'session_issue_requires_database' }, 503);
   }
 
-  let body: Partial<RuntimeClaims>;
+  let body: Partial<RuntimeClaims> & { allowedN2Units?: number[] };
   try {
     body = await request.json();
   } catch {
     return json({ error: 'bad_request' }, 400);
+  }
+  // N2は「12単元の束」でstageが持つため、単元→文法IDの展開はサーバー側で行う
+  // （clientは n2 の文法ID一覧を持っていない）
+  let expandedN2: string[] = [];
+  if (Array.isArray(body.allowedN2Units) && body.allowedN2Units.length > 0 && env.AI_COURSE_CONTENT) {
+    const meta = await readJson<{ n2ByUnit: Record<string, string[]> }>(env.AI_COURSE_CONTENT, 'v2/meta/grammar-structure.json');
+    if (meta) expandedN2 = body.allowedN2Units.slice(0, 12).flatMap((u) => meta.n2ByUnit[String(u)] ?? []);
   }
   const claims: RuntimeClaims = {
     userId, // 申告値ではなく認証済みIDで上書きする
@@ -354,7 +361,9 @@ export const handleSessionIssue = async (request: Request, env: RuntimeEnv): Pro
     hasPeriodAccess: body.hasPeriodAccess === true,
     consumedActiveSeconds: Math.max(0, Number(body.consumedActiveSeconds) || 0),
     allowedTargetIds: body.allowedTargetIds === '*' ? '*'
-      : Array.isArray(body.allowedTargetIds) ? body.allowedTargetIds.slice(0, 200).map(String) : [],
+      : Array.isArray(body.allowedTargetIds)
+        ? [...body.allowedTargetIds.slice(0, 300).map(String), ...expandedN2].slice(0, 500)
+        : expandedN2,
     issuedAtMs: Date.now(),
   };
   return json({ sessionToken: await signJson(claims, secret) }, 200);
@@ -564,6 +573,10 @@ export const handleActivityStart = async (request: Request, env: RuntimeEnv): Pr
           ref: { kind: 'mock', scope: claims.level, targetId: `${attemptSeed}`, qKey: q.key, ord: presented.presentedChoiceOrder },
           pk, iat: nowMs,
         };
+        // 聴解問題は音声トークンを添える（音声は公開URLに存在しないため）
+        const audioToken = q.skill === 'listening' && q.sourceItemId
+          ? await signJson({ u: claims.userId, setId: q.sourceItemId, exp: nowMs + 3 * 3600_000 }, secret)
+          : undefined;
         questions.push({
           attemptToken: await signJson(payload, secret),
           key: pk, type: q.type, skill: q.skill, level: q.level,
@@ -573,7 +586,8 @@ export const handleActivityStart = async (request: Request, env: RuntimeEnv): Pr
             key: CHOICE_LETTERS[i], textJa: c.textJa, ...(c.textZh ? { textZh: c.textZh } : {}),
           })),
           timed: true,
-        } satisfies SanitizedQuestion);
+          ...(audioToken ? { audioToken } : {}),
+        } as SanitizedQuestion & { audioToken?: string });
       }
       sections.push({
         sectionId: sec.section.sectionId, labelJa: sec.section.labelJa, labelZh: sec.section.labelZh,
@@ -608,6 +622,8 @@ export const handleActivityStart = async (request: Request, env: RuntimeEnv): Pr
       questions.push({
         attemptToken: await signJson(payload, secret),
         key: payload.pk, level: dq.level, skill: dq.skill,
+        // refId は文法ID等の**構造ID**。route生成（弱点の経由地化）に必要で、教材本文ではない
+        refId: dq.refId,
         promptJa: dq.promptJa, promptZh: dq.promptZh,
         choices: order.map((ci, i2) => ({ key: CHOICE_LETTERS[i2], text: dq.choices[ci] })),
       });
@@ -810,9 +826,17 @@ export const handleStageContent = async (request: Request, env: RuntimeEnv): Pro
       themeJa: meta.missions[g].themeJa,
       themeZh: meta.missions[g].starterZh || meta.missions[g].themeJa,
     }));
+  // 読解・聴解の出題対象ID（quest生成の配分に使う。IDのみ・本文なし）
+  const idx2 = await poolIndex(bucket);
+  const readingTargetIds = (idx2?.targets ?? [])
+    .filter((x) => x.kind === 'reading' && x.scope === claims.level).map((x) => x.targetId);
+  const listeningTargetIds = (idx2?.targets ?? [])
+    .filter((x) => x.kind === 'listening' && x.scope === claims.level).map((x) => x.targetId);
+
   return json({
     battleTargetIds: [...nextUnitIds, ...nextGrammarIds],
     nextGrammarIds, nextUnitIds, conversationTargets,
+    readingTargetIds, listeningTargetIds,
   }, 200);
 };
 
