@@ -1,8 +1,22 @@
 # Secure Runtime + 24h Trial + Adventure Review — 引継ぎ
 
-2026-08-02 セッション3終了時点。branch `feature/ai-course-secure-runtime-review`（base `5ca89ea`）。
+2026-08-03 セッション4終了時点。branch `feature/ai-course-secure-runtime-review`（base `5ca89ea`）。
 
-**Secure Adventure Runtime Ready: NO**（ただしP0はほぼ完了。残り1件＝会話教材89KB）
+**Local Secure Adventure Complete: YES ／ Remote Secure Adventure Ready: NO（remote変更・実環境E2Eが未実施のため）**
+
+セッション4の到達点:
+- **learner教材のpublic露出 0件・0 bytes**（会話教材89KBも目次/本文分離でserver配信化）
+- 正解位置: 4択 a:24 b:24 c:16 d:16 / 3択 a:16 b:12 c:12 d:0（選択肢数別に検証・FAIL条件常設）
+- active中アップセル（残り10分以下）実接続。「表示記録が自分を消す」自滅バグをE2Eが発見→sticky修正
+- **実ブラウザE2E 3本 PASS**（Playwright + wrangler dev + local R2・remote不接触を機械的に保証）。
+  発見した実バグ: 購入完了→利用権ストア未接続（買っても始められない）→修正済み
+- E2E成果物: `e2e-results/steps/*.png`（17枚）+ trace.zip（gitignore・`npx playwright test`で再生成）
+- remote承認パック: `REMOTE_DEPLOYMENT_APPROVAL.md`（R2/Secrets/migration/EdgeFn/分離方針/実行順）
+- 推奨: **staging専用Supabaseを先に作る（案2）**。詳細は承認パックE
+
+---
+
+（以下はセッション3時点の記録。数字は当時のもの）
 
 ---
 
