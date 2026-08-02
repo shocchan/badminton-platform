@@ -317,24 +317,43 @@ let mockData = null;
   check('改ざんaudioTokenは 401', r.status === 401, `status=${r.status}`);
 }
 
-// ═══ H. 正解位置の分布（配信時シャッフルの実測） ═══
+// ═══ H. 正解位置の分布（配信時シャッフルの実測・**選択肢数別**） ═══
+//
+// 以前 d:0 を「偏りなし」と誤報した反省: unit生成問題は3択で d が正解になり得ない。
+// 3択と4択を分けて測り、4択で A〜D のどれかが0なら FAIL とする。
 {
-  const dist = { a: 0, b: 0, c: 0, d: 0 };
-  let total = 0;
-  for (let i = 0; i < 6; i++) {
-    const r = await api('/api/ai-course/activity/start', {
-      activity: 'battle', tier: 'strong', targetIds: ['n3u-01-self', 'n3u-02-daily', 'n3u-03-move'],
-      sessionToken: sessionA, attemptSeed: 1000 + i * 7,
-    }, { auth: jwtA });
-    for (const q of r.json?.questions ?? []) {
-      const g = await api('/api/ai-course/activity/grade', { sessionToken: sessionA, attemptToken: q.attemptToken, choiceKey: null }, { auth: jwtA });
-      if (g.json?.correctKey) { dist[g.json.correctKey] = (dist[g.json.correctKey] ?? 0) + 1; total += 1; }
+  const dist3 = { a: 0, b: 0, c: 0, d: 0 };
+  const dist4 = { a: 0, b: 0, c: 0, d: 0 };
+  let n3 = 0; let n4 = 0;
+  const rounds = [
+    // 3択の代表（N3 unit生成問題）
+    { targets: ['n3u-01-self', 'n3u-02-daily', 'n3u-03-move'], seeds: 4 },
+    // 4択の代表（文法draft変形）
+    { targets: ['n3g-bakaridenaku', 'n3g-kotogaaru', 'n3g-mama'], seeds: 8 },
+  ];
+  for (const round of rounds) {
+    for (let i = 0; i < round.seeds; i++) {
+      const s = await issueSession(jwtA, { sessionId: `sess-dist-${round.targets[0]}-${i}` });
+      const r = await api('/api/ai-course/activity/start', {
+        activity: 'battle', tier: 'strong', targetIds: round.targets,
+        sessionToken: s, attemptSeed: 1000 + i * 977,
+      }, { auth: jwtA });
+      for (const q of r.json?.questions ?? []) {
+        const g = await api('/api/ai-course/activity/grade', { sessionToken: s, attemptToken: q.attemptToken, choiceKey: null }, { auth: jwtA });
+        if (!g.json?.correctKey) continue;
+        if (q.choices.length >= 4) { dist4[g.json.correctKey] += 1; n4 += 1; }
+        else { dist3[g.json.correctKey] += 1; n3 += 1; }
+      }
     }
   }
-  const max = Math.max(...Object.values(dist));
-  const share = total > 0 ? max / total : 1;
-  check('正解位置の偏りなし（最大50%未満）', total >= 30 && share < 0.5,
-    `n=${total} 分布=${Object.entries(dist).map(([k, v]) => `${k}:${v}`).join(' ')}`);
+  const fmt = (d) => Object.entries(d).map(([k, v]) => `${k}:${v}`).join(' ');
+  const max4 = Math.max(dist4.a, dist4.b, dist4.c, dist4.d);
+  check('4択: A/B/C/D すべて正解位置に出現・偏りなし',
+    n4 >= 40 && dist4.a > 0 && dist4.b > 0 && dist4.c > 0 && dist4.d > 0 && max4 / n4 < 0.5,
+    `n=${n4} 分布=${fmt(dist4)}`);
+  check('3択: A/B/C 出現・D は決して正解にならない',
+    n3 >= 20 && dist3.a > 0 && dist3.b > 0 && dist3.c > 0 && dist3.d === 0,
+    `n=${n3} 分布=${fmt(dist3)}`);
 }
 
 // ═══ I. 通常学習は止まらない・異常列挙は止まる ═══
