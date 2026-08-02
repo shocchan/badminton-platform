@@ -61,6 +61,8 @@ const PlansPage           = lazy(() => import('./pages/ai-lesson/plans/PlansPage
 const PurchasePage        = lazy(() => import('./pages/ai-lesson/plans/PurchasePage').then(m => ({ default: m.PurchasePage })));
 // 自己解決のヘルプ（購入したのに使えない・残り時間が違う 等）
 const AiCourseHelpPage    = lazy(() => import('./pages/ai-lesson/plans/HelpPage').then(m => ({ default: m.HelpPage })));
+// CEO確認ページ（staging専用。本番ホストでは404）
+const AiCourseReviewPage  = lazy(() => import('./pages/ai-lesson/AiCourseReviewPage').then(m => ({ default: m.AiCourseReviewPage })));
 
 /**
  * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
@@ -131,6 +133,8 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
               {/* 料金プランと購入・相談の入口。catch-allより前 */}
               <Route path="ai-course/plans"          element={<PlansPage />} />
+              {/* CEO確認ページ。本番ホストではコンポーネント側で404。一般ナビには載せない */}
+              <Route path="ai-course/review"         element={<AiCourseReviewPage />} />
               <Route path="ai-course/help"           element={<AiCourseHelpPage />} />
               <Route path="ai-course/plans/:planId"  element={<PurchasePage />} />
               {/* 法務8ページ。catch-allより前に置かないと全部入口へ吸われる */}
