@@ -55,6 +55,9 @@ const QuestionBankConsole = import.meta.env.MODE === 'production'
   : lazy(() => import('./pages/internal/QuestionBankConsole'));
 // 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
 const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
+// 料金ページと購入・相談の入口（セルフサービス販売）
+const PlansPage           = lazy(() => import('./pages/ai-lesson/plans/PlansPage').then(m => ({ default: m.PlansPage })));
+const PurchasePage        = lazy(() => import('./pages/ai-lesson/plans/PurchasePage').then(m => ({ default: m.PurchasePage })));
 
 /**
  * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
@@ -123,6 +126,9 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
               <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />
+              {/* 料金プランと購入・相談の入口。catch-allより前 */}
+              <Route path="ai-course/plans"          element={<PlansPage />} />
+              <Route path="ai-course/plans/:planId"  element={<PurchasePage />} />
               {/* 法務8ページ。catch-allより前に置かないと全部入口へ吸われる */}
               <Route path="ai-course/terms"            element={<LegalPage id="terms" />} />
               <Route path="ai-course/privacy"          element={<LegalPage id="privacy" />} />
