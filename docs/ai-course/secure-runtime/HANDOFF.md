@@ -2,7 +2,11 @@
 
 2026-08-02 セッション終了時点。branch `feature/ai-course-secure-runtime-review`（base `5ca89ea`）。
 
-**Secure Adventure Runtime Ready: NO.** 6 Phase 中 1.5 Phase まで。
+**Secure Adventure Runtime Ready: NO.**
+
+P0 は**サーバー側が完成して実証済み、クライアント側が未着手**という状態。
+配信経路は動いているが、教材はまだ client bundle にも入ったままなので、
+公開露出の数字は 1 bytes も減っていない。
 
 ---
 
@@ -12,87 +16,94 @@
 
 - **全プランでアカウント必須**。判断点は `sales/accountGate.ts` 1か所
 - `StartCheckoutInput.learnerId` を必須化 → 未接続の呼び出し7か所が型で露見
-- 決済経路でアカウントを作らない（支払い後に作ると「払ったのに誰のものでもない利用権」が残る）
-- 相談申込も同様。同意は `applicationId` ではなく `learnerId` に紐づく
+- 決済経路でアカウントを作らない
 - **60分パスの状態モデル** `sales/trialActivation.ts`：
   `unstarted → active → consumed / expired`、開始で `expiresAt = 開始時刻 + 丸24時間`
-- 副次発見：料金ページの購入済み判定が `'sim_learner_1'` 固定だった（修正済み）
 
 ### Phase 2 前半（commit `31879bd`）
 
-- **`sales/contentDelivery.ts`** = 教材を渡してよいか決める唯一の関数。
-  認証 → 利用権 → セッション所有 → ステージ開放 → 範囲 の順で判断
-- 実測で2件の弱点を発見・修正（連打制限が未来の記録を数えていた／選択肢の内部IDが漏れうる）
+- **`sales/contentDelivery.ts`** = 教材を渡してよいか決める唯一の関数
 - **`npm run measure:ai-course-content-exposure`** で露出量を機械的に測れるようにした
+
+### P0 サーバー側（commit `ecd5a77`）← 今回
+
+判断層はあったが**誰も呼んでいなかった**。呼ぶ相手を作り、実HTTPで確かめた。
+
+| 作ったもの | 中身 |
+|---|---|
+| `scripts/ai-course/build-content-shards.mts` | ビルド時に問題を実体化し20問ずつのページへ切る |
+| `worker/index.ts` | 旧 `generate-worker.mjs` のテンプレート文字列から実ファイルへ移行 |
+| `worker/aiCourseContent.ts` | `/api/ai-course/content`。認証→判断層→R2→削って返す |
+| `scripts/generate-worker.mjs` | esbuild で worker を束ねる。教材混入を毎回検査 |
+| `scripts/ai-course/seed-local-r2.mjs` | local R2 へ投入（remote を触らない） |
+| `scripts/ai-course/verify-content-endpoint.mjs` | 実HTTP検証 19項目 |
+| `src/lib/aiLesson/course/sales/contentClient.ts` | client 側の取得入口（テスト13件） |
+| `docs/.../content-delivery-decision.md` | 方式選定の根拠 |
+
+**実HTTP検証 19/19 PASS**（local miniflare + local R2、remote 未使用）：
+401×3（未認証・期限切れJWT・改ざんJWT）／403×8（改ざんtoken・他人のtoken・
+利用権なし・未開始・期限切れ・使い切り・鍵付きステージ・範囲外step）／
+429（高速列挙 20/60 が制限）／200（現在stepのみ5件・内部ID非返却）／
+**60分ぶん40step 連続で拒否0**。
+
+#### 実測して見つけて直した2件
+
+1. **正解位置が 99.6% で `c0` だった。** バンクは正解を先頭に置き、表示順は実行時
+   シャッフル前提。ビルド時に元の並びで位置IDを振ったため答えが位置で分かる状態に
+   なっていた。`seededFisherYates` で並べ替えてから振るよう修正し、
+   偏り検査をビルドに常設（現在 c0 24.6% / c1 25.4% / c2 24.8% / c3 25.3%）
+2. **語彙は同じ targetId でも要求レベルで中身が変わる。** `vocab-n3` は
+   N3要求586問 / N2要求602問。誤答をその要求レベルの語彙全体から選ぶため。
+   R2 キーから level を外そうとして hash 照合の番人に止められた
 
 ---
 
-## 🚨 未完了：P0（教材の公開露出）
+## 🚨 未完了：P0 のクライアント側（次の最優先）
 
-**現状 36ファイル / 3,617,390 bytes が認証なしで取得できる。**
-
-```bash
-npm run build:staging && npm run measure:ai-course-content-exposure
+```
+Client Static Bank Imports:  36ファイル / 3,617,390 bytes（Before = After・未着手）
 ```
 
-強制層（`contentDelivery.ts`）は作ったが、**まだ誰も呼んでいない**。
-教材は依然として静的importで client bundle に入っている。
+サーバー側の受け皿は完成しているので、残りは**各画面を非同期取得へ寄せる作業**。
 
-### 露出の内訳（上位）
+### 露出の内訳と、それを引き込んでいる client
 
-| チャンク | bytes |
-|---|---|
-| `ai-course-vocab-content-*` | 1,048,961 |
-| `ai-course-reading-*` | 372,853 |
-| `ai-course-listening-*` | 300,813 |
-| `AiCoursePage-*` | 261,836 |
-| `courseGrowth-*` | 247,913 |
-| `OnoDraftsPanel-*` | 174,666 |
-| `AdvShell-*` | 166,679 |
-| `n3GrammarDrafts-*` | 155,137 |
-| `VocabularyHub-*` / `vocabConversationPractice-*` ほか | 残り |
+| チャンク | bytes | 引き込み元 |
+|---|---|---|
+| `ai-course-vocab-content` | 1,048,961 | `vocabQuestions.ts` → `content/vocabContentBank` |
+| `ai-course-reading` | 372,853 | `AdvShell` / `AdvMockRunner` / `AdvReadingRunner` |
+| `ai-course-listening` | 300,813 | `AdvShell` / `AdvMockRunner` / `AdvListeningRunner` |
+| `AiCoursePage` | 261,836 | `courseGrowth` 経由 |
+| `courseGrowth` | 247,913 | `courseRepository` / `AiCoursePage` |
+| `OnoDraftsPanel` | 174,666 | 文法draft パネル |
+| `AdvShell` | 166,679 | `advContent` + 両bank |
+| `n3GrammarDrafts` | 155,137 | `AdvShell` / `N3GrammarDraftsPanel` / `advContent` |
+| `VocabularyHub` | 136,481 | `foundationVocabBank` |
+| `vocabConversationPractice` | 102,673 | 語彙会話練習 |
+| 残り26ファイル | 約649,000 | foundationUnit1〜6 / unitRuntime / n2GrammarDraftsUnit* ほか |
 
-依頼書が名指しした3バンクは 1.72MB だが、**実際の露出はその倍以上**。
-文法draft・foundation・語彙会話練習も同じく公開されている。
+### 想定より大きい理由（着手前に知っておくこと）
 
-### 配信経路の設計（調査済み・未実装）
+依頼書は「4コンポーネント + advContent + vocabQuestions」を想定しているが、
+実際は **`foundationVocabBank` だけで11モジュールが import** している
+（`VocabularyHub` / `N3AreaPanel` / `Chapter1AdventurePanel` / `vocabCanonical` /
+`vocabConnectivity` / `vocabHomeSummary` / `vocabularyPacks` / `vocabularyReview` ほか）。
+`n3GrammarDrafts` も8モジュール。
 
-⚠️ **`functions/` ディレクトリは使えない。**
-`scripts/generate-worker.mjs` が `dist/_worker.js` を生成するため Cloudflare Pages は
-**advanced mode** で動き、`functions/` は無視される（`functions/api/admin/shuttle-log.ts` も
-現状は到達しない可能性が高い。要確認）。
+さらに **`AdvShell`（1,174行）は pool 全体を組み立てて runner へ渡す設計**で、
+runner 側は `readingToQuestion(set)` のように **set 丸ごと**を受け取る。
+つまり「bank の import を消す」だけでは済まず、
+出題選択・mastery台帳・模試構成をサーバー配信前提へ寄せる必要がある。
+これは実質 Phase 3 の作業と重なる。
 
-したがって教材エンドポイントは `_worker.js` 側に入れる必要がある。手順：
+### 進め方の提案
 
-1. `worker/aiCourseContent.ts` を作り、教材bankを **worker 側で** import する
-   （worker は実行されるだけで公開配信されないので、ここに入れれば露出しない）
-2. `scripts/generate-worker.mjs` を esbuild で bundle する形へ変更し、
-   `/api/ai-course/content` を `handleRequest` へ配線する
-3. クライアント側の静的importを削除し、`contentDelivery` 経由の fetch に置換
-4. `vite.config.ts` の `manualChunks` から教材エントリを削除
-5. `npm run measure:ai-course-content-exposure` が **0 になるまで**繰り返す
-6. source map にも本文が残らないことを確認（計測スクリプトは `.js.map` も見る）
-
-**worker のサイズ上限に注意**：教材は非圧縮で約3.6MB。gzip で 1MB を超えると
-無料枠の Worker script 上限に当たる可能性がある。当たる場合は
-「試験に必要な最小セット」だけ worker に載せ、残りは別の保管先を検討する。
-
-### クライアント側の改修規模
-
-同期的に bank を読んでいる箇所：
-
-- `components/ai-course/adventure/AdvShell.tsx`
-- `components/ai-course/adventure/AdvBattleRunner.tsx`
-- `components/ai-course/adventure/AdvReadingRunner.tsx`
-- `components/ai-course/adventure/AdvListeningRunner.tsx`
-- `components/ai-course/adventure/AdvMockRunner.tsx`
-- `lib/aiLesson/course/adventure/advContent.ts`（`vocabPool` / `listeningSetsFor` / 読解セット）
-- `lib/aiLesson/course/adventure/vocab/vocabQuestions.ts`
-
-`listeningSetsFor(level)` / `listeningSetById(id)` / `vocabPool(level, seed)` のような
-**狭い入口**があるので、この関数群を非同期のプロバイダへ差し替えるのが最短。
-ただし `advContent.ts` は純関数として同期的にプールを組み立てているため、
-呼び出し側まで非同期が波及する。
+1. `contentClient.fetchStepContent()`（作成済み・テスト済み）を唯一の入口にする
+2. `vite.config.ts` に **alias の番人**を入れ、client 側から bank を import したら
+   ビルドが落ちるようにする（消し忘れを機械で止める）。
+   ただし全消し前に入れると build が通らないので、変換と同時に入れる
+3. 大きい順に潰す（語彙 1.05MB → 読解 373KB → 聴解 301KB）
+4. 各段階で `npm run measure:ai-course-content-exposure` の数字を確認する
 
 ---
 
@@ -102,11 +113,26 @@ npm run build:staging && npm run measure:ai-course-content-exposure
 |---|---|---|
 | 3 | AiCoursePage / AdvShell へ entitlement とサーバー正準 active-time を接続 | 未着手 |
 | 4 | 鍵付き冒険マップ（metadataのみ）＋アップセルを本体へ接続 | 未着手 |
-| 5 | staging専用 review page `/ja|zh/ai-course/review` | 未着手 |
-| 6 | §14 A〜F の実測・staging実証 | 未着手（計測スクリプトのみ作成） |
+| 5 | staging専用 review page `/ja\|zh/ai-course/review` | 未着手 |
+| 6 | §14 A〜F の実測・staging実証 | 未着手 |
 
-前セッションからの未接続項目（`docs/ai-course/sales/SESSION_CLOSEOUT.md` §5）も
-そのまま残っている：active-time・利用権チェック・アップセル・学習中analytics。
+---
+
+## 新しく分かった問題（P0 とは別）
+
+### 1. 聴解音声 49MB が認証なしで公開されている
+
+`dist/audio/ai-course/` に配信されている。テキストを非公開にしても
+**音声が公開のままなら聴解教材は実質取得できる**。
+`measure:ai-course-content-exposure` はテキストしか測らないので数字に出ない。
+R2 + 署名付きURL にするか、公開のままとするか **CEO判断が要る**。
+
+### 2. 正解が配信payloadに含まれる
+
+`correctChoiceId` を client へ渡して client 側で採点している（既存設計）。
+つまり**正規の学習者は全問の答えを取り出せる**。
+位置の偏りは直したが、答えそのものは payload にある。
+サーバー採点にすれば塞がるが、往復が増えるので設計判断が要る。
 
 ---
 
@@ -116,29 +142,23 @@ staging と production は同じ Supabase プロジェクト `jdkwijdphlkrcoiggf
 
 | 種別 | 対象 | 状態 |
 |---|---|---|
-| migration | `20260803000000_ai_course_sales.sql`（前セッション作成） | 未適用 |
-| migration | 60分パスの `activated_at` / `expires_at` / 開始期限を持つ表（**未作成**） | 未作成 |
-| Edge Function | `ai-course-checkout`（前セッション作成） | 未デプロイ |
-| Edge Function | `ai-course-auth` の**招待コード必須を外す**改修（**未着手**） | 未着手 |
+| R2 | バケット `ai-course-content` 作成 | **未実行** |
+| R2 | Pages プロジェクトへ binding `AI_COURSE_CONTENT` 追加 | **未実行** |
+| R2 | 教材1,024ページのアップロード（`seed-local-r2.mjs --all` の remote 版） | **未実行** |
+| Secret | `AI_COURSE_CONTENT_TOKEN_SECRET` | **未設定** |
+| Secret | `SUPABASE_JWT_SECRET`（Worker が access token を検証するため） | **未設定** |
+| migration | `20260803000000_ai_course_sales.sql` | 未適用 |
+| migration | 60分パスの `activated_at` / `expires_at` を持つ表 | 未作成 |
+| Edge Function | `ai-course-checkout` | 未デプロイ |
+| Edge Function | `ai-course-auth` の招待コード必須を外す改修 | 未着手 |
 
-⚠️ 現在の `ai-course-auth` は初回登録に招待コードを要求するため、
-**購入者は実OTPでアカウントを作れない**。今は模擬決済モードの模擬アカウントでのみ
-導線が通る。本番でセルフサービス販売を成立させるには、この Edge Function の改修が要る。
-
-### 必要な環境変数
-
-| 変数 | 置き場所 | 現状 |
-|---|---|---|
-| `VITE_STRIPE_PUBLISHABLE_KEY` | `.env.staging` | 未設定（`pk_test_` のみ有効） |
-| `STRIPE_SECRET_KEY` | Supabase Secrets | 未設定 |
-| `AI_COURSE_CONTENT_TOKEN_SECRET` | worker env | **未設定**（次stepトークンの署名鍵） |
-| `SUPABASE_ACCESS_TOKEN` | `~/.supabase_backup_token` | 設定済み |
+⚠️ `AI_COURSE_DEV_TOKENS` は **local 専用**。本番に設定するとトークン発行口が開く。
+`wrangler.dev.toml` の鍵はすべて local 用の偽値で、本番では使わない。
 
 ### 切り戻し
 
-このブランチは `main` にも `feature/ai-course-selfserve-sales` にもマージしていない。
-問題があれば branch を捨てるだけでよい（remote 変更を一切していないため、
-DB・Edge Function・production の状態は触っていない）。
+`main` にも `feature/ai-course-selfserve-sales` にもマージしていない。
+remote を一切触っていないので、branch を捨てれば元に戻る。
 
 ---
 
@@ -148,8 +168,21 @@ DB・Edge Function・production の状態は触っていない）。
 cd ~/badminton-secure-runtime && git log --oneline -3
 ```
 
-`31879bd` が HEAD で working tree が clean であることを確認してから始める。
+HEAD が origin/`feature/ai-course-secure-runtime-review` と一致し、
+working tree が clean であることを確認してから始める
+（先頭commitは「教材取得の client 入口と、P0 の残量を実測した引継ぎ」）。
 `.env` は gitignore なので、無ければ `~/badminton-sales/.env*` からコピーする。
 
-着手順は **P0 → Phase 3 → 4 → 5 → 6**。P0 を後回しにすると、
-runtime を接続したあとで配信経路を差し替えることになり二度手間になる。
+配信経路を動かして確かめたいとき：
+
+```bash
+npm run build:staging && npm run build:ai-course-content && node scripts/ai-course/seed-local-r2.mjs && npm run dev:worker
+```
+
+別ターミナルで：
+
+```bash
+node scripts/ai-course/verify-content-endpoint.mjs
+```
+
+着手順は **P0クライアント側 → Phase 3 → 4 → 5 → 6**。
