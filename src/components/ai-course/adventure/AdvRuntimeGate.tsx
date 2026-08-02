@@ -303,8 +303,98 @@ export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps)
           </p>
         </div>
       )}
+      {remainingSec !== null && remainingSec <= 600 && (
+        <ActiveUpsellBanner lang={lang} learner={learner}
+          sessionId={state.session.auth.sessionToken?.slice(0, 16) ?? 'active'}
+          remainingSec={remainingSec} />
+      )}
       {children}
     </AdvRuntimeProvider>
+  );
+}
+
+/**
+ * active中のアップセル（§12: 残り10分以下）。
+ * 条件は decideUpsell が持つ既存の頻度制限に委ねる:
+ *   - 購入直後には出ない（activeMinutesUsed > 0 が trigger 側の条件）
+ *   - 同一セッション1回まで（maxPerSession）
+ *   - 「今はしない」後は cooldownDays 再表示しない
+ *   - 生涯上限 maxLifetime
+ * 1か月プランは価格未確定（priceStatus: 'draft'）のため、購入CTAではなく
+ * 「準備状況を見る」への導線にする。確定後は自動で通常CTAに変わる。
+ */
+function ActiveUpsellBanner({ lang, learner, sessionId, remainingSec }: {
+  lang: L; learner: Learner; sessionId: string; remainingSec: number;
+}) {
+  const [impressions, setImpressions] = useState<UpsellImpression[]>(readImpressions);
+  const [dismissed, setDismissed] = useState(false);
+
+  // 判断材料は表示された時点で確定（remainingSecの毎秒更新で再判定しない）
+  const [ctx] = useState<UpsellContext>(() => {
+    const profile = readAdvProfile(learner.settings);
+    const consumed = readConsumedSeconds();
+    return {
+      sessionId, nowMs: Date.now(), currentPlanId: 'ai-hour-pass',
+      firstAdventureCompleted: (profile?.questLog?.length ?? 0) > 0 || profile?.lastQuest != null,
+      activeMinutesUsed: Math.round(consumed / 60),
+      remainingMinutes: Math.floor(remainingSec / 60),
+      entitlementExhausted: false,
+      activeDays: 1, repeatedWeaknessCount: 0, examGoalDeclared: false,
+      weakSkillCount: 0, humanHelpRequested: false,
+    };
+  });
+
+  const decision = useMemo(() => decideUpsell(ctx, impressions), [ctx, impressions]);
+
+  const shownRef = useRef(false);
+  useEffect(() => {
+    if (!decision.show || !decision.rule || shownRef.current) return;
+    shownRef.current = true;
+    const next = [...impressions, recordImpression(decision.rule, ctx, 'shown')];
+    setImpressions(next);
+    writeImpressions(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [decision.show]);
+
+  if (!decision.show || !decision.rule || !decision.targetPlanId || dismissed) return null;
+  const copy = upsellCopy(decision.targetPlanId, lang);
+  const monthPlan = salesPlanById('ai-month');
+  const priceConfirmed = monthPlan?.priceStatus === 'confirmed';
+
+  return (
+    <div className="mx-auto w-full max-w-xl px-4 pt-2">
+      <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4" role="status">
+        <p className="text-sm font-bold text-gray-900">
+          {tx(lang, '残り時間が少なくなりました', '剩余时间不多了')}
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-gray-700">
+          {tx(lang,
+            'ここまでの診断結果・冒険マップ・復習の予定・学習履歴は、1か月プランへそのまま引き継げます。',
+            '到目前为止的诊断结果、冒险地图、复习计划和学习记录，都可以直接延续到1个月方案。')}
+        </p>
+        <div className="mt-3 space-y-2">
+          <Link to={`/${lang}/ai-course/plans`}
+            className="block w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2.5 text-center text-sm font-bold text-white">
+            {priceConfirmed
+              ? copy.acceptLabel
+              : tx(lang, '1か月プランの準備状況を見る', '查看1个月方案的准备情况')}
+          </Link>
+          <Link to={`/${lang}/ai-course/plans`}
+            className="block w-full min-h-[44px] rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-center text-sm font-semibold text-blue-700">
+            {tx(lang, '60分を追加する', '再加60分钟')}
+          </Link>
+          <button type="button" className="w-full min-h-[40px] text-sm text-gray-500 underline"
+            onClick={() => {
+              const next = [...readImpressions(), recordImpression(decision.rule!, ctx, 'dismissed')];
+              writeImpressions(next);
+              setImpressions(next);
+              setDismissed(true);
+            }}>
+            {copy.dismissLabel}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
