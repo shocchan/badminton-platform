@@ -13,7 +13,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, existsSync, writeFileSync, readFileSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-const OUT_DIR = 'public/audio/ai-course';
+const OUT_DIR = 'content-audio/ai-course'; // 公開ディレクトリに置かない（P0-B: 音声も教材）
 const MANIFEST = 'docs/ai-course/adventure-v2/generated/audio-manifest.json';
 const VOICE = 'Kyoko';       // ja_JP。全setで統一（読み手の差で難易度が変わらないように）
 const RATE = 175;            // words per minute 相当。JLPT聴解に近い自然な速さ
