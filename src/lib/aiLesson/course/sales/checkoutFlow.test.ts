@@ -46,7 +46,7 @@ const makeDeps = (card?: string, repo = new MemoryRepo()): CheckoutDeps & { repo
 const buy = async (
   planId: string,
   deps: CheckoutDeps,
-  over: Partial<{ email: string; orderId: string; forcePriceConfirmed: boolean }> = {},
+  over: Partial<{ email: string; orderId: string; forcePriceConfirmed: boolean; learnerId: string }> = {},
 ) => {
   // 価格が未確定のプランを「確定した後」の想定で通すための一時差し替え。
   // 実データは書き換えたままにしない
@@ -57,6 +57,7 @@ const buy = async (
     const started = await startCheckout({
       planId, email: over.email ?? 'learner@example.com', lang: 'ja',
       termsVersion: '2026-08-02', orderId: over.orderId,
+      learnerId: over.learnerId ?? 'u_test',
     }, deps);
     if (!started.ok) return { started, completed: null };
     const completed = await completeCheckout(started.purchase!.orderId, deps);
@@ -87,7 +88,7 @@ describe('相談なしで購入から利用開始まで到達する（§20 完�
     // 画面だけでなく決済開始の関数そのものが止めることを確認する
     const deps = makeDeps();
     const started = await startCheckout(
-      { planId: 'ai-month', email: 'a@example.com', lang: 'ja', termsVersion: '2026-08-02' },
+      { planId: 'ai-month', email: 'a@example.com', lang: 'ja', termsVersion: '2026-08-02', learnerId: 'u_test' },
       deps,
     );
     expect(started.ok).toBe(false);
@@ -115,17 +116,20 @@ describe('相談なしで購入から利用開始まで到達する（§20 完�
     expect(deps.repo.purchases.get('ord_test_1')!.status).toBe('granted');
   });
 
-  it('初回購入者にはアカウントが自動で作られる', async () => {
+  it('決済のタイミングではアカウントを作らない（購入前に作る・§3）', async () => {
+    // 支払い後にアカウントを作る形だと、決済とアカウント作成の間で落ちたときに
+    // 「払ったのに誰のものでもない利用権」が残る
     const deps = makeDeps();
     const { completed } = await buy('ai-hour-pass', deps);
-    expect(completed!.learnerCreated).toBe(true);
-    expect(deps.repo.createdLearners).toBe(1);
+    expect(completed!.learnerCreated).toBe(false);
+    expect(deps.repo.createdLearners).toBe(0);
+    expect(completed!.learnerId, '購入前のアカウントに紐づく').toBe('u_test');
   });
 
   it('6か月伴走はこの経路に入れない（相談導線で受ける・§1 §14）', async () => {
     const deps = makeDeps();
     const started = await startCheckout({
-      planId: 'coach-6m', email: 'a@example.com', lang: 'ja', termsVersion: 'v1',
+      planId: 'coach-6m', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', learnerId: 'u_test',
     }, deps);
     expect(started.ok).toBe(false);
     expect(started.error).toBe('consultation_only');
@@ -138,7 +142,7 @@ describe('金額の権威はサーバー（PlanConfig）にある', () => {
     const deps = makeDeps();
     // StartCheckoutInput に amount を渡す口が無い
     const started = await startCheckout({
-      planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1',
+      planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', learnerId: 'u_test',
     }, deps);
     expect(started.purchase!.amount).toBe(600 * 1);   // PlanConfig の値と一致
     expect(started.purchase!.amount).toBe(salesPlanById('ai-hour-pass')!.priceAmount);
@@ -148,7 +152,7 @@ describe('金額の権威はサーバー（PlanConfig）にある', () => {
     const repo = new MemoryRepo();
     const deps = makeDeps(undefined, repo);
     const started = await startCheckout({
-      planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1',
+      planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', learnerId: 'u_test',
     }, deps);
     // 注文額だけを後から吊り上げる＝ゲートウェイの支払額と食い違う状況を作る
     await repo.savePurchase({ ...started.purchase!, amount: 99_999 });
@@ -174,21 +178,23 @@ describe('二重付与を作らない（§14 決済Webhookの再送・画面の�
 
   it('同じ注文IDで開始し直しても、決済セッションが増えない', async () => {
     const deps = makeDeps();
-    const a = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', orderId: 'ord_same' }, deps);
-    const b = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', orderId: 'ord_same' }, deps);
+    const a = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', orderId: 'ord_same', learnerId: 'u_test' }, deps);
+    const b = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', orderId: 'ord_same', learnerId: 'u_test' }, deps);
     expect(b.purchase!.reference).toBe(a.purchase!.reference);
     expect(deps.repo.purchases.size).toBe(1);
   });
 
-  it('再購入では新しいアカウントを作らない（§11）', async () => {
+  it('再購入でも新しいアカウントを作らない（§11）', async () => {
     const repo = new MemoryRepo();
     await buy('ai-hour-pass', makeDeps(undefined, repo), { orderId: 'ord_1' });
     const second = makeDeps(undefined, repo);
     const { completed } = await buy('ai-hour-pass', second, { orderId: 'ord_2' });
 
     expect(completed!.learnerCreated).toBe(false);
-    expect(repo.createdLearners).toBe(1);
+    // 決済経路はもうアカウントを作らない（§3で購入前に作る）。0 が正しい
+    expect(repo.createdLearners).toBe(0);
     expect(repo.grants.length).toBe(2);
+    expect(repo.grants.every((g) => g.learnerId === 'u_test'), '2本とも同じアカウントに付く').toBe(true);
     // 残り時間は加算される
     expect(resolveEntitlement(repo.grants, emptyConsumption(), T0).remainingActiveSeconds).toBe(7200);
   });
@@ -247,26 +253,26 @@ describe('入力の検証（最小入力・§14）', () => {
 
   it('メールが不正なら決済へ進まない', async () => {
     const deps = makeDeps();
-    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'not-an-email', lang: 'ja', termsVersion: 'v1' }, deps);
+    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'not-an-email', lang: 'ja', termsVersion: 'v1', learnerId: 'u_test' }, deps);
     expect(r.error).toBe('invalid_email');
     expect(deps.repo.purchases.size).toBe(0);
   });
 
   it('規約の同意が無ければ決済へ進まない', async () => {
     const deps = makeDeps();
-    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: '' }, deps);
+    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: '', learnerId: 'u_test' }, deps);
     expect(r.error).toBe('terms_not_accepted');
   });
 
   it('存在しない・非公開のプランは買えない', async () => {
     const deps = makeDeps();
-    expect((await startCheckout({ planId: 'nope', email: 'a@example.com', lang: 'ja', termsVersion: 'v1' }, deps)).error)
+    expect((await startCheckout({ planId: 'nope', email: 'a@example.com', lang: 'ja', termsVersion: 'v1', learnerId: 'u_test' }, deps)).error)
       .toBe('unknown_plan');
   });
 
   it('注文には同意した規約バージョンが残る（あとから条件を特定できる）', async () => {
     const deps = makeDeps();
-    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: '2026-08-02' }, deps);
+    const r = await startCheckout({ planId: 'ai-hour-pass', email: 'a@example.com', lang: 'ja', termsVersion: '2026-08-02', learnerId: 'u_test' }, deps);
     expect(r.purchase!.termsVersion).toBe('2026-08-02');
     expect(r.purchase!.planVersion).toBe(salesPlanById('ai-hour-pass')!.version);
   });

@@ -19,8 +19,25 @@ import { ApplicationModal } from './ApplicationModal';
 import { planById } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { TERMS_VERSION } from '../../../lib/aiLesson/course/legal/termsVersion';
 
-const open = (lang: 'ja' | 'zh' = 'ja') =>
-  render(<ApplicationModal planId="coach-6m" onClose={() => {}} lang={lang} />);
+/**
+ * 相談もアカウント必須になった（§3）ので、モーダルを開いたらまずアカウント設定を通す。
+ * 模擬モードなので実メールは送られず、画面に出た確認コードをそのまま入れる。
+ */
+const setUpAccount = (lang: 'ja' | 'zh' = 'ja') => {
+  const L = (ja: string, zh: string) => (lang === 'zh' ? zh : ja);
+  if (screen.queryByRole('button', { name: L('確認コードを送る', '发送验证码') }) === null) return;
+  fireEvent.change(screen.getByLabelText(L('メールアドレス', '邮箱地址')), { target: { value: 'a@example.com' } });
+  fireEvent.click(screen.getByRole('button', { name: L('確認コードを送る', '发送验证码') }));
+  const code = (screen.getByTestId('sim-otp-note').textContent ?? '').match(/(\d{6})/)?.[1] ?? '';
+  fireEvent.change(screen.getByLabelText(L('確認コード', '验证码')), { target: { value: code } });
+  fireEvent.click(screen.getByRole('button', { name: L('確認して続ける', '确认并继续') }));
+};
+
+const open = (lang: 'ja' | 'zh' = 'ja') => {
+  const r = render(<ApplicationModal planId="coach-6m" onClose={() => {}} lang={lang} />);
+  setUpAccount(lang);
+  return r;
+};
 
 const fillValid = () => {
   fireEvent.change(screen.getByLabelText('お名前'), { target: { value: '山田太郎' } });
@@ -29,7 +46,8 @@ const fillValid = () => {
 };
 
 describe('申込フォーム', () => {
-  beforeEach(() => { submitPlanApplication.mockReset(); });
+  beforeEach(() => {
+  window.sessionStorage.clear(); submitPlanApplication.mockReset(); });
   afterEach(() => cleanup());
 
   it('選んだプランの名前・価格・期間が出る', () => {
@@ -70,7 +88,11 @@ describe('申込フォーム', () => {
     expect(arg.application.planVersion).toBe(planById('coach-6m')!.version);
     expect(arg.application.applicationStatus).toBe('submitted');
     expect(arg.consent.termsVersion).toBe(TERMS_VERSION);
-    expect(arg.consent.subjectId).toBe(arg.application.applicationId);
+    // 同意は申込IDではなく**アカウント**に紐づく（§3）。
+    // これで後から同じ人の申込・購入・利用権をつなげられる
+    expect(arg.consent.subjectKind).toBe('learner');
+    expect(arg.consent.subjectId).toBe(arg.application.learnerId);
+    expect(arg.application.learnerId.length).toBeGreaterThan(0);
   });
 
   it('成功したら受付済みと出す', async () => {

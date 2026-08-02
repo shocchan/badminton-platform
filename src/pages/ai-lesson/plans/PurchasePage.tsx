@@ -17,6 +17,9 @@ import { CURRENT_SALES_TERMS_VERSION } from '../../../lib/aiLesson/course/sales/
 import type { CompleteCheckoutResult } from '../../../lib/aiLesson/course/sales/checkoutFlow';
 import { LegalFooterLinks } from '../legal/LegalPage';
 import { CheckoutForm } from './CheckoutForm';
+import { AccountSetup } from './AccountSetup';
+import { decideGate, type AccountSession } from '../../../lib/aiLesson/course/sales/accountGate';
+import { resolveSalesSession } from '../../../lib/aiLesson/course/sales/salesAccount';
 import { PurchaseComplete } from './PurchaseComplete';
 
 const label = (lang: 'ja' | 'zh', ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -28,6 +31,10 @@ export const PurchasePage = () => {
   const plan = salesPlanById(params.planId ?? '');
   const copy = plansCopy(lang);
   const [granted, setGranted] = useState<CompleteCheckoutResult | null>(null);
+  // アカウントは購入・相談の**前**に要る（§3）。ここが唯一の判断点
+  const [session, setSession] = useState<AccountSession | null>(
+    () => resolveSalesSession(null, sessionSafe(), true),
+  );
 
   // 存在しない・非公開のプランのURLを直に叩かれても、行き止まりにせず料金ページへ戻す
   if (!plan || plan.status === 'draft') return <Navigate to={plansPathFor(lang)} replace />;
@@ -112,12 +119,26 @@ export const PurchasePage = () => {
           </p>
         )}
 
+        {/* アカウントが無い間は、購入フォームも相談フォームも出さない（§3） */}
+        {acceptsPurchase(plan) && mode !== 'disabled' && decideGate(
+          consult ? 'consultation' : 'purchase', session,
+        ).kind === 'require_account' && (
+          <AccountSetup
+            lang={lang}
+            planName={view.name}
+            simulated={mode === 'simulated'}
+            loginHref={`/${lang}/ai-course`}
+            onReady={setSession}
+          />
+        )}
+
         {/* 決済が使えるときだけフォームを出す。使えないときは下の流れ説明だけが残る */}
-        {!consult && acceptsPurchase(plan) && mode !== 'disabled' && (
+        {!consult && acceptsPurchase(plan) && mode !== 'disabled' && session && (
           <CheckoutForm
             plan={plan}
             lang={lang}
             mode={mode}
+            learnerId={session.userId}
             termsVersion={CURRENT_SALES_TERMS_VERSION}
             onGranted={setGranted}
           />
@@ -164,3 +185,17 @@ export const PurchasePage = () => {
 };
 
 export default PurchasePage;
+
+/** SSR やテスト環境で sessionStorage が無い場合に落ちないようにする */
+function sessionSafe() {
+  try {
+    return window.sessionStorage;
+  } catch {
+    const m = new Map<string, string>();
+    return {
+      getItem: (k: string) => m.get(k) ?? null,
+      setItem: (k: string, v: string) => void m.set(k, v),
+      removeItem: (k: string) => void m.delete(k),
+    };
+  }
+}

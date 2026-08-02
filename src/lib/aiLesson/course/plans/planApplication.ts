@@ -41,6 +41,8 @@ export interface PlanApplication {
   applicationAt: string;
   locale: Locale;
   applicationStatus: ApplicationStatus;
+  /** 申込者のアカウント。**必須**（§3 匿名の申込を作らない） */
+  learnerId: string;
   /** 連絡先。人が確認して個別に案内するため必須 */
   name: string;
   email: string;
@@ -49,9 +51,13 @@ export interface PlanApplication {
 }
 
 export interface TermsConsent {
-  /** ログイン前の申込は applicationId、ログイン後は learnerId で紐づく */
+  /**
+   * 同意の主体。**必ず learnerId**（§3 相談もアカウント必須にした）。
+   * 以前は applicationId でも紐づけられたが、それだと後から同じ人の申込・購入・
+   * 利用権をつなげられない（誰の同意か特定できない同意は証拠として弱い）。
+   */
   subjectId: string;
-  subjectKind: 'application' | 'learner';
+  subjectKind: 'learner';
   termsVersion: string;
   consentedAt: string;
   locale: Locale;
@@ -77,6 +83,8 @@ export const newApplicationId = (): string => {
 export interface BuildInput {
   plan: PlanConfig;
   locale: Locale;
+  /** 申込者のアカウント。無ければ組み立てさせない */
+  learnerId: string;
   name: string;
   email: string;
   note?: string;
@@ -103,13 +111,15 @@ export const buildApplication = (input: BuildInput): ApplicationSubmission => {
       applicationAt: nowISO,
       locale,
       applicationStatus: 'submitted',
+      learnerId: input.learnerId,
       name: input.name.trim(),
       email: input.email.trim(),
       note: (input.note ?? '').trim(),
     },
     consent: {
-      subjectId: applicationId,
-      subjectKind: 'application',
+      // 同意は「どのアカウントが同意したか」で残す
+      subjectId: input.learnerId,
+      subjectKind: 'learner',
       termsVersion: TERMS_VERSION,
       consentedAt: nowISO,
       locale,
@@ -119,7 +129,9 @@ export const buildApplication = (input: BuildInput): ApplicationSubmission => {
 
 export type ValidationError =
   | 'plan_not_found' | 'plan_not_accepting' | 'name_required'
-  | 'email_invalid' | 'consent_required';
+  | 'email_invalid' | 'consent_required'
+  /** ログインしていない。相談もアカウント必須（§3） */
+  | 'account_required';
 
 /**
  * 申込内容の検証。**画面のバリデーションとは別に、ここでも必ず通す。**
@@ -127,8 +139,11 @@ export type ValidationError =
  */
 export const validateApplication = (input: {
   planId: string; name: string; email: string; consentChecked: boolean;
+  /** 未ログインなら null。相談もアカウント必須（§3） */
+  learnerId: string | null;
 }): ValidationError[] => {
   const errors: ValidationError[] = [];
+  if (!input.learnerId) errors.push('account_required');
   const plan = planById(input.planId);
   if (!plan) errors.push('plan_not_found');
   // published 以外は受けない。draft を直接叩かれても通さない
@@ -145,5 +160,9 @@ export const VALIDATION_MESSAGE: Record<ValidationError, { ja: string; zh: strin
   plan_not_accepting: { ja: 'このプランはいま申込を受け付けていません', zh: '该方案目前不接受报名' },
   name_required: { ja: 'お名前を入力してください', zh: '请填写姓名' },
   email_invalid: { ja: 'メールアドレスを正しく入力してください', zh: '请正确填写邮箱地址' },
+  account_required: {
+    ja: 'お申し込みの前に、アカウントの作成（ログイン）が必要です。',
+    zh: '在申请之前，需要先创建账号（登录）。',
+  },
   consent_required: { ja: '規約への同意が必要です', zh: '需要同意条款' },
 };

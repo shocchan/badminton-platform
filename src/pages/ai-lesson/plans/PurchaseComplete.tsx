@@ -23,7 +23,9 @@ export interface PurchaseCompleteProps {
 }
 
 export const PurchaseComplete = ({ plan, lang, result }: PurchaseCompleteProps) => {
-  const returning = !result.learnerCreated;
+  // 「初回か再購入か」は**利用権の本数**で決める。
+  // アカウント作成の有無では決められない（§3でアカウントは購入前に作るようになった）
+  const returning = (result.priorGrantCount ?? 0) > 0;
   const steps = onboardingStepsFor({ returningLearner: returning });
   const grant = result.grant;
 

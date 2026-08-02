@@ -15,7 +15,25 @@ import { purchasePathFor } from '../../../lib/aiLesson/course/sales/plansContent
 import { salesPlanById } from '../../../lib/aiLesson/course/sales/planConfig';
 
 afterEach(cleanup);
-beforeEach(() => resetSimulatedSales(window.localStorage));
+beforeEach(() => {
+  resetSimulatedSales(window.localStorage);
+  window.sessionStorage.clear();
+});
+
+/**
+ * アカウント設定を通す（§3）。購入フォームはこれを終えるまで出ない。
+ * 模擬モードなので実メールは送られず、画面に出た確認コードを入れる。
+ */
+const setUpAccount = (email = 'buyer@example.com', lang: 'ja' | 'zh' = 'ja') => {
+  const L = (ja: string, zh: string) => (lang === 'zh' ? zh : ja);
+  // 既にログイン済みならアカウント設定は出ない（2回目の購入など）
+  if (screen.queryByRole('button', { name: L('確認コードを送る', '发送验证码') }) === null) return;
+  fireEvent.change(screen.getByLabelText(L('メールアドレス', '邮箱地址')), { target: { value: email } });
+  fireEvent.click(screen.getByRole('button', { name: L('確認コードを送る', '发送验证码') }));
+  const shown = (screen.getByTestId('sim-otp-note').textContent ?? '').match(/(\d{6})/)?.[1] ?? '';
+  fireEvent.change(screen.getByLabelText(L('確認コード', '验证码')), { target: { value: shown } });
+  fireEvent.click(screen.getByRole('button', { name: L('確認して続ける', '确认并继续') }));
+};
 
 /** `?checkout=sim` を付けて模擬決済モードで開く（vitest の MODE は production ではない） */
 const open = (planId: string, lang: 'ja' | 'zh' = 'ja', search = '?checkout=sim') =>
@@ -30,8 +48,9 @@ const open = (planId: string, lang: 'ja' | 'zh' = 'ja', search = '?checkout=sim'
     </HelmetProvider>,
   );
 
-const fillAndSubmit = (email = 'buyer@example.com', outcomeLabel?: string) => {
-  fireEvent.change(screen.getByLabelText(/メールアドレス/), { target: { value: email } });
+const fillAndSubmit = (email = 'buyer@example.com', outcomeLabel?: string, lang: 'ja' | 'zh' = 'ja') => {
+  setUpAccount(email, lang);
+  fireEvent.change(screen.getByLabelText(lang === 'zh' ? '邮箱地址' : 'メールアドレス'), { target: { value: email } });
   if (outcomeLabel) fireEvent.click(screen.getByLabelText(outcomeLabel));
   fireEvent.click(screen.getByRole('checkbox'));
   fireEvent.click(screen.getByRole('button', { name: '支払いに進む' }));
@@ -90,7 +109,8 @@ describe('決済 → 利用権付与 → 学習開始（人の介在なし）', 
 
   it('zh でも同じ導線が通る', async () => {
     open('ai-hour-pass', 'zh');
-    fireEvent.change(screen.getByLabelText(/邮箱地址/), { target: { value: 'buyer@example.com' } });
+    setUpAccount('buyer@example.com', 'zh');
+    fireEvent.change(screen.getByLabelText('邮箱地址'), { target: { value: 'buyer@example.com' } });
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: '前往支付' }));
     await waitFor(() => expect(screen.getByTestId('purchase-complete-heading')).toBeTruthy());
@@ -154,6 +174,7 @@ describe('決済モードの安全性', () => {
 
   it('本物のカード番号を入力する欄が存在しない', () => {
     const { container } = open('ai-hour-pass');
+    setUpAccount();
     const inputs = Array.from(container.querySelectorAll('input'));
     // メール・規約チェック・模擬結果のラジオだけ
     expect(inputs.map((i) => i.type).sort()).toEqual(['checkbox', 'email', 'radio', 'radio', 'radio', 'radio']);
@@ -178,18 +199,21 @@ describe('入力（§14 最小入力）', () => {
 
   it('同意していなければ送信できない', () => {
     open('ai-hour-pass');
-    fireEvent.change(screen.getByLabelText(/メールアドレス/), { target: { value: 'a@example.com' } });
+    setUpAccount();
+    fireEvent.change(screen.getByLabelText('メールアドレス'), { target: { value: 'a@example.com' } });
     expect(screen.getByRole('button', { name: '支払いに進む' }).hasAttribute('disabled')).toBe(true);
   });
 
   it('メールが空なら送信できない', () => {
     open('ai-hour-pass');
+    setUpAccount();
     fireEvent.click(screen.getByRole('checkbox'));
     expect(screen.getByRole('button', { name: '支払いに進む' }).hasAttribute('disabled')).toBe(true);
   });
 
   it('入力欄がモバイルで押せる高さを持つ（§19）', () => {
     open('ai-hour-pass');
+    setUpAccount();
     expect(screen.getByLabelText(/メールアドレス/).className).toMatch(/min-h-12/);
     expect(screen.getByRole('button', { name: '支払いに進む' }).className).toMatch(/min-h-12/);
   });
@@ -246,6 +270,7 @@ describe('購入済みの人に見せる料金ページ（§11 再購入）', ()
 describe('スクリーンリーダー向けの名前（§19）', () => {
   it('入力欄が明示的に label と結ばれている（内包だけに頼らない）', () => {
     const { container } = open('ai-hour-pass');
+    setUpAccount();
     const email = container.querySelector('input[type=email]')!;
     const label = container.querySelector(`label[for="${email.id}"]`);
     expect(email.id).toBeTruthy();
@@ -255,6 +280,7 @@ describe('スクリーンリーダー向けの名前（§19）', () => {
 
   it('模擬結果のラジオが、カード番号ではなく意味で読み上げられる', () => {
     const { container } = open('ai-hour-pass');
+    setUpAccount();
     for (const r of Array.from(container.querySelectorAll('input[type=radio]'))) {
       const name = r.getAttribute('aria-label') ?? '';
       expect(name.length, 'aria-label が無い').toBeGreaterThan(0);
@@ -264,6 +290,7 @@ describe('スクリーンリーダー向けの名前（§19）', () => {
 
   it('規約同意チェックにも名前がある', () => {
     const { container } = open('ai-hour-pass');
+    setUpAccount();
     expect(container.querySelector('input[type=checkbox]')!.getAttribute('aria-label')).toBeTruthy();
   });
 });

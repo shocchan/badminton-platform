@@ -32,13 +32,15 @@ export interface CheckoutFormProps {
   plan: SalesPlanConfig;
   lang: 'ja' | 'zh';
   mode: CheckoutMode;
+  /** 購入者のアカウント。**必須**（§3）。ここが無いと購入自体が始まらない */
+  learnerId: string;
   termsVersion: string;
   onGranted: (result: CompleteCheckoutResult) => void;
 }
 
 type Phase = 'input' | 'paying' | 'pending' | 'error';
 
-export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: CheckoutFormProps) => {
+export const CheckoutForm = ({ plan, lang, mode, learnerId, termsVersion, onGranted }: CheckoutFormProps) => {
   const [email, setEmail] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [simCard, setSimCard] = useState<string>(SIM_OUTCOMES[0].card);
@@ -80,7 +82,7 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
     trackCourse('checkout_started', { plan_id: plan.planId, mode });
 
     const started = await startCheckout({
-      planId: plan.planId, email, lang, termsVersion, orderId: orderId(),
+      planId: plan.planId, email, lang, termsVersion, orderId: orderId(), learnerId,
     }, deps);
 
     if (!started.ok) {
@@ -120,7 +122,7 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
         ? failureMessage(done.failureCode, lang)
         : t(lang, '確認できませんでした。もう一度お試しください。', '未能确认。请再试一次。'),
     );
-  }, [deps, email, lang, mode, onGranted, phase, plan.planId, termsVersion]);
+  }, [deps, email, lang, learnerId, mode, onGranted, phase, plan.planId, termsVersion]);
 
   const busy = phase === 'paying';
 

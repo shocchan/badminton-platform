@@ -9,7 +9,7 @@
 //
 // 迷わせないため、プランカード以外にCTAを増やさない。
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import {
@@ -24,6 +24,7 @@ import { readSimulatedGrants } from '../../../lib/aiLesson/course/sales/localSal
 import { helpPathFor } from '../../../lib/aiLesson/course/sales/salesHelp';
 import { checkoutMode, checkoutNotice, isCheckoutEnabled } from '../../../lib/aiLesson/course/sales/salesEnv';
 import { LegalFooterLinks } from '../legal/LegalPage';
+import { resolveSalesSession } from '../../../lib/aiLesson/course/sales/salesAccount';
 import { trackCourse } from '../../../lib/aiLesson/course/courseAnalytics';
 
 const CheckIcon = () => (
@@ -143,14 +144,20 @@ export const PlansPage = () => {
   const notice = checkoutNotice(mode, lang);
 
   // 過去に買ったプランを知って、CTAの言い方を変える（§11）。
-  // 模擬決済の記録から読む。本番では認証済みセッションの利用権から読む。
-  const ownedPlanIds = useMemo(() => {
+  // 利用権は**ログインしている本人のもの**しか見ない。
+  // 固定IDで引くと、誰の利用権でも「購入済み」に見えてしまう
+  // mount時に一度だけ読む。useMemo だと React Compiler がメモ化を保てず、
+  // effect で setState すると余分な再描画が入る
+  const [ownedPlanIds] = useState<Set<string>>(() => {
     try {
-      return new Set(readSimulatedGrants(window.localStorage, 'sim_learner_1').map((g) => g.planId));
+      const session = resolveSalesSession(null, window.sessionStorage, true);
+      if (!session) return new Set<string>();
+      return new Set(readSimulatedGrants(window.localStorage, session.userId).map((g) => g.planId));
     } catch {
+      // 保存領域が使えない環境では「購入済み」を出さないだけにする
       return new Set<string>();
     }
-  }, []);
+  });
 
   // ページ表示の計測。SPA内で料金ページへ戻ってきたときも1回ずつ数えたいので
   // モジュール単位の「一度だけ」ではなく、mount単位でガードする（StrictModeの二重実行も吸収）。

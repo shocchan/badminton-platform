@@ -78,7 +78,11 @@ export interface StartCheckoutInput {
   lang: 'ja' | 'zh';
   termsVersion: string;
   /** 再購入・ログイン済みで learner が分かっているとき */
-  learnerId?: string | null;
+  /**
+   * 購入者のアカウント。**必須**（§3 匿名購入を作らない）。
+   * optional にすると省略され、どのアカウントに利用権を付けるか決まらない購入ができてしまう。
+   */
+  learnerId: string;
   /** 二重送信対策のため、画面が同じ値を送り続ける */
   orderId?: string;
 }
@@ -87,6 +91,7 @@ export type StartCheckoutError =
   | 'unknown_plan'
   | 'plan_not_purchasable'
   | 'price_not_confirmed'
+  | 'account_required'
   | 'consultation_only'
   | 'invalid_email'
   | 'terms_not_accepted';
@@ -114,6 +119,8 @@ export const startCheckout = async (
   if (plan.status !== 'published') return { ok: false, error: 'plan_not_purchasable' };
   // 価格がCEO未確定のプランは課金しない。画面を直しても、ここを通らなければ売れない
   if (!isPriceConfirmed(plan)) return { ok: false, error: 'price_not_confirmed' };
+  // アカウント無しでは注文を作らない。ここを通さないと匿名の利用権ができる
+  if (!input.learnerId || input.learnerId.trim() === '') return { ok: false, error: 'account_required' };
   // 6か月伴走はここを通さない。相談導線で受ける（§1 §14）
   if (plan.ctaMode === 'consult') return { ok: false, error: 'consultation_only' };
   if (!isPlausibleEmail(input.email)) return { ok: false, error: 'invalid_email' };
@@ -143,7 +150,7 @@ export const startCheckout = async (
     status: 'created',
     paidAmount: 0,
     feeAmount: 0,
-    learnerId: input.learnerId ?? null,
+    learnerId: input.learnerId,
     createdAtMs: now,
     updatedAtMs: now,
   };
@@ -176,6 +183,8 @@ export type CompleteCheckoutOutcome =
   | 'already_granted'  // 既に付いていた（再送・再読込）
   | 'pending'          // まだ結果が出ていない
   | 'payment_failed'
+  /** アカウントに紐づかない購入。起きてはいけないが、起きたら付与せず止める（§3） */
+  | 'account_required'
   | 'amount_mismatch'  // 支払額が注文額と違う（付与しない）
   | 'unknown_order';
 
@@ -187,6 +196,8 @@ export interface CompleteCheckoutResult {
   failureCode?: PaymentFailureCode;
   /** 新しくアカウントを作ったか（オンボーディングの出し分けに使う） */
   learnerCreated: boolean;
+  /** この購入より前に、この learner が持っていた有効な利用権の数（初回/再購入の判定に使う） */
+  priorGrantCount?: number;
 }
 
 export const completeCheckout = async (
@@ -202,7 +213,11 @@ export const completeCheckout = async (
   if (purchase.status === 'granted' && purchase.learnerId) {
     const grants = await deps.repo.listGrants(purchase.learnerId);
     const grant = grants.find((g) => g.purchaseId === purchase.orderId) ?? null;
-    return { outcome: 'already_granted', purchase, grant, learnerId: purchase.learnerId, learnerCreated: false };
+    return {
+      outcome: 'already_granted', purchase, grant, learnerId: purchase.learnerId, learnerCreated: false,
+      // 自分自身を除いた本数。再読込のたびに初回/再購入の表示が変わらないようにする
+      priorGrantCount: Math.max(grants.length - 1, 0),
+    };
   }
 
   // ★ 支払い結果はゲートウェイに聞く。画面からの「成功しました」を信用しない
@@ -234,20 +249,21 @@ export const completeCheckout = async (
     return { outcome: 'amount_mismatch', purchase: mismatched, grant: null, learnerId: null, learnerCreated: false };
   }
 
-  // アカウントの接続。**既にあれば作らない**（再購入で進捗が切れる事故を防ぐ・§11）
-  let learnerId = purchase.learnerId;
-  let learnerCreated = false;
+  // アカウントは**購入前**に作られている（§3 accountGate）。ここでは作らない。
+  // 支払い後にアカウントを作る形にすると、決済とアカウント作成の間で落ちたときに
+  // 「払ったのに誰のものでもない利用権」が残る。
+  const learnerId = purchase.learnerId;
+  const learnerCreated = false;
   if (!learnerId) {
-    learnerId = await deps.repo.findLearnerIdByEmail(purchase.email);
-    if (!learnerId) {
-      learnerId = await deps.repo.createLearner(purchase.email, purchase.lang);
-      learnerCreated = true;
-    }
+    return {
+      outcome: 'account_required', purchase, grant: null, learnerId: null, learnerCreated: false,
+    };
   }
 
   // 利用権の付与。purchaseId でべき等
   const plan = salesPlanById(purchase.planId)!;
   const existingGrants = await deps.repo.listGrants(learnerId);
+  const priorGrantCount = existingGrants.length;
   const { grant, duplicated } = buildGrant({
     learnerId,
     planId: purchase.planId,
@@ -278,7 +294,7 @@ export const completeCheckout = async (
 
   await deps.repo.insertGrant(grant!);
   await deps.repo.savePurchase(paid);
-  return { outcome: 'granted', purchase: paid, grant: grant!, learnerId, learnerCreated };
+  return { outcome: 'granted', purchase: paid, grant: grant!, learnerId, learnerCreated, priorGrantCount };
 };
 
 // ─────────────────────────────────────────────────────────

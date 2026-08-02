@@ -17,6 +17,9 @@ import { planById, planView, type PlanId } from '../../../lib/aiLesson/course/pl
 import {
   buildApplication, validateApplication, VALIDATION_MESSAGE, type ValidationError,
 } from '../../../lib/aiLesson/course/plans/planApplication';
+import { resolveSalesSession } from '../../../lib/aiLesson/course/sales/salesAccount';
+import type { AccountSession } from '../../../lib/aiLesson/course/sales/accountGate';
+import { AccountSetup } from '../plans/AccountSetup';
 import { submitPlanApplication } from '../../../lib/aiLesson/course/plans/planApplicationRepository';
 import { legalPathFor } from '../../../lib/aiLesson/course/legal/legalContent';
 
@@ -33,6 +36,9 @@ export function ApplicationModal({ planId, onClose, lang }: {
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [phase, setPhase] = useState<Phase>('form');
+  const [session, setSession] = useState<AccountSession | null>(
+    () => resolveSalesSession(null, sessionSafe(), true),
+  );
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -70,13 +76,15 @@ export function ApplicationModal({ planId, onClose, lang }: {
   const view = planView(plan, lang);
 
   const submit = async () => {
-    const found = validateApplication({ planId: plan.id, name, email, consentChecked: consent });
+    // 相談もアカウント必須（§3）。未ログインなら送信せず、その理由を出す
+    const learnerId = session?.userId ?? null;
+    const found = validateApplication({ learnerId, planId: plan.id, name, email, consentChecked: consent });
     setErrors(found);
     if (found.length > 0) return;
 
     setPhase('sending');
     const submission = buildApplication({
-      plan, locale: lang, name, email, note, nowISO: new Date().toISOString(),
+      learnerId: learnerId!, plan, locale: lang, name, email, note, nowISO: new Date().toISOString(),
     });
     const result = await submitPlanApplication(submission);
     if (result.ok) {
@@ -141,6 +149,17 @@ export function ApplicationModal({ planId, onClose, lang }: {
                 {LP.consultation.emailCta[lang]}
               </a>
             </div>
+          </div>
+        ) : !session ? (
+          // 相談もアカウント必須（§3）。誰の相談か特定できない申込を作らない
+          <div className="pb-1">
+            <h3 className="font-extrabold text-lp-ink text-lg">{view.name}</h3>
+            <AccountSetup
+              lang={lang}
+              planName={view.name}
+              simulated
+              onReady={setSession}
+            />
           </div>
         ) : (
           <div className="pb-1">
@@ -210,4 +229,18 @@ export function ApplicationModal({ planId, onClose, lang }: {
       </div>
     </div>
   );
+}
+
+/** SSR やテスト環境で sessionStorage が無い場合に落ちないようにする */
+function sessionSafe() {
+  try {
+    return window.sessionStorage;
+  } catch {
+    const m = new Map<string, string>();
+    return {
+      getItem: (k: string) => m.get(k) ?? null,
+      setItem: (k: string, v: string) => void m.set(k, v),
+      removeItem: (k: string) => void m.delete(k),
+    };
+  }
 }

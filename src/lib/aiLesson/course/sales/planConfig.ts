@@ -112,6 +112,27 @@ export interface SalesPlanConfig {
   durationDays: number;
   /** 含まれる累計アクティブ学習時間（分）。時間制でないものは null */
   includedActiveMinutes: number | null;
+  /**
+   * 含まれる累計アクティブ学習**秒**数。時間制でないものは null。
+   * 分ではなく秒を正準にするのは、サーバーの計測が秒単位で、
+   * 分に丸めると「59秒使ったのに0分」という説明できない差が出るため。
+   * `includedActiveMinutes` は表示用で、この値と一致することをテストで固定する。
+   */
+  includedActiveSeconds: number | null;
+
+  /**
+   * 購入から何日以内に「開始」しなければならないか。
+   * 時間制プランのみ意味を持つ（期間制は購入即開始なので null）。
+   *
+   * 購入した瞬間から24時間が減り始めると、
+   * 「買ったけど今日は時間が無い」人が理不尽に失う。だから開始操作を挟む。
+   */
+  startDeadlineDays: number | null;
+  /**
+   * 開始してから何時間使えるか。**開始時刻から丸n時間**であって、
+   * その日の終わりまでではない（21:30開始なら翌日21:30まで）。
+   */
+  validityHoursAfterActivation: number | null;
   /** 購入から何日以内に使い切る必要があるか（日） */
   validityDays: number;
   /** 自動更新。**初期は全プラン false**（§1商品構成） */
@@ -182,6 +203,10 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
 
     durationDays: 0,
     includedActiveMinutes: 60,
+    includedActiveSeconds: 3600,
+    // 購入から7日以内に開始 → 開始してから24時間
+    startDeadlineDays: 7,
+    validityHoursAfterActivation: 24,
     validityDays: 30,
     autoRenew: false,
     humanLessonCount: 0,
@@ -267,6 +292,9 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
 
     durationDays: 30,
     includedActiveMinutes: null,
+    includedActiveSeconds: null,
+    startDeadlineDays: null,
+    validityHoursAfterActivation: null,
     validityDays: 30,
     autoRenew: false,
     humanLessonCount: 0,
@@ -350,6 +378,9 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
 
     durationDays: 180,
     includedActiveMinutes: null,
+    includedActiveSeconds: null,
+    startDeadlineDays: null,
+    validityHoursAfterActivation: null,
     validityDays: 180,
     autoRenew: false,
     humanLessonCount: 24,

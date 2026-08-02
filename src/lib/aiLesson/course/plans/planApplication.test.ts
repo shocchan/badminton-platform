@@ -17,7 +17,7 @@ const plan = () => planById('coach-6m')!;
 describe('申込の組み立て', () => {
   it('最低項目がすべて埋まる', () => {
     const { application: a } = buildApplication({
-      plan: plan(), locale: 'ja', name: '山田太郎', email: 'a@example.com', nowISO: NOW,
+      learnerId: 'u_test', plan: plan(), locale: 'ja', name: '山田太郎', email: 'a@example.com', nowISO: NOW,
     });
     expect(a.applicationId.length).toBeGreaterThan(0);
     expect(a.selectedPlanId).toBe('coach-6m');
@@ -29,19 +29,21 @@ describe('申込の組み立て', () => {
   });
 
   it('**申込者が見た言語の価格ラベルを写し取る**（あとで価格を変えても遡って壊れない）', () => {
-    const ja = buildApplication({ plan: plan(), locale: 'ja', name: 'a', email: 'a@b.co', nowISO: NOW });
-    const zh = buildApplication({ plan: plan(), locale: 'zh', name: 'a', email: 'a@b.co', nowISO: NOW });
+    const ja = buildApplication({ learnerId: 'u_test', plan: plan(), locale: 'ja', name: 'a', email: 'a@b.co', nowISO: NOW });
+    const zh = buildApplication({ learnerId: 'u_test', plan: plan(), locale: 'zh', name: 'a', email: 'a@b.co', nowISO: NOW });
     expect(ja.application.displayedPriceLabel).toBe(plan().priceLabelJa);
     expect(zh.application.displayedPriceLabel).toBe(plan().priceLabelZh);
     expect(ja.application.displayedPriceLabel).not.toBe(zh.application.displayedPriceLabel);
   });
 
-  it('同意は申込と同じIDに紐づき、規約の版を持つ', () => {
+  it('同意は**申込者のアカウント**に紐づき、規約の版を持つ', () => {
     const { application, consent } = buildApplication({
-      plan: plan(), locale: 'zh', name: 'a', email: 'a@b.co', nowISO: NOW,
+      learnerId: 'u_test', plan: plan(), locale: 'zh', name: 'a', email: 'a@b.co', nowISO: NOW,
     });
-    expect(consent.subjectId).toBe(application.applicationId);
-    expect(consent.subjectKind).toBe('application');
+    // 誰の同意か特定できない同意は証拠として弱いので、learnerId で残す（§3）
+    expect(consent.subjectId).toBe('u_test');
+    expect(consent.subjectKind).toBe('learner');
+    expect(application.learnerId).toBe('u_test');
     expect(consent.termsVersion).toBe(TERMS_VERSION);
     expect(consent.consentedAt).toBe(NOW);
     expect(consent.locale).toBe('zh');
@@ -49,7 +51,7 @@ describe('申込の組み立て', () => {
 
   it('氏名・メール・備考の前後の空白を落とす', () => {
     const { application: a } = buildApplication({
-      plan: plan(), locale: 'ja', name: '  山田  ', email: '  a@b.co ', note: ' メモ ', nowISO: NOW,
+      learnerId: 'u_test', plan: plan(), locale: 'ja', name: '  山田  ', email: '  a@b.co ', note: ' メモ ', nowISO: NOW,
     });
     expect(a.name).toBe('山田');
     expect(a.email).toBe('a@b.co');
@@ -58,7 +60,7 @@ describe('申込の組み立て', () => {
 
   it('備考が未入力でも空文字で埋まる（undefinedを保存しない）', () => {
     const { application: a } = buildApplication({
-      plan: plan(), locale: 'ja', name: 'a', email: 'a@b.co', nowISO: NOW,
+      learnerId: 'u_test', plan: plan(), locale: 'ja', name: 'a', email: 'a@b.co', nowISO: NOW,
     });
     expect(a.note).toBe('');
   });
@@ -70,7 +72,11 @@ describe('申込の組み立て', () => {
 });
 
 describe('申込の検証', () => {
-  const ok = { planId: 'coach-6m', name: '山田', email: 'a@b.co', consentChecked: true };
+  const ok = { learnerId: 'u_test', planId: 'coach-6m', name: '山田', email: 'a@b.co', consentChecked: true };
+
+  it('未ログインでは相談も送れない（§3）', () => {
+    expect(validateApplication({ ...ok, learnerId: null })).toContain('account_required');
+  });
 
   it('正しい入力は通る', () => {
     expect(validateApplication(ok)).toEqual([]);
