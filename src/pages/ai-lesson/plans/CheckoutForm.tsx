@@ -14,6 +14,8 @@ import {
 } from '../../../lib/aiLesson/course/sales/checkoutFlow';
 import { SimulatedTestGateway, failureMessage } from '../../../lib/aiLesson/course/sales/paymentGateway';
 import { createLocalSalesRepository } from '../../../lib/aiLesson/course/sales/localSalesRepository';
+import { createTrialGrant } from '../../../lib/aiLesson/course/sales/trialActivation';
+import { saveTrialGrant } from '../../../lib/aiLesson/course/adventure/runtimeSession';
 import type { SalesPlanConfig } from '../../../lib/aiLesson/course/sales/planConfig';
 import type { CheckoutMode } from '../../../lib/aiLesson/course/sales/salesEnv';
 import { trackCourse } from '../../../lib/aiLesson/course/courseAnalytics';
@@ -101,6 +103,18 @@ export const CheckoutForm = ({ plan, lang, mode, learnerId, termsVersion, onGran
     const done = await completeCheckout(started.purchase!.orderId, deps);
 
     if (done.outcome === 'granted' || done.outcome === 'already_granted') {
+      // 時間制プラン（60分パス）は学習ランタイムの利用権ストアにも記録する。
+      // これが無いと「買ったのに冒険が始められない」（AdvRuntimeGate が利用権なしと判定）。
+      // saveTrialGrant は purchaseId でべき等（already_granted の再訪でも二重付与しない）
+      if (done.grant && plan.includedActiveSeconds !== null && plan.startDeadlineDays !== null) {
+        saveTrialGrant(createTrialGrant({
+          id: done.grant.id,
+          learnerId: done.grant.learnerId,
+          purchaseId: done.grant.purchaseId,
+          plan,
+          purchasedAtMs: done.grant.grantedAtMs,
+        }));
+      }
       trackCourse('checkout_completed', { plan_id: plan.planId, mode });
       trackCourse('entitlement_granted', { plan_id: plan.planId, repeat: done.learnerCreated ? 0 : 1 });
       onGranted(done);

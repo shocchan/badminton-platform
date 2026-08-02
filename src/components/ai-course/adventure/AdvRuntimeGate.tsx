@@ -20,7 +20,7 @@ import {
   recordActivation, readConsumedSeconds, type IssuedSession,
 } from '../../../lib/aiLesson/course/adventure/runtimeSession';
 import { activateTrial } from '../../../lib/aiLesson/course/sales/trialActivation';
-import { salesPlanById } from '../../../lib/aiLesson/course/sales/planConfig';
+import { salesPlanById, type SalesPlanId, type UpsellRule } from '../../../lib/aiLesson/course/sales/planConfig';
 import { decideUpsell, upsellCopy, recordImpression, type UpsellImpression, type UpsellContext } from '../../../lib/aiLesson/course/sales/upsell';
 import { AdvRuntimeProvider, type AdvRuntime } from './AdvRuntimeContext';
 
@@ -346,18 +346,26 @@ function ActiveUpsellBanner({ lang, learner, sessionId, remainingSec }: {
 
   const decision = useMemo(() => decideUpsell(ctx, impressions), [ctx, impressions]);
 
-  const shownRef = useRef(false);
+  // 一度出すと決めたら出し続ける（sticky）。
+  // 「表示した」記録を保存した瞬間に maxPerSession が自分自身を数えて
+  // 次のレンダーで消える、という自滅を防ぐ（実ブラウザE2Eで発見）
+  const [sticky, setSticky] = useState<{ rule: UpsellRule; targetPlanId: SalesPlanId } | null>(null);
   useEffect(() => {
-    if (!decision.show || !decision.rule || shownRef.current) return;
-    shownRef.current = true;
-    const next = [...impressions, recordImpression(decision.rule, ctx, 'shown')];
-    setImpressions(next);
-    writeImpressions(next);
+    if (sticky || !decision.show || !decision.rule || !decision.targetPlanId) return;
+    const { rule, targetPlanId } = decision;
+    // setState は effect の同期パスで行わない（cascading render 防止）
+    const t = window.setTimeout(() => {
+      setSticky({ rule: rule!, targetPlanId: targetPlanId! });
+      const next = [...readImpressions(), recordImpression(rule!, ctx, 'shown')];
+      setImpressions(next);
+      writeImpressions(next);
+    }, 0);
+    return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decision.show]);
 
-  if (!decision.show || !decision.rule || !decision.targetPlanId || dismissed) return null;
-  const copy = upsellCopy(decision.targetPlanId, lang);
+  if (!sticky || dismissed) return null;
+  const copy = upsellCopy(sticky.targetPlanId, lang);
   const monthPlan = salesPlanById('ai-month');
   const priceConfirmed = monthPlan?.priceStatus === 'confirmed';
 
@@ -385,7 +393,7 @@ function ActiveUpsellBanner({ lang, learner, sessionId, remainingSec }: {
           </Link>
           <button type="button" className="w-full min-h-[40px] text-sm text-gray-500 underline"
             onClick={() => {
-              const next = [...readImpressions(), recordImpression(decision.rule!, ctx, 'dismissed')];
+              const next = [...readImpressions(), recordImpression(sticky.rule, ctx, 'dismissed')];
               writeImpressions(next);
               setImpressions(next);
               setDismissed(true);
@@ -416,25 +424,31 @@ function EndedScreen({ lang, title, body, upsell }: { lang: L; title: string; bo
     [upsellCtx, impressions],
   );
 
-  const shownRef = useRef(false);
+  // sticky: 「表示した」記録が maxPerSession を満たして即座に自分を消さないようにする
+  const [sticky, setSticky] = useState<{ rule: UpsellRule; targetPlanId: SalesPlanId } | null>(null);
   useEffect(() => {
-    if (!decision?.show || !decision.rule || !upsellCtx || shownRef.current) return;
-    shownRef.current = true;
-    // 出したら必ず記録する（頻度制限の根拠）
-    const next = [...impressions, recordImpression(decision.rule, upsellCtx, 'shown')];
-    setImpressions(next);
-    writeImpressions(next);
+    if (sticky || !decision?.show || !decision.rule || !decision.targetPlanId || !upsellCtx) return;
+    const { rule, targetPlanId } = decision;
+    // setState は effect の同期パスで行わない（cascading render 防止）
+    const t = window.setTimeout(() => {
+      setSticky({ rule: rule!, targetPlanId: targetPlanId! });
+      // 出したら必ず記録する（頻度制限の根拠）
+      const next = [...readImpressions(), recordImpression(rule!, upsellCtx, 'shown')];
+      setImpressions(next);
+      writeImpressions(next);
+    }, 0);
+    return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [decision?.show, upsellCtx]);
 
-  const copy = decision?.show && decision.targetPlanId ? upsellCopy(decision.targetPlanId, lang) : null;
+  const copy = sticky ? upsellCopy(sticky.targetPlanId, lang) : null;
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-10">
       <h2 className="text-center text-lg font-bold text-gray-900">{title}</h2>
       <p className="mt-2 text-center text-sm leading-relaxed text-gray-600">{body}</p>
 
-      {copy && decision?.rule && (
+      {copy && sticky && (
         <div className={`${card} mt-6 border-blue-200 bg-blue-50`}>
           <p className="text-sm font-bold text-gray-900">{copy.heading}</p>
           <ul className="mt-1 space-y-0.5">
@@ -448,7 +462,7 @@ function EndedScreen({ lang, title, body, upsell }: { lang: L; title: string; bo
           <button type="button" className="mt-2 w-full min-h-[44px] text-sm text-gray-500 underline"
             onClick={() => {
               if (!upsellCtx) return;
-              const next = [...readImpressions(), recordImpression(decision.rule!, upsellCtx, 'dismissed')];
+              const next = [...readImpressions(), recordImpression(sticky.rule, upsellCtx, 'dismissed')];
               writeImpressions(next);
               setImpressions(next);
             }}>

@@ -50,3 +50,7 @@ docs/ai-course/adventure-v2/generated/vocab-jmdict-index.json
 # サマリだけは数字の履歴を追えるようcommitする
 docs/ai-course/adventure-v2/generated/question-bank/*.csv
 !docs/ai-course/adventure-v2/generated/question-bank/question-bank-summary.csv
+
+# E2E成果物（trace/screenshot。再実行で再生成）
+e2e-results/
+e2e-report/
