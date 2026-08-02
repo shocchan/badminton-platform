@@ -94,6 +94,9 @@ const REVIEW_STATES: { id: string; ja: string; zh: string }[] = [
   { id: 'battle', ja: '問題（サーバー採点・fixture）', zh: '题目（服务器判分・fixture）' },
   { id: 'denials', ja: '拒否文言（期限切れ・使い切り・鍵）', zh: '拒绝文案' },
   { id: 'consumed', ja: '使い切り + 再購入 + アップセル', zh: '用完 + 再购买 + 升级' },
+  { id: 'activeUpsell', ja: 'active中アップセル（残り10分以下）', zh: '使用中的升级提示' },
+  { id: 'monthPrep', ja: '1か月準備中 / 6か月相談', zh: '1个月准备中 / 6个月咨询' },
+  { id: 'journey', ja: '会話・言い直し・レポート', zh: '会话・改口・报告' },
   { id: 'takeover', ja: '二重タブ', zh: '双标签页' },
 ];
 
@@ -241,6 +244,83 @@ export function AiCourseReviewPage() {
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {view === 'activeUpsell' && (
+          <div className="mx-auto w-full max-w-xl py-2">
+            <p className="text-right text-xs font-semibold text-red-700">⏱ {tx(lang, '残り8分', '剩余8分钟')}</p>
+            <div className={`${card} mt-2 border-blue-200 bg-blue-50`}>
+              <p className="text-sm font-bold text-gray-900">{tx(lang, '残り時間が少なくなりました', '剩余时间不多了')}</p>
+              <p className="mt-1 text-sm leading-relaxed text-gray-700">
+                {tx(lang, 'ここまでの診断結果・冒険マップ・復習の予定・学習履歴は、1か月プランへそのまま引き継げます。',
+                  '到目前为止的诊断结果、冒险地图、复习计划和学习记录，都可以直接延续到1个月方案。')}
+              </p>
+              <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 text-sm font-bold text-white">
+                {tx(lang, '1か月プランの準備状況を見る', '查看1个月方案的准备情况')}
+              </button>
+              <button type="button" className="mt-2 w-full min-h-[44px] rounded-xl border border-blue-300 bg-white text-sm font-semibold text-blue-700">
+                {tx(lang, '60分を追加する', '再加60分钟')}
+              </button>
+              <button type="button" className="mt-1 w-full min-h-[40px] text-sm text-gray-500 underline">{tx(lang, '今はしない', '暂时不用')}</button>
+            </div>
+            <p className="mt-2 text-xs text-gray-500">
+              {tx(lang, '表示条件: 残り10分以下・購入直後には出ない・同一セッション1回まで・「今はしない」後は3日間再表示しない。実動作はE2E（14/15枚目のスクリーンショット）で確認済み。',
+                '显示条件：剩余10分钟以下・购买后不会立即显示・同一会话最多1次・「暂时不用」后3天内不再显示。')}
+            </p>
+          </div>
+        )}
+
+        {view === 'monthPrep' && (
+          <div className="mx-auto w-full max-w-xl space-y-4 py-2">
+            <div className={card}>
+              <p className="text-sm font-bold text-gray-900">{tx(lang, '1か月プラン（価格未確定）', '1个月方案（价格未定）')}</p>
+              <p className="mt-1 text-sm text-gray-700">
+                {tx(lang, '価格はCEO確定待ちのため、購入CTAは出しません。確定後はコード変更なしで通常CTAに切り替わります（priceStatus: confirmed）。',
+                  '价格待定，因此不显示购买按钮。确定后无需改代码即自动切换为正常按钮。')}
+              </p>
+              <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl border border-blue-300 bg-white text-sm font-semibold text-blue-700">
+                {tx(lang, '1か月プランの準備状況を見る', '查看1个月方案的准备情况')}
+              </button>
+            </div>
+            {(() => {
+              const c = upsellCopy('coach-6m', lang);
+              return (
+                <div className={`${card} border-emerald-200 bg-emerald-50`}>
+                  <p className="text-sm font-bold text-gray-900">{c.heading}</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {c.points.map((pt) => <li key={pt} className="text-sm text-gray-700">・{pt}</li>)}
+                  </ul>
+                  <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl bg-emerald-600 text-sm font-bold text-white">{c.acceptLabel}</button>
+                  <p className="mt-1 text-center text-xs text-gray-500">
+                    {tx(lang, '6か月は即時決済ではなく相談導線（acceptIsConsultation）', '6个月不是立即支付，而是咨询入口')}
+                  </p>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {view === 'journey' && (
+          <div className="mx-auto w-full max-w-xl space-y-3 py-2 text-sm text-gray-700">
+            <div className={card}>
+              <p className="font-bold text-gray-900">{tx(lang, 'AI会話', 'AI会话')}</p>
+              <p className="mt-1">{tx(lang,
+                '会話ミッションの本文（導入質問・ヒント6段階・例文）はレッスン開始時にサーバーから現在の1ミッションだけ届きます。開始前のclientには目次（タイトル・目標表現）しかありません。',
+                '会话任务的正文（导入问题・6级提示・例句）在课程开始时由服务器只发送当前1个任务。开始前client只有目录。')}</p>
+            </div>
+            <div className={card}>
+              <p className="font-bold text-gray-900">{tx(lang, '言い直し', '改口练习')}</p>
+              <p className="mt-1">{tx(lang,
+                'バトルで間違えた文法・今日の表現から素材を選びます（素材0件でも必ず進めます）。判定は目標表現の検出regex（目次側）で行います。',
+                '从战斗中答错的语法和今天的表达中选择材料。判定使用目录侧的检测正则。')}</p>
+            </div>
+            <div className={card}>
+              <p className="font-bold text-gray-900">{tx(lang, '学習レポート', '学习报告')}</p>
+              <p className="mt-1">{tx(lang,
+                '今日できたこと・バトル成果・技能別の手ごたえ・次の復習と次の冒険を表示します（E2E 12枚目=模試の科目別結果を参照）。',
+                '显示今天完成的内容・战斗成果・各技能手感・下次复习与下次冒险。')}</p>
+            </div>
           </div>
         )}
 
