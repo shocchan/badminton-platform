@@ -8,9 +8,12 @@
 // ビルド: scripts/generate-worker.mjs が esbuild で dist/_worker.js へ束ねる。
 
 import { INDEX_HTML } from './generated/indexHtml';
-import { handleContentRequest, handleDevTokenRequest, type ContentEnv } from './aiCourseContent';
+import {
+  handleSessionIssue, handleActivityStart, handleActivityGrade, handleMockGrade,
+  handleGrammarDoc, handleStageContent, handleAudio, handleDevSeed, type RuntimeEnv,
+} from './aiCourseRuntime';
 
-interface Env extends ContentEnv {
+interface Env extends RuntimeEnv {
   ASSETS: Fetcher;
   VITE_SUPABASE_URL?: string;
   SUPABASE_URL?: string;
@@ -180,11 +183,20 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
 
   // AIコース教材の限定配信。**assets より先に置く**。
   // 後ろに置くと拡張子判定に吸われてしまう
-  if (pathname === '/api/ai-course/content') {
-    return handleContentRequest(request, env);
-  }
-  if (pathname === '/api/ai-course/dev-session-token') {
-    return handleDevTokenRequest(request, env);
+  if (pathname.startsWith('/api/ai-course/')) {
+    switch (pathname) {
+      case '/api/ai-course/session/issue': return handleSessionIssue(request, env);
+      case '/api/ai-course/activity/start': return handleActivityStart(request, env);
+      case '/api/ai-course/activity/grade': return handleActivityGrade(request, env);
+      case '/api/ai-course/activity/mock-grade': return handleMockGrade(request, env);
+      case '/api/ai-course/grammar-doc': return handleGrammarDoc(request, env);
+      case '/api/ai-course/stage-content': return handleStageContent(request, env);
+      case '/api/ai-course/audio': return handleAudio(request, env);
+      case '/api/ai-course/dev-seed': return handleDevSeed(request, env);
+      default: return new Response(JSON.stringify({ error: 'not_found' }), {
+        status: 404, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      });
+    }
   }
 
   // 管理画面ルートへのBasic認証ゲート

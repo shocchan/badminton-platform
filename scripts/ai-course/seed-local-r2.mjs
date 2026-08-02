@@ -1,55 +1,66 @@
 #!/usr/bin/env node
-// content-dist/ のシャードを **local の** R2（miniflare）へ入れる。
+// content-dist/ のシャードと聴解音声を **local の** R2（miniflare）へ入れる。
 //
-// remote は一切触らない（--local）。HTTP レベルの検証を remote 変更なしで行うために使う。
+// remote は一切触らない。wrangler dev の dev-seed 口（AI_COURSE_DEV_SEED=enabled の
+// 環境でだけ開く）へ HTTP で流し込む。CLI の1件ずつ put は1,500ファイルで30分かかるため。
 //
-//   node scripts/ai-course/seed-local-r2.mjs        # 検証に必要な分だけ（速い）
-//   node scripts/ai-course/seed-local-r2.mjs --all  # 全ページ（1,024個・時間がかかる）
+//   npm run dev:worker            # 先に起動しておく
+//   node scripts/ai-course/seed-local-r2.mjs
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, statSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
-const BUCKET = 'ai-course-content';
-const PERSIST = '.wrangler/state';
+const BASE = process.env.WORKER_URL || 'http://127.0.0.1:8787';
 const SRC = 'content-dist';
+const AUDIO_SRC = 'content-audio/ai-course';
 
 if (!existsSync(SRC)) {
   console.error(`${SRC}/ がありません。先に npm run build:ai-course-content を実行してください。`);
   process.exit(2);
 }
 
-/** 検証シナリオで実際に触るページだけ。60分連続学習ぶんの vocab を厚めに入れる */
-const VERIFY_KEYS = [
-  'v1/reading/n3/read-n3-shortPassage/0.json',
-  'v1/listening/n3/listen-n3-taskComprehension/0.json',
-  'v1/reading/n2/read-n2-thematic/0.json',
-  ...Array.from({ length: 10 }, (_, i) => `v1/vocab/n3/vocab-n5/${i}.json`),
-];
-
 const walk = (dir) => readdirSync(dir).flatMap((n) => {
   const p = join(dir, n);
   return statSync(p).isDirectory() ? walk(p) : [p];
 });
 
-const all = process.argv.includes('--all');
-const keys = all
-  ? walk(SRC).map((p) => relative(SRC, p)).filter((k) => k !== 'manifest.json')
-  : VERIFY_KEYS;
-
-let done = 0;
-for (const key of keys) {
-  const file = join(SRC, key);
-  if (!existsSync(file)) {
-    console.error(`  skip（存在しない）: ${key}`);
-    continue;
+/** { r2key, path } の一覧 */
+const jobs = walk(SRC)
+  .map((p) => ({ key: relative(SRC, p), path: p }))
+  .filter((j) => j.key !== 'manifest.json');
+if (existsSync(AUDIO_SRC)) {
+  for (const p of walk(AUDIO_SRC)) {
+    jobs.push({ key: `v2/audio/${relative(AUDIO_SRC, p)}`, path: p });
   }
-  execFileSync(
-    './node_modules/.bin/wrangler',
-    ['r2', 'object', 'put', `${BUCKET}/${key}`, '--file', file, '--local', '--persist-to', PERSIST],
-    { stdio: 'pipe' },
-  );
-  done += 1;
-  process.stdout.write(`\r  ${done}/${keys.length} 投入`);
+} else {
+  console.warn(`⚠️ ${AUDIO_SRC} がありません。音声はseedされません`);
 }
-console.log(`\n✅ local R2 へ ${done} ページ投入しました（remote は触っていません）`);
+
+const CONCURRENCY = 24;
+let done = 0;
+let failed = 0;
+
+const putOne = async (job) => {
+  const res = await fetch(`${BASE}/api/ai-course/dev-seed?key=${encodeURIComponent(job.key)}`, {
+    method: 'POST',
+    body: readFileSync(job.path),
+  });
+  if (!res.ok) {
+    failed += 1;
+    if (failed <= 3) console.error(`\n  失敗: ${job.key} → ${res.status}`);
+    return;
+  }
+  done += 1;
+  if (done % 100 === 0 || done === jobs.length) process.stdout.write(`\r  ${done}/${jobs.length} 投入`);
+};
+
+const queue = [...jobs];
+await Promise.all(Array.from({ length: CONCURRENCY }, async () => {
+  while (queue.length > 0) {
+    const job = queue.pop();
+    if (job) await putOne(job);
+  }
+}));
+
+console.log(`\n${failed === 0 ? '✅' : '❌'} local R2 へ ${done} 件投入（失敗 ${failed}）。remote は触っていません`);
+process.exit(failed === 0 ? 0 : 1);

@@ -29,4 +29,6 @@ binding = "ASSETS"
 AI_COURSE_CONTENT_TOKEN_SECRET = "local-dev-only-token-secret-do-not-use-in-production"
 SUPABASE_JWT_SECRET = "local-dev-only-jwt-secret-do-not-use-in-production"
 # トークン発行の口を開ける。**本番では絶対に設定しない**
-AI_COURSE_DEV_TOKENS = "enabled"
+AI_COURSE_SESSION_MODE = "client-asserted"
+# local 一括seed口（本番では設定しない）
+AI_COURSE_DEV_SEED = "enabled"
