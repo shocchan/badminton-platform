@@ -19,7 +19,8 @@
     "validate:ai-course-vocab-content": "vite-node scripts/ai-course/validate-vocab-content.ts",
     "report:ai-course-coverage": "vite-node scripts/ai-course/exam-coverage-matrix.ts",
     "generate:ai-course-plan-catalog": "vite-node scripts/ai-course/generate-plan-catalog-json.ts",
-    "report:ai-course-economics": "vite-node scripts/ai-course/unit-economics-report.ts"
+    "report:ai-course-economics": "vite-node scripts/ai-course/unit-economics-report.ts",
+    "measure:ai-course-content-exposure": "node scripts/ai-course/measure-content-exposure.mjs"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",

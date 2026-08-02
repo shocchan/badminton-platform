@@ -81,7 +81,13 @@ export interface DeliverableItem {
 export const toDeliverable = (item: InternalItem, sessionId: string, indexInSession: number): DeliverableItem => ({
   deliveryId: `${sessionId}:${indexInSession}`,
   prompt: item.prompt,
-  choices: item.choices,
+  // 選択肢は**必ず文字列へ落とす**。型では string[] だが、ここはネットワーク境界で、
+  // バンク側が {id, textJa} のようなオブジェクトを持っていると内部IDがそのまま出る。
+  // 型は境界の外を守らないので、実行時にも削る
+  choices: (item.choices as unknown[]).map((c) =>
+    typeof c === 'string' ? c : String((c as { text?: string; textJa?: string })?.textJa
+      ?? (c as { text?: string })?.text ?? ''),
+  ),
   correctChoiceId: item.correctChoiceId,
   explanationJa: item.explanationJa,
   explanationZh: item.explanationZh,
