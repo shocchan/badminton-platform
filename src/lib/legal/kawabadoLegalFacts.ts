@@ -11,8 +11,17 @@
 export interface Bilingual { ja: string; zh: string }
 
 export interface KawabadoLegalFacts {
-  /** 特商法: 事業者の名称（屋号 + 代表者名） */
+  /**
+   * 特商法: 事業者の名称（屋号 + 代表者名）。
+   * 特定商取引法は個人事業主に「氏名」の表示を求めており、屋号だけでは要件を満たさない。
+   * **このフィールドは特商法表記ページでのみ使う。**
+   */
   operatorName: string | null;
+  /**
+   * プライバシーポリシー・利用規約など、氏名の表示義務が無い文書で使う呼称。
+   * 本名を不必要に露出させないため、特商法ページ以外はこちらを使う。
+   */
+  displayName: string;
   /** 特商法: 所在地。「請求により遅滞なく開示」を採る場合は 'on_request' */
   address: string | 'on_request' | null;
   /** 特商法: 電話番号。同上 */
@@ -35,6 +44,8 @@ export interface KawabadoLegalFacts {
   personalDataItems: Bilingual | null;
   /** 利用目的 */
   personalDataPurpose: Bilingual | null;
+  /** 案内メールの配信停止方法 */
+  optOut: Bilingual | null;
   /** 保存期間 */
   retentionPeriod: Bilingual | null;
   /** 第三者提供・委託先 */
@@ -48,6 +59,8 @@ export interface KawabadoLegalFacts {
 export const KAWABADO_LEGAL_FACTS: KawabadoLegalFacts = {
   // 事業者情報は AI講座側でCEOが確定させた値と同一（2026-08-02にバド本体への適用も承認）
   operatorName: 'kawabado 安田翔',
+  // 特商法ページ以外は屋号のみ（CEO指示 2026-08-02。氏名の表示義務は特商法だけにかかる）
+  displayName: 'kawabado',
   address: 'on_request',
   phone: 'on_request',
   contactEmail: 'info@kawabado.com',
@@ -83,8 +96,16 @@ export const KAWABADO_LEGAL_FACTS: KawabadoLegalFacts = {
     zh: '我们收集姓名、电子邮箱、电话号码、搭档姓名（双打时）、备注栏填写的内容，以及报名和取消的记录。本会不收集或保存信用卡号，该信息由支付服务商（Stripe）直接处理。',
   },
   personalDataPurpose: {
-    ja: '申込内容の確認・参加者名簿の作成・当日の受付、開催内容の変更や中止のご連絡、お支払いおよび返金の手続き、お問い合わせへの回答のために利用します。ご本人の同意なく、これら以外の目的には利用しません。',
-    zh: '用于确认报名内容、编制参加者名单、当日接待、通知活动内容变更或取消、办理支付与退款手续，以及回复咨询。未经本人同意，不会用于上述以外的目的。',
+    // 個人情報保護法は利用目的を「できる限り特定」するよう求めているため、
+    // 「事業活動全般」のような包括表現は避け、実際に行う範囲を列挙している。
+    // 今後の告知配信を想定し、案内・お知らせの送付と、活動の改善・運営を明示的に含める。
+    ja: '申込内容の確認、参加者名簿の作成、当日の受付、開催内容の変更や中止のご連絡、お支払いおよび返金の手続き、お問い合わせへの回答に利用します。あわせて、今後の大会・通常活動・イベントのご案内、当会からのお知らせやアンケートの送付、および活動内容の改善と運営のために利用します。上記と関連性を有すると合理的に認められる範囲を超えて利用する場合は、あらためてご本人の同意をいただきます。',
+    zh: '用于确认报名内容、编制参加者名单、当日接待、通知活动内容变更或取消、办理支付与退款手续，以及回复咨询。此外，还用于发送今后赛事・常规活动・活动的通知、本会的公告与问卷，以及改进活动内容与运营。若需超出与上述目的具有合理关联性的范围使用，将另行取得本人同意。',
+  },
+  /** 案内メールの配信停止方法（特定電子メール法で受信拒否の方法の明示が求められる） */
+  optOut: {
+    ja: 'ご案内やお知らせの配信は、いつでも停止できます。下記のお問い合わせ窓口までご連絡いただければ、以後お送りしません。配信を停止しても、お申し込みいただいたイベントに関する連絡（変更・中止のご案内など）はお送りします。',
+    zh: '通知与公告的发送可随时停止。请联系下述咨询窗口，此后我们将不再发送。即使停止发送，与您已报名活动相关的联络（如变更・取消通知等）仍会发送。',
   },
   retentionPeriod: {
     ja: 'イベント終了後、会計処理および運営上の記録として保存します。削除のご希望があった場合は、法令上保存が必要な情報を除き、合理的な期間内に削除します。',
@@ -108,7 +129,7 @@ export const pendingKawabadoLegalFacts = (
   const required: (keyof KawabadoLegalFacts)[] = [
     'operatorName', 'address', 'phone', 'priceDescription', 'additionalFees',
     'paymentMethods', 'paymentTiming', 'serviceTiming', 'refundPolicy',
-    'personalDataItems', 'personalDataPurpose', 'retentionPeriod',
+    'personalDataItems', 'personalDataPurpose', 'optOut', 'retentionPeriod',
     'thirdParties', 'governingLaw',
   ];
   return required.filter((k) => {

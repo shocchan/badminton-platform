@@ -75,9 +75,10 @@ export const buildKawabadoLegalPages = (
     {
       id: 'privacy',
       title: ja ? 'プライバシーポリシー' : '隐私政策',
+      // 氏名の表示義務は特商法にしか無いので、ここは屋号のみ
       intro: ja
-        ? `${f.operatorName}（以下「当会」）は、お申し込みいただいた方の個人情報を以下のとおり取り扱います。`
-        : `${f.operatorName}（以下称"本会"）按以下方式处理报名者的个人信息。`,
+        ? `${f.displayName}（以下「当会」）は、お申し込みいただいた方の個人情報を以下のとおり取り扱います。`
+        : `${f.displayName}（以下称"本会"）按以下方式处理报名者的个人信息。`,
       sections: [
         {
           heading: ja ? '取得する情報' : '收集的信息',
@@ -86,6 +87,10 @@ export const buildKawabadoLegalPages = (
         {
           heading: ja ? '利用目的' : '使用目的',
           body: [pick(f.personalDataPurpose, lang)],
+        },
+        {
+          heading: ja ? 'ご案内の配信停止' : '停止接收通知',
+          body: [pick(f.optOut, lang)],
         },
         {
           heading: ja ? '第三者への提供・委託' : '向第三方提供与委托',
@@ -126,8 +131,8 @@ export const buildKawabadoLegalPages = (
       id: 'terms',
       title: ja ? '利用規約' : '使用条款',
       intro: ja
-        ? `この規約は、${f.operatorName}（以下「当会」）が主催する大会・通常活動へのお申し込みおよびご参加の条件を定めるものです。お申し込みをもって、この規約に同意いただいたものとします。`
-        : `本条款规定了参加 ${f.operatorName}（以下称"本会"）主办的赛事及常规活动的报名与参加条件。报名即视为同意本条款。`,
+        ? `この規約は、${f.displayName}（以下「当会」）が主催する大会・通常活動へのお申し込みおよびご参加の条件を定めるものです。お申し込みをもって、この規約に同意いただいたものとします。`
+        : `本条款规定了参加 ${f.displayName}（以下称"本会"）主办的赛事及常规活动的报名与参加条件。报名即视为同意本条款。`,
       sections: [
         {
           heading: ja ? '第1条（申し込み）' : '第1条（报名）',

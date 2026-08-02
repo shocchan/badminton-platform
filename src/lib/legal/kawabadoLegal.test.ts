@@ -82,9 +82,30 @@ describe('プライバシーポリシー', () => {
   it('個人情報保護法まわりで載せるべき項目が揃っている', () => {
     const page = buildKawabadoLegalPages('ja').find((p) => p.id === 'privacy')!;
     const headings = page.sections.map((s) => s.heading);
-    for (const req of ['取得する情報', '利用目的', '第三者への提供・委託', '保管方法と保存期間', '開示・訂正・削除のご請求', 'お問い合わせ窓口']) {
+    for (const req of ['取得する情報', '利用目的', 'ご案内の配信停止', '第三者への提供・委託', '保管方法と保存期間', '開示・訂正・削除のご請求', 'お問い合わせ窓口']) {
       expect(headings, `プライバシーポリシーに「${req}」が無い`).toContain(req);
     }
+  });
+
+  it('今後の告知・お知らせの送付が利用目的に含まれている', () => {
+    // ここが抜けると、次回大会の案内メールが目的外利用になってしまう
+    const purpose = KAWABADO_LEGAL_FACTS.personalDataPurpose!.ja;
+    expect(purpose).toMatch(/ご案内|お知らせ/);
+  });
+
+  it('利用目的を自ら狭めすぎていない（告知を送れなくなる書き方をしない）', () => {
+    // 「これら以外の目的には利用しません」と言い切ると、後から告知を足せなくなる
+    const purpose = KAWABADO_LEGAL_FACTS.personalDataPurpose!.ja;
+    expect(purpose).not.toMatch(/これら以外の目的には利用しません/);
+    // ただし無制限にもしない。関連性の範囲を超えるときは同意を取る旨が要る
+    expect(purpose).toMatch(/同意/);
+  });
+
+  it('配信停止の方法が書かれている（特定電子メール法）', () => {
+    const optOut = KAWABADO_LEGAL_FACTS.optOut!.ja;
+    expect(optOut).toMatch(/停止/);
+    // 配信停止しても申込済みイベントの連絡は届くことを明示（利用者の不利益を防ぐ）
+    expect(optOut).toMatch(/変更|中止/);
   });
 
   it('実際に収集している項目（氏名・メール・電話）が明記されている', () => {
@@ -161,6 +182,31 @@ describe('日本語・中国語の対応', () => {
     ja.forEach((p, i) => {
       expect(zh[i].sections).toHaveLength(p.sections.length);
     });
+  });
+});
+
+describe('氏名の露出範囲（CEO指示: 特商法以外は屋号のみ）', () => {
+  // 特定商取引法は個人事業主に「氏名」の表示を求めるため特商法ページには本名が要る。
+  // 一方、プライバシーポリシー・利用規約には表示義務が無いので本名を出さない。
+  const REAL_NAME = '安田翔';
+
+  it('特商法ページには氏名が載っている（法令要件）', () => {
+    for (const lang of LANGS) {
+      const page = buildKawabadoLegalPages(lang).find((p) => p.id === 'tokushoho')!;
+      const text = page.sections.map((s) => s.body.join('')).join('');
+      expect(text, `${lang}: 特商法表記から氏名が消えている`).toMatch(REAL_NAME);
+    }
+  });
+
+  it('プライバシーポリシー・利用規約には氏名を出さない', () => {
+    for (const lang of LANGS) {
+      for (const id of ['privacy', 'terms'] as const) {
+        const page = buildKawabadoLegalPages(lang).find((p) => p.id === id)!;
+        const text = page.intro + page.sections.map((s) => s.body.join('')).join('');
+        expect(text, `${lang}/${id} に氏名が漏れている`).not.toMatch(REAL_NAME);
+        expect(text, `${lang}/${id} に屋号が無い`).toMatch(KAWABADO_LEGAL_FACTS.displayName);
+      }
+    }
   });
 });
 
