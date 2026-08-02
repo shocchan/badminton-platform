@@ -1,0 +1,41 @@
+[
+  {
+    "planId": "ai-hour-pass",
+    "status": "published",
+    "ctaMode": "checkout",
+    "priceAmount": 600,
+    "currency": "JPY",
+    "planVersion": 1,
+    "includedActiveMinutes": 60,
+    "validityDays": 30,
+    "durationDays": 0,
+    "voiceMinutesCap": 10,
+    "aiReportCap": 3
+  },
+  {
+    "planId": "ai-month",
+    "status": "published",
+    "ctaMode": "checkout",
+    "priceAmount": 2980,
+    "currency": "JPY",
+    "planVersion": 1,
+    "includedActiveMinutes": null,
+    "validityDays": 30,
+    "durationDays": 30,
+    "voiceMinutesCap": 40,
+    "aiReportCap": 30
+  },
+  {
+    "planId": "coach-6m",
+    "status": "published",
+    "ctaMode": "consult",
+    "priceAmount": 100000,
+    "currency": "JPY",
+    "planVersion": 1,
+    "includedActiveMinutes": null,
+    "validityDays": 180,
+    "durationDays": 180,
+    "voiceMinutesCap": 240,
+    "aiReportCap": 180
+  }
+]

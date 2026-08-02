@@ -5,33 +5,42 @@
 //
 // 6か月伴走だけ `ctaMode: 'consult'` なので、この画面は相談申込の入口になる（§14）。
 
+import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import {
   salesPlanById, salesPlanView, acceptsPurchase, isTimedPlan,
 } from '../../../lib/aiLesson/course/sales/planConfig';
 import { plansCopy, plansPathFor } from '../../../lib/aiLesson/course/sales/plansContent';
 import { checkoutMode, checkoutNotice, isCheckoutEnabled } from '../../../lib/aiLesson/course/sales/salesEnv';
+import { CURRENT_SALES_TERMS_VERSION } from '../../../lib/aiLesson/course/sales/salesTerms';
+import type { CompleteCheckoutResult } from '../../../lib/aiLesson/course/sales/checkoutFlow';
 import { LegalFooterLinks } from '../legal/LegalPage';
-import { trackCourseOnce } from '../../../lib/aiLesson/course/courseAnalytics';
+import { CheckoutForm } from './CheckoutForm';
+import { PurchaseComplete } from './PurchaseComplete';
 
 const label = (lang: 'ja' | 'zh', ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
 export const PurchasePage = () => {
   const params = useParams();
+  const location = useLocation();
   const lang: 'ja' | 'zh' = params.lang === 'zh' ? 'zh' : 'ja';
   const plan = salesPlanById(params.planId ?? '');
   const copy = plansCopy(lang);
+  const [granted, setGranted] = useState<CompleteCheckoutResult | null>(null);
 
   // 存在しない・非公開のプランのURLを直に叩かれても、行き止まりにせず料金ページへ戻す
   if (!plan || plan.status === 'draft') return <Navigate to={plansPathFor(lang)} replace />;
 
-  const view = salesPlanView(plan, lang, isCheckoutEnabled());
-  const mode = checkoutMode();
+  const view = salesPlanView(plan, lang, isCheckoutEnabled(location.search));
+  const mode = checkoutMode(location.search);
   const notice = checkoutNotice(mode, lang);
   const consult = plan.ctaMode === 'consult';
 
-  trackCourseOnce('checkout_started', { plan_id: plan.planId, cta_mode: plan.ctaMode, mode });
+  // 付与まで終わったら、注文画面ではなく「始められます」の画面に切り替える
+  if (granted) {
+    return <PurchaseComplete plan={plan} lang={lang} result={granted} />;
+  }
 
   return (
     <div className="min-h-screen bg-lp-ivory">
@@ -103,8 +112,17 @@ export const PurchasePage = () => {
           </p>
         )}
 
-        {/* Phase 2 でここに test 決済フォーム／相談フォームが入る。
-            今は「次に何が起きるか」を明示して、行き止まりにしない */}
+        {/* 決済が使えるときだけフォームを出す。使えないときは下の流れ説明だけが残る */}
+        {!consult && acceptsPurchase(plan) && mode !== 'disabled' && (
+          <CheckoutForm
+            plan={plan}
+            lang={lang}
+            mode={mode}
+            termsVersion={CURRENT_SALES_TERMS_VERSION}
+            onGranted={setGranted}
+          />
+        )}
+
         <section className="mt-6 rounded-2xl border border-lp-line bg-white p-5">
           <h2 className="text-base font-extrabold text-lp-ink">
             {consult

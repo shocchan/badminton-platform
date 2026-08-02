@@ -6,25 +6,30 @@
 import { describe, it, expect } from 'vitest';
 import {
   resolveCheckoutMode, checkoutNotice, assertCheckoutAllowed, ALLOW_LIVE_CHECKOUT,
+  isRealMoneyMode, type CheckoutModeInput,
 } from './salesEnv';
+
+/** 既定は「本番ビルドではない・オプトインなし」。各テストが必要な分だけ上書きする */
+const mode = (over: Partial<CheckoutModeInput> = {}) =>
+  resolveCheckoutMode({ publishableKey: '', buildMode: 'staging', search: '', ...over });
 
 describe('鍵の種類で決済モードが決まる', () => {
   it('test鍵のときだけ決済が動く', () => {
-    expect(resolveCheckoutMode('pk_test_51AbCdEf')).toBe('test');
+    expect(mode({ publishableKey: 'pk_test_51AbCdEf' })).toBe('test');
   });
 
   it('本番鍵では決済が無効（CEO承認フラグが false のあいだ）', () => {
-    expect(resolveCheckoutMode('pk_live_51AbCdEf')).toBe('disabled');
+    expect(mode({ publishableKey: 'pk_live_51AbCdEf' })).toBe('disabled');
   });
 
   it('鍵が無ければ決済は無効', () => {
-    expect(resolveCheckoutMode('')).toBe('disabled');
-    expect(resolveCheckoutMode('   ')).toBe('disabled');
+    expect(mode({ publishableKey: '' })).toBe('disabled');
+    expect(mode({ publishableKey: '   ' })).toBe('disabled');
   });
 
   it('見慣れない形の値でも決済を開けない（未知はすべて無効側へ倒す）', () => {
     for (const k of ['sk_test_x', 'pk_', 'test', 'PK_TEST_X', 'pk_testx']) {
-      expect(resolveCheckoutMode(k), k).toBe('disabled');
+      expect(mode({ publishableKey: k }), k).toBe('disabled');
     }
   });
 
@@ -33,7 +38,32 @@ describe('鍵の種類で決済モードが決まる', () => {
   });
 
   it('許可フラグを立てたときだけ live になる', () => {
-    expect(resolveCheckoutMode('pk_live_x', true)).toBe('live');
+    expect(mode({ publishableKey: 'pk_live_x', allowLive: true })).toBe('live');
+  });
+});
+
+describe('模擬決済のオプトイン', () => {
+  it('本番ビルドでは、オプトインしても模擬決済にならない', () => {
+    expect(mode({ buildMode: 'production', search: '?checkout=sim' })).toBe('disabled');
+    expect(mode({ buildMode: 'production', search: '?checkout=sim', publishableKey: 'pk_live_x' })).toBe('disabled');
+  });
+
+  it('staging で明示のオプトインをしたときだけ模擬決済', () => {
+    expect(mode({ buildMode: 'staging', search: '?checkout=sim' })).toBe('simulated');
+    expect(mode({ buildMode: 'staging', search: '' })).toBe('disabled');
+    expect(mode({ buildMode: 'staging', search: '?checkout=x' })).toBe('disabled');
+  });
+
+  it('模擬決済では実際のお金が動かない', () => {
+    expect(isRealMoneyMode('simulated')).toBe(false);
+    expect(isRealMoneyMode('test')).toBe(false);
+    expect(isRealMoneyMode('live')).toBe(true);
+  });
+
+  it('模擬であることを画面で隠さない', () => {
+    expect(checkoutNotice('simulated', 'ja')).toContain('模擬決済');
+    expect(checkoutNotice('simulated', 'ja')).toContain('請求も発生しません');
+    expect(checkoutNotice('simulated', 'zh')).toContain('模拟支付');
   });
 });
 

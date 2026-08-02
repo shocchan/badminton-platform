@@ -236,6 +236,20 @@ describe('価格の単一情報源（§17 最重要 / §21 Hardcoded Prices）',
   const isTest = (f: string) => /\.test\.tsx?$/.test(f);
   const isContent = (f: string) => CONTENT_DIRS.some((d) => f.startsWith(d));
 
+  /**
+   * コメントを落としてから検査する。
+   * 「クライアントが金額を送れると600円の商品を1円で買われる」のような
+   * **説明文**を価格のハードコードとして誤検出すると、
+   * テストを緩める方向の圧力になってしまうため。
+   * ブロックコメントと、行頭が // の行だけを落とす（コード中の文字列は残す）。
+   */
+  const stripComments = (src: string): string =>
+    src
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('//'))
+      .join('\n');
+
   it('A: 販売系ディレクトリでは、価格の生数値が planConfig.ts にしか無い', () => {
     const prices = SALES_PLAN_CATALOG.map((p) => p.priceAmount);
     const offenders: string[] = [];
@@ -246,7 +260,7 @@ describe('価格の単一情報源（§17 最重要 / §21 Hardcoded Prices）',
       try { files = walk(dir); } catch { continue; }   // 未作成のディレクトリは飛ばす
       for (const file of files) {
         if (file === CANON || isTest(file)) continue;
-        const body = readFileSync(file, 'utf8');
+        const body = stripComments(readFileSync(file, 'utf8'));
         for (const price of prices) {
           // Tailwindのクラス名（text-slate-600 等）に当たらないよう、
           // 英数字・ハイフン・ドットに続く数字は数値リテラルとみなさない
@@ -275,7 +289,7 @@ describe('価格の単一情報源（§17 最重要 / §21 Hardcoded Prices）',
     for (const dir of AI_DIRS) {
       for (const file of walk(dir)) {
         if (file === CANON || isTest(file) || isContent(file)) continue;
-        const body = readFileSync(file, 'utf8');
+        const body = stripComments(readFileSync(file, 'utf8'));
         for (const pat of patterns) {
           if (body.includes(pat)) offenders.push(`${file.replace(SRC, 'src')}: ${pat}`);
         }
