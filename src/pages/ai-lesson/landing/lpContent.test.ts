@@ -11,12 +11,11 @@ const collectStrings = (v: unknown, out: string[] = []): string[] => {
 };
 
 describe('LP pricing', () => {
-  it('主商品は100,000円のまま', () => {
-    expect(LP.pricing.price).toBe('100,000');
-  });
-  it('月額換算を明示している', () => {
-    expect(LP.pricing.monthly.ja).toMatch(/16,700/);
-    expect(LP.pricing.monthly.zh).toMatch(/16,700/);
+  it('**LPのコピーに商品価格を書かない**（正準は planCatalog）', () => {
+    // ここに金額を書き戻すと、カタログを直したのにLPだけ古い、という食い違いが起きる
+    for (const s of collectStrings(LP.pricing)) {
+      expect(s, `LP.pricing に金額が書かれている: "${s}"`).not.toMatch(/[0-9][0-9,]*\s*(円|日元)/);
+    }
   });
   it('「授業料ではなく学習環境への料金」コピーがある', () => {
     expect(LP.pricing.keyCopy.ja).toContain('授業料ではなく');
@@ -61,7 +60,7 @@ describe('ja / zh パリティ（訳の抜け防止）', () => {
     ['flow.steps', LP.flow.steps.ja, LP.flow.steps.zh],
     ['roadmap.phases', LP.roadmap.phases.ja, LP.roadmap.phases.zh],
     ['heroChips', LP.heroChips.ja, LP.heroChips.zh],
-    ['pricing.includes', LP.pricing.includes.ja, LP.pricing.includes.zh],
+    // pricing.includes は planCatalog へ移した（ja/zh の件数一致は planCatalog.test.ts が見る）
   ];
   it.each(pairs)('%s の ja/zh 件数が一致', (_label, ja, zh) => {
     expect((ja as unknown[]).length).toBe((zh as unknown[]).length);

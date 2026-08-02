@@ -9,6 +9,10 @@
 //
 // CEOの回答が届いたら、このファイルの値を埋めて `LEGAL_PUBLISH` を true にするだけでよい。
 // 何が足りないかは `pendingLegalFacts()` が機械的に返す。
+//
+// ⚠️ **価格をここに書かない。** 商品が複数になったので、価格の正準は planCatalog。
+//    ここに数値を持つと、カタログを直したのに特商法表記だけ古い、という食い違いが起きる。
+import { publishedPlans, PROVISIONAL_TERMS_NOTICE } from '../plans/planCatalog';
 
 /**
  * 自由文の法務事実は ja / zh を対で持つ。
@@ -26,8 +30,11 @@ export interface LegalFacts {
   phone: string | 'on_request' | null;
   /** 問い合わせ窓口（確定済み） */
   contactEmail: string;
-  /** 販売価格（税込・円）。半年伴走コース */
-  priceJpyTaxIncluded: number | null;
+  /**
+   * 販売価格。**planCatalog から自動で組み立てる**（ここに数値を直接書かない）。
+   * 公開中のプランが1つも無ければ null＝未確定として扱い、法務ページを公開しない。
+   */
+  priceJpyTaxIncluded: Bilingual | null;
   /** 支払方法 */
   paymentMethods: { ja: string; zh: string }[] | null;
   /** 支払時期 */
@@ -53,6 +60,22 @@ export interface LegalFacts {
 }
 
 /**
+ * 特商法表記に載せる販売価格を planCatalog から組み立てる。
+ *
+ * 商品が複数あるので「¥100,000」の1行では足りない。公開中のプランを全部並べる。
+ * 公開中が0件なら null＝未確定として扱い、`LEGAL_PUBLISH` が false になる
+ * （価格が書けない状態で特商法表記を出さない）。
+ */
+const catalogPriceFact = (): Bilingual | null => {
+  const plans = publishedPlans();
+  if (plans.length === 0) return null;
+  return {
+    ja: plans.map((p) => `${p.nameJa}：${p.priceLabelJa}`).join('\n'),
+    zh: plans.map((p) => `${p.nameZh}：${p.priceLabelZh}`).join('\n'),
+  };
+};
+
+/**
  * 現時点で確定している事実だけを入れている。
  * null は「まだ聞けていない」であって「無い」ではない。
  */
@@ -63,24 +86,21 @@ export const LEGAL_FACTS: LegalFacts = {
   address: 'on_request',
   phone: 'on_request',
   contactEmail: 'info@kawabado.com',
-  priceJpyTaxIncluded: 100000,
+  priceJpyTaxIncluded: catalogPriceFact(),
   paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
   paymentTiming: { ja: '申込時に一括', zh: '报名时一次性支付' },
   serviceStartTiming: {
     ja: '決済確認後、招待コードの発行をもって開始',
     zh: '确认付款后，以发放邀请码作为开始',
   },
-  // CEO決定（2026-08-02）。旧「開始後は未提供分を月割で返金」から変更。
-  // 理由: 招待コード発行＝教材とAI学習ツールの全機能が使える状態になるため、
-  // 提供後の解約を月割返金にすると事業側のリスクが大きすぎる。
-  // ⚠️ 未確認: 本コース（¥100,000・6か月・日本語の教授＋個別レッスン24回）が
-  //    特定商取引法の「特定継続的役務提供（語学教室）」に該当する場合、
-  //    中途解約権（法49条）は契約で排除できず、この条項は一部無効になりうる。
-  //    **production公開前に弁護士または消費生活センターの確認が必要**（docs/ai-course/legal-open-questions.md）
-  refundPolicy: {
-    ja: '契約書面をお受け取りいただいてから8日間は、クーリング・オフ（無条件での解除・全額返金）ができます。この期間を過ぎたあとは、教材およびAI学習ツールの全機能をご利用いただける状態になるため、原則として返金はいたしません。ただし、当方の都合でサービスを提供できなくなった場合は、未提供分を返金します。',
-    zh: '自收到合同书面之日起8天内，可以无条件解约（Cooling-off）并全额退款。超过该期限后，由于教材与AI学习工具的全部功能均已可供使用，原则上不予退款。但如果因本方原因无法继续提供服务，将退还尚未提供的部分。',
-  },
+  // CEO決定（2026-08-02・複数プラン化にともない再変更）。
+  //
+  // **全商品へ同じ返金方針を固定しない。** 体験パス・1か月・6か月では期間も提供物も違う。
+  // 特定商取引法の「特定継続的役務提供（語学教室）」に該当するかの確認が終わるまでは、
+  // 「返金不可」「8日経過後は返金なし」といった**個別の条件を断定しない**。
+  // 正準は planCatalog の PROVISIONAL_TERMS_NOTICE（法務ページ・LP・申込フォームで同じ文言を出す）。
+  // → docs/ai-course/legal-open-questions.md
+  refundPolicy: PROVISIONAL_TERMS_NOTICE,
   retentionPeriod: {
     ja: '受講期間中および受講終了後1年間保存します。ただし、退会または削除の申請があった場合は、法令上保存が必要な情報を除き、合理的な期間内に削除します。',
     zh: '在学习期间以及学习结束后保存1年。但如果提出退出或删除申请，除法律要求必须保存的信息外，将在合理期限内删除。',

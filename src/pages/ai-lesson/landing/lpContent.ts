@@ -131,11 +131,12 @@ export interface LpContent {
   testimonials: { heading: Str; lead: Str; monitorLabel: Str };
   comparison: { heading: Str; note: Str; cols: L<[string, string, string]>; rows: L<{ label: string; a: string; b: string; c: string }[]> };
   contents: { heading: Str; items: Strs; betaNote: Str };
-  pricing: {
-    heading: Str; lead: Str; planName: Str;
-    price: string; priceUnit: Str; monthly: Str;
-    includes: Strs; keyCopy: Str; disclaimer: Str; note: Str;
-  };
+  /**
+   * 料金セクションの**コピーだけ**。
+   * 価格・プラン名・含まれるものは `lib/aiLesson/course/plans/planCatalog` が正準。
+   * ここに数値を戻すと、カタログを直したのにLPだけ古い、という食い違いが起きる。
+   */
+  pricing: { heading: Str; lead: Str; keyCopy: Str; disclaimer: Str };
   faq: { heading: Str; items: L<{ q: string; a: string }[]> };
   finalCta: { heading: Str; body: Str };
   consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str;
@@ -463,26 +464,7 @@ export const LP: LpContent = {
       ja: '単発のレッスンではなく、「話せるようになる」ところまで伴走する半年コースです。',
       zh: '不是单次课程，而是陪你走到「能开口」的半年课程。',
     },
-    planName: { ja: '6か月 AI日本語伴走コース', zh: '6个月 AI日语陪跑课程' },
-    price: '100,000',
-    priceUnit: { ja: '円（税込）／ 6か月', zh: '日元（含税）／ 6个月' },
-    monthly: { ja: '月額換算 約16,700円／月', zh: '折合每月约16,700日元' },
-    includes: {
-      ja: [
-        '安田翔（コーチ）との60分個別レッスン 全24回',
-        'AI先生との音声会話（毎日、好きな時間に）',
-        'N2文法180・語彙・聴解・読解',
-        '復習システム・学習記録・個別ロードマップ',
-        'WeChatでの相談・6か月間のシステム利用',
-      ],
-      zh: [
-        '与安田翔（教练）的60分钟一对一 共24次',
-        '与AI老师的语音会话（每天・随时练习）',
-        'N2语法180・词汇・听力・阅读',
-        '复习系统・学习记录・专属路线',
-        '微信咨询・6个月系统使用权',
-      ],
-    },
+    // プラン名・価格・含まれるものは planCatalog から描画する（ここには置かない）
     keyCopy: {
       ja: '24回の授業料ではなく、6か月間の学習環境と個別伴走への料金です。',
       zh: '这不是24次课的学费，而是6个月学习环境与个性化陪伴的费用。',
@@ -491,10 +473,8 @@ export const LP: LpContent = {
       ja: '※ 会話力を中心にN2合格水準を目指すコースです。合格や会話力の向上を保証するものではありません。',
       zh: '※ 本课程以会话力为核心、以N2合格水准为目标，但不保证合格或会话能力的提升。',
     },
-    note: {
-      ja: '※ 支払い・キャンセル・返金は既存の規約に準じます。',
-      zh: '※ 付款・取消・退款依据现行条款。',
-    },
+    // キャンセル・返金の注記は planCatalog の PROVISIONAL_TERMS_NOTICE から
+    // プランごとに出す（商品によって条件が違いうるため、ここで1つに固定しない）
   },
 
   faq: {
@@ -512,7 +492,8 @@ export const LP: LpContent = {
         { q: 'バドミントンに参加する必要がありますか？', a: 'いいえ。kawabadoは「学んだ日本語を実際に使える場」の一例です。参加は任意です。' },
         { q: 'AI教材の内容は正確ですか？', a: '順次改善しています。一部はベータ版として更新中で、その状態は正直に表示します。' },
         { q: '支払い方法は？', a: '既存の規約に準じます。詳細は無料相談でご案内します。' },
-        { q: 'キャンセル・返金は？', a: '既存のキャンセル・返金規約に準じます。' },
+        // プランごとに条件が違いうるので「一律こうです」と書かない（planCatalog の暫定表示と揃える）
+        { q: 'キャンセル・返金は？', a: '選択したプランおよび申込時にご案内する契約条件によって異なります。申込前に必ずご確認ください。ご不明な点は個別相談でお答えします。' },
         { q: 'AI会話は何回利用できますか？', a: '好きな時間に練習でき、何度でも言い直せます。安定した運用のため、ご利用状況に応じて上限を設ける場合があります。' },
         { q: 'どのレベルの人に向いていますか？', a: 'N3〜N2前後で、文法は分かるのに会話で使えない方に向いています。' },
       ],
@@ -528,7 +509,7 @@ export const LP: LpContent = {
         { q: '必须参加羽毛球活动吗？', a: '不必。kawabado只是「把学到的日语用出来」的一个场景，参加与否自愿。' },
         { q: 'AI教材内容准确吗？', a: '在持续改进中。部分为测试版更新中，我们会如实标注状态。' },
         { q: '如何付款？', a: '依据现行条款。详情将在免费咨询时说明。' },
-        { q: '可以取消・退款吗？', a: '依据现行的取消・退款条款。' },
+        { q: '可以取消・退款吗？', a: '会因所选方案以及报名时提供的合同条件而不同。请务必在报名前确认。如有疑问，可在一对一咨询中提出。' },
         { q: 'AI会话能用多少次？', a: '可在方便的时间练习，并反复重说。为保证稳定运营，可能会视使用情况设置上限。' },
         { q: '适合什么水平的人？', a: '适合N3〜N2左右、懂语法却在会话中用不出来的人。' },
       ],
