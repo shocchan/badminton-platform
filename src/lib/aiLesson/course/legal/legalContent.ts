@@ -35,8 +35,8 @@ export interface LegalPage {
 }
 
 // 金額はJPYのまま、表記だけ言語に合わせる（UX-005: zhで「円（税込）」は不自然）
-const yen = (n: number | null, lang: 'ja' | 'zh') =>
-  (n === null ? null : lang === 'zh' ? `${n.toLocaleString('ja-JP')}日元（含税）` : `${n.toLocaleString('ja-JP')}円（税込）`);
+// 価格は planCatalog から組み立てた文字列で来る（商品が複数あるので数値1つでは足りない）。
+// 表示は pick() で済むため、旧 yen() は廃止した。
 
 /** ja/zh を対で持つ事実から、表示言語のほうを取り出す */
 const pick = (v: { ja: string; zh: string } | null, lang: 'ja' | 'zh'): string | null => (v ? v[lang] : null);
@@ -285,7 +285,7 @@ export const buildLegalPages = (lang: 'ja' | 'zh', f: LegalFacts = LEGAL_FACTS):
         {
           heading: t('販売価格', '销售价格'),
           requires: ['priceJpyTaxIncluded'],
-          body: [yen(f.priceJpyTaxIncluded, lang)],
+          body: [pick(f.priceJpyTaxIncluded, lang)],
         },
         {
           heading: t('代金以外の必要料金', '价款以外的必要费用'),

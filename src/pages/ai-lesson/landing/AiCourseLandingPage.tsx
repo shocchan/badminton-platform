@@ -10,6 +10,8 @@ import { PlatformFeatures, SixMonthRoadmap, FutureOutcomes } from './sectionsB';
 import { HumanCoachSection, AiTeachersSection, TestimonialsSection } from './sectionsC';
 import { ComparisonSection, CourseContentsSection, PricingSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
+import { ApplicationModal } from './ApplicationModal';
+import { isPlanPreview, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
 
 const SITE = 'https://kawabado.com';
@@ -21,6 +23,10 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
   const v = VARIANTS[variant];
   const [consultOpen, setConsultOpen] = useState(false);
   const openConsult = () => setConsultOpen(true);
+  // 申込フォーム。プランの ctaMode が 'apply' のときだけ開く
+  const [applyPlanId, setApplyPlanId] = useState<PlanId | null>(null);
+  // CEO確認用。draft のプランも料金セクションに並べる（学習者には見せない）
+  const planPreview = typeof window !== 'undefined' && isPlanPreview(window.location.search);
 
   // view は1マウント1回だけ（StrictModeの二重呼び出しでも重複させない）
   const viewed = useRef(false);
@@ -114,7 +120,8 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
         <TestimonialsSection lang={lang} />
         <ComparisonSection lang={lang} />
         <CourseContentsSection lang={lang} />
-        <PricingSection v={v} lang={lang} onConsult={openConsult} />
+        <PricingSection v={v} lang={lang} onConsult={openConsult}
+          onApply={setApplyPlanId} preview={planPreview} />
         <FaqSection lang={lang} />
         <FinalCtaSection v={v} lang={lang} onConsult={openConsult} />
       </main>
@@ -147,6 +154,9 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
       </footer>
 
       <ConsultationModal open={consultOpen} onClose={() => setConsultOpen(false)} lang={lang} variant={v.key} />
+      {/* key で作り直す＝開くたびに入力が空に戻る（前の人の入力を持ち越さない） */}
+      <ApplicationModal key={applyPlanId ?? 'closed'} planId={applyPlanId}
+        onClose={() => setApplyPlanId(null)} lang={lang} />
     </div>
   );
 }

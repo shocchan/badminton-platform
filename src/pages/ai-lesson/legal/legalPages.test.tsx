@@ -95,7 +95,9 @@ describe('未確定の事実を作文しない・「準備中」も出さない'
     const filled: LegalFacts = {
       ...LEGAL_FACTS,
       operatorName: 'テスト事業者', address: 'on_request', phone: 'on_request',
-      priceJpyTaxIncluded: 100000,
+      // 価格は planCatalog 由来の文字列（商品が複数あるので数値1つでは足りない）。
+      // 実在の金額はここに書かない（planCatalog.test.ts のハードコード検査に引っかかるため）
+      priceJpyTaxIncluded: { ja: 'テストプラン：9,999円（税込）', zh: '测试方案：9,999日元（含税）' },
       paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
       paymentTiming: { ja: '申込時', zh: '报名时' },
       serviceStartTiming: { ja: '決済確認後', zh: '确认付款后' },
@@ -110,11 +112,12 @@ describe('未確定の事実を作文しない・「準備中」も出さない'
     const headings = r.sections.map((s) => s.heading);
     expect(headings).toContain('販売事業者');
     expect(headings).toContain('販売価格');
-    expect(r.sections.find((s) => s.heading === '販売価格')!.body[0]).toContain('100,000円（税込）');
+    // 価格はカタログ由来の文字列がそのまま出る（数値の整形はここでしない）
+    expect(r.sections.find((s) => s.heading === '販売価格')!.body[0]).toBe(filled.priceJpyTaxIncluded!.ja);
     // zhでは「日元（含税）」表記になる（UX-005）
     const zhPage = buildLegalPages('zh', filled).find((p) => p.id === 'tokushoho')!;
     const zhR = renderableLegalPage(zhPage, filled);
-    expect(zhR.sections.find((s) => s.heading === '销售价格')!.body[0]).toContain('100,000日元（含税）');
+    expect(zhR.sections.find((s) => s.heading === '销售价格')!.body[0]).toBe(filled.priceJpyTaxIncluded!.zh);
     expect(pendingLegalFacts(filled)).toEqual([]);
   });
 
