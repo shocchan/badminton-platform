@@ -235,3 +235,28 @@ describe('購入済みの人に見せる料金ページ（§11 再購入）', ()
     expect(screen.queryByTestId('repurchase-note-ai-month')).toBeNull();
   });
 });
+
+describe('スクリーンリーダー向けの名前（§19）', () => {
+  it('入力欄が明示的に label と結ばれている（内包だけに頼らない）', () => {
+    const { container } = open('ai-hour-pass');
+    const email = container.querySelector('input[type=email]')!;
+    const label = container.querySelector(`label[for="${email.id}"]`);
+    expect(email.id).toBeTruthy();
+    expect(label, 'htmlFor で結ばれた label が無い').toBeTruthy();
+    expect(email.getAttribute('aria-describedby')).toBeTruthy();
+  });
+
+  it('模擬結果のラジオが、カード番号ではなく意味で読み上げられる', () => {
+    const { container } = open('ai-hour-pass');
+    for (const r of Array.from(container.querySelectorAll('input[type=radio]'))) {
+      const name = r.getAttribute('aria-label') ?? '';
+      expect(name.length, 'aria-label が無い').toBeGreaterThan(0);
+      expect(/^\d+$/.test(name), `カード番号が読み上げ名になっている: ${name}`).toBe(false);
+    }
+  });
+
+  it('規約同意チェックにも名前がある', () => {
+    const { container } = open('ai-hour-pass');
+    expect(container.querySelector('input[type=checkbox]')!.getAttribute('aria-label')).toBeTruthy();
+  });
+});

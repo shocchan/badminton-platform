@@ -130,14 +130,18 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
         {t(lang, 'お申し込み', '申请')}
       </h2>
 
-      <label className="mt-4 block">
-        <span className="text-sm font-bold text-lp-ink">
+      {/* label で囲むだけにせず id / htmlFor で明示的に結ぶ。
+          支援技術によっては内包だけだと名前が解決されないことがある */}
+      <div className="mt-4">
+        <label htmlFor="checkout-email" className="block text-sm font-bold text-lp-ink">
           {t(lang, 'メールアドレス', '邮箱地址')}
-        </span>
-        <span className="mt-0.5 block text-[0.78rem] text-lp-ink-soft">
+        </label>
+        <span id="checkout-email-help" className="mt-0.5 block text-[0.78rem] text-lp-ink-soft">
           {t(lang, 'ログインと、お支払いのご案内に使います。', '用于登录和付款相关通知。')}
         </span>
         <input
+          id="checkout-email"
+          aria-describedby="checkout-email-help"
           type="email"
           inputMode="email"
           autoComplete="email"
@@ -147,7 +151,7 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
           disabled={busy}
           className="mt-1.5 block min-h-12 w-full rounded-lg border border-lp-line px-3 text-base text-lp-ink focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-lp-coral-deep"
         />
-      </label>
+      </div>
 
       {mode === 'simulated' && (
         <fieldset className="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-3">
@@ -164,6 +168,8 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
                   checked={simCard === o.card}
                   onChange={() => setSimCard(o.card)}
                   disabled={busy}
+                  // value（カード番号）が読み上げ名にならないよう明示する
+                  aria-label={t(lang, o.ja, o.zh)}
                   className="h-4 w-4"
                 />
                 <span>{t(lang, o.ja, o.zh)}</span>
@@ -179,6 +185,7 @@ export const CheckoutForm = ({ plan, lang, mode, termsVersion, onGranted }: Chec
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
           disabled={busy}
+          aria-label={t(lang, '規約に同意する', '同意条款')}
           className="mt-1 h-4 w-4"
         />
         <span className="text-[0.88rem] leading-relaxed text-lp-ink">
