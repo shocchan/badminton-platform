@@ -18,7 +18,7 @@
     "ctaMode": "checkout",
     "priceAmount": 2980,
     "currency": "JPY",
-    "planVersion": 1,
+    "planVersion": 2,
     "includedActiveMinutes": null,
     "validityDays": 30,
     "durationDays": 30,

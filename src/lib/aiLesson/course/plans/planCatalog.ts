@@ -122,7 +122,7 @@ export const PLAN_CATALOG: PlanConfig[] = [
   },
   {
     id: 'ai-month',
-    version: 1,
+    version: 2,
     nameJa: '1か月AIお試し',
     nameZh: '1个月AI体验',
     priceLabelJa: priceLabelFromSales('ai-month', 'ja'),

@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import {
-  salesPlanById, salesPlanView, acceptsPurchase, isTimedPlan,
+  salesPlanById, salesPlanView, acceptsPurchase, isTimedPlan, isPlansPreview,
 } from '../../../lib/aiLesson/course/sales/planConfig';
 import { plansCopy, plansPathFor } from '../../../lib/aiLesson/course/sales/plansContent';
 import { checkoutMode, checkoutNotice, isCheckoutEnabled } from '../../../lib/aiLesson/course/sales/salesEnv';
@@ -32,7 +32,7 @@ export const PurchasePage = () => {
   // 存在しない・非公開のプランのURLを直に叩かれても、行き止まりにせず料金ページへ戻す
   if (!plan || plan.status === 'draft') return <Navigate to={plansPathFor(lang)} replace />;
 
-  const view = salesPlanView(plan, lang, isCheckoutEnabled(location.search));
+  const view = salesPlanView(plan, lang, isCheckoutEnabled(location.search), isPlansPreview(location.search));
   const mode = checkoutMode(location.search);
   const notice = checkoutNotice(mode, lang);
   const consult = plan.ctaMode === 'consult';
@@ -108,7 +108,7 @@ export const PurchasePage = () => {
 
         {!acceptsPurchase(plan) && (
           <p role="note" className="mt-4 rounded-xl border border-slate-300 bg-slate-50 p-3 text-[0.85rem] text-slate-700">
-            {copy.pausedBadge}
+            {view.priceConfirmed ? copy.pausedBadge : copy.priceTbdBadge}
           </p>
         )}
 

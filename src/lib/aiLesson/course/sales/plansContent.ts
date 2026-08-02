@@ -46,6 +46,8 @@ export interface PlansCopy {
   featuresLabel: string;
   previewBadge: string;
   pausedBadge: string;
+  /** 価格がまだ確定していないときの表示（受付停止とは理由が違うので分ける） */
+  priceTbdBadge: string;
 }
 
 const JA: PlansCopy = {
@@ -114,6 +116,7 @@ const JA: PlansCopy = {
   featuresLabel: '含まれるもの',
   previewBadge: '未公開（プレビュー）',
   pausedBadge: '受付停止中',
+  priceTbdBadge: '価格を準備中です',
 };
 
 const ZH: PlansCopy = {
@@ -182,6 +185,7 @@ const ZH: PlansCopy = {
   featuresLabel: '包含的内容',
   previewBadge: '未公开（预览）',
   pausedBadge: '暂停受理',
+  priceTbdBadge: '价格筹备中',
 };
 
 export const plansCopy = (lang: 'ja' | 'zh'): PlansCopy => (lang === 'zh' ? ZH : JA);

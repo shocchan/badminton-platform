@@ -218,10 +218,11 @@ const planHash = (id: string): string => {
  */
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
   'ai-trial-pass': { version: 1, hash: '50e5c60bb64e' },
-  // 2026-08-02: 価格ラベルを sales/planConfig.ts からの導出に変えた結果、
-  // 「準備中」→ 正準カタログの金額 に変わった。version 1 はまだ一度も
-  // 申込に紐づいていない初回公開ぶんなので、上の例外どおりハッシュだけ更新する。
-  'ai-month': { version: 1, hash: '0cc7f8c3805f' },
+  // 2026-08-02: 一度 sales/planConfig からの導出で金額表示にしたが、
+  // 価格がCEO未確定のため通常表示を「準備中」へ戻した（CEO指示）。
+  // 表示は初回公開時と同じ内容に戻るのでハッシュも元に戻るが、
+  // 途中で金額を出した版と区別できるよう version は 2 へ上げる。
+  'ai-month': { version: 2, hash: '6478911aef2b' },
   'coach-6m': { version: 1, hash: 'c5b5d10ece0d' },
 };
 

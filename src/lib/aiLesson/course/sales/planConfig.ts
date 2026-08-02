@@ -94,6 +94,17 @@ export interface SalesPlanConfig {
 
   /** 税込表示の金額（円）。`taxIncluded` が false のときは税抜 */
   priceAmount: number;
+  /**
+   * 価格の確定状態。
+   * - `confirmed` … CEO確定済み。通常表示で金額を出し、購入を受け付ける
+   * - `draft`     … **候補値**。通常表示では「準備中」とし、金額は `?plans=preview` でのみ出す。
+   *                 購入も受け付けない（未確定の金額で課金しないため、サーバー側でも拒否する）
+   *
+   * priceAmount に候補値を保持したまま「まだ確定していない」と言えるようにするための欄。
+   * status（draft/published）と分けているのは、**商品は見せたいが価格は未確定**という
+   * 状態が実際にあるため。statusをdraftにすると比較表からカードごと消えてしまう。
+   */
+  priceStatus: 'confirmed' | 'draft';
   currency: 'JPY';
   taxIncluded: boolean;
 
@@ -165,6 +176,7 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
     taglineZh: '先轻松试一试',
 
     priceAmount: 600,
+    priceStatus: 'confirmed',
     currency: 'JPY',
     taxIncluded: true,
 
@@ -247,7 +259,9 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
     taglineJa: '自分のペースで続ける',
     taglineZh: '按自己的节奏坚持',
 
+    // ⚠️ CEO未承認の候補値。確定するまで通常表示に金額を出さない（2026-08-02 CEO指示）
     priceAmount: 2980,
+    priceStatus: 'draft',
     currency: 'JPY',
     taxIncluded: true,
 
@@ -317,7 +331,7 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
     cost: { voiceMinutesCap: 40, aiReportCap: 30, infraCostJpyPerPurchase: 50 },
 
     sortOrder: 2,
-    version: 1,
+    version: 2,
     effectiveFrom: '2026-08-02',
   },
 
@@ -330,6 +344,7 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
     taglineZh: '和老师一起走到目标',
 
     priceAmount: 100000,
+    priceStatus: 'confirmed',
     currency: 'JPY',
     taxIncluded: true,
 
@@ -407,7 +422,9 @@ export const salesPlanById = (id: string): SalesPlanConfig | null =>
   SALES_PLAN_CATALOG.find((p) => p.planId === id) ?? null;
 
 /** そのプランが今、購入・申込を受けられるか */
-export const acceptsPurchase = (p: SalesPlanConfig): boolean => p.status === 'published';
+export const acceptsPurchase = (p: SalesPlanConfig): boolean =>
+  // 未確定の金額で課金しない。表示だけでなく購入判定そのものを止める
+  p.status === 'published' && isPriceConfirmed(p);
 
 /** CEOだけがdraftを見るためのプレビュー判定（`?plans=preview`） */
 export const isPlansPreview = (search: string): boolean =>
@@ -423,21 +440,40 @@ export const isTimedPlan = (p: SalesPlanConfig): boolean => p.includedActiveMinu
 /** 人間対応を含むか。ここが松竹梅の本質的な差（§2） */
 export const hasHumanSupport = (p: SalesPlanConfig): boolean => p.humanLessonCount > 0;
 
-/** 金額表示。ja/zh とも「円」を明示する（zhで通貨が曖昧にならないように） */
-export const formatPlanPrice = (p: SalesPlanConfig, lang: 'ja' | 'zh'): string => {
+/** 価格が確定しているか。未確定なら購入させない */
+export const isPriceConfirmed = (p: SalesPlanConfig): boolean => p.priceStatus === 'confirmed';
+
+/**
+ * 金額表示。ja/zh とも「円」を明示する（zhで通貨が曖昧にならないように）。
+ *
+ * 価格が未確定（`priceStatus: 'draft'`）のときは、
+ * - 通常表示 … 「準備中」。**候補値を確定価格のように見せない**
+ * - preview  … 「2,980円（案）」。CEOが候補値を確認できるようにする
+ */
+export const formatPlanPrice = (
+  p: SalesPlanConfig,
+  lang: 'ja' | 'zh',
+  preview = false,
+): string => {
   const n = p.priceAmount.toLocaleString('en-US');
-  return lang === 'zh' ? `${n}日元` : `${n}円`;
+  const amount = lang === 'zh' ? `${n}日元` : `${n}円`;
+  if (isPriceConfirmed(p)) return amount;
+  if (!preview) return lang === 'zh' ? '筹备中' : '準備中';
+  return lang === 'zh' ? `${amount}（暂定）` : `${amount}（案）`;
 };
 
 /** 税表記。taxIncluded=false のまま税込と書かない */
 export const formatTaxNote = (p: SalesPlanConfig, lang: 'ja' | 'zh'): string =>
+  !isPriceConfirmed(p) ? '' :
   p.taxIncluded
     ? (lang === 'zh' ? '含税' : '税込')
     : (lang === 'zh' ? '不含税' : '税抜');
 
 /** 画面に出すCTA文言。決済が使えないときは代替文言に落とす（§5） */
 export const ctaLabelFor = (p: SalesPlanConfig, lang: 'ja' | 'zh', checkoutEnabled: boolean): string => {
-  if (p.ctaMode === 'consult' || checkoutEnabled) {
+  // 価格が未確定なら、決済が有効でも購入文言にしない。
+  // view を経由しない呼び出しでも抜けないよう、判定はここに置く
+  if (p.ctaMode === 'consult' || (checkoutEnabled && isPriceConfirmed(p))) {
     return lang === 'zh' ? p.ctaLabelZh : p.ctaLabelJa;
   }
   return lang === 'zh' ? p.ctaLabelDisabledZh : p.ctaLabelDisabledJa;
@@ -451,6 +487,8 @@ export interface SalesPlanView {
   tagline: string;
   price: string;
   taxNote: string;
+  /** 価格が確定しているか。false のとき画面は金額を確定情報として扱わない */
+  priceConfirmed: boolean;
   features: string[];
   limitations: string[];
   ctaLabel: string;
@@ -467,13 +505,15 @@ export const salesPlanView = (
   p: SalesPlanConfig,
   lang: 'ja' | 'zh',
   checkoutEnabled: boolean,
+  preview = false,
 ): SalesPlanView => ({
   planId: p.planId,
   status: p.status,
   name: lang === 'zh' ? p.nameZh : p.nameJa,
   tagline: lang === 'zh' ? p.taglineZh : p.taglineJa,
-  price: formatPlanPrice(p, lang),
+  price: formatPlanPrice(p, lang, preview),
   taxNote: formatTaxNote(p, lang),
+  priceConfirmed: isPriceConfirmed(p),
   features: lang === 'zh' ? p.featuresZh : p.featuresJa,
   limitations: lang === 'zh' ? p.limitationsZh : p.limitationsJa,
   ctaLabel: ctaLabelFor(p, lang, checkoutEnabled),

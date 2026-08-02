@@ -43,14 +43,27 @@ const makeDeps = (card?: string, repo = new MemoryRepo()): CheckoutDeps & { repo
   newOrderId: () => 'ord_test_1',
 });
 
-const buy = async (planId: string, deps: CheckoutDeps, over: Partial<{ email: string; orderId: string }> = {}) => {
-  const started = await startCheckout({
-    planId, email: over.email ?? 'learner@example.com', lang: 'ja',
-    termsVersion: '2026-08-02', orderId: over.orderId,
-  }, deps);
-  if (!started.ok) return { started, completed: null };
-  const completed = await completeCheckout(started.purchase!.orderId, deps);
-  return { started, completed };
+const buy = async (
+  planId: string,
+  deps: CheckoutDeps,
+  over: Partial<{ email: string; orderId: string; forcePriceConfirmed: boolean }> = {},
+) => {
+  // 価格が未確定のプランを「確定した後」の想定で通すための一時差し替え。
+  // 実データは書き換えたままにしない
+  const plan = salesPlanById(planId) as { priceStatus: 'confirmed' | 'draft' } | null;
+  const original = plan?.priceStatus;
+  if (over.forcePriceConfirmed && plan) plan.priceStatus = 'confirmed';
+  try {
+    const started = await startCheckout({
+      planId, email: over.email ?? 'learner@example.com', lang: 'ja',
+      termsVersion: '2026-08-02', orderId: over.orderId,
+    }, deps);
+    if (!started.ok) return { started, completed: null };
+    const completed = await completeCheckout(started.purchase!.orderId, deps);
+    return { started, completed };
+  } finally {
+    if (plan && original) plan.priceStatus = original;
+  }
 };
 
 describe('相談なしで購入から利用開始まで到達する（§20 完了条件2・3）', () => {
@@ -69,9 +82,24 @@ describe('相談なしで購入から利用開始まで到達する（§20 完�
     expect(snapshot.remainingActiveSeconds).toBe(3600);
   });
 
-  it('1か月プランも同じ流れで自動付与される', async () => {
+  it('1か月プランは価格がCEO未確定なので、いま決済に進めない', async () => {
+    // 2026-08-02 CEO指示。候補値のまま課金しない。
+    // 画面だけでなく決済開始の関数そのものが止めることを確認する
     const deps = makeDeps();
-    const { completed } = await buy('ai-month', deps);
+    const started = await startCheckout(
+      { planId: 'ai-month', email: 'a@example.com', lang: 'ja', termsVersion: '2026-08-02' },
+      deps,
+    );
+    expect(started.ok).toBe(false);
+    expect(started.error).toBe('price_not_confirmed');
+    expect(deps.repo.purchases.size, '注文レコードすら作らない').toBe(0);
+  });
+
+  it('価格が確定すれば、1か月プランも同じ流れで自動付与される', async () => {
+    // 価格確定後に自動付与まで通ることは、今のうちに固定しておく。
+    // ここが壊れたまま値段だけ決まる、という順序を避けるため
+    const deps = makeDeps();
+    const { completed } = await buy('ai-month', deps, { forcePriceConfirmed: true });
     expect(completed!.outcome).toBe('granted');
     const snapshot = resolveEntitlement(deps.repo.grants, emptyConsumption(), T0);
     expect(snapshot.activePlanId).toBe('ai-month');

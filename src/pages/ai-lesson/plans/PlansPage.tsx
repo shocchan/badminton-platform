@@ -119,7 +119,7 @@ const PlanCard = ({
             className="flex min-h-12 w-full items-center justify-center rounded-xl bg-slate-100 px-4 text-center text-sm font-bold text-slate-600"
             role="note"
           >
-            {copy.pausedBadge}
+            {view.priceConfirmed ? copy.pausedBadge : copy.priceTbdBadge}
           </p>
         )}
         {repurchaseLabel && (
@@ -207,7 +207,7 @@ export const PlansPage = () => {
               <PlanCard
                 key={p.planId}
                 plan={p}
-                view={salesPlanView(p, lang, isCheckoutEnabled(location.search))}
+                view={salesPlanView(p, lang, isCheckoutEnabled(location.search), isPlansPreview(location.search))}
                 copy={copy}
                 lang={lang}
                 owned={ownedPlanIds.has(p.planId)}

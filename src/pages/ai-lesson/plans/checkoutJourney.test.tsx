@@ -197,10 +197,17 @@ describe('入力（§14 最小入力）', () => {
 
 describe('注文内容の一致（§17 別々の価格を出さない）', () => {
   it('注文画面の金額が PlanConfig と一致する', () => {
-    open('ai-month');
-    const plan = salesPlanById('ai-month')!;
+    open('ai-hour-pass');
+    const plan = salesPlanById('ai-hour-pass')!;
     const summary = screen.getByRole('region', { name: '注文内容' });
     expect(within(summary).getByText(new RegExp(plan.priceAmount.toLocaleString('en-US')))).toBeTruthy();
+  });
+
+  it('価格が未確定のプランは、注文画面に候補値を出さない', () => {
+    // 2026-08-02 CEO指示。候補値を確定価格のように見せない
+    open('ai-month');
+    expect(screen.queryByText(/2,980/), '候補値が画面に出ている').toBeNull();
+    expect(screen.getAllByText(/準備中/).length).toBeGreaterThan(0);
   });
 });
 

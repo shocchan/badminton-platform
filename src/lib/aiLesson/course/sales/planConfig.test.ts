@@ -320,11 +320,21 @@ describe('表示ヘルパー', () => {
   });
 
   it('View は lang を解決して component 側の分岐を無くす', () => {
-    const v = salesPlanView(month, 'zh', true);
-    expect(v.name).toBe('1个月AI计划');
-    expect(v.features).toEqual(month.featuresZh);
-    expect(v.ctaLabel).toBe(month.ctaLabelZh);
+    // 価格が確定している 60分パスで確認する
+    const v = salesPlanView(hourPass, 'zh', true);
+    expect(v.name).toBe(hourPass.nameZh);
+    expect(v.features).toEqual(hourPass.featuresZh);
+    expect(v.ctaLabel).toBe(hourPass.ctaLabelZh);
     expect(v.acceptsPurchase).toBe(true);
+    expect(v.priceConfirmed).toBe(true);
+  });
+
+  it('価格未確定のプランは View でも購入不可・準備中になる', () => {
+    const v = salesPlanView(month, 'zh', true);
+    expect(v.priceConfirmed).toBe(false);
+    expect(v.price).toBe('筹备中');
+    expect(v.acceptsPurchase).toBe(false);
+    expect(v.ctaLabel).toBe(month.ctaLabelDisabledZh);
   });
 });
 
@@ -346,5 +356,45 @@ describe('公開状態の制御', () => {
 
   it('購入可能なプランは published のみ', () => {
     expect(purchasableSalesPlans().every((p) => p.status === 'published')).toBe(true);
+  });
+});
+
+/**
+ * 価格の確定状態（2026-08-02 CEO指示）。
+ * 候補値を確定価格として見せない・売らないことを固定する。
+ * 画面側を直しても購入判定が通ってしまう、という抜け方を塞ぐのが目的。
+ */
+describe('未確定価格の扱い', () => {
+  const month = salesPlanById('ai-month')!;
+
+  it('1か月プランの価格は未確定として持つ', () => {
+    expect(month.priceStatus).toBe('draft');
+    expect(month.priceAmount, '候補値そのものは保持する').toBe(2980);
+  });
+
+  it('通常表示では金額を出さず「準備中」と言う', () => {
+    expect(formatPlanPrice(month, 'ja')).toBe('準備中');
+    expect(formatPlanPrice(month, 'zh')).toBe('筹备中');
+    expect(formatTaxNote(month, 'ja'), '準備中に税表記は付けない').toBe('');
+  });
+
+  it('プレビューでだけ候補値を「案」として見られる', () => {
+    expect(formatPlanPrice(month, 'ja', true)).toBe('2,980円（案）');
+    expect(formatPlanPrice(month, 'zh', true)).toBe('2,980日元（暂定）');
+  });
+
+  it('未確定価格のプランは購入を受け付けない', () => {
+    expect(acceptsPurchase(month)).toBe(false);
+  });
+
+  it('決済が有効でも、購入CTAには変わらない', () => {
+    expect(ctaLabelFor(month, 'ja', true)).toBe('1か月プランに申し込む');
+  });
+
+  it('確定済みのプランは今までどおり金額を出す', () => {
+    const hour = salesPlanById('ai-hour-pass')!;
+    expect(formatPlanPrice(hour, 'ja')).toBe('600円');
+    expect(formatPlanPrice(hour, 'ja', true), 'preview でも表記は変えない').toBe('600円');
+    expect(acceptsPurchase(hour)).toBe(true);
   });
 });

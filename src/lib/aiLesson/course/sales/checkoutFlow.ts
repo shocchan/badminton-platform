@@ -14,7 +14,7 @@
 //
 // 永続化は interface 越し。テストは in-memory 実装で全経路を通す。
 
-import { salesPlanById, type SalesPlanConfig, type SalesPlanId } from './planConfig';
+import { salesPlanById, type SalesPlanConfig, type SalesPlanId, isPriceConfirmed } from './planConfig';
 import { buildGrant, type EntitlementGrant } from './entitlement';
 import type {
   PaymentGateway, PaymentFailureCode, PurchaseOrder,
@@ -86,6 +86,7 @@ export interface StartCheckoutInput {
 export type StartCheckoutError =
   | 'unknown_plan'
   | 'plan_not_purchasable'
+  | 'price_not_confirmed'
   | 'consultation_only'
   | 'invalid_email'
   | 'terms_not_accepted';
@@ -111,6 +112,8 @@ export const startCheckout = async (
   const plan = salesPlanById(input.planId);
   if (!plan) return { ok: false, error: 'unknown_plan' };
   if (plan.status !== 'published') return { ok: false, error: 'plan_not_purchasable' };
+  // 価格がCEO未確定のプランは課金しない。画面を直しても、ここを通らなければ売れない
+  if (!isPriceConfirmed(plan)) return { ok: false, error: 'price_not_confirmed' };
   // 6か月伴走はここを通さない。相談導線で受ける（§1 §14）
   if (plan.ctaMode === 'consult') return { ok: false, error: 'consultation_only' };
   if (!isPlausibleEmail(input.email)) return { ok: false, error: 'invalid_email' };

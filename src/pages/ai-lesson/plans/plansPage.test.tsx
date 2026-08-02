@@ -11,7 +11,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { PlansPage } from './PlansPage';
 import { PurchasePage } from './PurchasePage';
-import { visibleSalesPlans, salesPlanById, BANNED_SALES_CLAIMS } from '../../../lib/aiLesson/course/sales/planConfig';
+import { acceptsPurchase, visibleSalesPlans, salesPlanById, BANNED_SALES_CLAIMS } from '../../../lib/aiLesson/course/sales/planConfig';
 import { plansCopy, plansPathFor, purchasePathFor } from '../../../lib/aiLesson/course/sales/plansContent';
 
 afterEach(cleanup);
@@ -156,6 +156,12 @@ describe('CTA', () => {
     const { container } = renderPlans('ja');
     for (const p of visibleSalesPlans()) {
       const card = screen.getByRole('heading', { name: p.nameJa, level: 3 }).closest('article')!;
+      if (!acceptsPurchase(p)) {
+        // 価格未確定・受付停止のプランはリンクを出さない（押しても買えない導線を作らない）
+        expect(within(card).queryByRole('link'), p.planId).toBeNull();
+        expect(within(card).getByRole('note').textContent).toBeTruthy();
+        continue;
+      }
       const cta = within(card).getByRole('link');
       expect(cta.getAttribute('href'), p.planId).toBe(purchasePathFor('ja', p.planId));
     }
@@ -173,7 +179,8 @@ describe('CTA', () => {
 
   it('CTAのタップ領域が十分な高さ（モバイル・§19）', () => {
     renderPlans('ja');
-    for (const name of ['体験パスに申し込む', '1か月プランに申し込む', '伴走コースについて相談する']) {
+    // 1か月プランは価格未確定でリンクを出さないため、ここでは対象外
+    for (const name of ['体験パスに申し込む', '伴走コースについて相談する']) {
       const el = screen.getByRole('link', { name });
       expect(el.className).toMatch(/min-h-12/);
     }
