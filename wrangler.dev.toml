@@ -1,0 +1,32 @@
+# **local 検証専用**。デプロイには使わない。
+#
+# 本番 Cloudflare Pages の設定は dashboard 側にあり、このファイルは参照されない。
+# ここにある値はすべて **local の miniflare 用の偽値**で、本番の鍵ではない。
+#
+#   npm run build:staging          # dist/_worker.js を作る
+#   npm run build:ai-course-content # content-dist/ を作る
+#   node scripts/ai-course/seed-local-r2.mjs   # local R2 へ入れる
+#   npm run dev:worker
+#
+# R2 は --local で miniflare のローカル実装が使われるため、remote を一切触らない。
+
+name = "kawabado-content-dev"
+main = "dist/_worker.js"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# 教材ページの非公開バケット。local では miniflare のローカルストレージ
+[[r2_buckets]]
+binding = "AI_COURSE_CONTENT"
+bucket_name = "ai-course-content"
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
+
+[vars]
+# local 専用の偽の鍵。本番は Secrets に入れる（このファイルの値は使わない）
+AI_COURSE_CONTENT_TOKEN_SECRET = "local-dev-only-token-secret-do-not-use-in-production"
+SUPABASE_JWT_SECRET = "local-dev-only-jwt-secret-do-not-use-in-production"
+# トークン発行の口を開ける。**本番では絶対に設定しない**
+AI_COURSE_DEV_TOKENS = "enabled"

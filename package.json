@@ -20,7 +20,9 @@
     "report:ai-course-coverage": "vite-node scripts/ai-course/exam-coverage-matrix.ts",
     "generate:ai-course-plan-catalog": "vite-node scripts/ai-course/generate-plan-catalog-json.ts",
     "report:ai-course-economics": "vite-node scripts/ai-course/unit-economics-report.ts",
-    "measure:ai-course-content-exposure": "node scripts/ai-course/measure-content-exposure.mjs"
+    "measure:ai-course-content-exposure": "node scripts/ai-course/measure-content-exposure.mjs",
+    "build:ai-course-content": "vite-node scripts/ai-course/build-content-shards.mts",
+    "dev:worker": "wrangler dev --config wrangler.dev.toml"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^6.7.0",
@@ -44,6 +46,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260801.1",
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.0",
     "@testing-library/jest-dom": "^7.0.0",
@@ -54,6 +57,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.5.0",
+    "esbuild": "^0.28.1",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

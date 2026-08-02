@@ -18,6 +18,18 @@ dist
 dist-ssr
 *.local
 
+# 教材シャード（非公開・ビルドで再生成する）。
+#   再生成: npm run build:ai-course-content
+# dist/ の外に出しているのは、Pages のアセットとして公開されないようにするため。
+# **ここを dist/ 配下へ移してはいけない**（移すと認証なしで取得できるようになる）
+content-dist/
+
+# Worker が埋め込む index.html（build のたびに再生成）
+worker/generated/
+
+# wrangler dev のローカル状態（local R2 の中身＝教材が入る。**絶対にcommitしない**）
+.wrangler/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
