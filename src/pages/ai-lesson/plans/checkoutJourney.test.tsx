@@ -9,6 +9,7 @@ import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-li
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { PurchasePage } from './PurchasePage';
+import { PlansPage } from './PlansPage';
 import { resetSimulatedSales } from '../../../lib/aiLesson/course/sales/localSalesRepository';
 import { purchasePathFor } from '../../../lib/aiLesson/course/sales/plansContent';
 import { salesPlanById } from '../../../lib/aiLesson/course/sales/planConfig';
@@ -200,5 +201,37 @@ describe('注文内容の一致（§17 別々の価格を出さない）', () =>
     const plan = salesPlanById('ai-month')!;
     const summary = screen.getByRole('region', { name: '注文内容' });
     expect(within(summary).getByText(new RegExp(plan.priceAmount.toLocaleString('en-US')))).toBeTruthy();
+  });
+});
+
+describe('購入済みの人に見せる料金ページ（§11 再購入）', () => {
+  const openPlans = (lang: 'ja' | 'zh' = 'ja') =>
+    render(
+      <HelmetProvider>
+        <MemoryRouter initialEntries={[`/${lang}/ai-course/plans?checkout=sim`]}>
+          <Routes>
+            <Route path="/:lang/ai-course/plans" element={<PlansPage />} />
+          </Routes>
+        </MemoryRouter>
+      </HelmetProvider>,
+    );
+
+  it('未購入のうちは通常のCTA', () => {
+    openPlans();
+    expect(screen.queryByText('60分を追加する')).toBeNull();
+  });
+
+  it('購入後は「追加する」に変わり、続きから再開できると添える', async () => {
+    open('ai-hour-pass');
+    fillAndSubmit('again@example.com');
+    await waitFor(() => expect(screen.getByTestId('purchase-complete-heading')).toBeTruthy());
+    cleanup();
+
+    openPlans();
+    expect(screen.getByRole('link', { name: '60分を追加する' })).toBeTruthy();
+    expect(screen.getByTestId('repurchase-note-ai-hour-pass').textContent)
+      .toContain('新しいアカウントは作られません');
+    // 買っていないプランのCTAは変わらない
+    expect(screen.queryByTestId('repurchase-note-ai-month')).toBeNull();
   });
 });

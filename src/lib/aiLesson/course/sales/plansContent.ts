@@ -208,3 +208,34 @@ export const COLD_TRAFFIC_REQUIREMENTS = [
   'contact',            // 問い合わせ方法
   'cancel',             // キャンセル条件
 ] as const;
+
+/** ヘルプ画面への案内文（料金ページ・購入完了から出す） */
+export const helpLinkLabel = (lang: 'ja' | 'zh'): string =>
+  lang === 'zh' ? '遇到问题时' : '困ったときは';
+
+/**
+ * 再購入の人に見せるCTA文言（§11）。
+ * 「新しく買い直す」ではなく「足す・続ける」と言う。
+ * 進捗が実際に残る設計になっているので、そう言って良い。
+ */
+export const repurchaseCtaLabel = (
+  planId: string,
+  lang: 'ja' | 'zh',
+  includedActiveMinutes: number | null,
+): string | null => {
+  if (includedActiveMinutes !== null) {
+    return lang === 'zh'
+      ? `再增加${includedActiveMinutes}分钟`
+      : `${includedActiveMinutes}分を追加する`;
+  }
+  if (planId === 'ai-month') {
+    return lang === 'zh' ? '再续1个月' : 'もう1か月続ける';
+  }
+  return null;
+};
+
+/** 再購入時に添える一言（診断をやり直さないことを、購入前に伝える） */
+export const repurchaseNote = (lang: 'ja' | 'zh'): string =>
+  lang === 'zh'
+    ? '不会创建新账号。可以从上次的地方继续。'
+    : '新しいアカウントは作られません。同じ続きから再開できます。';

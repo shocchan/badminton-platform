@@ -129,10 +129,22 @@ describe('表示用ビュー', () => {
 
 const SRC = join(__dirname, '../../../..');
 
-/** 商品価格を書いてよいのはここだけ */
+/**
+ * 商品価格を書いてよい場所。
+ *
+ * 2026-08-02 更新: セルフサービス販売（決済・利用権・採算集計）が入り、
+ * **数値としての価格が必要になった**ため、金額の正準は
+ * `lib/aiLesson/course/sales/planConfig.ts` へ移した。
+ * このファイル（planCatalog）は表示ラベルを `priceLabelFromSales()` で導出するだけで、
+ * 独自の金額を持たない。
+ */
 const ALLOWED = [
+  'lib/aiLesson/course/sales/planConfig.ts',
+  'lib/aiLesson/course/sales/planConfig.test.ts',
   'lib/aiLesson/course/plans/planCatalog.ts',
   'lib/aiLesson/course/plans/planCatalog.test.ts',
+  // 料金ページのテストは、正準の金額が画面に出ていることを確かめるために金額を書く
+  'pages/ai-lesson/plans/plansPage.test.tsx',
 ];
 
 /**
@@ -174,7 +186,7 @@ describe('価格のハードコード', () => {
     }
     expect(
       offenders,
-      `商品価格は planCatalog.ts が正準です。見つかった場所:\n  ${offenders.join('\n  ')}`,
+      `商品価格は sales/planConfig.ts が正準です。見つかった場所:\n  ${offenders.join('\n  ')}`,
     ).toEqual([]);
   });
 });
@@ -206,7 +218,10 @@ const planHash = (id: string): string => {
  */
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
   'ai-trial-pass': { version: 1, hash: '50e5c60bb64e' },
-  'ai-month': { version: 1, hash: '4f1197dc71a4' },
+  // 2026-08-02: 価格ラベルを sales/planConfig.ts からの導出に変えた結果、
+  // 「準備中」→ 正準カタログの金額 に変わった。version 1 はまだ一度も
+  // 申込に紐づいていない初回公開ぶんなので、上の例外どおりハッシュだけ更新する。
+  'ai-month': { version: 1, hash: '0cc7f8c3805f' },
   'coach-6m': { version: 1, hash: 'c5b5d10ece0d' },
 };
 

@@ -9,14 +9,19 @@
 //
 // 迷わせないため、プランカード以外にCTAを増やさない。
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   plansForDisplay, salesPlanView, isPlansPreview, isTimedPlan,
   type SalesPlanConfig, type SalesPlanView,
 } from '../../../lib/aiLesson/course/sales/planConfig';
-import { plansCopy, plansPathFor, purchasePathFor, type PlansCopy } from '../../../lib/aiLesson/course/sales/plansContent';
+import {
+  plansCopy, plansPathFor, purchasePathFor, helpLinkLabel, repurchaseCtaLabel, repurchaseNote,
+  type PlansCopy,
+} from '../../../lib/aiLesson/course/sales/plansContent';
+import { readSimulatedGrants } from '../../../lib/aiLesson/course/sales/localSalesRepository';
+import { helpPathFor } from '../../../lib/aiLesson/course/sales/salesHelp';
 import { checkoutMode, checkoutNotice, isCheckoutEnabled } from '../../../lib/aiLesson/course/sales/salesEnv';
 import { LegalFooterLinks } from '../legal/LegalPage';
 import { trackCourse } from '../../../lib/aiLesson/course/courseAnalytics';
@@ -34,10 +39,12 @@ const NoteIcon = () => (
 );
 
 const PlanCard = ({
-  plan, view, copy, lang,
-}: { plan: SalesPlanConfig; view: SalesPlanView; copy: PlansCopy; lang: 'ja' | 'zh' }) => {
+  plan, view, copy, lang, owned,
+}: { plan: SalesPlanConfig; view: SalesPlanView; copy: PlansCopy; lang: 'ja' | 'zh'; owned: boolean }) => {
   const timed = isTimedPlan(plan);
   const headingId = `plan-${plan.planId}-name`;
+  // 既に買ったことがある人には「買い直す」ではなく「足す・続ける」と言う（§11）
+  const repurchaseLabel = owned ? repurchaseCtaLabel(plan.planId, lang, plan.includedActiveMinutes) : null;
 
   return (
     <article
@@ -105,7 +112,7 @@ const PlanCard = ({
             onClick={() => trackCourse('plan_selected', { plan_id: plan.planId, cta_mode: view.ctaMode })}
             className="flex min-h-12 w-full items-center justify-center rounded-xl bg-lp-coral px-4 text-center font-bold text-white transition hover:bg-lp-coral-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-coral-deep"
           >
-            {view.ctaLabel}
+            {repurchaseLabel ?? view.ctaLabel}
           </Link>
         ) : (
           <p
@@ -113,6 +120,11 @@ const PlanCard = ({
             role="note"
           >
             {copy.pausedBadge}
+          </p>
+        )}
+        {repurchaseLabel && (
+          <p className="mt-2 text-[0.8rem] leading-relaxed text-lp-ink-soft" data-testid={`repurchase-note-${plan.planId}`}>
+            {repurchaseNote(lang)}
           </p>
         )}
       </div>
@@ -127,8 +139,18 @@ export const PlansPage = () => {
   const copy = plansCopy(lang);
   const preview = isPlansPreview(location.search);
   const plans = plansForDisplay(location.search);
-  const mode = checkoutMode();
+  const mode = checkoutMode(location.search);
   const notice = checkoutNotice(mode, lang);
+
+  // 過去に買ったプランを知って、CTAの言い方を変える（§11）。
+  // 模擬決済の記録から読む。本番では認証済みセッションの利用権から読む。
+  const ownedPlanIds = useMemo(() => {
+    try {
+      return new Set(readSimulatedGrants(window.localStorage, 'sim_learner_1').map((g) => g.planId));
+    } catch {
+      return new Set<string>();
+    }
+  }, []);
 
   // ページ表示の計測。SPA内で料金ページへ戻ってきたときも1回ずつ数えたいので
   // モジュール単位の「一度だけ」ではなく、mount単位でガードする（StrictModeの二重実行も吸収）。
@@ -185,9 +207,10 @@ export const PlansPage = () => {
               <PlanCard
                 key={p.planId}
                 plan={p}
-                view={salesPlanView(p, lang, isCheckoutEnabled())}
+                view={salesPlanView(p, lang, isCheckoutEnabled(location.search))}
                 copy={copy}
                 lang={lang}
+                owned={ownedPlanIds.has(p.planId)}
               />
             ))}
           </div>
@@ -259,6 +282,12 @@ export const PlansPage = () => {
             className="mt-3 inline-flex min-h-11 items-center rounded-lg border border-lp-coral px-4 text-sm font-bold text-lp-coral-deep"
           >
             {copy.contactCta}
+          </Link>
+          <Link
+            to={helpPathFor(lang)}
+            className="mt-3 ml-2 inline-flex min-h-11 items-center rounded-lg border border-lp-line px-4 text-sm font-bold text-lp-ink-soft"
+          >
+            {helpLinkLabel(lang)}
           </Link>
         </section>
 

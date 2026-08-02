@@ -11,7 +11,25 @@
 // 変更したら `version` を上げること。上げ忘れは `planCatalog.test.ts` が検出する。
 // `version` は申込記録に残るので、あとから「この人が見た内容」を特定できる。
 
+import { salesPlanById, formatPlanPrice, formatTaxNote } from '../sales/planConfig';
+
 export type PlanId = 'ai-trial-pass' | 'ai-month' | 'coach-6m';
+
+/**
+ * 価格ラベルは **セルフサービス販売の正準カタログ（sales/planConfig.ts）から導出する**。
+ *
+ * 経緯: 相談ベースの申込LP（このファイル）と、自動販売の料金ページで
+ * 別々に金額を持っていた。片方だけ直すと「LPは600円・決済は900円」の事故になるため、
+ * 数値の出どころを1つに寄せた。ここは表示ラベルの整形だけを担当する。
+ *
+ * 対応する商品が正準カタログに無い場合だけ、'準備中' を返す
+ * （無い金額を作らない・0円と誤解させない）。
+ */
+export const priceLabelFromSales = (salesPlanId: string, lang: 'ja' | 'zh'): string => {
+  const p = salesPlanById(salesPlanId);
+  if (!p) return lang === 'zh' ? '准备中' : '準備中';
+  return `${formatPlanPrice(p, lang)}（${formatTaxNote(p, lang)}）`;
+};
 
 /**
  * 公開状態。
@@ -80,8 +98,8 @@ export const PLAN_CATALOG: PlanConfig[] = [
     nameJa: 'AI体験パス',
     nameZh: 'AI体验通行证',
     // 価格候補。確定していないので status は draft
-    priceLabelJa: '600円（税込）',
-    priceLabelZh: '600日元（含税）',
+    priceLabelJa: priceLabelFromSales('ai-hour-pass', 'ja'),
+    priceLabelZh: priceLabelFromSales('ai-hour-pass', 'zh'),
     descriptionJa: 'AI先生との会話と教材を、まず60分ぶん試せるパスです。人によるレッスンは含みません。',
     descriptionZh: '可以先体验60分钟AI老师会话与教材的通行证。不包含真人课程。',
     durationLabelJa: '累計60分まで',
@@ -107,9 +125,8 @@ export const PLAN_CATALOG: PlanConfig[] = [
     version: 1,
     nameJa: '1か月AIお試し',
     nameZh: '1个月AI体验',
-    // 未確定。確定するまで金額を書かない（0円と誤解させない）
-    priceLabelJa: '準備中',
-    priceLabelZh: '准备中',
+    priceLabelJa: priceLabelFromSales('ai-month', 'ja'),
+    priceLabelZh: priceLabelFromSales('ai-month', 'zh'),
     descriptionJa: '1か月のあいだ、AI学習をひととおり使えるプランです。人によるレッスンは含みません。',
     descriptionZh: '可在1个月内完整使用AI学习功能的方案。不包含真人课程。',
     durationLabelJa: '1か月',
@@ -138,8 +155,8 @@ export const PLAN_CATALOG: PlanConfig[] = [
     nameJa: '6か月 AI日本語伴走コース',
     nameZh: '6个月 AI日语陪跑课程',
     // 期間は durationLabel が出すので、ここには入れない（「／6か月」が二重になる）
-    priceLabelJa: '100,000円（税込）',
-    priceLabelZh: '100,000日元（含税）',
+    priceLabelJa: priceLabelFromSales('coach-6m', 'ja'),
+    priceLabelZh: priceLabelFromSales('coach-6m', 'zh'),
     monthlyEquivalentJa: '月額換算 約16,700円／月',
     monthlyEquivalentZh: '折合每月约16,700日元',
     // セクションの lead（LP.pricing.lead）と同じ文にしない。同じ文が2回出て読みにくくなる
