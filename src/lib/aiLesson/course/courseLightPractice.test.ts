@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { buildLightSession, buildMeaningChoices, judgeRecall } from './courseLightPractice';
 import { missionById } from './courseEngine';
+// 例文（本文）は目次に無い（P0）。テストだけ教材本体から引く（テストはbundleに入らない）
+import { COURSE_MISSIONS as FULL_MISSIONS } from './courseData';
 import type { ItemProgress } from './types';
 
 const prog = (itemId: string, over: Partial<ItemProgress> = {}): ItemProgress => ({
@@ -44,7 +46,9 @@ describe('軽め学習セッション（決定的・API不使用）', () => {
 
   it('一文想起: detect正規表現で判定（含めば正解・空は不正解）', () => {
     const m = missionById('w01m1')!;
+    const full = FULL_MISSIONS.find((x) => x.id === 'w01m1')!;
     expect(judgeRecall('', m)).toBe(false);
-    expect(judgeRecall(m.simpleExample, m)).toBe(true); // 例文は目標表現を含む
+    // 例文（本文）は目次に無いため教材本体から。判定regex（detect）は目次側にある
+    expect(judgeRecall(full.simpleExample, m)).toBe(true);
   });
 });

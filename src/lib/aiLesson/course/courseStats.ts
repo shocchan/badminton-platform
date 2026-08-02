@@ -1,6 +1,6 @@
 // 進捗の集計・統計（純関数）。ホーム/ロードマップ/管理ビュー/コスト計算で共用。
 
-import { COURSE_MISSIONS, COURSE_WEEKS } from './courseData';
+import { COURSE_MISSIONS, COURSE_WEEKS } from './courseMissionIndex.generated';
 import { COURSE_MASTERY_WEIGHTS, REALTIME_COST, RETAINED_STATES } from './courseConfig';
 import { atLeast, isRetained } from './courseEngine';
 import type { CourseSessionRecord, ItemProgress } from './types';

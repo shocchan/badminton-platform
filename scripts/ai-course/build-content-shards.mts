@@ -18,7 +18,8 @@ import { createHash } from 'node:crypto';
 import { vocabPool } from '../../src/lib/aiLesson/course/adventure/vocab/vocabQuestions';
 import { readingPool, readingSetsFor } from '../../src/lib/aiLesson/course/adventure/reading/readingBank';
 import { listeningPool, listeningSetsFor, ALL_LISTENING_SETS } from '../../src/lib/aiLesson/course/adventure/listening/listeningBank';
-import { loadGrammarPools, buildDiagnosisPools, loadAllN2Drafts, N2_ALIAS_IDS } from '../../src/lib/aiLesson/course/adventure/advContent';
+import { loadGrammarPools, buildDiagnosisPools, loadAllN2Drafts } from '../../src/lib/aiLesson/course/adventure/advContent';
+import { COURSE_MISSIONS } from '../../src/lib/aiLesson/course/courseData';
 import { buildConversationMission } from '../../src/lib/aiLesson/course/adventure/advConversationBridge';
 import { N3_GRAMMAR_DRAFTS } from '../../src/lib/aiLesson/course/n3GrammarDrafts';
 import type { AdvBattleQuestion } from '../../src/lib/aiLesson/course/adventure/advVariants';
@@ -109,6 +110,13 @@ const main = async () => {
     docCount += 1;
   }
 
+  // ── 会話ミッション本文（1ミッション=1ファイル。レッスン開始時に現在分だけ配信） ──
+  let missionCount = 0;
+  for (const m of COURSE_MISSIONS) {
+    writeJson(`${V}/conversation/${m.id}.json`, m);
+    missionCount += 1;
+  }
+
   // ── 構造メタ（stageContent を Worker で計算するための骨格。本文は含まない） ──
   const missions: Record<string, unknown> = {};
   for (const d of [...(N3_GRAMMAR_DRAFTS as never[]), ...(n2Drafts as never[])] as { grammarId: string; practice?: unknown }[]) {
@@ -151,6 +159,7 @@ const main = async () => {
   console.log(`  pool target : ${index.length}`);
   console.log(`  問題        : ${totalItems.toLocaleString()}`);
   console.log(`  文法doc     : ${docCount}`);
+  console.log(`  会話mission : ${missionCount}`);
   console.log(`  ファイル    : ${fileCount}`);
   console.log(`  合計bytes   : ${totalBytes.toLocaleString()}`);
   console.log(`  contentHash : ${manifest.contentHash}`);

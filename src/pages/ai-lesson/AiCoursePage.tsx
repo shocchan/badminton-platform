@@ -15,6 +15,8 @@ import { useLessonFocus } from '../../contexts/LessonFocusContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
+import { fetchConversationMission } from '../../lib/aiLesson/course/adventure/activityClient';
+import { issueRuntimeSession } from '../../lib/aiLesson/course/adventure/runtimeSession';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -383,6 +385,37 @@ export default function AiCoursePage() {
   };
 
   /**
+   * 会話ミッション本文の水和（P0）。
+   * 目次（courseMissionIndex.generated）は本文が空。レッスンに入る直前に
+   * サーバーから**現在の1ミッションだけ**本文を受け取って差し替える。
+   * 取れた本文はこのページの寿命の間だけキャッシュする（reload で消える＝bundleに残らない）。
+   */
+  const hydratedMissionsRef = useRef<Map<string, Mission>>(new Map());
+  const hydrateMission = async (mission: Mission): Promise<Mission | null> => {
+    if (mission.openingQuestion !== '') return mission; // すでに本文がある（水和済み）
+    const cached = hydratedMissionsRef.current.get(mission.id);
+    if (cached) return cached;
+    // 会話用の一時セッション。利用権はサーバーが resolveTrial で再判定する
+    const session = await issueRuntimeSession({ level: 'n3', allowedTargetIds: [mission.id] });
+    if (!session) return null;
+    const r = await fetchConversationMission<Mission>(session.auth, mission.id);
+    if (!r.ok) return null;
+    const full = { ...mission, ...r.data.mission };
+    hydratedMissionsRef.current.set(mission.id, full);
+    return full;
+  };
+
+  // 教材プレビュー（ロードマップ→ミッション詳細）を開いたときも本文を水和する。
+  // 水和できない（利用権なし等）ときはメタデータのみの表示で成立する
+  useEffect(() => {
+    if (step !== 'preview' || !activeMission || activeMission.openingQuestion !== '') return;
+    let alive = true;
+    void hydrateMission(activeMission).then((full) => { if (alive && full) setActiveMission(full); });
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, activeMission?.id]);
+
+  /**
    * レッスン開始。上限判定はサーバー（ai_start_session）が正。
    * クライアント側の remaining は表示用で、ここでは開始可否の根拠にしない。
    */
@@ -415,6 +448,14 @@ export default function AiCoursePage() {
         || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit') setRemaining(0);
       return;
     }
+    // ミッション本文をサーバーから水和してからレッスンへ入る（P0）。
+    // 取れない場合はレッスンを開始しない（空の教材で進めるより明確に案内する）
+    const hydrated = await hydrateMission(planArg.main.mission);
+    if (!hydrated) {
+      setStartError(t.limits.unknown);
+      return;
+    }
+    setPlan({ ...planArg, main: { ...planArg.main, mission: hydrated } });
     setTextResume(null);
     setMode(m);
     setActiveSessionId(r.sessionId ?? null);
@@ -441,9 +482,11 @@ export default function AiCoursePage() {
     trackCourse('resume_ai_course_other_device', { mode: recovery.mode });
     if (recovery.mode === 'text') {
       // テキスト: 同じ sessionId を引き継ぎ、保存済み発話から履歴・ターン・出題済み質問を復元
+      const hydrated = await hydrateMission(freshPlan.main.mission);
+      if (!hydrated) { setStartError(t.limits.unknown); return; }
       const utts = await courseRepository.listSessionUtterances(recovery.id);
       setTextResume(buildResumeFromUtterances(utts));
-      setPlan(freshPlan);
+      setPlan({ ...freshPlan, main: { ...freshPlan.main, mission: hydrated } });
       setActiveSessionId(recovery.id);
       setMode('text');
       setRecovery(null);

@@ -3,7 +3,7 @@
 // learner.settings.practiceAgainIds）だけから、今日の復習・分類・優先度を計算する。
 // 新規DBテーブルは追加しない。
 
-import { COURSE_MISSIONS } from './courseData';
+import { COURSE_MISSIONS } from './courseMissionIndex.generated';
 import { atLeast, isReviewKind } from './courseEngine';
 import type { CourseMasteryState, CourseSessionRecord, ItemProgress } from './types';
 

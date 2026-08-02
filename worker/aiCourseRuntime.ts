@@ -371,7 +371,9 @@ export const handleSessionIssue = async (request: Request, env: RuntimeEnv): Pro
 
 interface StartBody {
   sessionToken?: string;
-  activity?: 'battle' | 'reading' | 'listening' | 'mock' | 'diagnosis';
+  activity?: 'battle' | 'reading' | 'listening' | 'mock' | 'diagnosis' | 'conversation';
+  /** conversation: 開始するミッション */
+  missionId?: string;
   // battle
   tier?: AdvEnemyTier; targetIds?: string[];
   seenKeys?: string[]; recentWrongKeys?: string[];
@@ -597,6 +599,19 @@ export const handleActivityStart = async (request: Request, env: RuntimeEnv): Pr
       });
     }
     return json({ activity: 'mock', attemptSeed, mode: body.mode ?? 'short', level, sections, mockId: rt.state.mockId }, 200);
+  }
+
+  // ── 会話ミッション（レッスン開始時に**現在の1ミッションだけ**本文を返す） ──
+  if (body.activity === 'conversation') {
+    const missionId = String(body.missionId ?? '');
+    if (!/^[a-z0-9]+$/i.test(missionId)) return json({ error: 'bad_request' }, 400);
+    // 開放判定は他教材と同じ: セッション発行時に確定した開放集合に入っていること。
+    // ミッションIDは週進行から計算されて発行時に署名される（列挙は開放済み週まで）
+    const lockDenial = gateTargets(claims, [missionId]);
+    if (lockDenial) return json({ error: lockDenial }, 403);
+    const mission = await readJson(bucket, `v2/conversation/${missionId}.json`);
+    if (!mission) return json({ error: 'not_found' }, 404);
+    return json({ activity: 'conversation', mission }, 200);
   }
 
   // ── 診断（onboarding。12問を seed 選定） ──

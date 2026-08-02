@@ -247,6 +247,31 @@ let mockData = null;
   check('改ざんattemptは 403', r.status === 403 && r.json?.error === 'invalid_attempt', `error=${r.json?.error}`);
 }
 
+// ═══ E2. 会話ミッション（P0: 会話教材のserver配信） ═══
+{
+  const s = await issueSession(jwtA, { allowedTargetIds: ['w01m1'] });
+  const r = await api('/api/ai-course/activity/start', { activity: 'conversation', missionId: 'w01m1', sessionToken: s }, { auth: jwtA });
+  const m = r.json?.mission;
+  const hasBody = Boolean(m?.openingQuestion && m?.hintLevels?.length > 0 && m?.naturalExample);
+  check('開放済み会話missionは本文つきで取得できる', r.status === 200 && hasBody,
+    `status=${r.status} opening=${Boolean(m?.openingQuestion)} hints=${m?.hintLevels?.length}`);
+}
+{
+  const s = await issueSession(jwtA, { allowedTargetIds: ['w01m1'] });
+  const r = await api('/api/ai-course/activity/start', { activity: 'conversation', missionId: 'w05m3', sessionToken: s }, { auth: jwtA });
+  check('開放外の会話missionは 403 stage_locked', r.status === 403 && r.json?.error === 'stage_locked', `error=${r.json?.error}`);
+}
+{
+  const s = await issueSession(jwtA, { trial: null, allowedTargetIds: ['w01m1'] });
+  const r = await api('/api/ai-course/activity/start', { activity: 'conversation', missionId: 'w01m1', sessionToken: s }, { auth: jwtA });
+  check('利用権なしの会話は 403', r.status === 403 && r.json?.error === 'no_entitlement', `error=${r.json?.error}`);
+}
+{
+  const s = await issueSession(jwtA, { consumedActiveSeconds: 3600, allowedTargetIds: ['w01m1'] });
+  const r = await api('/api/ai-course/activity/start', { activity: 'conversation', missionId: 'w01m1', sessionToken: s }, { auth: jwtA });
+  check('使い切り後の会話は 403', r.status === 403 && r.json?.error === 'trial_consumed', `error=${r.json?.error}`);
+}
+
 // ═══ F. 模試の一括採点 ═══
 {
   const answers = {};

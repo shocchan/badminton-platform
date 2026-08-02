@@ -7,7 +7,7 @@ import type { AiCourseDict } from '../../locales/aiCourse';
 import type { WeekStat } from '../../lib/aiLesson/course/courseStats';
 import type { ItemProgress, Mission } from '../../lib/aiLesson/course/types';
 import { COURSE_GOAL_CANDOS } from '../../lib/aiLesson/course/courseCanDo';
-import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
+import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseMissionIndex.generated';
 import { missionAccessState } from '../../lib/aiLesson/course/coursePreview';
 import {
   chapterOfInternalWeek, displayWeeksOfChapter, currentDisplayWeek, isInternalWeekLocked, CHAPTER_COUNT,

@@ -30,6 +30,9 @@ const CONTENT_KEYS = [
   'scriptJa', 'transcriptJa',         // 聴解スクリプト
   'meaningZh',                        // 語彙の訳
   'whyWrongJa',                       // 誤答の理由
+  // 会話ミッション本文（courseData）
+  'openingQuestion', 'hintLevels', 'naturalExample', 'usageNotesJa',
+  'commonMistakes', 'followUpQuestions', 'alternateScenes',
 ];
 
 /** キー出現がこの回数以上なら「データ」とみなす */
@@ -50,10 +53,11 @@ const CONTENT_SAMPLES = [
   'という意味の言葉はどれですか',
   // N2文法draft
   '約束した（　）は、守らなければならない',
-  // foundation単元・文法本文
-  'なければならない',
-  // 会話コース（courseData の mission 本文）
-  '礼貌地介绍自己名字的说法',
+  // foundation単元本文（fr-teimasu の解説から）
+  'これから住む予定のように聞こえる',
+  // 会話コース（courseData の mission **本文**。目次のgloss/detect正規表現と重ならない文字列を選ぶ）
+  'はじめまして。お名前を教えてください',
+  'いっしょに「アンディといいます」',
   'しなければならないことを言ってみましょう',
 ];
 
@@ -66,14 +70,28 @@ const listAssets = () => {
 };
 
 /**
- * 「データ定義」の出現だけを数える: `key:"..."` / `key:\`...\`` の形。
- * `x.meaningZh`（参照）や `meaningZh:e.meaningZh`（変数からの詰め替え）はコードなので数えない。
+ * 「データ定義」の出現だけを数える: `key:"..."` / `key:\`...\`` の形（**中身が空でないもの**）。
+ * `x.meaningZh`（参照）・`meaningZh:e.meaningZh`（変数詰め替え）・`openingQuestion:""`
+ * （目次の空欄）はデータではないので数えない。
  * minifyでクォート形が変わっても拾えるよう、`"` `'` バッククォートの3種を見る。
  */
 const countDataOccurrences = (text, key) => {
-  const re = new RegExp(`${key}\\s*:\\s*[\`"']`, 'g');
+  const re = new RegExp(`${key}\\s*:\\s*([\`"'])(?!\\1)`, 'g');
   return (text.match(re) ?? []).length;
 };
+
+/**
+ * 会話カリキュラムの**目次**チャンクの判定。
+ * 目次（courseMissionIndex.generated）は目標表現＋一行gloss（meaningZh）だけを持つ
+ * メタデータで、鍵付きステージの「身につく力」表示と同等の扱いとして許可する。
+ * 条件は厳密に: 固有マーカー（targetExpressionReading）があり、
+ * flaggedキーが meaningZh のみで、本文サンプルが0件のときだけ。
+ * 会話の本文（openingQuestion等）が1つでも入れば通常どおり FAIL する。
+ */
+const isMissionIndexMetadata = (text, keyCounts, samples) =>
+  text.includes('targetExpressionReading')
+  && samples.length === 0
+  && keyCounts.every((k) => k.key === 'meaningZh');
 
 const scan = () => {
   const failures = [];
@@ -93,8 +111,10 @@ const scan = () => {
       keys: keyCounts.map((k) => `${k.key}x${k.count}`),
       samples,
     };
-    if (samples.length > 0 || maxKeyCount >= KEY_DATA_THRESHOLD) failures.push(row);
-    else if (keyCounts.length > 0) codeRefs.push(row);
+    if (samples.length > 0 || maxKeyCount >= KEY_DATA_THRESHOLD) {
+      if (isMissionIndexMetadata(text, keyCounts, samples)) codeRefs.push({ ...row, metadataIndex: true });
+      else failures.push(row);
+    } else if (keyCounts.length > 0) codeRefs.push(row);
   }
   return {
     failures: failures.sort((a, b) => b.bytes - a.bytes),

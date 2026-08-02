@@ -17,7 +17,7 @@ import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostC
 import { CourseLearnerList } from '../../components/ai-course/CourseLearnerList';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
 import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
-import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
+import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseMissionIndex.generated';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
 
 export default function AiCourseAdminPage() {

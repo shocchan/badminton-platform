@@ -4,7 +4,7 @@
 // - 根拠（実発話・mastery・復習成功・定着）がある場合だけ「できる」と表示
 // - 初回学習しただけで「完全に使える」とは言わない。状態に応じた誠実な表現にする
 
-import { COURSE_MISSIONS, COURSE_WEEKS } from './courseData';
+import { COURSE_MISSIONS, COURSE_WEEKS } from './courseMissionIndex.generated';
 import { atLeast } from './courseEngine';
 import type { CourseMasteryState, ItemProgress, MissionCategory } from './types';
 

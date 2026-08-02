@@ -1,7 +1,7 @@
 // 会話の旅マップ（§18-B/§19）。12週を「場所」として並べ、現在地と到達済みを示す。
 // 大人向け：派手なゲームにせず、落ち着いた「旅の地図」として扱う。
 
-import { COURSE_MISSIONS, COURSE_WEEKS } from './courseData';
+import { COURSE_MISSIONS, COURSE_WEEKS } from './courseMissionIndex.generated';
 import { isRetained, atLeast } from './courseEngine';
 import type { ItemProgress } from './types';
 

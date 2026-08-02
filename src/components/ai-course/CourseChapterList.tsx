@@ -2,7 +2,7 @@
 // どの章もタップでテキスト予習を開ける（鍵付き章も閲覧可能）。
 
 import { ArrowLeft, Lock, BookOpen, CheckCircle2, PlayCircle, ChevronRight } from 'lucide-react';
-import { COURSE_MISSIONS, COURSE_WEEKS } from '../../lib/aiLesson/course/courseData';
+import { COURSE_MISSIONS, COURSE_WEEKS } from '../../lib/aiLesson/course/courseMissionIndex.generated';
 import { missionAccessState } from '../../lib/aiLesson/course/coursePreview';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { ItemProgress, Mission } from '../../lib/aiLesson/course/types';

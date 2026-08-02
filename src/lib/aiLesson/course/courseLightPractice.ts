@@ -2,7 +2,7 @@
 // 既存の進捗・ミッションデータから決定的に最大3問を組む。
 // XP・session上限・復習登録・masteryStateには触れない（触れた気になる偽装もしない）。
 
-import { COURSE_MISSIONS } from './courseData';
+import { COURSE_MISSIONS } from './courseMissionIndex.generated';
 import { missionById } from './courseEngine';
 import type { ItemProgress, Mission } from './types';
 

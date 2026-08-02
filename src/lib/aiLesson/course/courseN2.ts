@@ -3,7 +3,7 @@
 // 循環で伸ばす。ここでは "分析（分類）" のみを持ち、N2文法・問題などの教材本文は持たない
 // （捏造しない・人間レビュー前提。教材はPhase N2-B以降で固定教材として追加）。
 
-import { COURSE_MISSIONS } from './courseData';
+import { COURSE_MISSIONS } from './courseMissionIndex.generated';
 import { atLeast } from './courseEngine';
 import type { ItemProgress } from './types';
 

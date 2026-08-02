@@ -6,7 +6,7 @@
 // - 発話ログが不十分でも壊れない（sufficient=false を返す）
 // - 実データ（セッションのフラグ・mastery・発話メトリクス）だけを根拠にする。捏造しない
 
-import { COURSE_MISSIONS } from './courseData';
+import { COURSE_MISSIONS } from './courseMissionIndex.generated';
 import { atLeast, isRetained } from './courseEngine';
 import type { CourseMasteryState, CourseSessionRecord, CourseUtterance, ItemProgress, MissionCategory, SpeechMetrics } from './types';
 

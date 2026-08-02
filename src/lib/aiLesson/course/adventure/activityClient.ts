@@ -178,6 +178,14 @@ export const startMock = (auth: RuntimeAuth, input: {
 }, deps?: CallDeps): Promise<ActivityResult<ServerMock>> =>
   call(auth, '/api/ai-course/activity/start', { activity: 'mock', ...input }, deps);
 
+/**
+ * 会話ミッションの本文を取る（レッスン開始時）。
+ * 目次（courseMissionIndex.generated）には本文が無いので、
+ * レッスンに入る直前にここで**現在の1ミッションだけ**受け取って水和する。
+ */
+export const fetchConversationMission = <M,>(auth: RuntimeAuth, missionId: string, deps?: CallDeps): Promise<ActivityResult<{ mission: M }>> =>
+  call(auth, '/api/ai-course/activity/start', { activity: 'conversation', missionId }, deps);
+
 export const startDiagnosis = (auth: RuntimeAuth, input: {
   targetJlpt: 'N2' | 'N3' | null; goalType: string;
 }, deps?: CallDeps): Promise<ActivityResult<{ questions: ServerDiagnosisQuestion[] }>> =>

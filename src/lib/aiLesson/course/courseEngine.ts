@@ -13,7 +13,7 @@ import {
   RETAINED_STATES,
   REVIEW_INTERVALS,
 } from './courseConfig';
-import { COURSE_MISSIONS } from './courseData';
+import { COURSE_MISSIONS } from './courseMissionIndex.generated';
 import type {
   CourseMasteryState,
   CourseSessionRecord,
