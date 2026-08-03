@@ -26,7 +26,30 @@ const LS = {
   progress: 'kawabado.aiCourse.v1.progress',
   pending: 'kawabado.aiCourse.v1.pending',
   resume: 'kawabado.aiCourse.v1.resume',
+  /** このキャッシュが誰のものか（userId）。人が替わったら破棄する */
+  owner: 'kawabado.aiCourse.v1.owner',
 };
+
+/**
+ * ローカルキャッシュの持ち主を確かめ、別人なら破棄する。
+ *
+ * 同じブラウザで別の生徒がログインしたとき、前の生徒のキャッシュが
+ * 残っていると、サーバー読み込みに失敗した瞬間に**他人の学習データが見える**。
+ * 表示だけでなく、そのまま保存すれば他人のデータで上書きもしうる。
+ * だから読み書きの前に必ずここを通す。
+ */
+const ensureCacheOwner = (userId: string): void => {
+  try {
+    if (localStorage.getItem(LS.owner) === userId) return;
+    for (const k of [LS.learner, LS.progress, LS.pending, LS.resume]) localStorage.removeItem(k);
+    localStorage.setItem(LS.owner, userId);
+  } catch { /* private mode */ }
+};
+
+/** サーバーから学習者を読めなかった（ネットワーク・一時障害）。成功のふりをしないための型 */
+export class LearnerLoadError extends Error {
+  constructor() { super('learner_load_failed'); this.name = 'LearnerLoadError'; }
+}
 
 const readLS = <T>(key: string): T | null => {
   try { const r = localStorage.getItem(key); return r ? (JSON.parse(r) as T) : null; } catch { return null; }
@@ -66,7 +89,7 @@ const rowToProgress = (r: ProgressRow): ItemProgress => ({
 
 // ── pending キュー（オフライン時の書き込みを保持） ──
 interface PendingOp {
-  kind: 'progress' | 'session' | 'utterances' | 'feedback' | 'usage';
+  kind: 'learner' | 'progress' | 'session' | 'utterances' | 'feedback' | 'usage';
   payload: unknown;
   at: string;
 }
@@ -99,7 +122,10 @@ export interface StartSessionResult {
 
 export interface CourseRepository {
   getCurrentUserId(): Promise<string | null>;
+  /** サーバー正準の読み。読めないときは LearnerLoadError を投げる（古いローカルへ倒さない） */
   getLearner(): Promise<Learner | null>;
+  /** 表示用の読み。キャッシュ優先・失敗はnull。書き込み判断に使わない */
+  learnerForRead(): Promise<Learner | null>;
   createLearner(input: {
     displayName: string; preferredLanguage: 'ja' | 'zh'; estimatedLevel: string;
     difficultyLevel: number; currentWeek: number; hearing: Record<string, unknown>;
@@ -147,8 +173,13 @@ const createRepository = (): CourseRepository => ({
   async getLearner() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return readLS<Learner>(LS.learner);
+    ensureCacheOwner(u.user.id);
     const { data, error } = await supabase.from('ai_learners').select('*').eq('user_id', u.user.id).maybeSingle();
-    if (error || !data) return readLS<Learner>(LS.learner);
+    // サーバーが読めなかったときに古いローカルへ倒すと、
+    // ①別端末で進めた進捗が見えない ②その古い状態で保存して上書きする、が起きる。
+    // **成功のふりをせず**、呼び出し側にやり直しを判断させる（LearnerLoadError）。
+    if (error) throw new LearnerLoadError();
+    if (!data) return null;   // 行が無い＝本当に未作成（ヒアリングへ進んでよい）
     const learner = rowToLearner(data as LearnerRow);
     writeLS(LS.learner, learner);
     return learner;
@@ -175,10 +206,11 @@ const createRepository = (): CourseRepository => ({
   },
 
   async updateLearner(patch) {
-    const cached = readLS<Learner>(LS.learner);
-    if (cached) writeLS(LS.learner, { ...cached, ...patch });
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
+    ensureCacheOwner(u.user.id);
+    const cached = readLS<Learner>(LS.learner);
+    if (cached) writeLS(LS.learner, { ...cached, ...patch });
     const row: Record<string, unknown> = {};
     if (patch.displayName !== undefined) row.display_name = patch.displayName;
     if (patch.estimatedLevel !== undefined) row.estimated_level = patch.estimatedLevel;
@@ -188,13 +220,28 @@ const createRepository = (): CourseRepository => ({
     if (patch.settings !== undefined) row.settings = patch.settings;
     if (patch.adminOverrides !== undefined) row.admin_overrides = patch.adminOverrides;
     row.updated_at = new Date().toISOString();
-    await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
+    const { error } = await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
+    // 診断・ルート・今日の冒険は settings に載って流れる。ここが落ちると
+    // 「別端末で最初からやり直し」になるので、握りつぶさず再送キューへ
+    if (error) queuePending({ kind: 'learner', payload: { patch } });
+  },
+
+  /**
+   * 表示用の学習者読み。**書き込みの判断には使わない。**
+   * loadAll が先に getLearner を成功させてキャッシュ済みの前提で、
+   * ここではキャッシュを優先し、無ければ取りに行き、失敗は null に倒す
+   * （一覧が空になるだけで、古いデータで上書きする事故は起きない）。
+   */
+  async learnerForRead(): Promise<Learner | null> {
+    const cached = readLS<Learner>(LS.learner);
+    if (cached) return cached;
+    try { return await this.getLearner(); } catch { return null; }
   },
 
   async listProgress() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return readLS<ItemProgress[]>(LS.progress) ?? [];
-    const learner = await this.getLearner();
+    const learner = await this.learnerForRead();
     if (!learner) return readLS<ItemProgress[]>(LS.progress) ?? [];
     const { data, error } = await supabase.from('ai_item_progress').select('*').eq('learner_id', learner.id);
     if (error || !data) return readLS<ItemProgress[]>(LS.progress) ?? [];
@@ -262,7 +309,7 @@ const createRepository = (): CourseRepository => ({
   },
 
   async listRecentSessions(limit = 20) {
-    const learner = await this.getLearner();
+    const learner = await this.learnerForRead();
     if (!learner) return [];
     const { data, error } = await supabase.from('ai_learning_sessions').select('*')
       .eq('learner_id', learner.id).order('started_at', { ascending: false }).limit(limit);
@@ -299,7 +346,7 @@ const createRepository = (): CourseRepository => ({
 
   async getActiveSession() {
     // 進行中セッション（別端末で開始されたものを含む）。最新1件のみ
-    const learner = await this.getLearner();
+    const learner = await this.learnerForRead();
     if (!learner) return null;
     const { data, error } = await supabase.from('ai_learning_sessions').select('*')
       .eq('learner_id', learner.id).eq('completion_status', 'in_progress')
@@ -392,7 +439,10 @@ const createRepository = (): CourseRepository => ({
     const remaining: PendingOp[] = [];
     for (const op of q) {
       try {
-        if (op.kind === 'progress') {
+        if (op.kind === 'learner') {
+          const { patch } = op.payload as { patch: Partial<Learner> };
+          await this.updateLearner(patch);
+        } else if (op.kind === 'progress') {
           const { learnerId, p } = op.payload as { learnerId: string; p: ItemProgress };
           await this.upsertProgress(learnerId, p);
         } else if (op.kind === 'feedback') {

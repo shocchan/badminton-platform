@@ -140,7 +140,7 @@ import { applyTeacherName } from '../../lib/aiLesson/course/adventure/advTeacher
 import { isAdvEnabled, readAdvProfile, writeAdvProfile, defaultAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
 import { currentPeriodEntitlement } from '../../lib/aiLesson/course/adventure/periodEntitlement';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
+type Step = 'loading' | 'login' | 'loadError' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -159,7 +159,7 @@ const markGuideSeen = (): void => {
  *   戻るで会話へ再入場すると、時間の計測と復旧処理が二重になるため
  */
 const historyStepFor: HistoryStepFor<Step> = (s) => {
-  if (s === 'loading' || s === 'login') return null;
+  if (s === 'loading' || s === 'login' || s === 'loadError') return null;
   if (s === 'lesson' || s === 'report') return 'home';
   return s;
 };
@@ -354,7 +354,17 @@ export default function AiCoursePage() {
     const user = await getSession();
     if (!user) { setStep('login'); return; }
     await courseRepository.flushPending();
-    let l = await courseRepository.getLearner();
+    let l: Learner | null;
+    try {
+      l = await courseRepository.getLearner();
+    } catch {
+      // サーバーが読めない。古いローカルで学習を続けさせると、別端末の進捗を
+      // 上書きしうる。**成功のふりをせず**、やり直しの画面を出す
+      setStep('loadError');
+      return;
+    }
+    // 最終アクティブ時刻（サーバー側 updated_at）。学習の生存確認に使う
+    void courseRepository.updateLearner({});
     // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす
     if (needsHearing(l)) { setStep('hearing'); return; }
 
@@ -782,6 +792,28 @@ export default function AiCoursePage() {
 
   // ── レンダリング ──
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
+  // サーバーから学習データを読めなかった。古いローカルで続けさせない（成功のふりをしない）
+  if (step === 'loadError') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        <div className="mx-auto w-full max-w-xl px-4 py-12 text-center" role="alert">
+          <h2 className="text-lg font-bold text-gray-900">
+            {uiLang === 'zh' ? '没能加载学习数据' : '学習データを読み込めませんでした'}
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            {uiLang === 'zh'
+              ? '进度已安全保存在服务器上。请稍后重试。'
+              : '進捗はサーバーに保存されています。少し待ってからもう一度お試しください。'}
+          </p>
+          <button type="button"
+            className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white"
+            onClick={() => { setStep('loading'); void loadAll(); }}>
+            {uiLang === 'zh' ? '重新加载' : 'もう一度読み込む'}
+          </button>
+        </div>
+      </Shell>
+    );
+  }
   // 生徒の入口は ID＋6文字パスワードの専用画面（PAID STUDENT PILOT §1）。
   // 旧メールOTP画面は招待コード前提なので、生徒向けには使わない
   if (step === 'login') {
