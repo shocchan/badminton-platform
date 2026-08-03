@@ -25,6 +25,9 @@ import type { AdvEnemyTier } from '../src/lib/aiLesson/course/adventure/advTypes
 export interface RuntimeEnv {
   AI_COURSE_CONTENT?: R2Bucket;
   AI_COURSE_CONTENT_TOKEN_SECRET?: string;
+  /** JWKS（公開鍵）で access token を検証するための Supabase プロジェクトURL */
+  SUPABASE_URL?: string;
+  /** HS256の共有secret。**local検証専用**（本番/stagingはJWKSを使う） */
   SUPABASE_JWT_SECRET?: string;
   /**
    * セッション発行モード。
@@ -105,13 +108,71 @@ const verifyJson = async <T,>(token: string, secret: string): Promise<T | null> 
   }
 };
 
-/** Supabase access token（HS256）の検証。sub = userId */
-export const verifyBearer = async (request: Request, secret: string): Promise<string | null> => {
+// ── Supabase access token の検証 ────────────────────────
+//
+// Supabase は非対称鍵（ES256）へ移行し、**JWT secret を API から返さなくなった**。
+// 公開鍵（JWKS）で検証する方式にしておくと、共有秘密を持ち回らずに済む＝漏れる物が減る。
+// local 検証では HS256 の偽secretを使うので、両方に対応する。
+
+interface JwkCache { keys: Record<string, CryptoKey>; fetchedAtMs: number }
+let jwkCache: JwkCache | null = null;
+const JWK_TTL_MS = 10 * 60_000;
+
+const loadJwks = async (supabaseUrl: string): Promise<Record<string, CryptoKey>> => {
+  if (jwkCache && Date.now() - jwkCache.fetchedAtMs < JWK_TTL_MS) return jwkCache.keys;
+  const res = await fetch(`${supabaseUrl}/auth/v1/.well-known/jwks.json`);
+  if (!res.ok) return {};
+  const body = await res.json() as { keys?: (JsonWebKey & { kid?: string; alg?: string })[] };
+  const keys: Record<string, CryptoKey> = {};
+  for (const jwk of body.keys ?? []) {
+    if (!jwk.kid) continue;
+    const algo = jwk.kty === 'EC'
+      ? { name: 'ECDSA', namedCurve: (jwk as { crv?: string }).crv ?? 'P-256' }
+      : { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' };
+    try {
+      keys[jwk.kid] = await crypto.subtle.importKey('jwk', jwk, algo, false, ['verify']);
+    } catch { /* 読めない鍵は無視（他の鍵で検証できる） */ }
+  }
+  jwkCache = { keys, fetchedAtMs: Date.now() };
+  return keys;
+};
+
+/**
+ * access token の検証。sub = userId。
+ * ES256/RS256 は JWKS で、HS256 は共有secret（local検証用）で確かめる。
+ */
+export const verifyBearer = async (
+  request: Request,
+  opts: { hmacSecret?: string; supabaseUrl?: string },
+): Promise<string | null> => {
   const auth = request.headers.get('Authorization') || '';
   if (!auth.startsWith('Bearer ')) return null;
   const [h, p, s] = auth.slice(7).split('.');
   if (!h || !p || !s) return null;
-  if (!sigEquals(await hmac(`${h}.${p}`, secret), s)) return null;
+
+  let header: { alg?: string; kid?: string };
+  try {
+    header = JSON.parse(new TextDecoder().decode(fromB64url(h)));
+  } catch {
+    return null;
+  }
+
+  let signatureOk = false;
+  if (header.alg === 'HS256') {
+    if (!opts.hmacSecret) return null;
+    signatureOk = sigEquals(await hmac(`${h}.${p}`, opts.hmacSecret), s);
+  } else if (header.kid && opts.supabaseUrl) {
+    const key = (await loadJwks(opts.supabaseUrl))[header.kid];
+    if (!key) return null;
+    const algo = key.algorithm.name === 'ECDSA'
+      ? { name: 'ECDSA', hash: 'SHA-256' }
+      : { name: 'RSASSA-PKCS1-v1_5' };
+    signatureOk = await crypto.subtle.verify(
+      algo, key, fromB64url(s), new TextEncoder().encode(`${h}.${p}`),
+    ).catch(() => false);
+  }
+  if (!signatureOk) return null;
+
   try {
     const claims = JSON.parse(new TextDecoder().decode(fromB64url(p))) as { sub?: string; exp?: number };
     if (!claims?.sub) return null;
@@ -312,9 +373,11 @@ const authenticate = async (
   request: Request, env: RuntimeEnv, body: { sessionToken?: string },
 ): Promise<AuthedContext | Response> => {
   const secret = env.AI_COURSE_CONTENT_TOKEN_SECRET;
-  const jwtSecret = env.SUPABASE_JWT_SECRET;
-  if (!secret || !jwtSecret) return json({ error: 'runtime_unconfigured' }, 503);
-  const userId = await verifyBearer(request, jwtSecret);
+  // 検証手段は「JWKS（本番・staging）」か「共有secret（local検証）」のどちらかがあればよい
+  const supabaseUrl = env.SUPABASE_URL;
+  const hmacSecret = env.SUPABASE_JWT_SECRET;
+  if (!secret || (!supabaseUrl && !hmacSecret)) return json({ error: 'runtime_unconfigured' }, 503);
+  const userId = await verifyBearer(request, { hmacSecret, supabaseUrl });
   if (!userId) return json({ error: 'unauthenticated' }, 401);
   const claims = body.sessionToken
     ? await verifyJson<RuntimeClaims>(body.sessionToken, secret)
@@ -329,9 +392,10 @@ const authenticate = async (
 /** POST /api/ai-course/session/issue */
 export const handleSessionIssue = async (request: Request, env: RuntimeEnv): Promise<Response> => {
   const secret = env.AI_COURSE_CONTENT_TOKEN_SECRET;
-  const jwtSecret = env.SUPABASE_JWT_SECRET;
-  if (!secret || !jwtSecret) return json({ error: 'runtime_unconfigured' }, 503);
-  const userId = await verifyBearer(request, jwtSecret);
+  const supabaseUrl = env.SUPABASE_URL;
+  const hmacSecret = env.SUPABASE_JWT_SECRET;
+  if (!secret || (!supabaseUrl && !hmacSecret)) return json({ error: 'runtime_unconfigured' }, 503);
+  const userId = await verifyBearer(request, { hmacSecret, supabaseUrl });
   if (!userId) return json({ error: 'unauthenticated' }, 401);
 
   // 本番既定は拒否。利用権・進捗をDBから引けるようになるまで、client申告での発行は

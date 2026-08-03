@@ -34,14 +34,21 @@ const HOUR = 3600_000;
 const now = Date.now();
 
 const activeTrial = {
-  id: 'trial-1', learnerId: 'user-a', purchaseId: 'p1', planId: 'trial60', planVersion: 1,
+  id: 'trial-1', learnerId: 'e2e', purchaseId: 'p1', planId: 'trial60', planVersion: 1,
   purchasedAtMs: now - HOUR, startDeadlineMs: now + 6 * 24 * HOUR,
   includedActiveSeconds: 3600,
   activation: { activatedAtMs: now - 10 * 60_000, expiresAtMs: now + 23 * HOUR },
 };
 
-const jwtA = makeJwt('user-a');
-const jwtB = makeJwt('user-b');
+// 実環境（staging/本番）では Supabase が ES256 で署名した**本物のトークン**が要る。
+// AI_COURSE_VERIFY_TOKEN があればそれを使い、無ければ local 用の偽HS256トークンを作る。
+// 「他人のトークン」テストは、実環境では2人目の本物トークンが要るので
+// AI_COURSE_VERIFY_TOKEN_B で渡す（無い場合はその項目だけ skip する）。
+const realToken = process.env.AI_COURSE_VERIFY_TOKEN;
+const realTokenB = process.env.AI_COURSE_VERIFY_TOKEN_B;
+const jwtA = realToken ?? makeJwt('user-a');
+const jwtB = realTokenB ?? (realToken ? null : makeJwt('user-b'));
+// userId は送らない: Worker が認証済みトークンの sub で上書きする（申告値を信用しない）
 
 const api = async (path, body, { auth, method = 'POST', raw = false } = {}) => {
   const res = await fetch(`${BASE}${path}`, {
@@ -87,17 +94,23 @@ if (!sessionA) {
   const r = await api('/api/ai-course/activity/start', { activity: 'reading', sessionToken: sessionA });
   check('未認証は 401', r.status === 401, `status=${r.status}`);
 }
-{
+if (!realToken) {
   const r = await api('/api/ai-course/activity/start', { activity: 'reading', sessionToken: sessionA }, { auth: makeJwt('user-a', { expired: true }) });
   check('期限切れJWTは 401', r.status === 401, `status=${r.status}`);
+} else {
+  // 実環境: 偽署名(HS256)のトークンは JWKS 検証で弾かれることを確かめる
+  const r = await api('/api/ai-course/activity/start', { activity: 'reading', sessionToken: sessionA }, { auth: makeJwt('user-a') });
+  check('偽署名(HS256)のトークンは 401（JWKS検証）', r.status === 401, `status=${r.status}`);
 }
 {
   const r = await api('/api/ai-course/activity/start', { activity: 'reading', sessionToken: `${sessionA}x` }, { auth: jwtA });
   check('改ざんセッションは 403', r.status === 403 && r.json?.error === 'invalid_session', `status=${r.status} error=${r.json?.error}`);
 }
-{
+if (jwtB) {
   const r = await api('/api/ai-course/activity/start', { activity: 'reading', sessionToken: sessionA }, { auth: jwtB });
   check('他人のセッションは 403', r.status === 403 && r.json?.error === 'session_not_owned', `error=${r.json?.error}`);
+} else {
+  console.log('  ⏭️ 他人のセッション 403 — 2人目の実トークン未指定のためskip（AI_COURSE_VERIFY_TOKEN_B）');
 }
 
 // ═══ B. 利用権（サーバー時刻で再判定） ═══
@@ -235,11 +248,13 @@ let mockData = null;
   const r2 = await api('/api/ai-course/activity/grade', { sessionToken: sessionA, attemptToken: q.attemptToken, choiceKey: 'a' }, { auth: jwtA });
   check('同一attemptの再送はべき等（同じ結果）', r1.status === 200 && r2.status === 200 && r1.json?.correct === r2.json?.correct && r1.json?.correctKey === r2.json?.correctKey);
 }
-{
+if (jwtB) {
   const q = battleQuestions[0];
   const sessionB = await issueSession(jwtB);
   const r = await api('/api/ai-course/activity/grade', { sessionToken: sessionB, attemptToken: q.attemptToken, choiceKey: 'a' }, { auth: jwtB });
   check('別userのattempt利用は 403', r.status === 403 && r.json?.error === 'attempt_not_owned', `error=${r.json?.error}`);
+} else {
+  console.log('  ⏭️ 別userのattempt 403 — 2人目の実トークン未指定のためskip');
 }
 {
   const q = battleQuestions[0];
