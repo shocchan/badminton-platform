@@ -17,7 +17,7 @@ import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { fetchConversationMission } from '../../lib/aiLesson/course/adventure/activityClient';
 import { issueRuntimeSession } from '../../lib/aiLesson/course/adventure/runtimeSession';
-import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
+import { courseRepository, clearLocalLearnerData } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
 import {
@@ -830,7 +830,14 @@ export default function AiCoursePage() {
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
 
-  const handleLogout = async () => { await signOut(); setStep('login'); };
+  const handleLogout = async () => {
+    await signOut();
+    // 共有の端末で次の人に前の生徒のデータを渡さない（進捗はサーバーにある）
+    clearLocalLearnerData();
+    setLearner(null);
+    setProgress([]); setSessions([]); setPlan(null); setReport(null);
+    setStep('login');
+  };
   const goNav = (k: CourseNavKey) => {
     // V2有効時のナビは「今日の冒険 / 冒険マップ / 設定」だけ。
     // 旧コースの成長・ロードマップ・学習記録（別の進捗モデル）へは飛ばさない（canon §5）

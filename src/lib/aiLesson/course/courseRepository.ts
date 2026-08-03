@@ -42,6 +42,11 @@ const ensureCacheOwner = (userId: string): void => {
   try {
     if (localStorage.getItem(LS.owner) === userId) return;
     for (const k of [LS.learner, LS.progress, LS.pending, LS.resume]) localStorage.removeItem(k);
+    // 冒険ランタイムの持ち物も前の人のもの。とくに消費時間を引き継ぐと、
+    // 次の生徒が買った60分が最初から減っている状態になる
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('ai_course_')) localStorage.removeItem(k);
+    }
     localStorage.setItem(LS.owner, userId);
   } catch { /* private mode */ }
 };
@@ -50,6 +55,26 @@ const ensureCacheOwner = (userId: string): void => {
 export class LearnerLoadError extends Error {
   constructor() { super('learner_load_failed'); this.name = 'LearnerLoadError'; }
 }
+
+/**
+ * ログアウト時に、この端末から学習者のデータを消す。
+ *
+ * 教室やネットカフェの共有PCで次の人が使うことを想定する。
+ * アプリ側は ensureCacheOwner で他人のキャッシュを使わないが、
+ * **開発者ツールを開けば中身は読める**。だから残さない。
+ * 進捗はサーバーにあるので、消しても学習は失われない。
+ */
+export const clearLocalLearnerData = (): void => {
+  try {
+    for (const k of [LS.learner, LS.progress, LS.pending, LS.resume, LS.owner]) {
+      localStorage.removeItem(k);
+    }
+    // 冒険ランタイムの持ち物（利用権・消費時間・二重タブ）も学習者に紐づく
+    for (const k of Object.keys(localStorage)) {
+      if (k.startsWith('ai_course_') || k.startsWith('kawabado.aiCourse.')) localStorage.removeItem(k);
+    }
+  } catch { /* private mode */ }
+};
 
 const readLS = <T>(key: string): T | null => {
   try { const r = localStorage.getItem(key); return r ? (JSON.parse(r) as T) : null; } catch { return null; }

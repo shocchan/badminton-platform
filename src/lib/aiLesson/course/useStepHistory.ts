@@ -42,8 +42,13 @@ export const useStepHistory = <S extends string>(
   useEffect(() => {
     const target = historyStepFor(step);
 
+    // 履歴に載せない画面（ログイン・読み込み中・読み込み失敗）では**何もしない**。
+    // ここで②へ進むと、履歴に残っていた画面へ引き戻してしまう。
+    // 実際、ログアウトしてもログイン画面に戻れず学習画面へ跳ね返されていた。
+    if (target === null) return;
+
     // ① 画面が動いた → 履歴へ積む
-    if (target !== null && synced.current !== step) {
+    if (synced.current !== step) {
       synced.current = step;
       if (stateStep !== target) {
         const base = (location.state ?? {}) as Record<string, unknown>;

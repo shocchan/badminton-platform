@@ -74,6 +74,20 @@ describe('サーバー正準の学習データ', () => {
     expect(localStorage.getItem(LS_OWNER)).toBe('U2');
   });
 
+  it('別の生徒がログインしたら、消費時間も引き継がない', async () => {
+    // 引き継ぐと、次の生徒が買った60分が最初から減っている状態になる
+    authGetUser.mockResolvedValue(user('U2'));
+    localStorage.setItem(LS_OWNER, 'U1');
+    localStorage.setItem('ai_course_active_seconds_v1', '1800');
+    localStorage.setItem('ai_course_trial_grants_v1', '{"grants":[]}');
+    selectReturns({ data: null, error: null });
+
+    await courseRepository.getLearner();
+
+    expect(localStorage.getItem('ai_course_active_seconds_v1')).toBeNull();
+    expect(localStorage.getItem('ai_course_trial_grants_v1')).toBeNull();
+  });
+
   it('同じ生徒ならキャッシュは残る', async () => {
     authGetUser.mockResolvedValue(user('U1'));
     localStorage.setItem(LS_OWNER, 'U1');

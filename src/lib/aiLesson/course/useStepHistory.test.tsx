@@ -26,7 +26,7 @@ const Course = () => {
   return (
     <div>
       <p data-testid="screen">{step}</p>
-      {(['guide', 'home', 'growth', 'lesson'] as Step[]).map((s) => (
+      {(['guide', 'home', 'growth', 'lesson', 'loading'] as Step[]).map((s) => (
         <button key={s} onClick={() => setStep(s)}>{`go:${s}`}</button>
       ))}
       <button onClick={() => navigate(-1)}>戻る</button>
@@ -96,6 +96,21 @@ describe('useStepHistory', () => {
     await back();
     expect(current()).not.toBe('lesson');
     expect(current()).toBe('guide');
+  });
+
+  it('履歴に載せない画面（ログイン等）へ移ったら、そこへ留まる', async () => {
+    // ログアウトで step が 'loading'（履歴に載せない画面）へ移ったのに、
+    // 履歴に残っていた画面へ引き戻され、ログイン画面に戻れなかった
+    renderApp();
+    await go('guide');
+    await go('growth');
+
+    await go('loading');
+    expect(current()).toBe('loading');
+
+    // 少し待っても引き戻されない
+    await act(async () => { await new Promise((r) => setTimeout(r, 30)); });
+    expect(current()).toBe('loading');
   });
 
   it('戻ったあとに進むと、先の画面へ帰れる', async () => {
