@@ -1185,6 +1185,12 @@ export default function AiCoursePage() {
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
         nav={navFor(advNavKey)} showLab={labAllowed} v2Mode>
+        {/*
+          学習画面で何かが落ちても、真っ白にしない。
+          白い画面はいちばん悪い行き止まりで、生徒は自力で戻れない
+          （実際に、定着の記録が1件壊れているだけで全画面が消える事故が起きた）。
+        */}
+        <LearnerErrorBoundary t={t} onHome={() => { window.location.href = window.location.pathname; }} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <AdvRuntimeGateLazy lang={uiLang} learner={learner}>
           <AdvShellLazy
@@ -1210,6 +1216,7 @@ export default function AiCoursePage() {
           />
           </AdvRuntimeGateLazy>
         </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }

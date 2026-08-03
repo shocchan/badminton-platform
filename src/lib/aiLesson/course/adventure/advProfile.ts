@@ -4,6 +4,7 @@
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
+  AdvMasteryAttempt,
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
@@ -101,6 +102,30 @@ const restoreMockSessionState = (v: unknown): AdvMockSessionState | null => {
 };
 
 /**
+ * 定着の記録を安全な形へ整える。
+ *
+ * ここは「壊れたデータでも落ちない」の最前線。実際に、項目の欠けた記録が
+ * 1件あるだけで学習画面が丸ごと真っ白になり、その生徒は二度と入れなくなった。
+ * 形の合わない試行は**黙って捨てる**（甘く数えるより、記録が減るほうが安全）。
+ */
+const restoreMastery = (raw: unknown): AdventureV2Profile['mastery'] => {
+  if (!isRecord(raw)) return {};
+  const out: AdventureV2Profile['mastery'] = {};
+  for (const [targetId, attempts] of Object.entries(raw)) {
+    if (!Array.isArray(attempts)) continue;
+    const clean = attempts.filter((a): a is AdvMasteryAttempt =>
+      isRecord(a)
+      && typeof a.dateKey === 'string'
+      && typeof a.scorePct === 'number' && Number.isFinite(a.scorePct)
+      && typeof a.unseenRatio === 'number' && Number.isFinite(a.unseenRatio)
+      && Array.isArray(a.questionKeys)
+      && typeof a.completedAt === 'string');
+    if (clean.length > 0) out[targetId] = clean;
+  }
+  return out;
+};
+
+/**
  * settings.adventureV2 からプロファイルを復元。無い/壊れている場合は null。
  * （壊れた部分fieldは default 側へ倒す＝reloadで学習が止まらない）
  */
@@ -130,7 +155,7 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     skills,
     route: isRecord(raw.route) && Array.isArray((raw.route as Record<string, unknown>).stages)
       ? (raw.route as unknown as AdventureV2Profile['route']) : null,
-    mastery: isRecord(raw.mastery) ? (raw.mastery as AdventureV2Profile['mastery']) : {},
+    mastery: restoreMastery(raw.mastery),
     lastQuest: isRecord(raw.lastQuest) && typeof raw.lastQuest.dateKey === 'string'
       ? (raw.lastQuest as unknown as AdventureV2Profile['lastQuest']) : null,
     todaySteps: isRecord(raw.todaySteps) && typeof raw.todaySteps.dateKey === 'string' && Array.isArray(raw.todaySteps.done)

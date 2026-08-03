@@ -22,10 +22,14 @@ export const questionTypeOf = (key: string): string => key.split(':')[0] ?? 'unk
 
 /** 試行がqualifying（攻略にカウントできる）か */
 export const isQualifyingAttempt = (a: AdvMasteryAttempt, poolHasMultipleTypes: boolean): boolean => {
-  if (a.scorePct < MASTERY_RULES.passPct) return false;
-  if (a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
-  if (poolHasMultipleTypes && a.questionKeys.length >= 5) {
-    const types = new Set(a.questionKeys.map(questionTypeOf));
+  // 欠けた項目があっても落ちない。定着の記録が1件でも壊れていると
+  // 学習画面が丸ごと真っ白になり、その生徒は二度と入れなくなる。
+  // 判定できないものは「合格していない」に倒す（甘く数えない）
+  if (typeof a?.scorePct !== 'number' || a.scorePct < MASTERY_RULES.passPct) return false;
+  if (typeof a.unseenRatio !== 'number' || a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
+  const keys = Array.isArray(a.questionKeys) ? a.questionKeys : [];
+  if (poolHasMultipleTypes && keys.length >= 5) {
+    const types = new Set(keys.map(questionTypeOf));
     if (types.size < MASTERY_RULES.minQuestionTypes) return false;
   }
   return true;

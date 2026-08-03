@@ -171,7 +171,7 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
     env, `/rest/v1/ai_learners?user_id=eq.${userId}&select=id,settings&limit=1`, 'GET',
   );
   interface PriorLearner { id: string; settings?: { adventureV2?: { enabled?: boolean } } }
-  let prior: PriorLearner | null = null;
+  let prior: PriorLearner | null;
   try { prior = (JSON.parse(priorRes.text) as PriorLearner[])[0] ?? null; } catch { prior = null; }
 
   if (!prior) {
