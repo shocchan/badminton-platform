@@ -46,6 +46,7 @@ import type {
 } from '../../lib/aiLesson/course/types';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import type { CourseNavKey } from '../../components/ai-course/CourseHeader';
+import { useStepHistory, type HistoryStepFor } from '../../lib/aiLesson/course/useStepHistory';
 import { StudentLogin } from '../../components/ai-course/StudentLogin';
 import { CourseOnboarding } from '../../components/ai-course/CourseOnboarding';
 import { CourseSettings } from '../../components/ai-course/CourseSettings';
@@ -149,6 +150,19 @@ const markGuideSeen = (): void => {
   try { localStorage.setItem(GUIDE_SEEN_KEY, '1'); } catch { /* private mode */ }
 };
 
+/**
+ * 端末の「戻る」でどの画面へ帰すか（module scope＝毎renderで作り直さない）。
+ * 画面は1つのURLの中で切り替わるので、履歴には step だけを覚えさせる。
+ * - 認証前（loading / login）は積まない。戻るでコースの外へ出られるようにする
+ * - レッスン中・レポートは「その画面へ戻す」のではなくホームへ出す。
+ *   戻るで会話へ再入場すると、時間の計測と復旧処理が二重になるため
+ */
+const historyStepFor: HistoryStepFor<Step> = (s) => {
+  if (s === 'loading' || s === 'login') return null;
+  if (s === 'lesson' || s === 'report') return 'home';
+  return s;
+};
+
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 
 /** 今日のローカル日付 YYYY-MM-DD（module scope＝render純度ルールの対象外） */
@@ -204,6 +218,8 @@ export default function AiCoursePage() {
   const baseDict = aiCourseI18n[uiLang];
 
   const [step, setStep] = useState<Step>('loading');
+  // 端末の「戻る」をコース内の画面移動に効かせる（案内→別画面→戻るで案内へ帰れる）
+  useStepHistory(step, setStep, historyStepFor);
   /**
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。

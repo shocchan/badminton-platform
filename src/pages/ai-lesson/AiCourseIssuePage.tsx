@@ -7,14 +7,16 @@
 // パスワードを再表示できない作りにしているのは、
 // 「あとから見られる場所」を作らないため（見られる場所は必ず漏れる）。
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
+import { Check, Copy } from 'lucide-react';
 
 type L = 'ja' | 'zh';
 
 const field = 'w-full min-h-[48px] rounded-xl border border-gray-300 px-4 py-2.5';
-const primary = 'w-full min-h-[52px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:bg-gray-300';
+const primaryBase = 'w-full min-h-[52px] rounded-xl px-4 py-3 text-base font-bold text-white';
+const primary = `${primaryBase} bg-blue-600 disabled:bg-gray-300`;
 const label = 'block text-sm font-semibold text-gray-800';
 
 interface Issued {
@@ -27,6 +29,48 @@ interface Issued {
 }
 
 const todayISO = (): string => new Date().toISOString().slice(0, 10);
+
+/**
+ * コピーボタン。押したことが見た目で分かるようにする。
+ * クリップボードはOSやブラウザの設定で拒否されることがあるので、
+ * 成功したときだけ「コピーしました」に変える（失敗を成功に見せない）。
+ */
+const CopyButton = ({ text, className }: { text: string; className: string }) => {
+  const [state, setState] = useState<'idle' | 'done' | 'failed'>('idle');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const copy = async () => {
+    if (timer.current) clearTimeout(timer.current);
+    try {
+      await navigator.clipboard.writeText(text);
+      setState('done');
+    } catch {
+      setState('failed');
+    }
+    timer.current = setTimeout(() => setState('idle'), 2000);
+  };
+
+  const done = state === 'done';
+  return (
+    <>
+      <button type="button" onClick={() => { void copy(); }}
+        // 押した瞬間: 色が変わる・文字が変わる・アイコンがチェックになる・少し沈む
+        // （bg は片方だけを渡す。同じ指定を重ねても、どちらが勝つかは決まらないため）
+        className={`${className} ${done ? 'bg-emerald-600' : 'bg-blue-600'} flex items-center justify-center gap-2 transition-colors duration-150 active:scale-[0.98]`}
+        aria-live="polite">
+        {done ? <Check className="h-5 w-5" aria-hidden /> : <Copy className="h-5 w-5" aria-hidden />}
+        {done ? 'コピーしました' : '文面をコピーする'}
+      </button>
+      {state === 'failed' && (
+        <p role="alert" className="mt-2 text-sm text-red-700">
+          コピーできませんでした。上の文面を選んでコピーしてください。
+        </p>
+      )}
+    </>
+  );
+};
 
 export function AiCourseIssuePage() {
   const params = useParams();
@@ -130,10 +174,7 @@ export function AiCourseIssuePage() {
             <textarea readOnly value={handoverText} rows={12}
               className="mt-1 w-full rounded-xl border border-gray-300 p-3 font-mono text-xs leading-relaxed"
               aria-label="生徒へ送る文面" />
-            <button type="button" className={`${primary} mt-2`}
-              onClick={() => { void navigator.clipboard?.writeText(handoverText); }}>
-              文面をコピーする
-            </button>
+            <CopyButton text={handoverText} className={`${primaryBase} mt-2`} />
           </div>
 
           <a href={`/${lang}/ai-course/login`}
