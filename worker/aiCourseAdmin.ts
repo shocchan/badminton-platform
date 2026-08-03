@@ -11,6 +11,7 @@ import {
   generatePasswordSecure, generateLoginId, canonicalLoginId,
 } from '../src/lib/aiLesson/course/auth/loginCredentials';
 import { redactForLog } from '../src/lib/aiLesson/course/auth/loginThrottle';
+import { defaultAdvProfile } from '../src/lib/aiLesson/course/adventure/advProfile';
 
 export interface AdminEnv {
   SUPABASE_URL?: string;
@@ -42,7 +43,7 @@ const sql = async (env: AdminEnv, query: string): Promise<{ ok: boolean; text: s
 };
 
 const rest = async (
-  env: AdminEnv, path: string, method: string, body: unknown, prefer = 'return=representation',
+  env: AdminEnv, path: string, method: string, body?: unknown, prefer = 'return=representation',
 ): Promise<{ ok: boolean; status: number; text: string }> => {
   const res = await fetch(`${env.SUPABASE_URL}${path}`, {
     method,
@@ -52,7 +53,7 @@ const rest = async (
       'Content-Type': 'application/json',
       Prefer: prefer,
     },
-    body: JSON.stringify(body),
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   return { ok: res.ok, status: res.status, text: await res.text() };
 };
@@ -139,20 +140,64 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   }
 
   // ── 学習者 ──
+  //
+  // **発行した生徒は最初から冒険（V2）で始める。**
+  // `?v2=1` と「冒険モードV2（ベータ）を始めますか？」の入場画面は、
+  // 旧コースの既存learnerを勝手に移行しないための入口。
+  // ここで作る生徒には旧コースの学習データが無いので、通す意味がないうえ、
+  // 通すと旧コースのホーム（ナビ5項目）に着地してしまう。
+  const nowISO = new Date().toISOString();
+  const settings = { adventureV2: { ...defaultAdvProfile(nowISO), enabled: true } };
+
   await rest(env, '/rest/v1/ai_learners', 'POST', {
     user_id: userId, display_name: displayName, preferred_language: 'ja',
     estimated_level: level, difficulty_level: 2, current_week: 1, is_active: true,
-    hearing: {}, settings: {}, admin_overrides: {},
+    hearing: {}, settings, admin_overrides: {},
   }, 'return=minimal,resolution=merge-duplicates');
 
+  // 利用権は learner_id で持つ（user_id ではない）。作った行のidを取りに行く
+  const learnerRes = await rest(env, `/rest/v1/ai_learners?user_id=eq.${userId}&select=id&limit=1`, 'GET');
+  let learnerId: string | null;
+  try { learnerId = (JSON.parse(learnerRes.text) as { id: string }[])[0]?.id ?? null; } catch { learnerId = null; }
+  if (!learnerId) {
+    log('learner lookup failed', { status: learnerRes.status });
+    return json({ error: 'learner_failed' }, 500);
+  }
+
   // ── 利用権（期間制。開始日から months か月） ──
+  //
+  // 台帳は「購入 → 利用権」の2段。利用権は purchase_id を必ず持つ（一意制約が
+  // 二重付与の最終防波堤）ので、決済を通していない発行でも購入行を1つ作る。
+  // amount: 0 は「この発行では課金していない」という記録そのもの。
   const start = new Date(`${startDate}T00:00:00Z`);
   const end = new Date(start);
   end.setUTCMonth(end.getUTCMonth() + months);
-  await rest(env, '/rest/v1/ai_course_entitlements', 'POST', {
-    user_id: userId, plan_id: planId,
-    starts_at: start.toISOString(), expires_at: end.toISOString(), is_active: true,
+  const orderId = `issued-${learnerId}-${start.toISOString().slice(0, 10)}-${planId}`;
+
+  const purchase = await rest(env, '/rest/v1/ai_plan_purchases', 'POST', {
+    order_id: orderId, plan_id: planId, plan_version: 1, amount: 0, currency: 'JPY',
+    email, lang: 'ja', terms_version: 'issued-by-teacher', gateway_id: 'manual',
+    reference: purpose, status: 'granted', learner_id: learnerId,
   }, 'return=minimal,resolution=merge-duplicates');
+  if (!purchase.ok) {
+    log('purchase row failed', { status: purchase.status });
+    return json({ error: 'entitlement_failed' }, 500);
+  }
+
+  const ent = await rest(env, '/rest/v1/ai_plan_entitlements', 'POST', {
+    id: orderId, learner_id: learnerId, plan_id: planId, plan_version: 1,
+    purchase_id: orderId,
+    granted_at: start.toISOString(),
+    expires_at: end.toISOString(),
+    // 期間制なので時間の上限は付けない（active_seconds = null）
+    active_seconds: null,
+    period_ends_at: end.toISOString(),
+    status: 'active',
+  }, 'return=minimal,resolution=merge-duplicates');
+  if (!ent.ok) {
+    log('entitlement row failed', { status: ent.status });
+    return json({ error: 'entitlement_failed' }, 500);
+  }
 
   log('student issued', { loginId, purpose });
 

@@ -57,13 +57,13 @@ describe('発行画面のコピーボタン', () => {
   });
 
   it('コピーした文面にログインIDとパスワードが入っている', async () => {
-    const writeText = vi.fn(async () => {});
+    const writeText = vi.fn(async (text: string) => { void text; });
     vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } });
 
     await issue();
     await act(async () => { fireEvent.click(copyButton()); });
 
-    const text = writeText.mock.calls[0][0] as string;
+    const text = writeText.mock.calls[0][0];
     expect(text).toContain('MT-D4PW');
     expect(text).toContain('GM7P5J');
     expect(text).toContain('/ja/ai-course/login');

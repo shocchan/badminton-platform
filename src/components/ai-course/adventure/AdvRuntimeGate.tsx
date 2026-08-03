@@ -20,6 +20,7 @@ import {
   recordActivation, readConsumedSeconds, type IssuedSession,
 } from '../../../lib/aiLesson/course/adventure/runtimeSession';
 import { activateTrial } from '../../../lib/aiLesson/course/sales/trialActivation';
+import { currentPeriodEntitlement } from '../../../lib/aiLesson/course/adventure/periodEntitlement';
 import { salesPlanById, type SalesPlanId, type UpsellRule } from '../../../lib/aiLesson/course/sales/planConfig';
 import { decideUpsell, upsellCopy, recordImpression, type UpsellImpression, type UpsellContext } from '../../../lib/aiLesson/course/sales/upsell';
 import { AdvRuntimeProvider, type AdvRuntime } from './AdvRuntimeContext';
@@ -60,7 +61,9 @@ type GateState =
   | { kind: 'consumed' }
   | { kind: 'expired' }
   | { kind: 'takeover' }
-  | { kind: 'session_unavailable' };
+  | { kind: 'session_unavailable' }
+  /** 期間制（半年伴走コースなど）。開始日がまだ来ていない */
+  | { kind: 'before_start'; startsAtMs: number };
 
 export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps) {
   const [state, setState] = useState<GateState>({ kind: 'loading' });
@@ -93,6 +96,30 @@ export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps)
   }, [learner.settings]);
 
   const resolveAndIssue = useCallback(async () => {
+    // ── 期間制の利用権を先に見る ──
+    //
+    // 半年伴走コースは「日付で終わる」ので、60分パスの開始期限・使い切りの
+    // 仕組みには乗せない。乗せると、時間を使い切った扱いで学習が止まる。
+    const period = await currentPeriodEntitlement(learner.id);
+    if (period.kind === 'active') {
+      const s = await issueRuntimeSession({
+        level: allowed.level,
+        allowedTargetIds: allowed.targetIds,
+        allowedN2Units: allowed.n2Units,
+      });
+      if (!s) { setState({ kind: 'session_unavailable' }); return; }
+      sessionRef.current = s;
+      setRemainingSec(null);                          // 期間制に残り時間の表示は出さない
+      setExpiresAtMs(period.entitlement.endsAtMs);
+      setState({ kind: 'active', session: s });
+      return;
+    }
+    if (period.kind === 'before_start') {
+      setState({ kind: 'before_start', startsAtMs: period.entitlement.startsAtMs });
+      return;
+    }
+    if (period.kind === 'expired') { setState({ kind: 'expired' }); return; }
+
     const ent = currentEntitlement();
     if (ent.kind === 'none' || !ent.trial) { setState({ kind: 'no_entitlement' }); return; }
     const { grant, resolution } = ent.trial;
@@ -116,7 +143,7 @@ export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps)
     setRemainingSec(resolution.remainingActiveSeconds);
     setExpiresAtMs(grant.activation ? grant.activation.expiresAtMs : null);
     setState({ kind: 'active', session });
-  }, [allowed]);
+  }, [allowed, learner.id]);
 
   useEffect(() => {
     // 判定→setState はこの effect の同期パスで行わない（cascading render 防止）
@@ -131,9 +158,12 @@ export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps)
     guardRef.current = guard;
     guard.onTakeover(() => setState({ kind: 'takeover' }));
 
+    // 期間制のときは時間で締めない（remainingSec が null＝残り時間の概念がない）
+    const timeCapped = remainingSec !== null;
     const ent = currentEntitlement();
     const granted = ent.trial?.grant.includedActiveSeconds ?? 3600;
     const tracker = startActiveTimeTracker((consumed) => {
+      if (!timeCapped) return;
       const left = Math.max(0, granted - consumed);
       setRemainingSec(left);
       if (left <= 0) {
@@ -185,6 +215,21 @@ export function AdvRuntimeGate({ lang, learner, children }: AdvRuntimeGateProps)
     return (
       <div className="flex min-h-[40vh] items-center justify-center" role="status">
         <p className="text-sm text-gray-500">{tx(lang, '利用状況を確認しています…', '正在确认使用状态…')}</p>
+      </div>
+    );
+  }
+
+  // 期間制で、開始日がまだ来ていない。買えていないわけではないので料金へは送らない
+  if (state.kind === 'before_start') {
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
+        <h2 className="text-lg font-bold text-gray-900">
+          {tx(lang, 'まだ開始日前です', '还没有到开始日期')}
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-gray-600">
+          {tx(lang, `${fmtDateTime(state.startsAtMs, lang)} から始められます。`,
+            `${fmtDateTime(state.startsAtMs, lang)} 开始可以使用。`)}
+        </p>
       </div>
     );
   }

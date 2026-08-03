@@ -190,7 +190,7 @@ export const issueRuntimeSession = async (input: {
     body: JSON.stringify({
       level: input.level,
       trial: ent.trial?.grant ?? null,
-      hasPeriodAccess: ent.kind === 'period',
+      // 期間制かどうかはサーバーが台帳で決める。ここから送らない
       consumedActiveSeconds: ent.consumedActiveSeconds,
       allowedTargetIds: input.allowedTargetIds,
       allowedN2Units: input.allowedN2Units ?? [],

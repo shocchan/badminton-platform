@@ -825,10 +825,13 @@ export default function AiCoursePage() {
     }
     setStep(k);
   };
+  // ナビはここで一括して決める。V2の生徒には全画面で「今日の冒険 / 冒険マップ / 設定」の
+  // 3つだけを出す（案内や設定だけ旧コースの5項目に戻ってしまうのを防ぐ）
   const navFor = (current: CourseNavKey) => ({
     current,
     onNavigate: goNav,
     onLogout: () => { void handleLogout(); },
+    v2Mode: isAdvEnabled(learner?.settings),
   });
 
   /** オモイデ庭園（復習の統合入口・§13）。語彙/文法/会話の復習はここから分岐する */
@@ -1370,7 +1373,14 @@ const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: '
 const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false, navHidden = false }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
-  nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
+  nav?: {
+    current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void;
+    /**
+     * V2の生徒か。navFor() が付けて回るので、画面ごとに渡し忘れない。
+     * （渡し忘れると、その画面だけ旧コースの5項目ナビが出てしまう）
+     */
+    v2Mode?: boolean;
+  };
   t: AiCourseDict;
   lang: 'ja' | 'zh';
   onToggleLang: () => void;
@@ -1403,7 +1413,8 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
         onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
-        lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode} navHidden={navHidden}
+        lang={lang} onToggleLang={onToggleLang} showLab={showLab}
+        v2Mode={v2Mode || nav?.v2Mode === true} navHidden={navHidden}
       />
       {children}
       {/* 学習アプリ側にも法務導線を置く（LPだけにあると、

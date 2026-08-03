@@ -17,6 +17,7 @@ import { selectDiagnosisQuestions, type DiagQuestion, type DiagnosisPools } from
 import type { AdvBattleQuestion } from '../src/lib/aiLesson/course/adventure/advVariants';
 import { resolveTrial, type TrialGrant } from '../src/lib/aiLesson/course/sales/trialActivation';
 import type { AdvEnemyTier } from '../src/lib/aiLesson/course/adventure/advTypes';
+import { hasActivePeriodAccess } from './aiCoursePeriodAccess';
 
 // ─────────────────────────────────────────────────────────
 // 共有ユーティリティ（HMAC / base64url / JWT検証）
@@ -29,6 +30,8 @@ export interface RuntimeEnv {
   SUPABASE_URL?: string;
   /** HS256の共有secret。**local検証専用**（本番/stagingはJWKSを使う） */
   SUPABASE_JWT_SECRET?: string;
+  /** 期間制の利用権を台帳で確かめるために使う。**browserへは渡さない** */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
   /**
    * セッション発行モード。
    * 'client-asserted' = 進捗・利用権をclient申告で署名する（**staging/local専用**）。
@@ -422,7 +425,9 @@ export const handleSessionIssue = async (request: Request, env: RuntimeEnv): Pro
     sessionId: typeof body.sessionId === 'string' && body.sessionId ? body.sessionId : crypto.randomUUID(),
     level: body.level === 'n2' ? 'n2' : 'n3',
     trial: body.trial ?? null,
-    hasPeriodAccess: body.hasPeriodAccess === true,
+    // **client の申告は使わない。** 期間制の利用権は台帳を引き直して決める
+    // （申告を信じると、払っていない人でも「払った」と言えば教材が取れる）
+    hasPeriodAccess: await hasActivePeriodAccess(env, userId),
     consumedActiveSeconds: Math.max(0, Number(body.consumedActiveSeconds) || 0),
     allowedTargetIds: body.allowedTargetIds === '*' ? '*'
       : Array.isArray(body.allowedTargetIds)
