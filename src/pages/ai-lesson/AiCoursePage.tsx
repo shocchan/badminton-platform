@@ -138,6 +138,7 @@ import { TeacherProvider } from '../../components/ai-course/TeacherAvatar';
 import type { AdvTeacherId } from '../../lib/aiLesson/course/adventure/advTeacher';
 import { applyTeacherName } from '../../lib/aiLesson/course/adventure/advTeacherText';
 import { isAdvEnabled, readAdvProfile, writeAdvProfile, defaultAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
+import { currentPeriodEntitlement } from '../../lib/aiLesson/course/adventure/periodEntitlement';
 
 type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
@@ -353,9 +354,23 @@ export default function AiCoursePage() {
     const user = await getSession();
     if (!user) { setStep('login'); return; }
     await courseRepository.flushPending();
-    const l = await courseRepository.getLearner();
+    let l = await courseRepository.getLearner();
     // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす
     if (needsHearing(l)) { setStep('hearing'); return; }
+
+    // 半年コースを買った人は、冒険（V2）の生徒。
+    // 印（settings.adventureV2.enabled）が付いていないアカウントがあると、
+    // 買っているのに旧コースのホームへ着地する。台帳に利用権があればここで付け直す。
+    if (!isAdvEnabled(l.settings)) {
+      const period = await currentPeriodEntitlement(l.id);
+      if (period.kind === 'active') {
+        const nowISO = new Date().toISOString();
+        const prof = readAdvProfile(l.settings) ?? defaultAdvProfile(nowISO);
+        const settings = writeAdvProfile(l.settings, { ...prof, enabled: true }, nowISO);
+        l = { ...l, settings };
+        void courseRepository.updateLearner({ settings });
+      }
+    }
     const [prog, sess, lim] = await Promise.all([
       courseRepository.listProgress(), courseRepository.listRecentSessions(50), getUsageLimits(),
     ]);
