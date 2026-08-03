@@ -12,8 +12,9 @@ import {
   handleSessionIssue, handleActivityStart, handleActivityGrade, handleMockGrade,
   handleGrammarDoc, handleStageContent, handleAudio, handleDevSeed, type RuntimeEnv,
 } from './aiCourseRuntime';
+import { routeAuth, type AuthEnv } from './aiCourseAuth';
 
-interface Env extends RuntimeEnv {
+interface Env extends RuntimeEnv, AuthEnv {
   ASSETS: Fetcher;
   VITE_SUPABASE_URL?: string;
   SUPABASE_URL?: string;
@@ -184,6 +185,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
   // AIコース教材の限定配信。**assets より先に置く**。
   // 後ろに置くと拡張子判定に吸われてしまう
   if (pathname.startsWith('/api/ai-course/')) {
+    // ログイン系（ID＋6文字パスワード）。ID→メールの解決はこの中だけで行う
+    const authHandler = routeAuth(pathname);
+    if (authHandler) return authHandler(request, env);
+
     switch (pathname) {
       case '/api/ai-course/session/issue': return handleSessionIssue(request, env);
       case '/api/ai-course/activity/start': return handleActivityStart(request, env);
