@@ -63,6 +63,11 @@ const PurchasePage        = lazy(() => import('./pages/ai-lesson/plans/PurchaseP
 const AiCourseHelpPage    = lazy(() => import('./pages/ai-lesson/plans/HelpPage').then(m => ({ default: m.HelpPage })));
 // CEO確認ページ（staging専用。本番ホストでは404）
 const AiCourseReviewPage  = lazy(() => import('./pages/ai-lesson/AiCourseReviewPage').then(m => ({ default: m.AiCourseReviewPage })));
+// 生徒ログイン（ログインID＋6文字パスワード）とパスワード再設定
+const AiCourseLoginPage   = lazy(() => import('./pages/ai-lesson/AiCourseLoginPage').then(m => ({ default: m.AiCourseLoginPage })));
+const AiCourseResetPage   = lazy(() => import('./pages/ai-lesson/AiCourseResetPage').then(m => ({ default: m.AiCourseResetPage })));
+// 生徒アカウントの発行（運営用。合言葉が無いとサーバー側が404を返す）
+const AiCourseIssuePage   = lazy(() => import('./pages/ai-lesson/AiCourseIssuePage').then(m => ({ default: m.AiCourseIssuePage })));
 
 /**
  * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
@@ -135,6 +140,10 @@ const AnimatedRoutes = () => {
               <Route path="ai-course/plans"          element={<PlansPage />} />
               {/* CEO確認ページ。本番ホストではコンポーネント側で404。一般ナビには載せない */}
               <Route path="ai-course/review"         element={<AiCourseReviewPage />} />
+              {/* 生徒の入口。catch-allより前に置く */}
+              <Route path="ai-course/login"          element={<AiCourseLoginPage />} />
+              <Route path="ai-course/reset"          element={<AiCourseResetPage />} />
+              <Route path="ai-course/issue"          element={<AiCourseIssuePage />} />
               <Route path="ai-course/help"           element={<AiCourseHelpPage />} />
               <Route path="ai-course/plans/:planId"  element={<PurchasePage />} />
               {/* 法務8ページ。catch-allより前に置かないと全部入口へ吸われる */}

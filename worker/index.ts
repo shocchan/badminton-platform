@@ -13,8 +13,9 @@ import {
   handleGrammarDoc, handleStageContent, handleAudio, handleDevSeed, type RuntimeEnv,
 } from './aiCourseRuntime';
 import { routeAuth, type AuthEnv } from './aiCourseAuth';
+import { routeAdmin, type AdminEnv } from './aiCourseAdmin';
 
-interface Env extends RuntimeEnv, AuthEnv {
+interface Env extends RuntimeEnv, AuthEnv, AdminEnv {
   ASSETS: Fetcher;
   VITE_SUPABASE_URL?: string;
   SUPABASE_URL?: string;
@@ -188,6 +189,10 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     // ログイン系（ID＋6文字パスワード）。ID→メールの解決はこの中だけで行う
     const authHandler = routeAuth(pathname);
     if (authHandler) return authHandler(request, env);
+
+    // 運営用の発行口。合言葉が未設定なら 404（存在しないのと同じ）
+    const adminHandler = routeAdmin(pathname);
+    if (adminHandler) return adminHandler(request, env);
 
     switch (pathname) {
       case '/api/ai-course/session/issue': return handleSessionIssue(request, env);

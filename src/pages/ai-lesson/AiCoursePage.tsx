@@ -46,7 +46,7 @@ import type {
 } from '../../lib/aiLesson/course/types';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import type { CourseNavKey } from '../../components/ai-course/CourseHeader';
-import { CourseLogin } from '../../components/ai-course/CourseLogin';
+import { StudentLogin } from '../../components/ai-course/StudentLogin';
 import { CourseOnboarding } from '../../components/ai-course/CourseOnboarding';
 import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
@@ -751,7 +751,15 @@ export default function AiCoursePage() {
 
   // ── レンダリング ──
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
-  if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
+  // 生徒の入口は ID＋6文字パスワードの専用画面（PAID STUDENT PILOT §1）。
+  // 旧メールOTP画面は招待コード前提なので、生徒向けには使わない
+  if (step === 'login') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        <StudentLogin lang={uiLang} onLoggedIn={() => void loadAll()} />
+      </Shell>
+    );
+  }
   if (step === 'hearing') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
 
   if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
