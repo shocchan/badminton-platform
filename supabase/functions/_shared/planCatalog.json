@@ -7,7 +7,7 @@
     "currency": "JPY",
     "planVersion": 1,
     "includedActiveMinutes": 60,
-    "validityDays": 30,
+    "validityDays": 8,
     "durationDays": 0,
     "voiceMinutesCap": 10,
     "aiReportCap": 3

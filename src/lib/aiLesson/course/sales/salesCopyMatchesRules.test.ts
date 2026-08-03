@@ -20,6 +20,20 @@ describe('販売文言と実際の動きが合っている', () => {
   });
 
   it.each(timeBased.map((p) => [p.planId, p] as const))(
+    '%s: 台帳の期限が、開始期限＋開始後の時間 をちょうど覆う',
+    (_id, plan) => {
+      const startDays = plan.startDeadlineDays ?? 0;
+      const afterHours = plan.validityHoursAfterActivation ?? 0;
+      // 期限ぎりぎりに開始した人の「開始後の時間」が切れないだけの日数が要る
+      const needed = startDays + Math.ceil(afterHours / 24);
+      expect(plan.validityDays, '台帳が短すぎる: 開始できたのに途中で切れる')
+        .toBeGreaterThanOrEqual(needed);
+      expect(plan.validityDays, '台帳が長すぎる: 有効に見えるのに開始できない期間ができる')
+        .toBe(needed);
+    },
+  );
+
+  it.each(timeBased.map((p) => [p.planId, p] as const))(
     '%s: 説明文に「開始期限の日数」と「開始後の時間」が両方書いてある',
     (_id, plan) => {
       const days = String(plan.startDeadlineDays);
@@ -33,16 +47,17 @@ describe('販売文言と実際の動きが合っている', () => {
   );
 
   it.each(timeBased.map((p) => [p.planId, p] as const))(
-    '%s: 実際より長く使えるように読める数字を書かない',
+    '%s: 実際より長く使えるように読める日数を書かない',
     (_id, plan) => {
-      // validityDays は台帳側の別の期限で、学習者が使える期間ではない。
-      // これを説明文へ出すと「30日使える」と誤解される
-      const misleading = `${plan.validityDays}日`;
-      const misleadingZh = `${plan.validityDays}天`;
-      const ja = plan.featuresJa.join('\n');
-      const zh = plan.featuresZh.join('\n');
-      expect(ja, `ja: 「${misleading}」は実際に使える期間ではない`).not.toContain(misleading);
-      expect(zh, `zh: 「${misleadingZh}」は実際に使える期間ではない`).not.toContain(misleadingZh);
+      // 説明文に出てくる「N日/N天」は、開始期限より長くてはいけない。
+      // 「30日使える」と読ませたのがまさにこの間違いだった。
+      const limit = plan.startDeadlineDays ?? 0;
+      for (const [lang, lines] of [['ja', plan.featuresJa], ['zh', plan.featuresZh]] as const) {
+        for (const n of lines.join('\n').matchAll(/(\d+)\s*(日|天)/g)) {
+          expect(Number(n[1]), `${lang}: 「${n[0]}」は開始期限（${limit}日）より長い`)
+            .toBeLessThanOrEqual(limit);
+        }
+      }
     },
   );
 
@@ -57,8 +72,10 @@ describe('販売文言と実際の動きが合っている', () => {
       const answer = plansCopy(lang).faq.find((f) => f.a.includes(hours));
       expect(answer, `${lang}: 開始後${hours}時間に触れたFAQが無い`).toBeTruthy();
       expect(answer?.a, `${lang}: 開始期限${days}日が書かれていない`).toContain(days);
-      expect(faq, `${lang}: FAQに「${pass.validityDays}日/天」の誤解を招く記載が残っている`)
-        .not.toMatch(new RegExp(`${pass.validityDays}\\s*(日|天)`));
+      expect(faq, `${lang}: FAQが空`).not.toBe('');
+      // 「validityDays の数字を含まない」という見張り方はしない。
+      // キャンセル可能期間（購入から8日）など、無関係な同じ数字を誤検出するため。
+      // 台帳の数字が売り場へ漏れるのは、下の「画面のコード」検査で捕まえる
     }
   });
 

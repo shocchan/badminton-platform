@@ -133,7 +133,15 @@ export interface SalesPlanConfig {
    * その日の終わりまでではない（21:30開始なら翌日21:30まで）。
    */
   validityHoursAfterActivation: number | null;
-  /** 購入から何日以内に使い切る必要があるか（日） */
+  /**
+   * 台帳（利用権grant）の有効期限（日）。
+   *
+   * **学習者へ見せる数字ではない。** 時間制プランで実際に効くのは
+   * `startDeadlineDays`（開始期限）と `validityHoursAfterActivation`（開始後の時間）。
+   * ここを実際のルールより長くすると「台帳では有効なのに開始できない」人が出るので、
+   * 時間制プランでは startDeadlineDays を下回らない最小の値にする。
+   * （salesCopyMatchesRules.test.ts が、この値が売り場へ出ないことを見張る）
+   */
   validityDays: number;
   /** 自動更新。**初期は全プラン false**（§1商品構成） */
   autoRenew: boolean;
@@ -204,10 +212,12 @@ export const SALES_PLAN_CATALOG: readonly SalesPlanConfig[] = [
     durationDays: 0,
     includedActiveMinutes: 60,
     includedActiveSeconds: 3600,
-    // 購入から7日以内に開始 → 開始してから24時間
+    // 購入から7日以内に開始 → 開始してから24時間（CEO決定 2026-08-03）
     startDeadlineDays: 7,
     validityHoursAfterActivation: 24,
-    validityDays: 30,
+    // 台帳側の期限。7日目ぎりぎりに開始した人の24時間を切らないよう +1日する。
+    // ここを実際のルールより長くすると「台帳では有効なのに開始できない」人が出る
+    validityDays: 8,
     autoRenew: false,
     humanLessonCount: 0,
 

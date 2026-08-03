@@ -24,10 +24,12 @@ const grantFor = (planId: 'ai-hour-pass' | 'ai-month', purchaseId: string, atMs:
 };
 
 describe('付与（§4-3 自動付与できる構造）', () => {
-  it('60分パスは 3600 秒・30日期限で付与される', () => {
+  // 期限の日数は planConfig から取る。ここに数字を直書きすると、
+  // 方針を変えたときに「テストだけ古い」状態になる（30日→8日の変更で実際に起きた）
+  it('60分パスは 3600 秒・台帳の期限つきで付与される', () => {
     const { grant } = grantFor('ai-hour-pass', 'pay_1', T0);
     expect(grant!.activeSeconds).toBe(3600);
-    expect(grant!.expiresAtMs).toBe(T0 + 30 * DAY);
+    expect(grant!.expiresAtMs).toBe(T0 + hourPass.validityDays * DAY);
     expect(grant!.periodEndsAtMs).toBeNull();          // 期間契約ではない
     expect(grant!.status).toBe('active');
   });
@@ -127,14 +129,15 @@ describe('再購入（§11）', () => {
   });
 
   it('消費は期限の早い枠から引かれる（説明しやすい順序）', () => {
-    const a = grantFor('ai-hour-pass', 'pay_1', T0).grant!;              // 期限 T0+30d
-    const b = grantFor('ai-hour-pass', 'pay_2', T0 + 10 * DAY, [a]).grant!;  // 期限 T0+40d
-    // 30分だけ使った時点では、古い枠から引かれている
-    const s = resolveEntitlement([a, b], { activeSeconds: 1800, voiceSeconds: 0, aiReports: 0 }, T0 + 11 * DAY);
+    const V = hourPass.validityDays;                            // 台帳の期限（日）
+    const a = grantFor('ai-hour-pass', 'pay_1', T0).grant!;     // 期限 T0+V
+    const b = grantFor('ai-hour-pass', 'pay_2', T0 + DAY, [a]).grant!;  // 期限 T0+1+V
+    // 両方が生きている時点で30分使うと、古い枠から引かれている
+    const s = resolveEntitlement([a, b], { activeSeconds: 1800, voiceSeconds: 0, aiReports: 0 }, T0 + 2 * DAY);
     expect(s.remainingActiveSeconds).toBe(3600 + 1800);
 
     // 古い枠が失効すると、その未使用分だけが失効し、新しい枠は丸ごと残る
-    const after = resolveEntitlement([a, b], { activeSeconds: 1800, voiceSeconds: 0, aiReports: 0 }, T0 + 31 * DAY);
+    const after = resolveEntitlement([a, b], { activeSeconds: 1800, voiceSeconds: 0, aiReports: 0 }, T0 + (V + 0.5) * DAY);
     expect(after.remainingActiveSeconds).toBe(3600);
     expect(after.forfeitedActiveSeconds).toBe(1800);
   });
