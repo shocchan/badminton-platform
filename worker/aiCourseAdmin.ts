@@ -100,7 +100,7 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   const level = String(body.level ?? 'N3');
 
   const password = generatePasswordSecure();
-  const loginId = canonicalLoginId(generateLoginId((max) => {
+  const newLoginId = canonicalLoginId(generateLoginId((max) => {
     const b = new Uint32Array(1);
     crypto.getRandomValues(b);
     return b[0] % max;
@@ -131,8 +131,24 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   if (!userId) return json({ error: 'user_create_failed' }, 500);
 
   // ── ログインIDの対応 ──
+  //
+  // 1人につき1つのログインID（user_id に一意制約）。
+  // **同じ生徒へ再発行するときは、IDを変えずパスワードだけ新しくする。**
+  // 「パスワードを無くした」で作り直すたびIDが変わると、
+  // 生徒が控えたIDが使えなくなり、古いIDの問い合わせも増える。
+  const existingRes = await rest(
+    env, `/rest/v1/ai_course_logins?user_id=eq.${userId}&select=login_id&limit=1`, 'GET',
+  );
+  let loginId = newLoginId;
+  try {
+    const prev = (JSON.parse(existingRes.text) as { login_id: string }[])[0]?.login_id;
+    if (prev) loginId = prev;
+  } catch { /* 無ければ新規のIDを使う */ }
+
   const logins = await rest(env, '/rest/v1/ai_course_logins', 'POST', {
     login_id: loginId, user_id: userId, email, account_purpose: purpose, is_active: true,
+    // 一時ロック中でも、先生が発行し直したら入れるようにする
+    locked_until: null,
   }, 'return=minimal,resolution=merge-duplicates');
   if (!logins.ok) {
     log('login row failed', { status: logins.status });
@@ -147,15 +163,42 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   // ここで作る生徒には旧コースの学習データが無いので、通す意味がないうえ、
   // 通すと旧コースのホーム（ナビ5項目）に着地してしまう。
   const nowISO = new Date().toISOString();
-  const settings = { adventureV2: { ...defaultAdvProfile(nowISO), enabled: true } };
 
-  await rest(env, '/rest/v1/ai_learners', 'POST', {
-    user_id: userId, display_name: displayName, preferred_language: 'ja',
-    estimated_level: level, difficulty_level: 2, current_week: 1, is_active: true,
-    hearing: {}, settings, admin_overrides: {},
-  }, 'return=minimal,resolution=merge-duplicates');
+  // **既に学習している生徒の settings を上書きしない。**
+  // パスワードを無くした生徒への再発行でも通る道なので、ここで既定値を書くと
+  // 診断・攻略ルート・定着の記録が消える。既存なら触らない。
+  const priorRes = await rest(
+    env, `/rest/v1/ai_learners?user_id=eq.${userId}&select=id,settings&limit=1`, 'GET',
+  );
+  interface PriorLearner { id: string; settings?: { adventureV2?: { enabled?: boolean } } }
+  let prior: PriorLearner | null = null;
+  try { prior = (JSON.parse(priorRes.text) as PriorLearner[])[0] ?? null; } catch { prior = null; }
 
-  // 利用権は learner_id で持つ（user_id ではない）。作った行のidを取りに行く
+  if (!prior) {
+    // 新規。冒険（V2）で始める（`?v2=1` の入場画面は旧learnerを勝手に移行しない
+    // ための入口で、学習データが無いこの生徒には通す意味がない）
+    const created = await rest(env, '/rest/v1/ai_learners', 'POST', {
+      user_id: userId, display_name: displayName, preferred_language: 'ja',
+      estimated_level: level, difficulty_level: 2, current_week: 1, is_active: true,
+      hearing: {}, settings: { adventureV2: { ...defaultAdvProfile(nowISO), enabled: true } },
+      admin_overrides: {},
+    }, 'return=minimal');
+    if (!created.ok) {
+      log('learner create failed', { status: created.status });
+      return json({ error: 'learner_failed' }, 500);
+    }
+  } else if (prior.settings?.adventureV2?.enabled !== true) {
+    // 既存だが冒険が無効。**印だけ**立てる（他の学習データはそのまま）
+    await rest(env, `/rest/v1/ai_learners?id=eq.${prior.id}`, 'PATCH', {
+      settings: {
+        ...(prior.settings ?? {}),
+        adventureV2: { ...defaultAdvProfile(nowISO), ...(prior.settings?.adventureV2 ?? {}), enabled: true },
+      },
+      is_active: true, updated_at: nowISO,
+    }, 'return=minimal');
+  }
+
+  // 利用権は learner_id で持つ（user_id ではない）
   const learnerRes = await rest(env, `/rest/v1/ai_learners?user_id=eq.${userId}&select=id&limit=1`, 'GET');
   let learnerId: string | null;
   try { learnerId = (JSON.parse(learnerRes.text) as { id: string }[])[0]?.id ?? null; } catch { learnerId = null; }
