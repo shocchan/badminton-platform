@@ -100,8 +100,8 @@ test.describe('Secure Adventure Runtime', () => {
       await expect(page.getByText(`${i + 1} / 12`)).toBeVisible({ timeout: 15_000 });
       await page.locator('button.w-full.min-h-\\[44px\\]').first().click();
     }
-    // 会話サンプルはスキップ（未判定になる）
-    await page.getByRole('button').filter({ hasText: '書くのはスキップ' }).click();
+    // 12問目のあとは作文を挟まず、そのまま攻略ルートへ進む
+    // （日本語を入力できない学習者が入口で詰まらないようにした・CEO決定 2026-08-03）
     await expect(page.getByText('あなたの攻略ルート')).toBeVisible({ timeout: 20_000 });
     await shot(page, '09-route-reveal');
     await page.getByRole('button', { name: '今日の冒険を始める' }).click();

@@ -5,10 +5,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
-  AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
+  AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile, AdvCompanionId,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { companionById, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
-import { currentStageOf, routeProgressPct, AREA_UNIT_MAP } from '../../../lib/aiLesson/course/adventure/advRoute';
+import { currentStageOf, routeProgressPct } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -90,6 +91,9 @@ export default function AdvShell(props: AdvShellProps) {
   const [view, setView] = useState<View>('home');
   const [stageCt, setStageCt] = useState<StageContentResponse | null>(null);
   const [quest, setQuest] = useState<AdvTodayQuest | null>(null);
+  /** 今日の冒険を取れなかった。読み込み中のまま放置せず、やり直せるようにする */
+  const [questFailed, setQuestFailed] = useState(false);
+  const [questRetry, setQuestRetry] = useState(0);
   const [battle, setBattle] = useState<BattleCtx | null>(null);
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
   const [grammarDoc, setGrammarDoc] = useState<GrammarDocPayload | null>(null);
@@ -156,6 +160,20 @@ export default function AdvShell(props: AdvShellProps) {
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
 
+  /**
+   * 今日の冒険を取りに行く effect の依存。**オブジェクトの同一性では依存しない。**
+   *
+   * profile は settings から毎 render 作り直されるので、route/mastery を
+   * そのまま依存にすると、親が1回更新するだけで effect が作り直される。
+   * すると取得中の結果が `alive=false` で捨てられ、
+   * 診断を終えた直後だけ「冒険の準備をしています…」から進まなくなる（実際に起きた）。
+   * 中身が変わったときだけ動くよう、内容から鍵を作る。
+   */
+  const routeKey = profile?.route?.stages.map((s) => s.stageId).join(',') ?? '';
+  const masteryKey = profile
+    ? Object.entries(profile.mastery).map(([id, at]) => `${id}:${at?.length ?? 0}`).join('|')
+    : '';
+
   useEffect(() => {
     if (needsOnboarding || !profile?.route) return;
     let alive = true;
@@ -167,7 +185,12 @@ export default function AdvShell(props: AdvShellProps) {
         targets: stage.targets, stageKind: stage.kind, masteredIds: [...mastered],
       });
       if (!alive) return;
-      if (!ctRes.ok) return; // 利用権切れ等は各画面が入口で案内する。ここでは静かに止まる
+      if (!ctRes.ok) {
+        // 黙って読み込み中のまま止めない。待たせ続けるより、やり直せる形で伝える
+        setQuestFailed(true);
+        return;
+      }
+      setQuestFailed(false);
       const ct = ctRes.data;
       setStageCt(ct);
       const weak = Object.entries(profile.mastery)
@@ -203,7 +226,7 @@ export default function AdvShell(props: AdvShellProps) {
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsOnboarding, profile?.route, profile?.mastery, props.reviewsDue, dateKey]);
+  }, [needsOnboarding, routeKey, masteryKey, props.reviewsDue, dateKey, questRetry]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
@@ -836,8 +859,16 @@ export default function AdvShell(props: AdvShellProps) {
     if (s.kind === 'reading_short') { setView('reading'); return; }
     if (s.kind === 'listening_practice') { setView('listening'); return; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
-      markStep(i);
-      props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
+      // 単元のことばは、その単元の問題で学ぶ（サーバーが出題し、間違いは解説つき）。
+      // 以前は旧コースのエリア画面へ送っていたが、その画面は公開ビルドに入れていない
+      // （教材を静的に持つため）。結果、今日の1つ目が行き止まりになっていた。
+      setBattle({
+        tier: 'normal',
+        targetId: s.refIds[0],
+        targetLabel: tx(lang, s.titleJa, s.titleZh),
+        targetIds: s.refIds,
+      });
+      setView('battle');
       return;
     }
     if (s.kind === 'grammar_new' && s.refIds[0]) { setStudyGrammarId(s.refIds[0]); setView('grammar'); return; }
@@ -907,6 +938,13 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       </div>
 
+      {/*
+        選んだ相棒。オンボーディングで選ばせておきながら、そのあと一度も
+        出てこなかった（CEO指摘 2026-08-03）。選んだ意味が見えるように、
+        毎日の入口で必ず声を掛ける。教材は分岐させない（§8: 声掛けだけを変える）。
+      */}
+      <CompanionLine lang={lang} companionId={prof.companionId} allDone={allDone} />
+
       {/* 中断したミニ模試があれば、他の何より先に再開させる（§9 reload recovery） */}
       {prof.mockSession && (
         <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
@@ -929,7 +967,21 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       )}
 
-      {!quest && <AdvLoading lang={lang} inline />}
+      {!quest && !questFailed && <AdvLoading lang={lang} inline />}
+
+      {/* 取れなかったときは読み込み中のまま置かない。原因は分からなくても、やり直せるようにする */}
+      {!quest && questFailed && (
+        <div className="py-8 text-center" role="alert">
+          <p className="text-sm text-gray-600">
+            {tx(lang, '今日の冒険を読み込めませんでした。', '没能加载今天的冒险。')}
+          </p>
+          <button type="button"
+            className="mt-3 min-h-[44px] rounded-xl border border-blue-300 bg-white px-5 py-2 font-semibold text-blue-700"
+            onClick={() => { setQuestFailed(false); setQuestRetry((n) => n + 1); }}>
+            {tx(lang, 'もう一度読み込む', '重新加载')}
+          </button>
+        </div>
+      )}
 
       {quest && (
         <div className={`${card} mb-4 border-blue-200`}>
@@ -1038,9 +1090,38 @@ export default function AdvShell(props: AdvShellProps) {
 
 }
 
-const AREA_BY_UNIT: Record<string, string> = Object.fromEntries(
-  Object.entries(AREA_UNIT_MAP).flatMap(([area, units]) => units.map((u) => [u, area])),
-);
+
+/**
+ * 選んだ相棒の一言（§8: 教材は分岐させず、声掛けだけを変える）。
+ *
+ * 相棒を選ばせたのに一度も出てこないと、選択そのものが嘘になる。
+ * 毎日の入口と、その日をやり切ったときの2か所で必ず顔を出す。
+ */
+function CompanionLine({ lang, companionId, allDone }: {
+  lang: L; companionId: AdvCompanionId | null; allDone: boolean;
+}) {
+  const c = companionById(companionId);
+  const doneJa = c.id === 'nami' ? '今日も話せたね。えらい。'
+    : c.id === 'fukuro' ? '今日の一枚、積み上がったよ。'
+      : '今日の冒険、走り切ったね。';
+  const doneZh = c.id === 'nami' ? '今天也开口说了，很棒。'
+    : c.id === 'fukuro' ? '今天这一块，垒上去了。'
+      : '今天的冒险，跑完了。';
+
+  return (
+    <div className="mb-4 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-2">
+      <span className="shrink-0" aria-hidden
+        dangerouslySetInnerHTML={{ __html: companionSvg(c.id) }}
+        style={{ width: 36, height: 36, display: 'inline-block' }} />
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-gray-500">{tx(lang, c.nameJa, c.nameZh)}</p>
+        <p className="text-sm leading-snug text-gray-700">
+          {allDone ? tx(lang, doneJa, doneZh) : tx(lang, c.greetJa, c.greetZh)}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function AdvLoading({ lang, inline }: { lang: L; inline?: boolean }) {
   return (

@@ -49,12 +49,9 @@ interface Props {
   onCancel: () => void;
 }
 
-type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'conv' | 'route';
-
-const CONV_PROMPTS: { ja: string; zh: string }[] = [
-  { ja: '週末は何をしましたか。日本語で書いてみてください。', zh: '周末做了什么？请试着用日语写一句。' },
-  { ja: 'どうして日本語を勉強していますか。理由を日本語で書いてください。', zh: '你为什么学日语？请用日语写理由。' },
-];
+// 'conv'（作文で会話力を測る段階）は廃止した。日本語を入力できない学習者が
+// 入口で詰まるため（CEO決定 2026-08-03）。会話力はAI会話を始めてから測る。
+type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
 
 const btn = 'w-full min-h-[44px] rounded-xl border px-4 py-3 text-left transition-colors';
 const btnIdle = `${btn} border-gray-200 bg-white hover:border-blue-400`;
@@ -74,7 +71,6 @@ export function AdvOnboarding({ lang, nowISO, onComplete, onCancel }: Props) {
   /** サーバー採点の正誤（診断中は表示せず、最後の scoreDiagnosis にだけ使う） */
   const [verdicts, setVerdicts] = useState<Map<string, boolean>>(new Map());
   const [qIndex, setQIndex] = useState(0);
-  const [convTexts, setConvTexts] = useState<string[]>(['', '']);
   const [convSkipped, setConvSkipped] = useState(false);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
   const [questions, setQuestions] = useState<ServerDiagnosisQuestion[] | null>(null);
@@ -277,11 +273,12 @@ export function AdvOnboarding({ lang, nowISO, onComplete, onCancel }: Props) {
       )}
       {phase === 'diagIntro' && !denied && (
         <section>
-          {header('現在地を測ります（約5分）', '测一下当前位置（约5分钟）',
+          {header('現在地を測ります（約3分）', '测一下当前位置（约3分钟）',
             '正確なルートを作るための診断です。わからない問題は「わからない」でOK。', '这是为了生成准确路线的诊断。不会的题选"不知道"就好。')}
+          {/* 作文はやめたので、ここも「選ぶだけ」と言い切る（打てない人を不安にさせない） */}
           <ul className="mb-6 space-y-1 text-sm text-gray-700">
-            <li>{tx(lang, '第1戦：ことば・文法の問題（12問）', '第1战：词汇・语法题（12题）')}</li>
-            <li>{tx(lang, '第2戦：日本語で2文だけ書く（スキップ可）', '第2战：用日语写2句（可跳过）')}</li>
+            <li>{tx(lang, 'ことば・文法の問題（12問）', '词汇・语法题（12题）')}</li>
+            <li>{tx(lang, '選ぶだけです。日本語の入力はありません。', '只需选择，不需要输入日语。')}</li>
           </ul>
           <button type="button" className={primary} disabled={!questions} onClick={() => setPhase('diag')}>
             {questions ? tx(lang, '診断を始める', '开始诊断') : tx(lang, '問題を用意しています…', '正在准备题目…')}
@@ -304,33 +301,15 @@ export function AdvOnboarding({ lang, nowISO, onComplete, onCancel }: Props) {
               });
             }
             if (qIndex + 1 < questions.length) setQIndex(qIndex + 1);
-            else setPhase('conv');
+            else {
+              // 作文の診断は置かない（CEO決定 2026-08-03）。
+              // 日本語を入力できない学習者が入口で詰まるため。会話力はここでは測らず、
+              // AI会話を始めてから測る（それまでは未判定のまま進む）。
+              setConvSkipped(true);
+              finishDiagnosis(true, []);
+            }
           }}
         />
-      )}
-
-      {phase === 'conv' && (
-        <section aria-label={tx(lang, '会話診断', '会话诊断')}>
-          {header('日本語で書いてみましょう', '试着用日语写一写', '会話の開始地点を決めるためのものです。短くてOK。', '用于确定会话出发点。写短一点也行。')}
-          {CONV_PROMPTS.map((p, i) => (
-            <div key={p.ja} className="mb-4">
-              <p className="mb-1 text-sm font-semibold text-gray-800">{tx(lang, p.ja, p.zh)}</p>
-              <textarea value={convTexts[i]} rows={2}
-                onChange={(e) => setConvTexts(convTexts.map((v, j) => (j === i ? e.target.value : v)))}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2"
-                aria-label={tx(lang, `回答${i + 1}`, `回答${i + 1}`)} />
-            </div>
-          ))}
-          <div className="space-y-2">
-            <button type="button" className={primary} onClick={() => finishDiagnosis(false, convTexts)}>
-              {tx(lang, '診断を完了する', '完成诊断')}
-            </button>
-            <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline"
-              onClick={() => { setConvSkipped(true); finishDiagnosis(true, []); }}>
-              {tx(lang, '書くのはスキップ（会話力は未判定になります）', '跳过书写（会话能力将标记为未判定）')}
-            </button>
-          </div>
-        </section>
       )}
 
       {phase === 'route' && outcome && (
