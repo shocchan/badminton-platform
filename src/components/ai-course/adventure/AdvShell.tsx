@@ -288,6 +288,30 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
   const prof = profile!;
+
+  /**
+   * 復習をコースの中で完結させる。
+   *
+   * 以前は旧コースの「オモイデ庭園」へ出していたが、そこから先の4つの入口のうち
+   * 3つ（ことば図鑑・N3エリア・N2文法・第1章）は教材を静的に持つ画面で、
+   * 公開ビルドに入れていない＝「移行中です」で行き止まりになる。
+   * 復習は「一度触った対象をもう一度問題で確かめる」ことなので、
+   * サーバー出題のバトルで足りる。外へ出さない。
+   */
+  const startReviewBattle = () => {
+    // 一度でも触った対象を新しい順に。無ければ今日のバトル対象へ倒す（空にしない）
+    const touched = Object.keys(prof.mastery ?? {});
+    const targets = touched.length > 0 ? touched.slice(-8) : (stageCt?.battleTargetIds ?? []);
+    if (targets.length === 0) { setView('home'); return; }
+    trackAdv('battle_started', { locale: lang });
+    setBattle({
+      tier: 'normal',
+      targetId: targets[0],
+      targetLabel: tx(lang, '復習', '复习'),
+      targetIds: targets,
+    });
+    setView('battle');
+  };
   const route = prof.route!;
   const level: 'N2' | 'N3' = prof.targetJlpt === 'N3' ? 'N3' : 'N2';
   // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
@@ -509,7 +533,7 @@ export default function AdvShell(props: AdvShellProps) {
         nextStepTitleZh={mapNextStep?.titleZh ?? null}
         onStartToday={() => setView('home')}
         onBack={() => setView('home')}
-        onOpenReview={props.onOpenReview}
+        onOpenReview={startReviewBattle}
         reviewAvailable={props.reviewsDue > 0}
         onStartConversation={() => {
           trackAdv('conversation_started', { locale: lang });
@@ -849,11 +873,12 @@ export default function AdvShell(props: AdvShellProps) {
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
   const mockPending = prof.mockSession !== null;
 
+
   const runStep = (i: number) => {
     if (!quest) return;
     const s = quest.steps[i];
     trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
-    if (s.kind === 'review_due') { markStep(i); props.onOpenReview(); return; }
+    if (s.kind === 'review_due') { markStep(i); startReviewBattle(); return; }
     if (s.kind === 'conversation_mission') { if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); } return; }
     if (s.kind === 'restate') { setView('restate'); return; }
     if (s.kind === 'reading_short') { setView('reading'); return; }
@@ -887,9 +912,12 @@ export default function AdvShell(props: AdvShellProps) {
   const ctaLabel = (): string => {
     if (!nextStep) return term('startToday', lang);
     if (doneSteps.size === 0) {
+      // ボタンは短い名前を優先（長い正式名だと折り返して読みにくい）
+      const ja = nextStep.shortJa ?? nextStep.titleJa;
+      const zh = nextStep.shortZh ?? nextStep.titleZh;
       return nextStep.kind === 'review_due'
         ? tx(lang, 'まず復習から始める', '先从复习开始')
-        : tx(lang, `まず「${nextStep.titleJa}」から始める`, `先从「${nextStep.titleZh}」开始`);
+        : tx(lang, `まず「${ja}」から始める`, `先从「${zh}」开始`);
     }
     return term('continueNext', lang);
   };
@@ -1064,7 +1092,7 @@ export default function AdvShell(props: AdvShellProps) {
           <div className="mt-2 space-y-1.5">
             <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
             <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
-            <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+            <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={startReviewBattle} />
             <SubLink lang={lang}
               label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
               onClick={() => setView('mock')} />

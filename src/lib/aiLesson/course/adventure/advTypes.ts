@@ -143,6 +143,11 @@ export interface AdvQuestStep {
       | 'battle' | 'reading_short' | 'listening_practice' | 'conversation_mission' | 'restate';
   refIds: string[];
   titleJa: string; titleZh: string;
+  /**
+   * 狭い場所（CTAボタン・一覧のチップ）で使う短い名前。
+   * 無ければ title を使う。**内容が変わる別名は入れない**（同じことを短く言うだけ）。
+   */
+  shortJa?: string; shortZh?: string;
   estMinutes: number;
   /** battle の場合の敵種別 */
   tier?: AdvEnemyTier;

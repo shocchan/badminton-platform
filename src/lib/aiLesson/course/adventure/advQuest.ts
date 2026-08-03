@@ -56,8 +56,8 @@ const est = (kind: AdvQuestStep['kind']): number =>
 
 const step = (
   kind: AdvQuestStep['kind'], refIds: string[], titleJa: string, titleZh: string,
-  tier?: AdvQuestStep['tier'],
-): AdvQuestStep => ({ kind, refIds, titleJa, titleZh, estMinutes: est(kind), tier });
+  tier?: AdvQuestStep['tier'], shortJa?: string, shortZh?: string,
+): AdvQuestStep => ({ kind, refIds, titleJa, titleZh, shortJa, shortZh, estMinutes: est(kind), tier });
 
 /** stageに応じた新規学習ステップ（±会話転用） */
 const stageSteps = (
@@ -80,7 +80,10 @@ const stageSteps = (
   }
   const learn = g
     ? step('grammar_new', [g], '新しい文法を学ぶ', '学习新语法')
-    : u ? step('vocab_new', [u], '単元のことばを学ぶ', '学习单元词汇') : null;
+    // 実際にやるのは「その単元の問題を解く」なので、そう名乗る（CEO決定 2026-08-03）。
+    // 説明専用の画面は作らず、誤答後の日中解説が学習の説明を兼ねる。
+    : u ? step('vocab_new', [u], '単元のことばを問題で確認する', '用题目确认单元词汇',
+      undefined, 'ことばチャレンジ', '词汇挑战') : null;
   const battleRef = g ?? u ?? stage.stageId;
   return {
     learn,
