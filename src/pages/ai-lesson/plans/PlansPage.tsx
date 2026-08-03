@@ -76,10 +76,12 @@ const PlanCard = ({
 
       {/* 「どこまで使えるか」を金額のすぐ下に置く（§6 usage_scope） */}
       <p className="mt-1.5 text-[0.82rem] text-lp-ink-soft" data-testid={`scope-${plan.planId}`}>
+        {/* validityDays は台帳側の期限。学習者が使えるのは
+            「購入から startDeadlineDays 日以内に開始 → 開始から validityHours 時間」 */}
         {timed
           ? (lang === 'zh'
-              ? `累计${plan.includedActiveMinutes}分钟 ／ 购买后${plan.validityDays}天内有效`
-              : `累計${plan.includedActiveMinutes}分 ／ 購入から${plan.validityDays}日以内`)
+              ? `累计${plan.includedActiveMinutes}分钟 ／ ${plan.startDeadlineDays}天内开始・开始后${plan.validityHoursAfterActivation}小时`
+              : `累計${plan.includedActiveMinutes}分 ／ ${plan.startDeadlineDays}日以内に開始・開始から${plan.validityHoursAfterActivation}時間`)
           : (lang === 'zh'
               ? `${plan.durationDays}天`
               : `${plan.durationDays}日間`)}

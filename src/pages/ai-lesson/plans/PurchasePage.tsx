@@ -83,10 +83,12 @@ export const PurchasePage = () => {
             <div className="flex justify-between gap-4">
               <dt className="text-lp-ink-soft">{label(lang, '使える範囲', '可用范围')}</dt>
               <dd className="text-right text-lp-ink">
+                {/* 使えるのは「購入から startDeadlineDays 日以内に開始 →
+                    開始から validityHours 時間」。validityDays は台帳側の別の期限 */}
                 {isTimedPlan(plan)
                   ? label(lang,
-                      `累計${plan.includedActiveMinutes}分（${plan.validityDays}日以内）`,
-                      `累计${plan.includedActiveMinutes}分钟（${plan.validityDays}天内）`)
+                      `累計${plan.includedActiveMinutes}分（${plan.startDeadlineDays}日以内に開始・開始から${plan.validityHoursAfterActivation}時間）`,
+                      `累计${plan.includedActiveMinutes}分钟（${plan.startDeadlineDays}天内开始・开始后${plan.validityHoursAfterActivation}小时）`)
                   : label(lang, `${plan.durationDays}日間`, `${plan.durationDays}天`)}
               </dd>
             </div>
