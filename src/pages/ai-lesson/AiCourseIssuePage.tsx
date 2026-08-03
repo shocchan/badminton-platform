@@ -80,6 +80,8 @@ export function AiCourseIssuePage() {
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [purpose, setPurpose] = useState<'owner_pilot_test' | 'paid_student'>('owner_pilot_test');
+  // 最初に見える言語。生徒は画面右上でいつでも切り替えられる
+  const [locale, setLocale] = useState<'zh' | 'ja'>('zh');
   const [startDate, setStartDate] = useState(todayISO);
   const [months, setMonths] = useState(6);
   const [busy, setBusy] = useState(false);
@@ -98,8 +100,8 @@ export function AiCourseIssuePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          passphrase, email, displayName, purpose,
-          planId: 'six_month_coaching', startDate, months,
+          passphrase, email, displayName, purpose, locale,
+          planId: 'coach-6m', startDate, months,
         }),
       });
       const body = await res.json().catch(() => ({}));
@@ -213,6 +215,15 @@ export function AiCourseIssuePage() {
               <option value="owner_pilot_test">自分のテスト用（owner_pilot_test）</option>
               <option value="paid_student">実際の生徒（paid_student）</option>
             </select>
+          </div>
+          <div>
+            <label htmlFor="lc" className={label}>最初に見える言語</label>
+            <select id="lc" value={locale} className={`${field} mt-1`}
+              onChange={(e) => setLocale(e.target.value === 'ja' ? 'ja' : 'zh')}>
+              <option value="zh">简体中文（中国語話者の生徒）</option>
+              <option value="ja">日本語</option>
+            </select>
+            <p className="mt-1 text-xs text-gray-500">生徒は画面右上でいつでも切り替えられます。</p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>

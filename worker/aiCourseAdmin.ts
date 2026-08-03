@@ -12,6 +12,10 @@ import {
 } from '../src/lib/aiLesson/course/auth/loginCredentials';
 import { redactForLog } from '../src/lib/aiLesson/course/auth/loginThrottle';
 import { defaultAdvProfile } from '../src/lib/aiLesson/course/adventure/advProfile';
+import { salesPlanById, type SalesPlanId } from '../src/lib/aiLesson/course/sales/planConfig';
+
+/** 半年伴走コースの正準ID（商品カタログ） */
+const SIX_MONTH_PLAN_ID: SalesPlanId = 'coach-6m';
 
 export interface AdminEnv {
   SUPABASE_URL?: string;
@@ -73,6 +77,7 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   let body: {
     passphrase?: string; email?: string; displayName?: string;
     purpose?: string; planId?: string; startDate?: string; months?: number; level?: string;
+    locale?: string;
   };
   try {
     body = await request.json();
@@ -94,10 +99,18 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   }
 
   const purpose = body.purpose === 'owner_pilot_test' ? 'owner_pilot_test' : 'paid_student';
-  const planId = String(body.planId ?? 'six_month_coaching');
-  const months = Number(body.months ?? 6);
+
+  // 商品カタログの正準ID（'coach-6m'）を使う。
+  // ここに存在しないIDを入れると、台帳から人間レッスン回数や期間を辿れなくなる
+  // （'six_month_coaching' と書いていて、humanLessonCount 24 に届かなかった）。
+  const plan = salesPlanById((body.planId ?? SIX_MONTH_PLAN_ID) as SalesPlanId)
+    ?? salesPlanById(SIX_MONTH_PLAN_ID)!;
+  const planId = plan.planId;
+  const months = Number(body.months ?? Math.round(plan.durationDays / 30));
   const startDate = String(body.startDate ?? new Date().toISOString().slice(0, 10));
   const level = String(body.level ?? 'N3');
+  // 学習者の表示言語。中国語話者が対象なので既定は簡体字。画面からいつでも切り替えられる
+  const locale = body.locale === 'ja' ? 'ja' : 'zh';
 
   const password = generatePasswordSecure();
   const newLoginId = canonicalLoginId(generateLoginId((max) => {
@@ -178,7 +191,7 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
     // 新規。冒険（V2）で始める（`?v2=1` の入場画面は旧learnerを勝手に移行しない
     // ための入口で、学習データが無いこの生徒には通す意味がない）
     const created = await rest(env, '/rest/v1/ai_learners', 'POST', {
-      user_id: userId, display_name: displayName, preferred_language: 'ja',
+      user_id: userId, display_name: displayName, preferred_language: locale,
       estimated_level: level, difficulty_level: 2, current_week: 1, is_active: true,
       hearing: {}, settings: { adventureV2: { ...defaultAdvProfile(nowISO), enabled: true } },
       admin_overrides: {},
@@ -218,8 +231,8 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   const orderId = `issued-${learnerId}-${start.toISOString().slice(0, 10)}-${planId}`;
 
   const purchase = await rest(env, '/rest/v1/ai_plan_purchases', 'POST', {
-    order_id: orderId, plan_id: planId, plan_version: 1, amount: 0, currency: 'JPY',
-    email, lang: 'ja', terms_version: 'issued-by-teacher', gateway_id: 'manual',
+    order_id: orderId, plan_id: planId, plan_version: plan.version, amount: 0, currency: 'JPY',
+    email, lang: locale, terms_version: 'issued-by-teacher', gateway_id: 'manual',
     reference: purpose, status: 'granted', learner_id: learnerId,
   }, 'return=minimal,resolution=merge-duplicates');
   if (!purchase.ok) {
@@ -228,7 +241,7 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
   }
 
   const ent = await rest(env, '/rest/v1/ai_plan_entitlements', 'POST', {
-    id: orderId, learner_id: learnerId, plan_id: planId, plan_version: 1,
+    id: orderId, learner_id: learnerId, plan_id: planId, plan_version: plan.version,
     purchase_id: orderId,
     granted_at: start.toISOString(),
     expires_at: end.toISOString(),
@@ -251,6 +264,10 @@ export const handleIssueStudent = async (request: Request, env: AdminEnv): Promi
     startDate: start.toISOString().slice(0, 10),
     endDate: end.toISOString().slice(0, 10),
     planId,
+    planNameJa: plan.nameJa,
+    // 契約の中身は台帳のplan_idから引く（発行のたびに数字を書かない）
+    humanLessonCount: plan.humanLessonCount,
+    locale,
     purpose,
   }, 200);
 };
