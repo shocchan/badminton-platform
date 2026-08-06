@@ -8,6 +8,8 @@ import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
 import type { PaymentMethod } from '../lib/payment';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
+import { isCreditOnly, isEntryClosed } from '../lib/entryDeadline';
+import { trackGenerateLead, trackBeginCheckout, trackPurchase } from '../lib/analytics';
 
 interface EntryFormProps {
   tournament: Tournament;
@@ -82,11 +84,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     setLoading(true);
     setError(null);
     try {
-      // 申し込み締め切りチェック（大会14日前）
-      const entryDeadline = new Date(tournament.event_date);
-      entryDeadline.setDate(entryDeadline.getDate() - 14);
-      entryDeadline.setHours(23, 59, 59);
-      if (new Date() > entryDeadline) {
+      // 締切の一次チェック（UX用。本当の強制は create_tournament_entry RPC 側で行う）
+      if (isEntryClosed(tournament)) {
         setError(t.errDeadline);
         setStep('input');
         setLoading(false);
@@ -120,36 +119,49 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
 
-      // 最新の confirmed カウントを再チェック（競合防止）
-      const { data: confirmedCount } = await supabase.rpc('get_tournament_entry_count', {
+      // 申込の作成はサーバー側RPCに一本化する。
+      // 締切・重複・定員を advisory lock の中で原子的に判定してからINSERTするため、
+      // 同時申込でも定員超過や重複が発生しない（匿名の直接INSERTは権限を剥奪済み）。
+      const { data: created, error: rpcError } = await supabase.rpc('create_tournament_entry', {
         p_tournament_id: tournament.id,
+        p_name: formData.name,
+        p_email: formData.email,
+        p_phone: formData.phone || null,
+        p_partner_name: isDoubles ? formData.partner_name : null,
+        p_notes: formData.notes || null,
       });
 
-      const actualIsWaitlist = Number(confirmedCount ?? 0) >= tournament.capacity;
-      const status = actualIsWaitlist ? 'waitlist' : 'confirmed';
+      if (rpcError) {
+        // RPC が返すエラーコードを利用者向けの文言に変換する
+        const msg = rpcError.message || '';
+        const code = (rpcError as { code?: string }).code || '';
+        if (msg.includes('ENTRY_CLOSED')) setError(t.errDeadline);
+        else if (msg.includes('CAPACITY_FULL')) setError(t.errCapacityFull);
+        else if (msg.includes('DUPLICATE_ENTRY')) setError(t.errDupEntry);
+        // 42501 = 権限エラー。古いバンドルを開いたままの場合などに起こりうる。
+        // 申し込みは作成されていないので、再読み込みを促す
+        else if (code === '42501' || msg.includes('permission denied')) setError(t.errStale);
+        else setError(t.errSubmit);
+        setStep('input');
+        setLoading(false);
+        return;
+      }
 
-      const { data: inserted, error: insertError } = await supabase
-        .from('entries')
-        .insert([{
-          tournament_id: tournament.id,
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          partner_name: isDoubles ? formData.partner_name : null,
-          notes: formData.notes,
-          status,
-        }])
-        .select('id, cancel_token')
-        .single();
+      const row = (created as {
+        entry_id: number; entry_cancel_token: string; entry_status: 'confirmed' | 'waitlist'; late_entry: boolean;
+      }[] | null)?.[0];
+      if (!row) throw new Error('create_tournament_entry returned no row');
 
-      if (insertError) throw insertError;
+      const status = row.entry_status;
+      // 申込レコード作成の成功地点で計測（確定・キャンセル待ち両方）
+      trackGenerateLead(tournament.id, tournament.entry_fee, status);
 
       // 支払いが必要な確定エントリーは支払い方法選択へ。それ以外は従来通りメール送信して完了
-      if (status === 'confirmed' && tournament.payment_required && inserted) {
-        setEntryInfo({ id: inserted.id, cancelToken: inserted.cancel_token });
+      if (status === 'confirmed' && tournament.payment_required) {
+        setEntryInfo({ id: row.entry_id, cancelToken: row.entry_cancel_token });
         setStep('payment-method');
       } else {
-        await sendEmail(formData.email, status, inserted?.cancel_token);
+        await sendEmail(formData.email, status, row.entry_cancel_token);
         setStep('success');
       }
     } catch (err) {
@@ -208,8 +220,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
   // ── 支払い方法選択ハンドラー ──
 
+  // 追加受付中はオンラインのクレジットカード決済のみ（PayPay・銀行振込は選択させない）
+  const creditOnly = isCreditOnly(tournament);
+
   const handleSelectMethod = (method: PaymentMethod) => {
     if (paymentLoading) return;
+    if (creditOnly && method !== 'credit') return;
     setPaymentMethod(method);
     setPaymentError(null);
     if (method === 'credit' && !stripeInfo) {
@@ -236,6 +252,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
       setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount });
+      // PaymentIntent 作成成功＝決済開始
+      trackBeginCheckout(tournament.id, data.amount);
     } catch (err) {
       setPaymentError(
         err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
@@ -248,6 +266,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   // PayPay / 銀行振込: 従来通りの案内メールを送信して完了
   const handleConfirmOfflinePayment = async (method: 'paypay' | 'bank') => {
     if (!entryInfo) return;
+    if (creditOnly) return; // 追加受付中はオフライン決済を成立させない
     setPaymentLoading(true);
     setPaymentError(null);
     await sendEmail(formData.email, 'confirmed', entryInfo.cancelToken, method, entryInfo.id);
@@ -273,6 +292,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           amount: data.amount ?? stripeInfo?.amount ?? 0,
           paidAt: data.paid_at ?? new Date().toISOString(),
         });
+        // サーバー側が Stripe に照会して succeeded を確認できた時だけ purchase を送る。
+        // already_completed（再送）では二重計上しない
+        if (!data.already_completed) {
+          trackPurchase(tournament.id, data.amount ?? stripeInfo?.amount ?? tournament.entry_fee);
+        }
       } else {
         setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
         setConfirmWarning(true);
@@ -295,9 +319,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     } catch { /* clipboard 非対応環境では何もしない */ }
   };
 
-  // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る
+  // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る。
+  // ただし追加受付中はカード決済のみなので、オフライン支払いの案内は送らない
+  // （決済未完了のまま参加確定と誤解させないため）
   const handleClose = () => {
-    if (step === 'payment-method' && entryInfo && !paidInfo) {
+    if (step === 'payment-method' && entryInfo && !paidInfo && !creditOnly) {
       void sendEmail(formData.email, 'confirmed', entryInfo.cancelToken);
     }
     onClose();
@@ -383,6 +409,7 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 paypayId={tournament.paypay_id}
                 bankAccount={tournament.bank_account}
                 creditAvailable={isCreditPaymentAvailable}
+                creditOnly={creditOnly}
                 selected={paymentMethod}
                 onSelect={handleSelectMethod}
                 disabled={paymentLoading}

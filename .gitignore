@@ -29,3 +29,6 @@ dist-ssr
 *.sln
 *.sw?
 dist-scene-sheet*.html
+
+# Cloudflare Wrangler 一時ビルド成果物
+.wrangler/

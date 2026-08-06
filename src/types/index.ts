@@ -10,6 +10,9 @@ export interface Tournament {
   capacity: number;
   entry_fee: number;
   cancel_deadline?: string | null;
+  // 追加受付の個別override（ISO8601 timestamptz）。NULLなら共通の14日前ルールのみ。
+  // 詳細は src/lib/entryDeadline.ts
+  late_entry_until?: string | null;
   description?: string;
   edition?: number | null;
   visibility?: 'draft' | 'unlisted' | 'published';

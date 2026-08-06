@@ -9,6 +9,7 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 import { feeDisplay, feePerPerson, isDoublesEvent, isShuttleFree } from '../lib/fee';
+import { isEntryClosed as computeEntryClosed, isLateEntryWindow } from '../lib/entryDeadline';
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -154,7 +155,9 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
-  const isEntryClosed = daysUntil >= 0 && daysUntil < 14;
+  // 共通ルール（開催14日前）で締切。late_entry_until がある大会だけ追加受付として延長される
+  const isEntryClosed = daysUntil >= 0 && computeEntryClosed(tournament);
+  const isLateEntry = isLateEntryWindow(tournament);
   const config = levelConfig[tournament.level] ?? defaultConfig;
   // 申し込み不可のカードは全体をトーンダウンして、募集中カードを引き立てる
   const isInactive = tournament.status !== 'active' || daysUntil < 0 || isEntryClosed;
@@ -279,6 +282,11 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           }`}>
             🏸 {isShuttleFree(tournament) ? 'シャトル持参不要' : 'シャトル持参制'}
           </span>
+          {isLateEntry && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 bg-amber-100 text-amber-800">
+              📢 追加受付中
+            </span>
+          )}
         </div>
 
         <div className="relative z-10 mt-auto pt-1 flex items-center gap-2">
@@ -304,13 +312,16 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </button>
           ) : (
             <>
-              <button
-                onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-                aria-label={`${tournament.title}に申し込む`}
-                className={`flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm`}
+              {/* 一覧から直接申込フォームに入れると、参加費・支払い方法・キャンセル条件を
+                  見ないまま個人情報の入力に進んでしまう（追加受付のカード決済限定・返金不可も
+                  詳細ページにしか無い）。まず詳細ページで条件を読んでもらう */}
+              <Link
+                to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${tournament.id}`}
+                aria-label={`${tournament.title}の詳細を見る`}
+                className={`relative z-10 flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm text-center`}
               >
-                申し込む →
-              </button>
+                {lang === 'zh' ? '查看详情 →' : '詳細を見る →'}
+              </Link>
               <span className={`text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 ${remainingColor}`}>
                 残り{remaining}席
               </span>

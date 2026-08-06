@@ -49,13 +49,43 @@ serve(async (req: Request) => {
     }
 
     const tourRes = await fetch(
-      `${supabaseUrl}/rest/v1/tournaments?id=eq.${entry.tournament_id}&select=id,title,entry_fee,payment_required`,
+      `${supabaseUrl}/rest/v1/tournaments?id=eq.${entry.tournament_id}&select=id,title,entry_fee,payment_required,event_date,capacity,late_entry_until,status,visibility`,
       { headers: dbHeaders },
     );
     const tournament = (await tourRes.json())?.[0];
     if (!tournament) return json({ error: "大会情報が見つかりません" }, 404);
     if (!tournament.payment_required) {
       return json({ error: "この大会は事前支払い不要です" }, 400);
+    }
+    if (tournament.status !== "active" || (tournament.visibility ?? "published") !== "published") {
+      return json({ error: "この大会は現在申し込みを受け付けていません" }, 400);
+    }
+
+    // ── 申込締切をサーバー側でも強制する ────────────────────────
+    // 共通ルール: 開催14日前 23:59:59（日本時間）。
+    // late_entry_until が設定された大会だけ、その日時まで追加受付する。
+    // フロントの判定（src/lib/entryDeadline.ts）と同じ式。
+    const standardDeadline = new Date(
+      new Date(`${String(tournament.event_date).slice(0, 10)}T23:59:59+09:00`).getTime()
+        - 14 * 24 * 60 * 60 * 1000,
+    );
+    const deadline = tournament.late_entry_until
+      ? new Date(tournament.late_entry_until)
+      : standardDeadline;
+    const now = new Date();
+    if (now > deadline) {
+      return json({ error: "この大会の申し込みは締め切りました" }, 403);
+    }
+
+    // ── 定員到達時は新規に決済を作らせない ──────────────────────
+    // 自分自身の確定枠は既に確保済みなので、自分を除いた確定数で判定する
+    const countRes = await fetch(
+      `${supabaseUrl}/rest/v1/entries?tournament_id=eq.${entry.tournament_id}&status=eq.confirmed&id=neq.${entry.id}&select=id`,
+      { headers: { ...dbHeaders, Prefer: "count=exact" } },
+    );
+    const others = (await countRes.json())?.length ?? 0;
+    if (others >= tournament.capacity) {
+      return json({ error: "申し訳ありません。定員に達しました。" }, 409);
     }
 
     // Stripe PaymentIntent 作成（金額は必ずサーバー側で計算。手数料上乗せなし、参加費と同額）

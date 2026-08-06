@@ -8,6 +8,15 @@ import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/Eve
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
+import {
+  effectiveEntryDeadline,
+  standardEntryDeadline,
+  isEntryClosed as computeEntryClosed,
+  isLateEntryWindow,
+  formatDeadline,
+} from '../lib/entryDeadline';
+import { trackViewTournament, trackBeginApplication } from '../lib/analytics';
+import { getEntryTexts } from '../locales/entry';
 import type { Tournament } from '../types';
 
 const levelColors: Record<string, { bg: string; text: string }> = {
@@ -59,6 +68,7 @@ export const TournamentDetailPage = () => {
         .single();
       if (tErr || !t) { setError('大会が見つかりませんでした'); setLoading(false); return; }
       setTournament(t);
+      trackViewTournament(t.id, t.entry_fee);
 
       // 残り枠の表示に必要なのは件数だけ。個人情報を含む entries は直接読まない
       const { data: confirmed } = await supabase.rpc('get_tournament_entry_count', {
@@ -145,12 +155,16 @@ export const TournamentDetailPage = () => {
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
 
-  // 申し込み締め切り = 大会14日前
-  const entryDeadline = new Date(tournament.event_date);
-  entryDeadline.setDate(entryDeadline.getDate() - 14);
-  entryDeadline.setHours(23, 59, 59);
-  const isEntryClosed = new Date() > entryDeadline;
-  const entryDeadlineStr = entryDeadline.toLocaleDateString('ja-JP', { month: 'long', day: 'numeric' });
+  // 申し込み締め切り。共通ルールは「大会14日前 23:59 JST」で、
+  // late_entry_until が入っている大会だけ追加受付としてそこまで延長される（src/lib/entryDeadline.ts）
+  const tLang = lang === 'zh' ? 'zh' : 'ja';
+  const et = getEntryTexts(lang);
+  const entryDeadline = effectiveEntryDeadline(tournament);
+  const cancelDeadline = standardEntryDeadline(tournament.event_date);
+  const isEntryClosed = computeEntryClosed(tournament);
+  const lateEntry = isLateEntryWindow(tournament);
+  const entryDeadlineStr = formatDeadline(entryDeadline, tLang);
+  const pairFee = tournament.entry_fee.toLocaleString();
 
   const accent = levelAccent[tournament.level] ?? 'from-blue-600 to-blue-500';
   const lColor = levelColors[tournament.level] ?? { bg: 'bg-gray-100', text: 'text-gray-700' };
@@ -284,7 +298,7 @@ export const TournamentDetailPage = () => {
             { icon: '🕐', label: lang === 'zh' ? '时间' : '時間', value: `${formatTime(tournament.start_time)} 〜 ${formatTime(tournament.end_time)}` },
             { icon: '📍', label: lang === 'zh' ? '场馆' : '会場', value: tournament.location, sub: tournament.venue_address },
             { icon: '💰', label: lang === 'zh' ? '参加费' : '参加費', value: feeDisplay(tournament, lang === 'zh' ? 'zh' : 'ja'), sub: isDoublesEvent(tournament) ? (lang === 'zh' ? `一对合计 ¥${tournament.entry_fee.toLocaleString()}` : `ペア合計 ¥${tournament.entry_fee.toLocaleString()}`) : undefined },
-            { icon: '⚠️', label: lang === 'zh' ? '取消期限' : 'キャンセル期限', value: formatDate(entryDeadline.toISOString().split('T')[0]) },
+            { icon: '⚠️', label: lang === 'zh' ? '取消期限' : 'キャンセル期限', value: formatDate(cancelDeadline.toISOString().split('T')[0]) },
           ].map(({ icon, label, value, sub }) => (
             <div key={label} className="flex items-start gap-3 px-5 py-4">
               <span className="text-lg flex-shrink-0 mt-0.5">{icon}</span>
@@ -343,13 +357,42 @@ export const TournamentDetailPage = () => {
         <span className="ml-auto text-xs">→</span>
       </a>
 
+      {/* 追加受付バナー（late_entry_until が設定された大会のみ・締切前のみ） */}
+      {lateEntry && !isEntryClosed && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl px-5 py-4 mb-6">
+          <p className="text-base font-extrabold text-amber-900 mb-2">{et.lateTitle}</p>
+          <ul className="space-y-1.5 text-sm text-amber-900">
+            <li className="flex items-start gap-2">
+              <span aria-hidden="true">⏰</span>
+              <span className="font-bold">{et.lateDeadline(entryDeadlineStr)}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span aria-hidden="true">💳</span>
+              <span>{et.lateCreditOnly}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span aria-hidden="true">💰</span>
+              <span className="font-bold">{et.latePairFee(pairFee)}</span>
+            </li>
+          </ul>
+          <p className="text-xs text-amber-800 mt-2.5 pt-2.5 border-t border-amber-200">{et.lateNoRefund}</p>
+        </div>
+      )}
+
       {/* 事前支払い */}
       {tournament.payment_required && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl px-5 py-4 mb-6">
           <p className="text-sm font-bold text-blue-900 mb-1">💳 {lang === 'zh' ? '本大会需提前支付参加费' : '事前支払いが必要な大会です'}</p>
-          {tournament.payment_deadline && (
+          {lateEntry ? (
+            // 追加受付はカード決済のみ＝申込と同時に決済が完了するため、
+            // 「支払い期限」を出すと仕様と矛盾する
+            <>
+              <p className="text-xs font-bold text-blue-800">{et.latePayTiming}</p>
+              <p className="text-xs text-blue-700 mt-0.5">{et.latePayTimingNote}</p>
+            </>
+          ) : tournament.payment_deadline ? (
             <p className="text-xs text-blue-700">{lang === 'zh' ? '支付期限' : '支払い期限'}：{formatDate(tournament.payment_deadline)}</p>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -367,7 +410,9 @@ export const TournamentDetailPage = () => {
           <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">{lang === 'zh' ? '已中止' : '中止'}</div>
         ) : isEntryClosed ? (
           <div className="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-2xl text-center shadow-lg cursor-not-allowed">
-            {lang === 'zh' ? `报名已截止（截止于${entryDeadlineStr}）` : `申し込み受付終了（${entryDeadlineStr}に締め切りました）`}
+            {tournament.late_entry_until
+              ? et.lateClosed(entryDeadlineStr)
+              : lang === 'zh' ? `报名已截止（截止于${entryDeadlineStr}）` : `申し込み受付終了（${entryDeadlineStr}に締め切りました）`}
           </div>
         ) : remaining <= 0 ? (
           <div className="w-full bg-gray-200 text-gray-500 font-bold py-4 rounded-2xl text-center shadow-lg">{lang === 'zh' ? '已满员' : '満員'}</div>
@@ -384,7 +429,7 @@ export const TournamentDetailPage = () => {
       {preEntry && !showForm && (
         <PreEntryModal
           tournament={tournament}
-          onConfirm={() => { setShowForm(true); setPreEntry(false); }}
+          onConfirm={() => { trackBeginApplication(tournament.id); setShowForm(true); setPreEntry(false); }}
           onClose={() => setPreEntry(false)}
         />
       )}

@@ -6,6 +6,8 @@ interface PaymentMethodSelectorProps {
   paypayId?: string;
   bankAccount?: string;
   creditAvailable: boolean;
+  /** 追加受付中はオンラインのクレジットカード決済のみ表示する */
+  creditOnly?: boolean;
   selected: PaymentMethod | null;
   onSelect: (method: PaymentMethod) => void;
   disabled?: boolean;
@@ -13,7 +15,7 @@ interface PaymentMethodSelectorProps {
 }
 
 export const PaymentMethodSelector = ({
-  entryFee, paypayId, bankAccount, creditAvailable, selected, onSelect, disabled, lang,
+  entryFee, paypayId, bankAccount, creditAvailable, creditOnly, selected, onSelect, disabled, lang,
 }: PaymentMethodSelectorProps) => {
   const t = getEntryTexts(lang);
 
@@ -44,7 +46,7 @@ export const PaymentMethodSelector = ({
       subtitle: paypayId ? t.pmPaypaySub(paypayId) : t.pmPaypaySubNoId,
       feeLabel: t.pmFeeFree,
       totalLabel: `¥${entryFee.toLocaleString()}`,
-      available: !!paypayId,
+      available: !creditOnly && !!paypayId,
     },
     {
       method: 'bank',
@@ -53,14 +55,30 @@ export const PaymentMethodSelector = ({
       subtitle: t.pmBankSub,
       feeLabel: t.pmBankFee,
       totalLabel: `¥${entryFee.toLocaleString()}`,
-      available: !!bankAccount,
+      available: !creditOnly && !!bankAccount,
     },
   ];
 
   const visibleOptions = options.filter(o => o.available);
 
+  // 追加受付中はカード決済しか選べないため、その決済が使えない状態だと選択肢が0件になる。
+  // 空の選択欄を出すと利用者が詰まるので、運営に連絡してもらう案内に切り替える
+  if (visibleOptions.length === 0) {
+    return (
+      <div role="alert" className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
+        {t.pmUnavailable}
+      </div>
+    );
+  }
+
   return (
-    <div role="radiogroup" aria-label={t.pmGroupLabel} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <>
+    {creditOnly && (
+      <p className="text-sm font-bold text-blue-900 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-3">
+        💳 {t.lateCreditOnly}
+      </p>
+    )}
+    <div role="radiogroup" aria-label={t.pmGroupLabel} className={`grid grid-cols-1 gap-3 ${creditOnly ? '' : 'md:grid-cols-3'}`}>
       {visibleOptions.map(opt => {
         const isSelected = selected === opt.method;
         return (
@@ -100,5 +118,6 @@ export const PaymentMethodSelector = ({
         );
       })}
     </div>
+    </>
   );
 };

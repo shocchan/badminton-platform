@@ -145,6 +145,19 @@ const ja = {
   ccReceipt: '🧾 領収書をダウンロード',
   ccWarning: 'お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。',
   ccCancelPolicy: (deadline: string, refund: string) => `キャンセル期限（${deadline}）内でも、キャンセル手数料10%を差し引いた¥${refund}の返金となります。期限を過ぎたキャンセルは返金できません。`,
+
+  // 追加受付（late_entry_until が設定された大会のみ表示）
+  lateTitle: '📢 追加受付を実施中です',
+  lateDeadline: (d: string) => `追加受付：${d}まで`,
+  lateCreditOnly: '追加受付はオンラインのクレジットカード決済のみです',
+  latePairFee: (fee: string) => `ペア参加費：${fee}円`,
+  latePayTiming: '申込時にオンライン決済',
+  latePayTimingNote: 'お申し込みと同時にカード決済が完了します。決済が完了した時点で参加確定です。',
+  lateNoRefund: 'キャンセル期限を過ぎているため、追加受付でのお申し込み後の返金はできません。',
+  lateClosed: (d: string) => `追加受付は${d}に終了しました`,
+  errCapacityFull: '申し訳ありません。ちょうど定員に達しました。',
+  errStale: 'ページの情報が古くなっています。申し込みは作成されていません。ページを再読み込みしてからもう一度お試しください。',
+  pmUnavailable: '申し訳ありません。ただいまオンライン決済をご利用いただけません。お手数ですが運営までお問い合わせください。',
 };
 
 const zh: typeof ja = {
@@ -281,6 +294,19 @@ const zh: typeof ja = {
   ccReceipt: '🧾 下载收据',
   ccWarning: '支付已完成，但确认处理稍有延迟。即使暂未收到确认邮件，您的参赛也已确认，请放心。',
   ccCancelPolicy: (deadline: string, refund: string) => `即使在取消期限（${deadline}）内取消，也会扣除10%的取消手续费，退还¥${refund}。超过期限将无法退款。`,
+
+  // 追加受付（简体字）
+  lateTitle: '📢 正在追加报名',
+  lateDeadline: (d: string) => `追加报名截止：${d}`,
+  lateCreditOnly: '追加报名仅支持在线信用卡支付',
+  latePairFee: (fee: string) => `每组参赛费：${fee}日元`,
+  latePayTiming: '报名时在线支付',
+  latePayTimingNote: '报名的同时完成信用卡支付。支付完成即视为报名成功。',
+  lateNoRefund: '由于已过取消期限，追加报名成功后将无法退款。',
+  lateClosed: (d: string) => `追加报名已于${d}截止`,
+  errCapacityFull: '非常抱歉，名额刚好已满。',
+  errStale: '页面信息已过期，报名尚未提交。请刷新页面后重新报名。',
+  pmUnavailable: '非常抱歉，目前无法使用在线支付。请直接联系主办方。',
 };
 
 export type EntryTexts = typeof ja;

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { trackPageView } from './lib/analytics';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -199,6 +200,8 @@ function AppInner() {
   // AIコースは通常会員向けではないため、専用ヘッダーに差し替える（通常ページには影響しない）
   const { pathname } = useLocation();
   const chromeless = focused || isAiCourseRoute(pathname);
+  // SPAのルート遷移ごとに page_view / PageView を送る（初回マウント時も発火）
+  useEffect(() => { trackPageView(pathname); }, [pathname]);
   return (
     <>
       <ScrollToTop />
