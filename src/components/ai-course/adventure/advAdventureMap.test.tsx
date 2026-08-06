@@ -36,11 +36,13 @@ const quest: AdvTodayQuest = {
 const handlers = () => ({
   onStartToday: vi.fn(), onBack: vi.fn(),
   onOpenReview: vi.fn(), onStartConversation: vi.fn(), onOpenMock: vi.fn(),
+  onOpenSheets: vi.fn(),
 });
 
 const setup = (opts: {
   goal?: AdvGoalType; lang?: 'ja' | 'zh'; mastered?: Set<string>; week?: number;
   reviewAvailable?: boolean; conversationAvailable?: boolean;
+  sheetsVisible?: boolean; sheetCount?: number;
 } = {}) => {
   const h = handlers();
   const p = profileFor(opts.goal ?? 'hybrid');
@@ -51,6 +53,8 @@ const setup = (opts: {
       nextStepTitleJa="復習2問" nextStepTitleZh="复习2题"
       reviewAvailable={opts.reviewAvailable ?? true}
       conversationAvailable={opts.conversationAvailable ?? true}
+      sheetsVisible={opts.sheetsVisible ?? false}
+      sheetCount={opts.sheetCount ?? 0}
       {...h}
     />,
   );
@@ -156,6 +160,28 @@ describe('成長マップ — 行き止まりが無い（原則15）', () => {
     const h = setup({ goal: 'jlpt', mastered: new Set(stages.slice(0, -1).map((s) => s.stageId)) });
     fireEvent.click(screen.getByRole('button', { name: /ミニ模試を受ける/ }));
     expect(h.onOpenMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('成長マップ — 過去問の試験場（N2受験者のみ）', () => {
+  it('**sheetsVisible のときだけ出る**（それ以外の画面に存在しない）', () => {
+    setup({ goal: 'jlpt', sheetsVisible: true, sheetCount: 2 });
+    expect(screen.getByText('過去問の試験場')).toBeTruthy();
+    expect(screen.getByText(/答案用紙 2枚/)).toBeTruthy();
+    cleanup();
+    setup({ goal: 'conversation', sheetsVisible: false });
+    expect(screen.queryByText('過去問の試験場')).toBeNull();
+  });
+
+  it('押すと onOpenSheets が呼ばれる', () => {
+    const h = setup({ goal: 'jlpt', sheetsVisible: true, sheetCount: 1 });
+    fireEvent.click(screen.getByText('過去問の試験場'));
+    expect(h.onOpenSheets).toHaveBeenCalledTimes(1);
+  });
+
+  it('用紙0枚でも「届いたらここで解く」と案内する（空の行き止まりにしない）', () => {
+    setup({ goal: 'jlpt', sheetsVisible: true, sheetCount: 0 });
+    expect(screen.getByText(/先生からWeChatで問題が届いたら/)).toBeTruthy();
   });
 });
 

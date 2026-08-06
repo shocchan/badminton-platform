@@ -9,8 +9,10 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { AdvAdventureMap } from '../../src/components/ai-course/adventure/AdvAdventureMap';
+import { AdvAnswerSheetRunner } from '../../src/components/ai-course/adventure/AdvAnswerSheetRunner';
 import { defaultAdvProfile } from '../../src/lib/aiLesson/course/adventure/advProfile';
 import { generateRoute } from '../../src/lib/aiLesson/course/adventure/advRoute';
+import { startSession as startSheetSession, type AnswerSheetPaper } from '../../src/lib/aiLesson/course/adventure/advAnswerSheet';
 import type {
   AdventureV2Profile, AdvGoalType, AdvTodayQuest, AdvMasteryAttempt,
 } from '../../src/lib/aiLesson/course/adventure/advTypes';
@@ -65,7 +67,33 @@ const view = (p: AdventureV2Profile, lang: 'ja' | 'zh', mastered: Set<string>, w
     onOpenReview={noop} reviewAvailable
     onStartConversation={noop} conversationAvailable
     onOpenMock={noop}
+    sheetsVisible={p.targetJlpt === 'N2' && p.goalType !== 'conversation'}
+    sheetCount={p.answerSheets.length}
+    onOpenSheets={noop}
   />
+);
+
+/* ── 過去問の試験場（答案用紙） ── */
+const sheetPaper: AnswerSheetPaper = {
+  paperId: 'n2-2023-12',
+  titleJa: '2023年12月 N2（先生から届いた問題）', titleZh: '2023年12月 N2（老师发来的题目）',
+  level: 'N2',
+  noteJa: 'WeChatで送った画像を手元に置いて解いてください。', noteZh: '请把微信发给你的图片放在手边作答。',
+  sections: [
+    { id: 'knowledge', labelJa: '言語知識・読解', labelZh: '语言知识・阅读', questionCount: 12, choiceCount: 4, minutes: 105 },
+    { id: 'listening', labelJa: '聴解', labelZh: '听力', questionCount: 6, choiceCount: 4, minutes: 50 },
+  ],
+  issuedAtISO: NOW,
+};
+const sheetProfile = (over: Partial<AdventureV2Profile> = {}): AdventureV2Profile => ({
+  ...profileFor('jlpt'), answerSheets: [sheetPaper], ...over,
+});
+const markingSession = {
+  ...startSheetSession(sheetPaper, NOW),
+  answers: { knowledge: [1, 3, null, 2, null, null, 4, null, null, null, null, null], listening: [null, null, null, null, null, null] },
+};
+const sheetView = (p: AdventureV2Profile, lang: 'ja' | 'zh') => (
+  <AdvAnswerSheetRunner lang={lang} profile={p} onSave={noop} onBack={noop} />
 );
 
 const VARIANTS: Variant[] = [
@@ -93,6 +121,26 @@ const VARIANTS: Variant[] = [
     id: 'ja-hybrid-desktop', width: 720,
     caption: '日本語 / 総合ルート / 広い画面（720px）',
     node: view(hybrid, 'ja', new Set()),
+  },
+  {
+    id: 'ja-map-with-sheets', width: 390,
+    caption: '日本語 / 試験ルート / 「特別な場所」に過去問の試験場（N2受験者のみ）',
+    node: view(sheetProfile(), 'ja', new Set()),
+  },
+  {
+    id: 'ja-sheets-list', width: 390,
+    caption: '日本語 / 過去問の試験場 / 一覧（答案用紙1枚）',
+    node: sheetView(sheetProfile(), 'ja'),
+  },
+  {
+    id: 'ja-sheets-marking', width: 390,
+    caption: '日本語 / 過去問の試験場 / 記入中（マークシート＋タイマー）',
+    node: sheetView(sheetProfile({ answerSheetSession: markingSession }), 'ja'),
+  },
+  {
+    id: 'zh-sheets-marking', width: 390,
+    caption: '中文 / 真题考场 / 作答中',
+    node: sheetView(sheetProfile({ answerSheetSession: markingSession }), 'zh'),
   },
 ];
 

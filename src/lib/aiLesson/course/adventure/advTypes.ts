@@ -251,6 +251,17 @@ export interface AdventureV2Profile {
   mockSession: AdvMockSessionState | null;
   /** 完了したミニ模試の履歴（§10の mock count >= 3 判定に使う） */
   mockLog: AdvMockLogEntry[];
+  /**
+   * 答案用紙（マークシート）。**問題文はアプリに置かない**（advAnswerSheet.ts 冒頭参照）。
+   * 先生がWeChatで問題画像を個別に送り、learnerは答案だけをここへ記入する。
+   * 用紙は先生が learner ごとに発行する（＝この配列はその人専用）。
+   * 型は循環importを避けるため advAnswerSheet.ts 側で定義し、ここでは unknown 経由で持たない
+   */
+  answerSheets: import('./advAnswerSheet').AnswerSheetPaper[];
+  /** 進行中の答案（reload復帰用）。提出・破棄で null */
+  answerSheetSession: import('./advAnswerSheet').AnswerSheetSession | null;
+  /** 提出済み答案の履歴（先生との振り返りに使う） */
+  answerSheetLog: import('./advAnswerSheet').AnswerSheetResult[];
   humanLesson: AdvHumanLessonState;
   createdAt: string;
   updatedAt: string;

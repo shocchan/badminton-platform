@@ -50,6 +50,14 @@ interface Props {
   onStartConversation: () => void;
   conversationAvailable: boolean;
   onOpenMock: () => void;
+  /**
+   * 過去問の試験場（答案用紙）。**N2の試験を受ける人にだけ出す。**
+   * ルートの進行とは独立した「いつでも入れる特別な場所」なので、
+   * 冒険の道（現在地は1つ）には混ぜず、別枠のカードとして出す。
+   */
+  sheetsVisible: boolean;
+  sheetCount: number;
+  onOpenSheets: () => void;
 }
 
 const STATE_LABEL: Record<MapRegion['state'], { ja: string; zh: string }> = {
@@ -96,6 +104,7 @@ export const AdvAdventureMap = ({
   nextStepTitleJa, nextStepTitleZh,
   onStartToday, onBack,
   onOpenReview, reviewAvailable, onStartConversation, conversationAvailable, onOpenMock,
+  sheetsVisible, sheetCount, onOpenSheets,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
@@ -476,6 +485,41 @@ export const AdvAdventureMap = ({
             })}
           </ol>
         </div>
+      )}
+
+      {/* ── 特別な場所（ルートの進行とは独立。N2受験者だけに見える） ── */}
+      {sheetsVisible && (
+        <section className="mt-4" aria-label={tx(lang, '特別な場所', '特别的地方')}>
+          <p className="mb-1.5 text-xs font-bold text-gray-500">
+            {tx(lang, '特別な場所', '特别的地方')}
+          </p>
+          <button type="button" onClick={onOpenSheets}
+            className="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
+            <div className="relative h-20 w-full">
+              <LandmarkScene kind="gate" tone="night" className="h-full w-full" />
+              <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">
+                {tx(lang, 'N2受験者だけの場所', '仅N2考生可见')}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-3">
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-gray-900">
+                  {tx(lang, '過去問の試験場', '真题考场')}
+                </span>
+                <span className="block text-xs leading-snug text-gray-600">
+                  {tx(lang,
+                    sheetCount > 0
+                      ? `先生から届いた問題を、時間を測って解く（答案用紙 ${sheetCount}枚）`
+                      : '先生からWeChatで問題が届いたら、ここで時間を測って解く',
+                    sheetCount > 0
+                      ? `计时作答老师发来的题目（答题卡 ${sheetCount}张）`
+                      : '收到老师微信发来的题目后，在这里计时作答')}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+            </div>
+          </button>
+        </section>
       )}
     </div>
   );

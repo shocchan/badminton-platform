@@ -7,6 +7,7 @@ import type {
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
+import { restorePapers, restoreSheetSession, restoreSheetLog } from './advAnswerSheet';
 
 const emptySkill = (): AdvSkillScore => ({
   currentScore: 0, confidence: 'none', evidenceCount: 0, lastAssessedAt: null, band: 'needs_assessment',
@@ -37,6 +38,9 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   questLog: [],
   mockSession: null,
   mockLog: [],
+  answerSheets: [],
+  answerSheetSession: null,
+  answerSheetLog: [],
   humanLesson: {},
   createdAt: nowISO,
   updatedAt: nowISO,
@@ -145,6 +149,9 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
         isRecord(e) && typeof e.mockId === 'string' && typeof e.completedAt === 'string'
         && typeof e.totalQuestions === 'number') as AdventureV2Profile['mockLog']).slice(-30)
       : [],
+    answerSheets: restorePapers(raw.answerSheets),
+    answerSheetSession: restoreSheetSession(raw.answerSheetSession),
+    answerSheetLog: restoreSheetLog(raw.answerSheetLog),
     humanLesson: isRecord(raw.humanLesson) ? (raw.humanLesson as AdventureV2Profile['humanLesson']) : {},
     updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : nowISO,
   };

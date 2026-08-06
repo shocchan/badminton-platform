@@ -33,6 +33,8 @@ import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
+import { AdvAnswerSheetRunner } from './AdvAnswerSheetRunner';
+import { answerSheetsVisible } from '../../../lib/aiLesson/course/adventure/advAnswerSheet';
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
@@ -67,7 +69,7 @@ export interface AdvShellProps {
   onViewChange?: (view: 'home' | 'map') => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
@@ -409,6 +411,22 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  // ── 過去問の試験場（答案用紙・N2受験者のみ）──
+  // 問題文はアプリに無い（先生がWeChatで個別に送る）。ここは答案の記入と時間計測だけ
+  if (view === 'sheets') {
+    if (!answerSheetsVisible(prof)) {
+      // 目的が変わって対象外になった等。行き止まりにせずhomeへ
+      setView('home');
+      return <AdvLoading lang={lang} />;
+    }
+    return (
+      <AdvAnswerSheetRunner
+        lang={lang} profile={prof} onSave={save}
+        onBack={() => setView('home')}
+      />
+    );
+  }
+
   // ── ミニ模試（§9）──
   if (view === 'mock') {
     // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
@@ -539,6 +557,9 @@ export default function AdvShell(props: AdvShellProps) {
         }}
         conversationAvailable={props.conversationAvailable}
         onOpenMock={() => setView('mock')}
+        sheetsVisible={answerSheetsVisible(prof)}
+        sheetCount={prof.answerSheets.length}
+        onOpenSheets={() => setView('sheets')}
       />
     );
   }
@@ -974,6 +995,22 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       )}
 
+      {/* 進行中の答案用紙。**時間は壁時計で進んでいる**ので、模試と同様に最優先で再開させる */}
+      {prof.answerSheetSession && answerSheetsVisible(prof) && (
+        <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
+          <p className="text-sm font-semibold text-gray-900">
+            {tx(lang, '過去問の答案が途中です', '真题答案填到一半')}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-600">
+            {tx(lang, '試験の時間は本番と同じように進んでいます。', '考试时间正像正式考试一样继续走动。')}
+          </p>
+          <button type="button" className="mt-2 w-full min-h-[48px] rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white"
+            onClick={() => setView('sheets')}>
+            {tx(lang, '答案に戻る', '回到答题')}
+          </button>
+        </div>
+      )}
+
       {!quest && <AdvLoading lang={lang} inline />}
 
       {quest && (
@@ -1061,6 +1098,13 @@ export default function AdvShell(props: AdvShellProps) {
             <SubLink lang={lang}
               label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
               onClick={() => setView('mock')} />
+            {/* 過去問の試験場。**N2の試験を受ける人にだけ見せる**（それ以外の画面には出さない） */}
+            {answerSheetsVisible(prof) && (
+              <SubLink lang={lang}
+                label={tx(lang, '過去問の試験場（先生から届いた問題）', '真题考场（老师发来的题目）')}
+                badge={prof.answerSheets.length}
+                onClick={() => setView('sheets')} />
+            )}
             <SubLink lang={lang}
               label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
               onClick={() => setView('teacher')} />
