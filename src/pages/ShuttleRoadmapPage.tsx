@@ -165,10 +165,14 @@ export function ShuttleRoadmapPage() {
                     <span className="inline-flex items-center gap-1.5 text-base font-semibold text-amber-950">
                       {item.icon && (
                         <img
-                          src={`/icons/${item.icon}`}
+                          // 表示28pxのため64px WebP変種（optimize-static-images.mjs生成）を使う
+                          src={`/icons/${item.icon.replace(/\.png$/, '-64.webp')}`}
                           alt={item.label}
+                          width={64}
+                          height={64}
                           className="h-7 w-7 shrink-0 object-contain"
                           loading="lazy"
+                          decoding="async"
                         />
                       )}
                       {item.label}

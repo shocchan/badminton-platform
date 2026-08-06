@@ -1,2 +1,27 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 画像は30日キャッシュ。中身を差し替えるときはファイル名を変えること
+# （favicon の ?v= のようにクエリを変える運用でも可）
+/venues/*
+  Cache-Control: public, max-age=2592000
+/icons/*
+  Cache-Control: public, max-age=2592000
+/images/*
+  Cache-Control: public, max-age=2592000
+/hero.jpg
+  Cache-Control: public, max-age=2592000
+/hero.webp
+  Cache-Control: public, max-age=2592000
+/hero-768.webp
+  Cache-Control: public, max-age=2592000
+/hero-1280.webp
+  Cache-Control: public, max-age=2592000
+/hero-1376.webp
+  Cache-Control: public, max-age=2592000
+/logo-192.webp
+  Cache-Control: public, max-age=2592000
+/favicon.png
+  Cache-Control: public, max-age=2592000
+/favicon-64.png
+  Cache-Control: public, max-age=2592000

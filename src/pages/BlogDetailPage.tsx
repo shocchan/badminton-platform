@@ -1,9 +1,16 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { useBlogPost } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
+import {
+  blogImageSrcSet,
+  enhanceBlogContentHtml,
+  fallbackToOriginal,
+  BLOG_DETAIL_COVER_SIZES,
+  BLOG_CONTENT_SIZES,
+} from '../lib/blogImages';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,6 +23,29 @@ export const BlogDetailPage = () => {
       .then(({ error }) => { if (error) console.error('increment_blog_view error:', error); });
   }, [post?.id, post?.status]);
 
+  // 本文HTML内の<img>に lazy/srcset を付与（カバーが無い記事は先頭画像がLCPなのでeager扱い）
+  const enhancedContent = useMemo(
+    () =>
+      post && post.content_type !== 'markdown'
+        ? enhanceBlogContentHtml(post.content, { eagerFirst: !post.image_url })
+        : '',
+    [post],
+  );
+
+  // srcset の変種が存在しない場合（マイグレーション漏れ等）に原本へフォールバックする
+  const contentRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+    const imgs = Array.from(root.querySelectorAll<HTMLImageElement>('img[srcset]'));
+    const onError = (e: Event) => fallbackToOriginal(e.currentTarget as HTMLImageElement);
+    imgs.forEach(img => {
+      if (img.complete && img.naturalWidth === 0) fallbackToOriginal(img);
+      else img.addEventListener('error', onError);
+    });
+    return () => imgs.forEach(img => img.removeEventListener('error', onError));
+  }, [enhancedContent]);
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
   };
@@ -25,11 +55,26 @@ export const BlogDetailPage = () => {
     return m ? m[1] : null;
   };
 
-  // Markdownのリンクを別タブで開く
+  // Markdownのリンクを別タブで開く。画像はlazy化+srcset（変種404時は原本へ戻す）
   const markdownComponents: Components = {
     a: ({ href, children }) => (
       <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
     ),
+    img: ({ src, alt }) => {
+      const url = typeof src === 'string' ? src : undefined;
+      const srcSet = blogImageSrcSet(url);
+      return (
+        <img
+          src={url}
+          alt={alt ?? ''}
+          srcSet={srcSet}
+          sizes={srcSet ? BLOG_CONTENT_SIZES : undefined}
+          loading="lazy"
+          decoding="async"
+          onError={e => fallbackToOriginal(e.currentTarget)}
+        />
+      );
+    },
   };
 
   if (loading) {
@@ -68,9 +113,17 @@ export const BlogDetailPage = () => {
       <Link to="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
 
       {post.image_url && (
+        // このページのLCP要素。srcset/sizes は generate-worker.mjs のpreload注入と一致させること
         <img
           src={post.image_url}
+          srcSet={blogImageSrcSet(post.image_url)}
+          sizes={BLOG_DETAIL_COVER_SIZES}
           alt={post.title}
+          width={1600}
+          height={900}
+          fetchPriority="high"
+          decoding="async"
+          onError={e => fallbackToOriginal(e.currentTarget)}
           className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8"
           style={{ objectPosition: post.image_position || 'center center' }}
         />
@@ -99,8 +152,9 @@ export const BlogDetailPage = () => {
           </div>
         ) : (
           <div
+            ref={contentRef}
             className="prose prose-lg max-w-none text-gray-700 blog-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            dangerouslySetInnerHTML={{ __html: enhancedContent }}
           />
         )}
 

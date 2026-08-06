@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Newspaper, ArrowRight, Tag } from 'lucide-react';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateViews';
+import { blogImageSrcSet, fallbackToOriginal, BLOG_CARD_SIZES } from '../lib/blogImages';
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
@@ -81,7 +82,14 @@ export const BlogPage = () => {
                 {post.image_url ? (
                   <img
                     src={post.image_url}
+                    srcSet={blogImageSrcSet(post.image_url)}
+                    sizes={BLOG_CARD_SIZES}
                     alt={post.title}
+                    width={1600}
+                    height={900}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => fallbackToOriginal(e.currentTarget)}
                     className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     style={{ objectPosition: post.image_position || 'center center' }}
                   />

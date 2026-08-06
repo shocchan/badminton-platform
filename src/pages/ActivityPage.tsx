@@ -10,6 +10,9 @@ import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
 import { calcRemaining, splitEntryQuantity } from '../lib/activityEntry';
+import { OptimizedPicture } from '../components/OptimizedPicture';
+import { VENUE_IMAGE_SETS, ACTIVITY_CARD_SIZES } from '../lib/staticImageSets';
+import type { StaticImageSet } from '../lib/staticImageSets';
 
 interface Group {
   id: string;
@@ -291,9 +294,10 @@ const CopyListButton = ({ activity, entries, lang }: { activity: Activity; entri
   );
 };
 
-const VENUE_IMAGES: Record<string, string> = {
-  '芝園公民館': '/venues/shibaen-kouminkan.jpg',
-  '蕨市民体育館': '/venues/warabi-taiikukan.jpg',
+// 会場写真は事前生成のWebP変種で配信（scripts/optimize-static-images.mjs で生成）
+const VENUE_IMAGES: Record<string, StaticImageSet> = {
+  '芝園公民館': VENUE_IMAGE_SETS['shibaen-kouminkan'],
+  '蕨市民体育館': VENUE_IMAGE_SETS['warabi-taiikukan'],
 };
 
 const getDeadline = (date: string, startTime: string): Date => {
@@ -1321,7 +1325,13 @@ const ActivityListBase = ({ lang = 'ja', groupSlug = 'kawaguchi-warabi', forceLa
                   >
                     {venueImg ? (
                       <div className="h-32 overflow-hidden">
-                        <img src={venueImg} alt={a.location} className="w-full h-full object-cover" />
+                        <OptimizedPicture
+                          set={venueImg}
+                          sizes={ACTIVITY_CARD_SIZES}
+                          alt={a.location}
+                          imgClassName="w-full h-full object-cover"
+                          loading="lazy"
+                        />
                       </div>
                     ) : (
                       <div className="h-16 bg-gradient-to-r from-emerald-500 to-teal-500 flex items-center justify-center">

@@ -10,6 +10,7 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Youtube from '@tiptap/extension-youtube';
 import { ResizableImage } from '../extensions/ResizableImage';
+import { uploadBlogImageWithVariants } from '../lib/blogImages';
 import type { Tournament, BlogPost, Entry } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
 import GameStatsPanel from '../components/admin/GameStatsPanel';
@@ -119,12 +120,16 @@ function TBtn({ onClick, active, title, children }: { onClick: () => void; activ
   );
 }
 
-// 画像をStorageにアップロードして公開URLを返す（本文エディタ共通）
+// 画像をStorageにアップロードして公開URLを返す（本文エディタ共通）。
+// 表示速度対策として、可能ならWebP変種（480/960/1600w）を生成して保存する。
 async function uploadBlogImage(file: File): Promise<string> {
   if (file.size > 10 * 1024 * 1024) throw new Error('ファイルサイズは10MB以下にしてください');
+  const base = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const canonical = await uploadBlogImageWithVariants(file, base);
+  if (canonical) return canonical;
+  // 変換できない形式（GIF等）は従来どおり原本をアップロード
   const ext = file.name.split('.').pop() || 'png';
-  const filename = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { data, error } = await supabase.storage.from('blog-images').upload(filename, file, { upsert: false });
+  const { data, error } = await supabase.storage.from('blog-images').upload(`${base}.${ext}`, file, { upsert: false });
   if (error) throw error;
   return supabase.storage.from('blog-images').getPublicUrl(data.path).data.publicUrl;
 }
@@ -1323,6 +1328,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
+    // 表示速度対策: 可能ならWebP変種（480/960/1600w）を生成して保存する
+    const canonical = await uploadBlogImageWithVariants(file, `${Date.now()}`);
+    if (canonical) return canonical;
+    // 変換できない形式は従来どおり原本をアップロード
     const ext = file.name.split('.').pop();
     const fileName = `${Date.now()}.${ext}`;
     const { data, error } = await supabase.storage

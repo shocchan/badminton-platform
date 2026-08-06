@@ -2,6 +2,8 @@ import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
+import { OptimizedPicture } from '../components/OptimizedPicture';
+import { VENUE_IMAGE_SETS, VENUE_GUIDE_SIZES } from '../lib/staticImageSets';
 
 type Venue = {
   id: string;
@@ -115,7 +117,13 @@ export const VenueGuidePage = () => {
           {VENUES.map(v => (
             <div key={v.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
               <div className="h-48 sm:h-64 overflow-hidden">
-                <img src={v.image} alt={v.name[l]} className="w-full h-full object-cover" loading="lazy" />
+                <OptimizedPicture
+                  set={VENUE_IMAGE_SETS[v.id]}
+                  sizes={VENUE_GUIDE_SIZES}
+                  alt={v.name[l]}
+                  imgClassName="w-full h-full object-cover"
+                  loading="lazy"
+                />
               </div>
               <div className="p-5 sm:p-6">
                 <h2 className="text-lg sm:text-xl font-extrabold text-gray-900 mb-1">{v.name[l]}</h2>
