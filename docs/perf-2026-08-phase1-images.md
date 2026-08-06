@@ -43,6 +43,16 @@ Before = 本番 kawabado.com / After = staging.badminton-platform.pages.dev（20
 3. ブログ画像の命名規約 `{base}_w{480|960|1600}.webp` は `src/lib/blogImages.ts` と `scripts/migrate-blog-images.mjs` の2箇所で共有
 4. Pages preview 環境に `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` を追加済み（2026-08-06）。これによりステージングでもOGP注入・preloadが本番と同挙動
 
+## 本番反映（2026-08-06）
+
+CEO承認のうえ同日昼に本番反映（CEOが `deploy-production.sh` を実行、AIはdenyルールにより実行不可）。反映後の本番検証:
+
+- ヒーローpreload・ブログカバーpreload・OGP注入: 動作確認済み
+- kawabado.com配下の画像: 30日キャッシュ確認済み / Storage変種: 1年キャッシュ＋CDN HIT確認済み
+- Lighthouse（本番・モバイル低速4G）: /ja/ LCP 9.3s→**7.9s**（931KB）、/ja/blog/9 LCP 13.4s→**7.6s**（3,181KB→**1,157KB**、画像は全て_w960変種で計222KB）
+- 本番のラボ値がステージング（5.1s/5.2s）より重いのは、本番のみGA4＋Metaピクセル（約230KB＋実行コスト）が入るため。**画像起因のボトルネックは解消済み**で、残りはJSバンドル＋計測タグ（スコープ外、必要ならPhase 3以降で検討）
+- フィールド値（CWA Core Web Vitals）は2026-09上旬に再確認する
+
 ## 未実施（Phase 2 以降）
 
 - CLS対策本体: ルート遅延読込の `PageLoader`（min-h-[60vh]）とスケルトンの高さ確保によるフッター飛び対策
