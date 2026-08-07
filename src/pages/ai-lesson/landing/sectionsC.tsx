@@ -12,12 +12,14 @@ export function HumanCoachSection({ lang }: { lang: Lang }) {
       <div className="mx-auto max-w-5xl px-5">
         <div className="grid md:grid-cols-[.8fr_1.2fr] gap-8 items-center">
           <Reveal>
-            <div className="mx-auto w-[220px] max-w-[70vw] aspect-square rounded-3xl bg-lp-pine-soft grid place-items-center text-lp-pine">
-              {/* 実写写真が用意でき次第ここに配置（人間コーチはAIイラストを使わない） */}
-              <div className="flex flex-col items-center gap-2">
-                <UserRound className="w-16 h-16" aria-hidden="true" />
-                <span className="text-sm font-bold">{lang === 'ja' ? '安田 翔' : '安田 翔'}</span>
-              </div>
+            {/* 実写写真（人間コーチはAIイラストを使わない）。円形・背景はブランドの淡い緑 */}
+            <div className="mx-auto w-[220px] max-w-[70vw] aspect-square rounded-full bg-lp-pine-soft overflow-hidden">
+              <img
+                src={imgUrl('coach-sho')} width={745} height={725}
+                alt={lang === 'ja' ? '日本語コーチの安田翔' : '日语教练安田翔'}
+                loading="lazy" decoding="async"
+                className="h-full w-full object-cover object-top"
+              />
             </div>
           </Reveal>
           <Reveal delay={80}>
