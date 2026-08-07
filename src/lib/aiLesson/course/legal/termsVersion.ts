@@ -10,10 +10,11 @@
 // この2手を踏まないとテストが落ちる。
 
 /** 形式: YYYY-MM-DD.N（同日に複数回直したら N を進める） */
-export const TERMS_VERSION = '2026-08-02.1';
+// 2026-08-07.1: 販売価格の表記を桁区切りから「◯万円」形式へ（金額自体は不変・CEO指示）
+export const TERMS_VERSION = '2026-08-07.1';
 
 /**
  * 上の版が指している法務本文のハッシュ（先頭16桁）。
  * 本文だけ変えて版を据え置くと、テストがここの不一致で落ちる。
  */
-export const TERMS_CONTENT_HASH = '011da92508c5a15b';
+export const TERMS_CONTENT_HASH = '30f4dcbeb1948a32';

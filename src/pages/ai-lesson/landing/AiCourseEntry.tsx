@@ -45,6 +45,8 @@ export function AiCourseEntry({ variant }: { variant?: CharacterVariant }) {
     <AiCourseLandingPage
       variant={variant || 'shoko'}
       noindex={!!variant}
+      // variant指定なし（既定LP）は二人のAI先生を並べる。/shoko /yuto は広告用に1人のまま
+      duo={!variant}
       onSeeApp={() => navigate(`/${lang}/ai-course?app=1`)}
     />
   );

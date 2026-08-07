@@ -134,12 +134,13 @@ export const PLAN_CATALOG: PlanConfig[] = [
   },
   {
     id: 'coach-6m',
-    version: 1,
+    // v2: 価格表記を 100,000円→10万円 へ（CEO指示 2026-08-07。桁の羅列は高く感じさせるため）
+    version: 2,
     nameJa: '6か月 AI日本語伴走コース',
     nameZh: '6个月 AI日语陪跑课程',
     // 期間は durationLabel が出すので、ここには入れない（「／6か月」が二重になる）
-    priceLabelJa: '100,000円（税込）',
-    priceLabelZh: '100,000日元（含税）',
+    priceLabelJa: '10万円（税込）',
+    priceLabelZh: '10万日元（含税）',
     monthlyEquivalentJa: '月額換算 約16,700円／月',
     monthlyEquivalentZh: '折合每月约16,700日元',
     // セクションの lead（LP.pricing.lead）と同じ文にしない。同じ文が2回出て読みにくくなる

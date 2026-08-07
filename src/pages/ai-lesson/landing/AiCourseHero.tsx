@@ -1,14 +1,22 @@
 import type { Lang } from '../../../contexts/LanguageContext';
-import { LP, type VariantConfig } from './lpContent';
+import { LP, VARIANTS, type VariantConfig } from './lpContent';
 import { CtaButton, ArrowRight } from './lpUi';
 import { imgUrl } from './lpHelpers';
 
-export function AiCourseHero({ v, lang, onConsult, onSeeApp }: {
+export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
   v: VariantConfig; lang: Lang; onConsult: () => void; onSeeApp: () => void;
+  /**
+   * 既定LP（/shoko /yuto の広告variantでない入口）では**二人のAI先生を並べる**。
+   * 1人だけ出すと「最初にどちらを選ぶのか」が分からないうえ、
+   * 女性の先生だけが前面に出ると男性の先生を選べることが伝わらない（CEO指示 2026-08-07）
+   */
+  duo?: boolean;
 }) {
   const [l1, l2, l3] = LP.heroTitleLines[lang];
   const hl = LP.heroHighlight[lang];
-  const sub = LP.heroSub[lang].replace('翔子先生', v.name[lang]).replace('AIチューター', v.name[lang]);
+  const sub = duo
+    ? LP.heroSub[lang].replace('翔子先生', lang === 'zh' ? '两位AI老师' : '二人のAI先生')
+    : LP.heroSub[lang].replace('翔子先生', v.name[lang]).replace('AIチューター', v.name[lang]);
   const [bw, bh] = v.imageSize.wave;
 
   // 強調語をハイライト付きで差し込む
@@ -54,6 +62,32 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp }: {
           </div>
 
           {/* art */}
+          {duo ? (
+            // 二人のAI先生を並べる。名前と「選べる」ことを絵の中で言う
+            <div className="relative">
+              <div className="absolute inset-0 m-auto w-[108%] max-w-[560px] aspect-square rounded-full bg-lp-coral-soft/70 blur-[2px]" aria-hidden="true" />
+              <div className="relative z-10 flex items-end justify-center">
+                {([VARIANTS.shoko, VARIANTS.yuto] as const).map((t, i) => (
+                  <figure key={t.key} className={`m-0 text-center ${i === 1 ? '-ml-6 sm:-ml-8' : ''}`}>
+                    <img
+                      src={imgUrl(t.images.wave)}
+                      width={t.imageSize.wave[0]} height={t.imageSize.wave[1]}
+                      alt={lang === 'ja' ? `${t.name.ja}が笑顔で手をふって歓迎している` : `${t.name.zh}微笑着挥手欢迎`}
+                      fetchPriority={i === 0 ? 'high' : undefined} decoding="async"
+                      className="w-[min(240px,44vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
+                    />
+                    <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-3 py-1 text-[0.82rem] font-bold text-lp-ink">
+                      {t.name[lang]}
+                      <span className="ml-1 font-normal text-lp-ink-soft">{t.gender[lang]}</span>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+              <div className="absolute z-20 top-[2%] left-[-2%] sm:left-[-4%] bg-lp-card border-2 border-lp-ink text-lp-ink font-bold text-[0.9rem] leading-snug px-3.5 py-2.5 rounded-[18px_18px_18px_4px] shadow-[4px_5px_0_var(--color-lp-ink)] max-w-[14em] whitespace-pre-line">
+                {lang === 'zh' ? 'AI老师由你来选！' : 'AIの先生は\n自分で選べます！'}
+              </div>
+            </div>
+          ) : (
           <div className="relative flex justify-center">
             <div className="absolute inset-0 m-auto w-[108%] max-w-[520px] aspect-square rounded-full bg-lp-coral-soft/70 blur-[2px]" aria-hidden="true" />
             <img
@@ -66,6 +100,7 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp }: {
               {v.hero.bubble[lang]}
             </div>
           </div>
+          )}
         </div>
 
         <div className="mt-6 flex items-center gap-2.5 rounded-2xl border border-dashed border-lp-gold bg-lp-gold-soft px-4 py-3 text-[0.86rem] text-lp-ink">

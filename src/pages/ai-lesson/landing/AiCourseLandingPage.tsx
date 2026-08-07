@@ -16,8 +16,10 @@ import { LegalFooterLinks } from '../legal/LegalPage';
 
 const SITE = 'https://kawabado.com';
 
-export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeApp }: {
+export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeApp, duo = false }: {
   variant?: CharacterVariant; noindex?: boolean; onSeeApp: () => void;
+  /** 既定LPでは二人のAI先生を並べる（/shoko /yuto の広告variantは従来どおり1人） */
+  duo?: boolean;
 }) {
   const { lang } = useLanguage();
   const v = VARIANTS[variant];
@@ -40,9 +42,16 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
   const canonical = `${SITE}/${lang}/ai-course`; // variantは主ページへ集約
   const other = lang === 'ja' ? 'zh' : 'ja';
 
+  // 既定LP（duo）は特定の先生の名前をタイトルにしない（二人から選べることが売りのため）
+  const seoTitle = duo
+    ? (lang === 'zh'
+      ? 'AI日语会话陪跑课程｜用半年，告别「看得懂却说不出」'
+      : 'AI日本語会話コース｜読めるのに話せないを、半年で終わらせる')
+    : v.seo.title[lang];
+
   const courseSchema = {
     '@context': 'https://schema.org', '@type': 'Course',
-    name: v.seo.title[lang], description: v.seo.description[lang],
+    name: seoTitle, description: v.seo.description[lang],
     provider: { '@type': 'Organization', name: 'kawabado', url: SITE },
     inLanguage: lang === 'ja' ? 'ja' : 'zh-Hans',
   };
@@ -58,7 +67,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
     <div className="bg-lp-ivory text-lp-ink min-h-screen overflow-x-hidden [font-feature-settings:'palt']">
       <Helmet>
         <html lang={lang === 'ja' ? 'ja' : 'zh'} />
-        <title>{v.seo.title[lang]}</title>
+        <title>{seoTitle}</title>
         <meta name="description" content={v.seo.description[lang]} />
         <link rel="canonical" href={canonical} />
         {noindex && <meta name="robots" content="noindex,follow" />}
@@ -107,7 +116,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
       </header>
 
       <main>
-        <AiCourseHero v={v} lang={lang} onConsult={openConsult} onSeeApp={onSeeApp} />
+        <AiCourseHero v={v} lang={lang} onConsult={openConsult} onSeeApp={onSeeApp} duo={duo} />
         <PainPointsSection lang={lang} />
         <WhyLessonsFailSection lang={lang} />
         <AiHumanRolesSection v={v} lang={lang} />

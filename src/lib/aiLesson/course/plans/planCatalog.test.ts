@@ -144,6 +144,8 @@ const SKIP_DIRS = [
   'lib/aiLesson/course/adventure/reading',
   'lib/aiLesson/course/adventure/listening',
   'lib/aiLesson/course/adventure/vocab',
+  // 帰化面接の回答例に出てくる生活費（「毎月約10万円」）は商品価格ではない
+  'lib/aiLesson/course/adventure/interview',
 ];
 const SKIP_FILES = ['pages/AdminPage.tsx', 'pages/ActivityPage.tsx', 'lib/fee.ts'];
 
@@ -158,8 +160,8 @@ const walk = (dir: string, out: string[] = []): string[] => {
 
 describe('価格のハードコード', () => {
   it('**商品価格が planCatalog の外に書かれていない**', () => {
-    // 6桁以上（100,000）と、カタログにある金額表記を探す
-    const patterns = [/100,000\s*(円|日元)/, /16,700\s*(円|日元)/, /\b100000\b/];
+    // カタログにある金額表記（新旧両方）を探す
+    const patterns = [/100,000\s*(円|日元)/, /10万\s*(円|日元)/, /16,700\s*(円|日元)/, /\b100000\b/];
     const offenders: string[] = [];
     for (const file of walk(SRC)) {
       const rel = file.slice(SRC.length + 1).replace(/\\/g, '/');
@@ -207,7 +209,7 @@ const planHash = (id: string): string => {
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
   'ai-trial-pass': { version: 1, hash: '50e5c60bb64e' },
   'ai-month': { version: 1, hash: '4f1197dc71a4' },
-  'coach-6m': { version: 1, hash: 'c5b5d10ece0d' },
+  'coach-6m': { version: 2, hash: 'e951c7df16e5' },
 };
 
 describe('プランの版', () => {
