@@ -58,6 +58,9 @@ interface Props {
   sheetsVisible: boolean;
   sheetCount: number;
   onOpenSheets: () => void;
+  /** 帰化面接の表現特訓（発行された人だけ）。模擬面接は先生の授業で行う */
+  interviewVisible: boolean;
+  onOpenInterview: () => void;
 }
 
 const STATE_LABEL: Record<MapRegion['state'], { ja: string; zh: string }> = {
@@ -105,6 +108,7 @@ export const AdvAdventureMap = ({
   onStartToday, onBack,
   onOpenReview, reviewAvailable, onStartConversation, conversationAvailable, onOpenMock,
   sheetsVisible, sheetCount, onOpenSheets,
+  interviewVisible, onOpenInterview,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
@@ -487,12 +491,13 @@ export const AdvAdventureMap = ({
         </div>
       )}
 
-      {/* ── 特別な場所（ルートの進行とは独立。N2受験者だけに見える） ── */}
-      {sheetsVisible && (
+      {/* ── 特別な場所（ルートの進行とは独立。発行された人だけに見える） ── */}
+      {(sheetsVisible || interviewVisible) && (
         <section className="mt-4" aria-label={tx(lang, '特別な場所', '特别的地方')}>
           <p className="mb-1.5 text-xs font-bold text-gray-500">
             {tx(lang, '特別な場所', '特别的地方')}
           </p>
+          {sheetsVisible && (
           <button type="button" onClick={onOpenSheets}
             className="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
             <div className="relative h-20 w-full">
@@ -519,6 +524,32 @@ export const AdvAdventureMap = ({
               <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
             </div>
           </button>
+          )}
+
+          {interviewVisible && (
+            <button type="button" onClick={onOpenInterview}
+              className={`w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 ${sheetsVisible ? 'mt-2' : ''}`}>
+              <div className="relative h-20 w-full">
+                <LandmarkScene kind="plaza" tone="sunset" className="h-full w-full" />
+                <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">
+                  {tx(lang, 'あなた専用の場所', '你的专属场所')}
+                </span>
+              </div>
+              <div className="flex items-center gap-3 p-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-bold text-gray-900">
+                    {tx(lang, '帰化面接の表現特訓', '入籍面试表达特训')}
+                  </span>
+                  <span className="block text-xs leading-snug text-gray-600">
+                    {tx(lang,
+                      '聞かれそうなことを、自分の言葉の日本語で言えるようにする（模擬面接は先生の授業で）',
+                      '练习用自己的话说出可能被问到的内容（模拟面试在老师的课上）')}
+                  </span>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+              </div>
+            </button>
+          )}
         </section>
       )}
     </div>

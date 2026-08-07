@@ -36,13 +36,13 @@ const quest: AdvTodayQuest = {
 const handlers = () => ({
   onStartToday: vi.fn(), onBack: vi.fn(),
   onOpenReview: vi.fn(), onStartConversation: vi.fn(), onOpenMock: vi.fn(),
-  onOpenSheets: vi.fn(),
+  onOpenSheets: vi.fn(), onOpenInterview: vi.fn(),
 });
 
 const setup = (opts: {
   goal?: AdvGoalType; lang?: 'ja' | 'zh'; mastered?: Set<string>; week?: number;
   reviewAvailable?: boolean; conversationAvailable?: boolean;
-  sheetsVisible?: boolean; sheetCount?: number;
+  sheetsVisible?: boolean; sheetCount?: number; interviewVisible?: boolean;
 } = {}) => {
   const h = handlers();
   const p = profileFor(opts.goal ?? 'hybrid');
@@ -55,6 +55,7 @@ const setup = (opts: {
       conversationAvailable={opts.conversationAvailable ?? true}
       sheetsVisible={opts.sheetsVisible ?? false}
       sheetCount={opts.sheetCount ?? 0}
+      interviewVisible={opts.interviewVisible ?? false}
       {...h}
     />,
   );

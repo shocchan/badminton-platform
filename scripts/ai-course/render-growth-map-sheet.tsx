@@ -10,6 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { writeFileSync, readdirSync, readFileSync } from 'node:fs';
 import { AdvAdventureMap } from '../../src/components/ai-course/adventure/AdvAdventureMap';
 import { AdvAnswerSheetRunner } from '../../src/components/ai-course/adventure/AdvAnswerSheetRunner';
+import { AdvInterviewPrep } from '../../src/components/ai-course/adventure/AdvInterviewPrep';
 import { defaultAdvProfile } from '../../src/lib/aiLesson/course/adventure/advProfile';
 import { generateRoute } from '../../src/lib/aiLesson/course/adventure/advRoute';
 import { startSession as startSheetSession, type AnswerSheetPaper } from '../../src/lib/aiLesson/course/adventure/advAnswerSheet';
@@ -70,6 +71,8 @@ const view = (p: AdventureV2Profile, lang: 'ja' | 'zh', mastered: Set<string>, w
     sheetsVisible={p.targetJlpt === 'N2' && p.goalType !== 'conversation'}
     sheetCount={p.answerSheets.length}
     onOpenSheets={noop}
+    interviewVisible={p.interviewPrep.enabledAt !== null}
+    onOpenInterview={noop}
   />
 );
 
@@ -141,6 +144,22 @@ const VARIANTS: Variant[] = [
     id: 'zh-sheets-marking', width: 390,
     caption: '中文 / 真题考场 / 作答中',
     node: sheetView(sheetProfile({ answerSheetSession: markingSession }), 'zh'),
+  },
+  {
+    id: 'ja-interview-home', width: 390,
+    caption: '日本語 / 帰化面接の表現特訓 / 広場（発行済みlearner）',
+    node: (
+      <AdvInterviewPrep lang="ja" onSave={noop} onBack={noop}
+        profile={{ ...profileFor('jlpt'), interviewPrep: { enabledAt: NOW, notes: {}, worksheet: {} } }} />
+    ),
+  },
+  {
+    id: 'ja-map-both-special', width: 390,
+    caption: '日本語 / 特別な場所2つ（過去問の試験場＋帰化面接の特訓）',
+    node: view({
+      ...sheetProfile(),
+      interviewPrep: { enabledAt: NOW, notes: {}, worksheet: {} },
+    }, 'ja', new Set()),
   },
 ];
 

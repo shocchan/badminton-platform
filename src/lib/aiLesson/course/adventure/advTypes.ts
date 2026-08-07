@@ -262,6 +262,11 @@ export interface AdventureV2Profile {
   answerSheetSession: import('./advAnswerSheet').AnswerSheetSession | null;
   /** 提出済み答案の履歴（先生との振り返りに使う） */
   answerSheetLog: import('./advAnswerSheet').AnswerSheetResult[];
+  /**
+   * 帰化面接の表現特訓。enabledAt が null なら未発行＝画面に出さない。
+   * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ
+   */
+  interviewPrep: import('./interview/advInterview').InterviewPrepState;
   humanLesson: AdvHumanLessonState;
   createdAt: string;
   updatedAt: string;

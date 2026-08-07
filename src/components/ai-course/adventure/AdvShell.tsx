@@ -35,6 +35,8 @@ import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
 import { AdvAnswerSheetRunner } from './AdvAnswerSheetRunner';
 import { answerSheetsVisible } from '../../../lib/aiLesson/course/adventure/advAnswerSheet';
+import { AdvInterviewPrep } from './AdvInterviewPrep';
+import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
@@ -69,7 +71,7 @@ export interface AdvShellProps {
   onViewChange?: (view: 'home' | 'map') => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
@@ -427,6 +429,18 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  // ── 帰化面接の表現特訓（発行された人だけ）──
+  // 模擬面接はアプリでやらない（CEOの授業）。表現の特訓と記録だけ
+  if (view === 'interview') {
+    if (!interviewPrepVisible(prof)) {
+      setView('home');
+      return <AdvLoading lang={lang} />;
+    }
+    return (
+      <AdvInterviewPrep lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
+    );
+  }
+
   // ── ミニ模試（§9）──
   if (view === 'mock') {
     // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
@@ -560,6 +574,8 @@ export default function AdvShell(props: AdvShellProps) {
         sheetsVisible={answerSheetsVisible(prof)}
         sheetCount={prof.answerSheets.length}
         onOpenSheets={() => setView('sheets')}
+        interviewVisible={interviewPrepVisible(prof)}
+        onOpenInterview={() => setView('interview')}
       />
     );
   }
@@ -1104,6 +1120,12 @@ export default function AdvShell(props: AdvShellProps) {
                 label={tx(lang, '過去問の試験場（先生から届いた問題）', '真题考场（老师发来的题目）')}
                 badge={prof.answerSheets.length}
                 onClick={() => setView('sheets')} />
+            )}
+            {/* 帰化面接の表現特訓。発行された人だけ */}
+            {interviewPrepVisible(prof) && (
+              <SubLink lang={lang}
+                label={tx(lang, '帰化面接の表現特訓', '入籍面试表达特训')}
+                onClick={() => setView('interview')} />
             )}
             <SubLink lang={lang}
               label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
