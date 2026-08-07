@@ -53,9 +53,16 @@ describe('AIコース文言: 呼称仕様（§7 正式仕様）', () => {
     }
   });
 
-  it('AI講師名はブランド・音声UIで「翔子先生 / 翔子老师」を使う（呼称の一貫性）', () => {
-    expect(ja.brand).toContain('翔子先生');
-    expect(zh.brand).toContain('翔子老师');
+  it('ブランドは「日本語の相棒 / 你的日语搭档」（CEO決定 2026-08-08。先生2人制のため特定の先生名を含めない）', () => {
+    expect(ja.brand).toBe('日本語の相棒');
+    expect(zh.brand).toBe('你的日语搭档');
+    // ブランドに先生名を含めない（含めると applyTeacherName の brand除外と矛盾し、
+    // 悠斗先生を選んだ学習者の画面にも「翔子先生」が残り続ける）
+    expect(ja.brand).not.toContain('翔子');
+    expect(zh.brand).not.toContain('翔子');
+  });
+
+  it('音声UIの既定文言は「翔子先生 / 翔子老师」（先生選択時は applyTeacherName が差し替える）', () => {
     expect(ja.voice.statusConnecting).toContain('翔子先生');
     expect(zh.voice.statusConnecting).toContain('翔子老师');
   });

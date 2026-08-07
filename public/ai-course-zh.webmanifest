@@ -1,6 +1,6 @@
 {
-  "name": "翔子老师・AI日语会话课程",
-  "short_name": "AI日语",
+  "name": "你的日语搭档",
+  "short_name": "日语搭档",
   "description": "每天3〜4分钟，把N2水平的表达练到真正能开口说。",
   "start_url": "/zh/ai-course",
   "scope": "/zh/ai-course",

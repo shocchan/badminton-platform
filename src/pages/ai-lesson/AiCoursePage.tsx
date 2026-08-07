@@ -1293,7 +1293,7 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content={lang === 'zh' ? 'AI日语' : 'AI日本語'} />
+        <meta name="apple-mobile-web-app-title" content={lang === 'zh' ? '日语搭档' : '日本語の相棒'} />
         <link rel="apple-touch-icon" href="/favicon.png" />
       </Helmet>
       <CourseHeader

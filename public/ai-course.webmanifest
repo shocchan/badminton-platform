@@ -1,6 +1,6 @@
 {
-  "name": "翔子先生とAI日本語会話コース",
-  "short_name": "AI日本語",
+  "name": "日本語の相棒",
+  "short_name": "日本語の相棒",
   "description": "N2レベルの表現を実際に話せるようにする、1日3〜4分の日本語会話コース。",
   "start_url": "/ja/ai-course",
   "scope": "/ja/ai-course",

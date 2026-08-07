@@ -45,8 +45,8 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
   // 既定LP（duo）は特定の先生の名前をタイトルにしない（二人から選べることが売りのため）
   const seoTitle = duo
     ? (lang === 'zh'
-      ? 'AI日语会话陪跑课程｜用半年，告别「看得懂却说不出」'
-      : 'AI日本語会話コース｜読めるのに話せないを、半年で終わらせる')
+      ? '你的日语搭档｜用半年，告别「看得懂却说不出」'
+      : '日本語の相棒｜読めるのに話せないを、半年で終わらせる')
     : v.seo.title[lang];
 
   const courseSchema = {
@@ -89,7 +89,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
         <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 font-extrabold text-[1.05rem]">
             <span className="inline-grid place-items-center w-8 h-8 rounded-full bg-lp-coral text-white text-sm" aria-hidden="true">和</span>
-            <span>{lang === 'ja' ? `${v.name.ja}の日本語会話` : `${v.name.zh}的日语会话`}</span>
+            <span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</span>
           </div>
           <div className="flex items-center gap-3">
             {/* 受講中learnerのログイン導線（UX-001 P1: これまでLPに0本で、招待URLを
@@ -139,7 +139,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
         <div className="mx-auto max-w-6xl px-5 flex flex-wrap items-center justify-between gap-4 text-[0.9rem] text-lp-ink-soft">
           <div className="flex items-center gap-2 font-extrabold text-lp-ink">
             <span className="inline-grid place-items-center w-7 h-7 rounded-full bg-lp-coral text-white text-xs" aria-hidden="true">和</span>
-            {lang === 'ja' ? `${v.name.ja}の日本語会話` : `${v.name.zh}的日语会话`}
+            {lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}
           </div>
           <span>{LP.footerTagline[lang]}</span>
           <a href={`/${other}/${path}`} data-lp-lang-switch-footer

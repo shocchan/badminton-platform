@@ -6,7 +6,7 @@ import type { LessonKind } from '../lib/aiLesson/course/types';
 const ja = {
   locale: 'ja' as 'ja' | 'zh',
   positioning: '会話力を中心に、JLPT N2レベルの語彙・文法・表現・読解・聴解を「実際に使える形」で身につけ、N2合格水準を目指すコースです。問題の答えを覚えるだけでなく、日本人の自然な会話を理解し、自分の経験や考えをN2レベルの日本語で伝えられる状態を目指します（合格を保証するものではありません）。',
-  brand: '翔子先生とAI日本語会話コース',
+  brand: '日本語の相棒',
   nav: {
     home: 'ホーム',
     growth: '成長',
@@ -1568,7 +1568,7 @@ export type AiCourseDict = typeof ja;
 const zh: AiCourseDict = {
   locale: 'zh',
   positioning: '本课程以提高会话能力为核心，同时帮助你把JLPT N2水平的词汇、语法、表达、阅读和听力练到「真正能用出来」，向N2合格水准迈进。不仅要会做题，还要能听懂日本人的自然表达，并用N2水平的日语说出自己的经历和想法（本课程不保证考试合格）。',
-  brand: '翔子老师・AI日语会话课程',
+  brand: '你的日语搭档',
   nav: {
     home: '首页',
     growth: '成长',
