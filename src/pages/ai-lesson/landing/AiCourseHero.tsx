@@ -74,13 +74,13 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
             <div className="relative pt-16 sm:pt-14">
               <div className="absolute inset-0 m-auto w-[108%] max-w-[560px] aspect-square rounded-full bg-lp-coral-soft/70 blur-[2px]" aria-hidden="true" />
               <div className="relative z-10 flex items-end justify-center">
-                <figure className="m-0 text-center">
+                <figure className="m-0 shrink-0 text-center">
                   <img
                     src={imgUrl(VARIANTS.shoko.images.wave)}
                     width={VARIANTS.shoko.imageSize.wave[0]} height={VARIANTS.shoko.imageSize.wave[1]}
                     alt={lang === 'ja' ? '翔子先生が笑顔で手をふって歓迎している' : '翔子老师微笑着挥手欢迎'}
                     decoding="async"
-                    className="w-[min(185px,32vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
+                    className="w-[min(185px,30vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
                   />
                   <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-2.5 py-0.5 text-[0.76rem] font-bold text-lp-ink whitespace-nowrap">
                     {VARIANTS.shoko.name[lang]}
@@ -88,25 +88,30 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
                   </figcaption>
                 </figure>
                 {/* 中央: 人間のコーチ（実写・少し大きく手前） */}
-                <figure className="m-0 -mx-7 sm:-mx-9 relative z-10 text-center">
+                <figure className="m-0 -mx-10 shrink-0 relative z-10 text-center">
+                  {/*
+                    写真は胸から上のトリミング（745x725）でイラスト2人（縦長）より背が低く
+                    見えるため、頭の位置が2人よりわずかに上に来る幅にする
+                    （250px時代は頭が2人より下がり、コーチが一番小柄に見えていた）
+                  */}
                   <img
                     src={imgUrl('coach-sho')} width={745} height={725}
                     alt={lang === 'ja' ? 'コーチの安田翔' : '教练安田翔'}
                     fetchPriority="high" decoding="async"
-                    className="w-[min(250px,46vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.16)]"
+                    className="w-[min(292px,50vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.16)]"
                   />
                   <figcaption className="mt-1 inline-block rounded-full bg-lp-ink px-3 py-1 text-[0.82rem] font-bold text-white whitespace-nowrap">
                     {lang === 'zh' ? '安田翔' : '安田 翔'}
                     <span className="ml-1 font-normal text-white/80">{lang === 'zh' ? '真人教练' : '人間のコーチ'}</span>
                   </figcaption>
                 </figure>
-                <figure className="m-0 text-center">
+                <figure className="m-0 shrink-0 text-center">
                   <img
                     src={imgUrl(VARIANTS.yuto.images.wave)}
                     width={VARIANTS.yuto.imageSize.wave[0]} height={VARIANTS.yuto.imageSize.wave[1]}
                     alt={lang === 'ja' ? '悠斗先生が笑顔で手をふって歓迎している' : '悠斗老师微笑着挥手欢迎'}
                     decoding="async"
-                    className="w-[min(185px,32vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
+                    className="w-[min(185px,30vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
                   />
                   <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-2.5 py-0.5 text-[0.76rem] font-bold text-lp-ink whitespace-nowrap">
                     {VARIANTS.yuto.name[lang]}
