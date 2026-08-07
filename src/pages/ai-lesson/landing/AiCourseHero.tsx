@@ -63,28 +63,59 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
 
           {/* art */}
           {duo ? (
-            // 二人のAI先生を並べる。名前と「選べる」ことを絵の中で言う
-            <div className="relative">
+            /*
+              既定LPは3人（人間のコーチ＋AIチューター2人）。
+              **中央のコーチだけ実写**なのは意図的なデザイン（CEO決定 2026-08-08）:
+              人間＝写真・AI＝イラストの描き分けが「人×AIの両輪」という商品構造を
+              1枚で説明する。コーチをイラスト化すると人間まで架空に見えて信頼を損なう。
+              ラベルで役割を言い切ることで「なぜ画風が違うのか」への答えを絵の中に置く
+            */
+            // pt で吹き出しの場所を先に確保する（人物の顔に吹き出しを被せない）
+            <div className="relative pt-16 sm:pt-14">
               <div className="absolute inset-0 m-auto w-[108%] max-w-[560px] aspect-square rounded-full bg-lp-coral-soft/70 blur-[2px]" aria-hidden="true" />
               <div className="relative z-10 flex items-end justify-center">
-                {([VARIANTS.shoko, VARIANTS.yuto] as const).map((t, i) => (
-                  <figure key={t.key} className={`m-0 text-center ${i === 1 ? '-ml-6 sm:-ml-8' : ''}`}>
-                    <img
-                      src={imgUrl(t.images.wave)}
-                      width={t.imageSize.wave[0]} height={t.imageSize.wave[1]}
-                      alt={lang === 'ja' ? `${t.name.ja}が笑顔で手をふって歓迎している` : `${t.name.zh}微笑着挥手欢迎`}
-                      fetchPriority={i === 0 ? 'high' : undefined} decoding="async"
-                      className="w-[min(240px,44vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
-                    />
-                    <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-3 py-1 text-[0.82rem] font-bold text-lp-ink">
-                      {t.name[lang]}
-                      <span className="ml-1 font-normal text-lp-ink-soft">{t.gender[lang]}</span>
-                    </figcaption>
-                  </figure>
-                ))}
+                <figure className="m-0 text-center">
+                  <img
+                    src={imgUrl(VARIANTS.shoko.images.wave)}
+                    width={VARIANTS.shoko.imageSize.wave[0]} height={VARIANTS.shoko.imageSize.wave[1]}
+                    alt={lang === 'ja' ? '翔子先生が笑顔で手をふって歓迎している' : '翔子老师微笑着挥手欢迎'}
+                    decoding="async"
+                    className="w-[min(185px,32vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
+                  />
+                  <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-2.5 py-0.5 text-[0.76rem] font-bold text-lp-ink whitespace-nowrap">
+                    {VARIANTS.shoko.name[lang]}
+                    <span className="ml-1 font-normal text-lp-ink-soft">{lang === 'zh' ? 'AI辅导老师' : 'AIチューター'}</span>
+                  </figcaption>
+                </figure>
+                {/* 中央: 人間のコーチ（実写・少し大きく手前） */}
+                <figure className="m-0 -mx-7 sm:-mx-9 relative z-10 text-center">
+                  <img
+                    src={imgUrl('coach-sho')} width={745} height={725}
+                    alt={lang === 'ja' ? 'コーチの安田翔' : '教练安田翔'}
+                    fetchPriority="high" decoding="async"
+                    className="w-[min(250px,46vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.16)]"
+                  />
+                  <figcaption className="mt-1 inline-block rounded-full bg-lp-ink px-3 py-1 text-[0.82rem] font-bold text-white whitespace-nowrap">
+                    {lang === 'zh' ? '安田翔' : '安田 翔'}
+                    <span className="ml-1 font-normal text-white/80">{lang === 'zh' ? '真人教练' : '人間のコーチ'}</span>
+                  </figcaption>
+                </figure>
+                <figure className="m-0 text-center">
+                  <img
+                    src={imgUrl(VARIANTS.yuto.images.wave)}
+                    width={VARIANTS.yuto.imageSize.wave[0]} height={VARIANTS.yuto.imageSize.wave[1]}
+                    alt={lang === 'ja' ? '悠斗先生が笑顔で手をふって歓迎している' : '悠斗老师微笑着挥手欢迎'}
+                    decoding="async"
+                    className="w-[min(185px,32vw)] h-auto drop-shadow-[0_24px_30px_rgba(55,43,38,0.12)]"
+                  />
+                  <figcaption className="mt-1 inline-block rounded-full bg-lp-card border border-lp-line px-2.5 py-0.5 text-[0.76rem] font-bold text-lp-ink whitespace-nowrap">
+                    {VARIANTS.yuto.name[lang]}
+                    <span className="ml-1 font-normal text-lp-ink-soft">{lang === 'zh' ? 'AI辅导老师' : 'AIチューター'}</span>
+                  </figcaption>
+                </figure>
               </div>
-              <div className="absolute z-20 top-[2%] left-[-2%] sm:left-[-4%] bg-lp-card border-2 border-lp-ink text-lp-ink font-bold text-[0.9rem] leading-snug px-3.5 py-2.5 rounded-[18px_18px_18px_4px] shadow-[4px_5px_0_var(--color-lp-ink)] max-w-[14em] whitespace-pre-line">
-                {lang === 'zh' ? 'AI老师由你来选！' : 'AIの先生は\n自分で選べます！'}
+              <div className="absolute z-20 top-0 left-[-2%] sm:left-[-4%] bg-lp-card border-2 border-lp-ink text-lp-ink font-bold text-[0.9rem] leading-snug px-3.5 py-2.5 rounded-[18px_18px_18px_4px] shadow-[4px_5px_0_var(--color-lp-ink)] max-w-[14em] whitespace-pre-line">
+                {lang === 'zh' ? '我和两位AI老师，\n陪你走半年！' : '私とAIの先生2人で、\n半年伴走します！'}
               </div>
             </div>
           ) : (
