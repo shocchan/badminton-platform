@@ -1080,6 +1080,20 @@ export default function AdvShell(props: AdvShellProps) {
               {mockPending ? tx(lang, '模試のあとで今日の冒険をする', '模拟考之后再做今天的冒险') : ctaLabel()}
             </button>
           )}
+          {/*
+            中断への安心（CEO指示 2026-08-08）。始める前の学習者は
+            「途中でやめたら消えるのでは」を一番心配する。仕組みは実在する
+            （todaySteps がDB保存・questは同日決定的＝端末を変えても続きから）ので、
+            事実をそのまま1行で言う。※やりかけの1step内の途中経過は保存しない仕様のため
+            「終わったstepまで」と正確に書く（盛らない・原則13）
+          */}
+          {!allDone && (
+            <p className="mt-2 text-center text-xs text-gray-500">
+              {tx(lang,
+                '途中でやめても、終わったstepまで自動で保存されます。次に開くと続きから始められます。',
+                '中途退出也没关系，已完成的步骤会自动保存。下次打开时从接续处继续。')}
+            </p>
+          )}
           {allDone && (
             <button type="button" className={`${primaryBtn} mt-4 bg-emerald-600`}
               onClick={() => {
