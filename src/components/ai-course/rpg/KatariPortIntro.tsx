@@ -26,7 +26,7 @@ export const KatariPortIntro = ({
 }: KatariPortIntroProps) => (
   <div className="max-w-md mx-auto px-4 py-4">
     <button type="button" onClick={onBack}
-      className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+      className="transition-colors active:bg-gray-100 min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
       <ArrowLeft className="w-4 h-4" aria-hidden />{t.katari.backToMap}
     </button>
 
@@ -60,11 +60,11 @@ export const KatariPortIntro = ({
       </dl>
 
       <button type="button" onClick={onStartVoice} disabled={starting}
-        className="w-full min-h-12 mt-4 bg-teal-600 text-white rounded-2xl font-bold text-sm disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
+        className="action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 mt-4 bg-teal-600 text-white rounded-2xl font-bold text-sm disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
         <Mic className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden />{t.katari.startVoice}
       </button>
       <button type="button" onClick={onStartText} disabled={starting}
-        className="w-full min-h-11 mt-2 text-sm text-gray-600 disabled:opacity-50">
+        className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-2 text-sm text-gray-600 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         <PenLine className="inline w-3.5 h-3.5 -mt-0.5 mr-1" aria-hidden />{t.katari.startText}
       </button>
     </div>

@@ -74,7 +74,7 @@ export const SupportReportButton = ({ context, adapter, lang, contactFallback, n
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)}
-        className="min-h-11 px-3 text-xs text-gray-500 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg">
+        className="min-h-11 px-3 text-xs text-gray-500 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg transition-colors active:bg-gray-100">
         {u.open}
       </button>
     );
@@ -89,7 +89,7 @@ export const SupportReportButton = ({ context, adapter, lang, contactFallback, n
             {CATEGORIES.map(c => (
               <button key={c} type="button" onClick={() => setCategory(c)}
                 aria-pressed={category === c}
-                className={`min-h-11 px-3 py-2 text-left text-sm rounded-xl border ${category === c ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
+                className={`min-h-11 px-3 py-2 text-left text-sm rounded-xl border action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${category === c ? 'border-indigo-500 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
                 {/* 学習者の言語を主、もう一方を従にする。zh表示で日本語が主のままだと読めない */}
                 {SUPPORT_CATEGORY_LABEL[c][lang]}
                 <span className="block text-[10px] text-gray-400">
@@ -107,18 +107,18 @@ export const SupportReportButton = ({ context, adapter, lang, contactFallback, n
             {u.privacy}
           </p>
           <button type="button" disabled={!category} onClick={() => void submit()}
-            className={`w-full min-h-12 rounded-2xl font-bold text-sm ${category ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
+            className={`w-full min-h-12 rounded-2xl font-bold text-sm touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${category ? 'action-raised action-primary bg-indigo-600 text-white' : 'bg-gray-100 text-gray-400'}`}>
             {u.submit}
           </button>
           <button type="button" onClick={() => setOpen(false)}
-            className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{u.cancel}</button>
+            className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{u.cancel}</button>
         </>
       )}
       {result === 'sent' && (
         <div role="status">
           <p className="text-sm font-bold text-emerald-700 mb-1">{u.sentTitle}</p>
           <p className="text-xs text-gray-600 mb-2">{u.sentBody}</p>
-          <button type="button" onClick={() => setOpen(false)} className="min-h-11 px-3 text-xs text-gray-500 underline">{u.close}</button>
+          <button type="button" onClick={() => setOpen(false)} className="min-h-11 px-3 text-xs text-gray-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{u.close}</button>
         </div>
       )}
       {result === 'queued' && (
@@ -129,7 +129,7 @@ export const SupportReportButton = ({ context, adapter, lang, contactFallback, n
             {u.queuedBody}
             {contactFallback?.[lang] ?? ''}
           </p>
-          <button type="button" onClick={() => setOpen(false)} className="min-h-11 px-3 text-xs text-gray-500 underline">{u.close}</button>
+          <button type="button" onClick={() => setOpen(false)} className="min-h-11 px-3 text-xs text-gray-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{u.close}</button>
         </div>
       )}
     </div>

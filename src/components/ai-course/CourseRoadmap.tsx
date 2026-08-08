@@ -58,7 +58,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, ac
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={tr.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-gray-900">{tr.title}</h1>
@@ -122,7 +122,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, ac
               className={`rounded-xl border overflow-hidden ${isCurrent ? 'border-blue-300 bg-blue-50/40' : 'border-gray-200 bg-white'}`}>
               {/* 週カード全体をタップ＝展開（鍵付きでも押せる） */}
               <button type="button" onClick={() => toggle(w.week)} aria-expanded={isOpen}
-                className="w-full text-left p-3 flex items-start gap-2 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 rounded-xl transition-colors">
+                className="w-full text-left p-3 flex items-start gap-2 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 rounded-xl transition-colors active:bg-gray-100 touch-manipulation [-webkit-tap-highlight-color:transparent]">
                 <span className="mt-0.5 shrink-0">{stateIcon(w.state)}</span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-bold text-gray-900 truncate">
@@ -160,7 +160,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, ac
                       const access = missionAccessState(m, progress);
                       return (
                         <button key={m.id} type="button" onClick={() => onOpenPreview(m)}
-                          className="w-full text-left bg-gray-50 hover:bg-blue-50 rounded-lg p-2.5 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 transition-colors">
+                          className="w-full text-left bg-gray-50 hover:bg-blue-50 rounded-lg p-2.5 flex items-center gap-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 transition-colors card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent]">
                           <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${
                             access === 'locked' ? 'bg-gray-200' : access === 'completed' ? 'bg-emerald-100' : 'bg-blue-100'}`}>
                             {access === 'locked' ? <Lock className="w-3 h-3 text-gray-500" />
@@ -203,7 +203,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, ac
       <div className="mt-5 space-y-3">
         {/* 全ての章をテキスト予習（鍵付き章も閲覧可） */}
         <button type="button" onClick={onSeeChapters}
-          className="w-full text-left bg-white rounded-xl border border-blue-100 p-4 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
+          className="w-full text-left bg-white rounded-xl border border-blue-100 p-4 hover:bg-blue-50 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900">{t.preview.allChaptersTitle}</p>
@@ -214,7 +214,7 @@ export const CourseRoadmap = ({ t, weeks, currentWeek, nextMission, progress, ac
 
         {/* N2文法トラック */}
         <button type="button" onClick={onSeeN2Grammar}
-          className="w-full text-left bg-white rounded-xl border border-indigo-100 p-4 hover:bg-indigo-50 transition-colors flex items-center gap-2.5">
+          className="w-full text-left bg-white rounded-xl border border-indigo-100 p-4 hover:bg-indigo-50 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <BookOpen className="w-4 h-4 text-indigo-600 shrink-0" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900">{t.n2grammar.navTitle}</p>

@@ -106,11 +106,11 @@ export const CourseRetryCard = ({ t, target, onFinished }: Props) => {
         />
       </label>
       <button type="button" onClick={submit} disabled={!input.trim()}
-        className="w-full min-h-11 py-3 mt-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+        className="w-full min-h-11 py-3 mt-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-1.5 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         {tr.retryButton}<ArrowRight className="w-4 h-4" />
       </button>
       <button type="button" onClick={() => finish('skipped')}
-        className="w-full min-h-10 py-2 mt-1 text-xs text-gray-400 hover:text-gray-600">
+        className="w-full min-h-10 py-2 mt-1 text-xs text-gray-400 hover:text-gray-600 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         {tr.retrySkip}
       </button>
     </div>

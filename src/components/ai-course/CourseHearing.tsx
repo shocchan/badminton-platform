@@ -89,7 +89,7 @@ export const CourseHearing = ({ t, onComplete, busy }: Props) => {
             className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
           />
           <button type="button" onClick={() => setI(0)} disabled={!name.trim()}
-            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-2">
+            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             {tx.next}<ArrowRight className="w-4 h-4" />
           </button>
         </div>
@@ -100,13 +100,13 @@ export const CourseHearing = ({ t, onComplete, busy }: Props) => {
           <div className="space-y-2">
             {tx.qs[i].opts.map(([val, label]) => (
               <button key={val} type="button" disabled={busy} onClick={() => pick(tx.qs[i].k, val)}
-                className="w-full min-h-11 px-4 py-3 text-left border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-colors text-sm text-gray-800 disabled:opacity-50">
+                className="w-full min-h-11 px-4 py-3 text-left border border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition-colors text-sm text-gray-800 disabled:opacity-50 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {label}
               </button>
             ))}
           </div>
           <button type="button" onClick={() => setI(i - 1)} disabled={busy}
-            className="mt-4 min-h-11 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+            className="mt-4 min-h-11 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <ArrowLeft className="w-4 h-4" />{tx.back}
           </button>
         </div>

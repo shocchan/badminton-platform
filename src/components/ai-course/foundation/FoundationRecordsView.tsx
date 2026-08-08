@@ -58,7 +58,7 @@ export const FoundationRecordsView = ({ t, meta, bundles, repo, onOpenUnit, onRe
               <p className="text-[11px] text-gray-600 mt-0.5">{tl.reviewReasons[e.candidateState]}</p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-[11px] text-gray-400">{unitTitle(e.unitId)}</span>
-                <button type="button" onClick={() => onOpenUnit(e.unitId)} className="min-h-10 px-3 text-xs font-bold text-indigo-700 underline">{tl.retryUnit}</button>
+                <button type="button" onClick={() => onOpenUnit(e.unitId)} className="min-h-10 px-3 text-xs font-bold text-indigo-700 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.retryUnit}</button>
               </div>
             </div>
           ))}
@@ -119,12 +119,12 @@ export const FoundationRecordsView = ({ t, meta, bundles, repo, onOpenUnit, onRe
           <div className="bg-amber-50 rounded-xl p-3">
             <p className="text-xs text-gray-800 mb-2">{tl.resetConfirm}</p>
             <div className="flex gap-2">
-              <button type="button" onClick={() => setConfirming(false)} className="flex-1 min-h-11 text-sm border border-gray-200 rounded-xl">{tl.resetNo}</button>
-              <button type="button" onClick={() => { onReset(); setConfirming(false); }} className="flex-1 min-h-11 text-sm font-bold text-white bg-amber-600 rounded-xl">{tl.resetYes}</button>
+              <button type="button" onClick={() => setConfirming(false)} className="flex-1 min-h-11 text-sm border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.resetNo}</button>
+              <button type="button" onClick={() => { onReset(); setConfirming(false); }} className="flex-1 min-h-11 text-sm font-bold text-white bg-amber-600 rounded-xl action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.resetYes}</button>
             </div>
           </div>
         ) : (
-          <button type="button" onClick={() => setConfirming(true)} className="min-h-11 text-xs text-gray-500 underline">{tl.resetButton}</button>
+          <button type="button" onClick={() => setConfirming(true)} className="min-h-11 text-xs text-gray-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.resetButton}</button>
         )}
       </div>
     </div>

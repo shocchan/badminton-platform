@@ -21,7 +21,7 @@ export const CourseChapterList = ({ t, progress, onOpenPreview, onBack }: Props)
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-2">
         <button type="button" onClick={onBack} aria-label={tp.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-gray-900">{tp.allChaptersTitle}</h1>
@@ -42,7 +42,7 @@ export const CourseChapterList = ({ t, progress, onOpenPreview, onBack }: Props)
                   const access = missionAccessState(m, progress);
                   return (
                     <button key={m.id} type="button" onClick={() => onOpenPreview(m)}
-                      className="w-full text-left bg-white border border-gray-100 rounded-xl p-3 hover:bg-gray-50 hover:border-blue-100 transition-colors flex items-center gap-3">
+                      className="w-full text-left bg-white border border-gray-100 rounded-xl p-3 hover:bg-gray-50 hover:border-blue-100 transition-colors flex items-center gap-3 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                         access === 'locked' ? 'bg-gray-100' : access === 'completed' ? 'bg-emerald-50' : 'bg-blue-50'}`}>
                         {access === 'locked' ? <Lock className="w-3.5 h-3.5 text-gray-400" />

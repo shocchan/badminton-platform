@@ -26,7 +26,7 @@ export const FoundationUnitsView = ({ t, meta, bundles, summaries, repo, onOpenU
     return (
       <div>
         <button type="button" onClick={() => setBrowse(null)}
-          className="min-h-11 mb-2 text-sm font-bold text-indigo-700">← {tl.backToUnits}</button>
+          className="min-h-11 mb-2 text-sm font-bold text-indigo-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">← {tl.backToUnits}</button>
         {browse === 'words'
           ? <FoundationVocabularyView t={t} meta={meta} bundles={bundles} repo={repo} />
           : <FoundationRulesView t={t} meta={meta} bundles={bundles} onOpenUnit={onOpenUnit} />}
@@ -53,7 +53,7 @@ export const FoundationUnitsView = ({ t, meta, bundles, summaries, repo, onOpenU
           const cta = s?.inProgress ? tl.ctaResume : tl.ctaStart;
           return (
             <button key={m.id} type="button" onClick={() => onOpenUnit(m.id)}
-              className="w-full text-left bg-white rounded-xl border border-gray-100 p-4 min-h-11">
+              className="w-full text-left bg-white rounded-xl border border-gray-100 p-4 min-h-11 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono text-gray-400 shrink-0">{idx + 1}</span>
                 <span className="text-sm font-bold text-gray-900 flex-1">{zh ? m.titleZh : m.titleJa}</span>
@@ -75,8 +75,8 @@ export const FoundationUnitsView = ({ t, meta, bundles, summaries, repo, onOpenU
       </div>
       {/* 補助導線: 全語彙・全規則は必要な人だけが開く（§7） */}
       <div className="flex gap-2 mt-4">
-        <button type="button" onClick={() => setBrowse('words')} className="flex-1 min-h-11 py-2 text-xs text-gray-500 border border-gray-200 rounded-xl">{tl.browseWords}</button>
-        <button type="button" onClick={() => setBrowse('rules')} className="flex-1 min-h-11 py-2 text-xs text-gray-500 border border-gray-200 rounded-xl">{tl.browseRules}</button>
+        <button type="button" onClick={() => setBrowse('words')} className="flex-1 min-h-11 py-2 text-xs text-gray-500 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.browseWords}</button>
+        <button type="button" onClick={() => setBrowse('rules')} className="flex-1 min-h-11 py-2 text-xs text-gray-500 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.browseRules}</button>
       </div>
     </div>
   );

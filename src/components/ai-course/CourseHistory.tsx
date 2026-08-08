@@ -42,7 +42,7 @@ const Card = ({ t, it, onOpen }: { t: AiCourseDict; it: ReviewItem; onOpen: () =
   const due = it.reasons.includes('overdue') || it.reasons.includes('due');
   return (
     <button type="button" onClick={onOpen}
-      className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:bg-gray-50 hover:border-blue-100 transition-colors">
+      className="w-full text-left bg-white border border-gray-100 rounded-2xl p-4 hover:bg-gray-50 hover:border-blue-100 transition-colors card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
       <div className="flex items-start gap-3">
         <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${due ? 'bg-amber-50' : retained ? 'bg-emerald-50' : 'bg-blue-50'}`}>
           {due ? <RefreshCw className="w-4 h-4 text-amber-600" /> : retained ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <BookOpen className="w-4 h-4 text-blue-600" />}
@@ -94,7 +94,7 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
     <div className="max-w-md lg:max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={r.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
@@ -118,7 +118,7 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
                 <p className="text-sm text-amber-50">{r.todayReviewCount(plan.today.length)}</p>
                 <p className="text-xs text-amber-100 mb-3">{r.todayReviewMinutes(plan.estMinutes)}</p>
                 <button type="button" onClick={() => onOpenNote(plan.today[0])}
-                  className="w-full min-h-11 py-3 bg-white text-amber-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-amber-50">
+                  className="w-full min-h-11 py-3 bg-white text-amber-700 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-amber-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                   {r.startTodayReview}<ArrowRight className="w-4 h-4" />
                 </button>
               </>
@@ -129,7 +129,7 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
                 <div className="min-w-0">
                   <p className="text-sm text-gray-500 mb-2">{r.noReviewToday}</p>
                   <button type="button" onClick={() => { setTab('recent'); }}
-                    className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:text-blue-700">
+                    className="text-sm text-blue-600 font-medium flex items-center gap-1 hover:text-blue-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     {r.seeRecent}<ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -139,7 +139,7 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
 
           {/* わたしの表現（学んだ日本語の積み重ね・§E-4） */}
           <button type="button" onClick={onOpenExpressions}
-            className="w-full text-left bg-white rounded-xl border border-blue-100 p-3.5 mb-3 hover:bg-blue-50 transition-colors flex items-center gap-2.5">
+            className="w-full text-left bg-white rounded-xl border border-blue-100 p-3.5 mb-3 hover:bg-blue-50 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-gray-900">{t.bank.title}</span>
@@ -150,7 +150,7 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
 
           {/* わたしの日本語ノート（日付・出来事の物語層。表現＝横断一覧と役割分離・§Avatar1B） */}
           <button type="button" onClick={onOpenNotebook}
-            className="w-full text-left bg-white rounded-xl border border-emerald-100 p-3.5 mb-3 hover:bg-emerald-50 transition-colors flex items-center gap-2.5">
+            className="w-full text-left bg-white rounded-xl border border-emerald-100 p-3.5 mb-3 hover:bg-emerald-50 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <CalendarDays className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-medium text-gray-900">{t.notebook.title('')}</span>
@@ -162,8 +162,8 @@ export const CourseHistory = ({ t, sessions, progress, practiceAgainIds, onOpenN
           {/* タブ（目的別） */}
           <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 -mx-1 px-1">
             {tabs.map((tb) => (
-              <button key={tb.key} type="button" onClick={() => setTab(tb.key)}
-                className={`shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+              <button key={tb.key} type="button" onClick={() => setTab(tb.key)} aria-pressed={tab === tb.key}
+                className={`shrink-0 min-h-9 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-colors action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                   tab === tb.key ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
                 {tb.label}{tb.count > 0 && <span className={tab === tb.key ? 'text-blue-100' : 'text-gray-400'}> {tb.count}</span>}
               </button>

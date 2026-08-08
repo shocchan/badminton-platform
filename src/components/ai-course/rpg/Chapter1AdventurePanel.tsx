@@ -271,13 +271,13 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
           const used = built.filter(b => b === tok).length >= target.filter(t => t === tok).length;
           return (
             <button key={`${tok}-${i}`} type="button" disabled={used} onClick={() => onPush(tok)}
-              className={`min-h-11 px-3 py-2 text-sm rounded-xl border ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-indigo-200 hover:border-indigo-400'}`}>
+              className={`min-h-11 px-3 py-2 text-sm rounded-xl border touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'action-raised action-choice bg-white border-indigo-200 hover:border-indigo-400'}`}>
               {tok}
             </button>
           );
         })}
       </div>
-      <button type="button" onClick={onReset} className="min-h-11 px-3 text-xs text-gray-400 underline">{t.ch1.orderReset}</button>
+      <button type="button" onClick={onReset} className="transition-colors active:bg-gray-100 rounded min-h-11 px-3 text-xs text-gray-400 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.orderReset}</button>
     </div>
   );
 
@@ -297,7 +297,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
       <p aria-live="polite" className="sr-only">{announcement}</p>
       <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
         <button type="button" onClick={onBack}
-          className="min-h-11 px-2 text-sm text-gray-500 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg">
+          className="transition-colors active:bg-gray-100 min-h-11 px-2 text-sm text-gray-500 underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg">
           {t.ch1.backToList}
         </button>
         <div className="flex items-center gap-3 text-xs text-gray-600 flex-wrap">
@@ -401,14 +401,14 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
                 <p className="text-sm font-bold text-gray-900 mb-1">{zh ? nextQuest.titleZh : nextQuest.titleJa}</p>
                 <p className="text-xs text-gray-500 mb-2">{zh ? nextQuest.learnGoalZh : nextQuest.learnGoalJa}・{t.ch1.minutes(nextQuest.estimatedMinutes)}</p>
                 <button type="button" onClick={() => beginQuest(nextQuest)}
-                  className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+                  className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
                   {t.ch1.startQuestBtn(nextQuest.order)}
                 </button>
               </div>
             )}
             {chapterDone && (
               <button type="button" onClick={() => setScreen({ kind: 'chapterComplete' })}
-                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm mb-3">
+                className="action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm mb-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.ch1.seeRecord}
               </button>
             )}
@@ -419,7 +419,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
                   {t.ch1.wordsFading(reviewKeys.length)}
                 </p>
                 <button type="button" onClick={() => setScreen({ kind: 'reviewLetter' })}
-                  className="w-full min-h-11 bg-violet-600 text-white rounded-xl text-sm font-bold">{t.ch1.readLetter}</button>
+                  className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-11 bg-violet-600 text-white rounded-xl text-sm font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.readLetter}</button>
               </div>
             )}
             <div className="grid grid-cols-1 gap-1.5">
@@ -472,9 +472,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <div><dt className="inline font-bold">{t.ch1.reviewPlan} </dt><dd className="inline">{t.ch1.reviewPlanBody}</dd></div>
             </dl>
             <button type="button" onClick={() => setScreen({ kind: 'learning', questId: q.questId, itemIndex: 0, phase: 'teach', qIndex: 0, built: [], wrongOnce: false })}
-              className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">{t.ch1.startLearning}</button>
+              className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.startLearning}</button>
             <button type="button" onClick={() => setScreen({ kind: 'map' })}
-              className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.ch1.backToChapterMap}</button>
+              className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-1 text-xs text-gray-400 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.backToChapterMap}</button>
           </div>
         );
       })()}
@@ -510,11 +510,11 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
                 {t.ch1.assessNotice(qs.length)}
               </p>
               <button type="button" onClick={() => setScreen({ ...screen, phase: 'assess', qIndex: 0, built: [], wrongOnce: false })}
-                className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
+                className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.ch1.memorized}
               </button>
               <button type="button" onClick={() => setScreen({ kind: 'map' })}
-                className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.ch1.pauseToMap}</button>
+                className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-1 text-xs text-gray-400 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.pauseToMap}</button>
             </div>
           );
         }
@@ -546,14 +546,14 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <div className="grid grid-cols-1 gap-1.5">
                 {aq.choices.map((opt, i) => (
                   <button key={opt} type="button" onClick={() => answerAssess(screen, item, i === aq.answerIndex)}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
                     {opt}
                   </button>
                 ))}
               </div>
             )}
             <button type="button" onClick={() => setScreen({ ...screen, phase: 'teach' })}
-              className="w-full min-h-11 mt-3 text-xs text-gray-500 underline">{t.ch1.seeAgain}</button>
+              className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-3 text-xs text-gray-500 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.seeAgain}</button>
           </div>
         );
       })()}
@@ -572,7 +572,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <p className="text-sm text-gray-800 mb-2">{rule.explanationJa}</p>
               <p className="text-xs text-gray-500 mb-4">{rule.explanationZh}</p>
               <button type="button" onClick={() => setScreen({ ...screen, step: 1 })}
-                className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">{t.ch1.toQuiz}</button>
+                className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.toQuiz}</button>
             </div>
           );
         }
@@ -587,7 +587,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <div className="grid grid-cols-1 gap-1.5">
                 {(question.choices ?? []).map((c, i) => (
                   <button key={c} type="button" onClick={() => answerGrammarQuestion(screen, question, i)}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400">
+                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     {c}
                   </button>
                 ))}
@@ -612,14 +612,14 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
                 return (
                   <button key={tok} type="button" disabled={used}
                     onClick={() => pushToken(screen, tok)}
-                    className={`min-h-11 px-3 py-2 text-sm rounded-xl border ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-indigo-200 hover:border-indigo-400'}`}>
+                    className={`min-h-11 px-3 py-2 text-sm rounded-xl border touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'action-raised action-choice bg-white border-indigo-200 hover:border-indigo-400'}`}>
                     {tok}
                   </button>
                 );
               })}
             </div>
             <button type="button" onClick={() => setScreen({ ...screen, built: [] })}
-              className="min-h-11 px-3 text-xs text-gray-400 underline">{t.ch1.orderReset}</button>
+              className="transition-colors active:bg-gray-100 rounded min-h-11 px-3 text-xs text-gray-400 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.orderReset}</button>
           </div>
         );
       })()}
@@ -640,7 +640,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
             <div className="grid grid-cols-1 gap-1.5">
               {step.optionsJa.map(opt => (
                 <button key={opt} type="button" onClick={() => answerFinale(screen.questId, screen.stepIndex, opt)}
-                  className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400">
+                  className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                   {opt}
                 </button>
               ))}
@@ -686,7 +686,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
             <button type="button"
               onClick={() => q.isChapterFinale ? setScreen({ kind: 'chapterComplete' })
                 : returnToMap(t.ch1.heroMovesTo(nextSiteName))}
-              className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm mt-1">
+              className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm mt-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {q.isChapterFinale ? t.ch1.toCh1Record(chapter.order) : t.ch1.toMapHeroMoves}
             </button>
           </div>
@@ -710,7 +710,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
             {t.ch1.fogNote}
           </p>
           <button type="button" onClick={() => returnToMap()}
-            className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">{t.ch1.backToChapterMap}</button>
+            className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.backToChapterMap}</button>
         </div>
       )}
 
@@ -727,9 +727,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
           <p className="text-xs text-gray-500 mb-3">{t.ch1.fadingWords(reviewKeys.length)}</p>
           <button type="button"
             onClick={() => setScreen({ kind: 'reviewCheck', keys: reviewKeys.slice(0, 6), index: 0, built: [], wrongOnce: false })}
-            className="w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm">{t.ch1.goCheck}</button>
+            className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.goCheck}</button>
           <button type="button" onClick={() => setScreen({ kind: 'map' })}
-            className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.ch1.later}</button>
+            className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-1 text-xs text-gray-400 underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.later}</button>
         </div>
       )}
 
@@ -747,7 +747,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <div className="grid grid-cols-1 gap-1.5">
                 {(question.choices ?? []).map((c, i) => (
                   <button key={c} type="button" onClick={() => answerReview(screen, i === question.answerIndex)}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400">{c}</button>
+                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{c}</button>
                 ))}
               </div>
             </div>
@@ -778,7 +778,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <div className="grid grid-cols-1 gap-1.5">
                 {aq.choices.map((opt, i) => (
                   <button key={opt} type="button" onClick={() => answerReview(screen, i === aq.answerIndex)}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400">{opt}</button>
+                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{opt}</button>
                 ))}
               </div>
             )}
@@ -798,7 +798,7 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
           </div>
           <p className="text-xs text-amber-700 mb-3">{t.ch1.reviewReward(chapter.reviewReunion.adventureXpReward)}</p>
           <button type="button" onClick={() => returnToMap(t.ch1.wordFogCleared)}
-            className="w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm">{t.ch1.checkOnMap}</button>
+            className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-violet-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.ch1.checkOnMap}</button>
         </div>
       )}
     </div>

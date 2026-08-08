@@ -53,7 +53,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
 
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
-      <button type="button" onClick={onBack} className="min-h-11 px-2 -ml-1 text-sm text-gray-500 mb-4">
+      <button type="button" onClick={onBack} className="min-h-11 px-2 -ml-1 text-sm text-gray-500 mb-4 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         ← {t.roadmap.back}
       </button>
 
@@ -61,7 +61,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
       <Section icon={<BookOpen className="w-4 h-4 text-blue-600" />} title={ts.guideTitle}>
         <p className="text-xs text-gray-500 mb-2">{ts.guideDescription}</p>
         <button type="button" onClick={onShowGuide}
-          className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+          className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {ts.guideOpen}
         </button>
       </Section>
@@ -76,7 +76,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
             {SUBTITLE_MODES.map((m) => (
               <button key={m} type="button" onClick={() => chooseSubMode(m)}
                 aria-pressed={subMode === m}
-                className={`w-full min-h-11 py-2.5 px-3 rounded-lg text-sm text-left border flex items-start gap-2 ${
+                className={`w-full min-h-11 py-2.5 px-3 rounded-lg text-sm text-left border flex items-start gap-2 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                   subMode === m ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'
                 }`}>
                 <span className={`mt-0.5 w-4 h-4 rounded-full border shrink-0 flex items-center justify-center ${subMode === m ? 'border-blue-600 bg-blue-600' : 'border-gray-300'}`}>
@@ -107,18 +107,18 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
             <p className="text-xs text-red-800 leading-relaxed">{ts.deleteConfirm}</p>
             <div className="flex gap-2 mt-2">
               <button type="button" onClick={() => void runDelete()} disabled={deleting}
-                className="flex-1 min-h-11 py-2 bg-red-600 text-white text-sm font-bold rounded-lg disabled:opacity-40">
+                className="flex-1 min-h-11 py-2 bg-red-600 text-white text-sm font-bold rounded-lg disabled:opacity-40 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {deleting ? ts.deleting : ts.deleteYes}
               </button>
               <button type="button" onClick={() => setConfirmDelete(false)}
-                className="min-h-11 px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg">
+                className="min-h-11 px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {ts.deleteNo}
               </button>
             </div>
           </div>
         ) : (
           <button type="button" onClick={() => setConfirmDelete(true)}
-            className="w-full min-h-11 py-2.5 mt-3 border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 flex items-center justify-center gap-1.5">
+            className="w-full min-h-11 py-2.5 mt-3 border border-red-300 text-red-700 rounded-lg text-sm font-medium hover:bg-red-50 flex items-center justify-center gap-1.5 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <Trash2 className="w-3.5 h-3.5" />{ts.deleteUtterances}
           </button>
         )}
@@ -154,7 +154,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
           <CourseIssueReport t={t} learnerId={learnerId} sessionId={null} onClose={() => setShowIssue(false)} />
         ) : (
           <button type="button" onClick={() => setShowIssue(true)}
-            className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+            className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             {ts.reportIssue}
           </button>
         )}
@@ -165,7 +165,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
         <p className="text-xs text-gray-600 leading-relaxed">{t.support.emailDescription}</p>
         <p className="text-sm font-bold text-gray-900 mt-2 select-all">{t.support.email}</p>
         <a href={`mailto:${t.support.email}`}
-          className="inline-flex items-center justify-center w-full min-h-11 mt-2 py-2.5 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-50">
+          className="inline-flex items-center justify-center w-full min-h-11 mt-2 py-2.5 border border-emerald-300 text-emerald-700 rounded-lg text-sm font-bold hover:bg-emerald-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {t.support.contactByEmail}
         </a>
       </Section>
@@ -173,7 +173,7 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
       <p className="text-[11px] text-gray-400 leading-relaxed my-4">{t.positioning}</p>
 
       <button type="button" onClick={onLogout}
-        className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
+        className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         <LogOut className="w-4 h-4" />{t.login.logout}
       </button>
     </div>
@@ -220,7 +220,7 @@ const NicknameEditor = ({ t, current, onSave }: { t: AiCourseDict; current: stri
       </label>
       <div className="flex items-center gap-2 mt-2">
         <button type="button" onClick={() => { void submit(); }} disabled={state === 'saving'}
-          className="min-h-10 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50">
+          className="min-h-10 px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-lg disabled:opacity-50 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {state === 'saving' ? t.common.loading : ts.nicknameSave}
         </button>
         <p id="nickname-msg" aria-live="polite" className={`text-xs ${state === 'error' ? 'text-red-600' : 'text-emerald-600'}`}>

@@ -46,7 +46,7 @@ export const CourseOnboarding = ({ t, mode, onDone }: Props) => {
         <p className="text-xs text-gray-500 mt-4 leading-relaxed">{to.contact}</p>
 
         <button type="button" onClick={onDone}
-          className="w-full min-h-11 py-3 mt-5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+          className="w-full min-h-11 py-3 mt-5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Check className="w-4 h-4" />
           {mode === 'first' ? to.start : to.close}
         </button>

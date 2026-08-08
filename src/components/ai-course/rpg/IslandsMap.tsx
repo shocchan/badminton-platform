@@ -153,7 +153,7 @@ export const IslandsMap = ({
               data-area-node={a.areaId}
               data-node-state={st}
               className={[
-                'group relative block w-full min-h-11 rounded-2xl select-none',
+                'group relative block w-full min-h-11 rounded-2xl select-none touch-manipulation [-webkit-tap-highlight-color:transparent]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500',
                 locked
                   ? 'cursor-not-allowed opacity-80'

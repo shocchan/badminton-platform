@@ -97,7 +97,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
     <div className="max-w-md mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-3">
         <button type="button" onClick={() => (activeUnitId ? setActiveUnitId(null) : onBack())} aria-label={t.roadmap.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500"><ArrowLeft className="w-5 h-5" /></button>
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-bold text-gray-900 flex items-center gap-1.5"><FlaskConical className="w-4 h-4 text-indigo-600" />{tl.title}</h1>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{tl.betaBadge}</span>
       </div>
@@ -108,7 +108,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
         ) : active === 'error' ? (
           <div className="text-center py-10">
             <p className="text-sm text-gray-500 mb-3">{tl.loadError}</p>
-            <button type="button" onClick={() => loadUnit(activeUnitId)} className="min-h-11 px-6 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl">{t.common.retry}</button>
+            <button type="button" onClick={() => loadUnit(activeUnitId)} className="min-h-11 px-6 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.common.retry}</button>
           </div>
         ) : (
           <FoundationUnitPage key={activeUnitId} t={t} bundle={active} repo={repo} onProgressChanged={onProgressChanged}
@@ -124,7 +124,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
           <div className="flex gap-1 mb-4" role="tablist">
             {tabs.map(({ key, label }) => (
               <button key={key} type="button" role="tab" aria-selected={view === key} onClick={() => setView(key)}
-                className={`min-h-11 flex-1 px-3 py-2 text-sm font-bold rounded-xl ${view === key ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
+                className={`min-h-11 flex-1 px-3 py-2 text-sm font-bold rounded-xl action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${view === key ? 'bg-indigo-600 text-white is-selected' : 'bg-gray-100 text-gray-600'}`}>{label}</button>
             ))}
           </div>
           {view === 'today' && (
@@ -136,7 +136,7 @@ export const FoundationLabShell = ({ t, onBack, initial, onStateChange }: Props)
             <div className="text-center py-8">
               <p className="text-sm text-gray-500 mb-3">{tl.loadError}</p>
               <button type="button" onClick={() => FOUNDATION_UNIT_META.forEach((m) => loadUnit(m.id))}
-                className="min-h-11 px-6 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl">{t.common.retry}</button>
+                className="min-h-11 px-6 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.common.retry}</button>
             </div>
           )}
           {view === 'units' && loadedAll && (

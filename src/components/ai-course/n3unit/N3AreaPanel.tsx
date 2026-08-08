@@ -73,7 +73,7 @@ export const N3AreaPanel = ({
         <div className="max-w-md mx-auto px-4 py-10 text-center">
           <p className="text-sm text-gray-600 mb-4">{t.n3a.unitNotFound}</p>
           <button type="button" onClick={() => setActiveUnitId(null)}
-            className="min-h-11 px-6 bg-indigo-600 text-white rounded-2xl font-bold text-sm">{t.n3a.backToArea}</button>
+            className="min-h-11 px-6 bg-indigo-600 text-white rounded-2xl font-bold text-sm action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3a.backToArea}</button>
         </div>
       );
     }
@@ -94,7 +94,7 @@ export const N3AreaPanel = ({
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
       <button type="button" onClick={onExit}
-        className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg px-1">
+        className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded-lg px-1 transition-colors active:bg-gray-100">
         <ArrowLeft className="w-4 h-4" aria-hidden />{t.n3a.backToMap}
       </button>
 
@@ -131,7 +131,7 @@ export const N3AreaPanel = ({
       {/* 章冒険（2026-07-31: 全エリアに章ができたため、chapterがあるエリアすべてに入口を出す） */}
       {areaChapter && onOpenAdventure && (
         <button type="button" onClick={onOpenAdventure} data-chapter-entry={areaChapter.chapterId}
-          className="w-full text-left mb-3 p-4 bg-indigo-600 text-white rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+          className="w-full text-left mb-3 p-4 bg-indigo-600 text-white rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent]">
           <p className="text-[11px] font-bold text-indigo-200">{t.n3a.story}</p>
           <p className="text-base font-bold">{t.n3a.chapterEnter(areaChapter.order, zh ? areaChapter.titleZh : areaChapter.titleJa)}</p>
           <p className="text-[11px] text-indigo-100 mt-0.5">{zh ? areaChapter.incidentZh : areaChapter.incidentJa}</p>
@@ -145,7 +145,7 @@ export const N3AreaPanel = ({
           const done = unitCompletedLocally(readStore, spec.unitId);
           return (
             <button key={spec.unitId} type="button" onClick={() => setActiveUnitId(spec.unitId)}
-              className={`w-full text-left p-3.5 rounded-2xl border min-h-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:border-indigo-300'}`}>
+              className={`w-full text-left p-3.5 rounded-2xl border min-h-16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] ${done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:border-indigo-300'}`}>
               <div className="flex items-center gap-3">
                 <span aria-hidden className={`w-7 h-7 shrink-0 grid place-items-center rounded-full text-xs font-bold ${done ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
                   {done ? <Check className="w-4 h-4" /> : i + 1}
@@ -173,12 +173,12 @@ export const N3AreaPanel = ({
           <div className="flex flex-col sm:flex-row gap-2">
             {area.nextAreaId && (
               <button type="button" onClick={() => onOpenArea(area.nextAreaId!)}
-                className="flex-1 min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300">
+                className="flex-1 min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent]">
                 {t.n3a.nextArea}
               </button>
             )}
             <button type="button" onClick={onOpenReview}
-              className="flex-1 min-h-12 bg-white border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm">
+              className="flex-1 min-h-12 bg-white border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {t.n3a.reviewInGarden}
             </button>
           </div>

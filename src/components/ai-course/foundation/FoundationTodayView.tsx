@@ -41,7 +41,7 @@ export const FoundationTodayView = ({ t, meta, summaries, repo, onOpenUnit, onGo
         <p className="text-xs text-indigo-200 mt-1">{tl.aboutMinutes(rec.estimatedMinutes)}</p>
         <button type="button"
           onClick={() => (isReview ? onGoRecords() : rec.unitId && onOpenUnit(rec.unitId))}
-          className="w-full min-h-12 py-3 mt-4 bg-white text-indigo-700 text-base font-bold rounded-xl">{cta}</button>
+          className="w-full min-h-12 py-3 mt-4 bg-white text-indigo-700 text-base font-bold rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{cta}</button>
       </div>
 
       {/* ② 進み具合（数値を並べすぎない） */}
@@ -55,7 +55,7 @@ export const FoundationTodayView = ({ t, meta, summaries, repo, onOpenUnit, onGo
 
       {/* ③ 単元を選ぶ導線（小さく一つ） */}
       <button type="button" onClick={onGoUnits}
-        className="w-full min-h-11 py-2.5 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl">{tl.chooseUnit}</button>
+        className="w-full min-h-11 py-2.5 text-sm font-bold text-indigo-700 border border-indigo-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.chooseUnit}</button>
       <p className="text-[11px] text-gray-400 mt-3">{tl.notSaved}</p>
     </div>
   );

@@ -89,7 +89,7 @@ export const WorldHomeShell = ({
               <p className="text-base font-bold text-gray-900 leading-snug">{todayAction.learningTitle}</p>
               <p className="text-xs text-gray-500 mt-1 mb-3">{todayAction.learningDetail}</p>
               <button type="button" onClick={todayAction.onStart}
-                className="w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+                className="action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
                 {todayAction.ctaLabel}
               </button>
             </div>
@@ -98,7 +98,7 @@ export const WorldHomeShell = ({
               <p className="text-sm font-bold text-gray-900 mb-1">{t.world.todayDone}</p>
               <p className="text-xs text-gray-500 mb-3">{t.world.todayDoneBody}</p>
               <button type="button" onClick={onOpenReview}
-                className="w-full min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
+                className="action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.world.reviewWords}
               </button>
             </div>
@@ -107,7 +107,7 @@ export const WorldHomeShell = ({
           {/* 復習（オモイデ庭園）。期限があるときだけ世界の変化として出す */}
           {reviewsDue > 0 && (
             <button type="button" onClick={onOpenReview}
-              className="w-full text-left mt-3 p-3 bg-violet-50 border border-violet-200 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">
+              className="card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] w-full text-left mt-3 p-3 bg-violet-50 border border-violet-200 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300">
               <p className="text-xs font-bold text-violet-800">{t.world.gardenFoggy}</p>
               <p className="text-[11px] text-violet-700">{t.world.reviewWaiting(reviewsDue)}</p>
             </button>
@@ -151,7 +151,7 @@ export const WorldHomeShell = ({
       <nav className="mt-4 grid grid-cols-2 lg:grid-cols-3 gap-2" aria-label={t.world.facilitiesHeading}>
         {facilities.map(f => (
           <button key={f.id} type="button" onClick={f.onOpen}
-            className="relative text-left p-3 min-h-[4.5rem] bg-white border border-gray-200 rounded-2xl hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+            className="card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] relative text-left p-3 min-h-[4.5rem] bg-white border border-gray-200 rounded-2xl hover:border-indigo-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
             <p className="text-sm font-bold text-gray-900">{f.worldName}</p>
             <p className="text-[11px] text-indigo-600">{f.functionName}</p>
             <p className="text-[10px] text-gray-400 mt-0.5 leading-tight">{f.descriptionJa}</p>

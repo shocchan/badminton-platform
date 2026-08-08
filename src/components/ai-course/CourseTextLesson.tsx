@@ -243,7 +243,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
     <div className="fixed inset-0 z-40 bg-gray-50 flex flex-col" style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="bg-white border-b border-gray-200 px-3 py-2 shrink-0">
         <div className="flex items-center justify-between gap-2">
-          <button type="button" onClick={() => setConfirmOpen(true)} className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg">
+          <button type="button" onClick={() => setConfirmOpen(true)} className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <X className="w-5 h-5" /><span className="text-xs font-medium">{tl.seeSummary}</span>
           </button>
           <div className="flex items-center gap-2">
@@ -265,7 +265,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
       {used && !closed && (
         <div className="bg-emerald-50 border-b border-emerald-200 px-3 py-2 flex items-center justify-between gap-2 shrink-0">
           <p className="text-sm text-emerald-800 font-medium">{tl.usedBanner}</p>
-          <button type="button" onClick={finish} className="min-h-11 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg flex items-center gap-1 shrink-0">{tl.seeSummary}<ArrowRight className="w-4 h-4" /></button>
+          <button type="button" onClick={finish} className="min-h-11 px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg flex items-center gap-1 shrink-0 action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.seeSummary}<ArrowRight className="w-4 h-4" /></button>
         </div>
       )}
 
@@ -281,7 +281,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
               {m.role === 'tutor' && m.zh && (
                 <div className="mt-1 px-1">
                   <button type="button" onClick={() => toggleZh(i)} aria-expanded={openZh.has(i)}
-                    className="min-h-9 inline-flex items-center gap-1 text-[12px] text-blue-600 hover:text-blue-700">
+                    className="min-h-9 inline-flex items-center gap-1 text-[12px] text-blue-600 hover:text-blue-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     <Languages className="w-3.5 h-3.5" aria-hidden="true" />
                     {t.locale === 'zh' ? '中文翻译' : '中国語訳'}
                     <ChevronDown className={`w-3 h-3 transition-transform ${openZh.has(i) ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -317,15 +317,15 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
 
       <div className="bg-gray-50 border-t border-gray-200 px-3 pt-2 shrink-0" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
         <button type="button" onClick={finish}
-          className={`w-full min-h-11 py-2.5 mb-2 font-bold rounded-xl flex items-center justify-center gap-1.5 text-sm transition-colors ${
+          className={`w-full min-h-11 py-2.5 mb-2 font-bold rounded-xl flex items-center justify-center gap-1.5 text-sm transition-colors action-raised touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
             closed || offerSummary
-              ? 'bg-blue-600 text-white hover:bg-blue-700'
-              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100'}`}>
+              ? 'bg-blue-600 text-white hover:bg-blue-700 action-primary-blue'
+              : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 action-secondary'}`}>
           {tl.endAndSummarize}<ArrowRight className="w-4 h-4" />
         </button>
         {!closed && (
           <>
-            <button type="button" onClick={hint} disabled={busy} className="w-full min-h-11 py-2 mb-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1 disabled:opacity-40"><Lightbulb className="w-4 h-4" />{t.locale === 'zh' ? '提示' : 'ヒント'}</button>
+            <button type="button" onClick={hint} disabled={busy} className="w-full min-h-11 py-2 mb-2 bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1 disabled:opacity-40 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><Lightbulb className="w-4 h-4" />{t.locale === 'zh' ? '提示' : 'ヒント'}</button>
             <div className="flex gap-2 items-end">
               <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing) void send(); }}
@@ -334,7 +334,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
                 className="flex-1 min-h-12 px-4 py-3 border border-gray-300 rounded-xl bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 disabled:bg-gray-100" />
               <button type="button" onClick={() => void send()} disabled={!input.trim() || busy}
                 aria-label={t.locale === 'zh' ? '发送' : '送信'}
-                className="min-h-12 min-w-12 px-4 bg-blue-600 text-white rounded-xl disabled:opacity-40 flex items-center justify-center shrink-0"><Send className="w-5 h-5" /></button>
+                className="min-h-12 min-w-12 px-4 bg-blue-600 text-white rounded-xl disabled:opacity-40 flex items-center justify-center shrink-0 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><Send className="w-5 h-5" /></button>
             </div>
           </>
         )}

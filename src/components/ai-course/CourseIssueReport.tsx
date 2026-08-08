@@ -41,7 +41,7 @@ export const CourseIssueReport = ({ t, learnerId, sessionId, errorCode, onClose 
         <Check className="w-5 h-5 text-green-600 mx-auto mb-1" />
         <p className="text-sm text-green-800 font-medium">{ti.sent}</p>
         <button type="button" onClick={onClose}
-          className="min-h-11 mt-2 text-sm text-green-700 underline">{ti.close}</button>
+          className="min-h-11 mt-2 text-sm text-green-700 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{ti.close}</button>
       </div>
     );
   }
@@ -70,11 +70,11 @@ export const CourseIssueReport = ({ t, learnerId, sessionId, errorCode, onClose 
 
       <div className="flex gap-2 mt-3">
         <button type="button" onClick={() => void submit()} disabled={busy || !comment.trim()}
-          className="flex-1 min-h-11 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+          className="flex-1 min-h-11 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-lg hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-1.5 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Send className="w-3.5 h-3.5" />{busy ? ti.sending : ti.submit}
         </button>
         <button type="button" onClick={onClose}
-          className="min-h-11 px-4 py-2.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50">
+          className="min-h-11 px-4 py-2.5 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {ti.cancel}
         </button>
       </div>

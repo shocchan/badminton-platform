@@ -112,15 +112,15 @@ export const CourseHome = ({
           <p className="text-xs text-amber-800 leading-relaxed mb-3">{th.activeElsewhereBody}</p>
           <div className="space-y-2">
             <button type="button" onClick={onResumeActive} disabled={starting}
-              className="w-full min-h-11 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-50">
+              className="w-full min-h-11 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 disabled:opacity-50 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               <RefreshCw className="w-4 h-4" />{th.activeResumeHere}
             </button>
             <button type="button" onClick={onDiscardActive} disabled={starting}
-              className="w-full min-h-11 py-2.5 bg-white border border-amber-300 text-amber-800 text-sm font-medium rounded-xl disabled:opacity-50">
+              className="w-full min-h-11 py-2.5 bg-white border border-amber-300 text-amber-800 text-sm font-medium rounded-xl disabled:opacity-50 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {th.activeStartNew}
             </button>
             <button type="button" onClick={onCancelRecovery}
-              className="w-full min-h-9 py-1.5 text-xs text-gray-500 hover:text-gray-700">
+              className="w-full min-h-9 py-1.5 text-xs text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {th.activeCancel}
             </button>
           </div>
@@ -133,11 +133,11 @@ export const CourseHome = ({
           <p className="text-sm text-amber-800 font-medium mb-2">{th.resumeTitle}</p>
           <div className="flex gap-2">
             <button type="button" onClick={onResume}
-              className="flex-1 min-h-11 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-1">
+              className="flex-1 min-h-11 py-2 bg-amber-500 text-white text-sm font-bold rounded-lg flex items-center justify-center gap-1 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               <RefreshCw className="w-4 h-4" />{th.resumeYes}
             </button>
             <button type="button" onClick={onDiscardResume}
-              className="min-h-11 px-3 py-2 text-amber-700 text-sm rounded-lg border border-amber-300">
+              className="min-h-11 px-3 py-2 text-amber-700 text-sm rounded-lg border border-amber-300 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {th.resumeNo}
             </button>
           </div>
@@ -174,7 +174,7 @@ export const CourseHome = ({
         {canLearn ? (
           <>
             <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
-              className="w-full min-h-11 py-3.5 mt-4 rounded-xl bg-white text-blue-700 font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-50 disabled:opacity-50 transition-colors">
+              className="w-full min-h-11 py-3.5 mt-4 rounded-xl bg-white text-blue-700 font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-50 disabled:opacity-50 transition-colors action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               <Mic className="w-5 h-5" />{starting ? t.common.loading : (isReview ? th.startReview : th.startLesson)}
             </button>
             <p className="text-[11px] text-blue-200 text-center mt-2">{th.remainingToday(remainingToday)}</p>
@@ -198,12 +198,12 @@ export const CourseHome = ({
       {/* 補助導線: テキストで話す・予習（小さく1行ずつ） */}
       {canLearn && (
         <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
-          className="w-full min-h-11 py-2 -mt-1 mb-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5">
+          className="w-full min-h-11 py-2 -mt-1 mb-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <PenLine className="w-3.5 h-3.5" />{th.modeText}
         </button>
       )}
       <button type="button" onClick={onPreview}
-        className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
+        className="w-full min-h-11 py-2 mb-1 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         <BookOpen className="w-4 h-4" />{t.preview.open}
       </button>
       {/* 日本語のしくみ: AI会話と並ぶ主要学習メニュー（FOREST FIRST: 全learnerへ開放） */}
@@ -215,7 +215,7 @@ export const CourseHome = ({
       {/* 軽め2〜3分（API不使用・会話しない日の入口・§E-3） */}
       {hasLightMaterial && (
         <button type="button" onClick={onStartLight}
-          className="w-full min-h-11 py-2 mb-3 text-sm text-emerald-700 hover:text-emerald-800 flex items-center justify-center gap-1.5">
+          className="w-full min-h-11 py-2 mb-3 text-sm text-emerald-700 hover:text-emerald-800 flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Sparkles className="w-4 h-4" />{th.lightStart}
           <span className="text-[11px] text-gray-400">{th.lightNote}</span>
         </button>
@@ -224,7 +224,7 @@ export const CourseHome = ({
       {/* 今日の復習（あるときだけ・1行で件数と入口） */}
       {reviewsDue > 0 && (
         <button type="button" onClick={onSeePastNotes}
-          className="w-full text-left bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 hover:bg-amber-100 transition-colors flex items-center gap-2.5">
+          className="w-full text-left bg-amber-50 border border-amber-200 rounded-xl p-3.5 mb-4 hover:bg-amber-100 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <RefreshCw className="w-4 h-4 text-amber-600 shrink-0" />
           <span className="text-sm font-bold text-amber-900 flex-1 min-w-0">{th.reviewsDue(reviewsDue)}</span>
           <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
@@ -265,7 +265,7 @@ export const CourseHome = ({
 
       {/* 小さな旅マップ＋成長を見る */}
       <button type="button" onClick={onSeeGrowth}
-        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors">
+        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-blue-600" />{tg.journeyTitle}</p>
           <span className="text-xs text-blue-600 flex items-center gap-0.5">{tg.seeGrowth}<ArrowRight className="w-3 h-3" /></span>
@@ -275,7 +275,7 @@ export const CourseHome = ({
 
       {/* 過去の復習ノート（音声なしで見返す・Feature 5） */}
       <button type="button" onClick={onSeePastNotes}
-        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors flex items-center gap-2.5">
+        className="w-full text-left bg-white rounded-2xl border border-gray-100 p-4 mb-4 hover:bg-gray-50 transition-colors flex items-center gap-2.5 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
         <span className="text-sm font-medium text-gray-800 flex-1 min-w-0">{t.reviewNote.seeAll}</span>
         <ArrowRight className="w-3.5 h-3.5 text-gray-300" />
@@ -298,7 +298,7 @@ export const CourseHome = ({
         if (!latest) return null;
         return (
           <button type="button" onClick={() => { trackCourse('view_latest_memory'); onOpenNotebook(); }}
-            className="w-full text-left bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-3 hover:bg-amber-100 transition-colors">
+            className="w-full text-left bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-3 hover:bg-amber-100 transition-colors card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <p className="text-[11px] font-medium text-amber-700 mb-0.5">{t.memories.latestLabel}</p>
             <p className="text-sm font-bold text-gray-900">{t.memories.titles[latest.type]}</p>
             <p className="text-[11px] text-gray-500 mt-0.5 flex items-center justify-between">
@@ -315,7 +315,7 @@ export const CourseHome = ({
           <UserRound className="w-3.5 h-3.5 text-emerald-600" />{th.coachCardTitle}
         </p>
         <p className="text-xs text-gray-500 leading-relaxed">{th.coachCardBody}</p>
-        <a href={`mailto:${t.support.email}`} className="inline-block text-[11px] text-emerald-700 underline mt-1.5 select-all">{th.coachCardContact}</a>
+        <a href={`mailto:${t.support.email}`} className="inline-block text-[11px] text-emerald-700 underline mt-1.5 select-all transition-colors active:bg-gray-100 rounded">{th.coachCardContact}</a>
       </div>
 
       {/* 補助情報（連続日数など。主役にしない・§22） */}
@@ -366,11 +366,11 @@ const AvatarReviewCard = ({ t, learner, onUpdate }: {
       </div>
       <div className="space-y-2">
         <button type="button" onClick={approve} disabled={busy || !url}
-          className="w-full min-h-11 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-50">{ta.approve}</button>
+          className="w-full min-h-11 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-50 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{ta.approve}</button>
         <button type="button" onClick={revise} disabled={busy}
-          className="w-full min-h-11 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm rounded-xl disabled:opacity-50">{ta.revise}</button>
+          className="w-full min-h-11 py-2.5 bg-white border border-gray-300 text-gray-700 text-sm rounded-xl disabled:opacity-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{ta.revise}</button>
         <button type="button" onClick={() => setHidden(true)}
-          className="w-full min-h-9 py-1.5 text-xs text-gray-400">{ta.later}</button>
+          className="w-full min-h-9 py-1.5 text-xs text-gray-400 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{ta.later}</button>
       </div>
       {learner.settings.avatarReviewStatus === 'revision_requested' && (
         <p className="text-[11px] text-gray-500 mt-2">{ta.reviseHint}</p>

@@ -167,7 +167,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
     <div className="max-w-md mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-3">
         <button type="button" onClick={() => (view === 'top' ? onBack() : setView(view === 'detail' && category ? 'category' : 'top', view === 'detail' ? category : null))}
-          aria-label={t.roadmap.back} className="min-h-11 min-w-11 flex items-center justify-center text-gray-500"><ArrowLeft className="w-5 h-5" /></button>
+          aria-label={t.roadmap.back} className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-indigo-600" />{tv.title}</h1>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{t.lab.betaBadge}</span>
       </div>
@@ -182,7 +182,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
               createJourneySandbox(window.sessionStorage).end();   // sandboxキーのみ削除
               setSandboxOn(false); setView('top');
             }}
-            className="mt-1 min-h-10 text-[11px] text-amber-900 underline">{tv.sandboxEnd}</button>
+            className="mt-1 min-h-10 text-[11px] text-amber-900 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.sandboxEnd}</button>
         </div>
       )}
 
@@ -220,7 +220,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
                   </div>
                   {/* 詳細な内訳・状態はロードマップ/成長画面へ（同じ進捗を重複表示しない・§26） */}
                   <button type="button" onClick={() => setView('roadmap')}
-                    className="min-h-10 mt-1 text-xs font-bold text-indigo-700 underline">{tv.viewRoadmap} →</button>
+                    className="min-h-10 mt-1 text-xs font-bold text-indigo-700 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.viewRoadmap} →</button>
                 </div>
               );
             })()}
@@ -283,7 +283,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
               const quickLeft = pickQuickReviewItems(items.map((i) => i.id), repo).length;
               return quickLeft > 0 ? (
                 <button type="button" onClick={() => setView('quickreview')}
-                  className="w-full min-h-10 mt-2 text-xs font-bold text-indigo-100 underline">{tv.quickReviewChip(quickLeft)}</button>
+                  className="w-full min-h-10 mt-2 text-xs font-bold text-indigo-100 underline transition-colors active:bg-white/10 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewChip(quickLeft)}</button>
               ) : null;
             })()}
           </div>
@@ -294,7 +294,7 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
               {VOCAB_FILTER_KEYS.map((k) => (
                 <button key={k} type="button"
                   onClick={() => { setScopeFilter(k); setScopeTouched(true); }} aria-pressed={scopeFilter === k}
-                  className={`min-h-9 px-2.5 py-1 text-xs rounded-full border ${scopeFilter === k ? 'bg-indigo-600 text-white border-indigo-600 font-bold' : 'bg-white text-gray-600 border-gray-200'}`}>
+                  className={`min-h-9 px-2.5 py-1 text-xs rounded-full border action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${scopeFilter === k ? 'bg-indigo-600 text-white border-indigo-600 font-bold' : 'bg-white text-gray-600 border-gray-200'}`}>
                   {t.vocabScope.filters[k]}
                 </button>
               ))}
@@ -331,30 +331,30 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
             ))}
           </div>
           <button type="button" onClick={() => setView('all', 'all')}
-            className="w-full min-h-11 py-2 mb-4 text-sm text-indigo-700 border border-indigo-100 rounded-xl">{tv.catAll}・{tv.catScenes}</button>
+            className="w-full min-h-11 py-2 mb-4 text-sm text-indigo-700 border border-indigo-100 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.catAll}・{tv.catScenes}</button>
           {/* 復習はロードマップ・3分復習へ集約（同じ進捗の重複表示を避ける・§26） */}
           <p className="text-[11px] text-gray-400 mt-3">{tv.notSavedVocab}</p>
           {/* 内部レビュー入口（labPreview管理者のみ・learnerにはDOM自体を出さない・§14） */}
           {labPreview && (
             <>
               <button type="button" onClick={() => setView('review')}
-                className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left">{tv.internalReviewEntry}</button>
+                className="w-full min-h-10 mt-4 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.internalReviewEntry}</button>
               <button type="button" onClick={() => setView('decisions')}
-                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.decisionConsoleEntry}</button>
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.decisionConsoleEntry}</button>
               <button type="button" onClick={() => setView('connectivity')}
-                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.connectivityEntry}</button>
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.connectivityEntry}</button>
               <button type="button" onClick={() => setView('onodrafts')}
-                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.onoDraftsEntry}</button>
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.onoDraftsEntry}</button>
               <button type="button" onClick={() => setView('n3grammar')}
-                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.n3GrammarDraftsEntry}</button>
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.n3GrammarDraftsEntry}</button>
               <button type="button" onClick={() => setView('adventure')}
-                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.adventureEntry}</button>
+                className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.adventureEntry}</button>
               {/* 検証用サンドボックス入口（2E-1.14 §7）。通常の学習記録を退避・削除せずに
                   初回Journeyを最初から試せるようにする。sandbox中は通常キーを読まない・書かない。 */}
               {!sandboxOn && (
                 <button type="button"
                   onClick={() => { beginJourneySandbox(window.sessionStorage); setSandboxOn(true); setView('firstrun'); }}
-                  className="w-full min-h-10 text-[11px] text-gray-400 underline text-left">{tv.sandboxEntry}</button>
+                  className="w-full min-h-10 text-[11px] text-gray-400 underline text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.sandboxEntry}</button>
               )}
             </>
           )}
@@ -627,7 +627,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
           {/* 読み確認の補助操作（設定がoff/難読のみでも読みへ到達できる・§13） */}
           {!showReading && (
             <button type="button" onClick={() => setReadingOverride(true)}
-              className="min-h-8 px-2 text-[11px] text-indigo-600 underline">{tv.showReadingBtn}</button>
+              className="min-h-8 px-2 text-[11px] text-indigo-600 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.showReadingBtn}</button>
           )}
         </div>
         {/* 中心意味を先に表示（全文の羅列をしない・§8）。第2義以降はsenses/展開で確認 */}
@@ -665,7 +665,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
         )}
         {item.usageNoteZh && <p className="text-xs text-amber-700 mt-1.5">💡 {item.usageNoteZh}</p>}
         {antonym && (
-          <p className="text-xs text-gray-600 mt-2">{tv.antonym}: <button type="button" className="text-indigo-700 font-bold underline min-h-6" onClick={() => onOpenItem(antonym.id)}>{antonym.displayForm}（{antonym.meaningZh}）</button></p>
+          <p className="text-xs text-gray-600 mt-2">{tv.antonym}: <button type="button" className="text-indigo-700 font-bold underline min-h-6 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" onClick={() => onOpenItem(antonym.id)}>{antonym.displayForm}（{antonym.meaningZh}）</button></p>
         )}
         {/* 近似・類義関係（§24: high confidence draftのみ・最大2件で密度を上げない） */}
         {relationsForItem(item.id).slice(0, 2).map((rel) => {
@@ -674,7 +674,7 @@ const VocabDetailView = ({ t, item, itemById, repo, onChanged, progressLabel, ne
           if (!other) return null;
           return (
             <p key={otherId} className="text-[11px] text-gray-600 bg-gray-50 rounded-lg px-2.5 py-1.5 mt-2">
-              <button type="button" className="text-indigo-700 font-bold underline min-h-6" onClick={() => onOpenItem(other.id)}>{other.displayForm}</button>
+              <button type="button" className="text-indigo-700 font-bold underline min-h-6 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2" onClick={() => onOpenItem(other.id)}>{other.displayForm}</button>
               ： {t.locale === 'zh' ? rel.explanationZh : rel.explanationJa}
             </p>
           );
@@ -972,7 +972,7 @@ const VocabPracticeView = ({ t, item, onDone }: { t: AiCourseDict; item: Foundat
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {(zh ? practice.supportExpressionsZh : practice.supportExpressionsJa).map((e2, i) => (
                   <button key={i} type="button" onClick={() => setInput(practice.supportExpressionsJa[i] ?? e2)}
-                    className="min-h-9 px-2.5 py-1 text-xs rounded-lg border border-indigo-100 text-indigo-700 bg-indigo-50/60">{e2}</button>
+                    className="min-h-9 px-2.5 py-1 text-xs rounded-lg border border-indigo-100 text-indigo-700 bg-indigo-50/60 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{e2}</button>
                 ))}
               </div>
               <div className="flex gap-2">
@@ -1282,13 +1282,13 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
       </ActionButton>
       <div className="flex flex-wrap gap-2 mt-2">
         {onTalk && (
-          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl"
+          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
             onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'talk' }); onTalk(); }}>
             {tv.completionTalk}
           </button>
         )}
         {onAgain && (
-          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl"
+          <button type="button" className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
             onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'again' }); onAgain(); }}>
             {tv.completionAgain}
           </button>
@@ -1325,10 +1325,10 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
         <p className="text-xs text-gray-400 mt-1 mb-3">{tv.quickReviewEmptyHint}</p>
         <div className="space-y-2">
           <button type="button" onClick={onDone}
-            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm">{tv.quickReviewEmptyBack}</button>
+            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewEmptyBack}</button>
           {onTalk && (
             <button type="button" onClick={onTalk}
-              className="w-full min-h-11 px-4 bg-white border border-teal-200 text-teal-700 rounded-xl font-bold text-sm">{tv.quickReviewEmptyTalk}</button>
+              className="w-full min-h-11 px-4 bg-white border border-teal-200 text-teal-700 rounded-xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewEmptyTalk}</button>
           )}
         </div>
       </div>

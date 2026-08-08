@@ -45,7 +45,7 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
     return (
       <div className="max-w-md mx-auto px-4 py-10 text-center">
         <p className="text-sm text-gray-600 mb-4">{tl.empty}</p>
-        <button type="button" onClick={onExit} className="min-h-11 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl">{t.report.backHome}</button>
+        <button type="button" onClick={onExit} className="min-h-11 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.report.backHome}</button>
       </div>
     );
   }
@@ -57,7 +57,7 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
         <h1 className="text-lg font-bold text-gray-900">{tl.doneTitle}</h1>
         <p className="text-sm text-gray-600 mt-2 leading-relaxed">{tl.doneBody}</p>
         <button type="button" onClick={onExit}
-          className="w-full min-h-11 py-3 mt-6 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+          className="w-full min-h-11 py-3 mt-6 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Home className="w-4 h-4" />{t.report.backHome}
         </button>
       </div>
@@ -70,7 +70,7 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
     <div className="max-w-md mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <button type="button" onClick={onExit} aria-label={t.roadmap.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700"><ArrowLeft className="w-5 h-5" /></button>
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-bold text-gray-900 flex items-center gap-1.5"><Sparkles className="w-4 h-4 text-emerald-600" />{tl.title}</h1>
         <span className="text-xs font-mono text-gray-500 tabular-nums">{idx + 1} / {items.length}</span>
       </div>
@@ -89,7 +89,7 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
                     placeholder={tl.placeholder}
                     className="w-full min-h-12 px-4 py-3 border border-gray-300 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-blue-500" />
                   <button type="button" onClick={checkRecall} disabled={!input.trim()}
-                    className="w-full min-h-11 py-2.5 mt-2 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-40">{tl.check}</button>
+                    className="w-full min-h-11 py-2.5 mt-2 bg-blue-600 text-white text-sm font-bold rounded-xl disabled:opacity-40 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.check}</button>
                 </>
               )}
             </>
@@ -101,7 +101,8 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
                 {choices.choices.map((c, i) => (
                   <button key={i} type="button" onClick={() => pickMeaning(i, choices.correctIndex)}
                     disabled={result !== null}
-                    className={`w-full min-h-11 px-4 py-2.5 text-left text-sm rounded-xl border transition-colors ${
+                    aria-pressed={picked === i}
+                    className={`w-full min-h-11 px-4 py-2.5 text-left text-sm rounded-xl border transition-colors action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                       result !== null && i === choices.correctIndex ? 'border-emerald-400 bg-emerald-50 text-emerald-900'
                         : picked === i && result === 'shown' ? 'border-gray-300 bg-gray-100 text-gray-500'
                           : 'border-gray-200 bg-white text-gray-800 hover:bg-gray-50'}`}>
@@ -126,7 +127,7 @@ export const CourseLightPractice = ({ t, progress, practiceAgainIds, onExit }: P
           )}
           {result !== null && (
             <button type="button" onClick={next}
-              className="w-full min-h-11 py-2.5 mt-3 bg-blue-600 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-1.5">
+              className="w-full min-h-11 py-2.5 mt-3 bg-blue-600 text-white text-sm font-bold rounded-xl flex items-center justify-center gap-1.5 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {tl.next}<ArrowRight className="w-4 h-4" />
             </button>
           )}

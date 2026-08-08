@@ -236,7 +236,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
               {cpFailed ? tv.cpRetry : tv.cpCta}
             </ActionButton>
             <button type="button" onClick={onHome}
-              className="w-full min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frResumeHome}</button>
+              className="w-full min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frResumeHome}</button>
           </div>
         </div>
       )}
@@ -249,9 +249,9 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
           <div className="flex flex-wrap gap-2">
             <button type="button"
               onClick={() => (resumable.activeTaskType === 'diagnostic' ? onStartCheck() : onStartPractice())}
-              className="flex-1 min-h-10 px-3 text-xs font-bold text-white bg-indigo-600 rounded-xl">{tv.frResumeCta}</button>
+              className="flex-1 min-h-10 px-3 text-xs font-bold text-white bg-indigo-600 rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frResumeCta}</button>
             <button type="button" onClick={() => { taskRepo.markInterrupted(); onHome(); }}
-              className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frResumeHome}</button>
+              className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frResumeHome}</button>
           </div>
         </div>
       )}
@@ -280,9 +280,9 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
           </ActionButton>
           <div className="flex flex-wrap gap-2 mt-2">
             <button type="button" onClick={() => { repo.goBack(); refresh(); }}
-              className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frBack}</button>
+              className="flex-1 min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frBack}</button>
             <button type="button" onClick={() => { repo.completeCheck(); refresh(); }}
-              className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl">{tv.frNext}</button>
+              className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frNext}</button>
           </div>
         </>
       )}
@@ -295,7 +295,7 @@ export default function FirstRunJourney({ t, sandbox, storage, onStartCheck, onS
             {tv.frPracticeStart}
           </ActionButton>
           <button type="button" onClick={() => { repo.goBack(); refresh(); }}
-            className="w-full min-h-10 mt-2 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl">{tv.frBack}</button>
+            className="w-full min-h-10 mt-2 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent]">{tv.frBack}</button>
         </>
       )}
 

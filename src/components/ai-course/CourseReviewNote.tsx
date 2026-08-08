@@ -37,7 +37,7 @@ export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, self
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={tn.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <h1 className="text-lg font-bold text-gray-900">{tn.todayTitle}</h1>
@@ -157,7 +157,7 @@ export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, self
                   <p className="text-lg font-bold text-blue-800 leading-snug break-words">{e.meaningZh}</p>
                   {!revealed ? (
                     <button type="button" onClick={() => setRevealed(true)}
-                      className="mt-3 min-h-11 px-5 py-2 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl inline-flex items-center gap-1.5 hover:bg-blue-50">
+                      className="mt-3 min-h-11 px-5 py-2 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl inline-flex items-center gap-1.5 hover:bg-blue-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                       <Eye className="w-4 h-4" />{tn.showAnswer}
                     </button>
                   ) : (
@@ -171,16 +171,16 @@ export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, self
                 {revealed && (
                   <div className="grid grid-cols-3 gap-2 mt-3">
                     <button type="button" onClick={() => onSelfEval('remembered')}
-                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-emerald-50">😊 {tn.selfRemembered}</button>
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-emerald-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">😊 {tn.selfRemembered}</button>
                     <button type="button" onClick={() => onSelfEval('hesitated')}
-                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-amber-50">🤔 {tn.selfHesitated}</button>
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-amber-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">🤔 {tn.selfHesitated}</button>
                     <button type="button" onClick={() => onSelfEval('again')}
-                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-blue-50">🔁 {tn.selfAgain}</button>
+                      className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-blue-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">🔁 {tn.selfAgain}</button>
                   </div>
                 )}
                 {onPractice && (
                   <button type="button" onClick={onPractice}
-                    className="w-full min-h-11 py-2 mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5">
+                    className="w-full min-h-11 py-2 mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     <Repeat className="w-4 h-4" />{tn.reviewPractice}
                   </button>
                 )}

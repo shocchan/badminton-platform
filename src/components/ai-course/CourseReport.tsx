@@ -146,7 +146,7 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                   <>
                     <p className="text-xs text-amber-700 mt-1.5">{tr.savedToNotebook}</p>
                     <button type="button" onClick={onSeeNotebook}
-                      className="min-h-9 mt-1 text-xs font-bold text-blue-600 hover:text-blue-700">{tr.seeNotebook} →</button>
+                      className="min-h-9 mt-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tr.seeNotebook} →</button>
                   </>
                 )}
               </div>
@@ -158,7 +158,7 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
         {hasDetails && (
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
             <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open}
-              className="w-full min-h-11 px-5 py-3.5 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-50">
+              className="w-full min-h-11 px-5 py-3.5 flex items-center justify-between text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {open ? tr.hideDetails : tr.seeDetails}
               <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
@@ -255,9 +255,9 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
             <>
               <p className="text-sm text-gray-700 text-center mb-3">{tr.feedbackQ}</p>
               <div className="grid grid-cols-3 gap-2">
-                <button type="button" onClick={() => rate('too_easy')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50">😌 {tr.tooEasy}</button>
-                <button type="button" onClick={() => rate('just_right')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50">👍 {tr.justRight}</button>
-                <button type="button" onClick={() => rate('too_hard')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50">😅 {tr.tooHard}</button>
+                <button type="button" onClick={() => rate('too_easy')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">😌 {tr.tooEasy}</button>
+                <button type="button" onClick={() => rate('just_right')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">👍 {tr.justRight}</button>
+                <button type="button" onClick={() => rate('too_hard')} className="min-h-11 py-2 rounded-xl border border-gray-200 text-sm hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">😅 {tr.tooHard}</button>
               </div>
             </>
           )}
@@ -268,25 +268,25 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
         {/* 学習意欲がある生徒を止めない: 次の章へすぐ進める（Feature 3） */}
         {onNextChapter && canNext && (
           <button type="button" onClick={onNextChapter}
-            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2">
+            className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             {tr.nextChapter}<ArrowRight className="w-4 h-4" />
           </button>
         )}
         {/* 今回の復習ノート（音声なしで見返す・Feature 5） */}
         {onSeeReviewNote && (
           <button type="button" onClick={onSeeReviewNote}
-            className="w-full min-h-11 py-3 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl hover:bg-blue-50 flex items-center justify-center gap-2">
+            className="w-full min-h-11 py-3 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl hover:bg-blue-50 flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <BookOpen className="w-4 h-4" />{tr.seeReviewNote}
           </button>
         )}
         {canAgain && (
           <button type="button" onClick={onAgain}
-            className="w-full min-h-11 py-2.5 text-sm text-gray-500 hover:text-gray-700 rounded-xl flex items-center justify-center gap-1.5">
+            className="w-full min-h-11 py-2.5 text-sm text-gray-500 hover:text-gray-700 rounded-xl flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <RotateCcw className="w-3.5 h-3.5" />{tr.again}
           </button>
         )}
         <button type="button" onClick={onBackHome}
-          className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2">
+          className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-50 flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Home className="w-4 h-4" />{onNextChapter ? tr.doneForToday : tr.backHome}
         </button>
       </div>

@@ -34,7 +34,7 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={t.roadmap.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700"><ArrowLeft className="w-5 h-5" /></button>
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-5 h-5" /></button>
         <LearnerAvatar displayName={learner.displayName} size={56} decorative className="ring-4 ring-amber-100"
           imageSrc={usePrivateAvatarUrl(learner.settings.avatarReviewStatus === 'approved' ? learner.settings.avatarObjectPath : null)} />
         <div className="min-w-0">
@@ -54,7 +54,7 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
         <section className="mb-5">
           <button type="button" aria-expanded={albumOpen}
             onClick={() => setAlbumOpen((v) => { const nv = !v; if (nv) trackCourse('view_ai_course_memory_album', { count: memories.length }); return nv; })}
-            className="w-full min-h-11 text-left bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-center gap-2.5 hover:bg-amber-100 transition-colors">
+            className="w-full min-h-11 text-left bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-center gap-2.5 hover:bg-amber-100 transition-colors card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <Album className="w-4 h-4 text-amber-600 shrink-0" aria-hidden="true" />
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold text-gray-900">{tn2.sectionTitle}</span>
@@ -93,7 +93,7 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
         <div className="text-center py-10 px-4">
           <p className="text-sm text-gray-600 leading-relaxed mb-4">{tn.empty}</p>
           <button type="button" onClick={onStartToday}
-            className="min-h-11 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl">{tn.emptyCta}</button>
+            className="min-h-11 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tn.emptyCta}</button>
         </div>
       ) : (
         <div className="space-y-5">
@@ -131,7 +131,7 @@ export const CourseNotebook = ({ t, learner, sessions, progress, onStartToday, o
                     )}
                     {/* 5. 詳細折り畳み */}
                     <button type="button" onClick={() => toggle(e.sessionId)} aria-expanded={open.has(e.sessionId)}
-                      className="min-h-9 mt-1 text-[11px] text-blue-600 flex items-center gap-1">
+                      className="min-h-9 mt-1 text-[11px] text-blue-600 flex items-center gap-1 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                       {open.has(e.sessionId) ? t.report.hideDetails : t.report.seeDetails}
                       <ChevronDown className={`w-3 h-3 transition-transform ${open.has(e.sessionId) ? 'rotate-180' : ''}`} aria-hidden="true" />
                     </button>

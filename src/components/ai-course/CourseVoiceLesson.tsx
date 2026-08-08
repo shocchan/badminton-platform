@@ -346,7 +346,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4"><MicOff className="w-6 h-6 text-amber-600" /></div>
         <p className="text-sm text-gray-700 leading-relaxed mb-5">{tv.micDenied}</p>
         {isWeChat() && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5 mb-4">{tv.wechatWarning}</p>}
-        <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+        <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
       </div>
     </div>
   );
@@ -361,9 +361,9 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4"><AlertTriangle className="w-6 h-6 text-amber-600" /></div>
           <p className="text-sm text-gray-700 leading-relaxed mb-5">{message}</p>
           <div className="space-y-2">
-            {hasProgress && <button type="button" onClick={partialReport} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"><FileText className="w-4 h-4" />{tv.viewPartialReport}</button>}
-            {canRetry && <button type="button" onClick={doRetry} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4" />{tv.retry}</button>}
-            <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+            {hasProgress && <button type="button" onClick={partialReport} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><FileText className="w-4 h-4" />{tv.viewPartialReport}</button>}
+            {canRetry && <button type="button" onClick={doRetry} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><RefreshCw className="w-4 h-4" />{tv.retry}</button>}
+            <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
           </div>
         </div>
       </div>
@@ -377,7 +377,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const langBtn = (
     <button type="button" onClick={() => setLangConfirmOpen(true)}
       aria-label={lang === 'ja' ? '切换到中文' : '日本語に切り替える'}
-      className="min-h-11 px-2.5 text-xs font-medium text-gray-600 hover:text-blue-600 border border-gray-200 rounded-lg flex items-center gap-1 shrink-0">
+      className="min-h-11 px-2.5 text-xs font-medium text-gray-600 hover:text-blue-600 border border-gray-200 rounded-lg flex items-center gap-1 shrink-0 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
       <Languages className="w-3.5 h-3.5" />{lang === 'ja' ? '中文' : '日本語'}
     </button>
   );
@@ -467,7 +467,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       <div className="bg-white border-b border-gray-200 px-3 lg:px-4 py-2 shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
           <button type="button" onClick={() => setConfirmOpen(true)} disabled={ending} aria-label={tv.endLessonButton}
-            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40">
+            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40 transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <X className="w-5 h-5" /><span className="text-xs font-medium whitespace-nowrap">{tv.endLessonButton}</span>
           </button>
           <div className="flex items-center gap-2">
@@ -498,7 +498,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         <div className="bg-amber-50 border-b border-amber-200 px-3 py-2 shrink-0">
           <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
             <p className="text-sm text-amber-800 font-medium min-w-0">{ending ? tv.endingSummary : tv.finalPractice}</p>
-            <button type="button" onClick={stopNow} className="min-h-9 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 bg-white rounded-lg flex items-center gap-1 shrink-0"><Square className="w-3 h-3" />{tv.emergencyStop}</button>
+            <button type="button" onClick={stopNow} className="min-h-9 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 bg-white rounded-lg flex items-center gap-1 shrink-0 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><Square className="w-3 h-3" />{tv.emergencyStop}</button>
           </div>
         </div>
       )}
@@ -514,7 +514,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           {/* 最新へ戻る（過去ログ閲覧中のみ） */}
           {!atBottom && (
             <button type="button" onClick={() => scrollToLatest()}
-              className="absolute bottom-3 left-1/2 -translate-x-1/2 min-h-9 px-3 py-1.5 bg-gray-900/85 text-white text-xs font-medium rounded-full shadow-lg flex items-center gap-1">
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 min-h-9 px-3 py-1.5 bg-gray-900/85 text-white text-xs font-medium rounded-full shadow-lg flex items-center gap-1 transition-colors active:bg-gray-800 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               <ChevronDown className="w-3.5 h-3.5" />{tv.backToLatest}
             </button>
           )}
@@ -522,7 +522,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">{statusIndicator(false)}</div>
-              <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
+              <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
             </div>
           </div>
         </div>
@@ -537,7 +537,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
               {subtitleMode === 'ja_zh' ? t.settings.subtitleModes.ja_zh : subtitleMode === 'whenStuck' ? t.settings.subtitleModes.whenStuck : t.settings.subtitleModes.ja}
             </div>
           )}
-          <button type="button" onClick={switchText} className="mt-auto min-h-11 px-3 py-2.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg flex items-center justify-center gap-1.5"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+          <button type="button" onClick={switchText} className="mt-auto min-h-11 px-3 py-2.5 text-sm text-gray-600 hover:text-gray-800 border border-gray-200 rounded-lg flex items-center justify-center gap-1.5 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
         </aside>
       </div>
 
@@ -570,7 +570,7 @@ const ZhAssist = ({ sub, tv, onShow }: {
   // 未翻訳（whenStuckで未トリガー）または失敗 → 「中文を見る」ボタン
   return (
     <button type="button" onClick={onShow}
-      className="min-h-11 text-[13px] text-blue-600 hover:text-blue-700 mt-1 px-1 underline decoration-dotted">
+      className="min-h-11 text-[13px] text-blue-600 hover:text-blue-700 mt-1 px-1 underline decoration-dotted transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
       {sub?.state === 'error' ? tv.subtitleRetry : tv.subtitleShowZh}
     </button>
   );

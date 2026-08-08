@@ -104,7 +104,7 @@ export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChang
             ))}
           </ul>
           <p className="text-[11px] text-gray-400 mt-2">{tl.aboutMinutes(unit.estimatedMinutes)}・{tl.questionCount(questions.length)}</p>
-          <button type="button" onClick={() => setPhase('words')} className="w-full min-h-12 py-3 mt-4 bg-indigo-600 text-white font-bold rounded-xl">{tl.start}</button>
+          <button type="button" onClick={() => setPhase('words')} className="w-full min-h-12 py-3 mt-4 bg-indigo-600 text-white font-bold rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.start}</button>
         </div>
       )}
       {phase === 'words' && (
@@ -127,8 +127,8 @@ export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChang
             ))}
           </div>
           <div className="flex gap-2 mt-3">
-            <button type="button" onClick={() => setPhase('intro')} className="min-h-11 px-4 text-sm text-gray-500 border border-gray-200 rounded-xl">{tl.back}</button>
-            <button type="button" onClick={() => setPhase('rules')} className="flex-1 min-h-11 py-3 bg-indigo-600 text-white font-bold rounded-xl">{tl.next}</button>
+            <button type="button" onClick={() => setPhase('intro')} className="min-h-11 px-4 text-sm text-gray-500 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.back}</button>
+            <button type="button" onClick={() => setPhase('rules')} className="flex-1 min-h-11 py-3 bg-indigo-600 text-white font-bold rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.next}</button>
           </div>
         </div>
       )}
@@ -149,8 +149,8 @@ export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChang
             })}
           </div>
           <div className="flex gap-2 mt-3">
-            <button type="button" onClick={() => setPhase('words')} className="min-h-11 px-4 text-sm text-gray-500 border border-gray-200 rounded-xl">{tl.back}</button>
-            <button type="button" onClick={startQuiz} className="flex-1 min-h-11 py-3 bg-indigo-600 text-white font-bold rounded-xl">{tl.startQuiz}</button>
+            <button type="button" onClick={() => setPhase('words')} className="min-h-11 px-4 text-sm text-gray-500 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.back}</button>
+            <button type="button" onClick={startQuiz} className="flex-1 min-h-11 py-3 bg-indigo-600 text-white font-bold rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.startQuiz}</button>
           </div>
         </div>
       )}
@@ -180,11 +180,11 @@ export const FoundationUnitPage = ({ t, bundle, repo, initialPhase, onPhaseChang
           )}
           {/* 第一CTAは一つだけ（間違いあり→もう一度／全問自力→終える） */}
           {weak.length > 0 ? (
-            <button type="button" onClick={retryUnit} className="w-full min-h-12 py-3 bg-indigo-600 text-white font-bold rounded-xl">{tl.ctaRetryUnit}</button>
+            <button type="button" onClick={retryUnit} className="w-full min-h-12 py-3 bg-indigo-600 text-white font-bold rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.ctaRetryUnit}</button>
           ) : (
-            <button type="button" onClick={onExit} className="w-full min-h-12 py-3 bg-indigo-600 text-white font-bold rounded-xl">{tl.ctaFinish}</button>
+            <button type="button" onClick={onExit} className="w-full min-h-12 py-3 bg-indigo-600 text-white font-bold rounded-xl action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.ctaFinish}</button>
           )}
-          <button type="button" onClick={weak.length > 0 ? onExit : onGoReview} className="w-full min-h-11 py-2.5 mt-2 text-sm text-gray-500">{weak.length > 0 ? tl.ctaFinish : tl.toReview}</button>
+          <button type="button" onClick={weak.length > 0 ? onExit : onGoReview} className="w-full min-h-11 py-2.5 mt-2 text-sm text-gray-500 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{weak.length > 0 ? tl.ctaFinish : tl.toReview}</button>
           {/* 詳細（分野別）は展開式・技術用語は出さない（§16/§17） */}
           <details className="mt-3">
             <summary className="text-xs font-bold text-gray-500 cursor-pointer min-h-6">{tl.resultDetails}</summary>

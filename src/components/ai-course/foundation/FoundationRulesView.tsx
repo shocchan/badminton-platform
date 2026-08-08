@@ -17,7 +17,7 @@ export const FoundationRulesView = ({ t, meta, bundles, onOpenUnit }: Props) => 
           <p className="text-sm font-bold text-gray-900">{zh ? r.titleZh : r.titleJa}</p>
           <p className="text-xs text-gray-600 mt-1 leading-relaxed">{zh ? r.explanationZh : r.explanationJa}</p>
           <button type="button" onClick={() => onOpenUnit(m.id)}
-            className="min-h-10 mt-1.5 text-xs font-bold text-indigo-700 underline">{tl.toUnit(zh ? m.titleZh : m.titleJa)}</button>
+            className="min-h-10 mt-1.5 text-xs font-bold text-indigo-700 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.toUnit(zh ? m.titleZh : m.titleJa)}</button>
         </div>
       )))}
     </div>

@@ -74,7 +74,7 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
           {choiceOrder.map((orig) => (
             <button key={orig} type="button" disabled={judged !== null} onClick={() => setPicked(orig)}
               aria-pressed={picked === orig}
-              className={`w-full min-h-12 px-4 py-3 text-left text-base rounded-xl border-2 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+              className={`w-full min-h-12 px-4 py-3 text-left text-base rounded-xl border-2 flex items-center gap-2 focus-visible:ring-2 focus-visible:ring-indigo-500 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none ${
                 judged !== null && orig === q.answerIndex ? 'border-emerald-400 bg-emerald-50'
                   : picked === orig ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
               <span className="flex-1">{q.choices![orig]}</span>
@@ -100,10 +100,10 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
             {orderTokens.map((origIdx) => (
               <button key={origIdx} type="button" disabled={judged !== null || orderPick.includes(origIdx)}
                 onClick={() => setOrderPick((p) => [...p, origIdx])}
-                className="min-h-10 px-3 py-1.5 rounded-lg border border-gray-200 text-sm disabled:opacity-30">{q.orderTokens![origIdx]}</button>
+                className="min-h-10 px-3 py-1.5 rounded-lg border border-gray-200 text-sm disabled:opacity-30 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{q.orderTokens![origIdx]}</button>
             ))}
             <button type="button" onClick={() => setOrderPick([])} disabled={judged !== null}
-              className="min-h-10 px-3 py-1.5 text-xs text-gray-400">{tl.orderReset}</button>
+              className="min-h-10 px-3 py-1.5 text-xs text-gray-400 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.orderReset}</button>
           </div>
         </div>
       )}
@@ -123,10 +123,10 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
             {rightOrder.map((ri) => (
               <button key={ri} type="button" disabled={judged !== null || matchPick.includes(ri) || nextLeft === -1}
                 onClick={() => setMatchPick((mp) => mp.map((v, i) => (i === nextLeft ? ri : v)))}
-                className="min-h-10 px-3 py-1.5 rounded-lg border border-gray-200 text-sm disabled:opacity-30">{q.pairs![ri].right}</button>
+                className="min-h-10 px-3 py-1.5 rounded-lg border border-gray-200 text-sm disabled:opacity-30 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{q.pairs![ri].right}</button>
             ))}
             <button type="button" onClick={() => setMatchPick((q.pairs ?? []).map(() => null))} disabled={judged !== null}
-              className="min-h-10 px-3 py-1.5 text-xs text-gray-400">{tl.orderReset}</button>
+              className="min-h-10 px-3 py-1.5 text-xs text-gray-400 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.orderReset}</button>
           </div>
         </div>
       )}
@@ -136,7 +136,7 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
           {hintShown ? (
             <p className="text-xs text-amber-700 bg-amber-50 rounded-lg px-3 py-2 flex gap-1.5"><Lightbulb className="w-3.5 h-3.5 shrink-0 mt-0.5" />{hint}</p>
           ) : (
-            <button type="button" onClick={() => setHintShown(true)} className="min-h-10 text-xs text-amber-700 underline">{tl.showHint}</button>
+            <button type="button" onClick={() => setHintShown(true)} className="min-h-10 text-xs text-amber-700 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.showHint}</button>
           )}
         </div>
       )}
@@ -144,14 +144,14 @@ export const FoundationQuestionStep = ({ t, q, attemptSeed, unitTitle, unitId, i
       {judged === null ? (
         <div>
           <button type="button" onClick={submit} disabled={!canSubmit}
-            className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-indigo-500">{tl.check}</button>
-          <button type="button" onClick={skip} className="w-full min-h-11 py-2 mt-1 text-xs text-gray-400">{tl.skipQuestion}</button>
+            className="w-full min-h-12 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl disabled:opacity-40 focus-visible:ring-2 focus-visible:ring-indigo-500 action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none">{tl.check}</button>
+          <button type="button" onClick={skip} className="w-full min-h-11 py-2 mt-1 text-xs text-gray-400 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.skipQuestion}</button>
         </div>
       ) : (
         <div className="mt-3" aria-live="polite">
           <p className={`text-sm font-bold ${judged ? 'text-emerald-700' : 'text-gray-700'}`}>{judged ? tl.correct : skipped ? tl.skippedNote : tl.notYet}</p>
           <p className="text-xs text-gray-600 mt-1">{zh ? q.explanationZh : q.explanationJa}</p>
-          <button type="button" onClick={onNext} className="w-full min-h-11 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5">{tl.next}<ArrowRight className="w-4 h-4" /></button>
+          <button type="button" onClick={onNext} className="w-full min-h-11 py-3 mt-3 bg-indigo-600 text-white font-bold rounded-xl flex items-center justify-center gap-1.5 action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tl.next}<ArrowRight className="w-4 h-4" /></button>
         </div>
       )}
     </div>

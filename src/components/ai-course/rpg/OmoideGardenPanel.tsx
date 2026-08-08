@@ -27,7 +27,7 @@ const Row = ({ title, detail, count, cta, onOpen }: {
   title: string; detail: string; count: number | null; cta: string; onOpen: () => void;
 }) => (
   <button type="button" onClick={onOpen}
-    className="w-full text-left p-3.5 bg-white border border-gray-200 rounded-2xl min-h-16 hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+    className="card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] w-full text-left p-3.5 bg-white border border-gray-200 rounded-2xl min-h-16 hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
     <div className="flex items-center gap-3">
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-bold text-gray-900">
@@ -59,7 +59,7 @@ export const OmoideGardenPanel = ({
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
       <button type="button" onClick={onBack}
-        className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
+        className="transition-colors active:bg-gray-100 min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400">
         <ArrowLeft className="w-4 h-4" aria-hidden />{t.garden.backToMap}
       </button>
 

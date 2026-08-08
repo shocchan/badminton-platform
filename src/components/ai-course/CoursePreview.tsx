@@ -27,7 +27,7 @@ const Section = ({ icon, title, children, defaultOpen = true }: { icon: React.Re
   return (
     <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
       <button type="button" onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-2 px-4 py-3 text-left">
+        className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
         {icon}
         <span className="text-sm font-bold text-gray-900 flex-1">{title}</span>
         <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
@@ -47,7 +47,7 @@ const Reveal = ({ label, front, hint, answer, revealLabel }: { label: string; fr
       <p className="text-[11px] text-gray-400 mt-1">{hint}</p>
       {!shown ? (
         <button type="button" onClick={() => setShown(true)}
-          className="mt-2 min-h-9 px-3 py-1.5 bg-white border border-blue-200 text-blue-700 text-sm font-medium rounded-lg inline-flex items-center gap-1.5 hover:bg-blue-50">
+          className="mt-2 min-h-9 px-3 py-1.5 bg-white border border-blue-200 text-blue-700 text-sm font-medium rounded-lg inline-flex items-center gap-1.5 hover:bg-blue-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Eye className="w-3.5 h-3.5" />{revealLabel}
         </button>
       ) : (
@@ -70,7 +70,7 @@ export const CoursePreview = ({ t, mission, access, prereqTitles, estMinutes, on
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
         <button type="button" onClick={onBack} aria-label={tp.back}
-          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700">
+          className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div className="min-w-0">
@@ -154,7 +154,7 @@ export const CoursePreview = ({ t, mission, access, prereqTitles, estMinutes, on
             <p className="text-[11px] text-gray-400 mt-1">{tp.thinkJa}</p>
             {!answerShown ? (
               <button type="button" onClick={() => setAnswerShown(true)}
-                className="mt-3 min-h-11 px-5 py-2 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl inline-flex items-center gap-1.5 hover:bg-blue-50">
+                className="mt-3 min-h-11 px-5 py-2 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl inline-flex items-center gap-1.5 hover:bg-blue-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 <Eye className="w-4 h-4" />{tp.showAnswer}
               </button>
             ) : (
@@ -205,12 +205,12 @@ export const CoursePreview = ({ t, mission, access, prereqTitles, estMinutes, on
           </div>
         ) : access === 'current' && onStartVoice ? (
           <button type="button" onClick={onStartVoice}
-            className="w-full min-h-11 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2">
+            className="w-full min-h-11 py-3.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <Mic className="w-5 h-5" />{tp.tryVoice}<ArrowRight className="w-4 h-4" />
           </button>
         ) : access === 'completed' && onSeeReviewNote ? (
           <button type="button" onClick={onSeeReviewNote}
-            className="w-full min-h-11 py-3 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl hover:bg-blue-50 flex items-center justify-center gap-2">
+            className="w-full min-h-11 py-3 bg-white border border-blue-200 text-blue-700 font-bold rounded-xl hover:bg-blue-50 flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             <BookOpen className="w-4 h-4" />{tp.seeReviewNote}
           </button>
         ) : null}

@@ -53,7 +53,8 @@ export const FoundationVocabularyView = ({ t, meta, bundles, repo }: Props) => {
       <div className="flex gap-1 mb-3 overflow-x-auto">
         {posKeys.map((k) => (
           <button key={k} type="button" onClick={() => setPos(k)}
-            className={`min-h-10 px-3 py-1 text-xs rounded-full whitespace-nowrap ${pos === k ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+            aria-pressed={pos === k}
+            className={`min-h-10 px-3 py-1 text-xs rounded-full whitespace-nowrap action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${pos === k ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
             {k === 'all' ? tl.filterAll : tl.pos[k as keyof typeof tl.pos]}
           </button>
         ))}

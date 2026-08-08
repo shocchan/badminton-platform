@@ -84,7 +84,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
     return (
       <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
         <button type="button" onClick={backToList}
-          className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+          className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 transition-colors active:bg-gray-100">
           <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.backToUnitList(unit)}
         </button>
 
@@ -128,7 +128,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
               <p className="text-[11px] text-gray-400 mt-2">{t.n2q.similar(active.similarPatterns.join('・'))}（{active.contrast}）</p>
             )}
             <button type="button" onClick={() => setPhase('quiz')}
-              className="w-full min-h-12 mt-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">
+              className="w-full min-h-12 mt-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent]">
               {t.n2q.toQuiz}
             </button>
           </div>
@@ -145,7 +145,8 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                 return (
                   <button key={i} type="button" disabled={judged !== null}
                     onClick={() => setPicked(i)}
-                    className={`w-full text-left min-h-11 px-3 py-2 rounded-xl border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500
+                    aria-pressed={chosen}
+                    className={`w-full text-left min-h-11 px-3 py-2 rounded-xl border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none
                       ${judged !== null && isAnswer ? 'border-emerald-400 bg-emerald-50' : chosen ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}>
                     {opt}
                   </button>
@@ -159,7 +160,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                   setJudged(ok);
                   if (ok) { markRecognized(safeStore, active.grammarId, now()); }
                 }}
-                className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm disabled:opacity-40">
+                className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm disabled:opacity-40 action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.n2q.check}
               </button>
             ) : (
@@ -170,12 +171,12 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                 <p className="text-xs text-gray-600 mt-1">{active.recognition.explanationZh}</p>
                 {judged ? (
                   <button type="button" onClick={() => setPhase('produce')}
-                    className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
+                    className="w-full min-h-12 mt-3 bg-indigo-600 text-white rounded-2xl font-bold text-sm action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     {t.n2q.toPractice}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { setPicked(null); setJudged(null); }}
-                    className="w-full min-h-12 mt-3 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
+                    className="w-full min-h-12 mt-3 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     {t.n2q.chooseAgain}
                   </button>
                 )}
@@ -210,12 +211,12 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                     setProduceResult('retry');
                   }
                 }}
-                className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
+                className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.n2q.practiceCheck}
               </button>
               <button type="button"
                 onClick={() => { markProduced(safeStore, active.grammarId, now()); setPhase('done'); }}
-                className="flex-1 min-h-12 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold text-sm">
+                className="flex-1 min-h-12 bg-white border border-gray-200 text-gray-600 rounded-2xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {t.n2q.practiceSkip}
               </button>
             </div>
@@ -236,18 +237,18 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
             <div className="flex flex-col sm:flex-row gap-2">
               {nextItem ? (
                 <button type="button" onClick={() => openItem(nextItem.grammarId)}
-                  className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
+                  className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                   {t.n2q.nextGrammar(nextItem.pattern)}
                 </button>
               ) : (
                 <button type="button" onClick={backToList}
-                  className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm">
+                  className="flex-1 min-h-12 bg-indigo-600 text-white rounded-2xl font-bold text-sm action-raised action-primary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                   {t.n2q.seeUnitResult}
                 </button>
               )}
               {onGoConversation && (
                 <button type="button" onClick={onGoConversation}
-                  className="flex-1 min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm">
+                  className="flex-1 min-h-12 bg-white border border-indigo-200 text-indigo-700 rounded-2xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                   {t.n2q.useInPlaza}
                 </button>
               )}
@@ -268,7 +269,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
     return (
       <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
         <button type="button" onClick={() => { setUnit(null); bump(); }}
-          className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+          className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 transition-colors active:bg-gray-100">
           <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.backToUnits}
         </button>
         <div className="rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-50 to-white p-3 mb-3">
@@ -286,7 +287,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
           <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
             <p className="text-sm font-bold text-rose-800 mb-2">{t.n2q.loadError}</p>
             <button type="button" onClick={() => { const u = unit; setUnit(null); setTimeout(() => setUnit(u), 0); }}
-              className="min-h-11 px-5 bg-rose-600 text-white rounded-2xl font-bold text-sm">{t.n2q.reload}</button>
+              className="min-h-11 px-5 bg-rose-600 text-white rounded-2xl font-bold text-sm action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n2q.reload}</button>
           </div>
         )}
         {unitData.status === 'ready' && (
@@ -297,7 +298,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                 const done = p.recognizedAtMs !== null && p.producedAtMs !== null;
                 return (
                   <button key={d.grammarId} type="button" onClick={() => openItem(d.grammarId)}
-                    className={`w-full text-left p-3 rounded-2xl border min-h-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:border-indigo-300'}`}>
+                    className={`w-full text-left p-3 rounded-2xl border min-h-14 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent] ${done ? 'bg-emerald-50 border-emerald-200' : 'bg-white border-gray-200 hover:border-indigo-300'}`}>
                     <div className="flex items-center gap-2.5">
                       <span aria-hidden className={`w-6 h-6 shrink-0 grid place-items-center rounded-full text-[10px] font-bold ${done ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-400'}`}>
                         {done ? <Check className="w-3.5 h-3.5" /> : <BookOpen className="w-3 h-3" />}
@@ -319,13 +320,13 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
                 <div className="flex flex-col sm:flex-row gap-2">
                   {unit < 12 && (
                     <button type="button" onClick={() => setUnit(unit + 1)}
-                      className="flex-1 min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
+                      className="flex-1 min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                       {t.n2q.toNextUnit(unit + 1)}
                     </button>
                   )}
                   {onOpenReview && (
                     <button type="button" onClick={onOpenReview}
-                      className="flex-1 min-h-12 bg-white border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm">
+                      className="flex-1 min-h-12 bg-white border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                       {t.n2q.reviewInGarden}
                     </button>
                   )}
@@ -345,7 +346,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
   return (
     <div className="max-w-md lg:max-w-2xl mx-auto px-4 py-4">
       <button type="button" onClick={onBack}
-        className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
+        className="min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 transition-colors active:bg-gray-100">
         <ArrowLeft className="w-4 h-4" aria-hidden />{t.n2q.back}
       </button>
       <div className="rounded-2xl border border-violet-200 bg-gradient-to-b from-violet-100 to-white p-4 mb-3">
@@ -356,7 +357,7 @@ export const N2GrammarQuestPanel = ({ t, onBack, onOpenReview, onGoConversation 
       <div className="grid grid-cols-2 gap-2">
         {UNIT_NUMBERS.map(u => (
           <button key={u} type="button" onClick={() => setUnit(u)}
-            className="text-left p-3.5 bg-white border border-gray-200 rounded-2xl min-h-16 hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500">
+            className="text-left p-3.5 bg-white border border-gray-200 rounded-2xl min-h-16 hover:border-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 card-interactive touch-manipulation [-webkit-tap-highlight-color:transparent]">
             <p className="text-sm font-bold text-gray-900">{t.n2q.unitName(u)}</p>
             <p className="text-[11px] text-gray-400">{t.n2q.unitFloor(u)}</p>
           </button>

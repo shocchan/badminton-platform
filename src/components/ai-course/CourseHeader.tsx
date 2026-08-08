@@ -117,7 +117,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
           <button
             key={key} type="button" onClick={() => { setMoreOpen(false); onNavigate(key); }}
             aria-current={current === key ? 'page' : undefined}
-            className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors ${
+            className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center justify-center gap-1 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
               current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -128,7 +128,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
         <button
           type="button" aria-expanded={moreOpen} aria-haspopup="menu"
           onClick={() => { if (!moreOpen) trackCourse('open_ai_course_mobile_more'); setMoreOpen((v) => !v); }}
-          className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors ${
+          className={`flex-1 basis-11 min-w-11 min-h-11 px-1 py-2 text-xs font-medium border-b-2 flex items-center justify-center gap-1 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
             moreActive ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -143,7 +143,7 @@ const MobileLabNav = ({ t, current, onNavigate }: {
             <button key={key} type="button" role="menuitem"
               onClick={() => { setMoreOpen(false); onNavigate(key); }}
               aria-current={current === key ? 'page' : undefined}
-              className={`w-full min-h-11 px-4 py-2 text-sm text-left flex items-center gap-2 ${current === key ? 'text-blue-700 font-bold' : 'text-gray-700'} hover:bg-gray-50`}
+              className={`w-full min-h-11 px-4 py-2 text-sm text-left flex items-center gap-2 ${current === key ? 'text-blue-700 font-bold' : 'text-gray-700'} hover:bg-gray-50 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2`}
             >
               <Icon className="w-4 h-4" />{label}
             </button>
@@ -159,7 +159,7 @@ const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: ()
   <button
     type="button" onClick={onToggle}
     aria-label={lang === 'ja' ? '切换到中文' : '日本語に切り替える'}
-    className="min-h-11 px-2.5 text-xs font-medium text-gray-600 hover:text-blue-600 border border-gray-200 rounded-lg flex items-center gap-1 shrink-0"
+    className="min-h-11 px-2.5 text-xs font-medium text-gray-600 hover:text-blue-600 border border-gray-200 rounded-lg flex items-center gap-1 shrink-0 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
   >
     <Languages className="w-3.5 h-3.5" />
     {/* 日本語表示中→「中文」、中国語表示中→「日本語」 */}
@@ -216,7 +216,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
             {showNav && onLogout && (
               <button
                 type="button" onClick={onLogout}
-                className="min-h-11 min-w-11 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1 shrink-0"
+                className="min-h-11 min-w-11 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">{t.login.logout}</span>
@@ -237,7 +237,7 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
                   <button
                     key={key} type="button" onClick={() => onNavigate(key)}
                     aria-current={current === key ? 'page' : undefined}
-                    className={`min-h-11 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center gap-1.5 transition-colors ${
+                    className={`min-h-11 px-3 py-2 text-xs font-medium border-b-2 whitespace-nowrap flex items-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
                       current === key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
                     }`}
                   >

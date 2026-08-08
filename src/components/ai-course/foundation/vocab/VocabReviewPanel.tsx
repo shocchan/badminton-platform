@@ -153,7 +153,7 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
     <div ref={rootRef} className="space-y-3 pb-10">
       <div className="bg-white rounded-2xl border border-gray-100 p-4">
         <div className="flex items-center justify-between gap-2">
-          <button type="button" onClick={onBack} aria-label={t.lab.back} className="min-h-9 min-w-9 flex items-center justify-center text-gray-500"><ArrowLeft className="w-4 h-4" /></button>
+          <button type="button" onClick={onBack} aria-label={t.lab.back} className="min-h-9 min-w-9 flex items-center justify-center text-gray-500 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-4 h-4" /></button>
           <p className="text-sm font-bold text-gray-900 flex-1">{tr.title}</p>
           <span className="text-xs font-mono text-gray-400">{idx + 1} / {filtered.length}</span>
         </div>
@@ -278,7 +278,7 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
           {ISSUE_KEYS.map((k) => (
             <button key={k} type="button" aria-pressed={pendingIssues.includes(k)}
               onClick={() => setPendingIssues((prev) => prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k])}
-              className={`min-h-9 px-2.5 py-1 text-xs rounded-lg border ${pendingIssues.includes(k) ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-gray-200 text-gray-600'}`}>
+              className={`min-h-9 px-2.5 py-1 text-xs rounded-lg border action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${pendingIssues.includes(k) ? 'border-amber-400 bg-amber-50 text-amber-800' : 'border-gray-200 text-gray-600'}`}>
               {tr.issues[k]}
             </button>
           ))}
@@ -319,7 +319,7 @@ const VocabReviewPanel = ({ t, initialItemId, onOpenItem, onBack }: {
           className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs" />
         {importMsg && <p className={`text-xs mt-1 ${importMsg === 'ok' ? 'text-emerald-700' : 'text-red-600'}`} aria-live="polite">{importMsg === 'ok' ? tr.importOk : tr.importFail}</p>}
         {/* 全削除（確認つき・§12） */}
-        <button type="button" className="min-h-10 mt-2 text-[11px] text-red-500 underline"
+        <button type="button" className="min-h-10 mt-2 text-[11px] text-red-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
           onClick={() => { if (window.confirm(tr.clearConfirm)) { repo.reset(); bump(); } }}>{tr.clearAll}</button>
       </div>
     </div>

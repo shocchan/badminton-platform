@@ -1131,6 +1131,31 @@ export default function AiCoursePage() {
 
   return (
     <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      {/*
+        一度でも冒険モードV2に入ったことがある人へ、戻る道を常に見せる。
+        「従来のホームに戻す」を押すと enabled が OFF になり、以前は ?v2=1 のURLを
+        知らない限りアプリ内からV2へ戻れなかった（行き止まり・原則15）。
+        V2歴の無い旧コース学習者には出さない（自動移行しない・§2/§23）
+      */}
+      {readAdvProfile(learner.settings) !== null && (
+        <div className="mx-auto w-full max-w-6xl px-4 pt-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5">
+            <p className="text-sm text-blue-900">
+              {uiLang === 'zh' ? '冒险模式V2可以随时回去（数据保持不变）' : '冒険モードV2にいつでも戻れます（データはそのまま）'}
+            </p>
+            <button type="button"
+              className="action-raised action-primary-blue min-h-[40px] rounded-xl bg-blue-600 px-4 py-1.5 text-sm font-bold text-white touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              onClick={() => {
+                const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
+                const next = writeAdvProfile(learner.settings, { ...prof, enabled: true }, new Date().toISOString());
+                setLearner({ ...learner, settings: next });
+                void courseRepository.updateLearner({ settings: next });
+              }}>
+              {uiLang === 'zh' ? '回到V2' : 'V2に戻る'}
+            </button>
+          </div>
+        </div>
+      )}
       <WorldHomeShell
         t={t}
         areaName={t.world.islandsName}

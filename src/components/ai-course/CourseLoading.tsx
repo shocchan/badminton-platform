@@ -101,7 +101,7 @@ export const CourseLoading = ({
         <button
           type="button"
           onClick={onRetry ?? (() => window.location.reload())}
-          className="min-h-9 px-3 py-1.5 text-xs rounded-lg border border-indigo-200 text-indigo-700 bg-indigo-50/60"
+          className="min-h-9 px-3 py-1.5 text-xs rounded-lg border border-indigo-200 text-indigo-700 bg-indigo-50/60 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
         >
           {onRetry ? c.retry : c.loadingReload}
         </button>

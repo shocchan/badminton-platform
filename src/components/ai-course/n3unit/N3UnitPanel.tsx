@@ -187,7 +187,7 @@ export const N3UnitPanel = ({
           <p className="text-xs font-bold text-rose-800">{t.n3u.saveFailedTitle}</p>
           <p className="text-[11px] text-rose-700 mb-2">{t.n3u.saveFailedBody}</p>
           <button type="button" onClick={() => void storage.save(state).then(r => setSaveError(r.ok ? null : r.code))}
-            className="min-h-11 px-3 text-xs font-bold text-rose-800 border border-rose-300 rounded-xl">{t.n3u.saveRetry}</button>
+            className="min-h-11 px-3 text-xs font-bold text-rose-800 border border-rose-300 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.saveRetry}</button>
         </div>
       )}
 
@@ -213,10 +213,10 @@ export const N3UnitPanel = ({
             <div><dt className="inline font-bold">{t.n3u.introUnlock} </dt><dd className="inline">{zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa}</dd></div>
           </dl>
           <button type="button" onClick={() => persist(advancePhaseIfDone(state, set, spec, clock()))}
-            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
+            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             {t.n3u.start}
           </button>
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.n3u.backToWorld}</button>
+          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
         </div>
       )}
 
@@ -260,19 +260,19 @@ export const N3UnitPanel = ({
                           if (nextBuilt.length < target.length) { setBuilt(nextBuilt); return; }
                           submit(current, nextBuilt.join('') === target.join(''));
                         }}
-                        className={`min-h-11 px-3 py-2 text-sm rounded-xl border ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-emerald-200 hover:border-emerald-400'}`}>
+                        className={`min-h-11 px-3 py-2 text-sm rounded-xl border action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-emerald-200 hover:border-emerald-400'}`}>
                         {tok}
                       </button>
                     );
                   })}
                 </div>
-                <button type="button" onClick={() => setBuilt([])} className="min-h-11 px-3 text-xs text-gray-400 underline">{t.n3u.orderReset}</button>
+                <button type="button" onClick={() => setBuilt([])} className="min-h-11 px-3 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.orderReset}</button>
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-1.5">
                 {current.choices.map((opt, i) => (
                   <button key={opt} type="button" onClick={() => submit(current, i === current.answerIndex)}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400">
+                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent]">
                     {opt}
                   </button>
                 ))}
@@ -280,9 +280,9 @@ export const N3UnitPanel = ({
             )}
             {state.phase === 'diagnostic' && (
               <button type="button" onClick={() => declineDiagnostic(current)}
-                className="w-full min-h-11 mt-2 text-xs text-gray-500 underline">{t.n3u.notLearned}</button>
+                className="w-full min-h-11 mt-2 text-xs text-gray-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.notLearned}</button>
             )}
-            <button type="button" onClick={onExit} className="w-full min-h-11 mt-2 text-xs text-gray-400 underline">
+            <button type="button" onClick={onExit} className="w-full min-h-11 mt-2 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {t.n3u.pauseSave}
             </button>
           </div>
@@ -294,7 +294,7 @@ export const N3UnitPanel = ({
         <div className="bg-white border border-gray-200 rounded-2xl p-4">
           <p className="text-sm font-bold text-gray-900 mb-2">{t.n3u.phaseDone(PHASE_LABEL[state.phase])}</p>
           <button type="button" onClick={() => persist(advancePhaseIfDone(state, set, spec, clock()))}
-            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.next}</button>
+            className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.next}</button>
         </div>
       )}
 
@@ -306,7 +306,7 @@ export const N3UnitPanel = ({
             <div className="bg-white border border-emerald-200 rounded-2xl p-4">
               <p className="text-sm font-bold text-gray-900 mb-2">{t.n3u.missionDone(zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa)}</p>
               <button type="button" onClick={() => persist(clearMission(state, clock()))}
-                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.seeResult}</button>
+                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.seeResult}</button>
             </div>
           );
         }
@@ -342,7 +342,7 @@ export const N3UnitPanel = ({
                             setMissionStep(missionStep + 1); setBuilt([]); setWrongOnce(false);
                           } else { setBuilt([]); setWrongOnce(true); persist(answerQuestion(state, q, false, clock())); }
                         }}
-                        className={`min-h-11 px-3 py-2 text-sm rounded-xl border ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-emerald-200'}`}>
+                        className={`min-h-11 px-3 py-2 text-sm rounded-xl border action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${used ? 'bg-gray-100 text-gray-300 border-gray-100' : 'bg-white border-emerald-200'}`}>
                         {tok}
                       </button>
                     );
@@ -358,7 +358,7 @@ export const N3UnitPanel = ({
                       persist(answerQuestion(state, q, ok, clock()));
                       if (ok) { setMissionStep(missionStep + 1); setWrongOnce(false); } else setWrongOnce(true);
                     }}
-                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-emerald-400">
+                    className="min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-emerald-400 action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                     {opt}
                   </button>
                 ))}
@@ -398,14 +398,14 @@ export const N3UnitPanel = ({
           )}
           {nextUnitTitleJa && onOpenNextUnit ? (
             <button type="button" onClick={onOpenNextUnit}
-              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">
+              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
               {t.n3u.nextUnit(nextUnitTitleJa)}
             </button>
           ) : (
             <button type="button" onClick={onExit}
-              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm">{t.n3u.backToWorld}</button>
+              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
           )}
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline">{t.n3u.backToWorld}</button>
+          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
         </div>
       )}
     </WorldFrame>
