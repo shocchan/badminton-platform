@@ -16,6 +16,29 @@ export interface DiagnosisAnswers {
   badminton: boolean;
 }
 
+/**
+ * V2招待（?v2=1）で来た新規学習者のlearner作成に使う中立の初期値。
+ *
+ * 監査P1: 旧8問ヒアリング→V2オンボーディングで目標・レベル・週頻度を
+ * **二重に答えさせていた**。V2招待者はヒアリングを名前だけに短縮し、
+ * 本当の設定はV2オンボーディング（目標・目標級・週日数・分数・診断）で聞く。
+ * ここは旧コース用フィールドの穴埋めであり、V2側では参照されない。
+ * level は 'unknown'＝レベルを推定で決めつけない（V2の診断が正）。
+ */
+export const V2_INVITE_DEFAULT_ANSWERS: DiagnosisAnswers = {
+  goal: 'daily',
+  level: 'unknown',
+  residence: '1to3y',
+  scene: 'daily',
+  struggle: 'recall',
+  zhSupport: 'whenStuck',
+  correction: 'summary',
+  weeklyTarget: 5,
+  jlptGoal: 'none',
+  examDateISO: null,
+  badminton: false,
+};
+
 export interface InitialLearner {
   estimatedLevel: string;
   difficultyLevel: 1 | 2 | 3 | 4 | 5;

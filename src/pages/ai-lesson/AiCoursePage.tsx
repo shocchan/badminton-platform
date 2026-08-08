@@ -16,7 +16,7 @@ import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
-import { deriveInitialLearner } from '../../lib/aiLesson/course/courseDiagnosis';
+import { deriveInitialLearner, V2_INVITE_DEFAULT_ANSWERS } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
 import {
   buildLessonPlan, updateMasteryState, adjustDifficulty, selectNextMission, missionById, courseEndDateISO,
@@ -48,6 +48,7 @@ import { CourseLogin } from '../../components/ai-course/CourseLogin';
 import { CourseOnboarding } from '../../components/ai-course/CourseOnboarding';
 import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
+import { CourseNameOnlyHearing } from '../../components/ai-course/CourseNameOnlyHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
@@ -683,7 +684,20 @@ export default function AiCoursePage() {
   // ── レンダリング ──
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
   if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
-  if (step === 'hearing') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} /></Shell>;
+  if (step === 'hearing') {
+    // V2招待（?v2=1）の新規は**名前だけ**聞く。目標・レベル・週頻度は直後の
+    // V2オンボーディングで聞くため、旧8問と二重に答えさせない（監査P1）。
+    // 旧コース経由（?v2なし）は従来どおり8問ヒアリング
+    const v2Invite = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2');
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        {v2Invite
+          ? <CourseNameOnlyHearing lang={uiLang} busy={hearingBusy}
+              onComplete={(name) => handleHearing(V2_INVITE_DEFAULT_ANSWERS, name)} />
+          : <CourseHearing t={t} onComplete={handleHearing} busy={hearingBusy} />}
+      </Shell>
+    );
+  }
 
   if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
 
