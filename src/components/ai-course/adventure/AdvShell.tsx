@@ -106,6 +106,10 @@ export default function AdvShell(props: AdvShellProps) {
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
+  /** 読解・聴解のonFinish二重発火ガード（連打によるmastery重複記録を防ぐ）。入場時にfalseへ戻す */
+  const skillFinishGuard = useRef(false);
+  /** 主要CTAを押しても進めない理由（AI会話が未開放など）。黙って無反応にしない（原則15） */
+  const [stepNotice, setStepNotice] = useState<string | null>(null);
   const weeklyTracked = useRef(false);
 
   // ヘッダー（今日の冒険／冒険マップ）からの切替要求を反映する。
@@ -340,13 +344,22 @@ export default function AdvShell(props: AdvShellProps) {
   }
 
   // ── 読解 ──
+  // onFinishは ①記録 ②homeへ戻す（原則15: 最終問題で「結果を見る」を押したのに
+  // 何も起きない行き止まりが監査で見つかった）。
+  // ③二重発火ガード: 遷移前の連打で同じattemptがmastery台帳へ重複記録され、
+  // 準備度のエビデンスが水増しされる（原則13違反）ため、1回で締める
   if (view === 'reading') {
     const sets = readingSetsFor(level).slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'reading_short') ?? -1;
     return (
       <AdvReadingRunner
         lang={lang} sets={sets}
-        onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'reading', r, stepIdx); }}
+        onFinish={(r) => {
+          if (skillFinishGuard.current) return;
+          skillFinishGuard.current = true;
+          if (stepIdx >= 0) recordSkillResult(prof, 'reading', r, stepIdx);
+          setView('home');
+        }}
         onClose={() => setView('home')}
       />
     );
@@ -359,7 +372,12 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvListeningRunner
         lang={lang} sets={sets}
-        onFinish={(r) => { if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx); }}
+        onFinish={(r) => {
+          if (skillFinishGuard.current) return;
+          skillFinishGuard.current = true;
+          if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx);
+          setView('home');
+        }}
         onClose={() => setView('home')}
       />
     );
@@ -911,12 +929,20 @@ export default function AdvShell(props: AdvShellProps) {
   const runStep = (i: number) => {
     if (!quest) return;
     const s = quest.steps[i];
+    setStepNotice(null);
     trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
     if (s.kind === 'review_due') { markStep(i); props.onOpenReview(); return; }
-    if (s.kind === 'conversation_mission') { if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); } return; }
+    if (s.kind === 'conversation_mission') {
+      if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return; }
+      // 押しても無反応、を作らない（原則15）。進めない理由を言う
+      setStepNotice(tx(lang,
+        'いまAI会話を始められません（今日の回数を使い切ったか、準備中です）。他のstepを先に進めるか、明日また試してください。',
+        '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以先做其他步骤，或明天再试。'));
+      return;
+    }
     if (s.kind === 'restate') { setView('restate'); return; }
-    if (s.kind === 'reading_short') { setView('reading'); return; }
-    if (s.kind === 'listening_practice') { setView('listening'); return; }
+    if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return; }
+    if (s.kind === 'listening_practice') { skillFinishGuard.current = false; setView('listening'); return; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
       markStep(i);
       props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
@@ -1087,6 +1113,11 @@ export default function AdvShell(props: AdvShellProps) {
             事実をそのまま1行で言う。※やりかけの1step内の途中経過は保存しない仕様のため
             「終わったstepまで」と正確に書く（盛らない・原則13）
           */}
+          {stepNotice && (
+            <p role="status" className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+              {stepNotice}
+            </p>
+          )}
           {!allDone && (
             <p className="mt-2 text-center text-xs text-gray-500">
               {tx(lang,

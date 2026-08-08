@@ -107,6 +107,19 @@ describe('開始〜記入〜提出', () => {
     expect(screen.getByText(/1 \/ 3 問に記入/)).toBeTruthy();
   });
 
+  it('**提出後に自分の答えが見える＋スクショで先生へ送る導線**（答案を破棄しない・監査P0）', () => {
+    start();
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: '問1' })).getByRole('radio', { name: '2' }));
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: '問3' })).getByRole('radio', { name: '4' }));
+    fireEvent.click(screen.getByRole('button', { name: /提出へ進む/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'これで提出する' }));
+    expect(screen.getByText('自分の答え')).toBeTruthy();
+    expect(screen.getByText('1:2')).toBeTruthy();
+    expect(screen.getByText('2:−')).toBeTruthy();
+    expect(screen.getByText('3:4')).toBeTruthy();
+    expect(screen.getByText(/スクリーンショットして、WeChatで先生に送ってください/)).toBeTruthy();
+  });
+
   it('正解が登録されていれば自己採点の%が出る', () => {
     render(<Harness initial={profileWith({
       answerSheets: [paper({

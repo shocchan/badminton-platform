@@ -61,9 +61,12 @@ npm run build && ./scripts/deploy-production.sh
 
 1. 入金確認 → 同意確認 → 招待コード発行（`--learner A|B|C --email --expires --confirm`）
 2. 学習者へ案内文を送る（**OTPは8桁**であることを必ず伝える）
-3. 初回ログイン後に `seed-adventure-profile.mjs <userId> <N2|N3>` でV2を有効化
+3. V2の有効化は**本人が** `?v2=1` のURLから「冒険を始める」を押す
+   （🚨 `seed-adventure-profile.mjs` はfixture専用。実学習者に実行すると
+   診断・設定・発行済み機能が偽データで上書きされる。PILOT_OPERATIONS §6参照）
 4. **診断は本人にやってもらう**（代行すると現在地が狂う）
-5. 初日に冒険を1回完了できていれば成功
+5. N2+帰化面接コースは §6b の発行2件（面接特訓・答案用紙）を忘れない
+6. 初日に冒険を1回完了できていれば成功
 
 ---
 

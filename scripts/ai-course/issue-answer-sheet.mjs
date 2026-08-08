@@ -81,8 +81,10 @@ const validatePaper = (p) => {
   return errs;
 };
 
-/* ── 現状確認 ── */
-const current = sql(`
+/* ── 現状確認 ──
+   remote-sql.mjs の出力は「# OK label=...」ヘッダ行＋JSON配列
+   （psql形式の '|' 区切りではない）。issue-pilot-invites.mjs と同じ流儀でJSONを読む */
+const currentOut = sql(`
 select l.id, l.settings->'adventureV2'->>'targetJlpt' as target,
        coalesce(jsonb_array_length(l.settings->'adventureV2'->'answerSheets'), 0) as sheet_count,
        (select coalesce(jsonb_agg(x->>'paperId'), '[]'::jsonb)
@@ -90,15 +92,19 @@ select l.id, l.settings->'adventureV2'->>'targetJlpt' as target,
 from ai_learners l join auth.users u on u.id = l.user_id
 where u.email = ${q(email)};
 `);
-console.log('── 対象learner ──');
-console.log(current.trim());
-if (!current.includes('|') || /\(0 rows\)/.test(current)) {
+const jsonStart = currentOut.indexOf('[');
+const rows = jsonStart >= 0 ? JSON.parse(currentOut.slice(jsonStart)) : [];
+if (rows.length === 0) {
   console.error(`refuse: ${email} のlearnerが見つからない`);
   process.exit(1);
 }
-if (!/N2/.test(current)) {
+const learnerRow = rows[0];
+console.log('── 対象learner ──');
+console.log(`id=${learnerRow.id} target=${learnerRow.target ?? '(未設定)'} 発行済み用紙=${learnerRow.sheet_count}枚 ${JSON.stringify(learnerRow.paper_ids)}`);
+if (learnerRow.target !== 'N2') {
   console.warn('⚠️ この learner の目標は N2 ではない。発行しても本人の画面に試験場は出ない（answerSheetsVisible）');
 }
+const issuedPaperIds = Array.isArray(learnerRow.paper_ids) ? learnerRow.paper_ids : [];
 
 /* ── revoke ── */
 if (revokeId) {
@@ -119,7 +125,7 @@ select 'revoked' as result;
 const paper = JSON.parse(readFileSync(paperPath, 'utf8'));
 const errs = validatePaper(paper);
 if (errs.length > 0) { console.error('refuse: 用紙JSONが不正:'); for (const e of errs) console.error(`  - ${e}`); process.exit(1); }
-if (current.includes(paper.paperId)) {
+if (issuedPaperIds.includes(paper.paperId)) {
   console.error(`refuse: paperId "${paper.paperId}" は既に発行済み（取り消しは --revoke）`);
   process.exit(1);
 }

@@ -65,11 +65,11 @@ Pilotは**手動決済**。銀行振込／PayPay／WeChat Pay など、しょっ
 Pilotの枠は3つ（`A` / `B` / `C`）。1人につき1枠を割り当てる。
 
 ```bash
-cd ~/badminton-platform
+cd ~/badminton-aicourse   # ⚠️ スクリプト類はこのworktreeが最新（badminton-platformではない）
 
 # まず確認だけ（--confirm を付けなければ実行されない）
 node scripts/ai-course/issue-pilot-invites.mjs \
-  --learner A --email <学習者のメール> --expires 2026-08-15
+  --learner A --email <学習者のメール> --expires 2026-08-22   # 期限は開始日+1週間を目安に
 
 # 内容を確認したら --confirm を付けて実行
 node scripts/ai-course/issue-pilot-invites.mjs \
@@ -101,19 +101,46 @@ node scripts/ai-course/issue-pilot-invites.mjs \
 
 **8桁OTP**であることは必ず伝える（6桁だと思って待つ人がいる）。
 
+**コース別の一言を必ず添える**（4.の目標選択で迷わせない）:
+
+- N2+帰化面接コースの人 →「目標は **N2** を選んでください。帰化面接の練習コーナーは、
+  設定が終わったあとこちらで開放します（成長マップに出ます）」
+- N3コースの人 →「目標は **N3** を選んでください」
+
 ## 6. V2を有効にする
 
-初回ログイン後、learner の設定でV2をONにする。
+**スクリプトは使わない。学習者自身が有効にする**（案内文のURLに `?v2=1` が
+入っているので、開いて「冒険を始める」を押すだけ。目標・先生・診断はそのまま
+本人がオンボーディングで設定する）。
+
+> 🚨 **`seed-adventure-profile.mjs` を実学習者に実行しないこと。**
+> あれはstaging検証用fixture（`.invalid`ドメインの合成learner）専用で、
+> settings全体を偽の完了済み診断（固定スコア・固定試験日）で上書きする。
+> 実行すると本人の目標・先生選択・診断・発行済みの答案用紙・面接特訓が全部消える。
+> （2026-08-08の監査で本docが誤ってこのスクリプトを案内していたことが判明し修正。
+> スクリプト側にも `.invalid` 以外を拒否するガードを入れた）
+
+## 6b. コース専用機能を発行する（該当者のみ）
+
+**N2+帰化面接コースの人**には、本人がV2オンボーディングを終えたあとに2つ発行する:
 
 ```bash
-# userId は管理画面（/ja/ai-course/admin）で確認できる
-node scripts/ai-course/seed-adventure-profile.mjs <userId> N2   # N3の人は N3
+cd ~/badminton-aicourse   # ⚠️ 新スクリプトは aicourse worktree にある（badminton-platformではない）
+
+# ① 帰化面接の表現特訓（発行しないと本人の画面に一切出ない）
+node scripts/ai-course/issue-interview-prep.mjs --email <本人のメール> --confirm
+
+# ② 過去問の答案用紙（用紙JSONの例: docs/ai-course/answer-sheets/example-paper.json）
+node scripts/ai-course/issue-answer-sheet.mjs --email <本人のメール> \
+  --paper docs/ai-course/answer-sheets/example-paper.json --confirm
+# 問題そのものはWeChatで本人へ送る（アプリには問題を置かない）
 ```
 
-このスクリプトは V2 を有効にし、目標レベルを設定する。
-**診断は学習者本人にやってもらう**（ここで代行しない。現在地が狂う）。
+どちらも `--confirm` なしで dry-run できる。**発行チェック**: 本人の成長マップ下部
+「特別な場所」に「帰化面接の表現特訓」「過去問の試験場」が出ていれば成功
+（試験場は目標N2の人にだけ出る）。
 
-学習者自身に設定してもらう場合は、Home →「ほかの学習を見る」→ V2の切り替えでもよい。
+**N3コースの人**には発行するものはない（文法・語彙・読解・聴解はV2に内蔵）。
 
 ## 7. 学習が始まったか確認する
 

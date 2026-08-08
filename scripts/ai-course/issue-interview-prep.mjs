@@ -32,18 +32,21 @@ const sql = (query, opts = []) => {
   return execFileSync('node', [RUNNER, '--file', tmp, ...opts], { encoding: 'utf8' });
 };
 
-const current = sql(`
+// remote-sql.mjs の出力は「# OK label=...」ヘッダ行＋JSON配列（psql形式ではない）
+const currentOut = sql(`
 select l.id,
        l.settings->'adventureV2'->'interviewPrep'->>'enabledAt' as enabled_at
 from ai_learners l join auth.users u on u.id = l.user_id
 where u.email = ${q(email)};
 `);
-console.log('── 対象learner ──');
-console.log(current.trim());
-if (!current.includes('|') || /\(0 rows\)/.test(current)) {
+const jsonStart = currentOut.indexOf('[');
+const rows = jsonStart >= 0 ? JSON.parse(currentOut.slice(jsonStart)) : [];
+if (rows.length === 0) {
   console.error(`refuse: ${email} のlearnerが見つからない`);
   process.exit(1);
 }
+console.log('── 対象learner ──');
+console.log(`id=${rows[0].id} 発行状態=${rows[0].enabled_at ?? '(未発行)'}`);
 
 // enabledAt の付け替えだけを行い、notes/worksheet（本人の書いた答え）には触れない
 const value = revoke ? 'null' : q(new Date().toISOString());

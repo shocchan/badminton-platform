@@ -104,10 +104,14 @@ describe('自分ノート', () => {
     render(<Harness initial={enabledProfile()} />);
     fireEvent.click(screen.getByText('まず：自分ノート'));
     expect(screen.getByText(/嘘を作る作業ではありません/)).toBeTruthy();
+    // 保存はフォーカスが外れたとき（打鍵ごとにSupabaseへ書かない）。
+    // 実ブラウザではボタンタップで自動的にblurが走るが、jsdomでは明示する
     const honne = screen.getAllByLabelText(/本音の答え/)[0];
     fireEvent.change(honne, { target: { value: 'ビザ更新が面倒だから' } });
+    fireEvent.blur(honne);
     const omote = screen.getAllByLabelText(/面接で伝える言い方/)[0];
     fireEvent.change(omote, { target: { value: '安定して日本で生活を続けたいからです' } });
+    fireEvent.blur(omote);
     fireEvent.click(screen.getByRole('button', { name: /書けたぶんを保存して戻る/ }));
     expect(screen.getByText('1 / 9')).toBeTruthy();
   });

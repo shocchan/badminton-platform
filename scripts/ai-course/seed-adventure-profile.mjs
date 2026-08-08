@@ -28,6 +28,22 @@ if (!keysRes.ok) { console.error(`api-keys ${keysRes.status}`); process.exit(1);
 const SERVICE = (await keysRes.json()).find((k) => k.name === 'service_role')?.api_key;
 if (!SERVICE) { console.error('service_role key not found'); process.exit(1); }
 
+// 🚨 fixture以外を拒否する（2026-08-08監査P0対応）。
+// このスクリプトはsettings全体を偽の完了済み診断で上書きするため、
+// 実learnerに実行すると本人の診断・設定・発行済み機能（答案用紙・面接特訓）が全部消える。
+// 運用docが誤ってこれを実learner向けに案内していた事故の再発を、コード側でも塞ぐ。
+const userRes = await fetch(`${API}/auth/v1/admin/users/${userId}`, {
+  headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` },
+});
+if (!userRes.ok) { console.error(`user lookup ${userRes.status}（userIdを確認）`); process.exit(1); }
+const userEmail = (await userRes.json()).email ?? '';
+if (!userEmail.endsWith('.invalid')) {
+  console.error(`refuse: ${userEmail} は実learnerの可能性がある。`);
+  console.error('このスクリプトは .invalid ドメインの合成fixture専用（実行すると本人のデータが偽データで上書きされる）。');
+  console.error('実学習者のV2有効化は、本人が ?v2=1 のURLから「冒険を始める」を押す（PILOT_OPERATIONS §6）。');
+  process.exit(1);
+}
+
 const now = new Date().toISOString();
 const stage = (stageId, kind, areaId, titleJa, titleZh, purposeJa, purposeZh, targets) => ({
   stageId, kind, areaId, titleJa, titleZh, purposeJa, purposeZh, targets,

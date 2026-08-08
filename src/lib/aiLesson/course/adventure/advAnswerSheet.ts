@@ -74,6 +74,12 @@ export interface AnswerSheetSectionResult {
   /** 正解が未登録なら null（＝採点していない） */
   correct: number | null;
   elapsedSeconds: number;
+  /**
+   * 学習者が選んだ番号（1始まり・未回答はnull）。
+   * **正解未登録の運用では、これが先生に渡る唯一の答案。** 提出時に捨てると
+   * 「先生が確認します」が構造的に嘘になる（監査P0で検出）ため必ず残す
+   */
+  choices: (number | null)[];
 }
 
 export interface AnswerSheetResult {
@@ -198,6 +204,8 @@ export const grade = (
 
   const sections: AnswerSheetSectionResult[] = paper.sections.map((s, i) => {
     const a = session.answers[s.id] ?? [];
+    // 学習者の答案を問題数ぶんに正規化して**必ず結果に写し取る**（提出後の答案消失を防ぐ）
+    const choices = Array.from({ length: s.questionCount }, (_, qi) => a[qi] ?? null);
     const answered = a.filter((v) => v != null).length;
     const correct = gradable(s)
       ? a.reduce((n: number, v, qi) => (v != null && v === s.correctChoices![qi] ? n + 1 : n), 0)
@@ -209,7 +217,7 @@ export const grade = (
     const elapsedSeconds = Math.max(0, Math.min(cap, totalElapsed - consumedBefore));
     return {
       id: s.id, labelJa: s.labelJa, labelZh: s.labelZh,
-      answered, total: s.questionCount, correct, elapsedSeconds,
+      answered, total: s.questionCount, correct, elapsedSeconds, choices,
     };
   });
 
@@ -308,6 +316,16 @@ export const restoreSheetLog = (v: unknown): AnswerSheetResult[] =>
     ? v.filter((e): e is AnswerSheetResult =>
       isRecord(e) && typeof e.paperId === 'string' && typeof e.submittedAtISO === 'string'
       && Array.isArray(e.sections))
+      // choices を持たない旧記録でも落ちないよう空配列で埋める（答案の中身は失われている）
+      .map((e) => ({
+        ...e,
+        sections: e.sections.map((s) => ({
+          ...s,
+          choices: Array.isArray((s as { choices?: unknown }).choices)
+            ? (s as { choices: unknown[] }).choices.map((c) => intIn(c, 1, MAX_CHOICE_COUNT))
+            : [],
+        })),
+      }))
     : []).slice(-50);
 
 /** 時間の表示（mm:ss）。残り1分を切ったら赤くする判断は画面側 */

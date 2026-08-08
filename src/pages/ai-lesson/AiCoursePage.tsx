@@ -323,7 +323,12 @@ export default function AiCoursePage() {
     const labUrl = parseLabUrl(window.location.search);
     const vocabUrl = parseVocabUrl(window.location.search);
     const allowed = hasLabPreview(l.adminOverrides);
-    if (!hasSeenGuide()) { setStep('guide'); return; }
+    // 旧コースの必須ガイドは、V2招待URL（?v2=1）で来た学習者には出さない。
+    // 旧音声コース前提の説明（「N2合格には別の学習が必要」等）が
+    // V2で買った商品と正反対で、初回の信頼を壊すため（監査P1）。
+    // V2説明はオプトイン画面とオンボーディングが担う
+    const v2Invite = new URLSearchParams(window.location.search).has('v2');
+    if (!hasSeenGuide() && !v2Invite) { setStep('guide'); return; }
     if (labUrl.lab && allowed) { setStep('lab'); return; }
     if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
     if (labUrl.lab) syncLabUrl(null);

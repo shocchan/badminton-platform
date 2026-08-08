@@ -102,6 +102,31 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
               </div>
             ))}
           </dl>
+
+          {/*
+            自分の答えの一覧。**正解未登録の運用では、これが先生に渡る唯一の答案**
+            （以前は提出と同時に破棄していて「先生が確認します」が守れなかった・監査P0）
+          */}
+          <div className="mt-3 border-t border-gray-100 pt-3">
+            <p className="text-xs font-bold text-gray-700">{tx(lang, '自分の答え', '我的答案')}</p>
+            {lastResult.sections.map((s) => (
+              <div key={`c-${s.id}`} className="mt-1.5">
+                <p className="text-[11px] text-gray-500">{tx(lang, s.labelJa, s.labelZh)}</p>
+                <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[13px] leading-relaxed text-gray-800">
+                  {s.choices.map((c, qi) => (
+                    <span key={qi} className={c == null ? 'text-gray-400' : ''}>{qi + 1}:{c ?? '−'}</span>
+                  ))}
+                </p>
+              </div>
+            ))}
+            {lastResult.scorePct === null && (
+              <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-relaxed text-blue-900">
+                {tx(lang,
+                  'この画面をスクリーンショットして、WeChatで先生に送ってください。先生が採点してお返しします。',
+                  '请把此页面截图，通过微信发给老师。老师批改后会反馈给你。')}
+              </p>
+            )}
+          </div>
         </div>
 
         <button type="button" className={`${primaryBtn} mt-4`}
@@ -190,7 +215,8 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
     /* マークシート本体 */
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6 pb-28">
-        <div className="flex items-start justify-between gap-3">
+        {/* タイマーは常に見える（105分の科目で75問スクロールしても残り時間を見失わない） */}
+        <div className="sticky top-0 z-10 -mx-4 flex items-start justify-between gap-3 bg-white/95 px-4 py-2 backdrop-blur">
           <div className="min-w-0">
             <p className="text-xs font-semibold text-gray-500">
               {tx(lang, activePaper.titleJa, activePaper.titleZh)}・
@@ -225,7 +251,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
                 {Array.from({ length: section.choiceCount }, (_, ci) => ci + 1).map((choice) => (
                   <button key={choice} type="button" role="radio" aria-checked={a === choice}
                     onClick={() => saveSession(setAnswer(session, section, qi, choice))}
-                    className={`min-h-[40px] flex-1 rounded-lg border text-sm font-bold ${
+                    className={`min-h-[44px] flex-1 rounded-lg border text-sm font-bold ${
                       a === choice
                         ? 'border-blue-600 bg-blue-600 text-white'
                         : 'border-gray-200 bg-white text-gray-700'}`}>
@@ -237,8 +263,8 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
           ))}
         </ol>
 
-        {/* 提出バー（下固定。スクロールしても迷わない） */}
-        <div className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white/95 p-3 backdrop-blur">
+        {/* 提出バー（下固定。iOSのホームバーと重ならないようセーフエリアを足す） */}
+        <div className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
           <div className="mx-auto flex max-w-xl items-center gap-3">
             <p className="min-w-0 flex-1 text-xs text-gray-600">
               {tx(lang, `記入 ${section.questionCount - unanswered.length} / ${section.questionCount}`,

@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   answerSheetsVisible, availablePapers, startSession, setAnswer, remainingSeconds,
   unansweredNumbers, advanceSection, grade, restorePaper, restorePapers,
-  restoreSheetSession, formatClock,
+  restoreSheetSession, restoreSheetLog, formatClock,
   type AnswerSheetPaper,
 } from './advAnswerSheet';
 import { defaultAdvProfile } from './advProfile';
@@ -137,6 +137,32 @@ describe('採点 — 未登録なら採点しない（原則13）', () => {
     expect(r.scorePct).toBeNull();
     expect(r.answeredTotal).toBe(1);
     expect(r.questionTotal).toBe(5);
+  });
+
+  it('**学習者の選んだ番号が結果に必ず残る**（未採点運用ではこれが先生に渡る唯一の答案・監査P0）', () => {
+    const pp = paper();
+    let s = startSession(pp, NOW);
+    s = setAnswer(s, pp.sections[0], 0, 3);
+    s = setAnswer(s, pp.sections[0], 2, 1);
+    s = setAnswer(s, pp.sections[1], 1, 4);
+    const r = grade(pp, s, NOW);
+    expect(r.sections[0].choices).toEqual([3, null, 1]);
+    expect(r.sections[1].choices).toEqual([null, 4]);
+  });
+
+  it('提出履歴の復元で choices が残る。choicesの無い旧記録は空配列で落ちない', () => {
+    const pp = paper();
+    let s = startSession(pp, NOW);
+    s = setAnswer(s, pp.sections[0], 0, 2);
+    const r = grade(pp, s, NOW);
+    const restored = restoreSheetLog(JSON.parse(JSON.stringify([r])));
+    expect(restored[0].sections[0].choices).toEqual([2, null, null]);
+    // 旧形式（choicesなし）
+    const legacy = restoreSheetLog([{
+      ...JSON.parse(JSON.stringify(r)),
+      sections: r.sections.map((s) => { const rest = { ...s } as Record<string, unknown>; delete rest.choices; return rest; }),
+    }]);
+    expect(legacy[0].sections[0].choices).toEqual([]);
   });
 
   it('全科目に正解が登録されているときだけ総合スコアが出る', () => {

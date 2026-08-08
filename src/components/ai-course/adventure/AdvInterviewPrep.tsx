@@ -147,16 +147,18 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
                 )}
                 <div className={card}>
                   <p className="text-sm font-semibold text-gray-900">{tx(lang, p.promptJa, p.promptZh)}</p>
-                  <label className="mt-2 block text-xs font-semibold text-gray-500">
-                    {tx(lang, '本音の答え（整理用。そのままは話さない）', '真心话（用于整理，不直接照说）')}
-                    <textarea className={`${field} mt-1 min-h-16`} value={w.honne} maxLength={2000}
-                      onChange={(e) => save(withWorksheet(state, p.id, { honne: e.target.value }))} />
-                  </label>
-                  <label className="mt-2 block text-xs font-semibold text-gray-500">
-                    {tx(lang, '面接で伝える言い方（日本語で）', '面试时的说法（用日语）')}
-                    <textarea className={`${field} mt-1 min-h-16`} value={w.omote} maxLength={2000}
-                      onChange={(e) => save(withWorksheet(state, p.id, { omote: e.target.value }))} />
-                  </label>
+                  {/*
+                    保存はフォーカスが外れたときだけ。onChangeで保存すると
+                    中国語IMEの1打鍵ごとに全プロファイルがSupabaseへ飛ぶ（監査P1）
+                  */}
+                  <DraftField
+                    label={tx(lang, '本音の答え（整理用。そのままは話さない）', '真心话（用于整理，不直接照说）')}
+                    initial={w.honne}
+                    onSave={(text) => save(withWorksheet(state, p.id, { honne: text }))} />
+                  <DraftField
+                    label={tx(lang, '面接で伝える言い方（日本語で）', '面试时的说法（用日语）')}
+                    initial={w.omote}
+                    onSave={(text) => save(withWorksheet(state, p.id, { omote: text }))} />
                 </div>
               </div>
             );
@@ -245,6 +247,21 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
         })}
       </ul>
     </div>
+  );
+};
+
+/** 下書き→フォーカスが外れたら保存のtextarea（打鍵ごとの保存を避ける） */
+const DraftField = ({ label, initial, onSave }: {
+  label: string; initial: string; onSave: (text: string) => void;
+}) => {
+  const [draft, setDraft] = useState(initial);
+  return (
+    <label className="mt-2 block text-xs font-semibold text-gray-500">
+      {label}
+      <textarea className={`${field} mt-1 min-h-16`} value={draft} maxLength={2000}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={() => { if (draft !== initial) onSave(draft); }} />
+    </label>
   );
 };
 
