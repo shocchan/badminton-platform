@@ -1,5 +1,6 @@
 // V2 onboarding（§4〜§7・§10）: 目的 → 目標 → 受験日 → 学習スケジュール → 先生 → 相棒 → 診断 → ルート提示。
 // 原則: 最初に選ぶのはレベルではなく目的。目標は本人から奪わない。診断は5〜8分で終える。
+import { choiceIdle, choiceOn, primaryBtn, pressFx, riseIn } from './advUi';
 import { useMemo, useState } from 'react';
 import type {
   AdvCompanionId, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvSkillProfile, JlptLevel,
@@ -48,10 +49,9 @@ const CONV_PROMPTS: { ja: string; zh: string }[] = [
   { ja: 'どうして日本語を勉強していますか。理由を日本語で書いてください。', zh: '你为什么学日语？请用日语写理由。' },
 ];
 
-const btn = 'w-full min-h-[44px] rounded-xl border px-4 py-3 text-left transition-colors';
-const btnIdle = `${btn} border-gray-200 bg-white hover:border-blue-400`;
-const btnOn = `${btn} border-blue-600 bg-blue-50`;
-const primary = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white disabled:opacity-40';
+const btnIdle = choiceIdle;
+const btnOn = choiceOn;
+const primary = primaryBtn;
 
 export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
@@ -123,7 +123,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
               onClick={() => setPhase(goal === 'conversation' ? 'schedule' : 'target')}>
               {tx(lang, 'つぎへ', '下一步')}
             </button>
-            <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={onCancel}>
+            <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onCancel}>
               {tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
             </button>
           </div>
@@ -292,7 +292,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
             <button type="button" className={primary} onClick={() => finishDiagnosis(false, convTexts)}>
               {tx(lang, '診断を完了する', '完成诊断')}
             </button>
-            <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline"
+            <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`}
               onClick={() => { setConvSkipped(true); finishDiagnosis(true, []); }}>
               {tx(lang, '書くのはスキップ（会話力は未判定になります）', '跳过书写（会话能力将标记为未判定）')}
             </button>
@@ -318,7 +318,7 @@ function DiagQuestionView({ lang, q, index, total, selected, onBack, onAnswer }:
     <section aria-label={tx(lang, `診断 ${index + 1}/${total}`, `诊断 ${index + 1}/${total}`)}>
       <p className="mb-1 text-xs text-gray-500">{index + 1} / {total}</p>
       <div className="mb-3 h-1.5 w-full overflow-hidden rounded bg-gray-200">
-        <div className="h-full bg-blue-500" style={{ width: `${Math.round((index / total) * 100)}%` }} />
+        <div className="h-full bg-blue-500 transition-[width] duration-300" style={{ width: `${Math.round((index / total) * 100)}%` }} />
       </div>
       {q.promptJa && <p className="mb-1 text-base font-semibold text-gray-900">{q.promptJa}</p>}
       <p className="mb-4 text-sm text-gray-700">{q.promptZh}</p>
@@ -326,11 +326,11 @@ function DiagQuestionView({ lang, q, index, total, selected, onBack, onAnswer }:
         {q.choices.map((c, i) => (
           <button key={c} type="button" className={selected === i ? btnOn : btnIdle} onClick={() => onAnswer(i)}>{c}</button>
         ))}
-        <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={() => onAnswer(null)}>
+        <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={() => onAnswer(null)}>
           {tx(lang, 'わからない', '不知道')}
         </button>
         {onBack && (
-          <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={onBack}>
+          <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onBack}>
             {tx(lang, 'ひとつ前の問題にもどる', '回到上一题')}
           </button>
         )}
@@ -343,7 +343,7 @@ function RouteReveal({ lang, o, convSkipped, onStart }: { lang: L; o: Onboarding
   const kb = knowledgeBandOf(o.skills);
   const conv = o.skills.conversation.band;
   return (
-    <section aria-label={tx(lang, '攻略ルート', '攻略路线')}>
+    <section aria-label={tx(lang, '攻略ルート', '攻略路线')} className={riseIn}>
       <h2 className="mb-1 text-lg font-bold text-gray-900">{tx(lang, 'あなたの攻略ルート', '你的攻略路线')}</h2>
       <div className="mb-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
         <p className="text-sm text-gray-600">{tx(lang, '最終目的地', '最终目的地')}</p>

@@ -2,6 +2,7 @@
 // - 提示順は attempt開始時に確定（render中に乱数を使わない・reloadでも不変）
 // - 採点は choiceId。表示位置では判定しない
 // - 解説は「正解／文法の意味／正しい理由／中国語補助／他が違う理由／出典／例文」を必ず出す
+import { pressFx, riseIn, popIn } from './advUi';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { AdvEnemyTier, AdvMasteryAttempt } from '../../../lib/aiLesson/course/adventure/advTypes';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
@@ -83,7 +84,7 @@ export function AdvBattleRunner(props: BattleProps) {
         <p className="mb-4 text-sm text-gray-700">
           {tx(lang, 'この対象にはまだ出題できる問題がありません。', '这个对象暂时没有可出的题。')}
         </p>
-        <button type="button" className="min-h-[44px] rounded-xl border border-gray-300 px-6 py-2" onClick={props.onClose}>
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={props.onClose}>
           {tx(lang, 'もどる', '返回')}
         </button>
       </div>
@@ -126,7 +127,8 @@ export function AdvBattleRunner(props: BattleProps) {
         {tx(lang, '今鍛えている試験力', '正在锻炼的考试能力')}：{nowTrainingLabel(q.skill, lang)}
       </p>
       <div className="mb-3 h-1.5 w-full overflow-hidden rounded bg-gray-200">
-        <div className="h-full bg-emerald-500 transition-all" style={{ width: `${Math.round((idx / enc.questions.length) * 100)}%` }} />
+        <div className="h-full bg-emerald-500 transition-all duration-500 ease-out"
+          style={{ width: `${Math.round(((idx + (answered ? 1 : 0)) / enc.questions.length) * 100)}%` }} />
       </div>
 
       {q.targetJapanese && q.targetJapanese !== q.questionJa && (
@@ -142,10 +144,11 @@ export function AdvBattleRunner(props: BattleProps) {
           return (
             <button key={c.choiceId} type="button" disabled={answered}
               aria-pressed={picked === c.choiceId}
-              className={`w-full min-h-[44px] rounded-xl border px-4 py-3 text-left transition-colors ${
-                isCorrect ? 'border-emerald-600 bg-emerald-50'
+              className={`${pressFx} action-choice w-full min-h-[44px] rounded-xl border px-4 py-3 text-left transition-colors ${
+                isCorrect ? `border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 ${popIn}`
                 : isWrongPick ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-white hover:border-blue-400 disabled:hover:border-gray-200'}`}
+                : answered ? 'border-gray-200 bg-white opacity-60'
+                : 'border-gray-200 bg-white hover:border-blue-400'}`}
               onClick={() => { if (!answered) setPicked(c.choiceId); }}>
               <span className="block">{c.textJa}</span>
               {c.textZh && <span className="mt-0.5 block text-xs text-gray-500">{c.textZh}</span>}
@@ -155,8 +158,13 @@ export function AdvBattleRunner(props: BattleProps) {
       </div>
 
       {answered && (
-        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-          <p className="text-sm font-bold text-gray-900">
+        <div className={`mt-4 rounded-xl border p-3 ${riseIn} ${
+          picked === correctId ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+          <p className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+            <span aria-hidden className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-white ${
+              picked === correctId ? 'bg-emerald-600' : 'bg-amber-500'}`}>
+              {picked === correctId ? '✓' : '!'}
+            </span>
             {picked === correctId ? tx(lang, '正解！', '答对了！') : tx(lang, 'ざんねん…', '差一点…')}
           </p>
           {/* §4: 正解・意味・正しい理由・中国語補助・他が違う理由・出典・例文 */}
@@ -194,14 +202,14 @@ export function AdvBattleRunner(props: BattleProps) {
             {tx(lang, '出典', '出处')}：{q.explanation.sourceLabel}（{q.explanation.sourceItemId}）・
             {tx(lang, EXAM_SKILL_LABELS[q.skill].ja, EXAM_SKILL_LABELS[q.skill].zh)}
           </p>
-          <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white"
+          <button type="button" className={`${pressFx} action-primary-blue mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white`}
             onClick={() => advance(picked)}>
             {idx + 1 < enc.questions.length ? tx(lang, 'つぎの問題', '下一题') : tx(lang, '結果を見る', '看结果')}
           </button>
         </div>
       )}
       {!answered && (
-        <button type="button" className="mt-4 w-full min-h-[44px] text-sm text-gray-500 underline" onClick={() => advance(null)}>
+        <button type="button" className={`${pressFx} mt-4 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={() => advance(null)}>
           {tx(lang, 'わからない（スキップ＝誤答扱い）', '不知道（跳过＝按答错计）')}
         </button>
       )}
@@ -233,12 +241,12 @@ function BattleResult(props: BattleProps & {
 
   const win = result.scorePct >= 80;
   return (
-    <div className="mx-auto w-full max-w-xl px-4 py-6 text-center" aria-label={tx(lang, 'バトル結果', '战斗结果')}>
-      <p className="text-4xl" aria-hidden>{win ? '🎉' : '⚔️'}</p>
+    <div className={`mx-auto w-full max-w-xl px-4 py-6 text-center ${riseIn}`} aria-label={tx(lang, 'バトル結果', '战斗结果')}>
+      <p className={`text-4xl ${win ? 'motion-safe:animate-bounce' : ''}`} aria-hidden>{win ? '🎉' : '⚔️'}</p>
       <h2 className="mt-2 text-xl font-bold text-gray-900">
         {win ? tx(lang, '勝利！', '胜利！') : tx(lang, 'あと少し！', '还差一点！')}
       </h2>
-      <p className="mt-1 text-3xl font-bold text-blue-700">{result.scorePct}%</p>
+      <p className={`mt-1 text-3xl font-bold ${win ? 'text-emerald-600' : 'text-blue-700'}`}>{result.scorePct}%</p>
       <p className="mt-1 text-xs text-gray-500">
         {encounterName(props.enc, props.level, lang)}・
         {tx(lang, `未出問題 ${Math.round(result.unseenRatio * 100)}%を含む`, `含 ${Math.round(result.unseenRatio * 100)}% 未见过的题`)}
@@ -260,8 +268,13 @@ function BattleResult(props: BattleProps & {
 
       <div className="mx-auto mt-3 max-w-sm rounded-xl border border-gray-200 bg-white p-4 text-left">
         <p className="text-sm font-semibold text-gray-900">{tx(lang, '攻略状況', '攻略进度')}</p>
-        <p className="mt-1 text-sm text-gray-700">
-          {tx(lang, `80%達成日：${mastery.qualifyingDays.length}/3`, `达成80%的天数：${mastery.qualifyingDays.length}/3`)}
+        <p className="mt-1 flex items-center gap-2 text-sm text-gray-700">
+          <span>{tx(lang, `80%達成日：${mastery.qualifyingDays.length}/3`, `达成80%的天数：${mastery.qualifyingDays.length}/3`)}</span>
+          <span className="flex gap-1" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <span key={i} className={`h-3 w-3 rounded-full ${i < mastery.qualifyingDays.length ? 'bg-emerald-500' : 'bg-gray-200'}`} />
+            ))}
+          </span>
         </p>
         <p className="mt-1 text-sm text-gray-700">{tx(lang, mastery.nextJa, mastery.nextZh)}</p>
       </div>
@@ -270,7 +283,7 @@ function BattleResult(props: BattleProps & {
           {tx(lang, `まちがえた${result.wrongKeys.length}問は復習と明日の冒険に入ります`, `答错的${result.wrongKeys.length}题会进入复习和明天的冒险`)}
         </p>
       )}
-      <button type="button" className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white" onClick={props.onClose}>
+      <button type="button" className={`${pressFx} action-primary-blue mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white`} onClick={props.onClose}>
         {tx(lang, '冒険にもどる', '回到冒险')}
       </button>
     </div>

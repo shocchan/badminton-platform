@@ -35,6 +35,7 @@ import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
 import { AdvAnswerSheetRunner } from './AdvAnswerSheetRunner';
 import { answerSheetsVisible, paperById } from '../../../lib/aiLesson/course/adventure/advAnswerSheet';
+import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
@@ -74,8 +75,6 @@ export interface AdvShellProps {
 type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
-const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
-const secondaryBtn = 'w-full min-h-[48px] rounded-xl border border-blue-200 bg-white px-4 py-3 text-base font-semibold text-blue-700';
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
 
 /** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
@@ -418,7 +417,7 @@ export default function AdvShell(props: AdvShellProps) {
             const on = teacher.id === tc.id;
             return (
               <button key={tc.id} type="button" role="radio" aria-checked={on}
-                className={`flex w-full min-h-[44px] items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+                className={`${pressFx} action-choice flex w-full min-h-[44px] items-center gap-3 rounded-xl border px-4 py-3 text-left ${
                   on ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}`}
                 onClick={() => pickTeacher(tc.id)}>
                 <TeacherAvatar teacher={tc} size={56} lang={lang} labeled={false} className={`ring-2 ${tc.ringClass}`} />
@@ -867,7 +866,7 @@ export default function AdvShell(props: AdvShellProps) {
       usedExpressions: [],
     });
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-6">
+      <div className={`mx-auto w-full max-w-xl px-4 py-6 ${riseIn}`}>
         <div className="flex items-center gap-3">
           <TeacherAvatar size={44} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
           <h2 className="text-lg font-bold text-gray-900">{tx(lang, '今日の冒険 おつかれさま！', '今天的冒险辛苦了！')}</h2>
@@ -940,7 +939,11 @@ export default function AdvShell(props: AdvShellProps) {
               `明天・约${prof.dailyMinutes ?? 15}分钟。${teacherLabel}会准备好接下来的内容。`)}
           </p>
         </div>
-        <p className="mt-3 text-center text-xs text-gray-500">XP +{doneSteps.size * 10}</p>
+        <p className="mt-4 text-center">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-800">
+            ⭐ XP +{doneSteps.size * 10}
+          </span>
+        </p>
         <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
           {tx(lang, 'ホームへ', '回到主页')}
         </button>
@@ -1069,11 +1072,11 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, '同じ問題・同じ残り時間から再開できます。', '可以从相同的题目和剩余时间继续。')}
           </p>
           <div className="mt-2 flex gap-2">
-            <button type="button" className="min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white"
+            <button type="button" className={`${pressFx} action-primary-blue min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
               onClick={() => setView('mock')}>
               {tx(lang, '模試を再開する', '继续模拟考')}
             </button>
-            <button type="button" className="min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900"
+            <button type="button" className={`${pressFx} action-amber min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900`}
               onClick={() => save({ ...prof, mockSession: null })}>
               {tx(lang, '破棄', '放弃')}
             </button>
@@ -1090,7 +1093,7 @@ export default function AdvShell(props: AdvShellProps) {
           <p className="mt-0.5 text-xs text-gray-600">
             {tx(lang, '試験の時間は本番と同じように進んでいます。', '考试时间正像正式考试一样继续。')}
           </p>
-          <button type="button" className="mt-2 w-full min-h-[48px] rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white"
+          <button type="button" className={`${pressFx} action-primary-blue mt-2 w-full min-h-[48px] rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
             onClick={() => setView('sheets')}>
             {tx(lang, '答案に戻る', '回到答题')}
           </button>
@@ -1106,7 +1109,7 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, '先生が答案用紙を取り下げた可能性があります。この答案は再開できないため、破棄してください。',
               '老师可能已撤回这份答题卡。这份答案无法继续，请将其放弃。')}
           </p>
-          <button type="button" className="mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900"
+          <button type="button" className={`${pressFx} action-amber mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900`}
             onClick={() => save({ ...prof, answerSheetSession: null })}>
             {tx(lang, 'この答案を破棄する', '放弃这份答案')}
           </button>
@@ -1132,15 +1135,23 @@ export default function AdvShell(props: AdvShellProps) {
             </p>
           )}
 
-          {/* 2. 今日行う全step（番号は必ず連番） */}
-          <ol className="mt-3 space-y-1.5">
+          {/* 2. 今日行う全step（番号は必ず連番）。上の細いバーはstepを終えるたびに伸びる */}
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100" aria-hidden>
+            <div className="h-full rounded-full bg-blue-600 transition-all duration-500"
+              style={{ width: `${Math.round((doneSteps.size / quest.steps.length) * 100)}%` }} />
+          </div>
+          <ol className="mt-2 space-y-1.5">
             {quest.steps.map((s, i) => {
               const done = doneSteps.has(i);
               const isNext = i === nextStepIdx;
               return (
                 <li key={s.titleJa + i}
                   className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isNext ? 'bg-blue-50 font-semibold' : ''}`}>
-                  <span className={`w-5 shrink-0 text-center text-sm ${done ? 'text-emerald-600' : 'text-gray-400'}`} aria-hidden>
+                  <span aria-hidden
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs transition-colors duration-300 ${
+                      done ? 'bg-emerald-100 font-bold text-emerald-600'
+                      : isNext ? 'bg-blue-600 font-bold text-white'
+                      : 'bg-gray-100 text-gray-500'}`}>
                     {done ? '✓' : i + 1}
                   </span>
                   <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
@@ -1186,7 +1197,8 @@ export default function AdvShell(props: AdvShellProps) {
             </p>
           )}
           {allDone && (
-            <button type="button" className={`${primaryBtn} mt-4 bg-emerald-600`}
+            <button type="button"
+              className={`${pressFx} action-emerald mt-4 w-full min-h-[48px] rounded-xl bg-emerald-600 px-4 py-3 text-base font-bold text-white`}
               onClick={() => {
                 const log = prof.questLog.filter((e) => e.dateKey !== dateKey);
                 save({
@@ -1206,10 +1218,10 @@ export default function AdvShell(props: AdvShellProps) {
       {/* 5. 二次メニューは折りたたみ（第一CTAより強い表現を使わない） */}
       <div className="mt-2">
         <button type="button" aria-expanded={showMore}
-          className="flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600"
+          className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-600`}
           onClick={() => setShowMore((v) => !v)}>
           <span>{term('otherLearning', lang)}</span>
-          <span aria-hidden>{showMore ? '▲' : '▼'}</span>
+          <span aria-hidden className={`inline-block transition-transform duration-200 ${showMore ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {showMore && (
           <div className="mt-2 space-y-1.5">
@@ -1273,7 +1285,7 @@ function BackBar({ lang, onBack, title, teacherLang }: {
 }) {
   return (
     <div className="mb-4 flex items-center gap-2">
-      <button type="button" className="min-h-[44px] min-w-[44px] rounded-lg border border-gray-200 px-3" onClick={onBack} aria-label={tx(lang, 'もどる', '返回')}>←</button>
+      <button type="button" className={`${pressFx} action-secondary min-h-[44px] min-w-[44px] rounded-xl border border-gray-200 bg-white px-3`} onClick={onBack} aria-label={tx(lang, 'もどる', '返回')}>←</button>
       {teacherLang && <TeacherAvatar size={32} lang={teacherLang} labeled={false} className="shrink-0" />}
       <h2 className="text-lg font-bold text-gray-900">{title}</h2>
     </div>
@@ -1283,7 +1295,7 @@ function BackBar({ lang, onBack, title, teacherLang }: {
 function SubLink({ lang, label, badge, onClick }: { lang: L; label: string; badge?: number; onClick: () => void }) {
   return (
     <button type="button"
-      className="flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700"
+      className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700`}
       onClick={onClick}>
       <span>{label}</span>
       {badge !== undefined && badge > 0 && (

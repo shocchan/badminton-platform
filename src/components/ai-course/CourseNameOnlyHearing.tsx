@@ -5,7 +5,8 @@
 // V2招待者の本当の設定はV2オンボーディングで聞くので、ここでは名前だけ預かる。
 // 旧コースから来た学習者（?v2なし）は従来どおり8問のCourseHearingを通る。
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
+import { ShokoAvatar } from './ShokoAvatar';
 
 interface Props {
   lang: 'ja' | 'zh';
@@ -20,6 +21,7 @@ const TXT = {
     name: 'お名前（ニックネーム可）',
     namePh: '例：ワン',
     start: '冒険の準備へ進む',
+    busyLabel: '準備中…',
   },
   zh: {
     title: '初次见面！',
@@ -27,6 +29,7 @@ const TXT = {
     name: '姓名（可用昵称）',
     namePh: '例：小王',
     start: '进入冒险准备',
+    busyLabel: '准备中…',
   },
 } as const;
 
@@ -36,6 +39,7 @@ export const CourseNameOnlyHearing = ({ lang, onComplete, busy = false }: Props)
   const canStart = name.trim().length > 0 && !busy;
   return (
     <div className="mx-auto w-full max-w-md px-4 py-12">
+      <ShokoAvatar size={64} className="mb-3" />
       <h1 className="text-xl font-bold text-gray-900">{t.title}</h1>
       <p className="mt-2 text-sm leading-relaxed text-gray-600">{t.sub}</p>
       <label className="mt-6 block">
@@ -49,8 +53,9 @@ export const CourseNameOnlyHearing = ({ lang, onComplete, busy = false }: Props)
       </label>
       <button type="button" disabled={!canStart}
         onClick={() => onComplete(name.trim())}
-        className="mt-4 flex w-full min-h-[48px] items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40">
-        {busy ? '…' : t.start}
+        className={`mt-4 flex w-full min-h-[48px] items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white transition-all duration-150 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400 ${canStart ? 'shadow-md shadow-blue-600/25' : ''}`}>
+        {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+        {busy ? t.busyLabel : t.start}
         {!busy && <ArrowRight className="h-4 w-4" aria-hidden />}
       </button>
     </div>

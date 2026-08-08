@@ -3,6 +3,7 @@
 // - attempt中はtranscriptを表示しない。回答後に表示できる
 // - 再生回数は playLimit に従う
 // - loading / error / retry を持ち、音声が読めない場合は誤答扱いにせず安全に次へ
+import { pressFx, riseIn, popIn } from './advUi';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ListeningSet } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { LISTENING_TYPE_LABELS, listeningToQuestion } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
@@ -32,7 +33,7 @@ export function AdvListeningRunner(props: AdvListeningRunnerProps) {
         <p className="mb-4 text-sm text-gray-700">
           {tx(props.lang, '再生できる聴解問題がありません。', '暂时没有可播放的听力题。')}
         </p>
-        <button type="button" className="min-h-[44px] rounded-xl border border-gray-300 px-6 py-2" onClick={props.onClose}>
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={props.onClose}>
           {tx(props.lang, 'もどる', '返回')}
         </button>
       </div>
@@ -120,8 +121,15 @@ function ListeningItem({ lang, set, index, total, onNext }: ListeningItemProps) 
           onError={() => setAudioState('error')}
           onWaiting={() => setAudioState('loading')} />
         <button type="button" disabled={!canPlay}
-          className={`w-full min-h-[48px] rounded-xl px-4 py-3 font-bold text-white ${canPlay ? 'bg-blue-600' : 'bg-gray-300'}`}
+          className={`${pressFx} w-full min-h-[48px] rounded-xl px-4 py-3 font-bold text-white transition-colors duration-200 ${canPlay ? 'action-primary-blue bg-blue-600' : 'bg-gray-300'}`}
           onClick={play}>
+          {audioState === 'playing' && (
+            <span className="mr-2 inline-flex items-end gap-0.5" aria-hidden>
+              <span className="inline-block h-2 w-1 rounded-full bg-white/90 motion-safe:animate-pulse" />
+              <span className="inline-block h-3 w-1 rounded-full bg-white/90 motion-safe:animate-pulse [animation-delay:150ms]" />
+              <span className="inline-block h-2.5 w-1 rounded-full bg-white/90 motion-safe:animate-pulse [animation-delay:300ms]" />
+            </span>
+          )}
           {audioState === 'playing' ? tx(lang, '再生中…', '播放中…')
             : audioState === 'loading' ? tx(lang, '読み込み中…', '加载中…')
             : playsUsed === 0 ? tx(lang, '▶ 音声を再生する', '▶ 播放音频')
@@ -137,7 +145,7 @@ function ListeningItem({ lang, set, index, total, onNext }: ListeningItemProps) 
             <p className="text-xs text-red-600">
               {tx(lang, '音声を再生できませんでした。', '音频无法播放。')}
             </p>
-            <button type="button" className="mt-1 min-h-[44px] rounded-lg border border-gray-300 px-4 py-2 text-xs"
+            <button type="button" className={`${pressFx} action-secondary mt-1 min-h-[44px] rounded-lg border border-gray-300 bg-white px-4 py-2 text-xs`}
               onClick={() => { setAudioState('idle'); setPlaysUsed((n) => Math.max(0, n - 1)); }}>
               {tx(lang, 'もう一度試す', '重试')}
             </button>
@@ -155,8 +163,8 @@ function ListeningItem({ lang, set, index, total, onNext }: ListeningItemProps) 
           return (
             <button key={c.choiceId} type="button" disabled={answered || playsUsed === 0}
               aria-pressed={picked === c.choiceId}
-              className={`w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
-                isCorrect ? 'border-emerald-600 bg-emerald-50'
+              className={`${pressFx} action-choice w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm transition-colors ${
+                isCorrect ? `border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 ${popIn}`
                 : isWrongPick ? 'border-red-500 bg-red-50'
                 : 'border-gray-200 bg-white hover:border-blue-400 disabled:opacity-60'}`}
               onClick={() => { if (!answered) { setPicked(c.choiceId); setAnswered(true); } }}>
@@ -170,14 +178,21 @@ function ListeningItem({ lang, set, index, total, onNext }: ListeningItemProps) 
       )}
 
       {answered && (
-        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-          <p className="text-sm font-bold text-gray-900">
+        <div className={`mt-4 rounded-xl border p-3 ${riseIn} ${
+          picked === presented.correctChoiceId ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+          <p className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+            <span aria-hidden className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-white ${
+              picked === presented.correctChoiceId ? 'bg-emerald-600' : 'bg-amber-500'}`}>
+              {picked === presented.correctChoiceId ? '✓' : '!'}
+            </span>
             {picked === presented.correctChoiceId ? tx(lang, '正解！', '答对了！') : tx(lang, 'ざんねん…', '差一点…')}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-gray-800">
             {lang === 'zh' ? <JaTermText text={set.explanationZh} lang="zh" /> : set.explanationJa}
           </p>
-          <button type="button" className="mt-2 min-h-[44px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold"
+          <button type="button"
+            className={`${pressFx} action-secondary mt-2 min-h-[44px] w-full rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+              showTranscript ? 'border-gray-400 bg-gray-100' : 'border-gray-300 bg-white'}`}
             onClick={() => setShowTranscript((v) => !v)} aria-expanded={showTranscript}>
             {showTranscript ? tx(lang, '原稿を隠す', '隐藏原文') : tx(lang, '原稿を見る', '查看原文')}
           </button>
@@ -194,7 +209,7 @@ function ListeningItem({ lang, set, index, total, onNext }: ListeningItemProps) 
               ))}
             </ul>
           </div>
-          <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white" onClick={advance}>
+          <button type="button" className={`${pressFx} action-primary-blue mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white`} onClick={advance}>
             {index + 1 < total ? tx(lang, 'つぎの問題', '下一题') : tx(lang, '結果を見る', '看结果')}
           </button>
         </div>

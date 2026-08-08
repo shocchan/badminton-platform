@@ -6,6 +6,7 @@
 // 流れ: 一覧 → 説明 → 科目（タイマー＋マークシート）→ 未回答の確認 → 提出 → 結果
 // - 中断しても同じ問題・同じ残り時間から再開できる（残り時間は壁時計基準＝閉じても進む）
 // - 正解が登録されていない科目は採点しない。「先生が確認します」と出す（0点に見せない・原則13）
+import { pressFx, primaryBtn, subtleBtn, riseIn } from './advUi';
 import { useEffect, useRef, useState } from 'react';
 import { Clock, ChevronRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { AdventureV2Profile } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -28,8 +29,7 @@ interface Props {
 }
 
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
-const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white';
-const subtleBtn = 'w-full min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700';
+
 
 /** 1秒ごとに現在時刻を進める（残り時間は壁時計から計算するので、stateは表示更新のためだけ） */
 const useNowISO = (active: boolean): string => {
@@ -81,13 +81,16 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
   /* ── 結果 ── */
   if (lastResult) {
     return (
-      <div className="mx-auto w-full max-w-xl px-4 py-6">
+      <div className={`mx-auto w-full max-w-xl px-4 py-6 ${riseIn}`}>
+        <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+          <CheckCircle2 className="h-9 w-9 text-emerald-500" aria-hidden />
+        </div>
         <h1 className="text-xl font-bold text-gray-900">{tx(lang, '答案を提出しました', '答案已提交')}</h1>
         <p className="mt-1 text-sm text-gray-600">{tx(lang, lastResult.titleJa, lastResult.titleZh)}</p>
 
         <div className={`${card} mt-4`}>
           {lastResult.scorePct !== null ? (
-            <p className="text-2xl font-bold text-blue-800">{lastResult.scorePct}%</p>
+            <p className="text-4xl font-bold text-blue-800">{lastResult.scorePct}%</p>
           ) : (
             // 正解が未登録＝採点していない。0点に見せない
             <div className="flex items-start gap-2">
@@ -237,8 +240,9 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
             <h1 className="text-lg font-bold text-gray-900">{tx(lang, section.labelJa, section.labelZh)}</h1>
           </div>
           {/* 残り時間。1分を切ったら赤 */}
-          <p className={`shrink-0 flex items-center gap-1 rounded-xl px-3 py-2 text-lg font-bold tabular-nums ${
-            remaining <= 60 ? 'bg-red-50 text-red-700' : 'bg-gray-100 text-gray-800'}`}
+          <p className={`shrink-0 flex items-center gap-1 rounded-xl px-3 py-2 text-lg font-bold tabular-nums transition-colors ${
+            remaining <= 60 ? 'animate-pulse bg-red-50 text-red-700'
+            : remaining <= 300 ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-800'}`}
             role="timer" aria-label={tx(lang, '残り時間', '剩余时间')}>
             <Clock className="h-4 w-4" aria-hidden />
             {formatClock(remaining)}
@@ -262,10 +266,10 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
                 {Array.from({ length: section.choiceCount }, (_, ci) => ci + 1).map((choice) => (
                   <button key={choice} type="button" role="radio" aria-checked={a === choice}
                     onClick={() => saveSession(setAnswer(session, section, qi, choice))}
-                    className={`min-h-[44px] flex-1 rounded-lg border text-sm font-bold ${
+                    className={`min-h-[44px] flex-1 rounded-lg border text-sm font-bold transition-all duration-100 active:scale-90 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500 ${
                       a === choice
                         ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-gray-200 bg-white text-gray-700'}`}>
+                        : 'border-gray-200 bg-white text-gray-700 active:border-blue-400 active:bg-blue-50'}`}>
                     {choice}
                   </button>
                 ))}
@@ -277,12 +281,18 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
         {/* 提出バー（下固定。iOSのホームバーと重ならないようセーフエリアを足す） */}
         <div className="fixed inset-x-0 bottom-0 border-t border-gray-200 bg-white/95 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur">
           <div className="mx-auto flex max-w-xl items-center gap-3">
-            <p className="min-w-0 flex-1 text-xs text-gray-600">
-              {tx(lang, `記入 ${section.questionCount - unanswered.length} / ${section.questionCount}`,
-                `已填 ${section.questionCount - unanswered.length} / ${section.questionCount}`)}
-            </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-gray-600">
+                {tx(lang, `記入 ${section.questionCount - unanswered.length} / ${section.questionCount}`,
+                  `已填 ${section.questionCount - unanswered.length} / ${section.questionCount}`)}
+              </p>
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-gray-100" aria-hidden>
+                <div className="h-full rounded-full bg-blue-600 transition-all duration-300"
+                  style={{ width: `${Math.round(((section.questionCount - unanswered.length) / section.questionCount) * 100)}%` }} />
+              </div>
+            </div>
             <button type="button"
-              className="min-h-[44px] shrink-0 rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold text-white"
+              className={`${pressFx} action-primary-blue min-h-[44px] shrink-0 rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold text-white`}
               onClick={() => setConfirming(true)}>
               {isLast
                 ? tx(lang, '提出へ進む', '去提交')
@@ -302,7 +312,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <button type="button" onClick={() => setOpenPaperId(null)}
-          className="mb-1 min-h-[44px] text-sm text-gray-500">
+          className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
           ← {tx(lang, '試験場へ戻る', '回到考场')}
         </button>
         <h1 className="text-xl font-bold text-gray-900">{tx(lang, opened.titleJa, opened.titleZh)}</h1>
@@ -349,7 +359,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
   /* ── 一覧 ── */
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
-      <button type="button" onClick={onBack} className="mb-1 min-h-[44px] text-sm text-gray-500">
+      <button type="button" onClick={onBack} className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
         ← {tx(lang, '今日の冒険へ戻る', '回到今天的冒险')}
       </button>
       <h1 className="text-xl font-bold text-gray-900">{tx(lang, '過去問の試験場', '真题考场')}</h1>
@@ -376,7 +386,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
             return (
               <li key={p.paperId}>
                 <button type="button" onClick={() => setOpenPaperId(p.paperId)}
-                  className="flex w-full min-h-[56px] items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left">
+                  className={`${pressFx} action-secondary flex w-full min-h-[56px] items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left`}>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-gray-900">{tx(lang, p.titleJa, p.titleZh)}</span>
                     <span className="block text-xs text-gray-600">

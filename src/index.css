@@ -188,12 +188,29 @@
   }
   .card-interactive:hover { transform: translateY(-2px); box-shadow: var(--action-shadow-hover); border-color: rgb(165 180 252); }
   .card-interactive:active { transform: translateY(1px); box-shadow: var(--action-shadow-active); }
+  /* V2冒険画面のprimary（blue-600系。旧コースのindigo edgeと色を合わせない） */
+  .action-primary-blue { box-shadow: var(--action-depth) rgb(30 64 175 / 0.9), var(--action-shadow-rest); }
+  .action-primary-blue:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(30 64 175 / 0.9), var(--action-shadow-hover); }
+  .action-primary-blue:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(30 64 175 / 0.9), var(--action-shadow-active); }
+  /* 完了・締めくくり系 emerald edge */
+  .action-emerald { box-shadow: var(--action-depth) rgb(4 120 87 / 0.9), var(--action-shadow-rest); }
+  .action-emerald:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(4 120 87 / 0.9), var(--action-shadow-hover); }
+  .action-emerald:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(4 120 87 / 0.9), var(--action-shadow-active); }
+  /* 警告系（答案破棄など）amber edge */
+  .action-amber { box-shadow: var(--action-depth) rgb(217 119 6 / 0.5), var(--action-shadow-rest); }
+  .action-amber:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(217 119 6 / 0.5), var(--action-shadow-hover); }
+  .action-amber:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(217 119 6 / 0.5), var(--action-shadow-active); }
   /* 立体アニメーションを抑制（§14/§24） */
   @media (prefers-reduced-motion: reduce) {
     .action-raised, .action-raised:hover, .action-raised:active,
     .card-interactive, .card-interactive:hover, .card-interactive:active { transform: none !important; transition: none !important; }
   }
 }
+
+/* ── V2冒険画面の結果フィードバック（正解ポップ・パネル出現）──
+   motion-safe: 経由で使うこと（reduced-motionでは静止） */
+@keyframes adv-pop { 0% { transform: scale(1); } 35% { transform: scale(1.03); } 100% { transform: scale(1); } }
+@keyframes adv-rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 
 /* ── 待ち時間表示の「地図の光が進む」演出（Phase B-3・CourseLoading） ──
    motion-safe: 経由でのみ適用されるため、prefers-reduced-motion では自動的に静止する。 */

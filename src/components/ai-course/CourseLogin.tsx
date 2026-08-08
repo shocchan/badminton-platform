@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
-import { Mail, ArrowRight, KeyRound, RotateCcw } from 'lucide-react';
+import { Mail, ArrowRight, KeyRound, RotateCcw, Loader2 } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
 import { sendEmailOtp, verifyEmailOtp } from '../../lib/aiLesson/course/courseAuth';
 import type { OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
@@ -124,12 +124,12 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               />
             </div>
             {LEGAL_PUBLISH && (
-              <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
+              <div className={`rounded-xl border p-3 transition-colors ${consented ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}>
                 <label className="flex items-start gap-2 text-xs text-gray-700 cursor-pointer">
                   <input
                     type="checkbox" checked={consented}
                     onChange={(e) => { setConsented(e.target.checked); setError(''); }}
-                    className="mt-0.5 w-4 h-4 shrink-0"
+                    className="mt-0.5 w-5 h-5 shrink-0 accent-blue-600"
                     aria-describedby="course-consent-links"
                   />
                   <span>{tl.consentLabel}</span>
@@ -145,8 +145,9 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
             <button
               type="button" onClick={() => void send(false)}
               disabled={busy || !email.trim() || cooldown > 0 || (LEGAL_PUBLISH && !consented)}
-              className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 transition-all duration-150 flex items-center justify-center gap-2 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
+              {busy && <Loader2 className="w-4 h-4 animate-spin" aria-hidden />}
               {busy ? tl.sending : cooldown > 0 ? tl.resendIn(cooldown) : tl.sendCode}
               {!busy && cooldown === 0 && <ArrowRight className="w-4 h-4" />}
             </button>
@@ -168,14 +169,14 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
             {error && <p className="text-sm text-red-600">{error}</p>}
             <button
               type="button" onClick={handleVerify} disabled={busy || code.length < 4}
-              className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors flex items-center justify-center gap-2"
+              className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 transition-all duration-150 flex items-center justify-center gap-2 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             >
-              {busy ? tl.sending : tl.verify}<ArrowRight className="w-4 h-4" />
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden /> : null}{busy ? tl.sending : tl.verify}{!busy && <ArrowRight className="w-4 h-4" />}
             </button>
 
             <button
               type="button" onClick={() => void send(true)} disabled={busy || cooldown > 0}
-              className="w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 disabled:text-gray-300 flex items-center justify-center gap-1.5"
+              className="w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 active:text-gray-800 disabled:text-gray-300 transition-colors flex items-center justify-center gap-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 rounded-xl"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               {cooldown > 0 ? tl.resendIn(cooldown) : tl.resend}
@@ -184,7 +185,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
             <div className="pt-2 border-t border-gray-100 space-y-1.5">
               <p className="text-[11px] text-gray-500 leading-relaxed">{tl.notArrivedHint}</p>
               <button type="button" onClick={changeEmail}
-                className="min-h-11 text-xs text-blue-600 hover:text-blue-700 underline">
+                className="min-h-11 text-xs text-blue-600 hover:text-blue-700 active:text-blue-900 underline transition-colors rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
                 {tl.changeEmail}
               </button>
             </div>

@@ -1,5 +1,6 @@
 // 読解runner（COMPLETION §6・§16）。
 // 本文を読みながら解く。mobileで本文と設問が行き来しやすいことを優先。
+import { pressFx, riseIn, popIn } from './advUi';
 import { useMemo, useState } from 'react';
 import type { ReadingSet } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { READING_TYPE_LABELS } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
@@ -40,7 +41,7 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
         <p className="mb-4 text-sm text-gray-700">
           {tx(lang, '出題できる読解問題がありません。', '暂时没有可出的阅读题。')}
         </p>
-        <button type="button" className="min-h-[44px] rounded-xl border border-gray-300 px-6 py-2" onClick={onClose}>
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={onClose}>
           {tx(lang, 'もどる', '返回')}
         </button>
       </div>
@@ -95,10 +96,11 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
           return (
             <button key={c.choiceId} type="button" disabled={answered}
               aria-pressed={picked === c.choiceId}
-              className={`w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm leading-relaxed transition-colors ${
-                isCorrect ? 'border-emerald-600 bg-emerald-50'
+              className={`${pressFx} action-choice w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm leading-relaxed transition-colors ${
+                isCorrect ? `border-emerald-600 bg-emerald-50 ring-2 ring-emerald-500 ${popIn}`
                 : isWrongPick ? 'border-red-500 bg-red-50'
-                : 'border-gray-200 bg-white hover:border-blue-400 disabled:hover:border-gray-200'}`}
+                : answered ? 'border-gray-200 bg-white opacity-60'
+                : 'border-gray-200 bg-white hover:border-blue-400'}`}
               onClick={() => { if (!answered) { setPicked(c.choiceId); setAnswered(true); } }}>
               {c.textJa}
             </button>
@@ -107,8 +109,13 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
       </div>
 
       {answered && (
-        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
-          <p className="text-sm font-bold text-gray-900">
+        <div className={`mt-4 rounded-xl border p-3 ${riseIn} ${
+          picked === presented.correctChoiceId ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+          <p className="flex items-center gap-1.5 text-sm font-bold text-gray-900">
+            <span aria-hidden className={`inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs text-white ${
+              picked === presented.correctChoiceId ? 'bg-emerald-600' : 'bg-amber-500'}`}>
+              {picked === presented.correctChoiceId ? '✓' : '!'}
+            </span>
             {picked === presented.correctChoiceId ? tx(lang, '正解！', '答对了！') : tx(lang, 'ざんねん…', '差一点…')}
           </p>
           <p className="mt-2 rounded bg-amber-50 px-2 py-1 text-sm leading-relaxed text-gray-900">
@@ -127,13 +134,13 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
               ))}
             </ul>
           </div>
-          <button type="button" className="mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white" onClick={advance}>
+          <button type="button" className={`${pressFx} action-primary-blue mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white`} onClick={advance}>
             {idx + 1 < sets.length ? tx(lang, 'つぎの問題', '下一题') : tx(lang, '結果を見る', '看结果')}
           </button>
         </div>
       )}
       {!answered && (
-        <button type="button" className="mt-4 w-full min-h-[44px] text-sm text-gray-500 underline"
+        <button type="button" className={`${pressFx} mt-4 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`}
           onClick={() => { setPicked(null); setAnswered(true); }}>
           {tx(lang, 'わからない（スキップ＝誤答扱い）', '不知道（跳过＝按答错计）')}
         </button>

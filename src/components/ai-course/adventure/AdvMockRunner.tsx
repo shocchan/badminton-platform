@@ -2,6 +2,7 @@
 // section intro → タイマー付き解答 → 未回答警告 → section提出 → section遷移 → 最終提出 → 技能別結果。
 // reload しても同じ問題・同じ提示順・同じ残り時間で再開する（seed＋保存状態）。
 // 「本番同等」とは表示しない。短時間版／本番時間版を明示的に分ける。
+import { pressFx, primaryBtn } from './advUi';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
@@ -17,7 +18,6 @@ import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
-const primaryBtn = 'w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40';
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 /** 試行のseedと開始時刻。render中には呼ばない（イベントハンドラ専用） */
 const newAttempt = (): { seed: number; iso: string } => {
@@ -192,7 +192,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
         <div className="mt-4 space-y-2">
           {(['short', 'fullTime'] as const).map((mode) => (
             <button key={mode} type="button"
-              className="w-full min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 py-3 text-left"
+              className={`${pressFx} action-choice w-full min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 py-3 text-left`}
               onClick={() => begin(mode)}>
               <span className="block font-semibold text-gray-900">{tx(lang, MOCK_MODE_LABEL[mode].ja, MOCK_MODE_LABEL[mode].zh)}</span>
               <span className="block text-xs text-gray-600">{tx(lang, MOCK_MODE_LABEL[mode].note.ja, MOCK_MODE_LABEL[mode].note.zh)}</span>
@@ -209,7 +209,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
             ))}
           </ul>
         </div>
-        <button type="button" className="mt-4 w-full min-h-[44px] text-sm text-gray-500 underline" onClick={props.onClose}>
+        <button type="button" className={`${pressFx} mt-4 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={props.onClose}>
           {tx(lang, 'もどる', '返回')}
         </button>
       </div>
@@ -297,6 +297,10 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
                 <p className="text-sm font-semibold text-gray-900">{tx(lang, s.labelJa, s.labelZh)}</p>
                 <p className="text-sm font-bold text-blue-800">{s.correct}／{s.total}</p>
               </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100" aria-hidden>
+                <div className="h-full rounded-full bg-blue-600"
+                  style={{ width: `${s.total > 0 ? Math.round((s.correct / s.total) * 100) : 0}%` }} />
+              </div>
               <p className="mt-0.5 text-xs text-gray-500">
                 {tx(lang, `所要 ${mmss(s.elapsedSec)}`, `用时 ${mmss(s.elapsedSec)}`)}
                 ・{s.finishedInTime ? tx(lang, '時間内', '时间内') : tx(lang, '時間切れ', '超时')}
@@ -343,7 +347,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       <div className="sticky top-0 z-10 -mx-4 mb-3 bg-white/95 px-4 py-2 backdrop-blur">
         <div className="flex items-center justify-between text-xs">
           <span className="text-gray-600">{tx(lang, section.section.labelJa, section.section.labelZh)}</span>
-          <span className={`font-bold ${remaining <= 60 ? 'text-red-600' : 'text-gray-800'}`} aria-live="polite">
+          <span className={`font-bold transition-colors ${remaining <= 60 ? 'animate-pulse text-red-600' : 'text-gray-800'}`} aria-live="polite">
             ⏱ {mmss(remaining)}
           </span>
         </div>
@@ -354,7 +358,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
               <button key={sq.key} type="button"
                 aria-current={i === qIdx}
                 aria-label={tx(lang, `問題${i + 1}${done ? '（回答済み）' : '（未回答）'}`, `第${i + 1}题${done ? '（已答）' : '（未答）'}`)}
-                className={`h-8 w-8 rounded text-xs font-bold ${
+                className={`${pressFx} h-8 w-8 rounded text-xs font-bold ${
                   i === qIdx ? 'bg-blue-600 text-white'
                     : done ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-500'}`}
                 onClick={() => setQIdx(i)}>
@@ -387,8 +391,8 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
         {presented.choices.map((c) => (
           <button key={c.choiceId} type="button"
             aria-pressed={picked === c.choiceId}
-            className={`w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm ${
-              picked === c.choiceId ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-400'}`}
+            className={`${pressFx} action-choice w-full min-h-[44px] rounded-xl border px-4 py-3 text-left text-sm ${
+              picked === c.choiceId ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 bg-white hover:border-blue-400'}`}
             onClick={() => answer(q.key, c.choiceId)}>
             {c.textJa}
           </button>
@@ -396,17 +400,17 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        <button type="button" className="min-h-[44px] flex-1 rounded-xl border border-gray-300 px-4 py-2 text-sm disabled:opacity-40"
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] flex-1 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm disabled:opacity-40 disabled:shadow-none`}
           disabled={qIdx === 0} onClick={() => setQIdx(qIdx - 1)}>
           {tx(lang, '前へ', '上一题')}
         </button>
         {qIdx + 1 < section.questions.length ? (
-          <button type="button" className="min-h-[44px] flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white"
+          <button type="button" className={`${pressFx} action-primary-blue min-h-[44px] flex-1 rounded-xl bg-blue-600 px-4 py-2 text-sm font-bold text-white`}
             onClick={() => setQIdx(qIdx + 1)}>
             {tx(lang, '次へ', '下一题')}
           </button>
         ) : (
-          <button type="button" className="min-h-[44px] flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white"
+          <button type="button" className={`${pressFx} action-emerald min-h-[44px] flex-1 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white`}
             onClick={() => submitSection(false)}>
             {tx(lang, 'このセクションを終える', '结束这一部分')}
           </button>
@@ -420,11 +424,11 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
               `还有${warnUnanswered.length}题未作答（第${warnUnanswered.join('・')}题）`)}
           </p>
           <div className="mt-2 flex gap-2">
-            <button type="button" className="min-h-[44px] flex-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-sm"
+            <button type="button" className={`${pressFx} action-amber min-h-[44px] flex-1 rounded-lg border border-amber-400 bg-white px-3 py-2 text-sm`}
               onClick={() => { setQIdx(warnUnanswered[0] - 1); setWarnUnanswered(null); }}>
               {tx(lang, '戻って回答する', '返回作答')}
             </button>
-            <button type="button" className="min-h-[44px] flex-1 rounded-lg bg-amber-600 px-3 py-2 text-sm font-bold text-white"
+            <button type="button" className={`${pressFx} action-amber min-h-[44px] flex-1 rounded-lg bg-amber-600 px-3 py-2 text-sm font-bold text-white`}
               onClick={() => submitSection(true)}>
               {tx(lang, 'このまま終える', '就这样结束')}
             </button>
@@ -446,7 +450,7 @@ function MockAudio({ lang, src, playLimit }: { lang: L; src: string; playLimit: 
       <audio ref={ref} src={src} preload="auto"
         onPlaying={() => setState('playing')} onEnded={() => setState('idle')} onError={() => setState('error')} />
       <button type="button" disabled={!canPlay}
-        className={`w-full min-h-[44px] rounded-xl px-4 py-2 font-bold text-white ${canPlay ? 'bg-blue-600' : 'bg-gray-300'}`}
+        className={`${pressFx} w-full min-h-[44px] rounded-xl px-4 py-2 font-bold text-white transition-colors duration-200 ${canPlay ? 'action-primary-blue bg-blue-600' : 'bg-gray-300'}`}
         onClick={() => {
           const el = ref.current; if (!el) return;
           el.currentTime = 0;

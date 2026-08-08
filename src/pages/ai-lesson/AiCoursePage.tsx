@@ -178,6 +178,8 @@ export default function AiCoursePage() {
    */
   const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map'; n: number } | null>(null);
   const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
+  // V2入口「冒険を始める」の連打ガード（updateLearnerの二重発火を防ぐ）
+  const [advEntryBusy, setAdvEntryBusy] = useState(false);
   const [learner, setLearner] = useState<Learner | null>(null);
   // 選んだ先生（未選択は null＝既定の先生）。全画面のアバターと文言をこれに揃える
   const advTeacherId: AdvTeacherId | null = readAdvProfile(learner?.settings)?.teacherId ?? null;
@@ -1104,9 +1106,11 @@ export default function AiCoursePage() {
               ? '目的地由你选择，当前位置由AI判断，每天的学习冒险由AI为你安排。现在的学习数据不会被删除，随时可以回到原来的主页。'
               : '目的地はあなたが選び、現在地はAIが測り、今日の冒険はAIが案内します。いまの学習データは消えません。いつでも従来のホームに戻せます。'}
           </p>
-          <button type="button"
-            className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white"
+          <button type="button" disabled={advEntryBusy}
+            className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-150 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => {
+              if (advEntryBusy) return;
+              setAdvEntryBusy(true);
               trackCourse('adv_onboarding_started');
               const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
               const next = writeAdvProfile(learner.settings, { ...prof, enabled: true }, new Date().toISOString());
@@ -1115,7 +1119,8 @@ export default function AiCoursePage() {
             }}>
             {uiLang === 'zh' ? '开始冒险' : '冒険を始める'}
           </button>
-          <button type="button" className="mt-3 w-full min-h-[44px] text-sm text-gray-500 underline"
+          <button type="button"
+            className="mt-3 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline transition-colors active:bg-gray-100 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
             onClick={() => { window.history.replaceState(null, '', window.location.pathname); setStep('home'); }}>
             {uiLang === 'zh' ? '回到原来的主页' : '従来のホームへ'}
           </button>

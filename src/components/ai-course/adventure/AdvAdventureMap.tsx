@@ -18,6 +18,7 @@
 // - **どの地域を開いても押せるボタンが1つある**（原則15・行き止まりを作らない）
 // - prefers-reduced-motion ではアニメーションを止める
 // - 地図が読めない/使えない人のために**一覧表示へ切り替えられる**
+import { pressFx } from './advUi';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { List, Map as MapIcon, Check, Lock, Flag, ChevronRight } from 'lucide-react';
 import {
@@ -228,7 +229,7 @@ export const AdvAdventureMap = ({
           {/* 行き止まりを作らない。ここから必ず何かを始められる（原則15） */}
           <p className="mt-3 text-xs leading-relaxed text-gray-600">{act.reason}</p>
           <button type="button" onClick={act.run}
-            className="mt-1.5 flex w-full min-h-[48px] items-center justify-center gap-1 rounded-xl border-2 border-blue-600 bg-white px-4 py-3 text-base font-bold text-blue-700">
+            className={`${pressFx} action-secondary mt-1.5 flex w-full min-h-[48px] items-center justify-center gap-1 rounded-xl border-2 border-blue-600 bg-white px-4 py-3 text-base font-bold text-blue-700`}>
             {act.label}
             <ChevronRight className="h-4 w-4" aria-hidden />
           </button>
@@ -243,7 +244,7 @@ export const AdvAdventureMap = ({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <button type="button" onClick={onBack}
-            className="mb-1 min-h-[44px] text-sm text-gray-500 hover:text-gray-700">
+            className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 hover:text-gray-700 active:bg-gray-100`}>
             ← {tx(lang, '今日の冒険へ戻る', '回到今天的冒险')}
           </button>
           <h1 className="text-xl font-bold text-gray-900">{tx(lang, '成長マップ', '成长地图')}</h1>
@@ -252,7 +253,7 @@ export const AdvAdventureMap = ({
           </p>
         </div>
         <button type="button" onClick={() => setAsList((v) => !v)}
-          className="shrink-0 flex min-h-[44px] items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700"
+          className={`${pressFx} action-secondary shrink-0 flex min-h-[44px] items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-700`}
           aria-pressed={asList}>
           {asList ? <MapIcon className="h-4 w-4" aria-hidden /> : <List className="h-4 w-4" aria-hidden />}
           {asList ? tx(lang, '地図で見る', '用地图看') : tx(lang, '一覧で見る', '用列表看')}
@@ -296,7 +297,7 @@ export const AdvAdventureMap = ({
           <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-gray-200"
             role="progressbar" aria-valuenow={overallPct} aria-valuemin={0} aria-valuemax={100}
             aria-label={tx(lang, '晴らした地域の割合', '已驱散迷雾的地区比例')}>
-            <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-blue-600"
+            <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-blue-600 transition-[width] duration-700 ease-out"
               style={{ width: `${overallPct}%` }} />
           </div>
           {nextRegion && (
@@ -334,7 +335,7 @@ export const AdvAdventureMap = ({
           </p>
         )}
         <button type="button" onClick={onStartToday}
-          className="mt-3 w-full min-h-[52px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white shadow-sm">
+          className={`${pressFx} action-primary-blue mt-3 w-full min-h-[52px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white`}>
           {tx(lang, '今日の冒険を始める', '开始今天的冒险')}
         </button>
       </section>
@@ -346,7 +347,7 @@ export const AdvAdventureMap = ({
             {kinds.map((k) => (
               <button key={k} type="button" role="tab" aria-selected={routeKind === k}
                 onClick={() => { setRouteKind(k); setOpenId(null); }}
-                className={`min-h-[44px] flex-1 rounded-xl border px-2 text-sm font-semibold ${
+                className={`${pressFx} action-choice min-h-[44px] flex-1 rounded-xl border px-2 text-sm font-semibold ${
                   routeKind === k ? 'border-blue-600 bg-blue-600 text-white' : 'border-gray-200 bg-white text-gray-700'}`}>
                 {tx(lang, ROUTE_KIND_LABEL[k].ja, ROUTE_KIND_LABEL[k].zh)}
               </button>
@@ -366,7 +367,7 @@ export const AdvAdventureMap = ({
             <li key={r.id}>
               <button type="button" onClick={() => setOpenId(openId === r.id ? null : r.id)}
                 aria-label={regionAria(r)} aria-expanded={openId === r.id}
-                className={`flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
+                className={`${pressFx} action-secondary flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
                   r.state === 'current' ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white'}`}>
                 <LandmarkIcon kind={r.landmark} size={32} muted={r.state === 'locked'} />
                 <span className="min-w-0 flex-1">
@@ -424,7 +425,7 @@ export const AdvAdventureMap = ({
                         onClick={() => setOpenId(openId === r.id ? null : r.id)}
                         aria-label={regionAria(r)} aria-expanded={openId === r.id}
                         aria-current={isCurrent ? 'step' : undefined}
-                        className="relative z-10 block w-full rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
+                        className="relative z-10 block w-full rounded-2xl transition-transform duration-150 active:scale-[0.98] touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
                         {/* 現在地の脈動。**枠の外側**に置く（overflow-hiddenの内側だと切れる） */}
                         {isCurrent && (
                           <span className="pointer-events-none absolute -inset-1 rounded-2xl border-2 border-blue-400 motion-safe:animate-ping" aria-hidden />
@@ -461,7 +462,7 @@ export const AdvAdventureMap = ({
                     <div className="min-w-0 flex-1 pb-3 pt-1">
                       <button type="button" onClick={() => setOpenId(openId === r.id ? null : r.id)}
                         aria-label={regionAria(r)} aria-expanded={openId === r.id}
-                        className="w-full text-left">
+                        className={`${pressFx} w-full rounded-lg text-left active:bg-gray-100`}>
                         <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${STATE_STYLE[r.state].chip}`}>
                           {tx(lang, STATE_LABEL[r.state].ja, STATE_LABEL[r.state].zh)}
                         </span>
@@ -499,7 +500,7 @@ export const AdvAdventureMap = ({
           </p>
           {sheetsVisible && (
           <button type="button" onClick={onOpenSheets}
-            className="w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
+            className="card-interactive w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
             <div className="relative h-20 w-full">
               <LandmarkScene kind="gate" tone="night" className="h-full w-full" />
               <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">
@@ -528,7 +529,7 @@ export const AdvAdventureMap = ({
 
           {interviewVisible && (
             <button type="button" onClick={onOpenInterview}
-              className={`w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 ${sheetsVisible ? 'mt-2' : ''}`}>
+              className={`card-interactive w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 ${sheetsVisible ? 'mt-2' : ''}`}>
               <div className="relative h-20 w-full">
                 <LandmarkScene kind="plaza" tone="sunset" className="h-full w-full" />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">

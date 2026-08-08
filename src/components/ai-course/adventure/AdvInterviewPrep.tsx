@@ -9,7 +9,8 @@
 // - **回答例は最初は畳んでおく**。先に自分で考えさせる（丸暗記は面接で崩れるため）
 // - 「自分の答え」を書くまで練習チェックは押せない
 // - 進捗は書いた数・声に出した回数だけ（できた/できないをAIが判定しない・原則13）
-import { useState } from 'react';
+import { pressFx, primaryBtn } from './advUi';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, Mic, Eye, EyeOff, Check, NotebookPen } from 'lucide-react';
 import type { AdventureV2Profile } from '../../../lib/aiLesson/course/adventure/advTypes';
 import {
@@ -83,7 +84,7 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <button type="button" onClick={() => setView({ kind: 'home' })}
-          className="mb-1 min-h-[44px] text-sm text-gray-500">
+          className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
           ← {tx(lang, '特訓の広場へ戻る', '回到特训广场')}
         </button>
         <h1 className="text-xl font-bold text-gray-900">{tx(lang, label.ja, label.zh)}</h1>
@@ -94,8 +95,11 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
               <li key={q.id}>
                 <button type="button"
                   onClick={() => setView({ kind: 'question', category: view.category, questionId: q.id })}
-                  className={`flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
+                  className={`${pressFx} action-secondary flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
                     n.notApplicable ? 'border-gray-200 bg-gray-50 opacity-60' : 'border-gray-200 bg-white'}`}>
+                  {n.spokenCount > 0 && !n.notApplicable && (
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                  )}
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold leading-snug text-gray-900">{q.questionJa}</span>
                     {lang === 'zh' && <span className="block text-xs text-gray-500">{q.questionHintZh}</span>}
@@ -124,7 +128,7 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <button type="button" onClick={() => setView({ kind: 'home' })}
-          className="mb-1 min-h-[44px] text-sm text-gray-500">
+          className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
           ← {tx(lang, '特訓の広場へ戻る', '回到特训广场')}
         </button>
         <h1 className="text-xl font-bold text-gray-900">{tx(lang, '自分ノート', '自我笔记')}</h1>
@@ -165,7 +169,7 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
           })}
         </div>
         <button type="button" onClick={() => setView({ kind: 'home' })}
-          className="mt-4 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white">
+          className={`${primaryBtn} mt-4`}>
           {tx(lang, '書けたぶんを保存して戻る', '保存已写的内容并返回')}
         </button>
       </div>
@@ -177,7 +181,7 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
   const cats = categoryProgress(state);
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
-      <button type="button" onClick={onBack} className="mb-1 min-h-[44px] text-sm text-gray-500">
+      <button type="button" onClick={onBack} className={`${pressFx} mb-1 min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
         ← {tx(lang, '今日の冒険へ戻る', '回到今天的冒险')}
       </button>
       <h1 className="text-xl font-bold text-gray-900">{tx(lang, '帰化面接の表現特訓', '入籍面试表达特训')}</h1>
@@ -210,7 +214,7 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
 
       {/* 自分ノート（動機の土台。最初にやる） */}
       <button type="button" onClick={() => setView({ kind: 'worksheet' })}
-        className="mt-3 flex w-full min-h-[56px] items-center gap-3 rounded-2xl border-2 border-indigo-200 bg-indigo-50/50 px-4 py-3 text-left">
+        className={`${pressFx} action-secondary mt-3 flex w-full min-h-[56px] items-center gap-3 rounded-2xl border-2 border-indigo-200 bg-indigo-50/50 px-4 py-3 text-left`}>
         <NotebookPen className="h-5 w-5 shrink-0 text-indigo-600" aria-hidden />
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-bold text-gray-900">{tx(lang, 'まず：自分ノート', '第一步：自我笔记')}</span>
@@ -229,13 +233,20 @@ export const AdvInterviewPrep = ({ lang, profile, onSave, onBack }: Props) => {
           return (
             <li key={c.category}>
               <button type="button" onClick={() => setView({ kind: 'category', category: c.category })}
-                className="flex w-full min-h-[56px] items-center gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left">
+                className={`${pressFx} action-secondary flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
+                  c.total > 0 && c.spoken === c.total ? 'border-emerald-200 bg-emerald-50/40' : 'border-gray-200 bg-white'}`}>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm font-semibold text-gray-900">{tx(lang, label.ja, label.zh)}</span>
                   <span className="block text-xs text-gray-600">
                     {tx(lang, `答えを書いた ${c.answered}/${c.total}・声に出した ${c.spoken}/${c.total}`,
                       `已写 ${c.answered}/${c.total}・开口 ${c.spoken}/${c.total}`)}
                   </span>
+                  {c.total > 0 && (
+                    <span className="mt-1 block h-1 overflow-hidden rounded-full bg-gray-100" aria-hidden>
+                      <span className="block h-full rounded-full bg-emerald-500"
+                        style={{ width: `${Math.round((c.spoken / c.total) * 100)}%` }} />
+                    </span>
+                  )}
                 </span>
                 {c.total > 0 && c.spoken === c.total && (
                   <Check className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
@@ -284,11 +295,15 @@ const QuestionDrill = ({
   const [showModel, setShowModel] = useState(false);
   const [draft, setDraft] = useState(note.myAnswer);
   const canPractice = draft.trim().length > 0;
+  // 記録した瞬間、ボタンが一拍だけ緑になって「入った」ことを返す（核心ループの手ごたえ）
+  const [justSpoke, setJustSpoke] = useState(false);
+  const spokeTimer = useRef<number | null>(null);
+  useEffect(() => () => { if (spokeTimer.current !== null) window.clearTimeout(spokeTimer.current); }, []);
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <div className="flex items-baseline justify-between gap-2">
-        <button type="button" onClick={onBack} className="min-h-[44px] text-sm text-gray-500">
+        <button type="button" onClick={onBack} className={`${pressFx} min-h-[44px] rounded-lg px-1 text-sm text-gray-500 active:bg-gray-100`}>
           ← {tx(lang, 'テーマへ戻る', '回到主题')}
         </button>
         <p className="text-xs text-gray-400">{position}</p>
@@ -321,7 +336,8 @@ const QuestionDrill = ({
 
           {/* 回答例は畳んでおく（まず自分で考える） */}
           <button type="button" onClick={() => setShowModel((v) => !v)}
-            className="mt-3 flex w-full min-h-[44px] items-center justify-center gap-1.5 rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700"
+            className={`${pressFx} action-secondary mt-3 flex w-full min-h-[44px] items-center justify-center gap-1.5 rounded-xl border px-4 text-sm text-gray-700 transition-colors ${
+              showModel ? 'border-gray-400 bg-gray-100' : 'border-gray-200 bg-white'}`}
             aria-expanded={showModel}>
             {showModel ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
             {showModel ? tx(lang, '回答例を閉じる', '收起范例') : tx(lang, '回答例を見る（まず自分で考えてから）', '查看范例（先自己想一想）')}
@@ -346,10 +362,16 @@ const QuestionDrill = ({
 
           {/* 声に出す練習。書くまで押せない */}
           <button type="button" disabled={!canPractice}
-            onClick={() => onSpoken(draft)}
-            className="mt-3 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white disabled:opacity-40">
-            <Mic className="h-4 w-4" aria-hidden />
-            {tx(lang, '声に出して言えた（記録する）', '开口说出来了（记录）')}
+            onClick={() => {
+              onSpoken(draft);
+              setJustSpoke(true);
+              if (spokeTimer.current !== null) window.clearTimeout(spokeTimer.current);
+              spokeTimer.current = window.setTimeout(() => setJustSpoke(false), 900);
+            }}
+            className={`${pressFx} mt-3 flex w-full min-h-[48px] items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-bold text-white transition-colors duration-300 disabled:opacity-40 disabled:shadow-none ${
+              justSpoke ? 'action-emerald bg-emerald-600' : 'action-primary-blue bg-blue-600'}`}>
+            {justSpoke ? <Check className="h-4 w-4" aria-hidden /> : <Mic className="h-4 w-4" aria-hidden />}
+            {justSpoke ? tx(lang, '記録しました！', '已记录！') : tx(lang, '声に出して言えた（記録する）', '开口说出来了（记录）')}
             {note.spokenCount > 0 && <span className="text-sm font-normal">×{note.spokenCount}</span>}
           </button>
           {!canPractice && (
@@ -361,7 +383,7 @@ const QuestionDrill = ({
       )}
 
       <button type="button" onClick={onNext}
-        className="mt-3 w-full min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700">
+        className={`${pressFx} action-secondary mt-3 w-full min-h-[44px] rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700`}>
         {nextLabel}
       </button>
     </div>
