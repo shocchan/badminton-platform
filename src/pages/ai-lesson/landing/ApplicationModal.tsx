@@ -127,7 +127,7 @@ export function ApplicationModal({ planId, onClose, lang }: {
           // 送れなかったことを隠さない。人へ繋ぐ導線を必ず出す
           <div className="pb-2">
             <h3 className="font-extrabold text-lp-ink text-lg">
-              {tx(lang, 'いま申込を受け付けられませんでした', '目前无法接收报名')}
+              {tx(lang, 'いま申込を受け付けられませんでした', '目前无法提交报名')}
             </h3>
             <p className="mt-2 text-[0.95rem] text-lp-ink-soft leading-relaxed">
               {tx(lang,

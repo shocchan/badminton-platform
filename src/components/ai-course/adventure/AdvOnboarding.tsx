@@ -262,9 +262,13 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
           q={questions[qIndex]}
           index={qIndex}
           total={questions.length}
+          selected={answers.get(questions[qIndex].key) ?? null}
+          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : null}
           onAnswer={(choiceIndex) => {
             const next = new Map(answers);
             if (choiceIndex !== null) next.set(questions[qIndex].key, choiceIndex);
+            // 戻って「わからない」へ変えたときは前の答えを消す（残すと診断が水増しされる）
+            else next.delete(questions[qIndex].key);
             setAnswers(next);
             if (qIndex + 1 < questions.length) setQIndex(qIndex + 1);
             else setPhase('conv');
@@ -303,8 +307,12 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
   );
 }
 
-function DiagQuestionView({ lang, q, index, total, onAnswer }: {
-  lang: L; q: DiagQuestion; index: number; total: number; onAnswer: (i: number | null) => void;
+function DiagQuestionView({ lang, q, index, total, selected, onBack, onAnswer }: {
+  lang: L; q: DiagQuestion; index: number; total: number;
+  /** 戻ってきたときに自分の答えが見えるように（押し間違いに気づける） */
+  selected: number | null;
+  onBack: (() => void) | null;
+  onAnswer: (i: number | null) => void;
 }) {
   return (
     <section aria-label={tx(lang, `診断 ${index + 1}/${total}`, `诊断 ${index + 1}/${total}`)}>
@@ -316,11 +324,16 @@ function DiagQuestionView({ lang, q, index, total, onAnswer }: {
       <p className="mb-4 text-sm text-gray-700">{q.promptZh}</p>
       <div className="space-y-2">
         {q.choices.map((c, i) => (
-          <button key={c} type="button" className={btnIdle} onClick={() => onAnswer(i)}>{c}</button>
+          <button key={c} type="button" className={selected === i ? btnOn : btnIdle} onClick={() => onAnswer(i)}>{c}</button>
         ))}
         <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={() => onAnswer(null)}>
           {tx(lang, 'わからない', '不知道')}
         </button>
+        {onBack && (
+          <button type="button" className="w-full min-h-[44px] text-sm text-gray-500 underline" onClick={onBack}>
+            {tx(lang, 'ひとつ前の問題にもどる', '回到上一题')}
+          </button>
+        )}
       </div>
     </section>
   );

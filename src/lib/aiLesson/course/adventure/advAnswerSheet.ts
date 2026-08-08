@@ -61,6 +61,8 @@ export interface AnswerSheetSession {
   startedAtISO: string;
   /** 現在の科目を始めた時刻。残り時間はここから計算する */
   sectionStartedAtISO: string;
+  /** 終えた科目の実測経過秒（sectionId → 秒）。advanceSection の時点で確定する */
+  sectionElapsed: Record<string, number>;
   /** sectionId → 各問の解答（1始まり・未回答は null） */
   answers: Record<string, (number | null)[]>;
 }
@@ -125,6 +127,7 @@ export const startSession = (paper: AnswerSheetPaper, nowISO: string): AnswerShe
   sectionIndex: 0,
   startedAtISO: nowISO,
   sectionStartedAtISO: nowISO,
+  sectionElapsed: {},
   answers: Object.fromEntries(
     paper.sections.map((s) => [s.id, Array.from({ length: s.questionCount }, () => null)]),
   ),
@@ -163,6 +166,11 @@ export const remainingSeconds = (
   return Math.max(0, section.minutes * 60 - elapsed);
 };
 
+/** いまの科目の実測経過秒（制限時間で頭打ち。時間切れ後に放置した時間は数えない） */
+const measuredElapsed = (
+  section: AnswerSheetSection, session: AnswerSheetSession, nowISO: string,
+): number => section.minutes * 60 - remainingSeconds(section, session, nowISO);
+
 export const isTimeUp = (
   section: AnswerSheetSection, session: AnswerSheetSession, nowISO: string,
 ): boolean => remainingSeconds(section, session, nowISO) === 0;
@@ -183,7 +191,12 @@ export const advanceSection = (
 ): AnswerSheetSession | null => {
   const next = session.sectionIndex + 1;
   if (next >= paper.sections.length) return null;
-  return { ...session, sectionIndex: next, sectionStartedAtISO: nowISO };
+  // 終えた科目の実測秒をここで確定する（採点時に按分でそれらしい時間を出さないため）
+  const cur = paper.sections[session.sectionIndex];
+  const sectionElapsed = cur
+    ? { ...session.sectionElapsed, [cur.id]: measuredElapsed(cur, session, nowISO) }
+    : session.sectionElapsed;
+  return { ...session, sectionIndex: next, sectionStartedAtISO: nowISO, sectionElapsed };
 };
 
 /* ────────────────────────────────────────────────────────────
@@ -210,11 +223,20 @@ export const grade = (
     const correct = gradable(s)
       ? a.reduce((n: number, v, qi) => (v != null && v === s.correctChoices![qi] ? n + 1 : n), 0)
       : null;
-    // 科目ごとの実測時間は持っていないので、制限時間を上限とした按分で出す。
-    // 「測っていない値をそれらしく出さない」ため、最後の科目だけ実測の残りを充てる
+    // 経過時間は実測を使う: 終えた科目は advanceSection で確定した秒、
+    // いま解いている科目（＝提出する最終科目）はこの場で測る。
+    // 実測が残っていない旧セッションだけ、従来の按分にフォールバックする
     const cap = s.minutes * 60;
-    const consumedBefore = paper.sections.slice(0, i).reduce((n, x) => n + x.minutes * 60, 0);
-    const elapsedSeconds = Math.max(0, Math.min(cap, totalElapsed - consumedBefore));
+    const recorded = session.sectionElapsed[s.id];
+    let elapsedSeconds: number;
+    if (typeof recorded === 'number' && Number.isFinite(recorded)) {
+      elapsedSeconds = Math.max(0, Math.min(cap, Math.floor(recorded)));
+    } else if (i === session.sectionIndex) {
+      elapsedSeconds = measuredElapsed(s, session, nowISO);
+    } else {
+      const consumedBefore = paper.sections.slice(0, i).reduce((n, x) => n + x.minutes * 60, 0);
+      elapsedSeconds = Math.max(0, Math.min(cap, totalElapsed - consumedBefore));
+    }
     return {
       id: s.id, labelJa: s.labelJa, labelZh: s.labelZh,
       answered, total: s.questionCount, correct, elapsedSeconds, choices,
@@ -239,6 +261,10 @@ export const grade = (
    壊れたデータの復元（jsonbなので何が入っているか分からない）
    ──────────────────────────────────────────────────────────── */
 
+/** 非空文字列ならそれ、でなければfallback（zhタイトル欠落時に機械IDを画面に出さないため） */
+const strOr = (v: unknown, fallback: string): string =>
+  (typeof v === 'string' && v !== '' ? v : fallback);
+
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -255,8 +281,8 @@ const restoreSection = (v: unknown): AnswerSheetSection | null => {
   }
   const s: AnswerSheetSection = {
     id: v.id,
-    labelJa: typeof v.labelJa === 'string' ? v.labelJa : v.id,
-    labelZh: typeof v.labelZh === 'string' ? v.labelZh : v.id,
+    labelJa: strOr(v.labelJa, strOr(v.labelZh, v.id)),
+    labelZh: strOr(v.labelZh, strOr(v.labelJa, v.id)),
     questionCount, choiceCount, minutes,
   };
   // 正解は「全問ぶん・範囲内」がそろっているときだけ採用する。
@@ -277,8 +303,8 @@ export const restorePaper = (v: unknown): AnswerSheetPaper | null => {
   if (sections.length === 0) return null;
   return {
     paperId: v.paperId,
-    titleJa: typeof v.titleJa === 'string' ? v.titleJa : v.paperId,
-    titleZh: typeof v.titleZh === 'string' ? v.titleZh : v.paperId,
+    titleJa: strOr(v.titleJa, strOr(v.titleZh, v.paperId)),
+    titleZh: strOr(v.titleZh, strOr(v.titleJa, v.paperId)),
     level: v.level,
     noteJa: typeof v.noteJa === 'string' ? v.noteJa : undefined,
     noteZh: typeof v.noteZh === 'string' ? v.noteZh : undefined,
@@ -302,11 +328,20 @@ export const restoreSheetSession = (v: unknown): AnswerSheetSession | null => {
       answers[k] = arr.map((x) => intIn(x, 1, MAX_CHOICE_COUNT));
     }
   }
+  // 実測秒（新フィールド）。旧データには無いので空でよい（grade が按分へフォールバックする）
+  const sectionElapsed: Record<string, number> = {};
+  if (isRecord(v.sectionElapsed)) {
+    for (const [k, n] of Object.entries(v.sectionElapsed)) {
+      const sec = intIn(n, 0, 300 * 60);
+      if (sec !== null) sectionElapsed[k] = sec;
+    }
+  }
   return {
     paperId: v.paperId,
     sectionIndex: idx,
     startedAtISO: v.startedAtISO,
     sectionStartedAtISO: typeof v.sectionStartedAtISO === 'string' ? v.sectionStartedAtISO : v.startedAtISO,
+    sectionElapsed,
     answers,
   };
 };

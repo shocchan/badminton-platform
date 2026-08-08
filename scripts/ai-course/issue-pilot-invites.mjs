@@ -27,17 +27,17 @@ const RUNNER = join(ROOT, 'scripts/ai-course/remote-sql.mjs');
 
 const argv = process.argv.slice(2);
 const arg = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : undefined; };
-const learner = arg('--learner');       // A / B / C
+const learner = arg('--learner');       // 英大文字1文字（A〜Z）。Pilotの枠は1人1枠
 const email = arg('--email');
 const expires = arg('--expires');       // YYYY-MM-DD
 const confirm = argv.includes('--confirm');
 const reissue = argv.includes('--reissue');
 
 if (!learner || !email || !expires) {
-  console.error('usage: --learner <A|B|C> --email <addr> --expires <YYYY-MM-DD> [--confirm] [--reissue]');
+  console.error('usage: --learner <A-Z> --email <addr> --expires <YYYY-MM-DD> [--confirm] [--reissue]');
   process.exit(2);
 }
-if (!/^[ABC]$/.test(learner)) { console.error('refuse: learner は A/B/C'); process.exit(2); }
+if (!/^[A-Z]$/.test(learner)) { console.error('refuse: learner は英大文字1文字（A〜Z）'); process.exit(2); }
 if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { console.error('refuse: emailの形式が不正'); process.exit(2); }
 if (!/^\d{4}-\d{2}-\d{2}$/.test(expires) || new Date(expires) <= new Date()) {
   console.error('refuse: expires は未来の YYYY-MM-DD'); process.exit(2);

@@ -6,7 +6,7 @@
 // 流れ: 一覧 → 説明 → 科目（タイマー＋マークシート）→ 未回答の確認 → 提出 → 結果
 // - 中断しても同じ問題・同じ残り時間から再開できる（残り時間は壁時計基準＝閉じても進む）
 // - 正解が登録されていない科目は採点しない。「先生が確認します」と出す（0点に見せない・原則13）
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Clock, ChevronRight, CheckCircle2, AlertTriangle } from 'lucide-react';
 import type { AdventureV2Profile } from '../../../lib/aiLesson/course/adventure/advTypes';
 import {
@@ -49,6 +49,16 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
   // 一覧 ↔ 説明の切り替え（進行中の答案があれば常にrun）
   const [openPaperId, setOpenPaperId] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  // 「記入へ戻る」で最初の未回答問題まで運ぶ（75問を手でスクロールして探させない）。
+  // scrollはDOMへの一方向の作用なのでrefで持つ（stateにするとeffect内のリセットが再レンダーを起こす）
+  const jumpToRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (confirming || jumpToRef.current == null) return;
+    const el = document.getElementById(`sheet-q-${jumpToRef.current}`);
+    // block:'center' でsticky headerの下に隠れない位置に出す（jsdomは未実装なのでtypeof確認）
+    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'center' });
+    jumpToRef.current = null;
+  }, [confirming]);
   const [lastResult, setLastResult] = useState<AnswerSheetResult | null>(null);
 
   const section = activePaper && session ? activePaper.sections[session.sectionIndex] ?? null : null;
@@ -205,7 +215,8 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
             }}>
             {isLast ? tx(lang, 'これで提出する', '就这样提交') : tx(lang, '次の科目へ進む', '进入下一科目')}
           </button>
-          <button type="button" className={`${subtleBtn} mt-2`} onClick={() => setConfirming(false)}>
+          <button type="button" className={`${subtleBtn} mt-2`}
+            onClick={() => { jumpToRef.current = unanswered[0] ?? null; setConfirming(false); }}>
             {tx(lang, '記入へ戻る', '回到作答')}
           </button>
         </div>
@@ -242,7 +253,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
 
         <ol className="mt-4 space-y-1.5">
           {answers.map((a, qi) => (
-            <li key={qi}
+            <li key={qi} id={`sheet-q-${qi + 1}`}
               className={`flex items-center gap-2 rounded-xl border px-2.5 py-1.5 ${
                 a == null ? 'border-gray-200 bg-white' : 'border-blue-200 bg-blue-50/50'}`}>
               <span className="w-8 shrink-0 text-center text-sm font-bold text-gray-700">{qi + 1}</span>
@@ -320,7 +331,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
           <p className="mt-2 text-xs leading-relaxed text-gray-500">
             {tx(lang,
               '始めると時間が動きます。途中で閉じても時間は本番と同じように進み、戻ると同じところから再開できます。',
-              '开始后计时就会走动。中途关闭页面，时间也会像正式考试一样继续；回来后可从原处继续作答。')}
+              '一旦开始，计时就不会停。中途关闭页面，时间也会像正式考试一样继续；回来后可从原处继续作答。')}
           </p>
         </div>
 

@@ -7,7 +7,7 @@ export const COMPANIONS: AdvCompanionDef[] = [
     id: 'nami',
     nameJa: 'ナミ', nameZh: '娜米',
     roleJa: '会話型の相棒。発話・聞き返し・言い直しを応援する',
-    roleZh: '会话型伙伴。鼓励开口・追问・改口',
+    roleZh: '会话型伙伴。鼓励开口・听不懂再问・改口',
     emphasis: { conversation: 0.5, knowledge: 0.25, practical: 0.25 },
     greetJa: '今日も一言、話してみよう', greetZh: '今天也开口说一句吧',
   },

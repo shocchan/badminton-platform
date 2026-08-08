@@ -209,7 +209,7 @@ const planHash = (id: string): string => {
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
   'ai-trial-pass': { version: 1, hash: '50e5c60bb64e' },
   'ai-month': { version: 1, hash: '4f1197dc71a4' },
-  'coach-6m': { version: 2, hash: 'e951c7df16e5' },
+  'coach-6m': { version: 3, hash: '884a6b9e53a5' },
 };
 
 describe('プランの版', () => {

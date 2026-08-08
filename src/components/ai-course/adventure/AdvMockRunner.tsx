@@ -49,8 +49,12 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   const [warnUnanswered, setWarnUnanswered] = useState<number[] | null>(null);
   const [result, setResult] = useState<MockResult | null>(null);
   const [seenAtStart] = useState(() => new Set(props.seenKeys));
+  // 保存stateがあるのに復元できなかった（問題プールの変更等）。黙って新規画面に
+  // 戻すと「途中のはずでは？」と混乱するので、事情を一言出して保存stateは捨てる
+  const [restoreFailed] = useState(() => !!props.savedState && !rt);
   const persistRef = useRef(props.onPersist);
   const rtRef = useRef<MockRuntime | null>(null);
+  useEffect(() => { if (restoreFailed) persistRef.current(null); }, [restoreFailed]);
   useEffect(() => { persistRef.current = props.onPersist; }, [props.onPersist]);
   useEffect(() => { rtRef.current = rt; }, [rt]);
 
@@ -166,6 +170,15 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-lg font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">{tx(lang, spec.disclaimerJa, spec.disclaimerZh)}</p>
+        {restoreFailed && (
+          <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3" role="status">
+            <p className="text-xs leading-relaxed text-amber-900">
+              {tx(lang,
+                '途中だった模試は、問題の入れ替えがあったため再開できませんでした。お手数ですが最初からやり直してください。',
+                '之前进行到一半的模拟考试因题目有更新而无法继续。抱歉，请从头再来一次。')}
+            </p>
+          </div>
+        )}
         {!spec.ready && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3">
             <p className="text-xs font-semibold text-amber-900">{tx(lang, '含まれない科目があります', '有未包含的科目')}</p>

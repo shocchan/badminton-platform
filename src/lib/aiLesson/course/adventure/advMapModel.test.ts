@@ -198,8 +198,20 @@ describe('成長マップ — 現在地の進み具合は実測値', () => {
     expect(cur.nextJa).toContain('あと1回');
   });
 
-  it('記録が無ければ現在地は0%（実測の0であって、未計測ではない）', () => {
+  it('**まだ一度も測っていなければ現在地は未判定**（測っていないものを0%と見せない）', () => {
     const prof = profileFor('jlpt');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'exam', NOW);
+    expect(m.regions.find((r) => r.id === m.currentRegionId)!.masteryPct).toBeNull();
+  });
+
+  it('挑戦したが条件に届かない記録があれば0%（実測の0として出す）', () => {
+    const base = profileFor('jlpt');
+    const stageId = base.route!.stages[0].stageId;
+    const prof: AdventureV2Profile = {
+      ...base,
+      // 80%に届かない挑戦（回数条件を満たさないスコア）は進捗0だが「測った0」
+      mastery: { [stageId]: [{ ...qualifying('2026-07-28'), scorePct: 60 }] },
+    };
     const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'exam', NOW);
     expect(m.regions.find((r) => r.id === m.currentRegionId)!.masteryPct).toBe(0);
   });

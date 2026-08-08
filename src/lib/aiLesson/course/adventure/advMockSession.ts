@@ -98,6 +98,14 @@ export const restoreMockSession = (
 ): MockRuntime | null => {
   const fresh = startMockSession(spec, pools, state.mode, state.attemptSeed, state.startedAt);
   if (!fresh) return null;
+  // 保存時と問題プールが変わっていると、保存stateが再構成した問題と噛み合わない
+  // （sectionが減った・答えた問題が消えた等）。壊れた復元で答えを別問題に
+  // 付け替えるより、復元失敗として扱い新規に始めさせる方が安全
+  if (state.remainingSecBySection.length !== fresh.sections.length) return null;
+  if (state.sectionIndex < 0 || state.sectionIndex > fresh.sections.length) return null;
+  const keys = new Set<string>();
+  for (const sec of fresh.sections) for (const q of sec.questions) keys.add(q.key);
+  for (const k of Object.keys(state.answers)) if (!keys.has(k)) return null;
   return { ...fresh, state };
 };
 

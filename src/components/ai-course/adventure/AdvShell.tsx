@@ -34,7 +34,7 @@ import { AdvReadingRunner } from './AdvReadingRunner';
 import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
 import { AdvAnswerSheetRunner } from './AdvAnswerSheetRunner';
-import { answerSheetsVisible } from '../../../lib/aiLesson/course/adventure/advAnswerSheet';
+import { answerSheetsVisible, paperById } from '../../../lib/aiLesson/course/adventure/advAnswerSheet';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
@@ -132,14 +132,15 @@ export default function AdvShell(props: AdvShellProps) {
    * （実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
    */
   const [vocabPoolFn, setVocabPoolFn] = useState<null | ((lv: 'N2' | 'N3') => Map<string, AdvBattleQuestion[]>)>(null);
+  const [vocabPoolError, setVocabPoolError] = useState(false);
   useEffect(() => {
-    if (view !== 'mock' || vocabPoolFn) return;
+    if (view !== 'mock' || vocabPoolFn || vocabPoolError) return;
     let alive = true;
     void import('../../../lib/aiLesson/course/adventure/vocab/vocabQuestions').then((m) => {
       if (alive) setVocabPoolFn(() => m.vocabPool);
-    });
+    }).catch(() => { if (alive) setVocabPoolError(true); });
     return () => { alive = false; };
-  }, [view, vocabPoolFn]);
+  }, [view, vocabPoolFn, vocabPoolError]);
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
@@ -184,10 +185,11 @@ export default function AdvShell(props: AdvShellProps) {
 
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
+  const [diagError, setDiagError] = useState(false);
   useEffect(() => {
-    if (!needsOnboarding || diagPools) return;
-    void buildDiagnosisPools().then(setDiagPools);
-  }, [needsOnboarding, diagPools]);
+    if (!needsOnboarding || diagPools || diagError) return;
+    void buildDiagnosisPools().then(setDiagPools).catch(() => setDiagError(true));
+  }, [needsOnboarding, diagPools, diagError]);
 
   useEffect(() => {
     if (needsOnboarding || !profile?.route) return;
@@ -276,6 +278,24 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── onboarding ──
   if (needsOnboarding) {
+    // 読込失敗を無限ローディングにしない（原則15）。再試行と出口を必ず出す
+    if (diagError) {
+      return (
+        <div className="mx-auto w-full max-w-xl px-4 py-10">
+          <p className="text-sm leading-relaxed text-gray-700" role="alert">
+            {tx(lang,
+              '冒険の準備データを読み込めませんでした。通信環境を確認して、もう一度お試しください。',
+              '冒险的准备数据加载失败。请检查网络后重试。')}
+          </p>
+          <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setDiagError(false)}>
+            {tx(lang, 'もう一度読み込む', '重新加载')}
+          </button>
+          <button type="button" className={`${secondaryBtn} mt-2`} onClick={props.onExitV2}>
+            {tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+          </button>
+        </div>
+      );
+    }
     if (!diagPools) return <AdvLoading lang={lang} />;
     return (
       <AdvOnboarding
@@ -463,6 +483,25 @@ export default function AdvShell(props: AdvShellProps) {
   if (view === 'mock') {
     // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
     // Homeを開くたびに読ませないよう、この画面へ来てから動的importで取りに行く。
+    // 語彙chunkの読込失敗を無限スピナーにしない（原則15）
+    if (vocabPoolError) {
+      return (
+        <div className="mx-auto w-full max-w-xl px-4 py-6">
+          <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, 'ミニ模試', '迷你模拟考')} teacherLang={lang} />
+          <p className="text-sm leading-relaxed text-gray-700" role="alert">
+            {tx(lang,
+              '模試の問題を読み込めませんでした。通信環境を確認して、もう一度お試しください。',
+              '模拟考的题目加载失败。请检查网络后重试。')}
+          </p>
+          <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setVocabPoolError(false)}>
+            {tx(lang, 'もう一度読み込む', '重新加载')}
+          </button>
+          <button type="button" className={`${secondaryBtn} mt-2`} onClick={() => setView('home')}>
+            {tx(lang, 'ホームへ戻る', '返回主页')}
+          </button>
+        </div>
+      );
+    }
     if (!pools || !vocabPoolFn) return <AdvLoading lang={lang} />;
     const rPool = readingPool(level);
     const lPool = listeningPool(level);
@@ -925,6 +964,11 @@ export default function AdvShell(props: AdvShellProps) {
   // 中断した模試は残り時間が動いているので、そのときだけ「今日の一手」を模試の再開にする。
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
   const mockPending = prof.mockSession !== null;
+  // 進行中の答案の紙が手元にまだあるか。紙が消えていたら（発行取り下げ等）
+  // 「再開できます」と言い続けない（原則13）。破棄の出口を出す（原則15）
+  const sheetSession = prof.answerSheetSession;
+  const sheetPaper = sheetSession ? paperById(prof, sheetSession.paperId) : null;
+  const sheetResumable = !!sheetSession && !!sheetPaper && sheetSession.sectionIndex < sheetPaper.sections.length;
 
   const runStep = (i: number) => {
     if (!quest) return;
@@ -1038,17 +1082,33 @@ export default function AdvShell(props: AdvShellProps) {
       )}
 
       {/* 進行中の答案用紙。**時間は壁時計で進んでいる**ので、模試と同様に最優先で再開させる */}
-      {prof.answerSheetSession && answerSheetsVisible(prof) && (
+      {sheetSession && answerSheetsVisible(prof) && sheetResumable && (
         <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
           <p className="text-sm font-semibold text-gray-900">
             {tx(lang, '過去問の答案が途中です', '真题答案填到一半')}
           </p>
           <p className="mt-0.5 text-xs text-gray-600">
-            {tx(lang, '試験の時間は本番と同じように進んでいます。', '考试时间正像正式考试一样继续走动。')}
+            {tx(lang, '試験の時間は本番と同じように進んでいます。', '考试时间正像正式考试一样继续。')}
           </p>
           <button type="button" className="mt-2 w-full min-h-[48px] rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white"
             onClick={() => setView('sheets')}>
             {tx(lang, '答案に戻る', '回到答题')}
+          </button>
+        </div>
+      )}
+      {/* 紙が消えた答案（発行取り下げ等）。再開できないバナーを永遠に残さない（原則15） */}
+      {sheetSession && answerSheetsVisible(prof) && !sheetResumable && (
+        <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
+          <p className="text-sm font-semibold text-gray-900">
+            {tx(lang, '途中だった答案用紙が見つかりません', '填到一半的答题卡已不存在')}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-600">
+            {tx(lang, '先生が答案用紙を取り下げた可能性があります。この答案は再開できないため、破棄してください。',
+              '老师可能已撤回这份答题卡。这份答案无法继续，请将其放弃。')}
+          </p>
+          <button type="button" className="mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900"
+            onClick={() => save({ ...prof, answerSheetSession: null })}>
+            {tx(lang, 'この答案を破棄する', '放弃这份答案')}
           </button>
         </div>
       )}
@@ -1240,13 +1300,23 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
   setDoc: (d: N2GrammarDraft | null) => void;
   onBattle: () => void; onBack: () => void; onLearned: () => void;
 }) {
+  // 「読込中」と「見つからない/読込失敗」を区別する（無限ローディングにしない・原則15）。
+  // どのgrammarIdで失敗したかを持ち、id切替時は照合が外れて自然に読込中へ戻る（effect内での同期リセット不要）
+  const [missingId, setMissingId] = useState<string | null>(null);
+  const missing = missingId === grammarId;
   useEffect(() => {
     let alive = true;
     void (async () => {
       const n3 = (N3_GRAMMAR_DRAFTS as unknown as N2GrammarDraft[]).find((d) => d.grammarId === grammarId);
       if (n3) { if (alive) setDoc(n3); return; }
-      const n2 = (await loadAllN2Drafts()).find((d) => d.grammarId === grammarId);
-      if (alive) setDoc(n2 ?? null);
+      try {
+        const n2 = (await loadAllN2Drafts()).find((d) => d.grammarId === grammarId);
+        if (!alive) return;
+        if (n2) setDoc(n2);
+        else setMissingId(grammarId);
+      } catch {
+        if (alive) setMissingId(grammarId);
+      }
     })();
     return () => { alive = false; };
   }, [grammarId, setDoc]);
@@ -1255,6 +1325,21 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doc]);
 
+  if (!doc && missing) {
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <BackBar lang={lang} onBack={onBack} title={tx(lang, '文法の教材', '语法教材')} teacherLang={lang} />
+        <p className="text-sm leading-relaxed text-gray-700" role="alert">
+          {tx(lang,
+            'この文法の教材を読み込めませんでした。通信環境を確認してもう一度開くか、ホームへ戻って他のstepから進めてください。',
+            '无法加载这条语法的教材。请检查网络后重新打开，或返回主页从其他步骤继续。')}
+        </p>
+        <button type="button" className={`${primaryBtn} mt-4`} onClick={onBack}>
+          {tx(lang, 'ホームへ戻る', '返回主页')}
+        </button>
+      </div>
+    );
+  }
   if (!doc) return <AdvLoading lang={lang} />;
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">

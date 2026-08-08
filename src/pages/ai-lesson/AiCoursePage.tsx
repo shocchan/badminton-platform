@@ -1072,6 +1072,10 @@ export default function AiCoursePage() {
             restateAvailable={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
             onOpenArea={openArea}
             onExitV2={() => {
+              // URLに ?v2=1 が残っていると enabled:false にしても即座にV2へ戻されるので、先に消す
+              if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
+                window.history.replaceState(null, '', window.location.pathname);
+              }
               const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
               const next = writeAdvProfile(learner.settings, { ...prof, enabled: false }, new Date().toISOString());
               setLearner({ ...learner, settings: next });

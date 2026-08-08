@@ -128,7 +128,7 @@ const conversationStages = (convBand: AdvBand, d: AdvDiagnosisResult | null): Ad
       { conversationThemeIds: [start.areaId], vocabularyIds: vocabGaps }),
     stage('stg-conv-growth', 'conversation_growth', 'area09-katari',
       '会話力の成長', '会话能力成长',
-      '理由説明・言い直し・聞き返しを実戦で伸ばす', '实战提升说明理由・改口・追问能力',
+      '理由説明・言い直し・聞き返しを実戦で伸ばす', '在实战中提升说明理由・改口・听不懂再问的能力',
       { conversationThemeIds: ['area09-katari'] }),
   ];
 };

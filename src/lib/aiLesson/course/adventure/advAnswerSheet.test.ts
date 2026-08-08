@@ -125,6 +125,27 @@ describe('時間 — 壁時計基準（本番と同じ）', () => {
     expect(formatClock(65)).toBe('1:05');
     expect(formatClock(105 * 60)).toBe('105:00');
   });
+
+  it('**科目ごとの経過時間は実測**（早く終えた科目に按分で時間を盛らない・監査sh-time）', () => {
+    const pp = paper();
+    let s = startSession(pp, NOW);                              // s1(105分)を10:00に開始
+    s = advanceSection(pp, s, '2026-08-02T10:30:00.000Z')!;     // 30分でs1を終える
+    const r = grade(pp, s, '2026-08-02T10:50:00.000Z');         // s2は20分で提出
+    expect(r.sections[0].elapsedSeconds).toBe(30 * 60);
+    expect(r.sections[1].elapsedSeconds).toBe(20 * 60);
+  });
+
+  it('実測の無い旧セッションでも grade が落ちない（按分にフォールバック）', () => {
+    const pp = paper();
+    const restored = restoreSheetSession({
+      paperId: 'p1', sectionIndex: 1, startedAtISO: NOW,
+      sectionStartedAtISO: '2026-08-02T11:45:00.000Z', answers: {},
+    })!;
+    expect(restored.sectionElapsed).toEqual({});
+    const r = grade(pp, restored, '2026-08-02T12:00:00.000Z');
+    expect(r.sections[0].elapsedSeconds).toBe(105 * 60); // 旧データは従来どおりの按分（上限cap）
+    expect(r.sections[1].elapsedSeconds).toBe(15 * 60);  // いまの科目は実測
+  });
 });
 
 describe('採点 — 未登録なら採点しない（原則13）', () => {

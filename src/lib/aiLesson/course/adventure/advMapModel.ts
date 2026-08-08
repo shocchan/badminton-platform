@@ -163,7 +163,7 @@ const STAGE_ABILITY: Record<string, { ja: string; zh: string }> = {
   reading_listening: { ja: '読解と聴解', zh: '阅读与听力' },
   mock_boss: { ja: '時間配分と総合力', zh: '时间分配与综合能力' },
   conversation_start: { ja: 'いま話せる場面を増やす', zh: '增加现在能开口的场景' },
-  conversation_growth: { ja: '理由説明・言い直し・聞き返し', zh: '说明理由・改口・追问' },
+  conversation_growth: { ja: '理由説明・言い直し・聞き返し', zh: '说明理由・改口・听不懂再问' },
 };
 
 /**
@@ -363,12 +363,14 @@ export const buildAdventureMap = (
 
   const withState = regions.map((r, i) => {
     if (i === firstOpen) {
-      // 試験レイヤーは mastery台帳で測っているので実測値を出す（0%も実測）。
-      // **会話レイヤーは測っていないので null のまま**にする（0%と見せない・原則13）
+      // 試験レイヤーは mastery台帳の**記録がある場合だけ**実測値を出す
+      // （挑戦して届かなかった0%は実測。まだ一度も測っていない0%は未判定＝null・原則13）。
+      // **会話レイヤーは測っていないので null のまま**にする
       return {
         ...r,
         state: 'current' as RegionState,
-        masteryPct: r.layer === 'exam' ? masteryProgressPct(ledger[r.id], nowISO) : null,
+        masteryPct: r.layer === 'exam' && (ledger[r.id]?.length ?? 0) > 0
+          ? masteryProgressPct(ledger[r.id], nowISO) : null,
         // 画面上部の主要CTAと**同じ文言のボタンを2つ並べない**。
         // どちらも今日の冒険へ行くが、ここは「この地域を進める」と場所を名指しする
         action: r.action.kind === 'today'

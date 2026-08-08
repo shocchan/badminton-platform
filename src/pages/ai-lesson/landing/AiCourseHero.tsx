@@ -14,9 +14,8 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
 }) {
   const [l1, l2, l3] = LP.heroTitleLines[lang];
   const hl = LP.heroHighlight[lang];
-  const sub = duo
-    ? LP.heroSub[lang].replace('翔子先生', lang === 'zh' ? '两位AI老师' : '二人のAI先生')
-    : LP.heroSub[lang].replace('翔子先生', v.name[lang]).replace('AIチューター', v.name[lang]);
+  // heroSub は variant名を含まない文になったので、duo/variantで差し替えるものが無い
+  const sub = LP.heroSub[lang];
   const [bw, bh] = v.imageSize.wave;
 
   // 強調語をハイライト付きで差し込む
