@@ -23,6 +23,36 @@ const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle' | 'game';
 
+type EntryWithTournament = Entry & {
+  tournaments?: {
+    title: string;
+    payment_required?: boolean;
+    payment_deadline?: string | null;
+    entry_fee?: number;
+  };
+};
+
+const PAYMENT_METHOD_LABEL: Record<string, string> = {
+  credit: 'カード',
+  paypay: 'PayPay',
+  bank: '銀行振込',
+};
+const paymentMethodLabel = (m?: string | null) => (m ? PAYMENT_METHOD_LABEL[m] ?? m : '未選択');
+
+// 支払い期限までの残り日数（マイナスなら超過）。期限未設定は null
+const daysToDeadline = (deadline?: string | null) => {
+  if (!deadline) return null;
+  const today = new Date();
+  const t = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((Date.parse(`${deadline.slice(0, 10)}T00:00:00Z`) - t) / 86400000);
+};
+
+// 入金管理の対象か（支払い必須の大会 × 参加確定のエントリー）
+// キャンセル待ちの人はまだ支払いを求めていないので対象外。status未設定の古いレコードは確定扱い。
+const needsPayment = (e: EntryWithTournament) =>
+  !!e.tournaments?.payment_required && (!e.status || e.status === 'confirmed');
+const isUnpaid = (e: EntryWithTournament) => needsPayment(e) && e.payment_status !== 'completed';
+
 interface Subscriber {
   id: string;
   name: string;
@@ -977,10 +1007,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
   const draftPosts = blogPosts.filter(p => p.status === 'draft');
   const livePosts = blogPosts.filter(p => p.status !== 'draft');
-  const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
+  const [entries, setEntries] = useState<EntryWithTournament[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [showUnpaidOnly, setShowUnpaidOnly] = useState(false);
+  const [payingEntryId, setPayingEntryId] = useState<number | null>(null);
+  const [selectedEntryIds, setSelectedEntryIds] = useState<number[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteInput, setBulkDeleteInput] = useState('');
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // 会員管理
   const [members, setMembers] = useState<Member[]>([]);
@@ -1092,10 +1128,81 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     setEntriesLoading(true);
     const { data } = await supabase
       .from('entries')
-      .select('*, tournaments(title)')
+      .select('*, tournaments(title, payment_required, payment_deadline, entry_fee)')
       .order('created_at', { ascending: false });
-    setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
+    setEntries((data || []) as EntryWithTournament[]);
     setEntriesLoading(false);
+  };
+
+  // 入金確認のON/OFF。completed にした時点で自動督促メールの対象から外れる
+  const handleTogglePaid = async (entry: EntryWithTournament) => {
+    const paid = entry.payment_status === 'completed';
+    if (paid && entry.payment_method === 'credit') {
+      toast.error('クレジット決済分はStripeの記録と紐づくため、ここでは変更できません');
+      return;
+    }
+    const msg = paid
+      ? `${entry.name}さんの入金確認を取り消しますか？\n未入金に戻り、支払い期限に応じて自動督促メールの対象になります。`
+      : `${entry.name}さんの入金を確認済みにしますか？\nこの時点で自動督促メールは止まります。`;
+    if (!confirm(msg)) return;
+
+    setPayingEntryId(entry.id);
+    const { error } = await supabase
+      .from('entries')
+      .update({
+        payment_status: paid ? 'pending' : 'completed',
+        paid_at: paid ? null : new Date().toISOString(),
+      })
+      .eq('id', entry.id);
+    setPayingEntryId(null);
+
+    if (error) {
+      toast.error('更新に失敗しました: ' + error.message);
+      return;
+    }
+    await fetchEntries();
+    toast.success(paid ? `${entry.name}さんを未入金に戻しました` : `${entry.name}さんの入金を確認済みにしました`);
+  };
+
+  const unpaidCount = entries.filter(isUnpaid).length;
+  const visibleEntries = entries.filter(e =>
+    (showCancelled || e.status !== 'cancelled') && (!showUnpaidOnly || isUnpaid(e))
+  );
+
+  // ── 複数選択して一括削除 ──
+  // 選択は「いま見えている行」に限定する（フィルタで隠れた行を巻き込んで消さないため）
+  const visibleIds = visibleEntries.map(e => e.id);
+  const selectedVisibleIds = selectedEntryIds.filter(id => visibleIds.includes(id));
+  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleIds.length === visibleIds.length;
+  const selectedEntries = entries.filter(e => selectedVisibleIds.includes(e.id));
+  // 決済記録が残っている行は、消すと入金・返金の履歴ごと消えるので警告する
+  const selectedWithPayment = selectedEntries.filter(
+    e => !!e.stripe_payment_id || e.payment_status === 'completed' || e.payment_status === 'refunded'
+  );
+
+  const toggleEntrySelection = (id: number) => {
+    setSelectedEntryIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const toggleSelectAllVisible = () => {
+    setSelectedEntryIds(allVisibleSelected ? [] : visibleIds);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedVisibleIds.length === 0) return;
+    setBulkDeleting(true);
+    const { error } = await supabase.from('entries').delete().in('id', selectedVisibleIds);
+    setBulkDeleting(false);
+
+    if (error) {
+      toast.error('削除に失敗しました: ' + error.message);
+      return;
+    }
+    const n = selectedVisibleIds.length;
+    setBulkDeleteOpen(false);
+    setBulkDeleteInput('');
+    setSelectedEntryIds([]);
+    await fetchEntries();
+    toast.success(`${n}件のエントリーを削除しました`);
   };
 
   const handleDeleteSubscriber = async (id: string) => {
@@ -2214,11 +2321,41 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 />
                 取消済みも表示
               </label>
+              <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showUnpaidOnly}
+                  onChange={e => setShowUnpaidOnly(e.target.checked)}
+                  className="rounded"
+                />
+                未入金のみ
+                {unpaidCount > 0 && (
+                  <span className="bg-red-100 text-red-700 rounded-full px-1.5 py-0.5 text-[10px] font-bold">{unpaidCount}</span>
+                )}
+              </label>
             </div>
+            <div className="flex items-center gap-2">
+            {selectedVisibleIds.length > 0 && (
+              <>
+                <span className="text-xs text-gray-500">{selectedVisibleIds.length}件選択中</span>
+                <button
+                  onClick={() => setSelectedEntryIds([])}
+                  className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+                >
+                  選択解除
+                </button>
+                <button
+                  onClick={() => { setBulkDeleteInput(''); setBulkDeleteOpen(true); }}
+                  className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  🗑 選択した{selectedVisibleIds.length}件を削除
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 const statusLabel = (s: string) => s === 'confirmed' ? '確定' : s === 'waitlist' ? 'キャンセル待ち' : s === 'cancelled' ? 'キャンセル' : '確定';
-                const header = ['ステータス', '大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日'];
+                const header = ['ステータス', '大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日', '支払い方法', '入金状況', '入金日'];
                 const rows = entries.map(e => [
                   statusLabel(e.status || 'confirmed'),
                   e.tournaments?.title || '',
@@ -2228,6 +2365,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                   e.phone || '',
                   e.notes || '',
                   formatDate(e.entry_date),
+                  needsPayment(e) ? paymentMethodLabel(e.payment_method) : '',
+                  needsPayment(e) ? (e.payment_status === 'completed' ? '入金済' : '未入金') : '支払い不要',
+                  e.paid_at ? formatDate(e.paid_at) : '',
                 ]);
                 const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
                 const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -2243,6 +2383,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             >
               ⬇ CSVエクスポート
             </button>
+            </div>
           </div>
           {entriesLoading ? (
             <div className="flex justify-center py-10">
@@ -2253,7 +2394,18 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleSelectAllVisible}
+                        disabled={visibleIds.length === 0}
+                        aria-label="表示中のエントリーをすべて選択"
+                        className="rounded cursor-pointer"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">入金</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">大会名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">参加者名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ペア名</th>
@@ -2265,8 +2417,20 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {entries.filter(e => showCancelled || e.status !== 'cancelled').map((entry) => (
-                    <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''}`}>
+                  {visibleEntries.map((entry) => (
+                    <tr
+                      key={entry.id}
+                      className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''} ${selectedVisibleIds.includes(entry.id) ? 'bg-blue-50' : ''}`}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedVisibleIds.includes(entry.id)}
+                          onChange={() => toggleEntrySelection(entry.id)}
+                          aria-label={`${entry.name}を選択`}
+                          className="rounded cursor-pointer"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         {entry.status === 'confirmed' && (
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
@@ -2279,6 +2443,47 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                         )}
                         {!entry.status && (
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {!needsPayment(entry) ? (
+                          <span className="text-gray-300">-</span>
+                        ) : entry.payment_status === 'completed' ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">
+                              入金済{entry.payment_method ? `・${paymentMethodLabel(entry.payment_method)}` : ''}
+                            </span>
+                            {entry.payment_method !== 'credit' && (
+                              <button
+                                onClick={() => handleTogglePaid(entry)}
+                                disabled={payingEntryId === entry.id}
+                                className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline disabled:opacity-50"
+                                title="誤って押した場合はここで未入金に戻せます"
+                              >
+                                取消
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs px-2 py-1 rounded-full font-medium bg-red-100 text-red-700">
+                              未入金・{paymentMethodLabel(entry.payment_method)}
+                            </span>
+                            {(() => {
+                              const d = daysToDeadline(entry.tournaments?.payment_deadline);
+                              if (d === null) return <span className="text-[11px] text-amber-600 font-medium">期限未設定</span>;
+                              if (d < 0) return <span className="text-[11px] text-red-600 font-bold">{-d}日超過</span>;
+                              if (d <= 3) return <span className="text-[11px] text-amber-600 font-medium">あと{d}日</span>;
+                              return null;
+                            })()}
+                            <button
+                              onClick={() => handleTogglePaid(entry)}
+                              disabled={payingEntryId === entry.id}
+                              className="text-xs bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                            >
+                              {payingEntryId === entry.id ? '...' : '入金確認'}
+                            </button>
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3 text-gray-700">{entry.tournaments?.title || '-'}</td>
@@ -2308,8 +2513,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       </td>
                     </tr>
                   ))}
-                  {entries.length === 0 && (
-                    <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
+                  {visibleEntries.length === 0 && (
+                    <tr><td colSpan={11} className="px-4 py-10 text-center text-gray-400">
+                      {showUnpaidOnly && entries.length > 0 ? '未入金のエントリーはありません 🎉' : 'エントリーがありません'}
+                    </td></tr>
                   )}
                 </tbody>
               </table>
@@ -2546,6 +2753,72 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 className="px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* エントリー一括削除の確認 */}
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setBulkDeleteOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-600 text-lg">🗑</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">{selectedVisibleIds.length}件のエントリーを削除しますか？</h3>
+                <p className="text-xs text-gray-500 mt-0.5">この操作は取り消せません</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 max-h-40 overflow-y-auto">
+              {selectedEntries.map(e => (
+                <p key={e.id} className="text-sm text-red-800 break-words">
+                  ・{e.name}
+                  <span className="text-xs text-red-500 ml-1">（{e.tournaments?.title || '大会不明'}）</span>
+                </p>
+              ))}
+            </div>
+
+            {selectedWithPayment.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+                <p className="text-xs font-bold text-amber-800 mb-1">
+                  ⚠️ 決済記録のある{selectedWithPayment.length}件が含まれています
+                </p>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  {selectedWithPayment.map(e => e.name).join('、')}
+                  <br />
+                  削除すると入金・返金の履歴もDBから消えます。記録を残したい場合は削除ではなく「取消」を使ってください。
+                </p>
+              </div>
+            )}
+
+            <p className="text-sm text-gray-600 mb-2">確認のため <span className="font-mono font-bold">削除</span> と入力してください：</p>
+            <input
+              type="text"
+              value={bulkDeleteInput}
+              onChange={e => setBulkDeleteInput(e.target.value)}
+              placeholder="削除"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 mb-4"
+              autoFocus
+            />
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setBulkDeleteOpen(false); setBulkDeleteInput(''); }}
+                className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteInput !== '削除' || bulkDeleting}
+                className="px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {bulkDeleting ? '削除中...' : `${selectedVisibleIds.length}件を削除する`}
               </button>
             </div>
           </div>

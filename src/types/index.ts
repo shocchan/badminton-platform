@@ -41,7 +41,8 @@ export interface Entry {
   cancelled_at?: string;
   cancel_reason?: string;
   payment_method?: 'credit' | 'paypay' | 'bank' | null;
-  payment_status?: 'pending' | 'completed' | 'failed';
+  // 'refunded' はキャンセル時の返金処理で実際に入る（本番DBに存在する値）
+  payment_status?: 'pending' | 'completed' | 'failed' | 'refunded';
   stripe_payment_id?: string | null;
   paid_at?: string | null;
 }

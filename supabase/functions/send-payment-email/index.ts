@@ -623,6 +623,27 @@ serve(async (req: Request) => {
     }
 
     // ── 2. 管理者向け通知メール ──
+    // 支払い方法（PayPay / 銀行振込 / 未選択）が一目で分かるようにする。
+    // ※ クレジット決済は上の分岐で専用メールを送っているのでここには来ない。
+    const methodLabel = payment_method === "paypay"
+      ? "📱 PayPay"
+      : payment_method === "bank"
+        ? "🏦 銀行振込"
+        : null;
+    const methodCell = !payment_required
+      ? '<span style="color:#6b7280;">-</span>'
+      : methodLabel
+        ? `${methodLabel} <span style="color:#dc2626;font-weight:700;">（未入金）</span>`
+        : '<span style="color:#b45309;font-weight:700;">⚠️ 未選択</span>';
+    const methodText = !payment_required
+      ? "-"
+      : payment_method === "paypay"
+        ? "PayPay（未入金）"
+        : payment_method === "bank"
+          ? "銀行振込（未入金）"
+          : "未選択（支払い方法が選ばれていません）";
+    const methodAdminRow = `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;">支払い方法</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${methodCell}</td></tr>`;
+
     const partnerAdminRow = partner_name
       ? `<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;width:35%;">ペアの相手</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${partner_name}</td></tr>`
       : "";
@@ -649,13 +670,15 @@ serve(async (req: Request) => {
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;">電話</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${phone || "未入力"}</td></tr>
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;">備考</td><td style="padding:12px 0;font-size:14px;">${notes || "なし"}</td></tr>
           <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;">開催日</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${eventDate}</td></tr>
-          <tr><td style="padding:12px 0;font-size:14px;color:#6b7280;">支払い</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${payment_required ? `<span style="color:#dc2626;">必要</span>（期限：${paymentDeadlineStr}）` : '<span style="color:#059669;">不要</span>'}</td></tr>
+          <tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:12px 0;font-size:14px;color:#6b7280;">支払い</td><td style="padding:12px 0;font-size:14px;font-weight:600;">${payment_required ? `<span style="color:#dc2626;">必要</span>（期限：${paymentDeadlineStr}）` : '<span style="color:#059669;">不要</span>'}</td></tr>
+          ${methodAdminRow}
         </table>
       </div>
 
       ${payment_required ? `
       <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:14px 18px;font-size:13px;color:#065f46;">
-        ✅ 参加者へ支払い案内メールを送信済みです。振込完了の返信はこのアドレスに届きます。
+        ✅ 参加者へ支払い案内メールを送信済みです。<br>
+        入金を確認したら<a href="https://kawabado.com/admin" style="color:#065f46;font-weight:700;">管理ページのエントリー一覧</a>で「入金確認」を押してください。押すまでは期限前後に自動で督促メールが送られます。
       </div>` : ""}
     </div>
 
@@ -664,7 +687,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-    const adminText = `【新規エントリー】${tournament_title}\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n開催日：${eventDate}\n支払い：${payment_required ? `必要（期限：${paymentDeadlineStr}）` : "不要"}`.trim();
+    const adminText = `【新規エントリー】${tournament_title}\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n開催日：${eventDate}\n支払い：${payment_required ? `必要（期限：${paymentDeadlineStr}）` : "不要"}\n支払い方法：${methodText}${payment_required ? "\n\n入金を確認したら管理ページのエントリー一覧で「入金確認」を押してください。押すまでは自動で督促メールが送られます。\nhttps://kawabado.com/admin" : ""}`.trim();
 
     const res2 = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -672,7 +695,7 @@ serve(async (req: Request) => {
       body: JSON.stringify({
         from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
         to: [ADMIN_EMAIL],
-        subject: `【新規エントリー】${name}さんが${tournament_title}に申し込みました`,
+        subject: `【新規エントリー${payment_required ? `・${payment_method === "paypay" ? "PayPay" : payment_method === "bank" ? "銀行振込" : "支払い方法未選択"}` : ""}】${name}さんが${tournament_title}に申し込みました`,
         text: adminText,
         html: adminHtml,
       }),
