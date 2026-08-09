@@ -133,7 +133,7 @@
     --action-shadow-rest: 0 1px 2px rgb(15 23 42 / 0.08), 0 2px 6px rgb(15 23 42 / 0.10);
     --action-shadow-hover: 0 4px 10px rgb(15 23 42 / 0.14), 0 2px 4px rgb(15 23 42 / 0.10);
     --action-shadow-active: 0 1px 1px rgb(15 23 42 / 0.10);
-    --action-depth: 0 3px 0 0;
+    --action-depth: 0 4px 0 0;
     --card-interactive-shadow: 0 1px 3px rgb(15 23 42 / 0.07), 0 4px 12px rgb(15 23 42 / 0.06);
     --transition-fast: 140ms cubic-bezier(0.2, 0.7, 0.4, 1);
     /* Premium Typography System（Phase 2E-1.5 §17・AIコース学習画面共通） */
@@ -158,16 +158,39 @@
   .type-translation { font: var(--type-translation); }
   /* 押せるボタン共通（浮く→持ち上がる→押し込む） */
   .action-raised {
-    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast), filter var(--transition-fast);
     will-change: transform;
   }
   .action-raised:hover:not(:disabled) { transform: translateY(-1px); }
-  .action-raised:active:not(:disabled) { transform: translateY(2px); }
-  .action-primary {
-    box-shadow: var(--action-depth) rgb(55 48 163 / 0.9), var(--action-shadow-rest);
+  .action-raised:active:not(:disabled) { transform: translateY(3px); }
+  /* 塗りCTAのリッチ表現: 上面の光沢＋色つきグロー＋深いエッジ。押すと光が消えて内側に沈む */
+  .action-primary { --action-edge: rgb(55 48 163 / 0.9); --action-glow: rgb(79 70 229 / 0.5); }
+  .action-primary-blue { --action-edge: rgb(30 64 175 / 0.9); --action-glow: rgb(37 99 235 / 0.5); }
+  .action-emerald { --action-edge: rgb(4 120 87 / 0.9); --action-glow: rgb(5 150 105 / 0.45); }
+  .action-primary, .action-primary-blue, .action-emerald {
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0) 45%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      var(--action-depth) var(--action-edge),
+      0 8px 16px -6px var(--action-glow),
+      var(--action-shadow-rest);
   }
-  .action-primary:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(55 48 163 / 0.9), var(--action-shadow-hover); }
-  .action-primary:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(55 48 163 / 0.9), var(--action-shadow-active); }
+  .action-primary:hover:not(:disabled), .action-primary-blue:hover:not(:disabled), .action-emerald:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.25),
+      var(--action-depth) var(--action-edge),
+      0 12px 22px -6px var(--action-glow),
+      var(--action-shadow-hover);
+  }
+  .action-primary:active:not(:disabled), .action-primary-blue:active:not(:disabled), .action-emerald:active:not(:disabled) {
+    filter: brightness(0.96);
+    background-image: linear-gradient(to bottom, rgb(255 255 255 / 0.04), rgb(255 255 255 / 0) 45%);
+    box-shadow:
+      inset 0 2px 3px rgb(0 0 0 / 0.18),
+      0 1px 0 0 var(--action-edge),
+      var(--action-shadow-active);
+  }
   .action-secondary {
     box-shadow: var(--action-depth) rgb(203 213 225 / 0.9), var(--action-shadow-rest);
   }
@@ -188,22 +211,14 @@
   }
   .card-interactive:hover { transform: translateY(-2px); box-shadow: var(--action-shadow-hover); border-color: rgb(165 180 252); }
   .card-interactive:active { transform: translateY(1px); box-shadow: var(--action-shadow-active); }
-  /* V2冒険画面のprimary（blue-600系。旧コースのindigo edgeと色を合わせない） */
-  .action-primary-blue { box-shadow: var(--action-depth) rgb(30 64 175 / 0.9), var(--action-shadow-rest); }
-  .action-primary-blue:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(30 64 175 / 0.9), var(--action-shadow-hover); }
-  .action-primary-blue:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(30 64 175 / 0.9), var(--action-shadow-active); }
-  /* 完了・締めくくり系 emerald edge */
-  .action-emerald { box-shadow: var(--action-depth) rgb(4 120 87 / 0.9), var(--action-shadow-rest); }
-  .action-emerald:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(4 120 87 / 0.9), var(--action-shadow-hover); }
-  .action-emerald:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(4 120 87 / 0.9), var(--action-shadow-active); }
-  /* 警告系（答案破棄など）amber edge */
+  /* 警告系（答案破棄など）amber edge。誘うグローは付けない */
   .action-amber { box-shadow: var(--action-depth) rgb(217 119 6 / 0.5), var(--action-shadow-rest); }
   .action-amber:hover:not(:disabled) { box-shadow: var(--action-depth) rgb(217 119 6 / 0.5), var(--action-shadow-hover); }
   .action-amber:active:not(:disabled) { box-shadow: 0 1px 0 0 rgb(217 119 6 / 0.5), var(--action-shadow-active); }
   /* 立体アニメーションを抑制（§14/§24） */
   @media (prefers-reduced-motion: reduce) {
     .action-raised, .action-raised:hover, .action-raised:active,
-    .card-interactive, .card-interactive:hover, .card-interactive:active { transform: none !important; transition: none !important; }
+    .card-interactive, .card-interactive:hover, .card-interactive:active { transform: none !important; transition: none !important; filter: none !important; }
   }
 }
 
