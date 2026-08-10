@@ -95,7 +95,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             {/* 受講中learnerのログイン導線（UX-001 P1: これまでLPに0本で、招待URLを
                 知らない限り2回目以降に学習画面へ戻れなかった）。
                 主申込CTAより視覚優先度を下げたテキストリンク。認証済みなら app entry が学習Homeへ振り分ける */}
-            <a href={`/${lang}/ai-course?app=1`} data-lp-login-cta
+            <a href={`/${lang}/ai-course?app=1${typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2') ? '&v2=1' : ''}`} data-lp-login-cta
               aria-label={lang === 'ja' ? '受講中の方はこちら（学習画面にログイン）' : '已报名的学员（登录学习系统）'}
               className="flex text-[0.88rem] text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 items-center">
               <span className="hidden sm:inline">{lang === 'ja' ? '受講中の方はこちら' : '已报名的学员'}</span>

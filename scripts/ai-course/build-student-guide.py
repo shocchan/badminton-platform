@@ -46,8 +46,9 @@ def build(lang: str) -> str:
         'start': one('はじめる', '开始'),
     }
 
-    url_main = f'https://staging.badminton-platform.pages.dev/{lang}/ai-course?v2=1'
-    url_sub = f'https://staging.badminton-platform.pages.dev/{other}/ai-course?v2=1'
+    # app=1: 未ログインでも販売LPではなくログイン画面を直接出す（契約済みの生徒に営業ページを見せない）
+    url_main = f'https://staging.badminton-platform.pages.dev/{lang}/ai-course?app=1&v2=1'
+    url_sub = f'https://staging.badminton-platform.pages.dev/{other}/ai-course?app=1&v2=1'
 
     return f"""<!doctype html>
 <html lang="{lang}"><head><meta charset="utf-8">

@@ -47,7 +47,8 @@ export function AiCourseEntry({ variant }: { variant?: CharacterVariant }) {
       noindex={!!variant}
       // variant指定なし（既定LP）は二人のAI先生を並べる。/shoko /yuto は広告用に1人のまま
       duo={!variant}
-      onSeeApp={() => navigate(`/${lang}/ai-course?app=1`)}
+      // ?v2=1（V2招待）で来た人がLPに落ちても、ログインへ進むときに招待印を失わせない
+      onSeeApp={() => navigate(`/${lang}/ai-course?app=1${params.has('v2') ? '&v2=1' : ''}`)}
     />
   );
 }

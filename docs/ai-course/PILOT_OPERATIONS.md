@@ -4,7 +4,7 @@
 
 判断基準は `docs/ai-course/PRODUCT_CANON.md`。迷ったらそちらが優先する。
 
-- 対象URL（Pilot中はstaging）: https://staging.badminton-platform.pages.dev/ja/ai-course?v2=1 （中国語は `/zh/`）
+- 対象URL（Pilot中はstaging）: https://staging.badminton-platform.pages.dev/ja/ai-course?app=1&v2=1 （中国語は `/zh/`）
 - 決済・招待は**手動**でよい。今回は自動化しない
 - **合格保証はしない。誇大な表現はしない。**（canon §0）
 
@@ -87,8 +87,8 @@ node scripts/ai-course/issue-pilot-invites.mjs \
 
 > こんにちは。AI日本語コースへようこそ。
 >
-> 1. こちらを開いてください: https://staging.badminton-platform.pages.dev/ja/ai-course?v2=1
->    （中国語表示は https://staging.badminton-platform.pages.dev/zh/ai-course?v2=1 ）
+> 1. こちらを開いてください: https://staging.badminton-platform.pages.dev/ja/ai-course?app=1&v2=1
+>    （中国語表示は https://staging.badminton-platform.pages.dev/zh/ai-course?app=1&v2=1 ）
 > 2. メールアドレスを入れて、招待コード「◯◯◯◯」を入力してください
 > 3. メールに**8桁の数字**が届きます。それを入力するとログインできます
 > 4. 最初に、目標・試験の予定日・1日に使える時間・案内の先生を選びます

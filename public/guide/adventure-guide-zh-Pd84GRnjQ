@@ -247,8 +247,8 @@
   <p class="eyebrow">开始</p>
   <h2>开始你的冒险</h2>
   <p class="p1">请和你的邀请码一起，打开这个链接。</p><p class="p2">あなたの招待コードと一緒に、このリンクを開いてください。</p>
-  <div class="url">https://staging.badminton-platform.pages.dev/zh/ai-course?v2=1</div>
-  <p class="cap">日语界面 → https://staging.badminton-platform.pages.dev/ja/ai-course?v2=1</p>
+  <div class="url">https://staging.badminton-platform.pages.dev/zh/ai-course?app=1&v2=1</div>
+  <p class="cap">日语界面 → https://staging.badminton-platform.pages.dev/ja/ai-course?app=1&v2=1</p>
 </section>
 
 <footer>你的日语搭档 / 日本語の相棒 — 冒险指南</footer>
