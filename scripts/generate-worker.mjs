@@ -219,6 +219,16 @@ async function handleRequest(request, env) {
       });
     }
 
+    // 学習者向けガイド（/guide/*・限定公開の静的HTML）は実ファイルをそのまま返す。
+    // 拡張子なしで置いてあり（SPAフォールバック回避）、Content-Typeは _headers が付ける
+    if (pathname.startsWith('/guide/')) {
+      try {
+        const guideRes = await env.ASSETS.fetch(request);
+        if (guideRes.status < 400) return guideRes;
+      } catch (_) {}
+      return new Response('Not Found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+    }
+
     // 拡張子があるファイル（JS, CSS, 画像など）はenv.ASSETSで直接配信
     const hasExtension = /\\.[a-zA-Z0-9]+$/.test(pathname);
     if (hasExtension && !pathname.endsWith('.html')) {

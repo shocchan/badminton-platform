@@ -1,2 +1,7 @@
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# 学習者向けガイド（限定公開・拡張子なしHTML。SPAフォールバックが.htmlを飲むため）
+/guide/*
+  Content-Type: text/html; charset=utf-8
+  X-Robots-Tag: noindex
