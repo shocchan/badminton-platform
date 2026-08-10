@@ -12,6 +12,8 @@ import { AdvOnboarding } from '../../src/components/ai-course/adventure/AdvOnboa
 import AdvBattleRunner from '../../src/components/ai-course/adventure/AdvBattleRunner';
 import { N3_GRAMMAR_DRAFTS } from '../../src/lib/aiLesson/course/n3GrammarDrafts';
 import { buildVariantPool } from '../../src/lib/aiLesson/course/adventure/advVariants';
+import { AdvInterviewPrep } from '../../src/components/ai-course/adventure/AdvInterviewPrep';
+import { defaultAdvProfile } from '../../src/lib/aiLesson/course/adventure/advProfile';
 import type { DiagnosisPools } from '../../src/lib/aiLesson/course/adventure/advDiagnosis';
 
 const DIR = 'docs/ai-course/guide/shots/';
@@ -43,6 +45,26 @@ const VARIANTS: Variant[] = [
   {
     id: 'goal-zh', width: 390, caption: '冒险准备: 选择目标（第一个问题）',
     node: <AdvOnboarding lang="zh" pools={emptyPools} nowISO={NOW} onComplete={noop} onCancel={noop} />,
+  },
+  {
+    id: 'interview-zh', width: 390, caption: '入籍面试表达特训（广场）',
+    node: (
+      <AdvInterviewPrep lang="zh" onSave={noop} onBack={noop}
+        profile={{ ...defaultAdvProfile(NOW), goalType: 'jlpt', targetJlpt: 'N2',
+          interviewPrep: { enabledAt: NOW, notes: {}, worksheet: {} } }} />
+    ),
+  },
+  {
+    id: 'battle-zh', width: 390, caption: '题目战斗（每天学习的内容）',
+    node: (
+      <AdvBattleRunner
+        lang="zh" tier="normal"
+        targetId={firstTarget} targetLabel="N3语法" targetIds={[firstTarget]}
+        pool={pool} seenKeys={new Set()} recentWrongKeys={new Set()}
+        priorAttempts={[]} dateKey={NOW.slice(0, 10)} nowISO={NOW} level="N3"
+        onFinish={noop} onClose={noop}
+      />
+    ),
   },
   {
     id: 'battle-ja', width: 390, caption: '問題バトル（毎日の学習の中身）',
