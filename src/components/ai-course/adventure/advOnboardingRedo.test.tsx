@@ -63,3 +63,21 @@ describe('オンボーディングの「もどる」導線', () => {
     expect(screen.getByRole('button', { name: 'JLPTに合格したい' }).className).toContain('is-selected');
   });
 });
+
+describe('相棒の正式キャラ（ナツ/ハル/アキ）', () => {
+  it('選択画面に3体が新しい名前で並ぶ（旧キャラ名は出ない）', () => {
+    renderOnboarding(false);
+    // 目的→レベル→受験日→スケジュール→先生→相棒 まで進む
+    fireEvent.click(screen.getByRole('button', { name: 'JLPTに合格したい' }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    fireEvent.click(screen.getByRole('button', { name: /N3/ }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    fireEvent.click(screen.getByRole('button', { name: /未定のまま進む/ }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // schedule
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // teacher
+    expect(screen.getByText('ナツ')).toBeTruthy();
+    expect(screen.getByText('ハル')).toBeTruthy();
+    expect(screen.getByText('アキ')).toBeTruthy();
+    expect(screen.queryByText(/フク老師|ナミ|カジ/)).toBeNull();
+  });
+});

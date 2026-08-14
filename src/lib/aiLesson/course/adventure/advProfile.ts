@@ -1,6 +1,7 @@
 // Adventure V2 プロファイルの読み書き（LearnerSettings.adventureV2 = jsonb内・D-003）。
 // 方針: 壊れたデータでも落ちない（安全側で default に戻す）／既存learnerの他フィールドへ触らない／
 // 既存進捗からの能力認定はしない（unknown/needs_assessment・§23）。
+import { migrateCompanionId } from './advCompanion';
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
@@ -54,7 +55,7 @@ const isRecord = (v: unknown): v is Record<string, unknown> =>
 const VALID_GOALS = new Set(['jlpt', 'conversation', 'hybrid']);
 const VALID_LEVELS = new Set(['N5', 'N4', 'N3', 'N2', 'N1']);
 const VALID_MINUTES = new Set([5, 15, 30]);
-const VALID_COMPANIONS = new Set(['nami', 'fukuro', 'kaji']);
+const VALID_COMPANIONS = new Set(['natsu', 'haru', 'aki']);
 const VALID_BANDS = new Set<AdvBand>([
   'needs_assessment', 'pre_n5', 'n5', 'n4', 'n4_late',
   'n3_early', 'n3', 'n3_late', 'n2_early', 'n2', 'n2_plus',
@@ -128,7 +129,10 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     examDateISO: typeof raw.examDateISO === 'string' ? raw.examDateISO : null,
     weeklyDays: typeof raw.weeklyDays === 'number' && raw.weeklyDays >= 1 && raw.weeklyDays <= 7 ? Math.floor(raw.weeklyDays) : null,
     dailyMinutes: VALID_MINUTES.has(raw.dailyMinutes as number) ? (raw.dailyMinutes as AdventureV2Profile['dailyMinutes']) : null,
-    companionId: VALID_COMPANIONS.has(raw.companionId as string) ? (raw.companionId as AdventureV2Profile['companionId']) : null,
+    // 旧キャラID（nami/fukuro/kaji・〜2026-08-14）は役割の近い正式キャラへ移行する
+    companionId: VALID_COMPANIONS.has(raw.companionId as string)
+      ? (raw.companionId as AdventureV2Profile['companionId'])
+      : migrateCompanionId(raw.companionId as string),
     // 未選択（null）は既定の先生で表示する。保存値は書き換えない（既存learner非破壊）
     teacherId: isTeacherId(raw.teacherId) ? raw.teacherId : null,
     diagnosis: isRecord(raw.diagnosis) && typeof raw.diagnosis.completedAt === 'string'

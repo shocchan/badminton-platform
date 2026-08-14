@@ -71,7 +71,7 @@ describe('advCompanion（§8）', () => {
       expect(companionSvg(c.id)).toContain('<svg');
       expect(c.nameZh.length).toBeGreaterThan(0);
     }
-    expect(companionById(null).id).toBe('fukuro');
+    expect(companionById(null).id).toBe('natsu');
   });
 });
 

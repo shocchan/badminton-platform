@@ -163,15 +163,19 @@ export interface AdvTodayQuest {
   nextStepJa: string; nextStepZh: string;
 }
 
-/** 旅の相棒（§8・D-010）。教材分岐はしない＝推奨比率と声掛けのみ */
-export type AdvCompanionId = 'nami' | 'fukuro' | 'kaji';
+/** 旅の相棒（§8・D-010）。正式キャラ: ナツ（猫）／ハル（鳥）／アキ（犬）（CEO決定 2026-08-14）。
+ * 教材分岐はしない＝声掛け・労いのみ。旧ID（nami/fukuro/kaji）は advProfile 側で移行する */
+export type AdvCompanionId = 'natsu' | 'haru' | 'aki';
 export interface AdvCompanionDef {
   id: AdvCompanionId;
   nameJa: string; nameZh: string;
   roleJa: string; roleZh: string;
-  /** クエスト構成用に予約（現在は未使用・Homeの声掛けのみ相棒で変わる） */
+  /** クエスト構成用に予約（現在は未使用・声掛け・労いのみ相棒で変わる） */
   emphasis: { conversation: number; knowledge: number; practical: number };
+  /** Homeの毎日の声掛け */
   greetJa: string; greetZh: string;
+  /** 今日の冒険を締めくくったときの労い */
+  doneJa: string; doneZh: string;
 }
 
 /**

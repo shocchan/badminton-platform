@@ -6,7 +6,8 @@ import type {
   AdvCompanionId, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvSkillProfile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { ACTIVE_TARGET_LEVELS, GOAL_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
-import { COMPANIONS, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { COMPANIONS } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { CompanionAvatar } from './CompanionAvatar';
 import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
@@ -57,7 +58,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
   const [examDate, setExamDate] = useState('');
   const [weeklyDays, setWeeklyDays] = useState(5);
   const [minutes, setMinutes] = useState<5 | 15 | 30>(15);
-  const [companion, setCompanion] = useState<AdvCompanionId>('fukuro');
+  const [companion, setCompanion] = useState<AdvCompanionId>('natsu');
   const [teacher, setTeacher] = useState<AdvTeacherId>(DEFAULT_TEACHER_ID);
   const [answers, setAnswers] = useState<Map<string, number>>(new Map());
   const [qIndex, setQIndex] = useState(0);
@@ -243,7 +244,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <div className="space-y-3">
             {COMPANIONS.map((c) => (
               <button key={c.id} type="button" className={`${companion === c.id ? btnOn : btnIdle} flex items-center gap-3`} onClick={() => setCompanion(c.id)}>
-                <span className="h-12 w-12 shrink-0" dangerouslySetInnerHTML={{ __html: companionSvg(c.id) }} />
+                <CompanionAvatar id={c.id} size={48} />
                 <span>
                   <span className="block font-semibold">{tx(lang, c.nameJa, c.nameZh)}</span>
                   <span className="block text-sm text-gray-600">{tx(lang, c.roleJa, c.roleZh)}</span>

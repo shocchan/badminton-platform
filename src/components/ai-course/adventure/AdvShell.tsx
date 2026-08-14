@@ -28,7 +28,8 @@ import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAn
 import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
-import { companionById, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { companionById } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
@@ -946,6 +947,16 @@ export default function AdvShell(props: AdvShellProps) {
           <TeacherAvatar size={44} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
           <h2 className="text-lg font-bold text-gray-900">{tx(lang, '今日の冒険 おつかれさま！', '今天的冒险辛苦了！')}</h2>
         </div>
+        {/* 相棒の労い（相棒で「応援のしかたが変わる」を締めくくりでも果たす） */}
+        {prof.companionId && (
+          <div className="mt-2 flex items-center gap-2">
+            <CompanionAvatar id={prof.companionId} size={28} />
+            <p className="text-xs text-gray-600">
+              <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
+              ：{tx(lang, companionById(prof.companionId).doneJa, companionById(prof.companionId).doneZh)}
+            </p>
+          </div>
+        )}
         <div className={`${card} mt-3`}>
           <p className="text-sm font-semibold text-gray-900">{tx(lang, '今日できたこと', '今天做到的事')}</p>
           <ul className="mt-1 space-y-1 text-sm text-gray-700">
@@ -1143,8 +1154,7 @@ export default function AdvShell(props: AdvShellProps) {
       {/* 旅の相棒の声掛け（§8）。オンボーディングの「応援のしかたが少し変わります」をここで果たす */}
       {prof.companionId && (
         <div className="-mt-2 mb-4 flex items-center gap-2">
-          <span className="h-8 w-8 shrink-0" aria-hidden
-            dangerouslySetInnerHTML={{ __html: companionSvg(prof.companionId) }} />
+          <CompanionAvatar id={prof.companionId} size={32} />
           <p className="text-xs text-gray-600">
             <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
             ：{tx(lang, companionById(prof.companionId).greetJa, companionById(prof.companionId).greetZh)}
