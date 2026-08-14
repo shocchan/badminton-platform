@@ -17,6 +17,14 @@
   --color-lp-gold-soft: #FBEAC0;
 }
 
+/* ── カワバド本体 ブランドトークン（大会ページ系。ロゴの青と接続するネイビー基調） ── */
+@theme {
+  --color-kb-navy: #16324F;
+  --color-kb-navy-soft: #B5D0E8;
+  --color-kb-blue: #185FA5;
+  --color-kb-blue-deep: #134C86;
+}
+
 /* ── Tiptap リッチエディタ ── */
 .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
 .ProseMirror h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
