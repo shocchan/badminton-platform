@@ -366,6 +366,26 @@ export const buildAdventureMap = (
     : null;
 
   const withState = regions.map((r, i) => {
+    // 会話レイヤーは並走レーン（総合ルート時）。試験stageの攻略待ちにしない:
+    // 会話は今日から使える（10回/日）事実と地図の表示を矛盾させない（原則13・迷子防止）。
+    if (routeKind === 'combined' && r.layer === 'conversation' && i !== firstOpen) {
+      if (r.state === 'done') return r;
+      if (r.id === `conv-w${currentWeek}`) {
+        // 今週の会話地域: 霧にせず「AI会話を始める」CTAを保つ（会話タブと同じ扱い）
+        return { ...r, state: 'next' as RegionState };
+      }
+      const wk = Number(r.id.replace('conv-w', ''));
+      return {
+        ...r,
+        unlockJa: `会話の旅は週ごとに進みます。第${wk}週になると開きます`,
+        unlockZh: `会话之旅按周推进。到第${wk}周开启`,
+        action: todayAction(
+          '会話は今週のぶんから順に進みます。今週の会話はAI会話ミッションでできます',
+          '会话从本周的部分开始依次推进。本周的会话可以在AI会话任务中进行',
+          '今日の冒険を進める', '继续今天的冒险',
+        ),
+      };
+    }
     if (i === firstOpen) {
       // 試験レイヤーは mastery台帳の**記録がある場合だけ**実測値を出す
       // （挑戦して届かなかった0%は実測。まだ一度も測っていない0%は未判定＝null・原則13）。

@@ -169,7 +169,7 @@ export interface AdvCompanionDef {
   id: AdvCompanionId;
   nameJa: string; nameZh: string;
   roleJa: string; roleZh: string;
-  /** クエスト構成のわずかな重み（合計1.0） */
+  /** クエスト構成用に予約（現在は未使用・Homeの声掛けのみ相棒で変わる） */
   emphasis: { conversation: number; knowledge: number; practical: number };
   greetJa: string; greetZh: string;
 }

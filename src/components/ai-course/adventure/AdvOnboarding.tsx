@@ -163,7 +163,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
         <section aria-label={tx(lang, '受験予定日', '考试日期')}>
           {header('受験予定日はいつですか？', '打算什么时候考试？', '未定でも進めます。あとで設定できます。', '还没定也可以继续，之后可设置。')}
           <input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)}
-            min={nowISO.slice(0, 10)}
+            min={new Date(nowISO).toLocaleDateString('sv-SE')}
             className="w-full min-h-[44px] rounded-xl border border-gray-300 px-4 py-3"
             aria-label={tx(lang, '受験予定日', '考试日期')} />
           <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('schedule')}>

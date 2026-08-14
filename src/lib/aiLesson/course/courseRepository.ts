@@ -66,7 +66,7 @@ const rowToProgress = (r: ProgressRow): ItemProgress => ({
 
 // ── pending キュー（オフライン時の書き込みを保持） ──
 interface PendingOp {
-  kind: 'progress' | 'session' | 'utterances' | 'feedback' | 'usage';
+  kind: 'progress' | 'session' | 'utterances' | 'feedback' | 'usage' | 'learner';
   payload: unknown;
   at: string;
 }
@@ -188,7 +188,15 @@ const createRepository = (): CourseRepository => ({
     if (patch.settings !== undefined) row.settings = patch.settings;
     if (patch.adminOverrides !== undefined) row.admin_overrides = patch.adminOverrides;
     row.updated_at = new Date().toISOString();
-    await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
+    const { error } = await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
+    if (error) {
+      // 学習データの書込失敗を握りつぶさない（監査OPS-1）。
+      // LSキャッシュが常に最新のローカル状態なので、再送は「キャッシュの現在値を送り直す」マーカー1件でよい
+      // （patchを積むと、後続の成功後に古いpatchが再送され進捗を巻き戻すため）
+      const q = (readLS<PendingOp[]>(LS.pending) ?? []).filter((op) => op.kind !== 'learner');
+      q.push({ kind: 'learner', payload: { userId: u.user.id }, at: new Date().toISOString() });
+      writeLS(LS.pending, q.slice(-100));
+    }
   },
 
   async listProgress() {
@@ -401,6 +409,20 @@ const createRepository = (): CourseRepository => ({
         } else if (op.kind === 'usage') {
           const { learnerId, seconds, costUsd } = op.payload as { learnerId: string; seconds: number; costUsd: number };
           await this.recordUsage(learnerId, seconds, costUsd);
+        } else if (op.kind === 'learner') {
+          const { userId } = op.payload as { userId: string };
+          const { data: u } = await supabase.auth.getUser();
+          const cached = readLS<Learner>(LS.learner);
+          if (u.user && u.user.id === userId && cached && cached.userId === userId) {
+            // LSキャッシュ（常に最新のローカル状態）から学習データを送り直す。
+            // 学習者クライアントが書くのは settings と displayName のみ（difficulty等はadmin側の管轄なので触らない）
+            const { error } = await supabase.from('ai_learners').update({
+              display_name: cached.displayName, settings: cached.settings,
+              updated_at: new Date().toISOString(),
+            }).eq('user_id', userId);
+            if (error) remaining.push(op);
+          }
+          // ユーザー不一致・キャッシュ消失時は適用せず破棄（他人のrowへ書かない）
         }
         // session/utterances は sessionId 依存のため簡易にスキップ（次回セッションで再送不要）
       } catch {

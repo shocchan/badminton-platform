@@ -18,16 +18,17 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
-  loadGrammarPools, buildDiagnosisPools, stageContent, loadAllN2Drafts,
+  loadGrammarPools, buildDiagnosisPools, stageContent, loadAllN2Drafts, grammarPatternById,
   type GrammarPools, type StageContent,
 } from '../../../lib/aiLesson/course/adventure/advContent';
-import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
+import { seededShuffle, type DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
+import { companionById, companionSvg } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
@@ -41,7 +42,7 @@ import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/int
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
-import { readingSetsFor, readingTargetIds, readingPool } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
+import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
@@ -51,6 +52,13 @@ type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 const term = (k: keyof typeof TERMS, lang: L) => TERMS[k][lang];
 const dateKeyOf = (d = new Date()): string => d.toLocaleDateString('sv-SE');
+/** 試験日までの残日数（ローカル深夜同士で比較・UTC混在させない）。当日=0、試験後は負 */
+const daysToExamOf = (examDateISO: string | null, dateKey: string): number | null => {
+  if (!examDateISO) return null;
+  const diff = Math.ceil((new Date(`${examDateISO.slice(0, 10)}T00:00:00`).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000);
+  // 不正な試験日はnull（NaN日と表示しない）
+  return Number.isFinite(diff) ? diff : null;
+};
 
 export interface AdvShellProps {
   lang: L;
@@ -165,16 +173,20 @@ export default function AdvShell(props: AdvShellProps) {
     stepIndex: number,
   ) => {
     const targetId = `${skill}-${prof0()?.targetJlpt ?? 'N2'}`.toLowerCase();
+    // 実測の未出比率を記録する。1固定は同一セット再演を「未出100%の証拠」として
+    // mastery台帳・準備度へ水増し計上してしまう（原則9・13）
+    const seenBefore = seenQuestionKeys(p.mastery);
+    const unseenCount = r.keys.filter((k) => !seenBefore.has(k)).length;
     const attempt: AdvMasteryAttempt = {
       dateKey,
       scorePct: r.total === 0 ? 0 : Math.round((r.correct / r.total) * 100),
-      unseenRatio: 1,
+      unseenRatio: r.keys.length === 0 ? 0 : Math.round((unseenCount / r.keys.length) * 100) / 100,
       questionKeys: r.keys,
       tier: 'normal',
       timed: false,
       completedAt: new Date().toISOString(),
       skills: [skill],
-      bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: r.total } },
+      bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: unseenCount } },
     };
     const ledger = recordAttempt(p.mastery, targetId, attempt);
     trackAdv('skill_evidence_added', { skillType: skill, countBucket: bucketOf(r.total) });
@@ -208,9 +220,9 @@ export default function AdvShell(props: AdvShellProps) {
       const weak = Object.entries(profile.mastery)
         .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at.length > 0 && at[at.length - 1].scorePct < 80)
         .map(([id]) => id).slice(0, 5);
-      const daysToExam = profile.examDateISO
-        ? Math.max(0, Math.ceil((new Date(profile.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000))
-        : null;
+      // 試験後（負）はnull＝「試験まで◯日」文と追い込み配分を出さない（advQuest側は非負のみ受ける）
+      const rawDays = daysToExamOf(profile.examDateISO, dateKey);
+      const daysToExam = rawDays !== null && rawDays >= 0 ? rawDays : null;
       // 試験技能の状況（読解・聴解を毎日ではなく弱点・試験日で配分する・§12）
       const ev = collectSkillEvidence(profile.mastery);
       const measured = (['charactersVocabulary', 'grammar', 'reading', 'listening'] as const)
@@ -381,7 +393,14 @@ export default function AdvShell(props: AdvShellProps) {
   // ③二重発火ガード: 遷移前の連打で同じattemptがmastery台帳へ重複記録され、
   // 準備度のエビデンスが水増しされる（原則13違反）ため、1回で締める
   if (view === 'reading') {
-    const sets = readingSetsFor(level).slice(0, 3);
+    // 毎日同じ先頭3セットの再演で証拠を貯めない（原則9）。未出セット優先・日替わりの決定的選出
+    const seenR = seenQuestionKeys(prof.mastery);
+    const allR = readingSetsFor(level);
+    const seedR = [...dateKey].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 11);
+    const sets = [
+      ...seededShuffle(allR.filter((s) => !seenR.has(readingKeyOf(s))), seedR),
+      ...seededShuffle(allR.filter((s) => seenR.has(readingKeyOf(s))), seedR),
+    ].slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'reading_short') ?? -1;
     return (
       <AdvReadingRunner
@@ -399,7 +418,13 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 聴解 ──
   if (view === 'listening') {
-    const sets = listeningSetsFor(level).slice(0, 3);
+    const seenL = seenQuestionKeys(prof.mastery);
+    const allL = listeningSetsFor(level);
+    const seedL = [...dateKey].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 13);
+    const sets = [
+      ...seededShuffle(allL.filter((s) => !seenL.has(`listen:${s.setId}`)), seedL),
+      ...seededShuffle(allL.filter((s) => seenL.has(`listen:${s.setId}`)), seedL),
+    ].slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'listening_practice') ?? -1;
     return (
       <AdvListeningRunner
@@ -559,12 +584,24 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 言い直し（素材0件でも必ず進める・§14）──
   if (view === 'restate') {
+    // ① 今日のAI会話レポートの修正が最優先素材（正準Journey「AI会話→レポート→言い直し」）
+    const todayCorrection = (() => {
+      for (const s of [...props.sessions].reverse()) {
+        if (s.startedAt.slice(0, 10) !== dateKey) continue;
+        const c = s.report?.corrections?.[0];
+        if (c && c.original.trim() && c.improved.trim()) return { beforeJa: c.original, afterJa: c.improved };
+      }
+      return null;
+    })();
+    // ② バトル誤答は内部IDではなくpatternで見せる（原則13）。patternを引けないIDは素材にしない
     const wrongExpressions = Object.entries(prof.mastery)
       .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at[at.length - 1]?.scorePct < 80)
+      .map(([id]) => grammarPatternById(id))
+      .filter((p): p is string => p !== null)
       .slice(0, 3)
-      .map(([id]) => ({ expression: id, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
+      .map((p) => ({ expression: p, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
     const material = pickRestateMaterial({
-      conversationCorrection: null,
+      conversationCorrection: todayCorrection,
       battleMistakes: wrongExpressions,
       targetExpressions: quest?.targetExpressions ?? [],
       usedExpressions: [],
@@ -784,7 +821,7 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 週のまとめ（PRODUCT_CANON §6）。数値の羅列ではなく「何ができるようになったか」を先に出す ──
   if (view === 'weekly') {
-    const wk = buildWeeklySummary(prof, nowISO);
+    const wk = buildWeeklySummary(prof, nowISO, props.sessions);
     weeklyTracked.current ||= (() => {
       trackAdv('weekly_learning_days', { countBucket: bucketOf(wk.studyDays), targetLevel: prof.targetJlpt ?? undefined, locale: lang });
       trackAdv('weekly_quest_completion', { countBucket: bucketOf(wk.completedQuests), locale: lang });
@@ -809,11 +846,19 @@ export default function AdvShell(props: AdvShellProps) {
             {' ／ '}
             {tx(lang, `やりきった冒険：${wk.completedQuests}回`, `完成的冒险：${wk.completedQuests}次`)}
             {wk.mockCount > 0 && ` ／ ${tx(lang, `ミニ模試：${wk.mockCount}回`, `迷你模拟考：${wk.mockCount}次`)}`}
+            {wk.conversationCount > 0 && ` ／ ${tx(lang, `AI会話：${wk.conversationCount}回`, `AI会话：${wk.conversationCount}次`)}`}
           </p>
           {wk.estimatedMinutes !== null && (
             <p className="mt-1 text-xs text-gray-400">
               {tx(lang, `学習時間はおおよそ${wk.estimatedMinutes}分（設定した1日の時間からの目安です）`,
                 `学习时间大约${wk.estimatedMinutes}分钟（根据设定的每日时长估算）`)}
+            </p>
+          )}
+          {/* オンボーディングで決めた「週◯日」を実測と並べる（聞いた決断を効かせる・原則17。週の途中でも嘘にならない事実表記） */}
+          {prof.weeklyDays !== null && (
+            <p className="mt-1 text-xs text-gray-500">
+              {tx(lang, `はじめに決めた予定：週${prof.weeklyDays}日／今週ここまで：${wk.studyDays}日`,
+                `一开始定的计划：每周${prof.weeklyDays}天／本周到目前：${wk.studyDays}天`)}
             </p>
           )}
         </div>
@@ -875,13 +920,23 @@ export default function AdvShell(props: AdvShellProps) {
   const stageDoneC = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
     const daily = buildDailySummary(prof, dateKey, nowISO);
     // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
+    const completeCorrection = (() => {
+      for (const s of [...props.sessions].reverse()) {
+        if (s.startedAt.slice(0, 10) !== dateKey) continue;
+        const c = s.report?.corrections?.[0];
+        if (c && c.original.trim() && c.improved.trim()) return { beforeJa: c.original, afterJa: c.improved };
+      }
+      return null;
+    })();
     const todayRestate = pickRestateMaterial({
-      conversationCorrection: null,
+      conversationCorrection: completeCorrection,
       battleMistakes: Object.entries(prof.mastery)
         .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-'))
           && at && at[at.length - 1]?.dateKey === dateKey && at[at.length - 1]?.scorePct < 80)
+        .map(([id]) => grammarPatternById(id))
+        .filter((p): p is string => p !== null)
         .slice(0, 1)
-        .map(([id]) => ({ expression: id, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') })),
+        .map((p) => ({ expression: p, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') })),
       targetExpressions: quest.targetExpressions,
       usedExpressions: [],
     });
@@ -979,13 +1034,12 @@ export default function AdvShell(props: AdvShellProps) {
   const mastered = masteredTargetIds(prof.mastery, nowISO);
   const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
   const stage = currentStageOf(route, stageDone);
-  const daysToExam = prof.examDateISO
-    ? Math.max(0, Math.ceil((new Date(prof.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000)) : null;
+  const daysToExam = daysToExamOf(prof.examDateISO, dateKey);
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
   const allDone = quest !== null && nextStepIdx === -1;
   const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
   const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
-  // 中断した模試は残り時間が動いているので、そのときだけ「今日の一手」を模試の再開にする。
+  // 中断した模試・進行中の答案用紙は残り時間が壁時計で動いているので、その間は「今日の一手」を再開側にする。
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
   const mockPending = prof.mockSession !== null;
   // 進行中の答案の紙が手元にまだあるか。紙が消えていたら（発行取り下げ等）
@@ -1004,8 +1058,8 @@ export default function AdvShell(props: AdvShellProps) {
       if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return; }
       // 押しても無反応、を作らない（原則15）。進めない理由を言う
       setStepNotice(tx(lang,
-        'いまAI会話を始められません（今日の回数を使い切ったか、準備中です）。他のstepを先に進めるか、明日また試してください。',
-        '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以先做其他步骤，或明天再试。'));
+        'いまAI会話を始められません（今日の回数を使い切ったか、準備中です）。下のボタンでこのstepを飛ばして、先へ進めます。',
+        '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以点下面的按钮跳过这一步，继续后面的内容。'));
       return;
     }
     if (s.kind === 'restate') { setView('restate'); return; }
@@ -1045,9 +1099,13 @@ export default function AdvShell(props: AdvShellProps) {
       <p className="text-sm font-semibold text-gray-600">
         {prof.goalType === 'conversation'
           ? tx(lang, '会話力を上げる', '提升会话能力')
-          : daysToExam !== null
-            ? tx(lang, `${prof.targetJlpt ?? ''}合格まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}合格还有${daysToExam}天`)
-            : tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)}
+          : daysToExam === null
+            ? tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)
+            : daysToExam < 0
+              ? tx(lang, '試験おつかれさまでした。次の目標を先生と決めましょう', '考试辛苦了。下一个目标和老师一起商量决定吧')
+              : daysToExam === 0
+                ? tx(lang, `今日が${prof.targetJlpt ?? ''}の試験日です。いってらっしゃい！`, `今天是${prof.targetJlpt ?? ''}的考试日。加油！`)
+                : tx(lang, `${prof.targetJlpt ?? ''}合格まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}合格还有${daysToExam}天`)}
       </p>
 
       {/*
@@ -1082,6 +1140,17 @@ export default function AdvShell(props: AdvShellProps) {
           </p>
         </div>
       </div>
+      {/* 旅の相棒の声掛け（§8）。オンボーディングの「応援のしかたが少し変わります」をここで果たす */}
+      {prof.companionId && (
+        <div className="-mt-2 mb-4 flex items-center gap-2">
+          <span className="h-8 w-8 shrink-0" aria-hidden
+            dangerouslySetInnerHTML={{ __html: companionSvg(prof.companionId) }} />
+          <p className="text-xs text-gray-600">
+            <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
+            ：{tx(lang, companionById(prof.companionId).greetJa, companionById(prof.companionId).greetZh)}
+          </p>
+        </div>
+      )}
 
       {/* 中断したミニ模試があれば、他の何より先に再開させる（§9 reload recovery） */}
       {prof.mockSession && (
@@ -1193,9 +1262,11 @@ export default function AdvShell(props: AdvShellProps) {
           {/* 4. 主要CTAは常に一つ＝次の1動作 */}
           {!allDone && nextStepIdx >= 0 && (
             <button type="button"
-              className={mockPending ? `${secondaryBtn} mt-4` : `${primaryBtn} mt-4`}
+              className={mockPending || sheetResumable ? `${secondaryBtn} mt-4` : `${primaryBtn} mt-4`}
               onClick={() => runStep(nextStepIdx)}>
-              {mockPending ? tx(lang, '模試のあとで今日の冒険をする', '模拟考之后再做今天的冒险') : ctaLabel()}
+              {mockPending ? tx(lang, '模試のあとで今日の冒険をする', '模拟考之后再做今天的冒险')
+                : sheetResumable ? tx(lang, '答案のあとで今日の冒険をする', '交完答案再做今天的冒险')
+                : ctaLabel()}
             </button>
           )}
           {/*
@@ -1206,9 +1277,17 @@ export default function AdvShell(props: AdvShellProps) {
             「終わったstepまで」と正確に書く（盛らない・原則13）
           */}
           {stepNotice && (
-            <p role="status" className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
-              {stepNotice}
-            </p>
+            <div role="status" className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2">
+              <p className="text-xs leading-relaxed text-amber-900">{stepNotice}</p>
+              {/* 案内を実行不能にしない出口（原則15）: 会話が使えない日はこのstepを飛ばして後続（言い直し等）へ進める */}
+              {nextStep?.kind === 'conversation_mission' && !props.conversationAvailable && (
+                <button type="button"
+                  className={`${pressFx} action-amber mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900`}
+                  onClick={() => { markStep(nextStepIdx); setStepNotice(null); }}>
+                  {tx(lang, 'AI会話を飛ばして次へ進む', '跳过AI会话，继续下一步')}
+                </button>
+              )}
+            </div>
           )}
           {!allDone && (
             <p className="mt-2 text-center text-xs text-gray-500">

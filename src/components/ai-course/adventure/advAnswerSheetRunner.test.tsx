@@ -143,7 +143,23 @@ describe('開始〜記入〜提出', () => {
     fireEvent.click(screen.getByRole('button', { name: '試験場へ戻る' }));
     expect(screen.getByText(/提出1回/)).toBeTruthy();
     expect(screen.getByText('これまでの提出')).toBeTruthy();
-    expect(screen.getByText(/先生が確認中/)).toBeTruthy();
+    expect(screen.getByText(/採点は先生からWeChatで届きます/)).toBeTruthy();
+  });
+
+  it('**履歴の行をタップすると、そのときの答案を見返せる**（スクショ失敗でも答案が消えない）', () => {
+    start();
+    fireEvent.click(within(screen.getByRole('radiogroup', { name: '問1' })).getByRole('radio', { name: '3' }));
+    fireEvent.click(screen.getByRole('button', { name: /提出へ進む/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'これで提出する' }));
+    fireEvent.click(screen.getByRole('button', { name: '試験場へ戻る' }));
+    // 履歴の行はタップ可能なボタン（未採点の文言を含むのはこの行だけ）
+    fireEvent.click(screen.getByRole('button', { name: /採点は先生からWeChatで届きます/ }));
+    expect(screen.getByText('提出した答案')).toBeTruthy();
+    expect(screen.getByText('自分の答え')).toBeTruthy();
+    expect(screen.getByText('1:3')).toBeTruthy();
+    // 見返しから戻ると一覧に帰れる（行き止まりにしない）
+    fireEvent.click(screen.getByRole('button', { name: '試験場へ戻る' }));
+    expect(screen.getByText('過去問の試験場')).toBeTruthy();
   });
 });
 

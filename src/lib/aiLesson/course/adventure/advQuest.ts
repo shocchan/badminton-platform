@@ -89,8 +89,11 @@ const stageSteps = (
   return {
     learn,
     battle: step('battle', [battleRef], '問題バトル', '问题战斗', 'normal'),
+    // 起動する会話は既存runtimeの今週ミッション（今日の文法をテーマにする接続は未実装）。
+    // 「今日の文法を会話で使う」と掲げると実体と食い違うため、誇張しない題名にする（原則13）。
+    // targetExpressions は言い直しstepが実際に使うので expressions はそのまま残す
     conv: convPick
-      ? step('conversation_mission', [convPick.refId, ...(g ? [g] : [])], `AI会話で使う：${convPick.themeJa}`, `在AI会话中使用：${convPick.themeZh}`)
+      ? step('conversation_mission', [convPick.refId, ...(g ? [g] : [])], 'AI会話ミッション', 'AI会话任务')
       : null,
     expressions: convPick ? [convPick.expression] : [],
   };
@@ -110,6 +113,12 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     ?? masteredStageIds(profile.mastery, route.stages.map((s) => s.stageId), input.nowISO);
   const stage = currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
   const parts = stageSteps(stage, availability, seed);
+  // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
+  // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
+  // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
+  if (goalType === 'hybrid' && !parts.conv) {
+    parts.conv = step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务');
+  }
 
   // 前日と同じ主対象を避ける（§13⑦）。避けられない場合はそのまま（コンテンツが1つしか無いとき）
   const lastTargets = new Set(profile.lastQuest?.dateKey === prevDateKey(dateKey) ? profile.lastQuest.primaryTargets : []);
@@ -158,6 +167,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // ① 復習は常に先頭（期限切れ/当日分がある場合）
   if (dueReviewCount > 0) push(step('review_due', [], `復習 ${Math.min(dueReviewCount, 9)}件`, `复习 ${Math.min(dueReviewCount, 9)}项`));
 
+  // 言い直しは素材がある日だけ入れる（基礎キャンプ等、文法誤答も会話表現も無い日は空stepになるため）
+  const restateAvailable = weakGrammarIds.length > 0 || parts.expressions.length > 0;
+
   if (minutes === 5) {
     // 5分: 復習＋弱点1つ or 新規のどちらか＋ミニ会話（会話goalのみ）。
     // バトルが一度も出ないと攻略（mastery）が永久に進まないため、奇数日はバトルを入れる
@@ -177,20 +189,22 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
-    push(step('restate', [], '言い直し', '改口练习'));
+    if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
   } else {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 3), '弱点補強', '弱点补强'));
     push(parts.learn);
     push(parts.battle);
     push(examSkillStep());
     push(parts.conv);
-    push(step('restate', [], '言い直し', '改口练习'));
+    if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
   }
 
   // 空クエスト防止: 最低1ステップ（コンテンツ枯渇時は復習/会話へ）
   if (steps.length === 0) push(step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务'));
 
   const estimatedMinutes = steps.reduce((n, s) => n + s.estMinutes, 0);
+  // 成功条件は実際に計測できることだけを言う（会話中の「表現使用」は判定していない・原則13）
+  const hasConv = steps.some((s) => s.kind === 'conversation_mission');
   const targetSkills: AdvSkill[] = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth'
     ? ['conversation', 'vocabulary']
     : goalType === 'hybrid' ? ['grammar', 'conversation'] : ['grammar', 'vocabulary'];
@@ -207,8 +221,12 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     estimatedMinutes,
     targetSkills,
     targetExpressions: parts.expressions,
-    successConditionJa: parts.battle ? 'バトルで80%以上、会話で今日の表現を1回使う' : '今日の表現を会話で1回使う',
-    successConditionZh: parts.battle ? '战斗拿到80%以上，并在会话中用一次今天的表达' : '在会话中用一次今天的表达',
+    successConditionJa: parts.battle
+      ? (hasConv ? 'バトルで80%以上、AI会話を1回終える' : 'バトルで80%以上を取る')
+      : (hasConv ? 'AI会話を1回終える' : '今日のstepをすべて終える'),
+    successConditionZh: parts.battle
+      ? (hasConv ? '战斗拿到80%以上，并完成一次AI会话' : '战斗拿到80%以上')
+      : (hasConv ? '完成一次AI会话' : '完成今天的所有步骤'),
     nextStepJa: '明日は今日の復習から始まります',
     nextStepZh: '明天从复习今天的内容开始',
   };

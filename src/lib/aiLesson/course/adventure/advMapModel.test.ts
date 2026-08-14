@@ -248,3 +248,25 @@ describe('冒険マップ — ルートの組み立て', () => {
     expect(m.destinationJa.length).toBeGreaterThan(0);
   });
 });
+
+describe('総合ルート — 会話レイヤーは並走レーン（試験の攻略待ちにしない・原則13）', () => {
+  it('**hybrid+combined で今週の会話地域は霧にならず「AI会話を始める」を保つ**', () => {
+    const prof = profileFor('hybrid');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'combined', NOW);
+    const conv = m.regions.find((r) => r.id === 'conv-w1')!;
+    expect(conv.state).not.toBe('locked');
+    expect(conv.action.kind).toBe('conversation');
+  });
+
+  it('**combined の攻略済み会話地域に「先に◯◯を攻略します」が付かない**', () => {
+    const prof = profileFor('hybrid');
+    const m = buildAdventureMap(prof, prof.route, new Set(), 3, 'combined', NOW);
+    const doneConv = m.regions.filter((x) => x.layer === 'conversation' && x.state === 'done');
+    // done の会話地域が実際に存在することを保証（空振りテスト防止）
+    expect(doneConv.length).toBeGreaterThan(0);
+    for (const r of doneConv) {
+      expect(r.unlockJa, r.id).toBe('');
+      expect(r.unlockZh, r.id).toBe('');
+    }
+  });
+});

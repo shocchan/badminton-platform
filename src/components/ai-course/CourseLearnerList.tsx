@@ -4,6 +4,7 @@
 import { PauseCircle, AlertTriangle } from 'lucide-react';
 import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import type { AdminLearnerRow, LearnerUsageSummary } from '../../lib/aiLesson/course/courseAdminApi';
+import { readAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
 
 interface Props {
   learners: AdminLearnerRow[];
@@ -15,6 +16,8 @@ interface Props {
 
 const monthlyCapOf = (l: AdminLearnerRow) =>
   l.adminOverrides.monthlyMaxSessions ?? DEFAULT_USAGE_LIMITS.monthly_max_sessions;
+
+const dayKey = (d: Date) => d.toLocaleDateString('sv-SE');
 
 export const CourseLearnerList = ({ learners, usageMap, selectedId, emptyLabel, onSelect }: Props) => {
   if (learners.length === 0) return <p className="text-sm text-gray-500 mb-4">{emptyLabel}</p>;
@@ -52,6 +55,22 @@ export const CourseLearnerList = ({ learners, usageMap, selectedId, emptyLabel, 
             <p className="text-[10px] text-gray-400 mt-1">
               {u.lastDate ? `最終 ${u.lastDate.slice(5)}` : '今月未利用'}
             </p>
+            {(() => {
+              // V2の初日チェック・週次確認用（PILOT_OPERATIONS §7・週次運用）。
+              // ①診断の完了 ②冒険完了回数 ③直近7日の学習日数＋最終学習日。settingsから読むだけ（追加取得なし）
+              const v2 = readAdvProfile(l.settings);
+              if (!v2 || !v2.enabled) return null;
+              const doneCount = v2.questLog.filter((q) => q.totalSteps > 0 && q.completedSteps >= q.totalSteps).length;
+              const last = v2.questLog.length > 0 ? v2.questLog[v2.questLog.length - 1].dateKey : null;
+              const weekAgo = dayKey(new Date(Date.now() - 6 * 86400000));
+              const days7 = new Set(v2.questLog.filter((q) => q.dateKey >= weekAgo).map((q) => q.dateKey)).size;
+              return (
+                <p className="text-[10px] text-blue-700 mt-1">
+                  V2: 診断{v2.diagnosis ? '済' : '未'} ／ 冒険完了{doneCount}回 ／ 直近7日 {days7}日
+                  {last ? ` ／ 最終 ${last.slice(5)}` : ''}
+                </p>
+              );
+            })()}
           </button>
         );
       })}

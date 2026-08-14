@@ -278,8 +278,8 @@ export const computeReadiness = (
       key: 'conversation',
       labelJa: PRACTICAL_SKILL_LABELS.conversation.ja, labelZh: PRACTICAL_SKILL_LABELS.conversation.zh,
       pct: conv.confidence === 'none' ? null : conv.currentScore,
-      noteJa: 'AI会話の記録です。JLPTの点数には足しません。',
-      noteZh: '这是AI会话的记录，不计入JLPT分数。',
+      noteJa: '冒険の準備（診断）で測った会話の開始地点です。その後のAI会話ではまだ更新されません。JLPTの点数には足しません。',
+      noteZh: '这是「冒险准备」（诊断）时测得的会话起点，之后的AI会话暂时不会更新它，也不计入JLPT分数。',
     },
     {
       key: 'practicalUsage',

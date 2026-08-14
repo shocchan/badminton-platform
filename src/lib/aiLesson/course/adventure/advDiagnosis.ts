@@ -158,11 +158,15 @@ export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => 
   const gN3Pct = pct(gN3.correct, gN3.total);
   const gN2Pct = pct(gN2.correct, gN2.total);
 
-  const vocabularyBand = ladderBand(vFoundPct, vN3Pct, 100, false);
-  const grammarBand = ladderBand(100, gN3Pct, gN2Pct, n2Asked);
-  const knowledgeBand: AdvBand = (['vocabulary', 'grammar'] as const)
-    .map((k) => (k === 'vocabulary' ? vocabularyBand : grammarBand))
-    .reduce((lo, b) => (bandAtLeast(lo, b) ? b : lo));
+  // 全問「わからない」＝証拠0件のときは帯を断定しない（原則13: 存在するふりをしない）
+  const noEvidence = vFound.total + vN3.total + gN3.total + gN2.total === 0;
+  const vocabularyBand: AdvBand = noEvidence ? 'needs_assessment' : ladderBand(vFoundPct, vN3Pct, 100, false);
+  const grammarBand: AdvBand = noEvidence ? 'needs_assessment' : ladderBand(100, gN3Pct, gN2Pct, n2Asked);
+  const knowledgeBand: AdvBand = noEvidence
+    ? 'needs_assessment'
+    : (['vocabulary', 'grammar'] as const)
+      .map((k) => (k === 'vocabulary' ? vocabularyBand : grammarBand))
+      .reduce((lo, b) => (bandAtLeast(lo, b) ? b : lo));
 
   const conv = conversationSampled
     ? scoreConversationSample(convSamples)

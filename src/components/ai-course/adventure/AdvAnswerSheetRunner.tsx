@@ -60,6 +60,8 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
     jumpToRef.current = null;
   }, [confirming]);
   const [lastResult, setLastResult] = useState<AnswerSheetResult | null>(null);
+  // 過去の提出の見返し（answerSheetLogから）。提出直後と同じ画面で答案を再表示する
+  const [reviewResult, setReviewResult] = useState<AnswerSheetResult | null>(null);
 
   const section = activePaper && session ? activePaper.sections[session.sectionIndex] ?? null : null;
   const nowISO = useNowISO(!!section && !lastResult);
@@ -78,19 +80,26 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
     setConfirming(false);
   };
 
-  /* ── 結果 ── */
-  if (lastResult) {
+  /* ── 結果（提出直後 or 「これまでの提出」からの見返し） ── */
+  const shownResult = lastResult ?? reviewResult;
+  if (shownResult) {
     return (
       <div className={`mx-auto w-full max-w-xl px-4 py-6 ${riseIn}`}>
         <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
           <CheckCircle2 className="h-9 w-9 text-emerald-500" aria-hidden />
         </div>
-        <h1 className="text-xl font-bold text-gray-900">{tx(lang, '答案を提出しました', '答案已提交')}</h1>
-        <p className="mt-1 text-sm text-gray-600">{tx(lang, lastResult.titleJa, lastResult.titleZh)}</p>
+        <h1 className="text-xl font-bold text-gray-900">
+          {lastResult
+            ? tx(lang, '答案を提出しました', '答案已提交')
+            : tx(lang, '提出した答案', '已提交的答案')}
+        </h1>
+        <p className="mt-1 text-sm text-gray-600">
+          {tx(lang, shownResult.titleJa, shownResult.titleZh)}・{shownResult.submittedAtISO.slice(0, 10)}
+        </p>
 
         <div className={`${card} mt-4`}>
-          {lastResult.scorePct !== null ? (
-            <p className="text-4xl font-bold text-blue-800">{lastResult.scorePct}%</p>
+          {shownResult.scorePct !== null ? (
+            <p className="text-4xl font-bold text-blue-800">{shownResult.scorePct}%</p>
           ) : (
             // 正解が未登録＝採点していない。0点に見せない
             <div className="flex items-start gap-2">
@@ -103,7 +112,7 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
             </div>
           )}
           <dl className="mt-3 space-y-1.5 text-sm">
-            {lastResult.sections.map((s) => (
+            {shownResult.sections.map((s) => (
               <div key={s.id} className="flex justify-between gap-2">
                 <dt className="text-gray-500">{tx(lang, s.labelJa, s.labelZh)}</dt>
                 <dd className="text-gray-800">
@@ -122,28 +131,36 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
           */}
           <div className="mt-3 border-t border-gray-100 pt-3">
             <p className="text-xs font-bold text-gray-700">{tx(lang, '自分の答え', '我的答案')}</p>
-            {lastResult.sections.map((s) => (
+            {shownResult.sections.map((s) => (
               <div key={`c-${s.id}`} className="mt-1.5">
                 <p className="text-[11px] text-gray-500">{tx(lang, s.labelJa, s.labelZh)}</p>
-                <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[13px] leading-relaxed text-gray-800">
-                  {s.choices.map((c, qi) => (
-                    <span key={qi} className={c == null ? 'text-gray-400' : ''}>{qi + 1}:{c ?? '−'}</span>
-                  ))}
-                </p>
+                {s.choices.length > 0 ? (
+                  <p className="mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5 font-mono text-[13px] leading-relaxed text-gray-800">
+                    {s.choices.map((c, qi) => (
+                      <span key={qi} className={c == null ? 'text-gray-400' : ''}>{qi + 1}:{c ?? '−'}</span>
+                    ))}
+                  </p>
+                ) : (
+                  // choicesを保存していなかった旧形式の記録（restoreSheetLogが空配列で埋める）
+                  <p className="mt-0.5 text-xs text-gray-400">
+                    {tx(lang, 'この提出は古い記録のため、答えの中身は残っていません。',
+                      '这次提交是旧记录，答案内容没有保留。')}
+                  </p>
+                )}
               </div>
             ))}
-            {lastResult.scorePct === null && (
+            {shownResult.scorePct === null && (
               <p className="mt-2 rounded-lg bg-blue-50 px-3 py-2 text-xs leading-relaxed text-blue-900">
                 {tx(lang,
-                  'この画面をスクリーンショットして、WeChatで先生に送ってください。先生が採点してお返しします。',
-                  '请把此页面截图，通过微信发给老师。老师批改后会反馈给你。')}
+                  'この画面をスクリーンショットして、WeChatで先生に送ってください。先生が採点してお返しします。送り忘れても大丈夫：この答案は「これまでの提出」からいつでも見返せます。',
+                  '请把此页面截图，通过微信发给老师。老师批改后会反馈给你。就算忘了发也没关系：这份答案随时可以在「过往提交」中再次查看。')}
               </p>
             )}
           </div>
         </div>
 
         <button type="button" className={`${primaryBtn} mt-4`}
-          onClick={() => { setLastResult(null); setOpenPaperId(null); }}>
+          onClick={() => { setLastResult(null); setReviewResult(null); setOpenPaperId(null); }}>
           {tx(lang, '試験場へ戻る', '回到考场')}
         </button>
         <button type="button" className={`${subtleBtn} mt-2`} onClick={onBack}>
@@ -406,14 +423,21 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
       {profile.answerSheetLog.length > 0 && (
         <div className={`${card} mt-4`}>
           <p className="text-sm font-bold text-gray-900">{tx(lang, 'これまでの提出', '过往提交')}</p>
-          <ul className="mt-1 space-y-1">
+          <p className="mt-0.5 text-xs text-gray-500">
+            {tx(lang, 'タップすると、そのときの答案を見返せます。', '点按可查看当时填写的答案。')}
+          </p>
+          <ul className="mt-1 space-y-1.5">
             {[...profile.answerSheetLog].reverse().slice(0, 5).map((r, i) => (
-              <li key={`${r.paperId}-${r.submittedAtISO}-${i}`} className="flex justify-between gap-2 text-sm">
-                <span className="min-w-0 truncate text-gray-700">{tx(lang, r.titleJa, r.titleZh)}</span>
-                <span className="shrink-0 text-gray-500">
-                  {r.submittedAtISO.slice(0, 10)}・
-                  {r.scorePct !== null ? `${r.scorePct}%` : tx(lang, '先生が確認中', '老师核对中')}
-                </span>
+              <li key={`${r.paperId}-${r.submittedAtISO}-${i}`}>
+                <button type="button" onClick={() => setReviewResult(r)}
+                  className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left text-sm`}>
+                  <span className="min-w-0 truncate text-gray-700">{tx(lang, r.titleJa, r.titleZh)}</span>
+                  <span className="flex shrink-0 items-center gap-1 text-gray-500">
+                    {r.submittedAtISO.slice(0, 10)}・
+                    {r.scorePct !== null ? `${r.scorePct}%` : tx(lang, '採点は先生からWeChatで届きます', '评分由老师通过微信发给你')}
+                    <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
+                  </span>
+                </button>
               </li>
             ))}
           </ul>

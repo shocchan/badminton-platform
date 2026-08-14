@@ -8,6 +8,7 @@
 import type {
   AdventureV2Profile, AdvMasteryLedger, AdvMasteryAttempt, JlptLevel,
 } from './advTypes';
+import type { CourseSessionRecord } from '../types';
 import { masteredTargetIds } from './advMastery';
 import { EXAM_SKILL_LABELS, type ExamSkill } from './advExamSkills';
 
@@ -41,6 +42,8 @@ export interface WeeklySummary {
   focusSkillNextWeek: ExamSkill | null;
   /** 今週完了したミニ模試の回数 */
   mockCount: number;
+  /** 今週やり切ったAI会話の回数（別軸の実測。JLPT準備度には足さない） */
+  conversationCount: number;
   /** 「先週より何ができるようになったか」の1文。measurable な変化が無ければ正直にそう書く */
   headlineJa: string;
   headlineZh: string;
@@ -94,6 +97,7 @@ const MIN_QUESTIONS_FOR_CHANGE = 10;
 export const buildWeeklySummary = (
   prof: AdventureV2Profile,
   nowISO: string,
+  sessions: CourseSessionRecord[] = [],
 ): WeeklySummary => {
   const thisWeekStart = weekStartOf(nowISO);
   const nextWeekStart = addDays(thisWeekStart, 7);
@@ -142,10 +146,12 @@ export const buildWeeklySummary = (
     : null;
 
   const mockCount = prof.mockLog.filter((m) => inThisWeek(m.dateKey)).length;
+  const conversationCount = sessions.filter((s) =>
+    s.completionStatus === 'completed' && inThisWeek(dayKey(new Date(s.startedAt)))).length;
 
   const improved = skillChanges.filter((s) => (s.deltaPct ?? 0) > 0);
   const insufficientData = studyDays === 0
-    || (newlyMastered.length === 0 && improved.length === 0 && mockCount === 0);
+    || (newlyMastered.length === 0 && improved.length === 0 && mockCount === 0 && conversationCount === 0);
 
   const headlineJa = (() => {
     if (studyDays === 0) return '今週はまだ学習の記録がありません。5分の冒険からで大丈夫です。';
@@ -157,6 +163,7 @@ export const buildWeeklySummary = (
       return `今週は${top.labelJa}が先週より${top.deltaPct}ポイント上がりました。`;
     }
     if (mockCount > 0) return `今週はミニ模試を${mockCount}回やりました。時間配分の記録が増えています。`;
+    if (conversationCount > 0) return `今週はAI会話を${conversationCount}回やり切りました。話した記録が積み上がっています。`;
     return `今週は${studyDays}日続きました。変化として言えるものが出るまで、もう少し記録を集めます。`;
   })();
 
@@ -170,6 +177,7 @@ export const buildWeeklySummary = (
       return `本周「${top.labelZh}」比上周提高了${top.deltaPct}个百分点。`;
     }
     if (mockCount > 0) return `本周做了${mockCount}次迷你模拟考，时间分配的记录在增加。`;
+    if (conversationCount > 0) return `本周完成了${conversationCount}次AI会话，开口说的记录在不断积累。`;
     return `本周坚持了${studyDays}天。在能说出变化之前，再积累一些记录。`;
   })();
 
@@ -189,6 +197,7 @@ export const buildWeeklySummary = (
     skillChanges,
     focusSkillNextWeek: focus?.skill ?? null,
     mockCount,
+    conversationCount,
     headlineJa,
     headlineZh,
     nextWeekJa,

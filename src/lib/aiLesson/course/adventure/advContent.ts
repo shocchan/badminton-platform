@@ -28,6 +28,13 @@ export const loadAllN2Drafts = async (): Promise<N2GrammarDraft[]> => {
 
 export const N2_ALIAS_IDS = new Set(Object.keys(N2_GRAMMAR_ALIASES));
 
+/** 内部IDを学習者に見せないためのpattern同期lookup（原則13）。
+ *  n3は常時参照可・n2は loadAllN2Drafts 済みキャッシュのみ。見つからなければ null */
+export const grammarPatternById = (id: string): string | null =>
+  N3_GRAMMAR_DRAFTS.find((d) => d.grammarId === id)?.pattern
+    ?? n2DraftsCache?.find((d) => d.grammarId === id)?.pattern
+    ?? null;
+
 // ── バトル用問題プール ──
 export interface GrammarPools {
   /** grammarId / unitId → 問題（validated_beta以上のみ） */
