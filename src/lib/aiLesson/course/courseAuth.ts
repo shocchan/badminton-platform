@@ -110,6 +110,9 @@ export const updatePassword = async (newPassword: string): Promise<{ ok: boolean
 
 export const signOut = async (): Promise<void> => {
   await supabase.auth.signOut();
+  // 端末ローカルの学習キャッシュも消す（次にログインする別ユーザーへ漏らさない）
+  const { clearCourseLocalCache } = await import('./courseRepository');
+  clearCourseLocalCache();
 };
 
 /** 現在ユーザーが管理者か（ai_admins に自分のメールがあるか） */

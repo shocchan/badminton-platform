@@ -28,6 +28,15 @@ const LS = {
   resume: 'kawabado.aiCourse.v1.resume',
 };
 
+/**
+ * 端末ローカルキャッシュを全消去する。
+ * ログアウト時と「キャッシュの持ち主 ≠ いまのログインユーザー」を検知したときに呼ぶ。
+ * 共有端末で前のアカウントの学習データが次のログイン者に見えるのを防ぐ（アカウント混線防止）
+ */
+export const clearCourseLocalCache = (): void => {
+  try { for (const k of Object.values(LS)) localStorage.removeItem(k); } catch { /* private mode */ }
+};
+
 const readLS = <T>(key: string): T | null => {
   try { const r = localStorage.getItem(key); return r ? (JSON.parse(r) as T) : null; } catch { return null; }
 };
@@ -147,8 +156,14 @@ const createRepository = (): CourseRepository => ({
   async getLearner() {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return readLS<Learner>(LS.learner);
+    // 別ユーザーのキャッシュは返さず、その場で全消去する（共有端末のアカウント混線防止）。
+    // これが無いと「新規ユーザーでログイン→DBに行が無い→前の人のキャッシュを表示」が起きる
+    const cached = readLS<Learner>(LS.learner);
+    const own = cached && cached.userId === u.user.id ? cached : null;
+    if (cached && !own) clearCourseLocalCache();
     const { data, error } = await supabase.from('ai_learners').select('*').eq('user_id', u.user.id).maybeSingle();
-    if (error || !data) return readLS<Learner>(LS.learner);
+    if (error) return own;   // 通信失敗時だけ「自分の」キャッシュへフォールバック
+    if (!data) return null;  // 行が無い＝新規。ヒアリングへ進ませる
     const learner = rowToLearner(data as LearnerRow);
     writeLS(LS.learner, learner);
     return learner;
