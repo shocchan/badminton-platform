@@ -1334,37 +1334,47 @@ export default function AdvShell(props: AdvShellProps) {
           <span aria-hidden className={`inline-block transition-transform duration-200 ${showMore ? 'rotate-180' : ''}`}>▼</span>
         </button>
         {showMore && (
-          <div className="mt-2 space-y-1.5">
-            <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
-            <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
-            <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
-            <SubLink lang={lang}
-              label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
-              onClick={() => setView('mock')} />
-            {/* 過去問の試験場。**N2の試験を受ける人にだけ見せる**（それ以外の画面には出さない） */}
-            {answerSheetsVisible(prof) && (
+          /* 開いたことがひと目で分かる面（枠つきパネル）＋3グループで選びやすく（項目過多の解消） */
+          <div className="mt-2 rounded-2xl border border-blue-100 bg-blue-50/40 p-3">
+            <p className="mb-1.5 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '学ぶ', '学习')}</p>
+            <div className="space-y-1.5">
+              <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
               <SubLink lang={lang}
-                label={tx(lang, '過去問の試験場（先生から届いた問題）', '真题考场（老师发来的题目）')}
-                badge={prof.answerSheets.length}
-                onClick={() => setView('sheets')} />
-            )}
-            {/* 帰化面接の表現特訓。発行された人だけ */}
-            {interviewPrepVisible(prof) && (
+                label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
+                onClick={() => setView('mock')} />
+              {/* 過去問の試験場。**N2の試験を受ける人にだけ見せる**（それ以外の画面には出さない） */}
+              {answerSheetsVisible(prof) && (
+                <SubLink lang={lang}
+                  label={tx(lang, '過去問の試験場（先生から届いた問題）', '真题考场（老师发来的题目）')}
+                  badge={prof.answerSheets.length}
+                  onClick={() => setView('sheets')} />
+              )}
+              {/* 帰化面接の表現特訓。発行された人だけ */}
+              {interviewPrepVisible(prof) && (
+                <SubLink lang={lang}
+                  label={tx(lang, '帰化面接の表現特訓', '入籍面试表达特训')}
+                  onClick={() => setView('interview')} />
+              )}
+            </div>
+            <p className="mb-1.5 mt-3 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '記録を見る', '查看记录')}</p>
+            <div className="space-y-1.5">
+              <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
+              <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
+              <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
+                onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
+              <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+            </div>
+            <p className="mb-1.5 mt-3 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '設定を変える', '更改设置')}</p>
+            <div className="space-y-1.5">
               <SubLink lang={lang}
-                label={tx(lang, '帰化面接の表現特訓', '入籍面试表达特训')}
-                onClick={() => setView('interview')} />
-            )}
-            <SubLink lang={lang}
-              label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
-              onClick={() => setView('teacher')} />
-            <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
-              onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
-            <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
-            {/* 目的・レベルの変更＝準備のやり直し（オンボーディングの「あとで変えられます」の受け皿） */}
-            <SubLink lang={lang}
-              label={tx(lang, '目的・レベルを変える（準備をやり直す）', '更改目标・级别（重新准备）')}
-              onClick={() => setRedoOnboarding(true)} />
-            <p className="px-1 pt-1 text-[11px] text-gray-400">
+                label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
+                onClick={() => setView('teacher')} />
+              {/* 目的・レベルの変更＝準備のやり直し（オンボーディングの「あとで変えられます」の受け皿） */}
+              <SubLink lang={lang}
+                label={tx(lang, '目的・レベルを変える（準備をやり直す）', '更改目标・级别（重新准备）')}
+                onClick={() => setRedoOnboarding(true)} />
+            </div>
+            <p className="px-1 pt-2 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
                 `${term('masteryRate', 'zh')}＝各单元的巩固度／${term('readiness', 'zh')}＝考试整体的能力评估`)}
             </p>
