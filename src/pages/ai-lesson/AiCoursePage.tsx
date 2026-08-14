@@ -196,6 +196,7 @@ export default function AiCoursePage() {
   const [report, setReport] = useState<CourseReportData | null>(null);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [hearingBusy, setHearingBusy] = useState(false);
+  const [hearingError, setHearingError] = useState(false);
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
@@ -349,6 +350,7 @@ export default function AiCoursePage() {
   // 初回診断 → learner作成
   const handleHearing = async (answers: DiagnosisAnswers, displayName: string) => {
     setHearingBusy(true);
+    setHearingError(false);
     const init = deriveInitialLearner(answers);
     const created = await courseRepository.createLearner({
       displayName: displayName || 'Andy', preferredLanguage: lang === 'zh' ? 'zh' : 'ja',
@@ -356,7 +358,9 @@ export default function AiCoursePage() {
       currentWeek: init.currentWeek, hearing: answers as unknown as Record<string, unknown>, settings: init.settings,
     });
     setHearingBusy(false);
-    if (created) await loadAll();
+    if (created) { await loadAll(); return; }
+    // 作成失敗を黙って握りつぶさない（原則15）。権限（signup grant欠落）や通信断で起きる
+    setHearingError(true);
   };
 
   /**
@@ -693,6 +697,13 @@ export default function AiCoursePage() {
     const v2Invite = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2');
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        {hearingError && (
+          <p role="alert" className="mx-auto mb-2 w-full max-w-md rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {uiLang === 'zh'
+              ? '无法创建账号数据。请检查网络后重试；如果仍然失败，请联系老师（可能是账号权限设置的问题）。'
+              : 'アカウントデータを作成できませんでした。通信を確認して再度お試しください。続く場合は先生に連絡してください（権限設定の可能性があります）。'}
+          </p>
+        )}
         {v2Invite
           ? <CourseNameOnlyHearing lang={uiLang} busy={hearingBusy}
               onComplete={(name) => handleHearing(V2_INVITE_DEFAULT_ANSWERS, name)} />

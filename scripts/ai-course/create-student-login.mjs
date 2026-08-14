@@ -87,6 +87,19 @@ if (!confirm) {
   process.exit(0);
 }
 
+// learner作成のRLS（ai_learners_insert）は signup_grants の行を要求するため、必ずセットで作る
+const grantSql = `insert into public.ai_course_signup_grants (email, invite_id, expires_at, is_test)
+  values ('${email}', null, now() + interval '2 years', false)
+  on conflict (email) do update set expires_at = excluded.expires_at, consumed_at = null;`;
+const runSql = async (query) => {
+  const r = await fetch(`https://api.supabase.com/v1/projects/${REF}/database/query`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query }),
+  });
+  if (!r.ok) throw new Error(`SQL失敗: ${r.status} ${await r.text()}`);
+};
+
 const createRes = await admin('/admin/users', {
   method: 'POST',
   body: JSON.stringify({
@@ -96,5 +109,6 @@ const createRes = await admin('/admin/users', {
 });
 if (!createRes.ok) { console.error(`失敗: ${createRes.status} ${await createRes.text()}`); process.exit(1); }
 const user = await createRes.json();
-console.log(`✅ 作成: id=${id} user_id=${user.id}`);
+await runSql(grantSql);
+console.log(`✅ 作成: id=${id} user_id=${user.id}（signup grant 付与済み）`);
 console.log('本人への案内: ログイン画面で「ログインID」と初期パスワードを入力 → ログイン後に設定からパスワード変更');
