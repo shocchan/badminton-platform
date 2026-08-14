@@ -5,7 +5,7 @@
 // - redoでは**記録が消えないことを明示**する（不安で押せない機能は無いのと同じ）
 // - redoのキャンセルは「元の設定のまま戻る」＝従来ホームへ飛ばさない
 // - 初回オンボーディングの文言・導線はredo導入後も変わらない（既存生徒の初回体験を壊さない）
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { AdvOnboarding } from './AdvOnboarding';
 import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
@@ -48,5 +48,18 @@ describe('冒険の準備のやり直し（redo）', () => {
     const group = screen.getByLabelText('冒険の目的');
     expect(group.textContent).toContain('JLPT');
     expect(group.querySelectorAll('button').length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('オンボーディングの「もどる」導線', () => {
+  it('目標レベル画面から「ひとつ前にもどる」で目的選択へ戻れる（選択は保持）', () => {
+    renderOnboarding(false);
+    fireEvent.click(screen.getByRole('button', { name: 'JLPTに合格したい' }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    expect(screen.getByLabelText('目標レベル')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /ひとつ前にもどる/ }));
+    // 目的選択に戻り、選んだ目的が選択状態のまま
+    expect(screen.getByLabelText('冒険の目的')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'JLPTに合格したい' }).className).toContain('is-selected');
   });
 });

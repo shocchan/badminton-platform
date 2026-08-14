@@ -100,6 +100,15 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
     setPhase('route');
   };
 
+  /** ひとつ前のステップへ戻る（押し間違いのやり直し。選択済みの値は保持される） */
+  const backBtn = (to: Phase) => (
+    <button type="button"
+      className={`${pressFx} mt-2 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`}
+      onClick={() => setPhase(to)}>
+      {tx(lang, '← ひとつ前にもどる', '← 返回上一步')}
+    </button>
+  );
+
   const header = (titleJa: string, titleZh: string, subJa?: string, subZh?: string) => (
     <div className="mb-4">
       <h2 className="text-lg font-bold text-gray-900">{tx(lang, titleJa, titleZh)}</h2>
@@ -156,6 +165,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>
+          {backBtn('goal')}
         </section>
       )}
 
@@ -169,6 +179,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('schedule')}>
             {tx(lang, examDate ? 'つぎへ' : '未定のまま進む', examDate ? '下一步' : '先不定・继续')}
           </button>
+          {backBtn('target')}
         </section>
       )}
 
@@ -194,6 +205,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('teacher')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>
+          {backBtn(goal === 'conversation' ? 'goal' : 'exam')}
         </section>
       )}
 
@@ -227,6 +239,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('companion')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>
+          {backBtn('schedule')}
         </section>
       )}
 
@@ -247,6 +260,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
             {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
           </button>
+          {backBtn('teacher')}
         </section>
       )}
 
@@ -261,6 +275,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           <button type="button" className={primary} onClick={() => setPhase('diag')}>
             {tx(lang, '診断を始める', '开始诊断')}
           </button>
+          {backBtn('companion')}
         </section>
       )}
 
@@ -271,7 +286,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
           index={qIndex}
           total={questions.length}
           selected={answers.get(questions[qIndex].key) ?? null}
-          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : null}
+          onBack={qIndex > 0 ? () => setQIndex(qIndex - 1) : () => setPhase('diagIntro')}
           onAnswer={(choiceIndex) => {
             const next = new Map(answers);
             if (choiceIndex !== null) next.set(questions[qIndex].key, choiceIndex);
@@ -304,6 +319,7 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
               onClick={() => { setConvSkipped(true); finishDiagnosis(true, []); }}>
               {tx(lang, '書くのはスキップ（会話力は未判定になります）', '跳过书写（会话能力将标记为未判定）')}
             </button>
+            {backBtn('diag')}
           </div>
         </section>
       )}
