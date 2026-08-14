@@ -186,3 +186,31 @@ export const adminGetMonthlyUsageMap = async (): Promise<Record<string, LearnerU
   }
   return map;
 };
+
+// ── ログイン状況（2026-08-15 CEO要望「どれくらいログインしたか見たい」） ──
+
+export interface LearnerLoginInfo {
+  email: string;
+  /** ログインID方式なら @より前がID */
+  loginId: string;
+  lastSignInAt: string | null;
+  userCreatedAt: string | null;
+}
+
+/** 学習者ごとの最終ログイン時刻（ai_admin_learner_logins RPC・admin以外は空） */
+export const adminGetLearnerLogins = async (): Promise<Record<string, LearnerLoginInfo>> => {
+  const { data } = await supabase.rpc('ai_admin_learner_logins');
+  const map: Record<string, LearnerLoginInfo> = {};
+  for (const r of (data ?? []) as {
+    learner_id: string; email: string | null; last_sign_in_at: string | null; user_created_at: string | null;
+  }[]) {
+    const email = r.email ?? '';
+    map[r.learner_id] = {
+      email,
+      loginId: email.endsWith('@id.badminton-platform.pages.dev') ? email.split('@')[0] : email,
+      lastSignInAt: r.last_sign_in_at,
+      userCreatedAt: r.user_created_at,
+    };
+  }
+  return map;
+};

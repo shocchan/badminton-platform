@@ -10,11 +10,12 @@ import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth'
 import {
   adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
   adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
-  adminGetUsageCost, adminGetMonthlyUsageMap,
+  adminGetUsageCost, adminGetMonthlyUsageMap, adminGetLearnerLogins,
 } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary } from '../../lib/aiLesson/course/courseAdminApi';
+import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary, LearnerLoginInfo } from '../../lib/aiLesson/course/courseAdminApi';
 import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostCard';
 import { CourseLearnerList } from '../../components/ai-course/CourseLearnerList';
+import { CourseV2UsageTable } from '../../components/ai-course/CourseV2UsageTable';
 import { learnerStats } from '../../lib/aiLesson/course/courseStats';
 import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
 import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
@@ -34,6 +35,7 @@ export default function AiCourseAdminPage() {
   const [dataMsg, setDataMsg] = useState('');
   const [usageCost, setUsageCost] = useState<AdminUsageCost | null>(null);
   const [usageMap, setUsageMap] = useState<Record<string, LearnerUsageSummary>>({});
+  const [logins, setLogins] = useState<Record<string, LearnerLoginInfo>>({});
 
   const selectLearner = useCallback(async (l: AdminLearnerRow) => {
     setSel(l);
@@ -60,6 +62,7 @@ export default function AiCourseAdminPage() {
       const list = await adminListLearners();
       setLearners(list);
       setUsageMap(await adminGetMonthlyUsageMap());
+      setLogins(await adminGetLearnerLogins());
       if (list[0]) await selectLearner(list[0]);
       setIssues(await adminListIssueReports());
       setState('ready');
@@ -108,6 +111,10 @@ export default function AiCourseAdminPage() {
       <Helmet><title>{ta.title} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-lg font-bold text-gray-900 mb-4">{ta.title}</h1>
+
+        {/* 生徒ごとの利用状況（冒険モードV2・ログイン/学習日数/完了クエスト。CEO要望 2026-08-15） */}
+        <CourseV2UsageTable lang={lang === 'zh' ? 'zh' : 'ja'} learners={learners}
+          logins={logins} usageMap={usageMap} nowISO={new Date().toISOString()} />
 
         {/* 生徒一覧（選択前に全員の利用状況が分かるカード） */}
         <CourseLearnerList
