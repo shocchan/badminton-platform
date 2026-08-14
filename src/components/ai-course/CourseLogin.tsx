@@ -117,7 +117,11 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
         <ShokoAvatar size={72} className="mx-auto mb-3 ring-4 ring-blue-50" />
         <h1 className="text-xl font-bold text-gray-900 text-center">{tl.title}</h1>
-        <p className="text-sm text-gray-500 mt-2 mb-5 text-center">{tl.subtitle}</p>
+        <p className="text-sm text-gray-500 mt-2 mb-5 text-center">
+          {mode === 'id'
+            ? (lang === 'zh' ? '使用老师发给你的ID和密码登录。' : '先生から届いたIDとパスワードでログインします。')
+            : tl.subtitle}
+        </p>
 
         {mode === 'id' ? (
           <div className="space-y-3">
