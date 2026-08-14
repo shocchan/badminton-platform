@@ -1,0 +1,11 @@
+# study.kawabado.com → staging.badminton-platform.pages.dev のプロキシ。
+# 経緯（2026-08-15）: WeChat内ブラウザが *.pages.dev をブラックリストしており、
+# 生徒に送ったAIコースのリンクが開けなかった。kawabado.com のサブドメインで配信する。
+name = "study-kawabado-proxy"
+main = "src/index.js"
+compatibility_date = "2026-08-01"
+account_id = "9e3a76dce49e8c31804afc8b0f3b2489"
+
+routes = [
+  { pattern = "study.kawabado.com", custom_domain = true }
+]

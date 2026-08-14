@@ -61,8 +61,9 @@ def build(lang: str) -> str:
     buddies = (buddy_img('natsu', 'ナツ') + buddy_img('haru', 'ハル') + buddy_img('aki', 'アキ'))
 
     # app=1: 未ログインでも販売LPではなくログイン画面を直接出す（契約済みの生徒に営業ページを見せない）
-    url_main = f'https://staging.badminton-platform.pages.dev/{lang}/ai-course?app=1&v2=1'
-    url_sub = f'https://staging.badminton-platform.pages.dev/{other}/ai-course?app=1&v2=1'
+    # WeChat内ブラウザは *.pages.dev をブロックするため、必ず study.kawabado.com を案内する（2026-08-15）
+    url_main = f'https://study.kawabado.com/{lang}/ai-course?app=1&v2=1'
+    url_sub = f'https://study.kawabado.com/{other}/ai-course?app=1&v2=1'
 
     return f"""<!doctype html>
 <html lang="{lang}"><head><meta charset="utf-8">
