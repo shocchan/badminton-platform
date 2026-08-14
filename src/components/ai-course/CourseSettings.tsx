@@ -1,9 +1,10 @@
 // 設定画面。利用案内の再確認（§17）・プライバシー（§13）・問題報告（§18）・ログアウト。
 
 import { useRef, useState } from 'react';
-import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users, UserRound } from 'lucide-react';
+import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users, UserRound, Lock } from 'lucide-react';
 import { CourseIssueReport } from './CourseIssueReport';
 import { deleteMyUtterances } from '../../lib/aiLesson/course/courseIssueApi';
+import { updatePassword } from '../../lib/aiLesson/course/courseAuth';
 import { effectiveSubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
 import type { SubtitleMode } from '../../lib/aiLesson/course/courseSubtitles';
 import type { AiCourseDict } from '../../locales/aiCourse';
@@ -129,6 +130,12 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
         <NicknameEditor t={t} current={learner.displayName} onSave={onSaveNickname} />
       </Section>
 
+      {/* パスワード変更（ID＋パスワードでログインする生徒向け。メール不要で本人が変更できる） */}
+      <Section icon={<Lock className="w-4 h-4 text-gray-600" />}
+        title={t.locale === 'zh' ? '修改密码' : 'パスワードを変更'}>
+        <PasswordEditor lang={t.locale === 'zh' ? 'zh' : 'ja'} />
+      </Section>
+
       {/* AI先生と人間コーチの役割（混同させない・§B-1） */}
       <Section icon={<Users className="w-4 h-4 text-emerald-600" />} title={ts.rolesTitle}>
         <div className="grid sm:grid-cols-2 gap-3">
@@ -189,6 +196,49 @@ const Section = ({ icon, title, children }: { icon: React.ReactNode; title: stri
 
 
 const NICKNAME_MAX = 20; // DB制約なし（text型）のため表示崩れ防止の上限
+
+/** パスワード変更（8文字以上・確認一致・成功/失敗を画面に返す） */
+const PasswordEditor = ({ lang }: { lang: 'ja' | 'zh' }) => {
+  const [pw1, setPw1] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<'ok' | 'mismatch' | 'short' | 'failed' | null>(null);
+  const tx = (ja: string, zh: string) => (lang === 'zh' ? zh : ja);
+  const submit = async () => {
+    if (busy) return;
+    setNotice(null);
+    if (pw1.length < 8) { setNotice('short'); return; }
+    if (pw1 !== pw2) { setNotice('mismatch'); return; }
+    setBusy(true);
+    const r = await updatePassword(pw1);
+    setBusy(false);
+    if (!r.ok) { setNotice('failed'); return; }
+    setNotice('ok');
+    setPw1('');
+    setPw2('');
+  };
+  return (
+    <div className="space-y-2">
+      <p className="text-xs text-gray-500">
+        {tx('8文字以上。変更した後は、新しいパスワードでログインしてください。', '至少8个字符。修改后请使用新密码登录。')}
+      </p>
+      <input type="password" value={pw1} onChange={(e) => { setPw1(e.target.value); setNotice(null); }}
+        placeholder={tx('新しいパスワード', '新密码')} autoComplete="new-password"
+        className="w-full min-h-11 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input type="password" value={pw2} onChange={(e) => { setPw2(e.target.value); setNotice(null); }}
+        placeholder={tx('もう一度入力', '再输入一次')} autoComplete="new-password"
+        className="w-full min-h-11 px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      {notice === 'short' && <p className="text-sm text-red-600">{tx('8文字以上にしてください。', '请设置至少8个字符。')}</p>}
+      {notice === 'mismatch' && <p className="text-sm text-red-600">{tx('2つの入力が一致しません。', '两次输入不一致。')}</p>}
+      {notice === 'failed' && <p className="text-sm text-red-600">{tx('変更できませんでした。時間をおいて再度お試しください。', '修改失败，请稍后再试。')}</p>}
+      {notice === 'ok' && <p className="text-sm text-green-700">{tx('パスワードを変更しました。', '密码已修改。')}</p>}
+      <button type="button" onClick={() => void submit()} disabled={busy || !pw1 || !pw2}
+        className="w-full min-h-11 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 transition-all duration-150 action-raised action-primary-blue disabled:shadow-none touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
+        {busy ? tx('変更中…', '修改中…') : tx('パスワードを変更する', '修改密码')}
+      </button>
+    </div>
+  );
+};
 
 /** ニックネーム編集（trim・空/空白拒否・制御文字拒否・二重保存防止・入力保持） */
 const NicknameEditor = ({ t, current, onSave }: { t: AiCourseDict; current: string; onSave: (name: string) => Promise<boolean> }) => {

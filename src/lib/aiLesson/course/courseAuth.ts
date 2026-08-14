@@ -84,6 +84,30 @@ export const verifyEmailOtp = async (email: string, token: string): Promise<{ ok
   return error ? { ok: false, error: error.message } : { ok: true };
 };
 
+/**
+ * ID＋パスワードログイン。
+ * IDは内部的に `${id}@id.badminton-platform.pages.dev` へ変換してSupabaseのパスワード認証を使う。
+ * - ドメインは自社Pages配下（MXなし）＝メールが実際に送られることはない
+ * - `.invalid` は使わない（QA fixture専用の目印。実生徒に使うとseed系ガードを素通りする）
+ * - アカウントは先生側スクリプト（create-student-login.mjs）でのみ作成。自己登録経路は無い
+ */
+export const STUDENT_ID_DOMAIN = 'id.badminton-platform.pages.dev';
+export const isValidStudentId = (id: string): boolean => /^[a-z][a-z0-9]{1,19}$/.test(id.trim().toLowerCase());
+export const studentIdToEmail = (id: string): string => `${id.trim().toLowerCase()}@${STUDENT_ID_DOMAIN}`;
+
+export const signInWithStudentId = async (id: string, password: string): Promise<{ ok: boolean }> => {
+  if (!isValidStudentId(id) || password.length === 0) return { ok: false };
+  const { error } = await supabase.auth.signInWithPassword({ email: studentIdToEmail(id), password });
+  return { ok: !error };
+};
+
+/** ログイン中の本人がパスワードを変更する（8文字以上。メール不要） */
+export const updatePassword = async (newPassword: string): Promise<{ ok: boolean; error?: string }> => {
+  if (newPassword.length < 8) return { ok: false, error: 'too_short' };
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return error ? { ok: false, error: error.message } : { ok: true };
+};
+
 export const signOut = async (): Promise<void> => {
   await supabase.auth.signOut();
 };

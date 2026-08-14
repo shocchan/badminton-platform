@@ -13,9 +13,14 @@ import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 
 afterEach(cleanup);
 
-const renderLogin = (t: typeof aiCourseI18n.ja) => render(
-  <MemoryRouter><CourseLogin t={t} onLoggedIn={() => {}} /></MemoryRouter>,
-);
+const renderLogin = (t: typeof aiCourseI18n.ja) => {
+  const r = render(
+    <MemoryRouter><CourseLogin t={t} onLoggedIn={() => {}} /></MemoryRouter>,
+  );
+  // 既定はID＋パスワード（2026-08-14〜）。同意チェックはメール登録フローにあるので切り替える
+  fireEvent.click(screen.getByRole('button', { name: /メールアドレスで登録/ }));
+  return r;
+};
 
 describe('申込前の同意（法務ページの公開と連動）', () => {
   it('法務ページが未公開のあいだは同意欄を出さない（読めない文書に同意させない）', () => {
@@ -63,6 +68,7 @@ describe('公開後のふるまい（事実が揃った状態を模擬）', () =
     const { CourseLogin: Published } = await import('./CourseLogin');
     const t = aiCourseI18n.ja;
     render(<MemoryRouter><Published t={t} onLoggedIn={() => {}} /></MemoryRouter>);
+    fireEvent.click(screen.getByRole('button', { name: /メールアドレスで登録/ }));
 
     const box = screen.getByRole('checkbox') as HTMLInputElement;
     expect(box).toBeTruthy();
