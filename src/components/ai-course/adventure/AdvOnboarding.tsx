@@ -44,12 +44,7 @@ interface Props {
   redo?: boolean;
 }
 
-type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'conv' | 'route';
-
-const CONV_PROMPTS: { ja: string; zh: string }[] = [
-  { ja: '週末は何をしましたか。日本語で書いてみてください。', zh: '周末做了什么？请试着用日语写一句。' },
-  { ja: 'どうして日本語を勉強していますか。理由を日本語で書いてください。', zh: '你为什么学日语？请用日语写理由。' },
-];
+type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
 
 const btnIdle = choiceIdle;
 const btnOn = choiceOn;
@@ -66,7 +61,6 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
   const [teacher, setTeacher] = useState<AdvTeacherId>(DEFAULT_TEACHER_ID);
   const [answers, setAnswers] = useState<Map<string, number>>(new Map());
   const [qIndex, setQIndex] = useState(0);
-  const [convTexts, setConvTexts] = useState<string[]>(['', '']);
   const [convSkipped, setConvSkipped] = useState(false);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
 
@@ -266,11 +260,10 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
 
       {phase === 'diagIntro' && (
         <section>
-          {header('現在地を測ります（約5分）', '测一下当前位置（约5分钟）',
+          {header('現在地を測ります（約3分）', '测一下当前位置（约3分钟）',
             '正確なルートを作るための診断です。わからない問題は「わからない」でOK。', '这是为了生成准确路线的诊断。不会的题选"不知道"就好。')}
           <ul className="mb-6 space-y-1 text-sm text-gray-700">
-            <li>{tx(lang, '第1戦：ことば・文法の問題（12問）', '第1战：词汇・语法题（12题）')}</li>
-            <li>{tx(lang, '第2戦：日本語で2文だけ書く（スキップ可）', '第2战：用日语写2句（可跳过）')}</li>
+            <li>{tx(lang, 'ことば・文法の問題 12問（すべて選択式。書く問題はありません）', '词汇・语法题共12题（全部选择题，不需要打字）')}</li>
           </ul>
           <button type="button" className={primary} onClick={() => setPhase('diag')}>
             {tx(lang, '診断を始める', '开始诊断')}
@@ -294,34 +287,14 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
             else next.delete(questions[qIndex].key);
             setAnswers(next);
             if (qIndex + 1 < questions.length) setQIndex(qIndex + 1);
-            else setPhase('conv');
+            else {
+              // 作文（タイプ入力）は出さない: 日本語入力ができない学習者が多い（CEO決定 2026-08-14）。
+              // 会話力は未判定のままAI会話の中で見ていく（RouteRevealで明示）
+              setConvSkipped(true);
+              finishDiagnosis(true, []);
+            }
           }}
         />
-      )}
-
-      {phase === 'conv' && (
-        <section aria-label={tx(lang, '会話診断', '会话诊断')}>
-          {header('日本語で書いてみましょう', '试着用日语写一写', '会話の開始地点を決めるためのものです。短くてOK。', '用于确定会话出发点。写短一点也行。')}
-          {CONV_PROMPTS.map((p, i) => (
-            <div key={p.ja} className="mb-4">
-              <p className="mb-1 text-sm font-semibold text-gray-800">{tx(lang, p.ja, p.zh)}</p>
-              <textarea value={convTexts[i]} rows={2}
-                onChange={(e) => setConvTexts(convTexts.map((v, j) => (j === i ? e.target.value : v)))}
-                className="w-full rounded-xl border border-gray-300 px-3 py-2"
-                aria-label={tx(lang, `回答${i + 1}`, `回答${i + 1}`)} />
-            </div>
-          ))}
-          <div className="space-y-2">
-            <button type="button" className={primary} onClick={() => finishDiagnosis(false, convTexts)}>
-              {tx(lang, '診断を完了する', '完成诊断')}
-            </button>
-            <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`}
-              onClick={() => { setConvSkipped(true); finishDiagnosis(true, []); }}>
-              {tx(lang, '書くのはスキップ（会話力は未判定になります）', '跳过书写（会话能力将标记为未判定）')}
-            </button>
-            {backBtn('diag')}
-          </div>
-        </section>
       )}
 
       {phase === 'route' && outcome && (

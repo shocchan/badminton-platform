@@ -67,7 +67,13 @@ export const selectDiagnosisQuestions = (
   const grammar = wantsN2
     ? [...take(pools.n3Grammar, 3, seed + 3), ...take(pools.n2Grammar, 3, seed + 4)]
     : [...take(pools.n3Grammar, 4, seed + 3), ...take(pools.n2Grammar, 2, seed + 4)];
-  return [...vocab, ...grammar];
+  // 正解の位置が執筆順（1番目）へ偏らないよう、選択肢を問題ごとに決定的へシャッフルする。
+  // seedは問題keyから作るので、同じ問題は何度開いても同じ並び（採点はanswerIndexを追随させる）
+  return [...vocab, ...grammar].map((q) => {
+    const s = [...q.key].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, seed >>> 0);
+    const order = seededShuffle(q.choices.map((_, i) => i), s);
+    return { ...q, choices: order.map((i) => q.choices[i]), answerIndex: order.indexOf(q.answerIndex) };
+  });
 };
 
 const pct = (correct: number, total: number): number =>
