@@ -4,7 +4,9 @@
 // - 解説は「正解／文法の意味／正しい理由／中国語補助／他が違う理由／出典／例文」を必ず出す
 import { pressFx, riseIn, popIn } from './advUi';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { AdvEnemyTier, AdvMasteryAttempt } from '../../../lib/aiLesson/course/adventure/advTypes';
+import type { AdvCompanionId, AdvEnemyTier, AdvMasteryAttempt } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { companionById } from '../../../lib/aiLesson/course/adventure/advCompanion';
+import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { buildEncounter, gradeEncounter, encounterName, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { computeMastery, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
@@ -34,6 +36,8 @@ export interface BattleProps {
   dateKey: string;
   nowISO: string;
   level: 'N2' | 'N3';
+  /** 旅の相棒。渡すと誤答の励まし・連続正解の褒め・勝利の一言が出る（表示のみ・採点不変） */
+  companionId?: AdvCompanionId | null;
   onFinish: (attempt: AdvMasteryAttempt, mastery: MasteryStatus) => void;
   onClose: () => void;
 }
@@ -99,6 +103,17 @@ export function AdvBattleRunner(props: BattleProps) {
   const presented = enc.presented[idx];
   const answered = picked !== null;
   const correctId = presented.correctChoiceId;
+  const companion = props.companionId ? companionById(props.companionId) : null;
+  // 今の解答を含む連続正解数（stateからの導出のみ・採点には使わない）
+  const streak = (() => {
+    if (!answered || picked !== correctId) return 0;
+    let n = 1;
+    for (let i = answers.length - 1; i >= 0; i--) {
+      if (answers[i].choiceId === enc.presented[i].correctChoiceId) n += 1;
+      else break;
+    }
+    return n;
+  })();
 
   const advance = (choiceId: string | null) => {
     setAnswers([...answers, { key: q.key, choiceId }]);
@@ -167,6 +182,18 @@ export function AdvBattleRunner(props: BattleProps) {
             </span>
             {picked === correctId ? tx(lang, '正解！', '答对了！') : tx(lang, 'ざんねん…', '差一点…')}
           </p>
+          {/* 相棒の応援（§8）。誤答は励まし、3連続正解は褒める。表示のみで採点・出題は不変 */}
+          {companion && (picked !== correctId || streak >= 3) && (
+            <p className={`mt-1.5 flex items-center gap-1.5 text-xs text-gray-600 ${popIn}`}>
+              <CompanionAvatar id={companion.id} size={20} />
+              <span>
+                <span className="font-semibold">{tx(lang, companion.nameJa, companion.nameZh)}</span>
+                ：{picked !== correctId
+                  ? tx(lang, companion.cheerWrongJa, companion.cheerWrongZh)
+                  : tx(lang, `${streak}問連続！${companion.streakJa}`, `连对${streak}题！${companion.streakZh}`)}
+              </span>
+            </p>
+          )}
           {/* §4: 正解・意味・正しい理由・中国語補助・他が違う理由・出典・例文 */}
           <p className="mt-1 text-sm font-semibold text-gray-900">
             {tx(lang, '正解', '正确答案')}：{presented.choices.find((c) => c.choiceId === correctId)?.textJa}
@@ -252,6 +279,16 @@ function BattleResult(props: BattleProps & {
         {tx(lang, `未出問題 ${Math.round(result.unseenRatio * 100)}%を含む`, `含 ${Math.round(result.unseenRatio * 100)}% 未见过的题`)}
         {props.enc.timed && result.withinTime === false && tx(lang, '・時間切れ', '・超时')}
       </p>
+      {/* 勝利したら相棒がいっしょに喜ぶ（§8・表示のみ） */}
+      {win && props.companionId && (
+        <p className={`mt-2 flex items-center justify-center gap-1.5 text-sm text-gray-700 ${popIn}`}>
+          <CompanionAvatar id={props.companionId} size={24} />
+          <span>
+            <span className="font-semibold">{tx(lang, companionById(props.companionId).nameJa, companionById(props.companionId).nameZh)}</span>
+            ：{tx(lang, companionById(props.companionId).cheerWinJa, companionById(props.companionId).cheerWinZh)}
+          </span>
+        </p>
+      )}
 
       <div className="mx-auto mt-4 max-w-sm rounded-xl border border-gray-200 bg-white p-4 text-left">
         <p className="text-sm font-semibold text-gray-900">{tx(lang, '鍛えた試験科目', '锻炼的考试科目')}</p>

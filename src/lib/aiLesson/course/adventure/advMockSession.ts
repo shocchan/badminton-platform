@@ -50,6 +50,105 @@ export const sectionTimeLimit = (
   ? section.timeLimitSec
   : (FULL_TIME_SEC[level][section.sectionId] ?? section.timeLimitSec));
 
+/** 決定的な擬似乱数（seedのみに依存。vocabQuestions.ts と同方式） */
+const rng = (seed: number) => {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0x100000000;
+  };
+};
+
+const seededShuffle = <T>(items: T[], seed: number): T[] => {
+  const arr = [...items];
+  const r = rng(seed);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(r() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
+/**
+ * 言語知識の語彙は観点を巡回して選ぶ（N3本試験の文字・語彙構成に寄せる:
+ * 漢字読み→文脈規定→表記→言い換え近似→用法）。meaning（中国語訳選び）は
+ * JLPTに無い形式なので、他観点で足りる限り模試には出さない。
+ */
+const VOCAB_ASPECT_PLAN = ['vocab-reading', 'vocab-context', 'vocab-orthography', 'vocab-confusable', 'vocab-usage'];
+
+/**
+ * 言語知識セクションの層化選択。
+ * 旧実装（プールを平坦化して連番カーソルで拾う）は、同一語の観点違い問題が
+ * プール内で隣接しているため「同じ語を読み・表記・例文…で連打」する出題になり、
+ * さらにプールの9割超を占める基礎語（N5/N4）ばかりが出ていた（CEO指摘 2026-08-14）。
+ * ここでは ①語彙5:文法5 ②同一語（sourceItemId）は1問まで ③観点を巡回
+ * ④受験バンド優先（3問に1問だけ基礎を混ぜて復習を残す）で選ぶ。
+ * attemptSeed のみに依存する決定的選択なので restoreMockSession はそのまま成立する。
+ */
+const pickLanguageKnowledge = (
+  pool: AdvBattleQuestion[], count: number, level: 'N2' | 'N3', seed: number,
+): AdvBattleQuestion[] => {
+  const bands: AdvBattleQuestion['level'][] = level === 'N2' ? ['n2', 'n3', 'foundation'] : ['n3', 'foundation'];
+  // プールのMap挿入順に依存しないよう key で正規化してから決定的にシャッフル
+  const shuffled = seededShuffle(
+    [...pool].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)), seed,
+  );
+  const vocabAll = shuffled.filter((q) => q.skill === 'charactersVocabulary');
+  const grammar = shuffled.filter((q) => q.skill === 'grammar');
+  const vocabNoMeaning = vocabAll.filter((q) => q.type !== 'vocab-meaning');
+
+  const usedKeys = new Set<string>();
+  const usedItems = new Set<string>();
+  const take = (cands: AdvBattleQuestion[], pred: (q: AdvBattleQuestion) => boolean): AdvBattleQuestion | null => {
+    for (const q of cands) {
+      if (usedKeys.has(q.key) || usedItems.has(q.sourceItemId) || !pred(q)) continue;
+      usedKeys.add(q.key);
+      usedItems.add(q.sourceItemId);
+      return q;
+    }
+    return null;
+  };
+  // バンド優先つきで1問選ぶ。3問に1問は基礎側から（復習を完全には切らない）
+  const takeBanded = (cands: AdvBattleQuestion[], slot: number, aspect: string | null): AdvBattleQuestion | null => {
+    const order = slot % 3 === 2 ? [...bands].reverse() : bands;
+    for (const band of order) {
+      const q = take(cands, (x) => x.level === band && (aspect === null || x.type === aspect));
+      if (q) return q;
+    }
+    return aspect === null ? null : takeBanded(cands, slot, null);
+  };
+
+  const total = Math.min(count, pool.length);
+  const grammarQuota = Math.min(Math.floor(total / 2), grammar.length);
+  const picked: AdvBattleQuestion[] = [];
+  const vocabCands = vocabNoMeaning.length >= total - grammarQuota ? vocabNoMeaning : vocabAll;
+  for (let i = 0; picked.length < total - grammarQuota && i < total * 2; i++) {
+    const q = takeBanded(vocabCands, i, VOCAB_ASPECT_PLAN[i % VOCAB_ASPECT_PLAN.length]);
+    if (!q) break;
+    picked.push(q);
+  }
+  for (let i = 0; picked.length < total && i < total * 2; i++) {
+    const q = takeBanded(grammar, i, null);
+    if (!q) break;
+    picked.push(q);
+  }
+  // 端数の補充。同一語1問の縛りだけではプールが小さくて埋まらない場合は縛りを緩める
+  for (const q of shuffled) {
+    if (picked.length >= total) break;
+    if (usedKeys.has(q.key) || usedItems.has(q.sourceItemId)) continue;
+    usedKeys.add(q.key);
+    usedItems.add(q.sourceItemId);
+    picked.push(q);
+  }
+  for (const q of shuffled) {
+    if (picked.length >= total) break;
+    if (usedKeys.has(q.key)) continue;
+    usedKeys.add(q.key);
+    picked.push(q);
+  }
+  return picked;
+};
+
 /** 新しい模試セッションを開始する */
 export const startMockSession = (
   spec: MockSpec, pools: Map<string, AdvBattleQuestion[]>, mode: 'short' | 'fullTime',
@@ -64,16 +163,22 @@ export const startMockSession = (
       for (const q of qs) if (section.skills.includes(q.skill)) pool.push(q);
     }
     if (pool.length === 0) continue;
-    // 決定的に選ぶ（seedで再現可能・reload時も同じ問題）
-    const picked: AdvBattleQuestion[] = [];
-    const seen = new Set<string>();
-    let cursor = attemptSeed % Math.max(1, pool.length);
-    while (picked.length < Math.min(section.questionCount, pool.length)) {
-      const q = pool[cursor % pool.length];
-      cursor += 1;
-      if (seen.has(q.key)) continue;
-      seen.add(q.key);
-      picked.push(q);
+    let picked: AdvBattleQuestion[];
+    if (section.sectionId === 'languageKnowledge') {
+      // 語彙・文法は層化選択（観点・バンド・同一語1問）
+      picked = pickLanguageKnowledge(pool, section.questionCount, spec.level, attemptSeed);
+    } else {
+      // 読解・聴解は従来どおり（本文グループの並びを壊さない）。seedで決定的
+      picked = [];
+      const seen = new Set<string>();
+      let cursor = attemptSeed % Math.max(1, pool.length);
+      while (picked.length < Math.min(section.questionCount, pool.length)) {
+        const q = pool[cursor % pool.length];
+        cursor += 1;
+        if (seen.has(q.key)) continue;
+        seen.add(q.key);
+        picked.push(q);
+      }
     }
     sections.push({ section, questions: picked, presented: presentBattle(picked, attemptSeed + sections.length) });
   }

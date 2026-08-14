@@ -30,4 +30,18 @@ describe('相棒IDの移行', () => {
     }
     expect(companionById(null).id).toBe('natsu');
   });
+
+  it('活躍場面の文言（勝利・励まし・連続正解・復習の知らせ・週まとめ）も ja/zh 完備', () => {
+    for (const c of COMPANIONS) {
+      for (const f of [
+        c.cheerWinJa, c.cheerWinZh, c.cheerWrongJa, c.cheerWrongZh,
+        c.streakJa, c.streakZh, c.reviewNudgeJa, c.reviewNudgeZh, c.weeklyJa, c.weeklyZh,
+      ]) {
+        expect(f.length).toBeGreaterThan(0);
+      }
+      // 3体で応援の個性が分かれていること（同文のコピペ定義を防ぐ）
+    }
+    expect(new Set(COMPANIONS.map((c) => c.cheerWrongJa)).size).toBe(3);
+    expect(new Set(COMPANIONS.map((c) => c.reviewNudgeJa)).size).toBe(3);
+  });
 });

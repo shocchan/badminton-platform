@@ -62,6 +62,9 @@ interface Props {
   /** 帰化面接の表現特訓（発行された人だけ）。模擬面接は先生の授業で行う */
   interviewVisible: boolean;
   onOpenInterview: () => void;
+  /** 目的地までの残り量・推定（advPace）。未測定なら null＝出さない */
+  paceNoteJa?: string | null;
+  paceNoteZh?: string | null;
 }
 
 const STATE_LABEL: Record<MapRegion['state'], { ja: string; zh: string }> = {
@@ -110,6 +113,7 @@ export const AdvAdventureMap = ({
   onOpenReview, reviewAvailable, onStartConversation, conversationAvailable, onOpenMock,
   sheetsVisible, sheetCount, onOpenSheets,
   interviewVisible, onOpenInterview,
+  paceNoteJa = null, paceNoteZh = null,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
@@ -300,6 +304,12 @@ export const AdvAdventureMap = ({
             <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-blue-600 transition-[width] duration-700 ease-out"
               style={{ width: `${overallPct}%` }} />
           </div>
+          {/* 目的地までの残り量と推定（advPace）。未測定・残り0のときは出ない */}
+          {paceNoteJa && (
+            <p className="mt-1.5 text-xs text-gray-500">
+              {tx(lang, paceNoteJa, paceNoteZh ?? paceNoteJa)}
+            </p>
+          )}
           {nextRegion && (
             // 地域名は長いことがある（例「会話の開始地点：ヒノデ台（暮らしの会話）」）。
             // 1行に押し込まず、素直に折り返させる

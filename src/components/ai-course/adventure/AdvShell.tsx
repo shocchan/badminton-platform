@@ -12,6 +12,7 @@ import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
+import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
 import {
   ALL_TEACHERS, resolveTeacher, teacherName, type AdvTeacherId,
@@ -371,6 +372,7 @@ export default function AdvShell(props: AdvShellProps) {
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
+        companionId={prof.companionId}
         onFinish={(attempt: AdvMasteryAttempt, mastery: MasteryStatus) => {
           let ledger = recordAttempt(prof.mastery, battle.targetId, attempt);
           if (battle.tier === 'midboss' || battle.tier === 'rankboss') {
@@ -664,12 +666,27 @@ export default function AdvShell(props: AdvShellProps) {
   if (view === 'map') {
     const mapNextIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
     const mapNextStep = quest && mapNextIdx >= 0 ? quest.steps[mapNextIdx] : null;
+    const mapDays = daysToExamOf(prof.examDateISO, dateKey);
+    const mapPace = pools && prof.goalType !== 'conversation'
+      ? computePace({
+        route, ledger: prof.mastery, nowISO,
+        daysToExam: mapDays !== null && mapDays >= 0 ? mapDays : null,
+        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem),
+        n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+      })
+      : null;
     return (
       <AdvAdventureMap
         lang={lang}
         profile={prof}
         route={route}
         mastered={masteredTargetIds(prof.mastery, nowISO)}
+        paceNoteJa={mapPace && mapPace.remainingTargets > 0
+          ? `目的地まで残り${mapPace.remainingStages}地域・${mapPace.remainingTargets}項目${mapPace.estWeeksLeft !== null && mapPace.estWeeksLeft > 0 ? `／いまのペースだと約${mapPace.estWeeksLeft}週間（推定）` : ''}`
+          : null}
+        paceNoteZh={mapPace && mapPace.remainingTargets > 0
+          ? `距离目的地还剩${mapPace.remainingStages}个地区・${mapPace.remainingTargets}个项目${mapPace.estWeeksLeft !== null && mapPace.estWeeksLeft > 0 ? `／按现在的节奏约需${mapPace.estWeeksLeft}周（推算）` : ''}`
+          : null}
         currentWeek={learner.currentWeek ?? 1}
         quest={quest}
         nextStepTitleJa={mapNextStep?.titleJa ?? null}
@@ -823,6 +840,15 @@ export default function AdvShell(props: AdvShellProps) {
   // ── 週のまとめ（PRODUCT_CANON §6）。数値の羅列ではなく「何ができるようになったか」を先に出す ──
   if (view === 'weekly') {
     const wk = buildWeeklySummary(prof, nowISO, props.sessions);
+    const wkDays = daysToExamOf(prof.examDateISO, dateKey);
+    const wkPace = pools && prof.goalType !== 'conversation'
+      ? computePace({
+        route, ledger: prof.mastery, nowISO,
+        daysToExam: wkDays !== null && wkDays >= 0 ? wkDays : null,
+        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem),
+        n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+      })
+      : null;
     weeklyTracked.current ||= (() => {
       trackAdv('weekly_learning_days', { countBucket: bucketOf(wk.studyDays), targetLevel: prof.targetJlpt ?? undefined, locale: lang });
       trackAdv('weekly_quest_completion', { countBucket: bucketOf(wk.completedQuests), locale: lang });
@@ -839,6 +865,16 @@ export default function AdvShell(props: AdvShellProps) {
             <TeacherAvatar size={40} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
             <p className="text-sm leading-relaxed text-gray-800">{tx(lang, wk.headlineJa, wk.headlineZh)}</p>
           </div>
+          {/* 相棒のひとこと（§8）。学習した週だけ出す（記録ゼロの週に褒めない・原則13） */}
+          {prof.companionId && wk.studyDays > 0 && (
+            <p className="mt-2 flex items-center gap-1.5 text-xs text-gray-600">
+              <CompanionAvatar id={prof.companionId} size={20} />
+              <span>
+                <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
+                ：{tx(lang, companionById(prof.companionId).weeklyJa, companionById(prof.companionId).weeklyZh)}
+              </span>
+            </p>
+          )}
         </div>
 
         <div className={`${card} mt-3`}>
@@ -860,6 +896,16 @@ export default function AdvShell(props: AdvShellProps) {
             <p className="mt-1 text-xs text-gray-500">
               {tx(lang, `はじめに決めた予定：週${prof.weeklyDays}日／今週ここまで：${wk.studyDays}日`,
                 `一开始定的计划：每周${prof.weeklyDays}天／本周到目前：${wk.studyDays}天`)}
+            </p>
+          )}
+          {/* 目的地までの残りと実測ペース（CEO要望 2026-08-14）。未測定の値は出さない（原則13） */}
+          {wkPace && wkPace.remainingTargets > 0 && (
+            <p className="mt-1 text-xs text-gray-500">
+              {tx(lang, `目的地まで残り${wkPace.remainingTargets}項目`, `距离目的地还剩${wkPace.remainingTargets}个项目`)}
+              {wkPace.measuredPerWeek !== null && tx(lang,
+                `／いまの実測ペース：週${wkPace.measuredPerWeek}項目`, `／目前实测节奏：每周${wkPace.measuredPerWeek}个`)}
+              {wkPace.neededPerWeek !== null && wkPace.neededPerWeek > 0 && tx(lang,
+                `／受験日までに終えるには週${wkPace.neededPerWeek}項目`, `／要赶上考试日需每周${wkPace.neededPerWeek}个`)}
             </p>
           )}
         </div>
@@ -1046,6 +1092,14 @@ export default function AdvShell(props: AdvShellProps) {
   const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
   const stage = currentStageOf(route, stageDone);
   const daysToExam = daysToExamOf(prof.examDateISO, dateKey);
+  // 目的地までの残り量と実測ペース（原則13: ペース・予測は実測2週未満ならnull＝出さない）
+  const pace = pools && prof.goalType !== 'conversation'
+    ? computePace({
+      route, ledger: prof.mastery, nowISO,
+      daysToExam: daysToExam !== null && daysToExam >= 0 ? daysToExam : null,
+      stageDone, n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+    })
+    : null;
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
   const allDone = quest !== null && nextStepIdx === -1;
   const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
@@ -1136,6 +1190,27 @@ export default function AdvShell(props: AdvShellProps) {
         </p>
       )}
 
+      {/* 目的地までの残り量と推定（CEO要望 2026-08-14: 理想と現状のギャップ・残りを見せる） */}
+      {pace && pace.remainingTargets > 0 && (
+        <p className="mt-1 text-xs text-gray-500">
+          {tx(lang,
+            `目的地まで残り${pace.remainingStages}地域・${pace.remainingTargets}項目`,
+            `距离目的地还剩${pace.remainingStages}个地区・${pace.remainingTargets}个项目`)}
+          {pace.estWeeksLeft !== null && pace.estWeeksLeft > 0 && (
+            tx(lang,
+              `／いまのペースだと約${pace.estWeeksLeft}週間（推定）`,
+              `／按现在的节奏约需${pace.estWeeksLeft}周（推算）`)
+          )}
+        </p>
+      )}
+      {pace && pace.onTrack === false && pace.neededPerWeek !== null && (
+        <p className="mt-0.5 text-xs font-semibold text-amber-700">
+          {tx(lang,
+            `受験日までに終えるには週${pace.neededPerWeek}項目の定着が必要です（いまは週${pace.measuredPerWeek ?? 0}）`,
+            `要在考试日前完成，需要每周巩固${pace.neededPerWeek}个项目（现在是每周${pace.measuredPerWeek ?? 0}个）`)}
+        </p>
+      )}
+
       {/* 案内の先生の一文（次の行動を言う）。7画面すべてで同じ先生に揃える */}
       <div className="mt-2 mb-4 flex items-center gap-3">
         <TeacherAvatar size={48} expression="smile" lang={lang}
@@ -1151,13 +1226,16 @@ export default function AdvShell(props: AdvShellProps) {
           </p>
         </div>
       </div>
-      {/* 旅の相棒の声掛け（§8）。オンボーディングの「応援のしかたが少し変わります」をここで果たす */}
+      {/* 旅の相棒の声掛け（§8）。オンボーディングの「応援のしかたが少し変わります」をここで果たす。
+          復習が残っている日は毎日同文のgreetでなく「復習の知らせ役」になる（状況対応・CEO要望 2026-08-14） */}
       {prof.companionId && (
         <div className="-mt-2 mb-4 flex items-center gap-2">
           <CompanionAvatar id={prof.companionId} size={32} />
           <p className="text-xs text-gray-600">
             <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
-            ：{tx(lang, companionById(prof.companionId).greetJa, companionById(prof.companionId).greetZh)}
+            ：{props.reviewsDue > 0
+              ? tx(lang, companionById(prof.companionId).reviewNudgeJa, companionById(prof.companionId).reviewNudgeZh)
+              : tx(lang, companionById(prof.companionId).greetJa, companionById(prof.companionId).greetZh)}
           </p>
         </div>
       )}

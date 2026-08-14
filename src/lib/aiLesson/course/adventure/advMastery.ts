@@ -128,6 +128,20 @@ export const masteredTargetIds = (ledger: AdvMasteryLedger, nowISO: string): Set
   return done;
 };
 
+/**
+ * ある時点でのmastered集合（時点評価）。
+ * masteredTargetIds は台帳の**全attempt**を見るため、評価時刻を過去にしても
+ * 「その時点の状態」を返せない（遅延確認attemptが台帳にあれば過去時点でもmastered扱いになる）。
+ * 「今週あたらしく定着」やペース実測のような時点比較では必ずこちらを使う。
+ */
+export const masteredTargetIdsAsOf = (ledger: AdvMasteryLedger, atISO: string): Set<string> => {
+  const sliced: AdvMasteryLedger = {};
+  for (const [t, attempts] of Object.entries(ledger)) {
+    sliced[t] = (attempts ?? []).filter((a) => a.completedAt <= atISO);
+  }
+  return masteredTargetIds(sliced, atISO);
+};
+
 /** stage攻略判定: stage束target（targetId=stageId）が mastered か */
 export const masteredStageIds = (ledger: AdvMasteryLedger, stageIds: string[], nowISO: string): Set<string> => {
   const done = new Set<string>();

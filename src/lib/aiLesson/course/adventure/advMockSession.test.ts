@@ -285,3 +285,99 @@ describe('§10 総合準備度のゲート', () => {
     expect(r.overallPct).toBeNull();
   });
 });
+
+// ── 言語知識の層化選択（CEO指摘 2026-08-14: 同じ語の読み方・例文連打＋基礎偏重の是正）──
+
+/** 実プールと同じ形の語彙問題（1語から観点違いを複数生成・sourceItemId共有） */
+const vocabQ = (
+  wordId: string, aspect: string, band: AdvBattleQuestion['level'],
+): AdvBattleQuestion => ({
+  ...q(`vocab:${wordId}:${aspect}`, 'charactersVocabulary', `vocab:${wordId}:${aspect}-a`),
+  type: `vocab-${aspect}`,
+  level: band,
+  sourceItemId: wordId,
+});
+
+const grammarQ = (gid: string, band: AdvBattleQuestion['level']): AdvBattleQuestion => ({
+  ...q(`g:${gid}`, 'grammar', `g:${gid}-b`),
+  type: 'recognize',
+  level: band,
+  sourceItemId: gid,
+});
+
+const realisticPools = (): Map<string, AdvBattleQuestion[]> => {
+  const aspects = ['meaning', 'reading', 'orthography', 'usage', 'context', 'confusable'];
+  const vocab: AdvBattleQuestion[] = [];
+  // 基礎語20語 × 6観点 = 120問（プールの大半が基礎、実態の縮図）
+  for (let w = 0; w < 20; w++) for (const a of aspects) vocab.push(vocabQ(`fw${w}`, a, 'foundation'));
+  // N3語8語 × 6観点 = 48問
+  for (let w = 0; w < 8; w++) for (const a of aspects) vocab.push(vocabQ(`nw${w}`, a, 'n3'));
+  const grammar: AdvBattleQuestion[] = [
+    ...Array.from({ length: 10 }, (_, i) => grammarQ(`fg${i}`, 'foundation')),
+    ...Array.from({ length: 10 }, (_, i) => grammarQ(`ng${i}`, 'n3')),
+  ];
+  const m = new Map<string, AdvBattleQuestion[]>();
+  m.set('vocab', vocab);
+  m.set('grammar', grammar);
+  return m;
+};
+
+describe('言語知識セクションの層化選択', () => {
+  const spec = () => buildMockSpec('N3', {
+    vocabCount: 168, grammarCount: 20, readingCount: 0, listeningCount: 0,
+  });
+
+  it('同一語（sourceItemId）は1問まで＝10問の異なり語・文法数が10になる', () => {
+    for (const seed of [1, 7, 12345, 999999, 20260814]) {
+      const rt = startMockSession(spec(), realisticPools(), 'short', seed, '2026-08-14T00:00:00.000Z')!;
+      const items = rt.sections[0].questions.map((x) => x.sourceItemId);
+      expect(new Set(items).size).toBe(items.length);
+    }
+  });
+
+  it('語彙と文法が半々に出る（語彙がプールの9割でも文法を圧殺しない）', () => {
+    const rt = startMockSession(spec(), realisticPools(), 'short', 42, '2026-08-14T00:00:00.000Z')!;
+    const bySkill = rt.sections[0].questions.map((x) => x.skill);
+    expect(bySkill.filter((s) => s === 'grammar').length).toBe(5);
+    expect(bySkill.filter((s) => s === 'charactersVocabulary').length).toBe(5);
+  });
+
+  it('語彙の観点が3種類以上に散る（読み方・例文の連打にならない）', () => {
+    for (const seed of [1, 7, 12345]) {
+      const rt = startMockSession(spec(), realisticPools(), 'short', seed, '2026-08-14T00:00:00.000Z')!;
+      const aspects = rt.sections[0].questions
+        .filter((x) => x.skill === 'charactersVocabulary').map((x) => x.type);
+      expect(new Set(aspects).size).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('meaning（中国語訳選び・JLPTに無い形式）は他観点で足りる限り出ない', () => {
+    for (const seed of [1, 7, 12345]) {
+      const rt = startMockSession(spec(), realisticPools(), 'short', seed, '2026-08-14T00:00:00.000Z')!;
+      expect(rt.sections[0].questions.some((x) => x.type === 'vocab-meaning')).toBe(false);
+    }
+  });
+
+  it('N3模試は受験バンド（n3）の問題が過半（基礎語ばかりにならない）', () => {
+    for (const seed of [1, 7, 12345, 999999]) {
+      const rt = startMockSession(spec(), realisticPools(), 'short', seed, '2026-08-14T00:00:00.000Z')!;
+      const n3 = rt.sections[0].questions.filter((x) => x.level === 'n3').length;
+      expect(n3).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it('層化選択でも同一seedの再構成（reload復帰）は完全一致する', () => {
+    const a = startMockSession(spec(), realisticPools(), 'short', 777, '2026-08-14T00:00:00.000Z')!;
+    const b = startMockSession(spec(), realisticPools(), 'short', 777, '2026-08-14T00:00:00.000Z')!;
+    expect(a.sections[0].questions.map((x) => x.key)).toEqual(b.sections[0].questions.map((x) => x.key));
+    expect(a.sections[0].presented.map((p) => p.choices.map((c) => c.choiceId)))
+      .toEqual(b.sections[0].presented.map((p) => p.choices.map((c) => c.choiceId)));
+  });
+
+  it('seedが違えば別の問題セットになる（再受験のたびに新しい模試）', () => {
+    const keysOf = (seed: number) => startMockSession(spec(), realisticPools(), 'short', seed, '2026-08-14T00:00:00.000Z')!
+      .sections[0].questions.map((x) => x.key).join('|');
+    const variants = new Set([1, 2, 3, 4, 5].map(keysOf));
+    expect(variants.size).toBeGreaterThanOrEqual(4);
+  });
+});

@@ -9,7 +9,7 @@ import type {
   AdventureV2Profile, AdvMasteryLedger, AdvMasteryAttempt, JlptLevel,
 } from './advTypes';
 import type { CourseSessionRecord } from '../types';
-import { masteredTargetIds } from './advMastery';
+import { masteredTargetIds, masteredTargetIdsAsOf } from './advMastery';
 import { EXAM_SKILL_LABELS, type ExamSkill } from './advExamSkills';
 
 export interface WeeklySkillChange {
@@ -113,7 +113,9 @@ export const buildWeeklySummary = (
     ? prof.dailyMinutes * studyDays : null;
 
   const masteredNow = masteredTargetIds(prof.mastery, nowISO);
-  const beforeSet = masteredTargetIds(prof.mastery, `${thisWeekStart}T00:00:00.000Z`);
+  // 週初め時点の集合は**時点評価**で出す。masteredTargetIds は全attemptを見るため、
+  // 遅延確認が今週だった項目も「先週から定着済み」に見えてしまい、newlyMastered が常に空になる
+  const beforeSet = masteredTargetIdsAsOf(prof.mastery, `${thisWeekStart}T00:00:00.000Z`);
   const newlyMastered = [...masteredNow].filter((t) => !beforeSet.has(t));
 
   const cur = skillStats(prof.mastery, thisWeekStart, nextWeekStart);

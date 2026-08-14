@@ -1,13 +1,13 @@
 {
- "generatedAt": "2026-08-10T09:49:24.834Z",
+ "generatedAt": "2026-08-14T14:17:07.851Z",
  "checked": 29112,
  "pass": true,
  "byKind": {
-  "unquoted_kana_in_zh": 970
+  "unquoted_kana_in_zh": 973
  },
  "byScript": {},
  "blocking": [],
- "warningCount": 970,
+ "warningCount": 973,
  "warningsByField": {
   "commonMistakesZh": 100,
   "learnerFocus": 89,
@@ -21,6 +21,7 @@
   "choices[1].whyWrongZh": 18,
   "choices[2].whyWrongZh": 18,
   "choices[3].whyWrongZh": 18,
+  "nameZh": 3,
   "voice.greetingExample": 1,
   "vocab.catIAdj": 1,
   "vocab.catNaAdj": 1,

@@ -176,6 +176,16 @@ export interface AdvCompanionDef {
   greetJa: string; greetZh: string;
   /** 今日の冒険を締めくくったときの労い */
   doneJa: string; doneZh: string;
+  /** バトル勝利（80%以上）のとき */
+  cheerWinJa: string; cheerWinZh: string;
+  /** 問題を間違えたときの励まし（責めない・解説へ誘う） */
+  cheerWrongJa: string; cheerWrongZh: string;
+  /** 3問以上連続正解のとき */
+  streakJa: string; streakZh: string;
+  /** 復習が残っているときのHome声掛け（greetの代わりに出す） */
+  reviewNudgeJa: string; reviewNudgeZh: string;
+  /** 今週のまとめへの相棒コメント */
+  weeklyJa: string; weeklyZh: string;
 }
 
 /**

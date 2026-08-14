@@ -193,6 +193,18 @@ export const collectLearnerVisibleTexts = async (): Promise<LangCheckInput[]> =>
     push(out, `companion.${c.id}`, 'roleZh', 'zh', c.roleZh, 'home', 'ui');
     push(out, `companion.${c.id}`, 'greetJa', 'ja', c.greetJa, 'home', 'ui');
     push(out, `companion.${c.id}`, 'greetZh', 'zh', c.greetZh, 'home', 'ui');
+    push(out, `companion.${c.id}`, 'doneJa', 'ja', c.doneJa, 'home', 'ui');
+    push(out, `companion.${c.id}`, 'doneZh', 'zh', c.doneZh, 'home', 'ui');
+    push(out, `companion.${c.id}`, 'cheerWinJa', 'ja', c.cheerWinJa, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'cheerWinZh', 'zh', c.cheerWinZh, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'cheerWrongJa', 'ja', c.cheerWrongJa, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'cheerWrongZh', 'zh', c.cheerWrongZh, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'streakJa', 'ja', c.streakJa, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'streakZh', 'zh', c.streakZh, 'battle', 'ui');
+    push(out, `companion.${c.id}`, 'reviewNudgeJa', 'ja', c.reviewNudgeJa, 'home', 'ui');
+    push(out, `companion.${c.id}`, 'reviewNudgeZh', 'zh', c.reviewNudgeZh, 'home', 'ui');
+    push(out, `companion.${c.id}`, 'weeklyJa', 'ja', c.weeklyJa, 'weekly', 'ui');
+    push(out, `companion.${c.id}`, 'weeklyZh', 'zh', c.weeklyZh, 'weekly', 'ui');
   }
 
   // ── UI辞書（ja/zh）──
