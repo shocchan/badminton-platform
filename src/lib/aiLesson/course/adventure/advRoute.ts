@@ -205,14 +205,59 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
   return base;
 };
 
-/** 現在地stage（最初の未攻略stage）。masteredStageIds は mastery台帳から算出して渡す */
-export const currentStageOf = (route: AdvRoute, masteredStageIds: Set<string>): AdvRouteStage | null =>
-  route.stages.find((s) => !masteredStageIds.has(s.stageId)) ?? null;
+/** stage攻略判定に使う配下target一覧（stageContentのgrammar解決規則と同一に保つこと） */
+export const stageMasteryTargetIds = (
+  stage: AdvRouteStage, allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
+  n3BundleByItem?: Map<string, string>,
+): string[] => {
+  const ids: string[] = [...(stage.targets.n3UnitIds ?? [])];
+  const gs = (stage.targets.n3GrammarIds && stage.targets.n3GrammarIds.length > 0)
+    ? stage.targets.n3GrammarIds
+    : (stage.kind === 'n3_grammar' ? allN3GrammarIds : []);
+  // N3文法のmasteryは束（n3g-unit-*）単位（プール枯渇対策・P0-3）
+  ids.push(...new Set(gs.map((g) => n3BundleByItem?.get(g) ?? g)));
+  if (stage.targets.n2Units) for (const u of stage.targets.n2Units) ids.push(...(n2ByUnit.get(u) ?? []));
+  return ids;
+};
 
-/** 攻略率（stage単純比。詳細な攻略率はmastery側で技能別に出す） */
-export const routeProgressPct = (route: AdvRoute, masteredStageIds: Set<string>): number =>
-  route.stages.length === 0 ? 0
-    : Math.round((route.stages.filter((s) => masteredStageIds.has(s.stageId)).length / route.stages.length) * 100);
+/** stage攻略の導出値。配下targetがすべてmasteredなら攻略。ボス撃破記録（ledger[stageId]がmastered）があればそれも攻略 */
+export const deriveMasteredStageIds = (
+  route: AdvRoute, masteredTargets: Set<string>,
+  allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
+  n3BundleByItem?: Map<string, string>,
+): Set<string> => {
+  const done = new Set<string>();
+  for (const s of route.stages) {
+    if (masteredTargets.has(s.stageId)) { done.add(s.stageId); continue; }
+    const ids = stageMasteryTargetIds(s, allN3GrammarIds, n2ByUnit, n3BundleByItem);
+    if (ids.length > 0 && ids.every((id) => masteredTargets.has(id))) done.add(s.stageId);
+  }
+  return done;
+};
+
+/** 会話stage（出題プールを持たず80%攻略条件を満たせない並走レーン）か */
+export const isConversationStage = (s: AdvRouteStage): boolean =>
+  s.kind === 'conversation_start' || s.kind === 'conversation_growth';
+
+/**
+ * 現在地stage（最初の未攻略stage）。masteredStageIds は mastery台帳から算出して渡す。
+ * 会話stageは出題プールが無く「別日3回80%＋7日後確認」を満たせないため、
+ * 未攻略のJLPT系stageが残っている間は現在地としてブロックしない
+ * （hybridが stg-conv-start で恒久停止する不具合の修正）。
+ * 会話のみのルートは全stageが会話系なのでフォールバックで従来どおり先頭が現在地になる。
+ */
+export const currentStageOf = (route: AdvRoute, masteredStageIds: Set<string>): AdvRouteStage | null => {
+  const unmastered = route.stages.filter((s) => !masteredStageIds.has(s.stageId));
+  return unmastered.find((s) => !isConversationStage(s)) ?? unmastered[0] ?? null;
+};
+
+/** 攻略率（stage単純比。会話stageは攻略判定が無いので母数から除く。詳細はmastery側で技能別に出す） */
+export const routeProgressPct = (route: AdvRoute, masteredStageIds: Set<string>): number => {
+  const gated = route.stages.filter((s) => !isConversationStage(s));
+  const base = gated.length > 0 ? gated : route.stages;
+  return base.length === 0 ? 0
+    : Math.round((base.filter((s) => masteredStageIds.has(s.stageId)).length / base.length) * 100);
+};
 
 /** 帯が目的地に対してどれくらい手前か（0=到達圏）。UI文言選択に使う */
 export const gapToTarget = (knowledge: AdvBand, target: 'N3' | 'N2'): number => {

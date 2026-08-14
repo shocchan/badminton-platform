@@ -40,6 +40,8 @@ interface Props {
   nowISO: string;
   onComplete: (o: OnboardingOutcome) => void;
   onCancel: () => void;
+  /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
+  redo?: boolean;
 }
 
 type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'conv' | 'route';
@@ -53,7 +55,7 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Props) {
+export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo = false }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
   const [target, setTarget] = useState<JlptLevel | null>(null);
@@ -109,7 +111,11 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       {phase === 'goal' && (
         <section aria-label={tx(lang, '冒険の目的', '冒险目的')}>
-          {header('冒険の目的を選んでください', '请选择冒险的目的', '目的地はあなたが選びます。あとで変えられます。', '目的地由你选择，之后也可以更改。')}
+          {header('冒険の目的を選んでください', '请选择冒险的目的',
+            redo ? 'これまでの学習記録・攻略の実績は消えません。目的に合わせてルートを作り直します。'
+              : '目的地はあなたが選びます。あとで変えられます。',
+            redo ? '之前的学习记录・攻略成果不会消失。会按新目的重新生成路线。'
+              : '目的地由你选择，之后也可以更改。')}
           <div className="space-y-3">
             {(['jlpt', 'conversation', 'hybrid'] as AdvGoalType[]).map((g) => (
               <button key={g} type="button" className={goal === g ? btnOn : btnIdle}
@@ -124,7 +130,9 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel }: Pro
               {tx(lang, 'つぎへ', '下一步')}
             </button>
             <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onCancel}>
-              {tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
+              {redo
+                ? tx(lang, 'やめて元の設定のまま戻る', '取消，保持原来的设置')
+                : tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
             </button>
           </div>
         </section>

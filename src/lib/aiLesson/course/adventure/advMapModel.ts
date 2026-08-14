@@ -234,7 +234,11 @@ const examRegions = (
   dailyMinutes: number,
   ledger: AdvMasteryLedger,
   nowISO: string,
-): MapRegion[] => route.stages.map((s) => {
+): MapRegion[] => route.stages
+  // 会話stageは試験レイヤーに出さない（出題プールが無く80%攻略条件を満たせない・
+  // 会話は conversationRegions レイヤーが担う。原則13/15）
+  .filter((s) => s.kind !== 'conversation_start' && s.kind !== 'conversation_growth')
+  .map((s) => {
   const done = mastered.has(s.stageId);
   // 攻略条件そのものではなく「**いま何回足りないか**」を出す（advMasteryの正直な文言を使う）
   const st = computeMastery(ledger[s.stageId], nowISO);

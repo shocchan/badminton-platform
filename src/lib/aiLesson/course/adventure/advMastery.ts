@@ -101,7 +101,10 @@ export const computeMastery = (
   const thirdDay = days[MASTERY_RULES.requiredDays - 1];
   const thirdAt = dayMap.get(thirdDay)?.completedAt ?? nowISO;
   const opensAt = addDays(thirdAt, MASTERY_RULES.delayDays);
-  const delayed = qualifying.some((a) => a.completedAt >= opensAt);
+  // 遅延確認は「7日後も忘れていないか」の確認（§15③）。初見比率は①のqualifying 3日で担保済み。
+  // 毎日続けるほど未出問題が枯れて確認が永久に通らない行き止まり（原則15違反）を防ぐため、
+  // 遅延確認の試行には unseenRatio 条件を課さない（80%以上のみ要求）。
+  const delayed = all.some((a) => a.scorePct >= MASTERY_RULES.passPct && a.completedAt >= opensAt);
   if (delayed) {
     return {
       state: 'mastered', qualifyingDays: days.slice(0, 3), delayCheckOpensAt: opensAt, delayedConfirmed: true,

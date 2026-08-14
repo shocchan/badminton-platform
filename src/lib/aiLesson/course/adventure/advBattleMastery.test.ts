@@ -158,9 +158,13 @@ describe('advQuest（§13）', () => {
 
   it('5分は軽量構成・30分は試験技能（読解/聴解）を含む', () => {
     const q5 = generateTodayQuest(mkInput({ profile: { ...mkInput().profile, dailyMinutes: 5 } }));
-    expect(q5.estimatedMinutes).toBeLessThanOrEqual(8);
+    // 奇数日はバトル（約6分）が入るため最大9分（バトル永久排除の循環を防ぐ設計・P0-1）
+    expect(q5.estimatedMinutes).toBeLessThanOrEqual(9);
+    // 基礎固め中（基礎キャンプ・N3橋）は試験技能を出さない設計（P0-1）になったため、
+    // 30分構成の検証は橋を越えたルート（knowledgeBand n3）で行う
+    const routeAfterBridge = generateRoute({ goalType: 'jlpt', targetJlpt: 'N2', knowledgeBand: 'n3', conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW });
     const q30 = generateTodayQuest(mkInput({
-      profile: { ...mkInput().profile, dailyMinutes: 30 }, daysToExam: 40,
+      profile: { ...mkInput().profile, dailyMinutes: 30 }, daysToExam: 40, route: routeAfterBridge,
       examSkills: {
         weakestSkill: null, readingEvidence: 0, listeningEvidence: 0,
         readingTargetIds: ['read-n2-shortPassage'], listeningTargetIds: ['listen-n2-taskComprehension'],

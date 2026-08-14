@@ -1,0 +1,52 @@
+// @vitest-environment jsdom
+// 「冒険の準備をやり直す」（redo）の受入テスト。
+//
+// いちばん守りたいこと:
+// - redoでは**記録が消えないことを明示**する（不安で押せない機能は無いのと同じ）
+// - redoのキャンセルは「元の設定のまま戻る」＝従来ホームへ飛ばさない
+// - 初回オンボーディングの文言・導線はredo導入後も変わらない（既存生徒の初回体験を壊さない）
+import { render, screen, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import { AdvOnboarding } from './AdvOnboarding';
+import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
+
+const NOW = '2026-08-11T10:00:00.000Z';
+const pools: DiagnosisPools = { foundationVocab: [], n3Vocab: [], n3Grammar: [], n2Grammar: [] };
+
+const renderOnboarding = (redo: boolean) => {
+  const onComplete = vi.fn();
+  const onCancel = vi.fn();
+  render(
+    <AdvOnboarding lang="ja" pools={pools} nowISO={NOW} redo={redo}
+      onComplete={onComplete} onCancel={onCancel} />,
+  );
+  return { onComplete, onCancel };
+};
+
+afterEach(cleanup);
+
+describe('冒険の準備のやり直し（redo）', () => {
+  it('redoでは「記録は消えない」ことを最初の画面で明示する', () => {
+    renderOnboarding(true);
+    expect(screen.getByText(/学習記録・攻略の実績は消えません/)).toBeTruthy();
+  });
+
+  it('redoのキャンセルは「元の設定のまま戻る」（従来ホームへ誘導しない）', () => {
+    renderOnboarding(true);
+    expect(screen.getByRole('button', { name: /やめて元の設定のまま戻る/ })).toBeTruthy();
+    expect(screen.queryByText(/従来ホームへ/)).toBeNull();
+  });
+
+  it('初回（redoでない）は従来の文言のまま', () => {
+    renderOnboarding(false);
+    expect(screen.getByText(/あとで変えられます/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /いまはやめておく/ })).toBeTruthy();
+  });
+
+  it('redoでも目的の選択肢は3つとも出る（初回と同じ選択の自由）', () => {
+    renderOnboarding(true);
+    const group = screen.getByLabelText('冒険の目的');
+    expect(group.textContent).toContain('JLPT');
+    expect(group.querySelectorAll('button').length).toBeGreaterThanOrEqual(3);
+  });
+});

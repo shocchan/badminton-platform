@@ -15,6 +15,8 @@ export interface QuestContentAvailability {
   nextUnitIds: string[];
   /** 今日の対象にできる会話テーマ（targetUse表現つき） */
   conversationTargets: { refId: string; expression: string; themeJa: string; themeZh: string }[];
+  /** grammarId → mastery束ID（N3はn3g-unit-*）。無指定時は項目IDのまま */
+  grammarBundleByItem?: Map<string, string>;
 }
 
 export interface GenerateQuestInput {
@@ -27,6 +29,8 @@ export interface GenerateQuestInput {
   availability: QuestContentAvailability;
   /** 試験日までの残日数（examDate未設定は null） */
   daysToExam: number | null;
+  /** stage攻略の導出値（deriveMasteredStageIds）。未指定時は従来のledger[stageId]判定 */
+  masteredStageIds?: Set<string>;
   /**
    * 試験技能の状況（COMPLETION §12）。読解・聴解を毎日必ず入れるのではなく、
    * 弱点・試験日・直近履歴から配分するために使う。
@@ -81,7 +85,7 @@ const stageSteps = (
   const learn = g
     ? step('grammar_new', [g], '新しい文法を学ぶ', '学习新语法')
     : u ? step('vocab_new', [u], '単元のことばを学ぶ', '学习单元词汇') : null;
-  const battleRef = g ?? u ?? stage.stageId;
+  const battleRef = g ? (avail.grammarBundleByItem?.get(g) ?? g) : (u ?? stage.stageId);
   return {
     learn,
     battle: step('battle', [battleRef], '問題バトル', '问题战斗', 'normal'),
@@ -102,7 +106,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const goalType: AdvGoalType = profile.goalType ?? 'jlpt';
   const seed = [...`${dateKey}:${profile.targetJlpt ?? goalType}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 
-  const done = masteredStageIds(profile.mastery, route.stages.map((s) => s.stageId), input.nowISO);
+  const done = input.masteredStageIds
+    ?? masteredStageIds(profile.mastery, route.stages.map((s) => s.stageId), input.nowISO);
   const stage = currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
   const parts = stageSteps(stage, availability, seed);
 
@@ -122,6 +127,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const ex = input.examSkills;
   const examCandidates = (): AdvQuestStep[] => {
     if (!ex || goalType === 'conversation') return [];
+    // 基礎固め中（基礎キャンプ・N3橋）はN3読解・聴解を出さない。
+    // 診断で基礎不足と測った直後にN3長文を毎日出すのは「現在地はAIが測る」（canon§1）への裏切りになる
+    if (stage.kind === 'foundation_camp' || stage.kind === 'n3_bridge') return [];
     const out: AdvQuestStep[] = [];
     const readingAvailable = ex.readingTargetIds.length > 0;
     const listeningAvailable = ex.listeningTargetIds.length > 0;
@@ -151,15 +159,22 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   if (dueReviewCount > 0) push(step('review_due', [], `復習 ${Math.min(dueReviewCount, 9)}件`, `复习 ${Math.min(dueReviewCount, 9)}项`));
 
   if (minutes === 5) {
-    // 5分: 復習＋弱点1つ or 新規のどちらか＋ミニ会話（会話goalのみ）
-    if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 1), '弱点を1つつぶす', '攻克1个弱点'));
+    // 5分: 復習＋弱点1つ or 新規のどちらか＋ミニ会話（会話goalのみ）。
+    // バトルが一度も出ないと攻略（mastery）が永久に進まないため、奇数日はバトルを入れる
+    const battleDay = Number(dateKey.slice(-2)) % 2 === 1;
+    if (battleDay && parts.battle) push(parts.battle);
+    else if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 1), '弱点を1つつぶす', '攻克1个弱点'));
     else push(parts.learn);
     if (goalType !== 'jlpt') push(parts.conv);
   } else if (minutes === 15) {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 2), '弱点補強', '弱点补强'));
     push(parts.learn);
-    // 15分では文法と試験技能のどちらかを入れる（両方入れると時間超過する）
-    if (examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
+    // 15分では文法と試験技能のどちらかを入れる（両方入れると時間超過する）。
+    // ただし語彙・文法のevidenceはバトルからしか入らないため、試験技能を常に優先すると
+    // 「バトルが出ない→語彙/文法が未測定→読解/聴解が常に最弱→バトル永久排除」の循環が確定する。
+    // 試験技能は奇数日に限定し、バトルを少なくとも隔日で必ず回す。
+    const examDay = Number(dateKey.slice(-2)) % 2 === 1;
+    if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     push(step('restate', [], '言い直し', '改口练习'));

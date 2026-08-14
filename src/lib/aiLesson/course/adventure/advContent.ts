@@ -35,6 +35,9 @@ export interface GrammarPools {
   n3Ids: string[];
   n2Ids: string[];
   n2ByUnit: Map<number, string[]>;
+  /** N3文法の束（draft.unit）→ 束ID。項目単位ではプールが1〜5問しかなくmastery不可能なため、mastery/バトルは束単位 */
+  n3BundleByItem: Map<string, string>;
+  n3BundleIds: string[];
 }
 
 /** N3単元の生成問題（choice型のみ）をバトル問題へ正規化。unitId をtargetにした敵編成で使う */
@@ -108,11 +111,24 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     list.push(d.grammarId);
     n2ByUnit.set(d.unit, list);
   }
+  // N3文法は束（draft.unit）でmastery判定する。8問しかないunit-10はunit-9へ合流（qualifying3日には17問以上必要）
+  const N3_BUNDLE_MERGE: Record<string, string> = { 'n3g-unit-10': 'n3g-unit-9' };
+  const n3BundleByItem = new Map<string, string>();
+  for (const d of N3_GRAMMAR_DRAFTS) {
+    const bundle = N3_BUNDLE_MERGE[d.unit] ?? d.unit;
+    n3BundleByItem.set(d.grammarId, bundle);
+    const list = byItem.get(bundle) ?? [];
+    list.push(...(n3Pool.byItem.get(d.grammarId) ?? []));
+    byItem.set(bundle, list);
+  }
+  const n3BundleIds = [...new Set(n3BundleByItem.values())];
   poolCache = {
     byItem,
     n3Ids: N3_GRAMMAR_DRAFTS.map((d) => d.grammarId),
     n2Ids: n2.filter((d) => !N2_ALIAS_IDS.has(d.grammarId)).map((d) => d.grammarId),
     n2ByUnit,
+    n3BundleByItem,
+    n3BundleIds,
   };
   return poolCache;
 };
@@ -170,6 +186,8 @@ export const buildDiagnosisPools = async (): Promise<DiagnosisPools> => {
 // ── stage → 出題対象・会話ターゲット・次の学習対象 ──
 export interface StageContent {
   battleTargetIds: string[];
+  /** grammarId → mastery束ID（N3は n3g-unit-*）。束が無い項目は項目ID */
+  grammarBundleByItem: Map<string, string>;
   nextGrammarIds: string[];
   nextUnitIds: string[];
   conversationTargets: { refId: string; expression: string; themeJa: string; themeZh: string }[];
@@ -191,7 +209,7 @@ export const stageContent = async (
   if (stage.targets.n2Units) for (const u of stage.targets.n2Units) grammarIds.push(...(pools.n2ByUnit.get(u) ?? []));
 
   const unitIds = stage.targets.n3UnitIds ?? [];
-  const nextGrammarIds = grammarIds.filter((g) => !masteredIds.has(g));
+  const nextGrammarIds = grammarIds.filter((g) => !masteredIds.has(g) && !masteredIds.has(pools.n3BundleByItem.get(g) ?? ''));
   const nextUnitIds = unitIds.filter((u) => !masteredIds.has(u));
 
   // 会話ターゲット: stageの文法から（会話stageはエリアの実用場面へ）
@@ -206,8 +224,8 @@ export const stageContent = async (
     conversationTargets.push({ refId: g, expression: m.targetUse, themeJa: m.themeJa, themeZh: m.starterZh || m.themeJa });
   }
 
-  const battleTargetIds = [...nextUnitIds, ...nextGrammarIds];
-  return { battleTargetIds, nextGrammarIds, nextUnitIds, conversationTargets, missionByGrammarId };
+  const battleTargetIds = [...nextUnitIds, ...new Set(nextGrammarIds.map((g) => pools.n3BundleByItem.get(g) ?? g))];
+  return { battleTargetIds, grammarBundleByItem: pools.n3BundleByItem, nextGrammarIds, nextUnitIds, conversationTargets, missionByGrammarId };
 };
 
 /** stageのバトル対象が属するエリア単元の実在ガード（route⇔atlas整合） */

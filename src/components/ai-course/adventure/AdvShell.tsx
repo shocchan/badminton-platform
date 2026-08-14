@@ -8,7 +8,7 @@ import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
-import { currentStageOf, routeProgressPct, AREA_UNIT_MAP } from '../../../lib/aiLesson/course/adventure/advRoute';
+import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -184,11 +184,13 @@ export default function AdvShell(props: AdvShellProps) {
 
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
+  // 目的・レベルの変更＝オンボーディングのやり直し（記録は保持。二次メニューから入る）
+  const [redoOnboarding, setRedoOnboarding] = useState(false);
   const [diagError, setDiagError] = useState(false);
   useEffect(() => {
-    if (!needsOnboarding || diagPools || diagError) return;
+    if ((!needsOnboarding && !redoOnboarding) || diagPools || diagError) return;
     void buildDiagnosisPools().then(setDiagPools).catch(() => setDiagError(true));
-  }, [needsOnboarding, diagPools, diagError]);
+  }, [needsOnboarding, redoOnboarding, diagPools, diagError]);
 
   useEffect(() => {
     if (needsOnboarding || !profile?.route) return;
@@ -198,7 +200,8 @@ export default function AdvShell(props: AdvShellProps) {
       if (!alive) return;
       setPools(p);
       const mastered = masteredTargetIds(profile.mastery, nowISO);
-      const stage = currentStageOf(profile.route!, mastered) ?? profile.route!.stages[profile.route!.stages.length - 1];
+      const stageDone = deriveMasteredStageIds(profile.route!, mastered, p.n3Ids, p.n2ByUnit, p.n3BundleByItem);
+      const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
       const ct = await stageContent(stage, mastered);
       if (!alive) return;
       setStageCt(ct);
@@ -220,9 +223,11 @@ export default function AdvShell(props: AdvShellProps) {
       setQuest(generateTodayQuest({
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
+        masteredStageIds: stageDone,
         availability: {
           nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
+          grammarBundleByItem: ct.grammarBundleByItem,
         },
         examSkills: {
           weakestSkill,
@@ -275,8 +280,8 @@ export default function AdvShell(props: AdvShellProps) {
     if (hasToday) markStep(idx);
   }, [quest, props.sessions, dateKey, doneSteps, markStep]);
 
-  // ── onboarding ──
-  if (needsOnboarding) {
+  // ── onboarding（初回＝needsOnboarding／やり直し＝redoOnboarding） ──
+  if (needsOnboarding || redoOnboarding) {
     // 読込失敗を無限ローディングにしない（原則15）。再試行と出口を必ず出す
     if (diagError) {
       return (
@@ -289,8 +294,11 @@ export default function AdvShell(props: AdvShellProps) {
           <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setDiagError(false)}>
             {tx(lang, 'もう一度読み込む', '重新加载')}
           </button>
-          <button type="button" className={`${secondaryBtn} mt-2`} onClick={props.onExitV2}>
-            {tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+          <button type="button" className={`${secondaryBtn} mt-2`}
+            onClick={redoOnboarding ? () => { setDiagError(false); setRedoOnboarding(false); } : props.onExitV2}>
+            {redoOnboarding
+              ? tx(lang, '元の設定のまま戻る', '保持原来的设置返回')
+              : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
           </button>
         </div>
       );
@@ -298,7 +306,7 @@ export default function AdvShell(props: AdvShellProps) {
     if (!diagPools) return <AdvLoading lang={lang} />;
     return (
       <AdvOnboarding
-        lang={lang} pools={diagPools} nowISO={nowISO}
+        lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
         onComplete={(o: OnboardingOutcome) => {
           const base = profile ?? defaultAdvProfile(nowISO);
           const withLegacy = migrateLegacyEvidence(base, props.progress, nowISO);
@@ -310,9 +318,14 @@ export default function AdvShell(props: AdvShellProps) {
             diagnosis: o.diagnosis,
             skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
             route: o.route,
+            // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す
+            // （古いquestのstep番号が新questに誤って「完了」と写るのを防ぐ。mastery等の実績は保持）
+            ...(redoOnboarding ? { lastQuest: null, todaySteps: null } : {}),
           });
+          setRedoOnboarding(false);
+          setView('home');
         }}
-        onCancel={props.onExitV2}
+        onCancel={redoOnboarding ? () => setRedoOnboarding(false) : props.onExitV2}
       />
     );
   }
@@ -588,7 +601,13 @@ export default function AdvShell(props: AdvShellProps) {
       <AdvGrammarStudy
         lang={lang} grammarId={studyGrammarId} doc={grammarDoc} setDoc={setGrammarDoc}
         onBattle={() => {
-          setBattle({ tier: 'normal', targetId: studyGrammarId, targetLabel: grammarDoc?.pattern ?? studyGrammarId, targetIds: [studyGrammarId] });
+          setBattle({
+            // masteryはN3文法を束（n3g-unit-*）で判定するため、確認バトルも束のプールで戦う
+            tier: 'normal',
+            targetId: stageCt?.grammarBundleByItem.get(studyGrammarId) ?? studyGrammarId,
+            targetLabel: grammarDoc?.pattern ?? studyGrammarId,
+            targetIds: [stageCt?.grammarBundleByItem.get(studyGrammarId) ?? studyGrammarId],
+          });
           setView('battle');
         }}
         onBack={() => { setStudyGrammarId(null); setGrammarDoc(null); setView('home'); }}
@@ -853,6 +872,7 @@ export default function AdvShell(props: AdvShellProps) {
   // ── complete ──
   if (view === 'complete' && quest) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
+  const stageDoneC = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
     const daily = buildDailySummary(prof, dateKey, nowISO);
     // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
     const todayRestate = pickRestateMaterial({
@@ -927,7 +947,7 @@ export default function AdvShell(props: AdvShellProps) {
 
         <div className={`${card} mt-3`}>
           <p className="text-sm font-semibold text-gray-900">{term('masteryRate', lang)}</p>
-          <p className="mt-1 text-sm text-gray-700">{routeProgressPct(route, mastered)}%</p>
+          <p className="mt-1 text-sm text-gray-700">{routeProgressPct(route, stageDoneC)}%</p>
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の復習', '下次复习')}</p>
           <p className="mt-1 text-sm text-gray-700">
             {props.reviewsDue > 0 ? tx(lang, `残り${props.reviewsDue}件`, `还剩${props.reviewsDue}项`) : tx(lang, '明日・約3分', '明天・约3分钟')}
@@ -957,7 +977,8 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── home（1画面1決断） ──
   const mastered = masteredTargetIds(prof.mastery, nowISO);
-  const stage = currentStageOf(route, mastered);
+  const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
+  const stage = currentStageOf(route, stageDone);
   const daysToExam = prof.examDateISO
     ? Math.max(0, Math.ceil((new Date(prof.examDateISO).getTime() - new Date(`${dateKey}T00:00:00`).getTime()) / 86400000)) : null;
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
@@ -1036,8 +1057,8 @@ export default function AdvShell(props: AdvShellProps) {
       {stage && (
         <p className="mt-1 text-xs text-gray-500">
           {tx(lang,
-            `現在地：${stage.titleJa}（${term('masteryRate', 'ja')} ${routeProgressPct(route, mastered)}%）`,
-            `当前位置：${stage.titleZh}（${term('masteryRate', 'zh')} ${routeProgressPct(route, mastered)}%）`)}
+            `現在地：${stage.titleJa}（${term('masteryRate', 'ja')} ${routeProgressPct(route, stageDone)}%）`,
+            `当前位置：${stage.titleZh}（${term('masteryRate', 'zh')} ${routeProgressPct(route, stageDone)}%）`)}
           {prof.targetJlpt === 'N2' && stage.kind !== 'n2_grammar' && stage.kind !== 'n2_gate' && (
             <span className="ml-1 text-gray-400">
               {tx(lang, '＝N2攻略の経由地', '＝通往N2的中途站')}
@@ -1250,6 +1271,10 @@ export default function AdvShell(props: AdvShellProps) {
             <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
               onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
             <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+            {/* 目的・レベルの変更＝準備のやり直し（オンボーディングの「あとで変えられます」の受け皿） */}
+            <SubLink lang={lang}
+              label={tx(lang, '目的・レベルを変える（準備をやり直す）', '更改目标・级别（重新准备）')}
+              onClick={() => setRedoOnboarding(true)} />
             <p className="px-1 pt-1 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
                 `${term('masteryRate', 'zh')}＝各单元的巩固度／${term('readiness', 'zh')}＝考试整体的能力评估`)}
