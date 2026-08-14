@@ -15,7 +15,7 @@ describe('相棒IDの移行', () => {
   });
 
   it('**保存済みプロファイルの旧IDが読み込み時に新IDへ移行される**（消えない）', () => {
-    const settings = writeAdvProfile({}, { ...defaultAdvProfile(NOW), enabled: true }, NOW);
+    const settings = writeAdvProfile({} as never, { ...defaultAdvProfile(NOW), enabled: true }, NOW);
     // 旧IDを直接仕込んだjsonbを模擬
     const legacy = { ...settings, adventureV2: { ...(settings.adventureV2 as Record<string, unknown>), companionId: 'fukuro' } };
     const prof = readAdvProfile(legacy as never);
