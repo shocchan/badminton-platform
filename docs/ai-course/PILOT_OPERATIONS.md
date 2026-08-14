@@ -356,3 +356,30 @@ git checkout ai-course-adventure-v2-rc3     # ひとつ前のRC
 2. 冒険を3日以上やっていない人がいれば、一言だけ連絡する（責めない）
 3. レッスン前に「先生レッスンの準備」の3件を見る
 4. レッスン後、方針を変えたら学習者に伝える（目標レベル・1日の時間はいつでも変えられる）
+
+## 16. 生徒データの保護と復旧（2026-08-15 新設）
+
+**本番運用の大原則: 生徒の積み上げは消えない・消えても戻せる。**
+
+### 自動で守られているもの
+- **日次バックアップ×2回（10:00 / 21:00）**: 全テーブル＋authユーザーを `~/ai-company/backups/kawabado/日付/` へJSON保存（launchd: com.kawabado.supabase-backup）。1テーブル失敗しても残りは継続し、失敗があれば非0終了でログに残る
+- **鮮度監視**: daily-ops-check（毎朝10:05）がバックアップ36時間停止・欠損を警報する
+- **保存の保護（アプリ側）**: 生徒のアプリは settings を「保護つきRPC（ai_save_learner_settings）」で保存する。先生が発行した答案用紙・面接特訓の発行時刻は、古いタブ・別端末の保存で消えない（DB側優先で自動マージ）。アプリ更新で追加した新フィールドも、旧キャッシュのクライアントの保存で消えない
+- **SQLの保護（運用側）**: `remote-sql.mjs` は実在生徒（scripts/ai-course/data/protected-learners.json）に触る書き込みを `--allow-protected` なしでは拒否。ai_learners への書き込みは直前スナップショットを自動保存する
+
+### 生徒を追加したら必ずやること
+1. `scripts/ai-course/data/protected-learners.json` に email と user_id を追記
+2. `bash scripts/backup-supabase.sh` を1回手動実行（その日のうちにバックアップへ入れる）
+
+### 「1人のデータが消えた・壊れた」ときの復旧（5分）
+```bash
+# ①内容確認（dry-run）
+node scripts/ai-course/restore-learner-settings.mjs --email li@id.badminton-platform.pages.dev --from 2026-08-15
+# ②復元（バックアップ時点へ巻き戻し。それ以降の学習分は消える点だけ本人に説明）
+node scripts/ai-course/restore-learner-settings.mjs --email li@id.badminton-platform.pages.dev --from 2026-08-15 --confirm
+```
+
+### 禁止事項（データ保護）
+- §13 の退会削除・§12 の停止を実行する前に、必ず `bash scripts/backup-supabase.sh` を1回回す
+- `ai_learners` への手書きUPDATE/DELETEは原則禁止。必要なら発行スクリプト・restore-learner-settings 経由で
+- 全量リストアが必要な事故は docs/ai-course/production/pilot-operations.md §1（リハーサル済み手順）へ

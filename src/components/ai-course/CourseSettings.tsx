@@ -106,14 +106,15 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
         ) : confirmDelete ? (
           <div className="mt-3 bg-red-50 border border-red-200 rounded-lg p-3">
             <p className="text-xs text-red-800 leading-relaxed">{ts.deleteConfirm}</p>
+            {/* 「やめる」を大きく左に・削除を小さく右に（不可逆操作は選ばれにくい側へ・2026-08-15監査） */}
             <div className="flex gap-2 mt-2">
-              <button type="button" onClick={() => void runDelete()} disabled={deleting}
-                className="flex-1 min-h-11 py-2 bg-red-600 text-white text-sm font-bold rounded-lg disabled:opacity-40 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-                {deleting ? ts.deleting : ts.deleteYes}
-              </button>
               <button type="button" onClick={() => setConfirmDelete(false)}
-                className="min-h-11 px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                className="flex-1 min-h-11 py-2 border border-gray-300 text-gray-700 text-sm font-bold rounded-lg action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
                 {ts.deleteNo}
+              </button>
+              <button type="button" onClick={() => void runDelete()} disabled={deleting}
+                className="min-h-11 px-4 py-2 bg-red-600 text-white text-sm rounded-lg disabled:opacity-40 action-raised action-amber touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                {deleting ? ts.deleting : ts.deleteYes}
               </button>
             </div>
           </div>

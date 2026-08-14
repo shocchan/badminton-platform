@@ -115,6 +115,8 @@ export default function AdvShell(props: AdvShellProps) {
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
+  // 「従来のホームに戻す」の2段階タップ（誤タップで戻ると「消えた」ように見える・2026-08-15監査）
+  const [exitArmed, setExitArmed] = useState(false);
   /** 読解・聴解のonFinish二重発火ガード（連打によるmastery重複記録を防ぐ）。入場時にfalseへ戻す */
   const skillFinishGuard = useRef(false);
   /** 主要CTAを押しても進めない理由（AI会話が未開放など）。黙って無反応にしない（原則15） */
@@ -1460,8 +1462,14 @@ export default function AdvShell(props: AdvShellProps) {
         )}
       </div>
 
-      <button type="button" className="mt-6 w-full min-h-[44px] text-xs text-gray-400 underline" onClick={props.onExitV2}>
-        {tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+      <button type="button"
+        className={`mt-6 w-full min-h-[44px] text-xs underline ${exitArmed ? 'font-semibold text-amber-700' : 'text-gray-400'}`}
+        onClick={() => { if (exitArmed) props.onExitV2(); else setExitArmed(true); }}
+        onBlur={() => setExitArmed(false)}>
+        {exitArmed
+          ? tx(lang, 'もう一度押すと従来ホームへ。データは残り、上のバナーからいつでも戻れます',
+            '再按一次将返回原来的主页。数据会保留，可随时从横幅回来')
+          : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
       </button>
     </div>
   );

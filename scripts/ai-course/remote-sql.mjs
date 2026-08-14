@@ -46,18 +46,61 @@ if (!sqlText) { console.error('usage: --file <path> | --sql "<sql>"  [--write] [
 // write判定は「文の先頭にwriteキーワードがあるか」で見る。
 //   - コメント行は除く（コメント内のdropで誤検知しない）
 //   - 文字列リテラルは除く（privilege_type in ('INSERT',...) のような読み取りSQLを誤検知しない）
+//   - 2026-08-15 監査P1: CTE（with d as (delete ...)）・merge・call・do・書き込みRPCの
+//     select呼び出しが素通りしていた穴を塞ぐ。文頭 with は保守的に write 扱い
+//     （既存のread運用はすべて select 始まりであることを確認済み）
 const stripped = sqlText.split('\n').filter(l => !l.trim().startsWith('--')).join('\n')
   .replace(/'(?:[^']|'')*'/g, "''");
-const WRITE_RE = /(^|;)\s*(insert|update|delete|drop|create|alter|grant|revoke|truncate|comment\s+on)\b/i;
-const isWrite = WRITE_RE.test(stripped);
+const WRITE_RE = /(^|;)\s*(insert|update|delete|drop|create|alter|grant|revoke|truncate|merge|call|do|with|comment\s+on)\b/i;
+// select経由でも実体は書き込みのRPC（denylist方式・関数を増やしたらここへ追記）
+const WRITE_RPC_RE = /\b(ai_admin_delete_utterances|ai_delete_my_utterances|ai_save_learner_settings|ai_purge_expired_utterances)\s*\(/i;
+const isWrite = WRITE_RE.test(stripped) || WRITE_RPC_RE.test(stripped);
 if (isWrite && !flag('--write')) {
   console.error('refuse: write statement detected but --write not given');
-  console.error(`  matched: ${stripped.match(WRITE_RE)[0]}`);
+  console.error(`  matched: ${(stripped.match(WRITE_RE) ?? stripped.match(WRITE_RPC_RE))[0]}`);
   process.exit(2);
+}
+
+// 実在生徒の保護（2026-08-15 監査P1）: 書き込みSQLに保護対象の識別子が含まれる場合、
+// --allow-protected を明示しない限り拒否する（QA掃除のemail取り違え・like一括削除の事故防止）。
+// 保護リスト: scripts/ai-course/data/protected-learners.json
+const PROTECTED_FILE = join(ROOT, 'scripts/ai-course/data/protected-learners.json');
+if (isWrite && existsSync(PROTECTED_FILE)) {
+  const prot = JSON.parse(readFileSync(PROTECTED_FILE, 'utf8'));
+  const lower = sqlText.toLowerCase();
+  const hit = (prot.identifiers ?? []).find((id) => lower.includes(String(id).toLowerCase()));
+  // ドメイン一括パターン（like '%@id....'等）は生徒全員に当たり得るので保護対象
+  const domainHit = (prot.bulkPatterns ?? []).find((p) => lower.includes(String(p).toLowerCase()));
+  if ((hit || domainHit) && !flag('--allow-protected')) {
+    console.error('refuse: SQL touches PROTECTED learner identifiers (real students)');
+    console.error(`  matched: ${hit ?? domainHit}`);
+    console.error('  再確認のうえ実行する場合のみ --allow-protected を付けてください（監査ログに記録されます）');
+    process.exit(2);
+  }
 }
 
 const sha = createHash('sha256').update(sqlText).digest('hex');
 const label = arg('--label') ?? '(no label)';
+
+// 事前スナップショット（2026-08-15 監査P1）: ai_learners に書くSQLは、実行前に
+// 全行を退避する（1〜数行の小テーブル。事故直後に「書く直前の状態」へ戻せる）
+if (isWrite && /\bai_learners\b/i.test(stripped)) {
+  const snapDir = join(ROOT, 'scripts/ai-course/data/prewrite-snapshots');
+  const { mkdirSync, writeFileSync } = await import('node:fs');
+  mkdirSync(snapDir, { recursive: true });
+  const snapRes = await fetch(`https://api.supabase.com/v1/projects/${EXPECTED_REF}/database/query`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: 'select * from ai_learners' }),
+  });
+  if (!snapRes.ok) {
+    console.error(`refuse: prewrite snapshot failed (http ${snapRes.status}) — ai_learnersへの書き込みは退避成功が前提`);
+    process.exit(2);
+  }
+  const snapPath = join(snapDir, `${new Date().toISOString().replace(/[:.]/g, '-')}-ai_learners.json`);
+  writeFileSync(snapPath, await snapRes.text());
+  console.error(`# prewrite snapshot: ${snapPath}`);
+}
 
 const res = await fetch(`https://api.supabase.com/v1/projects/${EXPECTED_REF}/database/query`, {
   method: 'POST',

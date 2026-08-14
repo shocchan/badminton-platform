@@ -164,13 +164,50 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
   };
 };
 
-/** プロファイルを settings に書き戻した新settingsを返す（他フィールド非破壊・イミュータブル） */
+/**
+ * プロファイルを settings に書き戻した新settingsを返す（他フィールド非破壊・イミュータブル）。
+ *
+ * 耐久性の鉄則（2026-08-15 監査P0）: adventureV2 を**全置換しない**。
+ * 既存jsonbの未知キーを温存してから profile を重ねる。これが無いと、
+ * デプロイで新フィールドを追加したとき、キャッシュされた旧JSのクライアントが
+ * 1回保存しただけで新フィールド（過去実例: answerSheets・interviewPrep）が消える。
+ */
 export const writeAdvProfile = (
   settings: LearnerSettings, profile: AdventureV2Profile, nowISO: string,
-): LearnerSettings => ({
-  ...settings,
-  adventureV2: { ...profile, updatedAt: nowISO },
-});
+): LearnerSettings => {
+  const raw = settings?.adventureV2;
+  const preserved = isRecord(raw) ? (raw as Record<string, unknown>) : {};
+  return {
+    ...settings,
+    adventureV2: { ...preserved, ...profile, updatedAt: nowISO },
+  };
+};
+
+/**
+ * 「読めない」と「無い」の区別（2026-08-15 監査P1）。
+ * adventureV2 に実データがあるのにパース不能（将来のschemaVersion変更・破損）な場合、
+ * defaultAdvProfile で上書き保存すると生徒の積み上げが全消しになる。
+ * 呼び出し側は readAdvProfile が null でもこれが true なら**保存せず**リロードを促すこと。
+ */
+export const hasRawAdvData = (settings: LearnerSettings | null | undefined): boolean =>
+  isRecord(settings?.adventureV2);
+
+/**
+ * enabledフラグだけを安全に切り替える（V2入口・従来ホームへ戻す・V2に戻るバナー用）。
+ * データが読めない（将来スキーマ・破損）場合でも defaultAdvProfile で全置換せず、
+ * 生のjsonbに enabled だけを重ねて他フィールドを温存する（監査P1: 破損時の全消し初期化の防止）。
+ */
+export const setAdvEnabled = (
+  settings: LearnerSettings, enabled: boolean, nowISO: string,
+): LearnerSettings => {
+  const prof = readAdvProfile(settings);
+  if (prof) return writeAdvProfile(settings, { ...prof, enabled }, nowISO);
+  if (hasRawAdvData(settings)) {
+    const raw = settings.adventureV2 as Record<string, unknown>;
+    return { ...settings, adventureV2: { ...raw, enabled, updatedAt: nowISO } };
+  }
+  return writeAdvProfile(settings, { ...defaultAdvProfile(nowISO), enabled }, nowISO);
+};
 
 /** V2が有効なlearnerか（feature flag・D-004） */
 export const isAdvEnabled = (settings: LearnerSettings | null | undefined): boolean =>

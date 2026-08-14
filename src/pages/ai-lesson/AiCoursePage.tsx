@@ -104,7 +104,7 @@ import { deriveCurrentAreaId, areaNodeStateOf } from '../../lib/aiLesson/course/
 import { TeacherProvider } from '../../components/ai-course/TeacherAvatar';
 import type { AdvTeacherId } from '../../lib/aiLesson/course/adventure/advTeacher';
 import { applyTeacherName } from '../../lib/aiLesson/course/adventure/advTeacherText';
-import { isAdvEnabled, readAdvProfile, writeAdvProfile, defaultAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
+import { isAdvEnabled, readAdvProfile, setAdvEnabled } from '../../lib/aiLesson/course/adventure/advProfile';
 
 type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
 
@@ -1089,8 +1089,7 @@ export default function AiCoursePage() {
               if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
                 window.history.replaceState(null, '', window.location.pathname);
               }
-              const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
-              const next = writeAdvProfile(learner.settings, { ...prof, enabled: false }, new Date().toISOString());
+              const next = setAdvEnabled(learner.settings, false, new Date().toISOString());
               setLearner({ ...learner, settings: next });
               void courseRepository.updateLearner({ settings: next });
             }}
@@ -1123,8 +1122,7 @@ export default function AiCoursePage() {
               if (advEntryBusy) return;
               setAdvEntryBusy(true);
               trackCourse('adv_onboarding_started');
-              const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
-              const next = writeAdvProfile(learner.settings, { ...prof, enabled: true }, new Date().toISOString());
+              const next = setAdvEnabled(learner.settings, true, new Date().toISOString());
               setLearner({ ...learner, settings: next });
               void courseRepository.updateLearner({ settings: next });
             }}>
@@ -1157,8 +1155,7 @@ export default function AiCoursePage() {
             <button type="button"
               className="action-raised action-primary-blue min-h-[40px] rounded-xl bg-blue-600 px-4 py-1.5 text-sm font-bold text-white touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
               onClick={() => {
-                const prof = readAdvProfile(learner.settings) ?? defaultAdvProfile(new Date().toISOString());
-                const next = writeAdvProfile(learner.settings, { ...prof, enabled: true }, new Date().toISOString());
+                const next = setAdvEnabled(learner.settings, true, new Date().toISOString());
                 setLearner({ ...learner, settings: next });
                 void courseRepository.updateLearner({ settings: next });
               }}>

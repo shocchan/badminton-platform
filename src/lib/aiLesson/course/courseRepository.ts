@@ -200,17 +200,35 @@ const createRepository = (): CourseRepository => ({
     if (patch.difficultyLevel !== undefined) row.difficulty_level = patch.difficultyLevel;
     if (patch.currentWeek !== undefined) row.current_week = patch.currentWeek;
     if (patch.isActive !== undefined) row.is_active = patch.isActive;
-    if (patch.settings !== undefined) row.settings = patch.settings;
     if (patch.adminOverrides !== undefined) row.admin_overrides = patch.adminOverrides;
-    row.updated_at = new Date().toISOString();
-    const { error } = await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
-    if (error) {
-      // 学習データの書込失敗を握りつぶさない（監査OPS-1）。
-      // LSキャッシュが常に最新のローカル状態なので、再送は「キャッシュの現在値を送り直す」マーカー1件でよい
-      // （patchを積むと、後続の成功後に古いpatchが再送され進捗を巻き戻すため）
-      const q = (readLS<PendingOp[]>(LS.pending) ?? []).filter((op) => op.kind !== 'learner');
-      q.push({ kind: 'learner', payload: { userId: u.user.id }, at: new Date().toISOString() });
-      writeLS(LS.pending, q.slice(-100));
+
+    // settings は保護つきRPCで保存する（2026-08-15 耐久性監査P0/F1）:
+    // 先生の発行キー（answerSheets / interviewPrep.enabledAt）はDB側の現在値が勝ち、
+    // クライアントが知らないトップレベルキーも温存される。RPC未配備・失敗時は従来updateへフォールバック
+    if (patch.settings !== undefined) {
+      const { data: saved, error: rpcError } = await supabase.rpc('ai_save_learner_settings', {
+        p_settings: patch.settings,
+      });
+      if (!rpcError && saved) {
+        // マージ結果（発行データ入り）をキャッシュへ反映＝発行直後の取り込みが次の保存で完了する
+        const nowCached = readLS<Learner>(LS.learner);
+        if (nowCached) writeLS(LS.learner, { ...nowCached, settings: saved as Learner['settings'] });
+      } else {
+        row.settings = patch.settings;
+      }
+    }
+
+    if (Object.keys(row).length > 0) {
+      row.updated_at = new Date().toISOString();
+      const { error } = await supabase.from('ai_learners').update(row).eq('user_id', u.user.id);
+      if (error) {
+        // 学習データの書込失敗を握りつぶさない（監査OPS-1）。
+        // LSキャッシュが常に最新のローカル状態なので、再送は「キャッシュの現在値を送り直す」マーカー1件でよい
+        // （patchを積むと、後続の成功後に古いpatchが再送され進捗を巻き戻すため）
+        const q = (readLS<PendingOp[]>(LS.pending) ?? []).filter((op) => op.kind !== 'learner');
+        q.push({ kind: 'learner', payload: { userId: u.user.id }, at: new Date().toISOString() });
+        writeLS(LS.pending, q.slice(-100));
+      }
     }
   },
 
@@ -430,11 +448,14 @@ const createRepository = (): CourseRepository => ({
           const cached = readLS<Learner>(LS.learner);
           if (u.user && u.user.id === userId && cached && cached.userId === userId) {
             // LSキャッシュ（常に最新のローカル状態）から学習データを送り直す。
-            // 学習者クライアントが書くのは settings と displayName のみ（difficulty等はadmin側の管轄なので触らない）
-            const { error } = await supabase.from('ai_learners').update({
-              display_name: cached.displayName, settings: cached.settings,
-              updated_at: new Date().toISOString(),
-            }).eq('user_id', userId);
+            // 学習者クライアントが書くのは settings と displayName のみ（difficulty等はadmin側の管轄なので触らない）。
+            // settings は保護つきRPC優先（発行キーをDB側優先でマージ・耐久性監査P0）
+            const { error: rpcError } = await supabase.rpc('ai_save_learner_settings', {
+              p_settings: cached.settings,
+            });
+            const row: Record<string, unknown> = { display_name: cached.displayName, updated_at: new Date().toISOString() };
+            if (rpcError) row.settings = cached.settings;
+            const { error } = await supabase.from('ai_learners').update(row).eq('user_id', userId);
             if (error) remaining.push(op);
           }
           // ユーザー不一致・キャッシュ消失時は適用せず破棄（他人のrowへ書かない）

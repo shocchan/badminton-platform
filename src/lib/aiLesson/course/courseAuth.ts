@@ -109,9 +109,12 @@ export const updatePassword = async (newPassword: string): Promise<{ ok: boolean
 };
 
 export const signOut = async (): Promise<void> => {
+  // 未送信の学習記録（オフライン・通信失敗でpending退避されたもの）を先に送り切る。
+  // これをせずキャッシュを消すと、その回の進捗の唯一のコピーが消える（2026-08-15 監査P1）
+  const { courseRepository, clearCourseLocalCache } = await import('./courseRepository');
+  try { await courseRepository.flushPending(); } catch { /* オフラインでも後続は実行する */ }
   await supabase.auth.signOut();
   // 端末ローカルの学習キャッシュも消す（次にログインする別ユーザーへ漏らさない）
-  const { clearCourseLocalCache } = await import('./courseRepository');
   clearCourseLocalCache();
 };
 
