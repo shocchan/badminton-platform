@@ -1,0 +1,323 @@
+# OK  label="(no label)"  sha256=06567d295addc086  write=false
+[
+ {
+  "row_to_json": {
+   "id": "6bdb7022-97e0-40f5-b601-0c0b3fd570dc",
+   "user_id": "8c0b1a8c-0b84-4078-b0a4-3519548af5af",
+   "display_name": "李",
+   "preferred_language": "ja",
+   "estimated_level": "N3前後（仮）",
+   "difficulty_level": 2,
+   "current_week": 1,
+   "is_active": true,
+   "hearing": {
+    "goal": "daily",
+    "level": "unknown",
+    "scene": "daily",
+    "jlptGoal": "none",
+    "struggle": "recall",
+    "badminton": false,
+    "residence": "1to3y",
+    "zhSupport": "whenStuck",
+    "correction": "summary",
+    "examDateISO": null,
+    "weeklyTarget": 5
+   },
+   "settings": {
+    "zhSupport": "whenStuck",
+    "correction": "summary",
+    "uiLanguage": "ja",
+    "adventureV2": {
+     "route": {
+      "stages": [
+       {
+        "kind": "n3_grammar",
+        "areaId": "area07-katachi",
+        "stageId": "stg-n3grammar",
+        "targets": {
+         "n3UnitIds": [
+          "n3u-08-change",
+          "n3u-11-situation",
+          "n3u-12-adverb"
+         ]
+        },
+        "titleJa": "N3文法攻略",
+        "titleZh": "N3语法攻略",
+        "purposeJa": "N3文法76項目を体系的に攻略する",
+        "purposeZh": "系统攻克76项N3语法",
+        "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+        "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+       },
+       {
+        "kind": "mock_boss",
+        "areaId": "area07-katachi",
+        "stageId": "stg-n3boss",
+        "targets": {
+         "n3UnitIds": [
+          "n3u-01-self",
+          "n3u-02-daily",
+          "n3u-05-adjpair",
+          "n3u-03-move",
+          "n3u-04-things",
+          "n3u-06-feeling",
+          "n3u-07-people",
+          "n3u-09-think",
+          "n3u-10-arrange",
+          "n3u-08-change",
+          "n3u-11-situation",
+          "n3u-12-adverb"
+         ]
+        },
+        "titleJa": "N3模擬ボス",
+        "titleZh": "N3模拟Boss",
+        "purposeJa": "本番形式・時間配分つきの総合演習",
+        "purposeZh": "完整模拟考・练习时间分配",
+        "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+        "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+       }
+      ],
+      "generatedAt": "2026-08-14T13:56:52.146Z",
+      "explanationJa": "N3の攻略に直行できる状態です。弱点から順に攻略します。",
+      "explanationZh": "可以直接进入N3攻略。按弱点顺序推进。",
+      "destinationJlpt": "N3",
+      "destinationAreaId": "area07-katachi",
+      "destinationLabelJa": "N3・カタチの遺跡",
+      "destinationLabelZh": "N3・カタチの遺跡｜形之遗迹"
+     },
+     "skills": {
+      "grammar": {
+       "band": "n2_plus",
+       "confidence": "low",
+       "currentScore": 100,
+       "evidenceCount": 5,
+       "lastAssessedAt": "2026-08-14T13:56:52.146Z"
+      },
+      "reading": {
+       "band": "needs_assessment",
+       "confidence": "none",
+       "currentScore": 0,
+       "evidenceCount": 0,
+       "lastAssessedAt": null
+      },
+      "listening": {
+       "band": "needs_assessment",
+       "confidence": "none",
+       "currentScore": 0,
+       "evidenceCount": 0,
+       "lastAssessedAt": null
+      },
+      "practical": {
+       "band": "needs_assessment",
+       "confidence": "none",
+       "currentScore": 0,
+       "evidenceCount": 0,
+       "lastAssessedAt": null
+      },
+      "vocabulary": {
+       "band": "n3_late",
+       "confidence": "low",
+       "currentScore": 100,
+       "evidenceCount": 6,
+       "lastAssessedAt": "2026-08-14T13:56:52.146Z"
+      },
+      "consistency": {
+       "band": "needs_assessment",
+       "confidence": "none",
+       "currentScore": 0,
+       "evidenceCount": 0,
+       "lastAssessedAt": null
+      },
+      "conversation": {
+       "band": "needs_assessment",
+       "confidence": "none",
+       "currentScore": 0,
+       "evidenceCount": 0,
+       "lastAssessedAt": null
+      }
+     },
+     "enabled": true,
+     "mastery": {
+      "mock-n3": [
+       {
+        "tier": "rankboss",
+        "timed": true,
+        "skills": [
+         "charactersVocabulary",
+         "reading",
+         "listening"
+        ],
+        "bySkill": {
+         "reading": {
+          "total": 5,
+          "unseen": 5,
+          "correct": 4
+         },
+         "listening": {
+          "total": 5,
+          "unseen": 5,
+          "correct": 5
+         },
+         "charactersVocabulary": {
+          "total": 10,
+          "unseen": 10,
+          "correct": 10
+         }
+        },
+        "dateKey": "2026-08-14",
+        "scorePct": 95,
+        "completedAt": "2026-08-14T14:20:01.474Z",
+        "unseenRatio": 1,
+        "questionKeys": [
+         "vocab:首相:しゅしょう:orthography",
+         "vocab:首相:しゅしょう:context",
+         "vocab:出場:しゅつじょう:meaning",
+         "vocab:出場:しゅつじょう:reading",
+         "vocab:出場:しゅつじょう:orthography",
+         "vocab:出場:しゅつじょう:usage",
+         "vocab:出場:しゅつじょう:context",
+         "vocab:出場:しゅつじょう:confusable",
+         "vocab:首都:しゅと:reading",
+         "vocab:首都:しゅと:orthography",
+         "read:n3r-info-11",
+         "read:n3r-info-12",
+         "read:n3r-info-13",
+         "read:n3r-info-14",
+         "read:n3r-info-15",
+         "listen:n3l-quick-11",
+         "listen:n3l-quick-12",
+         "listen:n3l-quick-13",
+         "listen:n3l-quick-14",
+         "listen:n3l-quick-15"
+        ]
+       }
+      ],
+      "n3g-unit-1": [
+       {
+        "tier": "normal",
+        "timed": false,
+        "skills": [
+         "grammar"
+        ],
+        "bySkill": {
+         "grammar": {
+          "total": 7,
+          "unseen": 7,
+          "correct": 5
+         }
+        },
+        "dateKey": "2026-08-14",
+        "scorePct": 71,
+        "completedAt": "2026-08-14T13:59:30.908Z",
+        "unseenRatio": 1,
+        "questionKeys": [
+         "form:n3g-gachi",
+         "rec:n3g-furiwosuru",
+         "meaning:n3g-gachi",
+         "cloze:n3g-nikuwaete:0",
+         "cloze:n3g-nitaishite:1",
+         "meaning:n3g-furiwosuru",
+         "form:n3g-furiwosuru"
+        ]
+       }
+      ]
+     },
+     "mockLog": [
+      {
+       "mode": "short",
+       "level": "N3",
+       "mockId": "mock-N3-short-1786716820370",
+       "skills": [
+        "charactersVocabulary",
+        "reading",
+        "listening"
+       ],
+       "dateKey": "2026-08-14",
+       "completedAt": "2026-08-14T14:20:01.474Z",
+       "sectionCount": 3,
+       "totalCorrect": 19,
+       "totalQuestions": 20,
+       "totalUnanswered": 0,
+       "sectionsFinishedInTime": 3
+      }
+     ],
+     "goalType": "jlpt",
+     "questLog": [
+      {
+       "dateKey": "2026-08-14",
+       "totalSteps": 1,
+       "completedSteps": 1
+      }
+     ],
+     "createdAt": "2026-08-14T12:21:09.751Z",
+     "diagnosis": {
+      "completedAt": "2026-08-14T13:56:52.146Z",
+      "supportNeed": "whenStuck",
+      "grammarGapIds": [],
+      "knowledgeBand": "n3_late",
+      "conversationBand": "needs_assessment",
+      "vocabularyGapIds": [],
+      "askedQuestionKeys": [
+       "ucontext:n3u-01-self:aq-fi-sumu-context",
+       "ucontext:n3u-01-self:aq-fi-kaishain-context",
+       "ucontext:n3u-01-self:aq-fi-namae-context",
+       "ucontext:n3u-12-adverb:aq-fi-saikin-context",
+       "ucontext:n3u-11-situation:aq-fi-joukyou-context",
+       "utransfer_error:n3u-12-adverb:aq-fi-zenzen-contrast0",
+       "rec:n3g-tearu",
+       "rec:n3g-sugiru",
+       "rec:n3g-owaru-fukugou",
+       "rec:n3g-deshou",
+       "rec:n2g-074",
+       "rec:n2g-094"
+      ],
+      "routeExplanationJa": "N3の攻略に直行できる状態です。弱点から順に攻略します。",
+      "routeExplanationZh": "可以直接进入N3攻略。按弱点顺序推进。",
+      "conversationSampled": false,
+      "listeningConfidence": "none",
+      "recommendedStartAreaId": "area06-hataraki"
+     },
+     "lastQuest": {
+      "dateKey": "2026-08-14",
+      "stepKinds": [
+       "weak_reinforce"
+      ],
+      "primaryTargets": [
+       "n3g-unit-1"
+      ]
+     },
+     "teacherId": "yuto",
+     "updatedAt": "2026-08-14T14:20:01.474Z",
+     "targetJlpt": "N3",
+     "todaySteps": {
+      "done": [
+       0
+      ],
+      "dateKey": "2026-08-14"
+     },
+     "weeklyDays": 3,
+     "companionId": "natsu",
+     "examDateISO": "2026-12-06",
+     "humanLesson": {},
+     "mockSession": null,
+     "answerSheets": [],
+     "dailyMinutes": 5,
+     "interviewPrep": {
+      "notes": {},
+      "enabledAt": null,
+      "worksheet": {}
+     },
+     "schemaVersion": 1,
+     "answerSheetLog": [],
+     "answerSheetSession": null
+    },
+    "examDateISO": null,
+    "weeklyTarget": 5,
+    "sessionMinutes": 3
+   },
+   "admin_overrides": {},
+   "created_at": "2026-08-14T12:21:03.228762+00:00",
+   "updated_at": "2026-08-14T15:06:52.498+00:00",
+   "is_test": false
+  }
+ }
+]

@@ -25,17 +25,21 @@ const environmentInfo = (): { userAgent: string; platform: string; online: boole
 
 export const submitIssueReport = async (input: IssueReportInput): Promise<boolean> => {
   const env = environmentInfo();
-  const { error } = await supabase.from('ai_issue_reports').insert({
-    learner_id: input.learnerId,
-    session_id: input.sessionId,
-    page: typeof location !== 'undefined' ? location.pathname : '',
-    error_code: input.errorCode,
-    user_agent: env.userAgent,
-    platform: env.platform,
-    online: env.online,
-    comment: input.comment.slice(0, 1000),
+  // 保存＋運営への通知メールを Edge Function 側で一括で行う
+  // （旧: クライアントからINSERTのみ→通知が無く運営が気づけなかった。2026-08-15修正）。
+  // 報告者が誰かはサーバーがJWTから導出する。通知まで成功して初めて「送信しました」と言う
+  const { data, error } = await supabase.functions.invoke('notify-issue-report', {
+    body: {
+      sessionId: input.sessionId,
+      errorCode: input.errorCode,
+      comment: input.comment.slice(0, 1000),
+      page: typeof location !== 'undefined' ? location.pathname : '',
+      userAgent: env.userAgent,
+      platform: env.platform,
+      online: env.online,
+    },
   });
-  return !error;
+  return !error && (data as { ok?: boolean } | null)?.ok === true;
 };
 
 /** 自分の発話ログ（文字起こし）を削除する。レポート・進捗は残る */
