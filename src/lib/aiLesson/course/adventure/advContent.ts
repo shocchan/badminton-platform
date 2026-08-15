@@ -13,8 +13,8 @@ import type { DiagQuestion, DiagnosisPools } from './advDiagnosis';
 import { buildVariantPool, type AdvBattleQuestion, type AdvChoice, type GrammarDraftLike } from './advVariants';
 import { skillOfQuestionType, SECTION_OF_SKILL } from './advExamSkills';
 import { buildConversationMission, type ConversationMissionSpec } from './advConversationBridge';
-import type { AdvRouteStage } from './advTypes';
-import { AREA_UNIT_MAP } from './advRoute';
+import type { AdvRoute, AdvRouteStage } from './advTypes';
+import { AREA_UNIT_MAP, isConversationStage } from './advRoute';
 
 // ── N2本文のlazyロード（1回だけ・以後キャッシュ） ──
 let n2DraftsCache: N2GrammarDraft[] | null = null;
@@ -201,9 +201,13 @@ export interface StageContent {
   missionByGrammarId: Map<string, ConversationMissionSpec>;
 }
 
-/** masteredIds を除いた「次にやる」対象を stage から展開する */
+/**
+ * masteredIds を除いた「次にやる」対象を stage から展開する。
+ * waitingIds（7日後確認の解禁待ち）は「進行中」なので次候補から外す＝先の対象へ進める
+ * （2026-08-15 進度改善: 待ちの間に学習が止まる直列スケジューリングの解消）
+ */
 export const stageContent = async (
-  stage: AdvRouteStage, masteredIds: Set<string>,
+  stage: AdvRouteStage, masteredIds: Set<string>, waitingIds: Set<string> = new Set(),
 ): Promise<StageContent> => {
   const pools = await loadGrammarPools();
   const n2 = await loadAllN2Drafts();
@@ -216,8 +220,9 @@ export const stageContent = async (
   if (stage.targets.n2Units) for (const u of stage.targets.n2Units) grammarIds.push(...(pools.n2ByUnit.get(u) ?? []));
 
   const unitIds = stage.targets.n3UnitIds ?? [];
-  const nextGrammarIds = grammarIds.filter((g) => !masteredIds.has(g) && !masteredIds.has(pools.n3BundleByItem.get(g) ?? ''));
-  const nextUnitIds = unitIds.filter((u) => !masteredIds.has(u));
+  const skip = (id: string): boolean => masteredIds.has(id) || waitingIds.has(id);
+  const nextGrammarIds = grammarIds.filter((g) => !skip(g) && !skip(pools.n3BundleByItem.get(g) ?? ''));
+  const nextUnitIds = unitIds.filter((u) => !skip(u));
 
   // 会話ターゲット: stageの文法から（会話stageはエリアの実用場面へ）
   const missionByGrammarId = new Map<string, ConversationMissionSpec>();
@@ -233,6 +238,29 @@ export const stageContent = async (
 
   const battleTargetIds = [...nextUnitIds, ...new Set(nextGrammarIds.map((g) => pools.n3BundleByItem.get(g) ?? g))];
   return { battleTargetIds, grammarBundleByItem: pools.n3BundleByItem, nextGrammarIds, nextUnitIds, conversationTargets, missionByGrammarId };
+};
+
+/**
+ * 学習コンテンツを出すstageを選ぶ（2026-08-15 進度改善）。
+ * 現在stageの対象がすべて攻略済みか7日待ちなら、先のstageの学習を前倒しする
+ * （待ちの間に学習が完全に止まる直列スケジューリングの解消）。
+ * ホームの「現在地」表示は currentStageOf のまま＝待ちのstageが確認を通るまで動かない。
+ */
+export const pickContentStage = async (
+  route: AdvRoute, currentStage: AdvRouteStage, masteredIds: Set<string>,
+  stageDone: Set<string>, waitingIds: Set<string>,
+): Promise<{ stage: AdvRouteStage; content: StageContent }> => {
+  const startIdx = Math.max(0, route.stages.findIndex((s) => s.stageId === currentStage.stageId));
+  const candidates = route.stages.slice(startIdx)
+    .filter((s) => !stageDone.has(s.stageId) && !isConversationStage(s));
+  let fallback: { stage: AdvRouteStage; content: StageContent } | null = null;
+  for (const s of candidates) {
+    const content = await stageContent(s, masteredIds, waitingIds);
+    if (!fallback) fallback = { stage: s, content };
+    if (content.nextGrammarIds.length > 0 || content.nextUnitIds.length > 0) return { stage: s, content };
+  }
+  if (fallback) return fallback;
+  return { stage: currentStage, content: await stageContent(currentStage, masteredIds, waitingIds) };
 };
 
 /** stageのバトル対象が属するエリア単元の実在ガード（route⇔atlas整合） */

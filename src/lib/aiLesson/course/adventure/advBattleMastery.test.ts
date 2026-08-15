@@ -200,7 +200,10 @@ describe('advQuest（§13）', () => {
     expect(q.steps.some((s) => s.kind === 'reading_short' || s.kind === 'listening_practice')).toBe(false);
   });
 
-  it('前日と同じ主対象を避ける（代替があるとき）', () => {
+  it('束が無い文法は攻略まで同じ対象を連日固める（2026-08-15 進度改善: 前日回避スワップを廃止）', () => {
+    // 旧仕様は前日と同じ対象を避けて交互に出したが、qualifying「別日3回」が2対象に
+    // 半分ずつ散って攻略が遅くなる。新仕様は同じ対象を最短3日で固め、7日待ちに
+    // 入ったら stageContent が次の対象へ進める（advQuestParallel.test.ts で検証）
     const base = mkInput();
     const withLast = {
       ...base,
@@ -208,7 +211,7 @@ describe('advQuest（§13）', () => {
     };
     const quest = generateTodayQuest(withLast);
     const learn = quest.steps.find((s) => s.kind === 'grammar_new');
-    expect(learn?.refIds).toEqual(['n3g-ccc']);
+    expect(learn?.refIds).toEqual(['n3g-bbb']);
   });
 
   it('会話goalの5分構成は会話ミッションを含み、試験バトルを積まない', () => {

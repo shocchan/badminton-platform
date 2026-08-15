@@ -119,6 +119,26 @@ export const computeMastery = (
   };
 };
 
+/**
+ * 7日待ち（確認解禁前）と確認解禁済みのtargetを分類する（2026-08-15 進度改善）。
+ * 旧実装は7日待ちのtargetを「次の学習対象」に据え続けたため、待ちの間の営業日が
+ * 同じtargetへの無効バトルで消え、週7日満点でも21target完走に209日かかっていた。
+ * waiting は次候補から外して先へ進み、confirmReady は確認バトルとして最優先で出す。
+ */
+export const classifyPendingDelay = (
+  ledger: AdvMasteryLedger, nowISO: string,
+): { waiting: Set<string>; confirmReady: Set<string> } => {
+  const waiting = new Set<string>();
+  const confirmReady = new Set<string>();
+  for (const [t, attempts] of Object.entries(ledger)) {
+    const st = computeMastery(attempts, nowISO);
+    if (st.state !== 'cleared_pending_delay' || !st.delayCheckOpensAt) continue;
+    if (nowISO >= st.delayCheckOpensAt) confirmReady.add(t);
+    else waiting.add(t);
+  }
+  return { waiting, confirmReady };
+};
+
 /** ledger全体から mastered な targetId 集合 */
 export const masteredTargetIds = (ledger: AdvMasteryLedger, nowISO: string): Set<string> => {
   const done = new Set<string>();

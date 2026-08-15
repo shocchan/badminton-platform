@@ -17,6 +17,11 @@ export interface QuestContentAvailability {
   conversationTargets: { refId: string; expression: string; themeJa: string; themeZh: string }[];
   /** grammarId → mastery束ID（N3はn3g-unit-*）。無指定時は項目IDのまま */
   grammarBundleByItem?: Map<string, string>;
+  /**
+   * 7日後の確認が解禁されたtarget（2026-08-15 進度改善）。
+   * 攻略を確定させる一手なので、今日のバトル枠を最優先で確認バトルにする
+   */
+  confirmTargetIds?: string[];
 }
 
 export interface GenerateQuestInput {
@@ -31,6 +36,12 @@ export interface GenerateQuestInput {
   daysToExam: number | null;
   /** stage攻略の導出値（deriveMasteredStageIds）。未指定時は従来のledger[stageId]判定 */
   masteredStageIds?: Set<string>;
+  /**
+   * 学習コンテンツの供給元stage（pickContentStage。2026-08-15 進度改善）。
+   * 現在stageが全て7日待ちのとき、先のstageを前倒しで学ぶために現在地と分離した。
+   * 未指定時は従来どおり currentStageOf の結果を使う
+   */
+  contentStage?: AdvRouteStage;
   /**
    * 試験技能の状況（COMPLETION §12）。読解・聴解を毎日必ず入れるのではなく、
    * 弱点・試験日・直近履歴から配分するために使う。
@@ -65,9 +76,17 @@ const step = (
 
 /** stageに応じた新規学習ステップ（±会話転用） */
 const stageSteps = (
-  stage: AdvRouteStage, avail: QuestContentAvailability, seed: number,
+  stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,
 ): { learn: AdvQuestStep | null; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
-  const g = avail.nextGrammarIds[0];
+  // 文法束の学習は「いま攻略中の束」の中を日替わりで巡回する（2026-08-15 進度改善）。
+  // 旧実装は常に先頭を選んでいたため、前日回避と合わさって先頭2項目のping-pongになり、
+  // 束の3項目目以降が一度もlearnに出ないままバトルで80%を要求されていた
+  const bundleOf = (x: string): string => avail.grammarBundleByItem?.get(x) ?? x;
+  const activeBundle = avail.nextGrammarIds.length > 0 ? bundleOf(avail.nextGrammarIds[0]) : null;
+  const bundleItems = activeBundle === null ? []
+    : avail.nextGrammarIds.filter((x) => bundleOf(x) === activeBundle);
+  const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+  const g = bundleItems.length > 0 ? bundleItems[dayNum % bundleItems.length] : avail.nextGrammarIds[0];
   const u = avail.nextUnitIds[0];
   const convPick = seededShuffle(avail.conversationTargets, seed)[0] ?? null;
   const isConvStage = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth';
@@ -111,8 +130,16 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
 
   const done = input.masteredStageIds
     ?? masteredStageIds(profile.mastery, route.stages.map((s) => s.stageId), input.nowISO);
-  const stage = currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
-  const parts = stageSteps(stage, availability, seed);
+  const stage = input.contentStage
+    ?? currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
+  const parts = stageSteps(stage, availability, seed, dateKey);
+
+  // 7日後の確認が解禁されたtargetがあれば、今日のバトルは確認バトルにする（攻略を確定させる一手が最優先）
+  const confirmTarget = (availability.confirmTargetIds ?? [])[0];
+  if (confirmTarget && stage.kind !== 'conversation_start' && stage.kind !== 'conversation_growth') {
+    parts.battle = step('battle', [confirmTarget],
+      '確認バトル（時間をおいた定着チェック）', '复查战（隔段时间的巩固检查）', 'normal');
+  }
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
   // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
   // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
@@ -120,12 +147,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     parts.conv = step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务');
   }
 
-  // 前日と同じ主対象を避ける（§13⑦）。避けられない場合はそのまま（コンテンツが1つしか無いとき）
-  const lastTargets = new Set(profile.lastQuest?.dateKey === prevDateKey(dateKey) ? profile.lastQuest.primaryTargets : []);
-  if (parts.learn && parts.learn.refIds.every((r) => lastTargets.has(r)) && availability.nextGrammarIds.length > 1) {
-    const alt = availability.nextGrammarIds.find((g) => !lastTargets.has(g));
-    if (alt) parts.learn = { ...parts.learn, refIds: [alt] };
-  }
+  // 前日と同じ主対象の回避（§13⑦）は stageSteps の束内日替わり巡回が担う
+  // （旧実装の「先頭以外へ差し替え」は先頭2項目のping-pongを生み、束の3項目目以降が
+  //  一度もlearnに出ないバグの原因だった・2026-08-15 進度改善）
 
   const steps: AdvQuestStep[] = [];
   const push = (s: AdvQuestStep | null | undefined) => { if (s) steps.push(s); };
@@ -230,12 +254,6 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     nextStepJa: '明日は今日の復習から始まります',
     nextStepZh: '明天从复习今天的内容开始',
   };
-};
-
-const prevDateKey = (dateKey: string): string => {
-  const d = new Date(`${dateKey}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() - 1);
-  return d.toISOString().slice(0, 10);
 };
 
 const buildWhy = (

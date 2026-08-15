@@ -9,7 +9,7 @@ import type {
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
-import { recordAttempt, seenQuestionKeys, masteredTargetIds, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
+import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
 import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
@@ -19,7 +19,7 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
-  loadGrammarPools, buildDiagnosisPools, stageContent, loadAllN2Drafts, grammarPatternById,
+  loadGrammarPools, buildDiagnosisPools, pickContentStage, loadAllN2Drafts, grammarPatternById,
   type GrammarPools, type StageContent,
 } from '../../../lib/aiLesson/course/adventure/advContent';
 import { seededShuffle, type DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
@@ -218,7 +218,10 @@ export default function AdvShell(props: AdvShellProps) {
       const mastered = masteredTargetIds(profile.mastery, nowISO);
       const stageDone = deriveMasteredStageIds(profile.route!, mastered, p.n3Ids, p.n2ByUnit, p.n3BundleByItem);
       const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
-      const ct = await stageContent(stage, mastered);
+      // 7日待ちのtargetは次候補から外して先へ進み、確認が解禁されたら確認バトルを最優先で出す（進度改善 2026-08-15）
+      const { waiting, confirmReady } = classifyPendingDelay(profile.mastery, nowISO);
+      const { stage: contentStage, content: ct } = await pickContentStage(
+        profile.route!, stage, mastered, stageDone, waiting);
       if (!alive) return;
       setStageCt(ct);
       const weak = Object.entries(profile.mastery)
@@ -240,10 +243,12 @@ export default function AdvShell(props: AdvShellProps) {
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
         masteredStageIds: stageDone,
+        contentStage,
         availability: {
           nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
           grammarBundleByItem: ct.grammarBundleByItem,
+          confirmTargetIds: [...confirmReady].sort(),
         },
         examSkills: {
           weakestSkill,
