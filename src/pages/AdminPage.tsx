@@ -351,7 +351,7 @@ interface ActivityEntry {
   name: string;
   member_type: 'member' | 'normal';
   source: 'line' | 'wechat' | 'web';
-  cancel_code: string;
+  // cancel_code は取得しない（列単位で非公開。管理画面でも表示していない）
   quantity: number;
   status: 'confirmed' | 'waitlist';
   notes: string;
@@ -465,7 +465,8 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
     if (acts.length) {
       const { data: ents } = await supabase
         .from('activity_entries')
-        .select('*')
+        // cancel_code は列単位で非公開のため明示指定（管理画面でも表示していない）
+        .select('id, activity_id, name, member_type, source, quantity, created_at, status, notes')
         .in('activity_id', acts.map((a: Activity) => a.id))
         .order('created_at', { ascending: true });
       if (ents) {
