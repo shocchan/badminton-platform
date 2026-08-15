@@ -41,6 +41,12 @@ interface Props {
   nowISO: string;
   onComplete: (o: OnboardingOutcome) => void;
   onCancel: () => void;
+  /**
+   * 診断完了（outcome確定）の瞬間に呼ばれる（2026-08-15）。
+   * ルート披露画面でアプリを閉じても診断・設定が消えないよう、親はここでDBへ下書き保存する
+   * （UI遷移は onComplete のまま。披露画面は表示専用になる）
+   */
+  onOutcomeReady?: (o: OnboardingOutcome) => void;
   /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
   redo?: boolean;
 }
@@ -51,7 +57,7 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo = false }: Props) {
+export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
   const [target, setTarget] = useState<JlptLevel | null>(null);
@@ -88,10 +94,13 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, redo 
     const diagnosis: AdvDiagnosisResult = { ...result, routeExplanationJa: route.explanationJa, routeExplanationZh: route.explanationZh };
     trackAdv('diagnosis_completed', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
     trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
-    setOutcome({
+    const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, diagnosis, skills, route,
-    });
+    };
+    setOutcome(o);
+    // 診断が終わった時点で確定保存の機会を親へ渡す（披露画面で離脱してもやり直しにならない）
+    onOutcomeReady?.(o);
     setPhase('route');
   };
 

@@ -97,6 +97,8 @@ export const N3UnitPanel = ({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [built, setBuilt] = useState<string[]>([]);
   const [wrongOnce, setWrongOnce] = useState(false);
+  // Stage1で「教えるカード」を確認済みの語（非永続でよい: リロード時の再表示は安全側）
+  const [taughtIds, setTaughtIds] = useState<Set<string>>(new Set());
   const [missionStep, setMissionStep] = useState(0);
   const [announcement, setAnnouncement] = useState('');
 
@@ -224,6 +226,30 @@ export const N3UnitPanel = ({
       {['diagnostic', 'stage1', 'stage2', 'stage3'].includes(state.phase) && current && (() => {
         const item = itemById.get(current.itemId);
         const profile = item ? cognateProfileFor(item) : null;
+        // Stage1は問題の前に「教えるカード」を1回挟む（監査P1-3B・2026-08-15）。
+        // ゼロ初心者は読み・意味・例文を教わらないまま3択総当たりになっていた。
+        // カード確認後のassess面には答えを出さない原則は維持（下の displayForm-only ボックス）
+        if (state.phase === 'stage1' && item && !taughtIds.has(item.id)) {
+          return (
+            <div className="bg-white border border-gray-200 rounded-2xl p-4">
+              <div className="mb-3 p-3 bg-slate-50 rounded-xl">
+                <p className="text-xl font-bold text-gray-900">{item.displayForm}</p>
+                <p className="text-sm text-gray-700 mt-0.5">{item.readingKana}</p>
+                <p className="text-sm text-gray-900 mt-1.5">{item.meaningZh}</p>
+                <p className="text-sm text-gray-800 mt-1.5">{item.exampleJa}</p>
+                <p className="text-xs text-gray-500">{item.exampleZh}</p>
+                {item.usageNoteZh && <p className="text-[11px] text-rose-700 mt-1">{item.usageNoteZh}</p>}
+                {profile?.transferRiskZh && (
+                  <p className="text-[11px] text-rose-700 mt-1">{t.n3u.cognateDiffers(profile.zhCognate ?? '')}</p>
+                )}
+              </div>
+              <button type="button" onClick={() => setTaughtIds(new Set([...taughtIds, item.id]))}
+                className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                {t.n3u.teachGotIt}
+              </button>
+            </div>
+          );
+        }
         return (
           <div className="bg-white border border-gray-200 rounded-2xl p-4">
             {state.phase === 'diagnostic' && (
@@ -242,7 +268,15 @@ export const N3UnitPanel = ({
             )}
             <p className="text-sm font-bold text-gray-900 mb-1 whitespace-pre-line">{current.promptJa}</p>
             <p className="text-xs text-gray-400 mb-3">{current.promptZh}</p>
-            {wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.n3u.wrongRetry}</p>}
+            {/* 誤答時は解説つきで再挑戦（監査P1-3A）。誤答は記録済み＝復習送り済みなので、
+                ここで教えることは「解説は回答後にのみ表示」の設計どおり */}
+            {wrongOnce && (
+              <div className="mb-2 p-2 bg-rose-50 rounded-xl">
+                <p className="text-xs text-rose-600">{t.n3u.wrongRetry}</p>
+                <p className="text-sm text-gray-900 mt-1">{current.explanationJa}</p>
+                <p className="text-xs text-gray-500">{current.explanationZh}</p>
+              </div>
+            )}
 
             {current.kind === 'order' ? (
               <div>
@@ -322,7 +356,13 @@ export const N3UnitPanel = ({
             </div>
             <p className="text-sm font-bold text-gray-900 mb-1 whitespace-pre-line">{q.promptJa}</p>
             <p className="text-xs text-gray-400 mb-3">{q.promptZh}</p>
-            {wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.n3u.missionWrong}</p>}
+            {wrongOnce && (
+              <div className="mb-2 p-2 bg-rose-50 rounded-xl">
+                <p className="text-xs text-rose-600">{t.n3u.missionWrong}</p>
+                <p className="text-sm text-gray-900 mt-1">{q.explanationJa}</p>
+                <p className="text-xs text-gray-500">{q.explanationZh}</p>
+              </div>
+            )}
             {q.kind === 'order' ? (
               <div>
                 <div className="min-h-11 p-2 mb-2 bg-slate-50 rounded-xl text-base text-gray-900" aria-live="polite">

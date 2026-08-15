@@ -22,7 +22,27 @@ export interface QuestContentAvailability {
    * 攻略を確定させる一手なので、今日のバトル枠を最優先で確認バトルにする
    */
   confirmTargetIds?: string[];
+  /**
+   * 今日の語彙バトルのtarget（vocab-n5/n4/n3/n2。2026-08-15 語彙配線）。
+   * 語彙バンク約2,200語をデイリーループへ接続する。未指定なら語彙バトルは出ない
+   */
+  vocabBattleTargetId?: string | null;
 }
+
+/**
+ * 今日の語彙バトルのバンド（stage対応・日替わり）。
+ * 基礎固め中はN5/N4を交互に、N3圏に入ったらN3語、N2文法期はN2/N3を交互に。
+ * 会話stageでは出さない
+ */
+export const vocabTargetForStage = (
+  kind: AdvRouteStage['kind'], targetLevel: 'N2' | 'N3', dayNum: number,
+): string | null => {
+  if (kind === 'conversation_start' || kind === 'conversation_growth') return null;
+  if (kind === 'foundation_camp' || kind === 'n3_bridge') return dayNum % 2 === 0 ? 'vocab-n5' : 'vocab-n4';
+  if (kind === 'n2_grammar') return dayNum % 2 === 0 ? 'vocab-n2' : 'vocab-n3';
+  if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
+  return 'vocab-n3';
+};
 
 export interface GenerateQuestInput {
   profile: AdventureV2Profile;
@@ -135,11 +155,20 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const parts = stageSteps(stage, availability, seed, dateKey);
 
   // 7日後の確認が解禁されたtargetがあれば、今日のバトルは確認バトルにする（攻略を確定させる一手が最優先）
+  const isConvStageKind = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth';
   const confirmTarget = (availability.confirmTargetIds ?? [])[0];
-  if (confirmTarget && stage.kind !== 'conversation_start' && stage.kind !== 'conversation_growth') {
+  if (confirmTarget && !isConvStageKind) {
     parts.battle = step('battle', [confirmTarget],
       '確認バトル（時間をおいた定着チェック）', '复查战（隔段时间的巩固检查）', 'normal');
   }
+
+  // 語彙バトル（2026-08-15 語彙配線）。未出優先の出題で語彙バンクを日々歩く。
+  // 15分: 3日に1回、文法バトルの代わりに（時間予算内・確認バトルが優先）
+  // 30分: 毎日追加（確認バトルの日は積みすぎないので休み）
+  const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+  const vocabStep = !isConvStageKind && availability.vocabBattleTargetId
+    ? step('battle', [availability.vocabBattleTargetId], '語彙バトル', '词汇战斗', 'normal')
+    : null;
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
   // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
   // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
@@ -211,6 +240,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     // 試験技能は奇数日に限定し、バトルを少なくとも隔日で必ず回す。
     const examDay = Number(dateKey.slice(-2)) % 2 === 1;
     if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
+    // 3日に1回は語彙バトル（確認バトルの日と、文法バトルが無い日はそちらを優先/代替）
+    else if (vocabStep && !confirmTarget && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
@@ -218,6 +249,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 3), '弱点補強', '弱点补强'));
     push(parts.learn);
     push(parts.battle);
+    if (vocabStep && !confirmTarget) push(vocabStep);
     push(examSkillStep());
     push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));

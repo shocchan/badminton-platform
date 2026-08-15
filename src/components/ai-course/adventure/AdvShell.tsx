@@ -10,7 +10,7 @@ import type {
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
-import { generateTodayQuest } from '../../../lib/aiLesson/course/adventure/advQuest';
+import { generateTodayQuest, vocabTargetForStage } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
@@ -139,13 +139,15 @@ export default function AdvShell(props: AdvShellProps) {
     notifyView?.(view === 'map' ? 'map' : 'home');
   }, [view, notifyView]);
   /**
-   * 語彙bankの遅延ロード。模試でしか使わないので、Homeの初回転送量から外す。
-   * （実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
+   * 語彙bankの遅延ロード。模試と語彙バトル（2026-08-15 語彙配線）でだけ使うので、
+   * Homeの初回転送量から外す（実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
    */
   const [vocabPoolFn, setVocabPoolFn] = useState<null | ((lv: 'N2' | 'N3') => Map<string, AdvBattleQuestion[]>)>(null);
   const [vocabPoolError, setVocabPoolError] = useState(false);
+  const needVocabPool = view === 'mock'
+    || (view === 'battle' && battle !== null && battle.targetId.startsWith('vocab-'));
   useEffect(() => {
-    if (view !== 'mock' || vocabPoolFn || vocabPoolError) return;
+    if (!needVocabPool || vocabPoolFn || vocabPoolError) return;
     let alive = true;
     void import('../../../lib/aiLesson/course/adventure/vocab/vocabQuestions').then((m) => {
       if (alive) setVocabPoolFn(() => m.vocabPool);
@@ -239,6 +241,9 @@ export default function AdvShell(props: AdvShellProps) {
           (ev[a].correct / Math.max(1, ev[a].evidenceCount)) - (ev[b].correct / Math.max(1, ev[b].evidenceCount)))[0]
         : null;
       const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
+      // 今日の語彙バトルのバンド（stage対応・日替わり。2026-08-15 語彙配線）
+      const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+      const vocabBattleTargetId = vocabTargetForStage(contentStage.kind, lvl, dayNum);
       setQuest(generateTodayQuest({
         profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
@@ -249,6 +254,7 @@ export default function AdvShell(props: AdvShellProps) {
           conversationTargets: ct.conversationTargets,
           grammarBundleByItem: ct.grammarBundleByItem,
           confirmTargetIds: [...confirmReady].sort(),
+          vocabBattleTargetId,
         },
         examSkills: {
           weakestSkill,
@@ -325,24 +331,36 @@ export default function AdvShell(props: AdvShellProps) {
       );
     }
     if (!diagPools) return <AdvLoading lang={lang} />;
+    // outcome → 保存するプロファイル（onComplete と診断直後の下書き保存で共通）
+    const profileFromOutcome = (o: OnboardingOutcome): AdventureV2Profile => {
+      const base = profile ?? defaultAdvProfile(nowISO);
+      const withLegacy = migrateLegacyEvidence(base, props.progress, nowISO);
+      return {
+        ...withLegacy, enabled: true,
+        goalType: o.goalType, targetJlpt: o.targetJlpt, examDateISO: o.examDateISO,
+        weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
+        teacherId: o.teacherId,
+        diagnosis: o.diagnosis,
+        skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
+        route: o.route,
+        // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す
+        // （古いquestのstep番号が新questに誤って「完了」と写るのを防ぐ。mastery等の実績は保持）
+        ...(redoOnboarding ? { lastQuest: null, todaySteps: null } : {}),
+      };
+    };
     return (
       <AdvOnboarding
         lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
+        onOutcomeReady={(o: OnboardingOutcome) => {
+          // 診断完了の時点でDBへ確定保存する（2026-08-15）。ルート披露画面でアプリを
+          // 閉じても診断・設定が消えない。React state は触らない＝披露画面はそのまま表示
+          // （onSaveSettings 経由だと needsOnboarding が即falseになり披露画面がunmountされる）
+          const settings = writeAdvProfile(learner.settings, profileFromOutcome(o), new Date().toISOString());
+          void import('../../../lib/aiLesson/course/courseRepository')
+            .then(({ courseRepository }) => courseRepository.updateLearner({ settings }));
+        }}
         onComplete={(o: OnboardingOutcome) => {
-          const base = profile ?? defaultAdvProfile(nowISO);
-          const withLegacy = migrateLegacyEvidence(base, props.progress, nowISO);
-          save({
-            ...withLegacy, enabled: true,
-            goalType: o.goalType, targetJlpt: o.targetJlpt, examDateISO: o.examDateISO,
-            weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
-            teacherId: o.teacherId,
-            diagnosis: o.diagnosis,
-            skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
-            route: o.route,
-            // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す
-            // （古いquestのstep番号が新questに誤って「完了」と写るのを防ぐ。mastery等の実績は保持）
-            ...(redoOnboarding ? { lastQuest: null, todaySteps: null } : {}),
-          });
+          save(profileFromOutcome(o));
           setRedoOnboarding(false);
           setView('home');
         }}
@@ -365,6 +383,29 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── battle ──
   if (view === 'battle' && battle && pools) {
+    // 語彙バトル（vocab-*）は遅延ロードの語彙バンクから出題する（2026-08-15 語彙配線）
+    const isVocabBattle = battle.targetId.startsWith('vocab-');
+    if (isVocabBattle && !vocabPoolFn) {
+      if (vocabPoolError) {
+        return (
+          <div className="mx-auto w-full max-w-xl px-4 py-8 text-center">
+            <p className="mb-4 text-sm text-gray-700">
+              {tx(lang, '語彙データを読み込めませんでした。通信環境を確認してもう一度お試しください。',
+                '词汇数据加载失败。请检查网络后重试。')}
+            </p>
+            <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`}
+              onClick={() => { setVocabPoolError(false); }}>
+              {tx(lang, 'もう一度読み込む', '重新加载')}
+            </button>
+            <button type="button" className={`${pressFx} mt-2 w-full min-h-[44px] text-sm text-gray-500 underline`}
+              onClick={() => { setBattle(null); setView('home'); }}>
+              {tx(lang, 'ホームへ戻る', '返回主页')}
+            </button>
+          </div>
+        );
+      }
+      return <AdvLoading lang={lang} />;
+    }
     const seen = seenQuestionKeys(prof.mastery);
     const wrong = new Set<string>();
     for (const at of Object.values(prof.mastery)) {
@@ -375,7 +416,7 @@ export default function AdvShell(props: AdvShellProps) {
       <AdvBattleRunner
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
-        targetIds={battle.targetIds} pool={pools.byItem} level={level}
+        targetIds={battle.targetIds} pool={isVocabBattle && vocabPoolFn ? vocabPoolFn(level) : pools.byItem} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
@@ -388,7 +429,17 @@ export default function AdvShell(props: AdvShellProps) {
           if (mastery.state === 'mastered') trackAdv('delayed_mastery_reached', { locale: lang });
           else if (mastery.qualifyingDays.length >= 1 && attempt.scorePct >= 80) trackAdv('mastery_80_reached', { locale: lang });
           setLastMastery(mastery);
-          const battleIdx = quest?.steps.findIndex((s) => s.kind === 'battle' || s.kind === 'weak_reinforce') ?? -1;
+          // 30分設定では1日に複数のバトルstep（文法＋語彙）があるため、
+          // 終えたバトルのtargetに一致する未完了stepを消し込む（先頭一致だと語彙完了が文法stepを誤消し込みする）
+          const battleIdx = (() => {
+            if (!quest) return -1;
+            const match = quest.steps.findIndex((s, i) =>
+              (s.kind === 'battle' || s.kind === 'weak_reinforce')
+              && !doneSteps.has(i) && s.refIds.includes(battle.targetId));
+            if (match >= 0) return match;
+            return quest.steps.findIndex((s, i) =>
+              (s.kind === 'battle' || s.kind === 'weak_reinforce') && !doneSteps.has(i));
+          })();
           const next = { ...prof, mastery: ledger };
           save(battleIdx >= 0 ? withStepDone(next, battleIdx) : next);
         }}
@@ -1149,7 +1200,13 @@ export default function AdvShell(props: AdvShellProps) {
     }
     if (s.kind === 'battle') {
       const targets = s.refIds.length > 0 ? s.refIds : (stageCt?.battleTargetIds ?? []);
-      setBattle({ tier: (s.tier ?? 'normal'), targetId: targets[0] ?? (stage?.stageId ?? 'stage'), targetLabel: stage ? tx(lang, stage.titleJa, stage.titleZh) : '', targetIds: targets });
+      const isVocab = targets[0]?.startsWith('vocab-') === true;
+      setBattle({
+        tier: (s.tier ?? 'normal'),
+        targetId: targets[0] ?? (stage?.stageId ?? 'stage'),
+        targetLabel: isVocab ? tx(lang, '語彙', '词汇') : (stage ? tx(lang, stage.titleJa, stage.titleZh) : ''),
+        targetIds: targets,
+      });
       setView('battle'); return;
     }
   };

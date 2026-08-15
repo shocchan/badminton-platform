@@ -132,3 +132,57 @@ describe('pickContentStage: 現在stageが全部7日待ちなら先のstageを�
     expect(contentStage.stageId).toBe(current.stageId);
   });
 });
+
+// ── 語彙バトルのデイリー配線（2026-08-15。語彙バンク約2,200語をループへ接続） ──
+import { vocabTargetForStage } from './advQuest';
+
+describe('語彙バトルの配線', () => {
+  const availWithVocab = (vocabTarget: string | null): QuestContentAvailability => ({
+    nextGrammarIds: [], nextUnitIds: ['u2'], conversationTargets: [],
+    vocabBattleTargetId: vocabTarget,
+  });
+  const questOn = (dateKey: string, minutes: 15 | 30, vocabTarget: string | null) => generateTodayQuest({
+    profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: minutes },
+    route, dueReviewCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
+    availability: availWithVocab(vocabTarget), daysToExam: null, masteredStageIds: new Set(),
+  });
+
+  it('15分: 3日に1回、バトル枠が語彙バトルになる', () => {
+    // dayNum % 3 の巡回で、3日間のうちちょうど1日だけ語彙になる
+    const days = ['2026-08-15', '2026-08-16', '2026-08-17'];
+    const vocabDays = days.filter((d) => {
+      const q = questOn(d, 15, 'vocab-n3');
+      const battles = q.steps.filter((s) => s.kind === 'battle');
+      return battles.some((b) => b.refIds[0] === 'vocab-n3');
+    });
+    expect(vocabDays.length).toBe(1);
+  });
+
+  it('30分: 文法バトルに加えて語彙バトルが毎日入る', () => {
+    const q = questOn('2026-08-15', 30, 'vocab-n4');
+    const battles = q.steps.filter((s) => s.kind === 'battle');
+    expect(battles.map((b) => b.refIds[0])).toContain('u2');        // 文法/単元バトル
+    expect(battles.map((b) => b.refIds[0])).toContain('vocab-n4');  // 語彙バトル
+    expect(battles.find((b) => b.refIds[0] === 'vocab-n4')!.titleJa).toBe('語彙バトル');
+  });
+
+  it('確認バトルが最優先（確認の日は語彙を積まない）', () => {
+    const q = generateTodayQuest({
+      profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: 30 },
+      route, dueReviewCount: 0, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
+      availability: { ...availWithVocab('vocab-n3'), confirmTargetIds: ['u1'] },
+      daysToExam: null, masteredStageIds: new Set(),
+    });
+    const battles = q.steps.filter((s) => s.kind === 'battle');
+    expect(battles.length).toBe(1);
+    expect(battles[0].refIds).toEqual(['u1']);
+  });
+
+  it('vocabTargetForStage: 基礎はN5/N4交互・N3圏はN3・会話stageは出さない', () => {
+    expect(['vocab-n5', 'vocab-n4']).toContain(vocabTargetForStage('foundation_camp', 'N3', 100));
+    expect(vocabTargetForStage('foundation_camp', 'N3', 100)).not.toBe(vocabTargetForStage('foundation_camp', 'N3', 101));
+    expect(vocabTargetForStage('n3_grammar', 'N3', 100)).toBe('vocab-n3');
+    expect(['vocab-n2', 'vocab-n3']).toContain(vocabTargetForStage('n2_grammar', 'N2', 100));
+    expect(vocabTargetForStage('conversation_start', 'N3', 100)).toBeNull();
+  });
+});

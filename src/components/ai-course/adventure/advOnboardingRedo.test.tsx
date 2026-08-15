@@ -81,3 +81,37 @@ describe('相棒の正式キャラ（ナツ/ハル/アキ）', () => {
     expect(screen.queryByText(/フク老師|ナミ|カジ/)).toBeNull();
   });
 });
+
+describe('診断完了時点の確定保存（onOutcomeReady・2026-08-15）', () => {
+  it('診断が終わった瞬間にonOutcomeReadyが1回呼ばれる（披露画面のCTAを押す前）', () => {
+    const onOutcomeReady = vi.fn();
+    const onComplete = vi.fn();
+    const onePool: DiagnosisPools = {
+      foundationVocab: [{
+        key: 'diag:q1', level: 'foundation', skill: 'vocabulary',
+        promptJa: '設問', promptZh: '问题',
+        choices: ['あ', 'い', 'う'], answerIndex: 0, explanationZh: '解说', refId: 'w1',
+      }],
+      n3Vocab: [], n3Grammar: [], n2Grammar: [],
+    };
+    render(
+      <AdvOnboarding lang="ja" pools={onePool} nowISO={NOW}
+        onComplete={onComplete} onCancel={vi.fn()} onOutcomeReady={onOutcomeReady} />,
+    );
+    // 目的→レベル→受験日→スケジュール→先生→相棒→診断へ（プール空=診断0問で即完了）
+    fireEvent.click(screen.getByRole('button', { name: 'JLPTに合格したい' }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    fireEvent.click(screen.getByRole('button', { name: /N3/ }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    fireEvent.click(screen.getByRole('button', { name: /未定のまま進む/ }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // schedule
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // teacher
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ（現在地診断）/ }));
+    fireEvent.click(screen.getByRole('button', { name: /診断を始める/ }));
+    // 1問だけの診断を「わからない」で答える → 最終問題なのでoutcome確定 → 披露画面
+    fireEvent.click(screen.getByRole('button', { name: /^わからない/ }));
+    expect(onOutcomeReady).toHaveBeenCalledTimes(1);
+    expect(onOutcomeReady.mock.calls[0][0].route).toBeTruthy();
+    expect(onComplete).not.toHaveBeenCalled(); // CTAを押すまで画面遷移側は発火しない
+  });
+});
