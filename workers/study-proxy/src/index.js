@@ -1,6 +1,8 @@
-// study.kawabado.com への全リクエストを staging Pages へ素通しする。
+// study.kawabado.com への全リクエストを本番 Pages へ素通しする。
 // パス・クエリ・メソッド・ボディは保持。リダイレクトのLocationだけ自ドメインへ書き戻す。
-const UPSTREAM = 'staging.badminton-platform.pages.dev';
+// 2026-08-15 本番リリースに伴い staging → 本番（badminton-platform.pages.dev）へ切替。
+// 以後の流れ: staging.badminton-platform.pages.dev で検証 → 本番deploy → 生徒に反映
+const UPSTREAM = 'badminton-platform.pages.dev';
 
 export default {
   async fetch(request) {
