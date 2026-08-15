@@ -216,7 +216,13 @@ export const stageMasteryTargetIds = (
     : (stage.kind === 'n3_grammar' ? allN3GrammarIds : []);
   // N3文法のmasteryは束（n3g-unit-*）単位（プール枯渇対策・P0-3）
   ids.push(...new Set(gs.map((g) => n3BundleByItem?.get(g) ?? g)));
-  if (stage.targets.n2Units) for (const u of stage.targets.n2Units) ids.push(...(n2ByUnit.get(u) ?? []));
+  // N2文法も単元束（n2g-unit-*）単位（2026-08-15。項目単位178個では半年で完走不可能）。
+  // n2ByUnit に実在する単元だけを束にする（存在するふりをしない）
+  if (stage.targets.n2Units) {
+    for (const u of stage.targets.n2Units) {
+      if (n2ByUnit.size === 0 || (n2ByUnit.get(u) ?? []).length > 0) ids.push(`n2g-unit-${u}`);
+    }
+  }
   return ids;
 };
 

@@ -140,7 +140,8 @@ export type AdvMasteryState =
 /** 今日の冒険（§13）。生成結果は必ず why / 所要 / 成功条件 / 次 を持つ */
 export interface AdvQuestStep {
   kind: 'review_due' | 'weak_reinforce' | 'grammar_new' | 'vocab_new'
-      | 'battle' | 'reading_short' | 'listening_practice' | 'conversation_mission' | 'restate';
+      | 'battle' | 'reading_short' | 'listening_practice' | 'conversation_mission' | 'restate'
+      | 'kana_dojo';
   refIds: string[];
   titleJa: string; titleZh: string;
   estMinutes: number;
@@ -235,6 +236,15 @@ export interface AdvHumanLessonState {
 }
 
 /** learner設定(jsonb)内に保存するV2プロファイル全体（D-003・migration不要） */
+/** かな道場の進行状態（2026-08-15。超初心者の前提スキル・mastery台帳には入れない） */
+export interface AdvKanaState {
+  /** null＝卒業チェック未実施 / true＝道場で学習中 / false＝卒業（読める） */
+  needed: boolean | null;
+  /** 修了した行（h-1〜h-10, k-1〜k-10） */
+  doneRowIds: string[];
+  checkedAt: string | null;
+}
+
 export interface AdventureV2Profile {
   schemaVersion: 1;
   /** learner単位feature flag（§2・D-004） */
@@ -271,6 +281,12 @@ export interface AdventureV2Profile {
    * 用紙は先生が learner ごとに発行する（＝この配列はその人専用）。
    * 型は循環importを避けるため advAnswerSheet.ts 側で定義し、ここでは unknown 経由で持たない
    */
+  /**
+   * かな道場の状態（2026-08-15）。診断で超初心者（needs_assessment / pre_n5）と
+   * 分かった人だけ初期化される。null＝対象外（かな学習は出ない）。
+   * needed: null＝チェック未実施 / true＝道場が必要 / false＝卒業（チェック合格）
+   */
+  kana: AdvKanaState | null;
   answerSheets: import('./advAnswerSheet').AnswerSheetPaper[];
   /** 進行中の答案（reload復帰用）。提出・破棄で null */
   answerSheetSession: import('./advAnswerSheet').AnswerSheetSession | null;

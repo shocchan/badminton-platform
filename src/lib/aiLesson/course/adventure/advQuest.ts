@@ -7,6 +7,7 @@ import type {
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
 import { masteredStageIds } from './advMastery';
+import { isKanaGraduated, todaysKanaRowIds, kanaRowById } from './advKana';
 
 export interface QuestContentAvailability {
   /** stage内で未攻略のgrammarId（学習順） */
@@ -152,6 +153,41 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     ?? masteredStageIds(profile.mastery, route.stages.map((s) => s.stageId), input.nowISO);
   const stage = input.contentStage
     ?? currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
+
+  // かな道場（2026-08-15）: 超初心者はまず、かなを読める状態にする。
+  // 卒業（チェック合格 or 全行修了）まで、今日の冒険はかな道場1本に絞る
+  // （読めない状態で単元・バトルを出しても3択総当たりになるだけ・原則13）
+  if (!isKanaGraduated(profile.kana)) {
+    const check = profile.kana?.needed === null;
+    const rowIds = check ? ['check'] : todaysKanaRowIds(profile.kana);
+    const rowLabelJa = rowIds.map((id) => kanaRowById(id)?.labelJa ?? '').filter(Boolean).join('・');
+    const rowLabelZh = rowIds.map((id) => kanaRowById(id)?.labelZh ?? '').filter(Boolean).join('・');
+    const kanaStep: AdvQuestStep = {
+      kind: 'kana_dojo', refIds: rowIds,
+      titleJa: check ? 'かなチェック（もう読めるか確認）' : `かな道場（${rowLabelJa}）`,
+      titleZh: check ? '假名检查（确认是否已经会读）' : `假名道场（${rowLabelZh}）`,
+      estMinutes: check ? 3 : 8,
+    };
+    return {
+      questId: `quest-${dateKey}`,
+      dateKey, goalType,
+      primaryTargets: rowIds,
+      steps: [kanaStep],
+      whyJa: check
+        ? 'まず、ひらがな・カタカナが読めるかを確認します。読めればこのステップはすぐ終わります。'
+        : 'まず、ひらがな・カタカナを読める状態にします。ここが全部の土台です。',
+      whyZh: check
+        ? '先确认你是否已经会读平假名和片假名。会读的话这一步马上就结束。'
+        : '先把平假名和片假名练到会读。这是所有学习的地基。',
+      estimatedMinutes: kanaStep.estMinutes,
+      targetSkills: ['vocabulary'],
+      targetExpressions: [],
+      successConditionJa: check ? 'かなチェックを終える' : '今日の行を読めるようにする',
+      successConditionZh: check ? '完成假名检查' : '把今天的行练到会读',
+      nextStepJa: check ? '結果に合わせて、明日からの道を決めます' : '明日は次の行へ進みます',
+      nextStepZh: check ? '根据结果决定明天开始的路线' : '明天继续下一行',
+    };
+  }
   const parts = stageSteps(stage, availability, seed, dateKey);
 
   // 7日後の確認が解禁されたtargetがあれば、今日のバトルは確認バトルにする（攻略を確定させる一手が最優先）

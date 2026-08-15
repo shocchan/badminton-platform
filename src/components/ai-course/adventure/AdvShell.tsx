@@ -42,6 +42,8 @@ import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
+import { AdvKanaDojo } from './AdvKanaDojo';
+import { todaysKanaRowIds } from '../../../lib/aiLesson/course/adventure/advKana';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
@@ -82,7 +84,7 @@ export interface AdvShellProps {
   onViewChange?: (view: 'home' | 'map') => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview';
+type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
@@ -90,7 +92,7 @@ const card = 'rounded-2xl border border-gray-200 bg-white p-4';
 /** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
 const skillOfStep = (kind: string): ExamSkill => {
   if (kind === 'grammar_new' || kind === 'weak_reinforce' || kind === 'battle') return 'grammar';
-  if (kind === 'vocab_new' || kind === 'review_due') return 'charactersVocabulary';
+  if (kind === 'vocab_new' || kind === 'review_due' || kind === 'kana_dojo') return 'charactersVocabulary';
   if (kind === 'reading_short') return 'reading';
   if (kind === 'listening_practice') return 'listening';
   return 'grammar';
@@ -268,7 +270,7 @@ export default function AdvShell(props: AdvShellProps) {
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsOnboarding, profile?.route, profile?.mastery, props.reviewsDue, dateKey]);
+  }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, props.reviewsDue, dateKey]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
@@ -343,6 +345,11 @@ export default function AdvShell(props: AdvShellProps) {
         diagnosis: o.diagnosis,
         skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
         route: o.route,
+        // 超初心者（かな未確認レベル）は、かな道場の対象として初期化する（2026-08-15）。
+        // すでに卒業・進行中ならその状態を保持（redoで巻き戻さない）
+        kana: (o.diagnosis && (o.diagnosis.knowledgeBand === 'needs_assessment' || o.diagnosis.knowledgeBand === 'pre_n5'))
+          ? (withLegacy.kana ?? { needed: null, doneRowIds: [], checkedAt: null })
+          : withLegacy.kana,
         // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す
         // （古いquestのstep番号が新questに誤って「完了」と写るのを防ぐ。mastery等の実績は保持）
         ...(redoOnboarding ? { lastQuest: null, todaySteps: null } : {}),
@@ -382,6 +389,32 @@ export default function AdvShell(props: AdvShellProps) {
   };
 
   // ── battle ──
+  // ── かな道場（超初心者の前提レッスン・2026-08-15） ──
+  if (view === 'kana' && prof.kana) {
+    const kanaStep = quest?.steps.find((s) => s.kind === 'kana_dojo');
+    const rowIds = kanaStep?.refIds
+      ?? (prof.kana.needed === null ? ['check'] : todaysKanaRowIds(prof.kana));
+    const markKanaStep = () => {
+      const i = quest?.steps.findIndex((s) => s.kind === 'kana_dojo') ?? -1;
+      if (i >= 0) markStep(i);
+    };
+    return (
+      <AdvKanaDojo lang={lang} rowIds={rowIds}
+        onFinishCheck={(passed) => {
+          markKanaStep();
+          save({ ...prof, kana: { ...prof.kana!, needed: !passed, checkedAt: new Date().toISOString() } });
+          setView('home');
+        }}
+        onRowsDone={(doneNow) => {
+          markKanaStep();
+          save({ ...prof, kana: { ...prof.kana!, needed: true, doneRowIds: [...new Set([...prof.kana!.doneRowIds, ...doneNow])] } });
+          setView('home');
+        }}
+        onBack={() => setView('home')}
+      />
+    );
+  }
+
   if (view === 'battle' && battle && pools) {
     // 語彙バトル（vocab-*）は遅延ロードの語彙バンクから出題する（2026-08-15 語彙配線）
     const isVocabBattle = battle.targetId.startsWith('vocab-');
@@ -1185,6 +1218,7 @@ export default function AdvShell(props: AdvShellProps) {
         '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以点下面的按钮跳过这一步，继续后面的内容。'));
       return;
     }
+    if (s.kind === 'kana_dojo') { setView('kana'); return; }
     if (s.kind === 'restate') { setView('restate'); return; }
     if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return; }
     if (s.kind === 'listening_practice') { skillFinishGuard.current = false; setView('listening'); return; }
@@ -1480,6 +1514,11 @@ export default function AdvShell(props: AdvShellProps) {
           <div className="mt-2 rounded-2xl border border-blue-100 bg-blue-50/40 p-3">
             <p className="mb-1.5 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '学ぶ', '学习')}</p>
             <div className="space-y-1.5">
+              {/* かな道場: 進行中の人だけ（今日の分より先へ進みたい人向けの入口） */}
+              {prof.kana && prof.kana.needed !== false && (
+                <SubLink lang={lang} label={tx(lang, 'かな道場（ひらがな・カタカナ）', '假名道场（平假名・片假名）')}
+                  onClick={() => setView('kana')} />
+              )}
               <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
               <SubLink lang={lang}
                 label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}

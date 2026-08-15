@@ -40,6 +40,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   questLog: [],
   mockSession: null,
   mockLog: [],
+  kana: null,
   answerSheets: [],
   answerSheetSession: null,
   answerSheetLog: [],
@@ -155,6 +156,14 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
         isRecord(e) && typeof e.mockId === 'string' && typeof e.completedAt === 'string'
         && typeof e.totalQuestions === 'number') as AdventureV2Profile['mockLog']).slice(-30)
       : [],
+    kana: isRecord(raw.kana)
+      ? {
+        needed: raw.kana.needed === true ? true : raw.kana.needed === false ? false : null,
+        doneRowIds: Array.isArray(raw.kana.doneRowIds)
+          ? (raw.kana.doneRowIds as unknown[]).filter((s): s is string => typeof s === 'string') : [],
+        checkedAt: typeof raw.kana.checkedAt === 'string' ? raw.kana.checkedAt : null,
+      }
+      : null,
     answerSheets: restorePapers(raw.answerSheets),
     answerSheetSession: restoreSheetSession(raw.answerSheetSession),
     answerSheetLog: restoreSheetLog(raw.answerSheetLog),

@@ -186,3 +186,36 @@ describe('語彙バトルの配線', () => {
     expect(vocabTargetForStage('conversation_start', 'N3', 100)).toBeNull();
   });
 });
+
+// ── N2文法の束攻略化（2026-08-15。項目単位178個では半年で完走不可能だった） ──
+import { stageMasteryTargetIds } from './advRoute';
+import { loadGrammarPools } from './advContent';
+
+describe('N2文法の束攻略', () => {
+  it('N2 stageの攻略targetは単元束（n2g-unit-*）になり、項目単位178個にならない', async () => {
+    const pools = await loadGrammarPools();
+    const n2Route = generateRoute({
+      goalType: 'jlpt', targetJlpt: 'N2',
+      knowledgeBand: 'n3_late', conversationBand: 'n3',
+      diagnosis: null, nowISO: NOW,
+    });
+    const all = new Set<string>();
+    for (const s of n2Route.stages) {
+      for (const id of stageMasteryTargetIds(s, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem)) all.add(id);
+    }
+    const n2Bundles = [...all].filter((id) => id.startsWith('n2g-unit-'));
+    expect(n2Bundles.length).toBeGreaterThanOrEqual(10);   // 12単元前後
+    expect(n2Bundles.length).toBeLessThanOrEqual(14);
+    expect([...all].some((id) => id.startsWith('n2g-') && !id.startsWith('n2g-unit-'))).toBe(false);
+    // ルート全体のtarget総数が半年で攻略可能な規模（≈200個から大幅減）
+    expect(all.size).toBeLessThan(60);
+  });
+
+  it('束のプールに問題が集約され、項目→束の対応がある', async () => {
+    const pools = await loadGrammarPools();
+    const bundle1 = pools.byItem.get('n2g-unit-1') ?? [];
+    expect(bundle1.length).toBeGreaterThanOrEqual(17); // qualifying3日に必要な最低問題数
+    const anyN2Item = pools.n2Ids[0];
+    expect(pools.n3BundleByItem.get(anyN2Item)).toMatch(/^n2g-unit-\d+$/);
+  });
+});

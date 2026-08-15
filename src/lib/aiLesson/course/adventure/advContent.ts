@@ -128,6 +128,17 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     list.push(...(n3Pool.byItem.get(d.grammarId) ?? []));
     byItem.set(bundle, list);
   }
+  // N2文法も単元束（n2g-unit-*）でmastery判定する（2026-08-15）。
+  // 項目単位（178個×別日3回+7日確認）では理論上800日超かかり半年で完走不可能だった。
+  // 学習（learn step）は項目単位のまま・攻略台帳とバトルだけ束にする（N3と同じ設計）
+  for (const d of n2) {
+    if (N2_ALIAS_IDS.has(d.grammarId)) continue;
+    const bundle = `n2g-unit-${d.unit}`;
+    n3BundleByItem.set(d.grammarId, bundle);
+    const list = byItem.get(bundle) ?? [];
+    list.push(...(n2Pool.byItem.get(d.grammarId) ?? []));
+    byItem.set(bundle, list);
+  }
   const n3BundleIds = [...new Set(n3BundleByItem.values())];
   poolCache = {
     byItem,
