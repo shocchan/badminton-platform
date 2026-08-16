@@ -1112,9 +1112,13 @@ export default function AiCoursePage() {
             {uiLang === 'zh' ? '要开始「冒险模式V2（测试版）」吗？' : '「冒険モードV2（ベータ）」を始めますか？'}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-gray-600">
-            {uiLang === 'zh'
-              ? '目的地由你选择，当前位置由AI判断，每天的学习冒险由AI为你安排。现在的学习数据不会被删除，随时可以回到原来的主页。'
-              : '目的地はあなたが選び、現在地はAIが測り、今日の冒険はAIが案内します。いまの学習データは消えません。いつでも従来のホームに戻せます。'}
+            {progress.length > 0
+              ? (uiLang === 'zh'
+                ? '目的地由你选择，当前位置由AI判断，每天的学习冒险由AI为你安排。现在的学习数据不会被删除，随时可以回到原来的主页。'
+                : '目的地はあなたが選び、現在地はAIが測り、今日の冒険はAIが案内します。いまの学習データは消えません。いつでも従来のホームに戻せます。')
+              : (uiLang === 'zh'
+                ? '目的地由你选择，当前位置由AI判断，每天的学习冒险由AI为你安排。'
+                : '目的地はあなたが選び、現在地はAIが測り、今日の冒険はAIが案内します。')}
           </p>
           <button type="button" disabled={advEntryBusy}
             className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-150 hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
@@ -1128,11 +1132,15 @@ export default function AiCoursePage() {
             }}>
             {uiLang === 'zh' ? '开始冒险' : '冒険を始める'}
           </button>
-          <button type="button"
-            className="mt-3 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline transition-colors active:bg-gray-100 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-            onClick={() => { window.history.replaceState(null, '', window.location.pathname); setStep('home'); }}>
-            {uiLang === 'zh' ? '回到原来的主页' : '従来のホームへ'}
-          </button>
+          {/* 旧コース歴のある人だけに旧ホームの道を残す（2026-08-16。V2から始めた
+              生徒に旧システムを見せると混乱する — ホーム側と同じルール） */}
+          {progress.length > 0 && (
+            <button type="button"
+              className="mt-3 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline transition-colors active:bg-gray-100 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+              onClick={() => { window.history.replaceState(null, '', window.location.pathname); setStep('home'); }}>
+              {uiLang === 'zh' ? '回到原来的主页' : '従来のホームへ'}
+            </button>
+          )}
         </div>
       </Shell>
     );

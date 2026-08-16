@@ -115,3 +115,21 @@ describe('診断完了時点の確定保存（onOutcomeReady・2026-08-15）', (
     expect(onComplete).not.toHaveBeenCalled(); // CTAを押すまで画面遷移側は発火しない
   });
 });
+
+describe('V2専用の生徒に旧ホームの逃げ道を出さない（2026-08-16）', () => {
+  it('canCancelToLegacy=false なら「いまはやめておく（従来ホームへ）」が出ない', () => {
+    render(
+      <AdvOnboarding lang="ja" pools={pools} nowISO={NOW}
+        onComplete={vi.fn()} onCancel={vi.fn()} canCancelToLegacy={false} />,
+    );
+    expect(screen.queryByRole('button', { name: /従来ホームへ/ })).toBeNull();
+  });
+
+  it('redoのキャンセル（元の設定のまま戻る）は canCancelToLegacy=false でも出る', () => {
+    render(
+      <AdvOnboarding lang="ja" pools={pools} nowISO={NOW} redo
+        onComplete={vi.fn()} onCancel={vi.fn()} canCancelToLegacy={false} />,
+    );
+    expect(screen.getByRole('button', { name: /やめて元の設定のまま戻る/ })).toBeTruthy();
+  });
+});

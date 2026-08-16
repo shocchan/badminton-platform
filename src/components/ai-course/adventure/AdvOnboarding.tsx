@@ -49,6 +49,11 @@ interface Props {
   onOutcomeReady?: (o: OnboardingOutcome) => void;
   /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
   redo?: boolean;
+  /**
+   * 旧コース歴があり「従来ホームへ」の逃げ道を出してよいか（2026-08-16）。
+   * V2から始めた生徒に旧システムを見せない。falseなら初回のキャンセル導線を出さない
+   */
+  canCancelToLegacy?: boolean;
 }
 
 type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
@@ -57,7 +62,7 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false }: Props) {
+export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false, canCancelToLegacy = true }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
   const [target, setTarget] = useState<JlptLevel | null>(null);
@@ -142,11 +147,13 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOut
               onClick={() => setPhase(goal === 'conversation' ? 'schedule' : 'target')}>
               {tx(lang, 'つぎへ', '下一步')}
             </button>
-            <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onCancel}>
-              {redo
-                ? tx(lang, 'やめて元の設定のまま戻る', '取消，保持原来的设置')
-                : tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
-            </button>
+            {(redo || canCancelToLegacy) && (
+              <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onCancel}>
+                {redo
+                  ? tx(lang, 'やめて元の設定のまま戻る', '取消，保持原来的设置')
+                  : tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
+              </button>
+            )}
           </div>
         </section>
       )}

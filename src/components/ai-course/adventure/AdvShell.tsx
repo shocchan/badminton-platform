@@ -323,12 +323,15 @@ export default function AdvShell(props: AdvShellProps) {
           <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setDiagError(false)}>
             {tx(lang, 'もう一度読み込む', '重新加载')}
           </button>
-          <button type="button" className={`${secondaryBtn} mt-2`}
-            onClick={redoOnboarding ? () => { setDiagError(false); setRedoOnboarding(false); } : props.onExitV2}>
-            {redoOnboarding
-              ? tx(lang, '元の設定のまま戻る', '保持原来的设置返回')
-              : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
-          </button>
+          {/* 逃げ道: redo中は元の設定へ。初回は旧コース歴のある人だけ旧ホームへ（2026-08-16） */}
+          {(redoOnboarding || props.progress.length > 0) && (
+            <button type="button" className={`${secondaryBtn} mt-2`}
+              onClick={redoOnboarding ? () => { setDiagError(false); setRedoOnboarding(false); } : props.onExitV2}>
+              {redoOnboarding
+                ? tx(lang, '元の設定のまま戻る', '保持原来的设置返回')
+                : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+            </button>
+          )}
         </div>
       );
     }
@@ -358,6 +361,7 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvOnboarding
         lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
+        canCancelToLegacy={props.progress.length > 0}
         onOutcomeReady={(o: OnboardingOutcome) => {
           // 診断完了の時点でDBへ確定保存する（2026-08-15）。ルート披露画面でアプリを
           // 閉じても診断・設定が消えない。React state は触らない＝披露画面はそのまま表示
