@@ -382,7 +382,8 @@ export const buildAdventureMap = (
         action: todayAction(
           '会話は今週のぶんから順に進みます。今週の会話はAI会話ミッションでできます',
           '会话从本周的部分开始依次推进。本周的会话可以在AI会话任务中进行',
-          '今日の冒険を進める', '继续今天的冒险',
+          // 「ここを進める」と誤解させない: このボタンは今日の冒険へ戻るだけ（2026-08-16 CEO指摘）
+          '今日の冒険へもどる', '回到今天的冒险',
         ),
       };
     }
@@ -408,11 +409,13 @@ export const buildAdventureMap = (
         state: 'next' as RegionState,
         unlockJa: currentName ? `${currentName.ja}を攻略すると開きます` : '',
         unlockZh: currentName ? `攻略${currentName.zh}后开启` : '',
-        // 次の目的地はまだ入れない。**押せる行動は「今日の冒険」に寄せる**（行き止まりにしない）
+        // 次の目的地はまだ入れない。**押せる行動は「今日の冒険」に寄せる**（行き止まりにしない）。
+        // ボタンは「ここを進められる」と誤解させず、現在地へ戻ることを名指しする（2026-08-16 CEO指摘）
         action: todayAction(
           `いま向かっているのは${currentName?.ja ?? '現在地'}です。今日のぶんを進めると近づきます`,
           `你正前往${currentName?.zh ?? '当前位置'}。完成今天的份量就会更近一步`,
-          '今日の冒険を進める', '继续今天的冒险',
+          currentName ? `現在地（${currentName.ja}）を進める` : '今日の冒険へもどる',
+          currentName ? `推进当前位置（${currentName.zh}）` : '回到今天的冒险',
         ),
       };
     }
@@ -422,9 +425,11 @@ export const buildAdventureMap = (
         unlockJa: currentName ? `先に${currentName.ja}を攻略します` : '',
         unlockZh: currentName ? `需要先攻略${currentName.zh}` : '',
         action: todayAction(
-          'ここはまだ霧の中です。今日のぶんを積み重ねると道がつながります',
-          '这里还在迷雾中。积累今天的份量，道路就会连上',
-          '今日の冒険を進める', '继续今天的冒险',
+          // ここ（鍵付き）は今日進める場所ではない。ボタンが現在地へ戻るだけだと明示する（2026-08-16 CEO指摘）
+          'ここはまだ霧の中です。いまの攻略地を進めると、道がつながって開きます',
+          '这里还在迷雾中。推进当前的攻略地，道路连上后就会开启',
+          currentName ? `現在地（${currentName.ja}）にもどる` : '今日の冒険へもどる',
+          currentName ? `回到当前位置（${currentName.zh}）` : '回到今天的冒险',
         ),
       };
     }
