@@ -716,6 +716,10 @@ export default function AiCoursePage() {
 
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
+  // V2有効の生徒には**全step**でナビを3タブ（今日の冒険/冒険マップ/設定）に絞る（canon §5）。
+  // 従来はV2ホームだけv2Modeで、設定・復習・単元などの共有stepでは旧5タブが出ていた
+  // （成長・学習記録から旧コース画面へ迷い込める：サマーさんの旧ホーム混乱と同根・2026-08-16修正）
+  const advOn = isAdvEnabled(learner.settings);
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
@@ -801,7 +805,7 @@ export default function AiCoursePage() {
       : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
-    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
+    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive}
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive}
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
@@ -811,12 +815,12 @@ export default function AiCoursePage() {
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
-    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
+    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('growth')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('growth')} showLab={labAllowed}>
         {/* 冒険の進み（Adventure）と日本語の実力は分けて見せる（§14） */}
         <AdventureRecordCard t={t} />
         {labAllowed && (
@@ -847,7 +851,7 @@ export default function AiCoursePage() {
   }
   if (step === 'reviewNote' && activeNote) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseReviewNote t={t} note={activeNote} selfEvaluated={reviewedNoteIds.has(activeNote.sessionId)}
           onSelfEval={(kind) => handleSelfEval(activeNote, kind)}
           onBack={() => setStep(noteReturnStep)} />
@@ -856,7 +860,7 @@ export default function AiCoursePage() {
   }
   if (step === 'light') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <CourseLightPractice t={t} progress={progress}
           practiceAgainIds={learner.settings.practiceAgainIds ?? []} onExit={() => setStep('home')} />
       </Shell>
@@ -864,7 +868,7 @@ export default function AiCoursePage() {
   }
   if (step === 'lab') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('lab')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('lab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <CourseFoundationLab t={t}
@@ -878,7 +882,7 @@ export default function AiCoursePage() {
   }
   if (step === 'vocab') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('vocab')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('vocab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
@@ -893,7 +897,7 @@ export default function AiCoursePage() {
   }
   if (step === 'garden') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <OmoideGardenPanel
           t={t}
           conversationReviewsDue={reviewsDue}
@@ -909,7 +913,7 @@ export default function AiCoursePage() {
   }
   if (step === 'conversationIntro' && plan) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <KatariPortIntro
           t={t}
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
@@ -927,7 +931,7 @@ export default function AiCoursePage() {
   if (step === 'n3area' && activeAreaId && areaById(activeAreaId)) {
     const area = areaById(activeAreaId)!;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
@@ -947,7 +951,7 @@ export default function AiCoursePage() {
   }
   if (step === 'adventure') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             {/* keyで章ごとに必ず再mount（章切替時に前章のstateを持ち越さない） */}
@@ -959,7 +963,7 @@ export default function AiCoursePage() {
   }
   if (step === 'notebook') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseNotebook t={t} learner={learner} sessions={sessions} progress={progress}
           onStartToday={() => setStep('home')} onBack={() => setStep('history')} />
       </Shell>
@@ -967,7 +971,7 @@ export default function AiCoursePage() {
   }
   if (step === 'expressions') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseMyExpressions t={t} progress={progress}
           practiceAgainIds={learner.settings.practiceAgainIds ?? []} onBack={() => setStep('history')} />
       </Shell>
@@ -975,7 +979,7 @@ export default function AiCoursePage() {
   }
   if (step === 'chapters') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
         <CourseChapterList t={t} progress={progress}
           onOpenPreview={(m) => openPreview(m, 'chapters')} onBack={() => setStep('roadmap')} />
       </Shell>
@@ -983,7 +987,7 @@ export default function AiCoursePage() {
   }
   if (step === 'n2grammar') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N2QuestLazy t={t} onBack={() => setStep('home')} onOpenReview={openReview}
@@ -1000,7 +1004,7 @@ export default function AiCoursePage() {
       .filter(Boolean);
     const isCurrentNext = access === 'current' && plan?.main.mission.id === activeMission.id;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('roadmap')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
         <CoursePreview t={t} mission={activeMission} access={access} prereqTitles={prereqTitles}
           estMinutes={activeMission.estimatedMinutes}
           onStartVoice={isCurrentNext && remaining > 0 && learner.isActive ? () => { void startLesson(mode); } : undefined}
@@ -1011,7 +1015,7 @@ export default function AiCoursePage() {
   }
   if (step === 'guide') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <CourseOnboarding
           t={t} mode={guideMode}
           onDone={() => { markGuideSeen(); setStep(guideMode === 'first' ? 'home' : 'settings'); }}
@@ -1037,7 +1041,7 @@ export default function AiCoursePage() {
       }
       : null;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('settings')} showLab={labAllowed}>
         <CourseSettings
           t={t} learner={learner} advActions={advActions}
           onSaveNickname={async (name) => {
@@ -1084,7 +1088,7 @@ export default function AiCoursePage() {
   if (isAdvEnabled(learner.settings)) {
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
-        nav={navFor(advNavKey)} showLab={labAllowed} v2Mode>
+        v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
@@ -1122,7 +1126,7 @@ export default function AiCoursePage() {
   // 旧コースへ行きたい人の道は下の「従来のホームへ」で残している。
   if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed} navHidden>
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed} navHidden>
         <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
           <h2 className="text-lg font-bold text-gray-900">
             {uiLang === 'zh' ? '要开始「冒险模式V2（测试版）」吗？' : '「冒険モードV2（ベータ）」を始めますか？'}
@@ -1163,7 +1167,7 @@ export default function AiCoursePage() {
   }
 
   return (
-    <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('home')} showLab={labAllowed}>
+    <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
       {/*
         一度でも冒険モードV2に入ったことがある人へ、戻る道を常に見せる。
         「従来のホームに戻す」を押すと enabled が OFF になり、以前は ?v2=1 のURLを
