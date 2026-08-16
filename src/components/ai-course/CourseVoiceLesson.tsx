@@ -158,6 +158,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       sessionId, accessToken, plan: payload,
       teacherId: teacher.id,
       turnDetection: COURSE_TURN_DETECTION,
+      // 先生の発話中はマイクを止める（半二重・2026-08-16）。
+      // スピーカーの声がマイクへ回り込み、先生が自分のエコーに割り込まれ続けて
+      // 生徒が一度も話せなくなる不具合（サマーさん報告）の根本対策
+      muteMicWhileTutorSpeaks: true,
       callbacks: {
         // 実際に適用された先生（サーバー決定）。voice名はanalyticsへ送らない
         onVoiceRouted: (info) => {

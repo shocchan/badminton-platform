@@ -1475,6 +1475,16 @@ export default function AdvShell(props: AdvShellProps) {
               )}
             </div>
           )}
+          {/* 会話がうまく動かない環境でも詰まらせない（2026-08-16 サマーさん報告）:
+              次がAI会話のときは、いつでも飛ばせる小さな出口を常設する */}
+          {!stepNotice && nextStep?.kind === 'conversation_mission' && (
+            <button type="button"
+              className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
+              onClick={() => { markStep(nextStepIdx); }}>
+              {tx(lang, '今日はAI会話を飛ばして次へ進む（マイクの調子が悪いときなど）',
+                '今天跳过AI会话，继续下一步（比如麦克风不太好用的时候）')}
+            </button>
+          )}
           {!allDone && (
             <p className="mt-2 text-center text-xs text-gray-500">
               {tx(lang,
@@ -1563,15 +1573,19 @@ export default function AdvShell(props: AdvShellProps) {
         )}
       </div>
 
-      <button type="button"
-        className={`mt-6 w-full min-h-[44px] text-xs underline ${exitArmed ? 'font-semibold text-amber-700' : 'text-gray-400'}`}
-        onClick={() => { if (exitArmed) props.onExitV2(); else setExitArmed(true); }}
-        onBlur={() => setExitArmed(false)}>
-        {exitArmed
-          ? tx(lang, 'もう一度押すと従来ホームへ。データは残り、上のバナーからいつでも戻れます',
-            '再按一次将返回原来的主页。数据会保留，可随时从横幅回来')
-          : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
-      </button>
+      {/* 旧コース歴のある人だけに出す（2026-08-16）。V2から始めた生徒に旧ホームを見せると
+          「これも学ぶの？」と混乱する（サマーさん報告: 旧ホームの語彙ハブを教材と誤認） */}
+      {props.progress.length > 0 && (
+        <button type="button"
+          className={`mt-6 w-full min-h-[44px] text-xs underline ${exitArmed ? 'font-semibold text-amber-700' : 'text-gray-400'}`}
+          onClick={() => { if (exitArmed) props.onExitV2(); else setExitArmed(true); }}
+          onBlur={() => setExitArmed(false)}>
+          {exitArmed
+            ? tx(lang, 'もう一度押すと従来ホームへ。データは残り、上のバナーからいつでも戻れます',
+              '再按一次将返回原来的主页。数据会保留，可随时从横幅回来')
+            : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+        </button>
+      )}
     </div>
   );
 

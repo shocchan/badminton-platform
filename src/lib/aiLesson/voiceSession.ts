@@ -91,6 +91,13 @@ interface StartOptions {
    * threshold を上げ silence_duration を長めにする（コースで指定）。未指定ならサーバー既定。
    */
   turnDetection?: Record<string, unknown>;
+  /**
+   * 半二重モード（2026-08-16 サマーさん報告のエコーループ対策）:
+   * 先生が話している間はマイクを止める。スピーカー再生の声がマイクへ回り込み
+   * 「生徒が話した」と誤検知→先生の発話中断→エコーに応答、の無限ループを断つ。
+   * （WeChat内ブラウザ等、エコーキャンセルが効かない環境で必須）
+   */
+  muteMicWhileTutorSpeaks?: boolean;
   callbacks: VoiceSessionCallbacks;
 }
 
@@ -105,6 +112,19 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
   let stopped = false;
   let status: VoiceSessionStatus = 'idle';
   let micStream: MediaStream | null = null;
+  // 半二重: 先生の発話中はマイクを止める（エコーループ対策）。再開は少し遅らせて残響を拾わない
+  let micResumeTimer: ReturnType<typeof setTimeout> | null = null;
+  const setMicEnabled = (enabled: boolean) => {
+    if (!opts.muteMicWhileTutorSpeaks) return;
+    if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
+    if (enabled) {
+      micResumeTimer = setTimeout(() => {
+        if (!stopped) micStream?.getAudioTracks().forEach((t) => { t.enabled = true; });
+      }, 350);
+    } else {
+      micStream?.getAudioTracks().forEach((t) => { t.enabled = false; });
+    }
+  };
   let pc: RTCPeerConnection | null = null;
   let dc: RTCDataChannel | null = null;
   let audioEl: HTMLAudioElement | null = null;
@@ -136,6 +156,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
     stopped = true;
     timers.forEach(clearTimeout);
     timers.clear();
+    if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
     window.removeEventListener('pagehide', onPageHide);
     if (dc) {
       dc.onmessage = null;
@@ -246,7 +267,11 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
     // 1. マイク許可
     setStatus('requesting-mic');
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // エコーキャンセル等を明示（audio: true だけだとWebView系で無効なことがあり、
+      // スピーカーの先生の声がマイクへ回り込んで誤割り込みループになる・2026-08-16）
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      });
     } catch {
       fail('mic-denied');
       return;
@@ -369,11 +394,13 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
             break;
           case 'output_audio_buffer.started':
             audioPlaying = true;
+            setMicEnabled(false); // 半二重: 先生の声をマイクに拾わせない
             callbacks.onTutorSpeaking(true);
             break;
           case 'output_audio_buffer.stopped':
           case 'output_audio_buffer.cleared':
             audioPlaying = false;
+            setMicEnabled(true); // 半二重: 少し置いてから生徒の番
             callbacks.onTutorSpeaking(false);
             fireFinishIfReady(); // finish_lesson 受信済みなら最終音声完了として発火
             break;
