@@ -1496,7 +1496,10 @@ export default function AdvShell(props: AdvShellProps) {
                 '中途退出也没关系，已完成的步骤会自动保存。下次打开时从接续处继续。')}
             </p>
           )}
-          {allDone && (
+          {/* 締めくくりは1日1回だけ（2026-08-16 CEO指摘）。
+              締めくくり済みのホームは「完了」状態に変わり、緑CTA→完了画面→ホーム→緑CTA…の
+              ループにしない。完了画面はリンクからもう一度見られる（再記録はしない） */}
+          {allDone && !prof.questLog.some((e) => e.dateKey === dateKey) && (
             <button type="button"
               className={`${pressFx} action-emerald mt-4 w-full min-h-[48px] rounded-xl bg-emerald-600 px-4 py-3 text-base font-bold text-white`}
               onClick={() => {
@@ -1511,6 +1514,22 @@ export default function AdvShell(props: AdvShellProps) {
               }}>
               {tx(lang, '今日の冒険を締めくくる', '结束今天的冒险')}
             </button>
+          )}
+          {allDone && prof.questLog.some((e) => e.dateKey === dateKey) && (
+            <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+              <p className="text-sm font-bold text-emerald-800">
+                {tx(lang, '🎉 今日の冒険は完了！おつかれさま', '🎉 今天的冒险完成了！辛苦啦')}
+              </p>
+              <p className="mt-1 text-xs text-emerald-700">
+                {tx(lang, '明日、先生が続きを用意します。もっとやりたい日は下の「ほかの学習を見る」からどうぞ',
+                  '明天老师会准备好接下来的内容。想多学的话，请从下面的「查看其他学习内容」继续')}
+              </p>
+              <button type="button"
+                className={`${pressFx} mt-2 min-h-[40px] rounded-lg px-3 text-xs text-emerald-700 underline active:bg-emerald-100`}
+                onClick={() => setView('complete')}>
+                {tx(lang, '今日のまとめをもう一度見る', '再看一次今天的小结')}
+              </button>
+            </div>
           )}
         </div>
       )}
