@@ -91,6 +91,15 @@ const finalizeChoices = (choices: AdvChoice[]): AdvChoice[] | null => {
   return out;
 };
 
+/**
+ * 見出し語が定型文に文字として含まれると、画面に答えが出てしまう
+ * （「＿＿＿に入る**言葉**はどれですか」で答えが「言葉」、「**漢字**で書くと」で答えが「漢字」等・
+ * 2026-08-16 CEO報告の水平展開）。衝突しない言い回しを選ぶ。全部衝突したら null＝出題しない。
+ */
+const pickPrompt = (
+  surface: string, cands: Array<[string, string]>,
+): [string, string] | null => cands.find(([ja]) => !ja.includes(surface)) ?? null;
+
 const baseQuestion = (
   c: VocabOriginalContent, aspect: VocabAspect, i: number,
   questionJa: string, questionZh: string, choices: AdvChoice[],
@@ -100,7 +109,10 @@ const baseQuestion = (
   level: LEVEL_TO_BAND[c.level] ?? 'n3',
   skill: 'charactersVocabulary',
   examSection: 'languageKnowledge',
-  targetJapanese: aspect === 'meaning' || aspect === 'reading' || aspect === 'orthography' ? c.surface : null,
+  // 表記問題の見出しは**読み**を出す。漢字（＝正解の選択肢そのもの）を見出しに出すと
+  // 画面に答えが見えてしまう（2026-08-16 CEO報告: ミニ模試「今にも」）
+  targetJapanese: aspect === 'orthography' ? c.reading
+    : aspect === 'meaning' || aspect === 'reading' ? c.surface : null,
   questionJa,
   questionZh,
   choices,
@@ -175,32 +187,72 @@ export const buildVocabQuestions = (
       sameLevel.filter((o) => /[一-鿿]/.test(o.surface)), 3, seed + 2,
       (o) => o.surface === c.surface,
     );
-    if (orthWrong.length === 3) {
+    const orthPrompt = pickPrompt(c.surface, [
+      [`「${c.reading}」を漢字で書くとどれですか。`, `「${c.reading}」的汉字写法是哪个？`],
+      [`「${c.reading}」はどう書きますか。`, `「${c.reading}」怎么写？`],
+    ]);
+    if (orthWrong.length === 3 && orthPrompt) {
       const ch = finalizeChoices([
         choice(`${c.wordId}-o0`, c.surface, true),
         ...orthWrong.map((o, i) => choice(`${c.wordId}-o${i + 1}`, o.surface, false, `这是「${o.reading}」`)),
       ]);
       if (ch) {
-        out.push(baseQuestion(c, 'orthography', 2,
-          `「${c.reading}」を漢字で書くとどれですか。`, `「${c.reading}」的汉字写法是哪个？`, ch));
+        out.push(baseQuestion(c, 'orthography', 2, orthPrompt[0], orthPrompt[1], ch));
       }
     }
   }
 
-  // ④ 用法: よく一緒に使う形
-  if (c.collocationsJa.length > 0 && !glossRevealsSurface(c)) {
-    const usageWrong = pickDistinct(
-      sameLevel.filter((o) => o.collocationsJa.length > 0), 3, seed + 3,
-      (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
-    );
-    if (usageWrong.length === 3) {
-      const ch = finalizeChoices([
-        choice(`${c.wordId}-u0`, c.collocationsJa[0], true),
-        ...usageWrong.map((o, i) => choice(`${c.wordId}-u${i + 1}`, o.collocationsJa[0], false, `这是「${o.surface}」的搭配`)),
-      ]);
-      if (ch) {
-        out.push(baseQuestion(c, 'usage', 3,
-          `「${c.surface}」を使う言い方はどれですか。`, `哪个是「${c.surface}」的常用搭配？`, ch));
+  // ④ 用法: よく一緒に使う形。
+  //   各選択肢は**自分の見出し語を＿＿に置き換えて**出す。正解だけに見出し語が
+  //   そのまま残ると、意味を知らなくても文字探しで当たってしまう（表記問題の
+  //   見出し漏れと同時に修正・2026-08-16）。置き換えできない語（活用形の連語など）は使わない
+  {
+    const blankSelf = (surface: string, colloc: string): string | null => {
+      const b = colloc.replace(surface, '＿＿');
+      return b === colloc ? null : b;
+    };
+    const correctBlanked = c.collocationsJa.length > 0 && !glossRevealsSurface(c)
+      ? blankSelf(c.surface, c.collocationsJa[0]) : null;
+    if (correctBlanked) {
+      const usageWrong = pickDistinct(
+        sameLevel.filter((o) => o.collocationsJa.length > 0 && blankSelf(o.surface, o.collocationsJa[0]) !== null),
+        3, seed + 3,
+        (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
+      );
+      const seenTexts = new Set([correctBlanked]);
+      const wrongBlanked = usageWrong
+        .map((o) => ({ o, b: blankSelf(o.surface, o.collocationsJa[0])! }))
+        .filter(({ b }) => !seenTexts.has(b) && (seenTexts.add(b), true));
+      if (wrongBlanked.length === 3) {
+        const ch = finalizeChoices([
+          choice(`${c.wordId}-u0`, correctBlanked, true),
+          ...wrongBlanked.map(({ o, b }, i) => choice(`${c.wordId}-u${i + 1}`, b, false, `这是「${o.surface}」的搭配`)),
+        ]);
+        if (ch) {
+          // 設問文に「＿＿」を書かない（正解の選択肢も＿＿で始まるため、文字一致を作らない）
+          out.push(baseQuestion(c, 'usage', 3,
+            `「${c.surface}」を使う言い方はどれですか。空らんには「${c.surface}」が入ります。`,
+            `哪个是「${c.surface}」的常用搭配？空格处填「${c.surface}」。`, ch));
+        }
+      }
+    } else if (c.collocationsJa.length > 0 && !glossRevealsSurface(c)) {
+      // 活用で見出し語がそのまま現れない連語（やる→やってみる）は従来形式で出す。
+      // 正解の文字列に見出し語が含まれないので、文字探しでは当たらない。
+      // 誤答に見出し語を含む連語が混ざると逆に紛れるので除く
+      const usageWrong = pickDistinct(
+        sameLevel.filter((o) => o.collocationsJa.length > 0 && !o.collocationsJa[0].includes(c.surface)),
+        3, seed + 3,
+        (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
+      );
+      if (usageWrong.length === 3) {
+        const ch = finalizeChoices([
+          choice(`${c.wordId}-u0`, c.collocationsJa[0], true),
+          ...usageWrong.map((o, i) => choice(`${c.wordId}-u${i + 1}`, o.collocationsJa[0], false, `这是「${o.surface}」的搭配`)),
+        ]);
+        if (ch) {
+          out.push(baseQuestion(c, 'usage', 3,
+            `「${c.surface}」を使う言い方はどれですか。`, `哪个是「${c.surface}」的常用搭配？`, ch));
+        }
       }
     }
   }
@@ -209,14 +261,19 @@ export const buildVocabQuestions = (
   if (c.exampleJa.includes(c.surface)) {
     const ctxWrong = pickDistinct(sameLevel, 3, seed + 4, (o) => glossTooClose(o.glossZh, c.glossZh));
     if (ctxWrong.length === 3) {
-      const blanked = c.exampleJa.replace(c.surface, '＿＿＿');
+      // replaceAll: 例文に見出し語が2回出ると、1回だけの置換では答えが残る
+      const blanked = c.exampleJa.replaceAll(c.surface, '＿＿＿');
       const ch = finalizeChoices([
         choice(`${c.wordId}-c0`, c.surface, true),
         ...ctxWrong.map((o, i) => choice(`${c.wordId}-c${i + 1}`, o.surface, false, `「${o.surface}」的意思是${o.glossZh}`)),
       ]);
-      if (ch) {
+      const ctxPrompt = pickPrompt(c.surface, [
+        ['＿＿＿に入る言葉はどれですか。', '空格里应该填哪个词？'],
+        ['＿＿＿のところに合うのはどれですか。', '空格处应该填哪一个？'],
+      ]);
+      if (ch && ctxPrompt) {
         out.push(baseQuestion(c, 'context', 4,
-          `${blanked}\n＿＿＿に入る言葉はどれですか。`, `${blanked}\n空格里应该填哪个词？`, ch));
+          `${blanked}\n${ctxPrompt[0]}`, `${blanked}\n${ctxPrompt[1]}`, ch));
       }
     }
   }
@@ -234,9 +291,12 @@ export const buildVocabQuestions = (
         choice(`${c.wordId}-x0`, c.surface, true),
         ...wrong.map((o, i) => choice(`${c.wordId}-x${i + 1}`, o.surface, false, `「${o.surface}」是${o.glossZh}`)),
       ]);
-      if (ch) {
-        out.push(baseQuestion(c, 'confusable', 5,
-          `「${c.glossZh}」という意味の言葉はどれですか。`, `表示「${c.glossZh}」的词是哪个？`, ch));
+      const confPrompt = pickPrompt(c.surface, [
+        [`「${c.glossZh}」という意味の言葉はどれですか。`, `表示「${c.glossZh}」的词是哪个？`],
+        [`「${c.glossZh}」という意味なのはどれですか。`, `表示「${c.glossZh}」的是哪个？`],
+      ]);
+      if (ch && confPrompt) {
+        out.push(baseQuestion(c, 'confusable', 5, confPrompt[0], confPrompt[1], ch));
       }
     }
   }

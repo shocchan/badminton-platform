@@ -144,6 +144,36 @@ describe('§6 語彙問題（選択式のみ）', () => {
     expect(fourPlus / counts.length).toBeGreaterThan(0.7);
   }, 30_000);
 
+  it('**画面に答えが見えない**（見出し・設問文に正解の選択肢が含まれない・2026-08-16 CEO報告）', async () => {
+    // ミニ模試の表記問題で、見出し語に正解の漢字がそのまま出ていた（「今にも」）。
+    // 用法問題も、正解の連語だけに見出し語が残り文字探しで当たる状態だった。
+    // 実データ全問題で「学習者に見える文字列」に正解テキストが含まれないことを固定する
+    // 1文字の正解（読み「は」「か」等）は除外する: 「読み方はどれですか」のような定型文に
+    // 単独かなは必然的に含まれるが、毎問同じ定型文なので手がかりにならない（搾取不能）
+    const leaks: string[] = [];
+    for (const { qs } of await allQuestions()) {
+      for (const q of qs) {
+        const stem = `${q.targetJapanese ?? ''}\n${q.questionJa ?? ''}`;
+        const correct = q.choices.find((x) => x.isCorrect)!;
+        if ([...correct.textJa].length >= 2 && stem.includes(correct.textJa)) {
+          leaks.push(`${q.key} → ${correct.textJa}`);
+        }
+      }
+    }
+    expect(leaks).toEqual([]);
+  }, 30_000);
+
+  it('**用法問題は選択肢の形式を混ぜない**（正解だけ見出し語入りだと文字探しで当たる）', async () => {
+    // 空欄形（＿＿を守る）と従来形（やってみる・活用語の救済）の2形式があるが、
+    // 1問の中で混ざると「形が違う選択肢＝正解」という手がかりになるため、全か無を固定する
+    for (const { qs } of await allQuestions()) {
+      for (const q of qs.filter((x) => x.type === 'vocab-usage')) {
+        const withBlank = q.choices.filter((ch) => ch.textJa.includes('＿＿')).length;
+        expect(withBlank === 0 || withBlank === q.choices.length, `${q.key} 形式が混在`).toBe(true);
+      }
+    }
+  }, 30_000);
+
   it('**複数正解を作らない**（同じ意味の語を誤答に入れない・Pilot監査P0）', async () => {
     // 訳の完全一致だけを見ていたため「学习」と「学习（有计划地学）」が別物になり、
     // 意味問題に正解が2つ入っていた。実データ全件で0件であることを固定する。
