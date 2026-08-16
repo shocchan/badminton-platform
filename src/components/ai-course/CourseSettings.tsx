@@ -1,7 +1,7 @@
 // 設定画面。利用案内の再確認（§17）・プライバシー（§13）・問題報告（§18）・ログアウト。
 
 import { useRef, useState } from 'react';
-import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users, UserRound, Lock } from 'lucide-react';
+import { BookOpen, ShieldCheck, LifeBuoy, LogOut, Trash2, Check, Subtitles, Users, UserRound, Lock, Compass } from 'lucide-react';
 import { CourseIssueReport } from './CourseIssueReport';
 import { deleteMyUtterances } from '../../lib/aiLesson/course/courseIssueApi';
 import { updatePassword } from '../../lib/aiLesson/course/courseAuth';
@@ -20,11 +20,13 @@ interface Props {
   onSaveNickname: (name: string) => Promise<boolean>;
   onLogout: () => void;
   onBack: () => void;
+  /** V2（冒険モード）の設定項目。V2有効learnerのときだけ渡される（先生変更・目的レベル変更） */
+  advActions?: { title: string; items: Array<{ label: string; onClick: () => void }> } | null;
 }
 
 const SUBTITLE_MODES: SubtitleMode[] = ['ja', 'ja_zh', 'whenStuck'];
 
-export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSaveSettings, onLogout, onBack }: Props) => {
+export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSaveSettings, onLogout, onBack, advActions = null }: Props) => {
   const ts = t.settings;
   const learnerId = learner.id;
   const [showIssue, setShowIssue] = useState(false);
@@ -66,6 +68,20 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
           {ts.guideOpen}
         </button>
       </Section>
+
+      {/* 冒険の設定（V2のみ）。ホーム二次メニューの項目過多解消のためここへ集約（2026-08-16） */}
+      {advActions && (
+        <Section icon={<Compass className="w-4 h-4 text-indigo-600" />} title={advActions.title}>
+          <div className="space-y-2">
+            {advActions.items.map((item) => (
+              <button key={item.label} type="button" onClick={item.onClick}
+                className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </Section>
+      )}
 
       {/* 字幕モード（中国語補助） */}
       <Section icon={<Subtitles className="w-4 h-4 text-blue-600" />} title={ts.subtitleTitle}>

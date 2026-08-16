@@ -79,8 +79,10 @@ export interface AdvShellProps {
   restateAvailable: boolean;
   onOpenArea: (areaId: string) => void;
   onExitV2: () => void;
-  /** ヘッダーからの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ */
-  requestView?: { view: 'home' | 'map'; n: number } | null;
+  /** ヘッダー・設定画面からの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ。
+   * teacher=案内の先生の変更 / redo=目的・レベルの変更（準備のやり直し）。
+   * どちらも設定画面（上部ナビ）から入る（2026-08-16 メニュー整理でホームの二次メニューから移設） */
+  requestView?: { view: 'home' | 'map' | 'teacher' | 'redo'; n: number } | null;
   /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
   onViewChange?: (view: 'home' | 'map') => void;
 }
@@ -125,6 +127,9 @@ export default function AdvShell(props: AdvShellProps) {
   /** 主要CTAを押しても進めない理由（AI会話が未開放など）。黙って無反応にしない（原則15） */
   const [stepNotice, setStepNotice] = useState<string | null>(null);
   const weeklyTracked = useRef(false);
+  // 目的・レベルの変更＝オンボーディングのやり直し（記録は保持。設定画面から入る）。
+  // requestView('redo')が使うため、切替要求の処理より前に宣言する
+  const [redoOnboarding, setRedoOnboarding] = useState(false);
 
   // ヘッダー（今日の冒険／冒険マップ）からの切替要求を反映する。
   // effect ではなく **render中にpropsの変化へ合わせて調整する**（Reactが推奨する形）。
@@ -133,7 +138,12 @@ export default function AdvShell(props: AdvShellProps) {
   const [seenReq, setSeenReq] = useState(0);
   if (reqN !== seenReq) {
     setSeenReq(reqN);
-    if (props.requestView) setView(props.requestView.view === 'map' ? 'map' : 'home');
+    if (props.requestView) {
+      const v = props.requestView.view;
+      if (v === 'redo') { setView('home'); setRedoOnboarding(true); }
+      else if (v === 'teacher') setView('teacher');
+      else setView(v === 'map' ? 'map' : 'home');
+    }
   }
 
   // ナビのハイライトを実際の画面に合わせる
@@ -205,8 +215,6 @@ export default function AdvShell(props: AdvShellProps) {
 
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
-  // 目的・レベルの変更＝オンボーディングのやり直し（記録は保持。二次メニューから入る）
-  const [redoOnboarding, setRedoOnboarding] = useState(false);
   const [diagError, setDiagError] = useState(false);
   useEffect(() => {
     if ((!needsOnboarding && !redoOnboarding) || diagPools || diagError) return;
@@ -1611,27 +1619,23 @@ export default function AdvShell(props: AdvShellProps) {
                   onClick={() => setView('interview')} />
               )}
             </div>
+            {/* メニュー整理（2026-08-16 CEO指摘「項目が多すぎる」）:
+                ・攻略ルート → 上部ナビ「冒険マップ」と完全重複のため削除
+                ・設定を変える（先生・目的レベル）→ 上部ナビ「設定」画面へ移設 */}
             <p className="mb-1.5 mt-3 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '記録を見る', '查看记录')}</p>
             <div className="space-y-1.5">
-              <SubLink lang={lang} label={term('seeRoute', lang)} onClick={() => setView('map')} />
               <SubLink lang={lang} label={term('seeReadiness', lang)} onClick={() => { trackAdv('report_viewed', { locale: lang }); setView('readiness'); }} />
               <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
                 onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
               <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
             </div>
-            <p className="mb-1.5 mt-3 px-1 text-[11px] font-bold tracking-wide text-gray-500">{tx(lang, '設定を変える', '更改设置')}</p>
-            <div className="space-y-1.5">
-              <SubLink lang={lang}
-                label={tx(lang, `案内の先生を変える（いまは${teacherLabel}）`, `更换引导老师（当前：${teacherLabel}）`)}
-                onClick={() => setView('teacher')} />
-              {/* 目的・レベルの変更＝準備のやり直し（オンボーディングの「あとで変えられます」の受け皿） */}
-              <SubLink lang={lang}
-                label={tx(lang, '目的・レベルを変える（準備をやり直す）', '更改目标・级别（重新准备）')}
-                onClick={() => setRedoOnboarding(true)} />
-            </div>
             <p className="px-1 pt-2 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
                 `${term('masteryRate', 'zh')}＝各单元的巩固度／${term('readiness', 'zh')}＝考试整体的能力评估`)}
+            </p>
+            <p className="px-1 pt-1 text-[11px] text-gray-400">
+              {tx(lang, '先生や目的・レベルの変更は、いちばん上の「設定」からできます',
+                '更换老师或更改目标・级别，请从最上方的「设置」进入')}
             </p>
           </div>
         )}

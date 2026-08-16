@@ -176,7 +176,7 @@ export default function AiCoursePage() {
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
    */
-  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map'; n: number } | null>(null);
+  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map' | 'teacher' | 'redo'; n: number } | null>(null);
   const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
   // V2入口「冒険を始める」の連打ガード（updateLearnerの二重発火を防ぐ）
   const [advEntryBusy, setAdvEntryBusy] = useState(false);
@@ -1020,10 +1020,26 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'settings') {
+    // V2の冒険設定（先生・目的レベル）は設定画面に集約する
+    // （2026-08-16 ホーム二次メニューの項目過多解消。AdvShellのrequestViewで画面を開く）
+    const openAdvView = (view: 'teacher' | 'redo') => {
+      setAdvNavKey('home');
+      setAdvRequest((p) => ({ view, n: (p?.n ?? 0) + 1 }));
+      setStep('home');
+    };
+    const advActions = isAdvEnabled(learner.settings)
+      ? {
+        title: uiLang === 'zh' ? '冒险的设置' : '冒険の設定',
+        items: [
+          { label: uiLang === 'zh' ? '更换引导老师' : '案内の先生を変える', onClick: () => openAdvView('teacher') },
+          { label: uiLang === 'zh' ? '更改目标・级别（重新准备）' : '目的・レベルを変える（準備をやり直す）', onClick: () => openAdvView('redo') },
+        ],
+      }
+      : null;
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} nav={navFor('settings')} showLab={labAllowed}>
         <CourseSettings
-          t={t} learner={learner}
+          t={t} learner={learner} advActions={advActions}
           onSaveNickname={async (name) => {
             const prev = learner.displayName;
             setLearner({ ...learner, displayName: name });
