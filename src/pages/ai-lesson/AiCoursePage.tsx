@@ -1372,10 +1372,13 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
       />
       {children}
       {/* 学習アプリ側にも法務導線を置く（LPだけにあると、
-          ログイン後の学習者が規約・削除申請へ辿り着けない） */}
+          ログイン後の学習者が規約・削除申請へ辿り着けない）。
+          「キャンセル・返金について」の単独リンクは学習面では出さない（2026-08-16 CEO判断）。
+          開示義務は特商法ページ内の「返品・キャンセル」節とLP側フッターで担保。
+          中途解約権など法定権利は表示の有無に関係なく消えない点に注意 */}
       <footer className="mt-10 border-t border-gray-100 py-6">
         <div className="max-w-md lg:max-w-2xl mx-auto px-4 text-gray-500">
-          <LegalFooterLinks lang={lang} />
+          <LegalFooterLinks lang={lang} exclude={['cancel-policy']} />
         </div>
       </footer>
     </TeacherProvider>

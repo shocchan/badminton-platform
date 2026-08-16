@@ -161,6 +161,22 @@ describe('公開ガードと導線', () => {
     }
   });
 
+  it('学習アプリのfooter（exclude指定）では「キャンセル・返金について」を単独リンクとして出さない（2026-08-16 CEO判断）', () => {
+    // 表示を消しても法定開示は残ることを同時に固定する:
+    // ①excludeはリンクの表示だけを消す ②特商法ページには「返品・キャンセル」節が独立して残る
+    const { container } = render(
+      <MemoryRouter><LegalFooterLinks lang="ja" exclude={['cancel-policy']} /></MemoryRouter>,
+    );
+    const links = [...container.querySelectorAll('a')];
+    expect(links).toHaveLength(7);
+    expect(links.some((a) => a.getAttribute('href') === legalPathFor('ja', 'cancel-policy'))).toBe(false);
+    for (const lang of ['ja', 'zh'] as const) {
+      const tokushoho = renderableLegalPage(buildLegalPages(lang).find((p) => p.id === 'tokushoho')!);
+      expect(tokushoho.sections.some((s) => s.heading.includes(lang === 'ja' ? '返品・キャンセル' : '退款与取消')),
+        `${lang}: 特商法ページの返品・キャンセル節は残す`).toBe(true);
+    }
+  });
+
   it('問い合わせ先は info@kawabado.com に集約されている', () => {
     for (const lang of ['ja', 'zh'] as const) {
       const contact = renderableLegalPage(buildLegalPages(lang).find((p) => p.id === 'contact')!);

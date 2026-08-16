@@ -8,9 +8,13 @@ import { Navigate, useParams, useLocation, Link } from 'react-router-dom';
 import { buildLegalPages, renderableLegalPage, legalPathFor, type LegalPageId } from '../../../lib/aiLesson/course/legal/legalContent';
 import { LEGAL_PUBLISH, isLegalPreview, pendingLegalFacts } from '../../../lib/aiLesson/course/legal/legalFacts';
 
-/** LP・学習アプリの両方から使う法務リンク一覧 */
-export const LegalFooterLinks = ({ lang, className = '' }: { lang: 'ja' | 'zh'; className?: string }) => {
-  const pages = buildLegalPages(lang);
+/** LP・学習アプリの両方から使う法務リンク一覧。
+ * exclude: その面では単独リンクとして出さないページ（ページ自体は生きたまま。
+ * 特商法上の開示は tokushoho ページ内の「返品・キャンセル」節とLP側で担保する） */
+export const LegalFooterLinks = ({ lang, className = '', exclude = [] }: {
+  lang: 'ja' | 'zh'; className?: string; exclude?: LegalPageId[];
+}) => {
+  const pages = buildLegalPages(lang).filter((p) => !exclude.includes(p.id));
   return (
     <nav className={`flex flex-wrap gap-x-4 ${className}`} aria-label={lang === 'zh' ? '法律信息' : '法務情報'}>
       {pages.map((p) => (
