@@ -13,6 +13,7 @@ import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDela
 import { generateTodayQuest, vocabTargetForStage } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
+import { XP_RULES, xpForBattle, levelOf, xpToNextLevel } from '../../../lib/aiLesson/course/adventure/advXp';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
 import {
   ALL_TEACHERS, resolveTeacher, teacherName, type AdvTeacherId,
@@ -155,7 +156,7 @@ export default function AdvShell(props: AdvShellProps) {
       if (alive) setVocabPoolFn(() => m.vocabPool);
     }).catch(() => { if (alive) setVocabPoolError(true); });
     return () => { alive = false; };
-  }, [view, vocabPoolFn, vocabPoolError]);
+  }, [needVocabPool, vocabPoolFn, vocabPoolError]);
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
@@ -406,12 +407,20 @@ export default function AdvShell(props: AdvShellProps) {
       <AdvKanaDojo lang={lang} rowIds={rowIds}
         onFinishCheck={(passed) => {
           markKanaStep();
-          save({ ...prof, kana: { ...prof.kana!, needed: !passed, checkedAt: new Date().toISOString() } });
+          save({
+            ...prof,
+            kana: { ...prof.kana!, needed: !passed, checkedAt: new Date().toISOString() },
+            xp: (prof.xp ?? 0) + (passed ? XP_RULES.kanaGraduate : XP_RULES.kanaRow),
+          });
           setView('home');
         }}
         onRowsDone={(doneNow) => {
           markKanaStep();
-          save({ ...prof, kana: { ...prof.kana!, needed: true, doneRowIds: [...new Set([...prof.kana!.doneRowIds, ...doneNow])] } });
+          save({
+            ...prof,
+            kana: { ...prof.kana!, needed: true, doneRowIds: [...new Set([...prof.kana!.doneRowIds, ...doneNow])] },
+            xp: (prof.xp ?? 0) + XP_RULES.kanaRow * doneNow.length,
+          });
           setView('home');
         }}
         onBack={() => setView('home')}
@@ -477,7 +486,8 @@ export default function AdvShell(props: AdvShellProps) {
             return quest.steps.findIndex((s, i) =>
               (s.kind === 'battle' || s.kind === 'weak_reinforce') && !doneSteps.has(i));
           })();
-          const next = { ...prof, mastery: ledger };
+          // XPはバトル参加で+5・80%以上で+5（努力の通貨。攻略には影響しない・advXp.ts）
+          const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
           save(battleIdx >= 0 ? withStepDone(next, battleIdx) : next);
         }}
         onClose={() => { setBattle(null); setView('home'); }}
@@ -672,6 +682,7 @@ export default function AdvShell(props: AdvShellProps) {
             mastery: ledger,
             mockSession: null,
             mockLog: [...prof.mockLog, toMockLogEntry(r, dateKey, completedAt)].slice(-30),
+            xp: (prof.xp ?? 0) + XP_RULES.mock,
           });
           for (const s of r.skills) trackAdv('readiness_skill_updated', { locale: lang, skillType: s as ExamSkill });
         }}
@@ -1167,8 +1178,12 @@ export default function AdvShell(props: AdvShellProps) {
           </p>
         </div>
         <p className="mt-4 text-center">
+          {/* 締めくくり保存が先に走るので prof.xp は加算済み。ここで再加算しない */}
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-800">
-            ⭐ XP +{doneSteps.size * 10}
+            ⭐ XP +{doneSteps.size * XP_RULES.questStep}
+            <span className="font-normal">
+              {tx(lang, `｜合計 ${prof.xp ?? 0}・Lv.${levelOf(prof.xp ?? 0)}`, `｜共计 ${prof.xp ?? 0}・Lv.${levelOf(prof.xp ?? 0)}`)}
+            </span>
           </span>
         </p>
         <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
@@ -1310,6 +1325,15 @@ export default function AdvShell(props: AdvShellProps) {
           {tx(lang,
             `受験日までに終えるには週${pace.neededPerWeek}項目の定着が必要です（いまは週${pace.measuredPerWeek ?? 0}）`,
             `要在考试日前完成，需要每周巩固${pace.neededPerWeek}个项目（现在是每周${pace.measuredPerWeek ?? 0}个）`)}
+        </p>
+      )}
+      {/* XP＝努力の見える化（やるほど増える・攻略とは別軸・advXp.ts）。0のうちは出さない */}
+      {(prof.xp ?? 0) > 0 && (
+        <p className="mt-1 text-xs font-semibold text-amber-600">
+          ⭐ Lv.{levelOf(prof.xp ?? 0)}・XP {prof.xp}
+          <span className="ml-1 font-normal text-gray-400">
+            {tx(lang, `（次のレベルまで${xpToNextLevel(prof.xp ?? 0)}）`, `（距下一级还差${xpToNextLevel(prof.xp ?? 0)}）`)}
+          </span>
         </p>
       )}
 
@@ -1508,6 +1532,7 @@ export default function AdvShell(props: AdvShellProps) {
                   ...prof,
                   questLog: [...log, { dateKey, completedSteps: doneSteps.size, totalSteps: quest.steps.length }].slice(-60),
                   lastQuest: { dateKey, primaryTargets: quest.primaryTargets, stepKinds: quest.steps.map((s) => s.kind) },
+                  xp: (prof.xp ?? 0) + doneSteps.size * XP_RULES.questStep,
                 });
                 trackAdv('today_quest_completed', { goalType: prof.goalType ?? undefined, locale: lang });
                 setView('complete');
@@ -1553,6 +1578,22 @@ export default function AdvShell(props: AdvShellProps) {
                   onClick={() => setView('kana')} />
               )}
               <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+              {/* おかわりバトル（2026-08-16 CEO要望「問題を変えて何度も復習・XPはやるほど増える」）。
+                  出題は未出問題優先で毎回変わる。XPは毎回たまるが、攻略の記録は1日1回まで（原則13） */}
+              {(stageCt?.battleTargetIds.length ?? 0) > 0 && (
+                <SubLink lang={lang}
+                  label={tx(lang, 'おかわりバトル（何度でも・XPがたまる）', '加练战斗（不限次数・攒XP）')}
+                  onClick={() => {
+                    const targets = stageCt?.battleTargetIds ?? [];
+                    setBattle({
+                      tier: 'normal',
+                      targetId: targets[0] ?? (stage?.stageId ?? 'stage'),
+                      targetLabel: tx(lang, 'おかわりバトル', '加练战斗'),
+                      targetIds: targets,
+                    });
+                    setView('battle');
+                  }} />
+              )}
               <SubLink lang={lang}
                 label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
                 onClick={() => setView('mock')} />

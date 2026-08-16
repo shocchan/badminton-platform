@@ -38,6 +38,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   lastQuest: null,
   todaySteps: null,
   questLog: [],
+  xp: 0,
   mockSession: null,
   mockLog: [],
   kana: null,
@@ -150,6 +151,7 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     questLog: Array.isArray(raw.questLog)
       ? (raw.questLog.filter((e) => isRecord(e) && typeof e.dateKey === 'string') as AdventureV2Profile['questLog'])
       : [],
+    xp: typeof raw.xp === 'number' && Number.isFinite(raw.xp) ? Math.max(0, Math.floor(raw.xp)) : 0,
     mockSession: restoreMockSessionState(raw.mockSession),
     mockLog: Array.isArray(raw.mockLog)
       ? (raw.mockLog.filter((e) =>

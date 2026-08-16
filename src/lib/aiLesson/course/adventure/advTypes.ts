@@ -271,6 +271,11 @@ export interface AdventureV2Profile {
   todaySteps: { dateKey: string; done: number[] } | null;
   /** クエスト完了の連続性（consistency能力の証拠） */
   questLog: { dateKey: string; completedSteps: number; totalSteps: number }[];
+  /**
+   * 経験値の累計（2026-08-16）。努力の通貨＝上限なし・やった分だけ増える。
+   * 攻略・mastery・準備度には一切影響しない（advXp.ts参照）
+   */
+  xp: number;
   /** 進行中のミニ模試（reload復帰用）。終了・破棄でnull */
   mockSession: AdvMockSessionState | null;
   /** 完了したミニ模試の履歴（§10の mock count >= 3 判定に使う） */
