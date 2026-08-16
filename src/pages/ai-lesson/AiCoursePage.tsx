@@ -818,9 +818,13 @@ export default function AiCoursePage() {
       : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
+    // V2（冒険）の生徒には「もう一度」「次の章へ」を出さない（2026-08-17 CEO指摘）。
+    // 旧コースの章を連打で先送りでき、①実費のAI会話が上限（1日10回）まで連続実行できる
+    // ②「今日はこの4つだけ」のペース設計と矛盾する。V2の会話は今日の冒険の1stepとして
+    // 完結し、続きは明日の冒険が用意する（canAgain/canNextの !advOn がその実装）
     return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
-      onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive}
-      onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive}
+      onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive && !advOn}
+      onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive && !advOn}
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
