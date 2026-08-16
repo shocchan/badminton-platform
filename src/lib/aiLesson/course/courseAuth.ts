@@ -95,9 +95,20 @@ export const STUDENT_ID_DOMAIN = 'id.badminton-platform.pages.dev';
 export const isValidStudentId = (id: string): boolean => /^[a-z][a-z0-9]{1,19}$/.test(id.trim().toLowerCase());
 export const studentIdToEmail = (id: string): string => `${id.trim().toLowerCase()}@${STUDENT_ID_DOMAIN}`;
 
+/**
+ * ID欄の入力を正規化する。フルの `kaiwa@id.badminton-platform.pages.dev` を
+ * 貼る人が実際にいる（2026-08-16 CEO報告）ため、自ドメイン部分は黙って剥がして受け入れる。
+ * 別ドメインのメールはIDではないのでそのまま返す（＝検証で弾かれる）
+ */
+export const normalizeStudentIdInput = (raw: string): string => {
+  const v = raw.trim().toLowerCase();
+  return v.endsWith(`@${STUDENT_ID_DOMAIN}`) ? v.slice(0, -(`@${STUDENT_ID_DOMAIN}`.length)) : v;
+};
+
 export const signInWithStudentId = async (id: string, password: string): Promise<{ ok: boolean }> => {
-  if (!isValidStudentId(id) || password.length === 0) return { ok: false };
-  const { error } = await supabase.auth.signInWithPassword({ email: studentIdToEmail(id), password });
+  const normalized = normalizeStudentIdInput(id);
+  if (!isValidStudentId(normalized) || password.length === 0) return { ok: false };
+  const { error } = await supabase.auth.signInWithPassword({ email: studentIdToEmail(normalized), password });
   return { ok: !error };
 };
 
