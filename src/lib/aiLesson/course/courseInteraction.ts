@@ -49,8 +49,10 @@ export const isMeaningfulUserTurn = (input: TurnJudgeInput): boolean => {
   if (VALID_SHORT_ANSWER.test(t)) return true;
   // 相づち・フィラー・雑音だけなら無効
   if (FILLER_OR_NOISE_ONLY.test(t)) return false;
-  // 日本語（かな/漢字）を含まない極短の断片（ラテン雑音等）は無効
-  if (!hasJapaneseWord(t) && t.length < 3) return false;
+  // 日本語（かな/漢字・中国語の漢字も同じ範囲）を一切含まない発話は無効（2026-08-16）。
+  // 文字起こしAIは雑音・エコーを外国語として幻聴する（実例:「Учительница」「Caitríona」）。
+  // 学習者が実際に話すのは日本語か中国語（漢字を含む）で、有効な英短答は上のVALID_SHORT_ANSWERが通す
+  if (!hasJapaneseWord(t)) return false;
   // 文字数が下限未満は無効
   if (t.length < MEANINGFUL_MIN_CHARS) return false;
   // 継続時間が分かる場合、極端に短い（＝咳・物音）ものは無効。

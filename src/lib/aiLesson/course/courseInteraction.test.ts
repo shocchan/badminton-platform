@@ -69,3 +69,17 @@ describe('開始案内（Feature 2）', () => {
     expect(shouldNudgeGreeting({ ...base, secondsSinceConnected: 3, alreadyNudged: false })).toBe(false);
   });
 });
+
+describe('外国語の幻聴文字起こしの除外（2026-08-16 サマーさん報告）', () => {
+  it('キリル文字・ラテン文字だけの「発話」は無効（エコー幻聴の実例）', () => {
+    for (const t of ['Учительница', 'Caitríona.', 'Ivar.', 'Uspêlo.', 'Hello there my friend']) {
+      expect(isMeaningfulUserTurn({ transcript: t, durationMs: 2000, shortAnswerExpected: false })).toBe(false);
+    }
+  });
+
+  it('日本語・中国語の発話と英語の有効短答は通る', () => {
+    expect(isMeaningfulUserTurn({ transcript: 'バドミントンを始めたばかりです', durationMs: 2000, shortAnswerExpected: false })).toBe(true);
+    expect(isMeaningfulUserTurn({ transcript: '这个用日语怎么说', durationMs: 2000, shortAnswerExpected: false })).toBe(true);
+    expect(isMeaningfulUserTurn({ transcript: 'OK', durationMs: 500, shortAnswerExpected: true })).toBe(true);
+  });
+});
