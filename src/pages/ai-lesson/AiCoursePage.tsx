@@ -800,8 +800,21 @@ export default function AiCoursePage() {
   };
 
   if (step === 'lesson' && plan) {
+    // 会話が始まる前のエラー（マイク拒否・接続失敗）から戻るときは、予約済みセッションを
+    // interruptedで閉じてから戻す。閉じないと以降の「声で会話を始める」が
+    // session_already_active で弾かれ続ける（2026-08-16 CEO報告「押しても無反応」の根本原因）
+    const abortExit = () => {
+      const sid = activeSessionId;
+      if (sid) {
+        void courseRepository.finalizeSession(sid, {
+          endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'error-exit-before-start',
+        }, [], learner.id);
+      }
+      setActiveSessionId(null);
+      setStep(plan ? 'conversationIntro' : 'home');
+    };
     return mode === 'voice'
-      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} />
+      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} onAbortExit={abortExit} />
       : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
   }
   if (step === 'report' && report) {
@@ -924,6 +937,10 @@ export default function AiCoursePage() {
           onStartVoice={() => { void startLesson('voice'); }}
           onStartText={() => { void startLesson('text'); }}
           onBack={() => setStep('home')}
+          startError={startError || undefined}
+          recovery={recovery ? { mode: recovery.mode } : null}
+          onDiscardActive={() => { void discardActiveAndStartNew(); }}
+          onCancelRecovery={() => setRecovery(null)}
         />
       </Shell>
     );

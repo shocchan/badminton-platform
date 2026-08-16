@@ -55,6 +55,10 @@ interface Props {
   onComplete: (r: VoiceLessonResult) => void;
   onSwitchToText: () => void;
   onExit: () => void;
+  /** 会話が始まる前のエラー（マイク拒否・接続失敗）から戻るとき。
+   * 親はここで予約済みセッションを解放する（解放しないと以降の開始が
+   * session_already_active で黙って弾かれ続ける・2026-08-16 CEO報告） */
+  onAbortExit?: () => void;
 }
 
 const prefersReducedMotion = () =>
@@ -66,7 +70,7 @@ const isWeChat = () => /MicroMessenger/i.test(navigator.userAgent);
 const hasZh = (s: string) => /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(s);
 const fmt = (sec: number) => `${Math.floor(Math.max(sec, 0) / 60)}:${String(Math.max(sec, 0) % 60).padStart(2, '0')}`;
 
-export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleLang, onComplete, onSwitchToText, onExit }: Props) => {
+export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleLang, onComplete, onSwitchToText, onExit, onAbortExit }: Props) => {
   const tv = t.voice, tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
@@ -351,6 +355,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         <p className="text-sm text-gray-700 leading-relaxed mb-5">{tv.micDenied}</p>
         {isWeChat() && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5 mb-4">{tv.wechatWarning}</p>}
         <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+        <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+          className="w-full min-h-10 mt-2 text-xs text-gray-500 underline">
+          {t.roadmap.back}
+        </button>
       </div>
     </div>
   );
@@ -368,6 +376,13 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
             {hasProgress && <button type="button" onClick={partialReport} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><FileText className="w-4 h-4" />{tv.viewPartialReport}</button>}
             {canRetry && <button type="button" onClick={doRetry} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><RefreshCw className="w-4 h-4" />{tv.retry}</button>}
             <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
+            {/* 進捗が無いエラーからの離脱は予約を解放して戻す（放置するとsession_already_activeが残る） */}
+            {!hasProgress && (
+              <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+                className="w-full min-h-10 text-xs text-gray-500 underline">
+                {t.roadmap.back}
+              </button>
+            )}
           </div>
         </div>
       </div>

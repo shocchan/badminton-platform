@@ -24,6 +24,9 @@ export interface AdvLearnerUsage {
   /** 相棒・目標（一覧の文脈用） */
   targetJlpt: string | null;
   goalType: string | null;
+  /** 診断で測った現在地の帯（n3_late等）。「N2目標なのになぜN3攻略？」に管理者が即答できる
+   * （2026-08-16 CEO要望「目的・レベルを管理者側で確認したい」） */
+  diagnosisBand: string | null;
 }
 
 const dayKeyOf = (iso: string): string => iso.slice(0, 10);
@@ -36,7 +39,7 @@ export const advLearnerUsageOf = (
     return {
       onboarded: false, totalStudyDays: 0, studyDays7: 0, studyDays30: 0,
       lastStudyDateKey: null, completedQuests: 0, battleAttempts: 0, mockCount: 0,
-      targetJlpt: null, goalType: null,
+      targetJlpt: null, goalType: null, diagnosisBand: null,
     };
   }
   const days = new Set<string>();
@@ -65,5 +68,6 @@ export const advLearnerUsageOf = (
     mockCount: prof.mockLog.length,
     targetJlpt: prof.targetJlpt,
     goalType: prof.goalType,
+    diagnosisBand: prof.diagnosis?.knowledgeBand ?? null,
   };
 };

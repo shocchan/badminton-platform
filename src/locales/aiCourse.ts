@@ -1485,6 +1485,11 @@ const ja = {
     startVoice: '声で会話を始める',
     startText: 'テキストで話す',
     fogClearedToday: 'カタリ港の霧が、今日のぶんだけ晴れました。',
+    // 進行中セッションの復旧（2026-08-16: ここに出さないと開始ボタンが「無反応」に見えていた）
+    recoveryTitle: '前回のレッスンが途中のままです',
+    recoveryBody: '前のレッスンを終了してから、この会話を始められます（記録は消えません）。',
+    recoveryDiscardStart: '前のレッスンを終了して、この会話を始める',
+    recoveryCancel: 'いまはやめておく',
   },
   // ── Chapter 1（learner向けUIのみ。devツール表示は対象外・日本語のまま） ──
   ch1: {
@@ -3020,6 +3025,10 @@ const zh: AiCourseDict = {
     startVoice: '开始语音会话',
     startText: '用文字对话',
     fogClearedToday: 'カタリ港（会话之港）的雾，散去了今天的一份。',
+    recoveryTitle: '上次的课程还没有结束',
+    recoveryBody: '结束上一次的课程后，就可以开始这次会话（记录不会丢失）。',
+    recoveryDiscardStart: '结束上次课程，开始这次会话',
+    recoveryCancel: '暂时不开始',
   },
   ch1: {
     mapAria: (ch: string, cur: string, next: string) => `「${ch}」的地图。当前位置是${cur}。${next ? `下一个目的地是${next}。` : ''}`,

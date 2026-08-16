@@ -1554,9 +1554,28 @@ export default function AdvShell(props: AdvShellProps) {
                 {tx(lang, '🎉 今日の冒険は完了！おつかれさま', '🎉 今天的冒险完成了！辛苦啦')}
               </p>
               <p className="mt-1 text-xs text-emerald-700">
-                {tx(lang, '明日、先生が続きを用意します。もっとやりたい日は下の「ほかの学習を見る」からどうぞ',
-                  '明天老师会准备好接下来的内容。想多学的话，请从下面的「查看其他学习内容」继续')}
+                {tx(lang, '明日、先生が続きを用意します。もっとやりたい日はこのまま続けられます',
+                  '明天老师会准备好接下来的内容。想多学的话，现在就可以继续')}
               </p>
+              {/* 「続けたいのに行き先がない」の解消（2026-08-16 サマーさん報告:
+                  完了後に何を押しても完了ページに戻るように感じていた）。
+                  おかわりバトルへの直行ボタンをここに置く（メニューを開かなくても続けられる） */}
+              {(stageCt?.battleTargetIds.length ?? 0) > 0 && (
+                <button type="button"
+                  className={`${pressFx} action-emerald mt-3 w-full min-h-[44px] rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white`}
+                  onClick={() => {
+                    const targets = stageCt?.battleTargetIds ?? [];
+                    setBattle({
+                      tier: 'normal',
+                      targetId: targets[0] ?? (stage?.stageId ?? 'stage'),
+                      targetLabel: tx(lang, 'おかわりバトル', '加练战斗'),
+                      targetIds: targets,
+                    });
+                    setView('battle');
+                  }}>
+                  {tx(lang, 'おかわりバトルで続ける（何度でも・XPがたまる）', '继续加练战斗（不限次数・攒XP）')}
+                </button>
+              )}
               <button type="button"
                 className={`${pressFx} mt-2 min-h-[40px] rounded-lg px-3 text-xs text-emerald-700 underline active:bg-emerald-100`}
                 onClick={() => setView('complete')}>

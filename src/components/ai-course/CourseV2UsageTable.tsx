@@ -9,6 +9,23 @@ type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
 /** 相対表示（今日/昨日/N日前）。読み手は毎朝見るCEOなので絶対日時より速く読める */
+/** 目的の表示名（goalType → 人が読める形） */
+const goalLabel = (lang: L, goal: string | null): string => {
+  if (goal === 'jlpt') return tx(lang, 'JLPT合格', 'JLPT合格');
+  if (goal === 'conversation') return tx(lang, '会話', '会话');
+  if (goal === 'hybrid') return tx(lang, 'JLPT＋会話', 'JLPT＋会话');
+  return '—';
+};
+
+/** 診断帯の表示名（現在地。「N2目標なのにN3攻略」の理由が一目で分かる） */
+const bandLabel = (band: string | null): string => {
+  const map: Record<string, string> = {
+    needs_assessment: '要確認', pre_n5: '入門前', n5: 'N5', n4: 'N4',
+    n3_early: 'N3前半', n3_late: 'N3後半', n2_ready: 'N2圏',
+  };
+  return band ? (map[band] ?? band) : '—';
+};
+
 const rel = (lang: L, iso: string | null): { text: string; stale: boolean } => {
   if (!iso) return { text: tx(lang, 'まだ', '还没有'), stale: true };
   const days = Math.floor((Date.now() - Date.parse(iso)) / (24 * 60 * 60 * 1000));
@@ -38,6 +55,9 @@ export function CourseV2UsageTable({ lang, learners, logins, usageMap, nowISO }:
           <thead>
             <tr className="border-b border-gray-200">
               <th className={th}>{tx(lang, '生徒', '学生')}</th>
+              <th className={th}>{tx(lang, '目的', '目标类型')}</th>
+              <th className={th}>{tx(lang, '目標', '目标')}</th>
+              <th className={th}>{tx(lang, '診断の現在地', '诊断位置')}</th>
               <th className={th}>{tx(lang, '最終ログイン', '最近登录')}</th>
               <th className={th}>{tx(lang, '最終学習', '最近学习')}</th>
               <th className={th}>{tx(lang, '学習日数(7日)', '学习天数(7天)')}</th>
@@ -66,8 +86,10 @@ export function CourseV2UsageTable({ lang, learners, logins, usageMap, nowISO }:
                         {tx(lang, '準備前', '未开始')}
                       </span>
                     )}
-                    {u.targetJlpt && <span className="ml-1 text-[11px] text-blue-700">{u.targetJlpt}</span>}
                   </td>
+                  <td className={td}>{goalLabel(lang, u.goalType)}</td>
+                  <td className={`${td} text-blue-700 font-semibold`}>{u.targetJlpt ?? '—'}</td>
+                  <td className={td}>{bandLabel(u.diagnosisBand)}</td>
                   <td className={`${td} ${signIn.stale ? 'font-semibold text-amber-700' : ''}`}>{signIn.text}</td>
                   <td className={`${td} ${study.stale ? 'font-semibold text-amber-700' : ''}`}>{study.text}</td>
                   <td className={td}>{u.studyDays7}</td>

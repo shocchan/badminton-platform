@@ -28,6 +28,24 @@ describe('KatariPortIntro（会話の港・会話前カード）', () => {
     expect(screen.getByText('5回')).toBeTruthy();
   });
 
+  it('**進行中セッションがあれば復旧選択肢を出す**（2026-08-16 CEO報告「押しても無反応」の解消）', () => {
+    const onDiscard = vi.fn(); const onCancel = vi.fn();
+    render(<KatariPortIntro t={aiCourseI18n.ja} {...baseProps}
+      recovery={{ mode: 'voice' }} onDiscardActive={onDiscard} onCancelRecovery={onCancel} />);
+    // 開始ボタンの代わりに復旧パネルが出る（押せないボタンを残さない）
+    expect(screen.queryByText('声で会話を始める')).toBeNull();
+    expect(screen.getByText('前回のレッスンが途中のままです')).toBeTruthy();
+    fireEvent.click(screen.getByText('前のレッスンを終了して、この会話を始める'));
+    expect(onDiscard).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByText('いまはやめておく'));
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('**開始できなかった理由を画面に出す**（黙って無反応にしない・原則15）', () => {
+    render(<KatariPortIntro t={aiCourseI18n.ja} {...baseProps} startError="今日の回数を使い切りました" />);
+    expect(screen.getByRole('alert').textContent).toContain('今日の回数を使い切りました');
+  });
+
   it('声・テキスト・もどるの3導線が動く（会話エンジンには触れない）', () => {
     const onVoice = vi.fn(); const onText = vi.fn(); const onBack = vi.fn();
     render(<KatariPortIntro t={aiCourseI18n.ja} {...baseProps} onStartVoice={onVoice} onStartText={onText} onBack={onBack} />);

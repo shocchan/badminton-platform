@@ -18,11 +18,18 @@ export interface KatariPortIntroProps {
   onStartVoice: () => void;
   onStartText: () => void;
   onBack: () => void;
+  /** 開始できなかった理由（上限など）。この画面で必ず見せる（黙って無反応にしない・原則15） */
+  startError?: string;
+  /** 進行中セッションが残っている（別端末 or 前回の中断）。この画面で復旧選択肢を出す。
+   * 2026-08-16 CEO報告: ここに出さないと「押しても無反応」になっていた */
+  recovery?: { mode: 'voice' | 'text' } | null;
+  onDiscardActive?: () => void;
+  onCancelRecovery?: () => void;
 }
 
 export const KatariPortIntro = ({
   t, purposeJa, targetExpression, estimatedMinutes, remainingToday, starting,
-  onStartVoice, onStartText, onBack,
+  onStartVoice, onStartText, onBack, startError, recovery, onDiscardActive, onCancelRecovery,
 }: KatariPortIntroProps) => (
   <div className="max-w-md mx-auto px-4 py-4">
     <button type="button" onClick={onBack}
@@ -59,14 +66,35 @@ export const KatariPortIntro = ({
         </div>
       </dl>
 
-      <button type="button" onClick={onStartVoice} disabled={starting}
-        className="action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 mt-4 bg-teal-600 text-white rounded-2xl font-bold text-sm disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
-        <Mic className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden />{t.katari.startVoice}
-      </button>
-      <button type="button" onClick={onStartText} disabled={starting}
-        className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-2 text-sm text-gray-600 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-        <PenLine className="inline w-3.5 h-3.5 -mt-0.5 mr-1" aria-hidden />{t.katari.startText}
-      </button>
+      {recovery ? (
+        <div role="alertdialog" aria-label={t.katari.recoveryTitle}
+          className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-3">
+          <p className="text-sm font-bold text-amber-900">{t.katari.recoveryTitle}</p>
+          <p className="mt-1 text-xs text-amber-800">{t.katari.recoveryBody}</p>
+          <button type="button" onClick={onDiscardActive}
+            className="action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-11 mt-2 bg-teal-600 text-white rounded-xl font-bold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
+            {t.katari.recoveryDiscardStart}
+          </button>
+          <button type="button" onClick={onCancelRecovery}
+            className="transition-colors active:bg-amber-100 rounded w-full min-h-10 mt-1 text-xs text-amber-800 underline">
+            {t.katari.recoveryCancel}
+          </button>
+        </div>
+      ) : (
+        <>
+          <button type="button" onClick={onStartVoice} disabled={starting}
+            className="action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] w-full min-h-12 mt-4 bg-teal-600 text-white rounded-2xl font-bold text-sm disabled:opacity-50 disabled:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">
+            <Mic className="inline w-4 h-4 -mt-0.5 mr-1" aria-hidden />{t.katari.startVoice}
+          </button>
+          <button type="button" onClick={onStartText} disabled={starting}
+            className="transition-colors active:bg-gray-100 rounded w-full min-h-11 mt-2 text-sm text-gray-600 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            <PenLine className="inline w-3.5 h-3.5 -mt-0.5 mr-1" aria-hidden />{t.katari.startText}
+          </button>
+        </>
+      )}
+      {startError && !recovery && (
+        <p role="alert" className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{startError}</p>
+      )}
     </div>
   </div>
 );
