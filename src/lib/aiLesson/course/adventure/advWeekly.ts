@@ -32,8 +32,13 @@ export interface WeeklySummary {
   studyDays: number;
   /** 完了した冒険（全step完了の日数） */
   completedQuests: number;
-  /** おおよその学習時間（分）。questLogのstep数×既定時間ではなく実測が無いため出さない場合は null */
-  estimatedMinutes: number | null;
+  /**
+   * 今週解いた問題数（実測）。mastery台帳の bySkill の合計。
+   * 以前ここには「学習時間（分）」があったが、中身は `設定した1日の分数 × 学習日数` で
+   * 行動と無関係な数字だった（1step押しただけの日も満額）。時間は計測していないので出さない
+   * （2026-08-18 監査P2）。代わりに実際に測っている「解いた問題数」を出す
+   */
+  solvedQuestions: number;
   /** 今週あらたに「別日3回＋遅延確認」を満たした対象 */
   newlyMastered: string[];
   /** 技能別の変化。測れていないものは deltaPct=null で残す（隠さない・0にしない） */
@@ -117,10 +122,6 @@ export const buildWeeklySummary = (
   const studyDays = studyDayKeys.size;
   const completedQuests = questThisWeek.filter((q) => q.totalSteps > 0 && q.completedSteps >= q.totalSteps).length;
 
-  // 学習時間は実測していない。1日の設定時間 × 学習日数は「推定」なので、その旨が分かる形でのみ出す
-  const estimatedMinutes = prof.dailyMinutes !== null && studyDays > 0
-    ? prof.dailyMinutes * studyDays : null;
-
   const masteredNow = masteredTargetIds(prof.mastery, nowISO);
   // 週初め時点の集合は**時点評価**で出す。masteredTargetIds は全attemptを見るため、
   // 遅延確認が今週だった項目も「先週から定着済み」に見えてしまい、newlyMastered が常に空になる
@@ -149,6 +150,9 @@ export const buildWeeklySummary = (
       thisWeekQuestions: c?.total ?? 0,
     };
   });
+
+  // 今週解いた問題数（実測）。skillChanges の母数の合計＝台帳の bySkill 実測値
+  const solvedQuestions = skillChanges.reduce((n, s) => n + s.thisWeekQuestions, 0);
 
   // 来週の重点＝今週いちばん正答率が低い技能（十分に解いたものの中から）
   const candidates = skillChanges.filter((s) => s.thisWeekPct !== null && s.thisWeekQuestions >= MIN_QUESTIONS_FOR_CHANGE);
@@ -203,7 +207,7 @@ export const buildWeeklySummary = (
     weekStartKey: thisWeekStart,
     studyDays,
     completedQuests,
-    estimatedMinutes,
+    solvedQuestions,
     newlyMastered,
     skillChanges,
     focusSkillNextWeek: focus?.skill ?? null,

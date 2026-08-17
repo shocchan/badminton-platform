@@ -175,6 +175,36 @@ describe('§9 ミニ模試 runtime', () => {
     expect(log.totalQuestions).toBe(res.totalQuestions);
   });
 
+  // 2026-08-18 監査P1: 模試attemptに wrongKeys が無かったため、模試を1回受けるだけで
+  // 错题本が「正誤を記録していない試行で出題された」と判断し、未克服の誤答が全部「未確認」へ落ちていた。
+  describe('模試の正誤は台帳へ残る（错题本が後退しない）', () => {
+    it('誤答・未回答のキーが wrongKeys に入り、attemptへそのまま渡る', () => {
+      const spec = fullSpec();
+      const rt = startMockSession(spec, buildPools(), 'short', 3, '2026-08-01T00:00:00.000Z')!;
+      // 1問だけ正解、残りは未回答（=誤答扱い）
+      const first = rt.sections[0].presented[0];
+      const answered = { ...rt, state: { ...rt.state, answers: { [first.key]: first.correctChoiceId } } };
+      const res = gradeMock(answered, new Set());
+      expect(res.wrongKeys).not.toContain(first.key);
+      expect(res.wrongKeys.length).toBe(res.totalQuestions - 1);
+      // section単位でも同じ集合（表示と台帳の出所を1つにする）
+      expect(res.sections.flatMap((s) => s.wrongKeys)).toEqual(res.wrongKeys);
+      const at = toMockAttempt(res, '2026-08-01', new Set(), '2026-08-01T01:00:00.000Z');
+      expect(at.wrongKeys).toEqual(res.wrongKeys);
+    });
+
+    it('**全問正解でも空配列を入れる**（省略すると旧データと区別できず「未確認」になる）', () => {
+      const spec = fullSpec();
+      const rt = startMockSession(spec, buildPools(), 'short', 42, '2026-08-01T00:00:00.000Z')!;
+      const answers: Record<string, string> = {};
+      for (const sec of rt.sections) for (const p of sec.presented) answers[p.key] = p.correctChoiceId;
+      const res = gradeMock({ ...rt, state: { ...rt.state, answers } }, new Set());
+      const at = toMockAttempt(res, '2026-08-01', new Set(), '2026-08-01T01:00:00.000Z');
+      expect(Array.isArray(at.wrongKeys)).toBe(true);
+      expect(at.wrongKeys).toEqual([]);
+    });
+  });
+
   it('技能が不足すれば「総合」と名乗らず、不足理由を返す', () => {
     const spec = buildMockSpec('N3', { vocabCount: 10, grammarCount: 10, readingCount: 0, listeningCount: 0 });
     expect(spec.ready).toBe(false);

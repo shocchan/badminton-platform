@@ -63,3 +63,22 @@ describe('上限を超えても攻略の証拠は残る', () => {
     expect(ledger.t1.length).toBe(5);
   });
 });
+
+describe('中断した回は「証拠」として守らない', () => {
+  it('partial の回が本物の合格記録を押し出さない', () => {
+    let ledger: AdvMasteryLedger = {};
+    // 1問だけ正解して抜けた回（scorePct=100 だが partial）
+    ledger = recordAttempt(ledger, 't1', { ...at('2026-01-01', 100), partial: true });
+    // 本物の合格が3日ぶん
+    for (const d of ['2026-01-02', '2026-01-03', '2026-01-04']) {
+      ledger = recordAttempt(ledger, 't1', at(d, 90));
+    }
+    // 上限を超えるまで練習
+    for (let i = 0; i < 40; i += 1) {
+      ledger = recordAttempt(ledger, 't1', at(`2026-02-${String((i % 27) + 1).padStart(2, '0')}`, 60, 0));
+    }
+    const st = computeMastery(ledger.t1, '2026-03-01T09:00:00.000Z');
+    expect(st.qualifyingDays.length, '本物の合格日が押し出されている').toBe(MASTERY_RULES.requiredDays);
+    expect(st.qualifyingDays).toEqual(['2026-01-02', '2026-01-03', '2026-01-04']);
+  });
+});

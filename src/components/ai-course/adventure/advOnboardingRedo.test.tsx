@@ -37,10 +37,12 @@ describe('冒険の準備のやり直し（redo）', () => {
     expect(screen.queryByText(/従来ホームへ/)).toBeNull();
   });
 
-  it('初回（redoでない）は従来の文言のまま', () => {
+  it('初回（redoでない）は説明文が「あとで変えられます」で、キャンセル導線を出さない', () => {
+    // 「いまはやめておく（従来ホームへ）」は撤去（2026-08-18 監査P1）。
+    // 押すと旧コースのホームへ落ちるが、出す条件（progress.length>0）は旧コース歴を表さなかった
     renderOnboarding(false);
     expect(screen.getByText(/あとで変えられます/)).toBeTruthy();
-    expect(screen.getByRole('button', { name: /いまはやめておく/ })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /いまはやめておく/ })).toBeNull();
   });
 
   it('redoでも目的の選択肢は3つとも出る（初回と同じ選択の自由）', () => {
@@ -116,19 +118,22 @@ describe('診断完了時点の確定保存（onOutcomeReady・2026-08-15）', (
   });
 });
 
-describe('V2専用の生徒に旧ホームの逃げ道を出さない（2026-08-16）', () => {
-  it('canCancelToLegacy=false なら「いまはやめておく（従来ホームへ）」が出ない', () => {
+describe('V2の生徒に旧コースのホームへ出ていく口を出さない（2026-08-18 監査P1）', () => {
+  it('初回のオンボーディングに「いまはやめておく（従来ホームへ）」を出さない', () => {
+    // 出す条件だった progress.length>0 は「旧コース歴」を表さない（V2のAI会話1回で立つ）。
+    // 押すと ?legacy が付いて旧コースのホーム（ミナモ列島）へ落ちるので、条件ごと撤去した
     render(
       <AdvOnboarding lang="ja" pools={pools} nowISO={NOW}
-        onComplete={vi.fn()} onCancel={vi.fn()} canCancelToLegacy={false} />,
+        onComplete={vi.fn()} onCancel={vi.fn()} />,
     );
     expect(screen.queryByRole('button', { name: /従来ホームへ/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /いまはやめておく/ })).toBeNull();
   });
 
-  it('redoのキャンセル（元の設定のまま戻る）は canCancelToLegacy=false でも出る', () => {
+  it('やり直し（redo）のキャンセルは残る（行き先は元の設定に戻すだけ）', () => {
     render(
       <AdvOnboarding lang="ja" pools={pools} nowISO={NOW} redo
-        onComplete={vi.fn()} onCancel={vi.fn()} canCancelToLegacy={false} />,
+        onComplete={vi.fn()} onCancel={vi.fn()} />,
     );
     expect(screen.getByRole('button', { name: /やめて元の設定のまま戻る/ })).toBeTruthy();
   });

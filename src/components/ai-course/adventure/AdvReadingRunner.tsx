@@ -16,8 +16,17 @@ const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 export interface AdvReadingRunnerProps {
   lang: L;
   sets: ReadingSet[];
-  onFinish: (result: { correct: number; total: number; keys: string[]; wrongKeys: string[]; elapsedSec: number }) => void;
-  onClose: () => void;
+  /**
+   * 記録だけを行う（画面は閉じない）。結果画面はこのrunnerが出し、
+   * 画面を閉じるのは onClose（2026-08-18 監査P1: 「結果を見る」を押すと
+   * 結果を見せずにホームへ飛ばされていた）。
+   * partial=true は途中でやめた回＝**解いたぶんだけ**の記録。
+   */
+  onFinish: (result: {
+    correct: number; total: number; keys: string[]; wrongKeys: string[]; elapsedSec: number; partial: boolean;
+  }) => void;
+  /** reason='no-questions' は「出題できる問題が1問も無かった」合図 */
+  onClose: (reason?: 'no-questions') => void;
 }
 
 export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRunnerProps) {
@@ -26,6 +35,9 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
   const [answered, setAnswered] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [wrongKeys, setWrongKeys] = useState<string[]>([]);
+  /** 実際に解き終えた問題のキー（途中でやめたときは、ここまでのぶんだけを記録する） */
+  const [doneKeys, setDoneKeys] = useState<string[]>([]);
+  const [result, setResult] = useState<{ correct: number; total: number; partial: boolean } | null>(null);
   const [startedAt] = useState(() => Date.now());
   const [attemptSeed] = useState(() => Date.now());
 
@@ -35,37 +47,88 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
     [set, attemptSeed],
   );
 
+  // 結果画面はセットの中身に依存しない（記録後に親が sets を組み直しても消えない）
+  if (result) {
+    const pct = result.total === 0 ? 0 : Math.round((result.correct / result.total) * 100);
+    return (
+      <div className={`mx-auto w-full max-w-xl px-4 py-8 text-center ${riseIn}`} aria-label={tx(lang, '読解の結果', '阅读结果')}>
+        <p className="text-4xl" aria-hidden>{pct >= 80 ? '🎉' : '📖'}</p>
+        <h2 className="mt-2 text-xl font-bold text-gray-900">{tx(lang, '読解の結果', '阅读结果')}</h2>
+        <p className={`mt-1 text-3xl font-bold ${pct >= 80 ? 'text-emerald-600' : 'text-blue-700'}`}>{pct}%</p>
+        <p className="mt-1 text-sm text-gray-700">
+          {tx(lang, `正解 ${result.correct}/${result.total}問`, `答对 ${result.correct}/${result.total} 题`)}
+        </p>
+        <p className="mt-3 text-xs leading-relaxed text-gray-500">
+          {result.partial
+            ? tx(lang, `途中でやめたので、解いた${result.total}問だけを記録しました。続きはいつでもできます。`,
+              `因为中途结束了，只记录了已做的${result.total}题。剩下的随时可以继续。`)
+            : tx(lang, 'この結果は学習の記録に残ります。', '这次结果会留在学习记录里。')}
+        </p>
+        <button type="button"
+          className={`${pressFx} action-primary-blue mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white`}
+          onClick={() => onClose()}>
+          {tx(lang, '冒険にもどる', '回到冒险')}
+        </button>
+      </div>
+    );
+  }
+
   if (!set || !presented) {
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-8 text-center">
         <p className="mb-4 text-sm text-gray-700">
           {tx(lang, '出題できる読解問題がありません。', '暂时没有可出的阅读题。')}
         </p>
-        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={onClose}>
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={() => onClose('no-questions')}>
           {tx(lang, 'もどる', '返回')}
         </button>
       </div>
     );
   }
 
-  const advance = () => {
+  const finish = (correct: number, keys: string[], wrongs: string[], partial: boolean) => {
+    setResult({ correct, total: keys.length, partial });
+    // 中断した回を「読解を終えた」として計上しない（指標を実態より良く見せない）
+    if (!partial) trackAdv('reading_completed', { locale: lang, skillType: 'reading' });
+    onFinish({
+      correct, total: keys.length, keys, wrongKeys: wrongs,
+      elapsedSec: Math.round((Date.now() - startedAt) / 1000), partial,
+    });
+  };
+
+  /** いま表示中の1問を締めた状態（正解数・解いたキー・誤答キー） */
+  const commitCurrent = () => {
     const ok = picked === presented.correctChoiceId;
-    const nextCorrect = correctCount + (ok ? 1 : 0);
-    const nextWrong = ok ? wrongKeys : [...wrongKeys, `read:${set.setId}`];
+    return {
+      correct: correctCount + (ok ? 1 : 0),
+      keys: [...doneKeys, `read:${set.setId}`],
+      wrongs: ok ? wrongKeys : [...wrongKeys, `read:${set.setId}`],
+    };
+  };
+
+  const advance = () => {
+    const c = commitCurrent();
     if (idx + 1 < sets.length) {
-      setCorrectCount(nextCorrect);
-      setWrongKeys(nextWrong);
+      setCorrectCount(c.correct);
+      setWrongKeys(c.wrongs);
+      setDoneKeys(c.keys);
       setIdx(idx + 1);
       setPicked(null);
       setAnswered(false);
       return;
     }
-    trackAdv('reading_completed', { locale: lang, skillType: 'reading' });
-    onFinish({
-      correct: nextCorrect, total: sets.length,
-      keys: sets.map((s) => `read:${s.setId}`), wrongKeys: nextWrong,
-      elapsedSec: Math.round((Date.now() - startedAt) / 1000),
-    });
+    finish(c.correct, c.keys, c.wrongs, false);
+  };
+
+  /**
+   * 実行中の離脱口（2026-08-18 監査P1）。
+   * 無いと、上部ナビで抜けた生徒の「3問中2問解いた」が1問も残らなかった。
+   * 解き終えた問題が1問も無ければ記録するものが無いので、そのまま閉じる。
+   */
+  const quitNow = () => {
+    const c = answered ? commitCurrent() : { correct: correctCount, keys: doneKeys, wrongs: wrongKeys };
+    if (c.keys.length === 0) { onClose(); return; }
+    finish(c.correct, c.keys, c.wrongs, true);
   };
 
   return (
@@ -145,6 +208,13 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
           {tx(lang, 'わからない（スキップ＝誤答扱い）', '不知道（跳过＝按答错计）')}
         </button>
       )}
+      {/* 途中でやめる口（原則15）。文言は実際に起きることだけを言う */}
+      <button type="button" className={`${pressFx} mt-2 w-full min-h-[40px] rounded-xl text-xs text-gray-500 underline active:bg-gray-100`}
+        onClick={quitNow}>
+        {doneKeys.length === 0 && !answered
+          ? tx(lang, 'やめて冒険にもどる', '退出，回到冒险')
+          : tx(lang, 'ここでやめる（解いたぶんは記録されます）', '先做到这里（已做的部分会记录下来）')}
+      </button>
     </div>
   );
 }

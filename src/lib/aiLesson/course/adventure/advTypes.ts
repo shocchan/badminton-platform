@@ -139,6 +139,13 @@ export interface AdvMasteryAttempt {
    * undefined は旧データ＝正誤不明で、错题本は「未確認」として扱う（正解したと推定しない）
    */
   wrongKeys?: string[];
+  /**
+   * 途中でやめた試行（2026-08-18 監査P1「実行中の離脱口が無い」の対応で追加）。
+   * 解いたぶんだけを記録するので、錯題本の材料としては通常どおり使うが、
+   * **攻略の証拠には数えない**（isQualifyingAttempt が false を返す）。
+   * 2問だけ正解して抜ければ80%達成、という抜け道を作らないため。
+   */
+  partial?: boolean;
 }
 
 /** targetId（unitId / grammarId / stage束ID）→ 試行履歴 */

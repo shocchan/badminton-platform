@@ -25,24 +25,32 @@ export interface KatariPortIntroProps {
   recovery?: { mode: 'voice' | 'text' } | null;
   onDiscardActive?: () => void;
   onCancelRecovery?: () => void;
+  /**
+   * 今日の冒険（V2）のAI会話stepから開いたときのモード（2026-08-18 監査P1）。
+   * V2の生徒は「ミナモ列島」「カタリ港」を一度も見ていないのに、この画面だけ
+   * 旧世界の地名バッジが出て、戻るボタンも「ミナモ列島の地図へ」だった
+   * （実際の戻り先は今日の冒険＝名前が嘘）。questModeでは行き先と場所名を実際に合わせる。
+   */
+  questMode?: boolean;
 }
 
 export const KatariPortIntro = ({
   t, purposeJa, targetExpression, estimatedMinutes, remainingToday, starting,
   onStartVoice, onStartText, onBack, startError, recovery, onDiscardActive, onCancelRecovery,
+  questMode = false,
 }: KatariPortIntroProps) => (
   <div className="max-w-md mx-auto px-4 py-4">
     <button type="button" onClick={onBack}
       className="transition-colors active:bg-gray-100 min-h-11 flex items-center gap-1.5 text-sm text-gray-500 mb-2 rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400">
-      <ArrowLeft className="w-4 h-4" aria-hidden />{t.katari.backToMap}
+      <ArrowLeft className="w-4 h-4" aria-hidden />{questMode ? t.katari.backToQuest : t.katari.backToMap}
     </button>
 
     <div className="rounded-2xl border border-teal-200 bg-gradient-to-b from-teal-50 to-white p-4">
       <div className="flex items-start gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold text-teal-600">{t.katari.areaBadge}</p>
-          <h2 className="text-lg font-bold text-gray-900">{t.katari.title}</h2>
-          <p className="text-xs text-gray-600 mt-1">{t.katari.body}</p>
+          {!questMode && <p className="text-[11px] font-bold text-teal-600">{t.katari.areaBadge}</p>}
+          <h2 className="text-lg font-bold text-gray-900">{questMode ? t.katari.questTitle : t.katari.title}</h2>
+          <p className="text-xs text-gray-600 mt-1">{questMode ? t.katari.questBody : t.katari.body}</p>
         </div>
         {/* 選択中の先生を出す（翔子固定スプライトだと悠斗先生を選んだ人に女性が出る・2026-08-17） */}
         <div className="w-10 shrink-0"><TeacherAvatar size={40} expression="smile" labeled={false} /></div>

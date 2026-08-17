@@ -1384,6 +1384,12 @@ const ja = {
     resultReviewNote: (n: number) => `まちがえた${n}語は、日をおいて「オモイデ庭園」で再会します。`,
     resultRetryNote: 'もう一度この単元に取り組むと、まだ不安な語だけを確かめられます。',
     nextUnit: (title: string) => `次へ：${title}`,
+    // ── 今日の冒険（V2）から単独で開いたときの文言（2026-08-18 監査P1）。
+    //    V2の生徒は「ミナモ列島」「オモイデ庭園」を一度も見ていない。行き先は今日の冒険だけ ──
+    backToQuest: '今日の冒険へもどる',
+    pauseSaveQuest: '中断して今日の冒険へもどる（ここまでは保存されます）',
+    unlockQuest: (goal: string) => `「${goal}」ができるようになります`,
+    questFrameName: '今日の冒険',
   },
   // ── ソラノ塔（N2クエスト） ──
   n2q: {
@@ -1492,6 +1498,11 @@ const ja = {
     recoveryBody: '前のレッスンを終了してから、この会話を始められます（記録は消えません）。',
     recoveryDiscardStart: '前のレッスンを終了して、この会話を始める',
     recoveryCancel: 'いまはやめておく',
+    // ── 今日の冒険（V2）から開いたときの文言（2026-08-18 監査P1）。
+    //    V2の生徒に「ミナモ列島」「カタリ港」は一度も出てこない。戻り先も今日の冒険 ──
+    backToQuest: '今日の冒険へもどる',
+    questTitle: 'AI会話',
+    questBody: '声に出して確かめる時間です。話した内容はあとでレポートになります。',
   },
   // ── Chapter 1（learner向けUIのみ。devツール表示は対象外・日本語のまま） ──
   ch1: {
@@ -2930,6 +2941,10 @@ const zh: AiCourseDict = {
     resultReviewNote: (n: number) => `答错的${n}个词，隔几天后会在「オモイデ庭園」与你再会。`,
     resultRetryNote: '再次练习本单元时，只需确认还不熟练的词。',
     nextUnit: (title: string) => `下一个：${title}`,
+    backToQuest: '回到今天的冒险',
+    pauseSaveQuest: '中断并回到今天的冒险（进度已保存到这里）',
+    unlockQuest: (goal: string) => `你将学会「${goal}」`,
+    questFrameName: '今天的冒险',
   },
   n2q: {
     areaBadge: 'ミナモ列島・第8区域',
@@ -3033,6 +3048,9 @@ const zh: AiCourseDict = {
     recoveryBody: '结束上一次的课程后，就可以开始这次会话（记录不会丢失）。',
     recoveryDiscardStart: '结束上次课程，开始这次会话',
     recoveryCancel: '暂时不开始',
+    backToQuest: '回到今天的冒险',
+    questTitle: 'AI会话',
+    questBody: '开口练习的时间。说过的内容之后会整理成报告。',
   },
   ch1: {
     mapAria: (ch: string, cur: string, next: string) => `「${ch}」的地图。当前位置是${cur}。${next ? `下一个目的地是${next}。` : ''}`,

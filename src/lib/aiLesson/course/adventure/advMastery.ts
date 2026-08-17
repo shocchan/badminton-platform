@@ -22,6 +22,9 @@ export const questionTypeOf = (key: string): string => key.split(':')[0] ?? 'unk
 
 /** 試行がqualifying（攻略にカウントできる）か */
 export const isQualifyingAttempt = (a: AdvMasteryAttempt, poolHasMultipleTypes: boolean): boolean => {
+  // 途中でやめた回は「解いたぶんだけ」の記録なので攻略には数えない（2026-08-18）。
+  // 数えると「解けそうな2問だけ答えて抜ける」で80%達成日が積める抜け道になる
+  if (a.partial) return false;
   if (a.scorePct < MASTERY_RULES.passPct) return false;
   if (a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
   if (poolHasMultipleTypes && a.questionKeys.length >= 5) {
@@ -54,7 +57,9 @@ export const recordAttempt = (
   const seenDays = new Set<string>();
   for (const a of next) {
     if (seenDays.size >= MASTERY_RULES.requiredDays) break;
-    if (a.scorePct < MASTERY_RULES.passPct || seenDays.has(a.dateKey)) continue;
+    // 途中でやめた回は攻略に数えない（isQualifyingAttempt）ので、証拠として守らない。
+    // 守ってしまうと、本物の合格記録が押し出されて攻略が確定しなくなる（2026-08-18 検証で発覚）
+    if (a.partial || a.scorePct < MASTERY_RULES.passPct || seenDays.has(a.dateKey)) continue;
     seenDays.add(a.dateKey);
     protectedAttempts.push(a);
   }

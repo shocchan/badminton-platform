@@ -115,18 +115,20 @@ describe('成長マップ — 行き止まりが無い（原則15）', () => {
         const name = btn.getAttribute('aria-label') ?? '';
         fireEvent.click(btn);
         const ctas = screen.getAllByRole('button')
-          .filter((b) => /始める|受ける|維持する|進める/.test(b.textContent ?? ''));
+          .filter((b) => /始める|受ける|解き直す|進める/.test(b.textContent ?? ''));
         expect(ctas.length, `${name} にCTAが無い`).toBeGreaterThan(0);
       }
     });
   }
 
-  it('攻略済みの地域からは復習へ行ける', () => {
+  it('攻略済みの地域からは復習（間違えた問題の解き直し）へ行ける', () => {
+    // 文言は「復習で維持する」から変更（2026-08-18 監査P1）。行き先は地域別の復習ではなく
+    // 間違えた問題ノートの解き直しなので、その地域の内容を維持できるとは書かない
     const h = setup({ goal: 'jlpt', mastered: new Set(['stg-foundation']) });
     const done = regionButtons().find((b) => (b.getAttribute('aria-label') ?? '').includes('攻略済み'));
     expect(done).toBeTruthy();
     fireEvent.click(done!);
-    fireEvent.click(screen.getByRole('button', { name: /復習で維持する/ }));
+    fireEvent.click(screen.getByRole('button', { name: /間違えた問題を解き直す/ }));
     expect(h.onOpenReview).toHaveBeenCalledTimes(1);
   });
 

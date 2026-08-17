@@ -29,6 +29,15 @@ export interface N3UnitPanelProps {
   reducedMotion?: boolean;
   nowMs?: number;
   /**
+   * 今日の冒険（V2）から単独で開いたときのモード（2026-08-18 監査P1）。
+   * V2の生徒は「ミナモ列島」「オモイデ庭園」を一度も見ていないので、
+   * 戻り先も完了後の約束も**この画面で実際に起きること**だけを書く:
+   * - 出口は「今日の冒険へもどる」（実際の戻り先）
+   * - 「まちがえた語はオモイデ庭園で再会します」は出さない（V2に庭園は無い＝実装していない約束）
+   * - 完了後の効果は「次の場所へ進めます」ではなく場面ミッションの達成だけを言う
+   */
+  questMode?: boolean;
+  /**
    * 初期状態を直接渡す（SSR証拠harness・テスト用）。
    * 指定するとstorage.loadの待ち状態を挟まずに描画する。
    */
@@ -43,9 +52,9 @@ const phaseLabelOf = (t: AiCourseDict): Record<string, string> => ({
 const STAGE_STEPS = ['diagnostic', 'stage1', 'stage2', 'stage3', 'mission'] as const;
 
 /** 学習中も消えないRPGフレーム（世界の文脈＋学習情報を両方出す） */
-const WorldFrame = ({ t, areaName, spec, state, progress, children }: {
+const WorldFrame = ({ t, areaName, spec, state, progress, unlockText, children }: {
   t: AiCourseDict; areaName: string; spec: UnitCoverageSpec; state: UnitRunState;
-  progress: { done: number; total: number }; children: React.ReactNode;
+  progress: { done: number; total: number }; unlockText: string; children: React.ReactNode;
 }) => {
   const stepIndex = STAGE_STEPS.indexOf(state.phase as typeof STAGE_STEPS[number]);
   const PHASE_LABEL = phaseLabelOf(t);
@@ -71,7 +80,7 @@ const WorldFrame = ({ t, areaName, spec, state, progress, children }: {
         <p className="text-[11px] text-gray-500 mt-1">
           {PHASE_LABEL[state.phase]}
           {progress.total > 0 && <>{t.n3u.remaining(progress.total - progress.done, progress.total)}</>}
-          {t.n3u.completesTo(zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa)}
+          {t.n3u.completesTo(unlockText)}
         </p>
       </div>
       {children}
@@ -84,9 +93,17 @@ const systemNow = () => Date.now();
 
 export const N3UnitPanel = ({
   t, spec, pool, storage, areaName, nextUnitTitleJa, onExit, onOpenNextUnit, nowMs, initialRunState,
+  questMode = false,
 }: N3UnitPanelProps) => {
   const PHASE_LABEL = phaseLabelOf(t);
   const zh = t.locale === 'zh';
+  // V2（今日の冒険）から開いたときは、旧世界（ミナモ列島・オモイデ庭園）の名前と
+  // 「次の場所へ進めます」という連鎖の約束を出さない（2026-08-18 監査P1）
+  const exitLabel = questMode ? t.n3u.backToQuest : t.n3u.backToWorld;
+  const pauseLabel = questMode ? t.n3u.pauseSaveQuest : t.n3u.pauseSave;
+  const unlockText = questMode
+    ? t.n3u.unlockQuest(zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa)
+    : (zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa);
   // renderからは時計を呼ばない。初期値はmodule読み込み時刻、以後はhandler/effect内で取得する
   const clock = () => nowMs ?? systemNow();
   const set = useMemo(() => buildUnitQuestions(spec, pool), [spec, pool]);
@@ -167,7 +184,7 @@ export const N3UnitPanel = ({
   }
 
   return (
-    <WorldFrame t={t} areaName={areaName} spec={spec} state={state}
+    <WorldFrame t={t} areaName={areaName} spec={spec} state={state} unlockText={unlockText}
       progress={{ done: Math.max(0, phaseTotal - queue.length), total: phaseTotal }}>
       <p aria-live="polite" className="sr-only">{announcement}</p>
 
@@ -212,13 +229,13 @@ export const N3UnitPanel = ({
               <dd className="inline">{set.diagnostic.length + set.byStage.understand.length + set.byStage.distinguish.length + set.byStage.apply.length}{t.n3u.questionsUnit}</dd></div>
             <div><dt className="inline font-bold">{t.n3u.introCondition} </dt>
               <dd className="inline">{t.n3u.conditionText(zh ? spec.practicalMission.titleZh : spec.practicalMission.titleJa)}</dd></div>
-            <div><dt className="inline font-bold">{t.n3u.introUnlock} </dt><dd className="inline">{zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa}</dd></div>
+            <div><dt className="inline font-bold">{t.n3u.introUnlock} </dt><dd className="inline">{unlockText}</dd></div>
           </dl>
           <button type="button" onClick={() => persist(advancePhaseIfDone(state, set, spec, clock()))}
             className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
             {t.n3u.start}
           </button>
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
+          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{exitLabel}</button>
         </div>
       )}
 
@@ -317,7 +334,7 @@ export const N3UnitPanel = ({
                 className="w-full min-h-11 mt-2 text-xs text-gray-500 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.notLearned}</button>
             )}
             <button type="button" onClick={onExit} className="w-full min-h-11 mt-2 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-              {t.n3u.pauseSave}
+              {pauseLabel}
             </button>
           </div>
         );
@@ -413,7 +430,7 @@ export const N3UnitPanel = ({
         <div className="bg-white border border-emerald-200 rounded-2xl p-4">
           <h2 className="text-lg font-bold text-emerald-700 mb-2">{t.n3u.resultDone(zh ? spec.titleZh : spec.titleJa)}</h2>
           <div className="p-3 bg-emerald-50 rounded-xl mb-3">
-            <p className="text-sm text-emerald-900">{zh ? worldChangeFor(spec).unlockZh : worldChangeFor(spec).unlockJa}</p>
+            <p className="text-sm text-emerald-900">{unlockText}</p>
           </div>
           <dl className="grid grid-cols-2 gap-2 mb-3">
             {[[t.n3u.resultWords, `${summary.passedCount}／${summary.targetCount}${t.n3u.wordsUnit}`],
@@ -426,7 +443,9 @@ export const N3UnitPanel = ({
               </div>
             ))}
           </dl>
-          {summary.reviewScheduledCount > 0 && (
+          {/* 「オモイデ庭園で再会します」はV2では実現しない（庭園への経路が無く、
+              V2の復習は別データを読む）。約束できないので questMode では出さない（2026-08-18 監査P1） */}
+          {!questMode && summary.reviewScheduledCount > 0 && (
             <p className="text-xs text-violet-700 mb-3">
               {t.n3u.resultReviewNote(summary.reviewScheduledCount)}
             </p>
@@ -443,9 +462,12 @@ export const N3UnitPanel = ({
             </button>
           ) : (
             <button type="button" onClick={onExit}
-              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
+              className="w-full min-h-12 bg-emerald-600 text-white rounded-2xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{exitLabel}</button>
           )}
-          <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{t.n3u.backToWorld}</button>
+          {/* 同じ行き先のリンクを2つ並べない（緑CTAが「もどる」のときは重複するだけ） */}
+          {nextUnitTitleJa && onOpenNextUnit && (
+            <button type="button" onClick={onExit} className="w-full min-h-11 mt-1 text-xs text-gray-400 underline transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{exitLabel}</button>
+          )}
         </div>
       )}
     </WorldFrame>

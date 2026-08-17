@@ -32,9 +32,11 @@ describe('完了の記録は「やった」ときだけ', () => {
   });
 
   it('単元のことばstepはタップしただけでは完了にしない', () => {
-    const m = /if \(s\.kind === 'vocab_new' && s\.refIds\[0\]\?\.startsWith\('n3u-'\)\) \{[\s\S]{0,400}?\n {4}\}/.exec(SRC);
+    const m = /if \(s\.kind === 'vocab_new' && s\.refIds\[0\]\?\.startsWith\('n3u-'\)\) \{[\s\S]{0,800}?\n {4}\}/.exec(SRC);
     expect(m, 'vocab_new の分岐が見つからない').toBeTruthy();
+    // 開いた時点では完了にしない。完了は「この訪問中に単元を終えたとき」だけ
     expect(m![0]).not.toMatch(/markStep/);
+    expect(m![0]).toMatch(/wasDoneBefore/);
   });
 
   it('**文法の教材は表示された瞬間に完了にしない**（本人が押したときだけ）', () => {

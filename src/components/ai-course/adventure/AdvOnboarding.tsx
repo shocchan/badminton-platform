@@ -49,11 +49,14 @@ interface Props {
   onOutcomeReady?: (o: OnboardingOutcome) => void;
   /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
   redo?: boolean;
-  /**
-   * 旧コース歴があり「従来ホームへ」の逃げ道を出してよいか（2026-08-16）。
-   * V2から始めた生徒に旧システムを見せない。falseなら初回のキャンセル導線を出さない
+  /*
+   * canCancelToLegacy は撤去（2026-08-18 監査P1）。
+   * 判定に使っていた progress.length>0 は「旧コース歴」を表さない（V2のAI会話を1回終えるだけで
+   * 増える）ため、旧コースを一度も見ていない生徒にも「いまはやめておく（従来ホームへ）」が出て、
+   * 押すと旧コースのホーム（ミナモ列島・12週ロードマップ）へ落ちていた。
+   * ホーム側の同じボタンは監査P1で撤去済みで、ここだけ残っていた。
+   * キャンセルは「やり直し（redo）」のときだけ＝元の設定に戻すだけの安全な操作に限る。
    */
-  canCancelToLegacy?: boolean;
 }
 
 type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
@@ -62,7 +65,7 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false, canCancelToLegacy = true }: Props) {
+export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
   const [target, setTarget] = useState<JlptLevel | null>(null);
@@ -147,11 +150,10 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOut
               onClick={() => setPhase(goal === 'conversation' ? 'schedule' : 'target')}>
               {tx(lang, 'つぎへ', '下一步')}
             </button>
-            {(redo || canCancelToLegacy) && (
+            {/* キャンセルはやり直しのときだけ（初回に旧コースのホームへ落とす出口は撤去・監査P1） */}
+            {redo && (
               <button type="button" className={`${pressFx} w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={onCancel}>
-                {redo
-                  ? tx(lang, 'やめて元の設定のまま戻る', '取消，保持原来的设置')
-                  : tx(lang, 'いまはやめておく（従来ホームへ）', '暂时不用（回到原来的主页）')}
+                {tx(lang, 'やめて元の設定のまま戻る', '取消，保持原来的设置')}
               </button>
             )}
           </div>

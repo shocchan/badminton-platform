@@ -215,12 +215,19 @@ const conversationChapter = (i: number): { ja: string; zh: string } => {
   return { ja: '会話の旅3　考えを語る', zh: '会话之旅3　讲述想法' };
 };
 
-/** 攻略済みの地域に出す共通の行動（維持は復習でやる） */
+/**
+ * 攻略済みの地域に出す共通の行動。
+ *
+ * 行き先は「間違えた問題ノートの解き直し」で、**この地域だけの問題が出るわけではない**
+ * （2026-08-18 監査P1: 以前は「復習で維持する／一度攻略した内容は…残ります」と書きながら
+ * 旧コースのことばの3分復習を開いており、V2では1問も出なかった）。
+ * 出るものだけを書く: 地域名も「この内容を維持できる」も約束しない。
+ */
 const REVIEW_ACTION: RegionAction = {
   kind: 'review',
-  labelJa: '復習で維持する', labelZh: '用复习来保持',
-  reasonJa: '一度攻略した内容は、忘れる前に短く復習すると残ります',
-  reasonZh: '攻略过的内容在遗忘前短暂复习就能留下来',
+  labelJa: '間違えた問題を解き直す', labelZh: '重做做错的题',
+  reasonJa: 'この地域は攻略済みです。いまは間違えた問題を解き直して、あやふやなところを減らせます',
+  reasonZh: '这个地区已经攻略完成。现在可以重做做错的题，减少还不牢的地方',
 };
 
 const todayAction = (reasonJa: string, reasonZh: string, labelJa = '今日の冒険を始める', labelZh = '开始今天的冒险'): RegionAction => ({

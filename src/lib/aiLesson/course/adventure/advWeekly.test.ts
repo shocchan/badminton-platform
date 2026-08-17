@@ -88,7 +88,9 @@ describe('週のまとめ — 盛らない', () => {
     expect(g.deltaPct).toBeNull();
   });
 
-  it('学習時間は「目安」であることが分かる形でしか出さない（実測していない）', () => {
+  // 2026-08-18 監査P2: 以前ここには「学習時間 = 設定した1日の分数 × 学習日数」があった。
+  // 行動と無関係な数字（1step押しただけの日も満額）なので廃止し、実測の「解いた問題数」に替えた
+  it('学習時間は出さない。出すのは実測した「解いた問題数」だけ', () => {
     const prof = profileWith({
       dailyMinutes: 15,
       questLog: [
@@ -99,7 +101,22 @@ describe('週のまとめ — 盛らない', () => {
     const wk = buildWeeklySummary(prof, NOW);
     expect(wk.studyDays).toBe(2);
     expect(wk.completedQuests).toBe(1); // 全step完了は1日だけ
-    expect(wk.estimatedMinutes).toBe(30);
+    // 時間の推定値をどこにも持たない（設定分数×日数が復活したら落ちる）
+    expect(Object.keys(wk)).not.toContain('estimatedMinutes');
+    // 問題を解いていない週は0（締めくくりを押しただけでは増えない）
+    expect(wk.solvedQuestions).toBe(0);
+  });
+
+  it('解いた問題数は台帳の実測（bySkillの母数）', () => {
+    const prof = profileWith({
+      dailyMinutes: 30,
+      mastery: {
+        g: [att(THIS_WEEK, 'grammar', 5, 7)],
+        v: [att('2026-08-04', 'charactersVocabulary', 3, 7)],
+        old: [att(LAST_WEEK, 'grammar', 9, 10)], // 先週ぶんは入らない
+      },
+    });
+    expect(buildWeeklySummary(prof, NOW).solvedQuestions).toBe(14);
   });
 
   it('来週の重点は「今週いちばん低い技能」。母数が足りなければ決めない', () => {

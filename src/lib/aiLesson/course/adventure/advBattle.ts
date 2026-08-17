@@ -102,6 +102,28 @@ export const buildEncounter = (spec: EncounterSpec & { attemptSeed?: number }): 
   };
 };
 
+/**
+ * 途中でやめたときの採点用に、**実際に解いたぶんだけ**の編成へ切り詰める（2026-08-18 監査P1）。
+ *
+ * gradeEncounter は未回答を誤答として数える（時間切れの採点がそれで正しい）ため、
+ * 中断した編成をそのまま渡すと **画面に出てもいない問題が「間違えた問題」として
+ * 錯題本と台帳に載る**。やっていないことを記録しないために、ここで切り詰める。
+ * unseenRatio・skills も切り詰めた集合で実測し直す（残りぶんの見た目を持ち込まない）。
+ */
+export const truncateEncounter = (enc: Encounter, answeredCount: number, seenKeysAtStart: Set<string>): Encounter => {
+  const n = Math.max(0, Math.min(answeredCount, enc.questions.length));
+  if (n === enc.questions.length) return enc;
+  const questions = enc.questions.slice(0, n);
+  const unseen = questions.filter((q) => !seenKeysAtStart.has(q.key)).length;
+  return {
+    ...enc,
+    questions,
+    presented: enc.presented.slice(0, n),
+    unseenRatio: n === 0 ? 0 : Math.round((unseen / n) * 100) / 100,
+    skills: [...new Set(questions.map((q) => q.skill))],
+  };
+};
+
 /** この編成の名前（文法だけなら「文法バトル」・§5） */
 export const encounterName = (enc: Encounter, level: 'N2' | 'N3', lang: 'ja' | 'zh'): string =>
   battleScopeName(enc.skills, level, lang);

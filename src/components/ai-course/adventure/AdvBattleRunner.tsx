@@ -8,7 +8,7 @@ import type { AdvCompanionId, AdvEnemyTier, AdvMasteryAttempt } from '../../../l
 import { companionById } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
-import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
+import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, truncateEncounter, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { computeMastery, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { nowTrainingLabel, EXAM_SKILL_LABELS } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
@@ -39,7 +39,8 @@ export interface BattleProps {
   /** 旅の相棒。渡すと誤答の励まし・連続正解の褒め・勝利の一言が出る（表示のみ・採点不変） */
   companionId?: AdvCompanionId | null;
   onFinish: (attempt: AdvMasteryAttempt, mastery: MasteryStatus) => void;
-  onClose: () => void;
+  /** reason='no-questions' は「出題できる問題が1問も無かった」＝この画面では何もできなかった合図 */
+  onClose: (reason?: 'no-questions') => void;
 }
 
 export function AdvBattleRunner(props: BattleProps) {
@@ -58,6 +59,8 @@ export function AdvBattleRunner(props: BattleProps) {
   const [picked, setPicked] = useState<string | null>(null);
   const [elapsedSec, setElapsedSec] = useState<number | null>(null);
   const [remainingSec, setRemainingSec] = useState<number | null>(enc.timeLimitSec);
+  // 途中でやめたときの「解いた問題数」。null = 最後まで解いた（2026-08-18 監査P1）
+  const [quitAfter, setQuitAfter] = useState<number | null>(null);
   const startedAt = useRef<number | null>(null);
   const finished = elapsedSec !== null;
 
@@ -88,7 +91,9 @@ export function AdvBattleRunner(props: BattleProps) {
         <p className="mb-4 text-sm text-gray-700">
           {tx(lang, 'この対象にはまだ出題できる問題がありません。', '这个对象暂时没有可出的题。')}
         </p>
-        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={props.onClose}>
+        {/* 呼び出し側へ「この画面では1問も出せなかった」と伝える。
+            step から来ていれば、ホームで飛ばして先へ進める出口が出る（2026-08-18 監査P1） */}
+        <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`} onClick={() => props.onClose('no-questions')}>
           {tx(lang, 'もどる', '返回')}
         </button>
       </div>
@@ -96,7 +101,12 @@ export function AdvBattleRunner(props: BattleProps) {
   }
 
   if (finished) {
-    return <BattleResult {...props} enc={enc} answers={answers} elapsedSec={elapsedSec ?? 0} seenAtStart={seenAtStart} />;
+    // 中断した回は**解いたぶんだけ**を採点する（未提示の問題を誤答として錯題本に載せない）
+    const gradedEnc = quitAfter === null ? enc : truncateEncounter(enc, quitAfter, seenAtStart);
+    return (
+      <BattleResult {...props} enc={gradedEnc} answers={answers} elapsedSec={elapsedSec ?? 0}
+        seenAtStart={seenAtStart} partial={quitAfter !== null} />
+    );
   }
 
   const q = enc.questions[idx];
@@ -120,6 +130,20 @@ export function AdvBattleRunner(props: BattleProps) {
     setPicked(null);
     if (idx + 1 < enc.questions.length) setIdx(idx + 1);
     else finishNow();
+  };
+
+  /**
+   * 実行中の離脱口（2026-08-18 監査P1）。
+   * これが無いと、上部ナビでバトルを抜けた生徒の「6問中5問解いた」が1問も残らなかった。
+   * 押した時点で選択済みの答えも含めて締め、**解いたぶんだけ**を記録する。
+   * 1問も解いていなければ記録するものが無いので、そのまま閉じる。
+   */
+  const quitNow = () => {
+    const done = picked !== null ? [...answers, { key: q.key, choiceId: picked }] : answers;
+    if (done.length === 0) { props.onClose(); return; }
+    setAnswers(done);
+    setQuitAfter(done.length);
+    finishNow();
   };
 
   return (
@@ -240,38 +264,53 @@ export function AdvBattleRunner(props: BattleProps) {
           {tx(lang, 'わからない（スキップ＝誤答扱い）', '不知道（跳过＝按答错计）')}
         </button>
       )}
+      {/* 途中でやめる口（原則15）。文言は実際に起きることだけを言う */}
+      <button type="button" className={`${pressFx} mt-2 w-full min-h-[40px] rounded-xl text-xs text-gray-500 underline active:bg-gray-100`}
+        onClick={quitNow}>
+        {answers.length === 0 && !answered
+          ? tx(lang, 'やめて冒険にもどる', '退出，回到冒险')
+          : tx(lang, 'ここでやめる（解いたぶんは記録されます）', '先做到这里（已做的部分会记录下来）')}
+      </button>
     </div>
   );
 }
 
 function BattleResult(props: BattleProps & {
   enc: ReturnType<typeof buildEncounter>; answers: EncounterAnswer[]; elapsedSec: number; seenAtStart: Set<string>;
+  /** 途中でやめた回。解いたぶんだけを記録し、攻略の証拠には数えない */
+  partial?: boolean;
 }) {
   const { lang } = props;
   const result = useMemo(
     () => gradeEncounter(props.enc, props.answers, props.dateKey, props.nowISO, props.elapsedSec, props.seenAtStart),
     [props.enc, props.answers, props.dateKey, props.nowISO, props.elapsedSec, props.seenAtStart],
   );
+  const attempt = useMemo(
+    () => (props.partial ? { ...result.attempt, partial: true } : result.attempt),
+    [result.attempt, props.partial],
+  );
   const mastery = useMemo(() => {
     const types = new Set(props.targetIds.flatMap((t) => (props.pool.get(t) ?? []).map((x) => x.type)));
-    return computeMastery([...props.priorAttempts, result.attempt], props.nowISO, types.size >= 2);
-  }, [props.priorAttempts, result.attempt, props.nowISO, props.targetIds, props.pool]);
+    return computeMastery([...props.priorAttempts, attempt], props.nowISO, types.size >= 2);
+  }, [props.priorAttempts, attempt, props.nowISO, props.targetIds, props.pool]);
 
   const reported = useRef(false);
   useEffect(() => {
     if (reported.current) return;
     reported.current = true;
-    trackAdv('battle_completed', { locale: lang });
-    props.onFinish(result.attempt, mastery);
+    // 中断した回を「バトル完了」として計上しない（継続率の指標を実態より良く見せない）
+    if (!props.partial) trackAdv('battle_completed', { locale: lang });
+    props.onFinish(attempt, mastery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const win = result.scorePct >= 80;
+  const win = !props.partial && result.scorePct >= 80;
   return (
     <div className={`mx-auto w-full max-w-xl px-4 py-6 text-center ${riseIn}`} aria-label={tx(lang, 'バトル結果', '战斗结果')}>
       <p className={`text-4xl ${win ? 'motion-safe:animate-bounce' : ''}`} aria-hidden>{win ? '🎉' : '⚔️'}</p>
       <h2 className="mt-2 text-xl font-bold text-gray-900">
-        {win ? tx(lang, '勝利！', '胜利！') : tx(lang, 'あと少し！', '还差一点！')}
+        {props.partial ? tx(lang, 'ここまでを記録しました', '已记录到这里')
+          : win ? tx(lang, '勝利！', '胜利！') : tx(lang, 'あと少し！', '还差一点！')}
       </h2>
       <p className={`mt-1 text-3xl font-bold ${win ? 'text-emerald-600' : 'text-blue-700'}`}>{result.scorePct}%</p>
       <p className="mt-1 text-xs text-gray-500">
@@ -279,6 +318,14 @@ function BattleResult(props: BattleProps & {
         {tx(lang, `未出問題 ${Math.round(result.unseenRatio * 100)}%を含む`, `含 ${Math.round(result.unseenRatio * 100)}% 未见过的题`)}
         {props.enc.timed && result.withinTime === false && tx(lang, '・時間切れ', '・超时')}
       </p>
+      {/* 中断した回は、起きることをそのまま書く（攻略に数えないことも隠さない・2026-08-18 監査P1） */}
+      {props.partial && (
+        <p className="mt-2 rounded-xl bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-600">
+          {tx(lang,
+            `途中でやめたので、解いた${props.enc.questions.length}問だけを記録しました。攻略（80%を別の日に3回）には数えません。`,
+            `因为中途结束了，只记录了已做的${props.enc.questions.length}题。这次不计入攻克（在不同的日子拿3次80%）。`)}
+        </p>
+      )}
       {/* 勝利したら相棒がいっしょに喜ぶ（§8・表示のみ） */}
       {win && props.companionId && (
         <p className={`mt-2 flex items-center justify-center gap-1.5 text-sm text-gray-700 ${popIn}`}>
@@ -315,12 +362,25 @@ function BattleResult(props: BattleProps & {
         </p>
         <p className="mt-1 text-sm text-gray-700">{tx(lang, mastery.nextJa, mastery.nextZh)}</p>
       </div>
+      {/*
+        実装している事実だけを言う（2026-08-18 監査P2）。
+        誤答は attempt.wrongKeys として台帳に残り、①間違えた問題ノートに載る
+        ②次のバトルの優先再出題（recentWrongKeys）に入る、の2つだけが確実に起きる。
+        「復習に入る」「明日の冒険に入る」は、出題プールに解決できるキーが無い場合
+        （語彙バトルの誤答など）に起きないので約束しない。
+      */}
       {result.wrongKeys.length > 0 && (
         <p className="mt-3 text-xs text-gray-500">
-          {tx(lang, `まちがえた${result.wrongKeys.length}問は復習と明日の冒険に入ります`, `答错的${result.wrongKeys.length}题会进入复习和明天的冒险`)}
+          {tx(lang,
+            // 「次のバトルで優先的に出る」とは書かない（2026-08-18 検証）。
+            // 編成の優先度は「未出+3 / 直近誤答+2」で、未出が残っている限り誤答は後回しになる。
+            // 語彙はバンドが日替わりで切り替わるので、翌日そのキーが無いこともある。
+            // 確実に出るのは復習（＝錯題本の解き直し）なので、そこだけを約束する
+            `まちがえた${result.wrongKeys.length}問は「間違えた問題ノート」に残ります。次の「復習」で出します`,
+            `答错的${result.wrongKeys.length}题会留在「错题本」里。下次的「复习」会出这些题`)}
         </p>
       )}
-      <button type="button" className={`${pressFx} action-primary-blue mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white`} onClick={props.onClose}>
+      <button type="button" className={`${pressFx} action-primary-blue mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white`} onClick={() => props.onClose()}>
         {tx(lang, '冒険にもどる', '回到冒险')}
       </button>
     </div>

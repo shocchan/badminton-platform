@@ -2,10 +2,14 @@
 //
 // ここが切れると錯題本は永遠に「まだ記録がありません」のままになる。
 // 逆に「全問正解だったのに記録が無い」と区別できないと、克服したのに未確認と表示される。
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { describe, it, expect } from 'vitest';
 import { buildEncounter, gradeEncounter } from './advBattle';
 import { recordAttempt } from './advMastery';
 import { buildMistakeNotebook, pendingMistakeKeySet } from './advMistakeNotebook';
+import { buildMockSpec } from './advMock';
+import { startMockSession, gradeMock, toMockAttempt } from './advMockSession';
 import type { AdvBattleQuestion } from './advVariants';
 import type { AdvMasteryLedger } from './advTypes';
 
@@ -87,6 +91,50 @@ describe('错题本まで届く', () => {
     expect(pendingMistakeKeySet(nb).has(wrongKey)).toBe(false);
   });
 
+  // 2026-08-18 監査P1: ミニ模試のattemptに wrongKeys が無く、模試を1回受けるだけで
+  // 「正誤を記録していない試行で出題された」扱いになり、未克服が全部「未確認」へ後退していた。
+  describe('ミニ模試も正誤を記録する（受けても判定が後退しない）', () => {
+    /** 同じ問題キー（rec:item-*）で構成されるミニ模試を1回受ける */
+    const runMock = (answerAll: 'correct' | 'none', dateKey: string, nowISO: string) => {
+      const spec = buildMockSpec('N3', { vocabCount: 0, grammarCount: 8, readingCount: 0, listeningCount: 0 });
+      const rt = startMockSession(spec, pool, 'short', 5, nowISO)!;
+      const answers: Record<string, string> = {};
+      if (answerAll === 'correct') {
+        for (const sec of rt.sections) for (const p of sec.presented) answers[p.key] = p.correctChoiceId;
+      }
+      const res = gradeMock({ ...rt, state: { ...rt.state, answers } }, new Set());
+      return { res, attempt: toMockAttempt(res, dateKey, new Set(), nowISO) };
+    };
+
+    it('模試で同じ問題を落としても「未確認」ではなく「未克服」のまま', () => {
+      const day1 = runBattle([0, 1], '2026-08-17', NOW, 1);
+      const wrongKey = day1.wrongKeys[0];
+      let ledger: AdvMasteryLedger = recordAttempt({}, 't1', day1.attempt);
+      expect(buildMistakeNotebook(ledger, NOW).entries.find((e) => e.questionKey === wrongKey)?.resolution)
+        .toBe('unresolved');
+
+      const { res, attempt } = runMock('none', '2026-08-18', '2026-08-18T09:00:00.000Z');
+      expect(res.allQuestionKeys).toContain(wrongKey);
+      ledger = recordAttempt(ledger, 'mock-n3', attempt);
+
+      const nb = buildMistakeNotebook(ledger, '2026-08-18T10:00:00.000Z');
+      expect(nb.entries.find((e) => e.questionKey === wrongKey)?.resolution).toBe('unresolved');
+      expect(nb.entries.every((e) => e.resolution !== 'unverifiable')).toBe(true);
+    });
+
+    it('模試で正解したぶんは克服の証拠として数える', () => {
+      const day1 = runBattle([0], '2026-08-17', NOW, 1);
+      const wrongKey = day1.wrongKeys[0];
+      let ledger: AdvMasteryLedger = recordAttempt({}, 't1', day1.attempt);
+      ledger = recordAttempt(ledger, 'mock-n3', runMock('correct', '2026-08-18', '2026-08-18T09:00:00.000Z').attempt);
+
+      const entry = buildMistakeNotebook(ledger, '2026-08-18T10:00:00.000Z').entries
+        .find((e) => e.questionKey === wrongKey);
+      expect(entry?.correctSinceLastWrong).toBe(1);
+      expect(entry?.clearDayKeysSinceLastWrong).toEqual(['2026-08-18']);
+    });
+  });
+
   it('同じ日に2回正解しただけでは克服にしない（おかわりバトルで水増しできない）', () => {
     let ledger: AdvMasteryLedger = recordAttempt({}, 't1', runBattle([0], '2026-08-17', NOW, 1).attempt);
     const wrongKey = buildMistakeNotebook(ledger, NOW).entries[0].questionKey;
@@ -95,5 +143,19 @@ describe('错题本まで届く', () => {
     }
     const nb = buildMistakeNotebook(ledger, '2026-08-17T12:00:00.000Z');
     expect(nb.entries.find((e) => e.questionKey === wrongKey)?.resolution).not.toBe('overcome');
+  });
+});
+
+// 読解・聴解は runner が誤答キーを返しているのに AdvShell が捨てていた（2026-08-18 監査P1）。
+// 画面の配線なので純関数テストでは届かない。ここは実装の形だけを固定する。
+describe('読解・聴解の誤答も台帳へ入れる（AdvShell の配線）', () => {
+  const shell = readFileSync(
+    fileURLToPath(new URL('../../../../components/ai-course/adventure/AdvShell.tsx', import.meta.url)), 'utf8');
+
+  it('recordSkillResult が受け取った wrongKeys を attempt に入れている', () => {
+    const at = shell.indexOf('const recordSkillResult');
+    expect(at, 'recordSkillResult が見つからない').toBeGreaterThan(0);
+    const body = shell.slice(at, at + 2000);
+    expect(body, '捨てると読解・聴解の誤答が错题本に1件も載らない').toMatch(/wrongKeys:\s*r\.wrongKeys/);
   });
 });

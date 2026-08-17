@@ -67,6 +67,8 @@ const CourseFoundationLab = lazy(() => import('../../components/ai-course/founda
 const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
 const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
 const N3AreaPanelLazy = lazy(() => import('../../components/ai-course/n3unit/N3AreaPanel'));
+// 今日の冒険（V2）の「単元のことばを学ぶ」。旧エリア画面を経由せず単元だけを開く（2026-08-18 監査P1）
+const N3UnitSoloLazy = lazy(() => import('../../components/ai-course/n3unit/N3UnitSolo'));
 const N2QuestLazy = lazy(() => import('../../components/ai-course/n2quest/N2GrammarQuestPanel'));
 // Adventure V2（learner単位flag・adventure-v2 D-004）。flag無効のlearnerには一切ロードされない
 const AdvShellLazy = lazy(() => import('../../components/ai-course/adventure/AdvShell'));
@@ -115,7 +117,7 @@ import type { AdvTeacherId } from '../../lib/aiLesson/course/adventure/advTeache
 import { applyTeacherName } from '../../lib/aiLesson/course/adventure/advTeacherText';
 import { isAdvEnabled, readAdvProfile, setAdvEnabled } from '../../lib/aiLesson/course/adventure/advProfile';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'conversationIntro' | 'garden';
+type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'n3unit' | 'conversationIntro' | 'garden';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -231,6 +233,8 @@ export default function AiCoursePage() {
   const [previewReturnStep, setPreviewReturnStep] = useState<Step>('chapters');
   // World Map（ミナモ列島）: 開いているエリアと現在地（localStorageから導出・read only）
   const [activeAreaId, setActiveAreaId] = useState<string | null>(null);
+  // 今日の冒険（V2）の「単元のことばを学ぶ」で開いている単元。旧エリア画面は経由しない
+  const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
   // 開いている章（'adventure' step用）。既定はChapter 1（庭園の再会導線などの後方互換）
   const [adventureChapterId, setAdventureChapterId] = useState<string>(CHAPTER1_ID_FOR_PAGE);
   const [currentAreaId, setCurrentAreaId] = useState<string>(() => deriveCurrentAreaId(window.localStorage));
@@ -619,13 +623,17 @@ export default function AiCoursePage() {
       reviewSucceeded,
     };
     const nextAbilityDef = nextAbility(nextMission?.id ?? null);
+    // 「次のミッション」「次にできるようになること」は selectNextMission＝旧コース12週エンジンの結果。
+    // V2（冒険）の生徒には、今日の冒険が示す次の一手と食い違う別物になるので出さない（2026-08-18 監査P2）
+    const advOnNow = isAdvEnabled(learner.settings);
 
     setReport({
       mission, report: rep, masteryState: updated.masteryState, nextReviewISO: updated.nextReviewAt,
-      nextMissionLabel: nextMission?.targetExpression ?? null, xpEarned: xp.earned, xpBreakdown: xp.breakdown,
+      nextMissionLabel: advOnNow ? null : (nextMission?.targetExpression ?? null),
+      xpEarned: xp.earned, xpBreakdown: xp.breakdown,
       weekSessions: stats.weekSessions + 1, weeklyTarget: learner.settings.weeklyTarget, fromAi,
       durationSeconds: result.durationSeconds,
-      todayCanDo, nextAbility: nextAbilityDef,
+      todayCanDo, nextAbility: advOnNow ? null : nextAbilityDef,
     });
     // 「今回の復習」ノートを既存データから生成（音声を使わず後で見返せる・Feature 5）
     setCurrentNote(buildReviewNote({
@@ -855,7 +863,8 @@ export default function AiCoursePage() {
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId && !advOn ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
-      worldLineJa={t.katari.fogClearedToday} /></Shell>;
+      /* 「カタリ港の霧が…」はミナモ列島（旧コース）の物語。V2の生徒はその世界を一度も見ていないので出さない（2026-08-18 監査P2） */
+      worldLineJa={advOn ? undefined : t.katari.fogClearedToday} /></Shell>;
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
@@ -972,6 +981,9 @@ export default function AiCoursePage() {
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <KatariPortIntro
           t={t}
+          /* V2の生徒に「ミナモ列島・第9エリア／カタリ港」は出さない。
+             戻り先も今日の冒険なので、ボタンの名前を行き先に合わせる（2026-08-18 監査P1） */
+          questMode={advOn}
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
           targetExpression={plan.main.mission.targetExpression}
           estimatedMinutes={plan.main.mission.estimatedMinutes}
@@ -1006,6 +1018,21 @@ export default function AiCoursePage() {
               })()}
               onOpenReview={openReview}
             />
+          </Suspense>
+        </LearnerErrorBoundary>
+      </Shell>
+    );
+  }
+  // 今日の冒険（V2）の「単元のことばを学ぶ」。旧エリア画面（ミナモ列島）を経由しない（2026-08-18 監査P1）。
+  // 旧エリア画面には「次のエリアへ進む」があり、押すと旧コースのエリア連鎖→旧N2文法→
+  // 確認なしで始まる有料AI会話まで到達できてしまっていた
+  if (step === 'n3unit' && activeUnitId) {
+    return (
+      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+        <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
+          <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
+            <N3UnitSoloLazy t={t} unitId={activeUnitId} storage={unitStorage}
+              onExit={() => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); setStep('home'); }} />
           </Suspense>
         </LearnerErrorBoundary>
       </Shell>
@@ -1164,22 +1191,10 @@ export default function AiCoursePage() {
               setLearner({ ...learner, settings: next });
               void courseRepository.updateLearner({ settings: next });
             }}
-            onOpenReview={openReview}
             onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
             conversationAvailable={!!plan && remaining > 0}
-            onStartRestate={() => setStep('light')}
-            restateAvailable={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
-            onOpenArea={openArea}
-            onExitV2={() => {
-              // 入口の既定がV2になったため、?legacy を付けないと enabled:false にしても
-              // すぐV2入口ゲートへ戻されてしまう。従来ホームへの脱出は ?legacy で明示する
-              if (typeof window !== 'undefined') {
-                window.history.replaceState(null, '', `${window.location.pathname}?legacy`);
-              }
-              const next = setAdvEnabled(learner.settings, false, new Date().toISOString());
-              setLearner({ ...learner, settings: next });
-              void courseRepository.updateLearner({ settings: next });
-            }}
+            /* 「単元のことばを学ぶ」は単元だけを開く。旧エリア画面（ミナモ列島）へは出さない */
+            onOpenUnit={(unitId) => { setActiveUnitId(unitId); setStep('n3unit'); }}
           />
         </Suspense>
       </Shell>

@@ -8,10 +8,11 @@ import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
-import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
+import { currentStageOf, routeProgressPct, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
+import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
 import { battleSeedOf } from '../../../lib/aiLesson/course/adventure/advBattle';
-import { generateTodayQuest, vocabTargetForStage, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
+import { generateTodayQuest, vocabTargetForStage, isVocabTargetInScope, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildReviewForecast, type ReviewForecast } from '../../../lib/aiLesson/course/adventure/advReviewForecast';
@@ -82,13 +83,27 @@ export interface AdvShellProps {
   sessions: CourseSessionRecord[];
   reviewsDue: number;
   onSaveSettings: (next: LearnerSettings) => void;
-  onOpenReview: () => void;
+  /* onOpenReview は撤去（2026-08-18 監査P1）。呼び先は旧コースの「ことばの3分復習」で、
+     V2の生徒には常に空だった。V2の復習は間違えた問題ノートの解き直し＝AdvShell内で完結する */
   onStartConversation: () => void;
   conversationAvailable: boolean;
-  onStartRestate: () => void;
-  restateAvailable: boolean;
-  onOpenArea: (areaId: string) => void;
-  onExitV2: () => void;
+  /* onStartRestate / restateAvailable は撤去（2026-08-18 監査P2）。
+     V2の言い直しstepは runStep の setView('restate')＝AdvShell内の画面で完結しており、
+     この2つは AdvShell が一度も参照しない配線の残骸だった。
+     restateAvailable の計算のためだけに旧コースの buildLightSession(progress, ...) が
+     毎描画で走り、V2の言い直しの可否が旧コースの進捗で決まるように読めてしまう。
+     残すと、将来この props を使う修正がそのまま旧コース画面（CourseLightPractice）への出口になる */
+  /**
+   * 「単元のことばを学ぶ」で開く**単元**（2026-08-18 監査P1）。
+   * 以前はエリアIDを渡して旧コースのエリア画面を開いていた。あの画面には
+   * 「ミナモ列島の地図へ」の戻り・「オモイデ庭園で復習する」・「次のエリアへ進む」があり、
+   * 最後のボタンから旧エリア連鎖 → 旧N2文法攻略 → 確認なしで始まる有料AI会話まで行けた。
+   * V2からは**その単元だけ**を開き、出口は今日の冒険に限る。
+   */
+  onOpenUnit: (unitId: string) => void;
+  /* onExitV2 は撤去（2026-08-18 監査P1）。ホームの「従来のホームに戻す」は監査P1で削除済みで、
+     残っていたオンボーディング側の逃げ道も同じ理由（progress.length>0 は旧コース歴の判定に
+     使えない＝V2専業の生徒にも出ていた）で外した。旧コースは ?legacy の明示でだけ入る */
   /** ヘッダー・設定画面からの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ。
    * teacher=案内の先生の変更 / redo=目的・レベルの変更（準備のやり直し）。
    * どちらも設定画面（上部ナビ）から入る（2026-08-16 メニュー整理でホームの二次メニューから移設） */
@@ -105,6 +120,11 @@ export interface AdvShellProps {
 type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
+  /**
+   * 終わったあとに戻る画面。**押した場所へ返す**（2026-08-18 検証）。
+   * 未指定なら従来どおり（錯題本の解き直しは錯題本へ、それ以外はホームへ）
+   */
+  returnTo?: View;
   /**
    * このバトルを始めた今日のstepの添字。**stepから始めたときだけ入れる**。
    * おかわりバトル・错题本の解き直し・冒険マップからのバトルでは undefined にして、
@@ -163,6 +183,11 @@ const targetLabelOf = (targetId: string, lang: L): string => {
   if (/^n3g-unit-/.test(targetId)) return tx(lang, 'N3の文法', 'N3语法');
   if (/^n2g-unit-/.test(targetId)) return tx(lang, 'N2の文法', 'N2语法');
   if (/^vocab-/.test(targetId)) return tx(lang, 'ことば', '词汇');
+  // 読解・聴解・模試の誤答も間違えた問題ノートに載るようになった（2026-08-18）。
+  // 「学習した内容」だけでは何の問題か分からないので、練習の名前で示す
+  if (/^reading-/.test(targetId)) return tx(lang, '短文読解', '短文阅读');
+  if (/^listening-/.test(targetId)) return tx(lang, '聴解トレーニング', '听力训练');
+  if (/^mock-/.test(targetId)) return tx(lang, 'ミニ模試', '迷你模拟考');
   if (targetId === MISTAKE_TARGET_ID) return tx(lang, '間違えた問題の解き直し', '错题重做');
   return tx(lang, '学習した内容', '学过的内容');
 };
@@ -198,6 +223,12 @@ export default function AdvShell(props: AdvShellProps) {
    * ホームに出す「復習 N問」の N と**同じ集合**。押すとこれがそのままバトルになる
    */
   const [reviewKeys, setReviewKeys] = useState<string[]>([]);
+  /**
+   * 「単元のことばを学ぶ」を開いたときの控え（2026-08-18）。
+   * 開く前に終わっていたかを覚えておき、**この訪問中に終えた**ときだけstepを完了にする
+   */
+  // 描画には使わない控えなので ref で持つ（effect内でsetStateして再描画を連鎖させない）
+  const unitStepPendingRef = useRef<{ index: number; unitId: string; wasDoneBefore: boolean } | null>(null);
   /** 開いたままのタブが古いJSで動いていないか（2026-08-17 実際に起きた事故の再発防止） */
   const [staleBuild, setStaleBuild] = useState(false);
   useEffect(() => {
@@ -213,8 +244,20 @@ export default function AdvShell(props: AdvShellProps) {
   const [quest, setQuest] = useState<AdvTodayQuest | null>(null);
   const [battle, setBattle] = useState<BattleCtx | null>(null);
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
+  /**
+   * 文法教材を開いたstepの添字（2026-08-18）。
+   * 会話コースの「表現の準備」も同じ画面を使うので、kind から探すと別のstepを消し込む
+   */
+  const [studyFromStepIdx, setStudyFromStepIdx] = useState<number | null>(null);
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
+  /**
+   * 今この場で「今日の冒険を締めくくる」を押して加算されたXP（2026-08-18 監査P2）。
+   * 完了画面は「今日のまとめをもう一度見る」から何度でも開けるが、XPの加算は締めくくりの1回だけ。
+   * 毎回「⭐ XP +15」と出すと、合計が増えていない生徒には「XPが消えた」ように見える。
+   * 締めくくった直後だけ +N を出し、見直しのときは合計だけを出す
+   */
+  const [justEarnedXp, setJustEarnedXp] = useState<number | null>(null);
   const [showMore, setShowMore] = useState(false);
   /** 読解・聴解のonFinish二重発火ガード（連打によるmastery重複記録を防ぐ）。入場時にfalseへ戻す */
   const skillFinishGuard = useRef(false);
@@ -396,12 +439,18 @@ export default function AdvShell(props: AdvShellProps) {
     save(withStepDone(profile, i, keyOfStepIdx(i)));
   }, [profile, doneSteps, save, withStepDone, keyOfStepIdx]);
 
-  /** 読解・聴解の結果を mastery台帳へ skill evidence つきで記録する（準備度へ反映される） */
+  /**
+   * 読解・聴解の結果を mastery台帳へ skill evidence つきで記録する（準備度へ反映される）。
+   * r.partial=true は途中でやめた回＝解いたぶんだけの記録。stepは完了にしない
+   * （やっていない残りを「やった」ことにしない・2026-08-18 監査P1）
+   */
   const recordSkillResult = useCallback((
     p: AdventureV2Profile, skill: 'reading' | 'listening',
-    r: { correct: number; total: number; keys: string[]; wrongKeys: string[]; elapsedSec: number },
+    r: { correct: number; total: number; keys: string[]; wrongKeys: string[]; elapsedSec: number; partial: boolean },
     stepIndex: number,
   ) => {
+    // 1問も解いていない回は記録しない（0%の試行を台帳へ入れない）
+    if (r.total === 0 || r.keys.length === 0) return;
     const targetId = `${skill}-${prof0()?.targetJlpt ?? 'N2'}`.toLowerCase();
     // 実測の未出比率を記録する。1固定は同一セット再演を「未出100%の証拠」として
     // mastery台帳・準備度へ水増し計上してしまう（原則9・13）
@@ -417,10 +466,18 @@ export default function AdvShell(props: AdvShellProps) {
       completedAt: new Date().toISOString(),
       skills: [skill],
       bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: unseenCount } },
+      // 途中でやめた回は「解いたぶんだけ」なので、攻略の証拠には数えない（2026-08-18 監査P1）
+      ...(r.partial ? { partial: true as const } : {}),
+      // 错题本の材料（2026-08-18 監査P1: 受け取っているのに捨てていたため、
+      // 読解・聴解で間違えた問題が間違えた問題ノートに1件も載らなかった）。
+      // **全問正解でも空配列**（省略すると「正誤を記録していない試行」になる）
+      wrongKeys: r.wrongKeys,
     };
     const ledger = recordAttempt(p.mastery, targetId, attempt);
     trackAdv('skill_evidence_added', { skillType: skill, countBucket: bucketOf(r.total) });
-    save(withStepDone({ ...p, mastery: ledger }, stepIndex, keyOfStepIdx(stepIndex)));
+    save(r.partial
+      ? { ...p, mastery: ledger }
+      : withStepDone({ ...p, mastery: ledger }, stepIndex, keyOfStepIdx(stepIndex)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateKey, save, withStepDone, keyOfStepIdx]);
 
@@ -449,13 +506,16 @@ export default function AdvShell(props: AdvShellProps) {
       const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
       // 7日待ちのtargetは次候補から外して先へ進み、確認が解禁されたら確認バトルを最優先で出す（進度改善 2026-08-15）
       const { waiting } = classifyPendingDelay(profile.mastery, nowISO);
+      const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
       // 復習予報＋渋滞レスキュー（2026-08-17）。
       // 数日あけると解禁ぶんが1日に集中し「今日30件」になって心が折れる。
       // 予報側で今日ぶんを決め、**出題も予報と同じ集合**を使う（画面の数字と出る数を必ず一致させる）
       const forecast = buildReviewForecast({
         ledger: profile.mastery, nowISO, dueCount: props.reviewsDue,
         dailyMinutes: profile.dailyMinutes ?? null,
-        includeTargetId: (id) => !/^(reading-|listening-|mock)/.test(id),
+        // 目標レベルの範囲外になった語彙バンド（N2→N3に変えた生徒の vocab-n2 など）は
+        // 出題プールが空なので確認バトルにしない（2026-08-18 監査P1・押せないバトルを作らない）
+        includeTargetId: (id) => !/^(reading-|listening-|mock)/.test(id) && isVocabTargetInScope(id, lvl),
       });
       setForecast(forecast);
       const { stage: contentStage, content: ct } = await pickContentStage(
@@ -476,7 +536,6 @@ export default function AdvShell(props: AdvShellProps) {
         ? measured.slice().sort((a, b) =>
           (ev[a].correct / Math.max(1, ev[a].evidenceCount)) - (ev[b].correct / Math.max(1, ev[b].evidenceCount)))[0]
         : null;
-      const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
       // 今日の語彙バトルのバンド（stage対応・日替わり。2026-08-15 語彙配線）
       const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
       const vocabBattleTargetId = vocabTargetForStage(contentStage.kind, lvl, dayNum);
@@ -560,6 +619,28 @@ export default function AdvShell(props: AdvShellProps) {
     if (hasToday) markStep(idx);
   }, [quest, props.sessions, dateKey, doneSteps, markStep]);
 
+  /**
+   * 「単元のことばを学ぶ」は AdvShell の外（単元パネル）で終わるので完了の合図が返らない。
+   * 戻ってきたときに単元の保存を見て消し込むが、**この訪問中に終えたときだけ**にする。
+   *
+   * 【2026-08-18 差し戻し】単元の保存（unitCompletedLocally）は**日付を持たない**ので、
+   * 「一度でも終えた単元」は永久に true。開いた瞬間に消し込む実装のままだと、
+   * 翌日以降にその単元が出たとき**何もしていないのに✓**になっていた
+   *  ＝今日いちばん時間をかけて直した「やっていないのに完了」がそのまま復活していた。
+   * step を開くときの状態を控えておき、false → true に変わったときだけ完了にする。
+   */
+  useEffect(() => {
+    const pending = unitStepPendingRef.current;
+    if (!pending || !quest || typeof window === 'undefined') return;
+    if (doneSteps.has(pending.index)) { unitStepPendingRef.current = null; return; }
+    const s = quest.steps[pending.index];
+    if (!s || s.kind !== 'vocab_new' || s.refIds[0] !== pending.unitId) { unitStepPendingRef.current = null; return; }
+    if (!pending.wasDoneBefore && unitCompletedLocally(window.localStorage, pending.unitId)) {
+      unitStepPendingRef.current = null;
+      markStep(pending.index);
+    }
+  }, [quest, doneSteps, markStep, view]);
+
   // 旧「期限切れが0件になったら復習stepを完了」は削除（2026-08-18 監査P0）。
   // 数字の出所（旧コースのItemProgress）と復習の中身が別システムで、この条件は永久に成立せず、
   // 復習stepは自己申告ボタンでしか終われなかった。いまは解き直しバトルの完了で消し込む
@@ -578,13 +659,13 @@ export default function AdvShell(props: AdvShellProps) {
           <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setDiagError(false)}>
             {tx(lang, 'もう一度読み込む', '重新加载')}
           </button>
-          {/* 逃げ道: redo中は元の設定へ。初回は旧コース歴のある人だけ旧ホームへ（2026-08-16） */}
-          {(redoOnboarding || props.progress.length > 0) && (
+          {/* 逃げ道はやり直し中だけ（元の設定へ戻す）。「従来のホームに戻す」は撤去（2026-08-18 監査P1）:
+              出す条件だった progress.length>0 は V2のAI会話を1回終えるだけで立つので、
+              旧コースを一度も見ていない生徒にも出ていた */}
+          {redoOnboarding && (
             <button type="button" className={`${secondaryBtn} mt-2`}
-              onClick={redoOnboarding ? () => { setDiagError(false); setRedoOnboarding(false); } : props.onExitV2}>
-              {redoOnboarding
-                ? tx(lang, '元の設定のまま戻る', '保持原来的设置返回')
-                : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
+              onClick={() => { setDiagError(false); setRedoOnboarding(false); }}>
+              {tx(lang, '元の設定のまま戻る', '保持原来的设置返回')}
             </button>
           )}
         </div>
@@ -616,7 +697,6 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvOnboarding
         lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
-        canCancelToLegacy={props.progress.length > 0}
         onOutcomeReady={(o: OnboardingOutcome) => {
           // 診断完了の時点でDBへ確定保存する（2026-08-15）。ルート披露画面でアプリを
           // 閉じても診断・設定が消えない。React state は触らない＝披露画面はそのまま表示
@@ -630,7 +710,8 @@ export default function AdvShell(props: AdvShellProps) {
           setRedoOnboarding(false);
           setView('home');
         }}
-        onCancel={redoOnboarding ? () => setRedoOnboarding(false) : props.onExitV2}
+        /* キャンセルはやり直し中だけ出る（初回の「従来ホームへ」は撤去済み） */
+        onCancel={() => setRedoOnboarding(false)}
       />
     );
   }
@@ -774,6 +855,9 @@ export default function AdvShell(props: AdvShellProps) {
            * step から始めたときだけ fromStepIdx が入る。それ以外は何も消し込まない。
            */
           const battleIdx = (() => {
+            // 途中でやめた回はstepを完了にしない（解いたぶんは記録するが、
+            // 残りを「やった」ことにはしない・2026-08-18 監査P1）
+            if (attempt.partial) return -1;
             if (!quest || battle.fromStepIdx === undefined) return -1;
             const i = battle.fromStepIdx;
             const s = quest.steps[i];
@@ -785,15 +869,29 @@ export default function AdvShell(props: AdvShellProps) {
           const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
           save(battleIdx >= 0 ? withStepDone(next, battleIdx, keyOfStepIdx(battleIdx)) : next);
         }}
-        onClose={() => { setBattle(null); setView(isMistakeBattle ? 'mistakes' : 'home'); }}
+        onClose={(reason) => {
+          // 1問も出せなかったバトルは、そのstepが今日できないということ。
+          // ホームに飛ばして終わりにすると「押す→戻る→また同じCTA」の無限ループになるので、
+          // 飛ばして先へ進める出口を出す（2026-08-18 監査P1）。
+          // step由来のバトル（fromStepIdxがある）だけが対象。おかわりバトルには出さない
+          if (reason === 'no-questions' && battle.fromStepIdx !== undefined) {
+            setStepNotice(tx(lang,
+              'この対象にはいま出せる問題がありませんでした。下のボタンでこのstepを飛ばして、先へ進めます。',
+              '这个对象现在没有可出的题。可以点下面的按钮跳过这一步，继续后面的内容。'));
+          }
+          setBattle(null);
+          // 押した場所へ戻す（2026-08-18 検証）。冒険マップから入った人を錯題本へ着地させない
+          setView(battle.returnTo ?? (isMistakeBattle ? 'mistakes' : 'home'));
+        }}
       />
     );
   }
 
   // ── 読解 ──
-  // onFinishは ①記録 ②homeへ戻す（原則15: 最終問題で「結果を見る」を押したのに
-  // 何も起きない行き止まりが監査で見つかった）。
-  // ③二重発火ガード: 遷移前の連打で同じattemptがmastery台帳へ重複記録され、
+  // onFinishは**記録だけ**。画面を閉じるのは onClose（2026-08-18 監査P1:
+  // 「結果を見る」を押すと結果を見せずにホームへ飛ばしていた＝押した瞬間に画面が消えた、
+  // に見えていた。いまは runner が結果画面を出し、そこから「冒険にもどる」で閉じる）。
+  // 二重発火ガード: 連打で同じattemptがmastery台帳へ重複記録され、
   // 準備度のエビデンスが水増しされる（原則13違反）ため、1回で締める
   if (view === 'reading') {
     // 毎日同じ先頭3セットの再演で証拠を貯めない（原則9）。未出セット優先・日替わりの決定的選出
@@ -812,9 +910,16 @@ export default function AdvShell(props: AdvShellProps) {
           if (skillFinishGuard.current) return;
           skillFinishGuard.current = true;
           if (stepIdx >= 0) recordSkillResult(prof, 'reading', r, stepIdx);
+        }}
+        onClose={(reason) => {
+          // 出題が1問も無かったときは、ホームでこのstepを飛ばせる出口を出す（行き止まりにしない）
+          if (reason === 'no-questions') {
+            setStepNotice(tx(lang,
+              'いま出せる読解問題がありませんでした。下のボタンでこのstepを飛ばして、先へ進めます。',
+              '现在没有可出的阅读题。可以点下面的按钮跳过这一步，继续后面的内容。'));
+          }
           setView('home');
         }}
-        onClose={() => setView('home')}
       />
     );
   }
@@ -836,9 +941,21 @@ export default function AdvShell(props: AdvShellProps) {
           if (skillFinishGuard.current) return;
           skillFinishGuard.current = true;
           if (stepIdx >= 0) recordSkillResult(prof, 'listening', r, stepIdx);
+        }}
+        onClose={(reason) => {
+          // 端末で音声が鳴らない／出題が無いときは、ホームでこのstepを飛ばせる出口を出す。
+          // 以前はこの画面から出る手段が無く、完全な行き止まりだった（2026-08-18 監査P1）
+          if (reason === 'audio-unavailable') {
+            setStepNotice(tx(lang,
+              '音声を再生できませんでした（通信環境や端末の設定が原因のことがあります）。下のボタンでこのstepを飛ばして、先へ進めます。',
+              '音频无法播放（可能是网络或设备设置的原因）。可以点下面的按钮跳过这一步，继续后面的内容。'));
+          } else if (reason === 'no-questions') {
+            setStepNotice(tx(lang,
+              'いま出せる聴解問題がありませんでした。下のボタンでこのstepを飛ばして、先へ進めます。',
+              '现在没有可出的听力题。可以点下面的按钮跳过这一步，继续后面的内容。'));
+          }
           setView('home');
         }}
-        onClose={() => setView('home')}
       />
     );
   }
@@ -986,9 +1103,12 @@ export default function AdvShell(props: AdvShellProps) {
         onFinish={(r: MockResult) => {
           const completedAt = new Date().toISOString();
           const seen = seenQuestionKeys(prof.mastery);
-          // 模試は timed evidence と skill別evidenceを同時に台帳へ入れる（準備度へ反映）
-          const attempt = toMockAttempt(r, dateKey, seen, completedAt) as unknown as AdvMasteryAttempt;
+          // 模試は timed evidence と skill別evidenceを同時に台帳へ入れる（準備度へ反映）。
+          // **型を素通しさせない**（旧 `as unknown as` は wrongKeys の欠落を隠していた・2026-08-18）
+          const attempt: AdvMasteryAttempt = toMockAttempt(r, dateKey, seen, completedAt);
           const ledger = recordAttempt(prof.mastery, `mock-${level.toLowerCase()}`, attempt);
+          // 保存はこの1回だけ（AdvMockRunner は完了時に onPersist を呼ばない約束）。
+          // 中断状態の破棄（mockSession: null）もここに含める
           save({
             ...prof,
             mastery: ledger,
@@ -1068,9 +1188,11 @@ export default function AdvShell(props: AdvShellProps) {
           });
           setView('battle');
         }}
-        onBack={() => { setStudyGrammarId(null); setGrammarDoc(null); setView('home'); }}
+        onBack={() => { setStudyGrammarId(null); setGrammarDoc(null); setStudyFromStepIdx(null); setView('home'); }}
         onLearned={() => {
-          const i = quest?.steps.findIndex((s) => s.kind === 'grammar_new') ?? -1;
+          // 開いたstepだけを消し込む。kind で探すと、会話コースの「表現の準備」から開いたときに
+          // 別の（やっていない）文法stepを完了にしてしまう（2026-08-18）
+          const i = studyFromStepIdx ?? -1;
           if (i >= 0) markStep(i);
         }}
       />
@@ -1204,8 +1326,20 @@ export default function AdvShell(props: AdvShellProps) {
         nextStepTitleZh={mapNextStep?.titleZh ?? null}
         onStartToday={() => setView('home')}
         onBack={() => setView('home')}
-        onOpenReview={props.onOpenReview}
-        reviewAvailable={props.reviewsDue > 0}
+        /* 攻略済み地域のCTAは**V2の復習**＝間違えた問題の解き直しへ繋ぐ（2026-08-18 監査P1）。
+           以前は旧コースの「ことばの3分復習」を開いており、V2では必ず空だった。
+           fromStepIdx は渡さない（マップからの解き直しで今日のstepを完了にしない） */
+        onOpenReview={() => {
+          setMistakeKeys(reviewKeys);
+          setBattle({
+            tier: 'normal', targetId: MISTAKE_TARGET_ID,
+            targetLabel: tx(lang, '間違えた問題の解き直し', '错题重做'),
+            targetIds: [MISTAKE_TARGET_ID],
+            returnTo: 'map',   // 押した場所（冒険マップ）へ返す
+          });
+          setView('battle');
+        }}
+        reviewAvailable={reviewKeys.length > 0}
         onStartConversation={() => {
           trackAdv('conversation_started', { locale: lang });
           props.onStartConversation();
@@ -1456,10 +1590,11 @@ export default function AdvShell(props: AdvShellProps) {
             {wk.mockCount > 0 && ` ／ ${tx(lang, `ミニ模試：${wk.mockCount}回`, `迷你模拟考：${wk.mockCount}次`)}`}
             {wk.conversationCount > 0 && ` ／ ${tx(lang, `AI会話：${wk.conversationCount}回`, `AI会话：${wk.conversationCount}次`)}`}
           </p>
-          {wk.estimatedMinutes !== null && (
+          {/* 学習時間は計測していないので出さない（2026-08-18 監査P2）。
+              代わりに実測している「解いた問題数」を出す */}
+          {wk.solvedQuestions > 0 && (
             <p className="mt-1 text-xs text-gray-400">
-              {tx(lang, `学習時間はおおよそ${wk.estimatedMinutes}分（設定した1日の時間からの目安です）`,
-                `学习时间大约${wk.estimatedMinutes}分钟（根据设定的每日时长估算）`)}
+              {tx(lang, `解いた問題：${wk.solvedQuestions}問`, `做过的题：${wk.solvedQuestions}题`)}
             </p>
           )}
           {/* オンボーディングで決めた「週◯日」を実測と並べる（聞いた決断を効かせる・原則17。週の途中でも嘘にならない事実表記） */}
@@ -1567,6 +1702,19 @@ export default function AdvShell(props: AdvShellProps) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
   const stageDoneC = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit) : mastered;
     const daily = buildDailySummary(prof, dateKey, nowISO);
+    /**
+     * 次に解き直す問題数。**実際に解き直せるものだけ**を数える（2026-08-18 検証で修正）。
+     * 錯題本には読解・聴解・模試の誤答も載るようになったが、それらは解き直しバトルの
+     * プール（文法・語彙）に解決できない。全部数えると「5問あります」と言って
+     * 押すと2問しか出ない、という今日いちばん怒られた形になる。
+     */
+    const completeMistakePending = (() => {
+      const pending = pendingMistakeKeySet(notebook);
+      if (!pools) return 0;
+      let n = 0;
+      for (const qs of pools.byItem.values()) for (const q of qs) if (pending.has(q.key)) n += 1;
+      return n;
+    })();
     // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
     const completeCorrection = (() => {
       for (const s of [...props.sessions].reverse()) {
@@ -1661,9 +1809,17 @@ export default function AdvShell(props: AdvShellProps) {
         <div className={`${card} mt-3`}>
           <p className="text-sm font-semibold text-gray-900">{term('masteryRate', lang)}</p>
           <p className="mt-1 text-sm text-gray-700">{routeProgressPct(route, stageDoneC)}%</p>
+          {/*
+            「次の復習」は**いま数えられる事実**だけを言う（2026-08-18 監査P2）。
+            旧実装は reviewsDue が0の日に無条件で「明日・約3分」と断定していたが、
+            明日復習があるかは何も測っていない。V2の復習＝間違えた問題ノートの解き直しなので、
+            残っている未克服の件数（＝解き直す材料の有無）をそのまま出す
+          */}
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の復習', '下次复习')}</p>
           <p className="mt-1 text-sm text-gray-700">
-            {props.reviewsDue > 0 ? tx(lang, `残り${props.reviewsDue}件`, `还剩${props.reviewsDue}项`) : tx(lang, '明日・約3分', '明天・约3分钟')}
+            {completeMistakePending > 0
+              ? tx(lang, `解き直す問題が${completeMistakePending}問あります`, `还有${completeMistakePending}道题要重做`)
+              : tx(lang, 'いま解き直す問題はありません', '现在没有要重做的题')}
           </p>
           {/* 次の冒険を必ず示す（canon 原則15: 行き止まりを作らない） */}
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の冒険', '下次冒险')}</p>
@@ -1673,9 +1829,11 @@ export default function AdvShell(props: AdvShellProps) {
           </p>
         </div>
         <p className="mt-4 text-center">
-          {/* 締めくくり保存が先に走るので prof.xp は加算済み。ここで再加算しない */}
+          {/* 締めくくり保存が先に走るので prof.xp は加算済み。ここで再加算しない。
+              「+N」は**その締めくくりで実際に加算されたとき**だけ出す（2026-08-18 監査P2:
+              まとめを開き直すたびに +15 と出るのに合計は増えず、XPが消えたように見えていた） */}
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-4 py-1.5 text-sm font-bold text-amber-800">
-            ⭐ XP +{doneSteps.size * XP_RULES.questStep}
+            {justEarnedXp !== null ? `⭐ XP +${justEarnedXp}` : '⭐ XP'}
             <span className="font-normal">
               {tx(lang, `｜合計 ${prof.xp ?? 0}・Lv.${levelOf(prof.xp ?? 0)}`, `｜共计 ${prof.xp ?? 0}・Lv.${levelOf(prof.xp ?? 0)}`)}
             </span>
@@ -1718,11 +1876,14 @@ export default function AdvShell(props: AdvShellProps) {
   const sheetPaper = sheetSession ? paperById(prof, sheetSession.paperId) : null;
   const sheetResumable = !!sheetSession && !!sheetPaper && sheetSession.sectionIndex < sheetPaper.sections.length;
 
-  const runStep = (i: number) => {
-    if (!quest) return;
+  /**
+   * stepを開く。**実際に開けたときだけ true** を返す。
+   * 開けなかった場合（AI会話が使えない・解き直す問題が無い等）は stepNotice を出して false。
+   */
+  const openStep = (i: number): boolean => {
+    if (!quest) return false;
     const s = quest.steps[i];
     setStepNotice(null);
-    trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
     // 復習＝間違えた問題の解き直し（2026-08-18 作り替え）。
     // 旧コースの語彙図鑑へは行かない。終われば必ずこのstepが完了する（自己申告が要らない）
     if (s.kind === 'review_due') {
@@ -1730,7 +1891,7 @@ export default function AdvShell(props: AdvShellProps) {
         setStepNotice(tx(lang,
           'いま解き直せる問題がありません。下のボタンでこのstepを終わりにして、先へ進めます。',
           '现在没有可以重做的题。可以点下面的按钮结束这一步，继续后面的内容。'));
-        return;
+        return false;
       }
       setMistakeKeys(reviewKeys);
       setBattle({
@@ -1739,31 +1900,45 @@ export default function AdvShell(props: AdvShellProps) {
         targetIds: [MISTAKE_TARGET_ID], fromStepIdx: i,
       });
       setView('battle');
-      return;
+      return true;
     }
     if (s.kind === 'conversation_mission') {
-      if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return; }
+      if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return true; }
       // 押しても無反応、を作らない（原則15）。進めない理由を言う
       setStepNotice(tx(lang,
         'いまAI会話を始められません（今日の回数を使い切ったか、準備中です）。下のボタンでこのstepを飛ばして、先へ進めます。',
         '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以点下面的按钮跳过这一步，继续后面的内容。'));
-      return;
+      return false;
     }
-    if (s.kind === 'kana_dojo') { setView('kana'); return; }
-    if (s.kind === 'restate') { setView('restate'); return; }
-    if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return; }
-    if (s.kind === 'listening_practice') { skillFinishGuard.current = false; setView('listening'); return; }
+    if (s.kind === 'kana_dojo') { setView('kana'); return true; }
+    if (s.kind === 'restate') { setView('restate'); return true; }
+    if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return true; }
+    if (s.kind === 'listening_practice') { skillFinishGuard.current = false; setView('listening'); return true; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
-      // ここは単元ページ（AdvShellの外）へ渡すので完了の合図が返ってこない。
-      // それでも「開いた＝学んだ」にはしない（2026-08-17）。戻ってきたら
-      // ホームの「学び終わった」リンクを本人が押したときだけ完了になる
-      props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
-      return;
+      // 単元ページ（AdvShellの外）へ渡す。開いただけでは完了にしない（2026-08-17）。
+      // **開く前に終わっていたか**を控える。単元の保存は日付を持たないので、
+      // これが無いと「一度でも終えた単元」は翌日以降も開いた瞬間に完了になる（2026-08-18 差し戻し）
+      unitStepPendingRef.current = {
+        index: i, unitId: s.refIds[0],
+        wasDoneBefore: typeof window !== 'undefined' && unitCompletedLocally(window.localStorage, s.refIds[0]),
+      };
+      props.onOpenUnit(s.refIds[0]);
+      return true;
     }
-    if (s.kind === 'grammar_new' && s.refIds[0]) { setStudyGrammarId(s.refIds[0]); setView('grammar'); return; }
+    // 文法の教材を開くstep: 通常の「新しい文法を学ぶ」と、会話コースの「表現の準備」。
+    // 会話コースの vocab_new は refIds が**文法ID**（n2g-/n3g-/n5g-/n4g-）で、
+    // 単元（n3u-）の分岐に当たらず**押しても完全に無反応**だった（2026-08-18 検証で発覚）
+    const opensGrammarStudy = (s.kind === 'grammar_new' && !!s.refIds[0])
+      || (s.kind === 'vocab_new' && /^n[2345]g-/.test(s.refIds[0] ?? ''));
+    if (opensGrammarStudy) {
+      setStudyGrammarId(s.refIds[0]);
+      setStudyFromStepIdx(i);
+      setView('grammar');
+      return true;
+    }
     if (s.kind === 'weak_reinforce' && s.refIds.length > 0) {
       setBattle({ tier: 'normal', targetId: s.refIds[0], targetLabel: tx(lang, '弱点補強', '弱点补强'), targetIds: s.refIds, fromStepIdx: i });
-      setView('battle'); return;
+      setView('battle'); return true;
     }
     if (s.kind === 'battle') {
       const targets = s.refIds.length > 0 ? s.refIds : (stageCt?.battleTargetIds ?? []);
@@ -1775,8 +1950,36 @@ export default function AdvShell(props: AdvShellProps) {
         targetIds: targets,
         fromStepIdx: i,
       });
-      setView('battle'); return;
+      setView('battle'); return true;
     }
+    return false;
+  };
+
+  /**
+   * 今日のstepを開き、**開けたときだけ**「今日の冒険を開始した」を1件計上する。
+   * 以前は runStep の先頭で無条件に計上していたため、AI会話が使えない日や
+   * 解き直す問題が無い日（stepNoticeを出して戻るだけ）まで「開始」に数えられ、
+   * 継続率の指標が実態より良く出ていた（2026-08-18 監査P2）
+   */
+  const runStep = (i: number) => {
+    if (!openStep(i)) return;
+    trackAdv('today_quest_started', {
+      goalType: prof.goalType ?? undefined, routeStage: stage?.kind,
+      durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang,
+    });
+  };
+
+  /**
+   * このstepを「終わった」と本人が言って、そのまま次のstepへ入る（2026-08-18 監査P2）。
+   * 旧実装は markStep だけでホームに留まっており、「（次へ進む）」と書いてあるのに
+   * ✓が1つ増えるだけで、生徒には「押したのに何も起きない」と見えていた。
+   */
+  const markStepAndGoNext = (i: number) => {
+    markStep(i);
+    setStepNotice(null);
+    const nextIdx = quest ? quest.steps.findIndex((_, k) => k !== i && !doneSteps.has(k)) : -1;
+    // 次が無い＝今日はこれで全部。ホームに残って「今日の冒険を締めくくる」を出す
+    if (nextIdx >= 0) runStep(nextIdx);
   };
 
   /** 第一CTAの文言は「次の1動作」を名指しする */
@@ -2116,25 +2319,33 @@ export default function AdvShell(props: AdvShellProps) {
           {stepNotice && (
             <div role="status" className="mt-2 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2">
               <p className="text-xs leading-relaxed text-amber-900">{stepNotice}</p>
-              {/* 案内を実行不能にしない出口（原則15）: 会話が使えない日はこのstepを飛ばして後続（言い直し等）へ進める */}
-              {nextStep?.kind === 'conversation_mission' && !props.conversationAvailable && (
+              {/*
+                案内を実行不能にしない出口（原則15）。
+                stepNotice は「このstepは今できない」と分かったときだけ立つ（AI会話が使えない・
+                解き直す問題が無い・出題が0件・音声が鳴らない）ので、**どの種類のstepでも**
+                飛ばして先へ進める口をここに出す（2026-08-18 監査P1: バトル・読解・聴解には
+                出口が無く、その場で失敗すると今日の冒険を締めくくれないまま翌日まで詰んでいた）
+              */}
+              {nextStepIdx >= 0 && (
                 <button type="button"
                   className={`${pressFx} action-amber mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900`}
-                  onClick={() => { markStep(nextStepIdx); setStepNotice(null); }}>
-                  {tx(lang, 'AI会話を飛ばして次へ進む', '跳过AI会话，继续下一步')}
+                  onClick={() => markStepAndGoNext(nextStepIdx)}>
+                  {nextStep?.kind === 'conversation_mission'
+                    ? tx(lang, 'AI会話を飛ばして次へ進む', '跳过AI会话，继续下一步')
+                    : tx(lang, 'このstepを飛ばして次へ進む', '跳过这一步，继续下一步')}
                 </button>
               )}
             </div>
           )}
-          {/* 単元のことば・復習は別画面へ渡すので、完了の合図が戻ってこない。
-              「開いた＝やった」にはしないぶん、本人が終わりを言える口をここに出す（2026-08-17） */}
           {/* 復習stepの自己申告リンクは撤去（2026-08-18）。復習はバトルとして出るので、
               終われば必ず完了する。やっていないことを自己申告させる口を残さない。
-              単元のことばは別画面（旧エリア）へ渡すため合図が返らないので、ここだけ残す */}
+              単元のことばは、単元を最後まで終えれば上の効果（unitCompletedLocally）が
+              自動で完了にする。この小リンクは「その語はもう知っている」人のための
+              明示操作としてだけ残す（開いただけでは完了しない点は変わらない） */}
           {!stepNotice && nextStep?.kind === 'vocab_new' && (
             <button type="button"
               className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
-              onClick={() => { markStep(nextStepIdx); }}>
+              onClick={() => markStepAndGoNext(nextStepIdx)}>
               {tx(lang, 'この単元のことばは学び終わった（次へ進む）', '这个单元的词汇学完了（继续下一步）')}
             </button>
           )}
@@ -2143,7 +2354,7 @@ export default function AdvShell(props: AdvShellProps) {
           {!stepNotice && nextStep?.kind === 'conversation_mission' && (
             <button type="button"
               className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
-              onClick={() => { markStep(nextStepIdx); }}>
+              onClick={() => markStepAndGoNext(nextStepIdx)}>
               {tx(lang, '今日はAI会話を飛ばして次へ進む（マイクの調子が悪いときなど）',
                 '今天跳过AI会话，继续下一步（比如麦克风不太好用的时候）')}
             </button>
@@ -2163,12 +2374,15 @@ export default function AdvShell(props: AdvShellProps) {
               className={`${pressFx} action-emerald mt-4 w-full min-h-[48px] rounded-xl bg-emerald-600 px-4 py-3 text-base font-bold text-white`}
               onClick={() => {
                 const log = prof.questLog.filter((e) => e.dateKey !== dateKey);
+                const earned = doneSteps.size * XP_RULES.questStep;
                 save({
                   ...prof,
                   questLog: [...log, { dateKey, completedSteps: doneSteps.size, totalSteps: quest.steps.length }].slice(-60),
                   lastQuest: { dateKey, primaryTargets: quest.primaryTargets, stepKinds: quest.steps.map((s) => s.kind) },
-                  xp: (prof.xp ?? 0) + doneSteps.size * XP_RULES.questStep,
+                  xp: (prof.xp ?? 0) + earned,
                 });
+                // 実際に加算した回だけ「+N」を出す（見直しでは合計だけ）
+                setJustEarnedXp(earned);
                 trackAdv('today_quest_completed', { goalType: prof.goalType ?? undefined, locale: lang });
                 setView('complete');
               }}>
@@ -2205,7 +2419,7 @@ export default function AdvShell(props: AdvShellProps) {
               )}
               <button type="button"
                 className={`${pressFx} mt-2 min-h-[40px] rounded-lg px-3 text-xs text-emerald-700 underline active:bg-emerald-100`}
-                onClick={() => setView('complete')}>
+                onClick={() => { setJustEarnedXp(null); setView('complete'); }}>
                 {tx(lang, '今日のまとめをもう一度見る', '再看一次今天的小结')}
               </button>
             </div>
@@ -2304,10 +2518,6 @@ export default function AdvShell(props: AdvShellProps) {
   );
 
 }
-
-const AREA_BY_UNIT: Record<string, string> = Object.fromEntries(
-  Object.entries(AREA_UNIT_MAP).flatMap(([area, units]) => units.map((u) => [u, area])),
-);
 
 function AdvLoading({ lang, inline, note }: { lang: L; inline?: boolean; note?: string }) {
   return (

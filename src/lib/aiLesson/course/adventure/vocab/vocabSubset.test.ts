@@ -18,6 +18,7 @@ import {
 } from './vocabSubset';
 import { buildMockSpec } from '../advMock';
 import { startMockSession, restoreMockSession } from '../advMockSession';
+import { VOCAB_BANDS_IN_SCOPE, isVocabTargetInScope, vocabTargetForStage } from '../advQuest';
 
 const srcOf = (rel: string): string =>
   readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
@@ -95,6 +96,43 @@ describe('1バンドの候補が痩せない', () => {
       expect(wordsOf(qs).size, `${band} の異なり語`).toBe(qs.length);
     }
   }, 300_000);
+});
+
+/**
+ * 2026-08-18 監査P1: 目標をN2→N3へ変えると、台帳に残った `vocab-n2` が7日後に
+ * 確認バトルの対象として選ばれ、N3スコープにN2語が無いためプールが空になっていた
+ * （＝押しても「出題できる問題がありません」で戻される行き止まり）。
+ * 出題側が参照する VOCAB_BANDS_IN_SCOPE（advQuest.ts。語彙bankを読ませないため別置き）が
+ * 実プールと食い違ったら、ここで落とす。
+ */
+describe('目標レベル外のバンドを出題対象にしない', () => {
+  it('VOCAB_BANDS_IN_SCOPE が実際に出題できるバンドと一致する', () => {
+    for (const level of ['N3', 'N2'] as const) {
+      const real = [...vocabBands(level).keys()].sort();
+      expect([...VOCAB_BANDS_IN_SCOPE[level]].sort(), `${level} のスコープ表`).toEqual(real);
+    }
+    // N3目標にN2語は無い（この1件が今回の行き止まりの正体）
+    expect(isVocabTargetInScope('vocab-n2', 'N3')).toBe(false);
+    expect(isVocabTargetInScope('vocab-n2', 'N2')).toBe(true);
+    // 語彙以外のtargetIdは判断しない（文法・単元IDを巻き添えで外さない）
+    expect(isVocabTargetInScope('n3g-unit-01', 'N3')).toBe(true);
+  }, 300_000);
+
+  it('スコープ外バンドのプールは空・スコープ内バンドは空でない（表と実物が一致）', () => {
+    expect(vocabSubsetPool('N3', { seed: 1, onlyBands: ['vocab-n2'] }).size).toBe(0);
+    for (const band of VOCAB_BANDS_IN_SCOPE.N3) {
+      expect(flat(vocabSubsetPool('N3', { seed: 1, onlyBands: [band] })).length, band).toBeGreaterThan(0);
+    }
+  }, 300_000);
+
+  it('今日の語彙バトルもスコープ外のバンドを返さない（N2のstageが残っていても）', () => {
+    for (const day of [0, 1, 2, 3]) {
+      expect(isVocabTargetInScope(vocabTargetForStage('n2_grammar', 'N3', day) ?? 'vocab-n3', 'N3')).toBe(true);
+      expect(isVocabTargetInScope(vocabTargetForStage('mock_boss', 'N3', day) ?? 'vocab-n3', 'N3')).toBe(true);
+    }
+    // N2目標では従来どおりN2語を出す（過剰に狭めない）
+    expect(vocabTargetForStage('n2_grammar', 'N2', 0)).toBe('vocab-n2');
+  });
 });
 
 describe('生成が重くなったら落ちる', () => {

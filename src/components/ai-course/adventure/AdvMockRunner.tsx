@@ -37,6 +37,11 @@ export interface AdvMockRunnerProps {
   /** 保存済みセッション（reload復帰） */
   savedState: MockSessionState | null;
   onPersist: (state: MockSessionState | null) => void;
+  /**
+   * 模試の完了。**保存はこの中で1回だけ行うこと**。
+   * mockSession（中断状態）の破棄もこの保存に含める＝ここで onPersist(null) は呼ばない
+   * （同じtickに保存を2回投げると、到着順が入れ替わったとき結果が消える・2026-08-18 監査P1）
+   */
   onFinish: (result: MockResult) => void;
   onClose: () => void;
   /** これまでの模試ログ（成績推移の表示用・2026-08-17 監査: 保存済みなのに見えなかった） */
@@ -134,8 +139,13 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       rtRef.current = done;
       setRt(done);
       setResult(graded);
-      props.onPersist(null); // セッション終了＝保存状態を破棄
       trackAdv('mock_completed', { locale: lang, targetLevel: spec.level });
+      // **保存は onFinish の1回だけ**（2026-08-18 監査P1）。
+      // 以前はここで onPersist(null)（＝mockSessionを消すだけの保存）を撃ってから
+      // onFinish（＝mastery・mockLog・XPを含む保存）を撃っていた。
+      // どちらも同じ描画時点のプロファイルから全体を組み立てて await せずに投げるため、
+      // 先に投げた「結果を含まない方」が後に着くと、20分かけた模試の記録が丸ごと消えた。
+      // 中断状態の破棄（mockSession: null）は onFinish の保存に含めること（呼び出し側の約束）。
       props.onFinish(graded);
       setPhase('finished');
       return;

@@ -224,6 +224,11 @@ export interface SectionResult {
   elapsedSec: number;
   finishedInTime: boolean;
   bySkill: Record<string, { correct: number; total: number; unseen: number }>;
+  /**
+   * このsectionで間違えた（未回答を含む）問題キー。错题本の材料。
+   * **全問正解でも空配列**（配列が在ること自体が「正誤を記録した」印・advMistakeNotebook.ts）
+   */
+  wrongKeys: string[];
 }
 
 export const gradeSection = (
@@ -234,12 +239,14 @@ export const gradeSection = (
   const remaining = rt.state.remainingSecBySection[sectionIdx] ?? 0;
   let correct = 0; let unanswered = 0;
   const bySkill: SectionResult['bySkill'] = {};
+  const wrongKeys: string[] = [];
   for (const q of sec.questions) {
     const p = sec.presented.find((x) => x.key === q.key);
     const picked = rt.state.answers[q.key] ?? null;
     if (picked === null) unanswered += 1;
     const ok = p ? isCorrectAnswer(p, picked) : false;
     if (ok) correct += 1;
+    else wrongKeys.push(q.key);
     const row = bySkill[q.skill] ?? { correct: 0, total: 0, unseen: 0 };
     row.total += 1;
     if (ok) row.correct += 1;
@@ -253,6 +260,7 @@ export const gradeSection = (
     elapsedSec: Math.max(0, limit - remaining),
     finishedInTime: remaining > 0,
     bySkill,
+    wrongKeys,
   };
 };
 
@@ -268,6 +276,12 @@ export interface MockResult {
   bySkill: Record<string, { correct: number; total: number; unseen: number }>;
   skills: ExamSkill[];
   allQuestionKeys: string[];
+  /**
+   * 全section合算の誤答キー（未回答も誤答）。**全問正解でも空配列**。
+   * これを台帳のattemptへ入れないと、模試を1回受けるだけで
+   * 「正誤を記録していない試行」とみなされ、错题本の未克服が全部「未確認」へ落ちる。
+   */
+  wrongKeys: string[];
   unseenRatio: number;
 }
 
@@ -294,6 +308,7 @@ export const gradeMock = (rt: MockRuntime, seenKeysAtStart: Set<string>): MockRe
     bySkill,
     skills: [...new Set(rt.sections.flatMap((s) => s.questions.map((q) => q.skill)))],
     allQuestionKeys,
+    wrongKeys: sections.flatMap((s) => s.wrongKeys),
     unseenRatio: allQuestionKeys.length === 0 ? 0
       : Math.round((unseen / allQuestionKeys.length) * 100) / 100,
   };
@@ -314,13 +329,21 @@ export const toMockLogEntry = (r: MockResult, dateKey: string, completedAt: stri
   completedAt,
 });
 
-/** 模試結果 → mastery台帳へ入れるattempt（timed evidence・skill別evidenceを同時に供給する） */
+/**
+ * 模試結果 → mastery台帳へ入れるattempt（timed evidence・skill別evidenceを同時に供給する）。
+ *
+ * **wrongKeys を必ず入れる**（2026-08-18 監査P1）。模試の問題キーはバトルと同じなので、
+ * 正誤を落とすと错题本が「この問題は正誤を記録していない試行で出題された」と読み、
+ * 未克服だった誤答が模試1回で全部「未確認」へ落ちていた（advMistakeNotebook.ts の
+ * unverifiedSinceGraded 判定）。全問正解でも空配列を入れること。
+ */
 export const toMockAttempt = (
   r: MockResult, dateKey: string, seenKeysAtStart: Set<string>, completedAt: string,
 ): {
   dateKey: string; scorePct: number; unseenRatio: number; questionKeys: string[];
   tier: 'rankboss'; timed: true; completedAt: string; skills: string[];
   bySkill: Record<string, { correct: number; total: number; unseen: number }>;
+  wrongKeys: string[];
 } => ({
   dateKey,
   scorePct: r.totalQuestions === 0 ? 0 : Math.round((r.totalCorrect / r.totalQuestions) * 100),
@@ -332,6 +355,7 @@ export const toMockAttempt = (
   completedAt,
   skills: r.skills,
   bySkill: r.bySkill,
+  wrongKeys: r.wrongKeys,
 });
 
 /** 未回答の問題番号（1始まり）。section提出前の警告に使う */

@@ -119,12 +119,17 @@ export function AdvKanaDojo({ lang, rowIds, onFinishCheck, onRowsDone, onBack }:
               ? tx(lang, 'かなは読めています！', '假名已经会读了！')
               : tx(lang, 'いっしょに覚えていきましょう', '我们一起来记吧')}
           </h2>
+          {/*
+            「明日から」と書いていたが、実装は「わかった」を押した時点で profile.kana が更新され、
+            その場で今日の冒険が作り直される（合格＝本編、不合格＝かな道場の行）。
+            言葉を実装に合わせる（2026-08-18 監査P2）
+          */}
           <p className="mt-2 text-sm text-gray-600">
             {passed
-              ? tx(lang, `${checkResult}/10問正解。かな道場はスキップして、明日から本編に入ります。`,
-                `答对${checkResult}/10题。跳过假名道场，明天开始进入正式学习。`)
-              : tx(lang, `${checkResult}/10問正解。明日から1日2行ずつ、ひらがな・カタカナを覚えていきます（約10日）。`,
-                `答对${checkResult}/10题。从明天开始每天学2行，把平假名和片假名记住（约10天）。`)}
+              ? tx(lang, `${checkResult}/10問正解。かな道場はスキップします。このまま今日の冒険を始められます。`,
+                `答对${checkResult}/10题。跳过假名道场。现在就可以开始今天的冒险。`)
+              : tx(lang, `${checkResult}/10問正解。今日から1日2行ずつ、ひらがな・カタカナを覚えていきます（約10日）。`,
+                `答对${checkResult}/10题。从今天开始每天学2行，把平假名和片假名记住（约10天）。`)}
           </p>
           <button type="button" className={`${primaryBtn} mt-6`} onClick={() => onFinishCheck(passed)}>
             {tx(lang, 'わかった', '知道了')}

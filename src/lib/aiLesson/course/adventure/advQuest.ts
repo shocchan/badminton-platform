@@ -31,18 +31,47 @@ export interface QuestContentAvailability {
 }
 
 /**
+ * 目標レベルで出題できる語彙バンド（vocabQuestions.ts の VOCAB_SCOPE と同じ範囲）。
+ *
+ * ここに無いバンドをtargetにすると、出題プール（vocabSubsetPool）が空Mapを返し
+ * 「出題できる問題がありません」の行き止まりになる。**vocabQuestions.ts を直接importすると
+ * 語彙バンク約3,349語がHomeのchunkへ入ってしまう**ので、値はここに置き、
+ * VOCAB_SCOPE と一致していることは vocab/vocabSubset.test.ts で機械的に固定する。
+ */
+export const VOCAB_BANDS_IN_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
+  N3: ['vocab-n5', 'vocab-n4', 'vocab-n3'],
+  N2: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2'],
+};
+
+/**
+ * その学習対象を、いまの目標レベルで出題できるか。
+ * 語彙以外のtargetIdは対象外＝そのまま true（判断しない）。
+ *
+ * 2026-08-18 監査P1: 目標をN2→N3へ変えると、台帳に残った `vocab-n2` が7日後に
+ * 確認バトルの対象として選ばれ、N3スコープにはN2語が無いためプールが空になり、
+ * その日の冒険が締めくくれなくなっていた。
+ */
+export const isVocabTargetInScope = (targetId: string, targetLevel: 'N2' | 'N3'): boolean =>
+  !targetId.startsWith('vocab-') || VOCAB_BANDS_IN_SCOPE[targetLevel].includes(targetId);
+
+/**
  * 今日の語彙バトルのバンド（stage対応・日替わり）。
  * 基礎固め中はN5/N4を交互に、N3圏に入ったらN3語、N2文法期はN2/N3を交互に。
- * 会話stageでは出さない
+ * 会話stageでは出さない。
+ * **目標レベルの範囲外のバンドは返さない**（プールが空＝押せないバトルになるため。
+ * 目標をN2→N3へ変えた生徒にN2のstageが残っている場合に効く）
  */
 export const vocabTargetForStage = (
   kind: AdvRouteStage['kind'], targetLevel: 'N2' | 'N3', dayNum: number,
 ): string | null => {
   if (kind === 'conversation_start' || kind === 'conversation_growth') return null;
-  if (kind === 'foundation_camp' || kind === 'n3_bridge') return dayNum % 2 === 0 ? 'vocab-n5' : 'vocab-n4';
-  if (kind === 'n2_grammar') return dayNum % 2 === 0 ? 'vocab-n2' : 'vocab-n3';
-  if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
-  return 'vocab-n3';
+  const band = (() => {
+    if (kind === 'foundation_camp' || kind === 'n3_bridge') return dayNum % 2 === 0 ? 'vocab-n5' : 'vocab-n4';
+    if (kind === 'n2_grammar') return dayNum % 2 === 0 ? 'vocab-n2' : 'vocab-n3';
+    if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
+    return 'vocab-n3';
+  })();
+  return isVocabTargetInScope(band, targetLevel) ? band : 'vocab-n3';
 };
 
 export interface GenerateQuestInput {
@@ -334,11 +363,19 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     estimatedMinutes,
     targetSkills,
     targetExpressions: parts.expressions,
+    // 今日のゴールは**実装している完了条件**をそのまま書く（2026-08-18 監査P2）。
+    // stepの✓はバトルを最後まで解いた時点で付く（点数は問わない）。
+    // 80%は「攻略が1日ぶん進む」条件（別日3回＋遅延確認で攻略・advMastery）なので、
+    // 達成の条件ではなく“伸びる条件”として添える。旧文言は0%でも✓が付く実装と食い違っていた
     successConditionJa: parts.battle
-      ? (hasConv ? 'バトルで80%以上、AI会話を1回終える' : 'バトルで80%以上を取る')
+      ? (hasConv
+        ? 'バトルを最後まで解き、AI会話を1回終える（80%以上なら攻略が1日ぶん進みます）'
+        : 'バトルを最後まで解く（80%以上なら攻略が1日ぶん進みます）')
       : (hasConv ? 'AI会話を1回終える' : '今日のstepをすべて終える'),
     successConditionZh: parts.battle
-      ? (hasConv ? '战斗拿到80%以上，并完成一次AI会话' : '战斗拿到80%以上')
+      ? (hasConv
+        ? '把战斗做到最后，并完成一次AI会话（拿到80%以上，攻略就前进一天）'
+        : '把战斗做到最后（拿到80%以上，攻略就前进一天）')
       : (hasConv ? '完成一次AI会话' : '完成今天的所有步骤'),
     nextStepJa: '明日は今日の復習から始まります',
     nextStepZh: '明天从复习今天的内容开始',
