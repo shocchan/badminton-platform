@@ -172,7 +172,12 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, onExitReview, initi
   return (
     <div className="max-w-md mx-auto px-4 py-6">
       <div className="flex items-center gap-2 mb-3">
-        <button type="button" onClick={() => (view === 'top' ? onBack() : setView(view === 'detail' && category ? 'category' : 'top', view === 'detail' ? category : null))}
+        {/* V2の生徒が復習から戻るときは「ことば図鑑トップ」ではなく今日の冒険へ返す（2026-08-17）。
+            今日の冒険から来たのに旧コースの図鑑に着地すると、何の画面か分からなくなる */}
+        <button type="button" onClick={() => (
+          view === 'quickreview' && onExitReview ? onExitReview()
+            : view === 'top' ? onBack()
+              : setView(view === 'detail' && category ? 'category' : 'top', view === 'detail' ? category : null))}
           aria-label={t.roadmap.back} className="min-h-11 min-w-11 flex items-center justify-center text-gray-500 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><ArrowLeft className="w-5 h-5" /></button>
         <h1 className="text-base font-bold text-gray-900 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-indigo-600" />{tv.title}</h1>
         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{t.lab.betaBadge}</span>
