@@ -470,10 +470,12 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
         <p className="mb-1 rounded-lg bg-gray-50 px-3 py-2 text-base font-semibold leading-relaxed text-gray-900">{q.targetJapanese}</p>
       )}
       {q.questionJa && <p className="mb-1 text-base font-semibold text-gray-900">{q.questionJa}</p>}
-      {/* 中国語の設問は、zh画面のときと**日本語の設問が1つも無いとき**に出す（2026-08-17）。
-          rec問題は questionJa が常に null で、見出し（targetJapanese）が答えを割るときは
-          それも隠す。両方隠れると ja画面では選択肢4つだけが並び、何を問われているか分からなくなる */}
-      {(lang === 'zh' || (!q.questionJa && !q.targetJapanese)) && (
+      {/* 中国語の設問は、zh画面のときと**日本語の設問が無いとき**に出す（2026-08-17 staging実測）。
+          rec問題は questionJa が構造的に常に null で、設問は promptZh 側にしかない。
+          ja画面でこれを出さないと「見出し＋選択肢4つ」だけが並び、
+          何を問われているのか分からないまま選ばせることになる（バトル画面は常に出している）。
+          見出しまで隠れる問題（答えを割るケース）では、これが唯一の設問文になる */}
+      {(lang === 'zh' || !q.questionJa) && (
         <p className="mb-3 text-sm text-gray-600">{q.questionZh}</p>
       )}
 
