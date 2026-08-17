@@ -20,7 +20,9 @@
 // - 地図が読めない/使えない人のために**一覧表示へ切り替えられる**
 import { pressFx } from './advUi';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { List, Map as MapIcon, Check, Lock, Flag, ChevronRight } from 'lucide-react';
+import { List, Map as MapIcon, Lock, Flag, ChevronRight, Star, ChevronDown } from 'lucide-react';
+import { CompanionAvatar } from './CompanionAvatar';
+import { levelOf } from '../../../lib/aiLesson/course/adventure/advXp';
 import {
   buildAdventureMap, availableRouteKinds, ROUTE_KIND_LABEL, ROUTE_KIND_HINT, LAYER_LABEL,
   type MapRegion, type MapRouteKind, type RegionAction,
@@ -66,6 +68,15 @@ interface Props {
   paceNoteJa?: string | null;
   paceNoteZh?: string | null;
 }
+
+/** 章バナーの色替え（ゲームのワールド感。章が進むと世界の色が変わる・2026-08-17 CEO要望） */
+const CHAPTER_BANNERS = [
+  'from-sky-500 to-indigo-500',
+  'from-amber-400 to-orange-500',
+  'from-emerald-500 to-teal-600',
+  'from-violet-500 to-fuchsia-500',
+  'from-rose-400 to-red-500',
+];
 
 const STATE_LABEL: Record<MapRegion['state'], { ja: string; zh: string }> = {
   done: { ja: '攻略済み', zh: '已攻略' },
@@ -273,6 +284,10 @@ export const AdvAdventureMap = ({
             : <div className="h-full w-full bg-gradient-to-b from-sky-100 to-emerald-100" />}
           {/* 文字を読ませるための暗幕。イラストは下に透ける */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
+          {/* 冒険のレベル（XP・努力の見える化）。攻略の数字とは別軸（原則13） */}
+          <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-amber-700 shadow-sm">
+            ⭐ Lv.{levelOf(profile.xp ?? 0)}
+          </span>
           <div className="absolute inset-x-0 bottom-0 p-3">
             <p className="text-[11px] font-semibold text-white/85">
               {current ? tx(lang, current.chapterJa, current.chapterZh) : tx(lang, '冒険の準備中', '冒险准备中')}
@@ -396,7 +411,7 @@ export const AdvAdventureMap = ({
         <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-b from-sky-50 via-white to-emerald-50 p-3">
           {/* 凡例。色だけで状態を伝えないための言葉での説明 */}
           <ul className="mb-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-gray-600">
-            <li className="flex items-center gap-1"><Check className="h-3 w-3 text-emerald-600" aria-hidden />{tx(lang, '攻略済み', '已攻略')}</li>
+            <li className="flex items-center gap-1"><Star className="h-3 w-3 text-amber-500" fill="currentColor" aria-hidden />{tx(lang, '攻略済み', '已攻略')}</li>
             <li className="flex items-center gap-1"><Flag className="h-3 w-3 text-blue-600" aria-hidden />{tx(lang, '現在地', '当前位置')}</li>
             <li className="flex items-center gap-1"><ChevronRight className="h-3 w-3 text-amber-500" aria-hidden />{tx(lang, '次の目的地', '下一个目的地')}</li>
             <li className="flex items-center gap-1"><Lock className="h-3 w-3 text-gray-400" aria-hidden />{tx(lang, '霧の中（未解放）', '迷雾中（未开启）')}</li>
@@ -411,7 +426,11 @@ export const AdvAdventureMap = ({
               // 攻略済みの区間は実線で明るく、これからの区間は点線
               const railDone = r.state === 'done';
               // 章の見出しが挟まる行は、その高さぶんだけ道の始点が下がる
-              const chapterOffset = newChapter ? 30 : 0;
+              const chapterOffset = newChapter ? 34 : 0;
+              // 章バナー: 章ごとに世界の色を変え、章内の攻略状況を添える（ゲームのワールド感）
+              const chapterIdx = new Set(map.regions.slice(0, i + 1).map((x) => x.chapterJa)).size - 1;
+              const chRegions = map.regions.filter((x) => x.chapterJa === r.chapterJa);
+              const chDone = chRegions.filter((x) => x.state === 'done').length;
               return (
                 <li key={r.id} ref={isCurrent ? currentRef : undefined} className="relative">
                   {/*
@@ -424,8 +443,16 @@ export const AdvAdventureMap = ({
                     }`}
                     style={{ top: chapterOffset, height: isLast ? 44 : `calc(100% - ${chapterOffset}px)` }} />
                   {newChapter && (
-                    <p className={`relative z-10 -mx-1 mb-1 rounded-lg bg-gray-900/85 px-3 py-1 text-[11px] font-bold text-white ${i === 0 ? '' : 'mt-3'}`}>
-                      {tx(lang, r.chapterJa, r.chapterZh)}
+                    <p className={`relative z-10 -mx-1 mb-1 flex items-center justify-between gap-2 rounded-xl bg-gradient-to-r px-3 py-1.5 text-[11px] font-bold text-white shadow-sm ${
+                      CHAPTER_BANNERS[chapterIdx % CHAPTER_BANNERS.length]} ${i === 0 ? '' : 'mt-3'}`}>
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <Flag className="h-3 w-3 shrink-0" aria-hidden />
+                        <span className="truncate">{tx(lang, r.chapterJa, r.chapterZh)}</span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-white/25 px-1.5 py-0.5"
+                        aria-label={tx(lang, `この章の攻略 ${chDone}/${chRegions.length}`, `本章攻略 ${chDone}/${chRegions.length}`)}>
+                        {chDone}/{chRegions.length}
+                      </span>
                     </p>
                   )}
                   <div className="flex gap-3">
@@ -440,14 +467,22 @@ export const AdvAdventureMap = ({
                         {isCurrent && (
                           <span className="pointer-events-none absolute -inset-1 rounded-2xl border-2 border-blue-400 motion-safe:animate-ping" aria-hidden />
                         )}
+                        {/* 次の目的地: 跳ねるピンで「次はここ！」と誘う */}
+                        {r.state === 'next' && (
+                          <span className="adv-hop pointer-events-none absolute -top-2.5 left-1/2 z-20 -translate-x-1/2" aria-hidden>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white shadow-md ring-2 ring-white">
+                              <ChevronDown className="h-4 w-4" strokeWidth={3} />
+                            </span>
+                          </span>
+                        )}
                         <span className={`relative block overflow-hidden rounded-2xl bg-white ${STATE_STYLE[r.state].ring} ${
                           isCurrent ? 'shadow-lg' : ''}`}>
                           <LandmarkScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
                             className={`block w-full ${isCurrent ? 'h-[76px]' : 'h-[62px]'}`} />
                           {/* 状態を記号でも示す（色だけに依存しない） */}
                           {r.state === 'done' && (
-                            <span className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-white" aria-hidden>
-                              <Check className="h-3.5 w-3.5" strokeWidth={3} />
+                            <span className="adv-twinkle absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-white shadow-sm" aria-hidden>
+                              <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
                             </span>
                           )}
                           {r.state === 'locked' && (
@@ -457,13 +492,20 @@ export const AdvAdventureMap = ({
                           )}
                         </span>
                       </button>
-                      {/* 現在地には学習者と先生を立たせる */}
+                      {/* 現在地にはパーティー（自分・先生・相棒）を立たせる。ゆっくり弾む */}
                       {isCurrent && (
                         <div className="mt-1 flex items-center justify-center gap-1" aria-hidden>
-                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
+                          <span className="adv-bob flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white">
                             {tx(lang, '私', '我')}
                           </span>
-                          <TeacherAvatar size={24} lang={lang} labeled={false} className="ring-2 ring-white" />
+                          <span className="adv-bob-delay inline-flex">
+                            <TeacherAvatar size={24} lang={lang} labeled={false} className="ring-2 ring-white" />
+                          </span>
+                          {profile.companionId && (
+                            <span className="adv-bob inline-flex overflow-hidden rounded-full ring-2 ring-white">
+                              <CompanionAvatar id={profile.companionId} size={24} />
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
@@ -472,7 +514,14 @@ export const AdvAdventureMap = ({
                     <div className="min-w-0 flex-1 pb-3 pt-1">
                       <button type="button" onClick={() => setOpenId(openId === r.id ? null : r.id)}
                         aria-label={regionAria(r)} aria-expanded={openId === r.id}
-                        className={`${pressFx} w-full rounded-lg text-left active:bg-gray-100`}>
+                        className={`${pressFx} relative w-full rounded-lg text-left active:bg-gray-100`}>
+                        {/* 攻略済みのハンコ（記念スタンプ風。状態は左のchipでも伝えている） */}
+                        {r.state === 'done' && (
+                          <span aria-hidden
+                            className="pointer-events-none absolute right-0 top-0.5 -rotate-6 rounded border-2 border-red-400/80 px-1 py-px text-[10px] font-bold text-red-500/90">
+                            {tx(lang, '攻略！', '攻略！')}
+                          </span>
+                        )}
                         <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold ${STATE_STYLE[r.state].chip}`}>
                           {tx(lang, STATE_LABEL[r.state].ja, STATE_LABEL[r.state].zh)}
                         </span>

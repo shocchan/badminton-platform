@@ -48,11 +48,13 @@ const TONES: Record<MapTone, Tone> = {
     ground: '#7cc3e8', groundEdge: '#589fc9',
     base: '#f2f8fc', deep: '#3d7fa8', roof: '#e78a6d', leaf: '#79b58c', night: false,
   },
+  // 2026-08-17 CEO要望「もっと可愛らしく・冒険らしく」: 灰色一色だった遺跡調を
+  // 「青空の下の砂色の遺跡」へ（ドラブな灰は locked の霧と見分けもつきにくかった）
   stone: {
-    skyTop: '#cdd6e0', skyBottom: '#eef2f6', orb: '#ffffff',
-    farHill: '#a9b2bd', nearHill: '#8d97a4',
-    ground: '#c3bcae', groundEdge: '#a49b8b',
-    base: '#e7e2d6', deep: '#8b8375', roof: '#b5705f', leaf: '#8ba674', night: false,
+    skyTop: '#a3cdf0', skyBottom: '#e9f4fd', orb: '#ffe9a8',
+    farHill: '#c9aa80', nearHill: '#b08f63',
+    ground: '#e3d0a2', groundEdge: '#c7ac78',
+    base: '#f0e4ce', deep: '#9a7d58', roof: '#c96a55', leaf: '#7fae6a', night: false,
   },
   sunset: {
     skyTop: '#f8a07e', skyBottom: '#ffe0c2', orb: '#ff8a4c',
@@ -424,6 +426,15 @@ export const LandmarkScene = ({ kind, tone, fogged = false, className }: ScenePr
           <path d="M-6 66 q28 -9 56 0 q28 9 56 0 q28 -9 56 0 V114 H-6 Z" fill="#f1f5f9" opacity="0.7" />
           <path d="M-6 46 q24 -7 48 0 q24 7 48 0 q24 -7 48 0" stroke="#fff" strokeWidth="6"
             fill="none" opacity="0.6" strokeLinecap="round" />
+          {/* 霧の中の「？」雲。未知の場所への好奇心を誘う（文字ではなく図形で描く） */}
+          <g opacity="0.9">
+            <ellipse cx="80" cy="38" rx="21" ry="13" fill="#fff" />
+            <ellipse cx="65" cy="42" rx="12" ry="9" fill="#fff" />
+            <ellipse cx="96" cy="42" rx="12" ry="9" fill="#fff" />
+            <path d="M74 34 q0 -6 6 -6 q7 0 7 6 q0 4 -5 6 l-1 3" stroke="#94a3b8" strokeWidth="3.4"
+              fill="none" strokeLinecap="round" />
+            <circle cx="80" cy="47" r="1.9" fill="#94a3b8" />
+          </g>
         </>
       )}
     </svg>

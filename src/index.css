@@ -118,6 +118,28 @@
   }
   .check-pop { animation: check-pop 0.45s ease-out both; }
 
+  /* ── 冒険マップのゲーム演出（2026-08-17 CEO要望「可愛く・冒険らしく」） ── */
+  /* 現在地の相棒・自分がゆっくり弾む */
+  @keyframes adv-bob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+  }
+  .adv-bob { animation: adv-bob 2s ease-in-out infinite; }
+  .adv-bob-delay { animation: adv-bob 2s ease-in-out infinite; animation-delay: 0.35s; }
+  /* 攻略済みの星がまたたく */
+  @keyframes adv-twinkle {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.7; transform: scale(0.88); }
+  }
+  .adv-twinkle { animation: adv-twinkle 2.6s ease-in-out infinite; }
+  /* 次の目的地のピンが小さく跳ねる */
+  @keyframes adv-hop {
+    0%, 100% { transform: translateY(0); }
+    30%      { transform: translateY(-4px); }
+    55%      { transform: translateY(0); }
+  }
+  .adv-hop { animation: adv-hop 1.9s ease-in-out infinite; }
+
   /* 旅マップの道が上から伸びる */
   @keyframes line-grow {
     from { transform: scaleY(0); }
