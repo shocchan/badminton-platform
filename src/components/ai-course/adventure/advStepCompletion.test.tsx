@@ -19,12 +19,20 @@ describe('完了の記録は「やった」ときだけ', () => {
     expect(m![0]).not.toMatch(/markStep/);
   });
 
-  it('復習stepは「期限切れが0件になった」実測で完了する', () => {
-    expect(SRC).toMatch(/props\.reviewsDue > 0\) return;[\s\S]{0,200}kind === 'review_due'/);
+  // 2026-08-18 更新: この約束は作り替えで置き換わった。
+  // 「期限切れが0件になったら完了」は、数字の出所（旧コースのItemProgress）と
+  // 復習の中身が別システムだったため**永久に成立しない条件**だった（監査P0）。
+  // いまは復習が解き直しバトルとして出るので、バトルを終えれば必ず完了する。
+  it('復習stepは解き直しバトルを終えたときに完了する（永久に成立しない条件を置かない）', () => {
+    expect(SRC).not.toMatch(/props\.reviewsDue > 0\) return;/);
+    const branch = /if \(s\.kind === 'review_due'\) \{[\s\S]{0,900}?\n {4}\}/.exec(SRC);
+    expect(branch, 'review_due の分岐が見つからない').toBeTruthy();
+    // fromStepIdx を渡す＝バトル終了時にこのstepが消し込まれる
+    expect(branch![0]).toMatch(/fromStepIdx: i/);
   });
 
   it('単元のことばstepはタップしただけでは完了にしない', () => {
-    const m = /if \(s\.kind === 'vocab_new' && s\.refIds\[0\]\?\.startsWith\('n3u-'\)\) \{[\s\S]{0,400}?\n    \}/.exec(SRC);
+    const m = /if \(s\.kind === 'vocab_new' && s\.refIds\[0\]\?\.startsWith\('n3u-'\)\) \{[\s\S]{0,400}?\n {4}\}/.exec(SRC);
     expect(m, 'vocab_new の分岐が見つからない').toBeTruthy();
     expect(m![0]).not.toMatch(/markStep/);
   });
@@ -40,9 +48,12 @@ describe('完了の記録は「やった」ときだけ', () => {
   });
 
   it('別画面へ渡すstepには、本人が終わりを言える出口がある（行き止まりにしない）', () => {
-    expect(SRC).toMatch(/復習は終わった（次へ進む）/);
+    // 単元のことばは旧エリア画面へ渡すので完了の合図が返らない。ここだけ自己申告の口を残す
     expect(SRC).toMatch(/この単元のことばは学び終わった（次へ進む）/);
     expect(SRC).toMatch(/読み終わった（今日の冒険に戻る）/);
+    // 復習の自己申告は撤去済み（2026-08-18）。バトルとして出るので終われば必ず完了する。
+    // やっていないことを「やった」と言わせる口を残さない
+    expect(SRC).not.toMatch(/復習は終わった（次へ進む）/);
   });
 });
 

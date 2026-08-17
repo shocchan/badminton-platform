@@ -116,6 +116,51 @@ const buildUnitBattlePools = (): Map<string, AdvBattleQuestion[]> => {
   return out;
 };
 
+/**
+ * 問題数が足りない束を**次の束へ合流**させながら、項目を束へ割り当てる（2026-08-18 共通化）。
+ *
+ * 束は「別日3回80%＋7日後の確認」を未出の問題で通せるだけの問題数（MIN_BUNDLE_QUESTIONS）が要る。
+ * 足りない束を残すと、毎回満点でも未出問題が尽きて**永久に攻略できないstage**ができる（実際にできていた）。
+ * 合流は実測の問題数で決まるので、教材を足せば自動的に細かい束へ戻る。
+ *
+ * @param unitIds 束の並び（学習順）
+ * @param itemsOf 束ID → 配下の項目ID
+ * @param countOf 項目ID → その項目が生む問題数
+ * @param assign  (項目ID, 実際の束ID) を受け取って登録する
+ * @returns 単元ID → 実際の束ID（合流したぶんも解決できる）
+ */
+const mergeThinBundles = (
+  unitIds: string[],
+  itemsOf: (unitId: string) => string[],
+  countOf: (itemId: string) => number,
+  assign: (itemId: string, bundleId: string) => void,
+): Map<string, string> => {
+  const bundleOfUnit = new Map<string, string>();
+  const membersOfBundle = new Map<string, string[]>();
+  let bundleId: string | null = null;
+  let acc = 0;
+  for (const u of unitIds) {
+    if (bundleId === null) { bundleId = u; acc = 0; }
+    bundleOfUnit.set(u, bundleId);
+    for (const id of itemsOf(u)) {
+      assign(id, bundleId);
+      membersOfBundle.set(bundleId, [...(membersOfBundle.get(bundleId) ?? []), id]);
+      acc += countOf(id);
+    }
+    if (acc >= MIN_BUNDLE_QUESTIONS) { bundleId = null; acc = 0; }
+  }
+  // 最後の束が足りないまま終わったら、ひとつ前の束へ吸収する（攻略不能な束を残さない）
+  if (bundleId !== null) {
+    const ids = [...new Set(bundleOfUnit.values())];
+    const prev = ids[ids.length - 2];
+    if (prev) {
+      for (const [u, b] of bundleOfUnit) if (b === bundleId) bundleOfUnit.set(u, prev);
+      for (const id of membersOfBundle.get(bundleId) ?? []) assign(id, prev);
+    }
+  }
+  return bundleOfUnit;
+};
+
 let poolCache: GrammarPools | null = null;
 export const loadGrammarPools = async (): Promise<GrammarPools> => {
   if (poolCache) return poolCache;
@@ -135,16 +180,26 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     list.push(d.grammarId);
     n2ByUnit.set(d.unit, list);
   }
-  // N3文法は束（draft.unit）でmastery判定する。8問しかないunit-10はunit-9へ合流（qualifying3日には17問以上必要）
-  const N3_BUNDLE_MERGE: Record<string, string> = { 'n3g-unit-10': 'n3g-unit-9' };
+  // N3文法は束（draft.unit）でmastery判定する。
+  //
+  // 【2026-08-18 監査P0】以前は unit-10 → unit-9 だけをハードコードで合流させていた。
+  // ところが実測すると **unit-1 は14問しかなく**（17問未満）、毎回100%正解しても
+  // 3日目には未出問題が尽きて qualifying にならず、**永久に攻略できない**stageだった。
+  // N3文法攻略はN3目標の本丸なので、ここで詰まると先へ進めない。
+  // 初級文法と同じ「実測の問題数で自動的に合流する」やり方へ統一する。
+  // 教材を足せば自動的に細かい束へ戻るので、次に同じ穴が空くことはない。
   const n3BundleByItem = new Map<string, string>();
-  for (const d of N3_GRAMMAR_DRAFTS) {
-    const bundle = N3_BUNDLE_MERGE[d.unit] ?? d.unit;
-    n3BundleByItem.set(d.grammarId, bundle);
-    const list = byItem.get(bundle) ?? [];
-    list.push(...(n3Pool.byItem.get(d.grammarId) ?? []));
-    byItem.set(bundle, list);
-  }
+  const n3UnitIds = [...new Set(N3_GRAMMAR_DRAFTS.map((d) => d.unit))]
+    .sort((a, b) => Number(a.split('-')[2]) - Number(b.split('-')[2]));
+  mergeThinBundles(
+    n3UnitIds,
+    (u) => N3_GRAMMAR_DRAFTS.filter((d) => d.unit === u).map((d) => d.grammarId),
+    (id) => (n3Pool.byItem.get(id) ?? []).length,
+    (id, bundle) => {
+      n3BundleByItem.set(id, bundle);
+      byItem.set(bundle, [...(byItem.get(bundle) ?? []), ...(n3Pool.byItem.get(id) ?? [])]);
+    },
+  );
   // N2文法も単元束（n2g-unit-*）でmastery判定する（2026-08-15）。
   // 項目単位（178個×別日3回+7日確認）では理論上800日超かかり半年で完走不可能だった。
   // 学習（learn step）は項目単位のまま・攻略台帳とバトルだけ束にする（N3と同じ設計）

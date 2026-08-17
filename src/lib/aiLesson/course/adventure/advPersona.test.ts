@@ -61,7 +61,7 @@ const todayQuest = (prof: AdventureV2Profile, over: Partial<Parameters<typeof ge
   generateTodayQuest({
     profile: prof,
     route: prof.route!,
-    dueReviewCount: 2,
+    reviewQuestionCount: 2,
     weakGrammarIds: [],
     dateKey: DATE,
     nowISO: NOW,

@@ -60,7 +60,7 @@ describe('今日の冒険への注入', () => {
   };
   const questWithKana = (kana: AdvKanaState | null) => generateTodayQuest({
     profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: 15, kana },
-    route, dueReviewCount: 3, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
+    route, reviewQuestionCount: 3, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
     availability: { nextGrammarIds: [], nextUnitIds: ['u1'], conversationTargets: [] },
     daysToExam: null, masteredStageIds: new Set(),
   });

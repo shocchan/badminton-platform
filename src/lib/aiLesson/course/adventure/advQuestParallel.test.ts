@@ -33,7 +33,7 @@ const daysAgo = (n: number): string => new Date(Date.parse(NOW) - n * 864e5).toI
 
 const quest = (availability: QuestContentAvailability) => generateTodayQuest({
   profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: 15 },
-  route, dueReviewCount: 0, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
+  route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
   availability, daysToExam: null, masteredStageIds: new Set(),
 });
 
@@ -83,7 +83,7 @@ describe('文法束learnの束内巡回（ping-pong回帰防止）', () => {
       const dateKey = new Date(Date.parse('2026-08-15') + d * 864e5).toISOString().slice(0, 10);
       const q = generateTodayQuest({
         profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: 15 },
-        route, dueReviewCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
+        route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
         availability: availOf(), daysToExam: null, masteredStageIds: new Set(),
       });
       const learn = q.steps.find((s) => s.kind === 'grammar_new');
@@ -145,7 +145,7 @@ describe('語彙バトルの配線', () => {
   });
   const questOn = (dateKey: string, minutes: 15 | 30, vocabTarget: string | null) => generateTodayQuest({
     profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: minutes },
-    route, dueReviewCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
+    route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
     availability: availWithVocab(vocabTarget), daysToExam: null, masteredStageIds: new Set(),
   });
 
@@ -171,7 +171,7 @@ describe('語彙バトルの配線', () => {
   it('確認バトルが最優先（確認の日は語彙を積まない）', () => {
     const q = generateTodayQuest({
       profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: 'N3', dailyMinutes: 30 },
-      route, dueReviewCount: 0, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
+      route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey: '2026-08-15', nowISO: NOW,
       availability: { ...availWithVocab('vocab-n3'), confirmTargetIds: ['u1'] },
       daysToExam: null, masteredStageIds: new Set(),
     });

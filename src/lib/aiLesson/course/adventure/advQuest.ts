@@ -48,7 +48,16 @@ export const vocabTargetForStage = (
 export interface GenerateQuestInput {
   profile: AdventureV2Profile;
   route: AdvRoute;
-  dueReviewCount: number;
+  /**
+   * 今日の復習として出せる**問題数**（2026-08-18 作り替え）。
+   *
+   * 以前は旧コースの会話ミッションの復習期限件数（ItemProgress）を渡していた。
+   * ところが押した先は別データ（sessionStorageの語彙図鑑）で、V2の生徒では必ず0件になり、
+   * しかもこの数が減らないので復習stepは永久に完了しなかった（監査P0・8件の根っこ）。
+   * いまは「間違えた問題ノートの未克服のうち、実際に出題できる問題数」を渡す。
+   * **表示する数と実際に出る数が同じ**になり、終われば必ず完了する。
+   */
+  reviewQuestionCount: number;
   weakGrammarIds: string[];
   dateKey: string;
   nowISO: string;
@@ -153,7 +162,7 @@ const stageSteps = (
  * dailyMinutes 5/15/30 で構成が変わる（§13の時間別テンプレに準拠しつつ固定メニュー化を避ける）。
  */
 export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => {
-  const { profile, route, dueReviewCount, weakGrammarIds, dateKey, availability, daysToExam } = input;
+  const { profile, route, reviewQuestionCount, weakGrammarIds, dateKey, availability, daysToExam } = input;
   const minutes = profile.dailyMinutes ?? 15;
   const goalType: AdvGoalType = profile.goalType ?? 'jlpt';
   const seed = [...`${dateKey}:${profile.targetJlpt ?? goalType}`].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
@@ -262,8 +271,11 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     return ex.weakestSkill === 'reading' || ex.weakestSkill === 'listening';
   };
 
-  // ① 復習は常に先頭（期限切れ/当日分がある場合）
-  if (dueReviewCount > 0) push(step('review_due', [], `復習 ${Math.min(dueReviewCount, 9)}件`, `复习 ${Math.min(dueReviewCount, 9)}项`));
+  // ① 復習は常に先頭（間違えた問題が残っている日だけ）。
+  // 「件」ではなく**問**で書く。押すとこの数の問題がそのままバトルで出る
+  if (reviewQuestionCount > 0) {
+    push(step('review_due', [], `復習 ${reviewQuestionCount}問`, `复习 ${reviewQuestionCount}题`));
+  }
 
   // 言い直しは素材がある日だけ入れる（基礎キャンプ等、文法誤答も会話表現も無い日は空stepになるため）
   const restateAvailable = weakGrammarIds.length > 0 || parts.expressions.length > 0;
@@ -310,7 +322,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     ? ['conversation', 'vocabulary']
     : goalType === 'hybrid' ? ['grammar', 'conversation'] : ['grammar', 'vocabulary'];
 
-  const why = buildWhy(goalType, stage, dueReviewCount, weakGrammarIds.length, daysToExam);
+  const why = buildWhy(goalType, stage, reviewQuestionCount, weakGrammarIds.length, daysToExam);
 
   return {
     questId: `quest-${dateKey}`,
@@ -338,7 +350,7 @@ const buildWhy = (
 ): { ja: string; zh: string } => {
   const bits: string[] = [];
   const bitsZh: string[] = [];
-  if (due > 0) { bits.push('忘れる前の復習が最優先'); bitsZh.push('优先在遗忘前复习'); }
+  if (due > 0) { bits.push('間違えた問題をつぶすのが最優先'); bitsZh.push('优先攻克做错的题'); }
   if (weak > 0) { bits.push('直近の誤答を先につぶす'); bitsZh.push('先攻克最近的错题'); }
   bits.push(`現在地「${stage.titleJa}」を進める`);
   bitsZh.push(`推进当前位置「${stage.titleZh}」`);

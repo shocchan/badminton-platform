@@ -135,7 +135,7 @@ describe('advQuest（§13）', () => {
     };
     const route = generateRoute({ goalType: 'jlpt', targetJlpt: 'N2', knowledgeBand: 'n4', conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW });
     return {
-      profile, route, dueReviewCount: 2, weakGrammarIds: ['n3g-aaa'], dateKey: '2026-07-31', nowISO: NOW,
+      profile, route, reviewQuestionCount: 2, weakGrammarIds: ['n3g-aaa'], dateKey: '2026-07-31', nowISO: NOW,
       availability: {
         nextGrammarIds: ['n3g-bbb', 'n3g-ccc'], nextUnitIds: ['n3u-01-self'],
         conversationTargets: [{ refId: 'ctx-1', expression: '〜てもらえますか', themeJa: '仕事のお願い', themeZh: '工作请求' }],
@@ -218,7 +218,7 @@ describe('advQuest（§13）', () => {
     const base = mkInput();
     const convRoute = generateRoute({ goalType: 'conversation', targetJlpt: null, knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW });
     const quest = generateTodayQuest({
-      ...base, route: convRoute, dueReviewCount: 0,
+      ...base, route: convRoute, reviewQuestionCount: 0,
       profile: { ...base.profile, goalType: 'conversation', targetJlpt: null, dailyMinutes: 5 },
       weakGrammarIds: [], daysToExam: null,
     });

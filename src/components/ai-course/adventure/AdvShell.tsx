@@ -144,6 +144,14 @@ const card = 'rounded-2xl border border-gray-200 bg-white p-4';
 const MISTAKE_TARGET_ID = 'mistake-review';
 
 /**
+ * 今日の復習で出す問題数の上限（2026-08-18）。
+ * バトル1回（normal）が7問なので、それに合わせる。
+ * ここを7より大きくすると「表示は10問なのに7問しか出ない」というズレが起きる
+ * （错题本の「解き直す（10問）」で実際に起きていた・監査P1）
+ */
+const REVIEW_BATTLE_SIZE = 7;
+
+/**
  * 学習対象IDを生徒に見せる言葉へ（原則13: 内部IDを見せない）。
  * 名前が分からないIDは**それらしい名前を作らず**「学習した内容」とだけ言う。
  */
@@ -185,6 +193,11 @@ export default function AdvShell(props: AdvShellProps) {
   const [forecast, setForecast] = useState<ReviewForecast | null>(null);
   /** 错题本から解き直す問題キー（このバトルの間だけ有効） */
   const [mistakeKeys, setMistakeKeys] = useState<string[]>([]);
+  /**
+   * 今日の復習stepで出す問題キー（2026-08-18 作り替え）。
+   * ホームに出す「復習 N問」の N と**同じ集合**。押すとこれがそのままバトルになる
+   */
+  const [reviewKeys, setReviewKeys] = useState<string[]>([]);
   /** 開いたままのタブが古いJSで動いていないか（2026-08-17 実際に起きた事故の再発防止） */
   const [staleBuild, setStaleBuild] = useState(false);
   useEffect(() => {
@@ -467,8 +480,17 @@ export default function AdvShell(props: AdvShellProps) {
       // 今日の語彙バトルのバンド（stage対応・日替わり。2026-08-15 語彙配線）
       const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
       const vocabBattleTargetId = vocabTargetForStage(contentStage.kind, lvl, dayNum);
+      // 今日の復習＝**間違えた問題ノートの未克服のうち、実際に出題できるもの**（2026-08-18 作り替え）。
+      // 表示する数と実際に出る数を必ず一致させるため、ここでプールに解決できるものだけを数える。
+      // 旧実装は旧コースの会話ミッションの期限件数を数えており、押した先は別データで必ず空だった
+      const notebookNow = buildMistakeNotebook(profile.mastery, nowISO);
+      const resolvableNow = new Set<string>();
+      for (const qs of p.byItem.values()) for (const q of qs) resolvableNow.add(q.key);
+      const reviewKeysToday = pickMistakeReviewKeys(notebookNow, REVIEW_BATTLE_SIZE)
+        .filter((k) => resolvableNow.has(k));
+      setReviewKeys(reviewKeysToday);
       setQuest(generateTodayQuest({
-        profile, route: profile.route!, dueReviewCount: props.reviewsDue, weakGrammarIds: weak,
+        profile, route: profile.route!, reviewQuestionCount: reviewKeysToday.length, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
         masteredStageIds: stageDone,
         contentStage,
@@ -538,18 +560,9 @@ export default function AdvShell(props: AdvShellProps) {
     if (hasToday) markStep(idx);
   }, [quest, props.sessions, dateKey, doneSteps, markStep]);
 
-  /**
-   * 復習stepは「期限切れの復習が0件になった」ときに完了する（2026-08-17）。
-   * 以前は**タップした瞬間**に完了にしていたので、復習画面を開いて戻っただけで
-   * ✓が付いた（CEO実機報告）。やっていないことを「やった」と記録しない（原則13）。
-   * このstepは dueReviewCount > 0 の日にしか作られないので、0になった＝片付いた、と言える。
-   */
-  useEffect(() => {
-    if (!quest || props.reviewsDue > 0) return;
-    const idx = quest.steps.findIndex((s) => s.kind === 'review_due');
-    if (idx < 0 || doneSteps.has(idx)) return;
-    markStep(idx);
-  }, [quest, props.reviewsDue, doneSteps, markStep]);
+  // 旧「期限切れが0件になったら復習stepを完了」は削除（2026-08-18 監査P0）。
+  // 数字の出所（旧コースのItemProgress）と復習の中身が別システムで、この条件は永久に成立せず、
+  // 復習stepは自己申告ボタンでしか終われなかった。いまは解き直しバトルの完了で消し込む
 
   // ── onboarding（初回＝needsOnboarding／やり直し＝redoOnboarding） ──
   if (needsOnboarding || redoOnboarding) {
@@ -765,7 +778,8 @@ export default function AdvShell(props: AdvShellProps) {
             const i = battle.fromStepIdx;
             const s = quest.steps[i];
             if (!s || doneSteps.has(i)) return -1;
-            return (s.kind === 'battle' || s.kind === 'weak_reinforce') ? i : -1;
+            // review_due も含む（復習stepは錯題本バトルとして開くので、終われば完了してよい）
+            return (s.kind === 'battle' || s.kind === 'weak_reinforce' || s.kind === 'review_due') ? i : -1;
           })();
           // XPはバトル参加で+5・80%以上で+5（努力の通貨。攻略には影響しない・advXp.ts）
           const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
@@ -1075,7 +1089,7 @@ export default function AdvShell(props: AdvShellProps) {
     // 「解き直せます」と出すと押しても何も起きない（原則15: 行き止まりを作らない）
     const resolvable = new Map<string, AdvBattleQuestion>();
     if (pools) for (const qs of pools.byItem.values()) for (const q of qs) resolvable.set(q.key, q);
-    const redoKeys = pickMistakeReviewKeys(notebook, 10).filter((k) => resolvable.has(k));
+    const redoKeys = pickMistakeReviewKeys(notebook, REVIEW_BATTLE_SIZE).filter((k) => resolvable.has(k));
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '間違えた問題ノート', '错题本')} teacherLang={lang} />
@@ -1709,9 +1723,24 @@ export default function AdvShell(props: AdvShellProps) {
     const s = quest.steps[i];
     setStepNotice(null);
     trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
-    // 押しただけでは完了にしない（2026-08-17 CEO報告: 開いて戻ったら✓になっていた）。
-    // 復習は期限切れが0件になったときに、下の効果で自動的に完了する
-    if (s.kind === 'review_due') { props.onOpenReview(); return; }
+    // 復習＝間違えた問題の解き直し（2026-08-18 作り替え）。
+    // 旧コースの語彙図鑑へは行かない。終われば必ずこのstepが完了する（自己申告が要らない）
+    if (s.kind === 'review_due') {
+      if (reviewKeys.length === 0) {
+        setStepNotice(tx(lang,
+          'いま解き直せる問題がありません。下のボタンでこのstepを終わりにして、先へ進めます。',
+          '现在没有可以重做的题。可以点下面的按钮结束这一步，继续后面的内容。'));
+        return;
+      }
+      setMistakeKeys(reviewKeys);
+      setBattle({
+        tier: 'normal', targetId: MISTAKE_TARGET_ID,
+        targetLabel: tx(lang, '復習（間違えた問題）', '复习（做错的题）'),
+        targetIds: [MISTAKE_TARGET_ID], fromStepIdx: i,
+      });
+      setView('battle');
+      return;
+    }
     if (s.kind === 'conversation_mission') {
       if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return; }
       // 押しても無反応、を作らない（原則15）。進めない理由を言う
@@ -2099,13 +2128,14 @@ export default function AdvShell(props: AdvShellProps) {
           )}
           {/* 単元のことば・復習は別画面へ渡すので、完了の合図が戻ってこない。
               「開いた＝やった」にはしないぶん、本人が終わりを言える口をここに出す（2026-08-17） */}
-          {!stepNotice && (nextStep?.kind === 'vocab_new' || nextStep?.kind === 'review_due') && (
+          {/* 復習stepの自己申告リンクは撤去（2026-08-18）。復習はバトルとして出るので、
+              終われば必ず完了する。やっていないことを自己申告させる口を残さない。
+              単元のことばは別画面（旧エリア）へ渡すため合図が返らないので、ここだけ残す */}
+          {!stepNotice && nextStep?.kind === 'vocab_new' && (
             <button type="button"
               className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
               onClick={() => { markStep(nextStepIdx); }}>
-              {nextStep.kind === 'review_due'
-                ? tx(lang, '復習は終わった（次へ進む）', '复习做完了（继续下一步）')
-                : tx(lang, 'この単元のことばは学び終わった（次へ進む）', '这个单元的词汇学完了（继续下一步）')}
+              {tx(lang, 'この単元のことばは学び終わった（次へ進む）', '这个单元的词汇学完了（继续下一步）')}
             </button>
           )}
           {/* 会話がうまく動かない環境でも詰まらせない（2026-08-16 サマーさん報告）:
@@ -2201,7 +2231,8 @@ export default function AdvShell(props: AdvShellProps) {
                 <SubLink lang={lang} label={tx(lang, 'かな道場（ひらがな・カタカナ）', '假名道场（平假名・片假名）')}
                   onClick={() => setView('kana')} />
               )}
-              <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+              {/* 旧「復習の一覧を見る」は撤去（2026-08-18）。旧コースの語彙図鑑へ出ていく道で、
+                  中身はV2の生徒では必ず空だった。復習は今日の冒険のstepと下の錯題本に一本化する */}
               {/* 错题本（2026-08-17）。間違えた問題だけを自分の意思で潰せる場所。
                   誤答の記録がまだ無い人には出さない（空の画面へ連れて行かない） */}
               {notebook.entries.length > 0 && (

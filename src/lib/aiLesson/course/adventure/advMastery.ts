@@ -37,10 +37,35 @@ export const recordAttempt = (
 ): AdvMasteryLedger => {
   const prev = ledger[targetId] ?? [];
   const next = [...prev, attempt];
-  const kept = next.length > MASTERY_RULES.maxAttemptsKept
-    ? next.slice(next.length - MASTERY_RULES.maxAttemptsKept)
-    : next;
-  return { ...ledger, [targetId]: kept };
+  if (next.length <= MASTERY_RULES.maxAttemptsKept) return { ...ledger, [targetId]: next };
+
+  /**
+   * 上限を超えたら古いものから落とすが、**攻略の証拠になる試行は落とさない**（2026-08-18 監査P0）。
+   *
+   * 以前は単純に古い順で切っていたため、練習を重ねた生徒ほど
+   * 「別の日に80%以上を3回」の達成日が台帳から消え、攻略が確定しなくなっていた。
+   * 練習すればするほど攻略が遠のく（努力が罰になる）という最悪の壊れ方をしていた。
+   *
+   * 守るのは「合格点に届いた日の**最初の1回**を、古い方から requiredDays 日ぶん」。
+   * qualifying の厳密判定（未出比率など）はプール情報が要るためここでは行わず、
+   * 必要条件（passPct以上）で広めに守る。守りすぎても害は無い（記録が少し多く残るだけ）。
+   */
+  const protectedAttempts: AdvMasteryAttempt[] = [];
+  const seenDays = new Set<string>();
+  for (const a of next) {
+    if (seenDays.size >= MASTERY_RULES.requiredDays) break;
+    if (a.scorePct < MASTERY_RULES.passPct || seenDays.has(a.dateKey)) continue;
+    seenDays.add(a.dateKey);
+    protectedAttempts.push(a);
+  }
+  const protectedSet = new Set(protectedAttempts);
+  const room = Math.max(0, MASTERY_RULES.maxAttemptsKept - protectedAttempts.length);
+  const recent: AdvMasteryAttempt[] = [];
+  for (let i = next.length - 1; i >= 0 && recent.length < room; i -= 1) {
+    if (!protectedSet.has(next[i])) recent.push(next[i]);
+  }
+  const keep = new Set([...protectedAttempts, ...recent]);
+  return { ...ledger, [targetId]: next.filter((a) => keep.has(a)) };   // 時系列は元の並びのまま
 };
 
 /** この学習者が過去に見た問題キー（未出判定に使う） */
