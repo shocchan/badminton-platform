@@ -65,3 +65,23 @@ describe('復習画面の「次へ」は復習step自身を指さない', () => 
     expect(SRC).not.toMatch(/const idx = nextStepIdx;/);
   });
 });
+
+// ── おかわりバトルが別のstepを完了にしていた（2026-08-17 監査P0） ──
+//
+// バトル終了時、対象が一致するstepが無ければ「未完了のバトルstepのどれか」を消していた。
+// そのため おかわりバトル・错题本の解き直し・冒険マップからのバトルを1回やると、
+// **やっていない語彙バトルや弱点補強が✓完了**になっていた。
+describe('消し込むstepは、そのバトルを始めたstepだけ', () => {
+  it('未完了のバトルstepを手当たり次第に探す実装が残っていない', () => {
+    // 旧実装のフォールバック（対象一致が無いときに最初の未完了バトルstepを返す）
+    expect(SRC).not.toMatch(/return quest\.steps\.findIndex\(\(s, i\) =>\s*\n?\s*\(s\.kind === 'battle' \|\| s\.kind === 'weak_reinforce'\) && !doneSteps\.has\(i\)\);/);
+  });
+
+  it('step由来のバトルだけが fromStepIdx を持つ', () => {
+    expect(SRC).toMatch(/if \(!quest \|\| battle\.fromStepIdx === undefined\) return -1;/);
+    // 錯題本の解き直しには付けない（今日のクエストの一部ではない）
+    const mistake = /targetId: MISTAKE_TARGET_ID,[\s\S]{0,200}?\}\);/.exec(SRC);
+    expect(mistake, '錯題本のsetBattleが見つからない').toBeTruthy();
+    expect(mistake![0]).not.toMatch(/fromStepIdx/);
+  });
+});

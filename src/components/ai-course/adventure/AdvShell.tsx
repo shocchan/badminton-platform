@@ -103,7 +103,15 @@ export interface AdvShellProps {
 }
 
 type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
-interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
+interface BattleCtx {
+  tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
+  /**
+   * このバトルを始めた今日のstepの添字。**stepから始めたときだけ入れる**。
+   * おかわりバトル・错题本の解き直し・冒険マップからのバトルでは undefined にして、
+   * 「やっていないstepが完了になる」事故を防ぐ（2026-08-17 監査P0）
+   */
+  fromStepIdx?: number;
+}
 
 /** いま要る語彙プールの注文（何をどのseedで作るか）。key が同じなら作り直さない */
 interface VocabPoolRequest {
@@ -745,17 +753,19 @@ export default function AdvShell(props: AdvShellProps) {
           setLastMastery(mastery);
           // 30分設定では1日に複数のバトルstep（文法＋語彙）があるため、
           // 終えたバトルのtargetに一致する未完了stepを消し込む（先頭一致だと語彙完了が文法stepを誤消し込みする）
+          /**
+           * 消し込むstepは**そのバトルを始めたstepだけ**（2026-08-17 監査P0）。
+           * 以前は「一致するstepが無ければ、未完了のバトルstepのどれか」を消していたため、
+           * おかわりバトル・错题本の解き直し・冒険マップからのバトルを1回やると、
+           * **やっていない語彙バトルや弱点補強が✓完了**になっていた（やっていないことを記録する）。
+           * step から始めたときだけ fromStepIdx が入る。それ以外は何も消し込まない。
+           */
           const battleIdx = (() => {
-            if (!quest) return -1;
-            // 错题本の解き直しは今日のクエストの一部ではない。ここで消し込むと
-            // 「やっていないstepが終わったことになる」（記録の水増し・原則13）
-            if (isMistakeBattle) return -1;
-            const match = quest.steps.findIndex((s, i) =>
-              (s.kind === 'battle' || s.kind === 'weak_reinforce')
-              && !doneSteps.has(i) && s.refIds.includes(battle.targetId));
-            if (match >= 0) return match;
-            return quest.steps.findIndex((s, i) =>
-              (s.kind === 'battle' || s.kind === 'weak_reinforce') && !doneSteps.has(i));
+            if (!quest || battle.fromStepIdx === undefined) return -1;
+            const i = battle.fromStepIdx;
+            const s = quest.steps[i];
+            if (!s || doneSteps.has(i)) return -1;
+            return (s.kind === 'battle' || s.kind === 'weak_reinforce') ? i : -1;
           })();
           // XPはバトル参加で+5・80%以上で+5（努力の通貨。攻略には影響しない・advXp.ts）
           const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
@@ -1723,7 +1733,7 @@ export default function AdvShell(props: AdvShellProps) {
     }
     if (s.kind === 'grammar_new' && s.refIds[0]) { setStudyGrammarId(s.refIds[0]); setView('grammar'); return; }
     if (s.kind === 'weak_reinforce' && s.refIds.length > 0) {
-      setBattle({ tier: 'normal', targetId: s.refIds[0], targetLabel: tx(lang, '弱点補強', '弱点补强'), targetIds: s.refIds });
+      setBattle({ tier: 'normal', targetId: s.refIds[0], targetLabel: tx(lang, '弱点補強', '弱点补强'), targetIds: s.refIds, fromStepIdx: i });
       setView('battle'); return;
     }
     if (s.kind === 'battle') {
@@ -1734,6 +1744,7 @@ export default function AdvShell(props: AdvShellProps) {
         targetId: targets[0] ?? (stage?.stageId ?? 'stage'),
         targetLabel: isVocab ? tx(lang, '語彙', '词汇') : (stage ? tx(lang, stage.titleJa, stage.titleZh) : ''),
         targetIds: targets,
+        fromStepIdx: i,
       });
       setView('battle'); return;
     }
