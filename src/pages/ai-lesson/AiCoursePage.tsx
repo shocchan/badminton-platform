@@ -931,6 +931,8 @@ export default function AiCoursePage() {
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
             onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
+            // V2の生徒は復習を終えたら今日の冒険へ戻す（旧コースの図鑑に置き去りにしない・2026-08-17）
+            onExitReview={advOn ? () => { syncVocabUrl(null); setStep('home'); } : undefined}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
         </LearnerErrorBoundary>

@@ -953,6 +953,7 @@ const ja = {
     quickReviewEmpty: '今は復習することばがありません。',
     quickReviewEmptyHint: '学んだことばの期限が来ると、ここに復習がたまります。',
     quickReviewEmptyBack: 'ことば図鑑トップへ',
+    quickReviewBackToAdventure: '今日の冒険へ戻る',
     quickReviewEmptyTalk: 'AI会話で話す',
     quickReviewDone: '復習はここまで。よくできています。',
     // 今日の復習（Phase 2E-1.10 §6・期限ベース）
@@ -2544,6 +2545,7 @@ const zh: AiCourseDict = {
     quickReviewEmpty: '现在没有需要复习的词。',
     quickReviewEmptyHint: '学过的词到了复习期限，就会出现在这里。',
     quickReviewEmptyBack: '回到词汇图鉴首页',
+    quickReviewBackToAdventure: '返回今天的冒险',
     quickReviewEmptyTalk: '用AI会话练习',
     quickReviewDone: '复习到这里，做得很好。',
     roleLabels: { required: '本包学习目标', diagnostic: '快速确认即可', optional: '按需学习', remedial: '需要复习', enrichment: '进阶', confirmed: '已确认' } as Record<string, string>,

@@ -69,6 +69,12 @@ interface Props {
   onBack: () => void;
   /** 旧・汎用会話導線（§7の根本修正でスクリプト練習モードへ置換。互換のため任意受け取り） */
   onGoConversation?: () => void;
+  /**
+   * 復習を終えた（または0件だった）ときの戻り先。V2の生徒だけ渡す（2026-08-17）。
+   * 渡さなければ従来どおり「ことば図鑑トップ」へ戻る。
+   * V2の生徒を旧コースの図鑑に置き去りにしないための出口。
+   */
+  onExitReview?: () => void;
   initial?: Partial<VocabHubState>;
   onStateChange?: (s: VocabHubState) => void;
   /** 内部レビュー画面（review/decisions/connectivity/onodrafts/n3grammar・sandbox・draft画像）の表示。
@@ -81,7 +87,7 @@ interface Props {
 // 日付判定はLearningClockへ集約（ローカル日付・UTCで日付がずれない・2E-1.10 §5）
 const dateKey = () => defaultLearningClock.localDateKey();
 
-export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateChange, labPreview = false, learnerLevel = null }: Props) => {
+export const VocabularyHub = ({ t, onBack, onGoConversation, onExitReview, initial, onStateChange, labPreview = false, learnerLevel = null }: Props) => {
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
@@ -431,7 +437,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, initial, onStateCha
       )}
       {view === 'quickreview' && (
         <VocabQuickReviewView labPreview={labPreview} t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
-          onChanged={bump} onDone={() => setView('top')} onTalk={onGoConversation} />
+          onChanged={bump} onDone={onExitReview ?? (() => setView('top'))}
+          exitLabel={onExitReview ? tv.quickReviewBackToAdventure : undefined} onTalk={onGoConversation} />
       )}
       {view === 'daily' && <DailyFlowView labPreview={labPreview} t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
@@ -1219,10 +1226,12 @@ const VocabDiagnosticView = ({ t, repo, itemById, items, journeyTask, onChanged,
  * 「今日できたこと」と「次回の復習予定」を示し、一覧へ戻すだけにしない。
  * 内部state名（day1 / retention_candidate 等）は表示しない。第一CTAは一つ。
  */
-const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTalk, onAgain }: {
+const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTalk, onAgain, finishLabel }: {
   t: AiCourseDict; schedule: VocabSpacedReviewRepository; itemById: Map<string, FoundationItem>;
   results: { itemId: string; correct: boolean }[];
   onFinish: () => void; onTalk?: () => void; onAgain?: () => void;
+  /** 終了ボタンの文言（V2は「今日の冒険へ戻る」）。未指定なら従来文言 */
+  finishLabel?: string;
 }) => {
   const tv = t.vocab;
   useEffect(() => { trackCourseOnce('view_ai_course_learning_completion'); }, []);
@@ -1278,7 +1287,7 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
       {/* 第一CTAは一つ（§16）。補助CTAは弱いスタイル */}
       <ActionButton variant="primary" fullWidth
         onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onFinish(); }}>
-        {tv.completionFinish}
+        {finishLabel ?? tv.completionFinish}
       </ActionButton>
       <div className="flex flex-wrap gap-2 mt-2">
         {onTalk && (
@@ -1299,10 +1308,12 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
   );
 };
 
-const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk, labPreview }: {
+const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk, exitLabel, labPreview }: {
   t: AiCourseDict; repo: VocabProgressRepository; schedule: VocabSpacedReviewRepository;
   itemById: Map<string, FoundationItem>; items: FoundationItem[];
   onChanged: () => void; onDone: () => void; onTalk?: () => void;
+  /** 戻り先のラベル（V2は「今日の冒険へ戻る」）。未指定なら従来の図鑑トップ文言 */
+  exitLabel?: string;
   labPreview: boolean;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
@@ -1325,7 +1336,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
         <p className="text-xs text-gray-400 mt-1 mb-3">{tv.quickReviewEmptyHint}</p>
         <div className="space-y-2">
           <button type="button" onClick={onDone}
-            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewEmptyBack}</button>
+            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{exitLabel ?? tv.quickReviewEmptyBack}</button>
           {onTalk && (
             <button type="button" onClick={onTalk}
               className="w-full min-h-11 px-4 bg-white border border-teal-200 text-teal-700 rounded-xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewEmptyTalk}</button>
@@ -1335,7 +1346,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
     );
   }
   if (idx >= ids.length) {
-    return <LearningCompletionView t={t} schedule={schedule} itemById={itemById} results={done}
+    return <LearningCompletionView t={t} schedule={schedule} itemById={itemById} results={done} finishLabel={exitLabel}
       onFinish={() => { trackCourse('complete_ai_course_daily_review'); onDone(); }}
       onTalk={onTalk} onAgain={() => { setIdx(0); setDone([]); setPicked(null); setJudged(null); }} />;
   }
