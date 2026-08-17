@@ -54,6 +54,15 @@ import { CourseLightPractice } from '../../components/ai-course/CourseLightPract
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
 // しくみラボ・ことば図鑑・冒険は lazy chunk（教材・画像manifestをメインbundleへ含めない・§17）
+/**
+ * 旧コース入口を明示したか（?legacy）。
+ * 入口の既定は冒険モードV2（2026-08-17 CEO指摘: 以前は既定が旧コースで、
+ * ?v2 を付け忘れた新規が旧8問ヒアリング→ミナモ列島の旧ホームに入ってしまう罠があった。
+ * 現役・今後の生徒は全員V2。?v2 は付いていても単に無視される＝過去に配った招待URLはそのまま有効）
+ */
+const wantsLegacyEntry = () =>
+  typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('legacy');
+
 const CourseFoundationLab = lazy(() => import('../../components/ai-course/foundation/FoundationLabShell'));
 const VocabularyHubLazy = lazy(() => import('../../components/ai-course/foundation/vocab/VocabularyHub'));
 const Chapter1AdventureLazy = lazy(() => import('../../components/ai-course/rpg/Chapter1AdventurePanel'));
@@ -327,12 +336,11 @@ export default function AiCoursePage() {
     const labUrl = parseLabUrl(window.location.search);
     const vocabUrl = parseVocabUrl(window.location.search);
     const allowed = hasLabPreview(l.adminOverrides);
-    // 旧コースの必須ガイドは、V2招待URL（?v2=1）で来た学習者には出さない。
+    // 旧コースの必須ガイドは、V2入口で来た学習者には出さない。
     // 旧音声コース前提の説明（「N2合格には別の学習が必要」等）が
     // V2で買った商品と正反対で、初回の信頼を壊すため（監査P1）。
     // V2説明はオプトイン画面とオンボーディングが担う
-    const v2Invite = new URLSearchParams(window.location.search).has('v2');
-    if (!hasSeenGuide() && !v2Invite) { setStep('guide'); return; }
+    if (!hasSeenGuide() && !wantsLegacyEntry()) { setStep('guide'); return; }
     if (labUrl.lab && allowed) { setStep('lab'); return; }
     if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
     if (labUrl.lab) syncLabUrl(null);
@@ -691,10 +699,10 @@ export default function AiCoursePage() {
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
   if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
   if (step === 'hearing') {
-    // V2招待（?v2=1）の新規は**名前だけ**聞く。目標・レベル・週頻度は直後の
+    // 新規は既定で**名前だけ**聞く（V2入口）。目標・レベル・週頻度は直後の
     // V2オンボーディングで聞くため、旧8問と二重に答えさせない（監査P1）。
-    // 旧コース経由（?v2なし）は従来どおり8問ヒアリング
-    const v2Invite = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2');
+    // 旧コースの8問ヒアリングは ?legacy を明示したときだけ
+    const v2Invite = !wantsLegacyEntry();
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
         {hearingError && (
@@ -1126,9 +1134,10 @@ export default function AiCoursePage() {
             restateAvailable={buildLightSession(progress, learner.settings.practiceAgainIds ?? [], new Date().toISOString().slice(0, 10)).length > 0}
             onOpenArea={openArea}
             onExitV2={() => {
-              // URLに ?v2=1 が残っていると enabled:false にしても即座にV2へ戻されるので、先に消す
-              if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
-                window.history.replaceState(null, '', window.location.pathname);
+              // 入口の既定がV2になったため、?legacy を付けないと enabled:false にしても
+              // すぐV2入口ゲートへ戻されてしまう。従来ホームへの脱出は ?legacy で明示する
+              if (typeof window !== 'undefined') {
+                window.history.replaceState(null, '', `${window.location.pathname}?legacy`);
               }
               const next = setAdvEnabled(learner.settings, false, new Date().toISOString());
               setLearner({ ...learner, settings: next });
@@ -1139,13 +1148,14 @@ export default function AiCoursePage() {
       </Shell>
     );
   }
-  // V2の入口: URLに ?v2=1 があるときだけ表示（既存learnerを自動移行しない・§2/§23）
-  //
-  // ここは**初回ログインで全員が必ず1回通る画面**（enabled既定OFF＋案内文が ?v2=1 を開かせる）。
+  // V2の入口ゲート: **既定で表示**（2026-08-17 CEO指摘: パラメータ無しの新規が
+  // 旧コースの初期設定に入ってしまう罠があった。現役・今後の生徒は全員V2）。
+  // 旧コースへ行きたいときだけ ?legacy を明示する（自動移行はしない: enabledを
+  // 立てるのは本人が「冒険を始める」を押したときだけ・§2/§23）。
   // ナビのタブは出さない: この画面はまだ v2Mode ではないので旧コースのナビが出てしまい、
   // 「冒険を始める」を押す前の学習者が旧コースへ迷い込める（canon 原則3「1画面1決断」）。
-  // 旧コースへ行きたい人の道は下の「従来のホームへ」で残している。
-  if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2')) {
+  // 旧コース歴のある人の道は下の「従来のホームへ」で残している。
+  if (!wantsLegacyEntry()) {
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed} navHidden>
         <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
