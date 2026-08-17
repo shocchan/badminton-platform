@@ -7,6 +7,10 @@ import {
 import { validateQuestion } from './advVariants';
 import { checkText } from './advLanguageIntegrity';
 import { presentBattle, analyzeDistribution } from './advChoiceOrder';
+import {
+  lengthBiasStats, chanceUpperBoundPct, CHANCE_LOWER_BOUND_PCT, verbatimOnlyCorrectIds,
+} from './advChoiceLengthBias';
+import { READING_TYPE_LABELS, type ReadingType } from './reading/readingTypes';
 
 describe('読解bank coverage（§6）', () => {
   it('N2・N3ともに合計30セット以上・各typeが6セット以上', () => {
@@ -79,6 +83,56 @@ describe('読解セットの品質（全件）', () => {
       const lens = s.choices.map((c) => c.textJa.length);
       expect(Math.max(...lens) / Math.min(...lens), `${s.setId}`).toBeLessThanOrEqual(3.2);
     }
+  });
+
+  it('**「最長の選択肢を選ぶ」だけで偶然水準を超えない**（監査P0: 長さバイアス）', () => {
+    const stats = lengthBiasStats(ALL_READING_SETS);
+    const bound = chanceUpperBoundPct(stats.n);
+    expect(
+      stats.uniqueLongestPct,
+      `正解が唯一最長: ${stats.uniqueLongestIds.length}/${stats.n}セット (${stats.uniqueLongestPct}% > 許容${bound}%)\n` +
+      `対象: ${stats.uniqueLongestIds.join(', ')}`,
+    ).toBeLessThanOrEqual(bound);
+    // 逆に「最長を避ける」戦略が有利にならないよう、正解が最長のセットも一定割合は必要
+    expect(stats.uniqueLongestPct, '唯一最長=正解が少なすぎ（「最長を避ける」逆戦略が偶然水準を超える）')
+      .toBeGreaterThanOrEqual(CHANCE_LOWER_BOUND_PCT);
+    // 「最短を選ぶ」戦略も同じ基準で検査（短さで当てられる逆バイアスの防止）
+    expect(
+      stats.uniqueShortestPct,
+      `正解が唯一最短: ${stats.uniqueShortestIds.length}/${stats.n}セット (${stats.uniqueShortestPct}% > 許容${bound}%)\n` +
+      `対象: ${stats.uniqueShortestIds.join(', ')}`,
+    ).toBeLessThanOrEqual(bound);
+    expect(stats.uniqueShortestPct, '唯一最短=正解が少なすぎ（「最短を避ける」逆戦略が偶然水準を超える）')
+      .toBeGreaterThanOrEqual(CHANCE_LOWER_BOUND_PCT);
+    // 戦略の期待正解率そのものも偶然水準near（監査時実測: 最長選択65%）
+    expect(stats.pickLongestAccuracyPct, '「最長を選ぶ」戦略の期待正解率').toBeLessThanOrEqual(33);
+    expect(stats.pickShortestAccuracyPct, '「最短を選ぶ」戦略の期待正解率').toBeLessThanOrEqual(33);
+  });
+
+  it('type別でも「正解が唯一最長」の比率が偶然水準を超えない', () => {
+    for (const type of Object.keys(READING_TYPE_LABELS) as ReadingType[]) {
+      const sets = ALL_READING_SETS.filter((s) => s.readingType === type);
+      if (sets.length === 0) continue;
+      const stats = lengthBiasStats(sets);
+      const bound = chanceUpperBoundPct(stats.n);
+      expect(
+        stats.uniqueLongestPct,
+        `${type}: 唯一最長=正解 ${stats.uniqueLongestIds.length}/${stats.n} (${stats.uniqueLongestPct}% > 許容${bound}%)\n` +
+        `対象: ${stats.uniqueLongestIds.join(', ')}`,
+      ).toBeLessThanOrEqual(bound);
+      expect(
+        stats.uniqueShortestPct,
+        `${type}: 唯一最短=正解 ${stats.uniqueShortestIds.length}/${stats.n} (${stats.uniqueShortestPct}% > 許容${bound}%)`,
+      ).toBeLessThanOrEqual(bound);
+    }
+  });
+
+  it('**正解が本文に逐語一致するなら誤答も最低1つは逐語一致**（文字列照合で解けない）', () => {
+    const leaks = verbatimOnlyCorrectIds(ALL_READING_SETS);
+    expect(
+      leaks,
+      `正解だけが本文に逐語一致（本文を読まず文字列照合で解ける）: ${leaks.join(', ')}`,
+    ).toEqual([]);
   });
 
   it('言語整合性: 未許可Script 0・zh設問に地の文の日本語なし', () => {

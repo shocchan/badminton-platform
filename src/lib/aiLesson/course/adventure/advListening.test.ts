@@ -7,6 +7,8 @@ import {
 } from './listening/listeningBank';
 import { validateQuestion } from './advVariants';
 import { checkText } from './advLanguageIntegrity';
+import { lengthBiasStats, chanceUpperBoundPct, CHANCE_LOWER_BOUND_PCT } from './advChoiceLengthBias';
+import { LISTENING_TYPE_LABELS, type ListeningType } from './listening/listeningTypes';
 import audioManifest from '../../../../../docs/ai-course/adventure-v2/generated/audio-manifest.json';
 
 describe('聴解 coverage と音声asset（§7）', () => {
@@ -103,6 +105,46 @@ describe('聴解セットの品質（全件）', () => {
     for (const s of ALL_LISTENING_SETS) {
       const lens = s.choices.map((c) => c.textJa.length);
       expect(Math.max(...lens) / Math.min(...lens), s.setId).toBeLessThanOrEqual(3.2);
+    }
+  });
+
+  it('**「最長の選択肢を選ぶ」だけで偶然水準を超えない**（監査P0: 長さバイアス）', () => {
+    const stats = lengthBiasStats(ALL_LISTENING_SETS);
+    const bound = chanceUpperBoundPct(stats.n);
+    expect(
+      stats.uniqueLongestPct,
+      `正解が唯一最長: ${stats.uniqueLongestIds.length}/${stats.n}セット (${stats.uniqueLongestPct}% > 許容${bound}%)\n` +
+      `対象: ${stats.uniqueLongestIds.join(', ')}`,
+    ).toBeLessThanOrEqual(bound);
+    expect(stats.uniqueLongestPct, '唯一最長=正解が少なすぎ（「最長を避ける」逆戦略が偶然水準を超える）')
+      .toBeGreaterThanOrEqual(CHANCE_LOWER_BOUND_PCT);
+    expect(
+      stats.uniqueShortestPct,
+      `正解が唯一最短: ${stats.uniqueShortestIds.length}/${stats.n}セット (${stats.uniqueShortestPct}% > 許容${bound}%)\n` +
+      `対象: ${stats.uniqueShortestIds.join(', ')}`,
+    ).toBeLessThanOrEqual(bound);
+    expect(stats.uniqueShortestPct, '唯一最短=正解が少なすぎ（「最短を避ける」逆戦略が偶然水準を超える）')
+      .toBeGreaterThanOrEqual(CHANCE_LOWER_BOUND_PCT);
+    // 戦略の期待正解率そのものも偶然水準near（監査時実測: 最長選択64.7%）
+    expect(stats.pickLongestAccuracyPct, '「最長を選ぶ」戦略の期待正解率').toBeLessThanOrEqual(33);
+    expect(stats.pickShortestAccuracyPct, '「最短を選ぶ」戦略の期待正解率').toBeLessThanOrEqual(33);
+  });
+
+  it('type別でも「正解が唯一最長」の比率が偶然水準を超えない', () => {
+    for (const type of Object.keys(LISTENING_TYPE_LABELS) as ListeningType[]) {
+      const sets = ALL_LISTENING_SETS.filter((s) => s.listeningType === type);
+      if (sets.length === 0) continue;
+      const stats = lengthBiasStats(sets);
+      const bound = chanceUpperBoundPct(stats.n);
+      expect(
+        stats.uniqueLongestPct,
+        `${type}: 唯一最長=正解 ${stats.uniqueLongestIds.length}/${stats.n} (${stats.uniqueLongestPct}% > 許容${bound}%)\n` +
+        `対象: ${stats.uniqueLongestIds.join(', ')}`,
+      ).toBeLessThanOrEqual(bound);
+      expect(
+        stats.uniqueShortestPct,
+        `${type}: 唯一最短=正解 ${stats.uniqueShortestIds.length}/${stats.n} (${stats.uniqueShortestPct}% > 許容${bound}%)`,
+      ).toBeLessThanOrEqual(bound);
     }
   });
 
