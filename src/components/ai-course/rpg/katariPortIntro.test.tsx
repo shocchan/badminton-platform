@@ -4,6 +4,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { aiCourseI18n } from '../../../locales/aiCourse';
 import { render, screen, fireEvent, cleanup } from '@testing-library/react';
 import { KatariPortIntro } from './KatariPortIntro';
+import { TeacherProvider } from '../TeacherAvatar';
 
 afterEach(cleanup);
 
@@ -26,6 +27,16 @@ describe('KatariPortIntro（会話の港・会話前カード）', () => {
     expect(screen.getByText('「〜ようになりました」')).toBeTruthy();
     expect(screen.getByText('約3分')).toBeTruthy();
     expect(screen.getByText('5回')).toBeTruthy();
+  });
+
+  it('**選択中の先生のアイコンを出す**（翔子固定だと悠斗先生選択者に女性が出る・2026-08-17 CEO報告）', () => {
+    const { container } = render(
+      <TeacherProvider teacherId="yuto">
+        <KatariPortIntro t={aiCourseI18n.ja} {...baseProps} />
+      </TeacherProvider>,
+    );
+    const img = container.querySelector('img');
+    expect(img?.getAttribute('src') ?? '', '悠斗先生のアバター画像が出ること').toContain('yuto');
   });
 
   it('**進行中セッションがあれば復旧選択肢を出す**（2026-08-16 CEO報告「押しても無反応」の解消）', () => {

@@ -2,7 +2,7 @@
 // 会話エンジンには触れない（Presentation Layerのみ）。場所・相手・目的・目標表現・所要時間を
 // 会話前に示し、learnerが何をしに行くのか分かる状態でスタートさせる。
 import { ArrowLeft, Mic, PenLine } from 'lucide-react';
-import { ShokoSprite } from './pixelAssets';
+import { TeacherAvatar } from '../TeacherAvatar';
 import type { AiCourseDict } from '../../../locales/aiCourse';
 
 export interface KatariPortIntroProps {
@@ -44,7 +44,8 @@ export const KatariPortIntro = ({
           <h2 className="text-lg font-bold text-gray-900">{t.katari.title}</h2>
           <p className="text-xs text-gray-600 mt-1">{t.katari.body}</p>
         </div>
-        <div className="w-10 shrink-0"><ShokoSprite decorative pose="talk" /></div>
+        {/* 選択中の先生を出す（翔子固定スプライトだと悠斗先生を選んだ人に女性が出る・2026-08-17） */}
+        <div className="w-10 shrink-0"><TeacherAvatar size={40} expression="smile" labeled={false} /></div>
       </div>
 
       <dl className="mt-3 space-y-2 text-sm">

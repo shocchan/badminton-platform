@@ -821,9 +821,16 @@ export default function AiCoursePage() {
       setActiveSessionId(null);
       setStep(plan ? 'conversationIntro' : 'home');
     };
-    return mode === 'voice'
-      ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} onAbortExit={abortExit} />
-      : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />;
+    // レッスンはShellの外（全画面）だが、先生の同一性は保つ必要がある。
+    // TeacherProviderを直接巻かないと useTeacher() が既定の翔子先生に落ち、
+    // 悠斗先生を選んだ生徒でも**アイコンも音声も翔子のまま**になっていた（2026-08-17 CEO報告）
+    return (
+      <TeacherProvider teacherId={advTeacherId}>
+        {mode === 'voice'
+          ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} onAbortExit={abortExit} />
+          : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />}
+      </TeacherProvider>
+    );
   }
   if (step === 'report' && report) {
     // V2（冒険）の生徒には「もう一度」「次の章へ」を出さない（2026-08-17 CEO指摘）。
