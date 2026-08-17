@@ -296,3 +296,11 @@ export default {
 
 writeFileSync('dist/_worker.js', workerContent);
 console.log('✅ Generated dist/_worker.js with embedded index.html and sitemap.xml handler');
+
+// 配信中のビルドを名乗る小さなファイル（2026-08-17）。
+// 開いたままのタブは古いJSを持ち続けるので、直したはずの不具合が生徒の画面では
+// 直っていない、という事故が起きる（実際に起きた）。アプリはこれを見て
+// 「新しい版があります」と知らせる。index chunkのハッシュ＝ビルドの同一性。
+const buildId = (indexHtml.match(/assets\/index-([A-Za-z0-9_-]+)\.js/) ?? [])[1] ?? 'unknown';
+writeFileSync('dist/version.json', JSON.stringify({ build: buildId }));
+console.log(`✅ Generated dist/version.json (build=${buildId})`);

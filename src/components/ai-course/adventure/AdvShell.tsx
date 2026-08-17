@@ -15,6 +15,7 @@ import { generateTodayQuest, vocabTargetForStage, stepKeyOf } from '../../../lib
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildReviewForecast, type ReviewForecast } from '../../../lib/aiLesson/course/adventure/advReviewForecast';
+import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
   mistakeStatusText, MISTAKE_TERMS, type MistakeNotebook,
@@ -174,6 +175,18 @@ export default function AdvShell(props: AdvShellProps) {
   const [forecast, setForecast] = useState<ReviewForecast | null>(null);
   /** 错题本から解き直す問題キー（このバトルの間だけ有効） */
   const [mistakeKeys, setMistakeKeys] = useState<string[]>([]);
+  /** 開いたままのタブが古いJSで動いていないか（2026-08-17 実際に起きた事故の再発防止） */
+  const [staleBuild, setStaleBuild] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const run = () => { void checkBuildVersion().then((v) => { if (alive && v.stale) setStaleBuild(true); }); };
+    run();
+    // 画面に戻ってきたときと、開きっぱなしの間は30分おきに見る
+    const onFocus = () => run();
+    window.addEventListener('focus', onFocus);
+    const timer = window.setInterval(run, 30 * 60 * 1000);
+    return () => { alive = false; window.removeEventListener('focus', onFocus); window.clearInterval(timer); };
+  }, []);
   const [quest, setQuest] = useState<AdvTodayQuest | null>(null);
   const [battle, setBattle] = useState<BattleCtx | null>(null);
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
@@ -1819,6 +1832,26 @@ export default function AdvShell(props: AdvShellProps) {
               ? tx(lang, companionById(prof.companionId).reviewNudgeJa, companionById(prof.companionId).reviewNudgeZh)
               : tx(lang, companionById(prof.companionId).greetJa, companionById(prof.companionId).greetZh)}
           </p>
+        </div>
+      )}
+
+      {/* 開いたままのタブが古いJSで動いている（2026-08-17 実際に起きた事故）。
+          直したはずの不具合が生徒の画面では直っていない状態を、本人に見えるようにする。
+          勝手に再読み込みはしない（バトル・模試の最中に飛ばさないため。押すのは本人） */}
+      {staleBuild && (
+        <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
+          <p className="text-sm font-semibold text-amber-900">
+            {tx(lang, 'アプリの新しい版が出ています', '应用有新版本了')}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-amber-800">
+            {tx(lang, 'いま開いている画面は前の版のままです。読み込み直すと最新になります（学習の記録は消えません）。',
+              '现在打开的界面还是旧版本。重新加载就会更新（学习记录不会消失）。')}
+          </p>
+          <button type="button"
+            className={`${pressFx} action-amber mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900`}
+            onClick={() => window.location.reload()}>
+            {tx(lang, '読み込み直す', '重新加载')}
+          </button>
         </div>
       )}
 
