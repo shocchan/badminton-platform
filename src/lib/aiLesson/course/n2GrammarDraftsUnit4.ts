@@ -173,7 +173,8 @@ export const N2_GRAMMAR_DRAFTS_UNIT4: N2GrammarDraft[] = [
     usageScene: '说明被形势所迫的选择',
     nuance: '書面調。無念さ・不本意の含み。「するしかない」より硬い',
     register: 'written',
-    matchKeys: ['ざるを得'],
+    // 語として完成した形を先に置く（cloze の正解表示が「ざるを得」で切れないように）
+    matchKeys: ['ざるを得ない', 'ざるを得ません', 'ざるを得'],
     sourceExample: src('残りの2ヶ月で合格するには、効率よく勉強せざるを得ないです。', '96604581e89508c7'),
     examplesJa: ['残りの2ヶ月で合格するには、効率よく勉強せざるを得ないです。',
                  '台風のため、旅行は中止せざるを得ませんでした。'],
@@ -279,7 +280,7 @@ export const N2_GRAMMAR_DRAFTS_UNIT4: N2GrammarDraft[] = [
     usageScene: '描述抑制不住的感情、冲动',
     nuance: '感情の自然な高まり。書面調',
     register: 'written',
-    matchKeys: ['ずにはいられ'],
+    matchKeys: ['ずにはいられない', 'ずにはいられません', 'ずにはいられ'],
     sourceExample: src('何回も不合格だった場合、自信を無くさずにはいられないです。', 'b1be06c7a3764897'),
     examplesJa: ['何回も不合格だった場合、自信を無くさずにはいられないです。',
                  'あの映画を見ると、泣かずにはいられません。'],

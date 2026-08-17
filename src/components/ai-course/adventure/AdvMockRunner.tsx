@@ -20,16 +20,19 @@ import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-/** 試行のseedと開始時刻。render中には呼ばない（イベントハンドラ専用） */
-const newAttempt = (): { seed: number; iso: string } => {
-  const d = new Date();
-  return { seed: d.getTime(), iso: d.toISOString() };
-};
 
 export interface AdvMockRunnerProps {
   lang: L;
   spec: MockSpec;
   pools: Map<string, AdvBattleQuestion[]>;
+  /**
+   * この試行のseed。**呼び出し側が決めて渡す**（2026-08-17）。
+   * 語彙の出題プールは attemptSeed から作るので、begin() の中で seed を作ると
+   * 「プールを作った seed」と「問題を選ぶ seed」が食い違い、
+   * 保存した答案が復元できなくなる（advMockSession.ts:213）。
+   * 復帰時は savedState.attemptSeed をそのまま渡すこと。
+   */
+  attemptSeed: number;
   seenKeys: Set<string>;
   /** 保存済みセッション（reload復帰） */
   savedState: MockSessionState | null;
@@ -95,8 +98,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   }, [phase]);
 
   const begin = useCallback((mode: 'short' | 'fullTime') => {
-    const now = newAttempt();
-    const created = startMockSession(spec, props.pools, mode, now.seed, now.iso);
+    const created = startMockSession(spec, props.pools, mode, props.attemptSeed, new Date().toISOString());
     if (!created) return;
     rtRef.current = created;
     setRt(created);
@@ -468,7 +470,12 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
         <p className="mb-1 rounded-lg bg-gray-50 px-3 py-2 text-base font-semibold leading-relaxed text-gray-900">{q.targetJapanese}</p>
       )}
       {q.questionJa && <p className="mb-1 text-base font-semibold text-gray-900">{q.questionJa}</p>}
-      {lang === 'zh' && <p className="mb-3 text-sm text-gray-600">{q.questionZh}</p>}
+      {/* 中国語の設問は、zh画面のときと**日本語の設問が1つも無いとき**に出す（2026-08-17）。
+          rec問題は questionJa が常に null で、見出し（targetJapanese）が答えを割るときは
+          それも隠す。両方隠れると ja画面では選択肢4つだけが並び、何を問われているか分からなくなる */}
+      {(lang === 'zh' || (!q.questionJa && !q.targetJapanese)) && (
+        <p className="mb-3 text-sm text-gray-600">{q.questionZh}</p>
+      )}
 
       <div className="space-y-2">
         {presented.choices.map((c) => (

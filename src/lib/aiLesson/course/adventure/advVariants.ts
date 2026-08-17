@@ -8,7 +8,7 @@
 // - 機械検査（漏洩0・重複0・複数正解0・解説必須・出典必須・妥当性）を通った問題だけ emit
 import { seededShuffle } from './advDiagnosis';
 import {
-  checkQuestionValidity, connectionHead, isConnectionCompatible, endingCategory,
+  checkQuestionValidity, connectionHead, isConnectionCompatible, endingCategory, contentTokens,
   type ValidityIssue,
 } from './advQuestionValidity';
 import { skillOfQuestionType, SECTION_OF_SKILL, type ExamSection, type ExamSkill } from './advExamSkills';
@@ -83,15 +83,199 @@ export interface AdvBattleQuestion {
   status: 'authored' | 'validated_beta';
 }
 
-/** patternの照合キー（〜・（）・／を除いた実表記の候補） */
+/**
+ * patternの照合キー（〜・（）・／を除いた実表記の候補）。
+ *
+ * **これは「例文のどこに文型が出ているか」を探すための照合用キーであり、
+ * 学習者に見せる表示テキストではない。** 活用に当てるため語の途中で切ってある
+ * （「てしま」⊂てしまいます／「と思い」⊂と思います）。表示には displayFormsOf を使う。
+ *
+ * 〜 は**スロット境界**なので削除ではなく分割する。削除すると離れた2片が接着して
+ * 「〜に〜られる」→「にられる」のように日本語として存在しない文字列ができる
+ * （2026-08-17 実測: 「にられる」が cloze 誤答に9回・「やなど」が8回出ていた）。
+ */
 export const matchKeysOf = (d: GrammarDraftLike): string[] => {
   if (d.matchKeys && d.matchKeys.length > 0) return d.matchKeys;
-  const base = d.pattern.replace(/[〜～]/g, '');
-  const parts = base.split(/[／/]/).map((p) => p.replace(/（[^）]*）/g, '').trim()).filter((p) => p.length > 0);
-  return parts.length > 0 ? parts : [base];
+  const parts = d.pattern
+    .split(/[／/]/)
+    .flatMap((p) => p.replace(/（[^）]*）/g, '').split(/[〜～]/))
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+  return parts.length > 0 ? parts : [d.pattern.replace(/[〜～]/g, '')];
+};
+
+const KANJI_RE = /[一-鿿]/u;
+const KEY_PUNCT_RE = /[、。，,．.！!？?・＋+（）()「」『』／/\\\s…]/u;
+/**
+ * 文法書のラベル（日本語の語ではない）。「動詞て形」「い形容詞」「普通形」等は
+ * pattern に出てくるが、選択肢としてそのまま出すと**日本語でないものを選ばせる**ことになる。
+ */
+const META_LABEL_RE = /(動詞|名詞|形容詞|普通形|辞書形|ない形|た形|て形|ます形|可能形|受身形|使役形|意向形|イ形|ナ形|数量詞|疑問詞|副詞|語幹)/u;
+
+/**
+ * 選択肢としてそのまま画面に出せる表示形（pattern から作る）。
+ *
+ * pattern は人が書いた見出しなので、単独で読める日本語であることが保証されている
+ * （meaning/form 問題の設問文でも「「〜に違いない」の意味は」と既に表示している）。
+ * 〜 はスロット境界として分割し、／・＋ は代替表記・結合として分割、（注記）は落とす。
+ * 1文字（「に」「で」「も」）は blank に何でも入ってしまうので採らない。
+ */
+export const displayFormsOf = (d: GrammarDraftLike): string[] => {
+  const out: string[] = [];
+  for (const alt of d.pattern.replace(/[（(][^）)]*[）)]/gu, '').split(/[／/・]/u)) {
+    for (const seg of alt.split(/[〜～＋+]/u)) {
+      const t = seg.replace(KEY_PUNCT_RE, '').trim();
+      if (t.length >= 2 && !META_LABEL_RE.test(t) && !out.includes(t)) out.push(t);
+    }
+  }
+  // 長い＝具体的な形を優先（短い形ほど別の文にも当てはまり「誤答なのに正しい」危険が増える）
+  return out.sort((a, b) => (b.length - a.length) || (a < b ? -1 : a > b ? 1 : 0));
+};
+
+/**
+ * matchKeys を学習者に見せるテキスト（cloze の正解／誤答）に流用してよいかの判定。
+ *
+ * 「切断」は**より長い既知の形との関係**で決まる。同じ項目が持つ pattern 由来の表示形か、
+ * 同じ項目の別の matchKey が自分を接頭辞に含むなら、それは語の途中で切ったキー
+ * （「ておい」⊂「ておいてください」／「に違いな」⊂「に違いない」）。
+ * `siblings` には自分自身を含めてよい（自分自身は longer 判定に掛からない）。
+ */
+export const isDisplayableMatchKey = (key: string, forms: string[], siblings: string[] = []): boolean => {
+  if (key.length < 2) return false;
+  if (KEY_PUNCT_RE.test(key)) return false;
+  // より長い既知形の途中で切られている。
+  // ただし「切れ目のあとが助詞・です・する」なら、そこは語の切れ目であって語中ではない
+  // （「たばかり」＋です／「まま」＋に／「抜きで」＋は／「ことに」＋します は単独で読める）。
+  // 「ます」「ない」「て」「いる」は活用の続きなので切れ目として認めない
+  // （「と思い」＋ます／「ざるを得」＋ない／「に伴っ」＋て／「に決まって」＋いる は断片）。
+  const SEPARABLE_TAIL = /^(です|でし|だ|する|し|は|が|を|に|で|と|も|の|か|へ|や|から|まで|より)/u;
+  const cutMidWord = [...forms, ...siblings]
+    .some((f) => f.length > key.length && f.startsWith(key) && !SEPARABLE_TAIL.test(f.slice(key.length)));
+  if (cutMidWord) return false;
+  // 促音で終わる＝て形/た形の活用途中（「と思っ」「ちゃっ」）
+  if (/[っッ]$/u.test(key)) return false;
+  // 仮名の直後の漢字1字で終わる＝助詞＋動詞語幹の切断（「で働」「に住」「へ帰」）
+  const last = key[key.length - 1] ?? '';
+  const prev = key[key.length - 2] ?? '';
+  if (KANJI_RE.test(last) && !KANJI_RE.test(prev)) return false;
+  return true;
+};
+
+/** cloze の誤答テキストとして使ってよい候補（長い順）。空なら誤答に採用しない */
+export const distractorTextsOf = (d: GrammarDraftLike): string[] => {
+  const forms = displayFormsOf(d);
+  if (forms.length > 0) return forms;
+  // pattern 自体が文法書のラベル（「動詞て形」「い形容詞＋名詞」）の項目は誤答源にしない。
+  // matchKeys には「書いて」「な部屋」のような**活用例**しか無く、単独の選択肢にならない。
+  if (META_LABEL_RE.test(d.pattern)) return [];
+  // 「〜で（場所）」のように pattern が1文字に潰れる助詞項目だけ、matchKeys を表示に流用する
+  const keys = matchKeysOf(d);
+  return keys.filter((k) => isDisplayableMatchKey(k, forms, keys));
 };
 
 const normalizePattern = (p: string): string => p.replace(/[〜～（）()／/\s]/g, '');
+
+const hasKanaText = (s: string): boolean => /[぀-ゟ゠-ヿ]/u.test(s);
+
+/**
+ * 見出し（pattern）から学習者が読み取れる断片。
+ * （）内は語釈（場所・到着点／進行 等）なので落とす。
+ * 「〜」は空欄マーカーなので**区切りとして扱う**（「たとえ〜ても」→「たとえ」「ても」）。
+ */
+const headingSegments = (pattern: string): string[] => {
+  const stripped = pattern.replace(/（[^）]*）/gu, '').replace(/\([^)]*\)/gu, '');
+  return stripped.split(/[〜～／/・、,]+/u).map((s) => s.replace(/\s+/gu, '').trim()).filter((s) => s.length > 0);
+};
+
+/** 最長共通部分文字列の長さ（活用違いを跨いで「見た目が一致する塊」を測る） */
+const longestCommonSubstring = (a: string, b: string): number => {
+  if (a.length === 0 || b.length === 0) return 0;
+  let best = 0;
+  let prev = new Array<number>(b.length + 1).fill(0);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = new Array<number>(b.length + 1).fill(0);
+    for (let j = 1; j <= b.length; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        cur[j] = prev[j - 1] + 1;
+        if (cur[j] > best) best = cur[j];
+      }
+    }
+    prev = cur;
+  }
+  return best;
+};
+
+/**
+ * 見出しが正解を割ってしまうか（rec問題で targetJapanese を出してよいかの判定）。
+ *
+ * 【なぜ作り直したか】
+ * 旧実装は `correctText.includes(self.pattern)` を前提にしていたが、pattern には必ず
+ * 「〜」「（）」「／」のいずれかが入るため選択肢に literal 一致することが構造的にありえず、
+ * **全317問で一度も発火しないデッドコード**だった（2026-08-17 実測）。
+ * そこで包含方向にも活用形にも依存しない「手がかり照合」に置き換える。
+ *
+ * 【判定】次の2つの検出器の論理和。どちらも「見出しが正解だけを指し、
+ * 他の選択肢を指す手がかりが無い」ときにだけ true になる（＝曖昧なら隠さない）。
+ *   検出器1（literal）: 見出しの断片／見出しに現れる matchKey が
+ *     正解にだけ含まれ、かつ「正解に無く誤答にある」断片が1つも無い。
+ *     → 「〜に（場所・到着点）」の「に」のような1文字の助詞を拾える。
+ *   検出器2（活用許容）: 見出しの断片と各選択肢の最長共通部分文字列を
+ *     断片長で正規化した一致度を比べ、正解の一致度が誤答の最大より厳密に大きい。
+ *     → 「〜かもしれない」対「かもしれません」のような活用違いを拾える。
+ *     1文字一致は偶然が多いので、絶対長2文字以上を要求する（1文字は検出器1が担当）。
+ *
+ * 【なぜ「隠さない」側に倒す条件を入れたか】
+ * 見出しが候補を全部並べている場合（「これ・それ・あれ」「〜ましょう／〜ませんか」
+ * 「あげます／くれます／もらいます」）は各断片が別々の選択肢を指すので手がかりにならない。
+ * ここで隠すと漏洩は減らないのに「何を問われているか」だけが失われる。
+ *
+ * 【中国語glossの選択肢を対象外にする理由】
+ * 選択肢が中国語のとき、promptZh 側が対象の日本語文を丸ごと引用している
+ * （例: 「日本語を勉強し始めました」是什么意思？）。見出しを隠しても日本語は設問に残るので
+ * 漏洩は1件も減らない。さらに漢字の一致は中国語話者にとって意味を読む正規の経路であり、
+ * 漏洩として扱うと意味問題が成立しなくなる。
+ */
+export const headingRevealsAnswer = (
+  d: GrammarDraftLike, correct: string, wrongs: string[],
+): boolean => {
+  if (correct.length === 0 || wrongs.length === 0) return false;
+  // 選択肢が日本語（かな入り）のときだけ文字照合が成立する
+  if (!hasKanaText(correct) || !wrongs.every(hasKanaText)) return false;
+
+  const segments = headingSegments(d.pattern);
+  if (segments.length === 0) return false;
+
+  // ── 検出器1: literal な断片一致 ──
+  const headingFlat = segments.join('');
+  const cues = new Set<string>(segments);
+  for (const k of matchKeysOf(d)) {
+    if (k.length > 0 && headingFlat.includes(k)) cues.add(k);
+  }
+  let literalPointsCorrect = false;
+  let literalPointsWrong = false;
+  for (const cue of cues) {
+    const inCorrect = correct.includes(cue);
+    const inWrong = wrongs.some((w) => w.includes(cue));
+    if (inCorrect && !inWrong) literalPointsCorrect = true;
+    if (!inCorrect && inWrong) literalPointsWrong = true;
+  }
+  if (literalPointsCorrect && !literalPointsWrong) return true;
+
+  // ── 検出器2: 活用違いを跨ぐ一致度比較 ──
+  const strength = (opt: string): { ratio: number; abs: number } => {
+    let ratio = 0; let abs = 0;
+    for (const seg of segments) {
+      const len = longestCommonSubstring(seg, opt);
+      const r = len / seg.length;
+      if (r > ratio) { ratio = r; abs = len; }
+      else if (r === ratio && len > abs) abs = len;
+    }
+    return { ratio, abs };
+  };
+  const c = strength(correct);
+  const worstWrong = Math.max(...wrongs.map((w) => strength(w).ratio));
+  return c.abs >= 2 && c.ratio > worstWrong;
+};
 
 /**
  * 同族文型の保守的検出:
@@ -249,15 +433,14 @@ const genRecognition = (ctx: GenContext): AdvBattleQuestion | null => {
       whyJa: rec.distractorReason ?? `「${self.pattern}」の使い方に合いません。`,
       whyZh: rec.distractorReason ?? `不符合「${self.pattern}」的用法。`,
     }));
-  // 見出し（pattern）が正解選択肢を割ってしまう場合は見出しを出さない
-  // （2026-08-17 監査P1: pattern⊂正解 かつ 誤答には含まれない構図だと、
-  // 見出しと選択肢の文字照合だけで正解できてしまう）
-  const patternRevealsAnswer = correctText.includes(self.pattern)
-    && !wrongs.some((w) => w.ja.includes(self.pattern));
+  // 見出し（pattern）が正解選択肢を割ってしまう場合は見出しを出さない。
+  // 判定は headingRevealsAnswer（包含方向にも活用形にも依存しない手がかり照合）。
+  // 見出しを消すだけで問題自体は消えない＝保守側の変更。
+  const revealsAnswer = headingRevealsAnswer(self, correctText, wrongs.map((w) => w.ja));
   return {
     ...baseFields('rec', ctx.level, self),
     key: `rec:${self.grammarId}`,
-    targetJapanese: patternRevealsAnswer ? null : self.pattern,
+    targetJapanese: revealsAnswer ? null : self.pattern,
     questionJa: null,
     questionZh: rec.promptZh,
     choices: mkChoices({ ja: correctText }, wrongs),
@@ -267,41 +450,137 @@ const genRecognition = (ctx: GenContext): AdvBattleQuestion | null => {
   };
 };
 
+const CLOZE_Q_JA = '＿＿に入る言葉はどれですか。';
+const CLOZE_Q_ZH = '填入＿＿的是哪一个？';
+
 /** 2) cloze（例文の文型部分を＿＿に）。distractorは接続互換のある別文型のみ */
+/**
+ * 漢字のあとに続けても語を割らない助詞・助動詞（名詞の直後に立てる形）。
+ * これ以外の仮名始まりのキーが漢字の直後に来ている場合、そこは**活用語尾**であり、
+ * 穴を開けると語幹だけが文に残る。
+ */
+const PARTICLES_AFTER_NOUN = new Set([
+  'に', 'で', 'へ', 'を', 'は', 'が', 'と', 'も', 'の', 'か', 'や', 'ね', 'よ',
+  'から', 'まで', 'より', 'など', 'だけ', 'しか', 'ほど', 'くらい', 'ぐらい', 'ばかり',
+  'さえ', 'でも', 'には', 'では', 'とは', 'にも', 'へは', 'をも', 'との', 'への', 'からの',
+  'ので', 'のに', 'のは', 'のが', 'のを', 'なら', 'だと', 'だし', 'だから',
+  'です', 'でした', 'だった', 'ですか', 'ですが', 'でしょう',
+]);
+
+/**
+ * 穴が語の内部へ食い込むか（2026-08-17 実測で47問見つかった defect）。
+ *
+ * 実例: 「毎朝、コーヒーを飲＿＿、会社に行きます。」正解「んで」。
+ * matchKeys は**照合のために**活用語尾で切ってあるので（て形の「んで」「って」など）、
+ * そのまま穴にすると語幹の「飲」だけが文に残り、
+ *   ・学習者には何を問われているか読めない
+ *   ・誤答（「せる」「あれ」）と並べても文法を測っていない
+ * という二重の壊れ方をする。
+ *
+ * 判定: 穴の直前が漢字で、キーが仮名で始まり、かつ名詞の直後に立てる助詞でないなら
+ * 「活用語尾を切った」とみなして、その例文では cloze を作らない。
+ * 「病院に行きます」の「に」のような正当な助詞の穴は残る（PARTICLES_AFTER_NOUN にある）。
+ */
+export const splitsWordStem = (ex: string, key: string): boolean => {
+  const at = ex.indexOf(key);
+  if (at <= 0) return false;
+  const before = ex[at - 1];
+  if (!/[一-鿿]/u.test(before)) return false;          // 直前が漢字でなければ語幹の切断ではない
+  if (!/^[ぁ-ゟ]/u.test(key)) return false;            // 漢字・カタカナ始まりは語の頭
+  return !PARTICLES_AFTER_NOUN.has(key);
+};
+
 const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
   const { self } = ctx;
   const keys = matchKeysOf(self);
+  // 穴の位置＝**正解として画面に出る文字列**。matchKeys は照合用に語の途中で切ってあるので
+  // （「てしま」「と言っ」「れそう」）、そのまま穴にすると正解が断片になる。
+  // ここでは「語として読める形」だけを穴の候補にし、当たる形が無い例文は cloze にしない
+  // （項目には rec/meaning/form が残るので「存在するふり」にはならない）。
+  //
+  // matchKeys を明示していない項目には表示形を足さない。「ここ・そこ・あそこ」のように
+  // 「穴にすると他の選択肢も成立してしまうから cloze を作らせない」という
+  // 作問側の意図的な判断を、こちらが勝手に覆さないため。
+  const hitKeys = (() => {
+    const forms = displayFormsOf(self);
+    const explicit = !!(self.matchKeys && self.matchKeys.length > 0);
+    const all = explicit ? [...new Set([...forms, ...keys])] : keys;
+    const readable = all.filter((k) => forms.includes(k) || isDisplayableMatchKey(k, forms, keys));
+    // 読める形の中では短い方を先に試す。穴は文型そのものだけを隠すのが基本で、
+    // 正解だけ極端に長いと選択肢の長さが手がかりになってしまう（§3）
+    return explicit
+      ? readable.sort((a, b) => (a.length - b.length) || (a < b ? -1 : a > b ? 1 : 0))
+      : readable;
+  })();
   const selfHead = connectionHead(self.formation);
   const out: AdvBattleQuestion[] = [];
   const order = self.examplesJa.map((_, i) => i).sort((a, b) => (a === 0 ? 1 : b === 0 ? -1 : a - b));
   for (const exIdx of order) {
     const ex = self.examplesJa[exIdx];
-    const hit = keys.find((k) => k.length >= 2 && ex.includes(k));
+    // 候補を順に試す。1つ目が「答えが文中に残る」形でも、次の候補なら綺麗に穴が開くことがある
+    // （「〜たり〜たりします」は表示形「たり」だと文中にもう1つ残るが「たりしました」なら残らない）
+    let hit: string | null = null;
+    let blanked = '';
+    for (const k of hitKeys) {
+      if (k.length < 2 || !ex.includes(k)) continue;
+      if (splitsWordStem(ex, k)) continue;   // 語の途中に穴を開けない（下の注記）
+      const b = ex.replace(k, '＿＿');
+      if (b === ex) continue;
+      // 文型が例文に2回以上出る場合、1回だけの置換では答えが同じ文中に残る（2026-08-17 監査P1）。
+      // 照合は matchKeys と採用した正解だけで行う（表示形まで含めると
+      // 「たとえ〜ても」の「ても」のように**穴と無関係な断片**で例文ごと落ちる）
+      if ([...keys, k].some((x) => x.length >= 2 && b.includes(x))) continue;
+      hit = k;
+      blanked = b;
+      break;
+    }
     if (!hit) continue;
-    const blanked = ex.replace(hit, '＿＿');
-    if (blanked === ex) continue;
-    // 文型が例文に2回以上出る場合、1回だけの置換では答えが同じ文中に残る
-    // （2026-08-17 監査P1）。残存があればこの例文は使わない
-    if (keys.some((k) => k.length >= 2 && blanked.includes(k))) continue;
-    // §3: 文法的に接続できる（接続互換）distractorのみ
+    // §3: 文法的に接続できる（接続互換）distractorのみ。
+    // 誤答テキストは **matchKeys ではなく displayFormsOf（＝pattern 由来の表示形）** から採る。
+    // matchKeys は照合用に語の途中で切ってあるため、そのまま出すと「てしま」「に違いな」
+    // 「にられる」のような日本語として読めない断片が誤答に並ぶ（2026-08-17 実測 121スロット）。
+    const hasKana = (s: string) => /[぀-ゟ゠-ヿ]/u.test(s);
     const cands = ctx.distractorPool
       .filter((d) => isConnectionCompatible(selfHead, connectionHead(d.formation)))
-      .map((d) => ({ d, k: matchKeysOf(d).find((k) => k.length >= 2 && !ex.includes(k)) }))
-      .filter((x): x is { d: GrammarDraftLike; k: string } => !!x.k && x.k !== hit);
+      .map((d) => ({
+        d,
+        ks: distractorTextsOf(d)
+          // 仮名の有無が選択肢間でばらつくと「日本語文と中国語glossの混在」と同じ不均質になる
+          .filter((k) => k !== hit && !ex.includes(k) && lengthCompatible(hit, k) && hasKana(k) === hasKana(hit))
+          // §3 構造均質性: 正解と長さが近い表示形から使う（長さが手がかりにならないように）
+          .sort((a, b) => Math.abs(a.length - hit.length) - Math.abs(b.length - hit.length)
+            || (b.length - a.length) || (a < b ? -1 : a > b ? 1 : 0)),
+      }))
+      .filter((x) => x.ks.length > 0);
     const picked: { d: GrammarDraftLike; k: string }[] = [];
-    for (const c of cands) {
-      if (!lengthCompatible(hit, c.k)) continue;
-      if (picked.some((p) => p.k === c.k || sharesStem(normalizePattern(p.k), normalizePattern(c.k)))) continue;
-      picked.push(c);
-      if (picked.length >= 3) break;
-    }
+    // 妥当性検査（§3 構造均質性 lengthSpread 3.2）に落ちる組み合わせは**選ぶ前に**避ける。
+    // 落としてから捨てると、その例文の cloze ごと消える
+    const spreadOk = (cand: string): boolean => {
+      const lens = [hit.length, ...picked.map((p) => p.k.length), cand.length];
+      return Math.max(...lens) / Math.max(1, Math.min(...lens)) <= 3.2;
+    };
+    // 同じく §3 意味的近接。設問＋正解と内容語を共有する誤答を先に採る
+    const ref = new Set([...contentTokens(`${CLOZE_Q_JA}${CLOZE_Q_ZH}`), ...contentTokens(hit)]);
+    const connected = (cand: string): boolean => [...contentTokens(cand)].some((t) => ref.has(t));
+    const takeFrom = (c: { d: GrammarDraftLike; ks: string[] }, needConnected: boolean): boolean => {
+      if (picked.some((p) => p.d.grammarId === c.d.grammarId)) return false;
+      // 表示形が複数ある項目（〜ていきます／〜てきます）は、先頭が既出と衝突しても次を試す
+      const k = c.ks.find((cand) => (!needConnected || connected(cand))
+        && spreadOk(cand)
+        && !picked.some((p) => p.k === cand || sharesStem(normalizePattern(p.k), normalizePattern(cand))));
+      if (!k) return false;
+      picked.push({ d: c.d, k });
+      return true;
+    };
+    for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, true); }
+    for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, false); }
     if (picked.length < 3) continue;
     out.push({
       ...baseFields('cloze', ctx.level, self),
       key: `cloze:${self.grammarId}:${exIdx}`,
       targetJapanese: blanked,
-      questionJa: '＿＿に入る言葉はどれですか。',
-      questionZh: '填入＿＿的是哪一个？',
+      questionJa: CLOZE_Q_JA,
+      questionZh: CLOZE_Q_ZH,
       choices: mkChoices(
         { ja: hit },
         picked.map(({ d, k }) => ({
