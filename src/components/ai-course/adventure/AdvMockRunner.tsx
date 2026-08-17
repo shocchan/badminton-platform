@@ -290,6 +290,26 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
 
   // ── 最終結果 ──
   if (phase === 'finished' && result) {
+    // 間違い直し（2026-08-17 監査: section終了時に「正誤は最後にまとめて表示します」と
+    // 約束しながら、最終画面に集計しか無かった）。誤答＋未回答を問題単位で振り返る
+    const wrongItems = rt
+      ? rt.sections.flatMap((sec) => sec.questions.map((q, qi) => {
+        const picked = rt.state.answers[q.key] ?? null;
+        const correct = q.choices.find((c) => c.isCorrect);
+        if (!correct || picked === correct.choiceId) return null;
+        const pickedText = picked ? (q.choices.find((c) => c.choiceId === picked)?.textJa ?? '') : null;
+        return {
+          key: q.key,
+          label: `${tx(lang, sec.section.labelJa, sec.section.labelZh)} ${qi + 1}`,
+          stem: [q.targetJapanese, q.questionJa].filter(Boolean).join('\n'),
+          stemZh: q.questionZh ?? '',
+          pickedText,
+          correctText: correct.textJa,
+          whyJa: q.explanation.whyCorrectJa,
+          whyZh: q.explanation.whyCorrectZh,
+        };
+      }).filter((x): x is NonNullable<typeof x> => x !== null))
+      : [];
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-xl font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
@@ -338,6 +358,33 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
               '此结果会反映到准备度。这不构成合格保证。')}
           </p>
         </div>
+
+        {/* 間違い直し（約束どおり問題単位の正誤をここで見せる）。全問正解なら出さない */}
+        {wrongItems.length > 0 && (
+          <details className="mt-4 rounded-xl border border-amber-200 bg-amber-50/60">
+            <summary className={`${pressFx} min-h-[48px] cursor-pointer list-none rounded-xl px-4 py-3 text-sm font-bold text-amber-900`}>
+              {tx(lang, `間違い直しを見る（${wrongItems.length}問）▾`, `查看错题（${wrongItems.length}题）▾`)}
+            </summary>
+            <ul className="space-y-3 px-4 pb-4">
+              {wrongItems.map((w) => (
+                <li key={w.key} className="rounded-xl border border-gray-200 bg-white p-3">
+                  <p className="text-[11px] font-semibold text-gray-500">{w.label}</p>
+                  <p lang="ja" className="mt-1 whitespace-pre-wrap text-sm font-semibold text-gray-900">{w.stem}</p>
+                  {lang === 'zh' && w.stemZh && <p className="mt-0.5 text-xs text-gray-500">{w.stemZh}</p>}
+                  <p className="mt-2 text-sm">
+                    <span className="text-red-600">✕ {w.pickedText ?? tx(lang, '未回答', '未作答')}</span>
+                  </p>
+                  <p className="mt-0.5 text-sm">
+                    <span className="font-semibold text-emerald-700">◯ {w.correctText}</span>
+                  </p>
+                  <p className="mt-1.5 rounded-lg bg-gray-50 px-2.5 py-2 text-xs leading-relaxed text-gray-700">
+                    {tx(lang, w.whyJa, w.whyZh || w.whyJa)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
         {/* 成績の推移（2026-08-17 監査: mockLogに保存済みなのにどこにも見えなかった）。
             実測の記録のみ・最新5回。回数が1回だけなら比較できないので出さない */}

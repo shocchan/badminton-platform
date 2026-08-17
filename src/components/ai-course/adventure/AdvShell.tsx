@@ -991,6 +991,64 @@ export default function AdvShell(props: AdvShellProps) {
             {s.learnerViewJa.length === 0 && <li>{tx(lang, 'まだデータが少ないです。冒険を続けると候補が出ます。', '数据还不多。继续冒险后会出现候选。')}</li>}
           </ul>
         </div>
+        {/* 先生に相談したいこと（2026-08-17 監査: humanLesson.learnerTopicsの表示側は
+            実装済みなのに、書く場所がどこにも無かった）。最大3件・1件60字 */}
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-semibold text-gray-900">
+            {tx(lang, '先生に相談したいこと（レッスンで扱ってほしいこと）', '想和老师商量的事（希望课上处理的内容）')}
+          </p>
+          <ul className="mt-1 space-y-1">
+            {(prof.humanLesson.learnerTopics ?? []).map((t2, i) => (
+              <li key={`${t2}-${i}`} className="flex items-center justify-between gap-2 rounded-lg bg-gray-50 px-2.5 py-1.5 text-sm text-gray-800">
+                <span className="min-w-0 flex-1">・{t2}</span>
+                <button type="button" aria-label={tx(lang, 'この相談を削除', '删除这条')}
+                  className={`${pressFx} shrink-0 rounded px-2 text-xs text-gray-400 active:bg-gray-200`}
+                  onClick={() => save({
+                    ...prof,
+                    humanLesson: {
+                      ...prof.humanLesson,
+                      learnerTopics: (prof.humanLesson.learnerTopics ?? []).filter((_, j) => j !== i),
+                    },
+                  })}>
+                  ✕
+                </button>
+              </li>
+            ))}
+          </ul>
+          {(prof.humanLesson.learnerTopics ?? []).length < 3 ? (
+            <form className="mt-2 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const input = e.currentTarget.elements.namedItem('topic') as HTMLInputElement | null;
+                const v = input?.value.trim().slice(0, 60) ?? '';
+                if (!v) return;
+                save({
+                  ...prof,
+                  humanLesson: {
+                    ...prof.humanLesson,
+                    learnerTopics: [...(prof.humanLesson.learnerTopics ?? []), v],
+                  },
+                });
+                if (input) input.value = '';
+              }}>
+              <input name="topic" type="text" maxLength={60}
+                placeholder={tx(lang, '例：電話で日程を変更する言い方', '例如：打电话改时间的说法')}
+                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <button type="submit"
+                className={`${pressFx} action-secondary min-h-[44px] shrink-0 rounded-xl border border-blue-600 bg-white px-4 text-sm font-bold text-blue-700`}>
+                {tx(lang, '追加', '添加')}
+              </button>
+            </form>
+          ) : (
+            <p className="mt-2 text-xs text-gray-500">
+              {tx(lang, '相談は3件まで。レッスンで扱ったら消して、次を追加してください。', '最多3条。课上处理完后删除，再添加新的。')}
+            </p>
+          )}
+          <p className="mt-1.5 text-xs text-gray-400">
+            {tx(lang, 'ここに書いたことは先生に共有され、次のレッスンの材料になります。',
+              '写在这里的内容会共享给老师，作为下次课的材料。')}
+          </p>
+        </div>
         <p className="mt-3 text-xs text-gray-500">
           {tx(lang, 'AIが毎日の量を担当し、先生は難所攻略と方向修正に集中します。', 'AI负责每天的练习量，老师专注于攻克难点和调整方向。')}
         </p>
