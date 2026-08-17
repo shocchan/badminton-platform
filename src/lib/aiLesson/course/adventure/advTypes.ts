@@ -133,6 +133,12 @@ export interface AdvMasteryAttempt {
   skills?: string[];
   /** 試験科目別の正誤・未出数（準備度をskill別に出すための証拠・§9） */
   bySkill?: Record<string, { correct: number; total: number; unseen: number }>;
+  /**
+   * この回で間違えた問題キー（错题本の材料・2026-08-17追加）。
+   * **配列が存在すること自体が「正誤を記録した試行」の印**。全問正解でも [] を入れること。
+   * undefined は旧データ＝正誤不明で、错题本は「未確認」として扱う（正解したと推定しない）
+   */
+  wrongKeys?: string[];
 }
 
 /** targetId（unitId / grammarId / stage束ID）→ 試行履歴 */
@@ -309,6 +315,12 @@ export interface AdventureV2Profile {
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ
    */
   interviewPrep: import('./interview/advInterview').InterviewPrepState;
+  /**
+   * 先生からの一言（週1・2026-08-17）。管理画面から追記し、生徒のホームに出す。
+   * 発行キー（先生が書いたものを生徒側の保存で消さない）なので
+   * ai_save_learner_settings の保護対象に入れてある
+   */
+  teacherNotes: import('./advTeacherNote').AdvTeacherNote[];
   humanLesson: AdvHumanLessonState;
   createdAt: string;
   updatedAt: string;

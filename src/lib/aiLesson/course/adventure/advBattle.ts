@@ -146,6 +146,8 @@ export const gradeEncounter = (
       tier: enc.tier, timed: enc.timed, completedAt: nowISO,
       skills: enc.skills,
       bySkill,
+      // 错题本の材料。全問正解でも空配列を入れる（省略すると旧データと区別できず「未確認」になる）
+      wrongKeys,
     },
   };
 };

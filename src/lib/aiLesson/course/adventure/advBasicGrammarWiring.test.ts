@@ -21,7 +21,7 @@ const diagnosis: AdvDiagnosisResult = {
   knowledgeBand: 'pre_n5',
   conversationBand: 'needs_assessment',
   vocabularyGapIds: [], grammarGapIds: [],
-  listeningConfidence: 'unknown',
+  listeningConfidence: 'none',
   supportNeed: 'whenStuck',
   recommendedStartAreaId: 'area01-minato',
   routeExplanationJa: '', routeExplanationZh: '',

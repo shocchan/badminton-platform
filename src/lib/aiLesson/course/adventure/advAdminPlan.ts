@@ -30,7 +30,7 @@ export const TEACHER_BAND_OPTIONS: { band: AdvBand; ja: string; zh: string; note
     note: { ja: '基礎キャンプ（N5文法・基礎語彙）から', zh: '从基础营地（N5语法・基础词汇）开始' },
   },
   {
-    band: 'n4_early', ja: 'N4前半', zh: 'N4前半',
+    band: 'n4', ja: 'N4前半', zh: 'N4前半',
     note: { ja: '基礎キャンプの後半から', zh: '从基础营地后半开始' },
   },
   {

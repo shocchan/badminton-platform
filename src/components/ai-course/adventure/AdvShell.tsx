@@ -13,6 +13,12 @@ import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDela
 import { generateTodayQuest, vocabTargetForStage, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
+import { buildReviewForecast, type ReviewForecast } from '../../../lib/aiLesson/course/adventure/advReviewForecast';
+import {
+  buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
+  mistakeStatusText, MISTAKE_TERMS, type MistakeNotebook,
+} from '../../../lib/aiLesson/course/adventure/advMistakeNotebook';
+import { latestUnreadNote, markNoteRead } from '../../../lib/aiLesson/course/adventure/advTeacherNote';
 import { XP_RULES, xpForBattle, levelOf, xpToNextLevel } from '../../../lib/aiLesson/course/adventure/advXp';
 import { buildLessonPrepSummary } from '../../../lib/aiLesson/course/adventure/advHumanLesson';
 import {
@@ -25,6 +31,7 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advContent';
 import { seededShuffle, type DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
+import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs';
 import { loadAllBasicDrafts } from '../../../lib/aiLesson/course/basicGrammarChunks';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
@@ -91,10 +98,29 @@ export interface AdvShellProps {
   onRequestConsumed?: () => void;
 }
 
-type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
+
+/** 错题本の解き直しバトルのtargetId。ルートのstage targetとは混ざらない専用ID */
+const MISTAKE_TARGET_ID = 'mistake-review';
+
+/**
+ * 学習対象IDを生徒に見せる言葉へ（原則13: 内部IDを見せない）。
+ * 名前が分からないIDは**それらしい名前を作らず**「学習した内容」とだけ言う。
+ */
+const targetLabelOf = (targetId: string, lang: L): string => {
+  const spec = N3_UNIT_SPECS.find((s) => s.unitId === targetId);
+  if (spec) return tx(lang, spec.titleJa, spec.titleZh);
+  if (/^n5g-unit-/.test(targetId)) return tx(lang, '基礎の文法（N5）', '基础语法（N5）');
+  if (/^n4g-unit-/.test(targetId)) return tx(lang, '基礎の文法（N4）', '基础语法（N4）');
+  if (/^n3g-unit-/.test(targetId)) return tx(lang, 'N3の文法', 'N3语法');
+  if (/^n2g-unit-/.test(targetId)) return tx(lang, 'N2の文法', 'N2语法');
+  if (/^vocab-/.test(targetId)) return tx(lang, 'ことば', '词汇');
+  if (targetId === MISTAKE_TARGET_ID) return tx(lang, '間違えた問題の解き直し', '错题重做');
+  return tx(lang, '学習した内容', '学过的内容');
+};
 
 /** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
 const skillOfStep = (kind: string): ExamSkill => {
@@ -118,6 +144,10 @@ export default function AdvShell(props: AdvShellProps) {
   const [pools, setPools] = useState<GrammarPools | null>(null);
   const [diagPools, setDiagPools] = useState<DiagnosisPools | null>(null);
   const [stageCt, setStageCt] = useState<StageContent | null>(null);
+  /** 復習予報（渋滞レスキュー込み）。ホームの表示と確認バトルの出題を同じ数字で揃えるための単一の出所 */
+  const [forecast, setForecast] = useState<ReviewForecast | null>(null);
+  /** 错题本から解き直す問題キー（このバトルの間だけ有効） */
+  const [mistakeKeys, setMistakeKeys] = useState<string[]>([]);
   const [quest, setQuest] = useState<AdvTodayQuest | null>(null);
   const [battle, setBattle] = useState<BattleCtx | null>(null);
   const [studyGrammarId, setStudyGrammarId] = useState<string | null>(null);
@@ -260,7 +290,16 @@ export default function AdvShell(props: AdvShellProps) {
       const stageDone = deriveMasteredStageIds(profile.route!, mastered, p.n3Ids, p.n2ByUnit, p.n3BundleByItem, p.basicByUnit, p.basicBundleByUnit);
       const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
       // 7日待ちのtargetは次候補から外して先へ進み、確認が解禁されたら確認バトルを最優先で出す（進度改善 2026-08-15）
-      const { waiting, confirmReady } = classifyPendingDelay(profile.mastery, nowISO);
+      const { waiting } = classifyPendingDelay(profile.mastery, nowISO);
+      // 復習予報＋渋滞レスキュー（2026-08-17）。
+      // 数日あけると解禁ぶんが1日に集中し「今日30件」になって心が折れる。
+      // 予報側で今日ぶんを決め、**出題も予報と同じ集合**を使う（画面の数字と出る数を必ず一致させる）
+      const forecast = buildReviewForecast({
+        ledger: profile.mastery, nowISO, dueCount: props.reviewsDue,
+        dailyMinutes: profile.dailyMinutes ?? null,
+        includeTargetId: (id) => !/^(reading-|listening-|mock)/.test(id),
+      });
+      setForecast(forecast);
       const { stage: contentStage, content: ct } = await pickContentStage(
         profile.route!, stage, mastered, stageDone, waiting);
       if (!alive) return;
@@ -292,9 +331,9 @@ export default function AdvShell(props: AdvShellProps) {
           nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
           grammarBundleByItem: ct.grammarBundleByItem,
-          // 出題プールを持たない証跡target（読解・聴解・模試）は確認バトルにしない
+          // 出題プールを持たない証跡target（読解・聴解・模試）は予報側のフィルタで既に除外済み
           // （2026-08-17 監査P1: 問題0件の「押しても進めないバトル」が毎日固定で出ていた）
-          confirmTargetIds: [...confirmReady].filter((id) => !/^(reading-|listening-|mock)/.test(id)).sort(),
+          confirmTargetIds: [...forecast.todayConfirmTargetIds].sort(),
           vocabBattleTargetId,
         },
         examSkills: {
@@ -427,6 +466,9 @@ export default function AdvShell(props: AdvShellProps) {
   // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
   const teacher = resolveTeacher(prof.teacherId);
   const teacherLabel = teacherName(teacher, lang);
+  // 先生からの一言（未読1件）と错题本。どちらも台帳から導く純関数なので毎描画で作ってよい
+  const unreadNote = latestUnreadNote(prof.teacherNotes ?? [], nowISO);
+  const notebook: MistakeNotebook = buildMistakeNotebook(prof.mastery, nowISO);
   const pickTeacher = (id: AdvTeacherId) => {
     if (id === prof.teacherId) return;                 // 同じ先生の再選択は保存も計測もしない
     // 初回選択（未選択→選択）と変更を区別して計測する。先生名・本文は送らない
@@ -499,16 +541,54 @@ export default function AdvShell(props: AdvShellProps) {
       return <AdvLoading lang={lang} />;
     }
     const seen = seenQuestionKeys(prof.mastery);
-    const wrong = new Set<string>();
-    for (const at of Object.values(prof.mastery)) {
-      const last = at?.[at.length - 1];
-      if (last && last.scorePct < 80) for (const k of last.questionKeys) wrong.add(k);
+    // 優先再出題は错题本の「まだ克服できていない」集合を使う（2026-08-17）。
+    // 旧実装は「最後の試行が80%未満ならその回の全問」で、正解した問題まで誤答扱いにしていた。
+    // 正誤の記録が無い旧データしかない人には従来の推定へ落とす（何も優先しないよりはまし）
+    const wrong = notebook.recordingAvailable
+      ? pendingMistakeKeySet(notebook)
+      : (() => {
+        const s = new Set<string>();
+        for (const at of Object.values(prof.mastery)) {
+          const last = at?.[at.length - 1];
+          if (last && last.scorePct < 80) for (const k of last.questionKeys) s.add(k);
+        }
+        return s;
+      })();
+    // 错题本からの解き直しは、選んだ問題だけを持つ専用プールで出す
+    const isMistakeBattle = battle.targetId === MISTAKE_TARGET_ID;
+    const mistakePool = (() => {
+      if (!isMistakeBattle) return null;
+      const want = new Set(mistakeKeys);
+      const picked: AdvBattleQuestion[] = [];
+      const taken = new Set<string>();
+      for (const qs of pools.byItem.values()) {
+        for (const q of qs) {
+          if (want.has(q.key) && !taken.has(q.key)) { taken.add(q.key); picked.push(q); }
+        }
+      }
+      return new Map<string, AdvBattleQuestion[]>([[MISTAKE_TARGET_ID, picked]]);
+    })();
+    // 解き直す問題が1問も解決できないまま画面へ入ったら、空のバトルを見せない（行き止まり回避）。
+    // 描画中にsetStateすると再描画ループになるので、戻る導線を描いて止める
+    if (isMistakeBattle && (mistakePool?.get(MISTAKE_TARGET_ID)?.length ?? 0) === 0) {
+      return (
+        <div className="mx-auto w-full max-w-xl px-4 py-8 text-center">
+          <p className="mb-4 text-sm text-gray-700">
+            {tx(lang, 'いま解き直せる問題が見つかりませんでした。', '现在没有找到可以重做的题目。')}
+          </p>
+          <button type="button" className={`${pressFx} action-secondary min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2`}
+            onClick={() => { setBattle(null); setView('mistakes'); }}>
+            {tx(lang, '間違えた問題ノートへ戻る', '返回错题本')}
+          </button>
+        </div>
+      );
     }
     return (
       <AdvBattleRunner
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
-        targetIds={battle.targetIds} pool={isVocabBattle && vocabPoolFn ? vocabPoolFn(level) : pools.byItem} level={level}
+        targetIds={battle.targetIds}
+        pool={mistakePool ?? (isVocabBattle && vocabPoolFn ? vocabPoolFn(level) : pools.byItem)} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
@@ -525,6 +605,9 @@ export default function AdvShell(props: AdvShellProps) {
           // 終えたバトルのtargetに一致する未完了stepを消し込む（先頭一致だと語彙完了が文法stepを誤消し込みする）
           const battleIdx = (() => {
             if (!quest) return -1;
+            // 错题本の解き直しは今日のクエストの一部ではない。ここで消し込むと
+            // 「やっていないstepが終わったことになる」（記録の水増し・原則13）
+            if (isMistakeBattle) return -1;
             const match = quest.steps.findIndex((s, i) =>
               (s.kind === 'battle' || s.kind === 'weak_reinforce')
               && !doneSteps.has(i) && s.refIds.includes(battle.targetId));
@@ -536,7 +619,7 @@ export default function AdvShell(props: AdvShellProps) {
           const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
           save(battleIdx >= 0 ? withStepDone(next, battleIdx, keyOfStepIdx(battleIdx)) : next);
         }}
-        onClose={() => { setBattle(null); setView('home'); }}
+        onClose={() => { setBattle(null); setView(isMistakeBattle ? 'mistakes' : 'home'); }}
       />
     );
   }
@@ -822,6 +905,97 @@ export default function AdvShell(props: AdvShellProps) {
           if (i >= 0) markStep(i);
         }}
       />
+    );
+  }
+
+  // ── 错题本（間違えた問題ノート・2026-08-17） ──
+  //
+  // 中国語話者の受験文化で最も信頼されている学習法。期限ベースの復習（システムが決めた日）と違い、
+  // **自分の意思でいま弱いところを潰せる**のがここ。
+  // 「克服」の定義（別の日に2回続けて正解）と、数えている範囲（台帳に残っている記録だけ）を
+  // 画面上で必ず断る（原則13: 数字を作らない）。
+  if (view === 'mistakes') {
+    const summary = summarizeMistakes(notebook);
+    // 解き直しは「いま出題できる問題」だけを対象にする。プールから消えた問題を
+    // 「解き直せます」と出すと押しても何も起きない（原則15: 行き止まりを作らない）
+    const resolvable = new Map<string, AdvBattleQuestion>();
+    if (pools) for (const qs of pools.byItem.values()) for (const q of qs) resolvable.set(q.key, q);
+    const redoKeys = pickMistakeReviewKeys(notebook, 10).filter((k) => resolvable.has(k));
+    return (
+      <div className="mx-auto w-full max-w-xl px-4 py-6">
+        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '間違えた問題ノート', '错题本')} teacherLang={lang} />
+        <div className={card}>
+          <p className="text-sm font-bold text-gray-900">{lang === 'zh' ? summary.headline.zh : summary.headline.ja}</p>
+          <p className="mt-2 text-xs leading-relaxed text-gray-500">{lang === 'zh' ? summary.note.zh : summary.note.ja}</p>
+          <p className="mt-1 text-xs leading-relaxed text-gray-400">{lang === 'zh' ? summary.coverageNote.zh : summary.coverageNote.ja}</p>
+          {summary.unverifiedNote && (
+            <p className="mt-1 text-xs leading-relaxed text-amber-700">
+              {lang === 'zh' ? summary.unverifiedNote.zh : summary.unverifiedNote.ja}
+            </p>
+          )}
+        </div>
+
+        {redoKeys.length > 0 && (
+          <button type="button"
+            className={`${pressFx} action-primary-blue mt-4 w-full min-h-[52px] rounded-xl bg-blue-600 px-4 text-base font-bold text-white`}
+            onClick={() => {
+              setMistakeKeys(redoKeys);
+              setBattle({
+                tier: 'normal', targetId: MISTAKE_TARGET_ID,
+                targetLabel: tx(lang, '間違えた問題の解き直し', '错题重做'),
+                targetIds: [MISTAKE_TARGET_ID],
+              });
+              setView('battle');
+            }}>
+            {tx(lang, `間違えた問題を解き直す（${redoKeys.length}問）`, `重做错题（${redoKeys.length}题）`)}
+          </button>
+        )}
+        {/* 出題できるものが1問も無いときは、押せないボタンを置かずに理由を書く */}
+        {redoKeys.length === 0 && notebook.entries.length > 0 && (
+          <p className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
+            {tx(lang,
+              'いまここから解き直せる問題はありません（読解・聴解・模試で間違えたぶんは、それぞれの練習から出ます）。',
+              '现在这里没有可以重做的题（阅读・听力・模拟考的错题会在各自的练习里出现）。')}
+          </p>
+        )}
+
+        <ul className="mt-4 space-y-2">
+          {notebook.entries.slice(0, 40).map((e) => {
+            const st = mistakeStatusText(e);
+            const doneMark = e.resolution === 'overcome';
+            return (
+              <li key={e.questionKey}
+                className={`rounded-xl border p-3 ${doneMark ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
+                <div className="flex items-start justify-between gap-2">
+                  {/* 問題文そのものは持たない設計なので、何の問題かは「学習対象」で示す（内部IDは出さない） */}
+                  <p className="text-sm font-semibold text-gray-800">
+                    {grammarPatternById(e.targetId) ?? targetLabelOf(e.targetId, lang)}
+                  </p>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                    doneMark ? 'bg-emerald-600 text-white'
+                      : e.resolution === 'unverifiable' ? 'bg-amber-500 text-white' : 'bg-gray-500 text-white'}`}>
+                    {doneMark ? tx(lang, MISTAKE_TERMS.overcome.ja, MISTAKE_TERMS.overcome.zh)
+                      : e.resolution === 'unverifiable'
+                        ? tx(lang, MISTAKE_TERMS.unverifiable.ja, MISTAKE_TERMS.unverifiable.zh)
+                        : tx(lang, MISTAKE_TERMS.unresolved.ja, MISTAKE_TERMS.unresolved.zh)}
+                  </span>
+                </div>
+                <p className="mt-1 text-xs text-gray-600">{lang === 'zh' ? st.zh : st.ja}</p>
+                <p className="mt-0.5 text-[11px] text-gray-400">
+                  {tx(lang, `間違えた回数 ${e.wrongCount}回／最後は${e.daysSinceLastWrong}日前`,
+                    `做错 ${e.wrongCount}次／最近一次是${e.daysSinceLastWrong}天前`)}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+        {notebook.entries.length > 40 && (
+          <p className="mt-2 text-center text-xs text-gray-400">
+            {tx(lang, `ほかに${notebook.entries.length - 40}問あります（優先度の高い順に40問を表示）`,
+              `另有${notebook.entries.length - 40}题（按优先级显示前40题）`)}
+          </p>
+        )}
+      </div>
     );
   }
 
@@ -1550,6 +1724,38 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       )}
 
+      {/* 先生からの一言（週1・2026-08-17）。未読が1件あるときだけ出す。
+          AIの自動生成文ではなく**人が書いたもの**なので、相棒やAI先生の吹き出しと見た目を変える */}
+      {unreadNote && (
+        <div className={`${card} mb-4 border-rose-200 bg-rose-50`}>
+          <p className="text-xs font-bold text-rose-700">
+            {tx(lang, `${unreadNote.authorLabel || teacherLabel}から`, `来自${unreadNote.authorLabel || teacherLabel}`)}
+          </p>
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-800">
+            {lang === 'zh' && unreadNote.bodyZh ? unreadNote.bodyZh : unreadNote.bodyJa}
+          </p>
+          <button type="button"
+            className={`${pressFx} action-secondary mt-3 min-h-[44px] w-full rounded-xl border border-rose-300 bg-white px-3 text-sm font-semibold text-rose-700`}
+            onClick={() => save({ ...prof, teacherNotes: markNoteRead(prof.teacherNotes ?? [], unreadNote.id, nowISO) })}>
+            {tx(lang, '読みました', '已读')}
+          </button>
+        </div>
+      )}
+
+      {/* 復習の渋滞レスキュー（2026-08-17）。
+          数日あけると解禁ぶんが1日に集中するので、今日は一部だけ出して残りを分散したことを伝える。
+          「サボったから溜まった」とは言わない（責めても戻ってこない） */}
+      {forecast?.rescue && (
+        <div className={`${card} mb-4 border-sky-200 bg-sky-50`} role="status">
+          <p className="text-sm font-semibold text-sky-900">
+            {tx(lang, '復習を何日かに分けました', '把复习分成了几天')}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-sky-800">
+            {lang === 'zh' ? forecast.rescue.noticeZh : forecast.rescue.noticeJa}
+          </p>
+        </div>
+      )}
+
       {/* 中断したミニ模試があれば、他の何より先に再開させる（§9 reload recovery） */}
       {prof.mockSession && (
         <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
@@ -1794,6 +2000,14 @@ export default function AdvShell(props: AdvShellProps) {
                   onClick={() => setView('kana')} />
               )}
               <SubLink lang={lang} label={term('seeReviewList', lang)} badge={props.reviewsDue} onClick={props.onOpenReview} />
+              {/* 错题本（2026-08-17）。間違えた問題だけを自分の意思で潰せる場所。
+                  誤答の記録がまだ無い人には出さない（空の画面へ連れて行かない） */}
+              {notebook.entries.length > 0 && (
+                <SubLink lang={lang}
+                  label={tx(lang, '間違えた問題ノート', '错题本')}
+                  badge={summarizeMistakes(notebook).pendingCount}
+                  onClick={() => setView('mistakes')} />
+              )}
               {/* おかわりバトル（2026-08-16 CEO要望「問題を変えて何度も復習・XPはやるほど増える」）。
                   出題は未出問題優先で毎回変わる。XPは毎回たまるが、攻略の記録は1日1回まで（原則13） */}
               {(stageCt?.battleTargetIds.length ?? 0) > 0 && (

@@ -17,7 +17,7 @@ const diagnosis = (band: AdvDiagnosisResult['knowledgeBand']): AdvDiagnosisResul
   knowledgeBand: band,
   conversationBand: 'needs_assessment',
   vocabularyGapIds: [], grammarGapIds: [],
-  listeningConfidence: 'unknown',
+  listeningConfidence: 'none',
   supportNeed: 'whenStuck',
   recommendedStartAreaId: 'area01-minato',
   routeExplanationJa: '', routeExplanationZh: '',
