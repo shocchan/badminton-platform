@@ -479,6 +479,19 @@ export default function AdvShell(props: AdvShellProps) {
     if (hasToday) markStep(idx);
   }, [quest, props.sessions, dateKey, doneSteps, markStep]);
 
+  /**
+   * 復習stepは「期限切れの復習が0件になった」ときに完了する（2026-08-17）。
+   * 以前は**タップした瞬間**に完了にしていたので、復習画面を開いて戻っただけで
+   * ✓が付いた（CEO実機報告）。やっていないことを「やった」と記録しない（原則13）。
+   * このstepは dueReviewCount > 0 の日にしか作られないので、0になった＝片付いた、と言える。
+   */
+  useEffect(() => {
+    if (!quest || props.reviewsDue > 0) return;
+    const idx = quest.steps.findIndex((s) => s.kind === 'review_due');
+    if (idx < 0 || doneSteps.has(idx)) return;
+    markStep(idx);
+  }, [quest, props.reviewsDue, doneSteps, markStep]);
+
   // ── onboarding（初回＝needsOnboarding／やり直し＝redoOnboarding） ──
   if (needsOnboarding || redoOnboarding) {
     // 読込失敗を無限ローディングにしない（原則15）。再試行と出口を必ず出す
@@ -1637,7 +1650,9 @@ export default function AdvShell(props: AdvShellProps) {
     const s = quest.steps[i];
     setStepNotice(null);
     trackAdv('today_quest_started', { goalType: prof.goalType ?? undefined, routeStage: stage?.kind, durationBucket: String(prof.dailyMinutes ?? 15) as '5' | '15' | '30', locale: lang });
-    if (s.kind === 'review_due') { markStep(i); props.onOpenReview(); return; }
+    // 押しただけでは完了にしない（2026-08-17 CEO報告: 開いて戻ったら✓になっていた）。
+    // 復習は期限切れが0件になったときに、下の効果で自動的に完了する
+    if (s.kind === 'review_due') { props.onOpenReview(); return; }
     if (s.kind === 'conversation_mission') {
       if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return; }
       // 押しても無反応、を作らない（原則15）。進めない理由を言う
@@ -1651,7 +1666,9 @@ export default function AdvShell(props: AdvShellProps) {
     if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return; }
     if (s.kind === 'listening_practice') { skillFinishGuard.current = false; setView('listening'); return; }
     if (s.kind === 'vocab_new' && s.refIds[0]?.startsWith('n3u-')) {
-      markStep(i);
+      // ここは単元ページ（AdvShellの外）へ渡すので完了の合図が返ってこない。
+      // それでも「開いた＝学んだ」にはしない（2026-08-17）。戻ってきたら
+      // ホームの「学び終わった」リンクを本人が押したときだけ完了になる
       props.onOpenArea(AREA_BY_UNIT[s.refIds[0]] ?? 'area01-minato');
       return;
     }
@@ -1987,6 +2004,17 @@ export default function AdvShell(props: AdvShellProps) {
               )}
             </div>
           )}
+          {/* 単元のことば・復習は別画面へ渡すので、完了の合図が戻ってこない。
+              「開いた＝やった」にはしないぶん、本人が終わりを言える口をここに出す（2026-08-17） */}
+          {!stepNotice && (nextStep?.kind === 'vocab_new' || nextStep?.kind === 'review_due') && (
+            <button type="button"
+              className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
+              onClick={() => { markStep(nextStepIdx); }}>
+              {nextStep.kind === 'review_due'
+                ? tx(lang, '復習は終わった（次へ進む）', '复习做完了（继续下一步）')
+                : tx(lang, 'この単元のことばは学び終わった（次へ進む）', '这个单元的词汇学完了（继续下一步）')}
+            </button>
+          )}
           {/* 会話がうまく動かない環境でも詰まらせない（2026-08-16 サマーさん報告）:
               次がAI会話のときは、いつでも飛ばせる小さな出口を常設する */}
           {!stepNotice && nextStep?.kind === 'conversation_mission' && (
@@ -2228,9 +2256,8 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
     return () => { alive = false; };
   }, [grammarId, setDoc]);
 
-  useEffect(() => { if (doc) onLearned();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doc]);
+  // 読み込めた瞬間に完了にしない（2026-08-17 CEO実機報告: 開いて戻っただけで✓が付いた）。
+  // 完了は本人が「読み終わった」かバトルへ進んだときだけ。教材が表示されたことは学習の証拠にならない
 
   if (!doc && missing) {
     return (
@@ -2269,8 +2296,15 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
         {doc.commonMistakesZh && <p className="mt-3 text-xs leading-relaxed text-amber-800">⚠️ {doc.commonMistakesZh}</p>}
         {doc.contrast && <p className="mt-2 text-xs leading-relaxed text-gray-600">{doc.contrast}</p>}
       </div>
-      <button type="button" className={`${primaryBtn} mt-4`} onClick={onBattle}>
+      <button type="button" className={`${primaryBtn} mt-4`} onClick={() => { onLearned(); onBattle(); }}>
         {tx(lang, 'この文法でバトルに挑む', '用这个语法挑战战斗')}
+      </button>
+      {/* バトルに進まず読むだけで終える人の出口。ここを押さないと完了にならない＝
+          「読んだ」と言ったのは本人、という記録になる（2026-08-17） */}
+      <button type="button"
+        className={`${pressFx} action-secondary mt-2 w-full min-h-[48px] rounded-xl border border-gray-300 bg-white px-4 text-sm font-semibold text-gray-700`}
+        onClick={() => { onLearned(); onBack(); }}>
+        {tx(lang, '読み終わった（今日の冒険に戻る）', '读完了（返回今天的冒险）')}
       </button>
     </div>
   );
