@@ -84,6 +84,8 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
 
   const [status, setStatus] = useState<VoiceSessionStatus>('idle');
   const [errorKind, setErrorKind] = useState<VoiceErrorKind | null>(null);
+  // マイクの音が届いていない可能性の表示（無音検知）。発話が検知されたら消す
+  const [micSilentHint, setMicSilentHint] = useState(false);
   const [interrupted, setInterrupted] = useState(false);
   const [msgs, setMsgs] = useState<{ role: 'student' | 'tutor'; text: string }[]>([]);
   const [liveT, setLiveT] = useState(''); const [liveU, setLiveU] = useState('');
@@ -199,10 +201,11 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         },
         onTutorSpeaking: setTutorSpeaking,
         onUserSpeaking: (speaking) => {
-          if (speaking) { speakStartRef.current = Date.now(); }
+          if (speaking) { speakStartRef.current = Date.now(); setMicSilentHint(false); }
           else if (speakStartRef.current) { lastSpeakMsRef.current = Date.now() - speakStartRef.current; speakStartRef.current = null; }
           setUserSpeaking(speaking);
         },
+        onMicSilent: () => setMicSilentHint(true),
         onError: (kind) => { log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false }); setErrorKind(kind); },
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
@@ -443,6 +446,11 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
             <span className="text-lg font-bold text-blue-700">「{tv.greetingExample}」</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">{tv.greetingGuideHint}</p>
+          {micSilentHint && (
+            <p role="alert" className="mt-3 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2.5 text-left text-xs leading-relaxed text-amber-900">
+              {tv.micSilentHint}
+            </p>
+          )}
         </div>
       )}
       {(status === 'requesting-mic' || status === 'connecting') && (

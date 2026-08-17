@@ -358,6 +358,7 @@ const ja = {
     greetingGuideTitle: 'まずは翔子先生に挨拶してみましょう',
     greetingGuideHint: 'マイクに向かって「こんにちは」と話してください',
     greetingExample: 'こんにちは',
+    micSilentHint: 'マイクの音が届いていないようです。アドレスバーのマイク許可と、使うマイクの選択を確認してください。設定を変えた場合は、ページを再読み込みすると反映されます。',
   },
   report: {
     todayStep: '今日の一歩',
@@ -1922,6 +1923,7 @@ const zh: AiCourseDict = {
     greetingGuideTitle: '请先向翔子老师打个招呼',
     greetingGuideHint: '请对着麦克风说“こんにちは”',
     greetingExample: 'こんにちは',
+    micSilentHint: '麦克风的声音似乎没有传过来。请检查地址栏的麦克风权限，以及所选的麦克风设备。更改设置后，重新加载页面才会生效。',
   },
   report: {
     todayStep: '今天的一步',

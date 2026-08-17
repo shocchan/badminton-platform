@@ -47,6 +47,12 @@ export interface VoiceSessionCallbacks {
    * **会話本文・secretは含まない。**
    */
   onVoiceRouted?: (info: { teacherId: string | null; voice: string | null; model: string }) => void;
+  /**
+   * 接続後しばらく、マイクから音がまったく届いていないときに1回だけ発火。
+   * （マイク許可を変えたのに再読み込みしていない・別の入力デバイスが選ばれている等。
+   * 「聞いています」のまま無音で誰も気づけない事故の可視化・2026-08-17 CEO報告）
+   */
+  onMicSilent?: () => void;
 }
 
 export interface SendCueOptions {
@@ -135,6 +141,39 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
   let finishReason: string | null = null; // finish_lesson 受信済みなら理由
   let finishFired = false;
   const timers = new Set<ReturnType<typeof setTimeout>>();
+  // マイク無音検知（レベル計測）。接続後も入力が完全な無音なら onMicSilent を1回だけ発火
+  let micAudioCtx: AudioContext | null = null;
+  let micLevelTimer: ReturnType<typeof setInterval> | null = null;
+  let micSilentTimer: ReturnType<typeof setTimeout> | null = null;
+  let sawMicSignal = false;
+  const MIC_SILENT_AFTER_MS = 8000;
+  const MIC_RMS_THRESHOLD = 0.01;
+  const startMicSilenceWatch = () => {
+    if (!micStream || micSilentTimer || stopped) return;
+    try {
+      type AudioCtxCtor = typeof AudioContext;
+      const Ctor: AudioCtxCtor | undefined = window.AudioContext
+        ?? (window as unknown as { webkitAudioContext?: AudioCtxCtor }).webkitAudioContext;
+      if (!Ctor) return; // 計測不能な環境では黙って諦める（機能自体は動く）
+      micAudioCtx = new Ctor();
+      const analyser = micAudioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      micAudioCtx.createMediaStreamSource(micStream).connect(analyser);
+      const buf = new Uint8Array(analyser.fftSize);
+      micLevelTimer = setInterval(() => {
+        if (stopped || sawMicSignal) return;
+        // 半二重ミュート中は測らない（無音で当然のため）
+        if (!micStream?.getAudioTracks().some((t) => t.enabled)) return;
+        analyser.getByteTimeDomainData(buf);
+        let sum = 0;
+        for (let i = 0; i < buf.length; i += 1) { const d = (buf[i] - 128) / 128; sum += d * d; }
+        if (Math.sqrt(sum / buf.length) >= MIC_RMS_THRESHOLD) sawMicSignal = true;
+      }, 500);
+      micSilentTimer = setTimeout(() => {
+        if (!stopped && !sawMicSignal && !userSpeaking) callbacks.onMicSilent?.();
+      }, MIC_SILENT_AFTER_MS);
+    } catch { /* 計測は補助機能。失敗しても会話は続行 */ }
+  };
 
   const later = (fn: () => void, ms: number) => {
     const id = setTimeout(() => { timers.delete(id); fn(); }, ms);
@@ -157,6 +196,9 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
     timers.forEach(clearTimeout);
     timers.clear();
     if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
+    if (micLevelTimer) { clearInterval(micLevelTimer); micLevelTimer = null; }
+    if (micSilentTimer) { clearTimeout(micSilentTimer); micSilentTimer = null; }
+    if (micAudioCtx) { void micAudioCtx.close().catch(() => { /* noop */ }); micAudioCtx = null; }
     window.removeEventListener('pagehide', onPageHide);
     if (dc) {
       dc.onmessage = null;
@@ -386,6 +428,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           // 発話状態（割り込みはOpenAI側の interrupt_response で処理される）
           case 'input_audio_buffer.speech_started':
             userSpeaking = true;
+            sawMicSignal = true; // サーバーが音を検知＝マイクは届いている
             callbacks.onUserSpeaking(true);
             break;
           case 'input_audio_buffer.speech_stopped':
@@ -433,6 +476,8 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           send({ type: 'session.update', session: { turn_detection: opts.turnDetection } });
         }
         setStatus('connected');
+        // 接続後もマイクが完全無音なら知らせる（設定変更後の未リロード・別デバイス選択の検知）
+        startMicSilenceWatch();
       };
       dc.onclose = () => {
         if (!stopped && status === 'connected') fail('disconnected');
