@@ -351,10 +351,21 @@ export default function AdvShell(props: AdvShellProps) {
     [quest, doneSteps],
   );
   const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
+  /**
+   * **復習stepを除いた**次のstep（2026-08-17 CEO実機報告の修正）。
+   * 復習画面に出す「次へ」がこれを使う。素の nextStepIdx は復習step自身を指すため
+   * （復習は「期限切れが0件」になるまで未完了のまま）、押しても同じ復習画面が開き直り、
+   * 学習者には「押しても何も起きない」に見えていた。
+   */
+  const nextAfterReviewIdx = useMemo(
+    () => (quest ? quest.steps.findIndex((s, i) => !doneSteps.has(i) && s.kind !== 'review_due') : -1),
+    [quest, doneSteps],
+  );
+  const nextAfterReview = quest && nextAfterReviewIdx >= 0 ? quest.steps[nextAfterReviewIdx] : null;
   // 親（復習画面）へ「次にやるstep」を知らせる。ボタン文言に使う
   const notifyNext = props.onNextStepChange;
-  const nextTitleJa = nextStep?.titleJa ?? null;
-  const nextTitleZh = nextStep?.titleZh ?? null;
+  const nextTitleJa = nextAfterReview?.titleJa ?? null;
+  const nextTitleZh = nextAfterReview?.titleZh ?? null;
   useEffect(() => {
     notifyNext?.(nextTitleJa && nextTitleZh ? { titleJa: nextTitleJa, titleZh: nextTitleZh } : null);
   }, [notifyNext, nextTitleJa, nextTitleZh]);
@@ -1743,7 +1754,9 @@ export default function AdvShell(props: AdvShellProps) {
   // effectではなく描画中に合わせる（requestViewと同じやり方。1フレーム古い画面を挟まない）
   if (pendingNextN !== 0 && consumedNextN !== pendingNextN && quest) {
     setConsumedNextN(pendingNextN);
-    const idx = nextStepIdx;
+    // 実行するのは**復習stepを除いた**次のstep（復習画面から来ているため。素のnextStepIdxだと
+    // 復習step自身を開き直して「押しても何も起きない」になる。2026-08-17 CEO実機報告）
+    const idx = nextAfterReviewIdx;
     // 実行は描画のあと。runStepは画面遷移とrefに触るので描画中には呼ばない。
     // lintは「描画中にrefへ触る」と見るが、実際に走るのはsetTimeoutの中＝描画後。
     // eslint-disable-next-line react-hooks/refs -- 実行はsetTimeoutで描画後へ送っている

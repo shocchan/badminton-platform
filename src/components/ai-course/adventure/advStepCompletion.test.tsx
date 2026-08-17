@@ -45,3 +45,23 @@ describe('完了の記録は「やった」ときだけ', () => {
     expect(SRC).toMatch(/読み終わった（今日の冒険に戻る）/);
   });
 });
+
+// ── 復習画面の「次へ」（2026-08-17 CEO実機報告: 押しても画面が切り替わらない） ──
+//
+// 「次へ：復習 3件」と表示され、押すと同じ復習画面が開き直っていた。
+// 素の nextStepIdx は**復習step自身**を指す（復習は期限切れが0件になるまで未完了のまま）。
+// 復習画面から出す「次へ」は、復習を除いた次のstepでなければならない。
+describe('復習画面の「次へ」は復習step自身を指さない', () => {
+  it('親へ知らせる次のstepは review_due を除いて求めている', () => {
+    expect(SRC).toMatch(/nextAfterReviewIdx = useMemo\([\s\S]{0,200}kind !== 'review_due'/);
+    // 通知に使うのは nextAfterReview（素の nextStep ではない）
+    expect(SRC).toMatch(/const nextTitleJa = nextAfterReview\?\.titleJa/);
+    expect(SRC).toMatch(/const nextTitleZh = nextAfterReview\?\.titleZh/);
+  });
+
+  it('「次へ」で実行するstepも review_due を除いたもの', () => {
+    expect(SRC).toMatch(/const idx = nextAfterReviewIdx;/);
+    // 素の nextStepIdx をそのまま実行していたら、また同じ画面が開く
+    expect(SRC).not.toMatch(/const idx = nextStepIdx;/);
+  });
+});
