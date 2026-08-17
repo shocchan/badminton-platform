@@ -4,9 +4,11 @@
     "li@id.badminton-platform.pages.dev",
     "summer@id.badminton-platform.pages.dev",
     "andy@id.badminton-platform.pages.dev",
+    "yuki@id.badminton-platform.pages.dev",
     "8c0b1a8c-0b84-4078-b0a4-3519548af5af",
     "dcd33433-ee8c-4aea-9ae2-3c23a31cd6fa",
-    "f227b3aa-2f0e-4050-8c81-6dcdc69e1cdd"
+    "f227b3aa-2f0e-4050-8c81-6dcdc69e1cdd",
+    "cd039a3b-ebf6-486b-b68b-32ec9e611228"
   ],
   "bulkPatterns": [
     "%@id.badminton-platform.pages.dev"

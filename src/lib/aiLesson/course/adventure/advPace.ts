@@ -41,8 +41,10 @@ export const computePace = (input: {
   n3Ids: string[];
   n2ByUnit: Map<number, string[]>;
   n3BundleByItem?: Map<string, string>;
+  basicByUnit?: Map<string, string[]>;
+  basicBundleByUnit?: Map<string, string>;
 }): AdvPace => {
-  const { route, ledger, nowISO, daysToExam, stageDone, n3Ids, n2ByUnit, n3BundleByItem } = input;
+  const { route, ledger, nowISO, daysToExam, stageDone, n3Ids, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit } = input;
   const masteredNow = masteredTargetIds(ledger, nowISO);
 
   const remainingTargetSet = new Set<string>();
@@ -50,7 +52,7 @@ export const computePace = (input: {
   for (const s of route.stages) {
     if (isConversationStage(s) || stageDone.has(s.stageId)) continue;
     remainingStages += 1;
-    for (const id of stageMasteryTargetIds(s, n3Ids, n2ByUnit, n3BundleByItem)) {
+    for (const id of stageMasteryTargetIds(s, n3Ids, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit)) {
       if (!masteredNow.has(id)) remainingTargetSet.add(id);
     }
   }

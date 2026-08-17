@@ -6,6 +6,8 @@ import type {
   AdvBand, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvRouteStage, AdvStageKind, JlptLevel,
 } from './advTypes';
 import { bandAtLeast, bandRank } from './advSkillProfile';
+// 束IDの定数だけを取る（本文はdynamic import側にあるのでbundleは増えない）
+import { N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
 
 /** エリア → 実コンテンツ（worldAtlas実データと同期。ズレはガードテストで検知） */
 export const AREA_UNIT_MAP: Record<string, string[]> = {
@@ -70,13 +72,22 @@ const jlptStages = (target: 'N3' | 'N2', knowledge: AdvBand, d: AdvDiagnosisResu
     s.push(stage('stg-foundation', 'foundation_camp', 'area01-minato',
       '基礎キャンプ', '基础营地',
       '土台のことばと文を短期間で固める', '短期夯实基础词汇和句型',
-      { n3UnitIds: [...AREA_UNIT_MAP['area01-minato'], ...AREA_UNIT_MAP['area02-hinode']], vocabularyIds: vocabGaps }));
+      // 2026-08-17: N5文法6束を追加。これまでこのstageには文法targetが無く、
+      // 基礎帯の学習者は「単元のことば」だけを延々とやることになっていた
+      {
+        n3UnitIds: [...AREA_UNIT_MAP['area01-minato'], ...AREA_UNIT_MAP['area02-hinode']],
+        basicUnits: N5_UNIT_IDS, vocabularyIds: vocabGaps,
+      }));
   }
   if (needN3Bridge) {
     s.push(stage('stg-n3bridge', 'n3_bridge', 'area03-toorimichi',
       'N3語彙・文法の橋', 'N3词汇语法之桥',
       'N3の核となる語彙と表現を渡る', '掌握N3核心词汇与表达',
-      { n3UnitIds: [...AREA_UNIT_MAP['area03-toorimichi'], ...AREA_UNIT_MAP['area04-ichiba']], vocabularyIds: vocabGaps }));
+      // 2026-08-17: N4文法8束を追加（て形・た形・可能・条件・受身・使役・敬語の土台）
+      {
+        n3UnitIds: [...AREA_UNIT_MAP['area03-toorimichi'], ...AREA_UNIT_MAP['area04-ichiba']],
+        basicUnits: N4_UNIT_IDS, vocabularyIds: vocabGaps,
+      }));
   }
   if (needN3Practice) {
     s.push(stage('stg-n3practice', 'n3_practice', 'area05-yukari',
@@ -208,9 +219,18 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
 /** stage攻略判定に使う配下target一覧（stageContentのgrammar解決規則と同一に保つこと） */
 export const stageMasteryTargetIds = (
   stage: AdvRouteStage, allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
-  n3BundleByItem?: Map<string, string>,
+  n3BundleByItem?: Map<string, string>, basicByUnit?: Map<string, string[]>,
+  basicBundleByUnit?: Map<string, string>,
 ): string[] => {
   const ids: string[] = [...(stage.targets.n3UnitIds ?? [])];
+  // 初級文法も束単位。問題数が足りない単元は合流するので、単元IDのまま数えると
+  // 「存在しない束の攻略」を永久に待つstageができる。必ず束IDへ解決してから一意化する
+  if (stage.targets.basicUnits) {
+    const bundles = new Set(stage.targets.basicUnits.map((u) => basicBundleByUnit?.get(u) ?? u));
+    for (const b of bundles) {
+      if (!basicByUnit || (basicByUnit.get(b) ?? []).length > 0) ids.push(b);
+    }
+  }
   const gs = (stage.targets.n3GrammarIds && stage.targets.n3GrammarIds.length > 0)
     ? stage.targets.n3GrammarIds
     : (stage.kind === 'n3_grammar' ? allN3GrammarIds : []);
@@ -230,12 +250,13 @@ export const stageMasteryTargetIds = (
 export const deriveMasteredStageIds = (
   route: AdvRoute, masteredTargets: Set<string>,
   allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
-  n3BundleByItem?: Map<string, string>,
+  n3BundleByItem?: Map<string, string>, basicByUnit?: Map<string, string[]>,
+  basicBundleByUnit?: Map<string, string>,
 ): Set<string> => {
   const done = new Set<string>();
   for (const s of route.stages) {
     if (masteredTargets.has(s.stageId)) { done.add(s.stageId); continue; }
-    const ids = stageMasteryTargetIds(s, allN3GrammarIds, n2ByUnit, n3BundleByItem);
+    const ids = stageMasteryTargetIds(s, allN3GrammarIds, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit);
     if (ids.length > 0 && ids.every((id) => masteredTargets.has(id))) done.add(s.stageId);
   }
   return done;

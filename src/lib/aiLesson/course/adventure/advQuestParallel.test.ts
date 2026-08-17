@@ -110,10 +110,12 @@ describe('pickContentStage: 現在stageが全部7日待ちなら先のstageを�
       diagnosis: null, nowISO: NOW,
     });
     const current = realRoute.stages[0];
-    const waiting = new Set([
-      ...(current.targets.n3UnitIds ?? []),
-      ...(current.targets.n3GrammarIds ?? []),
-    ]);
+    // 待ちの集合は手書きせず攻略判定と同じ関数から作る
+    // （stageにtargetを足したとき「全部待ち」の前提が静かに崩れるため。2026-08-17 初級文法追加で発覚）
+    const pools = await loadGrammarPools();
+    const waiting = new Set(stageMasteryTargetIds(
+      current, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit,
+    ));
     const { stage: contentStage, content } = await pickContentStage(
       realRoute, current, new Set(), new Set(), waiting);
     expect(contentStage.stageId).not.toBe(current.stageId);

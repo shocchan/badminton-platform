@@ -25,6 +25,7 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advContent';
 import { seededShuffle, type DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 import { N3_GRAMMAR_DRAFTS } from '../../../lib/aiLesson/course/n3GrammarDrafts';
+import { loadAllBasicDrafts } from '../../../lib/aiLesson/course/basicGrammarChunks';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
@@ -256,7 +257,7 @@ export default function AdvShell(props: AdvShellProps) {
       if (!alive) return;
       setPools(p);
       const mastered = masteredTargetIds(profile.mastery, nowISO);
-      const stageDone = deriveMasteredStageIds(profile.route!, mastered, p.n3Ids, p.n2ByUnit, p.n3BundleByItem);
+      const stageDone = deriveMasteredStageIds(profile.route!, mastered, p.n3Ids, p.n2ByUnit, p.n3BundleByItem, p.basicByUnit, p.basicBundleByUnit);
       const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
       // 7日待ちのtargetは次候補から外して先へ進み、確認が解禁されたら確認バトルを最優先で出す（進度改善 2026-08-15）
       const { waiting, confirmReady } = classifyPendingDelay(profile.mastery, nowISO);
@@ -714,7 +715,7 @@ export default function AdvShell(props: AdvShellProps) {
     const mockStageKind = (() => {
       if (!prof.route) return null;
       const m = masteredTargetIds(prof.mastery, nowISO);
-      const sd = deriveMasteredStageIds(prof.route, m, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem);
+      const sd = deriveMasteredStageIds(prof.route, m, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit);
       return currentStageOf(prof.route, sd)?.kind ?? null;
     })();
     return (
@@ -836,8 +837,10 @@ export default function AdvShell(props: AdvShellProps) {
       ? computePace({
         route, ledger: prof.mastery, nowISO,
         daysToExam: mapDays !== null && mapDays >= 0 ? mapDays : null,
-        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem),
+        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit),
         n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+        basicByUnit: pools.basicByUnit,
+        basicBundleByUnit: pools.basicBundleByUnit,
       })
       : null;
     return (
@@ -1068,8 +1071,10 @@ export default function AdvShell(props: AdvShellProps) {
       ? computePace({
         route, ledger: prof.mastery, nowISO,
         daysToExam: wkDays !== null && wkDays >= 0 ? wkDays : null,
-        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem),
+        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit),
         n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+        basicByUnit: pools.basicByUnit,
+        basicBundleByUnit: pools.basicBundleByUnit,
       })
       : null;
     weeklyTracked.current ||= (() => {
@@ -1217,7 +1222,7 @@ export default function AdvShell(props: AdvShellProps) {
   // ── complete ──
   if (view === 'complete' && quest) {
     const mastered = masteredTargetIds(prof.mastery, nowISO);
-  const stageDoneC = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
+  const stageDoneC = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit) : mastered;
     const daily = buildDailySummary(prof, dateKey, nowISO);
     // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
     const completeCorrection = (() => {
@@ -1346,7 +1351,7 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── home（1画面1決断） ──
   const mastered = masteredTargetIds(prof.mastery, nowISO);
-  const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem) : mastered;
+  const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit) : mastered;
   const stage = currentStageOf(route, stageDone);
   const daysToExam = daysToExamOf(prof.examDateISO, dateKey);
   // 目的地までの残り量と実測ペース（原則13: ペース・予測は実測2週未満ならnull＝出さない）
@@ -1355,6 +1360,8 @@ export default function AdvShell(props: AdvShellProps) {
       route, ledger: prof.mastery, nowISO,
       daysToExam: daysToExam !== null && daysToExam >= 0 ? daysToExam : null,
       stageDone, n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
+        basicByUnit: pools.basicByUnit,
+        basicBundleByUnit: pools.basicBundleByUnit,
     })
     : null;
   const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
@@ -1907,6 +1914,12 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
       const n3 = (N3_GRAMMAR_DRAFTS as unknown as N2GrammarDraft[]).find((d) => d.grammarId === grammarId);
       if (n3) { if (alive) setDoc(n3); return; }
       try {
+        // 初級文法（n5g-/n4g-）はN2より先に見る。基礎帯の学習者が毎回N2本文を取りに行かないように
+        if (/^n[45]g-/.test(grammarId)) {
+          const basic = (await loadAllBasicDrafts()).find((d) => d.grammarId === grammarId);
+          if (!alive) return;
+          if (basic) { setDoc(basic as unknown as N2GrammarDraft); return; }
+        }
         const n2 = (await loadAllN2Drafts()).find((d) => d.grammarId === grammarId);
         if (!alive) return;
         if (n2) setDoc(n2);

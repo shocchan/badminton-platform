@@ -189,8 +189,16 @@ const lengthCompatible = (correct: string, cand: string): boolean => {
 const meaningClause = (d: GrammarDraftLike): string | null => {
   const first = d.explanationZh.split('。')[0]?.trim() ?? '';
   if (first.length < 2 || first.length > 40) return null;
-  for (const k of matchKeysOf(d)) if (first.includes(k)) return null;
-  return first;
+  const keys = matchKeysOf(d);
+  if (!keys.some((k) => first.includes(k))) return first;
+  // 中国語の説明は「「は」提示主题」のように**見出しを鉤括弧で引用してから**説明することが多い。
+  // そのまま弾くと助詞（は・が・を…）は意味問題を1問も作れず、他項目の誤答にもなれなかった
+  // （初級文法を入れて発覚。2026-08-17）。鉤括弧ごと落として説明部分だけを使う。
+  const stripped = first.replace(/[「『][^」』]*[」』]/gu, '').replace(/^[，、,：:・\s]+/u, '').trim();
+  if (stripped.length < 2 || stripped.length > 40) return null;
+  // 括弧の外にまだ見出しが残っているなら答えが漏れるので使わない
+  if (keys.some((k) => stripped.includes(k))) return null;
+  return stripped;
 };
 
 const mkExplanation = (d: GrammarDraftLike, whyJa: string, whyZh: string, exIdx = 0): AdvExplanation => ({
@@ -206,12 +214,12 @@ const mkExplanation = (d: GrammarDraftLike, whyJa: string, whyZh: string, exIdx 
 
 interface GenContext {
   self: GrammarDraftLike;
-  level: 'n3' | 'n2';
+  level: 'foundation' | 'n3' | 'n2';
   /** distractor候補（除外集合適用済み・決定的順） */
   distractorPool: GrammarDraftLike[];
 }
 
-const baseFields = (type: AdvQuestionType, level: 'n3' | 'n2', d: GrammarDraftLike) => {
+const baseFields = (type: AdvQuestionType, level: 'foundation' | 'n3' | 'n2', d: GrammarDraftLike) => {
   const skill = skillOfQuestionType(type);
   return {
     type, level, skill, examSection: SECTION_OF_SKILL[skill],
@@ -414,7 +422,7 @@ export interface VariantPoolResult {
  * aliasIds は出題対象から除外（canonicalのみ）。
  */
 export const buildVariantPool = (
-  drafts: GrammarDraftLike[], level: 'n3' | 'n2', aliasIds: Set<string> = new Set(),
+  drafts: GrammarDraftLike[], level: 'foundation' | 'n3' | 'n2', aliasIds: Set<string> = new Set(),
 ): VariantPoolResult => {
   const canonical = drafts.filter((d) => !aliasIds.has(d.grammarId));
   const byItem = new Map<string, AdvBattleQuestion[]>();

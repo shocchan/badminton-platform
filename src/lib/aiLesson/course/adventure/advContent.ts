@@ -4,6 +4,7 @@
 import { N3_GRAMMAR_DRAFTS } from '../n3GrammarDrafts';
 import { N2_GRAMMAR_ALIASES } from '../n2GrammarAliases';
 import { N2_UNIT_FILE_NUMBERS, loadN2DraftUnitFile } from '../n2GrammarDraftChunks';
+import { loadAllBasicDrafts, cachedBasicDraftById, N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
 import { buildUnitQuestions } from '../n3unit/unitRuntime';
 import { allVocabularyItems } from '../foundationVocabBank';
@@ -28,11 +29,18 @@ export const loadAllN2Drafts = async (): Promise<N2GrammarDraft[]> => {
 
 export const N2_ALIAS_IDS = new Set(Object.keys(N2_GRAMMAR_ALIASES));
 
+/**
+ * 束が「別日3回80%＋7日後確認」を未出の問題で通せる下限。
+ * 1回のバトルが5問・3日ぶんで15問＋確認2問。これを下回る束は攻略不能なので合流させる。
+ */
+export const MIN_BUNDLE_QUESTIONS = 17;
+
 /** 内部IDを学習者に見せないためのpattern同期lookup（原則13）。
  *  n3は常時参照可・n2は loadAllN2Drafts 済みキャッシュのみ。見つからなければ null */
 export const grammarPatternById = (id: string): string | null =>
   N3_GRAMMAR_DRAFTS.find((d) => d.grammarId === id)?.pattern
     ?? n2DraftsCache?.find((d) => d.grammarId === id)?.pattern
+    ?? cachedBasicDraftById(id)?.pattern
     ?? null;
 
 // ── バトル用問題プール ──
@@ -45,6 +53,10 @@ export interface GrammarPools {
   /** N3文法の束（draft.unit）→ 束ID。項目単位ではプールが1〜5問しかなくmastery不可能なため、mastery/バトルは束単位 */
   n3BundleByItem: Map<string, string>;
   n3BundleIds: string[];
+  /** 初級文法の束ID → 配下のgrammarId。合流した単元は束IDから消える（キーは実在する束だけ） */
+  basicByUnit: Map<string, string[]>;
+  /** 単元ID → 実際の束ID。合流があるためルートのbasicUnitsは必ずこれを通して解決する */
+  basicBundleByUnit: Map<string, string>;
 }
 
 /** N3単元の生成問題（choice型のみ）をバトル問題へ正規化。unitId をtargetにした敵編成で使う */
@@ -108,9 +120,14 @@ let poolCache: GrammarPools | null = null;
 export const loadGrammarPools = async (): Promise<GrammarPools> => {
   if (poolCache) return poolCache;
   const n2 = await loadAllN2Drafts();
+  const basic = await loadAllBasicDrafts();
   const n2Pool = buildVariantPool(n2 as unknown as GrammarDraftLike[], 'n2', N2_ALIAS_IDS);
   const n3Pool = buildVariantPool(N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[], 'n3');
-  const byItem = new Map<string, AdvBattleQuestion[]>([...n3Pool.byItem, ...n2Pool.byItem, ...buildUnitBattlePools()]);
+  // 初級文法は誤答プールをN5/N4の中だけで作る（基礎の学習者にN3/N2の表現を混ぜない）
+  const basicPool = buildVariantPool(basic as unknown as GrammarDraftLike[], 'foundation');
+  const byItem = new Map<string, AdvBattleQuestion[]>([
+    ...n3Pool.byItem, ...n2Pool.byItem, ...basicPool.byItem, ...buildUnitBattlePools(),
+  ]);
   const n2ByUnit = new Map<number, string[]>();
   for (const d of n2) {
     if (N2_ALIAS_IDS.has(d.grammarId)) continue;
@@ -139,6 +156,46 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     list.push(...(n2Pool.byItem.get(d.grammarId) ?? []));
     byItem.set(bundle, list);
   }
+  // 初級文法（N5/N4）も同じ束攻略にする。108項目を項目単位で判定すると完走不可能。
+  // ただし助詞のような1文字の項目は自動生成できる問題型が少なく、単元をそのまま束にすると
+  // 攻略不能な束（別日3回80%＋7日後確認に必要な17問に届かない）ができる。
+  // → 問題数が足りない単元は**次の単元へ合流**させる（N3のunit-10→unit-9と同じ考え方）。
+  //   合流は実測の問題数で決まるので、教材を足せば自動的に細かい束へ戻る
+  const basicByUnit = new Map<string, string[]>();
+  const basicBundleByUnit = new Map<string, string>();
+  for (const unitIds of [N5_UNIT_IDS, N4_UNIT_IDS]) {
+    const itemsOf = new Map(unitIds.map((u) => [u, basic.filter((d) => d.unit === u)]));
+    const qCount = (u: string) => (itemsOf.get(u) ?? [])
+      .reduce((n, d) => n + (basicPool.byItem.get(d.grammarId) ?? []).length, 0);
+    let bundleId: string | null = null;
+    let acc = 0;
+    for (const u of unitIds) {
+      if (bundleId === null) { bundleId = u; acc = 0; }
+      basicBundleByUnit.set(u, bundleId);
+      for (const d of itemsOf.get(u) ?? []) {
+        n3BundleByItem.set(d.grammarId, bundleId);
+        basicByUnit.set(bundleId, [...(basicByUnit.get(bundleId) ?? []), d.grammarId]);
+        const list = byItem.get(bundleId) ?? [];
+        list.push(...(basicPool.byItem.get(d.grammarId) ?? []));
+        byItem.set(bundleId, list);
+      }
+      acc += qCount(u);
+      if (acc >= MIN_BUNDLE_QUESTIONS) { bundleId = null; acc = 0; }
+    }
+    // 最後の束が足りないまま終わったら、ひとつ前の束へ吸収する（攻略不能な束を残さない）
+    if (bundleId !== null && basicByUnit.size > 0) {
+      const ids = [...basicByUnit.keys()].filter((k) => unitIds.includes(k));
+      const prev = ids[ids.length - 2];
+      if (prev) {
+        for (const g of basicByUnit.get(bundleId) ?? []) n3BundleByItem.set(g, prev);
+        for (const [u, b] of basicBundleByUnit) if (b === bundleId) basicBundleByUnit.set(u, prev);
+        basicByUnit.set(prev, [...(basicByUnit.get(prev) ?? []), ...(basicByUnit.get(bundleId) ?? [])]);
+        byItem.set(prev, [...(byItem.get(prev) ?? []), ...(byItem.get(bundleId) ?? [])]);
+        basicByUnit.delete(bundleId);
+        byItem.delete(bundleId);
+      }
+    }
+  }
   const n3BundleIds = [...new Set(n3BundleByItem.values())];
   poolCache = {
     byItem,
@@ -147,6 +204,8 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     n2ByUnit,
     n3BundleByItem,
     n3BundleIds,
+    basicByUnit,
+    basicBundleByUnit,
   };
   return poolCache;
 };
@@ -224,8 +283,15 @@ export const stageContent = async (
   const n2 = await loadAllN2Drafts();
   const n3ById = new Map((N3_GRAMMAR_DRAFTS as unknown as (GrammarDraftLike & N2GrammarDraft)[]).map((d) => [d.grammarId, d]));
   const n2ById = new Map(n2.map((d) => [d.grammarId, d]));
+  const basicById = new Map((await loadAllBasicDrafts()).map((d) => [d.grammarId, d]));
 
   const grammarIds: string[] = [];
+  // 初級文法（基礎キャンプ・N3の橋）を先に置く。基礎帯の学習者にはここが本体。
+  // 単元→束は合流があるので basicBundleByUnit を通す。同じ束を指す単元は重複するため一意化
+  if (stage.targets.basicUnits) {
+    const bundles = new Set(stage.targets.basicUnits.map((u) => pools.basicBundleByUnit.get(u) ?? u));
+    for (const b of bundles) grammarIds.push(...(pools.basicByUnit.get(b) ?? []));
+  }
   if (stage.targets.n3GrammarIds && stage.targets.n3GrammarIds.length > 0) grammarIds.push(...stage.targets.n3GrammarIds);
   else if (stage.kind === 'n3_grammar') grammarIds.push(...pools.n3Ids);
   if (stage.targets.n2Units) for (const u of stage.targets.n2Units) grammarIds.push(...(pools.n2ByUnit.get(u) ?? []));
@@ -239,7 +305,7 @@ export const stageContent = async (
   const missionByGrammarId = new Map<string, ConversationMissionSpec>();
   const conversationTargets: StageContent['conversationTargets'] = [];
   for (const g of nextGrammarIds.slice(0, 8)) {
-    const d = n2ById.get(g) ?? n3ById.get(g);
+    const d = n2ById.get(g) ?? n3ById.get(g) ?? (basicById.get(g) as unknown as N2GrammarDraft | undefined);
     if (!d || !d.practice) continue;
     const m = buildConversationMission(d as never);
     missionByGrammarId.set(g, m);
