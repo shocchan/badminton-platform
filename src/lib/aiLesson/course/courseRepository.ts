@@ -20,6 +20,7 @@ import type {
 } from './types';
 import type { GrowthSnapshot } from './courseGrowth';
 import type { SpeechSample } from './courseBeforeAfter';
+import { jstTodayISO } from './courseUsage';
 
 const LS = {
   learner: 'kawabado.aiCourse.v1.learner',
@@ -413,7 +414,14 @@ const createRepository = (): CourseRepository => ({
   async recordUsage(learnerId, seconds, costUsd) {
     // 回数(sessions_count)は ai_start_session が予約時に加算済み。
     // ここで再加算すると二重計上になるため、秒数とコストのみ積む。
-    const today = new Date().toISOString().slice(0, 10);
+    // 加算専用RPC優先（二層防御・総監査P1 2026-08-17）。利用量を絶対値で
+    // 上書きできる直接upsertは、RPC未適用の旧環境向けフォールバックに残すのみ
+    // （remote適用後は 20260817010000 のrevokeで直接書き込み自体が塞がれる）
+    const { error: rpcError } = await supabase.rpc('ai_record_usage', {
+      p_seconds: Math.round(seconds), p_cost_usd: costUsd,
+    });
+    if (!rpcError) return;
+    const today = jstTodayISO();
     const { data } = await supabase.from('ai_usage_daily').select('*')
       .eq('learner_id', learnerId).eq('usage_date', today).maybeSingle();
     const prev = data as { sessions_count: number; seconds_used: number; estimated_cost_usd: number } | null;

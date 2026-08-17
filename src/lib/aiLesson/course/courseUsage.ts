@@ -24,8 +24,16 @@ export const getUsageLimits = async (): Promise<UsageLimits> => {
   return { ...DEFAULT_USAGE_LIMITS, ...(v ?? {}) };
 };
 
+/**
+ * 利用量の「今日」（Asia/Tokyo の日付キー）。
+ * サーバ側（ai_start_session / ai_record_usage）が積む行と同じ日付を読む。
+ * UTC日付だとJST 0〜9時に前日行を読んでしまい、表示と上限判定がずれる。
+ */
+export const jstTodayISO = (): string =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' }).format(new Date());
+
 export const getTodayUsage = async (learnerId: string): Promise<TodayUsage> => {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = jstTodayISO();
   const { data } = await supabase.from('ai_usage_daily').select('*')
     .eq('learner_id', learnerId).eq('usage_date', today).maybeSingle();
   const r = data as { sessions_count?: number; seconds_used?: number; estimated_cost_usd?: number } | null;

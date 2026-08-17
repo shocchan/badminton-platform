@@ -53,7 +53,7 @@ const stripped = sqlText.split('\n').filter(l => !l.trim().startsWith('--')).joi
   .replace(/'(?:[^']|'')*'/g, "''");
 const WRITE_RE = /(^|;)\s*(insert|update|delete|drop|create|alter|grant|revoke|truncate|merge|call|do|with|comment\s+on)\b/i;
 // select経由でも実体は書き込みのRPC（denylist方式・関数を増やしたらここへ追記）
-const WRITE_RPC_RE = /\b(ai_admin_delete_utterances|ai_delete_my_utterances|ai_save_learner_settings|ai_purge_expired_utterances)\s*\(/i;
+const WRITE_RPC_RE = /\b(ai_admin_delete_utterances|ai_delete_my_utterances|ai_save_learner_settings|ai_purge_expired_utterances|ai_record_usage)\s*\(/i;
 const isWrite = WRITE_RE.test(stripped) || WRITE_RPC_RE.test(stripped);
 if (isWrite && !flag('--write')) {
   console.error('refuse: write statement detected but --write not given');
