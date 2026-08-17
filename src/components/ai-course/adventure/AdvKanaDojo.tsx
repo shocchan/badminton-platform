@@ -162,7 +162,7 @@ export function AdvKanaDojo({ lang, rowIds, onFinishCheck, onRowsDone, onBack }:
         <p className="text-4xl" aria-hidden>🎉</p>
         <h2 className="mt-2 text-lg font-bold text-gray-900">{tx(lang, '今日のかな道場、おわり！', '今天的假名道场结束！')}</h2>
         <p className="mt-2 text-sm text-gray-600">
-          {tx(lang, '覚えた行は明日の復習にも出ます。この調子！', '学过的行明天还会复习。就这个节奏！')}
+          {tx(lang, '覚えた行はこの先のことば学習で何度も出会います。この調子！', '学过的行在之后的词汇学习中还会反复见到。就这个节奏！')}
         </p>
         <button type="button" className={`${primaryBtn} mt-6`} onClick={() => onRowsDone(rowIds)}>
           {tx(lang, 'ホームへ', '回到主页')}

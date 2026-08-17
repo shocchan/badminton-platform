@@ -710,10 +710,24 @@ export default function AdvShell(props: AdvShellProps) {
     const readingCount = [...rPool.values()].reduce((n, v) => n + v.length, 0);
     const listeningCount = [...lPool.values()].reduce((n, v) => n + v.length, 0);
     const spec = buildMockSpec(level, { vocabCount, grammarCount, readingCount, listeningCount });
+    // 基礎固め中の受験者には「いまの低得点は正常」の文脈を先に添える（2026-08-17）
+    const mockStageKind = (() => {
+      if (!prof.route) return null;
+      const m = masteredTargetIds(prof.mastery, nowISO);
+      const sd = deriveMasteredStageIds(prof.route, m, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem);
+      return currentStageOf(prof.route, sd)?.kind ?? null;
+    })();
     return (
       <AdvMockRunner
         lang={lang} spec={spec} pools={merged}
         seenKeys={seenQuestionKeys(prof.mastery)}
+        history={prof.mockLog}
+        contextNoteJa={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
+          ? `いまは基礎固めの途中です。模試は${level}全域から出るので、いまの得点は低く出ます。腕試しとして気軽にどうぞ。`
+          : null}
+        contextNoteZh={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
+          ? `现在还在打基础阶段。模拟考覆盖${level}全部范围，所以当前分数会偏低。当作试身手轻松参加就好。`
+          : null}
         savedState={prof.mockSession}
         onPersist={(s: MockSessionState | null) => save({ ...prof, mockSession: s })}
         onFinish={(r: MockResult) => {
@@ -1061,6 +1075,36 @@ export default function AdvShell(props: AdvShellProps) {
           )}
         </div>
 
+        {/* あゆみのカレンダー（直近5週・実測のみ）。「積み上げてきた事実」を物的証拠として見せる
+            （2026-08-17 競合調査: WaniKaniヒートマップ/中国系打卡文化。金額に見合う蓄積の可視化） */}
+        {(() => {
+          const activeDays = new Set<string>();
+          for (const q of prof.questLog) activeDays.add(q.dateKey);
+          for (const at of Object.values(prof.mastery)) for (const a of at ?? []) activeDays.add(a.dateKey);
+          if (activeDays.size === 0) return null;
+          const today = Date.parse(dateKey);
+          const cells: { key: string; active: boolean; isToday: boolean }[] = [];
+          for (let i = 34; i >= 0; i -= 1) {
+            const k = new Date(today - i * 86400000).toISOString().slice(0, 10);
+            cells.push({ key: k, active: activeDays.has(k), isToday: k === dateKey });
+          }
+          return (
+            <div className={`${card} mt-3`}>
+              <p className="text-sm font-semibold text-gray-900">{tx(lang, 'あゆみ（直近5週間）', '足迹（最近5周）')}</p>
+              <div className="mt-2 grid grid-cols-7 gap-1" aria-hidden>
+                {cells.map((c) => (
+                  <span key={c.key}
+                    className={`h-5 rounded ${c.active ? 'bg-emerald-400' : 'bg-gray-100'} ${c.isToday ? 'ring-2 ring-blue-400' : ''}`} />
+                ))}
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                {tx(lang, `通算学習日数：${activeDays.size}日。休んだ日があっても、積み上げは消えません。`,
+                  `累计学习天数：${activeDays.size}天。即使有休息的日子，积累也不会消失。`)}
+              </p>
+            </div>
+          );
+        })()}
+
         {wk.newlyMastered.length > 0 && (
           <div className={`${card} mt-3`}>
             <p className="text-sm font-semibold text-gray-900">{tx(lang, '今週あたらしく定着したもの', '本周新巩固的内容')}</p>
@@ -1320,6 +1364,20 @@ export default function AdvShell(props: AdvShellProps) {
     return term('continueNext', lang);
   };
 
+  // 休み明けの検知（2026-08-17 監査: 10日ぶりに開いた人に通常挨拶＋amber警告が並び、
+  // 罪悪感だけ与えて復帰の後押しがなかった）。最終学習日はquestLogとmastery実測の新しい方
+  const daysAway = (() => {
+    let last: string | null = null;
+    for (const q of prof.questLog) if (!last || q.dateKey > last) last = q.dateKey;
+    for (const at of Object.values(prof.mastery)) {
+      for (const a of at ?? []) if (!last || a.dateKey > last) last = a.dateKey;
+    }
+    if (!last) return 0;
+    const diff = Math.floor((Date.parse(dateKey) - Date.parse(last)) / 86400000);
+    return Number.isFinite(diff) ? Math.max(0, diff) : 0;
+  })();
+  const welcomeBack = daysAway >= 7;
+
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={term('todayAdventure', lang)}>
       {/* 1. 目標と残日数 */}
@@ -1365,7 +1423,8 @@ export default function AdvShell(props: AdvShellProps) {
           )}
         </p>
       )}
-      {pace && pace.onTrack === false && pace.neededPerWeek !== null && (
+      {/* 復帰初日はペース警告を出さない（まず戻ってきたことを歓迎する） */}
+      {pace && pace.onTrack === false && pace.neededPerWeek !== null && !welcomeBack && (
         <p className="mt-0.5 text-xs font-semibold text-amber-700">
           {tx(lang,
             `受験日までに終えるには週${pace.neededPerWeek}項目の定着が必要です（いまは週${pace.measuredPerWeek ?? 0}）`,
@@ -1389,11 +1448,15 @@ export default function AdvShell(props: AdvShellProps) {
         <div className="min-w-0">
           <p className="text-xs font-semibold text-gray-500">{teacherLabel}</p>
           <p className="text-sm leading-snug text-gray-700">
-            {quest
+            {welcomeBack && quest
               ? tx(lang,
-                `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めましょう。` : '今日のぶんは終わりました！'}`,
-                `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧。` : '今天的份量已经完成了！'}`)
-              : tx(lang, teacher.greetJa, teacher.greetZh)}
+                `おかえりなさい！休んでも記録はぜんぶ残っています。今日は${quest.estimatedMinutes}分、続きからゆっくり始めましょう。`,
+                `欢迎回来！休息期间的记录都还在。今天${quest.estimatedMinutes}分钟，从接下来的内容慢慢开始吧。`)
+              : quest
+                ? tx(lang,
+                  `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めましょう。` : '今日のぶんは終わりました！'}`,
+                  `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧。` : '今天的份量已经完成了！'}`)
+                : tx(lang, teacher.greetJa, teacher.greetZh)}
           </p>
         </div>
       </div>

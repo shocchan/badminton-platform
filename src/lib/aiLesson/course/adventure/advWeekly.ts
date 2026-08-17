@@ -105,7 +105,16 @@ export const buildWeeklySummary = (
 
   const inThisWeek = (k: string) => inRange(k, thisWeekStart, nextWeekStart);
   const questThisWeek = prof.questLog.filter((q) => inThisWeek(q.dateKey));
-  const studyDays = new Set(questThisWeek.map((q) => q.dateKey)).size;
+  // 学習日は「締めくくりを押した日（questLog）」だけでなく、バトル等の実測attemptが
+  // あった日も数える（2026-08-17 監査: 途中でやめた日が「学習0日」扱いになり、
+  // 5step中2step進めた日の努力が週まとめから消えていた）
+  const studyDayKeys = new Set(questThisWeek.map((q) => q.dateKey));
+  for (const attempts of Object.values(prof.mastery)) {
+    for (const a of attempts ?? []) {
+      if (inThisWeek(a.dateKey)) studyDayKeys.add(a.dateKey);
+    }
+  }
+  const studyDays = studyDayKeys.size;
   const completedQuests = questThisWeek.filter((q) => q.totalSteps > 0 && q.completedSteps >= q.totalSteps).length;
 
   // 学習時間は実測していない。1日の設定時間 × 学習日数は「推定」なので、その旨が分かる形でのみ出す

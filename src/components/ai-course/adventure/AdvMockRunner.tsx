@@ -12,6 +12,7 @@ import {
   type MockRuntime, type MockSessionState, type MockResult,
 } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { EXAM_SKILL_LABELS, nowTrainingLabel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
+import type { AdvMockLogEntry } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { listeningSetById } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { readingSetById } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
@@ -35,6 +36,11 @@ export interface AdvMockRunnerProps {
   onPersist: (state: MockSessionState | null) => void;
   onFinish: (result: MockResult) => void;
   onClose: () => void;
+  /** これまでの模試ログ（成績推移の表示用・2026-08-17 監査: 保存済みなのに見えなかった） */
+  history?: AdvMockLogEntry[];
+  /** 開始前に添える文脈の一言（基礎固め中の低得点は正常、等）。無ければ出さない */
+  contextNoteJa?: string | null;
+  contextNoteZh?: string | null;
 }
 
 type Phase = 'chooseMode' | 'sectionIntro' | 'answering' | 'sectionResult' | 'finished';
@@ -170,6 +176,12 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-lg font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">{tx(lang, spec.disclaimerJa, spec.disclaimerZh)}</p>
+        {/* 基礎固め中の受験など、結果の受け止め方を先に伝える（低得点で心を折らない・2026-08-17） */}
+        {(props.contextNoteJa || props.contextNoteZh) && (
+          <p className="mt-2 rounded-xl bg-blue-50 px-3 py-2 text-xs leading-relaxed text-blue-900">
+            {tx(lang, props.contextNoteJa ?? '', props.contextNoteZh ?? props.contextNoteJa ?? '')}
+          </p>
+        )}
         {restoreFailed && (
           <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3" role="status">
             <p className="text-xs leading-relaxed text-amber-900">
@@ -326,6 +338,30 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
               '此结果会反映到准备度。这不构成合格保证。')}
           </p>
         </div>
+
+        {/* 成績の推移（2026-08-17 監査: mockLogに保存済みなのにどこにも見えなかった）。
+            実測の記録のみ・最新5回。回数が1回だけなら比較できないので出さない */}
+        {(props.history ?? []).length >= 2 && (
+          <div className="mt-4 rounded-xl border border-gray-200 bg-white p-3">
+            <p className="text-sm font-semibold text-gray-900">{tx(lang, '模試の記録（最近5回）', '模拟考记录（最近5次）')}</p>
+            <ul className="mt-1 space-y-1">
+              {(props.history ?? []).slice(-5).reverse().map((h) => {
+                const pct = h.totalQuestions > 0 ? Math.round((h.totalCorrect / h.totalQuestions) * 100) : 0;
+                return (
+                  <li key={h.mockId} className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">{h.dateKey}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="h-1.5 w-24 overflow-hidden rounded-full bg-gray-100" aria-hidden>
+                        <span className="block h-full rounded-full bg-blue-500" style={{ width: `${pct}%` }} />
+                      </span>
+                      <span className="w-12 text-right font-semibold text-gray-900">{pct}%</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         <button type="button" className={`${primaryBtn} mt-4`} onClick={props.onClose}>
           {tx(lang, '冒険にもどる', '回到冒险')}
