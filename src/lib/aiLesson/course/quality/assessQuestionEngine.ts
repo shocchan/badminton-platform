@@ -185,23 +185,52 @@ const clozeQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQues
   };
 };
 
-/** コロケーション問題（commonFormsJaがある語） */
+/**
+ * 語をその語自身で置き換えた空欄形（「仕事をする」→「仕事を＿＿」）。
+ * 語が含まれていなければ null（空欄が作れない形は出題に使わない）。
+ */
+const blankOwnWord = (form: string, it: FoundationItem): string | null => {
+  for (const w of [it.displayForm, it.lemma].filter((s) => s && s.length > 0)) {
+    if (form.includes(w)) return form.replace(w, '＿＿');
+  }
+  return null;
+};
+
+/**
+ * コロケーション問題（commonFormsJaがある語）。
+ *
+ * 【2026-08-17 CEO実機報告で作り直し】
+ * 以前は「「する」を使う自然な言い方はどれ？」と聞いて
+ *   日本に来る／**仕事をする**／学校に行く
+ * を並べていた。誤答から対象語を除外するガード（複数正解の防止・G2監査 2026-07-29）が
+ * ある以上、**対象語を含む選択肢＝正解**が構造的に確定してしまい、
+ * 日本語を知らなくても字面の一致だけで解けていた。
+ *
+ * そこで全部の選択肢を**それぞれ自分の語で**空欄にする:
+ *   「する」が入るのはどれ？ → 仕事を＿＿／日本に＿＿／学校に＿＿
+ * こうすると「どの枠が する を取るか」を知らないと解けない＝測りたいものを測る。
+ * 空欄が作れない形は出題しない（存在するふりをしない）。
+ */
 const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQuestion | null => {
   const forms = item.commonFormsJa ?? [];
   if (forms.length === 0) return null;
-  const correct = forms[0];
-  // 対象語（lemma/displayForm）を含む誤答は複数正解になるため除外する（G2監査 2026-07-29）
+  const correct = blankOwnWord(forms[0], item);
+  if (!correct) return null;
+  // 誤答も自分の語で空欄にする。対象語を含む形は複数正解の危険があるので従来どおり外す
   const containsTarget = (s: string) => s.includes(item.displayForm) || s.includes(item.lemma);
   const distractors = pickDistractors(pool, p => p.id === item.id || !(p.commonFormsJa ?? []).length, 8, item.id + 'k')
-    .map(p => (p.commonFormsJa ?? [])[0])
-    .filter((s): s is string => !!s && s !== correct && !containsTarget(s))
+    .map((p) => {
+      const f = (p.commonFormsJa ?? [])[0];
+      return f && !containsTarget(f) ? blankOwnWord(f, p) : null;
+    })
+    .filter((s): s is string => !!s && s !== correct)
     .slice(0, 2);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(correct, distractors, item.id + 'k');
   return {
     questionId: `aq-${item.id}-collocation`, itemId: item.id, dimension: 'collocation', kind: 'choice',
-    promptJa: `「${item.displayForm}」を使う自然な言い方はどれ？`,
-    promptZh: `哪个是「${item.displayForm}」的自然搭配？`,
+    promptJa: `「${item.displayForm}」が入るのはどれ？`,
+    promptZh: `哪个空里可以填「${item.displayForm}」？`,
     choices, answerIndex,
     explanationJa: `よく使う形: ${forms.join('・')}`,
     explanationZh: `常用搭配：${forms.join('・')}`,
@@ -211,13 +240,20 @@ const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): Asse
 /** 中心意味問題（japanese_specificの初回のみ）。中国語訳を選ばせる */
 const coreMeaningQuestion = (item: FoundationItem, pool: FoundationItem[], profile: CognateProfile, introduced: boolean): AssessQuestion | null => {
   if (!allowsCoreMeaningQuestion(profile, introduced)) return null;
+  // 日中同形語は中国語訳に見出し語がそのまま入る（「出身」→「出身地；来自」）。
+  // 「「出身」の意味は？」と漢字で聞くと、字面を照合するだけで解けてしまう（2026-08-17）。
+  // 出題自体は落とさない（この語こそ導入が要る）。**見出しを読みに替えて**漢字の一致を断つ。
+  // 読みが無ければ照合を断てないので、そのときだけ出題しない。
+  const revealsSurface = item.meaningZh.includes(item.displayForm) || item.displayForm.includes(item.meaningZh);
+  const askedForm = revealsSurface ? (item.readingKana ?? '') : item.displayForm;
+  if (askedForm.length === 0 || item.meaningZh.includes(askedForm)) return null;
   const distractors = pickDistractors(pool, p => p.id === item.id || p.meaningZh === item.meaningZh, 2, item.id + 'm')
     .map(p => p.meaningZh);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(item.meaningZh, distractors, item.id + 'm');
   return {
     questionId: `aq-${item.id}-meaning`, itemId: item.id, dimension: 'core_meaning', kind: 'choice',
-    promptJa: `「${item.displayForm}」の意味は？`, promptZh: `「${item.displayForm}」是什么意思？`,
+    promptJa: `「${askedForm}」の意味は？`, promptZh: `「${askedForm}」是什么意思？`,
     choices, answerIndex,
     explanationJa: `${item.displayForm}（${item.readingKana}）`,
     explanationZh: item.meaningZh,
