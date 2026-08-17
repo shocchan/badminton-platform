@@ -51,11 +51,24 @@ const choice = (id: string, textJa: string, isCorrect: boolean, whyWrongZh?: str
  * 別物として扱われ、**意味問題に正解が2つ**入っていた（Pilotサンプル監査で発覚）。
  * 括弧の補足・区切り記号を落とし、語義の中心が重なるかで判定する。
  */
-const glossCore = (g: string): string[] => g
-  .replace(/[（(][^）)]*[）)]/g, '')     // 括弧の補足は語義の中心ではない
-  .split(/[；;、,／/]/)
-  .map((x) => x.trim())
-  .filter((x) => x.length > 0);
+/**
+ * 訳文字列 → 語義の中心。**同じ文字列を何度も割り直さない**（2026-08-17 実測）。
+ * 語彙が3,349語に増えたとき、1語ぶんの出題を作るたびに同レベル全語（約1,500件）の訳を
+ * 割り直しており、プール生成に8.3秒かかっていた。生徒のスマホでは画面が固まる時間になる。
+ * 訳は不変なので文字列キーで持ち回してよい（同じ入力には必ず同じ配列を返す）。
+ */
+const glossCoreCache = new Map<string, string[]>();
+const glossCore = (g: string): string[] => {
+  const hit = glossCoreCache.get(g);
+  if (hit) return hit;
+  const out = g
+    .replace(/[（(][^）)]*[）)]/g, '')     // 括弧の補足は語義の中心ではない
+    .split(/[；;、,／/]/)
+    .map((x) => x.trim())
+    .filter((x) => x.length > 0);
+  glossCoreCache.set(g, out);
+  return out;
+};
 
 /** どちらかの語義がもう一方に含まれていたら「近すぎる」＝誤答に使わない */
 const glossTooClose = (a: string, b: string): boolean => {
@@ -98,7 +111,10 @@ const finalizeChoices = (choices: AdvChoice[]): AdvChoice[] | null => {
  */
 const pickPrompt = (
   surface: string, cands: Array<[string, string]>,
-): [string, string] | null => cands.find(([ja]) => !ja.includes(surface)) ?? null;
+  // **中国語の定型文も見る**（2026-08-17）。中国語側だけに見出し語が現れる語がある。
+  // 実例: 見出し語「表示」は、中文テンプレート「表示「〜」的词是哪个？」の動詞と同じ字面で、
+  // 中国語画面の設問にそのまま答えが出ていた（ja側だけの検査では素通りしていた）
+): [string, string] | null => cands.find(([ja, zh]) => !ja.includes(surface) && !zh.includes(surface)) ?? null;
 
 const baseQuestion = (
   c: VocabOriginalContent, aspect: VocabAspect, i: number,
@@ -135,6 +151,34 @@ const baseQuestion = (
 });
 
 /**
+ * プール1つぶんの索引。**同じ配列で何度呼んでも作り直さない**（2026-08-17 実測）。
+ * 1語ごとに pool 全体（3,349語）を filter / find で走査していたため O(n²) になっており、
+ * vocabPool(N3) 1回に8.3秒かかっていた。索引は pool の並び順を保つので出題内容は変わらない。
+ */
+interface PoolIndex {
+  /** レベル → active_beta の語（pool の並び順） */
+  byLevel: Map<string, VocabOriginalContent[]>;
+  /** 表記 → 最初に見つかる active_beta の語（従来の pool.find と同じ選び方） */
+  bySurface: Map<string, VocabOriginalContent>;
+}
+const poolIndexCache = new WeakMap<VocabOriginalContent[], PoolIndex>();
+const poolIndex = (pool: VocabOriginalContent[]): PoolIndex => {
+  const hit = poolIndexCache.get(pool);
+  if (hit) return hit;
+  const byLevel = new Map<string, VocabOriginalContent[]>();
+  const bySurface = new Map<string, VocabOriginalContent>();
+  for (const o of pool) {
+    if (o.state !== 'active_beta') continue;
+    const list = byLevel.get(o.level);
+    if (list) list.push(o); else byLevel.set(o.level, [o]);
+    if (!bySurface.has(o.surface)) bySurface.set(o.surface, o);
+  }
+  const idx: PoolIndex = { byLevel, bySurface };
+  poolIndexCache.set(pool, idx);
+  return idx;
+};
+
+/**
  * 1語ぶんの観点別問題を作る。
  * 誤答が作れない観点は**出さない**（無理に作って正解が2つになるのを避ける）。
  */
@@ -143,7 +187,10 @@ export const buildVocabQuestions = (
 ): AdvBattleQuestion[] => {
   if (c.state !== 'active_beta') return [];
   const out: AdvBattleQuestion[] = [];
-  const sameLevel = pool.filter((o) => o.level === c.level && o.surface !== c.surface && o.state === 'active_beta');
+  const idx = poolIndex(pool);
+  // レベル別の配列は pool の並び順のまま（=従来の filter と同じ並び）。
+  // 出題は seed から決定的に選ぶので、**並びが変わると出る問題が変わる**。ここは崩さない
+  const sameLevel = (idx.byLevel.get(c.level) ?? []).filter((o) => o.surface !== c.surface);
 
   // ① 意味: 見出し語 → 正しい中国語訳
   //   日中同形語（訳が表記をそのまま含む）は、設問を読むだけで答えが分かるので出さない
@@ -280,7 +327,7 @@ export const buildVocabQuestions = (
 
   // ⑥ 紛らわしい語: 明示的に登録したものだけ（勝手に近い語を選ばない）
   const confusables = c.confusableSurfaces
-    .map((s) => pool.find((o) => o.surface === s && o.state === 'active_beta'))
+    .map((s) => idx.bySurface.get(s))
     .filter((o): o is VocabOriginalContent => !!o && !glossTooClose(o.glossZh, c.glossZh));
   if (confusables.length >= 2 && !glossRevealsSurface(c)) {
     const extra = pickDistinct(sameLevel, 3 - confusables.length, seed + 5,

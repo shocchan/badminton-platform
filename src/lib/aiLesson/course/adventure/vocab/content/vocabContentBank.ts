@@ -10,10 +10,26 @@ import { CORE_BATCH_07 } from './coreBatch07';
 import { CORE_BATCH_08 } from './coreBatch08';
 import { CORE_BATCH_09 } from './coreBatch09';
 import { CORE_BATCH_10 } from './coreBatch10';
+// 2026-08-17 増補: N3 +782語 / N2 +400語（合格に必要な語彙量に足りていなかった）。
+// バッチ間で重複していた18語は、先に書かれた側を残して後の側から削除済み
+import { CORE_BATCH_21 } from './coreBatch21';
+import { CORE_BATCH_22 } from './coreBatch22';
+import { CORE_BATCH_23 } from './coreBatch23';
+import { CORE_BATCH_24 } from './coreBatch24';
+import { CORE_BATCH_25 } from './coreBatch25';
+import { CORE_BATCH_26 } from './coreBatch26';
+import { CORE_BATCH_27 } from './coreBatch27';
+import { CORE_BATCH_28 } from './coreBatch28';
+import { CORE_BATCH_29 } from './coreBatch29';
+import { CORE_BATCH_30 } from './coreBatch30';
+import { CORE_BATCH_31 } from './coreBatch31';
+import { CORE_BATCH_32 } from './coreBatch32';
 
 export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_01, ...CORE_BATCH_02, ...CORE_BATCH_03,
   ...CORE_BATCH_04, ...CORE_BATCH_05, ...CORE_BATCH_06, ...CORE_BATCH_07, ...CORE_BATCH_08, ...CORE_BATCH_09, ...CORE_BATCH_10,
+  ...CORE_BATCH_21, ...CORE_BATCH_22, ...CORE_BATCH_23, ...CORE_BATCH_24, ...CORE_BATCH_25, ...CORE_BATCH_26,
+  ...CORE_BATCH_27, ...CORE_BATCH_28, ...CORE_BATCH_29, ...CORE_BATCH_30, ...CORE_BATCH_31, ...CORE_BATCH_32,
 ];
 
 export const contentBySurfaceReading = (): Map<string, VocabOriginalContent> => {

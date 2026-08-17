@@ -351,7 +351,10 @@ export default function AdvShell(props: AdvShellProps) {
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, props.reviewsDue, dateKey, poolsError, poolsRetryNonce]);
+    // dailyMinutes は復習予報の1日の予算（＝何日に分散するか）を決めるので依存に入れる。
+    // mastery の参照だけを見ていると、分量だけ変えた直後に古い予報が残る（2026-08-17）
+  }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, profile?.dailyMinutes,
+    props.reviewsDue, dateKey, poolsError, poolsRetryNonce]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
