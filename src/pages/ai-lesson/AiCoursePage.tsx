@@ -932,7 +932,10 @@ export default function AiCoursePage() {
           <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
             initial={(() => { const u = parseVocabUrl(window.location.search); return { view: u.view, category: (u.category ?? null) as never, itemId: u.itemId }; })()}
             onStateChange={(st) => syncVocabUrl({ view: st.view, category: st.category, itemId: st.itemId })}
-            onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
+            // V2の生徒には「AI会話で話す」を出さない（2026-08-17 CEO指摘）。理由は2つ。
+            // ①AI会話は今日の冒険のstep（AI会話ミッション）に既にある
+            // ②この導線は実際には会話を始めず**ホームへ戻るだけ**で、ボタン名が嘘になっていた
+            onGoConversation={advOn ? undefined : () => { syncVocabUrl(null); setStep('home'); }}
             // V2の生徒は復習を終えたら今日の冒険へ戻す（旧コースの図鑑に置き去りにしない・2026-08-17）
             onExitReview={advOn ? () => { syncVocabUrl(null); setStep('home'); } : undefined}
             // 復習を終えたら、戻ってもう一度押さずに次のstepへ入れる（2026-08-17 CEO要望）
