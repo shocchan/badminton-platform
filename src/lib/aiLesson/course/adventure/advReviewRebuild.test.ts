@@ -107,3 +107,20 @@ describe('旧コースの復習へは二度と繋がない', () => {
     expect(branch![0]).not.toMatch(/onOpenReview/);    // 旧コースへ渡さない
   });
 });
+
+describe('復習を終えたあとの戻り先と見え方（2026-08-18 実機確認で発覚）', () => {
+  it('今日の冒険から始めた復習はホームへ返す（錯題本へ着地させない）', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('src/components/ai-course/adventure/AdvShell.tsx', 'utf8');
+    const branch = /if \(s\.kind === 'review_due'\) \{[\s\S]{0,900}?\n {4}\}/.exec(src);
+    expect(branch, 'review_due の分岐が見つからない').toBeTruthy();
+    expect(branch![0]).toMatch(/returnTo: 'home'/);
+  });
+
+  it('錯題本の各行は解き直し用の内部targetではなく元の学習対象を出す', async () => {
+    const { readFileSync } = await import('node:fs');
+    const src = readFileSync('src/components/ai-course/adventure/AdvShell.tsx', 'utf8');
+    // 全部の行が「間違えた問題の解き直し」になると、何の問題か分からなくなる
+    expect(src).toMatch(/e\.targetIds\.find\(\(t\) => t !== MISTAKE_TARGET_ID\)/);
+  });
+});

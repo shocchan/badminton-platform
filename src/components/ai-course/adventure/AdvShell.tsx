@@ -1259,8 +1259,14 @@ export default function AdvShell(props: AdvShellProps) {
                 className={`rounded-xl border p-3 ${doneMark ? 'border-emerald-200 bg-emerald-50' : 'border-gray-200 bg-white'}`}>
                 <div className="flex items-start justify-between gap-2">
                   {/* 問題文そのものは持たない設計なので、何の問題かは「学習対象」で示す（内部IDは出さない） */}
+                  {/* 解き直しの内部target（mistake-review）ではなく**元の学習対象**を出す。
+                      解き直すほど全部の行が「間違えた問題の解き直し」になって
+                      何の問題か分からなくなる（2026-08-18 実機確認） */}
                   <p className="text-sm font-semibold text-gray-800">
-                    {grammarPatternById(e.targetId) ?? targetLabelOf(e.targetId, lang)}
+                    {(() => {
+                      const src = e.targetIds.find((t) => t !== MISTAKE_TARGET_ID) ?? e.targetId;
+                      return grammarPatternById(src) ?? targetLabelOf(src, lang);
+                    })()}
                   </p>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
                     doneMark ? 'bg-emerald-600 text-white'
@@ -1898,6 +1904,8 @@ export default function AdvShell(props: AdvShellProps) {
         tier: 'normal', targetId: MISTAKE_TARGET_ID,
         targetLabel: tx(lang, '復習（間違えた問題）', '复习（做错的题）'),
         targetIds: [MISTAKE_TARGET_ID], fromStepIdx: i,
+        // 今日の冒険から来ているのでホームへ返す（錯題本へ着地させない・2026-08-18 実機確認）
+        returnTo: 'home',
       });
       setView('battle');
       return true;
