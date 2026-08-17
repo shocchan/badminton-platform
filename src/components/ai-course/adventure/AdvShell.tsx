@@ -92,12 +92,14 @@ export interface AdvShellProps {
   /** ヘッダー・設定画面からの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ。
    * teacher=案内の先生の変更 / redo=目的・レベルの変更（準備のやり直し）。
    * どちらも設定画面（上部ナビ）から入る（2026-08-16 メニュー整理でホームの二次メニューから移設） */
-  requestView?: { view: 'home' | 'map' | 'teacher' | 'redo'; n: number } | null;
+  requestView?: { view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep'; n: number } | null;
   /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
   onViewChange?: (view: 'home' | 'map') => void;
   /** requestViewを消費したら親へ知らせる（2026-08-17 監査P1:
    * 消費後もrequestが残ると、再マウントのたびにredoウィザード等が勝手に再表示された） */
   onRequestConsumed?: () => void;
+  /** 「次にやるstep」を親へ知らせる（復習画面の「次へ」ボタン文言に使う・2026-08-17） */
+  onNextStepChange?: (s: { titleJa: string; titleZh: string } | null) => void;
 }
 
 type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
@@ -201,6 +203,14 @@ export default function AdvShell(props: AdvShellProps) {
   // 目的・レベルの変更＝オンボーディングのやり直し（記録は保持。設定画面から入る）。
   // requestView('redo')が使うため、切替要求の処理より前に宣言する
   const [redoOnboarding, setRedoOnboarding] = useState(false);
+  /**
+   * 「次のstepへ」要求（2026-08-17 CEO要望「毎回戻らないといけないので」）。
+   * 復習画面から戻ったとき、ホームで押し直させずに次のstepを直接開く。
+   * 実行は runStep が定義されたあと（描画準備の位置）で、
+   * requestView と同じ「描画中に状態を合わせる」やり方で行う。
+   */
+  const [pendingNextN, setPendingNextN] = useState(0);
+  const [consumedNextN, setConsumedNextN] = useState(0);
 
   // ヘッダー（今日の冒険／冒険マップ）からの切替要求を反映する。
   // effect ではなく **render中にpropsの変化へ合わせて調整する**（Reactが推奨する形）。
@@ -212,6 +222,9 @@ export default function AdvShell(props: AdvShellProps) {
     if (props.requestView) {
       const v = props.requestView.view;
       if (v === 'redo') { setView('home'); setRedoOnboarding(true); }
+      // 復習画面などから「次のstepへ」で戻ってきたとき、ホームを経由せず直接そのstepを開く
+      // （2026-08-17 CEO要望「毎回戻らないといけないので」）。questが揃うのを待つ必要があるのでフラグで持つ
+      else if (v === 'nextStep') { setView('home'); setPendingNextN(reqN); }
       else if (v === 'teacher') setView('teacher');
       else setView(v === 'map' ? 'map' : 'home');
       // render中に親のstateを更新しない（Reactの規約）。次tickで通知する
@@ -332,6 +345,20 @@ export default function AdvShell(props: AdvShellProps) {
     const s = quest?.steps[i];
     return s ? stepKeyOf(s) : undefined;
   }, [quest]);
+  /** 次にやるstep（フックを早期returnより前に置くためここで求める） */
+  const nextStepIdx = useMemo(
+    () => (quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1),
+    [quest, doneSteps],
+  );
+  const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
+  // 親（復習画面）へ「次にやるstep」を知らせる。ボタン文言に使う
+  const notifyNext = props.onNextStepChange;
+  const nextTitleJa = nextStep?.titleJa ?? null;
+  const nextTitleZh = nextStep?.titleZh ?? null;
+  useEffect(() => {
+    notifyNext?.(nextTitleJa && nextTitleZh ? { titleJa: nextTitleJa, titleZh: nextTitleZh } : null);
+  }, [notifyNext, nextTitleJa, nextTitleZh]);
+
   const markStep = useCallback((i: number) => {
     if (!profile || doneSteps.has(i)) return;
     save(withStepDone(profile, i, keyOfStepIdx(i)));
@@ -1645,9 +1672,7 @@ export default function AdvShell(props: AdvShellProps) {
         basicBundleByUnit: pools.basicBundleByUnit,
     })
     : null;
-  const nextStepIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
   const allDone = quest !== null && nextStepIdx === -1;
-  const nextStep = quest && nextStepIdx >= 0 ? quest.steps[nextStepIdx] : null;
   const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
   // 中断した模試・進行中の答案用紙は残り時間が壁時計で動いているので、その間は「今日の一手」を再開側にする。
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
@@ -1713,6 +1738,17 @@ export default function AdvShell(props: AdvShellProps) {
     }
     return term('continueNext', lang);
   };
+
+  // 復習画面から「次へ」で戻ってきた要求をここで実行する。
+  // effectではなく描画中に合わせる（requestViewと同じやり方。1フレーム古い画面を挟まない）
+  if (pendingNextN !== 0 && consumedNextN !== pendingNextN && quest) {
+    setConsumedNextN(pendingNextN);
+    const idx = nextStepIdx;
+    // 実行は描画のあと。runStepは画面遷移とrefに触るので描画中には呼ばない。
+    // lintは「描画中にrefへ触る」と見るが、実際に走るのはsetTimeoutの中＝描画後。
+    // eslint-disable-next-line react-hooks/refs -- 実行はsetTimeoutで描画後へ送っている
+    if (idx >= 0) setTimeout(() => runStep(idx), 0);
+  }
 
   // 休み明けの検知（2026-08-17 監査: 10日ぶりに開いた人に通常挨拶＋amber警告が並び、
   // 罪悪感だけ与えて復帰の後押しがなかった）。最終学習日はquestLogとmastery実測の新しい方

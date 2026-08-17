@@ -185,7 +185,9 @@ export default function AiCoursePage() {
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
    */
-  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map' | 'teacher' | 'redo'; n: number } | null>(null);
+  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep'; n: number } | null>(null);
+  /** 冒険の「次にやるstep」。復習画面から直接そこへ入れるようにするため親で保持する（2026-08-17） */
+  const [advNextStep, setAdvNextStep] = useState<{ titleJa: string; titleZh: string } | null>(null);
   const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
   // V2入口「冒険を始める」の連打ガード（updateLearnerの二重発火を防ぐ）
   const [advEntryBusy, setAdvEntryBusy] = useState(false);
@@ -933,6 +935,12 @@ export default function AiCoursePage() {
             onGoConversation={() => { syncVocabUrl(null); setStep('home'); }}
             // V2の生徒は復習を終えたら今日の冒険へ戻す（旧コースの図鑑に置き去りにしない・2026-08-17）
             onExitReview={advOn ? () => { syncVocabUrl(null); setStep('home'); } : undefined}
+            // 復習を終えたら、戻ってもう一度押さずに次のstepへ入れる（2026-08-17 CEO要望）
+            nextStepLabel={advOn && advNextStep ? (uiLang === 'zh' ? advNextStep.titleZh : advNextStep.titleJa) : undefined}
+            onGoNextStep={advOn && advNextStep ? () => {
+              syncVocabUrl(null); setStep('home');
+              setAdvRequest((p) => ({ view: 'nextStep', n: (p?.n ?? 0) + 1 }));
+            } : undefined}
             onBack={() => { syncVocabUrl(null); setStep('home'); }} />
         </Suspense>
         </LearnerErrorBoundary>
@@ -1147,6 +1155,7 @@ export default function AiCoursePage() {
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
             requestView={advRequest}
             onRequestConsumed={() => setAdvRequest(null)}
+            onNextStepChange={setAdvNextStep}
             onViewChange={(v) => setAdvNavKey(v === 'map' ? 'roadmap' : 'home')}
             onSaveSettings={(next) => {
               setLearner({ ...learner, settings: next });

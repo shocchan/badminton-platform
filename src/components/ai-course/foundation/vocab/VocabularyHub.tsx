@@ -75,6 +75,9 @@ interface Props {
    * V2の生徒を旧コースの図鑑に置き去りにしないための出口。
    */
   onExitReview?: () => void;
+  /** 次のstepの名前（V2のみ）。復習画面から直接そこへ行けるようにする */
+  nextStepLabel?: string;
+  onGoNextStep?: () => void;
   initial?: Partial<VocabHubState>;
   onStateChange?: (s: VocabHubState) => void;
   /** 内部レビュー画面（review/decisions/connectivity/onodrafts/n3grammar・sandbox・draft画像）の表示。
@@ -87,7 +90,7 @@ interface Props {
 // 日付判定はLearningClockへ集約（ローカル日付・UTCで日付がずれない・2E-1.10 §5）
 const dateKey = () => defaultLearningClock.localDateKey();
 
-export const VocabularyHub = ({ t, onBack, onGoConversation, onExitReview, initial, onStateChange, labPreview = false, learnerLevel = null }: Props) => {
+export const VocabularyHub = ({ t, onBack, onGoConversation, onExitReview, nextStepLabel, onGoNextStep, initial, onStateChange, labPreview = false, learnerLevel = null }: Props) => {
   const tv = t.vocab;
   const items = useMemo(() => allVocabularyItems(), []);
   const itemById = useMemo(() => new Map(items.map((i) => [i.id, i])), [items]);
@@ -443,7 +446,8 @@ export const VocabularyHub = ({ t, onBack, onGoConversation, onExitReview, initi
       {view === 'quickreview' && (
         <VocabQuickReviewView labPreview={labPreview} t={t} repo={repo} schedule={schedule} itemById={itemById} items={items}
           onChanged={bump} onDone={onExitReview ?? (() => setView('top'))}
-          exitLabel={onExitReview ? tv.quickReviewBackToAdventure : undefined} onTalk={onGoConversation} />
+          exitLabel={onExitReview ? tv.quickReviewBackToAdventure : undefined}
+          nextStepLabel={nextStepLabel} onGoNextStep={onGoNextStep} onTalk={onGoConversation} />
       )}
       {view === 'daily' && <DailyFlowView labPreview={labPreview} t={t} itemById={itemById} items={items} ids={daily.itemIds.filter((id) => itemById.has(id))} reasons={daily.reasons} repo={repo} schedule={schedule} journeyTask={journeyTask} onChanged={bump} onDone={() => {
         // Journeyの「最初の練習」から来ていれば結果を渡してStep4へ戻す（§7）
@@ -1231,12 +1235,15 @@ const VocabDiagnosticView = ({ t, repo, itemById, items, journeyTask, onChanged,
  * 「今日できたこと」と「次回の復習予定」を示し、一覧へ戻すだけにしない。
  * 内部state名（day1 / retention_candidate 等）は表示しない。第一CTAは一つ。
  */
-const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTalk, onAgain, finishLabel }: {
+const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTalk, onAgain, finishLabel, nextStepLabel, onGoNextStep }: {
   t: AiCourseDict; schedule: VocabSpacedReviewRepository; itemById: Map<string, FoundationItem>;
   results: { itemId: string; correct: boolean }[];
   onFinish: () => void; onTalk?: () => void; onAgain?: () => void;
   /** 終了ボタンの文言（V2は「今日の冒険へ戻る」）。未指定なら従来文言 */
   finishLabel?: string;
+  /** 次のstepへの直行（V2のみ） */
+  nextStepLabel?: string;
+  onGoNextStep?: () => void;
 }) => {
   const tv = t.vocab;
   useEffect(() => { trackCourseOnce('view_ai_course_learning_completion'); }, []);
@@ -1289,11 +1296,26 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
           ]} />
         )}
       </div>
-      {/* 第一CTAは一つ（§16）。補助CTAは弱いスタイル */}
-      <ActionButton variant="primary" fullWidth
-        onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onFinish(); }}>
-        {finishLabel ?? tv.completionFinish}
-      </ActionButton>
+      {/* 第一CTAは一つ（§16）。補助CTAは弱いスタイル。
+          V2で次のstepがあるときは、それを第一CTAにする（復習のあと戻って押し直させない・2026-08-17） */}
+      {onGoNextStep && nextStepLabel ? (
+        <>
+          <ActionButton variant="primary" fullWidth
+            onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onGoNextStep(); }}>
+            {t.locale === 'zh' ? `继续：${nextStepLabel}` : `次へ：${nextStepLabel}`}
+          </ActionButton>
+          <button type="button"
+            className="mt-2 w-full min-h-10 px-3 text-xs text-gray-600 border border-gray-200 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+            onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onFinish(); }}>
+            {finishLabel ?? tv.completionFinish}
+          </button>
+        </>
+      ) : (
+        <ActionButton variant="primary" fullWidth
+          onClick={() => { trackCourse('click_ai_course_completion_next_action', { action: 'finish' }); onFinish(); }}>
+          {finishLabel ?? tv.completionFinish}
+        </ActionButton>
+      )}
       <div className="flex flex-wrap gap-2 mt-2">
         {onTalk && (
           <button type="button" className="flex-1 min-h-10 px-3 text-xs text-indigo-700 border border-indigo-100 rounded-xl action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
@@ -1313,12 +1335,15 @@ const LearningCompletionView = ({ t, schedule, itemById, results, onFinish, onTa
   );
 };
 
-const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk, exitLabel, labPreview }: {
+const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, onDone, onTalk, exitLabel, nextStepLabel, onGoNextStep, labPreview }: {
   t: AiCourseDict; repo: VocabProgressRepository; schedule: VocabSpacedReviewRepository;
   itemById: Map<string, FoundationItem>; items: FoundationItem[];
   onChanged: () => void; onDone: () => void; onTalk?: () => void;
   /** 戻り先のラベル（V2は「今日の冒険へ戻る」）。未指定なら従来の図鑑トップ文言 */
   exitLabel?: string;
+  /** 次のstepの名前と実行（V2のみ）。戻ってもう一度押させないための直行口 */
+  nextStepLabel?: string;
+  onGoNextStep?: () => void;
   labPreview: boolean;
 }) => {
   const tv = t.vocab; const zh = t.locale === 'zh';
@@ -1340,8 +1365,19 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
         <p className="text-sm text-gray-600">{tv.quickReviewEmpty}</p>
         <p className="text-xs text-gray-400 mt-1 mb-3">{tv.quickReviewEmptyHint}</p>
         <div className="space-y-2">
+          {/* 次のstepへ直行できるようにする（2026-08-17 CEO要望「毎回戻らないといけないので」）。
+              一番やってほしいことを一番上に置き、戻るだけの導線はその下へ落とす */}
+          {onGoNextStep && nextStepLabel && (
+            <button type="button" onClick={onGoNextStep}
+              className="w-full min-h-11 px-4 bg-blue-600 text-white rounded-xl font-bold text-sm action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+              {zh ? `继续：${nextStepLabel}` : `次へ：${nextStepLabel}`}
+            </button>
+          )}
           <button type="button" onClick={onDone}
-            className="w-full min-h-11 px-4 bg-teal-600 text-white rounded-xl font-bold text-sm action-raised action-emerald touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{exitLabel ?? tv.quickReviewEmptyBack}</button>
+            className={`w-full min-h-11 px-4 rounded-xl font-bold text-sm action-raised touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${
+              onGoNextStep && nextStepLabel
+                ? 'bg-white border border-teal-200 text-teal-700 action-secondary'
+                : 'bg-teal-600 text-white action-emerald'}`}>{exitLabel ?? tv.quickReviewEmptyBack}</button>
           {onTalk && (
             <button type="button" onClick={onTalk}
               className="w-full min-h-11 px-4 bg-white border border-teal-200 text-teal-700 rounded-xl font-bold text-sm action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{tv.quickReviewEmptyTalk}</button>
@@ -1352,6 +1388,7 @@ const VocabQuickReviewView = ({ t, repo, schedule, itemById, items, onChanged, o
   }
   if (idx >= ids.length) {
     return <LearningCompletionView t={t} schedule={schedule} itemById={itemById} results={done} finishLabel={exitLabel}
+      nextStepLabel={nextStepLabel} onGoNextStep={onGoNextStep}
       onFinish={() => { trackCourse('complete_ai_course_daily_review'); onDone(); }}
       onTalk={onTalk} onAgain={() => { setIdx(0); setDone([]); setPicked(null); setJudged(null); }} />;
   }
