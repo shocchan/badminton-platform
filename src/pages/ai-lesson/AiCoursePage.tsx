@@ -778,9 +778,18 @@ export default function AiCoursePage() {
   });
 
   /** オモイデ庭園（復習の統合入口・§13）。語彙/文法/会話の復習はここから分岐する */
-  const openReview = () => setStep('garden');
+  /**
+   * 復習を開く。
+   *
+   * V2の生徒は**復習そのものへ直行**する（2026-08-17 CEO実機報告「復習も3つあってよくわからない」）。
+   * 旧コースの庭園（オモイデ庭園）は入口が3つあり、しかも2つは旧世界の別画面
+   * （N3攻略・ソラノ塔）へ出ていく。「復習 3件」と言われて押した生徒に
+   * 3つの分かれ道を見せるのは、1画面1決断に反するうえ旧コースへ迷い込ませる。
+   * 旧コースの生徒には従来どおり庭園を見せる（そちらの世界観の入口なので壊さない）。
+   */
   /** ことばの3分復習（庭園の中の実復習フロー） */
   const openVocabQuickReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
+  const openReview = () => { if (advOn) { openVocabQuickReview(); return; } setStep('garden'); };
 
   /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
   const chapterCompleted = (chapterId: string) =>
@@ -937,8 +946,8 @@ export default function AiCoursePage() {
           conversationReviewsDue={reviewsDue}
           onOpenVocabReview={openVocabQuickReview}
           onOpenConversationHistory={advOn ? undefined : () => setStep('history')}
-          onOpenN3={() => openArea(n3FirstReviewAreaId(window.localStorage) ?? currentAreaId)}
-          onOpenN2={() => setStep('n2grammar')}
+          onOpenN3={advOn ? undefined : () => openArea(n3FirstReviewAreaId(window.localStorage) ?? currentAreaId)}
+          onOpenN2={advOn ? undefined : () => setStep('n2grammar')}
           onOpenAdventure={advOn ? undefined : () => setStep('adventure')}
           onBack={() => setStep('home')}
         />

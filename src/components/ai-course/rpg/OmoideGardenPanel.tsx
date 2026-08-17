@@ -19,8 +19,9 @@ export interface OmoideGardenPanelProps {
   /** 旧コース画面への入口。V2生徒には渡さない＝カード非表示（2026-08-17 監査P1:
    * 会話ノート→旧学習記録、再会Quest→旧第1章に抜けられていた） */
   onOpenConversationHistory?: () => void;
-  onOpenN3: () => void;
-  onOpenN2: () => void;
+  /** V2の生徒には渡さない（undefined＝旧世界へ出ていくカードを出さない・2026-08-17） */
+  onOpenN3?: () => void;
+  onOpenN2?: () => void;
   onOpenAdventure?: () => void;
   onBack: () => void;
 }
@@ -83,10 +84,14 @@ export const OmoideGardenPanel = ({
           <Row title={t.garden.talkTitle} detail={t.garden.talkBody}
             count={conversationReviewsDue} cta={t.garden.talkCta} onOpen={onOpenConversationHistory} />
         )}
-        <Row title={t.garden.n3Title} detail={t.garden.n3Body}
-          count={n3Scheduled} cta={t.garden.n3Cta} onOpen={onOpenN3} />
-        <Row title={t.garden.n2Title} detail={n2Learned > 0 ? t.garden.n2BodyCount(n2Learned) : t.garden.n2Body}
-          count={null} cta={t.garden.n2Cta} onOpen={onOpenN2} />
+        {onOpenN3 && (
+          <Row title={t.garden.n3Title} detail={t.garden.n3Body}
+            count={n3Scheduled} cta={t.garden.n3Cta} onOpen={onOpenN3} />
+        )}
+        {onOpenN2 && (
+          <Row title={t.garden.n2Title} detail={n2Learned > 0 ? t.garden.n2BodyCount(n2Learned) : t.garden.n2Body}
+            count={null} cta={t.garden.n2Cta} onOpen={onOpenN2} />
+        )}
         {onOpenAdventure && (
           <Row title={t.garden.questTitle} detail={t.garden.questBody}
             count={null} cta={t.garden.questCta} onOpen={onOpenAdventure} />
