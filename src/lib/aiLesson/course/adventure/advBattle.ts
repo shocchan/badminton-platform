@@ -35,6 +35,14 @@ export interface Encounter {
   attemptSeed: number;
 }
 
+/**
+ * 編成seed（日付＋tierから決定的）。
+ * **出題プールの材料選び（vocabSubset）と編成（buildEncounter）で同じ値を使う**ため、
+ * 呼び出し側それぞれで式を書かずにここへ集約する（別々に書くと静かにズレる）。
+ */
+export const battleSeedOf = (dateKey: string, tier: AdvEnemyTier): number =>
+  [...dateKey].reduce((h, c) => h * 31 + c.charCodeAt(0), tier.length);
+
 const TIER_SIZE: Record<AdvEnemyTier, { size: number; timed: boolean; secPerQ: number }> = {
   normal: { size: 7, timed: false, secPerQ: 0 },
   strong: { size: 10, timed: false, secPerQ: 0 },

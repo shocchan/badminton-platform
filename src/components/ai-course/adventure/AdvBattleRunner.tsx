@@ -8,7 +8,7 @@ import type { AdvCompanionId, AdvEnemyTier, AdvMasteryAttempt } from '../../../l
 import { companionById } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
-import { buildEncounter, gradeEncounter, encounterName, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
+import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { computeMastery, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { nowTrainingLabel, EXAM_SKILL_LABELS } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
@@ -49,7 +49,7 @@ export function AdvBattleRunner(props: BattleProps) {
   const [enc] = useState(() => buildEncounter({
     tier: props.tier, targetIds: props.targetIds, pool: props.pool,
     seenKeys: props.seenKeys, recentWrongKeys: props.recentWrongKeys,
-    seed: [...props.dateKey].reduce((h, c) => h * 31 + c.charCodeAt(0), props.tier.length),
+    seed: battleSeedOf(props.dateKey, props.tier),
     attemptSeed: Date.now(),
   }));
   const [seenAtStart] = useState(() => new Set(props.seenKeys));

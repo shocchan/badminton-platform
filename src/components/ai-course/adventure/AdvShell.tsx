@@ -10,6 +10,7 @@ import type {
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
+import { battleSeedOf } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { generateTodayQuest, vocabTargetForStage, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
@@ -101,6 +102,31 @@ export interface AdvShellProps {
 type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
 interface BattleCtx { tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[]; }
 
+/** いま要る語彙プールの注文（何をどのseedで作るか）。key が同じなら作り直さない */
+interface VocabPoolRequest {
+  kind: 'battle' | 'mock';
+  level: 'N2' | 'N3';
+  /** バトルで材料化するバンド（模試は全バンドなので空） */
+  bands: string[];
+  seed: number;
+  key: string;
+}
+
+/**
+ * 優先再出題の対象キー（2026-08-17）。
+ * 错题本の「まだ克服できていない」集合を使う。旧実装は「最後の試行が80%未満ならその回の全問」で、
+ * 正解した問題まで誤答扱いにしていた。正誤の記録が無い旧データしかない人には従来の推定へ落とす。
+ */
+const recentWrongKeysOf = (prof: AdventureV2Profile, notebook: MistakeNotebook): Set<string> => {
+  if (notebook.recordingAvailable) return pendingMistakeKeySet(notebook);
+  const out = new Set<string>();
+  for (const attempts of Object.values(prof.mastery)) {
+    const last = attempts?.[attempts.length - 1];
+    if (last && last.scorePct < 80) for (const k of last.questionKeys) out.add(k);
+  }
+  return out;
+};
+
 const card = 'rounded-2xl border border-gray-200 bg-white p-4';
 
 /** 错题本の解き直しバトルのtargetId。ルートのstage targetとは混ざらない専用ID */
@@ -187,21 +213,81 @@ export default function AdvShell(props: AdvShellProps) {
     notifyView?.(view === 'map' ? 'map' : 'home');
   }, [view, notifyView]);
   /**
-   * 語彙bankの遅延ロード。模試と語彙バトル（2026-08-15 語彙配線）でだけ使うので、
-   * Homeの初回転送量から外す（実測: この分離で V2入場時の転送が gzip 779kB → 456kB）
+   * 語彙の出題プール。模試と語彙バトル（2026-08-15 語彙配線）でだけ使うので、
+   * bank は動的importでHomeの初回転送量から外す（実測: gzip 779kB → 456kB）。
+   *
+   * **描画中には作らない**（2026-08-17）。語彙が3,349語になり、全量生成（vocabPool）は
+   * Macでも 3.7〜4.5秒かかる。それを `pool={vocabPoolFn(level)}` と描画式の中で呼んでいたため、
+   * 生徒の端末では画面が固まり、ローディング表示すら描けなかった。
+   * いまは ①必要な語だけ材料化する（vocabSubset）②生成は effect の中で行い、
+   * できるまではローディングを出す、の2段構えにしてある。
    */
-  const [vocabPoolFn, setVocabPoolFn] = useState<null | ((lv: 'N2' | 'N3') => Map<string, AdvBattleQuestion[]>)>(null);
+  const [vocabPool, setVocabPool] = useState<{ key: string; map: Map<string, AdvBattleQuestion[]> } | null>(null);
   const [vocabPoolError, setVocabPoolError] = useState(false);
-  const needVocabPool = view === 'mock'
-    || (view === 'battle' && battle !== null && battle.targetId.startsWith('vocab-'));
+  /**
+   * ミニ模試の試行seed。**画面に入った時点で決める**（開始ボタンの中で決めると、
+   * 先に作ったプールと seed が食い違い、途中保存した答案が復元できなくなる）。
+   * 中断からの復帰では保存済みの attemptSeed をそのまま使う。
+   */
+  const [mockSeed, setMockSeed] = useState<number | null>(null);
+  const savedMockSeed = profile?.mockSession?.attemptSeed ?? null;
+  /** ミニ模試へ入る唯一の入口。**seedを決めてから画面を切り替える**（描画中に決めない） */
+  const openMock = useCallback(() => {
+    setMockSeed(savedMockSeed ?? Date.now());
+    setView('mock');
+  }, [savedMockSeed]);
+
+  /** いま要る語彙プールの注文。key が同じなら作り直さない */
+  const vocabRequest = useMemo<VocabPoolRequest | null>(() => {
+    const lv: 'N2' | 'N3' = profile?.targetJlpt === 'N3' ? 'N3' : 'N2';
+    if (view === 'mock') {
+      if (mockSeed === null) return null;
+      return { kind: 'mock', level: lv, bands: [], seed: mockSeed, key: `mock|${lv}|${mockSeed}` };
+    }
+    if (view === 'battle' && battle && battle.targetId.startsWith('vocab-')) {
+      const vocabTargets = battle.targetIds.filter((t) => t.startsWith('vocab-'));
+      const bands = vocabTargets.length > 0 ? vocabTargets : [battle.targetId];
+      // 材料を選ぶseedと、そこから編成を組むseed（AdvBattleRunner）を必ず揃える
+      const seed = battleSeedOf(dateKey, battle.tier);
+      return { kind: 'battle', level: lv, bands, seed, key: `battle|${lv}|${bands.join(',')}|${seed}` };
+    }
+    return null;
+  }, [view, battle, profile?.targetJlpt, mockSeed, dateKey]);
+
+  // 既出・直近誤答は「生成する瞬間の台帳」を読む（毎描画で作り直さないためrefで持つ）
+  const profileRef = useRef(profile);
+  useEffect(() => { profileRef.current = profile; }, [profile]);
+
   useEffect(() => {
-    if (!needVocabPool || vocabPoolFn || vocabPoolError) return;
+    if (!vocabRequest || vocabPoolError) return;
+    if (vocabPool?.key === vocabRequest.key) return;
+    const req = vocabRequest;
     let alive = true;
-    void import('../../../lib/aiLesson/course/adventure/vocab/vocabQuestions').then((m) => {
-      if (alive) setVocabPoolFn(() => m.vocabPool);
-    }).catch(() => { if (alive) setVocabPoolError(true); });
+    void import('../../../lib/aiLesson/course/adventure/vocab/vocabSubset')
+      // 1タスク譲ってから作る（ローディング表示を先に描かせる。
+      // effect内で即座に作ると、chunkがキャッシュ済みのときスピナーが1frameも出ない）
+      .then((m) => new Promise<typeof m>((resolve) => { setTimeout(() => resolve(m), 0); }))
+      .then((m) => {
+        if (!alive) return;
+        const p = profileRef.current;
+        const map = req.kind === 'mock'
+          // 模試のプールは attemptSeed だけから決める。既出キー等を混ぜると
+          // 途中保存した答案が復元できなくなる（advMockSession.ts の復元条件）
+          ? m.mockVocabPool(req.level, req.seed)
+          : m.vocabSubsetPool(req.level, {
+            seed: req.seed,
+            seenKeys: p ? seenQuestionKeys(p.mastery) : undefined,
+            recentWrongKeys: p ? recentWrongKeysOf(p, buildMistakeNotebook(p.mastery, new Date().toISOString())) : undefined,
+            onlyBands: req.bands,
+            oneAspectPerWord: true,
+          });
+        if (alive) setVocabPool({ key: req.key, map });
+      })
+      .catch(() => { if (alive) setVocabPoolError(true); });
     return () => { alive = false; };
-  }, [needVocabPool, vocabPoolFn, vocabPoolError]);
+  }, [vocabRequest, vocabPool?.key, vocabPoolError]);
+  /** 注文どおりに出来上がっているプールだけを使う（古いレベル・古いバンドを渡さない） */
+  const vocabPoolReady = vocabRequest && vocabPool?.key === vocabRequest.key ? vocabPool.map : null;
 
   const save = useCallback((next: AdventureV2Profile) => {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
@@ -520,9 +606,10 @@ export default function AdvShell(props: AdvShellProps) {
   }
 
   if (view === 'battle' && battle && pools) {
-    // 語彙バトル（vocab-*）は遅延ロードの語彙バンクから出題する（2026-08-15 語彙配線）
+    // 語彙バトル（vocab-*）は遅延ロードの語彙バンクから出題する（2026-08-15 語彙配線）。
+    // プールは effect で先に作ってある（描画中には作らない・2026-08-17）
     const isVocabBattle = battle.targetId.startsWith('vocab-');
-    if (isVocabBattle && !vocabPoolFn) {
+    if (isVocabBattle && !vocabPoolReady) {
       if (vocabPoolError) {
         return (
           <div className="mx-auto w-full max-w-xl px-4 py-8 text-center">
@@ -541,22 +628,10 @@ export default function AdvShell(props: AdvShellProps) {
           </div>
         );
       }
-      return <AdvLoading lang={lang} />;
+      return <AdvLoading lang={lang} note={tx(lang, '問題を用意しています…', '正在准备题目…')} />;
     }
     const seen = seenQuestionKeys(prof.mastery);
-    // 優先再出題は错题本の「まだ克服できていない」集合を使う（2026-08-17）。
-    // 旧実装は「最後の試行が80%未満ならその回の全問」で、正解した問題まで誤答扱いにしていた。
-    // 正誤の記録が無い旧データしかない人には従来の推定へ落とす（何も優先しないよりはまし）
-    const wrong = notebook.recordingAvailable
-      ? pendingMistakeKeySet(notebook)
-      : (() => {
-        const s = new Set<string>();
-        for (const at of Object.values(prof.mastery)) {
-          const last = at?.[at.length - 1];
-          if (last && last.scorePct < 80) for (const k of last.questionKeys) s.add(k);
-        }
-        return s;
-      })();
+    const wrong = recentWrongKeysOf(prof, notebook);
     // 错题本からの解き直しは、選んだ問題だけを持つ専用プールで出す
     const isMistakeBattle = battle.targetId === MISTAKE_TARGET_ID;
     const mistakePool = (() => {
@@ -591,7 +666,7 @@ export default function AdvShell(props: AdvShellProps) {
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
         targetIds={battle.targetIds}
-        pool={mistakePool ?? (isVocabBattle && vocabPoolFn ? vocabPoolFn(level) : pools.byItem)} level={level}
+        pool={mistakePool ?? (isVocabBattle && vocabPoolReady ? vocabPoolReady : pools.byItem)} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
@@ -779,10 +854,12 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       );
     }
-    if (!pools || !vocabPoolFn) return <AdvLoading lang={lang} />;
+    if (!pools || !vocabPoolReady || mockSeed === null) {
+      return <AdvLoading lang={lang} note={tx(lang, '問題を用意しています…', '正在准备题目…')} />;
+    }
     const rPool = readingPool(level);
     const lPool = listeningPool(level);
-    const vPool = vocabPoolFn(level);
+    const vPool = vocabPoolReady;
     const merged = new Map(pools.byItem);
     for (const [k, v] of rPool) merged.set(k, v);
     for (const [k, v] of lPool) merged.set(k, v);
@@ -807,6 +884,7 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvMockRunner
         lang={lang} spec={spec} pools={merged}
+        attemptSeed={mockSeed}
         seenKeys={seenQuestionKeys(prof.mastery)}
         history={prof.mockLog}
         contextNoteJa={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
@@ -1045,7 +1123,7 @@ export default function AdvShell(props: AdvShellProps) {
           props.onStartConversation();
         }}
         conversationAvailable={props.conversationAvailable}
-        onOpenMock={() => setView('mock')}
+        onOpenMock={openMock}
         sheetsVisible={answerSheetsVisible(prof)}
         sheetCount={prof.answerSheets.length}
         onOpenSheets={() => setView('sheets')}
@@ -1136,7 +1214,7 @@ export default function AdvShell(props: AdvShellProps) {
             ))}
           </ul>
           {!r.overallGate.mockCount && (
-            <button type="button" className={`${primaryBtn} mt-3`} onClick={() => setView('mock')}>
+            <button type="button" className={`${primaryBtn} mt-3`} onClick={openMock}>
               {tx(lang, 'ミニ模試を受ける', '参加迷你模拟考')}
             </button>
           )}
@@ -1770,7 +1848,7 @@ export default function AdvShell(props: AdvShellProps) {
           </p>
           <div className="mt-2 flex gap-2">
             <button type="button" className={`${pressFx} action-primary-blue min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
-              onClick={() => setView('mock')}>
+              onClick={openMock}>
               {tx(lang, '模試を再開する', '继续模拟考')}
             </button>
             <button type="button" className={`${pressFx} action-amber min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900`}
@@ -2029,7 +2107,7 @@ export default function AdvShell(props: AdvShellProps) {
               )}
               <SubLink lang={lang}
                 label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
-                onClick={() => setView('mock')} />
+                onClick={openMock} />
               {/* 過去問の試験場。**N2の試験を受ける人にだけ見せる**（それ以外の画面には出さない） */}
               {answerSheetsVisible(prof) && (
                 <SubLink lang={lang}
@@ -2079,10 +2157,12 @@ const AREA_BY_UNIT: Record<string, string> = Object.fromEntries(
   Object.entries(AREA_UNIT_MAP).flatMap(([area, units]) => units.map((u) => [u, area])),
 );
 
-function AdvLoading({ lang, inline }: { lang: L; inline?: boolean }) {
+function AdvLoading({ lang, inline, note }: { lang: L; inline?: boolean; note?: string }) {
   return (
-    <div className={inline ? 'py-8 text-center' : 'flex min-h-[40vh] items-center justify-center'} role="status">
-      <p className="text-sm text-gray-500">{tx(lang, '冒険の準備をしています…', '正在准备冒险…')}</p>
+    <div className={inline ? 'py-8 text-center' : 'flex min-h-[40vh] flex-col items-center justify-center gap-2'} role="status" aria-live="polite">
+      {/* 回転はCSSアニメーション＝合成スレッド側で動くので、生成中でも止まって見えない */}
+      <span aria-hidden className="h-6 w-6 rounded-full border-2 border-gray-200 border-t-blue-500 motion-safe:animate-spin" />
+      <p className="text-sm text-gray-500">{note ?? tx(lang, '冒険の準備をしています…', '正在准备冒险…')}</p>
     </div>
   );
 }

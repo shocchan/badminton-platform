@@ -360,13 +360,47 @@ export const buildVocabQuestions = (
  */
 const poolCache = new Map<string, Map<string, AdvBattleQuestion[]>>();
 
-/** targetId（`vocab-<level>`）→ 問題。バトル・模試の出題プールに載せる */
-export const vocabPool = (level: 'N2' | 'N3', seed = 20260801): Map<string, AdvBattleQuestion[]> => {
+/**
+ * 出題プールの既定seed。**変えると全生徒の出題が総入れ替えになる**ので固定。
+ * 部分生成（vocabSubset.ts）も必ずこの値を使う（同じ語に同じ問題が当たる根拠）。
+ */
+export const VOCAB_POOL_SEED = 20260801;
+
+/** 目標レベル → 出題に載せるJLPTレベル。**部分生成と共有する**（別々に書くとズレる） */
+export const VOCAB_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
+  N3: ['N5', 'N4', 'N3'],
+  N2: ['N5', 'N4', 'N3', 'N2'],
+};
+
+/**
+ * scope済みの active_beta 配列。**level ごとに1本だけ作って使い回す**。
+ * ・並びが同じ＝添字 i が同じ＝ seed（`VOCAB_POOL_SEED + i * 31`）が同じ
+ *   → 全量生成でも部分生成でも、同じ語には**同じ問題**が当たる
+ * ・buildVocabQuestions 内の poolIndex は WeakMap のキーがこの配列なので、
+ *   使い回すと索引の作り直しも起きない
+ */
+const scopedActiveCache = new Map<string, VocabOriginalContent[]>();
+export const vocabScopedActive = (level: 'N2' | 'N3'): VocabOriginalContent[] => {
+  const hit = scopedActiveCache.get(level);
+  if (hit) return hit;
+  const scope = VOCAB_SCOPE[level];
+  const arr = activeContent(ALL_VOCAB_CONTENT).filter((c) => scope.includes(c.level));
+  scopedActiveCache.set(level, arr);
+  return arr;
+};
+
+/**
+ * targetId（`vocab-<level>`）→ 問題。**全語ぶんを作る**ので3〜5秒かかる（3,349語 / 約16,500問）。
+ *
+ * 生徒の画面（AdvShell）はこれを呼ばない。1回のバトル・模試に要るのは数十語だけなので、
+ * `vocabSubset.ts` の部分生成を使う（2026-08-17）。ここは
+ * 「バンク全体を見たい」用途（内部コンソール・カバレッジ集計・テスト）専用。
+ */
+export const vocabPool = (level: 'N2' | 'N3', seed = VOCAB_POOL_SEED): Map<string, AdvBattleQuestion[]> => {
   const cacheKey = `${level}:${seed}`;
   const hit = poolCache.get(cacheKey);
   if (hit) return hit;
-  const scope = level === 'N3' ? ['N5', 'N4', 'N3'] : ['N5', 'N4', 'N3', 'N2'];
-  const active = activeContent(ALL_VOCAB_CONTENT).filter((c) => scope.includes(c.level));
+  const active = vocabScopedActive(level);
   const map = new Map<string, AdvBattleQuestion[]>();
   active.forEach((c, i) => {
     const qs = buildVocabQuestions(c, active, seed + i * 31);
@@ -388,9 +422,8 @@ export interface VocabQuestionCoverage {
   belowAspectTarget: string[];
 }
 
-export const vocabQuestionCoverage = (level: 'N2' | 'N3', seed = 20260801): VocabQuestionCoverage => {
-  const scope = level === 'N3' ? ['N5', 'N4', 'N3'] : ['N5', 'N4', 'N3', 'N2'];
-  const active = activeContent(ALL_VOCAB_CONTENT).filter((c) => scope.includes(c.level));
+export const vocabQuestionCoverage = (level: 'N2' | 'N3', seed = VOCAB_POOL_SEED): VocabQuestionCoverage => {
+  const active = vocabScopedActive(level);
   const byAspect: Record<string, number> = {};
   const below: string[] = [];
   let questions = 0; let withQ = 0;
