@@ -241,10 +241,15 @@ const genRecognition = (ctx: GenContext): AdvBattleQuestion | null => {
       whyJa: rec.distractorReason ?? `「${self.pattern}」の使い方に合いません。`,
       whyZh: rec.distractorReason ?? `不符合「${self.pattern}」的用法。`,
     }));
+  // 見出し（pattern）が正解選択肢を割ってしまう場合は見出しを出さない
+  // （2026-08-17 監査P1: pattern⊂正解 かつ 誤答には含まれない構図だと、
+  // 見出しと選択肢の文字照合だけで正解できてしまう）
+  const patternRevealsAnswer = correctText.includes(self.pattern)
+    && !wrongs.some((w) => w.ja.includes(self.pattern));
   return {
     ...baseFields('rec', ctx.level, self),
     key: `rec:${self.grammarId}`,
-    targetJapanese: self.pattern,
+    targetJapanese: patternRevealsAnswer ? null : self.pattern,
     questionJa: null,
     questionZh: rec.promptZh,
     choices: mkChoices({ ja: correctText }, wrongs),
@@ -267,6 +272,9 @@ const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
     if (!hit) continue;
     const blanked = ex.replace(hit, '＿＿');
     if (blanked === ex) continue;
+    // 文型が例文に2回以上出る場合、1回だけの置換では答えが同じ文中に残る
+    // （2026-08-17 監査P1）。残存があればこの例文は使わない
+    if (keys.some((k) => k.length >= 2 && blanked.includes(k))) continue;
     // §3: 文法的に接続できる（接続互換）distractorのみ
     const cands = ctx.distractorPool
       .filter((d) => isConnectionCompatible(selfHead, connectionHead(d.formation)))

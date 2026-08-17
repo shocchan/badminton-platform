@@ -95,6 +95,15 @@ const step = (
   tier?: AdvQuestStep['tier'],
 ): AdvQuestStep => ({ kind, refIds, titleJa, titleZh, estMinutes: est(kind), tier });
 
+/**
+ * step完了記録の安定キー。
+ * 完了は添字（何番目）でなくこのキーで保存する（2026-08-17 監査P0:
+ * questは日中の状態変化（復習期限・確認バトル発生等）で並びが変わるため、
+ * 添字保存だと未実施stepが勝手に完了扱いになる／完了が消えることがあった）
+ */
+export const stepKeyOf = (s: Pick<AdvQuestStep, 'kind' | 'refIds'>): string =>
+  `${s.kind}:${(s.refIds ?? []).join('+')}`;
+
 /** stageに応じた新規学習ステップ（±会話転用） */
 const stageSteps = (
   stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,

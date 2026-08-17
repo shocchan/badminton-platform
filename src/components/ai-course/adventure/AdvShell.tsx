@@ -10,7 +10,7 @@ import type {
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, AREA_UNIT_MAP, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
-import { generateTodayQuest, vocabTargetForStage } from '../../../lib/aiLesson/course/adventure/advQuest';
+import { generateTodayQuest, vocabTargetForStage, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { XP_RULES, xpForBattle, levelOf, xpToNextLevel } from '../../../lib/aiLesson/course/adventure/advXp';
@@ -44,7 +44,7 @@ import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { AdvKanaDojo } from './AdvKanaDojo';
-import { todaysKanaRowIds } from '../../../lib/aiLesson/course/adventure/advKana';
+import { todaysKanaRowIds, isKanaGraduated } from '../../../lib/aiLesson/course/adventure/advKana';
 import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
@@ -85,6 +85,9 @@ export interface AdvShellProps {
   requestView?: { view: 'home' | 'map' | 'teacher' | 'redo'; n: number } | null;
   /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
   onViewChange?: (view: 'home' | 'map') => void;
+  /** requestViewを消費したら親へ知らせる（2026-08-17 監査P1:
+   * 消費後もrequestが残ると、再マウントのたびにredoウィザード等が勝手に再表示された） */
+  onRequestConsumed?: () => void;
 }
 
 type View = 'home' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
@@ -120,8 +123,6 @@ export default function AdvShell(props: AdvShellProps) {
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   const [showMore, setShowMore] = useState(false);
-  // 「従来のホームに戻す」の2段階タップ（誤タップで戻ると「消えた」ように見える・2026-08-15監査）
-  const [exitArmed, setExitArmed] = useState(false);
   /** 読解・聴解のonFinish二重発火ガード（連打によるmastery重複記録を防ぐ）。入場時にfalseへ戻す */
   const skillFinishGuard = useRef(false);
   /** 主要CTAを押しても進めない理由（AI会話が未開放など）。黙って無反応にしない（原則15） */
@@ -143,6 +144,9 @@ export default function AdvShell(props: AdvShellProps) {
       if (v === 'redo') { setView('home'); setRedoOnboarding(true); }
       else if (v === 'teacher') setView('teacher');
       else setView(v === 'map' ? 'map' : 'home');
+      // render中に親のstateを更新しない（Reactの規約）。次tickで通知する
+      const notify = props.onRequestConsumed;
+      if (notify) setTimeout(() => notify(), 0);
     }
   }
 
@@ -172,18 +176,36 @@ export default function AdvShell(props: AdvShellProps) {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
   }, [learner.settings, props]);
 
+  // 完了は**安定キー（stepKeyOf）**で照合する（2026-08-17 監査P0: questの並びは
+  // 日中の状態変化で変わるため、添字だけだと未実施stepが勝手に完了扱いになっていた）。
+  // 旧形式（done: 添字）は読み取りだけ引き続き尊重する（移行日の保存データ用）
   const doneSteps = useMemo(() => {
     const ts = profile?.todaySteps;
-    return new Set(ts && ts.dateKey === dateKey ? ts.done : []);
-  }, [profile?.todaySteps, dateKey]);
-  const withStepDone = useCallback((p: AdventureV2Profile, i: number): AdventureV2Profile => {
-    const done = p.todaySteps && p.todaySteps.dateKey === dateKey ? p.todaySteps.done : [];
-    return done.includes(i) ? p : { ...p, todaySteps: { dateKey, done: [...done, i] } };
+    if (!ts || ts.dateKey !== dateKey) return new Set<number>();
+    const out = new Set<number>(ts.done);
+    const byKey = new Set(ts.doneKeys ?? []);
+    quest?.steps.forEach((s, i) => { if (byKey.has(stepKeyOf(s))) out.add(i); });
+    return out;
+  }, [profile?.todaySteps, dateKey, quest]);
+  const withStepDone = useCallback((p: AdventureV2Profile, i: number, key?: string): AdventureV2Profile => {
+    const ts = p.todaySteps && p.todaySteps.dateKey === dateKey ? p.todaySteps : { dateKey, done: [], doneKeys: [] };
+    if (key) {
+      const keys = ts.doneKeys ?? [];
+      if (keys.includes(key)) return p;
+      return { ...p, todaySteps: { ...ts, dateKey, doneKeys: [...keys, key] } };
+    }
+    // キー不明のフォールバック（questが無い等）。従来の添字保存
+    return ts.done.includes(i) ? p : { ...p, todaySteps: { ...ts, dateKey, done: [...ts.done, i] } };
   }, [dateKey]);
+  /** 現在のquestからstepの安定キーを引く（無ければundefined＝添字フォールバック） */
+  const keyOfStepIdx = useCallback((i: number): string | undefined => {
+    const s = quest?.steps[i];
+    return s ? stepKeyOf(s) : undefined;
+  }, [quest]);
   const markStep = useCallback((i: number) => {
     if (!profile || doneSteps.has(i)) return;
-    save(withStepDone(profile, i));
-  }, [profile, doneSteps, save, withStepDone]);
+    save(withStepDone(profile, i, keyOfStepIdx(i)));
+  }, [profile, doneSteps, save, withStepDone, keyOfStepIdx]);
 
   /** 読解・聴解の結果を mastery台帳へ skill evidence つきで記録する（準備度へ反映される） */
   const recordSkillResult = useCallback((
@@ -209,9 +231,9 @@ export default function AdvShell(props: AdvShellProps) {
     };
     const ledger = recordAttempt(p.mastery, targetId, attempt);
     trackAdv('skill_evidence_added', { skillType: skill, countBucket: bucketOf(r.total) });
-    save(withStepDone({ ...p, mastery: ledger }, stepIndex));
+    save(withStepDone({ ...p, mastery: ledger }, stepIndex, keyOfStepIdx(stepIndex)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dateKey, save, withStepDone]);
+  }, [dateKey, save, withStepDone, keyOfStepIdx]);
 
 
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
@@ -221,10 +243,15 @@ export default function AdvShell(props: AdvShellProps) {
     void buildDiagnosisPools().then(setDiagPools).catch(() => setDiagError(true));
   }, [needsOnboarding, redoOnboarding, diagPools, diagError]);
 
+  // プール読込失敗の可視化（2026-08-17 監査P1: 失敗が無処理だと
+  // 再試行手段のない無限「冒険の準備をしています…」になっていた）
+  const [poolsError, setPoolsError] = useState(false);
+  const [poolsRetryNonce, setPoolsRetryNonce] = useState(0);
   useEffect(() => {
-    if (needsOnboarding || !profile?.route) return;
+    if (needsOnboarding || !profile?.route || poolsError) return;
     let alive = true;
     void (async () => {
+      try {
       const p = await loadGrammarPools();
       if (!alive) return;
       setPools(p);
@@ -264,7 +291,9 @@ export default function AdvShell(props: AdvShellProps) {
           nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
           grammarBundleByItem: ct.grammarBundleByItem,
-          confirmTargetIds: [...confirmReady].sort(),
+          // 出題プールを持たない証跡target（読解・聴解・模試）は確認バトルにしない
+          // （2026-08-17 監査P1: 問題0件の「押しても進めないバトル」が毎日固定で出ていた）
+          confirmTargetIds: [...confirmReady].filter((id) => !/^(reading-|listening-|mock)/.test(id)).sort(),
           vocabBattleTargetId,
         },
         examSkills: {
@@ -276,10 +305,13 @@ export default function AdvShell(props: AdvShellProps) {
         },
       }));
       trackAdv('today_quest_viewed', { goalType: profile.goalType ?? undefined, targetLevel: profile.targetJlpt ?? undefined, locale: lang });
+      } catch {
+        if (alive) setPoolsError(true);
+      }
     })();
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, props.reviewsDue, dateKey]);
+  }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, props.reviewsDue, dateKey, poolsError, poolsRetryNonce]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
@@ -407,15 +439,17 @@ export default function AdvShell(props: AdvShellProps) {
     const kanaStep = quest?.steps.find((s) => s.kind === 'kana_dojo');
     const rowIds = kanaStep?.refIds
       ?? (prof.kana.needed === null ? ['check'] : todaysKanaRowIds(prof.kana));
-    const markKanaStep = () => {
-      const i = quest?.steps.findIndex((s) => s.kind === 'kana_dojo') ?? -1;
-      if (i >= 0) markStep(i);
+    // step完了とかな状態の更新は**1回のsaveにまとめる**（2026-08-17 監査P1:
+    // markStep→save の2連続だと後者が前者のtodaySteps更新を上書きし、
+    // かな学習者の「今日の冒険」が永遠に完了しなかった）
+    const kanaStepIdx = quest?.steps.findIndex((s) => s.kind === 'kana_dojo') ?? -1;
+    const saveKana = (p: AdventureV2Profile) => {
+      save(kanaStepIdx >= 0 ? withStepDone(p, kanaStepIdx, keyOfStepIdx(kanaStepIdx)) : p);
     };
     return (
       <AdvKanaDojo lang={lang} rowIds={rowIds}
         onFinishCheck={(passed) => {
-          markKanaStep();
-          save({
+          saveKana({
             ...prof,
             kana: { ...prof.kana!, needed: !passed, checkedAt: new Date().toISOString() },
             xp: (prof.xp ?? 0) + (passed ? XP_RULES.kanaGraduate : XP_RULES.kanaRow),
@@ -423,11 +457,14 @@ export default function AdvShell(props: AdvShellProps) {
           setView('home');
         }}
         onRowsDone={(doneNow) => {
-          markKanaStep();
-          save({
+          const nextKana = { ...prof.kana!, needed: true, doneRowIds: [...new Set([...prof.kana!.doneRowIds, ...doneNow])] };
+          // 全行修了＝卒業（2026-08-17 監査P2: neededがtrueのまま残ると
+          // 空のかな道場入口が永久に出続けていた）
+          const graduated = isKanaGraduated(nextKana);
+          saveKana({
             ...prof,
-            kana: { ...prof.kana!, needed: true, doneRowIds: [...new Set([...prof.kana!.doneRowIds, ...doneNow])] },
-            xp: (prof.xp ?? 0) + XP_RULES.kanaRow * doneNow.length,
+            kana: graduated ? { ...nextKana, needed: false, checkedAt: new Date().toISOString() } : nextKana,
+            xp: (prof.xp ?? 0) + XP_RULES.kanaRow * doneNow.length + (graduated ? XP_RULES.kanaGraduate : 0),
           });
           setView('home');
         }}
@@ -496,7 +533,7 @@ export default function AdvShell(props: AdvShellProps) {
           })();
           // XPはバトル参加で+5・80%以上で+5（努力の通貨。攻略には影響しない・advXp.ts）
           const next = { ...prof, mastery: ledger, xp: (prof.xp ?? 0) + xpForBattle(attempt.scorePct) };
-          save(battleIdx >= 0 ? withStepDone(next, battleIdx) : next);
+          save(battleIdx >= 0 ? withStepDone(next, battleIdx, keyOfStepIdx(battleIdx)) : next);
         }}
         onClose={() => { setBattle(null); setView('home'); }}
       />
@@ -1428,7 +1465,20 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       )}
 
-      {!quest && <AdvLoading lang={lang} inline />}
+      {!quest && !poolsError && <AdvLoading lang={lang} inline />}
+      {!quest && poolsError && (
+        <div className={`${card} mb-4 border-red-200 bg-red-50 text-center`} role="alert">
+          <p className="text-sm text-gray-800">
+            {tx(lang, '教材データを読み込めませんでした。通信環境を確認してもう一度お試しください。',
+              '教材数据加载失败。请检查网络后重试。')}
+          </p>
+          <button type="button"
+            className={`${pressFx} action-secondary mt-3 min-h-[44px] rounded-xl border border-gray-300 bg-white px-6 py-2 text-sm font-bold text-gray-700`}
+            onClick={() => { setPoolsError(false); setPoolsRetryNonce((n) => n + 1); }}>
+            {tx(lang, 'もう一度読み込む', '重新加载')}
+          </button>
+        </div>
+      )}
 
       {quest && (
         <div className={`${card} mb-4 border-blue-200`}>
@@ -1525,7 +1575,7 @@ export default function AdvShell(props: AdvShellProps) {
             <p className="mt-2 text-center text-xs text-gray-500">
               {tx(lang,
                 '途中でやめても、終わったstepまで自動で保存されます。次に開くと続きから始められます。',
-                '中途退出也没关系，已完成的步骤会自动保存。下次打开时从接续处继续。')}
+                '中途退出也没关系，已完成的步骤会自动保存。下次打开时会从上次中断的地方继续。')}
             </p>
           )}
           {/* 締めくくりは1日1回だけ（2026-08-16 CEO指摘）。
@@ -1660,19 +1710,10 @@ export default function AdvShell(props: AdvShellProps) {
         )}
       </div>
 
-      {/* 旧コース歴のある人だけに出す（2026-08-16）。V2から始めた生徒に旧ホームを見せると
-          「これも学ぶの？」と混乱する（サマーさん報告: 旧ホームの語彙ハブを教材と誤認） */}
-      {props.progress.length > 0 && (
-        <button type="button"
-          className={`mt-6 w-full min-h-[44px] text-xs underline ${exitArmed ? 'font-semibold text-amber-700' : 'text-gray-400'}`}
-          onClick={() => { if (exitArmed) props.onExitV2(); else setExitArmed(true); }}
-          onBlur={() => setExitArmed(false)}>
-          {exitArmed
-            ? tx(lang, 'もう一度押すと従来ホームへ。データは残り、上のバナーからいつでも戻れます',
-              '再按一次将返回原来的主页。数据会保留，可随时从横幅回来')
-            : tx(lang, '従来のホームに戻す（データは残ります）', '返回原来的主页（数据会保留）')}
-        </button>
-      )}
+      {/* 「従来のホームに戻す」は撤去（2026-08-17 監査P1）。
+          progress.length>0 は「旧コース歴」の判定に使えない（V2のAI会話完了でも増えるため、
+          V2専業の生徒にも表示されてしまっていた）。旧コースが必要な場合は ?legacy 明示＋
+          管理者側でenabledを切り替える運用に一本化（現役生徒は全員V2で自己降格の正当な用途がない） */}
     </div>
   );
 

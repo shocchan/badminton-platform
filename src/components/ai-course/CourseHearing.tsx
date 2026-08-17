@@ -16,7 +16,7 @@ const TXT = {
   ja: {
     title: 'はじめまして！いくつか教えてください',
     sub: '8つの質問であなた専用のコースを準備します（約1分）',
-    name: 'お名前（ニックネーム可）', namePh: '例：アンディ',
+    name: 'お名前（ニックネーム可）', namePh: '例：ワン',
     q: (i: number) => `質問 ${i} / 8`, next: '次へ', back: '戻る', finish: 'コースを始める',
     qs: [
       { k: 'goal', label: '主な目標は？', opts: [['daily', '日常会話を伸ばす'], ['exchange', '日本人と自然に交流'], ['n3', 'JLPT N3'], ['n2', 'JLPT N2'], ['n1', 'JLPT N1'], ['work', '仕事で使う']] },

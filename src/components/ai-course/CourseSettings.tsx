@@ -13,7 +13,9 @@ import type { Learner, LearnerSettings } from '../../lib/aiLesson/course/types';
 interface Props {
   t: AiCourseDict;
   learner: Learner;
-  onShowGuide: () => void;
+  /** 旧コースの利用開始案内。V2生徒には渡さない＝節ごと非表示
+   * （2026-08-17 監査P2: 旧音声コース前提の説明がV2生徒に出ていた） */
+  onShowGuide?: () => void;
   /** 設定変更を learner に保存（Supabaseへ。複数端末で同期） */
   onSaveSettings: (patch: Partial<LearnerSettings>) => void;
   /** ニックネーム（学習世界内の表示名）保存。表示層のみ・二重保存はrefで防止 */
@@ -60,14 +62,16 @@ export const CourseSettings = ({ t, learner, onSaveNickname, onShowGuide, onSave
         ← {t.roadmap.back}
       </button>
 
-      {/* 使い方をもう一度見る */}
-      <Section icon={<BookOpen className="w-4 h-4 text-blue-600" />} title={ts.guideTitle}>
-        <p className="text-xs text-gray-500 mb-2">{ts.guideDescription}</p>
-        <button type="button" onClick={onShowGuide}
-          className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-          {ts.guideOpen}
-        </button>
-      </Section>
+      {/* 使い方をもう一度見る（旧コースのみ。V2はonShowGuide未指定で非表示） */}
+      {onShowGuide && (
+        <Section icon={<BookOpen className="w-4 h-4 text-blue-600" />} title={ts.guideTitle}>
+          <p className="text-xs text-gray-500 mb-2">{ts.guideDescription}</p>
+          <button type="button" onClick={onShowGuide}
+            className="w-full min-h-11 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            {ts.guideOpen}
+          </button>
+        </Section>
+      )}
 
       {/* 冒険の設定（V2のみ）。ホーム二次メニューの項目過多解消のためここへ集約（2026-08-16） */}
       {advActions && (

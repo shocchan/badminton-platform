@@ -132,7 +132,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               <input
                 type="text" inputMode="text" value={loginId}
                 onChange={(e) => { setLoginId(e.target.value.toLowerCase()); setError(''); }}
-                placeholder={tx('例：li', '例如：li')} autoComplete="username"
+                placeholder={tx('例：tanaka', '例如：tanaka')} autoComplete="username"
                 autoCapitalize="none" autoCorrect="off" spellCheck={false}
                 className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

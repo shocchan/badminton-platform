@@ -146,7 +146,13 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     lastQuest: isRecord(raw.lastQuest) && typeof raw.lastQuest.dateKey === 'string'
       ? (raw.lastQuest as unknown as AdventureV2Profile['lastQuest']) : null,
     todaySteps: isRecord(raw.todaySteps) && typeof raw.todaySteps.dateKey === 'string' && Array.isArray(raw.todaySteps.done)
-      ? { dateKey: raw.todaySteps.dateKey, done: (raw.todaySteps.done as unknown[]).filter((n): n is number => typeof n === 'number') }
+      ? {
+        dateKey: raw.todaySteps.dateKey,
+        done: (raw.todaySteps.done as unknown[]).filter((n): n is number => typeof n === 'number'),
+        doneKeys: Array.isArray(raw.todaySteps.doneKeys)
+          ? (raw.todaySteps.doneKeys as unknown[]).filter((k): k is string => typeof k === 'string')
+          : undefined,
+      }
       : null,
     questLog: Array.isArray(raw.questLog)
       ? (raw.questLog.filter((e) => isRecord(e) && typeof e.dateKey === 'string') as AdventureV2Profile['questLog'])

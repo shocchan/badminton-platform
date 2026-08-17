@@ -40,6 +40,27 @@ describe('writeAdvProfile: 未知キーの温存（旧クライアント対策�
   });
 });
 
+describe('todaySteps: 安定キー（doneKeys）の往復', () => {
+  it('doneKeysが読み書きで保持され、旧形式（done添字のみ）も読める', () => {
+    const settings = {
+      adventureV2: {
+        schemaVersion: 1, enabled: true,
+        todaySteps: { dateKey: '2026-08-17', done: [0], doneKeys: ['battle:n3g-unit-1'] },
+      },
+    } as unknown as LearnerSettings;
+    const prof = readAdvProfile(settings)!;
+    expect(prof.todaySteps?.doneKeys).toEqual(['battle:n3g-unit-1']);
+    expect(prof.todaySteps?.done).toEqual([0]);
+    const next = writeAdvProfile(settings, prof, NOW);
+    expect(readAdvProfile(next)!.todaySteps?.doneKeys).toEqual(['battle:n3g-unit-1']);
+    // 旧形式（doneKeys無し）も壊れず読める
+    const legacy = {
+      adventureV2: { schemaVersion: 1, enabled: true, todaySteps: { dateKey: '2026-08-17', done: [1, 2] } },
+    } as unknown as LearnerSettings;
+    expect(readAdvProfile(legacy)!.todaySteps?.done).toEqual([1, 2]);
+  });
+});
+
 describe('setAdvEnabled: 破損・将来スキーマでも全消ししない', () => {
   it('読めるデータ: enabledだけ切り替わり他は保持', () => {
     const settings = writeAdvProfile(

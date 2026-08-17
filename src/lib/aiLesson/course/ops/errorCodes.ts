@@ -21,6 +21,7 @@ export interface ErrorSpec {
   userMessageZh: string;
   /** 次にできる安全な行動（第一CTAは常に一つ） */
   safeActionJa: string;
+  safeActionZh: string;
   retryable: boolean;
   severity: Severity;
   /** 監視イベントとして送るか（infoは送らない） */
@@ -28,43 +29,44 @@ export interface ErrorSpec {
 }
 
 const spec = (
-  code: ErrorCode, userMessageJa: string, userMessageZh: string, safeActionJa: string,
+  code: ErrorCode, userMessageJa: string, userMessageZh: string,
+  safeActionJa: string, safeActionZh: string,
   retryable: boolean, severity: Severity, report = true,
-): ErrorSpec => ({ code, userMessageJa, userMessageZh, safeActionJa, retryable, severity, report });
+): ErrorSpec => ({ code, userMessageJa, userMessageZh, safeActionJa, safeActionZh, retryable, severity, report });
 
 export const ERROR_SPECS: Record<ErrorCode, ErrorSpec> = {
   AUTH_EXPIRED: spec('AUTH_EXPIRED',
-    'ログインの有効期限が切れました', '登录已过期', 'もう一度ログインする', false, 'warning'),
+    'ログインの有効期限が切れました', '登录已过期', 'もう一度ログインする', '重新登录', false, 'warning'),
   ENTITLEMENT_DENIED: spec('ENTITLEMENT_DENIED',
-    'このコースはまだご利用いただけません', '此课程尚未开放', 'ホームへもどる', false, 'warning'),
+    'このコースはまだご利用いただけません', '此课程尚未开放', 'ホームへもどる', '返回主页', false, 'warning'),
   LOAD_FAILED: spec('LOAD_FAILED',
-    '内容を読み込めませんでした', '内容加载失败', 'もう一度読み込む', true, 'error'),
+    '内容を読み込めませんでした', '内容加载失败', 'もう一度読み込む', '重新加载', true, 'error'),
   SAVE_FAILED: spec('SAVE_FAILED',
-    'まだ保存できていません', '尚未保存成功', 'もう一度保存する', true, 'error'),
+    'まだ保存できていません', '尚未保存成功', 'もう一度保存する', '重新保存', true, 'error'),
   SYNC_PENDING: spec('SYNC_PENDING',
-    '保存待ちの学習記録があります', '有学习记录正在等待保存', '接続が戻るまで待つ（学習は続けられます）', true, 'info', false),
+    '保存待ちの学習記録があります', '有学习记录正在等待保存', '接続が戻るまで待つ（学習は続けられます）', '等待网络恢复（可以继续学习）', true, 'info', false),
   SYNC_CONFLICT: spec('SYNC_CONFLICT',
-    '別の端末での学習と記録が重なりました', '与其他设备的学习记录重叠', 'この端末の内容で続ける／別端末の内容を読み込む', true, 'warning'),
+    '別の端末での学習と記録が重なりました', '与其他设备的学习记录重叠', 'この端末の内容で続ける／別端末の内容を読み込む', '继续本设备的内容／读取其他设备的内容', true, 'warning'),
   RLS_DENIED: spec('RLS_DENIED',
-    'この内容を開く権限がありません', '没有权限打开此内容', 'ホームへもどる', false, 'critical'),
+    'この内容を開く権限がありません', '没有权限打开此内容', 'ホームへもどる', '返回主页', false, 'critical'),
   AI_UNAVAILABLE: spec('AI_UNAVAILABLE',
-    'いまはAI会話を始められません', '现在无法开始AI会话', 'テキストで学習を続ける', true, 'error'),
+    'いまはAI会話を始められません', '现在无法开始AI会话', 'テキストで学習を続ける', '用文字继续学习', true, 'error'),
   MIC_DENIED: spec('MIC_DENIED',
-    'マイクが使えない設定になっています', '麦克风未被允许使用', 'テキストで会話する', false, 'warning'),
+    'マイクが使えない設定になっています', '麦克风未被允许使用', 'テキストで会話する', '用文字对话', false, 'warning'),
   REALTIME_DISCONNECTED: spec('REALTIME_DISCONNECTED',
-    '会話の接続が切れました', '会话连接已断开', 'もう一度つなぐ', true, 'error'),
+    '会話の接続が切れました', '会话连接已断开', 'もう一度つなぐ', '重新连接', true, 'error'),
   CONTENT_UNAVAILABLE: spec('CONTENT_UNAVAILABLE',
-    'この教材はいま表示できません', '此教材当前无法显示', '別の学習へ進む', true, 'error'),
+    'この教材はいま表示できません', '此教材当前无法显示', '別の学習へ進む', '进行其他学习', true, 'error'),
   IMAGE_FAILED: spec('IMAGE_FAILED',
-    'イラストを表示できませんでした', '插图加载失败', 'そのまま学習を続ける（文字で学べます）', true, 'info', false),
+    'イラストを表示できませんでした', '插图加载失败', 'そのまま学習を続ける（文字で学べます）', '继续学习（可以用文字学习）', true, 'info', false),
   STATE_CORRUPTED: spec('STATE_CORRUPTED',
-    '前回の続きが読み取れませんでした', '无法读取上次的进度', 'この単元を最初から始める', false, 'warning'),
+    '前回の続きが読み取れませんでした', '无法读取上次的进度', 'この単元を最初から始める', '从头开始这个单元', false, 'warning'),
   SCHEMA_NEWER: spec('SCHEMA_NEWER',
-    '新しいバージョンの記録が見つかりました', '发现了更新版本的记录', 'アプリを再読み込みする', true, 'warning'),
+    '新しいバージョンの記録が見つかりました', '发现了更新版本的记录', 'アプリを再読み込みする', '重新加载应用', true, 'warning'),
   RATE_LIMITED: spec('RATE_LIMITED',
-    '今日の会話の上限に達しました', '已达到今天的会话上限', '明日また続ける（復習は今日もできます）', false, 'info', false),
+    '今日の会話の上限に達しました', '已达到今天的会话上限', '明日また続ける（復習は今日もできます）', '明天再继续（今天仍可复习）', false, 'info', false),
   UNKNOWN: spec('UNKNOWN',
-    '問題が起きました', '发生了问题', 'もう一度試す', true, 'error'),
+    '問題が起きました', '发生了问题', 'もう一度試す', '再试一次', true, 'error'),
 };
 
 export const errorSpec = (code: ErrorCode): ErrorSpec => ERROR_SPECS[code] ?? ERROR_SPECS.UNKNOWN;

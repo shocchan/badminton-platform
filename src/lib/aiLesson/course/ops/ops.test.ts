@@ -28,6 +28,7 @@ describe('Error codes（§16）', () => {
       expect(s.userMessageJa.length).toBeGreaterThan(3);
       expect(s.userMessageZh.length).toBeGreaterThan(1);
       expect(s.safeActionJa.length).toBeGreaterThan(3);
+      expect(s.safeActionZh.length, `${code}: safeActionZh欠落`).toBeGreaterThan(1);
       expect(['info', 'warning', 'error', 'critical']).toContain(s.severity);
     }
     expect(Object.keys(ERROR_SPECS).length).toBe(REQUIRED.length);

@@ -268,7 +268,8 @@ export interface AdventureV2Profile {
   /** 前日クエストの重複回避（§13） */
   lastQuest: { dateKey: string; primaryTargets: string[]; stepKinds: string[] } | null;
   /** 今日のステップ完了チェック（reload/端末間で復元・§25。攻略の正準はmastery台帳） */
-  todaySteps: { dateKey: string; done: number[] } | null;
+  /** done=旧形式（添字・後方互換読み取り専用）/ doneKeys=安定キー（stepKeyOf）。新規保存はdoneKeysのみ */
+  todaySteps: { dateKey: string; done: number[]; doneKeys?: string[] } | null;
   /** クエスト完了の連続性（consistency能力の証拠） */
   questLog: { dateKey: string; completedSteps: number; totalSteps: number }[];
   /**

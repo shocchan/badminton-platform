@@ -336,11 +336,11 @@ export default function AiCoursePage() {
     const labUrl = parseLabUrl(window.location.search);
     const vocabUrl = parseVocabUrl(window.location.search);
     const allowed = hasLabPreview(l.adminOverrides);
-    // 旧コースの必須ガイドは、V2入口で来た学習者には出さない。
+    // 旧コースの必須ガイドは **?legacy 明示の学習者にだけ** 出す。
     // 旧音声コース前提の説明（「N2合格には別の学習が必要」等）が
     // V2で買った商品と正反対で、初回の信頼を壊すため（監査P1）。
-    // V2説明はオプトイン画面とオンボーディングが担う
-    if (!hasSeenGuide() && !wantsLegacyEntry()) { setStep('guide'); return; }
+    // ※2026-08-17監査P0: 入口既定反転時にここの符号を取り違え、V2全員にguideが出ていた
+    if (!hasSeenGuide() && wantsLegacyEntry()) { setStep('guide'); return; }
     if (labUrl.lab && allowed) { setStep('lab'); return; }
     if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
     if (labUrl.lab) syncLabUrl(null);
@@ -361,7 +361,7 @@ export default function AiCoursePage() {
     setHearingError(false);
     const init = deriveInitialLearner(answers);
     const created = await courseRepository.createLearner({
-      displayName: displayName || 'Andy', preferredLanguage: lang === 'zh' ? 'zh' : 'ja',
+      displayName: displayName || (lang === 'zh' ? '学习者' : '学習者'), preferredLanguage: lang === 'zh' ? 'zh' : 'ja',
       estimatedLevel: init.estimatedLevel, difficultyLevel: init.difficultyLevel,
       currentWeek: init.currentWeek, hearing: answers as unknown as Record<string, unknown>, settings: init.settings,
     });
@@ -792,7 +792,8 @@ export default function AiCoursePage() {
     trackCourse('open_ai_course_world_area');
     // 施設エリア（塔・港・庭園）は、その施設を使う意味を伝える導入章を「初回だけ」通す。
     // ロックではない: 章は3〜4分で終わり、Homeの施設カードからは常に機能へ直行できる。
-    if (area.destination.kind !== 'n3area') {
+    // ※V2生徒には旧・章アドベンチャーを出さない（2026-08-17 監査P1: 物語はV2の冒険マップが担う）
+    if (area.destination.kind !== 'n3area' && !advOn) {
       const ch = chapterForArea(areaId);
       if (ch && !chapterCompleted(ch.chapterId)) {
         setAdventureChapterId(ch.chapterId); setStep('adventure'); return;
@@ -841,7 +842,7 @@ export default function AiCoursePage() {
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive && !advOn}
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive && !advOn}
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
-      onSeeNotebook={activeSessionId ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
+      onSeeNotebook={activeSessionId && !advOn ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
       worldLineJa={t.katari.fogClearedToday} /></Shell>;
   }
@@ -928,16 +929,17 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'garden') {
+    // V2生徒には旧コース行きのカード（会話ノート・再会Quest）を出さない（2026-08-17 監査P1）
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <OmoideGardenPanel
           t={t}
           conversationReviewsDue={reviewsDue}
           onOpenVocabReview={openVocabQuickReview}
-          onOpenConversationHistory={() => setStep('history')}
+          onOpenConversationHistory={advOn ? undefined : () => setStep('history')}
           onOpenN3={() => openArea(n3FirstReviewAreaId(window.localStorage) ?? currentAreaId)}
           onOpenN2={() => setStep('n2grammar')}
-          onOpenAdventure={() => setStep('adventure')}
+          onOpenAdventure={advOn ? undefined : () => setStep('adventure')}
           onBack={() => setStep('home')}
         />
       </Shell>
@@ -975,6 +977,8 @@ export default function AiCoursePage() {
               onOpenArea={(id) => { setCurrentAreaId(deriveCurrentAreaId(window.localStorage)); openArea(id); }}
               onOpenAdventure={(() => {
                 // 2026-07-31: 全学習エリアに章ができた。エリア対応の章を開く
+                // ※V2生徒には旧・章アドベンチャーの入口を出さない（2026-08-17 監査P1）
+                if (advOn) return undefined;
                 const ch = chapterForArea(area.areaId);
                 return ch ? () => { setAdventureChapterId(ch.chapterId); setStep('adventure'); } : undefined;
               })()}
@@ -1001,7 +1005,8 @@ export default function AiCoursePage() {
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseNotebook t={t} learner={learner} sessions={sessions} progress={progress}
-          onStartToday={() => setStep('home')} onBack={() => setStep('history')} />
+          onStartToday={() => setStep('home')}
+          onBack={() => setStep(advOn ? 'home' : 'history')} />
       </Shell>
     );
   }
@@ -1092,7 +1097,7 @@ export default function AiCoursePage() {
               return false;
             }
           }}
-          onShowGuide={() => { setGuideMode('review'); setStep('guide'); }}
+          onShowGuide={advOn ? undefined : () => { setGuideMode('review'); setStep('guide'); }}
           onSaveSettings={(patch) => {
             const nextSettings = { ...learner.settings, ...patch };
             setLearner({ ...learner, settings: nextSettings });
@@ -1108,7 +1113,8 @@ export default function AiCoursePage() {
             adapter={supportAdapter}
             lang={uiLang === 'zh' ? 'zh' : 'ja'}
             context={{ route: 'settings', feature: 'support', locale: uiLang,
-              appVersion: 'staging', contentVersion: 'course-v1', deviceClass: 'unknown' }}
+              appVersion: import.meta.env.MODE === 'production' ? 'production' : import.meta.env.MODE,
+              contentVersion: 'course-v1', deviceClass: 'unknown' }}
             contactFallback={{
               ja: 'うまくいかない状態が続くときは、先生に直接お知らせください。',
               zh: '如果问题一直没有解决，请直接告诉老师。',
@@ -1129,6 +1135,7 @@ export default function AiCoursePage() {
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
             requestView={advRequest}
+            onRequestConsumed={() => setAdvRequest(null)}
             onViewChange={(v) => setAdvNavKey(v === 'map' ? 'roadmap' : 'home')}
             onSaveSettings={(next) => {
               setLearner({ ...learner, settings: next });
@@ -1167,7 +1174,7 @@ export default function AiCoursePage() {
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed} navHidden>
         <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
           <h2 className="text-lg font-bold text-gray-900">
-            {uiLang === 'zh' ? '要开始「冒险模式V2（测试版）」吗？' : '「冒険モードV2（ベータ）」を始めますか？'}
+            {uiLang === 'zh' ? '要开始「冒险模式」吗？' : '「冒険モード」を始めますか？'}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-gray-600">
             {progress.length > 0
