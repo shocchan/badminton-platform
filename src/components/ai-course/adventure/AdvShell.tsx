@@ -1424,17 +1424,24 @@ export default function AdvShell(props: AdvShellProps) {
 
   // 休み明けの検知（2026-08-17 監査: 10日ぶりに開いた人に通常挨拶＋amber警告が並び、
   // 罪悪感だけ与えて復帰の後押しがなかった）。最終学習日はquestLogとmastery実測の新しい方
-  const daysAway = (() => {
+  const lastStudyKey = (() => {
     let last: string | null = null;
     for (const q of prof.questLog) if (!last || q.dateKey > last) last = q.dateKey;
     for (const at of Object.values(prof.mastery)) {
       for (const a of at ?? []) if (!last || a.dateKey > last) last = a.dateKey;
     }
-    if (!last) return 0;
-    const diff = Math.floor((Date.parse(dateKey) - Date.parse(last)) / 86400000);
+    return last;
+  })();
+  const daysAway = (() => {
+    if (!lastStudyKey) return 0;
+    const diff = Math.floor((Date.parse(dateKey) - Date.parse(lastStudyKey)) / 86400000);
     return Number.isFinite(diff) ? Math.max(0, diff) : 0;
   })();
-  const welcomeBack = daysAway >= 7;
+  // まだ1日も学習していない人（診断だけ終えて止まっている）。李さんの実測で判明した
+  // 最大の離脱点（2026-08-17）。「全部やる」ではなく「まず1つだけ」を約束する
+  const neverStudied = lastStudyKey === null;
+  // 3日空いたら声をかける（7日待つと戻ってこない）。ペース警告の抑制も同じ条件
+  const welcomeBack = daysAway >= 3;
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={term('todayAdventure', lang)}>
@@ -1506,7 +1513,11 @@ export default function AdvShell(props: AdvShellProps) {
         <div className="min-w-0">
           <p className="text-xs font-semibold text-gray-500">{teacherLabel}</p>
           <p className="text-sm leading-snug text-gray-700">
-            {welcomeBack && quest
+            {neverStudied && quest
+              ? tx(lang,
+                `はじめまして。今日は全部やらなくて大丈夫です。まず「${quest.steps[0]?.titleJa ?? '最初の1つ'}」だけ、3分ほどやってみましょう。`,
+                `初次见面。今天不用全部做完。先只做「${quest.steps[0]?.titleZh ?? '第一项'}」，3分钟左右就好。`)
+              : welcomeBack && quest
               ? tx(lang,
                 `おかえりなさい！休んでも記録はぜんぶ残っています。今日は${quest.estimatedMinutes}分、続きからゆっくり始めましょう。`,
                 `欢迎回来！休息期间的记录都还在。今天${quest.estimatedMinutes}分钟，从接下来的内容慢慢开始吧。`)

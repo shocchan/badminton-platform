@@ -61,6 +61,10 @@ export interface AdvDiagnosisResult {
   askedQuestionKeys: string[];
   /** 会話診断を実施したか（skipした場合 conversation は needs_assessment のまま） */
   conversationSampled: boolean;
+  /** 先生が現在地を調整した日時（2026-08-17）。AIの実測値と先生の判断を混同させない */
+  adjustedByTeacherAt?: string;
+  /** 先生調整の前にAIが測っていた帯（記録として残す） */
+  bandBeforeTeacherAdjust?: AdvBand;
 }
 
 /** 攻略ルートの stage 種別（§5・§11） */
