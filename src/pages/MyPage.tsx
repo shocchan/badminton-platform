@@ -28,6 +28,7 @@ import ClaimAccountForm from '../components/ClaimAccountForm';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getRallyBest } from '../lib/rallyBest';
 import { EmptyState, ErrorState } from '../components/ui/StateViews';
+import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../lib/aiLesson/course/courseAccess';
 
 const COUPON_LABEL = {
   ramen: { emoji: '🍜', name: 'ラーメン無料券', card: 'from-amber-400 via-orange-400 to-red-400' },
@@ -102,6 +103,8 @@ export default function MyPage() {
   const [couponsLoading, setCouponsLoading] = useState(true);
   const [couponsError, setCouponsError] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  // 日本語学習の受講権（2026-08-18 CEO指示: 認めた人にだけ入口を出す）
+  const [courseAccess, setCourseAccess] = useState<CourseAccessState | null>(null);
   const [couponTab, setCouponTab] = useState<'active' | 'used'>('active');
   const [entries, setEntries] = useState<MyEntry[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(true);
@@ -257,6 +260,13 @@ export default function MyPage() {
     session?.user.email?.split('@')[0] ??
     '';
 
+  useEffect(() => {
+    if (!session) { setCourseAccess(null); return; }
+    let alive = true;
+    void fetchAccessState().then((a) => { if (alive) setCourseAccess(a); });
+    return () => { alive = false; };
+  }, [session]);
+
   const activeCoupons = coupons.filter((c) => c.status !== 'used');
   const usedCoupons = coupons.filter((c) => c.status === 'used');
   const shownCoupons = couponTab === 'active' ? activeCoupons : usedCoupons;
@@ -312,6 +322,24 @@ export default function MyPage() {
           <p className="mt-2 text-sm text-slate-600">
             ようこそ、<span className="font-bold">{displayName}</span> さん
           </p>
+
+          {/* 日本語学習の入口（受講権のある人にだけ出す・2026-08-18 CEO指示） */}
+          {courseAccess && (courseAccess.kind === 'active' || courseAccess.kind === 'admin') && (
+            <a href={`/${locale === 'zh' ? 'zh' : 'ja'}/ai-course`}
+              className="group mt-6 block rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50 to-blue-50 p-5 shadow-sm transition-shadow hover:shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-bold text-indigo-900">📚 AI日本語学習</p>
+                  <p className="mt-1 text-xs text-indigo-700">
+                    {courseAccess.kind === 'active'
+                      ? `利用期間: ${formatUntilJst(courseAccess.row.validUntilISO, locale === 'zh' ? 'zh' : 'ja')} まで`
+                      : '管理者アクセス'}
+                  </p>
+                </div>
+                <ChevronRight className="h-5 w-5 text-indigo-400 transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </a>
+          )}
 
           {/* ゲーム・戦術ボードのクイックカード */}
           <div className="mt-6 grid grid-cols-2 gap-3">

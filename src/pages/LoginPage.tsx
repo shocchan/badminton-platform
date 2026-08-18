@@ -5,6 +5,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { PasswordInput } from '../components/PasswordInput';
 import { translations } from '../locales/translations';
 import { supabase } from '../services/supabaseClient';
+import { signInWithStudentId, isValidStudentId, normalizeStudentIdInput } from '../lib/aiLesson/course/courseAuth';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -30,6 +31,21 @@ export const LoginPage = () => {
     setError(null);
 
     try {
+      /**
+       * 学習ID対応（2026-08-18 CEO指示: どちらのログイン画面からも入れるように）。
+       * 「@」の無い入力は日本語学習の生徒ID（li / summer 等）として扱い、
+       * ログイン後は学習システムへ送る。管理者OTP（site_admins=shodoranngaのみ）は
+       * メールでのログインだけが通る経路なので、生徒がOTPに当たることはない。
+       */
+      const raw = email.trim();
+      if (!raw.includes('@')) {
+        const id = normalizeStudentIdInput(raw);
+        if (!isValidStudentId(id)) throw new Error(t.errorLoginFailed);
+        const r = await signInWithStudentId(id, password);
+        if (!r.ok) throw new Error(t.errorLoginFailed);
+        navigate(`/${lang}/ai-course`);
+        return;
+      }
       const result = await login(email, password);
       if (result.needsOtp) {
         setOtp({ challengeId: result.challengeId, sentTo: result.sentTo });
@@ -132,9 +148,10 @@ export const LoginPage = () => {
           ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t.emailLabel}（{lang === 'zh' ? '或 学习ID' : 'または 学習ID'}）</label>
               <input
-                type="email"
+                type="text"
+                autoComplete="username"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -142,6 +159,9 @@ export const LoginPage = () => {
                 placeholder={t.emailPlaceholder}
                 autoFocus
               />
+              <p className="mt-1 text-xs text-gray-400">
+                {lang === 'zh' ? '日语学习的学员：输入老师发给你的ID即可' : '日本語学習の生徒は、先生から送られたIDだけでOKです'}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">{t.passwordLabel}</label>

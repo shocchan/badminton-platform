@@ -1507,9 +1507,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           )}
         </div>
         {!isSubGroup && (
-          <a href="/ja/mypage" className="text-sm text-emerald-700 underline-offset-2 hover:underline">
-            ← マイページへ
-          </a>
+          <div className="flex items-center gap-4">
+            {/* AI日本語コースの管理へ（2026-08-18 CEO指示: 管理ページから開けるように） */}
+            <a href="/ja/ai-course/admin"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-indigo-700">
+              📚 AI日本語コース管理
+            </a>
+            <a href="/ja/mypage" className="text-sm text-emerald-700 underline-offset-2 hover:underline">
+              ← マイページへ
+            </a>
+          </div>
         )}
       </div>
 

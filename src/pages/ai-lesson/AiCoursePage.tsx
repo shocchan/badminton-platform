@@ -15,6 +15,7 @@ import { useLessonFocus } from '../../contexts/LessonFocusContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
+import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../../lib/aiLesson/course/courseAccess';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner, V2_INVITE_DEFAULT_ANSWERS } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -117,7 +118,7 @@ import type { AdvTeacherId } from '../../lib/aiLesson/course/adventure/advTeache
 import { applyTeacherName } from '../../lib/aiLesson/course/adventure/advTeacherText';
 import { isAdvEnabled, readAdvProfile, setAdvEnabled } from '../../lib/aiLesson/course/adventure/advProfile';
 
-type Step = 'loading' | 'login' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'n3unit' | 'conversationIntro' | 'garden';
+type Step = 'loading' | 'login' | 'accessGate' | 'hearing' | 'guide' | 'home' | 'lesson' | 'report' | 'growth' | 'roadmap' | 'history' | 'settings' | 'reviewNote' | 'preview' | 'chapters' | 'n2grammar' | 'light' | 'expressions' | 'notebook' | 'lab' | 'vocab' | 'adventure' | 'n3area' | 'n3unit' | 'conversationIntro' | 'garden';
 
 /** 利用開始案内を見終わったか（端末ごと） */
 const GUIDE_SEEN_KEY = 'kawabado.aiCourse.v1.guideSeen';
@@ -183,6 +184,7 @@ export default function AiCoursePage() {
   const baseDict = aiCourseI18n[uiLang];
 
   const [step, setStep] = useState<Step>('loading');
+  const [accessState, setAccessState] = useState<CourseAccessState | null>(null);
   /**
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
@@ -322,6 +324,14 @@ export default function AiCoursePage() {
   const loadAll = useCallback(async () => {
     const user = await getSession();
     if (!user) { setStep('login'); return; }
+    // 受講権ゲート（2026-08-18 CEO指示）。期間内の人と管理者だけが先へ進める。
+    // 期限の実体はDBの ai_course_access。学習記録はここでは一切触らない（残る）
+    const access = await fetchAccessState();
+    if (access.kind === 'none' || access.kind === 'expired' || access.kind === 'not_started') {
+      setAccessState(access);
+      setStep('accessGate');
+      return;
+    }
     await courseRepository.flushPending();
     const l = await courseRepository.getLearner();
     // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす
@@ -708,6 +718,38 @@ export default function AiCoursePage() {
   // ── レンダリング ──
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
   if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
+  if (step === 'accessGate') {
+    const a = accessState;
+    const zh = uiLang === 'zh';
+    const until = a && a.kind === 'expired' ? formatUntilJst(a.row.validUntilISO, zh ? 'zh' : 'ja') : null;
+    const from = a && a.kind === 'not_started' ? formatUntilJst(a.row.validFromISO, zh ? 'zh' : 'ja') : null;
+    const title = a?.kind === 'expired'
+      ? (zh ? '学习期限已结束' : '利用期間が終了しています')
+      : a?.kind === 'not_started'
+        ? (zh ? '学习还未开始' : '利用開始前です')
+        : (zh ? '课程还未开通' : 'コースが開通していません');
+    const body = a?.kind === 'expired'
+      ? (zh ? `你的学习期限到 ${until} 为止。学习记录都还保留着，续期后可以从原来的地方继续。请联系老师。`
+        : `利用期間は ${until} まででした。学習記録はすべて残っています。延長すると続きから再開できます。先生に連絡してください。`)
+      : a?.kind === 'not_started'
+        ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
+          : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
+        : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        <div className="mx-auto w-full max-w-md px-4 py-16 text-center">
+          <div className="text-4xl mb-3">🌱</div>
+          <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
+          <button type="button"
+            className="mt-8 w-full min-h-[44px] rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
+            onClick={() => { void signOut().then(() => setStep('login')); }}>
+            {zh ? '退出登录' : 'ログアウト'}
+          </button>
+        </div>
+      </Shell>
+    );
+  }
   if (step === 'hearing') {
     // 新規は既定で**名前だけ**聞く（V2入口）。目標・レベル・週頻度は直後の
     // V2オンボーディングで聞くため、旧8問と二重に答えさせない（監査P1）。

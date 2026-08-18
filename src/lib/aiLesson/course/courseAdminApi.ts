@@ -214,3 +214,48 @@ export const adminGetLearnerLogins = async (): Promise<Record<string, LearnerLog
   }
   return map;
 };
+
+// ── 受講権（利用期間）の管理（2026-08-18 CEO指示） ──
+// 書き込みは ai_course_access のRLS（ai_is_admin）が守る。ここはUIの手足
+
+export interface AdminAccessRow {
+  userId: string;
+  validFromISO: string;
+  validUntilISO: string;
+  note: string | null;
+  updatedAtISO: string;
+}
+
+export const adminListAccess = async (): Promise<Record<string, AdminAccessRow>> => {
+  const { data, error } = await supabase.from('ai_course_access').select('*');
+  if (error || !data) return {};
+  const out: Record<string, AdminAccessRow> = {};
+  for (const r of data as Record<string, unknown>[]) {
+    out[r.user_id as string] = {
+      userId: r.user_id as string,
+      validFromISO: r.valid_from as string,
+      validUntilISO: r.valid_until as string,
+      note: (r.note as string) ?? null,
+      updatedAtISO: r.updated_at as string,
+    };
+  }
+  return out;
+};
+
+/**
+ * 期間の設定・変更（upsert）。「いつ誰が」は granted_by と updated_at に残る。
+ * 日付はJSTの「その日の終わりまで」に丸める（valid_until）・「その日の始まりから」（valid_from）
+ */
+export const adminSetAccess = async (
+  userId: string, validFromDate: string, validUntilDate: string, note: string,
+): Promise<{ ok: boolean; error?: string }> => {
+  const { error } = await supabase.from('ai_course_access').upsert({
+    user_id: userId,
+    valid_from: `${validFromDate}T00:00:00+09:00`,
+    valid_until: `${validUntilDate}T23:59:59+09:00`,
+    note: note || null,
+    granted_by: 'admin-ui',
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+  return error ? { ok: false, error: error.message } : { ok: true };
+};

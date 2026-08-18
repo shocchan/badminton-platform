@@ -15,6 +15,7 @@
 //   node scripts/ai-course/create-student-login.mjs --id li --password <8文字以上>            # dry-run
 //   node scripts/ai-course/create-student-login.mjs --id li --password <8文字以上> --confirm  # 作成
 //   node scripts/ai-course/create-student-login.mjs --id li --password <新PW> --reset --confirm  # パスワード再設定
+//   --until 2026-11-30  # 利用期限を指定（省略時は発行から6ヶ月）
 import { readFileSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -29,6 +30,9 @@ const id = (arg('--id') ?? '').trim().toLowerCase();
 const password = arg('--password') ?? '';
 const confirm = argv.includes('--confirm');
 const reset = argv.includes('--reset');
+// 利用期間の期限（2026-08-18 CEO指示: 発行時に必ず期間を付ける）。省略時は発行から6ヶ月
+const until = arg('--until') ?? null;
+if (until && !/^\d{4}-\d{2}-\d{2}$/.test(until)) { console.error('refuse: --until は YYYY-MM-DD'); process.exit(2); }
 
 if (!id || !password) {
   console.error('usage: --id <英小文字3-20> --password <8文字以上> [--confirm] [--reset]');
@@ -110,5 +114,10 @@ const createRes = await admin('/admin/users', {
 if (!createRes.ok) { console.error(`失敗: ${createRes.status} ${await createRes.text()}`); process.exit(1); }
 const user = await createRes.json();
 await runSql(grantSql);
-console.log(`✅ 作成: id=${id} user_id=${user.id}（signup grant 付与済み）`);
+// 受講権（利用期間）。ここで付けないと、入金した生徒がID発行直後に案内画面で止まる
+const untilTs = until ? `'${until}T23:59:59+09:00'::timestamptz` : `now() + interval '6 months'`;
+await runSql(`insert into public.ai_course_access (user_id, valid_from, valid_until, note, granted_by)
+  values ('${user.id}', now(), ${untilTs}, 'ID発行時に自動付与', 'create-student-login')
+  on conflict (user_id) do update set valid_until = excluded.valid_until, updated_at = now();`);
+console.log(`✅ 作成: id=${id} user_id=${user.id}（signup grant + 利用期間 ${until ?? '6ヶ月'} 付与済み）`);
 console.log('本人への案内: ログイン画面で「ログインID」と初期パスワードを入力 → ログイン後に設定からパスワード変更');

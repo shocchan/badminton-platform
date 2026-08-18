@@ -11,8 +11,9 @@ import {
   adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
   adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
   adminGetUsageCost, adminGetMonthlyUsageMap, adminGetLearnerLogins,
+  adminListAccess, adminSetAccess,
 } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary, LearnerLoginInfo } from '../../lib/aiLesson/course/courseAdminApi';
+import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary, LearnerLoginInfo, AdminAccessRow } from '../../lib/aiLesson/course/courseAdminApi';
 import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostCard';
 import { CourseLearnerList } from '../../components/ai-course/CourseLearnerList';
 import { CourseV2UsageTable } from '../../components/ai-course/CourseV2UsageTable';
@@ -42,6 +43,7 @@ export default function AiCourseAdminPage() {
   const [usageCost, setUsageCost] = useState<AdminUsageCost | null>(null);
   const [usageMap, setUsageMap] = useState<Record<string, LearnerUsageSummary>>({});
   const [logins, setLogins] = useState<Record<string, LearnerLoginInfo>>({});
+  const [accessMap, setAccessMap] = useState<Record<string, AdminAccessRow>>({});
 
   const selectLearner = useCallback(async (l: AdminLearnerRow) => {
     setSel(l);
@@ -69,6 +71,7 @@ export default function AiCourseAdminPage() {
       setLearners(list);
       setUsageMap(await adminGetMonthlyUsageMap());
       setLogins(await adminGetLearnerLogins());
+      setAccessMap(await adminListAccess());
       if (list[0]) await selectLearner(list[0]);
       setIssues(await adminListIssueReports());
       setState('ready');
@@ -115,6 +118,10 @@ export default function AiCourseAdminPage() {
     <>
       <CourseHeader t={t} />
       <Helmet><title>{ta.title} | kawabado</title><meta name="robots" content="noindex, nofollow" /></Helmet>
+      {/* バド側の管理画面へ戻る（2026-08-18 CEO指示: 相互に行き来できるように） */}
+      <div className="max-w-5xl mx-auto px-4 pt-3">
+        <a href="/ja/admin" className="text-sm text-emerald-700 underline-offset-2 hover:underline">← バドミントン管理画面へ</a>
+      </div>
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-lg font-bold text-gray-900 mb-4">{ta.title}</h1>
 
@@ -180,6 +187,9 @@ export default function AiCourseAdminPage() {
 
             {/* 学習設計の調整（2026-08-17）。診断は自己申告に引きずられるため、
                 面談で見た実力に先生が合わせられるようにする。記録は消さずルートだけ引き直す */}
+            {/* 利用期間（2026-08-18 CEO指示）。期限で学習を止める。記録は消えない */}
+            <AccessPanel learner={sel} row={accessMap[sel.userId] ?? null}
+              onSaved={async () => setAccessMap(await adminListAccess())} />
             <TeacherPlanPanel learner={sel} onApplied={() => void selectLearner(sel)} />
             <TeacherNotePanel learner={sel} onApplied={() => void selectLearner(sel)} />
 
@@ -383,6 +393,68 @@ const TeacherNotePanel = ({ learner, onApplied }: {
         </button>
         {sent && <p className="text-xs font-bold text-emerald-700">出しました（生徒が次に開いたときに表示されます）</p>}
       </div>
+    </div>
+  );
+};
+
+/**
+ * 利用期間パネル（2026-08-18 CEO指示）。
+ * アカウント発行から自由に利用できる期間を生徒ごとに設定する。
+ * 期限が切れると生徒側は案内画面になる（学習記録は消えない・延長すれば続きから）。
+ */
+const AccessPanel = ({ learner, row, onSaved }: {
+  learner: AdminLearnerRow; row: AdminAccessRow | null; onSaved: () => Promise<void>;
+}) => {
+  const dateOf = (iso: string | undefined): string => {
+    if (!iso) return '';
+    // JSTの日付として表示する（保存もJST基準）
+    const d = new Date(iso);
+    const parts = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+    return parts.replaceAll('/', '-');
+  };
+  const [from, setFrom] = useState(dateOf(row?.validFromISO));
+  const [until, setUntil] = useState(dateOf(row?.validUntilISO));
+  const [note, setNote] = useState(row?.note ?? '');
+  const [msg, setMsg] = useState('');
+  useEffect(() => {
+    setFrom(dateOf(row?.validFromISO)); setUntil(dateOf(row?.validUntilISO)); setNote(row?.note ?? ''); setMsg('');
+  }, [row, learner.id]);
+
+  const active = row && Date.now() <= Date.parse(row.validUntilISO) && Date.now() >= Date.parse(row.validFromISO);
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-gray-800">利用期間</p>
+        <span className={`text-xs px-2 py-0.5 rounded-full ${row ? (active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') : 'bg-gray-100 text-gray-500'}`}>
+          {row ? (active ? '利用中' : (Date.now() < Date.parse(row.validFromISO) ? '開始前' : '期限切れ')) : '未設定（入れない）'}
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <label className="text-xs text-gray-500">開始日
+          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
+            className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+        </label>
+        <label className="text-xs text-gray-500">期限（この日の終わりまで）
+          <input type="date" value={until} onChange={(e) => setUntil(e.target.value)}
+            className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+        </label>
+      </div>
+      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="メモ（例: 6ヶ月コース）"
+        className="mt-2 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+      <button type="button" disabled={!from || !until}
+        className="mt-2 w-full min-h-[38px] rounded-lg bg-blue-600 text-white text-sm font-bold disabled:opacity-40"
+        onClick={async () => {
+          if (Date.parse(until) < Date.parse(from)) { setMsg('期限が開始日より前です'); return; }
+          const r = await adminSetAccess(learner.userId, from, until, note);
+          setMsg(r.ok ? '保存しました' : `保存できませんでした: ${r.error ?? ''}`);
+          if (r.ok) await onSaved();
+        }}>
+        保存
+      </button>
+      {msg && <p className="mt-1.5 text-xs text-gray-600">{msg}</p>}
+      <p className="mt-1.5 text-[11px] leading-relaxed text-gray-400">
+        期限が切れた生徒には案内画面が出て学習に入れなくなります。学習記録は消えません（延長すると続きから再開）。
+      </p>
     </div>
   );
 };
