@@ -59,6 +59,17 @@ import { todaysKanaRowIds, isKanaGraduated } from '../../../lib/aiLesson/course/
 import { buildMockSpec, mockLevelOf } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
+import { kanjiPool, kanjiTargetIds } from '../../../lib/aiLesson/course/adventure/kanji/kanjiBank';
+
+/** 漢字プールは字数×観点ぶんの生成が走るので、レベルごとに1回だけ作って使い回す */
+const kanjiPoolCache = new Map<'N5' | 'N4', ReturnType<typeof kanjiPool>>();
+const cachedKanjiPool = (lv: 'N5' | 'N4'): ReturnType<typeof kanjiPool> => {
+  const hit = kanjiPoolCache.get(lv);
+  if (hit) return hit;
+  const made = kanjiPool(lv);
+  kanjiPoolCache.set(lv, made);
+  return made;
+};
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
@@ -569,6 +580,18 @@ export default function AdvShell(props: AdvShellProps) {
       // 今日の語彙バトルのバンド（stage対応・日替わり。2026-08-15 語彙配線）
       const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
       const vocabBattleTargetId = vocabTargetForStage(contentStage.kind, lvl, dayNum);
+      /**
+       * 漢字は N5/N4 の字しか無いので、その帯を学ぶ人にだけ出す（2026-08-18）。
+       * N3/N2 目標でも基礎キャンプ／N3の橋にいる間は土台なので出す。
+       * 無いときは null を渡す（存在するふりをしない・原則13）
+       */
+      const kanjiLevel: 'N5' | 'N4' | null =
+        lvl === 'N5' ? 'N5'
+          : lvl === 'N4' ? 'N4'
+            : (contentStage.kind === 'foundation_camp' ? 'N5'
+              : contentStage.kind === 'n3_bridge' ? 'N4' : null);
+      const kanjiBattleTargetId = kanjiLevel && kanjiTargetIds(kanjiLevel).length > 0
+        ? `kanji-${kanjiLevel.toLowerCase()}` : null;
       // 今日の復習＝**間違えた問題ノートの未克服のうち、実際に出題できるもの**（2026-08-18 作り替え）。
       // 表示する数と実際に出る数を必ず一致させるため、ここでプールに解決できるものだけを数える。
       // 旧実装は旧コースの会話ミッションの期限件数を数えており、押した先は別データで必ず空だった
@@ -591,6 +614,7 @@ export default function AdvShell(props: AdvShellProps) {
           // （2026-08-17 監査P1: 問題0件の「押しても進めないバトル」が毎日固定で出ていた）
           confirmTargetIds: [...forecast.todayConfirmTargetIds].sort(),
           vocabBattleTargetId,
+          kanjiBattleTargetId,
           // 現在地がボスstage（模擬ボス・N2の門）なら、そのstageの出題範囲をそのままボス戦の敵にする。
           // stageContentTargetIds は束ID・単元ID＝プールのキーだけを返すので0問バトルにならない
           bossBattleTargetIds: (stage.kind === 'mock_boss' || stage.kind === 'n2_gate')
@@ -831,6 +855,15 @@ export default function AdvShell(props: AdvShellProps) {
     // 語彙バトル（vocab-*）は遅延ロードの語彙バンクから出題する（2026-08-15 語彙配線）。
     // プールは effect で先に作ってある（描画中には作らない・2026-08-17）
     const isVocabBattle = battle.targetId.startsWith('vocab-');
+  /**
+   * 漢字バトル（2026-08-18）。語彙と同じく、専用プールを渡さないと
+   * 「押しても問題が0問」の行き止まりになるので、targetId で判定して切り替える
+   */
+  const isKanjiBattle = !!battle && battle.targetId.startsWith('kanji-');
+  // ここは早期returnより後なので**フックは使えない**（rules-of-hooks）。
+  // kanjiPool は入力が同じなら同じ結果を返す純関数なので、モジュール側のキャッシュで足りる
+  const kanjiPoolReady = isKanjiBattle
+    ? cachedKanjiPool(battle!.targetId === 'kanji-n5' ? 'N5' : 'N4') : null;
     if (isVocabBattle && !vocabPoolReady) {
       if (vocabPoolError) {
         return (
@@ -888,7 +921,7 @@ export default function AdvShell(props: AdvShellProps) {
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
         targetIds={battle.targetIds}
-        pool={mistakePool ?? (isVocabBattle && vocabPoolReady ? vocabPoolReady : pools.byItem)} level={level}
+        pool={mistakePool ?? (isKanjiBattle && kanjiPoolReady ? kanjiPoolReady : (isVocabBattle && vocabPoolReady ? vocabPoolReady : pools.byItem))} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}

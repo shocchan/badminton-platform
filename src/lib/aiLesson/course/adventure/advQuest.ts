@@ -28,6 +28,12 @@ export interface QuestContentAvailability {
    */
   vocabBattleTargetId?: string | null;
   /**
+   * 今日の漢字バトルの対象（2026-08-18 漢字カリキュラム新設）。
+   * 漢字を教える場が無く「語彙問題の読み方として出るだけ」だったのを、
+   * 字ごとに積み上げる導線として独立させた。無ければ null（存在するふりをしない）
+   */
+  kanjiBattleTargetId?: string | null;
+  /**
    * ボスstage（模擬ボス・N2の門）の出題対象（2026-08-18 P0）。
    *
    * 現在地がボスstageのとき、**今日の一手をボス戦にする**ために使う。
@@ -307,6 +313,13 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const vocabStep = !isConvStageKind && availability.vocabBattleTargetId
     ? step('battle', [availability.vocabBattleTargetId], '語彙バトル', '词汇战斗', 'normal')
     : null;
+  /**
+   * 漢字バトル（2026-08-18）。語彙バトルと**別の日**に出す（同じ日に両方積むと時間が溢れる）。
+   * 5分設定では出さない（1日1バトルの枠は文法・語彙で埋まる）。
+   */
+  const kanjiStep = !isConvStageKind && availability.kanjiBattleTargetId && profile.dailyMinutes !== 5
+    ? step('battle', [availability.kanjiBattleTargetId], '漢字バトル', '汉字战斗', 'normal')
+    : null;
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
   // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
   // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
@@ -433,6 +446,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     } else if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
     // 3日に1回は語彙バトル（確認バトルの日と、文法バトルが無い日はそちらを優先/代替）
     else if (vocabStep && !confirmTarget && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
+    // 3日に1回は漢字バトル（2026-08-18）。語彙とは別の日に置いて時間を溢れさせない
+    else if (kanjiStep && !confirmTarget && dayNum % 3 === 1) push(kanjiStep);
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
@@ -442,6 +457,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     if (bossStep) push(bossStep);
     push(parts.battle);
     if (vocabStep && !confirmTarget) push(vocabStep);
+    // 30分枠でも漢字は隔日にする（毎日だと文法・語彙・読解・会話と合わせて時間が溢れる）
+    if (kanjiStep && !confirmTarget && dayNum % 2 === 0) push(kanjiStep);
     push(examSkillStep());
     push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
