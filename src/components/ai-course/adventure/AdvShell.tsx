@@ -2659,6 +2659,18 @@ export default function AdvShell(props: AdvShellProps) {
                 '今天跳过AI会话，继续下一步（比如麦克风不太好用的时候）')}
             </button>
           )}
+          {/* 聴解も同じ扱い（2026-08-19 CEO指摘「聞いたり話したりできない環境の人もいる」）。
+              これまで聴解は音声再生に**失敗したときだけ**飛ばせた。電車・職場・深夜など
+              「再生はできるが音を出せない」人が、エラーを踏まずに最初から飛ばせる口を出す。
+              スキップは今日のstepを消化するだけで、攻略の証拠は一切作らない（原則13） */}
+          {!stepNotice && nextStep?.kind === 'listening_practice' && (
+            <button type="button"
+              className={`${pressFx} mt-2 w-full min-h-[40px] text-xs text-gray-500 underline active:bg-gray-100`}
+              onClick={() => markStepAndGoNext(nextStepIdx)}>
+              {tx(lang, '今日は聴解を飛ばして次へ進む（音を出せない場所にいるときなど）',
+                '今天跳过听力，继续下一步（比如在不方便出声音的地方）')}
+            </button>
+          )}
           {!allDone && (
             <p className="mt-2 text-center text-xs text-gray-500">
               {tx(lang,
