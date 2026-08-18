@@ -140,6 +140,12 @@ export interface AdvMasteryAttempt {
    */
   wrongKeys?: string[];
   /**
+   * この回は**プールが未出問題を規定割合そろえられなかった**（2026-08-18 P0）。
+   * true のとき攻略判定の unseenRatio 条件を免除する。詳細は advBattle.Encounter.unseenCapped。
+   * 旧データには無い（undefined＝従来どおり条件を課す）
+   */
+  unseenCapped?: boolean;
+  /**
    * 途中でやめた試行（2026-08-18 監査P1「実行中の離脱口が無い」の対応で追加）。
    * 解いたぶんだけを記録するので、錯題本の材料としては通常どおり使うが、
    * **攻略の証拠には数えない**（isQualifyingAttempt が false を返す）。

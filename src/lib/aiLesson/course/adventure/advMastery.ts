@@ -26,7 +26,9 @@ export const isQualifyingAttempt = (a: AdvMasteryAttempt, poolHasMultipleTypes: 
   // 数えると「解けそうな2問だけ答えて抜ける」で80%達成日が積める抜け道になる
   if (a.partial) return false;
   if (a.scorePct < MASTERY_RULES.passPct) return false;
-  if (a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
+  // プールを解き尽くして未出問題を供給できなかった回は、未出比率を問わない（2026-08-18 P0）。
+  // 供給不能なものを要求すると、まじめに解いた生徒ほど永久に攻略できなくなる（実測で34束中6束が該当）
+  if (!a.unseenCapped && a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
   if (poolHasMultipleTypes && a.questionKeys.length >= 5) {
     const types = new Set(a.questionKeys.map(questionTypeOf));
     if (types.size < MASTERY_RULES.minQuestionTypes) return false;

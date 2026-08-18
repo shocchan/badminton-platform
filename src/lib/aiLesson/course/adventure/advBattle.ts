@@ -6,6 +6,7 @@ import type { AdvBattleQuestion } from './advVariants';
 import { seededShuffle } from './advDiagnosis';
 import { presentBattle, isCorrectAnswer, type PresentedQuestion } from './advChoiceOrder';
 import { battleScopeName, type ExamSkill } from './advExamSkills';
+import { MASTERY_RULES } from './advMastery';
 
 export interface EncounterSpec {
   tier: AdvEnemyTier;
@@ -33,6 +34,17 @@ export interface Encounter {
   /** この編成が鍛えている試験科目（§10・表示必須） */
   skills: ExamSkill[];
   attemptSeed: number;
+  /**
+   * **プールが未出問題を規定割合そろえられなかった**回か（2026-08-18 P0）。
+   *
+   * 攻略条件の unseenRatio>=0.3 は「問題IDの丸暗記で攻略させない」ための壁だが、
+   * プールを解き尽くすと新しい問題が物理的に供給できず、以後どれだけ満点を取っても
+   * 永久に攻略が確定しなくなっていた（実測: 34束中6束。うち n3g-unit-10 は満点でも詰む）。
+   * 供給できないものを要求するのは壁ではなく行き止まりなので、
+   * 「そろえられなかった」ことをこのフラグで記録し、採点側で条件を免除する。
+   * 暗記対策としての意味は、プールに余裕がある間は従来どおり効いたままになる。
+   */
+  unseenCapped: boolean;
 }
 
 /**
@@ -90,6 +102,10 @@ export const buildEncounter = (spec: EncounterSpec & { attemptSeed?: number }): 
   const finalQs = seededShuffle(picked, spec.seed + 7);
   const unseen = finalQs.filter((q) => !spec.seenKeys.has(q.key)).length;
   const attemptSeed = spec.attemptSeed ?? spec.seed;
+  // この編成で「最大どれだけ未出を入れられたか」を実測する。
+  // 候補すべてを見尽くしていれば 0 になり、規定割合に届かない＝供給不能と判定する
+  const unseenAvailable = candidates.filter((q) => !spec.seenKeys.has(q.key)).length;
+  const maxUnseenRatio = finalQs.length === 0 ? 0 : Math.min(1, unseenAvailable / finalQs.length);
   return {
     tier: spec.tier,
     questions: finalQs,
@@ -99,6 +115,7 @@ export const buildEncounter = (spec: EncounterSpec & { attemptSeed?: number }): 
     timeLimitSec: cfg.timed ? finalQs.length * cfg.secPerQ : null,
     skills: [...new Set(finalQs.map((q) => q.skill))],
     attemptSeed,
+    unseenCapped: maxUnseenRatio < MASTERY_RULES.minUnseenRatio,
   };
 };
 
@@ -121,6 +138,8 @@ export const truncateEncounter = (enc: Encounter, answeredCount: number, seenKey
     presented: enc.presented.slice(0, n),
     unseenRatio: n === 0 ? 0 : Math.round((unseen / n) * 100) / 100,
     skills: [...new Set(questions.map((q) => q.skill))],
+    // 中断した回は attempt.partial で攻略に数えないので免除フラグは持ち越さない
+    unseenCapped: false,
   };
 };
 
@@ -175,6 +194,8 @@ export const gradeEncounter = (
       questionKeys: enc.questions.map((q) => q.key),
       tier: enc.tier, timed: enc.timed, completedAt: nowISO,
       skills: enc.skills,
+      // プールが未出問題を供給できなかった回（採点側で unseenRatio 条件を免除する）
+      unseenCapped: enc.unseenCapped,
       bySkill,
       // 错题本の材料。全問正解でも空配列を入れる（省略すると旧データと区別できず「未確認」になる）
       wrongKeys,

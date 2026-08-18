@@ -15,11 +15,19 @@ import type { AdvKanaState, AdvRoute, AdvRouteStage } from './advTypes';
 const NOW = '2026-08-15T12:00:00.000Z';
 
 describe('かなデータ', () => {
-  it('ひらがな10行＋カタカナ10行＝計92文字・重複なし・全文字にローマ字', () => {
-    expect(KANA_ROWS.length).toBe(20);
-    const all = KANA_ROWS.flatMap((r) => r.chars);
+  // 2026-08-18: 清音92字だけでは「がっこう」「きょう」「コーヒー」が読めないため、
+  // 濁音・拗音・促音・長音まで範囲を広げた。清音の内訳はここで引き続き固定する。
+  it('清音は ひらがな10行＋カタカナ10行＝92文字のまま', () => {
+    const seion = KANA_ROWS.filter((r) => (r.group ?? 'seion') === 'seion');
+    expect(seion.length).toBe(20);
+    const all = seion.flatMap((r) => r.chars);
     expect(all.length).toBe(92); // 46 + 46
     expect(new Set(all.map((c) => c.kana)).size).toBe(92);
+  });
+
+  it('全行に重複が無く、全項目にローマ字がある', () => {
+    const all = KANA_ROWS.flatMap((r) => r.chars);
+    expect(new Set(all.map((c) => c.kana)).size).toBe(all.length);
     for (const c of all) expect(c.romaji.length).toBeGreaterThan(0);
   });
 
@@ -91,6 +99,9 @@ describe('今日の冒険への注入', () => {
 
   it('todaysKanaRowIds は学習順に2行ずつ', () => {
     expect(todaysKanaRowIds({ needed: true, doneRowIds: [], checkedAt: NOW })).toEqual(['h-1', 'h-2']);
-    expect(todaysKanaRowIds({ needed: true, doneRowIds: KANA_ROWS.slice(0, 19).map((r) => r.rowId), checkedAt: NOW })).toEqual(['k-10']);
+    // 残り1行なら1行だけ返す（末尾の行IDは拡張で変わるのでKANA_ROWSから取る）
+    const last = KANA_ROWS[KANA_ROWS.length - 1].rowId;
+    const doneAllButLast = KANA_ROWS.slice(0, KANA_ROWS.length - 1).map((r) => r.rowId);
+    expect(todaysKanaRowIds({ needed: true, doneRowIds: doneAllButLast, checkedAt: NOW })).toEqual([last]);
   });
 });
