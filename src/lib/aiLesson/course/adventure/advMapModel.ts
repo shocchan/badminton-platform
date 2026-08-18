@@ -154,6 +154,27 @@ const STAGE_CHAPTER: Record<string, { ja: string; zh: string }> = {
   conversation_growth: { ja: '番外編　実戦で伸ばす', zh: '番外篇　实战提升' },
 };
 
+/**
+ * stageId単位の上書き（2026-08-19）。N5/N4目標のstageは kind を流用しているため
+ * （stg-n4grammar は kind=n3_bridge 等）、kindだけで章名を引くと
+ * N4目標の生徒に「第2章 N3を渡る」「N3の語彙・文法」と**目標に無いレベル名**が出ていた。
+ * stageId が specific なものはこちらを先に見る
+ */
+const STAGE_ID_CHAPTER: Record<string, { ja: string; zh: string }> = {
+  'stg-n5reading': { ja: '第2章　読む力をつける', zh: '第2章　培养阅读力' },
+  'stg-n5boss': { ja: '最終章　N5達成へ', zh: '最终章　迈向N5' },
+  'stg-n4grammar': { ja: '第2章　文法を固める', zh: '第2章　夯实语法' },
+  'stg-n4reading': { ja: '第3章　読む力をつける', zh: '第3章　培养阅读力' },
+  'stg-n4boss': { ja: '最終章　N4達成へ', zh: '最终章　迈向N4' },
+};
+const STAGE_ID_ABILITY: Record<string, { ja: string; zh: string }> = {
+  'stg-n5reading': { ja: 'N5の読解', zh: 'N5阅读' },
+  'stg-n5boss': { ja: 'N5の総合力', zh: 'N5综合能力' },
+  'stg-n4grammar': { ja: 'N4の文法', zh: 'N4语法' },
+  'stg-n4reading': { ja: 'N4の読解', zh: 'N4阅读' },
+  'stg-n4boss': { ja: 'N4の総合力', zh: 'N4综合能力' },
+};
+
 const STAGE_ABILITY: Record<string, { ja: string; zh: string }> = {
   foundation_camp: { ja: '基礎の語彙と文字', zh: '基础词汇与文字' },
   n3_bridge: { ja: 'N3の語彙・文法', zh: 'N3词汇与语法' },
@@ -264,12 +285,12 @@ const examRegions = (
   return {
     id: s.stageId,
     layer: 'exam' as const,
-    chapterJa: STAGE_CHAPTER[s.kind]?.ja ?? '攻略ルート',
-    chapterZh: STAGE_CHAPTER[s.kind]?.zh ?? '攻略路线',
+    chapterJa: STAGE_ID_CHAPTER[s.stageId]?.ja ?? STAGE_CHAPTER[s.kind]?.ja ?? '攻略ルート',
+    chapterZh: STAGE_ID_CHAPTER[s.stageId]?.zh ?? STAGE_CHAPTER[s.kind]?.zh ?? '攻略路线',
     nameJa: s.titleJa,
     nameZh: s.titleZh,
-    abilityJa: STAGE_ABILITY[s.kind]?.ja ?? s.purposeJa,
-    abilityZh: STAGE_ABILITY[s.kind]?.zh ?? s.purposeZh,
+    abilityJa: STAGE_ID_ABILITY[s.stageId]?.ja ?? STAGE_ABILITY[s.kind]?.ja ?? s.purposeJa,
+    abilityZh: STAGE_ID_ABILITY[s.stageId]?.zh ?? STAGE_ABILITY[s.kind]?.zh ?? s.purposeZh,
     blurbJa: s.purposeJa,
     blurbZh: s.purposeZh,
     landmark: STAGE_LANDMARK[s.kind] ?? 'village',
