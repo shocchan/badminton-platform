@@ -68,7 +68,7 @@ export default function AiCourseAdminPage() {
   const { lang } = useLanguage();
   const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   const ta = t.admin;
-  const [state, setState] = useState<'loading' | 'noauth' | 'ready'>('loading');
+  const [state, setState] = useState<'loading' | 'nologin' | 'noauth' | 'ready'>('loading');
   const [tab, setTab] = useState<AdminTab>('today');
 
   // ── データ（§7 ページのデータロード） ──
@@ -101,7 +101,7 @@ export default function AiCourseAdminPage() {
   useEffect(() => {
     void (async () => {
       const user = await getSession();
-      if (!user) { setState('noauth'); return; }
+      if (!user) { setState('nologin'); return; }
       if (!(await isCourseAdmin())) { setState('noauth'); return; }
       await loadAll();
       setState('ready');
@@ -232,6 +232,24 @@ export default function AiCourseAdminPage() {
 
   if (state === 'loading') return (
     <><CourseHeader t={t} /><div className="max-w-md mx-auto px-4 py-12 text-center text-gray-500">{t.common.loading}</div></>
+  );
+  /**
+   * 未ログイン（2026-08-19 CEO報告）。以前は権限なしと同じ「管理者のみ」を出して
+   * 突き放していたが、stagingと本番はドメインが別＝ログインが引き継がれないため、
+   * ログイン済みのつもりのCEOがここに落ちて詰まった。ログインへの道を出す
+   */
+  if (state === 'nologin') return (
+    <>
+      <CourseHeader t={t} />
+      <div className="max-w-md mx-auto px-4 py-12 text-center">
+        <p className="text-sm text-gray-600">ログインしていません。管理者アカウントでログインしてください。</p>
+        <p className="mt-2 text-xs text-gray-400">※ staging と本番は別サイトなので、ログインもそれぞれ必要です</p>
+        <a href={`/${lang === 'zh' ? 'zh' : 'ja'}/login`}
+          className="mt-6 inline-block w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700">
+          ログイン画面へ
+        </a>
+      </div>
+    </>
   );
   if (state === 'noauth') return (
     <>
