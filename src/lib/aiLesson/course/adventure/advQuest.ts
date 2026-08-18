@@ -5,8 +5,8 @@ import type {
   AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile, JlptLevel } from './advTypes';
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
-import { masteredStageIds } from './advMastery';
-import { isKanaGraduated, todaysKanaRowIds, kanaRowById } from './advKana';
+import { masteredStageIds, PASS_LABEL } from './advMastery';
+import { isKanaGraduated, isKanaReadable, kanaRowsPerDay, todaysKanaRowIds, kanaRowById } from './advKana';
 
 export interface QuestContentAvailability {
   /** stage内で未攻略のgrammarId（学習順） */
@@ -229,11 +229,13 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     ?? currentStageOf(route, done) ?? route.stages[route.stages.length - 1];
 
   // かな道場（2026-08-15）: 超初心者はまず、かなを読める状態にする。
-  // 卒業（チェック合格 or 全行修了）まで、今日の冒険はかな道場1本に絞る
-  // （読めない状態で単元・バトルを出しても3択総当たりになるだけ・原則13）
-  if (!isKanaGraduated(profile.kana)) {
+  // **清音が読めるまで**は今日の冒険をかな道場1本に絞る
+  // （読めない状態で単元・バトルを出しても3択総当たりになるだけ・原則13）。
+  // 2026-08-18: 従来は全43行が終わるまで絞っていたため、ことばも文法も22日間出なかった。
+  // 濁音・拗音・促音・長音は本編と並走させる（下の kanaSideStep）
+  if (!isKanaReadable(profile.kana)) {
     const check = profile.kana?.needed === null;
-    const rowIds = check ? ['check'] : todaysKanaRowIds(profile.kana);
+    const rowIds = check ? ['check'] : todaysKanaRowIds(profile.kana, kanaRowsPerDay(profile.dailyMinutes ?? 15));
     const rowLabelJa = rowIds.map((id) => kanaRowById(id)?.labelJa ?? '').filter(Boolean).join('・');
     const rowLabelZh = rowIds.map((id) => kanaRowById(id)?.labelZh ?? '').filter(Boolean).join('・');
     const kanaStep: AdvQuestStep = {
@@ -318,6 +320,25 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
 
   const steps: AdvQuestStep[] = [];
   const push = (s: AdvQuestStep | null | undefined) => { if (s) steps.push(s); };
+
+  /**
+   * 清音は読めるが、濁音・拗音・促音・長音がまだ残っている人へ（2026-08-18）。
+   * 本編と**並走**させて1日1行ずつ足す。ここを本編の前に置くのは、
+   * 「が」「きょ」「っ」が読めないまま語彙・文法へ行くと、
+   * 問題文そのものが読めずに総当たりになるため（原則13）。
+   */
+  if (!isKanaGraduated(profile.kana)) {
+    const rowIds = todaysKanaRowIds(profile.kana, 1);
+    const row = rowIds[0] ? kanaRowById(rowIds[0]) : null;
+    if (row) {
+      push({
+        kind: 'kana_dojo', refIds: rowIds,
+        titleJa: `かなの続き（${row.labelJa}）`,
+        titleZh: `假名的后续（${row.labelZh}）`,
+        estMinutes: 4,
+      });
+    }
+  }
 
   // ── 試験技能（読解・聴解）の配分（COMPLETION §12） ──
   // 毎日必ず入れるのではなく「未着手 > 最弱 > 試験が近い」の順で必要なときだけ入れる。
@@ -454,13 +475,13 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     // 達成の条件ではなく“伸びる条件”として添える。旧文言は0%でも✓が付く実装と食い違っていた
     successConditionJa: (parts.battle ?? bossStep)
       ? (hasConv
-        ? 'バトルを最後まで解き、AI会話を1回終える（80%以上なら攻略が1日ぶん進みます）'
-        : 'バトルを最後まで解く（80%以上なら攻略が1日ぶん進みます）')
+        ? `バトルを最後まで解き、AI会話を1回終える（${PASS_LABEL.ja}なら攻略が1日ぶん進みます）`
+        : `バトルを最後まで解く（${PASS_LABEL.ja}なら攻略が1日ぶん進みます）`)
       : (hasConv ? 'AI会話を1回終える' : '今日のstepをすべて終える'),
     successConditionZh: (parts.battle ?? bossStep)
       ? (hasConv
-        ? '把战斗做到最后，并完成一次AI会话（拿到80%以上，攻略就前进一天）'
-        : '把战斗做到最后（拿到80%以上，攻略就前进一天）')
+        ? `把战斗做到最后，并完成一次AI会话（拿到${PASS_LABEL.zh}，攻略就前进一天）`
+        : `把战斗做到最后（拿到${PASS_LABEL.zh}，攻略就前进一天）`)
       : (hasConv ? '完成一次AI会话' : '完成今天的所有步骤'),
     nextStepJa: '明日は今日の復習から始まります',
     nextStepZh: '明天从复习今天的内容开始',

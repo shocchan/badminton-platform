@@ -8,6 +8,7 @@ import type {
 import { bandAtLeast, bandRank } from './advSkillProfile';
 // 束IDの定数だけを取る（本文はdynamic import側にあるのでbundleは増えない）
 import { N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
+import { PASS_LABEL } from './advMastery';
 
 /** エリア → 実コンテンツ（worldAtlas実データと同期。ズレはガードテストで検知） */
 export const AREA_UNIT_MAP: Record<string, string[]> = {
@@ -48,8 +49,8 @@ export const conversationStartArea = (band: AdvBand): { areaId: string; labelJa:
 };
 
 const CLEAR_80: { ja: string; zh: string } = {
-  ja: 'ランダム問題で80%以上を別の日に3回＋7日後の確認',
-  zh: '随机题80%以上×3天（不同日）＋7天后的复查',
+  ja: `ランダム問題で${PASS_LABEL.ja}を別の日に3回＋7日後の確認`,
+  zh: `随机题${PASS_LABEL.zh}×3天（不同日）＋7天后的复查`,
 };
 
 const stage = (

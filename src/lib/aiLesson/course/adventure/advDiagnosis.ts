@@ -49,6 +49,14 @@ export interface DiagnosisPools {
   n3Grammar: DiagQuestion[];
   /** N2文法 recognition（目標N2のときのみ使用） */
   n2Grammar: DiagQuestion[];
+  /**
+   * N5文法 recognition（2026-08-18 追加）。
+   * N5/N4を目標に選べるようにしたのに、診断は N3語彙3・N3文法4・N2文法2 を出していて、
+   * **12問中9問が目標より上**だった（CEO指摘）。初級文法148項目は診断で1問も使われていなかった。
+   */
+  basicGrammarN5: DiagQuestion[];
+  /** N4文法 recognition（同上） */
+  basicGrammarN4: DiagQuestion[];
 }
 
 /**
@@ -60,6 +68,25 @@ export const selectDiagnosisQuestions = (
 ): DiagQuestion[] => {
   const take = <T,>(arr: T[], n: number, s: number): T[] => seededShuffle(arr, s).slice(0, n);
   const wantsN2 = targetJlpt === 'N2' && goalType !== 'conversation';
+  const basicTarget = goalType !== 'conversation' && (targetJlpt === 'N5' || targetJlpt === 'N4');
+
+  /**
+   * 目標がN5/N4のときは、**その帯を測る問題**を出す（2026-08-18・CEO指摘）。
+   * 上の帯は「実は目標より上かもしれない」を見るぶんだけ少し混ぜる。
+   * 全部を目標帯にしないのは、N5と申告した人が実はN3圏という取り違えを拾えなくなるため。
+   */
+  if (basicTarget) {
+    const n5 = targetJlpt === 'N5';
+    const q = [
+      ...take(pools.foundationVocab, n5 ? 4 : 3, seed + 1),
+      ...take(pools.basicGrammarN5, n5 ? 4 : 2, seed + 5),
+      ...take(pools.basicGrammarN4, n5 ? 2 : 4, seed + 6),
+      ...take(pools.n3Vocab, 2, seed + 2),
+      ...(n5 ? [] : take(pools.n3Grammar, 1, seed + 3)),
+    ];
+    return shuffleChoices(q, seed);
+  }
+
   const vocab = [
     ...take(pools.foundationVocab, 3, seed + 1),
     ...take(pools.n3Vocab, 3, seed + 2),
@@ -67,14 +94,18 @@ export const selectDiagnosisQuestions = (
   const grammar = wantsN2
     ? [...take(pools.n3Grammar, 3, seed + 3), ...take(pools.n2Grammar, 3, seed + 4)]
     : [...take(pools.n3Grammar, 4, seed + 3), ...take(pools.n2Grammar, 2, seed + 4)];
-  // 正解の位置が執筆順（1番目）へ偏らないよう、選択肢を問題ごとに決定的へシャッフルする。
-  // seedは問題keyから作るので、同じ問題は何度開いても同じ並び（採点はanswerIndexを追随させる）
-  return [...vocab, ...grammar].map((q) => {
-    const s = [...q.key].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, seed >>> 0);
-    const order = seededShuffle(q.choices.map((_, i) => i), s);
-    return { ...q, choices: order.map((i) => q.choices[i]), answerIndex: order.indexOf(q.answerIndex) };
-  });
+  return shuffleChoices([...vocab, ...grammar], seed);
 };
+
+/**
+ * 正解の位置が執筆順（1番目）へ偏らないよう、選択肢を問題ごとに決定的へシャッフルする。
+ * seedは問題keyから作るので、同じ問題は何度開いても同じ並び（採点はanswerIndexを追随させる）
+ */
+const shuffleChoices = (qs: DiagQuestion[], seed: number): DiagQuestion[] => qs.map((q) => {
+  const s = [...q.key].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, seed >>> 0);
+  const order = seededShuffle(q.choices.map((_, i) => i), s);
+  return { ...q, choices: order.map((i) => q.choices[i]), answerIndex: order.indexOf(q.answerIndex) };
+});
 
 const pct = (correct: number, total: number): number =>
   total === 0 ? 0 : Math.round((correct / total) * 100);
@@ -155,6 +186,7 @@ export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => 
 
   const vFound = bucketOf(questions, amap, 'foundation', 'vocabulary');
   const vN3 = bucketOf(questions, amap, 'n3', 'vocabulary');
+  const gFound = bucketOf(questions, amap, 'foundation', 'grammar');
   const gN3 = bucketOf(questions, amap, 'n3', 'grammar');
   const gN2 = bucketOf(questions, amap, 'n2', 'grammar');
   const n2Asked = questions.some((q) => q.level === 'n2');
@@ -163,11 +195,18 @@ export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => 
   const vN3Pct = pct(vN3.correct, vN3.total);
   const gN3Pct = pct(gN3.correct, gN3.total);
   const gN2Pct = pct(gN2.correct, gN2.total);
+  /**
+   * 文法の土台の正答率（2026-08-18）。
+   * 従来は初級文法の問題が診断に1問も無かったため 100 をベタ書きして素通りさせており、
+   * 「ことばは知っているが文法がゼロ」の人を基礎帯と判定できなかった（下限が n4_late 止まり）。
+   * 初級文法を出したときだけ実測値を使い、出していないときは従来どおり 100（＝素通り）にする。
+   */
+  const gFoundPct = gFound.total > 0 ? pct(gFound.correct, gFound.total) : 100;
 
   // 全問「わからない」＝証拠0件のときは帯を断定しない（原則13: 存在するふりをしない）
-  const noEvidence = vFound.total + vN3.total + gN3.total + gN2.total === 0;
+  const noEvidence = vFound.total + vN3.total + gFound.total + gN3.total + gN2.total === 0;
   const vocabularyBand: AdvBand = noEvidence ? 'needs_assessment' : ladderBand(vFoundPct, vN3Pct, 100, false);
-  const grammarBand: AdvBand = noEvidence ? 'needs_assessment' : ladderBand(100, gN3Pct, gN2Pct, n2Asked);
+  const grammarBand: AdvBand = noEvidence ? 'needs_assessment' : ladderBand(gFoundPct, gN3Pct, gN2Pct, n2Asked);
   const knowledgeBand: AdvBand = noEvidence
     ? 'needs_assessment'
     : (['vocabulary', 'grammar'] as const)
@@ -185,7 +224,7 @@ export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => 
     .map((q) => q.refId);
 
   const vocabEvidence = vFound.total + vN3.total;
-  const grammarEvidence = gN3.total + gN2.total;
+  const grammarEvidence = gFound.total + gN3.total + gN2.total;
   const skills: AdvSkillProfile = {
     ...emptySkillProfile(),
     vocabulary: {

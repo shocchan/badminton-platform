@@ -9,7 +9,7 @@
 //   そのため各地域は `action` を必ず持ち、UI はそれをボタンにするだけでよい
 import type { AdvRoute, AdventureV2Profile, JlptLevel, AdvMasteryLedger } from './advTypes';
 import { PLACE_NAME as JOURNEY_PLACES } from '../courseJourney';
-import { computeMastery, masteryProgressPct } from './advMastery';
+import { computeMastery, masteryProgressPct, PASS_LABEL } from './advMastery';
 import { mockLevelOf } from './advMock';
 
 /** 表示するルート。Hybridは総合（試験＋会話が合流する） */
@@ -259,7 +259,7 @@ const examRegions = (
     : st.state === 'cleared_pending_delay'
       ? { ja: '別の日に3回クリア。7日後の確認待ちです', zh: '已在不同的日子通过3次。等待7天后的复查' }
       : st.qualifyingDays.length > 0
-        ? { ja: `別の日に${st.qualifyingDays.length}回、80%以上を達成しています`, zh: `已在${st.qualifyingDays.length}个不同的日子达到80%以上` }
+        ? { ja: `別の日に${st.qualifyingDays.length}回、${PASS_LABEL.ja}を達成しています`, zh: `已在${st.qualifyingDays.length}个不同的日子达到${PASS_LABEL.zh}` }
         : { ja: 'まだ挑戦していません', zh: '还没有挑战过' };
   return {
     id: s.stageId,

@@ -168,6 +168,30 @@ export const isKanaGraduated = (state: AdvKanaState | null | undefined): boolean
   return kanaRowsRemaining(state).length === 0;
 };
 
+/**
+ * **かなが読める状態か**（2026-08-18・CEO指摘「22日はだるい」）。
+ *
+ * 拡張で43行になった結果、全行終わるまで今日の冒険がかな道場1本に絞られ、
+ * ことばも文法も**22日間まったく出ない**状態だった。
+ * だが濁音・拗音・促音・長音は「清音が読めたうえで足していく」もので、
+ * 本編を止めてまで先に終わらせる必要はない。
+ * 清音（ひらがな・カタカナ46字ずつ）が終わったら本編を始め、残りは毎日1行ずつ並走させる。
+ */
+export const isKanaReadable = (state: AdvKanaState | null | undefined): boolean => {
+  if (!state) return true;
+  if (state.needed === false) return true;
+  if (state.needed === null) return false;
+  const done = new Set(state.doneRowIds ?? []);
+  return KANA_ROWS.filter((r) => (r.group ?? 'seion') === 'seion').every((r) => done.has(r.rowId));
+};
+
+/**
+ * 1日に進める行数。選んだ学習時間に合わせる（従来は時間に関係なく2行固定だった）。
+ * 1行＝3〜9問なので、5分で2行・15分で3行・30分で5行が実測の目安。
+ */
+export const kanaRowsPerDay = (dailyMinutes: 5 | 15 | 30): number =>
+  (dailyMinutes === 5 ? 2 : dailyMinutes === 15 ? 3 : 5);
+
 /** 今日やる行（既定2行）。チェック未実施ならチェックが先 */
 export const todaysKanaRowIds = (state: AdvKanaState | null | undefined, count = 2): string[] =>
   kanaRowsRemaining(state).slice(0, count).map((r) => r.rowId);

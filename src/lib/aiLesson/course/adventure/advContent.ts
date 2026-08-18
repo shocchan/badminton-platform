@@ -279,7 +279,7 @@ const toDiagFromUnit = (q: AssessQuestion, level: 'foundation' | 'n3', unitId: s
   };
 };
 
-const toDiagFromGrammar = (d: GrammarDraftLike, level: 'n3' | 'n2'): DiagQuestion => ({
+const toDiagFromGrammar = (d: GrammarDraftLike, level: 'foundation' | 'n3' | 'n2'): DiagQuestion => ({
   key: `rec:${d.grammarId}`,
   level, skill: 'grammar',
   promptJa: '',
@@ -305,7 +305,14 @@ export const buildDiagnosisPools = async (): Promise<DiagnosisPools> => {
     }
   }
   const n2 = await loadAllN2Drafts();
+  // 初級文法（N5/N4）も診断で使う（2026-08-18）。N5/N4を目標に選んだ人へ、その帯の文法を出すため
+  const basic = await loadAllBasicDrafts();
+  const basicDiag = (lv: 'N5' | 'N4') => (basic as unknown as (GrammarDraftLike & { level: string })[])
+    .filter((d) => d.level === lv && d.recognition?.options?.length >= 2)
+    .map((d) => toDiagFromGrammar(d, 'foundation'));
   return {
+    basicGrammarN5: basicDiag('N5'),
+    basicGrammarN4: basicDiag('N4'),
     foundationVocab,
     n3Vocab,
     n3Grammar: (N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[]).map((d) => toDiagFromGrammar(d, 'n3')),

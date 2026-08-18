@@ -9,6 +9,7 @@ import { generateTodayQuest, type GenerateQuestInput } from './advQuest';
 import { generateRoute } from './advRoute';
 import { defaultAdvProfile } from './advProfile';
 import type { AdventureV2Profile } from './advTypes';
+import { PASS_LABEL } from './advMastery';
 
 const NOW = '2026-08-18T09:00:00.000Z';
 
@@ -47,8 +48,8 @@ describe('今日のゴールは、実装している完了条件と一致する'
     expect(q.successConditionJa).toContain('攻略');
     expect(q.successConditionZh).toContain('攻略');
     // 80%の意味は残す（消して伝えないのも不誠実）
-    expect(q.successConditionJa).toContain('80%');
-    expect(q.successConditionZh).toContain('80%');
+    expect(q.successConditionJa).toContain(PASS_LABEL.ja);
+    expect(q.successConditionZh).toContain(PASS_LABEL.zh);
   });
 
   it('AI会話が入る日も同じ（会話は「1回終える」で実測できる）', () => {

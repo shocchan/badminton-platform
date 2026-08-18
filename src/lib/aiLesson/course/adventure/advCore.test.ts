@@ -22,7 +22,7 @@ const pools = (): DiagnosisPools => ({
   foundationVocab: Array.from({ length: 6 }, (_, i) => dq(`fv${i}`, 'foundation', 'vocabulary', `fi-${i}`)),
   n3Vocab: Array.from({ length: 6 }, (_, i) => dq(`nv${i}`, 'n3', 'vocabulary', `n3v-${i}`)),
   n3Grammar: Array.from({ length: 6 }, (_, i) => dq(`ng${i}`, 'n3', 'grammar', `n3g-${i}`)),
-  n2Grammar: Array.from({ length: 6 }, (_, i) => dq(`n2${i}`, 'n2', 'grammar', `n2g-${i}`)),
+  n2Grammar: Array.from({ length: 6 }, (_, i) => dq(`n2${i}`, 'n2', 'grammar', `n2g-${i}`)), basicGrammarN5: [], basicGrammarN4: [],
 });
 
 describe('advProfile', () => {

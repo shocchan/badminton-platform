@@ -81,11 +81,11 @@ describe('今日の冒険への注入', () => {
     expect(q.steps[0].titleJa).toContain('かなチェック');
   });
 
-  it('道場進行中: 今日の2行のかな道場1本（読めないままバトルを出さない）', () => {
+  it('道場進行中: 今日のかな道場1本（読めないままバトルを出さない）', () => {
     const q = questWithKana({ needed: true, doneRowIds: ['h-1', 'h-2'], checkedAt: NOW });
     expect(q.steps.length).toBe(1);
     expect(q.steps[0].kind).toBe('kana_dojo');
-    expect(q.steps[0].refIds).toEqual(['h-3', 'h-4']);
+    expect(q.steps[0].refIds).toEqual(['h-3', 'h-4', 'h-5'])  // 1日15分は3行（2026-08-18 CEO指摘でペースを時間に合わせた）;
     expect(q.steps.some((s) => s.kind === 'battle')).toBe(false);
   });
 

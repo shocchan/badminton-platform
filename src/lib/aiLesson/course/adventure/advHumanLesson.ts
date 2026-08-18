@@ -2,7 +2,7 @@
 // カレンダー連携は作らない。profile内の安全な構造＋サマリー生成の純関数のみ。
 import type { AdvMasteryLedger, AdvSkillProfile, AdventureV2Profile } from './advTypes';
 import { SKILL_LABELS } from './advSkillProfile';
-import { computeMastery } from './advMastery';
+import { computeMastery, PASS_LABEL } from './advMastery';
 import { collectSkillEvidence } from './advReadiness';
 import { EXAM_SKILL_LABELS, EXAM_SKILLS, type ExamSkill } from './advExamSkills';
 
@@ -63,7 +63,7 @@ const focusCandidates = (ledger: AdvMasteryLedger, nowISO: string): LessonPrepSu
     const recent = (attempts ?? []).slice(-3);
     const failing = recent.length >= 2 && recent.every((a) => a.scorePct < 80);
     if (failing) {
-      out.push({ targetId, reasonJa: '80%に届かない状態が続いています', reasonZh: '连续未达到80%' });
+      out.push({ targetId, reasonJa: `${PASS_LABEL.ja}に届かない状態が続いています`, reasonZh: `连续未达到${PASS_LABEL.zh}` });
     } else if (st.state === 'cleared_pending_delay' && st.delayCheckOpensAt && nowISO >= st.delayCheckOpensAt) {
       out.push({ targetId, reasonJa: '7日後の確認バトルが期限到来', reasonZh: '7天后的复查战已到期' });
     }

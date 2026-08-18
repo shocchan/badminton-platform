@@ -21,6 +21,7 @@ import {
 import { weekStartOf } from './advWeekly';
 import { defaultAdvProfile } from './advProfile';
 import type { AdventureV2Profile, AdvMasteryAttempt, AdvMockLogEntry } from './advTypes';
+import { PASS_LABEL } from './advMastery';
 
 const NOW = '2026-08-05T09:00:00.000Z'; // 水曜（JST 18:00）
 const THIS_WEEK = '2026-08-03'; // 月曜
@@ -368,9 +369,9 @@ describe('下書き — 実測だけを書く', () => {
     const d = buildNoteDraft(prof, NOW);
     expect(d.ja).toContain('2日');
     expect(d.ja).toContain('新しく1項目');
-    expect(d.ja).toContain('1項目は80%に届かない');
+    expect(d.ja).toContain(`1項目は${PASS_LABEL.ja}に届かない`);
     expect(d.zh).toContain('2天');
-    expect(d.zh).toContain('有1个项目连续几次都没到80%');
+    expect(d.zh).toContain(`有1个项目连续几次都没到${PASS_LABEL.zh}`);
   });
 
   it('**つまずき件数は上位3件に丸めず、実測の総数を書く**', () => {
@@ -378,7 +379,7 @@ describe('下書き — 実測だけを書く', () => {
     const facts = collectNoteFacts(prof, NOW);
     expect(facts.strugglingCount).toBe(5);
     expect(facts.strugglingTargetIds).toHaveLength(3); // コーチ画面の根拠表示用は3件のまま
-    expect(buildNoteDraft(prof, NOW).ja).toContain('5項目は80%に届かない');
+    expect(buildNoteDraft(prof, NOW).ja).toContain(`5項目は${PASS_LABEL.ja}に届かない`);
     expect(buildNoteDraft(prof, NOW).zh).toContain('有5个项目');
   });
 
@@ -395,7 +396,7 @@ describe('下書き — 実測だけを書く', () => {
     expect(facts.studyDays).toBe(1);
     expect(facts.newlyMasteredCount).toBe(0);
     expect(facts.sparse).toBe(false);
-    expect(buildNoteDraft(prof, NOW).ja).toContain('1項目は80%に届かない');
+    expect(buildNoteDraft(prof, NOW).ja).toContain(`1項目は${PASS_LABEL.ja}に届かない`);
   });
 
   it('技能別の実測（10問以上）とミニ模試の回数を、事実として書く', () => {

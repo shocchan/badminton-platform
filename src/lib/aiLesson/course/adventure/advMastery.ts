@@ -4,7 +4,17 @@
 import type { AdvMasteryAttempt, AdvMasteryLedger, AdvMasteryState } from './advTypes';
 
 export const MASTERY_RULES = {
-  passPct: 80,
+  /**
+   * 合格ライン（2026-08-18 CEO決定: 7問中5問）。
+   *
+   * 80 だった頃、通常バトルは7問なので 5/7=71% は不合格・6/7=86% で合格となり、
+   * 「8割」と書いてありながら**実際は約9割を要求**していた。
+   * 実測で正答率75%の生徒は120日たっても最初の束から出られなかった。
+   * 71 にすると 5/7 が合格になり、表示どおりの水準になる
+   * （10問なら8問・12問なら9問・20問なら15問）。
+   * 既存の記録に対しては「合格が増える方向」にしか効かないので、進捗が減る生徒はいない。
+   */
+  passPct: 71,
   /** qualifying試行に必要な未出問題比率（プールが小さい場合は attempt側で下がるが、0は不可） */
   minUnseenRatio: 0.3,
   /** 別日回数 */
@@ -16,6 +26,12 @@ export const MASTERY_RULES = {
   /** 1target当たり保持する試行履歴の上限（jsonb肥大防止・古い順に間引く） */
   maxAttemptsKept: 24,
 } as const;
+
+/**
+ * 画面に出す合格ラインの言い方。数字（71%）をそのまま見せると分かりにくいので
+ * 「7割」で統一する。ここを直せば全画面が追随する
+ */
+export const PASS_LABEL = { ja: '7割以上', zh: '七成以上' } as const;
 
 /** 問題キーの型接頭辞（rec: / cloze: / meaning: / form: / n3q: …） */
 export const questionTypeOf = (key: string): string => key.split(':')[0] ?? 'unknown';
@@ -112,7 +128,7 @@ export const computeMastery = (
   if (all.length === 0) {
     return {
       state: 'not_started', qualifyingDays: [], delayCheckOpensAt: null, delayedConfirmed: false,
-      nextJa: 'ランダム問題で80%以上を目指す', nextZh: '目标：随机题拿到80%以上',
+      nextJa: `ランダム問題で${PASS_LABEL.ja}を目指す`, nextZh: `目标：随机题拿到${PASS_LABEL.zh}`,
     };
   }
   const qualifying = all.filter((a) => isQualifyingAttempt(a, poolHasMultipleTypes));
@@ -124,8 +140,8 @@ export const computeMastery = (
     const remain = MASTERY_RULES.requiredDays - days.length;
     return {
       state: 'in_progress', qualifyingDays: days, delayCheckOpensAt: null, delayedConfirmed: false,
-      nextJa: `別の日にあと${remain}回、80%以上（未出問題を含む）`,
-      nextZh: `还需在不同的日子再拿${remain}次80%以上（含未见过的题）`,
+      nextJa: `別の日にあと${remain}回、${PASS_LABEL.ja}（未出問題を含む）`,
+      nextZh: `还需在不同的日子再拿${remain}次${PASS_LABEL.zh}（含未见过的题）`,
     };
   }
 
@@ -146,8 +162,8 @@ export const computeMastery = (
   const open = nowISO >= opensAt;
   return {
     state: 'cleared_pending_delay', qualifyingDays: days.slice(0, 3), delayCheckOpensAt: opensAt, delayedConfirmed: false,
-    nextJa: open ? '7日後の確認バトルで80%以上を取れば攻略' : '7日後に確認バトルがあります（忘れていないかの確認）',
-    nextZh: open ? '通过7天后的复查战（80%以上）即攻克' : '7天后有一场复查战（确认没有遗忘）',
+    nextJa: open ? `7日後の確認バトルで${PASS_LABEL.ja}を取れば攻略` : '7日後に確認バトルがあります（忘れていないかの確認）',
+    nextZh: open ? `通过7天后的复查战（${PASS_LABEL.zh}）即攻克` : '7天后有一场复查战（确认没有遗忘）',
   };
 };
 

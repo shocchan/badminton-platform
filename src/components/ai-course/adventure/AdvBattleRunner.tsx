@@ -9,7 +9,7 @@ import { companionById } from '../../../lib/aiLesson/course/adventure/advCompani
 import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, truncateEncounter, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
-import { computeMastery, type MasteryStatus } from '../../../lib/aiLesson/course/adventure/advMastery';
+import { computeMastery, type MasteryStatus, PASS_LABEL } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { nowTrainingLabel, EXAM_SKILL_LABELS } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 
@@ -322,8 +322,8 @@ function BattleResult(props: BattleProps & {
       {props.partial && (
         <p className="mt-2 rounded-xl bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-600">
           {tx(lang,
-            `途中でやめたので、解いた${props.enc.questions.length}問だけを記録しました。攻略（80%を別の日に3回）には数えません。`,
-            `因为中途结束了，只记录了已做的${props.enc.questions.length}题。这次不计入攻克（在不同的日子拿3次80%）。`)}
+            `途中でやめたので、解いた${props.enc.questions.length}問だけを記録しました。攻略（${PASS_LABEL.ja}を別の日に3回）には数えません。`,
+            `因为中途结束了，只记录了已做的${props.enc.questions.length}题。这次不计入攻克（在不同的日子拿3次${PASS_LABEL.zh}）。`)}
         </p>
       )}
       {/* 勝利したら相棒がいっしょに喜ぶ（§8・表示のみ） */}
@@ -353,7 +353,7 @@ function BattleResult(props: BattleProps & {
       <div className="mx-auto mt-3 max-w-sm rounded-xl border border-gray-200 bg-white p-4 text-left">
         <p className="text-sm font-semibold text-gray-900">{tx(lang, '攻略状況', '攻略进度')}</p>
         <p className="mt-1 flex items-center gap-2 text-sm text-gray-700">
-          <span>{tx(lang, `80%達成日：${mastery.qualifyingDays.length}/3`, `达成80%的天数：${mastery.qualifyingDays.length}/3`)}</span>
+          <span>{tx(lang, `${PASS_LABEL.ja}の達成日：${mastery.qualifyingDays.length}/3`, `达成${PASS_LABEL.zh}的天数：${mastery.qualifyingDays.length}/3`)}</span>
           <span className="flex gap-1" aria-hidden>
             {[0, 1, 2].map((i) => (
               <span key={i} className={`h-3 w-3 rounded-full ${i < mastery.qualifyingDays.length ? 'bg-emerald-500' : 'bg-gray-200'}`} />

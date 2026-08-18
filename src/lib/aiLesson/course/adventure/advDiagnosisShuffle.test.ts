@@ -19,7 +19,7 @@ const pools: DiagnosisPools = {
   foundationVocab: Array.from({ length: 6 }, (_, i) => q(`fv${i}`, 'foundation', 'vocabulary')),
   n3Vocab: Array.from({ length: 6 }, (_, i) => q(`nv${i}`, 'n3', 'vocabulary')),
   n3Grammar: Array.from({ length: 8 }, (_, i) => q(`ng${i}`, 'n3', 'grammar')),
-  n2Grammar: Array.from({ length: 8 }, (_, i) => q(`n2g${i}`, 'n2', 'grammar')),
+  n2Grammar: Array.from({ length: 8 }, (_, i) => q(`n2g${i}`, 'n2', 'grammar')), basicGrammarN5: [], basicGrammarN4: [],
 };
 
 describe('診断の選択肢シャッフル', () => {

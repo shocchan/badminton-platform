@@ -25,7 +25,7 @@
 // - 純関数のみ。現在時刻は必ず引数の nowISO から導く（Date.now() を呼ばない）。
 //   週の切り方も**JST固定**で、実行環境のTZに結果が左右されないようにしている（下記 weekStartKeyOf 参照）。
 import type { AdventureV2Profile } from './advTypes';
-import { MASTERY_RULES, masteredTargetIds, masteredTargetIdsAsOf } from './advMastery';
+import { MASTERY_RULES, masteredTargetIds, masteredTargetIdsAsOf, PASS_LABEL } from './advMastery';
 import { EXAM_SKILL_LABELS, type ExamSkill } from './advExamSkills';
 
 /** 生徒のホームに出す「先生からの一言」1件 */
@@ -453,8 +453,8 @@ export const buildNoteDraft = (
     zh.push(`新增${f.newlyMasteredCount}个项目达到了「隔天做对3次＋之后再确认」。`);
   }
   if (f.strugglingCount > 0) {
-    ja.push(`${f.strugglingCount}項目は${MASTERY_RULES.passPct}%に届かない回が続いています。`);
-    zh.push(`有${f.strugglingCount}个项目连续几次都没到${MASTERY_RULES.passPct}%。`);
+    ja.push(`${f.strugglingCount}項目は${PASS_LABEL.ja}に届かない回が続いています。`);
+    zh.push(`有${f.strugglingCount}个项目连续几次都没到${PASS_LABEL.zh}。`);
   }
   if (f.mockCount > 0) {
     ja.push(`ミニ模試を${f.mockCount}回やった記録があります。`);

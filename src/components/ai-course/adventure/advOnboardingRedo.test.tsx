@@ -11,7 +11,7 @@ import { AdvOnboarding } from './AdvOnboarding';
 import type { DiagnosisPools } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 
 const NOW = '2026-08-11T10:00:00.000Z';
-const pools: DiagnosisPools = { foundationVocab: [], n3Vocab: [], n3Grammar: [], n2Grammar: [] };
+const pools: DiagnosisPools = { foundationVocab: [], n3Vocab: [], n3Grammar: [], n2Grammar: [], basicGrammarN5: [], basicGrammarN4: [] };
 
 const renderOnboarding = (redo: boolean) => {
   const onComplete = vi.fn();
@@ -94,7 +94,7 @@ describe('診断完了時点の確定保存（onOutcomeReady・2026-08-15）', (
         promptJa: '設問', promptZh: '问题',
         choices: ['あ', 'い', 'う'], answerIndex: 0, explanationZh: '解说', refId: 'w1',
       }],
-      n3Vocab: [], n3Grammar: [], n2Grammar: [],
+      n3Vocab: [], n3Grammar: [], n2Grammar: [], basicGrammarN5: [], basicGrammarN4: [],
     };
     render(
       <AdvOnboarding lang="ja" pools={onePool} nowISO={NOW}
