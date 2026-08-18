@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.467Z",
+ "batchNo": 27,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-27-001",
+  "vc-27-002",
+  "vc-27-003",
+  "vc-27-004",
+  "vc-27-005",
+  "vc-27-006",
+  "vc-27-007",
+  "vc-27-008",
+  "vc-27-009",
+  "vc-27-010",
+  "vc-27-011",
+  "vc-27-012",
+  "vc-27-013",
+  "vc-27-014",
+  "vc-27-015",
+  "vc-27-016",
+  "vc-27-017",
+  "vc-27-018",
+  "vc-27-019",
+  "vc-27-020",
+  "vc-27-021",
+  "vc-27-022",
+  "vc-27-023",
+  "vc-27-024",
+  "vc-27-025",
+  "vc-27-026",
+  "vc-27-027",
+  "vc-27-028",
+  "vc-27-029",
+  "vc-27-030",
+  "vc-27-031",
+  "vc-27-032",
+  "vc-27-033",
+  "vc-27-034",
+  "vc-27-035",
+  "vc-27-036",
+  "vc-27-037",
+  "vc-27-038",
+  "vc-27-039",
+  "vc-27-040",
+  "vc-27-041",
+  "vc-27-042",
+  "vc-27-043",
+  "vc-27-044",
+  "vc-27-045",
+  "vc-27-046",
+  "vc-27-047",
+  "vc-27-048",
+  "vc-27-049",
+  "vc-27-050",
+  "vc-27-051",
+  "vc-27-052",
+  "vc-27-053",
+  "vc-27-054",
+  "vc-27-055",
+  "vc-27-056",
+  "vc-27-057",
+  "vc-27-058",
+  "vc-27-059",
+  "vc-27-060",
+  "vc-27-061",
+  "vc-27-062",
+  "vc-27-063",
+  "vc-27-064",
+  "vc-27-065",
+  "vc-27-066",
+  "vc-27-067",
+  "vc-27-068",
+  "vc-27-069",
+  "vc-27-070",
+  "vc-27-071",
+  "vc-27-072",
+  "vc-27-073",
+  "vc-27-074",
+  "vc-27-075",
+  "vc-27-076",
+  "vc-27-077",
+  "vc-27-078",
+  "vc-27-079",
+  "vc-27-080",
+  "vc-27-081",
+  "vc-27-082",
+  "vc-27-083",
+  "vc-27-084",
+  "vc-27-085",
+  "vc-27-086",
+  "vc-27-087",
+  "vc-27-088",
+  "vc-27-089",
+  "vc-27-090",
+  "vc-27-091",
+  "vc-27-092",
+  "vc-27-093",
+  "vc-27-094",
+  "vc-27-095",
+  "vc-27-096",
+  "vc-27-097",
+  "vc-27-098",
+  "vc-27-099",
+  "vc-27-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-27-001",
+   "surface": "短縮",
+   "kind": "no_dictionary_entry",
+   "detail": "短縮|たんしゅく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-002",
+   "surface": "中断",
+   "kind": "no_dictionary_entry",
+   "detail": "中断|ちゅうだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-003",
+   "surface": "再開",
+   "kind": "no_dictionary_entry",
+   "detail": "再開|さいかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-004",
+   "surface": "継続",
+   "kind": "no_dictionary_entry",
+   "detail": "継続|けいぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-005",
+   "surface": "臨時",
+   "kind": "no_dictionary_entry",
+   "detail": "臨時|りんじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-006",
+   "surface": "定刻",
+   "kind": "no_dictionary_entry",
+   "detail": "定刻|ていこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-007",
+   "surface": "時刻",
+   "kind": "no_dictionary_entry",
+   "detail": "時刻|じこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-008",
+   "surface": "早める",
+   "kind": "no_dictionary_entry",
+   "detail": "早める|はやめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-009",
+   "surface": "遅らせる",
+   "kind": "no_dictionary_entry",
+   "detail": "遅らせる|おくらせる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-010",
+   "surface": "繰り上げる",
+   "kind": "no_dictionary_entry",
+   "detail": "繰り上げる|くりあげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-011",
+   "surface": "繰り下げる",
+   "kind": "no_dictionary_entry",
+   "detail": "繰り下げる|くりさげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-012",
+   "surface": "前倒し",
+   "kind": "no_dictionary_entry",
+   "detail": "前倒し|まえだおし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-013",
+   "surface": "先送り",
+   "kind": "no_dictionary_entry",
+   "detail": "先送り|さきおくり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-014",
+   "surface": "後回し",
+   "kind": "no_dictionary_entry",
+   "detail": "後回し|あとまわし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-015",
+   "surface": "短期",
+   "kind": "no_dictionary_entry",
+   "detail": "短期|たんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-016",
+   "surface": "見込み",
+   "kind": "no_dictionary_entry",
+   "detail": "見込み|みこみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-017",
+   "surface": "事前",
+   "kind": "no_dictionary_entry",
+   "detail": "事前|じぜん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-018",
+   "surface": "直前",
+   "kind": "no_dictionary_entry",
+   "detail": "直前|ちょくぜん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-019",
+   "surface": "直後",
+   "kind": "no_dictionary_entry",
+   "detail": "直後|ちょくご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-020",
+   "surface": "翌日",
+   "kind": "no_dictionary_entry",
+   "detail": "翌日|よくじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-021",
+   "surface": "翌週",
+   "kind": "no_dictionary_entry",
+   "detail": "翌週|よくしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-022",
+   "surface": "翌月",
+   "kind": "no_dictionary_entry",
+   "detail": "翌月|よくげつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-023",
+   "surface": "以後",
+   "kind": "no_dictionary_entry",
+   "detail": "以後|いご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-024",
+   "surface": "その後",
+   "kind": "no_dictionary_entry",
+   "detail": "その後|そのご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-025",
+   "surface": "先ほど",
+   "kind": "no_dictionary_entry",
+   "detail": "先ほど|さきほど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-026",
+   "surface": "後ほど",
+   "kind": "no_dictionary_entry",
+   "detail": "後ほど|のちほど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-027",
+   "surface": "従来",
+   "kind": "no_dictionary_entry",
+   "detail": "従来|じゅうらい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-028",
+   "surface": "現在",
+   "kind": "no_dictionary_entry",
+   "detail": "現在|げんざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-029",
+   "surface": "時間帯",
+   "kind": "no_dictionary_entry",
+   "detail": "時間帯|じかんたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-030",
+   "surface": "半年",
+   "kind": "no_dictionary_entry",
+   "detail": "半年|はんとし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-031",
+   "surface": "数年",
+   "kind": "no_dictionary_entry",
+   "detail": "数年|すうねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-032",
+   "surface": "長年",
+   "kind": "no_dictionary_entry",
+   "detail": "長年|ながねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-033",
+   "surface": "近年",
+   "kind": "no_dictionary_entry",
+   "detail": "近年|きんねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-034",
+   "surface": "日々",
+   "kind": "no_dictionary_entry",
+   "detail": "日々|ひび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-035",
+   "surface": "終日",
+   "kind": "no_dictionary_entry",
+   "detail": "終日|しゅうじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-036",
+   "surface": "連日",
+   "kind": "no_dictionary_entry",
+   "detail": "連日|れんじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-037",
+   "surface": "夜間",
+   "kind": "no_dictionary_entry",
+   "detail": "夜間|やかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-038",
+   "surface": "深夜",
+   "kind": "no_dictionary_entry",
+   "detail": "深夜|しんや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-039",
+   "surface": "早朝",
+   "kind": "no_dictionary_entry",
+   "detail": "早朝|そうちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-040",
+   "surface": "当面",
+   "kind": "no_dictionary_entry",
+   "detail": "当面|とうめん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-041",
+   "surface": "当分",
+   "kind": "no_dictionary_entry",
+   "detail": "当分|とうぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-042",
+   "surface": "しばらく",
+   "kind": "no_dictionary_entry",
+   "detail": "しばらく|しばらく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-043",
+   "surface": "まもなく",
+   "kind": "no_dictionary_entry",
+   "detail": "まもなく|まもなく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-044",
+   "surface": "やがて",
+   "kind": "no_dictionary_entry",
+   "detail": "やがて|やがて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-045",
+   "surface": "そのうち",
+   "kind": "no_dictionary_entry",
+   "detail": "そのうち|そのうち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-046",
+   "surface": "早速",
+   "kind": "no_dictionary_entry",
+   "detail": "早速|さっそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-047",
+   "surface": "突然",
+   "kind": "no_dictionary_entry",
+   "detail": "突然|とつぜん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-048",
+   "surface": "いきなり",
+   "kind": "no_dictionary_entry",
+   "detail": "いきなり|いきなり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-049",
+   "surface": "すでに",
+   "kind": "no_dictionary_entry",
+   "detail": "すでに|すでに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-050",
+   "surface": "今更",
+   "kind": "no_dictionary_entry",
+   "detail": "今更|いまさら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-051",
+   "surface": "瞬間",
+   "kind": "no_dictionary_entry",
+   "detail": "瞬間|しゅんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-052",
+   "surface": "近々",
+   "kind": "no_dictionary_entry",
+   "detail": "近々|ちかぢか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-053",
+   "surface": "頻度",
+   "kind": "no_dictionary_entry",
+   "detail": "頻度|ひんど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-054",
+   "surface": "再度",
+   "kind": "no_dictionary_entry",
+   "detail": "再度|さいど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-055",
+   "surface": "再び",
+   "kind": "no_dictionary_entry",
+   "detail": "再び|ふたたび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-056",
+   "surface": "たびたび",
+   "kind": "no_dictionary_entry",
+   "detail": "たびたび|たびたび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-057",
+   "surface": "しばしば",
+   "kind": "no_dictionary_entry",
+   "detail": "しばしば|しばしば が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-058",
+   "surface": "めったに",
+   "kind": "no_dictionary_entry",
+   "detail": "めったに|めったに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-059",
+   "surface": "たまに",
+   "kind": "no_dictionary_entry",
+   "detail": "たまに|たまに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-060",
+   "surface": "常に",
+   "kind": "no_dictionary_entry",
+   "detail": "常に|つねに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-061",
+   "surface": "絶えず",
+   "kind": "no_dictionary_entry",
+   "detail": "絶えず|たえず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-062",
+   "surface": "繰り返す",
+   "kind": "no_dictionary_entry",
+   "detail": "繰り返す|くりかえす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-063",
+   "surface": "繰り返し",
+   "kind": "no_dictionary_entry",
+   "detail": "繰り返し|くりかえし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-064",
+   "surface": "不定期",
+   "kind": "no_dictionary_entry",
+   "detail": "不定期|ふていき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-065",
+   "surface": "順序",
+   "kind": "no_dictionary_entry",
+   "detail": "順序|じゅんじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-066",
+   "surface": "優先",
+   "kind": "no_dictionary_entry",
+   "detail": "優先|ゆうせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-067",
+   "surface": "先着",
+   "kind": "no_dictionary_entry",
+   "detail": "先着|せんちゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-068",
+   "surface": "初期",
+   "kind": "no_dictionary_entry",
+   "detail": "初期|しょき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-069",
+   "surface": "完了",
+   "kind": "no_dictionary_entry",
+   "detail": "完了|かんりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-070",
+   "surface": "目立つ",
+   "kind": "no_dictionary_entry",
+   "detail": "目立つ|めだつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-071",
+   "surface": "急増",
+   "kind": "no_dictionary_entry",
+   "detail": "急増|きゅうぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-072",
+   "surface": "増減",
+   "kind": "no_dictionary_entry",
+   "detail": "増減|ぞうげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-073",
+   "surface": "増える",
+   "kind": "no_dictionary_entry",
+   "detail": "増える|ふえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-074",
+   "surface": "減る",
+   "kind": "no_dictionary_entry",
+   "detail": "減る|へる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-075",
+   "surface": "徐々に",
+   "kind": "no_dictionary_entry",
+   "detail": "徐々に|じょじょに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-076",
+   "surface": "低下",
+   "kind": "no_dictionary_entry",
+   "detail": "低下|ていか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-077",
+   "surface": "向上",
+   "kind": "no_dictionary_entry",
+   "detail": "向上|こうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-078",
+   "surface": "縮む",
+   "kind": "no_dictionary_entry",
+   "detail": "縮む|ちぢむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-079",
+   "surface": "一気に",
+   "kind": "no_dictionary_entry",
+   "detail": "一気に|いっきに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-080",
+   "surface": "状況",
+   "kind": "no_dictionary_entry",
+   "detail": "状況|じょうきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-081",
+   "surface": "伸びる",
+   "kind": "no_dictionary_entry",
+   "detail": "伸びる|のびる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-082",
+   "surface": "延びる",
+   "kind": "no_dictionary_entry",
+   "detail": "延びる|のびる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-083",
+   "surface": "変わる",
+   "kind": "no_dictionary_entry",
+   "detail": "変わる|かわる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-084",
+   "surface": "変える",
+   "kind": "no_dictionary_entry",
+   "detail": "変える|かえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-085",
+   "surface": "一定",
+   "kind": "no_dictionary_entry",
+   "detail": "一定|いってい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-086",
+   "surface": "超える",
+   "kind": "no_dictionary_entry",
+   "detail": "超える|こえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-087",
+   "surface": "急激",
+   "kind": "no_dictionary_entry",
+   "detail": "急激|きゅうげき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-088",
+   "surface": "経過",
+   "kind": "no_dictionary_entry",
+   "detail": "経過|けいか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-089",
+   "surface": "程度",
+   "kind": "no_dictionary_entry",
+   "detail": "程度|ていど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-090",
+   "surface": "およそ",
+   "kind": "no_dictionary_entry",
+   "detail": "およそ|およそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-091",
+   "surface": "比べる",
+   "kind": "no_dictionary_entry",
+   "detail": "比べる|くらべる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-092",
+   "surface": "目安",
+   "kind": "no_dictionary_entry",
+   "detail": "目安|めやす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-093",
+   "surface": "規模",
+   "kind": "no_dictionary_entry",
+   "detail": "規模|きぼ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-094",
+   "surface": "ずいぶん",
+   "kind": "no_dictionary_entry",
+   "detail": "ずいぶん|ずいぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-095",
+   "surface": "わずか",
+   "kind": "no_dictionary_entry",
+   "detail": "わずか|わずか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-096",
+   "surface": "ほんの",
+   "kind": "no_dictionary_entry",
+   "detail": "ほんの|ほんの が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-097",
+   "surface": "せいぜい",
+   "kind": "no_dictionary_entry",
+   "detail": "せいぜい|せいぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-098",
+   "surface": "少なくとも",
+   "kind": "no_dictionary_entry",
+   "detail": "少なくとも|すくなくとも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-099",
+   "surface": "限度",
+   "kind": "no_dictionary_entry",
+   "detail": "限度|げんど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-27-100",
+   "surface": "上限",
+   "kind": "no_dictionary_entry",
+   "detail": "上限|じょうげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

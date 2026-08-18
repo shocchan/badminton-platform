@@ -2,8 +2,7 @@
 // 優先順位: ①期限切れ/当日復習 ②最大の弱点 ③試験日残 ④未習得の目標教材 ⑤会話転用 ⑥多様性 ⑦前日重複回避。
 // 生成結果は必ず why / 所要 / 対象能力 / 対象表現 / 成功条件 / 次の一歩 を持つ。
 import type {
-  AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile,
-} from './advTypes';
+  AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile, JlptLevel } from './advTypes';
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
 import { masteredStageIds } from './advMastery';
@@ -28,6 +27,16 @@ export interface QuestContentAvailability {
    * 語彙バンク約2,200語をデイリーループへ接続する。未指定なら語彙バトルは出ない
    */
   vocabBattleTargetId?: string | null;
+  /**
+   * ボスstage（模擬ボス・N2の門）の出題対象（2026-08-18 P0）。
+   *
+   * 現在地がボスstageのとき、**今日の一手をボス戦にする**ために使う。
+   * これが無いと、ボスstageは配下コンテンツを全部攻略済みにしているので
+   * learn も battle も出ず、今日の冒険が会話ミッションだけになる
+   * （＝ボスに挑む手段が画面のどこにも無く、ルートが永久に未完了になる）。
+   * 束ID・単元IDだけを渡すこと（stageIdはプールのキーではないので0問バトルになる）
+   */
+  bossBattleTargetIds?: string[];
 }
 
 /**
@@ -38,9 +47,14 @@ export interface QuestContentAvailability {
  * 語彙バンク約3,349語がHomeのchunkへ入ってしまう**ので、値はここに置き、
  * VOCAB_SCOPE と一致していることは vocab/vocabSubset.test.ts で機械的に固定する。
  */
-export const VOCAB_BANDS_IN_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
+// 2026-08-18: N5/N4 目標を解禁。目標より上のバンドは出さない
+// （N5を目指す人にN3語を出すと、覚える必要のない語で日が埋まる）
+export const VOCAB_BANDS_IN_SCOPE: Record<JlptLevel, readonly string[]> = {
+  N5: ['vocab-n5'],
+  N4: ['vocab-n5', 'vocab-n4'],
   N3: ['vocab-n5', 'vocab-n4', 'vocab-n3'],
   N2: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2'],
+  N1: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2'],
 };
 
 /**
@@ -51,7 +65,7 @@ export const VOCAB_BANDS_IN_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
  * 確認バトルの対象として選ばれ、N3スコープにはN2語が無いためプールが空になり、
  * その日の冒険が締めくくれなくなっていた。
  */
-export const isVocabTargetInScope = (targetId: string, targetLevel: 'N2' | 'N3'): boolean =>
+export const isVocabTargetInScope = (targetId: string, targetLevel: JlptLevel): boolean =>
   !targetId.startsWith('vocab-') || VOCAB_BANDS_IN_SCOPE[targetLevel].includes(targetId);
 
 /**
@@ -62,7 +76,7 @@ export const isVocabTargetInScope = (targetId: string, targetLevel: 'N2' | 'N3')
  * 目標をN2→N3へ変えた生徒にN2のstageが残っている場合に効く）
  */
 export const vocabTargetForStage = (
-  kind: AdvRouteStage['kind'], targetLevel: 'N2' | 'N3', dayNum: number,
+  kind: AdvRouteStage['kind'], targetLevel: JlptLevel, dayNum: number,
 ): string | null => {
   if (kind === 'conversation_start' || kind === 'conversation_growth') return null;
   const band = (() => {
@@ -71,7 +85,11 @@ export const vocabTargetForStage = (
     if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
     return 'vocab-n3';
   })();
-  return isVocabTargetInScope(band, targetLevel) ? band : 'vocab-n3';
+  if (isVocabTargetInScope(band, targetLevel)) return band;
+  // 範囲外だったときの受け皿。従来は 'vocab-n3' 固定だったが、N5/N4 目標では
+  // それ自体が範囲外になるため、目標に含まれる一番上のバンドへ落とす
+  const inScope = VOCAB_BANDS_IN_SCOPE[targetLevel];
+  return inScope[inScope.length - 1] ?? null;
 };
 
 export interface GenerateQuestInput {
@@ -172,10 +190,19 @@ const stageSteps = (
   const learn = g
     ? step('grammar_new', [g], '新しい文法を学ぶ', '学习新语法')
     : u ? step('vocab_new', [u], '単元のことばを学ぶ', '学习单元词汇') : null;
-  const battleRef = g ? (avail.grammarBundleByItem?.get(g) ?? g) : (u ?? stage.stageId);
+  /**
+   * バトルの対象は**出題プールを持つ学習対象**だけにする（2026-08-18 P0）。
+   *
+   * 以前は学習対象が尽きた日に `stage.stageId`（例 `stg-foundation`）へ落としていたが、
+   * stageIdはプールのキーではないので **0問のバトル**になり、押すと
+   * 「この対象にはまだ出題できる問題がありません」で終わる＝押しても何も起きない。
+   * 実測: 4目標すべてで、確認待ちが重なる最後の1週間に4〜5日発生していた。
+   * 対象が無い日はバトルを出さない（無いものを出せるふりをしない・原則13/15）。
+   */
+  const battleRef = g ? (avail.grammarBundleByItem?.get(g) ?? g) : u;
   return {
     learn,
-    battle: step('battle', [battleRef], '問題バトル', '问题战斗', 'normal'),
+    battle: battleRef ? step('battle', [battleRef], '問題バトル', '问题战斗', 'normal') : null,
     // 起動する会話は既存runtimeの今週ミッション（今日の文法をテーマにする接続は未実装）。
     // 「今日の文法を会話で使う」と掲げると実体と食い違うため、誇張しない題名にする（原則13）。
     // targetExpressions は言い直しstepが実際に使うので expressions はそのまま残す
@@ -237,6 +264,32 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   }
   const parts = stageSteps(stage, availability, seed, dateKey);
 
+  /**
+   * ボス戦（2026-08-18 P0）。学習コンテンツの供給元（contentStage）ではなく
+   * **現在地**で判断する。N2の門のように、現在地がボスでも学習は先のstageから供給されるため。
+   * 所要は編成そのまま（rankboss 20問×40秒／midboss 12問×35秒）を分で書く。誇張も過小申告もしない
+   */
+  const currentStage = currentStageOf(route, done) ?? stage;
+  const bossTargets = availability.bossBattleTargetIds ?? [];
+  const bossStep: AdvQuestStep | null =
+    (currentStage.kind === 'mock_boss' || currentStage.kind === 'n2_gate') && bossTargets.length > 0
+      ? {
+        kind: 'battle',
+        refIds: bossTargets,
+        titleJa: `${currentStage.titleJa}に挑む（時間つき）`,
+        titleZh: `挑战${currentStage.titleZh}（限时）`,
+        estMinutes: currentStage.kind === 'mock_boss' ? 14 : 7,
+        tier: currentStage.kind === 'mock_boss' ? 'rankboss' : 'midboss',
+      }
+      : null;
+  /**
+   * 読解stageが現在地か（2026-08-18 P0）。
+   * このstageの攻略条件は読解の実績そのもの（stageMasteryTargetIds）なので、
+   * 「未着手か・最弱か・試験が近いか」の配分ルールに関係なく毎日出す。
+   * 出さないと読解の実績が積み上がらず、ルートがそこで永久に止まる
+   */
+  const readingIsTheStage = currentStage.kind === 'reading_listening';
+
   // 7日後の確認が解禁されたtargetがあれば、今日のバトルは確認バトルにする（攻略を確定させる一手が最優先）
   const isConvStageKind = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth';
   const confirmTarget = (availability.confirmTargetIds ?? [])[0];
@@ -272,21 +325,36 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const ex = input.examSkills;
   const examCandidates = (): AdvQuestStep[] => {
     if (!ex || goalType === 'conversation') return [];
-    // 基礎固め中（基礎キャンプ・N3橋）はN3読解・聴解を出さない。
-    // 診断で基礎不足と測った直後にN3長文を毎日出すのは「現在地はAIが測る」（canon§1）への裏切りになる
-    if (stage.kind === 'foundation_camp' || stage.kind === 'n3_bridge') return [];
+    // 基礎固め中（基礎キャンプ・N3橋）は**目標より上のレベルの**読解・聴解を出さない。
+    // 診断で基礎不足と測った直後にN3長文を毎日出すのは「現在地はAIが測る」（canon§1）への裏切りになる。
+    //
+    // ただし **N5/N4を目標にした人の読解は基礎帯そのもの**（2026-08-18）。
+    // ここで一律に外していたため、N5/N4ルートは stage が基礎キャンプ／N4文法しか無く、
+    // 読解stepが**一度も出ない**（実測: 完走まで N5=52日・N4=103日、読解0回）。
+    // 今日追加したN5/N4読解96セットが丸ごと死蔵されていた
+    const basicTarget = profile.targetJlpt === 'N5' || profile.targetJlpt === 'N4';
+    if (!basicTarget && (stage.kind === 'foundation_camp' || stage.kind === 'n3_bridge')) return [];
     const out: AdvQuestStep[] = [];
     const readingAvailable = ex.readingTargetIds.length > 0;
     const listeningAvailable = ex.listeningTargetIds.length > 0;
     const readingNeeded = readingAvailable
-      && (ex.readingEvidence === 0 || ex.weakestSkill === 'reading' || (daysToExam !== null && daysToExam < 60));
+      && (readingIsTheStage || ex.readingEvidence === 0 || ex.weakestSkill === 'reading' || (daysToExam !== null && daysToExam < 60));
     const listeningNeeded = listeningAvailable
       && (ex.listeningEvidence === 0 || ex.weakestSkill === 'listening' || (daysToExam !== null && daysToExam < 60));
-    // 未着手のほうを先に。両方未着手なら曜日で交互にして偏らせない
-    const alternate = Number(dateKey.slice(-2)) % 2 === 0;
+    // 未着手のほうを先に。両方未着手なら日替わりで交互にして偏らせない。
+    //
+    // 2026-08-18 修正: ここは以前 `日付 % 2 === 0`（＝偶数日に読解）だったが、
+    // 15分設定の試験技能ゲートは `examDay = 日付 % 2 === 1`（＝奇数日）だった。
+    // 2つの条件が排他なので、**読解と聴解の両方が必要な人には読解が永久に出ない**。
+    // 実測（N2目標・15分・両方未着手）: 28日中 読解0日 / 聴解14日。
+    // 隔日でしか試験技能が出ない15分設定でも交互になるよう、2日ぶんを1周期にする。
+    // 30分設定（examDayゲート無し）でも 28日中14日ずつで均衡することを実測で確認済み。
+    const alternate = Math.floor(dayNum / 2) % 2 === 0;
     const readingStep = step('reading_short', ex.readingTargetIds.slice(0, 1), '短文読解', '短文阅读');
     const listeningStep = step('listening_practice', ex.listeningTargetIds.slice(0, 1), '聴解トレーニング', '听力训练');
-    if (readingNeeded && listeningNeeded) out.push(alternate ? readingStep : listeningStep);
+    // 読解stageが現在地の日は必ず読解を出す（そこが攻略条件そのものなので交互配分に譲らない）
+    if (readingIsTheStage && readingNeeded) out.push(readingStep);
+    else if (readingNeeded && listeningNeeded) out.push(alternate ? readingStep : listeningStep);
     else if (readingNeeded) out.push(readingStep);
     else if (listeningNeeded) out.push(listeningStep);
     return out;
@@ -309,23 +377,39 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // 言い直しは素材がある日だけ入れる（基礎キャンプ等、文法誤答も会話表現も無い日は空stepになるため）
   const restateAvailable = weakGrammarIds.length > 0 || parts.expressions.length > 0;
 
+  /**
+   * ボス戦と、読解stageの読解stepは**どの学習時間設定でも必ず入れる**（2026-08-18 P0）。
+   * ここが時間別テンプレの分岐に埋もれると「5分設定の人はボスに挑む手段が無い」等、
+   * 設定によってルートを完走できない人ができる。所要は上でtierどおりに申告している。
+   */
+  const mustPushReading = readingIsTheStage && examStep?.kind === 'reading_short';
   if (minutes === 5) {
     // 5分: 復習＋弱点1つ or 新規のどちらか＋ミニ会話（会話goalのみ）。
     // バトルが一度も出ないと攻略（mastery）が永久に進まないため、奇数日はバトルを入れる
     const battleDay = Number(dateKey.slice(-2)) % 2 === 1;
-    if (battleDay && parts.battle) push(parts.battle);
+    if (bossStep || mustPushReading) {
+      push(bossStep ?? examStep);
+      // 解禁済みの確認バトルは落とさない（落とすと、そのtargetの攻略が確定しないまま
+      // 「今日の確認バトル」に出続ける。ボス待ちの間に予報だけが溜まる）
+      if (confirmTarget && parts.battle) push(parts.battle);
+    } else if (battleDay && parts.battle) push(parts.battle);
     else if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 1), '弱点を1つつぶす', '攻克1个弱点'));
     else push(parts.learn);
     if (goalType !== 'jlpt') push(parts.conv);
   } else if (minutes === 15) {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 2), '弱点補強', '弱点补强'));
     push(parts.learn);
+    if (bossStep) push(bossStep);
+    if (mustPushReading) push(examStep);
     // 15分では文法と試験技能のどちらかを入れる（両方入れると時間超過する）。
     // ただし語彙・文法のevidenceはバトルからしか入らないため、試験技能を常に優先すると
     // 「バトルが出ない→語彙/文法が未測定→読解/聴解が常に最弱→バトル永久排除」の循環が確定する。
     // 試験技能は奇数日に限定し、バトルを少なくとも隔日で必ず回す。
     const examDay = Number(dateKey.slice(-2)) % 2 === 1;
-    if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
+    if (mustPushReading || bossStep) {
+      // 上で入れたぶんで今日の枠は埋まっている。ただし解禁済みの確認バトルだけは落とさない
+      if (confirmTarget && parts.battle) push(parts.battle);
+    } else if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
     // 3日に1回は語彙バトル（確認バトルの日と、文法バトルが無い日はそちらを優先/代替）
     else if (vocabStep && !confirmTarget && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
     else push(parts.battle);
@@ -334,6 +418,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   } else {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 3), '弱点補強', '弱点补强'));
     push(parts.learn);
+    if (bossStep) push(bossStep);
     push(parts.battle);
     if (vocabStep && !confirmTarget) push(vocabStep);
     push(examSkillStep());
@@ -367,12 +452,12 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     // stepの✓はバトルを最後まで解いた時点で付く（点数は問わない）。
     // 80%は「攻略が1日ぶん進む」条件（別日3回＋遅延確認で攻略・advMastery）なので、
     // 達成の条件ではなく“伸びる条件”として添える。旧文言は0%でも✓が付く実装と食い違っていた
-    successConditionJa: parts.battle
+    successConditionJa: (parts.battle ?? bossStep)
       ? (hasConv
         ? 'バトルを最後まで解き、AI会話を1回終える（80%以上なら攻略が1日ぶん進みます）'
         : 'バトルを最後まで解く（80%以上なら攻略が1日ぶん進みます）')
       : (hasConv ? 'AI会話を1回終える' : '今日のstepをすべて終える'),
-    successConditionZh: parts.battle
+    successConditionZh: (parts.battle ?? bossStep)
       ? (hasConv
         ? '把战斗做到最后，并完成一次AI会话（拿到80%以上，攻略就前进一天）'
         : '把战斗做到最后（拿到80%以上，攻略就前进一天）')

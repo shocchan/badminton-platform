@@ -20,9 +20,14 @@ export const AREA_UNIT_MAP: Record<string, string[]> = {
   'area07-katachi': ['n3u-08-change', 'n3u-11-situation', 'n3u-12-adverb'],
 };
 
-const DESTINATION: Record<'N3' | 'N2', { areaId: string; labelJa: string; labelZh: string }> = {
+const DESTINATION: Record<JlptLevel, { areaId: string; labelJa: string; labelZh: string }> = {
+  // 2026-08-18: N5/N4 を目的地として追加（CEO指示）。
+  // 目的地はその人が最初に到達する場所であって、上位レベルへの入口でもある
+  N5: { areaId: 'area01-minato', labelJa: 'N5・ミナト（基礎の港）', labelZh: 'N5・ミナト｜雾之港城（基础）' },
+  N4: { areaId: 'area03-toorimichi', labelJa: 'N4・トオリミチ（暮らしの道）', labelZh: 'N4・トオリミチ｜通行之路（生活）' },
   N3: { areaId: 'area07-katachi', labelJa: 'N3・カタチの遺跡', labelZh: 'N3・カタチの遺跡｜形之遗迹' },
   N2: { areaId: 'area08-sorano', labelJa: 'N2・ソラノ塔', labelZh: 'N2・ソラノ塔｜天空塔' },
+  N1: { areaId: 'area08-sorano', labelJa: 'N1（未対応）', labelZh: 'N1（尚未支持）' },
 };
 
 /** 会話開始地点（§6）。「あなたはN3」と断定せず「開始地点はこのエリア」と言うための対応表 */
@@ -57,12 +62,67 @@ const stage = (
 });
 
 /** JLPT系のstage列を組む（現在地に応じて経由地を足す。目的地は落とさない） */
-const jlptStages = (target: 'N3' | 'N2', knowledge: AdvBand, d: AdvDiagnosisResult | null): AdvRouteStage[] => {
+const jlptStages = (target: JlptLevel, knowledge: AdvBand, d: AdvDiagnosisResult | null): AdvRouteStage[] => {
   const s: AdvRouteStage[] = [];
   const vocabGaps = d?.vocabularyGapIds ?? [];
   const grammarGaps = d?.grammarGapIds ?? [];
   // 未判定は安全側（基礎から）に倒す。§10 未判定を隠さない
   const kb = knowledge;
+
+  /**
+   * N5目標（2026-08-18）。基礎キャンプ → N5読解 → N5模試 で閉じる。
+   * 上のレベルのstageは出さない: N5を目指す人にN3文法76項目を見せても、
+   * 「まだ遠い」しか伝わらず、目的地に着いたことも分からない。
+   */
+  if (target === 'N5') {
+    s.push(stage('stg-foundation', 'foundation_camp', 'area01-minato',
+      '基礎キャンプ', '基础营地',
+      // 項目数は basicGrammarChunks の N5_UNIT_IDS 実数と合わせること（2026-08-18の追加で48→62）
+      'N5の文法62項目とことばを固める', '夯实62项N5语法和基础词汇',
+      {
+        n3UnitIds: [...AREA_UNIT_MAP['area01-minato'], ...AREA_UNIT_MAP['area02-hinode']],
+        basicUnits: N5_UNIT_IDS, vocabularyIds: vocabGaps,
+      }));
+    s.push(stage('stg-n5reading', 'reading_listening', 'area01-minato',
+      'N5の読みもの', 'N5阅读',
+      '掲示・メモ・短いお知らせを読み取る', '读懂告示、便条和简短通知',
+      { n3UnitIds: AREA_UNIT_MAP['area01-minato'] }));
+    s.push(stage('stg-n5boss', 'mock_boss', 'area01-minato',
+      'N5達成の確認', 'N5达成确认',
+      'N5の範囲を通しで確かめる', '通盘确认N5范围',
+      { basicUnits: N5_UNIT_IDS }));
+    return s;
+  }
+
+  /** N4目標（2026-08-18）。基礎が要る人だけ基礎キャンプを挟み、N4文法 → N4読解 → 確認。 */
+  if (target === 'N4') {
+    if (kb === 'needs_assessment' || !bandAtLeast(kb, 'n4')) {
+      s.push(stage('stg-foundation', 'foundation_camp', 'area01-minato',
+        '基礎キャンプ', '基础营地',
+        'N5の土台を先に固める', '先夯实N5的基础',
+        {
+          n3UnitIds: [...AREA_UNIT_MAP['area01-minato'], ...AREA_UNIT_MAP['area02-hinode']],
+          basicUnits: N5_UNIT_IDS, vocabularyIds: vocabGaps,
+        }));
+    }
+    s.push(stage('stg-n4grammar', 'n3_bridge', 'area03-toorimichi',
+      'N4文法攻略', 'N4语法攻略',
+      // 項目数は basicGrammarChunks の N4_UNIT_IDS 実数と合わせること（2026-08-18の追加で60→86）
+      'て形・可能・条件・受身・敬語まで86項目', '从て形到敬语，共86项',
+      {
+        n3UnitIds: [...AREA_UNIT_MAP['area03-toorimichi'], ...AREA_UNIT_MAP['area04-ichiba']],
+        basicUnits: N4_UNIT_IDS, vocabularyIds: vocabGaps,
+      }));
+    s.push(stage('stg-n4reading', 'reading_listening', 'area03-toorimichi',
+      'N4の読みもの', 'N4阅读',
+      '手紙・案内・説明文を読み取る', '读懂信件、通知和说明文',
+      { n3UnitIds: AREA_UNIT_MAP['area03-toorimichi'] }));
+    s.push(stage('stg-n4boss', 'mock_boss', 'area03-toorimichi',
+      'N4達成の確認', 'N4达成确认',
+      'N4の範囲を通しで確かめる', '通盘确认N4范围',
+      { basicUnits: N4_UNIT_IDS }));
+    return s;
+  }
 
   const needFoundation = kb === 'needs_assessment' || !bandAtLeast(kb, 'n4_late');
   const needN3Bridge = kb === 'needs_assessment' || !bandAtLeast(kb, 'n3');
@@ -175,7 +235,9 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
     };
   }
 
-  const target: 'N3' | 'N2' = targetJlpt === 'N3' ? 'N3' : 'N2';
+  // 2026-08-18: N5/N4 を解禁。以前は 'N3' 以外を全部 'N2' に丸めていたため、
+  // N5を選んだ人にもソラノ塔（N2）までの8stageが出ていた
+  const target: JlptLevel = targetJlpt ?? 'N2';
   const dest = DESTINATION[target];
   const stages = jlptStages(target, knowledgeBand, diagnosis);
   const hasFoundationDetour = stages.some((st) => st.kind === 'foundation_camp' || st.kind === 'n3_bridge');
@@ -216,8 +278,63 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
   return base;
 };
 
-/** stage攻略判定に使う配下target一覧（stageContentのgrammar解決規則と同一に保つこと） */
-export const stageMasteryTargetIds = (
+/**
+ * stageごとの初級文法束（generateRoute が新規ルートへ入れているものと同一）。
+ * kind では引けない（mock_boss は N5ボス＝N5束・N4ボス＝N4束・N3/N2ボス＝無し）ので stageId で持つ。
+ * ここと jlptStages の basicUnits がズレたら advSavedRouteMigration.test.ts が落ちる。
+ */
+const BASIC_UNITS_BY_STAGE_ID: Record<string, readonly string[]> = {
+  'stg-foundation': N5_UNIT_IDS,
+  'stg-n5boss': N5_UNIT_IDS,
+  'stg-n3bridge': N4_UNIT_IDS,
+  'stg-n4grammar': N4_UNIT_IDS,
+  'stg-n4boss': N4_UNIT_IDS,
+};
+
+/**
+ * 保存済みルートの取り込み時補正（2026-08-18 P0）。
+ *
+ * ルートは**生成時のスナップショット**で jsonb に保存され、generateRoute は
+ * 「冒険の準備」（AdvOnboarding）でしか走らない。つまり generateRoute の出力を変えても、
+ * すでに冒険を始めている学習者のルートは**永久に古いまま**になる。
+ *
+ * 実害（実測・2026-08-17 のスナップショットで確認）:
+ * 2026-08-17 に foundation_camp / n3_bridge へ初級文法（N5/N4）を足したが、
+ * それ以前に準備を終えた学習者の stg-n3bridge は targets に basicUnits を持たないため、
+ * stageContent の nextGrammarIds が **0件** のままになる。
+ * 結果、ステージ名は「N3語彙・文法の橋」なのに文法が1項目も出ず、
+ * 今日の冒険の学習stepが毎日まったく同じ `vocab_new[n3u-03-move]` で固定される
+ * （実在の有料生徒1名が実際にこの状態だった）。
+ *
+ * ここでは**stage種別から決まる初級文法束だけ**を補う。ルート全体を作り直さないのは、
+ * 生成し直すと診断帯が変わったときに stage 構成そのもの（＝本人が見てきた道のり）が
+ * 入れ替わってしまうため。すでに basicUnits を持つルートには何もしない（冪等）。
+ */
+export const migrateSavedRoute = (route: AdvRoute): AdvRoute => {
+  if (!Array.isArray(route?.stages)) return route;
+  let changed = false;
+  const stages = route.stages.map((s) => {
+    const def = BASIC_UNITS_BY_STAGE_ID[s?.stageId];
+    const cur = s?.targets?.basicUnits;
+    if (!def || (Array.isArray(cur) && cur.length > 0)) return s;
+    changed = true;
+    return { ...s, targets: { ...(s.targets ?? {}), basicUnits: [...def] } };
+  });
+  return changed ? { ...route, stages } : route;
+};
+
+/**
+ * 読解の証跡target（AdvShell の recordSkillResult が書くキーと同一）。
+ * ここを変えたら AdvShell 側（`reading-${targetJlpt}`.toLowerCase()）も必ず変えること。
+ */
+export const readingEvidenceTargetId = (targetLevel: JlptLevel | null | undefined): string | null =>
+  targetLevel ? `reading-${targetLevel.toLowerCase()}` : null;
+
+/**
+ * stageの配下コンテンツtarget（単元ID・文法束ID）。**出題プールのキーになるものだけ**を返す。
+ * ボス戦の出題対象にも使うので、攻略済みかどうかでは絞らない。
+ */
+export const stageContentTargetIds = (
   stage: AdvRouteStage, allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
   n3BundleByItem?: Map<string, string>, basicByUnit?: Map<string, string[]>,
   basicBundleByUnit?: Map<string, string>,
@@ -246,6 +363,44 @@ export const stageMasteryTargetIds = (
   return ids;
 };
 
+/**
+ * stage攻略判定に使うtarget一覧（stageContentのgrammar解決規則と同一に保つこと）。
+ *
+ * 【2026-08-18 P0】以前はどのstageも「配下コンテンツ」だけを見ていた。
+ * ところが読解stage・ボスstage・N2の門は、配下コンテンツが**手前のstageと同じか部分集合**で、
+ * 手前を終えた瞬間に攻略済みへ変わっていた。実測（自作シミュレータ・全stage攻略まで日次再現）:
+ *   N5 = stg-n5reading / stg-n5boss、N4 = stg-n4reading / stg-n4boss、
+ *   N3 = stg-n3boss、N2 = stg-n2gate / stg-n2reading / stg-n2boss
+ * が **一度も現在地にならないまま100%** になり、N2目標では読解の練習が生涯1回だけで
+ * 「N2模擬ボス」を一度も戦わずに攻略済みになっていた。
+ * 画面には攻略条件「ランダム問題で80%以上を別の日に3回＋7日後の確認」と書いてあるのに、
+ * その条件が**どこにも適用されていない**＝達成の確認が実体として存在しなかった。
+ *
+ * そこで、そのstage固有の証跡を要求する:
+ *   ・mock_boss / n2_gate → そのstageのボス撃破記録（ledger[stageId]）
+ *   ・reading_listening   → 読解の実績（reading-n5 等）
+ * どちらも既存の導線（今日の冒険のボス戦step・読解step）で必ず供給できるものだけにしてある
+ * （供給できない条件を課すと、いまより悪い行き止まりになる）。
+ */
+export const stageMasteryTargetIds = (
+  stage: AdvRouteStage, allN3GrammarIds: string[], n2ByUnit: Map<number, string[]>,
+  n3BundleByItem?: Map<string, string>, basicByUnit?: Map<string, string[]>,
+  basicBundleByUnit?: Map<string, string>,
+  /** 目的地レベル（読解の証跡targetを決める。未指定＝読解要件を課さない＝従来どおり） */
+  targetLevel?: JlptLevel | null,
+): string[] => {
+  // ボス・門は「そのstageを実際に倒したか」だけで決まる。配下コンテンツは出題範囲であって攻略条件ではない
+  if (stage.kind === 'mock_boss' || stage.kind === 'n2_gate') return [stage.stageId];
+  const ids = stageContentTargetIds(stage, allN3GrammarIds, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit);
+  if (stage.kind === 'reading_listening') {
+    const readingId = readingEvidenceTargetId(targetLevel);
+    // 聴解は端末で音が鳴らないことがあり（AdvShellに audio-unavailable の出口がある）、
+    // N5/N4には音源が1本も無いので攻略条件にはしない。要求するのは読解だけ
+    if (readingId) ids.push(readingId);
+  }
+  return ids;
+};
+
 /** stage攻略の導出値。配下targetがすべてmasteredなら攻略。ボス撃破記録（ledger[stageId]がmastered）があればそれも攻略 */
 export const deriveMasteredStageIds = (
   route: AdvRoute, masteredTargets: Set<string>,
@@ -256,7 +411,8 @@ export const deriveMasteredStageIds = (
   const done = new Set<string>();
   for (const s of route.stages) {
     if (masteredTargets.has(s.stageId)) { done.add(s.stageId); continue; }
-    const ids = stageMasteryTargetIds(s, allN3GrammarIds, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit);
+    const ids = stageMasteryTargetIds(
+      s, allN3GrammarIds, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit, route.destinationJlpt);
     if (ids.length > 0 && ids.every((id) => masteredTargets.has(id))) done.add(s.stageId);
   }
   return done;

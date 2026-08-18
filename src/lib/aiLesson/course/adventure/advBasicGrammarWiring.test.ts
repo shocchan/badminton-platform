@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import { generateRoute, stageMasteryTargetIds } from './advRoute';
 import { loadGrammarPools, stageContent, MIN_BUNDLE_QUESTIONS } from './advContent';
-import { N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
+import { N5_UNIT_IDS, N4_UNIT_IDS, loadAllBasicDrafts } from '../basicGrammarChunks';
 import type { AdvDiagnosisResult } from './advTypes';
 
 const NOW = '2026-08-17T09:00:00.000Z';
@@ -121,5 +121,39 @@ describe('学習者に見せる中身の安全性', () => {
         expect(basicIds.has(q.sourceItemId), `${q.key} の出典 ${q.sourceItemId}`).toBe(true);
       }
     }
+  });
+});
+
+describe('stageに書いた項目数が実数と一致する', () => {
+  // 2026-08-18: 初級文法を108→148項目に増やしたとき、N5/N4ルートのstage説明に
+  // 書いてある「48項目」「60項目」が更新されず、オンボーディングの経路プレビューで
+  // 生徒に嘘の数字を見せていた。数字を書くなら実数と突き合わせる。
+  const purposeOf = (target: 'N5' | 'N4', kind: string) => {
+    const r = generateRoute({
+      goalType: 'jlpt', targetJlpt: target, knowledgeBand: 'pre_n5',
+      conversationBand: 'needs_assessment', diagnosis, nowISO: NOW,
+    });
+    const st = r.stages.find((s) => s.kind === kind)!;
+    return `${st.purposeJa}\n${st.purposeZh}`;
+  };
+
+  it('N5基礎キャンプの説明にある項目数 = N5束の実項目数', async () => {
+    const all = await loadAllBasicDrafts();
+    const n5 = all.filter((d) => N5_UNIT_IDS.includes(d.unit)).length;
+    const text = purposeOf('N5', 'foundation_camp');
+    for (const n of text.match(/(\d+)\s*(?:項目|项)/g) ?? []) {
+      expect(Number(n.replace(/\D/g, '')), `stage説明「${text}」が実数 ${n5} と食い違う`).toBe(n5);
+    }
+    expect(/\d+\s*(?:項目|项)/.test(text), '項目数の記述が消えた（テストの前提が崩れた）').toBe(true);
+  });
+
+  it('N4文法攻略の説明にある項目数 = N4束の実項目数', async () => {
+    const all = await loadAllBasicDrafts();
+    const n4 = all.filter((d) => N4_UNIT_IDS.includes(d.unit)).length;
+    const text = purposeOf('N4', 'n3_bridge');
+    for (const n of text.match(/(\d+)\s*(?:項目|项)/g) ?? []) {
+      expect(Number(n.replace(/\D/g, '')), `stage説明「${text}」が実数 ${n4} と食い違う`).toBe(n4);
+    }
+    expect(/\d+\s*(?:項目|项)/.test(text), '項目数の記述が消えた（テストの前提が崩れた）').toBe(true);
   });
 });

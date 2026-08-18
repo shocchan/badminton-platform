@@ -233,10 +233,25 @@ const questionFor = (c: KanaChar, seed: number): KanaQuestion => {
   const pool = (isWordEntry(c)
     ? [...new Set(sameKind.flatMap((row) => row.chars.map((x) => x.romaji)))]
     : CHAR_ROMAJI).filter((x) => x !== c.romaji && !wrong.includes(x));
-  while (wrong.length < 3 && pool.length > 0) {
-    const cand = pool[Math.floor(r() * pool.length)];
-    if (!wrong.includes(cand)) wrong.push(cand);
-  }
+  /**
+   * 誤答は**正解と同じ長さのローマ字を優先**して選ぶ（2026-08-18）。
+   *
+   * 拗音（kya/sho…3文字）を候補へ足したことで、「あ→a」に kya/gyo/myu が並び、
+   * かなを読めなくても「いちばん短いのが正解」で当てられる問題ができていた
+   * （実測: 拗音の行で31.1%、全体で16.5%が長さだけで一意に当てられる状態）。
+   * 同じ長さが足りないときだけ、従来どおり候補全体から埋める。
+   */
+  const drawInto = (src: string[]): void => {
+    // 候補は引くたびに取り除く（同じ候補を引き続けて抜けられなくなるのを防ぐ）
+    const avail = src.filter((x) => !wrong.includes(x));
+    while (wrong.length < 3 && avail.length > 0) {
+      const i = Math.floor(r() * avail.length);
+      wrong.push(avail[i]);
+      avail.splice(i, 1);
+    }
+  };
+  drawInto(pool.filter((x) => x.length === c.romaji.length));
+  drawInto(pool);
   const choices = [c.romaji, ...wrong];
   // 決定的シャッフル
   for (let i = choices.length - 1; i > 0; i--) {

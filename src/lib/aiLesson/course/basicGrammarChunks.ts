@@ -16,6 +16,14 @@ const FILE_LOADERS: (() => Promise<BasicGrammarDraft[]>)[] = [
   async () => (await import('./basicGrammarN4b')).BASIC_GRAMMAR_N4B,
   async () => (await import('./basicGrammarN4c')).BASIC_GRAMMAR_N4C,
   async () => (await import('./basicGrammarN4d')).BASIC_GRAMMAR_N4D,
+  // 2026-08-18: 標準シラバスと突合して不足していた項目を追加（CEO指示「N5/N4を網羅と言えるように」）。
+  // 既存の束（n5g-unit-1〜6 / n4g-unit-1〜8）へ配属するので束IDは増えない
+  async () => (await import('./basicGrammarGapa')).BASIC_GRAMMAR_GAP_A,
+  async () => (await import('./basicGrammarGapb')).BASIC_GRAMMAR_GAP_B,
+  async () => (await import('./basicGrammarGapc')).BASIC_GRAMMAR_GAP_C,
+  async () => (await import('./basicGrammarGapd')).BASIC_GRAMMAR_GAP_D,
+  async () => (await import('./basicGrammarGape')).BASIC_GRAMMAR_GAP_E,
+  async () => (await import('./basicGrammarGapf')).BASIC_GRAMMAR_GAP_F,
 ];
 
 /** N5の束ID（学習順）。基礎キャンプstageのtargetsに入る */

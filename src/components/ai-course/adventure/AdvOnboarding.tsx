@@ -169,12 +169,21 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOut
                 onClick={() => { setTarget(lv); trackAdv('target_level_selected', { targetLevel: lv, locale: lang }); }}>
                 <span className="font-semibold">{lv}</span>
                 <span className="ml-2 text-sm text-gray-600">
-                  {lv === 'N2' ? tx(lang, 'ソラノ塔を目指す', '目标：天空塔') : tx(lang, 'カタチの遺跡を目指す', '目标：形之遗迹')}
+                  {lv === 'N2' ? tx(lang, 'ソラノ塔を目指す', '目标：天空塔')
+                    : lv === 'N3' ? tx(lang, 'カタチの遺跡を目指す', '目标：形之遗迹')
+                      : lv === 'N4' ? tx(lang, 'トオリミチを目指す（暮らしの日本語）', '目标：通行之路（生活日语）')
+                        : tx(lang, 'ミナトを目指す（はじめの一歩）', '目标：雾之港城（第一步）')}
                 </span>
               </button>
             ))}
           </div>
-          <p className="mt-3 text-xs text-gray-500">{tx(lang, 'N5・N4・N1は今後追加予定です。', 'N5・N4・N1将于今后追加。')}</p>
+          {/* 2026-08-18: N5/N4 を解禁。聴解の音源は N3/N2 にしか無いので、
+              「全部そろっている」と誤解させないよう、ここで正直に書く（原則13） */}
+          <p className="mt-3 text-xs text-gray-500">
+            {tx(lang,
+              'N5・N4は文法・ことば・読解で学べます（聴解の音声はまだありません）。N1は今後追加予定です。',
+              'N5・N4可以学习语法、词汇和阅读（听力音频尚未提供）。N1将于今后追加。')}
+          </p>
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>

@@ -81,6 +81,21 @@ export const EXAM_STRUCTURE: Record<'N2' | 'N3', ExamPart[]> = {
   ],
 };
 
+export type ExamStructureLevel = keyof typeof EXAM_STRUCTURE;
+
+/**
+ * その級の**本試験データ（科目構成・本番時間）を持っているか**（2026-08-18）。
+ *
+ * ここを `target === 'N3' ? 'N3' : 'N2'` と丸めると、N5/N4 目標の生徒の
+ * 準備度画面に **N2の試験構成**（言語知識・読解105分／聴解50分）が出る。
+ * 実測: computeReadiness('N5') の examParts が ["…105分","聴解/50分"] だった。
+ * 持っていない級の時間を推測で書かない・上の級で代用しない（原則13）。
+ *
+ * 正準は EXAM_STRUCTURE のキーそのもの。級を増やすときはデータを足せば自動で追随する。
+ */
+export const hasExamStructure = (level: string | null | undefined): level is ExamStructureLevel =>
+  level != null && Object.prototype.hasOwnProperty.call(EXAM_STRUCTURE, level);
+
 /** 「今どの科目を鍛えているか」の1行表示（§8） */
 export const nowTrainingLabel = (skill: ExamSkill, lang: 'ja' | 'zh'): string => {
   const section = EXAM_SECTION_LABELS[SECTION_OF_SKILL[skill]];

@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.457Z",
+ "batchNo": 21,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-21-001",
+  "vc-21-002",
+  "vc-21-003",
+  "vc-21-004",
+  "vc-21-005",
+  "vc-21-006",
+  "vc-21-007",
+  "vc-21-008",
+  "vc-21-009",
+  "vc-21-010",
+  "vc-21-011",
+  "vc-21-012",
+  "vc-21-013",
+  "vc-21-014",
+  "vc-21-015",
+  "vc-21-016",
+  "vc-21-017",
+  "vc-21-018",
+  "vc-21-019",
+  "vc-21-020",
+  "vc-21-021",
+  "vc-21-022",
+  "vc-21-023",
+  "vc-21-024",
+  "vc-21-025",
+  "vc-21-026",
+  "vc-21-027",
+  "vc-21-028",
+  "vc-21-029",
+  "vc-21-030",
+  "vc-21-031",
+  "vc-21-032",
+  "vc-21-033",
+  "vc-21-034",
+  "vc-21-035",
+  "vc-21-036",
+  "vc-21-037",
+  "vc-21-038",
+  "vc-21-039",
+  "vc-21-040",
+  "vc-21-041",
+  "vc-21-042",
+  "vc-21-043",
+  "vc-21-044",
+  "vc-21-045",
+  "vc-21-046",
+  "vc-21-047",
+  "vc-21-048",
+  "vc-21-049",
+  "vc-21-050",
+  "vc-21-051",
+  "vc-21-052",
+  "vc-21-053",
+  "vc-21-054",
+  "vc-21-055",
+  "vc-21-056",
+  "vc-21-057",
+  "vc-21-058",
+  "vc-21-059",
+  "vc-21-060",
+  "vc-21-061",
+  "vc-21-062",
+  "vc-21-063",
+  "vc-21-064",
+  "vc-21-065",
+  "vc-21-066",
+  "vc-21-067",
+  "vc-21-068",
+  "vc-21-069",
+  "vc-21-070",
+  "vc-21-071",
+  "vc-21-072",
+  "vc-21-073",
+  "vc-21-074",
+  "vc-21-075",
+  "vc-21-076",
+  "vc-21-077",
+  "vc-21-078",
+  "vc-21-079",
+  "vc-21-080",
+  "vc-21-081",
+  "vc-21-082",
+  "vc-21-083",
+  "vc-21-084",
+  "vc-21-085",
+  "vc-21-086",
+  "vc-21-087",
+  "vc-21-088",
+  "vc-21-089",
+  "vc-21-090",
+  "vc-21-091",
+  "vc-21-092",
+  "vc-21-093",
+  "vc-21-094",
+  "vc-21-095",
+  "vc-21-096",
+  "vc-21-097",
+  "vc-21-098",
+  "vc-21-099",
+  "vc-21-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-21-001",
+   "surface": "募集",
+   "kind": "no_dictionary_entry",
+   "detail": "募集|ぼしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-002",
+   "surface": "求人",
+   "kind": "no_dictionary_entry",
+   "detail": "求人|きゅうじん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-003",
+   "surface": "履歴書",
+   "kind": "no_dictionary_entry",
+   "detail": "履歴書|りれきしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-004",
+   "surface": "採用",
+   "kind": "no_dictionary_entry",
+   "detail": "採用|さいよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-005",
+   "surface": "志望",
+   "kind": "no_dictionary_entry",
+   "detail": "志望|しぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-006",
+   "surface": "資格",
+   "kind": "no_dictionary_entry",
+   "detail": "資格|しかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-007",
+   "surface": "転職",
+   "kind": "no_dictionary_entry",
+   "detail": "転職|てんしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-008",
+   "surface": "内定",
+   "kind": "no_dictionary_entry",
+   "detail": "内定|ないてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-009",
+   "surface": "職務",
+   "kind": "no_dictionary_entry",
+   "detail": "職務|しょくむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-010",
+   "surface": "面談",
+   "kind": "no_dictionary_entry",
+   "detail": "面談|めんだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-011",
+   "surface": "署名",
+   "kind": "no_dictionary_entry",
+   "detail": "署名|しょめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-012",
+   "surface": "印鑑",
+   "kind": "no_dictionary_entry",
+   "detail": "印鑑|いんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-013",
+   "surface": "証明書",
+   "kind": "no_dictionary_entry",
+   "detail": "証明書|しょうめいしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-014",
+   "surface": "派遣",
+   "kind": "no_dictionary_entry",
+   "detail": "派遣|はけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-015",
+   "surface": "契約",
+   "kind": "no_dictionary_entry",
+   "detail": "契約|けいやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-016",
+   "surface": "雇用",
+   "kind": "no_dictionary_entry",
+   "detail": "雇用|こよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-017",
+   "surface": "正社員",
+   "kind": "no_dictionary_entry",
+   "detail": "正社員|せいしゃいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-018",
+   "surface": "職業",
+   "kind": "no_dictionary_entry",
+   "detail": "職業|しょくぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-019",
+   "surface": "雇う",
+   "kind": "no_dictionary_entry",
+   "detail": "雇う|やとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-020",
+   "surface": "配属",
+   "kind": "no_dictionary_entry",
+   "detail": "配属|はいぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-021",
+   "surface": "時給",
+   "kind": "no_dictionary_entry",
+   "detail": "時給|じきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-022",
+   "surface": "月給",
+   "kind": "no_dictionary_entry",
+   "detail": "月給|げっきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-023",
+   "surface": "給与",
+   "kind": "no_dictionary_entry",
+   "detail": "給与|きゅうよ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-024",
+   "surface": "賞与",
+   "kind": "no_dictionary_entry",
+   "detail": "賞与|しょうよ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-025",
+   "surface": "手当",
+   "kind": "no_dictionary_entry",
+   "detail": "手当|てあて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-026",
+   "surface": "交通費",
+   "kind": "no_dictionary_entry",
+   "detail": "交通費|こうつうひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-027",
+   "surface": "残業代",
+   "kind": "no_dictionary_entry",
+   "detail": "残業代|ざんぎょうだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-028",
+   "surface": "口座",
+   "kind": "no_dictionary_entry",
+   "detail": "口座|こうざ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-029",
+   "surface": "税金",
+   "kind": "no_dictionary_entry",
+   "detail": "税金|ぜいきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-030",
+   "surface": "保険",
+   "kind": "no_dictionary_entry",
+   "detail": "保険|ほけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-031",
+   "surface": "年金",
+   "kind": "no_dictionary_entry",
+   "detail": "年金|ねんきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-032",
+   "surface": "稼ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "稼ぐ|かせぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-033",
+   "surface": "精算",
+   "kind": "no_dictionary_entry",
+   "detail": "精算|せいさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-034",
+   "surface": "出勤",
+   "kind": "no_dictionary_entry",
+   "detail": "出勤|しゅっきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-035",
+   "surface": "退勤",
+   "kind": "no_dictionary_entry",
+   "detail": "退勤|たいきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-036",
+   "surface": "出社",
+   "kind": "no_dictionary_entry",
+   "detail": "出社|しゅっしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-037",
+   "surface": "定時",
+   "kind": "no_dictionary_entry",
+   "detail": "定時|ていじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-038",
+   "surface": "夜勤",
+   "kind": "no_dictionary_entry",
+   "detail": "夜勤|やきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-039",
+   "surface": "交代",
+   "kind": "no_dictionary_entry",
+   "detail": "交代|こうたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-040",
+   "surface": "休憩",
+   "kind": "no_dictionary_entry",
+   "detail": "休憩|きゅうけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-041",
+   "surface": "制服",
+   "kind": "no_dictionary_entry",
+   "detail": "制服|せいふく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-042",
+   "surface": "更衣室",
+   "kind": "no_dictionary_entry",
+   "detail": "更衣室|こういしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-043",
+   "surface": "当番",
+   "kind": "no_dictionary_entry",
+   "detail": "当番|とうばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-044",
+   "surface": "職場",
+   "kind": "no_dictionary_entry",
+   "detail": "職場|しょくば が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-045",
+   "surface": "勤務先",
+   "kind": "no_dictionary_entry",
+   "detail": "勤務先|きんむさき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-046",
+   "surface": "定年",
+   "kind": "no_dictionary_entry",
+   "detail": "定年|ていねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-047",
+   "surface": "日程",
+   "kind": "no_dictionary_entry",
+   "detail": "日程|にってい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-048",
+   "surface": "休暇",
+   "kind": "no_dictionary_entry",
+   "detail": "休暇|きゅうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-049",
+   "surface": "有給",
+   "kind": "no_dictionary_entry",
+   "detail": "有給|ゆうきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-050",
+   "surface": "早退",
+   "kind": "no_dictionary_entry",
+   "detail": "早退|そうたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-051",
+   "surface": "欠勤",
+   "kind": "no_dictionary_entry",
+   "detail": "欠勤|けっきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-052",
+   "surface": "産休",
+   "kind": "no_dictionary_entry",
+   "detail": "産休|さんきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-053",
+   "surface": "退職",
+   "kind": "no_dictionary_entry",
+   "detail": "退職|たいしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-054",
+   "surface": "辞職",
+   "kind": "no_dictionary_entry",
+   "detail": "辞職|じしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-055",
+   "surface": "解雇",
+   "kind": "no_dictionary_entry",
+   "detail": "解雇|かいこ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-056",
+   "surface": "昇進",
+   "kind": "no_dictionary_entry",
+   "detail": "昇進|しょうしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-057",
+   "surface": "昇給",
+   "kind": "no_dictionary_entry",
+   "detail": "昇給|しょうきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-058",
+   "surface": "異動",
+   "kind": "no_dictionary_entry",
+   "detail": "異動|いどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-059",
+   "surface": "転勤",
+   "kind": "no_dictionary_entry",
+   "detail": "転勤|てんきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-060",
+   "surface": "主任",
+   "kind": "no_dictionary_entry",
+   "detail": "主任|しゅにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-061",
+   "surface": "係長",
+   "kind": "no_dictionary_entry",
+   "detail": "係長|かかりちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-062",
+   "surface": "名刺",
+   "kind": "no_dictionary_entry",
+   "detail": "名刺|めいし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-063",
+   "surface": "来客",
+   "kind": "no_dictionary_entry",
+   "detail": "来客|らいきゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-064",
+   "surface": "取引先",
+   "kind": "no_dictionary_entry",
+   "detail": "取引先|とりひきさき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-065",
+   "surface": "顧客",
+   "kind": "no_dictionary_entry",
+   "detail": "顧客|こきゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-066",
+   "surface": "担当者",
+   "kind": "no_dictionary_entry",
+   "detail": "担当者|たんとうしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-067",
+   "surface": "打ち合わせ",
+   "kind": "no_dictionary_entry",
+   "detail": "打ち合わせ|うちあわせ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-068",
+   "surface": "議事録",
+   "kind": "no_dictionary_entry",
+   "detail": "議事録|ぎじろく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-069",
+   "surface": "指示",
+   "kind": "no_dictionary_entry",
+   "detail": "指示|しじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-070",
+   "surface": "承認",
+   "kind": "no_dictionary_entry",
+   "detail": "承認|しょうにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-071",
+   "surface": "許可",
+   "kind": "no_dictionary_entry",
+   "detail": "許可|きょか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-072",
+   "surface": "申請",
+   "kind": "no_dictionary_entry",
+   "detail": "申請|しんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-073",
+   "surface": "把握",
+   "kind": "no_dictionary_entry",
+   "detail": "把握|はあく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-074",
+   "surface": "了解",
+   "kind": "no_dictionary_entry",
+   "detail": "了解|りょうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-075",
+   "surface": "返信",
+   "kind": "no_dictionary_entry",
+   "detail": "返信|へんしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-076",
+   "surface": "転送",
+   "kind": "no_dictionary_entry",
+   "detail": "転送|てんそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-077",
+   "surface": "添付",
+   "kind": "no_dictionary_entry",
+   "detail": "添付|てんぷ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-078",
+   "surface": "送信",
+   "kind": "no_dictionary_entry",
+   "detail": "送信|そうしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-079",
+   "surface": "受信",
+   "kind": "no_dictionary_entry",
+   "detail": "受信|じゅしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-080",
+   "surface": "挨拶",
+   "kind": "no_dictionary_entry",
+   "detail": "挨拶|あいさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-081",
+   "surface": "段取り",
+   "kind": "no_dictionary_entry",
+   "detail": "段取り|だんどり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-082",
+   "surface": "手順",
+   "kind": "no_dictionary_entry",
+   "detail": "手順|てじゅん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-083",
+   "surface": "方針",
+   "kind": "no_dictionary_entry",
+   "detail": "方針|ほうしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-084",
+   "surface": "規定",
+   "kind": "no_dictionary_entry",
+   "detail": "規定|きてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-085",
+   "surface": "引き継ぎ",
+   "kind": "no_dictionary_entry",
+   "detail": "引き継ぎ|ひきつぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-086",
+   "surface": "記載",
+   "kind": "no_dictionary_entry",
+   "detail": "記載|きさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-087",
+   "surface": "納期",
+   "kind": "no_dictionary_entry",
+   "detail": "納期|のうき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-088",
+   "surface": "実績",
+   "kind": "no_dictionary_entry",
+   "detail": "実績|じっせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-089",
+   "surface": "提案",
+   "kind": "no_dictionary_entry",
+   "detail": "提案|ていあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-090",
+   "surface": "企画",
+   "kind": "no_dictionary_entry",
+   "detail": "企画|きかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-091",
+   "surface": "請求書",
+   "kind": "no_dictionary_entry",
+   "detail": "請求書|せいきゅうしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-092",
+   "surface": "領収書",
+   "kind": "no_dictionary_entry",
+   "detail": "領収書|りょうしゅうしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-093",
+   "surface": "取引",
+   "kind": "no_dictionary_entry",
+   "detail": "取引|とりひき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-094",
+   "surface": "営業",
+   "kind": "no_dictionary_entry",
+   "detail": "営業|えいぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-095",
+   "surface": "経理",
+   "kind": "no_dictionary_entry",
+   "detail": "経理|けいり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-096",
+   "surface": "総務",
+   "kind": "no_dictionary_entry",
+   "detail": "総務|そうむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-097",
+   "surface": "人事",
+   "kind": "no_dictionary_entry",
+   "detail": "人事|じんじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-098",
+   "surface": "納品",
+   "kind": "no_dictionary_entry",
+   "detail": "納品|のうひん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-099",
+   "surface": "発注",
+   "kind": "no_dictionary_entry",
+   "detail": "発注|はっちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-21-100",
+   "surface": "受注",
+   "kind": "no_dictionary_entry",
+   "detail": "受注|じゅちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

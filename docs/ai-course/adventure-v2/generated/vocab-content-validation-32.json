@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.473Z",
+ "batchNo": 32,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-32-001",
+  "vc-32-002",
+  "vc-32-003",
+  "vc-32-004",
+  "vc-32-005",
+  "vc-32-006",
+  "vc-32-007",
+  "vc-32-008",
+  "vc-32-009",
+  "vc-32-010",
+  "vc-32-011",
+  "vc-32-012",
+  "vc-32-013",
+  "vc-32-014",
+  "vc-32-015",
+  "vc-32-016",
+  "vc-32-017",
+  "vc-32-018",
+  "vc-32-019",
+  "vc-32-020",
+  "vc-32-021",
+  "vc-32-022",
+  "vc-32-023",
+  "vc-32-024",
+  "vc-32-025",
+  "vc-32-026",
+  "vc-32-027",
+  "vc-32-028",
+  "vc-32-029",
+  "vc-32-030",
+  "vc-32-031",
+  "vc-32-032",
+  "vc-32-033",
+  "vc-32-034",
+  "vc-32-035",
+  "vc-32-036",
+  "vc-32-037",
+  "vc-32-038",
+  "vc-32-039",
+  "vc-32-040",
+  "vc-32-041",
+  "vc-32-042",
+  "vc-32-043",
+  "vc-32-044",
+  "vc-32-045",
+  "vc-32-046",
+  "vc-32-047",
+  "vc-32-048",
+  "vc-32-049",
+  "vc-32-050",
+  "vc-32-051",
+  "vc-32-052",
+  "vc-32-053",
+  "vc-32-054",
+  "vc-32-055",
+  "vc-32-056",
+  "vc-32-057",
+  "vc-32-058",
+  "vc-32-059",
+  "vc-32-060",
+  "vc-32-061",
+  "vc-32-062",
+  "vc-32-063",
+  "vc-32-064",
+  "vc-32-065",
+  "vc-32-066",
+  "vc-32-067",
+  "vc-32-068",
+  "vc-32-069",
+  "vc-32-070",
+  "vc-32-071",
+  "vc-32-072",
+  "vc-32-073",
+  "vc-32-074",
+  "vc-32-075",
+  "vc-32-076",
+  "vc-32-077",
+  "vc-32-078",
+  "vc-32-079",
+  "vc-32-080",
+  "vc-32-081",
+  "vc-32-082",
+  "vc-32-083",
+  "vc-32-084",
+  "vc-32-085",
+  "vc-32-086",
+  "vc-32-087",
+  "vc-32-088",
+  "vc-32-089",
+  "vc-32-090",
+  "vc-32-091",
+  "vc-32-092",
+  "vc-32-093",
+  "vc-32-094",
+  "vc-32-095",
+  "vc-32-096",
+  "vc-32-097",
+  "vc-32-098",
+  "vc-32-099",
+  "vc-32-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-32-001",
+   "surface": "汚染",
+   "kind": "no_dictionary_entry",
+   "detail": "汚染|おせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-002",
+   "surface": "排出",
+   "kind": "no_dictionary_entry",
+   "detail": "排出|はいしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-003",
+   "surface": "温暖化",
+   "kind": "no_dictionary_entry",
+   "detail": "温暖化|おんだんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-004",
+   "surface": "再生",
+   "kind": "no_dictionary_entry",
+   "detail": "再生|さいせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-005",
+   "surface": "循環",
+   "kind": "no_dictionary_entry",
+   "detail": "循環|じゅんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-006",
+   "surface": "廃棄",
+   "kind": "no_dictionary_entry",
+   "detail": "廃棄|はいき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-007",
+   "surface": "濃度",
+   "kind": "no_dictionary_entry",
+   "detail": "濃度|のうど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-008",
+   "surface": "有害",
+   "kind": "no_dictionary_entry",
+   "detail": "有害|ゆうがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-009",
+   "surface": "生態",
+   "kind": "no_dictionary_entry",
+   "detail": "生態|せいたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-010",
+   "surface": "絶滅",
+   "kind": "no_dictionary_entry",
+   "detail": "絶滅|ぜつめつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-011",
+   "surface": "保護",
+   "kind": "no_dictionary_entry",
+   "detail": "保護|ほご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-012",
+   "surface": "森林",
+   "kind": "no_dictionary_entry",
+   "detail": "森林|しんりん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-013",
+   "surface": "湿度",
+   "kind": "no_dictionary_entry",
+   "detail": "湿度|しつど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-014",
+   "surface": "酸素",
+   "kind": "no_dictionary_entry",
+   "detail": "酸素|さんそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-015",
+   "surface": "水質",
+   "kind": "no_dictionary_entry",
+   "detail": "水質|すいしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-016",
+   "surface": "土壌",
+   "kind": "no_dictionary_entry",
+   "detail": "土壌|どじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-017",
+   "surface": "公害",
+   "kind": "no_dictionary_entry",
+   "detail": "公害|こうがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-018",
+   "surface": "防止",
+   "kind": "no_dictionary_entry",
+   "detail": "防止|ぼうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-019",
+   "surface": "対策",
+   "kind": "no_dictionary_entry",
+   "detail": "対策|たいさく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-020",
+   "surface": "紫外線",
+   "kind": "no_dictionary_entry",
+   "detail": "紫外線|しがいせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-021",
+   "surface": "花粉",
+   "kind": "no_dictionary_entry",
+   "detail": "花粉|かふん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-022",
+   "surface": "農薬",
+   "kind": "no_dictionary_entry",
+   "detail": "農薬|のうやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-023",
+   "surface": "節電",
+   "kind": "no_dictionary_entry",
+   "detail": "節電|せつでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-024",
+   "surface": "発電",
+   "kind": "no_dictionary_entry",
+   "detail": "発電|はつでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-025",
+   "surface": "電力",
+   "kind": "no_dictionary_entry",
+   "detail": "電力|でんりょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-026",
+   "surface": "燃料",
+   "kind": "no_dictionary_entry",
+   "detail": "燃料|ねんりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-027",
+   "surface": "消費",
+   "kind": "no_dictionary_entry",
+   "detail": "消費|しょうひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-028",
+   "surface": "電池",
+   "kind": "no_dictionary_entry",
+   "detail": "電池|でんち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-029",
+   "surface": "気象",
+   "kind": "no_dictionary_entry",
+   "detail": "気象|きしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-030",
+   "surface": "津波",
+   "kind": "no_dictionary_entry",
+   "detail": "津波|つなみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-031",
+   "surface": "噴火",
+   "kind": "no_dictionary_entry",
+   "detail": "噴火|ふんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-032",
+   "surface": "気圧",
+   "kind": "no_dictionary_entry",
+   "detail": "気圧|きあつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-033",
+   "surface": "監視",
+   "kind": "no_dictionary_entry",
+   "detail": "監視|かんし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-034",
+   "surface": "測定",
+   "kind": "no_dictionary_entry",
+   "detail": "測定|そくてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-035",
+   "surface": "蒸発",
+   "kind": "no_dictionary_entry",
+   "detail": "蒸発|じょうはつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-036",
+   "surface": "摩擦",
+   "kind": "no_dictionary_entry",
+   "detail": "摩擦|まさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-037",
+   "surface": "遺伝",
+   "kind": "no_dictionary_entry",
+   "detail": "遺伝|いでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-038",
+   "surface": "理論",
+   "kind": "no_dictionary_entry",
+   "detail": "理論|りろん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-039",
+   "surface": "現象",
+   "kind": "no_dictionary_entry",
+   "detail": "現象|げんしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-040",
+   "surface": "物質",
+   "kind": "no_dictionary_entry",
+   "detail": "物質|ぶっしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-041",
+   "surface": "成分",
+   "kind": "no_dictionary_entry",
+   "detail": "成分|せいぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-042",
+   "surface": "装置",
+   "kind": "no_dictionary_entry",
+   "detail": "装置|そうち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-043",
+   "surface": "精密",
+   "kind": "no_dictionary_entry",
+   "detail": "精密|せいみつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-044",
+   "surface": "誤差",
+   "kind": "no_dictionary_entry",
+   "detail": "誤差|ごさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-045",
+   "surface": "圧力",
+   "kind": "no_dictionary_entry",
+   "detail": "圧力|あつりょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-046",
+   "surface": "検出",
+   "kind": "no_dictionary_entry",
+   "detail": "検出|けんしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-047",
+   "surface": "識別",
+   "kind": "no_dictionary_entry",
+   "detail": "識別|しきべつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-048",
+   "surface": "細菌",
+   "kind": "no_dictionary_entry",
+   "detail": "細菌|さいきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-049",
+   "surface": "金属",
+   "kind": "no_dictionary_entry",
+   "detail": "金属|きんぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-050",
+   "surface": "学会",
+   "kind": "no_dictionary_entry",
+   "detail": "学会|がっかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-051",
+   "surface": "性能",
+   "kind": "no_dictionary_entry",
+   "detail": "性能|せいのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-052",
+   "surface": "機器",
+   "kind": "no_dictionary_entry",
+   "detail": "機器|きき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-053",
+   "surface": "応用",
+   "kind": "no_dictionary_entry",
+   "detail": "応用|おうよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-054",
+   "surface": "制御",
+   "kind": "no_dictionary_entry",
+   "detail": "制御|せいぎょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-055",
+   "surface": "密度",
+   "kind": "no_dictionary_entry",
+   "detail": "密度|みつど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-056",
+   "surface": "数量",
+   "kind": "no_dictionary_entry",
+   "detail": "数量|すうりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-057",
+   "surface": "推移",
+   "kind": "no_dictionary_entry",
+   "detail": "推移|すいい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-058",
+   "surface": "抽出",
+   "kind": "no_dictionary_entry",
+   "detail": "抽出|ちゅうしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-059",
+   "surface": "分布",
+   "kind": "no_dictionary_entry",
+   "detail": "分布|ぶんぷ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-060",
+   "surface": "集計",
+   "kind": "no_dictionary_entry",
+   "detail": "集計|しゅうけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-061",
+   "surface": "算出",
+   "kind": "no_dictionary_entry",
+   "detail": "算出|さんしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-062",
+   "surface": "報道",
+   "kind": "no_dictionary_entry",
+   "detail": "報道|ほうどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-063",
+   "surface": "情報",
+   "kind": "no_dictionary_entry",
+   "detail": "情報|じょうほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-064",
+   "surface": "見出し",
+   "kind": "no_dictionary_entry",
+   "detail": "見出し|みだし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-065",
+   "surface": "掲載",
+   "kind": "no_dictionary_entry",
+   "detail": "掲載|けいさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-066",
+   "surface": "掲示",
+   "kind": "no_dictionary_entry",
+   "detail": "掲示|けいじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-067",
+   "surface": "発信",
+   "kind": "no_dictionary_entry",
+   "detail": "発信|はっしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-068",
+   "surface": "取材",
+   "kind": "no_dictionary_entry",
+   "detail": "取材|しゅざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-069",
+   "surface": "匿名",
+   "kind": "no_dictionary_entry",
+   "detail": "匿名|とくめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-070",
+   "surface": "拡散",
+   "kind": "no_dictionary_entry",
+   "detail": "拡散|かくさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-071",
+   "surface": "転載",
+   "kind": "no_dictionary_entry",
+   "detail": "転載|てんさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-072",
+   "surface": "配信",
+   "kind": "no_dictionary_entry",
+   "detail": "配信|はいしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-073",
+   "surface": "中継",
+   "kind": "no_dictionary_entry",
+   "detail": "中継|ちゅうけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-074",
+   "surface": "視聴",
+   "kind": "no_dictionary_entry",
+   "detail": "視聴|しちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-075",
+   "surface": "読者",
+   "kind": "no_dictionary_entry",
+   "detail": "読者|どくしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-076",
+   "surface": "編集",
+   "kind": "no_dictionary_entry",
+   "detail": "編集|へんしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-077",
+   "surface": "投稿",
+   "kind": "no_dictionary_entry",
+   "detail": "投稿|とうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-078",
+   "surface": "公開",
+   "kind": "no_dictionary_entry",
+   "detail": "公開|こうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-079",
+   "surface": "閲覧",
+   "kind": "no_dictionary_entry",
+   "detail": "閲覧|えつらん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-080",
+   "surface": "検索",
+   "kind": "no_dictionary_entry",
+   "detail": "検索|けんさく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-081",
+   "surface": "登録",
+   "kind": "no_dictionary_entry",
+   "detail": "登録|とうろく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-082",
+   "surface": "端末",
+   "kind": "no_dictionary_entry",
+   "detail": "端末|たんまつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-083",
+   "surface": "接続",
+   "kind": "no_dictionary_entry",
+   "detail": "接続|せつぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-084",
+   "surface": "削除",
+   "kind": "no_dictionary_entry",
+   "detail": "削除|さくじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-085",
+   "surface": "認証",
+   "kind": "no_dictionary_entry",
+   "detail": "認証|にんしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-086",
+   "surface": "暗号",
+   "kind": "no_dictionary_entry",
+   "detail": "暗号|あんごう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-087",
+   "surface": "流出",
+   "kind": "no_dictionary_entry",
+   "detail": "流出|りゅうしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-088",
+   "surface": "復旧",
+   "kind": "no_dictionary_entry",
+   "detail": "復旧|ふっきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-089",
+   "surface": "復元",
+   "kind": "no_dictionary_entry",
+   "detail": "復元|ふくげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-090",
+   "surface": "回線",
+   "kind": "no_dictionary_entry",
+   "detail": "回線|かいせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-091",
+   "surface": "起動",
+   "kind": "no_dictionary_entry",
+   "detail": "起動|きどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-092",
+   "surface": "表示",
+   "kind": "no_dictionary_entry",
+   "detail": "表示|ひょうじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-093",
+   "surface": "操作",
+   "kind": "no_dictionary_entry",
+   "detail": "操作|そうさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-094",
+   "surface": "容量",
+   "kind": "no_dictionary_entry",
+   "detail": "容量|ようりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-095",
+   "surface": "画像",
+   "kind": "no_dictionary_entry",
+   "detail": "画像|がぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-096",
+   "surface": "映像",
+   "kind": "no_dictionary_entry",
+   "detail": "映像|えいぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-097",
+   "surface": "音声",
+   "kind": "no_dictionary_entry",
+   "detail": "音声|おんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-098",
+   "surface": "履歴",
+   "kind": "no_dictionary_entry",
+   "detail": "履歴|りれき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-099",
+   "surface": "圧縮",
+   "kind": "no_dictionary_entry",
+   "detail": "圧縮|あっしゅく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-32-100",
+   "surface": "環境",
+   "kind": "no_dictionary_entry",
+   "detail": "環境|かんきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

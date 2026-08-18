@@ -8,9 +8,9 @@ import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
-import { currentStageOf, routeProgressPct, deriveMasteredStageIds } from '../../../lib/aiLesson/course/adventure/advRoute';
+import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
-import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
+import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, MASTERY_RULES, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
 import { battleSeedOf } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { generateTodayQuest, vocabTargetForStage, isVocabTargetInScope, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -56,7 +56,7 @@ import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/int
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { AdvKanaDojo } from './AdvKanaDojo';
 import { todaysKanaRowIds, isKanaGraduated } from '../../../lib/aiLesson/course/adventure/advKana';
-import { buildMockSpec } from '../../../lib/aiLesson/course/adventure/advMock';
+import { buildMockSpec, mockLevelOf } from '../../../lib/aiLesson/course/adventure/advMock';
 import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
@@ -331,6 +331,9 @@ export default function AdvShell(props: AdvShellProps) {
   const vocabRequest = useMemo<VocabPoolRequest | null>(() => {
     const lv: 'N2' | 'N3' = profile?.targetJlpt === 'N3' ? 'N3' : 'N2';
     if (view === 'mock') {
+      // 模試を出せない目標（N5/N4）では語彙chunk（gzip 約320kB）も取りに行かない。
+      // ここで取ると、受けられない模試のためにN2語彙を落とすことになる
+      if (mockLevelOf(profile?.targetJlpt) === null) return null;
       if (mockSeed === null) return null;
       return { kind: 'mock', level: lv, bands: [], seed: mockSeed, key: `mock|${lv}|${mockSeed}` };
     }
@@ -468,6 +471,16 @@ export default function AdvShell(props: AdvShellProps) {
       bySkill: { [skill]: { correct: r.correct, total: r.total, unseen: unseenCount } },
       // 途中でやめた回は「解いたぶんだけ」なので、攻略の証拠には数えない（2026-08-18 監査P1）
       ...(r.partial ? { partial: true as const } : {}),
+      /**
+       * 未出セットを供給できなかった回の免除（2026-08-18 P0。バトル側 buildEncounter と同じ考え方）。
+       *
+       * 読解・聴解の出題は**未出セットを優先**して3つ選ぶので、未出比率が下限を割る＝
+       * 未出セットが在庫切れということ。そこで unseenRatio>=0.3 を要求し続けると、
+       * まじめに毎日読んだ人ほど読解stageを永久に攻略できなくなる。
+       * 供給できないものは要求しない（在庫があるうちは従来どおり壁として効く）
+       */
+      ...(r.keys.length > 0 && unseenCount / r.keys.length < MASTERY_RULES.minUnseenRatio
+        ? { unseenCapped: true as const } : {}),
       // 错题本の材料（2026-08-18 監査P1: 受け取っているのに捨てていたため、
       // 読解・聴解で間違えた問題が間違えた問題ノートに1件も載らなかった）。
       // **全問正解でも空配列**（省略すると「正誤を記録していない試行」になる）
@@ -506,7 +519,12 @@ export default function AdvShell(props: AdvShellProps) {
       const stage = currentStageOf(profile.route!, stageDone) ?? profile.route!.stages[profile.route!.stages.length - 1];
       // 7日待ちのtargetは次候補から外して先へ進み、確認が解禁されたら確認バトルを最優先で出す（進度改善 2026-08-15）
       const { waiting } = classifyPendingDelay(profile.mastery, nowISO);
-      const lvl: 'N2' | 'N3' = profile.targetJlpt === 'N3' ? 'N3' : 'N2';
+      // 2026-08-18: N5/N4 目標を解禁したので、読解・語彙のスコープも目標に追随させる。
+      // 以前は 'N3' 以外を全部 'N2' に丸めていたため、N5目標の人にN2の読解が出ていた
+      const lvl: 'N5' | 'N4' | 'N3' | 'N2' =
+        profile.targetJlpt === 'N5' ? 'N5'
+          : profile.targetJlpt === 'N4' ? 'N4'
+            : profile.targetJlpt === 'N3' ? 'N3' : 'N2';
       // 復習予報＋渋滞レスキュー（2026-08-17）。
       // 数日あけると解禁ぶんが1日に集中し「今日30件」になって心が折れる。
       // 予報側で今日ぶんを決め、**出題も予報と同じ集合**を使う（画面の数字と出る数を必ず一致させる）
@@ -514,8 +532,20 @@ export default function AdvShell(props: AdvShellProps) {
         ledger: profile.mastery, nowISO, dueCount: props.reviewsDue,
         dailyMinutes: profile.dailyMinutes ?? null,
         // 目標レベルの範囲外になった語彙バンド（N2→N3に変えた生徒の vocab-n2 など）は
-        // 出題プールが空なので確認バトルにしない（2026-08-18 監査P1・押せないバトルを作らない）
-        includeTargetId: (id) => !/^(reading-|listening-|mock)/.test(id) && isVocabTargetInScope(id, lvl),
+        // 出題プールが空なので確認バトルにしない（2026-08-18 監査P1・押せないバトルを作らない）。
+        //
+        // `mistake-review`（錯題本の解き直し）も同じ理由で外す（2026-08-18 P0）。
+        // 解き直しの結果は他と同じく台帳へ記録されるため、
+        // 解き直せる問題が少ない日（1問だけ＝100%）が別の日に3回そろうと
+        // 7日後に **`mistake-review` を対象にした確認バトル**が組まれる。
+        // これは学習対象IDではなく出題プールを持たないので、押すと0問で終わる。
+        // 実測: 正答率70%の生徒のシミュレーションで309日目以降に11回発生した
+        //
+        // `stg-`（ボスstageの撃破記録）も外す（2026-08-18 P0）。ボスの7日後の確認は
+        // 「今日の冒険のボス戦step」が現在地にいる限り毎日出るのでそちらで済む。
+        // ここへ入れると targetId=stg-… のバトルが組まれ、プールのキーではないので0問になる
+        includeTargetId: (id) => !/^(reading-|listening-|mock|stg-)/.test(id)
+          && id !== MISTAKE_TARGET_ID && isVocabTargetInScope(id, lvl),
       });
       setForecast(forecast);
       const { stage: contentStage, content: ct } = await pickContentStage(
@@ -561,6 +591,11 @@ export default function AdvShell(props: AdvShellProps) {
           // （2026-08-17 監査P1: 問題0件の「押しても進めないバトル」が毎日固定で出ていた）
           confirmTargetIds: [...forecast.todayConfirmTargetIds].sort(),
           vocabBattleTargetId,
+          // 現在地がボスstage（模擬ボス・N2の門）なら、そのstageの出題範囲をそのままボス戦の敵にする。
+          // stageContentTargetIds は束ID・単元ID＝プールのキーだけを返すので0問バトルにならない
+          bossBattleTargetIds: (stage.kind === 'mock_boss' || stage.kind === 'n2_gate')
+            ? stageContentTargetIds(stage, p.n3Ids, p.n2ByUnit, p.n3BundleByItem, p.basicByUnit, p.basicBundleByUnit)
+            : [],
         },
         examSkills: {
           weakestSkill,
@@ -718,6 +753,27 @@ export default function AdvShell(props: AdvShellProps) {
   const prof = profile!;
   const route = prof.route!;
   const level: 'N2' | 'N3' = prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  /**
+   * 読解・聴解の**在庫を引くレベル**（2026-08-18）。
+   *
+   * `level` は N2/N3 の2値しか無い（模試・試験構成の教材がその2つしか無いため）。
+   * N5/N4 を目標に解禁したあとも読解runnerが `level` を使っていたので、
+   * 今日の冒険は `read-n5-*` を対象だと言いながら、開くと **N2の長文**が出ていた。
+   * 約束したものと出るものを一致させる（原則13）。N2/N3目標では値が変わらない。
+   */
+  const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' =
+    prof.targetJlpt === 'N5' ? 'N5'
+      : prof.targetJlpt === 'N4' ? 'N4'
+        : prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  /**
+   * ミニ模試のレベル。**出せない目標では null**（2026-08-18）。
+   *
+   * `level` の N2丸めは読解runnerだけの問題ではなかった。模試も `level` を使っていたので、
+   * N5目標の生徒のホームに「N2ミニ模試（時間つき）」と出て、押すと N2の読解・N2の聴解・
+   * N2語彙（是正/ぜせい 等）が出ていた。模試の教材が無い級では**入口を出さず、
+   * 無い理由を正直に書く**（原則13）。丸めて出す方が不誠実。
+   */
+  const mockLevel = mockLevelOf(prof.targetJlpt);
   // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
   const teacher = resolveTeacher(prof.teacherId);
   const teacherLabel = teacherName(teacher, lang);
@@ -840,7 +896,21 @@ export default function AdvShell(props: AdvShellProps) {
         onFinish={(attempt: AdvMasteryAttempt, mastery: MasteryStatus) => {
           let ledger = recordAttempt(prof.mastery, battle.targetId, attempt);
           if (battle.tier === 'midboss' || battle.tier === 'rankboss') {
-            ledger = recordAttempt(ledger, currentStageOf(route, masteredTargetIds(ledger, nowISO))?.stageId ?? battle.targetId, attempt);
+            /**
+             * ボス撃破は**そのとき挑んでいたstage**の台帳へ記録する（2026-08-18 P0）。
+             *
+             * 以前は `currentStageOf(route, masteredTargetIds(ledger))` を渡していた。
+             * masteredTargetIds が返すのは**targetのID**（束・単元）で、currentStageOf が
+             * 期待するのは**stageのID**。集合の中身が噛み合わないので、どのstageを攻略中でも
+             * 常に先頭stageが返り、ボスの記録が別のstageへ入っていた。
+             * stage攻略の導出（deriveMasteredStageIds）を通してから現在地を取り直す。
+             * 記録先が今のバトル対象と同じときは二重に積まない
+             */
+            const sd = deriveMasteredStageIds(
+              route, masteredTargetIds(ledger, nowISO),
+              pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit);
+            const bossStageId = currentStageOf(route, sd)?.stageId;
+            if (bossStageId && bossStageId !== battle.targetId) ledger = recordAttempt(ledger, bossStageId, attempt);
           }
           if (mastery.state === 'mastered') trackAdv('delayed_mastery_reached', { locale: lang });
           else if (mastery.qualifyingDays.length >= 1 && attempt.scorePct >= 80) trackAdv('mastery_80_reached', { locale: lang });
@@ -896,7 +966,7 @@ export default function AdvShell(props: AdvShellProps) {
   if (view === 'reading') {
     // 毎日同じ先頭3セットの再演で証拠を貯めない（原則9）。未出セット優先・日替わりの決定的選出
     const seenR = seenQuestionKeys(prof.mastery);
-    const allR = readingSetsFor(level);
+    const allR = readingSetsFor(contentLevel);
     const seedR = [...dateKey].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 11);
     const sets = [
       ...seededShuffle(allR.filter((s) => !seenR.has(readingKeyOf(s))), seedR),
@@ -927,7 +997,7 @@ export default function AdvShell(props: AdvShellProps) {
   // ── 聴解 ──
   if (view === 'listening') {
     const seenL = seenQuestionKeys(prof.mastery);
-    const allL = listeningSetsFor(level);
+    const allL = listeningSetsFor(contentLevel);
     const seedL = [...dateKey].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 13);
     const sets = [
       ...seededShuffle(allL.filter((s) => !seenL.has(`listen:${s.setId}`)), seedL),
@@ -1038,6 +1108,29 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── ミニ模試（§9）──
   if (view === 'mock') {
+    // 模試の教材が無い級（N5/N4）。入口は出していないが、
+    // 目標変更の直後や保存stateからの復帰でここへ来ることがあるので画面側でも塞ぐ。
+    // 「準備中」とだけ書いて放置しない＝何が無いかを書く（原則13）
+    if (mockLevel === null) {
+      return (
+        <div className="mx-auto w-full max-w-xl px-4 py-6">
+          <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, 'ミニ模試', '迷你模拟考')} teacherLang={lang} />
+          <p className="text-sm leading-relaxed text-gray-700">
+            {tx(lang,
+              `${prof.targetJlpt}のミニ模試はまだありません。聴解の音声と、${prof.targetJlpt}本試験の科目・時間のデータが揃っていないためです。`,
+              `${prof.targetJlpt}的迷你模拟考还没有。因为听力音频，以及${prof.targetJlpt}本考试的科目和时间数据都还没有齐备。`)}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-gray-700">
+            {tx(lang,
+              '上のレベル（N3・N2）の模試を代わりに出すことはしません。目標と違う問題を「あなたの模試」として出すことになるからです。いまは今日の冒険と読解で進めてください。',
+              '我们不会拿更高级别（N3・N2）的模拟考来顶替。因为那等于把和你目标不符的题目当作「你的模拟考」。现在请先用每日冒险和阅读来推进。')}
+          </p>
+          <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
+            {tx(lang, 'ホームへ戻る', '返回主页')}
+          </button>
+        </div>
+      );
+    }
     // 層Cの語彙bank（gzip 約320kB）は模試のときだけ要る。
     // Homeを開くたびに読ませないよう、この画面へ来てから動的importで取りに行く。
     // 語彙chunkの読込失敗を無限スピナーにしない（原則15）
@@ -1062,8 +1155,9 @@ export default function AdvShell(props: AdvShellProps) {
     if (!pools || !vocabPoolReady || mockSeed === null) {
       return <AdvLoading lang={lang} note={tx(lang, '問題を用意しています…', '正在准备题目…')} />;
     }
-    const rPool = readingPool(level);
-    const lPool = listeningPool(level);
+    // 模試の在庫は **mockLevel** から引く（level のN2丸めを使わない）
+    const rPool = readingPool(mockLevel);
+    const lPool = listeningPool(mockLevel);
     const vPool = vocabPoolReady;
     const merged = new Map(pools.byItem);
     for (const [k, v] of rPool) merged.set(k, v);
@@ -1078,7 +1172,7 @@ export default function AdvShell(props: AdvShellProps) {
     }
     const readingCount = [...rPool.values()].reduce((n, v) => n + v.length, 0);
     const listeningCount = [...lPool.values()].reduce((n, v) => n + v.length, 0);
-    const spec = buildMockSpec(level, { vocabCount, grammarCount, readingCount, listeningCount });
+    const spec = buildMockSpec(mockLevel, { vocabCount, grammarCount, readingCount, listeningCount });
     // 基礎固め中の受験者には「いまの低得点は正常」の文脈を先に添える（2026-08-17）
     const mockStageKind = (() => {
       if (!prof.route) return null;
@@ -1093,10 +1187,10 @@ export default function AdvShell(props: AdvShellProps) {
         seenKeys={seenQuestionKeys(prof.mastery)}
         history={prof.mockLog}
         contextNoteJa={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
-          ? `いまは基礎固めの途中です。模試は${level}全域から出るので、いまの得点は低く出ます。腕試しとして気軽にどうぞ。`
+          ? `いまは基礎固めの途中です。模試は${mockLevel}全域から出るので、いまの得点は低く出ます。腕試しとして気軽にどうぞ。`
           : null}
         contextNoteZh={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
-          ? `现在还在打基础阶段。模拟考覆盖${level}全部范围，所以当前分数会偏低。当作试身手轻松参加就好。`
+          ? `现在还在打基础阶段。模拟考覆盖${mockLevel}全部范围，所以当前分数会偏低。当作试身手轻松参加就好。`
           : null}
         savedState={prof.mockSession}
         onPersist={(s: MockSessionState | null) => save({ ...prof, mockSession: s })}
@@ -1304,11 +1398,26 @@ export default function AdvShell(props: AdvShellProps) {
     const mapNextIdx = quest ? quest.steps.findIndex((_, i) => !doneSteps.has(i)) : -1;
     const mapNextStep = quest && mapNextIdx >= 0 ? quest.steps[mapNextIdx] : null;
     const mapDays = daysToExamOf(prof.examDateISO, dateKey);
+    const mapTargets = masteredTargetIds(prof.mastery, nowISO);
+    const mapStageDone = pools
+      ? deriveMasteredStageIds(route, mapTargets, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit)
+      : new Set<string>();
+    /**
+     * 地図へ渡す攻略済み集合（2026-08-18 P0）。
+     *
+     * `advMapModel.examRegions` は `mastered.has(stage.stageId)` で攻略を判定するが、
+     * ここは長らく **台帳のtargetID集合だけ**を渡していた。stageIdが台帳に載るのは
+     * 中ボス・ランクボスを戦ったときだけなので、通常の学習で全部の束を攻略しても
+     * 地図は「まだ挑戦していません／0地域攻略」のままだった
+     * （実測: 毎日満点でN5ルートを52日で完走した直後の地図が 0/3・全地域「まだ挑戦していません」）。
+     * ホーム側の攻略率は `deriveMasteredStageIds` で出しているので、数字も食い違っていた。
+     */
+    const mapMastered = mapStageDone.size > 0 ? new Set([...mapTargets, ...mapStageDone]) : mapTargets;
     const mapPace = pools && prof.goalType !== 'conversation'
       ? computePace({
         route, ledger: prof.mastery, nowISO,
         daysToExam: mapDays !== null && mapDays >= 0 ? mapDays : null,
-        stageDone: deriveMasteredStageIds(route, masteredTargetIds(prof.mastery, nowISO), pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit),
+        stageDone: mapStageDone,
         n3Ids: pools.n3Ids, n2ByUnit: pools.n2ByUnit, n3BundleByItem: pools.n3BundleByItem,
         basicByUnit: pools.basicByUnit,
         basicBundleByUnit: pools.basicBundleByUnit,
@@ -1319,7 +1428,7 @@ export default function AdvShell(props: AdvShellProps) {
         lang={lang}
         profile={prof}
         route={route}
-        mastered={masteredTargetIds(prof.mastery, nowISO)}
+        mastered={mapMastered}
         paceNoteJa={mapPace && mapPace.remainingTargets > 0
           ? `目的地まで残り${mapPace.remainingStages}地域・${mapPace.remainingTargets}項目${mapPace.estWeeksLeft !== null && mapPace.estWeeksLeft > 0 ? `／いまのペースだと約${mapPace.estWeeksLeft}週間（推定）` : ''}`
           : null}
@@ -1378,13 +1487,23 @@ export default function AdvShell(props: AdvShellProps) {
           teacherLang={lang} />
         <div className={`${card} mb-3 bg-gray-50`}>
           <p className="text-xs font-semibold text-gray-700">{tx(lang, '本試験の構成', '本考试的构成')}</p>
-          <ul className="mt-1 space-y-0.5">
-            {r.examParts.map((p) => (
-              <li key={p.labelJa} className="text-xs text-gray-600">
-                ・{tx(lang, p.labelJa, p.labelZh)}（{p.minutes}{tx(lang, '分', '分钟')}）
-              </li>
-            ))}
-          </ul>
+          {/* 本試験データを持たない級（N5/N4）で上の級の構成を出さない（2026-08-18）。
+              以前は N2 の「言語知識・読解105分／聴解50分」が N5目標の生徒にも出ていた */}
+          {r.examStructureKnown ? (
+            <ul className="mt-1 space-y-0.5">
+              {r.examParts.map((p) => (
+                <li key={p.labelJa} className="text-xs text-gray-600">
+                  ・{tx(lang, p.labelJa, p.labelZh)}（{p.minutes}{tx(lang, '分', '分钟')}）
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-1 text-xs leading-relaxed text-gray-600">
+              {tx(lang,
+                `${r.target}の科目構成・試験時間のデータはこのアプリにまだ入っていません。確かめずに書くと違う時間を覚えてしまうので、公式サイト（jlpt.jp）でご確認ください。`,
+                `${r.target}的科目构成・考试时间数据本应用还没有收录。写错会让你记住错误的时间，请到官网（jlpt.jp）确认。`)}
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           {r.rows.map((row) => (
@@ -1441,11 +1560,29 @@ export default function AdvShell(props: AdvShellProps) {
               </li>
             ))}
           </ul>
-          {!r.overallGate.mockCount && (
+          {/* 聴解が測れない級では「聴解のデータ」と「初めて見る問題での記録」が
+              どちらも聴解0件のせいで永久に○のまま。埋め方のない○を黙って並べない
+              （2026-08-18。文字・語彙／文法／読解はちゃんと埋まる） */}
+          {!r.listeningMeasurable && (
+            <p className="mt-2 text-xs leading-relaxed text-gray-500">
+              {tx(lang,
+                `${r.target}は聴解の音声がまだないので、「聴解のデータ」と「初めて見る問題での記録」は当面みたされません。ほかの科目（文字・語彙／文法／読解）は進めれば埋まります。`,
+                `${r.target}目前还没有听力音频，所以「听力数据」和「首次见到的题的记录」暂时无法满足。其他科目（文字・词汇／语法／阅读）继续学就能补齐。`)}
+            </p>
+          )}
+          {!r.overallGate.mockCount && (mockLevel !== null ? (
             <button type="button" className={`${primaryBtn} mt-3`} onClick={openMock}>
               {tx(lang, 'ミニ模試を受ける', '参加迷你模拟考')}
             </button>
-          )}
+          ) : (
+            /* 模試が無い級では、押せないボタンも上の級の模試も出さない。
+               この条件が当面埋まらないことを先に書く（原則13） */
+            <p className="mt-3 text-xs leading-relaxed text-gray-500">
+              {tx(lang,
+                `${prof.targetJlpt}のミニ模試はまだありません（聴解の音声と本試験の時間データが未整備）。この条件は当面みたされないので、総合準備度はまだ出せません。`,
+                `${prof.targetJlpt}的迷你模拟考还没有（听力音频和本考试的时间数据尚未齐备）。这个条件暂时无法满足，所以还给不出综合准备度。`)}
+            </p>
+          ))}
         </div>
         <div className={`${card} mt-3`}>
           <p className="text-sm font-bold text-gray-900">{tx(lang, '会話・実践力（JLPTとは別）', '会话・实践力（与JLPT分开）')}</p>
@@ -1875,7 +2012,10 @@ export default function AdvShell(props: AdvShellProps) {
   const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
   // 中断した模試・進行中の答案用紙は残り時間が壁時計で動いているので、その間は「今日の一手」を再開側にする。
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
-  const mockPending = prof.mockSession !== null;
+  // 目標を N2/N3 から N5/N4 へ変えると、途中の模試は再開先が無くなる。
+  // 再開できないものを「途中です」と言い続けない（原則13）。破棄の出口は下で出す
+  const mockResumable = prof.mockSession !== null && mockLevel !== null;
+  const mockPending = mockResumable;
   // 進行中の答案の紙が手元にまだあるか。紙が消えていたら（発行取り下げ等）
   // 「再開できます」と言い続けない（原則13）。破棄の出口を出す（原則15）
   const sheetSession = prof.answerSheetSession;
@@ -2191,17 +2331,25 @@ export default function AdvShell(props: AdvShellProps) {
       {prof.mockSession && (
         <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
           <p className="text-sm font-semibold text-gray-900">
-            {tx(lang, 'ミニ模試が途中です', '迷你模拟考进行到一半')}
+            {mockResumable
+              ? tx(lang, 'ミニ模試が途中です', '迷你模拟考进行到一半')
+              : tx(lang, '前の目標のミニ模試が残っています', '还留着上一个目标的迷你模拟考')}
           </p>
           <p className="mt-0.5 text-xs text-gray-600">
-            {tx(lang, '同じ問題・同じ残り時間から再開できます。', '可以从相同的题目和剩余时间继续。')}
+            {mockResumable
+              ? tx(lang, '同じ問題・同じ残り時間から再開できます。', '可以从相同的题目和剩余时间继续。')
+              : tx(lang,
+                `目標を${prof.targetJlpt}に変えたので、この模試（${prof.mockSession.level}）は再開できません。破棄してください。`,
+                `目标已改为${prof.targetJlpt}，所以这场模拟考（${prof.mockSession.level}）无法继续。请放弃它。`)}
           </p>
           <div className="mt-2 flex gap-2">
-            <button type="button" className={`${pressFx} action-primary-blue min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
-              onClick={openMock}>
-              {tx(lang, '模試を再開する', '继续模拟考')}
-            </button>
-            <button type="button" className={`${pressFx} action-amber min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900`}
+            {mockResumable && (
+              <button type="button" className={`${pressFx} action-primary-blue min-h-[48px] flex-1 rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
+                onClick={openMock}>
+                {tx(lang, '模試を再開する', '继续模拟考')}
+              </button>
+            )}
+            <button type="button" className={`${pressFx} action-amber min-h-[44px] ${mockResumable ? '' : 'flex-1 '}rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm text-amber-900`}
               onClick={() => save({ ...prof, mockSession: null })}>
               {tx(lang, '破棄', '放弃')}
             </button>
@@ -2479,9 +2627,12 @@ export default function AdvShell(props: AdvShellProps) {
                     setView('battle');
                   }} />
               )}
-              <SubLink lang={lang}
-                label={tx(lang, `${level}ミニ模試（時間つき）`, `${level}迷你模拟考（限时）`)}
-                onClick={openMock} />
+              {/* ミニ模試は教材のある級だけ（2026-08-18）。N5/N4目標に「N2ミニ模試」を出さない */}
+              {mockLevel !== null && (
+                <SubLink lang={lang}
+                  label={tx(lang, `${mockLevel}ミニ模試（時間つき）`, `${mockLevel}迷你模拟考（限时）`)}
+                  onClick={openMock} />
+              )}
               {/* 過去問の試験場。**N2の試験を受ける人にだけ見せる**（それ以外の画面には出さない） */}
               {answerSheetsVisible(prof) && (
                 <SubLink lang={lang}

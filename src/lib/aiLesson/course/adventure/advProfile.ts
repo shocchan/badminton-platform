@@ -2,6 +2,7 @@
 // 方針: 壊れたデータでも落ちない（安全側で default に戻す）／既存learnerの他フィールドへ触らない／
 // 既存進捗からの能力認定はしない（unknown/needs_assessment・§23）。
 import { migrateCompanionId } from './advCompanion';
+import { migrateSavedRoute } from './advRoute';
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
@@ -142,8 +143,10 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     diagnosis: isRecord(raw.diagnosis) && typeof raw.diagnosis.completedAt === 'string'
       ? (raw.diagnosis as unknown as AdventureV2Profile['diagnosis']) : null,
     skills,
+    // 保存済みルートは生成時のスナップショット。generateRoute を直しても既存learnerには
+    // 届かないので、stage種別から決まるぶんだけ取り込み時に補う（migrateSavedRoute・冪等）
     route: isRecord(raw.route) && Array.isArray((raw.route as Record<string, unknown>).stages)
-      ? (raw.route as unknown as AdventureV2Profile['route']) : null,
+      ? migrateSavedRoute(raw.route as unknown as NonNullable<AdventureV2Profile['route']>) : null,
     mastery: isRecord(raw.mastery) ? (raw.mastery as AdventureV2Profile['mastery']) : {},
     lastQuest: isRecord(raw.lastQuest) && typeof raw.lastQuest.dateKey === 'string'
       ? (raw.lastQuest as unknown as AdventureV2Profile['lastQuest']) : null,

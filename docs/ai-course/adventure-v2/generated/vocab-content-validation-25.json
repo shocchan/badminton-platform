@@ -1,0 +1,768 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.464Z",
+ "batchNo": 25,
+ "words": 93,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 93,
+  "blocking": 93,
+  "byKind": {
+   "no_dictionary_entry": 93
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-25-001",
+  "vc-25-002",
+  "vc-25-003",
+  "vc-25-004",
+  "vc-25-005",
+  "vc-25-006",
+  "vc-25-007",
+  "vc-25-008",
+  "vc-25-009",
+  "vc-25-010",
+  "vc-25-011",
+  "vc-25-012",
+  "vc-25-013",
+  "vc-25-014",
+  "vc-25-015",
+  "vc-25-016",
+  "vc-25-017",
+  "vc-25-018",
+  "vc-25-019",
+  "vc-25-020",
+  "vc-25-021",
+  "vc-25-022",
+  "vc-25-023",
+  "vc-25-024",
+  "vc-25-025",
+  "vc-25-026",
+  "vc-25-027",
+  "vc-25-028",
+  "vc-25-029",
+  "vc-25-030",
+  "vc-25-031",
+  "vc-25-032",
+  "vc-25-033",
+  "vc-25-034",
+  "vc-25-035",
+  "vc-25-036",
+  "vc-25-037",
+  "vc-25-038",
+  "vc-25-039",
+  "vc-25-040",
+  "vc-25-041",
+  "vc-25-042",
+  "vc-25-043",
+  "vc-25-044",
+  "vc-25-045",
+  "vc-25-046",
+  "vc-25-047",
+  "vc-25-048",
+  "vc-25-049",
+  "vc-25-050",
+  "vc-25-051",
+  "vc-25-052",
+  "vc-25-053",
+  "vc-25-054",
+  "vc-25-055",
+  "vc-25-056",
+  "vc-25-057",
+  "vc-25-058",
+  "vc-25-059",
+  "vc-25-060",
+  "vc-25-061",
+  "vc-25-062",
+  "vc-25-063",
+  "vc-25-064",
+  "vc-25-065",
+  "vc-25-066",
+  "vc-25-067",
+  "vc-25-068",
+  "vc-25-069",
+  "vc-25-070",
+  "vc-25-071",
+  "vc-25-072",
+  "vc-25-073",
+  "vc-25-074",
+  "vc-25-075",
+  "vc-25-076",
+  "vc-25-077",
+  "vc-25-078",
+  "vc-25-079",
+  "vc-25-080",
+  "vc-25-081",
+  "vc-25-082",
+  "vc-25-083",
+  "vc-25-084",
+  "vc-25-085",
+  "vc-25-086",
+  "vc-25-087",
+  "vc-25-088",
+  "vc-25-089",
+  "vc-25-090",
+  "vc-25-091",
+  "vc-25-092",
+  "vc-25-093"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-25-001",
+   "surface": "講師",
+   "kind": "no_dictionary_entry",
+   "detail": "講師|こうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-002",
+   "surface": "履修",
+   "kind": "no_dictionary_entry",
+   "detail": "履修|りしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-003",
+   "surface": "受講",
+   "kind": "no_dictionary_entry",
+   "detail": "受講|じゅこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-004",
+   "surface": "講座",
+   "kind": "no_dictionary_entry",
+   "detail": "講座|こうざ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-005",
+   "surface": "講習",
+   "kind": "no_dictionary_entry",
+   "detail": "講習|こうしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-006",
+   "surface": "自習",
+   "kind": "no_dictionary_entry",
+   "detail": "自習|じしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-007",
+   "surface": "補習",
+   "kind": "no_dictionary_entry",
+   "detail": "補習|ほしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-008",
+   "surface": "休講",
+   "kind": "no_dictionary_entry",
+   "detail": "休講|きゅうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-009",
+   "surface": "時間割",
+   "kind": "no_dictionary_entry",
+   "detail": "時間割|じかんわり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-010",
+   "surface": "学年",
+   "kind": "no_dictionary_entry",
+   "detail": "学年|がくねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-011",
+   "surface": "学級",
+   "kind": "no_dictionary_entry",
+   "detail": "学級|がっきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-012",
+   "surface": "担任",
+   "kind": "no_dictionary_entry",
+   "detail": "担任|たんにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-013",
+   "surface": "教頭",
+   "kind": "no_dictionary_entry",
+   "detail": "教頭|きょうとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-014",
+   "surface": "職員室",
+   "kind": "no_dictionary_entry",
+   "detail": "職員室|しょくいんしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-015",
+   "surface": "保健室",
+   "kind": "no_dictionary_entry",
+   "detail": "保健室|ほけんしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-016",
+   "surface": "体育館",
+   "kind": "no_dictionary_entry",
+   "detail": "体育館|たいいくかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-017",
+   "surface": "校庭",
+   "kind": "no_dictionary_entry",
+   "detail": "校庭|こうてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-018",
+   "surface": "校則",
+   "kind": "no_dictionary_entry",
+   "detail": "校則|こうそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-019",
+   "surface": "上履き",
+   "kind": "no_dictionary_entry",
+   "detail": "上履き|うわばき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-020",
+   "surface": "給食",
+   "kind": "no_dictionary_entry",
+   "detail": "給食|きゅうしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-021",
+   "surface": "献立",
+   "kind": "no_dictionary_entry",
+   "detail": "献立|こんだて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-022",
+   "surface": "持ち物",
+   "kind": "no_dictionary_entry",
+   "detail": "持ち物|もちもの が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-023",
+   "surface": "筆記用具",
+   "kind": "no_dictionary_entry",
+   "detail": "筆記用具|ひっきようぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-024",
+   "surface": "定規",
+   "kind": "no_dictionary_entry",
+   "detail": "定規|じょうぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-025",
+   "surface": "下敷き",
+   "kind": "no_dictionary_entry",
+   "detail": "下敷き|したじき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-026",
+   "surface": "参考書",
+   "kind": "no_dictionary_entry",
+   "detail": "参考書|さんこうしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-027",
+   "surface": "問題集",
+   "kind": "no_dictionary_entry",
+   "detail": "問題集|もんだいしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-028",
+   "surface": "過去問",
+   "kind": "no_dictionary_entry",
+   "detail": "過去問|かこもん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-029",
+   "surface": "提出物",
+   "kind": "no_dictionary_entry",
+   "detail": "提出物|ていしゅつぶつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-030",
+   "surface": "用紙",
+   "kind": "no_dictionary_entry",
+   "detail": "用紙|ようし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-031",
+   "surface": "下書き",
+   "kind": "no_dictionary_entry",
+   "detail": "下書き|したがき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-032",
+   "surface": "配布",
+   "kind": "no_dictionary_entry",
+   "detail": "配布|はいふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-033",
+   "surface": "連絡帳",
+   "kind": "no_dictionary_entry",
+   "detail": "連絡帳|れんらくちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-034",
+   "surface": "成績",
+   "kind": "no_dictionary_entry",
+   "detail": "成績|せいせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-035",
+   "surface": "採点",
+   "kind": "no_dictionary_entry",
+   "detail": "採点|さいてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-036",
+   "surface": "得点",
+   "kind": "no_dictionary_entry",
+   "detail": "得点|とくてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-037",
+   "surface": "解答",
+   "kind": "no_dictionary_entry",
+   "detail": "解答|かいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-038",
+   "surface": "解説",
+   "kind": "no_dictionary_entry",
+   "detail": "解説|かいせつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-039",
+   "surface": "例文",
+   "kind": "no_dictionary_entry",
+   "detail": "例文|れいぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-040",
+   "surface": "模試",
+   "kind": "no_dictionary_entry",
+   "detail": "模試|もし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-041",
+   "surface": "追試",
+   "kind": "no_dictionary_entry",
+   "detail": "追試|ついし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-042",
+   "surface": "筆記",
+   "kind": "no_dictionary_entry",
+   "detail": "筆記|ひっき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-043",
+   "surface": "記述",
+   "kind": "no_dictionary_entry",
+   "detail": "記述|きじゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-044",
+   "surface": "不合格",
+   "kind": "no_dictionary_entry",
+   "detail": "不合格|ふごうかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-045",
+   "surface": "合否",
+   "kind": "no_dictionary_entry",
+   "detail": "合否|ごうひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-046",
+   "surface": "受験",
+   "kind": "no_dictionary_entry",
+   "detail": "受験|じゅけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-047",
+   "surface": "受験生",
+   "kind": "no_dictionary_entry",
+   "detail": "受験生|じゅけんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-048",
+   "surface": "入試",
+   "kind": "no_dictionary_entry",
+   "detail": "入試|にゅうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-049",
+   "surface": "偏差値",
+   "kind": "no_dictionary_entry",
+   "detail": "偏差値|へんさち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-050",
+   "surface": "学力",
+   "kind": "no_dictionary_entry",
+   "detail": "学力|がくりょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-051",
+   "surface": "通知表",
+   "kind": "no_dictionary_entry",
+   "detail": "通知表|つうちひょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-052",
+   "surface": "進級",
+   "kind": "no_dictionary_entry",
+   "detail": "進級|しんきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-053",
+   "surface": "留年",
+   "kind": "no_dictionary_entry",
+   "detail": "留年|りゅうねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-054",
+   "surface": "入学",
+   "kind": "no_dictionary_entry",
+   "detail": "入学|にゅうがく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-055",
+   "surface": "転校",
+   "kind": "no_dictionary_entry",
+   "detail": "転校|てんこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-056",
+   "surface": "進路",
+   "kind": "no_dictionary_entry",
+   "detail": "進路|しんろ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-057",
+   "surface": "願書",
+   "kind": "no_dictionary_entry",
+   "detail": "願書|がんしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-058",
+   "surface": "出願",
+   "kind": "no_dictionary_entry",
+   "detail": "出願|しゅつがん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-059",
+   "surface": "学費",
+   "kind": "no_dictionary_entry",
+   "detail": "学費|がくひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-060",
+   "surface": "授業料",
+   "kind": "no_dictionary_entry",
+   "detail": "授業料|じゅぎょうりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-061",
+   "surface": "入学金",
+   "kind": "no_dictionary_entry",
+   "detail": "入学金|にゅうがくきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-062",
+   "surface": "奨学金",
+   "kind": "no_dictionary_entry",
+   "detail": "奨学金|しょうがくきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-063",
+   "surface": "検定",
+   "kind": "no_dictionary_entry",
+   "detail": "検定|けんてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-064",
+   "surface": "休学",
+   "kind": "no_dictionary_entry",
+   "detail": "休学|きゅうがく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-065",
+   "surface": "退学",
+   "kind": "no_dictionary_entry",
+   "detail": "退学|たいがく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-066",
+   "surface": "保護者",
+   "kind": "no_dictionary_entry",
+   "detail": "保護者|ほごしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-067",
+   "surface": "家庭訪問",
+   "kind": "no_dictionary_entry",
+   "detail": "家庭訪問|かていほうもん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-068",
+   "surface": "参観",
+   "kind": "no_dictionary_entry",
+   "detail": "参観|さんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-069",
+   "surface": "運動会",
+   "kind": "no_dictionary_entry",
+   "detail": "運動会|うんどうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-070",
+   "surface": "遠足",
+   "kind": "no_dictionary_entry",
+   "detail": "遠足|えんそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-071",
+   "surface": "修学旅行",
+   "kind": "no_dictionary_entry",
+   "detail": "修学旅行|しゅうがくりょこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-072",
+   "surface": "文化祭",
+   "kind": "no_dictionary_entry",
+   "detail": "文化祭|ぶんかさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-073",
+   "surface": "発表会",
+   "kind": "no_dictionary_entry",
+   "detail": "発表会|はっぴょうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-074",
+   "surface": "入学式",
+   "kind": "no_dictionary_entry",
+   "detail": "入学式|にゅうがくしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-075",
+   "surface": "卒業式",
+   "kind": "no_dictionary_entry",
+   "detail": "卒業式|そつぎょうしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-076",
+   "surface": "朝礼",
+   "kind": "no_dictionary_entry",
+   "detail": "朝礼|ちょうれい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-077",
+   "surface": "役員",
+   "kind": "no_dictionary_entry",
+   "detail": "役員|やくいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-078",
+   "surface": "会費",
+   "kind": "no_dictionary_entry",
+   "detail": "会費|かいひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-079",
+   "surface": "総会",
+   "kind": "no_dictionary_entry",
+   "detail": "総会|そうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-080",
+   "surface": "議題",
+   "kind": "no_dictionary_entry",
+   "detail": "議題|ぎだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-081",
+   "surface": "連絡網",
+   "kind": "no_dictionary_entry",
+   "detail": "連絡網|れんらくもう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-082",
+   "surface": "部活",
+   "kind": "no_dictionary_entry",
+   "detail": "部活|ぶかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-083",
+   "surface": "部員",
+   "kind": "no_dictionary_entry",
+   "detail": "部員|ぶいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-084",
+   "surface": "顧問",
+   "kind": "no_dictionary_entry",
+   "detail": "顧問|こもん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-085",
+   "surface": "合宿",
+   "kind": "no_dictionary_entry",
+   "detail": "合宿|がっしゅく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-086",
+   "surface": "塾",
+   "kind": "no_dictionary_entry",
+   "detail": "塾|じゅく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-087",
+   "surface": "予備校",
+   "kind": "no_dictionary_entry",
+   "detail": "予備校|よびこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-088",
+   "surface": "家庭教師",
+   "kind": "no_dictionary_entry",
+   "detail": "家庭教師|かていきょうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-089",
+   "surface": "同級生",
+   "kind": "no_dictionary_entry",
+   "detail": "同級生|どうきゅうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-090",
+   "surface": "新入生",
+   "kind": "no_dictionary_entry",
+   "detail": "新入生|しんにゅうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-091",
+   "surface": "登校",
+   "kind": "no_dictionary_entry",
+   "detail": "登校|とうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-092",
+   "surface": "下校",
+   "kind": "no_dictionary_entry",
+   "detail": "下校|げこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-25-093",
+   "surface": "やる気",
+   "kind": "no_dictionary_entry",
+   "detail": "やる気|やるき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

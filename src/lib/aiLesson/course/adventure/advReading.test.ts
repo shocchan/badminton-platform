@@ -9,6 +9,7 @@ import { checkText } from './advLanguageIntegrity';
 import { presentBattle, analyzeDistribution } from './advChoiceOrder';
 import {
   lengthBiasStats, chanceUpperBoundPct, CHANCE_LOWER_BOUND_PCT, verbatimOnlyCorrectIds,
+  verbatimRunStats,
 } from './advChoiceLengthBias';
 import { READING_TYPE_LABELS, type ReadingType } from './reading/readingTypes';
 
@@ -26,6 +27,29 @@ describe('読解bank coverage（§6）', () => {
     const ids = ALL_READING_SETS.map((s) => s.setId);
     expect(new Set(ids).size).toBe(ids.length);
   });
+});
+
+describe('N5/N4は誤答理由の中国語を必ず持つ', () => {
+  // zh画面の runner は whyWrongZh が無いと日本語の理由をそのまま出す。
+  // N2/N3の学習者はそれでも読めるが、**N5/N4はひらがなも怪しい段階**で、
+  // 解説のいちばん効く部分が読めなくなるため、この2レベルだけ必須にする。
+  const KANA = /[ぁ-ゟ゠-ヿ]/;
+
+  for (const level of ['N5', 'N4'] as const) {
+    it(`${level}: 全誤答に whyWrongZh があり、かなが混入していない`, () => {
+      const missing: string[] = [];
+      const kanaLeak: string[] = [];
+      for (const s of readingSetsFor(level)) {
+        for (const c of s.choices) {
+          if (c.isCorrect) continue;
+          if (!c.whyWrongZh) { missing.push(`${s.setId}/${c.choiceId}`); continue; }
+          if (KANA.test(c.whyWrongZh)) kanaLeak.push(`${s.setId}/${c.choiceId}: ${c.whyWrongZh}`);
+        }
+      }
+      expect(missing).toEqual([]);
+      expect(kanaLeak).toEqual([]);
+    });
+  }
 });
 
 describe('読解セットの品質（全件）', () => {
@@ -133,6 +157,35 @@ describe('読解セットの品質（全件）', () => {
       leaks,
       `正解だけが本文に逐語一致（本文を読まず文字列照合で解ける）: ${leaks.join(', ')}`,
     ).toEqual([]);
+  });
+
+  it('**正解だけが本文と長く一致していない**（一致の長さで解けない・監査2026-08-18）', () => {
+    // 「本文と最も長く一致する選択肢を選ぶ」だけの戦略。偶然は25%。
+    const stats = verbatimRunStats(ALL_READING_SETS);
+    expect(
+      stats.outliers.map((o) => `${o.setId}(正解${o.correctRun}字 vs 誤答${o.wrongRunMax}字)`),
+      '正解だけが誤答より5文字以上長く本文と一致している（＝本文を読まず、同じ形の選択肢を選ぶだけで解ける）',
+    ).toEqual([]);
+    const bound = chanceUpperBoundPct(stats.n);
+    expect(
+      stats.pickLongestRunAccuracyPct,
+      `「本文と最長一致する選択肢を選ぶ」戦略の正解率 ${stats.pickLongestRunAccuracyPct}% > 許容${bound}%`,
+    ).toBeLessThanOrEqual(bound);
+    // 逆戦略（本文と長く一致する選択肢を避ける）が成立しないための下限
+    expect(stats.pickLongestRunAccuracyPct, '逆に「一致が長い選択肢を避ける」戦略が有利になっている')
+      .toBeGreaterThanOrEqual(CHANCE_LOWER_BOUND_PCT);
+  });
+
+  it('レベル別でも一致長で解けない（N5/N4を新設した回の再発防止）', () => {
+    for (const level of ['N5', 'N4', 'N3', 'N2'] as const) {
+      const sets = readingSetsFor(level);
+      if (sets.length === 0) continue;
+      const stats = verbatimRunStats(sets);
+      expect(
+        stats.pickLongestRunAccuracyPct,
+        `${level}: 最長一致戦略 ${stats.pickLongestRunAccuracyPct}% (n=${stats.n}, 許容${chanceUpperBoundPct(stats.n)}%)`,
+      ).toBeLessThanOrEqual(chanceUpperBoundPct(stats.n));
+    }
   });
 
   it('言語整合性: 未許可Script 0・zh設問に地の文の日本語なし', () => {

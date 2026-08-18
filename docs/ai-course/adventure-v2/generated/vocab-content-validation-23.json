@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.460Z",
+ "batchNo": 23,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-23-001",
+  "vc-23-002",
+  "vc-23-003",
+  "vc-23-004",
+  "vc-23-005",
+  "vc-23-006",
+  "vc-23-007",
+  "vc-23-008",
+  "vc-23-009",
+  "vc-23-010",
+  "vc-23-011",
+  "vc-23-012",
+  "vc-23-013",
+  "vc-23-014",
+  "vc-23-015",
+  "vc-23-016",
+  "vc-23-017",
+  "vc-23-018",
+  "vc-23-019",
+  "vc-23-020",
+  "vc-23-021",
+  "vc-23-022",
+  "vc-23-023",
+  "vc-23-024",
+  "vc-23-025",
+  "vc-23-026",
+  "vc-23-027",
+  "vc-23-028",
+  "vc-23-029",
+  "vc-23-030",
+  "vc-23-031",
+  "vc-23-032",
+  "vc-23-033",
+  "vc-23-034",
+  "vc-23-035",
+  "vc-23-036",
+  "vc-23-037",
+  "vc-23-038",
+  "vc-23-039",
+  "vc-23-040",
+  "vc-23-041",
+  "vc-23-042",
+  "vc-23-043",
+  "vc-23-044",
+  "vc-23-045",
+  "vc-23-046",
+  "vc-23-047",
+  "vc-23-048",
+  "vc-23-049",
+  "vc-23-050",
+  "vc-23-051",
+  "vc-23-052",
+  "vc-23-053",
+  "vc-23-054",
+  "vc-23-055",
+  "vc-23-056",
+  "vc-23-057",
+  "vc-23-058",
+  "vc-23-059",
+  "vc-23-060",
+  "vc-23-061",
+  "vc-23-062",
+  "vc-23-063",
+  "vc-23-064",
+  "vc-23-065",
+  "vc-23-066",
+  "vc-23-067",
+  "vc-23-068",
+  "vc-23-069",
+  "vc-23-070",
+  "vc-23-071",
+  "vc-23-072",
+  "vc-23-073",
+  "vc-23-074",
+  "vc-23-075",
+  "vc-23-076",
+  "vc-23-077",
+  "vc-23-078",
+  "vc-23-079",
+  "vc-23-080",
+  "vc-23-081",
+  "vc-23-082",
+  "vc-23-083",
+  "vc-23-084",
+  "vc-23-085",
+  "vc-23-086",
+  "vc-23-087",
+  "vc-23-088",
+  "vc-23-089",
+  "vc-23-090",
+  "vc-23-091",
+  "vc-23-092",
+  "vc-23-093",
+  "vc-23-094",
+  "vc-23-095",
+  "vc-23-096",
+  "vc-23-097",
+  "vc-23-098",
+  "vc-23-099",
+  "vc-23-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-23-001",
+   "surface": "症状",
+   "kind": "no_dictionary_entry",
+   "detail": "症状|しょうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-002",
+   "surface": "診察",
+   "kind": "no_dictionary_entry",
+   "detail": "診察|しんさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-003",
+   "surface": "診断",
+   "kind": "no_dictionary_entry",
+   "detail": "診断|しんだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-004",
+   "surface": "受診",
+   "kind": "no_dictionary_entry",
+   "detail": "受診|じゅしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-005",
+   "surface": "治療",
+   "kind": "no_dictionary_entry",
+   "detail": "治療|ちりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-006",
+   "surface": "手術",
+   "kind": "no_dictionary_entry",
+   "detail": "手術|しゅじゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-007",
+   "surface": "入院",
+   "kind": "no_dictionary_entry",
+   "detail": "入院|にゅういん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-008",
+   "surface": "退院",
+   "kind": "no_dictionary_entry",
+   "detail": "退院|たいいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-009",
+   "surface": "通院",
+   "kind": "no_dictionary_entry",
+   "detail": "通院|つういん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-010",
+   "surface": "内科",
+   "kind": "no_dictionary_entry",
+   "detail": "内科|ないか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-011",
+   "surface": "外科",
+   "kind": "no_dictionary_entry",
+   "detail": "外科|げか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-012",
+   "surface": "歯科",
+   "kind": "no_dictionary_entry",
+   "detail": "歯科|しか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-013",
+   "surface": "眼科",
+   "kind": "no_dictionary_entry",
+   "detail": "眼科|がんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-014",
+   "surface": "皮膚科",
+   "kind": "no_dictionary_entry",
+   "detail": "皮膚科|ひふか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-015",
+   "surface": "待合室",
+   "kind": "no_dictionary_entry",
+   "detail": "待合室|まちあいしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-016",
+   "surface": "診察券",
+   "kind": "no_dictionary_entry",
+   "detail": "診察券|しんさつけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-017",
+   "surface": "保険証",
+   "kind": "no_dictionary_entry",
+   "detail": "保険証|ほけんしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-018",
+   "surface": "患者",
+   "kind": "no_dictionary_entry",
+   "detail": "患者|かんじゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-019",
+   "surface": "看護師",
+   "kind": "no_dictionary_entry",
+   "detail": "看護師|かんごし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-020",
+   "surface": "救急車",
+   "kind": "no_dictionary_entry",
+   "detail": "救急車|きゅうきゅうしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-021",
+   "surface": "医療",
+   "kind": "no_dictionary_entry",
+   "detail": "医療|いりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-022",
+   "surface": "健康診断",
+   "kind": "no_dictionary_entry",
+   "detail": "健康診断|けんこうしんだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-023",
+   "surface": "検査",
+   "kind": "no_dictionary_entry",
+   "detail": "検査|けんさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-024",
+   "surface": "採血",
+   "kind": "no_dictionary_entry",
+   "detail": "採血|さいけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-025",
+   "surface": "予防",
+   "kind": "no_dictionary_entry",
+   "detail": "予防|よぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-026",
+   "surface": "予防接種",
+   "kind": "no_dictionary_entry",
+   "detail": "予防接種|よぼうせっしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-027",
+   "surface": "薬局",
+   "kind": "no_dictionary_entry",
+   "detail": "薬局|やっきょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-028",
+   "surface": "処方",
+   "kind": "no_dictionary_entry",
+   "detail": "処方|しょほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-029",
+   "surface": "処方箋",
+   "kind": "no_dictionary_entry",
+   "detail": "処方箋|しょほうせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-030",
+   "surface": "目薬",
+   "kind": "no_dictionary_entry",
+   "detail": "目薬|めぐすり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-031",
+   "surface": "塗り薬",
+   "kind": "no_dictionary_entry",
+   "detail": "塗り薬|ぬりぐすり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-032",
+   "surface": "副作用",
+   "kind": "no_dictionary_entry",
+   "detail": "副作用|ふくさよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-033",
+   "surface": "湿布",
+   "kind": "no_dictionary_entry",
+   "detail": "湿布|しっぷ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-034",
+   "surface": "包帯",
+   "kind": "no_dictionary_entry",
+   "detail": "包帯|ほうたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-035",
+   "surface": "発熱",
+   "kind": "no_dictionary_entry",
+   "detail": "発熱|はつねつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-036",
+   "surface": "高熱",
+   "kind": "no_dictionary_entry",
+   "detail": "高熱|こうねつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-037",
+   "surface": "微熱",
+   "kind": "no_dictionary_entry",
+   "detail": "微熱|びねつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-038",
+   "surface": "寒気",
+   "kind": "no_dictionary_entry",
+   "detail": "寒気|さむけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-039",
+   "surface": "吐き気",
+   "kind": "no_dictionary_entry",
+   "detail": "吐き気|はきけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-040",
+   "surface": "頭痛",
+   "kind": "no_dictionary_entry",
+   "detail": "頭痛|ずつう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-041",
+   "surface": "腹痛",
+   "kind": "no_dictionary_entry",
+   "detail": "腹痛|ふくつう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-042",
+   "surface": "腰痛",
+   "kind": "no_dictionary_entry",
+   "detail": "腰痛|ようつう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-043",
+   "surface": "肩こり",
+   "kind": "no_dictionary_entry",
+   "detail": "肩こり|かたこり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-044",
+   "surface": "めまい",
+   "kind": "no_dictionary_entry",
+   "detail": "めまい|めまい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-045",
+   "surface": "鼻水",
+   "kind": "no_dictionary_entry",
+   "detail": "鼻水|はなみず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-046",
+   "surface": "くしゃみ",
+   "kind": "no_dictionary_entry",
+   "detail": "くしゃみ|くしゃみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-047",
+   "surface": "花粉症",
+   "kind": "no_dictionary_entry",
+   "detail": "花粉症|かふんしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-048",
+   "surface": "下痢",
+   "kind": "no_dictionary_entry",
+   "detail": "下痢|げり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-049",
+   "surface": "便秘",
+   "kind": "no_dictionary_entry",
+   "detail": "便秘|べんぴ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-050",
+   "surface": "痛み",
+   "kind": "no_dictionary_entry",
+   "detail": "痛み|いたみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-051",
+   "surface": "かゆい",
+   "kind": "no_dictionary_entry",
+   "detail": "かゆい|かゆい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-052",
+   "surface": "だるい",
+   "kind": "no_dictionary_entry",
+   "detail": "だるい|だるい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-053",
+   "surface": "吐く",
+   "kind": "no_dictionary_entry",
+   "detail": "吐く|はく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-054",
+   "surface": "胃",
+   "kind": "no_dictionary_entry",
+   "detail": "胃|い が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-055",
+   "surface": "心臓",
+   "kind": "no_dictionary_entry",
+   "detail": "心臓|しんぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-056",
+   "surface": "皮膚",
+   "kind": "no_dictionary_entry",
+   "detail": "皮膚|ひふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-057",
+   "surface": "筋肉",
+   "kind": "no_dictionary_entry",
+   "detail": "筋肉|きんにく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-058",
+   "surface": "骨",
+   "kind": "no_dictionary_entry",
+   "detail": "骨|ほね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-059",
+   "surface": "関節",
+   "kind": "no_dictionary_entry",
+   "detail": "関節|かんせつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-060",
+   "surface": "血圧",
+   "kind": "no_dictionary_entry",
+   "detail": "血圧|けつあつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-061",
+   "surface": "血液",
+   "kind": "no_dictionary_entry",
+   "detail": "血液|けつえき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-062",
+   "surface": "呼吸",
+   "kind": "no_dictionary_entry",
+   "detail": "呼吸|こきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-063",
+   "surface": "体質",
+   "kind": "no_dictionary_entry",
+   "detail": "体質|たいしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-064",
+   "surface": "姿勢",
+   "kind": "no_dictionary_entry",
+   "detail": "姿勢|しせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-065",
+   "surface": "体力",
+   "kind": "no_dictionary_entry",
+   "detail": "体力|たいりょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-066",
+   "surface": "捻挫",
+   "kind": "no_dictionary_entry",
+   "detail": "捻挫|ねんざ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-067",
+   "surface": "やけど",
+   "kind": "no_dictionary_entry",
+   "detail": "やけど|やけど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-068",
+   "surface": "傷",
+   "kind": "no_dictionary_entry",
+   "detail": "傷|きず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-069",
+   "surface": "車椅子",
+   "kind": "no_dictionary_entry",
+   "detail": "車椅子|くるまいす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-070",
+   "surface": "回復",
+   "kind": "no_dictionary_entry",
+   "detail": "回復|かいふく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-071",
+   "surface": "悪化",
+   "kind": "no_dictionary_entry",
+   "detail": "悪化|あっか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-072",
+   "surface": "安静",
+   "kind": "no_dictionary_entry",
+   "detail": "安静|あんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-073",
+   "surface": "完治",
+   "kind": "no_dictionary_entry",
+   "detail": "完治|かんち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-074",
+   "surface": "再発",
+   "kind": "no_dictionary_entry",
+   "detail": "再発|さいはつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-075",
+   "surface": "治す",
+   "kind": "no_dictionary_entry",
+   "detail": "治す|なおす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-076",
+   "surface": "看病",
+   "kind": "no_dictionary_entry",
+   "detail": "看病|かんびょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-077",
+   "surface": "見舞い",
+   "kind": "no_dictionary_entry",
+   "detail": "見舞い|みまい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-078",
+   "surface": "介護",
+   "kind": "no_dictionary_entry",
+   "detail": "介護|かいご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-079",
+   "surface": "持病",
+   "kind": "no_dictionary_entry",
+   "detail": "持病|じびょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-080",
+   "surface": "アレルギー",
+   "kind": "no_dictionary_entry",
+   "detail": "アレルギー|アレルギー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-081",
+   "surface": "感染",
+   "kind": "no_dictionary_entry",
+   "detail": "感染|かんせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-082",
+   "surface": "インフルエンザ",
+   "kind": "no_dictionary_entry",
+   "detail": "インフルエンザ|インフルエンザ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-083",
+   "surface": "消毒",
+   "kind": "no_dictionary_entry",
+   "detail": "消毒|しょうどく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-084",
+   "surface": "疲労",
+   "kind": "no_dictionary_entry",
+   "detail": "疲労|ひろう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-085",
+   "surface": "寝不足",
+   "kind": "no_dictionary_entry",
+   "detail": "寝不足|ねぶそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-086",
+   "surface": "徹夜",
+   "kind": "no_dictionary_entry",
+   "detail": "徹夜|てつや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-087",
+   "surface": "食生活",
+   "kind": "no_dictionary_entry",
+   "detail": "食生活|しょくせいかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-088",
+   "surface": "食欲",
+   "kind": "no_dictionary_entry",
+   "detail": "食欲|しょくよく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-089",
+   "surface": "消化",
+   "kind": "no_dictionary_entry",
+   "detail": "消化|しょうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-090",
+   "surface": "糖分",
+   "kind": "no_dictionary_entry",
+   "detail": "糖分|とうぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-091",
+   "surface": "塩分",
+   "kind": "no_dictionary_entry",
+   "detail": "塩分|えんぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-092",
+   "surface": "脂肪",
+   "kind": "no_dictionary_entry",
+   "detail": "脂肪|しぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-093",
+   "surface": "満腹",
+   "kind": "no_dictionary_entry",
+   "detail": "満腹|まんぷく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-094",
+   "surface": "空腹",
+   "kind": "no_dictionary_entry",
+   "detail": "空腹|くうふく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-095",
+   "surface": "肥満",
+   "kind": "no_dictionary_entry",
+   "detail": "肥満|ひまん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-096",
+   "surface": "偏る",
+   "kind": "no_dictionary_entry",
+   "detail": "偏る|かたよる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-097",
+   "surface": "運動不足",
+   "kind": "no_dictionary_entry",
+   "detail": "運動不足|うんどうぶそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-098",
+   "surface": "生活習慣",
+   "kind": "no_dictionary_entry",
+   "detail": "生活習慣|せいかつしゅうかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-099",
+   "surface": "妊娠",
+   "kind": "no_dictionary_entry",
+   "detail": "妊娠|にんしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-23-100",
+   "surface": "出産",
+   "kind": "no_dictionary_entry",
+   "detail": "出産|しゅっさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

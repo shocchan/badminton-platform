@@ -95,12 +95,20 @@ export const balancedPositions = (choiceCounts: number[], seed: number): number[
       break;
     }
     if (pick === -1) {
-      // 制約を満たす候補が無い場合は、範囲内で最も使用回数の少ない位置へ落とす
+      // 制約を満たす候補が無い場合は、範囲内で最も使用回数の少ない位置へ落とす。
+      // **ここでも3連続だけは避ける**。以前はプールから選ぶ側にしか3連続回避が無く、
+      // この落とし込みが素通りしていたため、10,000battleに1回 maxStreak=3 が出ていた
+      // （2026-08-18 実測。validate-answer-distribution が FAIL していた唯一の原因）。
+      const streakPos = out.length >= 2 && out[out.length - 1] === out[out.length - 2]
+        ? out[out.length - 1] : -1;
       const counts = new Array(limit).fill(0);
       for (const p of out) if (p < limit) counts[p] += 1;
-      let best = 0;
-      for (let p = 1; p < limit; p++) if (counts[p] < counts[best]) best = p;
-      out.push(best);
+      let best = -1;
+      for (let p = 0; p < limit; p++) {
+        if (p === streakPos && limit > 1) continue;   // 2択以上あるなら3連続にしない
+        if (best === -1 || counts[p] < counts[best]) best = p;
+      }
+      out.push(best === -1 ? 0 : best);
       continue;
     }
     out.push(used[pick]);

@@ -1,0 +1,752 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.465Z",
+ "batchNo": 26,
+ "words": 91,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 91,
+  "blocking": 91,
+  "byKind": {
+   "no_dictionary_entry": 91
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-26-001",
+  "vc-26-002",
+  "vc-26-003",
+  "vc-26-004",
+  "vc-26-005",
+  "vc-26-006",
+  "vc-26-007",
+  "vc-26-008",
+  "vc-26-009",
+  "vc-26-010",
+  "vc-26-011",
+  "vc-26-012",
+  "vc-26-013",
+  "vc-26-014",
+  "vc-26-015",
+  "vc-26-016",
+  "vc-26-017",
+  "vc-26-018",
+  "vc-26-019",
+  "vc-26-020",
+  "vc-26-021",
+  "vc-26-022",
+  "vc-26-023",
+  "vc-26-024",
+  "vc-26-025",
+  "vc-26-026",
+  "vc-26-027",
+  "vc-26-028",
+  "vc-26-029",
+  "vc-26-030",
+  "vc-26-031",
+  "vc-26-032",
+  "vc-26-033",
+  "vc-26-034",
+  "vc-26-035",
+  "vc-26-036",
+  "vc-26-037",
+  "vc-26-038",
+  "vc-26-039",
+  "vc-26-040",
+  "vc-26-041",
+  "vc-26-042",
+  "vc-26-043",
+  "vc-26-044",
+  "vc-26-045",
+  "vc-26-046",
+  "vc-26-047",
+  "vc-26-048",
+  "vc-26-049",
+  "vc-26-050",
+  "vc-26-051",
+  "vc-26-052",
+  "vc-26-053",
+  "vc-26-054",
+  "vc-26-055",
+  "vc-26-056",
+  "vc-26-057",
+  "vc-26-058",
+  "vc-26-059",
+  "vc-26-060",
+  "vc-26-061",
+  "vc-26-062",
+  "vc-26-063",
+  "vc-26-064",
+  "vc-26-065",
+  "vc-26-066",
+  "vc-26-067",
+  "vc-26-068",
+  "vc-26-069",
+  "vc-26-070",
+  "vc-26-071",
+  "vc-26-072",
+  "vc-26-073",
+  "vc-26-074",
+  "vc-26-075",
+  "vc-26-076",
+  "vc-26-077",
+  "vc-26-078",
+  "vc-26-079",
+  "vc-26-080",
+  "vc-26-081",
+  "vc-26-082",
+  "vc-26-083",
+  "vc-26-084",
+  "vc-26-085",
+  "vc-26-086",
+  "vc-26-087",
+  "vc-26-088",
+  "vc-26-089",
+  "vc-26-090",
+  "vc-26-091"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-26-001",
+   "surface": "敷金",
+   "kind": "no_dictionary_entry",
+   "detail": "敷金|しききん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-002",
+   "surface": "礼金",
+   "kind": "no_dictionary_entry",
+   "detail": "礼金|れいきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-003",
+   "surface": "家主",
+   "kind": "no_dictionary_entry",
+   "detail": "家主|やぬし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-004",
+   "surface": "保証人",
+   "kind": "no_dictionary_entry",
+   "detail": "保証人|ほしょうにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-005",
+   "surface": "不動産",
+   "kind": "no_dictionary_entry",
+   "detail": "不動産|ふどうさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-006",
+   "surface": "物件",
+   "kind": "no_dictionary_entry",
+   "detail": "物件|ぶっけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-007",
+   "surface": "間取り",
+   "kind": "no_dictionary_entry",
+   "detail": "間取り|まどり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-008",
+   "surface": "賃貸",
+   "kind": "no_dictionary_entry",
+   "detail": "賃貸|ちんたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-009",
+   "surface": "入居",
+   "kind": "no_dictionary_entry",
+   "detail": "入居|にゅうきょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-010",
+   "surface": "退去",
+   "kind": "no_dictionary_entry",
+   "detail": "退去|たいきょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-011",
+   "surface": "更新",
+   "kind": "no_dictionary_entry",
+   "detail": "更新|こうしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-012",
+   "surface": "管理人",
+   "kind": "no_dictionary_entry",
+   "detail": "管理人|かんりにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-013",
+   "surface": "住宅",
+   "kind": "no_dictionary_entry",
+   "detail": "住宅|じゅうたく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-014",
+   "surface": "団地",
+   "kind": "no_dictionary_entry",
+   "detail": "団地|だんち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-015",
+   "surface": "設備",
+   "kind": "no_dictionary_entry",
+   "detail": "設備|せつび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-016",
+   "surface": "天井",
+   "kind": "no_dictionary_entry",
+   "detail": "天井|てんじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-017",
+   "surface": "床",
+   "kind": "no_dictionary_entry",
+   "detail": "床|ゆか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-018",
+   "surface": "柱",
+   "kind": "no_dictionary_entry",
+   "detail": "柱|はしら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-019",
+   "surface": "網戸",
+   "kind": "no_dictionary_entry",
+   "detail": "網戸|あみど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-020",
+   "surface": "押入れ",
+   "kind": "no_dictionary_entry",
+   "detail": "押入れ|おしいれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-021",
+   "surface": "収納",
+   "kind": "no_dictionary_entry",
+   "detail": "収納|しゅうのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-022",
+   "surface": "蛇口",
+   "kind": "no_dictionary_entry",
+   "detail": "蛇口|じゃぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-023",
+   "surface": "換気",
+   "kind": "no_dictionary_entry",
+   "detail": "換気|かんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-024",
+   "surface": "排水",
+   "kind": "no_dictionary_entry",
+   "detail": "排水|はいすい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-025",
+   "surface": "電球",
+   "kind": "no_dictionary_entry",
+   "detail": "電球|でんきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-026",
+   "surface": "停電",
+   "kind": "no_dictionary_entry",
+   "detail": "停電|ていでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-027",
+   "surface": "断水",
+   "kind": "no_dictionary_entry",
+   "detail": "断水|だんすい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-028",
+   "surface": "水漏れ",
+   "kind": "no_dictionary_entry",
+   "detail": "水漏れ|みずもれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-029",
+   "surface": "詰まる",
+   "kind": "no_dictionary_entry",
+   "detail": "詰まる|つまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-030",
+   "surface": "故障",
+   "kind": "no_dictionary_entry",
+   "detail": "故障|こしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-031",
+   "surface": "点検",
+   "kind": "no_dictionary_entry",
+   "detail": "点検|てんけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-032",
+   "surface": "分別",
+   "kind": "no_dictionary_entry",
+   "detail": "分別|ぶんべつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-033",
+   "surface": "資源",
+   "kind": "no_dictionary_entry",
+   "detail": "資源|しげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-034",
+   "surface": "粗大ごみ",
+   "kind": "no_dictionary_entry",
+   "detail": "粗大ごみ|そだいごみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-035",
+   "surface": "生ごみ",
+   "kind": "no_dictionary_entry",
+   "detail": "生ごみ|なまごみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-036",
+   "surface": "回収",
+   "kind": "no_dictionary_entry",
+   "detail": "回収|かいしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-037",
+   "surface": "処分",
+   "kind": "no_dictionary_entry",
+   "detail": "処分|しょぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-038",
+   "surface": "清掃",
+   "kind": "no_dictionary_entry",
+   "detail": "清掃|せいそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-039",
+   "surface": "騒音",
+   "kind": "no_dictionary_entry",
+   "detail": "騒音|そうおん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-040",
+   "surface": "振動",
+   "kind": "no_dictionary_entry",
+   "detail": "振動|しんどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-041",
+   "surface": "町内会",
+   "kind": "no_dictionary_entry",
+   "detail": "町内会|ちょうないかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-042",
+   "surface": "回覧板",
+   "kind": "no_dictionary_entry",
+   "detail": "回覧板|かいらんばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-043",
+   "surface": "掲示板",
+   "kind": "no_dictionary_entry",
+   "detail": "掲示板|けいじばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-044",
+   "surface": "張り紙",
+   "kind": "no_dictionary_entry",
+   "detail": "張り紙|はりがみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-045",
+   "surface": "防犯",
+   "kind": "no_dictionary_entry",
+   "detail": "防犯|ぼうはん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-046",
+   "surface": "空き巣",
+   "kind": "no_dictionary_entry",
+   "detail": "空き巣|あきす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-047",
+   "surface": "怪しい",
+   "kind": "no_dictionary_entry",
+   "detail": "怪しい|あやしい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-048",
+   "surface": "詐欺",
+   "kind": "no_dictionary_entry",
+   "detail": "詐欺|さぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-049",
+   "surface": "被害",
+   "kind": "no_dictionary_entry",
+   "detail": "被害|ひがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-050",
+   "surface": "防災",
+   "kind": "no_dictionary_entry",
+   "detail": "防災|ぼうさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-051",
+   "surface": "避難",
+   "kind": "no_dictionary_entry",
+   "detail": "避難|ひなん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-052",
+   "surface": "避難所",
+   "kind": "no_dictionary_entry",
+   "detail": "避難所|ひなんじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-053",
+   "surface": "洪水",
+   "kind": "no_dictionary_entry",
+   "detail": "洪水|こうずい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-054",
+   "surface": "大雨",
+   "kind": "no_dictionary_entry",
+   "detail": "大雨|おおあめ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-055",
+   "surface": "火災",
+   "kind": "no_dictionary_entry",
+   "detail": "火災|かさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-056",
+   "surface": "消火器",
+   "kind": "no_dictionary_entry",
+   "detail": "消火器|しょうかき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-057",
+   "surface": "非常口",
+   "kind": "no_dictionary_entry",
+   "detail": "非常口|ひじょうぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-058",
+   "surface": "警報",
+   "kind": "no_dictionary_entry",
+   "detail": "警報|けいほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-059",
+   "surface": "懐中電灯",
+   "kind": "no_dictionary_entry",
+   "detail": "懐中電灯|かいちゅうでんとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-060",
+   "surface": "通報",
+   "kind": "no_dictionary_entry",
+   "detail": "通報|つうほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-061",
+   "surface": "消防署",
+   "kind": "no_dictionary_entry",
+   "detail": "消防署|しょうぼうしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-062",
+   "surface": "緊急",
+   "kind": "no_dictionary_entry",
+   "detail": "緊急|きんきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-063",
+   "surface": "定期券",
+   "kind": "no_dictionary_entry",
+   "detail": "定期券|ていきけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-064",
+   "surface": "改札",
+   "kind": "no_dictionary_entry",
+   "detail": "改札|かいさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-065",
+   "surface": "乗り換え",
+   "kind": "no_dictionary_entry",
+   "detail": "乗り換え|のりかえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-066",
+   "surface": "遅延",
+   "kind": "no_dictionary_entry",
+   "detail": "遅延|ちえん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-067",
+   "surface": "満員",
+   "kind": "no_dictionary_entry",
+   "detail": "満員|まんいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-068",
+   "surface": "渋滞",
+   "kind": "no_dictionary_entry",
+   "detail": "渋滞|じゅうたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-069",
+   "surface": "横断歩道",
+   "kind": "no_dictionary_entry",
+   "detail": "横断歩道|おうだんほどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-070",
+   "surface": "停留所",
+   "kind": "no_dictionary_entry",
+   "detail": "停留所|ていりゅうじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-071",
+   "surface": "終電",
+   "kind": "no_dictionary_entry",
+   "detail": "終電|しゅうでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-072",
+   "surface": "徒歩",
+   "kind": "no_dictionary_entry",
+   "detail": "徒歩|とほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-073",
+   "surface": "駐輪場",
+   "kind": "no_dictionary_entry",
+   "detail": "駐輪場|ちゅうりんじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-074",
+   "surface": "標識",
+   "kind": "no_dictionary_entry",
+   "detail": "標識|ひょうしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-075",
+   "surface": "違反",
+   "kind": "no_dictionary_entry",
+   "detail": "違反|いはん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-076",
+   "surface": "罰金",
+   "kind": "no_dictionary_entry",
+   "detail": "罰金|ばっきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-077",
+   "surface": "商店街",
+   "kind": "no_dictionary_entry",
+   "detail": "商店街|しょうてんがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-078",
+   "surface": "特売",
+   "kind": "no_dictionary_entry",
+   "detail": "特売|とくばい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-079",
+   "surface": "割引",
+   "kind": "no_dictionary_entry",
+   "detail": "割引|わりびき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-080",
+   "surface": "値上げ",
+   "kind": "no_dictionary_entry",
+   "detail": "値上げ|ねあげ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-081",
+   "surface": "品切れ",
+   "kind": "no_dictionary_entry",
+   "detail": "品切れ|しなぎれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-082",
+   "surface": "賞味期限",
+   "kind": "no_dictionary_entry",
+   "detail": "賞味期限|しょうみきげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-083",
+   "surface": "返品",
+   "kind": "no_dictionary_entry",
+   "detail": "返品|へんぴん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-084",
+   "surface": "支払い",
+   "kind": "no_dictionary_entry",
+   "detail": "支払い|しはらい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-085",
+   "surface": "現金",
+   "kind": "no_dictionary_entry",
+   "detail": "現金|げんきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-086",
+   "surface": "宅配",
+   "kind": "no_dictionary_entry",
+   "detail": "宅配|たくはい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-087",
+   "surface": "不在",
+   "kind": "no_dictionary_entry",
+   "detail": "不在|ふざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-088",
+   "surface": "役所",
+   "kind": "no_dictionary_entry",
+   "detail": "役所|やくしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-089",
+   "surface": "住民票",
+   "kind": "no_dictionary_entry",
+   "detail": "住民票|じゅうみんひょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-090",
+   "surface": "転入",
+   "kind": "no_dictionary_entry",
+   "detail": "転入|てんにゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-26-091",
+   "surface": "窓口",
+   "kind": "no_dictionary_entry",
+   "detail": "窓口|まどぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

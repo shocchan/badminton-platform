@@ -102,3 +102,76 @@ export const verbatimOnlyCorrectIds = (sets: ReadingSet[]): string[] => {
   }
   return out;
 };
+
+// ---------------------------------------------------------------------------
+// 逐語一致「長さ」の検査（2026-08-18 追加）。
+//
+// verbatimOnlyCorrectIds は「選択肢の全文が本文に含まれるか」しか見ないので、
+// 誤答が1つでも短く一致していればPASSしてしまう。実際 n4r-info-09 は
+// 正解が18字まるごと本文にあるのに、9字の誤答が一致していたためPASSしていた。
+// → 一致の**長さ**で測り直す。「本文と最も長く一致する選択肢を選ぶ」だけの
+//   戦略が偶然水準を超えるなら、本文を読まなくても解けているということ。
+//   （監査時実測 2026-08-18: 新規N5/N4 47.3%・既存N3/N2 37.0%・偶然25%）
+// ---------------------------------------------------------------------------
+
+/** a と b の最長共通部分文字列（連続一致）の長さ */
+export const longestCommonRun = (a: string, b: string): number => {
+  if (a.length === 0 || b.length === 0) return 0;
+  let prev = new Uint16Array(b.length + 1);
+  let cur = new Uint16Array(b.length + 1);
+  let best = 0;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = a[i - 1] === b[j - 1] ? prev[j - 1] + 1 : 0;
+      if (cur[j] > best) best = cur[j];
+    }
+    const t = prev; prev = cur; cur = t;
+    cur.fill(0);
+  }
+  return best;
+};
+
+/** 正解だけが突出して長く本文と一致しているセット（許容差を超えたもの） */
+export interface VerbatimRunOutlier {
+  setId: string;
+  /** 正解と本文の最長一致長 */
+  correctRun: number;
+  /** 誤答3つの最長一致長のうち最大 */
+  wrongRunMax: number;
+  margin: number;
+}
+
+export interface VerbatimRunStats {
+  n: number;
+  /** 「本文と最も長く一致する選択肢を選ぶ」戦略の期待正解率（%・同着はランダム扱い） */
+  pickLongestRunAccuracyPct: number;
+  outliers: VerbatimRunOutlier[];
+}
+
+/**
+ * 許容差 maxMargin: 正解の一致長が誤答の最大より何文字長いところまで許すか。
+ * 読解では正解が本文を言い換える以上、数文字の差はどうしても出る。
+ * 5文字以上開いていると「本文を眺めて一番同じ形の選択肢を選ぶ」で当たるので、既定は4。
+ */
+export const verbatimRunStats = (sets: ReadingSet[], maxMargin = 4): VerbatimRunStats => {
+  const outliers: VerbatimRunOutlier[] = [];
+  let score = 0;
+  for (const s of sets) {
+    const passage = normalize(s.passageJa);
+    const runs = s.choices.map((c) => longestCommonRun(passage, normalize(c.textJa)));
+    const max = Math.max(...runs);
+    const winners = s.choices.filter((_, i) => runs[i] === max);
+    if (winners.some((c) => c.isCorrect)) score += 1 / winners.length;
+    const ci = s.choices.findIndex((c) => c.isCorrect);
+    if (ci < 0) continue;
+    const wrongRunMax = Math.max(...runs.filter((_, i) => i !== ci));
+    const margin = runs[ci] - wrongRunMax;
+    if (margin > maxMargin) outliers.push({ setId: s.setId, correctRun: runs[ci], wrongRunMax, margin });
+  }
+  const n = sets.length;
+  return {
+    n,
+    pickLongestRunAccuracyPct: n === 0 ? 0 : Math.round((score / n) * 1000) / 10,
+    outliers,
+  };
+};

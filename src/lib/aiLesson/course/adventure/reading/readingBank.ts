@@ -15,12 +15,23 @@ import { N2_READING_MID_B } from './n2ReadingMidB';
 import { N2_READING_INT_B } from './n2ReadingIntB';
 import { N2_READING_THEME_B } from './n2ReadingThemeB';
 import { N2_READING_INFO_B } from './n2ReadingInfoB';
-import { READING_TYPE_LABELS, readingKeyOf, type ReadingSet, type ReadingType } from './readingTypes';
+// N5/N4（2026-08-18 追加）。目標レベルにN5/N4を解禁したのに読解が0本だったため
+import { N5_READING_SHORT_A } from './n5ReadingShortA';
+import { N5_READING_INFO_A } from './n5ReadingInfoA';
+import { N5_READING_KEY_A } from './n5ReadingKeyA';
+import { N5_READING_MID_A } from './n5ReadingMidA';
+import { N4_READING_SHORT_A } from './n4ReadingShortA';
+import { N4_READING_INFO_A } from './n4ReadingInfoA';
+import { N4_READING_KEY_A } from './n4ReadingKeyA';
+import { N4_READING_MID_A } from './n4ReadingMidA';
+import { READING_TYPE_LABELS, readingKeyOf, type ReadingSet, type ReadingType, type ReadingLevel } from './readingTypes';
 
 export { READING_TYPE_LABELS, readingKeyOf };
-export type { ReadingSet, ReadingType };
+export type { ReadingSet, ReadingType, ReadingLevel };
 
 export const ALL_READING_SETS: ReadingSet[] = [
+  ...N5_READING_SHORT_A, ...N5_READING_INFO_A, ...N5_READING_KEY_A, ...N5_READING_MID_A,
+  ...N4_READING_SHORT_A, ...N4_READING_INFO_A, ...N4_READING_KEY_A, ...N4_READING_MID_A,
   ...N3_READING_SETS,
   ...N3_READING_SHORT_B, ...N3_READING_MID_B, ...N3_READING_LONG_B,
   ...N3_READING_INFO_B, ...N3_READING_KEY_B,
@@ -29,7 +40,7 @@ export const ALL_READING_SETS: ReadingSet[] = [
   ...N2_READING_THEME_B, ...N2_READING_INFO_B,
 ];
 
-export const readingSetsFor = (level: 'N2' | 'N3'): ReadingSet[] =>
+export const readingSetsFor = (level: ReadingLevel): ReadingSet[] =>
   ALL_READING_SETS.filter((s) => s.sourceLevel === level);
 
 export const readingSetById = (setId: string): ReadingSet | undefined =>
@@ -39,7 +50,8 @@ export const readingSetById = (setId: string): ReadingSet | undefined =>
 export const readingToQuestion = (s: ReadingSet): AdvBattleQuestion => ({
   key: readingKeyOf(s),
   type: `read-${s.readingType}`,
-  level: s.sourceLevel === 'N2' ? 'n2' : 'n3',
+  // N5/N4 は基礎帯の問題として扱う（AdvBattleQuestion.level は foundation/n3/n2 の3値）
+  level: s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
   skill: 'reading',
   examSection: SECTION_OF_SKILL.reading,
   targetJapanese: s.passageJa,
@@ -71,7 +83,7 @@ export const readingToQuestion = (s: ReadingSet): AdvBattleQuestion => ({
 });
 
 /** targetId → 問題 のプール（バトルセレクタへ渡す形） */
-export const readingPool = (level: 'N2' | 'N3'): Map<string, AdvBattleQuestion[]> => {
+export const readingPool = (level: ReadingLevel): Map<string, AdvBattleQuestion[]> => {
   const map = new Map<string, AdvBattleQuestion[]>();
   for (const s of readingSetsFor(level)) {
     const target = `read-${s.sourceLevel.toLowerCase()}-${s.readingType}`;
@@ -83,10 +95,10 @@ export const readingPool = (level: 'N2' | 'N3'): Map<string, AdvBattleQuestion[]
 };
 
 /** 読解のターゲットID一覧（Today Adventure / 模試の出題対象に使う） */
-export const readingTargetIds = (level: 'N2' | 'N3'): string[] => [...readingPool(level).keys()];
+export const readingTargetIds = (level: ReadingLevel): string[] => [...readingPool(level).keys()];
 
 export interface ReadingCoverage {
-  level: 'N2' | 'N3';
+  level: ReadingLevel;
   total: number;
   byType: Record<string, number>;
   typesBelowMinimum: string[];
@@ -94,7 +106,7 @@ export interface ReadingCoverage {
 }
 
 /** Pilot最低coverage（各主要type 6セット以上・合計30セット以上） */
-export const readingCoverage = (level: 'N2' | 'N3'): ReadingCoverage => {
+export const readingCoverage = (level: ReadingLevel): ReadingCoverage => {
   const sets = readingSetsFor(level);
   const byType: Record<string, number> = {};
   for (const s of sets) byType[s.readingType] = (byType[s.readingType] ?? 0) + 1;

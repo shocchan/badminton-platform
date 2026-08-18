@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T15:17:36.164Z",
+ "generatedAt": "2026-08-18T07:09:30.451Z",
  "batchNo": 8,
  "words": 250,
  "machineCheck": {
@@ -8,128 +8,2017 @@
   "byKind": {}
  },
  "semanticReview": {
-  "findings": 16,
-  "blocking": 0,
+  "findings": 250,
+  "blocking": 250,
   "byKind": {
-   "ambiguous_sense_unmarked": 16
+   "no_dictionary_entry": 250
   }
  },
- "eligibleForActiveBeta": 250,
- "needsHumanReview": [],
- "blocking": [],
- "warnings": [
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-08-001",
+  "vc-08-002",
+  "vc-08-003",
+  "vc-08-004",
+  "vc-08-005",
+  "vc-08-006",
+  "vc-08-007",
+  "vc-08-008",
+  "vc-08-009",
+  "vc-08-010",
+  "vc-08-011",
+  "vc-08-012",
+  "vc-08-013",
+  "vc-08-014",
+  "vc-08-015",
+  "vc-08-016",
+  "vc-08-017",
+  "vc-08-018",
+  "vc-08-019",
+  "vc-08-020",
+  "vc-08-021",
+  "vc-08-022",
+  "vc-08-023",
+  "vc-08-024",
+  "vc-08-025",
+  "vc-08-026",
+  "vc-08-027",
+  "vc-08-028",
+  "vc-08-029",
+  "vc-08-030",
+  "vc-08-031",
+  "vc-08-032",
+  "vc-08-033",
+  "vc-08-034",
+  "vc-08-035",
+  "vc-08-036",
+  "vc-08-037",
+  "vc-08-038",
+  "vc-08-039",
+  "vc-08-040",
+  "vc-08-041",
+  "vc-08-042",
+  "vc-08-043",
+  "vc-08-044",
+  "vc-08-045",
+  "vc-08-046",
+  "vc-08-047",
+  "vc-08-048",
+  "vc-08-049",
+  "vc-08-050",
+  "vc-08-051",
+  "vc-08-052",
+  "vc-08-053",
+  "vc-08-054",
+  "vc-08-055",
+  "vc-08-056",
+  "vc-08-057",
+  "vc-08-058",
+  "vc-08-059",
+  "vc-08-060",
+  "vc-08-061",
+  "vc-08-062",
+  "vc-08-063",
+  "vc-08-064",
+  "vc-08-065",
+  "vc-08-066",
+  "vc-08-067",
+  "vc-08-068",
+  "vc-08-069",
+  "vc-08-070",
+  "vc-08-071",
+  "vc-08-072",
+  "vc-08-073",
+  "vc-08-074",
+  "vc-08-075",
+  "vc-08-076",
+  "vc-08-077",
+  "vc-08-078",
+  "vc-08-079",
+  "vc-08-080",
+  "vc-08-081",
+  "vc-08-082",
+  "vc-08-083",
+  "vc-08-084",
+  "vc-08-085",
+  "vc-08-086",
+  "vc-08-087",
+  "vc-08-088",
+  "vc-08-089",
+  "vc-08-090",
+  "vc-08-091",
+  "vc-08-092",
+  "vc-08-093",
+  "vc-08-094",
+  "vc-08-095",
+  "vc-08-096",
+  "vc-08-097",
+  "vc-08-098",
+  "vc-08-099",
+  "vc-08-100",
+  "vc-08-101",
+  "vc-08-102",
+  "vc-08-103",
+  "vc-08-104",
+  "vc-08-105",
+  "vc-08-106",
+  "vc-08-107",
+  "vc-08-108",
+  "vc-08-109",
+  "vc-08-110",
+  "vc-08-111",
+  "vc-08-112",
+  "vc-08-113",
+  "vc-08-114",
+  "vc-08-115",
+  "vc-08-116",
+  "vc-08-117",
+  "vc-08-118",
+  "vc-08-119",
+  "vc-08-120",
+  "vc-08-121",
+  "vc-08-122",
+  "vc-08-123",
+  "vc-08-124",
+  "vc-08-125",
+  "vc-08-126",
+  "vc-08-127",
+  "vc-08-128",
+  "vc-08-129",
+  "vc-08-130",
+  "vc-08-131",
+  "vc-08-132",
+  "vc-08-133",
+  "vc-08-134",
+  "vc-08-135",
+  "vc-08-136",
+  "vc-08-137",
+  "vc-08-138",
+  "vc-08-139",
+  "vc-08-140",
+  "vc-08-141",
+  "vc-08-142",
+  "vc-08-143",
+  "vc-08-144",
+  "vc-08-145",
+  "vc-08-146",
+  "vc-08-147",
+  "vc-08-148",
+  "vc-08-149",
+  "vc-08-150",
+  "vc-08-151",
+  "vc-08-152",
+  "vc-08-153",
+  "vc-08-154",
+  "vc-08-155",
+  "vc-08-156",
+  "vc-08-157",
+  "vc-08-158",
+  "vc-08-159",
+  "vc-08-160",
+  "vc-08-161",
+  "vc-08-162",
+  "vc-08-163",
+  "vc-08-164",
+  "vc-08-165",
+  "vc-08-166",
+  "vc-08-167",
+  "vc-08-168",
+  "vc-08-169",
+  "vc-08-170",
+  "vc-08-171",
+  "vc-08-172",
+  "vc-08-173",
+  "vc-08-174",
+  "vc-08-175",
+  "vc-08-176",
+  "vc-08-177",
+  "vc-08-178",
+  "vc-08-179",
+  "vc-08-180",
+  "vc-08-181",
+  "vc-08-182",
+  "vc-08-183",
+  "vc-08-184",
+  "vc-08-185",
+  "vc-08-186",
+  "vc-08-187",
+  "vc-08-188",
+  "vc-08-189",
+  "vc-08-190",
+  "vc-08-191",
+  "vc-08-192",
+  "vc-08-193",
+  "vc-08-194",
+  "vc-08-195",
+  "vc-08-196",
+  "vc-08-197",
+  "vc-08-198",
+  "vc-08-199",
+  "vc-08-200",
+  "vc-08-201",
+  "vc-08-202",
+  "vc-08-203",
+  "vc-08-204",
+  "vc-08-205",
+  "vc-08-206",
+  "vc-08-207",
+  "vc-08-208",
+  "vc-08-209",
+  "vc-08-210",
+  "vc-08-211",
+  "vc-08-212",
+  "vc-08-213",
+  "vc-08-214",
+  "vc-08-215",
+  "vc-08-216",
+  "vc-08-217",
+  "vc-08-218",
+  "vc-08-219",
+  "vc-08-220",
+  "vc-08-221",
+  "vc-08-222",
+  "vc-08-223",
+  "vc-08-224",
+  "vc-08-225",
+  "vc-08-226",
+  "vc-08-227",
+  "vc-08-228",
+  "vc-08-229",
+  "vc-08-230",
+  "vc-08-231",
+  "vc-08-232",
+  "vc-08-233",
+  "vc-08-234",
+  "vc-08-235",
+  "vc-08-236",
+  "vc-08-237",
+  "vc-08-238",
+  "vc-08-239",
+  "vc-08-240",
+  "vc-08-241",
+  "vc-08-242",
+  "vc-08-243",
+  "vc-08-244",
+  "vc-08-245",
+  "vc-08-246",
+  "vc-08-247",
+  "vc-08-248",
+  "vc-08-249",
+  "vc-08-250"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-08-001",
+   "surface": "チーズ",
+   "kind": "no_dictionary_entry",
+   "detail": "チーズ|チーズ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-002",
+   "surface": "力",
+   "kind": "no_dictionary_entry",
+   "detail": "力|ちから が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-003",
+   "surface": "地区",
+   "kind": "no_dictionary_entry",
+   "detail": "地区|ちく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-004",
+   "surface": "知事",
+   "kind": "no_dictionary_entry",
+   "detail": "知事|ちじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-005",
+   "surface": "父親",
+   "kind": "no_dictionary_entry",
+   "detail": "父親|ちちおや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-006",
+   "surface": "ちっとも",
+   "kind": "no_dictionary_entry",
+   "detail": "ちっとも|ちっとも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-007",
+   "surface": "地平線",
+   "kind": "no_dictionary_entry",
+   "detail": "地平線|ちへいせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-008",
+   "surface": "茶",
+   "kind": "no_dictionary_entry",
+   "detail": "茶|ちゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-009",
+   "surface": "チャイム",
+   "kind": "no_dictionary_entry",
+   "detail": "チャイム|チャイム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-010",
+   "surface": "茶碗",
+   "kind": "no_dictionary_entry",
+   "detail": "茶碗|ちゃわん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-011",
+   "surface": "チャンス",
+   "kind": "no_dictionary_entry",
+   "detail": "チャンス|チャンス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
   {
    "wordId": "vc-08-012",
    "surface": "中",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に8語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "中|ちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-013",
+   "surface": "注",
+   "kind": "no_dictionary_entry",
+   "detail": "注|ちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-014",
+   "surface": "中央",
+   "kind": "no_dictionary_entry",
+   "detail": "中央|ちゅうおう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-015",
+   "surface": "中学",
+   "kind": "no_dictionary_entry",
+   "detail": "中学|ちゅうがく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-016",
+   "surface": "中学校",
+   "kind": "no_dictionary_entry",
+   "detail": "中学校|ちゅうがっこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-017",
+   "surface": "中古",
+   "kind": "no_dictionary_entry",
+   "detail": "中古|ちゅうこ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-018",
+   "surface": "注射",
+   "kind": "no_dictionary_entry",
+   "detail": "注射|ちゅうしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-019",
+   "surface": "駐車場",
+   "kind": "no_dictionary_entry",
+   "detail": "駐車場|ちゅうしゃじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-020",
+   "surface": "昼食",
+   "kind": "no_dictionary_entry",
+   "detail": "昼食|ちゅうしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-021",
+   "surface": "注目",
+   "kind": "no_dictionary_entry",
+   "detail": "注目|ちゅうもく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-022",
+   "surface": "長期",
+   "kind": "no_dictionary_entry",
+   "detail": "長期|ちょうき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-023",
+   "surface": "散らす",
+   "kind": "no_dictionary_entry",
+   "detail": "散らす|ちらす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-024",
+   "surface": "地理",
+   "kind": "no_dictionary_entry",
+   "detail": "地理|ちり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-025",
+   "surface": "散る",
+   "kind": "no_dictionary_entry",
+   "detail": "散る|ちる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-026",
    "surface": "対",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に4語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "対|つい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-027",
+   "surface": "通貨",
+   "kind": "no_dictionary_entry",
+   "detail": "通貨|つうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-028",
+   "surface": "通学",
+   "kind": "no_dictionary_entry",
+   "detail": "通学|つうがく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-029",
+   "surface": "通じる",
+   "kind": "no_dictionary_entry",
+   "detail": "通じる|つうじる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-030",
+   "surface": "通信",
+   "kind": "no_dictionary_entry",
+   "detail": "通信|つうしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-031",
+   "surface": "捕まえる",
+   "kind": "no_dictionary_entry",
+   "detail": "捕まえる|つかまえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-032",
+   "surface": "掴む",
+   "kind": "no_dictionary_entry",
+   "detail": "掴む|つかむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-033",
+   "surface": "月",
+   "kind": "no_dictionary_entry",
+   "detail": "月|つき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-034",
+   "surface": "付き合い",
+   "kind": "no_dictionary_entry",
+   "detail": "付き合い|つきあい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-035",
+   "surface": "付合う",
+   "kind": "no_dictionary_entry",
+   "detail": "付合う|つきあう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-036",
+   "surface": "次々",
+   "kind": "no_dictionary_entry",
+   "detail": "次々|つぎつぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-037",
+   "surface": "点く",
+   "kind": "no_dictionary_entry",
+   "detail": "点く|つく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-038",
+   "surface": "付く",
+   "kind": "no_dictionary_entry",
+   "detail": "付く|つく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-039",
+   "surface": "次ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "次ぐ|つぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-040",
+   "surface": "注ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "注ぐ|つぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-041",
    "surface": "着ける",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に17語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "着ける|つける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-042",
+   "surface": "漬ける",
+   "kind": "no_dictionary_entry",
+   "detail": "漬ける|つける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-043",
+   "surface": "付ける",
+   "kind": "no_dictionary_entry",
+   "detail": "付ける|つける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-044",
+   "surface": "土",
+   "kind": "no_dictionary_entry",
+   "detail": "土|つち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-045",
+   "surface": "包み",
+   "kind": "no_dictionary_entry",
+   "detail": "包み|つつみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-046",
+   "surface": "包む",
+   "kind": "no_dictionary_entry",
+   "detail": "包む|つつむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-047",
+   "surface": "繋がる",
+   "kind": "no_dictionary_entry",
+   "detail": "繋がる|つながる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-048",
+   "surface": "繋ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "繋ぐ|つなぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-049",
+   "surface": "妻",
+   "kind": "no_dictionary_entry",
+   "detail": "妻|つま が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-050",
+   "surface": "積む",
+   "kind": "no_dictionary_entry",
+   "detail": "積む|つむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-051",
+   "surface": "積もる",
+   "kind": "no_dictionary_entry",
+   "detail": "積もる|つもる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-052",
+   "surface": "梅雨",
+   "kind": "no_dictionary_entry",
+   "detail": "梅雨|つゆ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-053",
+   "surface": "強まる",
+   "kind": "no_dictionary_entry",
+   "detail": "強まる|つよまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-054",
+   "surface": "強める",
+   "kind": "no_dictionary_entry",
+   "detail": "強める|つよめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-055",
+   "surface": "釣る",
+   "kind": "no_dictionary_entry",
+   "detail": "釣る|つる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-056",
+   "surface": "連れ",
+   "kind": "no_dictionary_entry",
+   "detail": "連れ|つれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-057",
+   "surface": "連れる",
+   "kind": "no_dictionary_entry",
+   "detail": "連れる|つれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-058",
    "surface": "出",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に7語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "出|で が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-059",
    "surface": "出合い",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に3語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "出合い|であい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-060",
+   "surface": "定期",
+   "kind": "no_dictionary_entry",
+   "detail": "定期|ていき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-061",
+   "surface": "デート",
+   "kind": "no_dictionary_entry",
+   "detail": "デート|デート が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-062",
+   "surface": "出来事",
+   "kind": "no_dictionary_entry",
+   "detail": "出来事|できごと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-063",
+   "surface": "テキスト",
+   "kind": "no_dictionary_entry",
+   "detail": "テキスト|テキスト が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-064",
+   "surface": "適当",
+   "kind": "no_dictionary_entry",
+   "detail": "適当|てきとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-065",
+   "surface": "デザート",
+   "kind": "no_dictionary_entry",
+   "detail": "デザート|デザート が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-066",
+   "surface": "デザイン",
+   "kind": "no_dictionary_entry",
+   "detail": "デザイン|デザイン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-067",
+   "surface": "手品",
+   "kind": "no_dictionary_entry",
+   "detail": "手品|てじな が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-068",
+   "surface": "鉄",
+   "kind": "no_dictionary_entry",
+   "detail": "鉄|てつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-069",
+   "surface": "手伝う",
+   "kind": "no_dictionary_entry",
+   "detail": "手伝う|てつだう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-070",
+   "surface": "鉄道",
+   "kind": "no_dictionary_entry",
+   "detail": "鉄道|てつどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-071",
+   "surface": "テニス",
+   "kind": "no_dictionary_entry",
+   "detail": "テニス|テニス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-072",
+   "surface": "手袋",
+   "kind": "no_dictionary_entry",
+   "detail": "手袋|てぶくろ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-073",
+   "surface": "デモ",
+   "kind": "no_dictionary_entry",
+   "detail": "デモ|デモ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-074",
+   "surface": "寺",
+   "kind": "no_dictionary_entry",
+   "detail": "寺|てら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-075",
+   "surface": "点",
+   "kind": "no_dictionary_entry",
+   "detail": "点|てん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-076",
+   "surface": "伝言",
+   "kind": "no_dictionary_entry",
+   "detail": "伝言|でんごん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-077",
+   "surface": "電子",
+   "kind": "no_dictionary_entry",
+   "detail": "電子|でんし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-078",
+   "surface": "テント",
+   "kind": "no_dictionary_entry",
+   "detail": "テント|テント が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-079",
+   "surface": "電灯",
+   "kind": "no_dictionary_entry",
+   "detail": "電灯|でんとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-080",
+   "surface": "電報",
+   "kind": "no_dictionary_entry",
+   "detail": "電報|でんぽう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-081",
+   "surface": "展覧会",
+   "kind": "no_dictionary_entry",
+   "detail": "展覧会|てんらんかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-082",
    "surface": "と",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に6語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "と|と が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-083",
+   "surface": "問う",
+   "kind": "no_dictionary_entry",
+   "detail": "問う|とう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-084",
+   "surface": "答案",
+   "kind": "no_dictionary_entry",
+   "detail": "答案|とうあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-085",
+   "surface": "同一",
+   "kind": "no_dictionary_entry",
+   "detail": "同一|どういつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-086",
+   "surface": "同時",
+   "kind": "no_dictionary_entry",
+   "detail": "同時|どうじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-087",
+   "surface": "どうしても",
+   "kind": "no_dictionary_entry",
+   "detail": "どうしても|どうしても が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-088",
+   "surface": "とうとう",
+   "kind": "no_dictionary_entry",
+   "detail": "とうとう|とうとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-089",
+   "surface": "道徳",
+   "kind": "no_dictionary_entry",
+   "detail": "道徳|どうとく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-090",
+   "surface": "投票",
+   "kind": "no_dictionary_entry",
+   "detail": "投票|とうひょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-091",
+   "surface": "動物園",
+   "kind": "no_dictionary_entry",
+   "detail": "動物園|どうぶつえん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-092",
+   "surface": "東洋",
+   "kind": "no_dictionary_entry",
+   "detail": "東洋|とうよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-093",
+   "surface": "同様",
+   "kind": "no_dictionary_entry",
+   "detail": "同様|どうよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-094",
+   "surface": "通す",
+   "kind": "no_dictionary_entry",
+   "detail": "通す|とおす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-095",
+   "surface": "通る",
+   "kind": "no_dictionary_entry",
+   "detail": "通る|とおる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-096",
+   "surface": "説く",
+   "kind": "no_dictionary_entry",
+   "detail": "説く|とく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-097",
+   "surface": "特長",
+   "kind": "no_dictionary_entry",
+   "detail": "特長|とくちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-098",
+   "surface": "床屋",
+   "kind": "no_dictionary_entry",
+   "detail": "床屋|とこや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-099",
+   "surface": "登山",
+   "kind": "no_dictionary_entry",
+   "detail": "登山|とざん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-100",
+   "surface": "年月",
+   "kind": "no_dictionary_entry",
+   "detail": "年月|としつき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-101",
+   "surface": "土地",
+   "kind": "no_dictionary_entry",
+   "detail": "土地|とち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-102",
+   "surface": "特急",
+   "kind": "no_dictionary_entry",
+   "detail": "特急|とっきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-103",
+   "surface": "トップ",
+   "kind": "no_dictionary_entry",
+   "detail": "トップ|トップ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-104",
+   "surface": "届ける",
+   "kind": "no_dictionary_entry",
+   "detail": "届ける|とどける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-105",
+   "surface": "隣",
+   "kind": "no_dictionary_entry",
+   "detail": "隣|となり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-106",
+   "surface": "とにかく",
+   "kind": "no_dictionary_entry",
+   "detail": "とにかく|とにかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-107",
+   "surface": "飛ばす",
+   "kind": "no_dictionary_entry",
+   "detail": "飛ばす|とばす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-108",
+   "surface": "飛び出す",
+   "kind": "no_dictionary_entry",
+   "detail": "飛び出す|とびだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-109",
+   "surface": "止める",
+   "kind": "no_dictionary_entry",
+   "detail": "止める|とめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-110",
+   "surface": "友",
+   "kind": "no_dictionary_entry",
+   "detail": "友|とも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-111",
+   "surface": "共に",
+   "kind": "no_dictionary_entry",
+   "detail": "共に|ともに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-112",
+   "surface": "トラック",
+   "kind": "no_dictionary_entry",
+   "detail": "トラック|トラック が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-113",
+   "surface": "トランプ",
+   "kind": "no_dictionary_entry",
+   "detail": "トランプ|トランプ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-114",
+   "surface": "取り上げる",
+   "kind": "no_dictionary_entry",
+   "detail": "取り上げる|とりあげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-115",
+   "surface": "取り替える",
+   "kind": "no_dictionary_entry",
+   "detail": "取り替える|とりかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-116",
+   "surface": "鶏肉",
+   "kind": "no_dictionary_entry",
+   "detail": "鶏肉|とりにく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-117",
+   "surface": "撮る",
+   "kind": "no_dictionary_entry",
+   "detail": "撮る|とる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-118",
+   "surface": "トレーニング",
+   "kind": "no_dictionary_entry",
+   "detail": "トレーニング|トレーニング が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-119",
+   "surface": "ドレス",
+   "kind": "no_dictionary_entry",
+   "detail": "ドレス|ドレス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-120",
+   "surface": "取れる",
+   "kind": "no_dictionary_entry",
+   "detail": "取れる|とれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-121",
+   "surface": "泥棒",
+   "kind": "no_dictionary_entry",
+   "detail": "泥棒|どろぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-122",
+   "surface": "トン",
+   "kind": "no_dictionary_entry",
+   "detail": "トン|トン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-123",
+   "surface": "どんどん",
+   "kind": "no_dictionary_entry",
+   "detail": "どんどん|どんどん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-124",
+   "surface": "トンネル",
+   "kind": "no_dictionary_entry",
+   "detail": "トンネル|トンネル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-125",
    "surface": "名",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に4語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "名|な が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-126",
+   "surface": "治る",
+   "kind": "no_dictionary_entry",
+   "detail": "治る|なおる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-127",
+   "surface": "仲",
+   "kind": "no_dictionary_entry",
+   "detail": "仲|なか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-128",
+   "surface": "流す",
+   "kind": "no_dictionary_entry",
+   "detail": "流す|ながす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-129",
+   "surface": "中々",
+   "kind": "no_dictionary_entry",
+   "detail": "中々|なかなか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-130",
+   "surface": "半ば",
+   "kind": "no_dictionary_entry",
+   "detail": "半ば|なかば が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-131",
+   "surface": "仲間",
+   "kind": "no_dictionary_entry",
+   "detail": "仲間|なかま が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-132",
    "surface": "中味",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に3語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "中味|なかみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-133",
+   "surface": "泣く",
+   "kind": "no_dictionary_entry",
+   "detail": "泣く|なく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-134",
+   "surface": "亡くなる",
+   "kind": "no_dictionary_entry",
+   "detail": "亡くなる|なくなる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-135",
    "surface": "無くなる",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に3語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "無くなる|なくなる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-136",
+   "surface": "投げる",
+   "kind": "no_dictionary_entry",
+   "detail": "投げる|なげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-137",
    "surface": "無し",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に3語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "無し|なし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-138",
+   "surface": "生",
+   "kind": "no_dictionary_entry",
+   "detail": "生|なま が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-139",
+   "surface": "波",
+   "kind": "no_dictionary_entry",
+   "detail": "波|なみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-140",
+   "surface": "鳴らす",
+   "kind": "no_dictionary_entry",
+   "detail": "鳴らす|ならす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-141",
+   "surface": "生る",
+   "kind": "no_dictionary_entry",
+   "detail": "生る|なる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-142",
+   "surface": "鳴る",
+   "kind": "no_dictionary_entry",
+   "detail": "鳴る|なる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-143",
+   "surface": "縄",
+   "kind": "no_dictionary_entry",
+   "detail": "縄|なわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-144",
+   "surface": "何でも",
+   "kind": "no_dictionary_entry",
+   "detail": "何でも|なんでも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-145",
+   "surface": "何とか",
+   "kind": "no_dictionary_entry",
+   "detail": "何とか|なんとか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-146",
+   "surface": "匂い",
+   "kind": "no_dictionary_entry",
+   "detail": "匂い|におい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-147",
+   "surface": "苦い",
+   "kind": "no_dictionary_entry",
+   "detail": "苦い|にがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-148",
+   "surface": "逃げる",
+   "kind": "no_dictionary_entry",
+   "detail": "逃げる|にげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-149",
    "surface": "日",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に4語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "日|にち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-150",
+   "surface": "日記",
+   "kind": "no_dictionary_entry",
+   "detail": "日記|にっき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-151",
+   "surface": "日光",
+   "kind": "no_dictionary_entry",
+   "detail": "日光|にっこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-152",
+   "surface": "にっこり",
+   "kind": "no_dictionary_entry",
+   "detail": "にっこり|にっこり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-153",
+   "surface": "入場",
+   "kind": "no_dictionary_entry",
+   "detail": "入場|にゅうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-154",
+   "surface": "似る",
+   "kind": "no_dictionary_entry",
+   "detail": "似る|にる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-155",
+   "surface": "人形",
+   "kind": "no_dictionary_entry",
+   "detail": "人形|にんぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-156",
+   "surface": "脱ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "脱ぐ|ぬぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-157",
+   "surface": "盗む",
+   "kind": "no_dictionary_entry",
+   "detail": "盗む|ぬすむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-158",
+   "surface": "塗る",
+   "kind": "no_dictionary_entry",
+   "detail": "塗る|ぬる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-159",
+   "surface": "濡れる",
+   "kind": "no_dictionary_entry",
+   "detail": "濡れる|ぬれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-160",
+   "surface": "音",
+   "kind": "no_dictionary_entry",
+   "detail": "音|ね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-161",
+   "surface": "根",
+   "kind": "no_dictionary_entry",
+   "detail": "根|ね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-162",
+   "surface": "願う",
+   "kind": "no_dictionary_entry",
+   "detail": "願う|ねがう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-163",
+   "surface": "熱",
+   "kind": "no_dictionary_entry",
+   "detail": "熱|ねつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-164",
+   "surface": "熱心",
+   "kind": "no_dictionary_entry",
+   "detail": "熱心|ねっしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-165",
+   "surface": "熱帯",
+   "kind": "no_dictionary_entry",
+   "detail": "熱帯|ねったい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-166",
+   "surface": "熱中",
+   "kind": "no_dictionary_entry",
+   "detail": "熱中|ねっちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-167",
+   "surface": "寝坊",
+   "kind": "no_dictionary_entry",
+   "detail": "寝坊|ねぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-168",
+   "surface": "眠い",
+   "kind": "no_dictionary_entry",
+   "detail": "眠い|ねむい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-169",
+   "surface": "眠る",
+   "kind": "no_dictionary_entry",
+   "detail": "眠る|ねむる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-170",
+   "surface": "年中",
+   "kind": "no_dictionary_entry",
+   "detail": "年中|ねんじゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-171",
    "surface": "野",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に3語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "野|の が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-172",
+   "surface": "農家",
+   "kind": "no_dictionary_entry",
+   "detail": "農家|のうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-173",
+   "surface": "農業",
+   "kind": "no_dictionary_entry",
+   "detail": "農業|のうぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-174",
+   "surface": "農民",
+   "kind": "no_dictionary_entry",
+   "detail": "農民|のうみん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-175",
+   "surface": "乗せる",
+   "kind": "no_dictionary_entry",
+   "detail": "乗せる|のせる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-176",
+   "surface": "覗く",
+   "kind": "no_dictionary_entry",
+   "detail": "覗く|のぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-177",
+   "surface": "望み",
+   "kind": "no_dictionary_entry",
+   "detail": "望み|のぞみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-178",
+   "surface": "望む",
+   "kind": "no_dictionary_entry",
+   "detail": "望む|のぞむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-179",
+   "surface": "後",
+   "kind": "no_dictionary_entry",
+   "detail": "後|のち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-180",
+   "surface": "ノック",
+   "kind": "no_dictionary_entry",
+   "detail": "ノック|ノック が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-181",
+   "surface": "喉",
+   "kind": "no_dictionary_entry",
+   "detail": "喉|のど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-182",
+   "surface": "上る",
+   "kind": "no_dictionary_entry",
+   "detail": "上る|のぼる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-183",
+   "surface": "乗り換える",
+   "kind": "no_dictionary_entry",
+   "detail": "乗り換える|のりかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-184",
+   "surface": "乗り物",
+   "kind": "no_dictionary_entry",
+   "detail": "乗り物|のりもの が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-185",
+   "surface": "のんびり",
+   "kind": "no_dictionary_entry",
+   "detail": "のんびり|のんびり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-186",
+   "surface": "葉",
+   "kind": "no_dictionary_entry",
+   "detail": "葉|は が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-187",
    "surface": "場",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に9語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "場|ば が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-188",
+   "surface": "パーセント",
+   "kind": "no_dictionary_entry",
+   "detail": "パーセント|パーセント が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-189",
+   "surface": "倍",
+   "kind": "no_dictionary_entry",
+   "detail": "倍|ばい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-190",
+   "surface": "バイオリン",
+   "kind": "no_dictionary_entry",
+   "detail": "バイオリン|バイオリン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-191",
+   "surface": "ハイキング",
+   "kind": "no_dictionary_entry",
+   "detail": "ハイキング|ハイキング が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-192",
+   "surface": "歯医者",
+   "kind": "no_dictionary_entry",
+   "detail": "歯医者|はいしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-193",
+   "surface": "パイプ",
+   "kind": "no_dictionary_entry",
+   "detail": "パイプ|パイプ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-194",
+   "surface": "パイロット",
+   "kind": "no_dictionary_entry",
+   "detail": "パイロット|パイロット が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-195",
+   "surface": "生える",
+   "kind": "no_dictionary_entry",
+   "detail": "生える|はえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-196",
+   "surface": "馬鹿",
+   "kind": "no_dictionary_entry",
+   "detail": "馬鹿|ばか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-197",
+   "surface": "計る",
+   "kind": "no_dictionary_entry",
+   "detail": "計る|はかる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-198",
    "surface": "図る",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に4語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "図る|はかる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-199",
+   "surface": "量る",
+   "kind": "no_dictionary_entry",
+   "detail": "量る|はかる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-200",
+   "surface": "博物館",
+   "kind": "no_dictionary_entry",
+   "detail": "博物館|はくぶつかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-201",
+   "surface": "運ぶ",
+   "kind": "no_dictionary_entry",
+   "detail": "運ぶ|はこぶ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-202",
+   "surface": "箸",
+   "kind": "no_dictionary_entry",
+   "detail": "箸|はし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-203",
+   "surface": "始まり",
+   "kind": "no_dictionary_entry",
+   "detail": "始まり|はじまり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-204",
+   "surface": "パス",
+   "kind": "no_dictionary_entry",
+   "detail": "パス|パス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-205",
+   "surface": "外す",
+   "kind": "no_dictionary_entry",
+   "detail": "外す|はずす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-206",
+   "surface": "パスポート",
+   "kind": "no_dictionary_entry",
+   "detail": "パスポート|パスポート が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-207",
+   "surface": "外れる",
+   "kind": "no_dictionary_entry",
+   "detail": "外れる|はずれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-208",
+   "surface": "旗",
+   "kind": "no_dictionary_entry",
+   "detail": "旗|はた が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-209",
+   "surface": "畑",
+   "kind": "no_dictionary_entry",
+   "detail": "畑|はたけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-210",
+   "surface": "二十歳",
+   "kind": "no_dictionary_entry",
+   "detail": "二十歳|はたち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-211",
+   "surface": "バッグ",
+   "kind": "no_dictionary_entry",
+   "detail": "バッグ|バッグ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-212",
+   "surface": "発見",
+   "kind": "no_dictionary_entry",
+   "detail": "発見|はっけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-213",
+   "surface": "発車",
+   "kind": "no_dictionary_entry",
+   "detail": "発車|はっしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-214",
+   "surface": "発達",
+   "kind": "no_dictionary_entry",
+   "detail": "発達|はったつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-215",
+   "surface": "発明",
+   "kind": "no_dictionary_entry",
+   "detail": "発明|はつめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-216",
+   "surface": "話し合う",
+   "kind": "no_dictionary_entry",
+   "detail": "話し合う|はなしあう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-217",
+   "surface": "放す",
+   "kind": "no_dictionary_entry",
+   "detail": "放す|はなす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-218",
+   "surface": "花見",
+   "kind": "no_dictionary_entry",
+   "detail": "花見|はなみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-219",
+   "surface": "放れる",
+   "kind": "no_dictionary_entry",
+   "detail": "放れる|はなれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-220",
+   "surface": "羽",
+   "kind": "no_dictionary_entry",
+   "detail": "羽|はね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-221",
    "surface": "羽根",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に6語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "羽根|はね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-222",
+   "surface": "パパ",
+   "kind": "no_dictionary_entry",
+   "detail": "パパ|パパ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-223",
+   "surface": "母親",
+   "kind": "no_dictionary_entry",
+   "detail": "母親|ははおや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-224",
+   "surface": "省く",
+   "kind": "no_dictionary_entry",
+   "detail": "省く|はぶく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-225",
+   "surface": "林",
+   "kind": "no_dictionary_entry",
+   "detail": "林|はやし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-226",
+   "surface": "生やす",
+   "kind": "no_dictionary_entry",
+   "detail": "生やす|はやす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-227",
+   "surface": "流行る",
+   "kind": "no_dictionary_entry",
+   "detail": "流行る|はやる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-228",
+   "surface": "原",
+   "kind": "no_dictionary_entry",
+   "detail": "原|はら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-229",
+   "surface": "バランス",
+   "kind": "no_dictionary_entry",
+   "detail": "バランス|バランス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-230",
+   "surface": "番組",
+   "kind": "no_dictionary_entry",
+   "detail": "番組|ばんぐみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-231",
+   "surface": "晩御飯",
+   "kind": "no_dictionary_entry",
+   "detail": "晩御飯|ばんごはん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-232",
+   "surface": "ハンサム",
+   "kind": "no_dictionary_entry",
+   "detail": "ハンサム|ハンサム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-233",
+   "surface": "反省",
+   "kind": "no_dictionary_entry",
+   "detail": "反省|はんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-234",
+   "surface": "ハンバーグ",
+   "kind": "no_dictionary_entry",
+   "detail": "ハンバーグ|ハンバーグ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-235",
+   "surface": "火",
+   "kind": "no_dictionary_entry",
+   "detail": "火|ひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-236",
+   "surface": "灯",
+   "kind": "no_dictionary_entry",
+   "detail": "灯|ひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   },
   {
    "wordId": "vc-08-237",
    "surface": "日",
-   "kind": "ambiguous_sense_unmarked",
-   "detail": "辞書に6語義あるが senseNoteZh が無い",
-   "blocking": false
+   "kind": "no_dictionary_entry",
+   "detail": "日|ひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-238",
+   "surface": "ビール",
+   "kind": "no_dictionary_entry",
+   "detail": "ビール|ビール が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-239",
+   "surface": "冷える",
+   "kind": "no_dictionary_entry",
+   "detail": "冷える|ひえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-240",
+   "surface": "光",
+   "kind": "no_dictionary_entry",
+   "detail": "光|ひかり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-241",
+   "surface": "光る",
+   "kind": "no_dictionary_entry",
+   "detail": "光る|ひかる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-242",
+   "surface": "引き出し",
+   "kind": "no_dictionary_entry",
+   "detail": "引き出し|ひきだし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-243",
+   "surface": "ピクニック",
+   "kind": "no_dictionary_entry",
+   "detail": "ピクニック|ピクニック が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-244",
+   "surface": "飛行",
+   "kind": "no_dictionary_entry",
+   "detail": "飛行|ひこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-245",
+   "surface": "飛行場",
+   "kind": "no_dictionary_entry",
+   "detail": "飛行場|ひこうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-246",
+   "surface": "久しぶり",
+   "kind": "no_dictionary_entry",
+   "detail": "久しぶり|ひさしぶり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-247",
+   "surface": "非常に",
+   "kind": "no_dictionary_entry",
+   "detail": "非常に|ひじょうに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-248",
+   "surface": "美人",
+   "kind": "no_dictionary_entry",
+   "detail": "美人|びじん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-249",
+   "surface": "日付",
+   "kind": "no_dictionary_entry",
+   "detail": "日付|ひづけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-08-250",
+   "surface": "必死",
+   "kind": "no_dictionary_entry",
+   "detail": "必死|ひっし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
   }
  ],
+ "warnings": [],
  "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
 }

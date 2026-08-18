@@ -35,9 +35,12 @@ export interface ReadingChoice {
   whyWrongZh?: string;
 }
 
+/** 読解を用意しているレベル（2026-08-18 に N5/N4 を追加） */
+export type ReadingLevel = 'N2' | 'N3' | 'N4' | 'N5';
+
 export interface ReadingSet {
   setId: string;
-  sourceLevel: 'N2' | 'N3';
+  sourceLevel: ReadingLevel;
   readingType: ReadingType;
   /** 本文（オリジナル） */
   passageJa: string;

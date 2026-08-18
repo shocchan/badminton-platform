@@ -1,24 +1,30 @@
 {
- "generatedAt": "2026-08-01T15:17:33.484Z",
+ "generatedAt": "2026-08-18T07:09:28.647Z",
  "battles": 10000,
- "totalQuestions": 37890,
+ "totalQuestions": 34870,
  "positionCounts": [
-  9469,
-  9481,
-  9463,
-  9477
+  8621,
+  8822,
+  8612,
+  8815
  ],
  "positionPct": [
-  24.99,
-  25.02,
-  24.97,
-  25.01
+  24.72,
+  25.3,
+  24.7,
+  25.28
  ],
  "maxStreak": 2,
- "chiSquare": 0.02,
+ "chiSquare": 4.69,
  "failedBattleIds": [],
  "failedBattleCount": 0,
  "seedFormula": "attemptSeed = b * 104729 + 7",
+ "coveredTargets": 254,
+ "fullPoolTargets": 449,
+ "fullPoolBattles": 10000,
+ "fullPoolMaxStreak": 2,
+ "fullPoolFailedBattleIds": [],
+ "fullPoolFailedBattleCount": 0,
  "pass": true,
  "failures": []
 }

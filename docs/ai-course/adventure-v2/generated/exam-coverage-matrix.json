@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-01T14:27:01.208Z",
+ "generatedAt": "2026-08-18T06:50:24.380Z",
  "purpose": "試験の5区分（文字・語彙／文法／読解／聴解／時間配分）が、N3とN2それぞれで学習と測定に接続されているかの実測",
  "rows": [
   {
@@ -7,24 +7,24 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 10804,
-     "fromOriginalVocabContent": 10341,
-     "fromUnitQuestions": 463,
-     "wordsWithContent": 2104,
+     "activeQuestions": 14413,
+     "fromOriginalVocabContent": 13951,
+     "fromUnitQuestions": 462,
+     "wordsWithContent": 2886,
      "aspects": {
-      "meaning": 2104,
-      "orthography": 1795,
-      "usage": 1798,
-      "context": 1765,
-      "confusable": 1712,
-      "reading": 1167
+      "meaning": 2426,
+      "reading": 2547,
+      "orthography": 2547,
+      "usage": 2142,
+      "context": 2411,
+      "confusable": 1878
      },
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
     "grammar": {
      "label": "文法",
-     "activeQuestions": 877,
+     "activeQuestions": 2497,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
@@ -82,24 +82,24 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 11165,
-     "fromOriginalVocabContent": 10702,
-     "fromUnitQuestions": 463,
-     "wordsWithContent": 2167,
+     "activeQuestions": 17012,
+     "fromOriginalVocabContent": 16550,
+     "fromUnitQuestions": 462,
+     "wordsWithContent": 3349,
      "aspects": {
-      "meaning": 2167,
-      "orthography": 1852,
-      "usage": 1861,
-      "context": 1828,
-      "confusable": 1792,
-      "reading": 1202
+      "meaning": 2881,
+      "reading": 2998,
+      "orthography": 2999,
+      "usage": 2582,
+      "context": 2861,
+      "confusable": 2229
      },
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
     "grammar": {
      "label": "文法",
-     "activeQuestions": 877,
+     "activeQuestions": 2497,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },

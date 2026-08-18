@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.471Z",
+ "batchNo": 30,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-30-001",
+  "vc-30-002",
+  "vc-30-003",
+  "vc-30-004",
+  "vc-30-005",
+  "vc-30-006",
+  "vc-30-007",
+  "vc-30-008",
+  "vc-30-009",
+  "vc-30-010",
+  "vc-30-011",
+  "vc-30-012",
+  "vc-30-013",
+  "vc-30-014",
+  "vc-30-015",
+  "vc-30-016",
+  "vc-30-017",
+  "vc-30-018",
+  "vc-30-019",
+  "vc-30-020",
+  "vc-30-021",
+  "vc-30-022",
+  "vc-30-023",
+  "vc-30-024",
+  "vc-30-025",
+  "vc-30-026",
+  "vc-30-027",
+  "vc-30-028",
+  "vc-30-029",
+  "vc-30-030",
+  "vc-30-031",
+  "vc-30-032",
+  "vc-30-033",
+  "vc-30-034",
+  "vc-30-035",
+  "vc-30-036",
+  "vc-30-037",
+  "vc-30-038",
+  "vc-30-039",
+  "vc-30-040",
+  "vc-30-041",
+  "vc-30-042",
+  "vc-30-043",
+  "vc-30-044",
+  "vc-30-045",
+  "vc-30-046",
+  "vc-30-047",
+  "vc-30-048",
+  "vc-30-049",
+  "vc-30-050",
+  "vc-30-051",
+  "vc-30-052",
+  "vc-30-053",
+  "vc-30-054",
+  "vc-30-055",
+  "vc-30-056",
+  "vc-30-057",
+  "vc-30-058",
+  "vc-30-059",
+  "vc-30-060",
+  "vc-30-061",
+  "vc-30-062",
+  "vc-30-063",
+  "vc-30-064",
+  "vc-30-065",
+  "vc-30-066",
+  "vc-30-067",
+  "vc-30-068",
+  "vc-30-069",
+  "vc-30-070",
+  "vc-30-071",
+  "vc-30-072",
+  "vc-30-073",
+  "vc-30-074",
+  "vc-30-075",
+  "vc-30-076",
+  "vc-30-077",
+  "vc-30-078",
+  "vc-30-079",
+  "vc-30-080",
+  "vc-30-081",
+  "vc-30-082",
+  "vc-30-083",
+  "vc-30-084",
+  "vc-30-085",
+  "vc-30-086",
+  "vc-30-087",
+  "vc-30-088",
+  "vc-30-089",
+  "vc-30-090",
+  "vc-30-091",
+  "vc-30-092",
+  "vc-30-093",
+  "vc-30-094",
+  "vc-30-095",
+  "vc-30-096",
+  "vc-30-097",
+  "vc-30-098",
+  "vc-30-099",
+  "vc-30-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-30-001",
+   "surface": "経営",
+   "kind": "no_dictionary_entry",
+   "detail": "経営|けいえい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-002",
+   "surface": "企業",
+   "kind": "no_dictionary_entry",
+   "detail": "企業|きぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-003",
+   "surface": "業績",
+   "kind": "no_dictionary_entry",
+   "detail": "業績|ぎょうせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-004",
+   "surface": "戦略",
+   "kind": "no_dictionary_entry",
+   "detail": "戦略|せんりゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-005",
+   "surface": "組織",
+   "kind": "no_dictionary_entry",
+   "detail": "組織|そしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-006",
+   "surface": "部門",
+   "kind": "no_dictionary_entry",
+   "detail": "部門|ぶもん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-007",
+   "surface": "株主",
+   "kind": "no_dictionary_entry",
+   "detail": "株主|かぶぬし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-008",
+   "surface": "取締役",
+   "kind": "no_dictionary_entry",
+   "detail": "取締役|とりしまりやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-009",
+   "surface": "本社",
+   "kind": "no_dictionary_entry",
+   "detail": "本社|ほんしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-010",
+   "surface": "支店",
+   "kind": "no_dictionary_entry",
+   "detail": "支店|してん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-011",
+   "surface": "設立",
+   "kind": "no_dictionary_entry",
+   "detail": "設立|せつりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-012",
+   "surface": "合併",
+   "kind": "no_dictionary_entry",
+   "detail": "合併|がっぺい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-013",
+   "surface": "買収",
+   "kind": "no_dictionary_entry",
+   "detail": "買収|ばいしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-014",
+   "surface": "提携",
+   "kind": "no_dictionary_entry",
+   "detail": "提携|ていけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-015",
+   "surface": "子会社",
+   "kind": "no_dictionary_entry",
+   "detail": "子会社|こがいしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-016",
+   "surface": "経営者",
+   "kind": "no_dictionary_entry",
+   "detail": "経営者|けいえいしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-017",
+   "surface": "決算",
+   "kind": "no_dictionary_entry",
+   "detail": "決算|けっさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-018",
+   "surface": "資金",
+   "kind": "no_dictionary_entry",
+   "detail": "資金|しきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-019",
+   "surface": "投資",
+   "kind": "no_dictionary_entry",
+   "detail": "投資|とうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-020",
+   "surface": "融資",
+   "kind": "no_dictionary_entry",
+   "detail": "融資|ゆうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-021",
+   "surface": "返済",
+   "kind": "no_dictionary_entry",
+   "detail": "返済|へんさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-022",
+   "surface": "利益",
+   "kind": "no_dictionary_entry",
+   "detail": "利益|りえき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-023",
+   "surface": "収益",
+   "kind": "no_dictionary_entry",
+   "detail": "収益|しゅうえき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-024",
+   "surface": "売上",
+   "kind": "no_dictionary_entry",
+   "detail": "売上|うりあげ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-025",
+   "surface": "赤字",
+   "kind": "no_dictionary_entry",
+   "detail": "赤字|あかじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-026",
+   "surface": "黒字",
+   "kind": "no_dictionary_entry",
+   "detail": "黒字|くろじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-027",
+   "surface": "資産",
+   "kind": "no_dictionary_entry",
+   "detail": "資産|しさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-028",
+   "surface": "負債",
+   "kind": "no_dictionary_entry",
+   "detail": "負債|ふさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-029",
+   "surface": "倒産",
+   "kind": "no_dictionary_entry",
+   "detail": "倒産|とうさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-030",
+   "surface": "金利",
+   "kind": "no_dictionary_entry",
+   "detail": "金利|きんり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-031",
+   "surface": "株式",
+   "kind": "no_dictionary_entry",
+   "detail": "株式|かぶしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-032",
+   "surface": "上場",
+   "kind": "no_dictionary_entry",
+   "detail": "上場|じょうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-033",
+   "surface": "配当",
+   "kind": "no_dictionary_entry",
+   "detail": "配当|はいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-034",
+   "surface": "経費",
+   "kind": "no_dictionary_entry",
+   "detail": "経費|けいひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-035",
+   "surface": "原価",
+   "kind": "no_dictionary_entry",
+   "detail": "原価|げんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-036",
+   "surface": "単価",
+   "kind": "no_dictionary_entry",
+   "detail": "単価|たんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-037",
+   "surface": "値下げ",
+   "kind": "no_dictionary_entry",
+   "detail": "値下げ|ねさげ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-038",
+   "surface": "値引き",
+   "kind": "no_dictionary_entry",
+   "detail": "値引き|ねびき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-039",
+   "surface": "削減",
+   "kind": "no_dictionary_entry",
+   "detail": "削減|さくげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-040",
+   "surface": "採算",
+   "kind": "no_dictionary_entry",
+   "detail": "採算|さいさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-041",
+   "surface": "損失",
+   "kind": "no_dictionary_entry",
+   "detail": "損失|そんしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-042",
+   "surface": "支出",
+   "kind": "no_dictionary_entry",
+   "detail": "支出|ししゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-043",
+   "surface": "需要",
+   "kind": "no_dictionary_entry",
+   "detail": "需要|じゅよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-044",
+   "surface": "供給",
+   "kind": "no_dictionary_entry",
+   "detail": "供給|きょうきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-045",
+   "surface": "競合",
+   "kind": "no_dictionary_entry",
+   "detail": "競合|きょうごう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-046",
+   "surface": "業界",
+   "kind": "no_dictionary_entry",
+   "detail": "業界|ぎょうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-047",
+   "surface": "大手",
+   "kind": "no_dictionary_entry",
+   "detail": "大手|おおて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-048",
+   "surface": "中小企業",
+   "kind": "no_dictionary_entry",
+   "detail": "中小企業|ちゅうしょうきぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-049",
+   "surface": "流通",
+   "kind": "no_dictionary_entry",
+   "detail": "流通|りゅうつう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-050",
+   "surface": "小売",
+   "kind": "no_dictionary_entry",
+   "detail": "小売|こうり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-051",
+   "surface": "卸売",
+   "kind": "no_dictionary_entry",
+   "detail": "卸売|おろしうり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-052",
+   "surface": "仕入れ",
+   "kind": "no_dictionary_entry",
+   "detail": "仕入れ|しいれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-053",
+   "surface": "出荷",
+   "kind": "no_dictionary_entry",
+   "detail": "出荷|しゅっか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-054",
+   "surface": "物流",
+   "kind": "no_dictionary_entry",
+   "detail": "物流|ぶつりゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-055",
+   "surface": "契約書",
+   "kind": "no_dictionary_entry",
+   "detail": "契約書|けいやくしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-056",
+   "surface": "締結",
+   "kind": "no_dictionary_entry",
+   "detail": "締結|ていけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-057",
+   "surface": "商談",
+   "kind": "no_dictionary_entry",
+   "detail": "商談|しょうだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-058",
+   "surface": "交渉",
+   "kind": "no_dictionary_entry",
+   "detail": "交渉|こうしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-059",
+   "surface": "輸出",
+   "kind": "no_dictionary_entry",
+   "detail": "輸出|ゆしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-060",
+   "surface": "関税",
+   "kind": "no_dictionary_entry",
+   "detail": "関税|かんぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-061",
+   "surface": "為替",
+   "kind": "no_dictionary_entry",
+   "detail": "為替|かわせ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-062",
+   "surface": "円高",
+   "kind": "no_dictionary_entry",
+   "detail": "円高|えんだか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-063",
+   "surface": "円安",
+   "kind": "no_dictionary_entry",
+   "detail": "円安|えんやす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-064",
+   "surface": "不況",
+   "kind": "no_dictionary_entry",
+   "detail": "不況|ふきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-065",
+   "surface": "株価",
+   "kind": "no_dictionary_entry",
+   "detail": "株価|かぶか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-066",
+   "surface": "相場",
+   "kind": "no_dictionary_entry",
+   "detail": "相場|そうば が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-067",
+   "surface": "高騰",
+   "kind": "no_dictionary_entry",
+   "detail": "高騰|こうとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-068",
+   "surface": "変動",
+   "kind": "no_dictionary_entry",
+   "detail": "変動|へんどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-069",
+   "surface": "下落",
+   "kind": "no_dictionary_entry",
+   "detail": "下落|げらく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-070",
+   "surface": "動向",
+   "kind": "no_dictionary_entry",
+   "detail": "動向|どうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-071",
+   "surface": "分析",
+   "kind": "no_dictionary_entry",
+   "detail": "分析|ぶんせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-072",
+   "surface": "占める",
+   "kind": "no_dictionary_entry",
+   "detail": "占める|しめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-073",
+   "surface": "出資",
+   "kind": "no_dictionary_entry",
+   "detail": "出資|しゅっし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-074",
+   "surface": "入札",
+   "kind": "no_dictionary_entry",
+   "detail": "入札|にゅうさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-075",
+   "surface": "落札",
+   "kind": "no_dictionary_entry",
+   "detail": "落札|らくさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-076",
+   "surface": "販路",
+   "kind": "no_dictionary_entry",
+   "detail": "販路|はんろ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-077",
+   "surface": "稼働",
+   "kind": "no_dictionary_entry",
+   "detail": "稼働|かどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-078",
+   "surface": "商標",
+   "kind": "no_dictionary_entry",
+   "detail": "商標|しょうひょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-079",
+   "surface": "報酬",
+   "kind": "no_dictionary_entry",
+   "detail": "報酬|ほうしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-080",
+   "surface": "離職",
+   "kind": "no_dictionary_entry",
+   "detail": "離職|りしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-081",
+   "surface": "手取り",
+   "kind": "no_dictionary_entry",
+   "detail": "手取り|てどり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-082",
+   "surface": "昇格",
+   "kind": "no_dictionary_entry",
+   "detail": "昇格|しょうかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-083",
+   "surface": "内訳",
+   "kind": "no_dictionary_entry",
+   "detail": "内訳|うちわけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-084",
+   "surface": "委託",
+   "kind": "no_dictionary_entry",
+   "detail": "委託|いたく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-085",
+   "surface": "外注",
+   "kind": "no_dictionary_entry",
+   "detail": "外注|がいちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-086",
+   "surface": "下請け",
+   "kind": "no_dictionary_entry",
+   "detail": "下請け|したうけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-087",
+   "surface": "兼業",
+   "kind": "no_dictionary_entry",
+   "detail": "兼業|けんぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-088",
+   "surface": "副業",
+   "kind": "no_dictionary_entry",
+   "detail": "副業|ふくぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-089",
+   "surface": "起業",
+   "kind": "no_dictionary_entry",
+   "detail": "起業|きぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-090",
+   "surface": "携わる",
+   "kind": "no_dictionary_entry",
+   "detail": "携わる|たずさわる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-091",
+   "surface": "生産",
+   "kind": "no_dictionary_entry",
+   "detail": "生産|せいさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-092",
+   "surface": "製造",
+   "kind": "no_dictionary_entry",
+   "detail": "製造|せいぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-093",
+   "surface": "生産性",
+   "kind": "no_dictionary_entry",
+   "detail": "生産性|せいさんせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-094",
+   "surface": "開発",
+   "kind": "no_dictionary_entry",
+   "detail": "開発|かいはつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-095",
+   "surface": "革新",
+   "kind": "no_dictionary_entry",
+   "detail": "革新|かくしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-096",
+   "surface": "特許",
+   "kind": "no_dictionary_entry",
+   "detail": "特許|とっきょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-097",
+   "surface": "自動化",
+   "kind": "no_dictionary_entry",
+   "detail": "自動化|じどうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-098",
+   "surface": "工程",
+   "kind": "no_dictionary_entry",
+   "detail": "工程|こうてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-099",
+   "surface": "部品",
+   "kind": "no_dictionary_entry",
+   "detail": "部品|ぶひん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-30-100",
+   "surface": "規格",
+   "kind": "no_dictionary_entry",
+   "detail": "規格|きかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

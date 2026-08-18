@@ -8,8 +8,12 @@ export type AdvGoalType = 'jlpt' | 'conversation' | 'hybrid';
 
 /** JLPT目標レベル。architectureは5段、今回選択UIに出すのは N3/N2 のみ（§5・D-006） */
 export type JlptLevel = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
-export const ACTIVE_TARGET_LEVELS: JlptLevel[] = ['N3', 'N2'];
-export const FUTURE_TARGET_LEVELS: JlptLevel[] = ['N5', 'N4', 'N1'];
+// 2026-08-18: N5/N4 を解禁（CEO指示）。実測の在庫は
+// 文法148項目（N5=62 / N4=86・出題471問）・語彙1,989語（N5=468 / N4=1,521）・読解96セット。
+// **聴解は N5/N4 の音源が0本**なので、聴解stepは出ない（listeningBank が空を返す）。
+// N1は教材が無いので今後追加予定のまま。
+export const ACTIVE_TARGET_LEVELS: JlptLevel[] = ['N5', 'N4', 'N3', 'N2'];
+export const FUTURE_TARGET_LEVELS: JlptLevel[] = ['N1'];
 
 /** 内部能力軸（§9）。試験と会話を混ぜない */
 export type AdvSkill =
@@ -265,7 +269,12 @@ export interface AdvHumanLessonState {
 export interface AdvKanaState {
   /** null＝卒業チェック未実施 / true＝道場で学習中 / false＝卒業（読める） */
   needed: boolean | null;
-  /** 修了した行（h-1〜h-10, k-1〜k-10） */
+  /**
+   * 修了した行。2026-08-18 の拡張で全43行になった（226項目）:
+   * ひらがな h-1〜h-10 / hd-1〜hd-5（濁音）/ hy-1〜hy-5（拗音）、
+   * カタカナ k-1〜k-10 / kd-1〜kd-5 / ky-1〜ky-5、
+   * w-sokuon（促音）/ w-chouon-k / w-chouon-h（長音）。
+   */
   doneRowIds: string[];
   checkedAt: string | null;
 }

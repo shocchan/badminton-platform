@@ -44,8 +44,13 @@ export const playableSets = (): ListeningSet[] =>
 export const setsWithoutAudio = (): string[] =>
   ALL_LISTENING_SETS.filter((s) => !AUDIO_BY_ID.has(s.setId)).map((s) => s.setId);
 
-export const listeningSetsFor = (level: 'N2' | 'N3'): ListeningSet[] =>
-  playableSets().filter((s) => s.sourceLevel === level);
+/**
+ * 2026-08-18: N5/N4 を目標に選べるようにしたが、**聴解の音源は N3/N2 しか無い**。
+ * 存在しないものを「ある」ように見せない（原則13）ため、N5/N4 は空を返す。
+ * 空なら今日の冒険に聴解stepが出ず、「押しても何も起きない」行き止まりにならない。
+ */
+export const listeningSetsFor = (level: 'N5' | 'N4' | 'N3' | 'N2'): ListeningSet[] =>
+  (level === 'N5' || level === 'N4') ? [] : playableSets().filter((s) => s.sourceLevel === level);
 
 export const listeningSetById = (setId: string): ListeningSet | undefined =>
   playableSets().find((s) => s.setId === setId);
@@ -85,7 +90,7 @@ export const listeningToQuestion = (s: ListeningSet): AdvBattleQuestion => ({
   status: 'validated_beta',
 });
 
-export const listeningPool = (level: 'N2' | 'N3'): Map<string, AdvBattleQuestion[]> => {
+export const listeningPool = (level: 'N5' | 'N4' | 'N3' | 'N2'): Map<string, AdvBattleQuestion[]> => {
   const map = new Map<string, AdvBattleQuestion[]>();
   for (const s of listeningSetsFor(level)) {
     const target = `listen-${s.sourceLevel.toLowerCase()}-${s.listeningType}`;
@@ -96,7 +101,7 @@ export const listeningPool = (level: 'N2' | 'N3'): Map<string, AdvBattleQuestion
   return map;
 };
 
-export const listeningTargetIds = (level: 'N2' | 'N3'): string[] => [...listeningPool(level).keys()];
+export const listeningTargetIds = (level: 'N5' | 'N4' | 'N3' | 'N2'): string[] => [...listeningPool(level).keys()];
 
 export interface ListeningCoverage {
   level: 'N2' | 'N3';

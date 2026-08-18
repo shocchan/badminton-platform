@@ -138,6 +138,58 @@ describe('正解位置バイアス（§11〜§14）', () => {
     expect(pos3.every((p) => p < 3)).toBe(true);
   });
 
+  // 【2026-08-18 回帰】3択と4択が混ざると balancedPositions のフォールバック分岐
+  // （プールに条件を満たす候補が残っていない場合）が3連続回避を素通りし、
+  // 正解位置が3問続けて同じになっていた。実測すると3連続の**69%が位置1（先頭）**に出る。
+  // 「答えがそのまま出ちゃう」典型なので、以下の実データ由来ケースで恒久的に固定する。
+  it('balancedPositions: 選択肢数が混在しても3連続しない（フォールバック分岐の回帰）', () => {
+    // 未修正版で実際に3連続が出た組み合わせ（counts, seed）
+    const repro: [number[], number][] = [
+      [[3, 3, 4, 4, 3, 3, 4, 3, 3, 4, 4, 4], 1399526603],
+      [[4, 3, 3, 3, 3, 3, 4, 3, 4, 4, 3, 3], 847723943],
+      [[3, 3, 3, 3, 3, 4, 3, 3, 3], 787698345],
+      [[4, 4, 4, 4, 4, 4, 4, 4, 4, 4], 522074072],
+    ];
+    for (const [counts, seed] of repro) {
+      const pos = balancedPositions(counts, seed);
+      expect(pos).toHaveLength(counts.length);
+      for (let i = 0; i < pos.length; i++) {
+        // 位置は必ずその問題の選択肢数に収まる（はみ出すと指定が無視され偏る）
+        expect(pos[i]).toBeGreaterThanOrEqual(0);
+        expect(pos[i]).toBeLessThan(counts[i]);
+      }
+      const streaks: string[] = [];
+      for (let i = 2; i < pos.length; i++) {
+        if (pos[i] === pos[i - 1] && pos[i - 1] === pos[i - 2]) {
+          streaks.push(`counts=${counts.join(',')} seed=${seed} pos=${pos.join(',')} at=${i}`);
+        }
+      }
+      expect(streaks).toEqual([]);
+    }
+  });
+
+  it('balancedPositions: 2〜4択のランダム編成20,000通りで3連続ゼロ', () => {
+    let rng = 123456789;
+    const rnd = () => {
+      rng ^= rng << 13; rng >>>= 0; rng ^= rng >> 17; rng ^= rng << 5; rng >>>= 0;
+      return rng / 0x100000000;
+    };
+    const ri = (lo: number, hi: number) => lo + Math.floor(rnd() * (hi - lo + 1));
+    let streakViolations = 0;
+    let rangeViolations = 0;
+    for (let t = 0; t < 20000; t++) {
+      const n = ri(3, 16);
+      const counts = Array.from({ length: n }, () => ri(2, 4));
+      const pos = balancedPositions(counts, ri(0, 2 ** 31 - 1));
+      for (let i = 0; i < n; i++) if (pos[i] < 0 || pos[i] >= counts[i]) { rangeViolations += 1; break; }
+      for (let i = 2; i < n; i++) {
+        if (pos[i] === pos[i - 1] && pos[i - 1] === pos[i - 2]) { streakViolations += 1; break; }
+      }
+    }
+    expect(rangeViolations).toBe(0);
+    expect(streakViolations).toBe(0);
+  });
+
   it('presentBattleは指定位置に正解を置く', () => {
     const qs = Array.from({ length: 12 }, (_, i) => mkQ(`b${i}`, 4, i % 4));
     const presented = presentBattle(qs, 424242);

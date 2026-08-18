@@ -1,0 +1,808 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.462Z",
+ "batchNo": 24,
+ "words": 98,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 98,
+  "blocking": 98,
+  "byKind": {
+   "no_dictionary_entry": 98
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-24-001",
+  "vc-24-002",
+  "vc-24-003",
+  "vc-24-004",
+  "vc-24-005",
+  "vc-24-006",
+  "vc-24-007",
+  "vc-24-008",
+  "vc-24-009",
+  "vc-24-010",
+  "vc-24-011",
+  "vc-24-012",
+  "vc-24-013",
+  "vc-24-014",
+  "vc-24-015",
+  "vc-24-016",
+  "vc-24-017",
+  "vc-24-018",
+  "vc-24-019",
+  "vc-24-020",
+  "vc-24-021",
+  "vc-24-022",
+  "vc-24-023",
+  "vc-24-024",
+  "vc-24-025",
+  "vc-24-026",
+  "vc-24-027",
+  "vc-24-028",
+  "vc-24-029",
+  "vc-24-030",
+  "vc-24-031",
+  "vc-24-032",
+  "vc-24-033",
+  "vc-24-034",
+  "vc-24-035",
+  "vc-24-036",
+  "vc-24-037",
+  "vc-24-038",
+  "vc-24-039",
+  "vc-24-040",
+  "vc-24-041",
+  "vc-24-042",
+  "vc-24-043",
+  "vc-24-044",
+  "vc-24-045",
+  "vc-24-046",
+  "vc-24-047",
+  "vc-24-048",
+  "vc-24-049",
+  "vc-24-050",
+  "vc-24-051",
+  "vc-24-052",
+  "vc-24-053",
+  "vc-24-054",
+  "vc-24-055",
+  "vc-24-056",
+  "vc-24-057",
+  "vc-24-058",
+  "vc-24-059",
+  "vc-24-060",
+  "vc-24-061",
+  "vc-24-062",
+  "vc-24-063",
+  "vc-24-064",
+  "vc-24-065",
+  "vc-24-066",
+  "vc-24-067",
+  "vc-24-068",
+  "vc-24-069",
+  "vc-24-070",
+  "vc-24-071",
+  "vc-24-072",
+  "vc-24-073",
+  "vc-24-074",
+  "vc-24-075",
+  "vc-24-076",
+  "vc-24-077",
+  "vc-24-078",
+  "vc-24-079",
+  "vc-24-080",
+  "vc-24-081",
+  "vc-24-082",
+  "vc-24-083",
+  "vc-24-084",
+  "vc-24-085",
+  "vc-24-086",
+  "vc-24-087",
+  "vc-24-088",
+  "vc-24-089",
+  "vc-24-090",
+  "vc-24-091",
+  "vc-24-092",
+  "vc-24-093",
+  "vc-24-094",
+  "vc-24-095",
+  "vc-24-096",
+  "vc-24-097",
+  "vc-24-098"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-24-001",
+   "surface": "性格",
+   "kind": "no_dictionary_entry",
+   "detail": "性格|せいかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-002",
+   "surface": "素直",
+   "kind": "no_dictionary_entry",
+   "detail": "素直|すなお が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-003",
+   "surface": "わがまま",
+   "kind": "no_dictionary_entry",
+   "detail": "わがまま|わがまま が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-004",
+   "surface": "頑固",
+   "kind": "no_dictionary_entry",
+   "detail": "頑固|がんこ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-005",
+   "surface": "内気",
+   "kind": "no_dictionary_entry",
+   "detail": "内気|うちき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-006",
+   "surface": "消極的",
+   "kind": "no_dictionary_entry",
+   "detail": "消極的|しょうきょくてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-007",
+   "surface": "人柄",
+   "kind": "no_dictionary_entry",
+   "detail": "人柄|ひとがら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-008",
+   "surface": "性質",
+   "kind": "no_dictionary_entry",
+   "detail": "性質|せいしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-009",
+   "surface": "感謝",
+   "kind": "no_dictionary_entry",
+   "detail": "感謝|かんしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-010",
+   "surface": "緊張",
+   "kind": "no_dictionary_entry",
+   "detail": "緊張|きんちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-011",
+   "surface": "後悔",
+   "kind": "no_dictionary_entry",
+   "detail": "後悔|こうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-012",
+   "surface": "恥ずかしい",
+   "kind": "no_dictionary_entry",
+   "detail": "恥ずかしい|はずかしい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-013",
+   "surface": "悔しい",
+   "kind": "no_dictionary_entry",
+   "detail": "悔しい|くやしい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-014",
+   "surface": "羨ましい",
+   "kind": "no_dictionary_entry",
+   "detail": "羨ましい|うらやましい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-015",
+   "surface": "寂しい",
+   "kind": "no_dictionary_entry",
+   "detail": "寂しい|さびしい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-016",
+   "surface": "懐かしい",
+   "kind": "no_dictionary_entry",
+   "detail": "懐かしい|なつかしい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-017",
+   "surface": "ありがたい",
+   "kind": "no_dictionary_entry",
+   "detail": "ありがたい|ありがたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-018",
+   "surface": "喜び",
+   "kind": "no_dictionary_entry",
+   "detail": "喜び|よろこび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-019",
+   "surface": "悲しみ",
+   "kind": "no_dictionary_entry",
+   "detail": "悲しみ|かなしみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-020",
+   "surface": "怒り",
+   "kind": "no_dictionary_entry",
+   "detail": "怒り|いかり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-021",
+   "surface": "不機嫌",
+   "kind": "no_dictionary_entry",
+   "detail": "不機嫌|ふきげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-022",
+   "surface": "機嫌",
+   "kind": "no_dictionary_entry",
+   "detail": "機嫌|きげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-023",
+   "surface": "気分",
+   "kind": "no_dictionary_entry",
+   "detail": "気分|きぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-024",
+   "surface": "表情",
+   "kind": "no_dictionary_entry",
+   "detail": "表情|ひょうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-025",
+   "surface": "涙",
+   "kind": "no_dictionary_entry",
+   "detail": "涙|なみだ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-026",
+   "surface": "うんざり",
+   "kind": "no_dictionary_entry",
+   "detail": "うんざり|うんざり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-027",
+   "surface": "いらいら",
+   "kind": "no_dictionary_entry",
+   "detail": "いらいら|いらいら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-028",
+   "surface": "どきどき",
+   "kind": "no_dictionary_entry",
+   "detail": "どきどき|どきどき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-029",
+   "surface": "わくわく",
+   "kind": "no_dictionary_entry",
+   "detail": "わくわく|わくわく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-030",
+   "surface": "びっくり",
+   "kind": "no_dictionary_entry",
+   "detail": "びっくり|びっくり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-031",
+   "surface": "態度",
+   "kind": "no_dictionary_entry",
+   "detail": "態度|たいど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-032",
+   "surface": "礼儀",
+   "kind": "no_dictionary_entry",
+   "detail": "礼儀|れいぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-033",
+   "surface": "迷惑",
+   "kind": "no_dictionary_entry",
+   "detail": "迷惑|めいわく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-034",
+   "surface": "無視",
+   "kind": "no_dictionary_entry",
+   "detail": "無視|むし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-035",
+   "surface": "思いやり",
+   "kind": "no_dictionary_entry",
+   "detail": "思いやり|おもいやり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-036",
+   "surface": "気配り",
+   "kind": "no_dictionary_entry",
+   "detail": "気配り|きくばり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-037",
+   "surface": "気遣い",
+   "kind": "no_dictionary_entry",
+   "detail": "気遣い|きづかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-038",
+   "surface": "素敵",
+   "kind": "no_dictionary_entry",
+   "detail": "素敵|すてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-039",
+   "surface": "真剣",
+   "kind": "no_dictionary_entry",
+   "detail": "真剣|しんけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-040",
+   "surface": "本気",
+   "kind": "no_dictionary_entry",
+   "detail": "本気|ほんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-041",
+   "surface": "夢中",
+   "kind": "no_dictionary_entry",
+   "detail": "夢中|むちゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-042",
+   "surface": "約束",
+   "kind": "no_dictionary_entry",
+   "detail": "約束|やくそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-043",
+   "surface": "延期",
+   "kind": "no_dictionary_entry",
+   "detail": "延期|えんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-044",
+   "surface": "都合",
+   "kind": "no_dictionary_entry",
+   "detail": "都合|つごう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-045",
+   "surface": "お願い",
+   "kind": "no_dictionary_entry",
+   "detail": "お願い|おねがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-046",
+   "surface": "依頼",
+   "kind": "no_dictionary_entry",
+   "detail": "依頼|いらい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-047",
+   "surface": "引き受ける",
+   "kind": "no_dictionary_entry",
+   "detail": "引き受ける|ひきうける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-048",
+   "surface": "断る",
+   "kind": "no_dictionary_entry",
+   "detail": "断る|ことわる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-049",
+   "surface": "許す",
+   "kind": "no_dictionary_entry",
+   "detail": "許す|ゆるす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-050",
+   "surface": "誤解",
+   "kind": "no_dictionary_entry",
+   "detail": "誤解|ごかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-051",
+   "surface": "勘違い",
+   "kind": "no_dictionary_entry",
+   "detail": "勘違い|かんちがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-052",
+   "surface": "言い訳",
+   "kind": "no_dictionary_entry",
+   "detail": "言い訳|いいわけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-053",
+   "surface": "疑う",
+   "kind": "no_dictionary_entry",
+   "detail": "疑う|うたがう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-054",
+   "surface": "納得",
+   "kind": "no_dictionary_entry",
+   "detail": "納得|なっとく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-055",
+   "surface": "友情",
+   "kind": "no_dictionary_entry",
+   "detail": "友情|ゆうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-056",
+   "surface": "仲良し",
+   "kind": "no_dictionary_entry",
+   "detail": "仲良し|なかよし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-057",
+   "surface": "知人",
+   "kind": "no_dictionary_entry",
+   "detail": "知人|ちじん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-058",
+   "surface": "恋人",
+   "kind": "no_dictionary_entry",
+   "detail": "恋人|こいびと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-059",
+   "surface": "夫婦",
+   "kind": "no_dictionary_entry",
+   "detail": "夫婦|ふうふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-060",
+   "surface": "交流",
+   "kind": "no_dictionary_entry",
+   "detail": "交流|こうりゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-061",
+   "surface": "訪問",
+   "kind": "no_dictionary_entry",
+   "detail": "訪問|ほうもん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-062",
+   "surface": "招待",
+   "kind": "no_dictionary_entry",
+   "detail": "招待|しょうたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-063",
+   "surface": "歓迎",
+   "kind": "no_dictionary_entry",
+   "detail": "歓迎|かんげい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-064",
+   "surface": "見送る",
+   "kind": "no_dictionary_entry",
+   "detail": "見送る|みおくる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-065",
+   "surface": "おごる",
+   "kind": "no_dictionary_entry",
+   "detail": "おごる|おごる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-066",
+   "surface": "割り勘",
+   "kind": "no_dictionary_entry",
+   "detail": "割り勘|わりかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-067",
+   "surface": "喧嘩",
+   "kind": "no_dictionary_entry",
+   "detail": "喧嘩|けんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-068",
+   "surface": "仲直り",
+   "kind": "no_dictionary_entry",
+   "detail": "仲直り|なかなおり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-069",
+   "surface": "怒鳴る",
+   "kind": "no_dictionary_entry",
+   "detail": "怒鳴る|どなる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-070",
+   "surface": "文句",
+   "kind": "no_dictionary_entry",
+   "detail": "文句|もんく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-071",
+   "surface": "愚痴",
+   "kind": "no_dictionary_entry",
+   "detail": "愚痴|ぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-072",
+   "surface": "悪口",
+   "kind": "no_dictionary_entry",
+   "detail": "悪口|わるぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-073",
+   "surface": "噂",
+   "kind": "no_dictionary_entry",
+   "detail": "噂|うわさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-074",
+   "surface": "本音",
+   "kind": "no_dictionary_entry",
+   "detail": "本音|ほんね が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-075",
+   "surface": "建前",
+   "kind": "no_dictionary_entry",
+   "detail": "建前|たてまえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-076",
+   "surface": "気まずい",
+   "kind": "no_dictionary_entry",
+   "detail": "気まずい|きまずい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-077",
+   "surface": "照れる",
+   "kind": "no_dictionary_entry",
+   "detail": "照れる|てれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-078",
+   "surface": "憎む",
+   "kind": "no_dictionary_entry",
+   "detail": "憎む|にくむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-079",
+   "surface": "嫌う",
+   "kind": "no_dictionary_entry",
+   "detail": "嫌う|きらう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-080",
+   "surface": "尊敬",
+   "kind": "no_dictionary_entry",
+   "detail": "尊敬|そんけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-081",
+   "surface": "憧れ",
+   "kind": "no_dictionary_entry",
+   "detail": "憧れ|あこがれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-082",
+   "surface": "同情",
+   "kind": "no_dictionary_entry",
+   "detail": "同情|どうじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-083",
+   "surface": "甘える",
+   "kind": "no_dictionary_entry",
+   "detail": "甘える|あまえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-084",
+   "surface": "甘やかす",
+   "kind": "no_dictionary_entry",
+   "detail": "甘やかす|あまやかす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-085",
+   "surface": "頼る",
+   "kind": "no_dictionary_entry",
+   "detail": "頼る|たよる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-086",
+   "surface": "世話",
+   "kind": "no_dictionary_entry",
+   "detail": "世話|せわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-087",
+   "surface": "励ます",
+   "kind": "no_dictionary_entry",
+   "detail": "励ます|はげます が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-088",
+   "surface": "慰める",
+   "kind": "no_dictionary_entry",
+   "detail": "慰める|なぐさめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-089",
+   "surface": "我慢",
+   "kind": "no_dictionary_entry",
+   "detail": "我慢|がまん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-090",
+   "surface": "耐える",
+   "kind": "no_dictionary_entry",
+   "detail": "耐える|たえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-091",
+   "surface": "諦める",
+   "kind": "no_dictionary_entry",
+   "detail": "諦める|あきらめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-092",
+   "surface": "迷う",
+   "kind": "no_dictionary_entry",
+   "detail": "迷う|まよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-093",
+   "surface": "悩む",
+   "kind": "no_dictionary_entry",
+   "detail": "悩む|なやむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-094",
+   "surface": "落ち着く",
+   "kind": "no_dictionary_entry",
+   "detail": "落ち着く|おちつく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-095",
+   "surface": "親しみ",
+   "kind": "no_dictionary_entry",
+   "detail": "親しみ|したしみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-096",
+   "surface": "自慢",
+   "kind": "no_dictionary_entry",
+   "detail": "自慢|じまん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-097",
+   "surface": "評判",
+   "kind": "no_dictionary_entry",
+   "detail": "評判|ひょうばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-24-098",
+   "surface": "無理",
+   "kind": "no_dictionary_entry",
+   "detail": "無理|むり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

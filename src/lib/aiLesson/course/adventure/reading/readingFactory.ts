@@ -10,13 +10,13 @@
 // - 誤答3つすべてに whyWrongJa（本文のどこと食い違うか）を書く
 // - zh側フィールドに日本語の地の文を入れない（引用は別扱い）
 // - 本文にラテン文字の語（3文字以上）を入れない
-import type { ReadingSet } from './readingTypes';
+import type { ReadingSet, ReadingLevel } from './readingTypes';
 
 /**
  * レベル固定のセット生成関数を返す。
  * `const s = makeReadingSet('N3');` のように使う。
  */
-export const makeReadingSet = (sourceLevel: 'N2' | 'N3') => (
+export const makeReadingSet = (sourceLevel: ReadingLevel) => (
   setId: string, readingType: ReadingSet['readingType'],
   passageJa: string, contextZh: string,
   questionJa: string, questionZh: string,
@@ -24,18 +24,32 @@ export const makeReadingSet = (sourceLevel: 'N2' | 'N3') => (
   whyWrong: [string, string, string],
   rationaleSpan: string, explanationJa: string, explanationZh: string,
   difficulty: 1 | 2 | 3, estimatedSeconds: number,
+  /**
+   * 誤答理由の中国語版（whyWrong と同じ並び＝誤答を上から順に）。
+   *
+   * 省略すると zh画面には日本語の理由がそのまま出る。読解の本文・選択肢は
+   * 日本語のままで正しい（それが読解）が、**なぜ違うかの解説まで日本語だと
+   * zh学習者には読めない**。特にN5/N4では解説がいちばん効く部分なので、
+   * 新規バンクは必ず埋めること（advReading.test.ts が N5/N4 で必須検査する）。
+   */
+  whyWrongZh?: [string, string, string],
 ): ReadingSet => {
   let w = 0;
   return {
     setId, sourceLevel, readingType, passageJa, contextZh, questionJa, questionZh,
-    choices: choices.map((t, i) => ({
-      choiceId: `choice-${String.fromCharCode(97 + i)}`,
-      textJa: t,
-      isCorrect: i === correctIdx,
-      // 誤答理由は日本語のみ持つ（zh画面へ日本語の地の文を出さないため）
-      whyWrongJa: i === correctIdx ? undefined : whyWrong[w++],
-      whyWrongZh: undefined,
-    })),
+    choices: choices.map((t, i) => {
+      if (i === correctIdx) {
+        return { choiceId: `choice-${String.fromCharCode(97 + i)}`, textJa: t, isCorrect: true };
+      }
+      const at = w++;
+      return {
+        choiceId: `choice-${String.fromCharCode(97 + i)}`,
+        textJa: t,
+        isCorrect: false,
+        whyWrongJa: whyWrong[at],
+        whyWrongZh: whyWrongZh?.[at],
+      };
+    }),
     rationaleSpan, explanationJa, explanationZh, difficulty, estimatedSeconds,
     reviewState: 'validated_beta', variantId: setId,
   };

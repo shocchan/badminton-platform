@@ -9,7 +9,7 @@ import type { AdvConfidence, AdvMasteryLedger, AdvSkillProfile, JlptLevel } from
 import { MASTERY_RULES } from './advMastery';
 import {
   EXAM_SKILLS, EXAM_SKILL_LABELS, EXAM_STRUCTURE, OVERALL_READINESS_REQUIREMENT,
-  PRACTICAL_SKILL_LABELS, SECTION_OF_SKILL, type ExamSkill,
+  PRACTICAL_SKILL_LABELS, SECTION_OF_SKILL, hasExamStructure, type ExamSkill,
 } from './advExamSkills';
 
 export interface SkillEvidence {
@@ -49,8 +49,16 @@ export interface PracticalRow {
 
 export interface ReadinessReport {
   target: JlptLevel;
-  /** 本試験の構造（表示の裏づけ） */
+  /** 本試験の構造（表示の裏づけ）。データを持たない級では空（上の級で代用しない） */
   examParts: { labelJa: string; labelZh: string; minutes: number; skills: ExamSkill[] }[];
+  /** examParts が「その級の実データ」か。false の級では構成カードを出さない */
+  examStructureKnown: boolean;
+  /**
+   * 聴解を測る材料（音源）がその級に在るか。
+   * false の級では listening の evidence が原理的に0のままなので、
+   * ブロッカーを「あと◯問」ではなく「当面みたされない」と言う。
+   */
+  listeningMeasurable: boolean;
   rows: ReadinessRow[];
   /** 総合。要件を満たさない限り必ず null（§9） */
   overallPct: number | null;
@@ -176,7 +184,17 @@ export const computeReadiness = (
   /** 完了したミニ模試の履歴（§10: 3回以上で初めて総合を出す） */
   mockLog: { completedAt: string }[] = [],
 ): ReadinessReport => {
-  const level: 'N2' | 'N3' = target === 'N3' ? 'N3' : 'N2';
+  /**
+   * 本試験データを持つ級か（2026-08-18）。**丸めない**。
+   * 旧: `const level = target === 'N3' ? 'N3' : 'N2'` → N5/N4 目標の生徒に
+   * N2の試験構成（105分／50分）が「あなたの本試験の構成」として出ていた。
+   */
+  const examLevel = hasExamStructure(target) ? target : null;
+  /**
+   * 聴解の音源を持つ級か。いまは本試験データを持つ級（N3/N2）＝音源を持つ級で一致する。
+   * ずれたら advReadinessLevelData.test.ts が落ちるので、そこで気づける。
+   */
+  const listeningMeasurable = examLevel !== null;
   const evidence = collectSkillEvidence(ledger);
 
   const rows: ReadinessRow[] = EXAM_SKILLS.map((key) => {
@@ -188,14 +206,21 @@ export const computeReadiness = (
       : scoreOf(e);
     const sec = SECTION_OF_SKILL[key];
     const noteJa = pct === null
-      ? (key === 'listening' ? '未判定（音声での聴解はまだ測定していません）'
+      ? (key === 'listening'
+        ? (listeningMeasurable
+          ? '未判定（音声での聴解はまだ測定していません）'
+          // 「まだ測定していません」＝これから測れる、と読める。音源が無い級では嘘になる
+          : `未判定（${target}の聴解はまだ音源がなく、いまは測れません）`)
         : key === 'reading' ? '未判定（読解問題のデータがまだありません）'
         : key === 'timeManagement' ? '未判定（制限時間つきのボスで測ります）'
         : '未判定（この科目の問題をまだ解いていません）')
       : conf === 'low' ? `暫定（出題${e.evidenceCount}問・未出${e.unseenQuestionCount}問）`
       : e.delayedPct === null ? '7日後の定着データはこれから' : null;
     const noteZh = pct === null
-      ? (key === 'listening' ? '尚未判定（还没有测定音频听力）'
+      ? (key === 'listening'
+        ? (listeningMeasurable
+          ? '尚未判定（还没有测定音频听力）'
+          : `尚未判定（${target}的听力还没有音频，目前无法测定）`)
         : key === 'reading' ? '尚未判定（还没有阅读题数据）'
         : key === 'timeManagement' ? '尚未判定（通过限时Boss测定）'
         : '尚未判定（还没有做过这个科目的题）')
@@ -229,6 +254,17 @@ export const computeReadiness = (
   for (const key of OVERALL_READINESS_REQUIREMENT.requiredSkills) {
     const e = evidence[key];
     const label = EXAM_SKILL_LABELS[key];
+    /**
+     * 音源が無い級の聴解を「あと20問」と言わない（2026-08-18）。
+     * N5/N4 は聴解セットが0本なので evidence は永久に0＝「0/20問」は
+     * 解けば埋まる条件に見えて、実際には一生埋まらない。
+     * 総合を出さない判断は変えない（聴解ぬきで「総合準備度」を名乗らない・§9）。
+     */
+    if (key === 'listening' && !listeningMeasurable) {
+      blockersJa.push(`${target}の聴解はまだ音源がないため測れません（この条件は当面みたされず、総合準備度は出せません）`);
+      blockersZh.push(`${target}的听力还没有音频，暂时无法测定（这个条件当前无法满足，所以给不出综合准备度）`);
+      continue;
+    }
     if (e.evidenceCount < OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill) {
       blockersJa.push(`${label.ja}のデータが不足しています（${e.evidenceCount}/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}問）`);
       blockersZh.push(`${label.zh}的数据不足（${e.evidenceCount}/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}题）`);
@@ -303,7 +339,9 @@ export const computeReadiness = (
 
   return {
     target,
-    examParts: EXAM_STRUCTURE[level],
+    examParts: examLevel ? EXAM_STRUCTURE[examLevel] : [],
+    examStructureKnown: examLevel !== null,
+    listeningMeasurable,
     rows,
     overallPct,
     overallBlockersJa: blockersJa,

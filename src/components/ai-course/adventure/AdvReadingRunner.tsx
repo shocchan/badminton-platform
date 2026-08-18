@@ -193,7 +193,7 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
             <p className="text-xs font-semibold text-gray-600">{tx(lang, 'ほかの選択肢が違う理由', '其他选项为什么不对')}</p>
             <ul className="mt-1 space-y-0.5">
               {presented.choices.filter((c) => c.choiceId !== presented.correctChoiceId).map((c) => (
-                <li key={c.choiceId} className="text-xs leading-relaxed text-gray-600">✕ {c.textJa} — {c.whyWrongJa}</li>
+                <li key={c.choiceId} className="text-xs leading-relaxed text-gray-600">✕ {c.textJa} — {tx(lang, c.whyWrongJa ?? '', c.whyWrongZh ?? c.whyWrongJa ?? '')}</li>
               ))}
             </ul>
           </div>

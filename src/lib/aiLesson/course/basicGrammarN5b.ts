@@ -276,7 +276,9 @@ export const BASIC_GRAMMAR_N5B: BasicGrammarDraft[] = [
       starterZh: '你每天怎么去上班或上学？要花几分钟？',
       targetUse: '〜で（手段）',
     },
-    matchKeys: ['で', '車で', 'カードで', '語で', '現金で'],
+    // 「車で」は例文「自転車で」の内部に当たり、穴が熟語を割っていた
+    // （実測: 「毎日、自転＿＿駅まで行きます。」＝日本語として読めず、正解「車で」しか入らない）。
+    matchKeys: ['で', '自転車で', 'カードで', '語で', '現金で'],
     vocabularyLinks: [], unit: 'n5g-unit-3',
   }),
   bg({

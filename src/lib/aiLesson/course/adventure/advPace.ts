@@ -52,7 +52,8 @@ export const computePace = (input: {
   for (const s of route.stages) {
     if (isConversationStage(s) || stageDone.has(s.stageId)) continue;
     remainingStages += 1;
-    for (const id of stageMasteryTargetIds(s, n3Ids, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit)) {
+    for (const id of stageMasteryTargetIds(
+      s, n3Ids, n2ByUnit, n3BundleByItem, basicByUnit, basicBundleByUnit, route.destinationJlpt)) {
       if (!masteredNow.has(id)) remainingTargetSet.add(id);
     }
   }

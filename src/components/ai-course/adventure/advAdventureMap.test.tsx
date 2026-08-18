@@ -157,12 +157,20 @@ describe('成長マップ — 行き止まりが無い（原則15）', () => {
     expect(h.onOpenReview).not.toHaveBeenCalled();
   });
 
-  it('模試が現在地になったらミニ模試へ行ける', () => {
+  /**
+   * 2026-08-18 P0: ボス地域のCTAはミニ模試ではなく**今日の冒険（ボス戦step）**。
+   * ミニ模試の結果は `mock-n2` / `mock-n3` へ記録され、ボスstageの台帳には入らないので、
+   * ここを模試へ繋ぐと「別の日にあと3回、80%以上」と出したまま回数が永久に増えなかった。
+   * ミニ模試はホームのメニュー・準備度画面から従来どおり受けられる
+   */
+  it('ボスが現在地になったら今日の冒険（ボス戦）へ行く', () => {
     const p = profileFor('jlpt');
     const stages = p.route!.stages;
     const h = setup({ goal: 'jlpt', mastered: new Set(stages.slice(0, -1).map((s) => s.stageId)) });
-    fireEvent.click(screen.getByRole('button', { name: /ミニ模試を受ける/ }));
-    expect(h.onOpenMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /ミニ模試を受ける/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '今日の冒険でここを進める' }));
+    expect(h.onOpenMock).not.toHaveBeenCalled();
+    expect(h.onStartToday).toHaveBeenCalled();
   });
 });
 

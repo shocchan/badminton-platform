@@ -1,0 +1,343 @@
+[
+ {
+  "settings": {
+   "zhSupport": "whenStuck",
+   "correction": "summary",
+   "adventureV2": {
+    "xp": 30,
+    "kana": {
+     "needed": false,
+     "checkedAt": "2026-08-17T00:54:21.802Z",
+     "doneRowIds": []
+    },
+    "route": {
+     "stages": [
+      {
+       "kind": "n3_bridge",
+       "areaId": "area03-toorimichi",
+       "stageId": "stg-n3bridge",
+       "targets": {
+        "n3UnitIds": [
+         "n3u-03-move",
+         "n3u-04-things"
+        ],
+        "basicUnits": [
+         "n4g-unit-1",
+         "n4g-unit-2",
+         "n4g-unit-3",
+         "n4g-unit-4",
+         "n4g-unit-5",
+         "n4g-unit-6",
+         "n4g-unit-7",
+         "n4g-unit-8"
+        ],
+        "vocabularyIds": [
+         "fi-kaishain",
+         "fi-namae",
+         "fi-saikin",
+         "fi-joukyou",
+         "fi-zenzen"
+        ]
+       },
+       "titleJa": "N3語彙・文法の橋",
+       "titleZh": "N3词汇语法之桥",
+       "purposeJa": "N3の核となる語彙と表現を渡る",
+       "purposeZh": "掌握N3核心词汇与表达",
+       "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+       "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+      },
+      {
+       "kind": "n3_practice",
+       "areaId": "area05-yukari",
+       "stageId": "stg-n3practice",
+       "targets": {
+        "n3UnitIds": [
+         "n3u-06-feeling",
+         "n3u-07-people",
+         "n3u-09-think",
+         "n3u-10-arrange"
+        ]
+       },
+       "titleJa": "N3実践ミッション",
+       "titleZh": "N3实战任务",
+       "purposeJa": "感情・人間関係・仕事の場面でN3を使う",
+       "purposeZh": "在情感・人际・工作场景中运用N3",
+       "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+       "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+      },
+      {
+       "kind": "n3_grammar",
+       "areaId": "area07-katachi",
+       "stageId": "stg-n3grammar",
+       "targets": {
+        "n3UnitIds": [
+         "n3u-08-change",
+         "n3u-11-situation",
+         "n3u-12-adverb"
+        ],
+        "n3GrammarIds": [
+         "n3g-tearu",
+         "n3g-sugiru",
+         "n3g-deshou",
+         "n2g-074"
+        ]
+       },
+       "titleJa": "N3文法攻略",
+       "titleZh": "N3语法攻略",
+       "purposeJa": "N3文法76項目を体系的に攻略する",
+       "purposeZh": "系统攻克76项N3语法",
+       "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+       "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+      },
+      {
+       "kind": "mock_boss",
+       "areaId": "area07-katachi",
+       "stageId": "stg-n3boss",
+       "targets": {
+        "n3UnitIds": [
+         "n3u-01-self",
+         "n3u-02-daily",
+         "n3u-05-adjpair",
+         "n3u-03-move",
+         "n3u-04-things",
+         "n3u-06-feeling",
+         "n3u-07-people",
+         "n3u-09-think",
+         "n3u-10-arrange",
+         "n3u-08-change",
+         "n3u-11-situation",
+         "n3u-12-adverb"
+        ]
+       },
+       "titleJa": "N3模擬ボス",
+       "titleZh": "N3模拟Boss",
+       "purposeJa": "本番形式・時間配分つきの総合演習",
+       "purposeZh": "完整模拟考・练习时间分配",
+       "clearConditionJa": "ランダム問題で80%以上を別の日に3回＋7日後の確認",
+       "clearConditionZh": "随机题80%以上×3天（不同日）＋7天后的复查"
+      }
+     ],
+     "generatedAt": "2026-08-17T12:08:25.236Z",
+     "explanationJa": "N3を攻略するために、まず土台のことばを短期間で固めます。目的地はN3のまま変わりません。",
+     "explanationZh": "为了攻略N3，先短期夯实基础。目的地仍然是N3，不会改变。",
+     "destinationJlpt": "N3",
+     "destinationAreaId": "area07-katachi",
+     "destinationLabelJa": "N3・カタチの遺跡",
+     "destinationLabelZh": "N3・カタチの遺跡｜形之遗迹"
+    },
+    "skills": {
+     "grammar": {
+      "band": "n4_late",
+      "confidence": "low",
+      "currentScore": 13,
+      "evidenceCount": 5,
+      "lastAssessedAt": "2026-08-17T00:53:31.934Z"
+     },
+     "reading": {
+      "band": "needs_assessment",
+      "confidence": "none",
+      "currentScore": 0,
+      "evidenceCount": 0,
+      "lastAssessedAt": null
+     },
+     "listening": {
+      "band": "needs_assessment",
+      "confidence": "none",
+      "currentScore": 0,
+      "evidenceCount": 0,
+      "lastAssessedAt": null
+     },
+     "practical": {
+      "band": "needs_assessment",
+      "confidence": "none",
+      "currentScore": 0,
+      "evidenceCount": 0,
+      "lastAssessedAt": null
+     },
+     "vocabulary": {
+      "band": "pre_n5",
+      "confidence": "low",
+      "currentScore": 17,
+      "evidenceCount": 6,
+      "lastAssessedAt": "2026-08-17T00:53:31.934Z"
+     },
+     "consistency": {
+      "band": "needs_assessment",
+      "confidence": "none",
+      "currentScore": 0,
+      "evidenceCount": 0,
+      "lastAssessedAt": null
+     },
+     "conversation": {
+      "band": "needs_assessment",
+      "confidence": "none",
+      "currentScore": 0,
+      "evidenceCount": 0,
+      "lastAssessedAt": null
+     }
+    },
+    "enabled": true,
+    "mastery": {
+     "n4g-unit-1": [
+      {
+       "tier": "normal",
+       "timed": false,
+       "skills": [
+        "grammar"
+       ],
+       "bySkill": {
+        "grammar": {
+         "total": 7,
+         "unseen": 7,
+         "correct": 0
+        }
+       },
+       "dateKey": "2026-08-18",
+       "scorePct": 0,
+       "wrongKeys": [
+        "meaning:n4g-tsumoridesu",
+        "rec:n4g-kotogadekimasu",
+        "meaning:n4g-kotogadekimasu",
+        "rec:n4g-kanoukei",
+        "cloze:n4g-ikoukei:1",
+        "form:n4g-ikoukei",
+        "cloze:n4g-outoomoimasu:0"
+       ],
+       "completedAt": "2026-08-17T17:39:15.009Z",
+       "unseenRatio": 1,
+       "questionKeys": [
+        "meaning:n4g-tsumoridesu",
+        "rec:n4g-kotogadekimasu",
+        "meaning:n4g-kotogadekimasu",
+        "rec:n4g-kanoukei",
+        "cloze:n4g-ikoukei:1",
+        "form:n4g-ikoukei",
+        "cloze:n4g-outoomoimasu:0"
+       ]
+      }
+     ],
+     "mistake-review": [
+      {
+       "tier": "normal",
+       "timed": false,
+       "skills": [
+        "grammar"
+       ],
+       "bySkill": {
+        "grammar": {
+         "total": 7,
+         "unseen": 0,
+         "correct": 0
+        }
+       },
+       "dateKey": "2026-08-18",
+       "scorePct": 0,
+       "wrongKeys": [
+        "cloze:n4g-ikoukei:1",
+        "meaning:n4g-kotogadekimasu",
+        "cloze:n4g-outoomoimasu:0",
+        "meaning:n4g-tsumoridesu",
+        "rec:n4g-kotogadekimasu",
+        "form:n4g-ikoukei",
+        "rec:n4g-kanoukei"
+       ],
+       "completedAt": "2026-08-17T17:41:16.899Z",
+       "unseenRatio": 0,
+       "questionKeys": [
+        "cloze:n4g-ikoukei:1",
+        "meaning:n4g-kotogadekimasu",
+        "cloze:n4g-outoomoimasu:0",
+        "meaning:n4g-tsumoridesu",
+        "rec:n4g-kotogadekimasu",
+        "form:n4g-ikoukei",
+        "rec:n4g-kanoukei"
+       ]
+      }
+     ]
+    },
+    "mockLog": [],
+    "goalType": "jlpt",
+    "questLog": [
+     {
+      "dateKey": "2026-08-17",
+      "totalSteps": 1,
+      "completedSteps": 1
+     }
+    ],
+    "createdAt": "2026-08-17T00:53:31.127Z",
+    "diagnosis": {
+     "completedAt": "2026-08-17T00:53:31.934Z",
+     "supportNeed": "often",
+     "grammarGapIds": [
+      "n3g-tearu",
+      "n3g-sugiru",
+      "n3g-deshou",
+      "n2g-074"
+     ],
+     "knowledgeBand": "n3_early",
+     "conversationBand": "needs_assessment",
+     "vocabularyGapIds": [
+      "fi-kaishain",
+      "fi-namae",
+      "fi-saikin",
+      "fi-joukyou",
+      "fi-zenzen"
+     ],
+     "askedQuestionKeys": [
+      "ucontext:n3u-01-self:aq-fi-sumu-context",
+      "ucontext:n3u-01-self:aq-fi-kaishain-context",
+      "ucontext:n3u-01-self:aq-fi-namae-context",
+      "ucontext:n3u-12-adverb:aq-fi-saikin-context",
+      "ucontext:n3u-11-situation:aq-fi-joukyou-context",
+      "utransfer_error:n3u-12-adverb:aq-fi-zenzen-contrast0",
+      "rec:n3g-tearu",
+      "rec:n3g-sugiru",
+      "rec:n3g-owaru-fukugou",
+      "rec:n3g-deshou",
+      "rec:n2g-074",
+      "rec:n2g-094"
+     ],
+     "routeExplanationJa": "N3を攻略するために、まず土台のことばを短期間で固めます。目的地はN3のまま変わりません。",
+     "routeExplanationZh": "为了攻略N3，先短期夯实基础。目的地仍然是N3，不会改变。",
+     "adjustedByTeacherAt": "2026-08-17T12:08:25.236Z",
+     "conversationSampled": false,
+     "listeningConfidence": "none",
+     "recommendedStartAreaId": "area01-minato",
+     "bandBeforeTeacherAdjust": "pre_n5"
+    },
+    "lastQuest": null,
+    "teacherId": "yuto",
+    "updatedAt": "2026-08-17T17:42:42.291Z",
+    "targetJlpt": "N3",
+    "todaySteps": {
+     "done": [],
+     "dateKey": "2026-08-18",
+     "doneKeys": [
+      "grammar_new:n4g-yoteidesu",
+      "battle:n4g-unit-1",
+      "review_due:"
+     ]
+    },
+    "weeklyDays": 5,
+    "companionId": "natsu",
+    "examDateISO": null,
+    "humanLesson": {},
+    "mockSession": null,
+    "answerSheets": [],
+    "dailyMinutes": 15,
+    "teacherNotes": [],
+    "interviewPrep": {
+     "notes": {},
+     "enabledAt": null,
+     "worksheet": {}
+    },
+    "schemaVersion": 1,
+    "answerSheetLog": [],
+    "answerSheetSession": null
+   },
+   "examDateISO": null,
+   "weeklyTarget": 5,
+   "sessionMinutes": 3
+  }
+ }
+]

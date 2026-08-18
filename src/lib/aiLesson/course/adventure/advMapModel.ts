@@ -10,6 +10,7 @@
 import type { AdvRoute, AdventureV2Profile, JlptLevel, AdvMasteryLedger } from './advTypes';
 import { PLACE_NAME as JOURNEY_PLACES } from '../courseJourney';
 import { computeMastery, masteryProgressPct } from './advMastery';
+import { mockLevelOf } from './advMock';
 
 /** 表示するルート。Hybridは総合（試験＋会話が合流する） */
 export type MapRouteKind = 'combined' | 'exam' | 'conversation';
@@ -241,6 +242,8 @@ const examRegions = (
   dailyMinutes: number,
   ledger: AdvMasteryLedger,
   nowISO: string,
+  /** 目標レベル。模試の教材がある級かどうかの判定に使う（AdvShellと同じ出所） */
+  target: JlptLevel | null,
 ): MapRegion[] => route.stages
   // 会話stageは試験レイヤーに出さない（出題プールが無く80%攻略条件を満たせない・
   // 会話は conversationRegions レイヤーが担う。原則13/15）
@@ -278,10 +281,26 @@ const examRegions = (
     nextJa: done ? '攻略済み。ときどき復習で維持する' : st.nextJa,
     nextZh: done ? '已攻克。偶尔复习保持' : st.nextZh,
     unlockJa: '', unlockZh: '',
-    action: done ? REVIEW_ACTION : (s.kind === 'mock_boss'
-      ? { kind: 'mock' as const, labelJa: 'ミニ模試を受ける', labelZh: '参加迷你模拟考',
-          reasonJa: '本番と同じ形式で、時間配分ごと試す場所です',
-          reasonZh: '这里用与正式考试相同的形式，连时间分配一起练' }
+    /**
+     * ボス・門の入口は**今日の冒険のボス戦step**（2026-08-18 P0）。
+     *
+     * ここは以前「ミニ模試を受ける」に繋いでいたが、押しても攻略が1ミリも進まなかった:
+     *   ① ミニ模試の結果は `mock-n2` / `mock-n3` へ記録され、**このstageの台帳には入らない**。
+     *      カードには「別の日にあと3回、80%以上」と出るのに、その回数は永久に増えない
+     *   ② 模試の教材が無い級（N5/N4）では「N5のミニ模試はまだありません」の説明ページで終わる
+     * ボス戦は今日の冒険のstepとして出す（advQuest の bossStep）ので、そちらへ返す。
+     * ミニ模試は別の練習としてホームのメニュー・準備度画面に残っている（教材のある級だけ）
+     */
+    action: done ? REVIEW_ACTION : ((s.kind === 'mock_boss' || s.kind === 'n2_gate')
+      ? todayAction(
+        mockLevelOf(target) !== null
+          ? '今日の冒険に、この地域のボス戦（時間つき）が入っています'
+          : '今日の冒険に、この地域のボス戦（時間つき）が入っています。この級のミニ模試はまだありません',
+        mockLevelOf(target) !== null
+          ? '今天的冒险里，有这个地区的Boss战（限时）'
+          : '今天的冒险里，有这个地区的Boss战（限时）。这个级别的迷你模拟考还没有',
+        'ボス戦に挑む', '挑战Boss',
+      )
       // 攻略条件は上の「次にすること」に出しているので、ここは**なぜ押すのか**を書く
       : todayAction(
         '今日の冒険には、この地域を攻略するための問題が入っています',
@@ -348,7 +367,7 @@ export const buildAdventureMap = (
 ): AdventureMap => {
   const daily = prof.dailyMinutes ?? 15;
   const ledger = prof.mastery ?? {};
-  const exam = route ? examRegions(route, mastered, daily, ledger, nowISO) : [];
+  const exam = route ? examRegions(route, mastered, daily, ledger, nowISO, prof.targetJlpt) : [];
   const conv = conversationRegions(currentWeek, daily);
 
   let built: MapRegion[];
@@ -366,13 +385,19 @@ export const buildAdventureMap = (
   // 診断結果で stage の組み合わせが変わるので、並べ終えてから色調の重複をならす
   const regions = spreadTones(built);
 
-  // 現在地＝未攻略の先頭。1つだけに確定させる
+  // 現在地＝未攻略の先頭。1つだけに確定させる。
+  // **全部攻略し終えたら -1**（現在地なし）。この値をそのまま添字計算に使うと
+  // `firstOpen + 1 === 0` で**先頭の地域が「次の目的地」に化ける**（2026-08-18 P0）。
+  // 実測: N5ルートを完走した直後の地図が 2/3 攻略・先頭だけ未攻略表示になっていた
   const firstOpen = regions.findIndex((r) => r.state !== 'done');
+  const allDone = firstOpen < 0;
   const currentName = firstOpen >= 0
     ? { ja: regions[firstOpen].nameJa, zh: regions[firstOpen].nameZh }
     : null;
 
   const withState = regions.map((r, i) => {
+    // 全地域攻略済み: 現在地も「次」も無い。攻略済みの表示をそのまま保つ
+    if (allDone) return r;
     // 会話レイヤーは並走レーン（総合ルート時）。試験stageの攻略待ちにしない:
     // 会話は今日から使える（10回/日）事実と地図の表示を矛盾させない（原則13・迷子防止）。
     if (routeKind === 'combined' && r.layer === 'conversation' && i !== firstOpen) {

@@ -176,6 +176,8 @@ export const distractorTextsOf = (d: GrammarDraftLike): string[] => {
 const normalizePattern = (p: string): string => p.replace(/[〜～（）()／/\s]/g, '');
 
 const hasKanaText = (s: string): boolean => /[぀-ゟ゠-ヿ]/u.test(s);
+/** 漢字を含むか（選択肢の「漢字テル」検査に使う） */
+const hasKanji = (s: string): boolean => /[一-鿿]/u.test(s);
 
 /**
  * 見出し（pattern）から学習者が読み取れる断片。
@@ -401,6 +403,14 @@ interface GenContext {
   level: 'foundation' | 'n3' | 'n2';
   /** distractor候補（除外集合適用済み・決定的順） */
   distractorPool: GrammarDraftLike[];
+  /**
+   * バンク内での項目の並び順（0始まり・ファイル読み込み順で安定）。
+   * 長さバイアスの「役割」を hash ではなくこの index の巡回で決める。
+   * hash だと束（unit）のような小さいスライスで役割が偏り、
+   * 「その束では最長を選べば当たる」状態が実際に起きる
+   * （実測 2026-08-18: hash方式で n4g-unit-8 の meaning が「最長を選ぶ」71.4%）。
+   */
+  itemIndex: number;
 }
 
 const baseFields = (type: AdvQuestionType, level: 'foundation' | 'n3' | 'n2', d: GrammarDraftLike) => {
@@ -562,19 +572,33 @@ const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
     // 同じく §3 意味的近接。設問＋正解と内容語を共有する誤答を先に採る
     const ref = new Set([...contentTokens(`${CLOZE_Q_JA}${CLOZE_Q_ZH}`), ...contentTokens(hit)]);
     const connected = (cand: string): boolean => [...contentTokens(cand)].some((t) => ref.has(t));
-    const takeFrom = (c: { d: GrammarDraftLike; ks: string[] }, needConnected: boolean): boolean => {
+    const takeFrom = (
+      c: { d: GrammarDraftLike; ks: string[] }, needConnected: boolean, extra?: (k: string) => boolean,
+    ): boolean => {
       if (picked.some((p) => p.d.grammarId === c.d.grammarId)) return false;
       // 表示形が複数ある項目（〜ていきます／〜てきます）は、先頭が既出と衝突しても次を試す
       const k = c.ks.find((cand) => (!needConnected || connected(cand))
+        && (!extra || extra(cand))
         && spreadOk(cand)
         && !picked.some((p) => p.k === cand || sharesStem(normalizePattern(p.k), normalizePattern(cand))));
       if (!k) return false;
       picked.push({ d: c.d, k });
       return true;
     };
+    // 【漢字テルの封じ】正解にだけ漢字が入っていると、日本語を読まずに
+    // 「漢字のある選択肢を選ぶ」だけで当たってしまう
+    //   （2026-08-18 実測: 漢字を含む選択肢がちょうど1つの cloze 136問中50問＝37%が正解。偶然25%）。
+    // 仮名の有無を揃えているのと同じ理由で、漢字の有無も揃える。
+    // 逆向き（正解にだけ漢字が無い）も同じテルになるので、まず**同じ漢字有無**の候補から採る。
+    const sameKanji = (k: string) => hasKanji(k) === hasKanji(hit);
+    for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, true, sameKanji); }
+    for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, false, sameKanji); }
     for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, true); }
     for (const c of cands) { if (picked.length >= 3) break; takeFrom(c, false); }
     if (picked.length < 3) continue;
+    // 漢字を含む誤答を1つも確保できなかった例文は cloze にしない
+    // （数より「字面で解けない」を優先。項目には rec / meaning / form が残る）
+    if (hasKanji(hit) && !picked.some((p) => hasKanji(p.k))) continue;
     out.push({
       ...baseFields('cloze', ctx.level, self),
       key: `cloze:${self.grammarId}:${exIdx}`,
@@ -608,19 +632,60 @@ const genMeaning = (ctx: GenContext): AdvBattleQuestion | null => {
   const { self } = ctx;
   const correct = meaningClause(self);
   if (!correct) return null;
-  const wrongs: { ja: string; whyJa?: string; whyZh?: string }[] = [];
+
+  // 候補を**全部集めてから**選ぶ。distractorPool の先頭3件をそのまま採ると、
+  // 説明文が長い項目では「正解だけ極端に長い」が構造的に残る
+  //   （2026-08-18 実測: 初級の新規40項目で 唯一最長=正解 75%・「最長を選ぶ」だけで正解率75%。
+  //    gloss の中央値が新規24字／既存16字と偏っていたため、既存から採った誤答が必ず短くなっていた）。
+  const cands: { d: GrammarDraftLike; m: string }[] = [];
+  const seen = new Set<string>();
   for (const d of ctx.distractorPool) {
     const m = meaningClause(d);
-    if (!m || m === correct || wrongs.some((w) => w.ja === m)) continue;
+    if (!m || m === correct || seen.has(m)) continue;
     if (!lengthCompatible(correct, m)) continue;
-    wrongs.push({
-      ja: m,
-      whyJa: `これは「${d.pattern}」の意味です。`,
-      whyZh: `这是「${d.pattern}」的意思。`,
-    });
-    if (wrongs.length >= 3) break;
+    seen.add(m);
+    cands.push({ d, m });
   }
-  if (wrongs.length < 3) return null;
+
+  // §3 長さバイアス: 正解の長さ順位を**偶然と同じ分布**へ寄せる。
+  // 「正解が唯一最長になることを常に避ける」と、今度は
+  // 「唯一最長を消して3択にする」逆戦略が偶然水準を超える（advChoiceLengthBias の
+  // CHANCE_LOWER_BOUND_PCT と同じ考え方）。4択なら 唯一最長25%・唯一最短25%・中間50% が偶然。
+  // そこで並び順の巡回で役割を決め（0:最長 1:最短 2,3:中間）、達成できないときだけ中間へ落とす。
+  // 巡回にすると、どの連続スライス（束・ファイル）を切っても比率が偶然水準に保たれる。
+  const roll = ctx.itemIndex % 4;
+  const picked: { d: GrammarDraftLike; m: string }[] = [];
+  const spreadOk = (cand: string): boolean => {
+    const lens = [correct.length, ...picked.map((p) => p.m.length), cand.length];
+    return Math.max(...lens) / Math.max(1, Math.min(...lens)) <= 3.2;
+  };
+  const take = (ok: (m: string) => boolean): boolean => {
+    const c = cands.find((x) => !picked.includes(x) && ok(x.m) && spreadOk(x.m));
+    if (c) picked.push(c);
+    return !!c;
+  };
+  const fill = (): void => {
+    while (picked.length < 3 && take(() => true)) { /* 残りは元の順で埋める */ }
+  };
+  if (roll === 0 && cands.filter((c) => c.m.length < correct.length).length >= 3) {
+    // 正解が唯一最長になる組み合わせ
+    for (let i = 0; i < 3; i++) take((m) => m.length < correct.length);
+  } else if (roll === 1 && cands.filter((c) => c.m.length > correct.length).length >= 3) {
+    // 正解が唯一最短になる組み合わせ
+    for (let i = 0; i < 3; i++) take((m) => m.length > correct.length);
+  } else {
+    // 中間: 正解以上と正解以下を1つずつ確保（同着でよい）
+    take((m) => m.length >= correct.length);
+    take((m) => m.length <= correct.length);
+  }
+  fill();
+  if (picked.length < 3) return null;
+
+  const wrongs = picked.map(({ d, m }) => ({
+    ja: m,
+    whyJa: `これは「${d.pattern}」の意味です。`,
+    whyZh: `这是「${d.pattern}」的意思。`,
+  }));
   return {
     ...baseFields('meaning', ctx.level, self),
     key: `meaning:${self.grammarId}`,
@@ -636,6 +701,38 @@ const genMeaning = (ctx: GenContext): AdvBattleQuestion | null => {
     difficulty: 1,
     variantId: `meaning-${self.grammarId}`,
   };
+};
+
+/**
+ * form問題で、**設問に書いてある見出しがそのまま正解の中に写っている**か。
+ *
+ * 【なぜ rec の headingRevealsAnswer と別に要るか】
+ * form問題は `questionJa =「〜なければなりません」の接続はどれですか。` のように
+ * **設問文そのものに pattern が入る**。rec のように targetJapanese を隠しても漏洩は消えない。
+ * 一方で正解は formation（「動詞ない形の「ない」→「なければ」」）なので、
+ * 見出しの連続2文字以上が正解にだけ現れると、日本語を知らなくても字面で選べてしまう。
+ *   実測（2026-08-18・全3バンク）: 「〜なければなりません」→ 正解に「なければ」、
+ *   「辞書形とます形の対応」→ 正解「動詞ます形」、「〜そうです（様態）」→ 正解に「元気そうです」。
+ *
+ * 【判定】見出しの連続部分文字列（区切り記号を除く）が正解に含まれ、
+ * かつどの誤答にも含まれないものが1つでもあれば true。
+ * 見出しの断片が誤答にも現れているなら手がかりにならないので false（＝曖昧なら消さない）。
+ *
+ * 【1文字も見る理由】「〜ておきます」→ 正解「動詞て形」、「〜ば〜ほど」→ 正解「動詞ば形」のように、
+ * **たった1文字の仮名が正解にだけ入る**形が form では多い。2文字以上に限ると
+ * 全84問中12問がこの形で残る（2026-08-18 実測）。form は最も冗長な出題タイプで、
+ * 落としても各項目には rec / meaning / cloze が残るため、取りこぼしより安全側に倒す。
+ */
+export const formationRevealsAnswer = (pattern: string, correct: string, wrongs: string[]): boolean => {
+  if (wrongs.length === 0) return false;
+  for (let i = 0; i < pattern.length; i++) {
+    for (let j = i + 1; j <= pattern.length; j++) {
+      const cue = pattern.slice(i, j).replace(/[〜～（）()・／/、,\s]/gu, '');
+      if (cue.length < 1) continue;
+      if (correct.includes(cue) && !wrongs.some((w) => w.includes(cue))) return true;
+    }
+  }
+  return false;
 };
 
 /** 4) formation（接続の選択） */
@@ -657,6 +754,10 @@ const genFormation = (ctx: GenContext): AdvBattleQuestion | null => {
     if (wrongs.length >= 3) break;
   }
   if (wrongs.length < 3) return null;
+  // 設問に出ている見出しが正解の中に写っている（＝字面で解ける）なら出さない。
+  // form を落としても rec / meaning / cloze が残るので「学べない項目」は生まれない
+  // （itemsWithZeroQuestions を全バンクで0に保つ検査が advClozeChoiceIntegrity.test にある）。
+  if (formationRevealsAnswer(self.pattern, correctBody, wrongs.map((w) => w.ja))) return null;
   return {
     ...baseFields('form', ctx.level, self),
     key: `form:${self.grammarId}`,
@@ -708,12 +809,13 @@ export const buildVariantPool = (
   const rejected: { key: string; issues: string[] }[] = [];
   const held: HeldQuestion[] = [];
   const byType: Record<AdvQuestionType, number> = { rec: 0, cloze: 0, meaning: 0, form: 0 };
+  let itemIndex = 0;
 
   for (const self of canonical) {
     const exclusion = buildExclusionSet(self, canonical);
     const pool = canonical.filter((d) => !exclusion.has(d.grammarId));
     const rotated = seededShuffle(pool, hashSeed(self.grammarId));
-    const ctx: GenContext = { self, level, distractorPool: rotated };
+    const ctx: GenContext = { self, level, distractorPool: rotated, itemIndex: itemIndex++ };
 
     const rec = genRecognition(ctx);
     if (!rec) {

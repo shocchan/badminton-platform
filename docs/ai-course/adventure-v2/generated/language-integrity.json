@@ -1,22 +1,22 @@
 {
- "generatedAt": "2026-08-17T05:38:04.757Z",
- "checked": 29143,
+ "generatedAt": "2026-08-18T07:09:26.315Z",
+ "checked": 28081,
  "pass": true,
  "byKind": {
-  "unquoted_kana_in_zh": 973
+  "unquoted_kana_in_zh": 970
  },
  "byScript": {},
  "blocking": [],
- "warningCount": 973,
+ "warningCount": 970,
  "warningsByField": {
   "commonMistakesZh": 100,
   "learnerFocus": 89,
   "recognition.explanationZh": 82,
   "nuance": 167,
   "usageScene": 5,
-  "explanationZh": 277,
+  "explanationZh": 276,
   "promptZh": 90,
-  "explanation.whyCorrectZh": 72,
+  "explanation.whyCorrectZh": 70,
   "explanation.meaningZh": 6,
   "choices[1].whyWrongZh": 18,
   "choices[2].whyWrongZh": 18,

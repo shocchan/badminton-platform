@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.459Z",
+ "batchNo": 22,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-22-001",
+  "vc-22-002",
+  "vc-22-003",
+  "vc-22-004",
+  "vc-22-005",
+  "vc-22-006",
+  "vc-22-007",
+  "vc-22-008",
+  "vc-22-009",
+  "vc-22-010",
+  "vc-22-011",
+  "vc-22-012",
+  "vc-22-013",
+  "vc-22-014",
+  "vc-22-015",
+  "vc-22-016",
+  "vc-22-017",
+  "vc-22-018",
+  "vc-22-019",
+  "vc-22-020",
+  "vc-22-021",
+  "vc-22-022",
+  "vc-22-023",
+  "vc-22-024",
+  "vc-22-025",
+  "vc-22-026",
+  "vc-22-027",
+  "vc-22-028",
+  "vc-22-029",
+  "vc-22-030",
+  "vc-22-031",
+  "vc-22-032",
+  "vc-22-033",
+  "vc-22-034",
+  "vc-22-035",
+  "vc-22-036",
+  "vc-22-037",
+  "vc-22-038",
+  "vc-22-039",
+  "vc-22-040",
+  "vc-22-041",
+  "vc-22-042",
+  "vc-22-043",
+  "vc-22-044",
+  "vc-22-045",
+  "vc-22-046",
+  "vc-22-047",
+  "vc-22-048",
+  "vc-22-049",
+  "vc-22-050",
+  "vc-22-051",
+  "vc-22-052",
+  "vc-22-053",
+  "vc-22-054",
+  "vc-22-055",
+  "vc-22-056",
+  "vc-22-057",
+  "vc-22-058",
+  "vc-22-059",
+  "vc-22-060",
+  "vc-22-061",
+  "vc-22-062",
+  "vc-22-063",
+  "vc-22-064",
+  "vc-22-065",
+  "vc-22-066",
+  "vc-22-067",
+  "vc-22-068",
+  "vc-22-069",
+  "vc-22-070",
+  "vc-22-071",
+  "vc-22-072",
+  "vc-22-073",
+  "vc-22-074",
+  "vc-22-075",
+  "vc-22-076",
+  "vc-22-077",
+  "vc-22-078",
+  "vc-22-079",
+  "vc-22-080",
+  "vc-22-081",
+  "vc-22-082",
+  "vc-22-083",
+  "vc-22-084",
+  "vc-22-085",
+  "vc-22-086",
+  "vc-22-087",
+  "vc-22-088",
+  "vc-22-089",
+  "vc-22-090",
+  "vc-22-091",
+  "vc-22-092",
+  "vc-22-093",
+  "vc-22-094",
+  "vc-22-095",
+  "vc-22-096",
+  "vc-22-097",
+  "vc-22-098",
+  "vc-22-099",
+  "vc-22-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-22-001",
+   "surface": "領事館",
+   "kind": "no_dictionary_entry",
+   "detail": "領事館|りょうじかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-002",
+   "surface": "市役所",
+   "kind": "no_dictionary_entry",
+   "detail": "市役所|しやくしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-003",
+   "surface": "区役所",
+   "kind": "no_dictionary_entry",
+   "detail": "区役所|くやくしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-004",
+   "surface": "記名",
+   "kind": "no_dictionary_entry",
+   "detail": "記名|きめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-005",
+   "surface": "世帯主",
+   "kind": "no_dictionary_entry",
+   "detail": "世帯主|せたいぬし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-006",
+   "surface": "戸籍",
+   "kind": "no_dictionary_entry",
+   "detail": "戸籍|こせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-007",
+   "surface": "氏名",
+   "kind": "no_dictionary_entry",
+   "detail": "氏名|しめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-008",
+   "surface": "国籍",
+   "kind": "no_dictionary_entry",
+   "detail": "国籍|こくせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-009",
+   "surface": "在留",
+   "kind": "no_dictionary_entry",
+   "detail": "在留|ざいりゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-010",
+   "surface": "身分証明書",
+   "kind": "no_dictionary_entry",
+   "detail": "身分証明書|みぶんしょうめいしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-011",
+   "surface": "押印",
+   "kind": "no_dictionary_entry",
+   "detail": "押印|おういん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-012",
+   "surface": "本籍",
+   "kind": "no_dictionary_entry",
+   "detail": "本籍|ほんせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-013",
+   "surface": "証明",
+   "kind": "no_dictionary_entry",
+   "detail": "証明|しょうめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-014",
+   "surface": "続柄",
+   "kind": "no_dictionary_entry",
+   "detail": "続柄|つづきがら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-015",
+   "surface": "提示",
+   "kind": "no_dictionary_entry",
+   "detail": "提示|ていじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-016",
+   "surface": "申込書",
+   "kind": "no_dictionary_entry",
+   "detail": "申込書|もうしこみしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-017",
+   "surface": "届け出",
+   "kind": "no_dictionary_entry",
+   "detail": "届け出|とどけで が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-018",
+   "surface": "委任状",
+   "kind": "no_dictionary_entry",
+   "detail": "委任状|いにんじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-019",
+   "surface": "受理",
+   "kind": "no_dictionary_entry",
+   "detail": "受理|じゅり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-020",
+   "surface": "交付",
+   "kind": "no_dictionary_entry",
+   "detail": "交付|こうふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-021",
+   "surface": "写し",
+   "kind": "no_dictionary_entry",
+   "detail": "写し|うつし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-022",
+   "surface": "原本",
+   "kind": "no_dictionary_entry",
+   "detail": "原本|げんぽん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-023",
+   "surface": "控え",
+   "kind": "no_dictionary_entry",
+   "detail": "控え|ひかえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-024",
+   "surface": "不備",
+   "kind": "no_dictionary_entry",
+   "detail": "不備|ふび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-025",
+   "surface": "期日",
+   "kind": "no_dictionary_entry",
+   "detail": "期日|きじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-026",
+   "surface": "有効",
+   "kind": "no_dictionary_entry",
+   "detail": "有効|ゆうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-027",
+   "surface": "委任",
+   "kind": "no_dictionary_entry",
+   "detail": "委任|いにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-028",
+   "surface": "延長",
+   "kind": "no_dictionary_entry",
+   "detail": "延長|えんちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-029",
+   "surface": "整理券",
+   "kind": "no_dictionary_entry",
+   "detail": "整理券|せいりけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-030",
+   "surface": "印紙",
+   "kind": "no_dictionary_entry",
+   "detail": "印紙|いんし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-031",
+   "surface": "入国",
+   "kind": "no_dictionary_entry",
+   "detail": "入国|にゅうこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-032",
+   "surface": "転出",
+   "kind": "no_dictionary_entry",
+   "detail": "転出|てんしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-033",
+   "surface": "転居",
+   "kind": "no_dictionary_entry",
+   "detail": "転居|てんきょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-034",
+   "surface": "移転",
+   "kind": "no_dictionary_entry",
+   "detail": "移転|いてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-035",
+   "surface": "永住",
+   "kind": "no_dictionary_entry",
+   "detail": "永住|えいじゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-036",
+   "surface": "出国",
+   "kind": "no_dictionary_entry",
+   "detail": "出国|しゅっこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-037",
+   "surface": "帰化",
+   "kind": "no_dictionary_entry",
+   "detail": "帰化|きか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-038",
+   "surface": "婚姻",
+   "kind": "no_dictionary_entry",
+   "detail": "婚姻|こんいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-039",
+   "surface": "仲介",
+   "kind": "no_dictionary_entry",
+   "detail": "仲介|ちゅうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-040",
+   "surface": "名義",
+   "kind": "no_dictionary_entry",
+   "detail": "名義|めいぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-041",
+   "surface": "解約",
+   "kind": "no_dictionary_entry",
+   "detail": "解約|かいやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-042",
+   "surface": "審査",
+   "kind": "no_dictionary_entry",
+   "detail": "審査|しんさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-043",
+   "surface": "保証",
+   "kind": "no_dictionary_entry",
+   "detail": "保証|ほしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-044",
+   "surface": "同意",
+   "kind": "no_dictionary_entry",
+   "detail": "同意|どうい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-045",
+   "surface": "分割",
+   "kind": "no_dictionary_entry",
+   "detail": "分割|ぶんかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-046",
+   "surface": "消費税",
+   "kind": "no_dictionary_entry",
+   "detail": "消費税|しょうひぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-047",
+   "surface": "所得",
+   "kind": "no_dictionary_entry",
+   "detail": "所得|しょとく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-048",
+   "surface": "控除",
+   "kind": "no_dictionary_entry",
+   "detail": "控除|こうじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-049",
+   "surface": "申告",
+   "kind": "no_dictionary_entry",
+   "detail": "申告|しんこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-050",
+   "surface": "確定申告",
+   "kind": "no_dictionary_entry",
+   "detail": "確定申告|かくていしんこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-051",
+   "surface": "納税",
+   "kind": "no_dictionary_entry",
+   "detail": "納税|のうぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-052",
+   "surface": "納付",
+   "kind": "no_dictionary_entry",
+   "detail": "納付|のうふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-053",
+   "surface": "納める",
+   "kind": "no_dictionary_entry",
+   "detail": "納める|おさめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-054",
+   "surface": "所得税",
+   "kind": "no_dictionary_entry",
+   "detail": "所得税|しょとくぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-055",
+   "surface": "住民税",
+   "kind": "no_dictionary_entry",
+   "detail": "住民税|じゅうみんぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-056",
+   "surface": "保険料",
+   "kind": "no_dictionary_entry",
+   "detail": "保険料|ほけんりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-057",
+   "surface": "加入",
+   "kind": "no_dictionary_entry",
+   "detail": "加入|かにゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-058",
+   "surface": "脱退",
+   "kind": "no_dictionary_entry",
+   "detail": "脱退|だったい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-059",
+   "surface": "扶養",
+   "kind": "no_dictionary_entry",
+   "detail": "扶養|ふよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-060",
+   "surface": "世帯",
+   "kind": "no_dictionary_entry",
+   "detail": "世帯|せたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-061",
+   "surface": "引き落とし",
+   "kind": "no_dictionary_entry",
+   "detail": "引き落とし|ひきおとし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-062",
+   "surface": "通帳",
+   "kind": "no_dictionary_entry",
+   "detail": "通帳|つうちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-063",
+   "surface": "残高",
+   "kind": "no_dictionary_entry",
+   "detail": "残高|ざんだか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-064",
+   "surface": "振込",
+   "kind": "no_dictionary_entry",
+   "detail": "振込|ふりこみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-065",
+   "surface": "振り込む",
+   "kind": "no_dictionary_entry",
+   "detail": "振り込む|ふりこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-066",
+   "surface": "預金",
+   "kind": "no_dictionary_entry",
+   "detail": "預金|よきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-067",
+   "surface": "貯金",
+   "kind": "no_dictionary_entry",
+   "detail": "貯金|ちょきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-068",
+   "surface": "引き出す",
+   "kind": "no_dictionary_entry",
+   "detail": "引き出す|ひきだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-069",
+   "surface": "送金",
+   "kind": "no_dictionary_entry",
+   "detail": "送金|そうきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-070",
+   "surface": "手数料",
+   "kind": "no_dictionary_entry",
+   "detail": "手数料|てすうりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-071",
+   "surface": "利息",
+   "kind": "no_dictionary_entry",
+   "detail": "利息|りそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-072",
+   "surface": "給付",
+   "kind": "no_dictionary_entry",
+   "detail": "給付|きゅうふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-073",
+   "surface": "支払う",
+   "kind": "no_dictionary_entry",
+   "detail": "支払う|しはらう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-074",
+   "surface": "請求",
+   "kind": "no_dictionary_entry",
+   "detail": "請求|せいきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-075",
+   "surface": "明細",
+   "kind": "no_dictionary_entry",
+   "detail": "明細|めいさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-076",
+   "surface": "光熱費",
+   "kind": "no_dictionary_entry",
+   "detail": "光熱費|こうねつひ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-077",
+   "surface": "年末調整",
+   "kind": "no_dictionary_entry",
+   "detail": "年末調整|ねんまつちょうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-078",
+   "surface": "免除",
+   "kind": "no_dictionary_entry",
+   "detail": "免除|めんじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-079",
+   "surface": "郵便",
+   "kind": "no_dictionary_entry",
+   "detail": "郵便|ゆうびん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-080",
+   "surface": "郵便番号",
+   "kind": "no_dictionary_entry",
+   "detail": "郵便番号|ゆうびんばんごう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-081",
+   "surface": "郵送",
+   "kind": "no_dictionary_entry",
+   "detail": "郵送|ゆうそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-082",
+   "surface": "伝票",
+   "kind": "no_dictionary_entry",
+   "detail": "伝票|でんぴょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-083",
+   "surface": "書留",
+   "kind": "no_dictionary_entry",
+   "detail": "書留|かきとめ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-084",
+   "surface": "速達",
+   "kind": "no_dictionary_entry",
+   "detail": "速達|そくたつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-085",
+   "surface": "発送",
+   "kind": "no_dictionary_entry",
+   "detail": "発送|はっそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-086",
+   "surface": "宛先",
+   "kind": "no_dictionary_entry",
+   "detail": "宛先|あてさき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-087",
+   "surface": "差出人",
+   "kind": "no_dictionary_entry",
+   "detail": "差出人|さしだしにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-088",
+   "surface": "家計",
+   "kind": "no_dictionary_entry",
+   "detail": "家計|かけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-089",
+   "surface": "年収",
+   "kind": "no_dictionary_entry",
+   "detail": "年収|ねんしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-090",
+   "surface": "滞納",
+   "kind": "no_dictionary_entry",
+   "detail": "滞納|たいのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-091",
+   "surface": "収入",
+   "kind": "no_dictionary_entry",
+   "detail": "収入|しゅうにゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-092",
+   "surface": "未納",
+   "kind": "no_dictionary_entry",
+   "detail": "未納|みのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-093",
+   "surface": "一括",
+   "kind": "no_dictionary_entry",
+   "detail": "一括|いっかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-094",
+   "surface": "義務",
+   "kind": "no_dictionary_entry",
+   "detail": "義務|ぎむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-095",
+   "surface": "権利",
+   "kind": "no_dictionary_entry",
+   "detail": "権利|けんり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-096",
+   "surface": "課税",
+   "kind": "no_dictionary_entry",
+   "detail": "課税|かぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-097",
+   "surface": "免税",
+   "kind": "no_dictionary_entry",
+   "detail": "免税|めんぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-098",
+   "surface": "免許",
+   "kind": "no_dictionary_entry",
+   "detail": "免許|めんきょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-099",
+   "surface": "免許証",
+   "kind": "no_dictionary_entry",
+   "detail": "免許証|めんきょしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-22-100",
+   "surface": "通訳",
+   "kind": "no_dictionary_entry",
+   "detail": "通訳|つうやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

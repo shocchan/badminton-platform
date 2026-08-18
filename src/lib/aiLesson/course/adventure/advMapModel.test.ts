@@ -114,7 +114,9 @@ describe('成長マップ — 行き止まりを作らない（原則15）', () 
     expect(m.regions.find((r) => r.id === first)!.action.kind).toBe('review');
   });
 
-  it('模試の地域が現在地になったら模試へ繋がる', () => {
+  // 2026-08-18 P0: ボスの入口はミニ模試ではなく今日の冒険（ボス戦step）。
+  // ミニ模試の結果は mock-n2/mock-n3 へ入るだけでこのstageの攻略には効かない
+  it('ボスの地域が現在地になったら今日の冒険（ボス戦）へ繋がる', () => {
     const prof = profileFor('jlpt');
     const stages = prof.route!.stages;
     const boss = stages[stages.length - 1];
@@ -123,7 +125,10 @@ describe('成長マップ — 行き止まりを作らない（原則15）', () 
     const done = new Set(stages.slice(0, -1).map((s) => s.stageId));
     const m = buildAdventureMap(prof, prof.route, done, 1, 'exam', NOW);
     expect(m.currentRegionId).toBe(boss.stageId);
-    expect(m.regions.find((r) => r.id === boss.stageId)!.action.kind).toBe('mock');
+    const act = m.regions.find((r) => r.id === boss.stageId)!.action;
+    expect(act.kind).toBe('today');
+    // ラベルは現在地カードで「今日の冒険でここを進める」に言い換わるので、理由文で見る
+    expect(act.reasonJa).toContain('ボス戦');
   });
 
   it('会話は**現在地だけ**AI会話へ繋ぐ（先の週の会話へ飛ばさない）', () => {

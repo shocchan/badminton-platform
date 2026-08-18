@@ -5,6 +5,35 @@
 // - 「本番同等」と表示しない（ミニ模試であることを明示）
 // - section遷移・残り時間・未回答警告・skill別結果を持つ
 import { EXAM_STRUCTURE, type ExamSection, type ExamSkill } from './advExamSkills';
+import type { JlptLevel } from './advTypes';
+
+/**
+ * ミニ模試を出せる目標レベル（2026-08-18）。
+ *
+ * 模試を名乗るには「本試験の科目構成（EXAM_STRUCTURE）」「本番の科目別時間
+ * （advMockSession.FULL_TIME_SEC）」「4技能の在庫」が要る。いま揃っているのは N3/N2 だけ。
+ * N5/N4 は同日に目標として解禁したが、**聴解の音源が0本**で、本試験の科目・時間も
+ * このリポジトリに持っていない。
+ */
+export const MOCK_LEVELS = ['N3', 'N2'] as const;
+export type MockLevel = (typeof MOCK_LEVELS)[number];
+
+/**
+ * 目標レベル → 模試のレベル。**出せない級では null を返す**。
+ *
+ * ここを `target === 'N3' ? 'N3' : 'N2'` と書くと、N5/N4 目標の生徒に
+ * N2の読解120セット・N2の聴解100本・N2語彙が「N2ミニ模試」の名前で出る
+ * （2026-08-18 実測: 目標N5の生徒に 是正/ぜせい と read:n2r-theme-09 が出題された）。
+ * 本人が選んだ目的地と違うものを黙って出さない（原則13）。
+ *
+ * 目標未設定（会話目的の生徒）は従来どおり N2。こちらは「N2」と名乗って
+ * N2を出しているので約束と中身は一致している。
+ */
+export const mockLevelOf = (target: JlptLevel | null | undefined): MockLevel | null => {
+  if (target === 'N2' || target == null) return 'N2';
+  if (target === 'N3') return 'N3';
+  return null;
+};
 
 /** 本試験の科目別時間（分）。表示と時間配分評価の正準値 */
 export const EXAM_MINUTES: Record<'N2' | 'N3', { section: ExamSection; labelJa: string; labelZh: string; minutes: number }[]> = {

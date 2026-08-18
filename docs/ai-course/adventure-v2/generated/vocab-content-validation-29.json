@@ -1,0 +1,824 @@
+{
+ "generatedAt": "2026-08-18T07:09:30.470Z",
+ "batchNo": 29,
+ "words": 100,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 100,
+  "blocking": 100,
+  "byKind": {
+   "no_dictionary_entry": 100
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-29-001",
+  "vc-29-002",
+  "vc-29-003",
+  "vc-29-004",
+  "vc-29-005",
+  "vc-29-006",
+  "vc-29-007",
+  "vc-29-008",
+  "vc-29-009",
+  "vc-29-010",
+  "vc-29-011",
+  "vc-29-012",
+  "vc-29-013",
+  "vc-29-014",
+  "vc-29-015",
+  "vc-29-016",
+  "vc-29-017",
+  "vc-29-018",
+  "vc-29-019",
+  "vc-29-020",
+  "vc-29-021",
+  "vc-29-022",
+  "vc-29-023",
+  "vc-29-024",
+  "vc-29-025",
+  "vc-29-026",
+  "vc-29-027",
+  "vc-29-028",
+  "vc-29-029",
+  "vc-29-030",
+  "vc-29-031",
+  "vc-29-032",
+  "vc-29-033",
+  "vc-29-034",
+  "vc-29-035",
+  "vc-29-036",
+  "vc-29-037",
+  "vc-29-038",
+  "vc-29-039",
+  "vc-29-040",
+  "vc-29-041",
+  "vc-29-042",
+  "vc-29-043",
+  "vc-29-044",
+  "vc-29-045",
+  "vc-29-046",
+  "vc-29-047",
+  "vc-29-048",
+  "vc-29-049",
+  "vc-29-050",
+  "vc-29-051",
+  "vc-29-052",
+  "vc-29-053",
+  "vc-29-054",
+  "vc-29-055",
+  "vc-29-056",
+  "vc-29-057",
+  "vc-29-058",
+  "vc-29-059",
+  "vc-29-060",
+  "vc-29-061",
+  "vc-29-062",
+  "vc-29-063",
+  "vc-29-064",
+  "vc-29-065",
+  "vc-29-066",
+  "vc-29-067",
+  "vc-29-068",
+  "vc-29-069",
+  "vc-29-070",
+  "vc-29-071",
+  "vc-29-072",
+  "vc-29-073",
+  "vc-29-074",
+  "vc-29-075",
+  "vc-29-076",
+  "vc-29-077",
+  "vc-29-078",
+  "vc-29-079",
+  "vc-29-080",
+  "vc-29-081",
+  "vc-29-082",
+  "vc-29-083",
+  "vc-29-084",
+  "vc-29-085",
+  "vc-29-086",
+  "vc-29-087",
+  "vc-29-088",
+  "vc-29-089",
+  "vc-29-090",
+  "vc-29-091",
+  "vc-29-092",
+  "vc-29-093",
+  "vc-29-094",
+  "vc-29-095",
+  "vc-29-096",
+  "vc-29-097",
+  "vc-29-098",
+  "vc-29-099",
+  "vc-29-100"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-29-001",
+   "surface": "行政",
+   "kind": "no_dictionary_entry",
+   "detail": "行政|ぎょうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-002",
+   "surface": "自治体",
+   "kind": "no_dictionary_entry",
+   "detail": "自治体|じちたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-003",
+   "surface": "省庁",
+   "kind": "no_dictionary_entry",
+   "detail": "省庁|しょうちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-004",
+   "surface": "条例",
+   "kind": "no_dictionary_entry",
+   "detail": "条例|じょうれい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-005",
+   "surface": "施行",
+   "kind": "no_dictionary_entry",
+   "detail": "施行|しこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-006",
+   "surface": "届出",
+   "kind": "no_dictionary_entry",
+   "detail": "届出|とどけで が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-007",
+   "surface": "助成",
+   "kind": "no_dictionary_entry",
+   "detail": "助成|じょせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-008",
+   "surface": "補助金",
+   "kind": "no_dictionary_entry",
+   "detail": "補助金|ほじょきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-009",
+   "surface": "財源",
+   "kind": "no_dictionary_entry",
+   "detail": "財源|ざいげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-010",
+   "surface": "徴収",
+   "kind": "no_dictionary_entry",
+   "detail": "徴収|ちょうしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-011",
+   "surface": "納入",
+   "kind": "no_dictionary_entry",
+   "detail": "納入|のうにゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-012",
+   "surface": "還付",
+   "kind": "no_dictionary_entry",
+   "detail": "還付|かんぷ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-013",
+   "surface": "猶予",
+   "kind": "no_dictionary_entry",
+   "detail": "猶予|ゆうよ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-014",
+   "surface": "認定",
+   "kind": "no_dictionary_entry",
+   "detail": "認定|にんてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-015",
+   "surface": "却下",
+   "kind": "no_dictionary_entry",
+   "detail": "却下|きゃっか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-016",
+   "surface": "管轄",
+   "kind": "no_dictionary_entry",
+   "detail": "管轄|かんかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-017",
+   "surface": "指針",
+   "kind": "no_dictionary_entry",
+   "detail": "指針|ししん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-018",
+   "surface": "公的",
+   "kind": "no_dictionary_entry",
+   "detail": "公的|こうてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-019",
+   "surface": "法令",
+   "kind": "no_dictionary_entry",
+   "detail": "法令|ほうれい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-020",
+   "surface": "憲法",
+   "kind": "no_dictionary_entry",
+   "detail": "憲法|けんぽう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-021",
+   "surface": "民法",
+   "kind": "no_dictionary_entry",
+   "detail": "民法|みんぽう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-022",
+   "surface": "刑法",
+   "kind": "no_dictionary_entry",
+   "detail": "刑法|けいほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-023",
+   "surface": "規制",
+   "kind": "no_dictionary_entry",
+   "detail": "規制|きせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-024",
+   "surface": "罰則",
+   "kind": "no_dictionary_entry",
+   "detail": "罰則|ばっそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-025",
+   "surface": "処罰",
+   "kind": "no_dictionary_entry",
+   "detail": "処罰|しょばつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-026",
+   "surface": "訴訟",
+   "kind": "no_dictionary_entry",
+   "detail": "訴訟|そしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-027",
+   "surface": "裁判",
+   "kind": "no_dictionary_entry",
+   "detail": "裁判|さいばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-028",
+   "surface": "裁判所",
+   "kind": "no_dictionary_entry",
+   "detail": "裁判所|さいばんしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-029",
+   "surface": "弁護士",
+   "kind": "no_dictionary_entry",
+   "detail": "弁護士|べんごし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-030",
+   "surface": "告訴",
+   "kind": "no_dictionary_entry",
+   "detail": "告訴|こくそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-031",
+   "surface": "賠償",
+   "kind": "no_dictionary_entry",
+   "detail": "賠償|ばいしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-032",
+   "surface": "補償",
+   "kind": "no_dictionary_entry",
+   "detail": "補償|ほしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-033",
+   "surface": "慰謝料",
+   "kind": "no_dictionary_entry",
+   "detail": "慰謝料|いしゃりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-034",
+   "surface": "無効",
+   "kind": "no_dictionary_entry",
+   "detail": "無効|むこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-035",
+   "surface": "適用",
+   "kind": "no_dictionary_entry",
+   "detail": "適用|てきよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-036",
+   "surface": "該当",
+   "kind": "no_dictionary_entry",
+   "detail": "該当|がいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-037",
+   "surface": "遵守",
+   "kind": "no_dictionary_entry",
+   "detail": "遵守|じゅんしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-038",
+   "surface": "判決",
+   "kind": "no_dictionary_entry",
+   "detail": "判決|はんけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-039",
+   "surface": "規約",
+   "kind": "no_dictionary_entry",
+   "detail": "規約|きやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-040",
+   "surface": "是正",
+   "kind": "no_dictionary_entry",
+   "detail": "是正|ぜせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-041",
+   "surface": "勧告",
+   "kind": "no_dictionary_entry",
+   "detail": "勧告|かんこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-042",
+   "surface": "監督",
+   "kind": "no_dictionary_entry",
+   "detail": "監督|かんとく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-043",
+   "surface": "監査",
+   "kind": "no_dictionary_entry",
+   "detail": "監査|かんさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-044",
+   "surface": "有権者",
+   "kind": "no_dictionary_entry",
+   "detail": "有権者|ゆうけんしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-045",
+   "surface": "候補",
+   "kind": "no_dictionary_entry",
+   "detail": "候補|こうほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-046",
+   "surface": "立候補",
+   "kind": "no_dictionary_entry",
+   "detail": "立候補|りっこうほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-047",
+   "surface": "当選",
+   "kind": "no_dictionary_entry",
+   "detail": "当選|とうせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-048",
+   "surface": "落選",
+   "kind": "no_dictionary_entry",
+   "detail": "落選|らくせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-049",
+   "surface": "政党",
+   "kind": "no_dictionary_entry",
+   "detail": "政党|せいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-050",
+   "surface": "与党",
+   "kind": "no_dictionary_entry",
+   "detail": "与党|よとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-051",
+   "surface": "野党",
+   "kind": "no_dictionary_entry",
+   "detail": "野党|やとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-052",
+   "surface": "内閣",
+   "kind": "no_dictionary_entry",
+   "detail": "内閣|ないかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-053",
+   "surface": "議席",
+   "kind": "no_dictionary_entry",
+   "detail": "議席|ぎせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-054",
+   "surface": "世論",
+   "kind": "no_dictionary_entry",
+   "detail": "世論|よろん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-055",
+   "surface": "公約",
+   "kind": "no_dictionary_entry",
+   "detail": "公約|こうやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-056",
+   "surface": "政策",
+   "kind": "no_dictionary_entry",
+   "detail": "政策|せいさく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-057",
+   "surface": "改革",
+   "kind": "no_dictionary_entry",
+   "detail": "改革|かいかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-058",
+   "surface": "審議",
+   "kind": "no_dictionary_entry",
+   "detail": "審議|しんぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-059",
+   "surface": "可決",
+   "kind": "no_dictionary_entry",
+   "detail": "可決|かけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-060",
+   "surface": "否決",
+   "kind": "no_dictionary_entry",
+   "detail": "否決|ひけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-061",
+   "surface": "改正",
+   "kind": "no_dictionary_entry",
+   "detail": "改正|かいせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-062",
+   "surface": "廃止",
+   "kind": "no_dictionary_entry",
+   "detail": "廃止|はいし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-063",
+   "surface": "福祉",
+   "kind": "no_dictionary_entry",
+   "detail": "福祉|ふくし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-064",
+   "surface": "生活保護",
+   "kind": "no_dictionary_entry",
+   "detail": "生活保護|せいかつほご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-065",
+   "surface": "支援",
+   "kind": "no_dictionary_entry",
+   "detail": "支援|しえん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-066",
+   "surface": "障害",
+   "kind": "no_dictionary_entry",
+   "detail": "障害|しょうがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-067",
+   "surface": "少子化",
+   "kind": "no_dictionary_entry",
+   "detail": "少子化|しょうしか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-068",
+   "surface": "高齢化",
+   "kind": "no_dictionary_entry",
+   "detail": "高齢化|こうれいか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-069",
+   "surface": "育児",
+   "kind": "no_dictionary_entry",
+   "detail": "育児|いくじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-070",
+   "surface": "保育",
+   "kind": "no_dictionary_entry",
+   "detail": "保育|ほいく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-071",
+   "surface": "待機児童",
+   "kind": "no_dictionary_entry",
+   "detail": "待機児童|たいきじどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-072",
+   "surface": "自立",
+   "kind": "no_dictionary_entry",
+   "detail": "自立|じりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-073",
+   "surface": "軽減",
+   "kind": "no_dictionary_entry",
+   "detail": "軽減|けいげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-074",
+   "surface": "救済",
+   "kind": "no_dictionary_entry",
+   "detail": "救済|きゅうさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-075",
+   "surface": "保障",
+   "kind": "no_dictionary_entry",
+   "detail": "保障|ほしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-076",
+   "surface": "貧困",
+   "kind": "no_dictionary_entry",
+   "detail": "貧困|ひんこん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-077",
+   "surface": "格差",
+   "kind": "no_dictionary_entry",
+   "detail": "格差|かくさ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-078",
+   "surface": "均等",
+   "kind": "no_dictionary_entry",
+   "detail": "均等|きんとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-079",
+   "surface": "偏見",
+   "kind": "no_dictionary_entry",
+   "detail": "偏見|へんけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-080",
+   "surface": "義務教育",
+   "kind": "no_dictionary_entry",
+   "detail": "義務教育|ぎむきょういく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-081",
+   "surface": "学歴",
+   "kind": "no_dictionary_entry",
+   "detail": "学歴|がくれき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-082",
+   "surface": "推薦",
+   "kind": "no_dictionary_entry",
+   "detail": "推薦|すいせん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-083",
+   "surface": "定員",
+   "kind": "no_dictionary_entry",
+   "detail": "定員|ていいん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-084",
+   "surface": "不登校",
+   "kind": "no_dictionary_entry",
+   "detail": "不登校|ふとうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-085",
+   "surface": "教員",
+   "kind": "no_dictionary_entry",
+   "detail": "教員|きょういん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-086",
+   "surface": "就業",
+   "kind": "no_dictionary_entry",
+   "detail": "就業|しゅうぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-087",
+   "surface": "賃金",
+   "kind": "no_dictionary_entry",
+   "detail": "賃金|ちんぎん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-088",
+   "surface": "待遇",
+   "kind": "no_dictionary_entry",
+   "detail": "待遇|たいぐう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-089",
+   "surface": "福利厚生",
+   "kind": "no_dictionary_entry",
+   "detail": "福利厚生|ふくりこうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-090",
+   "surface": "労災",
+   "kind": "no_dictionary_entry",
+   "detail": "労災|ろうさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-091",
+   "surface": "過労",
+   "kind": "no_dictionary_entry",
+   "detail": "過労|かろう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-092",
+   "surface": "最低賃金",
+   "kind": "no_dictionary_entry",
+   "detail": "最低賃金|さいていちんぎん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-093",
+   "surface": "就労",
+   "kind": "no_dictionary_entry",
+   "detail": "就労|しゅうろう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-094",
+   "surface": "勤続",
+   "kind": "no_dictionary_entry",
+   "detail": "勤続|きんぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-095",
+   "surface": "支給",
+   "kind": "no_dictionary_entry",
+   "detail": "支給|しきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-096",
+   "surface": "受給",
+   "kind": "no_dictionary_entry",
+   "detail": "受給|じゅきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-097",
+   "surface": "強制",
+   "kind": "no_dictionary_entry",
+   "detail": "強制|きょうせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-098",
+   "surface": "任意",
+   "kind": "no_dictionary_entry",
+   "detail": "任意|にんい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-099",
+   "surface": "権限",
+   "kind": "no_dictionary_entry",
+   "detail": "権限|けんげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-29-100",
+   "surface": "個人情報",
+   "kind": "no_dictionary_entry",
+   "detail": "個人情報|こじんじょうほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}
