@@ -5,28 +5,37 @@ import { COURSE_MASTERY_WEIGHTS, REALTIME_COST, RETAINED_STATES } from './course
 import { atLeast, isRetained } from './courseEngine';
 import type { CourseSessionRecord, ItemProgress } from './types';
 
-const todayISO = (d = new Date()): string =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+/**
+ * ISO時刻 → JSTの日付キー（YYYY-MM-DD）。
+ * 学習の「1日」は Asia/Tokyo 基準（courseUsage.jstTodayISO・サーバーの ai_start_session と同じ約束）。
+ * UTCのまま slice(0,10) すると、深夜0時台（JST 0〜9時）のセッションが前日に数えられ、
+ * 連続日数・今週回数・最終利用が1日ずれる（実測で全セッションの約半数が深夜0時台）。
+ */
+const JST_KEY_FMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tokyo' });
+const jstDayKey = (d: Date | string): string => JST_KEY_FMT.format(typeof d === 'string' ? new Date(d) : d);
 
-/** 連続学習日数（セッションの日付から算出） */
+const DAY_MS = 86400000;
+/** 日付キーの加算（UTC演算＝実行環境のTZに左右されない） */
+const addDaysKey = (dateKey: string, days: number): string =>
+  new Date(Date.parse(`${dateKey}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+
+/** 連続学習日数（セッションの日付から算出。日付の区切りはJST） */
 export const calcStreak = (sessionDates: string[], now = new Date()): number => {
-  const days = new Set(sessionDates.map((s) => s.slice(0, 10)));
+  const days = new Set(sessionDates.map((s) => jstDayKey(s)));
   let streak = 0;
-  const cur = new Date(now);
+  let cur = jstDayKey(now);
   // 今日やっていなくても、昨日まで続いていれば継続とみなす（今日ぶんは未実施でも維持）
-  if (!days.has(todayISO(cur))) cur.setDate(cur.getDate() - 1);
-  for (;;) {
-    if (days.has(todayISO(cur))) { streak += 1; cur.setDate(cur.getDate() - 1); } else break;
-  }
+  if (!days.has(cur)) cur = addDaysKey(cur, -1);
+  while (days.has(cur)) { streak += 1; cur = addDaysKey(cur, -1); }
   return streak;
 };
 
-/** 今週（月曜始まり）のセッション数 */
+/** 今週（JSTの月曜始まり）のセッション数 */
 export const sessionsThisWeek = (sessionDates: string[], now = new Date()): number => {
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-  monday.setHours(0, 0, 0, 0);
-  return sessionDates.filter((s) => new Date(s) >= monday).length;
+  const todayKey = jstDayKey(now);
+  const dow = (new Date(`${todayKey}T00:00:00Z`).getUTCDay() + 6) % 7; // 月曜=0
+  const mondayKey = addDaysKey(todayKey, -dow);
+  return sessionDates.filter((s) => jstDayKey(s) >= mondayKey).length;
 };
 
 export interface WeekStat {
@@ -99,7 +108,7 @@ export const learnerStats = (
 ): LearnerStats => {
   const completed = sessions.filter((s) => s.completionStatus === 'completed');
   const dates = sessions.map((s) => s.startedAt);
-  const today = todayISO(now);
+  const today = jstDayKey(now);
   return {
     totalSessions: sessions.length,
     weekSessions: sessionsThisWeek(dates, now),

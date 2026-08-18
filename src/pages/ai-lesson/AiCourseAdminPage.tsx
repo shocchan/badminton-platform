@@ -1,106 +1,234 @@
-// 管理者向け: Andyさん（生徒）の進捗確認＋操作。ai_admins のRLSで保護。
+// 管理者向け 4タブ管理ページ（2026-08-18 全面刷新）。ai_admins のRLSで保護。
 // 一般ユーザーがアクセスしても、RLSにより他人のデータは取得できない（空表示）。
+//
+// 情報設計（刷新仕様 §1）:
+//   [今日]   KPIチップ＋自動生成の要対応リスト（全員クリックしないと異常が見えない現状の廃止）
+//   [生徒]   auth.users 起点の統合一覧（未ログインの発行済み生徒も見える）→ 選択で詳細ビュー
+//   [受講権] アカウント×期間×商品の台帳＋商品カタログ現況
+//   [運用]   問題報告 / コスト全体 / 上限設定 / テストデータ一括削除
+//
+// P0（stale settings 上書き）の恒久解消（§4）:
+//   settings を書く全経路（学習設計調整・先生コメント・管理操作）は、書き込み完了後に必ず
+//   refreshLearnerRow を await して learner 1行をDBから取り直す。選択中の生徒は learners
+//   配列から導出しているため、配列の差し替えだけで詳細ビューも最新になる。
+//   （旧実装は onApplied が learner 行を取り直さず、2回連続適用で1回目が黙って消えた）
+//
+// 管理UIは日本語ハードコード（管理者=CEOは日本人。刷新仕様 原則5）。
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { KeyRound, Sun, Users, Wrench } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth';
 import {
-  adminListLearners, adminGetProgress, adminGetSessions, adminUpdateLearner,
-  adminListIssueReports, adminResolveIssue, adminDeleteUtterances, adminDeleteTestLearners,
-  adminGetUsageCost, adminGetMonthlyUsageMap, adminGetLearnerLogins,
-  adminListAccess, adminSetAccess,
+  adminDeleteTestLearners, adminDeleteUtterances, adminGetLearner, adminGetMonthlyUsageMap,
+  adminGetProgress, adminGetSessions, adminGetUsageCost, adminListAccess, adminListIssueReports,
+  adminListLearners, adminResolveIssue, adminUpdateLearner,
 } from '../../lib/aiLesson/course/courseAdminApi';
-import type { AdminLearnerRow, AdminIssueReport, AdminUsageCost, LearnerUsageSummary, LearnerLoginInfo, AdminAccessRow } from '../../lib/aiLesson/course/courseAdminApi';
-import { CourseUsageCostCard } from '../../components/ai-course/CourseUsageCostCard';
-import { CourseLearnerList } from '../../components/ai-course/CourseLearnerList';
-import { CourseV2UsageTable } from '../../components/ai-course/CourseV2UsageTable';
-import { learnerStats } from '../../lib/aiLesson/course/courseStats';
-import { calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
-import { COURSE_MISSIONS } from '../../lib/aiLesson/course/courseData';
+import type {
+  AdminAccessRow, AdminIssueReport, AdminLearnerRow, AdminUsageCost, LearnerUsageSummary,
+} from '../../lib/aiLesson/course/courseAdminApi';
+import { adminGetUsageLimits, adminListAccounts } from '../../lib/aiLesson/course/admin/adminAccountsApi';
+import type { AdminAccountRow, UsageLimits } from '../../lib/aiLesson/course/admin/adminAccountsApi';
+import { buildAccountViews } from '../../lib/aiLesson/course/admin/adminAccountModel';
+import type { AdminAccountType } from '../../lib/aiLesson/course/admin/adminAccountModel';
+import { buildAttention, buildKpis } from '../../lib/aiLesson/course/admin/adminAttention';
+import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
+import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
+import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
+import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
+import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
+import { AdminOpsTab } from '../../components/ai-course/admin/AdminOpsTab';
+import { AdminAccessPanel } from '../../components/ai-course/admin/AdminAccessPanel';
+import { AdminTeacherPlanPanel } from '../../components/ai-course/admin/AdminTeacherPlanPanel';
+import { AdminTeacherNotePanel } from '../../components/ai-course/admin/AdminTeacherNotePanel';
+import { AdminControlsPanel } from '../../components/ai-course/admin/AdminControlsPanel';
+import type { AdminLearnerPatch } from '../../components/ai-course/admin/AdminControlsPanel';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
-import { readAdvProfile, writeAdvProfile } from '../../lib/aiLesson/course/adventure/advProfile';
-import { applyTeacherPlan, TEACHER_BAND_OPTIONS } from '../../lib/aiLesson/course/adventure/advAdminPlan';
-import {
-  buildNoteDraft, noteBodyWarnings, appendNote, noteIdFor, weekStartKeyOf, jstDateKeyOf,
-} from '../../lib/aiLesson/course/adventure/advTeacherNote';
-import type { AdvBand } from '../../lib/aiLesson/course/adventure/advTypes';
+
+type AdminTab = 'today' | 'students' | 'access' | 'ops';
+
+const TABS: { id: AdminTab; label: string; Icon: typeof Sun }[] = [
+  { id: 'today', label: '今日', Icon: Sun },
+  { id: 'students', label: '生徒', Icon: Users },
+  { id: 'access', label: '受講権', Icon: KeyRound },
+  { id: 'ops', label: '運用', Icon: Wrench },
+];
+
+interface DetailData {
+  progress: ItemProgress[];
+  sessions: CourseSessionRecord[];
+  usageCost: AdminUsageCost | null;
+}
+const EMPTY_DETAIL: DetailData = { progress: [], sessions: [], usageCost: null };
 
 export default function AiCourseAdminPage() {
   const { lang } = useLanguage();
   const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   const ta = t.admin;
   const [state, setState] = useState<'loading' | 'noauth' | 'ready'>('loading');
+  const [tab, setTab] = useState<AdminTab>('today');
+
+  // ── データ（§7 ページのデータロード） ──
+  const [accounts, setAccounts] = useState<AdminAccountRow[]>([]);
   const [learners, setLearners] = useState<AdminLearnerRow[]>([]);
-  const [sel, setSel] = useState<AdminLearnerRow | null>(null);
-  const [progress, setProgress] = useState<ItemProgress[]>([]);
-  const [sessions, setSessions] = useState<CourseSessionRecord[]>([]);
-  const [saved, setSaved] = useState(false);
-  const [issues, setIssues] = useState<AdminIssueReport[]>([]);
-  const [dataMsg, setDataMsg] = useState('');
-  const [usageCost, setUsageCost] = useState<AdminUsageCost | null>(null);
-  const [usageMap, setUsageMap] = useState<Record<string, LearnerUsageSummary>>({});
-  const [logins, setLogins] = useState<Record<string, LearnerLoginInfo>>({});
   const [accessMap, setAccessMap] = useState<Record<string, AdminAccessRow>>({});
+  const [usageMap, setUsageMap] = useState<Record<string, LearnerUsageSummary>>({});
+  const [limits, setLimits] = useState<UsageLimits | null>(null);
+  const [issues, setIssues] = useState<AdminIssueReport[]>([]);
 
-  const selectLearner = useCallback(async (l: AdminLearnerRow) => {
-    setSel(l);
-    setUsageCost(null);
-    setProgress(await adminGetProgress(l.id));
-    setSessions(await adminGetSessions(l.id));
-    setUsageCost(await adminGetUsageCost(l));
+  // ── UI状態 ──
+  const [filter, setFilter] = useState<AdminAccountType | 'all'>('student');
+  const [selUserId, setSelUserId] = useState<string | null>(null);
+  // 詳細データは「どの learner のものか」を持たせ、表示側で一致チェックする
+  // （選択切替時に effect 内で同期 setState して消す必要をなくす）
+  const [detail, setDetail] = useState<{ learnerId: string; data: DetailData } | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [utterMsg, setUtterMsg] = useState('');   // 発話ログ削除の結果（詳細ビュー）
+  const [opsMsg, setOpsMsg] = useState('');       // テストデータ削除の結果（運用タブ）
+
+  const loadAll = useCallback(async () => {
+    const [acc, lrs, access, usage, lim, iss] = await Promise.all([
+      adminListAccounts(), adminListLearners(), adminListAccess(),
+      adminGetMonthlyUsageMap(), adminGetUsageLimits(), adminListIssueReports(),
+    ]);
+    setAccounts(acc); setLearners(lrs); setAccessMap(access);
+    setUsageMap(usage); setLimits(lim); setIssues(iss);
   }, []);
-
-  /** 生徒一覧を取り直す（テストlearner削除後など） */
-  const reload = useCallback(async () => {
-    const list = await adminListLearners();
-    setLearners(list);
-    setSel(list[0] ?? null);
-    if (list[0]) await selectLearner(list[0]);
-  }, [selectLearner]);
 
   useEffect(() => {
     void (async () => {
       const user = await getSession();
       if (!user) { setState('noauth'); return; }
-      const admin = await isCourseAdmin();
-      if (!admin) { setState('noauth'); return; }
-      const list = await adminListLearners();
-      setLearners(list);
-      setUsageMap(await adminGetMonthlyUsageMap());
-      setLogins(await adminGetLearnerLogins());
-      setAccessMap(await adminListAccess());
-      if (list[0]) await selectLearner(list[0]);
-      setIssues(await adminListIssueReports());
+      if (!(await isCourseAdmin())) { setState('noauth'); return; }
+      await loadAll();
       setState('ready');
     })();
-  }, [selectLearner]);
+  }, [loadAll]);
 
-  const stats = sel ? learnerStats(sessions, progress) : null;
-  const growth = sel ? calculateSpeakingGrowth(sessions, progress) : null;
-  const lowConfExcluded = sessions.filter((s) => !s.speechMetrics).length; // メトリクス未算出＝除外相当
-  const recentReport = sessions.find((s) => s.report)?.report ?? null;
+  // 上限の単一ソース（§2.2）。ロード完了前だけ既定値（adminGetUsageLimits と同じ既定）
+  const effLimits = useMemo<UsageLimits>(() => limits ?? {
+    monthlyMaxSessions: DEFAULT_USAGE_LIMITS.monthly_max_sessions,
+    monthlyMaxSeconds: DEFAULT_USAGE_LIMITS.monthly_max_seconds,
+  }, [limits]);
 
-  const update = async (patch: Parameters<typeof adminUpdateLearner>[1]) => {
-    if (!sel) return;
-    await adminUpdateLearner(sel.id, patch);
-    const list = await adminListLearners();
-    setLearners(list);
-    const updated = list.find((l) => l.id === sel.id);
-    if (updated) { setSel(updated); }
-    setSaved(true); setTimeout(() => setSaved(false), 1500);
-  };
+  // アカウント統合ビュー＋KPI＋要対応（すべて実データ集計の純関数・原則13）
+  const model = useMemo(() => {
+    const nowISO = new Date().toISOString();
+    const views = buildAccountViews(accounts, learners, accessMap, usageMap, nowISO);
+    return {
+      views,
+      kpis: buildKpis(views, nowISO),
+      attention: buildAttention(views, issues.filter((r) => !r.resolved), effLimits, nowISO),
+    };
+  }, [accounts, learners, accessMap, usageMap, issues, effLimits]);
 
-  const suggestion = (): string => {
-    if (!stats) return ta.none;
-    if (stats.overdueReviews > 0) return `復習期限超過が${stats.overdueReviews}件。復習を優先。`;
-    if (stats.selfRate >= 0.8) return '自力使用率が高い。難易度を上げる候補。';
-    if (stats.selfRate < 0.4 && stats.totalSessions >= 2) return '自力使用率が低い。難易度を下げる／中国語補助を増やす候補。';
-    if (stats.streak === 0 && stats.totalSessions > 0) return 'しばらく学習が空いている。声かけ候補。';
-    return '順調。現状維持。';
-  };
+  const totalCostAll = useMemo(
+    () => accounts.reduce((s, a) => s + a.usage.totalCostUsd, 0), [accounts]);
+  const testLearners = useMemo(() => learners.filter((l) => l.isTest), [learners]);
+
+  /**
+   * P0: stale settings 上書きの恒久解消（刷新仕様 §4）。
+   * settings を書く操作の完了後は必ずこれを await し、learner 1行をDBから取り直す。
+   * 古い settings を土台に writeAdvProfile で全書き戻しすると直前の変更が黙って消えるため、
+   * 「書いたら取り直す」をページの唯一の約束にする。
+   */
+  const refreshLearnerRow = useCallback(async (learnerId: string) => {
+    const fresh = await adminGetLearner(learnerId);
+    if (fresh) setLearners((prev) => prev.map((l) => (l.id === learnerId ? fresh : l)));
+  }, []);
+
+  // 選択中アカウント（learners 配列から毎render導出＝差し替えだけで最新になる）
+  const selView = selUserId
+    ? model.views.find((v) => v.account.userId === selUserId) ?? null
+    : null;
+  const selLearner = selView?.learner ?? null;
+  // 選択中 learner のものだけを表示（他人の・古い選択のデータは出さない）
+  const selDetail: DetailData =
+    selLearner && detail?.learnerId === selLearner.id ? detail.data : EMPTY_DETAIL;
+
+  // 詳細ビューの付随データ。learner 行が差し替わったら（=設定を書いたら）取り直す
+  useEffect(() => {
+    if (!selUserId || !limits) return;
+    const learner = learners.find((l) => l.userId === selUserId) ?? null;
+    if (!learner) return;
+    let alive = true;
+    void (async () => {
+      const [progress, sessions, usageCost] = await Promise.all([
+        adminGetProgress(learner.id),
+        adminGetSessions(learner.id, 60),   // 直近60回（§8: 内訳・成長根拠のソース）
+        adminGetUsageCost(learner, limits),
+      ]);
+      if (alive) setDetail({ learnerId: learner.id, data: { progress, sessions, usageCost } });
+    })();
+    return () => { alive = false; };
+  }, [selUserId, learners, limits]);
+
+  // ── ハンドラ群 ──
+
+  const openAccount = useCallback((userId: string) => {
+    setTab('students');
+    setSelUserId(userId);
+    setSaved(false);
+    setUtterMsg('');
+  }, []);
+
+  const reloadAccess = useCallback(async () => {
+    setAccessMap(await adminListAccess());
+  }, []);
+
+  const updateLearner = useCallback(async (learnerId: string, patch: AdminLearnerPatch) => {
+    const ok = await adminUpdateLearner(learnerId, patch);
+    if (ok) {
+      await refreshLearnerRow(learnerId);   // P0: 書いたら必ず単行再取得
+      setSaved(true);
+      window.setTimeout(() => setSaved(false), 1500);
+    }
+  }, [refreshLearnerRow]);
+
+  const deleteUtterances = useCallback(async (learnerId: string) => {
+    const n = await adminDeleteUtterances(learnerId);
+    setUtterMsg(`発話ログを${n}件削除しました`);
+  }, []);
+
+  const resolveIssue = useCallback(async (id: string, resolved: boolean) => {
+    await adminResolveIssue(id, resolved);
+    setIssues(await adminListIssueReports());
+  }, []);
+
+  const deleteTestLearners = useCallback(async (): Promise<number> => {
+    const n = await adminDeleteTestLearners();
+    setOpsMsg(`テスト用の学習データを${n}件削除しました`);
+    await loadAll();
+    return n;
+  }, [loadAll]);
+
+  // ── 詳細ビューへ注入するパネル群（§3.5。selLearner の narrowing はJSX内でも維持される） ──
+  const panels = selView && (
+    <div>
+      <AdminAccessPanel
+        userId={selView.account.userId}
+        labelJa={displayNameOf(selView)}
+        row={selView.access}
+        learnerExists={selLearner !== null}
+        lastSignInAtISO={selView.account.lastSignInAtISO}
+        onSaved={reloadAccess}
+      />
+      {selLearner && (
+        <>
+          <AdminTeacherPlanPanel learner={selLearner}
+            onApplied={() => refreshLearnerRow(selLearner.id)} />
+          <AdminTeacherNotePanel learner={selLearner}
+            onApplied={() => refreshLearnerRow(selLearner.id)} />
+          <AdminControlsPanel learner={selLearner} saved={saved} dataMsg={utterMsg}
+            onUpdate={(p) => updateLearner(selLearner.id, p)}
+            onDeleteUtterances={() => deleteUtterances(selLearner.id)} />
+        </>
+      )}
+    </div>
+  );
 
   if (state === 'loading') return (
     <><CourseHeader t={t} /><div className="max-w-md mx-auto px-4 py-12 text-center text-gray-500">{t.common.loading}</div></>
@@ -122,467 +250,63 @@ export default function AiCourseAdminPage() {
       <div className="max-w-5xl mx-auto px-4 pt-3">
         <a href="/ja/admin" className="text-sm text-emerald-700 underline-offset-2 hover:underline">← バドミントン管理画面へ</a>
       </div>
-      <div className="max-w-5xl mx-auto px-4 py-6">
-        <h1 className="text-lg font-bold text-gray-900 mb-4">{ta.title}</h1>
+      {/* モバイルは下固定タブバーの分だけ pb を確保（§6） */}
+      <div className="max-w-5xl mx-auto px-4 py-4 pb-24 sm:pb-8">
+        <h1 className="text-lg font-bold text-gray-900 mb-3">{ta.title}</h1>
 
-        {/* 生徒ごとの利用状況（冒険モードV2・ログイン/学習日数/完了クエスト。CEO要望 2026-08-15） */}
-        <CourseV2UsageTable lang={lang === 'zh' ? 'zh' : 'ja'} learners={learners}
-          logins={logins} usageMap={usageMap} nowISO={new Date().toISOString()} />
+        {/* sm以上: コンテンツ上部の通常タブ */}
+        <div className="hidden sm:flex gap-1 mb-4 rounded-xl border border-gray-200 bg-white p-1">
+          {TABS.map(({ id, label, Icon }) => (
+            <button key={id} type="button" onClick={() => setTab(id)}
+              className={`flex-1 min-h-11 rounded-lg text-sm inline-flex items-center justify-center gap-1.5 ${tab === id
+                ? 'bg-blue-50 text-blue-700 font-bold'
+                : 'text-gray-600 font-medium hover:bg-gray-50'}`}>
+              <Icon className="w-4 h-4" />{label}
+            </button>
+          ))}
+        </div>
 
-        {/* 生徒一覧（選択前に全員の利用状況が分かるカード） */}
-        <CourseLearnerList
-          learners={learners} usageMap={usageMap} selectedId={sel?.id ?? null}
-          emptyLabel={ta.none} onSelect={(l) => void selectLearner(l)}
-        />
-
-        {sel && stats && (
-          <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
-              <M label={ta.lastActive} v={stats.lastActiveISO?.slice(0, 10) ?? ta.none} />
-              <M label={ta.totalSessions} v={String(stats.totalSessions)} />
-              <M label={ta.weekSessions} v={String(stats.weekSessions)} />
-              <M label={ta.streak} v={`${stats.streak}日`} />
-              <M label={ta.currentWeek} v={`Week ${sel.currentWeek}`} />
-              <M label={ta.difficulty} v={`Lv${sel.difficultyLevel}`} />
-              <M label={ta.learnedExpr} v={`${stats.learnedCount}/${COURSE_MISSIONS.length}`} />
-              <M label={ta.retainedExpr} v={String(stats.retainedCount)} />
-              <M label={ta.overdueReviews} v={String(stats.overdueReviews)} danger={stats.overdueReviews > 0} />
-              <M label={ta.selfRate} v={`${Math.round(stats.selfRate * 100)}%`} />
-              <M label={ta.hintRate} v={`${Math.round(stats.hintRate * 100)}%`} />
-              <M label={ta.zhRate} v={`${Math.round(stats.zhRate * 100)}%`} />
-              <M label={ta.errors} v={String(stats.errorCount)} danger={stats.errorCount > 0} />
-              <M label={ta.interrupted} v={String(stats.interruptedCount)} />
-            </div>
-
-            <div className="bg-blue-50 rounded-xl p-3 mb-4">
-              <p className="text-xs text-blue-700">{ta.suggestion}</p>
-              <p className="text-sm font-medium text-gray-800">{suggestion()}</p>
-            </div>
-
-            {/* 利用とコスト（今月）。生徒ごとにどれくらい使っているかを可視化 */}
-            {usageCost && <div className="mb-4"><CourseUsageCostCard data={usageCost} /></div>}
-
-            {/* 成長表示の根拠（§27）。学習者に見せている成長の裏付けを確認できる */}
-            {growth && (
-              <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">
-                <p className="text-xs font-bold text-gray-700 mb-2">{ta.growthEvidence}</p>
-                <ul className="text-xs text-gray-600 space-y-1">
-                  <li className="flex justify-between"><span>{ta.evSufficient}</span><span className="font-medium">{growth.sufficient ? `OK（${growth.sessionsAnalyzed}回）` : `分析中（あと${growth.sessionsUntilReady}回）`}</span></li>
-                  <li className="flex justify-between"><span>{ta.evIndependent}</span><span className="font-medium">{Math.round(growth.independentRate * 100)}%</span></li>
-                  <li className="flex justify-between"><span>{ta.evReuse}</span><span className="font-medium">{Math.round(growth.reuseRate * 100)}%</span></li>
-                  <li className="flex justify-between"><span>{ta.evZhReduction}</span><span className="font-medium">{Math.round(growth.withoutZhRate * 100)}%{growth.zhReductionImproved ? ' ↑' : ''}</span></li>
-                  <li className="flex justify-between"><span>{ta.evRoundtrips}</span><span className="font-medium">{growth.avgRoundtrips ? growth.avgRoundtrips.toFixed(1) : '—'}</span></li>
-                  <li className="flex justify-between"><span>{ta.evReason}</span><span className="font-medium">{Math.round(growth.reasonRate * 100)}%</span></li>
-                  <li className="flex justify-between"><span>{ta.evExcluded}</span><span className="font-medium">{lowConfExcluded}</span></li>
-                </ul>
-              </div>
-            )}
-
-            {recentReport && (
-              <div className="bg-white border border-gray-200 rounded-xl p-3 mb-4">
-                <p className="text-xs text-gray-500 mb-1">{ta.recentReport}</p>
-                <p className="text-sm text-gray-800">{recentReport.todaySummaryJa}</p>
-              </div>
-            )}
-
-            {/* 学習設計の調整（2026-08-17）。診断は自己申告に引きずられるため、
-                面談で見た実力に先生が合わせられるようにする。記録は消さずルートだけ引き直す */}
-            {/* 利用期間（2026-08-18 CEO指示）。期限で学習を止める。記録は消えない */}
-            <AccessPanel learner={sel} row={accessMap[sel.userId] ?? null}
-              onSaved={async () => setAccessMap(await adminListAccess())} />
-            <TeacherPlanPanel learner={sel} onApplied={() => void selectLearner(sel)} />
-            <TeacherNotePanel learner={sel} onApplied={() => void selectLearner(sel)} />
-
-            {/* 操作 */}
-            <div className="bg-white border border-gray-200 rounded-xl p-4">
-              <p className="text-sm font-bold text-gray-800 mb-3">{ta.controls}</p>
-              <div className="space-y-3">
-                <div>
-                  <label className="text-xs text-gray-500">{ta.setDifficulty}</label>
-                  <div className="flex gap-1.5 mt-1">
-                    {[1, 2, 3, 4, 5].map((lv) => (
-                      <button key={lv} type="button" onClick={() => update({ difficultyLevel: lv })}
-                        className={`min-h-9 flex-1 py-1.5 rounded-lg text-sm border ${sel.difficultyLevel === lv ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200'}`}>Lv{lv}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">{ta.setNextMission}</label>
-                  <select value={sel.adminOverrides.nextMissionId ?? ''} onChange={(e) => update({ adminOverrides: { ...sel.adminOverrides, nextMissionId: e.target.value || null } })}
-                    className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-                    <option value="">{ta.none}（自動）</option>
-                    {COURSE_MISSIONS.map((m) => <option key={m.id} value={m.id}>W{m.week}-{m.order} {m.targetExpression}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs text-gray-500">{ta.setNote}</label>
-                  <textarea defaultValue={sel.adminOverrides.note ?? ''} onBlur={(e) => update({ adminOverrides: { ...sel.adminOverrides, note: e.target.value } })}
-                    className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" rows={2} />
-                </div>
-                <button type="button" onClick={() => update({ isActive: !sel.isActive })}
-                  className={`w-full min-h-11 py-2 rounded-lg text-sm font-bold ${sel.isActive ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
-                  {sel.isActive ? ta.pause : ta.resume}
-                </button>
-              </div>
-              {saved && <p className="text-xs text-emerald-600 mt-2 text-center">{ta.saved}</p>}
-            </div>
-
-            {/* プライバシー操作（§13）・テストデータ削除（§21） */}
-            <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
-              <p className="text-sm font-bold text-gray-800 mb-1">{ta.dataTitle}</p>
-              <p className="text-xs text-gray-500 mb-3">{ta.dataDescription}</p>
-              <button type="button"
-                onClick={async () => { const n = await adminDeleteUtterances(sel.id); setDataMsg(ta.utterancesDeleted(n)); }}
-                className="w-full min-h-11 py-2 rounded-lg text-sm font-medium border border-red-300 text-red-700 hover:bg-red-50">
-                {ta.deleteUtterances}
-              </button>
-              <button type="button"
-                onClick={async () => { const n = await adminDeleteTestLearners(); setDataMsg(ta.testLearnersDeleted(n)); await reload(); }}
-                className="w-full min-h-11 py-2 mt-2 rounded-lg text-sm font-medium border border-gray-300 text-gray-700 hover:bg-gray-50">
-                {ta.deleteTestLearners}
-              </button>
-              {dataMsg && <p className="text-xs text-emerald-600 mt-2 text-center">{dataMsg}</p>}
-            </div>
-          </>
+        {tab === 'today' && (
+          <AdminTodayTab kpis={model.kpis} items={model.attention}
+            onOpenAccount={openAccount} onOpenOps={() => setTab('ops')} />
         )}
 
-        {/* 問題報告（§18） */}
-        <div className="bg-white border border-gray-200 rounded-xl p-4 mt-4">
-          <p className="text-sm font-bold text-gray-800 mb-2">{ta.issuesTitle}</p>
-          {issues.length === 0 ? (
-            <p className="text-xs text-gray-500">{ta.issuesEmpty}</p>
-          ) : (
-            <ul className="space-y-2">
-              {issues.map((r) => (
-                <li key={r.id} className={`border rounded-lg p-3 ${r.resolved ? 'border-gray-100 bg-gray-50' : 'border-amber-200 bg-amber-50'}`}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm text-gray-800 break-words">{r.comment || ta.none}</p>
-                      <p className="text-[11px] text-gray-500 mt-1">
-                        {r.createdAt.slice(0, 16).replace('T', ' ')}
-                        {r.page ? ` ・ ${r.page}` : ''}
-                        {r.errorCode ? ` ・ ${r.errorCode}` : ''}
-                        {r.online === false ? ` ・ ${ta.offline}` : ''}
-                      </p>
-                      {r.userAgent && <p className="text-[10px] text-gray-400 mt-0.5 break-all">{r.userAgent}</p>}
-                    </div>
-                    <button type="button"
-                      onClick={async () => { await adminResolveIssue(r.id, !r.resolved); setIssues(await adminListIssueReports()); }}
-                      className="shrink-0 min-h-9 px-2 py-1 text-xs rounded border border-gray-300 bg-white text-gray-700">
-                      {r.resolved ? ta.reopen : ta.resolve}
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        {tab === 'students' && (selView ? (
+          <AdminStudentDetail view={selView}
+            sessions={selDetail.sessions} progress={selDetail.progress} usageCost={selDetail.usageCost}
+            issues={issues}
+            onBack={() => setSelUserId(null)} onOpenOps={() => setTab('ops')}
+            panels={panels} />
+        ) : (
+          <AdminStudentsTab views={model.views} limits={effLimits}
+            filter={filter} onFilter={setFilter} onSelect={openAccount} />
+        ))}
+
+        {tab === 'access' && (
+          <AdminAccessLedgerTab views={model.views} onSaved={reloadAccess} />
+        )}
+
+        {tab === 'ops' && (
+          <AdminOpsTab issues={issues} onResolve={resolveIssue}
+            testLearners={testLearners} onDeleteTestLearners={deleteTestLearners}
+            monthCostStudents={model.kpis.monthCostStudents}
+            monthCostOthers={model.kpis.monthCostOthers}
+            totalCostAll={totalCostAll} limits={effLimits} dataMsg={opsMsg} />
+        )}
       </div>
+
+      {/* モバイル: 画面下固定タブバー（§1・§6） */}
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur pb-[env(safe-area-inset-bottom)]">
+        <div className="flex">
+          {TABS.map(({ id, label, Icon }) => (
+            <button key={id} type="button" onClick={() => setTab(id)}
+              className={`flex-1 min-h-11 py-1.5 flex flex-col items-center justify-center gap-0.5 ${tab === id ? 'text-blue-700' : 'text-gray-500'}`}>
+              <Icon className="w-5 h-5" />
+              <span className={`text-[10px] ${tab === id ? 'font-bold' : 'font-medium'}`}>{label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </>
   );
 }
-
-const M = ({ label, v, danger }: { label: string; v: string; danger?: boolean }) => (
-  <div className="bg-white rounded-lg border border-gray-100 p-2.5">
-    <p className="text-[10px] text-gray-500">{label}</p>
-    <p className={`font-bold text-sm ${danger ? 'text-red-600' : 'text-gray-900'}`}>{v}</p>
-  </div>
-);
-
-/**
- * 学習設計の調整（2026-08-17）。
- * 診断は本人の自己申告に引きずられるため、面談で見た実力に先生が合わせられるようにする。
- * **学習の記録は消さず**、これから進む道（route）と設定だけを引き直す。
- */
-/**
- * 先生からの一言（週1）。生徒のホームに1件だけ出る。
- *
- * 設計の要点:
- * - **下書きは事実だけ**を並べる（buildNoteDraft）。ほめ言葉や見通しは先生が自分の言葉で足す
- * - 送信前に約束・断定・脅しを検出して警告する（ブロックはしない・判断は人間）
- * - 同じ週に2回書いたら上書き（週1の約束を守り、通知を溜めない）
- */
-const TeacherNotePanel = ({ learner, onApplied }: {
-  learner: AdminLearnerRow; onApplied: () => void;
-}) => {
-  const prof = readAdvProfile(learner.settings);
-  const [bodyJa, setBodyJa] = useState('');
-  const [bodyZh, setBodyZh] = useState('');
-  const [author, setAuthor] = useState('しょっちゃん先生');
-  const [busy, setBusy] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  if (!prof) return null;
-  const warnings = noteBodyWarnings(bodyJa);
-  const notes = prof.teacherNotes ?? [];
-  const latest = notes[notes.length - 1] ?? null;
-
-  const fillDraft = () => {
-    const d = buildNoteDraft(prof, new Date().toISOString());
-    setBodyJa(d.ja);
-    setBodyZh(d.zh);
-    setSent(false);
-  };
-
-  const send = async () => {
-    if (busy || bodyJa.trim().length === 0) return;
-    setBusy(true);
-    const nowISO = new Date().toISOString();
-    const weekStartKey = weekStartKeyOf(jstDateKeyOf(nowISO));
-    const next = appendNote(notes, {
-      id: noteIdFor(weekStartKey),
-      weekStartKey,
-      bodyJa: bodyJa.trim(),
-      bodyZh: bodyZh.trim() || undefined,
-      authorLabel: author.trim(),
-      createdAtISO: nowISO,
-      readAtISO: null,
-    });
-    const settings = writeAdvProfile(learner.settings, { ...prof, teacherNotes: next }, nowISO);
-    const ok = await adminUpdateLearner(learner.id, { settings });
-    setBusy(false);
-    if (ok) { setSent(true); setBodyJa(''); setBodyZh(''); onApplied(); }
-  };
-
-  return (
-    <div className="bg-white border border-rose-200 rounded-xl p-4 mb-3">
-      <p className="text-sm font-bold text-gray-800">先生からの一言（週1）</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
-        生徒のホームに1件だけ出ます。同じ週にもう一度書くと上書きされます。
-        下書きは実測の事実だけを並べたものです。ほめ言葉や見通しは先生の言葉で足してください。
-      </p>
-      {latest && (
-        <p className="mt-2 text-[11px] text-gray-500">
-          直近: {latest.weekStartKey}の週・{latest.readAtISO ? '既読' : '未読'}
-        </p>
-      )}
-
-      <div className="mt-3 space-y-2">
-        <button type="button" onClick={fillDraft}
-          className="w-full min-h-11 py-2 rounded-lg text-sm font-bold border border-rose-300 text-rose-700">
-          今週の事実から下書きを作る
-        </button>
-        <div>
-          <label className="text-xs text-gray-500">日本語（必須）</label>
-          <textarea value={bodyJa} onChange={(e) => { setBodyJa(e.target.value); setSent(false); }} rows={5}
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500">中国語（任意・空なら日本語だけ出ます）</label>
-          <textarea value={bodyZh} onChange={(e) => setBodyZh(e.target.value)} rows={4}
-            className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-lg text-sm" />
-        </div>
-        <div>
-          <label className="text-xs text-gray-500">差出人の表示名</label>
-          <input value={author} onChange={(e) => setAuthor(e.target.value)}
-            className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm" />
-        </div>
-
-        {warnings.length > 0 && (
-          <div className="rounded-lg bg-amber-50 border border-amber-300 p-2.5">
-            <p className="text-xs font-bold text-amber-800">送る前に確認してください</p>
-            <ul className="mt-1 space-y-0.5">
-              {warnings.map((w) => <li key={w.ja} className="text-xs text-amber-800">・{w.ja}</li>)}
-            </ul>
-          </div>
-        )}
-
-        <button type="button" disabled={busy || bodyJa.trim().length === 0} onClick={() => { void send(); }}
-          className="w-full min-h-11 py-2 rounded-lg text-sm font-bold bg-rose-600 text-white disabled:opacity-40">
-          {busy ? '送信中…' : '生徒のホームに出す'}
-        </button>
-        {sent && <p className="text-xs font-bold text-emerald-700">出しました（生徒が次に開いたときに表示されます）</p>}
-      </div>
-    </div>
-  );
-};
-
-/**
- * 利用期間パネル（2026-08-18 CEO指示）。
- * アカウント発行から自由に利用できる期間を生徒ごとに設定する。
- * 期限が切れると生徒側は案内画面になる（学習記録は消えない・延長すれば続きから）。
- */
-const AccessPanel = ({ learner, row, onSaved }: {
-  learner: AdminLearnerRow; row: AdminAccessRow | null; onSaved: () => Promise<void>;
-}) => {
-  const dateOf = (iso: string | undefined): string => {
-    if (!iso) return '';
-    // JSTの日付として表示する（保存もJST基準）
-    const d = new Date(iso);
-    const parts = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
-    return parts.replaceAll('/', '-');
-  };
-  const [from, setFrom] = useState(dateOf(row?.validFromISO));
-  const [until, setUntil] = useState(dateOf(row?.validUntilISO));
-  const [note, setNote] = useState(row?.note ?? '');
-  const [msg, setMsg] = useState('');
-  useEffect(() => {
-    setFrom(dateOf(row?.validFromISO)); setUntil(dateOf(row?.validUntilISO)); setNote(row?.note ?? ''); setMsg('');
-  }, [row, learner.id]);
-
-  const active = row && Date.now() <= Date.parse(row.validUntilISO) && Date.now() >= Date.parse(row.validFromISO);
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-4">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-gray-800">利用期間</p>
-        <span className={`text-xs px-2 py-0.5 rounded-full ${row ? (active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') : 'bg-gray-100 text-gray-500'}`}>
-          {row ? (active ? '利用中' : (Date.now() < Date.parse(row.validFromISO) ? '開始前' : '期限切れ')) : '未設定（入れない）'}
-        </span>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <label className="text-xs text-gray-500">開始日
-          <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-            className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
-        </label>
-        <label className="text-xs text-gray-500">期限（この日の終わりまで）
-          <input type="date" value={until} onChange={(e) => setUntil(e.target.value)}
-            className="mt-1 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
-        </label>
-      </div>
-      <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="メモ（例: 6ヶ月コース）"
-        className="mt-2 w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
-      <button type="button" disabled={!from || !until}
-        className="mt-2 w-full min-h-[38px] rounded-lg bg-blue-600 text-white text-sm font-bold disabled:opacity-40"
-        onClick={async () => {
-          if (Date.parse(until) < Date.parse(from)) { setMsg('期限が開始日より前です'); return; }
-          const r = await adminSetAccess(learner.userId, from, until, note);
-          setMsg(r.ok ? '保存しました' : `保存できませんでした: ${r.error ?? ''}`);
-          if (r.ok) await onSaved();
-        }}>
-        保存
-      </button>
-      {msg && <p className="mt-1.5 text-xs text-gray-600">{msg}</p>}
-      <p className="mt-1.5 text-[11px] leading-relaxed text-gray-400">
-        期限が切れた生徒には案内画面が出て学習に入れなくなります。学習記録は消えません（延長すると続きから再開）。
-      </p>
-    </div>
-  );
-};
-
-const TeacherPlanPanel = ({ learner, onApplied }: {
-  learner: AdminLearnerRow; onApplied: () => void;
-}) => {
-  const prof = readAdvProfile(learner.settings);
-  const [band, setBand] = useState<AdvBand | ''>('');
-  const [minutes, setMinutes] = useState<'' | '5' | '15' | '30'>('');
-  const [days, setDays] = useState<'' | '3' | '5' | '7'>('');
-  const [target, setTarget] = useState<'' | 'N3' | 'N2'>('');
-  const [goal, setGoal] = useState<'' | 'jlpt' | 'conversation' | 'hybrid'>('');
-  const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<string[] | null>(null);
-
-  if (!prof) {
-    return (
-      <div className="bg-white border border-gray-200 rounded-xl p-4">
-        <p className="text-sm font-bold text-gray-800">学習設計の調整</p>
-        <p className="mt-1 text-xs text-gray-500">この生徒はまだ冒険モードの準備（診断）が終わっていません。</p>
-      </div>
-    );
-  }
-
-  const apply = async () => {
-    if (busy) return;
-    setBusy(true);
-    const r = applyTeacherPlan(prof, {
-      knowledgeBand: band || undefined,
-      dailyMinutes: minutes ? (Number(minutes) as 5 | 15 | 30) : undefined,
-      weeklyDays: days ? Number(days) : undefined,
-      targetJlpt: target || undefined,
-      goalType: goal || undefined,
-    }, new Date().toISOString());
-    const next = writeAdvProfile(learner.settings, r.profile, new Date().toISOString());
-    const ok = await adminUpdateLearner(learner.id, { settings: next });
-    setBusy(false);
-    if (ok) {
-      setDone(r.changes.map((c) => c.ja));
-      setBand(''); setMinutes(''); setDays(''); setTarget(''); setGoal('');
-      onApplied();
-    }
-  };
-
-  const dirty = band !== '' || minutes !== '' || days !== '' || target !== '' || goal !== '';
-  const curBand = prof.diagnosis?.knowledgeBand ?? null;
-
-  return (
-    <div className="bg-white border border-blue-200 rounded-xl p-4 mb-3">
-      <p className="text-sm font-bold text-gray-800">学習設計の調整（先生用）</p>
-      <p className="mt-1 text-[11px] leading-relaxed text-gray-500">
-        面談で見た実力に合わせて現在地を直せます。**学習の記録は消えません**。変えるのは「これから進む道」だけです。
-      </p>
-      <div className="mt-2 text-xs text-gray-600">
-        いまの設定：現在地 {curBand ?? '未判定'}
-        {prof.diagnosis?.adjustedByTeacherAt && <span className="ml-1 text-blue-700">（先生が調整済み）</span>}
-        ／目標 {prof.targetJlpt ?? '—'}／{prof.dailyMinutes ?? '—'}分・週{prof.weeklyDays ?? '—'}日
-      </div>
-
-      <div className="mt-3 space-y-2">
-        <div>
-          <label className="text-xs text-gray-500">現在地（実力）を直す</label>
-          <select value={band} onChange={(e) => setBand(e.target.value as AdvBand | '')}
-            className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-            <option value="">変更しない</option>
-            {TEACHER_BAND_OPTIONS.map((o) => (
-              <option key={o.band} value={o.band}>{o.ja} — {o.note.ja}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="text-xs text-gray-500">目的（会話をどれだけ入れるか）</label>
-          <select value={goal} onChange={(e) => setGoal(e.target.value as typeof goal)}
-            className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-            <option value="">変更しない（いま: {prof.goalType ?? '—'}）</option>
-            <option value="jlpt">試験対策のみ（会話ミッションを出さない）</option>
-            <option value="hybrid">試験＋会話（毎日の冒険に会話ミッションを入れる）</option>
-            <option value="conversation">会話中心（試験のstageを組まない）</option>
-          </select>
-        </div>
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <label className="text-xs text-gray-500">1日の量</label>
-            <select value={minutes} onChange={(e) => setMinutes(e.target.value as typeof minutes)}
-              className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-              <option value="">変更しない</option>
-              <option value="5">5分（まず続ける）</option>
-              <option value="15">15分</option>
-              <option value="30">30分</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="text-xs text-gray-500">週の日数</label>
-            <select value={days} onChange={(e) => setDays(e.target.value as typeof days)}
-              className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-              <option value="">変更しない</option>
-              <option value="3">週3日</option>
-              <option value="5">週5日</option>
-              <option value="7">毎日</option>
-            </select>
-          </div>
-          <div className="flex-1">
-            <label className="text-xs text-gray-500">目標</label>
-            <select value={target} onChange={(e) => setTarget(e.target.value as typeof target)}
-              className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
-              <option value="">変更しない</option>
-              <option value="N3">N3</option>
-              <option value="N2">N2</option>
-            </select>
-          </div>
-        </div>
-        <button type="button" disabled={!dirty || busy} onClick={() => { void apply(); }}
-          className="w-full min-h-11 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white disabled:opacity-40">
-          {busy ? '適用中…' : 'この設計で道を引き直す'}
-        </button>
-      </div>
-
-      {done && (
-        <div className="mt-2 rounded-lg bg-emerald-50 border border-emerald-200 p-2.5">
-          <p className="text-xs font-bold text-emerald-800">適用しました（記録はそのまま）</p>
-          <ul className="mt-1 space-y-0.5">
-            {done.length === 0
-              ? <li className="text-xs text-emerald-700">変更はありませんでした</li>
-              : done.map((c) => <li key={c} className="text-xs text-emerald-700">・{c}</li>)}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
