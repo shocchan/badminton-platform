@@ -595,6 +595,10 @@ export default function AiCoursePage() {
       }, result.utterancesAlreadySaved ? [] : result.utterances, learner.id);
     }
     await courseRepository.recordUsage(learner.id, result.durationSeconds, cost);
+    // 会話の完了を冒険の「AI会話ミッション」ステップへ即時に伝える（2026-08-19 CEO実害報告）。
+    // これまで sessions state は初回ロードでしか更新されず、会話を終えても
+    // リロードするまで冒険側が「未完了」のままだった＝同じ会話を何度もやり直せてしまった
+    setSessions(await courseRepository.listRecentSessions(50));
 
     // 難易度調整（直近の完了セッション）
     const recent = [{ ...(activeSessionId ? {} : {}), completionStatus: result.completionStatus, lessonKind: mainStep.kind, targetUsed: result.targetUsed, targetUsedIndependently: result.targetUsedIndependently } as CourseSessionRecord, ...sessions];
@@ -949,7 +953,8 @@ export default function AiCoursePage() {
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseReviewNote t={t} note={activeNote} selfEvaluated={reviewedNoteIds.has(activeNote.sessionId)}
           onSelfEval={(kind) => handleSelfEval(activeNote, kind)}
-          onBack={() => setStep(noteReturnStep)} />
+          onBack={() => setStep(noteReturnStep)}
+          onBackToAdventure={advOn ? () => setStep('home') : undefined} />
       </Shell>
     );
   }

@@ -10,6 +10,12 @@ import type { ReviewNote } from '../../lib/aiLesson/course/courseReviewNote';
 export type SelfEval = 'remembered' | 'hesitated' | 'again';
 
 interface Props {
+  /**
+   * 冒険モードV2: 復習ノートの下部に「冒険のつづきへ」を出す（2026-08-19 CEO指摘）。
+   * ノートを読み終えた生徒がヘッダーまで戻らないと次へ進めない行き止まりだった。
+   * 旧コースでは undefined（出さない）
+   */
+  onBackToAdventure?: () => void;
   t: AiCourseDict;
   note: ReviewNote;
   onBack: () => void;
@@ -27,7 +33,7 @@ const Label = ({ icon, children }: { icon: React.ReactNode; children: React.Reac
   <p className="text-[11px] font-medium text-gray-500 flex items-center gap-1.5 mb-1.5">{icon}{children}</p>
 );
 
-export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, selfEvaluated }: Props) => {
+export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, selfEvaluated, onBackToAdventure }: Props) => {
   const tn = t.reviewNote;
   const zh = t.locale === 'zh';
   const e = note.expression;
@@ -190,6 +196,12 @@ export const CourseReviewNote = ({ t, note, onBack, onSelfEval, onPractice, self
           </div>
         )}
       </div>
+      {onBackToAdventure && (
+        <button type="button" onClick={onBackToAdventure}
+          className="mt-6 w-full min-h-[48px] rounded-xl bg-blue-600 px-4 py-3 font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-150 hover:bg-blue-700 active:scale-[0.98]">
+          {zh ? '继续今天的冒险 →' : '冒険のつづきへ →'}
+        </button>
+      )}
     </div>
   );
 };

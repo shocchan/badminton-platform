@@ -674,7 +674,10 @@ export default function AdvShell(props: AdvShellProps) {
     if (!quest) return;
     const idx = quest.steps.findIndex((s) => s.kind === 'conversation_mission');
     if (idx < 0 || doneSteps.has(idx)) return;
-    const hasToday = props.sessions.some((s) => s.startedAt.slice(0, 10) === dateKey && s.completionStatus === 'completed');
+    // startedAt はUTCのISO。UTCのまま日付を切ると、現地の深夜〜朝9時（JST）に終えた会話が
+    // 「今日のもの」と認識されず、完了済みの会話がやり直しになっていた（2026-08-19 CEO実害報告）。
+    // dateKey と同じ現地時間で日付化して比べる
+    const hasToday = props.sessions.some((s) => dateKeyOf(new Date(s.startedAt)) === dateKey && s.completionStatus === 'completed');
     if (hasToday) markStep(idx);
   }, [quest, props.sessions, dateKey, doneSteps, markStep]);
 
