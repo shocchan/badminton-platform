@@ -9,7 +9,8 @@
 // 管理UIは日本語ハードコード（刷新仕様 原則5）。
 
 import { useState } from 'react';
-import type { AdminIssueReport, AdminLearnerRow } from '../../../lib/aiLesson/course/courseAdminApi';
+import type { AdminIssueReport, AdminLearnerRow, CostTopupRow } from '../../../lib/aiLesson/course/courseAdminApi';
+import { costBalanceOf } from '../../../lib/aiLesson/course/courseAdminApi';
 
 /** 月次上限（adminAccountsApi の UsageLimits と同形・構造互換） */
 export interface OpsUsageLimits {
@@ -22,6 +23,7 @@ const usd = (v: number): string => `$${v.toFixed(2)}`;
 export const AdminOpsTab = ({
   issues, onResolve, testLearners, onDeleteTestLearners,
   monthCostStudents, monthCostOthers, totalCostAll, limits, dataMsg,
+  topups, onAddTopup, onDeleteTopup,
 }: {
   issues: AdminIssueReport[];
   onResolve: (id: string, resolved: boolean) => Promise<void>;
@@ -32,6 +34,9 @@ export const AdminOpsTab = ({
   totalCostAll: number;
   limits: OpsUsageLimits;
   dataMsg: string;
+  topups: CostTopupRow[];
+  onAddTopup: (amountUsd: number, note: string) => Promise<{ ok: boolean; error?: string }>;
+  onDeleteTopup: (id: string) => Promise<{ ok: boolean; error?: string }>;
 }) => {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -73,6 +78,12 @@ export const AdminOpsTab = ({
           </ul>
         )}
       </div>
+
+      {/* AIコスト残高（2026-08-19 CEO指示「後何ドル使えるか・補充したら増えたと確認したい」）。
+          OpenAIの実残高は外部APIで取得できないため、チャージの**記録**と推定使用の差で出す。
+          チャージをここに記録した瞬間、残高が増えるのが見える */}
+      <CostBalanceCard topups={topups} totalCostAll={totalCostAll}
+        onAddTopup={onAddTopup} onDeleteTopup={onDeleteTopup} />
 
       {/* コスト全体（ai_usage_daily 由来。親が生徒/検証に分けて合算した実測値） */}
       <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -145,6 +156,98 @@ export const AdminOpsTab = ({
         )}
         {dataMsg && <p className="text-xs text-emerald-600 mt-2 text-center">{dataMsg}</p>}
       </div>
+    </div>
+  );
+};
+
+
+/** AIコスト残高カード。残り = チャージ記録の合計 − 推定使用の合計（全期間） */
+const CostBalanceCard = ({ topups, totalCostAll, onAddTopup, onDeleteTopup }: {
+  topups: CostTopupRow[];
+  totalCostAll: number;
+  onAddTopup: (amountUsd: number, note: string) => Promise<{ ok: boolean; error?: string }>;
+  onDeleteTopup: (id: string) => Promise<{ ok: boolean; error?: string }>;
+}) => {
+  const [amount, setAmount] = useState('');
+  const [note, setNote] = useState('');
+  const [msg, setMsg] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
+  const bal = costBalanceOf(topups, totalCostAll);
+  const low = bal.topupTotal > 0 && bal.remaining < bal.topupTotal * 0.2;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-gray-800">AIコスト残高（記録ベース）</p>
+        {bal.topupTotal > 0 && (
+          <span className={`text-xs px-2 py-0.5 rounded-full ${low ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
+            {low ? '残りわずか' : '余裕あり'}
+          </span>
+        )}
+      </div>
+      {bal.topupTotal === 0 ? (
+        <p className="mt-2 text-sm text-gray-500">
+          チャージ記録がまだありません。OpenAIに入金したら下で金額を記録すると、
+          「残り何ドル使えるか」がここに出ます。
+        </p>
+      ) : (
+        <div className="mt-2">
+          <p className={`text-3xl font-black tabular-nums ${bal.remaining < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+            ${bal.remaining.toFixed(2)}
+            <span className="ml-2 text-xs font-semibold text-gray-400">残り（推定）</span>
+          </p>
+          <ul className="mt-2 text-xs text-gray-600 space-y-0.5">
+            <li className="flex justify-between"><span>チャージ記録の合計</span><span className="tabular-nums">${bal.topupTotal.toFixed(2)}</span></li>
+            <li className="flex justify-between"><span>推定使用の合計（全期間）</span><span className="tabular-nums">−${bal.spent.toFixed(2)}</span></li>
+          </ul>
+        </div>
+      )}
+
+      {/* チャージの記録 */}
+      <div className="mt-3 flex gap-2">
+        <input type="number" min="0.01" step="0.01" inputMode="decimal" value={amount}
+          onChange={(e) => setAmount(e.target.value)} placeholder="金額（USD）"
+          className="w-32 border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+        <input type="text" value={note} onChange={(e) => setNote(e.target.value)}
+          placeholder="メモ（例: 8/19 クレカで$50）"
+          className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-sm" />
+        <button type="button" disabled={!(Number(amount) > 0)}
+          className="min-h-[36px] rounded-lg bg-blue-600 px-4 text-sm font-bold text-white disabled:opacity-40"
+          onClick={async () => {
+            const r = await onAddTopup(Number(amount), note);
+            setMsg(r.ok ? `$${Number(amount).toFixed(2)} を記録しました（残高に反映済み）` : `記録できませんでした: ${r.error ?? ''}`);
+            if (r.ok) { setAmount(''); setNote(''); }
+          }}>
+          チャージを記録
+        </button>
+      </div>
+      {msg && <p className="mt-1.5 text-xs text-gray-600">{msg}</p>}
+
+      {topups.length > 0 && (
+        <div className="mt-2">
+          <button type="button" className="text-xs text-blue-600 underline-offset-2 hover:underline"
+            onClick={() => setShowHistory((v) => !v)}>
+            {showHistory ? '履歴をとじる' : `チャージ履歴（${topups.length}件）`}
+          </button>
+          {showHistory && (
+            <ul className="mt-1.5 space-y-1">
+              {topups.map((tp) => (
+                <li key={tp.id} className="flex items-center justify-between text-xs text-gray-600">
+                  <span>{new Date(tp.createdAtISO).toLocaleDateString('ja-JP', { timeZone: 'Asia/Tokyo' })} ${tp.amountUsd.toFixed(2)}{tp.note ? `（${tp.note}）` : ''}</span>
+                  <button type="button" className="text-red-400 hover:text-red-600"
+                    onClick={async () => { const r = await onDeleteTopup(tp.id); setMsg(r.ok ? '削除しました' : `削除できませんでした: ${r.error ?? ''}`); }}>
+                    削除
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
+        ※ OpenAIの実残高は外部から自動取得できないため、ここは「チャージの記録 − 実測ベースの推定使用」です。
+        入金したらここにも記録してください。使用側は毎日の実測（ai_usage_daily）から自動で引かれます。
+      </p>
     </div>
   );
 };

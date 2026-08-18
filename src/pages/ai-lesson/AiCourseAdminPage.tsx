@@ -25,11 +25,11 @@ import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth'
 import {
   adminDeleteTestLearners, adminDeleteUtterances, adminGetLearner, adminGetMonthlyUsageMap,
   adminGetProgress, adminGetSessions, adminGetUsageCost, adminListAccess, adminListIssueReports,
+  adminListTopups, adminAddTopup, adminDeleteTopup,
   adminListLearners, adminResolveIssue, adminUpdateLearner,
 } from '../../lib/aiLesson/course/courseAdminApi';
 import type {
-  AdminAccessRow, AdminIssueReport, AdminLearnerRow, AdminUsageCost, LearnerUsageSummary,
-} from '../../lib/aiLesson/course/courseAdminApi';
+  AdminAccessRow, AdminIssueReport, AdminLearnerRow, AdminUsageCost, LearnerUsageSummary, CostTopupRow } from '../../lib/aiLesson/course/courseAdminApi';
 import { adminGetUsageLimits, adminListAccounts } from '../../lib/aiLesson/course/admin/adminAccountsApi';
 import type { AdminAccountRow, UsageLimits } from '../../lib/aiLesson/course/admin/adminAccountsApi';
 import { buildAccountViews } from '../../lib/aiLesson/course/admin/adminAccountModel';
@@ -50,11 +50,17 @@ import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/cours
 
 type AdminTab = 'today' | 'students' | 'access' | 'ops';
 
-const TABS: { id: AdminTab; label: string; Icon: typeof Sun }[] = [
-  { id: 'today', label: '今日', Icon: Sun },
-  { id: 'students', label: '生徒', Icon: Users },
-  { id: 'access', label: '受講権', Icon: KeyRound },
-  { id: 'ops', label: '運用', Icon: Wrench },
+/**
+ * タブと役割の一言説明（2026-08-19 CEO「受講権タブと生徒タブどう違う？」への恒久対応）。
+ * - 生徒 = **学習の中身**（ログインして学習を始めた人の進捗・調整・コメント）
+ * - 受講権 = **契約の台帳**（発行した全アカウント。未ログインの人もここに出る。期間と商品）
+ * 選択中タブの説明をタブバー直下に常時出す
+ */
+const TABS: { id: AdminTab; label: string; desc: string; Icon: typeof Sun }[] = [
+  { id: 'today', label: '今日', desc: '今日の要対応まとめ。学習した人・止まっている人・期限接近・矛盾がここに並びます', Icon: Sun },
+  { id: 'students', label: '生徒', desc: '学習の中身。ログインして学習を始めた人の進捗を見る・調整する場所です', Icon: Users },
+  { id: 'access', label: '受講権', desc: '契約の台帳。発行した全アカウント（未ログイン含む）の利用期間・商品を管理する場所です', Icon: KeyRound },
+  { id: 'ops', label: '運用', desc: '課題報告・AIコスト残高・上限設定・テストデータ削除', Icon: Wrench },
 ];
 
 interface DetailData {
@@ -88,14 +94,16 @@ export default function AiCourseAdminPage() {
   const [saved, setSaved] = useState(false);
   const [utterMsg, setUtterMsg] = useState('');   // 発話ログ削除の結果（詳細ビュー）
   const [opsMsg, setOpsMsg] = useState('');       // テストデータ削除の結果（運用タブ）
+  const [topups, setTopups] = useState<CostTopupRow[]>([]);   // AIコストのチャージ記録
 
   const loadAll = useCallback(async () => {
-    const [acc, lrs, access, usage, lim, iss] = await Promise.all([
+    const [acc, lrs, access, usage, lim, iss, tps] = await Promise.all([
       adminListAccounts(), adminListLearners(), adminListAccess(),
       adminGetMonthlyUsageMap(), adminGetUsageLimits(), adminListIssueReports(),
+      adminListTopups(),
     ]);
     setAccounts(acc); setLearners(lrs); setAccessMap(access);
-    setUsageMap(usage); setLimits(lim); setIssues(iss);
+    setUsageMap(usage); setLimits(lim); setIssues(iss); setTopups(tps);
   }, []);
 
   useEffect(() => {
@@ -283,6 +291,8 @@ export default function AiCourseAdminPage() {
             </button>
           ))}
         </div>
+        {/* いま開いているタブの役割（モバイルでも出す） */}
+        <p className="mb-4 -mt-1 text-xs text-gray-500">{TABS.find((x) => x.id === tab)?.desc}</p>
 
         {tab === 'today' && (
           <AdminTodayTab kpis={model.kpis} items={model.attention}
@@ -309,7 +319,18 @@ export default function AiCourseAdminPage() {
             testLearners={testLearners} onDeleteTestLearners={deleteTestLearners}
             monthCostStudents={model.kpis.monthCostStudents}
             monthCostOthers={model.kpis.monthCostOthers}
-            totalCostAll={totalCostAll} limits={effLimits} dataMsg={opsMsg} />
+            totalCostAll={totalCostAll} limits={effLimits} dataMsg={opsMsg}
+            topups={topups}
+            onAddTopup={async (amountUsd, note) => {
+              const r = await adminAddTopup(amountUsd, note);
+              if (r.ok) setTopups(await adminListTopups());   // 記録した瞬間に残高へ反映
+              return r;
+            }}
+            onDeleteTopup={async (id) => {
+              const r = await adminDeleteTopup(id);
+              if (r.ok) setTopups(await adminListTopups());
+              return r;
+            }} />
         )}
       </div>
 

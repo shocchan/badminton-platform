@@ -285,3 +285,46 @@ export const adminSetAccess = async (
   const { error } = await supabase.from('ai_course_access').upsert(row, { onConflict: 'user_id' });
   return error ? { ok: false, error: error.message } : { ok: true };
 };
+
+// ── AIコストのチャージ台帳（2026-08-19 CEO指示） ──
+// OpenAIの実残高は外部APIで取得できないため、チャージの事実を記録して
+// 残り = チャージ合計 − 推定使用合計 を計算する（推定はai_usage_daily由来）
+
+export interface CostTopupRow {
+  id: string;
+  amountUsd: number;
+  note: string | null;
+  createdAtISO: string;
+}
+
+export const adminListTopups = async (): Promise<CostTopupRow[]> => {
+  const { data, error } = await supabase.from('ai_cost_topups')
+    .select('*').order('created_at', { ascending: false });
+  if (error || !data) return [];
+  return (data as Record<string, unknown>[]).map((r) => ({
+    id: r.id as string,
+    amountUsd: Number(r.amount_usd ?? 0),
+    note: (r.note as string) ?? null,
+    createdAtISO: r.created_at as string,
+  }));
+};
+
+export const adminAddTopup = async (amountUsd: number, note: string): Promise<{ ok: boolean; error?: string }> => {
+  if (!(amountUsd > 0)) return { ok: false, error: '金額は0より大きい数字で入力してください' };
+  const { error } = await supabase.from('ai_cost_topups')
+    .insert({ amount_usd: amountUsd, note: note || null, created_by: 'admin-ui' });
+  return error ? { ok: false, error: error.message } : { ok: true };
+};
+
+export const adminDeleteTopup = async (id: string): Promise<{ ok: boolean; error?: string }> => {
+  const { error } = await supabase.from('ai_cost_topups').delete().eq('id', id);
+  return error ? { ok: false, error: error.message } : { ok: true };
+};
+
+/** 残高の計算（純関数・テスト対象）。spentは全期間の推定使用合計 */
+export const costBalanceOf = (topups: CostTopupRow[], spentAllTimeUsd: number): {
+  topupTotal: number; spent: number; remaining: number;
+} => {
+  const topupTotal = topups.reduce((n, t) => n + t.amountUsd, 0);
+  return { topupTotal, spent: spentAllTimeUsd, remaining: topupTotal - spentAllTimeUsd };
+};
