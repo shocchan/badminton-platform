@@ -264,6 +264,18 @@ export interface AdvHumanLessonState {
   learnerTopics?: string[];
 }
 
+/** つづけた日（2026-08-19）。祝いのみ: 途切れても責めない・「失った」を出さない
+ *（advReviewForecast の設計原則に従う）。過去分は偽造しない:
+ * 初期値は直近履歴（questLog∪mastery。間引きで過小方向にしかズレない）から数え、以後は毎日実測で更新 */
+export interface AdvStreakState {
+  /** いま続いている日数（>=1） */
+  current: number;
+  /** これまでの最長（seed時は current と同値から開始） */
+  best: number;
+  /** 最後に活動を計上した日 YYYY-MM-DD（dateKeyOfと同じローカル日付キー） */
+  lastActiveKey: string;
+}
+
 /** learner設定(jsonb)内に保存するV2プロファイル全体（D-003・migration不要） */
 /** かな道場の進行状態（2026-08-15。超初心者の前提スキル・mastery台帳には入れない） */
 export interface AdvKanaState {
@@ -332,6 +344,11 @@ export interface AdventureV2Profile {
   answerSheetSession: import('./advAnswerSheet').AnswerSheetSession | null;
   /** 提出済み答案の履歴（先生との振り返りに使う） */
   answerSheetLog: import('./advAnswerSheet').AnswerSheetResult[];
+  /**
+   * つづけた日（祝い専用・2026-08-19）。null＝未記録（初回の活動時に履歴からseedする）。
+   * 攻略・mastery・準備度には一切影響しない。途切れても「失った」とは表示しない
+   */
+  streak: AdvStreakState | null;
   /**
    * 帰化面接の表現特訓。enabledAt が null なら未発行＝画面に出さない。
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ

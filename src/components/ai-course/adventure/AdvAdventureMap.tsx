@@ -28,7 +28,9 @@ import {
   type MapRegion, type MapRouteKind, type RegionAction,
 } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { LandmarkScene, LandmarkIcon } from './AdvMapLandmarks';
+import { AdvMapBadges } from './AdvMapBadges';
 import { TeacherAvatar } from '../TeacherAvatar';
 
 type L = 'ja' | 'zh';
@@ -67,6 +69,10 @@ interface Props {
   /** 目的地までの残り量・推定（advPace）。未測定なら null＝出さない */
   paceNoteJa?: string | null;
   paceNoteZh?: string | null;
+  /** 直近の攻略で新しくdoneになった地域。指定時、初回表示で霧晴れ→道が伸びる演出を1回再生 */
+  revealRegionId?: string | null;
+  /** 再生完了（またはreduced-motionでスキップ）時に呼ぶ。呼び出し側がstateを消す */
+  onRevealDone?: () => void;
 }
 
 /** 章バナーの色替え（ゲームのワールド感。章が進むと世界の色が変わる・2026-08-17 CEO要望） */
@@ -125,12 +131,17 @@ export const AdvAdventureMap = ({
   sheetsVisible, sheetCount, onOpenSheets,
   interviewVisible, onOpenInterview,
   paceNoteJa = null, paceNoteZh = null,
+  revealRegionId = null, onRevealDone,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [asList, setAsList] = useState(false);
-  const currentRef = useRef<HTMLLIElement>(null);
+  const currentRef = useRef<HTMLLIElement | null>(null);
+  /** 地域id → <li>。バッジタップと霧晴れ再生のスクロール先に使う */
+  const regionRefs = useRef(new Map<string, HTMLLIElement>());
+  /** 獲得日の導出に使う基準時刻。開いた瞬間の実時刻で固定（renderごとに揺らさない） */
+  const [nowISO] = useState(() => new Date().toISOString());
 
   const map = useMemo(
     () => buildAdventureMap(profile, route, mastered, currentWeek, routeKind),
@@ -140,6 +151,19 @@ export const AdvAdventureMap = ({
   const current = map.regions.find((r) => r.id === map.currentRegionId) ?? null;
   const nextRegion = map.regions.find((r) => r.id === map.nextRegionId) ?? null;
   const overallPct = map.totalCount === 0 ? 0 : Math.round((map.doneCount / map.totalCount) * 100);
+  /**
+   * 全地域攻略（実測で doneCount === totalCount）。current が null になるのはこの場合と
+   * ルート未生成（totalCount 0）の2つで、前者に「冒険の準備中」を出すと嘘になる（2026-08-19 検品）:
+   * 完走した生徒ほど「準備中？」と混乱するので、事実（全攻略）をそのまま祝って見せる
+   */
+  const allCleared = map.totalCount > 0 && map.doneCount === map.totalCount;
+  /** 全攻略時にヒーロー帯へ出す景色＝最後に晴らした地域（実在の攻略地だけを使う） */
+  const lastCleared = allCleared ? map.regions[map.regions.length - 1] : null;
+  /** 冒険レベルと称号（XPの別名表示。実力・攻略・準備度とは無関係・advXp鉄則） */
+  const level = levelOf(profile.xp ?? 0);
+  const levelTitle = titleOf(level);
+  /** つづけた日（実測streak）。1日では出さない・途切れたら消えるだけ（喪失文言禁止） */
+  const streakDays = profile.streak && profile.streak.current >= 2 ? profile.streak.current : null;
 
   // 開いている地域の既定は現在地（開いた瞬間に「いまここで何をするか」が見える）。
   // ルートを切り替えたら現在地へ戻す。effectでsetStateすると1フレーム古い表示が挟まるので、
@@ -161,6 +185,40 @@ export const AdvAdventureMap = ({
     }, 120);
     return () => window.clearTimeout(t);
   }, [asList, routeKind]);
+
+  /*
+   * 霧晴れの1回再生（2026-08-19 ゲーム感強化）。
+   * 地図の状態は既にdone（実測）。ここでやるのは「実際に起きた遷移」の再生だけで、
+   * falseな状態を一瞬も見せない（原則13）。同じrevealRegionIdにつき1回だけ。
+   * 再生開始はrender中のprops同期で行う（syncedKindと同じ形。effect内setStateを避ける）
+   */
+  const [reduceMotion] = useState(
+    () => window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false,
+  );
+  const [revealPlaying, setRevealPlaying] = useState<string | null>(null);
+  const [playedReveal, setPlayedReveal] = useState<string | null>(null);
+  if (revealRegionId && playedReveal !== revealRegionId) {
+    setPlayedReveal(revealRegionId);
+    // 動きを抑える設定では演出しない（状態表示は静的に出ている。完了通知はeffectで）
+    if (!reduceMotion) setRevealPlaying(revealRegionId);
+  }
+  // onRevealDone は親でインライン定義されがち。identity変化でタイマーを潰さないようrefで持つ
+  const onRevealDoneRef = useRef(onRevealDone);
+  useEffect(() => { onRevealDoneRef.current = onRevealDone; });
+  useEffect(() => {
+    // reduced-motion: 演出せず即完了を親へ返す
+    if (revealRegionId && reduceMotion) onRevealDoneRef.current?.();
+  }, [revealRegionId, reduceMotion]);
+  useEffect(() => {
+    if (!revealPlaying) return;
+    // jsdom等 scrollIntoView が無い環境でも落とさない
+    regionRefs.current.get(revealPlaying)?.scrollIntoView?.({ block: 'center' });
+    const t = window.setTimeout(() => {
+      setRevealPlaying(null);
+      onRevealDoneRef.current?.();
+    }, 1600);
+    return () => window.clearTimeout(t);
+  }, [revealPlaying]);
 
   const regionAria = (r: MapRegion) =>
     `${tx(lang, r.nameJa, r.nameZh)}、${tx(lang, r.abilityJa, r.abilityZh)}、${tx(lang, STATE_LABEL[r.state].ja, STATE_LABEL[r.state].zh)}`;
@@ -281,24 +339,53 @@ export const AdvAdventureMap = ({
         <div className="relative h-28 w-full sm:h-32">
           {current
             ? <LandmarkScene kind={current.landmark} tone={current.tone} className="h-full w-full" />
-            : <div className="h-full w-full bg-gradient-to-b from-sky-100 to-emerald-100" />}
+            : lastCleared
+              ? <LandmarkScene kind={lastCleared.landmark} tone={lastCleared.tone} className="h-full w-full" />
+              : <div className="h-full w-full bg-gradient-to-b from-sky-100 to-emerald-100" />}
           {/* 文字を読ませるための暗幕。イラストは下に透ける */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
-          {/* 冒険のレベル（XP・努力の見える化）。攻略の数字とは別軸（原則13） */}
-          <span className="absolute right-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-amber-700 shadow-sm">
-            ⭐ Lv.{levelOf(profile.xp ?? 0)}
+          {/* 冒険のレベル＋称号（XP・努力の見える化）。攻略の数字とは別軸（原則13）。
+              称号は levelOf(xp) の別名表示であり、実力・攻略・準備度とは無関係（advLevelTitles） */}
+          <span className="absolute inset-x-2 top-2 flex items-center justify-end gap-1.5">
+            {streakDays !== null && (
+              // つづけた日の炎。実測の連続日数だけ。途切れたら消えるだけで、喪失の文言は出さない
+              <span className="shrink-0 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-orange-600 shadow-sm"
+                aria-label={tx(lang, `${streakDays}日つづけて冒険中`, `已连续冒险${streakDays}天`)}>
+                <span className="adv-flame inline-block" aria-hidden>🔥</span>{' '}
+                {tx(lang, `${streakDays}日`, `${streakDays}天`)}
+              </span>
+            )}
+            <span className="max-w-[60%] truncate rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-amber-700 shadow-sm">
+              ⭐ Lv.{level}・{tx(lang, levelTitle.ja, levelTitle.zh)}
+            </span>
           </span>
           <div className="absolute inset-x-0 bottom-0 p-3">
             <p className="text-[11px] font-semibold text-white/85">
-              {current ? tx(lang, current.chapterJa, current.chapterZh) : tx(lang, '冒険の準備中', '冒险准备中')}
+              {current
+                ? tx(lang, current.chapterJa, current.chapterZh)
+                : allCleared ? tx(lang, '冒険の記録', '冒险的记录') : tx(lang, '冒険の準備中', '冒险准备中')}
             </p>
             <p className="flex items-center gap-1.5 text-lg font-bold leading-tight text-white">
-              <Flag className="h-4 w-4 shrink-0" aria-hidden />
-              {current ? tx(lang, current.nameJa, current.nameZh) : tx(lang, '現在地を準備しています', '正在准备当前位置')}
+              {allCleared
+                ? <Star className="h-4 w-4 shrink-0 text-amber-300" fill="currentColor" aria-hidden />
+                : <Flag className="h-4 w-4 shrink-0" aria-hidden />}
+              {current
+                ? tx(lang, current.nameJa, current.nameZh)
+                : allCleared
+                  ? tx(lang, '全地域を攻略しました！', '所有地区都已攻略！')
+                  : tx(lang, '現在地を準備しています', '正在准备当前位置')}
             </p>
             {current && (
               <p className="text-xs text-white/90">
                 {tx(lang, '鍛える力：', '锻炼的能力：')}{tx(lang, current.abilityJa, current.abilityZh)}
+              </p>
+            )}
+            {allCleared && (
+              // 攻略済み地域の既存文言（REVIEW_ACTION）と同じ「解き直しで維持」の言い方に揃える。
+              // 「維持できます」等の約束はしない（原則13・advCopyPromises）
+              <p className="text-xs text-white/90">
+                {tx(lang, 'ことばの霧はすべて晴れました。ときどき解き直しで維持しましょう',
+                  '所有词语的迷雾都已驱散。偶尔重做错题来保持吧')}
               </p>
             )}
           </div>
@@ -365,6 +452,30 @@ export const AdvAdventureMap = ({
         </button>
       </section>
 
+      {/*
+        ── 攻略バッジの間（mastery台帳実測の別ビュー・原則13） ──
+        Primary CTA の下・ルートタブの上。ヒーロー帯直下に挟むとCTAが沈む（原則16）。
+        会話レイヤーは攻略計測をしていないので試験レイヤーだけを渡す
+      */}
+      <AdvMapBadges
+        lang={lang}
+        regions={map.regions.filter((r) => r.layer === 'exam')}
+        ledger={profile.mastery}
+        nowISO={nowISO}
+        revealRegionId={revealPlaying ?? revealRegionId}
+        onSelect={(id) => {
+          // バッジ→該当地域カード（既存CTAへ繋がる・行き止まりにしない）
+          setAsList(false);
+          setOpenId(id);
+          window.setTimeout(() => {
+            regionRefs.current.get(id)?.scrollIntoView?.({
+              block: 'center',
+              behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
+            });
+          }, 120);
+        }}
+      />
+
       {/* ── ルート切り替え（1つしか選べないときは出さない） ── */}
       {kinds.length > 1 && (
         <div className="mt-4">
@@ -389,7 +500,8 @@ export const AdvAdventureMap = ({
       {asList ? (
         <ul className="mt-4 space-y-2">
           {map.regions.map((r) => (
-            <li key={r.id}>
+            <li key={r.id}
+              ref={(el) => { if (el) regionRefs.current.set(r.id, el); else regionRefs.current.delete(r.id); }}>
               <button type="button" onClick={() => setOpenId(openId === r.id ? null : r.id)}
                 aria-label={regionAria(r)} aria-expanded={openId === r.id}
                 className={`${pressFx} action-secondary flex w-full min-h-[56px] items-center gap-3 rounded-xl border px-3 py-2 text-left ${
@@ -432,16 +544,32 @@ export const AdvAdventureMap = ({
               const chRegions = map.regions.filter((x) => x.chapterJa === r.chapterJa);
               const chDone = chRegions.filter((x) => x.state === 'done').length;
               return (
-                <li key={r.id} ref={isCurrent ? currentRef : undefined} className="relative">
+                <li key={r.id} className="relative"
+                  ref={(el) => {
+                    if (el) regionRefs.current.set(r.id, el);
+                    else regionRefs.current.delete(r.id);
+                    if (isCurrent) currentRef.current = el;
+                  }}>
                   {/*
                     冒険の道。**<li>全体を貫く**ように引く。
-                    行の中だけに引くと、地域カードを開いたときに道が途切れて見える
+                    行の中だけに引くと、地域カードを開いたときに道が途切れて見える。
+                    攻略済みの区間は「歩いた道」（足あとドット・adv-footpath）、
+                    これからの区間は点線のまま
                   */}
                   <span aria-hidden
-                    className={`absolute left-[38px] -translate-x-1/2 border-l-4 ${
-                      railDone ? 'border-emerald-400' : isCurrent ? 'border-blue-400 border-dashed' : 'border-gray-300 border-dashed'
-                    }`}
+                    className={`absolute left-[38px] -translate-x-1/2 ${
+                      railDone
+                        ? 'w-[6px] rounded-full bg-gradient-to-b from-emerald-300 to-emerald-500 adv-footpath'
+                        : isCurrent ? 'border-l-4 border-blue-400 border-dashed' : 'border-l-4 border-gray-300 border-dashed'
+                    } ${revealPlaying === r.id ? 'line-grow' : ''}`}
                     style={{ top: chapterOffset, height: isLast ? 44 : `calc(100% - ${chapterOffset}px)` }} />
+                  {/* 現在地区間のレールを進む光点（描画のみ・reduced-motionでは静止） */}
+                  {isCurrent && (
+                    <span aria-hidden className="pointer-events-none absolute left-[38px] w-0"
+                      style={{ top: chapterOffset, height: `calc(100% - ${chapterOffset}px)` }}>
+                      <span className="adv-path-light absolute h-2 w-2 -translate-x-1/2 rounded-full bg-blue-400" />
+                    </span>
+                  )}
                   {newChapter && (
                     <p className={`relative z-10 -mx-1 mb-1 flex items-center justify-between gap-2 rounded-xl bg-gradient-to-r px-3 py-1.5 text-[11px] font-bold text-white shadow-sm ${
                       CHAPTER_BANNERS[chapterIdx % CHAPTER_BANNERS.length]} ${i === 0 ? '' : 'mt-3'}`}>
@@ -479,9 +607,15 @@ export const AdvAdventureMap = ({
                           isCurrent ? 'shadow-lg' : ''}`}>
                           <LandmarkScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
                             className={`block w-full ${isCurrent ? 'h-[76px]' : 'h-[62px]'}`} />
+                          {/* 攻略直後だけの霧晴れ再生。状態は既にdone（実測）で、
+                              実際に起きた遷移をもう一度見せるだけ（原則13） */}
+                          {revealPlaying === r.id && (
+                            <span aria-hidden
+                              className="adv-fog-lift pointer-events-none absolute inset-0 z-10 bg-slate-300/70 backdrop-blur-[2px]" />
+                          )}
                           {/* 状態を記号でも示す（色だけに依存しない） */}
                           {r.state === 'done' && (
-                            <span className="adv-twinkle absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-white shadow-sm" aria-hidden>
+                            <span className={`${revealPlaying === r.id ? 'check-pop' : 'adv-twinkle'} absolute right-0.5 top-0.5 z-20 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 text-white shadow-sm`} aria-hidden>
                               <Star className="h-3.5 w-3.5" fill="currentColor" strokeWidth={0} />
                             </span>
                           )}
@@ -514,7 +648,8 @@ export const AdvAdventureMap = ({
                     <div className="min-w-0 flex-1 pb-3 pt-1">
                       <button type="button" onClick={() => setOpenId(openId === r.id ? null : r.id)}
                         aria-label={regionAria(r)} aria-expanded={openId === r.id}
-                        className={`${pressFx} relative w-full rounded-lg text-left active:bg-gray-100`}>
+                        className={`${pressFx} relative w-full rounded-lg text-left active:bg-gray-100 ${
+                          r.state === 'locked' ? 'saturate-50' : ''}`}>
                         {/* 攻略済みのハンコ（記念スタンプ風。状態は左のchipでも伝えている） */}
                         {r.state === 'done' && (
                           <span aria-hidden

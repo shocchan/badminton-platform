@@ -146,6 +146,44 @@
     to   { transform: scaleY(1); }
   }
   .line-grow { transform-origin: top; animation: line-grow 0.5s ease-out both; }
+
+  /* ── 冒険マップ ゲーム感強化（2026-08-19 CEO要望）。すべて祝い・実データの演出のみ ── */
+  /* 現在地区間のレールを進む光点 */
+  @keyframes adv-path-light {
+    0% { top: 4px; opacity: 0; } 15% { opacity: 1; }
+    85% { opacity: 1; } 100% { top: calc(100% - 12px); opacity: 0; }
+  }
+  .adv-path-light { animation: adv-path-light 2.8s ease-in-out infinite; }
+  /* 攻略直後の霧が晴れる（1回だけ・overlayのフェードアウト） */
+  @keyframes adv-fog-lift { from { opacity: 1; } to { opacity: 0; } }
+  .adv-fog-lift { animation: adv-fog-lift 0.9s ease-out 0.2s both; }
+  /* バッジ刻印 */
+  @keyframes adv-badge-shine {
+    0% { transform: scale(0.6) rotate(-8deg); opacity: 0; }
+    55% { transform: scale(1.15) rotate(3deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+  .adv-badge-shine { animation: adv-badge-shine 0.7s ease-out both; }
+  /* 祝いカードの入場 */
+  @keyframes adv-celebrate-pop {
+    0% { transform: scale(0.7); opacity: 0; }
+    60% { transform: scale(1.06); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .adv-celebrate-pop { animation: adv-celebrate-pop 0.5s ease-out both; }
+  /* 祝いの放射（ゆっくり回る） */
+  @keyframes adv-ray-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .adv-ray-spin { animation: adv-ray-spin 14s linear infinite; }
+  /* つづけた日の炎 */
+  @keyframes adv-flame { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+  .adv-flame { animation: adv-flame 1.6s ease-in-out infinite; }
+}
+
+/* 歩いた道の足あとドット（冒険マップのdone区間。静的装飾＝motion無関係なのでブロックの外） */
+.adv-footpath {
+  background-image: radial-gradient(circle, rgb(255 255 255 / 0.55) 1px, transparent 1.5px);
+  background-size: 6px 10px;
+  background-position: center top;
 }
 
 /* ── AIコース Interaction Design System（Phase 2C++ §13-§21） ──

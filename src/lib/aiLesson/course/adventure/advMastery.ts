@@ -225,3 +225,30 @@ export const masteryProgressPct = (attempts: AdvMasteryAttempt[] | undefined, no
   const delayPart = st.state === 'cleared_pending_delay' ? 10 : 0;
   return Math.min(85, dayPart + delayPart);
 };
+
+/**
+ * masteredが**確定した時刻**（遅延確認を通過した最初のattemptのcompletedAt）。mastered以外はnull（2026-08-19）。
+ * computeMastery と同じ規則で導出する（qualifying3日目→opensAt→それ以降のpassPct以上の最初の回）。
+ * 攻略バッジの「獲得日」表示に使う。導出できないもの（束由来のstage doneなど台帳が無いケース）は
+ * 呼び出し側が日付を出さない＝推定で埋めない（原則13）。
+ */
+export const masteredAtOf = (
+  attempts: AdvMasteryAttempt[] | undefined, nowISO: string, poolHasMultipleTypes = true,
+): string | null => {
+  const all = attempts ?? [];
+  if (all.length === 0) return null;
+  const qualifying = all.filter((a) => isQualifyingAttempt(a, poolHasMultipleTypes));
+  const dayMap = new Map<string, AdvMasteryAttempt>();
+  for (const a of qualifying) if (!dayMap.has(a.dateKey)) dayMap.set(a.dateKey, a);
+  const days = [...dayMap.keys()].sort();
+  if (days.length < MASTERY_RULES.requiredDays) return null;
+  const thirdDay = days[MASTERY_RULES.requiredDays - 1];
+  const thirdAt = dayMap.get(thirdDay)?.completedAt ?? nowISO;
+  const opensAt = addDays(thirdAt, MASTERY_RULES.delayDays);
+  // 遅延確認は computeMastery と同じ条件（passPct以上・opensAt以降。unseenRatioは課さない）
+  const confirms = all
+    .filter((a) => a.scorePct >= MASTERY_RULES.passPct && a.completedAt >= opensAt)
+    .map((a) => a.completedAt)
+    .sort();
+  return confirms[0] ?? null;
+};

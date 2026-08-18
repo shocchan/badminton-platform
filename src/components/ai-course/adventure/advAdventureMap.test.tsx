@@ -196,6 +196,91 @@ describe('成長マップ — 過去問の試験場（N2受験者のみ）', () 
   });
 });
 
+describe('成長マップ — ゲーム感強化（2026-08-19: バッジ棚・称号・霧晴れ）', () => {
+  it('攻略バッジ棚が出て、実測カウント done/total を表示する', () => {
+    const p = profileFor('jlpt');
+    // バッジ棚は試験レイヤーだけ（会話stageは攻略計測が無いので対象外）
+    const examTotal = p.route!.stages
+      .filter((s) => s.kind !== 'conversation_start' && s.kind !== 'conversation_growth').length;
+    setup({ goal: 'jlpt', mastered: new Set(['stg-foundation']) });
+    const shelf = screen.getByLabelText('攻略バッジ');
+    expect(within(shelf).getByText('攻略バッジ')).toBeTruthy();
+    expect(within(shelf).getByText(`1/${examTotal}`)).toBeTruthy();
+  });
+
+  it('未doneの地域はシルエット（「まだ獲得していません」）で出る', () => {
+    setup({ goal: 'jlpt', mastered: new Set(['stg-foundation']) });
+    const shelf = screen.getByLabelText('攻略バッジ');
+    expect(within(shelf).getAllByLabelText(/まだ獲得していません/).length).toBeGreaterThan(0);
+    // done地域は「攻略済み」として出る
+    expect(within(shelf).getAllByLabelText(/攻略済み/).length).toBe(1);
+  });
+
+  it('バッジをタップすると該当地域カードが開く（行き止まりにしない・原則15）', () => {
+    setup({ goal: 'jlpt', mastered: new Set(['stg-foundation']) });
+    const shelf = screen.getByLabelText('攻略バッジ');
+    fireEvent.click(within(shelf).getByLabelText(/攻略済み/));
+    // 地域カード（詳細）が開き、既存CTAへ繋がる
+    expect(screen.getAllByText('基礎キャンプ').length).toBeGreaterThan(1);
+  });
+
+  it('中国語ではバッジ棚も中国語になる', () => {
+    setup({ goal: 'jlpt', lang: 'zh', mastered: new Set(['stg-foundation']) });
+    const shelf = screen.getByLabelText('攻略徽章');
+    expect(within(shelf).getByText('攻略徽章')).toBeTruthy();
+    expect(within(shelf).getAllByLabelText(/尚未获得/).length).toBeGreaterThan(0);
+    expect(screen.queryByLabelText('攻略バッジ')).toBeNull();
+  });
+
+  it('ヒーロー帯に称号チップが出る（XPの別名表示・原則13）', () => {
+    setup({ goal: 'jlpt' });
+    // xp=0 → Lv.1 → 見習いの旅人（advLevelTitles）
+    expect(screen.getByText(/Lv\.1・見習いの旅人/)).toBeTruthy();
+  });
+
+  it('全地域攻略なら「全地域を攻略しました！」を出す（「冒険の準備中」の嘘を出さない）', () => {
+    const p = profileFor('jlpt');
+    const all = p.route!.stages
+      .filter((s) => s.kind !== 'conversation_start' && s.kind !== 'conversation_growth')
+      .map((s) => s.stageId);
+    setup({ goal: 'jlpt', mastered: new Set(all) });
+    expect(screen.getByText('全地域を攻略しました！')).toBeTruthy();
+    // 完走した生徒に「準備中」と言わない（2026-08-19 検品）
+    expect(screen.queryByText('冒険の準備中')).toBeNull();
+    expect(screen.queryByText('現在地を準備しています')).toBeNull();
+    // 攻略後もCTA（復習の入口）は生きている（行き止まりにしない）
+    expect(screen.getByRole('button', { name: '今日の冒険を始める' })).toBeTruthy();
+  });
+
+  it('中国語でも全攻略ヒーローが中国語で出る', () => {
+    const p = profileFor('jlpt');
+    const all = p.route!.stages
+      .filter((s) => s.kind !== 'conversation_start' && s.kind !== 'conversation_growth')
+      .map((s) => s.stageId);
+    setup({ goal: 'jlpt', lang: 'zh', mastered: new Set(all) });
+    expect(screen.getByText('所有地区都已攻略！')).toBeTruthy();
+    expect(screen.queryByText('全地域を攻略しました！')).toBeNull();
+  });
+
+  it('revealRegionId を指定してもクラッシュしない（霧晴れ1回再生）', () => {
+    const h = handlers();
+    const p = profileFor('jlpt');
+    render(
+      <AdvAdventureMap
+        lang="ja" profile={p} route={p.route}
+        mastered={new Set(['stg-foundation'])} currentWeek={1} quest={quest}
+        nextStepTitleJa="復習2問" nextStepTitleZh="复习2题"
+        reviewAvailable conversationAvailable
+        sheetsVisible={false} sheetCount={0} interviewVisible={false}
+        revealRegionId="stg-foundation" onRevealDone={vi.fn()}
+        {...h}
+      />,
+    );
+    expect(screen.getByLabelText('現在地')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '今日の冒険を始める' })).toBeTruthy();
+  });
+});
+
 describe('成長マップ — 測っていないものを盛らない（原則13）', () => {
   it('会話の地域は定着バーを出さず「未判定」と書く', () => {
     setup({ goal: 'conversation' });

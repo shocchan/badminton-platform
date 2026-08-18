@@ -6,6 +6,7 @@ import { migrateSavedRoute } from './advRoute';
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
+  AdvStreakState,
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
@@ -44,6 +45,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   mockSession: null,
   mockLog: [],
   kana: null,
+  streak: null,
   answerSheets: [],
   answerSheetSession: null,
   answerSheetLog: [],
@@ -113,6 +115,22 @@ const restoreMockSessionState = (v: unknown): AdvMockSessionState | null => {
 };
 
 /**
+ * つづけた日（streak）の復元（2026-08-19）。
+ * 壊れた形は null（＝初回の活動時に履歴からseedし直す。積み上げの本体は
+ * questLog∪mastery なので、streakが飛んでも「祝い」が一度リセットされるだけで害がない）。
+ * best < current の保存値は current まで引き上げる（bestの定義を壊さない）。
+ */
+const restoreStreak = (v: unknown): AdvStreakState | null => {
+  if (!isRecord(v)) return null;
+  if (typeof v.current !== 'number' || !Number.isFinite(v.current) || v.current < 1) return null;
+  if (typeof v.lastActiveKey !== 'string') return null;
+  const current = Math.floor(v.current);
+  const best = typeof v.best === 'number' && Number.isFinite(v.best) && v.best >= current
+    ? Math.floor(v.best) : current;
+  return { current, best, lastActiveKey: v.lastActiveKey };
+};
+
+/**
  * settings.adventureV2 からプロファイルを復元。無い/壊れている場合は null。
  * （壊れた部分fieldは default 側へ倒す＝reloadで学習が止まらない）
  */
@@ -177,6 +195,7 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
         checkedAt: typeof raw.kana.checkedAt === 'string' ? raw.kana.checkedAt : null,
       }
       : null,
+    streak: restoreStreak(raw.streak),
     answerSheets: restorePapers(raw.answerSheets),
     answerSheetSession: restoreSheetSession(raw.answerSheetSession),
     answerSheetLog: restoreSheetLog(raw.answerSheetLog),

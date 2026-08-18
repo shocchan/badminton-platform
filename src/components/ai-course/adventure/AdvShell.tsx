@@ -2,7 +2,7 @@
 // UX CLARITY: 「1画面、1つの決断」— 現在地と先のルートは見せるが、押すCTAは常に一つ。
 // ASSESSMENT INTEGRITY: 「今どの試験科目を鍛えているか」を必ず表示し、
 //                       準備度は技能別・データ不足は未判定。
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
@@ -54,6 +54,11 @@ import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvAdventureMap } from './AdvAdventureMap';
+import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
+import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
+import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
+import { diffNewlyDone, conquestCelebrations, type AdvCelebration } from '../../../lib/aiLesson/course/adventure/advCelebration';
+import { buildAdventureMap, availableRouteKinds } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import { AdvKanaDojo } from './AdvKanaDojo';
 import { todaysKanaRowIds, isKanaGraduated } from '../../../lib/aiLesson/course/adventure/advKana';
 import { buildMockSpec, mockLevelOf } from '../../../lib/aiLesson/course/adventure/advMock';
@@ -263,6 +268,18 @@ export default function AdvShell(props: AdvShellProps) {
   const [grammarDoc, setGrammarDoc] = useState<N2GrammarDraft | null>(null);
   const [lastMastery, setLastMastery] = useState<MasteryStatus | null>(null);
   /**
+   * その場で祝うセレモニーのキュー（2026-08-19 CEO「もっとゲーム感」）。
+   * 地域攻略・章クリア・レベルアップ・連続日数の節目を1つのキューで順に出す。
+   * 中身はすべて実測（mastery台帳・xp・streak）から作る＝飾りの偽演出はしない（原則13）
+   */
+  const [celebrations, setCelebrations] = useState<AdvCelebration[]>([]);
+  /** 直近の攻略で新しくdoneになった地域（冒険マップの霧晴れ1回再生用） */
+  const [revealRegionId, setRevealRegionId] = useState<string | null>(null);
+  /** 攻略検知の前回スナップショット。null＝初期化前（起動時に過去の攻略を祝い直さない） */
+  const prevStageDoneRef = useRef<Set<string> | null>(null);
+  /** 攻略検知が見ていたルートの署名。ルートが変わったら基準を置き直す（過去攻略を祝い直さない） */
+  const prevRouteSigRef = useRef<string | null>(null);
+  /**
    * 今この場で「今日の冒険を締めくくる」を押して加算されたXP（2026-08-18 監査P2）。
    * 完了画面は「今日のまとめをもう一度見る」から何度でも開けるが、XPの加算は締めくくりの1回だけ。
    * 毎回「⭐ XP +15」と出すと、合計が増えていない生徒には「XPが消えた」ように見える。
@@ -394,8 +411,19 @@ export default function AdvShell(props: AdvShellProps) {
   const vocabPoolReady = vocabRequest && vocabPool?.key === vocabRequest.key ? vocabPool.map : null;
 
   const save = useCallback((next: AdventureV2Profile) => {
+    // レベルアップ検知（2026-08-19 ゲーム感強化）。XP加算点（バトル・かな道場・模試・締めくくり）を
+    // 個別に触らず、保存の1点で「levelOf(xp)が実際に上がった瞬間」だけを拾って祝いキューへ積む。
+    // 称号は levelOf(xp) の別名表示で、実力・攻略・準備度とは無関係（advLevelTitles の鉄則）
+    const beforeLv = levelOf(profile?.xp ?? 0);
+    const afterLv = levelOf(next.xp ?? 0);
+    if (profile && afterLv > beforeLv) {
+      const t = titleOf(afterLv);
+      // saveはeffect内からも呼ばれる（markStep等）。同期setStateの連鎖描画にしない
+      //（requestViewのonRequestConsumedと同じ「次tickで通知」イディオム・react-hooks/set-state-in-effect）
+      setTimeout(() => setCelebrations((q) => [...q, { kind: 'levelup', level: afterLv, titleJa: t.ja, titleZh: t.zh }]), 0);
+    }
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
-  }, [learner.settings, props]);
+  }, [learner.settings, props, profile]);
 
   // 完了は**安定キー（stepKeyOf）**で照合する（2026-08-17 監査P0: questの並びは
   // 日中の状態変化で変わるため、添字だけだと未実施stepが勝手に完了扱いになっていた）。
@@ -635,11 +663,60 @@ export default function AdvShell(props: AdvShellProps) {
       }
     })();
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // dailyMinutes は復習予報の1日の予算（＝何日に分散するか）を決めるので依存に入れる。
     // mastery の参照だけを見ていると、分量だけ変えた直後に古い予報が残る（2026-08-17）
+    //（disable注釈はdeps行の直前に置かないと効かない。2026-08-19に位置だけ修正・内容は不変）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, profile?.dailyMinutes,
     props.reviewsDue, dateKey, poolsError, poolsRetryNonce]);
+
+  /**
+   * 攻略の検知（2026-08-19 ゲーム感強化）。台帳がどの経路（バトル・読解聴解・模試・ボス）で
+   * 動いても、stage done集合の差分をこの1点で拾い、「その場で祝う」＋地図の霧晴れ再生へ繋ぐ。
+   * 初回計算は prev=null で基準を置くだけ＝起動時に過去の攻略を祝い直さない（原則13・偽演出防止）。
+   * StrictModeの二重実行でも ref 方式なので誤発火しない。
+   * mastered集合の合成は地図表示（mapMastered = targets ∪ stageDone・2026-08-18 P0）と同じ形に揃える
+   */
+  useEffect(() => {
+    if (!profile?.route || !pools) return;
+    const targets = masteredTargetIds(profile.mastery, nowISO);
+    const sd = deriveMasteredStageIds(profile.route, targets,
+      pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit);
+    // ルートを作り直した直後（「冒険の準備をやり直す」）は基準を置き直すだけ（2026-08-19 検品）。
+    // 新ルートに、過去の台帳ですでに攻略済みの地域が含まれることがある（帯を下げた場合など）。
+    // それは**いま起きた遷移ではない**ので、diffせず祝わない（原則13・起動時と同じ扱い）
+    const routeSig = profile.route.stages.map((s) => s.stageId).join('|');
+    const routeChanged = prevRouteSigRef.current !== routeSig;
+    prevRouteSigRef.current = routeSig;
+    const prev = routeChanged ? null : prevStageDoneRef.current;
+    prevStageDoneRef.current = sd;
+    const news = diffNewlyDone(prev, sd);
+    if (news.length === 0) return;
+    const kind = availableRouteKinds(profile.goalType)[0];
+    const m = buildAdventureMap(profile, profile.route,
+      sd.size > 0 ? new Set([...targets, ...sd]) : targets, learner.currentWeek ?? 1, kind);
+    const items = conquestCelebrations(m, news);
+    if (items.length > 0) setCelebrations((q) => [...q, ...items]);
+    setRevealRegionId(news[news.length - 1]);
+    // nowISO・currentWeek は描画ごとの派生値なので依存に入れない（台帳＝profileとpoolsの変化だけで再判定）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, pools]);
+
+  /**
+   * つづけた日（streak）の更新（2026-08-19）。「学習した日」だけを数える
+   * （questLog∪mastery＝あゆみヒートマップと同じ集合。開いただけでは数えない）。
+   * ループ安全: 保存後は lastActiveKey===dateKey で advanceStreak が null を返すので
+   * 1日1回しか保存が増えない。途切れても数字が戻るだけで、責め文言はどこにも出さない
+   */
+  useEffect(() => {
+    if (!profile?.enabled) return;
+    const ns = advanceStreak(profile, dateKey);
+    if (!ns) return;
+    const milestone = crossedMilestone(profile.streak ?? null, ns);
+    // 祝いの積み込みは次tickで（saveのレベルアップ通知と同じイディオム。effect内の同期setStateにしない）
+    if (milestone !== null) setTimeout(() => setCelebrations((q) => [...q, { kind: 'streak', days: milestone }]), 0);
+    save({ ...profile, streak: ns });
+  }, [profile, dateKey, save]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
@@ -814,6 +891,26 @@ export default function AdvShell(props: AdvShellProps) {
     save({ ...prof, teacherId: id });
   };
 
+  /**
+   * その場で祝うセレモニー（2026-08-19 ゲーム感強化）。キュー先頭の1件だけを重ねて出す。
+   * viewの早期returnの**上に被せる**ので下の画面はunmountされない（バトル結果の上に祝いが乗り、
+   * 閉じれば結果画面が見える）。ここに載せないview（weekly/teacher等）ではキューに滞留し、
+   * 対象viewへ戻ったときに表示される（仕様として許容）
+   */
+  const celebrationEl = celebrations.length > 0 ? (
+    <AdvCelebrationOverlay
+      lang={lang}
+      item={celebrations[0]}
+      companionId={prof.companionId}
+      onClose={() => setCelebrations((q) => q.slice(1))}
+      onGoMap={celebrations[0].kind === 'conquest' || celebrations[0].kind === 'chapter'
+        ? () => { setCelebrations((q) => q.slice(1)); setView('map'); }
+        : undefined}
+    />
+  ) : null;
+  /** viewのreturnを `<>{celebrationEl}<既存要素/></>` に包む（battle/reading/listening/mock/kana/map/complete/home の8return） */
+  const withCelebration = (el: ReactNode) => <>{celebrationEl}{el}</>;
+
   // ── battle ──
   // ── かな道場（超初心者の前提レッスン・2026-08-15） ──
   if (view === 'kana' && prof.kana) {
@@ -827,7 +924,7 @@ export default function AdvShell(props: AdvShellProps) {
     const saveKana = (p: AdventureV2Profile) => {
       save(kanaStepIdx >= 0 ? withStepDone(p, kanaStepIdx, keyOfStepIdx(kanaStepIdx)) : p);
     };
-    return (
+    return withCelebration(
       <AdvKanaDojo lang={lang} rowIds={rowIds}
         onFinishCheck={(passed) => {
           saveKana({
@@ -919,7 +1016,7 @@ export default function AdvShell(props: AdvShellProps) {
         </div>
       );
     }
-    return (
+    return withCelebration(
       <AdvBattleRunner
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
@@ -1009,7 +1106,7 @@ export default function AdvShell(props: AdvShellProps) {
       ...seededShuffle(allR.filter((s) => seenR.has(readingKeyOf(s))), seedR),
     ].slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'reading_short') ?? -1;
-    return (
+    return withCelebration(
       <AdvReadingRunner
         lang={lang} sets={sets}
         onFinish={(r) => {
@@ -1040,7 +1137,7 @@ export default function AdvShell(props: AdvShellProps) {
       ...seededShuffle(allL.filter((s) => seenL.has(`listen:${s.setId}`)), seedL),
     ].slice(0, 3);
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'listening_practice') ?? -1;
-    return (
+    return withCelebration(
       <AdvListeningRunner
         lang={lang} sets={sets}
         onFinish={(r) => {
@@ -1216,7 +1313,7 @@ export default function AdvShell(props: AdvShellProps) {
       const sd = deriveMasteredStageIds(prof.route, m, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit);
       return currentStageOf(prof.route, sd)?.kind ?? null;
     })();
-    return (
+    return withCelebration(
       <AdvMockRunner
         lang={lang} spec={spec} pools={merged}
         attemptSeed={mockSeed}
@@ -1459,12 +1556,14 @@ export default function AdvShell(props: AdvShellProps) {
         basicBundleByUnit: pools.basicBundleByUnit,
       })
       : null;
-    return (
+    return withCelebration(
       <AdvAdventureMap
         lang={lang}
         profile={prof}
         route={route}
         mastered={mapMastered}
+        revealRegionId={revealRegionId}
+        onRevealDone={() => setRevealRegionId(null)}
         paceNoteJa={mapPace && mapPace.remainingTargets > 0
           ? `目的地まで残り${mapPace.remainingStages}地域・${mapPace.remainingTargets}項目${mapPace.estWeeksLeft !== null && mapPace.estWeeksLeft > 0 ? `／いまのペースだと約${mapPace.estWeeksLeft}週間（推定）` : ''}`
           : null}
@@ -1915,7 +2014,7 @@ export default function AdvShell(props: AdvShellProps) {
       targetExpressions: quest.targetExpressions,
       usedExpressions: [],
     });
-    return (
+    return withCelebration(
       <div className={`mx-auto w-full max-w-xl px-4 py-6 ${riseIn}`}>
         <div className="flex items-center gap-3">
           <TeacherAvatar size={44} expression="smile" lang={lang} className={`shrink-0 ring-2 ${teacher.ringClass}`} />
@@ -2211,7 +2310,7 @@ export default function AdvShell(props: AdvShellProps) {
   // 3日空いたら声をかける（7日待つと戻ってこない）。ペース警告の抑制も同じ条件
   const welcomeBack = daysAway >= 3;
 
-  return (
+  return withCelebration(
     <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={term('todayAdventure', lang)}>
       {/* 1. 目標と残日数 */}
       <p className="text-sm font-semibold text-gray-600">
@@ -2264,13 +2363,22 @@ export default function AdvShell(props: AdvShellProps) {
             `要在考试日前完成，需要每周巩固${pace.neededPerWeek}个项目（现在是每周${pace.measuredPerWeek ?? 0}个）`)}
         </p>
       )}
-      {/* XP＝努力の見える化（やるほど増える・攻略とは別軸・advXp.ts）。0のうちは出さない */}
+      {/* XP＝努力の見える化（やるほど増える・攻略とは別軸・advXp.ts）。0のうちは出さない。
+          称号は levelOf(xp) の別名表示で、実力・攻略・準備度とは無関係（advLevelTitles の鉄則） */}
       {(prof.xp ?? 0) > 0 && (
         <p className="mt-1 text-xs font-semibold text-amber-600">
-          ⭐ Lv.{levelOf(prof.xp ?? 0)}・XP {prof.xp}
+          ⭐ Lv.{levelOf(prof.xp ?? 0)}・{tx(lang, titleOf(levelOf(prof.xp ?? 0)).ja, titleOf(levelOf(prof.xp ?? 0)).zh)}・XP {prof.xp}
           <span className="ml-1 font-normal text-gray-400">
             {tx(lang, `（次のレベルまで${xpToNextLevel(prof.xp ?? 0)}）`, `（距下一级还差${xpToNextLevel(prof.xp ?? 0)}）`)}
           </span>
+        </p>
+      )}
+      {/* つづけた日の炎（実測streakのみ・2026-08-19）。1日では出さない（初日から煽らない）。
+          途切れたら表示が消えるだけ＝「切れた」「失った」等の喪失文言はどこにも書かない */}
+      {prof.streak && prof.streak.current >= 2 && (
+        <p className="mt-0.5 text-xs font-semibold text-orange-600">
+          <span className="adv-flame inline-block" aria-hidden>🔥</span>{' '}
+          {tx(lang, `${prof.streak.current}日つづけて冒険中`, `已连续冒险${prof.streak.current}天`)}
         </p>
       )}
 

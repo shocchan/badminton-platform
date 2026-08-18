@@ -95,3 +95,50 @@ describe('setAdvEnabled: 破損・将来スキーマでも全消ししない', (
     expect(readAdvProfile(next)?.enabled).toBe(true);
   });
 });
+
+describe('streak: 保存往復・旧クライアント温存・壊れた形の扱い（2026-08-19）', () => {
+  it('streakが読み書きで往復する', () => {
+    const settings = {
+      adventureV2: {
+        schemaVersion: 1, enabled: true,
+        streak: { current: 5, best: 9, lastActiveKey: '2026-08-14' },
+      },
+    } as unknown as LearnerSettings;
+    const prof = readAdvProfile(settings)!;
+    expect(prof.streak).toEqual({ current: 5, best: 9, lastActiveKey: '2026-08-14' });
+    const next = writeAdvProfile(settings, prof, NOW);
+    expect(readAdvProfile(next)!.streak).toEqual({ current: 5, best: 9, lastActiveKey: '2026-08-14' });
+  });
+
+  it('**旧クライアント（streakを知らないJS）が保存しても消えない**（未知キー温存）', () => {
+    const settings = {
+      adventureV2: {
+        schemaVersion: 1, enabled: true,
+        streak: { current: 3, best: 7, lastActiveKey: '2026-08-15' },
+      },
+    } as unknown as LearnerSettings;
+    const prof = readAdvProfile(settings)!;
+    // 旧クライアントのprofileオブジェクトを模擬: streakキー自体を知らない
+    const oldProf = Object.fromEntries(
+      Object.entries(prof).filter(([k]) => k !== 'streak'),
+    ) as typeof prof;
+    const next = writeAdvProfile(settings, oldProf, NOW);
+    const raw = next.adventureV2 as Record<string, unknown>;
+    expect(raw.streak).toEqual({ current: 3, best: 7, lastActiveKey: '2026-08-15' });
+  });
+
+  it('壊れたstreakはnullへ倒れる（記録し直し・落ちない）', () => {
+    const read = (streak: unknown) => readAdvProfile({
+      adventureV2: { schemaVersion: 1, enabled: true, streak },
+    } as unknown as LearnerSettings)!.streak;
+    expect(read('broken')).toBeNull();
+    expect(read({ current: 0, best: 4, lastActiveKey: '2026-08-15' })).toBeNull(); // current>=1が必須
+    expect(read({ current: 2, best: 4 })).toBeNull();                              // lastActiveKey必須
+    expect(read({ current: Infinity, best: 4, lastActiveKey: '2026-08-15' })).toBeNull();
+    // best < current は current まで引き上げ（bestの定義を壊さない）
+    expect(read({ current: 6, best: 2, lastActiveKey: '2026-08-15' }))
+      .toEqual({ current: 6, best: 6, lastActiveKey: '2026-08-15' });
+    // streak未保存（旧データ）は null＝初回活動時にseedする
+    expect(read(undefined)).toBeNull();
+  });
+});
