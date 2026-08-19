@@ -6,6 +6,22 @@ import { useState } from 'react';
 import { supabase } from '../services/supabaseClient';
 import { claimGuestCoupons, type ClaimResult } from '../services/coupons';
 import { useAuth } from '../hooks/useAuth';
+import {
+  STUDENT_ID_DOMAIN,
+  isValidStudentId,
+  normalizeStudentIdInput,
+  studentIdToEmail,
+} from '../lib/aiLesson/course/courseAuth';
+
+// ログイン欄の入力をSupabase Authのメールへ解決する。
+// @入りはメールとしてそのまま、@なしはAIコースの生徒ID（例: kaiwa）とみなして
+// 内部メール `${id}@id.badminton-platform.pages.dev` へ変換する（study側のログインと同じ規則）
+const resolveLoginEmail = (raw: string): string | null => {
+  const v = raw.trim();
+  if (v.includes('@')) return v;
+  const id = normalizeStudentIdInput(v);
+  return isValidStudentId(id) ? studentIdToEmail(id) : null;
+};
 
 interface Props {
   /** 登録/ログイン＋引き継ぎ完了時に呼ばれる */
@@ -34,6 +50,16 @@ export default function ClaimAccountForm({ onDone }: Props) {
       setError('パスワードは6文字以上にしてください');
       return;
     }
+    // 登録は実メール限定。生徒ID用の内部ドメインは先生側スクリプト専用（ID枠の横取り防止）
+    if (mode === 'register' && email.trim().toLowerCase().endsWith(`@${STUDENT_ID_DOMAIN}`)) {
+      setError('このメールアドレスでは登録できません');
+      return;
+    }
+    const loginEmail = mode === 'login' ? resolveLoginEmail(email) : email;
+    if (!loginEmail) {
+      setError('メールアドレス、またはAIコースの生徒IDを入力してください');
+      return;
+    }
 
     setBusy(true);
     try {
@@ -53,7 +79,7 @@ export default function ClaimAccountForm({ onDone }: Props) {
       } else {
         // login-guard 経由（試行回数ロック付き）。管理者は needsOtp が返り
         // セッションは一切作られないので、ここでは正規のログイン画面へ誘導するだけ
-        const result = await login(email, password);
+        const result = await login(loginEmail, password);
         if (result.needsOtp) {
           throw new Error('管理者アカウントは /login のログインページからログインしてください（二段階認証が必要です）');
         }
@@ -106,11 +132,14 @@ export default function ClaimAccountForm({ onDone }: Props) {
           />
         )}
         <input
-          type="email"
+          type={mode === 'register' ? 'email' : 'text'}
+          inputMode="email"
+          autoCapitalize="none"
+          spellCheck={false}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="メールアドレス"
-          aria-label="メールアドレス"
+          placeholder={mode === 'register' ? 'メールアドレス' : 'メールアドレス または AIコースの生徒ID'}
+          aria-label={mode === 'register' ? 'メールアドレス' : 'メールアドレス または AIコースの生徒ID'}
           required
           className={inputClass}
         />
