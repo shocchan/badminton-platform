@@ -16,6 +16,12 @@ import { skillOfQuestionType, SECTION_OF_SKILL, type ExamSection, type ExamSkill
 /** N2GrammarDraft / N3GrammarDraft 共通の構造（structural typing・両方に適合） */
 export interface GrammarDraftLike {
   grammarId: string;
+  /**
+   * JLPTレベル（'N5' | 'N4' | 'N3' | 'N2'）。任意（既存バンクはすべて持っている）。
+   * foundationバンク内の**N5項目だけ**をさらに区別するために読む
+   * （N5の誤答プール絞り・N5のform非出題。2026-08-19 難易度監査）。n3/n2の生成では一切参照しない。
+   */
+  level?: string;
   pattern: string;
   meaningJa: string;
   explanationZh: string;
@@ -690,7 +696,12 @@ const genMeaning = (ctx: GenContext): AdvBattleQuestion | null => {
     ...baseFields('meaning', ctx.level, self),
     key: `meaning:${self.grammarId}`,
     targetJapanese: self.pattern,
-    questionJa: `「${self.pattern}」の意味に最も近いものはどれですか。`,
+    // 基礎帯（N5/N4）は設問の主行を中国語だけにする（2026-08-19 難易度監査P1）。
+    // 「「〜」の意味に最も近いものはどれですか。」という**日本語のメタ言語**が太字の主行に来ると、
+    // N5学習者には設問自体が読めない（CEO指摘「N5にしては難しい」の実体の1つ）。
+    // questionZh は従来から全問に併記済みで、AdvBattleRunner / AdvMockRunner は questionJa=null に対応している。
+    // 対象の文型そのものは targetJapanese（見出し）として引き続き表示される。
+    questionJa: ctx.level === 'foundation' ? null : `「${self.pattern}」の意味に最も近いものはどれですか。`,
     questionZh: `「${self.pattern}」的意思最接近哪一个？`,
     choices: mkChoices({ ja: correct }, wrongs),
     explanation: mkExplanation(
@@ -738,6 +749,13 @@ export const formationRevealsAnswer = (pattern: string, correct: string, wrongs:
 /** 4) formation（接続の選択） */
 const genFormation = (ctx: GenContext): AdvBattleQuestion | null => {
   const { self } = ctx;
+  // N5項目には form を出さない（2026-08-19 難易度監査P3）。
+  // form の選択肢は「名詞／動詞・形容詞の普通形」のような**文法用語の列**で、
+  // 主行を中国語にしても選択肢自体がN5学習者には読めない（実測: N5のform 3問が全問この形）。
+  // form は最も冗長な出題タイプで、落としても各項目には rec / meaning / cloze が残る
+  // （itemsWithZeroQuestions=0 の検査は advClozeChoiceIntegrity.test にある）。
+  // N4のform は残す: N4帯はて形・ない形等の用語をN5単元で学習済みで、接続問題の主対象。
+  if (ctx.level === 'foundation' && self.level === 'N5') return null;
   const stripTail = (f: string): string => f.split('＋')[0].trim();
   const correctBody = stripTail(self.formation.trim());
   if (correctBody.length < 3) return null;
@@ -762,7 +780,8 @@ const genFormation = (ctx: GenContext): AdvBattleQuestion | null => {
     ...baseFields('form', ctx.level, self),
     key: `form:${self.grammarId}`,
     targetJapanese: self.pattern,
-    questionJa: `「${self.pattern}」の接続はどれですか。`,
+    // 基礎帯は設問の主行を中国語だけにする（2026-08-19 難易度監査P1・meaning側と同じ理由）
+    questionJa: ctx.level === 'foundation' ? null : `「${self.pattern}」の接続はどれですか。`,
     questionZh: `「${self.pattern}」的接续是哪一个？`,
     choices: mkChoices({ ja: correctBody }, wrongs),
     explanation: mkExplanation(
@@ -814,7 +833,15 @@ export const buildVariantPool = (
   for (const self of canonical) {
     const exclusion = buildExclusionSet(self, canonical);
     const pool = canonical.filter((d) => !exclusion.has(d.grammarId));
-    const rotated = seededShuffle(pool, hashSeed(self.grammarId));
+    // N5項目の誤答はN5項目からだけ採る（2026-08-19 難易度監査P5）。
+    // バンク一括の誤答プールだと、N5のclozeにN4敬語（「伺う」「いたす」等）の表示形が
+    // 誤答として混入していた（実測）。難しくはならないが、N5の学習者には不自然な字面になる。
+    // 「初級の誤答をN3/N2に混ぜない」（advContent.ts のバンク分離）と同じ考え方を、帯の中でも1段下へ適用する。
+    // shuffleの**後**に絞る＝N5由来の誤答の並びは従来と同一（既存出題の変化を最小にする）。
+    const rotatedAll = seededShuffle(pool, hashSeed(self.grammarId));
+    const rotated = level === 'foundation' && self.level === 'N5'
+      ? rotatedAll.filter((d) => d.level === 'N5')
+      : rotatedAll;
     const ctx: GenContext = { self, level, distractorPool: rotated, itemIndex: itemIndex++ };
 
     const rec = genRecognition(ctx);

@@ -31,6 +31,7 @@ import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/a
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { LandmarkScene, LandmarkIcon } from './AdvMapLandmarks';
 import { AdvMapBadges } from './AdvMapBadges';
+import { AdvMapOverview } from './AdvMapOverview';
 import { TeacherAvatar } from '../TeacherAvatar';
 
 type L = 'ja' | 'zh';
@@ -174,6 +175,21 @@ export const AdvAdventureMap = ({
     setOpenId(map.currentRegionId);
   }
   const openRegion = map.regions.find((r) => r.id === openId) ?? null;
+
+  /**
+   * バッジ・全体見取り図のタップ → 該当地域カードを開いてスクロール
+   * （既存CTAへ繋がる・行き止まりにしない・原則15）。2箇所から使うので共通化
+   */
+  const scrollToRegion = (id: string) => {
+    setAsList(false);
+    setOpenId(id);
+    window.setTimeout(() => {
+      regionRefs.current.get(id)?.scrollIntoView?.({
+        block: 'center',
+        behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
+      });
+    }, 120);
+  };
 
   // 地図を開いたら現在地までスクロールする。20地域あると現在地が画面外になる
   useEffect(() => {
@@ -463,17 +479,7 @@ export const AdvAdventureMap = ({
         ledger={profile.mastery}
         nowISO={nowISO}
         revealRegionId={revealPlaying ?? revealRegionId}
-        onSelect={(id) => {
-          // バッジ→該当地域カード（既存CTAへ繋がる・行き止まりにしない）
-          setAsList(false);
-          setOpenId(id);
-          window.setTimeout(() => {
-            regionRefs.current.get(id)?.scrollIntoView?.({
-              block: 'center',
-              behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
-            });
-          }, 120);
-        }}
+        onSelect={scrollToRegion}
       />
 
       {/* ── ルート切り替え（1つしか選べないときは出さない） ── */}
@@ -495,6 +501,22 @@ export const AdvAdventureMap = ({
           </p>
         </div>
       )}
+
+      {/*
+        ── マップ全体図（2026-08-19 CEO要望「マップ全体も見えるといいな」） ──
+        ルートタブの直下＝選択中ルートの全体像と一致する位置。Primary CTA より必ず下（原則16）。
+        map/list 両表示で常に出す。実測 regions の別ビューで、状態の再計算はしない（原則13）
+      */}
+      <AdvMapOverview
+        lang={lang}
+        regions={map.regions}
+        currentRegionId={map.currentRegionId}
+        destinationJa={map.destinationJa}
+        destinationZh={map.destinationZh}
+        doneCount={map.doneCount}
+        totalCount={map.totalCount}
+        onSelectRegion={scrollToRegion}
+      />
 
       {/* ── 3. 冒険の道 ── */}
       {asList ? (

@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { generateRoute, stageMasteryTargetIds } from './advRoute';
 import { loadGrammarPools, stageContent, MIN_BUNDLE_QUESTIONS } from './advContent';
 import { N5_UNIT_IDS, N4_UNIT_IDS, loadAllBasicDrafts } from '../basicGrammarChunks';
+import { buildVariantPool, type GrammarDraftLike } from './advVariants';
 import type { AdvDiagnosisResult } from './advTypes';
 
 const NOW = '2026-08-17T09:00:00.000Z';
@@ -121,6 +122,71 @@ describe('学習者に見せる中身の安全性', () => {
         expect(basicIds.has(q.sourceItemId), `${q.key} の出典 ${q.sourceItemId}`).toBe(true);
       }
     }
+  });
+});
+
+describe('基礎帯の難易度（2026-08-19 CEO指摘「N5にしては難しい」の再発防止）', () => {
+  // 実測で判明した難しさの実体は3点だった（難易度監査 2026-08-19）:
+  //   (a) meaning/form の太字主行が日本語のメタ言語（「〜の意味に最も近いものはどれですか。」）
+  //   (b) N5にも form（選択肢が「名詞／動詞・形容詞の普通形」等の術語列）が出ていた
+  //   (c) N5 の cloze 誤答にN4敬語（「伺う」「いたす」）が混入して字面が不自然
+  // ここが崩れると、基礎帯の学習者は設問・選択肢を読めない問題に再び当たる。
+  const foundationPool = async () => {
+    const drafts = (await loadAllBasicDrafts()) as unknown as GrammarDraftLike[];
+    return { drafts, pool: buildVariantPool(drafts, 'foundation') };
+  };
+  /** 誤答解説「これは「〜」の意味です。」「「〜」は…の意味で…」から出典patternを取り出す */
+  const srcPatternOf = (why: string | undefined): string | null => why?.match(/「([^」]+)」/u)?.[1] ?? null;
+
+  it('foundationのmeaning/formは設問の主行が中国語（questionJa=null・questionZh必須・見出しは残る）', async () => {
+    const { pool } = await foundationPool();
+    let seen = 0;
+    for (const qs of pool.byItem.values()) {
+      for (const q of qs) {
+        if (q.type !== 'meaning' && q.type !== 'form') continue;
+        seen += 1;
+        expect(q.questionJa, `${q.key} に日本語メタ設問が残っている`).toBeNull();
+        expect(q.questionZh.trim().length, `${q.key} のquestionZhが空`).toBeGreaterThan(0);
+        // 「何の文型を問われているか」は見出し（targetJapanese）で見え続けること
+        expect(q.targetJapanese, `${q.key} の見出しが消えている`).toBeTruthy();
+      }
+    }
+    expect(seen).toBeGreaterThan(100); // meaning+form が生成されていること（消して0にする抜け道の封じ）
+  });
+
+  it('N5項目にはformを出さない。落とした項目にも rec/meaning/cloze が残る', async () => {
+    const { drafts, pool } = await foundationPool();
+    for (const d of drafts) {
+      const qs = pool.byItem.get(d.grammarId) ?? [];
+      if (d.level === 'N5') {
+        expect(qs.some((q) => q.type === 'form'), `${d.grammarId} にN5のformが出ている`).toBe(false);
+        expect(qs.length, `${d.grammarId} の出題が空（formを落とした代わりが無い）`).toBeGreaterThan(0);
+      }
+    }
+    // N4のformは残す（接続はN4帯の主対象。全消しで検査を通す抜け道の封じ）
+    const n4form = [...pool.byItem.values()].flat().filter((q) => q.type === 'form').length;
+    expect(n4form).toBeGreaterThanOrEqual(10);
+  });
+
+  it('N5のcloze/meaning誤答はN5項目からだけ採られる（N4敬語の字面を混ぜない）', async () => {
+    const { drafts, pool } = await foundationPool();
+    const byId = new Map(drafts.map((d) => [d.grammarId, d]));
+    const byPattern = new Map(drafts.map((d) => [d.pattern, d]));
+    const bad: string[] = [];
+    for (const [id, qs] of pool.byItem) {
+      if (byId.get(id)?.level !== 'N5') continue;
+      for (const q of qs) {
+        if (q.type !== 'cloze' && q.type !== 'meaning') continue;
+        for (const c of q.choices) {
+          if (c.isCorrect) continue;
+          const pat = srcPatternOf(c.whyWrongJa ?? c.whyWrongZh);
+          const src = pat ? byPattern.get(pat) : undefined;
+          if (!src) { bad.push(`${q.key}: 誤答「${c.textJa}」の出典が特定できない`); continue; }
+          if (src.level !== 'N5') bad.push(`${q.key}: 誤答「${c.textJa}」が${String(src.level)}項目「${src.pattern}」から来ている`);
+        }
+      }
+    }
+    expect(bad, `帯を跨いだ誤答 ${bad.length}件:\n${bad.slice(0, 10).join('\n')}`).toEqual([]);
   });
 });
 
