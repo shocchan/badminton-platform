@@ -38,7 +38,7 @@ import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs'
 import { loadAllBasicDrafts } from '../../../lib/aiLesson/course/basicGrammarChunks';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
-import { nowTrainingLabel, type ExamSkill } from '../../../lib/aiLesson/course/adventure/advExamSkills';
+import { nowTrainingLabel, type ExamSkill, type ScopeLevel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
 import { companionById } from '../../../lib/aiLesson/course/adventure/advCompanion';
@@ -858,7 +858,12 @@ export default function AdvShell(props: AdvShellProps) {
   }
   const prof = profile!;
   const route = prof.route!;
-  const level: 'N2' | 'N3' = prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  // バトル名のフォールバックレベル（2026-08-19 CEO報告: N5目標なのに「N2文法バトル」）。
+  // 表記の第一候補は出題の中身から実測される（advBattle.encounterName）。ここは中身から
+  // 判定できない場合の受け皿で、以前の「N3以外は全部N2」をやめ目標に追随させる
+  const level: ScopeLevel = prof.targetJlpt === 'N5' ? 'N5'
+    : prof.targetJlpt === 'N4' ? 'N4'
+      : prof.targetJlpt === 'N3' ? 'N3' : 'N2';
   /**
    * 読解・聴解の**在庫を引くレベル**（2026-08-18）。
    *

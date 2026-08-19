@@ -136,9 +136,28 @@ export const OVERALL_READINESS_REQUIREMENT = {
   minMockCount: 3,
 } as const;
 
+/** バトル名に出すレベル表記（2026-08-19 N5/N4対応） */
+export type ScopeLevel = 'N5' | 'N4' | 'N3' | 'N2';
+
+/**
+ * 出題対象IDから、名前に出すレベルを実測で決める（2026-08-19 CEO報告の修正）。
+ * 以前は学習者の**目標**をN3以外すべてN2に丸めてラベルにしていたため、
+ * N5目標の生徒の基礎文法バトルが「N2文法バトル」と表示されていた。
+ * 名前は目標ではなく**いま戦っている中身**を言うべきなので、targetIdから引く
+ */
+export const scopeLevelOfTargets = (targetIds: string[], fallback: ScopeLevel): ScopeLevel => {
+  for (const id of targetIds) {
+    if (/^(n5g-|vocab-n5|kanji-n5|read-n5)/.test(id)) return 'N5';
+    if (/^(n4g-|vocab-n4|kanji-n4|read-n4)/.test(id)) return 'N4';
+    if (/^(n3g-|n3u-|vocab-n3|read-n3|listen-n3)/.test(id)) return 'N3';
+    if (/^(n2g-|vocab-n2|read-n2|listen-n2)/.test(id)) return 'N2';
+  }
+  return fallback;
+};
+
 /** バトルの名前をscopeに合わせて決める（§5: 文法だけを「模擬ボス」と呼ばない） */
 export const battleScopeName = (
-  skills: ExamSkill[], level: 'N2' | 'N3', lang: 'ja' | 'zh',
+  skills: ExamSkill[], level: ScopeLevel, lang: 'ja' | 'zh',
 ): string => {
   const uniq = [...new Set(skills)];
   const hasGrammar = uniq.includes('grammar');
@@ -156,7 +175,7 @@ export const battleScopeName = (
 };
 
 /** 攻略率の対象名（§5: 文法だけなら「文法攻略率」） */
-export const masteryScopeName = (skills: ExamSkill[], level: 'N2' | 'N3', lang: 'ja' | 'zh'): string => {
+export const masteryScopeName = (skills: ExamSkill[], level: ScopeLevel, lang: 'ja' | 'zh'): string => {
   const uniq = [...new Set(skills)];
   if (uniq.length === 1 && uniq[0] === 'grammar') return lang === 'zh' ? `${level}语法攻略率` : `${level}文法攻略率`;
   if (uniq.length === 1 && uniq[0] === 'charactersVocabulary') return lang === 'zh' ? `${level}文字・词汇攻略率` : `${level}文字・語彙攻略率`;

@@ -10,7 +10,7 @@ import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, truncateEncounter, type EncounterAnswer } from '../../../lib/aiLesson/course/adventure/advBattle';
 import { computeMastery, type MasteryStatus, PASS_LABEL } from '../../../lib/aiLesson/course/adventure/advMastery';
-import { nowTrainingLabel, EXAM_SKILL_LABELS } from '../../../lib/aiLesson/course/adventure/advExamSkills';
+import { nowTrainingLabel, EXAM_SKILL_LABELS, type ScopeLevel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 
 type L = 'ja' | 'zh';
@@ -35,7 +35,8 @@ export interface BattleProps {
   priorAttempts: AdvMasteryAttempt[];
   dateKey: string;
   nowISO: string;
-  level: 'N2' | 'N3';
+  /** バトル名に出すレベルの受け皿（実際の表記は出題中身から実測される・advBattle.encounterName） */
+  level: ScopeLevel;
   /** 旅の相棒。渡すと誤答の励まし・連続正解の褒め・勝利の一言が出る（表示のみ・採点不変） */
   companionId?: AdvCompanionId | null;
   onFinish: (attempt: AdvMasteryAttempt, mastery: MasteryStatus) => void;

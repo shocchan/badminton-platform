@@ -5,7 +5,7 @@ import type { AdvEnemyTier, AdvMasteryAttempt } from './advTypes';
 import type { AdvBattleQuestion } from './advVariants';
 import { seededShuffle } from './advDiagnosis';
 import { presentBattle, isCorrectAnswer, type PresentedQuestion } from './advChoiceOrder';
-import { battleScopeName, type ExamSkill } from './advExamSkills';
+import { battleScopeName, scopeLevelOfTargets, type ExamSkill, type ScopeLevel } from './advExamSkills';
 import { MASTERY_RULES } from './advMastery';
 
 export interface EncounterSpec {
@@ -143,9 +143,13 @@ export const truncateEncounter = (enc: Encounter, answeredCount: number, seenKey
   };
 };
 
-/** この編成の名前（文法だけなら「文法バトル」・§5） */
-export const encounterName = (enc: Encounter, level: 'N2' | 'N3', lang: 'ja' | 'zh'): string =>
-  battleScopeName(enc.skills, level, lang);
+/**
+ * この編成の名前（文法だけなら「文法バトル」・§5）。
+ * レベル表記は**実際に出題している問題のsourceItemId**から実測する（2026-08-19）。
+ * 引数levelは中身から判定できないときの受け皿（従来互換）
+ */
+export const encounterName = (enc: Encounter, level: ScopeLevel, lang: 'ja' | 'zh'): string =>
+  battleScopeName(enc.skills, scopeLevelOfTargets(enc.questions.map((q) => q.sourceItemId ?? ''), level), lang);
 
 /** 回答（choiceId。未回答はnull） */
 export interface EncounterAnswer { key: string; choiceId: string | null; }
