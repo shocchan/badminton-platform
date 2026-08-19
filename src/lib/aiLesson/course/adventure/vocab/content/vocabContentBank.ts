@@ -24,12 +24,25 @@ import { CORE_BATCH_29 } from './coreBatch29';
 import { CORE_BATCH_30 } from './coreBatch30';
 import { CORE_BATCH_31 } from './coreBatch31';
 import { CORE_BATCH_32 } from './coreBatch32';
+// 2026-08-19 増補: N2 +880語（8バッチ・batchNo 33〜40）。テーマ別に
+// 社会・ニュース／仕事／生活・住まい／健康・体・感情／学び・言語／
+// 移動・旅行・自然／動詞・形容詞・副詞中心／カタカナ語・時事語。
+import { N2_VOCAB_BATCH_01 } from './n2VocabBatch01';
+import { N2_VOCAB_BATCH_02 } from './n2VocabBatch02';
+import { N2_VOCAB_BATCH_03 } from './n2VocabBatch03';
+import { N2_VOCAB_BATCH_04 } from './n2VocabBatch04';
+import { N2_VOCAB_BATCH_05 } from './n2VocabBatch05';
+import { N2_VOCAB_BATCH_06 } from './n2VocabBatch06';
+import { N2_VOCAB_BATCH_07 } from './n2VocabBatch07';
+import { N2_VOCAB_BATCH_08 } from './n2VocabBatch08';
 
 export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_01, ...CORE_BATCH_02, ...CORE_BATCH_03,
   ...CORE_BATCH_04, ...CORE_BATCH_05, ...CORE_BATCH_06, ...CORE_BATCH_07, ...CORE_BATCH_08, ...CORE_BATCH_09, ...CORE_BATCH_10,
   ...CORE_BATCH_21, ...CORE_BATCH_22, ...CORE_BATCH_23, ...CORE_BATCH_24, ...CORE_BATCH_25, ...CORE_BATCH_26,
   ...CORE_BATCH_27, ...CORE_BATCH_28, ...CORE_BATCH_29, ...CORE_BATCH_30, ...CORE_BATCH_31, ...CORE_BATCH_32,
+  ...N2_VOCAB_BATCH_01, ...N2_VOCAB_BATCH_02, ...N2_VOCAB_BATCH_03, ...N2_VOCAB_BATCH_04,
+  ...N2_VOCAB_BATCH_05, ...N2_VOCAB_BATCH_06, ...N2_VOCAB_BATCH_07, ...N2_VOCAB_BATCH_08,
 ];
 
 export const contentBySurfaceReading = (): Map<string, VocabOriginalContent> => {

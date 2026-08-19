@@ -233,7 +233,9 @@ describe('§6 語彙問題（選択式のみ）', () => {
       }
     }
     expect(total).toBeGreaterThan(300);
-  }, 30_000);
+    // 30秒→60秒: N2バッチ増補（+880語）で vocabPool('N2') の初回構築が重くなり、
+    // 全suite並列実行時にworkerが30秒を超えることがある（単体実行では5秒台）
+  }, 60_000);
 
   it('観点は定義済みのものだけ', () => {
     const pool = vocabPool('N2');

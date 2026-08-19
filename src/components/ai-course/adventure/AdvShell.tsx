@@ -46,6 +46,8 @@ import { CompanionAvatar } from './CompanionAvatar';
 import type { AdvBattleQuestion } from '../../../lib/aiLesson/course/adventure/advVariants';
 import { AdvBattleRunner } from './AdvBattleRunner';
 import { AdvReadingRunner } from './AdvReadingRunner';
+import { AdvRuby } from './AdvRuby';
+import { alignFurigana } from './advRubySegment';
 import { AdvListeningRunner } from './AdvListeningRunner';
 import { AdvMockRunner } from './AdvMockRunner';
 import { AdvAnswerSheetRunner } from './AdvAnswerSheetRunner';
@@ -1109,6 +1111,8 @@ export default function AdvShell(props: AdvShellProps) {
     return withCelebration(
       <AdvReadingRunner
         lang={lang} sets={sets}
+        // 本物のJLPT N5/N4は問題用紙の漢字にふりがなが付く。N3以上は付かない（2026-08-19）
+        showRuby={contentLevel === 'N5' || contentLevel === 'N4'}
         onFinish={(r) => {
           if (skillFinishGuard.current) return;
           skillFinishGuard.current = true;
@@ -1405,6 +1409,8 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvGrammarStudy
         lang={lang} grammarId={studyGrammarId} doc={grammarDoc} setDoc={setGrammarDoc}
+        // N5/N4目標の学習者には第1例文をルビ付きで出す（かなを覚えたての生徒が例文を読めないため・2026-08-19）
+        showRuby={contentLevel === 'N5' || contentLevel === 'N4'}
         onBattle={() => {
           setBattle({
             // masteryはN3文法を束（n3g-unit-*）で判定するため、確認バトルも束のプールで戦う
@@ -2873,9 +2879,11 @@ function SubLink({ lang, label, badge, onClick }: { lang: L; label: string; badg
   );
 }
 
-function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLearned }: {
+function AdvGrammarStudy({ lang, grammarId, doc, setDoc, showRuby, onBattle, onBack, onLearned }: {
   lang: L; grammarId: string; doc: N2GrammarDraft | null;
   setDoc: (d: N2GrammarDraft | null) => void;
+  /** N5/N4目標のときtrue。第1例文（furiganaがある例文）をルビ付きで出す */
+  showRuby?: boolean;
   onBattle: () => void; onBack: () => void; onLearned: () => void;
 }) {
   // 「読込中」と「見つからない/読込失敗」を区別する（無限ローディングにしない・原則15）。
@@ -2924,6 +2932,11 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
     );
   }
   if (!doc) return <AdvLoading lang={lang} />;
+  // 第1例文のふりがな（furigana はかな全文・第1例文の読み補助）。N5/N4目標のときだけルビにする。
+  // かな行から漢字対応を復元できないときは、ルビを出さずにかな行をそのまま補助として添える
+  // （誤ったルビは絶対に出さない・AdvRuby.tsx の原則）
+  const rubyKana = showRuby && doc.furigana ? doc.furigana : null;
+  const rubyAligned = rubyKana && doc.examplesJa[0] ? alignFurigana(doc.examplesJa[0], rubyKana) !== null : false;
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <BackBar lang={lang} onBack={onBack} title={doc.pattern} />
@@ -2937,7 +2950,13 @@ function AdvGrammarStudy({ lang, grammarId, doc, setDoc, onBattle, onBack, onLea
         <div className="mt-3 space-y-2">
           {doc.examplesJa.map((ex, i) => (
             <div key={ex} className="rounded-xl border border-gray-100 bg-gray-50 p-2">
-              <p className="text-sm text-gray-900">{ex}</p>
+              <p className="text-sm leading-7 text-gray-900" lang="ja">
+                {i === 0 && rubyKana ? <AdvRuby text={ex} kana={rubyKana} show /> : ex}
+              </p>
+              {/* 復元できなかったときの読み補助（かな全文をそのまま） */}
+              {i === 0 && rubyKana && !rubyAligned && (
+                <p className="mt-0.5 text-xs text-gray-400" lang="ja">{rubyKana}</p>
+              )}
               {doc.examplesZh[i] && <p className="text-xs text-gray-500">{doc.examplesZh[i]}</p>}
             </div>
           ))}

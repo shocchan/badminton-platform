@@ -9,6 +9,7 @@ import { readingToQuestion } from '../../../lib/aiLesson/course/adventure/readin
 import { nowTrainingLabel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { JaTermText } from './JaTermText';
+import { AdvRuby } from './AdvRuby';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -16,6 +17,13 @@ const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 export interface AdvReadingRunnerProps {
   lang: L;
   sets: ReadingSet[];
+  /**
+   * 本文にふりがな（ルビ）を付けるか（2026-08-19）。
+   * 本物のJLPT N5/N4の問題用紙は漢字にふりがなが付くため、N5/N4目標の学習者はtrue。
+   * N3以上はfalse（本番の紙にもふりがなは無い）。設問・選択肢には付けない
+   * （選択肢は語彙の表記問題と選択肢プールを共有し得るため、一律ルビ無しが安全）。
+   */
+  showRuby?: boolean;
   /**
    * 記録だけを行う（画面は閉じない）。結果画面はこのrunnerが出し、
    * 画面を閉じるのは onClose（2026-08-18 監査P1: 「結果を見る」を押すと
@@ -29,7 +37,7 @@ export interface AdvReadingRunnerProps {
   onClose: (reason?: 'no-questions') => void;
 }
 
-export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRunnerProps) {
+export function AdvReadingRunner({ lang, sets, showRuby, onFinish, onClose }: AdvReadingRunnerProps) {
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -144,9 +152,12 @@ export function AdvReadingRunner({ lang, sets, onFinish, onClose }: AdvReadingRu
       {lang === 'zh' && (
         <p className="mb-2 text-xs text-gray-500">{set.contextZh}</p>
       )}
-      {/* 本文。mobileでも読みやすい行長・行間にする */}
+      {/* 本文。mobileでも読みやすい行長・行間にする。
+          N5/N4目標にはルビ付き（本物の試験と同じ）。ルビが本文と食い違うときは AdvRuby が素の本文に落とす */}
       <div className="mb-4 max-h-[46vh] overflow-y-auto rounded-2xl border border-gray-200 bg-white p-4">
-        <p lang="ja" className="whitespace-pre-wrap text-[15px] leading-8 text-gray-900">{set.passageJa}</p>
+        <p lang="ja" className="whitespace-pre-wrap text-[15px] leading-8 text-gray-900">
+          <AdvRuby text={set.passageJa} ruby={set.rubyJa} show={!!showRuby} />
+        </p>
       </div>
 
       <p className="mb-1 text-base font-semibold text-gray-900">{set.questionJa}</p>

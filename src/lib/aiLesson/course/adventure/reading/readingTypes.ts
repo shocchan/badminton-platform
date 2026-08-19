@@ -44,6 +44,13 @@ export interface ReadingSet {
   readingType: ReadingType;
   /** 本文（オリジナル） */
   passageJa: string;
+  /**
+   * 本文のふりがな注釈（2026-08-19 追加・N5/N4のみ）。
+   * 本文全文の漢字の連なりを `[表記|よみ]` で囲んだ文字列（AdvRuby.tsx が描画）。
+   * 注釈を剥がすと passageJa と完全一致すること（advRuby.test.tsx が機械検査）。
+   * N5/N4目標の学習者にだけ表示する。読みが答えになる問題には使わないこと。
+   */
+  rubyJa?: string;
   /** 場面説明（zh画面での導入。日本語本文は翻訳しない＝読解の意味がなくなるため） */
   contextZh: string;
   questionJa: string;
