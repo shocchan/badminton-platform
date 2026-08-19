@@ -31,7 +31,9 @@ export type AdvEventName =
   | 'review_completion' | 'ai_conversation_completion'
   | 'skill_evidence_added' | 'weekly_progress_viewed'
   | 'onboarding_abandoned' | 'quest_abandoned'
-  | 'seven_days_inactive' | 'repeated_learning_error';
+  | 'seven_days_inactive' | 'repeated_learning_error'
+  // 次の道カード（現目標の試験系stage全攻略 → 次レベルへの誘導）のCTA押下
+  | 'next_road_advanced';
 
 export interface AdvEventParams {
   goalType?: AdvGoalType;

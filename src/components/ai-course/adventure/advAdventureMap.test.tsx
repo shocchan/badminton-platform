@@ -296,3 +296,27 @@ describe('成長マップ — 測っていないものを盛らない（原則13
     expect(screen.getByText(/先に基礎キャンプを攻略します|基礎キャンプを攻略すると開きます/)).toBeTruthy();
   });
 });
+
+describe('次の道カードの枠（nextRoadSlot・2026-08-19）', () => {
+  it('渡した中身が世界地図の直下（navの中）に描かれる。渡さなければ枠ごと出ない', () => {
+    const h = handlers();
+    const p = profileFor('jlpt');
+    render(
+      <AdvAdventureMap
+        lang="ja" profile={p} route={p.route}
+        mastered={new Set()} currentWeek={1} quest={quest}
+        nextStepTitleJa="復習2問" nextStepTitleZh="复习2题"
+        reviewAvailable conversationAvailable
+        sheetsVisible={false} sheetCount={0} interviewVisible={false}
+        nextRoadSlot={<p>次の道テスト枠</p>}
+        {...h}
+      />,
+    );
+    const nav = screen.getByRole('navigation', { name: 'マップ全体図（タップでその地域へ移動）' });
+    expect(within(nav).getByText('次の道テスト枠')).toBeTruthy();
+    cleanup();
+    // 渡さない（AdvShellで実測判定がnullの）ときは何も出ない
+    setup({ goal: 'jlpt' });
+    expect(screen.queryByText('次の道テスト枠')).toBeNull();
+  });
+});

@@ -19,7 +19,7 @@
 // - prefers-reduced-motion ではアニメーションを止める
 // - 地図が読めない/使えない人のために**一覧表示へ切り替えられる**
 import { pressFx } from './advUi';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { List, Map as MapIcon, Lock, Flag, ChevronRight, Star, ChevronDown } from 'lucide-react';
 import { CompanionAvatar } from './CompanionAvatar';
 import { levelOf } from '../../../lib/aiLesson/course/adventure/advXp';
@@ -31,7 +31,7 @@ import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/a
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { LandmarkScene, LandmarkIcon } from './AdvMapLandmarks';
 import { AdvMapBadges } from './AdvMapBadges';
-import { AdvMapOverview } from './AdvMapOverview';
+import { AdvWorldMap } from './AdvWorldMap';
 import { TeacherAvatar } from '../TeacherAvatar';
 
 type L = 'ja' | 'zh';
@@ -74,6 +74,11 @@ interface Props {
   revealRegionId?: string | null;
   /** 再生完了（またはreduced-motionでスキップ）時に呼ぶ。呼び出し側がstateを消す */
   onRevealDone?: () => void;
+  /**
+   * 世界地図の直下に出す「次の道」カードの枠（2026-08-19 冒険旅マップ）。
+   * 出すかどうかの実データ判定（全stage攻略など）は AdvShell 側が行い、ここは枠だけ持つ
+   */
+  nextRoadSlot?: ReactNode;
 }
 
 /** 章バナーの色替え（ゲームのワールド感。章が進むと世界の色が変わる・2026-08-17 CEO要望） */
@@ -133,6 +138,7 @@ export const AdvAdventureMap = ({
   interviewVisible, onOpenInterview,
   paceNoteJa = null, paceNoteZh = null,
   revealRegionId = null, onRevealDone,
+  nextRoadSlot,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
@@ -503,11 +509,11 @@ export const AdvAdventureMap = ({
       )}
 
       {/*
-        ── マップ全体図（2026-08-19 CEO要望「マップ全体も見えるといいな」） ──
+        ── 冒険旅の世界地図（2026-08-19 CEO要望「スタンプカードではなく冒険旅のマップに」） ──
         ルートタブの直下＝選択中ルートの全体像と一致する位置。Primary CTA より必ず下（原則16）。
         map/list 両表示で常に出す。実測 regions の別ビューで、状態の再計算はしない（原則13）
       */}
-      <AdvMapOverview
+      <AdvWorldMap
         lang={lang}
         regions={map.regions}
         currentRegionId={map.currentRegionId}
@@ -516,6 +522,9 @@ export const AdvAdventureMap = ({
         doneCount={map.doneCount}
         totalCount={map.totalCount}
         onSelectRegion={scrollToRegion}
+        targetJlpt={profile.targetJlpt}
+        routeKind={routeKind}
+        summitSlot={nextRoadSlot}
       />
 
       {/* ── 3. 冒険の道 ── */}

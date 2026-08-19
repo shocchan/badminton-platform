@@ -5,8 +5,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/course/types';
 import type {
-  AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile,
+  AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
+import { AdvNextRoadCard } from './AdvNextRoadCard';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
@@ -297,6 +299,12 @@ export default function AdvShell(props: AdvShellProps) {
   // 目的・レベルの変更＝オンボーディングのやり直し（記録は保持。設定画面から入る）。
   // requestView('redo')が使うため、切替要求の処理より前に宣言する
   const [redoOnboarding, setRedoOnboarding] = useState(false);
+  /**
+   * 次の道カードからのやり直しで**事前選択しておく目標レベル**（2026-08-19）。
+   * 「N4への道をひらく」を押したのに目標画面でもう一度N4を探させない。
+   * フローは goal から従来どおり（目的の再確認は残す）。完了・キャンセルで必ず戻す
+   */
+  const [redoPresetTarget, setRedoPresetTarget] = useState<JlptLevel | null>(null);
   /**
    * 「次のstepへ」要求（2026-08-17 CEO要望「毎回戻らないといけないので」）。
    * 復習画面から戻ったとき、ホームで押し直させずに次のstepを直接開く。
@@ -838,6 +846,7 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvOnboarding
         lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
+        presetTarget={redoPresetTarget}
         onOutcomeReady={(o: OnboardingOutcome) => {
           // 診断完了の時点でDBへ確定保存する（2026-08-15）。ルート披露画面でアプリを
           // 閉じても診断・設定が消えない。React state は触らない＝披露画面はそのまま表示
@@ -849,10 +858,11 @@ export default function AdvShell(props: AdvShellProps) {
         onComplete={(o: OnboardingOutcome) => {
           save(profileFromOutcome(o));
           setRedoOnboarding(false);
+          setRedoPresetTarget(null);
           setView('home');
         }}
         /* キャンセルはやり直し中だけ出る（初回の「従来ホームへ」は撤去済み） */
-        onCancel={() => setRedoOnboarding(false)}
+        onCancel={() => { setRedoOnboarding(false); setRedoPresetTarget(null); }}
       />
     );
   }
@@ -1534,6 +1544,18 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  /**
+   * 次の道カードのCTA（2026-08-19）。home と成長マップ（世界地図の直下の枠）の両方から使う。
+   * 目標レベルを事前選択して「冒険の準備」へ。redoPresetTarget の後始末は
+   * オンボーディングの onComplete / onCancel が必ず行う
+   */
+  const advanceNextRoad = (lv: JlptLevel) => {
+    trackAdv('next_road_advanced', { targetLevel: lv, locale: lang });
+    setRedoPresetTarget(lv);
+    setRedoOnboarding(true);
+    setView('home');
+  };
+
   // ── 成長マップ（旧「成長」の12週リストと旧ルート表示をここへ統合・canon §5） ──
   //
   // 地図の各地域のCTAは**実際の行動へ繋ぐ**（原則15・行き止まりを作らない）。
@@ -1557,6 +1579,9 @@ export default function AdvShell(props: AdvShellProps) {
      * ホーム側の攻略率は `deriveMasteredStageIds` で出しているので、数字も食い違っていた。
      */
     const mapMastered = mapStageDone.size > 0 ? new Set([...mapTargets, ...mapStageDone]) : mapTargets;
+    // 次の道（2026-08-19）: 世界地図の直下の枠に入れる。判定は home と同じ実測
+    // （現目標の試験系stage全攻略）。pools未ロード時は mapStageDone が空集合＝出ない側に安全
+    const mapNextRoad = nextRoadOf(prof, route, mapStageDone);
     const mapPace = pools && prof.goalType !== 'conversation'
       ? computePace({
         route, ledger: prof.mastery, nowISO,
@@ -1612,6 +1637,13 @@ export default function AdvShell(props: AdvShellProps) {
         onOpenSheets={() => setView('sheets')}
         interviewVisible={interviewPrepVisible(prof)}
         onOpenInterview={() => setView('interview')}
+        /* 次の道カード（2026-08-19）: 全stage攻略の実測が出た地図でこそ「道が伸びる」を
+           その場で見せる。home側の同カードと文言・遷移は完全に同一 */
+        nextRoadSlot={mapNextRoad ? (
+          <AdvNextRoadCard lang={lang}
+            clearedLevel={mapNextRoad.clearedLevel} nextLevel={mapNextRoad.nextLevel}
+            onAdvance={advanceNextRoad} />
+        ) : null}
       />
     );
   }
@@ -2143,6 +2175,9 @@ export default function AdvShell(props: AdvShellProps) {
   const mastered = masteredTargetIds(prof.mastery, nowISO);
   const stageDone = pools ? deriveMasteredStageIds(route, mastered, pools.n3Ids, pools.n2ByUnit, pools.n3BundleByItem, pools.basicByUnit, pools.basicBundleByUnit) : mastered;
   const stage = currentStageOf(route, stageDone);
+  // 次の道（2026-08-19）。現目標の試験系stageを全攻略した実測でだけ出る。
+  // pools未ロード時の stageDone フォールバック（targetID集合）では成立しない＝偽陽性なし
+  const nextRoad = nextRoadOf(prof, route, stageDone);
   const daysToExam = daysToExamOf(prof.examDateISO, dateKey);
   // 目的地までの残り量と実測ペース（原則13: ペース・予測は実測2週未満ならnull＝出さない）
   const pace = pools && prof.goalType !== 'conversation'
@@ -2448,6 +2483,17 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, '読み込み直す', '重新加载')}
           </button>
         </div>
+      )}
+
+      {/* 次の道カード（2026-08-19 CEO要望「N5全クリしたらN4,N3と道が増えていく」）。
+          置き場所は staleBuild の直後に固定: staleBuild（古いJSで動いている警告）は
+          学習の正しさそのものに関わる運用アラートなので何よりも上、祝い＝次の道はその次。
+          模試・答案の再開カード（壁時計が進む緊急枠）より上に出るが、全stage攻略済みの
+          生徒に途中の模試が残っているのは目標変更後の残骸だけなので実害はない */}
+      {nextRoad && (
+        <AdvNextRoadCard lang={lang}
+          clearedLevel={nextRoad.clearedLevel} nextLevel={nextRoad.nextLevel}
+          onAdvance={advanceNextRoad} />
       )}
 
       {/* 先生からの一言（週1・2026-08-17）。未読が1件あるときだけ出す。

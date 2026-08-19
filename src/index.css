@@ -177,6 +177,14 @@
   /* つづけた日の炎 */
   @keyframes adv-flame { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
   .adv-flame { animation: adv-flame 1.6s ease-in-out infinite; }
+
+  /* 世界地図の雲海がゆっくり漂う（2026-08-19 冒険旅マップ。装飾のみ・進捗を主張しない） */
+  @keyframes adv-cloud-drift {
+    0%, 100% { transform: translateX(0); }
+    50%      { transform: translateX(8px); }
+  }
+  .adv-cloud-drift { animation: adv-cloud-drift 9s ease-in-out infinite; }
+  .adv-cloud-drift-slow { animation: adv-cloud-drift 14s ease-in-out infinite reverse; }
 }
 
 /* 歩いた道の足あとドット（冒険マップのdone区間。静的装飾＝motion無関係なのでブロックの外） */

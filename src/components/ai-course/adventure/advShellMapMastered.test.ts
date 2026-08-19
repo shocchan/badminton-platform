@@ -24,6 +24,19 @@ describe('冒険マップへ渡す攻略済み集合', () => {
   });
 });
 
+describe('次の道カードの配線（2026-08-19）', () => {
+  it('home と成長マップ（世界地図直下の枠）の両方に、同じ実測判定・同じCTAで出している', () => {
+    // home 側の判定（pools未ロード時のstageDoneフォールバックでは成立しない＝偽陽性なし）
+    expect(SRC).toMatch(/const nextRoad = nextRoadOf\(prof, route, stageDone\)/);
+    // 地図側の判定（pools未ロードでは mapStageDone が空集合＝出ない側に安全）
+    expect(SRC).toMatch(/const mapNextRoad = nextRoadOf\(prof, route, mapStageDone\)/);
+    // 地図側は AdvAdventureMap の nextRoadSlot（世界地図直下の枠）へ入れている
+    expect(SRC).toMatch(/nextRoadSlot=\{mapNextRoad/);
+    // CTAは両所とも同一ハンドラ（文言・遷移が home と地図で割れない）
+    expect((SRC.match(/onAdvance=\{advanceNextRoad\}/g) ?? []).length).toBe(2);
+  });
+});
+
 describe('確認バトルの対象', () => {
   it('出題プールを持たない疑似target（読解・聴解・模試・錯題本）を対象にしない', () => {
     const filter = /includeTargetId: \(id\) =>[\s\S]{0,220}?,\n/.exec(SRC);

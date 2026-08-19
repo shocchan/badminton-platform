@@ -66,6 +66,20 @@ describe('オンボーディングの「もどる」導線', () => {
   });
 });
 
+describe('次の道カードからの事前選択（presetTarget・2026-08-19）', () => {
+  it('presetTargetを渡すと目標レベル画面でそのレベルが選択済みになっている（選び直しは自由）', () => {
+    render(
+      <AdvOnboarding lang="ja" pools={pools} nowISO={NOW} redo presetTarget="N4"
+        onComplete={vi.fn()} onCancel={vi.fn()} />,
+    );
+    // フローは goal から従来どおり（目的の再確認は残す）
+    fireEvent.click(screen.getByRole('button', { name: 'JLPTに合格したい' }));
+    fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));
+    expect(screen.getByLabelText('目標レベル')).toBeTruthy();
+    expect(screen.getByRole('button', { name: /N4/ }).className).toContain('is-selected');
+  });
+});
+
 describe('相棒の正式キャラ（ナツ/ハル/アキ）', () => {
   it('選択画面に3体が新しい名前で並ぶ（旧キャラ名は出ない）', () => {
     renderOnboarding(false);

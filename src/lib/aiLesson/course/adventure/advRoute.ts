@@ -31,6 +31,9 @@ const DESTINATION: Record<JlptLevel, { areaId: string; labelJa: string; labelZh:
   N1: { areaId: 'area08-sorano', labelJa: 'N1（未対応）', labelZh: 'N1（尚未支持）' },
 };
 
+/** 目標レベル → 目的地（次の道カード等で「次の目的地」を実データのまま名指しするために公開） */
+export const destinationOf = (t: JlptLevel): { areaId: string; labelJa: string; labelZh: string } => DESTINATION[t];
+
 /** 会話開始地点（§6）。「あなたはN3」と断定せず「開始地点はこのエリア」と言うための対応表 */
 export const conversationStartArea = (band: AdvBand): { areaId: string; labelJa: string; labelZh: string } => {
   if (band === 'needs_assessment' || !bandAtLeast(band, 'n4')) {

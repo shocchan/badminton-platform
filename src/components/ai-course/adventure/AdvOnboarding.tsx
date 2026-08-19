@@ -49,6 +49,12 @@ interface Props {
   onOutcomeReady?: (o: OnboardingOutcome) => void;
   /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
   redo?: boolean;
+  /**
+   * 目標レベルの事前選択（2026-08-19 次の道カード）。
+   * 「N4への道をひらく」から来たとき、目標画面でもう一度N4を探させない。
+   * フローは goal から従来どおり（目的の再確認は残す）で、選び直しも自由
+   */
+  presetTarget?: JlptLevel | null;
   /*
    * canCancelToLegacy は撤去（2026-08-18 監査P1）。
    * 判定に使っていた progress.length>0 は「旧コース歴」を表さない（V2のAI会話を1回終えるだけで
@@ -65,10 +71,10 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false }: Props) {
+export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false, presetTarget = null }: Props) {
   const [phase, setPhase] = useState<Phase>('goal');
   const [goal, setGoal] = useState<AdvGoalType | null>(null);
-  const [target, setTarget] = useState<JlptLevel | null>(null);
+  const [target, setTarget] = useState<JlptLevel | null>(presetTarget ?? null);
   const [examDate, setExamDate] = useState('');
   const [weeklyDays, setWeeklyDays] = useState(5);
   const [minutes, setMinutes] = useState<5 | 15 | 30>(15);
