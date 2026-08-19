@@ -377,7 +377,8 @@ describe('管理ページ描画検品: 実データ相当のフル構成', () =>
     // 商品カタログ現況（planCatalog.ts の3商品）
     expect(screen.getByText('商品カタログ（planCatalog.ts）')).toBeTruthy();
     expect(screen.getAllByText(/AI体験パス/).length).toBeGreaterThan(1);
-    expect(screen.getByText('1か月AIお試し')).toBeTruthy();
+    // 2026-08-19 商品3段階化で「1か月AIお試し」→「1か月 AI自学プラン」へ改名
+    expect(screen.getByText('1か月 AI自学プラン')).toBeTruthy();
     expect(screen.getByText('6か月 AI日本語伴走コース')).toBeTruthy();
   });
 

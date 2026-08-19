@@ -51,12 +51,14 @@ export function SectionHeading({ eyebrow, title, lead, center = true }: { eyebro
 
 type CtaVariant = 'primary' | 'ghost' | 'white';
 export function CtaButton({
-  children, onClick, href, variant = 'primary', className = '', event, eventParams, fullWidth = false,
+  children, onClick, href, variant = 'primary', className = '', event, eventParams, fullWidth = false, disabled = false,
 }: {
   children: ReactNode; onClick?: () => void; href?: string; variant?: CtaVariant;
   className?: string; event?: string; eventParams?: Record<string, unknown>; fullWidth?: boolean;
+  /** 決済ページへの移動中など。二度押しを防ぐ */
+  disabled?: boolean;
 }) {
-  const base = 'inline-flex items-center justify-center gap-2 font-extrabold rounded-full px-6 py-3.5 text-[1.02rem] transition-transform duration-150 active:translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine';
+  const base = 'inline-flex items-center justify-center gap-2 font-extrabold rounded-full px-6 py-3.5 text-[1.02rem] transition-transform duration-150 active:translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine disabled:opacity-60 disabled:pointer-events-none';
   const styles: Record<CtaVariant, string> = {
     primary: 'bg-lp-coral text-white shadow-[0_8px_0_var(--color-lp-coral-deep)] hover:-translate-y-0.5',
     ghost: 'border-2 border-lp-pine text-lp-pine hover:bg-lp-pine-soft',
@@ -67,7 +69,7 @@ export function CtaButton({
   if (href) {
     return <a href={href} className={cls} onClick={handle}>{children}</a>;
   }
-  return <button type="button" className={cls} onClick={handle}>{children}</button>;
+  return <button type="button" className={cls} onClick={handle} disabled={disabled}>{children}</button>;
 }
 
 /** チェックマーク */

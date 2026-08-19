@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
+import { trackPageView } from './lib/analytics';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -46,6 +47,8 @@ const MyPage              = lazy(() => import('./pages/MyPage'));
 const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
+// セルフサービス決済の完了ページ（Stripe Checkout の戻り先）
+const AiCoursePurchaseComplete = lazy(() => import('./pages/ai-lesson/landing/PurchaseCompletePage').then(m => ({ default: m.PurchaseCompletePage })));
 const AiCourseAdminPage   = lazy(() => import('./pages/ai-lesson/AiCourseAdminPage'));
 // 問題バンク監査コンソール。
 // **production ビルドではこの import 式ごと消える**（MODE が定数畳み込みされ、
@@ -83,6 +86,9 @@ const AiCourseCatchAll = () => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  // SPAのルート遷移ごとに page_view を送る（GA4無効時はno-op）。
+  // /admin を開いたブラウザは trackPageView 側で以後の計測から自動除外される
+  useEffect(() => { trackPageView(location.pathname); }, [location.pathname]);
   return (
     <Suspense fallback={<PageLoader lang={location.pathname.startsWith('/zh') ? 'zh' : 'ja'} />}>
       <div key={location.pathname} className="page-fade">
@@ -120,6 +126,10 @@ const AnimatedRoutes = () => {
             <Route path="mypage"          element={<MyPage />} />
             <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
               <Route path="ai-course"       element={<AiCourseEntry />} />
+              {/* 受講者ログイン（LPと分離した専用URL）。?app=1 は既存ブックマーク互換で残す */}
+              <Route path="ai-course/login" element={<AiCourseEntry forceApp />} />
+              {/* 決済完了（Stripe success_url）。catch-all より前に置く */}
+              <Route path="ai-course/purchase/complete" element={<AiCoursePurchaseComplete />} />
               <Route path="ai-course/shoko" element={<AiCourseEntry variant="shoko" />} />
               <Route path="ai-course/yuto"  element={<AiCourseEntry variant="yuto" />} />
               <Route path="ai-course/admin" element={<AiCourseAdminPage />} />

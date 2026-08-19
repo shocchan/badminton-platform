@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.773Z",
+ "batchNo": 36,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-36-001",
+  "vc-36-002",
+  "vc-36-003",
+  "vc-36-004",
+  "vc-36-005",
+  "vc-36-006",
+  "vc-36-007",
+  "vc-36-008",
+  "vc-36-009",
+  "vc-36-010",
+  "vc-36-011",
+  "vc-36-012",
+  "vc-36-013",
+  "vc-36-014",
+  "vc-36-015",
+  "vc-36-016",
+  "vc-36-017",
+  "vc-36-018",
+  "vc-36-019",
+  "vc-36-020",
+  "vc-36-021",
+  "vc-36-022",
+  "vc-36-023",
+  "vc-36-024",
+  "vc-36-025",
+  "vc-36-026",
+  "vc-36-027",
+  "vc-36-028",
+  "vc-36-029",
+  "vc-36-030",
+  "vc-36-031",
+  "vc-36-032",
+  "vc-36-033",
+  "vc-36-034",
+  "vc-36-035",
+  "vc-36-036",
+  "vc-36-037",
+  "vc-36-038",
+  "vc-36-039",
+  "vc-36-040",
+  "vc-36-041",
+  "vc-36-042",
+  "vc-36-043",
+  "vc-36-044",
+  "vc-36-045",
+  "vc-36-046",
+  "vc-36-047",
+  "vc-36-048",
+  "vc-36-049",
+  "vc-36-050",
+  "vc-36-051",
+  "vc-36-052",
+  "vc-36-053",
+  "vc-36-054",
+  "vc-36-055",
+  "vc-36-056",
+  "vc-36-057",
+  "vc-36-058",
+  "vc-36-059",
+  "vc-36-060",
+  "vc-36-061",
+  "vc-36-062",
+  "vc-36-063",
+  "vc-36-064",
+  "vc-36-065",
+  "vc-36-066",
+  "vc-36-067",
+  "vc-36-068",
+  "vc-36-069",
+  "vc-36-070",
+  "vc-36-071",
+  "vc-36-072",
+  "vc-36-073",
+  "vc-36-074",
+  "vc-36-075",
+  "vc-36-076",
+  "vc-36-077",
+  "vc-36-078",
+  "vc-36-079",
+  "vc-36-080",
+  "vc-36-081",
+  "vc-36-082",
+  "vc-36-083",
+  "vc-36-084",
+  "vc-36-085",
+  "vc-36-086",
+  "vc-36-087",
+  "vc-36-088",
+  "vc-36-089",
+  "vc-36-090",
+  "vc-36-091",
+  "vc-36-092",
+  "vc-36-093",
+  "vc-36-094",
+  "vc-36-095",
+  "vc-36-096",
+  "vc-36-097",
+  "vc-36-098",
+  "vc-36-099",
+  "vc-36-100",
+  "vc-36-101",
+  "vc-36-102",
+  "vc-36-103",
+  "vc-36-104",
+  "vc-36-105",
+  "vc-36-106",
+  "vc-36-107",
+  "vc-36-108",
+  "vc-36-109",
+  "vc-36-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-36-001",
+   "surface": "顕著",
+   "kind": "no_dictionary_entry",
+   "detail": "顕著|けんちょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-002",
+   "surface": "精巧",
+   "kind": "no_dictionary_entry",
+   "detail": "精巧|せいこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-003",
+   "surface": "明白",
+   "kind": "no_dictionary_entry",
+   "detail": "明白|めいはく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-004",
+   "surface": "鮮明",
+   "kind": "no_dictionary_entry",
+   "detail": "鮮明|せんめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-005",
+   "surface": "厳密",
+   "kind": "no_dictionary_entry",
+   "detail": "厳密|げんみつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-006",
+   "surface": "綿密",
+   "kind": "no_dictionary_entry",
+   "detail": "綿密|めんみつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-007",
+   "surface": "明朗",
+   "kind": "no_dictionary_entry",
+   "detail": "明朗|めいろう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-008",
+   "surface": "巧妙",
+   "kind": "no_dictionary_entry",
+   "detail": "巧妙|こうみょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-009",
+   "surface": "確実",
+   "kind": "no_dictionary_entry",
+   "detail": "確実|かくじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-010",
+   "surface": "着実",
+   "kind": "no_dictionary_entry",
+   "detail": "着実|ちゃくじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-011",
+   "surface": "堅実",
+   "kind": "no_dictionary_entry",
+   "detail": "堅実|けんじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-012",
+   "surface": "切実",
+   "kind": "no_dictionary_entry",
+   "detail": "切実|せつじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-013",
+   "surface": "簡素",
+   "kind": "no_dictionary_entry",
+   "detail": "簡素|かんそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-014",
+   "surface": "質素",
+   "kind": "no_dictionary_entry",
+   "detail": "質素|しっそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-015",
+   "surface": "豪華",
+   "kind": "no_dictionary_entry",
+   "detail": "豪華|ごうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-016",
+   "surface": "贅沢",
+   "kind": "no_dictionary_entry",
+   "detail": "贅沢|ぜいたく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-017",
+   "surface": "優雅",
+   "kind": "no_dictionary_entry",
+   "detail": "優雅|ゆうが が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-018",
+   "surface": "上品",
+   "kind": "no_dictionary_entry",
+   "detail": "上品|じょうひん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-019",
+   "surface": "下品",
+   "kind": "no_dictionary_entry",
+   "detail": "下品|げひん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-020",
+   "surface": "高価",
+   "kind": "no_dictionary_entry",
+   "detail": "高価|こうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-021",
+   "surface": "安価",
+   "kind": "no_dictionary_entry",
+   "detail": "安価|あんか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-022",
+   "surface": "純粋",
+   "kind": "no_dictionary_entry",
+   "detail": "純粋|じゅんすい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-023",
+   "surface": "粗末",
+   "kind": "no_dictionary_entry",
+   "detail": "粗末|そまつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-024",
+   "surface": "容易",
+   "kind": "no_dictionary_entry",
+   "detail": "容易|ようい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-025",
+   "surface": "簡易",
+   "kind": "no_dictionary_entry",
+   "detail": "簡易|かんい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-026",
+   "surface": "手軽",
+   "kind": "no_dictionary_entry",
+   "detail": "手軽|てがる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-027",
+   "surface": "安易",
+   "kind": "no_dictionary_entry",
+   "detail": "安易|あんい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-028",
+   "surface": "手頃",
+   "kind": "no_dictionary_entry",
+   "detail": "手頃|てごろ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-029",
+   "surface": "適度",
+   "kind": "no_dictionary_entry",
+   "detail": "適度|てきど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-030",
+   "surface": "過酷",
+   "kind": "no_dictionary_entry",
+   "detail": "過酷|かこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-031",
+   "surface": "余計",
+   "kind": "no_dictionary_entry",
+   "detail": "余計|よけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-032",
+   "surface": "余分",
+   "kind": "no_dictionary_entry",
+   "detail": "余分|よぶん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-033",
+   "surface": "正当",
+   "kind": "no_dictionary_entry",
+   "detail": "正当|せいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-034",
+   "surface": "不当",
+   "kind": "no_dictionary_entry",
+   "detail": "不当|ふとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-035",
+   "surface": "対等",
+   "kind": "no_dictionary_entry",
+   "detail": "対等|たいとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-036",
+   "surface": "平坦",
+   "kind": "no_dictionary_entry",
+   "detail": "平坦|へいたん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-037",
+   "surface": "平凡",
+   "kind": "no_dictionary_entry",
+   "detail": "平凡|へいぼん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-038",
+   "surface": "雄大",
+   "kind": "no_dictionary_entry",
+   "detail": "雄大|ゆうだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-039",
+   "surface": "広大",
+   "kind": "no_dictionary_entry",
+   "detail": "広大|こうだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-040",
+   "surface": "壮大",
+   "kind": "no_dictionary_entry",
+   "detail": "壮大|そうだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-041",
+   "surface": "偉大",
+   "kind": "no_dictionary_entry",
+   "detail": "偉大|いだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-042",
+   "surface": "莫大",
+   "kind": "no_dictionary_entry",
+   "detail": "莫大|ばくだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-043",
+   "surface": "膨大",
+   "kind": "no_dictionary_entry",
+   "detail": "膨大|ぼうだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-044",
+   "surface": "窮屈",
+   "kind": "no_dictionary_entry",
+   "detail": "窮屈|きゅうくつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-045",
+   "surface": "盛大",
+   "kind": "no_dictionary_entry",
+   "detail": "盛大|せいだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-046",
+   "surface": "強硬",
+   "kind": "no_dictionary_entry",
+   "detail": "強硬|きょうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-047",
+   "surface": "独特",
+   "kind": "no_dictionary_entry",
+   "detail": "独特|どくとく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-048",
+   "surface": "独自",
+   "kind": "no_dictionary_entry",
+   "detail": "独自|どくじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-049",
+   "surface": "奇妙",
+   "kind": "no_dictionary_entry",
+   "detail": "奇妙|きみょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-050",
+   "surface": "微妙",
+   "kind": "no_dictionary_entry",
+   "detail": "微妙|びみょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-051",
+   "surface": "頑丈",
+   "kind": "no_dictionary_entry",
+   "detail": "頑丈|がんじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-052",
+   "surface": "強烈",
+   "kind": "no_dictionary_entry",
+   "detail": "強烈|きょうれつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-053",
+   "surface": "猛烈",
+   "kind": "no_dictionary_entry",
+   "detail": "猛烈|もうれつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-054",
+   "surface": "過激",
+   "kind": "no_dictionary_entry",
+   "detail": "過激|かげき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-055",
+   "surface": "機敏",
+   "kind": "no_dictionary_entry",
+   "detail": "機敏|きびん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-056",
+   "surface": "軽快",
+   "kind": "no_dictionary_entry",
+   "detail": "軽快|けいかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-057",
+   "surface": "敏感",
+   "kind": "no_dictionary_entry",
+   "detail": "敏感|びんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-058",
+   "surface": "鈍感",
+   "kind": "no_dictionary_entry",
+   "detail": "鈍感|どんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-059",
+   "surface": "陰気",
+   "kind": "no_dictionary_entry",
+   "detail": "陰気|いんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-060",
+   "surface": "快適",
+   "kind": "no_dictionary_entry",
+   "detail": "快適|かいてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-061",
+   "surface": "不快",
+   "kind": "no_dictionary_entry",
+   "detail": "不快|ふかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-062",
+   "surface": "気楽",
+   "kind": "no_dictionary_entry",
+   "detail": "気楽|きらく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-063",
+   "surface": "露骨",
+   "kind": "no_dictionary_entry",
+   "detail": "露骨|ろこつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-064",
+   "surface": "悲惨",
+   "kind": "no_dictionary_entry",
+   "detail": "悲惨|ひさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-065",
+   "surface": "残酷",
+   "kind": "no_dictionary_entry",
+   "detail": "残酷|ざんこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-066",
+   "surface": "物騒",
+   "kind": "no_dictionary_entry",
+   "detail": "物騒|ぶっそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-067",
+   "surface": "不吉",
+   "kind": "no_dictionary_entry",
+   "detail": "不吉|ふきつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-068",
+   "surface": "不運",
+   "kind": "no_dictionary_entry",
+   "detail": "不運|ふうん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-069",
+   "surface": "温和",
+   "kind": "no_dictionary_entry",
+   "detail": "温和|おんわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-070",
+   "surface": "温厚",
+   "kind": "no_dictionary_entry",
+   "detail": "温厚|おんこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-071",
+   "surface": "柔軟",
+   "kind": "no_dictionary_entry",
+   "detail": "柔軟|じゅうなん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-072",
+   "surface": "強引",
+   "kind": "no_dictionary_entry",
+   "detail": "強引|ごういん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-073",
+   "surface": "勇敢",
+   "kind": "no_dictionary_entry",
+   "detail": "勇敢|ゆうかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-074",
+   "surface": "臆病",
+   "kind": "no_dictionary_entry",
+   "detail": "臆病|おくびょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-075",
+   "surface": "卑怯",
+   "kind": "no_dictionary_entry",
+   "detail": "卑怯|ひきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-076",
+   "surface": "誠実",
+   "kind": "no_dictionary_entry",
+   "detail": "誠実|せいじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-077",
+   "surface": "忠実",
+   "kind": "no_dictionary_entry",
+   "detail": "忠実|ちゅうじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-078",
+   "surface": "勤勉",
+   "kind": "no_dictionary_entry",
+   "detail": "勤勉|きんべん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-079",
+   "surface": "無謀",
+   "kind": "no_dictionary_entry",
+   "detail": "無謀|むぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-080",
+   "surface": "大胆",
+   "kind": "no_dictionary_entry",
+   "detail": "大胆|だいたん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-081",
+   "surface": "繊細",
+   "kind": "no_dictionary_entry",
+   "detail": "繊細|せんさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-082",
+   "surface": "無口",
+   "kind": "no_dictionary_entry",
+   "detail": "無口|むくち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-083",
+   "surface": "賢明",
+   "kind": "no_dictionary_entry",
+   "detail": "賢明|けんめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-084",
+   "surface": "懸命",
+   "kind": "no_dictionary_entry",
+   "detail": "懸命|けんめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-085",
+   "surface": "不器用",
+   "kind": "no_dictionary_entry",
+   "detail": "不器用|ぶきよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-086",
+   "surface": "乱雑",
+   "kind": "no_dictionary_entry",
+   "detail": "乱雑|らんざつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-087",
+   "surface": "不愉快",
+   "kind": "no_dictionary_entry",
+   "detail": "不愉快|ふゆかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-088",
+   "surface": "割安",
+   "kind": "no_dictionary_entry",
+   "detail": "割安|わりやす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-089",
+   "surface": "不調",
+   "kind": "no_dictionary_entry",
+   "detail": "不調|ふちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-090",
+   "surface": "正常",
+   "kind": "no_dictionary_entry",
+   "detail": "正常|せいじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-091",
+   "surface": "不安定",
+   "kind": "no_dictionary_entry",
+   "detail": "不安定|ふあんてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-092",
+   "surface": "不規則",
+   "kind": "no_dictionary_entry",
+   "detail": "不規則|ふきそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-093",
+   "surface": "頻繁",
+   "kind": "no_dictionary_entry",
+   "detail": "頻繁|ひんぱん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-094",
+   "surface": "多忙",
+   "kind": "no_dictionary_entry",
+   "detail": "多忙|たぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-095",
+   "surface": "厄介",
+   "kind": "no_dictionary_entry",
+   "detail": "厄介|やっかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-096",
+   "surface": "豊富",
+   "kind": "no_dictionary_entry",
+   "detail": "豊富|ほうふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-097",
+   "surface": "裕福",
+   "kind": "no_dictionary_entry",
+   "detail": "裕福|ゆうふく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-098",
+   "surface": "貧弱",
+   "kind": "no_dictionary_entry",
+   "detail": "貧弱|ひんじゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-099",
+   "surface": "巧み",
+   "kind": "no_dictionary_entry",
+   "detail": "巧み|たくみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-100",
+   "surface": "神経質",
+   "kind": "no_dictionary_entry",
+   "detail": "神経質|しんけいしつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-101",
+   "surface": "良好",
+   "kind": "no_dictionary_entry",
+   "detail": "良好|りょうこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-102",
+   "surface": "最適",
+   "kind": "no_dictionary_entry",
+   "detail": "最適|さいてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-103",
+   "surface": "未熟",
+   "kind": "no_dictionary_entry",
+   "detail": "未熟|みじゅく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-104",
+   "surface": "厳格",
+   "kind": "no_dictionary_entry",
+   "detail": "厳格|げんかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-105",
+   "surface": "円満",
+   "kind": "no_dictionary_entry",
+   "detail": "円満|えんまん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-106",
+   "surface": "密接",
+   "kind": "no_dictionary_entry",
+   "detail": "密接|みっせつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-107",
+   "surface": "親密",
+   "kind": "no_dictionary_entry",
+   "detail": "親密|しんみつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-108",
+   "surface": "身近",
+   "kind": "no_dictionary_entry",
+   "detail": "身近|みぢか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-109",
+   "surface": "不要",
+   "kind": "no_dictionary_entry",
+   "detail": "不要|ふよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-36-110",
+   "surface": "不潔",
+   "kind": "no_dictionary_entry",
+   "detail": "不潔|ふけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

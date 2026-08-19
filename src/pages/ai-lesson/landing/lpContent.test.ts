@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { LP, VARIANTS } from './lpContent';
+import { PLAN_CATALOG } from '../../../lib/aiLesson/course/plans/planCatalog';
 
 // LP コンテンツの本番事故防止テスト（DB/認証に依存しない純粋データ検証）
 
@@ -11,7 +12,7 @@ const collectStrings = (v: unknown, out: string[] = []): string[] => {
 };
 
 describe('LP pricing', () => {
-  it('**LPのコピーに商品価格を書かない**（正準は planCatalog）', () => {
+  it('**LPの料金セクションコピーに商品価格を書かない**（正準は planCatalog）', () => {
     // ここに金額を書き戻すと、カタログを直したのにLPだけ古い、という食い違いが起きる
     for (const s of collectStrings(LP.pricing)) {
       expect(s, `LP.pricing に金額が書かれている: "${s}"`).not.toMatch(/[0-9][0-9,]*\s*(円|日元)/);
@@ -22,6 +23,23 @@ describe('LP pricing', () => {
   });
   it('合格を保証しない旨のディスクレーマーがある', () => {
     expect(LP.pricing.disclaimer.ja).toContain('保証するものではありません');
+  });
+});
+
+describe('LPコピー内の価格表記', () => {
+  // ヒーローやFAQで価格に触れるのは集客上必要。ただし**カタログに無い金額は書けない**
+  // ようにする（カタログ改定時にLPコピーの数字だけ古いまま、という事故を機械で検出）
+  it('**登場する金額はすべて planCatalog の価格と一致する**', () => {
+    const catalogPrices = new Set(
+      PLAN_CATALOG.flatMap((p) => (p.priceJpy === null ? [] : [p.priceJpy])),
+    );
+    const all = [...collectStrings(LP), ...collectStrings(VARIANTS)];
+    for (const s of all) {
+      for (const m of s.matchAll(/([0-9][0-9,]*)\s*(円|日元)/g)) {
+        const n = Number(m[1].replace(/,/g, ''));
+        expect(catalogPrices.has(n), `カタログに無い金額がLPコピーにある: "${m[0]}" in "${s}"`).toBe(true);
+      }
+    }
   });
 });
 
@@ -53,14 +71,16 @@ describe('ja / zh パリティ（訳の抜け防止）', () => {
   const pairs: [string, unknown, unknown][] = [
     ['faq', LP.faq.items.ja, LP.faq.items.zh],
     ['pain', LP.pain.items.ja, LP.pain.items.zh],
-    ['comparison.rows', LP.comparison.rows.ja, LP.comparison.rows.zh],
     ['features', LP.features.items.ja, LP.features.items.zh],
-    ['contents', LP.contents.items.ja, LP.contents.items.zh],
-    ['outcomes', LP.outcomes.items.ja, LP.outcomes.items.zh],
     ['flow.steps', LP.flow.steps.ja, LP.flow.steps.zh],
     ['roadmap.phases', LP.roadmap.phases.ja, LP.roadmap.phases.zh],
     ['heroChips', LP.heroChips.ja, LP.heroChips.zh],
-    // pricing.includes は planCatalog へ移した（ja/zh の件数一致は planCatalog.test.ts が見る）
+    ['testimonials.entries', LP.testimonials.entries.ja, LP.testimonials.entries.zh],
+    ['planFit.notFitItems', LP.planFit.notFitItems.ja, LP.planFit.notFitItems.zh],
+    ['planFit.trial', LP.planFit.byPlan.ja['ai-trial-pass'], LP.planFit.byPlan.zh['ai-trial-pass']],
+    ['planFit.month', LP.planFit.byPlan.ja['ai-month'], LP.planFit.byPlan.zh['ai-month']],
+    ['planFit.coach', LP.planFit.byPlan.ja['coach-6m'], LP.planFit.byPlan.zh['coach-6m']],
+    // 価格・含まれるもの・比較表のセルは planCatalog / planEntitlements 側でテスト
   ];
   it.each(pairs)('%s の ja/zh 件数が一致', (_label, ja, zh) => {
     expect((ja as unknown[]).length).toBe((zh as unknown[]).length);
@@ -68,14 +88,28 @@ describe('ja / zh パリティ（訳の抜け防止）', () => {
   });
 });
 
-describe('比較表の記号', () => {
-  it('全セルが ◯ / △ / × のいずれか', () => {
+describe('相談モーダルの必須要素', () => {
+  it('WeChat ID・メール・フォーム・むりな勧誘をしない旨がそろっている', () => {
+    expect(LP.consultation.wechatIdPlaceholder.length).toBeGreaterThan(0);
+    expect(LP.consultation.email).toContain('@');
     for (const lang of ['ja', 'zh'] as const) {
-      for (const row of LP.comparison.rows[lang]) {
-        for (const cell of [row.a, row.b, row.c]) {
-          expect(['◯', '△', '×']).toContain(cell);
-        }
-      }
+      expect(LP.consultation.searchHint[lang]).toBeTruthy();  // 「無料相談希望」と送ればよい案内
+      expect(LP.consultation.emailCta[lang]).toBeTruthy();
+      expect(LP.consultation.formCta[lang]).toBeTruthy();     // 問い合わせフォームへのリンク
+      expect(LP.consultation.fallbackNote[lang]).toBeTruthy(); // むりな勧誘をしない
     }
+  });
+  it('相談CTAの文言が実際の動作（WeChat・メール相談）と一致している', () => {
+    // 「予約」と書くと予約カレンダーを期待させる（実際はモーダル）。文言と動作を一致させる
+    expect(LP.ctaPrimary.ja).not.toContain('予約');
+    expect(LP.ctaPrimary.ja).toContain('WeChat');
+    expect(LP.ctaPrimary.ja).toContain('無料相談');
+  });
+});
+
+describe('主役の序列（人間コーチ > AI）', () => {
+  it('ヒーローのキーメッセージは「人間が方向・AIが毎日」', () => {
+    expect(LP.heroKeyMessage.ja).toBe('人間が方向を決め、AIが毎日支える。');
+    expect(LP.roles.heading.ja).toBe(LP.heroKeyMessage.ja);
   });
 });

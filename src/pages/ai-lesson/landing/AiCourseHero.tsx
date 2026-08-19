@@ -1,10 +1,10 @@
 import type { Lang } from '../../../contexts/LanguageContext';
 import { LP, VARIANTS, type VariantConfig } from './lpContent';
 import { CtaButton, ArrowRight } from './lpUi';
-import { imgUrl } from './lpHelpers';
+import { imgUrl, scrollToSection } from './lpHelpers';
 
-export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
-  v: VariantConfig; lang: Lang; onConsult: () => void; onSeeApp: () => void;
+export function AiCourseHero({ v, lang, onConsult, duo = false }: {
+  v: VariantConfig; lang: Lang; onConsult: () => void;
   /**
    * 既定LP（/shoko /yuto の広告variantでない入口）では**二人のAI先生を並べる**。
    * 1人だけ出すと「最初にどちらを選ぶのか」が分からないうえ、
@@ -42,12 +42,23 @@ export function AiCourseHero({ v, lang, onConsult, onSeeApp, duo = false }: {
               <span className="block">{renderLine(l2)}</span>
               <span className="block">{renderLine(l3)}</span>
             </h1>
-            <p className="mt-5 text-[1.1rem] text-lp-ink-soft leading-relaxed max-w-[30em] mx-auto md:mx-0">{sub}</p>
+            {/* 人×AIの役割宣言（2026-08-19 CEO依頼: FVで安田翔とともに最も強調するメッセージ） */}
+            <p className="mt-5 inline-block rounded-xl bg-lp-pine text-white font-extrabold text-[1.02rem] px-4 py-2">
+              {LP.heroKeyMessage[lang]}
+            </p>
+            <p className="mt-4 text-[1.08rem] text-lp-ink-soft leading-relaxed max-w-[30em] mx-auto md:mx-0">{sub}</p>
             <div className="mt-7 flex flex-wrap gap-3.5 justify-center md:justify-start">
               <CtaButton variant="primary" onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'hero', variant: v.key }}>
                 {LP.ctaPrimary[lang]} <ArrowRight />
               </CtaButton>
-              <CtaButton variant="ghost" onClick={onSeeApp} event="click_ai_course_demo" eventParams={{ location: 'hero', variant: v.key }}>
+              {/* 学習システムのセクションへスクロール（URL・履歴は変えない。
+                  以前はログイン用の ?app=1 へ遷移してしまい「見るだけ」ができなかった） */}
+              <CtaButton
+                variant="ghost"
+                onClick={() => scrollToSection('features')}
+                event="click_ai_course_see_system"
+                eventParams={{ location: 'hero', variant: v.key }}
+              >
                 {LP.ctaSecondary[lang]}
               </CtaButton>
             </div>

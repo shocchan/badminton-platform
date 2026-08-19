@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.776Z",
+ "batchNo": 38,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-38-001",
+  "vc-38-002",
+  "vc-38-003",
+  "vc-38-004",
+  "vc-38-005",
+  "vc-38-006",
+  "vc-38-007",
+  "vc-38-008",
+  "vc-38-009",
+  "vc-38-010",
+  "vc-38-011",
+  "vc-38-012",
+  "vc-38-013",
+  "vc-38-014",
+  "vc-38-015",
+  "vc-38-016",
+  "vc-38-017",
+  "vc-38-018",
+  "vc-38-019",
+  "vc-38-020",
+  "vc-38-021",
+  "vc-38-022",
+  "vc-38-023",
+  "vc-38-024",
+  "vc-38-025",
+  "vc-38-026",
+  "vc-38-027",
+  "vc-38-028",
+  "vc-38-029",
+  "vc-38-030",
+  "vc-38-031",
+  "vc-38-032",
+  "vc-38-033",
+  "vc-38-034",
+  "vc-38-035",
+  "vc-38-036",
+  "vc-38-037",
+  "vc-38-038",
+  "vc-38-039",
+  "vc-38-040",
+  "vc-38-041",
+  "vc-38-042",
+  "vc-38-043",
+  "vc-38-044",
+  "vc-38-045",
+  "vc-38-046",
+  "vc-38-047",
+  "vc-38-048",
+  "vc-38-049",
+  "vc-38-050",
+  "vc-38-051",
+  "vc-38-052",
+  "vc-38-053",
+  "vc-38-054",
+  "vc-38-055",
+  "vc-38-056",
+  "vc-38-057",
+  "vc-38-058",
+  "vc-38-059",
+  "vc-38-060",
+  "vc-38-061",
+  "vc-38-062",
+  "vc-38-063",
+  "vc-38-064",
+  "vc-38-065",
+  "vc-38-066",
+  "vc-38-067",
+  "vc-38-068",
+  "vc-38-069",
+  "vc-38-070",
+  "vc-38-071",
+  "vc-38-072",
+  "vc-38-073",
+  "vc-38-074",
+  "vc-38-075",
+  "vc-38-076",
+  "vc-38-077",
+  "vc-38-078",
+  "vc-38-079",
+  "vc-38-080",
+  "vc-38-081",
+  "vc-38-082",
+  "vc-38-083",
+  "vc-38-084",
+  "vc-38-085",
+  "vc-38-086",
+  "vc-38-087",
+  "vc-38-088",
+  "vc-38-089",
+  "vc-38-090",
+  "vc-38-091",
+  "vc-38-092",
+  "vc-38-093",
+  "vc-38-094",
+  "vc-38-095",
+  "vc-38-096",
+  "vc-38-097",
+  "vc-38-098",
+  "vc-38-099",
+  "vc-38-100",
+  "vc-38-101",
+  "vc-38-102",
+  "vc-38-103",
+  "vc-38-104",
+  "vc-38-105",
+  "vc-38-106",
+  "vc-38-107",
+  "vc-38-108",
+  "vc-38-109",
+  "vc-38-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-38-001",
+   "surface": "あるいは",
+   "kind": "no_dictionary_entry",
+   "detail": "あるいは|あるいは が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-002",
+   "surface": "および",
+   "kind": "no_dictionary_entry",
+   "detail": "および|および が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-003",
+   "surface": "もしくは",
+   "kind": "no_dictionary_entry",
+   "detail": "もしくは|もしくは が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-004",
+   "surface": "ならびに",
+   "kind": "no_dictionary_entry",
+   "detail": "ならびに|ならびに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-005",
+   "surface": "もっぱら",
+   "kind": "no_dictionary_entry",
+   "detail": "もっぱら|もっぱら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-006",
+   "surface": "つまり",
+   "kind": "no_dictionary_entry",
+   "detail": "つまり|つまり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-007",
+   "surface": "なぜなら",
+   "kind": "no_dictionary_entry",
+   "detail": "なぜなら|なぜなら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-008",
+   "surface": "おまけに",
+   "kind": "no_dictionary_entry",
+   "detail": "おまけに|おまけに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-009",
+   "surface": "その上",
+   "kind": "no_dictionary_entry",
+   "detail": "その上|そのうえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-010",
+   "surface": "その代わり",
+   "kind": "no_dictionary_entry",
+   "detail": "その代わり|そのかわり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-011",
+   "surface": "もっとも",
+   "kind": "no_dictionary_entry",
+   "detail": "もっとも|もっとも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-012",
+   "surface": "要は",
+   "kind": "no_dictionary_entry",
+   "detail": "要は|ようは が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-013",
+   "surface": "いずれにせよ",
+   "kind": "no_dictionary_entry",
+   "detail": "いずれにせよ|いずれにせよ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-014",
+   "surface": "どのみち",
+   "kind": "no_dictionary_entry",
+   "detail": "どのみち|どのみち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-015",
+   "surface": "逆に",
+   "kind": "no_dictionary_entry",
+   "detail": "逆に|ぎゃくに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-016",
+   "surface": "主として",
+   "kind": "no_dictionary_entry",
+   "detail": "主として|しゅとして が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-017",
+   "surface": "原則として",
+   "kind": "no_dictionary_entry",
+   "detail": "原則として|げんそくとして が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-018",
+   "surface": "一般に",
+   "kind": "no_dictionary_entry",
+   "detail": "一般に|いっぱんに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-019",
+   "surface": "何より",
+   "kind": "no_dictionary_entry",
+   "detail": "何より|なにより が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-020",
+   "surface": "しかも",
+   "kind": "no_dictionary_entry",
+   "detail": "しかも|しかも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-021",
+   "surface": "あいにく",
+   "kind": "no_dictionary_entry",
+   "detail": "あいにく|あいにく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-022",
+   "surface": "かねて",
+   "kind": "no_dictionary_entry",
+   "detail": "かねて|かねて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-023",
+   "surface": "あえて",
+   "kind": "no_dictionary_entry",
+   "detail": "あえて|あえて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-024",
+   "surface": "案の定",
+   "kind": "no_dictionary_entry",
+   "detail": "案の定|あんのじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-025",
+   "surface": "いずれ",
+   "kind": "no_dictionary_entry",
+   "detail": "いずれ|いずれ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-026",
+   "surface": "いちいち",
+   "kind": "no_dictionary_entry",
+   "detail": "いちいち|いちいち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-027",
+   "surface": "いっそ",
+   "kind": "no_dictionary_entry",
+   "detail": "いっそ|いっそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-028",
+   "surface": "一応",
+   "kind": "no_dictionary_entry",
+   "detail": "一応|いちおう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-029",
+   "surface": "一旦",
+   "kind": "no_dictionary_entry",
+   "detail": "一旦|いったん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-030",
+   "surface": "一層",
+   "kind": "no_dictionary_entry",
+   "detail": "一層|いっそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-031",
+   "surface": "一斉に",
+   "kind": "no_dictionary_entry",
+   "detail": "一斉に|いっせいに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-032",
+   "surface": "一段と",
+   "kind": "no_dictionary_entry",
+   "detail": "一段と|いちだんと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-033",
+   "surface": "一挙に",
+   "kind": "no_dictionary_entry",
+   "detail": "一挙に|いっきょに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-034",
+   "surface": "一向に",
+   "kind": "no_dictionary_entry",
+   "detail": "一向に|いっこうに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-035",
+   "surface": "いよいよ",
+   "kind": "no_dictionary_entry",
+   "detail": "いよいよ|いよいよ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-036",
+   "surface": "真っ先に",
+   "kind": "no_dictionary_entry",
+   "detail": "真っ先に|まっさきに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-037",
+   "surface": "おおよそ",
+   "kind": "no_dictionary_entry",
+   "detail": "おおよそ|おおよそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-038",
+   "surface": "強いて",
+   "kind": "no_dictionary_entry",
+   "detail": "強いて|しいて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-039",
+   "surface": "じきに",
+   "kind": "no_dictionary_entry",
+   "detail": "じきに|じきに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-040",
+   "surface": "かつて",
+   "kind": "no_dictionary_entry",
+   "detail": "かつて|かつて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-041",
+   "surface": "きっぱり",
+   "kind": "no_dictionary_entry",
+   "detail": "きっぱり|きっぱり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-042",
+   "surface": "くれぐれも",
+   "kind": "no_dictionary_entry",
+   "detail": "くれぐれも|くれぐれも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-043",
+   "surface": "現に",
+   "kind": "no_dictionary_entry",
+   "detail": "現に|げんに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-044",
+   "surface": "殊に",
+   "kind": "no_dictionary_entry",
+   "detail": "殊に|ことに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-045",
+   "surface": "さすが",
+   "kind": "no_dictionary_entry",
+   "detail": "さすが|さすが が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-046",
+   "surface": "さっさと",
+   "kind": "no_dictionary_entry",
+   "detail": "さっさと|さっさと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-047",
+   "surface": "さほど",
+   "kind": "no_dictionary_entry",
+   "detail": "さほど|さほど が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-048",
+   "surface": "しきりに",
+   "kind": "no_dictionary_entry",
+   "detail": "しきりに|しきりに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-049",
+   "surface": "じっくり",
+   "kind": "no_dictionary_entry",
+   "detail": "じっくり|じっくり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-050",
+   "surface": "しみじみ",
+   "kind": "no_dictionary_entry",
+   "detail": "しみじみ|しみじみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-051",
+   "surface": "更に",
+   "kind": "no_dictionary_entry",
+   "detail": "更に|さらに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-052",
+   "surface": "どうにも",
+   "kind": "no_dictionary_entry",
+   "detail": "どうにも|どうにも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-053",
+   "surface": "せっかく",
+   "kind": "no_dictionary_entry",
+   "detail": "せっかく|せっかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-054",
+   "surface": "せめて",
+   "kind": "no_dictionary_entry",
+   "detail": "せめて|せめて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-055",
+   "surface": "互いに",
+   "kind": "no_dictionary_entry",
+   "detail": "互いに|たがいに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-056",
+   "surface": "大して",
+   "kind": "no_dictionary_entry",
+   "detail": "大して|たいして が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-057",
+   "surface": "たちまち",
+   "kind": "no_dictionary_entry",
+   "detail": "たちまち|たちまち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-058",
+   "surface": "たまたま",
+   "kind": "no_dictionary_entry",
+   "detail": "たまたま|たまたま が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-059",
+   "surface": "次々に",
+   "kind": "no_dictionary_entry",
+   "detail": "次々に|つぎつぎに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-060",
+   "surface": "ついに",
+   "kind": "no_dictionary_entry",
+   "detail": "ついに|ついに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-061",
+   "surface": "つくづく",
+   "kind": "no_dictionary_entry",
+   "detail": "つくづく|つくづく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-062",
+   "surface": "到底",
+   "kind": "no_dictionary_entry",
+   "detail": "到底|とうてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-063",
+   "surface": "とっくに",
+   "kind": "no_dictionary_entry",
+   "detail": "とっくに|とっくに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-064",
+   "surface": "とりあえず",
+   "kind": "no_dictionary_entry",
+   "detail": "とりあえず|とりあえず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-065",
+   "surface": "とりわけ",
+   "kind": "no_dictionary_entry",
+   "detail": "とりわけ|とりわけ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-066",
+   "surface": "どうせ",
+   "kind": "no_dictionary_entry",
+   "detail": "どうせ|どうせ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-067",
+   "surface": "どうにか",
+   "kind": "no_dictionary_entry",
+   "detail": "どうにか|どうにか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-068",
+   "surface": "どうやら",
+   "kind": "no_dictionary_entry",
+   "detail": "どうやら|どうやら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-069",
+   "surface": "なお",
+   "kind": "no_dictionary_entry",
+   "detail": "なお|なお が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-070",
+   "surface": "なにしろ",
+   "kind": "no_dictionary_entry",
+   "detail": "なにしろ|なにしろ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-071",
+   "surface": "なるべく",
+   "kind": "no_dictionary_entry",
+   "detail": "なるべく|なるべく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-072",
+   "surface": "なんとなく",
+   "kind": "no_dictionary_entry",
+   "detail": "なんとなく|なんとなく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-073",
+   "surface": "果たして",
+   "kind": "no_dictionary_entry",
+   "detail": "果たして|はたして が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-074",
+   "surface": "ひたすら",
+   "kind": "no_dictionary_entry",
+   "detail": "ひたすら|ひたすら が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-075",
+   "surface": "ひとまず",
+   "kind": "no_dictionary_entry",
+   "detail": "ひとまず|ひとまず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-076",
+   "surface": "ふと",
+   "kind": "no_dictionary_entry",
+   "detail": "ふと|ふと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-077",
+   "surface": "ほぼ",
+   "kind": "no_dictionary_entry",
+   "detail": "ほぼ|ほぼ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-078",
+   "surface": "まさに",
+   "kind": "no_dictionary_entry",
+   "detail": "まさに|まさに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-079",
+   "surface": "ますます",
+   "kind": "no_dictionary_entry",
+   "detail": "ますます|ますます が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-080",
+   "surface": "まれに",
+   "kind": "no_dictionary_entry",
+   "detail": "まれに|まれに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-081",
+   "surface": "むやみに",
+   "kind": "no_dictionary_entry",
+   "detail": "むやみに|むやみに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-082",
+   "surface": "めっきり",
+   "kind": "no_dictionary_entry",
+   "detail": "めっきり|めっきり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-083",
+   "surface": "もはや",
+   "kind": "no_dictionary_entry",
+   "detail": "もはや|もはや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-084",
+   "surface": "やたらに",
+   "kind": "no_dictionary_entry",
+   "detail": "やたらに|やたらに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-085",
+   "surface": "ようやく",
+   "kind": "no_dictionary_entry",
+   "detail": "ようやく|ようやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-086",
+   "surface": "ろくに",
+   "kind": "no_dictionary_entry",
+   "detail": "ろくに|ろくに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-087",
+   "surface": "わざわざ",
+   "kind": "no_dictionary_entry",
+   "detail": "わざわざ|わざわざ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-088",
+   "surface": "わずかに",
+   "kind": "no_dictionary_entry",
+   "detail": "わずかに|わずかに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-089",
+   "surface": "割と",
+   "kind": "no_dictionary_entry",
+   "detail": "割と|わりと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-090",
+   "surface": "依然として",
+   "kind": "no_dictionary_entry",
+   "detail": "依然として|いぜんとして が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-091",
+   "surface": "不意に",
+   "kind": "no_dictionary_entry",
+   "detail": "不意に|ふいに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-092",
+   "surface": "改めて",
+   "kind": "no_dictionary_entry",
+   "detail": "改めて|あらためて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-093",
+   "surface": "未だに",
+   "kind": "no_dictionary_entry",
+   "detail": "未だに|いまだに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-094",
+   "surface": "思い切り",
+   "kind": "no_dictionary_entry",
+   "detail": "思い切り|おもいきり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-095",
+   "surface": "思いのほか",
+   "kind": "no_dictionary_entry",
+   "detail": "思いのほか|おもいのほか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-096",
+   "surface": "比較的",
+   "kind": "no_dictionary_entry",
+   "detail": "比較的|ひかくてき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-097",
+   "surface": "誠に",
+   "kind": "no_dictionary_entry",
+   "detail": "誠に|まことに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-098",
+   "surface": "極めて",
+   "kind": "no_dictionary_entry",
+   "detail": "極めて|きわめて が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-099",
+   "surface": "引き続き",
+   "kind": "no_dictionary_entry",
+   "detail": "引き続き|ひきつづき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-100",
+   "surface": "相次いで",
+   "kind": "no_dictionary_entry",
+   "detail": "相次いで|あいついで が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-101",
+   "surface": "続々",
+   "kind": "no_dictionary_entry",
+   "detail": "続々|ぞくぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-102",
+   "surface": "着々",
+   "kind": "no_dictionary_entry",
+   "detail": "着々|ちゃくちゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-103",
+   "surface": "突如",
+   "kind": "no_dictionary_entry",
+   "detail": "突如|とつじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-104",
+   "surface": "即座に",
+   "kind": "no_dictionary_entry",
+   "detail": "即座に|そくざに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-105",
+   "surface": "早急に",
+   "kind": "no_dictionary_entry",
+   "detail": "早急に|さっきゅうに が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-106",
+   "surface": "至急",
+   "kind": "no_dictionary_entry",
+   "detail": "至急|しきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-107",
+   "surface": "やむを得ず",
+   "kind": "no_dictionary_entry",
+   "detail": "やむを得ず|やむをえず が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-108",
+   "surface": "渋々",
+   "kind": "no_dictionary_entry",
+   "detail": "渋々|しぶしぶ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-109",
+   "surface": "ぐっと",
+   "kind": "no_dictionary_entry",
+   "detail": "ぐっと|ぐっと が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-38-110",
+   "surface": "いかにも",
+   "kind": "no_dictionary_entry",
+   "detail": "いかにも|いかにも が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

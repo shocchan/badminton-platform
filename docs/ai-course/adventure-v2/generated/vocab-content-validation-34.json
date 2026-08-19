@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.770Z",
+ "batchNo": 34,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-34-001",
+  "vc-34-002",
+  "vc-34-003",
+  "vc-34-004",
+  "vc-34-005",
+  "vc-34-006",
+  "vc-34-007",
+  "vc-34-008",
+  "vc-34-009",
+  "vc-34-010",
+  "vc-34-011",
+  "vc-34-012",
+  "vc-34-013",
+  "vc-34-014",
+  "vc-34-015",
+  "vc-34-016",
+  "vc-34-017",
+  "vc-34-018",
+  "vc-34-019",
+  "vc-34-020",
+  "vc-34-021",
+  "vc-34-022",
+  "vc-34-023",
+  "vc-34-024",
+  "vc-34-025",
+  "vc-34-026",
+  "vc-34-027",
+  "vc-34-028",
+  "vc-34-029",
+  "vc-34-030",
+  "vc-34-031",
+  "vc-34-032",
+  "vc-34-033",
+  "vc-34-034",
+  "vc-34-035",
+  "vc-34-036",
+  "vc-34-037",
+  "vc-34-038",
+  "vc-34-039",
+  "vc-34-040",
+  "vc-34-041",
+  "vc-34-042",
+  "vc-34-043",
+  "vc-34-044",
+  "vc-34-045",
+  "vc-34-046",
+  "vc-34-047",
+  "vc-34-048",
+  "vc-34-049",
+  "vc-34-050",
+  "vc-34-051",
+  "vc-34-052",
+  "vc-34-053",
+  "vc-34-054",
+  "vc-34-055",
+  "vc-34-056",
+  "vc-34-057",
+  "vc-34-058",
+  "vc-34-059",
+  "vc-34-060",
+  "vc-34-061",
+  "vc-34-062",
+  "vc-34-063",
+  "vc-34-064",
+  "vc-34-065",
+  "vc-34-066",
+  "vc-34-067",
+  "vc-34-068",
+  "vc-34-069",
+  "vc-34-070",
+  "vc-34-071",
+  "vc-34-072",
+  "vc-34-073",
+  "vc-34-074",
+  "vc-34-075",
+  "vc-34-076",
+  "vc-34-077",
+  "vc-34-078",
+  "vc-34-079",
+  "vc-34-080",
+  "vc-34-081",
+  "vc-34-082",
+  "vc-34-083",
+  "vc-34-084",
+  "vc-34-085",
+  "vc-34-086",
+  "vc-34-087",
+  "vc-34-088",
+  "vc-34-089",
+  "vc-34-090",
+  "vc-34-091",
+  "vc-34-092",
+  "vc-34-093",
+  "vc-34-094",
+  "vc-34-095",
+  "vc-34-096",
+  "vc-34-097",
+  "vc-34-098",
+  "vc-34-099",
+  "vc-34-100",
+  "vc-34-101",
+  "vc-34-102",
+  "vc-34-103",
+  "vc-34-104",
+  "vc-34-105",
+  "vc-34-106",
+  "vc-34-107",
+  "vc-34-108",
+  "vc-34-109",
+  "vc-34-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-34-001",
+   "surface": "開催",
+   "kind": "no_dictionary_entry",
+   "detail": "開催|かいさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-002",
+   "surface": "定例",
+   "kind": "no_dictionary_entry",
+   "detail": "定例|ていれい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-003",
+   "surface": "招集",
+   "kind": "no_dictionary_entry",
+   "detail": "招集|しょうしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-004",
+   "surface": "出欠",
+   "kind": "no_dictionary_entry",
+   "detail": "出欠|しゅっけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-005",
+   "surface": "冒頭",
+   "kind": "no_dictionary_entry",
+   "detail": "冒頭|ぼうとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-006",
+   "surface": "発言",
+   "kind": "no_dictionary_entry",
+   "detail": "発言|はつげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-007",
+   "surface": "質疑",
+   "kind": "no_dictionary_entry",
+   "detail": "質疑|しつぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-008",
+   "surface": "多数決",
+   "kind": "no_dictionary_entry",
+   "detail": "多数決|たすうけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-009",
+   "surface": "保留",
+   "kind": "no_dictionary_entry",
+   "detail": "保留|ほりゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-010",
+   "surface": "再考",
+   "kind": "no_dictionary_entry",
+   "detail": "再考|さいこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-011",
+   "surface": "異議",
+   "kind": "no_dictionary_entry",
+   "detail": "異議|いぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-012",
+   "surface": "出世",
+   "kind": "no_dictionary_entry",
+   "detail": "出世|しゅっせ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-013",
+   "surface": "妥協",
+   "kind": "no_dictionary_entry",
+   "detail": "妥協|だきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-014",
+   "surface": "譲歩",
+   "kind": "no_dictionary_entry",
+   "detail": "譲歩|じょうほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-015",
+   "surface": "打診",
+   "kind": "no_dictionary_entry",
+   "detail": "打診|だしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-016",
+   "surface": "駆け引き",
+   "kind": "no_dictionary_entry",
+   "detail": "駆け引き|かけひき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-017",
+   "surface": "折り合い",
+   "kind": "no_dictionary_entry",
+   "detail": "折り合い|おりあい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-018",
+   "surface": "歩み寄る",
+   "kind": "no_dictionary_entry",
+   "detail": "歩み寄る|あゆみよる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-019",
+   "surface": "承諾",
+   "kind": "no_dictionary_entry",
+   "detail": "承諾|しょうだく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-020",
+   "surface": "了承",
+   "kind": "no_dictionary_entry",
+   "detail": "了承|りょうしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-021",
+   "surface": "辞退",
+   "kind": "no_dictionary_entry",
+   "detail": "辞退|じたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-022",
+   "surface": "破棄",
+   "kind": "no_dictionary_entry",
+   "detail": "破棄|はき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-023",
+   "surface": "撤回",
+   "kind": "no_dictionary_entry",
+   "detail": "撤回|てっかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-024",
+   "surface": "決裁",
+   "kind": "no_dictionary_entry",
+   "detail": "決裁|けっさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-025",
+   "surface": "謝罪",
+   "kind": "no_dictionary_entry",
+   "detail": "謝罪|しゃざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-026",
+   "surface": "断念",
+   "kind": "no_dictionary_entry",
+   "detail": "断念|だんねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-027",
+   "surface": "接待",
+   "kind": "no_dictionary_entry",
+   "detail": "接待|せったい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-028",
+   "surface": "報告書",
+   "kind": "no_dictionary_entry",
+   "detail": "報告書|ほうこくしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-029",
+   "surface": "書面",
+   "kind": "no_dictionary_entry",
+   "detail": "書面|しょめん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-030",
+   "surface": "書式",
+   "kind": "no_dictionary_entry",
+   "detail": "書式|しょしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-031",
+   "surface": "様式",
+   "kind": "no_dictionary_entry",
+   "detail": "様式|ようしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-032",
+   "surface": "箇条書き",
+   "kind": "no_dictionary_entry",
+   "detail": "箇条書き|かじょうがき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-033",
+   "surface": "別紙",
+   "kind": "no_dictionary_entry",
+   "detail": "別紙|べっし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-034",
+   "surface": "回覧",
+   "kind": "no_dictionary_entry",
+   "detail": "回覧|かいらん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-035",
+   "surface": "周知",
+   "kind": "no_dictionary_entry",
+   "detail": "周知|しゅうち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-036",
+   "surface": "伝達",
+   "kind": "no_dictionary_entry",
+   "detail": "伝達|でんたつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-037",
+   "surface": "通達",
+   "kind": "no_dictionary_entry",
+   "detail": "通達|つうたつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-038",
+   "surface": "概算",
+   "kind": "no_dictionary_entry",
+   "detail": "概算|がいさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-039",
+   "surface": "集約",
+   "kind": "no_dictionary_entry",
+   "detail": "集約|しゅうやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-040",
+   "surface": "催促",
+   "kind": "no_dictionary_entry",
+   "detail": "催促|さいそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-041",
+   "surface": "役職",
+   "kind": "no_dictionary_entry",
+   "detail": "役職|やくしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-042",
+   "surface": "肩書き",
+   "kind": "no_dictionary_entry",
+   "detail": "肩書き|かたがき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-043",
+   "surface": "幹部",
+   "kind": "no_dictionary_entry",
+   "detail": "幹部|かんぶ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-044",
+   "surface": "所属",
+   "kind": "no_dictionary_entry",
+   "detail": "所属|しょぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-045",
+   "surface": "出向",
+   "kind": "no_dictionary_entry",
+   "detail": "出向|しゅっこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-046",
+   "surface": "赴任",
+   "kind": "no_dictionary_entry",
+   "detail": "赴任|ふにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-047",
+   "surface": "復職",
+   "kind": "no_dictionary_entry",
+   "detail": "復職|ふくしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-048",
+   "surface": "休職",
+   "kind": "no_dictionary_entry",
+   "detail": "休職|きゅうしょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-049",
+   "surface": "退社",
+   "kind": "no_dictionary_entry",
+   "detail": "退社|たいしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-050",
+   "surface": "後任",
+   "kind": "no_dictionary_entry",
+   "detail": "後任|こうにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-051",
+   "surface": "前任",
+   "kind": "no_dictionary_entry",
+   "detail": "前任|ぜんにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-052",
+   "surface": "後継",
+   "kind": "no_dictionary_entry",
+   "detail": "後継|こうけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-053",
+   "surface": "兼任",
+   "kind": "no_dictionary_entry",
+   "detail": "兼任|けんにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-054",
+   "surface": "査定",
+   "kind": "no_dictionary_entry",
+   "detail": "査定|さてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-055",
+   "surface": "適性",
+   "kind": "no_dictionary_entry",
+   "detail": "適性|てきせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-056",
+   "surface": "職種",
+   "kind": "no_dictionary_entry",
+   "detail": "職種|しょくしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-057",
+   "surface": "業種",
+   "kind": "no_dictionary_entry",
+   "detail": "業種|ぎょうしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-058",
+   "surface": "職歴",
+   "kind": "no_dictionary_entry",
+   "detail": "職歴|しょくれき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-059",
+   "surface": "人脈",
+   "kind": "no_dictionary_entry",
+   "detail": "人脈|じんみゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-060",
+   "surface": "育成",
+   "kind": "no_dictionary_entry",
+   "detail": "育成|いくせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-061",
+   "surface": "意欲",
+   "kind": "no_dictionary_entry",
+   "detail": "意欲|いよく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-062",
+   "surface": "功績",
+   "kind": "no_dictionary_entry",
+   "detail": "功績|こうせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-063",
+   "surface": "貢献",
+   "kind": "no_dictionary_entry",
+   "detail": "貢献|こうけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-064",
+   "surface": "優秀",
+   "kind": "no_dictionary_entry",
+   "detail": "優秀|ゆうしゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-065",
+   "surface": "有能",
+   "kind": "no_dictionary_entry",
+   "detail": "有能|ゆうのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-066",
+   "surface": "責務",
+   "kind": "no_dictionary_entry",
+   "detail": "責務|せきむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-067",
+   "surface": "本部",
+   "kind": "no_dictionary_entry",
+   "detail": "本部|ほんぶ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-068",
+   "surface": "支社",
+   "kind": "no_dictionary_entry",
+   "detail": "支社|ししゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-069",
+   "surface": "拠点",
+   "kind": "no_dictionary_entry",
+   "detail": "拠点|きょてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-070",
+   "surface": "統合",
+   "kind": "no_dictionary_entry",
+   "detail": "統合|とうごう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-071",
+   "surface": "撤退",
+   "kind": "no_dictionary_entry",
+   "detail": "撤退|てったい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-072",
+   "surface": "創業",
+   "kind": "no_dictionary_entry",
+   "detail": "創業|そうぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-073",
+   "surface": "分担",
+   "kind": "no_dictionary_entry",
+   "detail": "分担|ぶんたん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-074",
+   "surface": "分業",
+   "kind": "no_dictionary_entry",
+   "detail": "分業|ぶんぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-075",
+   "surface": "連携",
+   "kind": "no_dictionary_entry",
+   "detail": "連携|れんけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-076",
+   "surface": "運営",
+   "kind": "no_dictionary_entry",
+   "detail": "運営|うんえい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-077",
+   "surface": "運用",
+   "kind": "no_dictionary_entry",
+   "detail": "運用|うんよう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-078",
+   "surface": "実施",
+   "kind": "no_dictionary_entry",
+   "detail": "実施|じっし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-079",
+   "surface": "着手",
+   "kind": "no_dictionary_entry",
+   "detail": "着手|ちゃくしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-080",
+   "surface": "達成",
+   "kind": "no_dictionary_entry",
+   "detail": "達成|たっせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-081",
+   "surface": "遂行",
+   "kind": "no_dictionary_entry",
+   "detail": "遂行|すいこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-082",
+   "surface": "徹底",
+   "kind": "no_dictionary_entry",
+   "detail": "徹底|てってい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-083",
+   "surface": "根回し",
+   "kind": "no_dictionary_entry",
+   "detail": "根回し|ねまわし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-084",
+   "surface": "進捗",
+   "kind": "no_dictionary_entry",
+   "detail": "進捗|しんちょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-085",
+   "surface": "進展",
+   "kind": "no_dictionary_entry",
+   "detail": "進展|しんてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-086",
+   "surface": "停滞",
+   "kind": "no_dictionary_entry",
+   "detail": "停滞|ていたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-087",
+   "surface": "支障",
+   "kind": "no_dictionary_entry",
+   "detail": "支障|ししょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-088",
+   "surface": "不具合",
+   "kind": "no_dictionary_entry",
+   "detail": "不具合|ふぐあい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-089",
+   "surface": "欠陥",
+   "kind": "no_dictionary_entry",
+   "detail": "欠陥|けっかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-090",
+   "surface": "在籍",
+   "kind": "no_dictionary_entry",
+   "detail": "在籍|ざいせき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-091",
+   "surface": "歩合",
+   "kind": "no_dictionary_entry",
+   "detail": "歩合|ぶあい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-092",
+   "surface": "改良",
+   "kind": "no_dictionary_entry",
+   "detail": "改良|かいりょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-093",
+   "surface": "合理化",
+   "kind": "no_dictionary_entry",
+   "detail": "合理化|ごうりか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-094",
+   "surface": "能率",
+   "kind": "no_dictionary_entry",
+   "detail": "能率|のうりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-095",
+   "surface": "手際",
+   "kind": "no_dictionary_entry",
+   "detail": "手際|てぎわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-096",
+   "surface": "円滑",
+   "kind": "no_dictionary_entry",
+   "detail": "円滑|えんかつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-097",
+   "surface": "迅速",
+   "kind": "no_dictionary_entry",
+   "detail": "迅速|じんそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-098",
+   "surface": "的確",
+   "kind": "no_dictionary_entry",
+   "detail": "的確|てきかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-099",
+   "surface": "簡潔",
+   "kind": "no_dictionary_entry",
+   "detail": "簡潔|かんけつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-100",
+   "surface": "率直",
+   "kind": "no_dictionary_entry",
+   "detail": "率直|そっちょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-101",
+   "surface": "得意先",
+   "kind": "no_dictionary_entry",
+   "detail": "得意先|とくいさき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-102",
+   "surface": "滞る",
+   "kind": "no_dictionary_entry",
+   "detail": "滞る|とどこおる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-103",
+   "surface": "捗る",
+   "kind": "no_dictionary_entry",
+   "detail": "捗る|はかどる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-104",
+   "surface": "見合わせる",
+   "kind": "no_dictionary_entry",
+   "detail": "見合わせる|みあわせる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-105",
+   "surface": "取り組み",
+   "kind": "no_dictionary_entry",
+   "detail": "取り組み|とりくみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-106",
+   "surface": "請け負う",
+   "kind": "no_dictionary_entry",
+   "detail": "請け負う|うけおう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-107",
+   "surface": "担う",
+   "kind": "no_dictionary_entry",
+   "detail": "担う|になう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-108",
+   "surface": "従事",
+   "kind": "no_dictionary_entry",
+   "detail": "従事|じゅうじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-109",
+   "surface": "率いる",
+   "kind": "no_dictionary_entry",
+   "detail": "率いる|ひきいる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-34-110",
+   "surface": "主導",
+   "kind": "no_dictionary_entry",
+   "detail": "主導|しゅどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

@@ -87,11 +87,15 @@ export const LEGAL_FACTS: LegalFacts = {
   phone: 'on_request',
   contactEmail: 'info@kawabado.com',
   priceJpyTaxIncluded: catalogPriceFact(),
-  paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
+  // 2026-08-19 CEO指示: 600円・2,980円プランはクレジットカードのオンライン決済＋自動発行
+  paymentMethods: [
+    { ja: 'クレジットカード（AI体験パス・1か月 AI自学プランのオンライン決済）', zh: '信用卡（AI体验通行证・1个月AI自学方案的在线支付）' },
+    { ja: '銀行振込', zh: '银行转账' },
+  ],
   paymentTiming: { ja: '申込時に一括', zh: '报名时一次性支付' },
   serviceStartTiming: {
-    ja: '決済確認後、招待コードの発行をもって開始',
-    zh: '确认付款后，以发放邀请码作为开始',
+    ja: 'クレジットカード決済のプランは決済完了後ただちに（アカウントを自動発行し、ログイン情報をメールでお送りします）。銀行振込のプランは決済確認後、ログイン情報の発行をもって開始',
+    zh: '信用卡支付的方案在付款完成后立即开始（自动开通账号，并通过邮件发送登录信息）。银行转账的方案在确认付款并发放登录信息后开始',
   },
   // CEO決定（2026-08-02・複数プラン化にともない再変更）。
   //

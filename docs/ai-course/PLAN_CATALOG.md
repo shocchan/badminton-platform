@@ -49,17 +49,25 @@ CEO確認用URL: `https://staging.badminton-platform.pages.dev/ja/ai-course/shok
 
 ---
 
-## 4. いまの状態
+## 4. いまの状態（2026-08-19 商品3段階化）
 
-| プラン | 価格 | 状態 | ボタン |
-|---|---|---|---|
-| AI体験パス | 600円（税込）／累計60分 | `draft` | `apply` |
-| 1か月AIお試し | 準備中 | `draft` | `apply` |
-| 6か月 AI日本語伴走コース | 100,000円（税込）／6か月 | `published` | `consult` |
+| プラン | 価格 | 期間 | 状態 | ボタン |
+|---|---|---|---|---|
+| AI体験パス | 600円（税込）／累計60分 | 購入から30日間 | `published` | `checkout`（無効時はapplyへ） |
+| 1か月 AI自学プラン | 2,980円（税込） | 購入から30日間 | `published` | `checkout`（無効時はapplyへ） |
+| 6か月 AI日本語伴走コース | 100,000円（税込） | 6か月（個別設定） | `published` | `consult`・**recommended** |
 
-**LPの見た目は改修前と変わっていない**（公開中は6か月コース1つ・CTAは無料個別相談）。
-体験パスと1か月お試しは価格が確定していないので `draft` のまま。
-確定したら `status` を `published` にするだけで出る。
+`checkout` はセルフサービス決済（Stripe→自動発行→メール）。有効化は
+[selfserve-checkout-runbook.md](selfserve-checkout-runbook.md)。
+**人間レッスンを含む商品への checkout 設定はテストとサーバーの両方が拒否する。**
+
+- 60分・1か月プランは**人間レッスンなし**（`notIncluded` で料金表にも明示）
+- 全プラン買い切り・自動更新なし（`autoRenew: false` をテストで固定）
+- 権限の導出は `planEntitlements.ts`（LPの比較表とサーバー側チェックが同じ値を使う）
+- アップグレード施策（1か月→6か月・2,980円分差引）は **`UPGRADE_PATHS` に構造だけ**。
+  自動割引は決済・会計・返金条件の確認後に有効化（`status: 'planned'`）
+- サーバー側の期間・累計上限チェックは migration `20260819100000_ai_course_plan_access.sql`
+  （**remote未適用**・適用にCEO許可が要る）→ [plan-rollout-20260819.md](plan-rollout-20260819.md)
 
 ---
 

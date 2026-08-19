@@ -95,6 +95,10 @@ export type StartSessionCode =
   | 'daily_time_limit'
   | 'monthly_session_limit'
   | 'monthly_time_limit'
+  // 受講権（2026-08-19 サーバー側チェック追加。migration 20260819100000）
+  | 'access_not_started'
+  | 'access_expired'
+  | 'plan_minutes_exhausted'
   | 'network'
   | 'unknown';
 

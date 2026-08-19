@@ -3,11 +3,11 @@ import type { Lang } from '../../../contexts/LanguageContext';
 import { LP, type VariantConfig } from './lpContent';
 import { Reveal, SectionHeading, CtaButton, ArrowRight } from './lpUi';
 import { track, imgUrl } from './lpHelpers';
-import { Plus, X, MessageSquare, Copy, Check as CheckIcon } from 'lucide-react';
+import { Plus, X, MessageSquare, Copy, Check as CheckIcon, Mail, FileText } from 'lucide-react';
 
 export function FaqSection({ lang }: { lang: Lang }) {
   return (
-    <section id="faq" className="py-16 sm:py-24">
+    <section id="faq" className="scroll-mt-20 py-16 sm:py-24">
       <div className="mx-auto max-w-3xl px-5">
         <Reveal><SectionHeading title={LP.faq.heading[lang]} /></Reveal>
         <div className="flex flex-col gap-3">
@@ -15,7 +15,10 @@ export function FaqSection({ lang }: { lang: Lang }) {
             <Reveal key={i} delay={Math.min(i, 6) * 30}>
               <details
                 className="group bg-lp-card border border-lp-line rounded-2xl px-5 open:border-lp-coral"
-                onToggle={(e) => { if ((e.currentTarget as HTMLDetailsElement).open) track('open_ai_course_faq', { index: i }); }}
+                onToggle={(e) => {
+                  const opened = (e.currentTarget as HTMLDetailsElement).open;
+                  track(opened ? 'open_ai_course_faq' : 'close_ai_course_faq', { index: i });
+                }}
               >
                 <summary className="list-none cursor-pointer py-4 flex items-center justify-between gap-4 font-bold text-[1.02rem] text-lp-ink [&::-webkit-details-marker]:hidden">
                   {it.q}
@@ -62,7 +65,9 @@ export function FinalCtaSection({ v, lang, onConsult }: { v: VariantConfig; lang
 }
 
 /** 無料相談モーダル（未購入者向け営業導線・CEO方針2026-07-30: WeChat維持＋メール併記）。
- * 学習アプリ内のlearner向け人間窓口（info@kawabado.comのみ）とは別管理。 */
+ * 学習アプリ内のlearner向け人間窓口（info@kawabado.comのみ）とは別管理。
+ * ⚠️ このモーダルはURL・履歴を一切変更しない（?app=1 などのログイン用パラメーターを
+ * 流用しない）。開閉してもページ更新・戻る/進むでログイン画面へ誤遷移させないため。 */
 export function ConsultationModal({ open, onClose, lang, variant }: {
   open: boolean; onClose: () => void; lang: Lang; variant: string;
 }) {
@@ -89,16 +94,22 @@ export function ConsultationModal({ open, onClose, lang, variant }: {
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    // クローズ時: 開いたCTAへフォーカスを戻す（キーボード利用者が迷子にならない）
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; prevFocus?.focus?.(); };
   }, [open, onClose, variant]);
 
   if (!open) return null;
   const copyId = async () => {
-    try { await navigator.clipboard.writeText(c.wechatIdPlaceholder); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* noop */ }
+    try {
+      await navigator.clipboard.writeText(c.wechatIdPlaceholder);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+      track('copy_wechat_id', { variant }); // IDそのものは送らない
+    } catch { /* noop */ }
   };
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45" onClick={onClose}>
-      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={c.heading[lang]} className="w-full max-w-sm bg-lp-card rounded-3xl p-7 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={c.heading[lang]} className="w-full max-w-sm max-h-[90vh] overflow-y-auto bg-lp-card rounded-3xl p-7 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end -mt-2 -mr-2">
           <button ref={closeRef} type="button" onClick={onClose} aria-label={lang === 'ja' ? '閉じる' : '关闭'} className="w-9 h-9 grid place-items-center rounded-full hover:bg-lp-ivory-2 text-lp-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
             <X className="w-5 h-5" aria-hidden="true" />
@@ -114,23 +125,34 @@ export function ConsultationModal({ open, onClose, lang, variant }: {
           <p className="text-[0.8rem] font-bold text-lp-ink-soft">{c.wechatLabel[lang]}</p>
           <div className="mt-1 flex items-center justify-center gap-2">
             <span className="font-extrabold text-lp-ink text-lg tracking-wide select-all">{c.wechatIdPlaceholder}</span>
-            <button type="button" onClick={copyId} className="inline-flex items-center gap-1 text-[0.82rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-2.5 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
-              {copied ? <><CheckIcon className="w-3.5 h-3.5" />{lang === 'ja' ? 'コピー済み' : '已复制'}</> : <><Copy className="w-3.5 h-3.5" />{lang === 'ja' ? 'コピー' : '复制'}</>}
+            <button type="button" onClick={copyId} className="inline-flex items-center gap-1 min-h-8 text-[0.82rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-2.5 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+              {copied ? <><CheckIcon className="w-3.5 h-3.5" aria-hidden="true" />{lang === 'ja' ? 'コピー済み' : '已复制'}</> : <><Copy className="w-3.5 h-3.5" aria-hidden="true" />{lang === 'ja' ? 'コピー' : '复制'}</>}
             </button>
           </div>
+          <p className="mt-2 text-[0.88rem] text-lp-ink leading-relaxed text-left">{c.searchHint[lang]}</p>
         </div>
         <p aria-live="polite" className="sr-only">{copied ? (lang === 'ja' ? 'コピーしました' : '已复制') : ''}</p>
-        <p className="mt-4 text-[0.9rem] text-lp-ink leading-relaxed">{c.searchHint[lang]}</p>
 
         {/* メール相談（併記・購入前でも学習アプリと同じ公開アドレス） */}
         <div className="mt-4 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-4">
           <p className="text-[0.8rem] font-bold text-lp-ink-soft">{c.emailLabel[lang]}</p>
           <p className="mt-1 font-extrabold text-lp-ink text-base tracking-wide select-all">{c.email}</p>
           <a href={`mailto:${c.email}`} onClick={() => track('generate_lead', { method: 'email', variant })}
-            className="mt-2 inline-flex items-center gap-1 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
-            {c.emailCta[lang]}
+            className="mt-2 inline-flex items-center gap-1.5 min-h-9 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+            <Mail className="w-4 h-4" aria-hidden="true" />{c.emailCta[lang]}
           </a>
         </div>
+
+        {/* 問い合わせフォーム（サイト共通のフォームページへ） */}
+        <div className="mt-4 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-4">
+          <p className="text-[0.8rem] font-bold text-lp-ink-soft">{c.formLabel[lang]}</p>
+          <a href={`/${lang}/contact`}
+            onClick={() => track('click_ai_course_contact_form', { variant })}
+            className="mt-2 inline-flex items-center gap-1.5 min-h-9 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3 py-1.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+            <FileText className="w-4 h-4" aria-hidden="true" />{c.formCta[lang]}
+          </a>
+        </div>
+
         <p className="mt-3 text-[0.84rem] text-lp-ink-soft">{c.fallbackNote[lang]}</p>
       </div>
     </div>

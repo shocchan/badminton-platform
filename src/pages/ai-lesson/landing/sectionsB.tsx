@@ -2,19 +2,28 @@ import type { Lang } from '../../../contexts/LanguageContext';
 import { LP } from './lpContent';
 import { Reveal, SectionHeading, Check } from './lpUi';
 import {
-  MessageCircle, BookOpen, RefreshCw, LineChart, Map, Headphones, UserRound, ImageIcon,
+  MessageCircle, MessageSquareText, RefreshCw, LineChart, BookOpen, Map, UserRound, ImageIcon, PlayCircle,
 } from 'lucide-react';
 
-const featIcon = [MessageCircle, BookOpen, RefreshCw, LineChart, Map, Headphones, UserRound];
+const featIcon = [MessageCircle, MessageSquareText, RefreshCw, LineChart, BookOpen, Map, UserRound];
 
-// 実際の学習画面の撮影が済むまでは枠ごと出さない（「準備中」を訪問者に見せない・Phase B-5）
+/**
+ * 実際の学習画面の素材が用意できるまでは枠ごと出さない（「準備中」を訪問者に見せない・Phase B-5）。
+ * - `SHOW_SCREENSHOT_FRAME`: 学習画面のスクリーンショット枠
+ * - `SHOW_SYSTEM_DEMO`: デモ動画枠（撮影でき次第 true にして VIDEO_SRC を差し替える）
+ * 架空のUI・存在しない画面は作らない。
+ */
 const SHOW_SCREENSHOT_FRAME = false;
+const SHOW_SYSTEM_DEMO = false;
+const DEMO_VIDEO_SRC = ''; // 例: '/videos/ai-course-demo.mp4'（public 配下に置く）
 
 export function PlatformFeatures({ lang }: { lang: Lang }) {
   return (
-    <section id="features" className="bg-lp-ivory-2 py-16 sm:py-24">
+    // scroll-mt-20: ヒーローの「学習システムを見る」からのスクロール着地時に
+    // 固定ヘッダー（h-16）で見出しが隠れないようにする
+    <section id="features" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-5">
-        <Reveal><SectionHeading title={LP.features.heading[lang]} /></Reveal>
+        <Reveal><SectionHeading title={LP.features.heading[lang]} lead={LP.features.lead[lang]} /></Reveal>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {LP.features.items[lang].map((f, i) => {
             const Icon = featIcon[i] || MessageCircle;
@@ -31,8 +40,23 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
             );
           })}
         </div>
+
+        {/* デモ動画枠: 実素材が撮影でき次第 SHOW_SYSTEM_DEMO を true にして差し替える。
+            素材が無いあいだは枠ごと出さない（空の「準備中」を訪問者に見せない） */}
+        {SHOW_SYSTEM_DEMO && DEMO_VIDEO_SRC && (
+          <Reveal delay={80}>
+            <figure className="mt-8 rounded-2xl border border-lp-line bg-lp-card overflow-hidden shadow-[0_10px_26px_rgba(55,43,38,0.08)]">
+              <video src={DEMO_VIDEO_SRC} controls playsInline preload="metadata" className="w-full h-auto">
+                <span className="grid place-items-center h-56 text-lp-ink-soft text-sm gap-2">
+                  <PlayCircle className="w-8 h-8" aria-hidden="true" />
+                </span>
+              </video>
+              <figcaption className="px-4 py-3 text-[0.86rem] text-lp-ink-soft">{LP.features.screenshotNote[lang]}</figcaption>
+            </figure>
+          </Reveal>
+        )}
+
         {/* 実画面プレースホルダー：デモは招待制で自動取得不可のため、撮影待ち（架空UIは作らない）。
-            「準備中」の空枠を訪問者に見せる意味はないので、実画像が入るまで出さない。
             撮影できたら SHOW_SCREENSHOT_FRAME を true にして中身を実画像へ差し替える。 */}
         {SHOW_SCREENSHOT_FRAME && (
         <Reveal delay={80}>
@@ -58,7 +82,7 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
 
 export function SixMonthRoadmap({ lang }: { lang: Lang }) {
   return (
-    <section id="roadmap" className="py-16 sm:py-24">
+    <section id="roadmap" className="scroll-mt-20 py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal><SectionHeading title={LP.roadmap.heading[lang]} /></Reveal>
         <div className="grid md:grid-cols-3 gap-4">
@@ -79,36 +103,6 @@ export function SixMonthRoadmap({ lang }: { lang: Lang }) {
           ))}
         </div>
         <p className="text-center text-[0.86rem] text-lp-ink-soft mt-6">{LP.roadmap.note[lang]}</p>
-      </div>
-    </section>
-  );
-}
-
-export function FutureOutcomes({ lang }: { lang: Lang }) {
-  return (
-    <section id="outcomes" className="bg-lp-ivory-2 py-16 sm:py-24">
-      <div className="mx-auto max-w-5xl px-5">
-        <Reveal><SectionHeading title={LP.outcomes.heading[lang]} /></Reveal>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {LP.outcomes.items[lang].map((o, i) => (
-            <Reveal key={i} delay={(i % 2) * 60}>
-              <div className="flex gap-3 items-start bg-lp-card border border-lp-line rounded-xl px-4 py-3.5">
-                <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />
-                <span className="text-[0.98rem] text-lp-ink">{o}</span>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-        <Reveal delay={80}>
-          <div className="mt-6 rounded-2xl bg-lp-pine text-white p-6">
-            <p className="font-bold mb-3">{LP.outcomes.workLead[lang]}</p>
-            <div className="flex flex-wrap gap-2">
-              {LP.outcomes.workItems[lang].map((w) => (
-                <span key={w} className="text-[0.9rem] font-bold bg-white/15 rounded-full px-3.5 py-1.5">{w}</span>
-              ))}
-            </div>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

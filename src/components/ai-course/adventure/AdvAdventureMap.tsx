@@ -23,6 +23,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { List, Map as MapIcon, Lock, Flag, ChevronRight, Star, ChevronDown } from 'lucide-react';
 import { CompanionAvatar } from './CompanionAvatar';
 import { levelOf } from '../../../lib/aiLesson/course/adventure/advXp';
+import { gateAdventureMapForPlan } from '../../../lib/aiLesson/course/adventure/advPlanGate';
 import {
   buildAdventureMap, availableRouteKinds, ROUTE_KIND_LABEL, ROUTE_KIND_HINT, LAYER_LABEL,
   type MapRegion, type MapRouteKind, type RegionAction,
@@ -74,6 +75,8 @@ interface Props {
   revealRegionId?: string | null;
   /** 再生完了（またはreduced-motionでスキップ）時に呼ぶ。呼び出し側がstateを消す */
   onRevealDone?: () => void;
+  /** 購入プランの地域上限（AI体験パス=3）。null＝ゲートなし（2026-08-19 CEO決定） */
+  planRegionLimit?: number | null;
   /**
    * 世界地図の直下に出す「次の道」カードの枠（2026-08-19 冒険旅マップ）。
    * 出すかどうかの実データ判定（全stage攻略など）は AdvShell 側が行い、ここは枠だけ持つ
@@ -139,6 +142,7 @@ export const AdvAdventureMap = ({
   paceNoteJa = null, paceNoteZh = null,
   revealRegionId = null, onRevealDone,
   nextRoadSlot,
+  planRegionLimit = null,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
@@ -151,8 +155,12 @@ export const AdvAdventureMap = ({
   const [nowISO] = useState(() => new Date().toISOString());
 
   const map = useMemo(
-    () => buildAdventureMap(profile, route, mastered, currentWeek, routeKind),
-    [profile, route, mastered, currentWeek, routeKind],
+    // 購入プランの地域上限（体験パス=3）を後掛けする。保存済みルートには触れない
+    () => gateAdventureMapForPlan(
+      buildAdventureMap(profile, route, mastered, currentWeek, routeKind),
+      planRegionLimit,
+    ),
+    [profile, route, mastered, currentWeek, routeKind, planRegionLimit],
   );
 
   const current = map.regions.find((r) => r.id === map.currentRegionId) ?? null;

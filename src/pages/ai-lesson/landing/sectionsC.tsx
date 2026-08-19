@@ -1,14 +1,14 @@
 import type { Lang } from '../../../contexts/LanguageContext';
-import { LP, VARIANTS } from './lpContent';
+import { LP } from './lpContent';
 import { Reveal, SectionHeading, Check } from './lpUi';
 import { imgUrl } from './lpHelpers';
 import { UserRound } from 'lucide-react';
 
-/** 人間の日本語コーチ = 安田翔（AIイラストとは別枠。実写があれば将来差替え） */
+/** 人間の日本語コーチ = 安田翔（AIイラストとは別枠。実写を使う） */
 export function HumanCoachSection({ lang }: { lang: Lang }) {
   const c = LP.humanCoach;
   return (
-    <section id="coach" className="py-16 sm:py-24">
+    <section id="coach" className="scroll-mt-20 py-16 sm:py-24">
       <div className="mx-auto max-w-5xl px-5">
         <div className="grid md:grid-cols-[.8fr_1.2fr] gap-8 items-center">
           <Reveal>
@@ -43,58 +43,40 @@ export function HumanCoachSection({ lang }: { lang: Lang }) {
   );
 }
 
-/** AI先生（翔子・悠斗）を両方表示。担当は申込みの方に合わせて決まる */
-export function AiTeachersSection({ lang }: { lang: Lang }) {
-  const t = LP.aiTeachers;
-  const cards = [
-    { v: VARIANTS.shoko, ring: 'bg-lp-coral-soft' },
-    { v: VARIANTS.yuto, ring: 'bg-lp-pine-soft' },
-  ];
+/**
+ * 受講生：現在は先行モニター。成果は誇張せず事実のみ。
+ * カードは配列（LP.testimonials.entries）。将来、モニターの許可を得た
+ * 感想・学習期間・変化・利用機能を持つカードをここへ追加していく
+ */
+export function TestimonialsSection({ lang }: { lang: Lang }) {
+  const t = LP.testimonials;
   return (
-    <section id="teachers" className="bg-lp-ivory-2 py-16 sm:py-24">
-      <div className="mx-auto max-w-5xl px-5">
-        <Reveal><SectionHeading eyebrow={t.eyebrow[lang]} title={t.heading[lang]} lead={t.lead[lang]} /></Reveal>
-        <div className="grid sm:grid-cols-2 gap-4">
-          {cards.map(({ v, ring }, i) => (
-            <Reveal key={v.key} delay={i * 80}>
-              <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-6 flex flex-col items-center text-center gap-2">
-                <div className={`w-[156px] h-[156px] rounded-full overflow-hidden grid place-items-center ${ring}`}>
-                  <img src={imgUrl(v.images.base)} alt={v.name[lang]} loading="lazy" decoding="async" className="w-[118%] h-[118%] object-cover object-top" />
+    <section id="voices" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+      <div className="mx-auto max-w-4xl px-5">
+        <Reveal><SectionHeading title={t.heading[lang]} lead={t.lead[lang]} /></Reveal>
+        <div className="flex flex-col gap-4">
+          {t.entries[lang].map((entry, i) => (
+            <Reveal key={i} delay={60 + i * 40}>
+              <div className="bg-lp-card border border-lp-line rounded-2xl p-6 flex items-start gap-4">
+                <span className="inline-flex w-12 h-12 shrink-0 items-center justify-center rounded-full bg-lp-gold-soft">
+                  <UserRound className="w-6 h-6 text-lp-coral-deep" aria-hidden="true" />
+                </span>
+                <div>
+                  <span className="inline-block text-[0.78rem] font-extrabold bg-lp-gold-soft text-lp-coral-deep rounded-full px-3 py-0.5 mb-2">{entry.badge}</span>
+                  <p className="text-[0.98rem] text-lp-ink leading-relaxed">{entry.text}</p>
+                  {/* 将来の拡張枠: 学習期間・変化・利用機能（許可を得た事実のみ表示する） */}
+                  {(entry.period || entry.change || entry.used) && (
+                    <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-[0.86rem] text-lp-ink-soft">
+                      {entry.period && <div><dt className="inline font-bold">{lang === 'ja' ? '学習期間: ' : '学习时长: '}</dt><dd className="inline">{entry.period}</dd></div>}
+                      {entry.change && <div><dt className="inline font-bold">{lang === 'ja' ? '変化: ' : '变化: '}</dt><dd className="inline">{entry.change}</dd></div>}
+                      {entry.used && <div><dt className="inline font-bold">{lang === 'ja' ? '利用機能: ' : '使用功能: '}</dt><dd className="inline">{entry.used}</dd></div>}
+                    </dl>
+                  )}
                 </div>
-                <h3 className="mt-1.5 font-extrabold text-lp-ink text-lg">{v.name[lang]}</h3>
-                <p className="text-[0.95rem] text-lp-ink-soft">{v.gender[lang]}（{v.nameSub[lang]}）</p>
-                <p className="text-[0.9rem] text-lp-ink-soft">{v.personality[lang]}</p>
               </div>
             </Reveal>
           ))}
         </div>
-      </div>
-    </section>
-  );
-}
-
-/** 受講生：現在は先行モニター（Andy）。成果は誇張せず事実のみ */
-export function TestimonialsSection({ lang }: { lang: Lang }) {
-  const t = LP.testimonials;
-  return (
-    <section id="voices" className="py-16 sm:py-24">
-      <div className="mx-auto max-w-4xl px-5">
-        <Reveal><SectionHeading title={t.heading[lang]} lead={t.lead[lang]} /></Reveal>
-        <Reveal delay={60}>
-          <div className="bg-lp-card border border-lp-line rounded-2xl p-6 flex items-start gap-4">
-            <span className="inline-flex w-12 h-12 shrink-0 items-center justify-center rounded-full bg-lp-gold-soft">
-              <UserRound className="w-6 h-6 text-lp-coral-deep" aria-hidden="true" />
-            </span>
-            <div>
-              <span className="inline-block text-[0.78rem] font-extrabold bg-lp-gold-soft text-lp-coral-deep rounded-full px-3 py-0.5 mb-2">{t.monitorLabel[lang]}</span>
-              <p className="text-[0.98rem] text-lp-ink leading-relaxed">
-                {lang === 'ja'
-                  ? '現在、先行モニターの学習者が利用を開始しています。学習環境の提供を始めた段階のため、成果の掲載は今後、事実にもとづいて追加します。'
-                  : '目前已有先行体验的学员开始使用。由于刚进入提供学习环境的阶段，成果将在今后依据事实陆续补充。'}
-              </p>
-            </div>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

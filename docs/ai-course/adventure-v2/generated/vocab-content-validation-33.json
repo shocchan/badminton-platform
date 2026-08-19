@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.769Z",
+ "batchNo": 33,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-33-001",
+  "vc-33-002",
+  "vc-33-003",
+  "vc-33-004",
+  "vc-33-005",
+  "vc-33-006",
+  "vc-33-007",
+  "vc-33-008",
+  "vc-33-009",
+  "vc-33-010",
+  "vc-33-011",
+  "vc-33-012",
+  "vc-33-013",
+  "vc-33-014",
+  "vc-33-015",
+  "vc-33-016",
+  "vc-33-017",
+  "vc-33-018",
+  "vc-33-019",
+  "vc-33-020",
+  "vc-33-021",
+  "vc-33-022",
+  "vc-33-023",
+  "vc-33-024",
+  "vc-33-025",
+  "vc-33-026",
+  "vc-33-027",
+  "vc-33-028",
+  "vc-33-029",
+  "vc-33-030",
+  "vc-33-031",
+  "vc-33-032",
+  "vc-33-033",
+  "vc-33-034",
+  "vc-33-035",
+  "vc-33-036",
+  "vc-33-037",
+  "vc-33-038",
+  "vc-33-039",
+  "vc-33-040",
+  "vc-33-041",
+  "vc-33-042",
+  "vc-33-043",
+  "vc-33-044",
+  "vc-33-045",
+  "vc-33-046",
+  "vc-33-047",
+  "vc-33-048",
+  "vc-33-049",
+  "vc-33-050",
+  "vc-33-051",
+  "vc-33-052",
+  "vc-33-053",
+  "vc-33-054",
+  "vc-33-055",
+  "vc-33-056",
+  "vc-33-057",
+  "vc-33-058",
+  "vc-33-059",
+  "vc-33-060",
+  "vc-33-061",
+  "vc-33-062",
+  "vc-33-063",
+  "vc-33-064",
+  "vc-33-065",
+  "vc-33-066",
+  "vc-33-067",
+  "vc-33-068",
+  "vc-33-069",
+  "vc-33-070",
+  "vc-33-071",
+  "vc-33-072",
+  "vc-33-073",
+  "vc-33-074",
+  "vc-33-075",
+  "vc-33-076",
+  "vc-33-077",
+  "vc-33-078",
+  "vc-33-079",
+  "vc-33-080",
+  "vc-33-081",
+  "vc-33-082",
+  "vc-33-083",
+  "vc-33-084",
+  "vc-33-085",
+  "vc-33-086",
+  "vc-33-087",
+  "vc-33-088",
+  "vc-33-089",
+  "vc-33-090",
+  "vc-33-091",
+  "vc-33-092",
+  "vc-33-093",
+  "vc-33-094",
+  "vc-33-095",
+  "vc-33-096",
+  "vc-33-097",
+  "vc-33-098",
+  "vc-33-099",
+  "vc-33-100",
+  "vc-33-101",
+  "vc-33-102",
+  "vc-33-103",
+  "vc-33-104",
+  "vc-33-105",
+  "vc-33-106",
+  "vc-33-107",
+  "vc-33-108",
+  "vc-33-109",
+  "vc-33-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-33-001",
+   "surface": "政権",
+   "kind": "no_dictionary_entry",
+   "detail": "政権|せいけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-002",
+   "surface": "法案",
+   "kind": "no_dictionary_entry",
+   "detail": "法案|ほうあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-003",
+   "surface": "制定",
+   "kind": "no_dictionary_entry",
+   "detail": "制定|せいてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-004",
+   "surface": "緩和",
+   "kind": "no_dictionary_entry",
+   "detail": "緩和|かんわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-005",
+   "surface": "財政",
+   "kind": "no_dictionary_entry",
+   "detail": "財政|ざいせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-006",
+   "surface": "増税",
+   "kind": "no_dictionary_entry",
+   "detail": "増税|ぞうぜい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-007",
+   "surface": "補助",
+   "kind": "no_dictionary_entry",
+   "detail": "補助|ほじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-008",
+   "surface": "演説",
+   "kind": "no_dictionary_entry",
+   "detail": "演説|えんぜつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-009",
+   "surface": "宣言",
+   "kind": "no_dictionary_entry",
+   "detail": "宣言|せんげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-010",
+   "surface": "措置",
+   "kind": "no_dictionary_entry",
+   "detail": "措置|そち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-011",
+   "surface": "会見",
+   "kind": "no_dictionary_entry",
+   "detail": "会見|かいけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-012",
+   "surface": "市長",
+   "kind": "no_dictionary_entry",
+   "detail": "市長|しちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-013",
+   "surface": "任期",
+   "kind": "no_dictionary_entry",
+   "detail": "任期|にんき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-014",
+   "surface": "就任",
+   "kind": "no_dictionary_entry",
+   "detail": "就任|しゅうにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-015",
+   "surface": "辞任",
+   "kind": "no_dictionary_entry",
+   "detail": "辞任|じにん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-016",
+   "surface": "公表",
+   "kind": "no_dictionary_entry",
+   "detail": "公表|こうひょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-017",
+   "surface": "見直し",
+   "kind": "no_dictionary_entry",
+   "detail": "見直し|みなおし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-018",
+   "surface": "合意",
+   "kind": "no_dictionary_entry",
+   "detail": "合意|ごうい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-019",
+   "surface": "支持",
+   "kind": "no_dictionary_entry",
+   "detail": "支持|しじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-020",
+   "surface": "討論",
+   "kind": "no_dictionary_entry",
+   "detail": "討論|とうろん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-021",
+   "surface": "成立",
+   "kind": "no_dictionary_entry",
+   "detail": "成立|せいりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-022",
+   "surface": "促進",
+   "kind": "no_dictionary_entry",
+   "detail": "促進|そくしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-023",
+   "surface": "条約",
+   "kind": "no_dictionary_entry",
+   "detail": "条約|じょうやく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-024",
+   "surface": "協定",
+   "kind": "no_dictionary_entry",
+   "detail": "協定|きょうてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-025",
+   "surface": "移民",
+   "kind": "no_dictionary_entry",
+   "detail": "移民|いみん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-026",
+   "surface": "難民",
+   "kind": "no_dictionary_entry",
+   "detail": "難民|なんみん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-027",
+   "surface": "人権",
+   "kind": "no_dictionary_entry",
+   "detail": "人権|じんけん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-028",
+   "surface": "破産",
+   "kind": "no_dictionary_entry",
+   "detail": "破産|はさん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-029",
+   "surface": "貯蓄",
+   "kind": "no_dictionary_entry",
+   "detail": "貯蓄|ちょちく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-030",
+   "surface": "上昇",
+   "kind": "no_dictionary_entry",
+   "detail": "上昇|じょうしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-031",
+   "surface": "統計",
+   "kind": "no_dictionary_entry",
+   "detail": "統計|とうけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-032",
+   "surface": "金融",
+   "kind": "no_dictionary_entry",
+   "detail": "金融|きんゆう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-033",
+   "surface": "損害",
+   "kind": "no_dictionary_entry",
+   "detail": "損害|そんがい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-034",
+   "surface": "資本",
+   "kind": "no_dictionary_entry",
+   "detail": "資本|しほん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-035",
+   "surface": "見通し",
+   "kind": "no_dictionary_entry",
+   "detail": "見通し|みとおし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-036",
+   "surface": "拡大",
+   "kind": "no_dictionary_entry",
+   "detail": "拡大|かくだい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-037",
+   "surface": "縮小",
+   "kind": "no_dictionary_entry",
+   "detail": "縮小|しゅくしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-038",
+   "surface": "好調",
+   "kind": "no_dictionary_entry",
+   "detail": "好調|こうちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-039",
+   "surface": "輸送",
+   "kind": "no_dictionary_entry",
+   "detail": "輸送|ゆそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-040",
+   "surface": "売れ行き",
+   "kind": "no_dictionary_entry",
+   "detail": "売れ行き|うれゆき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-041",
+   "surface": "収支",
+   "kind": "no_dictionary_entry",
+   "detail": "収支|しゅうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-042",
+   "surface": "賃上げ",
+   "kind": "no_dictionary_entry",
+   "detail": "賃上げ|ちんあげ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-043",
+   "surface": "出費",
+   "kind": "no_dictionary_entry",
+   "detail": "出費|しゅっぴ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-044",
+   "surface": "過剰",
+   "kind": "no_dictionary_entry",
+   "detail": "過剰|かじょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-045",
+   "surface": "危機",
+   "kind": "no_dictionary_entry",
+   "detail": "危機|きき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-046",
+   "surface": "強化",
+   "kind": "no_dictionary_entry",
+   "detail": "強化|きょうか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-047",
+   "surface": "確保",
+   "kind": "no_dictionary_entry",
+   "detail": "確保|かくほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-048",
+   "surface": "補充",
+   "kind": "no_dictionary_entry",
+   "detail": "補充|ほじゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-049",
+   "surface": "充実",
+   "kind": "no_dictionary_entry",
+   "detail": "充実|じゅうじつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-050",
+   "surface": "深刻",
+   "kind": "no_dictionary_entry",
+   "detail": "深刻|しんこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-051",
+   "surface": "人材",
+   "kind": "no_dictionary_entry",
+   "detail": "人材|じんざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-052",
+   "surface": "復帰",
+   "kind": "no_dictionary_entry",
+   "detail": "復帰|ふっき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-053",
+   "surface": "人手",
+   "kind": "no_dictionary_entry",
+   "detail": "人手|ひとで が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-054",
+   "surface": "休業",
+   "kind": "no_dictionary_entry",
+   "detail": "休業|きゅうぎょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-055",
+   "surface": "共働き",
+   "kind": "no_dictionary_entry",
+   "detail": "共働き|ともばたらき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-056",
+   "surface": "震災",
+   "kind": "no_dictionary_entry",
+   "detail": "震災|しんさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-057",
+   "surface": "救助",
+   "kind": "no_dictionary_entry",
+   "detail": "救助|きゅうじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-058",
+   "surface": "被災",
+   "kind": "no_dictionary_entry",
+   "detail": "被災|ひさい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-059",
+   "surface": "復興",
+   "kind": "no_dictionary_entry",
+   "detail": "復興|ふっこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-060",
+   "surface": "余震",
+   "kind": "no_dictionary_entry",
+   "detail": "余震|よしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-061",
+   "surface": "浸水",
+   "kind": "no_dictionary_entry",
+   "detail": "浸水|しんすい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-062",
+   "surface": "倒壊",
+   "kind": "no_dictionary_entry",
+   "detail": "倒壊|とうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-063",
+   "surface": "犠牲",
+   "kind": "no_dictionary_entry",
+   "detail": "犠牲|ぎせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-064",
+   "surface": "行方",
+   "kind": "no_dictionary_entry",
+   "detail": "行方|ゆくえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-065",
+   "surface": "土砂",
+   "kind": "no_dictionary_entry",
+   "detail": "土砂|どしゃ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-066",
+   "surface": "救急",
+   "kind": "no_dictionary_entry",
+   "detail": "救急|きゅうきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-067",
+   "surface": "消防",
+   "kind": "no_dictionary_entry",
+   "detail": "消防|しょうぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-068",
+   "surface": "発生",
+   "kind": "no_dictionary_entry",
+   "detail": "発生|はっせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-069",
+   "surface": "速報",
+   "kind": "no_dictionary_entry",
+   "detail": "速報|そくほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-070",
+   "surface": "警戒",
+   "kind": "no_dictionary_entry",
+   "detail": "警戒|けいかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-071",
+   "surface": "救援",
+   "kind": "no_dictionary_entry",
+   "detail": "救援|きゅうえん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-072",
+   "surface": "豪雨",
+   "kind": "no_dictionary_entry",
+   "detail": "豪雨|ごうう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-073",
+   "surface": "崩壊",
+   "kind": "no_dictionary_entry",
+   "detail": "崩壊|ほうかい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-074",
+   "surface": "救出",
+   "kind": "no_dictionary_entry",
+   "detail": "救出|きゅうしゅつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-075",
+   "surface": "物資",
+   "kind": "no_dictionary_entry",
+   "detail": "物資|ぶっし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-076",
+   "surface": "給水",
+   "kind": "no_dictionary_entry",
+   "detail": "給水|きゅうすい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-077",
+   "surface": "耐震",
+   "kind": "no_dictionary_entry",
+   "detail": "耐震|たいしん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-078",
+   "surface": "補強",
+   "kind": "no_dictionary_entry",
+   "detail": "補強|ほきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-079",
+   "surface": "警備",
+   "kind": "no_dictionary_entry",
+   "detail": "警備|けいび が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-080",
+   "surface": "出動",
+   "kind": "no_dictionary_entry",
+   "detail": "出動|しゅつどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-081",
+   "surface": "負傷",
+   "kind": "no_dictionary_entry",
+   "detail": "負傷|ふしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-082",
+   "surface": "重傷",
+   "kind": "no_dictionary_entry",
+   "detail": "重傷|じゅうしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-083",
+   "surface": "軽傷",
+   "kind": "no_dictionary_entry",
+   "detail": "軽傷|けいしょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-084",
+   "surface": "死亡",
+   "kind": "no_dictionary_entry",
+   "detail": "死亡|しぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-085",
+   "surface": "生存",
+   "kind": "no_dictionary_entry",
+   "detail": "生存|せいぞん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-086",
+   "surface": "捜索",
+   "kind": "no_dictionary_entry",
+   "detail": "捜索|そうさく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-087",
+   "surface": "解除",
+   "kind": "no_dictionary_entry",
+   "detail": "解除|かいじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-088",
+   "surface": "区域",
+   "kind": "no_dictionary_entry",
+   "detail": "区域|くいき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-089",
+   "surface": "地帯",
+   "kind": "no_dictionary_entry",
+   "detail": "地帯|ちたい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-090",
+   "surface": "沿岸",
+   "kind": "no_dictionary_entry",
+   "detail": "沿岸|えんがん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-091",
+   "surface": "対処",
+   "kind": "no_dictionary_entry",
+   "detail": "対処|たいしょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-092",
+   "surface": "犯罪",
+   "kind": "no_dictionary_entry",
+   "detail": "犯罪|はんざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-093",
+   "surface": "逮捕",
+   "kind": "no_dictionary_entry",
+   "detail": "逮捕|たいほ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-094",
+   "surface": "目撃",
+   "kind": "no_dictionary_entry",
+   "detail": "目撃|もくげき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-095",
+   "surface": "容疑",
+   "kind": "no_dictionary_entry",
+   "detail": "容疑|ようぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-096",
+   "surface": "有罪",
+   "kind": "no_dictionary_entry",
+   "detail": "有罪|ゆうざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-097",
+   "surface": "無罪",
+   "kind": "no_dictionary_entry",
+   "detail": "無罪|むざい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-098",
+   "surface": "取り締まり",
+   "kind": "no_dictionary_entry",
+   "detail": "取り締まり|とりしまり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-099",
+   "surface": "盗難",
+   "kind": "no_dictionary_entry",
+   "detail": "盗難|とうなん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-100",
+   "surface": "強盗",
+   "kind": "no_dictionary_entry",
+   "detail": "強盗|ごうとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-101",
+   "surface": "暴力",
+   "kind": "no_dictionary_entry",
+   "detail": "暴力|ぼうりょく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-102",
+   "surface": "証言",
+   "kind": "no_dictionary_entry",
+   "detail": "証言|しょうげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-103",
+   "surface": "違法",
+   "kind": "no_dictionary_entry",
+   "detail": "違法|いほう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-104",
+   "surface": "抗議",
+   "kind": "no_dictionary_entry",
+   "detail": "抗議|こうぎ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-105",
+   "surface": "募金",
+   "kind": "no_dictionary_entry",
+   "detail": "募金|ぼきん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-106",
+   "surface": "寄付",
+   "kind": "no_dictionary_entry",
+   "detail": "寄付|きふ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-107",
+   "surface": "孤立",
+   "kind": "no_dictionary_entry",
+   "detail": "孤立|こりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-108",
+   "surface": "援助",
+   "kind": "no_dictionary_entry",
+   "detail": "援助|えんじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-109",
+   "surface": "移住",
+   "kind": "no_dictionary_entry",
+   "detail": "移住|いじゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-33-110",
+   "surface": "非難",
+   "kind": "no_dictionary_entry",
+   "detail": "非難|ひなん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

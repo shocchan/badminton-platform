@@ -8,7 +8,7 @@
 // - 記録するのは「その人が見た価格ラベル」と「プラン版」と「同意した規約の版」。
 //   あとで価格や規約を変えても、申込時点を再現できる
 // - **保存に失敗したら成功したふりをしない。** メールの連絡先を出して人へ繋ぐ
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { X, Check as CheckIcon } from 'lucide-react';
 import type { Lang } from '../../../contexts/LanguageContext';
 import { LP } from './lpContent';
@@ -39,13 +39,30 @@ export function ApplicationModal({ planId, onClose, lang }: {
   const open = planId !== null;
   const plan = planId ? planById(planId) : null;
 
+  // 「購入開始したが完了しなかった」の計測用。phaseはstateなので、
+  // effectを張り替えずに閉じた瞬間の値を読めるよう ref に写す
+  const phaseRef = useRef<Phase>('form');
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  const close = useCallback(() => {
+    if (phaseRef.current === 'form' || phaseRef.current === 'sending') {
+      track('abandon_ai_course_application', { plan: planId ?? '' });
+    }
+    onClose();
+  }, [onClose, planId]);
+
   useEffect(() => {
     if (!open) return;
-    track('begin_ai_course_application', { plan: planId ?? '' });
+    const p = planId ? planById(planId) : null;
+    track('begin_ai_course_application', {
+      plan: planId ?? '',
+      price_label: p?.priceLabelJa ?? '',
+      value: p?.priceJpy ?? undefined,
+      currency: 'JPY',
+    });
     const prevFocus = document.activeElement as HTMLElement | null;
     closeRef.current?.focus();
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') { onClose(); return; }
+      if (e.key === 'Escape') { close(); return; }
       if (e.key !== 'Tab') return;
       const nodes = dialogRef.current?.querySelectorAll<HTMLElement>(
         'button, [href], input, textarea, [tabindex]:not([tabindex="-1"])');
@@ -61,7 +78,7 @@ export function ApplicationModal({ planId, onClose, lang }: {
       document.body.style.overflow = '';
       prevFocus?.focus?.();
     };
-  }, [open, onClose, planId]);
+  }, [open, close, planId]);
 
   // 前回の入力が残らないようにするのは、呼び出し側の `key={planId}` による作り直しで行う。
   // effectでsetStateすると一瞬だけ前の入力が見える（＆cascading render になる）。
@@ -80,7 +97,10 @@ export function ApplicationModal({ planId, onClose, lang }: {
     });
     const result = await submitPlanApplication(submission);
     if (result.ok) {
-      track('generate_lead', { method: 'application', plan: plan.id });
+      track('generate_lead', {
+        method: 'application', plan: plan.id,
+        value: plan.priceJpy ?? undefined, currency: 'JPY',
+      });
       setPhase('done');
       return;
     }
@@ -92,13 +112,13 @@ export function ApplicationModal({ planId, onClose, lang }: {
   const field = 'w-full min-h-11 rounded-xl border border-lp-line bg-lp-card px-3 py-2 text-[0.95rem] text-lp-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine';
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45" onClick={close}>
       <div ref={dialogRef} role="dialog" aria-modal="true"
         aria-label={tx(lang, `${view.name}に申し込む`, `报名${view.name}`)}
         className="w-full max-w-md max-h-[90vh] overflow-y-auto bg-lp-card rounded-3xl p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}>
         <div className="flex justify-end -mt-2 -mr-2">
-          <button ref={closeRef} type="button" onClick={onClose}
+          <button ref={closeRef} type="button" onClick={close}
             aria-label={tx(lang, '閉じる', '关闭')}
             className="w-9 h-9 grid place-items-center rounded-full hover:bg-lp-ivory-2 text-lp-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
             <X className="w-5 h-5" aria-hidden />

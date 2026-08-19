@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.775Z",
+ "batchNo": 37,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-37-001",
+  "vc-37-002",
+  "vc-37-003",
+  "vc-37-004",
+  "vc-37-005",
+  "vc-37-006",
+  "vc-37-007",
+  "vc-37-008",
+  "vc-37-009",
+  "vc-37-010",
+  "vc-37-011",
+  "vc-37-012",
+  "vc-37-013",
+  "vc-37-014",
+  "vc-37-015",
+  "vc-37-016",
+  "vc-37-017",
+  "vc-37-018",
+  "vc-37-019",
+  "vc-37-020",
+  "vc-37-021",
+  "vc-37-022",
+  "vc-37-023",
+  "vc-37-024",
+  "vc-37-025",
+  "vc-37-026",
+  "vc-37-027",
+  "vc-37-028",
+  "vc-37-029",
+  "vc-37-030",
+  "vc-37-031",
+  "vc-37-032",
+  "vc-37-033",
+  "vc-37-034",
+  "vc-37-035",
+  "vc-37-036",
+  "vc-37-037",
+  "vc-37-038",
+  "vc-37-039",
+  "vc-37-040",
+  "vc-37-041",
+  "vc-37-042",
+  "vc-37-043",
+  "vc-37-044",
+  "vc-37-045",
+  "vc-37-046",
+  "vc-37-047",
+  "vc-37-048",
+  "vc-37-049",
+  "vc-37-050",
+  "vc-37-051",
+  "vc-37-052",
+  "vc-37-053",
+  "vc-37-054",
+  "vc-37-055",
+  "vc-37-056",
+  "vc-37-057",
+  "vc-37-058",
+  "vc-37-059",
+  "vc-37-060",
+  "vc-37-061",
+  "vc-37-062",
+  "vc-37-063",
+  "vc-37-064",
+  "vc-37-065",
+  "vc-37-066",
+  "vc-37-067",
+  "vc-37-068",
+  "vc-37-069",
+  "vc-37-070",
+  "vc-37-071",
+  "vc-37-072",
+  "vc-37-073",
+  "vc-37-074",
+  "vc-37-075",
+  "vc-37-076",
+  "vc-37-077",
+  "vc-37-078",
+  "vc-37-079",
+  "vc-37-080",
+  "vc-37-081",
+  "vc-37-082",
+  "vc-37-083",
+  "vc-37-084",
+  "vc-37-085",
+  "vc-37-086",
+  "vc-37-087",
+  "vc-37-088",
+  "vc-37-089",
+  "vc-37-090",
+  "vc-37-091",
+  "vc-37-092",
+  "vc-37-093",
+  "vc-37-094",
+  "vc-37-095",
+  "vc-37-096",
+  "vc-37-097",
+  "vc-37-098",
+  "vc-37-099",
+  "vc-37-100",
+  "vc-37-101",
+  "vc-37-102",
+  "vc-37-103",
+  "vc-37-104",
+  "vc-37-105",
+  "vc-37-106",
+  "vc-37-107",
+  "vc-37-108",
+  "vc-37-109",
+  "vc-37-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-37-001",
+   "surface": "突き止める",
+   "kind": "no_dictionary_entry",
+   "detail": "突き止める|つきとめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-002",
+   "surface": "立て替える",
+   "kind": "no_dictionary_entry",
+   "detail": "立て替える|たてかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-003",
+   "surface": "見慣れる",
+   "kind": "no_dictionary_entry",
+   "detail": "見慣れる|みなれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-004",
+   "surface": "見渡す",
+   "kind": "no_dictionary_entry",
+   "detail": "見渡す|みわたす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-005",
+   "surface": "振り向く",
+   "kind": "no_dictionary_entry",
+   "detail": "振り向く|ふりむく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-006",
+   "surface": "使い果たす",
+   "kind": "no_dictionary_entry",
+   "detail": "使い果たす|つかいはたす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-007",
+   "surface": "取り入れる",
+   "kind": "no_dictionary_entry",
+   "detail": "取り入れる|とりいれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-008",
+   "surface": "取り戻す",
+   "kind": "no_dictionary_entry",
+   "detail": "取り戻す|とりもどす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-009",
+   "surface": "取り除く",
+   "kind": "no_dictionary_entry",
+   "detail": "取り除く|とりのぞく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-010",
+   "surface": "引き取る",
+   "kind": "no_dictionary_entry",
+   "detail": "引き取る|ひきとる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-011",
+   "surface": "引き止める",
+   "kind": "no_dictionary_entry",
+   "detail": "引き止める|ひきとめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-012",
+   "surface": "受け入れる",
+   "kind": "no_dictionary_entry",
+   "detail": "受け入れる|うけいれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-013",
+   "surface": "受け止める",
+   "kind": "no_dictionary_entry",
+   "detail": "受け止める|うけとめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-014",
+   "surface": "受け持つ",
+   "kind": "no_dictionary_entry",
+   "detail": "受け持つ|うけもつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-015",
+   "surface": "出迎える",
+   "kind": "no_dictionary_entry",
+   "detail": "出迎える|でむかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-016",
+   "surface": "打ち明ける",
+   "kind": "no_dictionary_entry",
+   "detail": "打ち明ける|うちあける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-017",
+   "surface": "打ち消す",
+   "kind": "no_dictionary_entry",
+   "detail": "打ち消す|うちけす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-018",
+   "surface": "言い出す",
+   "kind": "no_dictionary_entry",
+   "detail": "言い出す|いいだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-019",
+   "surface": "飲み込む",
+   "kind": "no_dictionary_entry",
+   "detail": "飲み込む|のみこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-020",
+   "surface": "問い合わせる",
+   "kind": "no_dictionary_entry",
+   "detail": "問い合わせる|といあわせる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-021",
+   "surface": "呼びかける",
+   "kind": "no_dictionary_entry",
+   "detail": "呼びかける|よびかける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-022",
+   "surface": "払い戻す",
+   "kind": "no_dictionary_entry",
+   "detail": "払い戻す|はらいもどす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-023",
+   "surface": "追いつく",
+   "kind": "no_dictionary_entry",
+   "detail": "追いつく|おいつく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-024",
+   "surface": "追い抜く",
+   "kind": "no_dictionary_entry",
+   "detail": "追い抜く|おいぬく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-025",
+   "surface": "追い出す",
+   "kind": "no_dictionary_entry",
+   "detail": "追い出す|おいだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-026",
+   "surface": "逃げ出す",
+   "kind": "no_dictionary_entry",
+   "detail": "逃げ出す|にげだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-027",
+   "surface": "逃す",
+   "kind": "no_dictionary_entry",
+   "detail": "逃す|のがす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-028",
+   "surface": "駆けつける",
+   "kind": "no_dictionary_entry",
+   "detail": "駆けつける|かけつける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-029",
+   "surface": "飛び込む",
+   "kind": "no_dictionary_entry",
+   "detail": "飛び込む|とびこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-030",
+   "surface": "突き当たる",
+   "kind": "no_dictionary_entry",
+   "detail": "突き当たる|つきあたる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-031",
+   "surface": "割り込む",
+   "kind": "no_dictionary_entry",
+   "detail": "割り込む|わりこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-032",
+   "surface": "溶け込む",
+   "kind": "no_dictionary_entry",
+   "detail": "溶け込む|とけこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-033",
+   "surface": "落ち込む",
+   "kind": "no_dictionary_entry",
+   "detail": "落ち込む|おちこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-034",
+   "surface": "立ち直る",
+   "kind": "no_dictionary_entry",
+   "detail": "立ち直る|たちなおる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-035",
+   "surface": "乗り出す",
+   "kind": "no_dictionary_entry",
+   "detail": "乗り出す|のりだす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-036",
+   "surface": "仕上げる",
+   "kind": "no_dictionary_entry",
+   "detail": "仕上げる|しあげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-037",
+   "surface": "切り替える",
+   "kind": "no_dictionary_entry",
+   "detail": "切り替える|きりかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-038",
+   "surface": "区切る",
+   "kind": "no_dictionary_entry",
+   "detail": "区切る|くぎる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-039",
+   "surface": "組み立てる",
+   "kind": "no_dictionary_entry",
+   "detail": "組み立てる|くみたてる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-040",
+   "surface": "組み合わせる",
+   "kind": "no_dictionary_entry",
+   "detail": "組み合わせる|くみあわせる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-041",
+   "surface": "割り当てる",
+   "kind": "no_dictionary_entry",
+   "detail": "割り当てる|わりあてる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-042",
+   "surface": "当てはめる",
+   "kind": "no_dictionary_entry",
+   "detail": "当てはめる|あてはめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-043",
+   "surface": "付け加える",
+   "kind": "no_dictionary_entry",
+   "detail": "付け加える|つけくわえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-044",
+   "surface": "積み重ねる",
+   "kind": "no_dictionary_entry",
+   "detail": "積み重ねる|つみかさねる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-045",
+   "surface": "折り返す",
+   "kind": "no_dictionary_entry",
+   "detail": "折り返す|おりかえす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-046",
+   "surface": "巻き込む",
+   "kind": "no_dictionary_entry",
+   "detail": "巻き込む|まきこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-047",
+   "surface": "差し支える",
+   "kind": "no_dictionary_entry",
+   "detail": "差し支える|さしつかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-048",
+   "surface": "縮める",
+   "kind": "no_dictionary_entry",
+   "detail": "縮める|ちぢめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-049",
+   "surface": "固まる",
+   "kind": "no_dictionary_entry",
+   "detail": "固まる|かたまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-050",
+   "surface": "固める",
+   "kind": "no_dictionary_entry",
+   "detail": "固める|かためる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-051",
+   "surface": "埋まる",
+   "kind": "no_dictionary_entry",
+   "detail": "埋まる|うまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-052",
+   "surface": "増す",
+   "kind": "no_dictionary_entry",
+   "detail": "増す|ます が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-053",
+   "surface": "崩す",
+   "kind": "no_dictionary_entry",
+   "detail": "崩す|くずす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-054",
+   "surface": "崩れる",
+   "kind": "no_dictionary_entry",
+   "detail": "崩れる|くずれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-055",
+   "surface": "傾く",
+   "kind": "no_dictionary_entry",
+   "detail": "傾く|かたむく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-056",
+   "surface": "傾ける",
+   "kind": "no_dictionary_entry",
+   "detail": "傾ける|かたむける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-057",
+   "surface": "緩む",
+   "kind": "no_dictionary_entry",
+   "detail": "緩む|ゆるむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-058",
+   "surface": "緩める",
+   "kind": "no_dictionary_entry",
+   "detail": "緩める|ゆるめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-059",
+   "surface": "締まる",
+   "kind": "no_dictionary_entry",
+   "detail": "締まる|しまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-060",
+   "surface": "絞る",
+   "kind": "no_dictionary_entry",
+   "detail": "絞る|しぼる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-061",
+   "surface": "薄める",
+   "kind": "no_dictionary_entry",
+   "detail": "薄める|うすめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-062",
+   "surface": "速める",
+   "kind": "no_dictionary_entry",
+   "detail": "速める|はやめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-063",
+   "surface": "膨らむ",
+   "kind": "no_dictionary_entry",
+   "detail": "膨らむ|ふくらむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-064",
+   "surface": "潰す",
+   "kind": "no_dictionary_entry",
+   "detail": "潰す|つぶす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-065",
+   "surface": "潰れる",
+   "kind": "no_dictionary_entry",
+   "detail": "潰れる|つぶれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-066",
+   "surface": "砕く",
+   "kind": "no_dictionary_entry",
+   "detail": "砕く|くだく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-067",
+   "surface": "砕ける",
+   "kind": "no_dictionary_entry",
+   "detail": "砕ける|くだける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-068",
+   "surface": "裂く",
+   "kind": "no_dictionary_entry",
+   "detail": "裂く|さく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-069",
+   "surface": "裂ける",
+   "kind": "no_dictionary_entry",
+   "detail": "裂ける|さける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-070",
+   "surface": "転がる",
+   "kind": "no_dictionary_entry",
+   "detail": "転がる|ころがる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-071",
+   "surface": "転がす",
+   "kind": "no_dictionary_entry",
+   "detail": "転がす|ころがす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-072",
+   "surface": "吸い込む",
+   "kind": "no_dictionary_entry",
+   "detail": "吸い込む|すいこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-073",
+   "surface": "湿る",
+   "kind": "no_dictionary_entry",
+   "detail": "湿る|しめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-074",
+   "surface": "錆びる",
+   "kind": "no_dictionary_entry",
+   "detail": "錆びる|さびる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-075",
+   "surface": "凍える",
+   "kind": "no_dictionary_entry",
+   "detail": "凍える|こごえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-076",
+   "surface": "傷つく",
+   "kind": "no_dictionary_entry",
+   "detail": "傷つく|きずつく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-077",
+   "surface": "傷つける",
+   "kind": "no_dictionary_entry",
+   "detail": "傷つける|きずつける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-078",
+   "surface": "傷む",
+   "kind": "no_dictionary_entry",
+   "detail": "傷む|いたむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-079",
+   "surface": "蒸す",
+   "kind": "no_dictionary_entry",
+   "detail": "蒸す|むす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-080",
+   "surface": "担ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "担ぐ|かつぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-081",
+   "surface": "掲げる",
+   "kind": "no_dictionary_entry",
+   "detail": "掲げる|かかげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-082",
+   "surface": "挟まる",
+   "kind": "no_dictionary_entry",
+   "detail": "挟まる|はさまる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-083",
+   "surface": "掘る",
+   "kind": "no_dictionary_entry",
+   "detail": "掘る|ほる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-084",
+   "surface": "撫でる",
+   "kind": "no_dictionary_entry",
+   "detail": "撫でる|なでる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-085",
+   "surface": "殴る",
+   "kind": "no_dictionary_entry",
+   "detail": "殴る|なぐる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-086",
+   "surface": "攻める",
+   "kind": "no_dictionary_entry",
+   "detail": "攻める|せめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-087",
+   "surface": "責める",
+   "kind": "no_dictionary_entry",
+   "detail": "責める|せめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-088",
+   "surface": "襲う",
+   "kind": "no_dictionary_entry",
+   "detail": "襲う|おそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-089",
+   "surface": "奪う",
+   "kind": "no_dictionary_entry",
+   "detail": "奪う|うばう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-090",
+   "surface": "暴れる",
+   "kind": "no_dictionary_entry",
+   "detail": "暴れる|あばれる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-091",
+   "surface": "縛る",
+   "kind": "no_dictionary_entry",
+   "detail": "縛る|しばる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-092",
+   "surface": "覆う",
+   "kind": "no_dictionary_entry",
+   "detail": "覆う|おおう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-093",
+   "surface": "離す",
+   "kind": "no_dictionary_entry",
+   "detail": "離す|はなす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-094",
+   "surface": "ちぎる",
+   "kind": "no_dictionary_entry",
+   "detail": "ちぎる|ちぎる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-095",
+   "surface": "めくる",
+   "kind": "no_dictionary_entry",
+   "detail": "めくる|めくる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-096",
+   "surface": "ずらす",
+   "kind": "no_dictionary_entry",
+   "detail": "ずらす|ずらす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-097",
+   "surface": "映す",
+   "kind": "no_dictionary_entry",
+   "detail": "映す|うつす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-098",
+   "surface": "映る",
+   "kind": "no_dictionary_entry",
+   "detail": "映る|うつる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-099",
+   "surface": "受け継ぐ",
+   "kind": "no_dictionary_entry",
+   "detail": "受け継ぐ|うけつぐ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-100",
+   "surface": "詰め込む",
+   "kind": "no_dictionary_entry",
+   "detail": "詰め込む|つめこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-101",
+   "surface": "駆け込む",
+   "kind": "no_dictionary_entry",
+   "detail": "駆け込む|かけこむ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-102",
+   "surface": "生かす",
+   "kind": "no_dictionary_entry",
+   "detail": "生かす|いかす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-103",
+   "surface": "遂げる",
+   "kind": "no_dictionary_entry",
+   "detail": "遂げる|とげる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-104",
+   "surface": "果たす",
+   "kind": "no_dictionary_entry",
+   "detail": "果たす|はたす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-105",
+   "surface": "蓄える",
+   "kind": "no_dictionary_entry",
+   "detail": "蓄える|たくわえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-106",
+   "surface": "満たす",
+   "kind": "no_dictionary_entry",
+   "detail": "満たす|みたす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-107",
+   "surface": "めぐる",
+   "kind": "no_dictionary_entry",
+   "detail": "めぐる|めぐる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-108",
+   "surface": "逸れる",
+   "kind": "no_dictionary_entry",
+   "detail": "逸れる|それる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-109",
+   "surface": "儲かる",
+   "kind": "no_dictionary_entry",
+   "detail": "儲かる|もうかる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-37-110",
+   "surface": "儲ける",
+   "kind": "no_dictionary_entry",
+   "detail": "儲ける|もうける が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

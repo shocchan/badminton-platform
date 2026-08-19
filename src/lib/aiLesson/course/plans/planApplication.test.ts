@@ -76,9 +76,16 @@ describe('申込の検証', () => {
     expect(validateApplication(ok)).toEqual([]);
   });
 
-  it('**draft のプランIDを直接投げても通さない**', () => {
-    const draft = PLAN_CATALOG.find((p) => p.status === 'draft')!;
-    expect(validateApplication({ ...ok, planId: draft.id })).toContain('plan_not_accepting');
+  it('**公開していないプランIDを直接投げても通さない**', () => {
+    // 2026-08-19 の3段階化で常設の draft が無くなったため、一時的に paused にして検証する
+    const coach = PLAN_CATALOG.find((p) => p.id === 'coach-6m')!;
+    const orig = coach.status;
+    try {
+      coach.status = 'paused';
+      expect(validateApplication({ ...ok, planId: coach.id })).toContain('plan_not_accepting');
+    } finally {
+      coach.status = orig;
+    }
   });
 
   it('存在しないプランは通さない', () => {

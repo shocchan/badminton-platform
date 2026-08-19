@@ -107,6 +107,9 @@ export interface AdvShellProps {
      V2の生徒には常に空だった。V2の復習は間違えた問題ノートの解き直し＝AdvShell内で完結する */
   onStartConversation: () => void;
   conversationAvailable: boolean;
+  /** 会話を出せない理由（体験の残り時間不足など）。既定文言より具体的に言えるときだけ渡す */
+  conversationUnavailableReasonJa?: string;
+  conversationUnavailableReasonZh?: string;
   /* onStartRestate / restateAvailable は撤去（2026-08-18 監査P2）。
      V2の言い直しstepは runStep の setView('restate')＝AdvShell内の画面で完結しており、
      この2つは AdvShell が一度も参照しない配線の残骸だった。
@@ -130,11 +133,19 @@ export interface AdvShellProps {
   requestView?: { view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep'; n: number } | null;
   /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
   onViewChange?: (view: 'home' | 'map') => void;
+  /**
+   * 「解答中」を親へ知らせる（2026-08-20 本番前チェック）。
+   * バトル・読解・聴解・模試・かな道場は途中で画面を奪うと解いた分が消える。
+   * 体験パスの60分タイムアップは、これが false になるまで待つ
+   */
+  onActivityChange?: (active: boolean) => void;
   /** requestViewを消費したら親へ知らせる（2026-08-17 監査P1:
    * 消費後もrequestが残ると、再マウントのたびにredoウィザード等が勝手に再表示された） */
   onRequestConsumed?: () => void;
   /** 「次にやるstep」を親へ知らせる（復習画面の「次へ」ボタン文言に使う・2026-08-17） */
   onNextStepChange?: (s: { titleJa: string; titleZh: string } | null) => void;
+  /** 購入プランの地域上限（AI体験パス=3）。null＝ゲートなし（2026-08-19 CEO決定） */
+  planRegionLimit?: number | null;
 }
 
 type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
@@ -234,6 +245,8 @@ export default function AdvShell(props: AdvShellProps) {
   const [pools, setPools] = useState<GrammarPools | null>(null);
   const [diagPools, setDiagPools] = useState<DiagnosisPools | null>(null);
   const [stageCt, setStageCt] = useState<StageContent | null>(null);
+  /** 完了カードのおかわり用・今日の語彙バトルtarget（会話ゴールでもバトルで続けられるように・2026-08-20 CEO決定） */
+  const [extraVocabBattleId, setExtraVocabBattleId] = useState<string | null>(null);
   /** 復習予報（渋滞レスキュー込み）。ホームの表示と確認バトルの出題を同じ数字で揃えるための単一の出所 */
   const [forecast, setForecast] = useState<ReviewForecast | null>(null);
   /** 错题本から解き直す問題キー（このバトルの間だけ有効） */
@@ -340,6 +353,20 @@ export default function AdvShell(props: AdvShellProps) {
   useEffect(() => {
     notifyView?.(view === 'map' ? 'map' : 'home');
   }, [view, notifyView]);
+
+  /**
+   * 「解答中」を親へ知らせる（2026-08-20）。ここに挙げた画面は途中で奪われると
+   * その回の解答・記録がまるごと消える（バトルは onFinish でしか台帳に入らない）。
+   * 体験パスの60分タイムアップは、この間だけ待ってから終了画面に切り替わる
+   */
+  const notifyActivity = props.onActivityChange;
+  useEffect(() => {
+    const inActivity = view === 'battle' || view === 'reading' || view === 'listening'
+      || view === 'mock' || view === 'kana' || view === 'restate' || view === 'sheets'
+      || view === 'interview';
+    notifyActivity?.(inActivity);
+  }, [view, notifyActivity]);
+  useEffect(() => () => notifyActivity?.(false), [notifyActivity]); // アンマウント時は必ず解除
   /**
    * 語彙の出題プール。模試と語彙バトル（2026-08-15 語彙配線）でだけ使うので、
    * bank は動的importでHomeの初回転送量から外す（実測: gzip 779kB → 456kB）。
@@ -618,6 +645,16 @@ export default function AdvShell(props: AdvShellProps) {
       // 今日の語彙バトルのバンド（stage対応・日替わり。2026-08-15 語彙配線）
       const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
       const vocabBattleTargetId = vocabTargetForStage(contentStage.kind, lvl, dayNum);
+      // 完了カードのおかわりバトル用に保持（会話ゴール＝stageバトル無しの人の続行手段・2026-08-20）。
+      // ⚠️ vocabTargetForStage は会話stageで null を返す（日課に語彙バトルを積まない設計）。
+      // ここは**日課ではなく「終わったあとに自分で選ぶおかわり」**なので、
+      // 会話stageのときは目標レベルに合う語彙バンドへ落として必ず1つ用意する
+      //（会話ゴールの人＝いちばん続行手段が無い人にこそバトルが要る・利益率の観点でも会話一辺倒を避ける）
+      setExtraVocabBattleId(
+        vocabBattleTargetId
+        ?? vocabTargetForStage('n3_practice', lvl, dayNum)
+        ?? null,
+      );
       /**
        * 漢字は N5/N4 の字しか無いので、その帯を学ぶ人にだけ出す（2026-08-18）。
        * N3/N2 目標でも基礎キャンプ／N3の橋にいる間は土台なので出す。
@@ -1598,6 +1635,7 @@ export default function AdvShell(props: AdvShellProps) {
         profile={prof}
         route={route}
         mastered={mapMastered}
+        planRegionLimit={props.planRegionLimit ?? null}
         revealRegionId={revealRegionId}
         onRevealDone={() => setRevealRegionId(null)}
         paceNoteJa={mapPace && mapPace.remainingTargets > 0
@@ -2233,8 +2271,11 @@ export default function AdvShell(props: AdvShellProps) {
     }
     if (s.kind === 'conversation_mission') {
       if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return true; }
-      // 押しても無反応、を作らない（原則15）。進めない理由を言う
-      setStepNotice(tx(lang,
+      // 押しても無反応、を作らない（原則15）。進めない理由を言う。
+      // 具体的な理由（体験の残り時間不足など）を親が持っているときはそれを優先する
+      const specific = tx(lang,
+        props.conversationUnavailableReasonJa ?? '', props.conversationUnavailableReasonZh ?? '');
+      setStepNotice(specific || tx(lang,
         'いまAI会話を始められません（今日の回数を使い切ったか、準備中です）。下のボタンでこのstepを飛ばして、先へ進めます。',
         '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以点下面的按钮跳过这一步，继续后面的内容。'));
       return false;
@@ -2784,6 +2825,38 @@ export default function AdvShell(props: AdvShellProps) {
                     setView('battle');
                   }}>
                   {tx(lang, 'おかわりバトルで続ける（何度でも・XPがたまる）', '继续加练战斗（不限次数・攒XP）')}
+                </button>
+              )}
+              {/* stageバトルが無い人（会話ゴール等）にも語彙バトルの続行手段を出す
+                  （2026-08-20 CEO決定「会話ばかりだと利益率が下がるからバトルも入れたい」。
+                  語彙バトルは静的コンテンツ＝AI原価ゼロで、どのゴールでも今日のぶんが必ずある） */}
+              {(stageCt?.battleTargetIds.length ?? 0) === 0 && extraVocabBattleId && (
+                <button type="button"
+                  className={`${pressFx} action-emerald mt-3 w-full min-h-[44px] rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white`}
+                  onClick={() => {
+                    trackAdv('today_quest_extra_battle', { goalType: prof.goalType ?? undefined, locale: lang });
+                    setBattle({
+                      tier: 'normal',
+                      targetId: extraVocabBattleId,
+                      targetLabel: tx(lang, '語彙バトル', '词汇战斗'),
+                      targetIds: [extraVocabBattleId],
+                    });
+                    setView('battle');
+                  }}>
+                  {tx(lang, '語彙バトルで続ける（何度でも・XPがたまる）', '继续词汇战斗（不限次数・攒XP）')}
+                </button>
+              )}
+              {/* 会話ゴールの人はバトル対象が無く、完了後の続行手段がゼロだった
+                  （2026-08-19 CEO実害報告「会話を伸ばしたいを選んだのに次に進めない」）。
+                  AI会話は1日の上限までおかわりできる事実をボタンにする */}
+              {props.conversationAvailable && (
+                <button type="button"
+                  className={`${pressFx} action-emerald mt-3 w-full min-h-[44px] rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white`}
+                  onClick={() => {
+                    trackAdv('today_quest_extra_conversation', { goalType: prof.goalType ?? undefined, locale: lang });
+                    props.onStartConversation();
+                  }}>
+                  {tx(lang, '次のAI会話ミッションへ進む（今日の上限まで何度でも）', '进入下一个AI会话任务（当天上限内不限次数）')}
                 </button>
               )}
               <button type="button"

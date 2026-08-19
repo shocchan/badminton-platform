@@ -3,21 +3,21 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { LP, VARIANTS, type CharacterVariant } from './lpContent';
 import { CtaButton } from './lpUi';
-import { track } from './lpHelpers';
+import { track, loginPath } from './lpHelpers';
 import { AiCourseHero } from './AiCourseHero';
-import { PainPointsSection, WhyLessonsFailSection, AiHumanRolesSection, DailyLearningFlow } from './sectionsA';
-import { PlatformFeatures, SixMonthRoadmap, FutureOutcomes } from './sectionsB';
-import { HumanCoachSection, AiTeachersSection, TestimonialsSection } from './sectionsC';
-import { ComparisonSection, CourseContentsSection, PricingSection } from './sectionsD';
+import { PainPointsSection, AiHumanRolesSection, DailyLearningFlow } from './sectionsA';
+import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
+import { HumanCoachSection, TestimonialsSection } from './sectionsC';
+import { PricingSection, PlanComparisonSection, PlanFitSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { ApplicationModal } from './ApplicationModal';
-import { isPlanPreview, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
 
 const SITE = 'https://kawabado.com';
 
-export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeApp, duo = false }: {
-  variant?: CharacterVariant; noindex?: boolean; onSeeApp: () => void;
+export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = false }: {
+  variant?: CharacterVariant; noindex?: boolean;
   /** 既定LPでは二人のAI先生を並べる（/shoko /yuto の広告variantは従来どおり1人） */
   duo?: boolean;
 }) {
@@ -36,7 +36,28 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
     if (viewed.current) return;
     viewed.current = true;
     track('view_ai_course_lp', { variant: v.key, lang });
+    // Stripe Checkout から「戻る」で帰ってきた（購入中断）。cancel_url が付ける印
+    if (new URLSearchParams(window.location.search).get('checkout') === 'cancelled') {
+      track('cancel_ai_course_checkout', { variant: v.key });
+    }
   }, [v.key, lang]);
+
+  // 料金セクション到達（1マウント1回）。どれだけの人が価格まで読み進めたかを見る
+  useEffect(() => {
+    const el = document.getElementById('price');
+    if (!el || !('IntersectionObserver' in window)) return;
+    let sent = false;
+    const io = new IntersectionObserver((es) => {
+      if (sent || !es[0].isIntersecting) return;
+      sent = true;
+      track('view_ai_course_pricing', {
+        variant: v.key, plans: publishedPlans().map((p) => p.id).join(','),
+      });
+      io.disconnect();
+    }, { threshold: 0.2 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [v.key]);
 
   const path = variant === 'shoko' && !noindex ? 'ai-course' : `ai-course/${variant}`;
   const canonical = `${SITE}/${lang}/ai-course`; // variantは主ページへ集約
@@ -63,8 +84,14 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
     })),
   };
 
+  const login = loginPath(lang);
+
   return (
-    <div className="bg-lp-ivory text-lp-ink min-h-screen overflow-x-hidden [font-feature-settings:'palt']">
+    // ⚠️ ここに overflow-x-hidden を付けない: 祖先が scroll container になると
+    // ヘッダーの position: sticky が無効化される（2026-08-19 staging実測で発覚した既存バグ。
+    // 「学習システムを見る」の着地でヘッダー分のオフセットが必要なのに固定されていなかった）。
+    // 横はみ出しの抑止は main/footer を包む内側のラッパーが担う
+    <div className="bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
       <Helmet>
         <html lang={lang === 'ja' ? 'ja' : 'zh'} />
         <title>{seoTitle}</title>
@@ -92,10 +119,10 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             <span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</span>
           </div>
           <div className="flex items-center gap-3">
-            {/* 受講中learnerのログイン導線（UX-001 P1: これまでLPに0本で、招待URLを
-                知らない限り2回目以降に学習画面へ戻れなかった）。
-                主申込CTAより視覚優先度を下げたテキストリンク。認証済みなら app entry が学習Homeへ振り分ける */}
-            <a href={`/${lang}/ai-course?app=1${typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('v2') ? '&v2=1' : ''}`} data-lp-login-cta
+            {/* 受講中learnerのログイン導線。LPと分離した専用URL（/ai-course/login）へ。
+                相談モーダルとは独立で、URLパラメーターを共有しない */}
+            <a href={login} data-lp-login-cta
+              onClick={() => track('click_ai_course_login', { location: 'nav' })}
               aria-label={lang === 'ja' ? '受講中の方はこちら（学習画面にログイン）' : '已报名的学员（登录学习系统）'}
               className="flex text-[0.88rem] text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 items-center">
               <span className="hidden sm:inline">{lang === 'ja' ? '受講中の方はこちら' : '已报名的学员'}</span>
@@ -104,33 +131,39 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
             {/* 言語切替（2026-07-31 P1修正: /zh LPは存在するのに/jaから到達不能だった。
                 issue report「中国語にならない」の根本原因。aタグ=JSなしでも遷移・SEO可読） */}
             <a href={`/${other}/${path}`} data-lp-lang-switch
+              onClick={() => track('click_ai_course_lang_switch', { location: 'nav', to: other })}
               aria-label={lang === 'ja' ? '切换到中文页面' : '日本語ページへ切り替え'}
               className="text-[0.92rem] font-bold text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 flex items-center">
               {lang === 'ja' ? '中文' : '日本語'}
             </a>
-            <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem]" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
+            <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
               {LP.ctaPrimary[lang]}
             </CtaButton>
           </div>
         </div>
       </header>
 
+      {/* 横スクロール抑止はここ（sticky ヘッダーを巻き込まない位置）で行う。
+          overflow-x は **clip を優先**（hidden はこのdivをスクロールコンテナにするため、
+          ページ内スクロールの挙動に副作用が出うる。clip はスクロールコンテナを作らない）。
+          clip 未対応の古いブラウザは inline style が無効になり className の hidden に落ちる */}
+      <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
       <main>
-        <AiCourseHero v={v} lang={lang} onConsult={openConsult} onSeeApp={onSeeApp} duo={duo} />
+        {/* 2026-08-19 再構成: FV → 悩み → 人×AIの仕組み → 学習システム実物 →
+            毎日のステップ → 6か月ロードマップ → 料金3プラン＋比較 → あなたに合うプラン →
+            人間コーチ → 受講生 → FAQ → 最終CTA（12セクション） */}
+        <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
         <PainPointsSection lang={lang} />
-        <WhyLessonsFailSection lang={lang} />
         <AiHumanRolesSection v={v} lang={lang} />
-        <DailyLearningFlow v={v} lang={lang} />
         <PlatformFeatures lang={lang} />
+        <DailyLearningFlow v={v} lang={lang} />
         <SixMonthRoadmap lang={lang} />
-        <FutureOutcomes lang={lang} />
-        <HumanCoachSection lang={lang} />
-        <AiTeachersSection lang={lang} />
-        <TestimonialsSection lang={lang} />
-        <ComparisonSection lang={lang} />
-        <CourseContentsSection lang={lang} />
-        <PricingSection v={v} lang={lang} onConsult={openConsult}
+        <PricingSection lang={lang} onConsult={openConsult}
           onApply={setApplyPlanId} preview={planPreview} />
+        <PlanComparisonSection lang={lang} />
+        <PlanFitSection lang={lang} />
+        <HumanCoachSection lang={lang} />
+        <TestimonialsSection lang={lang} />
         <FaqSection lang={lang} />
         <FinalCtaSection v={v} lang={lang} onConsult={openConsult} />
       </main>
@@ -143,13 +176,15 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
           </div>
           <span>{LP.footerTagline[lang]}</span>
           <a href={`/${other}/${path}`} data-lp-lang-switch-footer
-            className="underline underline-offset-4 hover:text-lp-ink">
+            onClick={() => track('click_ai_course_lang_switch', { location: 'footer', to: other })}
+            className="inline-flex items-center min-h-11 underline underline-offset-4 hover:text-lp-ink">
             {lang === 'ja' ? '中文版' : '日本語版'}
           </a>
         </div>
         {/* mobile用ログイン導線: ヘッダーは幅不足のためfooter直上に配置（UX-001） */}
         <div className="sm:hidden mx-auto max-w-6xl px-5 pb-2">
-          <a href={`/${lang}/ai-course?app=1`} data-lp-login-cta-mobile
+          <a href={login} data-lp-login-cta-mobile
+            onClick={() => track('click_ai_course_login', { location: 'footer' })}
             aria-label={lang === 'ja' ? '受講中の方はこちら（学習画面にログイン）' : '已报名的学员（登录学习系统）'}
             className="inline-flex items-center min-h-11 text-[0.9rem] text-lp-ink-soft underline underline-offset-4">
             {lang === 'ja' ? '受講中の方はこちら → 学習画面にログイン' : '已报名的学员 → 登录学习系统'}
@@ -161,7 +196,10 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, onSeeA
           <LegalFooterLinks lang={lang} />
         </div>
       </footer>
+      </div>
 
+      {/* 相談モーダル・申込モーダルはどちらもURL・履歴を変更しない
+          （ログイン用パラメーターを流用しない。更新・戻る/進むでログイン画面へ飛ばさない） */}
       <ConsultationModal open={consultOpen} onClose={() => setConsultOpen(false)} lang={lang} variant={v.key} />
       {/* key で作り直す＝開くたびに入力が空に戻る（前の人の入力を持ち越さない） */}
       <ApplicationModal key={applyPlanId ?? 'closed'} planId={applyPlanId}

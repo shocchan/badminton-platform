@@ -12,6 +12,7 @@ import { useTeacher } from './teacherContext';
 import { trackAdv } from '../../lib/aiLesson/course/adventure/advAnalytics';
 import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
+import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
 import { isMeaningfulUserTurn, COURSE_TURN_DETECTION, shouldShowGreetingGuide } from '../../lib/aiLesson/course/courseInteraction';
@@ -37,6 +38,12 @@ export interface VoiceLessonResult {
   translateCostUsd: number;
   /** 発話をターン毎に保存済み（テキスト会話）。finalize時の一括insertをスキップして重複保存を防ぐ */
   utterancesAlreadySaved?: boolean;
+  /**
+   * 会話中に1分ごとライブ記録済みの秒数（2026-08-20 CEO指摘「リアル60分で」）。
+   * 完了時は durationSeconds との差分だけを追加記録する（二重計上防止）。
+   * タブ閉じ・中断でもここまでのぶんは体験パスの残り時間から差し引かれている
+   */
+  usageSecondsRecordedLive?: number;
 }
 
 /** 翔子先生の1発話ぶんの中国語補助字幕の状態 */
@@ -120,6 +127,8 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
   const doneRef = useRef(false); const closingRef = useRef(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  /** 会話中にライブ記録済みの秒数（60秒単位で積む。完了時は差分だけ追加記録） */
+  const recordedLiveRef = useRef(0);
 
   const remaining = Math.max(DURATION - elapsed, 0);
   const inExt = elapsed >= DURATION && !doneOverlay;
@@ -142,6 +151,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       chineseSupportUsed: uttRef.current.some((u) => u.speaker === 'tutor' && hasZh(u.transcript)),
       durationSeconds, completionStatus: statusKind, endReason,
       translateCostUsd: translateCostRef.current,
+      usageSecondsRecordedLive: recordedLiveRef.current,
     };
     if (overlay) {
       setDoneOverlay(true);
@@ -256,6 +266,18 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     document.addEventListener('visibilitychange', tick);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick); };
   }, [status]);
+
+  // 利用時間のライブ記録（2026-08-20 CEO指摘「リアル60分でいいと思うよ」）:
+  // 会話中、経過1分ごとにサーバーへ加算する（RPCは加算専用なので二重計上しない）。
+  // これで①体験パスの「のこり◯分」が会話のたび実時間で減る
+  // ②タブを閉じて未完了になっても、失われるのは最後の1分未満だけになる
+  useEffect(() => {
+    if (doneRef.current) return;
+    while (elapsed - recordedLiveRef.current >= 60) {
+      recordedLiveRef.current += 60;
+      void courseRepository.recordUsage(learner.id, 60, 0);
+    }
+  }, [elapsed, learner.id]);
 
   // 残り30秒: まとめ移行
   useEffect(() => {

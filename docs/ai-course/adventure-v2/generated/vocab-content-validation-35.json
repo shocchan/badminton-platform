@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.772Z",
+ "batchNo": 35,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-35-001",
+  "vc-35-002",
+  "vc-35-003",
+  "vc-35-004",
+  "vc-35-005",
+  "vc-35-006",
+  "vc-35-007",
+  "vc-35-008",
+  "vc-35-009",
+  "vc-35-010",
+  "vc-35-011",
+  "vc-35-012",
+  "vc-35-013",
+  "vc-35-014",
+  "vc-35-015",
+  "vc-35-016",
+  "vc-35-017",
+  "vc-35-018",
+  "vc-35-019",
+  "vc-35-020",
+  "vc-35-021",
+  "vc-35-022",
+  "vc-35-023",
+  "vc-35-024",
+  "vc-35-025",
+  "vc-35-026",
+  "vc-35-027",
+  "vc-35-028",
+  "vc-35-029",
+  "vc-35-030",
+  "vc-35-031",
+  "vc-35-032",
+  "vc-35-033",
+  "vc-35-034",
+  "vc-35-035",
+  "vc-35-036",
+  "vc-35-037",
+  "vc-35-038",
+  "vc-35-039",
+  "vc-35-040",
+  "vc-35-041",
+  "vc-35-042",
+  "vc-35-043",
+  "vc-35-044",
+  "vc-35-045",
+  "vc-35-046",
+  "vc-35-047",
+  "vc-35-048",
+  "vc-35-049",
+  "vc-35-050",
+  "vc-35-051",
+  "vc-35-052",
+  "vc-35-053",
+  "vc-35-054",
+  "vc-35-055",
+  "vc-35-056",
+  "vc-35-057",
+  "vc-35-058",
+  "vc-35-059",
+  "vc-35-060",
+  "vc-35-061",
+  "vc-35-062",
+  "vc-35-063",
+  "vc-35-064",
+  "vc-35-065",
+  "vc-35-066",
+  "vc-35-067",
+  "vc-35-068",
+  "vc-35-069",
+  "vc-35-070",
+  "vc-35-071",
+  "vc-35-072",
+  "vc-35-073",
+  "vc-35-074",
+  "vc-35-075",
+  "vc-35-076",
+  "vc-35-077",
+  "vc-35-078",
+  "vc-35-079",
+  "vc-35-080",
+  "vc-35-081",
+  "vc-35-082",
+  "vc-35-083",
+  "vc-35-084",
+  "vc-35-085",
+  "vc-35-086",
+  "vc-35-087",
+  "vc-35-088",
+  "vc-35-089",
+  "vc-35-090",
+  "vc-35-091",
+  "vc-35-092",
+  "vc-35-093",
+  "vc-35-094",
+  "vc-35-095",
+  "vc-35-096",
+  "vc-35-097",
+  "vc-35-098",
+  "vc-35-099",
+  "vc-35-100",
+  "vc-35-101",
+  "vc-35-102",
+  "vc-35-103",
+  "vc-35-104",
+  "vc-35-105",
+  "vc-35-106",
+  "vc-35-107",
+  "vc-35-108",
+  "vc-35-109",
+  "vc-35-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-35-001",
+   "surface": "憶測",
+   "kind": "no_dictionary_entry",
+   "detail": "憶測|おくそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-002",
+   "surface": "決断",
+   "kind": "no_dictionary_entry",
+   "detail": "決断|けつだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-003",
+   "surface": "決意",
+   "kind": "no_dictionary_entry",
+   "detail": "決意|けつい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-004",
+   "surface": "覚悟",
+   "kind": "no_dictionary_entry",
+   "detail": "覚悟|かくご が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-005",
+   "surface": "熟考",
+   "kind": "no_dictionary_entry",
+   "detail": "熟考|じゅっこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-006",
+   "surface": "思案",
+   "kind": "no_dictionary_entry",
+   "detail": "思案|しあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-007",
+   "surface": "踏み切る",
+   "kind": "no_dictionary_entry",
+   "detail": "踏み切る|ふみきる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-008",
+   "surface": "推察",
+   "kind": "no_dictionary_entry",
+   "detail": "推察|すいさつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-009",
+   "surface": "割り切る",
+   "kind": "no_dictionary_entry",
+   "detail": "割り切る|わりきる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-010",
+   "surface": "見極める",
+   "kind": "no_dictionary_entry",
+   "detail": "見極める|みきわめる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-011",
+   "surface": "見なす",
+   "kind": "no_dictionary_entry",
+   "detail": "見なす|みなす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-012",
+   "surface": "断言",
+   "kind": "no_dictionary_entry",
+   "detail": "断言|だんげん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-013",
+   "surface": "察する",
+   "kind": "no_dictionary_entry",
+   "detail": "察する|さっする が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-014",
+   "surface": "見地",
+   "kind": "no_dictionary_entry",
+   "detail": "見地|けんち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-015",
+   "surface": "軽率",
+   "kind": "no_dictionary_entry",
+   "detail": "軽率|けいそつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-016",
+   "surface": "推論",
+   "kind": "no_dictionary_entry",
+   "detail": "推論|すいろん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-017",
+   "surface": "解釈",
+   "kind": "no_dictionary_entry",
+   "detail": "解釈|かいしゃく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-018",
+   "surface": "直感",
+   "kind": "no_dictionary_entry",
+   "detail": "直感|ちょっかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-019",
+   "surface": "錯覚",
+   "kind": "no_dictionary_entry",
+   "detail": "錯覚|さっかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-020",
+   "surface": "思い込み",
+   "kind": "no_dictionary_entry",
+   "detail": "思い込み|おもいこみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-021",
+   "surface": "先入観",
+   "kind": "no_dictionary_entry",
+   "detail": "先入観|せんにゅうかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-022",
+   "surface": "自覚",
+   "kind": "no_dictionary_entry",
+   "detail": "自覚|じかく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-023",
+   "surface": "無意識",
+   "kind": "no_dictionary_entry",
+   "detail": "無意識|むいしき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-024",
+   "surface": "実感",
+   "kind": "no_dictionary_entry",
+   "detail": "実感|じっかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-025",
+   "surface": "予感",
+   "kind": "no_dictionary_entry",
+   "detail": "予感|よかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-026",
+   "surface": "観念",
+   "kind": "no_dictionary_entry",
+   "detail": "観念|かんねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-027",
+   "surface": "理性",
+   "kind": "no_dictionary_entry",
+   "detail": "理性|りせい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-028",
+   "surface": "知恵",
+   "kind": "no_dictionary_entry",
+   "detail": "知恵|ちえ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-029",
+   "surface": "視点",
+   "kind": "no_dictionary_entry",
+   "detail": "視点|してん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-030",
+   "surface": "視野",
+   "kind": "no_dictionary_entry",
+   "detail": "視野|しや が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-031",
+   "surface": "発揮",
+   "kind": "no_dictionary_entry",
+   "detail": "発揮|はっき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-032",
+   "surface": "思いつく",
+   "kind": "no_dictionary_entry",
+   "detail": "思いつく|おもいつく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-033",
+   "surface": "考案",
+   "kind": "no_dictionary_entry",
+   "detail": "考案|こうあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-034",
+   "surface": "原理",
+   "kind": "no_dictionary_entry",
+   "detail": "原理|げんり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-035",
+   "surface": "原則",
+   "kind": "no_dictionary_entry",
+   "detail": "原則|げんそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-036",
+   "surface": "法則",
+   "kind": "no_dictionary_entry",
+   "detail": "法則|ほうそく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-037",
+   "surface": "体系",
+   "kind": "no_dictionary_entry",
+   "detail": "体系|たいけい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-038",
+   "surface": "構造",
+   "kind": "no_dictionary_entry",
+   "detail": "構造|こうぞう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-039",
+   "surface": "要素",
+   "kind": "no_dictionary_entry",
+   "detail": "要素|ようそ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-040",
+   "surface": "側面",
+   "kind": "no_dictionary_entry",
+   "detail": "側面|そくめん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-041",
+   "surface": "局面",
+   "kind": "no_dictionary_entry",
+   "detail": "局面|きょくめん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-042",
+   "surface": "過程",
+   "kind": "no_dictionary_entry",
+   "detail": "過程|かてい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-043",
+   "surface": "手段",
+   "kind": "no_dictionary_entry",
+   "detail": "手段|しゅだん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-044",
+   "surface": "方策",
+   "kind": "no_dictionary_entry",
+   "detail": "方策|ほうさく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-045",
+   "surface": "基盤",
+   "kind": "no_dictionary_entry",
+   "detail": "基盤|きばん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-046",
+   "surface": "枠組み",
+   "kind": "no_dictionary_entry",
+   "detail": "枠組み|わくぐみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-047",
+   "surface": "秩序",
+   "kind": "no_dictionary_entry",
+   "detail": "秩序|ちつじょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-048",
+   "surface": "根本",
+   "kind": "no_dictionary_entry",
+   "detail": "根本|こんぽん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-049",
+   "surface": "大筋",
+   "kind": "no_dictionary_entry",
+   "detail": "大筋|おおすじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-050",
+   "surface": "筋道",
+   "kind": "no_dictionary_entry",
+   "detail": "筋道|すじみち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-051",
+   "surface": "理屈",
+   "kind": "no_dictionary_entry",
+   "detail": "理屈|りくつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-052",
+   "surface": "意志",
+   "kind": "no_dictionary_entry",
+   "detail": "意志|いし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-053",
+   "surface": "意向",
+   "kind": "no_dictionary_entry",
+   "detail": "意向|いこう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-054",
+   "surface": "吟味",
+   "kind": "no_dictionary_entry",
+   "detail": "吟味|ぎんみ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-055",
+   "surface": "動機",
+   "kind": "no_dictionary_entry",
+   "detail": "動機|どうき が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-056",
+   "surface": "狙い",
+   "kind": "no_dictionary_entry",
+   "detail": "狙い|ねらい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-057",
+   "surface": "欲求",
+   "kind": "no_dictionary_entry",
+   "detail": "欲求|よっきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-058",
+   "surface": "信念",
+   "kind": "no_dictionary_entry",
+   "detail": "信念|しんねん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-059",
+   "surface": "迷い",
+   "kind": "no_dictionary_entry",
+   "detail": "迷い|まよい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-060",
+   "surface": "ためらう",
+   "kind": "no_dictionary_entry",
+   "detail": "ためらう|ためらう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-061",
+   "surface": "こだわる",
+   "kind": "no_dictionary_entry",
+   "detail": "こだわる|こだわる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-062",
+   "surface": "対立",
+   "kind": "no_dictionary_entry",
+   "detail": "対立|たいりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-063",
+   "surface": "食い違う",
+   "kind": "no_dictionary_entry",
+   "detail": "食い違う|くいちがう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-064",
+   "surface": "推理",
+   "kind": "no_dictionary_entry",
+   "detail": "推理|すいり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-065",
+   "surface": "発案",
+   "kind": "no_dictionary_entry",
+   "detail": "発案|はつあん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-066",
+   "surface": "着想",
+   "kind": "no_dictionary_entry",
+   "detail": "着想|ちゃくそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-067",
+   "surface": "念頭",
+   "kind": "no_dictionary_entry",
+   "detail": "念頭|ねんとう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-068",
+   "surface": "賛同",
+   "kind": "no_dictionary_entry",
+   "detail": "賛同|さんどう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-069",
+   "surface": "手掛かり",
+   "kind": "no_dictionary_entry",
+   "detail": "手掛かり|てがかり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-070",
+   "surface": "異論",
+   "kind": "no_dictionary_entry",
+   "detail": "異論|いろん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-071",
+   "surface": "両立",
+   "kind": "no_dictionary_entry",
+   "detail": "両立|りょうりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-072",
+   "surface": "統一",
+   "kind": "no_dictionary_entry",
+   "detail": "統一|とういつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-073",
+   "surface": "調和",
+   "kind": "no_dictionary_entry",
+   "detail": "調和|ちょうわ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-074",
+   "surface": "重視",
+   "kind": "no_dictionary_entry",
+   "detail": "重視|じゅうし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-075",
+   "surface": "軽視",
+   "kind": "no_dictionary_entry",
+   "detail": "軽視|けいし が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-076",
+   "surface": "尊重",
+   "kind": "no_dictionary_entry",
+   "detail": "尊重|そんちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-077",
+   "surface": "悲観",
+   "kind": "no_dictionary_entry",
+   "detail": "悲観|ひかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-078",
+   "surface": "楽観",
+   "kind": "no_dictionary_entry",
+   "detail": "楽観|らっかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-079",
+   "surface": "糸口",
+   "kind": "no_dictionary_entry",
+   "detail": "糸口|いとぐち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-080",
+   "surface": "貫く",
+   "kind": "no_dictionary_entry",
+   "detail": "貫く|つらぬく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-081",
+   "surface": "配慮",
+   "kind": "no_dictionary_entry",
+   "detail": "配慮|はいりょ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-082",
+   "surface": "誤り",
+   "kind": "no_dictionary_entry",
+   "detail": "誤り|あやまり が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-083",
+   "surface": "転換",
+   "kind": "no_dictionary_entry",
+   "detail": "転換|てんかん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-084",
+   "surface": "逆転",
+   "kind": "no_dictionary_entry",
+   "detail": "逆転|ぎゃくてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-085",
+   "surface": "展望",
+   "kind": "no_dictionary_entry",
+   "detail": "展望|てんぼう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-086",
+   "surface": "発端",
+   "kind": "no_dictionary_entry",
+   "detail": "発端|ほったん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-087",
+   "surface": "構想",
+   "kind": "no_dictionary_entry",
+   "detail": "構想|こうそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-088",
+   "surface": "試みる",
+   "kind": "no_dictionary_entry",
+   "detail": "試みる|こころみる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-089",
+   "surface": "解明",
+   "kind": "no_dictionary_entry",
+   "detail": "解明|かいめい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-090",
+   "surface": "追求",
+   "kind": "no_dictionary_entry",
+   "detail": "追求|ついきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-091",
+   "surface": "追及",
+   "kind": "no_dictionary_entry",
+   "detail": "追及|ついきゅう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-092",
+   "surface": "誇張",
+   "kind": "no_dictionary_entry",
+   "detail": "誇張|こちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-093",
+   "surface": "暗示",
+   "kind": "no_dictionary_entry",
+   "detail": "暗示|あんじ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-094",
+   "surface": "象徴",
+   "kind": "no_dictionary_entry",
+   "detail": "象徴|しょうちょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-095",
+   "surface": "特殊",
+   "kind": "no_dictionary_entry",
+   "detail": "特殊|とくしゅ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-096",
+   "surface": "差異",
+   "kind": "no_dictionary_entry",
+   "detail": "差異|さい が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-097",
+   "surface": "重点",
+   "kind": "no_dictionary_entry",
+   "detail": "重点|じゅうてん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-098",
+   "surface": "偏り",
+   "kind": "no_dictionary_entry",
+   "detail": "偏り|かたより が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-099",
+   "surface": "応じる",
+   "kind": "no_dictionary_entry",
+   "detail": "応じる|おうじる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-100",
+   "surface": "至る",
+   "kind": "no_dictionary_entry",
+   "detail": "至る|いたる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-101",
+   "surface": "伴う",
+   "kind": "no_dictionary_entry",
+   "detail": "伴う|ともなう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-102",
+   "surface": "及ぶ",
+   "kind": "no_dictionary_entry",
+   "detail": "及ぶ|およぶ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-103",
+   "surface": "振り返る",
+   "kind": "no_dictionary_entry",
+   "detail": "振り返る|ふりかえる が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-104",
+   "surface": "見落とす",
+   "kind": "no_dictionary_entry",
+   "detail": "見落とす|みおとす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-105",
+   "surface": "見逃す",
+   "kind": "no_dictionary_entry",
+   "detail": "見逃す|みのがす が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-106",
+   "surface": "恐らく",
+   "kind": "no_dictionary_entry",
+   "detail": "恐らく|おそらく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-107",
+   "surface": "すなわち",
+   "kind": "no_dictionary_entry",
+   "detail": "すなわち|すなわち が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-108",
+   "surface": "あらかじめ",
+   "kind": "no_dictionary_entry",
+   "detail": "あらかじめ|あらかじめ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-109",
+   "surface": "いったん",
+   "kind": "no_dictionary_entry",
+   "detail": "いったん|いったん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-35-110",
+   "surface": "かえって",
+   "kind": "no_dictionary_entry",
+   "detail": "かえって|かえって が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

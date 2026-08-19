@@ -16,6 +16,11 @@ import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../../lib/aiLesson/course/courseAccess';
+import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '../../lib/aiLesson/course/plans/planUpsell';
+import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
+import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner';
+import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
+import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner, V2_INVITE_DEFAULT_ANSWERS } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -157,6 +162,10 @@ const generateReport = async (
     encouragementZh: '做得很好。下次也继续吧！',
   };
   if (!SUPA_URL || utterances.filter((u) => u.speaker === 'student').length === 0) return { report: localFallback, fromAi: false };
+  // タイムアウト無しだと、AI側が詰まったとき会話後の画面で無限に待たされる
+  // （体験パスは時計が動き続ける＝待ち時間がそのまま損になる）。25秒でローカル版へ倒す
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 25_000);
   try {
     const accessToken = await getAccessToken();
     const res = await fetch(`${SUPA_URL}/functions/v1/ai-lesson-report`, {
@@ -166,12 +175,15 @@ const generateReport = async (
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
       body: JSON.stringify({ sessionId, targetExpression, themeJa, detectedUsage, utterances }),
+      signal: abort.signal,
     });
     if (!res.ok) return { report: localFallback, fromAi: false };
     const data = await res.json();
     return data?.report ? { report: data.report as LessonReport, fromAi: true } : { report: localFallback, fromAi: false };
   } catch {
     return { report: localFallback, fromAi: false };
+  } finally {
+    clearTimeout(timer);
   }
 };
 
@@ -185,6 +197,16 @@ export default function AiCoursePage() {
 
   const [step, setStep] = useState<Step>('loading');
   const [accessState, setAccessState] = useState<CourseAccessState | null>(null);
+  // 受講権のプランID（ai_course_access.plan_id）。購入者のみ値が入る（手動契約は null）
+  const [accessPlanId, setAccessPlanId] = useState<string | null>(null);
+  // 体験パスの使用済み秒数（累計）。上限つきプランの人だけ取得する
+  const [planUsedSeconds, setPlanUsedSeconds] = useState<number | null>(null);
+  /** AdvShell内で解答中（バトル・読解・聴解など）。体験のタイムアップ割り込みを待たせる */
+  const [advBusy, setAdvBusy] = useState(false);
+  // アップセル案内を閉じた日時（端末内保存の写し。閉じた瞬間に再描画するためstateにも持つ）
+  const [upsellDismissedAt, setUpsellDismissedAt] = useState<string | null>(
+    () => { try { return readUpsellDismissedAt(window.localStorage); } catch { return null; } },
+  );
   /**
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
@@ -269,6 +291,28 @@ export default function AiCoursePage() {
   const { setFocused } = useLessonFocus();
   useEffect(() => { setFocused(step === 'lesson'); return () => setFocused(false); }, [step, setFocused]);
 
+  // 体験パス（累計上限つきプラン）の使用済み秒数。自分の ai_usage_daily を合算する。
+  // 会話を終えたとき（sessions更新）とホームへ戻るたびに取り直す＝
+  // 「のこり◯分」が常に確定値の最新になる（別端末で使った分も戻ってきた時に反映）
+  const atHome = step === 'home';
+  useEffect(() => {
+    const row = accessState && 'row' in accessState ? accessState.row : null;
+    if (!learner || !row || row.aiSecondsLimit === null || row.aiSecondsLimit === undefined) {
+      setPlanUsedSeconds(null);
+      return;
+    }
+    let alive = true;
+    void supabase
+      .from('ai_usage_daily')
+      .select('seconds_used')
+      .eq('learner_id', learner.id)
+      .then(({ data }) => {
+        if (!alive || !data) return;
+        setPlanUsedSeconds(data.reduce((sum, r) => sum + ((r.seconds_used as number) ?? 0), 0));
+      });
+    return () => { alive = false; };
+  }, [learner, accessState, sessions.length, atHome]);
+
   // 画面計測（個人情報なし。gtag未存在なら何もしない）
   useEffect(() => {
     if (step === 'home') trackCourseOnce('view_ai_course_home');
@@ -327,11 +371,12 @@ export default function AiCoursePage() {
     // 受講権ゲート（2026-08-18 CEO指示）。期間内の人と管理者だけが先へ進める。
     // 期限の実体はDBの ai_course_access。学習記録はここでは一切触らない（残る）
     const access = await fetchAccessState();
+    setAccessState(access); // 期間内でも保持する（プラン表示・期限前案内が期間を読む）
     if (access.kind === 'none' || access.kind === 'expired' || access.kind === 'not_started') {
-      setAccessState(access);
       setStep('accessGate');
       return;
     }
+    setAccessPlanId('row' in access ? access.row.planId ?? null : null);
     await courseRepository.flushPending();
     const l = await courseRepository.getLearner();
     // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす
@@ -370,6 +415,30 @@ export default function AiCoursePage() {
     const off = onAuthChange((u) => { if (!u) setStep('login'); });
     return () => { clearTimeout(id); off(); };
   }, [loadAll]);
+
+  /**
+   * リアルタイム体験の自動終了（2026-08-20）。60分経過で体験終了画面へ切り替える。
+   *
+   * ただし**レッスン中・レポート表示中は割り込まない**（会話は最長4分で必ず終わる）。
+   * 話している最中に画面を奪うと、その回の会話とレポートが消える＝最悪の終わり方になる。
+   * 会話を終えてホームへ戻った時点で終了画面にする（超過は最大4分・原価的にも許容）
+   */
+  useEffect(() => {
+    const row = accessState && 'row' in accessState ? accessState.row : null;
+    if (!row?.trialStartedAtISO || !row.trialWindowMinutes) return;
+    // 割り込んではいけない画面: AI会話系（親のstep）＋ AdvShell内の解答中（バトル・読解・
+    // 聴解・模試・かな道場など。これらは step==='home' のままなので専用フラグで受け取る）
+    const inLesson = step === 'lesson' || step === 'report' || step === 'conversationIntro' || advBusy;
+    const ms = Date.parse(row.validUntilISO) - Date.now();
+    if (!Number.isFinite(ms)) return;
+    if (ms <= 0) {
+      if (inLesson) return; // 会話が終わるのを待つ（このeffectはstep変化で再評価される）
+      void loadAll();
+      return;
+    }
+    const id = window.setTimeout(() => { void loadAll(); }, ms + 1000);
+    return () => window.clearTimeout(id);
+  }, [accessState, loadAll, step, advBusy]);
 
   // 初回診断 → learner作成
   const handleHearing = async (answers: DiagnosisAnswers, displayName: string) => {
@@ -414,7 +483,18 @@ export default function AiCoursePage() {
         const act = await courseRepository.getActiveSession();
         if (act) { setPendingMode(m); setRecovery(act); setStartError(''); return; }
       }
-      setStartError(t.limits[r.code ?? 'unknown'] ?? t.limits.unknown);
+      // 体験パス（リアルタイム）の人に「明日また続けましょう」は嘘になる（明日は無い）。
+      // 残り時間でできること（語彙バトル・教材）へ案内する（2026-08-20 満足度チェック）
+      const inRealtimeTrial = !!(accessState && 'row' in accessState && accessState.row.trialStartedAtISO);
+      const dailyCapped = r.code === 'daily_session_limit' || r.code === 'daily_time_limit'
+        || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit';
+      setStartError(
+        inRealtimeTrial && dailyCapped
+          ? (uiLang === 'zh'
+            ? 'AI会话已达今天的使用上限。剩余的体验时间可以用词汇战斗和教材继续学习。'
+            : 'AI会話は本日の上限に達しました。のこりの体験時間は、語彙バトルと教材で学べます。')
+          : t.limits[r.code ?? 'unknown'] ?? t.limits.unknown,
+      );
       // 上限に当たったら表示も実際の状態に合わせる（日次・月次いずれも今は開始できない）
       if (r.code === 'daily_session_limit' || r.code === 'daily_time_limit'
         || r.code === 'monthly_session_limit' || r.code === 'monthly_time_limit') setRemaining(0);
@@ -594,7 +674,12 @@ export default function AiCoursePage() {
         // ターン毎チェックポイント保存済み（テキスト会話）なら一括insertしない（重複保存防止）
       }, result.utterancesAlreadySaved ? [] : result.utterances, learner.id);
     }
-    await courseRepository.recordUsage(learner.id, result.durationSeconds, cost);
+    // 会話中に1分ごとライブ記録済みのぶんを差し引いて追加記録する（二重計上防止・2026-08-20）
+    await courseRepository.recordUsage(
+      learner.id,
+      Math.max(0, result.durationSeconds - (result.usageSecondsRecordedLive ?? 0)),
+      cost,
+    );
     // 会話の完了を冒険の「AI会話ミッション」ステップへ即時に伝える（2026-08-19 CEO実害報告）。
     // これまで sessions state は初回ロードでしか更新されず、会話を終えても
     // リロードするまで冒険側が「未完了」のままだった＝同じ会話を何度もやり直せてしまった
@@ -611,6 +696,20 @@ export default function AiCoursePage() {
     const weekDone = weekMissions.every((mm) => freshProgress.some((p) => p.itemId === mm.id));
     if (weekDone && learner.currentWeek < 12) await courseRepository.updateLearner({ currentWeek: learner.currentWeek + 1 });
 
+    // 完了を画面状態へ即反映し、レッスン計画を**次のミッション**で組み直す
+    // （2026-08-20 CEO実害報告: 「AI会話をもう1回」が同じミッションの繰り返しになり
+    //  先へ進めなかった。planが初回ロードのまま更新されていなかったのが原因）。
+    // これで、おかわり会話のたびに新しいミッションへ進み、週も攻略に応じて進む
+    const nextLearner: Learner = {
+      ...learner,
+      // adjustDifficulty は 1..5 の範囲でしか動かさないが、返り値の型が広い（number）ので合わせる
+      difficultyLevel: adj.changed ? (adj.level as Learner['difficultyLevel']) : learner.difficultyLevel,
+      currentWeek: weekDone && learner.currentWeek < 12 ? learner.currentWeek + 1 : learner.currentWeek,
+    };
+    setLearner(nextLearner);
+    setProgress(freshProgress);
+    setPlan(buildLessonPlan(nextLearner, freshProgress));
+
     // レポート生成（AI or フォールバック）
     const { report: rep, fromAi } = await generateReport(
       mission.targetExpression, mission.titleJa, result.usage,
@@ -625,7 +724,7 @@ export default function AiCoursePage() {
 
     const stats = learnerStats(sessions, freshProgress);
     const xp = calcLessonXp(result.usage, isReview, reviewSucceeded, Math.max(stats.streak, 1));
-    const nextMission = selectNextMission(learner, freshProgress);
+    const nextMission = selectNextMission(nextLearner, freshProgress);
     courseRepository.clearResume();
 
     // レポート先頭の「今日できるようになったこと」（誠実表示）＋次の能力
@@ -721,30 +820,62 @@ export default function AiCoursePage() {
 
   // ── レンダリング ──
   if (step === 'loading') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
-  if (step === 'login') return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLogin t={t} onLoggedIn={() => void loadAll()} /></Shell>;
+  if (step === 'login') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        {/* ログイン画面のタイトルをLPと区別する（1-3: LPとログイン画面のURL・タイトル分離） */}
+        <Helmet>
+          <title>{uiLang === 'zh' ? '登录｜你的日语搭档' : 'ログイン｜日本語の相棒'}</title>
+        </Helmet>
+        <CourseLogin t={t} onLoggedIn={() => void loadAll()} />
+      </Shell>
+    );
+  }
   if (step === 'accessGate') {
     const a = accessState;
     const zh = uiLang === 'zh';
     const until = a && a.kind === 'expired' ? formatUntilJst(a.row.validUntilISO, zh ? 'zh' : 'ja') : null;
     const from = a && a.kind === 'not_started' ? formatUntilJst(a.row.validFromISO, zh ? 'zh' : 'ja') : null;
-    const title = a?.kind === 'expired'
-      ? (zh ? '学习期限已结束' : '利用期間が終了しています')
-      : a?.kind === 'not_started'
-        ? (zh ? '学习还未开始' : '利用開始前です')
-        : (zh ? '课程还未开通' : 'コースが開通していません');
-    const body = a?.kind === 'expired'
-      ? (zh ? `你的学习期限到 ${until} 为止。学习记录都还保留着，续期后可以从原来的地方继续。请联系老师。`
-        : `利用期間は ${until} まででした。学習記録はすべて残っています。延長すると続きから再開できます。先生に連絡してください。`)
-      : a?.kind === 'not_started'
-        ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
-          : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
-        : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
+    // 体験パス（リアルタイム60分）の終了は「期限切れ」ではなく体験完了。
+    // その場でアップグレード（1か月プラン）へつなぐ（2026-08-20 CEO決定の設計意図）
+    const trialEnded = a?.kind === 'expired' && a.row.planId === 'ai-trial-pass';
+    const monthPlan = planById('ai-month');
+    const title = trialEnded
+      ? (zh ? '60分钟的体验结束了，辛苦啦！' : '60分の体験が終了しました。おつかれさまでした！')
+      : a?.kind === 'expired'
+        ? (zh ? '学习期限已结束' : '利用期間が終了しています')
+        : a?.kind === 'not_started'
+          ? (zh ? '学习还未开始' : '利用開始前です')
+          : (zh ? '课程还未开通' : 'コースが開通していません');
+    const body = trialEnded
+      ? (zh
+        ? `学习记录都保留着。升级到「${monthPlan?.nameZh}」（${monthPlan?.priceLabelZh}）即可从接下来的部分继续，30天内解锁全部区域。`
+        : `学習記録はすべて残っています。「${monthPlan?.nameJa}」（${monthPlan?.priceLabelJa}）にアップグレードすると、続きから30日間・全地域で学べます。`)
+      : a?.kind === 'expired'
+        ? (zh ? `你的学习期限到 ${until} 为止。学习记录都还保留着，续期后可以从原来的地方继续。请联系老师。`
+          : `利用期間は ${until} まででした。学習記録はすべて残っています。延長すると続きから再開できます。先生に連絡してください。`)
+        : a?.kind === 'not_started'
+          ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
+            : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
+          : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
         <div className="mx-auto w-full max-w-md px-4 py-16 text-center">
-          <div className="text-4xl mb-3">🌱</div>
+          <div className="text-4xl mb-3">{trialEnded ? '🎉' : '🌱'}</div>
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
+          {trialEnded && (
+            <a href={`/${uiLang}/ai-course?lp=1#price`}
+              onClick={() => trackCourse('click_ai_course_trial_end_upgrade')}
+              className="mt-6 inline-flex w-full min-h-12 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-bold text-white hover:bg-blue-700">
+              {zh ? '查看价格方案（继续学习）' : '料金プランを見る（続きから学ぶ）'}
+            </a>
+          )}
+          {trialEnded && (
+            <p className="mt-3 text-[12px] text-gray-500">
+              {zh ? '购买时请使用同一个邮箱，即可在同一账号上继续。' : '購入時に同じメールアドレスを使うと、同じアカウントに続きが引き継がれます。'}
+            </p>
+          )}
           <button type="button"
             className="mt-8 w-full min-h-[44px] rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
             onClick={() => { void signOut().then(() => setStep('login')); }}>
@@ -784,6 +915,57 @@ export default function AiCoursePage() {
   // 従来はV2ホームだけv2Modeで、設定・復習・単元などの共有stepでは旧5タブが出ていた
   // （成長・学習記録から旧コース画面へ迷い込める：サマーさんの旧ホーム混乱と同根・2026-08-16修正）
   const advOn = isAdvEnabled(learner.settings);
+
+  // 購入プランの地域上限（体験パス=3）。冒険マップの表示ゲートへ渡す
+  const planRegionLimit = accessPlanId ? planById(accessPlanId)?.contentRegionLimit ?? null : null;
+
+  // 購入プランの状態チップ（体験パスの残り時間・期限。CEO指摘 2026-08-19:
+  // ログインしても60分の上限がどこにも見えなかった）。手動契約の生徒には出ない
+  const accessRow = accessState && 'row' in accessState ? accessState.row : null;
+  /**
+   * 体験の残りが会話1回ぶん（HARD_END=4分）に満たないか。
+   * 満たないときは会話を出さない＝途中で打ち切られてレポートが残らない事故を防ぐ
+   * （2026-08-20 本番前の満足度チェック）
+   */
+  const trialTooShortForConversation = !!(
+    accessRow?.trialStartedAtISO
+    && Date.parse(accessRow.validUntilISO) - Date.now() < 4 * 60 * 1000
+  );
+  const planChip = accessPlanId && accessRow ? (
+    <PlanStatusChip
+      lang={uiLang}
+      planId={accessPlanId}
+      validUntilISO={accessRow.validUntilISO}
+      // リアルタイム表示は開始済みのときだけ（未開始は開始画面がホームを差し替える）
+      realtimeWindowMinutes={accessRow.trialStartedAtISO ? (accessRow.trialWindowMinutes ?? null) : null}
+      usedSeconds={planUsedSeconds}
+    />
+  ) : null;
+
+  // 1か月AI自学プラン利用者向けの伴走コース案内（6章のアップセル導線）。
+  // plan_id 列が remote に無い間（migration 20260819100000 未適用）は accessPlanId が
+  // null のままなので、既存の全生徒に対して**何も表示されない**（後方互換）
+  const upsellMoment = upsellMomentFor({
+    planId: accessPlanId,
+    nowISO: new Date().toISOString(),
+    validFromISO: accessState && 'row' in accessState ? accessState.row.validFromISO : null,
+    validUntilISO: accessState && 'row' in accessState ? accessState.row.validUntilISO : null,
+    sessionCount: sessions.length,
+    dismissedAtISO: upsellDismissedAt,
+  });
+  const upsellBanner = upsellMoment ? (
+    <UpsellCoachBanner
+      lang={uiLang}
+      moment={upsellMoment}
+      onDismiss={() => {
+        const now = new Date().toISOString();
+        writeUpsellDismissedAt(window.localStorage, now);
+        setUpsellDismissedAt(now);
+      }}
+    />
+  ) : null;
+  // ホーム上部に出す購入プラン関連の帯（チップ＋アップセル）。従来契約の生徒は両方 null
+  const planTopSlot = (planChip || upsellBanner) ? <>{planChip}{upsellBanner}</> : null;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
@@ -1221,25 +1403,61 @@ export default function AiCoursePage() {
     );
   }
 
+  // ── 体験パス（リアルタイム60分制）の開始ゲート（2026-08-20 CEO決定）──
+  // 未開始のあいだはホームの代わりに開始画面を出す。開始（ai_start_trial）で
+  // valid_until が開始+60分になり、以降は既存の期間ゲートが自動で終了させる。
+  //
+  // ⚠️ **目標設定・レベル診断が終わるまでは開始画面を出さない**（2026-08-20 本番前チェック）。
+  // 準備（AdvShell内のオンボーディング＝目標選択＋診断）は数分かかる。ここでタイマーを
+  // 先に回すと、買った60分の何割かが設定作業で消える。準備は無料、時計は学習開始から。
+  {
+    const row = accessState && 'row' in accessState ? accessState.row : null;
+    const advProfile = readAdvProfile(learner.settings);
+    // AdvShell の needsOnboarding と同じ判定（!profile || !goalType || !diagnosis || !route）
+    const onboardingDone = !!(advProfile?.goalType && advProfile?.diagnosis && advProfile?.route);
+    if (row?.trialWindowMinutes != null && !row.trialStartedAtISO && onboardingDone) {
+      return (
+        <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+          <TrialStartScreen
+            lang={uiLang}
+            windowMinutes={row.trialWindowMinutes}
+            startDeadlineISO={row.validUntilISO}
+            onStarted={() => void loadAll()}
+          />
+        </Shell>
+      );
+    }
+  }
+
   // ── Adventure V2（learner単位feature flag・adventure-v2 §2/D-004）──
   // 有効learnerのみHomeをV2へ切替。lesson/report/設定など他stepは共通（既存runtime再利用・§19）。
   if (isAdvEnabled(learner.settings)) {
     return (
       <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
         v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
+        {planTopSlot}
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
+            planRegionLimit={planRegionLimit}
             requestView={advRequest}
             onRequestConsumed={() => setAdvRequest(null)}
             onNextStepChange={setAdvNextStep}
             onViewChange={(v) => setAdvNavKey(v === 'map' ? 'roadmap' : 'home')}
+            onActivityChange={setAdvBusy}
             onSaveSettings={(next) => {
               setLearner({ ...learner, settings: next });
               void courseRepository.updateLearner({ settings: next });
             }}
             onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
-            conversationAvailable={!!plan && remaining > 0}
+            /* 残り時間が会話1回ぶん（4分）に満たないときは会話を出さない。
+               始めた会話が途中で打ち切られてレポートも残らない、が最悪の終わり方
+               （AdvShell側は「押しても無反応」にせず理由を出してstepを飛ばせる・2026-08-20） */
+            conversationAvailable={!!plan && remaining > 0 && !trialTooShortForConversation}
+            conversationUnavailableReasonJa={trialTooShortForConversation
+              ? '体験の残り時間が会話1回ぶん（約4分）を下回りました。のこりは語彙バトル・教材でしめくくりましょう。' : undefined}
+            conversationUnavailableReasonZh={trialTooShortForConversation
+              ? '体验剩余时间不足一次会话（约4分钟）。剩下的时间用词汇战斗和教材来收尾吧。' : undefined}
             /* 「単元のことばを学ぶ」は単元だけを開く。旧エリア画面（ミナモ列島）へは出さない */
             onOpenUnit={(unitId) => { setActiveUnitId(unitId); setStep('n3unit'); }}
           />
@@ -1301,6 +1519,7 @@ export default function AiCoursePage() {
 
   return (
     <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      {planTopSlot}
       {/*
         一度でも冒険モードV2に入ったことがある人へ、戻る道を常に見せる。
         「従来のホームに戻す」を押すと enabled が OFF になり、以前は ?v2=1 のURLを

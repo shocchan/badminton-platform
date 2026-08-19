@@ -1,0 +1,904 @@
+{
+ "generatedAt": "2026-08-19T05:04:43.778Z",
+ "batchNo": 40,
+ "words": 110,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 110,
+  "blocking": 110,
+  "byKind": {
+   "no_dictionary_entry": 110
+  }
+ },
+ "eligibleForActiveBeta": 0,
+ "needsHumanReview": [
+  "vc-40-001",
+  "vc-40-002",
+  "vc-40-003",
+  "vc-40-004",
+  "vc-40-005",
+  "vc-40-006",
+  "vc-40-007",
+  "vc-40-008",
+  "vc-40-009",
+  "vc-40-010",
+  "vc-40-011",
+  "vc-40-012",
+  "vc-40-013",
+  "vc-40-014",
+  "vc-40-015",
+  "vc-40-016",
+  "vc-40-017",
+  "vc-40-018",
+  "vc-40-019",
+  "vc-40-020",
+  "vc-40-021",
+  "vc-40-022",
+  "vc-40-023",
+  "vc-40-024",
+  "vc-40-025",
+  "vc-40-026",
+  "vc-40-027",
+  "vc-40-028",
+  "vc-40-029",
+  "vc-40-030",
+  "vc-40-031",
+  "vc-40-032",
+  "vc-40-033",
+  "vc-40-034",
+  "vc-40-035",
+  "vc-40-036",
+  "vc-40-037",
+  "vc-40-038",
+  "vc-40-039",
+  "vc-40-040",
+  "vc-40-041",
+  "vc-40-042",
+  "vc-40-043",
+  "vc-40-044",
+  "vc-40-045",
+  "vc-40-046",
+  "vc-40-047",
+  "vc-40-048",
+  "vc-40-049",
+  "vc-40-050",
+  "vc-40-051",
+  "vc-40-052",
+  "vc-40-053",
+  "vc-40-054",
+  "vc-40-055",
+  "vc-40-056",
+  "vc-40-057",
+  "vc-40-058",
+  "vc-40-059",
+  "vc-40-060",
+  "vc-40-061",
+  "vc-40-062",
+  "vc-40-063",
+  "vc-40-064",
+  "vc-40-065",
+  "vc-40-066",
+  "vc-40-067",
+  "vc-40-068",
+  "vc-40-069",
+  "vc-40-070",
+  "vc-40-071",
+  "vc-40-072",
+  "vc-40-073",
+  "vc-40-074",
+  "vc-40-075",
+  "vc-40-076",
+  "vc-40-077",
+  "vc-40-078",
+  "vc-40-079",
+  "vc-40-080",
+  "vc-40-081",
+  "vc-40-082",
+  "vc-40-083",
+  "vc-40-084",
+  "vc-40-085",
+  "vc-40-086",
+  "vc-40-087",
+  "vc-40-088",
+  "vc-40-089",
+  "vc-40-090",
+  "vc-40-091",
+  "vc-40-092",
+  "vc-40-093",
+  "vc-40-094",
+  "vc-40-095",
+  "vc-40-096",
+  "vc-40-097",
+  "vc-40-098",
+  "vc-40-099",
+  "vc-40-100",
+  "vc-40-101",
+  "vc-40-102",
+  "vc-40-103",
+  "vc-40-104",
+  "vc-40-105",
+  "vc-40-106",
+  "vc-40-107",
+  "vc-40-108",
+  "vc-40-109",
+  "vc-40-110"
+ ],
+ "blocking": [
+  {
+   "wordId": "vc-40-001",
+   "surface": "メディア",
+   "kind": "no_dictionary_entry",
+   "detail": "メディア|メディア が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-002",
+   "surface": "コメント",
+   "kind": "no_dictionary_entry",
+   "detail": "コメント|コメント が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-003",
+   "surface": "コマーシャル",
+   "kind": "no_dictionary_entry",
+   "detail": "コマーシャル|コマーシャル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-004",
+   "surface": "チャンネル",
+   "kind": "no_dictionary_entry",
+   "detail": "チャンネル|チャンネル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-005",
+   "surface": "ドキュメンタリー",
+   "kind": "no_dictionary_entry",
+   "detail": "ドキュメンタリー|ドキュメンタリー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-006",
+   "surface": "アナウンス",
+   "kind": "no_dictionary_entry",
+   "detail": "アナウンス|アナウンス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-007",
+   "surface": "キャスター",
+   "kind": "no_dictionary_entry",
+   "detail": "キャスター|キャスター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-008",
+   "surface": "ジャーナリスト",
+   "kind": "no_dictionary_entry",
+   "detail": "ジャーナリスト|ジャーナリスト が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-009",
+   "surface": "レポーター",
+   "kind": "no_dictionary_entry",
+   "detail": "レポーター|レポーター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-010",
+   "surface": "スポンサー",
+   "kind": "no_dictionary_entry",
+   "detail": "スポンサー|スポンサー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-011",
+   "surface": "スタジオ",
+   "kind": "no_dictionary_entry",
+   "detail": "スタジオ|スタジオ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-012",
+   "surface": "プライバシー",
+   "kind": "no_dictionary_entry",
+   "detail": "プライバシー|プライバシー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-013",
+   "surface": "コラム",
+   "kind": "no_dictionary_entry",
+   "detail": "コラム|コラム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-014",
+   "surface": "アニメ",
+   "kind": "no_dictionary_entry",
+   "detail": "アニメ|アニメ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-015",
+   "surface": "シリーズ",
+   "kind": "no_dictionary_entry",
+   "detail": "シリーズ|シリーズ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-016",
+   "surface": "ランキング",
+   "kind": "no_dictionary_entry",
+   "detail": "ランキング|ランキング が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-017",
+   "surface": "ライブ",
+   "kind": "no_dictionary_entry",
+   "detail": "ライブ|ライブ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-018",
+   "surface": "ブーム",
+   "kind": "no_dictionary_entry",
+   "detail": "ブーム|ブーム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-019",
+   "surface": "ポスター",
+   "kind": "no_dictionary_entry",
+   "detail": "ポスター|ポスター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-020",
+   "surface": "パンフレット",
+   "kind": "no_dictionary_entry",
+   "detail": "パンフレット|パンフレット が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-021",
+   "surface": "カタログ",
+   "kind": "no_dictionary_entry",
+   "detail": "カタログ|カタログ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-022",
+   "surface": "ブログ",
+   "kind": "no_dictionary_entry",
+   "detail": "ブログ|ブログ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-023",
+   "surface": "ホームページ",
+   "kind": "no_dictionary_entry",
+   "detail": "ホームページ|ホームページ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-024",
+   "surface": "サイト",
+   "kind": "no_dictionary_entry",
+   "detail": "サイト|サイト が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-025",
+   "surface": "チャット",
+   "kind": "no_dictionary_entry",
+   "detail": "チャット|チャット が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-026",
+   "surface": "バージョン",
+   "kind": "no_dictionary_entry",
+   "detail": "バージョン|バージョン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-027",
+   "surface": "コンテンツ",
+   "kind": "no_dictionary_entry",
+   "detail": "コンテンツ|コンテンツ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-028",
+   "surface": "キャンペーン",
+   "kind": "no_dictionary_entry",
+   "detail": "キャンペーン|キャンペーン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-029",
+   "surface": "インターネット",
+   "kind": "no_dictionary_entry",
+   "detail": "インターネット|インターネット が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-030",
+   "surface": "デジタル",
+   "kind": "no_dictionary_entry",
+   "detail": "デジタル|デジタル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-031",
+   "surface": "アナログ",
+   "kind": "no_dictionary_entry",
+   "detail": "アナログ|アナログ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-032",
+   "surface": "ネットワーク",
+   "kind": "no_dictionary_entry",
+   "detail": "ネットワーク|ネットワーク が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-033",
+   "surface": "プログラム",
+   "kind": "no_dictionary_entry",
+   "detail": "プログラム|プログラム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-034",
+   "surface": "システム",
+   "kind": "no_dictionary_entry",
+   "detail": "システム|システム が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-035",
+   "surface": "テクノロジー",
+   "kind": "no_dictionary_entry",
+   "detail": "テクノロジー|テクノロジー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-036",
+   "surface": "ロボット",
+   "kind": "no_dictionary_entry",
+   "detail": "ロボット|ロボット が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-037",
+   "surface": "スマートフォン",
+   "kind": "no_dictionary_entry",
+   "detail": "スマートフォン|スマートフォン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-038",
+   "surface": "パスワード",
+   "kind": "no_dictionary_entry",
+   "detail": "パスワード|パスワード が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-039",
+   "surface": "セキュリティー",
+   "kind": "no_dictionary_entry",
+   "detail": "セキュリティー|セキュリティー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-040",
+   "surface": "ウイルス",
+   "kind": "no_dictionary_entry",
+   "detail": "ウイルス|ウイルス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-041",
+   "surface": "ダウンロード",
+   "kind": "no_dictionary_entry",
+   "detail": "ダウンロード|ダウンロード が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-042",
+   "surface": "アクセス",
+   "kind": "no_dictionary_entry",
+   "detail": "アクセス|アクセス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-043",
+   "surface": "クリック",
+   "kind": "no_dictionary_entry",
+   "detail": "クリック|クリック が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-044",
+   "surface": "キーワード",
+   "kind": "no_dictionary_entry",
+   "detail": "キーワード|キーワード が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-045",
+   "surface": "ファイル",
+   "kind": "no_dictionary_entry",
+   "detail": "ファイル|ファイル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-046",
+   "surface": "フォルダ",
+   "kind": "no_dictionary_entry",
+   "detail": "フォルダ|フォルダ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-047",
+   "surface": "プリンター",
+   "kind": "no_dictionary_entry",
+   "detail": "プリンター|プリンター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-048",
+   "surface": "スピーカー",
+   "kind": "no_dictionary_entry",
+   "detail": "スピーカー|スピーカー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-049",
+   "surface": "モニター",
+   "kind": "no_dictionary_entry",
+   "detail": "モニター|モニター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-050",
+   "surface": "センサー",
+   "kind": "no_dictionary_entry",
+   "detail": "センサー|センサー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-051",
+   "surface": "バッテリー",
+   "kind": "no_dictionary_entry",
+   "detail": "バッテリー|バッテリー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-052",
+   "surface": "リモコン",
+   "kind": "no_dictionary_entry",
+   "detail": "リモコン|リモコン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-053",
+   "surface": "ディスプレイ",
+   "kind": "no_dictionary_entry",
+   "detail": "ディスプレイ|ディスプレイ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-054",
+   "surface": "キーボード",
+   "kind": "no_dictionary_entry",
+   "detail": "キーボード|キーボード が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-055",
+   "surface": "マウス",
+   "kind": "no_dictionary_entry",
+   "detail": "マウス|マウス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-056",
+   "surface": "メモリー",
+   "kind": "no_dictionary_entry",
+   "detail": "メモリー|メモリー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-057",
+   "surface": "ソフトウェア",
+   "kind": "no_dictionary_entry",
+   "detail": "ソフトウェア|ソフトウェア が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-058",
+   "surface": "インストール",
+   "kind": "no_dictionary_entry",
+   "detail": "インストール|インストール が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-059",
+   "surface": "エラー",
+   "kind": "no_dictionary_entry",
+   "detail": "エラー|エラー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-060",
+   "surface": "グローバル",
+   "kind": "no_dictionary_entry",
+   "detail": "グローバル|グローバル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-061",
+   "surface": "ボランティア",
+   "kind": "no_dictionary_entry",
+   "detail": "ボランティア|ボランティア が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-062",
+   "surface": "ビザ",
+   "kind": "no_dictionary_entry",
+   "detail": "ビザ|ビザ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-063",
+   "surface": "ワクチン",
+   "kind": "no_dictionary_entry",
+   "detail": "ワクチン|ワクチン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-064",
+   "surface": "プロジェクト",
+   "kind": "no_dictionary_entry",
+   "detail": "プロジェクト|プロジェクト が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-065",
+   "surface": "ビジネス",
+   "kind": "no_dictionary_entry",
+   "detail": "ビジネス|ビジネス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-066",
+   "surface": "リサイクル",
+   "kind": "no_dictionary_entry",
+   "detail": "リサイクル|リサイクル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-067",
+   "surface": "ストライキ",
+   "kind": "no_dictionary_entry",
+   "detail": "ストライキ|ストライキ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-068",
+   "surface": "リーダー",
+   "kind": "no_dictionary_entry",
+   "detail": "リーダー|リーダー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-069",
+   "surface": "パートナー",
+   "kind": "no_dictionary_entry",
+   "detail": "パートナー|パートナー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-070",
+   "surface": "コミュニケーション",
+   "kind": "no_dictionary_entry",
+   "detail": "コミュニケーション|コミュニケーション が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-071",
+   "surface": "トラブル",
+   "kind": "no_dictionary_entry",
+   "detail": "トラブル|トラブル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-072",
+   "surface": "リスク",
+   "kind": "no_dictionary_entry",
+   "detail": "リスク|リスク が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-073",
+   "surface": "チャレンジ",
+   "kind": "no_dictionary_entry",
+   "detail": "チャレンジ|チャレンジ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-074",
+   "surface": "サポート",
+   "kind": "no_dictionary_entry",
+   "detail": "サポート|サポート が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-075",
+   "surface": "レジャー",
+   "kind": "no_dictionary_entry",
+   "detail": "レジャー|レジャー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-076",
+   "surface": "レンタル",
+   "kind": "no_dictionary_entry",
+   "detail": "レンタル|レンタル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-077",
+   "surface": "マナー",
+   "kind": "no_dictionary_entry",
+   "detail": "マナー|マナー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-078",
+   "surface": "プレッシャー",
+   "kind": "no_dictionary_entry",
+   "detail": "プレッシャー|プレッシャー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-079",
+   "surface": "ペース",
+   "kind": "no_dictionary_entry",
+   "detail": "ペース|ペース が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-080",
+   "surface": "タイミング",
+   "kind": "no_dictionary_entry",
+   "detail": "タイミング|タイミング が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-081",
+   "surface": "ヒント",
+   "kind": "no_dictionary_entry",
+   "detail": "ヒント|ヒント が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-082",
+   "surface": "ジャンル",
+   "kind": "no_dictionary_entry",
+   "detail": "ジャンル|ジャンル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-083",
+   "surface": "パターン",
+   "kind": "no_dictionary_entry",
+   "detail": "パターン|パターン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-084",
+   "surface": "サンプル",
+   "kind": "no_dictionary_entry",
+   "detail": "サンプル|サンプル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-085",
+   "surface": "モデル",
+   "kind": "no_dictionary_entry",
+   "detail": "モデル|モデル が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-086",
+   "surface": "ブランド",
+   "kind": "no_dictionary_entry",
+   "detail": "ブランド|ブランド が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-087",
+   "surface": "メーカー",
+   "kind": "no_dictionary_entry",
+   "detail": "メーカー|メーカー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-088",
+   "surface": "ユーザー",
+   "kind": "no_dictionary_entry",
+   "detail": "ユーザー|ユーザー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-089",
+   "surface": "スタッフ",
+   "kind": "no_dictionary_entry",
+   "detail": "スタッフ|スタッフ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-090",
+   "surface": "キャリア",
+   "kind": "no_dictionary_entry",
+   "detail": "キャリア|キャリア が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-091",
+   "surface": "コスト",
+   "kind": "no_dictionary_entry",
+   "detail": "コスト|コスト が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-092",
+   "surface": "シェア",
+   "kind": "no_dictionary_entry",
+   "detail": "シェア|シェア が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-093",
+   "surface": "セミナー",
+   "kind": "no_dictionary_entry",
+   "detail": "セミナー|セミナー が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-094",
+   "surface": "フリーター",
+   "kind": "no_dictionary_entry",
+   "detail": "フリーター|フリーター が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-095",
+   "surface": "アドレス",
+   "kind": "no_dictionary_entry",
+   "detail": "アドレス|アドレス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-096",
+   "surface": "アドバイス",
+   "kind": "no_dictionary_entry",
+   "detail": "アドバイス|アドバイス が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-097",
+   "surface": "アピール",
+   "kind": "no_dictionary_entry",
+   "detail": "アピール|アピール が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-098",
+   "surface": "オークション",
+   "kind": "no_dictionary_entry",
+   "detail": "オークション|オークション が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-099",
+   "surface": "ピーク",
+   "kind": "no_dictionary_entry",
+   "detail": "ピーク|ピーク が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-100",
+   "surface": "ラッシュ",
+   "kind": "no_dictionary_entry",
+   "detail": "ラッシュ|ラッシュ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-101",
+   "surface": "ローン",
+   "kind": "no_dictionary_entry",
+   "detail": "ローン|ローン が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-102",
+   "surface": "放送",
+   "kind": "no_dictionary_entry",
+   "detail": "放送|ほうそう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-103",
+   "surface": "視聴率",
+   "kind": "no_dictionary_entry",
+   "detail": "視聴率|しちょうりつ が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-104",
+   "surface": "出版",
+   "kind": "no_dictionary_entry",
+   "detail": "出版|しゅっぱん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-105",
+   "surface": "国際化",
+   "kind": "no_dictionary_entry",
+   "detail": "国際化|こくさいか が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-106",
+   "surface": "首脳",
+   "kind": "no_dictionary_entry",
+   "detail": "首脳|しゅのう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-107",
+   "surface": "広告",
+   "kind": "no_dictionary_entry",
+   "detail": "広告|こうこく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-108",
+   "surface": "宣伝",
+   "kind": "no_dictionary_entry",
+   "detail": "宣伝|せんでん が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-109",
+   "surface": "国境",
+   "kind": "no_dictionary_entry",
+   "detail": "国境|こっきょう が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  },
+  {
+   "wordId": "vc-40-110",
+   "surface": "字幕",
+   "kind": "no_dictionary_entry",
+   "detail": "字幕|じまく が辞書索引に無い（読みか表記の確認が必要）",
+   "blocking": true
+  }
+ ],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}

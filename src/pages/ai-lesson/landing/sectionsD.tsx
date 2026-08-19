@@ -1,41 +1,276 @@
+import { useState } from 'react';
 import type { Lang } from '../../../contexts/LanguageContext';
-import { LP, type VariantConfig } from './lpContent';
+import { LP } from './lpContent';
 import { Reveal, SectionHeading, Check, CtaButton, ArrowRight } from './lpUi';
+import { scrollToSection, track } from './lpHelpers';
 import {
-  publishedPlans, allPlans, planView, acceptsApplication, type PlanId,
+  publishedPlans, allPlans, planView, acceptsApplication, RECOMMENDED_BADGE,
+  type PlanId, type PlanView,
 } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { entitlementsFor } from '../../../lib/aiLesson/course/plans/planEntitlements';
+import { canStartCheckout, startCheckout } from '../../../lib/aiLesson/course/plans/planCheckout';
+import { X as XIcon } from 'lucide-react';
 
-const sym = (s: string) =>
-  s === '◯' ? <span className="text-lp-pine font-extrabold">◯</span>
-  : s === '△' ? <span className="text-lp-gold font-bold">△</span>
-  : <span className="text-lp-ink-soft/50">×</span>;
+/**
+ * 料金セクション。**価格・内容は planCatalog から読む**（ここに数値を書かない）。
+ *
+ * - 出すのは公開中（published）のプランだけ。draft は `?plans=preview` のときだけ見える
+ * - ボタンの行き先は `ctaMode`（apply＝申込フォーム／consult＝無料相談）。
+ *   `checkout` は production Stripe を有効化していないので使わない
+ * - 6か月伴走コースは recommended（おすすめ）として最も目立たせる
+ * - 60分・1か月プランには「含まれないもの」を明示する（人間レッスンが付くと誤解させない）
+ * - キャンセル・返金は商品ごとに違いうるので、断定せず暫定表示を出す
+ */
+export function PricingSection({ lang, onConsult, onApply, preview = false }: {
+  lang: Lang; onConsult: () => void;
+  onApply: (planId: PlanId) => void;
+  /** CEO確認用。draft のプランも並べる */
+  preview?: boolean;
+}) {
+  const p = LP.pricing;
+  const plans = (preview ? allPlans() : publishedPlans()).map((x) => ({ cfg: x, view: planView(x, lang) }));
+  // オンライン決済（Stripe Checkout）への遷移中プラン。二度押し・二重セッションを防ぐ
+  const [checkoutBusy, setCheckoutBusy] = useState<PlanId | null>(null);
+  const [checkoutNote, setCheckoutNote] = useState<string | null>(null);
 
-export function ComparisonSection({ lang }: { lang: Lang }) {
-  const c = LP.comparison;
-  const [colA, colB, colC] = c.cols[lang];
+  const handleCta = async (view: PlanView) => {
+    if (view.ctaMode === 'consult') { onConsult(); return; }
+    // checkout: 環境が有効なら決済へ。無効・失敗時は申込フォームへフォールバック
+    const cfg = plans.find((x) => x.cfg.id === view.id)?.cfg;
+    if (view.ctaMode === 'checkout' && cfg && canStartCheckout(cfg)) {
+      if (checkoutBusy) return;
+      setCheckoutBusy(view.id);
+      setCheckoutNote(null);
+      track('begin_checkout', {
+        plan: view.id, value: view.priceJpy ?? undefined, currency: 'JPY', location: 'pricing',
+      });
+      const r = await startCheckout(view.id, lang === 'zh' ? 'zh' : 'ja');
+      if (r.ok) { window.location.href = r.url; return; } // 遷移するので busy は解除しない
+      setCheckoutBusy(null);
+      setCheckoutNote(lang === 'zh'
+        ? '暂时无法打开支付页面。请先通过报名表提交，我们会尽快联系你。'
+        : 'いま決済ページを開けませんでした。先に申込フォームでお送りください。こちらからご案内します。');
+      onApply(view.id);
+      return;
+    }
+    onApply(view.id);
+  };
   return (
-    <section id="compare" className="bg-lp-ivory-2 py-16 sm:py-24">
-      <div className="mx-auto max-w-4xl px-5">
-        <Reveal><SectionHeading title={c.heading[lang]} /></Reveal>
+    <section id="price" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <Reveal><SectionHeading title={p.heading[lang]} lead={p.lead[lang]} /></Reveal>
+
+        <div className="grid lg:grid-cols-3 gap-7 lg:gap-5 items-stretch">
+          {plans.map(({ cfg, view }, idx) => {
+            const accepting = acceptsApplication(cfg);
+            const hot = view.recommended;
+            return (
+              <Reveal key={view.id} delay={60 + idx * 40} className="h-full">
+                <div className={`relative h-full flex flex-col rounded-3xl p-7 bg-lp-card ${
+                  hot
+                    ? 'border-2 border-lp-coral shadow-[0_14px_34px_rgba(55,43,38,0.14)]'
+                    : 'border border-lp-line shadow-[0_8px_22px_rgba(55,43,38,0.07)]'
+                }`}>
+                  <span className={`absolute -top-3.5 left-7 font-extrabold text-[0.82rem] px-4 py-1 rounded-full ${
+                    hot ? 'bg-lp-coral text-white' : 'bg-lp-ink text-white'
+                  }`}>
+                    {view.name}
+                  </span>
+                  {hot && (
+                    <span className="absolute -top-3.5 right-7 bg-lp-gold text-lp-ink font-extrabold text-[0.78rem] px-3 py-1 rounded-full">
+                      {RECOMMENDED_BADGE[lang]}
+                    </span>
+                  )}
+                  {/* 準備中・停止中を隠さない（見えているのに申し込めない状態を作らない） */}
+                  {view.status !== 'published' && (
+                    <span className="absolute -top-3.5 right-7 bg-lp-ink text-white font-bold text-[0.78rem] px-3 py-1 rounded-full">
+                      {view.status === 'draft'
+                        ? (lang === 'zh' ? '准备中（仅内部可见）' : '準備中（社内確認用）')
+                        : (lang === 'zh' ? '暂停接受报名' : '受付を停止中')}
+                    </span>
+                  )}
+
+                  <p className="mt-3 text-[0.9rem] font-bold text-lp-pine">{view.audience}</p>
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-extrabold text-lp-ink text-[1.9rem] leading-none">{view.priceLabel}</span>
+                  </div>
+                  <p className="text-lp-ink font-bold text-[0.95rem] mt-1.5">{view.durationLabel}</p>
+                  {view.monthlyEquivalent && (
+                    <p className="text-lp-ink-soft text-[0.9rem] mt-0.5">{view.monthlyEquivalent}</p>
+                  )}
+                  <p className="text-lp-ink-soft text-[0.95rem] mt-2.5">{view.description}</p>
+
+                  <ul className="flex flex-col gap-2.5 my-5">
+                    {view.features.map((it, i) => (
+                      <li key={i} className="flex gap-2.5 items-start text-[0.95rem] text-lp-ink">
+                        <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{it}
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* 含まれないもの（60分・1か月）。人間レッスン付きと誤解させない */}
+                  {view.notIncluded.length > 0 && (
+                    <div className="mb-5 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-3.5">
+                      <p className="text-[0.82rem] font-extrabold text-lp-ink-soft mb-2">
+                        {lang === 'zh' ? '不包含的内容' : '含まれないもの'}
+                      </p>
+                      <ul className="flex flex-col gap-1.5">
+                        {view.notIncluded.map((it, i) => (
+                          <li key={i} className="flex gap-2 items-start text-[0.88rem] text-lp-ink-soft">
+                            <XIcon className="w-4 h-4 mt-0.5 shrink-0 text-lp-ink-soft/60" aria-hidden="true" />{it}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="mt-auto">
+                    {accepting ? (
+                      <CtaButton
+                        variant={hot ? 'primary' : 'ghost'} fullWidth
+                        disabled={checkoutBusy !== null}
+                        onClick={() => void handleCta(view)}
+                        event="click_ai_course_plan_cta"
+                        eventParams={{
+                          plan: view.id, price_label: view.priceLabel,
+                          value: view.priceJpy ?? undefined, currency: 'JPY',
+                          cta_mode: view.ctaMode, location: 'pricing',
+                        }}
+                      >
+                        {checkoutBusy === view.id
+                          ? (lang === 'zh' ? '正在打开支付页面…' : '決済ページへ移動中…')
+                          : view.ctaLabel}
+                        {checkoutBusy !== view.id && <ArrowRight />}
+                      </CtaButton>
+                    ) : (
+                      <p className="rounded-xl bg-lp-ivory-2 border border-lp-line px-4 py-3 text-[0.9rem] text-lp-ink-soft text-center">
+                        {lang === 'zh' ? '目前不接受报名。' : 'いまは申込を受け付けていません。'}
+                      </p>
+                    )}
+
+                    {/* キャンセル・返金は商品ごとに違いうる。断定しない（法的確認が終わるまで暫定表示） */}
+                    <p className="text-[0.8rem] text-lp-ink-soft mt-3.5">{view.termsNotice}</p>
+                  </div>
+                </div>
+              </Reveal>
+            );
+          })}
+        </div>
+
+        {checkoutNote && (
+          <p role="alert" className="mt-5 rounded-xl bg-lp-gold-soft border border-lp-gold px-4 py-3 text-[0.9rem] text-lp-ink">
+            {checkoutNote}
+          </p>
+        )}
+        <p className="text-[0.84rem] text-lp-ink-soft mt-6">{p.keyCopy[lang]}</p>
+        <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.disclaimer[lang]}</p>
+      </div>
+    </section>
+  );
+}
+
+/* ────────────────────────────────────────────────────────────
+   AIのみ ／ AI＋人間コーチ の比較表
+   セルの値は planCatalog / planEntitlements から導出する（手書きの表を持たない）
+   ──────────────────────────────────────────────────────────── */
+
+type CompareRow = { label: string; cells: { text: string; on: boolean }[] };
+
+const buildCompareRows = (views: PlanView[], lang: Lang): CompareRow[] => {
+  const L = LP.planCompare.rowLabels[lang];
+  const C = LP.planCompare.cell[lang];
+  const ents = views.map((v) => entitlementsFor(v.id));
+  const zh = lang === 'zh';
+  return [
+    { label: L.price, cells: views.map((v) => ({ text: v.priceLabel, on: true })) },
+    {
+      label: L.aiTalk,
+      cells: ents.map((e) => ({
+        text: e.realtimeWindowMinutes !== null
+          ? (zh ? `开始后${e.realtimeWindowMinutes}分钟内` : `開始から${e.realtimeWindowMinutes}分間`)
+          : e.aiMinutesTotal !== null
+            ? (zh ? `累计${e.aiMinutesTotal}分钟` : `累計${e.aiMinutesTotal}分`)
+            : C.yes,
+        on: e.aiConversation,
+      })),
+    },
+    { label: L.aiFeedback, cells: ents.map(() => ({ text: C.yes, on: true })) },
+    { label: L.review, cells: ents.map((e) => ({ text: e.review ? C.yes : C.no, on: e.review })) },
+    { label: L.records, cells: ents.map((e) => ({ text: e.learningRecords ? C.yes : C.no, on: e.learningRecords })) },
+    {
+      label: L.materials,
+      cells: ents.map((e) => ({
+        text: e.materialsRegionLimit !== null
+          ? (zh ? `最初的${e.materialsRegionLimit}个区域` : `最初の${e.materialsRegionLimit}地域まで`)
+          : C.yes,
+        on: e.materials,
+      })),
+    },
+    { label: L.duration, cells: views.map((v) => ({ text: v.durationLabel, on: true })) },
+    { label: L.roadmap, cells: ents.map((e) => ({ text: e.personalRoadmap ? C.yes : C.no, on: e.personalRoadmap })) },
+    {
+      label: L.lessons,
+      cells: ents.map((e) => ({
+        text: e.humanLessonCount > 0 ? (zh ? `共${e.humanLessonCount}次` : `全${e.humanLessonCount}回`) : C.no,
+        on: e.humanLessonCount > 0,
+      })),
+    },
+    { label: L.humanFeedback, cells: ents.map((e) => ({ text: e.humanFeedback ? C.yes : C.no, on: e.humanFeedback })) },
+    { label: L.wechat, cells: ents.map((e) => ({ text: e.wechatConsult ? C.yes : C.no, on: e.wechatConsult })) },
+    { label: L.autoRenew, cells: ents.map((e) => ({ text: e.autoRenew ? C.yes : C.none, on: false })) },
+  ];
+};
+
+export function PlanComparisonSection({ lang }: { lang: Lang }) {
+  const c = LP.planCompare;
+  const views = publishedPlans().map((p) => planView(p, lang));
+  if (views.length === 0) return null;
+  const rows = buildCompareRows(views, lang);
+  const aiOnlyCount = views.filter((v) => v.lessonCount === 0).length;
+  const humanCount = views.length - aiOnlyCount;
+  return (
+    <section id="compare" className="scroll-mt-20 py-16 sm:py-24">
+      <div className="mx-auto max-w-5xl px-5">
+        <Reveal><SectionHeading title={c.heading[lang]} lead={c.lead[lang]} /></Reveal>
         <p className="sm:hidden text-center text-[0.8rem] text-lp-ink-soft mb-2">{lang === 'ja' ? '← 横にスクロールできます →' : '← 可左右滑动 →'}</p>
         <Reveal delay={60}>
           <div className="overflow-x-auto rounded-2xl border border-lp-line bg-lp-card">
-            <table className="w-full min-w-[520px] text-center border-collapse">
+            <table className="w-full min-w-[640px] text-center border-collapse">
               <thead>
+                {/* AIのみ／AI＋人間コーチ のグループ行（一目で違いが分かるように） */}
+                <tr className="text-[0.82rem]">
+                  <th className="p-2" aria-hidden="true" />
+                  {aiOnlyCount > 0 && (
+                    <th colSpan={aiOnlyCount} className="p-2 font-extrabold text-lp-ink-soft bg-lp-ivory-2 border-b border-lp-line">
+                      {c.groupAi[lang]}
+                    </th>
+                  )}
+                  {humanCount > 0 && (
+                    <th colSpan={humanCount} className="p-2 font-extrabold text-lp-coral-deep bg-lp-coral-soft/50 border-b border-lp-line">
+                      {c.groupHuman[lang]}
+                    </th>
+                  )}
+                </tr>
                 <tr className="text-[0.9rem]">
                   <th className="text-left p-3.5 font-bold text-lp-ink-soft"> </th>
-                  <th className="p-3.5 font-bold text-lp-ink-soft">{colA}</th>
-                  <th className="p-3.5 font-bold text-lp-ink-soft">{colB}</th>
-                  <th className="p-3.5 font-extrabold text-lp-coral-deep bg-lp-coral-soft/50 rounded-t-xl">{colC}</th>
+                  {views.map((v) => (
+                    <th key={v.id} className={`p-3.5 font-extrabold ${v.recommended ? 'text-lp-coral-deep bg-lp-coral-soft/50' : 'text-lp-ink'}`}>
+                      {v.name}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {c.rows[lang].map((r, i) => (
+                {rows.map((r, i) => (
                   <tr key={i} className="border-t border-lp-line">
-                    <td className="text-left p-3.5 text-[0.92rem] text-lp-ink">{r.label}</td>
-                    <td className="p-3.5">{sym(r.a)}</td>
-                    <td className="p-3.5">{sym(r.b)}</td>
-                    <td className="p-3.5 bg-lp-coral-soft/30">{sym(r.c)}</td>
+                    <td className="text-left p-3.5 text-[0.9rem] text-lp-ink">{r.label}</td>
+                    {r.cells.map((cell, j) => (
+                      <td key={j} className={`p-3.5 text-[0.9rem] ${views[j].recommended ? 'bg-lp-coral-soft/30' : ''} ${
+                        cell.on ? 'text-lp-ink font-bold' : 'text-lp-ink-soft'
+                      }`}>
+                        {cell.text}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -48,112 +283,69 @@ export function ComparisonSection({ lang }: { lang: Lang }) {
   );
 }
 
-export function CourseContentsSection({ lang }: { lang: Lang }) {
-  const c = LP.contents;
-  return (
-    <section id="contents" className="py-16 sm:py-24">
-      <div className="mx-auto max-w-4xl px-5">
-        <Reveal><SectionHeading title={c.heading[lang]} /></Reveal>
-        <div className="grid sm:grid-cols-2 gap-3">
-          {c.items[lang].map((it, i) => (
-            <Reveal key={i} delay={(i % 2) * 50}>
-              <div className="flex gap-3 items-start bg-lp-card border border-lp-line rounded-xl px-4 py-3.5">
-                <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />
-                <span className="text-[0.97rem] text-lp-ink">{it}</span>
-              </div>
-            </Reveal>
-          ))}
-        </div>
-        <p className="text-[0.84rem] text-lp-ink-soft mt-5">{c.betaNote[lang]}</p>
-      </div>
-    </section>
-  );
-}
+/* ────────────────────────────────────────────────────────────
+   あなたに合うプラン（目的別の案内。「向いていない人」で否定して終わらせない）
+   ──────────────────────────────────────────────────────────── */
 
-/**
- * 料金セクション。**価格・内容は planCatalog から読む**（ここに数値を書かない）。
- *
- * - 出すのは公開中（published）のプランだけ。draft は `?plans=preview` のときだけ見える
- * - ボタンの行き先は `ctaMode`（apply＝申込フォーム／consult＝個別相談）。
- *   `checkout` は production Stripe を有効化していないので相談へ倒す
- * - キャンセル・返金は商品ごとに違いうるので、断定せず暫定表示を出す
- */
-export function PricingSection({ v, lang, onConsult, onApply, preview = false }: {
-  v: VariantConfig; lang: Lang; onConsult: () => void;
-  onApply: (planId: PlanId) => void;
-  /** CEO確認用。draft のプランも並べる */
-  preview?: boolean;
-}) {
-  const p = LP.pricing;
-  const plans = (preview ? allPlans() : publishedPlans()).map((x) => ({ cfg: x, view: planView(x, lang) }));
+export function PlanFitSection({ lang }: { lang: Lang }) {
+  const f = LP.planFit;
+  const views = publishedPlans().map((p) => planView(p, lang));
+  const goPricing = (planId: string) => {
+    track('click_ai_course_fit_to_pricing', { plan: planId, location: 'plan_fit' });
+    scrollToSection('price');
+  };
   return (
-    <section id="price" className="bg-lp-ivory-2 py-16 sm:py-24">
-      <div className="mx-auto max-w-3xl px-5">
-        <Reveal><SectionHeading title={p.heading[lang]} lead={p.lead[lang]} /></Reveal>
-
-        <div className="flex flex-col gap-7">
-          {plans.map(({ cfg, view }, idx) => {
-            const accepting = acceptsApplication(cfg);
+    <section id="fit" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+      <div className="mx-auto max-w-6xl px-5">
+        <Reveal><SectionHeading title={f.heading[lang]} lead={f.lead[lang]} /></Reveal>
+        <div className="grid md:grid-cols-3 gap-4">
+          {views.map((v, i) => {
+            const bullets = f.byPlan[lang][v.id] ?? [];
             return (
-              <Reveal key={view.id} delay={60 + idx * 40}>
-                <div className="relative bg-lp-card border-2 border-lp-coral rounded-3xl p-7 sm:p-9 shadow-[0_14px_34px_rgba(55,43,38,0.10)]">
-                  <span className="absolute -top-3.5 left-8 bg-lp-coral text-white font-extrabold text-[0.82rem] px-4 py-1 rounded-full">
-                    {view.name}
-                  </span>
-                  {/* 準備中・停止中を隠さない（見えているのに申し込めない状態を作らない） */}
-                  {view.status !== 'published' && (
-                    <span className="absolute -top-3.5 right-8 bg-lp-ink text-white font-bold text-[0.78rem] px-3 py-1 rounded-full">
-                      {view.status === 'draft'
-                        ? (lang === 'zh' ? '准备中（仅内部可见）' : '準備中（社内確認用）')
-                        : (lang === 'zh' ? '暂停接受报名' : '受付を停止中')}
-                    </span>
-                  )}
-
-                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <span className="font-extrabold text-lp-ink text-[2.1rem] leading-none">{view.priceLabel}</span>
-                    <span className="text-lp-ink-soft text-[0.95rem]">{view.durationLabel}</span>
-                  </div>
-                  {view.monthlyEquivalent && (
-                    <p className="text-lp-ink-soft text-[0.95rem] mt-1">{view.monthlyEquivalent}</p>
-                  )}
-                  <p className="text-lp-ink-soft text-[0.95rem] mt-2">{view.description}</p>
-
-                  <ul className="flex flex-col gap-3 my-6">
-                    {view.features.map((it, i) => (
-                      <li key={i} className="flex gap-3 items-start text-[0.98rem] text-lp-ink">
-                        <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{it}
+              <Reveal key={v.id} delay={i * 60} className="h-full">
+                <div className={`h-full flex flex-col bg-lp-card rounded-2xl p-6 ${v.recommended ? 'border-2 border-lp-coral' : 'border border-lp-line'}`}>
+                  <h3 className="font-extrabold text-lp-ink text-[1.05rem]">{v.name}</h3>
+                  <p className="text-[0.88rem] text-lp-ink-soft mt-0.5">{v.priceLabel}・{v.durationLabel}</p>
+                  <ul className="mt-4 flex flex-col gap-2.5 flex-1">
+                    {bullets.map((b, j) => (
+                      <li key={j} className="flex gap-2.5 items-start text-[0.95rem] text-lp-ink">
+                        <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{b}
                       </li>
                     ))}
                   </ul>
-
-                  {accepting ? (
-                    <CtaButton
-                      variant="primary" fullWidth
-                      onClick={() => (view.ctaMode === 'apply' ? onApply(view.id) : onConsult())}
-                      event="click_ai_course_consultation"
-                      eventParams={{ location: 'pricing', variant: v.key }}
-                    >
-                      {view.ctaMode === 'apply'
-                        ? (lang === 'zh' ? '报名这个方案' : 'このプランに申し込む')
-                        : LP.ctaPrimary[lang]}
-                      {' '}<ArrowRight />
-                    </CtaButton>
-                  ) : (
-                    <p className="rounded-xl bg-lp-ivory-2 border border-lp-line px-4 py-3 text-[0.9rem] text-lp-ink-soft text-center">
-                      {lang === 'zh' ? '目前不接受报名。' : 'いまは申込を受け付けていません。'}
-                    </p>
-                  )}
-
-                  {/* キャンセル・返金は商品ごとに違いうる。断定しない（法的確認が終わるまで暫定表示） */}
-                  <p className="text-[0.82rem] text-lp-ink-soft mt-4">{view.termsNotice}</p>
+                  <button
+                    type="button"
+                    onClick={() => goPricing(v.id)}
+                    className="mt-5 inline-flex items-center justify-center gap-1.5 min-h-11 rounded-full border-2 border-lp-pine px-4 py-2 text-[0.92rem] font-extrabold text-lp-pine hover:bg-lp-pine-soft focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine"
+                  >
+                    {f.toPricing[lang]} <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               </Reveal>
             );
           })}
         </div>
 
-        <p className="text-[0.82rem] text-lp-ink-soft mt-5">{p.keyCopy[lang]}</p>
-        <p className="text-[0.82rem] text-lp-ink-soft mt-1">{p.disclaimer[lang]}</p>
+        {/* 6か月コースが向いていない人 → 否定せずAIのみプランへ案内する */}
+        <Reveal delay={100}>
+          <div className="mt-6 rounded-2xl border border-dashed border-lp-line bg-lp-card p-6">
+            <h3 className="font-extrabold text-lp-ink text-[1rem]">{f.notFitHeading[lang]}</h3>
+            <ul className="mt-3 grid sm:grid-cols-2 gap-x-6 gap-y-2">
+              {f.notFitItems[lang].map((b, i) => (
+                <li key={i} className="flex gap-2.5 items-start text-[0.92rem] text-lp-ink-soft">
+                  <XIcon className="w-4 h-4 mt-1 shrink-0 text-lp-ink-soft/60" aria-hidden="true" />{b}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-[0.95rem] text-lp-ink">
+              {f.aiOnlyNote[lang]}{' '}
+              <button type="button" onClick={() => goPricing('ai-only')}
+                className="inline-flex items-center min-h-11 underline underline-offset-4 font-bold text-lp-pine focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+                {f.toPricing[lang]}
+              </button>
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
