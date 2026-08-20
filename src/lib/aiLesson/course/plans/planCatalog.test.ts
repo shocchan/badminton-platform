@@ -9,8 +9,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import {
   PLAN_CATALOG, publishedPlans, visiblePlans, allPlans, planById,
-  acceptsApplication, isPlanPreview, planView, PROVISIONAL_TERMS_NOTICE,
-} from './planCatalog';
+  acceptsApplication, isPlanPreview, planView, PROVISIONAL_TERMS_NOTICE, trialEntryPlan } from './planCatalog';
 
 describe('カタログの形', () => {
   it('idが重複していない', () => {
@@ -324,5 +323,31 @@ describe('プランの版', () => {
         '',
       ].join('\n'),
     ).toEqual(actual);
+  });
+});
+
+describe('体験の入口（LPの主CTA・下部固定バーが使う）', () => {
+  it('**公開中でオンライン決済できる中の最安**を返す', () => {
+    const t = trialEntryPlan('ja');
+    const expected = PLAN_CATALOG
+      .filter((p) => p.status === 'published' && p.ctaMode === 'checkout' && p.priceJpy)
+      .sort((a, b) => (a.priceJpy ?? 0) - (b.priceJpy ?? 0))[0];
+    expect(t?.id).toBe(expected.id);
+    expect(t?.priceLabel).toBe(expected.priceLabelJa);
+  });
+
+  it('**人間レッスン入りの商品は入口にしない**（無人で売らない）', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      const t = trialEntryPlan(lang);
+      expect(t?.lessonCount).toBe(0);
+      expect(t?.ctaMode).toBe('checkout');
+    }
+  });
+
+  it('中国語では中国語の価格ラベルを返す（LPに金額を書かせないため）', () => {
+    const t = trialEntryPlan('zh');
+    const p = PLAN_CATALOG.find((x) => x.id === t?.id)!;
+    expect(t?.priceLabel).toBe(p.priceLabelZh);
+    expect(t?.name).toBe(p.nameZh);
   });
 });

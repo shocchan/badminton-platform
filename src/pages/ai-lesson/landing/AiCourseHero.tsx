@@ -1,7 +1,8 @@
 import type { Lang } from '../../../contexts/LanguageContext';
 import { LP, VARIANTS, type VariantConfig } from './lpContent';
 import { CtaButton, ArrowRight } from './lpUi';
-import { imgUrl, scrollToSection } from './lpHelpers';
+import { imgUrl, scrollToSection, track } from './lpHelpers';
+import { trialEntryPlan } from '../../../lib/aiLesson/course/plans/planCatalog';
 
 export function AiCourseHero({ v, lang, onConsult, duo = false }: {
   v: VariantConfig; lang: Lang; onConsult: () => void;
@@ -17,6 +18,8 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
   // heroSub は variant名を含まない文になったので、duo/variantで差し替えるものが無い
   const sub = LP.heroSub[lang];
   const [bw, bh] = v.imageSize.wave;
+  // 体験の入口（いちばん安いオンライン決済プラン）。無ければ主CTAは従来どおり相談になる
+  const trial = trialEntryPlan(lang);
 
   // 強調語をハイライト付きで差し込む
   const renderLine = (line: string) =>
@@ -48,20 +51,35 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
             </p>
             <p className="mt-4 text-[1.08rem] text-lp-ink-soft leading-relaxed max-w-[30em] mx-auto md:mx-0">{sub}</p>
             <div className="mt-7 flex flex-wrap gap-3.5 justify-center md:justify-start">
-              <CtaButton variant="primary" onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'hero', variant: v.key }}>
+              {/*
+                主CTAは**いちばん安い体験プラン**への誘導（2026-08-20 CEO指示「仕組みで売れるように」）。
+                以前は主CTAが無料相談だけで、料金までスマホで9画面ぶんスクロールが必要だった＝
+                「とりあえず試したい人」を拾えていなかった。
+                価格の文字はカタログから取る（LPに金額を書かない原則）
+              */}
+              {trial && (
+                <CtaButton variant="primary"
+                  onClick={() => {
+                    track('click_ai_course_to_pricing', { location: 'hero', plan: trial.id, variant: v.key });
+                    scrollToSection('price');
+                  }}>
+                  {LP.ctaTrial[lang].replace('{price}', trial.priceLabel)} <ArrowRight />
+                </CtaButton>
+              )}
+              <CtaButton variant={trial ? 'ghost' : 'primary'} onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'hero', variant: v.key }}>
                 {LP.ctaPrimary[lang]} <ArrowRight />
               </CtaButton>
-              {/* 学習システムのセクションへスクロール（URL・履歴は変えない。
-                  以前はログイン用の ?app=1 へ遷移してしまい「見るだけ」ができなかった） */}
-              <CtaButton
-                variant="ghost"
-                onClick={() => scrollToSection('features')}
-                event="click_ai_course_see_system"
-                eventParams={{ location: 'hero', variant: v.key }}
-              >
-                {LP.ctaSecondary[lang]}
-              </CtaButton>
             </div>
+            {/* 学習システムへのスクロール（URL・履歴は変えない）。
+                主導線を2つに絞るため、3つ目はテキストリンクへ落とす */}
+            <button type="button"
+              onClick={() => {
+                track('click_ai_course_see_system', { location: 'hero', variant: v.key });
+                scrollToSection('features');
+              }}
+              className="mt-3 inline-flex items-center min-h-11 text-[0.92rem] font-bold text-lp-pine underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+              {LP.ctaSecondary[lang]}
+            </button>
             <ul className="mt-6 flex flex-wrap gap-2.5 justify-center md:justify-start">
               {LP.heroChips[lang].map((c) => (
                 <li key={c} className="inline-flex items-center gap-1.5 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3.5 py-1.5">

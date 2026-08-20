@@ -5,6 +5,7 @@ import { LP, VARIANTS, type CharacterVariant } from './lpContent';
 import { CtaButton } from './lpUi';
 import { track, loginPath, scrollToSection } from './lpHelpers';
 import { AiCourseHero } from './AiCourseHero';
+import { PriceTeaserStrip, LpStickyCta } from './lpFunnel';
 import { PainPointsSection, AiHumanRolesSection, DailyLearningFlow } from './sectionsA';
 import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
 import { HumanCoachSection, TestimonialsSection } from './sectionsC';
@@ -130,11 +131,20 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
       {/* nav（サイト共通ヘッダーはchromelessで非表示のため独自ナビ） */}
       <header className="sticky top-0 z-50 bg-lp-ivory/85 backdrop-blur border-b border-lp-line">
         <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-extrabold text-[1.05rem]">
-            <span className="inline-grid place-items-center w-8 h-8 rounded-full bg-lp-coral text-white text-sm" aria-hidden="true">和</span>
+          {/* 375px ではロゴ・リンク・CTAが横に収まらず、文字が縦積みに折り返していた
+              （2026-08-20 staging実測）。スマホではロゴを一回り小さくし、折り返しを禁止する */}
+          <div className="flex items-center gap-2 font-extrabold text-[0.95rem] sm:text-[1.05rem] whitespace-nowrap">
+            <span className="inline-grid place-items-center w-8 h-8 shrink-0 rounded-full bg-lp-coral text-white text-sm" aria-hidden="true">和</span>
             <span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 whitespace-nowrap">
+            {/* 料金への直行リンク（2026-08-20）。料金セクションはFVから9画面下にあり、
+                ヘッダーからしか一足飛びに行けなかった */}
+            <button type="button"
+              onClick={() => { track('click_ai_course_to_pricing', { location: 'nav', variant: v.key }); scrollToSection('price'); }}
+              className="hidden sm:flex items-center min-h-11 text-[0.92rem] font-bold text-lp-ink-soft hover:text-lp-ink underline underline-offset-4">
+              {lang === 'ja' ? '料金' : '价格'}
+            </button>
             {/* 受講中learnerのログイン導線。LPと分離した専用URL（/ai-course/login）へ。
                 相談モーダルとは独立で、URLパラメーターを共有しない */}
             <a href={login} data-lp-login-cta
@@ -152,9 +162,20 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
               className="text-[0.92rem] font-bold text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 flex items-center">
               {lang === 'ja' ? '中文' : '日本語'}
             </a>
-            <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
-              {LP.ctaPrimary[lang]}
-            </CtaButton>
+            {/* PCは相談CTA。スマホは同じ文言だと2行に折り返してヘッダーからはみ出すので、
+                **料金へ飛ぶ短いCTA**に差し替える（相談導線はFV・下部固定バー・最終CTAが持つ） */}
+            {/* CtaButton の基底クラスに inline-flex があるため、className に hidden を足しても
+                display は勝てない。表示・非表示は**外側のdiv**で切り替える */}
+            <div className="hidden sm:block">
+              <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
+                {LP.ctaPrimary[lang]}
+              </CtaButton>
+            </div>
+            <button type="button"
+              onClick={() => { track('click_ai_course_to_pricing', { location: 'nav', variant: v.key }); scrollToSection('price'); }}
+              className="sm:hidden inline-flex items-center justify-center min-h-11 px-3.5 rounded-full bg-lp-coral text-white font-extrabold text-[0.88rem] shadow-[0_3px_0_var(--color-lp-coral-deep)] active:translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine">
+              {lang === 'ja' ? '料金' : '价格'}
+            </button>
           </div>
         </div>
       </header>
@@ -169,6 +190,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
             毎日のステップ → 6か月ロードマップ → 料金3プラン＋比較 → あなたに合うプラン →
             人間コーチ → 受講生 → FAQ → 最終CTA（12セクション） */}
         <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
+        <PriceTeaserStrip lang={lang} variant={v.key} />
         <PainPointsSection lang={lang} />
         <AiHumanRolesSection v={v} lang={lang} />
         <PlatformFeatures lang={lang} />
@@ -211,11 +233,16 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
         <div className="mx-auto max-w-6xl px-5 mt-6 text-lp-ink-soft" data-lp-legal-links>
           <LegalFooterLinks lang={lang} />
         </div>
+        {/* 下部固定CTAバーの高さぶん。これが無いと法務リンクがバーに隠れる */}
+        <div className="h-24 sm:hidden" aria-hidden="true" />
       </footer>
       </div>
 
       {/* 相談モーダル・申込モーダルはどちらもURL・履歴を変更しない
           （ログイン用パラメーターを流用しない。更新・戻る/進むでログイン画面へ飛ばさない） */}
+      {/* スマホ下部の固定CTA（z-40＝モーダル z-[100] より下。モーダル表示中は覆われる） */}
+      <LpStickyCta lang={lang} variant={v.key} onConsult={openConsult} />
+
       <ConsultationModal open={consultOpen} onClose={() => setConsultOpen(false)} lang={lang} variant={v.key} />
       {/* key で作り直す＝開くたびに入力が空に戻る（前の人の入力を持ち越さない） */}
       <ApplicationModal key={applyPlanId ?? 'closed'} planId={applyPlanId}

@@ -123,6 +123,15 @@ export interface LpContent {
   heroSub: Str;
   ctaPrimary: Str;
   ctaSecondary: Str;
+  /** 体験パスへの誘導。{price} はカタログの価格ラベルに置換する（金額をここに書かない） */
+  ctaTrial: Str;
+  /** スマホ下部の固定バー（料金まで9画面あるので、途中でも買える入口を出す） */
+  stickyBar: { note: Str; consult: Str };
+  /**
+   * FV直下の価格帯プレビュー。**金額は書かない**（カタログの priceLabel を描画する）。
+   * 「いくらか分からないまま9画面読ませる」のをやめるための帯
+   */
+  priceTeaser: { eyebrow: Str; note: Str; cta: Str };
   heroChips: Strs;
   mockNote: Str;
 
@@ -191,6 +200,20 @@ export const LP: LpContent = {
   },
   ctaPrimary: { ja: 'WeChat・メールで無料相談する', zh: '通过微信・邮件免费咨询' },
   ctaSecondary: { ja: '学習システムを見る', zh: '查看学习系统' },
+  // 金額は書かない。{price} を planCatalog の価格ラベルへ置換する
+  ctaTrial: { ja: '{price}で試してみる', zh: '用{price}试试看' },
+  stickyBar: {
+    note: { ja: 'まずは体験から', zh: '先从体验开始' },
+    consult: { ja: '相談する', zh: '咨询' },
+  },
+  priceTeaser: {
+    eyebrow: { ja: '料金は3つだけ', zh: '价格只有三种' },
+    note: {
+      ja: '全プラン買い切り。自動更新はありません。',
+      zh: '全部方案都是一次性付费，不会自动续费。',
+    },
+    cta: { ja: '料金とプランの詳細を見る', zh: '查看价格与方案详情' },
+  },
   heroChips: {
     ja: ['600円からAIを体験', 'AI音声で1対1', '個別レッスン 全24回', 'N2文法178項目'],
     zh: ['600日元起体验AI', 'AI语音一对一', '一对一课程 共24次', 'N2语法178项'],

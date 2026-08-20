@@ -386,3 +386,16 @@ export const planView = (p: PlanConfig, lang: 'ja' | 'zh'): PlanView => ({
   ctaMode: p.ctaMode,
   termsNotice: PROVISIONAL_TERMS_NOTICE[lang],
 });
+
+/**
+ * 体験の入口として案内する商品（2026-08-20 導線改善）。
+ * **公開中でオンライン決済できるプランのうち、いちばん安いもの**を返す。
+ * LPの主CTA・スマホ固定バーがこれを使う＝価格の文字をLPコピーへ二重に書かない。
+ * 該当が無ければ null（呼び出し側は相談導線へ倒す）。
+ */
+export const trialEntryPlan = (lang: 'ja' | 'zh'): PlanView | null => {
+  const candidates = publishedPlans()
+    .filter((p) => p.ctaMode === 'checkout' && p.priceJpy !== null && p.priceJpy > 0)
+    .sort((a, b) => (a.priceJpy ?? 0) - (b.priceJpy ?? 0));
+  return candidates.length > 0 ? planView(candidates[0], lang) : null;
+};

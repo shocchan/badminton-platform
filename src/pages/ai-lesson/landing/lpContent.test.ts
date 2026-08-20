@@ -113,3 +113,28 @@ describe('主役の序列（人間コーチ > AI）', () => {
     expect(LP.roles.heading.ja).toBe(LP.heroKeyMessage.ja);
   });
 });
+
+describe('料金への導線（2026-08-20）', () => {
+  it('**体験CTAは価格を直書きせず {price} で受け取る**（カタログ改定に自動追従させる）', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      expect(LP.ctaTrial[lang]).toContain('{price}');
+      expect(LP.ctaTrial[lang]).not.toMatch(/[0-9]/);
+    }
+  });
+
+  it('価格プレビュー帯・固定バーの文言が ja/zh そろっている', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      expect(LP.priceTeaser.eyebrow[lang]).toBeTruthy();
+      expect(LP.priceTeaser.note[lang]).toBeTruthy();
+      expect(LP.priceTeaser.cta[lang]).toBeTruthy();
+      expect(LP.stickyBar.note[lang]).toBeTruthy();
+      expect(LP.stickyBar.consult[lang]).toBeTruthy();
+    }
+  });
+
+  it('価格プレビュー帯にも金額を書かない（正準は planCatalog）', () => {
+    for (const s of collectStrings(LP.priceTeaser)) {
+      expect(s, `LP.priceTeaser に金額が書かれている: "${s}"`).not.toMatch(/[0-9][0-9,]*\s*(円|日元)/);
+    }
+  });
+});
