@@ -120,3 +120,53 @@ export const adminGetUsageLimits = async (): Promise<UsageLimits> => {
     monthlyMaxSeconds: v.monthly_max_seconds ?? DEFAULT_USAGE_LIMITS.monthly_max_seconds,
   };
 };
+
+/* ────────────────────────────────────────────────────────────
+   購入台帳（セルフサービス決済・2026-08-20）
+   ──────────────────────────────────────────────────────────── */
+
+/** ai_plan_purchases の1行（ai_admin_list_purchases RPC の戻り） */
+export interface AdminPurchaseRow {
+  id: string;
+  stripeSessionId: string;
+  planId: string;
+  planVersion: number;
+  amountJpy: number;
+  /** Stripeのlive決済か（テスト決済を売上に数えないための印） */
+  livemode: boolean;
+  buyerEmail: string | null;
+  locale: string;
+  /** pending=セッション作成 / paid=決済確認 / provisioned=発行済み / failed=要対応 / refunded=返金済み */
+  status: string;
+  userId: string | null;
+  loginId: string | null;
+  error: string | null;
+  createdAtISO: string;
+  provisionedAtISO: string | null;
+}
+
+/**
+ * 購入台帳の一覧（管理者のみ。非管理者は0行）。
+ * 失敗時は空配列＝「まだ購入が無い」と区別できないが、
+ * 画面側は取得エラーを別途表示するので黙って0件にはならない。
+ */
+export const adminListPurchases = async (): Promise<AdminPurchaseRow[]> => {
+  const { data, error } = await supabase.rpc('ai_admin_list_purchases');
+  if (error || !Array.isArray(data)) return [];
+  return (data as Record<string, unknown>[]).map((r) => ({
+    id: String(r.id),
+    stripeSessionId: String(r.stripe_session_id ?? ''),
+    planId: String(r.plan_id ?? ''),
+    planVersion: Number(r.plan_version ?? 0),
+    amountJpy: Number(r.amount_jpy ?? 0),
+    livemode: r.livemode === true,
+    buyerEmail: (r.buyer_email as string) ?? null,
+    locale: String(r.locale ?? 'ja'),
+    status: String(r.status ?? ''),
+    userId: (r.user_id as string) ?? null,
+    loginId: (r.login_id as string) ?? null,
+    error: (r.error as string) ?? null,
+    createdAtISO: String(r.created_at ?? ''),
+    provisionedAtISO: (r.provisioned_at as string) ?? null,
+  }));
+};

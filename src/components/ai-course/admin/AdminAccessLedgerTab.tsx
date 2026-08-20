@@ -13,6 +13,7 @@ import { AdminAccessPanel, ACCESS_STATE_BADGE, ACCESS_SOURCE_BADGE, jstDateOf } 
 import type { AdminAccessRowLike } from './AdminAccessPanel';
 import { allPlans, publishedPlans, planById } from '../../../lib/aiLesson/course/plans/planCatalog';
 import type { PlanStatus } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { AdminPurchasesPanel } from './AdminPurchasesPanel';
 
 /** アカウント種別（adminAccountModel の AdminAccountType と同値） */
 export type LedgerAccountType = 'student' | 'test' | 'admin' | 'other';
@@ -73,6 +74,10 @@ export const AdminAccessLedgerTab = ({ views, onSaved }: {
 
   return (
     <div>
+      {/* 決済で自動発行された購入を最初に見せる（初回の実顧客をここで確認する） */}
+      <div className="mb-4">
+        <AdminPurchasesPanel />
+      </div>
       <div className="mb-3">
         <p className="text-sm font-bold text-gray-800">受講権の台帳（全{views.length}件）</p>
         <p className="mt-1 text-[11px] leading-relaxed text-gray-500">

@@ -19,6 +19,7 @@ import {
 } from '../../../lib/aiLesson/course/plans/planApplication';
 import { submitPlanApplication } from '../../../lib/aiLesson/course/plans/planApplicationRepository';
 import { legalPathFor } from '../../../lib/aiLesson/course/legal/legalContent';
+import { TurnstileWidget, turnstileEnabled } from '../../../components/ai-course/TurnstileWidget';
 
 const tx = (lang: Lang, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
@@ -33,6 +34,9 @@ export function ApplicationModal({ planId, onClose, lang }: {
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<ValidationError[]>([]);
   const [phase, setPhase] = useState<Phase>('form');
+  // bot対策のトークン（環境で有効なときだけ使う。未設定なら null のまま送る）
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -95,7 +99,7 @@ export function ApplicationModal({ planId, onClose, lang }: {
     const submission = buildApplication({
       plan, locale: lang, name, email, note, nowISO: new Date().toISOString(),
     });
-    const result = await submitPlanApplication(submission);
+    const result = await submitPlanApplication(submission, captchaToken ?? undefined);
     if (result.ok) {
       track('generate_lead', {
         method: 'application', plan: plan.id,
@@ -105,6 +109,14 @@ export function ApplicationModal({ planId, onClose, lang }: {
       return;
     }
     // 成功したふりをしない
+    if (result.reason === 'captcha') {
+      // 人間確認が通らなかっただけ＝入力はそのまま、もう一度試せるようにする
+      setCaptchaToken(null);
+      setPhase('form');
+      setErrors([]);
+      setCaptchaError(true);
+      return;
+    }
     setPhase(result.reason === 'store_unavailable' ? 'unavailable' : 'error');
   };
 
@@ -213,13 +225,26 @@ export function ApplicationModal({ planId, onClose, lang }: {
               </span>
             </label>
 
+            {/* bot対策。サイトキー未設定の環境では何も出ない（送信は従来どおり通る） */}
+            <TurnstileWidget lang={lang === 'zh' ? 'zh' : 'ja'}
+              onToken={(t) => { setCaptchaToken(t); if (t) setCaptchaError(false); }} />
+
+            {captchaError && (
+              <p role="alert" className="mt-3 rounded-xl bg-lp-coral/10 border border-lp-coral px-3 py-2 text-[0.85rem] text-lp-ink">
+                {tx(lang,
+                  '確認が完了していません。上のチェックを済ませてから、もう一度お試しください。',
+                  '安全验证尚未完成。请先完成上方的验证后再试一次。')}
+              </p>
+            )}
+
             {errors.length > 0 && (
               <ul role="alert" className="mt-3 rounded-xl bg-lp-coral/10 border border-lp-coral px-3 py-2 text-[0.85rem] text-lp-ink">
                 {errors.map((e) => <li key={e}>・{VALIDATION_MESSAGE[e][lang]}</li>)}
               </ul>
             )}
 
-            <button type="button" onClick={submit} disabled={phase === 'sending'}
+            <button type="button" onClick={submit}
+              disabled={phase === 'sending' || (turnstileEnabled() && !captchaToken)}
               className="mt-4 w-full min-h-12 rounded-xl bg-lp-coral px-4 py-3 font-extrabold text-white disabled:opacity-60">
               {phase === 'sending'
                 ? tx(lang, '送信しています…', '正在提交…')

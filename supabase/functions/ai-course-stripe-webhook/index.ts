@@ -198,6 +198,86 @@ serve(async (req: Request) => {
     }
 
     const event = JSON.parse(payload);
+
+    /* ── 返金・チャージバック（2026-08-20 追加）─────────────────────
+       返金したのに学習を続けられる状態を人手で止める運用をやめる。
+       - charge.refunded（**全額返金のときだけ**）: 台帳を refunded にし、受講権を即時終了
+       - charge.dispute.created: 自動では止めず管理者へ通知（異議申立ての段階で
+         正規の生徒を締め出さない。止めるかは人が決める）
+       いずれも「その購入で付けた受講権」だけを対象にする（purchase_id で照合）。
+       あとから上位プランを買っている場合、そちらの権利は絶対に消さない */
+    if (event.type === "charge.refunded" || event.type === "charge.dispute.created") {
+      const charge = event.data?.object ?? {};
+      const pi: string | null = typeof charge.payment_intent === "string" ? charge.payment_intent : null;
+      if (!pi) return json({ received: true, skipped: "no_payment_intent" });
+
+      const rowRes = await fetch(
+        `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_payment_intent_id=eq.${encodeURIComponent(pi)}&select=*`,
+        { headers: dbHeaders },
+      );
+      const target = rowRes.ok ? (await rowRes.json())?.[0] : null;
+      if (!target) {
+        console.error("refund/dispute: purchase not found for", pi);
+        return json({ received: true, skipped: "purchase_not_found" });
+      }
+
+      const isDispute = event.type === "charge.dispute.created";
+      const fullyRefunded = !isDispute
+        && typeof charge.amount_refunded === "number" && typeof charge.amount === "number"
+        && charge.amount_refunded >= charge.amount;
+
+      if (fullyRefunded) {
+        await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${target.id}`, {
+          method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({ status: "refunded", updated_at: new Date().toISOString() }),
+        });
+        // この購入で付与した受講権だけを即時終了（学習記録には触れない）
+        if (target.user_id) {
+          await fetch(
+            `${supabaseUrl}/rest/v1/ai_course_access?user_id=eq.${target.user_id}&purchase_id=eq.${target.id}`,
+            {
+              method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+              body: JSON.stringify({
+                valid_until: new Date().toISOString(),
+                note: `返金により終了（${new Date().toISOString().slice(0, 10)}）`,
+                updated_at: new Date().toISOString(),
+              }),
+            },
+          );
+        }
+      }
+
+      if (resendKey) {
+        const tag = event.livemode ? "" : "[TEST]";
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: MAIL_FROM, to: [ADMIN_EMAIL],
+            subject: isDispute
+              ? `⚠️${tag}【AIコース】チャージバック（異議申立て）が発生しました`
+              : `↩️${tag}【AIコース】返金を処理しました（${target.plan_id}）`,
+            text: [
+              isDispute
+                ? "Stripeで異議申立て（チャージバック）が発生しました。**自動では利用を止めていません。**"
+                : (fullyRefunded
+                  ? "全額返金を検知したので、この購入で付けた受講権を終了しました。"
+                  : "一部返金を検知しました。**受講権はそのままです**（必要なら管理画面で調整してください）。"),
+              "",
+              `プラン: ${target.plan_id}`,
+              `ログインID: ${target.login_id ?? "(未発行)"}`,
+              `購入者: ${target.buyer_email ?? "(不明)"}`,
+              `返金額: ${charge.amount_refunded ?? "-"} / 決済額: ${charge.amount ?? "-"}`,
+              `payment_intent: ${pi}`,
+              "",
+              "学習記録は消していません。復活させる場合は管理画面の受講権タブで期間を設定してください。",
+            ].join("\n"),
+          }),
+        }).catch((e) => console.error("refund mail failed:", e));
+      }
+      return json({ received: true, handled: event.type, revoked: fullyRefunded });
+    }
+
     if (
       event.type !== "checkout.session.completed" &&
       event.type !== "checkout.session.async_payment_succeeded"

@@ -31,21 +31,46 @@ serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${stripeKey}`, "Content-Type": "application/x-www-form-urlencoded", ...(init.headers ?? {}) },
       });
 
-    // 既存の同URLエンドポイントは作り直す（whsecは作成時しか取得できないため）
+    const EVENTS = [
+      "checkout.session.completed",
+      "checkout.session.async_payment_succeeded",
+      // 2026-08-20: 返金・チャージバックの自動処理
+      "charge.refunded",
+      "charge.dispute.created",
+    ];
+
     const listRes = await stripe("/webhook_endpoints?limit=100");
     const list = await listRes.json();
     if (!listRes.ok) return json({ error: "stripe_list_failed", detail: list?.error?.message }, 502);
     const existing = (list.data ?? []).filter((e: { url?: string }) => e.url === WEBHOOK_URL);
+
+    // 既存があれば**更新**する（作り直すと署名シークレットが変わり、
+    // secrets を差し替えるまでの間に届いたイベントを取りこぼす）。
+    // 受信イベントの追加だけなら更新で足りる。
+    if (existing.length > 0 && !new URL(req.url).searchParams.has("recreate")) {
+      const params = new URLSearchParams({ description: "AIコース セルフサービス決済（自動発行）" });
+      EVENTS.forEach((e, i) => params.append(`enabled_events[${i}]`, e));
+      const upRes = await stripe(`/webhook_endpoints/${existing[0].id}`, { method: "POST", body: params });
+      const updated = await upRes.json();
+      if (!upRes.ok) return json({ error: "stripe_update_failed", detail: updated?.error?.message }, 502);
+      return json({
+        ok: true, mode: "updated", keyMode,
+        endpointId: updated.id, livemode: updated.livemode,
+        enabledEvents: updated.enabled_events,
+        // 更新では secret は返らない（既存のものがそのまま有効）
+        signingSecret: null,
+      });
+    }
+
     for (const e of existing) {
       await stripe(`/webhook_endpoints/${e.id}`, { method: "DELETE" });
     }
 
     const params = new URLSearchParams({
       url: WEBHOOK_URL,
-      "enabled_events[0]": "checkout.session.completed",
-      "enabled_events[1]": "checkout.session.async_payment_succeeded",
       description: "AIコース セルフサービス決済（自動発行）",
     });
+    EVENTS.forEach((e, i) => params.append(`enabled_events[${i}]`, e));
     const createRes = await stripe("/webhook_endpoints", { method: "POST", body: params });
     const created = await createRes.json();
     if (!createRes.ok || !created?.secret) {
@@ -54,9 +79,11 @@ serve(async (req: Request) => {
 
     return json({
       ok: true,
+      mode: "created",
       keyMode,
       endpointId: created.id,
       livemode: created.livemode,
+      enabledEvents: created.enabled_events,
       // whsec。呼び出し元（運用CLI）が直ちに supabase secrets へ保存する
       signingSecret: created.secret,
       deletedOld: existing.length,
