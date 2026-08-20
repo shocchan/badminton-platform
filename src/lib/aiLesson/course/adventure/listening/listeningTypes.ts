@@ -27,9 +27,15 @@ export interface ListeningChoice {
   whyWrongJa?: string;
 }
 
+/**
+ * 聴解を用意しているレベル（2026-08-20 に N5/N4 を追加）。
+ * 読解の ReadingLevel と同じ並びにしてある。
+ */
+export type ListeningLevel = 'N2' | 'N3' | 'N4' | 'N5';
+
 export interface ListeningSet {
   setId: string;
-  sourceLevel: 'N2' | 'N3';
+  sourceLevel: ListeningLevel;
   listeningType: ListeningType;
   /** 音声ファイルのパス（public配下）。manifestで実在を検証する */
   audioAsset: string;

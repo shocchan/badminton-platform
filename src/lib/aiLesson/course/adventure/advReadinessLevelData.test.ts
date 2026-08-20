@@ -25,20 +25,24 @@ const report = (target: JlptLevel, ledger: AdvMasteryLedger = {}, mockLog: { com
   computeReadiness(target, emptySkillProfile(), ledger, mockLog);
 
 describe('本試験の構成は、その級のデータがあるときだけ出す', () => {
-  it('N5・N4 は examParts が空・examStructureKnown=false（上の級で代用しない）', () => {
+  it('**N5・N4 も自分の級の構成を出す**（2026-08-20 公式試験時間を投入して解禁）', () => {
     for (const target of ['N5', 'N4'] as const) {
       const r = report(target);
       expect(r.target).toBe(target);
-      expect(r.examStructureKnown).toBe(false);
-      expect(r.examParts).toHaveLength(0);
+      expect(r.examStructureKnown).toBe(true);
+      expect(r.examParts.length).toBeGreaterThan(0);
     }
   });
 
-  it('N5・N4 の準備度に N2/N3 の試験時間が一切出ない（丸めの再発検知）', () => {
-    const knownMinutes = Object.values(EXAM_STRUCTURE).flat().map((p) => p.minutes);
+  it('**N5・N4 の準備度に N2/N3 の試験時間が出ない**（丸めの再発検知）', () => {
+    // 上の級の時間をそのまま流用していないこと。N5=20/40/30, N4=25/55/35（公式値）
+    expect(report('N5').examParts.map((p) => p.minutes)).toEqual([20, 40, 30]);
+    expect(report('N4').examParts.map((p) => p.minutes)).toEqual([25, 55, 35]);
+    // N2の105/50・N3の30/70/40 と混ざっていない（N3の30分だけは N5/N4 と重ならない値を選んで確認）
     for (const target of ['N5', 'N4'] as const) {
       const minutes = report(target).examParts.map((p) => p.minutes);
-      expect(minutes.some((m) => knownMinutes.includes(m))).toBe(false);
+      expect(minutes).not.toContain(105);
+      expect(minutes).not.toContain(70);
     }
   });
 
@@ -60,16 +64,24 @@ describe('本試験の構成は、その級のデータがあるときだけ出�
 
 describe('聴解が測れない級では「あと◯問」と言わない', () => {
   /**
-   * listeningMeasurable は hasExamStructure から導いている。
-   * いまは「本試験データを持つ級」＝「聴解の音源を持つ級」＝「模試を出せる級」で一致する。
-   * 音源だけ先に増やす／試験データだけ先に足すと文言が嘘になるので、ここで落とす。
+   * 2026-08-20 に「本試験データ＝音源＝模試」の3点一致は崩した（N5/N4のミニ模試を
+   * 先に解禁したため）。**守るべき不変条件はこの2つ**に整理した:
+   *   ① 模試を出せる級 ⇔ 本試験データ（科目・時間）を持つ級
+   *      （持っていない級の時間を推測で書かない・上の級で代用しない）
+   *   ② 聴解を測れる ⇔ **その級の音源が実在する**
+   *      （試験データの有無で代用しない。代用すると「音源0本なのに あと◯問」と嘘をつく）
    */
-  it('本試験データを持つ級と、聴解の音源を持つ級と、模試を出せる級が一致する', () => {
+  it('模試を出せる級と、本試験データを持つ級が一致する', () => {
     for (const target of ACTIVE_TARGET_LEVELS) {
-      const hasStructure = hasExamStructure(target);
-      expect(listeningSetsFor(target as 'N5' | 'N4' | 'N3' | 'N2').length > 0).toBe(hasStructure);
-      expect(mockLevelOf(target) !== null).toBe(hasStructure);
-      expect(report(target).listeningMeasurable).toBe(hasStructure);
+      expect(mockLevelOf(target) !== null).toBe(hasExamStructure(target));
+    }
+  });
+
+  it('**「聴解を測れる」は音源の実在庫と一致する**（試験データで代用しない）', () => {
+    for (const target of ACTIVE_TARGET_LEVELS) {
+      const hasAudio = listeningSetsFor(target as 'N5' | 'N4' | 'N3' | 'N2').length > 0;
+      expect(report(target).listeningMeasurable, `${target}: 音源${hasAudio ? 'あり' : 'なし'}と食い違う`)
+        .toBe(hasAudio);
     }
   });
 

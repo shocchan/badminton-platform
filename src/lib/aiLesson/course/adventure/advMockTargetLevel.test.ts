@@ -31,9 +31,12 @@ const SHELL_CODE = codeOnly(ADV_SHELL);
 const SEED = 1755500000000;
 
 describe('mockLevelOf: 出せない級では丸めずに null を返す', () => {
-  it('N5・N4・N1 は null（上の級の模試で代用しない）', () => {
-    expect(mockLevelOf('N5')).toBeNull();
-    expect(mockLevelOf('N4')).toBeNull();
+  it('**N5・N4は自分の級のまま**（2026-08-20 解禁。上の級の模試で代用しない）', () => {
+    expect(mockLevelOf('N5')).toBe('N5');
+    expect(mockLevelOf('N4')).toBe('N4');
+  });
+
+  it('N1 は null（教材そのものが無い級を「在る」ように見せない）', () => {
     expect(mockLevelOf('N1')).toBeNull();
   });
 
@@ -92,13 +95,29 @@ describe('模試の中身が目標レベルを超えない（実データで確�
     expect(questions.filter((q) => q.key.startsWith('listen:n2'))).toHaveLength(0);
   }, 300_000);
 
-  it('N5・N4 目標では模試を組む材料をそもそも引かない（＝入口を出さない）', () => {
+  it('**N5・N4 も自分の級の模試を出す**（2026-08-20 解禁）。本試験データを持っている', () => {
     for (const target of ['N5', 'N4'] as const) {
-      expect(mockLevelOf(target)).toBeNull();
-      // 聴解の音源が0本なので、仮に出しても「模試」を名乗れない
-      expect(listeningPool(target).size).toBe(0);
-      // 本試験の科目・時間データも持っていない
-      expect(Object.prototype.hasOwnProperty.call(EXAM_STRUCTURE, target)).toBe(false);
+      expect(mockLevelOf(target)).toBe(target);
+      // 本試験の科目・時間データ（公式値）を持っている＝「◯分」を推測で書かない
+      expect(Object.prototype.hasOwnProperty.call(EXAM_STRUCTURE, target)).toBe(true);
+    }
+  });
+
+  it('**聴解の在庫が無い級では聴解sectionを含めない**（無いものを在るように見せない）', () => {
+    for (const target of ['N5', 'N4'] as const) {
+      const listeningCount = [...listeningPool(target).values()].reduce((n, v) => n + v.length, 0);
+      // 在庫の有無にかかわらず、specは実在庫からしか section を作らない
+      const spec = buildMockSpec(mockLevelOf(target)!, {
+        vocabCount: 50, grammarCount: 50, readingCount: 20, listeningCount,
+      });
+      const hasListeningSection = spec.sections.some((s) => s.sectionId === 'listening');
+      expect(hasListeningSection, `${target}: 在庫${listeningCount}問と section の有無が食い違う`)
+        .toBe(listeningCount >= 4);
+      // 4技能そろわないうちは「総合ミニ模試」と名乗らない
+      if (!hasListeningSection) {
+        expect(spec.ready).toBe(false);
+        expect(spec.titleJa).toContain('一部科目');
+      }
     }
   });
 });

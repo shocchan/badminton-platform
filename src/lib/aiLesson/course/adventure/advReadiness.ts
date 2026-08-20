@@ -11,6 +11,8 @@ import {
   EXAM_SKILLS, EXAM_SKILL_LABELS, EXAM_STRUCTURE, OVERALL_READINESS_REQUIREMENT,
   PRACTICAL_SKILL_LABELS, SECTION_OF_SKILL, hasExamStructure, type ExamSkill,
 } from './advExamSkills';
+// 「聴解を測れるか」は音源の実在庫で決める（試験データの有無で代用しない・2026-08-20）
+import { listeningSetsFor } from './listening/listeningBank';
 
 export interface SkillEvidence {
   evidenceCount: number;
@@ -191,10 +193,15 @@ export const computeReadiness = (
    */
   const examLevel = hasExamStructure(target) ? target : null;
   /**
-   * 聴解の音源を持つ級か。いまは本試験データを持つ級（N3/N2）＝音源を持つ級で一致する。
-   * ずれたら advReadinessLevelData.test.ts が落ちるので、そこで気づける。
+   * 聴解の音源を持つ級か。**実在庫（再生できるセット数）から判定する**（2026-08-20）。
+   *
+   * 以前は「本試験データを持つ級か」で代用していた（当時は N3/N2 で一致していた）。
+   * N5/N4 のミニ模試を解禁して試験データだけ先に入った瞬間、この式は
+   * 「音源が無いのに聴解は測れる」＝「あと◯問」と嘘をつく状態になった。
+   * 測れるかどうかは**音源があるかどうか**でしか決まらないので、そこを直接見る。
    */
-  const listeningMeasurable = examLevel !== null;
+  // N1 は教材そのものが無い級（listeningSetsFor の対象外）なので、そのまま「測れない」
+  const listeningMeasurable = target === 'N1' ? false : listeningSetsFor(target).length > 0;
   const evidence = collectSkillEvidence(ledger);
 
   const rows: ReadinessRow[] = EXAM_SKILLS.map((key) => {

@@ -15,13 +15,22 @@ import { N2_LISTENING_POINT_B } from './n2ListeningPointB';
 import { N2_LISTENING_OUTLINE_B } from './n2ListeningOutlineB';
 import { N2_LISTENING_QUICK_B } from './n2ListeningQuickB';
 import { N2_LISTENING_INT_B } from './n2ListeningIntB';
-import { LISTENING_TYPE_LABELS, listeningKeyOf, type ListeningSet, type ListeningType } from './listeningTypes';
+// N5/N4（2026-08-20 追加）。目標レベルにN5/N4を解禁したのに聴解が0本だったため。
+// 本試験のN5/N4聴解に無い型（概要理解・統合理解）は作っていない → 各12セット・3型
+import { N5_LISTENING_SETS_A } from './n5ListeningSetsA';
+import { N4_LISTENING_SETS_A } from './n4ListeningSetsA';
+import {
+  LISTENING_TYPE_LABELS, listeningKeyOf,
+  type ListeningLevel, type ListeningSet, type ListeningType,
+} from './listeningTypes';
 import audioManifest from '../../../../../../docs/ai-course/adventure-v2/generated/audio-manifest.json';
 
 export { LISTENING_TYPE_LABELS, listeningKeyOf };
-export type { ListeningSet, ListeningType };
+export type { ListeningLevel, ListeningSet, ListeningType };
 
 export const ALL_LISTENING_SETS: ListeningSet[] = [
+  ...N5_LISTENING_SETS_A,
+  ...N4_LISTENING_SETS_A,
   ...N3_LISTENING_SETS,
   ...N3_LISTENING_TASK_B, ...N3_LISTENING_POINT_B, ...N3_LISTENING_OUTLINE_B,
   ...N3_LISTENING_QUICK_B, ...N3_LISTENING_INT_B,
@@ -45,12 +54,16 @@ export const setsWithoutAudio = (): string[] =>
   ALL_LISTENING_SETS.filter((s) => !AUDIO_BY_ID.has(s.setId)).map((s) => s.setId);
 
 /**
- * 2026-08-18: N5/N4 を目標に選べるようにしたが、**聴解の音源は N3/N2 しか無い**。
- * 存在しないものを「ある」ように見せない（原則13）ため、N5/N4 は空を返す。
- * 空なら今日の冒険に聴解stepが出ず、「押しても何も起きない」行き止まりにならない。
+ * その級の「音声が実在する」聴解セット。
+ *
+ * 2026-08-18 の時点では N5/N4 の音源が0本だったので、ここで無条件に空を返していた
+ * （存在しないものを「ある」ように見せない・原則13）。
+ * 2026-08-20 に N5/N4 各12セットと音声を追加したので、ガードを外して他の級と同じ扱いにした。
+ * ガードではなく **manifest に音声があるか** で決まるので、音声生成に失敗した set は
+ * 今も自動的に出題されない（playableSets が落とす）。
  */
-export const listeningSetsFor = (level: 'N5' | 'N4' | 'N3' | 'N2'): ListeningSet[] =>
-  (level === 'N5' || level === 'N4') ? [] : playableSets().filter((s) => s.sourceLevel === level);
+export const listeningSetsFor = (level: ListeningLevel): ListeningSet[] =>
+  playableSets().filter((s) => s.sourceLevel === level);
 
 export const listeningSetById = (setId: string): ListeningSet | undefined =>
   playableSets().find((s) => s.setId === setId);
@@ -59,7 +72,9 @@ export const listeningSetById = (setId: string): ListeningSet | undefined =>
 export const listeningToQuestion = (s: ListeningSet): AdvBattleQuestion => ({
   key: listeningKeyOf(s),
   type: `listen-${s.listeningType}`,
-  level: s.sourceLevel === 'N2' ? 'n2' : 'n3',
+  // N5/N4 は基礎帯の問題として扱う（AdvBattleQuestion.level は foundation/n3/n2 の3値）。
+  // 読解の readingToQuestion と同じ対応にしてある
+  level: s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
   skill: 'listening',
   examSection: SECTION_OF_SKILL.listening,
   targetJapanese: null, // 音声が本体。文字は出さない

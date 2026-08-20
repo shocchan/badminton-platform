@@ -9,13 +9,13 @@
 // - 選択肢は4つ・正解はちょうど1つ・誤答3つすべてに whyWrongJa
 // - situationZh / questionZh / explanationZh は簡体字中国語のみ（日本語は「」で引用）
 // - 話者は 男「」女「」店員「」のように書く（音声化スクリプトが記号を落として読み上げる）
-import type { ListeningSet } from './listeningTypes';
+import type { ListeningLevel, ListeningSet } from './listeningTypes';
 
 /**
  * レベル固定のセット生成関数を返す。
  * `const s = makeListeningSet('N3');` のように使う。
  */
-export const makeListeningSet = (sourceLevel: 'N2' | 'N3') => (
+export const makeListeningSet = (sourceLevel: ListeningLevel) => (
   setId: string, listeningType: ListeningSet['listeningType'],
   transcriptJa: string, situationJa: string, situationZh: string,
   questionJa: string, questionZh: string,

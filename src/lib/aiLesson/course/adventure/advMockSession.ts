@@ -1,6 +1,6 @@
 // ミニ模試の進行状態（COMPLETION §9）。純関数＋直列化可能な状態にして reload 復帰できるようにする。
 import type { AdvBattleQuestion } from './advVariants';
-import type { MockSection, MockSpec } from './advMock';
+import type { MockLevel, MockSection, MockSpec } from './advMock';
 import { presentBattle, isCorrectAnswer, type PresentedQuestion } from './advChoiceOrder';
 import type { ExamSkill } from './advExamSkills';
 import type { AdvMockLogEntry, AdvMockSessionState } from './advTypes';
@@ -39,13 +39,16 @@ export const MOCK_MODE_LABEL: Record<'short' | 'fullTime', { ja: string; zh: str
 };
 
 /** 本番の科目時間（分）。fullTime版で使う */
-const FULL_TIME_SEC: Record<'N2' | 'N3', Record<string, number>> = {
+const FULL_TIME_SEC: Record<MockLevel, Record<string, number>> = {
   N2: { languageKnowledge: 105 * 60, reading: 105 * 60, listening: 50 * 60 },
   N3: { languageKnowledge: 30 * 60, reading: 70 * 60, listening: 40 * 60 },
+  // N4/N5 は2022年改定後の公式試験時間（advMock.EXAM_MINUTES と同じ値）
+  N4: { languageKnowledge: 25 * 60, reading: 55 * 60, listening: 35 * 60 },
+  N5: { languageKnowledge: 20 * 60, reading: 40 * 60, listening: 30 * 60 },
 };
 
 export const sectionTimeLimit = (
-  section: MockSection, level: 'N2' | 'N3', mode: 'short' | 'fullTime',
+  section: MockSection, level: MockLevel, mode: 'short' | 'fullTime',
 ): number => (mode === 'short'
   ? section.timeLimitSec
   : (FULL_TIME_SEC[level][section.sectionId] ?? section.timeLimitSec));
@@ -86,9 +89,13 @@ const VOCAB_ASPECT_PLAN = ['vocab-reading', 'vocab-context', 'vocab-orthography'
  * attemptSeed のみに依存する決定的選択なので restoreMockSession はそのまま成立する。
  */
 const pickLanguageKnowledge = (
-  pool: AdvBattleQuestion[], count: number, level: 'N2' | 'N3', seed: number,
+  pool: AdvBattleQuestion[], count: number, level: MockLevel, seed: number,
 ): AdvBattleQuestion[] => {
-  const bands: AdvBattleQuestion['level'][] = level === 'N2' ? ['n2', 'n3', 'foundation'] : ['n3', 'foundation'];
+  // 受験バンド優先。N5/N4 は基礎（foundation）が本体なのでそれだけを見る
+  // （n3/n2 を混ぜると、目標N5の生徒の模試にN3語彙が出る＝約束と中身が食い違う）
+  const bands: AdvBattleQuestion['level'][] = level === 'N2'
+    ? ['n2', 'n3', 'foundation']
+    : level === 'N3' ? ['n3', 'foundation'] : ['foundation'];
   // プールのMap挿入順に依存しないよう key で正規化してから決定的にシャッフル
   const shuffled = seededShuffle(
     [...pool].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)), seed,
@@ -266,7 +273,7 @@ export const gradeSection = (
 
 export interface MockResult {
   mockId: string;
-  level: 'N2' | 'N3';
+  level: MockLevel;
   mode: 'short' | 'fullTime';
   sections: SectionResult[];
   totalCorrect: number;

@@ -50,6 +50,28 @@ interface Props {
   /** 設定済みlearnerの「やり直し」。キャンセル文言が変わり、記録が残ることを明示する */
   redo?: boolean;
   /**
+   * 設定の調整モード（2026-08-20 CEO指示「弱点を全部直す」）。
+   *
+   * 「1日15分を30分にしたい」だけで12問の診断をやり直させない。
+   * **既存の診断結果をそのまま使って**ルートだけ作り直す（診断は学力の測定結果なので、
+   * 目的・目標・時間の変更では測り直す必要がない）。診断からやり直したい人は
+   * 調整画面の中の「診断からやり直す」で従来のフルフローへ入れる。
+   */
+  adjust?: {
+    goalType: AdvGoalType;
+    targetJlpt: JlptLevel | null;
+    examDateISO: string | null;
+    weeklyDays: number;
+    dailyMinutes: 5 | 15 | 30;
+    companionId: AdvCompanionId;
+    teacherId: AdvTeacherId;
+    /** 既存の診断結果（測り直さずに再利用する） */
+    diagnosis: AdvDiagnosisResult;
+    skills: OnboardingOutcome['skills'];
+  } | null;
+  /** 調整モードから「診断からやり直す」を選んだとき（親がフルフローへ切り替える） */
+  onRequestFullRedo?: () => void;
+  /**
    * 目標レベルの事前選択（2026-08-19 次の道カード）。
    * 「N4への道をひらく」から来たとき、目標画面でもう一度N4を探させない。
    * フローは goal から従来どおり（目的の再確認は残す）で、選び直しも自由
@@ -71,15 +93,19 @@ const btnIdle = choiceIdle;
 const btnOn = choiceOn;
 const primary = primaryBtn;
 
-export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOutcomeReady, redo = false, presetTarget = null }: Props) {
+export function AdvOnboarding({
+  lang, pools, nowISO, onComplete, onCancel, onOutcomeReady,
+  redo = false, presetTarget = null, adjust = null, onRequestFullRedo,
+}: Props) {
+  // 調整モードは既存の設定を初期値にして、診断（12問）を通らずに終われる
   const [phase, setPhase] = useState<Phase>('goal');
-  const [goal, setGoal] = useState<AdvGoalType | null>(null);
-  const [target, setTarget] = useState<JlptLevel | null>(presetTarget ?? null);
-  const [examDate, setExamDate] = useState('');
-  const [weeklyDays, setWeeklyDays] = useState(5);
-  const [minutes, setMinutes] = useState<5 | 15 | 30>(15);
-  const [companion, setCompanion] = useState<AdvCompanionId>('natsu');
-  const [teacher, setTeacher] = useState<AdvTeacherId>(DEFAULT_TEACHER_ID);
+  const [goal, setGoal] = useState<AdvGoalType | null>(adjust?.goalType ?? null);
+  const [target, setTarget] = useState<JlptLevel | null>(adjust?.targetJlpt ?? presetTarget ?? null);
+  const [examDate, setExamDate] = useState(adjust?.examDateISO ?? '');
+  const [weeklyDays, setWeeklyDays] = useState(adjust?.weeklyDays ?? 5);
+  const [minutes, setMinutes] = useState<5 | 15 | 30>(adjust?.dailyMinutes ?? 15);
+  const [companion, setCompanion] = useState<AdvCompanionId>(adjust?.companionId ?? 'natsu');
+  const [teacher, setTeacher] = useState<AdvTeacherId>(adjust?.teacherId ?? DEFAULT_TEACHER_ID);
   const [answers, setAnswers] = useState<Map<string, number>>(new Map());
   const [qIndex, setQIndex] = useState(0);
   const [convSkipped, setConvSkipped] = useState(false);
@@ -89,6 +115,34 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOut
     () => (goal ? selectDiagnosisQuestions(pools, target, goal, 20260731) : []),
     [pools, goal, target],
   );
+
+  /**
+   * 調整モードの完了（2026-08-20）。**診断は測り直さず**、既存の結果から
+   * ルートだけ作り直す。目的・目標・時間を変えてもルートは正しく組み替わる
+   */
+  const finishAdjust = () => {
+    if (!adjust || !goal) return;
+    const route = generateRoute({
+      goalType: goal, targetJlpt: target,
+      knowledgeBand: adjust.diagnosis.knowledgeBand,
+      conversationBand: adjust.diagnosis.conversationBand,
+      diagnosis: adjust.diagnosis, nowISO,
+    });
+    const diagnosis: AdvDiagnosisResult = {
+      ...adjust.diagnosis,
+      routeExplanationJa: route.explanationJa,
+      routeExplanationZh: route.explanationZh,
+    };
+    trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
+    const o: OnboardingOutcome = {
+      goalType: goal, targetJlpt: target, examDateISO: examDate || null,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
+      diagnosis, skills: adjust.skills, route,
+    };
+    setOutcome(o);
+    onOutcomeReady?.(o);
+    setPhase('route');
+  };
 
   const finishDiagnosis = (skipConv: boolean, texts: string[]) => {
     if (!goal) return;
@@ -285,9 +339,30 @@ export function AdvOnboarding({ lang, pools, nowISO, onComplete, onCancel, onOut
               </button>
             ))}
           </div>
-          <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
-            {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
-          </button>
+          {adjust ? (
+            <>
+              {/* 調整モード: 診断（12問）は通らず、既存の診断結果でルートを組み直す */}
+              <button type="button" className={`${primary} mt-6`} onClick={finishAdjust}>
+                {tx(lang, 'この内容で更新する', '用这些内容更新')}
+              </button>
+              <p className="mt-2 text-center text-xs text-gray-500">
+                {tx(lang,
+                  '前回の診断結果をそのまま使います（12問をやり直す必要はありません）',
+                  '将沿用上次的诊断结果（无需重做12道题）')}
+              </p>
+              {onRequestFullRedo && (
+                <button type="button"
+                  className={`${pressFx} mt-3 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`}
+                  onClick={onRequestFullRedo}>
+                  {tx(lang, '学力から測り直す（診断12問をやり直す）', '重新测量水平（重做12道诊断题）')}
+                </button>
+              )}
+            </>
+          ) : (
+            <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
+              {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
+            </button>
+          )}
           {backBtn('teacher')}
         </section>
       )}

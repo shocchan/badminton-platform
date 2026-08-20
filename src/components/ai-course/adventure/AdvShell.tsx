@@ -313,6 +313,11 @@ export default function AdvShell(props: AdvShellProps) {
   // requestView('redo')が使うため、切替要求の処理より前に宣言する
   const [redoOnboarding, setRedoOnboarding] = useState(false);
   /**
+   * 設定の調整モード（2026-08-20）。目的・目標・時間・先生・相棒だけ変えたい人に
+   * 12問の診断をやり直させない。既存の診断結果でルートだけ組み直す
+   */
+  const [adjustOnboarding, setAdjustOnboarding] = useState(false);
+  /**
    * 次の道カードからのやり直しで**事前選択しておく目標レベル**（2026-08-19）。
    * 「N4への道をひらく」を押したのに目標画面でもう一度N4を探させない。
    * フローは goal から従来どおり（目的の再確認は残す）。完了・キャンセルで必ず戻す
@@ -336,7 +341,9 @@ export default function AdvShell(props: AdvShellProps) {
     setSeenReq(reqN);
     if (props.requestView) {
       const v = props.requestView.view;
-      if (v === 'redo') { setView('home'); setRedoOnboarding(true); }
+      // 「目的・レベルの変更」は既定で**調整モード**（診断はやり直さない）。
+    // 学力から測り直したい人は調整画面の中のリンクでフル診断へ入れる
+    if (v === 'redo') { setView('home'); setAdjustOnboarding(true); }
       // 復習画面などから「次のstepへ」で戻ってきたとき、ホームを経由せず直接そのstepを開く
       // （2026-08-17 CEO要望「毎回戻らないといけないので」）。questが揃うのを待つ必要があるのでフラグで持つ
       else if (v === 'nextStep') { setView('home'); setPendingNextN(reqN); }
@@ -394,7 +401,7 @@ export default function AdvShell(props: AdvShellProps) {
 
   /** いま要る語彙プールの注文。key が同じなら作り直さない */
   const vocabRequest = useMemo<VocabPoolRequest | null>(() => {
-    const lv: 'N2' | 'N3' = profile?.targetJlpt === 'N3' ? 'N3' : 'N2';
+    const lv: 'N2' | 'N3' = profile?.targetJlpt === 'N3' ? 'N3' : 'N2'; // 語彙プールはN3/N2の2系統（N5/N4はfoundation帯がN3スコープに含まれる）
     if (view === 'mock') {
       // 模試を出せない目標（N5/N4）では語彙chunk（gzip 約320kB）も取りに行かない。
       // ここで取ると、受けられない模試のためにN2語彙を落とすことになる
@@ -446,6 +453,36 @@ export default function AdvShell(props: AdvShellProps) {
   }, [vocabRequest, vocabPool?.key, vocabPoolError]);
   /** 注文どおりに出来上がっているプールだけを使う（古いレベル・古いバンドを渡さない） */
   const vocabPoolReady = vocabRequest && vocabPool?.key === vocabRequest.key ? vocabPool.map : null;
+
+  /**
+   * 語彙チャンク（gzip 約686KB）の先読み（2026-08-20 CEO指示「弱点を全部直す」）。
+   *
+   * バトルを押してから読み込むと、生徒の端末では数秒の「問題を用意しています…」になる。
+   * 体験パスは実時間60分の時計が動いているので、その待ちがそのまま損になる。
+   * ホームを読んでいる**あいだ**に裏で取っておけば、押した瞬間には出せる。
+   * - 端末が暇なときだけ（requestIdleCallback）。無い環境は1.5秒後のタイマーで代用
+   * - **ここではプールを作らない**（作るのは上のeffectだけ。描画を止めない原則を守る）
+   * - 失敗は無視（読み込み経路は従来どおり。ここはあくまで前倒し）
+   */
+  useEffect(() => {
+    if (view !== 'home' || vocabPool) return;
+    let cancelled = false;
+    const warm = () => {
+      if (cancelled) return;
+      void import('../../../lib/aiLesson/course/adventure/vocab/vocabSubset')
+        .catch(() => { /* 先読みの失敗は無視 */ });
+    };
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (typeof w.requestIdleCallback === 'function') {
+      const id = w.requestIdleCallback(warm, { timeout: 4000 });
+      return () => { cancelled = true; w.cancelIdleCallback?.(id); };
+    }
+    const id = window.setTimeout(warm, 1500);
+    return () => { cancelled = true; window.clearTimeout(id); };
+  }, [view, vocabPool]);
 
   const save = useCallback((next: AdventureV2Profile) => {
     // レベルアップ検知（2026-08-19 ゲーム感強化）。XP加算点（バトル・かな道場・模試・締めくくり）を
@@ -831,8 +868,8 @@ export default function AdvShell(props: AdvShellProps) {
   // 数字の出所（旧コースのItemProgress）と復習の中身が別システムで、この条件は永久に成立せず、
   // 復習stepは自己申告ボタンでしか終われなかった。いまは解き直しバトルの完了で消し込む
 
-  // ── onboarding（初回＝needsOnboarding／やり直し＝redoOnboarding） ──
-  if (needsOnboarding || redoOnboarding) {
+  // ── onboarding（初回＝needsOnboarding／やり直し＝redoOnboarding／調整＝adjustOnboarding） ──
+  if (needsOnboarding || redoOnboarding || adjustOnboarding) {
     // 読込失敗を無限ローディングにしない（原則15）。再試行と出口を必ず出す
     if (diagError) {
       return (
@@ -882,8 +919,21 @@ export default function AdvShell(props: AdvShellProps) {
     };
     return (
       <AdvOnboarding
-        lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding}
+        lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding || adjustOnboarding}
         presetTarget={redoPresetTarget}
+        /* 調整モード: 既存の設定と診断結果を渡す（12問はやり直さない） */
+        adjust={adjustOnboarding && profile?.goalType && profile?.diagnosis && profile?.skills ? {
+          goalType: profile.goalType,
+          targetJlpt: profile.targetJlpt ?? null,
+          examDateISO: profile.examDateISO ?? null,
+          weeklyDays: profile.weeklyDays ?? 5,
+          dailyMinutes: (profile.dailyMinutes ?? 15) as 5 | 15 | 30,
+          companionId: profile.companionId ?? 'natsu',
+          teacherId: profile.teacherId ?? 'shoko',
+          diagnosis: profile.diagnosis,
+          skills: profile.skills,
+        } : null}
+        onRequestFullRedo={() => { setAdjustOnboarding(false); setRedoOnboarding(true); }}
         onOutcomeReady={(o: OnboardingOutcome) => {
           // 診断完了の時点でDBへ確定保存する（2026-08-15）。ルート披露画面でアプリを
           // 閉じても診断・設定が消えない。React state は触らない＝披露画面はそのまま表示
@@ -895,11 +945,12 @@ export default function AdvShell(props: AdvShellProps) {
         onComplete={(o: OnboardingOutcome) => {
           save(profileFromOutcome(o));
           setRedoOnboarding(false);
+          setAdjustOnboarding(false);
           setRedoPresetTarget(null);
           setView('home');
         }}
         /* キャンセルはやり直し中だけ出る（初回の「従来ホームへ」は撤去済み） */
-        onCancel={() => { setRedoOnboarding(false); setRedoPresetTarget(null); }}
+        onCancel={() => { setRedoOnboarding(false); setAdjustOnboarding(false); setRedoPresetTarget(null); }}
       />
     );
   }

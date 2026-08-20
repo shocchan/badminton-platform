@@ -15,7 +15,7 @@ import type { JlptLevel } from './advTypes';
  * N5/N4 は同日に目標として解禁したが、**聴解の音源が0本**で、本試験の科目・時間も
  * このリポジトリに持っていない。
  */
-export const MOCK_LEVELS = ['N3', 'N2'] as const;
+export const MOCK_LEVELS = ['N5', 'N4', 'N3', 'N2'] as const;
 export type MockLevel = (typeof MOCK_LEVELS)[number];
 
 /**
@@ -32,11 +32,16 @@ export type MockLevel = (typeof MOCK_LEVELS)[number];
 export const mockLevelOf = (target: JlptLevel | null | undefined): MockLevel | null => {
   if (target === 'N2' || target == null) return 'N2';
   if (target === 'N3') return 'N3';
-  return null;
+  // 2026-08-20: N5/N4 も解禁。科目時間（本試験の公式値）と4技能の在庫が揃ったため。
+  // 聴解セットが未整備の級では buildMockSpec が該当sectionを落とし、
+  // タイトルが「（一部科目）」になる＝**無いものを在るように見せない**まま出せる
+  if (target === 'N5') return 'N5';
+  if (target === 'N4') return 'N4';
+  return null; // N1 は教材そのものが無い
 };
 
 /** 本試験の科目別時間（分）。表示と時間配分評価の正準値 */
-export const EXAM_MINUTES: Record<'N2' | 'N3', { section: ExamSection; labelJa: string; labelZh: string; minutes: number }[]> = {
+export const EXAM_MINUTES: Record<MockLevel, { section: ExamSection; labelJa: string; labelZh: string; minutes: number }[]> = {
   N2: [
     { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读', minutes: 105 },
     { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 50 },
@@ -45,6 +50,17 @@ export const EXAM_MINUTES: Record<'N2' | 'N3', { section: ExamSection; labelJa: 
     { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙）', labelZh: '语言知识（文字・词汇）', minutes: 30 },
     { section: 'reading', labelJa: '言語知識（文法）・読解', labelZh: '语言知识（语法）・阅读', minutes: 70 },
     { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 40 },
+  ],
+  // N4/N5 は2022年改定後の公式試験時間
+  N4: [
+    { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙）', labelZh: '语言知识（文字・词汇）', minutes: 25 },
+    { section: 'reading', labelJa: '言語知識（文法）・読解', labelZh: '语言知识（语法）・阅读', minutes: 55 },
+    { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 35 },
+  ],
+  N5: [
+    { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙）', labelZh: '语言知识（文字・词汇）', minutes: 20 },
+    { section: 'reading', labelJa: '言語知識（文法）・読解', labelZh: '语言知识（语法）・阅读', minutes: 40 },
+    { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 30 },
   ],
 };
 
@@ -60,7 +76,7 @@ export interface MockSection {
 }
 
 export interface MockSpec {
-  level: 'N2' | 'N3';
+  level: MockLevel;
   /** 総合模試として出せるか */
   ready: boolean;
   /** 出せない理由（learnerへ正直に見せる） */
@@ -91,7 +107,7 @@ export const MOCK_REQUIREMENT = {
  * 利用可能な問題数から模試の仕様を決める。
  * 4技能が揃わなければ「総合」と呼ばず、含められる科目だけの模試にする。
  */
-export const buildMockSpec = (level: 'N2' | 'N3', avail: MockAvailability): MockSpec => {
+export const buildMockSpec = (level: MockLevel, avail: MockAvailability): MockSpec => {
   const blockersJa: string[] = [];
   const blockersZh: string[] = [];
   if (avail.vocabCount < MOCK_REQUIREMENT.vocab) {
@@ -158,7 +174,7 @@ export const buildMockSpec = (level: 'N2' | 'N3', avail: MockAvailability): Mock
 };
 
 /** 本試験の科目構成（表示用） */
-export const examStructureOf = (level: 'N2' | 'N3') => EXAM_STRUCTURE[level];
+export const examStructureOf = (level: MockLevel) => EXAM_STRUCTURE[level];
 
 // ── 中ボス（§9） ──
 

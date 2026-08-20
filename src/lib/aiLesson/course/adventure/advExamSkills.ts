@@ -63,7 +63,7 @@ export interface ExamPart {
 }
 
 /** 実試験の構造（§6・§7）。表示は「今鍛えている科目」の裏づけに使う */
-export const EXAM_STRUCTURE: Record<'N2' | 'N3', ExamPart[]> = {
+export const EXAM_STRUCTURE: Record<'N2' | 'N3' | 'N4' | 'N5', ExamPart[]> = {
   N2: [
     {
       labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读',
@@ -78,6 +78,23 @@ export const EXAM_STRUCTURE: Record<'N2' | 'N3', ExamPart[]> = {
       minutes: 70, skills: ['grammar', 'reading', 'timeManagement'],
     },
     { labelJa: '聴解', labelZh: '听力', minutes: 40, skills: ['listening'] },
+  ],
+  // N4/N5 は2022年改定後の公式試験時間（advMock.EXAM_MINUTES と同じ値）
+  N4: [
+    { labelJa: '言語知識（文字・語彙）', labelZh: '语言知识（文字・词汇）', minutes: 25, skills: ['charactersVocabulary'] },
+    {
+      labelJa: '言語知識（文法）・読解', labelZh: '语言知识（语法）・阅读',
+      minutes: 55, skills: ['grammar', 'reading', 'timeManagement'],
+    },
+    { labelJa: '聴解', labelZh: '听力', minutes: 35, skills: ['listening'] },
+  ],
+  N5: [
+    { labelJa: '言語知識（文字・語彙）', labelZh: '语言知识（文字・词汇）', minutes: 20, skills: ['charactersVocabulary'] },
+    {
+      labelJa: '言語知識（文法）・読解', labelZh: '语言知识（语法）・阅读',
+      minutes: 40, skills: ['grammar', 'reading', 'timeManagement'],
+    },
+    { labelJa: '聴解', labelZh: '听力', minutes: 30, skills: ['listening'] },
   ],
 };
 
