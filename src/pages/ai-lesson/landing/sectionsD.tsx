@@ -164,6 +164,8 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
         )}
         <p className="text-[0.84rem] text-lp-ink-soft mt-6">{p.keyCopy[lang]}</p>
         <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.disclaimer[lang]}</p>
+        {/* 2回目以降の購入で学習記録を引き継ぐ条件（ログイン中＝自動／ログアウト時＝同じメール） */}
+        <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.accountNote[lang]}</p>
       </div>
     </section>
   );

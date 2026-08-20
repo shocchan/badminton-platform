@@ -145,7 +145,7 @@ export interface LpContent {
    * 価格・プラン名・含まれるものは `lib/aiLesson/course/plans/planCatalog` が正準。
    * ここに数値を戻すと、カタログを直したのにLPだけ古い、という食い違いが起きる。
    */
-  pricing: { heading: Str; lead: Str; keyCopy: Str; disclaimer: Str };
+  pricing: { heading: Str; lead: Str; keyCopy: Str; disclaimer: Str; accountNote: Str };
   /** AIのみ／AI＋人間コーチの比較表。セルの中身は planCatalog / planEntitlements から描画する */
   planCompare: {
     heading: Str; lead: Str; groupAi: Str; groupHuman: Str; note: Str;
@@ -391,6 +391,12 @@ export const LP: LpContent = {
     disclaimer: {
       ja: '※ 会話力を中心にN2合格水準を目指すコースです。合格や会話力の向上を保証するものではありません。',
       zh: '※ 本课程以会话力为核心、以N2合格水准为目标，但不保证合格或会话能力的提升。',
+    },
+    // 2回目以降の購入で学習記録が引き継がれる条件（2026-08-20 CEO確認）。
+    // ログイン中なら本人のアカウントへ自動で付く。ログアウト状態のときはメールが鍵になる
+    accountNote: {
+      ja: '※ すでにご利用中の方は、ログインしたまま購入すると、いまのアカウントに自動で引き継がれます（購入時のメールアドレスは何でも構いません）。ログアウトしたまま購入する場合は、前回と同じメールアドレスをお使いください。',
+      zh: '※ 已在使用的用户，保持登录状态购买即可自动延续到当前账号（购买时用哪个邮箱都可以）。若在退出登录的状态下购买，请使用与上次相同的邮箱地址。',
     },
     // キャンセル・返金の注記は planCatalog の PROVISIONAL_TERMS_NOTICE から
     // プランごとに出す（商品によって条件が違いうるため、ここで1つに固定しない）
