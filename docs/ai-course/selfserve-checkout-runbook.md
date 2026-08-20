@@ -117,3 +117,43 @@ supabase secrets set AI_COURSE_STRIPE_SECRET_KEY=sk_live_XXXX AI_COURSE_STRIPE_W
 - **領収書**: Stripe設定「支払い成功時に顧客へメール」をONにすると Stripe からも領収書が届く（推奨）
 - **テスト決済と実売上**: 台帳の livemode 列で区別（[TEST]は売上に数えない）
 - 未対応（今後）: 返金時の権限自動停止／Turnstile等のbot対策（広告出稿前に）／管理画面の台帳タブ表示
+
+---
+
+## 2026-08-20 追記: 広告前の備え（実装・適用済み）
+
+### 返金の自動処理（稼働中）
+Stripeで**全額返金**すると、webhook が台帳を `refunded` にし、その購入で付けた受講権を
+即時終了する（`purchase_id` で照合するので、後から買った上位プランは消えない）。
+一部返金は止めない。チャージバック（`charge.dispute.created`）は**通知だけ**で自動停止しない。
+いずれも info@kawabado.com へメールが届く。学習記録は消えない（復活は管理画面で期間設定）。
+
+### 管理画面の購入台帳（稼働中）
+`/ja/ai-course/admin` → 受講権タブの先頭。発行済み件数・売上（本番決済のみ）・要対応を表示。
+**「要対応」は自動発行に失敗した購入**＝入金済みなのに学習を始められない人がいる状態。
+理由が行に出るので、必要なら `scripts/ai-course/create-student-login.mjs` で手動発行する。
+
+### 申込フォームのbot対策（コード完了・**鍵の投入だけ残り**）
+受け口は Edge Function `ai-course-apply` 一本（匿名の直接insertは剥奪済み・実測401）。
+Turnstileは**鍵が設定されているときだけ必須**になる。いまは未設定＝フォームは動くが
+bot対策は効いていない。**広告を出す前に下記2ステップを実施すること。**
+
+1. https://dash.cloudflare.com → Turnstile → 「サイトを追加」
+   - サイト名: kawabado / ドメイン: `kawabado.com`（`staging.badminton-platform.pages.dev` も追加可）
+   - ウィジェットモード: **Managed**
+   - 作成後に「サイトキー（公開）」と「シークレットキー」が出る
+2. 鍵を入れる（シークレットはSupabaseへ、サイトキーはフロントの env へ）
+   ```bash
+   cd ~/badminton-aicourse
+   SUPABASE_ACCESS_TOKEN=$(cat ~/.supabase_backup_token) supabase secrets set \
+     TURNSTILE_SECRET_KEY=0x4AAA...（シークレット） --project-ref jdkwijdphlkrcoiggfqw
+   # .env.production と .env.staging の両方へ追記
+   echo 'VITE_TURNSTILE_SITE_KEY=0x4AAA...（サイトキー）' >> .env.production
+   echo 'VITE_TURNSTILE_SITE_KEY=0x4AAA...（サイトキー）' >> .env.staging
+   ./scripts/deploy-production.sh
+   ```
+   ※ サイトキーは公開情報（配信JSに載る）。シークレットは絶対にフロントへ置かない。
+   ※ Cloudflare Pages の env_vars にも `VITE_TURNSTILE_SITE_KEY` を追加しておく（[[kawabado-deploy]] の教訓）。
+
+投入後の確認: LPの6か月コース「連絡先を送って相談する」→ フォーム下にチェックが出る →
+チェックしないと送信ボタンが押せない、を実機で確認する。
