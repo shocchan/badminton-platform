@@ -287,7 +287,30 @@ serve(async (req: Request) => {
     let password: string | null = null;
     let reusedAccount = false;
 
-    if (buyerEmail) {
+    // ① ログイン中に買った場合（体験終了後のアップグレード等）は checkout が
+    //    user_id を先に入れている。**購入時のメールが違っても学習記録のある本人に付ける**
+    if (row.user_id) {
+      const meRes = await fetch(
+        `${supabaseUrl}/rest/v1/ai_plan_purchases?user_id=eq.${row.user_id}` +
+          `&login_id=not.is.null&order=provisioned_at.desc&limit=1&select=login_id`,
+        { headers: dbHeaders },
+      );
+      const me = meRes.ok ? (await meRes.json())?.[0] : null;
+      userId = row.user_id;
+      // 過去の購入で発行済みのIDがあればそれ。無ければ内部メールから復元する
+      if (me?.login_id) {
+        loginId = me.login_id;
+      } else {
+        const uRes = await authAdmin(`/admin/users/${row.user_id}`);
+        const u = uRes.ok ? await uRes.json() : null;
+        const email: string = u?.email ?? "";
+        loginId = email.endsWith(`@${ID_DOMAIN}`) ? email.slice(0, -(`@${ID_DOMAIN}`.length)) : null;
+      }
+      reusedAccount = true;
+    }
+
+    // ② ログインしていない購入は、同じ購入者メールの過去実績からアカウントを再利用する
+    if (!userId && buyerEmail) {
       const prevRes = await fetch(
         `${supabaseUrl}/rest/v1/ai_plan_purchases?buyer_email=eq.${encodeURIComponent(buyerEmail)}` +
           `&status=eq.provisioned&user_id=not.is.null&order=provisioned_at.desc&limit=1&select=user_id,login_id`,

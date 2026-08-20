@@ -21,6 +21,9 @@ import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
 import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner';
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
+import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
+import { ApplicationModal } from './landing/ApplicationModal';
+import type { PlanId } from '../../lib/aiLesson/course/plans/planCatalog';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { deriveInitialLearner, V2_INVITE_DEFAULT_ANSWERS } from '../../lib/aiLesson/course/courseDiagnosis';
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
@@ -203,6 +206,8 @@ export default function AiCoursePage() {
   const [planUsedSeconds, setPlanUsedSeconds] = useState<number | null>(null);
   /** AdvShell内で解答中（バトル・読解・聴解など）。体験のタイムアップ割り込みを待たせる */
   const [advBusy, setAdvBusy] = useState(false);
+  /** 体験終了画面から開く連絡先フォームのプラン（6か月コース等） */
+  const [applyPlanId, setApplyPlanId] = useState<PlanId | null>(null);
   // アップセル案内を閉じた日時（端末内保存の写し。閉じた瞬間に再描画するためstateにも持つ）
   const [upsellDismissedAt, setUpsellDismissedAt] = useState<string | null>(
     () => { try { return readUpsellDismissedAt(window.localStorage); } catch { return null; } },
@@ -858,24 +863,28 @@ export default function AiCoursePage() {
           ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
             : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
           : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
+    // 体験が終わった人には、LPへ戻さず**その場で3択**（もう一度60分／1か月／6か月伴走）を出す。
+    // 60分・1か月はクレジット決済へ直行、6か月は連絡先フォーム（人が対応する商品なので即決済にしない）
+    if (trialEnded) {
+      return (
+        <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+          <TrialEndedUpgrade
+            lang={uiLang}
+            onApply={(planId) => setApplyPlanId(planId)}
+            onLogout={() => { void signOut().then(() => setStep('login')); }}
+          />
+          {/* 6か月コースの連絡先フォーム（決済が使えないときの受け皿も兼ねる） */}
+          <ApplicationModal key={applyPlanId ?? 'closed'} planId={applyPlanId}
+            onClose={() => setApplyPlanId(null)} lang={uiLang} />
+        </Shell>
+      );
+    }
     return (
       <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
         <div className="mx-auto w-full max-w-md px-4 py-16 text-center">
-          <div className="text-4xl mb-3">{trialEnded ? '🎉' : '🌱'}</div>
+          <div className="text-4xl mb-3">🌱</div>
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
-          {trialEnded && (
-            <a href={`/${uiLang}/ai-course?lp=1#price`}
-              onClick={() => trackCourse('click_ai_course_trial_end_upgrade')}
-              className="mt-6 inline-flex w-full min-h-12 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-base font-bold text-white hover:bg-blue-700">
-              {zh ? '查看价格方案（继续学习）' : '料金プランを見る（続きから学ぶ）'}
-            </a>
-          )}
-          {trialEnded && (
-            <p className="mt-3 text-[12px] text-gray-500">
-              {zh ? '购买时请使用同一个邮箱，即可在同一账号上继续。' : '購入時に同じメールアドレスを使うと、同じアカウントに続きが引き継がれます。'}
-            </p>
-          )}
           <button type="button"
             className="mt-8 w-full min-h-[44px] rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
             onClick={() => { void signOut().then(() => setStep('login')); }}>

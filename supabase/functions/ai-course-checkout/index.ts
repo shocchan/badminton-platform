@@ -68,6 +68,23 @@ serve(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const planId = typeof body.planId === "string" ? body.planId : "";
     const locale = body.locale === "zh" ? "zh" : "ja";
+
+    /**
+     * ログイン中の購入（体験終了後のアップグレード等）なら、**そのアカウントへ紐づける**。
+     * Authorization の access token を Supabase に検証させて user_id を得る（自己申告は信じない）。
+     * これで購入時に別のメールアドレスを使っても、学習記録のあるアカウントの期間が伸びる。
+     */
+    let attachUserId: string | null = null;
+    const bearer = (req.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (bearer) {
+      const who = await fetch(`${Deno.env.get("SUPABASE_URL")!}/auth/v1/user`, {
+        headers: { apikey: Deno.env.get("SUPABASE_ANON_KEY") ?? "", Authorization: `Bearer ${bearer}` },
+      });
+      if (who.ok) {
+        const u = await who.json().catch(() => null);
+        if (u?.id) attachUserId = u.id as string;
+      }
+    }
     // UTM（流入元）。個人情報は受け取らない。キーを固定して余計な値を保存しない
     const utm: Record<string, string> = {};
     if (body.utm && typeof body.utm === "object") {
@@ -140,6 +157,8 @@ serve(async (req: Request) => {
         livemode: mode === "live",
         locale,
         status: "pending",
+        // ログイン中の購入なら発行先アカウントを先に決めておく（webhookはこれを最優先で使う）
+        user_id: attachUserId,
         utm: Object.keys(utm).length > 0 ? utm : null,
       }),
     });

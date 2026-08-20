@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { LP, VARIANTS, type CharacterVariant } from './lpContent';
 import { CtaButton } from './lpUi';
-import { track, loginPath } from './lpHelpers';
+import { track, loginPath, scrollToSection } from './lpHelpers';
 import { AiCourseHero } from './AiCourseHero';
 import { PainPointsSection, AiHumanRolesSection, DailyLearningFlow } from './sectionsA';
 import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
@@ -41,6 +41,22 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
       track('cancel_ai_course_checkout', { variant: v.key });
     }
   }, [v.key, lang]);
+
+  /**
+   * `#price` などのアンカー付きで来たら、その節までスクロールする（2026-08-20）。
+   *
+   * ブラウザ標準のアンカー移動は効かない: ①SPAなので描画前にハッシュ解決が終わる
+   * ②共通の ScrollToTop がルート変更時に必ず先頭へ戻す。
+   * そのため「料金プランを見る」で来た人が毎回LPの先頭に落ちていた。
+   */
+  useEffect(() => {
+    const id = window.location.hash.replace('#', '');
+    if (!id) return;
+    // レイアウトが決まってから（画像・Reveal込み）。2回試すのは初回描画で高さが変わるため
+    const t1 = window.setTimeout(() => scrollToSection(id), 120);
+    const t2 = window.setTimeout(() => scrollToSection(id), 600);
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
+  }, []);
 
   // 料金セクション到達（1マウント1回）。どれだけの人が価格まで読み進めたかを見る
   useEffect(() => {

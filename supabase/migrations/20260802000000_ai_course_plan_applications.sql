@@ -73,6 +73,17 @@ create policy ai_terms_consents_select on public.ai_terms_consents
 
 -- 同意記録は**あとから書き換えない**（証拠なので）。update/delete のポリシーを作らない＝誰も出来ない
 
+-- ── GRANT（2026-08-20 追記・適用時に判明した必須事項） ──
+-- 2026-08-02 の匿名キー封鎖以降 default privileges が絞られており、
+-- **RLSポリシーだけでは 42501 で弾かれる**（20260818120000 で同じ罠を踏んでいる）。
+-- 行の絞り込みは上のRLSが行う。ここでは「テーブルに触れてよいか」だけを与える。
+grant insert on public.ai_plan_applications to anon, authenticated;
+grant select, update on public.ai_plan_applications to authenticated;  -- 読み書きは管理者のみ（RLS側で判定）
+grant insert on public.ai_terms_consents to anon, authenticated;
+grant select on public.ai_terms_consents to authenticated;             -- 同上
+grant all on public.ai_plan_applications to service_role;
+grant all on public.ai_terms_consents to service_role;
+
 -- ⚠️ 既知の弱点: anon が insert できるので、広告を出す前に
 --    bot対策（Turnstile等）またはEdge Function経由のレート制限が要る。
 --    → docs/ai-course/legal-open-questions.md

@@ -47,9 +47,18 @@ export const startCheckout = async (planId: PlanId, locale: 'ja' | 'zh'): Promis
   if (checkoutMode() === 'off') return { ok: false, reason: 'disabled' };
   if (!SUPA_URL || !ANON_KEY) return { ok: false, reason: 'not_ready' };
   try {
+    // ログイン中（体験終了後のアップグレード等）なら本人のトークンを添える。
+    // サーバーが検証して購入を**そのアカウント**へ紐づける＝購入時のメールが違っても
+    // 学習記録のあるアカウントの期間が伸びる（新しいアカウントを作らない）
+    const { getAccessToken } = await import('../courseAuth');
+    const token = await getAccessToken().catch(() => null);
     const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-checkout`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: ANON_KEY,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
       body: JSON.stringify({ planId, locale, utm: storedUtm() }),
     });
     if (res.status === 503) return { ok: false, reason: 'not_ready' };
