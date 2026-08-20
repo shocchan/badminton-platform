@@ -127,6 +127,8 @@ export interface LpContent {
   ctaTrial: Str;
   /** スマホ下部の固定バー（料金まで9画面あるので、途中でも買える入口を出す） */
   stickyBar: { note: Str; consult: Str };
+  /** 決済通貨の注記。中国語表示のときだけ出す（金額は書かない） */
+  currencyNote: Str;
   /**
    * FV直下の価格帯プレビュー。**金額は書かない**（カタログの priceLabel を描画する）。
    * 「いくらか分からないまま9画面読ませる」のをやめるための帯
@@ -205,6 +207,10 @@ export const LP: LpContent = {
   stickyBar: {
     note: { ja: 'まずは体験から', zh: '先从体验开始' },
     consult: { ja: '相談する', zh: '咨询' },
+  },
+  currencyNote: {
+    ja: '決済は日本円です。',
+    zh: '结算币种为日元。元为参考换算，实际扣款金额以发卡行当日汇率为准。',
   },
   priceTeaser: {
     eyebrow: { ja: '料金は3つだけ', zh: '价格只有三种' },

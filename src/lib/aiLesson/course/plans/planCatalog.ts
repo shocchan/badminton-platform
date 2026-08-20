@@ -338,6 +338,32 @@ export const acceptsApplication = (p: PlanConfig): boolean =>
 export const isPlanPreview = (search: string): boolean =>
   new URLSearchParams(search).get('plans') === 'preview';
 
+/**
+ * 人民元の**参考**換算レート（2026-08-21 追加）。
+ *
+ * なぜ要るか: 買うのは中国語話者なのに、価格が円でしか出ていなかった。
+ * 「高いのか安いのか」を母国の通貨で判断できないと、料金表まで来ても止まる。
+ *
+ * ⚠️ **請求は常に日本円**。ここは判断材料としての目安でしかないので、
+ *    画面には必ず「约」と**基準日**を一緒に出すこと（レートは動く）。
+ * 出典: ECB参照レート（frankfurter.app）。見直したら rate と asOf の両方を直す。
+ */
+export const CNY_REFERENCE = {
+  /** 1円あたりの人民元 */
+  cnyPerJpy: 0.04235,
+  asOf: '2026-08-20',
+} as const;
+
+/**
+ * 「约◯元」の表示文字列。中国語表示のときだけ使う。
+ * 端数は切り上げない・切り捨てない（四捨五入）。1000以上は桁区切りを入れる
+ */
+export const approxCnyLabel = (priceJpy: number | null): string | null => {
+  if (priceJpy === null || priceJpy <= 0) return null;
+  const cny = Math.round(priceJpy * CNY_REFERENCE.cnyPerJpy);
+  return `约${cny.toLocaleString('en-US')}元`;
+};
+
 /** 表示用の言語別アクセサ。componentでの `lang === 'zh' ? ... : ...` を無くす */
 export interface PlanView {
   id: PlanId;
@@ -345,6 +371,8 @@ export interface PlanView {
   name: string;
   priceLabel: string;
   priceJpy: number | null;
+  /** 中国語表示のときだけ「约◯元」。日本語では null（円で買う人に換算は不要） */
+  priceApproxCny: string | null;
   /** 無ければ null（表示しない） */
   monthlyEquivalent: string | null;
   description: string;
@@ -370,6 +398,7 @@ export const planView = (p: PlanConfig, lang: 'ja' | 'zh'): PlanView => ({
   name: lang === 'zh' ? p.nameZh : p.nameJa,
   priceLabel: lang === 'zh' ? p.priceLabelZh : p.priceLabelJa,
   priceJpy: p.priceJpy,
+  priceApproxCny: lang === 'zh' ? approxCnyLabel(p.priceJpy) : null,
   monthlyEquivalent: (lang === 'zh' ? p.monthlyEquivalentZh : p.monthlyEquivalentJa) ?? null,
   description: lang === 'zh' ? p.descriptionZh : p.descriptionJa,
   durationLabel: lang === 'zh' ? p.durationLabelZh : p.durationLabelJa,

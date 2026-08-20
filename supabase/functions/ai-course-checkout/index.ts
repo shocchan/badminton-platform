@@ -129,6 +129,15 @@ serve(async (req: Request) => {
       "metadata[plan_version]": String(plan.version),
       "metadata[locale]": locale,
       "payment_intent_data[description]": `AI日本語コース ${plan.nameJa}`,
+      /*
+        放棄カートの回収（2026-08-20）。
+        決済ページまで来て離脱した人に、Stripeから「続きから再開する」リンク付きメールが届く。
+        実測で「決済ページを開いたが未完了」は完了より多かった＝ここを拾えないと取りこぼす。
+        ⚠️ 送信の実行はStripeダッシュボード側の設定（設定→請求→カスタマーメール）に従う。
+           このパラメーターは回収URLを有効にするもの。割引は付けない（値引きの自動配布はしない）
+      */
+      "after_expiration[recovery][enabled]": "true",
+      "after_expiration[recovery][allow_promotion_codes]": "false",
     });
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",

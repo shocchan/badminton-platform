@@ -9,7 +9,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import {
   PLAN_CATALOG, publishedPlans, visiblePlans, allPlans, planById,
-  acceptsApplication, isPlanPreview, planView, PROVISIONAL_TERMS_NOTICE, trialEntryPlan } from './planCatalog';
+  acceptsApplication, isPlanPreview, planView, PROVISIONAL_TERMS_NOTICE, trialEntryPlan, CNY_REFERENCE } from './planCatalog';
 
 describe('カタログの形', () => {
   it('idが重複していない', () => {
@@ -349,5 +349,31 @@ describe('体験の入口（LPの主CTA・下部固定バーが使う）', () =>
     const p = PLAN_CATALOG.find((x) => x.id === t?.id)!;
     expect(t?.priceLabel).toBe(p.priceLabelZh);
     expect(t?.name).toBe(p.nameZh);
+  });
+});
+
+describe('人民元の参考表示（中国語ページ）', () => {
+  it('日本語では出さない（円で買う人に換算は不要）', () => {
+    for (const p of PLAN_CATALOG) expect(planView(p, 'ja').priceApproxCny).toBeNull();
+  });
+
+  it('中国語では「约◯元」を出す', () => {
+    for (const p of PLAN_CATALOG) {
+      const v = planView(p, 'zh');
+      if (p.priceJpy === null) { expect(v.priceApproxCny).toBeNull(); continue; }
+      expect(v.priceApproxCny).toMatch(/^约[0-9,]+元$/);
+    }
+  });
+
+  it('**換算は四捨五入で、レート定数と一致する**（画面に出す数字を勘で書かない）', () => {
+    const trial = PLAN_CATALOG.find((p) => p.id === 'ai-trial-pass')!;
+    const expected = Math.round(trial.priceJpy! * CNY_REFERENCE.cnyPerJpy);
+    expect(planView(trial, 'zh').priceApproxCny).toBe(`约${expected.toLocaleString('en-US')}元`);
+  });
+
+  it('レートには基準日がある（古さを画面と運用で判断できるようにする）', () => {
+    expect(CNY_REFERENCE.asOf).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(CNY_REFERENCE.cnyPerJpy).toBeGreaterThan(0);
+    expect(CNY_REFERENCE.cnyPerJpy).toBeLessThan(1); // 1円 > 1元 になったら異常
   });
 });

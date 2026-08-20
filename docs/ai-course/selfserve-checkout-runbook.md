@@ -184,3 +184,78 @@ bot対策は効いていない。**広告を出す前に下記2ステップを�
   className に `hidden` を足しても display は勝てない）
 - 実測（staging 375px）: 3プランの価格が **2画面目までに全部見える**（改修前は9画面目）。
   横スクロールなし・タップ領域44px・料金セクション着地は見出しが隠れない位置
+
+---
+
+## 2026-08-21 追記: 売れる仕組みの穴埋め（A-1〜A-7）
+
+導線分析で出た7つの穴のうち、**コードで閉じられるものは全部閉じた**。
+残りはCEOの操作か素材が要るものだけ。
+
+### ✅ A-2 放棄カートの回収（実装済み）
+`ai-course-checkout` の Checkout セッションに `after_expiration[recovery][enabled]=true` を付けた。
+決済ページまで来て離脱した人へ、Stripeから「続きから再開する」リンク付きメールが届く。
+値引きは配らない（`allow_promotion_codes=false`）。
+- 実測の裏付け: 台帳で「決済ページを開いたが未完了」が完了より多かった
+- ⚠️ **送信の実行はStripeダッシュボード側の設定に従う**（設定→請求→カスタマーメール→
+  「放棄されたカート」をON）。パラメーターは回収URLを有効にするもの
+- パラメーターを足してもセッション作成が壊れないことは、一時関数で実測して確認済み
+
+### ✅ A-3 購入後フォローメール3通（実装・稼働中）
+それまで**購入時の1通を送ったきり、以後の接触がゼロ**だった。
+`ai-course-lifecycle-mails`（Edge Function）＋ `ai_course_mail_log`（送信ログ）＋
+pg_cron `ai-course-lifecycle-daily`（毎日 01:30 UTC ＝ 日本時間 10:30）。
+
+| 用件 | 条件 |
+|---|---|
+| `trial_not_started` | 体験パスを買って**24時間**たっても開始していない（期限内） |
+| `trial_ended` | 体験の窓（60分）が終わった＝次の選択肢を出す唯一の機会 |
+| `expiring_soon` | 利用期限まで**3日**以内 |
+
+- **1人につき1回の実行で1通まで**。同じ用件は `dedupe_key` で二度と送らない
+- 送信に失敗したらログ行を消す＝翌日リトライできる（一時障害でメールが永久に消えない）
+- 返金済みには送らない。宛先不明の行（購入行を消したQA残骸）も落ちる
+- 判定と本文は `supabase/functions/_shared/aiCourseLifecycle.ts`（純粋関数）。
+  🔑 `ai_course_access` は auth.users への外部キーがあり**本番に検証用の行を置けない**
+  （2026-08-21に 23503 で実測）。だから判定はローカルの
+  `src/lib/aiLesson/course/plans/aiCourseLifecycle.test.ts` で固定している
+- 手動実行（dryRun）:
+  ```sql
+  select net.http_post(
+    url := 'https://jdkwijdphlkrcoiggfqw.supabase.co/functions/v1/ai-course-lifecycle-mails',
+    headers := jsonb_build_object('Content-Type','application/json',
+      'x-cron-secret',(select decrypted_secret from vault.decrypted_secrets where name='reminder_cron_secret')),
+    body := '{"dryRun":true}'::jsonb, timeout_milliseconds := 30000);
+  -- 応答: select status_code, content from net._http_response order by created desc limit 1;
+  ```
+
+### ✅ A-7 人民元の参考表示（実装済み）
+中国語ページの価格に「约◯元」を併記。正準は `planCatalog.CNY_REFERENCE`
+（`cnyPerJpy` と `asOf` の2つ。出典はECB参照レート）。**請求は常に日本円**なので、
+料金表の末尾に「元为参考换算，实际扣款金额以发卡行当日汇率为准」を出す。
+- レートを見直したら `cnyPerJpy` と `asOf` を**両方**直す（テストが形式を検査する）
+
+### 🔑 A-1 Alipay / WeChat Pay（**CEO操作が必要**）
+中国人学習者向けなのに**カード決済しかない**のが、いまいちばん大きい入口の詰まり。
+
+2026-08-21に実測した結果:
+- Stripeアカウント（JP・JPY）の **`alipay_payments` / `wechat_pay_payments` capability が未申請**
+- 決済手段の設定を `on` にしても、Checkoutセッションの `payment_method_types` は `card` のまま
+  → **設定だけでは出ない。Stripe側の有効化申請が要る**
+- 設定は元（off）に戻し済み。ベースライン `["card","link"]` 復旧を実測
+
+CEOの操作:
+1. Stripeダッシュボード → 設定 → 決済手段 → **Alipay** と **WeChat Pay** を有効化
+   （事業内容の確認が入る場合あり。JPYでの利用可否もここで分かる）
+2. 有効になったら教えてください。コード側は `payment_method_types` を固定していないので
+   **基本は自動で出ます**。ただし WeChat Pay は `payment_method_options[wechat_pay][client]=web`
+   の指定が要る可能性があり、⚠️ **capabilityが無い状態でこれを付けると Link が消える**
+   （2026-08-21実測）。有効化後に付けること
+
+### ⏳ 残り（コードでは閉じられない）
+- **A-4 社会的証明**: 掲載は「先行モニター利用中」の1枚だけ。捏造しない方針は維持。
+  出せる材料は ①実データ ②CEOの指導歴 ③実画面スクショ／デモ動画
+  （枠は `sectionsB.tsx` の `SHOW_SCREENSHOT_FRAME` / `SHOW_SYSTEM_DEMO` に用意済み。**素材待ち**）
+- **A-5 返金条件**: 「プランにより異なります」のまま。特定継続的役務提供に当たるかの確認が未了
+  （docs/ai-course/legal-open-questions.md）。**CEOの判断が要る**ので断定文言は入れていない
+- **A-6 Turnstile**: 鍵の投入だけ残り（このファイル上部の手順）

@@ -57,6 +57,10 @@ export function PriceTeaserStrip({ lang, variant }: { lang: Lang; variant: strin
                     幅に関係なく縦積みで固定する
                   */}
                   <span className="block font-extrabold text-[1.1rem] leading-none text-lp-coral-deep">{p.priceLabel}</span>
+                  {/* 中国語表示のときだけ参考の元換算（請求は常に日本円） */}
+                  {p.priceApproxCny && (
+                    <span className="mt-0.5 block text-[0.78rem] font-bold text-lp-ink-soft">{p.priceApproxCny}</span>
+                  )}
                   <span className="mt-1.5 block font-extrabold text-[0.9rem] text-lp-ink">{p.name}</span>
                   <span className="mt-0.5 block text-[0.78rem] text-lp-ink-soft leading-snug">{p.audience}</span>
                 </button>
@@ -65,7 +69,10 @@ export function PriceTeaserStrip({ lang, variant }: { lang: Lang; variant: strin
           </ul>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="text-[0.8rem] text-lp-ink-soft">{LP.priceTeaser.note[lang]}</p>
+            <p className="text-[0.8rem] text-lp-ink-soft">
+              {LP.priceTeaser.note[lang]}
+              {lang === 'zh' && <span className="block">{LP.currencyNote[lang]}</span>}
+            </p>
             <button type="button"
               onClick={() => goPricing('price_teaser_more', { variant })}
               className="inline-flex items-center gap-1.5 min-h-11 text-[0.9rem] font-bold text-lp-pine underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">

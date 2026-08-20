@@ -93,6 +93,10 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
                   <p className="mt-3 text-[0.9rem] font-bold text-lp-pine">{view.audience}</p>
                   <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <span className="font-extrabold text-lp-ink text-[1.9rem] leading-none">{view.priceLabel}</span>
+                    {/* 中国語表示のときだけ参考の元換算（請求は日本円。注記はセクション末尾） */}
+                    {view.priceApproxCny && (
+                      <span className="font-bold text-lp-ink-soft text-[1rem]">{view.priceApproxCny}</span>
+                    )}
                   </div>
                   <p className="text-lp-ink font-bold text-[0.95rem] mt-1.5">{view.durationLabel}</p>
                   {view.monthlyEquivalent && (
@@ -166,6 +170,10 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
         <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.disclaimer[lang]}</p>
         {/* 2回目以降の購入で学習記録を引き継ぐ条件（ログイン中＝自動／ログアウト時＝同じメール） */}
         <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.accountNote[lang]}</p>
+        {/* 決済通貨の注記。元は参考換算にすぎないことを料金表の中で言い切る */}
+        {lang === 'zh' && (
+          <p className="text-[0.84rem] text-lp-ink-soft mt-1">{LP.currencyNote[lang]}</p>
+        )}
       </div>
     </section>
   );
