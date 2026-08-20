@@ -85,16 +85,33 @@ describe('聴解が測れない級では「あと◯問」と言わない', () =
     }
   });
 
-  it('N5・N4 のブロッカーは「0/20問」ではなく「音源がないので測れない」', () => {
-    for (const target of ['N5', 'N4'] as const) {
+  /**
+   * 2026-08-20: N5/N4 の音源を12セットずつ用意したので、この2級も
+   * 「あと◯問」で案内する側に変わった。**言い方は音源の有無で決まる**という規則
+   * （音源が無い級は「音源がないので測れない」）自体は下の2テストで守る
+   */
+  it('音源がある級は「あと◯問」で案内する（測れるのに測れないと言わない）', () => {
+    for (const target of ACTIVE_TARGET_LEVELS) {
+      if (listeningSetsFor(target as 'N5' | 'N4' | 'N3' | 'N2').length === 0) continue;
       const r = report(target);
       const listeningBlockers = r.overallBlockersJa.filter((b) => b.includes('聴解'));
-      expect(listeningBlockers).toHaveLength(1);
+      expect(listeningBlockers, `${target}`).toHaveLength(1);
+      expect(listeningBlockers[0], `${target}`)
+        .toContain(`0/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}問`);
+      expect(listeningBlockers[0], `${target}: 音源があるのに「音源がない」と言っている`)
+        .not.toContain('音源');
+    }
+  });
+
+  it('音源が無い級は「音源がないので測れない」と言う（あと◯問と言わない）', () => {
+    for (const target of ACTIVE_TARGET_LEVELS) {
+      if (listeningSetsFor(target as 'N5' | 'N4' | 'N3' | 'N2').length > 0) continue;
+      const r = report(target);
+      const listeningBlockers = r.overallBlockersJa.filter((b) => b.includes('聴解'));
+      expect(listeningBlockers, `${target}`).toHaveLength(1);
       expect(listeningBlockers[0]).not.toContain(`0/${OVERALL_READINESS_REQUIREMENT.minEvidencePerSkill}問`);
       expect(listeningBlockers[0]).toContain('音源');
-      // 中国語側も同じ扱い
       expect(r.overallBlockersZh.filter((b) => b.includes('听力'))).toHaveLength(1);
-      // 行の注記も「まだ測定していません」（＝これから測れる）と言わない
       const row = r.rows.find((x) => x.key === 'listening')!;
       expect(row.pct).toBeNull();
       expect(row.noteJa).toContain('音源');

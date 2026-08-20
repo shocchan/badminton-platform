@@ -105,7 +105,7 @@ export const listeningToQuestion = (s: ListeningSet): AdvBattleQuestion => ({
   status: 'validated_beta',
 });
 
-export const listeningPool = (level: 'N5' | 'N4' | 'N3' | 'N2'): Map<string, AdvBattleQuestion[]> => {
+export const listeningPool = (level: ListeningLevel): Map<string, AdvBattleQuestion[]> => {
   const map = new Map<string, AdvBattleQuestion[]>();
   for (const s of listeningSetsFor(level)) {
     const target = `listen-${s.sourceLevel.toLowerCase()}-${s.listeningType}`;
@@ -116,7 +116,7 @@ export const listeningPool = (level: 'N5' | 'N4' | 'N3' | 'N2'): Map<string, Adv
   return map;
 };
 
-export const listeningTargetIds = (level: 'N5' | 'N4' | 'N3' | 'N2'): string[] => [...listeningPool(level).keys()];
+export const listeningTargetIds = (level: ListeningLevel): string[] => [...listeningPool(level).keys()];
 
 export interface ListeningCoverage {
   level: 'N2' | 'N3';
@@ -128,7 +128,14 @@ export interface ListeningCoverage {
   pass: boolean;
 }
 
-/** Pilot最低coverage（各主要type 5セット以上・合計25セット以上・全て再生可能） */
+/**
+ * Pilot最低coverage（各主要type 5セット以上・合計25セット以上・全て再生可能）。
+ *
+ * **N5/N4はこの基準の対象外**なので、引数の型を 'N2' | 'N3' のままにしてある。
+ * 本試験のN5/N4聴解には概要理解・統合理解が無く、発話表現は絵が要るため作っていない。
+ * 5type×5セット＝25セットという形は、5typeが出るN3/N2の話であって、
+ * N5/N4（3type×4セット＝12）へ当てはめると「足りない」と嘘の判定になる。
+ */
 export const listeningCoverage = (level: 'N2' | 'N3'): ListeningCoverage => {
   const all = ALL_LISTENING_SETS.filter((s) => s.sourceLevel === level);
   const sets = listeningSetsFor(level);

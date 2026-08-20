@@ -1,5 +1,149 @@
 [
  {
+  "setId": "n5l-task-01",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "家で母と男の人が話しています。男の人は何を買いに行きますか。母「お店でパンと牛乳を買ってきてください。」男「たまごはいりませんか。」母「たまごは家にありますから、いりません。あ、りんごを三つお願いします。」男「はい、わかりました。かごを持って行きます。」"
+ },
+ {
+  "setId": "n5l-task-02",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "学校で先生が話しています。学生はこれからまず何をしますか。先生「今から絵をかきます。かみは前のつくえの上にあります。一人一まい、とりに来てください。えんぴつとけしゴムは、みなさんのつくえの中にありますから、出さなくていいです。かみをとってから、右の上に名前を書いてください。」"
+ },
+ {
+  "setId": "n5l-task-03",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "食堂で店員と女の人が話しています。女の人はこのあとまず何をしますか。女「すみません、この定食をお願いします。」店員「はい。お飲み物はいかがですか。」女「じゃあ、お水をください。」店員「お水はあちらにありますので、ご自由にお取りください。お金は、食べたあとでこちらへお願いします。」女「はい、わかりました。」"
+ },
+ {
+  "setId": "n5l-task-04",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "家で父と女の人が話しています。女の人はこのあとまず何をしますか。父「ごはんができましたよ。」女「はい。今、おはしを出しますね。」父「おはしは私がもう出しました。それより、先に手をあらってきてください。」女「あ、そうですね。すぐ行ってきます。」"
+ },
+ {
+  "setId": "n5l-point-01",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "学校で先生と女の人が話しています。女の人はきのうどうして学校を休みましたか。先生「きのうは休みでしたね。かぜですか。」女「いいえ、かぜではありません。朝からおなかがいたくて、病院へ行きました。」先生「そうですか。今は大丈夫ですか。」女「はい、薬を飲みましたから、もう元気です。」"
+ },
+ {
+  "setId": "n5l-point-02",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "男の人と女の人が話しています。男の人は何曜日にプールへ行きますか。女「毎週プールへ行っていますね。土曜日ですか。」男「いいえ、土曜日は人が多いですから、行きません。」女「じゃあ、日曜日ですか。」男「日曜日は仕事です。私が行くのは水曜日の夜です。人が少なくて、いいですよ。」"
+ },
+ {
+  "setId": "n5l-point-03",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。パーティーはどこでしますか。男「金曜日のパーティー、駅前のレストランでしますか。」女「そこは高いですから、やめました。」男「じゃあ、公園ですか。」女「公園は雨がふると困ります。ですから、会社の三階の広い部屋でします。」男「わかりました。」"
+ },
+ {
+  "setId": "n5l-point-04",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "男の人と女の人が話しています。女の人はどうして自転車で会社へ行きますか。男「毎日自転車ですね。会社まで遠いでしょう。」女「三十分くらいです。バスもありますが、朝はとてもこみますから。」男「そうですね。朝のバスは人が多いです。」女「自転車はこんでいませんから、いいです。」"
+ },
+ {
+  "setId": "n5l-quick-01",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "すみません、その本をちょっと見せてください。"
+ },
+ {
+  "setId": "n5l-quick-02",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "すみません、お誕生日はいつですか。"
+ },
+ {
+  "setId": "n5l-quick-03",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "これから食堂へ行きます。いっしょにお昼ごはんを食べませんか。"
+ },
+ {
+  "setId": "n5l-quick-04",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "あのう、すみません。駅はどこですか。"
+ },
+ {
+  "setId": "n4l-task-01",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "病院で受付の人と男の人が話しています。男の人はこのあとまず何をしますか。女「山田さん、今日の診察はこれで終わりです。」男「ありがとうございました。薬はここでもらえますか。」女「薬は外の薬局でお願いします。その前に、この番号札を持って、あちらの会計でお金をはらってください。薬局へ出す紙は、会計のときにおわたしします。」男「わかりました。」"
+ },
+ {
+  "setId": "n4l-task-02",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "駅で係の人と女の人が話しています。女の人はこのあとどうしますか。女「あのう、この電車、動かないんですか。」係「はい、事故で止まっております。動くまで三十分ほどかかりそうです。」女「困ったな。二時までに行きたいんですが。」係「でしたら、北口からバスが出ていますよ。バスなら四十分ほどで着きます。」女「じゃあ、そうします。ありがとうございます。」"
+ },
+ {
+  "setId": "n4l-task-03",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "アルバイトの店で店長と学生が話しています。学生はこのあとまず何をしますか。店長「今日は雨がふりそうだから、外の看板を中に入れておいてくれる？」学生「はい。そのあとレジに入りましょうか。」店長「レジは私がやるよ。看板が終わったら、倉庫の飲み物を棚に並べておいて。」学生「わかりました。」"
+ },
+ {
+  "setId": "n4l-task-04",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "電話で男の人と女の人が話しています。女の人はこのあとまず何をしますか。男「あしたの映画だけど、六時からのに変えられないかな。会議が長引きそうなんだ。」女「六時ね。わかった。でも、切符はもう八時ので買ってあるの。」男「あ、そうか。ごめん。」女「ううん、大丈夫。今から店に電話して、変えられるか聞いてみるね。」"
+ },
+ {
+  "setId": "n4l-point-01",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "男の人と女の人が話しています。男の人はどうして自転車を買おうと思っていますか。女「自転車、買うんですか。」男「ええ。今は歩いて駅まで行っているんですが、朝は道がこんでいて、どれくらいかかるか分からなくて。」女「電車の時間に間に合わないことがあるんですね。」男「そうなんです。運動のためじゃなくて、遅れたくないからです。」"
+ },
+ {
+  "setId": "n4l-point-02",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "女の人が話しています。女の人が日本語で一番困っていることは何ですか。女「日本語の勉強を始めて二年になります。漢字は難しいですが、書いたり読んだりして覚えれば何とかなります。文法も、教科書を見たり先生に聞いたりできます。ただ、店や駅で急に話しかけられると、何を言われたか分からなくて。それが一番困っています。」"
+ },
+ {
+  "setId": "n4l-point-03",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。男の人はどうしてきのうの食事会に行けませんでしたか。女「きのう、来ませんでしたね。」男「すみません。行くつもりだったんですが、帰る前に部長に急な仕事を頼まれてしまって。」女「体の具合が悪いのかと思いました。」男「いえ、元気です。電車も動いていたんですが、仕事が終わったのが九時すぎで。」"
+ },
+ {
+  "setId": "n4l-point-04",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "女の人が話しています。女の人はどうしてバスをやめて電車で通うことにしましたか。女「先月から電車で通っています。バスは家の前から乗れて、乗りかえもなくて楽だったんですが、道がこむ日はどれくらいかかるか分かりません。電車は駅まで歩きますし、料金も少し高いんですが、何時に着くか分かるので安心です。」"
+ },
+ {
+  "setId": "n4l-quick-01",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "あ、それ重そうですね。よかったら、私が持っておきましょうか。"
+ },
+ {
+  "setId": "n4l-quick-02",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "すみません、かぜをひいてしまったので、今日は早く帰ってもいいですか。"
+ },
+ {
+  "setId": "n4l-quick-03",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "この書類、来週の月曜までに出せばいいんですよね。"
+ },
+ {
+  "setId": "n4l-quick-04",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "切符はもう買っておいたから、あしたはそのまま駅に来てね。"
+ },
+ {
   "setId": "n3l-task-01",
   "sourceLevel": "N3",
   "listeningType": "taskComprehension",
