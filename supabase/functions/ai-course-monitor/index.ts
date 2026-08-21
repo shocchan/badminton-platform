@@ -60,17 +60,19 @@ serve(async (req) => {
     provisionStuckMinutes: Number(cfg.provision_stuck_minutes ?? DEFAULT_THRESHOLDS.provisionStuckMinutes),
     conversationErrorThreshold: Number(cfg.conversation_error_threshold ?? DEFAULT_THRESHOLDS.conversationErrorThreshold),
     cronStaleHours: Number(cfg.cron_stale_hours ?? DEFAULT_THRESHOLDS.cronStaleHours),
+    stuckSessionHours: Number(cfg.stuck_session_hours ?? DEFAULT_THRESHOLDS.stuckSessionHours),
   };
   const alertEmail: string = String(cfg.alert_email ?? "info@kawabado.com");
   const cooldownHours = Number(cfg.digest_cooldown_hours ?? 20);
   const lastDigestISO: string | null = cfg.last_digest_at ? String(cfg.last_digest_at) : null;
 
   // ── 入力を集める ──
-  const [purchaseRows, sessionRows, cronRows, eventRows] = await Promise.all([
+  const [purchaseRows, sessionRows, cronRows, eventRows, stuckRows] = await Promise.all([
     get("ai_plan_purchases?select=id,status,livemode,user_id,error,created_at,provisioned_at&order=created_at.desc&limit=500"),
     get(`ai_learning_sessions?select=completion_status,error_code,started_at&started_at=gte.${since}&limit=2000`),
     rpc("ai_monitor_cron_health"),
     get(`ai_course_events?select=id&created_at=gte.${since}&limit=1`),
+    get('ai_learning_sessions?select=id,started_at&completion_status=eq.in_progress&limit=200'),
   ]);
 
   const alerts = detectAlerts({
@@ -86,6 +88,7 @@ serve(async (req) => {
       errorCode: s.error_code === null || s.error_code === undefined ? null : String(s.error_code),
       startedAtISO: String(s.started_at),
     })),
+    stuckSessions: stuckRows.map((r) => ({ sessionId: String(r.id), startedAtISO: String(r.started_at) })),
     cronJobs: cronRows.map((j) => ({
       jobname: String(j.jobname), lastStatus: j.last_status ? String(j.last_status) : null,
       lastStartISO: j.last_start ? String(j.last_start) : null,

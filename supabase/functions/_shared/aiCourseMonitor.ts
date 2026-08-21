@@ -12,12 +12,15 @@ export interface MonitorThresholds {
   provisionStuckMinutes: number;
   conversationErrorThreshold: number;
   cronStaleHours: number;
+  /** 会話が in_progress のまま放置されている時間（これを超えたら拾う） */
+  stuckSessionHours: number;
 }
 
 export const DEFAULT_THRESHOLDS: MonitorThresholds = {
   provisionStuckMinutes: 30,
   conversationErrorThreshold: 3,
   cronStaleHours: 30,
+  stuckSessionHours: 6,
 };
 
 /** 検知の入力（すべて既存テーブル由来。監視のために新しい記録は増やさない） */
@@ -37,6 +40,13 @@ export interface MonitorInput {
     errorCode: string | null;
     startedAtISO: string;
   }[];
+  /**
+   * `in_progress` のまま残っているセッション（期間を問わず全件）。
+   * サーバーは同時セッションを1本に制限するため、これが残っていると
+   * 次に会話を始めたとき復旧ダイアログが出る（＝詰みはしないが、
+   * 放置＝その人は会話を中断したまま戻っていない可能性が高い）。
+   */
+  stuckSessions: { sessionId: string; startedAtISO: string }[];
   cronJobs: { jobname: string; lastStatus: string | null; lastStartISO: string | null }[];
   /** 直近24時間のイベント件数（0なら計測が死んでいる疑い） */
   recentEventCount: number;
@@ -117,7 +127,25 @@ export const detectAlerts = (input: MonitorInput): DetectedAlert[] => {
     });
   }
 
-  // ── ④ cron が止まっている / 失敗した ──
+  // ── ④ 会話が始まったまま終わっていない ──
+  // 通常の会話は数分で終わる。何時間も in_progress のままなら、
+  // 中断して戻っていない人がいる（＝声をかける価値がある）
+  const stuck = input.stuckSessions.filter(
+    (s) => (nowMs - Date.parse(s.startedAtISO)) / HOUR > th.stuckSessionHours,
+  );
+  if (stuck.length > 0) {
+    out.push({
+      dedupeKey: 'stuck_sessions:open',
+      kind: 'stuck_sessions',
+      severity: 'warning',
+      title: '会話が始まったまま終わっていません',
+      detail: `${stuck.length}件が ${th.stuckSessionHours} 時間以上 in_progress のまま`
+        + '（次回ログイン時に復旧ダイアログは出ますが、戻っていない可能性があります）',
+      subjectUserId: null,
+    });
+  }
+
+  // ── ⑤ cron が止まっている / 失敗した ──
   for (const j of input.cronJobs) {
     if (j.lastStatus === 'failed') {
       out.push({
@@ -145,7 +173,7 @@ export const detectAlerts = (input: MonitorInput): DetectedAlert[] => {
     });
   }
 
-  // ── ⑤ 学習は起きているのに計測イベントが1件も入っていない（RPC・配線の死） ──
+  // ── ⑥ 学習は起きているのに計測イベントが1件も入っていない（RPC・配線の死） ──
   if (input.hasRecentSessions && input.recentEventCount === 0) {
     out.push({
       dedupeKey: 'events_missing:daily',

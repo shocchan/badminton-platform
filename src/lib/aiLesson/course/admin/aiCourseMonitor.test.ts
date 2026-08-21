@@ -13,7 +13,7 @@ const HOUR = 3_600_000;
 const ago = (ms: number): string => new Date(Date.parse(NOW) - ms).toISOString();
 
 const base = (over: Partial<MonitorInput> = {}): MonitorInput => ({
-  purchases: [], sessions: [], cronJobs: [],
+  purchases: [], sessions: [], cronJobs: [], stuckSessions: [],
   recentEventCount: 5, hasRecentSessions: true, nowISO: NOW, ...over,
 });
 const purchase = (o: Partial<MonitorInput['purchases'][number]> = {}) => ({
@@ -78,7 +78,27 @@ describe('③ 会話エラーの集約', () => {
   });
 });
 
-describe('④ cron の健全性', () => {
+describe('④ 終わっていない会話', () => {
+  it('閾値を超えて in_progress のままなら warning（件数だけ・IDは出さない）', () => {
+    const a = detectAlerts(base({ stuckSessions: [{ sessionId: 's1', startedAtISO: ago(7 * HOUR) }] }));
+    expect(a.map((x) => x.kind)).toEqual(['stuck_sessions']);
+    expect(a[0].detail).toContain('1件');
+    expect(a[0].detail).not.toContain('s1');
+  });
+
+  it('**まだ数分の会話は騒がない**（利用中に警告を出さない）', () => {
+    expect(detectAlerts(base({ stuckSessions: [{ sessionId: 's1', startedAtISO: ago(10 * MIN) }] }))).toEqual([]);
+  });
+
+  it('複数件でも1つのアラートに畳む', () => {
+    const many = Array.from({ length: 5 }, (_, i) => ({ sessionId: `s${i}`, startedAtISO: ago(20 * HOUR) }));
+    const a = detectAlerts(base({ stuckSessions: many }));
+    expect(a).toHaveLength(1);
+    expect(a[0].detail).toContain('5件');
+  });
+});
+
+describe('⑤ cron の健全性', () => {
   it('失敗は warning', () => {
     const a = detectAlerts(base({ cronJobs: [{ jobname: 'x', lastStatus: 'failed', lastStartISO: ago(HOUR) }] }));
     expect(a.map((x) => x.kind)).toEqual(['cron_failed']);
@@ -98,7 +118,7 @@ describe('④ cron の健全性', () => {
   });
 });
 
-describe('⑤ 計測の死活', () => {
+describe('⑥ 計測の死活', () => {
   it('学習があるのにイベント0なら warning', () => {
     const a = detectAlerts(base({ recentEventCount: 0, hasRecentSessions: true }));
     expect(a.map((x) => x.kind)).toEqual(['events_missing']);
@@ -154,7 +174,7 @@ describe('メール本文', () => {
 describe('既定のしきい値', () => {
   it('コードに散らさずここが正準', () => {
     expect(DEFAULT_THRESHOLDS).toEqual({
-      provisionStuckMinutes: 30, conversationErrorThreshold: 3, cronStaleHours: 30,
+      provisionStuckMinutes: 30, conversationErrorThreshold: 3, cronStaleHours: 30, stuckSessionHours: 6,
     });
   });
 });
