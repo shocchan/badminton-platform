@@ -17,7 +17,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { KeyRound, Sun, Users, Wrench } from 'lucide-react';
+import { KeyRound, Sun, Users, Wrench, BookOpenCheck } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
@@ -39,6 +39,7 @@ import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
 import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
+import { AdminContentReviewTab } from '../../components/ai-course/admin/AdminContentReviewTab';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -50,7 +51,7 @@ import { AdminControlsPanel } from '../../components/ai-course/admin/AdminContro
 import type { AdminLearnerPatch } from '../../components/ai-course/admin/AdminControlsPanel';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
 
-type AdminTab = 'today' | 'students' | 'access' | 'ops';
+type AdminTab = 'today' | 'students' | 'access' | 'ops' | 'content';
 
 /**
  * タブと役割の一言説明（2026-08-19 CEO「受講権タブと生徒タブどう違う？」への恒久対応）。
@@ -62,6 +63,7 @@ const TABS: { id: AdminTab; label: string; desc: string; Icon: typeof Sun }[] = 
   { id: 'today', label: '今日', desc: '今日の要対応まとめ。学習した人・止まっている人・期限接近・矛盾がここに並びます', Icon: Sun },
   { id: 'students', label: '生徒', desc: '学習の中身。ログインして学習を始めた人の進捗を見る・調整する場所です', Icon: Users },
   { id: 'access', label: '受講権', desc: '契約の台帳。発行した全アカウント（未ログイン含む）の利用期間・商品を管理する場所です', Icon: KeyRound },
+  { id: 'content', label: '教材', desc: '教材を1件ずつ人の目で確認する場所。語彙・N2文法・聴解の内容と音声をチェックします', Icon: BookOpenCheck },
   { id: 'ops', label: '運用', desc: '課題報告・AIコスト残高・上限設定・テストデータ削除', Icon: Wrench },
 ];
 
@@ -319,6 +321,8 @@ export default function AiCourseAdminPage() {
         {tab === 'access' && (
           <AdminAccessLedgerTab views={model.views} onSaved={reloadAccess} />
         )}
+
+        {tab === 'content' && <AdminContentReviewTab />}
 
         {tab === 'ops' && (
           <div className="space-y-4">
