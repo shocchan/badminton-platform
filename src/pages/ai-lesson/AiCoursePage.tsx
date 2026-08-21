@@ -16,6 +16,7 @@ import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../../lib/aiLesson/course/courseAccess';
+import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '../../lib/aiLesson/course/plans/planUpsell';
 import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
 import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner';
@@ -320,8 +321,11 @@ export default function AiCoursePage() {
 
   // 画面計測（個人情報なし。gtag未存在なら何もしない）
   useEffect(() => {
-    if (step === 'home') trackCourseOnce('view_ai_course_home');
-    else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
+    if (step === 'home') {
+      trackCourseOnce('view_ai_course_home');
+      // 自社DB側の再訪記録（GA4と違い管理画面のファネルに出る）。日次集計なので重複送信は無害
+      logCourseEvent('app_open');
+    } else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
     else if (step === 'history') trackCourse('open_ai_course_review');
     else if (step === 'notebook') trackCourse('view_ai_course_notebook'); // 名前・本文は送らない
   }, [step]);

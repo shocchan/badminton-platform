@@ -40,6 +40,7 @@ import { N3_UNIT_SPECS } from '../../../lib/aiLesson/course/quality/n3UnitSpecs'
 import { loadAllBasicDrafts } from '../../../lib/aiLesson/course/basicGrammarChunks';
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
 import { nowTrainingLabel, type ExamSkill, type ScopeLevel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
@@ -2845,6 +2846,7 @@ export default function AdvShell(props: AdvShellProps) {
                 // 実際に加算した回だけ「+N」を出す（見直しでは合計だけ）
                 setJustEarnedXp(earned);
                 trackAdv('today_quest_completed', { goalType: prof.goalType ?? undefined, locale: lang });
+                logCourseEvent('quest_completed');
                 setView('complete');
               }}>
               {tx(lang, '今日の冒険を締めくくる', '结束今天的冒险')}

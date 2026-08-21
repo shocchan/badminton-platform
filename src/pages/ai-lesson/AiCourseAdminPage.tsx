@@ -37,6 +37,7 @@ import type { AdminAccountType } from '../../lib/aiLesson/course/admin/adminAcco
 import { buildAttention, buildKpis } from '../../lib/aiLesson/course/admin/adminAttention';
 import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
+import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -295,8 +296,12 @@ export default function AiCourseAdminPage() {
         <p className="mb-4 -mt-1 text-xs text-gray-500">{TABS.find((x) => x.id === tab)?.desc}</p>
 
         {tab === 'today' && (
-          <AdminTodayTab kpis={model.kpis} items={model.attention}
-            onOpenAccount={openAccount} onOpenOps={() => setTab('ops')} />
+          <div className="space-y-4">
+            <AdminTodayTab kpis={model.kpis} items={model.attention}
+              onOpenAccount={openAccount} onOpenOps={() => setTab('ops')} />
+            {/* 学習ファネル（Phase 1 計測基盤）。自前fetchなので model には触らない */}
+            <AdminFunnelCard />
+          </div>
         )}
 
         {tab === 'students' && (selView ? (

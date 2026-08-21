@@ -17,6 +17,7 @@ import { generateRoute } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { BAND_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { knowledgeBandOf } from '../../../lib/aiLesson/course/adventure/advSkillProfile';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -134,6 +135,7 @@ export function AdvOnboarding({
       routeExplanationZh: route.explanationZh,
     };
     trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
+    logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
@@ -162,6 +164,7 @@ export function AdvOnboarding({
     const diagnosis: AdvDiagnosisResult = { ...result, routeExplanationJa: route.explanationJa, routeExplanationZh: route.explanationZh };
     trackAdv('diagnosis_completed', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
     trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
+    logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, diagnosis, skills, route,

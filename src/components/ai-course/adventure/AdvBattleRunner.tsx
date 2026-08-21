@@ -12,6 +12,7 @@ import { buildEncounter, gradeEncounter, encounterName, battleSeedOf, truncateEn
 import { computeMastery, type MasteryStatus, PASS_LABEL } from '../../../lib/aiLesson/course/adventure/advMastery';
 import { nowTrainingLabel, EXAM_SKILL_LABELS, type ScopeLevel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -300,7 +301,7 @@ function BattleResult(props: BattleProps & {
     if (reported.current) return;
     reported.current = true;
     // 中断した回を「バトル完了」として計上しない（継続率の指標を実態より良く見せない）
-    if (!props.partial) trackAdv('battle_completed', { locale: lang });
+    if (!props.partial) { trackAdv('battle_completed', { locale: lang }); logCourseEvent('battle_completed'); }
     props.onFinish(attempt, mastery);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
