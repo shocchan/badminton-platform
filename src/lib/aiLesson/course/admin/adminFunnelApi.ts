@@ -13,18 +13,27 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
   const wide = sinceISO(windowDays + 40);
   const since = sinceISO(windowDays);
 
-  const [purchases, learnersQ, sessionsQ, usageQ, eventsQ] = await Promise.all([
+  const [purchases, learnersQ, sessionsQ, usageQ, eventsQ, accessQ] = await Promise.all([
     adminListPurchases().catch(() => { failed.push('purchases'); return []; }),
-    supabase.from('ai_learners').select('id, user_id, created_at').limit(2000),
+    supabase.from('ai_learners').select('id, user_id, created_at, is_test').limit(2000),
     supabase.from('ai_learning_sessions')
       .select('learner_id, started_at, completion_status, lesson_kind, error_code')
       .gte('started_at', wide).limit(5000),
     supabase.from('ai_usage_daily').select('learner_id, usage_date').limit(5000),
     supabase.from('ai_course_events').select('user_id, kind, created_at').gte('created_at', since).limit(5000),
+    supabase.from('ai_course_access').select('user_id, source').limit(2000),
   ]);
 
+  // テスト判定は2経路（ai_learners.is_test / 受講権 source='test'）。管理画面の型判定と同じ規律
+  const testUserIds = new Set(
+    (accessQ.error ? [] : accessQ.data ?? [])
+      .filter((r) => String(r.source ?? '') === 'test')
+      .map((r) => String(r.user_id)),
+  );
+  if (accessQ.error) failed.push('access');
   const learners: FunnelLearnerRow[] = (learnersQ.error ? [] : learnersQ.data ?? []).map((r) => ({
     id: String(r.id), userId: r.user_id ? String(r.user_id) : null, createdAtISO: String(r.created_at),
+    isTest: !!r.is_test || (r.user_id ? testUserIds.has(String(r.user_id)) : false),
   }));
   if (learnersQ.error) failed.push('learners');
   const sessions: FunnelSessionRow[] = (sessionsQ.error ? [] : sessionsQ.data ?? []).map((r) => ({

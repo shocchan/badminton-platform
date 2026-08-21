@@ -10,7 +10,15 @@
 import { jstDateKeyOf } from '../adventure/advTeacherNote';
 import type { AdminPurchaseRow } from './adminAccountsApi';
 
-export interface FunnelLearnerRow { id: string; userId: string | null; createdAtISO: string }
+export interface FunnelLearnerRow {
+  id: string; userId: string | null; createdAtISO: string;
+  /**
+   * テストアカウントか（ai_learners.is_test または受講権 source='test'）。
+   * **本番KPIから必ず除外する**。管理画面の buildKpis が type='student' 以外を
+   * 除外しているのと同じ規律（2026-08-21 の検証で漏れを発見して追加）
+   */
+  isTest: boolean;
+}
 export interface FunnelSessionRow {
   learnerId: string; startedAtISO: string;
   completionStatus: string; lessonKind: string; errorCode: string | null;
@@ -65,17 +73,19 @@ export const buildCourseFunnel = (input: {
     return !Number.isNaN(t) && t >= sinceMs;
   };
 
+  // テストアカウントは本番KPIに混ぜない（購入は livemode で、学習は is_test で落とす）
+  const testLearnerIds = new Set(input.learners.filter((l) => l.isTest).map((l) => l.id));
+  const isTestLearner = (learnerId: string): boolean => testLearnerIds.has(learnerId);
+
   const learnerByUser = new Map<string, FunnelLearnerRow>();
-  for (const l of input.learners) if (l.userId) learnerByUser.set(l.userId, l);
-  const userByLearner = new Map<string, string>();
-  for (const l of input.learners) if (l.userId) userByLearner.set(l.id, l.userId);
+  for (const l of input.learners) if (l.userId && !l.isTest) learnerByUser.set(l.userId, l);
 
   // ── 購入ファネル（テスト決済は除外） ──
   const live = input.purchases.filter((p) => p.livemode && inWindow(p.createdAtISO));
   const paid = live.filter((p) => p.status === 'paid' || p.status === 'provisioned');
   const provisioned = live.filter((p) => p.status === 'provisioned');
   const setupDone = provisioned.filter((p) => p.userId !== null && learnerByUser.has(p.userId));
-  const sessionsAll = input.sessions.filter((s) => inWindow(s.startedAtISO));
+  const sessionsAll = input.sessions.filter((s) => inWindow(s.startedAtISO) && !isTestLearner(s.learnerId));
   const learnersWithConv = new Set(sessionsAll.map((s) => s.learnerId));
   const convStarted = setupDone.filter((p) => {
     const l = p.userId ? learnerByUser.get(p.userId) : undefined;
@@ -91,7 +101,7 @@ export const buildCourseFunnel = (input: {
     daysByLearner.set(learnerId, set);
   };
   for (const s of sessionsAll) add(s.learnerId, jstDateKeyOf(s.startedAtISO));
-  for (const u of input.usage) add(u.learnerId, u.usageDate);
+  for (const u of input.usage) { if (!isTestLearner(u.learnerId)) add(u.learnerId, u.usageDate); }
   for (const e of input.events) {
     if (!inWindow(e.createdAtISO)) continue;
     const l = learnerByUser.get(e.userId);
@@ -113,8 +123,8 @@ export const buildCourseFunnel = (input: {
     const cur = firstDayEver.get(learnerId);
     if (!cur || dateKey < cur) firstDayEver.set(learnerId, dateKey);
   };
-  for (const s of input.sessions) noteFirst(s.learnerId, jstDateKeyOf(s.startedAtISO));
-  for (const u of input.usage) noteFirst(u.learnerId, u.usageDate);
+  for (const s of input.sessions) { if (!isTestLearner(s.learnerId)) noteFirst(s.learnerId, jstDateKeyOf(s.startedAtISO)); }
+  for (const u of input.usage) { if (!isTestLearner(u.learnerId)) noteFirst(u.learnerId, u.usageDate); }
   for (const e of input.events) {
     const l = learnerByUser.get(e.userId);
     if (l) noteFirst(l.id, jstDateKeyOf(e.createdAtISO));

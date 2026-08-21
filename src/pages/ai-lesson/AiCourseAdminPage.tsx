@@ -38,6 +38,7 @@ import { buildAttention, buildKpis } from '../../lib/aiLesson/course/admin/admin
 import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
 import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
+import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -320,6 +321,9 @@ export default function AiCourseAdminPage() {
         )}
 
         {tab === 'ops' && (
+          <div className="space-y-4">
+          {/* 運用アラート（Task 1）。自前fetchなので model には触らない */}
+          <AdminAlertsPanel onOpenAccount={openAccount} />
           <AdminOpsTab issues={issues} onResolve={resolveIssue}
             testLearners={testLearners} onDeleteTestLearners={deleteTestLearners}
             monthCostStudents={model.kpis.monthCostStudents}
@@ -336,6 +340,7 @@ export default function AiCourseAdminPage() {
               if (r.ok) setTopups(await adminListTopups());
               return r;
             }} />
+          </div>
         )}
       </div>
 

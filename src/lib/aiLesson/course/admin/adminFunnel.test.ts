@@ -16,8 +16,8 @@ const purchase = (over: Partial<AdminPurchaseRow> = {}): AdminPurchaseRow => ({
   status: 'provisioned', userId: 'u1', loginId: 's1', error: null,
   createdAtISO: iso(5), provisionedAtISO: iso(5), ...over,
 });
-const learner = (id: string, userId: string, daysAgo = 5) =>
-  ({ id, userId, createdAtISO: iso(daysAgo) });
+const learner = (id: string, userId: string, daysAgo = 5, isTest = false) =>
+  ({ id, userId, createdAtISO: iso(daysAgo), isTest });
 const session = (learnerId: string, daysAgo: number, over: Partial<{ completionStatus: string; lessonKind: string; errorCode: string | null }> = {}) => ({
   learnerId, startedAtISO: iso(daysAgo),
   completionStatus: 'completed', lessonKind: 'new', errorCode: null, ...over,
@@ -100,5 +100,93 @@ describe('活動・エラー・復習', () => {
     expect(f.activity.convErrors).toBe(1);
     expect(f.activity.reviewSessions).toBe(1);
     expect(f.activity.reviewLearners).toBe(1);
+  });
+});
+
+describe('テストアカウントの除外（本番KPIを汚さない）', () => {
+  it('**is_test の学習者は活動・再訪に数えない**', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 5, true)],
+      sessions: [session('l1', 6), session('l1', 5)],
+      usage: [{ learnerId: 'l1', usageDate: '2026-09-10' }],
+      events: [{ userId: 'u1', kind: 'app_open', createdAtISO: iso(4) }],
+      nowISO: NOW,
+    });
+    expect(f.activity.activeLearners).toBe(0);
+    expect(f.activity.convSessions).toBe(0);
+    expect(f.retention.base).toBe(0);
+  });
+
+  it('本番の学習者は数える（除外が効きすぎていない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1'), learner('l2', 'u2', 5, true)],
+      sessions: [session('l1', 3), session('l2', 3)],
+      usage: [], events: [], nowISO: NOW,
+    });
+    expect(f.activity.activeLearners).toBe(1);
+    expect(f.activity.convSessions).toBe(1);
+  });
+});
+
+describe('タイムゾーン境界（JST / UTC）', () => {
+  // JST は UTC+9。UTC 15:00 = 翌日 00:00 JST。ここを跨いでも日付がずれないこと
+  it('UTC 15:30 の活動は「翌日」のJST日付として数える', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 40)],
+      sessions: [
+        // 2026-09-10 14:30 UTC = 09-10 23:30 JST
+        { learnerId: 'l1', startedAtISO: '2026-09-10T14:30:00Z', completionStatus: 'completed', lessonKind: 'new', errorCode: null },
+        // 2026-09-10 15:30 UTC = 09-11 00:30 JST → 翌日扱い＝D1成立
+        { learnerId: 'l1', startedAtISO: '2026-09-10T15:30:00Z', completionStatus: 'completed', lessonKind: 'new', errorCode: null },
+      ],
+      usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.retention.base).toBe(1);
+    expect(f.retention.d1).toBe(1);
+  });
+
+  it('同じJST日の2セッションは活動日1日ぶん（水増ししない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 40)],
+      sessions: [
+        { learnerId: 'l1', startedAtISO: '2026-09-10T01:00:00Z', completionStatus: 'completed', lessonKind: 'new', errorCode: null },
+        { learnerId: 'l1', startedAtISO: '2026-09-10T09:00:00Z', completionStatus: 'completed', lessonKind: 'new', errorCode: null },
+      ],
+      usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.retention.d1).toBe(0); // 同じ日なので翌日再訪ではない
+    expect(f.activity.activeLearners).toBe(1);
+  });
+});
+
+describe('二重記録に強いこと', () => {
+  it('**同じ日にイベントが何度入っても活動日は1日**（再読込で水増ししない）', () => {
+    const many = Array.from({ length: 25 }, () => ({
+      userId: 'u1', kind: 'app_open', createdAtISO: iso(3),
+    }));
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 40)],
+      sessions: [], usage: [], events: many, nowISO: NOW,
+    });
+    expect(f.activity.activeLearners).toBe(1);
+    expect(f.retention.base).toBe(1);
+    expect(f.retention.d1).toBe(0);
+  });
+});
+
+describe('割合と実数の整合', () => {
+  it('各段の分子は分母を超えない', () => {
+    const f = buildCourseFunnel({
+      purchases: [purchase(), purchase({ id: 'p2', userId: 'u2', status: 'paid', provisionedAtISO: null })],
+      learners: [learner('l1', 'u1')],
+      sessions: [session('l1', 2)],
+      usage: [], events: [], nowISO: NOW,
+    });
+    expect(f.purchase.provisioned).toBeLessThanOrEqual(f.purchase.paid);
+    expect(f.purchase.setupDone).toBeLessThanOrEqual(f.purchase.provisioned);
+    expect(f.purchase.convStarted).toBeLessThanOrEqual(f.purchase.setupDone);
+    expect(f.retention.d1).toBeLessThanOrEqual(f.retention.base);
+    expect(f.retention.d7).toBeLessThanOrEqual(f.retention.base);
+    expect(f.activity.convCompleted).toBeLessThanOrEqual(f.activity.convSessions);
   });
 });
