@@ -197,9 +197,22 @@ describe('読解runner: ルビの出る場所・出ない場所', () => {
       })
       .join('');
     expect(withoutRt).toBe(set.passageJa);
-    // 選択肢（button）にはルビを出さない（語彙の表記問題と同じ事故を避ける）
-    for (const btn of Array.from(container.querySelectorAll('button'))) {
-      expect(btn.querySelectorAll('rt').length, '選択肢にルビが出ている').toBe(0);
+    // 2026-08-22: 選択肢と設問にもルビを出す（CEO指示）。
+    // 本文が読めても選択肢が読めなければ答えられない、という実際の詰まりを直した。
+    // 「読みが答えになる問題」（漢字バンク・語彙の表記問題）にルビを出さない約束は
+    // このファイル末尾の別テストで引き続き固定している。
+    const choiceRt = Array.from(container.querySelectorAll('button'))
+      .reduce((n, btn) => n + btn.querySelectorAll('rt').length, 0);
+    expect(choiceRt, '選択肢にルビが出ていない').toBeGreaterThan(0);
+    // 選択肢のテキスト自体はルビで変わらない（rtを除くと元の文字列）
+    for (const c of set.choices) {
+      const btn = Array.from(container.querySelectorAll('button'))
+        .find((b) => b.textContent?.replace(/\s/g, '').startsWith(c.textJa.slice(0, 4)));
+      if (!btn) continue;
+      const withoutRt = Array.from(btn.querySelectorAll('rt')).reduce(
+        (t, rt) => t.replace(rt.textContent ?? '', ''), btn.textContent ?? '',
+      );
+      expect(withoutRt).toContain(c.textJa);
     }
   });
 

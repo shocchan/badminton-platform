@@ -30,7 +30,7 @@ export interface AdvWorldMapImageProps extends AdvWorldMapProps {
   asset?: WorldMapBackgroundAsset | null;
   /** ランドマークタイル。既定 WORLD_MAP_TILES。[] で無効化（テスト・比較用） */
   tileAssets?: readonly WorldMapTileAsset[];
-  /** 現在地マーカーの絵。既定は旅人（3a）。null で絵なし（HTML のリングとバッジだけ＝現行の見え方） */
+  /** 現在地マーカーの絵。既定は青い旗（3b）。null で絵なし（HTML のリングとバッジだけ＝旧マップの見え方） */
   markerAsset?: WorldMapMarkerAsset | null;
   /** 状態台座の絵。null で台座なし（自作SVGのミニランドマークに戻る） */
   pedestals?: typeof WORLD_MAP_PEDESTALS | null;
@@ -61,7 +61,7 @@ const ALT = {
 } as const;
 
 export const AdvWorldMapImage = ({
-  asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_TILES, markerAsset = WORLD_MAP_MARKERS.traveler,
+  asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_TILES, markerAsset = WORLD_MAP_MARKERS.flag,
   pedestals = WORLD_MAP_PEDESTALS, ...props
 }: AdvWorldMapImageProps) => {
   const [state, setState] = useState<ImageState>(asset ? 'loading' : 'error');

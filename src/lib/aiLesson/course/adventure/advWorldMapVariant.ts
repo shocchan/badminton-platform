@@ -1,19 +1,19 @@
 // 冒険の世界地図の表示方式フラグ（2026-08-22・画像差し替えの土台）。
 //
 // 方式は2つ:
-//   'svg'   … 現行の自作SVG風景（AdvWorldMap）。**既定**。CEO確認前に既定を変えない
-//   'image' … ChatGPT生成の背景画像を敷く版（AdvWorldMapImage）。画像が無い/読めないときは svg へ自動フォールバック
+//   'image' … ChatGPT生成の背景＋街タイル＋台座を敷く版（AdvWorldMapImage）。**既定**（2026-08-22 CEO承認）
+//   'svg'   … 旧・自作SVG風景（AdvWorldMap）。`?map=svg` でいつでも戻せる。画像が無い/読めないときの自動の落とし先でもある
 //
 // 決め方（優先順）:
 //   1. URLクエリ `?map=image` / `?map=svg`（付いていれば localStorage にも保存＝SPA内の画面遷移でクエリが落ちても保つ）
 //      `?map=reset` で保存を消して既定に戻す
 //   2. localStorage `adv.worldMap.variant`
-//   3. 既定 'svg'
+//   3. 既定 'image'（2026-08-22 CEO承認。それまでは 'svg'）
 //
 // プロファイル（DB）は触らない。将来プロファイル側のフラグを足すときは AdvWorldMapSwitch の variant prop に渡す。
 export type WorldMapVariant = 'svg' | 'image';
 
-export const DEFAULT_WORLD_MAP_VARIANT: WorldMapVariant = 'svg';
+export const DEFAULT_WORLD_MAP_VARIANT: WorldMapVariant = 'image';
 export const WORLD_MAP_VARIANT_QUERY = 'map';
 export const WORLD_MAP_VARIANT_STORAGE_KEY = 'adv.worldMap.variant';
 /** `?map=reset` … 保存を消して既定へ戻す */

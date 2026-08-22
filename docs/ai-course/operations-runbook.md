@@ -90,6 +90,31 @@ update ai_config set value = value || jsonb_build_object('conversation_error_thr
 
 ---
 
+## 4-2. ふりがな（N5/N4）の直し方
+
+N5/N4目標の学習者には、読解の本文だけでなく**設問・選択肢・聴解の場面説明/原稿**にも
+ふりがなを出している（2026-08-22）。表示は目標レベルで決まる（N3/N2には出さない＝本物の試験と同じ）。
+
+- 読みは辞書 `src/lib/aiLesson/course/adventure/advRubyDict.ts` に集めてある
+  - `RUBY_RUNS_FROM_PASSAGE` … 手書きの本文ルビから写した読み（本文を直したらここも直す）
+  - `RUBY_RUNS_EXTRA` … 設問・選択肢・聴解にしか出ない語
+  - `RUBY_CONTEXT_RULES` … 前後の字で読みが変わる語（入れる/入ります、行く/行う など）
+  - `RUBY_TEXT_OVERRIDES` … その文字列だけの例外（同じ書き方で読みが2つあるもの）
+- **キーは漢字の連なりまるごと。** 「三日」を「三」＋「日」に割ると "さんにち" になる
+- 辞書に無い語があると、その文字列は**ふりがな無しで出る**（誤読は絶対に出さない）
+
+教材を足したあとは必ず走らせる:
+
+```bash
+./node_modules/.bin/vite-node scripts/ai-course/check-ruby-coverage.ts
+```
+
+足りない語が一覧で出るので、辞書に読みを書き足す。
+テスト `advRubyAuto.test.ts` が同じ判定に加えて、
+「注釈を剥がすと元に戻る」「ふりがながかなだけ」「手書き本文ルビと読みが食い違わない」を検査する。
+
+---
+
 ## 5. バックアップと復旧
 
 | 対象 | 方法 |

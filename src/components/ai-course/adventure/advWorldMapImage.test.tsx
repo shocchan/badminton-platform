@@ -2,7 +2,7 @@
 // 世界地図・画像背景版と表示方式フラグの検査（2026-08-22・画像差し替えの土台）。
 //
 // 画像はまだ無い（ChatGPT 生成待ち）。ここで守るのは「土台」の約束:
-//   ① フラグ既定は 'svg'（URL も localStorage も無ければ旧 SVG 版。<img> は出ない）
+//   ① フラグ既定は 'image'（2026-08-22 CEO承認。`?map=svg` で旧 SVG 版に戻せる）
 //   ② ?map=image で画像版。srcset / width / height / loading=lazy / decoding=async / alt(ja/zh) を持つ。localStorage に保存される
 //   ③ 画像版で読込エラー → 旧 SVG 版へ自動フォールバック（<img> ごと消え、ノード数・タップは変わらない）
 //   ④ 読込成功 → 自作SVG風景が消えて画像が見える（ノード・道は残る）
@@ -69,11 +69,11 @@ describe('表示方式フラグ resolveWorldMapVariant（純関数）', () => {
     };
   };
 
-  it('① 何も無ければ既定 svg', () => {
-    expect(DEFAULT_WORLD_MAP_VARIANT).toBe('svg');
-    expect(resolveWorldMapVariant()).toBe('svg');
-    expect(resolveWorldMapVariant({ search: '', storage: mem() })).toBe('svg');
-    expect(resolveWorldMapVariant({ search: '?map=bogus', storage: mem() })).toBe('svg');
+  it('① 何も無ければ既定 image（2026-08-22 CEO承認で svg から切替）', () => {
+    expect(DEFAULT_WORLD_MAP_VARIANT).toBe('image');
+    expect(resolveWorldMapVariant()).toBe('image');
+    expect(resolveWorldMapVariant({ search: '', storage: mem() })).toBe('image');
+    expect(resolveWorldMapVariant({ search: '?map=bogus', storage: mem() })).toBe('image');
   });
 
   it('② ?map=image は image を返し、storage に保存する', () => {
@@ -89,7 +89,7 @@ describe('表示方式フラグ resolveWorldMapVariant（純関数）', () => {
     s.setItem(WORLD_MAP_VARIANT_STORAGE_KEY, 'image');
     expect(resolveWorldMapVariant({ search: '?map=svg', storage: s })).toBe('svg');
     expect(s.dump()).toEqual({ [WORLD_MAP_VARIANT_STORAGE_KEY]: 'svg' });
-    expect(resolveWorldMapVariant({ search: '?map=reset', storage: s })).toBe('svg');
+    expect(resolveWorldMapVariant({ search: '?map=reset', storage: s })).toBe('image');
     expect(s.dump()).toEqual({});
   });
 
@@ -100,21 +100,33 @@ describe('表示方式フラグ resolveWorldMapVariant（純関数）', () => {
       removeItem: () => { throw new Error('nope'); },
     };
     expect(resolveWorldMapVariant({ search: '?map=image', storage: broken })).toBe('image');
-    expect(resolveWorldMapVariant({ search: '', storage: broken })).toBe('svg');
+    expect(resolveWorldMapVariant({ search: '', storage: broken })).toBe('image');
   });
 });
 
 describe('AdvWorldMapSwitch（フラグで新旧を出し分ける入口）', () => {
-  it('① 既定（クエリ無し・保存無し）は旧 SVG 版: <img> 無し・自作風景あり', () => {
+  it('① 既定（クエリ無し・保存無し）は画像版。保存はしない（明示したときだけ保存）', () => {
+    const p = profileFor('hybrid');
+    const map = mapFor(p, 'combined', 0);
+    const { container } = render(<AdvWorldMapSwitch {...propsFor(map, p)} />);
+    const nav = screen.getByRole('navigation', { name: NAV_NAME });
+    expect(nav.getAttribute('data-map-variant')).toBe('image');
+    expect(container.querySelector('img')).toBeTruthy();
+    // 読込中は自作SVG風景がプレースホルダとして残る（高さが変わらない＝ガタつかない）
+    expect(sceneryOf(container)).toBeTruthy();
+    expect(nodeButtons(nav).length).toBe(map.regions.length);
+    expect(window.localStorage.getItem(WORLD_MAP_VARIANT_STORAGE_KEY)).toBeNull();
+  });
+
+  it('?map=svg を指定すれば旧 SVG 版に戻せる（<img> 無し）', () => {
+    window.history.replaceState({}, '', '/ja/ai-course?map=svg');
     const p = profileFor('hybrid');
     const map = mapFor(p, 'combined', 0);
     const { container } = render(<AdvWorldMapSwitch {...propsFor(map, p)} />);
     const nav = screen.getByRole('navigation', { name: NAV_NAME });
     expect(nav.getAttribute('data-map-variant')).toBe('svg');
     expect(container.querySelector('img')).toBeNull();
-    expect(sceneryOf(container)).toBeTruthy();
     expect(nodeButtons(nav).length).toBe(map.regions.length);
-    expect(window.localStorage.getItem(WORLD_MAP_VARIANT_STORAGE_KEY)).toBeNull();
   });
 
   it('② ?map=image で画像版になり、localStorage に保存される', () => {
@@ -304,6 +316,6 @@ describe('ランドマークタイル（背景の上・道の下の SVG <image>�
     expect(marker?.getAttribute('aria-hidden')).toBe('true');
     expect(r.container.querySelector('button[aria-current="step"]')).not.toBeNull();
     // 底辺が現在地。高さ 34（viewBox 単位）
-    expect(Number(marker?.getAttribute('height'))).toBeCloseTo(40, 5);
+    expect(Number(marker?.getAttribute('height'))).toBeCloseTo(30, 5);   // 既定は青い旗（3b）
   });
 });

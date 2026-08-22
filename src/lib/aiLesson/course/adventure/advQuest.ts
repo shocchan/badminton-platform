@@ -241,6 +241,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // 濁音・拗音・促音・長音は本編と並走させる（下の kanaSideStep）
   if (!isKanaReadable(profile.kana)) {
     const check = profile.kana?.needed === null;
+    /** N3以上をめざす人（この人たちにとって「かなチェック」は目標と噛み合って見えない） */
+    const upperTarget = profile.targetJlpt === 'N3' || profile.targetJlpt === 'N2' || profile.targetJlpt === 'N1';
     const rowIds = check ? ['check'] : todaysKanaRowIds(profile.kana, kanaRowsPerDay(profile.dailyMinutes ?? 15));
     const rowLabelJa = rowIds.map((id) => kanaRowById(id)?.labelJa ?? '').filter(Boolean).join('・');
     const rowLabelZh = rowIds.map((id) => kanaRowById(id)?.labelZh ?? '').filter(Boolean).join('・');
@@ -255,11 +257,17 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
       dateKey, goalType,
       primaryTargets: rowIds,
       steps: [kanaStep],
+      // 目標がN3以上の人にも、まだレベルを測っていなければ最初にかなチェックが出る（意図した設計）。
+      // ただし「N2をめざす人にひらがな？」は誤作動に見えるので、理由をはっきり言う（2026-08-22 CEO実機指摘）
       whyJa: check
-        ? 'まず、ひらがな・カタカナが読めるかを確認します。読めればこのステップはすぐ終わります。'
+        ? (upperTarget
+          ? `まだレベルを測っていないので、最初に読みの土台だけ確認します。読めればすぐ終わって、次から${profile.targetJlpt}の内容に入ります。`
+          : 'まず、ひらがな・カタカナが読めるかを確認します。読めればこのステップはすぐ終わります。')
         : 'まず、ひらがな・カタカナを読める状態にします。ここが全部の土台です。',
       whyZh: check
-        ? '先确认你是否已经会读平假名和片假名。会读的话这一步马上就结束。'
+        ? (upperTarget
+          ? `还没有测过你的水平，所以先只确认阅读的地基。会读的话马上就结束，下一步就进入${profile.targetJlpt}的内容。`
+          : '先确认你是否已经会读平假名和片假名。会读的话这一步马上就结束。')
         : '先把平假名和片假名练到会读。这是所有学习的地基。',
       estimatedMinutes: kanaStep.estMinutes,
       targetSkills: ['vocabulary'],

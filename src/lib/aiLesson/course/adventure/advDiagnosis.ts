@@ -266,6 +266,39 @@ export const scoreDiagnosis = (input: DiagnosisScoreInput): DiagnosisOutcome => 
   return { result, skills };
 };
 
+/**
+ * 現在地診断（12問）を出さない目標かどうか（CEO決定 2026-08-22）。
+ *
+ * 【なぜ出さないか】
+ * 診断はN3/N2の語彙・文法プールから出題する。ひらがなしか読めない人にとっては
+ * 「住・飲・読」のような漢字だけの選択肢が12問並ぶ画面になり、
+ * 測っているのは実力ではなく「読めないこと」でしかない。
+ * N5/N4はどちらにせよ基礎（かな→ことば→文法）から順に進むので、
+ * 診断の結果でルートが変わらない。測れないものを測るふりをせず、
+ * 冒険の入口まで最短で通す。
+ *
+ * 会話目標（conversation）は targetJlpt を使わないので対象外。
+ */
+export const skipsDiagnosis = (goalType: AdvGoalType, targetJlpt: JlptLevel | null): boolean =>
+  goalType !== 'conversation' && (targetJlpt === 'N5' || targetJlpt === 'N4');
+
+/**
+ * 診断を出さなかった人の診断結果。
+ * 「測っていない」を needs_assessment としてそのまま返す（原則13: 存在するふりをしない）。
+ * scoreDiagnosis に空の出題・空の解答を渡すのと同じ＝分岐を増やさず、
+ * 既存の「証拠0件なら断定しない」経路をそのまま通す。
+ *
+ * この needs_assessment には副作用がある（意図した副作用）:
+ *  - generateRoute が基礎キャンプから始まるルートを組む
+ *  - AdvShell がかな確認を出す → ひらがなが読めない人はかな道場に入る
+ */
+export const unmeasuredDiagnosis = (input: {
+  targetJlpt: JlptLevel | null; goalType: AdvGoalType; nowISO: string;
+}): DiagnosisOutcome => scoreDiagnosis({
+  questions: [], answers: [], convSamples: [], conversationSampled: false,
+  targetJlpt: input.targetJlpt, goalType: input.goalType, nowISO: input.nowISO,
+});
+
 /** 目標との距離の表示文（§5の文言原則: 降格と言わない） */
 export const gapPhrase = (target: JlptLevel, knowledge: AdvBand): { ja: string; zh: string } => {
   if (knowledge === 'needs_assessment') {

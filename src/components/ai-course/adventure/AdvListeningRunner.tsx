@@ -11,6 +11,8 @@ import { presentQuestion } from '../../../lib/aiLesson/course/adventure/advChoic
 import { nowTrainingLabel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { JaTermText } from './JaTermText';
+import { AdvRuby } from './AdvRuby';
+import { annotateRuby } from '../../../lib/aiLesson/course/adventure/advRubyAuto';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -33,6 +35,11 @@ export interface AdvListeningRunnerProps {
    * （呼び出し側はこのstepを飛ばす出口を出すこと。出さないと完全な行き止まりになる）
    */
   onClose: (reason?: 'no-questions' | 'audio-unavailable') => void;
+  /**
+   * ふりがなを出すか（N5/N4目標のときだけ true。2026-08-22）。
+   * 読解runnerと同じで、目標レベルで決める。N3/N2は本物の試験と同じく素の字。
+   */
+  showRuby?: boolean;
 }
 
 /** 問題ごとの状態は key で作り直す（effect内のsetStateによるcascading renderを避ける） */
@@ -151,6 +158,7 @@ export function AdvListeningRunner(props: AdvListeningRunnerProps) {
       key={set.setId}
       lang={props.lang} set={set} index={idx} total={props.sets.length}
       recordedCount={carry.doneKeys.length}
+      showRuby={!!props.showRuby}
       onNext={handleNext}
       onSkipAudio={handleSkipAudio}
       onQuit={handleQuit}
@@ -164,11 +172,12 @@ interface ListeningItemProps {
   recordedCount: number;
   onNext: (ok: boolean, key: string) => void;
   onSkipAudio: () => void;
+  showRuby: boolean;
   /** current を渡すと、表示中の問題の答えも記録に含めて締める */
   onQuit: (current?: { ok: boolean; key: string }) => void;
 }
 
-function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipAudio, onQuit }: ListeningItemProps) {
+function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipAudio, onQuit, showRuby }: ListeningItemProps) {
   const [picked, setPicked] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
@@ -176,6 +185,11 @@ function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipA
   const [audioState, setAudioState] = useState<'idle' | 'loading' | 'playing' | 'ended' | 'error'>('idle');
   const [attemptSeed] = useState(() => Date.now());
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  /* N5/N4目標にはふりがな。辞書に無い語があれば annotateRuby が null を返し、素の字が出る */
+  const ja = (text: string) => (
+    <AdvRuby text={text} ruby={showRuby ? annotateRuby(text) ?? undefined : undefined} show={showRuby} />
+  );
 
   const presented = useMemo(
     () => presentQuestion(listeningToQuestion(set), attemptSeed),
@@ -232,7 +246,9 @@ function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipA
         {tx(lang, '今鍛えている試験力', '正在锻炼的考试能力')}：{nowTrainingLabel('listening', lang)}
       </p>
 
-      <p className="mb-3 text-sm text-gray-700">{tx(lang, set.situationJa, set.situationZh)}</p>
+      <p className="mb-3 text-sm text-gray-700" lang={lang === 'zh' ? 'zh' : 'ja'}>
+        {lang === 'zh' ? set.situationZh : ja(set.situationJa)}
+      </p>
 
       {/* 音声。transcriptは解答前に出さない */}
       <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-4 text-center">
@@ -285,7 +301,7 @@ function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipA
         )}
       </div>
 
-      <p className="mb-1 text-base font-semibold text-gray-900">{set.questionJa}</p>
+      <p className="mb-1 text-base font-semibold text-gray-900" lang="ja">{ja(set.questionJa)}</p>
       {lang === 'zh' && <p className="mb-3 text-sm text-gray-600">{set.questionZh}</p>}
 
       <div className="space-y-2">
@@ -300,7 +316,7 @@ function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipA
                 : isWrongPick ? 'border-red-500 bg-red-50'
                 : 'border-gray-200 bg-white hover:border-blue-400 disabled:opacity-60'}`}
               onClick={() => { if (!answered) { setPicked(c.choiceId); setAnswered(true); } }}>
-              {c.textJa}
+              <span lang="ja">{ja(c.textJa)}</span>
             </button>
           );
         })}
@@ -330,14 +346,16 @@ function ListeningItem({ lang, set, index, total, recordedCount, onNext, onSkipA
           </button>
           {showTranscript && (
             <p lang="ja" className="mt-2 whitespace-pre-wrap rounded bg-white p-2 text-sm leading-7 text-gray-900">
-              {set.transcriptJa}
+              {ja(set.transcriptJa)}
             </p>
           )}
           <div className="mt-2">
             <p className="text-xs font-semibold text-gray-600">{tx(lang, 'ほかの選択肢が違う理由', '其他选项为什么不对')}</p>
             <ul className="mt-1 space-y-0.5">
               {presented.choices.filter((c) => c.choiceId !== presented.correctChoiceId).map((c) => (
-                <li key={c.choiceId} className="text-xs leading-relaxed text-gray-600">✕ {c.textJa} — {c.whyWrongJa}</li>
+                <li key={c.choiceId} className="text-xs leading-relaxed text-gray-600">
+                  ✕ <span lang="ja">{ja(c.textJa)}</span> — {c.whyWrongJa}
+                </li>
               ))}
             </ul>
           </div>

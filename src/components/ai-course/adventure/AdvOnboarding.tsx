@@ -11,7 +11,8 @@ import { CompanionAvatar } from './CompanionAvatar';
 import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
-  selectDiagnosisQuestions, scoreDiagnosis, type DiagQuestion, type DiagnosisPools, type ConvSample,
+  selectDiagnosisQuestions, scoreDiagnosis, skipsDiagnosis, unmeasuredDiagnosis,
+  type DiagQuestion, type DiagnosisPools, type ConvSample,
 } from '../../../lib/aiLesson/course/adventure/advDiagnosis';
 import { generateRoute } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { BAND_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -112,9 +113,12 @@ export function AdvOnboarding({
   const [convSkipped, setConvSkipped] = useState(false);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
 
+  /** N5/N4目標は現在地診断（12問）を出さない。理由は skipsDiagnosis のコメント */
+  const skipDiag = goal ? skipsDiagnosis(goal, target) : false;
+
   const questions = useMemo(
-    () => (goal ? selectDiagnosisQuestions(pools, target, goal, 20260731) : []),
-    [pools, goal, target],
+    () => (goal && !skipDiag ? selectDiagnosisQuestions(pools, target, goal, 20260731) : []),
+    [pools, goal, target, skipDiag],
   );
 
   /**
@@ -141,6 +145,36 @@ export function AdvOnboarding({
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
       diagnosis, skills: adjust.skills, route,
     };
+    setOutcome(o);
+    onOutcomeReady?.(o);
+    setPhase('route');
+  };
+
+  /**
+   * 診断を出さずにルートを作る（N5/N4目標。CEO決定 2026-08-22）。
+   * 現在地は「未判定」のまま。測っていないので測ったことにしない（原則13）。
+   * diagnosis_completed は送らない——送ると「12問を解いた人」と混ざって
+   * 診断の通過率が実態より良く見える。
+   */
+  const finishWithoutDiagnosis = () => {
+    if (!goal) return;
+    const { result, skills } = unmeasuredDiagnosis({ targetJlpt: target, goalType: goal, nowISO });
+    const route = generateRoute({
+      goalType: goal, targetJlpt: target,
+      knowledgeBand: result.knowledgeBand, conversationBand: result.conversationBand,
+      diagnosis: result, nowISO,
+    });
+    const diagnosis: AdvDiagnosisResult = {
+      ...result, routeExplanationJa: route.explanationJa, routeExplanationZh: route.explanationZh,
+    };
+    trackAdv('route_generated', { goalType: goal, targetLevel: target ?? undefined, locale: lang });
+    logCourseEvent('onboarding_completed', { goal });
+    const o: OnboardingOutcome = {
+      goalType: goal, targetJlpt: target, examDateISO: examDate || null,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
+      diagnosis, skills, route,
+    };
+    setConvSkipped(true);
     setOutcome(o);
     onOutcomeReady?.(o);
     setPhase('route');
@@ -240,12 +274,13 @@ export function AdvOnboarding({
               </button>
             ))}
           </div>
-          {/* 2026-08-18: N5/N4 を解禁。聴解の音源は N3/N2 にしか無いので、
-              「全部そろっている」と誤解させないよう、ここで正直に書く（原則13） */}
+          {/* 2026-08-18: N5/N4 を解禁。当初は聴解の音源が N3/N2 にしか無かったが、
+              2026-08-22 に N5/N4 も各60セット（音声つき）を用意したので注記を更新した。
+              在庫が無いものを「ある」と書かない／揃ったものを「無い」と書かない（原則13） */}
           <p className="mt-3 text-xs text-gray-500">
             {tx(lang,
-              'N5・N4は文法・ことば・読解で学べます（聴解の音声はまだありません）。N1は今後追加予定です。',
-              'N5・N4可以学习语法、词汇和阅读（听力音频尚未提供）。N1将于今后追加。')}
+              'N5・N4はことば・文法・読解・聴解すべて学べます。N1は今後追加予定です。',
+              'N5・N4的词汇、语法、阅读、听力均可学习。N1将于今后追加。')}
           </p>
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
             {tx(lang, 'つぎへ', '下一步')}
@@ -362,9 +397,23 @@ export function AdvOnboarding({
               )}
             </>
           ) : (
-            <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
-              {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
-            </button>
+            skipDiag ? (
+              <>
+                {/* N5/N4は診断を出さず、そのまま冒険へ（理由は skipsDiagnosis のコメント） */}
+                <button type="button" className={`${primary} mt-6`} onClick={finishWithoutDiagnosis}>
+                  {tx(lang, 'この内容で冒険を始める', '用这些内容开始冒险')}
+                </button>
+                <p className="mt-2 text-center text-xs text-gray-500">
+                  {tx(lang,
+                    'N5・N4はかな・ことば・文法を順に積むので、現在地診断（12問）はありません',
+                    'N5・N4会按假名→词汇→语法的顺序循序渐进，因此不做当前位置诊断（12题）')}
+                </p>
+              </>
+            ) : (
+              <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
+                {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
+              </button>
+            )
           )}
           {backBtn('teacher')}
         </section>
@@ -410,7 +459,7 @@ export function AdvOnboarding({
       )}
 
       {phase === 'route' && outcome && (
-        <RouteReveal lang={lang} o={outcome} convSkipped={convSkipped} onStart={() => onComplete(outcome)} />
+        <RouteReveal lang={lang} o={outcome} convSkipped={convSkipped} diagSkipped={skipDiag} onStart={() => onComplete(outcome)} />
       )}
     </div>
   );
@@ -448,7 +497,9 @@ function DiagQuestionView({ lang, q, index, total, selected, onBack, onAnswer }:
   );
 }
 
-function RouteReveal({ lang, o, convSkipped, onStart }: { lang: L; o: OnboardingOutcome; convSkipped: boolean; onStart: () => void }) {
+function RouteReveal({ lang, o, convSkipped, diagSkipped, onStart }: {
+  lang: L; o: OnboardingOutcome; convSkipped: boolean; diagSkipped: boolean; onStart: () => void;
+}) {
   const kb = knowledgeBandOf(o.skills);
   const conv = o.skills.conversation.band;
   return (
@@ -463,7 +514,15 @@ function RouteReveal({ lang, o, convSkipped, onStart }: { lang: L; o: Onboarding
             ? tx(lang, `会話の開始地点：${BAND_LABELS[conv].ja}`, `会话出发点：${BAND_LABELS[conv].zh}`)
             : tx(lang, BAND_LABELS[kb].ja, BAND_LABELS[kb].zh)}
         </p>
-        {convSkipped && (
+        {diagSkipped ? (
+          /* 診断を出していない人に「未判定」だけ見せると不安になる。測っていない理由と、
+             これから何が起きるかを書く（測ったふりはしない・原則13） */
+          <p className="mt-1 text-xs text-gray-500">
+            {tx(lang,
+              '現在地は測っていません。かな・ことばの確認から始めて、進みながら実力を見ていきます。',
+              '当前位置尚未测定。先从假名和词汇的确认开始，边前进边观察你的实力。')}
+          </p>
+        ) : convSkipped && (
           <p className="mt-1 text-xs text-gray-500">{tx(lang, '会話力：未判定（あとでAI会話で測れます）', '会话能力：未判定（之后可通过AI会话测定）')}</p>
         )}
       </div>

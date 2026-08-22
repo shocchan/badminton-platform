@@ -1248,6 +1248,8 @@ export default function AdvShell(props: AdvShellProps) {
     return withCelebration(
       <AdvListeningRunner
         lang={lang} sets={sets}
+        // 聴解の場面説明・設問・選択肢・原稿にもふりがな（N5/N4目標のみ・2026-08-22）
+        showRuby={contentLevel === 'N5' || contentLevel === 'N4'}
         onFinish={(r) => {
           if (skillFinishGuard.current) return;
           skillFinishGuard.current = true;
@@ -2748,6 +2750,18 @@ export default function AdvShell(props: AdvShellProps) {
             <p className="text-xs font-semibold text-gray-600">{term('todayGoal', lang)}</p>
             <p className="text-sm text-gray-800">{tx(lang, quest.successConditionJa, quest.successConditionZh)}</p>
           </div>
+
+          {/*
+            なぜ今日これなのか（2026-08-22）。generateTodayQuest は最初から why を作っていたのに
+            画面のどこにも出していなかった。目標（例: N2）と今日の内容（例: かなチェック）が
+            見た目でつながらず「間違い？」と読める＝CEO実機指摘。理由を1行で出して橋渡しする。
+          */}
+          {quest.whyJa && (
+            <p className="mt-2 px-1 text-xs leading-relaxed text-gray-600">
+              <span className="font-semibold text-gray-700">{tx(lang, 'なぜ今日これ？', '为什么今天做这个？')}</span>
+              {' '}{tx(lang, quest.whyJa, quest.whyZh)}
+            </p>
+          )}
 
           {/* 4. 主要CTAは常に一つ＝次の1動作 */}
           {!allDone && nextStepIdx >= 0 && (

@@ -81,7 +81,8 @@ export const WORLD_MAP_TILES: readonly WorldMapTileAsset[] = [
 /**
  * 現在地マーカー（③）。ノードの HTML ボタン（リング・バッジ・aria）はそのままで、その**下**に絵だけ敷く。
  * heightVb は viewBox 360×600 での表示高さ。旅人の足元がノード座標に来る。
- * CEO 未確認のため既定は traveler（3a）。flag（3b）は同じ形で差し替えられるように両方持つ。
+ * 既定は flag（3b・2026-08-22 CEO決定）。「男女どちらでも・誰でも主人公に重ねられる」ため旗を採用。
+ * traveler（3a・旅人の後ろ姿）も残してあり、1行で差し替えられる。
  */
 export interface WorldMapMarkerAsset {
   webp1x: string;

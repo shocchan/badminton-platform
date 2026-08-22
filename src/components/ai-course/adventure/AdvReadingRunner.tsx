@@ -10,6 +10,7 @@ import { nowTrainingLabel } from '../../../lib/aiLesson/course/adventure/advExam
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { JaTermText } from './JaTermText';
 import { AdvRuby } from './AdvRuby';
+import { annotateRuby } from '../../../lib/aiLesson/course/adventure/advRubyAuto';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -160,7 +161,12 @@ export function AdvReadingRunner({ lang, sets, showRuby, onFinish, onClose }: Ad
         </p>
       </div>
 
-      <p className="mb-1 text-base font-semibold text-gray-900">{set.questionJa}</p>
+      {/* 設問と選択肢にもふりがな（2026-08-22）。
+          本文が読めても設問が読めなければ答えられない。辞書で引けない語があれば
+          annotateRuby が null を返し、AdvRuby は素の文字を出す（誤読は出さない） */}
+      <p className="mb-1 text-base font-semibold text-gray-900" lang="ja">
+        <AdvRuby text={set.questionJa} ruby={showRuby ? annotateRuby(set.questionJa) ?? undefined : undefined} show={!!showRuby} />
+      </p>
       {lang === 'zh' && <p className="mb-3 text-sm text-gray-600">{set.questionZh}</p>}
 
       <div className="space-y-2">
@@ -176,7 +182,9 @@ export function AdvReadingRunner({ lang, sets, showRuby, onFinish, onClose }: Ad
                 : answered ? 'border-gray-200 bg-white opacity-60'
                 : 'border-gray-200 bg-white hover:border-blue-400'}`}
               onClick={() => { if (!answered) { setPicked(c.choiceId); setAnswered(true); } }}>
-              {c.textJa}
+              <span lang="ja">
+                <AdvRuby text={c.textJa} ruby={showRuby ? annotateRuby(c.textJa) ?? undefined : undefined} show={!!showRuby} />
+              </span>
             </button>
           );
         })}
