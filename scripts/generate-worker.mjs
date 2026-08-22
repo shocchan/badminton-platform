@@ -39,6 +39,8 @@ async function generateSitemap(env) {
     { path: 'ai-course/ai-disclosure',   priority: '0.3', freq: 'yearly' },
     { path: 'ai-course/tokushoho',       priority: '0.3', freq: 'yearly' },
     { path: 'ai-course/cancel-policy',   priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/data-deletion',   priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/account-deletion', priority: '0.3', freq: 'yearly' },
     { path: 'ai-course/contact',         priority: '0.4', freq: 'yearly' },
   ];
 
@@ -109,6 +111,8 @@ function matchOgpRoute(pathname) {
   if (m) return { kind: 'aiCourse', lang: m[1] };
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/(shoko|yuto)\\/?$/);
   if (m) return { kind: 'aiCourse', lang: m[1], variant: m[2] };
+  m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/([a-z-]+)\\/?$/);
+  if (m && AI_COURSE_LEGAL[m[2]]) return { kind: 'aiCourseLegal', lang: m[1], page: m[2] };
   return null;
 }
 
@@ -129,7 +133,35 @@ const AI_COURSE_SEO = {
     },
     ogImage: '/images/ai-course/shoko-sensei-wave.webp',
   },
+  yuto: {
+    ja: {
+      title: '悠斗先生とAI日本語会話コース｜読めるのに話せないを、半年で終わらせる',
+      description: '文法は分かるのに話せない中国語話者へ。AI先生との毎日の会話と、日本語コーチの個別レッスン24回で、日本で使える日本語を半年で育てます。600円のAI体験パスから始められます。',
+    },
+    zh: {
+      title: '悠斗老师 · AI日语会话陪跑课程｜用半年，告别「看得懂却说不出」',
+      description: '献给「懂语法却说不出口」的中文母语者。AI老师每天陪你练习，加上真人日语教练24次一对一，用半年培养在日本真正能用的日语。可以先从600日元的AI体验通行证开始。',
+    },
+    ogImage: '/images/ai-course/yuto-sensei-wave.webp',
+  },
 };
+
+/**
+ * AIコースの法務ページのタイトル。src/lib/aiLesson/course/legal/legalContent.ts と同じ。
+ * sitemapに載せる以上、12ページが同じ「川口・蕨バドミントン交流会」で出てはいけない
+ * （同一タイトルの重複ページとして扱われる）。ズレは workerAiCourseOgp.test.ts が見る。
+ */
+const AI_COURSE_LEGAL = {
+  'terms':            { ja: '利用規約',                 zh: '使用条款' },
+  'privacy':          { ja: 'プライバシーポリシー',     zh: '隐私政策' },
+  'ai-disclosure':    { ja: 'AIの利用について',         zh: '关于AI的使用' },
+  'tokushoho':        { ja: '特定商取引法に基づく表記', zh: '基于特定商业交易法的标示' },
+  'cancel-policy':    { ja: 'キャンセル・返金について', zh: '关于取消与退款' },
+  'data-deletion':    { ja: '学習データの削除',         zh: '学习数据的删除' },
+  'account-deletion': { ja: 'アカウントの削除',         zh: '删除账号' },
+  'contact':          { ja: 'お問い合わせ',             zh: '联系我们' },
+};
+const AI_COURSE_SUFFIX = { ja: 'AI日本語会話コース', zh: 'AI日语会话课程' };
 
 async function fetchFirst(env, path) {
   const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
@@ -198,8 +230,8 @@ async function buildOgpMeta(route, env, pageUrl) {
     };
   }
   if (route.kind === 'aiCourse') {
-    // variant（shoko/yuto）ページも主ページと同じ文言で出す。canonicalは主ページへ集約（LPと同じ方針）
-    const seo = AI_COURSE_SEO.shoko;
+    // 先生別ページはその先生の文言で出す（LPと同じ）。canonicalは主ページへ集約
+    const seo = AI_COURSE_SEO[route.variant || 'shoko'] || AI_COURSE_SEO.shoko;
     const t = seo[route.lang] || seo.ja;
     return {
       title: t.title,
@@ -207,6 +239,18 @@ async function buildOgpMeta(route, env, pageUrl) {
       image: 'https://kawabado.com' + seo.ogImage,
       url: pageUrl,
       canonical: 'https://kawabado.com/' + route.lang + '/ai-course',
+    };
+  }
+  if (route.kind === 'aiCourseLegal') {
+    const L = AI_COURSE_LEGAL[route.page];
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
+    const seo = AI_COURSE_SEO.shoko[lang];
+    return {
+      title: L[lang] + '｜' + AI_COURSE_SUFFIX[lang],
+      description: seo.description,
+      image: 'https://kawabado.com' + AI_COURSE_SEO.shoko.ogImage,
+      url: pageUrl,
+      canonical: 'https://kawabado.com/' + lang + '/ai-course/' + route.page,
     };
   }
   if (route.kind === 'blog') {

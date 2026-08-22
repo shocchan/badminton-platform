@@ -12,6 +12,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { VARIANTS } from './lpContent';
+import { buildLegalPages } from '../../../lib/aiLesson/course/legal/legalContent';
 
 const workerSource = readFileSync(
   join(__dirname, '../../../../scripts/generate-worker.mjs'), 'utf8',
@@ -56,5 +57,40 @@ describe('AIコースLPのOGP: WorkerとLPで文言が一致する', () => {
 
   it('sitemapにAIコースの主ページが入っている', () => {
     expect(workerSource, 'sitemapにai-courseが無い＝Googleが見つけられない').toContain("path: 'ai-course'");
+  });
+});
+
+describe('先生別ページ: それぞれの先生の文言で出る', () => {
+  it('悠斗先生のページに翔子先生のタイトルを出さない', () => {
+    const yuto = VARIANTS.yuto;
+    expect(workerSource, 'Workerに悠斗先生のjaタイトルが無い').toContain(yuto.seo.title.ja);
+    expect(workerSource, 'Workerに悠斗先生のzhタイトルが無い').toContain(yuto.seo.title.zh);
+    expect(workerSource, '悠斗先生のOG画像が無い').toContain(yuto.seo.ogImage);
+  });
+});
+
+/**
+ * 法務ページ（利用規約・特商法など）は sitemap に載せている。
+ * 素のHTMLのタイトルが全部同じだと、**同一タイトルの重複ページ**として扱われる。
+ * 実際 2026-08-22 に sitemap へ足した直後、12ページ全部が
+ * 「川口・蕨バドミントン交流会」で出ていた（本番実測で発見）。
+ */
+describe('法務ページ: sitemapに載せた分のタイトルがWorkerにある', () => {
+  for (const lang of ['ja', 'zh'] as const) {
+    it(`${lang}: 全ページのタイトルがWorkerに書かれている`, () => {
+      const missing = buildLegalPages(lang)
+        .filter((page) => !workerSource.includes(page.title))
+        .map((page) => `${page.id}: ${page.title}`);
+      expect(missing, `Workerに無い法務ページのタイトル:\n${missing.join('\n')}`).toEqual([]);
+    });
+  }
+
+  it('sitemapに載せたページは全部Worker側の対象になっている', () => {
+    const listed = [...workerSource.matchAll(/path: 'ai-course\/([a-z-]+)'/g)].map((m) => m[1]);
+    const legalIds: string[] = buildLegalPages('ja').map((p) => p.id);
+    const notHandled = listed
+      .filter((p) => p !== 'shoko' && p !== 'yuto')
+      .filter((p) => !legalIds.includes(p));
+    expect(notHandled, `sitemapにあるのにWorkerが扱っていない: ${notHandled.join(', ')}`).toEqual([]);
   });
 });
