@@ -10,18 +10,23 @@ const prog = (itemId: string, state: ItemProgress['masteryState']): ItemProgress
 });
 
 describe('N2カバレッジ分類', () => {
-  it('全60ミッションに分類がある', () => {
+  it('全ミッションに分類がある（分類漏れを作らない）', () => {
     for (const m of COURSE_MISSIONS) {
-      expect(['daily', 'n3', 'n2bridge']).toContain(missionN2Level(m.id));
+      expect(['daily', 'n3', 'n2bridge'], `${m.id} の分類が無い`).toContain(missionN2Level(m.id));
     }
-    expect(Object.keys(MISSION_N2_LEVEL).length).toBe(60);
+    expect(Object.keys(MISSION_N2_LEVEL).length).toBe(COURSE_MISSIONS.length);
   });
-  it('現行は会話基礎(N4-N5)中心・純粋N2文法は0（正直な監査）', () => {
+  it('基礎60本は会話基礎(N4-N5)中心のまま（正直な監査）', () => {
     const s = n2CoverageSummary();
-    expect(s.total).toBe(60);
+    expect(s.total).toBe(COURSE_MISSIONS.length);
+    // JLPTの文法問題そのものは今も扱っていない。上級30本は「会話の運用」であって文法ドリルではない
     expect(s.pureN2Grammar).toBe(0);
-    expect(s.daily).toBeGreaterThan(s.n3 + s.n2bridge); // 大半が会話基礎
-    expect(s.daily + s.n3 + s.n2bridge).toBe(60);
+    expect(s.daily + s.n3 + s.n2bridge).toBe(COURSE_MISSIONS.length);
+  });
+  // 2026-08-23: 上級パート追加後の内訳。N1合格者に出せる帯が実在することを固定する
+  it('上級30本ぶんが n2bridge として数えられている', () => {
+    const s = n2CoverageSummary();
+    expect(s.n2bridge).toBeGreaterThanOrEqual(30);
   });
 });
 

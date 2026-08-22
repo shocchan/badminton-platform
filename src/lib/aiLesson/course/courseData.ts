@@ -7,9 +7,9 @@
 // 教科書的な硬い表現だけにならないよう naturalExample（実際の会話の言い方）を併記し、
 // commonMistakes に中国語母語話者が間違えやすい点を入れている。
 
-import type { CourseWeek, Mission, MissionCategory } from './types';
-
-const CURRICULUM_VERSION = 'v1';
+import type { CourseWeek, Mission } from './types';
+import { makeMission, CURRICULUM_VERSION } from './courseMissionBuild';
+import { ADVANCED_WEEKS, ADVANCED_INPUTS } from './courseDataAdvanced';
 
 export const COURSE_WEEKS: CourseWeek[] = [
   { week: 1, themeJa: '自己紹介・現在の生活', themeZh: '自我介绍・现在的生活' },
@@ -24,72 +24,10 @@ export const COURSE_WEEKS: CourseWeek[] = [
   { week: 10, themeJa: '仕事・日本での生活', themeZh: '工作・在日本的生活' },
   { week: 11, themeJa: 'バドミントン・人との交流', themeZh: '羽毛球・与人交流' },
   { week: 12, themeJa: '総合会話・弱点克服', themeZh: '综合会话・弱点克服' },
+  ...ADVANCED_WEEKS,
 ];
 
-/** ミッション定義の入力（必須項目のみ。残りは makeMission がデフォルト補完） */
-interface MissionInput {
-  week: number;
-  order: number;
-  titleJa: string;
-  titleZh: string;
-  category: MissionCategory;
-  difficulty: 1 | 2 | 3 | 4 | 5;
-  target: string;
-  reading: string;
-  detect: string;
-  meaningJa: string;
-  meaningZh: string;
-  usageJa: string;
-  usageZh: string;
-  natural: string;
-  simple: string;
-  mistakes: string[];
-  opening: string;
-  followUps: string[];
-  hints: string[];
-  scenes: string[];
-  chineseSupport?: 'minimal' | 'normal' | 'rich';
-  correctionPriority?: 'meaning' | 'target' | 'both';
-  requires?: string[];
-}
-
-const makeMission = (m: MissionInput): Mission => ({
-  id: `w${String(m.week).padStart(2, '0')}m${m.order}`,
-  week: m.week,
-  order: m.order,
-  titleJa: m.titleJa,
-  titleZh: m.titleZh,
-  category: m.category,
-  difficulty: m.difficulty,
-  targetExpression: m.target,
-  targetExpressionReading: m.reading,
-  detect: m.detect,
-  meaningJa: m.meaningJa,
-  meaningZh: m.meaningZh,
-  usageNotesJa: m.usageJa,
-  usageNotesZh: m.usageZh,
-  naturalExample: m.natural,
-  simpleExample: m.simple,
-  commonMistakes: m.mistakes,
-  openingQuestion: m.opening,
-  followUpQuestions: m.followUps,
-  hintLevels: m.hints,
-  chineseSupport: m.chineseSupport ?? 'normal',
-  correctionPriority: m.correctionPriority ?? 'both',
-  completionCriteria: `生徒が「${m.target}」を最低1回、自分の言葉で（または復唱で）使えたら完了。`,
-  reviewPrompts: {
-    day1: `「${m.target}」の意味をもう一度確認し、文の一部を補完させ、短く復唱させる。`,
-    day3: `「${m.target}」を別の場面（${m.scenes[0] ?? 'ちがう話題'}）で使わせる。ヒントは減らす。`,
-    day7: `自由な会話の中で「${m.target}」を自力で使えるか確認する。表現名は先に見せない。`,
-  },
-  alternateScenes: m.scenes,
-  requiredPreviousItems: m.requires ?? [],
-  estimatedMinutes: 3,
-  isPublished: true,
-  curriculumVersion: CURRICULUM_VERSION,
-});
-
-const inputs: MissionInput[] = [
+const inputs: import('./courseMissionBuild').MissionInput[] = [
   // ── Week 1: 自己紹介・現在の生活 ──
   {
     week: 1, order: 1, titleJa: '名前を伝える', titleZh: '介绍名字', category: 'selfIntro', difficulty: 1,
@@ -876,6 +814,8 @@ const inputs: MissionInput[] = [
   },
 ];
 
-export const COURSE_MISSIONS: Mission[] = inputs.map(makeMission);
+// 基礎60本（第1〜12週）＋上級30本（第13〜18週）。入口は診断の帯で決まる
+// （courseEngine.conversationEntryWeekOf）。混ぜてはいるが順番は週で分かれている
+export const COURSE_MISSIONS: Mission[] = [...inputs, ...ADVANCED_INPUTS].map(makeMission);
 
 export const COURSE_CURRICULUM_VERSION = CURRICULUM_VERSION;

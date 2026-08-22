@@ -32,7 +32,9 @@ export type LessonKind =
 
 export type MissionCategory =
   | 'selfIntro' | 'experience' | 'change' | 'habit' | 'permission' | 'trouble'
-  | 'opinion' | 'comparison' | 'guess' | 'workLife' | 'badminton' | 'integrated';
+  | 'opinion' | 'comparison' | 'guess' | 'workLife' | 'badminton' | 'integrated'
+  // 上級（N2〜N1）の会話。第13〜18週・courseDataAdvanced.ts（2026-08-23 追加）
+  | 'keigo' | 'debate' | 'abstract' | 'nuance' | 'business' | 'advanced';
 
 /** 1ミッション（週5×12週=60）。内容はUIへハードコードせず courseData.ts で管理 */
 export interface Mission {

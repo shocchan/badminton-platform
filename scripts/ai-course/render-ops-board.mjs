@@ -114,6 +114,16 @@ where created_at > now() - interval '14 days'
 order by created_at desc limit 10
 `);
 
+/**
+ * 管理ページの「その人」へ直接ひらくリンク（2026-08-23）。
+ * ボードで見つけた相手に、探し直さずそのまま手を打てるようにする。
+ * 学習IDで当てる（管理ページ側が loginId/email/userId のどれでも解決する）
+ */
+const ADMIN = 'https://study.kawabado.com/ja/ai-course/admin';
+const adminLink = (loginId) => (loginId && loginId !== '機械' && loginId !== '問題報告'
+  ? `${ADMIN}?tab=students&account=${encodeURIComponent(loginId)}` : null);
+const adminTab = (tab) => `${ADMIN}?tab=${tab}`;
+
 const yen = (n) => `¥${Number(n ?? 0).toLocaleString('ja-JP')}`;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -129,22 +139,30 @@ for (const r of neverLoggedIn) {
   todo.push({ who: r.login_id, what: `アカウントを発行したのに一度もログインしていない（${r.issued}）`, act: 'ログイン方法を送る' });
 }
 for (const a of alerts.filter((x) => x.severity !== 'info')) {
-  todo.push({ who: '機械', what: `${a.kind}：${a.detail}`, act: '中身を見る' });
+  todo.push({ who: '機械', what: `${a.kind}：${a.detail}`, act: '運用タブで見る', href: adminTab('ops') });
 }
 for (const i of issues) {
-  todo.push({ who: '問題報告', what: `${i.day}・${i.page || '画面不明'}${i.code ? `（${i.code}）` : ''}：${i.comment || '（コメントなし）'}`, act: '返事をする' });
+  todo.push({ who: '問題報告', what: `${i.day}・${i.page || '画面不明'}${i.code ? `（${i.code}）` : ''}：${i.comment || '（コメントなし）'}`, act: '運用タブで見る', href: adminTab('ops') });
 }
 
 const todoHtml = todo.length === 0
   ? '<p class="none">いまは手を打つことはありません。</p>'
-  : `<ul class="todo">${todo.map((t) => `<li>
+  : `<ul class="todo">${todo.map((t) => {
+    const href = t.href ?? adminLink(t.who);
+    const act = href
+      ? `<a class="act go" href="${href}" target="_blank" rel="noopener">${esc(t.act)} →</a>`
+      : `<span class="act">${esc(t.act)}</span>`;
+    return `<li>
       <span class="who">${esc(t.who)}</span>
       <span class="what">${esc(t.what)}</span>
-      <span class="act">${esc(t.act)}</span>
-    </li>`).join('')}</ul>`;
+      ${act}
+    </li>`;
+  }).join('')}</ul>`;
 
 const recentRows = recent.map((r) => `<tr>
-  <td class="mono">${esc(r.login_id)}</td><td>${esc(r.target)}</td>
+  <td class="mono">${adminLink(r.login_id)
+    ? `<a href="${adminLink(r.login_id)}" target="_blank" rel="noopener">${esc(r.login_id)}</a>`
+    : esc(r.login_id)}</td><td>${esc(r.target)}</td>
   <td class="mono">${esc(r.last_quest ?? '—')}</td>
   <td class="num">${r.quest_days}</td><td class="num">${r.xp}</td></tr>`).join('');
 
@@ -207,6 +225,15 @@ ul.todo li{display:grid;grid-template-columns:120px 1fr auto;gap:12px;align-item
 ul.todo .who{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--clay)}
 ul.todo .what{font-size:14px}
 ul.todo .act{font-size:12px;color:var(--muted);white-space:nowrap}
+ul.todo a.go{color:var(--pine);text-decoration:none;border:1px solid var(--line);
+  border-radius:999px;padding:5px 11px;background:var(--surface)}
+ul.todo a.go:hover{border-color:var(--pine)}
+td.mono a{color:var(--pine);text-decoration:none}
+td.mono a:hover{text-decoration:underline}
+.open-admin{display:inline-flex;gap:8px;align-items:center;margin-top:14px;font-size:13px;
+  color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:10px;
+  padding:9px 13px;background:var(--surface)}
+.open-admin:hover{border-color:var(--pine);color:var(--pine)}
 
 ul.plain{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
 ul.plain li{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px}
@@ -257,7 +284,10 @@ code{font-family:"IBM Plex Mono",monospace;font-size:12px}
   <h2>機械からの知らせ</h2>
   ${alertRows}
 
+  <p><a class="open-admin" href="${ADMIN}" target="_blank" rel="noopener">管理ページをひらく（発行・期間の変更・教材レビュー）</a></p>
+
   <small class="foot">
+    名前を押すと、その人の管理画面が直接ひらきます。
     出しているのは学習IDだけで、メールアドレス・氏名・会話の中身は載せていません。
     再生成は <code>node scripts/ai-course/render-ops-board.mjs</code>（読み取りのみ）。
   </small>

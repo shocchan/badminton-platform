@@ -48,6 +48,18 @@ export const MISSION_N2_LEVEL: Record<string, N2Level> = {
   w12m1: 'daily', w12m2: 'daily', w12m3: 'daily', w12m4: 'daily', w12m5: 'daily',
 };
 
+
+/**
+ * 上級パート（第13〜18週・2026-08-23 追加）は全30本が n2bridge。
+ * 敬語の使い分け・反論・抽象の説明・配慮・仕事の交渉で、いずれもN2以上の運用力を扱う。
+ * ただし**JLPTの文法問題そのものではない**ので pureN2Grammar には数えない（監査の定義を変えない）。
+ */
+for (let week = 13; week <= 18; week++) {
+  for (let order = 1; order <= 5; order++) {
+    MISSION_N2_LEVEL[`w${week}m${order}`] = 'n2bridge';
+  }
+}
+
 export const missionN2Level = (missionId: string): N2Level => MISSION_N2_LEVEL[missionId] ?? 'daily';
 
 export interface N2CoverageSummary {

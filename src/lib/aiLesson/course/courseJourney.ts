@@ -2,6 +2,9 @@
 // 大人向け：派手なゲームにせず、落ち着いた「旅の地図」として扱う。
 
 import { COURSE_MISSIONS, COURSE_WEEKS } from './courseData';
+
+/** 上級パートの最初の週。ここを境に旅マップを分ける */
+const ADVANCED_FIRST_WEEK = 13;
 import { isRetained, atLeast } from './courseEngine';
 import type { ItemProgress } from './types';
 
@@ -48,7 +51,15 @@ export const buildJourney = (progresses: ItemProgress[], currentWeek: number): J
   const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
   const places: JourneyPlace[] = [];
   let prevLearnedAny = true;
-  for (const w of COURSE_WEEKS) {
+  /**
+   * 旅マップは**その人が実際に歩く区間だけ**を出す（2026-08-23）。
+   * 上級パート（第13〜18週）を足したとき、基礎から始めた生徒の旅マップまで
+   * 12駅→18駅に伸びてしまった。歩かない道を見せると「終わりが遠い」だけになる。
+   * 上級から入った人（currentWeek 13以上）には上級6駅の地図を出す。
+   */
+  const advancedTrack = currentWeek >= ADVANCED_FIRST_WEEK;
+  const weeks = COURSE_WEEKS.filter((w) => (advancedTrack ? w.week >= ADVANCED_FIRST_WEEK : w.week < ADVANCED_FIRST_WEEK));
+  for (const w of weeks) {
     const missions = COURSE_MISSIONS.filter((m) => m.week === w.week);
     let learned = 0, retained = 0;
     for (const m of missions) {

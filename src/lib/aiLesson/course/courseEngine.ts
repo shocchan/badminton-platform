@@ -122,6 +122,33 @@ export const calculateWeakItems = (progresses: ItemProgress[]): ItemProgress[] =
 
 /** 次の新規ミッション:
  *  管理者指定 > 未学習の最小(week,order) を返す。requiredPreviousItems を満たすもののみ。 */
+/**
+ * 診断で測った知識の帯 → 会話カリキュラムの開始週（2026-08-23）。
+ *
+ * 【なぜ要るか】
+ * 会話ミッションは第1週1本目から順番にしか出なかった。
+ * N1合格者が「会話」を選ぶと、初日に「名前を伝える／〜といいます」が出る。
+ * 3週間ぶん（15本）は既に完全にできることを繰り返すことになり、初日で見切られる。
+ *
+ * 帯は診断12問（語彙・文法）の実測値。会話力そのものではないが、
+ * **語彙・文法がN2帯の人に「〜に住んでいます」を出さない**ためには十分な手がかり。
+ * 会話力は測っていないので、ここで測ったことにはしない（原則13）。
+ */
+const ENTRY_WEEK_BY_BAND: Record<string, number> = {
+  n2_plus: 13, n2: 13, n2_early: 10, n3_late: 10, n3: 7, n3_early: 7,
+};
+
+/** settings から診断の帯だけを安全に読む（壊れたデータでも落ちない・adventure層に依存しない） */
+const knowledgeBandOf = (settings: unknown): string | null => {
+  const adv = (settings as { adventureV2?: { diagnosis?: { knowledgeBand?: unknown } } } | null)?.adventureV2;
+  const band = adv?.diagnosis?.knowledgeBand;
+  return typeof band === 'string' ? band : null;
+};
+
+/** この学習者が会話カリキュラムのどの週から始めるか（未診断・低い帯なら1＝従来どおり） */
+export const conversationEntryWeekOf = (learner: Learner): number =>
+  ENTRY_WEEK_BY_BAND[knowledgeBandOf(learner.settings) ?? ''] ?? 1;
+
 export const selectNextMission = (learner: Learner, progresses: ItemProgress[]): Mission | null => {
   const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
   const learned = (id: string) => stateOf(id) !== undefined;
@@ -134,10 +161,20 @@ export const selectNextMission = (learner: Learner, progresses: ItemProgress[]):
     .filter((m) => m.isPublished)
     .sort((a, b) => a.week - b.week || a.order - b.order);
 
-  for (const m of ordered) {
-    if (learned(m.id)) continue;
-    const prereqOk = m.requiredPreviousItems.every((req) => learned(req));
-    if (prereqOk) return m;
+  const pick = (from: number): Mission | null => ordered.find((m) => m.week >= from
+    && !learned(m.id)
+    && m.requiredPreviousItems.every((req) => learned(req))) ?? null;
+
+  /**
+   * 開始週から探し、そこに出せるものが無ければ段階的に下げる。
+   * 上級パート（13週〜）が未整備でも**空にならない**ことを保証するための梯子。
+   * 教材を足したら自動的に上の段が使われる。
+   */
+  const entry = conversationEntryWeekOf(learner);
+  const ladder = [...new Set([entry, 10, 7, 1])].filter((w) => w <= entry).sort((a, b) => b - a);
+  for (const from of ladder) {
+    const found = pick(from);
+    if (found) return found;
   }
   // 全て学習済みなら未定着のうち最初のものを再提示
   const notRetained = ordered.find((m) => !isRetained(stateOf(m.id) ?? 'initial'));

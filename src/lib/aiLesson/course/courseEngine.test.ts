@@ -24,11 +24,15 @@ const makeLearner = (over: Partial<Learner> = {}): Learner => ({
 });
 
 describe('curriculum integrity', () => {
-  it('has exactly 60 missions', () => {
-    expect(COURSE_MISSIONS.length).toBe(60);
+  // 2026-08-23: 上級パート（第13〜18週・30本）を足したので固定値をやめた。
+  // 意図は「教材が減っていないこと」なので、基礎60本が丸ごと残っているかを見る
+  it('基礎60本（第1〜12週）が減っていない', () => {
+    expect(COURSE_MISSIONS.filter((m) => m.week <= 12).length).toBe(60);
+    expect(COURSE_MISSIONS.length).toBeGreaterThanOrEqual(60);
   });
-  it('has 12 weeks defined', () => {
-    expect(COURSE_WEEKS.length).toBe(12);
+  it('基礎12週が定義されている', () => {
+    expect(COURSE_WEEKS.filter((w) => w.week <= 12).length).toBe(12);
+    expect(COURSE_WEEKS.length).toBeGreaterThanOrEqual(12);
   });
   it('has no duplicate ids', () => {
     const ids = COURSE_MISSIONS.map((m) => m.id);

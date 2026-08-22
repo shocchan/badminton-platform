@@ -15,10 +15,11 @@
 //
 // 管理UIは日本語ハードコード（管理者=CEOは日本人。刷新仕様 原則5）。
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { KeyRound, Sun, Users, Wrench, BookOpenCheck } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { parseAdminDeepLink, initialAdminTab, matchAccount } from '../../lib/aiLesson/course/admin/adminDeepLink';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
 import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth';
@@ -79,7 +80,16 @@ export default function AiCourseAdminPage() {
   const t = aiCourseI18n[lang === 'zh' ? 'zh' : 'ja'];
   const ta = t.admin;
   const [state, setState] = useState<'loading' | 'nologin' | 'noauth' | 'ready'>('loading');
-  const [tab, setTab] = useState<AdminTab>('today');
+  /**
+   * 直リンクで開いたときの指定（2026-08-23）。
+   * 点検ボードの1行から「その人の画面」へ直接来られるようにする。
+   *   ?tab=students&account=wang  … 学習IDでもメールでもuserIdでも当てる
+   * 情報を探しに行かせた時点で使われなくなる（管理ページが実際そうなった）ので、
+   * ボード→操作をひと跳びにする
+   */
+  const deepLink = useMemo(
+    () => parseAdminDeepLink(typeof window === 'undefined' ? '' : window.location.search), []);
+  const [tab, setTab] = useState<AdminTab>(initialAdminTab(deepLink));
 
   // ── データ（§7 ページのデータロード） ──
   const [accounts, setAccounts] = useState<AdminAccountRow[]>([]);
@@ -98,6 +108,8 @@ export default function AiCourseAdminPage() {
   const [saved, setSaved] = useState(false);
   const [utterMsg, setUtterMsg] = useState('');   // 発話ログ削除の結果（詳細ビュー）
   const [opsMsg, setOpsMsg] = useState('');       // テストデータ削除の結果（運用タブ）
+  /** 直リンクで指定された人が見つからなかったとき（黙って別の画面を出さない） */
+  const [deepLinkMiss, setDeepLinkMiss] = useState<string | null>(null);
   const [topups, setTopups] = useState<CostTopupRow[]>([]);   // AIコストのチャージ記録
 
   const loadAll = useCallback(async () => {
@@ -177,6 +189,19 @@ export default function AiCourseAdminPage() {
     })();
     return () => { alive = false; };
   }, [selUserId, learners, limits]);
+
+  /**
+   * 直リンクの account= を、アカウント一覧が届いた時点で1回だけ解決する。
+   * 学習ID・メール・userId のどれでも当てる（ボードは学習IDを出している）
+   */
+  const deepLinkDone = useRef(false);
+  useEffect(() => {
+    if (deepLinkDone.current || !deepLink.account || accounts.length === 0) return;
+    deepLinkDone.current = true;
+    const hit = matchAccount(accounts, deepLink.account);
+    if (hit) { setTab('students'); setSelUserId(hit.userId); }
+    else setDeepLinkMiss(deepLink.account);
+  }, [accounts, deepLink.account]);
 
   // ── ハンドラ群 ──
 
@@ -280,6 +305,14 @@ export default function AiCourseAdminPage() {
       <div className="max-w-5xl mx-auto px-4 pt-3">
         <a href="/ja/admin" className="text-sm text-emerald-700 underline-offset-2 hover:underline">← バドミントン管理画面へ</a>
       </div>
+      {/* 直リンクの人が見つからなかった（消えた・IDが変わった）。黙って別の画面を出さない */}
+      {deepLinkMiss && (
+        <div className="max-w-5xl mx-auto px-4 pt-3">
+          <p role="status" className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            「{deepLinkMiss}」のアカウントが見つかりませんでした。一覧から探してください。
+          </p>
+        </div>
+      )}
       {/* モバイルは下固定タブバーの分だけ pb を確保（§6） */}
       <div className="max-w-5xl mx-auto px-4 py-4 pb-24 sm:pb-8">
         <h1 className="text-lg font-bold text-gray-900 mb-3">{ta.title}</h1>
