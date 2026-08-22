@@ -18,7 +18,13 @@ import { N2_LISTENING_INT_B } from './n2ListeningIntB';
 // N5/N4（2026-08-20 追加）。目標レベルにN5/N4を解禁したのに聴解が0本だったため。
 // 本試験のN5/N4聴解に無い型（概要理解・統合理解）は作っていない → 各12セット・3型
 import { N5_LISTENING_SETS_A } from './n5ListeningSetsA';
+import { N5_LISTENING_TASK_B } from './n5ListeningTaskB';
+import { N5_LISTENING_POINT_B } from './n5ListeningPointB';
+import { N5_LISTENING_QUICK_B } from './n5ListeningQuickB';
 import { N4_LISTENING_SETS_A } from './n4ListeningSetsA';
+import { N4_LISTENING_TASK_B } from './n4ListeningTaskB';
+import { N4_LISTENING_POINT_B } from './n4ListeningPointB';
+import { N4_LISTENING_QUICK_B } from './n4ListeningQuickB';
 import {
   LISTENING_TYPE_LABELS, listeningKeyOf,
   type ListeningLevel, type ListeningSet, type ListeningType,
@@ -30,7 +36,13 @@ export type { ListeningLevel, ListeningSet, ListeningType };
 
 export const ALL_LISTENING_SETS: ListeningSet[] = [
   ...N5_LISTENING_SETS_A,
+  ...N5_LISTENING_TASK_B,
+  ...N5_LISTENING_POINT_B,
+  ...N5_LISTENING_QUICK_B,
   ...N4_LISTENING_SETS_A,
+  ...N4_LISTENING_TASK_B,
+  ...N4_LISTENING_POINT_B,
+  ...N4_LISTENING_QUICK_B,
   ...N3_LISTENING_SETS,
   ...N3_LISTENING_TASK_B, ...N3_LISTENING_POINT_B, ...N3_LISTENING_OUTLINE_B,
   ...N3_LISTENING_QUICK_B, ...N3_LISTENING_INT_B,

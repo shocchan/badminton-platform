@@ -1,0 +1,2937 @@
+{
+ "viewBox": {
+  "w": 360,
+  "h": 600
+ },
+ "SPINE_control_points_norm": [
+  [
+   0.472,
+   0.887
+  ],
+  [
+   0.522,
+   0.783
+  ],
+  [
+   0.144,
+   0.742
+  ],
+  [
+   0.639,
+   0.727
+  ],
+  [
+   0.244,
+   0.623
+  ],
+  [
+   0.778,
+   0.575
+  ],
+  [
+   0.306,
+   0.5
+  ],
+  [
+   0.833,
+   0.442
+  ],
+  [
+   0.222,
+   0.375
+  ],
+  [
+   0.694,
+   0.308
+  ],
+  [
+   0.306,
+   0.25
+  ],
+  [
+   0.639,
+   0.192
+  ],
+  [
+   0.7,
+   0.117
+  ]
+ ],
+ "spineSamples": [
+  {
+   "t": 0,
+   "nx": 0.472,
+   "ny": 0.887
+  },
+  {
+   "t": 0.025,
+   "nx": 0.531,
+   "ny": 0.82
+  },
+  {
+   "t": 0.05,
+   "nx": 0.464,
+   "ny": 0.764
+  },
+  {
+   "t": 0.075,
+   "nx": 0.341,
+   "ny": 0.741
+  },
+  {
+   "t": 0.1,
+   "nx": 0.213,
+   "ny": 0.736
+  },
+  {
+   "t": 0.125,
+   "nx": 0.201,
+   "ny": 0.731
+  },
+  {
+   "t": 0.15,
+   "nx": 0.328,
+   "ny": 0.715
+  },
+  {
+   "t": 0.175,
+   "nx": 0.456,
+   "ny": 0.711
+  },
+  {
+   "t": 0.2,
+   "nx": 0.584,
+   "ny": 0.72
+  },
+  {
+   "t": 0.225,
+   "nx": 0.583,
+   "ny": 0.699
+  },
+  {
+   "t": 0.25,
+   "nx": 0.472,
+   "ny": 0.659
+  },
+  {
+   "t": 0.275,
+   "nx": 0.351,
+   "ny": 0.633
+  },
+  {
+   "t": 0.3,
+   "nx": 0.264,
+   "ny": 0.618
+  },
+  {
+   "t": 0.325,
+   "nx": 0.385,
+   "ny": 0.593
+  },
+  {
+   "t": 0.35,
+   "nx": 0.511,
+   "ny": 0.576
+  },
+  {
+   "t": 0.375,
+   "nx": 0.64,
+   "ny": 0.57
+  },
+  {
+   "t": 0.4,
+   "nx": 0.768,
+   "ny": 0.574
+  },
+  {
+   "t": 0.425,
+   "nx": 0.672,
+   "ny": 0.541
+  },
+  {
+   "t": 0.45,
+   "nx": 0.551,
+   "ny": 0.516
+  },
+  {
+   "t": 0.475,
+   "nx": 0.424,
+   "ny": 0.502
+  },
+  {
+   "t": 0.5,
+   "nx": 0.315,
+   "ny": 0.497
+  },
+  {
+   "t": 0.525,
+   "nx": 0.434,
+   "ny": 0.468
+  },
+  {
+   "t": 0.55,
+   "nx": 0.559,
+   "ny": 0.449
+  },
+  {
+   "t": 0.575,
+   "nx": 0.687,
+   "ny": 0.44
+  },
+  {
+   "t": 0.6,
+   "nx": 0.816,
+   "ny": 0.441
+  },
+  {
+   "t": 0.625,
+   "nx": 0.73,
+   "ny": 0.417
+  },
+  {
+   "t": 0.65,
+   "nx": 0.606,
+   "ny": 0.395
+  },
+  {
+   "t": 0.675,
+   "nx": 0.479,
+   "ny": 0.381
+  },
+  {
+   "t": 0.7,
+   "nx": 0.351,
+   "ny": 0.374
+  },
+  {
+   "t": 0.725,
+   "nx": 0.222,
+   "ny": 0.375
+  },
+  {
+   "t": 0.75,
+   "nx": 0.338,
+   "ny": 0.341
+  },
+  {
+   "t": 0.775,
+   "nx": 0.461,
+   "ny": 0.318
+  },
+  {
+   "t": 0.8,
+   "nx": 0.589,
+   "ny": 0.308
+  },
+  {
+   "t": 0.825,
+   "nx": 0.675,
+   "ny": 0.301
+  },
+  {
+   "t": 0.85,
+   "nx": 0.56,
+   "ny": 0.267
+  },
+  {
+   "t": 0.875,
+   "nx": 0.434,
+   "ny": 0.249
+  },
+  {
+   "t": 0.9,
+   "nx": 0.306,
+   "ny": 0.25
+  },
+  {
+   "t": 0.925,
+   "nx": 0.415,
+   "ny": 0.209
+  },
+  {
+   "t": 0.95,
+   "nx": 0.539,
+   "ny": 0.191
+  },
+  {
+   "t": 0.975,
+   "nx": 0.665,
+   "ny": 0.184
+  },
+  {
+   "t": 1,
+   "nx": 0.7,
+   "ny": 0.117
+  }
+ ],
+ "bandSummary": [
+  {
+   "band": "空・峰（上）",
+   "y0": 0,
+   "y1": 0.17,
+   "uiCount": 8,
+   "xRange": {
+    "x0": 0.404,
+    "x1": 0.856
+   }
+  },
+  {
+   "band": "高地（遺跡〜塔）",
+   "y0": 0.17,
+   "y1": 0.423,
+   "uiCount": 24,
+   "xRange": {
+    "x0": 0.216,
+    "x1": 0.735
+   }
+  },
+  {
+   "band": "森",
+   "y0": 0.423,
+   "y1": 0.57,
+   "uiCount": 20,
+   "xRange": {
+    "x0": 0.395,
+    "x1": 0.739
+   }
+  },
+  {
+   "band": "平野",
+   "y0": 0.57,
+   "y1": 0.783,
+   "uiCount": 77,
+   "xRange": {
+    "x0": 0,
+    "x1": 0.835
+   }
+  },
+  {
+   "band": "海岸・湾",
+   "y0": 0.783,
+   "y1": 1,
+   "uiCount": 136,
+   "xRange": {
+    "x0": 0.042,
+    "x1": 0.963
+   }
+  }
+ ],
+ "cases": {
+  "N5-exam": {
+   "nodeCount": 3,
+   "flagPt": {
+    "x": 173.5182891763842,
+    "y": 427.213845076417
+   },
+   "fogEdgeY": 405.213845076417,
+   "fogEdgeNorm": 0.675,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n5reading",
+     "layer": "exam",
+     "nameJa": "N5の読みもの",
+     "landmark": "library",
+     "x": 95.203,
+     "y": 441.385,
+     "nx": 0.264,
+     "ny": 0.736
+    },
+    {
+     "id": "stg-n5boss",
+     "layer": "exam",
+     "nameJa": "N5達成の確認",
+     "landmark": "castle",
+     "x": 173.518,
+     "y": 427.214,
+     "nx": 0.482,
+     "ny": 0.712
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n5reading",
+     "x0": 0.203,
+     "y0": 0.684,
+     "x1": 0.331,
+     "y1": 0.757
+    },
+    {
+     "name": "landmark:stg-n5reading",
+     "x0": 0.231,
+     "y0": 0.696,
+     "x1": 0.298,
+     "y1": 0.742
+    },
+    {
+     "name": "node:stg-n5boss",
+     "x0": 0.421,
+     "y0": 0.66,
+     "x1": 0.549,
+     "y1": 0.734
+    },
+    {
+     "name": "landmark:stg-n5boss",
+     "x0": 0.449,
+     "y0": 0.672,
+     "x1": 0.515,
+     "y1": 0.719
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.326,
+     "y0": 0.612,
+     "x1": 0.638,
+     "y1": 0.672
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.675
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N4-exam": {
+   "nodeCount": 3,
+   "flagPt": {
+    "x": 198.30887059687083,
+    "y": 309.4138939883995
+   },
+   "fogEdgeY": 287.4138939883995,
+   "fogEdgeNorm": 0.479,
+   "nodes": [
+    {
+     "id": "stg-n4grammar",
+     "layer": "exam",
+     "nameJa": "N4文法攻略",
+     "landmark": "bridge",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n4reading",
+     "layer": "exam",
+     "nameJa": "N4の読みもの",
+     "landmark": "library",
+     "x": 209.774,
+     "y": 419.182,
+     "nx": 0.583,
+     "ny": 0.699
+    },
+    {
+     "id": "stg-n4boss",
+     "layer": "exam",
+     "nameJa": "N4達成の確認",
+     "landmark": "castle",
+     "x": 198.309,
+     "y": 309.414,
+     "nx": 0.551,
+     "ny": 0.516
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-n4grammar",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-n4grammar",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n4reading",
+     "x0": 0.522,
+     "y0": 0.647,
+     "x1": 0.649,
+     "y1": 0.72
+    },
+    {
+     "name": "landmark:stg-n4reading",
+     "x0": 0.549,
+     "y0": 0.659,
+     "x1": 0.616,
+     "y1": 0.705
+    },
+    {
+     "name": "node:stg-n4boss",
+     "x0": 0.49,
+     "y0": 0.464,
+     "x1": 0.618,
+     "y1": 0.537
+    },
+    {
+     "name": "landmark:stg-n4boss",
+     "x0": 0.518,
+     "y0": 0.476,
+     "x1": 0.584,
+     "y1": 0.522
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.395,
+     "y0": 0.416,
+     "x1": 0.706,
+     "y1": 0.476
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.479
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N3-exam": {
+   "nodeCount": 5,
+   "flagPt": {
+    "x": 201.46911583618723,
+    "y": 159.93664245703818
+   },
+   "fogEdgeY": 137.93664245703818,
+   "fogEdgeNorm": 0.23,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n3bridge",
+     "layer": "exam",
+     "nameJa": "N3語彙・文法の橋",
+     "landmark": "bridge",
+     "x": 227.679,
+     "y": 433.933,
+     "nx": 0.632,
+     "ny": 0.723
+    },
+    {
+     "id": "stg-n3practice",
+     "layer": "exam",
+     "nameJa": "N3実践ミッション",
+     "landmark": "village",
+     "x": 242.033,
+     "y": 324.852,
+     "nx": 0.672,
+     "ny": 0.541
+    },
+    {
+     "id": "stg-n3grammar",
+     "layer": "exam",
+     "nameJa": "N3文法攻略",
+     "landmark": "ruins",
+     "x": 240.578,
+     "y": 243.211,
+     "nx": 0.668,
+     "ny": 0.405
+    },
+    {
+     "id": "stg-n3boss",
+     "layer": "exam",
+     "nameJa": "N3模擬ボス",
+     "landmark": "castle",
+     "x": 201.469,
+     "y": 159.937,
+     "nx": 0.56,
+     "ny": 0.267
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n3bridge",
+     "x0": 0.571,
+     "y0": 0.672,
+     "x1": 0.699,
+     "y1": 0.745
+    },
+    {
+     "name": "landmark:stg-n3bridge",
+     "x0": 0.599,
+     "y0": 0.683,
+     "x1": 0.666,
+     "y1": 0.73
+    },
+    {
+     "name": "node:stg-n3practice",
+     "x0": 0.611,
+     "y0": 0.49,
+     "x1": 0.739,
+     "y1": 0.563
+    },
+    {
+     "name": "landmark:stg-n3practice",
+     "x0": 0.639,
+     "y0": 0.501,
+     "x1": 0.706,
+     "y1": 0.548
+    },
+    {
+     "name": "node:stg-n3grammar",
+     "x0": 0.607,
+     "y0": 0.354,
+     "x1": 0.735,
+     "y1": 0.427
+    },
+    {
+     "name": "landmark:stg-n3grammar",
+     "x0": 0.635,
+     "y0": 0.365,
+     "x1": 0.702,
+     "y1": 0.412
+    },
+    {
+     "name": "node:stg-n3boss",
+     "x0": 0.499,
+     "y0": 0.215,
+     "x1": 0.626,
+     "y1": 0.288
+    },
+    {
+     "name": "landmark:stg-n3boss",
+     "x0": 0.526,
+     "y0": 0.227,
+     "x1": 0.593,
+     "y1": 0.273
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.404,
+     "y0": 0.167,
+     "x1": 0.715,
+     "y1": 0.227
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.23
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N2-exam": {
+   "nodeCount": 8,
+   "flagPt": {
+    "x": 252,
+    "y": 70
+   },
+   "fogEdgeY": null,
+   "fogEdgeNorm": null,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n3bridge",
+     "layer": "exam",
+     "nameJa": "N3語彙・文法の橋",
+     "landmark": "bridge",
+     "x": 104.814,
+     "y": 431.011,
+     "nx": 0.291,
+     "ny": 0.718
+    },
+    {
+     "id": "stg-n3practice",
+     "layer": "exam",
+     "nameJa": "N3実践ミッション",
+     "landmark": "village",
+     "x": 106.837,
+     "y": 376.163,
+     "nx": 0.297,
+     "ny": 0.627
+    },
+    {
+     "id": "stg-n3grammar",
+     "layer": "exam",
+     "nameJa": "N3文法攻略",
+     "landmark": "ruins",
+     "x": 235.937,
+     "y": 322.244,
+     "nx": 0.655,
+     "ny": 0.537
+    },
+    {
+     "id": "stg-n2gate",
+     "layer": "exam",
+     "nameJa": "N2の門",
+     "landmark": "gate",
+     "x": 240.724,
+     "y": 264.395,
+     "nx": 0.669,
+     "ny": 0.441
+    },
+    {
+     "id": "stg-n2grammar",
+     "layer": "exam",
+     "nameJa": "N2語彙・文法",
+     "landmark": "tower",
+     "x": 99.828,
+     "y": 224.31,
+     "nx": 0.277,
+     "ny": 0.374
+    },
+    {
+     "id": "stg-n2reading",
+     "layer": "exam",
+     "nameJa": "読解・会話理解",
+     "landmark": "library",
+     "x": 188.83,
+     "y": 155.931,
+     "nx": 0.525,
+     "ny": 0.26
+    },
+    {
+     "id": "stg-n2boss",
+     "layer": "exam",
+     "nameJa": "N2模擬ボス",
+     "landmark": "castle",
+     "x": 252,
+     "y": 70,
+     "nx": 0.7,
+     "ny": 0.117
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n3bridge",
+     "x0": 0.23,
+     "y0": 0.667,
+     "x1": 0.358,
+     "y1": 0.74
+    },
+    {
+     "name": "landmark:stg-n3bridge",
+     "x0": 0.258,
+     "y0": 0.678,
+     "x1": 0.324,
+     "y1": 0.725
+    },
+    {
+     "name": "node:stg-n3practice",
+     "x0": 0.236,
+     "y0": 0.575,
+     "x1": 0.363,
+     "y1": 0.649
+    },
+    {
+     "name": "landmark:stg-n3practice",
+     "x0": 0.263,
+     "y0": 0.587,
+     "x1": 0.33,
+     "y1": 0.634
+    },
+    {
+     "name": "node:stg-n3grammar",
+     "x0": 0.594,
+     "y0": 0.485,
+     "x1": 0.722,
+     "y1": 0.559
+    },
+    {
+     "name": "landmark:stg-n3grammar",
+     "x0": 0.622,
+     "y0": 0.497,
+     "x1": 0.689,
+     "y1": 0.544
+    },
+    {
+     "name": "node:stg-n2gate",
+     "x0": 0.608,
+     "y0": 0.389,
+     "x1": 0.735,
+     "y1": 0.462
+    },
+    {
+     "name": "landmark:stg-n2gate",
+     "x0": 0.635,
+     "y0": 0.401,
+     "x1": 0.702,
+     "y1": 0.447
+    },
+    {
+     "name": "node:stg-n2grammar",
+     "x0": 0.216,
+     "y0": 0.322,
+     "x1": 0.344,
+     "y1": 0.396
+    },
+    {
+     "name": "landmark:stg-n2grammar",
+     "x0": 0.244,
+     "y0": 0.334,
+     "x1": 0.311,
+     "y1": 0.381
+    },
+    {
+     "name": "node:stg-n2reading",
+     "x0": 0.463,
+     "y0": 0.208,
+     "x1": 0.591,
+     "y1": 0.282
+    },
+    {
+     "name": "landmark:stg-n2reading",
+     "x0": 0.491,
+     "y0": 0.22,
+     "x1": 0.558,
+     "y1": 0.267
+    },
+    {
+     "name": "node:stg-n2boss",
+     "x0": 0.639,
+     "y0": 0.065,
+     "x1": 0.767,
+     "y1": 0.138
+    },
+    {
+     "name": "landmark:stg-n2boss",
+     "x0": 0.667,
+     "y0": 0.077,
+     "x1": 0.733,
+     "y1": 0.123
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.544,
+     "y0": 0.017,
+     "x1": 0.856,
+     "y1": 0.077
+    }
+   ]
+  },
+  "N5-combined": {
+   "nodeCount": 15,
+   "flagPt": {
+    "x": 173.5182891763842,
+    "y": 427.213845076417
+   },
+   "fogEdgeY": 405.213845076417,
+   "fogEdgeNorm": 0.675,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n5reading",
+     "layer": "exam",
+     "nameJa": "N5の読みもの",
+     "landmark": "library",
+     "x": 77.214,
+     "y": 441.74,
+     "nx": 0.214,
+     "ny": 0.736
+    },
+    {
+     "id": "stg-n5boss",
+     "layer": "exam",
+     "nameJa": "N5達成の確認",
+     "landmark": "castle",
+     "x": 173.518,
+     "y": 427.214,
+     "nx": 0.482,
+     "ny": 0.712
+    },
+    {
+     "id": "conv-w1",
+     "layer": "conversation",
+     "nameJa": "自己紹介の村",
+     "landmark": "village",
+     "x": 100,
+     "y": 480,
+     "nx": 0.278,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w2",
+     "layer": "conversation",
+     "nameJa": "思い出の道",
+     "landmark": "road",
+     "x": 158.836,
+     "y": 480,
+     "nx": 0.441,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w3",
+     "layer": "conversation",
+     "nameJa": "変化の丘",
+     "landmark": "hill",
+     "x": 217.672,
+     "y": 480,
+     "nx": 0.605,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w4",
+     "layer": "conversation",
+     "nameJa": "習慣の並木道",
+     "landmark": "avenue",
+     "x": 276.508,
+     "y": 480,
+     "nx": 0.768,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w5",
+     "layer": "conversation",
+     "nameJa": "お願いの街",
+     "landmark": "town",
+     "x": 322.823,
+     "y": 506.932,
+     "nx": 0.897,
+     "ny": 0.845
+    },
+    {
+     "id": "conv-w6",
+     "layer": "conversation",
+     "nameJa": "相談の広場",
+     "landmark": "plaza",
+     "x": 315.158,
+     "y": 563.515,
+     "nx": 0.875,
+     "ny": 0.939
+    },
+    {
+     "id": "conv-w7",
+     "layer": "conversation",
+     "nameJa": "意見を伝える山",
+     "landmark": "mountain",
+     "x": 260,
+     "y": 576,
+     "nx": 0.722,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w8",
+     "layer": "conversation",
+     "nameJa": "選択の分かれ道",
+     "landmark": "crossroad",
+     "x": 201.164,
+     "y": 576,
+     "nx": 0.559,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w9",
+     "layer": "conversation",
+     "nameJa": "推測の霧の森",
+     "landmark": "forest",
+     "x": 142.328,
+     "y": 576,
+     "nx": 0.395,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w10",
+     "layer": "conversation",
+     "nameJa": "仕事と暮らしの町",
+     "landmark": "city",
+     "x": 83.492,
+     "y": 576,
+     "nx": 0.232,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w11",
+     "layer": "conversation",
+     "nameJa": "交流の港",
+     "landmark": "bridge",
+     "x": 37.177,
+     "y": 549.068,
+     "nx": 0.103,
+     "ny": 0.915
+    },
+    {
+     "id": "conv-w12",
+     "layer": "conversation",
+     "nameJa": "総合会話の頂",
+     "landmark": "castle",
+     "x": 44.842,
+     "y": 492.485,
+     "nx": 0.125,
+     "ny": 0.821
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n5reading",
+     "x0": 0.153,
+     "y0": 0.685,
+     "x1": 0.281,
+     "y1": 0.758
+    },
+    {
+     "name": "landmark:stg-n5reading",
+     "x0": 0.181,
+     "y0": 0.696,
+     "x1": 0.248,
+     "y1": 0.743
+    },
+    {
+     "name": "node:stg-n5boss",
+     "x0": 0.421,
+     "y0": 0.66,
+     "x1": 0.549,
+     "y1": 0.734
+    },
+    {
+     "name": "landmark:stg-n5boss",
+     "x0": 0.449,
+     "y0": 0.672,
+     "x1": 0.515,
+     "y1": 0.719
+    },
+    {
+     "name": "node:conv-w1",
+     "x0": 0.217,
+     "y0": 0.748,
+     "x1": 0.344,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w1",
+     "x0": 0.244,
+     "y0": 0.76,
+     "x1": 0.311,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w2",
+     "x0": 0.38,
+     "y0": 0.748,
+     "x1": 0.508,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w2",
+     "x0": 0.408,
+     "y0": 0.76,
+     "x1": 0.475,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w3",
+     "x0": 0.544,
+     "y0": 0.748,
+     "x1": 0.671,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w3",
+     "x0": 0.571,
+     "y0": 0.76,
+     "x1": 0.638,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w4",
+     "x0": 0.707,
+     "y0": 0.748,
+     "x1": 0.835,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w4",
+     "x0": 0.735,
+     "y0": 0.76,
+     "x1": 0.801,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w5",
+     "x0": 0.836,
+     "y0": 0.793,
+     "x1": 0.963,
+     "y1": 0.867
+    },
+    {
+     "name": "landmark:conv-w5",
+     "x0": 0.863,
+     "y0": 0.805,
+     "x1": 0.93,
+     "y1": 0.852
+    },
+    {
+     "name": "node:conv-w6",
+     "x0": 0.814,
+     "y0": 0.888,
+     "x1": 0.942,
+     "y1": 0.961
+    },
+    {
+     "name": "landmark:conv-w6",
+     "x0": 0.842,
+     "y0": 0.899,
+     "x1": 0.909,
+     "y1": 0.946
+    },
+    {
+     "name": "node:conv-w7",
+     "x0": 0.661,
+     "y0": 0.908,
+     "x1": 0.789,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w7",
+     "x0": 0.689,
+     "y0": 0.92,
+     "x1": 0.756,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w8",
+     "x0": 0.498,
+     "y0": 0.908,
+     "x1": 0.625,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w8",
+     "x0": 0.525,
+     "y0": 0.92,
+     "x1": 0.592,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w9",
+     "x0": 0.334,
+     "y0": 0.908,
+     "x1": 0.462,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w9",
+     "x0": 0.362,
+     "y0": 0.92,
+     "x1": 0.429,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w10",
+     "x0": 0.171,
+     "y0": 0.908,
+     "x1": 0.299,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w10",
+     "x0": 0.199,
+     "y0": 0.92,
+     "x1": 0.265,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w11",
+     "x0": 0.042,
+     "y0": 0.863,
+     "x1": 0.17,
+     "y1": 0.937
+    },
+    {
+     "name": "landmark:conv-w11",
+     "x0": 0.07,
+     "y0": 0.875,
+     "x1": 0.137,
+     "y1": 0.922
+    },
+    {
+     "name": "node:conv-w12",
+     "x0": 0.063,
+     "y0": 0.769,
+     "x1": 0.191,
+     "y1": 0.842
+    },
+    {
+     "name": "landmark:conv-w12",
+     "x0": 0.091,
+     "y0": 0.781,
+     "x1": 0.158,
+     "y1": 0.827
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.326,
+     "y0": 0.612,
+     "x1": 0.638,
+     "y1": 0.672
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.675
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N4-combined": {
+   "nodeCount": 15,
+   "flagPt": {
+    "x": 198.30887059687083,
+    "y": 309.4138939883995
+   },
+   "fogEdgeY": 287.4138939883995,
+   "fogEdgeNorm": 0.479,
+   "nodes": [
+    {
+     "id": "stg-n4grammar",
+     "layer": "exam",
+     "nameJa": "N4文法攻略",
+     "landmark": "bridge",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n4reading",
+     "layer": "exam",
+     "nameJa": "N4の読みもの",
+     "landmark": "library",
+     "x": 209.774,
+     "y": 419.182,
+     "nx": 0.583,
+     "ny": 0.699
+    },
+    {
+     "id": "stg-n4boss",
+     "layer": "exam",
+     "nameJa": "N4達成の確認",
+     "landmark": "castle",
+     "x": 198.309,
+     "y": 309.414,
+     "nx": 0.551,
+     "ny": 0.516
+    },
+    {
+     "id": "conv-w1",
+     "layer": "conversation",
+     "nameJa": "自己紹介の村",
+     "landmark": "village",
+     "x": 100,
+     "y": 480,
+     "nx": 0.278,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w2",
+     "layer": "conversation",
+     "nameJa": "思い出の道",
+     "landmark": "road",
+     "x": 158.836,
+     "y": 480,
+     "nx": 0.441,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w3",
+     "layer": "conversation",
+     "nameJa": "変化の丘",
+     "landmark": "hill",
+     "x": 217.672,
+     "y": 480,
+     "nx": 0.605,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w4",
+     "layer": "conversation",
+     "nameJa": "習慣の並木道",
+     "landmark": "avenue",
+     "x": 276.508,
+     "y": 480,
+     "nx": 0.768,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w5",
+     "layer": "conversation",
+     "nameJa": "お願いの街",
+     "landmark": "town",
+     "x": 322.823,
+     "y": 506.932,
+     "nx": 0.897,
+     "ny": 0.845
+    },
+    {
+     "id": "conv-w6",
+     "layer": "conversation",
+     "nameJa": "相談の広場",
+     "landmark": "plaza",
+     "x": 315.158,
+     "y": 563.515,
+     "nx": 0.875,
+     "ny": 0.939
+    },
+    {
+     "id": "conv-w7",
+     "layer": "conversation",
+     "nameJa": "意見を伝える山",
+     "landmark": "mountain",
+     "x": 260,
+     "y": 576,
+     "nx": 0.722,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w8",
+     "layer": "conversation",
+     "nameJa": "選択の分かれ道",
+     "landmark": "crossroad",
+     "x": 201.164,
+     "y": 576,
+     "nx": 0.559,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w9",
+     "layer": "conversation",
+     "nameJa": "推測の霧の森",
+     "landmark": "forest",
+     "x": 142.328,
+     "y": 576,
+     "nx": 0.395,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w10",
+     "layer": "conversation",
+     "nameJa": "仕事と暮らしの町",
+     "landmark": "city",
+     "x": 83.492,
+     "y": 576,
+     "nx": 0.232,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w11",
+     "layer": "conversation",
+     "nameJa": "交流の港",
+     "landmark": "bridge",
+     "x": 37.177,
+     "y": 549.068,
+     "nx": 0.103,
+     "ny": 0.915
+    },
+    {
+     "id": "conv-w12",
+     "layer": "conversation",
+     "nameJa": "総合会話の頂",
+     "landmark": "castle",
+     "x": 44.842,
+     "y": 492.485,
+     "nx": 0.125,
+     "ny": 0.821
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-n4grammar",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-n4grammar",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n4reading",
+     "x0": 0.522,
+     "y0": 0.647,
+     "x1": 0.649,
+     "y1": 0.72
+    },
+    {
+     "name": "landmark:stg-n4reading",
+     "x0": 0.549,
+     "y0": 0.659,
+     "x1": 0.616,
+     "y1": 0.705
+    },
+    {
+     "name": "node:stg-n4boss",
+     "x0": 0.49,
+     "y0": 0.464,
+     "x1": 0.618,
+     "y1": 0.537
+    },
+    {
+     "name": "landmark:stg-n4boss",
+     "x0": 0.518,
+     "y0": 0.476,
+     "x1": 0.584,
+     "y1": 0.522
+    },
+    {
+     "name": "node:conv-w1",
+     "x0": 0.217,
+     "y0": 0.748,
+     "x1": 0.344,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w1",
+     "x0": 0.244,
+     "y0": 0.76,
+     "x1": 0.311,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w2",
+     "x0": 0.38,
+     "y0": 0.748,
+     "x1": 0.508,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w2",
+     "x0": 0.408,
+     "y0": 0.76,
+     "x1": 0.475,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w3",
+     "x0": 0.544,
+     "y0": 0.748,
+     "x1": 0.671,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w3",
+     "x0": 0.571,
+     "y0": 0.76,
+     "x1": 0.638,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w4",
+     "x0": 0.707,
+     "y0": 0.748,
+     "x1": 0.835,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w4",
+     "x0": 0.735,
+     "y0": 0.76,
+     "x1": 0.801,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w5",
+     "x0": 0.836,
+     "y0": 0.793,
+     "x1": 0.963,
+     "y1": 0.867
+    },
+    {
+     "name": "landmark:conv-w5",
+     "x0": 0.863,
+     "y0": 0.805,
+     "x1": 0.93,
+     "y1": 0.852
+    },
+    {
+     "name": "node:conv-w6",
+     "x0": 0.814,
+     "y0": 0.888,
+     "x1": 0.942,
+     "y1": 0.961
+    },
+    {
+     "name": "landmark:conv-w6",
+     "x0": 0.842,
+     "y0": 0.899,
+     "x1": 0.909,
+     "y1": 0.946
+    },
+    {
+     "name": "node:conv-w7",
+     "x0": 0.661,
+     "y0": 0.908,
+     "x1": 0.789,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w7",
+     "x0": 0.689,
+     "y0": 0.92,
+     "x1": 0.756,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w8",
+     "x0": 0.498,
+     "y0": 0.908,
+     "x1": 0.625,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w8",
+     "x0": 0.525,
+     "y0": 0.92,
+     "x1": 0.592,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w9",
+     "x0": 0.334,
+     "y0": 0.908,
+     "x1": 0.462,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w9",
+     "x0": 0.362,
+     "y0": 0.92,
+     "x1": 0.429,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w10",
+     "x0": 0.171,
+     "y0": 0.908,
+     "x1": 0.299,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w10",
+     "x0": 0.199,
+     "y0": 0.92,
+     "x1": 0.265,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w11",
+     "x0": 0.042,
+     "y0": 0.863,
+     "x1": 0.17,
+     "y1": 0.937
+    },
+    {
+     "name": "landmark:conv-w11",
+     "x0": 0.07,
+     "y0": 0.875,
+     "x1": 0.137,
+     "y1": 0.922
+    },
+    {
+     "name": "node:conv-w12",
+     "x0": 0.063,
+     "y0": 0.769,
+     "x1": 0.191,
+     "y1": 0.842
+    },
+    {
+     "name": "landmark:conv-w12",
+     "x0": 0.091,
+     "y0": 0.781,
+     "x1": 0.158,
+     "y1": 0.827
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.395,
+     "y0": 0.416,
+     "x1": 0.706,
+     "y1": 0.476
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.479
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N3-combined": {
+   "nodeCount": 17,
+   "flagPt": {
+    "x": 201.46911583618723,
+    "y": 159.93664245703818
+   },
+   "fogEdgeY": 137.93664245703818,
+   "fogEdgeNorm": 0.23,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n3bridge",
+     "layer": "exam",
+     "nameJa": "N3語彙・文法の橋",
+     "landmark": "bridge",
+     "x": 227.679,
+     "y": 433.933,
+     "nx": 0.632,
+     "ny": 0.723
+    },
+    {
+     "id": "stg-n3practice",
+     "layer": "exam",
+     "nameJa": "N3実践ミッション",
+     "landmark": "village",
+     "x": 242.033,
+     "y": 324.852,
+     "nx": 0.672,
+     "ny": 0.541
+    },
+    {
+     "id": "stg-n3grammar",
+     "layer": "exam",
+     "nameJa": "N3文法攻略",
+     "landmark": "ruins",
+     "x": 240.578,
+     "y": 243.211,
+     "nx": 0.668,
+     "ny": 0.405
+    },
+    {
+     "id": "stg-n3boss",
+     "layer": "exam",
+     "nameJa": "N3模擬ボス",
+     "landmark": "castle",
+     "x": 201.469,
+     "y": 159.937,
+     "nx": 0.56,
+     "ny": 0.267
+    },
+    {
+     "id": "conv-w1",
+     "layer": "conversation",
+     "nameJa": "自己紹介の村",
+     "landmark": "village",
+     "x": 100,
+     "y": 480,
+     "nx": 0.278,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w2",
+     "layer": "conversation",
+     "nameJa": "思い出の道",
+     "landmark": "road",
+     "x": 158.836,
+     "y": 480,
+     "nx": 0.441,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w3",
+     "layer": "conversation",
+     "nameJa": "変化の丘",
+     "landmark": "hill",
+     "x": 217.672,
+     "y": 480,
+     "nx": 0.605,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w4",
+     "layer": "conversation",
+     "nameJa": "習慣の並木道",
+     "landmark": "avenue",
+     "x": 276.508,
+     "y": 480,
+     "nx": 0.768,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w5",
+     "layer": "conversation",
+     "nameJa": "お願いの街",
+     "landmark": "town",
+     "x": 322.823,
+     "y": 506.932,
+     "nx": 0.897,
+     "ny": 0.845
+    },
+    {
+     "id": "conv-w6",
+     "layer": "conversation",
+     "nameJa": "相談の広場",
+     "landmark": "plaza",
+     "x": 315.158,
+     "y": 563.515,
+     "nx": 0.875,
+     "ny": 0.939
+    },
+    {
+     "id": "conv-w7",
+     "layer": "conversation",
+     "nameJa": "意見を伝える山",
+     "landmark": "mountain",
+     "x": 260,
+     "y": 576,
+     "nx": 0.722,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w8",
+     "layer": "conversation",
+     "nameJa": "選択の分かれ道",
+     "landmark": "crossroad",
+     "x": 201.164,
+     "y": 576,
+     "nx": 0.559,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w9",
+     "layer": "conversation",
+     "nameJa": "推測の霧の森",
+     "landmark": "forest",
+     "x": 142.328,
+     "y": 576,
+     "nx": 0.395,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w10",
+     "layer": "conversation",
+     "nameJa": "仕事と暮らしの町",
+     "landmark": "city",
+     "x": 83.492,
+     "y": 576,
+     "nx": 0.232,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w11",
+     "layer": "conversation",
+     "nameJa": "交流の港",
+     "landmark": "bridge",
+     "x": 37.177,
+     "y": 549.068,
+     "nx": 0.103,
+     "ny": 0.915
+    },
+    {
+     "id": "conv-w12",
+     "layer": "conversation",
+     "nameJa": "総合会話の頂",
+     "landmark": "castle",
+     "x": 44.842,
+     "y": 492.485,
+     "nx": 0.125,
+     "ny": 0.821
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n3bridge",
+     "x0": 0.571,
+     "y0": 0.672,
+     "x1": 0.699,
+     "y1": 0.745
+    },
+    {
+     "name": "landmark:stg-n3bridge",
+     "x0": 0.599,
+     "y0": 0.683,
+     "x1": 0.666,
+     "y1": 0.73
+    },
+    {
+     "name": "node:stg-n3practice",
+     "x0": 0.611,
+     "y0": 0.49,
+     "x1": 0.739,
+     "y1": 0.563
+    },
+    {
+     "name": "landmark:stg-n3practice",
+     "x0": 0.639,
+     "y0": 0.501,
+     "x1": 0.706,
+     "y1": 0.548
+    },
+    {
+     "name": "node:stg-n3grammar",
+     "x0": 0.607,
+     "y0": 0.354,
+     "x1": 0.735,
+     "y1": 0.427
+    },
+    {
+     "name": "landmark:stg-n3grammar",
+     "x0": 0.635,
+     "y0": 0.365,
+     "x1": 0.702,
+     "y1": 0.412
+    },
+    {
+     "name": "node:stg-n3boss",
+     "x0": 0.499,
+     "y0": 0.215,
+     "x1": 0.626,
+     "y1": 0.288
+    },
+    {
+     "name": "landmark:stg-n3boss",
+     "x0": 0.526,
+     "y0": 0.227,
+     "x1": 0.593,
+     "y1": 0.273
+    },
+    {
+     "name": "node:conv-w1",
+     "x0": 0.217,
+     "y0": 0.748,
+     "x1": 0.344,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w1",
+     "x0": 0.244,
+     "y0": 0.76,
+     "x1": 0.311,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w2",
+     "x0": 0.38,
+     "y0": 0.748,
+     "x1": 0.508,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w2",
+     "x0": 0.408,
+     "y0": 0.76,
+     "x1": 0.475,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w3",
+     "x0": 0.544,
+     "y0": 0.748,
+     "x1": 0.671,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w3",
+     "x0": 0.571,
+     "y0": 0.76,
+     "x1": 0.638,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w4",
+     "x0": 0.707,
+     "y0": 0.748,
+     "x1": 0.835,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w4",
+     "x0": 0.735,
+     "y0": 0.76,
+     "x1": 0.801,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w5",
+     "x0": 0.836,
+     "y0": 0.793,
+     "x1": 0.963,
+     "y1": 0.867
+    },
+    {
+     "name": "landmark:conv-w5",
+     "x0": 0.863,
+     "y0": 0.805,
+     "x1": 0.93,
+     "y1": 0.852
+    },
+    {
+     "name": "node:conv-w6",
+     "x0": 0.814,
+     "y0": 0.888,
+     "x1": 0.942,
+     "y1": 0.961
+    },
+    {
+     "name": "landmark:conv-w6",
+     "x0": 0.842,
+     "y0": 0.899,
+     "x1": 0.909,
+     "y1": 0.946
+    },
+    {
+     "name": "node:conv-w7",
+     "x0": 0.661,
+     "y0": 0.908,
+     "x1": 0.789,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w7",
+     "x0": 0.689,
+     "y0": 0.92,
+     "x1": 0.756,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w8",
+     "x0": 0.498,
+     "y0": 0.908,
+     "x1": 0.625,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w8",
+     "x0": 0.525,
+     "y0": 0.92,
+     "x1": 0.592,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w9",
+     "x0": 0.334,
+     "y0": 0.908,
+     "x1": 0.462,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w9",
+     "x0": 0.362,
+     "y0": 0.92,
+     "x1": 0.429,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w10",
+     "x0": 0.171,
+     "y0": 0.908,
+     "x1": 0.299,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w10",
+     "x0": 0.199,
+     "y0": 0.92,
+     "x1": 0.265,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w11",
+     "x0": 0.042,
+     "y0": 0.863,
+     "x1": 0.17,
+     "y1": 0.937
+    },
+    {
+     "name": "landmark:conv-w11",
+     "x0": 0.07,
+     "y0": 0.875,
+     "x1": 0.137,
+     "y1": 0.922
+    },
+    {
+     "name": "node:conv-w12",
+     "x0": 0.063,
+     "y0": 0.769,
+     "x1": 0.191,
+     "y1": 0.842
+    },
+    {
+     "name": "landmark:conv-w12",
+     "x0": 0.091,
+     "y0": 0.781,
+     "x1": 0.158,
+     "y1": 0.827
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.404,
+     "y0": 0.167,
+     "x1": 0.715,
+     "y1": 0.227
+    },
+    {
+     "name": "cloud-sea",
+     "x0": 0,
+     "y0": 0,
+     "x1": 1,
+     "y1": 0.23
+    },
+    {
+     "name": "cloud-bubble",
+     "x0": 0.033,
+     "y0": 0.013,
+     "x1": 0.967,
+     "y1": 0.173
+    }
+   ]
+  },
+  "N2-combined": {
+   "nodeCount": 20,
+   "flagPt": {
+    "x": 252,
+    "y": 70
+   },
+   "fogEdgeY": null,
+   "fogEdgeNorm": null,
+   "nodes": [
+    {
+     "id": "stg-foundation",
+     "layer": "exam",
+     "nameJa": "基礎キャンプ",
+     "landmark": "camp",
+     "x": 170,
+     "y": 532,
+     "nx": 0.472,
+     "ny": 0.887
+    },
+    {
+     "id": "stg-n3bridge",
+     "layer": "exam",
+     "nameJa": "N3語彙・文法の橋",
+     "landmark": "bridge",
+     "x": 104.814,
+     "y": 431.011,
+     "nx": 0.291,
+     "ny": 0.718
+    },
+    {
+     "id": "stg-n3practice",
+     "layer": "exam",
+     "nameJa": "N3実践ミッション",
+     "landmark": "village",
+     "x": 106.837,
+     "y": 376.163,
+     "nx": 0.297,
+     "ny": 0.627
+    },
+    {
+     "id": "stg-n3grammar",
+     "layer": "exam",
+     "nameJa": "N3文法攻略",
+     "landmark": "ruins",
+     "x": 235.937,
+     "y": 322.244,
+     "nx": 0.655,
+     "ny": 0.537
+    },
+    {
+     "id": "stg-n2gate",
+     "layer": "exam",
+     "nameJa": "N2の門",
+     "landmark": "gate",
+     "x": 240.724,
+     "y": 264.395,
+     "nx": 0.669,
+     "ny": 0.441
+    },
+    {
+     "id": "stg-n2grammar",
+     "layer": "exam",
+     "nameJa": "N2語彙・文法",
+     "landmark": "tower",
+     "x": 99.828,
+     "y": 224.31,
+     "nx": 0.277,
+     "ny": 0.374
+    },
+    {
+     "id": "stg-n2reading",
+     "layer": "exam",
+     "nameJa": "読解・会話理解",
+     "landmark": "library",
+     "x": 188.83,
+     "y": 155.931,
+     "nx": 0.525,
+     "ny": 0.26
+    },
+    {
+     "id": "stg-n2boss",
+     "layer": "exam",
+     "nameJa": "N2模擬ボス",
+     "landmark": "castle",
+     "x": 252,
+     "y": 70,
+     "nx": 0.7,
+     "ny": 0.117
+    },
+    {
+     "id": "conv-w1",
+     "layer": "conversation",
+     "nameJa": "自己紹介の村",
+     "landmark": "village",
+     "x": 100,
+     "y": 480,
+     "nx": 0.278,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w2",
+     "layer": "conversation",
+     "nameJa": "思い出の道",
+     "landmark": "road",
+     "x": 158.836,
+     "y": 480,
+     "nx": 0.441,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w3",
+     "layer": "conversation",
+     "nameJa": "変化の丘",
+     "landmark": "hill",
+     "x": 217.672,
+     "y": 480,
+     "nx": 0.605,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w4",
+     "layer": "conversation",
+     "nameJa": "習慣の並木道",
+     "landmark": "avenue",
+     "x": 276.508,
+     "y": 480,
+     "nx": 0.768,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w5",
+     "layer": "conversation",
+     "nameJa": "お願いの街",
+     "landmark": "town",
+     "x": 322.823,
+     "y": 506.932,
+     "nx": 0.897,
+     "ny": 0.845
+    },
+    {
+     "id": "conv-w6",
+     "layer": "conversation",
+     "nameJa": "相談の広場",
+     "landmark": "plaza",
+     "x": 315.158,
+     "y": 563.515,
+     "nx": 0.875,
+     "ny": 0.939
+    },
+    {
+     "id": "conv-w7",
+     "layer": "conversation",
+     "nameJa": "意見を伝える山",
+     "landmark": "mountain",
+     "x": 260,
+     "y": 576,
+     "nx": 0.722,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w8",
+     "layer": "conversation",
+     "nameJa": "選択の分かれ道",
+     "landmark": "crossroad",
+     "x": 201.164,
+     "y": 576,
+     "nx": 0.559,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w9",
+     "layer": "conversation",
+     "nameJa": "推測の霧の森",
+     "landmark": "forest",
+     "x": 142.328,
+     "y": 576,
+     "nx": 0.395,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w10",
+     "layer": "conversation",
+     "nameJa": "仕事と暮らしの町",
+     "landmark": "city",
+     "x": 83.492,
+     "y": 576,
+     "nx": 0.232,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w11",
+     "layer": "conversation",
+     "nameJa": "交流の港",
+     "landmark": "bridge",
+     "x": 37.177,
+     "y": 549.068,
+     "nx": 0.103,
+     "ny": 0.915
+    },
+    {
+     "id": "conv-w12",
+     "layer": "conversation",
+     "nameJa": "総合会話の頂",
+     "landmark": "castle",
+     "x": 44.842,
+     "y": 492.485,
+     "nx": 0.125,
+     "ny": 0.821
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:stg-foundation",
+     "x0": 0.411,
+     "y0": 0.835,
+     "x1": 0.539,
+     "y1": 0.908
+    },
+    {
+     "name": "landmark:stg-foundation",
+     "x0": 0.439,
+     "y0": 0.847,
+     "x1": 0.506,
+     "y1": 0.893
+    },
+    {
+     "name": "node:stg-n3bridge",
+     "x0": 0.23,
+     "y0": 0.667,
+     "x1": 0.358,
+     "y1": 0.74
+    },
+    {
+     "name": "landmark:stg-n3bridge",
+     "x0": 0.258,
+     "y0": 0.678,
+     "x1": 0.324,
+     "y1": 0.725
+    },
+    {
+     "name": "node:stg-n3practice",
+     "x0": 0.236,
+     "y0": 0.575,
+     "x1": 0.363,
+     "y1": 0.649
+    },
+    {
+     "name": "landmark:stg-n3practice",
+     "x0": 0.263,
+     "y0": 0.587,
+     "x1": 0.33,
+     "y1": 0.634
+    },
+    {
+     "name": "node:stg-n3grammar",
+     "x0": 0.594,
+     "y0": 0.485,
+     "x1": 0.722,
+     "y1": 0.559
+    },
+    {
+     "name": "landmark:stg-n3grammar",
+     "x0": 0.622,
+     "y0": 0.497,
+     "x1": 0.689,
+     "y1": 0.544
+    },
+    {
+     "name": "node:stg-n2gate",
+     "x0": 0.608,
+     "y0": 0.389,
+     "x1": 0.735,
+     "y1": 0.462
+    },
+    {
+     "name": "landmark:stg-n2gate",
+     "x0": 0.635,
+     "y0": 0.401,
+     "x1": 0.702,
+     "y1": 0.447
+    },
+    {
+     "name": "node:stg-n2grammar",
+     "x0": 0.216,
+     "y0": 0.322,
+     "x1": 0.344,
+     "y1": 0.396
+    },
+    {
+     "name": "landmark:stg-n2grammar",
+     "x0": 0.244,
+     "y0": 0.334,
+     "x1": 0.311,
+     "y1": 0.381
+    },
+    {
+     "name": "node:stg-n2reading",
+     "x0": 0.463,
+     "y0": 0.208,
+     "x1": 0.591,
+     "y1": 0.282
+    },
+    {
+     "name": "landmark:stg-n2reading",
+     "x0": 0.491,
+     "y0": 0.22,
+     "x1": 0.558,
+     "y1": 0.267
+    },
+    {
+     "name": "node:stg-n2boss",
+     "x0": 0.639,
+     "y0": 0.065,
+     "x1": 0.767,
+     "y1": 0.138
+    },
+    {
+     "name": "landmark:stg-n2boss",
+     "x0": 0.667,
+     "y0": 0.077,
+     "x1": 0.733,
+     "y1": 0.123
+    },
+    {
+     "name": "node:conv-w1",
+     "x0": 0.217,
+     "y0": 0.748,
+     "x1": 0.344,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w1",
+     "x0": 0.244,
+     "y0": 0.76,
+     "x1": 0.311,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w2",
+     "x0": 0.38,
+     "y0": 0.748,
+     "x1": 0.508,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w2",
+     "x0": 0.408,
+     "y0": 0.76,
+     "x1": 0.475,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w3",
+     "x0": 0.544,
+     "y0": 0.748,
+     "x1": 0.671,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w3",
+     "x0": 0.571,
+     "y0": 0.76,
+     "x1": 0.638,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w4",
+     "x0": 0.707,
+     "y0": 0.748,
+     "x1": 0.835,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w4",
+     "x0": 0.735,
+     "y0": 0.76,
+     "x1": 0.801,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w5",
+     "x0": 0.836,
+     "y0": 0.793,
+     "x1": 0.963,
+     "y1": 0.867
+    },
+    {
+     "name": "landmark:conv-w5",
+     "x0": 0.863,
+     "y0": 0.805,
+     "x1": 0.93,
+     "y1": 0.852
+    },
+    {
+     "name": "node:conv-w6",
+     "x0": 0.814,
+     "y0": 0.888,
+     "x1": 0.942,
+     "y1": 0.961
+    },
+    {
+     "name": "landmark:conv-w6",
+     "x0": 0.842,
+     "y0": 0.899,
+     "x1": 0.909,
+     "y1": 0.946
+    },
+    {
+     "name": "node:conv-w7",
+     "x0": 0.661,
+     "y0": 0.908,
+     "x1": 0.789,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w7",
+     "x0": 0.689,
+     "y0": 0.92,
+     "x1": 0.756,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w8",
+     "x0": 0.498,
+     "y0": 0.908,
+     "x1": 0.625,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w8",
+     "x0": 0.525,
+     "y0": 0.92,
+     "x1": 0.592,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w9",
+     "x0": 0.334,
+     "y0": 0.908,
+     "x1": 0.462,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w9",
+     "x0": 0.362,
+     "y0": 0.92,
+     "x1": 0.429,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w10",
+     "x0": 0.171,
+     "y0": 0.908,
+     "x1": 0.299,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w10",
+     "x0": 0.199,
+     "y0": 0.92,
+     "x1": 0.265,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w11",
+     "x0": 0.042,
+     "y0": 0.863,
+     "x1": 0.17,
+     "y1": 0.937
+    },
+    {
+     "name": "landmark:conv-w11",
+     "x0": 0.07,
+     "y0": 0.875,
+     "x1": 0.137,
+     "y1": 0.922
+    },
+    {
+     "name": "node:conv-w12",
+     "x0": 0.063,
+     "y0": 0.769,
+     "x1": 0.191,
+     "y1": 0.842
+    },
+    {
+     "name": "landmark:conv-w12",
+     "x0": 0.091,
+     "y0": 0.781,
+     "x1": 0.158,
+     "y1": 0.827
+    },
+    {
+     "name": "flag-label",
+     "x0": 0.544,
+     "y0": 0.017,
+     "x1": 0.856,
+     "y1": 0.077
+    }
+   ]
+  },
+  "conv-conversation": {
+   "nodeCount": 12,
+   "flagPt": {
+    "x": 44.841758351621095,
+    "y": 492.4853682102284
+   },
+   "fogEdgeY": null,
+   "fogEdgeNorm": null,
+   "nodes": [
+    {
+     "id": "conv-w1",
+     "layer": "conversation",
+     "nameJa": "自己紹介の村",
+     "landmark": "village",
+     "x": 100,
+     "y": 480,
+     "nx": 0.278,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w2",
+     "layer": "conversation",
+     "nameJa": "思い出の道",
+     "landmark": "road",
+     "x": 158.836,
+     "y": 480,
+     "nx": 0.441,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w3",
+     "layer": "conversation",
+     "nameJa": "変化の丘",
+     "landmark": "hill",
+     "x": 217.672,
+     "y": 480,
+     "nx": 0.605,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w4",
+     "layer": "conversation",
+     "nameJa": "習慣の並木道",
+     "landmark": "avenue",
+     "x": 276.508,
+     "y": 480,
+     "nx": 0.768,
+     "ny": 0.8
+    },
+    {
+     "id": "conv-w5",
+     "layer": "conversation",
+     "nameJa": "お願いの街",
+     "landmark": "town",
+     "x": 322.823,
+     "y": 506.932,
+     "nx": 0.897,
+     "ny": 0.845
+    },
+    {
+     "id": "conv-w6",
+     "layer": "conversation",
+     "nameJa": "相談の広場",
+     "landmark": "plaza",
+     "x": 315.158,
+     "y": 563.515,
+     "nx": 0.875,
+     "ny": 0.939
+    },
+    {
+     "id": "conv-w7",
+     "layer": "conversation",
+     "nameJa": "意見を伝える山",
+     "landmark": "mountain",
+     "x": 260,
+     "y": 576,
+     "nx": 0.722,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w8",
+     "layer": "conversation",
+     "nameJa": "選択の分かれ道",
+     "landmark": "crossroad",
+     "x": 201.164,
+     "y": 576,
+     "nx": 0.559,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w9",
+     "layer": "conversation",
+     "nameJa": "推測の霧の森",
+     "landmark": "forest",
+     "x": 142.328,
+     "y": 576,
+     "nx": 0.395,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w10",
+     "layer": "conversation",
+     "nameJa": "仕事と暮らしの町",
+     "landmark": "city",
+     "x": 83.492,
+     "y": 576,
+     "nx": 0.232,
+     "ny": 0.96
+    },
+    {
+     "id": "conv-w11",
+     "layer": "conversation",
+     "nameJa": "交流の港",
+     "landmark": "bridge",
+     "x": 37.177,
+     "y": 549.068,
+     "nx": 0.103,
+     "ny": 0.915
+    },
+    {
+     "id": "conv-w12",
+     "layer": "conversation",
+     "nameJa": "総合会話の頂",
+     "landmark": "castle",
+     "x": 44.842,
+     "y": 492.485,
+     "nx": 0.125,
+     "ny": 0.821
+    }
+   ],
+   "uiBoxes": [
+    {
+     "name": "node:conv-w1",
+     "x0": 0.217,
+     "y0": 0.748,
+     "x1": 0.344,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w1",
+     "x0": 0.244,
+     "y0": 0.76,
+     "x1": 0.311,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w2",
+     "x0": 0.38,
+     "y0": 0.748,
+     "x1": 0.508,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w2",
+     "x0": 0.408,
+     "y0": 0.76,
+     "x1": 0.475,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w3",
+     "x0": 0.544,
+     "y0": 0.748,
+     "x1": 0.671,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w3",
+     "x0": 0.571,
+     "y0": 0.76,
+     "x1": 0.638,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w4",
+     "x0": 0.707,
+     "y0": 0.748,
+     "x1": 0.835,
+     "y1": 0.822
+    },
+    {
+     "name": "landmark:conv-w4",
+     "x0": 0.735,
+     "y0": 0.76,
+     "x1": 0.801,
+     "y1": 0.807
+    },
+    {
+     "name": "node:conv-w5",
+     "x0": 0.836,
+     "y0": 0.793,
+     "x1": 0.963,
+     "y1": 0.867
+    },
+    {
+     "name": "landmark:conv-w5",
+     "x0": 0.863,
+     "y0": 0.805,
+     "x1": 0.93,
+     "y1": 0.852
+    },
+    {
+     "name": "node:conv-w6",
+     "x0": 0.814,
+     "y0": 0.888,
+     "x1": 0.942,
+     "y1": 0.961
+    },
+    {
+     "name": "landmark:conv-w6",
+     "x0": 0.842,
+     "y0": 0.899,
+     "x1": 0.909,
+     "y1": 0.946
+    },
+    {
+     "name": "node:conv-w7",
+     "x0": 0.661,
+     "y0": 0.908,
+     "x1": 0.789,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w7",
+     "x0": 0.689,
+     "y0": 0.92,
+     "x1": 0.756,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w8",
+     "x0": 0.498,
+     "y0": 0.908,
+     "x1": 0.625,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w8",
+     "x0": 0.525,
+     "y0": 0.92,
+     "x1": 0.592,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w9",
+     "x0": 0.334,
+     "y0": 0.908,
+     "x1": 0.462,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w9",
+     "x0": 0.362,
+     "y0": 0.92,
+     "x1": 0.429,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w10",
+     "x0": 0.171,
+     "y0": 0.908,
+     "x1": 0.299,
+     "y1": 0.982
+    },
+    {
+     "name": "landmark:conv-w10",
+     "x0": 0.199,
+     "y0": 0.92,
+     "x1": 0.265,
+     "y1": 0.967
+    },
+    {
+     "name": "node:conv-w11",
+     "x0": 0.042,
+     "y0": 0.863,
+     "x1": 0.17,
+     "y1": 0.937
+    },
+    {
+     "name": "landmark:conv-w11",
+     "x0": 0.07,
+     "y0": 0.875,
+     "x1": 0.137,
+     "y1": 0.922
+    },
+    {
+     "name": "node:conv-w12",
+     "x0": 0.063,
+     "y0": 0.769,
+     "x1": 0.191,
+     "y1": 0.842
+    },
+    {
+     "name": "landmark:conv-w12",
+     "x0": 0.091,
+     "y0": 0.781,
+     "x1": 0.158,
+     "y1": 0.827
+    },
+    {
+     "name": "flag-label",
+     "x0": 0,
+     "y0": 0.721,
+     "x1": 0.311,
+     "y1": 0.781
+    }
+   ]
+  }
+ }
+}

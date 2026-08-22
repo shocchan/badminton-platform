@@ -72,6 +72,294 @@
   "transcriptJa": "あのう、すみません。駅はどこですか。"
  },
  {
+  "setId": "n5l-task-b01",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "郵便局で係の人と女の人が話しています。女の人はいくら払いますか。女「この手紙を出したいです。」係「はい、八十四円の切手をはってください。切手はそこで買えます。」女「五まいください。」係「五まいで四百二十円です。」女「はい、お願いします。」"
+ },
+ {
+  "setId": "n5l-task-b02",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "病院の受付で受付の人と男の人が話しています。男の人はこのあとまず何をしますか。受付「はじめてですか。」男「はい、はじめてです。」受付「では、この紙に名前と住所を書いてください。保険証はお持ちですか。」男「はい、あります。」受付「紙を書いてから、保険証といっしょに出してください。」"
+ },
+ {
+  "setId": "n5l-task-b03",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "図書館で係の人と学生が話しています。学生はこのあと何をしますか。学生「この本を借りたいです。」係「カードはお持ちですか。」学生「いいえ、ありません。」係「では、先にカードを作りましょう。学生証を見せてください。」学生「はい、これです。」"
+ },
+ {
+  "setId": "n5l-task-b04",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "駅で係の人と女の人が話しています。女の人はどのボタンをおしますか。女「すみません、東町までの切符を買いたいです。」係「あの機械で買えます。まず、お金を入れてください。それから、二百六十円のボタンをおしてください。」女「二百六十円ですね。」係「はい。おつりは下から出ます。」"
+ },
+ {
+  "setId": "n5l-task-b05",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "コンビニで店員と男の人が話しています。店員はこのあと何をしますか。男「これをください。」店員「お弁当はあたためますか。」男「はい、お願いします。」店員「おはしはおつけしますか。」男「いいえ、家にありますから、いりません。」"
+ },
+ {
+  "setId": "n5l-task-b06",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "教室で先生が話しています。学生は今日、何をしますか。先生「今日はそうじをします。まどをふく人は三人、ゆかをはく人は四人です。つくえは、あしたみんなでならべますから、今日はさわらないでください。」"
+ },
+ {
+  "setId": "n5l-task-b07",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "電話で友人と女の人が話しています。二人はどこで会いますか。友人「今、駅に着きました。」女「じゃあ、駅の前の店で待っていてください。」友人「花の店ですか。」女「いいえ、パンの店です。花の店はとおいですから。」"
+ },
+ {
+  "setId": "n5l-task-b08",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "家で母と学生が話しています。学生はこのあとまず何をしますか。母「洗濯機を使うときは、先に服を入れてください。それから、ここのボタンをおします。」学生「せんざいはいつ入れますか。」母「服を入れたあと、ボタンをおす前に入れてください。」"
+ },
+ {
+  "setId": "n5l-task-b09",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "アパートで係の人と男の人が話しています。男の人は木曜日に何を出しますか。係「もえるごみは月曜日と木曜日です。びんとかんは水曜日、紙は金曜日に出してください。」男「木曜日はもえるごみだけですか。」係「はい、そうです。」"
+ },
+ {
+  "setId": "n5l-task-b10",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "銀行で係の人と女の人が話しています。女の人はこのあとまず何をしますか。女「お金をおろしたいです。」係「あちらの機械でできます。カードを入れてから、番号をおしてください。」女「番号は四つですか。」係「はい、四つです。」"
+ },
+ {
+  "setId": "n5l-task-b11",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "電話で店員と女の人が話しています。女の人はいつ店に行きますか。女「土曜日の二時に行きたいです。」店員「すみません、土曜日の二時はいっぱいです。三時はどうですか。」女「三時は用事があります。日曜日の二時はできますか。」店員「はい、できます。」"
+ },
+ {
+  "setId": "n5l-task-b12",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "スーパーで店員と男の人が話しています。男の人はいくら出しますか。店員「六百円です。ふくろはいりますか。三円です。」男「はい、一まいください。」店員「では、六百三円です。」男「はい。」"
+ },
+ {
+  "setId": "n5l-task-b13",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "学校で先生と学生が話しています。学生はいつ宿題を出しますか。先生「宿題はあしたまでです。」学生「あした、休みます。病院へ行きますから。」先生「そうですか。では、あさっての朝、出してください。」学生「はい、わかりました。」"
+ },
+ {
+  "setId": "n5l-task-b14",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "教室で先生と学生が話しています。学生はかぎをどこに返しますか。学生「先生、教室のかぎです。」先生「ありがとう。でも、わたしではなく、一階の受付に返してください。」学生「職員室ではないですか。」先生「はい、受付です。」"
+ },
+ {
+  "setId": "n5l-task-b15",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はいくつ弁当を注文しますか。女「あした、会議です。人は六人です。」男「では、弁当を六つですね。」女「わたしは家から持ってきますから、五つでいいです。」男「わかりました。」"
+ },
+ {
+  "setId": "n5l-task-b16",
+  "sourceLevel": "N5",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で先輩と後輩が話しています。後輩はかさをいつ返しますか。後輩「かさをかしてください。」先輩「いいですよ。あしたの朝、返してください。」後輩「あしたは休みですから、あさってでもいいですか。」先輩「はい、いいですよ。」"
+ },
+ {
+  "setId": "n5l-point-b01",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "教室で先生と学生が話しています。学生はどうして遅れましたか。先生「今日はおそかったですね。」学生「すみません。朝、電車が止まりましたから。」先生「そうですか。事故ですか。」学生「いいえ、雨がたくさんふりましたから、止まりました。」"
+ },
+ {
+  "setId": "n5l-point-b02",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はいつ引っこししますか。女「新しい家はもう決めましたか。」男「はい。来月の五日に引っこします。」女「今週の日曜日ですか。」男「いいえ、来月です。今月はまだいそがしいですから。」"
+ },
+ {
+  "setId": "n5l-point-b03",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "家で母と男の人が話しています。男の人はどうして学校を休みますか。母「かおが赤いですね。」男「あたまがいたいです。ねつもあります。」母「かぜですね。今日は休みましょう。」男「はい。おなかはいたくないですが、休みます。」"
+ },
+ {
+  "setId": "n5l-point-b04",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で友人と女の人が話しています。女の人はどこへ旅行に行きますか。友人「休みはどこかへ行きますか。」女「北の町へ行きます。」友人「海ですか。」女「いいえ、山です。雪が見たいですから。」"
+ },
+ {
+  "setId": "n5l-point-b05",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "教室で学生と友人が話しています。写真をとったのはだれですか。友人「いい写真ですね。」学生「ありがとうございます。」友人「あなたがとりましたか。」学生「いいえ、わたしは写真の中にいます。姉がとりました。」"
+ },
+ {
+  "setId": "n5l-point-b06",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "家で父と女の人が話しています。女の人はどうして今日、料理をしませんか。父「今日はごはんを作りませんか。」女「今日はつかれましたから、作りたくないです。」父「じゃあ、買って帰りましょう。」女「はい、お願いします。」"
+ },
+ {
+  "setId": "n5l-point-b07",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "店で店員と男の人が話しています。男の人はどうしてこのくつを買いませんか。男「これ、いいですね。」店員「二十七センチもありますよ。」男「わたしは二十六センチです。」店員「すみません、二十六センチはもうありません。」男「そうですか。じゃあ、またにします。」"
+ },
+ {
+  "setId": "n5l-point-b08",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "学校で先生と学生が話しています。学生はどうして宿題を出しませんでしたか。先生「宿題はどうしましたか。」学生「すみません、家にわすれました。」先生「書きましたか。」学生「はい、書きました。あした持ってきます。」"
+ },
+ {
+  "setId": "n5l-point-b09",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "駅で女の人と友人が話しています。二人はどうして電車で行きませんか。友人「電車で行きませんか。」女「今日は電車がこみますよ。」友人「そうですか。」女「バスのほうがすいていますから、バスで行きましょう。」友人「はい。」"
+ },
+ {
+  "setId": "n5l-point-b10",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。二人はどうしてこの店にしましたか。男「昼ごはん、どこにしますか。」女「駅の前の店はどうですか。安いですよ。」男「あそこは遠いです。となりのビルの店は、近いですよ。」女「じゃあ、そこにしましょう。」"
+ },
+ {
+  "setId": "n5l-point-b11",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で上司と男の人が話しています。会議は何時になりましたか。上司「会議は三時からですね。」男「はい。でも、社長が四時までいそがしいです。」上司「じゃあ、四時半からにしましょう。」男「わかりました。」"
+ },
+ {
+  "setId": "n5l-point-b12",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "家で女の人と学生が話しています。学生はどうしてかさを持って行きますか。女「今日はいい天気ですね。」学生「はい。でも、午後から雨がふりますから、かさを持って行きます。」女「そうですか。気をつけて。」"
+ },
+ {
+  "setId": "n5l-point-b13",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "教室で学生と友人が話しています。学生はどこで日本語を勉強しましたか。友人「日本語が上手ですね。学校で習いましたか。」学生「いいえ、国では習いませんでした。日本へ来てから、家で本を読んで勉強しました。」"
+ },
+ {
+  "setId": "n5l-point-b14",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "店で店員と女の人が話しています。女の人はどうしてこれを買いますか。女「これとこれ、どちらがいいですか。」店員「こちらは少し高いですが、かるいです。」女「わたしは毎日持ちますから、かるいほうがいいです。」店員「はい、ありがとうございます。」"
+ },
+ {
+  "setId": "n5l-point-b15",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はだれとご飯を食べますか。女「今日の夜、いっしょに食べませんか。」男「すみません、今日は父と食べます。」女「お母さんも来ますか。」男「母は来ません。父だけです。」"
+ },
+ {
+  "setId": "n5l-point-b16",
+  "sourceLevel": "N5",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "学校で先生と学生が話しています。あしたのテストはどこでありますか。先生「あしたはテストです。」学生「この教室ですか。」先生「いいえ、二階の大きい部屋です。人が多いですから。」学生「わかりました。」"
+ },
+ {
+  "setId": "n5l-quick-b01",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "男「この席、すわってもいいですか。」"
+ },
+ {
+  "setId": "n5l-quick-b02",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "女「あしたの映画、いっしょに行きませんか。」"
+ },
+ {
+  "setId": "n5l-quick-b03",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "店員「お飲み物はいかがですか。」"
+ },
+ {
+  "setId": "n5l-quick-b04",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "男「かさをかしてくれませんか。」"
+ },
+ {
+  "setId": "n5l-quick-b05",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "女「おそくなって、すみません。」"
+ },
+ {
+  "setId": "n5l-quick-b06",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先生「この漢字、読めますか。」"
+ },
+ {
+  "setId": "n5l-quick-b07",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "男「日本語の勉強はどうですか。」"
+ },
+ {
+  "setId": "n5l-quick-b08",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "女「ここでたばこをすってはいけません。」"
+ },
+ {
+  "setId": "n5l-quick-b09",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "店員「ふくろはいりますか。」"
+ },
+ {
+  "setId": "n5l-quick-b10",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "男「お先に失礼します。」"
+ },
+ {
+  "setId": "n5l-quick-b11",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "女「そのペン、ちょっと見せてください。」"
+ },
+ {
+  "setId": "n5l-quick-b12",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先生「土曜日も学校へ来ますか。」"
+ },
+ {
+  "setId": "n5l-quick-b13",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "男「ここに名前を書いてください。」"
+ },
+ {
+  "setId": "n5l-quick-b14",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "女「今日はさむいですね。」"
+ },
+ {
+  "setId": "n5l-quick-b15",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "店員「こちらの色はいかがですか。」"
+ },
+ {
+  "setId": "n5l-quick-b16",
+  "sourceLevel": "N5",
+  "listeningType": "quickResponse",
+  "transcriptJa": "友人「あたらしいかばんですね。」"
+ },
+ {
   "setId": "n4l-task-01",
   "sourceLevel": "N4",
   "listeningType": "taskComprehension",
@@ -142,6 +430,294 @@
   "sourceLevel": "N4",
   "listeningType": "quickResponse",
   "transcriptJa": "切符はもう買っておいたから、あしたはそのまま駅に来てね。"
+ },
+ {
+  "setId": "n4l-task-b01",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で課長と男の人が話しています。男の人はこのあとまず何をしますか。課長「この書類、明日の会議で使いますから、二十部コピーしておいてください。」男「はい。ホチキスでとめますか。」課長「いえ、とめないでください。会議室の机に置いておいてくれれば、あとはこちらでやります。」男「わかりました。」"
+ },
+ {
+  "setId": "n4l-task-b02",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "家で女の人が電話で話しています。女の人は荷物をどうしてもらいますか。係「お荷物をお届けに行きましたが、るすでした。」女「すみません。明日は一日中いますが、午前中は出かけます。」係「では、午後にお持ちしましょうか。」女「はい、二時ごろにお願いします。」"
+ },
+ {
+  "setId": "n4l-task-b03",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はいつ電話をかけますか。女「山田さんに連絡してくれますか。」男「はい。今すぐかけましょうか。」女「山田さんは今、会議中だそうです。三時に終わりますから、そのあとにしてください。」男「わかりました。」"
+ },
+ {
+  "setId": "n4l-task-b04",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "店でけいたいの係の人と女の人が話しています。女の人はこのあとまず何をしますか。女「けいたいがこわれてしまいました。」係「修理には一週間かかります。その間、代わりの機械をお貸しできますよ。」女「じゃあ、借りたいです。」係「では、こちらの紙に住所を書いてから、身分証を見せてください。」"
+ },
+ {
+  "setId": "n4l-task-b05",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で部長と女の人が話しています。女の人は何時の電車を予約しますか。部長「来週の出張ですが、九時に向こうに着きたいです。」女「電車は二時間かかりますから、七時のがいいですね。」部長「駅から会社まで三十分かかりますから、もう一本早いほうが安心です。」女「では、六時半のにします。」"
+ },
+ {
+  "setId": "n4l-task-b06",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で男の人と係の人が話しています。男の人はこのあと何をしますか。男「パソコンが動かなくなってしまいました。」係「電源は入りますか。」男「はい、入ります。でも画面が真っ暗です。」係「では、一度電源を切って、五分待ってからもう一度入れてみてください。それでもだめなら、こちらへ持ってきてください。」"
+ },
+ {
+  "setId": "n4l-task-b07",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。二人はどの部屋を使いますか。女「会議室を予約したいです。十人入れる部屋はありますか。」男「大会議室は二十人入れますが、午後は使えません。小会議室は八人までです。」女「午前中でいいので、大会議室にします。」"
+ },
+ {
+  "setId": "n4l-task-b08",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で係の人が話しています。社員は健康診断の日に何を持って行きますか。係「来週の健康診断では、朝ごはんを食べないで来てください。保険証はいりませんが、この用紙は必ず持ってきてください。書いてから来ていただけると早く終わります。」"
+ },
+ {
+  "setId": "n4l-task-b09",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "店で店長と学生が話しています。学生はいつから働きますか。学生「アルバイトをしたいです。」店長「いつから来られますか。」学生「来週の月曜日からです。」店長「その日は説明だけですから、実際に働くのは水曜日からになります。」学生「はい、わかりました。」"
+ },
+ {
+  "setId": "n4l-task-b10",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "大学で係の人と学生が話しています。学生はこのあとどこへ行きますか。学生「休学の手続きをしたいです。」係「まず、先生のサインが必要です。サインをもらったら、二階の学生課へ出してください。」学生「先生の部屋は三階ですね。」係「はい、そうです。」"
+ },
+ {
+  "setId": "n4l-task-b11",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人は資料をどうしますか。女「この資料、まちがいが二か所ありました。」男「すぐ直します。印刷しなおしましょうか。」女「いえ、まだ配っていませんから、直したものをメールで送ってくれればいいです。」男「わかりました。」"
+ },
+ {
+  "setId": "n4l-task-b12",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "駅で係の人と女の人が話しています。女の人はこのあとどうしますか。女「かばんを電車の中にわすれてしまいました。」係「何時ごろの電車ですか。」女「一時間ぐらい前です。」係「では、終点の駅に届いていると思います。あちらの電話で、終点の駅に聞いてみてください。」"
+ },
+ {
+  "setId": "n4l-task-b13",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で先輩と後輩が話しています。後輩は明日、何時に来ますか。先輩「明日はお客さんが十時に来ます。」後輩「では、九時に来ればいいですか。」先輩「準備に一時間半かかりますから、もう少し早いほうがいいですね。」後輩「じゃあ、八時半に来ます。」"
+ },
+ {
+  "setId": "n4l-task-b14",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で係の人と男の人が話しています。男の人はどの日に休みますか。男「来月、三日間休みたいです。」係「連休の前後は混みますから、できれば避けてください。」男「では、連休が終わった次の週の月曜から水曜にします。」係「はい、それなら大丈夫です。」"
+ },
+ {
+  "setId": "n4l-task-b15",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "店で店員と女の人が話しています。女の人はいつ品物を受け取りますか。女「これ、家まで送ってもらえますか。」店員「はい。明日の午後にお届けできますが、送料が五百円かかります。」女「店に取りに来れば、無料ですか。」店員「はい。その場合は、あさっての朝から受け取れます。」女「じゃあ、取りに来ます。」"
+ },
+ {
+  "setId": "n4l-task-b16",
+  "sourceLevel": "N4",
+  "listeningType": "taskComprehension",
+  "transcriptJa": "会社で課長と女の人が話しています。女の人はこのあとまず何をしますか。課長「新しい人が来週から入ります。」女「机といすを用意しておきましょうか。」課長「それは総務がやってくれます。あなたは、名札を作って、パソコンの設定を頼んでおいてください。」女「名札からやります。」"
+ },
+ {
+  "setId": "n4l-point-b01",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はどうして会社をやめますか。女「会社をやめるそうですね。給料のことですか。」男「いえ、給料は悪くないです。」女「じゃあ、人間関係ですか。」男「それも問題ないです。ただ、父の店を手伝わなければならなくなったんです。」"
+ },
+ {
+  "setId": "n4l-point-b02",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。女の人はどうして引っこししますか。男「駅から遠いから引っこすんですか。」女「いえ、駅までは近いんです。ただ、上の階の音がうるさくて、夜あまり眠れなくて。」男「それは大変ですね。」"
+ },
+ {
+  "setId": "n4l-point-b03",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で上司と男の人が話しています。男の人はどうして遅れましたか。上司「今日は遅かったですね。電車ですか。」男「いえ、電車は動いていました。実は、家を出るとき、かぎが見つからなくて、探していたんです。」上司「見つかってよかったですね。」"
+ },
+ {
+  "setId": "n4l-point-b04",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はどこをけがしましたか。女「その手、どうしたんですか。」男「ああ、これは古いけがです。今日は階段で転んで、足を打ってしまいました。」女「歩けますか。」男「はい、少し痛いだけです。」"
+ },
+ {
+  "setId": "n4l-point-b05",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "店で店員と女の人が話しています。女の人はいくら払いますか。店員「こちらは五千円ですが、今日は二割引きです。」女「じゃあ、四千円ですね。」店員「はい。会員カードをお持ちでしたら、さらに百円引きになります。」女「持っています。」"
+ },
+ {
+  "setId": "n4l-point-b06",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。この店はどうして人気がありますか。女「あの店、いつも並んでいますね。安いんですか。」男「いえ、値段は普通です。でも、注文してから作るので、いつも温かいんです。」女「なるほど。」"
+ },
+ {
+  "setId": "n4l-point-b07",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "大学で学生と友人が話しています。学生はどうしてサークルをやめましたか。友人「サークル、やめたそうですね。忙しいんですか。」学生「時間はあるんです。ただ、練習が朝六時からで、そこまで早く起きられなくて。」友人「それは大変だね。」"
+ },
+ {
+  "setId": "n4l-point-b08",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。女の人はどうしてこのホテルを選びましたか。男「このホテル、少し高いですね。」女「そうなんです。でも、会場まで歩いて三分ですから。朝、あわてなくてすみます。」男「なるほど、それは便利ですね。」"
+ },
+ {
+  "setId": "n4l-point-b09",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で係の人と女の人が話しています。女の人は何にこまっていますか。係「新しいシステムはどうですか。」女「入力は簡単になりました。ただ、前のデータが探しにくくて。名前では探せないんです。」係「番号なら探せますよ。」"
+ },
+ {
+  "setId": "n4l-point-b10",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で先輩と後輩が話しています。後輩はこの仕事のどこがいちばん大変だと言っていますか。先輩「新しい仕事はどうですか。」後輩「覚えることは多いですが、それは慣れると思います。今いちばん大変なのは、電話でお客さんの名前が聞き取れないことです。」"
+ },
+ {
+  "setId": "n4l-point-b11",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "家で女の人と男の人が話しています。二人は旅行をいつにしましたか。女「六月に旅行しませんか。」男「六月は雨が多いですよ。」女「じゃあ、五月は。」男「五月は連休で混みます。四月の終わりなら、まだ空いていると思います。」女「じゃあ、そうしましょう。」"
+ },
+ {
+  "setId": "n4l-point-b12",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人はどうして車で行きますか。女「電車のほうが早いですよ。」男「そうですね。でも、大きい荷物を三つ持って行かなければならないんです。」女「ああ、それなら車のほうがいいですね。」"
+ },
+ {
+  "setId": "n4l-point-b13",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "大学で先生と学生が話しています。学生はレポートをいつ出しますか。先生「レポートは金曜日までです。」学生「先生、その日は試験があって、木曜の夜まで準備します。」先生「では、月曜の朝までにしましょう。でも、それ以上は待てません。」学生「はい、月曜に出します。」"
+ },
+ {
+  "setId": "n4l-point-b14",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "店で店員と男の人が話しています。男の人はどうしてこれを返しますか。店員「どうなさいましたか。」男「先週買ったんですが、家で開けてみたら、ここにきずがありました。」店員「大変失礼しました。同じ物と交換しましょうか。」男「はい、お願いします。」"
+ },
+ {
+  "setId": "n4l-point-b15",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で男の人と女の人が話しています。会議はどうして中止になりましたか。男「明日の会議、中止だそうですね。部長がお休みですか。」女「いえ、部長は出られます。お客さまのほうで急な用事ができたそうです。」男「そうですか。」"
+ },
+ {
+  "setId": "n4l-point-b16",
+  "sourceLevel": "N4",
+  "listeningType": "pointComprehension",
+  "transcriptJa": "会社で女の人と男の人が話しています。男の人は何時間ぐらい勉強していますか。女「日本語、上手になりましたね。毎日何時間も勉強しているんですか。」男「いえ、毎日は三十分だけです。でも、土曜日と日曜日は三時間ずつやっています。」"
+ },
+ {
+  "setId": "n4l-quick-b01",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "課長「この件、明日までにお願いできますか。」"
+ },
+ {
+  "setId": "n4l-quick-b02",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先輩「その荷物、重そうですね。持ちましょうか。」"
+ },
+ {
+  "setId": "n4l-quick-b03",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "同僚「今夜、飲みに行きませんか。」"
+ },
+ {
+  "setId": "n4l-quick-b04",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "客「すみません、この漢字の読み方を教えていただけますか。」"
+ },
+ {
+  "setId": "n4l-quick-b05",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "上司「来月から大阪に行くことになりました。」"
+ },
+ {
+  "setId": "n4l-quick-b06",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "店員「申し訳ありません、ただいま品切れでございます。」"
+ },
+ {
+  "setId": "n4l-quick-b07",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先生「レポートはもう出しましたか。」"
+ },
+ {
+  "setId": "n4l-quick-b08",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "同僚「この資料、コピーしておきましょうか。」"
+ },
+ {
+  "setId": "n4l-quick-b09",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "受付「恐れ入りますが、こちらにご記入いただけますか。」"
+ },
+ {
+  "setId": "n4l-quick-b10",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "友人「傘、持って行ったほうがいいかもしれませんよ。」"
+ },
+ {
+  "setId": "n4l-quick-b11",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "課長「会議の時間、三時に変更してもいいですか。」"
+ },
+ {
+  "setId": "n4l-quick-b12",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先輩「このやり方、分かりにくかったら言ってくださいね。」"
+ },
+ {
+  "setId": "n4l-quick-b13",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "同僚「昨日の会議、どうでしたか。」"
+ },
+ {
+  "setId": "n4l-quick-b14",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "客「これ、少し小さいようなんですが。」"
+ },
+ {
+  "setId": "n4l-quick-b15",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "上司「今日は早く帰っていいですよ。」"
+ },
+ {
+  "setId": "n4l-quick-b16",
+  "sourceLevel": "N4",
+  "listeningType": "quickResponse",
+  "transcriptJa": "先生「この本、読んでおくといいですよ。」"
  },
  {
   "setId": "n3l-task-01",

@@ -8,13 +8,10 @@
       "Read"
     ],
     "ask": [
-      "Bash(*stripe*)",
-      "Bash(*payment*)",
-      "Bash(*paypal*)",
-      "Bash(*charge*)",
-      "Bash(*billing*)",
-      "Fetch(*stripe*)",
-      "Fetch(*payment*)"
+      "Bash(*api.stripe.com*)",
+      "Bash(*sk_live*)",
+      "Bash(*sk_test*)",
+      "Bash(*secrets set*)"
     ],
     "deny": [
       "Bash(./scripts/deploy-production.sh)",
