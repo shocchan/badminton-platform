@@ -97,6 +97,15 @@ order by (l.settings->'adventureV2'->'lastQuest'->>'dateKey') desc nulls last
 limit 12
 `);
 
+// 未対応の問題報告（放置がいちばんまずい）。本文は要点だけ・氏名や連絡先は取らない
+const issues = sql(`
+select left(coalesce(i.comment, ''), 80) as comment, coalesce(i.error_code, '') as code,
+       coalesce(i.page, '') as page, i.created_at::date as day
+from public.ai_issue_reports i
+where i.resolved is not true and i.created_at > now() - interval '30 days'
+order by i.created_at desc limit 10
+`);
+
 // ── 4. 異常 ─────────────────────────────────────────────
 const alerts = sql(`
 select severity, kind, detail, created_at::date as day
@@ -121,6 +130,9 @@ for (const r of neverLoggedIn) {
 }
 for (const a of alerts.filter((x) => x.severity !== 'info')) {
   todo.push({ who: '機械', what: `${a.kind}：${a.detail}`, act: '中身を見る' });
+}
+for (const i of issues) {
+  todo.push({ who: '問題報告', what: `${i.day}・${i.page || '画面不明'}${i.code ? `（${i.code}）` : ''}：${i.comment || '（コメントなし）'}`, act: '返事をする' });
 }
 
 const todoHtml = todo.length === 0
