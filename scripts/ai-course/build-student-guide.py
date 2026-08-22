@@ -19,6 +19,20 @@ IMG = os.path.join(BASE, 'docs/ai-course/guide/img')
 BUDDY = os.path.join(BASE, 'public/images/ai-course/companions')
 
 
+# 学習者画面で実際に出るふりがなの見本（読解 n5r-short-01）。
+# annotateRuby（src/lib/aiLesson/course/adventure/advRubyAuto.ts）を通した出力をそのまま貼っている。
+# 教材や読みの辞書を直したら、ここも作り直すこと。
+RUBY_Q = ('<ruby>夜七時<rt>よるしちじ</rt></ruby>をすぎてから、ロッカーに'
+          '<ruby>入<rt>い</rt></ruby>れたかばんを<ruby>取<rt>と</rt></ruby>りたい'
+          '<ruby>人<rt>ひと</rt></ruby>はどうしますか。')
+RUBY_C0 = '<ruby>一階<rt>いっかい</rt></ruby>の<ruby>事務室<rt>じむしつ</rt></ruby>へ<ruby>行<rt>い</rt></ruby>く'
+RUBY_C1 = ('<ruby>入口<rt>いりぐち</rt></ruby>の<ruby>右<rt>みぎ</rt></ruby>のロッカーを'
+           '<ruby>開<rt>あ</rt></ruby>ける')
+RUBY_C2 = ('<ruby>百円玉<rt>ひゃくえんだま</rt></ruby>を<ruby>入<rt>い</rt></ruby>れてかぎを'
+           '<ruby>出<rt>だ</rt></ruby>す')
+RUBY_C3 = 'かぎを<ruby>返<rt>かえ</rt></ruby>して<ruby>百円玉<rt>ひゃくえんだま</rt></ruby>をもらう'
+
+
 def img_tag(name: str, alt: str, width: int = 310) -> str:
     with open(os.path.join(IMG, name), 'rb') as f:
         b64 = base64.b64encode(f.read()).decode()
@@ -178,6 +192,23 @@ def build(lang: str) -> str:
     border:1px solid var(--note-line); box-shadow:0 2px 8px rgb(140 96 10 / .08); }}
   .note b {{ display:block; font-size:.7rem; letter-spacing:.14em; margin-bottom:3px; }}
 
+  /* ふりがなの見本。学習者の画面と同じ見え方にする（rtは小さく・本文は行間を広く） */
+  .rubydemo {{ margin-top:14px; border-radius:14px; padding:16px 16px 14px;
+    background:linear-gradient(180deg, var(--chip-bg1), var(--chip-bg2));
+    border:1px solid var(--chip-line); box-shadow:0 2px 8px rgb(12 27 60 / .06); }}
+  .rubydemo ruby {{ ruby-position:over; }}
+  .rubydemo rt {{ font-size:.52em; color:var(--eyebrow); font-weight:600; letter-spacing:0; }}
+  .rubydemo .rq {{ margin:0; font-size:.95rem; font-weight:700; color:var(--ink); line-height:2.5; }}
+  .rubydemo .rc {{ margin:12px 0 0; padding:0; list-style:none; counter-reset:rc; }}
+  .rubydemo .rc li {{ counter-increment:rc; position:relative; padding:8px 12px 7px 34px;
+    margin-top:7px; background:var(--card); border:1px solid var(--chip-line);
+    border-radius:11px; font-size:.9rem; color:var(--ink); line-height:2.4; }}
+  .rubydemo .rc li::before {{ content:counter(rc); position:absolute; left:10px; top:50%;
+    transform:translateY(-50%); width:17px; height:17px; border-radius:999px;
+    background:var(--chip-bg2); border:1px solid var(--chip-line); color:var(--chip-ink);
+    display:flex; align-items:center; justify-content:center; font-size:.62rem; font-weight:800;
+    line-height:1; }}
+
   .why .mech {{ margin-top:18px; padding-left:40px; position:relative; }}
   .why {{ counter-reset:why; }}
   .why .mech::before {{ counter-increment:why; content:counter(why);
@@ -236,7 +267,7 @@ def build(lang: str) -> str:
      '这门课程的目的地不止一个。最初的10分钟选好目标后，就会生成通往那里的你的专属路线。')}
   <div class="goals">
     <div class="goal"><span class="gi">🎯</span>
-      <b>{one('JLPT合格をめざす人（N3・N2）', '以JLPT合格为目标的人（N3・N2）')}</b>
+      <b>{one('JLPT合格をめざす人（N5・N4・N3・N2）', '以JLPT合格为目标的人（N5・N4・N3・N2）')}</b>
       <span class="gd">{one('目標の日、本番と同じ時間の感覚で問題を解けている。文法・語彙・読解・聴解を試験と同じ4技能で鍛えるから。',
         '到了目标之日，能以接近真实考试的时间感觉解题。因为语法・词汇・阅读・听力都按考试的4项技能来锻炼。')}</span>
       <span class="gs">{one('到目标之日，能以接近真实考试的时间感觉解题', '目標の日、本番と同じ時間の感覚で解ける')}</span></div>
@@ -254,15 +285,15 @@ def build(lang: str) -> str:
   <p class="honest">{one('※ 合格を保証するものではありません。目的はあとから「目的・レベルを変える」でいつでも変えられます（記録は消えません）。',
     '※ 不构成合格保证。目标之后可以随时在「更改目标・级别」中调整（记录不会消失）。')}</p>
 
-  <div class="mech">{t('<b>いまのレベルは問いません。</b>ひらがな・カタカナからでも、N2の直前でも、同じ入口から始められます。'
-    '最初の10分の測定であなたの現在地が決まり、そこから道ができます。'
-    '文字に自信がなければ<b>かな道場</b>（ひらがな・カタカナ）から、文の作り方からなら<b>N5・N4の文法</b>（108項目）から、'
-    'すでにN3圏なら<b>N3文法76項目</b>や<b>N2文法178項目</b>から。ことばは<b>3,300語以上</b>を用意しています。'
+  <div class="mech">{t('<b>いまのレベルは問いません。</b>ひらがなしか読めなくても、N2の直前でも、同じ入口から始められます。'
+    '文字に自信がなければ<b>かな道場</b>（ひらがな・カタカナ43行）から、文の作り方からなら<b>N5・N4の文法148項目</b>から、'
+    'すでにN3圏なら<b>N3文法76項目</b>や<b>N2文法178項目</b>から。'
+    'ことばは<b>4,200語以上</b>、漢字は<b>232字</b>、読解は<b>380題</b>、聴解は<b>320題（音声つき）</b>を用意しています。'
     '<b>下から順に上げていく必要はありません。</b>あなたの現在地から始まります。',
-    '<b>现在什么水平都可以。</b>从平假名・片假名开始也行，N2考前也行，入口是同一个。'
-    '最初10分钟的测量会定出你的当前位置，路线从那里生成。'
-    '对文字没把握就从<b>假名道场</b>（平假名・片假名）开始；想从造句开始就从<b>N5・N4语法</b>（108项）开始；'
-    '已经在N3圈就从<b>N3语法76项</b>或<b>N2语法178项</b>开始。词汇准备了<b>3,300词以上</b>。'
+    '<b>现在什么水平都可以。</b>只会平假名也行，N2考前也行，入口是同一个。'
+    '对文字没把握就从<b>假名道场</b>（平假名・片假名43行）开始；想从造句开始就从<b>N5・N4语法148项</b>开始；'
+    '已经在N3圈就从<b>N3语法76项</b>或<b>N2语法178项</b>开始。'
+    '词汇准备了<b>4,200词以上</b>，汉字<b>232字</b>，阅读<b>380题</b>，听力<b>320题（含音频）</b>。'
     '<b>不需要从最底层一级一级往上爬</b>，从你现在的位置开始。')}</div>
 </section>
 
@@ -285,24 +316,57 @@ def build(lang: str) -> str:
 
 <section>
   <p class="eyebrow">{eyebrow['step']}</p>
-  <h2><span class="n">3</span>{one('目的を選んで、現在地を測る（約10分）', '选择目标，测出当前位置（约10分钟）')}</h2>
-  {t('冒険の目的（JLPT合格・会話・両方）を選び、そのあと12問の選択問題で「今のあなたの現在地」を測ります。書く問題はありません。',
-     '选择冒险目的（JLPT合格・会话・两者都要），然后通过12道选择题测出「你现在的位置」。不需要打字输入。')}
+  <h2><span class="n">3</span>{one('目的と目標レベルを選ぶ（3〜10分）', '选择目标和目标级别（3〜10分钟）')}</h2>
+  {t('冒険の目的（JLPT合格・会話・両方）と、目標のレベル（N5・N4・N3・N2）を選びます。',
+     '选择冒险目的（JLPT合格・会话・两者都要）和目标级别（N5・N4・N3・N2）。')}
   {shot('step2-goal', '目的選択画面')}
-  <div class="note"><b>{one('あんしん', '放心')}</b>{one(
+  <div class="note"><b>{one('N5・N4をえらんだ人', '选择N5・N4的人')}</b>{one(
+    'ここで冒険が始まります。現在地を測るテストはありません。'
+    'かな → ことば → 文法 と、どちらにせよ基礎から順に積む道なので、テストの結果で道が変わらないからです。',
+    '冒险从这里就开始，没有测当前位置的测验。'
+    '因为无论如何都是假名 → 词汇 → 语法这样从基础按顺序积累的路线，测验结果不会改变路线。')}</div>
+  <div class="note"><b>{one('N3・N2をえらんだ人', '选择N3・N2的人')}</b>{one(
+    'このあと12問の選択問題で「今のあなたの現在地」を測ります。書く問題はありません。'
     'わからない問題は「わからない」でOK。正確なルートを作るための測定なので、できなくてもまったく問題ありません。',
+    '接下来会用12道选择题测出「你现在的位置」。不需要打字输入。'
     '不会的题选「不知道」就好。这只是为了生成准确路线的测量，不会做完全没关系。')}</div>
 </section>
 
 <section>
   <p class="eyebrow">{eyebrow['step']}</p>
   <h2><span class="n">4</span>{one('あなた専用の攻略ルートが完成', '生成你的专属攻略路线')}</h2>
-  {t('診断が終わると<b>成長マップ</b>ができます。現在地・次の目的地・最終目的地が地図になり、進むほど霧が晴れていきます。目的地までの「残り」も数字で見えます。',
-     '诊断结束后生成<b>成长地图</b>。当前位置、下一个目的地、最终目的地都画在地图上，越前进迷雾越散。到目的地「还剩多少」也会用数字显示。')}
+  {t('選び終わると（N3・N2は測定のあと）<b>成長マップ</b>ができます。現在地・次の目的地・最終目的地が地図になり、進むほど霧が晴れていきます。目的地までの「残り」も数字で見えます。',
+     '选完之后（N3・N2是测量之后）生成<b>成长地图</b>。当前位置、下一个目的地、最终目的地都画在地图上，越前进迷雾越散。到目的地「还剩多少」也会用数字显示。')}
   {shot('map-top', '成長マップ')}
   <p class="cap">{one('定着率は実際に測った数字だけを表示します（盛りません）', '巩固度只显示实测数字（不夸大）')}</p>
 </section>
 </div>
+
+<section class="ruby-sec">
+  <p class="eyebrow">{one('漢字', '汉字')}</p>
+  <h2>{one('漢字が読めなくても、はじめられます', '不认识汉字，也能开始')}</h2>
+  {t('<b>N5・N4を目標に選んだ人には、漢字ぜんぶにふりがなが付きます。</b>'
+     '本文だけではありません。<b>設問にも、選択肢にも</b>付きます。'
+     '本文が読めても選択肢が読めなければ、答えられないからです。',
+     '<b>选择N5・N4作为目标的人，所有汉字都会标上假名。</b>'
+     '不只是正文。<b>题目和选项也都会标。</b>'
+     '因为正文读得懂、选项读不懂的话，还是答不了题。')}
+  <div class="rubydemo">
+    <p class="rq">{RUBY_Q}</p>
+    <ol class="rc">
+      <li>{RUBY_C0}</li>
+      <li>{RUBY_C1}</li>
+      <li>{RUBY_C2}</li>
+      <li>{RUBY_C3}</li>
+    </ol>
+  </div>
+  <p class="cap">{one('実際の読解問題（N5）の画面から。読みは1語ずつ人が確認しています',
+    '取自实际的阅读题（N5）画面。读音逐词经过人工确认')}</p>
+  {t('ふりがなは<b>N5・N4を目標にした人だけ</b>に出ます。N3・N2は本物の試験の問題用紙と同じで、ふりがなは出ません。'
+     'ひらがな・カタカナ自体がまだの人は、<b>かな道場</b>（43行）から始まります。1日に出る行の数も自動で調整されます。',
+     '假名标注<b>只对目标为N5・N4的人</b>显示。N3・N2和真实考试的试卷一样，不标假名。'
+     '平假名・片假名本身还不熟的人，会从<b>假名道场</b>（43行）开始。每天出现的行数也会自动调整。')}
+</section>
 
 <section>
   <p class="eyebrow">{eyebrow['daily']}</p>
@@ -384,8 +448,15 @@ def build(lang: str) -> str:
     <dd>{t('大丈夫。開いた日から続きが始まります。記録が消えることはありません。',
            '没关系。哪天打开就从哪天继续，记录不会消失。')}</dd>
     <dt>{one('診断でぜんぜん解けなかったら恥ずかしい…', '诊断时全都不会，好丢脸…')}</dt>
-    <dd>{t('診断はテストではなく「地図を作る測量」です。できないことが分かるほど、ルートが正確になります。',
-           '诊断不是考试，而是「绘制地图的测量」。越是暴露不会的地方，路线越准确。')}</dd>
+    <dd>{t('まず、<b>N5・N4を目標に選んだ人に診断はありません</b>。そのまま冒険が始まります。'
+           'N3・N2の診断も、テストではなく「地図を作る測量」です。できないことが分かるほど、ルートが正確になります。',
+           '首先，<b>选择N5・N4作为目标的人没有诊断</b>，直接开始冒险。'
+           'N3・N2的诊断也不是考试，而是「绘制地图的测量」。越是暴露不会的地方，路线越准确。')}</dd>
+    <dt>{one('漢字がまったく読めないのですが…', '汉字完全不认识…')}</dt>
+    <dd>{t('N5・N4を目標に選ぶと、<b>本文にも設問にも選択肢にも、ぜんぶふりがなが付きます</b>。'
+           'ひらがなが読めない場合は、かな道場から始まります。',
+           '选择N5・N4作为目标后，<b>正文、题目、选项全部都会标上假名</b>。'
+           '如果平假名还不会读，会从假名道场开始。')}</dd>
     <dt>{one('目的を選び間違えたら？', '目标选错了怎么办？')}</dt>
     <dd>{t('メニューの「目的・レベルを変える」でいつでもやり直せます。学習の記録は消えません。',
            '可以随时在菜单的「更改目标・级别」里重新选择。学习记录不会消失。')}</dd>
@@ -455,8 +526,20 @@ CSS_TOKENS = """
   }
 """
 
+# 公開先（限定公開URL）。拡張子なしで public/guide/ に置き、worker がそのまま返す。
+# ここまで自動でやる: 2026-08-22 まで手でコピーする運用だったため、
+# ガイドを組み直したのに公開ファイルが古いまま、という取り違えが起きうる状態だった。
+PUBLISHED = {
+    'ja': 'public/guide/adventure-guide-ja-2C8MWI3KCf',
+    'zh': 'public/guide/adventure-guide-zh-Pd84GRnjQ',
+}
+
 for lang in ('ja', 'zh'):
+    html = build(lang)
     out = os.path.join(BASE, f'docs/ai-course/guide/student-guide-{lang}.html')
     with open(out, 'w') as f:
-        f.write(build(lang))
-    print(f'ok {out} ({os.path.getsize(out) // 1024}KB)')
+        f.write(html)
+    pub = os.path.join(BASE, PUBLISHED[lang])
+    with open(pub, 'w') as f:
+        f.write(html)
+    print(f'ok {out} ({os.path.getsize(out) // 1024}KB) → {PUBLISHED[lang]}')

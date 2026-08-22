@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-07-31T13:11:36.935Z",
+ "generatedAt": "2026-08-22T07:09:23.143Z",
  "n2": {
   "indexTotal": 180,
   "canonical": 178,
@@ -37,7 +37,7 @@
    "n3u-11-situation",
    "n3u-12-adverb"
   ],
-  "generatedQuestionTotal": 608,
+  "generatedQuestionTotal": 607,
   "unitQuestionCounts": {
    "n3u-01-self": {
     "total": 39,
@@ -96,10 +96,10 @@
     "apply": 4
    },
    "n3u-09-think": {
-    "total": 57,
+    "total": 56,
     "diagnostic": 12,
     "understand": 16,
-    "distinguish": 25,
+    "distinguish": 24,
     "apply": 4
    },
    "n3u-10-arrange": {
