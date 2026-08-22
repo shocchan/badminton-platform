@@ -52,7 +52,8 @@ describe('読解 N5/N4: rubyJa の全件機械検査', () => {
   for (const level of ['N5', 'N4'] as const) {
     it(`${level}: 全セットに rubyJa があり、剥がすと本文と完全一致する`, () => {
       const sets = readingSetsFor(level);
-      expect(sets.length).toBe(48);
+      // 下限で守る（全件のルビ一致はこの下のループが見る）
+      expect(sets.length).toBeGreaterThanOrEqual(48);
       for (const s of sets) {
         expect(s.rubyJa, `${s.setId}: rubyJa が無い`).toBeTruthy();
         expect(stripRuby(s.rubyJa!), `${s.setId}: 注釈を剥がした結果が本文と一致しない`).toBe(s.passageJa);

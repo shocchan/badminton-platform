@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdvWorldMap, type AdvWorldMapProps } from './AdvWorldMap';
 import {
-  WORLD_MAP_BG, WORLD_MAP_ASPECT, type WorldMapBackgroundAsset,
+  WORLD_MAP_BG, WORLD_MAP_ASPECT, WORLD_MAP_TILES, type WorldMapBackgroundAsset, type WorldMapTileAsset,
 } from '../../../lib/aiLesson/course/adventure/advWorldMapAssets';
 import {
   readWorldMapVariantFromWindow, type WorldMapVariant,
@@ -27,14 +27,35 @@ type ImageState = 'loading' | 'loaded' | 'error';
 export interface AdvWorldMapImageProps extends AdvWorldMapProps {
   /** 背景画像。null なら画像版を使わず即 SVG 版（検査・無効化用）。既定は WORLD_MAP_BG */
   asset?: WorldMapBackgroundAsset | null;
+  /** ランドマークタイル。既定 WORLD_MAP_TILES。[] で無効化（テスト・比較用） */
+  tileAssets?: readonly WorldMapTileAsset[];
 }
+
+/** viewBox 360×600 上のタイル配置（底辺中央が anchor）。Retina は 2x を選ぶ（SVG <image> に srcset は無い） */
+const VB_W = 360, VB_H = 600;
+const tileHref = (t: WorldMapTileAsset, dpr: number) => (dpr > 1.25 ? t.webp2x : t.webp1x);
+const TileLayer = ({ tiles, dpr }: { tiles: readonly WorldMapTileAsset[]; dpr: number }) => (
+  <g data-adv-tiles={tiles.length} aria-hidden>
+    {tiles.map((t) => {
+      const w = t.widthFrac * VB_W;
+      const h = w * (t.height / t.width);
+      return (
+        <image key={t.id} href={tileHref(t, dpr)} x={t.anchor[0] * VB_W - w / 2} y={t.anchor[1] * VB_H - h}
+          width={w} height={h} preserveAspectRatio="xMidYMax meet" data-adv-tile={t.id}
+          // タイル単体の 404/失敗はそのタイルだけ消す（背景は残す）
+          onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.dataset.tileState = 'error'; }}
+          onLoad={(e) => { e.currentTarget.dataset.tileState = 'loaded'; }} />
+      );
+    })}
+  </g>
+);
 
 const ALT = {
   ja: '冒険の世界地図の風景。下の港ミナトから平野・森・高地を越えて、頂のソラノ塔へ続く',
   zh: '冒险世界地图的风景。从下方的港口Minato，越过平原、森林、高地，通往山顶的Sorano塔',
 } as const;
 
-export const AdvWorldMapImage = ({ asset = WORLD_MAP_BG, ...props }: AdvWorldMapImageProps) => {
+export const AdvWorldMapImage = ({ asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_TILES, ...props }: AdvWorldMapImageProps) => {
   const [state, setState] = useState<ImageState>(asset ? 'loading' : 'error');
   const imgRef = useRef<HTMLImageElement | null>(null);
 
@@ -78,9 +99,13 @@ export const AdvWorldMapImage = ({ asset = WORLD_MAP_BG, ...props }: AdvWorldMap
     </picture>
   );
 
+  // タイルは背景が見えてから（背景より先に建物だけ浮くのを防ぐ）
+  const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
+  const tiles = state === 'loaded' && tileAssets.length > 0 ? <TileLayer tiles={tileAssets} dpr={dpr} /> : undefined;
+
   return (
     <AdvWorldMap {...props} variant="image" imageState={state}
-      backdrop={backdrop} hideScenery={state === 'loaded'} />
+      backdrop={backdrop} hideScenery={state === 'loaded'} tiles={tiles} />
   );
 };
 

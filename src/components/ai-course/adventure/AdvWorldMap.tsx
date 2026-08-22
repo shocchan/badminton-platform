@@ -49,6 +49,8 @@ interface Props {
   backdrop?: ReactNode;
   /** 自作SVG風景（WorldScenery）を描かない。画像の読込完了後に true にして画像を見せる */
   hideScenery?: boolean;
+  /** 風景の上・道とノードの下に挟む SVG 要素（画像版のランドマークタイル <image>）。viewBox 座標で描く */
+  tiles?: ReactNode;
   /** 表示方式（nav の data-map-variant に出す。検査・実機確認用） */
   variant?: 'svg' | 'image';
   /** 画像の読込状態（nav の data-map-image-state に出す） */
@@ -83,7 +85,7 @@ const ROAD_STYLE: Record<RoadState, { stroke: string; width: number; dash?: stri
 export const AdvWorldMap = ({
   lang, regions, currentRegionId, destinationJa, destinationZh,
   doneCount, totalCount, onSelectRegion, targetJlpt, routeKind, summitSlot,
-  backdrop, hideScenery = false, variant = 'svg', imageState,
+  backdrop, hideScenery = false, tiles, variant = 'svg', imageState,
 }: Props) => {
   const uid = useId();
   /** 雲海タップの吹き出し。5秒で自動で閉じる・再タップでトグル */
@@ -145,6 +147,8 @@ export const AdvWorldMap = ({
 
           {/* 自作SVG風景。画像版は読込完了まで描き続け（プレースホルダ兼フォールバック）、完了後に消して画像を見せる */}
           {!hideScenery && <WorldScenery uid={uid} />}
+          {/* 画像版のランドマークタイル（背景画像の上・道の下）。SVG版では undefined */}
+          {tiles}
 
           {/* 会話環状路の下地（薄く一周。環状の道だと分かる） */}
           {layout.convRingD && (

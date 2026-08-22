@@ -238,11 +238,12 @@ describe('設問の「」内の語が正解にだけ入っていない（初級�
   }, 120_000);
 });
 
-describe('新規読解（N5/N4・96セット）の「形」で当てられない', () => {
+describe('新規読解（N5/N4）の「形」で当てられない', () => {
   const newSets = () => ALL_READING_SETS.filter((s) => s.sourceLevel === 'N5' || s.sourceLevel === 'N4');
 
-  it('N5/N4 が96セット揃っている（消して0件にしていない）', () => {
-    expect(newSets().length).toBe(96);
+  it('N5/N4 が96セット以上ある（消して0件にしていない）', () => {
+    // 拡充を妨げないよう下限で守る（2026-08-22: N5を80へ拡充して128件）
+    expect(newSets().length).toBeGreaterThanOrEqual(96);
   });
 
   // 「ちょうど1つだけ形が違う選択肢」が正解である割合が偶然（25%）から外れないこと。

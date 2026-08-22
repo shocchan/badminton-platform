@@ -20,7 +20,8 @@ describe('読解runner: zh画面の誤答理由', () => {
   for (const lvl of ['N5', 'N4'] as const) {
     it(`${lvl}: 全セットのzh理由にかなが出ない（実レンダリング）`, () => {
       const sets = readingSetsFor(lvl);
-      expect(sets.length).toBe(48);
+      // 「消して0件にしていない」ことを守る下限。増やすのは自由（2026-08-22 にN5を80へ拡充）
+      expect(sets.length).toBeGreaterThanOrEqual(48);
       const leaks: string[] = [];
       for (const set of sets) {
         render(<AdvReadingRunner lang="zh" sets={[set]} onFinish={() => {}} onClose={() => {}} />);

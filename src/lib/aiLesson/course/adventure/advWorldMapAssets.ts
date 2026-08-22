@@ -31,3 +31,26 @@ export const WORLD_MAP_BG: WorldMapBackgroundAsset = {
 
 /** 画像の論理縦横比（viewBox 360×600 と同じ 3:5）。会話クロップは下半分 = 6:5 */
 export const WORLD_MAP_ASPECT = { full: '3 / 5', conversation: '6 / 5' } as const;
+
+/**
+ * ランドマークタイル（透過 WebP・白地から切り抜き）。背景の上・道やノードの下に SVG <image> で置く。
+ * anchor は viewBox 360×600 を 0〜1 に正規化した「タイル底辺中央」の位置（docs/ai-course/design/DESIGN_BRIEF.md §3-7）。
+ * widthFrac は地図幅に対するタイル幅。高さは width/height の実比率から出す（切り抜き後の実寸を入れる）。
+ * 画像が無い/404 のタイルはそのタイルだけ消える（地図全体は落とさない）。
+ */
+export interface WorldMapTileAsset {
+  id: string;
+  webp1x: string;
+  webp2x: string;
+  /** 2x の実寸（縦横比の計算に使う） */
+  width: number;
+  height: number;
+  anchor: readonly [number, number];
+  widthFrac: number;
+}
+
+export const WORLD_MAP_TILES: readonly WorldMapTileAsset[] = [
+  // ②-1 ミナト（2026-08-22 採用 v1）。背景A-v3の港の出っ張り（画面下中央）に底辺を合わせる
+  { id: 'minato', webp1x: '/ai-course/map/tile-minato@1x.webp', webp2x: '/ai-course/map/tile-minato@2x.webp',
+    width: 1024, height: 517, anchor: [0.43, 0.955], widthFrac: 0.40 },
+];
