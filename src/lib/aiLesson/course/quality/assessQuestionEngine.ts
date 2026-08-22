@@ -47,6 +47,35 @@ const pickDistractors = <T>(pool: T[], exclude: (t: T) => boolean, n: number, se
   return [...cand.slice(start), ...cand.slice(0, start)].slice(0, n);
 };
 
+/**
+ * 長さのつり合いを取った誤答選び（2026-08-22 問題設計監査）。
+ *
+ * 「一番長い選択肢を選ぶ」だけで当たる問題が単元教材に残っていた
+ * （実測: 中心意味 u-core_meaning は最長を選ぶ戦略で 54.2%＝偶然25%の2倍）。
+ * 正解と字数の近い候補の帯から採ることで、長さが手がかりにならないようにする。
+ * 帯の中の順序は従来どおり seed の回転で決まるので、出題は決定的なまま。
+ */
+const pickDistractorsNearLength = <T>(
+  pool: T[], exclude: (t: T) => boolean, n: number, seed: string,
+  textOf: (t: T) => string, targetText: string,
+): T[] => {
+  const cand = pool.filter(t => !exclude(t));
+  const bandSize = Math.max(n * 6, 12);
+  if (cand.length <= bandSize) return pickDistractors(pool, exclude, n, seed);
+  const target = [...targetText].length;
+  const dist = cand.map(t => Math.abs([...textOf(t)].length - target));
+  const hist: number[] = [];
+  for (const d of dist) hist[d] = (hist[d] ?? 0) + 1;
+  let acc = 0; let maxD = 0;
+  for (let d = 0; d < hist.length; d += 1) {
+    acc += hist[d] ?? 0;
+    maxD = d;
+    if (acc >= bandSize) break;
+  }
+  const band = cand.filter((_, i) => dist[i] <= maxD);
+  return pickDistractors(band, () => false, n, seed);
+};
+
 /** 選択肢の並びを決定的に整える（正解の位置が常に同じにならないよう、idのhashで回転） */
 const arrange = (correct: string, distractors: string[], seed: string): { choices: string[]; answerIndex: number } => {
   const all = [correct, ...distractors];
@@ -60,8 +89,10 @@ const arrange = (correct: string, distractors: string[], seed: string): { choice
 /** 読み問題（漢字語のみ）。ふりがなを出さない画面でのみ成立する */
 const readingQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQuestion | null => {
   if (!hasKanji(item.lemma)) return null;
-  const distractors = pickDistractors(pool,
-    p => p.id === item.id || p.readingKana === item.readingKana || Math.abs(p.readingKana.length - item.readingKana.length) > 1, 2, item.id + 'r')
+  const distractors = pickDistractorsNearLength(pool,
+    p => p.id === item.id || p.readingKana === item.readingKana
+      || Math.abs(p.readingKana.length - item.readingKana.length) > 1, 2, item.id + 'r',
+    p => p.readingKana, item.readingKana)
     .map(p => p.readingKana);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(item.readingKana, distractors, item.id + 'r');
@@ -247,7 +278,9 @@ const coreMeaningQuestion = (item: FoundationItem, pool: FoundationItem[], profi
   const revealsSurface = item.meaningZh.includes(item.displayForm) || item.displayForm.includes(item.meaningZh);
   const askedForm = revealsSurface ? (item.readingKana ?? '') : item.displayForm;
   if (askedForm.length === 0 || item.meaningZh.includes(askedForm)) return null;
-  const distractors = pickDistractors(pool, p => p.id === item.id || p.meaningZh === item.meaningZh, 2, item.id + 'm')
+  const distractors = pickDistractorsNearLength(pool,
+    p => p.id === item.id || p.meaningZh === item.meaningZh, 2, item.id + 'm',
+    p => p.meaningZh, item.meaningZh)
     .map(p => p.meaningZh);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(item.meaningZh, distractors, item.id + 'm');
@@ -299,7 +332,32 @@ const conjugationQuestion = (item: FoundationItem): AssessQuestion | null => {
     const last = item.lemma.slice(-1);
     if (eRow[last]) wrongs.add(item.lemma.slice(0, -1) + eRow[last] + 'ます');
   }
-  const distractors = [...wrongs].filter(w => w !== correct).slice(0, 2);
+  // 二類・三類は「他グループの規則を当てた形」がどれも正解より長くなるため、
+  // **一番短いのを選ぶ**だけで当たっていた（2026-08-22 実測: 最短戦略50%／偶然33%）。
+  // て形（食べる→食べて）は ます形ではないので誤答として正しく、しかも正解より短い。
+  // 長さの手がかりを消すために、正解以下の長さの誤答を1つ確保する
+  const teForm = (() => {
+    const cls = teFormClass(item);
+    if (!cls) return null;
+    const st = item.lemma.length > 1 ? item.lemma.slice(0, -1) : item.lemma;
+    if (cls === 'te') return `${st}て`;
+    if (cls === 'shite') return item.lemma.endsWith('する') ? `${item.lemma.slice(0, -2)}して` : `${st}して`;
+    if (cls === 'kite') return '来て';
+    if (cls === 'nde') return `${st}んで`;
+    if (cls === 'ite') return `${st}いて`;
+    if (cls === 'ide') return `${st}いで`;
+    if (cls === 'tte') return `${st}って`;
+    return null;
+  })();
+  const pool = [...wrongs].filter(w => w !== correct);
+  const L = [...correct].length;
+  const same = pool.filter(w => [...w].length === L);
+  const short = pool.filter(w => [...w].length < L);
+  const long = pool.filter(w => [...w].length > L);
+  // 同じ字数の誤答が2つあればそれが最良（長さが完全に手がかりにならない）。
+  // 足りなければ「正解より短い」を1つ入れて、長いものだけが並ぶ形を避ける
+  if (same.length + short.length === 0 && teForm && teForm !== correct && !pool.includes(teForm)) short.push(teForm);
+  const distractors = [...same, ...short.slice(0, 1), ...long, ...short.slice(1)].slice(0, 2);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(correct, distractors, item.id + 'j');
   return {

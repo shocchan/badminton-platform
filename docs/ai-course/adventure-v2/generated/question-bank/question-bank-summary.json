@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T07:12:11.724Z",
+  "generatedAt": "2026-08-22T08:04:58.821Z",
   "countingRules": {
     "note": "報告値を単純合計しない。questionId で集合演算する",
     "questionId": "AdvBattleQuestion.key（例 vocab:勉強:べんきょう:meaning）",
@@ -33,11 +33,11 @@
   "warnings": {
     "info:readiness_overcount": 13920,
     "defect:duplicate_question_text": 306,
-    "defect:correct_longest": 246,
-    "defect:duplicate_choice_set": 208,
-    "defect:length_skew": 55
+    "defect:correct_longest": 218,
+    "defect:duplicate_choice_set": 209,
+    "defect:length_skew": 30
   },
-  "warningRows": 692,
+  "warningRows": 657,
   "infoRows": 13920,
   "severityNote": "defect=直す候補 / info=事実の分類（readiness_overcount は設計どおりだが N2 readiness へ数えてはいけない）"
 }

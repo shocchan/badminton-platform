@@ -190,3 +190,48 @@ describe('誤答の質（QP-1/QP-2・夜間ブラッシュアップ2026-07-30）
     }
   });
 });
+
+describe('選択肢の長さで当てられないか（2026-08-22 問題設計監査）', () => {
+  // 「一番長いのを選ぶ」「一番短いのを選ぶ」だけで、偶然（3択=33.3%）を超えて当たらないこと。
+  // 監査実測（修正前）: 中心意味は最長を選ぶだけで54.2%、活用は最短を選ぶだけで50%だった。
+  const pool = allVocabularyItems();
+  const questions = pool.flatMap((item) => buildAssessQuestions(item, pool, { introduced: false }))
+    .filter((q) => q.kind === 'choice' && q.choices.length >= 3);
+
+  const strategyPct = (pick: 'long' | 'short', dim?: string): { n: number; pct: number; chance: number } => {
+    const qs = dim ? questions.filter((q) => q.dimension === dim) : questions;
+    let score = 0;
+    let chance = 0;
+    for (const q of qs) {
+      const lens = q.choices.map((c) => [...c].length);
+      const target = pick === 'long' ? Math.max(...lens) : Math.min(...lens);
+      const hits = q.choices.filter((_, i) => lens[i] === target);
+      const correct = q.choices[q.answerIndex];
+      if (hits.includes(correct)) score += 1 / hits.length;
+      chance += 1 / q.choices.length;
+    }
+    const n = qs.length;
+    return { n, pct: n ? (score / n) * 100 : 0, chance: n ? (chance / n) * 100 : 0 };
+  };
+
+  it('全体で、長さの戦略が偶然を大きく超えない', () => {
+    for (const pick of ['long', 'short'] as const) {
+      const r = strategyPct(pick);
+      expect(r.n).toBeGreaterThan(100);
+      // 偶然 + 8ポイント（n が数百のときの許容幅）
+      expect(r.pct, `${pick}: ${r.pct.toFixed(1)}% / 偶然 ${r.chance.toFixed(1)}%`)
+        .toBeLessThan(r.chance + 8);
+    }
+  });
+
+  it('中心意味・活用・読みの各観点でも偶然を大きく超えない', () => {
+    for (const dim of ['core_meaning', 'conjugation', 'reading'] as const) {
+      for (const pick of ['long', 'short'] as const) {
+        const r = strategyPct(pick, dim);
+        if (r.n < 20) continue;
+        expect(r.pct, `${dim}/${pick}: ${r.pct.toFixed(1)}% / 偶然 ${r.chance.toFixed(1)}%（n=${r.n}）`)
+          .toBeLessThan(r.chance + 13);
+      }
+    }
+  });
+});
