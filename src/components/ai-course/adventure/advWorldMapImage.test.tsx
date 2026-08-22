@@ -276,12 +276,15 @@ describe('ランドマークタイル（背景の上・道の下の SVG <image>�
   it('tileAssets=[]・markerAsset=null で画像の重ねを全部止められる（新旧比較用）', () => {
     const p = profileFor('hybrid');
     const map = mapFor(p, 'combined', 0);
-    const r = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[]} markerAsset={null} />);
+    const r = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[]} markerAsset={null} pedestals={null} />);
     const img = r.container.querySelector('picture img') as HTMLImageElement;
     Object.defineProperty(img, 'naturalWidth', { value: 512, configurable: true });
     fireEvent.load(img);
     expect(r.container.querySelector('[data-adv-tiles]')).toBeNull();
     expect(r.container.querySelector('[data-adv-marker]')).toBeNull();
+    expect(r.container.querySelector('[data-adv-pedestals]')).toBeNull();
+    // 台座を切ったら自作SVGのミニランドマークが戻る（絵が全部消えた地図にはしない）
+    expect(r.container.querySelector('svg g')).not.toBeNull();
   });
 
   it('現在地マーカーの絵は現在地の足元に敷かれ、当たり判定と aria は HTML ボタンのまま', () => {
@@ -291,12 +294,16 @@ describe('ランドマークタイル（背景の上・道の下の SVG <image>�
     const img = r.container.querySelector('picture img') as HTMLImageElement;
     Object.defineProperty(img, 'naturalWidth', { value: 512, configurable: true });
     fireEvent.load(img);
+    // 状態台座はノードの数だけ出る（意味は HTML 側）
+    const peds = r.container.querySelectorAll('image[data-adv-pedestal]');
+    expect(peds.length).toBe(r.container.querySelectorAll('button[aria-label]').length - (r.container.querySelector('[aria-label*="この先の土地"], [aria-label*="前方的土地"]') ? 1 : 0));
+    expect([...peds].every((e) => e.getAttribute('href')?.startsWith('/ai-course/map/ped-'))).toBe(true);
     const marker = r.container.querySelector('image[data-adv-marker="current"]');
     expect(marker).not.toBeNull();
     // 絵は装飾。押せるのは今までどおり aria-current="step" のボタン
     expect(marker?.getAttribute('aria-hidden')).toBe('true');
     expect(r.container.querySelector('button[aria-current="step"]')).not.toBeNull();
     // 底辺が現在地。高さ 34（viewBox 単位）
-    expect(Number(marker?.getAttribute('height'))).toBeCloseTo(34, 5);
+    expect(Number(marker?.getAttribute('height'))).toBeCloseTo(40, 5);
   });
 });

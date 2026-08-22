@@ -133,3 +133,35 @@ const toVb = (nx: number, ny: number) => ({ x: nx * 360, y: ny * 600 });
 - 画像を Claude が描かない（CEO決定 2026-08-19）。このリポジトリにも画像は 1 枚も追加していない
 - スクショは test アカウントのみ。実在生徒の情報を写さない
 - 既定 `svg` を CEO 確認前に変えない
+
+---
+
+## ランドマークタイル・現在地マーカー・状態台座（2026-08-22 追加）
+
+### ファイル
+| 何 | どこ |
+|---|---|
+| 素材の定義（パス・実寸・配置） | `src/lib/aiLesson/course/adventure/advWorldMapAssets.ts`（`WORLD_MAP_TILES` / `WORLD_MAP_MARKERS` / `WORLD_MAP_PEDESTALS`） |
+| 描画 | `src/components/ai-course/adventure/AdvWorldMapImage.tsx`（`TileLayer` と `tiles` コールバック） |
+| 差し込み口 | `src/components/ai-course/adventure/AdvWorldMap.tsx` の `tiles` / `hideNodeArt` |
+| 白地→透過の切り抜き | `node scripts/ai-course/cutout-tile.mjs <in.png> <outBase> [--max 448] [--q 78] [--th 238]` |
+| 生成元PNG・検品ログ | `docs/ai-course/design/generated/`（`QA_LOG.md`） |
+
+### 座標の決め方
+`anchor` は viewBox 360×600 を 0〜1 にした「タイル**底辺中央**」の位置。`widthFrac` は地図幅に対する表示幅。
+高さは素材の実比率から計算するので、`width`/`height` には**切り抜き後の実寸**を入れること（ここがズレると縦横比が狂う）。
+ブリーフ §3-7 の初期値はあくまで目安で、**背景A-v3の地形に合わせて staging のスクショで実測して直した**。
+背景画像を差し替えたら、必ず同じ手順で置き直す。
+
+### 新しいタイルを足す手順
+1. ChatGPT で白地・指定比率で生成 → `docs/ai-course/design/generated/tile-<id>-v1.png` に保存
+2. `node scripts/ai-course/cutout-tile.mjs ... --max 448 --q 78` → `public/ai-course/map/tile-<id>@{1x,2x}.webp`
+3. `WORLD_MAP_TILES` に1行足す（実寸・anchor・widthFrac）
+4. `npm run build` → staging デプロイ → スクショで位置を確認 → anchor を微調整
+5. `QA_LOG.md` に検品結果を書く
+
+### 壊れないための決まり
+- タイル/台座/マーカーは **`aria-hidden` の絵**。押せる要素・状態の意味・文字は今までどおり HTML 側（44px ボタン・状態バッジ・`aria-label`・`aria-current`）
+- 1枚が 404 でも**そのタイルだけ消える**（`onError` で display:none）。背景が 404 なら地図ごと旧SVGへ落ちる
+- 画像の重さの目安: **2x 合計 550KB 以内**（2026-08-22 実測 532KB／1x 188KB）。超えたら `--max` と `--q` を下げる
+- 既定は今も `svg`（旧マップ）。`?map=image` で新マップ。CEO 確認まで既定は変えない

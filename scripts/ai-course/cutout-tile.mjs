@@ -10,7 +10,8 @@ const opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? Number(args[i
 const [input, outBase] = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--')));
 if (!input || !outBase) { console.error('usage: cutout-tile.mjs <in.png> <outBase> [--max 1024] [--th 238]'); process.exit(1); }
 const MAX = opt('--max', 1024);
-const TH = opt('--th', 238);   // これ以上明るい（min(r,g,b) ≥ TH）画素を「白地」とみなす
+const TH = opt('--th', 238);
+const Q = opt('--q', 88);   // WebP 品質（地図タイルは小さく表示するので落としてよい）   // これ以上明るい（min(r,g,b) ≥ TH）画素を「白地」とみなす
 const SOFT = 8;                // 白地→絵の境目を少しだけ柔らかくする幅（明度差で alpha を補間）
 
 const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
@@ -41,8 +42,8 @@ const left = Math.max(0, minX - pad), top = Math.max(0, minY - pad);
 const cw = Math.min(W, maxX + pad + 1) - left, ch = Math.min(H, maxY + pad + 1) - top;
 const cut = sharp(data, { raw: { width: W, height: H, channels: 4 } }).extract({ left, top, width: cw, height: ch });
 const w2 = Math.min(MAX, cw); const h2 = Math.round(ch * w2 / cw);
-await cut.clone().resize(w2, h2).webp({ quality: 88, alphaQuality: 90 }).toFile(`${outBase}@2x.webp`);
-await cut.clone().resize(Math.round(w2 / 2), Math.round(h2 / 2)).webp({ quality: 86, alphaQuality: 90 }).toFile(`${outBase}@1x.webp`);
+await cut.clone().resize(w2, h2).webp({ quality: Q, alphaQuality: 90 }).toFile(`${outBase}@2x.webp`);
+await cut.clone().resize(Math.round(w2 / 2), Math.round(h2 / 2)).webp({ quality: Math.max(60, Q - 2), alphaQuality: 90 }).toFile(`${outBase}@1x.webp`);
 const sz = async (p) => (await sharp(p).metadata());
 const m2 = await sz(`${outBase}@2x.webp`), m1 = await sz(`${outBase}@1x.webp`);
 console.log(JSON.stringify({ input: basename(input), source: [W, H], crop: [cw, ch], out2x: [m2.width, m2.height], out1x: [m1.width, m1.height], bgPixels: bg.reduce((a, b) => a + b, 0) }));
