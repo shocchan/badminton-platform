@@ -27,6 +27,24 @@ interface Props {
   panels: ReactNode;
 }
 
+/**
+ * 生徒へ送るログイン案内の文面（2026-08-23）。
+ * 学習URLは本番の生徒用ドメイン。中国語の生徒が多いので中国語も併記する。
+ * パスワードは保存していないので**ここには入れない**（送り主が入れる）
+ */
+export const loginMessage = (loginId: string): string =>
+  [
+    '日本語学習アプリのログイン方法です。',
+    '',
+    'URL: https://study.kawabado.com/zh/ai-course',
+    `学習ID: ${loginId}`,
+    'パスワード: （ここに貼る）',
+    '',
+    '登录方式如下。',
+    `学习ID：${loginId}`,
+    '密码：（请填写）',
+  ].join('\n');
+
 const Banner = ({ tone, children }: { tone: 'amber' | 'red'; children: ReactNode }) => (
   <div className={`rounded-xl border p-3 flex items-start gap-2 ${tone === 'red'
     ? 'border-red-200 bg-red-50' : 'border-amber-300 bg-amber-50'}`}>
@@ -85,6 +103,32 @@ export const AdminStudentDetail = ({
       )}
       {view.badge === 'active' && view.daysToExpiry !== null && view.daysToExpiry <= 30 && (
         <Banner tone="amber">受講期限まで残り{view.daysToExpiry}日です。</Banner>
+      )}
+
+      {/*
+        まだ一度もログインしていない人（2026-08-23 CEO「ログインして何をするんだっけ？」）。
+        管理画面まで来ても**何をすればいいかが書いていなかった**。
+        この人にすることは1つ＝ログイン情報を送ること。送る文面をここで作って渡す。
+        パスワードはこちらにも残っていない（保存していない）ので、分からなければ再発行する
+      */}
+      {!account.lastSignInAtISO && (
+        <div className="bg-white border border-blue-200 rounded-xl p-4">
+          <p className="text-sm font-bold text-gray-800">この人はまだ一度もログインしていません</p>
+          <p className="mt-1 text-xs text-gray-600">
+            発行 {account.userCreatedAtISO.slice(0, 10)}。することは1つです ── <b>ログイン情報を送る</b>。
+          </p>
+          <pre className="mt-2 whitespace-pre-wrap rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-800">{loginMessage(account.loginId || account.email.split('@')[0])}</pre>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button type="button"
+              onClick={() => { void navigator.clipboard?.writeText(loginMessage(account.loginId || account.email.split('@')[0])); }}
+              className="min-h-9 px-3 py-1.5 text-xs rounded-lg border border-blue-300 bg-white text-blue-700">
+              この文面をコピー
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] text-gray-500">
+            パスワードが分からないときは再発行が要ります（パスワードは保存していないため、こちらでも見られません）。
+          </p>
+        </div>
       )}
 
       {learner ? (
