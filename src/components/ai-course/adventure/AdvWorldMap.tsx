@@ -43,7 +43,19 @@ interface Props {
   routeKind: MapRouteKind;
   /** 全攻略時に地図直下へ出す枠（次の道カードが入る）。中身の出し分けは呼び出し側の実データ判定 */
   summitSlot?: ReactNode;
+
+  // ── 画像差し替えの土台（2026-08-22）。AdvWorldMapImage だけが使う。既定は全部 undefined＝現行どおり ──
+  /** 地図枠の最下層に敷く下敷き（画像版の <picture>）。絶対配置で枠いっぱいに広げる */
+  backdrop?: ReactNode;
+  /** 自作SVG風景（WorldScenery）を描かない。画像の読込完了後に true にして画像を見せる */
+  hideScenery?: boolean;
+  /** 表示方式（nav の data-map-variant に出す。検査・実機確認用） */
+  variant?: 'svg' | 'image';
+  /** 画像の読込状態（nav の data-map-image-state に出す） */
+  imageState?: 'loading' | 'loaded' | 'error';
 }
+
+export type AdvWorldMapProps = Props;
 
 /** 状態ラベル（AdvAdventureMap の STATE_LABEL と同文言。aria-label 用） */
 const STATE_LABEL: Record<MapRegion['state'], { ja: string; zh: string }> = {
@@ -71,6 +83,7 @@ const ROAD_STYLE: Record<RoadState, { stroke: string; width: number; dash?: stri
 export const AdvWorldMap = ({
   lang, regions, currentRegionId, destinationJa, destinationZh,
   doneCount, totalCount, onSelectRegion, targetJlpt, routeKind, summitSlot,
+  backdrop, hideScenery = false, variant = 'svg', imageState,
 }: Props) => {
   const uid = useId();
   /** 雲海タップの吹き出し。5秒で自動で閉じる・再タップでトグル */
@@ -113,13 +126,15 @@ export const AdvWorldMap = ({
 
   return (
     <nav aria-label={tx(lang, 'マップ全体図（タップでその地域へ移動）', '地图全景（点按前往该地区）')}
-      className="mt-4">
+      className="mt-4" data-map-variant={variant} data-map-image-state={imageState}>
       <p className="px-0.5 text-xs font-bold text-gray-700">
         {tx(lang, '冒険の世界地図', '冒险世界地图')}
       </p>
       <div className="relative mt-1.5 overflow-hidden rounded-2xl border border-gray-200 bg-sky-100">
-        {/* 風景・道・ノードの絵（文字と状態の意味は HTML 側が持つ） */}
-        <svg viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`} className="block h-auto w-full"
+        {/* 画像版の下敷き（絶対配置）。SVG は relative にして DOM 順どおり下敷きの上に描く */}
+        {backdrop}
+        {/* 風景・道・ノードの絵（文字と状態の意味は HTML 側が持つ）。枠の縦横比はこの SVG の viewBox が決める（画像が来る前から同じ高さ＝CLS なし） */}
+        <svg viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`} className="relative block h-auto w-full"
           aria-hidden focusable="false">
           <defs>
             <radialGradient id={`${uid}-glow`}>
@@ -128,7 +143,8 @@ export const AdvWorldMap = ({
             </radialGradient>
           </defs>
 
-          <WorldScenery uid={uid} />
+          {/* 自作SVG風景。画像版は読込完了まで描き続け（プレースホルダ兼フォールバック）、完了後に消して画像を見せる */}
+          {!hideScenery && <WorldScenery uid={uid} />}
 
           {/* 会話環状路の下地（薄く一周。環状の道だと分かる） */}
           {layout.convRingD && (

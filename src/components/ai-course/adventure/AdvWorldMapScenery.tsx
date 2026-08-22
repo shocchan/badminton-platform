@@ -45,7 +45,7 @@ const Grove = ({ x, y, s = 1 }: { x: number; y: number; s?: number }) => (
 );
 
 export const WorldScenery = ({ uid }: { uid: string }) => (
-  <g>
+  <g data-adv-scenery="svg">
     <defs>
       <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stopColor={P.skyTop} />

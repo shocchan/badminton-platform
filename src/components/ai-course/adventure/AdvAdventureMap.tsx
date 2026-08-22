@@ -32,7 +32,8 @@ import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/a
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { LandmarkScene, LandmarkIcon } from './AdvMapLandmarks';
 import { AdvMapBadges } from './AdvMapBadges';
-import { AdvWorldMap } from './AdvWorldMap';
+// 世界地図は表示方式フラグ（?map=image|svg・既定 svg）で新旧を出し分ける（2026-08-22 画像差し替えの土台）
+import { AdvWorldMapSwitch } from './AdvWorldMapImage';
 import { TeacherAvatar } from '../TeacherAvatar';
 
 type L = 'ja' | 'zh';
@@ -521,7 +522,7 @@ export const AdvAdventureMap = ({
         ルートタブの直下＝選択中ルートの全体像と一致する位置。Primary CTA より必ず下（原則16）。
         map/list 両表示で常に出す。実測 regions の別ビューで、状態の再計算はしない（原則13）
       */}
-      <AdvWorldMap
+      <AdvWorldMapSwitch
         lang={lang}
         regions={map.regions}
         currentRegionId={map.currentRegionId}
