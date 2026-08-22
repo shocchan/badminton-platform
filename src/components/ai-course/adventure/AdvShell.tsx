@@ -2674,7 +2674,8 @@ export default function AdvShell(props: AdvShellProps) {
         </p>
       )}
 
-      {/* 案内の先生の一文（次の行動を言う）。7画面すべてで同じ先生に揃える */}
+      {/* 案内の先生の一文（次の行動を言う）。7画面すべてで同じ先生に揃える。
+          v2 は相棒の相づち（内容ゼロの1行）を出さない＝同じことを3回言わない */}
       <div className="mt-2 mb-4 flex items-center gap-3">
         <TeacherAvatar size={48} expression="smile" lang={lang}
           className={`shrink-0 ring-2 ${teacher.ringClass}`} />
@@ -2699,7 +2700,7 @@ export default function AdvShell(props: AdvShellProps) {
       </div>
       {/* 旅の相棒の声掛け（§8）。オンボーディングの「応援のしかたが少し変わります」をここで果たす。
           復習が残っている日は毎日同文のgreetでなく「復習の知らせ役」になる（状況対応・CEO要望 2026-08-14） */}
-      {prof.companionId && (
+      {prof.companionId && !(homeVariant === 'v2' && props.reviewsDue === 0) && (
         <div className="-mt-2 mb-4 flex items-center gap-2">
           <CompanionAvatar id={prof.companionId} size={32} />
           <p className="text-xs text-gray-600">
@@ -3145,6 +3146,35 @@ export default function AdvShell(props: AdvShellProps) {
                 {tx(lang, '今日のまとめをもう一度見る', '再看一次今天的小结')}
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/*
+        全体の状況（2026-08-22・ホームv2）。今日やることの**あと**に置く。
+        v1 では目標の下に6行の数字（残り地域・項目・週推定・Lv・XP・連続日数）が並び、
+        始める前に読ませていた。数字は消さずに順番だけ変える
+      */}
+      {homeVariant === 'v2' && (
+        <div className="mt-3 rounded-2xl border border-gray-200 bg-white px-4 py-3">
+          {pace && pace.remainingTargets > 0 && (
+            <p className="text-xs text-gray-500">
+              {tx(lang,
+                `目的地まで残り${pace.remainingStages}地域・${pace.remainingTargets}項目`,
+                `距离目的地还剩${pace.remainingStages}个地区・${pace.remainingTargets}个项目`)}
+              {pace.estWeeksLeft !== null && pace.estWeeksLeft > 0 && (
+                tx(lang, `／いまのペースだと約${pace.estWeeksLeft}週間（推定）`,
+                  `／按现在的节奏约需${pace.estWeeksLeft}周（推算）`)
+              )}
+            </p>
+          )}
+          {(prof.xp ?? 0) > 0 && (
+            <p className="mt-1 text-xs font-semibold text-amber-600">
+              ⭐ Lv.{levelOf(prof.xp ?? 0)}・{tx(lang, titleOf(levelOf(prof.xp ?? 0)).ja, titleOf(levelOf(prof.xp ?? 0)).zh)}・XP {prof.xp}
+              <span className="ml-1 font-normal text-gray-400">
+                {tx(lang, `（次のレベルまで${xpToNextLevel(prof.xp ?? 0)}）`, `（距下一级还差${xpToNextLevel(prof.xp ?? 0)}）`)}
+              </span>
+            </p>
           )}
         </div>
       )}

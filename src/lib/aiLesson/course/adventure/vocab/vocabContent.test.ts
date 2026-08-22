@@ -6,7 +6,7 @@
 // - 正解が2つ以上／選択肢が重複する
 // - 日本語コンテンツに第三言語が混入する
 // - 中国語訳にかなが残る
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { ALL_VOCAB_CONTENT } from './content/vocabContentBank';
 import { activeContent, VOCAB_ASPECTS, summarizeBatch, toSenseRecord } from './vocabContent';
 import { buildVocabQuestions, vocabPool, vocabQuestionCoverage } from './vocabQuestions';
@@ -120,6 +120,13 @@ describe('§6 語彙問題（選択式のみ）', () => {
     allCache = out;
     return out;
   };
+  /**
+   * 生成は beforeAll でまとめて済ませる（2026-08-22）。
+   * 各 it の中で初回だけ作っていたため、**最初の1本だけが 30 秒の制限に張り付き**、
+   * 並列実行の負荷で時々タイムアウトしていた（中身の失敗ではない）。
+   * 重い作業はフックへ寄せ、フックには十分な時間を渡す。
+   */
+  beforeAll(async () => { await allQuestions(); }, 180_000);
 
   it('**レビュー未了の語からは問題を作らない**', () => {
     const flagged = ALL_VOCAB_CONTENT.filter((c) => c.state !== 'active_beta');

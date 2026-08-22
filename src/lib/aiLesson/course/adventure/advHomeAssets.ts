@@ -40,12 +40,21 @@ export const HERO_ID_BY_AREA: Record<string, string> = {
 };
 
 /** 用意できているヒーロー帯（増えたらここへ足す。無いものは出さない＝存在するふりをしない） */
+const hero = (id: string): HomeImageAsset => ({
+  webp1x: `/ai-course/home/hero-${id}@1x.webp`,
+  webp2x: `/ai-course/home/hero-${id}@2x.webp`,
+  width: 1152, height: 384,
+});
+
 export const HOME_HEROES: Record<string, HomeImageAsset> = {
-  minato: {
-    webp1x: '/ai-course/home/hero-minato@1x.webp',
-    webp2x: '/ai-course/home/hero-minato@2x.webp',
-    width: 1152, height: 384,
-  },
+  minato: hero('minato'),
+  hinode: hero('hinode'),
+  toorimichi: hero('toorimichi'),
+  ichiba: hero('ichiba'),
+  yukari: hero('yukari'),
+  hataraki: hero('hataraki'),
+  katachi: hero('katachi'),
+  sorano: hero('sorano'),
 };
 
 /** 現在地の areaId からヒーロー帯を引く。無ければ null（帯を出さない） */
