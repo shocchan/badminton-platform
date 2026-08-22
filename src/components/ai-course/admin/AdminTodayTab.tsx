@@ -31,6 +31,18 @@ export const AdminTodayTab = ({ kpis, items, onOpenAccount, onOpenOps }: Props) 
 
   return (
     <div>
+      {/*
+        朝の点検ボードへの入口（2026-08-23 CEO「今管理画面開いてるけどどこから？」）。
+        ボードは毎朝7:30に作り直されて、名前を押すとこのページの該当生徒へ直接来られる。
+        入口が見つからないと結局タブを回ることになるので、ここから行けるようにする
+      */}
+      <a href="https://claude.ai/code/artifact/e2773b9f-c7ae-4719-8fb2-3d2e6b5d9cc8"
+        target="_blank" rel="noopener"
+        className="mb-3 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-800 hover:border-emerald-400">
+        🧭 朝の点検ボードをひらく
+        <span className="text-[11px] text-emerald-700">（毎朝7:30に最新化・名前から生徒ページへ直行）</span>
+      </a>
+
       {/* KPIチップ（1行横スクロール） */}
       <div className="flex gap-2 overflow-x-auto snap-x pb-1 -mx-1 px-1">
         <Chip label="生徒" value={`${kpis.students}人`}
