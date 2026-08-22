@@ -199,25 +199,41 @@ const scallopD = (edge: number, amp: number): string => {
  * 下の地形が2〜4割透ける。雲の上には主要アンカーのゴースト輪郭＝「影が見える」。
  * 雲パフの漂いは motion-safe ブロックの CSS クラス（reduced-motion で自動静止）
  */
-export const CloudSea = ({ uid, edgeY }: { uid: string; edgeY: number }) => {
+export const CloudSea = ({ uid, edgeY, veil = 'solid' }: {
+  uid: string; edgeY: number;
+  /**
+   * 覆い方（2026-08-22）。
+   * 'solid' … 自作SVG風景版。ほぼ不透明で隠す（下は簡単な図形なので隠して困らない）
+   * 'mist'  … 画像版。**遠くの霞**にして絵を透かす。
+   *   N5目標だと目的地が画面下端＝雲海が地図の75%を覆い、せっかくの地図が
+   *   ただの白い面になっていた（2026-08-22 レベル別レンダリングで発覚）。
+   *   初級者ほど「世界が見える」ことが続ける理由になるので、隠しきらない
+   */
+  veil?: 'solid' | 'mist';
+}) => {
   const gid = `${uid}-cloudfade`;
   // 下端120pxぶんから透け始める（objectBoundingBox基準の近似で十分）
   const fadeFrom = Math.max(0, 1 - 120 / (edgeY + 40));
+  const mist = veil === 'mist';
+  const op = mist
+    ? { top: '0.62', mid: '0.54', bottom: '0.18', under: 0.25, over: 0.35, puff: 0.7 }
+    : { top: '0.94', mid: '0.88', bottom: '0.38', under: 0.45, over: 0.65, puff: 0.85 };
   return (
     <g>
       <defs>
         <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={P.fogA} stopOpacity="0.94" />
-          <stop offset={`${Math.round(fadeFrom * 100)}%`} stopColor={P.fogA} stopOpacity="0.88" />
-          <stop offset="100%" stopColor={P.fogA} stopOpacity="0.38" />
+          <stop offset="0%" stopColor={P.fogA} stopOpacity={op.top} />
+          <stop offset={`${Math.round(fadeFrom * 100)}%`} stopColor={P.fogA} stopOpacity={op.mid} />
+          <stop offset="100%" stopColor={P.fogA} stopOpacity={op.bottom} />
         </linearGradient>
       </defs>
-      <path d={scallopD(edgeY + 10, 12)} fill={P.fogC} opacity="0.45" />
+      <path d={scallopD(edgeY + 10, 12)} fill={P.fogC} opacity={op.under} />
       <path d={scallopD(edgeY, 16)} fill={`url(#${gid})`} />
-      <path d={scallopD(edgeY - 12, 14)} fill={P.fogB} opacity="0.65" />
+      <path d={scallopD(edgeY - 12, 14)} fill={P.fogB} opacity={op.over} />
 
-      {/* 雲の中のゴースト輪郭（覆われている主要アンカーだけ）。塗りなし＝影 */}
-      <g fill="none" stroke={P.roadFuture} strokeWidth="1.5" opacity="0.5" strokeLinejoin="round">
+      {/* 雲の中のゴースト輪郭（覆われている主要アンカーだけ）。塗りなし＝影。
+          画像版は本物の建物が霞んで見えるので、二重に描かない */}
+      <g fill="none" stroke={P.roadFuture} strokeWidth="1.5" opacity={mist ? 0 : 0.5} strokeLinejoin="round">
         {/* ソラノ塔（最上部なので雲海があるときは常に中） */}
         <path d="M243 70 V36 L252 10 L261 36 V70" />
         {edgeY > 140 && (
@@ -231,11 +247,11 @@ export const CloudSea = ({ uid, edgeY }: { uid: string; edgeY: number }) => {
       </g>
 
       {/* 漂う雲パフ（装飾のみ・reduced-motionでは静止） */}
-      <g className="adv-cloud-drift" fill="#ffffff" opacity="0.85">
+      <g className="adv-cloud-drift" fill="#ffffff" opacity={op.puff}>
         <ellipse cx="84" cy={edgeY - 16} rx="27" ry="10" />
         <ellipse cx="108" cy={edgeY - 9} rx="18" ry="7.5" />
       </g>
-      <g className="adv-cloud-drift-slow" fill="#ffffff" opacity="0.8">
+      <g className="adv-cloud-drift-slow" fill="#ffffff" opacity={op.puff - 0.05}>
         <ellipse cx="248" cy={edgeY - 22} rx="30" ry="11" />
         <ellipse cx="274" cy={edgeY - 13} rx="19" ry="8" />
       </g>

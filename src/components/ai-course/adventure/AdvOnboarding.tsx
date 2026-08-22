@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import type {
   AdvCompanionId, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvSkillProfile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
-import { ACTIVE_TARGET_LEVELS, GOAL_LABELS } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { ACTIVE_TARGET_LEVELS, GOAL_LABELS, aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { COMPANIONS } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import { CompanionAvatar } from './CompanionAvatar';
 import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
@@ -282,6 +282,15 @@ export function AdvOnboarding({
               'N5・N4はことば・文法・読解・聴解すべて学べます。N1は今後追加予定です。',
               'N5・N4的词汇、语法、阅读、听力均可学习。N1将于今后追加。')}
           </p>
+          {/* 2026-08-22: N5・N4ではAI会話を出さない（会話は先生の授業）。
+              「両方」を選んだ人には、選んだその場で伝える。あとで気づかせない（原則13） */}
+          {goal && !aiConversationAvailable(goal, target) && (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+              {tx(lang,
+                `${target}のあいだ、アプリのAI会話は出ません。この時期の会話は先生の授業で練習します（ことば・文法・読解・聴解はアプリで進めます）。`,
+                `${target}期间，应用内不会出现AI会话。这个阶段的会话在老师的课上练习（词汇・语法・阅读・听力在应用里进行）。`)}
+            </div>
+          )}
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>

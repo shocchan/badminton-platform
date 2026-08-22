@@ -366,6 +366,22 @@ export interface AdventureV2Profile {
 }
 
 /** 表示用ラベル（レベル断定を避ける・§6/§16の文言はここに集約） */
+/**
+ * AI会話をこの人に出すか（CEO決定 2026-08-22）。
+ *
+ * **N5・N4を目標にした人には出さない。** 会話は先生が人の授業でやる。
+ * 理由: 語彙・文法・読解・聴解は初級まで作り込んであるが、AI会話の中身は
+ * その水準に届いていない。届いていないものを毎日の冒険に混ぜると、
+ * 生徒の時間を薄いところに使わせることになる（原則13: 無いものを有るふりをしない）。
+ *
+ * 会話そのものを目的に選んだ人（goalType='conversation'）は目標レベルを持たないので対象外。
+ * この判定は ルート生成（会話stageを入れない）・今日の冒険（会話stepを出さない）・
+ * オンボーディングの案内文 の3か所で使う。増やすときは必ずここを通すこと。
+ */
+export const aiConversationAvailable = (
+  goalType: AdvGoalType, targetJlpt: JlptLevel | null,
+): boolean => goalType === 'conversation' || (targetJlpt !== 'N5' && targetJlpt !== 'N4');
+
 export const BAND_LABELS: Record<AdvBand, { ja: string; zh: string }> = {
   needs_assessment: { ja: '未判定', zh: '尚未判定' },
   pre_n5: { ja: '基礎の入口', zh: '基础入门' },

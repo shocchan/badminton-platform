@@ -3,6 +3,7 @@
 // 生成結果は必ず why / 所要 / 対象能力 / 対象表現 / 成功条件 / 次の一歩 を持つ。
 import type {
   AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile, JlptLevel } from './advTypes';
+import { aiConversationAvailable } from './advTypes';
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
 import { masteredStageIds, PASS_LABEL } from './advMastery';
@@ -169,6 +170,8 @@ export const stepKeyOf = (s: Pick<AdvQuestStep, 'kind' | 'refIds'>): string =>
 /** stageに応じた新規学習ステップ（±会話転用） */
 const stageSteps = (
   stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,
+  /** AI会話を出してよいか（N5・N4は false。aiConversationAvailable を参照） */
+  convOk: boolean,
 ): { learn: AdvQuestStep | null; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
   // 文法束の学習は「いま攻略中の束」の中を日替わりで巡回する（2026-08-15 進度改善）。
   // 旧実装は常に先頭を選んでいたため、前日回避と合わさって先頭2項目のping-pongになり、
@@ -180,8 +183,11 @@ const stageSteps = (
   const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
   const g = bundleItems.length > 0 ? bundleItems[dayNum % bundleItems.length] : avail.nextGrammarIds[0];
   const u = avail.nextUnitIds[0];
-  const convPick = seededShuffle(avail.conversationTargets, seed)[0] ?? null;
-  const isConvStage = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth';
+  const convPick = convOk ? seededShuffle(avail.conversationTargets, seed)[0] ?? null : null;
+  // 会話を出さない人（N5・N4）は、保存済みの古いルートに会話stageが残っていても
+  // 通常stageとして扱う。会話しか出せないstageに閉じ込めると行き止まりになる（原則15）
+  const isConvStage = convOk
+    && (stage.kind === 'conversation_start' || stage.kind === 'conversation_growth');
 
   if (isConvStage) {
     return {
@@ -278,7 +284,12 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
       nextStepZh: check ? '根据结果决定明天开始的路线' : '明天继续下一行',
     };
   }
-  const parts = stageSteps(stage, availability, seed, dateKey);
+  /**
+   * AI会話を出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業でやる。
+   * ここで false になると、会話step・hybridの穴埋め・空クエストの逃げ道の3か所すべてが閉じる。
+   */
+  const convOk = aiConversationAvailable(goalType, profile.targetJlpt ?? null);
+  const parts = stageSteps(stage, availability, seed, dateKey, convOk);
 
   /**
    * ボス戦（2026-08-18 P0）。学習コンテンツの供給元（contentStage）ではなく
@@ -307,7 +318,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const readingIsTheStage = currentStage.kind === 'reading_listening';
 
   // 7日後の確認が解禁されたtargetがあれば、今日のバトルは確認バトルにする（攻略を確定させる一手が最優先）
-  const isConvStageKind = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth';
+  const isConvStageKind = convOk
+    && (stage.kind === 'conversation_start' || stage.kind === 'conversation_growth');
   const confirmTarget = (availability.confirmTargetIds ?? [])[0];
   if (confirmTarget && !isConvStageKind) {
     parts.battle = step('battle', [confirmTarget],
@@ -331,7 +343,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
   // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
   // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
-  if (goalType === 'hybrid' && !parts.conv) {
+  if (goalType === 'hybrid' && convOk && !parts.conv) {
     parts.conv = step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务');
   }
 
@@ -472,15 +484,20 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
   }
 
-  // 空クエスト防止: 最低1ステップ（コンテンツ枯渇時は復習/会話へ）
-  if (steps.length === 0) push(step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务'));
+  // 空クエスト防止: 最低1ステップ（コンテンツ枯渇時の逃げ道）。
+  // N5・N4はAI会話を出さないので、代わりに言い直し（素材が無くても開ける画面）を置く
+  if (steps.length === 0) {
+    push(convOk
+      ? step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务')
+      : step('restate', [], '言い直し', '改口练习'));
+  }
 
   const estimatedMinutes = steps.reduce((n, s) => n + s.estMinutes, 0);
   // 成功条件は実際に計測できることだけを言う（会話中の「表現使用」は判定していない・原則13）
   const hasConv = steps.some((s) => s.kind === 'conversation_mission');
-  const targetSkills: AdvSkill[] = stage.kind === 'conversation_start' || stage.kind === 'conversation_growth'
+  const targetSkills: AdvSkill[] = isConvStageKind
     ? ['conversation', 'vocabulary']
-    : goalType === 'hybrid' ? ['grammar', 'conversation'] : ['grammar', 'vocabulary'];
+    : goalType === 'hybrid' && convOk ? ['grammar', 'conversation'] : ['grammar', 'vocabulary'];
 
   const why = buildWhy(goalType, stage, reviewQuestionCount, weakGrammarIds.length, daysToExam);
 

@@ -226,7 +226,9 @@ export const AdvWorldMap = ({
           })}
 
           {/* 雲海（目標より先の土地）。N2目標と会話クロップでは出ない */}
-          {layout.fogEdgeY !== null && <CloudSea uid={uid} edgeY={layout.fogEdgeY} />}
+          {layout.fogEdgeY !== null && (
+            <CloudSea uid={uid} edgeY={layout.fogEdgeY} veil={hideNodeArt ? 'mist' : 'solid'} />
+          )}
         </svg>
 
         {/* 雲海のタップ領域（ノードbuttonより下・吹き出しのトグルだけ。カードへは飛ばさない） */}

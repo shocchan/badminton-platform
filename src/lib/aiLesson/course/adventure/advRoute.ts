@@ -5,6 +5,7 @@
 import type {
   AdvBand, AdvDiagnosisResult, AdvGoalType, AdvRoute, AdvRouteStage, AdvStageKind, JlptLevel,
 } from './advTypes';
+import { aiConversationAvailable } from './advTypes';
 import { bandAtLeast, bandRank } from './advSkillProfile';
 // 束IDの定数だけを取る（本文はdynamic import側にあるのでbundleは増えない）
 import { N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
@@ -268,6 +269,15 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
   };
 
   if (goalType === 'hybrid') {
+    // N5・N4はAI会話を出さない（CEO決定 2026-08-22）。会話は先生の授業でやる。
+    // ここで会話stageを入れてしまうと、ルート提示で約束したものが毎日の冒険に出てこない
+    if (!aiConversationAvailable(goalType, target)) {
+      return {
+        ...base,
+        explanationJa: `${explanationJa} 会話は先生の授業で練習します（${target}のあいだ、アプリのAI会話は出ません）。`,
+        explanationZh: `${explanationZh} 会话在老师的课上练习（${target}期间，应用内不出现AI会话）。`,
+      };
+    }
     // 会話stageを2番目に合流（毎日のクエストで比率調整する・§7）
     const conv = conversationStages(conversationBand, diagnosis);
     const merged = [...stages];

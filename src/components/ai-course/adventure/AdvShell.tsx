@@ -7,6 +7,7 @@ import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from
 import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
@@ -971,6 +972,11 @@ export default function AdvShell(props: AdvShellProps) {
    * 今日の冒険は `read-n5-*` を対象だと言いながら、開くと **N2の長文**が出ていた。
    * 約束したものと出るものを一致させる（原則13）。N2/N3目標では値が変わらない。
    */
+  /**
+   * AI会話をこの人に出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業。
+   * 判定の本体は advTypes.aiConversationAvailable。画面の文言をそこへ合わせる
+   */
+  const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt', prof.targetJlpt ?? null);
   const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' =
     prof.targetJlpt === 'N5' ? 'N5'
       : prof.targetJlpt === 'N4' ? 'N4'
@@ -1311,8 +1317,12 @@ export default function AdvShell(props: AdvShellProps) {
           })}
         </div>
         <p className="mt-4 text-xs text-gray-500">
-          {tx(lang, '選んだ先生は、今日の冒険・AI会話・学習レポート・言い直し・復習・先生レッスン準備のすべてに表示されます。',
-            '所选的老师会显示在今天的冒险、AI会话、学习报告、改口练习、复习和真人课准备的所有页面。')}
+          {/* N5・N4はAI会話が出ないので、出ないものを並べない（2026-08-22） */}
+          {convAvailable
+            ? tx(lang, '選んだ先生は、今日の冒険・AI会話・学習レポート・言い直し・復習・先生レッスン準備のすべてに表示されます。',
+              '所选的老师会显示在今天的冒险、AI会话、学习报告、改口练习、复习和真人课准备的所有页面。')
+            : tx(lang, '選んだ先生は、今日の冒険・学習レポート・言い直し・復習・先生レッスン準備のすべてに表示されます。',
+              '所选的老师会显示在今天的冒险、学习报告、改口练习、复习和真人课准备的所有页面。')}
         </p>
         <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('home')}>
           {tx(lang, 'ホームへもどる', '返回主页')}
