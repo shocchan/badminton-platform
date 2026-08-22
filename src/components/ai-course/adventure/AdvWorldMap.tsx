@@ -49,8 +49,18 @@ interface Props {
   backdrop?: ReactNode;
   /** 自作SVG風景（WorldScenery）を描かない。画像の読込完了後に true にして画像を見せる */
   hideScenery?: boolean;
-  /** 風景の上・道とノードの下に挟む SVG 要素（画像版のランドマークタイル <image>）。viewBox 座標で描く */
-  tiles?: ReactNode;
+  /**
+   * 風景の上・道とノードの下に挟む SVG 要素（画像版のランドマークタイル <image>）。viewBox 座標で描く。
+   * 関数を渡すと現在地の座標を受け取れる（現在地マーカーの絵をノードの足元に敷くため）。
+   * 当たり判定・状態バッジ・aria は下の HTML ボタンが持ち続ける（絵は装飾）
+   */
+  tiles?: ReactNode | ((ctx: {
+    current: Pt | null;
+    /** 全ノードの viewBox 座標と状態（画像版が状態台座を敷くため。意味は HTML 側が持つ） */
+    nodes: { id: string; x: number; y: number; state: MapRegion['state']; isCurrent: boolean }[];
+  }) => ReactNode);
+  /** 自作SVGのノードの絵（ミニランドマーク・地面ブロブ・完了グロー）を描かない。画像版が台座を敷くときに使う */
+  hideNodeArt?: boolean;
   /** 表示方式（nav の data-map-variant に出す。検査・実機確認用） */
   variant?: 'svg' | 'image';
   /** 画像の読込状態（nav の data-map-image-state に出す） */
@@ -85,7 +95,7 @@ const ROAD_STYLE: Record<RoadState, { stroke: string; width: number; dash?: stri
 export const AdvWorldMap = ({
   lang, regions, currentRegionId, destinationJa, destinationZh,
   doneCount, totalCount, onSelectRegion, targetJlpt, routeKind, summitSlot,
-  backdrop, hideScenery = false, tiles, variant = 'svg', imageState,
+  backdrop, hideScenery = false, tiles, hideNodeArt = false, variant = 'svg', imageState,
 }: Props) => {
   const uid = useId();
   /** 雲海タップの吹き出し。5秒で自動で閉じる・再タップでトグル */
@@ -148,7 +158,15 @@ export const AdvWorldMap = ({
           {/* 自作SVG風景。画像版は読込完了まで描き続け（プレースホルダ兼フォールバック）、完了後に消して画像を見せる */}
           {!hideScenery && <WorldScenery uid={uid} />}
           {/* 画像版のランドマークタイル（背景画像の上・道の下）。SVG版では undefined */}
-          {tiles}
+          {typeof tiles === 'function'
+            ? tiles({
+              current: (currentRegionId && posOf.get(currentRegionId)) || null,
+              nodes: regions.flatMap((r) => {
+                const p = posOf.get(r.id);
+                return p ? [{ id: r.id, x: p.x, y: p.y, state: r.state, isCurrent: r.id === currentRegionId }] : [];
+              }),
+            })
+            : tiles}
 
           {/* 会話環状路の下地（薄く一周。環状の道だと分かる） */}
           {layout.convRingD && (
@@ -172,7 +190,7 @@ export const AdvWorldMap = ({
           })}
 
           {/* 攻略済みノードの暖色グロー */}
-          {regions.filter((r) => r.state === 'done').map((r) => {
+          {!hideNodeArt && regions.filter((r) => r.state === 'done').map((r) => {
             const p = posOf.get(r.id);
             if (!p) return null;
             return <circle key={`glow-${r.id}`} cx={p.x} cy={p.y - 8} r={14}
@@ -180,7 +198,7 @@ export const AdvWorldMap = ({
           })}
 
           {/* ミニランドマーク（ノード）。足元に地形色の地面ブロブ */}
-          {regions.map((r) => {
+          {!hideNodeArt && regions.map((r) => {
             const p = posOf.get(r.id);
             if (!p) return null;
             return (

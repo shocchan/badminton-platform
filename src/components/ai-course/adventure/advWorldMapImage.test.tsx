@@ -239,3 +239,64 @@ describe('AdvWorldMapImage（画像版）のフォールバックと読込', () 
     expect(container.firstChild).toBeNull();
   });
 });
+
+describe('ランドマークタイル（背景の上・道の下の SVG <image>）', () => {
+  it('背景の読込完了後にだけタイルが出る。SVG版（フォールバック）には出ない', () => {
+    const p = profileFor('hybrid');
+    const map = mapFor(p, 'combined', 0);
+    const tile = { id: 'minato', webp1x: '/t@1x.webp', webp2x: '/t@2x.webp', width: 1024, height: 512,
+      anchor: [0.5, 1] as const, widthFrac: 0.5 };
+    const r = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[tile]} />);
+    // 読込前: 背景 <img> はあるがタイル無し（建物だけ先に浮かない）
+    expect(r.container.querySelector('[data-adv-tile]')).toBeNull();
+    const img = r.container.querySelector('img[data-adv-scenery], picture img') as HTMLImageElement;
+    Object.defineProperty(img, 'naturalWidth', { value: 512, configurable: true });
+    fireEvent.load(img);
+    const el = r.container.querySelector('image[data-adv-tile="minato"]');
+    expect(el).not.toBeNull();
+    // 底辺中央が anchor: 幅 180、高さ 90、x=90、y=510（viewBox 360×600）
+    expect(el?.getAttribute('width')).toBe('180');
+    expect(el?.getAttribute('height')).toBe('90');
+    expect(el?.getAttribute('x')).toBe('90');
+    expect(el?.getAttribute('y')).toBe('510');
+    // 1x 環境（jsdom の devicePixelRatio=1）では 1x を使う
+    expect(el?.getAttribute('href')).toBe('/t@1x.webp');
+    // タイル単体の失敗はそのタイルだけ消え、背景と道は残る
+    fireEvent.error(el as Element);
+    expect((el as SVGImageElement).style.display).toBe('none');
+    expect(r.container.querySelector('picture')).not.toBeNull();
+    r.unmount();
+    // 背景が失敗 → SVG 版へ落ちる。タイルも出ない
+    const f = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[tile]} />);
+    fireEvent.error(f.container.querySelector('picture img') as HTMLImageElement);
+    expect(f.container.querySelector('[data-adv-tile]')).toBeNull();
+    expect(f.container.querySelector('[data-adv-scenery="svg"], svg')).not.toBeNull();
+  });
+
+  it('tileAssets=[]・markerAsset=null で画像の重ねを全部止められる（新旧比較用）', () => {
+    const p = profileFor('hybrid');
+    const map = mapFor(p, 'combined', 0);
+    const r = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[]} markerAsset={null} />);
+    const img = r.container.querySelector('picture img') as HTMLImageElement;
+    Object.defineProperty(img, 'naturalWidth', { value: 512, configurable: true });
+    fireEvent.load(img);
+    expect(r.container.querySelector('[data-adv-tiles]')).toBeNull();
+    expect(r.container.querySelector('[data-adv-marker]')).toBeNull();
+  });
+
+  it('現在地マーカーの絵は現在地の足元に敷かれ、当たり判定と aria は HTML ボタンのまま', () => {
+    const p = profileFor('hybrid');
+    const map = mapFor(p, 'combined', 0);
+    const r = render(<AdvWorldMapImage {...propsFor(map, p)} tileAssets={[]} />);
+    const img = r.container.querySelector('picture img') as HTMLImageElement;
+    Object.defineProperty(img, 'naturalWidth', { value: 512, configurable: true });
+    fireEvent.load(img);
+    const marker = r.container.querySelector('image[data-adv-marker="current"]');
+    expect(marker).not.toBeNull();
+    // 絵は装飾。押せるのは今までどおり aria-current="step" のボタン
+    expect(marker?.getAttribute('aria-hidden')).toBe('true');
+    expect(r.container.querySelector('button[aria-current="step"]')).not.toBeNull();
+    // 底辺が現在地。高さ 34（viewBox 単位）
+    expect(Number(marker?.getAttribute('height'))).toBeCloseTo(34, 5);
+  });
+});

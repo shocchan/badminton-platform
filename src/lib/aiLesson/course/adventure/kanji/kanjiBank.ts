@@ -17,6 +17,7 @@ import { KANJI_N5_A } from './kanjiN5a';
 import { KANJI_N5_B } from './kanjiN5b';
 import { KANJI_N5_C } from './kanjiN5c';
 import { KANJI_N5_D } from './kanjiN5d';
+import { KANJI_N5_E } from './kanjiN5e';
 import { KANJI_N4_A } from './kanjiN4a';
 import { KANJI_N4_B } from './kanjiN4b';
 import { KANJI_N4_C } from './kanjiN4c';
@@ -26,6 +27,7 @@ export type KanjiLevel = 'N5' | 'N4';
 
 export const ALL_KANJI: KanjiEntry[] = [
   ...KANJI_N5_A, ...KANJI_N5_B, ...KANJI_N5_C, ...KANJI_N5_D,
+  ...KANJI_N5_E,
   ...KANJI_N4_A, ...KANJI_N4_B, ...KANJI_N4_C, ...KANJI_N4_D,
 ];
 

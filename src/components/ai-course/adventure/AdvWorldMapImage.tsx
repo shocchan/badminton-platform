@@ -16,7 +16,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdvWorldMap, type AdvWorldMapProps } from './AdvWorldMap';
 import {
-  WORLD_MAP_BG, WORLD_MAP_ASPECT, WORLD_MAP_TILES, type WorldMapBackgroundAsset, type WorldMapTileAsset,
+  WORLD_MAP_BG, WORLD_MAP_ASPECT, WORLD_MAP_TILES, WORLD_MAP_MARKERS, WORLD_MAP_PEDESTALS, PEDESTAL_WIDTH_VB,
+  type WorldMapBackgroundAsset, type WorldMapTileAsset, type WorldMapMarkerAsset,
 } from '../../../lib/aiLesson/course/adventure/advWorldMapAssets';
 import {
   readWorldMapVariantFromWindow, type WorldMapVariant,
@@ -29,6 +30,10 @@ export interface AdvWorldMapImageProps extends AdvWorldMapProps {
   asset?: WorldMapBackgroundAsset | null;
   /** ランドマークタイル。既定 WORLD_MAP_TILES。[] で無効化（テスト・比較用） */
   tileAssets?: readonly WorldMapTileAsset[];
+  /** 現在地マーカーの絵。既定は旅人（3a）。null で絵なし（HTML のリングとバッジだけ＝現行の見え方） */
+  markerAsset?: WorldMapMarkerAsset | null;
+  /** 状態台座の絵。null で台座なし（自作SVGのミニランドマークに戻る） */
+  pedestals?: typeof WORLD_MAP_PEDESTALS | null;
 }
 
 /** viewBox 360×600 上のタイル配置（底辺中央が anchor）。Retina は 2x を選ぶ（SVG <image> に srcset は無い） */
@@ -55,7 +60,10 @@ const ALT = {
   zh: '冒险世界地图的风景。从下方的港口Minato，越过平原、森林、高地，通往山顶的Sorano塔',
 } as const;
 
-export const AdvWorldMapImage = ({ asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_TILES, ...props }: AdvWorldMapImageProps) => {
+export const AdvWorldMapImage = ({
+  asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_TILES, markerAsset = WORLD_MAP_MARKERS.traveler,
+  pedestals = WORLD_MAP_PEDESTALS, ...props
+}: AdvWorldMapImageProps) => {
   const [state, setState] = useState<ImageState>(asset ? 'loading' : 'error');
   const imgRef = useRef<HTMLImageElement | null>(null);
 
@@ -101,11 +109,50 @@ export const AdvWorldMapImage = ({ asset = WORLD_MAP_BG, tileAssets = WORLD_MAP_
 
   // タイルは背景が見えてから（背景より先に建物だけ浮くのを防ぐ）
   const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-  const tiles = state === 'loaded' && tileAssets.length > 0 ? <TileLayer tiles={tileAssets} dpr={dpr} /> : undefined;
+  const tiles = state === 'loaded' && (tileAssets.length > 0 || markerAsset || pedestals)
+    ? ({ current, nodes }: {
+      current: { x: number; y: number } | null;
+      nodes: { id: string; x: number; y: number; state: 'done' | 'current' | 'next' | 'locked'; isCurrent: boolean }[];
+    }) => (
+      <>
+        <TileLayer tiles={tileAssets} dpr={dpr} />
+        {/* 状態台座（装飾）。状態の意味は HTML のバッジと aria-label が持つ */}
+        {pedestals && (
+          <g data-adv-pedestals={nodes.length} aria-hidden>
+            {nodes.map((n) => {
+              const a = pedestals[n.state];
+              if (!a) return null;
+              const w = PEDESTAL_WIDTH_VB;
+              const h = w * (a.height / a.width);
+              return (
+                <image key={`ped-${n.id}`} data-adv-pedestal={n.state}
+                  href={dpr > 1.25 ? a.webp2x : a.webp1x}
+                  x={n.x - w / 2} y={n.y - h + 3} width={w} height={h}
+                  preserveAspectRatio="xMidYMax meet"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              );
+            })}
+          </g>
+        )}
+        {markerAsset && current && (() => {
+          const h = markerAsset.heightVb;
+          const w = h * (markerAsset.width / markerAsset.height);
+          return (
+            <image data-adv-marker="current" aria-hidden
+              href={dpr > 1.25 ? markerAsset.webp2x : markerAsset.webp1x}
+              x={current.x - w / 2} y={current.y - h} width={w} height={h}
+              preserveAspectRatio="xMidYMax meet"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+          );
+        })()}
+      </>
+    )
+    : undefined;
 
   return (
     <AdvWorldMap {...props} variant="image" imageState={state}
-      backdrop={backdrop} hideScenery={state === 'loaded'} tiles={tiles} />
+      backdrop={backdrop} hideScenery={state === 'loaded'} tiles={tiles}
+      hideNodeArt={state === 'loaded' && !!pedestals} />
   );
 };
 
