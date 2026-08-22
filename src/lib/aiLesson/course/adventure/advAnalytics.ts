@@ -37,7 +37,9 @@ export type AdvEventName =
   | 'onboarding_abandoned' | 'quest_abandoned'
   | 'seven_days_inactive' | 'repeated_learning_error'
   // 次の道カード（現目標の試験系stage全攻略 → 次レベルへの誘導）のCTA押下
-  | 'next_road_advanced';
+  | 'next_road_advanced'
+  // つまずき救済（同じ束で別日3回不合格＝離脱の入口）。提示と、選ばれた手段
+  | 'stuck_rescue_shown' | 'stuck_rescue_focus_battle' | 'stuck_rescue_skip';
 
 export interface AdvEventParams {
   goalType?: AdvGoalType;

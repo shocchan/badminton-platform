@@ -361,6 +361,13 @@ export interface AdventureV2Profile {
    */
   teacherNotes: import('./advTeacherNote').AdvTeacherNote[];
   humanLesson: AdvHumanLessonState;
+  /**
+   * つまずき救済の一時スキップ（2026-08-22 配線）。
+   * 同じ束で別日5回不合格の人が「3日だけ置いて先へ進む」を選んだ記録。
+   * returnDateKey を過ぎたものは activeStuckSkips が自動で落とすので、解除処理は要らない。
+   * **永久スキップは型として作れない**＝合格水準は下がらない
+   */
+  stuckSkips: import('./advStuckRescue').StuckSkipState[];
   createdAt: string;
   updatedAt: string;
 }

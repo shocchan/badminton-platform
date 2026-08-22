@@ -19,6 +19,10 @@ import { generateTodayQuest, vocabTargetForStage, isVocabTargetInScope, stepKeyO
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildReviewForecast, type ReviewForecast } from '../../../lib/aiLesson/course/adventure/advReviewForecast';
+import {
+  detectStuck, rescuePlanOf, makeStuckSkip, activeStuckSkips,
+  type StuckRescuePlan,
+} from '../../../lib/aiLesson/course/adventure/advStuckRescue';
 import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
@@ -164,6 +168,12 @@ interface BattleCtx {
    * 「やっていないstepが完了になる」事故を防ぐ（2026-08-17 監査P0）
    */
   fromStepIdx?: number;
+  /**
+   * つまずき救済バトル（2026-08-22 配線）。指定すると、この束の出題プールを
+   * **このキーの問題だけ**に絞って出す。targetId は通常と同じ束IDなので、
+   * 合格すれば通常どおり攻略の証拠になる（合格ラインは変えない）
+   */
+  focusKeys?: string[];
 }
 
 /** いま要る語彙プールの注文（何をどのseedで作るか）。key が同じなら作り直さない */
@@ -258,6 +268,11 @@ export default function AdvShell(props: AdvShellProps) {
    * ホームに出す「復習 N問」の N と**同じ集合**。押すとこれがそのままバトルになる
    */
   const [reviewKeys, setReviewKeys] = useState<string[]>([]);
+  /**
+   * つまずき救済（2026-08-22 配線）。同じ束で別日3回不合格なら level1、5回で level2。
+   * 判定と提案は advStuckRescue（純関数）。ここは「今日の画面に出す」だけを持つ
+   */
+  const [rescue, setRescue] = useState<{ plan: StuckRescuePlan; targetId: string; targetLabel: string } | null>(null);
   /**
    * 「単元のことばを学ぶ」を開いたときの控え（2026-08-18）。
    * 開く前に終わっていたかを覚えておき、**この訪問中に終えた**ときだけstepを完了にする
@@ -715,13 +730,44 @@ export default function AdvShell(props: AdvShellProps) {
       const reviewKeysToday = pickMistakeReviewKeys(notebookNow, REVIEW_BATTLE_SIZE)
         .filter((k) => resolvableNow.has(k));
       setReviewKeys(reviewKeysToday);
+
+      // ── つまずき救済（2026-08-22 配線） ──
+      // 「いま攻略中の束」は advQuest と同じ決め方（nextGrammarIds[0] の属する束）にする。
+      // ここがズレると、詰まっていない束の救済を出してしまう
+      const activeSkips = activeStuckSkips(profile.stuckSkips ?? [], dateKey);
+      const skipped = new Set(activeSkips.map((x) => x.targetId));
+      const bundleOfItem = (x: string): string => ct.grammarBundleByItem?.get(x) ?? x;
+      // 一時スキップ中の束は今日の主対象から外す（3日後に activeStuckSkips が自動で戻す）
+      const liveGrammarIds = ct.nextGrammarIds.filter((x) => !skipped.has(bundleOfItem(x)));
+      const stuckTargetId = liveGrammarIds.length > 0 ? bundleOfItem(liveGrammarIds[0]) : null;
+      if (stuckTargetId) {
+        const status = detectStuck(profile.mastery, stuckTargetId, nowISO);
+        if (status.level > 0) {
+          const poolKeys: string[] = [];
+          for (const [tid, qs] of p.byItem.entries()) {
+            if (bundleOfItem(tid) !== stuckTargetId && tid !== stuckTargetId) continue;
+            for (const q of qs) poolKeys.push(q.key);
+          }
+          // 並行先＝スキップ中でない次の束。無ければ skip 提案は出ない（最後の束）
+          const nextTargetId = liveGrammarIds.map(bundleOfItem).find((b) => b !== stuckTargetId) ?? null;
+          const plan = rescuePlanOf(status, {
+            targetId: stuckTargetId, poolKeys,
+            seenKeys: seenQuestionKeys(profile.mastery),
+            nextTargetId, todayKey: dateKey,
+          }, profile.companionId);
+          const show = plan.level > 0 && (plan.focusBattle?.questionKeys.length ?? 0) > 0;
+          if (show) trackAdv('stuck_rescue_shown', { locale: lang, countBucket: String(plan.level) as '1' | '2' });
+          setRescue(show ? { plan, targetId: stuckTargetId, targetLabel: tx(lang, '文法', '语法') } : null);
+        } else setRescue(null);
+      } else setRescue(null);
+
       setQuest(generateTodayQuest({
         profile, route: profile.route!, reviewQuestionCount: reviewKeysToday.length, weakGrammarIds: weak,
         dateKey, nowISO, daysToExam,
         masteredStageIds: stageDone,
         contentStage,
         availability: {
-          nextGrammarIds: ct.nextGrammarIds, nextUnitIds: ct.nextUnitIds,
+          nextGrammarIds: liveGrammarIds, nextUnitIds: ct.nextUnitIds,
           conversationTargets: ct.conversationTargets,
           grammarBundleByItem: ct.grammarBundleByItem,
           // 出題プールを持たない証跡target（読解・聴解・模試）は予報側のフィルタで既に除外済み
@@ -1101,6 +1147,20 @@ export default function AdvShell(props: AdvShellProps) {
     const wrong = recentWrongKeysOf(prof, notebook);
     // 错题本からの解き直しは、選んだ問題だけを持つ専用プールで出す
     const isMistakeBattle = battle.targetId === MISTAKE_TARGET_ID;
+    // つまずき救済バトル: 束IDはそのままに、出題を指定キーだけへ絞る。
+    // targetId が通常と同じなので、合格すればそのまま攻略の証拠になる（水準は下げない）
+    const focusPool = (() => {
+      if (!battle.focusKeys || battle.focusKeys.length === 0) return null;
+      const want = new Set(battle.focusKeys);
+      const picked: AdvBattleQuestion[] = [];
+      const taken = new Set<string>();
+      for (const qs of pools.byItem.values()) {
+        for (const q of qs) {
+          if (want.has(q.key) && !taken.has(q.key)) { taken.add(q.key); picked.push(q); }
+        }
+      }
+      return picked.length > 0 ? new Map<string, AdvBattleQuestion[]>([[battle.targetId, picked]]) : null;
+    })();
     const mistakePool = (() => {
       if (!isMistakeBattle) return null;
       const want = new Set(mistakeKeys);
@@ -1133,11 +1193,12 @@ export default function AdvShell(props: AdvShellProps) {
         key={`${battle.tier}:${battle.targetId}`}
         lang={lang} tier={battle.tier} targetId={battle.targetId} targetLabel={battle.targetLabel}
         targetIds={battle.targetIds}
-        pool={mistakePool ?? (isKanjiBattle && kanjiPoolReady ? kanjiPoolReady : (isVocabBattle && vocabPoolReady ? vocabPoolReady : pools.byItem))} level={level}
+        pool={mistakePool ?? focusPool ?? (isKanjiBattle && kanjiPoolReady ? kanjiPoolReady : (isVocabBattle && vocabPoolReady ? vocabPoolReady : pools.byItem))} level={level}
         seenKeys={seen} recentWrongKeys={wrong}
         priorAttempts={prof.mastery[battle.targetId] ?? []}
         dateKey={dateKey} nowISO={nowISO}
         companionId={prof.companionId}
+        badgeJa={battle.focusKeys ? '救済' : undefined} badgeZh={battle.focusKeys ? '救援' : undefined}
         onFinish={(attempt: AdvMasteryAttempt, mastery: MasteryStatus) => {
           let ledger = recordAttempt(prof.mastery, battle.targetId, attempt);
           if (battle.tier === 'midboss' || battle.tier === 'rankboss') {
@@ -2707,6 +2768,68 @@ export default function AdvShell(props: AdvShellProps) {
             onClick={() => { setPoolsError(false); setPoolsRetryNonce((n) => n + 1); }}>
             {tx(lang, 'もう一度読み込む', '重新加载')}
           </button>
+        </div>
+      )}
+
+      {/*
+        つまずき救済（2026-08-22 配線）。同じ束で別日3回不合格＝本人には打つ手が見えない状態。
+        判定・提案は advStuckRescue（純関数）。ここは「今日の画面に出す」だけ。
+        **合格ラインは変えない**（救済バトルも通常どおり採点・記録される）
+      */}
+      {rescue && (
+        <div className={`${card} mb-4 border-amber-300 bg-amber-50`} role="status">
+          <div className="flex items-start gap-2">
+            <CompanionAvatar id={prof.companionId ?? 'natsu'} size={28} />
+            <p className="text-sm leading-relaxed text-gray-800">
+              <span className="font-semibold">
+                {tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}
+              </span>
+              ：{tx(lang, rescue.plan.encourageJa, rescue.plan.encourageZh)}
+            </p>
+          </div>
+          {rescue.plan.focusBattle && (
+            <>
+              <button type="button"
+                className={`${pressFx} action-primary-blue mt-3 w-full min-h-[48px] rounded-xl bg-blue-600 px-3 py-2 text-base font-bold text-white`}
+                onClick={() => {
+                  const fb = rescue.plan.focusBattle!;
+                  trackAdv('stuck_rescue_focus_battle', { locale: lang });
+                  setBattle({
+                    tier: 'normal', targetId: rescue.targetId,
+                    targetLabel: tx(lang, fb.titleJa, fb.titleZh),
+                    targetIds: [rescue.targetId], focusKeys: fb.questionKeys, returnTo: 'home',
+                  });
+                  setView('battle');
+                }}>
+                {tx(lang, `${rescue.plan.focusBattle.titleJa}（${rescue.plan.focusBattle.questionKeys.length}問）`,
+                  `${rescue.plan.focusBattle.titleZh}（${rescue.plan.focusBattle.questionKeys.length}题）`)}
+              </button>
+              <p className="mt-1.5 px-1 text-xs leading-relaxed text-gray-600">
+                {tx(lang, rescue.plan.focusBattle.whyJa, rescue.plan.focusBattle.whyZh)}
+              </p>
+            </>
+          )}
+          {rescue.plan.skip && (
+            <>
+              <button type="button"
+                className={`${pressFx} action-amber mt-2 w-full min-h-[44px] rounded-xl border border-amber-400 bg-white px-3 py-2 text-sm font-bold text-amber-900`}
+                onClick={() => {
+                  const sk = rescue.plan.skip!;
+                  trackAdv('stuck_rescue_skip', { locale: lang });
+                  save({
+                    ...prof,
+                    stuckSkips: [...(prof.stuckSkips ?? []).filter((x) => x.targetId !== sk.skipTargetId),
+                      makeStuckSkip(sk.skipTargetId, dateKey)],
+                  });
+                  setRescue(null);
+                }}>
+                {tx(lang, rescue.plan.skip.titleJa, rescue.plan.skip.titleZh)}
+              </button>
+              <p className="mt-1.5 px-1 text-xs leading-relaxed text-gray-600">
+                {tx(lang, rescue.plan.skip.whyJa, rescue.plan.skip.whyZh)}
+              </p>
+            </>
+          )}
         </div>
       )}
 

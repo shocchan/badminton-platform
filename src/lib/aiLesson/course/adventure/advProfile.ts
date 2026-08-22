@@ -52,6 +52,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   interviewPrep: emptyInterviewPrep(),
   teacherNotes: [],
   humanLesson: {},
+  stuckSkips: [],
   createdAt: nowISO,
   updatedAt: nowISO,
 });
@@ -196,6 +197,12 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
       }
       : null,
     streak: restoreStreak(raw.streak),
+    // 期限切れのスキップは読み込み時点で落とす（保存が肥大化しない・解除漏れも起きない）
+    stuckSkips: Array.isArray(raw.stuckSkips)
+      ? (raw.stuckSkips as unknown[]).filter((x): x is AdventureV2Profile['stuckSkips'][number] =>
+        isRecord(x) && typeof x.targetId === 'string' && typeof x.skippedOnKey === 'string'
+        && typeof x.returnDateKey === 'string').slice(-20)
+      : [],
     answerSheets: restorePapers(raw.answerSheets),
     answerSheetSession: restoreSheetSession(raw.answerSheetSession),
     answerSheetLog: restoreSheetLog(raw.answerSheetLog),

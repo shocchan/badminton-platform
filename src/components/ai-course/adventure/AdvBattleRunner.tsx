@@ -40,6 +40,13 @@ export interface BattleProps {
   level: ScopeLevel;
   /** 旅の相棒。渡すと誤答の励まし・連続正解の褒め・勝利の一言が出る（表示のみ・採点不変） */
   companionId?: AdvCompanionId | null;
+  /**
+   * バトル名の前に付ける札（2026-08-22 つまずき救済の配線）。
+   * 「押した名前」と「開いた画面の名前」が違うと、本当に切り替わったのか分からない。
+   * 表示だけで、編成・採点・記録には一切影響しない
+   */
+  badgeJa?: string;
+  badgeZh?: string;
   onFinish: (attempt: AdvMasteryAttempt, mastery: MasteryStatus) => void;
   /** reason='no-questions' は「出題できる問題が1問も無かった」＝この画面では何もできなかった合図 */
   onClose: (reason?: 'no-questions') => void;
@@ -152,6 +159,11 @@ export function AdvBattleRunner(props: BattleProps) {
     <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={tx(lang, '問題バトル', '问题战斗')}>
       <div className="mb-2 flex items-center justify-between gap-2 text-xs text-gray-500">
         <span>
+          {props.badgeJa && (
+            <span className="mr-1.5 rounded-full bg-amber-100 px-2 py-0.5 font-bold text-amber-900">
+              {tx(lang, props.badgeJa, props.badgeZh ?? props.badgeJa)}
+            </span>
+          )}
           {tx(lang, TIER_LABEL[props.tier].ja, TIER_LABEL[props.tier].zh)}・{encounterName(enc, props.level, lang)}
         </span>
         <span>
