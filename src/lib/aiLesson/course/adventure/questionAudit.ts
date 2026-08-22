@@ -133,7 +133,10 @@ export const analyzeQuestion = (
   }
 
   // ── 重複（別IDで同じ中身） ──
-  const qt = (q.questionJa ?? '').trim();
+  // 文法クローズは**設問文が指示文だけ**で、本文（例文）は targetJapanese に入る。
+  // questionJa だけを見ていたため、中身の違う389問が「同一の問題文」に化けていた
+  //（2026-08-22 監査の誤検知。実際に重複していたのは表記・文脈の側だった）
+  const qt = [q.targetJapanese ?? '', q.questionJa ?? ''].join('\n').trim();
   if (qt) {
     const prev = ctx.seenQuestionText.get(qt);
     if (prev && prev !== q.key) out.push({ kind: 'duplicate_question_text', severity: WARNING_SEVERITY['duplicate_question_text'], detailJa: `${prev} と同一` });

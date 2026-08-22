@@ -40,6 +40,47 @@ const pickDistinct = <T>(pool: T[], count: number, seed: number, exclude: (t: T)
   return out;
 };
 
+/**
+ * 長さのつり合いを取った誤答選び（2026-08-22 CEO指摘の問題設計監査）。
+ *
+ * 誤答を完全ランダムに採ると、**正解だけが長い**選択肢ができる。
+ * 例:「それ」の意味 → 「那个（离听话人近）」（正解・最長）／「更；再多」／「桌子（餐桌）」／「排列；摆放」
+ * 日本語を知らなくても「一番長いのを選ぶ」で当たってしまい、実力が測れない
+ * （監査実測: 意味問題 3,686 問のうち 778 問＝21% がこの形だった）。
+ *
+ * そこで、**正解と字数が近い候補**の帯から誤答を採る。帯の中では従来どおり seed で
+ * 決定的にランダムなので、出題の多様性は保ったまま「長さで当てる」だけを潰せる。
+ * 帯が足りないときは従来の全候補に戻す（問題を作れなくするより、長さの偏りを許す）。
+ */
+/** 表示上の字数（サロゲートペアを1字と数える） */
+const charLen = (t: string): number => [...(t ?? '')].length;
+
+const pickDistinctNearLength = <T>(
+  pool: T[], count: number, seed: number, exclude: (t: T) => boolean,
+  textOf: (t: T) => string, targetText: string,
+): T[] => {
+  const usable = pool.filter((t) => !exclude(t));
+  const target = charLen(targetText);
+  // 帯の広さ: 必要数の6倍（最低12件）。狭すぎると毎回同じ誤答になり、広すぎると効かない
+  const bandSize = Math.max(count * 6, 12);
+  if (usable.length <= bandSize) return pickDistinct(pool, count, seed, exclude);
+  // 字数の差でヒストグラムを作り、必要件数に届く差までを帯にする。
+  // 全体ソート（O(n log n) × 問題数）だと語彙全体の生成が目に見えて遅くなるので、
+  // 1語あたり**プールを2回なめるだけ**（O(n)）で済ませる。並び順は元のまま＝決定性も保つ
+  const dist = usable.map((t) => Math.abs(charLen(textOf(t)) - target));
+  const hist: number[] = [];
+  for (const d of dist) hist[d] = (hist[d] ?? 0) + 1;
+  let acc = 0;
+  let maxD = 0;
+  for (let d = 0; d < hist.length; d += 1) {
+    acc += hist[d] ?? 0;
+    maxD = d;
+    if (acc >= bandSize) break;
+  }
+  const band = usable.filter((_, i) => dist[i] <= maxD);
+  return pickDistinct(band, count, seed, () => false);
+};
+
 const choice = (id: string, textJa: string, isCorrect: boolean, whyWrongZh?: string): AdvChoice => ({
   choiceId: id, textJa, isCorrect, whyWrongZh,
 });
@@ -160,6 +201,23 @@ interface PoolIndex {
   byLevel: Map<string, VocabOriginalContent[]>;
   /** 表記 → 最初に見つかる active_beta の語（従来の pool.find と同じ選び方） */
   bySurface: Map<string, VocabOriginalContent>;
+  /**
+   * 読み → その読みを持つ表記（同音異字）。2026-08-22 の問題設計監査で、
+   * 「かみ」を漢字で書くとどれですか → 加味 / 神 / 髪 が**別々の問題として3つ**でき、
+   * しかも互いが誤答に入りうる＝正しい漢字を選んでも不正解になる状態だった
+   */
+  readingSurfaces: Map<string, string[]>;
+  /**
+   * 表記 → その表記の読み（同表記異音）。「一日」＝ ついたち / いちにち のように、
+   * 同じ見出しで意味も読みも違う語があると、意味問題は設問が同一のまま正解が2つに割れ、
+   * 読み問題は**正しい読みを選んでも不正解**になりうる（2026-08-22 問題設計監査）
+   */
+  surfaceReadings: Map<string, string[]>;
+  /**
+   * 空欄化した例文 → その文にそのまま当てはまる語。「新しい＿＿＿を買いました」は
+   * 靴でもバッグでもラケットでも成り立つので、**それらを誤答にすると正解が3つ**になる
+   */
+  blankedExampleSurfaces: Map<string, string[]>;
 }
 const poolIndexCache = new WeakMap<VocabOriginalContent[], PoolIndex>();
 const poolIndex = (pool: VocabOriginalContent[]): PoolIndex => {
@@ -167,13 +225,25 @@ const poolIndex = (pool: VocabOriginalContent[]): PoolIndex => {
   if (hit) return hit;
   const byLevel = new Map<string, VocabOriginalContent[]>();
   const bySurface = new Map<string, VocabOriginalContent>();
+  const readingSurfaces = new Map<string, string[]>();
+  const surfaceReadings = new Map<string, string[]>();
+  const blankedExampleSurfaces = new Map<string, string[]>();
   for (const o of pool) {
     if (o.state !== 'active_beta') continue;
     const list = byLevel.get(o.level);
     if (list) list.push(o); else byLevel.set(o.level, [o]);
     if (!bySurface.has(o.surface)) bySurface.set(o.surface, o);
+    const rs = readingSurfaces.get(o.reading);
+    if (rs) { if (!rs.includes(o.surface)) rs.push(o.surface); } else readingSurfaces.set(o.reading, [o.surface]);
+    const sr = surfaceReadings.get(o.surface);
+    if (sr) { if (!sr.includes(o.reading)) sr.push(o.reading); } else surfaceReadings.set(o.surface, [o.reading]);
+    if (o.exampleJa.includes(o.surface)) {
+      const blanked = o.exampleJa.replaceAll(o.surface, '＿＿＿');
+      const list = blankedExampleSurfaces.get(blanked);
+      if (list) { if (!list.includes(o.surface)) list.push(o.surface); } else blankedExampleSurfaces.set(blanked, [o.surface]);
+    }
   }
-  const idx: PoolIndex = { byLevel, bySurface };
+  const idx: PoolIndex = { byLevel, bySurface, readingSurfaces, surfaceReadings, blankedExampleSurfaces };
   poolIndexCache.set(pool, idx);
   return idx;
 };
@@ -194,15 +264,19 @@ export const buildVocabQuestions = (
 
   // ① 意味: 見出し語 → 正しい中国語訳
   //   日中同形語（訳が表記をそのまま含む）は、設問を読むだけで答えが分かるので出さない
-  const meaningWrong = pickDistinct(sameLevel, 3, seed + 1, (o) => glossTooClose(o.glossZh, c.glossZh));
+  const meaningWrong = pickDistinctNearLength(sameLevel, 3, seed + 1,
+    (o) => glossTooClose(o.glossZh, c.glossZh), (o) => o.glossZh, c.glossZh);
   if (!glossRevealsSurface(c) && meaningWrong.length === 3) {
     const ch = finalizeChoices([
       choice(`${c.wordId}-m0`, c.glossZh, true),
       ...meaningWrong.map((o, i) => choice(`${c.wordId}-m${i + 1}`, o.glossZh, false, `这是「${o.surface}」的意思`)),
     ]);
+    // 「一日」（ついたち／いちにち）のような同表記異音は、読みを添えないと正解が2つに割れる
+    const head = (idx.surfaceReadings.get(c.surface)?.length ?? 1) > 1
+      ? `${c.surface}（${c.reading}）` : c.surface;
     if (ch) {
       out.push(baseQuestion(c, 'meaning', 0,
-        `「${c.surface}」の意味はどれですか。`, `「${c.surface}」是什么意思？`, ch));
+        `「${head}」の意味はどれですか。`, `「${head}」是什么意思？`, ch));
     }
   }
 
@@ -211,32 +285,41 @@ export const buildVocabQuestions = (
   //   非語を並べると、日本語を知らなくても消去法で当たってしまい、何も測れない
   //   （Pilotサンプル監査: reading観点38問中28問が機能していなかった）。
   if (/[一-鿿]/.test(c.surface)) {
+    // 同じ表記の別の読み（一日＝ついたち／いちにち）を誤答に入れると、
+    // **正しい読みを選んでも不正解**になる。除いたうえで、設問に意味を添えてどちらの語か決める
+    const otherReadings = (idx.surfaceReadings.get(c.surface) ?? []).filter((r) => r !== c.reading);
     const realReadings = pickDistinct(
       sameLevel.filter((o) => Math.abs([...o.reading].length - [...c.reading].length) <= 1),
-      3, seed + 17, (o) => o.reading === c.reading,
+      3, seed + 17, (o) => o.reading === c.reading || otherReadings.includes(o.reading),
     ).map((o) => o.reading);
-    const uniq = [...new Set(realReadings)].filter((r) => r !== c.reading);
+    const uniq = [...new Set(realReadings)].filter((r) => r !== c.reading && !otherReadings.includes(r));
     if (uniq.length === 3) {
       const ch = finalizeChoices([
         choice(`${c.wordId}-r0`, c.reading, true),
         ...uniq.map((r, i) => choice(`${c.wordId}-r${i + 1}`, r, false, '这是别的词的读音')),
       ]);
+      const hint = otherReadings.length > 0 && !glossRevealsSurface(c) ? `（${c.glossZh}）` : '';
       if (ch) {
         out.push(baseQuestion(c, 'reading', 1,
-          `「${c.surface}」の読み方はどれですか。`, `「${c.surface}」怎么读？`, ch));
+          `「${c.surface}」${hint}の読み方はどれですか。`, `「${c.surface}」${hint}怎么读？`, ch));
       }
     }
   }
 
   // ③ 表記: 読み → 正しい漢字表記
   if (/[一-鿿]/.test(c.surface)) {
-    const orthWrong = pickDistinct(
+    // 同音異字（かみ = 神 / 髪 / 加味）。誤答に入れると**正しい漢字なのに不正解**になる。
+    // 設問にも意味を添えて、どの語のことか1つに決める（2026-08-22 問題設計監査）
+    const homophones = (idx.readingSurfaces.get(c.reading) ?? []).filter((sf) => sf !== c.surface);
+    const orthWrong = pickDistinctNearLength(
       sameLevel.filter((o) => /[一-鿿]/.test(o.surface)), 3, seed + 2,
-      (o) => o.surface === c.surface,
+      (o) => o.surface === c.surface || homophones.includes(o.surface), (o) => o.surface, c.surface,
     );
+    // 訳が表記をそのまま含む語（日中同形）に意味を足すと答えが見えるので、その場合は足さない
+    const hint = homophones.length > 0 && !glossRevealsSurface(c) ? `（${c.glossZh}）` : '';
     const orthPrompt = pickPrompt(c.surface, [
-      [`「${c.reading}」を漢字で書くとどれですか。`, `「${c.reading}」的汉字写法是哪个？`],
-      [`「${c.reading}」はどう書きますか。`, `「${c.reading}」怎么写？`],
+      [`「${c.reading}」${hint}を漢字で書くとどれですか。`, `「${c.reading}」${hint}的汉字写法是哪个？`],
+      [`「${c.reading}」${hint}はどう書きますか。`, `「${c.reading}」${hint}怎么写？`],
     ]);
     if (orthWrong.length === 3 && orthPrompt) {
       const ch = finalizeChoices([
@@ -261,10 +344,13 @@ export const buildVocabQuestions = (
     const correctBlanked = c.collocationsJa.length > 0 && !glossRevealsSurface(c)
       ? blankSelf(c.surface, c.collocationsJa[0]) : null;
     if (correctBlanked) {
-      const usageWrong = pickDistinct(
+      // 連語は正解のほうが長くなりやすい（例: 正解「＿＿がかかる」／誤答「＿＿風」）。
+      // 空欄化した**表示どおりの文字列**で長さをそろえる
+      const usageWrong = pickDistinctNearLength(
         sameLevel.filter((o) => o.collocationsJa.length > 0 && blankSelf(o.surface, o.collocationsJa[0]) !== null),
         3, seed + 3,
         (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
+        (o) => blankSelf(o.surface, o.collocationsJa[0]) ?? o.collocationsJa[0], correctBlanked,
       );
       const seenTexts = new Set([correctBlanked]);
       const wrongBlanked = usageWrong
@@ -305,8 +391,16 @@ export const buildVocabQuestions = (
   }
 
   // ⑤ 文脈: 例文の見出し語を空欄にして選ばせる
+  //   「新しい＿＿＿を買いました」は靴でもバッグでもラケットでも成り立つ。
+  //   同じ空欄文になる語を誤答に入れると**正解が複数**になるので、そこだけ外す
+  //   （2026-08-22 問題設計監査。問題ごと落とすと語彙が痩せるので、誤答の選び方で直す）
+  const alsoFits = c.exampleJa.includes(c.surface)
+    ? (idx.blankedExampleSurfaces.get(c.exampleJa.replaceAll(c.surface, '＿＿＿')) ?? [])
+      .filter((sf) => sf !== c.surface)
+    : [];
   if (c.exampleJa.includes(c.surface)) {
-    const ctxWrong = pickDistinct(sameLevel, 3, seed + 4, (o) => glossTooClose(o.glossZh, c.glossZh));
+    const ctxWrong = pickDistinctNearLength(sameLevel, 3, seed + 4,
+      (o) => glossTooClose(o.glossZh, c.glossZh) || alsoFits.includes(o.surface), (o) => o.surface, c.surface);
     if (ctxWrong.length === 3) {
       // replaceAll: 例文に見出し語が2回出ると、1回だけの置換では答えが残る
       const blanked = c.exampleJa.replaceAll(c.surface, '＿＿＿');
@@ -330,8 +424,9 @@ export const buildVocabQuestions = (
     .map((s) => idx.bySurface.get(s))
     .filter((o): o is VocabOriginalContent => !!o && !glossTooClose(o.glossZh, c.glossZh));
   if (confusables.length >= 2 && !glossRevealsSurface(c)) {
-    const extra = pickDistinct(sameLevel, 3 - confusables.length, seed + 5,
-      (o) => glossTooClose(o.glossZh, c.glossZh) || confusables.some((x) => x.surface === o.surface));
+    const extra = pickDistinctNearLength(sameLevel, 3 - confusables.length, seed + 5,
+      (o) => glossTooClose(o.glossZh, c.glossZh) || confusables.some((x) => x.surface === o.surface),
+      (o) => o.surface, c.surface);
     const wrong = [...confusables, ...extra].slice(0, 3);
     if (wrong.length === 3) {
       const ch = finalizeChoices([
