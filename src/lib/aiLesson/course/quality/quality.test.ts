@@ -73,16 +73,31 @@ describe('生成されるassess問題は答えを漏らさない（P1=0）', () 
     }
   });
   it('正解の位置が偏らない（先頭固定でない）', () => {
-    const counts: Record<number, number> = {};
+    // **選択肢の数ごとに**見る（2026-08-22）。3択と4択を混ぜて数えると、
+    // 4択にしかない「4番目」だけが少なく見えて、偏っていないのに偏りと判定される。
+    // 判定は偶然水準 1/n からのズレを標本サイズに合わせて許す（二項分布の 3σ）。
+    const byChoiceCount = new Map<number, number[]>();
     for (const item of pool) {
       for (const q of buildAssessQuestions(item, pool, { introduced: false })) {
-        counts[q.answerIndex] = (counts[q.answerIndex] ?? 0) + 1;
+        if (q.kind !== 'choice') continue;
+        const n = q.choices.length;
+        const arr = byChoiceCount.get(n) ?? new Array<number>(n).fill(0);
+        arr[q.answerIndex] += 1;
+        byChoiceCount.set(n, arr);
       }
     }
-    const values = Object.values(counts);
-    expect(values.length).toBeGreaterThanOrEqual(3);
-    const max = Math.max(...values), min = Math.min(...values);
-    expect(max / min).toBeLessThan(2); // どの位置にも均等に現れる
+    expect(byChoiceCount.size).toBeGreaterThan(0);
+    for (const [n, arr] of byChoiceCount) {
+      const total = arr.reduce((a, b) => a + b, 0);
+      if (total < 20) continue;                       // 数が少なすぎる群は判定しない
+      const p = 1 / n;
+      const sigma = Math.sqrt((p * (1 - p)) / total);
+      for (const [i, c] of arr.entries()) {
+        const share = c / total;
+        expect(Math.abs(share - p), `${n}択の位置${i + 1}: ${(share * 100).toFixed(1)}%（偶然 ${(p * 100).toFixed(1)}%・n=${total}）`)
+          .toBeLessThan(3 * sigma + 0.02);
+      }
+    }
   });
   it('既存Foundation問題のrelease blockerが0件', () => {
     const blockers = foundationQuestions.flatMap(q => auditFoundationQuestion(q))
@@ -198,16 +213,20 @@ describe('選択肢の長さで当てられないか（2026-08-22 問題設計�
   const questions = pool.flatMap((item) => buildAssessQuestions(item, pool, { introduced: false }))
     .filter((q) => q.kind === 'choice' && q.choices.length >= 3);
 
-  const strategyPct = (pick: 'long' | 'short', dim?: string): { n: number; pct: number; chance: number } => {
+  // 「真ん中」も見る: 最長・最短だけを潰すと、今度は真ん中を選ぶ戦略が当たる組み合わせができる
+  const strategyPct = (pick: 'long' | 'short' | 'mid', dim?: string): { n: number; pct: number; chance: number } => {
     const qs = dim ? questions.filter((q) => q.dimension === dim) : questions;
     let score = 0;
     let chance = 0;
     for (const q of qs) {
       const lens = q.choices.map((c) => [...c].length);
-      const target = pick === 'long' ? Math.max(...lens) : Math.min(...lens);
-      const hits = q.choices.filter((_, i) => lens[i] === target);
+      const max = Math.max(...lens);
+      const min = Math.min(...lens);
       const correct = q.choices[q.answerIndex];
-      if (hits.includes(correct)) score += 1 / hits.length;
+      const hits = pick === 'mid'
+        ? q.choices.filter((_, i) => lens[i] !== max && lens[i] !== min)
+        : q.choices.filter((_, i) => lens[i] === (pick === 'long' ? max : min));
+      if (hits.length > 0 && hits.includes(correct)) score += 1 / hits.length;
       chance += 1 / q.choices.length;
     }
     const n = qs.length;
@@ -215,7 +234,7 @@ describe('選択肢の長さで当てられないか（2026-08-22 問題設計�
   };
 
   it('全体で、長さの戦略が偶然を大きく超えない', () => {
-    for (const pick of ['long', 'short'] as const) {
+    for (const pick of ['long', 'short', 'mid'] as const) {
       const r = strategyPct(pick);
       expect(r.n).toBeGreaterThan(100);
       // 偶然 + 8ポイント（n が数百のときの許容幅）
@@ -226,7 +245,7 @@ describe('選択肢の長さで当てられないか（2026-08-22 問題設計�
 
   it('中心意味・活用・読みの各観点でも偶然を大きく超えない', () => {
     for (const dim of ['core_meaning', 'conjugation', 'reading'] as const) {
-      for (const pick of ['long', 'short'] as const) {
+      for (const pick of ['long', 'short', 'mid'] as const) {
         const r = strategyPct(pick, dim);
         if (r.n < 20) continue;
         expect(r.pct, `${dim}/${pick}: ${r.pct.toFixed(1)}% / 偶然 ${r.chance.toFixed(1)}%（n=${r.n}）`)

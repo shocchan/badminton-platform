@@ -349,15 +349,69 @@ const conjugationQuestion = (item: FoundationItem): AssessQuestion | null => {
     if (cls === 'tte') return `${st}って`;
     return null;
   })();
-  const pool = [...wrongs].filter(w => w !== correct);
-  const L = [...correct].length;
-  const same = pool.filter(w => [...w].length === L);
-  const short = pool.filter(w => [...w].length < L);
-  const long = pool.filter(w => [...w].length > L);
-  // 同じ字数の誤答が2つあればそれが最良（長さが完全に手がかりにならない）。
-  // 足りなければ「正解より短い」を1つ入れて、長いものだけが並ぶ形を避ける
-  if (same.length + short.length === 0 && teForm && teForm !== correct && !pool.includes(teForm)) short.push(teForm);
-  const distractors = [...same, ...short.slice(0, 1), ...long, ...short.slice(1)].slice(0, 2);
+  const cands = [...wrongs].filter(w => w !== correct);
+  // て形（食べる→食べて）は ます形ではないので誤答として正しい。
+  if (teForm && teForm !== correct && !cands.includes(teForm)) cands.push(teForm);
+  // たい形・ない形は「ます形の語幹＋2字」で、**必ず正解と同じ字数**になる。
+  // 他グループ規則の誤答はどれも正解より長くなるため、これが無いと
+  // 「長さで真ん中を選ぶ」だけで当たってしまう（2026-08-22 問題設計監査）。
+  // 意味も別物（〜たい＝愿望／〜ない＝否定）なので、ます形の誤答として成立する
+  const masuStem = correct.endsWith('ます') ? correct.slice(0, -2) : null;
+  if (masuStem) {
+    for (const suffix of ['たい', 'ない']) {
+      const w = masuStem + suffix;
+      if (w !== correct && !cands.includes(w)) cands.push(w);
+    }
+  }
+
+  /**
+   * 長さで当てられない組み合わせを選ぶ（2026-08-22 問題設計監査）。
+   * 二類・三類は他グループ規則の誤答がどれも正解より長くなるため、
+   *   「一番短いのを選ぶ」＝正解（実測50%／偶然33%）
+   * になっていた。かといって短い誤答を1つ足すだけだと、今度は
+   *   「一番長いのを避ける」＝正解が2択に絞れる
+   * になる。**正解が唯一最長でも唯一最短でもない**組み合わせを優先して選ぶ。
+   */
+  const lenOf = (w: string) => [...w].length;
+  const L = lenOf(correct);
+  /**
+   * 「長さだけを見る戦略」で当たってしまう確率。最長を選ぶ・最短を選ぶ・真ん中を選ぶの
+   * いちばん良い戦略の的中率を返す。偶然は 1/選択肢数 なので、これに近いほど良い。
+   * 「唯一最長かどうか」だけを見ていると、今度は**真ん中を選ぶ**戦略が当たる組み合わせを
+   * 作ってしまう（実際に一度そうなった）。3つの戦略をまとめて見る。
+   */
+  const scoreOf = (set: string[]): number => {
+    const lens = [L, ...set.map(lenOf)];
+    const max = Math.max(...lens);
+    const min = Math.min(...lens);
+    const inGroup = (target: number) => lens.filter(x => x === target).length;
+    const pMax = L === max ? 1 / inGroup(max) : 0;
+    const pMin = L === min ? 1 / inGroup(min) : 0;
+    const mid = lens.filter(x => x !== max && x !== min);
+    const pMid = (L !== max && L !== min && mid.length > 0) ? 1 / mid.length : 0;
+    return Math.max(pMax, pMin, pMid);
+  };
+  const pick = (n: number): { set: string[]; score: number } | null => {
+    if (cands.length < n) return null;
+    let best: string[] | null = null;
+    let bestScore = Infinity;
+    // 元の並び順で全組み合わせを見る（候補は多くても6件なので総当たりで足りる）
+    const walk = (start: number, acc: string[]) => {
+      if (acc.length === n) {
+        const sc = scoreOf(acc);
+        if (sc < bestScore) { bestScore = sc; best = [...acc]; }
+        return;
+      }
+      for (let i = start; i < cands.length; i++) walk(i + 1, [...acc, cands[i]]);
+    };
+    walk(0, []);
+    return best ? { set: best, score: bestScore } : null;
+  };
+  // 4択のほうが偶然水準が低い（1/4）ので、長さの手がかりが同じなら4択を選ぶ
+  const three = pick(3);
+  const two = pick(2);
+  const distractors = three && (!two || three.score <= two.score + 0.001)
+    ? three.set : (two?.set ?? []);
   if (distractors.length < 2) return null;
   const { choices, answerIndex } = arrange(correct, distractors, item.id + 'j');
   return {

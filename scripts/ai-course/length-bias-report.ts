@@ -36,6 +36,23 @@ for (const q of all.values()) {
 const chancePct = (sets: LengthBiasSet[]): number =>
   Math.round((sets.reduce((a, s) => a + 1 / s.choices.length, 0) / Math.max(1, sets.length)) * 1000) / 10;
 
+/**
+ * 「真ん中の長さを選ぶ」戦略の的中率（2026-08-22 追加）。
+ * 最長・最短だけを潰すと、今度は真ん中が正解になる組み合わせができる（実際に一度作ってしまった）。
+ * 3つまとめて偶然水準と比べる。
+ */
+const midAccuracyPct = (sets: LengthBiasSet[]): number => {
+  let score = 0;
+  for (const s of sets) {
+    const lens = s.choices.map((c) => c.textJa.length);
+    const max = Math.max(...lens);
+    const min = Math.min(...lens);
+    const mid = s.choices.filter((c) => c.textJa.length !== max && c.textJa.length !== min);
+    if (mid.length > 0 && mid.some((c) => c.isCorrect)) score += 1 / mid.length;
+  }
+  return sets.length === 0 ? 0 : Math.round((score / sets.length) * 1000) / 10;
+};
+
 const rows: string[] = [];
 let ng = 0;
 // 「唯一最長がある問題に限れば、それが正解である率」。全部同じ長さに揃えた種類は
@@ -52,7 +69,7 @@ const conditional = (sets: LengthBiasSet[]): { hasUnique: number; correctPct: nu
   return { hasUnique: has, correctPct: has === 0 ? 0 : Math.round((hit / has) * 1000) / 10 };
 };
 
-const header = '種類'.padEnd(20) + '問数'.padStart(7) + '  唯一最長%  最長を選ぶ%  偶然%  上限%  最短を選ぶ%  唯一最長あり/正解%  判定';
+const header = '種類'.padEnd(20) + '問数'.padStart(7) + '  最長%  最短%  真ん中%  偶然%  上限%  唯一最長あり/正解%  判定';
 console.log(header);
 console.log('-'.repeat(header.length + 8));
 for (const [type, sets] of [...byType.entries()].sort((a, b) => b[1].length - a[1].length)) {
@@ -61,11 +78,12 @@ for (const [type, sets] of [...byType.entries()].sort((a, b) => b[1].length - a[
   // 4択基準の許容幅を、その種類の実際の偶然水準にずらす
   const upper = Math.round((chanceUpperBoundPct(s.n) - 25 + ch) * 10) / 10;
   // 判定は「長さの戦略が偶然を超えて当たるか」だけを見る（唯一最長の比率そのものは手段であって目的ではない）
-  const bad = s.pickLongestAccuracyPct > upper || s.pickShortestAccuracyPct > upper;
+  const mid = midAccuracyPct(sets);
+  const bad = s.pickLongestAccuracyPct > upper || s.pickShortestAccuracyPct > upper || mid > upper;
   if (bad) ng += 1;
-  const line = `${type.padEnd(20)}${String(s.n).padStart(7)}  ${String(s.uniqueLongestPct).padStart(9)}  `
-    + `${String(s.pickLongestAccuracyPct).padStart(10)}  ${String(chancePct(sets)).padStart(5)}  ${String(upper).padStart(5)}  `
-    + `${String(s.pickShortestAccuracyPct).padStart(10)}  `
+  const line = `${type.padEnd(20)}${String(s.n).padStart(7)}  `
+    + `${String(s.pickLongestAccuracyPct).padStart(5)}  ${String(s.pickShortestAccuracyPct).padStart(5)}  `
+    + `${String(mid).padStart(7)}  ${String(chancePct(sets)).padStart(5)}  ${String(upper).padStart(5)}  `
     + `${String(conditional(sets).hasUnique).padStart(8)}/${String(conditional(sets).correctPct).padStart(5)}  ${bad ? 'NG' : 'ok'}`;
   console.log(line);
   rows.push(line);
