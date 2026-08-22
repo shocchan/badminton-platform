@@ -29,7 +29,7 @@ const positional = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && VALUE
 const input = positional[0];
 if (!input || args.includes('--help')) {
   console.log('使い方: node scripts/ai-course/optimize-map-images.mjs <input.png> [--name world-bg] [--out public/ai-course/map] [--width2x 1440] [--quality 82] [--avif] [--ratio 3:5] [--dry-run]');
-  process.exit(input ? 0 : 1);
+  process.exit(args.includes('--help') ? 0 : 1);
 }
 if (!existsSync(input)) {
   console.error(`入力が見つかりません: ${input}`);

@@ -30,15 +30,26 @@ export const parseWorldMapVariant = (v: string | null | undefined): WorldMapVari
  * @param search  window.location.search 相当（'?map=image' など）。省略可
  * @param storage localStorage 相当。省略/null なら保存も参照もしない
  */
+const queryValue = (search: string): string | null => {
+  try {
+    return new URLSearchParams(search).get(WORLD_MAP_VARIANT_QUERY);
+  } catch {
+    return null;
+  }
+};
+
+const storedValue = (storage: VariantStorage | null): string | null => {
+  try {
+    return storage?.getItem(WORLD_MAP_VARIANT_STORAGE_KEY) ?? null;
+  } catch {
+    return null;
+  }
+};
+
 export const resolveWorldMapVariant = (
   { search = '', storage = null }: { search?: string; storage?: VariantStorage | null } = {},
 ): WorldMapVariant => {
-  let fromQuery: string | null = null;
-  try {
-    fromQuery = new URLSearchParams(search).get(WORLD_MAP_VARIANT_QUERY);
-  } catch {
-    fromQuery = null;
-  }
+  const fromQuery = queryValue(search);
 
   if (fromQuery === WORLD_MAP_VARIANT_RESET) {
     try { storage?.removeItem(WORLD_MAP_VARIANT_STORAGE_KEY); } catch { /* private mode 等 */ }
@@ -50,15 +61,19 @@ export const resolveWorldMapVariant = (
     return q;
   }
 
-  let stored: string | null = null;
-  try { stored = storage?.getItem(WORLD_MAP_VARIANT_STORAGE_KEY) ?? null; } catch { stored = null; }
-  return parseWorldMapVariant(stored) ?? DEFAULT_WORLD_MAP_VARIANT;
+  return parseWorldMapVariant(storedValue(storage)) ?? DEFAULT_WORLD_MAP_VARIANT;
+};
+
+const windowStorage = (): VariantStorage | null => {
+  try {
+    return window.localStorage;
+  } catch {
+    return null; // private mode / storage 無効
+  }
 };
 
 /** ブラウザ環境で window から決める（SSR/jsdom 無しでは既定） */
 export const readWorldMapVariantFromWindow = (): WorldMapVariant => {
   if (typeof window === 'undefined') return DEFAULT_WORLD_MAP_VARIANT;
-  let storage: VariantStorage | null = null;
-  try { storage = window.localStorage; } catch { storage = null; }
-  return resolveWorldMapVariant({ search: window.location.search, storage });
+  return resolveWorldMapVariant({ search: window.location.search, storage: windowStorage() });
 };
