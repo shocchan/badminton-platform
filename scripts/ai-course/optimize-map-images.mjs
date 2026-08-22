@@ -23,8 +23,8 @@ const flag = (name, def) => {
   const v = args[i + 1];
   return v === undefined || v.startsWith('--') ? true : v;
 };
-const positional = args.filter((a, i) => !a.startsWith('--') && (i === 0 || !args[i - 1].startsWith('--')
-  || ['--avif', '--dry-run'].includes(args[i - 1])));
+const VALUE_FLAGS = new Set(['--name', '--out', '--width2x', '--quality', '--ratio']);
+const positional = args.filter((a, i) => !a.startsWith('--') && !(i > 0 && VALUE_FLAGS.has(args[i - 1])));
 
 const input = positional[0];
 if (!input || args.includes('--help')) {
