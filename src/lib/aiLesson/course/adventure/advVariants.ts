@@ -31,7 +31,14 @@ export interface GrammarDraftLike {
   similarPatterns: string[];
   recognition: {
     promptZh: string; options: string[]; answerIndex: number; explanationZh: string;
+    /**
+     * 誤答の理由（日本語）。**中国語画面にはそのまま出さない**（2026-08-22）。
+     * 以前は whyJa / whyZh の両方にこの1本を流していたため、
+     * 中国語で学ぶ生徒の画面に日本語の解説がそのまま出ていた。
+     */
     distractorReason?: string;
+    /** 誤答の理由（中国語）。無いときは中国語の定型文にフォールバックする */
+    distractorReasonZh?: string;
   };
   contrast?: string;
   matchKeys?: string[];
@@ -243,6 +250,25 @@ const longestCommonSubstring = (a: string, b: string): number => {
  * 漏洩は1件も減らない。さらに漢字の一致は中国語話者にとって意味を読む正規の経路であり、
  * 漏洩として扱うと意味問題が成立しなくなる。
  */
+export /**
+ * 誤答理由の中国語版を決める（2026-08-22）。
+ * authored な distractorReason は日本語のものと中国語のものが混在している。
+ * **引用の外に仮名が残る＝日本語の説明**なので、その場合は中国語の定型文に置き換える。
+ */
+const UNQUOTED_KANA = /[\u3041-\u309F\u30A1-\u30FA]/;
+export const zhDistractorReason = (
+  zh: string | undefined, ja: string | undefined, pattern: string,
+): string => {
+  if (zh && zh.trim().length > 0) return zh;
+  if (ja) {
+    const plain = ja
+      .replace(/「[^」]*」/g, '').replace(/『[^』]*』/g, '')
+      .replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '');
+    if (!UNQUOTED_KANA.test(plain)) return ja;   // 中国語で書かれている＝そのまま使える
+  }
+  return `不符合「${pattern}」的用法。`;
+};
+
 export const headingRevealsAnswer = (
   d: GrammarDraftLike, correct: string, wrongs: string[],
 ): boolean => {
@@ -447,7 +473,9 @@ const genRecognition = (ctx: GenContext): AdvBattleQuestion | null => {
     .map(({ o }) => ({
       ja: o,
       whyJa: rec.distractorReason ?? `「${self.pattern}」の使い方に合いません。`,
-      whyZh: rec.distractorReason ?? `不符合「${self.pattern}」的用法。`,
+      // 中国語版: 明示の訳 → （日本語が地の文に無ければ）そのまま流用 → 定型文。
+      // 日本語の解説を中国語画面へ素通しさせない
+      whyZh: zhDistractorReason(rec.distractorReasonZh, rec.distractorReason, self.pattern),
     }));
   // 見出し（pattern）が正解選択肢を割ってしまう場合は見出しを出さない。
   // 判定は headingRevealsAnswer（包含方向にも活用形にも依存しない手がかり照合）。
@@ -622,7 +650,7 @@ const genCloze = (ctx: GenContext): AdvBattleQuestion[] => {
       explanation: mkExplanation(
         self,
         `この文は${self.meaningJa}を表すので「${self.pattern}」が入ります。接続は${self.formation}です。`,
-        `${self.explanationZh}・接续：「${self.formation}」`,
+        `${self.explanationZh}・接续：『${self.formation}』`,
         exIdx,
       ),
       difficulty: 2,
@@ -787,7 +815,7 @@ const genFormation = (ctx: GenContext): AdvBattleQuestion | null => {
     explanation: mkExplanation(
       self,
       `「${self.pattern}」の接続は「${self.formation}」です。`,
-      `接续：「${self.formation}」`,
+      `接续：『${self.formation}』`,
     ),
     difficulty: 3,
     variantId: `form-${self.grammarId}`,

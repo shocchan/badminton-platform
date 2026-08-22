@@ -86,6 +86,26 @@ describe('言語整合性（§1〜§4）', () => {
     expect(report.violations.filter((v) => v.kind === 'mojibake')).toHaveLength(0);
     expect(report.violations.filter((v) => v.kind === 'nullish_text')).toHaveLength(0);
   });
+
+  /**
+   * 中国語の解説に日本語の地の文が混ざっていない（2026-08-22）。
+   *
+   * 以前は 970 件が「警告」のまま放置され、中国語で学ぶ生徒の画面に
+   * 「起点は小さな出来事でよい」のような**日本語の解説**がそのまま出ていた。
+   * 全部中国語へ直したので、ここを 0 に固定して二度と増やさない。
+   * 文法用語（た形・ます形…）と世界の固有名詞（ソラノ塔…）は許可済み
+   * （ZH_ALLOWED_JA_TERMS / ZH_ALLOWED_JA_NAMES）。日本語の例は「」でくくること。
+   */
+  it('【全教材・全UI】中国語フィールドに引用外の日本語が0件', async () => {
+    const texts = await collectLearnerVisibleTexts();
+    const report = runLanguageCheck(texts);
+    const kana = report.warnings.filter((v) => v.kind === 'unquoted_kana_in_zh');
+    if (kana.length > 0) {
+      console.error(kana.slice(0, 20).map((v) =>
+        `${v.itemId} | ${v.field} | ${v.sourceFile ?? ''} | ${v.offending}`).join('\n'));
+    }
+    expect(kana).toHaveLength(0);
+  });
 });
 
 // ────────────────────────────────────────────

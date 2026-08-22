@@ -1940,7 +1940,7 @@ const zh: AiCourseDict = {
     emergencyStop: '停止语音',
     greetingGuideTitle: '请先向翔子老师打个招呼',
     greetingGuideHint: '请对着麦克风说“こんにちは”',
-    greetingExample: 'こんにちは',
+    greetingExample: '「こんにちは」',
     micSilentHint: '麦克风的声音似乎没有传过来。请检查地址栏的麦克风权限，以及所选的麦克风设备。更改设置后，重新加载页面才会生效。',
   },
   report: {
@@ -2862,7 +2862,7 @@ const zh: AiCourseDict = {
       plaza: { name: '会話の広場', fn: '会话广场｜用AI会话开口说', body: '和翔子老师对话来确认' },
       garden: { name: 'オモイデ庭園', fn: '回忆庭园｜通过复习唤起记忆', body: '与学过的词汇再会' },
       record: { name: '冒険の記録', fn: '冒险记录｜查看成长与历史', body: '记录你已能做到的事' },
-      adventure: { name: 'ミナモ列島をめぐる', fn: '环游列岛｜冒险・攻略N3', body: '推进地图区域驱散迷雾' },
+      adventure: { name: '环游「ミナモ列島」', fn: '环游列岛｜冒险・攻略N3', body: '推进地图区域驱散迷雾' },
       tower: { name: 'ソラノ塔', fn: '天空塔｜N2语法练习', body: 'N2语法180项（178个核心项目＋2个别名索引）' },
     },
   },

@@ -101,7 +101,7 @@ const readingQuestion = (item: FoundationItem, pool: FoundationItem[]): AssessQu
     promptJa: `「${item.displayForm}」の読み方は？`, promptZh: `「${item.displayForm}」怎么读？`,
     choices, answerIndex,
     explanationJa: `${item.displayForm}＝${item.readingKana}`,
-    explanationZh: `${item.displayForm} 读作「${item.readingKana}」。`,
+    explanationZh: `「${item.displayForm}」读作「${item.readingKana}」。`,
   };
 };
 
@@ -264,7 +264,7 @@ const collocationQuestion = (item: FoundationItem, pool: FoundationItem[]): Asse
     promptZh: `哪个空里可以填「${item.displayForm}」？`,
     choices, answerIndex,
     explanationJa: `よく使う形: ${forms.join('・')}`,
-    explanationZh: `常用搭配：${forms.join('・')}`,
+    explanationZh: `常用搭配：${forms.map((f) => `「${f}」`).join('')}`,
   };
 };
 
@@ -365,7 +365,7 @@ const conjugationQuestion = (item: FoundationItem): AssessQuestion | null => {
     promptJa: `「${item.displayForm}」のます形は？`, promptZh: `「${item.displayForm}」的ます形是？`,
     choices, answerIndex,
     explanationJa: `${item.displayForm}（${item.verbGroup === 'g1' ? '一類' : item.verbGroup === 'g2' ? '二類' : '三類'}）→ ${correct}`,
-    explanationZh: `${item.displayForm} → ${correct}`,
+    explanationZh: `「${item.displayForm}」→「${correct}」`,
   };
 };
 
