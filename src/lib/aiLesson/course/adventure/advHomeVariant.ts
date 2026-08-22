@@ -1,19 +1,19 @@
 // ホーム（今日の冒険）の表示方式フラグ（2026-08-22・第2フェーズ）。
 //
 // 方式は2つ:
-//   'v1' … 現行のホーム。**既定**。CEO確認前に既定を変えない
-//   'v2' … 今日の街のヒーロー帯を敷き、始めるまでを短くした版
+//   'v2' … 今日の街のヒーロー帯を敷き、始めるまでを短くした版。**既定**（2026-08-22 CEO承認）
+//   'v1' … 旧ホーム。`?home=v1` でいつでも戻せる（絵が404でも帯が消えるだけで画面は成立する）
 //
 // 決め方（優先順）:
 //   1. URLクエリ `?home=v2` / `?home=v1`（付いていれば localStorage にも保存＝画面遷移で落ちても保つ）
 //      `?home=reset` で保存を消して既定へ戻す
 //   2. localStorage `adv.home.variant`
-//   3. 既定 'v1'
+//   3. 既定 'v2'（2026-08-22 CEO承認。それまでは 'v1'）
 //
 // 冒険マップの advWorldMapVariant と同じ作り。プロファイル（DB）は触らない。
 export type HomeVariant = 'v1' | 'v2';
 
-export const DEFAULT_HOME_VARIANT: HomeVariant = 'v1';
+export const DEFAULT_HOME_VARIANT: HomeVariant = 'v2';
 export const HOME_VARIANT_QUERY = 'home';
 export const HOME_VARIANT_STORAGE_KEY = 'adv.home.variant';
 /** `?home=reset` … 保存を消して既定へ戻す */
