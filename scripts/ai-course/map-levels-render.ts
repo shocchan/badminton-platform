@@ -10,6 +10,7 @@ import { generateRoute } from '../../src/lib/aiLesson/course/adventure/advRoute'
 import {
   WORLD_MAP_BG, WORLD_MAP_TILES, WORLD_MAP_MARKERS, WORLD_MAP_PEDESTALS, PEDESTAL_WIDTH_VB,
 } from '../../src/lib/aiLesson/course/adventure/advWorldMapAssets';
+import { unmeasuredDiagnosis } from '../../src/lib/aiLesson/course/adventure/advDiagnosis';
 import type { AdventureV2Profile, JlptLevel } from '../../src/lib/aiLesson/course/adventure/advTypes';
 
 const NOW = '2026-08-22T00:00:00.000Z';
@@ -20,10 +21,21 @@ const cssFile = fs.readdirSync(path.resolve('dist/assets')).find((f) => f.endsWi
 const css = fs.readFileSync(path.resolve('dist/assets', cssFile), 'utf8');
 const VB_W = 360; const VB_H = 600;
 
-const profileFor = (target: JlptLevel): AdventureV2Profile => ({
-  ...defaultAdvProfile(NOW), enabled: true, goalType: 'hybrid', targetJlpt: target, dailyMinutes: 15,
-  route: generateRoute({ goalType: 'hybrid', targetJlpt: target, knowledgeBand: 'n4', conversationBand: 'n4', diagnosis: null, nowISO: NOW }),
-});
+/**
+ * 新しく始めた人（診断をまだ受けていない＝いちばん多い入り方）で描く。
+ * knowledgeBand を決め打ちにすると、その帯の人だけの道になり、
+ * 「目標を変えると道がどう変わるか」を比べられない
+ */
+const profileFor = (target: JlptLevel): AdventureV2Profile => {
+  const diagnosis = unmeasuredDiagnosis({ targetJlpt: target, goalType: 'jlpt', nowISO: NOW });
+  return {
+    ...defaultAdvProfile(NOW), enabled: true, goalType: 'jlpt', targetJlpt: target, dailyMinutes: 15, diagnosis,
+    route: generateRoute({
+      goalType: 'jlpt', targetJlpt: target, knowledgeBand: diagnosis.knowledgeBand,
+      conversationBand: diagnosis.conversationBand, diagnosis, nowISO: NOW,
+    }),
+  };
+};
 
 for (const target of ['N5', 'N4', 'N3', 'N2'] as const) {
   const p = profileFor(target);
