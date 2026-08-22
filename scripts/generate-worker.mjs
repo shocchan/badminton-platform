@@ -29,6 +29,17 @@ async function generateSitemap(env) {
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol3',  priority: '0.6', freq: 'yearly' },
     { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
+    // AI日本語コース（2026-08-22 追加）。それまでsitemapに1本も入っておらず、
+    // サイト内リンクも管理画面からしか無かったので、検索から発見される経路がゼロだった
+    { path: 'ai-course',                 priority: '0.9', freq: 'weekly' },
+    { path: 'ai-course/shoko',           priority: '0.6', freq: 'monthly' },
+    { path: 'ai-course/yuto',            priority: '0.6', freq: 'monthly' },
+    { path: 'ai-course/terms',           priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/privacy',         priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/ai-disclosure',   priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/tokushoho',       priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/cancel-policy',   priority: '0.3', freq: 'yearly' },
+    { path: 'ai-course/contact',         priority: '0.4', freq: 'yearly' },
   ];
 
   const langs = ['ja', 'zh'];
@@ -91,8 +102,34 @@ function matchOgpRoute(pathname) {
   if (m) return { kind: 'blog', lang: m[1], id: m[2] };
   m = pathname.match(/^\\/blog\\/(\\d+)\\/?$/);
   if (m) return { kind: 'blog', lang: 'ja', id: m[1] };
+  // AI日本語コースのLP（2026-08-22）。SEOタグはreact-helmet-asyncで入るが、
+  // WeChat/LINE/X のクローラーはJSを実行しないので、素のHTMLがバドミントンのまま出ていた。
+  // ここで差し込まないと、コースのURLを共有するたびに「川口・蕨バドミントン交流会」と表示される
+  m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/?$/);
+  if (m) return { kind: 'aiCourse', lang: m[1] };
+  m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/(shoko|yuto)\\/?$/);
+  if (m) return { kind: 'aiCourse', lang: m[1], variant: m[2] };
   return null;
 }
+
+/**
+ * AIコースLPのSEO文言。src/pages/ai-lesson/landing/lpContent.ts の seo と**同じ内容**を持つ。
+ * Workerは生成時に埋め込む独立ファイルなのでimportできない。
+ * ズレたら workerAiCourseOgp.test.ts が落ちる（片方だけ直す事故を防ぐ）。
+ */
+const AI_COURSE_SEO = {
+  shoko: {
+    ja: {
+      title: '翔子先生とAI日本語会話コース｜読めるのに話せないを、半年で終わらせる',
+      description: '文法は分かるのに話せない中国語話者へ。AI先生との毎日の会話と、日本語コーチの個別レッスン24回で、日本で使える日本語を半年で育てます。600円のAI体験パスから始められます。',
+    },
+    zh: {
+      title: '翔子老师 · AI日语会话陪跑课程｜用半年，告别「看得懂却说不出」',
+      description: '献给「懂语法却说不出口」的中文母语者。AI老师每天陪你练习，加上真人日语教练24次一对一，用半年培养在日本真正能用的日语。可以先从600日元的AI体验通行证开始。',
+    },
+    ogImage: '/images/ai-course/shoko-sensei-wave.webp',
+  },
+};
 
 async function fetchFirst(env, path) {
   const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
@@ -123,7 +160,13 @@ function injectOgp(meta) {
       .replace(/(<meta property="og:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2')
       .replace(/(<meta name="twitter:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2');
   }
-  return html.replace('</head>', '<meta property="og:url" content="' + escAttr(meta.url) + '" />\\n  </head>');
+  let tail = '<meta property="og:url" content="' + escAttr(meta.url) + '" />';
+  // canonical（2026-08-22）。JS実行前のHTMLにも入れておく。
+  // study.kawabado.com など別ホストから同じ内容が配られたときの重複も、これで本体へ寄る
+  if (meta.canonical) {
+    tail += '\\n    <link rel="canonical" href="' + escAttr(meta.canonical) + '" />';
+  }
+  return html.replace('</head>', tail + '\\n  </head>');
 }
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
@@ -152,6 +195,18 @@ async function buildOgpMeta(route, env, pageUrl) {
       description: '📅' + y + '年' + Number(mo) + '月' + Number(d) + '日(' + WEEKDAYS_JA[wdIdx] + ') ' + time +
         '｜📍' + t.location + '｜💰参加費¥' + fee + '｜' + t.level + '・' + t.event_type + '。申込受付中！',
       url: pageUrl,
+    };
+  }
+  if (route.kind === 'aiCourse') {
+    // variant（shoko/yuto）ページも主ページと同じ文言で出す。canonicalは主ページへ集約（LPと同じ方針）
+    const seo = AI_COURSE_SEO.shoko;
+    const t = seo[route.lang] || seo.ja;
+    return {
+      title: t.title,
+      description: t.description,
+      image: 'https://kawabado.com' + seo.ogImage,
+      url: pageUrl,
+      canonical: 'https://kawabado.com/' + route.lang + '/ai-course',
     };
   }
   if (route.kind === 'blog') {

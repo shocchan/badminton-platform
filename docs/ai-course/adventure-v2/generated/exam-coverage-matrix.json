@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-08-18T06:50:24.380Z",
+ "generatedAt": "2026-08-22T09:59:56.326Z",
  "purpose": "試験の5区分（文字・語彙／文法／読解／聴解／時間配分）が、N3とN2それぞれで学習と測定に接続されているかの実測",
  "rows": [
   {
@@ -7,16 +7,16 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 14413,
-     "fromOriginalVocabContent": 13951,
+     "activeQuestions": 14344,
+     "fromOriginalVocabContent": 13882,
      "fromUnitQuestions": 462,
-     "wordsWithContent": 2886,
+     "wordsWithContent": 2887,
      "aspects": {
-      "meaning": 2426,
+      "meaning": 2427,
       "reading": 2547,
       "orthography": 2547,
-      "usage": 2142,
-      "context": 2411,
+      "usage": 2071,
+      "context": 2412,
       "confusable": 1878
      },
      "meetsMockMinimum": true,
@@ -24,7 +24,7 @@
     },
     "grammar": {
      "label": "文法",
-     "activeQuestions": 2497,
+     "activeQuestions": 2505,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
@@ -82,24 +82,24 @@
    "skills": {
     "charactersVocabulary": {
      "label": "文字・語彙",
-     "activeQuestions": 17012,
-     "fromOriginalVocabContent": 16550,
+     "activeQuestions": 20992,
+     "fromOriginalVocabContent": 20530,
      "fromUnitQuestions": 462,
-     "wordsWithContent": 3349,
+     "wordsWithContent": 4229,
      "aspects": {
-      "meaning": 2881,
-      "reading": 2998,
-      "orthography": 2999,
-      "usage": 2582,
-      "context": 2861,
-      "confusable": 2229
+      "meaning": 3685,
+      "reading": 3688,
+      "orthography": 3690,
+      "usage": 3299,
+      "context": 3597,
+      "confusable": 2571
      },
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },
     "grammar": {
      "label": "文法",
-     "activeQuestions": 2497,
+     "activeQuestions": 2505,
      "meetsMockMinimum": true,
      "meetsReadinessMinimum": true
     },

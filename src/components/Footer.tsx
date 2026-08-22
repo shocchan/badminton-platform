@@ -60,6 +60,20 @@ export const Footer = () => {
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'お問い合わせ・スポンサー窓口' : '联系我们・赞助合作'}
               </Link>
             </nav>
+            {/* 関連サービス（2026-08-22）。**大会案内の並びには混ぜない**。
+                AI日本語コースは別事業なので、区切り線の下に小さく置く。
+                目的は2つ: ①Googleがコースのページを見つける経路を作る（sitemapだけだと弱い）
+                ②バドの中国語話者コミュニティに、探せば辿り着ける場所を1つ用意する */}
+            <div className="mt-5 border-t border-gray-800 pt-4">
+              <p className="mb-2 text-[11px] uppercase tracking-wider text-gray-600">
+                {lang === 'ja' ? '関連サービス' : '相关服务'}
+              </p>
+              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/ai-course`}
+                className="flex items-center gap-2 text-sm transition-colors hover:text-white">
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
+                {lang === 'ja' ? 'AI日本語コース（中国語話者向け）' : 'AI日语课程 · 翔子老师'}
+              </Link>
+            </div>
           </div>
 
           {/* 参加案内 */}

@@ -23,6 +23,8 @@ import {
   detectStuck, rescuePlanOf, makeStuckSkip, activeStuckSkips,
   type StuckRescuePlan,
 } from '../../../lib/aiLesson/course/adventure/advStuckRescue';
+import { readHomeVariantFromWindow } from '../../../lib/aiLesson/course/adventure/advHomeVariant';
+import { heroForArea, HOME_HERO_ASPECT } from '../../../lib/aiLesson/course/adventure/advHomeAssets';
 import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
@@ -273,6 +275,11 @@ export default function AdvShell(props: AdvShellProps) {
    * 判定と提案は advStuckRescue（純関数）。ここは「今日の画面に出す」だけを持つ
    */
   const [rescue, setRescue] = useState<{ plan: StuckRescuePlan; targetId: string; targetLabel: string } | null>(null);
+  /**
+   * ホームの表示方式（2026-08-22 第2フェーズ）。既定は v1（現行）。
+   * `?home=v2` で新ホーム。CEO確認まで既定は変えない
+   */
+  const [homeVariant] = useState(() => readHomeVariantFromWindow());
   /**
    * 「単元のことばを学ぶ」を開いたときの控え（2026-08-18）。
    * 開く前に終わっていたかを覚えておき、**この訪問中に終えた**ときだけstepを完了にする
@@ -2524,7 +2531,78 @@ export default function AdvShell(props: AdvShellProps) {
 
   return withCelebration(
     <div className="mx-auto w-full max-w-xl px-4 py-6" aria-label={term('todayAdventure', lang)}>
-      {/* 1. 目標と残日数 */}
+      {/*
+        今日の街のヒーロー帯（2026-08-22・ホームv2）。
+        毎日ひらく画面に**世界が無かった**ので、いまいる街の景色を敷いて
+        「自分はこの世界のここにいる」を最初に見せる。
+        文字（目標・現在地・攻略率）はこの上に**HTMLで**重ねる＝絵には焼き込まない。
+        絵が無い街・画像が404のときは帯ごと出さない（画面は今までどおり成立する）
+      */}
+      {homeVariant === 'v2' && heroForArea(stage?.areaId) && (
+        <div className="mb-3 overflow-hidden rounded-2xl border border-gray-200 bg-sky-100">
+          <div className="relative" style={{ aspectRatio: HOME_HERO_ASPECT }}>
+            <picture>
+              <source srcSet={`${heroForArea(stage?.areaId)!.webp1x} 1x, ${heroForArea(stage?.areaId)!.webp2x} 2x`} type="image/webp" />
+              <img src={heroForArea(stage?.areaId)!.webp1x}
+                width={heroForArea(stage?.areaId)!.width} height={heroForArea(stage?.areaId)!.height}
+                alt={tx(lang, `いまいる場所の風景：${stage?.titleJa ?? ''}`, `当前所在地的风景：${stage?.titleZh ?? ''}`)}
+                decoding="async"
+                className="absolute inset-0 h-full w-full object-cover"
+                onError={(e) => { e.currentTarget.closest('div.mb-3')?.setAttribute('hidden', 'true'); }} />
+            </picture>
+            {/* 文字の下だけ薄く白を敷く（絵の明るさに関係なく読める＝コントラスト確保） */}
+            <div className="absolute inset-y-0 left-0 w-[62%] bg-gradient-to-r from-white/85 via-white/70 to-transparent" aria-hidden />
+            <div className="absolute inset-y-0 left-0 flex w-[62%] flex-col justify-center px-3">
+              <p className="text-sm font-bold text-gray-800">
+                {prof.goalType === 'conversation'
+                  ? tx(lang, '会話力を上げる', '提升会话能力')
+                  : daysToExam === null || daysToExam < 0
+                    ? tx(lang, `${prof.targetJlpt ?? ''}合格をめざす`, `目标：${prof.targetJlpt ?? ''}合格`)
+                    : daysToExam === 0
+                      ? tx(lang, `今日が${prof.targetJlpt ?? ''}の試験日`, `今天是${prof.targetJlpt ?? ''}考试日`)
+                      : tx(lang, `${prof.targetJlpt ?? ''}まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}还有${daysToExam}天`)}
+              </p>
+              {stage && (
+                <p className="mt-0.5 text-xs font-semibold text-gray-700">
+                  {tx(lang, stage.titleJa, stage.titleZh)}
+                  <span className="ml-1 font-normal text-gray-600">
+                    {tx(lang, `（${term('masteryRate', 'ja')} ${routeProgressPct(route, stageDone)}%）`,
+                      `（${term('masteryRate', 'zh')} ${routeProgressPct(route, stageDone)}%）`)}
+                  </span>
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/*
+        今日の1手（2026-08-22・ホームv2）。
+        v1 は主CTAが画面のずっと下（375pxで y≈821・1画面目に入らない）にあり、
+        毎日の「始める」までにスクロールが要った。帯のすぐ下に同じCTAを1つ置いて、
+        **開いた画面のまま押せる**ようにする。押す先は下のカードのCTAと同一（runStep）
+      */}
+      {homeVariant === 'v2' && quest && !allDone && nextStepIdx >= 0 && !mockPending && !sheetResumable && (
+        <div className="mb-4 flex items-center gap-3 rounded-2xl border border-blue-200 bg-white px-3 py-2.5">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-gray-600">
+              {tx(lang, `今日はこの${quest.steps.length}つだけ・約${quest.estimatedMinutes}分`,
+                `今天只做这${quest.steps.length}项・约${quest.estimatedMinutes}分钟`)}
+            </p>
+            <p className="truncate text-sm font-bold text-gray-900">
+              {tx(lang, nextStep?.titleJa ?? '', nextStep?.titleZh ?? '')}
+            </p>
+          </div>
+          <button type="button"
+            className={`${pressFx} action-primary-blue shrink-0 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white`}
+            onClick={() => runStep(nextStepIdx)}>
+            {doneSteps.size === 0 ? tx(lang, 'はじめる', '开始') : tx(lang, 'つづける', '继续')}
+          </button>
+        </div>
+      )}
+
+      {/* 1. 目標と残日数（v2 はヒーロー帯が同じことを言うので出さない） */}
+      {!(homeVariant === 'v2' && heroForArea(stage?.areaId)) && (
       <p className="text-sm font-semibold text-gray-600">
         {prof.goalType === 'conversation'
           ? tx(lang, '会話力を上げる', '提升会话能力')
@@ -2536,12 +2614,13 @@ export default function AdvShell(props: AdvShellProps) {
                 ? tx(lang, `今日が${prof.targetJlpt ?? ''}の試験日です。いってらっしゃい！`, `今天是${prof.targetJlpt ?? ''}的考试日。加油！`)
                 : tx(lang, `${prof.targetJlpt ?? ''}合格まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}合格还有${daysToExam}天`)}
       </p>
+      )}
 
       {/*
         現在地（PRODUCT_CANON §5-2）。目的地の下に必ず出す。
         基礎が足りない学習者にも「N3へ降格」ではなく「N2攻略の経由地としていまここ」と見せる（原則2）。
       */}
-      {stage && (
+      {stage && !(homeVariant === 'v2' && heroForArea(stage.areaId)) && (
         <p className="mt-1 text-xs text-gray-500">
           {tx(lang,
             `現在地：${stage.titleJa}（${term('masteryRate', 'ja')} ${routeProgressPct(route, stageDone)}%）`,
@@ -2554,8 +2633,9 @@ export default function AdvShell(props: AdvShellProps) {
         </p>
       )}
 
-      {/* 目的地までの残り量と推定（CEO要望 2026-08-14: 理想と現状のギャップ・残りを見せる） */}
-      {pace && pace.remainingTargets > 0 && (
+      {/* 目的地までの残り量と推定（CEO要望 2026-08-14: 理想と現状のギャップ・残りを見せる）。
+          v2 では「今日やること」を先に見せるため、この手の全体状況はカードの下へ回す */}
+      {homeVariant !== 'v2' && pace && pace.remainingTargets > 0 && (
         <p className="mt-1 text-xs text-gray-500">
           {tx(lang,
             `目的地まで残り${pace.remainingStages}地域・${pace.remainingTargets}項目`,
@@ -2577,7 +2657,7 @@ export default function AdvShell(props: AdvShellProps) {
       )}
       {/* XP＝努力の見える化（やるほど増える・攻略とは別軸・advXp.ts）。0のうちは出さない。
           称号は levelOf(xp) の別名表示で、実力・攻略・準備度とは無関係（advLevelTitles の鉄則） */}
-      {(prof.xp ?? 0) > 0 && (
+      {homeVariant !== 'v2' && (prof.xp ?? 0) > 0 && (
         <p className="mt-1 text-xs font-semibold text-amber-600">
           ⭐ Lv.{levelOf(prof.xp ?? 0)}・{tx(lang, titleOf(levelOf(prof.xp ?? 0)).ja, titleOf(levelOf(prof.xp ?? 0)).zh)}・XP {prof.xp}
           <span className="ml-1 font-normal text-gray-400">
