@@ -22,7 +22,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { parseAdminDeepLink, initialAdminTab, matchAccount } from '../../lib/aiLesson/course/admin/adminDeepLink';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import { CourseHeader } from '../../components/ai-course/CourseHeader';
-import { isCourseAdmin, getSession } from '../../lib/aiLesson/course/courseAuth';
+import { isCourseAdmin, getSession, signOut } from '../../lib/aiLesson/course/courseAuth';
 import {
   adminDeleteTestLearners, adminDeleteUtterances, adminGetLearner, adminGetMonthlyUsageMap,
   adminGetProgress, adminGetSessions, adminGetUsageCost, adminListAccess, adminListIssueReports,
@@ -110,6 +110,13 @@ export default function AiCourseAdminPage() {
   const [opsMsg, setOpsMsg] = useState('');       // テストデータ削除の結果（運用タブ）
   /** 直リンクで指定された人が見つからなかったとき（黙って別の画面を出さない） */
   const [deepLinkMiss, setDeepLinkMiss] = useState<string | null>(null);
+  /**
+   * いまログインしているアカウント名（2026-08-23 CEO実機報告）。
+   * 管理者でないアカウントでここへ来ると「管理者のみ利用できます」だけが出て、
+   * **誰でログインしているのかも、どう抜けるのかも分からない行き止まり**だった。
+   * 実際に起きた: 点検ボードの直リンクを、テスト用の生徒アカウントのまま開いた
+   */
+  const [whoami, setWhoami] = useState<string | null>(null);
   const [topups, setTopups] = useState<CostTopupRow[]>([]);   // AIコストのチャージ記録
 
   const loadAll = useCallback(async () => {
@@ -125,6 +132,9 @@ export default function AiCourseAdminPage() {
   useEffect(() => {
     void (async () => {
       const user = await getSession();
+      setWhoami(user?.email
+        ? (user.email.endsWith('@id.badminton-platform.pages.dev') ? user.email.split('@')[0] : user.email)
+        : null);
       if (!user) { setState('nologin'); return; }
       if (!(await isCourseAdmin())) { setState('noauth'); return; }
       await loadAll();
@@ -290,9 +300,22 @@ export default function AiCourseAdminPage() {
   );
   if (state === 'noauth') return (
     <>
-      <CourseHeader t={t} />
+      <CourseHeader t={t} accountLabel={whoami} />
       <div className="max-w-md mx-auto px-4 py-12 text-center">
         <p className="text-sm text-gray-600">{ta.noAccess}</p>
+        {/* 誰でログインしているかと、抜ける道を必ず出す（行き止まりを作らない） */}
+        {whoami && (
+          <p className="mt-3 text-sm text-gray-500">
+            いまログインしているのは <span className="font-mono font-bold text-gray-700">{whoami}</span> です。
+            管理者のアカウントに切り替えてください。
+          </p>
+        )}
+        <p className="mt-2 text-xs text-gray-400">※ staging と本番は別サイトなので、ログインもそれぞれ必要です</p>
+        <button type="button"
+          onClick={() => { void signOut().then(() => { window.location.href = `/${lang === 'zh' ? 'zh' : 'ja'}/login`; }); }}
+          className="mt-6 w-full rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white hover:bg-blue-700">
+          ログアウトして、別のアカウントでログイン
+        </button>
       </div>
     </>
   );
