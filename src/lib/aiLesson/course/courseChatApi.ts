@@ -7,6 +7,7 @@
 
 import { getAccessToken } from './courseAuth';
 import { cleanTurnText } from './courseChatTurn';
+import { markChatPaused } from './courseServiceStatus';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -14,6 +15,11 @@ const TIMEOUT_MS = 25000;
 
 export interface ChatTurnResult {
   ok: boolean;
+  /**
+   * サーバーが 503 `ai_unavailable` を返した（＝AI会話の在庫切れ）。
+   * 通信不調のフォールバックとは扱いを分ける（2026-08-23）。
+   */
+  aiUnavailable?: boolean;
   turn?: {
     reaction: string;
     correction: string | null;
@@ -73,7 +79,16 @@ export const requestChatTurn = async (req: ChatTurnRequest): Promise<ChatTurnRes
       body: JSON.stringify(req),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
-    if (!res.ok) return { ok: false };
+    if (!res.ok) {
+      if (res.status === 503) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        if (err.error === 'ai_unavailable') {
+          markChatPaused();
+          return { ok: false, aiUnavailable: true };
+        }
+      }
+      return { ok: false };
+    }
     const data = await res.json();
     if (!data?.turn || typeof data.turn.reaction !== 'string') return { ok: false };
     return {

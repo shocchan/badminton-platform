@@ -17,6 +17,7 @@ import {
   detectAlerts, shouldSendDigest, buildDigestMail, DEFAULT_THRESHOLDS,
   type MonitorThresholds,
 } from "../_shared/aiCourseMonitor.ts";
+import { lowBalanceAlert, DEFAULT_LOW_BALANCE_USD } from "../_shared/aiQuota.ts";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -75,6 +76,18 @@ serve(async (req) => {
     get('ai_learning_sessions?select=id,started_at&completion_status=eq.in_progress&limit=200'),
   ]);
 
+  // ── AIクレジットの残り（尽きる前に気づくための予告） ──
+  // 残高の出どころは管理画面と同じ「チャージ記録 − 推定使用額」。
+  // OpenAI側の実残高は取りに行けないため、記録を付けていない期間は黙る仕様。
+  const [topupRows, usageRows] = await Promise.all([
+    get("ai_cost_topups?select=amount_usd&limit=1000"),
+    get("ai_usage_daily?select=estimated_cost_usd&limit=100000"),
+  ]);
+  const topupTotal = topupRows.reduce((a, r) => a + Number(r.amount_usd ?? 0), 0);
+  const spentAll = usageRows.reduce((a, r) => a + Number(r.estimated_cost_usd ?? 0), 0);
+  const lowBalance = lowBalanceAlert(
+    topupTotal, spentAll, Number(cfg.low_balance_usd ?? DEFAULT_LOW_BALANCE_USD));
+
   const alerts = detectAlerts({
     purchases: purchaseRows.map((p) => ({
       id: String(p.id), status: String(p.status ?? ""), livemode: !!p.livemode,
@@ -98,6 +111,8 @@ serve(async (req) => {
     nowISO: new Date().toISOString(),
     thresholds,
   });
+
+  if (lowBalance) alerts.push(lowBalance);
 
   if (dryRun) {
     return json({ ok: true, dryRun: true, detected: alerts.length, kinds: alerts.map((a) => a.dedupeKey) });

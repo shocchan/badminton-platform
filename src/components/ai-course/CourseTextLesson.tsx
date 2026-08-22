@@ -8,7 +8,7 @@
 //   難しい語は readingAids から <ruby> で読みを付ける（LLM文字列をHTMLとして描画しない）。
 
 import { useMemo, useRef, useState, useEffect } from 'react';
-import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2, WifiOff, Languages, ChevronDown } from 'lucide-react';
+import { X, Send, Lightbulb, Flag, ArrowRight, CheckCircle2, WifiOff, Languages, ChevronDown, Wrench } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useTeacher } from './teacherContext';
 import { teacherName } from '../../lib/aiLesson/course/adventure/advTeacher';
@@ -83,6 +83,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
   const [guidedState, setGuidedState] = useState<TextTurnState>(() => initialTextTurnState());
   const [busy, setBusy] = useState(false);
   const [fallbackNoticeShown, setFallbackNoticeShown] = useState(false);
+  /** AI会話が運営都合で停止中（通信不調とは別物として表示する） */
+  const [aiPaused, setAiPaused] = useState(false);
   const [openZh, setOpenZh] = useState<Set<number>>(new Set()); // 中国語訳を開いたメッセージindex
   const [input, setInput] = useState('');
   const [hintIdx, setHintIdx] = useState(0);
@@ -146,12 +148,20 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
     flushCheckpoint();
   };
 
-  const fallbackToGuided = (text: string) => {
+  /**
+   * AI応答が得られなかったときの受け皿。
+   * reason='paused' は運営のクレジット切れ（＝AI会話はアップデート中）。
+   * 通信不調と文言を分ける: 生徒に「電波が悪いせい」と誤解させないため。
+   * どちらの場合も会話は打ち切らず、AIを使わないガイド付き会話で最後まで進める
+   * （途中で止めると、その回の学習記録ごと失われてしまうため）。
+   */
+  const fallbackToGuided = (text: string, reason: 'network' | 'paused' = 'network') => {
     const seeded = toGuidedState(chatState);
     setEngineMode('guided');
+    if (reason === 'paused') setAiPaused(true);
     if (!fallbackNoticeShown) {
       setFallbackNoticeShown(true);
-      pushTutor(`📶 ${tl.fallbackNotice}`);
+      pushTutor(reason === 'paused' ? `🔧 ${t.limits.ai_paused_title}` : `📶 ${tl.fallbackNotice}`);
     }
     guidedReply(text, seeded);
   };
@@ -190,7 +200,7 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
     setBusy(false);
 
     if (!res.ok || !res.turn) {
-      fallbackToGuided(text);
+      fallbackToGuided(text, res.aiUnavailable ? 'paused' : 'network');
       inputRef.current?.focus();
       return;
     }
@@ -248,7 +258,9 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
           </button>
           <div className="flex items-center gap-2">
             {engineMode === 'guided' && sessionId && (
-              <WifiOff className="w-3.5 h-3.5 text-amber-500" aria-label={tl.fallbackNotice} />
+              aiPaused
+                ? <Wrench className="w-3.5 h-3.5 text-blue-500" aria-label={t.limits.ai_paused_title} />
+                : <WifiOff className="w-3.5 h-3.5 text-amber-500" aria-label={tl.fallbackNotice} />
             )}
             <span className="text-xs font-mono font-bold text-gray-600 tabular-nums" aria-label={`${turnCount}/${TEXT_MAX_TURNS_DEFAULT}`}>
               {tl.textProgress(Math.min(turnCount, TEXT_MAX_TURNS_DEFAULT), TEXT_MAX_TURNS_DEFAULT)}

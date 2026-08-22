@@ -175,6 +175,8 @@ const stageSteps = (
   stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,
   /** AI会話を出してよいか（N5・N4は false。aiConversationAvailable を参照） */
   convOk: boolean,
+  /** 今日がAI会話の日か（会話stageは隔日。初日は必ず会話の日にする） */
+  convDay: boolean,
 ): { learn: AdvQuestStep | null; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
   // 文法束の学習は「いま攻略中の束」の中を日替わりで巡回する（2026-08-15 進度改善）。
   // 旧実装は常に先頭を選んでいたため、前日回避と合わさって先頭2項目のping-pongになり、
@@ -205,9 +207,6 @@ const stageSteps = (
      *  - AI会話を**隔日**にする（コストが半分、毎日開く習慣は下のバトルで保つ）
      *  - 会話が無い日は語彙・漢字バトルを出す（AIを使わないのでコストは増えない）
      */
-    // 漢字バトルは dayNum%2===0 の日に出る。AI会話をその**逆の日**に置いて、
-    // 「会話の日」と「バトルの日」が交互に来るようにする（同じ日に重ねると片方の日が空になる）
-    const convDay = dayNumOf(dateKey) % 2 === 1;
     return {
       learn: convPick ? step('vocab_new', [convPick.refId], `表現の準備：${convPick.expression}`, `准备表达：${convPick.expression}`) : null,
       battle: null,
@@ -308,7 +307,18 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
    * ここで false になると、会話step・hybridの穴埋め・空クエストの逃げ道の3か所すべてが閉じる。
    */
   const convOk = aiConversationAvailable(goalType, profile.targetJlpt ?? null);
-  const parts = stageSteps(stage, availability, seed, dateKey, convOk);
+  /**
+   * AI会話の日か（会話stageのみ隔日にする・2026-08-23）。
+   *
+   * **絶対の日付ではなく、その人が始めてからの経過日で決める。**
+   * 絶対日で偶数・奇数を切ると、始めた日がたまたま「バトルの日」だった人は
+   * 初日にAI会話が出ない。会話を目的に選んだ人の初日にそれが起きると、
+   * 何のために来たのか分からない画面になる。経過日0日目＝会話の日にそろえる。
+   */
+  const startKey = (profile.createdAt ?? input.nowISO).slice(0, 10);
+  const dayIndex = dayNumOf(dateKey) - dayNumOf(startKey);
+  const convDay = Number.isFinite(dayIndex) ? dayIndex % 2 === 0 : true;
+  const parts = stageSteps(stage, availability, seed, dateKey, convOk, convDay);
 
   /**
    * ボス戦（2026-08-18 P0）。学習コンテンツの供給元（contentStage）ではなく
@@ -357,7 +367,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
    * 漢字バトル（2026-08-18）。語彙バトルと**別の日**に出す（同じ日に両方積むと時間が溢れる）。
    * 5分設定では出さない（1日1バトルの枠は文法・語彙で埋まる）。
    */
-  const kanjiStep = availability.kanjiBattleTargetId && profile.dailyMinutes !== 5
+  // 会話stageでは、AI会話が無い日に漢字バトルを置く（同じ日に重ねると片方の日が空になる）
+  const kanjiOk = isConvStageKind ? !convDay : true;
+  const kanjiStep = kanjiOk && availability.kanjiBattleTargetId && profile.dailyMinutes !== 5
     ? step('battle', [availability.kanjiBattleTargetId], '漢字バトル', '汉字战斗', 'normal')
     : null;
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
@@ -487,7 +499,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     // 3日に1回は語彙バトル（確認バトルの日と、文法バトルが無い日はそちらを優先/代替）
     else if (vocabStep && !confirmTarget && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
     // 3日に1回は漢字バトル（2026-08-18）。語彙とは別の日に置いて時間を溢れさせない
-    else if (kanjiStep && !confirmTarget && dayNum % 3 === 1) push(kanjiStep);
+    // 会話stageは kanjiOk 側で日を決めてあるので、絶対日の間引きは掛けない
+    else if (kanjiStep && !confirmTarget && (isConvStageKind || dayNum % 3 === 1)) push(kanjiStep);
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
@@ -498,7 +511,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     push(parts.battle);
     if (vocabStep && !confirmTarget) push(vocabStep);
     // 30分枠でも漢字は隔日にする（毎日だと文法・語彙・読解・会話と合わせて時間が溢れる）
-    if (kanjiStep && !confirmTarget && dayNum % 2 === 0) push(kanjiStep);
+    if (kanjiStep && !confirmTarget && (isConvStageKind || dayNum % 2 === 0)) push(kanjiStep);
     push(examSkillStep());
     push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));

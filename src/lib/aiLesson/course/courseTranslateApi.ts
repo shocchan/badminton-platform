@@ -6,6 +6,7 @@
 // - APIキーは Edge Function 内のみ。ここでは JWT を Authorization に載せるだけ
 
 import { getAccessToken } from './courseAuth';
+import { markChatPaused } from './courseServiceStatus';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -61,7 +62,11 @@ export const translateTutorLine = async (
         headers: { 'Content-Type': 'application/json', apikey: ANON_KEY, Authorization: `Bearer ${accessToken}` },
         body: JSON.stringify({ sessionId, text: key, targetHint }),
       });
-      if (!res.ok) return { ok: false };
+      // 残高切れ（503 ai_unavailable）はホームの案内へ反映する。訳が出ないだけで会話は続く
+      if (!res.ok) {
+        if (res.status === 503) markChatPaused();
+        return { ok: false };
+      }
       const data = await res.json().catch(() => null);
       const zh = typeof data?.zh === 'string' ? data.zh.trim() : '';
       if (!zh) return { ok: false };

@@ -17,6 +17,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { buildVoiceInstructions, buildWrapUpInstructions } from "./voiceTutorPrompt.ts";
 import type { VoicePromptParams } from "./voiceTutorPrompt.ts";
+import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -317,6 +318,13 @@ serve(async (req) => {
       console.error(
         `openai client_secrets error: status=${openaiRes.status} kind=${kind} teacher=${teacherId} voice=${voice}`,
       );
+      // 残高切れは「障害」ではなく「運営の在庫切れ」。生徒には ai_unavailable を返し、
+      // 画面側で「アップデート中」に切り替える（接続失敗の赤いエラーを出さない）。
+      if (isQuotaError(openaiRes.status, kind)) {
+        const qenv = quotaEnvFrom((k) => Deno.env.get(k));
+        if (qenv) await reportQuotaOutage(qenv, "voice");
+        return json(503, { error: "ai_unavailable" });
+      }
       return json(502, { error: "openai_error", status: openaiRes.status, kind });
     }
 

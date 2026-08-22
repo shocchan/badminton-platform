@@ -42,6 +42,12 @@ interface Props {
   thisWeekCanDos: AchievedCanDo[];
   nextAbility: { id: string; ja: string; zh: string } | null;
   journey: JourneyPlace[];
+  /**
+   * AI会話が運営都合で停止中（OpenAIのクレジット切れ）。
+   * true のとき会話の入口だけを「アップデート中」に差し替える。
+   * 予習・日本語のしくみ・語彙・ノートなどAIを使わない導線はそのまま残す（2026-08-23）。
+   */
+  aiPaused?: boolean;
   /** 別端末で進行中のレッスン（エラーではなく復旧選択肢を出す・§B） */
   recovery?: { mode: 'voice' | 'text' } | null;
   onResumeActive?: () => void;
@@ -69,6 +75,7 @@ export const CourseHome = ({
   t, learner, plan, stats, reviewsDue, reviewsOverdue, remainingToday,
   weekLearningDays, hasLightMaterial,
   hasResume, starting, startError, currentStageLabel, thisWeekCanDos, nextAbility, journey,
+  aiPaused = false,
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
   sessions, onOpenNotebook, onUpdateAvatarSettings, onOpenLab, onOpenVocab,
@@ -171,7 +178,14 @@ export const CourseHome = ({
           <CourseLoading t={t} scene="step" minHeightClass="min-h-[40px]" textClass="text-blue-100" className="!py-2" />
         )}
         {/* 主CTA（カード内。視線移動ゼロで開始） */}
-        {canLearn ? (
+        {aiPaused ? (
+          /* AI会話だけが止まっている。エラー色にせず「お知らせ」として置く */
+          <div className="bg-white/15 rounded-xl p-3 text-center mt-4">
+            <p className="text-sm text-white font-bold">{t.limits.ai_paused_title}</p>
+            <p className="text-xs text-blue-100 mt-1 leading-relaxed">{t.limits.ai_paused_body}</p>
+            <p className="text-[11px] text-blue-200 mt-1.5 leading-relaxed">{t.limits.ai_paused_other}</p>
+          </div>
+        ) : canLearn ? (
           <>
             <button type="button" onClick={() => onStart('voice')} disabled={starting || !mission}
               className="w-full min-h-11 py-3.5 mt-4 rounded-xl bg-white text-blue-700 font-bold text-base flex items-center justify-center gap-2 hover:bg-blue-50 disabled:opacity-50 transition-colors action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] disabled:shadow-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
@@ -196,7 +210,7 @@ export const CourseHome = ({
       {startError && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mb-4">{startError}</p>}
 
       {/* 補助導線: テキストで話す・予習（小さく1行ずつ） */}
-      {canLearn && (
+      {canLearn && !aiPaused && (
         <button type="button" onClick={() => onStart('text')} disabled={starting || !mission}
           className="w-full min-h-11 py-2 -mt-1 mb-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 flex items-center justify-center gap-1.5 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <PenLine className="w-3.5 h-3.5" />{th.modeText}
@@ -208,7 +222,7 @@ export const CourseHome = ({
       </button>
       {/* 日本語のしくみ: AI会話と並ぶ主要学習メニュー（FOREST FIRST: 全learnerへ開放） */}
       <PlatformLearningMenu t={t} onOpenLab={onOpenLab} onOpenVocab={onOpenVocab}
-        onStartConversation={() => onStart('voice')} canLearn={canLearn}
+        onStartConversation={() => onStart('voice')} canLearn={canLearn && !aiPaused}
         missionTitle={mission ? (zh ? mission.titleZh : mission.titleJa) : null} />
 
 

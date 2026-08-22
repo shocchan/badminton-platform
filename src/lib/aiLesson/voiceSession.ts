@@ -14,6 +14,7 @@
 // 短命のclient secret（ek_...）だけで、メモリ内でのみ保持し永続保存しない。
 
 import { fetchWithTimeout } from '../payment';
+import { markChatPaused } from './course/courseServiceStatus';
 
 export type VoiceSessionStatus =
   | 'idle'
@@ -23,7 +24,9 @@ export type VoiceSessionStatus =
   | 'ended'          // 終了
   | 'error';
 
-export type VoiceErrorKind = 'mic-denied' | 'token' | 'webrtc' | 'disconnected';
+// 'ai-unavailable' は障害ではなく「運営側のクレジット切れ」。
+// 画面は赤いエラーではなく「AI会話はアップデート中です」に切り替える（2026-08-23）。
+export type VoiceErrorKind = 'mic-denied' | 'token' | 'webrtc' | 'disconnected' | 'ai-unavailable';
 
 export interface VoicePlanPayload {
   themeLabel: string;
@@ -347,6 +350,11 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
       }, 15000);
       if (!res.ok) {
         const err = (await res.json().catch(() => ({}))) as { error?: string };
+        if (res.status === 503 && err.error === 'ai_unavailable') {
+          markChatPaused();
+          fail('ai-unavailable', 'ai_unavailable');
+          return;
+        }
         fail('token', err.error ?? `http_${res.status}`);
         return;
       }

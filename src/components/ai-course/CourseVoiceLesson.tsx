@@ -3,7 +3,7 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles } from 'lucide-react';
+import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles, Wrench } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
@@ -382,6 +382,23 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
         <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
           className="w-full min-h-10 mt-2 text-xs text-gray-500 underline">
+          {t.roadmap.back}
+        </button>
+      </div>
+    </div>
+  );
+
+  // AI会話だけが止まっているとき（運営のクレジット切れ）。
+  // ここを一般のエラー画面に混ぜない: 生徒に落ち度は無く、再試行もテキスト切替も無意味なため。
+  if (errorKind === 'ai-unavailable' && status === 'error') return (
+    <div className="fixed inset-0 z-40 bg-gray-50 flex items-center justify-center px-4" style={{ height: '100dvh' }}>
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-sm w-full text-center">
+        <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4"><Wrench className="w-6 h-6 text-blue-600" /></div>
+        <p className="text-base font-bold text-gray-900 mb-2">{t.limits.ai_paused_title}</p>
+        <p className="text-sm text-gray-700 leading-relaxed mb-2">{t.limits.ai_paused_body}</p>
+        <p className="text-xs text-gray-500 leading-relaxed mb-5">{t.limits.ai_paused_other}</p>
+        <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+          className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {t.roadmap.back}
         </button>
       </div>

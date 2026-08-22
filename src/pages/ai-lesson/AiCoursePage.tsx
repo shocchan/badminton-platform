@@ -98,6 +98,7 @@ import type { ReviewNote } from '../../lib/aiLesson/course/courseReviewNote';
 import type { ReviewItem } from '../../lib/aiLesson/course/courseReviewPlan';
 import { isReviewKind } from '../../lib/aiLesson/course/courseEngine';
 import { CoursePreview } from '../../components/ai-course/CoursePreview';
+import { getServiceStatus, markChatPaused } from '../../lib/aiLesson/course/courseServiceStatus';
 import { CourseChapterList } from '../../components/ai-course/CourseChapterList';
 import { missionAccessState, missingPrerequisites } from '../../lib/aiLesson/course/coursePreview';
 import type { Mission } from '../../lib/aiLesson/course/types';
@@ -182,7 +183,11 @@ const generateReport = async (
       body: JSON.stringify({ sessionId, targetExpression, themeJa, detectedUsage, utterances }),
       signal: abort.signal,
     });
-    if (!res.ok) return { report: localFallback, fromAi: false };
+    // 残高切れでも生徒にはレポートを出す（AIなしの簡易版へ静かに落とす）
+    if (!res.ok) {
+      if (res.status === 503) markChatPaused();
+      return { report: localFallback, fromAi: false };
+    }
     const data = await res.json();
     return data?.report ? { report: data.report as LessonReport, fromAi: true } : { report: localFallback, fromAi: false };
   } catch {
@@ -228,6 +233,8 @@ export default function AiCoursePage() {
   /** 冒険の「次にやるstep」。復習画面から直接そこへ入れるようにするため親で保持する（2026-08-17） */
   const [advNextStep, setAdvNextStep] = useState<{ titleJa: string; titleZh: string } | null>(null);
   const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
+  /** AI会話だけが停止中か（会話の入口を「アップデート中」に差し替える） */
+  const [aiPaused, setAiPaused] = useState(false);
   // V2入口「冒険を始める」の連打ガード（updateLearnerの二重発火を防ぐ）
   const [advEntryBusy, setAdvEntryBusy] = useState(false);
   const [learner, setLearner] = useState<Learner | null>(null);
@@ -325,6 +332,15 @@ export default function AiCoursePage() {
       });
     return () => { alive = false; };
   }, [learner, accessState, sessions.length, atHome]);
+
+  // AI会話が運営都合で止まっていないか（OpenAIのクレジット切れ）。
+  // 会話を始めてからエラーに落とすのではなく、**始める前**に案内へ差し替えるために見る。
+  useEffect(() => {
+    if (step !== 'home') return;
+    let alive = true;
+    void getServiceStatus().then((st) => { if (alive) setAiPaused(st.chatPaused); });
+    return () => { alive = false; };
+  }, [step]);
 
   // 画面計測（個人情報なし。gtag未存在なら何もしない）
   useEffect(() => {
@@ -1623,7 +1639,7 @@ export default function AiCoursePage() {
         ]}
       >
       <CourseHome
-        t={t} learner={learner} plan={plan} stats={stats}
+        t={t} learner={learner} plan={plan} stats={stats} aiPaused={aiPaused}
         reviewsDue={reviewsDue}
         reviewsOverdue={progress.filter((p) => p.nextReviewAt && p.nextReviewAt < new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length}
         remainingToday={remaining} hasResume={hasResume}

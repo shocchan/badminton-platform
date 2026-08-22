@@ -13,6 +13,7 @@
 // デプロイ: supabase functions deploy ai-lesson-translate --no-verify-jwt
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -98,6 +99,12 @@ serve(async (req) => {
       let kind = "unknown";
       try { const e = await openaiRes.json(); kind = e?.error?.code ?? e?.error?.type ?? "unknown"; } catch { /* noop */ }
       console.error(`translate openai error: status=${openaiRes.status} kind=${kind}`);
+      // 残高切れは生徒に見せない（画面は「アップデート中」へ）。運営にはメールで即通知する
+      if (isQuotaError(openaiRes.status, kind)) {
+        const qenv = quotaEnvFrom((k) => Deno.env.get(k));
+        if (qenv) await reportQuotaOutage(qenv, "translate");
+        return json(503, { error: "ai_unavailable" });
+      }
       return json(502, { error: "openai_error" });
     }
 

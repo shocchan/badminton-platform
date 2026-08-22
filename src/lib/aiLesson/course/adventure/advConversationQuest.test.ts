@@ -87,3 +87,26 @@ describe('会話目標の1日', () => {
     expect(questOn(d, 15).successConditionJa).not.toContain('AI会話');
   });
 });
+
+describe('初日は必ずAI会話の日', () => {
+  // 絶対の日付で偶数・奇数を切ると、始めた日がたまたま「バトルの日」だった人は
+  // 初日にAI会話が出ない。会話を目的に選んだ人にそれが起きると、来た理由が画面に無い
+  it('いつ始めても、その人の1日目には会話が出る', () => {
+    for (const start of DAYS) {
+      const q = generateTodayQuest({
+        profile: {
+          ...defaultAdvProfile(`${start}T09:00:00.000Z`), goalType: 'conversation', targetJlpt: null,
+          dailyMinutes: 15, route, kana: { needed: false, doneRowIds: [], checkedAt: NOW },
+        },
+        route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey: start,
+        nowISO: `${start}T09:00:00.000Z`, daysToExam: null,
+        masteredStageIds: new Set(), contentStage: route.stages[0],
+        availability: {
+          nextGrammarIds: [], nextUnitIds: [], conversationTargets: [],
+          confirmTargetIds: [], vocabBattleTargetId: 'vocab-1', kanjiBattleTargetId: 'kanji-1',
+        },
+      });
+      expect(kinds(q).includes('conversation_mission'), `${start} に始めた人の初日に会話が無い`).toBe(true);
+    }
+  });
+});
