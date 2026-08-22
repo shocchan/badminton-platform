@@ -958,15 +958,23 @@ export default function AdvShell(props: AdvShellProps) {
         ...withLegacy, enabled: true,
         goalType: o.goalType, targetJlpt: o.targetJlpt, examDateISO: o.examDateISO,
       // 会話目標の自己申告レベル（2026-08-23）。会話カリキュラムの開始週を決める
-      declaredJlpt: o.declaredJlpt ?? null,
+        declaredJlpt: o.declaredJlpt ?? null,
         weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
         teacherId: o.teacherId,
         diagnosis: o.diagnosis,
         skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
         route: o.route,
-        // 超初心者（かな未確認レベル）は、かな道場の対象として初期化する（2026-08-15）。
-        // すでに卒業・進行中ならその状態を保持（redoで巻き戻さない）
-        kana: (o.diagnosis && (o.diagnosis.knowledgeBand === 'needs_assessment' || o.diagnosis.knowledgeBand === 'pre_n5'))
+        /**
+         * 超初心者（かな未確認レベル）は、かな道場の対象として初期化する（2026-08-15）。
+         * すでに卒業・進行中ならその状態を保持（redoで巻き戻さない）。
+         *
+         * 2026-08-23 修正: 診断を出さない人は帯が needs_assessment になるため、
+         * **JLPTの級を申告した人にまでかなチェックが出ていた**（N1合格者に「ひらがなを読めますか」）。
+         * 級を持っているならかなは読める。申告がある人はこの初期化の対象から外す。
+         */
+        kana: (o.declaredJlpt === null || o.declaredJlpt === undefined)
+          && o.diagnosis
+          && (o.diagnosis.knowledgeBand === 'needs_assessment' || o.diagnosis.knowledgeBand === 'pre_n5')
           ? (withLegacy.kana ?? { needed: null, doneRowIds: [], checkedAt: null })
           : withLegacy.kana,
         // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す

@@ -1485,7 +1485,17 @@ export default function AiCoursePage() {
             onViewChange={(v) => setAdvNavKey(v === 'map' ? 'roadmap' : 'home')}
             onActivityChange={setAdvBusy}
             onSaveSettings={(next) => {
-              setLearner({ ...learner, settings: next });
+              const nextLearner = { ...learner, settings: next };
+              setLearner(nextLearner);
+              /**
+               * AI会話のミッションを選び直す（2026-08-23 修正）。
+               *
+               * plan はページを開いた時点で1回だけ組んでいた。冒険の準備で
+               * 「JLPT N1を持っている」と申告しても、その場では plan が古いままで、
+               * **会話が第1週の「〜といいます」から始まっていた**（実機で発覚）。
+               * 設定が変わったらその場で組み直す。
+               */
+              setPlan(buildLessonPlan(nextLearner, progress));
               void courseRepository.updateLearner({ settings: next });
             }}
             onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
