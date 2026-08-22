@@ -5,6 +5,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CourseLoading, CourseChunkLoading } from '../../components/ai-course/CourseLoading';
 import { LegalFooterLinks } from './legal/LegalPage';
+import { ChunkReloadBoundary } from '../../components/ai-course/ChunkReloadBoundary';
 import { parseLabUrl, buildLabSearch, parseVocabUrl, buildVocabSearch, hasLabPreview } from '../../lib/aiLesson/course/labUrlState';
 import WorldHomeShell from '../../components/ai-course/rpg/WorldHomeShell';
 import type { VocabUrlView } from '../../lib/aiLesson/course/labUrlState';
@@ -1772,7 +1773,15 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
         accountLabel={accountLabel}
         lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode} navHidden={navHidden}
       />
-      {children}
+      {/*
+        本番を更新した瞬間に開いていたタブを真っ白にしない（2026-08-22）。
+        画面の部品は必要になってから読み込むので、古いタブが**もう無い名前**を要求して
+        失敗することがある。受け止める人がいないと画面ごと消えるので、ここで受けて
+        「新しい版が出ています／読み込み直す」を出す（1回だけ自動で読み込み直す）
+      */}
+      <ChunkReloadBoundary lang={lang}>
+        {children}
+      </ChunkReloadBoundary>
       {/* 学習アプリ側にも法務導線を置く（LPだけにあると、
           ログイン後の学習者が規約・削除申請へ辿り着けない）。
           「キャンセル・返金について」の単独リンクは学習面では出さない（2026-08-16 CEO判断）。
