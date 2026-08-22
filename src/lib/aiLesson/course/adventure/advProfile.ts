@@ -29,6 +29,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   enabled: false,
   goalType: null,
   targetJlpt: null,
+  declaredJlpt: null,
   examDateISO: null,
   weeklyDays: null,
   dailyMinutes: null,
@@ -150,6 +151,9 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     enabled: raw.enabled === true,
     goalType: VALID_GOALS.has(raw.goalType as string) ? (raw.goalType as AdventureV2Profile['goalType']) : null,
     targetJlpt: VALID_LEVELS.has(raw.targetJlpt as string) ? (raw.targetJlpt as AdventureV2Profile['targetJlpt']) : null,
+    // 自己申告レベル（会話目標のみ）。想定外の値は null に落とす
+    declaredJlpt: (['N1', 'N2', 'N3'] as const).includes(raw.declaredJlpt as 'N1')
+      ? (raw.declaredJlpt as AdventureV2Profile['declaredJlpt']) : null,
     examDateISO: typeof raw.examDateISO === 'string' ? raw.examDateISO : null,
     weeklyDays: typeof raw.weeklyDays === 'number' && raw.weeklyDays >= 1 && raw.weeklyDays <= 7 ? Math.floor(raw.weeklyDays) : null,
     dailyMinutes: VALID_MINUTES.has(raw.dailyMinutes as number) ? (raw.dailyMinutes as AdventureV2Profile['dailyMinutes']) : null,

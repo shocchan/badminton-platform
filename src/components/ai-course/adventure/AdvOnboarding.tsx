@@ -35,6 +35,8 @@ export interface OnboardingOutcome {
   diagnosis: AdvDiagnosisResult;
   skills: AdvSkillProfile;
   route: AdvRoute;
+  /** 会話目標で本人が申告した級（2026-08-23）。会話カリキュラムの開始週を決める */
+  declaredJlpt?: 'N1' | 'N2' | 'N3' | null;
 }
 
 interface Props {
@@ -89,7 +91,7 @@ interface Props {
    */
 }
 
-type Phase = 'goal' | 'target' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
+type Phase = 'goal' | 'target' | 'level' | 'exam' | 'schedule' | 'teacher' | 'companion' | 'diagIntro' | 'diag' | 'route';
 
 const btnIdle = choiceIdle;
 const btnOn = choiceOn;
@@ -111,10 +113,16 @@ export function AdvOnboarding({
   const [answers, setAnswers] = useState<Map<string, number>>(new Map());
   const [qIndex, setQIndex] = useState(0);
   const [convSkipped, setConvSkipped] = useState(false);
+  /** 会話目標の人が申告した級（2026-08-23）。null＝「わからない」＝診断で測る */
+  const [declared, setDeclared] = useState<'N1' | 'N2' | 'N3' | null>(adjust ? null : null);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
 
-  /** N5/N4目標は現在地診断（12問）を出さない。理由は skipsDiagnosis のコメント */
-  const skipDiag = goal ? skipsDiagnosis(goal, target) : false;
+  /**
+   * 現在地診断（12問）を出さない条件。
+   *  - N5/N4目標: 基礎から順に積むので結果でルートが変わらない（skipsDiagnosis のコメント）
+   *  - 会話目標で級を申告した人: 申告のほうが正確なので測り直す意味がない（2026-08-23）
+   */
+  const skipDiag = goal ? (skipsDiagnosis(goal, target) || (goal === 'conversation' && declared !== null)) : false;
 
   const questions = useMemo(
     () => (goal && !skipDiag ? selectDiagnosisQuestions(pools, target, goal, 20260731) : []),
@@ -172,7 +180,7 @@ export function AdvOnboarding({
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
-      diagnosis, skills, route,
+      diagnosis, skills, route, declaredJlpt: declared,
     };
     setConvSkipped(true);
     setOutcome(o);
@@ -202,6 +210,7 @@ export function AdvOnboarding({
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, diagnosis, skills, route,
+      declaredJlpt: declared,
     };
     setOutcome(o);
     // 診断が終わった時点で確定保存の機会を親へ渡す（披露画面で離脱してもやり直しにならない）
@@ -244,7 +253,7 @@ export function AdvOnboarding({
           </div>
           <div className="mt-6 space-y-2">
             <button type="button" className={primary} disabled={!goal}
-              onClick={() => setPhase(goal === 'conversation' ? 'schedule' : 'target')}>
+              onClick={() => setPhase(goal === 'conversation' ? 'level' : 'target')}>
               {tx(lang, 'つぎへ', '下一步')}
             </button>
             {/* キャンセルはやり直しのときだけ（初回に旧コースのホームへ落とす出口は撤去・監査P1） */}
@@ -292,6 +301,44 @@ export function AdvOnboarding({
             </div>
           )}
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
+            {tx(lang, 'つぎへ', '下一步')}
+          </button>
+          {backBtn('goal')}
+        </section>
+      )}
+
+      {/* 会話目標だけ: 級を1問だけ聞く（2026-08-23）。
+          診断12問は語彙にN2の問題が無く、N1合格者とN3後半を区別できないため、
+          推定より本人に聞くほうが正確。「わからない」を選んだ人は従来どおり診断へ回る */}
+      {phase === 'level' && (
+        <section aria-label={tx(lang, '日本語のレベル', '日语水平')}>
+          {header('いまの日本語はどのくらいですか？', '你的日语大概是什么水平？',
+            '会話の練習をどこから始めるかを決めるためだけに使います。', '仅用于决定会话练习从哪里开始。')}
+          <div className="space-y-3">
+            {([
+              { v: 'N1' as const, ja: 'JLPT N1を持っている', zh: '持有JLPT N1' },
+              { v: 'N2' as const, ja: 'JLPT N2を持っている', zh: '持有JLPT N2' },
+              { v: 'N3' as const, ja: 'JLPT N3を持っている', zh: '持有JLPT N3' },
+              { v: null, ja: 'まだ受けていない・わからない', zh: '还没考过・不清楚' },
+            ]).map((o) => (
+              <button key={o.v ?? 'unknown'} type="button"
+                className={declared === o.v ? btnOn : btnIdle}
+                onClick={() => setDeclared(o.v)}>
+                <span className="font-semibold">{tx(lang, o.ja, o.zh)}</span>
+                {o.v === null && (
+                  <span className="ml-2 text-sm text-gray-600">
+                    {tx(lang, '（あとで12問で測ります）', '（之后用12道题测量）')}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-gray-500">
+            {tx(lang,
+              '級を持っている人は、その級に合った場面から始めます。あとで先生が調整することもできます。',
+              '持有级别的人会从与之匹配的场景开始。之后老师也可以调整。')}
+          </p>
+          <button type="button" className={`${primary} mt-6`} onClick={() => setPhase('schedule')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>
           {backBtn('goal')}

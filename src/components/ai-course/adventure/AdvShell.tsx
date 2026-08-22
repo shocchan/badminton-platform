@@ -957,6 +957,8 @@ export default function AdvShell(props: AdvShellProps) {
       return {
         ...withLegacy, enabled: true,
         goalType: o.goalType, targetJlpt: o.targetJlpt, examDateISO: o.examDateISO,
+      // 会話目標の自己申告レベル（2026-08-23）。会話カリキュラムの開始週を決める
+      declaredJlpt: o.declaredJlpt ?? null,
         weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
         teacherId: o.teacherId,
         diagnosis: o.diagnosis,

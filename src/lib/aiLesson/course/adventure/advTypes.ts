@@ -297,6 +297,16 @@ export interface AdventureV2Profile {
   enabled: boolean;
   goalType: AdvGoalType | null;
   targetJlpt: JlptLevel | null;
+  /**
+   * 本人が申告した現在のレベル（2026-08-23・会話目標のみ）。
+   *
+   * 診断12問は語彙にN2の問題を持たないため、**N1合格者とN3後半の人を区別できない**
+   * （帯が n3_late で頭打ちになる）。会話カリキュラムのどこから始めるかは
+   * 推定するより本人に聞いたほうが正確なので、会話目標では1問だけ聞く。
+   * 「わからない」を選んだ人は null のまま診断へ回る。
+   * 先生は管理画面から現在地を調整できるので、申告がずれても直せる。
+   */
+  declaredJlpt: 'N1' | 'N2' | 'N3' | null;
   examDateISO: string | null;
   weeklyDays: number | null;
   dailyMinutes: 5 | 15 | 30 | null;

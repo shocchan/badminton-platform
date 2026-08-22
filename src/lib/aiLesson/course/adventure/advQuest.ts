@@ -168,6 +168,9 @@ export const stepKeyOf = (s: Pick<AdvQuestStep, 'kind' | 'refIds'>): string =>
   `${s.kind}:${(s.refIds ?? []).join('+')}`;
 
 /** stageに応じた新規学習ステップ（±会話転用） */
+/** dateKey（YYYY-MM-DD）→ 通日。隔日の判定に使う */
+const dayNumOf = (dateKey: string): number => Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
+
 const stageSteps = (
   stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,
   /** AI会話を出してよいか（N5・N4は false。aiConversationAvailable を参照） */
@@ -190,12 +193,28 @@ const stageSteps = (
     && (stage.kind === 'conversation_start' || stage.kind === 'conversation_growth');
 
   if (isConvStage) {
+    /**
+     * 会話stageの1日（2026-08-23 CEO決定で作り直し）。
+     *
+     * それまでは「AI会話ミッション4分」の**1ステップだけ**だった。
+     * バトルは `battle: null` で明示的に消され、語彙・漢字バトルも会話stageでは抑制されていたため、
+     * 1日30分を選んでも10分にすらならなかった。AI会話は1回$0.54ほどかかる一方、
+     * 中身は4分ぶんしかないので、時間もお金も薄いところに使っていた。
+     *
+     * 直したこと:
+     *  - AI会話を**隔日**にする（コストが半分、毎日開く習慣は下のバトルで保つ）
+     *  - 会話が無い日は語彙・漢字バトルを出す（AIを使わないのでコストは増えない）
+     */
+    // 漢字バトルは dayNum%2===0 の日に出る。AI会話をその**逆の日**に置いて、
+    // 「会話の日」と「バトルの日」が交互に来るようにする（同じ日に重ねると片方の日が空になる）
+    const convDay = dayNumOf(dateKey) % 2 === 1;
     return {
       learn: convPick ? step('vocab_new', [convPick.refId], `表現の準備：${convPick.expression}`, `准备表达：${convPick.expression}`) : null,
       battle: null,
-      conv: convPick
-        ? step('conversation_mission', [convPick.refId], `AI会話：${convPick.themeJa}`, `AI会话：${convPick.themeZh}`)
-        : step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务'),
+      conv: !convDay ? null
+        : convPick
+          ? step('conversation_mission', [convPick.refId], `AI会話：${convPick.themeJa}`, `AI会话：${convPick.themeZh}`)
+          : step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务'),
       expressions: convPick ? [convPick.expression] : [],
     };
   }
@@ -330,14 +349,15 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // 15分: 3日に1回、文法バトルの代わりに（時間予算内・確認バトルが優先）
   // 30分: 毎日追加（確認バトルの日は積みすぎないので休み）
   const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
-  const vocabStep = !isConvStageKind && availability.vocabBattleTargetId
+  // 2026-08-23: 会話stageでもバトルを出す。会話だけの日を作らないため（上の isConvStage のコメント）
+  const vocabStep = availability.vocabBattleTargetId
     ? step('battle', [availability.vocabBattleTargetId], '語彙バトル', '词汇战斗', 'normal')
     : null;
   /**
    * 漢字バトル（2026-08-18）。語彙バトルと**別の日**に出す（同じ日に両方積むと時間が溢れる）。
    * 5分設定では出さない（1日1バトルの枠は文法・語彙で埋まる）。
    */
-  const kanjiStep = !isConvStageKind && availability.kanjiBattleTargetId && profile.dailyMinutes !== 5
+  const kanjiStep = availability.kanjiBattleTargetId && profile.dailyMinutes !== 5
     ? step('battle', [availability.kanjiBattleTargetId], '漢字バトル', '汉字战斗', 'normal')
     : null;
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、

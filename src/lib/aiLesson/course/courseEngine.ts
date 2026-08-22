@@ -138,16 +138,35 @@ const ENTRY_WEEK_BY_BAND: Record<string, number> = {
   n2_plus: 13, n2: 13, n2_early: 10, n3_late: 10, n3: 7, n3_early: 7,
 };
 
-/** settings から診断の帯だけを安全に読む（壊れたデータでも落ちない・adventure層に依存しない） */
+/**
+ * 本人が申告した級 → 開始週（2026-08-23）。
+ *
+ * 診断12問は語彙にN2の問題を持たないため、帯が n3_late で頭打ちになり、
+ * **N1合格者とN3後半の人を区別できない**（実測で確認）。
+ * 級を持っているかどうかは事実なので、推定より本人に聞いたほうが正確。
+ * 申告が無い人（「わからない」を選んだ人）は従来どおり診断の帯で決める。
+ */
+const ENTRY_WEEK_BY_DECLARED: Record<string, number> = { N1: 13, N2: 13, N3: 10 };
+
+/** settings から必要な値だけを安全に読む（壊れたデータでも落ちない・adventure層に依存しない） */
+const advOf = (settings: unknown) =>
+  (settings as { adventureV2?: { diagnosis?: { knowledgeBand?: unknown }; declaredJlpt?: unknown } } | null)?.adventureV2;
+
 const knowledgeBandOf = (settings: unknown): string | null => {
-  const adv = (settings as { adventureV2?: { diagnosis?: { knowledgeBand?: unknown } } } | null)?.adventureV2;
-  const band = adv?.diagnosis?.knowledgeBand;
+  const band = advOf(settings)?.diagnosis?.knowledgeBand;
   return typeof band === 'string' ? band : null;
 };
 
-/** この学習者が会話カリキュラムのどの週から始めるか（未診断・低い帯なら1＝従来どおり） */
+const declaredJlptOf = (settings: unknown): string | null => {
+  const d = advOf(settings)?.declaredJlpt;
+  return typeof d === 'string' ? d : null;
+};
+
+/** この学習者が会話カリキュラムのどの週から始めるか（申告 → 診断の帯 → 1週 の順に見る） */
 export const conversationEntryWeekOf = (learner: Learner): number =>
-  ENTRY_WEEK_BY_BAND[knowledgeBandOf(learner.settings) ?? ''] ?? 1;
+  ENTRY_WEEK_BY_DECLARED[declaredJlptOf(learner.settings) ?? '']
+  ?? ENTRY_WEEK_BY_BAND[knowledgeBandOf(learner.settings) ?? '']
+  ?? 1;
 
 export const selectNextMission = (learner: Learner, progresses: ItemProgress[]): Mission | null => {
   const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
