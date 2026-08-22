@@ -22,10 +22,11 @@ export const WORLD_MAP_BG: WorldMapBackgroundAsset = {
   webp1x: '/ai-course/map/world-bg@1x.webp',
   webp2x: '/ai-course/map/world-bg@2x.webp',
   // AVIF を置いたらコメントを外す（optimize-map-images.mjs --avif で生成される）
-  // avif1x: '/ai-course/map/world-bg@1x.avif',
-  // avif2x: '/ai-course/map/world-bg@2x.avif',
-  width: 720,
-  height: 1200,
+  avif1x: '/ai-course/map/world-bg@1x.avif',
+  avif2x: '/ai-course/map/world-bg@2x.avif',
+  // 実寸（ChatGPT出力1024×1536を半分にした1x）。枠の比率は viewBox 3:5 が決め、画像は cover で中央トリミング
+  width: 512,
+  height: 768,
 };
 
 /** 画像の論理縦横比（viewBox 360×600 と同じ 3:5）。会話クロップは下半分 = 6:5 */

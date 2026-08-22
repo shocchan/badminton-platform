@@ -219,7 +219,8 @@ describe('AdvWorldMapImage（画像版）のフォールバックと読込', () 
   it('AVIF は 1x/2x 両方そろったときだけ <source> を出す', () => {
     const p = profileFor('hybrid');
     const map = mapFor(p, 'combined', 0);
-    const a = render(<AdvWorldMapImage {...propsFor(map, p)} asset={{ ...WORLD_MAP_BG, avif1x: '/x@1x.avif' }} />);
+    // マニフェストに AVIF が入った後も「片方だけ」の条件を正しく検査する（2x を明示的に消す）
+    const a = render(<AdvWorldMapImage {...propsFor(map, p)} asset={{ ...WORLD_MAP_BG, avif1x: '/x@1x.avif', avif2x: undefined }} />);
     expect(a.container.querySelector('source')).toBeNull();
     a.unmount();
     const b = render(<AdvWorldMapImage {...propsFor(map, p)}
