@@ -201,6 +201,12 @@ export default function AiCoursePage() {
 
   const [step, setStep] = useState<Step>('loading');
   const [accessState, setAccessState] = useState<CourseAccessState | null>(null);
+  /**
+   * いまログインしているアカウント名（2026-08-22 CEO報告）。
+   * 学習IDのアカウントはメールが `<学習ID>@id.badminton-platform.pages.dev` なので、
+   * その場合は学習IDだけを出す（生徒にとっても自分のIDのほうが分かりやすい）
+   */
+  const [accountLabel, setAccountLabel] = useState<string | null>(null);
   // 受講権のプランID（ai_course_access.plan_id）。購入者のみ値が入る（手動契約は null）
   const [accessPlanId, setAccessPlanId] = useState<string | null>(null);
   // 体験パスの使用済み秒数（累計）。上限つきプランの人だけ取得する
@@ -376,7 +382,10 @@ export default function AiCoursePage() {
   // データ読込
   const loadAll = useCallback(async () => {
     const user = await getSession();
-    if (!user) { setStep('login'); return; }
+    if (!user) { setStep('login'); setAccountLabel(null); return; }
+    setAccountLabel(user.email
+      ? (user.email.endsWith('@id.badminton-platform.pages.dev') ? user.email.split('@')[0] : user.email)
+      : null);
     // 受講権ゲート（2026-08-18 CEO指示）。期間内の人と管理者だけが先へ進める。
     // 期限の実体はDBの ai_course_access。学習記録はここでは一切触らない（残る）
     const access = await fetchAccessState();
@@ -871,7 +880,7 @@ export default function AiCoursePage() {
     // 60分・1か月はクレジット決済へ直行、6か月は連絡先フォーム（人が対応する商品なので即決済にしない）
     if (trialEnded) {
       return (
-        <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialEndedUpgrade
             lang={uiLang}
             onApply={(planId) => setApplyPlanId(planId)}
@@ -884,7 +893,7 @@ export default function AiCoursePage() {
       );
     }
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
         <div className="mx-auto w-full max-w-md px-4 py-16 text-center">
           <div className="text-4xl mb-3">🌱</div>
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
@@ -904,7 +913,7 @@ export default function AiCoursePage() {
     // 旧コースの8問ヒアリングは ?legacy を明示したときだけ
     const v2Invite = !wantsLegacyEntry();
     return (
-      <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
         {hearingError && (
           <p role="alert" className="mx-auto mb-2 w-full max-w-md rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {uiLang === 'zh'
@@ -920,7 +929,7 @@ export default function AiCoursePage() {
     );
   }
 
-  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
+  if (!learner) return <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}><CourseLoading t={t} scene="mist" minHeightClass="min-h-[200px]" /></Shell>;
 
   const stats = learnerStats(sessions, progress);
   const reviewsDue = progress.filter((p) => p.nextReviewAt && p.nextReviewAt <= new Date().toISOString().slice(0, 10) && p.reviewStage !== 'none').length;
@@ -1098,7 +1107,7 @@ export default function AiCoursePage() {
     // 旧コースの章を連打で先送りでき、①実費のAI会話が上限（1日10回）まで連続実行できる
     // ②「今日はこの4つだけ」のペース設計と矛盾する。V2の会話は今日の冒険の1stepとして
     // 完結し、続きは明日の冒険が用意する（canAgain/canNextの !advOn がその実装）
-    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
+    return <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}><CourseReport t={t} data={report} onFeedback={handleFeedback} onBackHome={backHome}
       onAgain={() => { void startLesson(mode); }} canAgain={remaining > 0 && learner.isActive && !advOn}
       onNextChapter={() => { void advanceToNext(); }} canNext={remaining > 0 && learner.isActive && !advOn}
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
@@ -1109,12 +1118,12 @@ export default function AiCoursePage() {
   }
   if (step === 'roadmap') {
     const ws = weekStats(progress);
-    return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
+    return <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}><CourseRoadmap t={t} weeks={ws} currentWeek={learner.currentWeek} nextMission={selectNextMission(learner, progress)} progress={progress} accessTier={accessTierOf(learner)} doneInCurrentWeek={progress.filter((p) => missionById(p.itemId)?.week === learner.currentWeek).length} onSeeChapters={() => setStep('chapters')} onOpenPreview={(m) => openPreview(m, 'roadmap')} onSeeN2Grammar={() => setStep('n2grammar')} onBack={() => setStep('home')} /></Shell>;
   }
-  if (step === 'history') return <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
+  if (step === 'history') return <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}><CourseHistory t={t} sessions={sessions} progress={progress} practiceAgainIds={learner.settings.practiceAgainIds ?? []} onOpenNote={(item) => { void openNoteForReviewItem(item); }} onOpenExpressions={() => setStep('expressions')} onOpenNotebook={() => setStep('notebook')} onBack={() => setStep('home')} /></Shell>;
   if (step === 'growth') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('growth')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('growth')} showLab={labAllowed}>
         {/* 冒険の進み（Adventure）と日本語の実力は分けて見せる（§14） */}
         <AdventureRecordCard t={t} />
         {labAllowed && (
@@ -1145,7 +1154,7 @@ export default function AiCoursePage() {
   }
   if (step === 'reviewNote' && activeNote) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseReviewNote t={t} note={activeNote} selfEvaluated={reviewedNoteIds.has(activeNote.sessionId)}
           onSelfEval={(kind) => handleSelfEval(activeNote, kind)}
           onBack={() => setStep(noteReturnStep)}
@@ -1155,7 +1164,7 @@ export default function AiCoursePage() {
   }
   if (step === 'light') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <CourseLightPractice t={t} progress={progress}
           practiceAgainIds={learner.settings.practiceAgainIds ?? []} onExit={() => setStep('home')} />
       </Shell>
@@ -1163,7 +1172,7 @@ export default function AiCoursePage() {
   }
   if (step === 'lab') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('lab')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('lab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <CourseFoundationLab t={t}
@@ -1177,7 +1186,7 @@ export default function AiCoursePage() {
   }
   if (step === 'vocab') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('vocab')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('vocab')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => { syncVocabUrl(null); setStep('home'); }} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <VocabularyHubLazy t={t} labPreview={labAllowed} learnerLevel={learner.estimatedLevel}
@@ -1204,7 +1213,7 @@ export default function AiCoursePage() {
   if (step === 'garden') {
     // V2生徒には旧コース行きのカード（会話ノート・再会Quest）を出さない（2026-08-17 監査P1）
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <OmoideGardenPanel
           t={t}
           conversationReviewsDue={reviewsDue}
@@ -1220,7 +1229,7 @@ export default function AiCoursePage() {
   }
   if (step === 'conversationIntro' && plan) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <KatariPortIntro
           t={t}
           /* V2の生徒に「ミナモ列島・第9エリア／カタリ港」は出さない。
@@ -1245,7 +1254,7 @@ export default function AiCoursePage() {
   if (step === 'n3area' && activeAreaId && areaById(activeAreaId)) {
     const area = areaById(activeAreaId)!;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N3AreaPanelLazy t={t} area={area} storage={unitStorage} syncMode={syncMode}
@@ -1270,7 +1279,7 @@ export default function AiCoursePage() {
   // 確認なしで始まる有料AI会話まで到達できてしまっていた
   if (step === 'n3unit' && activeUnitId) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N3UnitSoloLazy t={t} unitId={activeUnitId} storage={unitStorage}
@@ -1282,7 +1291,7 @@ export default function AiCoursePage() {
   }
   if (step === 'adventure') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             {/* keyで章ごとに必ず再mount（章切替時に前章のstateを持ち越さない） */}
@@ -1294,7 +1303,7 @@ export default function AiCoursePage() {
   }
   if (step === 'notebook') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseNotebook t={t} learner={learner} sessions={sessions} progress={progress}
           onStartToday={() => setStep('home')}
           onBack={() => setStep(advOn ? 'home' : 'history')} />
@@ -1303,7 +1312,7 @@ export default function AiCoursePage() {
   }
   if (step === 'expressions') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('history')} showLab={labAllowed}>
         <CourseMyExpressions t={t} progress={progress}
           practiceAgainIds={learner.settings.practiceAgainIds ?? []} onBack={() => setStep('history')} />
       </Shell>
@@ -1311,7 +1320,7 @@ export default function AiCoursePage() {
   }
   if (step === 'chapters') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
         <CourseChapterList t={t} progress={progress}
           onOpenPreview={(m) => openPreview(m, 'chapters')} onBack={() => setStep('roadmap')} />
       </Shell>
@@ -1319,7 +1328,7 @@ export default function AiCoursePage() {
   }
   if (step === 'n2grammar') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <LearnerErrorBoundary t={t} onHome={() => setStep('home')} labPreview={labAllowed}>
           <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
             <N2QuestLazy t={t} onBack={() => setStep('home')} onOpenReview={openReview}
@@ -1336,7 +1345,7 @@ export default function AiCoursePage() {
       .filter(Boolean);
     const isCurrentNext = access === 'current' && plan?.main.mission.id === activeMission.id;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('roadmap')} showLab={labAllowed}>
         <CoursePreview t={t} mission={activeMission} access={access} prereqTitles={prereqTitles}
           estMinutes={activeMission.estimatedMinutes}
           onStartVoice={isCurrentNext && remaining > 0 && learner.isActive ? () => { void startLesson(mode); } : undefined}
@@ -1347,7 +1356,7 @@ export default function AiCoursePage() {
   }
   if (step === 'guide') {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <CourseOnboarding
           t={t} mode={guideMode}
           onDone={() => { markGuideSeen(); setStep(guideMode === 'first' ? 'home' : 'settings'); }}
@@ -1373,7 +1382,7 @@ export default function AiCoursePage() {
       }
       : null;
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('settings')} showLab={labAllowed}>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('settings')} showLab={labAllowed}>
         <CourseSettings
           t={t} learner={learner} advActions={advActions}
           onSaveNickname={async (name) => {
@@ -1430,7 +1439,7 @@ export default function AiCoursePage() {
     const onboardingDone = !!(advProfile?.goalType && advProfile?.diagnosis && advProfile?.route);
     if (row?.trialWindowMinutes != null && !row.trialStartedAtISO && onboardingDone) {
       return (
-        <Shell t={t} lang={uiLang} onToggleLang={toggleLang}>
+        <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialStartScreen
             lang={uiLang}
             windowMinutes={row.trialWindowMinutes}
@@ -1446,7 +1455,7 @@ export default function AiCoursePage() {
   // 有効learnerのみHomeをV2へ切替。lesson/report/設定など他stepは共通（既存runtime再利用・§19）。
   if (isAdvEnabled(learner.settings)) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang}
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang}
         v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
         {planTopSlot}
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
@@ -1487,7 +1496,7 @@ export default function AiCoursePage() {
   // 旧コース歴のある人の道は下の「従来のホームへ」で残している。
   if (!wantsLegacyEntry()) {
     return (
-      <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed} navHidden>
+      <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed} navHidden>
         <div className="mx-auto w-full max-w-xl px-4 py-10 text-center">
           <h2 className="text-lg font-bold text-gray-900">
             {uiLang === 'zh' ? '要开始「冒险模式」吗？' : '「冒険モード」を始めますか？'}
@@ -1531,7 +1540,7 @@ export default function AiCoursePage() {
   }
 
   return (
-    <Shell teacherId={advTeacherId} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+    <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
       {planTopSlot}
       {/*
         一度でも冒険モードV2に入ったことがある人へ、戻る道を常に見せる。
@@ -1717,10 +1726,17 @@ const GrowthVocabCard = ({ t, onAction }: { t: AiCourseDict; onAction?: (view: '
 };
 
 /** AIコース共通の外枠。通常会員ヘッダーではなく AIコース専用ヘッダーを出す（App.tsx 側で通常ヘッダーは非表示） */
-const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false, navHidden = false }: {
+const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherId = null, v2Mode = false, navHidden = false, accountLabel = null, onLogout }: {
   children: React.ReactNode;
   /** ログイン後のみナビを出す。未ログイン・初回診断中は undefined */
   nav?: { current: CourseNavKey; onNavigate: (k: CourseNavKey) => void; onLogout: () => void };
+  /**
+   * いまのアカウント名（学習ID or メール）。ナビの有無に関係なくヘッダーへ出す。
+   * 管理者が生徒のアカウントを次々に開くとき、**どの人の画面か**が分かるようにするため
+   */
+  accountLabel?: string | null;
+  /** ナビが無い画面（名前入力など）でもログアウトできるようにする */
+  onLogout?: () => void;
   t: AiCourseDict;
   lang: 'ja' | 'zh';
   onToggleLang: () => void;
@@ -1752,7 +1768,8 @@ const Shell = ({ children, nav, t, lang, onToggleLang, showLab = false, teacherI
       </Helmet>
       <CourseHeader
         t={t} showNav={!!nav} current={nav?.current}
-        onNavigate={nav?.onNavigate} onLogout={nav?.onLogout}
+        onNavigate={nav?.onNavigate} onLogout={nav?.onLogout ?? onLogout}
+        accountLabel={accountLabel}
         lang={lang} onToggleLang={onToggleLang} showLab={showLab} v2Mode={v2Mode} navHidden={navHidden}
       />
       {children}

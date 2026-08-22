@@ -38,6 +38,13 @@ interface Props {
   current?: CourseNavKey;
   onNavigate?: (key: CourseNavKey) => void;
   onLogout?: () => void;
+  /**
+   * いまログインしているアカウントの表示名（2026-08-22 CEO報告）。
+   * 管理者は生徒のアカウントを次々に開くので、**どのアカウントの画面か**が
+   * どこにも出ていないと分からなくなる。学習ID or メールをそのまま短く出す。
+   * null なら出さない（ログイン前）
+   */
+  accountLabel?: string | null;
   /** 現在の表示言語。言語切替ボタンを出すために必須 */
   lang?: 'ja' | 'zh';
   /** ワンタップ言語切替。ある場合だけボタンを出す（管理画面では渡さない） */
@@ -167,7 +174,7 @@ const LangToggle = ({ lang, onToggle, label }: { lang: 'ja' | 'zh'; onToggle: ()
   </button>
 );
 
-export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, lang, onToggleLang, showLab = false, v2Mode = false, navHidden = false }: Props) => {
+export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout, accountLabel = null, lang, onToggleLang, showLab = false, v2Mode = false, navHidden = false }: Props) => {
   const toggleLabel = lang === 'ja' ? '中文' : '日本語';
   const NAV = navItems(showLab, v2Mode);
   // タブを出すか。ログアウト・言語切替は navHidden でも残す（ログイン済みの人を閉じ込めない）
@@ -212,8 +219,15 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
           )}
 
           <div className="flex items-center gap-2 shrink-0">
+            {/* いまのアカウント。長いメールは省略して出す（title に全文） */}
+            {accountLabel && (
+              <span className="hidden max-w-[10rem] truncate text-xs text-gray-500 sm:inline" title={accountLabel}>
+                {accountLabel}
+              </span>
+            )}
             {lang && onToggleLang && <LangToggle lang={lang} onToggle={onToggleLang} label={toggleLabel} />}
-            {showNav && onLogout && (
+            {/* ログアウトは**ナビが無い画面でも**出す（名前入力だけの入口で閉じ込めない・2026-08-22） */}
+            {onLogout && (
               <button
                 type="button" onClick={onLogout}
                 className="min-h-11 min-w-11 px-2 text-xs text-gray-500 hover:text-gray-700 flex items-center justify-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"

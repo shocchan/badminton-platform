@@ -104,3 +104,33 @@ describe('V2入場画面のナビ（navHidden）', () => {
     expect(screen.getAllByText(t.nav.growth).length).toBeGreaterThan(0);
   });
 });
+
+// ── どのアカウントの画面か・どこからでもログアウトできるか（2026-08-22 CEO実機報告） ──
+//
+// 報告: 名前を入れるだけの入口（CourseNameOnlyHearing）にログアウトが無く、
+// 管理者が生徒のアカウントを次々に開くと**いま誰の画面か分からなくなる**。
+describe('アカウント表示とログアウト', () => {
+  it('ナビが無い画面（名前入力など）でもログアウトを出す', () => {
+    const onLogout = vi.fn();
+    render(<CourseHeader t={t} lang="ja" onToggleLang={() => {}} onLogout={onLogout} />);
+    const btn = screen.getByRole('button', { name: new RegExp(t.login.logout) });
+    fireEvent.click(btn);
+    expect(onLogout).toHaveBeenCalledTimes(1);
+  });
+
+  it('ログアウトを渡さない画面（ログイン前）には出さない', () => {
+    render(<CourseHeader t={t} lang="ja" onToggleLang={() => {}} />);
+    expect(screen.queryByRole('button', { name: new RegExp(t.login.logout) })).toBeNull();
+  });
+
+  it('アカウント名を出す（全文は title に入れる）', () => {
+    render(<CourseHeader {...base} accountLabel="jlpt" />);
+    const el = screen.getByTitle('jlpt');
+    expect(el.textContent).toBe('jlpt');
+  });
+
+  it('accountLabel が無ければ何も出さない', () => {
+    const { container } = render(<CourseHeader {...base} />);
+    expect(container.querySelector('[title]')).toBeNull();
+  });
+});
