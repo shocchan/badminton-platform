@@ -17,6 +17,10 @@ import { N2_READING_THEME_B } from './n2ReadingThemeB';
 import { N2_READING_INFO_B } from './n2ReadingInfoB';
 // N5/N4（2026-08-18 追加）。目標レベルにN5/N4を解禁したのに読解が0本だったため
 import { N5_READING_SHORT_A } from './n5ReadingShortA';
+import { N5_READING_SHORT_B } from './n5ReadingShortB';
+import { N5_READING_INFO_B } from './n5ReadingInfoB';
+import { N5_READING_KEY_B } from './n5ReadingKeyB';
+import { N5_READING_MID_B } from './n5ReadingMidB';
 import { N5_READING_INFO_A } from './n5ReadingInfoA';
 import { N5_READING_KEY_A } from './n5ReadingKeyA';
 import { N5_READING_MID_A } from './n5ReadingMidA';
@@ -30,7 +34,11 @@ export { READING_TYPE_LABELS, readingKeyOf };
 export type { ReadingSet, ReadingType, ReadingLevel };
 
 export const ALL_READING_SETS: ReadingSet[] = [
-  ...N5_READING_SHORT_A, ...N5_READING_INFO_A, ...N5_READING_KEY_A, ...N5_READING_MID_A,
+  ...N5_READING_SHORT_A,
+  ...N5_READING_SHORT_B,
+  ...N5_READING_INFO_B,
+  ...N5_READING_KEY_B,
+  ...N5_READING_MID_B, ...N5_READING_INFO_A, ...N5_READING_KEY_A, ...N5_READING_MID_A,
   ...N4_READING_SHORT_A, ...N4_READING_INFO_A, ...N4_READING_KEY_A, ...N4_READING_MID_A,
   ...N3_READING_SETS,
   ...N3_READING_SHORT_B, ...N3_READING_MID_B, ...N3_READING_LONG_B,
