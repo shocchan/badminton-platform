@@ -16,7 +16,7 @@
 // - 文字はSVGに描かない（翻訳のため）・状態は色＋記号＋aria-labelで三重に伝える
 // - ノードタップで親が該当地域カードへスクロールする（行き止まりにしない・原則15）
 // - アニメはCSSのみ・motion-safe 経由（reduced-motion で自動静止）
-import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Star, Flag, ChevronDown, Lock } from 'lucide-react';
 import { worldMapWindow, type MapRegion, type MapRouteKind } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { JlptLevel } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -186,9 +186,29 @@ export const AdvWorldMap = ({
           {/* 実ルートの道。区間の色は「入る側ノード」の状態（現行と同じ判定） */}
           {layout.segments.map((s, i) => {
             const st = ROAD_STYLE[s.state];
+            // 歩いてきた道（done）だけ、初回に一度だけ描かれる演出をつける。
+            // 「ここまで来た」を毎回の入場で思い出させるため。dash指定のある道は
+            // 見た目が破線なので対象外（dasharrayを演出に使うと破線が壊れる）
+            const drawIn = s.state === 'done' && !st.dash;
             return (
               <path key={`seg-${i}`} d={s.d} fill="none" stroke={st.stroke}
-                strokeWidth={st.width} strokeDasharray={st.dash} strokeLinecap="round" />
+                strokeWidth={st.width} strokeDasharray={st.dash} strokeLinecap="round"
+                className={drawIn ? 'kb-map-trail' : undefined}
+                style={drawIn
+                  ? ({ strokeDasharray: 600, '--kb-trail-len': '600', '--kb-delay': `${i * 0.12}s` } as CSSProperties)
+                  : undefined} />
+            );
+          })}
+
+          {/* 次の目的地の灯り（2026-08-24）。「次どこへ行けばいいか」を一目で示す。
+              絵は足さず、既存パレットの色で輪を広げるだけ */}
+          {regions.filter((r) => r.state === 'next').map((r) => {
+            const p = posOf.get(r.id);
+            if (!p) return null;
+            return (
+              <circle key={`beacon-${r.id}`} cx={p.x} cy={p.y - 8} r={11}
+                fill="none" stroke={WORLD_PALETTE.roadCurrent} strokeWidth={2}
+                className="kb-map-beacon" />
             );
           })}
 
@@ -197,7 +217,8 @@ export const AdvWorldMap = ({
             const p = posOf.get(r.id);
             if (!p) return null;
             return <circle key={`glow-${r.id}`} cx={p.x} cy={p.y - 8} r={14}
-              fill={`url(#${uid}-glow)`} opacity={0.5} />;
+              fill={`url(#${uid}-glow)`} opacity={0.5} className="kb-map-glow"
+              style={{ '--kb-delay': `${(p.x % 7) * 0.4}s` } as CSSProperties} />;
           })}
 
           {/* ミニランドマーク（ノード）。足元に地形色の地面ブロブ */}
@@ -216,15 +237,19 @@ export const AdvWorldMap = ({
           {regions.filter((r) => r.state === 'locked').map((r) => {
             const p = posOf.get(r.id);
             if (!p) return null;
+            // 位相を座標から決める（毎描画で変わる乱数を使わない＝ちらつかない）
+            const delay = { '--kb-delay': `${(p.x % 11) * 0.9}s` } as CSSProperties;
             return r.layer === 'exam' ? (
-              <g key={`fog-${r.id}`} opacity={0.9} fill={WORLD_PALETTE.fogA}>
+              <g key={`fog-${r.id}`} opacity={0.9} fill={WORLD_PALETTE.fogA}
+                className="kb-map-fog" style={delay}>
                 <ellipse cx={p.x - 8} cy={p.y - 11} rx={23} ry={10} />
                 <ellipse cx={p.x + 10} cy={p.y - 6} rx={23} ry={10} />
                 <ellipse cx={p.x - 2} cy={p.y - 18} rx={23} ry={10} />
               </g>
             ) : (
               <ellipse key={`fog-${r.id}`} cx={p.x} cy={p.y - 8} rx={14} ry={5}
-                fill={WORLD_PALETTE.fogA} opacity={0.6} />
+                fill={WORLD_PALETTE.fogA} opacity={0.6}
+                className="kb-map-fog" style={delay} />
             );
           })}
 

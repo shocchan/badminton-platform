@@ -1,5 +1,59 @@
 @import "tailwindcss";
 
+/* ── 冒険マップの演出（2026-08-24）──
+   地図が完全に静止していて「冒険している感じ」が出ていなかった。
+   絵は足さず、**すでにあるSVG要素に動きだけ**を与える。
+
+   原則:
+   ①学習の邪魔をしない速度（8〜14秒周期のゆっくりした動き）
+   ②動きは意味を持つ（霧＝未踏、灯り＝次に行く場所、道＝歩いてきた跡）
+   ③prefers-reduced-motion では**全部止める**。装飾なので止まって困らない
+   ④GPUに乗る transform / opacity のみ。レイアウトを起こすプロパティは使わない */
+
+@keyframes kb-fog-drift {
+  0%, 100% { transform: translate3d(0, 0, 0);       opacity: .55; }
+  50%      { transform: translate3d(3px, -2px, 0);  opacity: .78; }
+}
+@keyframes kb-beacon {
+  0%, 100% { transform: scale(1);    opacity: .55; }
+  50%      { transform: scale(1.35); opacity: .12; }
+}
+@keyframes kb-glow-breathe {
+  0%, 100% { opacity: .38; }
+  50%      { opacity: .62; }
+}
+@keyframes kb-trail-draw {
+  from { stroke-dashoffset: var(--kb-trail-len, 400); }
+  to   { stroke-dashoffset: 0; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* 霧は漂う。地域ごとに位相をずらして、一枚絵に見えないようにする */
+  .kb-map-fog {
+    animation: kb-fog-drift 11s ease-in-out infinite;
+    animation-delay: var(--kb-delay, 0s);
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform, opacity;
+  }
+  /* 次の目的地の灯り。「ここに行けばいい」を一目で分かるようにする */
+  .kb-map-beacon {
+    animation: kb-beacon 2.6s ease-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  /* 攻略済みの暖色グローをゆっくり明滅させる（積み上げが生きている感じ） */
+  .kb-map-glow {
+    animation: kb-glow-breathe 9s ease-in-out infinite;
+    animation-delay: var(--kb-delay, 0s);
+  }
+  /* 歩いてきた道が最初に一度だけ描かれる＝「ここまで来た」の可視化 */
+  .kb-map-trail {
+    animation: kb-trail-draw 1.5s ease-out both;
+    animation-delay: var(--kb-delay, 0s);
+  }
+}
+
 /* ── カワバド本体 ブランドトークン（大会ページ系。ロゴの青と接続するネイビー基調） ── */
 @theme {
   --color-kb-navy: #16324F;
