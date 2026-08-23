@@ -69,6 +69,22 @@ const processUrlFlags = () => {
   } catch { /* ストレージ不可環境では何もしない */ }
 };
 
+/**
+ * このブラウザが計測から外れているか（?notrack=1 の恒久除外）。
+ * GA/Meta 以外の自前カウンタ（LP表示数）も同じ意思決定に従わせるため公開する。
+ */
+export const isTrackingOptedOut = (): boolean => {
+  try { return localStorage.getItem(NOTRACK_KEY) === '1'; } catch { return false; }
+};
+
+/** 本番ドメインで開かれているか。staging や localhost の閲覧を本番の数字に混ぜない */
+export const isProdHost = (): boolean => {
+  try {
+    const h = window.location.hostname;
+    return h === PROD_HOSTNAME || h.endsWith(`.${PROD_HOSTNAME}`);
+  } catch { return false; }
+};
+
 const isEnabled = () => {
   if (!GA4_ID && !META_PIXEL_ID) return false;
   try {

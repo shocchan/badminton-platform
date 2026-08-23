@@ -38,6 +38,7 @@ import type { AdminAccountType } from '../../lib/aiLesson/course/admin/adminAcco
 import { buildAttention, buildKpis } from '../../lib/aiLesson/course/admin/adminAttention';
 import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
+import { AdminLpViewsCard } from '../../components/ai-course/admin/AdminLpViewsCard';
 import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
 import { AdminContentReviewTab } from '../../components/ai-course/admin/AdminContentReviewTab';
@@ -358,6 +359,11 @@ export default function AiCourseAdminPage() {
           <div className="space-y-4">
             <AdminTodayTab kpis={model.kpis} items={model.attention}
               onOpenAccount={openAccount} onOpenOps={() => setTab('ops')} />
+            {/*
+              販売ページを見た人（2026-08-23 CEO依頼）。ファネルの一段上＝
+              「そもそも見つかっているのか」。自前fetchなので model には触らない
+            */}
+            <AdminLpViewsCard />
             {/* 学習ファネル（Phase 1 計測基盤）。自前fetchなので model には触らない */}
             <AdminFunnelCard />
           </div>

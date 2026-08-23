@@ -9,6 +9,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { getSession } from '../../../lib/aiLesson/course/courseAuth';
 import { AiCourseLandingPage } from './AiCourseLandingPage';
+import { recordLpView } from '../../../lib/aiLesson/course/lp/lpViewBeacon';
 import type { CharacterVariant } from './lpContent';
 
 const AiCoursePage = lazy(() => import('../AiCoursePage'));
@@ -45,6 +46,17 @@ export function AiCourseEntry({ variant, forceApp = false }: {
       .catch(() => { if (alive) setMode('lp'); });
     return () => { alive = false; };
   }, [variant, forceLp, forceApp, forceAppByParam]);
+
+  /*
+    LPが何人に見られたかを数える（CEO依頼 2026-08-23「このLPがどれだけの人に
+    見られているかも管理ページから確認できるようにしたい」）。
+    LPを出すと決まったときだけ・1ブラウザ1日1回だけ。自分（?notrack=1）と
+    本番以外のドメインは数えない。詳しい約束は lpViewBeacon.ts に書いた。
+  */
+  useEffect(() => {
+    if (mode !== 'lp') return;
+    recordLpView({ path: window.location.pathname, lang, variant: variant ?? null });
+  }, [mode, lang, variant]);
 
   if (mode === 'checking') return <Loader lang={lang} />;
   if (mode === 'app') return <Suspense fallback={<Loader lang={lang} />}><AiCoursePage /></Suspense>;

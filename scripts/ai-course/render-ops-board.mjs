@@ -28,15 +28,21 @@ const sql = (q) => {
 const one = (q) => sql(q)[0] ?? {};
 
 // ── 1. 数字 ──────────────────────────────────────────────
+//
+// **is_test の申込は数えない**（2026-08-23）。CEO確認: いまある申込はすべて本人の
+// 動作確認で、まだ誰にも見つかっていない。テストを売上として出すと、
+// ボードが実態より良い話をしてしまう。
 const kpi = one(`
 select
  (select count(*) from public.ai_learners) as learners,
  (select count(*) from public.ai_course_access where now() between valid_from and valid_until) as active_access,
- (select count(*) from public.ai_plan_purchases where status = 'provisioned') as paid_count,
- (select coalesce(sum(amount_jpy),0) from public.ai_plan_purchases where status = 'provisioned') as paid_jpy,
+ (select count(*) from public.ai_plan_purchases where status = 'provisioned' and not is_test) as paid_count,
+ (select coalesce(sum(amount_jpy),0) from public.ai_plan_purchases where status = 'provisioned' and not is_test) as paid_jpy,
  (select coalesce(sum(amount_jpy),0) from public.ai_plan_purchases
-    where status = 'provisioned' and created_at >= date_trunc('month', now())) as paid_jpy_month,
- (select count(*) from public.ai_plan_purchases where status = 'pending') as pending_count,
+    where status = 'provisioned' and not is_test and created_at >= date_trunc('month', now())) as paid_jpy_month,
+ (select count(*) from public.ai_plan_purchases where status = 'pending' and not is_test) as pending_count,
+ (select count(*) from public.ai_lp_views where viewed_on > (now() at time zone 'Asia/Tokyo')::date - 7) as lp_views_7d,
+ (select count(*) from public.ai_lp_views where viewed_on > (now() at time zone 'Asia/Tokyo')::date - 30) as lp_views_30d,
  (select round(coalesce(sum(estimated_cost_usd),0)::numeric,2) from public.ai_usage_daily
     where usage_date >= date_trunc('month', now())::date) as ai_usd_month,
  (select count(*) from public.ai_learning_sessions where started_at > now() - interval '24 hours') as sessions_24h,
@@ -50,7 +56,7 @@ select split_part(coalesce(p.login_id, ''), '@', 1) as login_id,
        p.plan_id, p.created_at::date as bought_on,
        (now() - p.created_at) > interval '24 hours' as over_24h
 from public.ai_plan_purchases p
-where p.status = 'provisioned' and p.user_id is not null
+where p.status = 'provisioned' and not p.is_test and p.user_id is not null
   and not exists (
     select 1 from public.ai_learners l
     join public.ai_learning_sessions s on s.learner_id = l.id
@@ -73,7 +79,7 @@ order by a.valid_until limit 20
 const abandoned = sql(`
 select p.plan_id, p.created_at::date as day, count(*) as n
 from public.ai_plan_purchases p
-where p.status = 'pending' and p.created_at > now() - interval '30 days'
+where p.status = 'pending' and not p.is_test and p.created_at > now() - interval '30 days'
 group by 1,2 order by 2 desc limit 10
 `);
 
@@ -261,6 +267,7 @@ code{font-family:"IBM Plex Mono",monospace;font-size:12px}
     <div class="kpi"><div class="label">使える人</div><div class="value">${kpi.active_access}</div><div class="sub">受講権が期間内</div></div>
     <div class="kpi"><div class="label">7日で学習した人</div><div class="value">${kpi.learners_7d}</div><div class="sub">24時間 ${kpi.sessions_24h}セッション</div></div>
     <div class="kpi"><div class="label">支払い途中</div><div class="value">${kpi.pending_count}</div><div class="sub">画面で止まったまま</div></div>
+    <div class="kpi"><div class="label">LPを見た人</div><div class="value">${kpi.lp_views_7d}</div><div class="sub">7日／30日 ${kpi.lp_views_30d}</div></div>
   </div>
 
   <hr class="rule">
