@@ -5,25 +5,29 @@
       "Bash",
       "Fetch",
       "Write",
-      "Read"
+      "Read",
+      "Edit"
     ],
     "ask": [
       "Bash(*api.stripe.com*)",
+      "Bash(*api.paypal.com*)",
       "Bash(*sk_live*)",
       "Bash(*sk_test*)",
-      "Bash(*secrets set*)"
+      "Bash(*secrets set*)",
+      "Bash(*supabase functions deploy*)",
+      "Bash(*remote-sql*--write*)"
     ],
     "deny": [
-      "Bash(./scripts/deploy-production.sh)",
-      "Bash(bash scripts/deploy-production.sh)",
-      "Bash(sh scripts/deploy-production.sh)",
-      "Bash(wrangler pages deploy --branch=main)",
-      "Bash(supabase functions deploy)",
-      "Bash(curl *functions/deploy*)",
+      "Bash(*deploy-production.sh*)",
+      "Bash(*wrangler pages deploy*--branch=main*)",
+      "Bash(*wrangler deploy --env production*)",
+      "Bash(*functions/deploy*)",
       "Write(.env.production)",
       "Write(.env.production.local)",
       "Write(.npmrc)",
-      "Write(secret:*)"
+      "Edit(.env.production)",
+      "Edit(.env.production.local)",
+      "Edit(.npmrc)"
     ]
   }
 }
