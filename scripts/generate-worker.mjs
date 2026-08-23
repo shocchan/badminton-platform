@@ -33,6 +33,8 @@ async function generateSitemap(env) {
     { path: 'level-guide',   priority: '0.8', freq: 'monthly' },
     { path: 'faq',           priority: '0.8', freq: 'monthly' },
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
+    // 国際交流（2026-08-24 新設）。実測で「国際交流」「外国人」系の検索語は表示0件だった
+    { path: 'international', priority: '0.8', freq: 'monthly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
     // blog は日本語のみ（記事本文に中国語版が無く、/zh/blog は /ja/blog へ canonical）
     { path: 'join',          priority: '0.6', freq: 'monthly' },

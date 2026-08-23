@@ -235,15 +235,44 @@ export const HomePage = () => {
         description: '川口市・蕨市エリアの平日夜バドミントン交流会。超初級〜オープンまで全レベル歓迎。4試合以上保証。芝園公民館・蕨市民体育館ほかで定期開催。',
       };
 
+  /**
+   * 実体（エンティティ）情報。**検索エンジンだけでなく、AIアシスタントが
+   * 「川口でバドミントンができる場所は？」に答えるときの材料になる**（2026-08-24強化）。
+   *
+   * 書いてよいのはサイト上で確認できる事実だけ。SNSプロフィールURLはコード上に
+   * 存在しないため `sameAs` は入れていない（推測でURLを書かない）。
+   * 実際のSNSアカウントが分かったら sameAs に足すこと。実体の裏づけとして効く。
+   */
   const orgJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': ['Organization', 'SportsOrganization'],
     '@id': 'https://kawabado.com/#organization',
     name: '川口・蕨バドミントン交流会',
+    alternateName: ['kawabado', 'カワバド', '川口・蕨羽毛球交流会'],
     url: 'https://kawabado.com',
-    logo: 'https://kawabado.com/favicon.png',
-    areaServed: ['川口市', '蕨市'],
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://kawabado.com/favicon.png',
+    },
+    image: 'https://kawabado.com/ogp.jpg',
+    description: '埼玉県川口市・蕨市で平日夜に開催するバドミントン交流会。'
+      + '超初級からオープンまで全レベルが対象で、1人での参加が中心。'
+      + '多国籍のメンバーが参加し、中国語での問い合わせ・申し込みにも対応しています。',
+    email: 'info@kawabado.com',
     sport: 'バドミントン',
+    areaServed: [
+      { '@type': 'City', name: '川口市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+      { '@type': 'City', name: '蕨市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+    ],
+    // 中国語での問い合わせ・申し込みに実際に対応している（FAQ・活動ページに記載のとおり）
+    knowsLanguage: ['ja', 'zh-Hans'],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'info@kawabado.com',
+      availableLanguage: ['Japanese', 'Chinese'],
+      url: 'https://kawabado.com/ja/contact',
+    },
   };
 
   const websiteJsonLd = {

@@ -17,6 +17,7 @@ import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 
 // ページごとに遅延読み込み（コード分割）
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
+const InternationalPage    = lazy(() => import('./pages/InternationalPage').then(m => ({ default: m.InternationalPage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
@@ -122,6 +123,7 @@ const AnimatedRoutes = () => {
             <Route path="tournaments/:id" element={<TournamentDetailPage />} />
             <Route path="faq"             element={<FaqPage />} />
             <Route path="venues"          element={<VenueGuidePage />} />
+            <Route path="international"   element={<InternationalPage />} />
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />

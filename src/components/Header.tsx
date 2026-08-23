@@ -14,6 +14,7 @@ import {
   LogOut,
   Sparkles,
   Globe,
+  Globe2,
   type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -31,6 +32,7 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { path: '',            label: { ja: '大会案内',   zh: '赛事信息' }, icon: Trophy,        category: 'tournament' },
   { path: 'activity',   label: { ja: '通常活動',   zh: '日常活动' }, icon: CalendarDays,  category: 'activity' },
+  { path: 'international', label: { ja: '国際交流', zh: '国际交流' }, icon: Globe2,     category: 'general' },
   { path: 'blog',       label: { ja: 'ブログ',     zh: '博客' },     icon: Newspaper,     category: 'general' },
   { path: 'level-guide',label: { ja: 'クラス案内', zh: '级别说明' }, icon: BarChart3,     category: 'tournament', badge: { ja: '大会', zh: '大会' } },
   { path: 'faq',        label: { ja: 'FAQ',        zh: '常见问题' }, icon: HelpCircle,    category: 'tournament', badge: { ja: '大会', zh: '大会' } },
