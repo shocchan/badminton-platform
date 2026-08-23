@@ -12,6 +12,68 @@ import { canStartCheckout, startCheckout } from '../../../lib/aiLesson/course/pl
 import { X as XIcon } from 'lucide-react';
 
 /**
+ * 支払い方法の案内（2026-08-23）。
+ *
+ * 【これは「選択欄」ではない】
+ * AIコースの決済は Stripe のホスト型 Checkout へ遷移する方式で、
+ * 支払い方法を選ぶ画面は**Stripe側が描画する**（こちらのコードには無い）。
+ * `PaymentMethodSelector` はバドミントン大会の申込フォーム専用で、別事業のもの。
+ * そのため、ここは「いま何で払えるか／何が準備中か」を**購入前に伝える表示**で、
+ * 押して選ぶものではない（押せる見た目にすると、Stripeの画面で選べず混乱する）。
+ *
+ * 【Stripe側は一切触っていない】
+ * Alipay・WeChat Pay は本人確認の承認待ちで capability が無い。
+ * Checkout セッションに payment_method_types / payment_method_options を
+ * 先に入れると Link 決済が消える事故が過去にあったため、決済ロジックは無変更。
+ * 承認が下りたら、ここの `ready: false` を外すのと合わせてStripe側を有効化する。
+ */
+export const PAYMENT_METHODS: ReadonlyArray<{
+  id: string; icon: string; label: { ja: string; zh: string }; ready: boolean;
+}> = [
+  { id: 'card',   icon: '💳', label: { ja: 'クレジットカード', zh: '信用卡' }, ready: true },
+  { id: 'alipay', icon: '🅰️', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: false },
+  { id: 'wechat', icon: '💬', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: false },
+];
+
+export function PaymentMethodsNote({ lang }: { lang: Lang }) {
+  const pending = PAYMENT_METHODS.filter((m) => !m.ready);
+  return (
+    <div className="mt-8 rounded-2xl border border-lp-line bg-lp-ivory-2 px-4 py-4">
+      <p className="text-[0.82rem] font-extrabold text-lp-ink-soft mb-2.5">
+        {lang === 'zh' ? '付款方式' : 'お支払い方法'}
+      </p>
+      <ul className="flex flex-wrap gap-2">
+        {PAYMENT_METHODS.map((m) => (
+          <li key={m.id}
+            // 押せるものではないと支援技術にも伝える（見た目だけのグレーアウトにしない）
+            aria-disabled={!m.ready || undefined}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.88rem] ${
+              m.ready
+                ? 'border-lp-line bg-lp-card font-bold text-lp-ink'
+                : 'border-lp-line/60 bg-lp-card/50 text-lp-ink-soft/60'
+            }`}>
+            <span aria-hidden="true">{m.icon}</span>
+            <span>{m.label[lang === 'zh' ? 'zh' : 'ja']}</span>
+            {!m.ready && (
+              <span className="ml-0.5 rounded-full bg-lp-ink-soft/15 px-1.5 py-0.5 text-[0.72rem] font-bold text-lp-ink-soft/80">
+                {lang === 'zh' ? '准备中' : '準備中'}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {pending.length > 0 && (
+        <p className="mt-2.5 text-[0.82rem] leading-relaxed text-lp-ink-soft">
+          {lang === 'zh'
+            ? '支付宝・微信支付正在准备中，目前还不能使用。现在可以用信用卡付款。'
+            : 'Alipay・WeChat Payは準備中で、まだご利用いただけません。いまはクレジットカードでお支払いいただけます。'}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
  * 料金セクション。**価格・内容は planCatalog から読む**（ここに数値を書かない）。
  *
  * - 出すのは公開中（published）のプランだけ。draft は `?plans=preview` のときだけ見える
@@ -166,6 +228,8 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
             {checkoutNote}
           </p>
         )}
+        {/* 何で払えるか・何が準備中かを、決済へ進む前に伝える（Stripe側の画面は触れない） */}
+        <PaymentMethodsNote lang={lang} />
         <p className="text-[0.84rem] text-lp-ink-soft mt-6">{p.keyCopy[lang]}</p>
         <p className="text-[0.84rem] text-lp-ink-soft mt-1">{p.disclaimer[lang]}</p>
         {/* 2回目以降の購入で学習記録を引き継ぐ条件（ログイン中＝自動／ログアウト時＝同じメール） */}
