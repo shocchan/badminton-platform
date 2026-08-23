@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { trackPageView } from './lib/analytics';
+import { isPrivatePath } from './components/seo/privateRoutes';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -89,8 +91,15 @@ const AnimatedRoutes = () => {
   // SPAのルート遷移ごとに page_view を送る（GA4無効時はno-op）。
   // /admin を開いたブラウザは trackPageView 側で以後の計測から自動除外される
   useEffect(() => { trackPageView(location.pathname); }, [location.pathname]);
+  // 管理画面・ログイン・マイページ等は検索結果に出さない。
+  // ページごとに書くと必ず抜けるので、経路の判定はここ1か所（privateRoutes）に寄せる。
+  // JSを実行しないクローラー向けには Worker が X-Robots-Tag を返す（二重で担保）
+  const isPrivate = isPrivatePath(location.pathname);
   return (
     <Suspense fallback={<PageLoader lang={location.pathname.startsWith('/zh') ? 'zh' : 'ja'} />}>
+      {isPrivate && (
+        <Helmet><meta name="robots" content="noindex,nofollow" /></Helmet>
+      )}
       <div key={location.pathname} className="page-fade">
         <Routes location={location}>
 

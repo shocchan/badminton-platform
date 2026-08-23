@@ -1,5 +1,36 @@
 User-agent: *
 Allow: /
+
+# 管理画面・受講者アプリ・認証まわり（検索結果に出す意味がないURL）。
+# 2026-08-23まで `Disallow: /admin` の1行だけだったが、実URLは /ja/admin へ
+# 移っていたため何も守れていなかった。判定の正は src/components/seo/privateRoutes.ts。
 Disallow: /admin
+Disallow: /ja/admin
+Disallow: /zh/admin
+Disallow: /ja/mypage
+Disallow: /zh/mypage
+Disallow: /ja/ai-course/admin
+Disallow: /zh/ai-course/admin
+Disallow: /ja/ai-course/login
+Disallow: /zh/ai-course/login
+Disallow: /ja/ai-course/purchase
+Disallow: /zh/ai-course/purchase
+Disallow: /ja/login
+Disallow: /zh/login
+Disallow: /ja/signup
+Disallow: /zh/signup
+Disallow: /ja/auth-landing
+Disallow: /zh/auth-landing
+Disallow: /ja/password-reset
+Disallow: /zh/password-reset
+Disallow: /ja/ai-lesson-demo
+Disallow: /zh/ai-lesson-demo
+Disallow: /ja/tactics-board
+Disallow: /zh/tactics-board
+Disallow: /cancel
+Disallow: /internal/
+Disallow: /chaoxianzu/
+Disallow: /assistant/
+Disallow: /guide/
 
 Sitemap: https://kawabado.com/sitemap.xml

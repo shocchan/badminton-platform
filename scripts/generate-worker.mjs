@@ -6,6 +6,17 @@
 import { readFileSync, writeFileSync } from 'fs';
 
 const indexHtml = readFileSync('dist/index.html', 'utf8');
+
+/**
+ * 静的ページのtitle/description（src/lib/seo/staticSeo.json が正）。
+ * 画面側は react-helmet-async で同じ文言を入れており、staticSeo.test.ts が突き合わせる。
+ * ここでWorkerに埋め込むのは、JSを実行しないクローラー（WeChat・小紅書・LINE・X・Baidu）
+ * のため。これが無いと中国語ページも日本語のバドミントン文言のまま配られる。
+ */
+const staticSeo = JSON.parse(readFileSync('src/lib/seo/staticSeo.json', 'utf8')).pages;
+const STATIC_SEO_JSON = JSON.stringify(
+  Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [k, { ja: v.ja, zh: v.zh }])),
+);
 // バッククオートをエスケープ
 const escapedHtml = indexHtml.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
 
@@ -23,7 +34,7 @@ async function generateSitemap(env) {
     { path: 'faq',           priority: '0.8', freq: 'monthly' },
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
-    { path: 'blog',          priority: '0.7', freq: 'weekly' },
+    // blog は日本語のみ（記事本文に中国語版が無く、/zh/blog は /ja/blog へ canonical）
     { path: 'join',          priority: '0.6', freq: 'monthly' },
     { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
@@ -32,8 +43,9 @@ async function generateSitemap(env) {
     // AI日本語コース（2026-08-22 追加）。それまでsitemapに1本も入っておらず、
     // サイト内リンクも管理画面からしか無かったので、検索から発見される経路がゼロだった
     { path: 'ai-course',                 priority: '0.9', freq: 'weekly' },
-    { path: 'ai-course/shoko',           priority: '0.6', freq: 'monthly' },
-    { path: 'ai-course/yuto',            priority: '0.6', freq: 'monthly' },
+    // /ai-course/shoko・/yuto は**載せない**（2026-08-23）。
+    // 広告用のvariant LPで noindex,follow を出しているため、sitemapに載せると
+    // Search Console が「送信されたURLがnoindexです」で毎回エラーを出す（自分で作った矛盾）。
     { path: 'ai-course/terms',           priority: '0.3', freq: 'yearly' },
     { path: 'ai-course/privacy',         priority: '0.3', freq: 'yearly' },
     { path: 'ai-course/ai-disclosure',   priority: '0.3', freq: 'yearly' },
@@ -44,12 +56,18 @@ async function generateSitemap(env) {
     { path: 'ai-course/contact',         priority: '0.4', freq: 'yearly' },
   ];
 
+  // 日本語版しか中身が無いURL（中国語URLは日本語版へcanonicalしているのでsitemapには載せない）
+  const jaOnlyUrls = [
+    { path: 'blog', priority: '0.7', freq: 'weekly' },
+  ];
+
   const langs = ['ja', 'zh'];
   let urls = '';
 
   // Supabase REST API で公開中の大会・通常活動を取得（失敗しても静的URLは返す）
   let tournaments = [];
   let activities = [];
+  let posts = [];
   try {
     const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
     const supabaseKey = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
@@ -71,8 +89,29 @@ async function generateSitemap(env) {
         { headers }
       );
       if (actRes.ok) activities = await actRes.json();
+
+      // 公開済みのブログ記事（2026-08-23 追加）。それまで一覧だけがsitemapにあり、
+      // 記事そのものは1本も載っていなかった＝大会レポートが検索に出る経路が無かった
+      const postRes = await fetch(
+        // 公開判定は画面（useBlogPosts）と同じにする:
+        // status が published か NULL（旧データはNULL）で、published_at が現在以前
+        supabaseUrl + '/rest/v1/blog_posts?select=id,updated_at,created_at'
+          + '&or=(status.eq.published,status.is.null)'
+          + '&published_at=lte.' + new Date().toISOString()
+          + '&order=created_at.desc&limit=500',
+        { headers }
+      );
+      if (postRes.ok) posts = await postRes.json();
     }
   } catch (_) {}
+
+  for (const p of posts) {
+    const lm = (p.updated_at || p.created_at || '').slice(0, 10);
+    urls += '\\n  <url>\\n    <loc>https://kawabado.com/ja/blog/' + p.id + '</loc>' + (lm ? '\\n    <lastmod>' + lm + '</lastmod>' : '') + '\\n    <changefreq>monthly</changefreq>\\n    <priority>0.6</priority>\\n  </url>';
+  }
+  for (const u of jaOnlyUrls) {
+    urls += '\\n  <url>\\n    <loc>https://kawabado.com/ja/' + u.path + '</loc>\\n    <changefreq>' + u.freq + '</changefreq>\\n    <priority>' + u.priority + '</priority>\\n  </url>';
+  }
 
   for (const lang of langs) {
     for (const u of staticUrls) {
@@ -95,6 +134,33 @@ async function generateSitemap(env) {
 
 // ── ページ別OGP（LINE/WeChat/X等のクローラーはJSを実行しないため、Worker側で差し込む） ──
 
+/**
+ * 静的ページのtitle/description。src/lib/seo/staticSeo.json が正。
+ * キーは /:lang/ 以降のパス（'' はトップ）。staticSeo.test.ts がJSONと画面の一致を見る。
+ */
+const STATIC_SEO = ${STATIC_SEO_JSON};
+
+/** 検索結果に出さないURL。src/components/seo/privateRoutes.ts と同じ並び（テストで突き合わせる） */
+const PRIVATE_PATTERNS = [
+  /^\\/(ja|zh)\\/admin(\\/|$)/,
+  /^\\/(ja|zh)\\/mypage(\\/|$)/,
+  /^\\/(ja|zh)\\/ai-course\\/admin(\\/|$)/,
+  /^\\/(ja|zh)\\/ai-course\\/login(\\/|$)/,
+  /^\\/(ja|zh)\\/ai-course\\/purchase(\\/|$)/,
+  /^\\/(ja|zh)\\/login(\\/|$)/,
+  /^\\/(ja|zh)\\/signup(\\/|$)/,
+  /^\\/(ja|zh)\\/auth-landing(\\/|$)/,
+  /^\\/(ja|zh)\\/password-reset/,
+  /^\\/(ja|zh)\\/ai-lesson-demo(\\/|$)/,
+  /^\\/(ja|zh)\\/tactics-board(\\/|$)/,
+  /^\\/cancel(\\/|$)/,
+  /^\\/internal(\\/|$)/,
+  /^\\/chaoxianzu(\\/|$)/,
+  /^\\/assistant(\\/|$)/,
+  /^\\/admin(\\/|$)/,
+];
+const isPrivatePath = (pathname) => PRIVATE_PATTERNS.some((re) => re.test(pathname));
+
 function matchOgpRoute(pathname) {
   let m = pathname.match(/^\\/(ja|zh)\\/tournaments\\/(\\d+)\\/?$/);
   if (m) return { kind: 'tournament', lang: m[1], id: m[2] };
@@ -113,6 +179,14 @@ function matchOgpRoute(pathname) {
   if (m) return { kind: 'aiCourse', lang: m[1], variant: m[2] };
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/([a-z-]+)\\/?$/);
   if (m && AI_COURSE_LEGAL[m[2]]) return { kind: 'aiCourseLegal', lang: m[1], page: m[2] };
+  // 静的ページ（トップ・通常活動・FAQ・クラス案内・会場・問い合わせ・特典登録・
+  // キャンセルポリシー・ブログ一覧）。2026-08-23まで素のHTMLが全ページ
+  // 「川口・蕨バドミントン交流会」＋ <html lang="ja"> のままで、
+  // 中国語ページを微信・小紅書でシェアすると日本語のカードが出ていた
+  m = pathname.match(/^\\/(ja|zh)\\/?$/);
+  if (m) return { kind: 'static', lang: m[1], page: '' };
+  m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+)\\/?$/);
+  if (m && STATIC_SEO[m[2]]) return { kind: 'static', lang: m[1], page: m[2] };
   return null;
 }
 
@@ -192,7 +266,18 @@ function injectOgp(meta) {
       .replace(/(<meta property="og:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2')
       .replace(/(<meta name="twitter:image" content=")[^"]*(")/, '$1' + escAttr(meta.image) + '$2');
   }
+  // <html lang> と og:locale（素のHTMLは全ページ ja 固定だった）
+  if (meta.lang === 'zh') {
+    html = html
+      .replace('<html lang="ja">', '<html lang="zh">')
+      .replace(/(<meta property="og:locale" content=")[^"]*(")/, '$1zh_CN$2');
+  }
   let tail = '<meta property="og:url" content="' + escAttr(meta.url) + '" />';
+  if (meta.alternates) {
+    tail += '\\n    <link rel="alternate" hreflang="ja" href="' + escAttr(meta.alternates.ja) + '" />';
+    tail += '\\n    <link rel="alternate" hreflang="zh" href="' + escAttr(meta.alternates.zh) + '" />';
+    tail += '\\n    <link rel="alternate" hreflang="x-default" href="' + escAttr(meta.alternates.ja) + '" />';
+  }
   // canonical（2026-08-22）。JS実行前のHTMLにも入れておく。
   // study.kawabado.com など別ホストから同じ内容が配られたときの重複も、これで本体へ寄る
   if (meta.canonical) {
@@ -251,6 +336,24 @@ async function buildOgpMeta(route, env, pageUrl) {
       image: 'https://kawabado.com' + AI_COURSE_SEO.shoko.ogImage,
       url: pageUrl,
       canonical: 'https://kawabado.com/' + lang + '/ai-course/' + route.page,
+    };
+  }
+  if (route.kind === 'static') {
+    const e = STATIC_SEO[route.page];
+    const t = e[route.lang] || e.ja;
+    const suffix = route.page ? '/' + route.page : '/';
+    // ブログ一覧は日本語のみ（記事本文に中国語版が無い）ので canonical を日本語版へ寄せる
+    const jaOnly = route.page === 'blog';
+    return {
+      title: t.title,
+      description: t.description,
+      url: pageUrl,
+      lang: route.lang,
+      canonical: 'https://kawabado.com/' + (jaOnly ? 'ja' : route.lang) + suffix,
+      alternates: jaOnly ? null : {
+        ja: 'https://kawabado.com/ja' + suffix,
+        zh: 'https://kawabado.com/zh' + suffix,
+      },
     };
   }
   if (route.kind === 'blog') {
@@ -382,7 +485,19 @@ export default {
     // staging・Preview環境（本番ホスト以外）は検索エンジンにインデックスさせない。
     // 既存のステータス・ヘッダー（Cache-Control等）はそのまま維持し、
     // X-Robots-Tag だけを追加する。本番 kawabado.com には付けない。
-    const host = new URL(request.url).hostname;
+    const url = new URL(request.url);
+
+    // 管理画面・ログイン・受講者アプリ等は検索結果に出さない。
+    // 画面側にも robots メタを入れているが、あれはJS実行後。ここはJSを実行しない
+    // クローラーにも確実に効く（robots.txt は「クロールするな」であって
+    // 「インデックスするな」ではないので、両方が要る）
+    if (isPrivatePath(url.pathname)) {
+      const priv = new Response(response.body, response);
+      priv.headers.set('X-Robots-Tag', 'noindex, nofollow');
+      return priv;
+    }
+
+    const host = url.hostname;
     if (!PRODUCTION_HOSTS.includes(host)) {
       const noindexed = new Response(response.body, response);
       noindexed.headers.set('X-Robots-Tag', 'noindex, nofollow');

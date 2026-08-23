@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -180,7 +181,27 @@ const levelIcon = (level: string) => {
 export const CancelPolicyPage = () => {
   const { lang } = useLanguage();
   const rules = lang === 'zh' ? rulesZh : rulesJa;
+  const l: 'ja' | 'zh' = lang === 'zh' ? 'zh' : 'ja';
+  // sitemapに載っているのにHelmetが無く、index.htmlのフォールバック
+  // 「川口・蕨バドミントン交流会」がja/zh両方で出ていた（2026-08-23）
+  const meta = l === 'zh'
+    ? { title: '赛事取消政策 | 川口・蕨羽毛球交流会', description: '川口・蕨羽毛球交流会的取消规定。取消期限、取消费、羽毛球与参赛相关规定的说明。' }
+    : { title: '大会キャンセルポリシー | 川口・蕨バドミントン交流会', description: '川口・蕨バドミントン交流会のキャンセル規定。キャンセル期限・キャンセル料、シャトルや参加に関するルールをまとめています。' };
   return (
+    <>
+    <Helmet>
+      <html lang={l} />
+      <title>{meta.title}</title>
+      <meta name="description" content={meta.description} />
+      <meta property="og:title" content={meta.title} />
+      <meta property="og:description" content={meta.description} />
+      <meta property="og:url" content={`https://kawabado.com/${l}/cancel-policy`} />
+      <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
+      <link rel="canonical" href={`https://kawabado.com/${l}/cancel-policy`} />
+      <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/cancel-policy" />
+      <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/cancel-policy" />
+      <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/cancel-policy" />
+    </Helmet>
     <main className="max-w-3xl mx-auto px-4 py-8 sm:py-12">
       <Breadcrumbs items={[
         { label: lang === 'ja' ? 'ホーム' : '首页', path: `/${lang}/` },
@@ -276,5 +297,6 @@ export const CancelPolicyPage = () => {
         </Link>
       </div>
     </main>
+    </>
   );
 };
