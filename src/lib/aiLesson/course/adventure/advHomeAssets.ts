@@ -34,9 +34,11 @@ export const HERO_ID_BY_AREA: Record<string, string> = {
   'area06-hataraki': 'hataraki',
   'area07-katachi': 'katachi',
   'area08-sorano': 'sorano',
-  // 会話の港・記憶の庭は専用の絵をまだ作っていない。港の絵で受ける（同じ湾の景色）
-  'area09-katari': 'minato',
-  'area10-omoide': 'yukari',
+  // 会話目標の人がたどり着く2つの目的地（2026-08-23 専用の絵を用意）。
+  // それまでは 'minato' / 'yukari' の絵を借りていた＝会話で入った人の目的地だけ
+  // 自分の顔が無い状態だった
+  'area09-katari': 'katari',
+  'area10-omoide': 'omoide',
 };
 
 /** 用意できているヒーロー帯（増えたらここへ足す。無いものは出さない＝存在するふりをしない） */
@@ -55,6 +57,7 @@ export const HOME_HEROES: Record<string, HomeImageAsset> = {
   hataraki: hero('hataraki'),
   katachi: hero('katachi'),
   sorano: hero('sorano'),
+  katari: hero('katari'),
 };
 
 /** 現在地の areaId からヒーロー帯を引く。無ければ null（帯を出さない） */

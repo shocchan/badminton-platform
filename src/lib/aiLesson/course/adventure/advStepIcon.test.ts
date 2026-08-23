@@ -61,3 +61,17 @@ describe('8種そろっている', () => {
     for (const k of ALL_KINDS) expect(stepIconFor(k), k).not.toBeNull();
   });
 });
+
+describe('ヒーロー帯', () => {
+  it('割り当てた地域の絵が実在する（借り物・404を作らない）', async () => {
+    const fs = await import('node:fs');
+    const { HERO_ID_BY_AREA, HOME_HEROES, heroForArea } = await import('./advHomeAssets');
+    for (const [areaId, id] of Object.entries(HERO_ID_BY_AREA)) {
+      const a = HOME_HEROES[id];
+      if (!a) { expect(heroForArea(areaId), `${areaId}`).toBeNull(); continue; }
+      for (const p of [a.webp1x, a.webp2x]) {
+        expect(fs.existsSync(`public${p}`), `${areaId} → ${id}: public${p} が無い`).toBe(true);
+      }
+    }
+  });
+});
