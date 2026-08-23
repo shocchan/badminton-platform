@@ -24,6 +24,31 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 type L = 'ja' | 'zh';
 
+/**
+ * ページに載せる活動写真（2026-08-24 受け皿だけ用意）。
+ *
+ * **空のあいだは写真セクションごと描画しない**ので、枠だけが出ることはない。
+ * 写真が用意できたら public/images/international/ へ置き、ここに1行足すだけでよい。
+ *
+ * 決めごと:
+ * - alt は日本語・中国語の両方を書く（中国語画面に日本語の代替テキストを出さない）
+ * - width / height を必ず入れる（読み込み中にレイアウトが飛ぶのを防ぐ）
+ * - **写っている人の許可が取れているものだけ**を載せる。顔が判別できる写真は特に。
+ *   撮影時に許可を取っていない写真は、後ろ姿・引きの構図など個人が特定できないものにする
+ */
+interface ActivityPhoto {
+  src: string;
+  width: number;
+  height: number;
+  alt: { ja: string; zh: string };
+}
+
+const PHOTOS: ActivityPhoto[] = [
+  // 例:
+  // { src: '/images/international/game-night.webp', width: 1200, height: 800,
+  //   alt: { ja: '芝園公民館で平日夜にダブルスをする参加者', zh: '在芝园公民馆平日夜间打双打的参加者' } },
+];
+
 const COPY = {
   ja: {
     title: '国際交流バドミントン（川口・蕨）| 外国人・日本人が一緒に打てる場所',
@@ -51,6 +76,7 @@ const COPY = {
       { question: '参加費はいくらですか？', answer: '通常活動は1回600円〜（シャトル代込み）です。大会は1,000円〜1,500円で、大会ごとに異なります。' },
       { question: 'どこで開催していますか？', answer: 'JR蕨駅から徒歩圏内の芝園公民館（川口市芝園町3-15）・蕨市民体育館（蕨市北町1-27-15）が中心です。' },
     ],
+    photosHeading: '活動の様子',
     ctaActivity: '通常活動の日程を見る',
     ctaTournament: '大会の日程を見る',
     ctaContact: '中国語で問い合わせる',
@@ -84,6 +110,7 @@ const COPY = {
       { question: '参加费是多少？', answer: '日常活动每次600日元起（含羽毛球费用）。大会为1,000〜1,500日元，各场次不同。' },
       { question: '在哪里举办？', answer: '主要在JR蕨站步行可达的芝园公民馆（川口市芝园町3-15）与蕨市民体育馆（蕨市北町1-27-15）。' },
     ],
+    photosHeading: '活动的样子',
     ctaActivity: '查看日常活动的日程',
     ctaTournament: '查看大会的日程',
     ctaContact: '用中文咨询',
@@ -125,6 +152,29 @@ export const InternationalPage = () => {
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 leading-snug mb-4">{t.h1}</h1>
           <p className="text-gray-600 leading-relaxed">{t.lead}</p>
         </header>
+
+        {/* 写真は用意できたぶんだけ出す。0枚のときはセクションごと描かない
+            （「準備中」の空枠を見せない） */}
+        {PHOTOS.length > 0 && (
+          <section aria-labelledby="photos" className="mb-12">
+            <h2 id="photos" className="text-lg font-bold text-gray-900 mb-4">{t.photosHeading}</h2>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {PHOTOS.map((ph) => (
+                <li key={ph.src} className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                  <img
+                    src={ph.src}
+                    alt={ph.alt[l]}
+                    width={ph.width}
+                    height={ph.height}
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-auto object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section aria-labelledby="points" className="mb-12">
           <h2 id="points" className="text-lg font-bold text-gray-900 mb-4">{t.pointsHeading}</h2>
