@@ -304,13 +304,18 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
             </button>
           ) : (
             <>
-              <button
-                onClick={e => { e.preventDefault(); e.stopPropagation(); onApply(tournament); }}
-                aria-label={`${tournament.title}に申し込む`}
-                className={`flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm`}
+              {/* 一覧から直接申込フォームに入れると、参加費・支払い方法・キャンセル条件を
+                  見ないまま個人情報の入力に進んでしまう（追加受付のカード決済限定・返金不可も
+                  詳細ページにしか無い）。まず詳細ページで条件を読んでもらう。
+                  ※ カード全体が after:absolute のストレッチリンクで覆われているので
+                    relative z-10 が要る（無いと重なりに吸われる） */}
+              <Link
+                to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${tournament.id}`}
+                aria-label={`${tournament.title}の詳細を見る`}
+                className={`relative z-10 flex-1 ${config.applyBtn} text-white font-bold py-2.5 rounded-xl transition-all shadow-sm hover:shadow-md active:scale-[0.98] text-sm text-center`}
               >
-                申し込む →
-              </button>
+                {lang === 'zh' ? '查看详情 →' : '詳細を見る →'}
+              </Link>
               <span className={`text-xs font-bold px-2.5 py-1.5 rounded-full flex-shrink-0 ${remainingColor}`}>
                 残り{remaining}席
               </span>
