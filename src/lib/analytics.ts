@@ -36,6 +36,13 @@ declare global {
 const NOTRACK_KEY = 'kb_notrack';
 const TRACKTEST_KEY = 'kb_tracktest';
 const UTM_KEY = 'kb_utm';
+/**
+ * 紹介コード（2026-08-23）。`?ref=<code>` で来た人を、購入まで追えるようにする。
+ * **localStorage に置く**（UTMと違いセッションを跨ぐ）: 紹介リンクで見て、
+ * 数日あとに買う人を落とさないため。値は英数と一部記号だけに絞る（そのままDBへ入る）。
+ */
+const REF_KEY = 'kb_ref';
+const REF_PATTERN = /^[A-Za-z0-9_-]{3,32}$/;
 
 // ── フラグ処理（?notrack= / ?tracktest= / utm保存） ──
 const processUrlFlags = () => {
@@ -53,6 +60,12 @@ const processUrlFlags = () => {
       }
       sessionStorage.setItem(UTM_KEY, JSON.stringify(utm));
     }
+    // 紹介コード。**最初に見たものを優先**（あとから別のリンクで上書きしない）
+    const ref = q.get('ref');
+    if (ref && REF_PATTERN.test(ref) && !localStorage.getItem(REF_KEY)) {
+      localStorage.setItem(REF_KEY, ref);
+      trackEvent('referral_visit', { ref_code: ref });
+    }
   } catch { /* ストレージ不可環境では何もしない */ }
 };
 
@@ -69,6 +82,14 @@ const isEnabled = () => {
 
 const getUtm = (): Record<string, string> => {
   try { return JSON.parse(sessionStorage.getItem(UTM_KEY) ?? '{}'); } catch { return {}; }
+};
+
+/** 保存済みの紹介コード（無ければ null）。購入・申込のときに一緒に送る */
+export const getReferralCode = (): string | null => {
+  try {
+    const v = localStorage.getItem(REF_KEY);
+    return v && REF_PATTERN.test(v) ? v : null;
+  } catch { return null; }
 };
 
 // 現在表示中の言語（/ja/ か /zh/ か）。全イベントに添付する

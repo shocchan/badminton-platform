@@ -106,11 +106,36 @@ export function PurchaseCompletePage() {
             <p className="mt-0.5 font-extrabold text-lp-ink text-2xl tracking-wide select-all">{state.loginId}</p>
             <p className="mt-2 text-[0.88rem] text-lp-ink-soft leading-relaxed">
               <Mail className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />
+              {state.maskedEmail
+                ? (zh
+                  ? `初始密码已发送到你的邮箱（${state.maskedEmail}）。`
+                  : `初期パスワードはメール（${state.maskedEmail}）へお送りしました。`)
+                /* メールが取得できなかった購入（2026-08-23 監査P0）。
+                   「送りました」と言うと、届かない人が黙って詰む。この画面でだけ本当のことを言う */
+                : (zh
+                  ? '本次购买没有取得邮箱地址，因此无法发送初始密码。请把上面的登录ID记下来，并联系我们。'
+                  : 'この購入ではメールアドレスを取得できなかったため、初期パスワードをお送りできていません。上のログインIDを控えて、ご連絡ください。')}
+            </p>
+            {/* ログインIDは**この画面を閉じると二度と出ない**。控える前提を明示する */}
+            <p className="mt-2 text-[0.82rem] text-lp-ink-soft leading-relaxed">
               {zh
-                ? `初始密码已发送到你的邮箱${state.maskedEmail ? `（${state.maskedEmail}）` : ''}。`
-                : `初期パスワードはメール${state.maskedEmail ? `（${state.maskedEmail}）` : ''}へお送りしました。`}
+                ? '※ 这个登录ID请先记下来或截图保存。'
+                : '※ このログインIDは、スクリーンショットなどで控えておいてください。'}
             </p>
           </div>
+
+          {!state.maskedEmail && (
+            <div role="alert" className="mt-3 rounded-2xl border border-lp-coral bg-lp-coral/10 px-4 py-3 text-left">
+              <p className="text-[0.9rem] font-bold text-lp-ink">
+                {zh ? '请联系我们以获取密码' : 'パスワードのご案内が必要です'}
+              </p>
+              <p className="mt-1 text-[0.86rem] text-lp-ink-soft leading-relaxed">
+                {zh
+                  ? `请把登录ID「${state.loginId}」写在邮件里，发送到 ${LP.consultation.email}。我们会尽快回复初始密码。`
+                  : `ログインID「${state.loginId}」を書いて ${LP.consultation.email} までご連絡ください。折り返し初期パスワードをお送りします。`}
+              </p>
+            </div>
+          )}
 
           <ol className="mt-4 text-left text-[0.92rem] text-lp-ink leading-relaxed list-decimal pl-5 space-y-1">
             <li>{zh ? '查收邮件，确认初始密码' : 'メールを開いて初期パスワードを確認'}</li>

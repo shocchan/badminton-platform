@@ -288,15 +288,30 @@ export const buildVocabQuestions = (
     // 同じ表記の別の読み（一日＝ついたち／いちにち）を誤答に入れると、
     // **正しい読みを選んでも不正解**になる。除いたうえで、設問に意味を添えてどちらの語か決める
     const otherReadings = (idx.surfaceReadings.get(c.surface) ?? []).filter((r) => r !== c.reading);
-    const realReadings = pickDistinct(
+    /**
+     * 誤答は実在語の読みから採る。**どの語の読みなのかまで言う**（2026-08-23 監査）。
+     * 以前の「这是别的词的读音（これは別の語の読みです）」は情報量ゼロで、
+     * 間違えた人が次に何を覚えればいいのか分からなかった。
+     * 出典の語を名指しすれば、1問で2語ぶんの学びになる。
+     */
+    const realSources = pickDistinct(
       sameLevel.filter((o) => Math.abs([...o.reading].length - [...c.reading].length) <= 1),
       3, seed + 17, (o) => o.reading === c.reading || otherReadings.includes(o.reading),
-    ).map((o) => o.reading);
-    const uniq = [...new Set(realReadings)].filter((r) => r !== c.reading && !otherReadings.includes(r));
+    );
+    const seen = new Set<string>();
+    const uniq = realSources.filter((o) => {
+      if (o.reading === c.reading || otherReadings.includes(o.reading) || seen.has(o.reading)) return false;
+      seen.add(o.reading);
+      return true;
+    });
     if (uniq.length === 3) {
       const ch = finalizeChoices([
         choice(`${c.wordId}-r0`, c.reading, true),
-        ...uniq.map((r, i) => choice(`${c.wordId}-r${i + 1}`, r, false, '这是别的词的读音')),
+        ...uniq.map((o, i) => choice(
+          `${c.wordId}-r${i + 1}`, o.reading, false,
+          // 訳が表記を含む語は、訳を出すと答えが透ける。その場合は語だけを示す
+          glossRevealsSurface(o) ? `这是「${o.surface}」的读音` : `这是「${o.surface}」（${o.glossZh}）的读音`,
+        )),
       ]);
       const hint = otherReadings.length > 0 && !glossRevealsSurface(c) ? `（${c.glossZh}）` : '';
       if (ch) {

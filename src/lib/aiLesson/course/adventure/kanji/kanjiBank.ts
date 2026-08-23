@@ -88,8 +88,9 @@ const toQuestion = (
       choiceId: `choice-${String.fromCharCode(97 + i)}`,
       textJa: t,
       isCorrect: i === 0,
-      whyWrongJa: i === 0 ? undefined : `「${t}」は別の字・別の語の読みです。`,
-      whyWrongZh: i === 0 ? undefined : `「${t}」是别的字或别的词的读音。`,
+      // 「別の語の読みです」だけでは何も学べない（2026-08-23 監査）。正しい読みと並べて示す
+      whyWrongJa: i === 0 ? undefined : `「${t}」はこの字の読みではありません（正しくは「${correct}」）。`,
+      whyWrongZh: i === 0 ? undefined : `「${t}」不是这个字的读音（正确读音是「${correct}」）。`,
     })),
     explanation: {
       meaningJa: `${e.character}（${e.strokeCount}画・部首は${e.radical.form}「${e.radical.readingJa}」）`,

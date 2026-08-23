@@ -10,7 +10,8 @@ import type {
 import { aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
-import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence } from '../../../lib/aiLesson/course/adventure/advProfile';
+import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel,
+} from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, MASTERY_RULES, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
@@ -92,6 +93,7 @@ const cachedKanjiPool = (lv: 'N5' | 'N4'): ReturnType<typeof kanjiPool> => {
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
+import { buildGrowthHorizons, HORIZON_LABEL } from '../../../lib/aiLesson/course/adventure/advGrowthHorizons';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
 
 type L = 'ja' | 'zh';
@@ -431,7 +433,9 @@ export default function AdvShell(props: AdvShellProps) {
 
   /** いま要る語彙プールの注文。key が同じなら作り直さない */
   const vocabRequest = useMemo<VocabPoolRequest | null>(() => {
-    const lv: 'N2' | 'N3' = profile?.targetJlpt === 'N3' ? 'N3' : 'N2'; // 語彙プールはN3/N2の2系統（N5/N4はfoundation帯がN3スコープに含まれる）
+    // 語彙プールはN3/N2の2系統（N5/N4はfoundation帯がN3スコープに含まれる）。
+    // 会話目標は targetJlpt が null なので、以前はここで全員 N2 に丸められていた（2026-08-23 監査）
+    const lv: 'N2' | 'N3' = effectiveContentLevel(profile) === 'N2' ? 'N2' : 'N3';
     if (view === 'mock') {
       // 模試を出せない目標（N5/N4）では語彙chunk（gzip 約320kB）も取りに行かない。
       // ここで取ると、受けられない模試のためにN2語彙を落とすことになる
@@ -666,10 +670,9 @@ export default function AdvShell(props: AdvShellProps) {
       const { waiting } = classifyPendingDelay(profile.mastery, nowISO);
       // 2026-08-18: N5/N4 目標を解禁したので、読解・語彙のスコープも目標に追随させる。
       // 以前は 'N3' 以外を全部 'N2' に丸めていたため、N5目標の人にN2の読解が出ていた
-      const lvl: 'N5' | 'N4' | 'N3' | 'N2' =
-        profile.targetJlpt === 'N5' ? 'N5'
-          : profile.targetJlpt === 'N4' ? 'N4'
-            : profile.targetJlpt === 'N3' ? 'N3' : 'N2';
+      // 会話目標（targetJlpt が null）も申告レベルから決める（2026-08-23 監査:
+      // 基礎帯の会話学習者に N2 の文字語彙が出ていた）
+      const lvl: 'N5' | 'N4' | 'N3' | 'N2' = effectiveContentLevel(profile);
       // 復習予報＋渋滞レスキュー（2026-08-17）。
       // 数日あけると解禁ぶんが1日に集中し「今日30件」になって心が折れる。
       // 予報側で今日ぶんを決め、**出題も予報と同じ集合**を使う（画面の数字と出る数を必ず一致させる）
@@ -1036,12 +1039,13 @@ export default function AdvShell(props: AdvShellProps) {
   }
   const prof = profile!;
   const route = prof.route!;
+  /** ホームに出す相棒（2026-08-23）。先生＝次の行動、相棒＝気持ち、と役割を分ける */
+  const homeCompanion = companionById(prof.companionId);
   // バトル名のフォールバックレベル（2026-08-19 CEO報告: N5目標なのに「N2文法バトル」）。
   // 表記の第一候補は出題の中身から実測される（advBattle.encounterName）。ここは中身から
   // 判定できない場合の受け皿で、以前の「N3以外は全部N2」をやめ目標に追随させる
-  const level: ScopeLevel = prof.targetJlpt === 'N5' ? 'N5'
-    : prof.targetJlpt === 'N4' ? 'N4'
-      : prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  // 会話目標（targetJlpt が null）も申告レベルから決める（2026-08-23 監査）
+  const level: ScopeLevel = effectiveContentLevel(prof) as ScopeLevel;
   /**
    * 読解・聴解の**在庫を引くレベル**（2026-08-18）。
    *
@@ -1055,10 +1059,7 @@ export default function AdvShell(props: AdvShellProps) {
    * 判定の本体は advTypes.aiConversationAvailable。画面の文言をそこへ合わせる
    */
   const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt', prof.targetJlpt ?? null);
-  const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' =
-    prof.targetJlpt === 'N5' ? 'N5'
-      : prof.targetJlpt === 'N4' ? 'N4'
-        : prof.targetJlpt === 'N3' ? 'N3' : 'N2';
+  const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' = effectiveContentLevel(prof);
   /**
    * ミニ模試のレベル。**出せない目標では null**（2026-08-18）。
    *
@@ -2061,6 +2062,8 @@ export default function AdvShell(props: AdvShellProps) {
   // ── 週のまとめ（PRODUCT_CANON §6）。数値の羅列ではなく「何ができるようになったか」を先に出す ──
   if (view === 'weekly') {
     const wk = buildWeeklySummary(prof, nowISO, props.sessions);
+    // 成長の4段階（今日・今週・30日・半年）。台帳と冒険の記録から数えるだけ
+    const horizons = buildGrowthHorizons(prof, dateKey);
     const wkDays = daysToExamOf(prof.examDateISO, dateKey);
     const wkPace = pools && prof.goalType !== 'conversation'
       ? computePace({
@@ -2096,6 +2099,41 @@ export default function AdvShell(props: AdvShellProps) {
                 <span className="font-semibold">{tx(lang, companionById(prof.companionId).nameJa, companionById(prof.companionId).nameZh)}</span>
                 ：{tx(lang, companionById(prof.companionId).weeklyJa, companionById(prof.companionId).weeklyZh)}
               </span>
+            </p>
+          )}
+        </div>
+
+        {/*
+          成長の4段階（2026-08-23 実生徒監査）。
+          半年コースなのに、画面に出るのは「今日やったこと」だけだった。
+          段を4つに固定し、**記録から数えられる事実だけ**を1行ずつ出す。
+          まだ記録が無い段は「まだ言えません」と書く（0日を「0」と出さない・原則13）
+        */}
+        <div className={`${card} mt-3`}>
+          <p className="text-sm font-semibold text-gray-900">{tx(lang, 'ここまでの積み上げ', '到目前为止的积累')}</p>
+          <ul className="mt-2 space-y-1.5">
+            {(['today', 'week', 'month', 'halfYear'] as const).map((k) => {
+              const h = horizons[k];
+              return (
+                <li key={k} className="flex items-baseline gap-2 text-sm">
+                  <span className="w-12 shrink-0 text-xs font-semibold text-gray-500">
+                    {tx(lang, HORIZON_LABEL[k].ja, HORIZON_LABEL[k].zh)}
+                  </span>
+                  <span className="min-w-0 text-gray-700">
+                    {h.measured
+                      ? tx(lang,
+                        `学習${h.studyDays}日・冒険${h.completedQuests}回${h.attempts > 0 ? `・${h.attempts}問` : ''}`,
+                        `学习${h.studyDays}天・冒险${h.completedQuests}次${h.attempts > 0 ? `・${h.attempts}题` : ''}`)
+                      : tx(lang, 'まだ記録がありません', '还没有记录')}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {horizons.firstStudyDateKey && (
+            <p className="mt-2 text-xs text-gray-400">
+              {tx(lang, `記録のはじまり：${horizons.firstStudyDateKey}`, `记录始于：${horizons.firstStudyDateKey}`)}
+              {horizons.logTruncated && tx(lang, '（記録に残っている範囲で数えています）', '（按记录中保留的范围计算）')}
             </p>
           )}
         </div>
@@ -2739,6 +2777,23 @@ export default function AdvShell(props: AdvShellProps) {
                   `今日は${quest.estimatedMinutes}分。${nextStep ? `まず「${nextStep.titleJa}」から始めましょう。` : '今日のぶんは終わりました！'}`,
                   `今天${quest.estimatedMinutes}分钟。${nextStep ? `先从「${nextStep.titleZh}」开始吧。` : '今天的份量已经完成了！'}`)
                 : tx(lang, teacher.greetJa, teacher.greetZh)}
+          </p>
+          {/*
+            相棒の一言（2026-08-23 実生徒監査）。
+            相棒はバトルと完了画面には出るのに、**毎日いちばん見るホームに居なかった**ため
+            「最初に選ぶ意味」が感じられなかった。先生の一文（次の行動）と役割を分け、
+            相棒は**気持ちのほう**だけを短く言う（同じことを2回言わない）。
+            教材・難易度は相棒で変えない現行方針は維持。
+          */}
+          <p className="mt-1 flex items-center gap-1.5 text-xs leading-snug text-gray-500">
+            <CompanionAvatar id={prof.companionId ?? 'natsu'} size={18} />
+            <span className="truncate">
+              {tx(lang, homeCompanion.nameJa, homeCompanion.nameZh)}：
+              {/* streakJa は「連続正解」の意味なので日数には使わない（AdvCelebrationOverlay と同じ判断） */}
+              {allDone
+                ? tx(lang, homeCompanion.doneJa, homeCompanion.doneZh)
+                : tx(lang, homeCompanion.greetJa, homeCompanion.greetZh)}
+            </span>
           </p>
         </div>
       </div>

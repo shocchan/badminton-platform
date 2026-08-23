@@ -289,3 +289,29 @@ export const migrateLegacyEvidence = (
   };
   return { ...profile, skills: { ...profile.skills, vocabulary: vocab } };
 };
+
+/**
+ * 教材（語彙・読解など）を選ぶときの実効レベル（2026-08-23 実生徒監査）。
+ *
+ * 会話目標の人は `targetJlpt` が null なので、これまで各所で
+ * `targetJlpt === 'N3' ? 'N3' : 'N2'` と丸められ、**基礎帯の会話学習者にも
+ * N2 の文字語彙（「教頭」「願書」）が出ていた**（実測）。
+ *
+ * 目的別の決め方:
+ *  - 試験目標: 選んだ目標レベルがそのまま実効レベル（従来どおり）
+ *  - 会話目標: 本人の申告（N1/N2→N2圏・N3→N3圏）。申告が無ければ **N3 に倒す**
+ *    （測っていない人へ上の帯を出さない。物足りなければ申告で上げられる）
+ */
+export const effectiveContentLevel = (
+  profile: Pick<AdventureV2Profile, 'targetJlpt' | 'declaredJlpt' | 'goalType'> | null | undefined,
+): 'N5' | 'N4' | 'N3' | 'N2' => {
+  const declared = profile?.declaredJlpt;
+  const fromDeclared = declared === 'N1' || declared === 'N2' ? 'N2' : declared === 'N3' ? 'N3' : null;
+  // 会話目標では **申告レベルを優先**する。targetJlpt は試験目標のための値で、
+  // 目的を切り替えたあとも古い値が残ることがある（実測: 会話目標なのに targetJlpt='N3'）
+  if (profile?.goalType === 'conversation') return fromDeclared ?? 'N3';
+  const target = profile?.targetJlpt;
+  if (target === 'N5' || target === 'N4' || target === 'N3') return target;
+  if (target === 'N2' || target === 'N1') return 'N2';
+  return fromDeclared ?? 'N3';
+};

@@ -7,6 +7,7 @@
 //   ＝Stripeキー未設定でもLPは壊れない
 // - 金額はクライアントから送らない（サーバーが自分のカタログから読む）
 import type { PlanConfig, PlanId } from './planCatalog';
+import { getReferralCode } from '../../../analytics';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -31,11 +32,17 @@ export type StartCheckoutResult =
   | { ok: true; url: string }
   | { ok: false; reason: 'disabled' | 'not_ready' | 'network' | 'rejected' };
 
-/** 保持中のUTM（lib/analytics が保存したもの）。個人情報は含まれない */
+/**
+ * 保持中の流入情報（lib/analytics が保存したもの）。個人情報は含まれない。
+ * 紹介コード（`?ref=`）も同じ入れ物で送る（2026-08-23）。
+ * 台帳の `utm` 列（jsonb）へそのまま入るので、**新しい列もmigrationも要らない**。
+ */
 const storedUtm = (): Record<string, string> | undefined => {
   try {
     const utm = JSON.parse(sessionStorage.getItem('kb_utm') ?? '{}') as Record<string, string>;
-    return Object.keys(utm).length > 0 ? utm : undefined;
+    const ref = getReferralCode();
+    const merged = ref ? { ...utm, ref } : utm;
+    return Object.keys(merged).length > 0 ? merged : undefined;
   } catch { return undefined; }
 };
 

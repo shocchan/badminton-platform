@@ -88,7 +88,8 @@ serve(async (req: Request) => {
     // UTM（流入元）。個人情報は受け取らない。キーを固定して余計な値を保存しない
     const utm: Record<string, string> = {};
     if (body.utm && typeof body.utm === "object") {
-      for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]) {
+      // ref = 紹介コード（2026-08-23）。utm と同じ入れ物で受けて台帳の utm 列へ入れる
+      for (const k of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "ref"]) {
         const v = (body.utm as Record<string, unknown>)[k];
         if (typeof v === "string" && v.length <= 200) utm[k] = v;
       }
@@ -138,6 +139,16 @@ serve(async (req: Request) => {
       */
       "after_expiration[recovery][enabled]": "true",
       "after_expiration[recovery][allow_promotion_codes]": "false",
+      /*
+        購入者メールを確実に残す（2026-08-23 監査P0）。
+        初期パスワードはメールでしか届かないので、メールが取れないと
+        「支払ったのにログインできない」人が出る（アカウントは発行済みになる）。
+        customer_creation=always にすると Stripe が Customer を作り、
+        session.customer_details.email が欠けにくくなる。
+        ※ Checkout は payment モードでメール欄を必ず出すが、Link 等の経路で
+          customer が既にある場合に details が薄くなることがあるための保険。
+      */
+      customer_creation: "always",
     });
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",

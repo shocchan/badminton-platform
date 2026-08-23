@@ -175,6 +175,19 @@ serve(async (req) => {
       .filter((q) => typeof q === "string").slice(-10).map((q) => q.slice(0, 120));
 
     const estLevel = String(body.estimatedLevel ?? "N3").slice(0, 8);
+
+    /**
+     * 直近の学習者発話が「今日のテーマから離れているか」の粗い判定（2026-08-23 実測対応）。
+     * 目標表現の語や、テーマ名に含まれる語がどれも出てこない発話を off-topic と数える。
+     * 判定を厳密にする必要はない——2回続いたときに「場面へ戻す」指示を足すだけの合図に使う。
+     */
+    const themeWords = `${body.targetExpression ?? ""}${body.missionTitleJa ?? ""}`
+      .replace(/[〜～「」（）()・。、,.]/g, " ").split(/\s+/).filter((w) => w.length >= 2);
+    const isOnTheme = (text: string): boolean =>
+      themeWords.length === 0 || themeWords.some((w) => text.includes(w));
+    const recentStudent = [...history.filter((m) => m.role === "student").map((m) => m.text), studentText].slice(-2);
+    const offTopicRun = recentStudent.length >= 2 && recentStudent.every((t) => !isOnTheme(t))
+      ? recentStudent.length : 0;
     const sys = [
       "あなたは「翔子先生」。中国語母語話者に日本語会話を教える、温かく簡潔な先生です。",
       "学習者とテキストで日本語会話の練習をしています。JSONで応答します。",
@@ -195,14 +208,20 @@ serve(async (req) => {
       "3. correction: 毎回入れない。意味が通じない・目標表現に直結する場合だけ、自然な言い直しを1文（例:「〜の方が自然です」）。それ以外は JSON の null 値にする（文字列で「null」「なし」と書かない）。",
       "4. 学習者の文が曖昧で意味が取れない時だけ、questionを短い確認（「〜という意味ですか？」）にする。理解できる時は確認しない。",
       "5. 学習者が終了を望んだら（「終わりたい」等）、question=null・shouldClose=true にする。",
-      "6. 目標表現は自然な場面で1〜2回使う機会を作る。無理に何度も要求しない。",
-      "   ただし雑談で終わらせない: 遅くとも3ターン目までに、テーマに合う具体的な状況（例: 上司に荷物を持つと申し出る・友人に手伝いを頼まれる）を question の中で1つ設定し、",
-      "   学習者がその状況で目標表現を使える質問にする。学習者が目標表現を使ったら reaction で短く褒め、その後は自由に続ける。",
+      "6. 【今日の練習に必ず戻す】このレッスンは雑談ではなく、上のテーマ・目標表現を口に出す練習です。",
+      "   ・学習者の発言がテーマと関係ない話（自己紹介・趣味・天気など）でも、reaction では必ず受け止める（無視しない・否定しない）。",
+      "   ・そのうえで question は**テーマの場面へ引き戻す**。例:「（受け止め）。ところで、さっきの場面でしたら、〜のときは何と言いますか？」",
+      "   ・場面は具体的に1つだけ示す（誰に・どんな状況で）。抽象的な「使ってみてください」で終わらせない。",
+      "   ・学習者が目標表現を使えたら reaction で短く褒め、次の question で**同じ場面の少し違う言い方**へ広げる。",
+      "   ・無理に何度も要求しない。1回使えたら、その後は自由な会話へ戻してよい。",
       "7. 応答は全体で日本語2〜4文。学習者レベルに合わせたやさしい語彙。絵文字は使わない。",
       "8. translationZh: 応答全体（reaction＋correction＋question/closingMessage）の自然な簡体字訳を必ず入れる。学習者（中国語母語者）が押した時だけ表示される折り畳み用。本文には中国語を混ぜない。",
       "9. understoodSummary: 学習者の状況をあなたがどう理解したか、日本語1文で（内部メモ・学習者には見えない）。",
       "10. readingAids: 学習者レベルより難しい語を使った場合だけ、その語と読み（ひらがな）を最大3語。一般的なやさしい語（N5〜N3相当）には付けない。使わなければ空配列。",
       "",
+      offTopicRun >= 2
+        ? "【重要・軌道修正】学習者の直近の発言が2回続けて今日のテーマから離れています。今回の question は、必ず今日のテーマの場面へ戻す質問にしてください（新しい雑談の話題を出さない）。"
+        : "",
       closingNow
         ? "【重要・終了ターン】これが最後の応答です。question=null、shouldClose=true とし、closingMessage に「今日の会話をまとめましょう」という趣旨の一言を入れる。新しい質問・新しい話題を出さない。"
         : studentTurns >= maxTurns - 1

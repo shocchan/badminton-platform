@@ -161,6 +161,45 @@ kawabado 安田翔`,
   };
 };
 
+/**
+ * 運用アラートを立てる（2026-08-23 監査P0）。管理画面「運用」タブに出る。
+ * 初期パスワードは購入者メールにしか届かないので、そこが欠けた購入は
+ * **人が気づける形で残さないと、支払った人が黙って詰む**。
+ * PIIは入れない（メール本文は書かない・ログインIDまで）。
+ */
+const raiseAlert = async (
+  supabaseUrl: string, dbHeaders: Record<string, string>,
+  a: { dedupeKey: string; kind: string; severity: "critical" | "warning" | "info"; title: string; detail: string },
+): Promise<void> => {
+  try {
+    const nowISO = new Date().toISOString();
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/ai_course_alerts?dedupe_key=eq.${encodeURIComponent(a.dedupeKey)}&select=id,occurrences`,
+      { headers: dbHeaders },
+    );
+    const rows = res.ok ? await res.json() : [];
+    if (Array.isArray(rows) && rows.length > 0) {
+      await fetch(`${supabaseUrl}/rest/v1/ai_course_alerts?id=eq.${rows[0].id}`, {
+        method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          occurrences: Number(rows[0].occurrences ?? 1) + 1, last_seen_at: nowISO,
+          detail: a.detail, resolved: false, resolved_at: null, resolved_by: null,
+        }),
+      });
+      return;
+    }
+    await fetch(`${supabaseUrl}/rest/v1/ai_course_alerts`, {
+      method: "POST", headers: { ...dbHeaders, Prefer: "return=minimal" },
+      body: JSON.stringify({
+        dedupe_key: a.dedupeKey, kind: a.kind, severity: a.severity,
+        title: a.title, detail: a.detail, first_seen_at: nowISO, last_seen_at: nowISO,
+      }),
+    });
+  } catch (e) {
+    console.error("raiseAlert failed:", e instanceof Error ? e.message : "unknown");
+  }
+};
+
 serve(async (req: Request) => {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { headers: { "Content-Type": "application/json" }, status });
@@ -493,6 +532,12 @@ serve(async (req: Request) => {
 
     // ── メール送信（購入者＋管理者コピー）。ここで落ちても発行済みなので 200 を返し、
     //    管理者通知の失敗だけなら再送で二重発行しないようにする（メール失敗はログへ） ──
+    /**
+     * 購入者への案内メール。**ここが届かないと初期パスワードが誰にも渡らない**
+     * （アカウントは発行済みになる）ので、失敗を握りつぶさず運用アラートへ上げる（2026-08-23 監査P0）。
+     */
+    let mailDelivered = false;
+    let mailProblem: string | null = null;
     if (resendKey && buyerEmail) {
       const mail = buyerMail({ locale, plan, validUntilISO, loginId: loginId!, password, reusedAccount });
       const sendRes = await fetch("https://api.resend.com/emails", {
@@ -503,9 +548,33 @@ serve(async (req: Request) => {
           subject: mail.subject, text: mail.text,
         }),
       });
-      if (!sendRes.ok) console.error("buyer mail failed:", sendRes.status, await sendRes.text());
+      mailDelivered = sendRes.ok;
+      if (!sendRes.ok) {
+        mailProblem = `send_failed_${sendRes.status}`;
+        console.error("buyer mail failed:", sendRes.status, await sendRes.text());
+      }
     } else if (!buyerEmail) {
+      mailProblem = "no_buyer_email";
       console.error("no buyer email on session:", sessionId);
+    } else {
+      mailProblem = "resend_key_missing";
+      console.error("resend key missing; buyer mail not sent:", sessionId);
+    }
+
+    if (mailProblem) {
+      await raiseAlert(supabaseUrl, dbHeaders, {
+        dedupeKey: `login_mail_undelivered:${sessionId}`,
+        kind: "login_mail_undelivered",
+        severity: "critical",
+        title: "購入者にログイン情報が届いていない可能性",
+        detail: [
+          `理由: ${mailProblem}`,
+          `ログインID: ${loginId ?? "(未発行)"}`,
+          `プラン: ${plan.id}`,
+          reusedAccount ? "既存アカウントの期間延長" : "新規アカウント発行",
+          "対応: 管理画面の購入台帳から購入者を特定し、ログインIDと初期パスワードを個別に案内してください。",
+        ].join(" / "),
+      });
     }
 
     if (resendKey) {
@@ -515,11 +584,14 @@ serve(async (req: Request) => {
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from: MAIL_FROM, to: [ADMIN_EMAIL],
-          subject: `💴${tag}【AIコース購入】${plan.nameJa} ${plan.priceJpy}円`,
+          subject: mailProblem
+            ? `🚨${tag}【要対応・AIコース購入】ログイン情報が届いていない可能性（${plan.nameJa}）`
+            : `💴${tag}【AIコース購入】${plan.nameJa} ${plan.priceJpy}円`,
           text: [
             `プラン: ${plan.nameJa}（v${plan.version}）`,
             `金額: ${plan.priceJpy}円 / livemode: ${event.livemode}`,
             `購入者: ${buyerEmail ?? "(メール不明)"}`,
+            `案内メール: ${mailDelivered ? "送信済み" : `未送信（${mailProblem}）→ 個別に連絡が必要`}`,
             `ログインID: ${loginId}${reusedAccount ? "（既存アカウント再利用・期間延長）" : "（新規発行）"}`,
             `利用期限: ${jstDate(validUntilISO)}`,
             `session: ${sessionId}`,
