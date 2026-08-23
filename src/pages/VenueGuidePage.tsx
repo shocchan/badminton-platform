@@ -7,6 +7,12 @@ type Venue = {
   id: string;
   image: string;
   name: { ja: string; zh: string };
+  /** 施設の正式名称（「（川口市）」等の補足を含まない）。実体照合に使う */
+  officialName: string;
+  /** 市区町村 */
+  locality: string;
+  /** 番地（都道府県・市区町村を含まない） */
+  street: string;
   address: { ja: string; zh: string };
   access: { ja: string; zh: string };
   parking: { ja: string; zh: string };
@@ -18,6 +24,9 @@ const VENUES: Venue[] = [
     id: 'shibaen-kouminkan',
     image: '/venues/shibaen-kouminkan.jpg',
     name: { ja: '芝園公民館（川口市）', zh: '芝园公民馆（川口市）' },
+    officialName: '芝園公民館',
+    locality: '川口市',
+    street: '芝園町3-15',
     address: { ja: '埼玉県川口市芝園町3-15', zh: '埼玉县川口市芝园町3-15' },
     access: {
       ja: 'JR京浜東北線「蕨駅」東口から徒歩約10分（約770m）。芝園団地内にあります。',
@@ -36,6 +45,9 @@ const VENUES: Venue[] = [
     id: 'warabi-taiikukan',
     image: '/venues/warabi-taiikukan.jpg',
     name: { ja: '蕨市民体育館（蕨市）', zh: '蕨市民体育馆（蕨市）' },
+    officialName: '蕨市民体育館',
+    locality: '蕨市',
+    street: '北町1-27-15',
     address: { ja: '埼玉県蕨市北町1-27-15', zh: '埼玉县蕨市北町1-27-15' },
     access: {
       ja: 'JR京浜東北線「蕨駅」から徒歩約14分。',
@@ -58,25 +70,38 @@ export const VenueGuidePage = () => {
 
   const meta = l === 'zh'
     ? {
-        title: '会场指南 | 川口・蕨羽毛球交流会',
-        description: '川口・蕨羽毛球交流会的活动会场指南。芝园公民馆（川口市）・蕨市民体育馆的地址、从蕨站的交通方式、停车场信息。',
+        title: '芝园公民馆・蕨市民体育馆 会场指南 | 川口・蕨羽毛球交流会',
+        description: '芝园公民馆（川口市芝园町3-15）・蕨市民体育馆（蕨市北町1-27-15）的位置、从蕨站的交通方式、停车场信息。川口・蕨羽毛球交流会平日夜间在这两个会场活动。',
       }
     : {
-        title: '会場ガイド | 川口・蕨バドミントン交流会',
-        description: '川口・蕨バドミントン交流会の活動会場ガイド。芝園公民館（川口市）・蕨市民体育館の住所、蕨駅からのアクセス、駐車場情報をまとめています。',
+        title: '芝園公民館・蕨市民体育館 会場ガイド | 川口・蕨バドミントン交流会',
+        description: '芝園公民館（川口市芝園町3-15）・蕨市民体育館（蕨市北町1-27-15）の場所・蕨駅からのアクセス・駐車場をまとめた会場ガイド。川口・蕨バドミントン交流会は平日夜にこの2会場で活動しています。',
       };
 
+  /**
+   * 会場の構造化データ（2026-08-24 強化）。
+   *
+   * Search Console 実測で、このサイトの**最大の表示元は「芝園公民館」**（3か月で73表示）。
+   * 会場名で探している人に見つけてもらうため、
+   *   ①name は施設の正式名称（「（川口市）」等の補足を付けない＝実体として照合しやすい）
+   *   ②住所を region / locality / street に分ける（従来は streetAddress に都道府県まで入っていた）
+   * にする。営業時間や予約可否は**こちらが把握していないので書かない**（公共施設のため）。
+   */
   const venuesJsonLd = VENUES.map(v => ({
     '@context': 'https://schema.org',
     '@type': 'SportsActivityLocation',
-    name: v.name.ja,
+    '@id': `https://kawabado.com/${l}/venues#${v.id}`,
+    name: v.officialName,
     image: `https://kawabado.com${v.image}`,
     address: {
       '@type': 'PostalAddress',
-      streetAddress: v.address.ja,
+      streetAddress: v.street,
+      addressLocality: v.locality,
       addressRegion: '埼玉県',
       addressCountry: 'JP',
     },
+    // ここで活動しているのは kawabado（実体どうしを結ぶ）
+    containedInPlace: { '@type': 'AdministrativeArea', name: v.locality },
   }));
 
   return (
