@@ -93,7 +93,11 @@ export const Header = () => {
         <Link to={navTo('')} onClick={close} className="flex items-center gap-2.5 flex-shrink-0">
           <LogoMark className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0 drop-shadow-sm" />
           <div>
-            <div className="font-extrabold text-gray-900 text-sm sm:text-lg leading-tight tracking-tight">川口・蕨バドミントン交流会</div>
+            {/* 中国語で見ている人にもヘッダーだけ日本語のままだった（フッターは訳されている）。
+                ブランド名の表記をJA/ZHで揃える（2026-08-23） */}
+            <div className="font-extrabold text-gray-900 text-sm sm:text-lg leading-tight tracking-tight">
+              {navLang === 'zh' ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会'}
+            </div>
             <div className="text-[10px] sm:text-xs text-gray-500 font-medium tracking-widest hidden sm:block">KAWABADO</div>
           </div>
         </Link>

@@ -6,6 +6,13 @@ import { LogoMark } from './LogoMark';
 export const Footer = () => {
   const year = new Date().getFullYear();
   const { lang } = useLanguage();
+  // 言語プレフィックス付きの内部リンク。
+  // 以前は `/faq` `/blog` のような接頭辞なしURLを指しており、
+  //   ①クリックのたびに /ja/... への内部リダイレクトを1回挟む（クロール上も無駄なホップ）
+  //   ②中国語で見ている人がフッターを踏むと日本語ページへ飛ばされる
+  // という2つの問題があった（2026-08-23 修正）。
+  const l = lang === 'zh' ? 'zh' : 'ja';
+  const to = (path: string) => (path ? `/${l}/${path}` : `/${l}/`);
 
   return (
     <footer className="bg-gray-900 text-gray-400 mt-16">
@@ -38,25 +45,25 @@ export const Footer = () => {
           <div>
             <h2 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">{lang === 'ja' ? 'サイトマップ' : '网站地图'}</h2>
             <nav aria-label="フッターナビゲーション" className="flex flex-col gap-2.5">
-              <Link to="/" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会案内' : '赛事信息'}
               </Link>
-              <Link to="/level-guide" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('level-guide')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'クラス案内' : '级别说明'}
               </Link>
-              <Link to="/blog" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('blog')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'ブログ' : '博客'}
               </Link>
-              <Link to="/faq" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('faq')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会FAQ' : '赛事常见问题'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/venues`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('venues')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '会場ガイド' : '会场指南'}
               </Link>
-              <Link to="/cancel-policy" className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('cancel-policy')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/contact`} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+              <Link to={to('contact')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'お問い合わせ・スポンサー窓口' : '联系我们・赞助合作'}
               </Link>
             </nav>
@@ -68,7 +75,7 @@ export const Footer = () => {
               <p className="mb-2 text-[11px] uppercase tracking-wider text-gray-600">
                 {lang === 'ja' ? '関連サービス' : '相关服务'}
               </p>
-              <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/ai-course`}
+              <Link to={to('ai-course')}
                 className="flex items-center gap-2 text-sm transition-colors hover:text-white">
                 <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
                 {lang === 'ja' ? 'AI日本語コース（中国語話者向け）' : 'AI日语课程 · 翔子老师'}
@@ -107,8 +114,8 @@ export const Footer = () => {
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
           <div className="flex items-center gap-4">
-            <Link to="/faq" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
-            <Link to="/cancel-policy" className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
+            <Link to={to('faq')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
+            <Link to={to('cancel-policy')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
           </div>
         </div>
       </div>
