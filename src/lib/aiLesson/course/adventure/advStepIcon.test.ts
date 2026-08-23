@@ -43,3 +43,15 @@ describe('絵が無いあいだの挙動', () => {
     }
   });
 });
+
+describe('登録した絵記号のファイルが実在する', () => {
+  // 登録だけして画像を置き忘れると、画面に404の穴が空く。出荷前にここで落とす。
+  it('STEP_ICONS の全idに @1x/@2x の実ファイルがある', async () => {
+    const fs = await import('node:fs');
+    for (const [id, a] of Object.entries(STEP_ICONS)) {
+      for (const p of [a.webp1x, a.webp2x]) {
+        expect(fs.existsSync(`public${p}`), `${id}: public${p} が無い`).toBe(true);
+      }
+    }
+  });
+});
