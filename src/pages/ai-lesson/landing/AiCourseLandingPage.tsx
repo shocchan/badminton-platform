@@ -14,6 +14,7 @@ import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
+import { buildCourseSchema } from './courseSchema';
 
 const SITE = 'https://kawabado.com';
 
@@ -87,21 +88,11 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
       : '日本語の相棒｜読めるのに話せないを、半年で終わらせる')
     : v.seo.title[lang];
 
-  const courseSchema = {
-    '@context': 'https://schema.org', '@type': 'Course',
-    name: seoTitle, description: v.seo.description[lang],
-    provider: { '@type': 'Organization', name: 'kawabado', url: SITE },
-    inLanguage: lang === 'ja' ? 'ja' : 'zh-Hans',
-    // Google の Course リッチリザルトは hasCourseInstance が無いと対象にならない。
-    // 実態（オンライン・随時開始・半年伴走）とズレない範囲だけ書く。
-    // 価格はプランが複数あり未確定のものも混ざるため、offers はあえて出さない
-    hasCourseInstance: {
-      '@type': 'CourseInstance',
-      courseMode: 'online',
-      courseWorkload: 'PT20M',
-      inLanguage: lang === 'ja' ? 'ja' : 'zh-Hans',
-    },
-  };
+  const courseSchema = buildCourseSchema({
+    lang: lang === 'zh' ? 'zh' : 'ja',
+    name: seoTitle,
+    description: v.seo.description[lang],
+  });
   const breadcrumbSchema = {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: [
