@@ -80,3 +80,16 @@ describe('従来の上限が赤字だったことを記録として固定する'
     expect(oldCostJpy).toBeGreaterThan(monthPrice);
   });
 });
+
+describe('権限（entitlements）に枠がそのまま出ている', () => {
+  it('画面もサーバーも同じ数字を見る（表示と判定の食い違いを作らない）', async () => {
+    const { entitlementsFor } = await import('./planEntitlements');
+    for (const p of PLAN_CATALOG) {
+      const e = entitlementsFor(p.id);
+      const b = aiBudgetFor(p.id);
+      expect(e.aiVoiceSessionsTotal, p.id).toBe(b.voiceSessionsTotal);
+      expect(e.aiVoiceSessionsPerDay, p.id).toBe(b.voiceSessionsPerDay);
+      expect(e.aiTextSessionsPerDay, p.id).toBe(b.textSessionsPerDay);
+    }
+  });
+});

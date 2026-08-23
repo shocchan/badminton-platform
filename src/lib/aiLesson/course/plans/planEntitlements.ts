@@ -12,6 +12,7 @@
 // - プラン紐づけ: ai_course_access.plan_id（migration 20260819100000・**remote未適用**。
 //   適用まで plan_id は読めないため、クライアントは null を「従来どおり＝制限なし」と扱う）
 import { planById, UPGRADE_PATHS, type PlanId } from './planCatalog';
+import { aiBudgetFor } from './planAiBudget';
 
 export interface PlanEntitlements {
   planId: PlanId;
@@ -19,6 +20,15 @@ export interface PlanEntitlements {
   aiConversation: boolean;
   /** AI会話の累計利用上限（分）。null＝累計上限なし（日次・月次上限は別途かかる） */
   aiMinutesTotal: number | null;
+  /**
+   * AI**音声**会話の枠（2026-08-23 CEO決定）。原価を持つのは音声だけなので、
+   * 上限はここだけにかける。冒険・文法バトル・ミニ模試・答案・復習は枠の外。
+   * 数字の正準は planAiBudget.ts（そこで対売上の原価率まで検算している）。
+   */
+  aiVoiceSessionsTotal: number;
+  aiVoiceSessionsPerDay: number;
+  /** AI**テキスト**会話の1日の回数。原価が音声の約1/300なので広く開ける */
+  aiTextSessionsPerDay: number;
   /** リアルタイム体験の分数（開始から実時間でカウント・経過で終了）。null＝リアルタイム制ではない */
   realtimeWindowMinutes: number | null;
   /** 購入日からの利用日数（AI会話・教材の利用期限）。null＝契約で個別設定（6か月コース） */
@@ -54,10 +64,14 @@ export const entitlementsFor = (planId: PlanId): PlanEntitlements => {
   const p = planById(planId);
   if (!p) throw new Error(`unknown plan: ${planId}`);
   const hasHuman = p.lessonCount > 0;
+  const budget = aiBudgetFor(p.id);
   return {
     planId: p.id,
     aiConversation: true,
     aiMinutesTotal: p.aiMinutes,
+    aiVoiceSessionsTotal: budget.voiceSessionsTotal,
+    aiVoiceSessionsPerDay: budget.voiceSessionsPerDay,
+    aiTextSessionsPerDay: budget.textSessionsPerDay,
     realtimeWindowMinutes: p.realtimeWindowMinutes,
     accessDays: p.accessDays,
     materials: true,

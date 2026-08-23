@@ -17,7 +17,7 @@ export interface FunctionPlan {
 export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
   {
     "id": "ai-trial-pass",
-    "version": 3,
+    "version": 4,
     "nameJa": "AI体験パス",
     "nameZh": "AI体验通行证",
     "priceLabelJa": "600円（税込）",
@@ -33,7 +33,7 @@ export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
   },
   {
     "id": "ai-month",
-    "version": 2,
+    "version": 3,
     "nameJa": "1か月 AI自学プラン",
     "nameZh": "1个月 AI自学方案",
     "priceLabelJa": "2,980円（税込）",
@@ -49,7 +49,7 @@ export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
   },
   {
     "id": "coach-6m",
-    "version": 4,
+    "version": 5,
     "nameJa": "6か月 AI日本語伴走コース",
     "nameZh": "6个月 AI日语陪跑课程",
     "priceLabelJa": "10万円（税込）",

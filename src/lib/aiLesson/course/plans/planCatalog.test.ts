@@ -290,11 +290,12 @@ const planHash = (id: string): string => {
  * **一度でも公開したら、以後は必ず version を上げること。**
  */
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
-  // 2026-08-19 3段階化＋地域上限 → 08-20 体験パスをリアルタイム60分制へ（trial v3）:
-  // trial v3=開始から実時間60分・month v2=全地域文言・coach v4=対象者/含まれないもの/CTA追加（価格不変）
-  'ai-trial-pass': { version: 3, hash: '9ffcc2a354bb' },
-  'ai-month': { version: 2, hash: 'cf74e712d0c9' },
-  'coach-6m': { version: 4, hash: 'a3242b26b987' },
+  // 2026-08-23 AI音声会話の回数を明記（CEO決定）。「使い放題」をやめ、
+  // 無制限のもの（教材・冒険・バトル・模試）と回数のあるもの（音声会話）を分けて書いた。
+  // 価格・期間は不変。trial v4 / month v3 / coach v5
+  'ai-trial-pass': { version: 4, hash: 'aa91e71c6385' },
+  'ai-month': { version: 3, hash: '788198db26dc' },
+  'coach-6m': { version: 5, hash: '69196c3fc405' },
 };
 
 describe('プランの版', () => {
