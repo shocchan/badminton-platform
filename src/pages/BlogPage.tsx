@@ -1,8 +1,12 @@
 import { useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
 import { Newspaper, ArrowRight, Tag } from 'lucide-react';
 import { useBlogPosts } from '../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateViews';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { useLanguage } from '../contexts/LanguageContext';
+import { BLOG_META, blogCanonical, SITE } from './blogSeo';
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
@@ -15,6 +19,9 @@ const SORT_OPTIONS: { key: SortMode; label: string }[] = [
 export const BlogPage = () => {
   const { blogPosts, loading, error } = useBlogPosts();
   const [sort, setSort] = useState<SortMode>('newest');
+  const { lang } = useLanguage();
+  const l: 'ja' | 'zh' = lang === 'zh' ? 'zh' : 'ja';
+  const m = BLOG_META[l];
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -29,12 +36,28 @@ export const BlogPage = () => {
   });
 
   return (
+    <>
+    <Helmet>
+      <html lang={l} />
+      <title>{m.title}</title>
+      <meta name="description" content={m.description} />
+      <meta property="og:title" content={m.title} />
+      <meta property="og:description" content={m.description} />
+      <meta property="og:url" content={`${SITE}/${l}/blog`} />
+      <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
+      {/* 記事本文は日本語のみ。中国語URLは日本語版へ寄せる（重複ページ化を防ぐ） */}
+      <link rel="canonical" href={blogCanonical('blog')} />
+    </Helmet>
     <main className="max-w-6xl mx-auto px-4 py-8 sm:py-10">
+      <Breadcrumbs items={[
+        { label: l === 'zh' ? '首页' : 'ホーム', path: `/${l}/` },
+        { label: m.heading },
+      ]} />
       <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-2">
-          <Newspaper className="w-6 h-6 text-blue-500" /> ブログ
+          <Newspaper className="w-6 h-6 text-blue-500" /> {m.heading}
         </h1>
-        <p className="text-gray-500 text-sm sm:text-base">大会結果やお知らせをお届けします</p>
+        <p className="text-gray-500 text-sm sm:text-base">{m.lead}</p>
       </div>
 
       {/* 並べ替え */}
@@ -63,17 +86,17 @@ export const BlogPage = () => {
         </div>
       )}
 
-      {error && <ErrorState message="記事の読み込みに失敗しました" />}
+      {error && <ErrorState message={m.error} />}
 
       {!loading && !error && blogPosts.length === 0 && (
-        <EmptyState emoji="📝" title="まだ記事がありません" description="大会結果やお知らせを順次掲載していきます" />
+        <EmptyState emoji="📝" title={m.empty.title} description={m.empty.description} />
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         {sortedPosts.map(post => (
           <Link
             key={post.id}
-            to={`/blog/${post.id}`}
+            to={`/${l}/blog/${post.id}`}
             className="group block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow flex flex-col cursor-pointer"
           >
             <article className="flex flex-col flex-1">
@@ -91,7 +114,7 @@ export const BlogPage = () => {
                 {/* テイスト混在をならす共通ラベル帯 */}
                 <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 bg-gray-900/70 text-white text-[10px] font-bold px-2 py-1 rounded-md backdrop-blur-sm">
                   <Tag className="w-2.5 h-2.5" />
-                  {post.tags && post.tags.length > 0 ? post.tags[0] : 'ブログ'}
+                  {post.tags && post.tags.length > 0 ? post.tags[0] : m.tag}
                 </span>
               </div>
               <div className="p-4 sm:p-5 flex flex-col flex-1">
@@ -101,7 +124,7 @@ export const BlogPage = () => {
                   <p className="text-gray-500 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
                 )}
                 <span className="mt-auto inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:underline">
-                  詳細を見る <ArrowRight className="w-3.5 h-3.5" />
+                  {m.more} <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </div>
             </article>
@@ -109,5 +132,6 @@ export const BlogPage = () => {
         ))}
       </div>
     </main>
+    </>
   );
 };
