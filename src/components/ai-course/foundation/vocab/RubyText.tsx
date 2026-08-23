@@ -14,7 +14,8 @@ export type FuriganaDisplayMode = 'all' | 'hard' | 'none';
 
 export const RubyWord = ({ text, reading, show }: { text: string; reading: string; show: boolean }) => (
   show ? (
-    <ruby className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{text}<rt>{reading}</rt></ruby>
+    // 読みを支援技術へ二重読みさせない（rt は aria-hidden。AdvRuby.tsx と同じ方針）
+    <ruby className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{text}<rt aria-hidden>{reading}</rt></ruby>
   ) : (
     <span>{text}</span>
   )
@@ -35,7 +36,8 @@ export const RubySegments = ({ segments, mode = 'all', show, hideTargetReading }
         const allowed = effective === 'all' || (effective === 'hard' && seg.level === 'hard');
         const visible = allowed && !!seg.reading && !(hideTargetReading && seg.isTarget);
         return visible
-          ? <ruby key={i} className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{seg.text}<rt>{seg.reading}</rt></ruby>
+          // 読みを支援技術へ二重読みさせない（rt は aria-hidden。AdvRuby.tsx と同じ方針）
+          ? <ruby key={i} className="[&>rt]:text-[0.6em] [&>rt]:text-gray-500">{seg.text}<rt aria-hidden>{seg.reading}</rt></ruby>
           : <span key={i}>{seg.text}</span>;
       })}
     </>

@@ -63,7 +63,8 @@ const RubyText = ({ text, aids }: { text: string; aids?: ReadingAid[] }) => {
   return (
     <>
       {segs.map((s, i) => s.reading
-        ? <ruby key={i}>{s.text}<rt className="text-[10px] text-gray-500">{s.reading}</rt></ruby>
+        // 読みを支援技術へ二重読みさせない（rt は aria-hidden。AdvRuby.tsx と同じ方針）
+        ? <ruby key={i}>{s.text}<rt aria-hidden className="text-[10px] text-gray-500">{s.reading}</rt></ruby>
         : <span key={i}>{s.text}</span>)}
     </>
   );
