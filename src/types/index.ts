@@ -5,6 +5,8 @@ export interface Tournament {
   event_type: string;
   location: string;
   event_date: string;
+  /** 追加受付の締切（override）。NULL の大会は共通ルール（14日前）のまま */
+  late_entry_until?: string | null;
   start_time: string;
   end_time: string;
   capacity: number;

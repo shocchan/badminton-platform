@@ -35,6 +35,34 @@ if [ ! -f .env.production ]; then
   exit 1
 fi
 CHECKOUT_MODE=$(grep -E '^VITE_AI_COURSE_CHECKOUT=' .env.production | cut -d= -f2 | tr -d '[:space:]' || true)
+
+# ── 事前チェック: 「直したはずのものが本番に無い」を出す（2026-08-24）──
+#
+# このリポジトリは worktree が4つあり、それぞれ別ブランチを開いている。
+# 本番は**このスクリプトを実行したワークツリーのブランチ**から作られるので、
+# 別ブランチで直したものは、何も上書きされていなくても本番に出ない。
+# 実際「大会カードの詳細を見る」「大会詳細のネイビー刷新」「特商法ページ」が
+# この理由で本番に出ておらず、CEOからは「戻った」ように見えていた。
+#
+# ここでは止めない（実験ブランチも混ざるため）。**見落とせなくする**のが目的。
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+echo "── 本番に出すブランチ ──"
+echo "  ${CUR_BRANCH}"
+UNSHIPPED=""
+for b in $(git branch --format='%(refname:short)'); do
+  [ "$b" = "$CUR_BRANCH" ] && continue
+  n=$(git log --oneline "HEAD..$b" -- src/ 2>/dev/null | wc -l | tr -d ' ')
+  [ "$n" = "0" ] && continue
+  UNSHIPPED="${UNSHIPPED}  ${b}: ${n}件\n"
+done
+if [ -n "$UNSHIPPED" ]; then
+  echo ""
+  echo "⚠️  このブランチに入っていない src/ の変更があります（＝本番に出ません）"
+  printf "%b" "$UNSHIPPED"
+  echo "   中身: git log --oneline HEAD..<ブランチ> -- src/"
+  echo "   「前に直したのに戻っている」ときは、まずここを見ること"
+fi
+echo ""
 echo "── 本番設定 ──"
 echo "  AIコース決済: ${CHECKOUT_MODE:-off（購入ボタンは申込フォームへ倒れます）}"
 grep -q '^VITE_GA4_ID=' .env.production && echo "  GA4計測: 有効" || echo "  GA4計測: 未設定"
@@ -53,6 +81,15 @@ for _ in 1 2 3 4 5 6; do
   if [ -n "$LIVE_HASH" ] && [ "$LIVE_HASH" = "$LOCAL_HASH" ]; then
     echo ""
     echo "✅✅✅ 本番反映 成功！ https://kawabado.com は新ビルドを配信中 ✅✅✅"
+    # 「いま本番に何が入っているか」の唯一の記録。
+    # これが無いと、本番との差分を調べる起点が無く、取り残しに気づけない
+    {
+      echo "deployed_at: $(date '+%Y-%m-%d %H:%M:%S %z')"
+      echo "branch:      ${CUR_BRANCH}"
+      echo "commit:      $(git rev-parse HEAD)"
+      echo "asset:       ${LOCAL_HASH}"
+    } > docs/PRODUCTION_STATE.txt
+    echo "   （本番の内容を docs/PRODUCTION_STATE.txt に記録しました）"
     notify "kawabado.com 本番反映 成功" "新しいビルドが配信されています"
     exit 0
   fi
