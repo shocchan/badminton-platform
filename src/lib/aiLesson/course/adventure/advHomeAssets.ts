@@ -85,7 +85,8 @@ export const STEP_ICON_BY_KIND: Partial<Record<AdvQuestStep['kind'], string>> = 
  * 用意できている step の絵記号（増えたらここへ足す）。
  * 96px(@2x)/48px(@1x) の透過WebP。画面では28pxで出す。
  * **無いものは登録しない**（存在しない画像を出して404の穴を作らない）。
- * 2026-08-23: 8種のうち6種が完成。words / grammar は作り直し中。
+ * 2026-08-23: 8種すべて完成。7つ＋2つを1枚ずつにまとめて生成し、画風を揃えた
+ * （1枚ずつ作ると描き方がぶれて、並べたときに1つだけ浮く）。
  */
 const stepIcon = (id: string): HomeImageAsset => ({
   webp1x: `/ai-course/step/step-${id}@1x.webp`,
@@ -94,6 +95,8 @@ const stepIcon = (id: string): HomeImageAsset => ({
 });
 
 export const STEP_ICONS: Record<string, HomeImageAsset> = {
+  words: stepIcon('words'),
+  grammar: stepIcon('grammar'),
   battle: stepIcon('battle'),
   review: stepIcon('review'),
   talk: stepIcon('talk'),

@@ -55,3 +55,9 @@ describe('登録した絵記号のファイルが実在する', () => {
     }
   });
 });
+
+describe('8種そろっている', () => {
+  it('どの step 種別にも絵が出る（番号だけの行が混ざらない）', () => {
+    for (const k of ALL_KINDS) expect(stepIconFor(k), k).not.toBeNull();
+  });
+});
