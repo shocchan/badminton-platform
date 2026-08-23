@@ -13,8 +13,11 @@ import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import { AdvWorldMapImage, AdvWorldMapSwitch } from './AdvWorldMapImage';
 import {
-  buildAdventureMap, type AdventureMap, type MapRouteKind,
+  buildAdventureMap, worldMapWindow, type AdventureMap, type MapRouteKind,
 } from '../../../lib/aiLesson/course/adventure/advMapModel';
+
+/** 絵に載る地域（AdvWorldMap 内部と同じ12地域の窓・2026-08-23） */
+const shownOf = (map: AdventureMap) => worldMapWindow(map.regions, map.currentRegionId);
 import { defaultAdvProfile } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { generateRoute } from '../../../lib/aiLesson/course/adventure/advRoute';
 import {
@@ -114,7 +117,7 @@ describe('AdvWorldMapSwitch（フラグで新旧を出し分ける入口）', ()
     expect(container.querySelector('img')).toBeTruthy();
     // 読込中は自作SVG風景がプレースホルダとして残る（高さが変わらない＝ガタつかない）
     expect(sceneryOf(container)).toBeTruthy();
-    expect(nodeButtons(nav).length).toBe(map.regions.length);
+    expect(nodeButtons(nav).length).toBe(shownOf(map).length);
     expect(window.localStorage.getItem(WORLD_MAP_VARIANT_STORAGE_KEY)).toBeNull();
   });
 
@@ -126,7 +129,7 @@ describe('AdvWorldMapSwitch（フラグで新旧を出し分ける入口）', ()
     const nav = screen.getByRole('navigation', { name: NAV_NAME });
     expect(nav.getAttribute('data-map-variant')).toBe('svg');
     expect(container.querySelector('img')).toBeNull();
-    expect(nodeButtons(nav).length).toBe(map.regions.length);
+    expect(nodeButtons(nav).length).toBe(shownOf(map).length);
   });
 
   it('② ?map=image で画像版になり、localStorage に保存される', () => {
@@ -188,10 +191,10 @@ describe('AdvWorldMapImage（画像版）のフォールバックと読込', () 
     expect(container.querySelector('picture')).toBeNull();
     expect(sceneryOf(container)).toBeTruthy();
     const buttons = nodeButtons(nav);
-    expect(buttons.length).toBe(map.regions.length);
+    expect(buttons.length).toBe(shownOf(map).length);
     expect(buttons.filter((b) => b.getAttribute('aria-current') === 'step').length).toBe(1);
     fireEvent.click(buttons[buttons.length - 1]);
-    expect(props.onSelectRegion).toHaveBeenCalledWith(map.regions[map.regions.length - 1].id);
+    expect(props.onSelectRegion).toHaveBeenCalledWith(shownOf(map)[shownOf(map).length - 1].id);
   });
 
   it('④ 読込成功 → 自作風景が消え、画像が残る（ノード・道はそのまま）', () => {
@@ -203,7 +206,7 @@ describe('AdvWorldMapImage（画像版）のフォールバックと読込', () 
     expect(nav.getAttribute('data-map-image-state')).toBe('loaded');
     expect(sceneryOf(container)).toBeNull();
     expect(container.querySelector('img')).toBeTruthy();
-    expect(nodeButtons(nav).length).toBe(map.regions.length);
+    expect(nodeButtons(nav).length).toBe(shownOf(map).length);
     // 道（実ルートの区間）は描かれている
     expect(container.querySelectorAll('svg path').length).toBeGreaterThan(0);
     // N3 目標の雲海ボタンも残る

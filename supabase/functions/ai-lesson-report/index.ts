@@ -46,11 +46,18 @@ const REPORT_SCHEMA = {
     naturalPhrases: { type: "array", items: { type: "string" }, maxItems: 2 },
     targetUsage: { type: "string", enum: ["self", "hint", "none"] },
     encouragementJa: { type: "string" },
-    // 中国語補助（UX-004）。requiredに含めない=生成失敗してもreport全体を壊さない
-    achievementsZh: { type: "array", items: { type: "string" }, maxItems: 3 },
-    encouragementZh: { type: "string" },
+    // 中国語補助（UX-004）。「無くてもレポートは成立する」を表すが、
+    // **strict モードでは properties を全部 required に入れなければならない**
+    // （抜くと OpenAI が 400 を返し、レポートが1件も出せなくなる＝2026-08-23 本番で実測 502/400。
+    //  f011e44 と同じ修正）。required に入れたうえで null を許して「無し」を表現する。
+    achievementsZh: { type: ["array", "null"], items: { type: "string" }, maxItems: 3 },
+    encouragementZh: { type: ["string", "null"] },
   },
-  required: ["todaySummaryJa", "todaySummaryZh", "achievements", "corrections", "naturalPhrases", "targetUsage", "encouragementJa"],
+  required: [
+    "todaySummaryJa", "todaySummaryZh", "achievements", "corrections",
+    "naturalPhrases", "targetUsage", "encouragementJa",
+    "achievementsZh", "encouragementZh",
+  ],
 };
 
 /** JWTからユーザーIDを取り出す（失敗時 null）。メール等はログへ出さない */

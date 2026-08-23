@@ -21,7 +21,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
 import { AdvWorldMap } from './AdvWorldMap';
 import {
-  buildAdventureMap, type AdventureMap, type MapRouteKind,
+  buildAdventureMap, worldMapWindow, type AdventureMap, type MapRouteKind,
 } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import { defaultAdvProfile } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { generateRoute } from '../../../lib/aiLesson/course/adventure/advRoute';
@@ -62,6 +62,9 @@ const mapFor = (
 
 const CLOUD_LABEL = 'この先の土地（目標を上げると開きます）';
 
+/** 絵に載る地域（AdvWorldMap 内部と同じ12地域の窓・2026-08-23）。一覧は全地域のまま */
+const shownOf = (map: AdventureMap) => worldMapWindow(map.regions, map.currentRegionId);
+
 const renderMap = (map: AdventureMap, p: AdventureV2Profile) => {
   const onSelectRegion = vi.fn();
   const { container } = render(
@@ -95,7 +98,7 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
     const { container, buttons } = renderMap(map, p);
 
     // ① ノード数 = regions.length
-    expect(buttons.length).toBe(map.regions.length);
+    expect(buttons.length).toBe(shownOf(map).length);
     // ② 現在地ノードはちょうど1つ
     expect(buttons.filter((b) => b.getAttribute('aria-current') === 'step').length).toBe(1);
     expect(buttons.filter((b) => (b.getAttribute('aria-label') ?? '').includes('現在地')).length).toBe(1);
@@ -112,7 +115,7 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
     expect(map.doneCount).toBeGreaterThan(0); // 前提: 実測で攻略済みがある状態
     const { container, buttons } = renderMap(map, p);
 
-    expect(buttons.length).toBe(map.regions.length);
+    expect(buttons.length).toBe(shownOf(map).length);
     expect(buttons.filter((b) => b.getAttribute('aria-current') === 'step').length).toBe(1);
     // ⑥ 「攻略済み」ノード＝実測done。金の道＝「done地域へ入る区間」の数（レーン内判定）
     const doneReal = map.regions.filter((r) => r.state === 'done').length;
@@ -120,7 +123,7 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
     expect(goldPaths(container).length).toBe(expectedGold(map));
 
     // ⑤ aria-label に名前・鍛える力・状態が入る（色だけに頼らない）
-    const first = map.regions[0];
+    const first = shownOf(map)[0];
     const label = `${first.nameJa}、${first.abilityJa}、`;
     const btn = buttons.find((b) => (b.getAttribute('aria-label') ?? '').startsWith(label));
     expect(btn, `先頭地域のノードが見つからない: ${label}`).toBeTruthy();
@@ -144,7 +147,7 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
     const p = profileFor('hybrid');
     const map = mapFor(p, 'combined', 3);
     const { buttons, onSelectRegion } = renderMap(map, p);
-    const target = map.regions[map.regions.length - 1];
+    const target = shownOf(map)[shownOf(map).length - 1];
     const btn = buttons.find((b) =>
       (b.getAttribute('aria-label') ?? '').startsWith(`${target.nameJa}、`));
     expect(btn).toBeTruthy();
@@ -159,10 +162,10 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
     expect(map.currentRegionId).toBeNull();
     const { buttons } = renderMap(map, p);
 
-    expect(buttons.length).toBe(map.regions.length);
+    expect(buttons.length).toBe(shownOf(map).length);
     expect(buttons.filter((b) => b.getAttribute('aria-current') === 'step').length).toBe(0);
     expect(buttons.filter((b) => (b.getAttribute('aria-label') ?? '').includes('攻略済み')).length)
-      .toBe(map.regions.length);
+      .toBe(shownOf(map).length);
     // 頂上の旗ラベルは destination の実データのみ
     expect(screen.getByText(map.destinationJa)).toBeTruthy();
   });
@@ -183,7 +186,7 @@ describe('世界地図は実測regionsの別ビュー（3状態で壊れない�
         const p = profileFor('hybrid', target);
         const map = mapFor(p, 'combined', mastered);
         const { buttons } = renderMap(map, p);
-        expect(buttons.length, `target=${target} mastered=${mastered}`).toBe(map.regions.length);
+        expect(buttons.length, `target=${target} mastered=${mastered}`).toBe(shownOf(map).length);
         cleanup();
       }
     }
@@ -197,9 +200,11 @@ describe('⑦ ノード間隔 — 44pxタップ領域が重ならない（layout
         it(`band=${band} target=${target} kind=${kind}: 全ノードペア距離 ≥ 44`, () => {
           const p = profileFor('hybrid', target, band);
           const map = mapFor(p, kind, 0);
-          const lay = layoutWorldNodes(map.regions, target, kind);
-          const exam = map.regions.filter((r) => r.layer === 'exam');
-          const conv = map.regions.filter((r) => r.layer === 'conversation');
+          // 絵に置くのは AdvWorldMap と同じ「現在地を含む12地域の窓」（2026-08-23）
+          const shown = worldMapWindow(map.regions, map.currentRegionId);
+          const lay = layoutWorldNodes(shown, target, kind);
+          const exam = shown.filter((r) => r.layer === 'exam');
+          const conv = shown.filter((r) => r.layer === 'conversation');
           expect(lay.examPts.length).toBe(exam.length);
           expect(lay.convPts.length).toBe(conv.length);
           const pts = [...lay.examPts, ...lay.convPts];

@@ -57,3 +57,25 @@ describe('中断した回は「やった」ことにしない', () => {
     expect(fn![0]).toMatch(/if \(r\.total === 0 \|\| r\.keys\.length === 0\) return;/);
   });
 });
+
+// 2026-08-23 実生徒監査P0: 設定→「目的・レベル変更（準備をやり直す）」を押すと
+// 「冒険の準備をしています…」が永久に終わらなかった。診断プールを読む effect の条件が
+// needsOnboarding / redoOnboarding だけで、既定入口の adjustOnboarding を含んでいなかった。
+// ナビ（今日の冒険／冒険マップ）を押しても同じ画面のままで、リロード以外に出口が無かった。
+describe('調整モード（目的・レベル変更）は行き止まりにならない', () => {
+  it('診断プールの読込条件に adjustOnboarding が入っている', () => {
+    const eff = /if \(\(!needsOnboarding && !redoOnboarding && !adjustOnboarding\) \|\| diagPools \|\| diagError\) return;/;
+    expect(SRC).toMatch(eff);
+    expect(SRC).toMatch(/\}, \[needsOnboarding, redoOnboarding, adjustOnboarding, diagPools, diagError\]\);/);
+  });
+
+  it('ヘッダーのナビは調整モードからの出口になる（home/map で adjustOnboarding を畳む）', () => {
+    const block = /if \(reqN !== seenReq\) \{[\s\S]{0,1500}?\n {2}\}/.exec(SRC);
+    expect(block, 'requestView の処理ブロックが見つからない').toBeTruthy();
+    expect(block![0]).toMatch(/setView\(v === 'map' \? 'map' : 'home'\); setAdjustOnboarding\(false\);/);
+  });
+
+  it('準備データの読込失敗画面は、調整モードでも「元の設定のまま戻る」を出す', () => {
+    expect(SRC).toMatch(/\{\(redoOnboarding \|\| adjustOnboarding\) && \(/);
+  });
+});

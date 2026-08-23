@@ -18,7 +18,7 @@
 // - アニメはCSSのみ・motion-safe 経由（reduced-motion で自動静止）
 import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { Star, Flag, ChevronDown, Lock } from 'lucide-react';
-import type { MapRegion, MapRouteKind } from '../../../lib/aiLesson/course/adventure/advMapModel';
+import { worldMapWindow, type MapRegion, type MapRouteKind } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { JlptLevel } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { layoutWorldNodes, type Pt, type RoadState } from '../../../lib/aiLesson/course/adventure/advWorldSpine';
 import { WorldScenery, CloudSea, MiniLandmark, WORLD_PALETTE, groundBlobColor } from './AdvWorldMapScenery';
@@ -93,10 +93,13 @@ const ROAD_STYLE: Record<RoadState, { stroke: string; width: number; dash?: stri
 };
 
 export const AdvWorldMap = ({
-  lang, regions, currentRegionId, destinationJa, destinationZh,
+  lang, regions: regionsAll, currentRegionId, destinationJa, destinationZh,
   doneCount, totalCount, onSelectRegion, targetJlpt, routeKind, summitSlot,
   backdrop, hideScenery = false, tiles, hideNodeArt = false, variant = 'svg', imageState,
 }: Props) => {
+  // 会話レイヤーは第18週まであるが、環状路に置けるのは現在地を含む12地域まで
+  // （18個置くと44pxのタップ領域が重なる・2026-08-23）。一覧は呼び出し側が全地域を出す
+  const regions = useMemo(() => worldMapWindow(regionsAll, currentRegionId), [regionsAll, currentRegionId]);
   const uid = useId();
   /** 雲海タップの吹き出し。5秒で自動で閉じる・再タップでトグル */
   const [bubbleOpen, setBubbleOpen] = useState(false);

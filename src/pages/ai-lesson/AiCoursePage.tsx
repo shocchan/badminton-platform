@@ -39,7 +39,7 @@ import { latestRepresentative, buildBeforeAfter } from '../../lib/aiLesson/cours
 import type { BeforeAfter } from '../../lib/aiLesson/course/courseBeforeAfter';
 import { currentCanDos, canDosThisWeek, nextAbility, stageOfMastery, weekLevelCanDo } from '../../lib/aiLesson/course/courseCanDo';
 import type { AchievedCanDo } from '../../lib/aiLesson/course/courseCanDo';
-import { buildJourney } from '../../lib/aiLesson/course/courseJourney';
+import { buildJourney, LAST_CONVERSATION_WEEK } from '../../lib/aiLesson/course/courseJourney';
 import type { JourneyPlace } from '../../lib/aiLesson/course/courseJourney';
 import { otherLang, swapCourseLocaleInPath } from '../../lib/aiLesson/course/courseLanguage';
 import { GrowthOverview } from '../../components/ai-course/GrowthOverview';
@@ -729,7 +729,7 @@ export default function AiCoursePage() {
     const freshProgress = [...progress.filter((p) => p.itemId !== updated.itemId), updated];
     const weekMissions = missionsInWeek(learner.currentWeek);
     const weekDone = weekMissions.every((mm) => freshProgress.some((p) => p.itemId === mm.id));
-    if (weekDone && learner.currentWeek < 12) await courseRepository.updateLearner({ currentWeek: learner.currentWeek + 1 });
+    if (weekDone && learner.currentWeek < LAST_CONVERSATION_WEEK) await courseRepository.updateLearner({ currentWeek: learner.currentWeek + 1 });
 
     // 完了を画面状態へ即反映し、レッスン計画を**次のミッション**で組み直す
     // （2026-08-20 CEO実害報告: 「AI会話をもう1回」が同じミッションの繰り返しになり
@@ -739,7 +739,7 @@ export default function AiCoursePage() {
       ...learner,
       // adjustDifficulty は 1..5 の範囲でしか動かさないが、返り値の型が広い（number）ので合わせる
       difficultyLevel: adj.changed ? (adj.level as Learner['difficultyLevel']) : learner.difficultyLevel,
-      currentWeek: weekDone && learner.currentWeek < 12 ? learner.currentWeek + 1 : learner.currentWeek,
+      currentWeek: weekDone && learner.currentWeek < LAST_CONVERSATION_WEEK ? learner.currentWeek + 1 : learner.currentWeek,
     };
     setLearner(nextLearner);
     setProgress(freshProgress);
@@ -1000,6 +1000,7 @@ export default function AiCoursePage() {
         const now = new Date().toISOString();
         writeUpsellDismissedAt(window.localStorage, now);
         setUpsellDismissedAt(now);
+        trackCourse('dismiss_ai_course_upsell', { moment: upsellMoment });
       }}
     />
   ) : null;

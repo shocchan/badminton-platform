@@ -264,7 +264,8 @@ export function AdvBattleRunner(props: BattleProps) {
             </div>
           )}
           <p className="mt-2 text-xs text-gray-400">
-            {tx(lang, '出典', '出处')}：{q.explanation.sourceLabel}（{q.explanation.sourceItemId}）・
+            {/* 内部ID（vc-25-013 等）は生徒に意味が無いので出さない（2026-08-23 監査） */}
+            {tx(lang, '出典', '出处')}：{q.explanation.sourceLabel}・
             {tx(lang, EXAM_SKILL_LABELS[q.skill].ja, EXAM_SKILL_LABELS[q.skill].zh)}
           </p>
           <button type="button" className={`${pressFx} action-primary-blue mt-3 w-full min-h-[44px] rounded-xl bg-blue-600 px-4 py-2 font-bold text-white`}

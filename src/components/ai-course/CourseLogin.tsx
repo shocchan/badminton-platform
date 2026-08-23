@@ -13,6 +13,7 @@ import { ShokoAvatar } from './ShokoAvatar';
 import { sendEmailOtp, verifyEmailOtp, signInWithStudentId } from '../../lib/aiLesson/course/courseAuth';
 import type { OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
 import type { AiCourseDict } from '../../locales/aiCourse';
+import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 
 interface Props {
   t: AiCourseDict;
@@ -88,6 +89,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
     const r = await verifyEmailOtp(email, code);
     setBusy(false);
     if (!r.ok) { setError(tl.invalidCode); return; }
+    trackCourse('login_ai_course', { method: 'otp' });   // 個人情報は送らない
     onLoggedIn();
   };
 
@@ -100,8 +102,10 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
     setBusy(false);
     if (!r.ok) {
       setError(tx('IDまたはパスワードが違います。', 'ID或密码不正确。'));
+      trackCourse('fail_ai_course_login', { method: 'id' });
       return;
     }
+    trackCourse('login_ai_course', { method: 'id' });   // IDそのものは送らない
     onLoggedIn();
   };
 

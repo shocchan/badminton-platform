@@ -161,6 +161,21 @@ export const trackEvent = (event: string, params: Record<string, unknown> = {}) 
 };
 
 /** SPAのルート遷移ごとに呼ぶ。page_location にはUTM込みの完全URLを渡す */
+/**
+ * 計測へ送るURLから、持ち主を特定できる鍵を落とす（2026-08-23 監査）。
+ * 購入完了ページの `session_id`（Stripe Checkout Session ID）は、そのまま購入状況APIに渡すと
+ * ログインIDとマスク済みメールが返る「鍵」なので GA4 へ送らない。
+ */
+export const scrubUrlForAnalytics = (href: string): string => {
+  try {
+    const u = new URL(href);
+    for (const k of ['session_id', 'token', 'access_token', 'code']) u.searchParams.delete(k);
+    return u.toString();
+  } catch {
+    return href;
+  }
+};
+
 export const trackPageView = (pathname: string) => {
   // 運営者の自動除外: 管理画面を開いたブラウザは以後計測しない
   if (pathname.includes('/admin')) {
@@ -169,7 +184,7 @@ export const trackPageView = (pathname: string) => {
   }
   send(
     'page_view',
-    { page_location: window.location.href, page_path: pathname, page_lang: currentLang() },
+    { page_location: scrubUrlForAnalytics(window.location.href), page_path: pathname, page_lang: currentLang() },
     'PageView',
   );
 };

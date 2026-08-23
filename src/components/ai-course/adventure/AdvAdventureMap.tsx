@@ -26,7 +26,7 @@ import { levelOf } from '../../../lib/aiLesson/course/adventure/advXp';
 import { gateAdventureMapForPlan } from '../../../lib/aiLesson/course/adventure/advPlanGate';
 import {
   buildAdventureMap, availableRouteKinds, ROUTE_KIND_LABEL, ROUTE_KIND_HINT, LAYER_LABEL,
-  type MapRegion, type MapRouteKind, type RegionAction,
+  type MapRegion, type MapRouteKind, type RegionAction, worldMapWindow,
 } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
@@ -45,9 +45,13 @@ interface Props {
   route: AdvRoute | null;
   mastered: Set<string>;
   currentWeek: number;
+  /** 会話カリキュラムの入口週（申告級で先へ進んだ人の手前の週を「通過」と表す・2026-08-23） */
+  conversationEntryWeek?: number;
   quest: AdvTodayQuest | null;
   /** 今日の冒険で次にやる step の名前（CTAの理由に出す。無ければ出さない） */
   nextStepTitleJa?: string | null;
+  /** 今日の冒険を全step終えている（CTAを「始める」と言わない・2026-08-23 監査） */
+  todayDone?: boolean;
   nextStepTitleZh?: string | null;
   /** 今日の冒険へ戻る（Primary CTA） */
   onStartToday: () => void;
@@ -134,8 +138,8 @@ const MasteryBar = ({ lang, pct }: { lang: L; pct: number | null }) => {
 };
 
 export const AdvAdventureMap = ({
-  lang, profile, route, mastered, currentWeek, quest,
-  nextStepTitleJa, nextStepTitleZh,
+  lang, profile, route, mastered, currentWeek, conversationEntryWeek = 1, quest,
+  nextStepTitleJa, nextStepTitleZh, todayDone = false,
   onStartToday, onBack,
   onOpenReview, reviewAvailable, onStartConversation, conversationAvailable, onOpenMock,
   sheetsVisible, sheetCount, onOpenSheets,
@@ -158,10 +162,10 @@ export const AdvAdventureMap = ({
   const map = useMemo(
     // 購入プランの地域上限（体験パス=3）を後掛けする。保存済みルートには触れない
     () => gateAdventureMapForPlan(
-      buildAdventureMap(profile, route, mastered, currentWeek, routeKind),
+      buildAdventureMap(profile, route, mastered, currentWeek, routeKind, nowISO, conversationEntryWeek),
       planRegionLimit,
     ),
-    [profile, route, mastered, currentWeek, routeKind, planRegionLimit],
+    [profile, route, mastered, currentWeek, routeKind, planRegionLimit, nowISO, conversationEntryWeek],
   );
 
   const current = map.regions.find((r) => r.id === map.currentRegionId) ?? null;
@@ -472,14 +476,20 @@ export const AdvAdventureMap = ({
             </p>
           </div>
         </div>
-        {(nextStepTitleJa || nextStepTitleZh) && (
+        {todayDone ? (
+          <p className="mt-2 text-sm font-semibold text-emerald-800">
+            {tx(lang, '🎉 今日の分は完了。もっとやるなら「今日の冒険」から続けられます', '🎉 今天的份量已完成。想多学的话，可以从「今天的冒险」继续')}
+          </p>
+        ) : (nextStepTitleJa || nextStepTitleZh) && (
           <p className="mt-2 text-sm text-gray-800">
             {tx(lang, `次にやること：「${nextStepTitleJa ?? ''}」`, `接下来要做：「${nextStepTitleZh ?? ''}」`)}
           </p>
         )}
         <button type="button" onClick={onStartToday}
           className={`${pressFx} action-primary-blue mt-3 w-full min-h-[52px] rounded-xl bg-blue-600 px-4 py-3 text-base font-bold text-white`}>
-          {tx(lang, '今日の冒険を始める', '开始今天的冒险')}
+          {todayDone
+            ? tx(lang, '今日の冒険にもどる（続きを学ぶ）', '回到今天的冒险（继续学习）')
+            : tx(lang, '今日の冒険を始める', '开始今天的冒险')}
         </button>
       </section>
 
@@ -524,7 +534,8 @@ export const AdvAdventureMap = ({
       */}
       <AdvWorldMapSwitch
         lang={lang}
-        regions={map.regions}
+        /* 絵には現在地を含む12地域の窓だけ（上級の第13〜18週で環状路が混み合うため）。一覧は全地域 */
+        regions={worldMapWindow(map.regions, map.currentRegionId)}
         currentRegionId={map.currentRegionId}
         destinationJa={map.destinationJa}
         destinationZh={map.destinationZh}

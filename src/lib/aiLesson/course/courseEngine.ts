@@ -168,6 +168,15 @@ export const conversationEntryWeekOf = (learner: Learner): number =>
   ?? ENTRY_WEEK_BY_BAND[knowledgeBandOf(learner.settings) ?? '']
   ?? 1;
 
+/**
+ * いま会話カリキュラムの何週目にいるか（地図の現在地・ホームの現在地表示に使う）。
+ * DBの currentWeek は第1週から数える進行だが、上級入口の人は開始週のほうが大きい。
+ * 2026-08-23 実生徒監査: N1申告の人が第13週の会話をしているのに、地図とホームは
+ * 「自己紹介の村（第1週）」を現在地と言っていた。出ている会話と同じ週を現在地にする
+ */
+export const conversationCurrentWeekOf = (learner: Learner): number =>
+  Math.max(learner.currentWeek ?? 1, conversationEntryWeekOf(learner));
+
 export const selectNextMission = (learner: Learner, progresses: ItemProgress[]): Mission | null => {
   const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
   const learned = (id: string) => stateOf(id) !== undefined;

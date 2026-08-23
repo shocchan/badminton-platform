@@ -17,6 +17,61 @@ const SHOW_SCREENSHOT_FRAME = false;
 const SHOW_SYSTEM_DEMO = false;
 const DEMO_VIDEO_SRC = ''; // 例: '/videos/ai-course-demo.mp4'（public 配下に置く）
 
+/**
+ * 実際の学習画面（2026-08-23 監査で撮影）。テスト生徒アカウントの実画面をそのまま使う
+ * （架空UIは作らない）。画像は public/images/ai-course/screens/<id>-<lang>@{1x,2x}.webp。
+ * 並びは正準Journey（今日の冒険 → マップ → バトル → AI会話）。
+ */
+const REAL_SCREENS: { id: string; w: number; h: number; title: { ja: string; zh: string }; body: { ja: string; zh: string } }[] = [
+  { id: 'home', w: 375, h: 650,
+    title: { ja: '今日の冒険', zh: '今天的冒险' },
+    body: { ja: '開いた瞬間に「今日やること」が1つ。迷わない', zh: '一打开就知道「今天做什么」。不用迷茫' } },
+  { id: 'map', w: 375, h: 750,
+    title: { ja: '冒険マップ', zh: '冒险地图' },
+    body: { ja: '現在地・次の目的地・その先の世界。半年の道のりが見える', zh: '当前位置・下一个目的地・更远的世界。半年的路一目了然' } },
+  { id: 'battle', w: 375, h: 750,
+    title: { ja: '語彙・文法バトル', zh: '词汇・语法战斗' },
+    body: { ja: '間違えても、例文と「ほかが違う理由」で学びになる。相棒が声をかける', zh: '答错也能学到：例句＋「其他选项为什么不对」。搭档会给你打气' } },
+  { id: 'conversation', w: 375, h: 812,
+    title: { ja: 'AI会話（音声・テキスト）', zh: 'AI会话（语音・文字）' },
+    body: { ja: '今日の表現を、実際の会話で使う。中国語訳はタップで', zh: '把今天的表达用在真实会话里。中文翻译点一下就有' } },
+];
+
+function RealScreens({ lang }: { lang: Lang }) {
+  return (
+    <Reveal delay={80}>
+      <div className="mt-10">
+        <p className="text-center text-[0.95rem] font-bold text-lp-ink">
+          {lang === 'ja' ? '実際の学習画面（スマホ）' : '真实的学习界面（手机）'}
+        </p>
+        <p className="text-center text-[0.86rem] text-lp-ink-soft mt-1">{LP.features.screenshotNote[lang]}</p>
+        {/* スマホは横スクロール（1枚ずつスナップ）、PCは4枚並び。横スクロールは枠内に閉じ、ページ本体は横に動かない */}
+        <ul className="mt-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 -mx-5 px-5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible"
+          aria-label={lang === 'ja' ? '実際の学習画面' : '真实的学习界面'}>
+          {REAL_SCREENS.map((sc) => (
+            <li key={sc.id} className="snap-center shrink-0 w-[78%] sm:w-auto">
+              <figure className="h-full rounded-2xl border border-lp-line bg-lp-card overflow-hidden shadow-[0_10px_26px_rgba(55,43,38,0.08)]">
+                <div className="bg-lp-ivory-2 border-b border-lp-line">
+                  <img
+                    src={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp`}
+                    srcSet={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp 1x, /images/ai-course/screens/${sc.id}-${lang}@2x.webp 2x`}
+                    width={sc.w} height={sc.h} loading="lazy" decoding="async"
+                    alt={`${sc.title[lang]}：${sc.body[lang]}`}
+                    className="w-full h-auto block" />
+                </div>
+                <figcaption className="px-4 py-3">
+                  <p className="font-extrabold text-lp-ink text-[0.95rem]">{sc.title[lang]}</p>
+                  <p className="text-[0.86rem] text-lp-ink-soft mt-0.5">{sc.body[lang]}</p>
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Reveal>
+  );
+}
+
 export function PlatformFeatures({ lang }: { lang: Lang }) {
   return (
     // scroll-mt-20: ヒーローの「学習システムを見る」からのスクロール着地時に
@@ -40,6 +95,9 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
             );
           })}
         </div>
+
+        {/* 実画面4枚（2026-08-23）。「説明文だけで画面が無い」状態を解消する */}
+        <RealScreens lang={lang} />
 
         {/* デモ動画枠: 実素材が撮影でき次第 SHOW_SYSTEM_DEMO を true にして差し替える。
             素材が無いあいだは枠ごと出さない（空の「準備中」を訪問者に見せない） */}

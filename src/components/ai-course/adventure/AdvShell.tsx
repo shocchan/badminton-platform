@@ -48,6 +48,8 @@ import { loadAllBasicDrafts } from '../../../lib/aiLesson/course/basicGrammarChu
 import type { N2GrammarDraft } from '../../../lib/aiLesson/course/n2GrammarDrafts';
 import { trackAdv, bucketOf } from '../../../lib/aiLesson/course/adventure/advAnalytics';
 import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
+import { conversationCurrentWeekOf, conversationEntryWeekOf } from '../../../lib/aiLesson/course/courseEngine';
+import { PLACE_NAME as CONVERSATION_PLACE_NAME } from '../../../lib/aiLesson/course/courseJourney';
 import { nowTrainingLabel, type ExamSkill, type ScopeLevel } from '../../../lib/aiLesson/course/adventure/advExamSkills';
 import { TERMS } from '../../../lib/aiLesson/course/adventure/advTerms';
 import { AdvOnboarding, type OnboardingOutcome } from './AdvOnboarding';
@@ -254,6 +256,8 @@ export default function AdvShell(props: AdvShellProps) {
   const dateKey = dateKeyOf();
 
   const profile = useMemo(() => readAdvProfile(learner.settings), [learner.settings]);
+  // 会話カリキュラムの現在週（地図の会話レイヤーとホームの現在地で共有。出ている会話と同じ週）
+  const conversationWeek = conversationCurrentWeekOf(learner);
   const prof0 = useCallback(() => profile, [profile]);
   const [view, setView] = useState<View>('home');
   const [pools, setPools] = useState<GrammarPools | null>(null);
@@ -371,8 +375,10 @@ export default function AdvShell(props: AdvShellProps) {
       // 復習画面などから「次のstepへ」で戻ってきたとき、ホームを経由せず直接そのstepを開く
       // （2026-08-17 CEO要望「毎回戻らないといけないので」）。questが揃うのを待つ必要があるのでフラグで持つ
       else if (v === 'nextStep') { setView('home'); setPendingNextN(reqN); }
-      else if (v === 'teacher') setView('teacher');
-      else setView(v === 'map' ? 'map' : 'home');
+      else if (v === 'teacher') { setView('teacher'); setAdjustOnboarding(false); }
+      // ヘッダーの「今日の冒険」「冒険マップ」は調整モードからの出口にもなる（2026-08-23 監査P0:
+      // 調整画面で詰まったときにナビを押しても同じ画面のままだった）
+      else { setView(v === 'map' ? 'map' : 'home'); setAdjustOnboarding(false); }
       // render中に親のstateを更新しない（Reactの規約）。次tickで通知する
       const notify = props.onRequestConsumed;
       if (notify) setTimeout(() => notify(), 0);
@@ -635,9 +641,11 @@ export default function AdvShell(props: AdvShellProps) {
   const needsOnboarding = !profile || !profile.goalType || !profile.diagnosis || !profile.route;
   const [diagError, setDiagError] = useState(false);
   useEffect(() => {
-    if ((!needsOnboarding && !redoOnboarding) || diagPools || diagError) return;
+    // 調整モード（設定→「目的・レベル変更」）も診断プールを使う（2026-08-23 監査P0:
+    // adjustOnboarding を条件に入れ忘れていて、押すと「冒険の準備をしています…」が永久に終わらなかった）
+    if ((!needsOnboarding && !redoOnboarding && !adjustOnboarding) || diagPools || diagError) return;
     void buildDiagnosisPools().then(setDiagPools).catch(() => setDiagError(true));
-  }, [needsOnboarding, redoOnboarding, diagPools, diagError]);
+  }, [needsOnboarding, redoOnboarding, adjustOnboarding, diagPools, diagError]);
 
   // プール読込失敗の可視化（2026-08-17 監査P1: 失敗が無処理だと
   // 再試行手段のない無限「冒険の準備をしています…」になっていた）
@@ -833,7 +841,7 @@ export default function AdvShell(props: AdvShellProps) {
     if (news.length === 0) return;
     const kind = availableRouteKinds(profile.goalType)[0];
     const m = buildAdventureMap(profile, profile.route,
-      sd.size > 0 ? new Set([...targets, ...sd]) : targets, learner.currentWeek ?? 1, kind);
+      sd.size > 0 ? new Set([...targets, ...sd]) : targets, conversationWeek, kind);
     const items = conquestCelebrations(m, news);
     if (items.length > 0) setCelebrations((q) => [...q, ...items]);
     setRevealRegionId(news[news.length - 1]);
@@ -940,9 +948,9 @@ export default function AdvShell(props: AdvShellProps) {
           {/* 逃げ道はやり直し中だけ（元の設定へ戻す）。「従来のホームに戻す」は撤去（2026-08-18 監査P1）:
               出す条件だった progress.length>0 は V2のAI会話を1回終えるだけで立つので、
               旧コースを一度も見ていない生徒にも出ていた */}
-          {redoOnboarding && (
+          {(redoOnboarding || adjustOnboarding) && (
             <button type="button" className={`${secondaryBtn} mt-2`}
-              onClick={() => { setDiagError(false); setRedoOnboarding(false); }}>
+              onClick={() => { setDiagError(false); setRedoOnboarding(false); setAdjustOnboarding(false); }}>
               {tx(lang, '元の設定のまま戻る', '保持原来的设置返回')}
             </button>
           )}
@@ -972,11 +980,15 @@ export default function AdvShell(props: AdvShellProps) {
          * **JLPTの級を申告した人にまでかなチェックが出ていた**（N1合格者に「ひらがなを読めますか」）。
          * 級を持っているならかなは読める。申告がある人はこの初期化の対象から外す。
          */
+        // 2026-08-23（実機再現）: 級を申告した人は、以前の設定で立っていた「かなチェックが要る」も外す。
+        // 準備をやり直して N1 を申告した直後に「假名检查」が今日の1手として出た（実測）。
+        // 卒業済み（needed=false）や実施済みの記録は残し、要求だけを取り下げる
         kana: (o.declaredJlpt === null || o.declaredJlpt === undefined)
-          && o.diagnosis
-          && (o.diagnosis.knowledgeBand === 'needs_assessment' || o.diagnosis.knowledgeBand === 'pre_n5')
-          ? (withLegacy.kana ?? { needed: null, doneRowIds: [], checkedAt: null })
-          : withLegacy.kana,
+          ? (o.diagnosis
+            && (o.diagnosis.knowledgeBand === 'needs_assessment' || o.diagnosis.knowledgeBand === 'pre_n5')
+            ? (withLegacy.kana ?? { needed: null, doneRowIds: [], checkedAt: null })
+            : withLegacy.kana)
+          : (withLegacy.kana ? { ...withLegacy.kana, needed: false } : null),
         // やり直しではルートが変わるので、今日のstep進捗と前回questの持ち越しを外す
         // （古いquestのstep番号が新questに誤って「完了」と写るのを防ぐ。mastery等の実績は保持）
         ...(redoOnboarding ? { lastQuest: null, todaySteps: null } : {}),
@@ -997,6 +1009,9 @@ export default function AdvShell(props: AdvShellProps) {
           teacherId: profile.teacherId ?? 'shoko',
           diagnosis: profile.diagnosis,
           skills: profile.skills,
+          // 申告済みの級を初期値として渡す（渡さないと調整のたびに「わからない」に戻り、
+          // 会話が第1週へ巻き戻る・2026-08-23 実機再現）
+          declaredJlpt: profile.declaredJlpt ?? null,
         } : null}
         onRequestFullRedo={() => { setAdjustOnboarding(false); setRedoOnboarding(true); }}
         onOutcomeReady={(o: OnboardingOutcome) => {
@@ -1786,10 +1801,12 @@ export default function AdvShell(props: AdvShellProps) {
         paceNoteZh={mapPace && mapPace.remainingTargets > 0
           ? `距离目的地还剩${mapPace.remainingStages}个地区・${mapPace.remainingTargets}个项目${mapPace.estWeeksLeft !== null && mapPace.estWeeksLeft > 0 ? `／按现在的节奏约需${mapPace.estWeeksLeft}周（推算）` : ''}`
           : null}
-        currentWeek={learner.currentWeek ?? 1}
+        currentWeek={conversationWeek}
+        conversationEntryWeek={conversationEntryWeekOf(learner)}
         quest={quest}
         nextStepTitleJa={mapNextStep?.titleJa ?? null}
         nextStepTitleZh={mapNextStep?.titleZh ?? null}
+        todayDone={quest !== null && mapNextIdx === -1}
         onStartToday={() => setView('home')}
         onBack={() => setView('home')}
         /* 攻略済み地域のCTAは**V2の復習**＝間違えた問題の解き直しへ繋ぐ（2026-08-18 監査P1）。
@@ -2216,6 +2233,9 @@ export default function AdvShell(props: AdvShellProps) {
       for (const qs of pools.byItem.values()) for (const q of qs) if (pending.has(q.key)) n += 1;
       return n;
     })();
+    // ノート全体の件数（語彙バトル・読解・聴解の誤答を含む）。解き直せる数と食い違うときは両方言う
+    // （2026-08-23 監査: ノートは「6」なのに完了画面は「いま解き直す問題はありません」だった）
+    const completeNotebookPending = summarizeMistakes(notebook).pendingCount;
     // 今日「直した表現」。言い直しstepと同じ素材の作り方をそろえる
     const completeCorrection = (() => {
       for (const s of [...props.sessions].reverse()) {
@@ -2320,7 +2340,10 @@ export default function AdvShell(props: AdvShellProps) {
           <p className="mt-1 text-sm text-gray-700">
             {completeMistakePending > 0
               ? tx(lang, `解き直す問題が${completeMistakePending}問あります`, `还有${completeMistakePending}道题要重做`)
-              : tx(lang, 'いま解き直す問題はありません', '现在没有要重做的题')}
+              : completeNotebookPending > 0
+                ? tx(lang, `いま解き直しに出せる問題はありません（ノートには${completeNotebookPending}問。語彙バトルの誤答は同じバトルでもう一度出会います）`,
+                  `现在没有可以重做的题（错题本里有${completeNotebookPending}道。词汇战斗的错题会在同一战斗中再次出现）`)
+                : tx(lang, 'いま解き直す問題はありません', '现在没有要重做的题')}
           </p>
           {/* 次の冒険を必ず示す（canon 原則15: 行き止まりを作らない） */}
           <p className="mt-2 text-sm font-semibold text-gray-900">{tx(lang, '次の冒険', '下次冒险')}</p>
@@ -2572,7 +2595,18 @@ export default function AdvShell(props: AdvShellProps) {
                       ? tx(lang, `今日が${prof.targetJlpt ?? ''}の試験日`, `今天是${prof.targetJlpt ?? ''}考试日`)
                       : tx(lang, `${prof.targetJlpt ?? ''}まであと${daysToExam}日`, `距离${prof.targetJlpt ?? ''}还有${daysToExam}天`)}
               </p>
-              {stage && (
+              {prof.goalType === 'conversation' ? (
+                /* 会話目標の現在地は地図の会話レイヤーと同じ「週の場所」で呼ぶ（2026-08-23 監査:
+                   ホーム「会話の開始地点：ミナト…（攻略率0%）」と地図「自己紹介の村」で呼び名が
+                   食い違っていた。会話は攻略率を測っていないので%も出さない） */
+                <p className="mt-0.5 text-xs font-semibold text-gray-700">
+                  {tx(lang, `現在地：${CONVERSATION_PLACE_NAME[conversationWeek]?.ja ?? ''}`,
+                    `当前位置：${CONVERSATION_PLACE_NAME[conversationWeek]?.zh ?? ''}`)}
+                  <span className="ml-1 font-normal text-gray-600">
+                    {tx(lang, `（第${conversationWeek}週）`, `（第${conversationWeek}周）`)}
+                  </span>
+                </p>
+              ) : stage && (
                 <p className="mt-0.5 text-xs font-semibold text-gray-700">
                   {tx(lang, stage.titleJa, stage.titleZh)}
                   <span className="ml-1 font-normal text-gray-600">
@@ -2934,8 +2968,10 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, `今日はこの${quest.steps.length}つだけ・約${quest.estimatedMinutes}分`,
               `今天只做这${quest.steps.length}项・约${quest.estimatedMinutes}分钟`)}
           </p>
-          {/* 今鍛えている試験科目（§8） */}
-          {!isPracticalStep(nextStep?.kind ?? '') && (
+          {/* 今鍛えている試験科目（§8）。全step完了後は nextStep が無く既定の「文法」を
+              出してしまっていた（2026-08-23 監査: AI会話だけの日に「語法」と表示）。
+              次のstepがあるときだけ出す */}
+          {nextStep && !isPracticalStep(nextStep.kind) && (
             <p className="mt-2 inline-block rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-800">
               {term('nowTraining', lang)}：{nowTrainingLabel(trainingSkill, lang)}
             </p>
@@ -3084,7 +3120,11 @@ export default function AdvShell(props: AdvShellProps) {
                 // 実際に加算した回だけ「+N」を出す（見直しでは合計だけ）
                 setJustEarnedXp(earned);
                 trackAdv('today_quest_completed', { goalType: prof.goalType ?? undefined, locale: lang });
-                logCourseEvent('quest_completed');
+                // 「初回の冒険完了」は活性化の節目（2026-08-23 監査: first_adventure_complete が無く
+                // 初回とN回目を区別できなかった）。履歴が空＝今日が初めて
+                const first = log.length === 0;
+                logCourseEvent('quest_completed', { first });
+                if (first) trackAdv('first_quest_completed', { goalType: prof.goalType ?? undefined, locale: lang });
                 setView('complete');
               }}>
               {tx(lang, '今日の冒険を締めくくる', '结束今天的冒险')}

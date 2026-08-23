@@ -29,7 +29,7 @@ export const ADVANCED_WEEKS: CourseWeek[] = [
 export const ADVANCED_INPUTS: MissionInput[] = [
   // ── Week 13: 敬語を使い分ける ──
   {
-    week: 13, order: 1, titleJa: '相手の行動を高める', titleZh: '抬高对方的行为', category: 'keigo', difficulty: 4,
+    week: 13, order: 1, titleJa: '相手の行動を高める', titleZh: '用尊敬语说对方的行为', category: 'keigo', difficulty: 4,
     target: '〜ていらっしゃいます', reading: '〜ていらっしゃいます', detect: 'ていらっしゃ|でいらっしゃ|いらっしゃいます',
     meaningJa: '相手の動作を尊敬語で言う', meaningZh: '用尊敬语描述对方的动作',
     usageJa: '「（動詞て形）いらっしゃいます」。相手・目上の人の動作にだけ使う。自分には使わない。',
@@ -54,7 +54,7 @@ export const ADVANCED_INPUTS: MissionInput[] = [
     chineseSupport: 'minimal',
   },
   {
-    week: 13, order: 2, titleJa: '自分の行動を下げる', titleZh: '压低自己的行为', category: 'keigo', difficulty: 4,
+    week: 13, order: 2, titleJa: '自分の行動を下げる', titleZh: '用谦让语说自己的行为', category: 'keigo', difficulty: 4,
     target: 'お〜いたします', reading: 'お〜いたします', detect: 'お.{1,6}いたします|ご.{1,6}いたします|いたします',
     meaningJa: '自分の動作を謙譲語で低めて言う', meaningZh: '用谦让语压低自己的动作',
     usageJa: '「お（動詞ます形の語幹）いたします」。漢語動詞は「ご〜いたします」。相手のためにする動作に使う。',

@@ -195,11 +195,14 @@ const STAGE_ABILITY: Record<string, { ja: string; zh: string }> = {
 const CONVERSATION_LANDMARK: LandmarkKind[] = [
   'village', 'road', 'hill', 'avenue', 'town', 'plaza',
   'mountain', 'crossroad', 'forest', 'city', 'bridge', 'castle',
+  // 上級（第13〜18週）
+  'castle', 'bridge', 'tower', 'avenue', 'city', 'mountain',
 ];
 /** 隣り合う地域が同じ色調にならないように並べる */
 const CONVERSATION_TONE: MapTone[] = [
   'dawn', 'sunset', 'meadow', 'forest', 'stone', 'water',
   'sky', 'meadow', 'forest', 'stone', 'water', 'night',
+  'stone', 'water', 'sky', 'meadow', 'sunset', 'night',
 ];
 const CONVERSATION_ABILITY: { ja: string; zh: string }[] = [
   { ja: '自己紹介と今の生活', zh: '自我介绍与当前生活' },
@@ -214,6 +217,13 @@ const CONVERSATION_ABILITY: { ja: string; zh: string }[] = [
   { ja: '仕事と暮らしの会話', zh: '工作与生活的会话' },
   { ja: '人とつながる会話', zh: '与人建立联系的会话' },
   { ja: '話題をまたぐ総合会話', zh: '跨话题的综合会话' },
+  // 上級（第13〜18週・courseDataAdvanced の週テーマと同じ順）
+  { ja: '敬語を使い分ける', zh: '敬语的区分使用' },
+  { ja: '意見を戦わせる', zh: '交锋・表达不同意见' },
+  { ja: '抽象を説明する', zh: '说明抽象的内容' },
+  { ja: '配慮して伝える', zh: '带着分寸传达' },
+  { ja: '仕事を動かす', zh: '推动工作' },
+  { ja: '上級総合', zh: '高级综合' },
 ];
 /** その地域で「実際に何ができるようになるか」。能力名だけだと場面が想像できない */
 const CONVERSATION_BLURB: { ja: string; zh: string }[] = [
@@ -229,12 +239,19 @@ const CONVERSATION_BLURB: { ja: string; zh: string }[] = [
   { ja: '職場と生活の場面で必要なやりとりをこなす', zh: '应对职场与生活场景中必要的交流' },
   { ja: '相手の話を受けて会話を続けられるようにする', zh: '让你能承接对方的话并把会话延续下去' },
   { ja: '話題が変わっても崩れない会話力にする', zh: '让你的会话在话题变化时也不会崩溃' },
+  { ja: '尊敬語・謙譲語・クッション言葉を場面で使い分ける', zh: '按场合区分使用尊敬语・谦让语・缓冲语' },
+  { ja: '認めてから反論する・譲歩しながら主張する', zh: '先认同再反驳・让步的同时坚持主张' },
+  { ja: '定義・たとえ・要約で抽象的なことを説明する', zh: '用定义・比喻・总结来说明抽象内容' },
+  { ja: '断定を避ける・丁寧に断る・負担をかけずに頼む', zh: '避免断定・礼貌拒绝・不给对方压力地请求' },
+  { ja: '用件を切り出し、認識をそろえ、合意を取り付ける', zh: '开门见山・统一认识・取得一致' },
+  { ja: '上級表現を場面をまたいで安定して使う', zh: '在不同场景中稳定使用高级表达' },
 ];
 /** 会話レイヤーの章。4地域ずつ区切る */
 const conversationChapter = (i: number): { ja: string; zh: string } => {
   if (i < 4) return { ja: '会話の旅1　話しはじめる', zh: '会话之旅1　开口说话' };
   if (i < 8) return { ja: '会話の旅2　伝える・頼む', zh: '会话之旅2　表达与请求' };
-  return { ja: '会話の旅3　考えを語る', zh: '会话之旅3　讲述想法' };
+  if (i < 12) return { ja: '会話の旅3　考えを語る', zh: '会话之旅3　讲述想法' };
+  return { ja: '会話の旅4　上級の言い回し', zh: '会话之旅4　高级表达' };
 };
 
 /**
@@ -341,9 +358,13 @@ const examRegions = (
 const conversationRegions = (
   currentWeek: number,
   dailyMinutes: number,
+  entryWeek = 1,
 ): MapRegion[] => Object.entries(JOURNEY_PLACES).map(([weekStr, name], i) => {
   const week = Number(weekStr);
   const done = week < currentWeek;
+  // 申告した級で入口が先に決まった人は、手前の週を「攻略した」のではなく「通過した」
+  // （原則13: やっていないことを「やった」と見せない・2026-08-23）
+  const passedByLevel = done && week < entryWeek;
   const ch = conversationChapter(i);
   return {
     id: `conv-w${week}`,
@@ -359,8 +380,8 @@ const conversationRegions = (
     tone: CONVERSATION_TONE[i] ?? 'meadow',
     state: (done ? 'done' : 'locked') as RegionState,
     masteryPct: null,
-    doneJa: done ? 'この地域の会話は一度通りました' : 'まだ会話していません',
-    doneZh: done ? '这个地区的会话已经走过一次' : '还没有进行会话',
+    doneJa: passedByLevel ? 'レベル申告で通過（いつでも話しに戻れます）' : done ? 'この地域の会話は一度通りました' : 'まだ会話していません',
+    doneZh: passedByLevel ? '按申报级别已通过（随时可以回来练习）' : done ? '这个地区的会话已经走过一次' : '还没有进行会话',
     nextJa: done ? 'もう一度話して、言い方を安定させる' : '会話ミッションで実際に使う',
     nextZh: done ? '再说一次，让说法更稳定' : '在会话任务中实际使用',
     unlockJa: '', unlockZh: '',
@@ -385,11 +406,13 @@ export const buildAdventureMap = (
   currentWeek: number,
   routeKind: MapRouteKind,
   nowISO: string = new Date().toISOString(),
+  /** 会話カリキュラムの入口週（申告級で先へ進んだ人の手前の週を「通過」と表す） */
+  conversationEntryWeek = 1,
 ): AdventureMap => {
   const daily = prof.dailyMinutes ?? 15;
   const ledger = prof.mastery ?? {};
   const exam = route ? examRegions(route, mastered, daily, ledger, nowISO, prof.targetJlpt) : [];
-  const conv = conversationRegions(currentWeek, daily);
+  const conv = conversationRegions(currentWeek, daily, conversationEntryWeek);
 
   let built: MapRegion[];
   let mergeIndex: number | null = null;
@@ -530,3 +553,23 @@ export const LAYER_LABEL: Record<MapRegion['layer'], { ja: string; zh: string }>
 
 /** 目標レベル表示（未設定を決めつけない） */
 export const mapLevelLabel = (level: JlptLevel | null): string => level ?? '—';
+
+
+/** 世界地図の会話環状路に同時に置ける地域数。これを超えると44pxのタップ領域が重なる */
+export const WORLD_MAP_CONVERSATION_WINDOW = 12;
+
+/**
+ * 世界地図（絵）に載せる地域だけを切り出す（2026-08-23）。
+ * 会話レイヤーは第18週まで伸びたが、環状路に18個置くとノードが重なる。
+ * 絵には**現在地を含む12地域の窓**だけを置き、一覧（縦ルート）は全地域を出す。
+ * 実測の state は触らない（別ビューであり再計算しない・原則13）
+ */
+export const worldMapWindow = (regions: MapRegion[], currentRegionId: string | null): MapRegion[] => {
+  const conv = regions.filter((r) => r.layer === 'conversation');
+  if (conv.length <= WORLD_MAP_CONVERSATION_WINDOW) return regions;
+  const curIdx = Math.max(0, conv.findIndex((r) => r.id === currentRegionId));
+  // 章（4地域）単位で窓をずらす。現在地が第1〜12なら従来どおり先頭12、それ以降は末尾12
+  const start = curIdx < WORLD_MAP_CONVERSATION_WINDOW ? 0 : conv.length - WORLD_MAP_CONVERSATION_WINDOW;
+  const keep = new Set(conv.slice(start, start + WORLD_MAP_CONVERSATION_WINDOW).map((r) => r.id));
+  return regions.filter((r) => r.layer !== 'conversation' || keep.has(r.id));
+};

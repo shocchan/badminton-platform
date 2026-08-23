@@ -72,6 +72,8 @@ interface Props {
     /** 既存の診断結果（測り直さずに再利用する） */
     diagnosis: AdvDiagnosisResult;
     skills: OnboardingOutcome['skills'];
+    /** 申告済みの級（調整のたびに「わからない」へ戻さない・2026-08-23） */
+    declaredJlpt?: 'N1' | 'N2' | 'N3' | null;
   } | null;
   /** 調整モードから「診断からやり直す」を選んだとき（親がフルフローへ切り替える） */
   onRequestFullRedo?: () => void;
@@ -114,7 +116,7 @@ export function AdvOnboarding({
   const [qIndex, setQIndex] = useState(0);
   const [convSkipped, setConvSkipped] = useState(false);
   /** 会話目標の人が申告した級（2026-08-23）。null＝「わからない」＝診断で測る */
-  const [declared, setDeclared] = useState<'N1' | 'N2' | 'N3' | null>(adjust ? null : null);
+  const [declared, setDeclared] = useState<'N1' | 'N2' | 'N3' | null>(adjust?.declaredJlpt ?? null);
   const [outcome, setOutcome] = useState<OnboardingOutcome | null>(null);
 
   /**
@@ -152,6 +154,10 @@ export function AdvOnboarding({
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
       weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
       diagnosis, skills: adjust.skills, route,
+      // 調整モードでも申告した級を保存する（2026-08-23 実機再現: 会話目標で「N1を持っている」を
+      // 選んで更新しても declaredJlpt が null のまま保存され、会話が第1週に戻り、
+      // かなチェックまで出た）。会話カリキュラムの開始週はこの値で決まる
+      declaredJlpt: declared,
     };
     setOutcome(o);
     onOutcomeReady?.(o);

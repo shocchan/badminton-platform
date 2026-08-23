@@ -263,7 +263,11 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   // （読めない状態で単元・バトルを出しても3択総当たりになるだけ・原則13）。
   // 2026-08-18: 従来は全43行が終わるまで絞っていたため、ことばも文法も22日間出なかった。
   // 濁音・拗音・促音・長音は本編と並走させる（下の kanaSideStep）
-  if (!isKanaReadable(profile.kana)) {
+  // 級を申告している人にはかなチェックを出さない（2026-08-23 実機再現: 準備をやり直して
+  // N1を申告した直後の「今日の一手」が假名检查になった）。保存済みの needed:null を
+  // 書き換えられない経路（既存learner）もここで塞ぐ
+  const declaredLevel = profile.declaredJlpt ?? null;
+  if (!declaredLevel && !isKanaReadable(profile.kana)) {
     const check = profile.kana?.needed === null;
     /** N3以上をめざす人（この人たちにとって「かなチェック」は目標と噛み合って見えない） */
     const upperTarget = profile.targetJlpt === 'N3' || profile.targetJlpt === 'N2' || profile.targetJlpt === 'N1';
@@ -392,7 +396,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
    * 「が」「きょ」「っ」が読めないまま語彙・文法へ行くと、
    * 問題文そのものが読めずに総当たりになるため（原則13）。
    */
-  if (!isKanaGraduated(profile.kana)) {
+  // 級を申告している人には並走のかな道場も出さない（2026-08-23・上の判断と揃える）
+  if (!declaredLevel && !isKanaGraduated(profile.kana)) {
     const rowIds = todaysKanaRowIds(profile.kana, 1);
     const row = rowIds[0] ? kanaRowById(rowIds[0]) : null;
     if (row) {
@@ -570,8 +575,14 @@ const buildWhy = (
   const bitsZh: string[] = [];
   if (due > 0) { bits.push('間違えた問題をつぶすのが最優先'); bitsZh.push('优先攻克做错的题'); }
   if (weak > 0) { bits.push('直近の誤答を先につぶす'); bitsZh.push('先攻克最近的错题'); }
-  bits.push(`現在地「${stage.titleJa}」を進める`);
-  bitsZh.push(`推进当前位置「${stage.titleZh}」`);
+  if (goal === 'conversation') {
+    // 会話の現在地は地図の「週の場所」で呼ぶ（stage名「会話の開始地点：ミナト…」は
+    // 地図と食い違っていた・2026-08-23 監査）。ここでは場所名を持たないので行動で言う
+    bits.push('話せる場面を今日1つ増やす'); bitsZh.push('今天多一个能开口的场景');
+  } else {
+    bits.push(`現在地「${stage.titleJa}」を進める`);
+    bitsZh.push(`推进当前位置「${stage.titleZh}」`);
+  }
   if (goal !== 'conversation' && daysToExam !== null) {
     bits.push(`試験まで${daysToExam}日`); bitsZh.push(`距离考试${daysToExam}天`);
   }

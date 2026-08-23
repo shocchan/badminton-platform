@@ -67,7 +67,7 @@ describe('冒険マップ — 表示の誠実さ', () => {
   it('**会話の地域は定着率を測っていないので必ず未判定**', () => {
     const prof = profileFor('conversation');
     const m = buildAdventureMap(prof, prof.route, new Set(), 1, 'conversation');
-    expect(m.regions.length).toBe(12);   // PLACE_NAME と同数
+    expect(m.regions.length).toBe(18);   // PLACE_NAME と同数（第13〜18週の上級を含む・2026-08-23）
     for (const r of m.regions) expect(r.masteryPct).toBeNull();
   });
 
@@ -248,7 +248,7 @@ describe('冒険マップ — ルートの組み立て', () => {
   it('会話目的でルートが無くても地図が壊れない', () => {
     const prof = { ...profileFor('conversation'), route: null };
     const m = buildAdventureMap(prof, null, new Set(), 1, 'conversation');
-    expect(m.regions.length).toBe(12);   // PLACE_NAME と同数
+    expect(m.regions.length).toBe(18);   // PLACE_NAME と同数（第13〜18週の上級を含む・2026-08-23）
     expect(m.currentRegionId).toBeTruthy();
     expect(m.destinationJa.length).toBeGreaterThan(0);
   });
@@ -273,5 +273,22 @@ describe('総合ルート — 会話レイヤーは並走レーン（試験の�
       expect(r.unlockJa, r.id).toBe('');
       expect(r.unlockZh, r.id).toBe('');
     }
+  });
+});
+
+// 2026-08-23: 会話レイヤーを第18週まで伸ばしたので、世界地図（絵）は現在地を含む12地域の窓だけを置く
+describe('世界地図の窓（worldMapWindow）', () => {
+  it('会話18地域のうち、絵に載るのは現在地を含む12地域（一覧は全地域のまま）', async () => {
+    const { worldMapWindow } = await import('./advMapModel');
+    const prof = { ...profileFor('conversation'), route: null };
+    const m = buildAdventureMap(prof, null, new Set(), 13, 'conversation');
+    expect(m.regions.length).toBe(18);
+    const win = worldMapWindow(m.regions, m.currentRegionId);
+    expect(win.length).toBe(12);
+    expect(win.some((r) => r.id === m.currentRegionId)).toBe(true);
+    // 第13週が現在地なら末尾12（第7〜18週）
+    expect(win[0].id).toBe('conv-w7');
+    const early = buildAdventureMap(prof, null, new Set(), 1, 'conversation');
+    expect(worldMapWindow(early.regions, early.currentRegionId)[0].id).toBe('conv-w1');
   });
 });

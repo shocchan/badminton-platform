@@ -286,7 +286,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
     sendCue: (text, cueOpts) => {
       if (stopped) return;
       if (cueOpts?.switchToWrapUp && wrapUpInstructions) {
-        send({ type: 'session.update', session: { instructions: wrapUpInstructions } });
+        send({ type: 'session.update', session: { type: 'realtime', instructions: wrapUpInstructions } });
       }
       send({
         type: 'conversation.item.create',
@@ -480,8 +480,12 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
       dc.onopen = () => {
         if (stopped) return;
         // 誤割り込み防止のVAD設定を適用（短い雑音で翔子先生を止めない・ターンを即確定しない）
+        // GA版 Realtime API の session.update は session.type が必須で、turn_detection は
+        // audio.input 配下（2026-08-23 実生徒監査: 旧形式のまま送っていて
+        // 「Missing required parameter: 'session.type'」で毎回拒否されていた＝VAD調整と
+        // まとめ移行の instructions が一度も効いていなかった）
         if (opts.turnDetection) {
-          send({ type: 'session.update', session: { turn_detection: opts.turnDetection } });
+          send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: opts.turnDetection } } } });
         }
         setStatus('connected');
         // 接続後もマイクが完全無音なら知らせる（設定変更後の未リロード・別デバイス選択の検知）

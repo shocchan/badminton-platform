@@ -6,7 +6,7 @@ import type { AdvGoalType, AdvSkill, JlptLevel } from './advTypes';
 export type AdvEventName =
   | 'onboarding_started' | 'goal_selected' | 'target_level_selected'
   | 'diagnosis_started' | 'diagnosis_completed' | 'route_generated'
-  | 'today_quest_viewed' | 'today_quest_started' | 'today_quest_completed'
+  | 'today_quest_viewed' | 'today_quest_started' | 'today_quest_completed' | 'first_quest_completed'
   // 完了後の「AI会話をもう1回」（2026-08-19 会話ゴールの行き止まり解消）
   | 'today_quest_extra_conversation'
   // 完了後の「語彙バトルで続ける」（2026-08-20 会話ばかりで原価が嵩まないための続行手段）

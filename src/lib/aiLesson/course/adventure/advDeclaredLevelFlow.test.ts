@@ -11,8 +11,11 @@
 //
 // ここでは①の判定そのものと、申告から開始週が決まることを固定する。
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { conversationEntryWeekOf } from '../courseEngine';
-import { readAdvProfile } from './advProfile';
+import { readAdvProfile, defaultAdvProfile } from './advProfile';
+import { generateTodayQuest } from './advQuest';
+import { generateRoute } from './advRoute';
 import type { Learner, LearnerSettings } from '../types';
 
 /** オンボーディング完了時に保存される形（AdvShell.profileFromOutcome 相当） */
@@ -87,5 +90,63 @@ describe('① 級を申告した人にかなチェックを出さない', () => 
   it('帯が測れている人には出さない', () => {
     expect(kanaCheckNeeded(null, 'n3')).toBe(false);
     expect(kanaCheckNeeded(null, 'n2')).toBe(false);
+  });
+});
+
+// 2026-08-23 実機再現（staging）: 「準備をやり直す」で会話目標＋N1申告に変えた直後、
+// 今日の一手が「假名检查（かなチェック）」になった。原因は2つ:
+//   ① 以前の設定で立った kana.needed=null が、級を申告しても取り下げられない
+//   ② quest生成側が profile.kana だけを見て、申告レベルを見ていない
+// N1〜N3を申告した人にひらがなの読みを確認させない。
+describe('級を申告した人にかなチェックを出さない（2026-08-23 実機再現）', () => {
+  const NOW = '2026-08-23T09:00:00.000Z';
+  const convRoute = generateRoute({
+    goalType: 'conversation', targetJlpt: null, knowledgeBand: 'needs_assessment',
+    conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW,
+  });
+  const questWith = (declared: 'N1' | null) => generateTodayQuest({
+    profile: {
+      ...defaultAdvProfile(NOW), goalType: 'conversation', targetJlpt: null,
+      declaredJlpt: declared, dailyMinutes: 15, route: convRoute,
+      // 未確認のまま（以前の設定で立った状態）
+      kana: { needed: null, doneRowIds: [], checkedAt: null },
+    },
+    route: convRoute, reviewQuestionCount: 0, weakGrammarIds: [], dateKey: '2026-08-23',
+    nowISO: NOW, daysToExam: null, masteredStageIds: new Set(), contentStage: convRoute.stages[0],
+    availability: {
+      nextGrammarIds: [], nextUnitIds: [], conversationTargets: [],
+      confirmTargetIds: [], vocabBattleTargetId: 'vocab-1', kanjiBattleTargetId: null,
+    },
+  });
+
+  it('kana.needed が null（未確認）のままでも、申告があればかな道場stepを作らない', () => {
+    const q = questWith('N1');
+    expect(q, '今日の冒険が組めない').toBeTruthy();
+    expect(q!.steps.some((s) => s.kind === 'kana_dojo'), 'かな道場が出ている').toBe(false);
+  });
+
+  it('申告が無い超初心者には従来どおり出る（機能を消していない）', () => {
+    const q = questWith(null);
+    expect(q!.steps.some((s) => s.kind === 'kana_dojo')).toBe(true);
+  });
+});
+
+// 2026-08-23 実機再現（staging・上と同じセッション）: 「準備をやり直す」→会話目標→「N1を持っている」
+// →更新、のあと DB の declaredJlpt が **null のまま**だった（実測）。
+// 原因は finishAdjust が OnboardingOutcome に declaredJlpt を載せていなかったこと。
+// 申告が消えると会話が第1週へ巻き戻り、かなチェックまで復活する（この2つは上のテストで固定済み）。
+describe('調整モードでも申告した級が保存される（2026-08-23 実機再現）', () => {
+  it('finishAdjust の outcome に declaredJlpt が含まれている', () => {
+    const src = readFileSync(new URL('../../../../components/ai-course/adventure/AdvOnboarding.tsx', import.meta.url), 'utf8');
+    const fn = /const finishAdjust = \(\) => \{[\s\S]*?\n  \};/.exec(src);
+    expect(fn, 'finishAdjust が見つからない').toBeTruthy();
+    expect(fn![0], 'finishAdjust が declaredJlpt を落としている').toMatch(/declaredJlpt: declared,/);
+  });
+
+  it('調整モードの初期値は保存済みの級（毎回「わからない」に戻さない）', () => {
+    const src = readFileSync(new URL('../../../../components/ai-course/adventure/AdvOnboarding.tsx', import.meta.url), 'utf8');
+    expect(src).toMatch(/useState<'N1' \| 'N2' \| 'N3' \| null>\(adjust\?\.declaredJlpt \?\? null\)/);
+    const shell = readFileSync(new URL('../../../../components/ai-course/adventure/AdvShell.tsx', import.meta.url), 'utf8');
+    expect(shell, 'AdvShell が adjust へ declaredJlpt を渡していない').toMatch(/declaredJlpt: profile\.declaredJlpt \?\? null,/);
   });
 });

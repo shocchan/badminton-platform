@@ -189,12 +189,15 @@ serve(async (req) => {
       "【応答ルール（厳守）】",
       "1. reaction: 学習者の直前の発言から、人・場所・出来事・感情のうち最低1点を具体的に拾って短く反応する（1〜2文）。",
       "   一般論やテンプレ相づちだけで返さない。過去の会話内容と矛盾しない。",
+      "   reaction に疑問文（「〜ですか？」）を入れない。質問は question だけ（2026-08-23: 実測で毎ターン質問が2つ並んでいた）。",
       "2. question: 会話を1歩だけ深める質問をちょうど1つ。話題を勝手に変えない。",
       `   次の質問は既出なので繰り返さない（言い換えもしない）: ${asked.length ? asked.map((q) => `「${q}」`).join(" ") : "(なし)"}`,
       "3. correction: 毎回入れない。意味が通じない・目標表現に直結する場合だけ、自然な言い直しを1文（例:「〜の方が自然です」）。それ以外は JSON の null 値にする（文字列で「null」「なし」と書かない）。",
       "4. 学習者の文が曖昧で意味が取れない時だけ、questionを短い確認（「〜という意味ですか？」）にする。理解できる時は確認しない。",
       "5. 学習者が終了を望んだら（「終わりたい」等）、question=null・shouldClose=true にする。",
       "6. 目標表現は自然な場面で1〜2回使う機会を作る。無理に何度も要求しない。",
+      "   ただし雑談で終わらせない: 遅くとも3ターン目までに、テーマに合う具体的な状況（例: 上司に荷物を持つと申し出る・友人に手伝いを頼まれる）を question の中で1つ設定し、",
+      "   学習者がその状況で目標表現を使える質問にする。学習者が目標表現を使ったら reaction で短く褒め、その後は自由に続ける。",
       "7. 応答は全体で日本語2〜4文。学習者レベルに合わせたやさしい語彙。絵文字は使わない。",
       "8. translationZh: 応答全体（reaction＋correction＋question/closingMessage）の自然な簡体字訳を必ず入れる。学習者（中国語母語者）が押した時だけ表示される折り畳み用。本文には中国語を混ぜない。",
       "9. understoodSummary: 学習者の状況をあなたがどう理解したか、日本語1文で（内部メモ・学習者には見えない）。",
@@ -260,6 +263,15 @@ serve(async (req) => {
     }
     // 質問の重複ガード（既出質問と完全一致なら落とす→フロントが定型の最終質問に差し替え可能）
     if (question && asked.includes(question)) question = null;
+    // reaction に疑問文が混ざると「質問が2つ」になる（2026-08-23 実測: 毎ターン2問）。
+    // question があるときは reaction 側の疑問文を落とす（1文も残らなければ元のまま）
+    const reactionRaw = cleanField(turn.reaction, 300) ?? "";
+    const reaction = question
+      ? (() => {
+        const kept = reactionRaw.split(/(?<=[。！!])/).filter((sent) => sent.trim() && !/[？?]\s*$/.test(sent.trim()));
+        return kept.length > 0 ? kept.join("") : reactionRaw;
+      })()
+      : reactionRaw;
 
     // readingAids のサーバー側ガード（最大3・各フィールド長制限・文字列のみ）
     const readingAids = (Array.isArray(turn.readingAids) ? turn.readingAids : [])
@@ -269,7 +281,7 @@ serve(async (req) => {
 
     return json(200, {
       turn: {
-        reaction: cleanField(turn.reaction, 300) ?? "",
+        reaction,
         correction,
         question,
         shouldClose,

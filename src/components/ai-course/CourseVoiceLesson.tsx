@@ -482,7 +482,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           <p className="text-base font-bold text-gray-900 leading-snug">{tv.greetingGuideTitle}</p>
           <div className="inline-flex items-center gap-2 mt-3 mb-2 px-4 py-2 bg-blue-50 rounded-2xl">
             <Mic className="w-4 h-4 text-blue-600 shrink-0" />
-            <span className="text-lg font-bold text-blue-700">「{tv.greetingExample}」</span>
+            <span className="text-lg font-bold text-blue-700">{tv.greetingExample}</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">{tv.greetingGuideHint}</p>
           {micSilentHint && (

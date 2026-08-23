@@ -22,7 +22,7 @@ describe('KatariPortIntro（会話の港・会話前カード）', () => {
   it('場所・相手・目的・目標表現・所要時間・残回数を表示する', () => {
     render(<KatariPortIntro t={aiCourseI18n.ja} {...baseProps} />);
     expect(screen.getByText('カタリ港（会話の港）')).toBeTruthy();
-    expect(screen.getByText('翔子先生（ことばの案内人）')).toBeTruthy();
+    expect(screen.getByText('翔子先生（AI講師）')).toBeTruthy();
     expect(screen.getByText('以前と今の変化を説明する')).toBeTruthy();
     expect(screen.getByText('「〜ようになりました」')).toBeTruthy();
     expect(screen.getByText('約3分')).toBeTruthy();

@@ -49,12 +49,24 @@ export function PurchaseCompletePage() {
     purchaseTracked.current = true;
     const plan = state.planId ? planById(state.planId) : null;
     track('purchase', {
-      transaction_id: sessionId,
+      // Checkout Session ID は購入状況APIの鍵なので生のまま計測へ送らない（末尾8桁で重複排除には足りる）
+      transaction_id: `cs_${sessionId.slice(-8)}`,
       plan: state.planId ?? '',
       value: plan?.priceJpy ?? undefined,
       currency: 'JPY',
     });
   }, [state, sessionId]);
+
+  // 失敗・発行待ちタイムアウトも1回だけ計測する（2026-08-23 監査: purchase_fail が無く、
+  // 「決済はしたのに学習に入れなかった人」がファネルから消えていた）
+  const failTracked = useRef(false);
+  useEffect(() => {
+    if (failTracked.current) return;
+    if (state?.status === 'failed' || timedOut) {
+      failTracked.current = true;
+      track('ai_course_purchase_fail', { reason: state?.status === 'failed' ? 'failed' : 'provision_timeout', plan: state?.planId ?? '' });
+    }
+  }, [state, timedOut]);
 
   const title = zh ? '购买手续｜你的日语搭档' : 'ご購入手続き｜日本語の相棒';
   const planName = state?.planId ? planView(planById(state.planId)!, zh ? 'zh' : 'ja').name : null;

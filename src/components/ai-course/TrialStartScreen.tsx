@@ -31,7 +31,9 @@ export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStar
     setError('');
     trackCourse('click_ai_course_trial_start', { window_minutes: windowMinutes });
     const r = await startTrial();
-    if (r.ok) { onStarted(); return; }
+    // 開始が**成功したとき**だけ trial_start を立てる（押した＝始まった、ではない・2026-08-23 監査）
+    if (r.ok) { trackCourse('start_ai_course_trial', { window_minutes: windowMinutes }); onStarted(); return; }
+    trackCourse('fail_ai_course_trial_start', { code: r.code ?? 'unknown' });
     setBusy(false);
     setError(r.code === 'activation_expired'
       ? (zh ? '开始期限（购买后30天）已过。请联系 info@kawabado.com。' : '開始期限（購入後30日）を過ぎています。info@kawabado.com へご連絡ください。')
