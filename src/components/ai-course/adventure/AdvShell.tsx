@@ -3065,7 +3065,7 @@ export default function AdvShell(props: AdvShellProps) {
                     <img src={icon.webp1x} srcSet={`${icon.webp1x} 1x, ${icon.webp2x} 2x`}
                       alt="" aria-hidden width={icon.width} height={icon.height}
                       loading="lazy" decoding="async"
-                      className={`h-6 w-6 shrink-0 object-contain ${done ? 'opacity-40' : ''}`} />
+                      className={`h-7 w-7 shrink-0 object-contain ${done ? 'opacity-40' : ''}`} />
                   )}
                   <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                     {tx(lang, s.titleJa, s.titleZh)}
