@@ -92,6 +92,22 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
     name: seoTitle, description: v.seo.description[lang],
     provider: { '@type': 'Organization', name: 'kawabado', url: SITE },
     inLanguage: lang === 'ja' ? 'ja' : 'zh-Hans',
+    // Google の Course リッチリザルトは hasCourseInstance が無いと対象にならない。
+    // 実態（オンライン・随時開始・半年伴走）とズレない範囲だけ書く。
+    // 価格はプランが複数あり未確定のものも混ざるため、offers はあえて出さない
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'online',
+      courseWorkload: 'PT20M',
+      inLanguage: lang === 'ja' ? 'ja' : 'zh-Hans',
+    },
+  };
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: lang === 'zh' ? '首页' : 'ホーム', item: `${SITE}/${lang}/` },
+      { '@type': 'ListItem', position: 2, name: seoTitle, item: canonical },
+    ],
   };
   const faqSchema = {
     '@context': 'https://schema.org', '@type': 'FAQPage',
@@ -115,9 +131,12 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
         <meta name="description" content={v.seo.description[lang]} />
         <link rel="canonical" href={canonical} />
         {noindex && <meta name="robots" content="noindex,follow" />}
-        <link rel="alternate" hrefLang={lang} href={`${SITE}/${lang}/${path}`} />
-        <link rel="alternate" hrefLang={other} href={`${SITE}/${other}/${path}`} />
-        <link rel="alternate" hrefLang="x-default" href={`${SITE}/ja/ai-course`} />
+        {/* hreflangは既定LPだけに出す。広告用variant（/shoko /yuto）は canonical を
+            /ai-course へ寄せているので、そこで自分自身をhreflangに挙げると
+            「canonicalは別ページなのに、この言語版はこのURL」と矛盾した指示になる */}
+        {!noindex && <link rel="alternate" hrefLang={lang} href={`${SITE}/${lang}/${path}`} />}
+        {!noindex && <link rel="alternate" hrefLang={other} href={`${SITE}/${other}/${path}`} />}
+        {!noindex && <link rel="alternate" hrefLang="x-default" href={`${SITE}/ja/ai-course`} />}
         <meta property="og:type" content="website" />
         <meta property="og:title" content={v.seo.title[lang]} />
         <meta property="og:description" content={v.seo.description[lang]} />
@@ -126,6 +145,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
         <meta name="twitter:card" content="summary_large_image" />
         <script type="application/ld+json">{JSON.stringify(courseSchema)}</script>
         <script type="application/ld+json">{JSON.stringify(faqSchema)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       {/* nav（サイト共通ヘッダーはchromelessで非表示のため独自ナビ） */}
