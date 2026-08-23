@@ -58,6 +58,7 @@ export const HOME_HEROES: Record<string, HomeImageAsset> = {
   katachi: hero('katachi'),
   sorano: hero('sorano'),
   katari: hero('katari'),
+  omoide: hero('omoide'),
 };
 
 /** 現在地の areaId からヒーロー帯を引く。無ければ null（帯を出さない） */
