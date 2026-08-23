@@ -99,6 +99,11 @@ export type StartSessionCode =
   | 'access_not_started'
   | 'access_expired'
   | 'plan_minutes_exhausted'
+  // プラン別のAI会話の枠（2026-08-23 migration 20260823120000）。
+  // 原価を持つ音声だけを絞り、原価ゼロの冒険・バトル・模試へ誘導する
+  | 'plan_voice_daily_limit'
+  | 'plan_voice_total_exhausted'
+  | 'plan_text_daily_limit'
   | 'network'
   | 'unknown';
 

@@ -93,3 +93,26 @@ describe('権限（entitlements）に枠がそのまま出ている', () => {
     }
   });
 });
+
+describe('サーバー側の設定とずれていない', () => {
+  // ai_config.plan_ai_budgets はこのTSの写し。数字が2か所にあるので、ずれたら落とす。
+  const SQL_PATH = 'supabase/migrations/20260823120000_ai_plan_voice_budget.sql';
+
+  it('マイグレーションが seed する値が PLAN_AI_BUDGETS と一致する', async () => {
+    const fs = await import('node:fs');
+    const sql = fs.readFileSync(SQL_PATH, 'utf8');
+    const m = sql.match(/'plan_ai_budgets',\s*'(\{[\s\S]*?\})'::jsonb/);
+    expect(m, 'seed の JSON が見つからない').not.toBeNull();
+    const seeded = JSON.parse(m![1]) as Record<string, {
+      voiceSessionsTotal: number; voiceSessionsPerDay: number; textSessionsPerDay: number;
+    }>;
+    for (const p of PLAN_CATALOG) {
+      const b = aiBudgetFor(p.id);
+      expect(seeded[p.id], `${p.id} が seed に無い`).toBeDefined();
+      expect(seeded[p.id].voiceSessionsTotal, p.id).toBe(b.voiceSessionsTotal);
+      expect(seeded[p.id].voiceSessionsPerDay, p.id).toBe(b.voiceSessionsPerDay);
+      expect(seeded[p.id].textSessionsPerDay, p.id).toBe(b.textSessionsPerDay);
+    }
+    expect(Object.keys(seeded).sort()).toEqual(PLAN_CATALOG.map((p) => p.id).sort());
+  });
+});
