@@ -75,3 +75,26 @@ describe('ヒーロー帯', () => {
     }
   });
 });
+
+describe('地図タイル', () => {
+  it('登録した地図タイルのファイルが実在する', async () => {
+    const fs = await import('node:fs');
+    const { WORLD_MAP_TILES } = await import('./advWorldMapAssets');
+    for (const t of WORLD_MAP_TILES) {
+      for (const p of [t.webp1x, t.webp2x]) {
+        expect(fs.existsSync(`public${p}`), `${t.id}: public${p} が無い`).toBe(true);
+      }
+    }
+  });
+
+  it('会話ルートの2つは環状路（ノードが並ぶ道）の上に足元がある', async () => {
+    // RING は y 480〜576（viewBox 360×600）＝正規化 0.80〜0.96。
+    // ここに足元を置くとノードのボタンと重なって押しにくくなる。
+    const { WORLD_MAP_TILES } = await import('./advWorldMapAssets');
+    for (const id of ['katari', 'omoide']) {
+      const t = WORLD_MAP_TILES.find((x) => x.id === id)!;
+      expect(t, id).toBeDefined();
+      expect(t.anchor[1], `${id} の足元が環状路に乗っている`).toBeLessThan(0.80);
+    }
+  });
+});

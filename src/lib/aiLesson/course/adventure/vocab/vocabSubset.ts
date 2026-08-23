@@ -203,6 +203,55 @@ export const vocabSubsetPool = (
 };
 
 /**
+ * 錯題本のキーから、その語の問題だけを作り直す（2026-08-23）。
+ *
+ * 【なぜ vocabSubsetPool では駄目か】
+ * vocabSubsetPool は seed から「どの語を出すか」を選ぶ。錯題本で必要なのは逆で、
+ * **すでに間違えた特定の語**を確実に含むプールが要る。seedで選び直すと、
+ * その語が入っている保証がない。実際そのせいで、错题本に18件の誤答があるのに
+ * 「重做できる問題はありません」と出ていた（2026-08-23 本番実測）。
+ *
+ * 【なぜ正確に作り直せるか】
+ * buildVocabQuestions の seed は `VOCAB_POOL_SEED + i * 31`（語の添字だけで決まる）。
+ * リクエストseedに依存しないので、同じ語からは**同じキーの問題**が必ず出る。
+ * よってキー → 語 → 添字 → 問題 と辿れば、台帳のキーと完全一致で解決できる。
+ *
+ * 全観点を作る（oneAspectPerWord を使わない）。錯題本は「間違えたその観点」を
+ * もう一度出すのが目的で、観点を間引くとキーが欠ける。
+ *
+ * 生成するのは渡されたキーに出てくる語だけ（18件なら18語ぶん）。全量生成の
+ * 3.9〜4.9秒に対して、ここは語数に比例した数十ms で済む。
+ */
+export const vocabPoolForKeys = (
+  level: 'N2' | 'N3', keys: readonly string[],
+): Map<string, AdvBattleQuestion[]> => {
+  const map = new Map<string, AdvBattleQuestion[]>();
+  if (!Array.isArray(keys) || keys.length === 0) return map;
+  // key = `vocab:${surface}:${reading}:${aspect}`。surface+reading で語を一意に引く
+  const wanted = new Set<string>();
+  for (const k of keys) {
+    const p = typeof k === 'string' ? k.split(':') : [];
+    if (p.length < 4 || p[0] !== 'vocab' || !p[1] || !p[2]) continue;
+    wanted.add(`${p[1]} ${p[2]}`);
+  }
+  if (wanted.size === 0) return map;
+
+  const active = vocabScopedActive(level);
+  const out: AdvBattleQuestion[] = [];
+  for (let i = 0; i < active.length; i++) {
+    const c = active[i];
+    if (!wanted.has(`${c.surface} ${c.reading}`)) continue;
+    // ★ buildBand と同じ引数（同じ配列・同じ seed + i*31）＝ 同じキーの問題が出る
+    out.push(...buildVocabQuestions(c, active, VOCAB_POOL_SEED + i * 31));
+  }
+  if (out.length > 0) map.set(VOCAB_MISTAKE_POOL_ID, out);
+  return map;
+};
+
+/** vocabPoolForKeys が返すプールのキー（バンドではないと分かる名前にする） */
+export const VOCAB_MISTAKE_POOL_ID = 'vocab-mistake-redo';
+
+/**
  * ミニ模試の語彙プール。**attemptSeed だけから決まる**こと。
  *
  * ここに seenKeys 等を混ぜると、保存した答案のキーが再構成したプールに入らなくなり、

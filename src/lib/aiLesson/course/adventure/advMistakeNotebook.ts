@@ -554,6 +554,41 @@ export const summarizeMistakes = (
   };
 };
 
+/**
+ * 語彙の問題キーから「何の語だったか」を取り出す（2026-08-23）。
+ *
+ * 【なぜ要るか】
+ * 错题本は設計上「キーだけ」を持ち、問題文の解決は呼び出し側の責任にしてある。
+ * ところが画面側がその解決をしておらず、18件の誤答が全部「词汇」という
+ * 学習対象名だけで並んでいた（本番実測）。**何を間違えたのかが1件も分からない。**
+ *
+ * 語彙キーは `vocab:${surface}:${reading}:${aspect}` の形で、**語そのものを含んでいる**。
+ * 出題プールを読み込めない状況（chunk未ロード・語がプールから外れた等）でも、
+ * キーだけは台帳にあるので、ここから最低限「どの語か」は必ず出せる。
+ *
+ * プールが引けるときは、そちらの問題（中国語の意味つき）を優先すること。
+ * ここは「最後の砦」であって、これで十分という意味ではない。
+ */
+export interface VocabMistakeKeyParts {
+  /** 表記（例: 経済） */
+  surface: string;
+  /** 読み（例: けいざい） */
+  reading: string;
+  /** 観点（reading / writing / meaning など） */
+  aspect: string;
+}
+
+export const parseVocabMistakeKey = (questionKey: string): VocabMistakeKeyParts | null => {
+  if (typeof questionKey !== 'string') return null;
+  // surface/reading に ':' は入らない前提だが、aspect 側は末尾を採って崩れに強くする
+  const parts = questionKey.split(':');
+  if (parts.length < 4 || parts[0] !== 'vocab') return null;
+  const [, surface, reading] = parts;
+  const aspect = parts[parts.length - 1];
+  if (!isNonEmptyString(surface) || !isNonEmptyString(reading) || !isNonEmptyString(aspect)) return null;
+  return { surface, reading, aspect };
+};
+
 /** 誤答1件の状態文（あと何回で克服か。脅し文句は使わない） */
 export const mistakeStatusText = (e: MistakeEntry): Term => {
   const n = MISTAKE_RULES.clearStreak;

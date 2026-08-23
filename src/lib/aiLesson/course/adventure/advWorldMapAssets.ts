@@ -73,6 +73,13 @@ export const WORLD_MAP_TILES: readonly WorldMapTileAsset[] = [
   // ②-8 カタチの遺跡（v1）。高地の左。霧ノード (0.32,0.22) がこの上に乗る（未解放のうちは霧に隠れる）
   { id: 'katachi', webp1x: '/ai-course/map/tile-katachi@1x.webp', webp2x: '/ai-course/map/tile-katachi@2x.webp',
     width: 448, height: 305, anchor: [0.28, 0.28], widthFrac: 0.18 },
+  // ②-10 カタリ港（会話の港・2026-08-23）。会話ルートの目的地。湾の右岸の砂浜、
+  // 環状路（RING: y480〜576）の**上**に足元を置く＝ノードのボタンと重ならない
+  { id: 'katari', webp1x: '/ai-course/map/tile-katari@1x.webp', webp2x: '/ai-course/map/tile-katari@2x.webp',
+    width: 448, height: 475, anchor: [0.66, 0.775], widthFrac: 0.15 },
+  // ②-11 オモイデ庭園（記憶の庭・2026-08-23）。湾の左岸の砂浜。同じく環状路の上
+  { id: 'omoide', webp1x: '/ai-course/map/tile-omoide@1x.webp', webp2x: '/ai-course/map/tile-omoide@2x.webp',
+    width: 448, height: 510, anchor: [0.15, 0.79], widthFrac: 0.13 },
   // ②-9 ソラノ塔（v1・縦長）。世界の頂。塔だけは高さで見せるので widthFrac は小さく、縦に伸びる
   { id: 'sorano', webp1x: '/ai-course/map/tile-sorano@1x.webp', webp2x: '/ai-course/map/tile-sorano@2x.webp',
     width: 448, height: 810, anchor: [0.60, 0.175], widthFrac: 0.13 },
