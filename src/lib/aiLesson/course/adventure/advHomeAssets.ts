@@ -105,6 +105,17 @@ export const STEP_ICONS: Record<string, HomeImageAsset> = {
   kana: stepIcon('kana'),
 };
 
+/**
+ * 今日のゴールの印（2026-08-23）。「今日のゴール」は bg-gray-50 の平らな箱で、
+ * 画面のなかで一番地味なのに、書いてあるのはその日の目的そのものだった。
+ * step の絵記号と同じ生成でまとめて作った宝箱を、その印として使う。
+ */
+export const GOAL_ICON: HomeImageAsset = {
+  webp1x: '/ai-course/step/goal-chest@1x.webp',
+  webp2x: '/ai-course/step/goal-chest@2x.webp',
+  width: 48, height: 48,
+};
+
 export const stepIconFor = (kind: AdvQuestStep['kind']): HomeImageAsset | null => {
   const id = STEP_ICON_BY_KIND[kind];
   return id ? (STEP_ICONS[id] ?? null) : null;

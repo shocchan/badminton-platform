@@ -25,7 +25,7 @@ import {
   type StuckRescuePlan,
 } from '../../../lib/aiLesson/course/adventure/advStuckRescue';
 import { readHomeVariantFromWindow } from '../../../lib/aiLesson/course/adventure/advHomeVariant';
-import { heroForArea, HOME_HERO_ASPECT, stepIconFor } from '../../../lib/aiLesson/course/adventure/advHomeAssets';
+import { heroForArea, HOME_HERO_ASPECT, stepIconFor, GOAL_ICON } from '../../../lib/aiLesson/course/adventure/advHomeAssets';
 import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
@@ -3076,10 +3076,25 @@ export default function AdvShell(props: AdvShellProps) {
             })}
           </ol>
 
-          {/* 3. 今日のゴール */}
-          <div className="mt-3 rounded-lg bg-gray-50 px-3 py-2">
-            <p className="text-xs font-semibold text-gray-600">{term('todayGoal', lang)}</p>
-            <p className="text-sm text-gray-800">{tx(lang, quest.successConditionJa, quest.successConditionZh)}</p>
+          {/*
+            3. 今日のゴール（2026-08-23 見た目を作り直し）。
+            bg-gray-50 の平らな箱で、画面のなかで一番地味なのに、書いてあるのは
+            その日の目的そのものだった。宝箱の印を添えて、達成したら色が変わる。
+            **文言と構造は変えない**（読み上げの順番も同じ）。変えたのは見え方だけ。
+          */}
+          <div className={`mt-3 flex items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors duration-500 ${
+            allDone ? 'border-amber-300 bg-amber-50' : 'border-gray-200 bg-gray-50'}`}>
+            <img src={GOAL_ICON.webp1x} srcSet={`${GOAL_ICON.webp1x} 1x, ${GOAL_ICON.webp2x} 2x`}
+              alt="" aria-hidden width={GOAL_ICON.width} height={GOAL_ICON.height}
+              loading="lazy" decoding="async"
+              className={`mt-0.5 h-7 w-7 shrink-0 object-contain transition-opacity duration-500 ${
+                allDone ? 'opacity-100' : 'opacity-45'}`} />
+            <div className="min-w-0">
+              <p className={`text-xs font-semibold ${allDone ? 'text-amber-800' : 'text-gray-600'}`}>
+                {term('todayGoal', lang)}
+              </p>
+              <p className="text-sm text-gray-800">{tx(lang, quest.successConditionJa, quest.successConditionZh)}</p>
+            </div>
           </div>
 
           {/*
