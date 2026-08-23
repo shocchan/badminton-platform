@@ -25,7 +25,7 @@ import {
   type StuckRescuePlan,
 } from '../../../lib/aiLesson/course/adventure/advStuckRescue';
 import { readHomeVariantFromWindow } from '../../../lib/aiLesson/course/adventure/advHomeVariant';
-import { heroForArea, HOME_HERO_ASPECT } from '../../../lib/aiLesson/course/adventure/advHomeAssets';
+import { heroForArea, HOME_HERO_ASPECT, stepIconFor } from '../../../lib/aiLesson/course/adventure/advHomeAssets';
 import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
@@ -3041,6 +3041,16 @@ export default function AdvShell(props: AdvShellProps) {
             {quest.steps.map((s, i) => {
               const done = doneSteps.has(i);
               const isNext = i === nextStepIdx;
+              /*
+                step の絵記号（2026-08-23）。4行が①②③④の数字だけで、語彙バトルもAI会話も
+                言い直しも見た目が同じだった＝読まないと何の時間か分からない。
+
+                **番号の丸には手を入れない。** 何番目かと完了の✓は順序の情報で、
+                絵に置き換えると失われる。絵は丸の隣に足すだけにする＝絵が無くても
+                絵が読めなくても、今までどおり意味が伝わる。
+                STEP_ICONS が埋まるまで null なので、いまの見た目は変わらない。
+              */
+              const icon = stepIconFor(s.kind);
               return (
                 <li key={s.titleJa + i}
                   className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${isNext ? 'bg-blue-50 font-semibold' : ''}`}>
@@ -3051,6 +3061,12 @@ export default function AdvShell(props: AdvShellProps) {
                       : 'bg-gray-100 text-gray-500'}`}>
                     {done ? '✓' : i + 1}
                   </span>
+                  {icon && (
+                    <img src={icon.webp1x} srcSet={`${icon.webp1x} 1x, ${icon.webp2x} 2x`}
+                      alt="" aria-hidden width={icon.width} height={icon.height}
+                      loading="lazy" decoding="async"
+                      className={`h-6 w-6 shrink-0 object-contain ${done ? 'opacity-40' : ''}`} />
+                  )}
                   <span className={`flex-1 text-sm ${done ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                     {tx(lang, s.titleJa, s.titleZh)}
                   </span>

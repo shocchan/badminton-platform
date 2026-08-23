@@ -29,7 +29,7 @@
 |---|---|---|
 | `words` | vocab_new | 新しい言葉を覚える |
 | `grammar` | grammar_new | 新しい文法を学ぶ |
-| `battle` | battle / weak_reinforce | 문제を解いて敵に勝つ |
+| `battle` | battle / weak_reinforce | 問題を解いて敵に勝つ |
 | `review` | review_due | 前に間違えたものをやり直す |
 | `talk` | conversation_mission / restate | AIと話す・言い直す |
 | `reading` | reading_short | 短い文章を読む |
