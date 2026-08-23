@@ -14,14 +14,26 @@ import { buildVocabQuestions, vocabScopedActive, VOCAB_POOL_SEED } from './vocab
 import { vocabPoolForKeys, VOCAB_MISTAKE_POOL_ID } from './vocabSubset';
 import { parseVocabMistakeKey } from '../advMistakeNotebook';
 
-/** 実データから、誤答キーになりうる本物のキーを n 件ぶん取り出す */
-const realKeys = (level: 'N2' | 'N3', n: number): string[] => {
+/**
+ * 実データから、誤答キーになりうる本物のキーを取り出す。
+ *
+ * **level ごとに1回だけ作って使い回す。** 語彙は3,349語あり、問題生成は重い。
+ * テストごとに作り直すと、このファイルがCPUを占有して**別のテストファイルが
+ * ワーカーRPCのタイムアウトで落ちる**（2026-08-23 実測: advAdventureMap が巻き添えで失敗）。
+ * 落ちたのは実装ではなくテストの重さだった、という紛らわしい失敗を作らない。
+ */
+const KEY_COUNT = 6;
+const keyCache = new Map<string, string[]>();
+const realKeys = (level: 'N2' | 'N3'): string[] => {
+  const hit = keyCache.get(level);
+  if (hit) return hit;
   const active = vocabScopedActive(level);
   const keys: string[] = [];
-  for (let i = 0; i < active.length && keys.length < n; i++) {
+  for (let i = 0; i < active.length && keys.length < KEY_COUNT; i++) {
     const built = buildVocabQuestions(active[i], active, VOCAB_POOL_SEED + i * 31);
     if (built.length > 0) keys.push(built[0].key);
   }
+  keyCache.set(level, keys);
   return keys;
 };
 
@@ -44,8 +56,8 @@ describe('parseVocabMistakeKey: キーから語を取り出す', () => {
   });
 
   it('実データのキーがすべて解析できる（キー形式が変わったら落ちる）', () => {
-    const keys = realKeys('N3', 20);
-    expect(keys.length, '実データからキーが取れない＝前提が壊れている').toBeGreaterThan(10);
+    const keys = realKeys('N3');
+    expect(keys.length, '実データからキーが取れない＝前提が壊れている').toBe(KEY_COUNT);
     for (const k of keys) {
       const p = parseVocabMistakeKey(k);
       expect(p, `解析できないキー: ${k}`).not.toBeNull();
@@ -58,8 +70,8 @@ describe('parseVocabMistakeKey: キーから語を取り出す', () => {
 describe('vocabPoolForKeys: 誤答キーから解き直し用の問題を作り直す', () => {
   for (const level of ['N3', 'N2'] as const) {
     it(`${level}: 渡したキーがすべてプールに入っている（＝解き直しが空にならない）`, () => {
-      const keys = realKeys(level, 12);
-      expect(keys.length).toBeGreaterThan(5);
+      const keys = realKeys(level);
+      expect(keys.length).toBe(KEY_COUNT);
       const pool = vocabPoolForKeys(level, keys);
       const got = new Set([...pool.values()].flat().map((q) => q.key));
       for (const k of keys) {
@@ -69,7 +81,7 @@ describe('vocabPoolForKeys: 誤答キーから解き直し用の問題を作り�
   }
 
   it('プールの中身は「その語の問題」だけ（無関係な語を混ぜない）', () => {
-    const keys = realKeys('N3', 3);
+    const keys = realKeys('N3').slice(0, 3);
     const pool = vocabPoolForKeys('N3', keys);
     const wanted = new Set(keys.map((k) => {
       const p = parseVocabMistakeKey(k)!;
@@ -82,7 +94,7 @@ describe('vocabPoolForKeys: 誤答キーから解き直し用の問題を作り�
   });
 
   it('表示に使う情報が揃っている（語と中国語の意味）', () => {
-    const keys = realKeys('N3', 5);
+    const keys = realKeys('N3');
     const qs = [...vocabPoolForKeys('N3', keys).values()].flat();
     expect(qs.length).toBeGreaterThan(0);
     for (const q of qs) {
@@ -107,7 +119,7 @@ describe('vocabPoolForKeys: 誤答キーから解き直し用の問題を作り�
   });
 
   it('同じキーを2回渡しても問題が重複しない', () => {
-    const [k] = realKeys('N3', 1);
+    const [k] = realKeys('N3');
     const qs = [...vocabPoolForKeys('N3', [k, k]).values()].flat();
     expect(new Set(qs.map((q) => q.key)).size).toBe(qs.length);
   });

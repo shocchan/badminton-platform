@@ -29,7 +29,8 @@ import { heroForArea, HOME_HERO_ASPECT, stepIconFor, GOAL_ICON } from '../../../
 import { checkBuildVersion } from '../../../lib/aiLesson/course/adventure/advBuildVersion';
 import {
   buildMistakeNotebook, summarizeMistakes, pendingMistakeKeySet, pickMistakeReviewKeys,
-  mistakeStatusText, MISTAKE_TERMS, type MistakeNotebook,
+  mistakeStatusText, MISTAKE_TERMS, isPendingMistake, parseVocabMistakeKey,
+  type MistakeNotebook,
 } from '../../../lib/aiLesson/course/adventure/advMistakeNotebook';
 import { latestUnreadNote, markNoteRead } from '../../../lib/aiLesson/course/adventure/advTeacherNote';
 import { XP_RULES, xpForBattle, levelOf, xpToNextLevel } from '../../../lib/aiLesson/course/adventure/advXp';
@@ -487,6 +488,57 @@ export default function AdvShell(props: AdvShellProps) {
   }, [vocabRequest, vocabPool?.key, vocabPoolError]);
   /** 注文どおりに出来上がっているプールだけを使う（古いレベル・古いバンドを渡さない） */
   const vocabPoolReady = vocabRequest && vocabPool?.key === vocabRequest.key ? vocabPool.map : null;
+
+  /**
+   * 錯題本の語彙プール（2026-08-23）。
+   *
+   * 【なぜ別に要るか】
+   * 錯題本の表示と解き直しは、これまで文法プール（pools.byItem）だけを見ていた。
+   * 語彙の誤答はそこに存在しないので、①どの語を間違えたか出せない（全部「词汇」と出る）
+   * ②「重做できる問題はありません」になる、の2つが同時に起きていた。
+   * 本番実測（2026-08-23）: 誤答18件すべて語彙、表示は18行とも「词汇」、解き直し不可。
+   *
+   * バトル用の vocabPoolReady は使えない。あちらは seed から「どの語を出すか」を選ぶので、
+   * すでに間違えた語が入っている保証がない。ここは vocabPoolForKeys で
+   * **キーから語を逆引きして**作る（語ごとの生成は決定的なのでキーが完全一致する）。
+   */
+  const mistakeVocabKeys = useMemo<string[]>(() => {
+    if (!profile) return [];
+    const nb = buildMistakeNotebook(profile.mastery, new Date().toISOString());
+    return nb.entries
+      .filter(isPendingMistake)
+      .map((e) => e.questionKey)
+      .filter((k) => k.startsWith('vocab:'))
+      .sort();
+  }, [profile]);
+
+  const [mistakeVocabPool, setMistakeVocabPool] =
+    useState<{ key: string; map: Map<string, AdvBattleQuestion[]> } | null>(null);
+
+  useEffect(() => {
+    // 錯題本を開いているとき／その解き直しバトル中だけ作る（他の画面の初回転送量を増やさない）
+    const needed = view === 'mistakes' || (view === 'battle' && battle?.targetId === MISTAKE_TARGET_ID);
+    if (!needed || mistakeVocabKeys.length === 0) return;
+    const lv: 'N2' | 'N3' = effectiveContentLevel(profile) === 'N2' ? 'N2' : 'N3';
+    const reqKey = `mistake|${lv}|${mistakeVocabKeys.join(',')}`;
+    if (mistakeVocabPool?.key === reqKey) return;
+    let alive = true;
+    void import('../../../lib/aiLesson/course/adventure/vocab/vocabSubset')
+      .then((m) => {
+        if (!alive) return;
+        setMistakeVocabPool({ key: reqKey, map: m.vocabPoolForKeys(lv, mistakeVocabKeys) });
+      })
+      // 失敗しても画面は壊さない（キーから語だけは出せるので、表示は成立する）
+      .catch(() => { /* noop */ });
+    return () => { alive = false; };
+  }, [view, battle?.targetId, mistakeVocabKeys, mistakeVocabPool?.key, profile]);
+
+  /** key → 問題。錯題本の表示と解き直しの両方がこれを引く */
+  const mistakeQuestionByKey = useMemo<Map<string, AdvBattleQuestion>>(() => {
+    const m = new Map<string, AdvBattleQuestion>();
+    for (const qs of mistakeVocabPool?.map.values() ?? []) for (const q of qs) m.set(q.key, q);
+    return m;
+  }, [mistakeVocabPool]);
 
   /**
    * 語彙チャンク（gzip 約686KB）の先読み（2026-08-20 CEO指示「弱点を全部直す」）。
@@ -1204,6 +1256,13 @@ export default function AdvShell(props: AdvShellProps) {
           if (want.has(q.key) && !taken.has(q.key)) { taken.add(q.key); picked.push(q); }
         }
       }
+      // 語彙の誤答は文法プールに存在しない。錯題本用に作り直したプールからも拾う
+      // （これが無いと、語彙しか間違えていない学習者は解き直しへ入れない）
+      for (const key of mistakeKeys) {
+        if (taken.has(key)) continue;
+        const q = mistakeQuestionByKey.get(key);
+        if (q) { taken.add(key); picked.push(q); }
+      }
       return new Map<string, AdvBattleQuestion[]>([[MISTAKE_TARGET_ID, picked]]);
     })();
     // 解き直す問題が1問も解決できないまま画面へ入ったら、空のバトルを見せない（行き止まり回避）。
@@ -1654,7 +1713,11 @@ export default function AdvShell(props: AdvShellProps) {
     // 「解き直せます」と出すと押しても何も起きない（原則15: 行き止まりを作らない）
     const resolvable = new Map<string, AdvBattleQuestion>();
     if (pools) for (const qs of pools.byItem.values()) for (const q of qs) resolvable.set(q.key, q);
+    // 語彙の誤答（キーから作り直したぶん）。これが無いと語彙だけの学習者は解き直せない
+    for (const [k, q] of mistakeQuestionByKey) resolvable.set(k, q);
     const redoKeys = pickMistakeReviewKeys(notebook, REVIEW_BATTLE_SIZE).filter((k) => resolvable.has(k));
+    // 語彙プールを取りに行っている最中か（「解き直せません」と言い切る前に待つ）
+    const mistakeVocabLoading = mistakeVocabKeys.length > 0 && mistakeQuestionByKey.size === 0;
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '間違えた問題ノート', '错题本')} teacherLang={lang} />
@@ -1684,8 +1747,14 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, `間違えた問題を解き直す（${redoKeys.length}問）`, `重做错题（${redoKeys.length}题）`)}
           </button>
         )}
+        {/* 読み込み中に「解き直せません」と言い切らない（実際には解き直せる） */}
+        {redoKeys.length === 0 && mistakeVocabLoading && (
+          <p className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
+            {tx(lang, '解き直す問題を用意しています…', '正在准备重做的题目…')}
+          </p>
+        )}
         {/* 出題できるものが1問も無いときは、押せないボタンを置かずに理由を書く */}
-        {redoKeys.length === 0 && notebook.entries.length > 0 && (
+        {redoKeys.length === 0 && !mistakeVocabLoading && notebook.entries.length > 0 && (
           <p className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs leading-relaxed text-gray-600">
             {tx(lang,
               'いまここから解き直せる問題はありません（読解・聴解・模試で間違えたぶんは、それぞれの練習から出ます）。',
@@ -1705,12 +1774,42 @@ export default function AdvShell(props: AdvShellProps) {
                   {/* 解き直しの内部target（mistake-review）ではなく**元の学習対象**を出す。
                       解き直すほど全部の行が「間違えた問題の解き直し」になって
                       何の問題か分からなくなる（2026-08-18 実機確認） */}
-                  <p className="text-sm font-semibold text-gray-800">
+                  {/* 何を間違えたのかを必ず出す（2026-08-23）。
+                      以前はここが学習対象名だけで、語彙の誤答が全部「词汇」と並び、
+                      18件のノートから1件も学べなかった（本番実測）。
+                      優先順: ①作り直した問題（語＋中国語の意味）②キーから取れる語＋読み
+                      ③どちらも駄目なら従来どおり学習対象名（存在しない情報は作らない） */}
+                  <div className="min-w-0">
                     {(() => {
+                      const q = resolvable.get(e.questionKey);
+                      const parts = parseVocabMistakeKey(e.questionKey);
+                      const word = q?.targetJapanese ?? parts?.surface ?? null;
+                      if (word) {
+                        const meaningZh = q?.explanation.meaningZh ?? null;
+                        const meaningJa = q?.explanation.meaningJa ?? null;
+                        const meaning = lang === 'zh' ? meaningZh : meaningJa;
+                        return (
+                          <>
+                            <p className="text-base font-bold text-gray-900">
+                              {word}
+                              {parts?.reading && parts.reading !== word && (
+                                <span className="ml-2 text-xs font-normal text-gray-500">{parts.reading}</span>
+                              )}
+                            </p>
+                            {meaning && (
+                              <p className="mt-0.5 truncate text-xs text-gray-600">{meaning}</p>
+                            )}
+                          </>
+                        );
+                      }
                       const src = e.targetIds.find((t) => t !== MISTAKE_TARGET_ID) ?? e.targetId;
-                      return grammarPatternById(src) ?? targetLabelOf(src, lang);
+                      return (
+                        <p className="text-sm font-semibold text-gray-800">
+                          {grammarPatternById(src) ?? targetLabelOf(src, lang)}
+                        </p>
+                      );
                     })()}
-                  </p>
+                  </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold ${
                     doneMark ? 'bg-emerald-600 text-white'
                       : e.resolution === 'unverifiable' ? 'bg-amber-500 text-white' : 'bg-gray-500 text-white'}`}>
