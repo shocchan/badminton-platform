@@ -10,9 +10,18 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Youtube from '@tiptap/extension-youtube';
 import { ResizableImage } from '../extensions/ResizableImage';
-import type { Tournament, BlogPost, Entry } from '../types';
+import type { Tournament, BlogPost } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
 import GameStatsPanel from '../components/admin/GameStatsPanel';
+import ContactsPanel from '../components/admin/ContactsPanel';
+import { useContacts } from '../components/admin/adminContacts';
+import {
+  deadlineNote,
+  isUnpaid,
+  paymentBadge,
+  paymentCsvCells,
+  type EntryWithTournament,
+} from '../components/admin/entryPayment';
 import { toast } from '../components/ui/Toast';
 import { ShieldCheck } from 'lucide-react';
 
@@ -20,7 +29,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'shuttle' | 'game';
+type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'contacts' | 'shuttle' | 'game';
 
 interface Subscriber {
   id: string;
@@ -972,10 +981,12 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const { blogPosts, loading: bLoading, createPost, updatePost, deletePost } = useBlogPosts({ includeScheduled: true });
   const draftPosts = blogPosts.filter(p => p.status === 'draft');
   const livePosts = blogPosts.filter(p => p.status !== 'draft');
-  const [entries, setEntries] = useState<(Entry & { tournaments?: { title: string } })[]>([]);
+  const [entries, setEntries] = useState<EntryWithTournament[]>([]);
   const [entriesLoading, setEntriesLoading] = useState(false);
   const [newEntryNotice, setNewEntryNotice] = useState<string | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [showUnpaidOnly, setShowUnpaidOnly] = useState(false);
+  const [payingEntryId, setPayingEntryId] = useState<number | null>(null);
 
   // 会員管理
   const [members, setMembers] = useState<Member[]>([]);
@@ -1043,6 +1054,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     };
   }, [isSubGroup, isAuthenticated]);
 
+  // 問い合わせは「タブを開いたら読む」ではなく、管理画面に入った時点で読む。
+  // どのタブにいても未返信件数を上に出すため（2026-07-06から5件が誰の目にも触れず滞留していた）。
+  const contacts = useContacts(!isSubGroup && isSiteAdmin === true);
+
   useEffect(() => {
     if (isSubGroup) return;
     if (activeTab === 'entries') fetchEntries();
@@ -1087,11 +1102,48 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     setEntriesLoading(true);
     const { data } = await supabase
       .from('entries')
-      .select('*, tournaments(title)')
+      // payment_required / payment_deadline は「誰が未入金か」「期限まで何日か」の判定に要る
+      .select('*, tournaments(title, payment_required, payment_deadline, entry_fee)')
       .order('created_at', { ascending: false });
-    setEntries((data || []) as (Entry & { tournaments?: { title: string } })[]);
+    setEntries((data || []) as EntryWithTournament[]);
     setEntriesLoading(false);
   };
+
+  // 入金確認のON/OFF。completed にした時点で自動督促メール（pg_cron・毎日10:00 JST）の対象から外れる。
+  //
+  // 更新は process-admin Edge Function を通さない。あの関数には認証・認可が無く、
+  // お金に関わる状態変更を無防備な経路に足すわけにはいかないため、
+  // is_admin() ガード付きのRPC admin_set_entry_payment を使う。
+  const handleTogglePaid = async (entry: EntryWithTournament) => {
+    const paid = entry.payment_status === 'completed';
+    if (paid && entry.payment_method === 'credit') {
+      toast.error('クレジット決済分はStripeの記録と紐づくため、ここでは変更できません');
+      return;
+    }
+    const msg = paid
+      ? `${entry.name}さんの入金確認を取り消しますか？\n未入金に戻り、支払い期限に応じて自動督促メールの対象になります。`
+      : `${entry.name}さんの入金を確認済みにしますか？\nこの時点で自動督促メールは止まります。`;
+    if (!confirm(msg)) return;
+
+    setPayingEntryId(entry.id);
+    const { error } = await supabase.rpc('admin_set_entry_payment', {
+      p_entry_id: entry.id,
+      p_paid: !paid,
+    });
+    setPayingEntryId(null);
+
+    if (error) {
+      toast.error('更新に失敗しました: ' + error.message);
+      return;
+    }
+    await fetchEntries();
+    toast.success(paid ? `${entry.name}さんを未入金に戻しました` : `${entry.name}さんの入金を確認済みにしました`);
+  };
+
+  const unpaidCount = entries.filter(isUnpaid).length;
+  const visibleEntries = entries.filter(e =>
+    (showCancelled || e.status !== 'cancelled') && (!showUnpaidOnly || isUnpaid(e))
+  );
 
   const handleDeleteSubscriber = async (id: string) => {
     await supabase.from('subscribers').delete().eq('id', id);
@@ -1529,11 +1581,32 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         </div>
       )}
 
+      {/* 未返信の問い合わせ（タブを探しに行かせない。どのタブにいても上に出す） */}
+      {!isSubGroup && contacts.unrepliedCount > 0 && (
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
+          <span className="text-xl">✉️</span>
+          <p className="text-sm font-bold text-red-800">
+            未返信の問い合わせが{contacts.unrepliedCount}件あります
+            {contacts.oldestDays !== null && contacts.oldestDays > 0 && (
+              <span className="font-normal">（一番古いもので{contacts.oldestDays}日経過）</span>
+            )}
+          </p>
+          {activeTab !== 'contacts' && (
+            <button
+              onClick={() => setActiveTab('contacts')}
+              className="ml-auto rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+            >
+              確認する
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Tabs */}
-      <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
+      <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
         {(isSubGroup
           ? [['activities', '通常活動']] as [Tab, string][]
-          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '登録者管理'], ['shuttle', 'シャトル供養'], ['game', 'ゲーム実績']] as [Tab, string][]
+          : [['tournaments', '大会案内'], ['blog', 'ブログ'], ['entries', 'エントリー確認'], ['activities', '活動管理'], ['members', '登録者管理'], ['subscribers', '特典登録'], ['contacts', '問い合わせ'], ['shuttle', 'シャトル供養'], ['game', 'ゲーム実績']] as [Tab, string][]
         ).map(([key, label]) => (
           <button
             key={key}
@@ -1543,6 +1616,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             }`}
           >
             {label}
+            {key === 'contacts' && contacts.unrepliedCount > 0 && (
+              <span className="ml-1.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[10px] font-bold text-red-700">
+                {contacts.unrepliedCount}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -2212,11 +2290,23 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 />
                 取消済みも表示
               </label>
+              <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showUnpaidOnly}
+                  onChange={e => setShowUnpaidOnly(e.target.checked)}
+                  className="rounded"
+                />
+                未入金のみ
+                {unpaidCount > 0 && (
+                  <span className="bg-red-100 text-red-700 rounded-full px-1.5 py-0.5 text-[10px] font-bold">{unpaidCount}</span>
+                )}
+              </label>
             </div>
             <button
               onClick={() => {
                 const statusLabel = (s: string) => s === 'confirmed' ? '確定' : s === 'waitlist' ? 'キャンセル待ち' : s === 'cancelled' ? 'キャンセル' : '確定';
-                const header = ['ステータス', '大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日'];
+                const header = ['ステータス', '大会名', '参加者名', 'ペア名', 'メール', '電話番号', '備考', '申込日', '支払い方法', '入金状況', '入金日'];
                 const rows = entries.map(e => [
                   statusLabel(e.status || 'confirmed'),
                   e.tournaments?.title || '',
@@ -2226,6 +2316,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                   e.phone || '',
                   e.notes || '',
                   formatDate(e.entry_date),
+                  ...paymentCsvCells(e),
+                  e.paid_at ? formatDate(e.paid_at) : '',
                 ]);
                 const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
                 const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -2252,6 +2344,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
+                    <th className="text-left px-4 py-3 font-medium text-gray-600">入金</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">大会名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">参加者名</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ペア名</th>
@@ -2263,7 +2356,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {entries.filter(e => showCancelled || e.status !== 'cancelled').map((entry) => (
+                  {visibleEntries.map((entry) => (
                     <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''}`}>
                       <td className="px-4 py-3">
                         {entry.status === 'confirmed' && (
@@ -2278,6 +2371,48 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                         {!entry.status && (
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
                         )}
+                      </td>
+                      {/* 入金（支払い必須の大会 × 参加確定 のみ。自動督促の対象条件と同じ） */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {(() => {
+                          const badge = paymentBadge(entry);
+                          if (!badge) return <span className="text-gray-300">-</span>;
+                          const note = deadlineNote(entry);
+                          const tone =
+                            badge.tone === 'paid' ? 'bg-green-100 text-green-700'
+                            : badge.tone === 'refunded' ? 'bg-slate-100 text-slate-600'
+                            : 'bg-red-100 text-red-700';
+                          const noteTone =
+                            note?.tone === 'over' ? 'text-red-600 font-bold'
+                            : 'text-amber-600 font-medium';
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className={`text-xs px-2 py-1 rounded-full font-medium ${tone}`}>{badge.label}</span>
+                              {note && <span className={`text-[11px] ${noteTone}`}>{note.text}</span>}
+                              {badge.tone === 'paid' ? (
+                                entry.payment_method !== 'credit' && (
+                                  <button
+                                    onClick={() => handleTogglePaid(entry)}
+                                    disabled={payingEntryId === entry.id}
+                                    className="text-[11px] text-gray-400 hover:text-gray-600 hover:underline disabled:opacity-50"
+                                    title="誤って押した場合はここで未入金に戻せます"
+                                  >
+                                    取消
+                                  </button>
+                                )
+                              ) : (
+                                <button
+                                  onClick={() => handleTogglePaid(entry)}
+                                  disabled={payingEntryId === entry.id}
+                                  className="text-xs bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white px-2.5 py-1 rounded-lg font-medium transition-colors"
+                                  title="押すとこの人への自動督促メールが止まります"
+                                >
+                                  {payingEntryId === entry.id ? '...' : '入金確認'}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="px-4 py-3 text-gray-700">{entry.tournaments?.title || '-'}</td>
                       <td className="px-4 py-3 font-medium text-gray-900">{entry.name}</td>
@@ -2306,8 +2441,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       </td>
                     </tr>
                   ))}
-                  {entries.length === 0 && (
-                    <tr><td colSpan={9} className="px-4 py-10 text-center text-gray-400">エントリーがありません</td></tr>
+                  {visibleEntries.length === 0 && (
+                    <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-400">
+                      {showUnpaidOnly && entries.length > 0 ? '未入金のエントリーはありません 🎉' : 'エントリーがありません'}
+                    </td></tr>
                   )}
                 </tbody>
               </table>
@@ -2554,7 +2691,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       {activeTab === 'subscribers' && (
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-800">登録者管理</h2>
+            {/* 会員管理タブのラベルが「登録者管理」なので、こちらは流入元（/join の特典登録）で呼ぶ */}
+            <h2 className="text-lg font-bold text-gray-800">特典登録</h2>
             <div className="flex items-center gap-3">
               <span className="text-sm text-gray-500">{subscribers.length}件</span>
               <button
@@ -2749,6 +2887,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             </div>
           </div>
         </div>
+      )}
+      {/* Contacts Tab */}
+      {activeTab === 'contacts' && (
+        <ContactsPanel
+          contacts={contacts.contacts}
+          loading={contacts.loading}
+          unavailable={contacts.unavailable}
+          onUpdateStatus={contacts.updateStatus}
+          onRefresh={contacts.refresh}
+        />
       )}
       {/* Shuttle Tab */}
       {activeTab === 'shuttle' && (
