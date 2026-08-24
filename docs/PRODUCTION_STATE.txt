@@ -1,0 +1,4 @@
+deployed_at: 2026-08-24 16:59:35 +0900
+branch:      release/assetization-2026-08
+commit:      d948317b9ecdca80c7c92c4e00452d6566aea2b9
+asset:       assets/index-OnlBzOJY.js
