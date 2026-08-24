@@ -365,6 +365,14 @@ export interface AdventureV2Profile {
    */
   interviewPrep: import('./interview/advInterview').InterviewPrepState;
   /**
+   * 個人復習パック（自分の書いた文章から復習する・2026-08-24）。
+   * 先生が learner ごとに発行する＝この配列はその人専用。空なら画面に出さない。
+   * **冒険（route/mastery/skills/xp/streak）には一切影響しない**（advPersonalPack.ts 冒頭）
+   */
+  personalPacks: import('./personal/advPersonalPack').PersonalPack[];
+  /** 個人復習パックの本人の記録（答えた回数・連続正解・次の復習日） */
+  personalPack: import('./personal/advPersonalPack').PersonalPackState;
+  /**
    * 先生からの一言（週1・2026-08-17）。管理画面から追記し、生徒のホームに出す。
    * 発行キー（先生が書いたものを生徒側の保存で消さない）なので
    * ai_save_learner_settings の保護対象に入れてある

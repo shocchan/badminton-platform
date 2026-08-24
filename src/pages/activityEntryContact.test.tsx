@@ -22,6 +22,7 @@ const state = vi.hoisted(() => ({
   inserts: [] as Record<string, unknown>[],
   session: null as Session,
   activity: null as unknown,
+  missingContactColumn: false,
 }));
 
 vi.mock('../services/supabaseClient', () => {
@@ -50,6 +51,12 @@ vi.mock('../services/supabaseClient', () => {
         select: selectChain,
         insert: (row: Record<string, unknown>) => {
           state.inserts.push(row);
+          // email / user_id 列がまだ無い環境を再現する（migration 未適用でのデプロイ）
+          if (state.missingContactColumn && ('email' in row || 'user_id' in row)) {
+            return Promise.resolve({
+              error: { code: 'PGRST204', message: "column \"email\" does not exist" },
+            });
+          }
           return Promise.resolve({ error: null });
         },
       }),
@@ -102,8 +109,41 @@ beforeEach(() => {
   state.inserts = [];
   state.session = null;
   state.activity = ACTIVITY;
+  state.missingContactColumn = false;
 });
 afterEach(cleanup);
+
+describe('【リリース事故への保険】email 列がまだ無い環境', () => {
+  // migration より先にフロントを出す・migration を戻す・別環境で開く。
+  // どれが起きても「連絡先が残らない」で済ませ、「申し込めない」にはしない。
+  // 通常活動は8月だけで94人が使う最重要の入口。
+  it('列が無くても申し込みは成立する（連絡先を落として入れ直す）', async () => {
+    state.missingContactColumn = true;
+    const nameInput = await openForm();
+    fireEvent.change(nameInput, { target: { value: '高橋' } });
+    fireEvent.change(screen.getByLabelText(/メールアドレス/), { target: { value: 'taka@example.com' } });
+    fireEvent.click(submitButton());
+
+    // 1回目は email 付きで弾かれ、2回目は email / user_id を外して通る
+    await waitFor(() => expect(state.inserts).toHaveLength(2));
+    expect(state.inserts[0].email).toBe('taka@example.com');
+    expect('email' in state.inserts[1]).toBe(false);
+    expect('user_id' in state.inserts[1]).toBe(false);
+    expect(state.inserts[1].name).toBe('高橋');
+    // 利用者にはいつもどおり完了が出る（裏の再試行は見せない）
+    expect(await screen.findByText('申し込みが完了しました！')).toBeTruthy();
+  });
+
+  it('列がある環境では入れ直さない（無駄なINSERTを増やさない）', async () => {
+    const nameInput = await openForm();
+    fireEvent.change(nameInput, { target: { value: '中村' } });
+    fireEvent.change(screen.getByLabelText(/メールアドレス/), { target: { value: 'naka@example.com' } });
+    fireEvent.click(submitButton());
+
+    await waitFor(() => expect(state.inserts).toHaveLength(1));
+    expect(state.inserts[0].email).toBe('naka@example.com');
+  });
+});
 
 describe('メールは任意（申込のしやすさを落とさない）', () => {
   it('【最重要】メール未入力でも申し込みが成立する', async () => {

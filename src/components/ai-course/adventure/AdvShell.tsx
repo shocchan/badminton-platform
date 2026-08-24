@@ -69,6 +69,8 @@ import { answerSheetsVisible, paperById } from '../../../lib/aiLesson/course/adv
 import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
+import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
+import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
 import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
@@ -161,7 +163,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -403,7 +405,7 @@ export default function AdvShell(props: AdvShellProps) {
   useEffect(() => {
     const inActivity = view === 'battle' || view === 'reading' || view === 'listening'
       || view === 'mock' || view === 'kana' || view === 'restate' || view === 'sheets'
-      || view === 'interview';
+      || view === 'interview' || view === 'personal';
     notifyActivity?.(inActivity);
   }, [view, notifyActivity]);
   useEffect(() => () => notifyActivity?.(false), [notifyActivity]); // アンマウント時は必ず解除
@@ -1509,6 +1511,19 @@ export default function AdvShell(props: AdvShellProps) {
     }
     return (
       <AdvInterviewPrep lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
+    );
+  }
+
+  // ── 自分の文章で復習（先生が発行した人だけ）──
+  // 本人の作文から作った表現・漢字の読みの復習。冒険の攻略・準備度には影響しない
+  if (view === 'personal') {
+    if (!personalPacksVisible(prof)) {
+      // 取り消し後などで対象外になっても行き止まりにしない
+      setView('home');
+      return <AdvLoading lang={lang} />;
+    }
+    return (
+      <AdvPersonalPackRunner lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
     );
   }
 
@@ -3470,6 +3485,14 @@ export default function AdvShell(props: AdvShellProps) {
                   label={tx(lang, '過去問の試験場（先生から届いた問題）', '真题考场（老师发来的题目）')}
                   badge={prof.answerSheets.length}
                   onClick={() => setView('sheets')} />
+              )}
+              {/* 自分の文章で復習（個人パック）。発行された人だけ。
+                  授業で書いた作文の表現・漢字の読みを、その人の文のまま復習する */}
+              {personalPacksVisible(prof) && (
+                <SubLink lang={lang}
+                  label={tx(lang, '自分の文章で復習（先生から届いた復習）', '用自己的作文复习（老师发来的复习）')}
+                  badge={prof.personalPacks.length}
+                  onClick={() => setView('personal')} />
               )}
               {/* 帰化面接の表現特訓。発行された人だけ */}
               {interviewPrepVisible(prof) && (

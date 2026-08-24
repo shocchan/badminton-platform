@@ -11,7 +11,9 @@
     "cd039a3b-ebf6-486b-b68b-32ec9e611228",
     "n5learner@id.badminton-platform.pages.dev",
     "4d7f2553-c498-4207-a0f1-6eef6ad07f6f",
-    "wang@id.badminton-platform.pages.dev"
+    "wang@id.badminton-platform.pages.dev",
+    "eli@id.badminton-platform.pages.dev",
+    "984fca5f-1ced-47f1-acb4-0e54af19dea1"
   ],
   "bulkPatterns": [
     "%@id.badminton-platform.pages.dev"

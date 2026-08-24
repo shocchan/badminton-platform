@@ -12,6 +12,9 @@ import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
 import { restorePapers, restoreSheetSession, restoreSheetLog } from './advAnswerSheet';
 import { restoreInterviewPrep, emptyInterviewPrep } from './interview/advInterview';
+import {
+  restorePersonalPacks, restorePersonalPackState, emptyPersonalPackState,
+} from './personal/advPersonalPack';
 import { restoreTeacherNotes } from './advTeacherNote';
 
 const emptySkill = (): AdvSkillScore => ({
@@ -51,6 +54,8 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   answerSheetSession: null,
   answerSheetLog: [],
   interviewPrep: emptyInterviewPrep(),
+  personalPacks: [],
+  personalPack: emptyPersonalPackState(),
   teacherNotes: [],
   humanLesson: {},
   stuckSkips: [],
@@ -211,6 +216,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     answerSheetSession: restoreSheetSession(raw.answerSheetSession),
     answerSheetLog: restoreSheetLog(raw.answerSheetLog),
     interviewPrep: restoreInterviewPrep(raw.interviewPrep),
+    personalPacks: restorePersonalPacks(raw.personalPacks),
+    personalPack: restorePersonalPackState(raw.personalPack),
     teacherNotes: restoreTeacherNotes(raw.teacherNotes),
     humanLesson: isRecord(raw.humanLesson) ? (raw.humanLesson as AdventureV2Profile['humanLesson']) : {},
     updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : nowISO,

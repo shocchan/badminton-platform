@@ -567,9 +567,28 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       user_id: userIdRef.current,
     };
 
+    /* email / user_id はこのリリースで足す列（migration 20260824110000）。
+       **列がまだ無い環境でも申込だけは必ず通す。**
+       フロントを先に出す・migration を戻す・別環境で開く、のどれでも
+       「連絡先が残らない」で済ませ、「申し込めない」にはしない。
+       通常活動は8月だけで94人が使う最重要の入口なので、ここを止めない。
+       PostgREST は未知の列に PGRST204、Postgres は 42703 を返す。 */
+    const missingColumn = (e: unknown): boolean => {
+      const code = (e as { code?: string } | null)?.code;
+      const msg = String((e as { message?: string } | null)?.message ?? '');
+      return code === 'PGRST204' || code === '42703'
+        || /column .*(email|user_id).* does not exist/i.test(msg);
+    };
+    const insertEntry = async (quantity: number, status: 'confirmed' | 'waitlist') => {
+      const first = await supabase.from('activity_entries').insert({ ...base, quantity, status });
+      if (!first.error || !missingColumn(first.error)) return first;
+      const { email: _email, user_id: _userId, ...withoutContact } = base;
+      return supabase.from('activity_entries').insert({ ...withoutContact, quantity, status });
+    };
+
     const results: { error: unknown }[] = [];
-    if (confirmedQty > 0) results.push(await supabase.from('activity_entries').insert({ ...base, quantity: confirmedQty, status: 'confirmed' }));
-    if (waitlistQty > 0) results.push(await supabase.from('activity_entries').insert({ ...base, quantity: waitlistQty, status: 'waitlist' }));
+    if (confirmedQty > 0) results.push(await insertEntry(confirmedQty, 'confirmed'));
+    if (waitlistQty > 0) results.push(await insertEntry(waitlistQty, 'waitlist'));
 
     setSubmitting(false);
     const anyError = results.some(r => r.error);
