@@ -12,9 +12,58 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 const ROOT = join(import.meta.dirname, '../..');
-const out = execFileSync('node', [join(ROOT, 'scripts/ai-course/remote-sql.mjs'),
-  '--file', join(ROOT, 'scripts/ai-course/daily-ops-dashboard.sql'), '--label', 'daily-ops-check'],
-{ encoding: 'utf8' });
+const today = new Date().toISOString().slice(0, 10);
+const logDir = join(homedir(), 'ai-company/logs/daily-pf-analytics');
+// 生存確認（heartbeat）。点検ボード等が「この機械が動いているか」を読むための唯一の場所。
+// 仕様は docs/ai-course/ops/ADMIN_JOBS.md「機械の生存確認」を参照。
+// リポジトリの外（~/ai-company配下）に置く: worktreeのパスは変わり得る＝今回の事故そのものなので、
+// 状態ファイルをリポジトリ内に置くと同じ理由で読めなくなる。
+const HEARTBEAT = join(logDir, 'ops-check-heartbeat.json');
+const STALE_AFTER_HOURS = 36; // 日次ジョブ＋点検ボードが前日分を読む余裕（07:32に前日10:05を読む＝約21h）
+
+mkdirSync(logDir, { recursive: true });
+
+/** 成否によらず必ず呼ぶ。「機械が動いていない」と「機械は動いたが異常を見つけた」を区別する。 */
+function writeHeartbeat(fields) {
+  try {
+    writeFileSync(HEARTBEAT, JSON.stringify({
+      job: 'com.kawabado.daily-ops-check',
+      lastRunAt: new Date().toISOString(),
+      staleAfterHours: STALE_AFTER_HOURS,
+      script: import.meta.filename,
+      node: process.version,
+      ...fields,
+    }, null, 2) + '\n');
+  } catch { /* heartbeatが書けなくても本体の判定は続ける */ }
+}
+
+/** 異常時のmacOS通知。osascriptもPATHに依存させない（今回の事故と同じ轍を踏まない）。 */
+function notify(title, message) {
+  try {
+    execFileSync('/usr/bin/osascript', ['-e',
+      `display notification "${String(message).replace(/["\\]/g, '')}" with title "${title}"`]);
+  } catch { /* 通知失敗でもlog/heartbeatは残る */ }
+}
+
+// 子プロセスのnodeは process.execPath で呼ぶ。'node' を PATH 解決に頼ると、
+// launchd（PATH=/usr/bin:/bin:/usr/sbin:/sbin）配下で spawnSync ENOENT になり、
+// 2026-08-16〜24 のあいだ8回連続で即死していた（＝監視が死んでいることに誰も気づけなかった）。
+let out;
+try {
+  out = execFileSync(process.execPath, [join(ROOT, 'scripts/ai-course/remote-sql.mjs'),
+    '--file', join(ROOT, 'scripts/ai-course/daily-ops-dashboard.sql'), '--label', 'daily-ops-check'],
+  { encoding: 'utf8' });
+} catch (e) {
+  // ここで落ちるのは「本番DBを読めていない」＝点検そのものが成立していない状態。
+  // 黙って終わらせず、log・heartbeat・通知の3経路すべてに残す。
+  const detail = `${e?.message ?? e}`.split('\n')[0];
+  writeFileSync(join(logDir, `ops-check-${today}.log`),
+    `# AI course daily ops check ${new Date().toISOString()}\nstatus: ERROR\nERROR: 点検を実行できませんでした: ${detail}\n`);
+  writeHeartbeat({ status: 'ERROR', alertCount: null, alerts: [], error: detail });
+  notify('kawabado AIコース 点検が実行できません', detail);
+  console.error(`status: ERROR\nERROR: ${detail}`);
+  process.exit(1);
+}
 const rows = JSON.parse(out.slice(out.indexOf('[')));
 const val = (metric) => rows.find(r => r.metric === metric)?.value ?? '(missing)';
 const num = (metric) => Number(val(metric));
@@ -53,22 +102,17 @@ if (num('learners_with_unit_progress') > 0 && num('sessions_24h') > 0
   }
 }
 
-const today = new Date().toISOString().slice(0, 10);
-const logDir = join(homedir(), 'ai-company/logs/daily-pf-analytics');
-mkdirSync(logDir, { recursive: true });
 const summary = rows.map(r => `${r.section}.${r.metric}=${r.value}`).join('\n');
 const status = alerts.length ? `ALERT(${alerts.length})` : 'OK';
 writeFileSync(join(logDir, `ops-check-${today}.log`),
   `# AI course daily ops check ${new Date().toISOString()}\nstatus: ${status}\n${alerts.map(a => `ALERT: ${a}`).join('\n')}\n\n${summary}\n`);
+writeHeartbeat({ status: alerts.length ? 'ALERT' : 'OK', alertCount: alerts.length, alerts, error: null });
 
 console.log(`status: ${status}`);
 for (const a of alerts) console.log(`ALERT: ${a}`);
 
 if (alerts.length) {
   // macOS通知（Macが起動していれば気づける。メール通知は導入していない＝runbookに明記）
-  try {
-    execFileSync('osascript', ['-e',
-      `display notification "${alerts[0].replace(/"/g, '')}" with title "kawabado AIコース 要確認 (${alerts.length}件)"`]);
-  } catch { /* 通知失敗でもlogは残る */ }
+  notify(`kawabado AIコース 要確認 (${alerts.length}件)`, alerts[0]);
   process.exit(1);
 }

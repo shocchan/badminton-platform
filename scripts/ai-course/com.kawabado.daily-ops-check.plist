@@ -4,11 +4,20 @@
   AIコース日次チェックの自動実行（毎朝10:05・backupの直後）。
   異常があれば macOS通知＋ ~/ai-company/logs/daily-pf-analytics/ops-check-*.log に記録。
 
+  ⚠ 2026-08-24 の事故と、この2点を変えてはいけない理由:
+    1. EnvironmentVariables/PATH は必須。launchd の既定PATHは /usr/bin:/bin:/usr/sbin:/sbin で
+       /usr/local/bin を含まない。これが無いと子プロセスの node が spawnSync ENOENT で即死する
+       （8/16〜8/24 に8回連続で死に、その間ずっと「異常なし」に見えていた）。
+    2. ProgramArguments のスクリプトは **本番デプロイ元 ~/badminton-aicourse** を指す。
+       feature worktree を指すと、本番と違うコードで本番を監視することになる。
+    設定ミスは `node scripts/ai-course/check-launch-agents.mjs` で検出できる。
+
   導入（CEOが1回だけ実行）:
-    cp ~/badminton-platform/scripts/ai-course/com.kawabado.daily-ops-check.plist ~/Library/LaunchAgents/
+    cp ~/badminton-aicourse/scripts/ai-course/com.kawabado.daily-ops-check.plist ~/Library/LaunchAgents/
+    launchctl unload ~/Library/LaunchAgents/com.kawabado.daily-ops-check.plist 2>/dev/null
     launchctl load ~/Library/LaunchAgents/com.kawabado.daily-ops-check.plist
   手動実行:
-    launchctl start com.kawabado.daily-ops-check
+    launchctl kickstart -k gui/$(id -u)/com.kawabado.daily-ops-check
   解除:
     launchctl unload ~/Library/LaunchAgents/com.kawabado.daily-ops-check.plist
 -->
@@ -18,11 +27,17 @@
   <key>ProgramArguments</key>
   <array>
     <string>/usr/local/bin/node</string>
-    <string>/Users/shocchan/badminton-platform/scripts/ai-course/daily-ops-check.mjs</string>
+    <string>/Users/shocchan/badminton-aicourse/scripts/ai-course/daily-ops-check.mjs</string>
   </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
   <key>StartCalendarInterval</key>
   <dict><key>Hour</key><integer>10</integer><key>Minute</key><integer>5</integer></dict>
   <key>StandardOutPath</key><string>/Users/shocchan/ai-company/backups/ops-check-launchd.log</string>
   <key>StandardErrorPath</key><string>/Users/shocchan/ai-company/backups/ops-check-launchd.log</string>
+  <key>RunAtLoad</key><false/>
 </dict>
 </plist>

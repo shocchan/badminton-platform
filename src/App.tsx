@@ -62,6 +62,8 @@ const QuestionBankConsole = import.meta.env.MODE === 'production'
   : lazy(() => import('./pages/internal/QuestionBankConsole'));
 // 法務8ページ（ja/zh）。事実が確定するまでは LegalPage 側で入口へ戻す
 const LegalPage           = lazy(() => import('./pages/ai-lesson/legal/LegalPage').then(m => ({ default: m.LegalPage })));
+// バド本体の法務3ページ（特商法・プライバシー・利用規約）。AIコースのものとは別文書
+const KawabadoLegalPage   = lazy(() => import('./pages/KawabadoLegalPage').then(m => ({ default: m.KawabadoLegalPage })));
 
 /**
  * ルート切替時の待ち表示。aria-labelを日本語で固定していたため、
@@ -133,6 +135,11 @@ const AnimatedRoutes = () => {
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
+            {/* バド本体の法務3ページ。**この下の catch-all（path="*"）より前**に置くこと
+                （後ろだと404に吸われる）。AIコース側の /ai-course/... とは別の文書 */}
+            <Route path="tokushoho"       element={<KawabadoLegalPage id="tokushoho" />} />
+            <Route path="privacy"         element={<KawabadoLegalPage id="privacy" />} />
+            <Route path="terms"           element={<KawabadoLegalPage id="terms" />} />
             <Route path="admin"           element={<AdminPage groupSlug="kawaguchi-warabi" />} />
             <Route path="blog"            element={<BlogPage />} />
             <Route path="blog/:id"        element={<BlogDetailPage />} />
