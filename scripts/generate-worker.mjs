@@ -35,6 +35,11 @@ async function generateSitemap(env) {
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
     // 国際交流（2026-08-24 新設）。実測で「国際交流」「外国人」系の検索語は表示0件だった
     { path: 'international', priority: '0.8', freq: 'monthly' },
+    // 種目別の恒常ページ（2026-08-24）。大会は終わると一覧から消えるので、
+    // 種目＋地域の検索（例: ミックスダブルス 大会 埼玉）を受ける常設URLを置く
+    { path: 'tournaments/singles',       priority: '0.8', freq: 'weekly' },
+    { path: 'tournaments/doubles',       priority: '0.8', freq: 'weekly' },
+    { path: 'tournaments/mixed-doubles', priority: '0.8', freq: 'weekly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
     // blog は日本語のみ（記事本文に中国語版が無く、/zh/blog は /ja/blog へ canonical）
     { path: 'join',          priority: '0.6', freq: 'monthly' },
@@ -188,6 +193,10 @@ function matchOgpRoute(pathname) {
   m = pathname.match(/^\\/(ja|zh)\\/?$/);
   if (m) return { kind: 'static', lang: m[1], page: '' };
   m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+)\\/?$/);
+  if (m && STATIC_SEO[m[2]]) return { kind: 'static', lang: m[1], page: m[2] };
+  // 2階層の静的ページ（種目別ページ tournaments/singles など・2026-08-24）。
+  // 1階層しか見ていなかったため、素のHTMLがトップの文言のまま配られていた
+  m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+\\/[a-z-]+)\\/?$/);
   if (m && STATIC_SEO[m[2]]) return { kind: 'static', lang: m[1], page: m[2] };
   return null;
 }

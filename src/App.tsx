@@ -18,6 +18,7 @@ import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 // ページごとに遅延読み込み（コード分割）
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const InternationalPage    = lazy(() => import('./pages/InternationalPage').then(m => ({ default: m.InternationalPage })));
+const TournamentTypePage   = lazy(() => import('./pages/TournamentTypePage').then(m => ({ default: m.TournamentTypePage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const BlogDetailPage       = lazy(() => import('./pages/BlogDetailPage').then(m => ({ default: m.BlogDetailPage })));
@@ -120,6 +121,11 @@ const AnimatedRoutes = () => {
           <Route path="/:lang/*" element={<LangWrapper groupSlug="kawaguchi-warabi" />}>
             <Route path="activity"        element={<ActivityListPage groupSlug="kawaguchi-warabi" />} />
             <Route path="activity/:id"    element={<ActivityPage groupSlug="kawaguchi-warabi" />} />
+            {/* 種目別の恒常ページ。**必ず tournaments/:id より前**に置く
+                （後ろだと singles 等のスラッグが :id に吸われる） */}
+            <Route path="tournaments/singles"       element={<TournamentTypePage slug="singles" />} />
+            <Route path="tournaments/doubles"       element={<TournamentTypePage slug="doubles" />} />
+            <Route path="tournaments/mixed-doubles" element={<TournamentTypePage slug="mixed-doubles" />} />
             <Route path="tournaments/:id" element={<TournamentDetailPage />} />
             <Route path="faq"             element={<FaqPage />} />
             <Route path="venues"          element={<VenueGuidePage />} />

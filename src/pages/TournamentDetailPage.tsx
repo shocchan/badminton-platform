@@ -7,6 +7,7 @@ import { PreEntryModal } from '../components/PreEntryModal';
 import { EntryForm } from '../components/EntryForm';
 import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
+import { tournamentTypeByEventType } from '../lib/tournamentTypes';
 import { useLanguage } from '../contexts/LanguageContext';
 import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
 import {
@@ -430,6 +431,25 @@ export const TournamentDetailPage = () => {
       {showForm && (
         <EntryForm tournament={tournament} entryCount={entryCount} onClose={() => setShowForm(false)} />
       )}
+
+      {/* 同じ種目の常設ページへの導線（2026-08-24）。
+          大会は終わるとトップの一覧から消えるので、終わった大会に辿り着いた人が
+          「この種目は今後もやるのか」を確認できる場所へ戻せるようにする */}
+      {(() => {
+        const typeDef = tournamentTypeByEventType(tournament.event_type);
+        if (!typeDef) return null;
+        return (
+          <div className="mt-6 text-center">
+            <Link to={`/${lang === 'zh' ? 'zh' : 'ja'}/tournaments/${typeDef.slug}`}
+              className="inline-flex items-center gap-1.5 text-sm font-bold text-kb-blue hover:underline">
+              {lang === 'zh'
+                ? `查看${typeDef.name.zh}比赛的全部信息`
+                : `${typeDef.name.ja}の大会をまとめて見る`}
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        );
+      })()}
     </main>
     </>
   );
