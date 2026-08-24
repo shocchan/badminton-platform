@@ -121,7 +121,10 @@ describe('security設定がSQLに書かれている（適用時に落ちない�
       for (const m of s.matchAll(/create\s+or\s+replace\s+function[\s\S]{0,400}?as\s+\$\$/gi)) {
         const decl = m[0];
         if (!/security\s+definer/i.test(decl)) continue;
-        expect(/set\s+search_path\s*=/.test(decl),
+        // SQLのキーワードは大文字小文字を区別しない。ここに /i が無かったため
+        // `SET search_path = public` と大文字で書いた migration を「未固定」と誤判定していた
+        // （2026-08-24: 20260824120000 が実際に誤検知された）。外側の判定は元から /i。
+        expect(/set\s+search_path\s*=/i.test(decl),
           `${f}: SECURITY DEFINER関数のsearch_pathが未固定（schema偽装で権限昇格しうる）`).toBe(true);
       }
     }

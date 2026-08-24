@@ -921,6 +921,92 @@ function aiCourseNav() {
 // 本番ホスト（これ以外＝staging・Previewデプロイ・localhostは検索エンジンから除外する）
 const PRODUCTION_HOSTS = ['kawabado.com', 'www.kawabado.com'];
 
+/* ══════════════════════════════════════════════════════════════════
+   有料教材の門（2026-08-24）
+
+   何が問題だったか:
+     https://kawabado.com/assets/ai-course-vocab-content-*.js が
+     認証なしで HTTP 200 / 2,080,346 bytes を返していた（実測）。
+     読解・聴解と合わせて約3.2MB。¥600 / ¥2,980 / ¥100,000 で売っている
+     商品の中身が、URLを叩くだけで誰でも全量ダウンロードできる状態だった。
+
+   なぜこの形にしたか:
+     本番は Cloudflare Pages Advanced mode で、**全リクエストがこのWorkerを通る**。
+     したがって教材チャンクのパスだけを認証で塞げる。
+     教材は AdvShell（AiCoursePage.tsx:85 で lazy import）からしか参照されず、
+     dist/index.html に modulepreload も無い（実測）ので、
+     ブラウザが要求する時点で学習者は必ず認証済みになっている。
+     同一オリジンのモジュール取得には Cookie が送られるため、署名付きCookieが門として成立する。
+
+   なぜ R2 にしなかったか:
+     secure-runtime ブランチに R2 + サーバー採点の完成実装があるが、
+     本番より src/supabase で 172 commit 古く、AdvShell.tsx の差が +2,744/-334 行、
+     adventure 配下は 212ファイル・+39,626行の差がある。cherry-pick が成立しない。
+     R2 配信（Step C）とサーバー採点（Step B）は別プロジェクトとして計画に残す。
+
+   🚨 フェイルオープンが既定:
+     AI_COURSE_ASSET_GATE が 'on' 以外、または署名鍵が未設定のときは門を完全に無効化する。
+     本番には実生徒がいる。門の設定ミスで学習が止まるより、露出が続くほうがまだ戻せる。
+     staging で確認してから CEO が 'on' にする。
+   ══════════════════════════════════════════════════════════════════ */
+
+/** 門の対象。ビルドごとにハッシュが変わるのでプレフィックス一致で見る（ハッシュを直書きしない） */
+const GATED_ASSET_PREFIXES = [
+  '/assets/ai-course-vocab-content-',
+  '/assets/ai-course-reading-',
+  '/assets/ai-course-listening-',
+];
+
+/** 通行証の寿命。長すぎると流出時の被害が伸び、短すぎると学習中に切れる */
+const COURSE_PASS_TTL_MS = 6 * 60 * 60 * 1000;
+const COURSE_PASS_COOKIE = 'kb_course_pass';
+
+function coursePassB64url(bytes) {
+  let s = '';
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\\+/g, '-').replace(/\\//g, '_').replace(/=+\$/, '');
+}
+
+async function coursePassHmac(secret, msg) {
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(msg));
+  return coursePassB64url(new Uint8Array(sig));
+}
+
+async function signCoursePass(sub, exp, secret) {
+  const payload = coursePassB64url(new TextEncoder().encode(sub + '|' + exp));
+  return payload + '.' + (await coursePassHmac(secret, payload));
+}
+
+/** 署名の比較は定数時間で行う（長さの違いは先に弾く。内容の差はループを最後まで回す） */
+function coursePassEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function verifyCoursePass(cookieHeader, secret, nowMs) {
+  if (!secret) return false;
+  const m = new RegExp('(?:^|;\\\\s*)' + COURSE_PASS_COOKIE + '=([^;]+)').exec(cookieHeader || '');
+  if (!m) return false;
+  const parts = m[1].split('.');
+  if (parts.length !== 2) return false;
+  const expected = await coursePassHmac(secret, parts[0]);
+  if (!coursePassEqual(parts[1], expected)) return false;
+  let decoded = '';
+  try {
+    decoded = atob(parts[0].replace(/-/g, '+').replace(/_/g, '/'));
+  } catch (_) { return false; }
+  const bar = decoded.lastIndexOf('|');
+  if (bar < 0) return false;
+  const exp = Number(decoded.slice(bar + 1));
+  if (!Number.isFinite(exp) || (nowMs ?? Date.now()) > exp) return false;
+  return true;
+}
+
 async function handleRequest(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -977,6 +1063,72 @@ async function handleRequest(request, env) {
         if (guideRes.status < 400) return guideRes;
       } catch (_) {}
       return new Response('Not Found', { status: 404, headers: { 'Cache-Control': 'no-store' } });
+    }
+
+    /* ── 通行証の発行（学習アプリが AdvShell を開く前に1回呼ぶ）───────────
+       Supabase のアクセストークンをこのWorkerが /auth/v1/user で検証し、
+       通ったら署名付きCookieを返す。**JWT秘密鍵はWorkerに置かない。** */
+    if (pathname === '/_course/pass') {
+      if (request.method !== 'POST') {
+        return new Response('Method Not Allowed', { status: 405, headers: { 'Cache-Control': 'no-store' } });
+      }
+      // 鍵が無い環境では門そのものが無効。呼ばれても害が無いよう素通しで終わる
+      if (!env.AI_COURSE_ASSET_GATE_SECRET) {
+        return new Response(JSON.stringify({ ok: true, gate: 'disabled' }), {
+          status: 200, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        });
+      }
+      const bearer = (request.headers.get('Authorization') || '').replace(/^Bearer\\s+/i, '').trim();
+      if (!bearer) return new Response('Unauthorized', { status: 401, headers: { 'Cache-Control': 'no-store' } });
+      const supaUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
+      const supaKey = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
+      if (!supaUrl || !supaKey) {
+        return new Response('Service Unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
+      }
+      let sub = '';
+      try {
+        const who = await fetch(supaUrl + '/auth/v1/user', {
+          headers: { Authorization: 'Bearer ' + bearer, apikey: supaKey },
+        });
+        if (!who.ok) return new Response('Unauthorized', { status: 401, headers: { 'Cache-Control': 'no-store' } });
+        const body = await who.json();
+        sub = String((body && body.id) || '');
+      } catch (_) {
+        // Supabase に届かないのは利用者の落ち度ではない。門を通せないので503（401にしない）
+        return new Response('Service Unavailable', { status: 503, headers: { 'Cache-Control': 'no-store' } });
+      }
+      if (!sub) return new Response('Unauthorized', { status: 401, headers: { 'Cache-Control': 'no-store' } });
+      const exp = Date.now() + COURSE_PASS_TTL_MS;
+      const token = await signCoursePass(sub, exp, env.AI_COURSE_ASSET_GATE_SECRET);
+      return new Response(JSON.stringify({ ok: true, exp: exp }), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store',
+          'Set-Cookie': COURSE_PASS_COOKIE + '=' + token
+            + '; Path=/; Max-Age=' + Math.floor(COURSE_PASS_TTL_MS / 1000)
+            + '; HttpOnly; Secure; SameSite=Lax',
+        },
+      });
+    }
+
+    /* ── 教材assetの門 ───────────────────────────────────────────
+       既定は無効（AI_COURSE_ASSET_GATE!=='on' か 鍵未設定なら素通し）。
+       対象は教材3チャンクだけで、index-*.js などサイト共通のassetは絶対に含めない。 */
+    if (
+      env.AI_COURSE_ASSET_GATE === 'on'
+      && env.AI_COURSE_ASSET_GATE_SECRET
+      && GATED_ASSET_PREFIXES.some((p) => pathname.startsWith(p))
+    ) {
+      const passed = await verifyCoursePass(
+        request.headers.get('Cookie') || '', env.AI_COURSE_ASSET_GATE_SECRET
+      );
+      if (!passed) {
+        return new Response('Forbidden', {
+          status: 403,
+          headers: { 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex, nofollow' },
+        });
+      }
     }
 
     // 拡張子があるファイル（JS, CSS, 画像など）はenv.ASSETSで直接配信

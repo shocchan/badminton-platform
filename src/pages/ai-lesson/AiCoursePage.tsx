@@ -17,6 +17,7 @@ import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../../lib/aiLesson/course/courseAccess';
+import { ensureCoursePass } from '../../lib/aiLesson/course/coursePass';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '../../lib/aiLesson/course/plans/planUpsell';
 import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
@@ -412,6 +413,16 @@ export default function AiCoursePage() {
       return;
     }
     setAccessPlanId('row' in access ? access.row.planId ?? null : null);
+    /* 有料教材assetの通行証をもらう（2026-08-24）。
+       受講権が通った人にだけ発行する。教材は AdvShell（下で lazy import）からしか
+       参照されないので、この時点で取っておけば間に合う。
+       **失敗しても学習は止めない。** 門は既定でOFFなので、取れなくても教材は配られる。
+       詳細は src/lib/aiLesson/course/coursePass.ts と scripts/generate-worker.mjs */
+    void ensureCoursePass().then((r) => {
+      if (r !== 'granted' && r !== 'disabled') {
+        console.warn('[coursePass] 通行証を取得できませんでした:', r);
+      }
+    });
     await courseRepository.flushPending();
     const l = await courseRepository.getLearner();
     // 新規（learner未作成）は8問ヒアリングへ。既存learnerは飛ばす

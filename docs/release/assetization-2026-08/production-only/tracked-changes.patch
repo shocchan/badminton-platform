@@ -1,0 +1,121 @@
+scripts/ai-course/build-student-guide.py        |  8 ++++++++
+ scripts/ai-course/data/protected-learners.json  |  4 +++-
+ src/components/ai-course/adventure/AdvShell.tsx | 27 +++++++++++++++++++++++--
+ src/lib/aiLesson/course/adventure/advProfile.ts |  7 +++++++
+ src/lib/aiLesson/course/adventure/advTypes.ts   |  8 ++++++++
+ 5 files changed, 51 insertions(+), 3 deletions(-)
+
+--- Changes ---
+
+scripts/ai-course/build-student-guide.py
+  @@ -330,6 +330,14 @@ def build(lang: str) -> str:
+  +  <!-- 2026-08-23: 会話目標は級を1問聞いて入口を決める。目標レベルの画面は出ない -->
+  +  <div class="note"><b>{one('「会話を伸ばしたい」をえらんだ人', '选择「提高会话能力」的人')}</b>{one(
+  +    '目標レベルの画面は出ません。かわりに「いまの日本語はどのくらいですか？」と1問だけ聞かれます。'
+  +    'JLPTの級を持っている人はそれを選んでください。持っている級に合った場面から会話が始まります（12問の診断もありません）。'
+  +    'まだ受けていない人は「わからない」を選ぶと、12問で測ってから始まります。',
+  +    '不会出现目标级别的画面。取而代之的是只问一个问题：「你的日语大概是什么水平？」。'
+  +    '持有JLPT级别的人请选择自己的级别，会话会从与之匹配的场景开始（也不会出12道诊断题）。'
+  +    '还没考过的人选「不清楚」，会先用12道题测量再开始。')}</div>
+   </section>
+   
+   <section>
+  +8 -0
+
+scripts/ai-course/data/protected-learners.json
+  @@ -11,7 +11,9 @@
+  -    "wang@id.badminton-platform.pages.dev"
+  +    "wang@id.badminton-platform.pages.dev",
+  +    "eli@id.badminton-platform.pages.dev",
+  +    "984fca5f-1ced-47f1-acb4-0e54af19dea1"
+     ],
+     "bulkPatterns": [
+       "%@id.badminton-platform.pages.dev"
+  +3 -1
+
+src/components/ai-course/adventure/AdvShell.tsx
+  @@ -69,6 +69,8 @@ import { answerSheetsVisible, paperById } from '../../../lib/aiLesson/course/adv
+  +import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
+  +import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
+   import { AdvAdventureMap } from './AdvAdventureMap';
+   import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
+   import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
+  @@ -161,7 +163,7 @@ export interface AdvShellProps {
+  -type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana';
+  +type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal';
+   interface BattleCtx {
+     tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
+     /**
+  @@ -403,7 +405,7 @@ export default function AdvShell(props: AdvShellProps) {
+  -      || view === 'interview';
+  +      || view === 'interview' || view === 'personal';
+       notifyActivity?.(inActivity);
+     }, [view, notifyActivity]);
+     useEffect(() => () => notifyActivity?.(false), [notifyActivity]); // アンマウント時は必ず解除
+  @@ -1512,6 +1514,19 @@ export default function AdvShell(props: AdvShellProps) {
+  +  // ── 自分の文章で復習（先生が発行した人だけ）──
+  +  // 本人の作文から作った表現・漢字の読みの復習。冒険の攻略・準備度には影響しない
+  +  if (view === 'personal') {
+  +    if (!personalPacksVisible(prof)) {
+  +      // 取り消し後などで対象外になっても行き止まりにしない
+  +      setView('home');
+  +      return <AdvLoading lang={lang} />;
+  +    }
+  +    return (
+  +      <AdvPersonalPackRunner lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
+  +    );
+  +  }
+  +
+     // ── ミニ模試（§9）──
+     if (view === 'mock') {
+       // 模試の教材が無い級（N5/N4）。入口は出していないが、
+  @@ -3471,6 +3486,14 @@ export default function AdvShell(props: AdvShellProps) {
+  +              {/* 自分の文章で復習（個人パック）。発行された人だけ。
+  +                  授業で書いた作文の表現・漢字の読みを、その人の文のまま復習する */}
+  +              {personalPacksVisible(prof) && (
+  +                <SubLink lang={lang}
+  +                  label={tx(lang, '自分の文章で復習（先生から届いた復習）', '用自己的作文复习（老师发来的复习）')}
+  +                  badge={prof.personalPacks.length}
+  +                  onClick={() => setView('personal')} />
+  +              )}
+                 {/* 帰化面接の表現特訓。発行された人だけ */}
+                 {interviewPrepVisible(prof) && (
+                   <SubLink lang={lang}
+  +25 -2
+
+src/lib/aiLesson/course/adventure/advProfile.ts
+  @@ -12,6 +12,9 @@ import { ADV_SKILLS } from './advTypes';
+  +import {
+  +  restorePersonalPacks, restorePersonalPackState, emptyPersonalPackState,
+  +} from './personal/advPersonalPack';
+   import { restoreTeacherNotes } from './advTeacherNote';
+   
+   const emptySkill = (): AdvSkillScore => ({
+  @@ -51,6 +54,8 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
+  +  personalPacks: [],
+  +  personalPack: emptyPersonalPackState(),
+     teacherNotes: [],
+     humanLesson: {},
+     stuckSkips: [],
+  @@ -211,6 +216,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
+  +    personalPacks: restorePersonalPacks(raw.personalPacks),
+  +    personalPack: restorePersonalPackState(raw.personalPack),
+       teacherNotes: restoreTeacherNotes(raw.teacherNotes),
+       humanLesson: isRecord(raw.humanLesson) ? (raw.humanLesson as AdventureV2Profile['humanLesson']) : {},
+       updatedAt: typeof raw.updatedAt === 'string' ? raw.updatedAt : nowISO,
+  +7 -0
+
+src/lib/aiLesson/course/adventure/advTypes.ts
+  @@ -364,6 +364,14 @@ export interface AdventureV2Profile {
+  +  /**
+  +   * 個人復習パック（自分の書いた文章から復習する・2026-08-24）。
+  +   * 先生が learner ごとに発行する＝この配列はその人専用。空なら画面に出さない。
+  +   * **冒険（route/mastery/skills/xp/streak）には一切影響しない**（advPersonalPack.ts 冒頭）
+  +   */
+  +  personalPacks: import('./personal/advPersonalPack').PersonalPack[];
+  +  /** 個人復習パックの本人の記録（答えた回数・連続正解・次の復習日） */
+  +  personalPack: import('./personal/advPersonalPack').PersonalPackState;
+     /**
+      * 先生からの一言（週1・2026-08-17）。管理画面から追記し、生徒のホームに出す。
+      * 発行キー（先生が書いたものを生徒側の保存で消さない）なので
+  +8 -0
