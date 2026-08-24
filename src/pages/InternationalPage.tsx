@@ -44,9 +44,34 @@ interface ActivityPhoto {
 }
 
 const PHOTOS: ActivityPhoto[] = [
-  // 例:
-  // { src: '/images/international/game-night.webp', width: 1200, height: 800,
-  //   alt: { ja: '芝園公民館で平日夜にダブルスをする参加者', zh: '在芝园公民馆平日夜间打双打的参加者' } },
+  {
+    src: '/images/international/court-china-jersey.webp', width: 886, height: 652,
+    alt: {
+      ja: '中国のユニフォームを着た参加者がネット越しに相手と向き合っている、平日夜の体育館',
+      zh: '穿着中国队服的参加者隔网面对对手，平日夜间的体育馆',
+    },
+  },
+  {
+    src: '/images/international/court-wide-busy.webp', width: 1200, height: 900,
+    alt: {
+      ja: '複数のコートでダブルスをする参加者たち。さまざまな国のメンバーが同じ体育館でプレーしている',
+      zh: '多个球场上打双打的参加者们。来自各国的成员在同一个体育馆里打球',
+    },
+  },
+  {
+    src: '/images/international/court-doubles-rally.webp', width: 1060, height: 700,
+    alt: {
+      ja: 'ダブルスのラリー中。前衛と後衛が位置を取り合っている',
+      zh: '双打对拉中。前场与后场的选手正在跑位',
+    },
+  },
+  {
+    src: '/images/international/court-evening.webp', width: 1200, height: 900,
+    alt: {
+      ja: '平日夜の体育館。複数のコートに分かれて練習している',
+      zh: '平日夜间的体育馆。分成多个球场在练习',
+    },
+  },
 ];
 
 const COPY = {
@@ -136,6 +161,9 @@ export const InternationalPage = () => {
         <meta property="og:description" content={t.description} />
         <meta property="og:url" content={url} />
         <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        {/* シェアカードは実際の活動写真にする（サイト既定のOGPだと中身が伝わらない） */}
+        <meta property="og:image" content="https://kawabado.com/images/international/court-wide-busy.webp" />
+        <meta name="twitter:card" content="summary_large_image" />
         <link rel="canonical" href={url} />
         <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/international" />
         <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/international" />
