@@ -59,7 +59,8 @@ vi.mock('../services/supabaseClient', () => {
   };
 });
 
-import { ActivityPage, isValidOptionalEmail, normalizeOptionalEmail } from './ActivityPage';
+import { ActivityPage } from './ActivityPage';
+import { isValidOptionalEmail, normalizeOptionalEmail } from './activityEntryEmail';
 
 const futureDate = () => new Date(Date.now() + 30 * 86_400_000).toISOString().slice(0, 10);
 

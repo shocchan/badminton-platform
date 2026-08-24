@@ -63,6 +63,10 @@ serve(async (req) => {
 
   const rest = (path: string, init?: RequestInit) =>
     fetch(`${supabaseUrl}/rest/v1/${path}`, { ...init, headers: { ...db, ...(init?.headers ?? {}) } });
+  // PostgREST の生ペイロード。列は SELECT 文で決まり、環境によって有無も変わる
+  // （activity_entries.email は追加されたばかり）。ここを厳しく型付けすると
+  // 下の詰め替えが全部キャストだらけになるので、境界だけ any で受ける。
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const get = async (path: string): Promise<any[]> => {
     const r = await rest(path);
     return r.ok ? await r.json() : [];
@@ -170,7 +174,7 @@ serve(async (req) => {
     if (decision.action === "skip") { counts.skipped++; continue; }
 
     // ── 送る権利を1つだけ取る ──
-    let claimed = false;
+    let claimed: boolean;
     if (!existing) {
       const lock = await rest("ai_course_mail_log", {
         method: "POST", headers: { Prefer: "return=minimal" },

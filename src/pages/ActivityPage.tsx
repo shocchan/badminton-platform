@@ -10,6 +10,7 @@ import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Lang } from '../contexts/LanguageContext';
 import { calcRemaining, splitEntryQuantity } from '../lib/activityEntry';
+import { isValidOptionalEmail, normalizeOptionalEmail } from './activityEntryEmail';
 
 interface Group {
   id: string;
@@ -237,20 +238,6 @@ const T: Record<Lang, {
     emailError: '请确认邮箱格式（不填也可以报名）',
   },
 };
-
-/**
- * 任意メールの検証。**空欄は必ず通す**（メールを必須にしないため）。
- * 入力がある時だけ形式を見る＝入力ミスは弾くが、書かない自由は残す。
- */
-export const isValidOptionalEmail = (value: string): boolean => {
-  const s = value.trim();
-  if (!s) return true;
-  if (s.length > 254) return false;
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
-};
-
-/** 保存する値。空欄は null（空文字を入れると「メールを書いた人」と区別できなくなる） */
-export const normalizeOptionalEmail = (value: string): string | null => value.trim() || null;
 
 const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 

@@ -50,7 +50,7 @@ export function ensureCoursePass(now: number = Date.now()): Promise<CoursePassRe
 }
 
 async function requestPass(): Promise<CoursePassResult> {
-  let token: string | null = null;
+  let token: string | null;
   try {
     token = await getAccessToken();
   } catch {
@@ -76,7 +76,7 @@ async function requestPass(): Promise<CoursePassResult> {
   if (res.status >= 500) return 'unavailable';
   if (!res.ok) return 'error';
 
-  let body: { ok?: boolean; exp?: number; gate?: string } | null = null;
+  let body: { ok?: boolean; exp?: number; gate?: string } | null;
   try {
     body = await res.json();
   } catch {
