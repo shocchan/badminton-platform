@@ -18,6 +18,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { buildVoiceInstructions, buildWrapUpInstructions } from "./voiceTutorPrompt.ts";
 import type { VoicePromptParams } from "./voiceTutorPrompt.ts";
 import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
+import { costMeterEnvFrom, recordUsageEvent } from "../_shared/aiCostMeter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -328,10 +329,35 @@ serve(async (req) => {
       return json(502, { error: "openai_error", status: openaiRes.status, kind });
     }
 
-    const secret = (await openaiRes.json()) as { value?: string; expires_at?: string };
+    const secret = (await openaiRes.json()) as {
+      value?: string; expires_at?: string; session?: { model?: string };
+    };
     if (!secret.value) {
       console.error("openai client_secrets error: no value in response");
       return json(502, { error: "openai_error", status: 500, kind: "no_secret" });
+    }
+
+    // ── 原価の記録・音声（2026-08-24 WAVE 4-4） ──
+    //
+    // 音声は WebRTC でブラウザが OpenAI へ直接つなぐため、**こちら側では usage を受け取れない**。
+    // 取れるのは分数だけ。そこで:
+    //   1) ここ（トークン発行時）で「実際に使うモデル名」を紐づけた器を1行作る
+    //      （REALTIME_MODEL は env で差し替えられるので、既定値ではなく実際の値を残す）
+    //   2) 会話終了後、ai_backfill_voice_usage_events() が
+    //      ai_learning_sessions.duration_seconds から分数を埋め、単価表で金額を出す
+    // こうするとクライアント改修なしで、音声にもモデル名と根拠（duration_source）が付く。
+    // 金額は必ず source='estimated'（トークン実測ではない）として残る。
+    const meterEnv = costMeterEnvFrom((k) => Deno.env.get(k));
+    if (meterEnv && sessionId) {
+      await recordUsageEvent(meterEnv, {
+        kind: "voice",
+        model: secret.session?.model ?? REALTIME_MODEL,
+        source: "estimated",
+        realtimeSeconds: 0,
+        durationSource: "pending_client_report",
+        sessionId,
+        note: `teacher=${teacherId} voice=${voice}`,
+      });
     }
 
     // wrapUpInstructions: 残り約35秒でクライアントが session.update に使う「まとめ移行」版。

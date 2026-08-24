@@ -9,6 +9,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
+import {
+  costMeterEnvFrom, modelFromResponse, recordUsageEvent, tokensFromChatUsage,
+} from "../_shared/aiCostMeter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -206,6 +209,25 @@ serve(async (req) => {
     }
 
     const data = await openaiRes.json();
+
+    // ── 原価の記録（2026-08-24 WAVE 4-4） ──
+    // レポート生成の原価は、これまで**どこにも記録されていなかった**
+    // （会話1回ぶんに必ず1本ぶら下がるのに、点検ボードの数字に入っていない）。
+    // REPORT_MODEL は env で差し替えられるので、返ってきた実際のモデル名を残す。
+    // デモモード（sessionId なし）は learner が居ないので原価が誰にも紐づかない。
+    // それでも「使った事実」は残す（突合で OpenAI 側が多く出る理由になる）。
+    const meterEnv = costMeterEnvFrom((k) => Deno.env.get(k));
+    if (meterEnv) {
+      await recordUsageEvent(meterEnv, {
+        kind: "report",
+        model: modelFromResponse(data, REPORT_MODEL),
+        source: "reported",
+        tokens: tokensFromChatUsage(data?.usage),
+        sessionId,
+        note: sessionId ? undefined : "demo-mode(no learner)",
+      });
+    }
+
     const content = data?.choices?.[0]?.message?.content;
     if (!content) return json(502, { error: "empty_report" });
     let report: unknown;

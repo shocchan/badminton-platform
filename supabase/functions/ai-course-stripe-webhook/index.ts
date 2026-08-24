@@ -10,11 +10,19 @@
 //
 // 冪等性（Stripeは失敗時に再送する）:
 // - stripe_session_id unique の台帳が要。status='provisioned' なら何もせず200
+// - 受講権の反映は ai_grant_purchase_access RPC（migration 20260824140000）が
+//   purchase_id unique で二重延長を止める。**アプリ側で read-modify-write しない**
 // - ログインIDは session_id から決定的に導出（再試行で二重アカウントを作らない）。
 //   既にユーザーが存在したらパスワードを再設定して続行（メールの初期PWを常に有効にする）
 // - 同じ購入者メールの2回目以降の購入は、前回発行したアカウントを再利用して期間を延長
 //   （パスワードは変更しない。アカウントが人ごとに増殖しない）
 // - 途中で失敗したら status='failed'＋error を記録して 500 を返す（Stripeが再送→再開）
+//
+// 非同期決済（Alipay / WeChat Pay）:
+// - checkout.session.completed が payment_status='unpaid' で先に届く。
+//   **未払いのままアカウントを発行しない**（台帳を awaiting_payment にして待つ）
+// - 入金確定は checkout.session.async_payment_succeeded、失敗は
+//   checkout.session.async_payment_failed。どちらも処理する
 //
 // デプロイ（CEO承認後・**--no-verify-jwt 必須**。StripeはSupabaseのJWTを付けられない）:
 //   SUPABASE_ACCESS_TOKEN=$(cat ~/.supabase_backup_token) supabase functions deploy \
@@ -74,17 +82,23 @@ const generatePassword = (): string => {
   return [...bytes].map((b) => alphabet[b % alphabet.length]).join("");
 };
 
-const jstDate = (iso: string): string =>
-  new Date(iso).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "numeric", day: "numeric" });
+/** 期限の表示。値が取れなかったときに「Invalid Date」と書かない（購入者に嘘を見せない） */
+const jstDate = (iso: string | null): string =>
+  iso && Number.isFinite(Date.parse(iso))
+    ? new Date(iso).toLocaleDateString("ja-JP", { timeZone: "Asia/Tokyo", year: "numeric", month: "numeric", day: "numeric" })
+    : "ログイン後の画面でご確認ください";
 
 /* ── 購入者向けメール本文 ── */
 const buyerMail = (input: {
-  locale: "ja" | "zh"; plan: FunctionPlan; validUntilISO: string;
+  locale: "ja" | "zh"; plan: FunctionPlan; validUntilISO: string | null;
   loginId: string; password: string | null; reusedAccount: boolean;
 }): { subject: string; text: string } => {
   const { locale, plan, loginId, password, reusedAccount } = input;
-  const until = jstDate(input.validUntilISO);
   const ja = locale === "ja";
+  // 期限が取れなかったときは推測した日付を書かない（購入者の言語で案内へ倒す）
+  const until = input.validUntilISO && Number.isFinite(Date.parse(input.validUntilISO))
+    ? jstDate(input.validUntilISO)
+    : (ja ? "ログイン後の画面でご確認ください" : "请在登录后的页面确认");
   const name = ja ? plan.nameJa : plan.nameZh;
   const price = ja ? plan.priceLabelJa : plan.priceLabelZh;
   const duration = ja ? plan.durationLabelJa : plan.durationLabelZh;
@@ -265,12 +279,30 @@ serve(async (req: Request) => {
         && typeof charge.amount_refunded === "number" && typeof charge.amount === "number"
         && charge.amount_refunded >= charge.amount;
 
+      let refundRecorded = true;
       if (fullyRefunded) {
-        await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${target.id}`, {
+        // status='refunded' は 20260824140000 でCHECKに追加した値。
+        // それ以前は CHECK 違反(23514)で**返金の記録が黙って落ちていた**ので、結果を見る
+        const refundPatch = await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${target.id}`, {
           method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
           body: JSON.stringify({ status: "refunded", updated_at: new Date().toISOString() }),
         });
-        // この購入で付与した受講権だけを即時終了（学習記録には触れない）
+        refundRecorded = refundPatch.ok;
+        if (!refundPatch.ok) {
+          console.error("refund status patch failed:", refundPatch.status, await refundPatch.text());
+          await raiseAlert(supabaseUrl, dbHeaders, {
+            dedupeKey: `refund_not_recorded:${target.id}`,
+            kind: "refund_not_recorded",
+            severity: "warning",
+            title: "返金を台帳に記録できませんでした",
+            detail: `購入ID ${target.id} / 受講権の終了は実行済み。台帳の状態だけが古いままです（migration 20260824140000 未適用の可能性）`,
+          });
+        }
+        /* この購入で付与した受講権だけを即時終了（学習記録には触れない）。
+           格下げガードが働いた購入（上位プランを持つ人の下位購入）は
+           purchase_id を書き換えていないので、ここは0行更新になる＝
+           **上位の受講権を返金で消さない**。延長したぶんの日数は残るので、
+           必要なら管理画面で調整する（機械が期間を削るほうが事故が大きい） */
         if (target.user_id) {
           await fetch(
             `${supabaseUrl}/rest/v1/ai_course_access?user_id=eq.${target.user_id}&purchase_id=eq.${target.id}`,
@@ -308,6 +340,9 @@ serve(async (req: Request) => {
               `購入者: ${target.buyer_email ?? "(不明)"}`,
               `返金額: ${charge.amount_refunded ?? "-"} / 決済額: ${charge.amount ?? "-"}`,
               `payment_intent: ${pi}`,
+              ...(fullyRefunded && !refundRecorded
+                ? ["", "⚠️ 台帳の状態を『返金済み』に更新できませんでした（管理画面では古い状態のまま見えます）。"]
+                : []),
               "",
               "学習記録は消していません。復活させる場合は管理画面の受講権タブで期間を設定してください。",
             ].join("\n"),
@@ -317,6 +352,30 @@ serve(async (req: Request) => {
       return json({ received: true, handled: event.type, revoked: fullyRefunded });
     }
 
+    /* ── 非同期決済の失敗（2026-08-24 追加）─────────────────────
+       Alipay / WeChat Pay は「決済ページで承認 → あとで入金確定」の順に進む。
+       確定しなかった場合 checkout.session.async_payment_failed が届く。
+       これを無視すると台帳が pending のまま残り、**買おうとして失敗した人が
+       管理画面から見えない**（離脱と区別が付かない）。 */
+    if (event.type === "checkout.session.async_payment_failed") {
+      const s = event.data?.object ?? {};
+      const sid: string = s.id ?? "";
+      if (!sid) return json({ received: true, skipped: "no_session_id" });
+      await fetch(
+        `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_session_id=eq.${encodeURIComponent(sid)}` +
+          `&status=in.(pending,awaiting_payment)`,
+        {
+          method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({
+            status: "failed",
+            error: `async_payment_failed: ${s.payment_status ?? "unknown"}`,
+            updated_at: new Date().toISOString(),
+          }),
+        },
+      ).catch((e) => console.error("async_payment_failed patch:", e));
+      return json({ received: true, handled: event.type });
+    }
+
     if (
       event.type !== "checkout.session.completed" &&
       event.type !== "checkout.session.async_payment_succeeded"
@@ -324,10 +383,65 @@ serve(async (req: Request) => {
       return json({ received: true, ignored: event.type });
     }
     const session = event.data?.object ?? {};
-    if (session.payment_status !== "paid") return json({ received: true, waiting: "payment" });
+
+    /* 未払いのまま先に来た completed（＝Alipay / WeChat Pay の承認直後）。
+       **ここでアカウントを発行してはいけない。** 入金待ちだと分かる形で台帳に残し、
+       async_payment_succeeded を待つ。台帳に行が無ければ作る（metadataから復元）。 */
+    if (session.payment_status !== "paid") {
+      const sid: string = session.id ?? "";
+      const waitPlanId: string = session.metadata?.plan_id ?? "";
+      if (sid && waitPlanId) {
+        const waitPatch = await fetch(
+          `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_session_id=eq.${encodeURIComponent(sid)}` +
+            `&status=eq.pending`,
+          {
+            method: "PATCH", headers: { ...dbHeaders, Prefer: "return=representation" },
+            body: JSON.stringify({ status: "awaiting_payment", updated_at: new Date().toISOString() }),
+          },
+        ).catch(() => null);
+        const patched = waitPatch?.ok ? await waitPatch.json().catch(() => []) : [];
+        if (!Array.isArray(patched) || patched.length === 0) {
+          // 台帳に行が無い（checkout関数を経由していない）ケースの復元。
+          // 既に行がある（＝2回目の配信）なら on_conflict で何もしない
+          const waitPlan = FUNCTION_PLAN_CATALOG.find((p) => p.id === waitPlanId);
+          await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?on_conflict=stripe_session_id`, {
+            method: "POST",
+            headers: { ...dbHeaders, Prefer: "resolution=ignore-duplicates,return=minimal" },
+            body: JSON.stringify({
+              stripe_session_id: sid,
+              plan_id: waitPlanId,
+              plan_version: Number(session.metadata?.plan_version ?? waitPlan?.version ?? 0),
+              amount_jpy: session.amount_total ?? waitPlan?.priceJpy ?? 0,
+              currency: session.currency ?? "jpy",
+              livemode: !!event.livemode,
+              locale: session.metadata?.locale === "zh" ? "zh" : "ja",
+              status: "awaiting_payment",
+            }),
+          }).catch((e) => console.error("awaiting_payment insert:", e));
+        }
+      }
+      return json({ received: true, waiting: "payment" });
+    }
 
     const sessionId: string = session.id;
-    const buyerEmail: string | null = session.customer_details?.email ?? session.customer_email ?? null;
+    /**
+     * 購入者の実メール。**これが取れないと初期パスワードが誰にも渡らない。**
+     * customer_details → customer_email の順に見て、それでも空なら
+     * customer_creation=always で作られた Customer から取り直す（2026-08-24）。
+     */
+    let buyerEmail: string | null =
+      session.customer_details?.email ?? session.customer_email ?? null;
+    if (!buyerEmail && typeof session.customer === "string" && session.customer) {
+      try {
+        const cRes = await fetch(`https://api.stripe.com/v1/customers/${session.customer}`, {
+          headers: { Authorization: `Bearer ${stripeKey}` },
+        });
+        const c = cRes.ok ? await cRes.json() : null;
+        if (typeof c?.email === "string" && c.email.includes("@")) buyerEmail = c.email;
+      } catch (e) {
+        console.error("customer lookup failed:", e instanceof Error ? e.message : "unknown");
+      }
+    }
     const locale: "ja" | "zh" = session.metadata?.locale === "zh" ? "zh" : "ja";
     const planId: string = session.metadata?.plan_id ?? "";
     const plan = FUNCTION_PLAN_CATALOG.find((p) => p.id === planId);
@@ -365,17 +479,23 @@ serve(async (req: Request) => {
     // 冪等: 発行まで完了していれば何もしない（Stripeの再送・二重配信対策）
     if (row.status === "provisioned") return json({ received: true, already: true });
 
-    // 金額の突き合わせ（セッション改ざん・カタログ改定タイミングのズレ検出）
-    if (typeof session.amount_total === "number" && session.amount_total !== plan.priceJpy) {
+    // 金額・通貨の突き合わせ（セッション改ざん・カタログ改定タイミングのズレ検出）。
+    // 通貨はAlipay/WeChat Payでも請求はJPYのまま（checkout関数がJPYで作る）＝ここは変わらない
+    const currency = typeof session.currency === "string" ? session.currency.toLowerCase() : "jpy";
+    const amountBad = typeof session.amount_total === "number" && session.amount_total !== plan.priceJpy;
+    const currencyBad = currency !== "jpy";
+    if (amountBad || currencyBad) {
+      const reason = amountBad
+        ? `amount mismatch: paid=${session.amount_total} catalog=${plan.priceJpy}`
+        : `currency mismatch: paid=${currency} expected=jpy`;
       await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${row.id}`, {
         method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
         body: JSON.stringify({
-          status: "failed", updated_at: new Date().toISOString(),
-          error: `amount mismatch: paid=${session.amount_total} catalog=${plan.priceJpy}`,
+          status: "failed", updated_at: new Date().toISOString(), error: reason,
         }),
       });
-      console.error("webhook: amount mismatch", sessionId, session.amount_total, plan.priceJpy);
-      return json({ error: "amount_mismatch" }, 400); // 4xx=再送不要。failed行を人が確認する
+      console.error("webhook:", reason, sessionId);
+      return json({ error: amountBad ? "amount_mismatch" : "currency_mismatch" }, 400); // 4xx=再送不要
     }
 
     const markFailed = async (msg: string) => {
@@ -443,6 +563,66 @@ serve(async (req: Request) => {
       }
     }
 
+    /**
+     * ③ **購入者メールが取れない新規購入は、アカウントを発行しないで止める**（2026-08-24）。
+     *
+     * 初期パスワードは購入者メールにしか届かない。従来はメールが無くてもアカウントを
+     * 作っており、**誰もログインできないアカウントだけが残り、パスワードは
+     * 生成された直後に捨てられていた**（後から助けるにも作り直しが要る）。
+     * 何も作らずに critical アラートを立てておけば、CEOがStripe側の Customer に
+     * メールアドレスを入れてからイベントを再送信するだけで、同じ処理がやり直せる
+     * （この関数は Customer からもメールを読むので、副作用ゼロで復旧できる）。
+     *
+     * 既存アカウントを引き継ぐ購入（reusedAccount）はパスワードが既に本人の手元に
+     * あるので止めない。領収の案内が出せないだけなので警告に留める。
+     */
+    if (!userId && !buyerEmail) {
+      await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${row.id}`, {
+        method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          error: "no_buyer_email: アカウント発行を保留しました（連絡先が取得できないため）",
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => null);
+      await raiseAlert(supabaseUrl, dbHeaders, {
+        dedupeKey: `provision_held_no_email:${sessionId}`,
+        kind: "provision_held_no_email",
+        severity: "critical",
+        title: "連絡先が取れず、アカウント発行を保留しました",
+        detail: [
+          `プラン: ${plan.id}`,
+          "購入は成立しているがメールアドレスが取得できなかったため、アカウントを作っていません",
+          "対応: Stripe管理画面で購入者を特定 → Customer にメールアドレスを登録 → 該当イベントを再送信すると自動発行がやり直される。連絡先が分からなければ返金する",
+        ].join(" / "),
+      });
+      if (resendKey) {
+        const tag = event.livemode ? "" : "[TEST]";
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: MAIL_FROM, to: [ADMIN_EMAIL],
+            subject: `🚨${tag}【要対応・AIコース購入】連絡先が取れずアカウント発行を保留（${plan.nameJa}）`,
+            text: [
+              "購入は成立していますが、購入者のメールアドレスが取得できませんでした。",
+              "**アカウントは作っていません**（誰もログインできないアカウントを残さないため）。",
+              "",
+              `プラン: ${plan.nameJa} / ${plan.priceJpy}円 / livemode: ${event.livemode}`,
+              `session: ${sessionId}`,
+              "",
+              "対応手順:",
+              "1. Stripe管理画面 → 支払い → 該当セッションを開き、購入者の連絡先を確認",
+              "2. 連絡先が分かる → Stripe の該当イベントで「イベントを再送信」（自動発行がやり直される）",
+              "3. 分からない → Stripe から返金する",
+            ].join("\n"),
+          }),
+        }).catch((e) => console.error("hold mail failed:", e));
+      }
+      // 200で返す（Stripeに再送させても状況は変わらない）。台帳は paid のまま＝
+      // 監視の provision_stuck でも拾われ続ける
+      return json({ received: true, held: "no_buyer_email" });
+    }
+
     if (!userId) {
       loginId = await loginIdFor(sessionId);
       const internalEmail = `${loginId}@${ID_DOMAIN}`;
@@ -492,33 +672,62 @@ serve(async (req: Request) => {
       if (!grantRes.ok) { await markFailed(`signup grant failed: ${grantRes.status} ${await grantRes.text()}`); return json({ error: "provision_failed" }, 500); }
     }
 
-    // ── 受講権（ai_course_access）。購入日から accessDays 日間・商品ひも付き ──
-    const now = new Date();
-    const validUntilISO = new Date(now.getTime() + (plan.accessDays ?? 30) * 24 * 3600 * 1000).toISOString();
-    const accessRes = await fetch(
-      `${supabaseUrl}/rest/v1/ai_course_access?on_conflict=user_id`,
-      {
-        method: "POST",
-        headers: { ...dbHeaders, Prefer: "resolution=merge-duplicates,return=minimal" },
-        body: JSON.stringify({
-          user_id: userId,
-          valid_from: now.toISOString(),
-          valid_until: validUntilISO,
-          note: `購入自動発行: ${plan.nameJa}（${sessionId.slice(0, 20)}…）`,
-          granted_by: "ai-course-stripe-webhook",
-          plan_id: plan.id,
-          plan_version: plan.version,
-          source: "purchase",
-          ai_seconds_limit: plan.aiMinutes !== null ? plan.aiMinutes * 60 : null,
-          // リアルタイム体験（開始ボタンから実時間◯分）。開始前は valid_until=購入+30日が開始期限
-          trial_window_minutes: plan.realtimeWindowMinutes,
-          trial_started_at: null,
-          purchase_id: row.id,
-          updated_at: now.toISOString(),
-        }),
-      },
-    );
-    if (!accessRes.ok) { await markFailed(`access upsert failed: ${accessRes.status} ${await accessRes.text()}`); return json({ error: "provision_failed" }, 500); }
+    /* ── 受講権（ai_course_access）──────────────────────────────
+       **アプリ側で read-modify-write しない。** DB の ai_grant_purchase_access が
+       1トランザクションで次をやる（migration 20260824140000）:
+         1. 同じ purchase_id の再実行なら何もしない（Webhook再送・同時配信で二重延長しない）
+         2. 期間は必ず延長: greatest(現在の valid_until, now) + accessDays
+            （旧実装は now+accessDays の上書きで、残り20日ある人が1か月プランを
+              買い足すと 50日 ではなく 30日になっていた）
+         3. いま有効な受講権のほうが強ければ**格下げ**として期間だけ足し、
+            plan_id / trial_window_minutes / ai_seconds_limit / purchase_id は据え置く
+            （10万円の6か月コース受講中に600円の体験パスを買っても権利が消えない）
+       ─────────────────────────────────────────────────────── */
+    const grantRpc = await fetch(`${supabaseUrl}/rest/v1/rpc/ai_grant_purchase_access`, {
+      method: "POST", headers: dbHeaders,
+      body: JSON.stringify({
+        p_user_id: userId,
+        p_purchase_id: row.id,
+        p_plan_id: plan.id,
+        p_plan_version: plan.version,
+        p_access_days: plan.accessDays ?? 30,
+        p_ai_seconds_limit: plan.aiMinutes !== null ? plan.aiMinutes * 60 : null,
+        // リアルタイム体験（開始ボタンから実時間◯分）。開始前は valid_until が開始期限
+        p_trial_window_minutes: plan.realtimeWindowMinutes,
+        p_note: `購入自動発行: ${plan.nameJa}（${sessionId.slice(0, 20)}…）`,
+      }),
+    });
+    if (!grantRpc.ok) {
+      await markFailed(`access grant failed: ${grantRpc.status} ${await grantRpc.text()}`);
+      return json({ error: "provision_failed" }, 500);
+    }
+    const grant = await grantRpc.json().catch(() => null);
+    if (!grant?.ok) {
+      await markFailed(`access grant rejected: ${grant?.code ?? "unknown"}`);
+      return json({ error: "provision_failed" }, 500);
+    }
+    // メールに書く期限は**DBが返した実際の値**を使う（画面と文面と実体をずらさない）。
+    // 取れなかったときは日付を書かない（推測した日付を送るほうが害が大きい）
+    const validUntilISO: string | null =
+      typeof grant.validUntil === "string" ? grant.validUntil : null;
+
+    /* 格下げガードが働いた購入は人が見ておく。
+       「上位プランを持っている人が下位プランを買った」＝返金や案内の判断が要る場面。
+       権利は守られている（＝critical ではない）が、黙って流さない。 */
+    if (grant.downgradeGuarded) {
+      await raiseAlert(supabaseUrl, dbHeaders, {
+        dedupeKey: `plan_downgrade_guarded:${sessionId}`,
+        kind: "plan_downgrade_guarded",
+        severity: "warning",
+        title: "上位の受講権を持つ人が下位プランを購入しました",
+        detail: [
+          `購入プラン: ${plan.id}`,
+          `既存の受講権: ${grant.planId ?? "手動発行（プラン紐づけなし）"}`,
+          "既存の権利は維持し、利用期間だけ延長しました（プラン内容は上書きしていません）",
+          "対応: 意図した購入か確認し、必要なら返金・案内をしてください",
+        ].join(" / "),
+      });
+    }
 
     // ── 台帳を provisioned に ──
     const doneRes = await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${row.id}`, {

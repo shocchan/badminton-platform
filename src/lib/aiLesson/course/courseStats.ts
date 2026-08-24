@@ -1,7 +1,8 @@
 // 進捗の集計・統計（純関数）。ホーム/ロードマップ/管理ビュー/コスト計算で共用。
 
 import { COURSE_MISSIONS, COURSE_WEEKS } from './courseData';
-import { COURSE_MASTERY_WEIGHTS, REALTIME_COST, RETAINED_STATES } from './courseConfig';
+import { COURSE_MASTERY_WEIGHTS, RETAINED_STATES } from './courseConfig';
+import { DEFAULT_REALTIME_MODEL, costUsdForTokens, estimateRealtimeTokens } from './aiModelPricing';
 import { atLeast, isRetained } from './courseEngine';
 import type { CourseSessionRecord, ItemProgress } from './types';
 
@@ -132,10 +133,24 @@ export const overallProgress = (progresses: ItemProgress[]): number => {
   return total > 0 ? sum / total : 0;
 };
 
-/** 3〜4分レッスンの概算コスト（USD）。実測で REALTIME_COST を調整 */
-export const estimateSessionCost = (durationSeconds: number): number => {
-  const minutes = Math.max(durationSeconds, 0) / 60;
-  const inTok = minutes * REALTIME_COST.approxInputTokensPerMin;
-  const outTok = minutes * REALTIME_COST.approxOutputTokensPerMin;
-  return (inTok * REALTIME_COST.inputPerMillion + outTok * REALTIME_COST.outputPerMillion) / 1_000_000;
-};
+/**
+ * 音声レッスンの **推定** コスト（USD）。実測ではない。
+ *
+ * ⚠️ この関数の値を「実測」と呼んではいけない（2026-08-24 WAVE 4-4 の監査で判明）。
+ *   ai_usage_daily.estimated_cost_usd を作っているのはこの式そのもので、
+ *   その累計を時間で割り戻した $8.11/時間 を「本番実測」と書いていた＝循環参照だった。
+ *   バックアップ実データでも 441秒 → $0.98784（= 441/60 × 0.1344）で誤差ゼロ、つまり式の出力。
+ *
+ * 実際に何が起きているか:
+ *   音声は WebRTC でブラウザが OpenAI へ直接つなぐので、こちら側は usage を受け取れない。
+ *   取れるのは**分数だけ**。だから金額は必ず推定であり、根拠は
+ *   「分数」と「1分あたり何トークン使うと仮定したか」の2つしかない。
+ *   → 記録側（ai_usage_events）では source='estimated' と duration_source を必ず残す。
+ *   → 実請求との突合は scripts/ai-course/reconcile-openai-cost.mjs で行う。
+ *
+ * 単価は aiModelPricing に集約した（courseConfig の REALTIME_COST を単価表が読む）。
+ */
+export const estimateSessionCost = (
+  durationSeconds: number,
+  model: string = DEFAULT_REALTIME_MODEL,
+): number => costUsdForTokens(model, estimateRealtimeTokens(durationSeconds));

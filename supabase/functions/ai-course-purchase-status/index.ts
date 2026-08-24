@@ -3,6 +3,10 @@
 // session_id（Stripeが発行する推測不能なトークン。購入者のブラウザだけが知る）を鍵に、
 // 台帳の状態と発行済みログインIDを返す。**パスワードは絶対に返さない**（メールのみ）。
 //
+// 状態は台帳の値をそのまま返す。'awaiting_payment' は非同期決済（Alipay / WeChat Pay など、
+// 承認のあとに着金する方式）の入金待ち（2026-08-24 追加）。完了ページはこれを
+// 「支払い確認中」として扱い、**「お支払いは完了しています」と言ってはいけない**。
+//
 // デプロイ（CEO承認後）:
 //   SUPABASE_ACCESS_TOKEN=$(cat ~/.supabase_backup_token) supabase functions deploy \
 //     ai-course-purchase-status --no-verify-jwt --project-ref jdkwijdphlkrcoiggfqw

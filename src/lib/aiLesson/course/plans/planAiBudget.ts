@@ -2,43 +2,137 @@
 //
 // なぜ要るか:
 //   「1か月使い放題」のまま売ると、上限まで使われた月は原価が売値を超える。
-//   実測 $8.11/時間（ai_usage_daily の累計 $9.25 ÷ 1.14時間）。従来の上限（月6時間）は
-//   原価 $48 で、1か月プランの売値を超えていた＝**使われるほど赤字**だった。
+//   従来の上限（月6時間）は原価 $48 で、1か月プランの売値を超えていた
+//   ＝**使われるほど赤字**だった。
 //
 // 設計の考え方（CEO指示そのまま）:
 //   「AI会話を全部ずっとできる状態ではなくて、1日にできる数に制限をかけて、
 //     それ以外の冒険やテストなどコストがかからないところで楽しませたい」
-//   → 高いのは**音声会話だけ**（gpt-realtime）。テキスト会話は gpt-4o-mini で約1/300、
+//   → 高いのは**音声会話だけ**（gpt-realtime）。テキスト会話は gpt-4o-mini で約1/14、
 //     冒険・バトル・模試・答案は端末内で完結して原価ゼロ。
 //   → 音声だけを希少にし、それ以外は広く開ける。
 //
 // **このファイルの本体は下の PLAN_AI_BUDGETS ではなく、planAiBudget.test.ts の検算。**
 // 枠を緩めたり値下げしたりすると、テストが落ちて出荷できない。人の注意力に頼らない。
+//
+// ── 2026-08-24 WAVE 4-4 の訂正 ────────────────────────────────
+// このファイルは以前ここに「実測 $8.11/時間（ai_usage_daily の累計 $9.25 ÷ 1.14時間）」と
+// 書いていた。**それは実測ではなかった。**
+//   ai_usage_daily.estimated_cost_usd を作っている式は estimateSessionCost(sec) で、
+//   中身は「分数 × $0.1344」。その出力を時間で割り戻して $8.11 と呼んでいた＝循環参照。
+//   バックアップ実データも 441秒 → $0.98784（= 441/60 × 0.1344）で誤差ゼロ、つまり式の出力。
+//   OpenAI の実請求とは一度も突き合わせていない。
+// → 「実測」の記述を全部消した。単価は aiModelPricing の1か所に集め、
+//   出典（repo / list / derived）を単価ごとに書いた。実請求との突合は
+//   scripts/ai-course/reconcile-openai-cost.mjs で行い、突合できた値だけを
+//   ai_usage_events.source='billed' として残す。
+// ────────────────────────────────────────────────────────────
 
 import { planById, type PlanId } from './planCatalog';
-import { REALTIME_COST } from '../courseConfig';
+import { costUsdForTokens, realtimeUsdPerMinute, DEFAULT_REALTIME_MODEL } from '../aiModelPricing';
 
 /* ────────────────────────────────────────────────────────────
    原価のモデル
    ──────────────────────────────────────────────────────────── */
 
 /**
- * 音声会話の1分あたり原価（USD）。単価は courseConfig の REALTIME_COST から導く
- * （二重管理しない）。モデル値 $0.1344/分＝$8.06/時間は、本番実測 $8.11/時間と一致する。
+ * 音声会話の1分あたり原価（USD）。単価は aiModelPricing の1か所から導く（二重管理しない）。
+ * 値は $0.1344/分＝$8.06/時間。**これは実測ではなくモデル値**（1分あたりのトークン数を
+ * 仮定して単価を掛けたもの）。音声は WebRTC でブラウザが OpenAI へ直接つなぐため、
+ * こちら側では usage を受け取れず、取れるのは分数だけ。だから必ず推定になる。
  */
-export const VOICE_USD_PER_MINUTE =
-  (REALTIME_COST.approxInputTokensPerMin * REALTIME_COST.inputPerMillion
-    + REALTIME_COST.approxOutputTokensPerMin * REALTIME_COST.outputPerMillion) / 1_000_000;
+export const VOICE_USD_PER_MINUTE = realtimeUsdPerMinute(DEFAULT_REALTIME_MODEL);
 
 /**
- * テキスト会話1回ぶんの原価（USD）。gpt-4o-mini（$0.15/$0.60 per 1M）で
- * 10往復＋会話後レポート1本を見込んだ概算。音声の約1/300。
+ * テキスト会話で実際に走るモデル。**env（AI_LESSON_CHAT_MODEL）で差し替えられる。**
+ * ここを gpt-4o にすると原価は 16.67 倍（2.50/0.15 = 10/0.60）になる。
+ * planAiBudget.test.ts が Edge Function のソースを読んで、既定値がこの想定と
+ * 一致していることを固定する（黙って高いモデルへ動かせないようにする）。
  */
-export const TEXT_USD_PER_SESSION = 0.004;
+export const ASSUMED_TEXT_MODEL = 'gpt-4o-mini';
 
 /**
- * 見積りに掛ける安全率。文字起こし（gpt-4o-transcribe）・会話後レポート・
- * 再接続ぶんなど、上の2つに入れていない小口を吸収する。
+ * テキスト会話1回で流れるトークン数の**上限側の見積り**。
+ * 魔法の数字を置かず、Edge Function 自身のガード定数から積み上げる
+ * （= サーバーが物理的に許す最大。学習者がどう頑張ってもこれを超えられない）。
+ *
+ * 出典はすべて supabase/functions/ 配下のソース:
+ *   - maxTurns 既定 8 / 上限 10        … ai-lesson-chat/index.ts MAX_TURNS_CAP
+ *   - 出力 300 tokens/ターン           … ai-lesson-chat/index.ts MAX_OUTPUT_TOKENS
+ *   - 履歴 16件 × 300字                … ai-lesson-chat/index.ts MAX_HISTORY_MSGS / MAX_MSG_CHARS
+ *   - 学習者入力 500字                 … ai-lesson-chat/index.ts MAX_INPUT_CHARS
+ *   - system prompt 約2,400字          … 同ファイルの sys 配列（実測の文字数）
+ *   - レポート 入力60発話×200字 / 出力700 … ai-lesson-report/index.ts の slice と max_tokens
+ * 日本語は概ね 1文字 ≒ 1トークンとして数える（かな漢字は英語より token/char が高い側）。
+ */
+export const TEXT_SESSION_TOKENS = {
+  turnsPerSession: 8,
+  systemPromptTokens: 2400,
+  historyTokensPerMessage: 300,
+  studentInputTokens: 500,
+  outputTokensPerTurn: 300,
+  reportInputTokens: 13500,   // 60発話 × 200字 + プロンプト約1,500
+  reportOutputTokens: 700,
+} as const;
+
+/**
+ * テキスト会話1回ぶんの入出力トークン数。
+ * 履歴は毎ターン増えるので、ターンごとに積む（最終ターンだけ満杯という形を再現する）。
+ */
+export const textSessionTokenCounts = (): { inputTokens: number; outputTokens: number } => {
+  const t = TEXT_SESSION_TOKENS;
+  let input = 0;
+  for (let turn = 1; turn <= t.turnsPerSession; turn += 1) {
+    // turn 1 は履歴なし。以降は「学習者+先生」で2件ずつ増える
+    const historyMsgs = Math.min((turn - 1) * 2, 16);
+    input += t.systemPromptTokens + historyMsgs * t.historyTokensPerMessage + t.studentInputTokens;
+  }
+  return {
+    inputTokens: input + t.reportInputTokens,
+    outputTokens: t.turnsPerSession * t.outputTokensPerTurn + t.reportOutputTokens,
+  };
+};
+
+/**
+ * テキスト会話1回ぶんの原価（USD）。**単価表 × 上のトークン見積り**から出す。
+ *
+ * 以前はここが `0.004` という直書きだった。どのモデルの何トークンぶんなのか
+ * 書かれておらず、検算のしようがなかった（そして実際 2.5 倍ずれていた）。
+ */
+export const textUsdPerSession = (model: string = ASSUMED_TEXT_MODEL): number =>
+  costUsdForTokens(model, textSessionTokenCounts());
+
+export const TEXT_USD_PER_SESSION = textUsdPerSession();
+
+/**
+ * サーバーが物理的に許す**絶対上限**（毎ターン履歴が満杯だった場合）。
+ * 「この値を超える数字は gpt-4o-mini の実利用としてありえない」という判定に使う。
+ */
+export const textUsdPerSessionCeiling = (model: string = ASSUMED_TEXT_MODEL): number => {
+  const t = TEXT_SESSION_TOKENS;
+  const perTurnInput = t.systemPromptTokens + 16 * t.historyTokensPerMessage + t.studentInputTokens;
+  return costUsdForTokens(model, {
+    inputTokens: t.turnsPerSession * perTurnInput + t.reportInputTokens,
+    outputTokens: t.turnsPerSession * t.outputTokensPerTurn + t.reportOutputTokens,
+  });
+};
+
+/**
+ * 監査（docs/ai-course/audit/GROWTH_FUNNEL_AUDIT.md:180）が「テキスト会話1回（6ターン）」
+ * として載せた数字。**根拠がリポジトリのどこにも無い。**
+ *
+ * 上の textUsdPerSessionCeiling()（gpt-4o-mini の絶対上限・8ターン）より大きいので、
+ * これは gpt-4o-mini のトークン実測ではありえない。考えられるのは:
+ *   (a) 実際に走っていたモデルが gpt-4o-mini ではなかった（env 差し替え。gpt-4o なら16.67倍）
+ *   (b) トークン実測ではなく手計算の見積りだった
+ * **どちらなのかは、当時の記録にモデル名が無いので分からない。**
+ * これを分かるようにするのが今回の ai_usage_events（model 列と source 列）。
+ */
+export const AUDIT_REPORTED_TEXT_USD_PER_SESSION = 0.069;
+
+/**
+ * 見積りに掛ける安全率。文字起こし（gpt-4o-transcribe）・再接続ぶん・
+ * 上のトークン見積りに入れていない小口を吸収する。
  */
 export const COST_SAFETY_MARGIN = 1.2;
 
@@ -137,14 +231,31 @@ export interface PlanEconomics {
   breakdown: { voiceUsd: number; textUsd: number; days: number };
 }
 
+/** プランが「上限まで使われうる日数」。realtime 制のプランは実時間で終わる */
+export const budgetDays = (planId: PlanId): number => {
+  const plan = planById(planId);
+  if (!plan) throw new Error(`unknown plan: ${planId}`);
+  return plan.realtimeWindowMinutes !== null
+    ? plan.realtimeWindowMinutes / (24 * 60)
+    : (plan.accessDays ?? ASSUMED_DAYS_WHEN_UNSET);
+};
+
 /**
  * 「上限まで使われた」ときの原価を出す。**平均ではなく最悪値**で見る。
  * 平均で設計すると、いちばん熱心な生徒がいちばん損をさせる形になる。
+ *
+ * `opts.textUsdPerSession` はテキスト単価の差し替え。
+ * 「もし実際の単価が監査の $0.069 だったら、この商品はどうなるか」を
+ * 数字で答えられるようにするために開けてある（既定は現行モデル）。
  */
-export const planEconomics = (planId: PlanId): PlanEconomics => {
+export const planEconomics = (
+  planId: PlanId,
+  opts: { textUsdPerSession?: number } = {},
+): PlanEconomics => {
   const plan = planById(planId);
   if (!plan) throw new Error(`unknown plan: ${planId}`);
   const b = aiBudgetFor(planId);
+  const textUsdPerSessionUsed = opts.textUsdPerSession ?? TEXT_USD_PER_SESSION;
   /**
    * 何日ぶん使われうるか。
    * リアルタイム制（体験パス）は**実時間60分で終わる**ので、accessDays の30日ではない。
@@ -157,7 +268,7 @@ export const planEconomics = (planId: PlanId): PlanEconomics => {
 
   const voiceMinutes = b.voiceSessionsTotal * (VOICE_SESSION_MAX_SECONDS / 60);
   const voiceUsd = voiceMinutes * VOICE_USD_PER_MINUTE;
-  const textUsd = b.textSessionsPerDay * days * TEXT_USD_PER_SESSION;
+  const textUsd = b.textSessionsPerDay * days * textUsdPerSessionUsed;
   const worstCaseUsd = (voiceUsd + textUsd) * COST_SAFETY_MARGIN;
   const worstCaseJpy = worstCaseUsd * JPY_PER_USD;
 
@@ -174,3 +285,38 @@ export const planEconomics = (planId: PlanId): PlanEconomics => {
     breakdown: { voiceUsd, textUsd, days },
   };
 };
+
+/* ────────────────────────────────────────────────────────────
+   「テキストがいくらまでなら耐えられるか」
+
+   単価が1つ動いただけで商品が赤字に入るかどうかを、毎回手計算しないで済むようにする。
+   監査の $0.069 と、この境界を並べれば「危ないのか、余裕があるのか」が即分かる。
+   ──────────────────────────────────────────────────────────── */
+
+/**
+ * そのプランで許せるテキスト1回あたりの単価（USD）。
+ * @param limitRatio 判定に使う原価率。既定はプランが宣言した maxAiCostRatio。
+ *                   1 を渡せば「赤字になる境界」になる。
+ * 音声だけで既に上限を超えているプランは負の値を返す（＝テキストを1回も出せない）。
+ */
+export const maxAffordableTextUsdPerSession = (
+  planId: PlanId,
+  limitRatio?: number,
+): number | null => {
+  const plan = planById(planId);
+  if (!plan) throw new Error(`unknown plan: ${planId}`);
+  const priceJpy = plan.priceJpy;
+  if (priceJpy === null || priceJpy === 0) return null;
+  const b = aiBudgetFor(planId);
+  const ratio = limitRatio ?? b.maxAiCostRatio;
+  const days = budgetDays(planId);
+  const textSessions = b.textSessionsPerDay * days;
+  if (textSessions <= 0) return null;
+  const voiceUsd = b.voiceSessionsTotal * (VOICE_SESSION_MAX_SECONDS / 60) * VOICE_USD_PER_MINUTE;
+  const budgetUsd = (ratio * priceJpy) / JPY_PER_USD / COST_SAFETY_MARGIN;
+  return (budgetUsd - voiceUsd) / textSessions;
+};
+
+/** 赤字になる境界（原価率 1.0）のテキスト単価 */
+export const breakEvenTextUsdPerSession = (planId: PlanId): number | null =>
+  maxAffordableTextUsdPerSession(planId, 1);

@@ -9,6 +9,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
+import {
+  costMeterEnvFrom, modelFromResponse, recordUsageEvent, tokensFromChatUsage,
+} from "../_shared/aiCostMeter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -262,6 +265,26 @@ serve(async (req) => {
     }
 
     const data = await openaiRes.json();
+
+    // ── 原価の記録（2026-08-24 WAVE 4-4） ──
+    // これまでテキスト会話は usage をレスポンスに返すだけで、**どのモデルで
+    // いくらかかったのかが DB に残っていなかった**（点検ボードの原価は音声だけの数字だった）。
+    // CHAT_MODEL は env で差し替えられるので、要求した名前ではなく
+    // **OpenAI が返した実際のモデル名**を記録する。金額は DB 側が単価表から計算する。
+    // 記録の成否は会話の成否と無関係（await しても失敗を握りつぶす）。
+    const actualModel = modelFromResponse(data, CHAT_MODEL);
+    const meterEnv = costMeterEnvFrom((k) => Deno.env.get(k));
+    if (meterEnv) {
+      await recordUsageEvent(meterEnv, {
+        kind: "text",
+        model: actualModel,
+        source: "reported",           // OpenAI が返した実トークン数
+        tokens: tokensFromChatUsage(data?.usage),
+        sessionId,
+        note: `turn ${studentTurns}/${maxTurns}`,
+      });
+    }
+
     const content = data?.choices?.[0]?.message?.content;
     if (!content) return json(502, { error: "empty_turn" });
     let turn: {
@@ -312,6 +335,9 @@ serve(async (req) => {
       studentTurns,
       maxTurns,
       usage: data?.usage ?? null,
+      // 実際に走ったモデル。クライアント側の概算（courseChatApi の MINI_COST）が
+      // gpt-4o-mini 固定なので、違うモデルが走っていたことを画面側でも見分けられるようにする
+      model: actualModel,
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "unknown";

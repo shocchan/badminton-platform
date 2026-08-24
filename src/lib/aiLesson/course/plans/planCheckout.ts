@@ -79,11 +79,23 @@ export const startCheckout = async (planId: PlanId, locale: 'ja' | 'zh'): Promis
 };
 
 export interface PurchaseStatus {
-  status: 'pending' | 'paid' | 'provisioned' | 'failed' | 'unknown';
+  /**
+   * 台帳（ai_plan_purchases.status）の値。
+   * - `awaiting_payment` … 非同期決済（中国向けの決済手段など、承認のあとに着金する方式）の
+   *   **入金待ち**（2026-08-24 追加）。承認は終わっているが着金は未確定なので、
+   *   この状態で「お支払いは完了しています」と言ってはいけない。
+   * - `refunded` … 返金済み
+   */
+  status: 'pending' | 'awaiting_payment' | 'paid' | 'provisioned' | 'failed' | 'refunded' | 'unknown';
   planId: string | null;
   loginId: string | null;
   maskedEmail: string | null;
 }
+
+/** 台帳から返ってくる状態の一覧（不明な値は 'unknown' に倒す） */
+const KNOWN_PURCHASE_STATUSES = [
+  'pending', 'awaiting_payment', 'paid', 'provisioned', 'failed', 'refunded',
+] as const;
 
 /** 決済完了ページ用の状態照会（session_id は購入者のブラウザだけが知るトークン） */
 export const fetchPurchaseStatus = async (sessionId: string): Promise<PurchaseStatus> => {
@@ -97,7 +109,9 @@ export const fetchPurchaseStatus = async (sessionId: string): Promise<PurchaseSt
     });
     if (!res.ok) return unknown;
     const data = await res.json().catch(() => ({}));
-    const status = ['pending', 'paid', 'provisioned', 'failed'].includes(data?.status) ? data.status : 'unknown';
+    const status: PurchaseStatus['status'] =
+      (KNOWN_PURCHASE_STATUSES as readonly string[]).includes(data?.status)
+        ? data.status : 'unknown';
     return {
       status,
       planId: typeof data?.planId === 'string' ? data.planId : null,

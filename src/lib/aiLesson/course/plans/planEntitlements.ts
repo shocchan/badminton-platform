@@ -114,6 +114,92 @@ export const accessWindowFor = (planId: PlanId, purchasedAtISO: string): AccessW
   };
 };
 
+/* ────────────────────────────────────────────────────────────
+   再購入したときに受講権がどうなるか（延長 と 格下げ防止）
+
+   **SQL の写し。** 実体は migration 20260824140000 の
+   public.ai_grant_purchase_access（DB側で原子的に実行される）。
+   ここは「同じルールを人が読めて・テストできる形」で置いたもので、
+   ずれは planAccessExtension.test.ts が検出する。
+   ──────────────────────────────────────────────────────────── */
+
+/**
+ * 受講権の強さ。大きいほど強い。
+ *
+ * **null（手動発行）を最強にしている。** ai_start_session は plan_id が null の行を
+ * 「従来どおりの共通上限」として通す（フェイルオープン）。6か月伴走コースの実生徒も
+ * 手動発行の生徒も plan_id は null なので、ここを弱く扱うと体験パスの購入1回で
+ * 6か月コースの受講権が体験パス（音声3回・実時間60分）に化ける。
+ * 知らないプランIDも同じ理由で最強に倒す（弱いと決めつけない）。
+ */
+export const PLAN_STRENGTH_RANK: Record<PlanId, number> = {
+  'ai-trial-pass': 10,
+  'ai-month': 50,
+  'coach-6m': 90,
+};
+
+/** 手動発行（plan_id なし）と未知のプランの強さ */
+export const MANUAL_STRENGTH_RANK = 100;
+
+export const planStrengthRank = (planId: string | null | undefined): number =>
+  (planId ? PLAN_STRENGTH_RANK[planId as PlanId] : undefined) ?? MANUAL_STRENGTH_RANK;
+
+/** 購入を反映する前の受講権（ai_course_access の1行）。行が無ければ null */
+export interface ExistingAccess {
+  validFromISO: string;
+  validUntilISO: string;
+  planId: string | null;
+  trialWindowMinutes?: number | null;
+  trialStartedAtISO?: string | null;
+}
+
+export interface NextAccess {
+  validFromISO: string;
+  validUntilISO: string;
+  /** 買ったプランの内容（plan_id・trial・累計上限・source）を入れ替えるか */
+  applyPlanAttributes: boolean;
+  /** 上位の受講権を守るために属性の入れ替えを見送ったか */
+  downgradeGuarded: boolean;
+}
+
+/**
+ * 購入1件を受講権へ反映した結果を返す（純関数）。
+ *
+ * 1. 期間は**必ず延長**する。残っていれば足す・切れていれば今から。
+ *    （旧実装は `now + accessDays` の上書きで、残り20日ある人が1か月プランを
+ *      買い足すと 50日 ではなく 30日になっていた）
+ * 2. いま有効な受講権のほうが強ければ**格下げ**とみなし、期間だけ足して
+ *    プラン属性は触らない。6か月伴走コースの受講権が体験パスの購入で消えないこと、が合格条件。
+ */
+export const nextAccessOnPurchase = (input: {
+  existing: ExistingAccess | null;
+  accessDays: number;
+  planId: PlanId;
+  nowISO: string;
+}): NextAccess => {
+  const { existing, accessDays, planId, nowISO } = input;
+  const now = Date.parse(nowISO);
+  if (!Number.isFinite(now)) throw new Error(`invalid now: ${nowISO}`);
+  if (!Number.isFinite(accessDays) || accessDays <= 0) {
+    throw new Error(`invalid accessDays: ${accessDays}`);
+  }
+
+  const base = existing ? Math.max(Date.parse(existing.validUntilISO), now) : now;
+  const validUntilISO = new Date(base + accessDays * DAY_MS).toISOString();
+
+  const stillValid = existing !== null && now <= Date.parse(existing.validUntilISO);
+  const downgradeGuarded =
+    stillValid && planStrengthRank(existing!.planId) > planStrengthRank(planId);
+
+  return {
+    validUntilISO,
+    // 格下げのときは契約開始日も動かさない（人が決めた開始日を購入で書き換えない）
+    validFromISO: downgradeGuarded ? existing!.validFromISO : new Date(now).toISOString(),
+    applyPlanAttributes: !downgradeGuarded,
+    downgradeGuarded,
+  };
+};
+
 /** プランの状態（購入記録の表示・判定用） */
 export type PlanState = 'not_started' | 'active' | 'expired';
 

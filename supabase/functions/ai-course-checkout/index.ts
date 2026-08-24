@@ -9,6 +9,17 @@
 //   一致しないと起動しない（テストのつもりで実課金、を構造的に防ぐ）
 // - 未設定なら 503（LP側は apply フォームへフォールバック済みなので実害なし）
 //
+// 決済手段（2026-08-24 点検・**結論: このファイルは触らない**）:
+// - 使える決済手段を**このコードで列挙しない**。Stripeダッシュボードで有効なもののうち、
+//   通貨（JPY）・金額・国に合うものだけが自動でCheckoutに出る。中国向けの決済手段を
+//   CEOがダッシュボードで有効化すれば、**このファイルを1行も変えずに**増える
+// - 逆に、ここで手段を列挙すると**書いていない手段が消える**（Link決済が消えた事故が
+//   2026-08 にあった）。src/pages/ai-lesson/landing/paymentMethodsNote.test.tsx が
+//   機械で止めている。承認が下りても、まずはダッシュボード側だけで足すこと
+// - 承認が要る決済手段は**非同期決済**（承認 → あとで入金確定）。success_url へ戻った
+//   時点ではまだ入金が確定していないことがある。アカウント発行の判断は必ず Webhook 側の
+//   session.payment_status で行う（この関数は発行に関与しない）
+//
 // デプロイ（CEO承認後）:
 //   SUPABASE_ACCESS_TOKEN=$(cat ~/.supabase_backup_token) supabase functions deploy \
 //     ai-course-checkout --no-verify-jwt --project-ref jdkwijdphlkrcoiggfqw

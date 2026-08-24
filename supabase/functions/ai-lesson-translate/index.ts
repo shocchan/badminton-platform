@@ -14,6 +14,9 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { isQuotaError, quotaEnvFrom, reportQuotaOutage } from "../_shared/aiQuota.ts";
+import {
+  costMeterEnvFrom, modelFromResponse, recordUsageEvent, tokensFromChatUsage,
+} from "../_shared/aiCostMeter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,12 +112,29 @@ serve(async (req) => {
     }
 
     const data = await openaiRes.json();
+
+    // ── 原価の記録（2026-08-24 WAVE 4-4） ──
+    // 従来はフロントへ usage を返すだけで、集計は音声セッションの完了時にしか走らなかった
+    // （会話が中断すると、使った翻訳の原価がまるごと消えていた）。
+    // ここで1回ぶんずつ台帳へ残す。TRANSLATE_MODEL は env で差し替えられるので実際の名前を記録する。
+    const actualModel = modelFromResponse(data, TRANSLATE_MODEL);
+    const meterEnv = costMeterEnvFrom((k) => Deno.env.get(k));
+    if (meterEnv) {
+      await recordUsageEvent(meterEnv, {
+        kind: "translate",
+        model: actualModel,
+        source: "reported",
+        tokens: tokensFromChatUsage(data?.usage),
+        sessionId,
+      });
+    }
+
     const zh = (data?.choices?.[0]?.message?.content ?? "").trim();
     if (!zh) return json(502, { error: "empty_translation" });
 
     // usage を返してフロント側でコスト集計できるようにする
     const usage = data?.usage ?? null;
-    return json(200, { zh, usage });
+    return json(200, { zh, usage, model: actualModel });
   } catch (e) {
     console.error("ai-lesson-translate error:", e instanceof Error ? e.message : "unknown");
     return json(500, { error: "internal_error" });
