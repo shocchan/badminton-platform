@@ -9,6 +9,7 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 import { feeDisplay, feePerPerson, isDoublesEvent, isShuttleFree } from '../lib/fee';
+import { shareUtmQuery } from '../lib/analytics';
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -109,9 +110,11 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
     return `【${tournament.title}】\n日時：${d}\n時間：${t}\n会場：${tournament.location}\n参加費：${fee}\n詳細・申し込み：`;
   };
 
+  // シェアURLは標準UTM（2026-08-24）。旧 `?from=line` は GA4 が流入元として読まないため、
+  // LINE/WeChat経由の申込が全部 Direct に埋もれていた。配布済みの旧リンクは analytics.ts が読み替える
   const handleLineShare = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?${shareUtmQuery('line')}`;
     const text = generateShareText();
     try {
       await navigator.clipboard.writeText(`${text}${baseUrl}`);
@@ -122,7 +125,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const handleWechatShare = async (e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
-    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=wechat`;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?${shareUtmQuery('wechat')}`;
     const text = generateShareText();
     try {
       await navigator.clipboard.writeText(`${text}${baseUrl}`);

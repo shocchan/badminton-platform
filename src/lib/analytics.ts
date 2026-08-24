@@ -11,12 +11,17 @@
 // ── UTM保持 ──────────────────────────────────────────────
 // ・初回アクセスのURLに utm_* があれば sessionStorage に保存し、
 //   成果イベント（generate_lead / begin_checkout / purchase）に添付する
+// ・後方互換: 配布済みリンクの `?from=line` `?from=wechat` も utm_source/utm_medium に
+//   読み替えて同じ場所に保存する（2026-08-24）。これが無いと LINE/WeChat 経由が
+//   GA4 では Direct に埋もれて「0件」に見える
 // ── ファネルイベント ─────────────────────────────────────
 //   view_tournament    大会詳細を見た           （Meta: ViewContent）
 //   begin_application  申込フォームが表示された （Meta: BeginApplication ※カスタム）
 //   generate_lead      申込フォーム送信完了     （Meta: Lead）
 //   begin_checkout     クレジット決済を開始     （Meta: InitiateCheckout）
 //   purchase           クレジット決済が完了     （Meta: Purchase）
+// ── その他 ───────────────────────────────────────────────
+//   click_related_service  フッターの関連サービス（AI日本語コース / wildflow）クリック
 
 const GA4_ID = import.meta.env.VITE_GA4_ID as string | undefined;
 const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID as string | undefined;
@@ -44,6 +49,30 @@ const UTM_KEY = 'kb_utm';
 const REF_KEY = 'kb_ref';
 const REF_PATTERN = /^[A-Za-z0-9_-]{3,32}$/;
 
+/**
+ * 旧式の `?from=` を標準UTMへ読み替える表（2026-08-24）。
+ *
+ * これまで LINE / WeChat のシェアリンクは `?from=line` `?from=wechat` を付けていたが、
+ * GA4 は独自パラメータを流入元として扱わないため、そこから来た人は全員 Direct になっていた。
+ * 新しく作るリンクは utm_* を付けるが、**すでに配られてしまったリンクは書き換えられない**ので、
+ * ここで同じ意味のUTMに直してから保存する。
+ * `utm_campaign` を分けているのは、旧リンクがどれだけ生き残っているかを後から数えられるようにするため。
+ */
+const FROM_TO_UTM: Record<string, Record<string, string>> = {
+  line: { utm_source: 'line', utm_medium: 'share', utm_campaign: 'legacy_from' },
+  wechat: { utm_source: 'wechat', utm_medium: 'share', utm_campaign: 'legacy_from' },
+};
+
+/** `?from=` の値 → UTM。未知の値・`web`（＝流入元なし）は null */
+export const utmFromLegacyFromParam = (from: string | null | undefined): Record<string, string> | null => {
+  if (!from) return null;
+  return FROM_TO_UTM[from.toLowerCase()] ? { ...FROM_TO_UTM[from.toLowerCase()] } : null;
+};
+
+/** 新しく作るシェアリンクに付けるUTM（2026-08-24。旧 `?from=` の置き換え） */
+export const shareUtmQuery = (channel: 'line' | 'wechat'): string =>
+  `utm_source=${channel}&utm_medium=share&utm_campaign=tournament_share`;
+
 // ── フラグ処理（?notrack= / ?tracktest= / utm保存） ──
 const processUrlFlags = () => {
   try {
@@ -52,13 +81,18 @@ const processUrlFlags = () => {
     if (q.get('notrack') === '0') localStorage.removeItem(NOTRACK_KEY);
     if (q.get('tracktest') === '1') sessionStorage.setItem(TRACKTEST_KEY, '1');
     // UTMは初回アクセス分をセッション中保持（SPA遷移でURLから消えるため）
-    if (q.get('utm_source') && !sessionStorage.getItem(UTM_KEY)) {
+    if (!sessionStorage.getItem(UTM_KEY)) {
       const utm: Record<string, string> = {};
-      for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
-        const v = q.get(k);
-        if (v) utm[k] = v;
+      if (q.get('utm_source')) {
+        for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+          const v = q.get(k);
+          if (v) utm[k] = v;
+        }
+      } else {
+        // utm_* が無いときだけ旧 `?from=` を見る（両方あればUTMを優先する）
+        Object.assign(utm, utmFromLegacyFromParam(q.get('from')) ?? {});
       }
-      sessionStorage.setItem(UTM_KEY, JSON.stringify(utm));
+      if (utm.utm_source) sessionStorage.setItem(UTM_KEY, JSON.stringify(utm));
     }
     // 紹介コード。**最初に見たものを優先**（あとから別のリンクで上書きしない）
     const ref = q.get('ref');
@@ -106,6 +140,62 @@ export const getReferralCode = (): string | null => {
     const v = localStorage.getItem(REF_KEY);
     return v && REF_PATTERN.test(v) ? v : null;
   } catch { return null; }
+};
+
+/**
+ * DBに保存する流入元の3値（2026-08-24）。
+ * `activity_entries.source`（通常活動）と `subscribers.source`（特典登録）が
+ * すでにこの3値なので、大会申込（`entries.source`）も**同じ粒度・同じ値**に揃える。
+ * 細かい内訳（campaign等）はGA4側のUTMで見る。DBは「どのチャネルから来たか」だけ持つ。
+ */
+export type TrafficSource = 'line' | 'wechat' | 'web';
+
+/** utm_source / from の生値 → 3値。判定できないものは null（呼び出し側で 'web' に落とす） */
+export const normalizeTrafficSource = (raw: string | null | undefined): TrafficSource | null => {
+  if (!raw) return null;
+  const v = raw.trim().toLowerCase();
+  if (v === 'line') return 'line';
+  if (v === 'wechat' || v === 'weixin') return 'wechat';
+  if (v === 'web') return 'web';
+  return null;
+};
+
+/**
+ * 申込レコードに載せる流入元。
+ * 優先順は「今のURLの ?from=」→「今のURLの ?utm_source=」→「セッション保持中のUTM」→ 'web'。
+ *
+ * 3番目が要る理由: SPAなので、シェアリンクで着地したあと大会一覧→詳細と動くと
+ * URLからパラメータが消える。ActivityPage は着地URLしか見ていないため、
+ * 一覧を経由した申込が 'web' に化ける。ここではセッションに退避した値まで見る。
+ */
+export const getTrafficSource = (search?: string): TrafficSource => {
+  try {
+    const q = new URLSearchParams(search ?? window.location.search);
+    return normalizeTrafficSource(q.get('from'))
+      ?? normalizeTrafficSource(q.get('utm_source'))
+      ?? normalizeTrafficSource(getUtm().utm_source)
+      ?? 'web';
+  } catch {
+    return 'web';
+  }
+};
+
+/**
+ * 「同じ成果イベントを2回送らない」ための札（2026-08-24）。
+ *
+ * 成果イベントは再レンダリング・戻る操作・決済の再試行で簡単に二重発火する。
+ * 二重に飛ぶと CV が水増しされ、広告の費用対効果を誤って判断することになる。
+ * React では `useRef(createOnceGate())` で申込1回分のスコープに閉じて使う。
+ *
+ * @returns key ごとに「初回だけ true」を返す関数
+ */
+export const createOnceGate = () => {
+  const fired = new Set<string>();
+  return (key: string): boolean => {
+    if (fired.has(key)) return false;
+    fired.add(key);
+    return true;
+  };
 };
 
 // 現在表示中の言語（/ja/ か /zh/ か）。全イベントに添付する
@@ -213,17 +303,46 @@ export const scrubUrlForAnalytics = (href: string): string => {
   }
 };
 
+/**
+ * 直前に見ていたページ（スクラブ済みURL）。
+ * SPAでは gtag が持つ referrer が「サイトに入ってきたときの外部URL」で固定され、
+ * 内部遷移のたびに「どこから来てこのページを開いたか」が失われる。
+ * そこを自前で埋めるための保持（2026-08-24）。
+ */
+let lastPageLocation: string | null = null;
+
 export const trackPageView = (pathname: string) => {
   // 運営者の自動除外: 管理画面を開いたブラウザは以後計測しない
   if (pathname.includes('/admin')) {
     try { localStorage.setItem(NOTRACK_KEY, '1'); } catch { /* noop */ }
     return;
   }
+  // 初回だけは外部からの参照元（document.referrer）。以降は直前の内部ページ。
+  // どちらも scrubUrlForAnalytics を通し、session_id 等の「鍵」を落としてから送る
+  const referrer = lastPageLocation ?? (() => {
+    try { return document.referrer ? scrubUrlForAnalytics(document.referrer) : null; } catch { return null; }
+  })();
+  const location = scrubUrlForAnalytics(window.location.href);
   send(
     'page_view',
-    { page_location: scrubUrlForAnalytics(window.location.href), page_path: pathname, page_lang: currentLang() },
+    {
+      page_location: location,
+      page_path: pathname,
+      page_lang: currentLang(),
+      ...(referrer ? { page_referrer: referrer } : {}),
+    },
     'PageView',
   );
+  lastPageLocation = location;
+};
+
+/**
+ * フッターの「関連サービス」クリック（2026-08-24）。
+ * どのページから・どの言語で見ている人が・どのサービスへ出て行ったかを残す。
+ * 送るのはパス（クエリなし）だけ。個人を特定できる値は載せない。
+ */
+export const trackRelatedServiceClick = (service: 'ai_course' | 'wildflow', fromPath: string) => {
+  trackEvent('click_related_service', { service, from_path: fromPath });
 };
 
 /** 大会詳細ページを表示した */

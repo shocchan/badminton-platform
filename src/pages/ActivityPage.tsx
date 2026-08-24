@@ -105,6 +105,10 @@ const T: Record<Lang, {
   nameError: string;
   submitError: string;
   cancelNameCodeError: string;
+  emailLabel: string;
+  emailHint: string;
+  emailPlaceholder: string;
+  emailError: string;
 }> = {
   ja: {
     memberBadge: 'チャージ済み',
@@ -164,6 +168,10 @@ const T: Record<Lang, {
     nameError: 'お名前を入力してください',
     submitError: '申し込みに失敗しました。もう一度お試しください。',
     cancelNameCodeError: 'お名前とキャンセルコードを入力してください',
+    emailLabel: 'メールアドレス（任意）',
+    emailHint: '次回の活動案内・開催前のお知らせが届きます。空欄のままでも申し込めます。',
+    emailPlaceholder: 'example@mail.com',
+    emailError: 'メールアドレスの形式をご確認ください（空欄のままでも申し込めます）',
   },
   zh: {
     memberBadge: '充值会员',
@@ -223,8 +231,26 @@ const T: Record<Lang, {
     nameError: '请输入姓名',
     submitError: '报名失败，请重试。',
     cancelNameCodeError: '请输入姓名和取消码',
+    emailLabel: '邮箱（选填）',
+    emailHint: '填写后可收到下次活动通知和开赛前提醒。不填也可以正常报名。',
+    emailPlaceholder: 'example@mail.com',
+    emailError: '请确认邮箱格式（不填也可以报名）',
   },
 };
+
+/**
+ * 任意メールの検証。**空欄は必ず通す**（メールを必須にしないため）。
+ * 入力がある時だけ形式を見る＝入力ミスは弾くが、書かない自由は残す。
+ */
+export const isValidOptionalEmail = (value: string): boolean => {
+  const s = value.trim();
+  if (!s) return true;
+  if (s.length > 254) return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+};
+
+/** 保存する値。空欄は null（空文字を入れると「メールを書いた人」と区別できなくなる） */
+export const normalizeOptionalEmail = (value: string): string | null => value.trim() || null;
 
 const generateCode = () => String(Math.floor(1000 + Math.random() * 9000));
 
@@ -385,6 +411,7 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const [showCancel, setShowCancel] = useState(false);
 
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [qty, setQty] = useState(1);
   const [entryNotes, setEntryNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -401,15 +428,21 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
 
   // ログイン会員は申込フォームの名前を自動入力（毎回入力しなくて済むように）
   const [memberName, setMemberName] = useState<string | null>(null);
+  // ログイン中のユーザーID。画面には出さず、申込レコードに裏で載せる（リピートを名前の
+  // 文字列一致ではなく本人IDで数えられるようにするため）。未ログインなら null のまま。
+  const userIdRef = useRef<string | null>(null);
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       const u = data.session?.user;
       if (!u) return;
+      userIdRef.current = u.id ?? null;
       const name = (u.user_metadata?.name as string | undefined) || u.email || '';
       if (name) {
         setMemberName(name);
         setName(prev => prev || name);
       }
+      // メールは「編集できる初期値」として置くだけ。消して申し込むこともできる。
+      if (u.email) setEmail(prev => prev || u.email as string);
     });
   }, []);
 
@@ -524,12 +557,28 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       setFormError(t.nameError);
       return;
     }
+    // メールは任意。**空欄はそのまま通す**。入力がある時だけ形式を見る。
+    if (!isValidOptionalEmail(email)) {
+      setFormError(t.emailError);
+      return;
+    }
     setFormError('');
     setSubmitting(true);
     const code = generateCode();
     const cap = activity?.capacity ?? 0;
     const { confirmedQty, waitlistQty } = splitEntryQuantity(qty, cap, confirmedCount);
-    const base = { activity_id: id, name: submitName, member_type: memberType, source, cancel_code: code, notes: entryNotes.trim() };
+    const base = {
+      activity_id: id,
+      name: submitName,
+      member_type: memberType,
+      source,
+      cancel_code: code,
+      notes: entryNotes.trim(),
+      // 名簿として使えるようにするための2列。どちらも任意で、未入力・未ログインなら null。
+      // 匿名SELECTでは読めない列にしてある（20260824110000 migration 参照）。
+      email: normalizeOptionalEmail(email),
+      user_id: userIdRef.current,
+    };
 
     const results: { error: unknown }[] = [];
     if (confirmedQty > 0) results.push(await supabase.from('activity_entries').insert({ ...base, quantity: confirmedQty, status: 'confirmed' }));
@@ -544,6 +593,9 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
       setSuccessIsWaitlist(confirmedQty === 0);
       setEntryNotes('');
       setName('');
+      // 続けて友人の分を申し込むことがあるので、メールも空に戻す
+      // （前の人のメールが別人の申込に付く事故を防ぐ）
+      setEmail('');
       setQty(1);
       fetchEntries();
     }
@@ -886,6 +938,28 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
             disabled={activity.status === 'closed'}
             className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none disabled:bg-gray-50"
           />
+
+          {/* 任意のメール欄。
+              ・必須にしない／会員登録も求めない（申込のハードルを1ミリも上げないため）
+              ・画面も1つ増やさない。備考の下に1欄足すだけ
+              ・「入れると何が得か」をラベルに書く */}
+          <div className="mb-3">
+            <label htmlFor="entry-email" className="block text-xs text-gray-500 mb-1">
+              <span className="font-medium text-gray-600">{t.emailLabel}</span>
+              <span className="ml-1">{t.emailHint}</span>
+            </label>
+            <input
+              id="entry-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder={t.emailPlaceholder}
+              disabled={activity.status === 'closed'}
+              className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-50"
+            />
+          </div>
 
           {formError && <p className="text-red-500 text-xs mb-3">{formError}</p>}
 

@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { Tournament } from '../types';
 import { supabase } from '../services/supabaseClient';
+import {
+  createOnceGate,
+  getTrafficSource,
+  trackBeginCheckout,
+  trackGenerateLead,
+  trackPurchase,
+} from '../lib/analytics';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
@@ -19,6 +26,19 @@ type Step = 'input' | 'confirm' | 'payment-method' | 'success';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
+
+/**
+ * 「その列は存在しない」というエラーか。
+ * PostgREST はスキーマキャッシュに無い列を PGRST204、Postgres 本体は 42703 で返す。
+ * 列名まで一致したときだけ真にする（無関係な PGRST204 で入れ直さないため）。
+ */
+// （react-refresh の「コンポーネント以外を export しない」に合わせ、この中だけで使う）
+const isMissingColumnError = (err: unknown, column: string): boolean => {
+  const e = err as { code?: string; message?: string } | null | undefined;
+  if (!e) return false;
+  const missingColumn = e.code === 'PGRST204' || e.code === '42703';
+  return missingColumn && (e.message ?? '').includes(column);
+};
 
 export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) => {
   const { lang } = useLanguage();
@@ -46,6 +66,15 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
   const [confirmWarning, setConfirmWarning] = useState(false);
   const [bankCopied, setBankCopied] = useState(false);
+
+  /**
+   * 成果イベントの二重送信よけ（2026-08-24）。
+   * このモーダル1回分＝申込1件分のスコープ。再レンダリング・戻る操作・決済の再試行で
+   * 同じイベントが2回飛ぶと CV が水増しされ、広告の判断を誤る。
+   */
+  const funnelGate = useRef(createOnceGate());
+  /** 申込レコードに残す流入元（line / wechat / web）。通常活動・特典登録と同じ3値 */
+  const trafficSource = useRef(getTrafficSource());
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -108,6 +137,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         // entries への UPDATE 権限は anon に付与していないため、内容の更新はせず既存の値をそのまま使う）
         const resumable = existing.status === 'confirmed' && tournament.payment_required && existing.payment_status !== 'completed';
         if (resumable) {
+          // 既存の申込を再開しただけなので generate_lead は送らない
+          // （前回の申込時にすでに1件計上済み。ここで送ると同じ人が2リードになる）
           setEntryInfo({ id: existing.id, cancelToken: existing.cancel_token });
           setStep('payment-method');
           setLoading(false);
@@ -128,21 +159,42 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       const actualIsWaitlist = Number(confirmedCount ?? 0) >= tournament.capacity;
       const status = actualIsWaitlist ? 'waitlist' : 'confirmed';
 
-      const { data: inserted, error: insertError } = await supabase
+      const entryRow = {
+        tournament_id: tournament.id,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email,
+        partner_name: isDoubles ? formData.partner_name : null,
+        notes: formData.notes,
+        status,
+      };
+
+      let { data: inserted, error: insertError } = await supabase
         .from('entries')
-        .insert([{
-          tournament_id: tournament.id,
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          partner_name: isDoubles ? formData.partner_name : null,
-          notes: formData.notes,
-          status,
-        }])
+        .insert([{ ...entryRow, source: trafficSource.current }])
         .select('id, cancel_token')
         .single();
 
+      // `source` は 2026-08-24 の migration で足した列。
+      // **フロントだけ先に出て migration が未適用**だと、この列のせいで申し込みが丸ごと失敗する。
+      // 計測を足したせいで申込を落とすのは本末転倒なので、「そんな列は無い」と言われたときだけ
+      // source 抜きで入れ直す。本番で migration の適用を確認できたら、この分岐は消してよい。
+      if (insertError && isMissingColumnError(insertError, 'source')) {
+        console.warn('[entries] source 列が未作成のため、流入元なしで登録します');
+        ({ data: inserted, error: insertError } = await supabase
+          .from('entries')
+          .insert([entryRow])
+          .select('id, cancel_token')
+          .single());
+      }
+
       if (insertError) throw insertError;
+
+      // 申込レコードが実際に作られた地点で generate_lead。確定・キャンセル待ちの両方を数える
+      // （申込は成立しているので、支払い方法に関わらずここが「リード獲得」）
+      if (funnelGate.current('generate_lead')) {
+        trackGenerateLead(tournament.id, tournament.entry_fee, status);
+      }
 
       // 支払いが必要な確定エントリーは支払い方法選択へ。それ以外は従来通りメール送信して完了
       if (status === 'confirmed' && tournament.payment_required && inserted) {
@@ -236,6 +288,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
       setStripeInfo({ clientSecret: data.clientSecret, amount: data.amount });
+      // PaymentIntent 作成成功＝決済開始。
+      // 「準備に失敗→再試行」で複数回通るため、ゲートで1回に絞る
+      if (funnelGate.current('begin_checkout')) {
+        trackBeginCheckout(tournament.id, data.amount);
+      }
     } catch (err) {
       setPaymentError(
         err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
@@ -246,6 +303,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   };
 
   // PayPay / 銀行振込: 従来通りの案内メールを送信して完了
+  //
+  // ここでは purchase を送らない（2026-08-24 決定）。
+  // この時点で起きているのは「振込先を見た」だけで、入金は数日後・別経路で、
+  // 未入金のまま消えることも実際にある。ここで purchase を送ると
+  // 「売上が立った」と GA4/Meta に嘘をつくことになり、広告の最適化まで狂う。
+  // 申込自体は generate_lead で計上済み。実入金は管理画面の入金確認で追う。
   const handleConfirmOfflinePayment = async (method: 'paypay' | 'bank') => {
     if (!entryInfo) return;
     setPaymentLoading(true);
@@ -273,6 +336,12 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           amount: data.amount ?? stripeInfo?.amount ?? 0,
           paidAt: data.paid_at ?? new Date().toISOString(),
         });
+        // サーバーが Stripe に照会して succeeded を確認できたときだけ purchase を送る。
+        // `already_completed`（同じ決済の再送・画面の再表示）では新しい売上ではないので送らない。
+        // さらに funnelGate で、Stripe側の onSuccess が複数回呼ばれても1回に抑える
+        if (!data.already_completed && funnelGate.current('purchase')) {
+          trackPurchase(tournament.id, data.amount ?? stripeInfo?.amount ?? tournament.entry_fee);
+        }
       } else {
         setPaidInfo({ amount: stripeInfo?.amount ?? 0, paidAt: new Date().toISOString() });
         setConfirmWarning(true);

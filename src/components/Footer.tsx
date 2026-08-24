@@ -1,11 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { CalendarDays, Footprints, Feather, Zap, MapPin, Users, ChevronRight, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { trackRelatedServiceClick } from '../lib/analytics';
 import { LogoMark } from './LogoMark';
 
 export const Footer = () => {
   const year = new Date().getFullYear();
   const { lang } = useLanguage();
+  // 関連サービスへの導線が「どのページから」踏まれているかを残すため（2026-08-24）。
+  // クエリは付けない（個人を特定しうる値を計測へ渡さない）
+  const { pathname } = useLocation();
   // 言語プレフィックス付きの内部リンク。
   // 以前は `/faq` `/blog` のような接頭辞なしURLを指しており、
   //   ①クリックのたびに /ja/... への内部リダイレクトを1回挟む（クロール上も無駄なホップ）
@@ -79,13 +83,22 @@ export const Footer = () => {
                 {lang === 'ja' ? '関連サービス' : '相关服务'}
               </p>
               <Link to={to('ai-course')}
+                onClick={() => trackRelatedServiceClick('ai_course', pathname)}
                 className="flex items-center gap-2 text-sm transition-colors hover:text-white">
                 <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
                 {lang === 'ja' ? 'AI日本語コース（中国語話者向け）' : 'AI日语课程 · 翔子老师'}
               </Link>
               {/* wildflow は別ドメイン・別ブランドの媒体（同じ運営者）。
-                  サイト外へ出るので、外部リンクであることを見た目でも伝える */}
-              <a href="https://wild-flow.com/" target="_blank" rel="noopener noreferrer"
+                  サイト外へ出るので、外部リンクであることを見た目でも伝える。
+
+                  rel に nofollow を足した理由（2026-08-24）:
+                  全ページのフッターから別ドメインへ dofollow で出ていて、逆向きの被リンクは0本。
+                  検索エンジンから見ると「サイト全体規模の一方向リンク」で、
+                  評価を渡すつもりが無いのに渡している状態だった。
+                  リンク自体は人にとって有用なので残し、評価だけ渡さない。
+                  あわせて「同じ運営者」であることを文字で書き、踏む前に関係が分かるようにする */}
+              <a href="https://wild-flow.com/" target="_blank" rel="noopener noreferrer nofollow"
+                onClick={() => trackRelatedServiceClick('wildflow', pathname)}
                 className="mt-2.5 flex items-center gap-2 text-sm transition-colors hover:text-white">
                 <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
                 <span>
@@ -94,6 +107,11 @@ export const Footer = () => {
                 <ExternalLink className="h-3 w-3 flex-shrink-0 text-gray-600" aria-hidden="true" />
                 <span className="sr-only">{lang === 'ja' ? '（新しいタブで開きます）' : '（在新标签页打开）'}</span>
               </a>
+              <p className="mt-1.5 text-xs leading-relaxed text-gray-600">
+                {lang === 'ja'
+                  ? '当交流会と同じ運営者が運営している別サイトです。'
+                  : '由本交流会的同一运营者运营的另一个网站。'}
+              </p>
             </div>
           </div>
 
@@ -127,9 +145,15 @@ export const Footer = () => {
       <div className="border-t border-gray-800">
         <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-400">
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
-          <div className="flex items-center gap-4">
+          {/* 法務ページ（2026-08-24 追加）。有料の申込を受けている以上、
+              特商法表記・プライバシーポリシー・利用規約は全ページから辿れる場所に置く。
+              リンク数が増えるので折り返し可にする */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
             <Link to={to('faq')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
             <Link to={to('cancel-policy')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
+            <Link to={to('tokushoho')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '特定商取引法に基づく表記' : '基于特定商业交易法的标示'}</Link>
+            <Link to={to('privacy')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? 'プライバシーポリシー' : '隐私政策'}</Link>
+            <Link to={to('terms')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '利用規約' : '使用条款'}</Link>
           </div>
         </div>
       </div>
