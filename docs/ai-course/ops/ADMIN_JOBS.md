@@ -48,3 +48,198 @@
 - ボードの生成: `node scripts/ai-course/render-ops-board.mjs`（読み取りのみ）
 - 毎朝の自動更新: Claude Code のスケジュールタスク `ai-course-ops-board`（同じURLへ貼り直す）
 - 管理ページ（5タブ）はそのまま残す。**入口をボードにして、操作のときだけ降りる**
+
+---
+
+# 機械の生存確認
+
+2026-08-24。上の「機械からの知らせ」を出している日次点検ジョブ自身が、**8日間死んでいた**ことが分かった。
+ここも同じ決め方をする＝起きたことから決める。
+
+## 実際に起きたこと
+
+| 起きたこと | 実測 |
+|---|---|
+| 日次点検ジョブが8回連続で即死していた | 8/16〜8/24・`Error: spawnSync node ENOENT` |
+| その間、誰も気づかなかった | `launchctl list` には出ている＝「動いている」ように見えた |
+| 成功ログは2本しかなかった | 7/30 と 8/14 のみ（毎日出ているはずのもの） |
+| 問い合わせ5件が49日間放置された | `contacts.status='new'` が 7/06 から滞留。**点検が生きていれば初日に鳴っていた** |
+| 本番と違うコードで本番を監視していた | plistの実行対象が feature worktree（`~/badminton-platform`）を指していた |
+
+原因は2つとも設定側だった。
+
+1. **PATH。** launchd の既定PATHは `/usr/bin:/bin:/usr/sbin:/sbin` で `/usr/local/bin` を含まない。
+   plist に `EnvironmentVariables/PATH` が無く、スクリプト内の `execFileSync('node', ...)` が node を解決できなかった。
+   同居する `com.kawabado.supabase-backup.plist` には PATH があり、こちらは動き続けていた（＝差分が答えだった）。
+2. **実行対象パス。** 本番デプロイ元ではない worktree を指していた。PATHだけ直しても「古いコードで監視する」状態が残る。
+
+## 決めたこと
+
+- **`node` を PATH で探さない。** 子プロセスは `process.execPath`（＝いま動いている自分と同じnode）で起動する。
+  設定に頼る箇所を減らすのが根本対策。`osascript` も絶対パスで呼ぶ。
+- **失敗しても黙って終わらない。** 点検が実行できなかった場合も、ログ・生存確認ファイル・macOS通知の3経路に残し、非0で終了する。
+  これまでは例外で落ちるだけで、痕跡は誰も読まない launchd ログの中だけだった。
+- **「登録されている」を「動いた」の証拠にしない。** 完走のたびに生存確認ファイルを更新し、**その鮮度**を見る。
+- **設定ミスは機械で拾う。** `node scripts/ai-course/check-launch-agents.mjs` が
+  PATH欠落・パス不在・監視対象が本番デプロイ元でない・起動契機なし・生存確認が古い、を静的に検出する（読み取りのみ）。
+  判定ロジック自体は `--self-test` で検証できる（事故の再現ケースを含む）。
+
+## 生存確認ファイル
+
+`~/ai-company/logs/daily-pf-analytics/ops-check-heartbeat.json`
+
+リポジトリの**外**に置く。worktreeのパスは変わり得る＝今回の事故そのものなので、
+状態ファイルを中に置くと同じ理由で読めなくなる。
+
+```json
+{
+  "job": "com.kawabado.daily-ops-check",
+  "lastRunAt": "2026-08-24T04:43:05.110Z",
+  "staleAfterHours": 36,
+  "status": "OK | ALERT | ERROR",
+  "alertCount": 3,
+  "alerts": ["未返信の問い合わせ: 5件"],
+  "error": null
+}
+```
+
+読む側の判定（点検ボードの「機械からの知らせ」に出す）:
+
+- ファイルが無い → 「点検が一度も完走していません」
+- `lastRunAt` が `staleAfterHours`(36h) より古い → 「点検が◯時間動いていません」
+- `status === 'ERROR'` → 「点検が失敗しています（`error`）」
+- `status === 'ALERT'` → `alerts` をそのまま出す
+- `status === 'OK'` → 「異常なし」
+
+36時間なのは、ボードが毎朝07:32・点検が毎朝10:05に動くため。
+ボードは常に前日の点検（約21時間前）を読むので、24時間では毎朝誤警報になる。
+
+## 運用
+
+```bash
+# 設定の健全性を見る（読み取りのみ）
+node scripts/ai-course/check-launch-agents.mjs
+
+# 判定ロジック自体のテスト
+node scripts/ai-course/check-launch-agents.mjs --self-test
+
+# 手で1回動かす
+launchctl kickstart -k gui/$(id -u)/com.kawabado.daily-ops-check
+```
+
+plist を差し替えたら `launchctl unload` → `load` が要る（`launchctl list` に出ていても中身は古いまま）。
+
+---
+
+# 点検ボードを3事業に広げる
+
+2026-08-24。ボードはAI日本語コースだけを見ていたが、売上の実体は**バドミントンの通常活動**にある
+（広告ゼロで 6月19人 → 7月83人 → 8月94人）。会社を1枚で見られないと、朝の判断が事業単位で分断される。
+
+## 新しい画面は作らない
+
+逆算ダッシュボード（`~/ai-company/departments/marketing/reverse-calc-dashboard.md`）は
+**2026-04-27で更新が止まっている**。止まった理由は中身ではなく、「もう1枚ある」ことだった。
+見る場所が2つあると、どちらも見られなくなる。
+
+だから3事業ぶんを**この1枚に足す**。上の「原則」はそのまま生きている:
+数字より先にやること／無いときは言い切る／タブを回らせない／個人情報は学習IDだけ／毎朝勝手に最新になる。
+
+拡張が安く済むのは、**大会テーブルもAIコーステーブルも同じ Supabase プロジェクト**
+（`jdkwijdphlkrcoiggfqw`）だから。SELECTを足すだけで kawabado の数字が同じ1枚に載る。
+別プロジェクトなのは wild-flow（`sfpgajxqmcymzetjwypz`）だけで、そこだけ読み取り経路を1本足した。
+
+## 数字の性質を混ぜない（最重要）
+
+| 種類 | 例 | 画面での扱い |
+|---|---|---|
+| **実入金** | Stripe決済・大会の入金確認済み | そのまま出す。`実入金` の札を付ける |
+| **DB上の理論値** | 通常活動（確定申込 × `activities.price`）・大会の未入金ぶん | `理論値` の札を必ず付ける |
+| **推定** | AI原価のうち分数から見積もったぶん（`source='estimated'`） | 実トークン（`reported`）と別に出す |
+| **計測なし** | 軸2（note・ココナラ・X）／wild-flowのPV | 0円・0PVと書かず「計測なし ⚠」と出す |
+
+**通常活動の料金回収は意図的にアナログ運用のまま維持する。** チャージ・回数券・自動徴収はスコープ外。
+DBから出るのは常に理論値で、現金・PayPay・回数券消化の実額は入っていない。
+実入金はCEOの手入力で受ける（下記）。
+
+## 手入力の受け皿
+
+`~/ai-company/logs/owner-hours.json`（見本: `scripts/ai-course/data/owner-hours.example.json`）
+
+```json
+{ "months": { "2026-08": { "hours": 40, "activityCashJpy": 61000, "updatedAt": "2026-08-24" } } }
+```
+
+- `hours` … その月に**本人が手を動かした時間**。`売上 ÷ 本人稼働時間` が今後1年の主指標。
+- `activityCashJpy` … 通常活動の実入金。入れれば理論値の代わりに使う。
+- 入っていなければ「未入力」と出す。**推測して埋めない**（埋めた瞬間にこの指標は嘘になる）。
+
+## リピート率の誤差を画面に出す
+
+名寄せキーは `20260824110000_activity_entries_contact.sql` のコメントどおり
+`coalesce(user_id::text, lower(trim(email)), 'name:' || name)`。
+ただし**既存166行は user_id も email も持たない**ので、全員が氏名フォールバックになる。
+同姓同名は1人に潰れ、表記ゆれは別人に割れる。だからボードは
+「氏名照合のため誤差あり」「◯人中◯人が氏名しか手がかりが無い」を必ず併記する。
+
+氏名とメールは**SQL側で md5 にしてから**受け取る（`lower`+`trim` のあとのハッシュなので
+同値判定はハッシュ前と一致する）。生の個人情報をスクリプトのプロセスに載せない。
+
+## 「壊れている」と「まだ当てていない」を分ける
+
+未適用のmigrationのテーブル・関数は毎朝必ず読めない（`42883` / `42P01` / `42703`）。
+これを異常として出すと**毎朝10件以上の警報**になり、ボードが読まれなくなる。
+
+- `does not exist` 系 → 「適用待ち」として機械の節に1行。**手を打つことには数えない**
+- それ以外（権限・タイムアウト・SQLの誤り）→ 「手を打つこと」に出す。壊れているのはこちら
+
+どちらも黙って捨てない。標準出力にも残す。
+
+## wild-flow の限界（正直に出す）
+
+- 手元にあるのは **anon キーだけ**（`~/wildflow-platform/wrangler.json` の公開値）。
+  `quiz_leads` / `lesson_entries` は「匿名はINSERTのみ・SELECTは管理者だけ」なので、
+  anon で数えると **200 + `[]`（count=0）** が返る。0件なのか読めていないのか区別できない。
+  → anon のときは**問い合わせすらせず**「読めません」と出す。0と書くと「リードが取れていない」と誤読する。
+  service_role で読むなら環境変数 `WILDFLOW_SERVICE_ROLE_KEY` を渡す（保存しない）。
+- **PVは誰も持っていない。** `VITE_GA4_ID` が空なので gtag をロードしていない（`src/services/analytics.ts`）。
+  「計測なし ⚠」と出すのが正しい。
+- kawabado への送客は **LP側の utm でしか数えられない。**
+  大会・通常活動の申込は `normalizeTrafficSource` が `line|wechat|web` の3値しか受けないため、
+  wildflow 経由でも `source=web` に丸められる。
+
+## 生存確認をボードに寄せた
+
+「機械からの知らせ」を出していた日次点検が10日連続で失敗していたので、
+**点検が死んでいること自体**をボードが見る。読むのは上の節の生存確認ファイル1つ。
+判定は `scripts/ai-course/opsBoardLib.mjs` の `heartbeatVerdict`（5分岐＋壊れたJSON）で、
+`check-launch-agents.mjs` の `auditHeartbeat()` と同じ基準（36時間）を使う。
+加えてバックアップ鮮度と `ai_course_mail_log` の件数（0件＝一度も送っていない疑い）も見る。
+
+日次点検の ALERT にボード自身が数え直している項目（未返信の問い合わせ・バックアップ）が
+混ざったときは、片方だけを出す。**どちらの経路が死んでも1回は出る**ようにしてある。
+
+## 実行
+
+```bash
+# 1枚を作り直す（読み取りのみ・--write は渡さない）
+node scripts/ai-course/render-ops-board.mjs /tmp/ops-board.html
+
+# 判定ロジックのテスト
+npx vitest run scripts/ai-course/opsBoardLib.test.mjs
+
+# wild-flow 側だけを確認する
+node scripts/ai-course/wildflow-read.mjs
+```
+
+毎朝の自動更新は Claude Code のスケジュールタスク `ai-course-ops-board`（07:32・同じURLへ貼り直す）。
+
+## 構成
+
+| ファイル | 役目 |
+|---|---|
+| `scripts/ai-course/render-ops-board.mjs` | SQLとHTML。I/Oはここだけ |
+| `scripts/ai-course/opsBoardLib.mjs` | 判定と集計の**純関数**。I/Oを一切しない＝テストできる |
+| `scripts/ai-course/opsBoardLib.test.mjs` | 上のテスト（事故の再現ケースを含む） |
+| `scripts/ai-course/wildflow-read.mjs` | 別プロジェクトの読み取り。GETだけ |
+| `scripts/ai-course/data/owner-hours.example.json` | 手入力ファイルの見本 |
