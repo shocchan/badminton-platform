@@ -68,7 +68,8 @@
       "zh": {
         "title": "芝园公民馆・蕨市民体育馆 会场指南 | 川口・蕨羽毛球交流会",
         "description": "芝园公民馆（川口市芝园町3-15）・蕨市民体育馆（蕨市北町1-27-15）的位置、从蕨站的交通方式、停车场信息。川口・蕨羽毛球交流会平日夜间在这两个会场活动。"
-      }
+      },
+      "image": "/venues/shibaen-kouminkan.jpg"
     },
     "contact": {
       "source": "src/pages/ContactPage.tsx",
@@ -123,7 +124,8 @@
       "zh": {
         "title": "国际交流羽毛球（川口・蕨）| 外国人与日本人一起打球的地方",
         "description": "在埼玉县川口市・蕨市的平日夜间举办。有来自中国、越南、印度尼西亚、菲律宾等多个国家的成员参加。支持中文咨询与当天现场支援。欢迎初学者与单人参加，参加费600日元起。"
-      }
+      },
+      "image": "/images/international/court-wide-busy.webp"
     },
     "tournaments/singles": {
       "source": "src/lib/tournamentTypes.ts",

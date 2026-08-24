@@ -15,7 +15,7 @@ const indexHtml = readFileSync('dist/index.html', 'utf8');
  */
 const staticSeo = JSON.parse(readFileSync('src/lib/seo/staticSeo.json', 'utf8')).pages;
 const STATIC_SEO_JSON = JSON.stringify(
-  Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [k, { ja: v.ja, zh: v.zh }])),
+  Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [k, { ja: v.ja, zh: v.zh, image: v.image ?? null }])),
 );
 // バッククオートをエスケープ
 const escapedHtml = indexHtml.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
@@ -358,6 +358,8 @@ async function buildOgpMeta(route, env, pageUrl) {
     return {
       title: t.title,
       description: t.description,
+      // ページ固有のOGP画像。無ければサイト既定のまま（存在しない画像を指さない）
+      image: e.image ? 'https://kawabado.com' + e.image : null,
       url: pageUrl,
       lang: route.lang,
       canonical: 'https://kawabado.com/' + (jaOnly ? 'ja' : route.lang) + suffix,

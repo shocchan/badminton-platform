@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { CalendarDays, Footprints, Feather, Zap, MapPin, Users, ChevronRight } from 'lucide-react';
+import { CalendarDays, Footprints, Feather, Zap, MapPin, Users, ChevronRight, ExternalLink } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LogoMark } from './LogoMark';
 
@@ -83,6 +83,17 @@ export const Footer = () => {
                 <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
                 {lang === 'ja' ? 'AI日本語コース（中国語話者向け）' : 'AI日语课程 · 翔子老师'}
               </Link>
+              {/* wildflow は別ドメイン・別ブランドの媒体（同じ運営者）。
+                  サイト外へ出るので、外部リンクであることを見た目でも伝える */}
+              <a href="https://wild-flow.com/" target="_blank" rel="noopener noreferrer"
+                className="mt-2.5 flex items-center gap-2 text-sm transition-colors hover:text-white">
+                <ChevronRight className="h-3.5 w-3.5 flex-shrink-0 text-gray-600" />
+                <span>
+                  {lang === 'ja' ? 'wildflow（フィジカル×ライフスタイル）' : 'wildflow（身体与生活方式媒体）'}
+                </span>
+                <ExternalLink className="h-3 w-3 flex-shrink-0 text-gray-600" aria-hidden="true" />
+                <span className="sr-only">{lang === 'ja' ? '（新しいタブで開きます）' : '（在新标签页打开）'}</span>
+              </a>
             </div>
           </div>
 
