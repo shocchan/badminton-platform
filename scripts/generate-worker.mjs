@@ -4,19 +4,43 @@
  * CF Pages v3 の Clean URLs バグを回避するため index.html を Worker に埋め込む。
  */
 import { readFileSync, writeFileSync } from 'fs';
-
-const indexHtml = readFileSync('dist/index.html', 'utf8');
+import { fileURLToPath } from 'url';
 
 /**
  * 静的ページのtitle/description（src/lib/seo/staticSeo.json が正）。
  * 画面側は react-helmet-async で同じ文言を入れており、staticSeo.test.ts が突き合わせる。
  * ここでWorkerに埋め込むのは、JSを実行しないクローラー（WeChat・小紅書・LINE・X・Baidu）
  * のため。これが無いと中国語ページも日本語のバドミントン文言のまま配られる。
+ *
+ * ビルドは必ずリポジトリ直下から走るが、テストからも呼ばれるので
+ * カレントディレクトリに依存しないフォールバックを持たせている。
  */
-const staticSeo = JSON.parse(readFileSync('src/lib/seo/staticSeo.json', 'utf8')).pages;
+const staticSeoRaw = (() => {
+  try {
+    return readFileSync('src/lib/seo/staticSeo.json', 'utf8');
+  } catch (_) {
+    return readFileSync(fileURLToPath(new URL('../src/lib/seo/staticSeo.json', import.meta.url)), 'utf8');
+  }
+})();
+const staticSeo = JSON.parse(staticSeoRaw).pages;
 const STATIC_SEO_JSON = JSON.stringify(
-  Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [k, { ja: v.ja, zh: v.zh, image: v.image ?? null }])),
+  Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [
+    k,
+    // body = プリレンダ本文（2026-08-24）。素のHTMLの可視テキストが0文字だった問題を埋める
+    { ja: v.ja, zh: v.zh, image: v.image ?? null, body: v.body ?? null },
+  ])),
 );
+
+/**
+ * index.html から Worker のソースを組み立てる。
+ *
+ * 【なぜ関数にして export するか】
+ * プリレンダは「実際に素のHTMLに出るか」が命なので、テストから**この関数を呼んで**
+ * 生成されたWorkerをそのまま評価し、本文・JSON-LD・canonical・hreflangを確認している
+ * （src/lib/seo/workerPrerender.test.mjs）。文字列を目で確認するテストでは、
+ * 生成物が壊れていても気づけない。
+ */
+export function buildWorkerSource(indexHtml) {
 // バッククオートをエスケープ
 const escapedHtml = indexHtml.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
 
@@ -47,6 +71,11 @@ async function generateSitemap(env) {
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol3',  priority: '0.6', freq: 'yearly' },
     { path: 'cancel-policy', priority: '0.5', freq: 'monthly' },
+    // バド本体の法務3ページ（2026-08-24 追加）。有料の申込を受けている以上、
+    // 特商法表記・プライバシーポリシー・利用規約は検索からも辿れる場所に置く
+    { path: 'tokushoho',     priority: '0.3', freq: 'yearly' },
+    { path: 'privacy',       priority: '0.3', freq: 'yearly' },
+    { path: 'terms',         priority: '0.3', freq: 'yearly' },
     // AI日本語コース（2026-08-22 追加）。それまでsitemapに1本も入っておらず、
     // サイト内リンクも管理画面からしか無かったので、検索から発見される経路がゼロだった
     { path: 'ai-course',                 priority: '0.9', freq: 'weekly' },
@@ -147,6 +176,274 @@ async function generateSitemap(env) {
  */
 const STATIC_SEO = ${STATIC_SEO_JSON};
 
+const SITE = 'https://kawabado.com';
+
+// ══ プリレンダ本文（2026-08-24） ══
+//
+// 【なぜ要るか】
+// 本番実測: kawabado.com の素のHTMLは全ページ「1,692B・可視テキスト0文字・h1が0個・JSON-LDが0個」。
+// Workerが差し込んでいたのは <head> だけで、**中身は1文字も配っていなかった**。
+// robots.txt では GPTBot・ClaudeBot・PerplexityBot など16種のAIクローラーを明示Allowしているのに、
+// そのクローラーが取得する本文が0文字＝許可だけして何も渡していない状態だった。
+// 自社内の反証もある: wild-flow.com/animalflow は静的HTMLで可視テキスト2,270文字あり、実際に読まれている。
+//
+// 【なぜ #root の外に置くか】
+// src/main.tsx は hydrateRoot ではなく createRoot().render() を使う。
+// #root の中に本文を入れると React の初回コミットで捨てられる（ちらつき・警告の恐れ）ので、
+// #root には触らず**その手前**に別のコンテナとして置く。main.tsx を変更せずに済む形を選んだ。
+//
+// 【なぜ hidden / display:none にしないか】
+// クローラーにだけ見せる隠しテキストは Google が嫌う。ここは人にも見える普通の本文として出し、
+// React が最初の描画をした瞬間にJSが消す（JSが動かない環境では残る＝真っ白より良い）。
+// 中身は画面と同じ事実だけ。src/lib/seo/staticSeo.json が正で、金額は画面ソースと突き合わせている。
+
+/** プリレンダ本文に添えるサイト内リンク。素のHTMLに <a> が1本も無いとクローラーは巡回できない */
+const NAV = [
+  { path: '',                          ja: '川口・蕨バドミントン交流会 トップ', zh: '川口・蕨羽毛球交流会 首页' },
+  { path: 'activity',                  ja: '通常活動 一覧',                     zh: '常规活动列表' },
+  { path: 'tournaments/singles',       ja: 'シングルス大会',                    zh: '单打比赛' },
+  { path: 'tournaments/doubles',       ja: 'ダブルス大会',                      zh: '双打比赛' },
+  { path: 'tournaments/mixed-doubles', ja: 'ミックスダブルス大会',              zh: '混合双打比赛' },
+  { path: 'international',             ja: '国際交流バドミントン',              zh: '国际交流羽毛球' },
+  { path: 'level-guide',               ja: 'クラス分け案内',                    zh: '级别说明' },
+  { path: 'venues',                    ja: '会場ガイド',                        zh: '会场指南' },
+  { path: 'faq',                       ja: 'よくある質問',                      zh: '常见问题' },
+  // ブログは日本語のみ（記事本文に中国語版が無い）。中国語UIからも日本語URLへ送る
+  { path: 'blog',                      ja: 'ブログ',                            zh: '博客（日语）', jaOnly: true },
+  { path: 'join',                      ja: '特典登録',                          zh: '优惠注册' },
+  { path: 'contact',                   ja: 'お問い合わせ',                      zh: '联系我们' },
+  { path: 'cancel-policy',             ja: 'キャンセルポリシー',                zh: '取消政策' },
+  { path: 'tokushoho',                 ja: '特定商取引法に基づく表記',          zh: '基于特定商业交易法的标示' },
+  { path: 'privacy',                   ja: 'プライバシーポリシー',              zh: '隐私政策' },
+  { path: 'terms',                     ja: '利用規約',                          zh: '使用条款' },
+];
+
+/**
+ * 実体（エンティティ）情報。src/pages/HomePage.tsx の orgJsonLd と**同じ内容**を持つ。
+ * Workerはビルド時に埋め込む独立ファイルなので import できない。
+ * ズレたら workerPrerender.test.mjs が落ちる（片方だけ直す事故を防ぐ）。
+ */
+const ORG_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': ['Organization', 'SportsOrganization'],
+  '@id': 'https://kawabado.com/#organization',
+  name: '川口・蕨バドミントン交流会',
+  alternateName: ['kawabado', 'カワバド', '川口・蕨羽毛球交流会'],
+  url: 'https://kawabado.com',
+  logo: { '@type': 'ImageObject', url: 'https://kawabado.com/favicon.png' },
+  image: 'https://kawabado.com/ogp.jpg',
+  description: '埼玉県川口市・蕨市で平日夜に開催するバドミントン交流会。'
+    + '超初級からオープンまで全レベルが対象で、1人での参加が中心。'
+    + '多国籍のメンバーが参加し、中国語での問い合わせ・申し込みにも対応しています。',
+  email: 'info@kawabado.com',
+  sport: 'バドミントン',
+  areaServed: [
+    { '@type': 'City', name: '川口市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+    { '@type': 'City', name: '蕨市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+  ],
+  knowsLanguage: ['ja', 'zh-Hans'],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    contactType: 'customer support',
+    email: 'info@kawabado.com',
+    availableLanguage: ['Japanese', 'Chinese'],
+    url: 'https://kawabado.com/ja/contact',
+  },
+};
+
+const WEBSITE_JSONLD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': 'https://kawabado.com/#website',
+  name: '川口・蕨バドミントン交流会',
+  url: 'https://kawabado.com',
+  inLanguage: ['ja', 'zh'],
+  publisher: { '@id': 'https://kawabado.com/#organization' },
+};
+
+/** 会場。src/pages/VenueGuidePage.tsx の VENUES と同じ（officialName / locality / street / image） */
+const VENUES = [
+  { id: 'shibaen-kouminkan', officialName: '芝園公民館',     locality: '川口市', street: '芝園町3-15',   image: '/venues/shibaen-kouminkan.jpg' },
+  { id: 'warabi-taiikukan',  officialName: '蕨市民体育館',   locality: '蕨市',   street: '北町1-27-15',  image: '/venues/warabi-taiikukan.jpg' },
+];
+
+function venuesJsonLd(lang) {
+  return VENUES.map(function (v) {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'SportsActivityLocation',
+      '@id': SITE + '/' + lang + '/venues#' + v.id,
+      name: v.officialName,
+      image: SITE + v.image,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: v.street,
+        addressLocality: v.locality,
+        addressRegion: '埼玉県',
+        addressCountry: 'JP',
+      },
+      containedInPlace: { '@type': 'AdministrativeArea', name: v.locality },
+    };
+  });
+}
+
+function breadcrumbJsonLd(lang, name, path) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: lang === 'zh' ? '首页' : 'ホーム', item: SITE + '/' + lang + '/' },
+      { '@type': 'ListItem', position: 2, name: name, item: SITE + path },
+    ],
+  };
+}
+
+function faqJsonLd(items) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map(function (q) {
+      return { '@type': 'Question', name: q.q, acceptedAnswer: { '@type': 'Answer', text: q.a } };
+    }),
+  };
+}
+
+/** SportsEvent。src/components/seo/EventSchema.tsx と同じ形（大会詳細・通常活動詳細） */
+function eventJsonLd(o) {
+  const e = {
+    '@context': 'https://schema.org',
+    '@type': 'SportsEvent',
+    name: o.name,
+    startDate: o.startDate,
+    endDate: o.endDate,
+    eventStatus: 'https://schema.org/' + (o.eventStatus || 'EventScheduled'),
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    location: {
+      '@type': 'Place',
+      name: o.locationName,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: o.streetAddress || undefined,
+        addressRegion: '埼玉県',
+        addressCountry: 'JP',
+      },
+    },
+    organizer: { '@type': 'Organization', name: '川口・蕨バドミントン交流会（kawabado）', url: SITE },
+    performer: { '@type': 'PerformingGroup', name: '川口・蕨バドミントン交流会（kawabado）' },
+    offers: {
+      '@type': 'Offer',
+      price: o.price,
+      priceCurrency: 'JPY',
+      availability: 'https://schema.org/' + (o.availability || 'InStock'),
+      url: o.url,
+    },
+  };
+  if (o.description) e.description = o.description;
+  return e;
+}
+
+/**
+ * JSON-LD を素のHTMLに出す。data-kb-prerender を付けておき、
+ * React が描画した瞬間に消す（React側は Helmet が同じ内容を入れるので**二重にならない**）。
+ * '<' を \\u003c に置き換えるのは </script> でHTMLを閉じてしまう事故を防ぐため（JSONとしては同値）。
+ */
+function jsonLdTags(list) {
+  if (!list || !list.length) return '';
+  return list.map(function (o) {
+    return '<script type="application/ld+json" data-kb-prerender>'
+      + JSON.stringify(o).replace(/</g, '\\\\u003c')
+      + '</script>';
+  }).join('\\n    ');
+}
+
+const PRERENDER_STYLE = 'max-width:44rem;margin:0 auto;padding:1.5rem 1rem;'
+  + 'font-family:system-ui,sans-serif;line-height:1.9;color:#1f2937';
+
+/**
+ * React の初回描画でプリレンダ本文とJSON-LDを消すスクリプト。
+ *
+ * 【なぜ MutationObserver か（ちらつきが出ない理由）】
+ * MutationObserver のコールバックは、変更を起こしたタスクの**末尾のマイクロタスク**で走る。
+ * ブラウザの描画はタスク＋マイクロタスクの後なので、
+ * 「Reactの中身とプリレンダ本文が両方見えている状態」は一度も描画されない。
+ * ＝レイアウトシフト（CLS）にならない。setTimeout にすると1フレーム挟まって見える。
+ *
+ * 【なぜタイムアウトで消さないか】
+ * JSが落ちて React が描けなかったとき、本文が残っていれば真っ白ではなく読める画面になる。
+ * 時間で消すと、そのとき最悪の状態（何も無い画面）になる。
+ *
+ * 【なぜ head の JSON-LD も消すか】
+ * React側（Helmet）が同じ構造化データを入れる。両方残すと二重になるので、
+ * 描画された時点でこちら側を引っ込める。JSを実行しないクローラーには残る。
+ */
+const PRERENDER_CLEANUP = '<script>(function(){'
+  + 'var p=document.getElementById("kb-prerender"),r=document.getElementById("root");'
+  + 'if(!p||!r)return;'
+  + 'function drop(){'
+  + 'if(p&&p.parentNode)p.parentNode.removeChild(p);'
+  + 'var l=document.querySelectorAll("script[data-kb-prerender]");'
+  + 'for(var i=0;i<l.length;i++){if(l[i].parentNode)l[i].parentNode.removeChild(l[i]);}'
+  + '}'
+  + 'if(r.firstChild){drop();return;}'
+  + 'var mo=new MutationObserver(function(){mo.disconnect();drop();});'
+  + 'mo.observe(r,{childList:true});'
+  + '})();</script>';
+
+function renderNav(lang, list) {
+  let items = '';
+  for (const n of (list || NAV)) {
+    const href = '/' + (n.jaOnly ? 'ja' : lang) + '/' + n.path;
+    items += '<li><a href="' + href + '">' + escAttr(n[lang] || n.ja) + '</a></li>';
+  }
+  return '<nav aria-label="' + (lang === 'zh' ? '站点导航' : 'サイト内リンク') + '"><ul>' + items + '</ul></nav>';
+}
+
+/** staticSeo.json の body（h1 / lead / paragraphs / facts / faq）をHTMLにする */
+function renderBodyHtml(body, lang) {
+  if (!body || !body.h1) return '';
+  let h = '<h1>' + escAttr(body.h1) + '</h1>';
+  if (body.lead) h += '<p>' + escAttr(body.lead) + '</p>';
+  const paras = body.paragraphs || [];
+  for (const p of paras) h += '<p>' + escAttr(p) + '</p>';
+  const facts = body.facts || [];
+  if (facts.length) {
+    h += '<dl>';
+    for (const f of facts) h += '<dt>' + escAttr(f.label) + '</dt><dd>' + escAttr(f.value) + '</dd>';
+    h += '</dl>';
+  }
+  const faq = body.faq || [];
+  if (faq.length) {
+    h += '<section><h2>' + (lang === 'zh' ? '常见问题' : 'よくある質問') + '</h2>';
+    for (const q of faq) h += '<h3>' + escAttr(q.q) + '</h3><p>' + escAttr(q.a) + '</p>';
+    h += '</section>';
+  }
+  return h;
+}
+
+/** HTML本文（ブログ記事など）をプレーンな段落配列にする。素のHTMLへ入れるのは要約ではなく本文そのもの */
+function htmlToParagraphs(html, limit) {
+  const text = String(html || '')
+    .replace(/<(script|style)[^>]*>[\\s\\S]*?<\\/\\1>/gi, ' ')
+    .replace(/<\\/(p|div|li|h[1-6]|blockquote|tr)>/gi, '\\n')
+    .replace(/<br\\s*\\/?>/gi, '\\n')
+    .replace(/<[^>]*>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"');
+  const out = [];
+  let total = 0;
+  for (const line of text.split('\\n')) {
+    const s = line.replace(/[ \\t]+/g, ' ').trim();
+    if (!s) continue;
+    if (total + s.length > (limit || 1200)) break;
+    out.push(s);
+    total += s.length;
+  }
+  return out;
+}
+
 /** 検索結果に出さないURL。src/components/seo/privateRoutes.ts と同じ並び（テストで突き合わせる） */
 const PRIVATE_PATTERNS = [
   /^\\/(ja|zh)\\/admin(\\/|$)/,
@@ -168,11 +465,57 @@ const PRIVATE_PATTERNS = [
 ];
 const isPrivatePath = (pathname) => PRIVATE_PATTERNS.some((re) => re.test(pathname));
 
+/**
+ * 既知のURLの1階層目（2026-08-24）。src/App.tsx の Route と対応する。
+ *
+ * 【なぜ要るか】
+ * 実測で /ja/this-does-not-exist-99999 が HTTP 200 でSPAシェルを返していた。
+ * 存在しないURLが無限にインデックス可能＝ソフト404。React側は NotFoundPage が
+ * noindex を出すが、それはJS実行後で、JSを実行しないクローラーには何も伝わらない。
+ *
+ * 【なぜ404ではなく noindex にしたか】
+ * ステータスを404に変えると、この列挙をひとつ漏らしただけで実在ページが
+ * 「見つからない」扱いになる。noindex は検索に出さないだけで画面は今までどおり動くので、
+ * 万一漏らしてもユーザーへの影響が無い。列挙の網羅性は
+ * src/lib/seo/workerPrerender.test.mjs が src/App.tsx の Route と突き合わせて守る。
+ */
+const KNOWN_LEAVES = [
+  'activity', 'activity-cn', 'tournaments', 'faq', 'venues', 'international', 'contact',
+  'level-guide', 'cancel-policy', 'tokushoho', 'privacy', 'terms', 'admin', 'blog', 'join',
+  'shuttle-roadmap', 'tactics-board', 'game', 'mypage', 'ai-lesson-demo', 'ai-course',
+  'auth-landing', 'login', 'signup', 'password-reset', 'password-reset-form',
+  'password-reset-success', 'results',
+];
+
+function isKnownPath(pathname) {
+  if (pathname === '/' || pathname === '') return true;
+  // 差し込み対象になっているURLは当然既知
+  if (matchOgpRoute(pathname)) return true;
+  // 限定公開の静的HTML・言語によらないページ・別グループ
+  if (pathname.startsWith('/guide/')) return true;
+  if (/^\\/(cancel|internal|chaoxianzu|assistant)(\\/|$)/.test(pathname)) return true;
+  const seg = pathname.replace(/^\\/+|\\/+$/g, '').split('/');
+  if (seg[0] === 'ja' || seg[0] === 'zh') {
+    if (seg.length === 1) return true;
+    return KNOWN_LEAVES.indexOf(seg[1]) !== -1;
+  }
+  // 旧URL（/activity・/blog/12 など。Reactが /ja/ へリダイレクトする）
+  return KNOWN_LEAVES.indexOf(seg[0]) !== -1;
+}
+
 function matchOgpRoute(pathname) {
+  // ルート（/）。Reactは /ja/ へリダイレクトするが、素のHTMLには canonical が無く、
+  // https://kawabado.com/ と /ja/ が両方200で別メタ＝トップが2URLに割れていた（本番実測）。
+  // ここで /ja/ を指す canonical を入れて1本に寄せる（hreflangは出さない＝自己参照でないため）
+  if (pathname === '/') return { kind: 'static', lang: 'ja', page: '', root: true };
   let m = pathname.match(/^\\/(ja|zh)\\/tournaments\\/(\\d+)\\/?$/);
   if (m) return { kind: 'tournament', lang: m[1], id: m[2] };
   m = pathname.match(/^\\/tournaments\\/(\\d+)\\/?$/);
   if (m) return { kind: 'tournament', lang: 'ja', id: m[1] };
+  // 通常活動の詳細（2026-08-24）。tournaments と blog の数字IDしか見ていなかったため、
+  // 活動1件ごとのURLは素のHTMLがトップの文言のまま・本文0文字だった（sitemapには載せていた）
+  m = pathname.match(/^\\/(ja|zh)\\/activity\\/([0-9a-zA-Z-]{1,64})\\/?$/);
+  if (m) return { kind: 'activity', lang: m[1], id: m[2] };
   m = pathname.match(/^\\/(ja|zh)\\/blog\\/(\\d+)\\/?$/);
   if (m) return { kind: 'blog', lang: m[1], id: m[2] };
   m = pathname.match(/^\\/blog\\/(\\d+)\\/?$/);
@@ -194,9 +537,10 @@ function matchOgpRoute(pathname) {
   if (m) return { kind: 'static', lang: m[1], page: '' };
   m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+)\\/?$/);
   if (m && STATIC_SEO[m[2]]) return { kind: 'static', lang: m[1], page: m[2] };
-  // 2階層の静的ページ（種目別ページ tournaments/singles など・2026-08-24）。
-  // 1階層しか見ていなかったため、素のHTMLがトップの文言のまま配られていた
-  m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+\\/[a-z-]+)\\/?$/);
+  // 2階層の静的ページ（種目別ページ tournaments/singles・大会結果 results/vol3 など・2026-08-24）。
+  // 1階層しか見ていなかったため、素のHTMLがトップの文言のまま配られていた。
+  // 2つめのセグメントに数字を許すのは results/vol1..3 のため（[a-z-]+ ではマッチしなかった）
+  m = pathname.match(/^\\/(ja|zh)\\/([a-z-]+\\/[a-z0-9-]+)\\/?$/);
   if (m && STATIC_SEO[m[2]]) return { kind: 'static', lang: m[1], page: m[2] };
   return null;
 }
@@ -294,7 +638,26 @@ function injectOgp(meta) {
   if (meta.canonical) {
     tail += '\\n    <link rel="canonical" href="' + escAttr(meta.canonical) + '" />';
   }
-  return html.replace('</head>', tail + '\\n  </head>');
+  // 構造化データ（2026-08-24）。React側は8種入れているが、素のHTMLは0個だった
+  const ld = jsonLdTags(meta.jsonLd);
+  if (ld) tail += '\\n    ' + ld;
+  html = html.replace('</head>', function () { return tail + '\\n  </head>'; });
+
+  // プリレンダ本文。#root には触らず、その手前に置いて React の初回描画で消す。
+  // 掃除スクリプトは **#root の後ろ**に置く（前に置くと実行時点で #root がまだ存在せず、
+  // MutationObserver を張る相手が null になって永久に消えなくなる）
+  const lang = meta.lang === 'zh' ? 'zh' : 'ja';
+  const bodyHtml = renderBodyHtml(meta.body, lang);
+  if (bodyHtml) {
+    const block = '<div id="kb-prerender" style="' + PRERENDER_STYLE + '">'
+      + bodyHtml
+      + renderNav(lang, meta.nav)
+      + '</div>\\n    ';
+    html = html.replace(/<div id="root">\\s*<\\/div>/, function (m) {
+      return block + m + '\\n    ' + PRERENDER_CLEANUP;
+    });
+  }
+  return html;
 }
 
 const WEEKDAYS_JA = ['日', '月', '火', '水', '木', '金', '土'];
@@ -304,37 +667,162 @@ async function buildOgpMeta(route, env, pageUrl) {
   if (route.kind === 'tournament') {
     const t = await fetchFirst(env,
       '/rest/v1/tournaments?id=eq.' + route.id +
-      '&visibility=neq.draft&select=title,event_date,start_time,end_time,location,entry_fee,level,event_type');
+      '&visibility=neq.draft&select=title,event_date,start_time,end_time,location,venue_address,entry_fee,level,event_type,status,description');
     if (!t || !t.event_date) return null;
     const [y, mo, d] = t.event_date.split('-');
     const wdIdx = new Date(t.event_date).getUTCDay();
     const time = (t.start_time || '').slice(0, 5) + '〜' + (t.end_time || '').slice(0, 5);
     const fee = Number(t.entry_fee || 0).toLocaleString('ja-JP');
-    if (route.lang === 'zh') {
-      return {
-        title: t.title + '｜' + Number(mo) + '/' + Number(d) + '(周' + WEEKDAYS_ZH[wdIdx] + ')举办',
-        description: '📅' + y + '年' + Number(mo) + '月' + Number(d) + '日(周' + WEEKDAYS_ZH[wdIdx] + ') ' + time +
-          '｜📍' + t.location + '｜💰报名费¥' + fee + '｜' + t.level + '·' + t.event_type + '。正在报名中！',
-        url: pageUrl,
-      };
-    }
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
+    const zh = lang === 'zh';
+    const path = '/' + lang + '/tournaments/' + route.id;
+    const dateLabel = zh
+      ? y + '年' + Number(mo) + '月' + Number(d) + '日(周' + WEEKDAYS_ZH[wdIdx] + ')'
+      : y + '年' + Number(mo) + '月' + Number(d) + '日(' + WEEKDAYS_JA[wdIdx] + ')';
+    const title = zh
+      ? t.title + '｜' + Number(mo) + '/' + Number(d) + '(周' + WEEKDAYS_ZH[wdIdx] + ')举办'
+      : t.title + '｜' + Number(mo) + '/' + Number(d) + '(' + WEEKDAYS_JA[wdIdx] + ')開催';
+    const description = zh
+      ? '📅' + dateLabel + ' ' + time + '｜📍' + t.location + '｜💰报名费¥' + fee + '｜' + t.level + '·' + t.event_type + '。正在报名中！'
+      : '📅' + dateLabel + ' ' + time + '｜📍' + t.location + '｜💰参加費¥' + fee + '｜' + t.level + '・' + t.event_type + '。申込受付中！';
+    const venue = t.location + (t.venue_address ? '（' + t.venue_address + '）' : '');
+    const facts = zh
+      ? [
+          { label: '日期', value: dateLabel },
+          { label: '时间', value: time },
+          { label: '会场', value: venue },
+          { label: '参加费', value: '¥' + fee },
+          { label: '级别', value: t.level },
+          { label: '项目', value: t.event_type },
+        ]
+      : [
+          { label: '開催日', value: dateLabel },
+          { label: '時間', value: time },
+          { label: '会場', value: venue },
+          { label: '参加費', value: '¥' + fee },
+          { label: 'クラス', value: t.level },
+          { label: '種目', value: t.event_type },
+        ];
+    const paragraphs = htmlToParagraphs(t.description, 1200);
+    const cancelled = t.status === 'cancelled';
     return {
-      title: t.title + '｜' + Number(mo) + '/' + Number(d) + '(' + WEEKDAYS_JA[wdIdx] + ')開催',
-      description: '📅' + y + '年' + Number(mo) + '月' + Number(d) + '日(' + WEEKDAYS_JA[wdIdx] + ') ' + time +
-        '｜📍' + t.location + '｜💰参加費¥' + fee + '｜' + t.level + '・' + t.event_type + '。申込受付中！',
+      title: title,
+      description: description,
       url: pageUrl,
+      lang: lang,
+      // 自己参照canonical（2026-08-24修正）。
+      // それまで言語に関係なく常に /ja/tournaments/{id} を指していたのに、同じheadで
+      // hreflang ja/zh/x-default を出し、sitemapは /zh/ も送っていた＝3者が矛盾していた。
+      // 画面側（src/pages/TournamentDetailPage.tsx）も同時に自己参照へ直した
+      canonical: SITE + path,
+      alternates: {
+        ja: SITE + '/ja/tournaments/' + route.id,
+        zh: SITE + '/zh/tournaments/' + route.id,
+      },
+      body: { h1: t.title, lead: description, paragraphs: paragraphs, facts: facts },
+      jsonLd: [
+        eventJsonLd({
+          name: t.title,
+          startDate: t.event_date.slice(0, 10) + 'T' + t.start_time + '+09:00',
+          endDate: t.event_date.slice(0, 10) + 'T' + t.end_time + '+09:00',
+          eventStatus: cancelled ? 'EventCancelled' : 'EventScheduled',
+          locationName: t.location,
+          streetAddress: t.venue_address || undefined,
+          price: Number(t.entry_fee || 0),
+          // 残席の判定には entries の件数が要る＝クロールごとにもう1往復増える。
+          // 正確な在庫はReact側の EventSchema が出す（描画された時点でこちらは消える）
+          availability: cancelled ? 'SoldOut' : 'InStock',
+          url: SITE + path,
+          description: paragraphs.length ? paragraphs.join(' ') : description,
+        }),
+        breadcrumbJsonLd(lang, t.title, path),
+      ],
+    };
+  }
+  // 通常活動の詳細（2026-08-24 新設）。画面（ActivityPage）と同じ文言・同じ SportsEvent を出す
+  if (route.kind === 'activity') {
+    const a = await fetchFirst(env,
+      '/rest/v1/activities?id=eq.' + route.id +
+      '&status=neq.cancelled&archived_at=is.null&select=title,date,start_time,end_time,location,address,price');
+    if (!a || !a.date) return null;
+    const [y, mo, d] = a.date.split('-');
+    const wdIdx = new Date(a.date).getUTCDay();
+    const time = (a.start_time || '').slice(0, 5) + '〜' + (a.end_time || '').slice(0, 5);
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
+    const zh = lang === 'zh';
+    const path = '/' + lang + '/activity/' + route.id;
+    const dateLabel = zh
+      ? y + '年' + Number(mo) + '月' + Number(d) + '日(周' + WEEKDAYS_ZH[wdIdx] + ')'
+      : y + '年' + Number(mo) + '月' + Number(d) + '日(' + WEEKDAYS_JA[wdIdx] + ')';
+    const price = Number(a.price || 0);
+    const description = zh
+      ? dateLabel + ' ' + time + ' 在' + a.location + '举办的羽毛球日常活动。参加费' + price + '日元（含羽毛球费用）。可通过本页面在线报名。'
+      : dateLabel + ' ' + time + ' ' + a.location + 'で開催するバドミントン通常活動。参加費' + price + '円（シャトル代込み）。このページからそのまま申し込めます。';
+    return {
+      title: a.title + (zh ? ' | 川口・蕨羽毛球日常活动' : ' | 川口・蕨バドミントン通常活動'),
+      description: description,
+      url: pageUrl,
+      lang: lang,
+      canonical: SITE + path,
+      alternates: {
+        ja: SITE + '/ja/activity/' + route.id,
+        zh: SITE + '/zh/activity/' + route.id,
+      },
+      body: {
+        h1: a.title,
+        lead: description,
+        facts: zh
+          ? [
+              { label: '日期', value: dateLabel },
+              { label: '时间', value: time },
+              { label: '会场', value: a.location + (a.address ? '（' + a.address + '）' : '') },
+              { label: '参加费', value: price + '日元（含羽毛球费用）' },
+            ]
+          : [
+              { label: '開催日', value: dateLabel },
+              { label: '時間', value: time },
+              { label: '会場', value: a.location + (a.address ? '（' + a.address + '）' : '') },
+              { label: '参加費', value: price + '円（シャトル代込み）' },
+            ],
+      },
+      jsonLd: [
+        eventJsonLd({
+          name: a.title,
+          startDate: a.date + 'T' + (a.start_time || '').slice(0, 5) + ':00+09:00',
+          endDate: a.date + 'T' + (a.end_time || '').slice(0, 5) + ':00+09:00',
+          locationName: a.location,
+          streetAddress: a.address || undefined,
+          price: price,
+          availability: 'InStock',
+          url: SITE + path,
+          description: description,
+        }),
+        breadcrumbJsonLd(lang, a.title, path),
+      ],
     };
   }
   if (route.kind === 'aiCourse') {
     // 先生別ページはその先生の文言で出す（LPと同じ）。canonicalは主ページへ集約
     const seo = AI_COURSE_SEO[route.variant || 'shoko'] || AI_COURSE_SEO.shoko;
     const t = seo[route.lang] || seo.ja;
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
     return {
       title: t.title,
       description: t.description,
       image: 'https://kawabado.com' + seo.ogImage,
       url: pageUrl,
-      canonical: 'https://kawabado.com/' + route.lang + '/ai-course',
+      lang: lang,
+      canonical: 'https://kawabado.com/' + lang + '/ai-course',
+      // 日中2言語ページが相互に結ばれていなかった（実測でhreflang 0個）。
+      // 広告用variant（shoko/yuto）は noindex かつ canonical を主ページへ寄せているので出さない
+      alternates: route.variant ? null : {
+        ja: 'https://kawabado.com/ja/ai-course',
+        zh: 'https://kawabado.com/zh/ai-course',
+      },
+      body: { h1: t.title, lead: t.description },
+      nav: aiCourseNav(),
+      // JSON-LD（Course）はLP側の src/pages/ai-lesson/landing/courseSchema.ts が持つ。
+      // 素のHTMLにも出すと二重定義になるので、ここでは出さない
     };
   }
   if (route.kind === 'aiCourseLegal') {
@@ -346,7 +834,16 @@ async function buildOgpMeta(route, env, pageUrl) {
       description: seo.description,
       image: 'https://kawabado.com' + AI_COURSE_SEO.shoko.ogImage,
       url: pageUrl,
+      lang: lang,
       canonical: 'https://kawabado.com/' + lang + '/ai-course/' + route.page,
+      alternates: {
+        ja: 'https://kawabado.com/ja/ai-course/' + route.page,
+        zh: 'https://kawabado.com/zh/ai-course/' + route.page,
+      },
+      // 法務文書は本文をここに写さない（写した瞬間に二重管理になり、必ず片方が古くなる）。
+      // 見出しと同一サイト内のリンクだけ出して、本文はReactが描くものを正とする
+      body: { h1: L[lang] },
+      nav: aiCourseNav(),
     };
   }
   if (route.kind === 'static') {
@@ -355,32 +852,70 @@ async function buildOgpMeta(route, env, pageUrl) {
     const suffix = route.page ? '/' + route.page : '/';
     // ブログ一覧は日本語のみ（記事本文に中国語版が無い）ので canonical を日本語版へ寄せる
     const jaOnly = route.page === 'blog';
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
+    const body = e.body ? (e.body[lang] || e.body.ja) : null;
+    const path = '/' + (jaOnly ? 'ja' : lang) + suffix;
+    const ld = [];
+    if (route.page === '') {
+      ld.push(ORG_JSONLD);
+      ld.push(WEBSITE_JSONLD);
+    } else {
+      // ブログ一覧は canonical を日本語版へ寄せているので、パンクズも日本語側に揃える
+      ld.push(breadcrumbJsonLd(jaOnly ? 'ja' : lang, body ? body.h1 : t.title, path));
+      if (body && body.faq && body.faq.length) ld.push(faqJsonLd(body.faq));
+      if (route.page === 'venues') {
+        for (const v of venuesJsonLd(lang)) ld.push(v);
+      }
+    }
     return {
       title: t.title,
       description: t.description,
       // ページ固有のOGP画像。無ければサイト既定のまま（存在しない画像を指さない）
       image: e.image ? 'https://kawabado.com' + e.image : null,
-      url: pageUrl,
-      lang: route.lang,
-      canonical: 'https://kawabado.com/' + (jaOnly ? 'ja' : route.lang) + suffix,
-      alternates: jaOnly ? null : {
+      url: route.root ? 'https://kawabado.com/ja/' : pageUrl,
+      lang: lang,
+      canonical: 'https://kawabado.com' + path,
+      // ルート（/）は canonical が /ja/ を指す＝自己参照でないので hreflang は出さない
+      alternates: (jaOnly || route.root) ? null : {
         ja: 'https://kawabado.com/ja' + suffix,
         zh: 'https://kawabado.com/zh' + suffix,
       },
+      body: body,
+      jsonLd: ld,
     };
   }
   if (route.kind === 'blog') {
     const p = await fetchFirst(env,
-      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url');
+      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url,content');
     if (!p) return null;
+    // 記事本文は日本語のみ。src/pages/blogSeo.ts の方針どおり中国語URLは日本語版へ canonical を
+    // 寄せ、hreflang は出さない（自己参照でない canonical と hreflang の併用は矛盾するため）。
+    // 同じ理由で <html lang> も ja のまま（中身が日本語なので zh と名乗るのは嘘になる）
+    const path = '/ja/blog/' + route.id;
     return {
       title: p.title + '｜川口・蕨バドミントン交流会',
       description: p.excerpt || '川口・蕨エリアのバドミントン交流会の活動ブログ',
       image: p.image_url && /^https?:/.test(p.image_url) ? p.image_url : null,
       url: pageUrl,
+      canonical: 'https://kawabado.com' + path,
+      body: {
+        h1: p.title,
+        lead: p.excerpt || '',
+        paragraphs: htmlToParagraphs(p.content, 2000),
+      },
+      jsonLd: [breadcrumbJsonLd('ja', p.title, path)],
     };
   }
   return null;
+}
+
+/** AIコース側のページに添えるリンク（バドミントン本体のナビを混ぜない） */
+function aiCourseNav() {
+  const list = [{ path: 'ai-course', ja: 'AI日本語会話コース', zh: 'AI日语会话课程' }];
+  for (const key of Object.keys(AI_COURSE_LEGAL)) {
+    list.push({ path: 'ai-course/' + key, ja: AI_COURSE_LEGAL[key].ja, zh: AI_COURSE_LEGAL[key].zh });
+  }
+  return list;
 }
 
 // 本番ホスト（これ以外＝staging・Previewデプロイ・localhostは検索エンジンから除外する）
@@ -463,8 +998,10 @@ async function handleRequest(request, env) {
       });
     }
 
-    // 大会・ブログ詳細ページ: OGPを差し込んだHTMLを返す（シェア時のプレビュー用）
+    // ページ別のメタ・本文・JSON-LDを差し込んだHTMLを返す
+    // （シェア時のプレビューと、JSを実行しないクローラーが読む本文のため）
     const ogpRoute = matchOgpRoute(pathname);
+    let missing = false;
     if (ogpRoute) {
       try {
         const meta = await buildOgpMeta(ogpRoute, env, 'https://kawabado.com' + pathname);
@@ -477,18 +1014,22 @@ async function handleRequest(request, env) {
             },
           });
         }
+        // 形は既知だがDBに無いURL（削除済み・下書きの大会/活動/記事）。
+        // Reactは NotFound を描くがそれはJS実行後なので、ここで noindex を付ける。
+        // 取得に失敗した（catchに入った）場合はDBの一時障害と区別できないので付けない
+        missing = true;
       } catch (_) { /* 失敗時は共通HTMLにフォールバック */ }
     }
 
     // HTMLルートはWorkerに埋め込まれたindex.htmlを返す
     // HTMLは常に最新を取りに行かせる（中のJS/CSSはハッシュ付きURLなので安全に長期キャッシュできる）
-    return new Response(INDEX_HTML, {
-      status: 200,
-      headers: {
-        'Content-Type': 'text/html; charset=utf-8',
-        'Cache-Control': 'no-cache, must-revalidate',
-      },
-    });
+    const headers = {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-cache, must-revalidate',
+    };
+    // ソフト404対策（2026-08-24）。既知ルートに一致しないURLは検索結果に出さない
+    if (missing || !isKnownPath(pathname)) headers['X-Robots-Tag'] = 'noindex';
+    return new Response(INDEX_HTML, { status: 200, headers });
 }
 
 export default {
@@ -521,13 +1062,20 @@ export default {
 };
 `;
 
-writeFileSync('dist/_worker.js', workerContent);
-console.log('✅ Generated dist/_worker.js with embedded index.html and sitemap.xml handler');
+  return workerContent;
+}
 
-// 配信中のビルドを名乗る小さなファイル（2026-08-17）。
-// 開いたままのタブは古いJSを持ち続けるので、直したはずの不具合が生徒の画面では
-// 直っていない、という事故が起きる（実際に起きた）。アプリはこれを見て
-// 「新しい版があります」と知らせる。index chunkのハッシュ＝ビルドの同一性。
-const buildId = (indexHtml.match(/assets\/index-([A-Za-z0-9_-]+)\.js/) ?? [])[1] ?? 'unknown';
-writeFileSync('dist/version.json', JSON.stringify({ build: buildId }));
-console.log(`✅ Generated dist/version.json (build=${buildId})`);
+// 直接実行されたときだけ dist を読み書きする（テストからは buildWorkerSource だけを使う）
+if (process.argv[1] && process.argv[1].endsWith('generate-worker.mjs')) {
+  const indexHtml = readFileSync('dist/index.html', 'utf8');
+  writeFileSync('dist/_worker.js', buildWorkerSource(indexHtml));
+  console.log('✅ Generated dist/_worker.js with embedded index.html and sitemap.xml handler');
+
+  // 配信中のビルドを名乗る小さなファイル（2026-08-17）。
+  // 開いたままのタブは古いJSを持ち続けるので、直したはずの不具合が生徒の画面では
+  // 直っていない、という事故が起きる（実際に起きた）。アプリはこれを見て
+  // 「新しい版があります」と知らせる。index chunkのハッシュ＝ビルドの同一性。
+  const buildId = (indexHtml.match(/assets\/index-([A-Za-z0-9_-]+)\.js/) ?? [])[1] ?? 'unknown';
+  writeFileSync('dist/version.json', JSON.stringify({ build: buildId }));
+  console.log(`✅ Generated dist/version.json (build=${buildId})`);
+}

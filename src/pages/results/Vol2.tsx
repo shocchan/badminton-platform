@@ -36,6 +36,11 @@ export default function Vol2Results() {
       <Helmet>
         <title>{i.title}</title>
         <meta name="description" content={i.desc} />
+        {/* canonical・hreflangが無かった（2026-08-24追加）。Vol1と同じ理由 */}
+        <link rel="canonical" href={`https://kawabado.com/${homeLang}/results/vol2`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/results/vol2" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/results/vol2" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/results/vol2" />
       </Helmet>
       <EventSchema
         name="第2回 川口・蕨バド交流杯（ミックスダブルス）"

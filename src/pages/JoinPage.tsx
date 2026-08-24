@@ -131,6 +131,10 @@ export const JoinPage = () => {
         <title>{t.title}</title>
         <meta name="description" content={t.description} />
         <link rel="canonical" href={`https://kawabado.com/${lang}/join`} />
+        {/* canonicalだけあってhreflangが無く、ja/zhの2ページが相互に結ばれていなかった（2026-08-24追加） */}
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/join" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/join" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/join" />
       </Helmet>
 
       <div className="max-w-md mx-auto px-4 py-10">

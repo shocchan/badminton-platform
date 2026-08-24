@@ -1,4 +1,4 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Wallet, AlertCircle, Users, ExternalLink, CreditCard } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
@@ -17,7 +17,7 @@ import {
   isLateEntryWindow,
   formatDeadline,
 } from '../lib/entryDeadline';
-import { trackViewTournament, trackBeginApplication } from '../lib/analytics';
+import { trackViewTournament, trackBeginApplication, shareUtmQuery } from '../lib/analytics';
 import { getEntryTexts } from '../locales/entry';
 import type { Tournament } from '../types';
 
@@ -54,6 +54,8 @@ export const TournamentDetailPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareToast, setShareToast] = useState('');
+  // view_tournament を送った大会ID（二重送信よけ。StrictModeの二重実行・再取得を含む）
+  const viewedRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +67,11 @@ export const TournamentDetailPage = () => {
         .single();
       if (tErr || !t) { setError('大会が見つかりませんでした'); setLoading(false); return; }
       setTournament(t);
-      trackViewTournament(t.id, t.entry_fee);
+      // 同じ大会を開き直しただけで view_tournament が増えないよう、大会IDごとに1回に絞る
+      if (viewedRef.current !== t.id) {
+        viewedRef.current = t.id;
+        trackViewTournament(t.id, t.entry_fee);
+      }
 
       // 残り枠の表示に必要なのは件数だけ。個人情報を含む entries は直接読まない
       const { data: confirmed } = await supabase.rpc('get_tournament_entry_count', {
@@ -93,9 +99,11 @@ export const TournamentDetailPage = () => {
     setTimeout(() => setShareToast(''), 2500);
   };
 
+  // シェアURLは標準UTM（2026-08-24）。旧 `?from=line` は GA4 が読まず Direct に落ちていた。
+  // 配布済みの旧リンクは analytics.ts 側で utm に読み替えて拾う
   const handleLineShare = async () => {
     if (!tournament) return;
-    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=line`;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?${shareUtmQuery('line')}`;
     const text = generateShareText(tournament, lang);
     try {
       await navigator.clipboard.writeText(`${text}${baseUrl}`);
@@ -107,7 +115,7 @@ export const TournamentDetailPage = () => {
 
   const handleWechatShare = async () => {
     if (!tournament) return;
-    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?from=wechat`;
+    const baseUrl = `https://kawabado.com/${lang}/tournaments/${tournament.id}?${shareUtmQuery('wechat')}`;
     const text = generateShareText(tournament, lang);
     try {
       await navigator.clipboard.writeText(`${text}${baseUrl}`);
@@ -163,7 +171,8 @@ export const TournamentDetailPage = () => {
   const pageDesc = `${tournament.event_date}開催。会場: ${tournament.location}。参加費: ${isDoublesEvent(tournament) ? `1人${feePerPerson(tournament)}円` : `${tournament.entry_fee}円`}。${tournament.level}クラス。`;
 
   const eventSchemaProps = tournamentToEventSchemaProps(tournament, {
-    entryUrl: `https://kawabado.com/ja/tournaments/${tournament.id}`,
+    // canonical を自己参照にしたので、Offer の URL も見ているページと同じにする
+    entryUrl: `https://kawabado.com/${lang}/tournaments/${tournament.id}`,
     image: 'https://kawabado.com/ogp.jpg',
     availability: tournament.status === 'cancelled' ? 'SoldOut' : remaining <= 0 ? 'SoldOut' : 'InStock',
   });
@@ -215,9 +224,16 @@ export const TournamentDetailPage = () => {
         <meta name="description" content={pageDesc} />
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDesc} />
-        <meta property="og:url" content={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
-        <meta property="og:locale" content="ja_JP" />
-        <link rel="canonical" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
+        <meta property="og:url" content={`https://kawabado.com/${lang}/tournaments/${tournament.id}`} />
+        <meta property="og:locale" content={lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        {/*
+          canonical は**自己参照**にする（2026-08-24修正）。
+          それまで言語に関係なく常に /ja/ を指していたのに、同じ head で hreflang ja/zh/x-default を
+          出し、sitemap は /zh/tournaments/{id} も送っていた＝3者が矛盾していた。
+          「自己参照でない canonical と hreflang は併用すると矛盾する」という原則は
+          src/pages/blogSeo.ts に書いてあるとおり。Worker側（scripts/generate-worker.mjs）も同時に直した。
+        */}
+        <link rel="canonical" href={`https://kawabado.com/${lang}/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="ja" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="zh" href={`https://kawabado.com/zh/tournaments/${tournament.id}`} />
         <link rel="alternate" hrefLang="x-default" href={`https://kawabado.com/ja/tournaments/${tournament.id}`} />

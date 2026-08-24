@@ -72,6 +72,15 @@ export default function Vol1Results() {
       <Helmet>
         <title>{l.title}</title>
         <meta name="description" content={l.desc} />
+        {/*
+          canonical も hreflang も無く、sitemap には /ja/ /zh/ の両方を送っていた（2026-08-24追加）。
+          Worker側の2階層ページの正規表現も数字を含む results/vol1 を拾えていなかったので、
+          scripts/generate-worker.mjs と src/lib/seo/staticSeo.json も同時に直した。
+        */}
+        <link rel="canonical" href={`https://kawabado.com/${homeLang}/results/vol1`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/results/vol1" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/results/vol1" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/results/vol1" />
       </Helmet>
       <EventSchema
         name="第1回 川口・蕨バド交流大会（シングルス）"
