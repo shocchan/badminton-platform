@@ -42,6 +42,33 @@ function loadEnv() {
   return { url, key };
 }
 
+/**
+ * 下書き（status='draft'）を Management API で読む。
+ *
+ * anon キーの SELECT は blog_posts_select_non_draft_or_admin で下書きが弾かれる。
+ * 下書きのまま中国語訳を用意したいことがある（公開前に訳を入れておきたい）ので、
+ * 読み取りだけ管理者経路へ落とす。**書き込みはしない。**
+ * トークンは ~/.supabase_backup_token（値は出力しない）。
+ */
+export async function fetchPostsAdmin(ids) {
+  const { homedir } = await import('node:os');
+  const ref = readFileSync(join(ROOT, 'supabase/.temp/project-ref'), 'utf8').trim();
+  const tokenFile = join(homedir(), '.supabase_backup_token');
+  const token = process.env.SUPABASE_ACCESS_TOKEN
+    || (existsSync(tokenFile) ? readFileSync(tokenFile, 'utf8').trim() : '');
+  if (!token) throw new Error('refuse: no access token');
+  const sql = 'select id, title, excerpt, content, content_type, status,'
+    + ' title_zh, excerpt_zh, content_zh from public.blog_posts'
+    + ` where id in (${ids.map(Number).filter(Number.isInteger).join(',')})`;
+  const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query: sql }),
+  });
+  if (!res.ok) throw new Error(`Management API ${res.status}: ${await res.text()}`);
+  return res.json();
+}
+
 export async function fetchPosts(ids, { url, key }) {
   const res = await fetch(
     `${url}/rest/v1/blog_posts?id=in.(${ids.join(',')})`

@@ -26,8 +26,19 @@ import { extractTextNodes, applyTextNodes, structureFingerprint } from './htmlTe
 
 const DIR = join(__dirname, 'zh');
 
-/** 今回訳した記事（PVの87%をカバーする8本。id 23 火瓶杯は第2陣） */
-const TRANSLATED_IDS = [9, 12, 13, 19, 21, 22, 24, 35];
+/**
+ * 訳し終えた記事。**訳した記事はここへ足す**（足さないと検品が一切走らない）。
+ * 第1陣がPVの87%をカバーする8本、第2陣で id 16（ばりかた屋）・id 20（カード決済）・
+ * id 23（火瓶杯 団体戦）を追加。
+ * id 7（通常活動の案内）・id 11（ばりかた屋コラボ特典）は集客の入口になる案内記事。
+ * 会場の住所・アクセス・参加費が並ぶので、固有名詞が1つ訳されるだけで現地に着けなくなる。
+ * id 32（数字の振り返り）・33（大事にしている3つのこと）・34（バド対決ゲーム）・
+ * 29（サークル案内）・30（シャトル供養カウンター）・31（コートの上の言葉）・
+ * 25（蕨市民体育館への行き方）・26（一人参加）・27（初めての大会の持ち物）・
+ * 28（ブランクからの再開）は まだ status=draft。公開前に訳を用意しておくためここへ入れている
+ * （下書きは anon で読めないので、todo/source は読み取り専用のSQL経由で書き出した）。
+ */
+const TRANSLATED_IDS = [7, 9, 11, 12, 13, 16, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
 
 interface Todo { id: number; title: string; excerpt: string; skeleton: string; contentHash: string; nodes: { index: number; ja: string }[] }
 interface ZhDoc { id: number; skeleton: string; contentHash: string; title_zh: string; excerpt_zh: string; nodes: { index: number; zh: string }[] }
@@ -40,7 +51,7 @@ const load = (id: number) => {
 };
 
 describe('前提: 訳す対象がそろっている', () => {
-  it('8本ぶんの日本語スナップショットと訳文がある', () => {
+  it('全IDぶんの日本語スナップショットと訳文がある', () => {
     for (const id of TRANSLATED_IDS) {
       expect(existsSync(join(DIR, `${id}.todo.json`)), `${id}.todo.json`).toBe(true);
       expect(existsSync(join(DIR, `${id}.zh.json`)), `${id}.zh.json`).toBe(true);

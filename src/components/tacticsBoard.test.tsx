@@ -6,6 +6,9 @@
 //  2. すでに保存されている旧形式データ（5枠）を壊さない
 //  3. 反転（flipped）が保存・復元される（旧実装は保存対象外でコート表記が逆になった）
 //  4. 選手追加で座標が重ならない／ドラッグ直後に「戻す」が押せる
+//  5. 下バーから ☰ の中へ移した操作が、ちゃんと押せて効く
+//     （常時ボタンを3つに絞ったので、「奥に入れたら押せなくなった」が起きても
+//      画面を見ない限り気づけない。ここで固定する）
 //
 // LLM・DB・ネットワークには触らない。localStorage のみ使う。
 
@@ -400,7 +403,7 @@ describe('App の chromeless 判定', () => {
 });
 
 // ============================================================
-// 9. 画面（jsdom）: 5ボタン・4チップ・ドラッグ直後の「戻す」
+// 9. 画面（jsdom）: 3ボタン・4チップ・ドラッグ直後の「戻す」
 // ============================================================
 describe('画面', () => {
   const COURT_SLOT = { w: 360, h: 600 };
@@ -441,18 +444,91 @@ describe('画面', () => {
     return ev;
   };
 
-  it('常時ボタンは5つ、フォーメーションチップは4つ', () => {
+  const openMenu = () => fireEvent.click(screen.getByRole('button', { name: /作戦メニュー/ }));
+  const closeMenu = () => fireEvent.click(screen.getByRole('button', { name: '閉じる' }));
+
+  it('常時ボタンは3つ、フォーメーションチップは4つ', () => {
     render(<TacticsBoard />);
-    for (const name of ['戻す', '矢印消す', '反転', '作戦', '画像']) {
+    for (const name of ['戻す', '作戦メニュー', '画像にする']) {
       expect(screen.getByRole('button', { name: new RegExp(name) }), name).toBeTruthy();
     }
+    // 帯の中に4つ目を足さない（数が増えると初見は「機能が多い」で手が止まる）
+    const bar = screen.getByRole('button', { name: /画像にする/ }).parentElement!;
+    expect(bar.querySelectorAll('button')).toHaveLength(3);
+
     for (const chip of ['サイド・バイ・サイド', 'トップ＆バック', '前後ローテ', '1対1']) {
       expect(screen.getByRole('button', { name: chip }), chip).toBeTruthy();
     }
+    // ☰ の中へ移した2つは、開くまで表に出ていない
+    expect(screen.queryByRole('button', { name: /矢印/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /入れかえる/ })).toBeNull();
     // 旧UIのモード切替は消えている
     expect(screen.queryByRole('button', { name: /サーブ矢印/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /レシーブ矢印/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /選択・移動/ })).toBeNull();
+  });
+
+  it('☰ を開けば、隠した操作すべてに手が届く', () => {
+    render(<TacticsBoard />);
+    openMenu();
+    // 下バーから移したもの＋もともとシートにあったもの。1つでも欠けたら機能が消えている
+    for (const name of [
+      /矢印をぜんぶ消す/, /コートの上下を入れかえる/, /やり直す/,
+      /＋ 自分側（男）/, /＋ 自分側（女）/, /＋ 相手側（男）/, /＋ 相手側（女）/,
+      /最初の状態に戻す/,
+    ]) {
+      expect(screen.getByRole('button', { name }), String(name)).toBeTruthy();
+    }
+    expect(screen.getAllByRole('button', { name: '保存' })).toHaveLength(5);
+    expect(screen.getAllByRole('button', { name: '読込' })).toHaveLength(5);
+  });
+
+  it('☰ の「矢印をぜんぶ消す」は効いて、シートが閉じて、「戻す」で戻る', () => {
+    const { container } = render(<TacticsBoard />);
+    const arrows = () => container.querySelectorAll('[data-arrow-hit]').length;
+    expect(arrows()).toBe(2); // 初回の見本（サーブ＋カバー）
+
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: /矢印をぜんぶ消す/ }));
+    // 結果はシートの後ろのコートに出る。閉じないと「効いたのか」が分からず二度押しになる
+    expect(screen.queryByRole('button', { name: /矢印をぜんぶ消す/ })).toBeNull();
+    expect(arrows()).toBe(0);
+
+    fireEvent.click(undoButton());
+    expect(arrows()).toBe(2);
+  });
+
+  it('☰ の「コートの上下を入れかえる」は表記を入れかえ、保存にも残る', () => {
+    const { container } = render(<TacticsBoard />);
+    const topLabel = () => container.querySelector('svg.composite text')!.textContent;
+    expect(topLabel()).toBe('相手');
+
+    openMenu();
+    fireEvent.click(screen.getByRole('button', { name: /コートの上下を入れかえる/ }));
+    expect(screen.queryByRole('button', { name: /コートの上下を入れかえる/ })).toBeNull();
+    expect(topLabel()).toBe('自分たち');
+    expect(JSON.parse(localStorage.getItem(LS_LAST)!).flipped).toBe(true);
+  });
+
+  it('☰ の「やり直す」がスマホからの唯一の redo 出口になっている', () => {
+    render(<TacticsBoard />);
+    const redoButton = () => screen.getByRole('button', { name: /やり直す/ }) as HTMLButtonElement;
+
+    openMenu();
+    expect(redoButton().disabled).toBe(true); // 戻していないので進めない
+    closeMenu();
+
+    fireEvent.click(screen.getByRole('button', { name: 'トップ＆バック' }));
+    fireEvent.click(undoButton());
+    expect(undoButton().disabled).toBe(true); // 1手ぶん戻り切っている
+
+    openMenu();
+    expect(redoButton().disabled).toBe(false);
+    fireEvent.click(redoButton());
+    // 押したらシートは閉じる。開いたままだと、結果が出る後ろのコートが
+    // 暗幕とシートでほぼ隠れていて「効いたのか分からない」ままになるため
+    expect(screen.queryByRole('button', { name: /やり直す/ })).toBeNull();
+    expect(undoButton().disabled).toBe(false);
   });
 
   it('起動直後は「戻す」が押せない', () => {

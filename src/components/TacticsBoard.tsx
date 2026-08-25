@@ -12,6 +12,9 @@
 //    「今どのモードか分からないので触っても何も起きない」を構造的に消す。
 // 3. 区別するのは「サーブ／レシーブ」ではなく「シャトルの軌道／人の動き」。
 //    作戦を説明するときに必要な区別はこちら。
+// 4. 下の常時ボタンは3つだけ（戻す / 作戦メニュー / 画像にする）。
+//    一本道に要る「取り消し」と「持ち出し」以外は ☰ の中へ入れて、常に見える数を減らす。
+//    どれを外してどれを残したかの理由は、ボタン帯の直前のコメントに書いた。
 //
 // 外部アセット・追加ライブラリはゼロ（体育館のモバイル回線を前提）。
 
@@ -98,6 +101,8 @@ const BOARD_BG = "#0B1120";
 /** ヒント・チップ・ボタン帯の最大幅。PCで端から端まで伸びて間延びするのを防ぐ */
 const BAND_MAX = 560;
 const bandStyle: React.CSSProperties = { flexShrink: 0, width: "100%", maxWidth: BAND_MAX, margin: "0 auto" };
+/** シート内の見出し。中身が3種類あるので、塊ごとに区切らないと「何のシートか」が読めない */
+const sheetHeading: React.CSSProperties = { fontSize: 11, color: "#64748B", margin: "10px 0 6px" };
 
 // ============================================================
 // Utility（純粋関数。テストから直接呼ぶ）
@@ -528,6 +533,12 @@ export function loadInitialBoard(): { board: BoardState; firstVisit: boolean } {
 
 // ============================================================
 // ヒント1行（凡例・ショートカット表示はここに統合した）
+// ------------------------------------------------------------
+// 出す場所は height 24・nowrap・ellipsis の帯なので、長い文は末尾から黙って切れる。
+// 11px だと幅320pxの端末で全角24文字あたりが限界で、切れるのは一番言いたい語尾。
+// どの文も全角24文字以内に収める。
+// 既定文は「選手を動かす」と「コートをなぞる」の2つを教えていたが、選手の丸は触れば動くので
+// 放っておいても見つかる。教えるべきは見つけにくい方（何もない緑をなぞる）だけ。
 // ============================================================
 export function hintFor(
   state: BoardState,
@@ -538,12 +549,12 @@ export function hintFor(
   const sel = state.selected;
   if (sel) {
     const p = state.players.find((x) => x.id === sel);
-    if (p) return `${p.label} を選択中 — 横の「↗」を引くと、この人の動きを描けます`;
+    if (p) return `${p.label} を選択中 — 横の「↗」を引くと動きの矢印`;
     const a = state.arrows.find((x) => x.id === sel);
     if (a) return "矢印を選択中 — 真ん中の「○」を引くと曲げられます";
   }
-  if (opts.firstVisit) return "見本が入っています。選手を指で動かすところから試してください";
-  return "選手を指で動かす／コートを指でなぞると、シャトルの軌道になります";
+  if (opts.firstVisit) return "見本が入っています。選手を動かしてみてください";
+  return "コートを指でなぞると、シャトルの軌道になります";
 }
 
 // ============================================================
@@ -947,7 +958,7 @@ export default function TacticsBoard() {
       } else if (s.t === "court") {
         if (s.moved) run({ kind: "shuttle-arrow", fromX: s.from.x, fromY: s.from.y, toX: s.to.x, toY: s.to.y });
         else if (boardRef.current.selected) run({ kind: "clear-selection" });
-        else showToast("コートを指でなぞると、シャトルの軌道になります");
+        else showToast("タップではなく、指で“なぞって”ください");
       } else if (s.t === "arrow") {
         run({ kind: "arrow-select", arrowId: s.id });
       }
@@ -1274,7 +1285,20 @@ export default function TacticsBoard() {
         </div>
       )}
 
-      {/* ===== 常時5ボタン ===== */}
+      {/* ===== 常時ボタンは3つ =====
+          初見がここでやり切るのは「1つ作戦を描いて、仲間に見せる」だけ。その一本道に要るのは
+          ①失敗を取り消せること ②描いたものを渡せること の2つしかない。
+          外した「矢印消す」「反転」は、同じ幅・同じ色で隣に並んでいたせいで
+          初見が意味も分からず押せてしまう形だった（初回の盤面は見本の矢印2本を持っているので
+          「矢印消す」は初回から効いてしまう。反転は盤面全体が上下に飛ぶので「壊した」に見える）。
+          どちらも一括操作か初期設定で、描いている最中に押すものではないから ☰ の中へ移した。
+          ラベルに「作戦」を残すのは、MyPage が「保存した作戦 N / 5」でこの機能を外から
+          宣伝しているため（MyPage.tsx:369）。ここで語が消えると保存の入口を見失う。
+          この帯の外寸は borderTop 1 + paddingTop 6 + 高さ46 + paddingBottom 8 = 61px。
+          上に浮く選択シートの bottom は 59px で、2px ぶんは帯の上端の境界線に重なる。
+          シートは不透明・zIndex 5 なのでボタンには掛からず、見た目も破綻しない。
+          この余白はフォーメーション行の下 padding 6px に吸われている。
+          帯の高さを変えるときは、59 を機械的に足し引きせず実機で見ること。 */}
       <div style={{
         ...bandStyle, display: "flex", gap: 6, padding: "0 8px",
         paddingBottom: "max(8px, env(safe-area-inset-bottom))",
@@ -1283,21 +1307,20 @@ export default function TacticsBoard() {
         <button onClick={undo} disabled={!histMeta.undo} style={{ ...barBtn(), opacity: histMeta.undo ? 1 : 0.35 }}>
           <span style={{ fontSize: 17 }}>↩</span>戻す
         </button>
-        <button onClick={clearArrows} style={barBtn()}>
-          <span style={{ fontSize: 17 }}>✕</span>矢印消す
-        </button>
-        <button onClick={flip} style={barBtn()}>
-          <span style={{ fontSize: 17 }}>↕</span>反転
-        </button>
         <button onClick={() => setSheet("menu")} style={barBtn()}>
-          <span style={{ fontSize: 17 }}>💾</span>作戦
+          <span style={{ fontSize: 17 }}>☰</span>作戦メニュー
         </button>
+        {/* 「保存」と言い切らないのは、iOS Safari で <a download> がカメラロールに入るのか
+            別タブで開くだけなのかを実機で確認できていないため。行き先は約束しない */}
         <button onClick={saveImage} style={barBtn(true)}>
-          <span style={{ fontSize: 17 }}>📷</span>画像
+          <span style={{ fontSize: 17 }}>📷</span>画像にする
         </button>
       </div>
 
-      {/* ===== 「作戦」シート（保存スロット・選手追加・初期化） ===== */}
+      {/* ===== 「作戦メニュー」シート（この盤面・保存スロット・選手追加・初期化） =====
+          並びは「この盤面 → 作戦の保存 → 選手を足す → 最初の状態に戻す」。
+          下バーから外した2つを先頭に置くのは、消えた語と開いた直後に再会させて
+          「どこへ行ったか分からない」を作らないため。危ないもの（初期化）は最後。 */}
       {sheet === "menu" && (
         <div
           onClick={() => setSheet(null)}
@@ -1307,16 +1330,52 @@ export default function TacticsBoard() {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: "100%", maxHeight: "78%", overflowY: "auto",
+              // 375x667 の実機で中身が約70px はみ出す。ボタンの高さを削れば収まるが、
+              // 体育館で片手で押す面なので当たり判定は削らない。行間だけ詰めて、
+              // 残りはスクロールを許す。
+              // ファイル冒頭の原則1「スクロールを作らない」は**盤面の画面**の話で、
+              // 自分で開いたときだけ出るこのシートには当てはめない。
+              // ただし下に流れて出るのは「選手を足す」と「最初の状態に戻す」で、
+              // どちらも初見が最初に使うものではない（危ないものが下なのは意図どおり）。
+              // overscrollBehavior: シートの端まで来たときに後ろの盤面ごと動くのを止める。
+              overscrollBehavior: "contain",
               background: "#0F172A", borderTop: "1px solid #334155",
               borderRadius: "14px 14px 0 0", padding: 12,
               paddingBottom: "max(12px, env(safe-area-inset-bottom))",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <b style={{ fontSize: 14 }}>作戦の保存</b>
+              <b style={{ fontSize: 14 }}>作戦メニュー</b>
               <button onClick={() => setSheet(null)} style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>閉じる</button>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+
+            {/* この盤面 — どれも押したらシートを閉じる。結果が出るのは後ろのコートで、
+                このシートは 375x667 の実機で表示519px＋暗幕なので、開いたままだと
+                コートは上端しか見えない。閉じないと「効いたのか分からない」で二度押しになる。
+                「やり直す」も同じ。連打で取り返す用途では開き直す手間が増えるが、
+                効いたか見えないまま連打させるほうが害が大きい（戻しすぎを2回以上
+                取り返す場面はまれ）。
+                redo はキーボード（⌘⇧Z / ⌘Y）にしか出口がなく、スマホから到達できなかった。
+                3つに絞って「戻す」が目立つぶん押しすぎも増えるので、ここで出口を作る */}
+            <div style={{ ...sheetHeading, marginTop: 0 }}>この盤面</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              <button onClick={() => { setSheet(null); clearArrows(); }} style={{ ...barBtn(), height: 40, lineHeight: 1.2 }}>
+                ✕ 矢印をぜんぶ消す
+              </button>
+              <button onClick={() => { setSheet(null); flip(); }} style={{ ...barBtn(), height: 40, lineHeight: 1.2 }}>
+                ↕ コートの上下を入れかえる
+              </button>
+            </div>
+            <button
+              onClick={() => { setSheet(null); redo(); }}
+              disabled={!histMeta.redo}
+              style={{ ...barBtn(), width: "100%", height: 40, marginTop: 6, opacity: histMeta.redo ? 1 : 0.35 }}
+            >
+              ↪ やり直す
+            </button>
+
+            <div style={sheetHeading}>作戦の保存</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {slots.map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
                   <span style={{ flex: 1, minWidth: 0, fontSize: 11, color: s.data ? "#CBD5E1" : "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -1328,7 +1387,7 @@ export default function TacticsBoard() {
               ))}
             </div>
 
-            <div style={{ fontSize: 11, color: "#64748B", margin: "14px 0 6px" }}>選手を足す</div>
+            <div style={sheetHeading}>選手を足す</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
               {([
                 { type: "male", team: "us", label: "＋ 自分側（男）" },

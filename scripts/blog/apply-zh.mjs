@@ -21,7 +21,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { fetchPosts } from './export-zh-todo.mjs';
+import { fetchPosts, fetchPostsAdmin } from './export-zh-todo.mjs';
 import { verifyTranslation } from './verify.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -78,7 +78,12 @@ async function main() {
     process.exit(2);
   }
   const write = flag('--write');
+  // まず anon で読む。下書きは RLS で返ってこないので、欠けたぶんだけ
+  // 管理者経路（Management API・読み取りのみ）で補う。
+  // 公開前に訳を入れておきたいことがあるため、下書きも対象にできる必要がある。
   const posts = await fetchPosts(ids, loadEnv());
+  const missing = ids.filter((id) => !posts.some((p) => Number(p.id) === Number(id)));
+  if (missing.length) posts.push(...(await fetchPostsAdmin(missing)));
   const byId = new Map(posts.map((p) => [String(p.id), p]));
 
   // 列が無いまま UPDATE を投げると Postgres の生エラーで落ちる。先に分かりやすく止める
