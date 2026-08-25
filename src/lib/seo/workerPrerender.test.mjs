@@ -32,7 +32,9 @@ let W;
 beforeAll(async () => {
   const source = buildWorkerSource(INDEX_HTML)
     + '\nexport { matchOgpRoute, buildOgpMeta, injectOgp, isKnownPath, htmlToParagraphs,'
-    + ' STATIC_SEO, NAV, KNOWN_LEAVES, ORG_JSONLD, WEBSITE_JSONLD };\n';
+    // generateSitemap も評価する（2026-08-25）。中国語版がある記事だけ /zh/blog/:id を
+    // 送る分岐が入ったので、「文字列に含まれる」ではなく実際のXMLで確認する
+    + ' generateSitemap, STATIC_SEO, NAV, KNOWN_LEAVES, ORG_JSONLD, WEBSITE_JSONLD };\n';
   const url = 'data:text/javascript;base64,' + Buffer.from(source, 'utf8').toString('base64');
   W = await import(/* @vite-ignore */ url);
 });
@@ -70,6 +72,14 @@ const POST = {
   content: '<h2>結果</h2><p>吉田さんが優勝しました。</p><script>alert(1)</script><p>次回は9月です。</p>',
 };
 
+/** 中国語版がある記事（2026-08-25）。同じ id・同じURL構造のまま中身だけ入れ替わる */
+const POST_ZH = {
+  ...POST,
+  title_zh: '第3回比赛报告',
+  excerpt_zh: '为您送上第3回比赛的结果。',
+  content_zh: '<h2>结果</h2><p>吉田 昌弘 夺冠。</p><script>alert(1)</script><p>下次是9月。</p>',
+};
+
 /** Supabase REST を差し替える。fetchFirst は global fetch を使うので、ここで足りる */
 function stubFetch(rows) {
   globalThis.fetch = async (url) => ({
@@ -78,7 +88,13 @@ function stubFetch(rows) {
       const u = String(url);
       if (u.includes('/rest/v1/tournaments')) return rows.tournament ? [rows.tournament] : [];
       if (u.includes('/rest/v1/activities')) return rows.activity ? [rows.activity] : [];
-      if (u.includes('/rest/v1/blog_posts')) return rows.post ? [rows.post] : [];
+      // sitemap は「中国語版がある記事」を別クエリで取る。ここを分けないと
+      // 未訳の記事まで /zh/blog に載ってしまう分岐を素通りさせてしまう
+      if (u.includes('content_zh=not.is.null')) return rows.zhPosts || [];
+      if (u.includes('/rest/v1/blog_posts')) {
+        if (rows.posts) return rows.posts;
+        return rows.post ? [rows.post] : [];
+      }
       return [];
     },
   });
@@ -315,7 +331,7 @@ describe('ブログ記事（本文そのものを素のHTMLに出す）', () => 
     expect(text).not.toContain('alert(1)');
   });
 
-  it('中国語URLは日本語版へcanonicalを寄せ、hreflangは出さない', async () => {
+  it('中国語版が無い記事: 中国語URLは日本語版へcanonicalを寄せ、hreflangは出さない', async () => {
     const html = await renderPath('/zh/blog/7', { post: POST });
     expect(canonicalOf(html)).toBe('https://kawabado.com/ja/blog/7');
     expect(hreflangs(html)).toEqual([]);
@@ -323,11 +339,84 @@ describe('ブログ記事（本文そのものを素のHTMLに出す）', () => 
     expect(html).toContain('<html lang="ja">');
   });
 
+  it('中国語版がある記事: /zh は中国語本文＋自己参照canonical＋hreflang', async () => {
+    const html = await renderPath('/zh/blog/7', { post: POST_ZH });
+    expect(canonicalOf(html)).toBe('https://kawabado.com/zh/blog/7');
+    expect(hreflangs(html)).toEqual([
+      ['ja', 'https://kawabado.com/ja/blog/7'],
+      ['zh', 'https://kawabado.com/zh/blog/7'],
+      ['x-default', 'https://kawabado.com/ja/blog/7'],
+    ]);
+    expect(html).toContain('<html lang="zh">');
+    const text = prerenderText(html);
+    expect(text).toContain('第3回比赛报告');
+    expect(text).toContain('吉田 昌弘 夺冠。');
+    // 日本語本文が混ざらない（差し替えであって併記ではない）
+    expect(text).not.toContain('吉田さんが優勝しました。');
+    expect(text).not.toContain('alert(1)');
+  });
+
+  it('中国語版がある記事: /ja 側も自己参照canonicalのまま hreflang を出す（相互に結ぶ）', async () => {
+    const html = await renderPath('/ja/blog/7', { post: POST_ZH });
+    expect(canonicalOf(html)).toBe('https://kawabado.com/ja/blog/7');
+    expect(hreflangs(html).length).toBe(3);
+    expect(html).toContain('<html lang="ja">');
+    expect(prerenderText(html)).toContain('吉田さんが優勝しました。');
+  });
+
+  it('中国語版があっても本文が空文字なら未翻訳あつかい（NULLと同じ）', async () => {
+    const html = await renderPath('/zh/blog/7', { post: { ...POST_ZH, content_zh: '   ' } });
+    expect(canonicalOf(html)).toBe('https://kawabado.com/ja/blog/7');
+    expect(hreflangs(html)).toEqual([]);
+  });
+
   it('htmlToParagraphs は上限で打ち切る', () => {
     const long = '<p>' + 'あ'.repeat(500) + '</p><p>' + 'い'.repeat(500) + '</p><p>う</p>';
     const out = W.htmlToParagraphs(long, 600);
     expect(out.length).toBe(1);
     expect(out[0].length).toBe(500);
+  });
+});
+
+describe('sitemap: 中国語版がある記事だけ /zh/blog/:id を送る', () => {
+  const sitemapOf = async (rows) => {
+    stubFetch(rows);
+    return W.generateSitemap(ENV);
+  };
+
+  it('訳済みの記事だけ /zh/blog に載り、未訳は /ja だけ', async () => {
+    const xml = await sitemapOf({
+      posts: [{ id: 9, updated_at: '2026-08-20T00:00:00Z' }, { id: 23, updated_at: null, created_at: '2026-08-01T00:00:00Z' }],
+      zhPosts: [{ id: 9, updated_at: '2026-08-20T00:00:00Z' }],
+    });
+    expect(xml).toContain('<loc>https://kawabado.com/ja/blog/9</loc>');
+    expect(xml).toContain('<loc>https://kawabado.com/ja/blog/23</loc>');
+    expect(xml).toContain('<loc>https://kawabado.com/zh/blog/9</loc>');
+    // 未訳の記事は canonical を /ja へ寄せている。送ると Search Console が
+    // 「正規URLとして別のページが選択されています」を毎回出す
+    expect(xml).not.toContain('<loc>https://kawabado.com/zh/blog/23</loc>');
+  });
+
+  it('中国語版が1本も無くても日本語のsitemapは今までどおり出る', async () => {
+    const xml = await sitemapOf({ posts: [{ id: 23, created_at: '2026-08-01T00:00:00Z' }], zhPosts: [] });
+    expect(xml).toContain('<loc>https://kawabado.com/ja/blog/23</loc>');
+    expect(xml).not.toContain('/zh/blog/');
+    // 一覧は日本語版だけ（記事ごとの中国語版とは別の判断）
+    expect(xml).toContain('<loc>https://kawabado.com/ja/blog</loc>');
+    expect(xml).not.toContain('<loc>https://kawabado.com/zh/blog</loc>');
+  });
+
+  it('content_zh 列がまだ無い環境（migration適用前）でもsitemapが壊れない', async () => {
+    // 列が無いと PostgREST は 400 を返す。そのときは zh を0件にして日本語だけ出す
+    globalThis.fetch = async (url) => {
+      const u = String(url);
+      if (u.includes('content_zh=not.is.null')) return { ok: false, status: 400, json: async () => ({}) };
+      if (u.includes('/rest/v1/blog_posts')) return { ok: true, json: async () => [{ id: 23, created_at: '2026-08-01T00:00:00Z' }] };
+      return { ok: true, json: async () => [] };
+    };
+    const xml = await W.generateSitemap(ENV);
+    expect(xml).toContain('<loc>https://kawabado.com/ja/blog/23</loc>');
+    expect(xml).not.toContain('/zh/blog/');
   });
 });
 

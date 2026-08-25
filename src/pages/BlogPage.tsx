@@ -6,15 +6,13 @@ import { useBlogPosts } from '../hooks/useBlogPosts';
 import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateViews';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
-import { BLOG_META, blogCanonical, SITE } from './blogSeo';
+import { BLOG_META, blogCanonical, pickBlogText, SITE } from './blogSeo';
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
-const SORT_OPTIONS: { key: SortMode; label: string }[] = [
-  { key: 'newest', label: '最新順' },
-  { key: 'oldest', label: '最旧順' },
-  { key: 'popular', label: '人気順' },
-];
+// 並べ替えのラベルは BLOG_META から取る（2026-08-25）。
+// ここだけ日本語のままだと、中国語で開いたときに「全部中国語になった」ように見えない
+const SORT_KEYS: SortMode[] = ['newest', 'oldest', 'popular'];
 
 export const BlogPage = () => {
   const { blogPosts, loading, error } = useBlogPosts();
@@ -64,16 +62,16 @@ export const BlogPage = () => {
       {!loading && !error && blogPosts.length > 0 && (
         <div className="flex justify-center sm:justify-end mb-6">
           <div className="inline-flex rounded-xl bg-gray-100 p-1">
-            {SORT_OPTIONS.map(opt => (
+            {SORT_KEYS.map(key => (
               <button
-                key={opt.key}
-                onClick={() => setSort(opt.key)}
-                aria-pressed={sort === opt.key}
+                key={key}
+                onClick={() => setSort(key)}
+                aria-pressed={sort === key}
                 className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  sort === opt.key ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
+                  sort === key ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
-                {opt.label}
+                {m.sort[key]}
               </button>
             ))}
           </div>
@@ -93,7 +91,11 @@ export const BlogPage = () => {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {sortedPosts.map(post => (
+        {sortedPosts.map(post => {
+          // 中国語版がある記事は中国語で、無い記事は日本語のまま並べる（2026-08-25）。
+          // 訳済みだけを一覧に出すと、中国語で見たとき記事が数本しか無いサイトに見える
+          const t = pickBlogText(post, l);
+          return (
           <Link
             key={post.id}
             to={`/${l}/blog/${post.id}`}
@@ -104,7 +106,7 @@ export const BlogPage = () => {
                 {post.image_url ? (
                   <img
                     src={post.image_url}
-                    alt={post.title}
+                    alt={t.title}
                     className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     style={{ objectPosition: post.image_position || 'center center' }}
                   />
@@ -116,12 +118,21 @@ export const BlogPage = () => {
                   <Tag className="w-2.5 h-2.5" />
                   {post.tags && post.tags.length > 0 ? post.tags[0] : m.tag}
                 </span>
+                {/* 中国語UIで日本語のまま出している記事。開く前に分かるようにサムネ側に出す */}
+                {t.showJaBadge && (
+                  <span
+                    data-testid="ja-badge"
+                    className="absolute top-2 right-2 inline-flex items-center bg-amber-100 text-amber-900 text-[10px] font-bold px-2 py-1 rounded-md"
+                  >
+                    {m.jaBadge}
+                  </span>
+                )}
               </div>
               <div className="p-4 sm:p-5 flex flex-col flex-1">
                 <p className="text-xs text-gray-400 mb-2">{formatDate(post.created_at)}</p>
-                <h2 className="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">{post.title}</h2>
-                {post.excerpt && (
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+                <h2 lang={t.lang} className="font-bold text-gray-900 text-base sm:text-lg mb-2 line-clamp-2">{t.title}</h2>
+                {t.excerpt && (
+                  <p lang={t.lang} className="text-gray-500 text-sm mb-4 line-clamp-3">{t.excerpt}</p>
                 )}
                 <span className="mt-auto inline-flex items-center gap-1 text-blue-600 text-sm font-medium group-hover:underline">
                   {m.more} <ArrowRight className="w-3.5 h-3.5" />
@@ -129,7 +140,8 @@ export const BlogPage = () => {
               </div>
             </article>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </main>
     </>

@@ -246,7 +246,10 @@ function AppInner() {
   const { focused } = useLessonFocus();
   // AIコースは通常会員向けではないため、専用ヘッダーに差し替える（通常ページには影響しない）
   const { pathname } = useLocation();
-  const chromeless = focused || isAiCourseRoute(pathname);
+  // 戦術ボードは体育館でスマホ1画面に収める前提の全画面ツール。ヘッダー/フッターを外す
+  // （外さないとページ高1,769pxのうち約964pxがFooterで、ボード本体が画面の55%を失う）。
+  // TacticsBoard は lazy 分割しているので、判定式は import せずここに直接置く。
+  const chromeless = focused || isAiCourseRoute(pathname) || /^\/(ja|zh)\/tactics-board(\/|$)/.test(pathname);
   return (
     <>
       <ScrollToTop />

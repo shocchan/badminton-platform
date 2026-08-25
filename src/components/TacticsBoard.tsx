@@ -1,14 +1,33 @@
+// 戦術ボード（体育館でスマホ片手に使う前提）
+//
+// 設計方針（2026-08 全面改修）
+// 1. 1画面で完結させる。スクロールを作らない。高さは 100dvh + safe-area で統一し、
+//    コートの大きさは「余った領域を ResizeObserver で実測」して決める。
+//    （旧: CSS は 100vh・コートは window.innerHeight*0.62 と計算元が2つあり、
+//      iOS の URL バー表示で必ずズレて操作パネルが画面外へ潜っていた）
+// 2. モードを持たない。指の動きだけで意味が決まる。
+//    選手をドラッグ=移動 / タップ=選択 / →ハンドルをドラッグ=動きの矢印 /
+//    コートをなぞる=シャトルの軌道 / コートをタップ=選択解除 /
+//    矢印をタップ=選択 / ○をドラッグ=カーブ。
+//    「今どのモードか分からないので触っても何も起きない」を構造的に消す。
+// 3. 区別するのは「サーブ／レシーブ」ではなく「シャトルの軌道／人の動き」。
+//    作戦を説明するときに必要な区別はこちら。
+//
+// 外部アセット・追加ライブラリはゼロ（体育館のモバイル回線を前提）。
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ConfirmDialog } from "./ui/ConfirmDialog";
 
 // ============================================================
 // Types
 // ============================================================
-type PlayerType = "male" | "female";
-type Team = "us" | "them";
-type ArrowType = "serve" | "receive";
+export type PlayerType = "male" | "female";
+export type Team = "us" | "them";
 
-interface Player {
+/** シャトルの軌道（実線）か、人の動き（点線）か。旧 serve/receive を置き換える */
+export type ArrowKind = "shuttle" | "move";
+
+export interface Player {
   id: string;
   type: PlayerType;
   team: Team;
@@ -17,94 +36,534 @@ interface Player {
   label: string;
 }
 
-interface Arrow {
+export interface Arrow {
   id: string;
-  type: ArrowType;
+  kind: ArrowKind;
   fromX: number;
   fromY: number;
   toX: number;
   toY: number;
   curveX: number;
   curveY: number;
+  /** 明示的な色（🔴赤や旧データの色）。未指定なら kind と持ち主から決まる */
   color?: string;
+  /** move のとき、その動きの主（色を合わせるため） */
+  ownerId?: string;
 }
 
-type Tool = "select" | "serve-arrow" | "receive-arrow";
+/** 履歴・保存に載る盤面。flipped を必ず含める（旧形式は含めておらず読込で表記が逆になっていた） */
+export interface Snapshot {
+  players: Player[];
+  arrows: Arrow[];
+  flipped: boolean;
+}
+
+export interface BoardState extends Snapshot {
+  selected: string | null;
+}
+
+export interface SaveSlot {
+  name: string;
+  /** 保存日時（epoch ms）。旧データには無いので null を許す */
+  savedAt: number | null;
+  data: Snapshot | null;
+}
 
 // ============================================================
 // Constants
 // ============================================================
 const COURT_ASPECT = 13.4 / 6.1;
-const PLAYER_R_DESKTOP = 22;
-const PLAYER_R_MOBILE = 16;
-const MALE_COLOR = "#2563EB";
-const FEMALE_COLOR = "#EC4899";
-const THEM_MALE_COLOR = "#EA580C";
-const THEM_FEMALE_COLOR = "#7C3AED";
 
-const LS_KEY = "tacticsBoard_slots";
+const MALE_COLOR = "#3B82F6";
+const FEMALE_COLOR = "#EC4899";
+const THEM_MALE_COLOR = "#F97316";
+const THEM_FEMALE_COLOR = "#A855F7";
+
+export const SHUTTLE_COLOR = "#FBBF24";
+/** 持ち主のいない「動き」の色。旧レシーブ矢印と同じ緑にして、旧データの見た目を保つ */
+export const LEGACY_MOVE_COLOR = "#10B981";
+export const RED = "#EF4444";
+
+export const LS_KEY = "tacticsBoard_slots";
+export const LS_LAST = "tacticsBoard_last";
+export const LS_SEEN = "tacticsBoard_seen";
 const MAX_SLOTS = 5;
+const MAX_HISTORY = 50;
+
+/** タップとドラッグの境目（コート幅に対する%）。旧実装 (>2) をそのまま流用 */
+export const DRAG_THRESHOLD = 2;
+
+/** 盤面まわりの地色。浮かせたシートもこれで塗る（透けると2段が混ざって見える） */
+const BOARD_BG = "#0B1120";
+/** ヒント・チップ・ボタン帯の最大幅。PCで端から端まで伸びて間延びするのを防ぐ */
+const BAND_MAX = 560;
+const bandStyle: React.CSSProperties = { flexShrink: 0, width: "100%", maxWidth: BAND_MAX, margin: "0 auto" };
 
 // ============================================================
-// Utility
+// Utility（純粋関数。テストから直接呼ぶ）
 // ============================================================
 function uid() {
   return Math.random().toString(36).slice(2, 9);
 }
 
 function pct(val: number, total: number) {
-  return (val / total) * 100;
+  return total === 0 ? 0 : (val / total) * 100;
 }
 
 function px(pctVal: number, total: number) {
   return (pctVal / 100) * total;
 }
 
-function isCurved(arrow: Arrow) {
+function clamp(v: number, lo: number, hi: number) {
+  return Math.max(lo, Math.min(hi, v));
+}
+
+export function isCurved(arrow: Arrow) {
   const midX = (arrow.fromX + arrow.toX) / 2;
   const midY = (arrow.fromY + arrow.toY) / 2;
   return Math.abs(arrow.curveX - midX) > 0.5 || Math.abs(arrow.curveY - midY) > 0.5;
 }
 
-interface Snapshot {
-  players: Player[];
-  arrows: Arrow[];
+export function playerColor(p: Player) {
+  if (p.type === "male") return p.team === "us" ? MALE_COLOR : THEM_MALE_COLOR;
+  return p.team === "us" ? FEMALE_COLOR : THEM_FEMALE_COLOR;
 }
 
-interface SaveSlot {
-  name: string;
-  data: Snapshot | null;
+/** 矢印の表示色。color が明示されていればそれ、無ければ種類と持ち主から決める */
+export function arrowColor(arrow: Arrow, players: Player[]) {
+  if (arrow.color) return arrow.color;
+  if (arrow.kind === "shuttle") return SHUTTLE_COLOR;
+  const owner = arrow.ownerId ? players.find((p) => p.id === arrow.ownerId) : undefined;
+  return owner ? playerColor(owner) : LEGACY_MOVE_COLOR;
 }
 
-function loadSlots(): SaveSlot[] {
+/**
+ * 次の選手ラベル。
+ * 旧実装は「同じ type × team の人数 + 1」だったため、
+ * 相手側に男性を足すと既存の M2 と重複した（例: M1(自), M2(相) → 追加も M2）。
+ * 使用中の番号を見て空き番号を返す。
+ */
+export function nextPlayerLabel(players: Player[], type: PlayerType): string {
+  const prefix = type === "male" ? "M" : "F";
+  const used = new Set<number>();
+  for (const p of players) {
+    const m = /^([MF])(\d+)$/.exec(p.label);
+    if (m && m[1] === prefix) used.add(Number(m[2]));
+  }
+  let n = 1;
+  while (used.has(n)) n++;
+  return `${prefix}${n}`;
+}
+
+/**
+ * 既存の選手と重ならない座標を返す。
+ * 旧実装は追加位置が固定値 (50, 85/15) で、押すたびに同じ場所に積み上がっていた。
+ */
+export function freeSpot(players: Player[], x: number, y: number, minDist = 10): { x: number; y: number } {
+  const taken = (nx: number, ny: number) =>
+    players.some((p) => Math.hypot(p.x - nx, p.y - ny) < minDist);
+  if (!taken(x, y)) return { x, y };
+  for (let ring = 1; ring <= 6; ring++) {
+    for (let k = 0; k < 8; k++) {
+      const a = (Math.PI * 2 * k) / 8 + (ring % 2 === 0 ? Math.PI / 8 : 0);
+      const nx = clamp(x + Math.cos(a) * minDist * ring, 6, 94);
+      const ny = clamp(y + Math.sin(a) * minDist * ring, 5, 95);
+      if (!taken(nx, ny)) return { x: nx, y: ny };
+    }
+  }
+  return { x: clamp(x + minDist, 6, 94), y: clamp(y + minDist, 5, 95) };
+}
+
+export function addPlayerTo(state: BoardState, type: PlayerType, team: Team): BoardState {
+  const base = { x: 50, y: team === "us" ? 84 : 16 };
+  const spot = freeSpot(state.players, base.x, base.y);
+  const p: Player = {
+    id: uid(),
+    type,
+    team,
+    x: spot.x,
+    y: spot.y,
+    label: nextPlayerLabel(state.players, type),
+  };
+  return { ...state, players: [...state.players, p], selected: p.id };
+}
+
+// ============================================================
+// 旧データの読み込み（互換）
+// ============================================================
+function num(v: unknown, fallback: number): number {
+  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+}
+
+export function migratePlayer(raw: unknown, index = 0): Player | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.x !== "number" || typeof r.y !== "number") return null;
+  const type: PlayerType = r.type === "female" ? "female" : "male";
+  const team: Team = r.team === "them" ? "them" : "us";
+  return {
+    id: typeof r.id === "string" && r.id ? r.id : uid(),
+    type,
+    team,
+    x: clamp(r.x, 0, 100),
+    y: clamp(r.y, 0, 100),
+    label: typeof r.label === "string" && r.label ? r.label : `${type === "male" ? "M" : "F"}${index + 1}`,
+  };
+}
+
+/**
+ * 旧矢印 → 新矢印。
+ * serve(実線・黄) → shuttle。receive(点線・緑) → move（色を緑で固定）。
+ * こうすると旧データの見た目が変わらないまま、意味だけ「シャトル / 人の動き」に載せ替わる。
+ */
+export function migrateArrow(raw: unknown): Arrow | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.fromX !== "number" || typeof r.fromY !== "number") return null;
+  if (typeof r.toX !== "number" || typeof r.toY !== "number") return null;
+
+  let kind: ArrowKind;
+  let color = typeof r.color === "string" ? r.color : undefined;
+  if (r.kind === "shuttle" || r.kind === "move") {
+    kind = r.kind;
+  } else if (r.type === "receive") {
+    kind = "move";
+    color = color ?? LEGACY_MOVE_COLOR;
+  } else {
+    kind = "shuttle";
+  }
+
+  return {
+    id: typeof r.id === "string" && r.id ? r.id : uid(),
+    kind,
+    fromX: r.fromX,
+    fromY: r.fromY,
+    toX: r.toX,
+    toY: r.toY,
+    curveX: num(r.curveX, (r.fromX + r.toX) / 2),
+    curveY: num(r.curveY, (r.fromY + r.toY) / 2),
+    color,
+    ownerId: typeof r.ownerId === "string" ? r.ownerId : undefined,
+  };
+}
+
+export function migrateSnapshot(raw: unknown): Snapshot | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  if (!Array.isArray(r.players)) return null;
+  const players = r.players.map((p, i) => migratePlayer(p, i)).filter((p): p is Player => !!p);
+  const arrows = Array.isArray(r.arrows)
+    ? r.arrows.map(migrateArrow).filter((a): a is Arrow => !!a)
+    : [];
+  return { players, arrows, flipped: r.flipped === true };
+}
+
+/** 保存スロット5枠の正規化。旧形式（name/data のみ・flipped なし）もここで吸収する */
+export function normalizeSlots(raw: unknown): SaveSlot[] {
+  const arr = Array.isArray(raw) ? raw : [];
+  const out: SaveSlot[] = [];
+  for (let i = 0; i < MAX_SLOTS; i++) {
+    const r = (arr[i] ?? null) as Record<string, unknown> | null;
+    const name =
+      r && typeof r.name === "string" && r.name.trim() ? r.name : `スロット${i + 1}`;
+    const data = r ? migrateSnapshot(r.data) : null;
+    const savedAt = r && typeof r.savedAt === "number" ? r.savedAt : null;
+    out.push({ name, savedAt, data });
+  }
+  return out;
+}
+
+export function loadSlots(): SaveSlot[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* 描画用の任意機能のため失敗は無視 */ }
-  return Array.from({ length: MAX_SLOTS }, (_, i) => ({ name: `スロット${i + 1}`, data: null }));
+    return normalizeSlots(raw ? JSON.parse(raw) : null);
+  } catch {
+    return normalizeSlots(null);
+  }
 }
 
-function saveSlots(slots: SaveSlot[]) {
-  localStorage.setItem(LS_KEY, JSON.stringify(slots));
+function persistSlots(slots: SaveSlot[]) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(slots));
+  } catch { /* 描画用の任意機能なので失敗は握りつぶす */ }
+}
+
+export function snapshotOf(state: Snapshot): Snapshot {
+  return { players: state.players, arrows: state.arrows, flipped: state.flipped };
+}
+
+/** 盤面（選択を除く）が同じか。ジェスチャは変更のない配列の参照を保つので参照比較で足りる */
+export function sameSnapshot(a: Snapshot, b: Snapshot) {
+  return a.players === b.players && a.arrows === b.arrows && a.flipped === b.flipped;
+}
+
+export function applySnapshot(state: BoardState, snap: Snapshot): BoardState {
+  const ids = new Set<string>([...snap.players.map((p) => p.id), ...snap.arrows.map((a) => a.id)]);
+  return {
+    players: snap.players,
+    arrows: snap.arrows,
+    flipped: snap.flipped,
+    selected: state.selected && ids.has(state.selected) ? state.selected : null,
+  };
 }
 
 // ============================================================
-// SVG Arrow
+// 履歴（純粋）
+// ============================================================
+export interface History {
+  stack: Snapshot[];
+  index: number;
+}
+
+export function pushSnapshot(h: History, snap: Snapshot): History {
+  const stack = h.stack.slice(0, h.index + 1);
+  stack.push(snap);
+  if (stack.length > MAX_HISTORY) stack.shift();
+  return { stack, index: stack.length - 1 };
+}
+
+export const canUndo = (h: History) => h.index > 0;
+export const canRedo = (h: History) => h.index < h.stack.length - 1;
+
+// ============================================================
+// ジェスチャ（純粋）
+// ------------------------------------------------------------
+// 「何も起きない操作」を作らないため、指の動き7通りをすべてここに集約する。
+// UI 側は座標をこの形に翻訳するだけ。
+// ============================================================
+export type Gesture =
+  | { kind: "player-move"; playerId: string; x: number; y: number }
+  | { kind: "player-select"; playerId: string }
+  | { kind: "player-arrow"; playerId: string; toX: number; toY: number }
+  | { kind: "shuttle-arrow"; fromX: number; fromY: number; toX: number; toY: number }
+  | { kind: "clear-selection" }
+  | { kind: "arrow-select"; arrowId: string }
+  | { kind: "arrow-curve"; arrowId: string; x: number; y: number };
+
+export const GESTURE_KINDS = [
+  "player-move",
+  "player-select",
+  "player-arrow",
+  "shuttle-arrow",
+  "clear-selection",
+  "arrow-select",
+  "arrow-curve",
+] as const;
+
+function makeArrow(kind: ArrowKind, fromX: number, fromY: number, toX: number, toY: number, ownerId?: string): Arrow {
+  return {
+    id: uid(),
+    kind,
+    fromX,
+    fromY,
+    toX,
+    toY,
+    curveX: (fromX + toX) / 2,
+    curveY: (fromY + toY) / 2,
+    ownerId,
+  };
+}
+
+export function applyGesture(state: BoardState, g: Gesture): { next: BoardState; changed: boolean } {
+  switch (g.kind) {
+    case "player-move": {
+      const x = clamp(g.x, 1, 99);
+      const y = clamp(g.y, 1, 99);
+      const target = state.players.find((p) => p.id === g.playerId);
+      if (!target) return { next: state, changed: false };
+      if (target.x === x && target.y === y) return { next: state, changed: false };
+      return {
+        next: {
+          ...state,
+          players: state.players.map((p) => (p.id === g.playerId ? { ...p, x, y } : p)),
+          selected: g.playerId,
+        },
+        changed: true,
+      };
+    }
+    case "player-select": {
+      // 同じ選手をもう一度タップしたら選択解除。どちらに転んでも必ず状態が動く
+      const next = state.selected === g.playerId ? null : g.playerId;
+      return { next: { ...state, selected: next }, changed: true };
+    }
+    case "player-arrow": {
+      const owner = state.players.find((p) => p.id === g.playerId);
+      if (!owner) return { next: state, changed: false };
+      const arrow = makeArrow("move", owner.x, owner.y, clamp(g.toX, 0, 100), clamp(g.toY, 0, 100), owner.id);
+      return { next: { ...state, arrows: [...state.arrows, arrow], selected: arrow.id }, changed: true };
+    }
+    case "shuttle-arrow": {
+      const arrow = makeArrow("shuttle", g.fromX, g.fromY, clamp(g.toX, 0, 100), clamp(g.toY, 0, 100));
+      return { next: { ...state, arrows: [...state.arrows, arrow], selected: arrow.id }, changed: true };
+    }
+    case "clear-selection": {
+      if (state.selected === null) return { next: state, changed: false };
+      return { next: { ...state, selected: null }, changed: true };
+    }
+    case "arrow-select": {
+      const next = state.selected === g.arrowId ? null : g.arrowId;
+      return { next: { ...state, selected: next }, changed: true };
+    }
+    case "arrow-curve": {
+      const target = state.arrows.find((a) => a.id === g.arrowId);
+      if (!target) return { next: state, changed: false };
+      if (target.curveX === g.x && target.curveY === g.y) return { next: state, changed: false };
+      return {
+        next: {
+          ...state,
+          arrows: state.arrows.map((a) => (a.id === g.arrowId ? { ...a, curveX: g.x, curveY: g.y } : a)),
+          selected: g.arrowId,
+        },
+        changed: true,
+      };
+    }
+  }
+}
+
+// ============================================================
+// フォーメーション（初見の1手目）
+// ============================================================
+export type FormationKey = "side" | "topback" | "rotate" | "singles";
+
+export interface Formation {
+  key: FormationKey;
+  label: string;
+  /** チップに出す2行の短縮名（375px幅でも4つ並ぶこと） */
+  short: [string, string];
+  note: string;
+  /** 自陣（下側）2人ぶんの座標。相手側は上下反転して使う */
+  us: { x: number; y: number }[];
+  singles?: boolean;
+}
+
+export const FORMATIONS: Formation[] = [
+  { key: "side", label: "サイド・バイ・サイド", short: ["サイド", "バイサイド"], note: "守りの形。左右に並ぶ", us: [{ x: 30, y: 76 }, { x: 70, y: 76 }] },
+  { key: "topback", label: "トップ＆バック", short: ["トップ＆", "バック"], note: "攻めの形。前後に並ぶ", us: [{ x: 50, y: 62 }, { x: 50, y: 87 }] },
+  { key: "rotate", label: "前後ローテ", short: ["前後", "ローテ"], note: "攻守の切り替え途中", us: [{ x: 38, y: 65 }, { x: 62, y: 86 }] },
+  { key: "singles", label: "1対1", short: ["1対1", "シングルス"], note: "シングルスの基本位置", us: [{ x: 50, y: 80 }], singles: true },
+];
+
+/**
+ * フォーメーションを当てる。
+ * 足りない側の選手はここで作る（＝旧「選手追加4ボタン」の上位互換）。
+ * 1対1 だけは各サイド1人に絞る（戻すで取り消せる）。
+ */
+export function applyFormation(state: BoardState, key: FormationKey): BoardState {
+  const f = FORMATIONS.find((x) => x.key === key);
+  if (!f) return state;
+  const need = f.us.length;
+  // 採番の重複を避けるため、両サイドで作った選手を1つの名簿に積んでいく
+  const roster: Player[] = [];
+
+  const place = (team: Team): Player[] => {
+    const mine = state.players.filter((p) => p.team === team).slice(0, need);
+    const out: Player[] = [];
+    for (let i = 0; i < need; i++) {
+      const slot = f.us[i];
+      const x = team === "us" ? slot.x : 100 - slot.x;
+      const y = team === "us" ? slot.y : 100 - slot.y;
+      const existing = mine[i];
+      if (existing) {
+        out.push({ ...existing, x, y });
+      } else {
+        const type: PlayerType = i === 0 ? "male" : "female";
+        out.push({ id: uid(), type, team, x, y, label: nextPlayerLabel([...state.players, ...roster, ...out], type) });
+      }
+    }
+    roster.push(...out);
+    return out;
+  };
+
+  const us = place("us");
+  const them = place("them");
+  const keptIds = new Set([...us, ...them].map((p) => p.id));
+  // singles 以外は余った5人目以降をその場に残す
+  const extras = f.singles ? [] : state.players.filter((p) => !keptIds.has(p.id));
+
+  const players = [...us, ...them, ...extras];
+  const alive = new Set(players.map((p) => p.id));
+  return {
+    ...state,
+    players,
+    // 消えた選手の「動き」矢印は持ち主を失う（色は既定にフォールバック）
+    arrows: state.arrows.map((a) => (a.ownerId && !alive.has(a.ownerId) ? { ...a, ownerId: undefined } : a)),
+    selected: null,
+  };
+}
+
+// ============================================================
+// 初期状態（初回は矢印2本ぶんの見本を置いておく）
+// ============================================================
+export const DEFAULT_PLAYERS: Player[] = [
+  { id: "p1", type: "male", team: "us", x: 35, y: 74, label: "M1" },
+  { id: "p2", type: "female", team: "us", x: 65, y: 86, label: "F1" },
+  { id: "p3", type: "male", team: "them", x: 35, y: 26, label: "M2" },
+  { id: "p4", type: "female", team: "them", x: 65, y: 14, label: "F2" },
+];
+
+/** 初回訪問用。サーブ1本＋前衛のカバー1本が最初から描いてある＝直すところから始められる */
+export function seedBoard(): BoardState {
+  const players = DEFAULT_PLAYERS.map((p) => ({ ...p }));
+  const serve: Arrow = {
+    id: "seed-serve", kind: "shuttle",
+    fromX: 62, fromY: 82, toX: 38, toY: 32, curveX: 50, curveY: 57,
+  };
+  const cover: Arrow = {
+    id: "seed-cover", kind: "move", ownerId: "p1",
+    fromX: 35, fromY: 74, toX: 30, toY: 58, curveX: 32.5, curveY: 66,
+  };
+  return { players, arrows: [serve, cover], flipped: false, selected: null };
+}
+
+export function loadInitialBoard(): { board: BoardState; firstVisit: boolean } {
+  try {
+    const seen = localStorage.getItem(LS_SEEN);
+    if (!seen) return { board: seedBoard(), firstVisit: true };
+    const raw = localStorage.getItem(LS_LAST);
+    const snap = raw ? migrateSnapshot(JSON.parse(raw)) : null;
+    if (snap && snap.players.length > 0) return { board: { ...snap, selected: null }, firstVisit: false };
+  } catch { /* 壊れていたら見本から始める */ }
+  return { board: seedBoard(), firstVisit: false };
+}
+
+// ============================================================
+// ヒント1行（凡例・ショートカット表示はここに統合した）
+// ============================================================
+export function hintFor(
+  state: BoardState,
+  opts: { drawing?: ArrowKind | null; firstVisit?: boolean } = {},
+): string {
+  if (opts.drawing === "shuttle") return "指を離すと、シャトルの軌道（黄の実線）になります";
+  if (opts.drawing === "move") return "指を離すと、その選手の動き（点線）になります";
+  const sel = state.selected;
+  if (sel) {
+    const p = state.players.find((x) => x.id === sel);
+    if (p) return `${p.label} を選択中 — 横の「↗」を引くと、この人の動きを描けます`;
+    const a = state.arrows.find((x) => x.id === sel);
+    if (a) return "矢印を選択中 — 真ん中の「○」を引くと曲げられます";
+  }
+  if (opts.firstVisit) return "見本が入っています。選手を指で動かすところから試してください";
+  return "選手を指で動かす／コートを指でなぞると、シャトルの軌道になります";
+}
+
+// ============================================================
+// ルート判定（App.tsx の chromeless 判定と同じ式）
+// ============================================================
+export const isTacticsBoardRoute = (pathname: string) => /^\/(ja|zh)\/tactics-board(\/|$)/.test(pathname);
+
+// ============================================================
+// SVG: 矢印
 // ============================================================
 function ArrowShape({
-  arrow,
-  courtW,
-  courtH,
-  selected,
-  onClick,
-  onCurveHandleDown,
+  arrow, color, courtW, courtH, selected, onBodyDown, onCurveDown,
 }: {
   arrow: Arrow;
+  color: string;
   courtW: number;
   courtH: number;
   selected: boolean;
-  onClick: () => void;
-  onCurveHandleDown: (e: React.PointerEvent) => void;
+  onBodyDown: (e: React.PointerEvent) => void;
+  onCurveDown: (e: React.PointerEvent) => void;
 }) {
   const x1 = px(arrow.fromX, courtW);
   const y1 = px(arrow.fromY, courtH);
@@ -112,149 +571,123 @@ function ArrowShape({
   const y2 = px(arrow.toY, courtH);
   const cpx = px(arrow.curveX, courtW);
   const cpy = px(arrow.curveY, courtH);
-  const isServe = arrow.type === "serve";
   const curved = isCurved(arrow);
 
-  const tangentX = curved ? (x2 - cpx) : (x2 - x1);
-  const tangentY = curved ? (y2 - cpy) : (y2 - y1);
+  const tangentX = curved ? x2 - cpx : x2 - x1;
+  const tangentY = curved ? y2 - cpy : y2 - y1;
   const angle = Math.atan2(tangentY, tangentX);
-  const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-  const arrowLen = Math.min(14, len * 0.25);
+  const len = Math.hypot(x2 - x1, y2 - y1);
+  const arrowLen = Math.min(15, Math.max(7, len * 0.25));
 
-  const b1x = x2 - arrowLen * Math.cos(angle - 0.4);
-  const b1y = y2 - arrowLen * Math.sin(angle - 0.4);
-  const b2x = x2 - arrowLen * Math.cos(angle + 0.4);
-  const b2y = y2 - arrowLen * Math.sin(angle + 0.4);
+  const b1x = x2 - arrowLen * Math.cos(angle - 0.42);
+  const b1y = y2 - arrowLen * Math.sin(angle - 0.42);
+  const b2x = x2 - arrowLen * Math.cos(angle + 0.42);
+  const b2y = y2 - arrowLen * Math.sin(angle + 0.42);
 
-  const defaultColor = isServe ? "#F59E0B" : "#10B981";
-  const color = arrow.color || defaultColor;
-  const strokeW = selected ? 3 : 2;
-
-  const pathD = curved
-    ? `M${x1},${y1} Q${cpx},${cpy} ${x2},${y2}`
-    : `M${x1},${y1} L${x2},${y2}`;
-
-  const midX = (x1 + x2) / 2;
-  const midY = (y1 + y2) / 2;
+  const pathD = curved ? `M${x1},${y1} Q${cpx},${cpy} ${x2},${y2}` : `M${x1},${y1} L${x2},${y2}`;
+  const midX = curved ? cpx : (x1 + x2) / 2;
+  const midY = curved ? cpy : (y1 + y2) / 2;
 
   return (
-    <g onClick={onClick} style={{ cursor: "pointer" }}>
-      <path d={pathD} stroke="transparent" strokeWidth={16} fill="none" />
+    <g>
+      {/* 当たり判定（旧16px → 24px）。指で押せる太さを見た目と分ける */}
       <path
-        d={pathD}
-        stroke={color}
-        strokeWidth={strokeW}
-        strokeDasharray={isServe ? "none" : "8,5"}
-        strokeLinecap="round"
-        fill="none"
-        opacity={0.9}
+        d={pathD} stroke="transparent" strokeWidth={24} fill="none"
+        data-arrow-hit={arrow.id}
+        onPointerDown={onBodyDown} style={{ cursor: "pointer" }}
       />
-      <polygon
-        points={`${x2},${y2} ${b1x},${b1y} ${b2x},${b2y}`}
-        fill={color}
-        opacity={0.9}
+      <path
+        d={pathD} stroke={color} strokeWidth={selected ? 4.5 : 3}
+        strokeDasharray={arrow.kind === "move" ? "9,6" : "none"}
+        strokeLinecap="round" fill="none" pointerEvents="none"
       />
+      <polygon points={`${x2},${y2} ${b1x},${b1y} ${b2x},${b2y}`} fill={color} pointerEvents="none" />
       {selected && (
-        <circle
-          cx={curved ? cpx : midX}
-          cy={curved ? cpy : midY}
-          r={8}
-          fill="white" stroke={color} strokeWidth={2}
-          style={{ cursor: "grab" }}
-          onPointerDown={(e) => { e.stopPropagation(); onCurveHandleDown(e); }}
-        />
+        <>
+          <circle cx={midX} cy={midY} r={22} fill="transparent" data-curve-hit={arrow.id} onPointerDown={onCurveDown} style={{ cursor: "grab" }} />
+          <circle cx={midX} cy={midY} r={11} fill="#fff" stroke={color} strokeWidth={3} pointerEvents="none" />
+        </>
       )}
     </g>
   );
 }
 
 // ============================================================
-// Player Token
+// SVG: 選手
 // ============================================================
 function PlayerToken({
-  player,
-  courtW,
-  courtH,
-  selected,
-  onPointerDown,
-  radius,
+  player, courtW, courtH, selected, radius, onBodyDown, onHandleDown,
 }: {
   player: Player;
   courtW: number;
   courtH: number;
   selected: boolean;
-  onPointerDown: (e: React.PointerEvent) => void;
   radius: number;
+  onBodyDown: (e: React.PointerEvent) => void;
+  onHandleDown: (e: React.PointerEvent) => void;
 }) {
   const cx = px(player.x, courtW);
   const cy = px(player.y, courtH);
   const r = radius;
+  const fill = playerColor(player);
+  const hit = Math.max(r + 8, 22);
 
-  const fill = player.type === "male"
-    ? (player.team === "us" ? MALE_COLOR : THEM_MALE_COLOR)
-    : (player.team === "us" ? FEMALE_COLOR : THEM_FEMALE_COLOR);
-
-  const fontSize = r >= 20 ? 14 : 11;
+  // ハンドルはコートの内側に出す（端で画面外に逃げないように）
+  const dirX = player.x > 78 ? -1 : 1;
+  const dirY = player.y < 16 ? 1 : -1;
+  const hx = cx + dirX * (r + 17) * 0.72;
+  const hy = cy + dirY * (r + 17) * 0.72;
 
   return (
-    <g
-      onPointerDown={onPointerDown}
-      style={{ cursor: "grab", userSelect: "none" }}
-    >
+    <g style={{ userSelect: "none" }}>
       {selected && (
-        <circle
-          cx={cx} cy={cy} r={r + 4}
-          fill="none" stroke="white" strokeWidth={2.5} strokeDasharray="4,3"
-        />
+        <circle cx={cx} cy={cy} r={r + 5} fill="none" stroke="#fff" strokeWidth={2.5} strokeDasharray="4,3" pointerEvents="none" />
       )}
-      <circle cx={cx + 1.5} cy={cy + 1.5} r={r} fill="black" opacity={0.2} />
-      <circle cx={cx} cy={cy} r={r} fill={fill} />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="white" strokeWidth={2} />
+      <circle cx={cx + 1.5} cy={cy + 2} r={r} fill="#000" opacity={0.25} pointerEvents="none" />
+      <circle cx={cx} cy={cy} r={r} fill={fill} pointerEvents="none" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#fff" strokeWidth={2.5} pointerEvents="none" />
       <text
-        x={cx} y={cy + 1}
-        textAnchor="middle" dominantBaseline="middle"
-        fill="white" fontSize={fontSize} fontWeight="bold"
-        style={{ pointerEvents: "none" }}
-      >
-        {player.type === "male" ? "M" : "F"}
-      </text>
-      <text
-        x={cx} y={cy + r + 11}
-        textAnchor="middle"
-        fill="white" fontSize={10} fontWeight="600"
-        stroke="black" strokeWidth={3} paintOrder="stroke"
-        style={{ pointerEvents: "none" }}
+        x={cx} y={cy + 1} textAnchor="middle" dominantBaseline="middle"
+        fill="#fff" fontSize={Math.round(r * 0.85)} fontWeight="bold" pointerEvents="none"
       >
         {player.label}
       </text>
+      {/* 本体の当たり判定（44px相当） */}
+      <circle cx={cx} cy={cy} r={hit} fill="transparent" data-player-hit={player.id} onPointerDown={onBodyDown} style={{ cursor: "grab" }} />
+      {selected && (
+        <>
+          <circle cx={hx} cy={hy} r={22} fill="transparent" data-handle-hit={player.id} onPointerDown={onHandleDown} style={{ cursor: "crosshair" }} />
+          <circle cx={hx} cy={hy} r={12} fill="#fff" stroke={fill} strokeWidth={3} pointerEvents="none" />
+          <text x={hx} y={hy + 1} textAnchor="middle" dominantBaseline="middle" fontSize={13} fill={fill} fontWeight="bold" pointerEvents="none">↗</text>
+        </>
+      )}
     </g>
   );
 }
 
 // ============================================================
-// Court SVG
+// SVG: コートの線
 // ============================================================
 function CourtLines({ width, height, flipped }: { width: number; height: number; flipped: boolean }) {
   const w = width;
   const h = height;
   const lc = "#ffffff";
-  const lw = 1.5;
+  const lw = Math.max(1.2, w / 220);
 
   const TOTAL_H = 13.4;
   const TOTAL_W = 6.1;
+  const net = 6.7 / TOTAL_H;
+  const ssl_top = (6.7 - 1.98) / TOTAL_H;
+  const ssl_bot = (6.7 + 1.98) / TOTAL_H;
+  const lsl_top = 0.76 / TOTAL_H;
+  const lsl_bot = (13.4 - 0.76) / TOTAL_H;
+  const singles_L = 0.46 / TOTAL_W;
+  const singles_R = 5.64 / TOTAL_W;
+  const center_x = 3.05 / TOTAL_W;
 
-  const net        = 6.70 / TOTAL_H;
-  const ssl_top    = (6.70 - 1.98) / TOTAL_H;
-  const ssl_bot    = (6.70 + 1.98) / TOTAL_H;
-  const lsl_top    = 0.76 / TOTAL_H;
-  const lsl_bot    = (13.4 - 0.76) / TOTAL_H;
-
-  const singles_L  = 0.46 / TOTAL_W;
-  const singles_R  = 5.64 / TOTAL_W;
-  const center_x   = 3.05 / TOTAL_W;
-
-  const topLabel = flipped ? "自分たちコート" : "相手コート";
-  const botLabel = flipped ? "相手コート" : "自分たちコート";
+  const topLabel = flipped ? "自分たち" : "相手";
+  const botLabel = flipped ? "相手" : "自分たち";
+  const fs = Math.max(10, Math.round(w / 22));
 
   return (
     <>
@@ -265,737 +698,665 @@ function CourtLines({ width, height, flipped }: { width: number; height: number;
           <stop offset="100%" stopColor="#1a5c2a" />
         </linearGradient>
       </defs>
-      <rect width={w} height={h} fill="url(#courtGrad)" rx={4} />
+      <rect width={w} height={h} fill="url(#courtGrad)" />
       <rect x={0} y={0} width={w} height={h} fill="none" stroke={lc} strokeWidth={lw * 1.5} />
-      <line x1={w * singles_L} y1={0} x2={w * singles_L} y2={h} stroke={lc} strokeWidth={lw} opacity={0.45} />
-      <line x1={w * singles_R} y1={0} x2={w * singles_R} y2={h} stroke={lc} strokeWidth={lw} opacity={0.45} />
+      <line x1={w * singles_L} y1={0} x2={w * singles_L} y2={h} stroke={lc} strokeWidth={lw} opacity={0.4} />
+      <line x1={w * singles_R} y1={0} x2={w * singles_R} y2={h} stroke={lc} strokeWidth={lw} opacity={0.4} />
       <line x1={w * center_x} y1={h * lsl_top} x2={w * center_x} y2={h * ssl_top} stroke={lc} strokeWidth={lw} />
       <line x1={w * center_x} y1={h * ssl_bot} x2={w * center_x} y2={h * lsl_bot} stroke={lc} strokeWidth={lw} />
       <line x1={0} y1={h * lsl_top} x2={w} y2={h * lsl_top} stroke={lc} strokeWidth={lw} />
       <line x1={0} y1={h * lsl_bot} x2={w} y2={h * lsl_bot} stroke={lc} strokeWidth={lw} />
       <line x1={0} y1={h * ssl_top} x2={w} y2={h * ssl_top} stroke={lc} strokeWidth={lw * 1.2} />
       <line x1={0} y1={h * ssl_bot} x2={w} y2={h * ssl_bot} stroke={lc} strokeWidth={lw * 1.2} />
-      <line x1={0} y1={h * net} x2={w} y2={h * net} stroke={lc} strokeWidth={3} />
-      <circle cx={3} cy={h * net} r={4} fill="#ccc" />
-      <circle cx={w - 3} cy={h * net} r={4} fill="#ccc" />
-      <text x={w / 2} y={h * net - 5} textAnchor="middle" fill="white" fontSize={9} opacity={0.55}>NET</text>
-      <text x={6} y={h * 0.22} textAnchor="start" fill="white" fontSize={10} opacity={0.45} fontWeight="bold">{topLabel}</text>
-      <text x={6} y={h * 0.78} textAnchor="start" fill="white" fontSize={10} opacity={0.45} fontWeight="bold">{botLabel}</text>
+      <line x1={0} y1={h * net} x2={w} y2={h * net} stroke={lc} strokeWidth={lw * 2.4} />
+      <text x={w - 6} y={h * 0.055} textAnchor="end" fill="#fff" fontSize={fs} opacity={0.5} fontWeight="bold">{topLabel}</text>
+      <text x={w - 6} y={h * 0.965} textAnchor="end" fill="#fff" fontSize={fs} opacity={0.5} fontWeight="bold">{botLabel}</text>
     </>
   );
 }
 
 // ============================================================
-// Main Component
+// ポインタ操作のセッション
 // ============================================================
-const DEFAULT_PLAYERS: Player[] = [
-  { id: "p1", type: "male", team: "us", x: 35, y: 75, label: "M1" },
-  { id: "p2", type: "female", team: "us", x: 65, y: 80, label: "F1" },
-  { id: "p3", type: "male", team: "them", x: 35, y: 25, label: "M2" },
-  { id: "p4", type: "female", team: "them", x: 65, y: 20, label: "F2" },
-];
+type Session =
+  | { t: "player"; id: string; offX: number; offY: number; moved: boolean }
+  | { t: "handle"; id: string; to: { x: number; y: number } }
+  | { t: "court"; from: { x: number; y: number }; to: { x: number; y: number }; moved: boolean }
+  | { t: "curve"; id: string; moved: boolean }
+  | { t: "arrow"; id: string };
 
-const MAX_HISTORY = 50;
+interface Preview {
+  kind: ArrowKind;
+  from: { x: number; y: number };
+  to: { x: number; y: number };
+  color: string;
+}
 
+// ============================================================
+// 本体
+// ============================================================
 export default function TacticsBoard() {
-  const [players, setPlayers] = useState<Player[]>(DEFAULT_PLAYERS);
-  const [arrows, setArrows] = useState<Arrow[]>([]);
-  const [flipped, setFlipped] = useState(false);
+  const [initial] = useState(loadInitialBoard);
 
-  const history = useRef<Snapshot[]>([{ players: DEFAULT_PLAYERS, arrows: [] }]);
-  const historyIndex = useRef(0);
-  const dragStartSnapshot = useRef<Snapshot | null>(null);
+  const [board, setBoardState] = useState<BoardState>(initial.board);
+  const boardRef = useRef(board);
+  const [firstVisit, setFirstVisit] = useState(initial.firstVisit);
 
-  const pushHistory = useCallback((snap: Snapshot) => {
-    const newHistory = history.current.slice(0, historyIndex.current + 1);
-    newHistory.push(snap);
-    if (newHistory.length > MAX_HISTORY) newHistory.shift();
-    history.current = newHistory;
-    historyIndex.current = newHistory.length - 1;
+  const histRef = useRef<History>({ stack: [snapshotOf(initial.board)], index: 0 });
+  const [histMeta, setHistMeta] = useState({ undo: false, redo: false });
+
+  const [slots, setSlots] = useState<SaveSlot[]>(loadSlots);
+  const [sheet, setSheet] = useState<null | "menu">(null);
+  const [resetPending, setResetPending] = useState(false);
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [renameText, setRenameText] = useState("");
+  const [preview, setPreview] = useState<Preview | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const slotRef = useRef<HTMLDivElement>(null);
+  const courtRef = useRef<HTMLDivElement>(null);
+  const [courtSize, setCourtSize] = useState({ w: 320, h: 320 * COURT_ASPECT });
+
+  const sessionRef = useRef<Session | null>(null);
+
+  const setBoard = useCallback((next: BoardState) => {
+    boardRef.current = next;
+    setBoardState(next);
+  }, []);
+
+  const commit = useCallback((next: BoardState) => {
+    boardRef.current = next;
+    setBoardState(next);
+    const h = pushSnapshot(histRef.current, snapshotOf(next));
+    histRef.current = h;
+    // canUndo を ref 読みではなく state にする。
+    // 旧実装は同一参照を返す setState のせいで再レンダーが省略され、
+    // ドラッグ直後に「戻す」が押せないままだった。
+    setHistMeta({ undo: canUndo(h), redo: canRedo(h) });
+    setFirstVisit(false);
+    try {
+      localStorage.setItem(LS_LAST, JSON.stringify(snapshotOf(next)));
+      localStorage.setItem(LS_SEEN, "1");
+    } catch { /* 保存できなくても操作は続行 */ }
+  }, []);
+
+  const run = useCallback((g: Gesture) => {
+    const cur = boardRef.current;
+    const { next, changed } = applyGesture(cur, g);
+    if (!changed) return;
+    // 選択が変わっただけなら履歴に積まない。
+    // 積むと「戻す」が押せる状態になるのに、押しても盤面が何も変わらない
+    //（＝消したはずの「何も起きない」がボタン側で復活してしまう）。
+    if (sameSnapshot(next, cur)) setBoard(next);
+    else commit(next);
+  }, [commit, setBoard]);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    window.setTimeout(() => setToast((t) => (t === msg ? null : t)), 1800);
+  }, []);
+
+  // ---- 高さ: 余った領域を実測してコートを決める（vh と innerHeight の二重計算をやめる）
+  useEffect(() => {
+    const el = slotRef.current;
+    if (!el) return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const availW = Math.max(120, rect.width - 12);
+      const availH = Math.max(160, rect.height - 12);
+      const w = Math.min(availW, availH / COURT_ASPECT);
+      setCourtSize({ w, h: w * COURT_ASPECT });
+    };
+    measure();
+    if (typeof ResizeObserver !== "undefined") {
+      const ro = new ResizeObserver(measure);
+      ro.observe(el);
+      return () => ro.disconnect();
+    }
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // ---- 背面（body）のスクロールを止める。fixed の下で引っ張られるのを防ぐ
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, []);
+
+  const getPos = useCallback((e: { clientX: number; clientY: number }) => {
+    const rect = courtRef.current?.getBoundingClientRect();
+    if (!rect || rect.width === 0) return null;
+    return { x: pct(e.clientX - rect.left, rect.width), y: pct(e.clientY - rect.top, rect.height) };
   }, []);
 
   const undo = useCallback(() => {
-    if (historyIndex.current <= 0) return;
-    historyIndex.current -= 1;
-    const snap = history.current[historyIndex.current];
-    setPlayers(snap.players);
-    setArrows(snap.arrows);
-    setSelected(null);
-  }, []);
+    const h = histRef.current;
+    if (!canUndo(h)) return;
+    const next = { stack: h.stack, index: h.index - 1 };
+    histRef.current = next;
+    setBoard(applySnapshot(boardRef.current, next.stack[next.index]));
+    setHistMeta({ undo: canUndo(next), redo: canRedo(next) });
+  }, [setBoard]);
 
   const redo = useCallback(() => {
-    if (historyIndex.current >= history.current.length - 1) return;
-    historyIndex.current += 1;
-    const snap = history.current[historyIndex.current];
-    setPlayers(snap.players);
-    setArrows(snap.arrows);
-    setSelected(null);
-  }, []);
+    const h = histRef.current;
+    if (!canRedo(h)) return;
+    const next = { stack: h.stack, index: h.index + 1 };
+    histRef.current = next;
+    setBoard(applySnapshot(boardRef.current, next.stack[next.index]));
+    setHistMeta({ undo: canUndo(next), redo: canRedo(next) });
+  }, [setBoard]);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
+    const onKey = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) return;
       if (e.key === "z" && !e.shiftKey) { e.preventDefault(); undo(); }
-      if (e.key === "z" && e.shiftKey)  { e.preventDefault(); redo(); }
-      if (e.key === "y")                { e.preventDefault(); redo(); }
+      else if (e.key === "z" && e.shiftKey) { e.preventDefault(); redo(); }
+      else if (e.key === "y") { e.preventDefault(); redo(); }
     };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [undo, redo]);
 
-  const [tool, setTool] = useState<Tool>("select");
-  const [selected, setSelected] = useState<string | null>(null);
-  const [label, setLabel] = useState("");
-  const [showLabelEdit, setShowLabelEdit] = useState(false);
-
-  // Reset confirm dialog
-  const [resetPending, setResetPending] = useState(false);
-
-  // Save slots
-  const [slots, setSlots] = useState<SaveSlot[]>(loadSlots);
-  const [showSlots, setShowSlots] = useState(false);
-
-  const courtRef = useRef<HTMLDivElement>(null);
-  const [courtSize, setCourtSize] = useState({ w: 400, h: 600 });
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  const drawing = useRef(false);
-  const drawFrom = useRef<{ x: number; y: number } | null>(null);
-  const [previewArrow, setPreviewArrow] = useState<{ x: number; y: number } | null>(null);
-
-  const dragging = useRef<string | null>(null);
-  const dragOffset = useRef({ x: 0, y: 0 });
-
-  const curveDragging = useRef<string | null>(null);
-
-  useEffect(() => {
-    const calc = () => {
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      const mobile = vw < 768;
-      setIsMobile(mobile);
-
-      if (mobile) {
-        const maxH = vh * 0.62;
-        const byW = vw - 16;
-        const byH = maxH / COURT_ASPECT;
-        const w = Math.min(byW, byH);
-        setCourtSize({ w, h: w * COURT_ASPECT });
-      } else {
-        const panelW = 250;
-        const padding = 48;
-        const headerH = 100;
-        const maxW = vw - panelW - padding;
-        const maxH = vh - headerH;
-        const wByH = maxH / COURT_ASPECT;
-        const w = Math.min(maxW, wByH);
-        setCourtSize({ w, h: w * COURT_ASPECT });
-      }
-    };
-    calc();
-    window.addEventListener("resize", calc);
-    return () => window.removeEventListener("resize", calc);
-  }, []);
-
-  const getCourtPos = useCallback((e: React.PointerEvent | PointerEvent) => {
-    const rect = courtRef.current?.getBoundingClientRect();
-    if (!rect) return null;
-    const x = pct(e.clientX - rect.left, rect.width);
-    const y = pct(e.clientY - rect.top, rect.height);
-    return { x, y };
-  }, []);
-
-  const onCourtPointerDown = useCallback((e: React.PointerEvent) => {
-    if (tool === "select") {
-      setSelected(null);
-      return;
-    }
-    const pos = getCourtPos(e);
+  // ---- ポインタ: 押す
+  const onCourtDown = useCallback((e: React.PointerEvent) => {
+    const pos = getPos(e);
     if (!pos) return;
-    drawing.current = true;
-    drawFrom.current = pos;
-  }, [tool, getCourtPos]);
+    sessionRef.current = { t: "court", from: pos, to: pos, moved: false };
+  }, [getPos]);
 
-  const onCourtPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!drawing.current || !drawFrom.current) return;
-    const pos = getCourtPos(e);
-    if (!pos) return;
-    setPreviewArrow(pos);
-  }, [getCourtPos]);
-
-  const onCourtPointerUp = useCallback((e: React.PointerEvent) => {
-    if (!drawing.current || !drawFrom.current) return;
-    const pos = getCourtPos(e);
-    if (pos) {
-      const dx = pos.x - drawFrom.current.x;
-      const dy = pos.y - drawFrom.current.y;
-      if (Math.sqrt(dx * dx + dy * dy) > 2) {
-        const midX = (drawFrom.current.x + pos.x) / 2;
-        const midY = (drawFrom.current.y + pos.y) / 2;
-        const newArrow: Arrow = {
-          id: uid(),
-          type: tool === "serve-arrow" ? "serve" : "receive",
-          fromX: drawFrom.current.x,
-          fromY: drawFrom.current.y,
-          toX: pos.x,
-          toY: pos.y,
-          curveX: midX,
-          curveY: midY,
-        };
-        setArrows((prev) => {
-          const next = [...prev, newArrow];
-          pushHistory({ players, arrows: next });
-          return next;
-        });
-        setSelected(newArrow.id);
-      }
-    }
-    drawing.current = false;
-    drawFrom.current = null;
-    setPreviewArrow(null);
-  }, [tool, getCourtPos, players, pushHistory]);
-
-  const onCurveHandleDown = useCallback((_e: React.PointerEvent, arrowId: string) => {
-    curveDragging.current = arrowId;
-    dragStartSnapshot.current = { players, arrows };
-  }, [players, arrows]);
-
-  const onPlayerPointerDown = useCallback((e: React.PointerEvent, playerId: string) => {
+  const onPlayerDown = useCallback((e: React.PointerEvent, id: string) => {
     e.stopPropagation();
-    if (tool !== "select") return;
-    setSelected(playerId);
-    dragging.current = playerId;
-    const player = players.find((p) => p.id === playerId);
-    if (!player) return;
-    const pos = getCourtPos(e);
-    if (!pos) return;
-    dragOffset.current = { x: pos.x - player.x, y: pos.y - player.y };
-    dragStartSnapshot.current = { players, arrows };
-    e.currentTarget.setPointerCapture(e.pointerId);
-  }, [tool, players, arrows, getCourtPos]);
+    const pos = getPos(e);
+    const p = boardRef.current.players.find((x) => x.id === id);
+    if (!pos || !p) return;
+    sessionRef.current = { t: "player", id, offX: pos.x - p.x, offY: pos.y - p.y, moved: false };
+  }, [getPos]);
 
+  const onHandleDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.stopPropagation();
+    const pos = getPos(e);
+    const p = boardRef.current.players.find((x) => x.id === id);
+    if (!pos || !p) return;
+    sessionRef.current = { t: "handle", id, to: pos };
+    setPreview({ kind: "move", from: { x: p.x, y: p.y }, to: pos, color: playerColor(p) });
+  }, [getPos]);
+
+  const onArrowDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.stopPropagation();
+    sessionRef.current = { t: "arrow", id };
+  }, []);
+
+  const onCurveDown = useCallback((e: React.PointerEvent, id: string) => {
+    e.stopPropagation();
+    sessionRef.current = { t: "curve", id, moved: false };
+  }, []);
+
+  // ---- ポインタ: 動かす／離す（window で拾ってコート外へ出ても切れないようにする）
   useEffect(() => {
-    const handleMove = (e: PointerEvent) => {
-      if (curveDragging.current) {
-        const pos = getCourtPos(e);
-        if (!pos) return;
-        setArrows((prev) =>
-          prev.map((a) => a.id === curveDragging.current ? { ...a, curveX: pos.x, curveY: pos.y } : a)
-        );
-        return;
-      }
-      if (!dragging.current) return;
-      const pos = getCourtPos(e);
+    const onMove = (e: PointerEvent) => {
+      const s = sessionRef.current;
+      if (!s) return;
+      const pos = getPos(e);
       if (!pos) return;
-      const x = Math.max(0, Math.min(100, pos.x - dragOffset.current.x));
-      const y = Math.max(0, Math.min(100, pos.y - dragOffset.current.y));
-      setPlayers((prev) =>
-        prev.map((p) => p.id === dragging.current ? { ...p, x, y } : p)
-      );
-    };
-    const handleUp = () => {
-      if (curveDragging.current) {
-        setArrows((currentArrows) => {
-          setPlayers((currentPlayers) => {
-            pushHistory({ players: currentPlayers, arrows: currentArrows });
-            return currentPlayers;
-          });
-          return currentArrows;
-        });
-        curveDragging.current = null;
-        dragStartSnapshot.current = null;
-        return;
+      if (s.t === "player") {
+        const x = clamp(pos.x - s.offX, 1, 99);
+        const y = clamp(pos.y - s.offY, 1, 99);
+        const p = boardRef.current.players.find((q) => q.id === s.id);
+        if (!p) return;
+        if (Math.hypot(x - p.x, y - p.y) > 0.05) s.moved = true;
+        setBoard({ ...boardRef.current, players: boardRef.current.players.map((q) => (q.id === s.id ? { ...q, x, y } : q)) });
+      } else if (s.t === "curve") {
+        s.moved = true;
+        setBoard({ ...boardRef.current, arrows: boardRef.current.arrows.map((a) => (a.id === s.id ? { ...a, curveX: pos.x, curveY: pos.y } : a)) });
+      } else if (s.t === "handle") {
+        s.to = pos;
+        const p = boardRef.current.players.find((q) => q.id === s.id);
+        if (!p) return;
+        setPreview({ kind: "move", from: { x: p.x, y: p.y }, to: pos, color: playerColor(p) });
+      } else if (s.t === "court") {
+        s.to = pos;
+        if (Math.hypot(pos.x - s.from.x, pos.y - s.from.y) > DRAG_THRESHOLD) s.moved = true;
+        if (s.moved) setPreview({ kind: "shuttle", from: s.from, to: pos, color: SHUTTLE_COLOR });
       }
-      if (dragging.current && dragStartSnapshot.current) {
-        setPlayers((currentPlayers) => {
-          setArrows((currentArrows) => {
-            pushHistory({ players: currentPlayers, arrows: currentArrows });
-            return currentArrows;
-          });
-          return currentPlayers;
-        });
-        dragStartSnapshot.current = null;
-      }
-      dragging.current = null;
     };
-    window.addEventListener("pointermove", handleMove);
-    window.addEventListener("pointerup", handleUp);
-    return () => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-    };
-  }, [getCourtPos, pushHistory]);
 
-  const addPlayer = (type: PlayerType, team: Team) => {
-    const count = players.filter((p) => p.type === type && p.team === team).length + 1;
-    const lbl = `${type === "male" ? "M" : "F"}${count}`;
-    const newP: Player = {
-      id: uid(), type, team,
-      x: 50,
-      y: team === "us" ? 85 : 15,
-      label: lbl,
+    const onUp = () => {
+      const s = sessionRef.current;
+      sessionRef.current = null;
+      setPreview(null);
+      if (!s) return;
+      if (s.t === "player") {
+        const p = boardRef.current.players.find((q) => q.id === s.id);
+        if (!p) return;
+        if (s.moved) commit({ ...boardRef.current, selected: s.id });
+        else run({ kind: "player-select", playerId: s.id });
+      } else if (s.t === "curve") {
+        if (s.moved) commit(boardRef.current);
+        else run({ kind: "arrow-select", arrowId: s.id });
+      } else if (s.t === "handle") {
+        const p = boardRef.current.players.find((q) => q.id === s.id);
+        if (!p) return;
+        if (Math.hypot(s.to.x - p.x, s.to.y - p.y) > DRAG_THRESHOLD) {
+          run({ kind: "player-arrow", playerId: s.id, toX: s.to.x, toY: s.to.y });
+        } else {
+          showToast("「↗」は引っぱって離すと、動きの矢印になります");
+        }
+      } else if (s.t === "court") {
+        if (s.moved) run({ kind: "shuttle-arrow", fromX: s.from.x, fromY: s.from.y, toX: s.to.x, toY: s.to.y });
+        else if (boardRef.current.selected) run({ kind: "clear-selection" });
+        else showToast("コートを指でなぞると、シャトルの軌道になります");
+      } else if (s.t === "arrow") {
+        run({ kind: "arrow-select", arrowId: s.id });
+      }
     };
-    const nextPlayers = [...players, newP];
-    setPlayers(nextPlayers);
-    setSelected(newP.id);
-    pushHistory({ players: nextPlayers, arrows });
+
+    const onCancel = () => { sessionRef.current = null; setPreview(null); };
+
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+    };
+  }, [getPos, setBoard, commit, run, showToast]);
+
+  // ---- 操作
+  const flip = () => {
+    const b = boardRef.current;
+    commit({
+      ...b,
+      players: b.players.map((p) => ({ ...p, y: 100 - p.y })),
+      arrows: b.arrows.map((a) => ({ ...a, fromY: 100 - a.fromY, toY: 100 - a.toY, curveY: 100 - a.curveY })),
+      flipped: !b.flipped,
+    });
+  };
+
+  const clearArrows = () => {
+    const b = boardRef.current;
+    if (b.arrows.length === 0) { showToast("矢印はまだありません"); return; }
+    commit({ ...b, arrows: [], selected: b.players.some((p) => p.id === b.selected) ? b.selected : null });
   };
 
   const deleteSelected = () => {
-    if (!selected) return;
-    const nextPlayers = players.filter((p) => p.id !== selected);
-    const nextArrows = arrows.filter((a) => a.id !== selected);
-    setPlayers(nextPlayers);
-    setArrows(nextArrows);
-    setSelected(null);
-    pushHistory({ players: nextPlayers, arrows: nextArrows });
+    const b = boardRef.current;
+    if (!b.selected) return;
+    commit({
+      ...b,
+      players: b.players.filter((p) => p.id !== b.selected),
+      arrows: b.arrows.filter((a) => a.id !== b.selected).map((a) => (a.ownerId === b.selected ? { ...a, ownerId: undefined } : a)),
+      selected: null,
+    });
   };
 
-  const toggleArrowRed = (arrowId: string) => {
-    const arrow = arrows.find((a) => a.id === arrowId);
-    if (!arrow) return;
-    const newColor = arrow.color === "#EF4444" ? undefined : "#EF4444";
-    const nextArrows = arrows.map((a) => a.id === arrowId ? { ...a, color: newColor } : a);
-    setArrows(nextArrows);
-    pushHistory({ players, arrows: nextArrows });
+  const toggleArrowKind = (id: string) => {
+    const b = boardRef.current;
+    commit({
+      ...b,
+      arrows: b.arrows.map((a) => {
+        if (a.id !== id) return a;
+        const kind: ArrowKind = a.kind === "shuttle" ? "move" : "shuttle";
+        // 赤は明示指定なので保つ。既定色だけ付け替える
+        const color = a.color === RED ? RED : undefined;
+        return { ...a, kind, color };
+      }),
+    });
   };
 
-  const resetCurve = (arrowId: string) => {
-    const arrow = arrows.find((a) => a.id === arrowId);
-    if (!arrow) return;
-    const midX = (arrow.fromX + arrow.toX) / 2;
-    const midY = (arrow.fromY + arrow.toY) / 2;
-    const nextArrows = arrows.map((a) => a.id === arrowId ? { ...a, curveX: midX, curveY: midY } : a);
-    setArrows(nextArrows);
-    pushHistory({ players, arrows: nextArrows });
+  const toggleRed = (id: string) => {
+    const b = boardRef.current;
+    commit({ ...b, arrows: b.arrows.map((a) => (a.id === id ? { ...a, color: a.color === RED ? undefined : RED } : a)) });
   };
 
-  // Flip court
-  const flipCourt = () => {
-    const nextPlayers = players.map((p) => ({ ...p, y: 100 - p.y }));
-    const nextArrows = arrows.map((a) => ({
-      ...a,
-      fromY: 100 - a.fromY,
-      toY: 100 - a.toY,
-      curveY: 100 - a.curveY,
-    }));
-    setPlayers(nextPlayers);
-    setArrows(nextArrows);
-    setFlipped((f) => !f);
-    pushHistory({ players: nextPlayers, arrows: nextArrows });
+  const onFormation = (key: FormationKey) => {
+    commit(applyFormation(boardRef.current, key));
+    const f = FORMATIONS.find((x) => x.key === key);
+    if (f) showToast(`${f.label}：${f.note}`);
   };
 
-  // Reset（破壊的操作なので確認ダイアログを挟む）
-  const handleReset = () => setResetPending(true);
+  const addPlayer = (type: PlayerType, team: Team) => {
+    commit(addPlayerTo(boardRef.current, type, team));
+  };
+
   const doReset = () => {
     setResetPending(false);
-    setPlayers(DEFAULT_PLAYERS);
-    setArrows([]);
-    setSelected(null);
-    setFlipped(false);
-    history.current = [{ players: DEFAULT_PLAYERS, arrows: [] }];
-    historyIndex.current = 0;
+    setSheet(null);
+    const fresh = seedBoard();
+    boardRef.current = fresh;
+    setBoardState(fresh);
+    histRef.current = { stack: [snapshotOf(fresh)], index: 0 };
+    setHistMeta({ undo: false, redo: false });
+    try { localStorage.setItem(LS_LAST, JSON.stringify(snapshotOf(fresh))); } catch { /* noop */ }
   };
 
-  // Save/Load slots
-  const saveToSlot = (index: number) => {
-    const next = [...slots];
-    next[index] = { ...next[index], data: { players, arrows } };
+  const saveToSlot = (i: number) => {
+    const next = slots.map((s, k) => (k === i ? { ...s, savedAt: Date.now(), data: snapshotOf(boardRef.current) } : s));
     setSlots(next);
-    saveSlots(next);
+    persistSlots(next);
+    showToast(`${i + 1}番に保存しました`);
   };
 
-  const loadFromSlot = (index: number) => {
-    const slot = slots[index];
-    if (!slot.data) return;
-    setPlayers(slot.data.players);
-    setArrows(slot.data.arrows);
-    setSelected(null);
-    pushHistory(slot.data);
+  const loadFromSlot = (i: number) => {
+    const s = slots[i];
+    if (!s.data) return;
+    commit(applySnapshot({ ...boardRef.current, selected: null }, s.data));
+    setSheet(null);
+    showToast(`${i + 1}番を読み込みました`);
   };
 
-  const saveImage = useCallback(async () => {
-    const svgEl = courtRef.current?.querySelector("svg.composite") as SVGSVGElement | null;
-    if (!svgEl) return;
+  const saveImage = useCallback(() => {
+    // 選択の破線・ハンドルが写らないよう、いったん選択を外してから撮る
+    setBoard({ ...boardRef.current, selected: null });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const svgEl = courtRef.current?.querySelector("svg.composite") as SVGSVGElement | null;
+      if (!svgEl) return;
+      const clone = svgEl.cloneNode(true) as SVGSVGElement;
+      clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      const xml = new XMLSerializer().serializeToString(clone);
+      const blob = new Blob([xml], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const scale = 2;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = courtSize.w * scale;
+        canvas.height = courtSize.h * scale;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) { URL.revokeObjectURL(url); return; }
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, courtSize.w, courtSize.h);
+        URL.revokeObjectURL(url);
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `tactics-${Date.now()}.png`;
+        a.click();
+      };
+      img.onerror = () => URL.revokeObjectURL(url);
+      img.src = url;
+    }));
+  }, [courtSize, setBoard]);
 
-    const clone = svgEl.cloneNode(true) as SVGSVGElement;
-    clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  // ---- 描画用の派生値
+  const radius = clamp(courtSize.w * 0.075, 14, 26);
+  const selectedPlayer = board.players.find((p) => p.id === board.selected);
+  const selectedArrow = board.arrows.find((a) => a.id === board.selected);
+  const hint = hintFor(board, { drawing: preview?.kind ?? null, firstVisit });
 
-    const xml = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([xml], { type: "image/svg+xml" });
-    const url = URL.createObjectURL(blob);
-
-    const scale = 2;
-    const cw = courtSize.w * scale;
-    const ch = courtSize.h * scale;
-
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = cw;
-      canvas.height = ch;
-      const ctx = canvas.getContext("2d")!;
-      ctx.scale(scale, scale);
-      ctx.drawImage(img, 0, 0, courtSize.w, courtSize.h);
-      URL.revokeObjectURL(url);
-      const pngUrl = canvas.toDataURL("image/png");
-      const a = document.createElement("a");
-      a.href = pngUrl;
-      a.download = `tactics-${Date.now()}.png`;
-      a.click();
-    };
-    img.src = url;
-  }, [courtSize]);
-
-  const canUndo = historyIndex.current > 0;
-  const canRedo = historyIndex.current < history.current.length - 1;
-  const selectedPlayer = players.find((p) => p.id === selected);
-  const selectedArrow = arrows.find((a) => a.id === selected);
-
-  const TOOLS: { key: Tool; label: string; color: string }[] = [
-    { key: "select", label: "✋ 選択・移動", color: "#6B7280" },
-    { key: "serve-arrow", label: "⚡ サーブ矢印", color: "#D97706" },
-    { key: "receive-arrow", label: "↩ レシーブ矢印", color: "#059669" },
-  ];
+  const barBtn = (active = false): React.CSSProperties => ({
+    flex: 1, minWidth: 0, height: 46, borderRadius: 10, border: "none",
+    background: active ? "#2563EB" : "#1F2937", color: active ? "#fff" : "#E5E7EB",
+    fontSize: 12, fontWeight: 700, cursor: "pointer",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1,
+    fontFamily: "inherit", touchAction: "manipulation",
+    boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+  });
 
   return (
-    <div style={{
-      height: "calc(100vh - 64px)",
-      background: "#111827",
-      color: "white",
-      fontFamily: "'Noto Sans JP', 'Inter', sans-serif",
-      display: "flex",
-      flexDirection: "column",
-      overflow: "hidden",
-      boxSizing: "border-box",
-    }}>
-      {/* ===== ヘッダー ===== */}
+    <div
+      style={{
+        position: "fixed", inset: 0, height: "100dvh",
+        paddingTop: "env(safe-area-inset-top)",
+        background: BOARD_BG, color: "#fff",
+        fontFamily: "'Noto Sans JP', 'Inter', sans-serif",
+        display: "flex", flexDirection: "column", overflow: "hidden",
+        overscrollBehavior: "none", WebkitTapHighlightColor: "transparent",
+        zIndex: 40,
+      }}
+    >
+      {/* ===== 上バー（chromeless のため戻る導線をここに持つ） ===== */}
       <div style={{
-        padding: "6px 12px",
-        borderBottom: "1px solid #1F2937",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0,
+        height: 38, flexShrink: 0, display: "flex", alignItems: "center",
+        gap: 8, padding: "0 8px", borderBottom: "1px solid #1F2937",
       }}>
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#60A5FA" }}>
-          🏸 戦術ボード
-        </h2>
-        <span style={{ fontSize: 10, color: "#4B5563" }}>kawabado.com</span>
+        <button
+          onClick={() => { if (window.history.length > 1) window.history.back(); else window.location.assign("/"); }}
+          aria-label="戻る"
+          style={{ background: "none", border: "none", color: "#9CA3AF", fontSize: 14, fontWeight: 700, cursor: "pointer", padding: "6px 8px", fontFamily: "inherit" }}
+        >
+          ← 戻る
+        </button>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#93C5FD" }}>🏸 戦術ボード</span>
       </div>
 
-      {/* ===== メインエリア ===== */}
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        justifyContent: isMobile ? undefined : "center",
-        alignItems: isMobile ? undefined : "flex-start",
-        overflow: "hidden",
-        gap: isMobile ? 0 : 16,
-        padding: isMobile ? 0 : "0 24px",
-      }}>
-        {/* ---- コートエリア ---- */}
-        <div style={{
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "8px",
-          background: "#0F172A",
-          borderRadius: isMobile ? 0 : 8,
-          marginTop: isMobile ? 0 : 8,
-        }}>
-          <div
-            ref={courtRef}
-            onPointerDown={onCourtPointerDown}
-            onPointerMove={onCourtPointerMove}
-            onPointerUp={onCourtPointerUp}
+      {/* ===== コート（余りぜんぶ） ===== */}
+      <div
+        ref={slotRef}
+        style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: 6 }}
+      >
+        <div
+          ref={courtRef}
+          onPointerDown={onCourtDown}
+          style={{
+            width: courtSize.w, height: courtSize.h, position: "relative",
+            borderRadius: 6, overflow: "hidden", flexShrink: 0,
+            boxShadow: "0 8px 28px rgba(0,0,0,0.6)", touchAction: "none",
+          }}
+        >
+          <svg
+            className="composite"
+            viewBox={`0 0 ${courtSize.w} ${courtSize.h}`}
+            width={courtSize.w} height={courtSize.h}
+            style={{ position: "absolute", top: 0, left: 0 }}
+          >
+            <CourtLines width={courtSize.w} height={courtSize.h} flipped={board.flipped} />
+            {board.arrows.map((a) => (
+              <ArrowShape
+                key={a.id}
+                arrow={a}
+                color={arrowColor(a, board.players)}
+                courtW={courtSize.w}
+                courtH={courtSize.h}
+                selected={board.selected === a.id}
+                onBodyDown={(e) => onArrowDown(e, a.id)}
+                onCurveDown={(e) => onCurveDown(e, a.id)}
+              />
+            ))}
+            {preview && (
+              <line
+                x1={px(preview.from.x, courtSize.w)} y1={px(preview.from.y, courtSize.h)}
+                x2={px(preview.to.x, courtSize.w)} y2={px(preview.to.y, courtSize.h)}
+                stroke={preview.color} strokeWidth={3} strokeLinecap="round"
+                strokeDasharray={preview.kind === "move" ? "9,6" : "none"} opacity={0.75}
+                pointerEvents="none"
+              />
+            )}
+            {board.players.map((p) => (
+              <PlayerToken
+                key={p.id}
+                player={p}
+                courtW={courtSize.w} courtH={courtSize.h}
+                selected={board.selected === p.id}
+                radius={radius}
+                onBodyDown={(e) => onPlayerDown(e, p.id)}
+                onHandleDown={(e) => onHandleDown(e, p.id)}
+              />
+            ))}
+          </svg>
+        </div>
+      </div>
+
+      {/* ===== ヒント1行（凡例とショートカット表示はここに統合） ===== */}
+      <div
+        role="status"
+        style={{
+          ...bandStyle, height: 24, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 11, color: toast ? "#FDE68A" : "#94A3B8", padding: "0 10px",
+          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+        }}
+      >
+        {toast ?? hint}
+      </div>
+
+      {/* ===== フォーメーション（初見の1手目）。4つとも常に見えていること ===== */}
+      <div style={{ ...bandStyle, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, padding: "0 8px 6px" }}>
+        {FORMATIONS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => onFormation(f.key)}
+            aria-label={f.label}
             style={{
-              width: courtSize.w,
-              height: courtSize.h,
-              position: "relative",
-              borderRadius: 6,
-              overflow: "hidden",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.7)",
-              cursor: tool !== "select" ? "crosshair" : "default",
-              touchAction: "none",
-              flexShrink: 0,
+              minWidth: 0, height: 38, padding: "0 4px",
+              borderRadius: 10, border: "1px solid #334155", background: "#111C33",
+              color: "#CBD5E1", fontSize: 11, fontWeight: 700, lineHeight: 1.25, cursor: "pointer",
+              fontFamily: "inherit", touchAction: "manipulation",
             }}
           >
-            <svg
-              className="composite"
-              viewBox={`0 0 ${courtSize.w} ${courtSize.h}`}
-              width={courtSize.w}
-              height={courtSize.h}
-              style={{ position: "absolute", top: 0, left: 0, overflow: "visible" }}
-            >
-              <CourtLines width={courtSize.w} height={courtSize.h} flipped={flipped} />
-              {arrows.map((arrow) => (
-                <ArrowShape
-                  key={arrow.id}
-                  arrow={arrow}
-                  courtW={courtSize.w}
-                  courtH={courtSize.h}
-                  selected={selected === arrow.id}
-                  onClick={() => { if (tool === "select") setSelected(arrow.id); }}
-                  onCurveHandleDown={(e) => onCurveHandleDown(e, arrow.id)}
-                />
-              ))}
-              {drawing.current && drawFrom.current && previewArrow && (
-                <line
-                  x1={px(drawFrom.current.x, courtSize.w)}
-                  y1={px(drawFrom.current.y, courtSize.h)}
-                  x2={px(previewArrow.x, courtSize.w)}
-                  y2={px(previewArrow.y, courtSize.h)}
-                  stroke={tool === "serve-arrow" ? "#F59E0B" : "#10B981"}
-                  strokeWidth={2}
-                  strokeDasharray={tool === "receive-arrow" ? "8,5" : "none"}
-                  opacity={0.6}
-                />
-              )}
-              {players.map((player) => (
-                <PlayerToken
-                  key={player.id}
-                  player={player}
-                  courtW={courtSize.w}
-                  courtH={courtSize.h}
-                  selected={selected === player.id}
-                  onPointerDown={(e) => onPlayerPointerDown(e, player.id)}
-                  radius={isMobile ? PLAYER_R_MOBILE : PLAYER_R_DESKTOP}
-                />
-              ))}
-            </svg>
-          </div>
-        </div>
+            {f.short.map((line) => <div key={line}>{line}</div>)}
+          </button>
+        ))}
+      </div>
 
-        {/* ---- コントロールパネル ---- */}
+      {/* ===== 選択中のシート（最大3つ） =====
+          レイアウトに割り込ませるとコートが縮んで、触った選手が指の下から逃げる。
+          常時ボタンの上に浮かせて、盤面の大きさを一定に保つ。 */}
+      {(selectedPlayer || selectedArrow) && (
         <div style={{
-          flex: isMobile ? 1 : "0 0 240px",
-          overflowY: "auto",
-          padding: isMobile ? "10px 10px" : "10px 0",
-          display: "flex",
-          flexDirection: isMobile ? "row" : "column",
-          flexWrap: isMobile ? "wrap" : undefined,
-          gap: isMobile ? 10 : 8,
-          minWidth: 0,
-          marginTop: isMobile ? 0 : 8,
+          position: "absolute", left: 0, right: 0, margin: "0 auto",
+          maxWidth: BAND_MAX, padding: "6px 8px",
+          bottom: "calc(59px + env(safe-area-inset-bottom))",
+          display: "flex", gap: 6, alignItems: "center", zIndex: 5,
+          // 下のフォーメーション行の真上に重なる。透けると2段が混ざって
+          // 「壊れている」ように見えるので、必ず塗りつぶす
+          background: BOARD_BG,
         }}>
-          {/* ツール選択 */}
-          <div>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4 }}>モード</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {TOOLS.map(({ key, label: btnLabel, color }) => {
-                const active = tool === key;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setTool(key)}
-                    style={{
-                      padding: "7px 10px", borderRadius: 7,
-                      border: "2px solid transparent",
-                      background: active ? color : "#1F2937",
-                      color: active ? "white" : "#9CA3AF",
-                      fontSize: 12, fontWeight: active ? 700 : 600, cursor: "pointer",
-                      textAlign: "left",
-                      boxShadow: active ? `0 0 0 2px #111827, 0 0 0 4px ${color}88` : "none",
+          {selectedPlayer && (
+            <>
+              {renaming === selectedPlayer.id ? (
+                <>
+                  <input
+                    value={renameText}
+                    onChange={(e) => setRenameText(e.target.value.slice(0, 4))}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      const b = boardRef.current;
+                      commit({ ...b, players: b.players.map((p) => (p.id === selectedPlayer.id ? { ...p, label: renameText || p.label } : p)) });
+                      setRenaming(null);
                     }}
-                  >
-                    {btnLabel}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* 凡例 */}
-          <div style={{ fontSize: 10, color: "#6B7280", lineHeight: 1.8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ display: "inline-block", width: 18, height: 2.5, background: "#F59E0B", borderRadius: 2, flexShrink: 0 }} />
-              サーブ（実線）
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span style={{ display: "inline-block", width: 18, height: 2.5, flexShrink: 0,
-                backgroundImage: "repeating-linear-gradient(90deg,#10B981 0,#10B981 5px,transparent 5px,transparent 9px)" }} />
-              レシーブ（点線）
-            </div>
-          </div>
-
-          {/* 選択中アイテム */}
-          {selected && (
-            <div style={{
-              background: "#1F2937", borderRadius: 8, padding: "8px 10px",
-              display: "flex", flexDirection: "column", gap: 6,
-            }}>
-              {selectedPlayer && (
+                    autoFocus
+                    style={{ flex: 1, minWidth: 0, height: 38, borderRadius: 9, border: "1px solid #475569", background: "#0F172A", color: "#fff", fontSize: 14, padding: "0 10px", fontFamily: "inherit" }}
+                  />
+                  <button
+                    onClick={() => {
+                      const b = boardRef.current;
+                      commit({ ...b, players: b.players.map((p) => (p.id === selectedPlayer.id ? { ...p, label: renameText || p.label } : p)) });
+                      setRenaming(null);
+                    }}
+                    style={{ ...barBtn(true), flex: "0 0 72px", height: 38 }}
+                  >決定</button>
+                </>
+              ) : (
                 <>
-                  <div style={{ fontSize: 11, color: "#D1D5DB" }}>
-                    <b>{selectedPlayer.label}</b>（{selectedPlayer.type === "male" ? "男性" : "女性"} / {selectedPlayer.team === "us" ? "自分側" : "相手側"}）
-                  </div>
-                  {showLabelEdit ? (
-                    <div style={{ display: "flex", gap: 4 }}>
-                      <input
-                        value={label}
-                        onChange={(e) => setLabel(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            setPlayers((prev) => prev.map((p) => p.id === selected ? { ...p, label } : p));
-                            setShowLabelEdit(false);
-                          }
-                        }}
-                        style={{
-                          flex: 1, padding: "4px 6px", borderRadius: 4,
-                          border: "1px solid #4B5563", background: "#111827",
-                          color: "white", fontSize: 12,
-                        }}
-                        autoFocus
-                      />
-                      <button onClick={() => {
-                        setPlayers((prev) => prev.map((p) => p.id === selected ? { ...p, label } : p));
-                        setShowLabelEdit(false);
-                      }} style={smallBtn("#2563EB")}>保存</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => { setLabel(selectedPlayer.label); setShowLabelEdit(true); }} style={smallBtn("#374151")}>名前変更</button>
-                  )}
+                  <button
+                    onClick={() => { setRenameText(selectedPlayer.label); setRenaming(selectedPlayer.id); }}
+                    style={{ ...barBtn(), height: 38 }}
+                  >✏️ 名前</button>
+                  <button onClick={deleteSelected} style={{ ...barBtn(), height: 38, background: "#7F1D1D", color: "#FECACA" }}>🗑 削除</button>
                 </>
               )}
-              {selectedArrow && (
-                <>
-                  <div style={{ fontSize: 11, color: "#D1D5DB" }}>
-                    {selectedArrow.type === "serve" ? "⚡ サーブ矢印" : "↩ レシーブ矢印"}
-                    {selectedArrow.color === "#EF4444" && <span style={{ color: "#EF4444", marginLeft: 6 }}>（赤）</span>}
-                  </div>
-                  <div style={{ fontSize: 10, color: "#9CA3AF", marginTop: -2 }}>
-                    ○ハンドルをドラッグで湾曲
-                  </div>
-                  <div style={{ display: "flex", gap: 4 }}>
-                    <button
-                      onClick={() => toggleArrowRed(selectedArrow.id)}
-                      style={{
-                        ...smallBtn(selectedArrow.color === "#EF4444" ? "#EF4444" : "#374151"),
-                        flex: 1,
-                      }}
-                    >
-                      {selectedArrow.color === "#EF4444" ? "🔴 赤を解除" : "🔴 赤に変更"}
-                    </button>
-                    {isCurved(selectedArrow) && (
-                      <button
-                        onClick={() => resetCurve(selectedArrow.id)}
-                        style={{ ...smallBtn("#374151"), flex: 1 }}
-                      >
-                        直線に戻す
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
-              <button onClick={deleteSelected} style={smallBtn("#DC2626")}>🗑 削除</button>
-            </div>
+            </>
           )}
+          {selectedArrow && (
+            <>
+              <button onClick={() => toggleArrowKind(selectedArrow.id)} style={{ ...barBtn(), height: 38 }}>
+                {selectedArrow.kind === "shuttle" ? "→ 人の動きにする" : "→ シャトルにする"}
+              </button>
+              <button
+                onClick={() => toggleRed(selectedArrow.id)}
+                style={{ ...barBtn(), height: 38, background: selectedArrow.color === RED ? RED : "#1F2937" }}
+              >🔴 赤</button>
+              <button onClick={deleteSelected} style={{ ...barBtn(), height: 38, background: "#7F1D1D", color: "#FECACA" }}>🗑 削除</button>
+            </>
+          )}
+        </div>
+      )}
 
-          {/* プレイヤー追加 */}
-          <div>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4 }}>プレイヤー追加</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
-              {[
-                { type: "male" as PlayerType, team: "us" as Team, label: "＋男性（自）", color: MALE_COLOR },
-                { type: "female" as PlayerType, team: "us" as Team, label: "＋女性（自）", color: FEMALE_COLOR },
-                { type: "male" as PlayerType, team: "them" as Team, label: "＋男性（相）", color: THEM_MALE_COLOR },
-                { type: "female" as PlayerType, team: "them" as Team, label: "＋女性（相）", color: THEM_FEMALE_COLOR },
-              ].map(({ type, team, label: btnLabel, color }) => (
-                <button
-                  key={`${type}-${team}`}
-                  onClick={() => addPlayer(type, team)}
-                  style={{
-                    padding: "6px 4px", borderRadius: 6, border: `1.5px solid ${color}55`,
-                    background: color + "22", color: color,
-                    fontSize: 11, fontWeight: 600, cursor: "pointer",
-                  }}
-                >
-                  {btnLabel}
+      {/* ===== 常時5ボタン ===== */}
+      <div style={{
+        ...bandStyle, display: "flex", gap: 6, padding: "0 8px",
+        paddingBottom: "max(8px, env(safe-area-inset-bottom))",
+        borderTop: "1px solid #1F2937", paddingTop: 6,
+      }}>
+        <button onClick={undo} disabled={!histMeta.undo} style={{ ...barBtn(), opacity: histMeta.undo ? 1 : 0.35 }}>
+          <span style={{ fontSize: 17 }}>↩</span>戻す
+        </button>
+        <button onClick={clearArrows} style={barBtn()}>
+          <span style={{ fontSize: 17 }}>✕</span>矢印消す
+        </button>
+        <button onClick={flip} style={barBtn()}>
+          <span style={{ fontSize: 17 }}>↕</span>反転
+        </button>
+        <button onClick={() => setSheet("menu")} style={barBtn()}>
+          <span style={{ fontSize: 17 }}>💾</span>作戦
+        </button>
+        <button onClick={saveImage} style={barBtn(true)}>
+          <span style={{ fontSize: 17 }}>📷</span>画像
+        </button>
+      </div>
+
+      {/* ===== 「作戦」シート（保存スロット・選手追加・初期化） ===== */}
+      {sheet === "menu" && (
+        <div
+          onClick={() => setSheet(null)}
+          style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "flex-end", zIndex: 10 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxHeight: "78%", overflowY: "auto",
+              background: "#0F172A", borderTop: "1px solid #334155",
+              borderRadius: "14px 14px 0 0", padding: 12,
+              paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <b style={{ fontSize: 14 }}>作戦の保存</b>
+              <button onClick={() => setSheet(null)} style={{ background: "none", border: "none", color: "#94A3B8", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>閉じる</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {slots.map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 11, color: s.data ? "#CBD5E1" : "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {i + 1}. {s.data ? (s.savedAt ? formatSavedAt(s.savedAt) : "保存済み") : "空き"}
+                  </span>
+                  <button onClick={() => saveToSlot(i)} style={{ ...barBtn(), flex: "0 0 74px", height: 38 }}>保存</button>
+                  <button onClick={() => loadFromSlot(i)} disabled={!s.data} style={{ ...barBtn(), flex: "0 0 74px", height: 38, opacity: s.data ? 1 : 0.35 }}>読込</button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ fontSize: 11, color: "#64748B", margin: "14px 0 6px" }}>選手を足す</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+              {([
+                { type: "male", team: "us", label: "＋ 自分側（男）" },
+                { type: "female", team: "us", label: "＋ 自分側（女）" },
+                { type: "male", team: "them", label: "＋ 相手側（男）" },
+                { type: "female", team: "them", label: "＋ 相手側（女）" },
+              ] as const).map((b) => (
+                <button key={`${b.type}-${b.team}`} onClick={() => addPlayer(b.type, b.team)} style={{ ...barBtn(), height: 40 }}>
+                  {b.label}
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Undo/Redo */}
-          <div>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4 }}>履歴</div>
-            <div style={{ display: "flex", gap: 4 }}>
-              <button onClick={undo} disabled={!canUndo} title="⌘Z"
-                style={{ ...smallBtn("#374151"), flex: 1, opacity: canUndo ? 1 : 0.35 }}>↩ 戻す</button>
-              <button onClick={redo} disabled={!canRedo} title="⌘⇧Z"
-                style={{ ...smallBtn("#374151"), flex: 1, opacity: canRedo ? 1 : 0.35 }}>↪ 進む</button>
-            </div>
-          </div>
-
-          {/* 操作 */}
-          <div>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4 }}>操作</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              <button onClick={flipCourt} style={smallBtn("#374151")}>↕ 反転</button>
-              <button onClick={() => { setArrows([]); pushHistory({ players, arrows: [] }); }}
-                style={smallBtn("#374151")}>矢印クリア</button>
-              <button
-                onClick={handleReset}
-                style={{ ...smallBtn("#7F1D1D"), color: "#FCA5A5", border: "1px solid #B91C1C" }}
-              >
-                🗑 リセット
-              </button>
-              <button onClick={saveImage} style={{
-                padding: "8px", borderRadius: 7,
-                background: "#2563EB", color: "white",
-                border: "none", fontSize: 12, fontWeight: 700, cursor: "pointer",
-              }}>📷 画像保存</button>
-            </div>
-          </div>
-
-          {/* フォーメーション保存・読み込み */}
-          <div>
-            <div style={{ fontSize: 10, color: "#6B7280", marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>保存スロット</span>
-              <button
-                onClick={() => setShowSlots(!showSlots)}
-                style={{ background: "none", border: "none", color: "#6B7280", fontSize: 10, cursor: "pointer", padding: 0 }}
-              >
-                {showSlots ? "▲ 閉じる" : "▼ 開く"}
-              </button>
-            </div>
-            {showSlots && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                {slots.map((slot, i) => (
-                  <div key={i} style={{ display: "flex", gap: 3, alignItems: "center" }}>
-                    <span style={{ fontSize: 10, color: "#9CA3AF", width: 58, flexShrink: 0 }}>
-                      {slot.name}
-                    </span>
-                    <button
-                      onClick={() => saveToSlot(i)}
-                      style={{ ...smallBtn("#374151"), flex: 1, fontSize: 10, padding: "4px 6px" }}
-                    >保存</button>
-                    <button
-                      onClick={() => loadFromSlot(i)}
-                      disabled={!slot.data}
-                      style={{ ...smallBtn("#374151"), flex: 1, fontSize: 10, padding: "4px 6px", opacity: slot.data ? 1 : 0.35 }}
-                    >読込</button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ショートカットヒント */}
-          <div style={{ fontSize: 9, color: "#4B5563", lineHeight: 1.7, marginTop: "auto", paddingTop: 8 }}>
-            ⌘Z / Ctrl+Z → 元に戻す<br />
-            ⌘⇧Z / Ctrl+Y → やり直す
+            <button
+              onClick={() => setResetPending(true)}
+              style={{ ...barBtn(), width: "100%", height: 40, marginTop: 14, background: "#7F1D1D", color: "#FECACA" }}
+            >
+              最初の状態に戻す
+            </button>
           </div>
         </div>
-      </div>
+      )}
 
       <ConfirmDialog
         open={resetPending}
-        title="ボードをリセットしますか？"
-        message="配置した選手・矢印がすべて初期状態に戻ります。この操作は元に戻せません。"
-        confirmLabel="リセットする"
+        title="ボードを最初の状態に戻しますか？"
+        message="いま並べた選手と矢印は消えて、見本の配置に戻ります。保存した作戦は消えません。"
+        confirmLabel="戻す"
         danger
         onConfirm={doReset}
         onCancel={() => setResetPending(false)}
@@ -1004,10 +1365,8 @@ export default function TacticsBoard() {
   );
 }
 
-function smallBtn(bg: string): React.CSSProperties {
-  return {
-    padding: "6px 10px", borderRadius: 6, border: "none",
-    background: bg, color: "white",
-    fontSize: 12, fontWeight: 600, cursor: "pointer",
-  };
+function formatSavedAt(ms: number) {
+  const d = new Date(ms);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getMonth() + 1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }

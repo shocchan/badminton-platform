@@ -65,7 +65,8 @@ async function generateSitemap(env) {
     { path: 'tournaments/doubles',       priority: '0.8', freq: 'weekly' },
     { path: 'tournaments/mixed-doubles', priority: '0.8', freq: 'weekly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
-    // blog は日本語のみ（記事本文に中国語版が無く、/zh/blog は /ja/blog へ canonical）
+    // blog 一覧は jaOnlyUrls（/zh/blog は /ja/blog へ canonical のまま）。
+    // 記事ごとの中国語版は下の zhPosts で /zh/blog/:id として送る
     { path: 'join',          priority: '0.6', freq: 'monthly' },
     { path: 'results/vol1',  priority: '0.6', freq: 'yearly' },
     { path: 'results/vol2',  priority: '0.6', freq: 'yearly' },
@@ -104,6 +105,8 @@ async function generateSitemap(env) {
   let tournaments = [];
   let activities = [];
   let posts = [];
+  // 中国語本文がある記事（/zh/blog/:id をsitemapに載せてよい記事）
+  let zhPosts = [];
   try {
     const supabaseUrl = env.VITE_SUPABASE_URL || env.SUPABASE_URL || '';
     const supabaseKey = env.VITE_SUPABASE_ANON_KEY || env.SUPABASE_ANON_KEY || '';
@@ -138,12 +141,31 @@ async function generateSitemap(env) {
         { headers }
       );
       if (postRes.ok) posts = await postRes.json();
+
+      // 中国語本文がある記事だけ /zh/blog/:id も送る（2026-08-25）。
+      // 未訳の記事は canonical を /ja/blog/:id へ寄せているので、送ると
+      // Search Console が「送信されたURLに正規URLとして別のページが選択されています」を出す。
+      // ⚠️ content_zh 列が無い環境（migration適用前・staging未適用）では 400 が返る。
+      //    そのときは zh は0件のまま進む＝**日本語のsitemapは今までどおり出る**。
+      const zhRes = await fetch(
+        supabaseUrl + '/rest/v1/blog_posts?select=id,updated_at,created_at'
+          + '&or=(status.eq.published,status.is.null)'
+          + '&published_at=lte.' + new Date().toISOString()
+          + '&content_zh=not.is.null&content_zh=not.eq.'
+          + '&order=created_at.desc&limit=500',
+        { headers }
+      );
+      if (zhRes.ok) zhPosts = await zhRes.json();
     }
   } catch (_) {}
 
   for (const p of posts) {
     const lm = (p.updated_at || p.created_at || '').slice(0, 10);
     urls += '\\n  <url>\\n    <loc>https://kawabado.com/ja/blog/' + p.id + '</loc>' + (lm ? '\\n    <lastmod>' + lm + '</lastmod>' : '') + '\\n    <changefreq>monthly</changefreq>\\n    <priority>0.6</priority>\\n  </url>';
+  }
+  for (const p of zhPosts) {
+    const lm = (p.updated_at || p.created_at || '').slice(0, 10);
+    urls += '\\n  <url>\\n    <loc>https://kawabado.com/zh/blog/' + p.id + '</loc>' + (lm ? '\\n    <lastmod>' + lm + '</lastmod>' : '') + '\\n    <changefreq>monthly</changefreq>\\n    <priority>0.6</priority>\\n  </url>';
   }
   for (const u of jaOnlyUrls) {
     urls += '\\n  <url>\\n    <loc>https://kawabado.com/ja/' + u.path + '</loc>\\n    <changefreq>' + u.freq + '</changefreq>\\n    <priority>' + u.priority + '</priority>\\n  </url>';
@@ -208,8 +230,9 @@ const NAV = [
   { path: 'level-guide',               ja: 'クラス分け案内',                    zh: '级别说明' },
   { path: 'venues',                    ja: '会場ガイド',                        zh: '会场指南' },
   { path: 'faq',                       ja: 'よくある質問',                      zh: '常见问题' },
-  // ブログは日本語のみ（記事本文に中国語版が無い）。中国語UIからも日本語URLへ送る
-  { path: 'blog',                      ja: 'ブログ',                            zh: '博客（日语）', jaOnly: true },
+  // ブログ一覧は canonical を /ja/blog へ寄せたまま（2026-08-25 時点。記事ごとの中国語版は
+  // /zh/blog/:id が自己参照canonicalになる）。クローラー向けのこのリンクは正規URLへ送る
+  { path: 'blog',                      ja: 'ブログ',                            zh: '博客', jaOnly: true },
   { path: 'join',                      ja: '特典登録',                          zh: '优惠注册' },
   { path: 'contact',                   ja: 'お問い合わせ',                      zh: '联系我们' },
   { path: 'cancel-policy',             ja: 'キャンセルポリシー',                zh: '取消政策' },
@@ -885,25 +908,51 @@ async function buildOgpMeta(route, env, pageUrl) {
     };
   }
   if (route.kind === 'blog') {
-    const p = await fetchFirst(env,
-      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url,content');
+    // title_zh / excerpt_zh / content_zh が無い環境（migration適用前）でも動くようにフォールバックする。
+    // ここで落ちると記事ページの素のHTMLが**全記事**トップの文言に戻るので、黙って壊してはいけない
+    let p = await fetchFirst(env,
+      '/rest/v1/blog_posts?id=eq.' + route.id
+      + '&select=title,excerpt,image_url,content,title_zh,excerpt_zh,content_zh');
+    if (!p) {
+      p = await fetchFirst(env,
+        '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url,content');
+    }
     if (!p) return null;
-    // 記事本文は日本語のみ。src/pages/blogSeo.ts の方針どおり中国語URLは日本語版へ canonical を
-    // 寄せ、hreflang は出さない（自己参照でない canonical と hreflang の併用は矛盾するため）。
-    // 同じ理由で <html lang> も ja のまま（中身が日本語なので zh と名乗るのは嘘になる）
-    const path = '/ja/blog/' + route.id;
+    // 「中国語版があるか」の判定は本文だけを見る（src/pages/blogSeo.ts の hasZhBody と同じ）。
+    // タイトルだけ訳して本文が日本語のままの記事を中国語版扱いにすると、
+    // 中国語のタイトルを開いたら日本語の記事だった、という一番がっかりする状態になる
+    const hasZh = typeof p.content_zh === 'string' && p.content_zh.trim() !== '';
+    const wantZh = route.lang === 'zh';
+    const zh = wantZh && hasZh;
+    const lang = zh ? 'zh' : 'ja';
+    const title = zh && p.title_zh ? p.title_zh : p.title;
+    const excerpt = (zh && p.excerpt_zh ? p.excerpt_zh : p.excerpt) || '';
+    const content = zh ? p.content_zh : p.content;
+    // canonical は**その記事に中国語版があるか**で決まる（表示中の言語ではない）。
+    //   中国語版あり → /ja も /zh もそれぞれ自己参照し、hreflang を出す
+    //   まだ無い     → 従来どおり /ja へ寄せ、hreflang は出さない
+    // 自己参照でない canonical と hreflang を併用すると矛盾する（src/pages/blogSeo.ts 冒頭）
+    const path = '/' + (hasZh ? (wantZh ? 'zh' : 'ja') : 'ja') + '/blog/' + route.id;
     return {
-      title: p.title + '｜川口・蕨バドミントン交流会',
-      description: p.excerpt || '川口・蕨エリアのバドミントン交流会の活動ブログ',
+      title: title + (zh ? '｜川口・蕨羽毛球交流会' : '｜川口・蕨バドミントン交流会'),
+      description: excerpt || (zh
+        ? '川口・蕨地区羽毛球交流会的活动博客'
+        : '川口・蕨エリアのバドミントン交流会の活動ブログ'),
       image: p.image_url && /^https?:/.test(p.image_url) ? p.image_url : null,
       url: pageUrl,
+      // 本文の言語を名乗る。中国語URLでも本文が日本語なら ja のまま（zhと名乗るのは嘘になる）
+      lang: lang,
       canonical: 'https://kawabado.com' + path,
+      alternates: hasZh ? {
+        ja: 'https://kawabado.com/ja/blog/' + route.id,
+        zh: 'https://kawabado.com/zh/blog/' + route.id,
+      } : null,
       body: {
-        h1: p.title,
-        lead: p.excerpt || '',
-        paragraphs: htmlToParagraphs(p.content, 2000),
+        h1: title,
+        lead: excerpt,
+        paragraphs: htmlToParagraphs(content, 2000),
       },
-      jsonLd: [breadcrumbJsonLd('ja', p.title, path)],
+      jsonLd: [breadcrumbJsonLd(lang, title, path)],
     };
   }
   return null;

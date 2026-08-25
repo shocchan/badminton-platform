@@ -7,12 +7,14 @@ import { useBlogPost } from '../hooks/useBlogPosts';
 import { supabase } from '../services/supabaseClient';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
-import { BLOG_META, blogCanonical, SITE } from './blogSeo';
+import {
+  BLOG_META, blogPostAlternates, blogPostCanonical, hasZhBody, pickBlogText, SITE,
+} from './blogSeo';
 
 /** HTML/Markdownから説明文を作る（excerptが無い記事のため） */
 const toDescription = (post: { excerpt?: string; content: string }) => {
   if (post.excerpt) return post.excerpt.slice(0, 120);
-  return post.content.replace(/<[^>]*>/g, ' ').replace(/[#*_>`\[\]()]/g, '')
+  return post.content.replace(/<[^>]*>/g, ' ').replace(/[#*_>`[\]()]/g, '')
     .replace(/\s+/g, ' ').trim().slice(0, 120);
 };
 
@@ -75,15 +77,27 @@ export const BlogDetailPage = () => {
 
   // 下書き・限定公開（unlisted）は検索結果に出さない
   const hidden = post.status === 'draft' || post.status === 'unlisted';
+  // 言語切替で中身ごと差し替える（2026-08-25）。中国語版が無い記事は日本語のまま出す
+  const t = pickBlogText(post, l);
+  const postHasZh = hasZhBody(post);
+  const description = toDescription({ excerpt: t.excerpt, content: t.content });
+  // canonical/hreflang は「その記事に中国語版があるか」で決まる（表示中の言語ではない）。
+  // 中国語版がある記事だけ ja/zh を相互に結ぶ。無い記事は /ja へ寄せて hreflang を出さない
+  // （自己参照でない canonical と hreflang の併用は矛盾する。詳細は blogSeo.ts 冒頭）
+  const canonical = blogPostCanonical(post.id, l, postHasZh);
+  // 下書き・限定公開は noindex を出しているので hreflang も出さない
+  // （検索に出さないと言いながら別言語版を案内するのは矛盾。広告用variant LPと同じ扱い）
+  const alternates = hidden ? null : blogPostAlternates(post.id, postHasZh);
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    headline: post.title,
-    description: toDescription(post),
+    headline: t.title,
+    description,
     datePublished: post.published_at || post.created_at,
     dateModified: post.updated_at || post.created_at,
-    inLanguage: 'ja',
-    mainEntityOfPage: blogCanonical(`blog/${post.id}`),
+    // 本文の言語を名乗る（UIの言語ではない）。中国語UIでも本文が日本語なら ja
+    inLanguage: t.lang,
+    mainEntityOfPage: canonical,
     ...(post.image_url && /^https?:/.test(post.image_url) ? { image: post.image_url } : {}),
     publisher: { '@id': 'https://kawabado.com/#organization' },
   };
@@ -91,19 +105,22 @@ export const BlogDetailPage = () => {
   return (
     <>
     <Helmet>
-      <html lang={l} />
-      <title>{`${post.title}｜${l === 'zh' ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会'}`}</title>
-      <meta name="description" content={toDescription(post)} />
+      {/* 本文の言語を名乗る。中国語UIでも本文が日本語なら ja（Worker側の素のHTMLと揃える） */}
+      <html lang={t.lang} />
+      <title>{`${t.title}｜${t.lang === 'zh' ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会'}`}</title>
+      <meta name="description" content={description} />
       <meta property="og:type" content="article" />
-      <meta property="og:title" content={post.title} />
-      <meta property="og:description" content={toDescription(post)} />
+      <meta property="og:title" content={t.title} />
+      <meta property="og:description" content={description} />
       <meta property="og:url" content={`${SITE}/${l}/blog/${post.id}`} />
-      <meta property="og:locale" content={l === 'zh' ? 'zh_CN' : 'ja_JP'} />
+      <meta property="og:locale" content={t.lang === 'zh' ? 'zh_CN' : 'ja_JP'} />
       {post.image_url && /^https?:/.test(post.image_url) && (
         <meta property="og:image" content={post.image_url} />
       )}
-      {/* 記事本文は日本語のみ。中国語URLは日本語版へ寄せる */}
-      <link rel="canonical" href={blogCanonical(`blog/${post.id}`)} />
+      <link rel="canonical" href={canonical} />
+      {alternates && <link rel="alternate" hrefLang="ja" href={alternates.ja} />}
+      {alternates && <link rel="alternate" hrefLang="zh" href={alternates.zh} />}
+      {alternates && <link rel="alternate" hrefLang="x-default" href={alternates.xDefault} />}
       {hidden && <meta name="robots" content="noindex,nofollow" />}
       {!hidden && <script type="application/ld+json">{JSON.stringify(articleSchema)}</script>}
     </Helmet>
@@ -111,7 +128,7 @@ export const BlogDetailPage = () => {
       <Breadcrumbs items={[
         { label: l === 'zh' ? '首页' : 'ホーム', path: `/${l}/` },
         { label: m.heading, path: `/${l}/blog` },
-        { label: post.title },
+        { label: t.title },
       ]} />
       {post.status === 'draft' && (
         <div className="mb-6 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl text-sm">
@@ -124,7 +141,7 @@ export const BlogDetailPage = () => {
       {post.image_url && (
         <img
           src={post.image_url}
-          alt={post.title}
+          alt={t.title}
           className="w-full h-64 md:h-96 object-cover rounded-2xl mb-8"
           style={{ objectPosition: post.image_position || 'center center' }}
         />
@@ -132,7 +149,17 @@ export const BlogDetailPage = () => {
 
       <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="text-sm text-gray-400 mb-3">{formatDate(post.created_at)}</div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{post.title}</h1>
+        {/* 中国語UIで日本語のまま出している記事。読み始める前に分かるよう見出しの上に置く */}
+        {t.showJaBadge && (
+          <p
+            data-testid="ja-badge"
+            className="mb-3 inline-flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium px-3 py-1.5 rounded-lg"
+          >
+            <span className="font-bold">{m.jaBadge}</span>
+            <span>{m.jaNotice}</span>
+          </p>
+        )}
+        <h1 lang={t.lang} className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{t.title}</h1>
         <style>{`
           .blog-content a { color: #2563eb; text-decoration: underline; }
           .blog-content a:hover { color: #1d4ed8; }
@@ -148,13 +175,17 @@ export const BlogDetailPage = () => {
           .blog-content code { background: #f3f4f6; padding: 0.1em 0.4em; border-radius: 3px; font-size: 0.9em; }
         `}</style>
         {post.content_type === 'markdown' ? (
-          <div className="prose prose-lg max-w-none text-gray-700 blog-content">
-            <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+          <div lang={t.lang} data-testid="blog-body" className="prose prose-lg max-w-none text-gray-700 blog-content">
+            <ReactMarkdown components={markdownComponents}>{t.content}</ReactMarkdown>
           </div>
         ) : (
           <div
+            lang={t.lang}
+            data-testid="blog-body"
             className="prose prose-lg max-w-none text-gray-700 blog-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
+            // content_zh は content と同じHTML骨格（scripts/blog/apply-zh.mjs がテキストノードだけ差し替える）。
+            // 訳文だけを別に流し込んでいるわけではないので、既存と同じ扱いでよい
+            dangerouslySetInnerHTML={{ __html: t.content }}
           />
         )}
 

@@ -327,6 +327,10 @@ const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   content: '',
   content_type: 'html',
   excerpt: '',
+  // 中国語版（2026-08-25）。空 = 未翻訳 → 中国語UIでも日本語のまま出る
+  title_zh: '',
+  excerpt_zh: '',
+  content_zh: '',
   image_url: '',
   tags: [],
   status: 'published',
@@ -1413,10 +1417,23 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         return plain ? plain.slice(0, 80) + (plain.length > 80 ? '…' : '') : undefined;
       })();
 
+      // 中国語欄（2026-08-25）。
+      // 空のまま常に送ると、title_zh 等の列がまだ無い環境（migration適用前のstaging等）で
+      // **中国語を1文字も使っていない記事の保存まで**落ちる。
+      // 入力があるとき、または元々値が入っていた（＝消す操作）ときだけ送る。
+      const zhField = (next?: string | null, prev?: string | null) => {
+        const v = (next ?? '').trim();
+        if (v) return v;
+        return (prev ?? '').trim() ? null : undefined;
+      };
+
       const cleanForm = {
         ...postForm,
         image_url: finalImageUrl || undefined,
         excerpt: autoExcerpt,
+        title_zh: zhField(postForm.title_zh, editingPost?.title_zh),
+        excerpt_zh: zhField(postForm.excerpt_zh, editingPost?.excerpt_zh),
+        content_zh: zhField(postForm.content_zh, editingPost?.content_zh),
         youtube_url: postForm.youtube_url || undefined,
         external_url: postForm.external_url || undefined,
         tags: postForm.tags?.length ? postForm.tags : [],
@@ -1456,6 +1473,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       content: p.content,
       content_type: p.content_type || 'html',
       excerpt: p.excerpt || '',
+      title_zh: p.title_zh || '',
+      excerpt_zh: p.excerpt_zh || '',
+      content_zh: p.content_zh || '',
       image_url: p.image_url || '',
       image_position: p.image_position || 'center center',
       tags: p.tags || [],
@@ -2100,6 +2120,56 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     ? <MarkdownEditor value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
                     : <RichEditor key={editingPost?.id ?? 'new'} value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
                   }
+                </div>
+
+                {/* ── 中国語版（2026-08-25） ──
+                    サイト右上の言語切替が zh のとき、ここに入れた内容に**丸ごと入れ替わる**。
+                    空のままなら日本語のまま表示され、一覧と記事に「日文」バッジが付く。
+                    AI翻訳ボタンは意図的に置いていない（検品していない訳がそのまま公開されるため）。 */}
+                <div className="border border-gray-200 rounded-2xl p-4 bg-gray-50/60 space-y-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="block text-sm font-bold text-gray-800">🇨🇳 中国語版（任意）</label>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      (postForm.content_zh ?? '').trim()
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}>
+                      {(postForm.content_zh ?? '').trim() ? '中国語で表示されます' : '未翻訳（日本語のまま表示）'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    本文を入れたときだけ中国語に切り替わります（タイトルだけ訳しても切り替わりません）。
+                    <br />
+                    会場名・大会名・店名・人名は<strong>日本語のまま</strong>残してください
+                    （例: 芝園公民館 / 蕨市民体育館 / 川口・蕨バド交流杯 / ばりかた屋）。
+                  </p>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">タイトル（中国語）</label>
+                    <input
+                      lang="zh"
+                      value={postForm.title_zh ?? ''}
+                      onChange={e => setPostForm(p => ({...p, title_zh: e.target.value}))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="第3回 川口・蕨バド交流杯 举办报告｜单打夜场"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">抜粋（中国語）</label>
+                    <input
+                      lang="zh"
+                      value={postForm.excerpt_zh ?? ''}
+                      onChange={e => setPostForm(p => ({...p, excerpt_zh: e.target.value}))}
+                      className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="文章概要（中文）..."
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">本文（中国語）</label>
+                    {postForm.content_type === 'markdown'
+                      ? <MarkdownEditor value={postForm.content_zh ?? ''} onChange={v => setPostForm(p => ({...p, content_zh: v}))} />
+                      : <RichEditor key={`zh-${editingPost?.id ?? 'new'}`} value={postForm.content_zh ?? ''} onChange={v => setPostForm(p => ({...p, content_zh: v}))} />
+                    }
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>

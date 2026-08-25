@@ -52,6 +52,13 @@ export interface BlogPost {
   content: string;
   content_type?: 'html' | 'markdown';
   excerpt?: string;
+  // 中国語版（2026-08-25）。同じ記事・同じ id のまま言語で表示を切り替える。
+  // NULL/空 = 未翻訳 → 中国語UIでも日本語のまま出し「日文」バッジを付ける
+  // （src/pages/blogSeo.ts の pickBlogLang が唯一の判定箇所）。
+  // content_zh は content と同じHTML骨格を保つ（scripts/blog/apply-zh.mjs が保証する）。
+  title_zh?: string | null;
+  excerpt_zh?: string | null;
+  content_zh?: string | null;
   image_url?: string;
   image_position?: string;
   tags?: string[];
