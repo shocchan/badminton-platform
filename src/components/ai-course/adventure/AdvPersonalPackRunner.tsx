@@ -118,9 +118,8 @@ export const AdvPersonalPackRunner = ({ lang, profile, onSave, onBack }: Props) 
             {item.kind === 'reading'
               ? tx(lang, `「${item.target}」の読み方は？`, `「${item.target}」怎么读？`)
               : item.kind === 'meaning'
-                ? (item.meaningZh
-                  ? tx(lang, `「${item.meaningZh}」に当たる表現は？`, `表示「${item.meaningZh}」的表达是哪个？`)
-                  : tx(lang, 'この意味に当たる表現は？', '哪个表达符合这个意思？'))
+                // 選択肢は中国語の意味。日本語の表現を選ばせると本文から写せてしまう（2026-08-24）
+                ? tx(lang, `「${item.target}」の意味は？`, `「${item.target}」是什么意思？`)
                 : tx(lang, `${CLOZE_BLANK} に入るのは？`, `${CLOZE_BLANK} 里应该填什么？`)}
           </p>
         </div>

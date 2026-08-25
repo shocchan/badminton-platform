@@ -92,6 +92,16 @@ const validatePack = (p) => {
       && it.promptJa.split(CLOZE_BLANK).length !== 2) {
       errs.push(`${at}.promptJa には空欄「${CLOZE_BLANK}」がちょうど1つ必要`);
     }
+    // 答えが例文に書いてあると、意味が分からなくても写すだけで正解できる（2026-08-24 CEO指摘）
+    if (typeof it.promptJa === 'string' && typeof it.answer === 'string' && it.answer
+      && it.promptJa.includes(it.answer)) {
+      errs.push(`${at}: 答え「${it.answer}」が例文にそのまま書いてある（写すだけで正解できる問題は出さない）`);
+    }
+    for (const d of ds) {
+      if (typeof it.promptJa === 'string' && it.promptJa.includes(d)) {
+        warns.push(`${at}: ダミー「${d}」が例文に出ている（消去法のヒントになる）`);
+      }
+    }
     // 以下は「発行はできるが、たいてい間違い」なので警告にとどめる
     if (it.kind === 'reading') {
       if (typeof it.target !== 'string' || !it.target) errs.push(`${at}.target（読ませる漢字語）が必要`);
@@ -103,8 +113,14 @@ const validatePack = (p) => {
       }
       for (const d of ds) if (!KANA.test(d)) warns.push(`${at}: ダミー「${d}」がひらがなでない`);
     }
-    if (it.kind === 'meaning' && !it.meaningZh) {
-      warns.push(`${at}: meaningZh が無い（中国語の手がかりが出ないので、何を問われているか分かりにくい）`);
+    // meaning は「日本語の表現 → 中国語の意味」を選ばせる向き（advPersonalPack.ts 冒頭）。
+    // 選択肢に日本語（かな）が混ざっていたら、向きを間違えている可能性が高い
+    if (it.kind === 'meaning') {
+      if (typeof it.target !== 'string' || !it.target) errs.push(`${at}.target（日本語の表現）が必要`);
+      const kana = /[ぁ-んァ-ヶ]/;
+      if (typeof it.answer === 'string' && kana.test(it.answer)) {
+        warns.push(`${at}: 答え「${it.answer}」に かな が入っている（meaning の答えは中国語の意味）`);
+      }
     }
   }
   for (const [i, s] of (p.passages ?? []).entries()) {

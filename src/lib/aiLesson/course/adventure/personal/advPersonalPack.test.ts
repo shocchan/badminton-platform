@@ -58,6 +58,19 @@ describe('restorePersonalPack', () => {
     expect(p?.items.map((i) => i.id)).toEqual(['d']);
   });
 
+  it('答えが例文にそのまま書いてある問題は落とす（写すだけで正解できるため）', () => {
+    const leaked = item('leak', {
+      kind: 'meaning', promptJa: '夢を叶えるためには、丈夫な体が必要です。', target: '夢を叶える',
+      answer: '夢を叶える', distractors: ['夢を見る', '夢が覚める'],
+    });
+    const fixed = item('fixed', {
+      kind: 'meaning', promptJa: '夢を叶えるためには、丈夫な体が必要です。', target: '夢を叶える',
+      answer: '实现梦想', distractors: ['做梦', '从梦中醒来'],
+    });
+    const p = restorePersonalPack(pack({ items: [leaked, fixed] }));
+    expect(p?.items.map((i) => i.id)).toEqual(['fixed']);
+  });
+
   it('出題が1問も残らないパックは入口を作らない（null）', () => {
     expect(restorePersonalPack(pack({ items: [] }))).toBeNull();
     expect(restorePersonalPacks([pack({ items: [] }), pack()])).toHaveLength(1);
@@ -203,6 +216,15 @@ describe('docs/ai-course/personal-packs の実データ', () => {
         expect(ids.has(i.id), `id重複: ${i.id}`).toBe(false);
         ids.add(i.id);
         expect(i.distractors, `${i.id}: 正解がダミーに混ざっている`).not.toContain(i.answer);
+        // 答えが例文に書いてあると、意味が分からなくても写すだけで正解できる
+        expect(i.promptJa, `${i.id}: 答え「${i.answer}」が例文にそのまま書いてある`).not.toContain(i.answer);
+        for (const d of i.distractors) {
+          expect(i.promptJa, `${i.id}: ダミー「${d}」が例文に出ている（消去法のヒントになる）`).not.toContain(d);
+        }
+        if (i.kind === 'meaning') {
+          // meaning は「日本語の表現 → 中国語の意味」。答えにかなが入っていたら向きが逆
+          expect(i.answer, `${i.id}: meaning の答えは中国語の意味`).not.toMatch(/[ぁ-んァ-ヶ]/);
+        }
         if (i.kind === 'reading') {
           // 読みの問題は、本人の文の中にその語がある＝自分の文章の復習になっている
           expect(i.promptJa, `${i.id}: 本文に「${i.target}」が無い`).toContain(i.target);

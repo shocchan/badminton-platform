@@ -28,8 +28,14 @@ import type { AdventureV2Profile } from '../advTypes';
 /**
  * 出題の型。
  * - reading: 漢字語の読み（例「船橋」→ ふなばし）
- * - meaning: 表現の意味（中国語の意味から日本語表現を選ぶ）
+ * - meaning: 表現の意味（日本語の表現 → **中国語の意味**を選ぶ）
  * - cloze:   本人の文の空欄に入る表現を選ぶ
+ *
+ * meaning の向きについて（2026-08-24 CEO指摘で反転）:
+ *   もとは「中国語の意味 → 日本語の表現を選ぶ」だったが、例文には
+ *   その表現がそのまま書いてあるので、**本文から答えを写すだけで正解できた**。
+ *   意味を分かっていなくても当たる問題は問題ではないので、向きを逆にした。
+ *   選択肢を中国語にすれば、例文をいくら読んでも答えは書いていない。
  */
 export type PersonalItemKind = 'reading' | 'meaning' | 'cloze';
 
@@ -49,9 +55,9 @@ export interface PersonalItem {
    * cloze は空欄記号 `＿＿` をちょうど1つ含む（含まないパックは発行時に弾く）
    */
   promptJa: string;
-  /** 何を問うているか（reading: 漢字語 / meaning・cloze: 表現）。画面の見出しに出す */
+  /** 何を問うているか（reading: 漢字語 / meaning: 日本語の表現 / cloze: 表現）。画面の見出しに出す */
   target: string;
-  /** 正解（reading: ひらがなの読み / meaning・cloze: 表現そのもの） */
+  /** 正解（reading: ひらがなの読み / meaning: **中国語の意味** / cloze: 表現そのもの） */
   answer: string;
   /** ダミーの選択肢。正解と混ぜてシャッフルする */
   distractors: string[];
@@ -273,6 +279,9 @@ const restoreItem = (v: unknown): PersonalItem | null => {
   if (distractors.length < MIN_DISTRACTORS) return null;
   // cloze は空欄がちょうど1つ無いと「どこに入れるのか」が分からない
   if (v.kind === 'cloze' && v.promptJa.split(CLOZE_BLANK).length !== 2) return null;
+  // **答えが問題文に書いてある問題は出さない**（2026-08-24 CEO指摘）。
+  // 例文をそのまま写せば正解できてしまい、分かっているかどうかを測れない
+  if (v.promptJa.includes(v.answer)) return null;
   return {
     id: v.id,
     kind: v.kind as PersonalItemKind,
