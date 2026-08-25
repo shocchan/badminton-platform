@@ -348,11 +348,16 @@ describe('フォーメーション', () => {
 // 7. 初回訪問と1行ヒント
 // ============================================================
 describe('初回訪問と1行ヒント', () => {
-  it('初回は矢印2本（サーブ＋カバー）が描かれた状態で開く', () => {
+  it('初回は選手4人だけ。矢印は入っていない', () => {
+    // 使う順番は「人の位置を決める → 自分で線を引く」なので、
+    // 先に線が入っていると消す手数から始まることになる（CEO判断 2026-08-25）
     const { board, firstVisit } = loadInitialBoard();
     expect(firstVisit).toBe(true);
-    expect(board.arrows).toHaveLength(2);
-    expect(board.arrows.map((a) => a.kind).sort()).toEqual(['move', 'shuttle']);
+    expect(board.arrows).toHaveLength(0);
+    expect(board.players).toHaveLength(4);
+    // 0人にはしない。何をする画面か分からなくなるため
+    expect(board.players.filter((p) => p.team === 'us')).toHaveLength(2);
+    expect(board.players.filter((p) => p.team === 'them')).toHaveLength(2);
   });
 
   it('2回目以降は前回の状態を読む', () => {
@@ -484,9 +489,20 @@ describe('画面', () => {
   });
 
   it('☰ の「矢印をぜんぶ消す」は効いて、シートが閉じて、「戻す」で戻る', () => {
+    // 初回は矢印ゼロになったので、消す対象がある状態＝2回目以降を作ってから試す。
+    // コートを指でなぞる操作は getBoundingClientRect が 0 を返す jsdom では再現できないため、
+    // 保存状態から読ませる（「2回目以降は前回の状態を読む」と同じやり方）
+    localStorage.setItem(LS_SEEN, '1');
+    localStorage.setItem(LS_LAST, JSON.stringify(snapshotOf({
+      ...baseState(),
+      arrows: [
+        { id: 'a1', kind: 'shuttle', fromX: 20, fromY: 90, toX: 80, toY: 20, curveX: 50, curveY: 55 },
+        { id: 'a2', kind: 'move', ownerId: 'a', fromX: 30, fromY: 70, toX: 30, toY: 50, curveX: 30, curveY: 60 },
+      ],
+    })));
     const { container } = render(<TacticsBoard />);
     const arrows = () => container.querySelectorAll('[data-arrow-hit]').length;
-    expect(arrows()).toBe(2); // 初回の見本（サーブ＋カバー）
+    expect(arrows()).toBe(2); // 前回の状態として矢印2本を読ませてある
 
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /矢印をぜんぶ消す/ }));

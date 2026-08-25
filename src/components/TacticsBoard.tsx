@@ -497,7 +497,7 @@ export function applyFormation(state: BoardState, key: FormationKey): BoardState
 }
 
 // ============================================================
-// 初期状態（初回は矢印2本ぶんの見本を置いておく）
+// 初期状態（選手の配置だけ。矢印は置かない）
 // ============================================================
 export const DEFAULT_PLAYERS: Player[] = [
   { id: "p1", type: "male", team: "us", x: 35, y: 74, label: "M1" },
@@ -506,18 +506,17 @@ export const DEFAULT_PLAYERS: Player[] = [
   { id: "p4", type: "female", team: "them", x: 65, y: 14, label: "F2" },
 ];
 
-/** 初回訪問用。サーブ1本＋前衛のカバー1本が最初から描いてある＝直すところから始められる */
+/**
+ * 初回訪問用。**選手を4人置くだけで、矢印は置かない**（CEO判断 2026-08-25）。
+ *
+ * 以前はサーブ1本＋カバー1本を描いておき「直すところから始められる」を狙っていたが、
+ * 実際に使う順番は「まず人の位置を決める → そのあと自分で線を引く」だった。
+ * 先に線が入っていると、消してから始めることになって手数が増える。
+ * 空のコートにしないのは、0人だと何をする画面か分からないため（人だけ置く）。
+ */
 export function seedBoard(): BoardState {
   const players = DEFAULT_PLAYERS.map((p) => ({ ...p }));
-  const serve: Arrow = {
-    id: "seed-serve", kind: "shuttle",
-    fromX: 62, fromY: 82, toX: 38, toY: 32, curveX: 50, curveY: 57,
-  };
-  const cover: Arrow = {
-    id: "seed-cover", kind: "move", ownerId: "p1",
-    fromX: 35, fromY: 74, toX: 30, toY: 58, curveX: 32.5, curveY: 66,
-  };
-  return { players, arrows: [serve, cover], flipped: false, selected: null };
+  return { players, arrows: [], flipped: false, selected: null };
 }
 
 export function loadInitialBoard(): { board: BoardState; firstVisit: boolean } {
@@ -553,7 +552,7 @@ export function hintFor(
     const a = state.arrows.find((x) => x.id === sel);
     if (a) return "矢印を選択中 — 真ん中の「○」を引くと曲げられます";
   }
-  if (opts.firstVisit) return "見本が入っています。選手を動かしてみてください";
+  if (opts.firstVisit) return "選手を動かして、コートをなぞると線が引けます";
   return "コートを指でなぞると、シャトルの軌道になります";
 }
 
