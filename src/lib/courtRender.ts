@@ -465,3 +465,53 @@ export async function shareScoreImage(opts: ScoreImageOptions) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+/**
+ * タイミングゲージ。着地点の少し上に横バーで「今どこか」を出す。
+ *
+ * 既存の縮むリングは着地点＝指を置く場所そのものに描かれるので、
+ * スマホでは一番見たい瞬間を自分の指が隠す。同じ情報を指の当たらない
+ * 位置に出すためのもので、リングは残したまま併用する。
+ *
+ * cx, cy は着地点。scale は遠近スケール。
+ * remainMs / hitWindowMs は evaluateSwingTiming に渡すのと同じ値。
+ * perfectZone は |err| < これ で Perfect になる閾値（rallyGame の PERFECT_ZONE）。
+ */
+export function drawTimingGauge(
+  ctx: CanvasRenderingContext2D,
+  cx: number,
+  cy: number,
+  scale: number,
+  remainMs: number,
+  hitWindowMs: number,
+  perfectZone: number,
+): void {
+  if (hitWindowMs <= 0) return;
+  const gw = 96 * scale;
+  const gh = 8 * scale;
+  const gx = cx - gw / 2;
+  const gy = cy - 62 * scale; // 指より上
+  const r = 5 * scale;
+
+  ctx.fillStyle = 'rgba(2,6,23,0.72)';
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(gx - 2, gy - 2, gw + 4, gh + 4, r);
+  } else {
+    ctx.rect(gx - 2, gy - 2, gw + 4, gh + 4);
+  }
+  ctx.fill();
+
+  // Perfect帯。evaluateSwingTiming と同じ式から出すので、
+  // 判定を変えたらこの帯も自動でついてくる（見た目と判定がずれない）
+  const half = perfectZone * 0.55;
+  const lo = 0.45 - half;
+  const hi = 0.45 + half;
+  ctx.fillStyle = 'rgba(253,224,71,0.85)';
+  ctx.fillRect(gx + gw * lo, gy, gw * (hi - lo), gh);
+
+  // 今の位置。残り時間が減るほど左へ進む
+  const t = Math.max(0, Math.min(1, remainMs / hitWindowMs));
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(gx + gw * t - 1.5 * scale, gy - 3 * scale, 3 * scale, gh + 6 * scale);
+}

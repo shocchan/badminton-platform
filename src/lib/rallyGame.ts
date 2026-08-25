@@ -20,11 +20,38 @@ export interface ShotDifficulty {
 const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 
+/**
+ * 最初の数球は「練習球」。操作を覚える前に終わらせない。
+ *
+ * 0ラリーで終わったプレイはクライアントが記録を捨てていた
+ * （RallyGamePage の `rallyCount < 1` ガード）。つまり「初球で空振りして
+ * そのまま帰った人」は数字に一度も現れていなかった。記録を直すのと同時に、
+ * 初球で終わらない作りにする。
+ *
+ * 判定そのものは緩めない。窓のうち87.8%は正常に返っており（ラリー数に
+ * よらず一定）、「打てたのに横に流れて死ぬ」は起きていないため。
+ * 効くのは「見て・動いて・振る」に必要な時間のほうなので、そこを足す。
+ */
+export const WARMUP_RALLIES = 3;
+
+export function isWarmupRally(rally: number): boolean {
+  return rally < WARMUP_RALLIES;
+}
+
 /** ラリー数と乱数 → その次にAIが打つショットの難易度 */
 export function difficultyForRally(
   rally: number,
   rng: () => number,
 ): ShotDifficulty {
+  if (isWarmupRally(rally)) {
+    return {
+      flightMs: 1800,
+      hitWindowMs: 420,
+      // 1球目は真ん中。2球目・3球目で少しずつ動かして、移動を体で覚えてもらう
+      courseSpread: rally * 0.12,
+      cornerBias: 0,
+    };
+  }
   // 出てくる最速球はラリーが進むほど厳しくなる（fastestが徐々に下がる）
   const fastest = clamp(1500 - rally * 32, 620, 1500);
   // 最遅球はゆるやかにしか絞らない（緩い球も後半まで混ぎる=緩急）
@@ -87,7 +114,7 @@ export function pickLanding(
 /** これを超えて返球が横に流れたらアウトミス（サイドラインを割る） */
 export const OUT_X = 0.98;
 /** |err| がこれ未満ならPerfect＝ブレなし */
-const PERFECT_ZONE = 0.35;
+export const PERFECT_ZONE = 0.35;
 /** 最大ブレ量（err=±1のとき） */
 const MAX_DEVIATION = 1.35;
 

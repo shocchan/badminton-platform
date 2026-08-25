@@ -16,7 +16,7 @@ import { Gamepad2, Gift, Target, Trophy, ChevronRight, Timer } from 'lucide-reac
 import RallyGame from '../components/RallyGame';
 import KnockGame from '../components/KnockGame';
 import RallyLotteryModal from '../components/RallyLotteryModal';
-import { LEGEND_RALLY, RALLY_RANKS } from '../lib/rallyGame';
+import { LEGEND_RALLY, RALLY_RANKS, WARMUP_RALLIES } from '../lib/rallyGame';
 import { getRallyBest } from '../lib/rallyBest';
 import {
   KNOCK_DURATION_MS,
@@ -57,7 +57,13 @@ export default function RallyGamePage() {
   );
 
   const handleGameEnd = (rallyCount: number) => {
-    if (rallyCount < 1) return;
+    // 0ラリーも必ず記録する。
+    // 以前はここで捨てていたため「初球で空振りしてそのまま帰った人」が
+    // 数字に一度も現れず、「166開始 / 93完了、44%が結果画面に未到達」の
+    // 相当部分がこの取りこぼしだった可能性が高い。
+    // サーバー側は rallyCount >= 0 を受理し、0本なら抽選0回・
+    // dailyLimited も false を返す（supabase/functions/rally-lottery/index.ts）ので、
+    // 記録だけが増えてモーダルは出ない。
 
     // プレイ記録と抽選はサーバーに任せる（15ラリー未満は抽選0回で記録のみ）
     const delay = new Promise((res) => setTimeout(res, LOTTERY_DELAY_MS));
@@ -149,7 +155,9 @@ function RallyPanels({
           <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-slate-600">
             <li>🏸 マウスでラケットをコート全面に移動（←→↑↓キーもOK）</li>
             <li>🎯 落下点に緑リングが縮んでくる。重なった瞬間にクリック / Space でスイング！</li>
-            <li>⚖️ ジャストなら「Perfect」。早い・遅いは打球が横に流れてアウトミスの危険</li>
+            <li>📊 落下点の上に出る横バーの黄色い帯が「Perfect」。指で隠れません</li>
+            <li>⚖️ 早い・遅いは打球が横に流れてアウトミスの危険</li>
+            <li>🔰 最初の{WARMUP_RALLIES}球は練習球。外してもゲームは終わりません</li>
             <li>💨 ラリーが続くほどシャトルは速く、コースはライン際に</li>
           </ul>
         </div>
@@ -250,10 +258,18 @@ function RallyHelp() {
           <li>🏸 指（またはマウス）でラケットをコート全面に移動。前後左右どこでも動ける</li>
           <li>🎯 シャトルの落下点に緑のリングが縮んでくる。重なった瞬間にタップでスイング！</li>
           <li>
+            📊 落下点の少し上に横バーが出る。白い印が黄色い帯に入っている間が「Perfect」。
+            リングと違って指で隠れないので、迷ったらこちらを見る
+          </li>
+          <li>
             ⚖️ タイミングがジャストなら「Perfect」。早い・遅いと打球が横に流れ、ラインを割ると「アウトミス」
           </li>
+          <li>
+            🔰 最初の{WARMUP_RALLIES}球は練習球。ゆっくり真ん中に来て、
+            外してもゲームは終わらない。ここで操作を覚えてから本番へ
+          </li>
           <li>💨 ラリーが続くほどシャトルは速く、コースはネット前から奥までライン際に</li>
-          <li>❌ 届かなければ「アウト」、外せば「空振り」、流れれば「アウトミス」でゲーム終了</li>
+          <li>❌ 練習球を抜けたあとは、届かなければ「アウト」、外せば「空振り」、流れれば「アウトミス」でゲーム終了</li>
           <li>🏆 スコアは到達ラリー数。まずは10ラリー、目指せ{LEGEND_RALLY}ラリー！</li>
         </ul>
       </div>
