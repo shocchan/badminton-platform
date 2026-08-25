@@ -519,12 +519,35 @@ export function seedBoard(): BoardState {
   return { players, arrows: [], flipped: false, selected: null };
 }
 
+/**
+ * 昔の見本の矢印につけていた固定ID。
+ * 自分で引いた矢印は uid() の乱数IDなので、この2つと衝突しない＝
+ * 「利用者が描いたもの」と確実に区別できる。
+ */
+const SEED_ARROW_IDS = new Set(["seed-serve", "seed-cover"]);
+
+/**
+ * 前回の状態から、昔の見本の矢印だけを取り除く。
+ *
+ * 見本の矢印を置くのをやめた（CEO判断 2026-08-25）が、それだけでは
+ * **一度でも開いたことのある端末では消えない**。前回の状態が localStorage に
+ * 残っていて、その中に見本の矢印が入っているため。
+ * seedBoard() を変えても新規の人にしか効かないので、ここで落とす。
+ *
+ * 保存スロット（LS_KEY）には手を出さない。あちらは利用者が意図して保存したもの。
+ */
+export function dropSeedArrows(snap: Snapshot | null): Snapshot | null {
+  if (!snap) return snap;
+  const arrows = snap.arrows.filter((a) => !SEED_ARROW_IDS.has(a.id));
+  return arrows.length === snap.arrows.length ? snap : { ...snap, arrows };
+}
+
 export function loadInitialBoard(): { board: BoardState; firstVisit: boolean } {
   try {
     const seen = localStorage.getItem(LS_SEEN);
     if (!seen) return { board: seedBoard(), firstVisit: true };
     const raw = localStorage.getItem(LS_LAST);
-    const snap = raw ? migrateSnapshot(JSON.parse(raw)) : null;
+    const snap = raw ? dropSeedArrows(migrateSnapshot(JSON.parse(raw))) : null;
     if (snap && snap.players.length > 0) return { board: { ...snap, selected: null }, firstVisit: false };
   } catch { /* 壊れていたら見本から始める */ }
   return { board: seedBoard(), firstVisit: false };

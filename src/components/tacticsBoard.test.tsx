@@ -36,6 +36,7 @@ import TacticsBoard, {
   hintFor,
   seedBoard,
   loadInitialBoard,
+  dropSeedArrows,
   arrowColor,
   isTacticsBoardRoute,
   LEGACY_MOVE_COLOR,
@@ -358,6 +359,35 @@ describe('初回訪問と1行ヒント', () => {
     // 0人にはしない。何をする画面か分からなくなるため
     expect(board.players.filter((p) => p.team === 'us')).toHaveLength(2);
     expect(board.players.filter((p) => p.team === 'them')).toHaveLength(2);
+  });
+
+  it('一度開いたことのある端末でも、昔の見本の矢印は消える', () => {
+    // seedBoard() から矢印を外しただけでは、すでに開いたことのある端末では消えない。
+    // 前回の状態が localStorage に残っていて、その中に見本の矢印が入っているため。
+    localStorage.setItem(LS_SEEN, '1');
+    localStorage.setItem(LS_LAST, JSON.stringify({
+      players: DEFAULT_PLAYERS.map((p) => ({ ...p })),
+      arrows: [
+        { id: 'seed-serve', kind: 'shuttle', fromX: 62, fromY: 82, toX: 38, toY: 32, curveX: 50, curveY: 57 },
+        { id: 'seed-cover', kind: 'move', ownerId: 'p1', fromX: 35, fromY: 74, toX: 30, toY: 58, curveX: 32.5, curveY: 66 },
+      ],
+      flipped: false,
+    }));
+    const { board } = loadInitialBoard();
+    expect(board.arrows).toHaveLength(0);
+    expect(board.players).toHaveLength(4); // 選手は消さない
+  });
+
+  it('自分で引いた矢印は消さない（乱数IDなので見本と区別できる）', () => {
+    const kept = dropSeedArrows({
+      players: [],
+      flipped: false,
+      arrows: [
+        { id: 'seed-serve', kind: 'shuttle', fromX: 1, fromY: 2, toX: 3, toY: 4, curveX: 2, curveY: 3 },
+        { id: 'x7k2a9', kind: 'shuttle', fromX: 1, fromY: 2, toX: 3, toY: 4, curveX: 2, curveY: 3 },
+      ],
+    })!;
+    expect(kept.arrows.map((a) => a.id)).toEqual(['x7k2a9']);
   });
 
   it('2回目以降は前回の状態を読む', () => {
