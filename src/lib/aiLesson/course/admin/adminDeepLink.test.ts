@@ -29,6 +29,13 @@ describe('URLの読み取り', () => {
     expect(parseAdminDeepLink('?tab=bogus&account=')).toEqual({ tab: null, account: null });
     expect(parseAdminDeepLink('?tab=ops')).toEqual({ tab: 'ops', account: null });
   });
+
+  // 消した画面のURLが生きていると、「無い」と言った画面に入れてしまう（2026-08-25 教材タブ削除）。
+  // 先行対応でタブのボタンだけ隠したときは ?tab=content がまだ通っていた。同じ穴を二度開けない。
+  it('削除した教材タブ（?tab=content）は無効な指定として扱う', () => {
+    expect(parseAdminDeepLink('?tab=content')).toEqual({ tab: null, account: null });
+    expect(initialAdminTab(parseAdminDeepLink('?tab=content'))).toBe('today');
+  });
 });
 
 describe('アカウントの解決', () => {

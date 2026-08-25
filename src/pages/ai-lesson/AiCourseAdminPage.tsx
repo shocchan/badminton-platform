@@ -41,7 +41,6 @@ import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
 import { AdminLpViewsCard } from '../../components/ai-course/admin/AdminLpViewsCard';
 import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
-import { AdminContentReviewTab } from '../../components/ai-course/admin/AdminContentReviewTab';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -53,7 +52,7 @@ import { AdminControlsPanel } from '../../components/ai-course/admin/AdminContro
 import type { AdminLearnerPatch } from '../../components/ai-course/admin/AdminControlsPanel';
 import type { CourseSessionRecord, ItemProgress } from '../../lib/aiLesson/course/types';
 
-type AdminTab = 'today' | 'students' | 'access' | 'ops' | 'content';
+type AdminTab = 'today' | 'students' | 'access' | 'ops';
 
 /**
  * タブと役割の一言説明（2026-08-19 CEO「受講権タブと生徒タブどう違う？」への恒久対応）。
@@ -65,15 +64,30 @@ const TABS: { id: AdminTab; label: string; desc: string; Icon: typeof Sun }[] = 
   { id: 'today', label: '今日', desc: '今日の要対応まとめ。学習した人・止まっている人・期限接近・矛盾がここに並びます', Icon: Sun },
   { id: 'students', label: '生徒', desc: '学習の中身。ログインして学習を始めた人の進捗を見る・調整する場所です', Icon: Users },
   { id: 'access', label: '受講権', desc: '契約の台帳。発行した全アカウント（未ログイン含む）の利用期間・商品を管理する場所です', Icon: KeyRound },
-  /* 「教材」タブは 2026-08-25 に CEO 判断で管理画面から外した。
+  /* 「教材」タブは 2026-08-25 に CEO 判断で管理画面から削除した（画面ごと・UIから完全に）。
      640件（語彙140・N2文法180・聴解320）を1件ずつ人の目で見る運用が現実的に回らなかったため。
-     **データも実装も消していない**。ai_content_reviews テーブル・ai_admin_set_content_review RPC・
-     AdminContentReviewTab.tsx・contentReviewQueue.ts はそのまま残してある。
-     復活させるときは lucide-react から BookOpenCheck を import し直し、この配列に次の1行を戻す:
-       { id: 'content', label: '教材', desc: '教材を1件ずつ人の目で確認する場所。語彙・N2文法・聴解の内容と音声をチェックします', Icon: BookOpenCheck },
-     機械チェックの結果は docs/ai-course/adventure-v2/zh-explanation-audit.json に残っており、
-     現行で有効な指摘は B_UNWANTED_JA 4件（中国語欄に日本語が混入）と C_UNCLEAR 97件。
-     この101件は未対応のまま。教材の品質を見る必要が出たら、まずそこを見ること。 */
+     8/25の先行対応ではタブのボタンだけ隠したが、?tab=content の直リンクで画面に入れたままで
+     コンポーネントもbundleに残っていた。「無い」と言った画面が実は開けるのがいちばん危ないので、
+     画面・API・一覧生成（AdminContentReviewTab / contentReviewApi / contentReviewQueue）ごと消した。
+     **DBは消していない**。ai_content_reviews テーブルと ai_admin_* RPC は
+     supabase/migrations/20260821200000_ai_content_reviews.sql のまま残っており、
+     これまでの判定・メモも全部残っている（追記専用なので履歴も無事）。
+     復活させるなら、この4ファイルを b28cb88 の1つ前から戻したうえで、
+       src/components/ai-course/admin/AdminContentReviewTab.tsx
+       src/lib/aiLesson/course/admin/contentReviewApi.ts
+       src/lib/aiLesson/course/admin/contentReviewQueue.ts
+       src/lib/aiLesson/course/admin/contentReviewQueue.test.ts
+     さらに以下を手で戻す必要がある（ファイルを戻すだけでは画面に出ない）:
+       ・この TABS 配列に
+         { id: 'content', label: '教材', desc: '教材レビューの進捗', Icon: BookOpenCheck }
+         を足し、lucide-react から BookOpenCheck を import し直す
+       ・AdminTab 型に 'content' を足し、AdminContentReviewTab の import と
+         {tab === 'content' && ...} のレンダー分岐を戻す
+       ・adminDeepLink.ts の AdminTabId と TABS に 'content' を足す
+         （adminDeepLink.test.ts の「?tab=content は無効」を守るテストも外す）
+     教材の品質を見たくなったときは640件を人力で見に行かないこと。機械チェックの結果が
+     docs/ai-course/adventure-v2/zh-explanation-audit.json にあり、現行で有効な指摘は
+     B_UNWANTED_JA 4件（中国語欄に日本語が混入）と C_UNCLEAR 97件。まずこの101件を見る。 */
   { id: 'ops', label: '運用', desc: '課題報告・AIコスト残高・上限設定・テストデータ削除', Icon: Wrench },
 ];
 
@@ -391,8 +405,6 @@ export default function AiCourseAdminPage() {
         {tab === 'access' && (
           <AdminAccessLedgerTab views={model.views} onSaved={reloadAccess} />
         )}
-
-        {tab === 'content' && <AdminContentReviewTab />}
 
         {tab === 'ops' && (
           <div className="space-y-4">

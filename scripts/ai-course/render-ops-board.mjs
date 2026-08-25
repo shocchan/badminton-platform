@@ -757,7 +757,9 @@ code{font-family:"IBM Plex Mono",monospace;font-size:12px}
   <h2>機械からの知らせ</h2>
   ${alertRows}
 
-  <p><a class="open-admin" href="${ADMIN}" target="_blank" rel="noopener">管理ページをひらく（発行・期間の変更・教材レビュー）</a></p>
+  <!-- 「教材レビュー」は 2026-08-25 に管理画面から削除したので、リンクの説明からも外す
+       （行き先に無いものを名前で誘導すると、探して見つからない時間が丸ごと無駄になる） -->
+  <p><a class="open-admin" href="${ADMIN}" target="_blank" rel="noopener">管理ページをひらく（発行・期間の変更・運用）</a></p>
 
   <small class="foot">
     名前を押すと、その人の管理画面が直接ひらきます。

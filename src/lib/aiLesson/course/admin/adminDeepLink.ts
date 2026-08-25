@@ -7,8 +7,10 @@
 //
 // URL: /ja/ai-course/admin?tab=students&account=<学習ID or メール or userId>
 
-export type AdminTabId = 'today' | 'students' | 'access' | 'content' | 'ops';
-const TABS: AdminTabId[] = ['today', 'students', 'access', 'content', 'ops'];
+// 'content'（教材レビュー）は 2026-08-25 に画面ごと削除した。ここに残すと
+// ?tab=content が「知らないタブ」ではなく有効な指定として通り、中身の無いタブを選んだ状態で開く。
+export type AdminTabId = 'today' | 'students' | 'access' | 'ops';
+const TABS: AdminTabId[] = ['today', 'students', 'access', 'ops'];
 
 export interface AdminDeepLink {
   /** 指定されたタブ。無ければ null */
