@@ -22,6 +22,7 @@ export const buildFunctionPlanCatalogSource = (): string => {
     accessDays: p.accessDays,
     aiMinutes: p.aiMinutes,
     realtimeWindowMinutes: p.realtimeWindowMinutes,
+    trialDays: p.trialDays ?? null,
     lessonCount: p.lessonCount,
     status: p.status,
   }));
@@ -38,6 +39,7 @@ export const buildFunctionPlanCatalogSource = (): string => {
     '  accessDays: number | null;',
     '  aiMinutes: number | null;',
     '  realtimeWindowMinutes: number | null;',
+    '  trialDays: number | null;',
     '  lessonCount: number;',
     '  status: string;',
     '}',

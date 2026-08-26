@@ -1,39 +1,51 @@
-// AI体験パスの開始画面（2026-08-20 CEO決定: リアルタイム60分制）。
+// AI体験パスの開始画面。
 //
-// 「開始ボタンを押したらそこから実時間60分。画面を閉じても・進まなくても止まらない」を
-// **押す前に**正直に伝える。押した瞬間にサーバーが valid_until を開始+60分へ書き換え、
-// 以降は既存の期間ゲートが自動で終了させる。
+// 2026-08-20: リアルタイム60分制で作った画面。
+// 2026-08-26（Phase S2）: **開始から7日間**へ変更。
+//   60分では、翌日以降にしか届かない間隔反復＝この商品の中心を体験できなかった。
+//   AI原価は時間ではなく回数（音声会話 合計3回）で抑えているので、日数化しても増えない。
+//
+// 旧仕様（実時間◯分）の受講権も残っているので、両方の言い方を出し分ける。
+// どちらの場合も「押した瞬間から始まる」ことを**押す前に**正直に伝える。
 import { useRef, useState } from 'react';
-import { Clock, Play, Loader2, AlertTriangle } from 'lucide-react';
+import { Clock, Play, Loader2, AlertTriangle, CalendarCheck } from 'lucide-react';
 import { startTrial } from '../../lib/aiLesson/course/courseAccess';
 import { formatUntilJst } from '../../lib/aiLesson/course/courseAccess';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 
-export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStarted }: {
+export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadlineISO, onStarted }: {
   lang: 'ja' | 'zh';
-  windowMinutes: number;
+  /** 日数制の体験（現行=7）。null＝旧仕様の実時間制 */
+  trialDays: number | null;
+  /** 実時間制の分数（旧仕様=60）。null＝日数制 */
+  windowMinutes: number | null;
   /** 開始の期限（購入+30日の valid_until） */
   startDeadlineISO: string;
   onStarted: () => void;
 }) {
   const zh = lang === 'zh';
+  const byDays = trialDays !== null;
+  // 計測に残す値。日数制は分数を持たないので0で埋めず、日数側を送る
+  const meta: Record<string, number> = byDays
+    ? { trial_days: trialDays }
+    : { window_minutes: windowMinutes ?? 0 };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const viewed = useRef(false);
   if (!viewed.current) {
     viewed.current = true;
-    trackCourse('view_ai_course_trial_start', { window_minutes: windowMinutes });
+    trackCourse('view_ai_course_trial_start', meta);
   }
 
   const begin = async () => {
     if (busy) return;
     setBusy(true);
     setError('');
-    trackCourse('click_ai_course_trial_start', { window_minutes: windowMinutes });
+    trackCourse('click_ai_course_trial_start', meta);
     const r = await startTrial();
     // 開始が**成功したとき**だけ trial_start を立てる（押した＝始まった、ではない・2026-08-23 監査）
-    if (r.ok) { logCourseEvent('trial_started', { window_minutes: windowMinutes }); trackCourse('start_ai_course_trial', { window_minutes: windowMinutes }); onStarted(); return; }
+    if (r.ok) { logCourseEvent('trial_started', meta); trackCourse('start_ai_course_trial', meta); onStarted(); return; }
     trackCourse('fail_ai_course_trial_start', { code: r.code ?? 'unknown' });
     // GA4だけでなく学習DB側にも残す（管理画面のファネルから見えるように・2026-08-26）
     logCourseEvent('error_occurred', { where: 'trial_start', code: r.code ?? 'unknown' });
@@ -50,28 +62,53 @@ export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStar
           <Clock className="w-7 h-7" aria-hidden="true" />
         </span>
         <h1 className="mt-3 text-xl font-extrabold text-gray-900">
-          {zh ? `准备好后，开始${windowMinutes}分钟的体验` : `準備ができたら、${windowMinutes}分の体験を始めましょう`}
+          {byDays
+            ? (zh ? `准备好后，开始${trialDays}天的体验` : `準備ができたら、${trialDays}日間の体験を始めましょう`)
+            : (zh ? `准备好后，开始${windowMinutes}分钟的体验` : `準備ができたら、${windowMinutes}分の体験を始めましょう`)}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600">
-          {zh
-            ? `按下开始按钮后，将从那一刻起计时${windowMinutes}分钟。期间内AI会话・语法战斗・教材都可以随意使用。`
-            : `開始ボタンを押すと、その瞬間から実時間で${windowMinutes}分のカウントが始まります。時間内はAI会話・文法バトル・教材を自由に使えます。`}
+          {byDays
+            ? (zh
+              ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。AI语音会话共3次（每天最多2次），语法战斗・教材・冒险随意使用。`
+              : `開始ボタンを押すと、その日から${trialDays}日間使えます。AI音声会話は合計3回（1日2回まで）、文法バトル・教材・冒険は使い放題です。`)
+            : (zh
+              ? `按下开始按钮后，将从那一刻起计时${windowMinutes}分钟。期间内AI会话・语法战斗・教材都可以随意使用。`
+              : `開始ボタンを押すと、その瞬間から実時間で${windowMinutes}分のカウントが始まります。時間内はAI会話・文法バトル・教材を自由に使えます。`)}
         </p>
 
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
-          <p className="flex items-start gap-2 text-[13px] leading-relaxed text-amber-900">
-            <AlertTriangle className="mt-0.5 w-4 h-4 shrink-0" aria-hidden="true" />
-            <span>
-              {zh
-                ? '计时开始后不会暂停（关闭页面・中途离开也会继续计时）。请在有整段时间时开始。'
-                : 'カウントは一時停止できません（画面を閉じても・離席しても進みます）。まとまった時間があるときに始めてください。'}
-            </span>
-          </p>
-        </div>
+        {byDays ? (
+          /* 日数制でいちばん伝えるべきは「一気にやらなくていい」。
+             1日で終わらせると、この教室の中心である翌日の復習に出会えない */
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left">
+            <p className="flex items-start gap-2 text-[13px] leading-relaxed text-emerald-900">
+              <CalendarCheck className="mt-0.5 w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>
+                {zh
+                  ? '不用一天做完。今天说过的表达，第二天会以复习的形式再出现一次——这才是这个教室最核心的部分。'
+                  : '1日で終わらせなくて大丈夫です。今日話した表現は、翌日に復習として出てきます。そこがこの教室のいちばん効くところです。'}
+              </span>
+            </p>
+          </div>
+        ) : (
+          <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left">
+            <p className="flex items-start gap-2 text-[13px] leading-relaxed text-amber-900">
+              <AlertTriangle className="mt-0.5 w-4 h-4 shrink-0" aria-hidden="true" />
+              <span>
+                {zh
+                  ? '计时开始后不会暂停（关闭页面・中途离开也会继续计时）。请在有整段时间时开始。'
+                  : 'カウントは一時停止できません（画面を閉じても・離席しても進みます）。まとまった時間があるときに始めてください。'}
+              </span>
+            </p>
+          </div>
+        )}
         <p className="mt-2 text-[12px] text-gray-500">
-          {zh
-            ? '目标设定与水平诊断已经完成，不计入体验时间。60分钟全部用于学习。'
-            : '目標設定とレベル診断はもう終わっています（体験時間には含まれません）。60分はまるごと学習に使えます。'}
+          {byDays
+            ? (zh
+              ? '目标设定与水平诊断已经完成，不计入体验期间。'
+              : '目標設定とレベル診断はもう終わっています（体験期間には含まれません）。')
+            : (zh
+              ? '目标设定与水平诊断已经完成，不计入体验时间。60分钟全部用于学习。'
+              : '目標設定とレベル診断はもう終わっています（体験時間には含まれません）。60分はまるごと学習に使えます。')}
         </p>
 
         <button type="button" onClick={() => void begin()} disabled={busy}
@@ -79,7 +116,9 @@ export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStar
           {busy ? <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" /> : <Play className="w-5 h-5" aria-hidden="true" />}
           {busy
             ? (zh ? '正在开始…' : '開始しています…')
-            : (zh ? `开始体验（${windowMinutes}分钟）` : `体験を始める（${windowMinutes}分）`)}
+            : byDays
+              ? (zh ? `开始体验（${trialDays}天）` : `体験を始める（${trialDays}日間）`)
+              : (zh ? `开始体验（${windowMinutes}分钟）` : `体験を始める（${windowMinutes}分）`)}
         </button>
         {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
 

@@ -1,86 +1,115 @@
-// 体験（600円）で「届かない約束」をしていないか（2026-08-26 ファネル監査 P0）。
+// 600円体験の説明が、実際の仕様と合っているか。
 //
-// 【背景】
-// 体験の受講権は ai_start_trial で valid_until = 開始 + trial_window_minutes（60分）に
-// なる。つまり体験は**実時間で同じ日のうちに終わる**。
-// 一方この商品の中心は「忘れかけた頃にもう一度出す」間隔反復で、
-// 復習は翌日以降に届く。この2つは正面からぶつかる。
+// 【この一日で二度書き換わっている。経緯を残す】
+// 2026-08-26 午前:
+//   体験は「体験を始める」から**実時間60分**で切れる仕様だった。
+//   ところが LP は「翌日の復習が自動でつくられる」と書き、レポートは
+//   「次の復習: 8/27」という**体験では絶対に来ない日付**を出していた。
+//   お金を払った人に届かない約束を見せていたので、**言い方**を仕様に寄せた。
 //
-// 実際に、LPの「体験でできること」に「翌日の復習が自動でつくられる」と書かれ、
-// レポート画面も「次の復習: 8/27」と、体験では絶対に来ない日付を出していた。
-// お金を払った人に、届かない約束を見せていたことになる。
+// 2026-08-26 午後（CEO指示 Phase S2）:
+//   逆向きの判断。**仕様のほう**を直した。体験を開始から7日間にして、
+//   間隔反復（＝この商品の中心）を体験できるようにした。
+//   実測: 唯一の体験購入者は4個が復習予定に入り、1個も受け取れていない。
 //
-// 直し方は「体験を延ばす」ではない（それは商品と価格の変更で、CEO判断）。
-// **言い方を実際の仕様に合わせる**。この判断が巻き戻らないよう機械で固定する。
+// したがってこのテストが守るのは「60分と書くこと」でも「7日と書くこと」でもなく、
+// **カタログ（planCatalog）と画面の文言がずれないこと**。
+// 期間をまた変えるなら、カタログを直せばここが落ちて全部の文言に気づける。
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { LP } from './lpContent';
+import { planById } from '../../../lib/aiLesson/course/plans/planCatalog';
 
-/** 体験の説明で使ってはいけない言い方（そのままだと「体験中に届く」と読める） */
-const FORBIDDEN_JA = ['翌日の復習が自動でつくられる', '翌日また'];
-const FORBIDDEN_ZH = ['第二天的复习会自动生成'];
+const TRIAL = planById('ai-trial-pass')!;
 
-describe('600円体験の説明が実際の仕様と合っている', () => {
-  it('ja: 体験の中身で「翌日の復習が届く」と読める言い方をしていない', () => {
-    const steps = LP.trialContents.steps.ja.join('\n');
-    for (const ng of FORBIDDEN_JA) expect(steps).not.toContain(ng);
+describe('体験の期間が、カタログと画面で一致している', () => {
+  it('カタログは日数制（実時間制と二重に持たない）', () => {
+    expect(TRIAL.trialDays, '体験の日数がカタログに無い').toBeTruthy();
+    expect(TRIAL.realtimeWindowMinutes, '日数制と実時間制を同時に持たせない').toBeNull();
   });
 
-  it('zh: 同上', () => {
-    const steps = LP.trialContents.steps.zh.join('\n');
-    for (const ng of FORBIDDEN_ZH) expect(steps).not.toContain(ng);
+  it('LPの注記にカタログと同じ日数が書いてある', () => {
+    const days = String(TRIAL.trialDays);
+    expect(LP.trialContents.note.ja).toContain(`${days}日間`);
+    expect(LP.trialContents.note.zh).toContain(`${days}天`);
   });
 
-  it('復習は「予定に入る」までを言い、届くのは続けたときだと書いてある', () => {
-    expect(LP.trialContents.steps.ja.join('')).toContain('続けたとき');
-    expect(LP.trialContents.steps.zh.join('')).toContain('继续之后');
+  it('FAQの回答もカタログと同じ日数を言っている（LPの中で食い違わせない）', () => {
+    const days = String(TRIAL.trialDays);
+    const faqJa = LP.faq.items.ja.map((f) => f.a).join('\n');
+    const faqZh = LP.faq.items.zh.map((f) => f.a).join('\n');
+    expect(faqJa).toContain(`${days}日間`);
+    expect(faqZh).toContain(`${days}天`);
+    // 旧仕様の数字が残っていないこと
+    expect(faqJa).not.toContain('開始から60分');
+    expect(faqZh).not.toContain('开始后的60分钟');
   });
 
-  it('体験の長さ（開始から60分）が注記に書いてある', () => {
-    expect(LP.trialContents.note.ja).toContain('60分');
-    expect(LP.trialContents.note.zh).toContain('60分');
+  it('体験の中身に「翌日の復習」が入っている（日数制にした理由そのもの）', () => {
+    const stepsJa = LP.trialContents.steps.ja.join('');
+    const stepsZh = LP.trialContents.steps.zh.join('');
+    expect(stepsJa).toContain('翌日');
+    expect(stepsZh).toContain('第二天');
+  });
+
+  it('「届くのは続けたとき」という旧仕様向けの但し書きが残っていない', () => {
+    // 7日あるので体験中に届く。残っていると、逆向きの嘘になる
+    expect(LP.trialContents.steps.ja.join('')).not.toContain('続けたとき');
+    expect(LP.trialContents.steps.zh.join('')).not.toContain('继续之后才会送到');
   });
 
   it('時計が「体験を始める」から動くことは書いたまま（既存仕様の維持）', () => {
     expect(LP.trialContents.note.ja).toContain('体験を始める');
     expect(LP.trialContents.note.zh).toContain('开始体验');
   });
+
+  it('音声会話の回数が書いてある（日数制では回数のほうが上限）', () => {
+    expect(LP.trialContents.note.ja).toContain('3回');
+    expect(LP.trialContents.note.zh).toContain('3次');
+  });
 });
 
-describe('レポート画面が体験中に来ない日付を出さない', () => {
+describe('復習日の見せ方が受講権の実態に従う', () => {
   const REPORT = readFileSync('src/components/ai-course/CourseReport.tsx', 'utf8');
-  const code = REPORT.split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n');
+  const PAGE = readFileSync('src/pages/ai-lesson/AiCoursePage.tsx', 'utf8');
+  const ACCESS = readFileSync('src/lib/aiLesson/course/courseAccess.ts', 'utf8');
+  const HOME = readFileSync('src/components/ai-course/CourseHome.tsx', 'utf8');
 
-  it('体験中は次の復習日を出さない分岐がある', () => {
-    expect(code).toContain('realtimeTrial');
-    // 日付を出す2箇所とも体験中は通らないこと
-    expect(code).toMatch(/realtimeTrial \? \([\s\S]{0,400}nextReviewTrial/);
-    expect(code).toMatch(/data\.nextReviewISO && !realtimeTrial/);
+  it('「翌日が来ない体験か」の判定が1か所にある', () => {
+    // 画面ごとに trial_window_minutes を直接見ていると、仕様を変えた後も
+    // 「体験は今日まで」と言い続ける画面が必ず残る
+    expect(ACCESS).toContain('export const reviewUnreachable');
+    expect(ACCESS).toMatch(/trialShapeOf\(row\)\.kind === 'minutes'/);
   });
 
-  it('体験かどうかは受講権の trial_window_minutes で判定している（推測しない）', () => {
-    const page = readFileSync('src/pages/ai-lesson/AiCoursePage.tsx', 'utf8');
-    expect(page).toMatch(/realtimeTrial=\{!!accessRow\?\.trialWindowMinutes\}/);
+  it('レポートとホームは、その判定だけを見る（自前で推測しない）', () => {
+    expect(PAGE).toContain('realtimeTrial={reviewUnreachable(accessRow)}');
+    expect(PAGE).not.toMatch(/realtimeTrial=\{!!accessRow\?\.trialWindowMinutes\}/);
+    expect(REPORT).toContain('realtimeTrial');
+    expect(HOME).toContain('realtimeTrial ? th.limitReachedTrial : th.limitReached');
+  });
+
+  it('日数制では復習日を隠さない（届くのに隠すのは逆向きの嘘）', () => {
+    // reviewUnreachable が minutes のときだけ true ＝ 7日制では通常表示に戻る
+    expect(ACCESS).toMatch(/reviewUnreachable[\s\S]{0,200}'minutes'/);
+  });
+
+  it('会話開始の残時間ガードは実時間制のときだけ効く', () => {
+    // 7日制で「残り4分未満だから会話を出さない」は起きえない
+    expect(PAGE).toMatch(/trialTooShortForConversation[\s\S]{0,300}reviewUnreachable\(accessRow\)/);
   });
 });
 
-describe('体験中に「明日また」と言わない', () => {
-  const HOME = readFileSync('src/components/ai-course/CourseHome.tsx', 'utf8');
-  const PAGE = readFileSync('src/pages/ai-lesson/AiCoursePage.tsx', 'utf8');
-
-  it('ホームの上限案内が体験中は別文言になる', () => {
-    expect(HOME).toContain('realtimeTrial ? th.limitReachedTrial : th.limitReached');
-    expect(PAGE).toMatch(/realtimeTrial=\{!!accessRow\?\.trialWindowMinutes\}/);
-  });
-
-  it('体験用の文言に「明日」が入っていない', () => {
+describe('体験用の文言に「明日」を書かない（旧仕様の受講権が残っているため）', () => {
+  it('上限案内の体験用文言に「明日」が入っていない', () => {
     const loc = readFileSync('src/locales/aiCourse.ts', 'utf8');
     const ja = /limitReachedTrial: '([^']+)'/.exec(loc)?.[1] ?? '';
-    expect(ja).not.toContain('明日');
     expect(ja.length).toBeGreaterThan(0);
+    expect(ja).not.toContain('明日');
   });
 
   it('会話開始の上限側も体験中は別文言（2026-08-20の対応が残っている）', () => {
+    const PAGE = readFileSync('src/pages/ai-lesson/AiCoursePage.tsx', 'utf8');
     expect(PAGE).toContain('inRealtimeTrial && dailyCapped');
   });
 });

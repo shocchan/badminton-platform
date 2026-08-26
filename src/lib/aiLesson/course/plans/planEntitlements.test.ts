@@ -38,8 +38,8 @@ describe('権限マトリクス', () => {
     }
   });
 
-  it('体験パスだけリアルタイム60分の窓を持つ（累計上限はどのプランにも無い）', () => {
-    expect(entitlementsFor('ai-trial-pass').realtimeWindowMinutes).toBe(60);
+  it('リアルタイム窓はどのプランも持たない（2026-08-26 に体験パスも日数制へ移行）', () => {
+    expect(entitlementsFor('ai-trial-pass').realtimeWindowMinutes).toBeNull();
     expect(entitlementsFor('ai-month').realtimeWindowMinutes).toBeNull();
     expect(entitlementsFor('coach-6m').realtimeWindowMinutes).toBeNull();
     for (const id of ['ai-trial-pass', 'ai-month', 'coach-6m'] as const) {

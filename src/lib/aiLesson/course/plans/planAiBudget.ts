@@ -80,8 +80,12 @@ export const PLAN_AI_BUDGETS: Record<PlanId, PlanAiBudget> = {
   'ai-trial-pass': {
     planId: 'ai-trial-pass',
     voiceSessionsTotal: 3,
-    voiceSessionsPerDay: 3,       // 実時間60分の枠内なので日次は実質効かない
-    textSessionsPerDay: 10,
+    // 2026-08-26（日数制へ移行）: 3→2。合計3回は変えず、初日に使い切って
+    // 翌日の復習＝この商品の中心に出会えないのを防ぐための配分
+    voiceSessionsPerDay: 2,
+    // 10→5。テキストは1日あたりの上限しかないので、7日化で原価が伸びる。
+    // 10のままだと原価率58.7%（上限60%まで余裕¥8）、5なら54.3%
+    textSessionsPerDay: 5,
     maxAiCostRatio: 0.60,
     rationale:
       '集客商品。ここは原価率が高くてよい（買ってもらうための費用）。'
@@ -147,13 +151,24 @@ export const planEconomics = (planId: PlanId): PlanEconomics => {
   const b = aiBudgetFor(planId);
   /**
    * 何日ぶん使われうるか。
-   * リアルタイム制（体験パス）は**実時間60分で終わる**ので、accessDays の30日ではない。
-   * ここを30日で計算すると、実際には起こりえない原価を積んで商品を殺してしまう
+   *
+   * accessDays は「いつまでに開始できるか」の期限であって、使える日数ではない。
+   * ここを取り違えると、実際には起こりえない原価を積んで商品を殺す
    * （最初の実装がそれで、体験パスが原価率87%と出た）。
+   *
+   * 優先順:
+   *   trialDays            … 日数制の体験（2026-08-26〜。開始から7日）
+   *   realtimeWindowMinutes … 実時間制の体験（2026-08-20〜08-26 の旧仕様）
+   *   accessDays           … 通常プラン（購入日から暦日で数える商品）
+   *
+   * ⚠️ 音声は合計回数で頭打ちだが、**テキストは1日あたりの上限しかない**。
+   * つまり期間を伸ばすとテキストぶんの原価は伸びる。日数を正しく入れること。
    */
-  const days = plan.realtimeWindowMinutes !== null
-    ? plan.realtimeWindowMinutes / (24 * 60)
-    : (plan.accessDays ?? ASSUMED_DAYS_WHEN_UNSET);
+  const days = plan.trialDays != null
+    ? plan.trialDays
+    : plan.realtimeWindowMinutes !== null
+      ? plan.realtimeWindowMinutes / (24 * 60)
+      : (plan.accessDays ?? ASSUMED_DAYS_WHEN_UNSET);
 
   const voiceMinutes = b.voiceSessionsTotal * (VOICE_SESSION_MAX_SECONDS / 60);
   const voiceUsd = voiceMinutes * VOICE_USD_PER_MINUTE;

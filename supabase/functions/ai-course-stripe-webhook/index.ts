@@ -89,7 +89,13 @@ const buyerMail = (input: {
   const price = ja ? plan.priceLabelJa : plan.priceLabelZh;
   const duration = ja ? plan.durationLabelJa : plan.durationLabelZh;
   const loginUrl = `${STUDENT_SITE}/${locale}/ai-course/login`;
-  const trialNote = plan.realtimeWindowMinutes !== null
+  const trialNote = plan.trialDays !== null
+    ? (ja
+      ? `・ログイン後に「体験を始める」を押すと、そこから${plan.trialDays}日間ご利用いただけます（開始は購入後30日以内）\n`
+        + `・AI先生との音声会話は合計3回まで（1日2回まで）。翌日の復習まで一周ためせます\n`
+      : `・登录后按下「开始体验」，即可从那一刻起使用${plan.trialDays}天（请在购买后30天内开始）\n`
+        + `・AI老师的语音会话共3次（每天最多2次）。可以完整体验到第二天的复习\n`)
+    : plan.realtimeWindowMinutes !== null
     ? (ja
       ? `・ログイン後に「体験を始める」を押すと、そこから${plan.realtimeWindowMinutes}分間ご利用いただけます（開始は購入後30日以内・途中で閉じてもカウントは止まりません）\n`
       : `・登录后按下「开始体验」，即可从那一刻起使用${plan.realtimeWindowMinutes}分钟（请在购买后30天内开始・中途关闭页面计时也不会停止）\n`)
@@ -539,7 +545,10 @@ serve(async (req: Request) => {
           plan_version: plan.version,
           source: "purchase",
           ai_seconds_limit: plan.aiMinutes !== null ? plan.aiMinutes * 60 : null,
-          // リアルタイム体験（開始ボタンから実時間◯分）。開始前は valid_until=購入+30日が開始期限
+          // 体験の長さ。開始前は valid_until=購入+30日が「開始の期限」で、
+          // 「体験を始める」を押した時点で valid_until が 開始+日数（旧仕様は+分数）に書き換わる。
+          // 2026-08-26 から日数制（7日）。60分では翌日の復習＝商品の中心を体験できなかった
+          trial_days: plan.trialDays,
           trial_window_minutes: plan.realtimeWindowMinutes,
           trial_started_at: null,
           purchase_id: row.id,

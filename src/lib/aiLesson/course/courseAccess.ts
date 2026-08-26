@@ -17,8 +17,14 @@ export interface CourseAccessRow {
   aiSecondsLimit?: number | null;
   /** リアルタイム体験の分数（AI体験パス=60）。null＝リアルタイム制ではない */
   trialWindowMinutes?: number | null;
-  /** 体験の開始時刻。null＝未開始（開始画面を出す）。開始で valid_until が開始+分数になる */
+  /** 体験の開始時刻。null＝未開始（開始画面を出す）。開始で valid_until が開始+日数（旧: +分数）になる */
   trialStartedAtISO?: string | null;
+  /**
+   * 体験の有効日数（AI体験パス=7・2026-08-26 Phase S2）。
+   * null＝旧仕様（trialWindowMinutes の実時間制）。
+   * 60分では翌日以降にしか届かない間隔反復＝この商品の中心を体験できなかった。
+   */
+  trialDays?: number | null;
 }
 
 export type CourseAccessState =
@@ -45,7 +51,7 @@ export const accessStateOf = (
 export const fetchMyAccess = async (): Promise<CourseAccessRow | null> => {
   const { data, error } = await supabase
     .from('ai_course_access')
-    .select('valid_from, valid_until, note, plan_id, ai_seconds_limit, trial_window_minutes, trial_started_at')
+    .select('valid_from, valid_until, note, plan_id, ai_seconds_limit, trial_window_minutes, trial_days, trial_started_at')
     .maybeSingle();
   if (error || !data) return null;
   return {
@@ -55,6 +61,7 @@ export const fetchMyAccess = async (): Promise<CourseAccessRow | null> => {
     planId: (data.plan_id as string) ?? null,
     aiSecondsLimit: (data.ai_seconds_limit as number) ?? null,
     trialWindowMinutes: (data.trial_window_minutes as number) ?? null,
+    trialDays: (data.trial_days as number) ?? null,
     trialStartedAtISO: (data.trial_started_at as string) ?? null,
   };
 };
@@ -88,6 +95,39 @@ export const fetchAccessState = async (nowISO = new Date().toISOString()): Promi
   const [row, admin] = await Promise.all([fetchMyAccess(), fetchIsSiteAdmin()]);
   return accessStateOf(row, nowISO, admin);
 };
+
+/**
+ * 体験の形（2026-08-26 Phase S2）。
+ *
+ * 「体験かどうか」と「翌日の復習が届くか」は別の問いなので、判定をここ1か所に集める。
+ * 画面ごとに trial_window_minutes を直接見ていると、7日制へ移った後も
+ * 「体験は今日まで」と言い続ける画面が必ず残る。
+ *
+ *   days    … 開始から◯日間（現行の体験パス。翌日の復習まで届く）
+ *   minutes … 開始から実時間◯分（2026-08-20〜08-26 の旧仕様。翌日が来ない）
+ *   none    … 体験ではない（1か月・6か月・手動発行）
+ */
+export type TrialShape =
+  | { kind: 'days'; days: number }
+  | { kind: 'minutes'; minutes: number }
+  | { kind: 'none' };
+
+export const trialShapeOf = (row: CourseAccessRow | null | undefined): TrialShape => {
+  if (row?.trialDays) return { kind: 'days', days: row.trialDays };
+  if (row?.trialWindowMinutes) return { kind: 'minutes', minutes: row.trialWindowMinutes };
+  return { kind: 'none' };
+};
+
+/** 体験そのものか（日数制・分数制のどちらでも true） */
+export const isTrialAccess = (row: CourseAccessRow | null | undefined): boolean =>
+  trialShapeOf(row).kind !== 'none';
+
+/**
+ * 翌日以降の復習が**届かない**体験か。
+ * 実時間制（旧仕様）だけが true。ここが true の画面では復習日を約束しない。
+ */
+export const reviewUnreachable = (row: CourseAccessRow | null | undefined): boolean =>
+  trialShapeOf(row).kind === 'minutes';
 
 /** 期限の見せ方（JSTの日付）。期限そのものはUTCで保存されている */
 export const formatUntilJst = (iso: string, lang: 'ja' | 'zh'): string => {

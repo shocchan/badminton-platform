@@ -60,16 +60,34 @@ describe('カタログの形', () => {
     }
   });
 
-  it('**体験パスはリアルタイム60分制**（CEO決定 2026-08-20。累計制は廃止）', () => {
-    expect(planById('ai-trial-pass')!.realtimeWindowMinutes).toBe(60);
-    expect(planById('ai-trial-pass')!.aiMinutes).toBeNull();
+  /*
+   * 2026-08-20 は「リアルタイム60分制」だったが、2026-08-26（Phase S2）に日数制へ移した。
+   * 60分では、翌日以降にしか届かない間隔反復＝この商品の中心を体験できなかったため。
+   * 実測: 唯一の体験購入者は4個が復習予定に入り、1個も受け取れていない。
+   */
+  it('**体験パスは日数制（開始から7日）**（CEO決定 2026-08-26）', () => {
+    const trial = planById('ai-trial-pass')!;
+    expect(trial.trialDays).toBe(7);
+    // 日数制と実時間制を同時に持たせない（どちらで切れるのかが読めなくなる）
+    expect(trial.realtimeWindowMinutes).toBeNull();
+    expect(trial.aiMinutes).toBeNull();
+    expect(planById('ai-month')!.trialDays ?? null).toBeNull();
+    expect(planById('coach-6m')!.trialDays ?? null).toBeNull();
     expect(planById('ai-month')!.realtimeWindowMinutes).toBeNull();
     expect(planById('coach-6m')!.realtimeWindowMinutes).toBeNull();
     // 文言もカタログの数字と食い違わないこと
-    expect(planById('ai-trial-pass')!.durationLabelJa).toContain('開始から60分');
+    expect(trial.durationLabelJa).toContain('開始から7日');
+    expect(trial.durationLabelZh).toContain('7天');
   });
 
-  it('買い切りプラン（60分・1か月）は購入日から30日間', () => {
+  it('体験パスは「翌日の復習まで体験できる」ことを商品説明に書いている', () => {
+    // これが書けないなら日数制にした意味がない（買う理由がそこにある）
+    const trial = planById('ai-trial-pass')!;
+    expect(trial.featuresJa.join('')).toContain('翌日の復習');
+    expect(trial.featuresZh.join('')).toContain('第二天的复习');
+  });
+
+  it('買い切りプラン（体験パス・1か月）は購入日から30日間', () => {
     expect(planById('ai-trial-pass')!.accessDays).toBe(30);
     expect(planById('ai-month')!.accessDays).toBe(30);
     // 6か月コースは開始日を人が決める（日数固定にしない）
@@ -276,6 +294,9 @@ const planHash = (id: string): string => {
     p.accessDays, p.autoRenew, p.notIncludedJa, p.notIncludedZh,
     p.audienceJa, p.audienceZh, p.ctaLabelJa, p.ctaLabelZh,
     p.contentRegionLimit, p.realtimeWindowMinutes,
+    // 2026-08-26: 体験の日数。買う人が得るものを決める値なので版の対象に入れる
+    // （入れないと「7日→3日」に変えても指紋が動かず、据え置きを検出できない）
+    p.trialDays ?? null,
   ]);
   return createHash('sha256').update(material).digest('hex').slice(0, 12);
 };
@@ -290,12 +311,17 @@ const planHash = (id: string): string => {
  * **一度でも公開したら、以後は必ず version を上げること。**
  */
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
-  // 2026-08-23 AI音声会話の回数を明記（CEO決定）。「使い放題」をやめ、
-  // 無制限のもの（教材・冒険・バトル・模試）と回数のあるもの（音声会話）を分けて書いた。
-  // 価格・期間は不変。trial v4 / month v3 / coach v5
-  'ai-trial-pass': { version: 4, hash: 'aa91e71c6385' },
-  'ai-month': { version: 3, hash: '788198db26dc' },
-  'coach-6m': { version: 5, hash: '69196c3fc405' },
+  // 2026-08-26 体験パスを実時間60分 → **開始から7日間**（CEO決定 Phase S2）。
+  // 60分では、翌日以降にしか届かない間隔反復＝この商品の中心を体験できなかった。
+  // 価格は据え置き（600円）。音声会話の合計3回も据え置き。
+  // trial v4→v5。month / coach は内容不変だが、版の材料に trialDays を足したため
+  // ハッシュだけ動いている（買う人が見る内容は同じなので version は据え置き）。
+  // 2026-08-26 Phase S4/S5: 6か月コースを「AI＋レッスン24回」から**伴走サービス**の
+  // 言い方へ（coach v5→v6）。月額プランを「人のレッスンは要らない人の選択肢」と
+  // 位置づけ直した（month v3→v4）。**価格は3プランとも据え置き**。
+  'ai-trial-pass': { version: 5, hash: 'ed3013c44b99' },
+  'ai-month': { version: 4, hash: '935211600582' },
+  'coach-6m': { version: 6, hash: '0f01b399c240' },
 };
 
 describe('プランの版', () => {
