@@ -12,6 +12,7 @@ import { HumanCoachSection, TestimonialsSection } from './sectionsC';
 import { PricingSection, PlanComparisonSection, PlanFitSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
+import { WhyNotAiOnlySection } from './sectionsWhy';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
@@ -198,17 +199,31 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
           clip 未対応の古いブラウザは inline style が無効になり className の hidden に落ちる */}
       <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
       <main>
-        {/* 2026-08-19 再構成: FV → 悩み → 人×AIの仕組み → 学習システム実物 →
-            毎日のステップ → 6か月ロードマップ → 料金3プラン＋比較 → あなたに合うプラン →
-            人間コーチ → 受講生 → FAQ → 最終CTA（12セクション） */}
+        {/*
+          2026-08-26 再構成（CEO指示 Phase S3）: **なぜこれを選ぶのかを理解してから値段を見る**順番へ。
+          直前まで、価格表が6番目・人間コーチの紹介が9番目だった。読む人は
+          この商品の唯一の代替不可能な部分を見る前に金額を見ていたことになる。
+          中国語圏には安価なAI会話アプリが大量にあるので、その状態で価格を出すと
+          「AIアプリなのに高い」という比較で終わる。
+
+          並び:
+            ① 悩み → ② 日本生活の場面 → ③ なぜAIアプリだけでは足りないか
+            → ④ 仕組み → ⑤ AIと人の役割 → ⑥ コーチ紹介 → ⑦ 学習サイクル
+            → ⑧ 600円体験 → ⑨ 6か月ロードマップ → ⑩ 料金 → ⑪ 比較・向き不向き
+            → ⑫ 受講生 → ⑬ FAQ → ⑭ 最終CTA
+          既存セクションは1つも削っていない（順番と、新設1つだけ）。
+        */}
         <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
         <PriceTeaserStrip lang={lang} variant={v.key} />
         <PainPointsSection lang={lang} />
-        {/* 悩みの直後に「その悩みが出る場面」を置く（2026-08-26）。
-            機能の説明より先に、自分の生活を思い浮かべてもらう */}
+        {/* 悩みの直後に「その悩みが出る場面」。機能の説明より先に自分の生活を思い浮かべてもらう */}
         <LifeScenesSection lang={lang} />
-        <AiHumanRolesSection v={v} lang={lang} />
+        {/* ここで「AIと話せます」だけの商品との違いを先に言う。競合は攻撃しない */}
+        <WhyNotAiOnlySection lang={lang} />
         <PlatformFeatures lang={lang} />
+        <AiHumanRolesSection v={v} lang={lang} />
+        {/* 役割の話の直後に、その「人」が誰なのかを出す。**価格表より前**であることが要点 */}
+        <HumanCoachSection lang={lang} />
         <DailyLearningFlow v={v} lang={lang} />
         {/* 料金の直前に「600円で何が起きるか」。金額を見る前に中身を知ってもらう */}
         <TrialContentsSection lang={lang} />
@@ -217,7 +232,6 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
           onApply={setApplyPlanId} preview={planPreview} />
         <PlanComparisonSection lang={lang} />
         <PlanFitSection lang={lang} />
-        <HumanCoachSection lang={lang} />
         <TestimonialsSection lang={lang} />
         <FaqSection lang={lang} />
         <FinalCtaSection v={v} lang={lang} onConsult={openConsult} />

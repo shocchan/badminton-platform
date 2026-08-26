@@ -51,6 +51,18 @@ const buildBlocks = (lang: Lang): Block[] => {
     ],
   });
 
+  // なぜAI会話アプリだけでは足りないか（2026-08-26 Phase S3）。
+  // 検索でもAI回答でも「AI 日本語 会話 アプリ」と比べられる位置にいるので、
+  // 違いを本文として読める状態にしておく
+  blocks.push({
+    h: LP.whyNotAiOnly.heading[lang],
+    p: [
+      LP.whyNotAiOnly.lead[lang],
+      ...LP.whyNotAiOnly.items[lang].map((i) => `${i.gap}: ${i.body}`),
+      LP.whyNotAiOnly.close[lang],
+    ],
+  });
+
   blocks.push({
     h: LP.roles.heading[lang],
     p: [

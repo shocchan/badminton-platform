@@ -31,7 +31,8 @@ describe('販売LPの本文prerender', () => {
     const text = flat(lang);
     // 「H1/Hero/悩み/利用シーン/特徴/600円体験/roadmap/pricing/FAQ を取得可能に」の担保
     for (const heading of [
-      LP.pain.heading[lang], LP.scenes.heading[lang], LP.roles.heading[lang],
+      LP.pain.heading[lang], LP.scenes.heading[lang],
+      LP.whyNotAiOnly.heading[lang], LP.roles.heading[lang],
       LP.features.heading[lang], LP.flow.heading[lang], LP.trialContents.heading[lang],
       LP.roadmap.heading[lang], LP.pricing.heading[lang], LP.faq.heading[lang],
     ]) {
