@@ -9,6 +9,7 @@ import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
 import type { CanDoStage } from '../../lib/aiLesson/course/courseCanDo';
 import { pickRetryTarget } from '../../lib/aiLesson/course/courseRetry';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { TestimonialPrompt } from './TestimonialPrompt';
 import { CourseRetryCard } from './CourseRetryCard';
 import { CourseIllustration } from './CourseIllustration';
 import { ShokoAvatar } from './ShokoAvatar';
@@ -67,9 +68,14 @@ interface Props {
    * 間隔をあけて再会させる学習設計そのものは変えていない。
    */
   realtimeTrial?: boolean;
+  /**
+   * この人の会話セッション累計（2026-08-26 Phase S7）。
+   * 感想を聞くタイミングの判断だけに使う。分からなければ 0（聞かない）。
+   */
+  sessionCount?: number;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa, realtimeTrial = false }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa, realtimeTrial = false, sessionCount = 0 }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
@@ -82,6 +88,14 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
    * 既存のGA4イベントに同じ意味のものが無かったので、ここだけ新設した。
    * 体験中は日付を出さないが、予定そのものは入るので記録は行う。
    */
+  /*
+   * 感想を聞く（2026-08-26 Phase S7）。
+   * 毎回聞くと邪魔なので **3回目以降の会話が終わったときだけ** 出す。
+   * 1回目・2回目はまだ「何が良かったか」を言葉にできる段階ではない。
+   * 閉じたらこの画面が生きている間は二度と出さない。送信は1日1件（サーバー側）。
+   */
+  const [askFeedback, setAskFeedback] = useState(() => sessionCount >= 3);
+
   const reviewLogged = useRef(false);
   useEffect(() => {
     if (reviewLogged.current || !data.nextReviewISO) return;
@@ -235,6 +249,11 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                       {r.naturalPhrases.map((p, i) => <li key={i} className="text-sm text-gray-800">💬 {p}</li>)}
                     </ul>
                   </div>
+                )}
+                {/* 感想を聞く（任意・閉じられる）。掲載の許諾は別チェックで既定OFF */}
+                {askFeedback && (
+                  <TestimonialPrompt lang={zh ? 'zh' : 'ja'} context="report"
+                    onClose={() => setAskFeedback(false)} />
                 )}
                 {/* 日本で使える場面（2026-08-26）。学習を生活につなぐ一文。無ければ出さない */}
                 {(zh ? r.usableSceneZh || r.usableSceneJa : r.usableSceneJa) && (
