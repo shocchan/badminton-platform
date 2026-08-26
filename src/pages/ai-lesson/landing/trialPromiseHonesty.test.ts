@@ -63,3 +63,24 @@ describe('レポート画面が体験中に来ない日付を出さない', () =
     expect(page).toMatch(/realtimeTrial=\{!!accessRow\?\.trialWindowMinutes\}/);
   });
 });
+
+describe('体験中に「明日また」と言わない', () => {
+  const HOME = readFileSync('src/components/ai-course/CourseHome.tsx', 'utf8');
+  const PAGE = readFileSync('src/pages/ai-lesson/AiCoursePage.tsx', 'utf8');
+
+  it('ホームの上限案内が体験中は別文言になる', () => {
+    expect(HOME).toContain('realtimeTrial ? th.limitReachedTrial : th.limitReached');
+    expect(PAGE).toMatch(/realtimeTrial=\{!!accessRow\?\.trialWindowMinutes\}/);
+  });
+
+  it('体験用の文言に「明日」が入っていない', () => {
+    const loc = readFileSync('src/locales/aiCourse.ts', 'utf8');
+    const ja = /limitReachedTrial: '([^']+)'/.exec(loc)?.[1] ?? '';
+    expect(ja).not.toContain('明日');
+    expect(ja.length).toBeGreaterThan(0);
+  });
+
+  it('会話開始の上限側も体験中は別文言（2026-08-20の対応が残っている）', () => {
+    expect(PAGE).toContain('inRealtimeTrial && dailyCapped');
+  });
+});

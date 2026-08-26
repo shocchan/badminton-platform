@@ -217,6 +217,9 @@ const ja = {
     welcomeBack: 'おかえりなさい。今日はここから、また始めましょう。',
     // 上限到達（完了扱い・前向きに）
     doneForTodayTitle: '今日はここまでで大丈夫です',
+    // 体験（実時間60分）には「明日」が無い（2026-08-26）
+    doneForNowTitle: 'AI会話はここまでです',
+    limitReachedTrial: 'のこりの体験時間は、語彙バトルと教材で学べます。',
     // 人間コーチの可視化（静的文言＋メール窓口のみ・§B-1）
     profileTitle: (name: string) => (name ? `${name}さんの日本語ノート` : 'あなたの日本語ノート'),
     coachCardTitle: '安田コーチも伴走します',
@@ -1817,6 +1820,8 @@ const zh: AiCourseDict = {
     welcomeBack: '欢迎回来。今天就从这里重新开始吧。',
     // 达到今日上限（当作完成・积极表述）
     doneForTodayTitle: '今天学到这里就可以了',
+    doneForNowTitle: 'AI会话到这里结束',
+    limitReachedTrial: '剩余的体验时间可以用词汇战斗和教材继续学习。',
     // 真人教练的可视化（静态文言＋邮件窗口・§B-1）
     profileTitle: (name: string) => (name ? `${name}的日语笔记` : '你的日语笔记'),
     coachCardTitle: '安田教练也会陪伴你的学习',

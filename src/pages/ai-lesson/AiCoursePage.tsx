@@ -1702,6 +1702,8 @@ export default function AiCoursePage() {
           syncVocabUrl({ view: v, category: null, itemId: null });
           setStep('vocab');
         }}
+        /* 体験（実時間制）では「明日また続けましょう」が嘘になる（2026-08-26） */
+        realtimeTrial={!!accessRow?.trialWindowMinutes}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });

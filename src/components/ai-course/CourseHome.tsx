@@ -69,6 +69,13 @@ interface Props {
   onOpenVocab: (view?: 'top' | 'daily' | 'quickreview') => void;
   /** アバター承認/作り直し（settings更新・§Avatar2） */
   onUpdateAvatarSettings: (patch: Partial<LearnerSettings>) => void;
+  /**
+   * 実時間制の体験（600円）で学習しているか（2026-08-26）。
+   * 上限到達の案内が「明日また続けましょう」になっていたが、
+   * 体験は開始から60分で切れるので明日は無い。残り時間でできることを言う。
+   * 会話の開始上限側は 2026-08-20 に対応済みで、こちらはホーム表示側。
+   */
+  realtimeTrial?: boolean;
 }
 
 export const CourseHome = ({
@@ -79,6 +86,7 @@ export const CourseHome = ({
   recovery = null, onResumeActive, onDiscardActive, onCancelRecovery,
   onStart, onResume, onDiscardResume, onSeeGrowth, onSeePastNotes, onPreview, onStartLight,
   sessions, onOpenNotebook, onUpdateAvatarSettings, onOpenLab, onOpenVocab,
+  realtimeTrial = false,
 }: Props) => {
   const th = t.home; const tg = t.growth;
   const zh = t.locale === 'zh';
@@ -198,8 +206,12 @@ export const CourseHome = ({
             {learner.isActive ? (
               <>
                 {/* 上限到達＝「完了」として前向きに（§B-4） */}
-                <p className="text-sm text-white font-bold">{th.doneForTodayTitle}</p>
-                <p className="text-xs text-blue-100 mt-1">{th.limitReached}</p>
+                <p className="text-sm text-white font-bold">
+                  {realtimeTrial ? th.doneForNowTitle : th.doneForTodayTitle}
+                </p>
+                <p className="text-xs text-blue-100 mt-1">
+                  {realtimeTrial ? th.limitReachedTrial : th.limitReached}
+                </p>
               </>
             ) : (
               <p className="text-sm text-blue-50 font-medium">{t.limits.learner_suspended}</p>
