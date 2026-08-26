@@ -1,7 +1,7 @@
 // レッスン後レポート（UX改訂）。最初に見せるのは「完了＋できたこと＋直す点1つ」だけ。
 // 詳細（訂正全件・自然な言い方・定着状態・XP内訳）は「詳しく見る」に折り畳む（§10）。
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown, MapPin } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
@@ -75,6 +75,19 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
   const r = data.report;
   const [rated, setRated] = useState(false);
   const [open, setOpen] = useState(false); // 詳細の開閉
+
+  /*
+   * 復習が実際に予定された、をファネルに残す（2026-08-26 Phase S1）。
+   * 「レポートを見た」ではなく「次に会う日が入った」ときだけ。
+   * 既存のGA4イベントに同じ意味のものが無かったので、ここだけ新設した。
+   * 体験中は日付を出さないが、予定そのものは入るので記録は行う。
+   */
+  const reviewLogged = useRef(false);
+  useEffect(() => {
+    if (reviewLogged.current || !data.nextReviewISO) return;
+    reviewLogged.current = true;
+    trackCourse('schedule_ai_course_review', { review_kind: data.masteryState });
+  }, [data.nextReviewISO, data.masteryState]);
 
   const usageLine = r.targetUsage === 'self' ? tr.usageSelf : r.targetUsage === 'hint' ? tr.usageHint : tr.usageNone;
   /*

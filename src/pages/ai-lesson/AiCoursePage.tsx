@@ -25,6 +25,7 @@ import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
 import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
+import { linkAttributionToUser } from '../../lib/aiLesson/course/attribution';
 import { ApplicationModal } from './landing/ApplicationModal';
 import type { PlanId } from '../../lib/aiLesson/course/plans/planCatalog';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
@@ -361,6 +362,13 @@ export default function AiCoursePage() {
       trackCourseOnce('view_ai_course_home');
       // 自社DB側の再訪記録（GA4と違い管理画面のファネルに出る）。日次集計なので重複送信は無害
       logCourseEvent('app_open');
+      /*
+       * このブラウザの流入元を本人に紐付ける（2026-08-26 Phase S1）。
+       * ここまで来た＝ログイン済みなので、未ログインのまま積んだ
+       * LP閲覧・CTA・checkout開始が「誰の行動だったか」つながる。
+       * 1ブラウザ1回で足り、付け替えはサーバー側が拒否する。
+       */
+      linkAttributionToUser();
     } else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
     else if (step === 'history') trackCourse('open_ai_course_review');
     else if (step === 'notebook') trackCourse('view_ai_course_notebook'); // 名前・本文は送らない

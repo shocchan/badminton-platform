@@ -8,6 +8,7 @@
 // - 金額はクライアントから送らない（サーバーが自分のカタログから読む）
 import type { PlanConfig, PlanId } from './planCatalog';
 import { getReferralCode } from '../../../analytics';
+import { anonId, firstTouch } from '../attribution';
 
 const SUPA_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -37,11 +38,27 @@ export type StartCheckoutResult =
  * 紹介コード（`?ref=`）も同じ入れ物で送る（2026-08-23）。
  * 台帳の `utm` 列（jsonb）へそのまま入るので、**新しい列もmigrationも要らない**。
  */
+/**
+ * 購入に添える流入元。
+ *
+ * 従来は sessionStorage の kb_utm だけを見ていたが、これは**タブを閉じると消える**。
+ * 中国語圏の実際の導線は「小紅書で知る → 何日か考える → あとで買う」なので、
+ * その間に流入元が落ちて全部が直接流入に見えていた（実測: UTM付き0件）。
+ * 2026-08-26 から localStorage の first-touch を優先し、無ければ従来値に落とす。
+ */
 const storedUtm = (): Record<string, string> | undefined => {
   try {
-    const utm = JSON.parse(sessionStorage.getItem('kb_utm') ?? '{}') as Record<string, string>;
+    const legacy = JSON.parse(sessionStorage.getItem('kb_utm') ?? '{}') as Record<string, string>;
+    const ft = firstTouch();
+    const fromTouch: Record<string, string> = {};
+    if (ft?.source) fromTouch.utm_source = ft.source;
+    if (ft?.medium) fromTouch.utm_medium = ft.medium;
+    if (ft?.campaign) fromTouch.utm_campaign = ft.campaign;
+    if (ft?.content) fromTouch.utm_content = ft.content;
+    if (ft?.term) fromTouch.utm_term = ft.term;
     const ref = getReferralCode();
-    const merged = ref ? { ...utm, ref } : utm;
+    // first-touch を後ろに置いて優先させる（消えない側を正とする）
+    const merged = { ...legacy, ...fromTouch, ...(ref ? { ref } : {}) };
     return Object.keys(merged).length > 0 ? merged : undefined;
   } catch { return undefined; }
 };
@@ -66,7 +83,8 @@ export const startCheckout = async (planId: PlanId, locale: 'ja' | 'zh'): Promis
         apikey: ANON_KEY,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({ planId, locale, utm: storedUtm() }),
+      // anonId は購入行に焼き付けて ai_attribution へ join できるようにする（個人情報ではない）
+      body: JSON.stringify({ planId, locale, utm: storedUtm(), anonId: anonId() }),
     });
     if (res.status === 503) return { ok: false, reason: 'not_ready' };
     if (!res.ok) return { ok: false, reason: 'rejected' };
