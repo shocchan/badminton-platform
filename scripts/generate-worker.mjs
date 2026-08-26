@@ -363,6 +363,11 @@ async function buildOgpMeta(route, env, pageUrl) {
       url: pageUrl,
       lang: route.lang,
       canonical: 'https://kawabado.com/' + route.lang + '/ai-course',
+      // ja/zh は同じ販売ページの言語版。宣言が無いと別ページ扱いされる（2026-08-26）
+      alternates: {
+        ja: 'https://kawabado.com/ja/ai-course',
+        zh: 'https://kawabado.com/zh/ai-course',
+      },
       // 素のHTML本文が212文字しかなかった問題への対応（2026-08-26）
       noscriptHtml: lpNoscriptHtml(route.lang),
     };

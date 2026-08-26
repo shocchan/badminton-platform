@@ -86,3 +86,64 @@ describe('体験終了後のアップグレード画面', () => {
     expect(screen.queryByText(/クレジットカードで購入/)).toBeNull();
   });
 });
+
+/* ── 「あなたの現在地」（2026-08-26 ファネル監査 P1） ──────────────
+   この画面はいきなり値段3つの表だった。60分やり切った直後に見たいのは
+   値段ではなく自分が何をしたかで、続きを買う理由もそこにしかない。
+   実データだけを出し、0件の項目は成果として見せない。
+   数字は本番の実在の体験購入者（会話2回・398秒・復習4件）を模したもの。 */
+describe('体験終了画面の「あなたの現在地」', () => {
+  // cleanup は上の describe に閉じているので、この block にも要る
+  // （無いとDOMが積み上がり「同じ文字が複数ある」で落ちる）
+  beforeEach(() => { canStartCheckout.mockReturnValue(true); });
+  afterEach(() => cleanup());
+
+  const real = {
+    conversations: 2, spokenSeconds: 398, saidIndependently: 1,
+    expressions: ['〜といいます', '〜に住んでいます'],
+    scheduledForReview: 4, nextExpression: '〜といいます', hasAnything: true,
+  };
+
+  /** 「話した時間」などのラベルに対応する数値を、その組から取り出す */
+  const statValue = (label: string): string => {
+    const dt = screen.getByText(label);
+    return (dt.parentElement?.querySelector('dd')?.textContent ?? '').trim();
+  };
+
+  it('話した時間・回数・表現の数を実データで出す', () => {
+    render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}} summary={real} />);
+    expect(screen.getByText('この60分であなたがやったこと')).toBeTruthy();
+    expect(statValue('話した時間')).toBe('7分');      // 398秒 → 7分（切り上げず四捨五入）
+    expect(statValue('会話した回数')).toBe('2回');
+    expect(statValue('練習した表現')).toBe('2個');
+  });
+
+  it('「続き」は売り文句ではなく、実際に予定されていた次の再会を書く', () => {
+    render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}} summary={real} />);
+    expect(screen.getByText(/「〜といいます」など 4 個の表現/)).toBeTruthy();
+    expect(screen.getByText(/続けたときに届きます/)).toBeTruthy();
+  });
+
+  it('自分から言えた回数が0なら、その行を出さない（0を成果にしない）', () => {
+    render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}}
+      summary={{ ...real, saidIndependently: 0 }} />);
+    expect(screen.queryByText(/自分から目標表現を使えました/)).toBeNull();
+  });
+
+  it('まとめが取れなければ何も出さない（作り話をしない）', () => {
+    render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}} summary={null} />);
+    expect(screen.queryByText('この60分であなたがやったこと')).toBeNull();
+  });
+
+  it('中身が空なら出さない', () => {
+    render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}}
+      summary={{ ...real, hasAnything: false }} />);
+    expect(screen.queryByText('この60分であなたがやったこと')).toBeNull();
+  });
+
+  it('中国語でも同じ内容が出る', () => {
+    render(<TrialEndedUpgrade lang="zh" onApply={() => {}} onLogout={() => {}} summary={real} />);
+    expect(screen.getByText('你在这60分钟里做到的')).toBeTruthy();
+    expect(screen.getByText(/这部分要继续才会送到你手上/)).toBeTruthy();
+  });
+});
