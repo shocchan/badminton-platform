@@ -3,7 +3,7 @@
 //
 // 守りたいのは:
 // - **その場で3択が出る**（LPの先頭へ戻さない＝決めやすい瞬間を捨てない）
-// - 60分・1か月は**クレジット決済へ直行**、6か月は**連絡先フォーム**（人が対応する商品）
+// - 体験パス・1か月は**クレジット決済へ直行**、6か月は**連絡先フォーム**（人が対応する商品）
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
@@ -37,7 +37,7 @@ describe('体験終了後のアップグレード画面', () => {
       const v = planView(p, 'ja');
       expect(screen.getByText(v.name), v.id).toBeTruthy();
     }
-    expect(screen.getByText(/60分の体験が終了しました/)).toBeTruthy();
+    expect(screen.getByText(/体験期間が終了しました/)).toBeTruthy();
   });
 
   it('価格・期間はカタログの表示をそのまま出す', () => {
@@ -47,7 +47,7 @@ describe('体験終了後のアップグレード画面', () => {
     expect(screen.getByText(trial.durationLabel)).toBeTruthy();
   });
 
-  it('**60分パスはクレジット決済へ直行する**', async () => {
+  it('**体験パスはクレジット決済へ直行する**', async () => {
     startCheckout.mockResolvedValue({ ok: false, reason: 'network' }); // 遷移させない
     const { onApply } = setup();
     fireEvent.click(screen.getAllByRole('button', { name: /クレジットカードで購入/ })[0]);
@@ -72,7 +72,7 @@ describe('体験終了後のアップグレード画面', () => {
     expect(startCheckout).not.toHaveBeenCalled();
   });
 
-  it('決済が無効な環境では60分・1か月も申込フォームへ倒れる', () => {
+  it('決済が無効な環境では体験パス・1か月も申込フォームへ倒れる', () => {
     canStartCheckout.mockReturnValue(false);
     const { onApply } = setup();
     fireEvent.click(screen.getAllByRole('button', { name: /連絡先を送って相談する/ })[0]);
@@ -82,13 +82,13 @@ describe('体験終了後のアップグレード画面', () => {
 
   it('中国語でも日本語のラベルが残らない', () => {
     setup('zh');
-    expect(screen.getByText(/60分钟的体验结束了/)).toBeTruthy();
+    expect(screen.getByText(/体验期结束了/)).toBeTruthy();
     expect(screen.queryByText(/クレジットカードで購入/)).toBeNull();
   });
 });
 
 /* ── 「あなたの現在地」（2026-08-26 ファネル監査 P1） ──────────────
-   この画面はいきなり値段3つの表だった。60分やり切った直後に見たいのは
+   この画面はいきなり値段3つの表だった。体験をやり切った直後に見たいのは
    値段ではなく自分が何をしたかで、続きを買う理由もそこにしかない。
    実データだけを出し、0件の項目は成果として見せない。
    数字は本番の実在の体験購入者（会話2回・199秒・復習4件）を模したもの。
@@ -102,7 +102,10 @@ describe('体験終了画面の「あなたの現在地」', () => {
   const real = {
     conversations: 2, spokenSeconds: 398, saidIndependently: 1,
     expressions: ['〜といいます', '〜に住んでいます'],
-    scheduledForReview: 4, nextExpression: '〜といいます', hasAnything: true,
+    scheduledForReview: 4, nextExpression: '〜といいます',
+    correctedPhrases: ['田中と申します', '川口に住んでいます'],
+    reviewsDone: 1, weakestExpression: '〜に住んでいます',
+    hasAnything: true,
   };
 
   /** 「話した時間」などのラベルに対応する数値を、その組から取り出す */
@@ -113,7 +116,7 @@ describe('体験終了画面の「あなたの現在地」', () => {
 
   it('話した時間・回数・表現の数を実データで出す', () => {
     render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}} summary={real} />);
-    expect(screen.getByText('この60分であなたがやったこと')).toBeTruthy();
+    expect(screen.getByText('体験のあいだにあなたがやったこと')).toBeTruthy();
     expect(statValue('話した時間')).toBe('7分');      // 398秒 → 6.63分 → 四捨五入で7分
     expect(statValue('会話した回数')).toBe('2回');
     expect(statValue('練習した表現')).toBe('2個');
@@ -133,18 +136,18 @@ describe('体験終了画面の「あなたの現在地」', () => {
 
   it('まとめが取れなければ何も出さない（作り話をしない）', () => {
     render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}} summary={null} />);
-    expect(screen.queryByText('この60分であなたがやったこと')).toBeNull();
+    expect(screen.queryByText('体験のあいだにあなたがやったこと')).toBeNull();
   });
 
   it('中身が空なら出さない', () => {
     render(<TrialEndedUpgrade lang="ja" onApply={() => {}} onLogout={() => {}}
       summary={{ ...real, hasAnything: false }} />);
-    expect(screen.queryByText('この60分であなたがやったこと')).toBeNull();
+    expect(screen.queryByText('体験のあいだにあなたがやったこと')).toBeNull();
   });
 
   it('中国語でも同じ内容が出る', () => {
     render(<TrialEndedUpgrade lang="zh" onApply={() => {}} onLogout={() => {}} summary={real} />);
-    expect(screen.getByText('你在这60分钟里做到的')).toBeTruthy();
+    expect(screen.getByText('你在体验期间做到的')).toBeTruthy();
     expect(screen.getByText(/这部分要继续才会送到你手上/)).toBeTruthy();
   });
 });

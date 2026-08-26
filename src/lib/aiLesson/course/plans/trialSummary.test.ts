@@ -93,3 +93,90 @@ describe('体験のまとめ', () => {
     expect(s.nextExpression).toBeNull();
   });
 });
+
+/* ── 体験終了画面に足した項目（2026-08-26 Phase S6） ─────────────
+   仕様が求めたのは「話した時間 / 会話数 / 学習した表現 / 訂正された表現 /
+   復習した表現 / 次に復習すると効く表現」。
+   全部が実データ由来で、無いときは出さないことを固定する。 */
+describe('訂正・復習・弱点', () => {
+  const withReport = (o: Partial<CourseSessionRecord>, corrections: { original: string; improved: string; noteZh: string }[]) =>
+    sess({ ...o, report: {
+      todaySummaryJa: '', todaySummaryZh: '', achievements: [], corrections,
+      naturalPhrases: [], targetUsage: 'self', encouragementJa: '',
+    } as CourseSessionRecord['report'] });
+
+  it('直された言い方は improved だけを取る（本人の失敗文は出さない）', () => {
+    const s = buildTrialSummary([
+      withReport({ id: 'a' }, [{ original: '田中です', improved: '田中と申します', noteZh: '' }]),
+    ], []);
+    expect(s.correctedPhrases).toEqual(['田中と申します']);
+    expect(s.correctedPhrases.join('')).not.toContain('田中です');
+  });
+
+  it('同じ言い方は1回だけ数える', () => {
+    const s = buildTrialSummary([
+      withReport({ id: 'a' }, [{ original: 'x', improved: '田中と申します', noteZh: '' }]),
+      withReport({ id: 'b' }, [{ original: 'y', improved: '田中と申します', noteZh: '' }]),
+    ], []);
+    expect(s.correctedPhrases).toHaveLength(1);
+  });
+
+  it('レポートが無いセッションでも落ちない', () => {
+    const s = buildTrialSummary([sess({ report: null })], []);
+    expect(s.correctedPhrases).toEqual([]);
+  });
+
+  it('復習は「予定に入った数」ではなく「実際に終えた回数」', () => {
+    const s = buildTrialSummary([
+      sess({ id: 'a', lessonKind: 'review_day1', completionStatus: 'completed' }),
+      sess({ id: 'b', lessonKind: 'review_day1', completionStatus: 'interrupted' }),
+      sess({ id: 'c', lessonKind: 'new', completionStatus: 'completed' }),
+    ], [prog({ nextReviewAt: '2026-08-28' })]);
+    expect(s.reviewsDone).toBe(1);
+    expect(s.scheduledForReview).toBe(1);
+  });
+
+  it('弱いところは復習に失敗した回数が多いものを先に取る', () => {
+    const s = buildTrialSummary(
+      [
+        sess({ id: 'a', missionId: 'w01m1', targetExpression: '〜といいます' }),
+        sess({ id: 'b', missionId: 'w01m2', targetExpression: '〜に住んでいます' }),
+      ],
+      [
+        prog({ itemId: 'w01m1', failedReviews: 0, masteryScore: 80 }),
+        prog({ itemId: 'w01m2', failedReviews: 2, masteryScore: 90 }),
+      ],
+    );
+    expect(s.weakestExpression).toBe('〜に住んでいます');
+  });
+
+  it('失敗が無ければ定着スコアの低いほうを取る', () => {
+    const s = buildTrialSummary(
+      [
+        sess({ id: 'a', missionId: 'w01m1', targetExpression: '〜といいます' }),
+        sess({ id: 'b', missionId: 'w01m2', targetExpression: '〜に住んでいます' }),
+      ],
+      [
+        prog({ itemId: 'w01m1', failedReviews: 0, masteryScore: 30 }),
+        prog({ itemId: 'w01m2', failedReviews: 0, masteryScore: 90 }),
+      ],
+    );
+    expect(s.weakestExpression).toBe('〜といいます');
+  });
+
+  it('材料が1つしか無ければ「いちばん弱い」と言わない', () => {
+    // 比べる相手がいないのに「ここが弱い」は測っていないことを言うことになる
+    const s = buildTrialSummary(
+      [sess({ id: 'a', missionId: 'w01m1', targetExpression: '〜といいます' })],
+      [prog({ itemId: 'w01m1', failedReviews: 0, masteryScore: 50 })],
+    );
+    expect(s.weakestExpression).toBeNull();
+  });
+
+  it('学習が何も無ければ全部ゼロ', () => {
+    const s = buildTrialSummary([], []);
+    expect(s.correctedPhrases).toEqual([]);
+    expect(s.reviewsDone).toBe(0);
+    expect(s.weakestExpression).toBeNull();
+  });
+});

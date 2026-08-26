@@ -70,7 +70,7 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
       <div className="text-center">
         <div className="text-4xl mb-2">🎉</div>
         <h1 className="text-xl font-bold text-gray-900">
-          {zh ? '60分钟的体验结束了，辛苦啦！' : '60分の体験が終了しました。おつかれさまでした！'}
+          {zh ? '体验期结束了，辛苦啦！' : '体験期間が終了しました。おつかれさまでした！'}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600">
           {zh
@@ -82,7 +82,7 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
       {summary?.hasAnything && (
         <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
           <h2 className="text-sm font-bold text-emerald-900">
-            {zh ? '你在这60分钟里做到的' : 'この60分であなたがやったこと'}
+            {zh ? '你在体验期间做到的' : '体験のあいだにあなたがやったこと'}
           </h2>
           <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
             <div className="rounded-xl bg-white/80 px-2 py-2.5">
@@ -104,6 +104,42 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
               </dd>
             </div>
           </dl>
+
+          {/* 追加の実測（2026-08-26 Phase S6）。0件の項目は行ごと出さない */}
+          {(summary.correctedPhrases.length > 0 || summary.reviewsDone > 0) && (
+            <dl className="mt-2 grid grid-cols-2 gap-2 text-center">
+              {summary.correctedPhrases.length > 0 && (
+                <div className="rounded-xl bg-white/80 px-2 py-2.5">
+                  <dt className="text-[11px] text-gray-500">{zh ? '被改过的说法' : '直してもらった言い方'}</dt>
+                  <dd className="text-lg font-extrabold text-gray-900">
+                    {summary.correctedPhrases.length}<span className="text-xs font-bold">{zh ? '个' : '個'}</span>
+                  </dd>
+                </div>
+              )}
+              {summary.reviewsDone > 0 && (
+                <div className="rounded-xl bg-white/80 px-2 py-2.5">
+                  <dt className="text-[11px] text-gray-500">{zh ? '完成的复习' : '復習した回数'}</dt>
+                  <dd className="text-lg font-extrabold text-gray-900">
+                    {summary.reviewsDone}<span className="text-xs font-bold">{zh ? '次' : '回'}</span>
+                  </dd>
+                </div>
+              )}
+            </dl>
+          )}
+
+          {/* 実際に直してもらった言い方を3つまで見せる。
+              数字より、この3行のほうが「何が手に入ったか」が伝わる。
+              生徒が言った文（original）は出さない＝失敗を並べない */}
+          {summary.correctedPhrases.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-1.5">
+              {summary.correctedPhrases.slice(0, 3).map((phrase) => (
+                <li key={phrase} className="flex items-start gap-2 rounded-xl bg-white/80 px-3 py-2 text-[13px] leading-relaxed text-gray-800">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+                  <span>{phrase}</span>
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* 自分から言えた回数は0のとき出さない（0を成果として見せない） */}
           {summary.saidIndependently > 0 && (
@@ -161,9 +197,22 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
                     : <><MessageSquare className="h-4 w-4" aria-hidden="true" />{zh ? '填写联系方式，先咨询' : '連絡先を送って相談する'}</>}
               </button>
               {!isCheckout && (
-                <p className="mt-1.5 text-center text-[11px] text-gray-500">
-                  {zh ? '这个方案由真人对接，先确认内容后再决定。' : 'このプランは人がご案内します。内容を確認してから決められます。'}
-                </p>
+                <>
+                  {/*
+                    6か月コースだけ、CTAの前に「人と何を改善するか」を出す（Phase S6）。
+                    実測で弱かった表現があるときだけ。無いのに書くと作り話になる
+                  */}
+                  {summary?.weakestExpression && (
+                    <p className="mt-2 rounded-xl bg-lp-pine-soft/40 border border-emerald-100 px-3 py-2.5 text-[12.5px] leading-relaxed text-gray-700">
+                      {zh
+                        ? `例如「${summary.weakestExpression}」这样还没稳的说法，会和教练一起找出为什么说不出口，并重新排进你的学习路线。`
+                        : `たとえば「${summary.weakestExpression}」のように、まだ固まっていない表現。なぜ口から出ないのかをコーチと一緒に見て、あなたの学習ルートに組み直します。`}
+                    </p>
+                  )}
+                  <p className="mt-1.5 text-center text-[11px] text-gray-500">
+                    {zh ? '这个方案由真人对接，先确认内容后再决定。' : 'このプランは人がご案内します。内容を確認してから決められます。'}
+                  </p>
+                </>
               )}
             </div>
           );
