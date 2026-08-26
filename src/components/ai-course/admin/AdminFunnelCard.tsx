@@ -20,6 +20,15 @@ const Row = ({ label, n, denom, warnWhenZero = false }: {
   </li>
 );
 
+/** error_occurred の where を日本語にする。知らない値はそのまま出す（隠さない） */
+const ERROR_WHERE_JA: Record<string, string> = {
+  checkout: '決済ページを開けなかった',
+  trial_start: '体験を始められなかった',
+  realtime: 'AI会話の接続',
+  claim: '購入直後の自動ログイン',
+  report: 'レポート生成',
+};
+
 export const AdminFunnelCard = () => {
   const [funnel, setFunnel] = useState<CourseFunnel | null>(null);
   const [failed, setFailed] = useState<string[]>([]);
@@ -79,6 +88,22 @@ export const AdminFunnelCard = () => {
         <Row label="3分以内に開始" n={t.within3min} denom={t.n} />
         <Row label="買ったのに未開始" n={t.notStarted} denom={p.provisioned} warnWhenZero />
       </ul>
+
+      {/* 学習者の前で起きた失敗（2026-08-26）。
+          0件だと確認できて初めて「動いています」と言える。0件のときもそう出す */}
+      <p className="mt-3 text-xs font-bold text-gray-500">学習者の前で起きた失敗</p>
+      {funnel.errors.total === 0 ? (
+        <p className="mt-1 text-sm text-emerald-700">0件</p>
+      ) : (
+        <ul className="mt-1 space-y-1">
+          {funnel.errors.byWhere.map((e) => (
+            <li key={e.where} className="flex items-baseline justify-between gap-2 text-sm">
+              <span className="text-gray-700">{ERROR_WHERE_JA[e.where] ?? e.where}</span>
+              <span className="tabular-nums font-bold text-red-700">{e.n}件</span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {/* 決済手段（2026-08-26）。中国語話者が支付宝/微信を使うかは集客判断に直結する */}
       <p className="mt-3 text-xs font-bold text-gray-500">決済手段</p>

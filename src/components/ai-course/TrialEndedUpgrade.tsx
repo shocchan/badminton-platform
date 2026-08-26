@@ -58,6 +58,7 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
     const r = await startCheckout(planId, lang);
     if (r.ok) { window.location.href = r.url; return; } // 遷移するのでbusyは解除しない
     setBusy(null);
+    logCourseEvent('error_occurred', { where: 'checkout', code: planId });
     setError(zh
       ? '暂时无法打开支付页面。请稍后再试，或通过下面的方式联系我们。'
       : 'いま決済ページを開けませんでした。少し待ってからもう一度お試しください。うまくいかない場合は下からご連絡ください。');

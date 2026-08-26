@@ -117,6 +117,9 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
       const r = await startCheckout(view.id, lang === 'zh' ? 'zh' : 'ja');
       if (r.ok) { window.location.href = r.url; return; } // 遷移するので busy は解除しない
       setCheckoutBusy(null);
+      // 決済ページを開けなかった回数を数える（2026-08-26）。
+      // LPは未ログインなので ai_log_course_event は使えず、GA4側に残す
+      track('checkout_open_failed', { plan: view.id, location: 'pricing' });
       setCheckoutNote(lang === 'zh'
         ? '暂时无法打开支付页面。请先通过报名表提交，我们会尽快联系你。'
         : 'いま決済ページを開けませんでした。先に申込フォームでお送りください。こちらからご案内します。');

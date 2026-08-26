@@ -217,7 +217,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           setUserSpeaking(speaking);
         },
         onMicSilent: () => setMicSilentHint(true),
-        onError: (kind) => { log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false }); setErrorKind(kind); },
+        onError: (kind) => {
+          log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false });
+          setErrorKind(kind);
+          // 学習者の前で失敗した回数を数える（2026-08-26）。本文・個人情報は入れない
+          void logCourseEvent('error_occurred', { where: 'realtime', code: String(kind) });
+        },
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
     });

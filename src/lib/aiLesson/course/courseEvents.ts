@@ -30,15 +30,25 @@ export type CourseEventKind =
   | 'onboarding_start'
   /** 「体験を始める」を押して60分の時計が動き出した */
   | 'trial_started'
-  /** 会話後の学習レポートを実際に見た */
+  /** 会話中に「言い方がわからない」を押した（詰まりの量が分かる） */
   | 'hint_requested'
+  /** 会話後の学習レポートを実際に見た */
   | 'report_viewed'
   /** 60分の体験が終わり、続きの案内画面に到達した */
   | 'trial_completed'
   /** 続きのプラン提案が画面に出た */
   | 'upgrade_view'
   /** 続きのプランを選んだ（決済ページへ進む直前） */
-  | 'upgrade_click';
+  | 'upgrade_click'
+  /**
+   * 学習者の前で何かが失敗した（2026-08-26）。
+   * props.where に場所（checkout / trial_start / mic / realtime / report / claim）、
+   * props.code に判別できる理由を入れる。個人情報・本文は入れない。
+   *
+   * 種類ごとに enum を増やさないのは、増やしても配線されず
+   * 「定義はあるが誰も送らない」になりやすいため。where で分ける。
+   */
+  | 'error_occurred';
 
 /**
  * 失敗しても学習を止めない fire-and-forget。

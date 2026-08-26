@@ -24,7 +24,11 @@ export interface FunnelSessionRow {
   completionStatus: string; lessonKind: string; errorCode: string | null;
 }
 export interface FunnelUsageRow { learnerId: string; usageDate: string }
-export interface FunnelEventRow { userId: string; kind: string; createdAtISO: string }
+export interface FunnelEventRow {
+  userId: string; kind: string; createdAtISO: string;
+  /** イベントの付随情報。error_occurred の where を読むのに使う（無ければ null） */
+  props?: Record<string, unknown> | null;
+}
 
 export interface CourseFunnel {
   windowDays: number;
@@ -58,6 +62,12 @@ export interface CourseFunnel {
    * 目標は3分以内だが、初回設定（診断5〜8分）を挟むので実測を見て評価する。
    * n が小さいうちは平均を出さず**中央値と実数**だけを見る（外れ値1件で像が歪むため）。
    */
+  /**
+   * 学習者の前で起きた失敗（2026-08-26）。
+   * 「動いています」と言うために、失敗が0件だと確認できる状態にする。
+   * where ごと（checkout / trial_start / realtime …）に件数を出す。
+   */
+  errors: { total: number; byWhere: { where: string; n: number }[] };
   ttfv: {
     /** 購入者のうち、実際に会話を始めた人数（＝中央値の母数） */
     n: number;
@@ -167,6 +177,21 @@ export const buildCourseFunnel = (input: {
 
   const reviews = sessionsAll.filter((s) => s.lessonKind.startsWith('review'));
 
+  /* ── 学習者の前で起きた失敗（期間内・テストアカウントを除く） ──
+     内訳は props.where（checkout / trial_start / realtime …）で分ける。 */
+  const errorRows = input.events.filter((e) => {
+    if (e.kind !== 'error_occurred') return false;
+    const l = learnerByUser.get(e.userId);
+    if (l && isTestLearner(l.id)) return false;
+    return inWindow(e.createdAtISO);
+  });
+  const errorByWhere = new Map<string, number>();
+  for (const e of errorRows) {
+    const raw = e.props?.where;
+    const where = typeof raw === 'string' && raw ? raw : 'other';
+    errorByWhere.set(where, (errorByWhere.get(where) ?? 0) + 1);
+  }
+
   /* ── TTFV: 購入（発行完了）→ 最初の会話開始 ──
      窓で絞らず「その購入者の全セッション」から最初の1件を探す。
      窓の端で購入した人が翌日始めたケースを取りこぼさないため。 */
@@ -227,6 +252,12 @@ export const buildCourseFunnel = (input: {
       reviewLearners: new Set(reviews.map((s) => s.learnerId)).size,
     },
     retention: { base, d1, d7 },
+    errors: {
+      total: errorRows.length,
+      byWhere: [...errorByWhere.entries()]
+        .map(([where, n]) => ({ where, n }))
+        .sort((a, b) => b.n - a.n),
+    },
     ttfv: {
       n: gapsMin.length,
       notStarted: ttfvNotStarted,

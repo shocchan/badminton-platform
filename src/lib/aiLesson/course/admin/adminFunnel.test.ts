@@ -285,3 +285,53 @@ describe('決済手段の内訳', () => {
     expect(f.paymentMethods).toEqual([]);
   });
 });
+
+/* ── 学習者の前で起きた失敗（2026-08-26） ────────────────────────
+   「動いています」と言うには、失敗が0件だと確認できる必要がある。 */
+describe('失敗の集計', () => {
+  const ev = (kind: string, props: Record<string, unknown> | null, at: string) =>
+    ({ userId: 'u1', kind, createdAtISO: at, props });
+
+  it('error_occurred を where ごとに数える', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [], sessions: [], usage: [],
+      events: [
+        ev('error_occurred', { where: 'checkout' }, '2026-08-26T00:00:00Z'),
+        ev('error_occurred', { where: 'checkout' }, '2026-08-26T01:00:00Z'),
+        ev('error_occurred', { where: 'realtime' }, '2026-08-26T02:00:00Z'),
+        ev('app_open', {}, '2026-08-26T03:00:00Z'),
+      ],
+      nowISO: '2026-08-26T12:00:00Z',
+    });
+    expect(f.errors.total).toBe(3);
+    expect(f.errors.byWhere).toEqual([{ where: 'checkout', n: 2 }, { where: 'realtime', n: 1 }]);
+  });
+
+  it('where が無ければ other にまとめる（落とさない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [], sessions: [], usage: [],
+      events: [ev('error_occurred', null, '2026-08-26T00:00:00Z')],
+      nowISO: '2026-08-26T12:00:00Z',
+    });
+    expect(f.errors.byWhere).toEqual([{ where: 'other', n: 1 }]);
+  });
+
+  it('失敗が無ければ0件（「集計できていない」と区別できる）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [], sessions: [], usage: [],
+      events: [ev('app_open', {}, '2026-08-26T00:00:00Z')],
+      nowISO: '2026-08-26T12:00:00Z',
+    });
+    expect(f.errors.total).toBe(0);
+    expect(f.errors.byWhere).toEqual([]);
+  });
+
+  it('期間外の失敗は数えない', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [], sessions: [], usage: [],
+      events: [ev('error_occurred', { where: 'checkout' }, '2026-01-01T00:00:00Z')],
+      nowISO: '2026-08-26T12:00:00Z', windowDays: 30,
+    });
+    expect(f.errors.total).toBe(0);
+  });
+});
