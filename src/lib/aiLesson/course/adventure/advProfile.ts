@@ -12,6 +12,7 @@ import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
 import { restorePapers, restoreSheetSession, restoreSheetLog } from './advAnswerSheet';
 import { restoreInterviewPrep, emptyInterviewPrep } from './interview/advInterview';
+import { restoreMockWrongDetails } from './advMockSession';
 import {
   restorePersonalPacks, restorePersonalPackState, emptyPersonalPackState,
 } from './personal/advPersonalPack';
@@ -195,7 +196,10 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     mockLog: Array.isArray(raw.mockLog)
       ? (raw.mockLog.filter((e) =>
         isRecord(e) && typeof e.mockId === 'string' && typeof e.completedAt === 'string'
-        && typeof e.totalQuestions === 'number') as AdventureV2Profile['mockLog']).slice(-30)
+        && typeof e.totalQuestions === 'number') as AdventureV2Profile['mockLog'])
+        .slice(-30)
+        // 間違い直しの解説（2026-08-25）。壊れた形は落とす＝画面に空欄の解説カードを出さない
+        .map((e) => (Array.isArray(e.wrong) ? { ...e, wrong: restoreMockWrongDetails(e.wrong) } : e))
       : [],
     kana: isRecord(raw.kana)
       ? {

@@ -254,6 +254,12 @@ export interface AdvMockLogEntry {
   /** この回で扱った試験科目 */
   skills: string[];
   completedAt: string;
+  /**
+   * 間違えた問題の解説（2026-08-25）。**あとから読み返すためだけ**に持つ。
+   * 準備度・mastery には一切使わない（それらは wrongKeys 経由で台帳が持っている）。
+   * 新しい数回ぶんだけ入り、古い回では undefined になる（appendMockLog）
+   */
+  wrong?: import('./advMockSession').MockWrongDetail[];
 }
 
 /** 人間レッスンbridge（§20・D-013）。カレンダー連携なし */

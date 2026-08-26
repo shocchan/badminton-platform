@@ -69,6 +69,7 @@ import { answerSheetsVisible, paperById } from '../../../lib/aiLesson/course/adv
 import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
+import { AdvMockReview } from './AdvMockReview';
 import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
 import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
 import { AdvAdventureMap } from './AdvAdventureMap';
@@ -80,7 +81,7 @@ import { buildAdventureMap, availableRouteKinds } from '../../../lib/aiLesson/co
 import { AdvKanaDojo } from './AdvKanaDojo';
 import { todaysKanaRowIds, isKanaGraduated } from '../../../lib/aiLesson/course/adventure/advKana';
 import { buildMockSpec, mockLevelOf } from '../../../lib/aiLesson/course/adventure/advMock';
-import { toMockAttempt, toMockLogEntry, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
+import { toMockAttempt, toMockLogEntry, appendMockLog, type MockResult, type MockSessionState } from '../../../lib/aiLesson/course/adventure/advMockSession';
 import { readingSetsFor, readingTargetIds, readingPool, readingKeyOf } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { kanjiPool, kanjiTargetIds } from '../../../lib/aiLesson/course/adventure/kanji/kanjiBank';
 
@@ -163,7 +164,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -1514,6 +1515,12 @@ export default function AdvShell(props: AdvShellProps) {
     );
   }
 
+  // ── 模試の間違い直し（あとから読み返す・2026-08-25）──
+  // 終了直後の結果画面と同じ材料（mockLog.wrong）を、いつでも読み返せるようにする
+  if (view === 'mockreview') {
+    return <AdvMockReview lang={lang} mockLog={prof.mockLog} onBack={() => setView('home')} />;
+  }
+
   // ── 自分の文章で復習（先生が発行した人だけ）──
   // 本人の作文から作った表現・漢字の読みの復習。冒険の攻略・準備度には影響しない
   if (view === 'personal') {
@@ -1607,6 +1614,7 @@ export default function AdvShell(props: AdvShellProps) {
         attemptSeed={mockSeed}
         seenKeys={seenQuestionKeys(prof.mastery)}
         history={prof.mockLog}
+        onOpenReview={() => setView('mockreview')}
         contextNoteJa={mockStageKind === 'foundation_camp' || mockStageKind === 'n3_bridge'
           ? `いまは基礎固めの途中です。模試は${mockLevel}全域から出るので、いまの得点は低く出ます。腕試しとして気軽にどうぞ。`
           : null}
@@ -1628,7 +1636,8 @@ export default function AdvShell(props: AdvShellProps) {
             ...prof,
             mastery: ledger,
             mockSession: null,
-            mockLog: [...prof.mockLog, toMockLogEntry(r, dateKey, completedAt)].slice(-30),
+            // 解説つきの間違い直しは新しい数回ぶんだけ残す（appendMockLog・2026-08-25）
+            mockLog: appendMockLog(prof.mockLog, toMockLogEntry(r, dateKey, completedAt)),
             xp: (prof.xp ?? 0) + XP_RULES.mock,
           });
           for (const s of r.skills) trackAdv('readiness_skill_updated', { locale: lang, skillType: s as ExamSkill });
@@ -3510,6 +3519,13 @@ export default function AdvShell(props: AdvShellProps) {
               <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
                 onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
               <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+              {/* 模試の間違い直し（2026-08-25）。受けた回があるときだけ出す＝空の部屋へ入れない */}
+              {prof.mockLog.length > 0 && (
+                <SubLink lang={lang}
+                  label={tx(lang, '模試の間違い直し（問題と解説）', '模拟考错题回顾（题目和解析）')}
+                  badge={prof.mockLog.filter((m) => (m.wrong?.length ?? 0) > 0).length}
+                  onClick={() => setView('mockreview')} />
+              )}
             </div>
             <p className="px-1 pt-2 text-[11px] text-gray-400">
               {tx(lang, `${term('masteryRate', 'ja')}＝単元ごとの定着／${term('readiness', 'ja')}＝試験全体の技能評価`,
