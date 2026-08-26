@@ -254,6 +254,12 @@ export interface AdvMockLogEntry {
   /** この回で扱った試験科目 */
   skills: string[];
   completedAt: string;
+  /**
+   * 間違えた問題の解説（2026-08-25）。**あとから読み返すためだけ**に持つ。
+   * 準備度・mastery には一切使わない（それらは wrongKeys 経由で台帳が持っている）。
+   * 新しい数回ぶんだけ入り、古い回では undefined になる（appendMockLog）
+   */
+  wrong?: import('./advMockSession').MockWrongDetail[];
 }
 
 /** 人間レッスンbridge（§20・D-013）。カレンダー連携なし */
@@ -364,6 +370,14 @@ export interface AdventureV2Profile {
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ
    */
   interviewPrep: import('./interview/advInterview').InterviewPrepState;
+  /**
+   * 個人復習パック（自分の書いた文章から復習する・2026-08-24）。
+   * 先生が learner ごとに発行する＝この配列はその人専用。空なら画面に出さない。
+   * **冒険（route/mastery/skills/xp/streak）には一切影響しない**（advPersonalPack.ts 冒頭）
+   */
+  personalPacks: import('./personal/advPersonalPack').PersonalPack[];
+  /** 個人復習パックの本人の記録（答えた回数・連続正解・次の復習日） */
+  personalPack: import('./personal/advPersonalPack').PersonalPackState;
   /**
    * 先生からの一言（週1・2026-08-17）。管理画面から追記し、生徒のホームに出す。
    * 発行キー（先生が書いたものを生徒側の保存で消さない）なので

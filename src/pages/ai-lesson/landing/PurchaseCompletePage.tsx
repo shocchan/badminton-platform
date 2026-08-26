@@ -24,6 +24,7 @@ import {
   fetchPurchaseStatus, claimPurchaseSession, type PurchaseStatus,
 } from '../../../lib/aiLesson/course/plans/planCheckout';
 import { planById, planView } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
 
 const POLL_MS = 2500;
 const MAX_POLLS = 40; // 約100秒。カードは数秒、Alipay/WeChat Payは少し遅れることがある
@@ -71,6 +72,8 @@ export function PurchaseCompletePage() {
     if (r.ok) {
       setClaimedLoginId(r.loginId);
       setAuthPhase('signed_in');
+      // ここでは既にログイン済み＝サーバー側イベントも書ける（購入者単位で追える）
+      logCourseEvent('auth_completed', { method: 'purchase_claim' });
       track('ai_course_auth_completed', { method: 'purchase_claim' });
       return;
     }

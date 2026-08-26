@@ -75,6 +75,31 @@ export const AdminStudentV2Stats = ({ view, nowISO }: Props) => {
         </div>
       </dl>
 
+      {/* ミニ模試を実際に最後まで解いたか（2026-08-25 CEO要望）。
+          「一緒にやったが、聴解は本人に任せたので完了したか分からない」を、
+          記録から言い切れるようにする。**完了＝提出まで届いた回だけ**が mockLog に入る */}
+      <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 p-2.5">
+        <p className="text-xs text-gray-600">
+          ミニ模試:{' '}
+          {adv.lastMock ? (
+            <span className="font-medium text-gray-800 tabular-nums">
+              最後まで完了 {adv.mockCount}回／直近 {adv.lastMock.dateKey}・
+              {adv.lastMock.level}・{adv.lastMock.mode === 'short' ? '短いバージョン' : '本番と同じ時間'}・
+              {adv.lastMock.correct}／{adv.lastMock.total}正解
+              {adv.lastMock.unanswered > 0 && `（未回答${adv.lastMock.unanswered}）`}
+            </span>
+          ) : (
+            <span className="font-medium text-gray-800">まだ1回も最後まで終えていません</span>
+          )}
+        </p>
+        {adv.mockInProgressStartedAt && (
+          <p className="mt-1 text-[11px] text-amber-700">
+            途中の模試あり（{adv.mockInProgressStartedAt.slice(0, 16).replace('T', ' ')} 開始・未提出）。
+            本人の画面から続きを再開できます
+          </p>
+        )}
+      </div>
+
       {/* 先生コメント（週1）の状況。送信は先生コメントパネルから */}
       <div className="mt-3 rounded-lg bg-gray-50 border border-gray-100 p-2.5 flex items-center justify-between gap-2 flex-wrap">
         <p className="text-xs text-gray-600">

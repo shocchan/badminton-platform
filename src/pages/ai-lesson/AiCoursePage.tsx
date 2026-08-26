@@ -792,6 +792,8 @@ export default function AiCoursePage() {
       isReview, nextReviewISO: updated.nextReviewAt,
     }));
     setStep('report');
+    // 会話後のレポートに実際に到達したか（会話は終えたがレポートを見ずに閉じる人を分ける）
+    logCourseEvent('report_viewed', { kind: mainStep.kind, is_review: isReview });
     trackCourse('complete_ai_course_lesson', {
       kind: mainStep.kind, usage: result.usage, duration_seconds: result.durationSeconds,
       status: result.completionStatus,

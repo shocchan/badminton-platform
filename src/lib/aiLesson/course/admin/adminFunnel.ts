@@ -50,6 +50,29 @@ export interface CourseFunnel {
     d1: number;     // 翌日も活動
     d7: number;     // 2〜7日目のどこかで再活動
   };
+  /**
+   * Time to First Value（2026-08-26）。
+   * 購入（発行完了）から**最初の会話を始める**までの実時間。
+   * 新しいイベントは足していない: ai_plan_purchases.provisionedAt と
+   * ai_learning_sessions.started_at の差から出せるため。
+   * 目標は3分以内だが、初回設定（診断5〜8分）を挟むので実測を見て評価する。
+   * n が小さいうちは平均を出さず**中央値と実数**だけを見る（外れ値1件で像が歪むため）。
+   */
+  ttfv: {
+    /** 購入者のうち、実際に会話を始めた人数（＝中央値の母数） */
+    n: number;
+    /** 発行済みだが、まだ一度も会話を始めていない人数 */
+    notStarted: number;
+    /** 購入→初回会話開始の中央値（分）。n=0 なら null */
+    medianMinutes: number | null;
+    /** 3分以内に到達した人数 */
+    within3min: number;
+  };
+  /**
+   * 決済手段の内訳（2026-08-26）。中国語話者が支付宝/微信を使うかは集客判断に直結する。
+   * payment_method は webhook が記録する。未取得（古い行・未確定）は 'unknown'。
+   */
+  paymentMethods: { method: string; started: number; paid: number }[];
 }
 
 const dayAfter = (dateKey: string, days: number): string => {
@@ -143,6 +166,50 @@ export const buildCourseFunnel = (input: {
   }
 
   const reviews = sessionsAll.filter((s) => s.lessonKind.startsWith('review'));
+
+  /* ── TTFV: 購入（発行完了）→ 最初の会話開始 ──
+     窓で絞らず「その購入者の全セッション」から最初の1件を探す。
+     窓の端で購入した人が翌日始めたケースを取りこぼさないため。 */
+  const firstSessionAtByLearner = new Map<string, number>();
+  for (const s of input.sessions) {
+    if (isTestLearner(s.learnerId)) continue;
+    const t = Date.parse(s.startedAtISO);
+    if (Number.isNaN(t)) continue;
+    const cur = firstSessionAtByLearner.get(s.learnerId);
+    if (cur === undefined || t < cur) firstSessionAtByLearner.set(s.learnerId, t);
+  }
+  const gapsMin: number[] = [];
+  let ttfvNotStarted = 0;
+  for (const p of provisioned) {
+    const provisionedAt = p.provisionedAtISO ? Date.parse(p.provisionedAtISO) : NaN;
+    const l = p.userId ? learnerByUser.get(p.userId) : undefined;
+    const firstAt = l ? firstSessionAtByLearner.get(l.id) : undefined;
+    if (firstAt === undefined) { ttfvNotStarted += 1; continue; }
+    if (!Number.isFinite(provisionedAt)) continue;
+    // 購入より前のセッション（既存アカウントの再購入）は TTFV に数えない
+    const gap = (firstAt - provisionedAt) / 60_000;
+    if (gap >= 0) gapsMin.push(gap);
+  }
+  gapsMin.sort((a, b) => a - b);
+  const medianMinutes = gapsMin.length === 0
+    ? null
+    : Math.round((gapsMin.length % 2 === 1
+      ? gapsMin[(gapsMin.length - 1) / 2]
+      : (gapsMin[gapsMin.length / 2 - 1] + gapsMin[gapsMin.length / 2]) / 2) * 10) / 10;
+
+  /* ── 決済手段の内訳（開始＝checkoutを作った数 / 成立＝発行まで到達した数） ── */
+  const pmMap = new Map<string, { started: number; paid: number }>();
+  for (const p of live) {
+    const key = p.paymentMethod && p.paymentMethod.length > 0 ? p.paymentMethod : 'unknown';
+    const cur = pmMap.get(key) ?? { started: 0, paid: 0 };
+    cur.started += 1;
+    if (p.status === 'paid' || p.status === 'provisioned') cur.paid += 1;
+    pmMap.set(key, cur);
+  }
+  const paymentMethods = [...pmMap.entries()]
+    .map(([method, v]) => ({ method, ...v }))
+    .sort((a, b) => b.started - a.started || a.method.localeCompare(b.method));
+
   return {
     windowDays,
     purchase: {
@@ -160,5 +227,12 @@ export const buildCourseFunnel = (input: {
       reviewLearners: new Set(reviews.map((s) => s.learnerId)).size,
     },
     retention: { base, d1, d7 },
+    ttfv: {
+      n: gapsMin.length,
+      notStarted: ttfvNotStarted,
+      medianMinutes,
+      within3min: gapsMin.filter((g) => g <= 3).length,
+    },
+    paymentMethods,
   };
 };

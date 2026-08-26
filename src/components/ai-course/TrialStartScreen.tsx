@@ -8,6 +8,7 @@ import { Clock, Play, Loader2, AlertTriangle } from 'lucide-react';
 import { startTrial } from '../../lib/aiLesson/course/courseAccess';
 import { formatUntilJst } from '../../lib/aiLesson/course/courseAccess';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 
 export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStarted }: {
   lang: 'ja' | 'zh';
@@ -32,7 +33,7 @@ export function TrialStartScreen({ lang, windowMinutes, startDeadlineISO, onStar
     trackCourse('click_ai_course_trial_start', { window_minutes: windowMinutes });
     const r = await startTrial();
     // 開始が**成功したとき**だけ trial_start を立てる（押した＝始まった、ではない・2026-08-23 監査）
-    if (r.ok) { trackCourse('start_ai_course_trial', { window_minutes: windowMinutes }); onStarted(); return; }
+    if (r.ok) { logCourseEvent('trial_started', { window_minutes: windowMinutes }); trackCourse('start_ai_course_trial', { window_minutes: windowMinutes }); onStarted(); return; }
     trackCourse('fail_ai_course_trial_start', { code: r.code ?? 'unknown' });
     setBusy(false);
     setError(r.code === 'activation_expired'

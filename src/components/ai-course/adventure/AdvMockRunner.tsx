@@ -46,6 +46,8 @@ export interface AdvMockRunnerProps {
   onClose: () => void;
   /** これまでの模試ログ（成績推移の表示用・2026-08-17 監査: 保存済みなのに見えなかった） */
   history?: AdvMockLogEntry[];
+  /** 前に受けた回の間違い直しを開く（2026-08-25）。渡さなければ入口を出さない */
+  onOpenReview?: () => void;
   /** 開始前に添える文脈の一言（基礎固め中の低得点は正常、等）。無ければ出さない */
   contextNoteJa?: string | null;
   contextNoteZh?: string | null;
@@ -233,6 +235,15 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
             ))}
           </ul>
         </div>
+        {/* 前に受けた回の間違い直し（2026-08-25）。試験形式はその場で答え合わせをしないので、
+            「あとで解説を読む」入口をここにも置く（受けた回があるときだけ） */}
+        {props.onOpenReview && (props.history ?? []).length > 0 && (
+          <button type="button"
+            className={`${pressFx} action-secondary mt-4 w-full min-h-[48px] rounded-xl border border-blue-200 bg-white px-4 py-3 text-sm font-semibold text-blue-700`}
+            onClick={props.onOpenReview}>
+            {tx(lang, '前の模試の間違い直しを見る', '查看之前模拟考的错题解析')}
+          </button>
+        )}
         <button type="button" className={`${pressFx} mt-4 w-full min-h-[44px] rounded-xl text-sm text-gray-500 underline active:bg-gray-100`} onClick={props.onClose}>
           {tx(lang, 'もどる', '返回')}
         </button>
@@ -304,24 +315,17 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
   if (phase === 'finished' && result) {
     // 間違い直し（2026-08-17 監査: section終了時に「正誤は最後にまとめて表示します」と
     // 約束しながら、最終画面に集計しか無かった）。誤答＋未回答を問題単位で振り返る
-    const wrongItems = rt
-      ? rt.sections.flatMap((sec) => sec.questions.map((q, qi) => {
-        const picked = rt.state.answers[q.key] ?? null;
-        const correct = q.choices.find((c) => c.isCorrect);
-        if (!correct || picked === correct.choiceId) return null;
-        const pickedText = picked ? (q.choices.find((c) => c.choiceId === picked)?.textJa ?? '') : null;
-        return {
-          key: q.key,
-          label: `${tx(lang, sec.section.labelJa, sec.section.labelZh)} ${qi + 1}`,
-          stem: [q.targetJapanese, q.questionJa].filter(Boolean).join('\n'),
-          stemZh: q.questionZh ?? '',
-          pickedText,
-          correctText: correct.textJa,
-          whyJa: q.explanation.whyCorrectJa,
-          whyZh: q.explanation.whyCorrectZh,
-        };
-      }).filter((x): x is NonNullable<typeof x> => x !== null))
-      : [];
+    // 表示と保存で同じ材料を使う（保存だけ内容がずれる事故を防ぐ・2026-08-25）
+    const wrongItems = result.wrong.map((w) => ({
+      key: w.key,
+      label: `${tx(lang, w.sectionLabelJa, w.sectionLabelZh)} ${w.index}`,
+      stem: w.stemJa,
+      stemZh: w.stemZh,
+      pickedText: w.pickedTextJa,
+      correctText: w.correctTextJa,
+      whyJa: w.whyJa,
+      whyZh: w.whyZh,
+    }));
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-xl font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>

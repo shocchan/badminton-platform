@@ -45,6 +45,7 @@ export const AdminFunnelCard = () => {
   const p = funnel.purchase;
   const a = funnel.activity;
   const r = funnel.retention;
+  const t = funnel.ttfv;
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4">
       <div className="flex items-center justify-between gap-2 mb-1">
@@ -61,6 +62,40 @@ export const AdminFunnelCard = () => {
         <Row label="初回設定完了（名前入力）" n={p.setupDone} denom={p.provisioned} />
         <Row label="AI会話を開始" n={p.convStarted} denom={p.setupDone} />
       </ul>
+
+      {/* Time to First Value（2026-08-26）。
+          「買ってから、実際に日本語を話し始めるまで何分か」。
+          n が小さいうちは平均を出さず中央値と実数だけ見る（外れ値1件で像が歪むため） */}
+      <p className="mt-3 text-xs font-bold text-gray-500">買ってから話し始めるまで（TTFV）</p>
+      <ul className="mt-1 space-y-1">
+        <li className="flex items-baseline justify-between gap-2 text-sm">
+          <span className="text-gray-700">中央値</span>
+          <span className="tabular-nums font-bold text-gray-900">
+            {t.medianMinutes === null
+              ? <span className="font-normal text-gray-400">まだ測れません（0人）</span>
+              : <>{t.medianMinutes}分<span className="font-normal text-gray-500">（{t.n}人）</span></>}
+          </span>
+        </li>
+        <Row label="3分以内に開始" n={t.within3min} denom={t.n} />
+        <Row label="買ったのに未開始" n={t.notStarted} denom={p.provisioned} warnWhenZero />
+      </ul>
+
+      {/* 決済手段（2026-08-26）。中国語話者が支付宝/微信を使うかは集客判断に直結する */}
+      <p className="mt-3 text-xs font-bold text-gray-500">決済手段</p>
+      {funnel.paymentMethods.length === 0 ? (
+        <p className="mt-1 text-sm text-gray-400">本番決済はまだありません</p>
+      ) : (
+        <ul className="mt-1 space-y-1">
+          {funnel.paymentMethods.map((m) => (
+            <Row key={m.method}
+              label={m.method === 'card' ? 'カード'
+                : m.method === 'alipay' ? 'Alipay（支付宝）'
+                  : m.method === 'wechat_pay' ? 'WeChat Pay（微信支付）'
+                    : `その他（${m.method}）`}
+              n={m.paid} denom={m.started} />
+          ))}
+        </ul>
+      )}
 
       <p className="mt-3 text-xs font-bold text-gray-500">学習の質（全学習者）</p>
       <ul className="mt-1 space-y-1">

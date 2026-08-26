@@ -21,6 +21,19 @@ export interface AdvLearnerUsage {
   battleAttempts: number;
   /** ミニ模試の完了回数 */
   mockCount: number;
+  /**
+   * 最後に**最後まで終えた**模試（2026-08-25 CEO要望「実際に1回解いたか確認したい」）。
+   * まだ1回も終えていなければ null
+   */
+  lastMock: {
+    dateKey: string; level: string; mode: 'short' | 'fullTime';
+    correct: number; total: number; unanswered: number;
+  } | null;
+  /**
+   * 途中でやめた模試が残っているか（＝始めたが提出していない）。
+   * 「やったはずなのに記録が0回」の理由がこれで分かる。開始時刻つき
+   */
+  mockInProgressStartedAt: string | null;
   /** 相棒・目標（一覧の文脈用） */
   targetJlpt: string | null;
   goalType: string | null;
@@ -39,6 +52,7 @@ export const advLearnerUsageOf = (
     return {
       onboarded: false, totalStudyDays: 0, studyDays7: 0, studyDays30: 0,
       lastStudyDateKey: null, completedQuests: 0, battleAttempts: 0, mockCount: 0,
+      lastMock: null, mockInProgressStartedAt: null,
       targetJlpt: null, goalType: null, diagnosisBand: null,
     };
   }
@@ -57,6 +71,8 @@ export const advLearnerUsageOf = (
     return Number.isFinite(d) && now - d < n * 24 * 60 * 60 * 1000;
   };
   const sorted = [...days].sort();
+  // 最後まで終えた回だけが mockLog に入る（途中でやめた回は mockSession に残る）
+  const last = prof.mockLog[prof.mockLog.length - 1] ?? null;
   return {
     onboarded: prof.route !== null,
     totalStudyDays: days.size,
@@ -66,6 +82,13 @@ export const advLearnerUsageOf = (
     completedQuests: prof.questLog.filter((q) => q.totalSteps > 0 && q.completedSteps >= q.totalSteps).length,
     battleAttempts,
     mockCount: prof.mockLog.length,
+    lastMock: last
+      ? {
+        dateKey: last.dateKey, level: last.level, mode: last.mode,
+        correct: last.totalCorrect, total: last.totalQuestions, unanswered: last.totalUnanswered,
+      }
+      : null,
+    mockInProgressStartedAt: prof.mockSession?.startedAt ?? null,
     targetJlpt: prof.targetJlpt,
     goalType: prof.goalType,
     diagnosisBand: prof.diagnosis?.knowledgeBand ?? null,

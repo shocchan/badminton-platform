@@ -8,13 +8,14 @@
 //   ③ 6か月 伴走コース          → 連絡先を送って個別やりとり（人が対応する商品なので即決済にしない）
 //
 // 価格・期間・含まれるものは planCatalog が正準。ここには数値を書かない。
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, ArrowRight, Loader2, MessageSquare, X } from 'lucide-react';
 import {
   publishedPlans, planView, type PlanId,
 } from '../../lib/aiLesson/course/plans/planCatalog';
 import { canStartCheckout, startCheckout } from '../../lib/aiLesson/course/plans/planCheckout';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 
 export function TrialEndedUpgrade({ lang, onApply, onLogout }: {
   lang: 'ja' | 'zh';
@@ -27,10 +28,21 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout }: {
   const [error, setError] = useState('');
   const plans = publishedPlans();
 
+  // 体験が終わってこの画面に到達したこと自体を1回だけ記録する
+  // （「体験は終えたが続きを選ばなかった人」が何人いるかを見るため）
+  const viewed = useRef(false);
+  useEffect(() => {
+    if (viewed.current) return;
+    viewed.current = true;
+    logCourseEvent('trial_completed', {});
+    logCourseEvent('upgrade_view', { plans: plans.length });
+  }, [plans.length]);
+
   const choose = async (planId: PlanId) => {
     const cfg = plans.find((p) => p.id === planId);
     if (!cfg || busy) return;
     setError('');
+    logCourseEvent('upgrade_click', { plan: planId });
     trackCourse('click_ai_course_trial_end_plan', { plan: planId });
     // 人によるレッスンが含まれる商品は即決済にしない（連絡先→個別やりとり）
     if (cfg.ctaMode !== 'checkout' || !canStartCheckout(cfg)) { onApply(planId); return; }

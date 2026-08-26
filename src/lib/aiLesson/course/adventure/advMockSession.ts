@@ -290,6 +290,11 @@ export interface MockResult {
    */
   wrongKeys: string[];
   unseenRatio: number;
+  /**
+   * 誤答の解説つき記録（2026-08-25）。結果画面の表示と、あとから読み返す保存の
+   * **両方がこれ1つを使う**（表示と保存で中身がずれないようにするため）
+   */
+  wrong: MockWrongDetail[];
 }
 
 export const gradeMock = (rt: MockRuntime, seenKeysAtStart: Set<string>): MockResult => {
@@ -318,7 +323,118 @@ export const gradeMock = (rt: MockRuntime, seenKeysAtStart: Set<string>): MockRe
     wrongKeys: sections.flatMap((s) => s.wrongKeys),
     unseenRatio: allQuestionKeys.length === 0 ? 0
       : Math.round((unseen / allQuestionKeys.length) * 100) / 100,
+    wrong: toMockWrongDetails(rt),
   };
+};
+
+/* ────────────────────────────────────────────────────────────
+   間違い直しの保存（2026-08-25 CEO指摘）
+   ──────────────────────────────────────────────────────────── */
+
+/**
+ * 誤答1問ぶんの「あとから読み返せる」記録。
+ *
+ * なぜ保存するのか: 以前は終了直後の結果画面でしか間違い直しを見られず、
+ * 画面を閉じた瞬間に問題文も解説も消えていた。試験形式はその場で答え合わせを
+ * しないぶん、**あとで解説を読む時間**が学習そのものになる（CEO実測・画面共有授業）。
+ *
+ * 錯題本（advMistakeNotebook）は設計上、問題文を持たない（キーだけ）。
+ * だから模試の解説はここに写し取るしかない。
+ */
+export interface MockWrongDetail {
+  key: string;
+  sectionLabelJa: string;
+  sectionLabelZh: string;
+  /** section内の問題番号（1始まり） */
+  index: number;
+  /** 問題文（対象語＋設問）。言語は日本語のまま持つ */
+  stemJa: string;
+  stemZh: string;
+  /** 学習者が選んだ選択肢。null＝未回答 */
+  pickedTextJa: string | null;
+  correctTextJa: string;
+  whyJa: string;
+  whyZh: string;
+}
+
+/** 1回の模試で保存する誤答の上限（settings jsonb を太らせない） */
+export const MAX_WRONG_DETAILS = 30;
+/** 解説つきで残す模試の回数（古いものは集計だけ残る） */
+export const MOCK_DETAIL_KEEP = 5;
+
+const clip = (s: string | null | undefined, max: number): string =>
+  (typeof s === 'string' ? s.slice(0, max) : '');
+
+/**
+ * 採点済みの runtime から、誤答（未回答を含む）の解説つき記録を作る。
+ * 画面側の表示ロジックと同じ材料を、言語に依存しない形で取り出す。
+ */
+export const toMockWrongDetails = (rt: MockRuntime): MockWrongDetail[] => {
+  const out: MockWrongDetail[] = [];
+  for (const sec of rt.sections) {
+    for (const [qi, q] of sec.questions.entries()) {
+      const picked = rt.state.answers[q.key] ?? null;
+      const correct = q.choices.find((c) => c.isCorrect);
+      if (!correct || picked === correct.choiceId) continue;
+      out.push({
+        key: q.key,
+        sectionLabelJa: sec.section.labelJa,
+        sectionLabelZh: sec.section.labelZh,
+        index: qi + 1,
+        stemJa: clip([q.targetJapanese, q.questionJa].filter(Boolean).join('\n'), 400),
+        stemZh: clip(q.questionZh, 400),
+        pickedTextJa: picked ? clip(q.choices.find((c) => c.choiceId === picked)?.textJa, 200) : null,
+        correctTextJa: clip(correct.textJa, 200),
+        whyJa: clip(q.explanation.whyCorrectJa, 500),
+        whyZh: clip(q.explanation.whyCorrectZh, 500),
+      });
+    }
+  }
+  return out.slice(0, MAX_WRONG_DETAILS);
+};
+
+const isRec = (v: unknown): v is Record<string, unknown> =>
+  typeof v === 'object' && v !== null && !Array.isArray(v);
+
+/**
+ * 保存された誤答記録の復元（jsonbなので何が入っているか分からない）。
+ * 問題文か正解が欠けている行は落とす（空の解説カードを画面に出さない）。
+ */
+export const restoreMockWrongDetails = (v: unknown): MockWrongDetail[] => {
+  if (!Array.isArray(v)) return [];
+  const out: MockWrongDetail[] = [];
+  for (const raw of v) {
+    if (!isRec(raw)) continue;
+    if (typeof raw.key !== 'string' || typeof raw.stemJa !== 'string' || !raw.stemJa) continue;
+    if (typeof raw.correctTextJa !== 'string' || !raw.correctTextJa) continue;
+    out.push({
+      key: raw.key,
+      sectionLabelJa: clip(raw.sectionLabelJa as string, 60),
+      sectionLabelZh: clip(raw.sectionLabelZh as string, 60),
+      index: typeof raw.index === 'number' && Number.isFinite(raw.index) ? Math.max(1, Math.floor(raw.index)) : 1,
+      stemJa: clip(raw.stemJa, 400),
+      stemZh: clip(raw.stemZh as string, 400),
+      pickedTextJa: typeof raw.pickedTextJa === 'string' ? clip(raw.pickedTextJa, 200) : null,
+      correctTextJa: clip(raw.correctTextJa, 200),
+      whyJa: clip(raw.whyJa as string, 500),
+      whyZh: clip(raw.whyZh as string, 500),
+    });
+    if (out.length >= MAX_WRONG_DETAILS) break;
+  }
+  return out;
+};
+
+/**
+ * 新しい1件を足した mockLog を作る。
+ * 解説つきの誤答は**新しい MOCK_DETAIL_KEEP 回ぶんだけ**残す
+ * （古い回は集計だけ残る。settings が無制限に太るのを防ぐ）。
+ */
+export const appendMockLog = (
+  log: AdvMockLogEntry[], entry: AdvMockLogEntry, keep = MOCK_DETAIL_KEEP,
+): AdvMockLogEntry[] => {
+  const next = [...log, entry].slice(-30);
+  const detailFrom = Math.max(0, next.length - keep);
+  return next.map((e, i) => (i >= detailFrom ? e : { ...e, wrong: undefined }));
 };
 
 /** 模試結果 → 保存する履歴1件（§10の mock count 判定に使う） */
@@ -334,6 +450,8 @@ export const toMockLogEntry = (r: MockResult, dateKey: string, completedAt: stri
   sectionCount: r.sections.length,
   skills: r.skills,
   completedAt,
+  // 全問正解なら持たない（空配列を保存して「解説がある」と見せない）
+  wrong: r.wrong.length > 0 ? r.wrong : undefined,
 });
 
 /**

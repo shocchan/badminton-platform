@@ -14,7 +14,8 @@ const purchase = (over: Partial<AdminPurchaseRow> = {}): AdminPurchaseRow => ({
   id: 'p1', stripeSessionId: 'cs_1', planId: 'ai-trial-pass', planVersion: 3,
   amountJpy: 600, livemode: true, buyerEmail: 'a@b.c', locale: 'ja',
   status: 'provisioned', userId: 'u1', loginId: 's1', error: null,
-  createdAtISO: iso(5), provisionedAtISO: iso(5), ...over,
+  createdAtISO: iso(5), provisionedAtISO: iso(5),
+  paymentMethod: null, loginClaimedAtISO: null, ...over,
 });
 const learner = (id: string, userId: string, daysAgo = 5, isTest = false) =>
   ({ id, userId, createdAtISO: iso(daysAgo), isTest });
@@ -188,5 +189,99 @@ describe('割合と実数の整合', () => {
     expect(f.retention.d1).toBeLessThanOrEqual(f.retention.base);
     expect(f.retention.d7).toBeLessThanOrEqual(f.retention.base);
     expect(f.activity.convCompleted).toBeLessThanOrEqual(f.activity.convSessions);
+  });
+});
+
+/* ────────────────────────────────────────────────────────────
+   Time to First Value と決済手段（2026-08-26 追加）
+   ──────────────────────────────────────────────────────────── */
+
+describe('TTFV: 購入から最初の会話まで', () => {
+  it('新しいイベントを足さず、購入時刻とセッション時刻から出せる', () => {
+    const f = buildCourseFunnel({
+      // 発行が5日前、最初の会話がその2分後
+      purchases: [purchase({ id: 'p1', userId: 'u1', provisionedAtISO: iso(5) })],
+      learners: [learner('l1', 'u1', 5)],
+      sessions: [session('l1', 5 - 2 / 1440)],
+      usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.ttfv.n).toBe(1);
+    expect(f.ttfv.medianMinutes).toBeCloseTo(2, 0);
+    expect(f.ttfv.within3min).toBe(1);
+    expect(f.ttfv.notStarted).toBe(0);
+  });
+
+  it('一度も会話していない購入者は notStarted に数え、中央値の母数に入れない', () => {
+    const f = buildCourseFunnel({
+      purchases: [purchase({ id: 'p1', userId: 'u1' })],
+      learners: [learner('l1', 'u1', 5)],
+      sessions: [], usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.ttfv.notStarted).toBe(1);
+    expect(f.ttfv.n).toBe(0);
+    // n=0 のとき平均や0分を作らない（存在しない数字を出さない）
+    expect(f.ttfv.medianMinutes).toBeNull();
+  });
+
+  it('購入より前のセッション（既存アカウントの再購入）は数えない', () => {
+    const f = buildCourseFunnel({
+      purchases: [purchase({ id: 'p1', userId: 'u1', provisionedAtISO: iso(3) })],
+      learners: [learner('l1', 'u1', 20)],
+      sessions: [session('l1', 10)], // 購入より7日前
+      usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.ttfv.n).toBe(0);
+    expect(f.ttfv.medianMinutes).toBeNull();
+  });
+
+  it('中央値は外れ値1件で歪まない（平均ではない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [
+        purchase({ id: 'p1', userId: 'u1', provisionedAtISO: iso(5) }),
+        purchase({ id: 'p2', userId: 'u2', provisionedAtISO: iso(5) }),
+        purchase({ id: 'p3', userId: 'u3', provisionedAtISO: iso(5) }),
+      ],
+      learners: [learner('l1', 'u1', 5), learner('l2', 'u2', 5), learner('l3', 'u3', 5)],
+      sessions: [
+        session('l1', 5 - 2 / 1440),    // 2分
+        session('l2', 5 - 4 / 1440),    // 4分
+        session('l3', 5 - 600 / 1440),  // 600分（外れ値）
+      ],
+      usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.ttfv.n).toBe(3);
+    expect(f.ttfv.medianMinutes).toBeCloseTo(4, 0); // 平均なら約202分になる
+  });
+});
+
+describe('決済手段の内訳', () => {
+  it('開始と成立を決済手段ごとに数える', () => {
+    const f = buildCourseFunnel({
+      purchases: [
+        purchase({ id: 'p1', status: 'provisioned', paymentMethod: 'card' }),
+        purchase({ id: 'p2', status: 'pending', paymentMethod: 'alipay' }),
+        purchase({ id: 'p3', status: 'provisioned', paymentMethod: 'alipay' }),
+      ],
+      learners: [], sessions: [], usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    const byMethod = Object.fromEntries(f.paymentMethods.map((m) => [m.method, m]));
+    expect(byMethod.alipay).toEqual({ method: 'alipay', started: 2, paid: 1 });
+    expect(byMethod.card).toEqual({ method: 'card', started: 1, paid: 1 });
+  });
+
+  it('決済手段が取れていない購入は unknown にまとめる（推測で card にしない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [purchase({ id: 'p1', paymentMethod: null })],
+      learners: [], sessions: [], usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.paymentMethods).toEqual([{ method: 'unknown', started: 1, paid: 1 }]);
+  });
+
+  it('テスト決済（livemode=false）は内訳に混ぜない', () => {
+    const f = buildCourseFunnel({
+      purchases: [purchase({ id: 'p1', livemode: false, paymentMethod: 'card' })],
+      learners: [], sessions: [], usage: [], events: [], nowISO: NOW, windowDays: 30,
+    });
+    expect(f.paymentMethods).toEqual([]);
   });
 });
