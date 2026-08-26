@@ -15,7 +15,8 @@ const purchase = (over: Partial<AdminPurchaseRow> = {}): AdminPurchaseRow => ({
   amountJpy: 600, livemode: true, buyerEmail: 'a@b.c', locale: 'ja',
   status: 'provisioned', userId: 'u1', loginId: 's1', error: null,
   createdAtISO: iso(5), provisionedAtISO: iso(5),
-  paymentMethod: null, loginClaimedAtISO: null, ...over,
+  paymentMethod: null, loginClaimedAtISO: null,
+  anonId: null, attributionSource: null, attributionCampaign: null, ...over,
 });
 const learner = (id: string, userId: string, daysAgo = 5, isTest = false) =>
   ({ id, userId, createdAtISO: iso(daysAgo), isTest });
