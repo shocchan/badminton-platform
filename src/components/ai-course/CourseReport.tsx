@@ -2,7 +2,7 @@
 // 詳細（訂正全件・自然な言い方・定着状態・XP内訳）は「詳しく見る」に折り畳む（§10）。
 
 import { useMemo, useRef, useState } from 'react';
-import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown } from 'lucide-react';
+import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown, MapPin } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
@@ -192,6 +192,17 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                     <ul className="space-y-1">
                       {r.naturalPhrases.map((p, i) => <li key={i} className="text-sm text-gray-800">💬 {p}</li>)}
                     </ul>
+                  </div>
+                )}
+                {/* 日本で使える場面（2026-08-26）。学習を生活につなぐ一文。無ければ出さない */}
+                {(zh ? r.usableSceneZh || r.usableSceneJa : r.usableSceneJa) && (
+                  <div className="rounded-xl bg-blue-50/70 border border-blue-100 px-3 py-2.5">
+                    <p className="text-xs text-blue-700 flex items-center gap-1.5 mb-0.5">
+                      <MapPin className="w-3.5 h-3.5" />{tr.usableScene}
+                    </p>
+                    <p className="text-sm text-gray-800 leading-relaxed">
+                      {zh ? r.usableSceneZh || r.usableSceneJa : r.usableSceneJa}
+                    </p>
                   </div>
                 )}
                 {/* 訂正の残り */}

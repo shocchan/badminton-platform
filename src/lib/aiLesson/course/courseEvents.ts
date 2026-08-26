@@ -31,6 +31,7 @@ export type CourseEventKind =
   /** 「体験を始める」を押して60分の時計が動き出した */
   | 'trial_started'
   /** 会話後の学習レポートを実際に見た */
+  | 'hint_requested'
   | 'report_viewed'
   /** 60分の体験が終わり、続きの案内画面に到達した */
   | 'trial_completed'

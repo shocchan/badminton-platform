@@ -254,6 +254,12 @@ export default function AiCoursePage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [hearingBusy, setHearingBusy] = useState(false);
   const [hearingError, setHearingError] = useState(false);
+  /**
+   * 会話がまだ一度も無い（＝1回目のウォームアップを出す）。
+   * 学習履歴からの推測ではなく、セッション一覧を実際に見て決める。
+   * 1本終えたら false にし、2回目からは申告レベルどおりの入口に戻す。
+   */
+  const [firstEverConv, setFirstEverConv] = useState(false);
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
@@ -422,7 +428,9 @@ export default function AiCoursePage() {
     const usage = await getTodayUsage(l.id);
     setLearner(l); setProgress(prog); setSessions(sess);
     setRemaining(remainingSessionsToday(lim, usage));
-    setPlan(buildLessonPlan(l, prog));
+    const firstEver = sess.length === 0 && prog.length === 0;
+    setFirstEverConv(firstEver);
+    setPlan(buildLessonPlan(l, prog, undefined, { firstEverConversation: firstEver }));
     setHasResume(courseRepository.loadResume<unknown>() !== null);
     // 保存済みの表示言語があれば反映（複数端末で同じ言語に）。無ければURL言語のまま。
     const saved = l.settings.uiLanguage;
@@ -743,6 +751,7 @@ export default function AiCoursePage() {
     };
     setLearner(nextLearner);
     setProgress(freshProgress);
+    setFirstEverConv(false);
     setPlan(buildLessonPlan(nextLearner, freshProgress));
 
     // レポート生成（AI or フォールバック）
@@ -1255,6 +1264,7 @@ export default function AiCoursePage() {
           /* V2の生徒に「ミナモ列島・第9エリア／カタリ港」は出さない。
              戻り先も今日の冒険なので、ボタンの名前を行き先に合わせる（2026-08-18 監査P1） */
           questMode={advOn}
+          warmUpFirst={firstEverConv}
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
           targetExpression={plan.main.mission.targetExpression}
           estimatedMinutes={plan.main.mission.estimatedMinutes}
@@ -1498,7 +1508,7 @@ export default function AiCoursePage() {
                * **会話が第1週の「〜といいます」から始まっていた**（実機で発覚）。
                * 設定が変わったらその場で組み直す。
                */
-              setPlan(buildLessonPlan(nextLearner, progress));
+              setPlan(buildLessonPlan(nextLearner, progress, undefined, { firstEverConversation: firstEverConv }));
               void courseRepository.updateLearner({ settings: next });
             }}
             onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
