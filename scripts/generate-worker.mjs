@@ -14,6 +14,14 @@ const indexHtml = readFileSync('dist/index.html', 'utf8');
  * のため。これが無いと中国語ページも日本語のバドミントン文言のまま配られる。
  */
 const staticSeo = JSON.parse(readFileSync('src/lib/seo/staticSeo.json', 'utf8')).pages;
+
+/**
+ * 販売LPの本文（JSを実行しないクローラー向け・2026-08-26）。
+ * scripts/ai-course/generate-lp-prerender.mts が lpContent.ts から生成する。
+ * 素のHTML本文が212文字しかなく、GPTBot/ClaudeBot 等が販売ページを読めていなかった。
+ */
+const lpPrerender = JSON.parse(readFileSync('src/lib/seo/lpPrerender.json', 'utf8'));
+const LP_PRERENDER_JSON = JSON.stringify({ ja: lpPrerender.ja, zh: lpPrerender.zh });
 const STATIC_SEO_JSON = JSON.stringify(
   Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [k, { ja: v.ja, zh: v.zh, image: v.image ?? null }])),
 );
@@ -146,6 +154,21 @@ async function generateSitemap(env) {
  * キーは /:lang/ 以降のパス（'' はトップ）。staticSeo.test.ts がJSONと画面の一致を見る。
  */
 const STATIC_SEO = ${STATIC_SEO_JSON};
+
+/** 販売LPの本文。<noscript> として素のHTMLへ入れる（ブラウザでは描画されない） */
+const LP_PRERENDER = ${LP_PRERENDER_JSON};
+
+/** noscript の中に置く本文を組む。**実際のページと同じ内容**（クローキングにしない） */
+function lpNoscriptHtml(lang) {
+  const doc = LP_PRERENDER[lang] || LP_PRERENDER.ja;
+  if (!doc) return '';
+  let html = '<h1>' + escAttr(doc.title) + '</h1>';
+  for (const b of doc.blocks) {
+    if (b.h) html += '<h2>' + escAttr(b.h) + '</h2>';
+    for (const line of (b.p || [])) html += '<p>' + escAttr(line) + '</p>';
+  }
+  return '<noscript><div id="lp-content">' + html + '</div></noscript>';
+}
 
 /** 検索結果に出さないURL。src/components/seo/privateRoutes.ts と同じ並び（テストで突き合わせる） */
 const PRIVATE_PATTERNS = [
@@ -284,6 +307,10 @@ function injectOgp(meta) {
       .replace(/(<meta property="og:locale" content=")[^"]*(")/, '$1zh_CN$2');
   }
   let tail = '<meta property="og:url" content="' + escAttr(meta.url) + '" />';
+  // 販売LPだけ、本文を <noscript> で入れる（JSを実行しないクローラー向け）
+  if (meta.noscriptHtml) {
+    html = html.replace('</body>', meta.noscriptHtml + '\\n  </body>');
+  }
   if (meta.alternates) {
     tail += '\\n    <link rel="alternate" hreflang="ja" href="' + escAttr(meta.alternates.ja) + '" />';
     tail += '\\n    <link rel="alternate" hreflang="zh" href="' + escAttr(meta.alternates.zh) + '" />';
@@ -334,7 +361,10 @@ async function buildOgpMeta(route, env, pageUrl) {
       description: t.description,
       image: 'https://kawabado.com' + seo.ogImage,
       url: pageUrl,
+      lang: route.lang,
       canonical: 'https://kawabado.com/' + route.lang + '/ai-course',
+      // 素のHTML本文が212文字しかなかった問題への対応（2026-08-26）
+      noscriptHtml: lpNoscriptHtml(route.lang),
     };
   }
   if (route.kind === 'aiCourseLegal') {

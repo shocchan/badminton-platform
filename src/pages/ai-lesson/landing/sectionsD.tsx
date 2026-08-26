@@ -31,8 +31,8 @@ export const PAYMENT_METHODS: ReadonlyArray<{
   id: string; icon: string; label: { ja: string; zh: string }; ready: boolean;
 }> = [
   { id: 'card',   icon: '💳', label: { ja: 'クレジットカード', zh: '信用卡' }, ready: true },
-  { id: 'alipay', icon: '🅰️', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: false },
-  { id: 'wechat', icon: '💬', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: false },
+  { id: 'alipay', icon: '🅰️', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: true },
+  { id: 'wechat', icon: '💬', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: true },
 ];
 
 export function PaymentMethodsNote({ lang }: { lang: Lang }) {
@@ -62,11 +62,19 @@ export function PaymentMethodsNote({ lang }: { lang: Lang }) {
           </li>
         ))}
       </ul>
-      {pending.length > 0 && (
+      {pending.length > 0 ? (
         <p className="mt-2.5 text-[0.82rem] leading-relaxed text-lp-ink-soft">
           {lang === 'zh'
             ? '支付宝・微信支付正在准备中，目前还不能使用。现在可以用信用卡付款。'
             : 'Alipay・WeChat Payは準備中で、まだご利用いただけません。いまはクレジットカードでお支払いいただけます。'}
+        </p>
+      ) : (
+        /* 表示される決済手段は、国・端末・金額によってStripe側が出し分ける。
+           「必ず全部出る」と断定しない（出なかった人に嘘をついたことになる） */
+        <p className="mt-2.5 text-[0.82rem] leading-relaxed text-lp-ink-soft">
+          {lang === 'zh'
+            ? '支付方式在支付页面选择。可选项会根据所在地区与设备有所不同。'
+            : 'お支払い方法は決済ページで選べます。ご利用の地域・端末によって表示される方法が異なることがあります。'}
         </p>
       )}
     </div>

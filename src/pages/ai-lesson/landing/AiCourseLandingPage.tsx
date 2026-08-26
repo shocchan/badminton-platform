@@ -11,6 +11,7 @@ import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
 import { HumanCoachSection, TestimonialsSection } from './sectionsC';
 import { PricingSection, PlanComparisonSection, PlanFitSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
+import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
@@ -203,9 +204,14 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
         <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
         <PriceTeaserStrip lang={lang} variant={v.key} />
         <PainPointsSection lang={lang} />
+        {/* 悩みの直後に「その悩みが出る場面」を置く（2026-08-26）。
+            機能の説明より先に、自分の生活を思い浮かべてもらう */}
+        <LifeScenesSection lang={lang} />
         <AiHumanRolesSection v={v} lang={lang} />
         <PlatformFeatures lang={lang} />
         <DailyLearningFlow v={v} lang={lang} />
+        {/* 料金の直前に「600円で何が起きるか」。金額を見る前に中身を知ってもらう */}
+        <TrialContentsSection lang={lang} />
         <SixMonthRoadmap lang={lang} />
         <PricingSection lang={lang} onConsult={openConsult}
           onApply={setApplyPlanId} preview={planPreview} />
