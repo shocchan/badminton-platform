@@ -317,6 +317,31 @@ serve(async (req: Request) => {
       return json({ received: true, handled: event.type, revoked: fullyRefunded });
     }
 
+    /* ── 非同期決済の失敗（2026-08-26 追加）───────────────────────
+       Alipay / WeChat Pay は決済確定が遅れることがあり、失敗もあとから来る。
+       これを無視していると台帳が pending のまま残り、
+       購入者から見ると「払えたのか分からない」状態が続く。
+       台帳を failed にして、決済完了ページが「完了していません」と言い切れるようにする。
+       **受講権は発行していない**ので取り消すものは無い（誤って権利を消さない）。 */
+    if (event.type === "checkout.session.async_payment_failed") {
+      const s = event.data?.object ?? {};
+      if (typeof s.id === "string") {
+        await fetch(
+          `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_session_id=eq.${encodeURIComponent(s.id)}&status=in.(pending,paid)`,
+          {
+            method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+            body: JSON.stringify({
+              status: "failed",
+              error: `async_payment_failed（${s.payment_method_types?.[0] ?? "unknown"}）`,
+              payment_method: Array.isArray(s.payment_method_types) ? s.payment_method_types[0] ?? null : null,
+              updated_at: new Date().toISOString(),
+            }),
+          },
+        ).catch((e) => console.error("async fail patch:", e));
+      }
+      return json({ received: true, handled: event.type });
+    }
+
     if (
       event.type !== "checkout.session.completed" &&
       event.type !== "checkout.session.async_payment_succeeded"
@@ -394,6 +419,10 @@ serve(async (req: Request) => {
         stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
         buyer_email: buyerEmail,
         livemode: !!event.livemode,
+        // どの決済手段で買われたか（card / alipay / wechat_pay）。
+        // 中国語話者がどれを使うかは集客の判断に直結するので必ず残す（2026-08-26）
+        payment_method: Array.isArray(session.payment_method_types)
+          ? session.payment_method_types[0] ?? null : null,
         updated_at: new Date().toISOString(),
       }),
     });

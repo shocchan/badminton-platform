@@ -79,11 +79,57 @@ export const startCheckout = async (planId: PlanId, locale: 'ja' | 'zh'): Promis
 };
 
 export interface PurchaseStatus {
-  status: 'pending' | 'paid' | 'provisioned' | 'failed' | 'unknown';
+  status: 'pending' | 'paid' | 'provisioned' | 'failed' | 'refunded' | 'unknown';
   planId: string | null;
   loginId: string | null;
   maskedEmail: string | null;
 }
+
+/**
+ * 購入直後の自動ログイン（2026-08-26 P0）。
+ *
+ * 【なぜ要るか】
+ * 受講権を持つ12人のうち7人が一度もセッションを開始していなかった。
+ * 購入完了画面がログインIDだけを出し、初期パスワードをメールで送っていたため、
+ * **いちばん学習意欲が高い瞬間にメールアプリへ離脱**していた。
+ *
+ * サーバーが一回きりのログイン用トークンを出し、ここで Supabase のセッションへ交換する。
+ * パスワードは行き来しない。失敗しても画面は壊さず、通常ログインへ案内する
+ * （メールの初期パスワードは従来どおり有効）。
+ */
+export type ClaimSessionResult =
+  | { ok: true; loginId: string | null }
+  /** not_ready = 発行がまだ終わっていない（呼び出し側は少し待って再試行してよい） */
+  | { ok: false; reason: 'not_ready' | 'already_claimed' | 'expired' | 'unavailable' };
+
+export const claimPurchaseSession = async (sessionId: string): Promise<ClaimSessionResult> => {
+  if (!SUPA_URL || !ANON_KEY) return { ok: false, reason: 'unavailable' };
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-claim-session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ sessionId }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.ok !== true || typeof data?.tokenHash !== 'string') {
+      const reason = data?.reason;
+      if (reason === 'not_ready') return { ok: false, reason: 'not_ready' };
+      if (reason === 'already_claimed') return { ok: false, reason: 'already_claimed' };
+      if (reason === 'expired') return { ok: false, reason: 'expired' };
+      return { ok: false, reason: 'unavailable' };
+    }
+    // Supabase の正規経路でセッションへ交換する（成功すると以後ログイン済み）
+    const { supabase } = await import('../../../../services/supabaseClient');
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: data.tokenHash as string,
+      type: 'magiclink',
+    });
+    if (error) return { ok: false, reason: 'unavailable' };
+    return { ok: true, loginId: typeof data.loginId === 'string' ? data.loginId : null };
+  } catch {
+    return { ok: false, reason: 'unavailable' };
+  }
+};
 
 /** 決済完了ページ用の状態照会（session_id は購入者のブラウザだけが知るトークン） */
 export const fetchPurchaseStatus = async (sessionId: string): Promise<PurchaseStatus> => {
