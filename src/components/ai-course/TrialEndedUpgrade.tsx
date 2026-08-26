@@ -16,12 +16,20 @@ import {
 import { canStartCheckout, startCheckout } from '../../lib/aiLesson/course/plans/planCheckout';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
+import { spokenMinutesLabel, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
 
-export function TrialEndedUpgrade({ lang, onApply, onLogout }: {
+export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
   lang: 'ja' | 'zh';
   /** 6か月コース（人が対応する商品）の連絡先フォームを開く */
   onApply: (planId: PlanId) => void;
   onLogout: () => void;
+  /**
+   * 体験中に実際にやったこと（2026-08-26）。
+   * 以前はこの画面がいきなり値段3つの表だった。60分やり切った直後の人が
+   * 見たいのは値段ではなく自分が何をしたかで、続きを買う理由もそこにある。
+   * 取得できなければ null（作り話はしない・無ければ出さない）。
+   */
+  summary?: TrialSummary | null;
 }) {
   const zh = lang === 'zh';
   const [busy, setBusy] = useState<PlanId | null>(null);
@@ -69,6 +77,57 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout }: {
             : '学習記録はすべて残っています。下のどれを選んでも、続きから再開できます。'}
         </p>
       </div>
+
+      {summary?.hasAnything && (
+        <section className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
+          <h2 className="text-sm font-bold text-emerald-900">
+            {zh ? '你在这60分钟里做到的' : 'この60分であなたがやったこと'}
+          </h2>
+          <dl className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl bg-white/80 px-2 py-2.5">
+              <dt className="text-[11px] text-gray-500">{zh ? '开口时间' : '話した時間'}</dt>
+              <dd className="text-lg font-extrabold text-gray-900">
+                {spokenMinutesLabel(summary.spokenSeconds)}<span className="text-xs font-bold">{zh ? '分钟' : '分'}</span>
+              </dd>
+            </div>
+            <div className="rounded-xl bg-white/80 px-2 py-2.5">
+              <dt className="text-[11px] text-gray-500">{zh ? '对话次数' : '会話した回数'}</dt>
+              <dd className="text-lg font-extrabold text-gray-900">
+                {summary.conversations}<span className="text-xs font-bold">{zh ? '次' : '回'}</span>
+              </dd>
+            </div>
+            <div className="rounded-xl bg-white/80 px-2 py-2.5">
+              <dt className="text-[11px] text-gray-500">{zh ? '练过的说法' : '練習した表現'}</dt>
+              <dd className="text-lg font-extrabold text-gray-900">
+                {summary.expressions.length}<span className="text-xs font-bold">{zh ? '个' : '個'}</span>
+              </dd>
+            </div>
+          </dl>
+
+          {/* 自分から言えた回数は0のとき出さない（0を成果として見せない） */}
+          {summary.saidIndependently > 0 && (
+            <p className="mt-3 flex items-start gap-1.5 text-[13px] leading-relaxed text-emerald-900">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden="true" />
+              {zh
+                ? `其中 ${summary.saidIndependently} 次，你是自己先说出目标说法的（不是跟着老师重复）。`
+                : `そのうち ${summary.saidIndependently} 回は、お手本を待たずに自分から目標表現を使えました。`}
+            </p>
+          )}
+
+          {/* ここが「続き」。売り文句ではなく、実際に予定されていた次の再会を言う */}
+          {summary.scheduledForReview > 0 && (
+            <p className="mt-3 rounded-xl bg-white/80 px-3 py-2.5 text-[13px] leading-relaxed text-gray-700">
+              {summary.nextExpression
+                ? (zh
+                  ? `「${summary.nextExpression}」等 ${summary.scheduledForReview} 个说法，已经排进了之后的复习。忘记之前会再出现一次——这部分要继续才会送到你手上。`
+                  : `「${summary.nextExpression}」など ${summary.scheduledForReview} 個の表現は、あとで復習に出る予定に入っています。忘れかけた頃にもう一度出てきます。ここから先は、続けたときに届きます。`)
+                : (zh
+                  ? `已经有 ${summary.scheduledForReview} 个说法排进了之后的复习。忘记之前会再出现一次——这部分要继续才会送到你手上。`
+                  : `${summary.scheduledForReview} 個の表現が、あとで復習に出る予定に入っています。忘れかけた頃にもう一度出てきます。ここから先は、続けたときに届きます。`)}
+            </p>
+          )}
+        </section>
+      )}
 
       <div className="mt-6 flex flex-col gap-3">
         {plans.map((cfg) => {

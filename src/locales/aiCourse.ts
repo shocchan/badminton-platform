@@ -433,6 +433,10 @@ const ja = {
     },
     nextReview: '次の復習',
     nextReviewNone: '（このあとの復習はありません）',
+    // 体験（実時間60分）は翌日が来ないので、日付を約束しない（2026-08-26）
+    nextReviewTrial: 'この表現は、日をおいてもう一度出てきます。体験は今日のうちだけなので、続けたときに届きます。',
+    // 「次の復習: 2026-08-27」は事実だが、明日また開く理由にはならない（2026-08-26）
+    reviewTomorrow: (expr: string) => `明日、「${expr}」をもう一度練習します。忘れかけた頃にもう一度使うのが、いちばん残ります。`,
     nextMission: '次のミッション',
     xp: '獲得XP',
     weeklyProgress: '今週の進捗',
@@ -2028,6 +2032,8 @@ const zh: AiCourseDict = {
     },
     nextReview: '下次复习',
     nextReviewNone: '（之后没有安排复习）',
+    nextReviewTrial: '这个说法会隔几天再出现一次。体验只在今天之内，所以它会在你继续之后送到。',
+    reviewTomorrow: (expr: string) => `明天会再练一次「${expr}」。在快忘记的时候再用一次，记得最牢。`,
     nextMission: '下一个任务',
     xp: '获得XP',
     weeklyProgress: '本周进度',

@@ -57,9 +57,19 @@ interface Props {
   learnerAvatarUrl?: string | null;
   /** 世界の変化の一言（FOREST FIRST §12。会話がミナモ列島の物語につながる） */
   worldLineJa?: string;
+  /**
+   * 実時間制の体験（600円のAI体験パス）で学習しているか（2026-08-26）。
+   *
+   * 体験の受講権は「体験を始める」から60分の**実時間**で切れる。
+   * それなのにレポートは「次の復習: 8/27」と、体験では絶対に来ない日付を
+   * 約束していた（＝お金を払った人に、届かない約束を見せていた）。
+   * 体験中は日付ではなく「続けたときに届く」と正直に言う。
+   * 間隔をあけて再会させる学習設計そのものは変えていない。
+   */
+  realtimeTrial?: boolean;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa, realtimeTrial = false }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
@@ -67,6 +77,18 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
   const [open, setOpen] = useState(false); // 詳細の開閉
 
   const usageLine = r.targetUsage === 'self' ? tr.usageSelf : r.targetUsage === 'hint' ? tr.usageHint : tr.usageNone;
+  /*
+   * 次の復習が明日なら、日付ではなく「明日」と言う（2026-08-26）。
+   * 「次の復習: 2026-08-27」は事実だが、**明日また開く理由**にはなっていない。
+   * 何を練習するのかまで言う。日付は現地時間で比べる（保存はYYYY-MM-DD）。
+   */
+  const reviewIsTomorrow = (() => {
+    if (!data.nextReviewISO) return false;
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    return data.nextReviewISO.startsWith(`${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`);
+  })();
   const rate = (rating: FeedbackInput['difficultyRating']) => { setRated(true); onFeedback({ difficultyRating: rating }); };
   const durMin = Math.max(1, Math.round(data.durationSeconds / 60));
 
@@ -136,10 +158,17 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{tr.doneCoachLine}</p>
                 {worldLineJa && <p className="text-xs text-indigo-600 mt-1">{worldLineJa}</p>}
-                {data.nextReviewISO && (
-                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
-                  </p>
+                {data.nextReviewISO && !realtimeTrial && (
+                  reviewIsTomorrow ? (
+                    <p className="text-xs text-blue-800 mt-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 flex items-start gap-1.5 leading-relaxed">
+                      <CalendarDays className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-px" />
+                      {tr.reviewTomorrow(data.todayCanDo.expression)}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
+                    </p>
+                  )
                 )}
                 {/* ノートへ残った事実（通常会話=DB保存済みの時だけ表示・軽め学習では出さない） */}
                 {onSeeNotebook && (
@@ -236,10 +265,19 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                     <span className="text-gray-600">{tr.masteryNow}</span>
                     <span className="font-bold text-blue-700">{tr.masteryLabels[data.masteryState]}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-blue-600" />{tr.nextReview}</span>
-                    <span className="font-bold text-gray-900">{data.nextReviewISO ?? tr.nextReviewNone}</span>
-                  </div>
+                  {realtimeTrial ? (
+                    /* 体験中は届かない日付を約束しない。学習設計そのものは同じ */
+                    <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
+                      <p className="text-xs text-amber-900 leading-relaxed flex items-start gap-1.5">
+                        <CalendarDays className="w-3.5 h-3.5 shrink-0 mt-0.5" />{tr.nextReviewTrial}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-blue-600" />{tr.nextReview}</span>
+                      <span className="font-bold text-gray-900">{data.nextReviewISO ?? tr.nextReviewNone}</span>
+                    </div>
+                  )}
                   {data.nextMissionLabel && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{tr.nextMission}</span>

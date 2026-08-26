@@ -24,6 +24,7 @@ import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner'
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
+import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
 import { ApplicationModal } from './landing/ApplicationModal';
 import type { PlanId } from '../../lib/aiLesson/course/plans/planCatalog';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
@@ -260,6 +261,12 @@ export default function AiCoursePage() {
    * 1本終えたら false にし、2回目からは申告レベルどおりの入口に戻す。
    */
   const [firstEverConv, setFirstEverConv] = useState(false);
+  /**
+   * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
+   * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
+   * この画面のためだけに読み直す。失敗したら null のまま（作り話をしない）。
+   */
+  const [trialSummary, setTrialSummary] = useState<TrialSummary | null>(null);
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
@@ -415,6 +422,16 @@ export default function AiCoursePage() {
     setAccessState(access); // 期間内でも保持する（プラン表示・期限前案内が期間を読む）
     if (access.kind === 'none' || access.kind === 'expired' || access.kind === 'not_started') {
       setStep('accessGate');
+      /*
+       * 体験を使い切って止まった人にだけ、この60分でやったことを読み直す（2026-08-26）。
+       * ゲートで止まる人はここより先の読み込みに進まないので、この画面用に別途取る。
+       * 学習データの読み取りはRLSで本人の行だけ。失敗しても画面は出す（await しない）。
+       */
+      if (access.kind === 'expired' && access.row.trialWindowMinutes) {
+        void Promise.all([courseRepository.listRecentSessions(50), courseRepository.listProgress()])
+          .then(([sess, prog]) => setTrialSummary(buildTrialSummary(sess, prog)))
+          .catch(() => setTrialSummary(null));
+      }
       return;
     }
     setAccessPlanId('row' in access ? access.row.planId ?? null : null);
@@ -911,6 +928,7 @@ export default function AiCoursePage() {
         <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialEndedUpgrade
             lang={uiLang}
+            summary={trialSummary}
             onApply={(planId) => setApplyPlanId(planId)}
             onLogout={() => { void signOut().then(() => setStep('login')); }}
           />
@@ -1142,6 +1160,8 @@ export default function AiCoursePage() {
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId && !advOn ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
+      /* 体験（実時間制）では、来ない復習日を約束しない（2026-08-26） */
+      realtimeTrial={!!accessRow?.trialWindowMinutes}
       /* 「カタリ港の霧が…」はミナモ列島（旧コース）の物語。V2の生徒はその世界を一度も見ていないので出さない（2026-08-18 監査P2） */
       worldLineJa={advOn ? undefined : t.katari.fogClearedToday} /></Shell>;
   }
