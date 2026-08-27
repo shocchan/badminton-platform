@@ -11,6 +11,8 @@ import {
   computeReturnX,
   createRng,
   difficultyForRally,
+  isWarmupRally,
+  WARMUP_RALLIES,
   evaluateSwingTiming,
   pickLanding,
   rankForRally,
@@ -83,6 +85,8 @@ interface Sim {
   shuttle: Shuttle | null;
   /** 返球がラインを割ったとき: 着地後に表示する終了メッセージ */
   pendingEnd: string | null;
+  /** 練習球のあいだ、終了させずに打ち直させる残り回数 */
+  freeMisses: number;
   rng: () => number;
   currentDiff: ShotDifficulty | null;
   popups: Popup[];
@@ -539,6 +543,7 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
       attemptedSwing: false,
       shuttle: { mode: 'pause', until: now + 900 },
       pendingEnd: null,
+      freeMisses: WARMUP_RALLIES,
       rng: createRng(),
       currentDiff: null,
       popups: [
@@ -678,8 +683,9 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
       beep(1174, 200);
     }
 
-    // ブレすぎてラインを割る → 着地後にアウトミスで終了
-    if (Math.abs(returnX) > OUT_X) {
+    // ブレすぎてラインを割る → 着地後にアウトミスで終了。
+    // 練習球のあいだは割っても終わらせない（打てた手応えだけ残す）
+    if (Math.abs(returnX) > OUT_X && !isWarmupRally(sim.rally - 1)) {
       sim.pendingEnd =
         timing.err > 0
           ? 'アウトミス…打点が早すぎて横に流れた！'
@@ -801,7 +807,21 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
               }
             } else if (p >= 1) {
               // 着地: 打ち返せなかった
-              finish(sim.attemptedSwing ? '空振り…！' : 'アウト…届かなかった！');
+              if (isWarmupRally(sim.rally) && sim.freeMisses > 0) {
+                // 練習球。ここで終わらせると、操作を覚える前に帰ってしまう
+                sim.freeMisses -= 1;
+                sim.popups.push({
+                  text: '練習球です。もう1球いきます',
+                  x: W / 2,
+                  y: 240,
+                  start: now,
+                  color: '#fbbf24',
+                  size: 18,
+                });
+                sim.shuttle = { mode: 'pause', until: now + 700 };
+              } else {
+                finish(sim.attemptedSwing ? '空振り…！' : 'アウト…届かなかった！');
+              }
             }
             // 軌跡を記録
             if (p < 1 && sim.trail.length < 200) {
@@ -1021,6 +1041,9 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
             シャトルの落下点で
             <span className="font-bold text-emerald-300">緑リングが重なった瞬間</span>
             にタップ！
+          </p>
+          <p className="text-xs text-emerald-300">
+            最初の{WARMUP_RALLIES}球は練習球。外してもゲームは終わりません
           </p>
           <p className="text-xs text-slate-400">
             早すぎ・遅すぎは打球が横に流れてアウトミスの危険…

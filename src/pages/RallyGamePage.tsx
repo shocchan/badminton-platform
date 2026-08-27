@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet-async';
 import { Gamepad2, Gift, Target, Trophy, ChevronRight } from 'lucide-react';
 import RallyGame from '../components/RallyGame';
 import RallyLotteryModal from '../components/RallyLotteryModal';
-import { LEGEND_RALLY, RALLY_RANKS } from '../lib/rallyGame';
+import { LEGEND_RALLY, RALLY_RANKS, WARMUP_RALLIES } from '../lib/rallyGame';
 import { getRallyBest } from '../lib/rallyBest';
 import {
   RALLIES_PER_DRAW,
@@ -77,6 +77,7 @@ export default function RallyGamePage() {
                 <li>🏸 マウスでラケットをコート全面に移動（←→↑↓キーもOK）</li>
                 <li>🎯 落下点に緑リングが縮んでくる。重なった瞬間にクリック / Space でスイング！</li>
                 <li>⚖️ ジャストなら「Perfect」。早い・遅いは打球が横に流れてアウトミスの危険</li>
+                <li>🔰 最初の{WARMUP_RALLIES}球は練習球。外してもゲームは終わりません</li>
                 <li>💨 ラリーが続くほどシャトルは速く、コースはライン際に</li>
               </ul>
             </div>
@@ -172,7 +173,8 @@ export default function RallyGamePage() {
             <li>🎯 シャトルの落下点に緑のリングが縮んでくる。重なった瞬間にタップでスイング！</li>
             <li>⚖️ タイミングがジャストなら「Perfect」。早い・遅いと打球が横に流れ、ラインを割ると「アウトミス」</li>
             <li>💨 ラリーが続くほどシャトルは速く、コースはネット前から奥までライン際に</li>
-            <li>❌ 届かなければ「アウト」、外せば「空振り」、流れれば「アウトミス」でゲーム終了</li>
+            <li>🔰 最初の{WARMUP_RALLIES}球は練習球。ゆっくりな球が来て、外しても終わりません</li>
+            <li>❌ 練習球のあとは、届かなければ「アウト」、外せば「空振り」、流れれば「アウトミス」でゲーム終了</li>
             <li>🏆 スコアは到達ラリー数。まずは10ラリー、目指せ{LEGEND_RALLY}ラリー！</li>
           </ul>
         </div>
