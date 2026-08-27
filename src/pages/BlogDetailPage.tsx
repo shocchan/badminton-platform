@@ -11,10 +11,16 @@ import {
   BLOG_DETAIL_COVER_SIZES,
   BLOG_CONTENT_SIZES,
 } from '../lib/blogImages';
+import { useLanguage } from '../contexts/LanguageContext';
+import { localizedPost, BLOG_UI, blogLocale } from '../lib/blogI18n';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
+  const { lang } = useLanguage();
+  const t = BLOG_UI[lang];
   const { post, loading, error } = useBlogPost(Number(id));
+  // 表示言語ぶんのテキスト（中国語版が無ければ日本語のまま）
+  const text = post ? localizedPost(post, lang) : null;
 
   // 下書きプレビュー（管理者のみRLSで取得可能）では閲覧数を増やさない
   useEffect(() => {
@@ -26,10 +32,10 @@ export const BlogDetailPage = () => {
   // 本文HTML内の<img>に lazy/srcset を付与（カバーが無い記事は先頭画像がLCPなのでeager扱い）
   const enhancedContent = useMemo(
     () =>
-      post && post.content_type !== 'markdown'
-        ? enhanceBlogContentHtml(post.content, { eagerFirst: !post.image_url })
+      post && text && post.content_type !== 'markdown'
+        ? enhanceBlogContentHtml(text.content, { eagerFirst: !post.image_url })
         : '',
-    [post],
+    [post, text],
   );
 
   // srcset の変種が存在しない場合（マイグレーション漏れ等）に原本へフォールバックする
@@ -47,7 +53,7 @@ export const BlogDetailPage = () => {
   }, [enhancedContent]);
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date(dateStr).toLocaleDateString(blogLocale(lang), { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   const getYoutubeId = (url: string) => {
@@ -93,11 +99,11 @@ export const BlogDetailPage = () => {
   }
 
   // 下書きはRLSにより管理者以外は取得できず error になる（＝ここに来た下書きは管理者のプレビュー）
-  if (error || !post) {
+  if (error || !post || !text) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center">
-        <p className="text-gray-400">記事が見つかりませんでした</p>
-        <Link to="/blog" className="text-blue-600 mt-4 inline-block hover:underline">← ブログ一覧へ</Link>
+        <p className="text-gray-400">{t.notFound}</p>
+        <Link to={`/${lang}/blog`} className="text-blue-600 mt-4 inline-block hover:underline">{t.backToList}</Link>
       </div>
     );
   }
@@ -106,11 +112,15 @@ export const BlogDetailPage = () => {
     <main className="max-w-4xl mx-auto px-4 py-10">
       {post.status === 'draft' && (
         <div className="mb-6 flex items-center justify-between gap-3 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded-xl text-sm">
-          <span className="font-medium">📝 下書きプレビュー — この記事はまだ公開されていません（管理者のみ閲覧可能）</span>
-          <Link to="/ja/admin" className="shrink-0 text-blue-600 hover:underline">管理ページへ</Link>
+          <span className="font-medium">{t.draftNotice}</span>
+          <Link to="/ja/admin" className="shrink-0 text-blue-600 hover:underline">{t.toAdmin}</Link>
         </div>
       )}
-      <Link to="/blog" className="text-blue-600 text-sm hover:underline mb-6 inline-block">← ブログ一覧へ</Link>
+      <Link to={`/${lang}/blog`} className="text-blue-600 text-sm hover:underline mb-6 inline-block">{t.backToList}</Link>
+
+      {!text.isTranslated && (
+        <p className="mb-6 bg-blue-50 border border-blue-200 text-blue-900 px-4 py-3 rounded-xl text-sm">{t.untranslated}</p>
+      )}
 
       {post.image_url && (
         // このページのLCP要素。srcset/sizes は generate-worker.mjs のpreload注入と一致させること
@@ -118,7 +128,7 @@ export const BlogDetailPage = () => {
           src={post.image_url}
           srcSet={blogImageSrcSet(post.image_url)}
           sizes={BLOG_DETAIL_COVER_SIZES}
-          alt={post.title}
+          alt={text.title}
           width={1600}
           height={900}
           fetchPriority="high"
@@ -131,7 +141,7 @@ export const BlogDetailPage = () => {
 
       <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <div className="text-sm text-gray-400 mb-3">{formatDate(post.created_at)}</div>
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{post.title}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">{text.title}</h1>
         <style>{`
           .blog-content a { color: #2563eb; text-decoration: underline; }
           .blog-content a:hover { color: #1d4ed8; }
@@ -148,7 +158,7 @@ export const BlogDetailPage = () => {
         `}</style>
         {post.content_type === 'markdown' ? (
           <div className="prose prose-lg max-w-none text-gray-700 blog-content">
-            <ReactMarkdown components={markdownComponents}>{post.content}</ReactMarkdown>
+            <ReactMarkdown components={markdownComponents}>{text.content}</ReactMarkdown>
           </div>
         ) : (
           <div

@@ -372,6 +372,9 @@ const EMPTY_POST: Omit<BlogPost, 'id' | 'created_at' | 'updated_at'> = {
   content: '',
   content_type: 'html',
   excerpt: '',
+  title_zh: '',
+  excerpt_zh: '',
+  content_zh: '',
   image_url: '',
   tags: [],
   status: 'published',
@@ -1071,6 +1074,8 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [postForm, setPostForm] = useState(EMPTY_POST);
+  // 記事編集の言語タブ。日本語が正、中文は任意（未入力なら公開ページは日本語にフォールバック）
+  const [postLang, setPostLang] = useState<'ja' | 'zh'>('ja');
   const [postError, setPostError] = useState<string | null>(null);
   const [postSuccess, setPostSuccess] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1496,10 +1501,19 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         return plain ? plain.slice(0, 80) + (plain.length > 80 ? '…' : '') : undefined;
       })();
 
+      // 中国語版は任意。空欄のまま保存された記事は表示側で日本語にフォールバックする
+      const zhOrNull = (v: string | null | undefined) => {
+        const t = (v ?? '').replace(/<[^>]*>/g, '').trim();
+        return t ? (v as string) : null;
+      };
+
       const cleanForm = {
         ...postForm,
         image_url: finalImageUrl || undefined,
         excerpt: autoExcerpt,
+        title_zh: (postForm.title_zh ?? '').trim() || null,
+        excerpt_zh: (postForm.excerpt_zh ?? '').trim() || null,
+        content_zh: zhOrNull(postForm.content_zh),
         youtube_url: postForm.youtube_url || undefined,
         external_url: postForm.external_url || undefined,
         tags: postForm.tags?.length ? postForm.tags : [],
@@ -1532,6 +1546,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
 
   const handleEditPost = (p: BlogPost) => {
     setEditingPost(p);
+    setPostLang('ja');
     const futureDate = new Date(p.published_at) > new Date();
     setIsScheduled(futureDate);
     setPostForm({
@@ -1539,6 +1554,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       content: p.content,
       content_type: p.content_type || 'html',
       excerpt: p.excerpt || '',
+      title_zh: p.title_zh || '',
+      excerpt_zh: p.excerpt_zh || '',
+      content_zh: p.content_zh || '',
       image_url: p.image_url || '',
       image_position: p.image_position || 'center center',
       tags: p.tags || [],
@@ -1986,7 +2004,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-gray-800">ブログ記事一覧</h2>
             <button
-              onClick={() => { setEditingPost(null); setPostForm(EMPTY_POST); setShowPostForm(true); }}
+              onClick={() => { setEditingPost(null); setPostForm(EMPTY_POST); setPostLang('ja'); setShowPostForm(true); }}
               className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               ＋ 新規記事
@@ -2000,23 +2018,53 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <h3 className="font-bold text-gray-900 mb-4">{editingPost ? '記事を編集' : '新規記事作成'}</h3>
               {postError && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">{postError}</div>}
               <form onSubmit={handlePostSubmit} className="space-y-4">
+                {/* 言語タブ。タイトル・抜粋・本文がこのタブで切り替わる（画像やタグは共通） */}
+                <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+                  {(['ja', 'zh'] as const).map(l => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setPostLang(l)}
+                      aria-pressed={postLang === l}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        postLang === l ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {l === 'ja' ? '🇯🇵 日本語' : '🇨🇳 中文'}
+                      {l === 'zh' && (postForm.content_zh ?? '').replace(/<[^>]*>/g, '').trim() && ' ✓'}
+                    </button>
+                  ))}
+                  <span className="text-xs text-gray-500">
+                    {postLang === 'ja'
+                      ? '画像・タグ・公開設定は言語共通です'
+                      : '未入力のままでも保存できます（公開ページでは日本語が表示されます）'}
+                  </span>
+                </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">タイトル *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {postLang === 'ja' ? 'タイトル *' : 'タイトル（中文）'}
+                  </label>
                   <input
-                    required
-                    value={postForm.title}
-                    onChange={e => setPostForm(p => ({...p, title: e.target.value}))}
+                    required={postLang === 'ja'}
+                    value={postLang === 'ja' ? postForm.title : (postForm.title_zh ?? '')}
+                    onChange={e => setPostForm(p => postLang === 'ja'
+                      ? {...p, title: e.target.value}
+                      : {...p, title_zh: e.target.value})}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="5/23 初級OP 大会結果"
+                    placeholder={postLang === 'ja' ? '5/23 初級OP 大会結果' : '5/23 初级公开赛 比赛结果'}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">抜粋（一覧表示用）</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {postLang === 'ja' ? '抜粋（一覧表示用）' : '抜粋（中文・一覧表示用）'}
+                  </label>
                   <input
-                    value={postForm.excerpt}
-                    onChange={e => setPostForm(p => ({...p, excerpt: e.target.value}))}
+                    value={postLang === 'ja' ? postForm.excerpt : (postForm.excerpt_zh ?? '')}
+                    onChange={e => setPostForm(p => postLang === 'ja'
+                      ? {...p, excerpt: e.target.value}
+                      : {...p, excerpt_zh: e.target.value})}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="記事の概要..."
+                    placeholder={postLang === 'ja' ? '記事の概要...' : '文章摘要...'}
                   />
                 </div>
                 <div>
@@ -2128,7 +2176,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-700">本文 *</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {postLang === 'ja' ? '本文 *' : '本文（中文）'}
+                    </label>
                     <div className="flex gap-1">
                       {(['html', 'markdown'] as const).map(mode => (
                         <button
@@ -2147,8 +2197,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     </div>
                   </div>
                   {postForm.content_type === 'markdown'
-                    ? <MarkdownEditor value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
-                    : <RichEditor key={editingPost?.id ?? 'new'} value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
+                    ? <MarkdownEditor
+                        value={(postLang === 'ja' ? postForm.content : postForm.content_zh) ?? ''}
+                        onChange={v => setPostForm(p => postLang === 'ja' ? {...p, content: v} : {...p, content_zh: v})}
+                      />
+                    : <RichEditor
+                        // 言語を切り替えたらエディタを作り直す（TipTapは初期contentしか読まないため）
+                        key={`${editingPost?.id ?? 'new'}-${postLang}`}
+                        value={(postLang === 'ja' ? postForm.content : postForm.content_zh) ?? ''}
+                        onChange={v => setPostForm(p => postLang === 'ja' ? {...p, content: v} : {...p, content_zh: v})}
+                      />
                   }
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -54,6 +54,10 @@ export interface BlogPost {
   content: string;
   content_type?: 'html' | 'markdown';
   excerpt?: string;
+  // 中国語版。未入力の記事は表示側で日本語にフォールバックする（src/lib/blogI18n.ts）
+  title_zh?: string | null;
+  content_zh?: string | null;
+  excerpt_zh?: string | null;
   image_url?: string;
   image_position?: string;
   tags?: string[];

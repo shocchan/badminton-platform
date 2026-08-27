@@ -207,12 +207,17 @@ async function buildOgpMeta(route, env, pageUrl) {
   }
   if (route.kind === 'blog') {
     const p = await fetchFirst(env,
-      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url');
+      '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url,title_zh,excerpt_zh');
     if (!p) return null;
     const coverUrl = p.image_url && /^https?:/.test(p.image_url) ? p.image_url : null;
+    // 中国語版が未入力の記事は日本語のまま出す（表示側のフォールバックと揃える）
+    const zh = route.lang === 'zh';
+    const title = (zh && p.title_zh && p.title_zh.trim()) ? p.title_zh : p.title;
+    const excerpt = (zh && p.excerpt_zh && p.excerpt_zh.trim()) ? p.excerpt_zh : p.excerpt;
+    const siteName = zh ? '川口・蕨羽毛球交流会' : '川口・蕨バドミントン交流会';
     return {
-      title: p.title + '｜川口・蕨バドミントン交流会',
-      description: p.excerpt || '川口・蕨エリアのバドミントン交流会の活動ブログ',
+      title: title + '｜' + siteName,
+      description: excerpt || (zh ? '川口・蕨地区羽毛球交流会的活动博客' : '川口・蕨エリアのバドミントン交流会の活動ブログ'),
       image: coverUrl,
       // カバー画像＝このページのLCP。HTML段階で先読みさせる
       imagePreload: coverUrl ? buildCoverPreload(coverUrl) : '',
