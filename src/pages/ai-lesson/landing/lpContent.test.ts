@@ -138,3 +138,42 @@ describe('料金への導線（2026-08-20）', () => {
     }
   });
 });
+
+/* ── 画面に出る文字にMarkdown記法を書かない（2026-08-27・本番で実際に出た） ──
+   `**翌日の復習まで体験できる**` と書いた文が、アスタリスクごとそのまま
+   本番の料金カードに表示されていた。LPもカタログも**素のテキストとして描画される**ので、
+   Markdownは効かず、記号だけが残る。強調したいときは言葉の順序か、
+   コンポーネント側のスタイルで行う。 */
+describe('画面に出る文字にMarkdown記法が混ざっていない', () => {
+  const walk = (v: unknown, path: string, out: { path: string; text: string }[]) => {
+    if (typeof v === 'string') { out.push({ path, text: v }); return; }
+    if (Array.isArray(v)) { v.forEach((x, i) => walk(x, `${path}[${i}]`, out)); return; }
+    if (v && typeof v === 'object') {
+      for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`, out);
+    }
+  };
+
+  const strings = (): { path: string; text: string }[] => {
+    const out: { path: string; text: string }[] = [];
+    walk(LP, 'LP', out);
+    for (const p of PLAN_CATALOG) {
+      walk({
+        descriptionJa: p.descriptionJa, descriptionZh: p.descriptionZh,
+        featuresJa: p.featuresJa, featuresZh: p.featuresZh,
+        notIncludedJa: p.notIncludedJa, notIncludedZh: p.notIncludedZh,
+        audienceJa: p.audienceJa, audienceZh: p.audienceZh,
+      }, `plan:${p.id}`, out);
+    }
+    return out;
+  };
+
+  it('太字の ** が残っていない', () => {
+    const bad = strings().filter((s) => s.text.includes('**'));
+    expect(bad.map((b) => `${b.path}: ${b.text.slice(0, 40)}`)).toEqual([]);
+  });
+
+  it('見出しの # やリストの - で始まる行が無い', () => {
+    const bad = strings().filter((s) => /^\s*(#{1,6}\s|-\s|\*\s)/.test(s.text));
+    expect(bad.map((b) => `${b.path}: ${b.text.slice(0, 40)}`)).toEqual([]);
+  });
+});

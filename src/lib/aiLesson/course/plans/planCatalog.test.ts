@@ -319,7 +319,9 @@ const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
   // 2026-08-26 Phase S4/S5: 6か月コースを「AI＋レッスン24回」から**伴走サービス**の
   // 言い方へ（coach v5→v6）。月額プランを「人のレッスンは要らない人の選択肢」と
   // 位置づけ直した（month v3→v4）。**価格は3プランとも据え置き**。
-  'ai-trial-pass': { version: 5, hash: 'ed3013c44b99' },
+  // 2026-08-27: 特典の1行から Markdown の ** を外した（画面にそのまま出ていた）。
+  // 中身は同じで表記だけの修正なので version は据え置き（買う人が得るものは変わらない）
+  'ai-trial-pass': { version: 5, hash: '52eaa2a93eb2' },
   'ai-month': { version: 4, hash: '935211600582' },
   'coach-6m': { version: 6, hash: '0f01b399c240' },
 };
