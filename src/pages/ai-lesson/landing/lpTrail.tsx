@@ -24,11 +24,17 @@ import { useEffect, useState } from 'react';
 export function LpTrailProgress({ label }: { label: string }) {
   const [pct, setPct] = useState(0);
   const [show, setShow] = useState(false);
-  const [reduce, setReduce] = useState(false);
+  /*
+   * 動きを減らす設定は**初期値として一度だけ**読む。
+   * useEffect の中で setState すると、マウント直後にもう一度描画が走る
+   * （lint: cascading renders）。ページ表示中に設定を切り替える人はいないので、
+   * 購読せず初期値で足りる。
+   */
+  const [reduce] = useState(() => {
+    try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+  });
 
   useEffect(() => {
-    try { setReduce(window.matchMedia('(prefers-reduced-motion: reduce)').matches); } catch { /* noop */ }
-
     /*
      * 間引きは requestAnimationFrame ではなく「丸めた値が変わったときだけ更新」で行う。
      * rAF は**タブが裏にあると止まる**ので、裏で位置が変わったまま戻ってきたときに

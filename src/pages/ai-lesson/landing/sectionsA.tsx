@@ -94,7 +94,18 @@ export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang 
  * 並びは LP.flow.steps と1対1。文言を足し引きしたらここも合わせること
  * （lpVisuals.test.ts が件数の一致を見ている）。
  */
-const FLOW_STEP_ICONS = ['step-talk', 'step-talk', 'step-words', 'step-review', 'step-battle'] as const;
+const FLOW_STEP_ICONS: (string | null)[] = [
+  'goal-chest',   // 今日の目標を見る
+  'step-talk',    // AIと話す
+  'step-words',   // 言えなかった表現を確認
+  'step-review',  // 1・3・7・30日後に復習
+  /*
+   * 「職場・生活・交流で使う」に合うアイコンがアプリ側に無い。
+   * step-battle は文法バトルの絵なので、実生活の場面に当てると意味がずれる。
+   * **合わない絵を置くくらいなら置かない**。null のカードはアイコン無しで出る。
+   */
+  null,
+];
 
 export function DailyLearningFlow({ v, lang }: { v: VariantConfig; lang: Lang }) {
   const steps = LP.flow.steps[lang];
@@ -109,12 +120,14 @@ export function DailyLearningFlow({ v, lang }: { v: VariantConfig; lang: Lang })
                 <span className="flex items-center gap-2">
                   <span className="w-9 h-9 rounded-full bg-lp-coral text-white font-extrabold grid place-items-center shrink-0">{i + 1}</span>
                   {/* アプリと同じアイコン。装飾なので支援技術には読ませない */}
-                  <img
-                    src={`/ai-course/step/${FLOW_STEP_ICONS[i] ?? 'step-talk'}@2x.webp`}
-                    alt="" aria-hidden="true" loading="lazy" decoding="async"
-                    width={36} height={36}
-                    className="w-9 h-9 object-contain opacity-90"
-                  />
+                  {FLOW_STEP_ICONS[i] && (
+                    <img
+                      src={`/ai-course/step/${FLOW_STEP_ICONS[i]}@2x.webp`}
+                      alt="" aria-hidden="true" loading="lazy" decoding="async"
+                      width={36} height={36}
+                      className="w-9 h-9 object-contain opacity-90"
+                    />
+                  )}
                 </span>
                 <h3 className="font-extrabold text-lp-ink text-[1.02rem] mt-1">{s.title.replace('AI', i === 1 ? v.name[lang] : 'AI')}</h3>
                 <p className="text-[0.92rem] text-lp-ink-soft leading-relaxed">{s.body}</p>

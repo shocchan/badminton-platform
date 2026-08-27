@@ -139,41 +139,51 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
 }
 
 /*
- * 6か月ロードマップに、**アプリで実際に使っている冒険マップの背景**を敷く（2026-08-27）。
+ * 6か月ロードマップの頭に、**アプリで実際に使っている冒険マップの絵**を帯で出す（2026-08-27）。
  *
  * 新しい画像は作っていない。public/ai-course/map/world-bg（水彩の風景）を使う。
  * 「6か月で目指す道のり」という中身と、生徒が毎日見る世界地図が同じ絵になる。
  *
- * 重さの扱い:
+ * 【全面の背景にしなかった理由】
+ * 最初はセクション全体の背景に敷いたが、スマホでは縦2,000px・横375pxになり、
+ * object-cover が縦長の画像をさらに細い帯に切り取って**何の絵か分からなくなった**（実機で確認）。
+ * 白ベールも強くしないと本文が読めず、薄くすると読みにくい。
+ * 帯にすれば絵は絵として見え、文字の上に重ならないので可読性の妥協も要らない。
+ *
+ * 【重さ】
  *   - AVIF（51KB）→ WebP（61KB）のフォールバック。<picture> でブラウザに選ばせる
- *   - loading="lazy"。ここはページのかなり下なので、初回表示には乗らない
- *   - 背景なので装飾。alt="" と aria-hidden で支援技術には読ませない
- *   - 文字の可読性を落とさないよう、白いベールを重ねる
+ *   - loading="lazy"。ページのかなり下なので初回表示には乗らない
+ *   - aspect比を固定して、読み込み中に下の文字がずれないようにする
+ *   - 装飾なので alt="" と aria-hidden（道のりの中身は下のカードが文字で言っている）
  */
 export function SixMonthRoadmap({ lang }: { lang: Lang }) {
   return (
-    <section id="roadmap" className="scroll-mt-20 py-16 sm:py-24 relative overflow-hidden">
-      {/* 冒険マップの風景。文字の下に敷くだけで、読みやすさは白ベールで担保する */}
-      <div className="absolute inset-0 -z-10" aria-hidden="true">
-        <picture>
-          <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
-          <img
-            src="/ai-course/map/world-bg@1x.webp"
-            alt="" aria-hidden="true" loading="lazy" decoding="async"
-            width={512} height={768}
-            className="w-full h-full object-cover object-top"
-          />
-        </picture>
-        {/* 上下を強く白く、中央は少し透かす。読めなくなったら本末転倒 */}
-        <div className="absolute inset-0 bg-gradient-to-b from-lp-ivory via-lp-ivory/88 to-lp-ivory" />
-      </div>
-
+    <section id="roadmap" className="scroll-mt-20 py-16 sm:py-24">
       <div className="mx-auto max-w-6xl px-5">
+        <Reveal>
+          <div className="mb-8 overflow-hidden rounded-3xl border border-lp-line bg-lp-card">
+            <picture>
+              <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
+              <img
+                src="/ai-course/map/world-bg@1x.webp"
+                alt="" aria-hidden="true" loading="lazy" decoding="async"
+                width={512} height={768}
+                /*
+                  縦長の原画を横長に切る。**上寄せ**にして山と、そこへ延びる川を見せる。
+                  最初 object-bottom にしたら港の水面だけになり、
+                  「これから進む道のり」に見えなかった（実機で確認）。
+                */
+                className="w-full h-[140px] sm:h-[200px] object-cover object-top"
+              />
+            </picture>
+          </div>
+        </Reveal>
+
         <Reveal><SectionHeading title={LP.roadmap.heading[lang]} /></Reveal>
         <div className="grid md:grid-cols-3 gap-4">
           {LP.roadmap.phases[lang].map((p, i) => (
             <Reveal key={i} delay={i * 80}>
-              <div className="relative h-full bg-lp-card/95 backdrop-blur-[2px] border border-lp-line rounded-2xl p-6 shadow-[0_6px_20px_-12px_rgba(55,43,38,0.35)]" style={{ marginTop: `${i * 12}px` }}>
+              <div className="relative h-full bg-lp-card border border-lp-line rounded-2xl p-6" style={{ marginTop: `${i * 12}px` }}>
                 <div className="flex items-center gap-2 mb-4">
                   <span className="w-8 h-8 rounded-full bg-lp-gold text-lp-ink font-extrabold grid place-items-center text-sm">{i + 1}</span>
                   <span className="font-extrabold text-lp-ink">{p.span}</span>
