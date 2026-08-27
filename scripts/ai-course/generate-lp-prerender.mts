@@ -115,6 +115,17 @@ const buildBlocks = (lang: Lang): Block[] => {
     ],
   });
 
+  // 使っている人の声（2026-08-27）。買う前にいちばん探される場所なので、
+  // JSを実行しないクローラーにも読めるようにする。
+  // 誇張していない実際の言葉なので、AIが引用しても内容がずれない
+  blocks.push({
+    h: LP.testimonials.heading[lang],
+    p: [
+      LP.testimonials.lead[lang],
+      ...LP.testimonials.entries[lang].map((e) => e.text),
+    ],
+  });
+
   blocks.push({
     h: LP.faq.heading[lang],
     p: LP.faq.items[lang].map((f) => `${f.q} ${f.a}`),
