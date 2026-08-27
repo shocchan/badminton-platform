@@ -269,16 +269,20 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
   };
 
   if (goalType === 'hybrid') {
-    // N5・N4はAI会話を出さない（CEO決定 2026-08-22）。会話は先生の授業でやる。
-    // ここで会話stageを入れてしまうと、ルート提示で約束したものが毎日の冒険に出てこない
-    if (!aiConversationAvailable(goalType, target)) {
+    // 試験対策を目的に含む人にはAI会話を出さない（CEO決定 2026-08-25）。会話は先生の授業でやる。
+    // ここで会話stageを入れてしまうと、ルート提示で約束したものが毎日の冒険に出てこない。
+    // 級ではなく目的で決まるようになったので、文言から級を外す（「N4のあいだ」だと
+    // 級が上がれば出ると読めてしまい、実装と食い違う）
+    if (!aiConversationAvailable(goalType)) {
       return {
         ...base,
-        explanationJa: `${explanationJa} 会話は先生の授業で練習します（${target}のあいだ、アプリのAI会話は出ません）。`,
-        explanationZh: `${explanationZh} 会话在老师的课上练习（${target}期间，应用内不出现AI会话）。`,
+        explanationJa: `${explanationJa} 会話は先生の授業で練習します（試験対策の道では、アプリのAI会話は出ません）。`,
+        explanationZh: `${explanationZh} 会话在老师的课上练习（考试攻略路线中，应用内不出现AI会话）。`,
       };
     }
-    // 会話stageを2番目に合流（毎日のクエストで比率調整する・§7）
+    // 会話stageを2番目に合流（毎日のクエストで比率調整する・§7）。
+    // 2026-08-25 現在 hybrid は上で必ず返るのでここは通らないが、出し分けの単一の門は
+    // aiConversationAvailable なので、門が開いたときの合流手順はここに残す
     const conv = conversationStages(conversationBand, diagnosis);
     const merged = [...stages];
     merged.splice(Math.min(1, merged.length), 0, conv[0]);

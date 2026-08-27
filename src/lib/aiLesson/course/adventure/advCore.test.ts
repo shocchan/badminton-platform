@@ -146,11 +146,14 @@ describe('advRoute（§5/§6/§28 Persona要点）', () => {
     expect(r.explanationJa).toContain('知識を否定せず');
   });
 
-  it('Persona D: hybrid → JLPT列に会話stageが合流', () => {
+  it('Persona D: hybrid → JLPT列だけ。会話stageは合流させない', () => {
+    // 2026-08-25 CEO決定「試験対策と会話両方を目的にした人には会話が出ないようにしてみよう」。
+    // 会話stageを入れると、提示した道と毎日の冒険（AI会話が出ない）が食い違う
     const r = generateRoute({ goalType: 'hybrid', targetJlpt: 'N2', knowledgeBand: 'n3', conversationBand: 'n4_late', diagnosis: null, nowISO: NOW });
     expect(r.destinationJlpt).toBe('N2');
-    expect(r.stages.some((s) => s.kind === 'conversation_start')).toBe(true);
+    expect(r.stages.some((s) => s.kind === 'conversation_start')).toBe(false);
     expect(r.stages.some((s) => s.kind === 'n2_grammar')).toBe(true);
+    expect(r.explanationJa).toContain('先生の授業');
   });
 
   it('上級現在地なら基礎経由地を積まない', () => {

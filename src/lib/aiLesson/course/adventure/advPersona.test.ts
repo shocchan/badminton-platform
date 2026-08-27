@@ -258,18 +258,20 @@ describe('Persona C（会話目的）', () => {
 describe('Persona D（Hybrid: N2合格＋仕事の会話）', () => {
   const prof = onboard(PERSONAS[3]);
 
-  it('JLPTの段と会話の段が両方ルートに入る', () => {
+  it('ルートに入るのはJLPTの段だけ（会話の段は入らない）', () => {
     const kinds = prof.route!.stages.map((s) => s.kind);
     expect(kinds.some((k) => k.startsWith('n2') || k.startsWith('n3'))).toBe(true);
     expect(prof.route!.stages.length).toBeGreaterThan(1);
+    // 2026-08-25 CEO決定: 試験対策と会話の両方が目的でも、アプリのAI会話は出さない。
+    // 会話は先生の授業でやるので、ルートにも会話の段を出さない（道と中身を一致させる）
+    expect(kinds).not.toContain('conversation_start');
   });
 
-  it('今日の冒険で試験科目と会話の両方に配分される', () => {
+  it('今日の冒険にAI会話は入らない（会話は先生の授業）。試験科目は空にしない', () => {
     const q = todayQuest(prof);
     const examish = q.steps.filter((s) => !['conversation_mission', 'restate'].includes(s.kind));
-    const practical = q.steps.filter((s) => ['conversation_mission', 'restate'].includes(s.kind));
     expect(examish.length).toBeGreaterThan(0);
-    expect(practical.length).toBeGreaterThan(0);
+    expect(q.steps.filter((s) => s.kind === 'conversation_mission').length).toBe(0);
   });
 
   it('**JLPT技能と会話力を別管理する**（原則5: 片方をもう片方へ流用しない）', () => {

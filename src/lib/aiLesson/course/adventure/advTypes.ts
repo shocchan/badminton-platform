@@ -398,20 +398,25 @@ export interface AdventureV2Profile {
 
 /** 表示用ラベル（レベル断定を避ける・§6/§16の文言はここに集約） */
 /**
- * AI会話をこの人に出すか（CEO決定 2026-08-22）。
+ * AI会話をこの人に出すか（CEO決定 2026-08-25）。
  *
- * **N5・N4を目標にした人には出さない。** 会話は先生が人の授業でやる。
- * 理由: 語彙・文法・読解・聴解は初級まで作り込んであるが、AI会話の中身は
- * その水準に届いていない。届いていないものを毎日の冒険に混ぜると、
- * 生徒の時間を薄いところに使わせることになる（原則13: 無いものを有るふりをしない）。
+ * **試験対策を目的に含む人には出さない。出すのは会話が目的の人だけ。**
+ * CEOの言葉:「試験対策を選んだ人はAI会話は完全に入れないようにしよう」
+ * 「試験対策と会話両方を目的にした人には会話が出ないようにしてみよう」
+ * ＝ jlpt だけでなく hybrid も false。hybrid の会話は先生が人の授業でやる。
  *
- * 会話そのものを目的に選んだ人（goalType='conversation'）は目標レベルを持たないので対象外。
+ * 2026-08-22 の判断（N5・N4を目標にした人には出さない）との関係:
+ * あちらは**級**での線引きだった（AI会話の中身が初級の水準に届いていないため）。
+ * 級の条件は残さない。jlpt/hybrid を級によらず false と決めた以上、級で分ける余地がなく、
+ * conversation の人は目標級を持たないので 08-22 の条件でも常に true だった＝級が効いたことがない。
+ * 逆に残すと jlpt/hybrid のN3・N2が true に戻り、今回の決定と真正面から矛盾する。
+ *
  * この判定は ルート生成（会話stageを入れない）・今日の冒険（会話stepを出さない）・
- * オンボーディングの案内文 の3か所で使う。増やすときは必ずここを通すこと。
+ * オンボーディングの案内文（目的選択と攻略ルート披露）・先生選択の説明文 で使う。
+ * 増やすときは必ずここを通すこと。
  */
-export const aiConversationAvailable = (
-  goalType: AdvGoalType, targetJlpt: JlptLevel | null,
-): boolean => goalType === 'conversation' || (targetJlpt !== 'N5' && targetJlpt !== 'N4');
+export const aiConversationAvailable = (goalType: AdvGoalType): boolean =>
+  goalType === 'conversation';
 
 export const BAND_LABELS: Record<AdvBand, { ja: string; zh: string }> = {
   needs_assessment: { ja: '未判定', zh: '尚未判定' },

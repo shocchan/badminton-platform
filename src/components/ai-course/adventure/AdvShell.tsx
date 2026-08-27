@@ -1110,10 +1110,10 @@ export default function AdvShell(props: AdvShellProps) {
    * 約束したものと出るものを一致させる（原則13）。N2/N3目標では値が変わらない。
    */
   /**
-   * AI会話をこの人に出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業。
+   * AI会話をこの人に出すか（CEO決定 2026-08-25）。試験対策が目的の人には出さない＝会話は先生の授業。
    * 判定の本体は advTypes.aiConversationAvailable。画面の文言をそこへ合わせる
    */
-  const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt', prof.targetJlpt ?? null);
+  const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt');
   const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' = effectiveContentLevel(prof);
   /**
    * ミニ模試のレベル。**出せない目標では null**（2026-08-18）。
@@ -1457,10 +1457,13 @@ export default function AdvShell(props: AdvShellProps) {
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-gray-900">{tx(lang, tc.nameJa, tc.nameZh)}</span>
                   <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
-                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない */}
-                  <span className="block text-xs text-gray-500">
-                    {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
-                  </span>
+                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない。
+                      voiceTone はAI会話（realtime）でしか鳴らないので、AI会話が出ない目的の人には出さない */}
+                  {convAvailable && (
+                    <span className="block text-xs text-gray-500">
+                      {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
+                    </span>
+                  )}
                   {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
                     <span className="mt-1 block text-xs text-amber-800">
                       {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}
@@ -1473,7 +1476,7 @@ export default function AdvShell(props: AdvShellProps) {
           })}
         </div>
         <p className="mt-4 text-xs text-gray-500">
-          {/* N5・N4はAI会話が出ないので、出ないものを並べない（2026-08-22） */}
+          {/* 試験対策が目的の人にはAI会話が出ないので、出ないものを並べない（2026-08-25） */}
           {convAvailable
             ? tx(lang, '選んだ先生は、今日の冒険・AI会話・学習レポート・言い直し・復習・先生レッスン準備のすべてに表示されます。',
               '所选的老师会显示在今天的冒险、AI会话、学习报告、改口练习、复习和真人课准备的所有页面。')
@@ -1951,7 +1954,11 @@ export default function AdvShell(props: AdvShellProps) {
           trackAdv('conversation_started', { locale: lang });
           props.onStartConversation();
         }}
-        conversationAvailable={props.conversationAvailable}
+        // 目的による可否（convAvailable）と利用枠の両方を掛ける。
+        // 枠だけを渡していたため、試験対策目的の人の地図に
+        // CTA「AI会話を始める」が残り、押すと実際に会話が始まっていた
+        conversationAvailable={convAvailable && props.conversationAvailable}
+        conversationBlockedByGoal={!convAvailable}
         onOpenMock={openMock}
         sheetsVisible={answerSheetsVisible(prof)}
         sheetCount={prof.answerSheets.length}
@@ -3388,8 +3395,11 @@ export default function AdvShell(props: AdvShellProps) {
               )}
               {/* 会話ゴールの人はバトル対象が無く、完了後の続行手段がゼロだった
                   （2026-08-19 CEO実害報告「会話を伸ばしたいを選んだのに次に進めない」）。
-                  AI会話は1日の上限までおかわりできる事実をボタンにする */}
-              {props.conversationAvailable && (
+                  AI会話は1日の上限までおかわりできる事実をボタンにする。
+                  convAvailable も見るのは、AI会話を出さない人（試験対策が目的・CEO決定 2026-08-25）に
+                  ここだけ会話の入口が残っていたため。上の2つのバトルボタンが続行手段を持つので、
+                  この人たちの「続けたいのに行き先がない」は起きない */}
+              {convAvailable && props.conversationAvailable && (
                 <button type="button"
                   className={`${pressFx} action-emerald mt-3 w-full min-h-[44px] rounded-xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white`}
                   onClick={() => {

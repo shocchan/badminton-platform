@@ -94,6 +94,7 @@ const navItems = (showLab: boolean, v2Mode = false): { key: CourseNavKey; icon: 
 
 /**
  * labPreviewモバイルナビ（案A・2E-1.5 §16）: ホーム/AI会話/ことば/しくみ＋その他。
+ * **旧コース（v2Mode=false）専用。** V2の生徒には使わない（呼び出し側で弾いている）。
  * 「その他」は新画面ではなく軽量シート（成長・設定）。Escape/外側タップ/選択で閉じる。
  * 4項目は320pxでも各72px以上・44pxタップ領域を確保できる。
  */
@@ -243,7 +244,12 @@ export const CourseHeader = ({ t, showNav = false, current, onNavigate, onLogout
              labPreviewは案A（2E-1.5 §16）: 主要4項目＋「その他」（成長・設定は軽量シート）。
              一般受講生は従来の5項目のまま。 ── */}
         {showTabs && onNavigate && (
-          showLab
+          // **v2Mode を先に見る。** MobileLabNav は自前の4項目（ホーム/AI会話/ことば/しくみ）を
+          // 持っていて v2Mode を受け取らないので、しくみラボが使える V2 の生徒がスマホで開くと
+          // 旧コースの5タブが出ていた（PC側の nav は navItems(showLab, v2Mode) を通るので3タブ。
+          // **同じ人が端末によって別のナビを見る**状態だった・2026-08-26 CEO報告）。
+          // V2 は端末によらず 今日の冒険 / 冒険マップ / 設定 の3つに揃える（canon §5）。
+          showLab && !v2Mode
             ? <MobileLabNav t={t} current={current} onNavigate={onNavigate} />
             : (
               <nav className="flex lg:hidden items-center gap-1 -mb-px overflow-x-auto" aria-label={t.brand}>

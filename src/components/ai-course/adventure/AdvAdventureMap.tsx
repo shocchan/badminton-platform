@@ -60,7 +60,17 @@ interface Props {
   onOpenReview: () => void;
   reviewAvailable: boolean;
   onStartConversation: () => void;
+  /**
+   * AI会話をこの人に出してよいか。**目的による可否（aiConversationAvailable）と
+   * AI利用枠の残りの両方**を掛けた値を渡すこと。枠だけを渡すと、
+   * 試験対策目的でAI会話が一切出ない人の地図にCTA「AI会話を始める」が残る。
+   */
   conversationAvailable: boolean;
+  /**
+   * 会話が出ないのが「目的の選択」によるものか。true のとき、CTAの理由に
+   * 「今日のぶんを進めれば準備が整う」と書かない（この人には二度と出ないので嘘になる）。
+   */
+  conversationBlockedByGoal?: boolean;
   onOpenMock: () => void;
   /**
    * 過去問の試験場（答案用紙）。**N2の試験を受ける人にだけ出す。**
@@ -141,7 +151,8 @@ export const AdvAdventureMap = ({
   lang, profile, route, mastered, currentWeek, conversationEntryWeek = 1, quest,
   nextStepTitleJa, nextStepTitleZh, todayDone = false,
   onStartToday, onBack,
-  onOpenReview, reviewAvailable, onStartConversation, conversationAvailable, onOpenMock,
+  onOpenReview, reviewAvailable, onStartConversation, conversationAvailable,
+  conversationBlockedByGoal = false, onOpenMock,
   sheetsVisible, sheetCount, onOpenSheets,
   interviewVisible, onOpenInterview,
   paceNoteJa = null, paceNoteZh = null,
@@ -273,7 +284,12 @@ export const AdvAdventureMap = ({
     if (a.kind === 'conversation' && !conversationAvailable) {
       return {
         label: tx(lang, '今日の冒険を始める', '开始今天的冒险'),
-        reason: tx(lang, 'いまAI会話は使えません。今日のぶんを進めると会話の準備が整います', '现在无法使用AI会话。完成今天的份量后就能准备好会话'),
+        reason: conversationBlockedByGoal
+          // 目的で閉じている人には二度と出ない。「進めれば準備が整う」は嘘になる
+          ? tx(lang,
+              'この目的では、アプリのAI会話は出ません。会話は先生の授業で見ていきます',
+              '在这个目标下，应用内不提供AI会话。会话由老师在课上进行')
+          : tx(lang, 'いまAI会話は使えません。今日のぶんを進めると会話の準備が整います', '现在无法使用AI会话。完成今天的份量后就能准备好会话'),
         run: onStartToday,
       };
     }

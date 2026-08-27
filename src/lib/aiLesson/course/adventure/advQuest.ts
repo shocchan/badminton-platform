@@ -173,7 +173,7 @@ const dayNumOf = (dateKey: string): number => Math.floor(Date.parse(`${dateKey}T
 
 const stageSteps = (
   stage: AdvRouteStage, avail: QuestContentAvailability, seed: number, dateKey: string,
-  /** AI会話を出してよいか（N5・N4は false。aiConversationAvailable を参照） */
+  /** AI会話を出してよいか（試験対策を目的に含む人は false。aiConversationAvailable を参照） */
   convOk: boolean,
   /** 今日がAI会話の日か（会話stageは隔日。初日は必ず会話の日にする） */
   convDay: boolean,
@@ -189,8 +189,10 @@ const stageSteps = (
   const g = bundleItems.length > 0 ? bundleItems[dayNum % bundleItems.length] : avail.nextGrammarIds[0];
   const u = avail.nextUnitIds[0];
   const convPick = convOk ? seededShuffle(avail.conversationTargets, seed)[0] ?? null : null;
-  // 会話を出さない人（N5・N4）は、保存済みの古いルートに会話stageが残っていても
-  // 通常stageとして扱う。会話しか出せないstageに閉じ込めると行き止まりになる（原則15）
+  // 会話を出さない人（試験対策が目的）は、保存済みの古いルートに会話stageが残っていても
+  // 通常stageとして扱う。会話しか出せないstageに閉じ込めると行き止まりになる（原則15）。
+  // 2026-08-25 に hybrid も会話を出さなくなったので、この受け皿を通る人が増える
+  // （08-22 より前に hybrid でN3・N2を選んだ人は会話stageを保存済みルートに持っている）
   const isConvStage = convOk
     && (stage.kind === 'conversation_start' || stage.kind === 'conversation_growth');
 
@@ -307,10 +309,11 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     };
   }
   /**
-   * AI会話を出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業でやる。
+   * AI会話を出すか（CEO決定 2026-08-25）。試験対策を目的に含む人（jlpt・hybrid）は
+   * 出さない＝会話は先生の授業でやる。
    * ここで false になると、会話step・hybridの穴埋め・空クエストの逃げ道の3か所すべてが閉じる。
    */
-  const convOk = aiConversationAvailable(goalType, profile.targetJlpt ?? null);
+  const convOk = aiConversationAvailable(goalType);
   /**
    * AI会話の日か（会話stageのみ隔日にする・2026-08-23）。
    *
@@ -378,7 +381,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     : null;
   // hybrid: 基礎キャンプ等のstageは文法draftを持たず conversationTargets が空になり、
   // ルート提示文「会話ミッションを毎日の冒険に組み込みます」が守れない（原則16）。
-  // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる
+  // 会話stageと同じエリアfallbackで会話ミッションを必ず入れる。
+  // 2026-08-25 以降 hybrid は convOk が false なので、この穴埋めは動かない
+  // （ルート提示文も「AI会話は出ません」に変えてあるので、守るべき約束のほうが消えた）
   if (goalType === 'hybrid' && convOk && !parts.conv) {
     parts.conv = step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务');
   }
@@ -523,7 +528,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   }
 
   // 空クエスト防止: 最低1ステップ（コンテンツ枯渇時の逃げ道）。
-  // N5・N4はAI会話を出さないので、代わりに言い直し（素材が無くても開ける画面）を置く
+  // AI会話を出さない人（試験対策が目的）には、代わりに言い直し（素材が無くても開ける画面）を置く
   if (steps.length === 0) {
     push(convOk
       ? step('conversation_mission', [stage.areaId], 'AI会話ミッション', 'AI会话任务')

@@ -53,7 +53,17 @@ describe('今日のゴールは、実装している完了条件と一致する'
   });
 
   it('AI会話が入る日も同じ（会話は「1回終える」で実測できる）', () => {
+    // AI会話が出るのは会話目的の人だけになった（CEO決定 2026-08-25）ので、
+    // 会話の日の文言はその人で確かめる。jlpt目標のまま書くと、会話stepが出ずに
+    // 「AI会話の日の文言」を一度も通らないテストになる
+    const convRoute = generateRoute({
+      goalType: 'conversation', targetJlpt: null, knowledgeBand: 'n3',
+      conversationBand: 'n3', diagnosis: null, nowISO: NOW,
+    });
     const q = generateTodayQuest(mkInput({
+      profile: { ...defaultAdvProfile(NOW), enabled: true, goalType: 'conversation', targetJlpt: null, dailyMinutes: 15 },
+      route: convRoute,
+      daysToExam: null,
       availability: {
         nextGrammarIds: ['n3g-bbb'], nextUnitIds: ['n3u-01-self'],
         conversationTargets: [{ refId: 'ctx-1', expression: '〜てもらえますか', themeJa: '仕事のお願い', themeZh: '工作请求' }],
@@ -62,5 +72,20 @@ describe('今日のゴールは、実装している完了条件と一致する'
     expect(q.steps.some((s) => s.kind === 'conversation_mission')).toBe(true);
     expect(q.successConditionJa).toContain('AI会話を1回終える');
     expect(q.successConditionJa).not.toMatch(/^バトルで80%以上/);
+  });
+
+  it('AI会話が出ない人（試験対策が目的）のゴールにAI会話を書かない', () => {
+    // 出ないものを「今日のゴール」に掲げない（原則13）
+    for (const goalType of ['jlpt', 'hybrid'] as const) {
+      const q = generateTodayQuest(mkInput({
+        profile: { ...defaultAdvProfile(NOW), enabled: true, goalType, targetJlpt: 'N2', dailyMinutes: 15 },
+        availability: {
+          nextGrammarIds: ['n3g-bbb'], nextUnitIds: ['n3u-01-self'],
+          conversationTargets: [{ refId: 'ctx-1', expression: '〜てもらえますか', themeJa: '仕事のお願い', themeZh: '工作请求' }],
+        },
+      }));
+      expect(q.successConditionJa, goalType).not.toContain('AI会話');
+      expect(q.successConditionZh, goalType).not.toContain('AI会话');
+    }
   });
 });

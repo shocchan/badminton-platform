@@ -257,6 +257,16 @@ export function AdvOnboarding({
               </button>
             ))}
           </div>
+          {/* AI会話が出ないことは**目的を選んだその場で**伝える（CEO決定 2026-08-25）。
+              2026-08-22 は級で決まっていたので級を選ぶ画面に置いていたが、今は目的で決まる。
+              目的の画面に無いと、「両方」を選んだ人が会話が来ると思ったまま先へ進む（原則13） */}
+          {goal && !aiConversationAvailable(goal) && (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
+              {tx(lang,
+                'この目的では、アプリのAI会話は出ません。会話は先生の授業で練習します（ことば・文法・読解・聴解はアプリで進めます）。',
+                '选择这个目的时，应用内不会出现AI会话。会话在老师的课上练习（词汇・语法・阅读・听力在应用里进行）。')}
+            </div>
+          )}
           <div className="mt-6 space-y-2">
             <button type="button" className={primary} disabled={!goal}
               onClick={() => setPhase(goal === 'conversation' ? 'level' : 'target')}>
@@ -297,15 +307,6 @@ export function AdvOnboarding({
               'N5・N4はことば・文法・読解・聴解すべて学べます。N1は今後追加予定です。',
               'N5・N4的词汇、语法、阅读、听力均可学习。N1将于今后追加。')}
           </p>
-          {/* 2026-08-22: N5・N4ではAI会話を出さない（会話は先生の授業）。
-              「両方」を選んだ人には、選んだその場で伝える。あとで気づかせない（原則13） */}
-          {goal && !aiConversationAvailable(goal, target) && (
-            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900">
-              {tx(lang,
-                `${target}のあいだ、アプリのAI会話は出ません。この時期の会話は先生の授業で練習します（ことば・文法・読解・聴解はアプリで進めます）。`,
-                `${target}期间，应用内不会出现AI会话。这个阶段的会话在老师的课上练习（词汇・语法・阅读・听力在应用里进行）。`)}
-            </div>
-          )}
           <button type="button" className={`${primary} mt-6`} disabled={!target} onClick={() => setPhase('exam')}>
             {tx(lang, 'つぎへ', '下一步')}
           </button>
@@ -405,10 +406,14 @@ export function AdvOnboarding({
                 <span className="min-w-0">
                   <span className="block font-semibold">{tx(lang, tc.nameJa, tc.nameZh)}</span>
                   <span className="block text-sm text-gray-600">{tx(lang, tc.roleJa, tc.roleZh)}</span>
-                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない */}
-                  <span className="block text-xs text-gray-500">
-                    {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
-                  </span>
+                  {/* 音声の印象。公式に性別分類されていないため「女性声／男性声」とは書かない。
+                      voiceTone はAI会話（realtime）でしか鳴らないので、AI会話が出ない目的の人には
+                      出さない（先生選びの判断材料にならないものを判断材料として見せない） */}
+                  {(!goal || aiConversationAvailable(goal)) && (
+                    <span className="block text-xs text-gray-500">
+                      {tx(lang, `AI会話の声：${tc.voiceToneJa}`, `AI会话的声音：${tc.voiceToneZh}`)}
+                    </span>
+                  )}
                   {!tc.voiceSwitchAvailable && (tc.voiceNoteJa || tc.voiceNoteZh) && (
                     <span className="mt-1 block text-xs text-amber-800">
                       {tx(lang, tc.voiceNoteJa ?? '', tc.voiceNoteZh ?? tc.voiceNoteJa ?? '')}
@@ -585,7 +590,15 @@ function RouteReveal({ lang, o, convSkipped, diagSkipped, onStart }: {
               '当前位置尚未测定。先从假名和词汇的确认开始，边前进边观察你的实力。')}
           </p>
         ) : convSkipped && (
-          <p className="mt-1 text-xs text-gray-500">{tx(lang, '会話力：未判定（あとでAI会話で測れます）', '会话能力：未判定（之后可通过AI会话测定）')}</p>
+          /* 「あとでAI会話で測れます」は、AI会話が出る人にしか言えない。
+             2026-08-25 に試験対策目的の人へAI会話を出さなくなったので、その人には
+             どこで会話を見てもらえるかを書く（出ないものを約束しない・原則13） */
+          <p className="mt-1 text-xs text-gray-500">
+            {aiConversationAvailable(o.goalType)
+              ? tx(lang, '会話力：未判定（あとでAI会話で測れます）', '会话能力：未判定（之后可通过AI会话测定）')
+              : tx(lang, '会話力：未判定（アプリのAI会話は出ません。会話は先生の授業で見ていきます）',
+                '会话能力：未判定（应用内不出现AI会话。会话在老师的课上确认）')}
+          </p>
         )}
       </div>
       <p className="mb-3 text-sm leading-relaxed text-gray-800">{tx(lang, o.route.explanationJa, o.route.explanationZh)}</p>
