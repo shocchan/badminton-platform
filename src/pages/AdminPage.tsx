@@ -168,21 +168,37 @@ async function uploadBlogImage(file: File): Promise<string> {
 function RichEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
   const imgInputRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState<{ done: number; total: number } | null>(null);
 
   // handleDrop/handlePaste から最新の editor を参照するための ref（useEditorより前に宣言）
   const editorRef = useRef<ReturnType<typeof useEditor>>(null);
 
-  const insertImage = useCallback(async (file: File) => {
+  // 複数枚をまとめて挿入する。選んだ順に本文へ並べたいので直列にアップロードする
+  // （並列にすると完了順が前後して並び順が崩れる）。1枚失敗しても残りは続行する。
+  const insertImages = useCallback(async (files: File[]) => {
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor || files.length === 0) return;
     setImgUploading(true);
+    setImgProgress(files.length > 1 ? { done: 0, total: files.length } : null);
+    const failed: string[] = [];
     try {
-      const url = await uploadBlogImage(file);
-      editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
-    } catch (err) {
-      toast.error('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
+      for (const [i, file] of files.entries()) {
+        try {
+          const url = await uploadBlogImage(file);
+          editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
+        } catch (err) {
+          failed.push(file.name + '（' + (err instanceof Error ? err.message : '不明なエラー') + '）');
+        }
+        if (files.length > 1) setImgProgress({ done: i + 1, total: files.length });
+      }
     } finally {
       setImgUploading(false);
+      setImgProgress(null);
+    }
+    if (failed.length > 0) {
+      toast.error(failed.length + '枚の画像をアップロードできませんでした: ' + failed.join(' / '));
+    } else if (files.length > 1) {
+      toast.success(files.length + '枚の画像を挿入しました');
     }
   }, []);
 
@@ -205,7 +221,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
         if (files.length === 0) return false;
         event.preventDefault();
-        files.forEach(f => void insertImage(f));
+        void insertImages(files);
         return true;
       },
       // クリップボードからの貼り付けで画像を挿入
@@ -213,7 +229,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         const files = Array.from(event.clipboardData?.files || []).filter(f => f.type.startsWith('image/'));
         if (files.length === 0) return false;
         event.preventDefault();
-        files.forEach(f => void insertImage(f));
+        void insertImages(files);
         return true;
       },
     },
@@ -235,10 +251,10 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
   }, [editor]);
 
   const handleImageFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (file) void insertImage(file);
-  }, [insertImage]);
+    void insertImages(files);
+  }, [insertImages]);
 
   if (!editor) return null;
 
@@ -262,11 +278,14 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         <TBtn onClick={setLink} active={editor.isActive('link')} title="リンク">🔗</TBtn>
         <TBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="区切り線">—</TBtn>
         <div className="w-px h-5 bg-gray-300 mx-1" />
-        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入（ドラッグ&ドロップ / Cmd+Vも可）">
+        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入（複数選択可・ドラッグ&ドロップ / Cmd+Vも可）">
           {imgUploading ? <span className="inline-block w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : '🖼'}
         </TBtn>
+        {imgProgress && (
+          <span className="ml-1 text-xs text-gray-500 tabular-nums">{imgProgress.done}/{imgProgress.total}枚</span>
+        )}
         <TBtn onClick={addVideo} title="動画を埋め込む（YouTube）">🎬</TBtn>
-        <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
+        <input ref={imgInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageFile} />
       </div>
       <EditorContent editor={editor} />
     </div>
