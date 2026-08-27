@@ -13,6 +13,7 @@ import { PricingSection, PlanComparisonSection, PlanFitSection } from './section
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
 import { WhyNotAiOnlySection } from './sectionsWhy';
+import { LpTrailProgress } from './lpTrail';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
@@ -198,6 +199,9 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
           ページ内スクロールの挙動に副作用が出うる。clip はスクロールコンテナを作らない）。
           clip 未対応の古いブラウザは inline style が無効になり className の hidden に落ちる */}
       <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
+      {/* 27画面ぶんの長さがあるので、いまどこまで来たかを細い帯で出す（0KB・CSSのみ） */}
+      <LpTrailProgress label={LP.trailProgressLabel[lang]} />
+
       <main>
         {/*
           2026-08-26 再構成（CEO指示 Phase S3）: **なぜこれを選ぶのかを理解してから値段を見る**順番へ。

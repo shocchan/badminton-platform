@@ -207,6 +207,8 @@ export interface LpContent {
   consultation: { heading: Str; body: Str; wechatLabel: Str; wechatIdPlaceholder: string; searchHint: Str; fallbackNote: Str;
     emailLabel: Str; email: string; emailCta: Str; formLabel: Str; formCta: Str };
   footerTagline: Str;
+  /** 読み進み具合の道しるべ（支援技術向けのラベル。画面には出さない） */
+  trailProgressLabel: Str;
 }
 
 export const LP: LpContent = {
@@ -808,4 +810,5 @@ export const LP: LpContent = {
     ja: 'kawabado.com ／ 日本在住・中国語話者のための日本語会話コース',
     zh: 'kawabado.com ／ 为在日中文母语者打造的日语会话课程',
   },
+  trailProgressLabel: { ja: 'このページを読み進めた割合', zh: '本页阅读进度' },
 };
