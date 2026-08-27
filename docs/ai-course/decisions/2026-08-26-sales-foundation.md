@@ -214,14 +214,32 @@ CEOが直接受け取ったものなので、出どころをここに残す。
    - `20260826150000_ai_trial_seven_days`
    - `20260826160000_ai_testimonials`
    - `20260826170000_ai_admin_purchases_attribution`
-2. Edge Functions を出す（**まだ出していない**）
+2. Edge Functions を出す（2026-08-27 反映済み）
    ```
-   supabase functions deploy ai-course-checkout
-   supabase functions deploy ai-course-stripe-webhook
+   bash scripts/deploy-edge-functions.sh ai-course-checkout ai-course-stripe-webhook
    ```
    - `ai-course-checkout`: 購入行に `anon_id` と流入元を焼き付ける
    - `ai-course-stripe-webhook`: 受講権に `trial_days = 7` を書き、購入メールを日数で案内する
-   - **これを出すまで、新しく買った人の受講権は `trial_days` が null＝旧仕様の60分**
+
+   ### ⚠️ `supabase functions deploy` を直接叩かないこと
+
+   2026-08-27、この2つを **`--no-verify-jwt` なしで**デプロイして本番を壊した。
+
+   | | 何が起きたか |
+   |---|---|
+   | `ai-course-checkout` | LPの訪問者は未ログイン＝Authorizationヘッダを送らない → ゲートウェイが401 → 決済ページが開かず、申込フォームへ落ちていた |
+   | `ai-course-stripe-webhook` | Stripeは `Stripe-Signature` は送るが Supabase のJWTは送らない → 401 → 払っても受講権が発行されない |
+
+   **01:55〜06:08 UTC の4時間13分、誰も買えない状態だった。**
+   その時間帯の購入試行は0件で実被害はゼロだったが、気づいたのはCEOが
+   スマホで「支払いに飛ばないの？」と指摘したから。こちらの検証では
+   決済ページの生成しか見ておらず、**LPのボタンを実際に押していなかった**。
+
+   これらの関数は未ログインから呼ばれるのが正常で、認証は関数の中で
+   自前でやっている（checkout は商品をサーバー側カタログで検証、
+   webhook は HMAC-SHA256 の署名を検証）。
+   `scripts/deploy-edge-functions.sh` が正しいフラグを付け、
+   出したあとに `verify_jwt` を確認して、ONなら失敗で止まる。
 3. フロントを出す（`scripts/deploy-production.sh`）
 4. 出したあとに確認する
    - `/ja/ai-course` `/zh/ai-course` が並び替え後の順で出るか

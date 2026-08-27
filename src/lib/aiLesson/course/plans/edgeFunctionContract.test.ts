@@ -81,12 +81,56 @@ describe('webhook: 体験の長さを受講権に書く', () => {
   });
 });
 
-describe('この2つはまだ本番へ出していない（出すまで挙動は変わらない）', () => {
-  it('デプロイ前提のメモが残っている', () => {
-    // 本番と共有の関数なので、フロントの承認と同時に出す必要がある。
-    // 手順は docs/ai-course/decisions/2026-08-26-sales-foundation.md に書く
+describe('本番へ出す手順が記録に残っている', () => {
+  it('どの関数をどう出すかが書いてある', () => {
+    // 2026-08-27 に本番へ反映済み。手順と、そのとき踏んだ失敗を記録に残す
     const doc = readFileSync('docs/ai-course/decisions/2026-08-26-sales-foundation.md', 'utf8');
     expect(doc).toContain('ai-course-stripe-webhook');
     expect(doc).toContain('ai-course-checkout');
+    expect(doc).toContain('--no-verify-jwt');
+  });
+});
+
+/* ── デプロイの仕方（2026-08-27・実際に本番を壊した） ────────────────
+   ai-course-checkout と ai-course-stripe-webhook を `--no-verify-jwt` なしで
+   デプロイし、JWT検証がONになった。結果:
+     - LPの訪問者は未ログイン＝Authorizationヘッダを送らない → 401 → 決済ページが開かない
+     - Stripeのwebhookも Supabase のJWTは送らない → 401 → 払っても受講権が出ない
+   4時間13分「誰も買えない」状態だった（購入試行0件で実被害はゼロ）。
+
+   これらの関数は**未ログインから呼ばれるのが正常**で、認証は関数の中で
+   自前でやっている（checkout は商品検証、webhook は署名検証）。
+   同じ間違いを繰り返さないよう、手順をスクリプトに固定した。 */
+describe('Edge Functionのデプロイ手順', () => {
+  const SCRIPT_PATH = 'scripts/deploy-edge-functions.sh';
+  const SCRIPT = readFileSync(SCRIPT_PATH, 'utf8');
+
+  it('専用スクリプトがある（deploy を直接叩かせない）', () => {
+    expect(SCRIPT).toContain('--no-verify-jwt');
+  });
+
+  it('未ログインから呼ばれる関数がすべて一覧に入っている', () => {
+    const list = /NO_JWT=\(([\s\S]*?)\n\)/.exec(SCRIPT);
+    expect(list, 'NO_JWT の一覧が見つからない').toBeTruthy();
+    for (const fn of [
+      'ai-course-checkout',        // LPの訪問者
+      'ai-course-stripe-webhook',  // Stripe
+      'ai-course-purchase-status', // 購入直後（ログイン前）
+      'ai-course-claim-session',   // 自動ログイン（ログイン前）
+      'ai-course-apply',           // 申込フォーム
+      'ai-course-auth',            // ログインそのもの
+    ]) {
+      expect(list![1], `${fn} が一覧に無い＝JWT検証ONで出てしまう`).toContain(fn);
+    }
+  });
+
+  it('出したあとに verify_jwt を確認して、ONなら失敗で止まる', () => {
+    expect(SCRIPT).toContain('verify_jwt');
+    expect(SCRIPT).toMatch(/process\.exit\(1\)/);
+  });
+
+  it('なぜそうするのかが手順に書いてある（次に読む人が外さないように）', () => {
+    expect(SCRIPT).toContain('未ログイン');
+    expect(SCRIPT).toContain('署名');
   });
 });
