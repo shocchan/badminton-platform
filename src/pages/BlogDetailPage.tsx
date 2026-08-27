@@ -12,7 +12,7 @@ import {
   BLOG_CONTENT_SIZES,
 } from '../lib/blogImages';
 import { useLanguage } from '../contexts/LanguageContext';
-import { localizedPost, BLOG_UI, blogLocale } from '../lib/blogI18n';
+import { localizedPost, BLOG_UI, blogLocale, localizeHref, localizeBlogHtmlLinks } from '../lib/blogI18n';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -33,9 +33,9 @@ export const BlogDetailPage = () => {
   const enhancedContent = useMemo(
     () =>
       post && text && post.content_type !== 'markdown'
-        ? enhanceBlogContentHtml(text.content, { eagerFirst: !post.image_url })
+        ? localizeBlogHtmlLinks(enhanceBlogContentHtml(text.content, { eagerFirst: !post.image_url }), lang)
         : '',
-    [post, text],
+    [post, text, lang],
   );
 
   // srcset の変種が存在しない場合（マイグレーション漏れ等）に原本へフォールバックする
@@ -64,7 +64,7 @@ export const BlogDetailPage = () => {
   // Markdownのリンクを別タブで開く。画像はlazy化+srcset（変種404時は原本へ戻す）
   const markdownComponents: Components = {
     a: ({ href, children }) => (
-      <a href={href} target="_blank" rel="noopener noreferrer">{children}</a>
+      <a href={localizeHref(href, lang)} target="_blank" rel="noopener noreferrer">{children}</a>
     ),
     img: ({ src, alt }) => {
       const url = typeof src === 'string' ? src : undefined;

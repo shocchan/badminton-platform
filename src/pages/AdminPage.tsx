@@ -814,7 +814,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
         const urlBase = groupSlug ? `/${groupSlug}` : subGroup ? `/${subGroup.slug}` : '';
 
         return (
-          <div key={a.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <div key={a.id} className="admin-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-bold text-gray-900">
@@ -1646,7 +1646,45 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const formatDate = (str: string) => str ? new Date(str).toLocaleDateString('ja-JP') : '';
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10">
+    <main className="admin-ui max-w-6xl mx-auto px-4 py-10">
+      {/* 管理画面のボタンに押した手応えを出す。個々のボタンにクラスを足す代わりに、
+          .admin-ui 配下へまとめて当てる（ボタンが70個近くあり、当て漏れを防ぐため）。
+          背景色つきのボタン（class に bg- を含む）だけ浮かせ、テキストリンク風の
+          ボタンは沈み込みだけにして見た目の性格を変えない。 */}
+      <style>{`
+        .admin-ui button, .admin-ui a.admin-btn {
+          transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, filter .12s ease;
+        }
+        .admin-ui button:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]) {
+          box-shadow: 0 1px 2px rgba(16,24,40,.10), 0 1px 3px rgba(16,24,40,.06);
+        }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]):hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(16,24,40,.14), 0 2px 4px rgba(16,24,40,.08);
+        }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]):active {
+          transform: translateY(1px) scale(.985);
+          box-shadow: inset 0 2px 5px rgba(16,24,40,.22);
+        }
+        .admin-ui button:focus-visible {
+          outline: 2px solid #2563eb; outline-offset: 2px;
+        }
+        .admin-ui button:disabled { cursor: not-allowed; box-shadow: none; }
+        /* 一覧カードもホバーでわずかに持ち上げて、触れる対象だと分かるように */
+        .admin-ui .admin-card {
+          transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+        }
+        .admin-ui .admin-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(16,24,40,.10), 0 2px 6px rgba(16,24,40,.06);
+          border-color: rgb(191 219 254);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .admin-ui button, .admin-ui .admin-card { transition: none; }
+          .admin-ui button:hover, .admin-ui .admin-card:hover { transform: none; }
+        }
+      `}</style>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2.5">
@@ -1685,7 +1723,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === key ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              activeTab === key
+                ? 'bg-white text-blue-600 shadow-md ring-1 ring-blue-100'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
             }`}
           >
             {label}
@@ -2287,7 +2327,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 ) : (
                   <div className="grid gap-3">
                     {draftPosts.map(p => (
-                      <div key={p.id} className="border border-amber-200 bg-amber-50 rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                      <div key={p.id} className="admin-card border border-amber-200 bg-amber-50 rounded-2xl p-4">
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                           <div className="flex-1 min-w-[240px]">
                             <p className="font-bold text-gray-900">{p.title}</p>

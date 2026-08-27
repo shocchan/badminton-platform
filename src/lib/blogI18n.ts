@@ -51,3 +51,43 @@ export const BLOG_UI = {
 } as const;
 
 export const blogLocale = (lang: Lang) => (lang === 'zh' ? 'zh-CN' : 'ja-JP');
+
+// 記事本文のサイト内リンクは、書いた人によって /ja/... だったり /zh/... だったりする。
+// 読んでいる言語と違うリンクを踏むと言語が飛ぶので、表示時に読者の言語へ揃える。
+// 外部リンク（Google Maps・minton など）と mailto は対象外。
+const INTERNAL_HOSTS = ['kawabado.com', 'www.kawabado.com'];
+
+export function localizeHref(href: string | null | undefined, lang: Lang): string | undefined {
+  if (!href) return undefined;
+
+  // 絶対URL（https://kawabado.com/ja/...）
+  const abs = href.match(/^(https?:\/\/)([^/]+)(\/.*)?$/i);
+  if (abs) {
+    const [, scheme, host, path = ''] = abs;
+    if (!INTERNAL_HOSTS.includes(host.toLowerCase())) return href;
+    return scheme + host + swapLangPath(path, lang);
+  }
+  // サイト内の相対パス（/ja/activity など）
+  if (href.startsWith('/')) return swapLangPath(href, lang);
+  return href;
+}
+
+/** パス先頭の言語セグメントを読者の言語に付け替える。言語が付いていないパスには足す */
+function swapLangPath(path: string, lang: Lang): string {
+  if (path === '' || path === '/') return `/${lang}/`;
+  const m = path.match(/^\/(ja|zh)(\/|$)/);
+  if (m) return m[1] === lang ? path : `/${lang}` + path.slice(3);
+  // /blog/31 のように言語なしで書かれたリンク（そのままだと /ja へ転送される）
+  return `/${lang}` + path;
+}
+
+/** 本文HTML内の <a href> をまとめて表示言語に合わせる */
+export function localizeBlogHtmlLinks(html: string, lang: Lang): string {
+  if (typeof DOMParser === 'undefined') return html;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  doc.querySelectorAll('a[href]').forEach(a => {
+    const next = localizeHref(a.getAttribute('href'), lang);
+    if (next) a.setAttribute('href', next);
+  });
+  return doc.body.innerHTML;
+}
