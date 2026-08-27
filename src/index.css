@@ -79,6 +79,82 @@
   --color-lp-gold-soft: #FBEAC0;
 }
 
+/*
+ * ── 販売LPの「冒険の書」パレット（2026-08-27・CEO依頼で試作） ──
+ *
+ * いまの既定は暖色（アイボリー＋テラコッタ）。それを、生徒が毎日見ている
+ * 冒険マップの水彩画と同じ世界に寄せた版。**切り替えて見比べるための試作で、
+ * 既定は変えていない**（?theme=adventure を付けたときだけ効く）。
+ *
+ * 【何を変えたか】
+ *   地面   … 暖かいクリーム → **古い地図の紙**（緑みのある生成り）
+ *   線     … ベージュの罫線 → 地図の等高線に近い色
+ *   インク … 茶色寄りの黒  → 地図のインク（緑みの濃い墨）
+ *   主CTA  … 明るいコーラル → **瓦屋根のテラコッタ**（水彩画の中にある赤）
+ *   副     … 深緑          → **川の青**（水彩画の川と同じ）
+ *   金     … 明るい黄      → 宝箱の金（少し沈ませる）
+ *
+ * 【主CTAを緑にしなかった理由】
+ * 「オレンジ要素をやめる」なら緑が一番遠いが、この商品の買い手は中国語圏で、
+ * 赤系は行動を促す色として強い。CTAの色は転換率に直結するので、
+ * 世界観の実験と一緒に賭けない。同じ水彩画の中にある**瓦屋根の赤**へ寄せることで、
+ * 「オレンジっぽさ」は消しつつ、押す色としての強さは残す。
+ * 全部緑にした版も見たい場合は、下の --color-lp-coral 3つを緑に差し替えるだけで作れる。
+ *
+ * 【トークン名について】
+ * lp-coral / lp-pine という名前は既定パレット由来の歴史的なもの。
+ * ここでは「主アクセント / 副アクセント」という**役割**として使っている。
+ * 名前を変えると全コンポーネントに手が入るので、名前は据え置く。
+ */
+[data-lp-theme='adventure'] {
+  --color-lp-ivory: #F2EFE2;
+  --color-lp-ivory-2: #E6E1CE;
+  --color-lp-card: #FAF8EF;
+  --color-lp-ink: #26302A;
+  --color-lp-ink-soft: #5C665D;
+  --color-lp-line: #D3CDB6;
+
+  /* 主アクセント: 水彩画の瓦屋根の赤 */
+  --color-lp-coral: #C25B3C;
+  --color-lp-coral-deep: #9E4529;
+  --color-lp-coral-soft: #EFD9CD;
+
+  /* 副アクセント: 水彩画の川の青 */
+  --color-lp-pine: #2C6B85;
+  --color-lp-pine-soft: #CBDFE8;
+
+  /* 宝の金 */
+  --color-lp-gold: #D8A63F;
+  --color-lp-gold-soft: #EFE1B9;
+}
+
+/*
+ * 紙の質感。画像を足すと全訪問者の初回表示に乗るので、
+ * グラデーションだけで作る（**0KB**）。
+ * 細かい斑と、地図の等高線のような薄い横線を重ねている。
+ * 強くすると文字が読みにくくなるので、気づくか気づかないかの濃さに留める。
+ */
+[data-lp-theme='adventure'].lp-paper {
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(120, 108, 78, 0.055) 0 1px, transparent 1px),
+    radial-gradient(circle at 67% 58%, rgba(120, 108, 78, 0.045) 0 1px, transparent 1px),
+    radial-gradient(circle at 41% 81%, rgba(120, 108, 78, 0.05) 0 1px, transparent 1px),
+    repeating-linear-gradient(0deg, rgba(120, 108, 78, 0.028) 0 1px, transparent 1px 34px);
+  background-size: 140px 140px, 190px 190px, 110px 110px, auto;
+}
+
+/*
+ * ヒーローの風景は**冒険テーマのときだけ**出す。
+ * display:none にしておけば、既定テーマでは画像の読み込みも起きない
+ * （既定を選んだ訪問者の重さを1バイトも増やさない）。
+ */
+.lp-adv-hero-bg { display: none; }
+[data-lp-theme='adventure'] .lp-adv-hero-bg { display: block; }
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-lp-theme='adventure'].lp-paper { background-image: none; }
+}
+
 /* ── Tiptap リッチエディタ ── */
 .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
 .ProseMirror h2 { font-size: 1.25rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }

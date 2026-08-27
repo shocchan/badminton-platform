@@ -14,6 +14,7 @@ import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
 import { WhyNotAiOnlySection } from './sectionsWhy';
 import { LpTrailProgress } from './lpTrail';
+import { currentLpTheme } from './lpTheme';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
@@ -80,6 +81,12 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
     return () => io.disconnect();
   }, [v.key]);
 
+  /*
+     見た目の切り替え（2026-08-27 試作）。マウント時に一度だけ決める。
+     読んでいる途中で変わると、同じページで色が入れ替わって混乱するため。
+  */
+  const [theme] = useState(currentLpTheme);
+
   const path = variant === 'shoko' && !noindex ? 'ai-course' : `ai-course/${variant}`;
   const canonical = `${SITE}/${lang}/ai-course`; // variantは主ページへ集約
   const other = lang === 'ja' ? 'zh' : 'ja';
@@ -117,8 +124,13 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
     // ⚠️ ここに overflow-x-hidden を付けない: 祖先が scroll container になると
     // ヘッダーの position: sticky が無効化される（2026-08-19 staging実測で発覚した既存バグ。
     // 「学習システムを見る」の着地でヘッダー分のオフセットが必要なのに固定されていなかった）。
-    // 横はみ出しの抑止は main/footer を包む内側のラッパーが担う
-    <div className="bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
+    /*
+      横はみ出しの抑止は main/footer を包む内側のラッパーが担う。
+      data-lp-theme は見た目の切り替え（?theme=adventure）。
+      既定は 'default' で、本番の一般訪問者にはこれまでどおりの見た目しか出ない。
+      lp-paper は冒険パレットのときだけ効く紙の質感（画像を使わない・0KB）。
+    */
+    <div data-lp-theme={theme} className="lp-paper bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
       <Helmet>
         <html lang={lang === 'ja' ? 'ja' : 'zh'} />
         <title>{seoTitle}</title>
