@@ -209,3 +209,30 @@
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(300%); }
 }
+
+/* ── ブログ本文の埋め込み動画（TipTapのYouTube拡張） ──
+   拡張は iframe に width="640" height="360" を直接書き出す。PCでは収まるが
+   スマホでは本文幅を超えて右側が切れていた。属性は残したまま、CSSで
+   「幅いっぱい・16:9」に上書きする（本文エディタのプレビューにも効く）。 */
+.blog-video,
+[data-youtube-video] iframe {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.5rem;
+}
+
+[data-youtube-video] {
+  margin: 1.25rem 0;
+  max-width: 100%;
+}
+
+/* 本文に貼られた画像や表が、まれに幅を超えてページ全体を横スクロールさせるのを防ぐ */
+.blog-content img,
+.blog-content video {
+  max-width: 100%;
+  height: auto;
+}
