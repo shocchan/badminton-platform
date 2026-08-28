@@ -1166,8 +1166,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   // is_admin() ガード付きのRPC admin_set_entry_payment を使う。
   const handleTogglePaid = async (entry: EntryWithTournament) => {
     const paid = entry.payment_status === 'completed';
-    if (paid && entry.payment_method === 'credit') {
-      toast.error('クレジット決済分はStripeの記録と紐づくため、ここでは変更できません');
+    // Stripeで支払われた分は決済記録と紐づくので、ここで手作業で戻させない
+    if (paid && (entry.payment_method === 'credit' || entry.payment_method === 'wechat_alipay')) {
+      toast.error('オンライン決済分はStripeの記録と紐づくため、ここでは変更できません');
       return;
     }
     const msg = paid

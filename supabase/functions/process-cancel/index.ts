@@ -106,18 +106,21 @@ serve(async (req: Request) => {
 
       const wasConfirmed = entry.status === "confirmed";
 
-      // ── クレジット決済済みの確定参加者は、期限内キャンセルでStripe自動返金 ──
+      // ── Stripeで支払い済みの確定参加者は、期限内キャンセルで自動返金 ──
+      // credit だけを見ていると、WeChat Pay / Alipay で払った人が返金されないまま
+      // キャンセルだけ通ってしまう（2026-08-28に対象を広げた）。
+      const REFUNDABLE_ONLINE = ["credit", "wechat_alipay"];
       const refundResult: { attempted: boolean; success: boolean; amount?: number; error?: string } = { attempted: false, success: false };
       if (
         wasConfirmed &&
-        entry.payment_method === "credit" &&
+        REFUNDABLE_ONLINE.includes(entry.payment_method ?? "") &&
         entry.payment_status === "completed" &&
         entry.stripe_payment_id
       ) {
         const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
         if (stripeKey) {
           refundResult.attempted = true;
-          // クレジット決済は期限内キャンセルでも10%をキャンセル手数料として差し引く
+          // オンライン決済は期限内キャンセルでも10%をキャンセル手数料として差し引く
           // （安易なキャンセル→再申込の繰り返しを防ぐ抑止力。参加費に決済手数料の上乗せはしていない）
           const entryFee = t.entry_fee as number;
           const refundAmount = entryFee - Math.round(entryFee * 0.1);
@@ -251,7 +254,7 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
   });
 
   const needsManualRefund = data.payment_required && data.was_confirmed && !data.refund.success;
-  const methodLabel = data.payment_method === "credit" ? "クレジットカード" : data.payment_method === "paypay" ? "PayPay" : data.payment_method === "bank" ? "銀行振込" : "未確認";
+  const methodLabel = data.payment_method === "credit" ? "クレジットカード" : data.payment_method === "wechat_alipay" ? "WeChat Pay / Alipay" : data.payment_method === "paypay" ? "PayPay" : data.payment_method === "bank" ? "銀行振込" : "未確認";
 
   // 返金ステータスのお知らせブロック
   const refundBlock = data.refund.success
@@ -264,7 +267,7 @@ async function sendCancelNotifyToAdmin(resendKey: string, data: {
       </div>`
     : needsManualRefund
     ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:14px 18px;font-size:13px;color:#991b1b;">
-        💰 参加費（¥${data.entry_fee.toLocaleString()}）の返金が必要です。支払い方法「${methodLabel}」に応じて${data.payment_method === "credit" ? "Stripeダッシュボードから" : "銀行振込またはPayPayで"}返金してください。
+        💰 参加費（¥${data.entry_fee.toLocaleString()}）の返金が必要です。支払い方法「${methodLabel}」に応じて${data.payment_method === "credit" || data.payment_method === "wechat_alipay" ? "Stripeダッシュボードから" : "PayPayで"}返金してください。
       </div>`
     : "";
 

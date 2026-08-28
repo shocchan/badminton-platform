@@ -1,3 +1,4 @@
+import type { PaymentMethod } from '../lib/payment';
 export interface Tournament {
   id: number;
   title: string;
@@ -41,7 +42,7 @@ export interface Entry {
   cancel_token?: string;
   cancelled_at?: string;
   cancel_reason?: string;
-  payment_method?: 'credit' | 'paypay' | 'bank' | null;
+  payment_method?: PaymentMethod | null;
   // 'refunded' はキャンセル時の返金処理で実際に入る（本番DBに存在する値）
   payment_status?: 'pending' | 'completed' | 'failed' | 'refunded';
   stripe_payment_id?: string | null;

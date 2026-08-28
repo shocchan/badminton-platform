@@ -25,7 +25,7 @@ interface PaymentEmailRequest {
   is_waitlist?: boolean;
   is_promotion?: boolean;
   // クレジット決済対応（Vol.4〜）
-  payment_method?: "credit" | "paypay" | "bank";
+  payment_method?: "credit" | "paypay" | "wechat_alipay" | "bank";
   entry_id?: number;
   cancel_token?: string; // paypay/bank の payment_method 記録時の本人確認用
   amount_total?: number; // クレジット決済金額（参加費と同額。手数料上乗せなし）
@@ -145,8 +145,14 @@ serve(async (req: Request) => {
 
     const results: string[] = [];
 
-    // ── 0a. クレジット決済完了メール ──
-    if (payment_method === "credit") {
+    // ── 0a. オンライン決済の完了メール ──
+    // Stripeで支払いが済んでいる手段はここで完了メールを出す。
+    // credit だけを見ていたため、WeChat Pay / Alipay で支払った人に
+    // 「期限までにお支払いください」の案内が届いていた（2026-08-28に発覚）。
+    const PAID_ONLINE = ["credit", "wechat_alipay"];
+    const isPaidOnline = PAID_ONLINE.includes(payment_method ?? "");
+    const methodJa = payment_method === "wechat_alipay" ? "WeChat Pay / Alipay" : "クレジットカード";
+    if (isPaidOnline) {
       const totalYen = (amount_total ?? entry_fee ?? 0).toLocaleString();
       const refundYen = (entry_fee ?? 0) - Math.round((entry_fee ?? 0) * 0.1);
       const refundYenStr = refundYen.toLocaleString();
@@ -163,7 +169,7 @@ serve(async (req: Request) => {
         action: "TEMPLATE",
         text: tournament_title,
         dates: `${calStart}/${calEnd}`,
-        details: `川口・蕨バド交流杯\n参加費支払い済み（クレジットカード）`,
+        details: `川口・蕨バド交流杯\n参加費支払い済み（${methodJa}）`,
         location: venue_address || location || "",
       });
       const calUrl = `https://calendar.google.com/calendar/render?${calParams.toString()}`;
@@ -187,7 +193,7 @@ serve(async (req: Request) => {
       <p style="color:#6b7280;font-size:14px;margin:0 0 20px;">参加費のお支払いが完了し、参加が確定しました！</p>
 
       <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:16px 20px;margin:0 0 20px;">
-        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ お支払い済み（クレジットカード）¥${totalYen}</p>
+        <p style="margin:0;font-size:14px;color:#065f46;font-weight:700;">✅ お支払い済み（${methodJa}）¥${totalYen}</p>
       </div>
 
       <div style="${infoCardStyle}">
@@ -226,7 +232,7 @@ serve(async (req: Request) => {
       <!-- キャンセル期限 -->
       <div style="margin-top:16px;padding:14px 18px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;">
         <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">🚫 キャンセル期限：${cancelDeadlineStr}（大会2週間前）</p>
-        <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルは参加費の90%（¥${refundYenStr}）をクレジットカードに返金いたします（キャンセル手数料として10%を差し引きます。返金処理に数日かかる場合があります）。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
+        <p style="margin:0;font-size:12px;color:#7c2d12;line-height:1.6;">期限内のキャンセルは参加費の90%（¥${refundYenStr}）をお支払いいただいた方法で返金いたします（キャンセル手数料として10%を差し引きます。返金処理に数日かかる場合があります）。<br>期限を過ぎたキャンセルは返金できませんのでご注意ください。</p>
       </div>
 
       ${cancel_link ? `
@@ -248,7 +254,7 @@ serve(async (req: Request) => {
 </body>
 </html>`;
 
-      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${totalYen}（クレジットカード支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【当日の受付】\n受付でお名前をお伝えください。参加証などのご提示は不要です。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは参加費の90%（¥${refundYenStr}）をクレジットカードに返金いたします（キャンセル手数料10%を差し引きます）。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
+      const creditText = `${name} 様\n\n川口・蕨バド交流杯「${tournament_title}」の参加費のお支払いが完了し、参加が確定しました！\n\n【参加確認】\n大会名：${tournament_title}\n日時：${eventDate}${timeRange ? ` ${timeRange}` : ""}${location ? `\n会場：${location}` : ""}${venue_address ? `\n住所：${venue_address}` : ""}${partner_name ? `\nペアの相手：${partner_name}` : ""}\n\n【領収明細】\n参加費：¥${totalYen}（${methodJa}で支払い済み）${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n【当日の受付】\n受付でお名前をお伝えください。参加証などのご提示は不要です。\n\n【キャンセル期限】${cancelDeadlineStr}（大会2週間前）\n期限内のキャンセルは参加費の90%（¥${refundYenStr}）をお支払いいただいた方法で返金いたします（キャンセル手数料10%を差し引きます）。${cancel_link ? `\nキャンセルはこちら：${cancel_link}` : ""}${shuttleText}\n\nGoogleカレンダーに追加：${calUrl}\n\n当日会場でお待ちしています！\n\n川口・蕨バド交流杯`.trim();
 
       const resC = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -272,8 +278,8 @@ serve(async (req: Request) => {
         body: JSON.stringify({
           from: "川口・蕨バド交流杯 <noreply@kawabado.com>",
           to: [ADMIN_EMAIL],
-          subject: `💳【決済完了】${name}さんが${tournament_title}の参加費をクレジットで支払いました`,
-          text: `クレジット決済完了\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n大会：${tournament_title}\n開催日：${eventDate}\n\n参加費：¥${totalYen}${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n※振込確認は不要です。期限内キャンセルの返金（90%・10%手数料差引）はシステムが自動処理します。`.trim(),
+          subject: `💳【決済完了】${name}さんが${tournament_title}の参加費を${methodJa}で支払いました`,
+          text: `${methodJa} 決済完了\n\nお名前：${name}${partner_name ? `\nペアの相手：${partner_name}` : ""}\nメール：${to}\n電話：${phone || "未入力"}\n備考：${notes || "なし"}\n大会：${tournament_title}\n開催日：${eventDate}\n\n参加費：¥${totalYen}${paidAtStr ? `\n支払日時：${paidAtStr}` : ""}\n\n※振込確認は不要です。期限内キャンセルの返金（90%・10%手数料差引）はシステムが自動処理します。`.trim(),
         }),
       });
 
@@ -624,7 +630,7 @@ serve(async (req: Request) => {
 
     // ── 2. 管理者向け通知メール ──
     // 支払い方法（PayPay / 銀行振込 / 未選択）が一目で分かるようにする。
-    // ※ クレジット決済は上の分岐で専用メールを送っているのでここには来ない。
+    // ※ オンライン決済（カード・WeChat Pay / Alipay）は上の分岐で専用メールを送るのでここには来ない。
     const methodLabel = payment_method === "paypay"
       ? "📱 PayPay"
       : payment_method === "bank"

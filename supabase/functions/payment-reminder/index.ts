@@ -13,7 +13,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "shodorannga@gmail.com";
+// 顧客向け督促メールの reply_to に使う。**個人のGmailを出さない**（2026-08-28）。
+// この関数だけ 86f5e14 の一括修正から漏れていた。しかも pg_cron で毎日10時に
+// 未入金の人全員へ飛ぶ唯一の関数なので、漏れの実害はここが一番大きかった。
+const ADMIN_EMAIL = "info@kawabado.com";
 const SITE_URL = "https://kawabado.com";
 
 type Stage = "before3" | "due" | "overdue" | "final";
