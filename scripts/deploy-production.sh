@@ -1,103 +1,46 @@
 #!/bin/bash
-# 本番（kawabado.com）へデプロイ
-# ⚠️ 必ず先に scripts/deploy-staging.sh でステージング確認を済ませること
+# 本番デプロイは、このフォルダからは行えません（2026-08-28）
 #
-# 実行後、本番が新ビルドを配信しているかまで自動検証し、
-# 結果を画面表示＋Mac通知で知らせる（Claudeに確認を頼まなくても分かる）。
-# ビルド/アップロードの詳細ログは $LOG に退避し、画面には要点だけを出す
-# （Claude Code の Run パネルはスクロールできないため、結果が見える行数に収める）。
+# Cloudflare Pages の配信は差分ではなく**全置換**です。
+# 本番サイトは、このスクリプトを実行したフォルダの姿へ丸ごと入れ替わります。
+# ワークツリーが4つあり、それぞれ別ブランチを開いていたため、
+# 実行するフォルダが違うだけで本番が別物になっていました。
+# 2026-08-28 だけで3回起き、AIコースのログインが消えて
+# 実在の生徒3人がログインできなくなりました。
 #
-# 2026-08-20: security側ブランチにしか無かった自動検証をこのworktreeへ移植した
-# （デプロイ元が ~/badminton-aicourse に切り替わった際の取り残し。
-#  「✅が毎回出てこない」＝検証なしの旧版が動いていた）。
-# あわせて AIコース固有の事前チェック（決済モードの明示）を追加。
-set -e
-cd "$(dirname "$0")/.."
+# 対策として、本番へ出せるフォルダを1つに固定しました。
+# ここは「出せない側」です。中身は消していません（git log で戻せます）。
 
-LOG="/tmp/kawabado-deploy-production.log"
-: > "$LOG"
+DEPLOY_DIR="/Users/shocchan/badminton-sales"
+DEPLOY_BRANCH="integration/unify-2026-08-28"
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')
 
-notify() {
-  osascript -e "display notification \"$2\" with title \"$1\"" >/dev/null 2>&1 || true
-}
-on_error() {
-  echo ""
-  echo "❌❌❌ 本番デプロイ 失敗 ❌❌❌"
-  echo "── エラー箇所の抜粋（全文: $LOG）──"
-  tail -25 "$LOG"
-  notify "kawabado.com デプロイ失敗" "エラーで中断しました。Claudeに「デプロイ失敗した」と伝えてください"
-}
-trap on_error ERR
+cat <<MSG
 
-# ── 事前チェック: 本番の環境変数（欠けたまま配信すると決済・計測が黙って死ぬ）──
-if [ ! -f .env.production ]; then
-  echo "❌ .env.production がありません（本番の環境変数が欠けたビルドになります）"
-  exit 1
-fi
-CHECKOUT_MODE=$(grep -E '^VITE_AI_COURSE_CHECKOUT=' .env.production | cut -d= -f2 | tr -d '[:space:]' || true)
+🛑 このフォルダからは本番へデプロイできません
 
-# ── 事前チェック: 「直したはずのものが本番に無い」を出す（2026-08-24）──
-#
-# このリポジトリは worktree が4つあり、それぞれ別ブランチを開いている。
-# 本番は**このスクリプトを実行したワークツリーのブランチ**から作られるので、
-# 別ブランチで直したものは、何も上書きされていなくても本番に出ない。
-# 実際「大会カードの詳細を見る」「大会詳細のネイビー刷新」「特商法ページ」が
-# この理由で本番に出ておらず、CEOからは「戻った」ように見えていた。
-#
-# ここでは止めない（実験ブランチも混ざるため）。**見落とせなくする**のが目的。
-CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo "── 本番に出すブランチ ──"
-echo "  ${CUR_BRANCH}"
-UNSHIPPED=""
-for b in $(git branch --format='%(refname:short)'); do
-  [ "$b" = "$CUR_BRANCH" ] && continue
-  n=$(git log --oneline "HEAD..$b" -- src/ 2>/dev/null | wc -l | tr -d ' ')
-  [ "$n" = "0" ] && continue
-  UNSHIPPED="${UNSHIPPED}  ${b}: ${n}件\n"
-done
-if [ -n "$UNSHIPPED" ]; then
-  echo ""
-  echo "⚠️  このブランチに入っていない src/ の変更があります（＝本番に出ません）"
-  printf "%b" "$UNSHIPPED"
-  echo "   中身: git log --oneline HEAD..<ブランチ> -- src/"
-  echo "   「前に直したのに戻っている」ときは、まずここを見ること"
-fi
-echo ""
-echo "── 本番設定 ──"
-echo "  AIコース決済: ${CHECKOUT_MODE:-off（購入ボタンは申込フォームへ倒れます）}"
-grep -q '^VITE_GA4_ID=' .env.production && echo "  GA4計測: 有効" || echo "  GA4計測: 未設定"
+   いまのフォルダ  : $(pwd)
+   いまのブランチ  : ${CUR_BRANCH}
 
-echo "① ビルド中...（1〜2分かかります。詳細ログ: $LOG）"
-npm run build >>"$LOG" 2>&1
-echo "② 本番へアップロード中..."
-./node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main --commit-dirty=true >>"$LOG" 2>&1
+   本番へ出せるのは1か所だけです:
+     フォルダ : ${DEPLOY_DIR}
+     ブランチ : ${DEPLOY_BRANCH}
 
-# ── デプロイ後の自動検証: 本番が「今ビルドしたもの」を配信しているか ──
-LOCAL_HASH=$(grep -o 'assets/index-[A-Za-z0-9_-]*\.js' dist/index.html | head -1)
-echo "③ 検証中: 本番が新ビルド（${LOCAL_HASH}）を配信するか確認しています..."
-for _ in 1 2 3 4 5 6; do
-  # キャッシュ無効化（?cb=）で毎回オリジンの応答を見る
-  LIVE_HASH=$(curl -s --max-time 10 -H 'Cache-Control: no-cache' "https://kawabado.com/?cb=$(date +%s)" | grep -o 'assets/index-[A-Za-z0-9_-]*\.js' | head -1 || true)
-  if [ -n "$LIVE_HASH" ] && [ "$LIVE_HASH" = "$LOCAL_HASH" ]; then
-    echo ""
-    echo "✅✅✅ 本番反映 成功！ https://kawabado.com は新ビルドを配信中 ✅✅✅"
-    # 「いま本番に何が入っているか」の唯一の記録。
-    # これが無いと、本番との差分を調べる起点が無く、取り残しに気づけない
-    {
-      echo "deployed_at: $(date '+%Y-%m-%d %H:%M:%S %z')"
-      echo "branch:      ${CUR_BRANCH}"
-      echo "commit:      $(git rev-parse HEAD)"
-      echo "asset:       ${LOCAL_HASH}"
-    } > docs/PRODUCTION_STATE.txt
-    echo "   （本番の内容を docs/PRODUCTION_STATE.txt に記録しました）"
-    notify "kawabado.com 本番反映 成功" "新しいビルドが配信されています"
-    exit 0
-  fi
-  sleep 5
-done
+   理由: Cloudflare Pages は全置換です。ここから出すと、
+        ${DEPLOY_BRANCH} にしか無いものが本番から消えます。
+        2026-08-28 にこれが3回起き、生徒3人がログイン不能になりました。
 
-echo ""
-echo "⚠️ アップロードは完了しましたが、30秒待っても本番での配信確認が取れませんでした"
-echo "   （数分遅れて反映されることもあります。Claudeに「デプロイ確認して」と伝えてください）"
-notify "kawabado.com 要確認" "アップロード完了・配信確認が未達。Claudeに確認を頼んでください"
+   進めるには:
+     1) ここでの作業をコミットする
+          git add -A && git commit -m '...'
+     2) デプロイ用フォルダへ移動する
+          cd ${DEPLOY_DIR}
+     3) この作業を取り込む
+          git merge ${CUR_BRANCH}
+     4) そこで実行する
+          ./scripts/deploy-production.sh
+
+   詳細: ${DEPLOY_DIR}/docs/DEPLOY.md
+
+MSG
 exit 1
