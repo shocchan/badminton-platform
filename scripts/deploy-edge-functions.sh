@@ -48,7 +48,7 @@ done
 
 echo ""
 echo "── 反映後の verify_jwt を確認 ──"
-node -e '
+NO_JWT_LIST="${NO_JWT[*]}" node -e '
 const { readFileSync } = require("fs");
 const env = readFileSync(".env","utf8");
 const url = (env.match(/^VITE_SUPABASE_URL=(.*)$/m)||[])[1] || "";
@@ -57,14 +57,25 @@ const token = process.env.SUPABASE_ACCESS_TOKEN;
 fetch(`https://api.supabase.com/v1/projects/${ref}/functions`, { headers: { Authorization: `Bearer ${token}` } })
   .then((r) => r.json())
   .then((fns) => {
+    // **NO_JWT に載っている関数だけ** verify_jwt=false を要求する。
+    // かわバド側（notify-contact / rally-lottery / send-payment-email など）は
+    // Supabase JS クライアント経由で呼ばれ、anonキーが Authorization に載るので
+    // verify_jwt=true が正しい。実際それらは6〜7月から true のまま動いている。
+    // 以前ここは「要求した関数すべてが false でなければ失敗」にしていたため、
+    // かわバド側を出すたびに嘘の ❌ が出ていた（2026-08-28 に気づいて修正）。
     const want = process.argv.slice(1);
+    const noJwt = (process.env.NO_JWT_LIST || "").split(/\s+/).filter(Boolean);
     let bad = 0;
     for (const f of fns.filter((f) => want.includes(f.slug))) {
-      const ng = f.verify_jwt === true;
+      const mustBeOpen = noJwt.includes(f.slug);
+      const ng = mustBeOpen && f.verify_jwt === true;
       if (ng) bad += 1;
-      console.log(`  ${f.slug.padEnd(28)} verify_jwt=${String(f.verify_jwt).padEnd(6)} ${ng ? "❌ 未ログインから呼べません" : "OK"}`);
+      const note = ng ? "❌ 未ログインから呼べません"
+        : mustBeOpen ? "OK（未ログイン可）"
+        : "OK（要ログイン。anonキーで通る）";
+      console.log(`  ${f.slug.padEnd(28)} verify_jwt=${String(f.verify_jwt).padEnd(6)} ${note}`);
     }
-    if (bad > 0) { console.error("\n❌ JWT検証がONの関数があります。--no-verify-jwt を付けて出し直してください。"); process.exit(1); }
+    if (bad > 0) { console.error("\n❌ 未ログインから呼ばれる関数のJWT検証がONです。--no-verify-jwt を付けて出し直してください。"); process.exit(1); }
     console.log("\n✅ すべて想定どおり");
   });
 ' "$@"
