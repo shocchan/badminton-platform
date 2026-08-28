@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Helmet } from 'react-helmet-async';
 import { Check } from 'lucide-react';
 import ShuttleCounter from '../components/ShuttleCounter';
 import { SHUTTLE_ROADMAP_TEXT } from '../lib/shuttleRoadmapI18n';
@@ -8,10 +9,32 @@ import { supabase } from '../services/supabaseClient';
 
 const GOAL = SHUTTLE_MILESTONES[SHUTTLE_MILESTONES.length - 1].count; // 1000
 
+/**
+ * ページのSEO文言（2026-08-28 追加）。
+ *
+ * 【なぜ追加するか】
+ * このページは日本語・中国語の両方の本文を持つ公開ページなのに、Helmet が1つも無く、
+ * title・description は index.html のフォールバック（「川口・蕨バドミントン交流会」）のまま、
+ * canonical も hreflang も0本だった。
+ * ＝ /ja/shuttle-roadmap と /zh/shuttle-roadmap が「同じタイトルの別URL」として2本出ていた。
+ * ⚠️ src/lib/seo/staticSeo.json と同じ文字列にすること（staticSeo.test.ts が突き合わせる）
+ */
+const META = {
+  ja: {
+    title: 'シャトル供養カウンター | 川口・蕨バドミントン交流会',
+    description: '役目を終えたシャトルを数えていく企画のロードマップ。引退した本数に応じて生まれる作品と、1,000個までの進捗を公開しています。川口・蕨バドミントン交流会の取り組みです。',
+  },
+  zh: {
+    title: '羽毛球供养计数器 | 川口・蕨羽毛球交流会',
+    description: '把完成使命的羽毛球一颗颗数下去的企划路线图。公开了根据退役数量将会诞生的作品，以及距离1,000个的进度。这是川口・蕨羽毛球交流会的一项尝试。',
+  },
+} as const;
+
 export function ShuttleRoadmapPage() {
   const { lang } = useLanguage();
   const locale = lang === 'zh' ? 'zh' : 'ja';
   const t = SHUTTLE_ROADMAP_TEXT[locale];
+  const m = META[locale];
   const [total, setTotal] = useState<number | null>(null);
 
   useEffect(() => {
@@ -29,6 +52,19 @@ export function ShuttleRoadmapPage() {
 
   return (
     <main className="mx-auto max-w-2xl px-5 py-12">
+      <Helmet>
+        <html lang={locale} />
+        <title>{m.title}</title>
+        <meta name="description" content={m.description} />
+        <meta property="og:title" content={m.title} />
+        <meta property="og:description" content={m.description} />
+        <meta property="og:url" content={`https://kawabado.com/${locale}/shuttle-roadmap`} />
+        <meta property="og:locale" content={locale === 'zh' ? 'zh_CN' : 'ja_JP'} />
+        <link rel="canonical" href={`https://kawabado.com/${locale}/shuttle-roadmap`} />
+        <link rel="alternate" hrefLang="ja" href="https://kawabado.com/ja/shuttle-roadmap" />
+        <link rel="alternate" hrefLang="zh" href="https://kawabado.com/zh/shuttle-roadmap" />
+        <link rel="alternate" hrefLang="x-default" href="https://kawabado.com/ja/shuttle-roadmap" />
+      </Helmet>
       <a
         href={`/${locale}/`}
         className="text-sm text-amber-700 underline-offset-2 hover:underline"

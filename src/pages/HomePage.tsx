@@ -232,7 +232,20 @@ export const HomePage = () => {
         description: '埼玉县川口市・蕨市地区的平日夜间羽毛球交流活动。从超初级到高水平全级别欢迎参加。保证4场以上比赛。',
       }
     : {
-        title: '川口・蕨バドミントン交流会 | 平日夜バドミントン大会 川口・蕨',
+        /*
+         * ブランド名（カワバド）を先頭に、地域名（川口）をその直後に置く（2026-08-28）。
+         *
+         * 【なぜ変えるか】
+         * 旧: 「川口・蕨バドミントン交流会 | 平日夜バドミントン大会 川口・蕨」
+         *   - 検索する人が使う「カワバド」がタイトルに1度も出ていなかった＝指名検索の受け皿が無い
+         *   - 「川口・蕨」を2回書いており、後半が実質重複していた
+         * 新: ブランド → 正式名称（ここに「川口」が入る） → 何をやっているか、の順。
+         *   Search Console 実測で「川口 バドミントン」系は9〜18位。地域名は前寄りに残す。
+         *   「大会」は既に順位のある語（川口市バドミントン大会 7.7位）なので**落とさない**。
+         *   「サークル」は探す側の言葉。正面から受けるのは /ja/kawaguchi（新設）で、ここは併記に留める。
+         * ⚠️ src/lib/seo/staticSeo.json と同じ文字列にすること（staticSeo.test.ts が突き合わせる）
+         */
+        title: 'カワバド | 川口・蕨バドミントン交流会 - 平日夜の大会・サークル',
         description: '川口市・蕨市エリアの平日夜バドミントン交流会。超初級〜オープンまで全レベル歓迎。4試合以上保証。芝園公民館・蕨市民体育館ほかで定期開催。',
       };
 
@@ -246,7 +259,16 @@ export const HomePage = () => {
    */
   const orgJsonLd = {
     '@context': 'https://schema.org',
-    '@type': ['Organization', 'SportsOrganization'],
+    /*
+     * SportsClub を足した（2026-08-28）。
+     *
+     * 【なぜ別ノードにしないか】
+     * SportsClub は LocalBusiness のサブタイプなので、この1ノードに足すだけで
+     * 「地域で活動しているスポーツクラブ」として読める。
+     * 別に LocalBusiness ノードを立てると**同じ実体が2つ**になり、
+     * どちらが本体か検索エンジンにもAIにも分からなくなる。@id は今までどおり1つ。
+     */
+    '@type': ['Organization', 'SportsOrganization', 'SportsClub'],
     '@id': 'https://kawabado.com/#organization',
     name: '川口・蕨バドミントン交流会',
     alternateName: ['kawabado', 'カワバド', '川口・蕨羽毛球交流会'],
@@ -261,9 +283,47 @@ export const HomePage = () => {
       + '多国籍のメンバーが参加し、中国語での問い合わせ・申し込みにも対応しています。',
     email: 'info@kawabado.com',
     sport: 'バドミントン',
+    /*
+     * 【なぜ団体の address を書かないか】
+     * 自前の体育館を持たず公共施設を借りているので、団体そのものの所在地は無い。
+     * さらに src/lib/legal/kawabadoLegalFacts.ts は `address: 'on_request'`（特商法ページで
+     * 「請求があれば遅滞なく開示。サイトには掲載していない」と名乗っている）。
+     * ここに具体的な住所を書くと、①法務ページと矛盾し、②借りているだけの公共施設を
+     * 自分の所在地として名乗ることになる。**住所は会場（location）の側にだけ持たせる。**
+     *
+     * 地域の実体としては location（会場の住所）＋ areaServed（市）で十分に読める。
+     * 電話番号・営業時間も書かない（会場は公共施設で、こちらが把握していない）。
+     */
+    // 活動している会場。会場ガイド（/:lang/venues）の SportsActivityLocation と同じ住所
+    location: [
+      {
+        '@type': 'SportsActivityLocation',
+        name: '芝園公民館',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '芝園町3-15',
+          addressLocality: '川口市',
+          addressRegion: '埼玉県',
+          addressCountry: 'JP',
+        },
+      },
+      {
+        '@type': 'SportsActivityLocation',
+        name: '蕨市民体育館',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '北町1-27-15',
+          addressLocality: '蕨市',
+          addressRegion: '埼玉県',
+          addressCountry: 'JP',
+        },
+      },
+    ],
     areaServed: [
       { '@type': 'City', name: '川口市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
       { '@type': 'City', name: '蕨市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+      // 会場は戸田市に隣接しており、戸田側の案内ページ（/:lang/toda）を持っている
+      { '@type': 'City', name: '戸田市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
     ],
     // 中国語での問い合わせ・申し込みに実際に対応している（FAQ・活動ページに記載のとおり）
     knowsLanguage: ['ja', 'zh-Hans'],

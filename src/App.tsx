@@ -21,6 +21,10 @@ import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
 // ページごとに遅延読み込み（コード分割）
 const AuthLandingPage      = lazy(() => import('./pages/AuthLandingPage').then(m => ({ default: m.AuthLandingPage })));
 const InternationalPage    = lazy(() => import('./pages/InternationalPage').then(m => ({ default: m.InternationalPage })));
+// 地域ページ（2026-08-28）。会場名（芝園公民館）では見つかっているのに、
+// 「川口市 バドミントンサークル」「戸田 バドミントン」のような地域名＋競技名の受け皿が無かった
+const KawaguchiPage        = lazy(() => import('./pages/KawaguchiPage').then(m => ({ default: m.KawaguchiPage })));
+const TodaPage             = lazy(() => import('./pages/TodaPage').then(m => ({ default: m.TodaPage })));
 const TournamentTypePage   = lazy(() => import('./pages/TournamentTypePage').then(m => ({ default: m.TournamentTypePage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
@@ -142,6 +146,10 @@ const AnimatedRoutes = () => {
             <Route path="faq"             element={<FaqPage />} />
             <Route path="venues"          element={<VenueGuidePage />} />
             <Route path="international"   element={<InternationalPage />} />
+            {/* 地域ページ。`tournaments/:id` のような動的セグメントを持たないので順序の制約は無いが、
+                下の catch-all（path="*"）より前に置くこと */}
+            <Route path="kawaguchi"       element={<KawaguchiPage />} />
+            <Route path="toda"            element={<TodaPage />} />
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />

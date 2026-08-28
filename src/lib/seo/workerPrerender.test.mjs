@@ -189,13 +189,40 @@ describe('トップページ（/ja/ ・ /zh/）', () => {
     expect(ja).not.toBe(zh);
   });
 
-  it('Organization / SportsOrganization と WebSite の JSON-LD が出る', async () => {
+  it('Organization / SportsOrganization / SportsClub と WebSite の JSON-LD が出る', async () => {
     const html = await renderPath('/ja/');
     const ld = jsonLds(html);
     expect(ld.length).toBe(2);
-    expect(ld[0]['@type']).toEqual(['Organization', 'SportsOrganization']);
+    expect(ld[0]['@type']).toEqual(['Organization', 'SportsOrganization', 'SportsClub']);
     expect(ld[0]['@id']).toBe('https://kawabado.com/#organization');
     expect(ld[1]['@type']).toBe('WebSite');
+  });
+
+  it('SportsClub（LocalBusiness系）として会場と対象地域を持つ（2026-08-28）', async () => {
+    // 実体を1ノードで表す。別に LocalBusiness を立てると同じ実体が2つになる
+    const org = jsonLds(await renderPath('/ja/'))[0];
+    expect(org['@type']).toContain('SportsClub');
+    expect(org.location.map((l) => l.name)).toEqual(['芝園公民館', '蕨市民体育館']);
+    expect(org.location[0].address.streetAddress).toBe('芝園町3-15');
+    expect(org.location[0].address.addressLocality).toBe('川口市');
+    expect(org.location[1].address.addressLocality).toBe('蕨市');
+    expect(org.areaServed.map((a) => a.name)).toEqual(['川口市', '蕨市', '戸田市']);
+  });
+
+  it('団体そのものの住所は名乗らない（特商法ページと矛盾させない）', async () => {
+    // src/lib/legal/kawabadoLegalFacts.ts は address: 'on_request'。
+    // 構造化データだけが具体的な所在地を名乗ると、法務ページの記載と食い違う
+    const org = jsonLds(await renderPath('/ja/'))[0];
+    expect(org.address, 'Organization に address を書くと特商法ページと矛盾する').toBeUndefined();
+    expect(org.telephone).toBeUndefined();
+  });
+
+  it('画面（HomePage.tsx）の orgJsonLd と同じ内容を持つ（片方だけ直す事故を防ぐ）', () => {
+    const home = readFileSync(join(ROOT, 'src/pages/HomePage.tsx'), 'utf8');
+    expect(home).toContain(`'@type': ['Organization', 'SportsOrganization', 'SportsClub']`);
+    expect(home).toContain(`name: '芝園公民館'`);
+    expect(home).toContain(`name: '蕨市民体育館'`);
+    expect(home).toContain(`name: '戸田市'`);
   });
 
   it('canonicalとhreflang3本が出る（自己参照）', async () => {
@@ -245,6 +272,106 @@ describe('種目別ページ・FAQ（FAQPage）', () => {
     expect(hreflangs(html).length).toBe(3);
     expect(html).toContain('<h1>混合双打比赛（川口・蕨）</h1>');
     expect(prerenderText(html)).toContain('2,000日元');
+  });
+});
+
+// 地域ページ（2026-08-28 新設）。
+// Search Console 実測で「芝園公民館」（会場名）は73表示あるのに「川口市 バドミントン」は18位。
+// 会場名では見つかっていて地域名＋競技名では受け皿が無い、という穴を埋める2枚。
+describe('地域ページ（/kawaguchi ・ /toda）', () => {
+  it('/ja/kawaguchi: 川口市とサークルが本文とtitleに入る', async () => {
+    const html = await renderPath('/ja/kawaguchi');
+    expect(html, '/ja/kawaguchi が差し込み対象になっていない').not.toBe(null);
+    expect(html).toContain('<h1>川口市でバドミントンサークルを探している方へ</h1>');
+    const title = /<title>([^<]*)<\/title>/.exec(html)[1];
+    expect(title, 'titleに「川口市」が無い').toContain('川口市');
+    expect(title, 'titleに「バドミントンサークル」が無い').toContain('バドミントンサークル');
+    const text = prerenderText(html);
+    expect(text).toContain('埼玉県川口市芝園町3-15');
+    expect(text).toContain('600円');
+    expect(text.length).toBeGreaterThan(400);
+  });
+
+  it('/ja/kawaguchi: FAQPage と BreadcrumbList が出る', async () => {
+    const html = await renderPath('/ja/kawaguchi');
+    expect(types(html)).toContain('"FAQPage"');
+    expect(types(html)).toContain('"BreadcrumbList"');
+    const faq = jsonLds(html).find((o) => o['@type'] === 'FAQPage');
+    expect(faq.mainEntity.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('/ja/toda: 戸田とバドミントンがtitle・h1に入る', async () => {
+    const html = await renderPath('/ja/toda');
+    expect(html, '/ja/toda が差し込み対象になっていない').not.toBe(null);
+    const title = /<title>([^<]*)<\/title>/.exec(html)[1];
+    expect(title).toContain('戸田');
+    expect(title).toContain('バドミントン');
+    const h1 = /<h1>([^<]*)<\/h1>/.exec(html)[1];
+    expect(h1).toContain('戸田');
+    expect(h1).toContain('バドミントン');
+  });
+
+  it('/ja/toda: 会場までの行き方が本文に入る（乗車時間は書かない）', async () => {
+    const text = prerenderText(await renderPath('/ja/toda'));
+    expect(text).toContain('赤羽駅');
+    expect(text).toContain('徒歩約10分');
+    expect(text).toContain('徒歩約14分');
+    // サイト上に根拠が無い数字（電車の乗車時間）を書いていないこと
+    expect(text).not.toMatch(/電車で\s*\d+\s*分/);
+  });
+
+  it('両ページとも自己参照canonicalとhreflang3本が出る（ja/zhの両方）', async () => {
+    for (const page of ['kawaguchi', 'toda']) {
+      for (const lang of ['ja', 'zh']) {
+        const html = await renderPath(`/${lang}/${page}`);
+        expect(canonicalOf(html), `${lang}/${page}`).toBe(`https://kawabado.com/${lang}/${page}`);
+        expect(hreflangs(html), `${lang}/${page}`).toEqual([
+          ['ja', `https://kawabado.com/ja/${page}`],
+          ['zh', `https://kawabado.com/zh/${page}`],
+          ['x-default', `https://kawabado.com/ja/${page}`],
+        ]);
+      }
+    }
+  });
+
+  it('中国語版は中国語の本文になる（日本語のまま配らない）', async () => {
+    for (const page of ['kawaguchi', 'toda']) {
+      const html = await renderPath(`/zh/${page}`);
+      expect(html).toContain('<html lang="zh">');
+      const ja = prerenderText(await renderPath(`/ja/${page}`));
+      expect(prerenderText(html)).not.toBe(ja);
+    }
+  });
+
+  it('sitemapに ja/zh 両方が載る', async () => {
+    stubFetch({});
+    const xml = await W.generateSitemap(ENV);
+    for (const loc of [
+      'https://kawabado.com/ja/kawaguchi', 'https://kawabado.com/zh/kawaguchi',
+      'https://kawabado.com/ja/toda', 'https://kawabado.com/zh/toda',
+    ]) {
+      expect(xml, `${loc} がsitemapに無い`).toContain('<loc>' + loc + '</loc>');
+    }
+  });
+
+  it('言語プレフィックス無しの /kawaguchi ・ /toda は 301 する', async () => {
+    stubFetch({});
+    for (const [from, to] of [['/kawaguchi', '/ja/kawaguchi'], ['/toda', '/ja/toda']]) {
+      const res = await W.default.fetch(new Request('https://kawabado.com' + from), ENV);
+      expect(res.status, from).toBe(301);
+      expect(res.headers.get('Location'), from).toBe('https://kawabado.com' + to);
+    }
+  });
+
+  it('素のHTMLのサイト内リンク（NAV）に両ページが入る（孤立した1枚にしない）', async () => {
+    // sitemapに載せるだけではクローラーの巡回経路にならない。
+    // NAVから漏れると、JSを実行しないクローラーにとって存在しないページになる
+    const html = await renderPath('/ja/');
+    expect(html).toContain('href="/ja/kawaguchi"');
+    expect(html).toContain('href="/ja/toda"');
+    const zh = await renderPath('/zh/');
+    expect(zh).toContain('href="/zh/kawaguchi"');
+    expect(zh).toContain('href="/zh/toda"');
   });
 });
 
@@ -460,6 +587,16 @@ describe('canonical / hreflang の穴を塞ぐ', () => {
     expect(hreflangs(html)).toEqual([]);
   });
 
+  it('/{lang}/shuttle-roadmap にcanonicalとhreflangが出る（Helmetが1つも無かった）', async () => {
+    // 日中どちらの本文も持つ公開ページなのに title は index.html のフォールバックのままで、
+    // /ja/ と /zh/ が「同じタイトルの別URL」として2本出ていた
+    const html = await renderPath('/zh/shuttle-roadmap');
+    expect(html, 'shuttle-roadmap が差し込み対象になっていない').not.toBe(null);
+    expect(canonicalOf(html)).toBe('https://kawabado.com/zh/shuttle-roadmap');
+    expect(hreflangs(html).length).toBe(3);
+    expect(html).toContain('<html lang="zh">');
+  });
+
   it('法務3ページ（今回追加）にh1・canonical・hreflangが出る', async () => {
     for (const page of ['tokushoho', 'privacy', 'terms']) {
       const html = await renderPath('/ja/' + page);
@@ -544,7 +681,8 @@ describe('ソフト404: 既知ルートに一致しないURLはnoindexにする'
 
   it('実在するページには noindex を付けない', async () => {
     for (const p of ['/ja/', '/zh/', '/ja/faq', '/ja/venues', '/zh/tournaments/singles',
-      '/ja/results/vol2', '/ja/tokushoho', '/ja/shuttle-roadmap', '/ja/game']) {
+      '/ja/results/vol2', '/ja/tokushoho', '/ja/shuttle-roadmap', '/ja/game',
+      '/ja/kawaguchi', '/zh/kawaguchi', '/ja/toda', '/zh/toda']) {
       const res = await get('https://kawabado.com' + p);
       expect(res.headers.get('X-Robots-Tag'), p + ' に noindex が付いている').toBe(null);
     }
