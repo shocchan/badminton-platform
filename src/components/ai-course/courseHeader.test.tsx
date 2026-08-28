@@ -134,3 +134,36 @@ describe('アカウント表示とログアウト', () => {
     expect(container.querySelector('[title]')).toBeNull();
   });
 });
+
+// ============================================================
+// V2（冒険）の生徒は、端末によらず同じナビを見る
+//
+// MobileLabNav は自前の4項目（ホーム/AI会話/ことば/しくみ）を持っていて v2Mode を
+// 受け取らないため、しくみラボが使えるV2の生徒がスマホで開くと旧コースの5タブが出ていた。
+// PC側の nav は navItems(showLab, v2Mode) を通るので3タブ。
+// **同じ人が端末によって別のナビを見る**状態だった（2026-08-26 CEO報告）。
+// ============================================================
+describe('V2のナビは端末で変わらない', () => {
+  it('v2Mode かつ showLab でも、旧コースの「ことば」「しくみ」タブを出さない', () => {
+    render(<CourseHeader {...base} showLab v2Mode />);
+    const joined = screen.getAllByRole('button').map((b) => b.textContent).join(',');
+    expect(joined).not.toContain(t.nav.vocab);
+    expect(joined).not.toContain(t.nav.labShort);
+    expect(joined).not.toContain(t.nav.conversation);
+  });
+
+  it('v2Mode では 今日の冒険 / 冒険マップ / 設定 の3つになる（PC・モバイルとも）', () => {
+    render(<CourseHeader {...base} showLab v2Mode />);
+    for (const label of ['今日の冒険', '冒険マップ', t.nav.settings]) {
+      // lg用とモバイル用で2つずつ出る（同じ配列から作っているため）
+      expect(screen.getAllByText(label).length).toBe(2);
+    }
+  });
+
+  it('v2Mode でない従来の生徒は、これまでどおり「その他」シート付きの4項目', () => {
+    render(<CourseHeader {...base} showLab />);
+    const joined = screen.getAllByRole('button').map((b) => b.textContent).join(',');
+    expect(joined).toContain(t.nav.vocab);
+    expect(joined).toContain(t.nav.labShort);
+  });
+});
