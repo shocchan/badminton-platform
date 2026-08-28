@@ -6,6 +6,8 @@ import App from './App.tsx'
 import { initAnalytics } from './lib/analytics'
 
 // 広告計測タグ（GA4/Metaピクセル）。env未設定・非本番ドメインならno-op
+// （実装差ではなくコメント文言だけの衝突。lib/analytics.ts の isEnabled() は
+//   env に加えて kawabado.com かどうかも見るので、条件を明記した方を残した）
 initAnalytics()
 
 // Cache bust to force new CF Pages KV upload

@@ -5,13 +5,15 @@ export interface Tournament {
   event_type: string;
   location: string;
   event_date: string;
-  /** 追加受付の締切（override）。NULL の大会は共通ルール（14日前）のまま */
-  late_entry_until?: string | null;
   start_time: string;
   end_time: string;
   capacity: number;
   entry_fee: number;
   cancel_deadline?: string | null;
+  // 追加受付の個別override（ISO8601 timestamptz / 本番DBは timestamptz 列）。
+  // NULL の大会は共通ルール（14日前）のまま。詳細は src/lib/entryDeadline.ts
+  // ※両ブランチが同じ列を別の位置に宣言していたため、1つに統合した（重複宣言はTSエラー）
+  late_entry_until?: string | null;
   description?: string;
   edition?: number | null;
   visibility?: 'draft' | 'unlisted' | 'published';
@@ -40,7 +42,8 @@ export interface Entry {
   cancelled_at?: string;
   cancel_reason?: string;
   payment_method?: 'credit' | 'paypay' | 'bank' | null;
-  payment_status?: 'pending' | 'completed' | 'failed';
+  // 'refunded' はキャンセル時の返金処理で実際に入る（本番DBに存在する値）
+  payment_status?: 'pending' | 'completed' | 'failed' | 'refunded';
   stripe_payment_id?: string | null;
   paid_at?: string | null;
 }
@@ -54,11 +57,14 @@ export interface BlogPost {
   excerpt?: string;
   // 中国語版（2026-08-25）。同じ記事・同じ id のまま言語で表示を切り替える。
   // NULL/空 = 未翻訳 → 中国語UIでも日本語のまま出し「日文」バッジを付ける
-  // （src/pages/blogSeo.ts の pickBlogLang が唯一の判定箇所）。
+  // （src/pages/blogSeo.ts の pickBlogLang / src/lib/blogI18n.ts の両方が読む）。
   // content_zh は content と同じHTML骨格を保つ（scripts/blog/apply-zh.mjs が保証する）。
+  // 4列とも本番DB blog_posts に実在する（2026-08-28 information_schema で確認済み）。
   title_zh?: string | null;
   excerpt_zh?: string | null;
   content_zh?: string | null;
+  /** 中国語版を作った時点の日本語版のハッシュ。ズレていたら翻訳が古い（自動生成の再翻訳判定に使う） */
+  content_zh_hash?: string | null;
   image_url?: string;
   image_position?: string;
   tags?: string[];

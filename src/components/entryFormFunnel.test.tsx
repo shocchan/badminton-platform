@@ -9,18 +9,22 @@ import { getEntryTexts } from '../locales/entry';
 import type { Tournament } from '../types';
 
 // ── 外部依存はすべて差し替える（ネットワーク・Stripe・決済完了画面） ──
+//
+// 統合（2026-08-28）: 申込レコードの作成が entries への直接INSERTから
+// create_tournament_entry RPC に変わったため、差し替え先も RPC に寄せた。
+// 直接INSERTの経路は本番では匿名の権限が無く、もう通らない。
 
 const rpc = vi.fn();
-const insertSingle = vi.fn();
 const insertedRows = vi.fn();
 
 vi.mock('../services/supabaseClient', () => ({
   supabase: {
     rpc: (...args: unknown[]) => rpc(...args),
+    // 直接INSERTはもう使わない。もし戻ってきたら気付けるよう、呼ばれたことだけ記録する
     from: () => ({
       insert: (rows: unknown) => {
         insertedRows(rows);
-        return { select: () => ({ single: () => insertSingle() }) };
+        return { select: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) };
       },
     }),
   },
@@ -29,6 +33,9 @@ vi.mock('../services/supabaseClient', () => ({
 const fetchWithTimeout = vi.fn();
 vi.mock('../lib/payment', () => ({
   isCreditPaymentAvailable: true,
+  // WeChat Pay / Alipay は別経路（Checkout へのリダイレクト）。
+  // このファイルはカード決済とオフライン決済の計測を見るので、ここでは出さない
+  isStripeRedirectPaymentAvailable: false,
   fetchWithTimeout: (...args: unknown[]) => fetchWithTimeout(...args),
   getStripe: () => null,
 }));
@@ -95,6 +102,21 @@ const tournament = (): Tournament => ({
 
 const okJson = (body: unknown) => ({ ok: true, json: async () => body });
 
+/** create_tournament_entry RPC が返す1行 */
+const createdRow = (status: 'confirmed' | 'waitlist' = 'confirmed') => ({
+  data: [{ entry_id: 101, entry_cancel_token: 'tok-101', entry_status: status, late_entry: false }],
+  error: null,
+});
+
+/** find_entry_for_resume（既存申込の照会）と create_tournament_entry（作成）をまとめて差し替える */
+const mockRpc = (opts: { existing?: unknown[]; created?: unknown } = {}) => {
+  rpc.mockImplementation((name: string) => {
+    if (name === 'find_entry_for_resume') return Promise.resolve({ data: opts.existing ?? [], error: null });
+    if (name === 'create_tournament_entry') return Promise.resolve(opts.created ?? createdRow());
+    return Promise.resolve({ data: null, error: null });
+  });
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.clear();
@@ -104,11 +126,8 @@ beforeEach(() => {
   // 案内メール送信（Edge Function）は素の fetch。常に成功させる
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) }));
 
-  // 既存申込なし → 定員に余裕あり
-  rpc.mockImplementation((name: string) =>
-    name === 'find_entry_for_resume' ? Promise.resolve({ data: [] }) : Promise.resolve({ data: 0 }),
-  );
-  insertSingle.mockResolvedValue({ data: { id: 101, cancel_token: 'tok-101' }, error: null });
+  // 既存申込なし → 確定で作成される
+  mockRpc();
   fetchWithTimeout.mockImplementation((url: string) =>
     url.includes('create-payment-intent')
       ? Promise.resolve(okJson({ clientSecret: 'cs_test', amount: 1500 }))
@@ -134,41 +153,28 @@ const selectMethod = (title: string) =>
   fireEvent.click(screen.getAllByRole('radio').find(b => b.getAttribute('aria-label')?.startsWith(title))!);
 
 describe('generate_lead（申込レコード作成）', () => {
-  it('申込が作られたときに1回だけ送る。流入元も申込に載る', async () => {
-    window.history.replaceState({}, '', '/ja/tournaments/7?from=line');
+  it('申込が作られたときに1回だけ送る', async () => {
     render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
 
     await submitEntry();
 
     expect(trackGenerateLead).toHaveBeenCalledTimes(1);
     expect(trackGenerateLead).toHaveBeenCalledWith(7, 1500, 'confirmed');
-    expect(insertedRows).toHaveBeenCalledWith([expect.objectContaining({ source: 'line' })]);
   });
 
-  it('流入元が分からない申込は web として保存する', async () => {
-    render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
-    await submitEntry();
-    expect(insertedRows).toHaveBeenCalledWith([expect.objectContaining({ source: 'web' })]);
-  });
-
-  it('migration 未適用（source 列なし）でも、流入元を落として申込は通す', async () => {
-    insertSingle
-      .mockResolvedValueOnce({
-        data: null,
-        error: { code: 'PGRST204', message: "Could not find the 'source' column of 'entries' in the schema cache" },
-      })
-      .mockResolvedValueOnce({ data: { id: 101, cancel_token: 'tok-101' }, error: null });
-
+  it('申込の作成はサーバー側RPCで行う（匿名の直接INSERTは本番で権限が無い）', async () => {
     render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
     await submitEntry();
 
-    expect(insertedRows).toHaveBeenCalledTimes(2);
-    expect(insertedRows.mock.calls[1][0][0]).not.toHaveProperty('source');
-    expect(trackGenerateLead).toHaveBeenCalledTimes(1); // 申込は成立しているので計測もする
+    expect(rpc).toHaveBeenCalledWith(
+      'create_tournament_entry',
+      expect.objectContaining({ p_tournament_id: 7, p_email: 'a@example.com', p_name: '山田太郎' }),
+    );
+    expect(insertedRows).not.toHaveBeenCalled();
   });
 
-  it('source 以外の失敗では入れ直さない（重複登録を作らない）', async () => {
-    insertSingle.mockResolvedValue({ data: null, error: { code: '23505', message: 'duplicate key' } });
+  it('RPCが失敗したときは計測しない（申込が作られていないため）', async () => {
+    mockRpc({ created: { data: null, error: { code: '23505', message: 'DUPLICATE_ENTRY' } } });
 
     render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
     fireEvent.change(screen.getByPlaceholderText(t.phName), { target: { value: '山田太郎' } });
@@ -176,7 +182,7 @@ describe('generate_lead（申込レコード作成）', () => {
     fireEvent.click(screen.getByRole('button', { name: t.toConfirm }));
     fireEvent.click(await screen.findByRole('button', { name: t.submit }));
 
-    await waitFor(() => expect(insertedRows).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('create_tournament_entry', expect.anything()));
     expect(trackGenerateLead).not.toHaveBeenCalled();
   });
 
@@ -194,9 +200,8 @@ describe('generate_lead（申込レコード作成）', () => {
   });
 
   it('キャンセル待ちでも送る（申込は成立しているため）', async () => {
-    rpc.mockImplementation((name: string) =>
-      name === 'find_entry_for_resume' ? Promise.resolve({ data: [] }) : Promise.resolve({ data: 10 }),
-    );
+    // 定員判定はRPC側で行い、結果として waitlist の行が返る
+    mockRpc({ created: createdRow('waitlist') });
     render(<EntryForm tournament={tournament()} entryCount={10} onClose={() => {}} />);
 
     fireEvent.change(screen.getByPlaceholderText(t.phName), { target: { value: '山田太郎' } });
@@ -222,11 +227,9 @@ describe('begin_checkout（クレジット決済の開始）', () => {
 
   it('【二重送信よけ】戻ってやり直し、もう一度クレジットを選んでも1回のまま', async () => {
     // 2回目の申込は「支払い前の申込が残っている」→ 再開扱いになる（本番と同じ挙動）
-    rpc.mockImplementation((name: string) =>
-      name === 'find_entry_for_resume'
-        ? Promise.resolve({ data: [{ id: 101, status: 'confirmed', cancel_token: 'tok-101', payment_status: 'pending' }] })
-        : Promise.resolve({ data: 0 }),
-    );
+    mockRpc({
+      existing: [{ id: 101, status: 'confirmed', cancel_token: 'tok-101', payment_status: 'pending' }],
+    });
     render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
 
     // 1回目（再開ルートに入るので generate_lead は送られない）
@@ -323,7 +326,8 @@ describe('purchase（クレジット決済の完了）', () => {
   });
 });
 
-describe('PayPay / 銀行振込', () => {
+// 銀行振込は 2026-08-28 に受付終了。残るオフライン手段は PayPay のみ
+describe('PayPay（オフライン支払い）', () => {
   it('purchase は送らない（この時点では入金されていないため）。申込の generate_lead だけ残る', async () => {
     render(<EntryForm tournament={tournament()} entryCount={0} onClose={() => {}} />);
     await submitEntry();

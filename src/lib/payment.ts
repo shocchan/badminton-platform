@@ -1,12 +1,19 @@
 import { loadStripe } from '@stripe/stripe-js';
 import type { Stripe } from '@stripe/stripe-js';
 
-export type PaymentMethod = 'credit' | 'paypay' | 'bank';
+// 'bank'（銀行振込）は2026-08-28に選択肢から外したが、過去の申し込みが
+// この値を持っているため、型と表示側には残す（管理画面・キャンセル画面で使う）。
+export type PaymentMethod = 'credit' | 'paypay' | 'wechat_alipay' | 'bank';
+
+/** いま申込画面で選べる支払い方法 */
+export const SELECTABLE_PAYMENT_METHODS: PaymentMethod[] = ['credit', 'paypay', 'wechat_alipay'];
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
 
-// キー未設定時はクレジット決済の選択肢自体を出さない（PayPay/銀行振込のみで運用可能）
+// キー未設定時はオンライン決済の選択肢自体を出さない（PayPayのみで運用可能）。
+// WeChat Pay / Alipay も同じStripeアカウントを使うので、この判定を共有する。
 export const isCreditPaymentAvailable = !!STRIPE_PUBLISHABLE_KEY;
+export const isStripeRedirectPaymentAvailable = !!STRIPE_PUBLISHABLE_KEY;
 
 let stripePromise: Promise<Stripe | null> | null = null;
 export const getStripe = () => {

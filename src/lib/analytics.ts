@@ -22,6 +22,21 @@
 //   purchase           クレジット決済が完了     （Meta: Purchase）
 // ── その他 ───────────────────────────────────────────────
 //   click_related_service  フッターの関連サービス（AI日本語コース / wildflow）クリック
+//   referral_visit         `?ref=` 付きリンクで初めて来た
+//
+// ── 2026-08-28 統合メモ（add/add 衝突の解消） ────────────────
+// release/assetization-2026-08 と security/rls-hardening-and-quality の両方が
+// このファイルを独立に作っていた（共通の祖先なし）。突き合わせた結果、
+// security 側のイベント・関数は**すべてこちら側に同名・同シグネチャで存在**していた
+// （initAnalytics / trackPageView / trackViewTournament / trackBeginApplication /
+//   trackGenerateLead / trackBeginCheckout / trackPurchase の7つ）。
+// 差分は2点だけで、いずれもこちら側が上位互換のため、こちらを残した:
+//   1. UTM保存: security側は `?utm_source=` があるときだけ保存。こちら側はそれに加えて
+//      旧 `?from=line|wechat` もUTMへ読み替える（配布済みリンクを落とさない）
+//   2. page_view の page_location: security側は window.location.href をそのまま送信。
+//      こちら側は scrubUrlForAnalytics で session_id / token を落としてから送り、
+//      さらに内部遷移の page_referrer を自前で埋める
+// security側にしか無いイベント・エクスポートは無い（＝この統合で失われた計測はない）。
 
 const GA4_ID = import.meta.env.VITE_GA4_ID as string | undefined;
 const META_PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID as string | undefined;

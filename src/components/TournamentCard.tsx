@@ -10,6 +10,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import type { Tournament } from '../types';
 import { feeDisplay, feePerPerson, isDoublesEvent, isShuttleFree } from '../lib/fee';
 import { shareUtmQuery } from '../lib/analytics';
+import { isEntryClosed as computeEntryClosed, isLateEntryWindow } from '../lib/entryDeadline';
 
 interface TournamentCardProps {
   tournament: Tournament;
@@ -157,7 +158,9 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
-  const isEntryClosed = daysUntil >= 0 && daysUntil < 14;
+  // 共通ルール（開催14日前）で締切。late_entry_until がある大会だけ追加受付として延長される
+  const isEntryClosed = daysUntil >= 0 && computeEntryClosed(tournament);
+  const isLateEntry = isLateEntryWindow(tournament);
   const config = levelConfig[tournament.level] ?? defaultConfig;
   // 申し込み不可のカードは全体をトーンダウンして、募集中カードを引き立てる
   const isInactive = tournament.status !== 'active' || daysUntil < 0 || isEntryClosed;
@@ -282,6 +285,11 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
           }`}>
             🏸 {isShuttleFree(tournament) ? 'シャトル持参不要' : 'シャトル持参制'}
           </span>
+          {isLateEntry && (
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 bg-amber-100 text-amber-800">
+              📢 追加受付中
+            </span>
+          )}
         </div>
 
         <div className="relative z-10 mt-auto pt-1 flex items-center gap-2">

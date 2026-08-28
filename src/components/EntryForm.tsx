@@ -3,7 +3,6 @@ import type { Tournament } from '../types';
 import { supabase } from '../services/supabaseClient';
 import {
   createOnceGate,
-  getTrafficSource,
   trackBeginCheckout,
   trackGenerateLead,
   trackPurchase,
@@ -11,10 +10,11 @@ import {
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
-import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
+import { isCreditPaymentAvailable, isStripeRedirectPaymentAvailable, fetchWithTimeout } from '../lib/payment';
 import type { PaymentMethod } from '../lib/payment';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
+import { isCreditOnly, isEntryClosed } from '../lib/entryDeadline';
 
 interface EntryFormProps {
   tournament: Tournament;
@@ -27,18 +27,12 @@ type Step = 'input' | 'confirm' | 'payment-method' | 'success';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1');
 
-/**
- * 「その列は存在しない」というエラーか。
- * PostgREST はスキーマキャッシュに無い列を PGRST204、Postgres 本体は 42703 で返す。
- * 列名まで一致したときだけ真にする（無関係な PGRST204 で入れ直さないため）。
- */
-// （react-refresh の「コンポーネント以外を export しない」に合わせ、この中だけで使う）
-const isMissingColumnError = (err: unknown, column: string): boolean => {
-  const e = err as { code?: string; message?: string } | null | undefined;
-  if (!e) return false;
-  const missingColumn = e.code === 'PGRST204' || e.code === '42703';
-  return missingColumn && (e.message ?? '').includes(column);
-};
+// 統合（2026-08-28）で削除:
+//   isMissingColumnError(err, 'source')
+// entries への直接INSERTで `source` 列の未適用を吸収するための保険だった。
+// 申込の作成が create_tournament_entry RPC に移り、この画面から entries へ
+// INSERT しなくなったため、掛ける対象そのものが無くなった。
+// （同じ考えの保険は ActivityPage 側に残っている。あちらは今も直接INSERTするので必要）
 
 export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) => {
   const { lang } = useLanguage();
@@ -65,7 +59,6 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number } | null>(null);
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
   const [confirmWarning, setConfirmWarning] = useState(false);
-  const [bankCopied, setBankCopied] = useState(false);
 
   /**
    * 成果イベントの二重送信よけ（2026-08-24）。
@@ -73,8 +66,10 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
    * 同じイベントが2回飛ぶと CV が水増しされ、広告の判断を誤る。
    */
   const funnelGate = useRef(createOnceGate());
-  /** 申込レコードに残す流入元（line / wechat / web）。通常活動・特典登録と同じ3値 */
-  const trafficSource = useRef(getTrafficSource());
+  // 統合（2026-08-28）で削除: trafficSource（entries.source へ入れていた line/wechat/web）。
+  // 申込の作成が create_tournament_entry RPC 経由になり、RPC の引数に p_source が無いため、
+  // この画面から流入元を渡す先が無くなった。RPC は SECURITY DEFINER で
+  // 匿名の後追いUPDATEもできない。DBに残したい場合は RPC に p_source を足す migration が必要。
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -111,11 +106,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     setLoading(true);
     setError(null);
     try {
-      // 申し込み締め切りチェック（大会14日前）
-      const entryDeadline = new Date(tournament.event_date);
-      entryDeadline.setDate(entryDeadline.getDate() - 14);
-      entryDeadline.setHours(23, 59, 59);
-      if (new Date() > entryDeadline) {
+      // 締切の一次チェック（UX用。本当の強制は create_tournament_entry RPC 側で行う）
+      if (isEntryClosed(tournament)) {
         setError(t.errDeadline);
         setStep('input');
         setLoading(false);
@@ -151,57 +143,63 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
         return;
       }
 
-      // 最新の confirmed カウントを再チェック（競合防止）
-      const { data: confirmedCount } = await supabase.rpc('get_tournament_entry_count', {
+      // 申込の作成はサーバー側RPCに一本化する。
+      // 締切・重複・定員を advisory lock の中で原子的に判定してからINSERTするため、
+      // 同時申込でも定員超過や重複が発生しない（匿名の直接INSERTは権限を剥奪済み）。
+      //
+      // 統合（2026-08-28）: こちら側は同じ場所で entries へ直接INSERTし、
+      // 流入元を entries.source に入れていた。security 側の RPC を採る。
+      // 理由は、本番では anon の entries への INSERT 権限が既に剥奪されていて、
+      // 直接INSERTのコードを出すと**申し込みが1件も通らなくなる**ため。
+      // 代償として entries.source（line/wechat/web）は記録されなくなる。
+      // 復活させるには create_tournament_entry に p_source を足す migration が要る
+      // （RPC は SECURITY DEFINER で、後追いUPDATEは anon 権限が無いのでできない）。
+      // 流入元は GA4 側（trackGenerateLead 以降のイベント）には引き続き乗る。
+      const { data: created, error: rpcError } = await supabase.rpc('create_tournament_entry', {
         p_tournament_id: tournament.id,
+        p_name: formData.name,
+        p_email: formData.email,
+        p_phone: formData.phone || null,
+        p_partner_name: isDoubles ? formData.partner_name : null,
+        p_notes: formData.notes || null,
       });
 
-      const actualIsWaitlist = Number(confirmedCount ?? 0) >= tournament.capacity;
-      const status = actualIsWaitlist ? 'waitlist' : 'confirmed';
-
-      const entryRow = {
-        tournament_id: tournament.id,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        partner_name: isDoubles ? formData.partner_name : null,
-        notes: formData.notes,
-        status,
-      };
-
-      let { data: inserted, error: insertError } = await supabase
-        .from('entries')
-        .insert([{ ...entryRow, source: trafficSource.current }])
-        .select('id, cancel_token')
-        .single();
-
-      // `source` は 2026-08-24 の migration で足した列。
-      // **フロントだけ先に出て migration が未適用**だと、この列のせいで申し込みが丸ごと失敗する。
-      // 計測を足したせいで申込を落とすのは本末転倒なので、「そんな列は無い」と言われたときだけ
-      // source 抜きで入れ直す。本番で migration の適用を確認できたら、この分岐は消してよい。
-      if (insertError && isMissingColumnError(insertError, 'source')) {
-        console.warn('[entries] source 列が未作成のため、流入元なしで登録します');
-        ({ data: inserted, error: insertError } = await supabase
-          .from('entries')
-          .insert([entryRow])
-          .select('id, cancel_token')
-          .single());
+      if (rpcError) {
+        // RPC が返すエラーコードを利用者向けの文言に変換する
+        const msg = rpcError.message || '';
+        const code = (rpcError as { code?: string }).code || '';
+        if (msg.includes('ENTRY_CLOSED')) setError(t.errDeadline);
+        else if (msg.includes('CAPACITY_FULL')) setError(t.errCapacityFull);
+        else if (msg.includes('DUPLICATE_ENTRY')) setError(t.errDupEntry);
+        // 42501 = 権限エラー。古いバンドルを開いたままの場合などに起こりうる。
+        // 申し込みは作成されていないので、再読み込みを促す
+        else if (code === '42501' || msg.includes('permission denied')) setError(t.errStale);
+        else setError(t.errSubmit);
+        setStep('input');
+        setLoading(false);
+        return;
       }
 
-      if (insertError) throw insertError;
+      const row = (created as {
+        entry_id: number; entry_cancel_token: string; entry_status: 'confirmed' | 'waitlist'; late_entry: boolean;
+      }[] | null)?.[0];
+      if (!row) throw new Error('create_tournament_entry returned no row');
+
+      const status = row.entry_status;
 
       // 申込レコードが実際に作られた地点で generate_lead。確定・キャンセル待ちの両方を数える
-      // （申込は成立しているので、支払い方法に関わらずここが「リード獲得」）
+      // （申込は成立しているので、支払い方法に関わらずここが「リード獲得」）。
+      // funnelGate は再レンダリング・再送で同じイベントが2回飛ぶのを防ぐ（こちら側の追加を維持）
       if (funnelGate.current('generate_lead')) {
         trackGenerateLead(tournament.id, tournament.entry_fee, status);
       }
 
       // 支払いが必要な確定エントリーは支払い方法選択へ。それ以外は従来通りメール送信して完了
-      if (status === 'confirmed' && tournament.payment_required && inserted) {
-        setEntryInfo({ id: inserted.id, cancelToken: inserted.cancel_token });
+      if (status === 'confirmed' && tournament.payment_required) {
+        setEntryInfo({ id: row.entry_id, cancelToken: row.entry_cancel_token });
         setStep('payment-method');
       } else {
-        await sendEmail(formData.email, status, inserted?.cancel_token);
+        await sendEmail(formData.email, status, row.entry_cancel_token);
         setStep('success');
       }
     } catch (err) {
@@ -240,7 +238,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           tournament_title: tournament.title,
           tournament_date: tournament.event_date,
           payment_deadline: tournament.payment_deadline,
-          bank_account: tournament.bank_account,
+          // 銀行振込は2026-08-28に廃止。空を渡すとメール側の振込先ブロックが出ない
+          bank_account: '',
           paypay_id: tournament.paypay_id,
           payment_required: tournament.payment_required && status === 'confirmed',
           entry_fee: tournament.entry_fee,
@@ -260,12 +259,64 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
   // ── 支払い方法選択ハンドラー ──
 
+  // 追加受付中はオンラインのクレジットカード決済のみ（PayPay・銀行振込は選択させない）
+  const creditOnly = isCreditOnly(tournament);
+
   const handleSelectMethod = (method: PaymentMethod) => {
     if (paymentLoading) return;
+    // 追加受付中はオンライン決済のみ（PayPayは入金確認が間に合わないため）
+    if (creditOnly && method !== 'credit' && method !== 'wechat_alipay') return;
     setPaymentMethod(method);
     setPaymentError(null);
     if (method === 'credit' && !stripeInfo) {
       void createPaymentIntent();
+    }
+  };
+
+  // WeChat Pay / Alipay: Stripeの決済画面へ遷移する。
+  // 戻り先を控えておき、支払い後に同じ大会ページへ帰ってきて確認処理を走らせる。
+  const startRedirectCheckout = async () => {
+    if (!entryInfo) return;
+    setPaymentLoading(true);
+    setPaymentError(null);
+    try {
+      const res = await fetchWithTimeout(`${EDGE_BASE}/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          action: 'create',
+          entry_id: entryInfo.id,
+          cancel_token: entryInfo.cancelToken,
+          return_origin: window.location.origin,
+          return_path: window.location.pathname,
+          lang,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.url) {
+        setPaymentError(data.error || t.payErrPrepare);
+        return;
+      }
+      // カード決済側と同じく funnelGate で1回に絞る（統合時に追加）。
+      // ボタン連打・準備失敗からの再試行でここを複数回通ると begin_checkout が水増しされる
+      if (funnelGate.current('begin_checkout')) {
+        trackBeginCheckout(tournament.id, data.amount ?? tournament.entry_fee);
+      }
+      // 戻ってきたときに完了画面を出せるよう、申込情報を残しておく
+      sessionStorage.setItem(
+        'kawabado_checkout',
+        JSON.stringify({ entryId: entryInfo.id, name: formData.name, email: formData.email }),
+      );
+      window.location.href = data.url;
+    } catch (err) {
+      setPaymentError(
+        err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
+      );
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -302,15 +353,17 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     }
   };
 
-  // PayPay / 銀行振込: 従来通りの案内メールを送信して完了
+  // PayPay: 従来通りの案内メールを送信して完了（入金確認は運営が手動で行う）。
+  // 銀行振込は security 側で 2026-08-28 に廃止されたので 'bank' は受け取らない。
   //
   // ここでは purchase を送らない（2026-08-24 決定）。
-  // この時点で起きているのは「振込先を見た」だけで、入金は数日後・別経路で、
+  // この時点で起きているのは「支払い案内を見た」だけで、入金は後日・別経路で、
   // 未入金のまま消えることも実際にある。ここで purchase を送ると
   // 「売上が立った」と GA4/Meta に嘘をつくことになり、広告の最適化まで狂う。
   // 申込自体は generate_lead で計上済み。実入金は管理画面の入金確認で追う。
-  const handleConfirmOfflinePayment = async (method: 'paypay' | 'bank') => {
+  const handleConfirmOfflinePayment = async (method: 'paypay') => {
     if (!entryInfo) return;
+    if (creditOnly) return; // 追加受付中はオフライン決済を成立させない
     setPaymentLoading(true);
     setPaymentError(null);
     await sendEmail(formData.email, 'confirmed', entryInfo.cancelToken, method, entryInfo.id);
@@ -355,18 +408,11 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     }
   };
 
-  const handleCopyBank = async () => {
-    if (!tournament.bank_account) return;
-    try {
-      await navigator.clipboard.writeText(tournament.bank_account);
-      setBankCopied(true);
-      setTimeout(() => setBankCopied(false), 2000);
-    } catch { /* clipboard 非対応環境では何もしない */ }
-  };
-
-  // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る
+  // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る。
+  // ただし追加受付中はカード決済のみなので、オフライン支払いの案内は送らない
+  // （決済未完了のまま参加確定と誤解させないため）
   const handleClose = () => {
-    if (step === 'payment-method' && entryInfo && !paidInfo) {
+    if (step === 'payment-method' && entryInfo && !paidInfo && !creditOnly) {
       void sendEmail(formData.email, 'confirmed', entryInfo.cancelToken);
     }
     onClose();
@@ -450,8 +496,9 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               <PaymentMethodSelector
                 entryFee={tournament.entry_fee}
                 paypayId={tournament.paypay_id}
-                bankAccount={tournament.bank_account}
                 creditAvailable={isCreditPaymentAvailable}
+                redirectAvailable={isStripeRedirectPaymentAvailable}
+                creditOnly={creditOnly}
                 selected={paymentMethod}
                 onSelect={handleSelectMethod}
                 disabled={paymentLoading}
@@ -511,29 +558,20 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 </div>
               )}
 
-              {/* 銀行振込 */}
-              {paymentMethod === 'bank' && tournament.bank_account && (
+              {/* WeChat Pay / Alipay（Stripeの決済画面へ移動） */}
+              {paymentMethod === 'wechat_alipay' && (
                 <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
-                  <p className="text-sm font-bold text-gray-700">{t.payBankLead}</p>
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-                    <p className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">{tournament.bank_account}</p>
-                    <button
-                      onClick={() => void handleCopyBank()}
-                      className="mt-2 text-xs font-bold text-blue-700 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-100 transition-colors"
-                    >
-                      {bankCopied ? t.payBankCopied : t.payBankCopy}
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500">{t.payBankNote}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t.pmRedirectNotice}</p>
                   <button
-                    onClick={() => void handleConfirmOfflinePayment('bank')}
+                    onClick={() => void startRedirectCheckout()}
                     disabled={paymentLoading}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
                   >
-                    {paymentLoading ? t.paySending : t.payBankBtn}
+                    {paymentLoading ? t.pmRedirectLoading : t.pmRedirectButton}
                   </button>
                 </div>
               )}
+
             </div>
           )}
 

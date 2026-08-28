@@ -9,6 +9,13 @@
 //   ・?knock=1     … 同上（?knock=0 で戻す）
 //   ・VITE_GAME_MODE=knock … 既定そのものを差し替える（staging確認後にCEOが実施）
 // クエリは環境変数より強いので、切り替えた後も ?mode=rally で旧モードを見比べられる。
+//
+// 【2026-08-28 統合メモ】security/rls-hardening-and-quality も練習球の案内文
+// （🔰 最初のN球は練習球…）を、分割前のこのファイルに直接足していた。
+// こちらは同じ文を RallyPanels / RallyHelp に持っており、さらに Perfect の
+// 横バー説明と 30秒ノック（KnockGame）を載せている。両方を機械的に足すと
+// 案内文が二重に出るため、こちら側の RallyPanels / RallyHelp を採用した。
+// security 側の文言（練習球の 🔰 と ❌ の2行）は中身が同じなので落ちていない。
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';

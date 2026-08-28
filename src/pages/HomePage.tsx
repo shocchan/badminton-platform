@@ -12,6 +12,7 @@ import { EntryForm } from '../components/EntryForm';
 import { PreEntryModal } from '../components/PreEntryModal';
 import { GeneralFaqSection } from '../components/GeneralFaqSection';
 import { supabase } from '../services/supabaseClient';
+import { HERO_IMAGE, HERO_SIZES } from '../lib/staticImageSets';
 import type { Tournament } from '../types';
 
 // レベル別カラー（TournamentCard・LevelGuidePage と統一）
@@ -304,13 +305,17 @@ export const HomePage = () => {
     <main>
       {/* ヒーローセクション */}
       <div className="relative text-white overflow-hidden">
+        {/* srcset/sizes は generate-worker.mjs のpreload注入と一致させること（不一致だと二重ダウンロード） */}
         <picture>
-          <source srcSet="/hero.webp" type="image/webp" />
+          <source srcSet={HERO_IMAGE.srcSet} sizes={HERO_SIZES} type="image/webp" />
           <img
-            src="/hero.jpg"
+            src={HERO_IMAGE.src}
             alt="川口・蕨バドミントン交流会"
+            width={HERO_IMAGE.width}
+            height={HERO_IMAGE.height}
             fetchPriority="high"
             loading="eager"
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover object-center"
           />
         </picture>

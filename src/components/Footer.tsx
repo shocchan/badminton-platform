@@ -3,6 +3,7 @@ import { CalendarDays, Footprints, Feather, Zap, MapPin, Users, ChevronRight, Ex
 import { useLanguage } from '../contexts/LanguageContext';
 import { trackRelatedServiceClick } from '../lib/analytics';
 import { LogoMark } from './LogoMark';
+import { KawabadoLegalLinks } from '../pages/KawabadoLegalPage';
 
 export const Footer = () => {
   const year = new Date().getFullYear();
@@ -147,13 +148,23 @@ export const Footer = () => {
           <p>© {year} 川口・蕨バドミントン交流会. All rights reserved.</p>
           {/* 法務ページ（2026-08-24 追加）。有料の申込を受けている以上、
               特商法表記・プライバシーポリシー・利用規約は全ページから辿れる場所に置く。
-              リンク数が増えるので折り返し可にする */}
+              リンク数が増えるので折り返し可にする。
+
+              統合（2026-08-28）: 両ブランチが独立に同じ3リンクを足していた。
+              ここは security 側の <KawabadoLegalLinks /> を採用する。
+              理由は、あちらは KAWABADO_LEGAL_PUBLISH を見ていて、
+              事実が未確定で非公開のうちはリンク自体を出さないため。
+              こちら側の直書きリンクだと、踏んだ先がトップへ Navigate する
+              「行き止まりのリンク」がフッターに5本並ぶ状態になっていた。
+              リンク文言とURLも法務ページ定義（buildKawabadoLegalPages）が正で、
+              二重管理にならない。
+              一方 faq / cancel-policy は、こちら側の to() を残す。
+              接頭辞なしURLだと ①/ja/... への内部リダイレクトが1回挟まる
+              ②中国語で見ている人が日本語ページへ飛ばされる、の2点が起きるため */}
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
             <Link to={to('faq')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会FAQ' : '赛事常见问题'}</Link>
             <Link to={to('cancel-policy')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}</Link>
-            <Link to={to('tokushoho')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '特定商取引法に基づく表記' : '基于特定商业交易法的标示'}</Link>
-            <Link to={to('privacy')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? 'プライバシーポリシー' : '隐私政策'}</Link>
-            <Link to={to('terms')} className="hover:text-gray-200 transition-colors">{lang === 'ja' ? '利用規約' : '使用条款'}</Link>
+            <KawabadoLegalLinks className="hover:text-gray-200 transition-colors" />
           </div>
         </div>
       </div>

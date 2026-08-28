@@ -6,7 +6,9 @@
       "Fetch",
       "Write",
       "Read",
-      "Edit"
+      "Edit",
+      "WebFetch",
+      "WebSearch"
     ],
     "ask": [
       "Bash(*api.stripe.com*)",
@@ -23,11 +25,12 @@
       "Bash(*wrangler deploy --env production*)",
       "Bash(*functions/deploy*)",
       "Write(.env.production)",
-      "Write(.env.production.local)",
-      "Write(.npmrc)",
       "Edit(.env.production)",
+      "Write(.env.production.local)",
       "Edit(.env.production.local)",
-      "Edit(.npmrc)"
+      "Write(.npmrc)",
+      "Edit(.npmrc)",
+      "Write(secret:*)"
     ]
   }
 }

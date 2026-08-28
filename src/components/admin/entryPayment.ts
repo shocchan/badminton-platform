@@ -33,6 +33,9 @@ export type EntryWithTournament = Omit<Entry, 'payment_status'> & {
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
   credit: 'カード',
   paypay: 'PayPay',
+  // WeChat Pay / Alipay（Stripe の決済画面へ遷移する方式）
+  wechat_alipay: 'WeChat/Alipay',
+  // 銀行振込は2026-08-28に受付終了。過去の申し込みの表示用に残す
   bank: '銀行振込',
 };
 

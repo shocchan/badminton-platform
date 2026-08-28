@@ -1,0 +1,17 @@
+-- 20260802030000_late_entry_reclaim_unpaid.sql の取り消し。
+--
+-- 自動解放の仕組みだけを止めたい場合は、20260802020000 版の
+-- create_tournament_entry をそのまま再適用すればよい（UPDATE ブロックが無い版）。
+--   psql/Management API で 20260802020000_late_entry_override.sql の
+--   「2) 申込作成RPC」セクションを再実行する。
+--
+-- 自動解放されてしまった申込を戻す（誤解放時の復旧）:
+--   UPDATE public.entries
+--      SET status = 'confirmed', cancelled_at = NULL, cancel_reason = NULL
+--    WHERE cancel_reason = '未決済のため自動解放（追加受付）';
+--
+-- 解放された申込の一覧（監査用）:
+--   SELECT id, name, email, tournament_id, cancelled_at
+--     FROM public.entries
+--    WHERE cancel_reason = '未決済のため自動解放（追加受付）'
+--    ORDER BY cancelled_at DESC;

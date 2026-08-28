@@ -10,6 +10,8 @@ import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import Youtube from '@tiptap/extension-youtube';
 import { ResizableImage } from '../extensions/ResizableImage';
+import { uploadBlogImageWithVariants } from '../lib/blogImages';
+// Entry 型はここでは直接使わない（EntryWithTournament が entryPayment.ts 側で包んでいる）
 import type { Tournament, BlogPost } from '../types';
 import ShuttleAdminPanel from '../components/admin/ShuttleAdminPanel';
 import GameStatsPanel from '../components/admin/GameStatsPanel';
@@ -30,6 +32,17 @@ const EDGE_BASE = SUPABASE_URL.replace('supabase.co', 'supabase.co/functions/v1'
 const ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 type Tab = 'tournaments' | 'blog' | 'entries' | 'activities' | 'members' | 'subscribers' | 'contacts' | 'shuttle' | 'game';
+
+// 統合（2026-08-28）で削除:
+//   type EntryWithTournament / PAYMENT_METHOD_LABEL / paymentMethodLabel /
+//   daysToDeadline / needsPayment / isUnpaid のローカル定義。
+// 両ブランチが同じものを別々に持っていた（security 側はこのファイル内、こちら側は
+// src/components/admin/entryPayment.ts に切り出し）。両方を残すと同名の二重定義になる。
+// 切り出した方を採る。理由は、未入金の判定を督促バッチ
+// （supabase/functions/payment-reminder）と一字一句そろえる必要があり、
+// entryPayment.test.ts でその一致をテストで縛っているため。
+// security 側にしか無かった wechat_alipay のラベルと銀行振込の注記は
+// entryPayment.ts へ移した。
 
 interface Subscriber {
   id: string;
@@ -128,12 +141,16 @@ function TBtn({ onClick, active, title, children }: { onClick: () => void; activ
   );
 }
 
-// 画像をStorageにアップロードして公開URLを返す（本文エディタ共通）
+// 画像をStorageにアップロードして公開URLを返す（本文エディタ共通）。
+// 表示速度対策として、可能ならWebP変種（480/960/1600w）を生成して保存する。
 async function uploadBlogImage(file: File): Promise<string> {
   if (file.size > 10 * 1024 * 1024) throw new Error('ファイルサイズは10MB以下にしてください');
+  const base = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const canonical = await uploadBlogImageWithVariants(file, base);
+  if (canonical) return canonical;
+  // 変換できない形式（GIF等）は従来どおり原本をアップロード
   const ext = file.name.split('.').pop() || 'png';
-  const filename = `body/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-  const { data, error } = await supabase.storage.from('blog-images').upload(filename, file, { upsert: false });
+  const { data, error } = await supabase.storage.from('blog-images').upload(`${base}.${ext}`, file, { upsert: false });
   if (error) throw error;
   return supabase.storage.from('blog-images').getPublicUrl(data.path).data.publicUrl;
 }
@@ -142,21 +159,37 @@ async function uploadBlogImage(file: File): Promise<string> {
 function RichEditor({ value, onChange }: { value: string; onChange: (html: string) => void }) {
   const imgInputRef = useRef<HTMLInputElement>(null);
   const [imgUploading, setImgUploading] = useState(false);
+  const [imgProgress, setImgProgress] = useState<{ done: number; total: number } | null>(null);
 
   // handleDrop/handlePaste から最新の editor を参照するための ref（useEditorより前に宣言）
   const editorRef = useRef<ReturnType<typeof useEditor>>(null);
 
-  const insertImage = useCallback(async (file: File) => {
+  // 複数枚をまとめて挿入する。選んだ順に本文へ並べたいので直列にアップロードする
+  // （並列にすると完了順が前後して並び順が崩れる）。1枚失敗しても残りは続行する。
+  const insertImages = useCallback(async (files: File[]) => {
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor || files.length === 0) return;
     setImgUploading(true);
+    setImgProgress(files.length > 1 ? { done: 0, total: files.length } : null);
+    const failed: string[] = [];
     try {
-      const url = await uploadBlogImage(file);
-      editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
-    } catch (err) {
-      toast.error('画像のアップロードに失敗しました: ' + (err instanceof Error ? err.message : '不明なエラー'));
+      for (const [i, file] of files.entries()) {
+        try {
+          const url = await uploadBlogImage(file);
+          editor.chain().focus().insertContent({ type: 'image', attrs: { src: url, width: 400, align: 'center' } }).run();
+        } catch (err) {
+          failed.push(file.name + '（' + (err instanceof Error ? err.message : '不明なエラー') + '）');
+        }
+        if (files.length > 1) setImgProgress({ done: i + 1, total: files.length });
+      }
     } finally {
       setImgUploading(false);
+      setImgProgress(null);
+    }
+    if (failed.length > 0) {
+      toast.error(failed.length + '枚の画像をアップロードできませんでした: ' + failed.join(' / '));
+    } else if (files.length > 1) {
+      toast.success(files.length + '枚の画像を挿入しました');
     }
   }, []);
 
@@ -179,7 +212,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         const files = Array.from(event.dataTransfer?.files || []).filter(f => f.type.startsWith('image/'));
         if (files.length === 0) return false;
         event.preventDefault();
-        files.forEach(f => void insertImage(f));
+        void insertImages(files);
         return true;
       },
       // クリップボードからの貼り付けで画像を挿入
@@ -187,7 +220,7 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         const files = Array.from(event.clipboardData?.files || []).filter(f => f.type.startsWith('image/'));
         if (files.length === 0) return false;
         event.preventDefault();
-        files.forEach(f => void insertImage(f));
+        void insertImages(files);
         return true;
       },
     },
@@ -209,10 +242,10 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
   }, [editor]);
 
   const handleImageFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const files = Array.from(e.target.files || []);
     e.target.value = '';
-    if (file) void insertImage(file);
-  }, [insertImage]);
+    void insertImages(files);
+  }, [insertImages]);
 
   if (!editor) return null;
 
@@ -236,11 +269,14 @@ function RichEditor({ value, onChange }: { value: string; onChange: (html: strin
         <TBtn onClick={setLink} active={editor.isActive('link')} title="リンク">🔗</TBtn>
         <TBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="区切り線">—</TBtn>
         <div className="w-px h-5 bg-gray-300 mx-1" />
-        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入（ドラッグ&ドロップ / Cmd+Vも可）">
+        <TBtn onClick={() => imgInputRef.current?.click()} title="画像を挿入（複数選択可・ドラッグ&ドロップ / Cmd+Vも可）">
           {imgUploading ? <span className="inline-block w-3.5 h-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> : '🖼'}
         </TBtn>
+        {imgProgress && (
+          <span className="ml-1 text-xs text-gray-500 tabular-nums">{imgProgress.done}/{imgProgress.total}枚</span>
+        )}
         <TBtn onClick={addVideo} title="動画を埋め込む（YouTube）">🎬</TBtn>
-        <input ref={imgInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageFile} />
+        <input ref={imgInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleImageFile} />
       </div>
       <EditorContent editor={editor} />
     </div>
@@ -770,7 +806,7 @@ const ActivityAdminTab = ({ groupId, groupSlug }: { groupId?: string; groupSlug?
         const urlBase = groupSlug ? `/${groupSlug}` : subGroup ? `/${subGroup.slug}` : '';
 
         return (
-          <div key={a.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
+          <div key={a.id} className="admin-card bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-4">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="font-bold text-gray-900">
@@ -991,6 +1027,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [showCancelled, setShowCancelled] = useState(false);
   const [showUnpaidOnly, setShowUnpaidOnly] = useState(false);
   const [payingEntryId, setPayingEntryId] = useState<number | null>(null);
+  const [selectedEntryIds, setSelectedEntryIds] = useState<number[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleteInput, setBulkDeleteInput] = useState('');
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // 会員管理
   const [members, setMembers] = useState<Member[]>([]);
@@ -1026,6 +1066,12 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [showPostForm, setShowPostForm] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [postForm, setPostForm] = useState(EMPTY_POST);
+  // 記事編集の言語タブ。日本語が正、中文は任意（未入力なら公開ページは日本語にフォールバック）
+  const [postLang, setPostLang] = useState<'ja' | 'zh'>('ja');
+  const [zhStatus, setZhStatus] = useState<'idle' | 'running' | 'done'>('idle');
+  const [zhError, setZhError] = useState<string | null>(null);
+  // 保存時に中国語版を自動生成するか（公開記事は既定でON）
+  const [autoZh, setAutoZh] = useState(true);
   const [postError, setPostError] = useState<string | null>(null);
   const [postSuccess, setPostSuccess] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1130,6 +1176,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     if (!confirm(msg)) return;
 
     setPayingEntryId(entry.id);
+    // 統合（2026-08-28）: security 側は entries を直接UPDATEしていたが、
+    // is_admin() ガード付きの admin_set_entry_payment RPC（migration
+    // 20260824120000_admin_ops_payment_and_contacts.sql）を採る。
+    // 入金状態は「お金が入ったか」の記録なので、テーブル権限の設定ミス1つで
+    // 誰でも書き換えられる経路には置かない。RPC 側で管理者かどうかを必ず見る。
     const { error } = await supabase.rpc('admin_set_entry_payment', {
       p_entry_id: entry.id,
       p_paid: !paid,
@@ -1148,6 +1199,42 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const visibleEntries = entries.filter(e =>
     (showCancelled || e.status !== 'cancelled') && (!showUnpaidOnly || isUnpaid(e))
   );
+
+  // ── 複数選択して一括削除 ──
+  // 選択は「いま見えている行」に限定する（フィルタで隠れた行を巻き込んで消さないため）
+  const visibleIds = visibleEntries.map(e => e.id);
+  const selectedVisibleIds = selectedEntryIds.filter(id => visibleIds.includes(id));
+  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleIds.length === visibleIds.length;
+  const selectedEntries = entries.filter(e => selectedVisibleIds.includes(e.id));
+  // 決済記録が残っている行は、消すと入金・返金の履歴ごと消えるので警告する
+  const selectedWithPayment = selectedEntries.filter(
+    e => !!e.stripe_payment_id || e.payment_status === 'completed' || e.payment_status === 'refunded'
+  );
+
+  const toggleEntrySelection = (id: number) => {
+    setSelectedEntryIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+  const toggleSelectAllVisible = () => {
+    setSelectedEntryIds(allVisibleSelected ? [] : visibleIds);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedVisibleIds.length === 0) return;
+    setBulkDeleting(true);
+    const { error } = await supabase.from('entries').delete().in('id', selectedVisibleIds);
+    setBulkDeleting(false);
+
+    if (error) {
+      toast.error('削除に失敗しました: ' + error.message);
+      return;
+    }
+    const n = selectedVisibleIds.length;
+    setBulkDeleteOpen(false);
+    setBulkDeleteInput('');
+    setSelectedEntryIds([]);
+    await fetchEntries();
+    toast.success(`${n}件のエントリーを削除しました`);
+  };
 
   const handleDeleteSubscriber = async (id: string) => {
     await supabase.from('subscribers').delete().eq('id', id);
@@ -1379,6 +1466,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   };
 
   const uploadImage = async (file: File): Promise<string> => {
+    // 表示速度対策: 可能ならWebP変種（480/960/1600w）を生成して保存する
+    const canonical = await uploadBlogImageWithVariants(file, `${Date.now()}`);
+    if (canonical) return canonical;
+    // 変換できない形式は従来どおり原本をアップロード
     const ext = file.name.split('.').pop();
     const fileName = `${Date.now()}.${ext}`;
     const { data, error } = await supabase.storage
@@ -1417,14 +1508,20 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         return plain ? plain.slice(0, 80) + (plain.length > 80 ? '…' : '') : undefined;
       })();
 
-      // 中国語欄（2026-08-25）。
+      // 中国語欄（2026-08-25）。中国語版は任意で、空欄の記事は表示側で日本語にフォールバックする。
       // 空のまま常に送ると、title_zh 等の列がまだ無い環境（migration適用前のstaging等）で
       // **中国語を1文字も使っていない記事の保存まで**落ちる。
       // 入力があるとき、または元々値が入っていた（＝消す操作）ときだけ送る。
+      //
+      // 統合（2026-08-28）: security 側の zhOrNull は
+      // 「リッチエディタが吐く <p></p> だけの content_zh を空とみなす」タグ除去を持っていた。
+      // 空判定としてはあちらが正しいので、こちらの「列が無い環境でも保存を落とさない」
+      // 送信判定と組み合わせる。タグ除去が無いと <p></p> が「中国語あり」と誤判定される。
+      const isBlankZh = (v?: string | null) => !(v ?? '').replace(/<[^>]*>/g, '').trim();
       const zhField = (next?: string | null, prev?: string | null) => {
-        const v = (next ?? '').trim();
-        if (v) return v;
-        return (prev ?? '').trim() ? null : undefined;
+        if (!isBlankZh(next)) return (next as string).trim();
+        // 空 → 元が入っていたなら「消す」意味で null、元も空なら列ごと送らない
+        return isBlankZh(prev) ? undefined : null;
       };
 
       const cleanForm = {
@@ -1444,11 +1541,26 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         published_at: postForm.published_at || editingPost?.published_at || new Date().toISOString(),
       };
 
-      if (editingPost) {
-        await updatePost(editingPost.id, cleanForm);
-      } else {
-        await createPost(cleanForm);
+      const saved = editingPost
+        ? await updatePost(editingPost.id, cleanForm)
+        : await createPost(cleanForm);
+
+      // 公開記事は、日本語版を保存したタイミングで中国語版も作り直す。
+      // 手で中文を書いた記事は上書きしない（force=false のときサーバー側が
+      // 日本語のハッシュを見て、変わっていなければ何もしない）。
+      // 失敗しても日本語版の保存は成立しているので、警告だけ出して通す。
+      const savedId = (saved as BlogPost | undefined)?.id ?? editingPost?.id;
+      if (autoZh && savedId && (cleanForm.status ?? 'published') !== 'draft') {
+        setZhStatus('running');
+        try {
+          await generateZh(savedId);
+          setZhStatus('done');
+        } catch (err) {
+          setZhStatus('idle');
+          setZhError(err instanceof Error ? err.message : '中国語版の生成に失敗しました');
+        }
       }
+
       setShowPostForm(false);
       setEditingPost(null);
       setPostForm(EMPTY_POST);
@@ -1464,8 +1576,51 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
     }
   };
 
+  // 日本語版から中国語版を自動生成する（本文はタグに触れずテキストだけ差し替え）。
+  // 公開記事の保存時に自動で呼ぶほか、中文タブのボタンからも手動で叩ける。
+  const generateZh = async (postId: number, opts: { force?: boolean } = {}) => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error('管理者としてログインし直してください');
+    const res = await fetch(`${EDGE_BASE}/translate-blog-zh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ post_id: postId, force: opts.force ?? false }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+    return body as { success?: boolean; skipped?: boolean };
+  };
+
+  const handleGenerateZh = async () => {
+    if (!editingPost) return;
+    setZhStatus('running');
+    setZhError(null);
+    try {
+      await generateZh(editingPost.id, { force: true });
+      const fresh = await supabase
+        .from('blog_posts')
+        .select('title_zh,excerpt_zh,content_zh')
+        .eq('id', editingPost.id)
+        .single();
+      if (fresh.data) {
+        setPostForm(f => ({
+          ...f,
+          title_zh: fresh.data.title_zh ?? '',
+          excerpt_zh: fresh.data.excerpt_zh ?? '',
+          content_zh: fresh.data.content_zh ?? '',
+        }));
+      }
+      setZhStatus('done');
+    } catch (err) {
+      setZhStatus('idle');
+      setZhError(err instanceof Error ? err.message : '中国語版の生成に失敗しました');
+    }
+  };
+
   const handleEditPost = (p: BlogPost) => {
     setEditingPost(p);
+    setPostLang('ja');
     const futureDate = new Date(p.published_at) > new Date();
     setIsScheduled(futureDate);
     setPostForm({
@@ -1565,7 +1720,45 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const formatDate = (str: string) => str ? new Date(str).toLocaleDateString('ja-JP') : '';
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-10">
+    <main className="admin-ui max-w-6xl mx-auto px-4 py-10">
+      {/* 管理画面のボタンに押した手応えを出す。個々のボタンにクラスを足す代わりに、
+          .admin-ui 配下へまとめて当てる（ボタンが70個近くあり、当て漏れを防ぐため）。
+          背景色つきのボタン（class に bg- を含む）だけ浮かせ、テキストリンク風の
+          ボタンは沈み込みだけにして見た目の性格を変えない。 */}
+      <style>{`
+        .admin-ui button, .admin-ui a.admin-btn {
+          transition: transform .12s ease, box-shadow .12s ease, background-color .12s ease, filter .12s ease;
+        }
+        .admin-ui button:active:not(:disabled) { transform: translateY(1px) scale(.985); }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]) {
+          box-shadow: 0 1px 2px rgba(16,24,40,.10), 0 1px 3px rgba(16,24,40,.06);
+        }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]):hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 14px rgba(16,24,40,.14), 0 2px 4px rgba(16,24,40,.08);
+        }
+        .admin-ui button[class*="bg-"]:not(:disabled):not([class*="bg-transparent"]):active {
+          transform: translateY(1px) scale(.985);
+          box-shadow: inset 0 2px 5px rgba(16,24,40,.22);
+        }
+        .admin-ui button:focus-visible {
+          outline: 2px solid #2563eb; outline-offset: 2px;
+        }
+        .admin-ui button:disabled { cursor: not-allowed; box-shadow: none; }
+        /* 一覧カードもホバーでわずかに持ち上げて、触れる対象だと分かるように */
+        .admin-ui .admin-card {
+          transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+        }
+        .admin-ui .admin-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(16,24,40,.10), 0 2px 6px rgba(16,24,40,.06);
+          border-color: rgb(191 219 254);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .admin-ui button, .admin-ui .admin-card { transition: none; }
+          .admin-ui button:hover, .admin-ui .admin-card:hover { transform: none; }
+        }
+      `}</style>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2 flex items-center gap-2.5">
@@ -1632,7 +1825,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             key={key}
             onClick={() => setActiveTab(key)}
             className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === key ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              activeTab === key
+                ? 'bg-white text-blue-600 shadow-md ring-1 ring-blue-100'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-white/60'
             }`}
           >
             {label}
@@ -1956,7 +2151,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-gray-800">ブログ記事一覧</h2>
             <button
-              onClick={() => { setEditingPost(null); setPostForm(EMPTY_POST); setShowPostForm(true); }}
+              onClick={() => { setEditingPost(null); setPostForm(EMPTY_POST); setPostLang('ja'); setShowPostForm(true); }}
               className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               ＋ 新規記事
@@ -1970,23 +2165,95 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <h3 className="font-bold text-gray-900 mb-4">{editingPost ? '記事を編集' : '新規記事作成'}</h3>
               {postError && <div className="bg-red-50 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">{postError}</div>}
               <form onSubmit={handlePostSubmit} className="space-y-4">
+                {/* 言語タブ。タイトル・抜粋・本文がこのタブで切り替わる（画像やタグは共通） */}
+                <div className="flex items-center gap-2 border-b border-gray-200 pb-3">
+                  {(['ja', 'zh'] as const).map(l => (
+                    <button
+                      key={l}
+                      type="button"
+                      onClick={() => setPostLang(l)}
+                      aria-pressed={postLang === l}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                        postLang === l ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {l === 'ja' ? '🇯🇵 日本語' : '🇨🇳 中文'}
+                      {l === 'zh' && (postForm.content_zh ?? '').replace(/<[^>]*>/g, '').trim() && ' ✓'}
+                    </button>
+                  ))}
+                  <span className="text-xs text-gray-500">
+                    {postLang === 'ja'
+                      ? '画像・タグ・公開設定は言語共通です'
+                      : '未入力のままでも保存できます（公開ページでは日本語が表示されます）'}
+                  </span>
+                </div>
+
+                {postLang === 'ja' && (
+                  <label className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoZh}
+                      onChange={e => setAutoZh(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      保存したら中国語版も自動で作る
+                      <span className="block text-xs text-gray-500">
+                        日本語版を書き替えたときだけ作り直します（下書きは対象外）。
+                        中文タブのボタンからいつでも作り直せます。
+                      </span>
+                    </span>
+                  </label>
+                )}
+
+                {postLang === 'zh' && (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleGenerateZh()}
+                        disabled={!editingPost || zhStatus === 'running'}
+                        className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {zhStatus === 'running' ? '生成中…' : '🤖 日本語版から中国語版を作り直す'}
+                      </button>
+                      {zhStatus === 'done' && <span className="text-sm text-green-700">生成しました ✅</span>}
+                      {!editingPost && (
+                        <span className="text-xs text-gray-500">記事を一度保存すると使えます</span>
+                      )}
+                    </div>
+                    {zhError && <p className="text-sm text-red-600">{zhError}</p>}
+                    <p className="text-xs text-gray-500">
+                      本文の画像・リンク・書式はそのままに、文章だけを中国語にします。
+                      手で直した内容はこのボタンで上書きされます。
+                    </p>
+                  </div>
+                )}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">タイトル *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {postLang === 'ja' ? 'タイトル *' : 'タイトル（中文）'}
+                  </label>
                   <input
-                    required
-                    value={postForm.title}
-                    onChange={e => setPostForm(p => ({...p, title: e.target.value}))}
+                    required={postLang === 'ja'}
+                    value={postLang === 'ja' ? postForm.title : (postForm.title_zh ?? '')}
+                    onChange={e => setPostForm(p => postLang === 'ja'
+                      ? {...p, title: e.target.value}
+                      : {...p, title_zh: e.target.value})}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="5/23 初級OP 大会結果"
+                    placeholder={postLang === 'ja' ? '5/23 初級OP 大会結果' : '5/23 初级公开赛 比赛结果'}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">抜粋（一覧表示用）</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {postLang === 'ja' ? '抜粋（一覧表示用）' : '抜粋（中文・一覧表示用）'}
+                  </label>
                   <input
-                    value={postForm.excerpt}
-                    onChange={e => setPostForm(p => ({...p, excerpt: e.target.value}))}
+                    value={postLang === 'ja' ? postForm.excerpt : (postForm.excerpt_zh ?? '')}
+                    onChange={e => setPostForm(p => postLang === 'ja'
+                      ? {...p, excerpt: e.target.value}
+                      : {...p, excerpt_zh: e.target.value})}
                     className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="記事の概要..."
+                    placeholder={postLang === 'ja' ? '記事の概要...' : '文章摘要...'}
                   />
                 </div>
                 <div>
@@ -2098,7 +2365,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-sm font-medium text-gray-700">本文 *</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      {postLang === 'ja' ? '本文 *' : '本文（中文）'}
+                    </label>
                     <div className="flex gap-1">
                       {(['html', 'markdown'] as const).map(mode => (
                         <button
@@ -2117,8 +2386,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                     </div>
                   </div>
                   {postForm.content_type === 'markdown'
-                    ? <MarkdownEditor value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
-                    : <RichEditor key={editingPost?.id ?? 'new'} value={postForm.content} onChange={v => setPostForm(p => ({...p, content: v}))} />
+                    ? <MarkdownEditor
+                        value={(postLang === 'ja' ? postForm.content : postForm.content_zh) ?? ''}
+                        onChange={v => setPostForm(p => postLang === 'ja' ? {...p, content: v} : {...p, content_zh: v})}
+                      />
+                    : <RichEditor
+                        // 言語を切り替えたらエディタを作り直す（TipTapは初期contentしか読まないため）
+                        key={`${editingPost?.id ?? 'new'}-${postLang}`}
+                        value={(postLang === 'ja' ? postForm.content : postForm.content_zh) ?? ''}
+                        onChange={v => setPostForm(p => postLang === 'ja' ? {...p, content: v} : {...p, content_zh: v})}
+                      />
                   }
                 </div>
 
@@ -2249,7 +2526,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 ) : (
                   <div className="grid gap-3">
                     {draftPosts.map(p => (
-                      <div key={p.id} className="border border-amber-200 bg-amber-50 rounded-2xl p-4 hover:shadow-sm transition-shadow">
+                      <div key={p.id} className="admin-card border border-amber-200 bg-amber-50 rounded-2xl p-4">
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                           <div className="flex-1 min-w-[240px]">
                             <p className="font-bold text-gray-900">{p.title}</p>
@@ -2373,6 +2650,24 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 )}
               </label>
             </div>
+            <div className="flex items-center gap-2">
+            {selectedVisibleIds.length > 0 && (
+              <>
+                <span className="text-xs text-gray-500">{selectedVisibleIds.length}件選択中</span>
+                <button
+                  onClick={() => setSelectedEntryIds([])}
+                  className="text-xs text-gray-400 hover:text-gray-600 hover:underline"
+                >
+                  選択解除
+                </button>
+                <button
+                  onClick={() => { setBulkDeleteInput(''); setBulkDeleteOpen(true); }}
+                  className="flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+                >
+                  🗑 選択した{selectedVisibleIds.length}件を削除
+                </button>
+              </>
+            )}
             <button
               onClick={() => {
                 const statusLabel = (s: string) => s === 'confirmed' ? '確定' : s === 'waitlist' ? 'キャンセル待ち' : s === 'cancelled' ? 'キャンセル' : '確定';
@@ -2386,6 +2681,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                   e.phone || '',
                   e.notes || '',
                   formatDate(e.entry_date),
+                  // 統合（2026-08-28）: security 側は同じ2列をここで直に組み立てていた。
+                  // 共有モジュール側（entryPayment.ts）はテストで縛ってあり、
+                  // 'refunded'（返金済）も書き分けるのでそちらを使う
                   ...paymentCsvCells(e),
                   e.paid_at ? formatDate(e.paid_at) : '',
                 ]);
@@ -2403,6 +2701,7 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
             >
               ⬇ CSVエクスポート
             </button>
+            </div>
           </div>
           {entriesLoading ? (
             <div className="flex justify-center py-10">
@@ -2413,6 +2712,16 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
               <table className="w-full text-sm">
                 <thead className="bg-gray-50 border-b border-gray-100">
                   <tr>
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleSelectAllVisible}
+                        disabled={visibleIds.length === 0}
+                        aria-label="表示中のエントリーをすべて選択"
+                        className="rounded cursor-pointer"
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">ステータス</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">入金</th>
                     <th className="text-left px-4 py-3 font-medium text-gray-600">大会名</th>
@@ -2427,7 +2736,19 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 </thead>
                 <tbody className="divide-y divide-gray-50">
                   {visibleEntries.map((entry) => (
-                    <tr key={entry.id} className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''}`}>
+                    <tr
+                      key={entry.id}
+                      className={`hover:bg-gray-50 ${entry.status === 'cancelled' ? 'opacity-40 bg-gray-50' : ''} ${selectedVisibleIds.includes(entry.id) ? 'bg-blue-50' : ''}`}
+                    >
+                      <td className="px-4 py-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedVisibleIds.includes(entry.id)}
+                          onChange={() => toggleEntrySelection(entry.id)}
+                          aria-label={`${entry.name}を選択`}
+                          className="rounded cursor-pointer"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         {entry.status === 'confirmed' && (
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
@@ -2442,7 +2763,11 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                           <span className="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">確定</span>
                         )}
                       </td>
-                      {/* 入金（支払い必須の大会 × 参加確定 のみ。自動督促の対象条件と同じ） */}
+                      {/* 入金（支払い必須の大会 × 参加確定 のみ。自動督促の対象条件と同じ）。
+                          統合（2026-08-28）: security 側は同じセルを needsPayment / daysToDeadline で
+                          直に組み立てていた。判定を entryPayment.ts に寄せた方を採る。理由は
+                          ①督促バッチ（payment-reminder）と同じ条件をテストで縛れる
+                          ②'refunded'（返金済）の表示を持っている の2点 */}
                       <td className="px-4 py-3 whitespace-nowrap">
                         {(() => {
                           const badge = paymentBadge(entry);
@@ -2511,8 +2836,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       </td>
                     </tr>
                   ))}
+                  {/* 選択チェックボックスの列が増えたので colSpan は 11 */}
                   {visibleEntries.length === 0 && (
-                    <tr><td colSpan={10} className="px-4 py-10 text-center text-gray-400">
+                    <tr><td colSpan={11} className="px-4 py-10 text-center text-gray-400">
                       {showUnpaidOnly && entries.length > 0 ? '未入金のエントリーはありません 🎉' : 'エントリーがありません'}
                     </td></tr>
                   )}
@@ -2751,6 +3077,72 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                 className="px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* エントリー一括削除の確認 */}
+      {bulkDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setBulkDeleteOpen(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-600 text-lg">🗑</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">{selectedVisibleIds.length}件のエントリーを削除しますか？</h3>
+                <p className="text-xs text-gray-500 mt-0.5">この操作は取り消せません</p>
+              </div>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 mb-4 max-h-40 overflow-y-auto">
+              {selectedEntries.map(e => (
+                <p key={e.id} className="text-sm text-red-800 break-words">
+                  ・{e.name}
+                  <span className="text-xs text-red-500 ml-1">（{e.tournaments?.title || '大会不明'}）</span>
+                </p>
+              ))}
+            </div>
+
+            {selectedWithPayment.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+                <p className="text-xs font-bold text-amber-800 mb-1">
+                  ⚠️ 決済記録のある{selectedWithPayment.length}件が含まれています
+                </p>
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  {selectedWithPayment.map(e => e.name).join('、')}
+                  <br />
+                  削除すると入金・返金の履歴もDBから消えます。記録を残したい場合は削除ではなく「取消」を使ってください。
+                </p>
+              </div>
+            )}
+
+            <p className="text-sm text-gray-600 mb-2">確認のため <span className="font-mono font-bold">削除</span> と入力してください：</p>
+            <input
+              type="text"
+              value={bulkDeleteInput}
+              onChange={e => setBulkDeleteInput(e.target.value)}
+              placeholder="削除"
+              className="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-400 mb-4"
+              autoFocus
+            />
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => { setBulkDeleteOpen(false); setBulkDeleteInput(''); }}
+                className="px-5 py-2 border border-gray-300 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteInput !== '削除' || bulkDeleting}
+                className="px-5 py-2 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {bulkDeleting ? '削除中...' : `${selectedVisibleIds.length}件を削除する`}
               </button>
             </div>
           </div>

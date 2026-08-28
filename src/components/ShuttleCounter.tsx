@@ -14,7 +14,8 @@ interface CounterRow {
 }
 
 const GRID_SIZE = 20;
-const ICON_SRC = '/icons/shuttle-icon.png?v=2';
+// 表示は最大56px四方なので112pxのWebP（約3KB）で十分（元PNG 500px/121KBから軽量化）
+const ICON_SRC = '/icons/shuttle-icon-112.webp';
 
 function ShuttleIcon({
   filled,
@@ -33,6 +34,8 @@ function ShuttleIcon({
     <img
       src={ICON_SRC}
       alt=""
+      width={112}
+      height={112}
       draggable={false}
       className={`h-full w-full select-none object-contain transition-all duration-300 ${
         pop ? 'animate-[pop_0.4s_ease-out]' : ''
@@ -148,6 +151,8 @@ export default function ShuttleCounter({
             key={i}
             src={ICON_SRC}
             alt=""
+            width={112}
+            height={112}
             className="absolute top-[-10%] h-4 w-4 animate-[fall_8s_linear_infinite] grayscale"
             style={{ left: `${(i + 1) * 14}%`, animationDelay: `${i * 1.3}s`, mixBlendMode: 'multiply' }}
           />

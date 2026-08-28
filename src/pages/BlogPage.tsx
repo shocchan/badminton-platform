@@ -7,6 +7,8 @@ import { CardSkeleton, ErrorState, EmptyState } from '../components/ui/StateView
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
 import { BLOG_META, blogCanonical, pickBlogText, SITE } from './blogSeo';
+import { blogLocale } from '../lib/blogI18n';
+import { blogImageSrcSet, fallbackToOriginal, BLOG_CARD_SIZES } from '../lib/blogImages';
 
 type SortMode = 'newest' | 'oldest' | 'popular';
 
@@ -21,8 +23,9 @@ export const BlogPage = () => {
   const l: 'ja' | 'zh' = lang === 'zh' ? 'zh' : 'ja';
   const m = BLOG_META[l];
 
+  // 日付も読者の言語で出す（zhは zh-CN）。src/lib/blogI18n.ts の blogLocale が唯一の対応表
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    return new Date(dateStr).toLocaleDateString(blogLocale(l), { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
   // 作成日基準で並べ替え（人気順は閲覧数）
@@ -94,6 +97,12 @@ export const BlogPage = () => {
         {sortedPosts.map(post => {
           // 中国語版がある記事は中国語で、無い記事は日本語のまま並べる（2026-08-25）。
           // 訳済みだけを一覧に出すと、中国語で見たとき記事が数本しか無いサイトに見える
+          //
+          // 【なぜ pickBlogText（blogSeo.ts）で、blogI18n.ts の localizedPost ではないか】
+          // 中国語版の有無の判定は、詳細ページの canonical / hreflang / JSON-LD と
+          // 必ず同じでなければならない（表示は中国語なのに canonical は日本語版、が起きる）。
+          // pickBlogText は「本文（content_zh）がある記事だけ中国語」で判定を1か所に寄せてあり、
+          // src/pages/blogZh.test.tsx がその分岐をSEOごと固定している。読む列は両者とも同じ
           const t = pickBlogText(post, l);
           return (
           <Link
@@ -106,7 +115,14 @@ export const BlogPage = () => {
                 {post.image_url ? (
                   <img
                     src={post.image_url}
+                    srcSet={blogImageSrcSet(post.image_url)}
+                    sizes={BLOG_CARD_SIZES}
                     alt={t.title}
+                    width={1600}
+                    height={900}
+                    loading="lazy"
+                    decoding="async"
+                    onError={e => fallbackToOriginal(e.currentTarget)}
                     className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
                     style={{ objectPosition: post.image_position || 'center center' }}
                   />

@@ -10,6 +10,8 @@ import {
   OUT_X,
   PERFECT_ZONE,
   computeReturnX,
+  // 練習球（WARMUP_RALLIES / isWarmupRally）は両ブランチが独立に同じものを実装した。
+  // マージで import 行だけが二重に入ったのを1つにまとめてある。実装は同一。
   WARMUP_RALLIES,
   createRng,
   difficultyForRally,

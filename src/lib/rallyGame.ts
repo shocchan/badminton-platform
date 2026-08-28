@@ -23,6 +23,13 @@ const clamp = (v: number, min: number, max: number) =>
 /**
  * 最初の数球は「練習球」。操作を覚える前に終わらせない。
  *
+ * 【2026-08-28 統合メモ】練習球は release/assetization-2026-08 と
+ * security/rls-hardening-and-quality の両ブランチが独立に実装していた。
+ * 定数・関数・difficultyForRally の分岐は文字通り同一だったので、
+ * 説明の厚い release 側（下の「0ラリー」段落を持つ方）を残した。
+ * security 側にはこの段落と 0ラリー記録の修正が無く、採ると
+ * RallyGamePage の `rallyCount < 1` ガードが復活して取りこぼしが戻るため。
+ *
  * 0ラリーで終わったプレイはクライアントが記録を捨てていた
  * （RallyGamePage の `rallyCount < 1` ガード）。つまり「初球で空振りして
  * そのまま帰った人」は数字に一度も現れていなかった。記録を直すのと同時に、

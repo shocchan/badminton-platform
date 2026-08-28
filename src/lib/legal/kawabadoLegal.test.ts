@@ -2,7 +2,7 @@
 // 狙いは「文言が綺麗か」ではなく、次の4点を機械で固定すること。
 //   1. 法令上載せる必要がある項目が抜けないこと
 //   2. 事実が未確定のまま公開されないこと
-//   3. **表記が実装と食い違わないこと**（返金10%・締切14日前は実装が正）
+//   3. **表記が実装と食い違わないこと**（支払方法・返金10%・締切14日前は実装が正）
 //   4. 3ページが実際にURLとして生き、404に吸われないこと
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -30,6 +30,13 @@ const ROOT = join(__dirname, '../../..');
 const appSource = readFileSync(join(ROOT, 'src/App.tsx'), 'utf8');
 const workerSource = readFileSync(join(ROOT, 'scripts/generate-worker.mjs'), 'utf8');
 const paymentSource = readFileSync(join(ROOT, 'src/lib/payment.ts'), 'utf8');
+
+/** 特商法ページの「お支払い方法」欄の本文 */
+const paymentMethodsText = (lang: (typeof LANGS)[number] = 'ja') => {
+  const page = buildKawabadoLegalPages(lang).find((p) => p.id === 'tokushoho')!;
+  return page.sections.find((s) => s.heading === (lang === 'ja' ? 'お支払い方法' : '支付方式'))!
+    .body.join('');
+};
 
 describe('公開ゲート（未確定の事実を公開しない）', () => {
   it('未確定の事実がゼロのときだけ公開される', () => {
@@ -77,13 +84,42 @@ describe('特定商取引法に基づく表記（掲示義務項目）', () => {
     expect(addr).toMatch(/開示/);
   });
 
-  it('支払方法は実装されている3種（カード・PayPay・銀行振込）と一致する', () => {
-    // src/lib/payment.ts の PaymentMethod = 'credit' | 'paypay' | 'bank'
-    const page = buildKawabadoLegalPages('ja').find((p) => p.id === 'tokushoho')!;
-    const pay = page.sections.find((s) => s.heading === 'お支払い方法')!.body.join('');
+  it('支払方法は実装されている3種（カード・PayPay・WeChat Pay/Alipay）と一致する', () => {
+    const pay = paymentMethodsText();
     expect(pay).toMatch(/クレジットカード/);
     expect(pay).toMatch(/PayPay/);
-    expect(pay).toMatch(/銀行振込/);
+    expect(pay).toMatch(/WeChat Pay/);
+    expect(pay).toMatch(/Alipay/);
+    // 銀行振込は2026-08-28に申込画面の選択肢から外した。
+    // 表記に残っていると「選べるはずの方法が無い」という食い違いになる
+    expect(pay).not.toMatch(/銀行振込/);
+  });
+
+  it('支払方法が src/lib/payment.ts の SELECTABLE_PAYMENT_METHODS と1対1で対応する', () => {
+    // 実装で増減した支払い方法を法務表記に反映し忘れるのを、これで機械的に止める
+    const m = paymentSource.match(/SELECTABLE_PAYMENT_METHODS[^=]*=\s*\[([^\]]*)\]/);
+    expect(m, 'payment.ts から SELECTABLE_PAYMENT_METHODS を読めない').not.toBeNull();
+    const selectable = [...m![1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]);
+    expect(selectable.length, 'SELECTABLE_PAYMENT_METHODS が空に見える').toBeGreaterThan(0);
+
+    // 実装のキー → 特商法の「お支払い方法」欄に出ているべき文字列
+    const LABEL: Record<string, RegExp> = {
+      credit: /クレジットカード/,
+      paypay: /PayPay/,
+      wechat_alipay: /WeChat Pay \/ Alipay/,
+      bank: /銀行振込/,
+    };
+    const pay = paymentMethodsText();
+
+    for (const key of selectable) {
+      expect(LABEL[key], `payment.ts に未知の支払い方法 '${key}' がある。表記側の対応を決めること`).toBeTruthy();
+      expect(pay, `'${key}' が申込画面で選べるのに特商法の支払方法に無い`).toMatch(LABEL[key]);
+    }
+    for (const [key, re] of Object.entries(LABEL)) {
+      if (!selectable.includes(key)) {
+        expect(pay, `'${key}' は申込画面から外れているのに表記に残っている`).not.toMatch(re);
+      }
+    }
   });
 
   it('問い合わせ窓口がAIコース側と同じ（窓口が2つに割れない）', () => {
@@ -102,14 +138,22 @@ describe('表記と実装の突き合わせ（食い違ったら実装が正）'
     expect(refundJa, `返金率が実装(${percent}%)と食い違っている`).toContain(`${percent}%`);
   });
 
+  it('特商法ページのキャンセル欄にも手数料率が出ている', () => {
+    const page = buildKawabadoLegalPages('ja').find((p) => p.id === 'tokushoho')!;
+    const refund = page.sections.find((s) => s.heading === 'キャンセル・返金について')!.body.join('');
+    expect(refund).toMatch(/10%/);
+  });
+
   it('キャンセル期限の日数が src/lib/entryDeadline.ts と一致する', () => {
     expect(refundJa, `キャンセル期限が実装(${DEFAULT_LEAD_DAYS}日前)と食い違っている`)
       .toContain(`${DEFAULT_LEAD_DAYS}日前`);
   });
 
-  it('クレジット以外の返金経路（振込・PayPay）を書いている', () => {
-    // CancelEntryPage は「主催者より銀行振込またはPayPayにて返金します」と案内している
+  it('自動返金されない支払い方法の返金経路（振込・PayPay）を書いている', () => {
+    // process-cancel が自動返金するのは payment_method === 'credit' のときだけ。
+    // PayPay・WeChat Pay・Alipay は CancelEntryPage の案内どおり手動返金になる
     expect(refundJa).toMatch(/銀行振込|PayPay/);
+    expect(refundJa, 'クレジットカード以外の経路があることを書いていない').toMatch(/クレジットカード以外/);
   });
 
   it('キャンセルポリシーページと矛盾しない（期限超過・当日・無断欠席は返金しない）', () => {
@@ -118,15 +162,24 @@ describe('表記と実装の突き合わせ（食い違ったら実装が正）'
     expect(refundJa).toMatch(/無断欠席/);
   });
 
-  it('追加受付（締切後のカード決済）が返金不可であることを隠していない', () => {
+  it('追加受付（締切後の決済）が返金不可であることを隠していない', () => {
     // locales/entry.ts の lateNoRefund。書いていないと不意打ちになる
     expect(refundJa).toMatch(/追加受付/);
   });
 
-  it('追加受付はカード決済のみであることを支払方法・条件に書いている', () => {
+  it('追加受付はオンライン決済のみであることを支払方法・条件に書いている', () => {
+    // PaymentMethodSelector: creditOnly が落とすのは PayPay だけで、
+    // WeChat Pay / Alipay は追加受付中も選べる（Stripeの決済画面へ飛ぶため）。
+    // 「カードのみ」と書くと実装より狭い案内になるので「オンライン決済」で書く
     const text = KAWABADO_LEGAL_FACTS.paymentTiming!.ja + KAWABADO_LEGAL_FACTS.salesConditions!.ja;
     expect(text).toMatch(/追加受付/);
+    expect(text).toMatch(/オンライン決済/);
     expect(text).toMatch(/クレジットカード/);
+    expect(text).toMatch(/WeChat Pay/);
+  });
+
+  it('締切の共通ルール（14日前）が申込条件に書かれている', () => {
+    expect(KAWABADO_LEGAL_FACTS.salesConditions!.ja).toContain(`${DEFAULT_LEAD_DAYS}日前`);
   });
 });
 
@@ -317,6 +370,13 @@ describe('URL とルーティング', () => {
     const mod = await import('../../pages/KawabadoLegalPage');
     expect(typeof mod.KawabadoLegalPage).toBe('function');
     expect(mod.default).toBe(mod.KawabadoLegalPage);
+  });
+
+  it('フッター用の法務リンクが export されている', async () => {
+    // src/components/Footer.tsx がこれを import している。
+    // 消すと全ページのフッターから法務3ページへの導線が落ちる（ビルドも壊れる）
+    const mod = await import('../../pages/KawabadoLegalPage');
+    expect(typeof mod.KawabadoLegalLinks).toBe('function');
   });
 
   it('法務ページは noindex 対象に入っていない（検索に出てよい）', () => {

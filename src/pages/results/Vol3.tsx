@@ -77,11 +77,22 @@ export default function Vol3Results() {
 
         <h2 className="text-base font-semibold text-gray-700 mb-3">{i.section}</h2>
         <div className="overflow-x-auto mb-6">
-          <img
-            src="/images/vol3/results-table.png"
-            alt={i.alt}
-            className="w-full rounded shadow"
-          />
+          <picture className="contents">
+            <source
+              type="image/webp"
+              srcSet="/images/vol3/results-table-896.webp 896w, /images/vol3/results-table-1698.webp 1698w"
+              sizes="(min-width: 800px) 736px, calc(100vw - 2rem)"
+            />
+            <img
+              src="/images/vol3/results-table.png"
+              alt={i.alt}
+              width={1698}
+              height={872}
+              loading="lazy"
+              decoding="async"
+              className="w-full rounded shadow"
+            />
+          </picture>
         </div>
 
         <div className="mt-8 pt-6 border-t border-gray-100 text-center">

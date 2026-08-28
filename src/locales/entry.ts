@@ -91,9 +91,19 @@ const ja = {
   pmPaypaySub: (id: string) => `PayPay ID: ${id}`,
   pmPaypaySubNoId: 'PayPay IDに送金',
   pmFeeFree: '手数料: ¥0',
+  // 銀行振込は選択肢から外したが、過去の申し込みの表示に使うため文言は残す
   pmBank: '銀行振込',
   pmBankSub: '振込先はメールでご案内',
   pmBankFee: '手数料: ¥0（振込手数料はご負担ください）',
+  pmWechatAlipay: 'WeChat Pay / Alipay',
+  pmWechatAlipaySub: '微信支付・支付宝。Stripeの決済画面へ移動します',
+  pmRedirectNotice: '「お支払いに進む」を押すとStripeの決済画面へ移動します。お支払い後、この画面に戻ります。',
+  pmRedirectButton: 'お支払いに進む',
+  pmRedirectLoading: '決済画面を準備しています…',
+  payReturnChecking: 'お支払いを確認しています…',
+  payDoneTitle: 'お支払いが完了しました。参加確定です！',
+  payDoneMailNote: '確認メールをお送りしました。当日お会いできるのを楽しみにしています🏸',
+  payReturnCanceled: 'お支払いは完了していません。もう一度お試しいただくか、別の支払い方法をご利用ください。',
   pmAmount: 'お支払い額',
   pmAria: (title: string, total: string) => `${title} 支払額 ${total}`,
 
@@ -144,6 +154,10 @@ const ja = {
   ccCheckinNote: '受付でお名前をお伝えください。参加証などのご提示は不要です。',
   ccReceipt: '🧾 領収書をダウンロード',
   ccWarning: 'お支払いは完了していますが、確認処理に時間がかかっています。確認メールが届かない場合も参加は確定していますのでご安心ください。',
+  ccCancelPolicy: (deadline: string, refund: string) => `キャンセル期限（${deadline}）内でも、キャンセル手数料10%を差し引いた¥${refund}の返金となります。期限を過ぎたキャンセルは返金できません。`,
+
+  // 追加受付（late_entry_until が設定された大会のみ表示）
+  // ※ マージで両ブランチが同じ8キーを別の位置に足し、同じ内容の重複定義になっていた（2026-08-28 整理）
   lateTitle: '📢 追加受付を実施中です',
   lateDeadline: (d: string) => `追加受付：${d}まで`,
   lateCreditOnly: '追加受付はオンラインのクレジットカード決済のみです',
@@ -152,7 +166,9 @@ const ja = {
   latePayTimingNote: 'お申し込みと同時にカード決済が完了します。決済が完了した時点で参加確定です。',
   lateNoRefund: 'キャンセル期限を過ぎているため、追加受付でのお申し込み後の返金はできません。',
   lateClosed: (d: string) => `追加受付は${d}に終了しました`,
-  ccCancelPolicy: (deadline: string, refund: string) => `キャンセル期限（${deadline}）内でも、キャンセル手数料10%を差し引いた¥${refund}の返金となります。期限を過ぎたキャンセルは返金できません。`,
+  errCapacityFull: '申し訳ありません。ちょうど定員に達しました。',
+  errStale: 'ページの情報が古くなっています。申し込みは作成されていません。ページを再読み込みしてからもう一度お試しください。',
+  pmUnavailable: '申し訳ありません。ただいまオンライン決済をご利用いただけません。お手数ですが運営までお問い合わせください。',
 };
 
 const zh: typeof ja = {
@@ -241,6 +257,15 @@ const zh: typeof ja = {
   pmBank: '银行转账',
   pmBankSub: '转账信息将通过邮件告知',
   pmBankFee: '手续费: ¥0（转账手续费需自理）',
+  pmWechatAlipay: '微信支付 / 支付宝',
+  pmWechatAlipaySub: 'WeChat Pay・Alipay。将跳转至Stripe支付页面',
+  pmRedirectNotice: '点击「前往支付」后将跳转至Stripe的支付页面。支付完成后会返回本页面。',
+  pmRedirectButton: '前往支付',
+  pmRedirectLoading: '正在准备支付页面…',
+  payReturnChecking: '正在确认支付结果…',
+  payDoneTitle: '支付已完成，报名确定！',
+  payDoneMailNote: '确认邮件已发送。期待当天与您见面🏸',
+  payReturnCanceled: '支付尚未完成。请重试，或选择其他支付方式。',
   pmAmount: '支付金额',
   pmAria: (title: string, total: string) => `${title} 支付金额 ${total}`,
 
@@ -288,6 +313,10 @@ const zh: typeof ja = {
   ccCheckinNote: '签到时向工作人员报姓名即可，无需出示参赛证明。',
   ccReceipt: '🧾 下载收据',
   ccWarning: '支付已完成，但确认处理稍有延迟。即使暂未收到确认邮件，您的参赛也已确认，请放心。',
+  ccCancelPolicy: (deadline: string, refund: string) => `即使在取消期限（${deadline}）内取消，也会扣除10%的取消手续费，退还¥${refund}。超过期限将无法退款。`,
+
+  // 追加受付（简体字）
+  // ※ マージで両ブランチが同じ8キーを別の位置に足し、同じ内容の重複定義になっていた（2026-08-28 整理）
   lateTitle: '📢 正在追加报名',
   lateDeadline: (d: string) => `追加报名截止：${d}`,
   lateCreditOnly: '追加报名仅支持在线信用卡支付',
@@ -296,7 +325,9 @@ const zh: typeof ja = {
   latePayTimingNote: '报名的同时完成信用卡支付。支付完成即视为报名成功。',
   lateNoRefund: '由于已过取消期限，追加报名成功后将无法退款。',
   lateClosed: (d: string) => `追加报名已于${d}截止`,
-  ccCancelPolicy: (deadline: string, refund: string) => `即使在取消期限（${deadline}）内取消，也会扣除10%的取消手续费，退还¥${refund}。超过期限将无法退款。`,
+  errCapacityFull: '非常抱歉，名额刚好已满。',
+  errStale: '页面信息已过期，报名尚未提交。请刷新页面后重新报名。',
+  pmUnavailable: '非常抱歉，目前无法使用在线支付。请直接联系主办方。',
 };
 
 export type EntryTexts = typeof ja;

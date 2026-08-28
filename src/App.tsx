@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
+// 両ブランチとも trackPageView を入れていた（同じ import・置き場所だけ違う）。
+// 発火箇所は AnimatedRoutes 側の1か所に寄せてある（下の useEffect）。
 import { trackPageView } from './lib/analytics';
 import { isPrivatePath } from './components/seo/privateRoutes';
 import { Header } from './components/Header';
@@ -135,8 +137,10 @@ const AnimatedRoutes = () => {
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />
-            {/* バド本体の法務3ページ。**この下の catch-all（path="*"）より前**に置くこと
-                （後ろだと404に吸われる）。AIコース側の /ai-course/... とは別の文書 */}
+            {/* バド本体の法務3ページ（特商法・プライバシー・利用規約）。
+                **この下の catch-all（path="*"）より前**に置くこと（後ろだと404に吸われる）。
+                AIコース側の /ai-course/... の法務ページとは別の文書。
+                両ブランチが同じ3ルートを別々に足していたので1組にまとめた */}
             <Route path="tokushoho"       element={<KawabadoLegalPage id="tokushoho" />} />
             <Route path="privacy"         element={<KawabadoLegalPage id="privacy" />} />
             <Route path="terms"           element={<KawabadoLegalPage id="terms" />} />
@@ -250,6 +254,12 @@ function AppInner() {
   // （外さないとページ高1,769pxのうち約964pxがFooterで、ボード本体が画面の55%を失う）。
   // TacticsBoard は lazy 分割しているので、判定式は import せずここに直接置く。
   const chromeless = focused || isAiCourseRoute(pathname) || /^\/(ja|zh)\/tactics-board(\/|$)/.test(pathname);
+  // NOTE(2026-08-28 統合): security 側はここにも
+  //   useEffect(() => { trackPageView(pathname); }, [pathname]);
+  // を置いていたが、AnimatedRoutes 側に同じ発火が既にある（上の useEffect）。
+  // AppInner と AnimatedRoutes は同じ遷移で両方が再評価されるため、両方残すと
+  // page_view / Meta PageView が1遷移で2回飛び、GA4のPV・CV率が丸ごと狂う。
+  // 機能は落とさず、発火箇所を AnimatedRoutes の1か所だけにした。
   return (
     <>
       <ScrollToTop />

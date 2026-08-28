@@ -123,7 +123,12 @@ describe('security設定がSQLに書かれている（適用時に落ちない�
         if (!/security\s+definer/i.test(decl)) continue;
         // SQLのキーワードは大文字小文字を区別しない。ここに /i が無かったため
         // `SET search_path = public` と大文字で書いた migration を「未固定」と誤判定していた
-        // （2026-08-24: 20260824120000 が実際に誤検知された）。外側の判定は元から /i。
+        // （2026-08-24: 20260824120000 が実際に誤検知された）。
+        // 1つ上の security definer 判定は元から /i なので、それと揃える形になる。
+        // 2026-08-28 統合メモ: release/assetization 側と security/rls-hardening 側が
+        // 同じ /i 追加を独立に入れていた。コードは完全に同一だったため、
+        // 具体的な誤検知事例（HEAD側）と「隣の判定と揃える」理由（security側）の
+        // 両方をこのコメントに残した。
         expect(/set\s+search_path\s*=/i.test(decl),
           `${f}: SECURITY DEFINER関数のsearch_pathが未固定（schema偽装で権限昇格しうる）`).toBe(true);
       }

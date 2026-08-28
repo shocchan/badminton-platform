@@ -20,6 +20,26 @@ import {
 
 const SITE = 'https://kawabado.com';
 
+/**
+ * フッターに並べる法務リンク。
+ * Footer.tsx がこれを使っている（リンクの並びと「公開前は出さない」判定を1か所に置くため）。
+ * 公開ゲートが閉じているあいだは何も描かない＝行き止まりのリンクを作らない。
+ */
+export const KawabadoLegalLinks = ({ className = '' }: { className?: string }) => {
+  const { lang } = useLanguage();
+  const l: 'ja' | 'zh' = lang === 'zh' ? 'zh' : 'ja';
+  if (!KAWABADO_LEGAL_PUBLISH) return null;
+  return (
+    <>
+      {buildKawabadoLegalPages(l).map((p) => (
+        <Link key={p.id} to={kawabadoLegalPath(l, p.id)} className={className}>
+          {p.title}
+        </Link>
+      ))}
+    </>
+  );
+};
+
 export const KawabadoLegalPage = ({ id }: { id: KawabadoLegalPageId }) => {
   const { lang } = useLanguage();
   const location = useLocation();

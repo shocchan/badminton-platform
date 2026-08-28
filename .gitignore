@@ -39,5 +39,5 @@ docs/ai-course/adventure-v2/generated/vocab-jmdict-index.json
 docs/ai-course/adventure-v2/generated/question-bank/*.csv
 !docs/ai-course/adventure-v2/generated/question-bank/question-bank-summary.csv
 
-# wrangler の作業ディレクトリ（ビルド成果物）
+# Cloudflare Wrangler の作業ディレクトリ（一時ビルド成果物）
 .wrangler/
