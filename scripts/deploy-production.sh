@@ -164,9 +164,17 @@ fi
 echo "✅ (c) 他ブランチに未取込の src/ 変更なし"
 
 # ── 門(d): 他ワークツリーに未コミットが無いか ────────────────────
-# 別フォルダで作業中の src/ の変更は、コミットされるまでこのブランチに来ない。
+# 別フォルダで作業中の変更は、コミットされるまでこのブランチに来ない。
 # 「直したのに本番に出ない」の典型。
+#
+# **中断するのは配信物だけ**（src / supabase / public / index.html）。
+# scripts/ は Vite の入力ではなくビルド成果物にも入らないので、
+# 他フォルダの未コミットスクリプトはこのデプロイで本番から何も消さない。
+# ただし「誰かの作業が保存されていない」ことは伝える価値があるので警告は出す。
+# ここを中断にすると、別セッションが作業しているあいだ永久にデプロイできなくなり、
+# 結局この門ごと無効化される（それが一番危ない）。
 WT_DIRTY=""
+WT_WARN=""
 WT_GONE=""
 while read -r key val; do
   [ "$key" = "worktree" ] || continue
@@ -177,11 +185,16 @@ while read -r key val; do
     continue
   fi
   wb=$(git -C "$wt" rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')
-  wd=$(git -C "$wt" status --porcelain -- src supabase scripts public \
-      index.html vite.config.ts package.json 2>/dev/null || true)
+  # 配信物（これがあると本番から消えうる＝中断）
+  wd=$(git -C "$wt" status --porcelain -- src supabase public index.html 2>/dev/null || true)
+  # 配信物ではないが、保存されていない作業（＝警告のみ）
+  ww=$(git -C "$wt" status --porcelain -- scripts vite.config.ts package.json 2>/dev/null || true)
+  if [ -n "$ww" ] && [ -z "$wd" ]; then
+    WT_WARN="${WT_WARN}     ${wt}\n       ブランチ ${wb} / 未コミット $(printf '%s\n' "$ww" | wc -l | tr -d ' ')件（配信物ではない）\n"
+  fi
   if [ -n "$wd" ]; then
     wn=$(printf '%s\n' "$wd" | wc -l | tr -d ' ')
-    WT_DIRTY="${WT_DIRTY}     ${wt}\n       ブランチ ${wb} / src/ に未コミット ${wn}件\n"
+    WT_DIRTY="${WT_DIRTY}     ${wt}\n       ブランチ ${wb} / 配信物に未コミット ${wn}件\n"
     WT_DIRTY="${WT_DIRTY}$(printf '%s\n' "$wd" | head -5 | sed 's/^/         /')\n"
   fi
 done < <(git worktree list --porcelain)
@@ -191,8 +204,14 @@ if [ -n "$WT_GONE" ]; then
   printf "%b" "$WT_GONE"
 fi
 
+if [ -n "$WT_WARN" ]; then
+  echo "⚠️  (d) 他のフォルダに保存されていない作業があります（配信物ではないので止めません）"
+  printf "%b" "$WT_WARN"
+  echo "     そのセッションにコミットを頼んでおくこと（消えると戻せません）"
+fi
+
 if [ -n "$WT_DIRTY" ]; then
-  echo "❌ (d) 他のフォルダに未コミットの src/ 変更があります"
+  echo "❌ (d) 他のフォルダに未コミットの配信物があります（src / supabase / public / index.html）"
   echo ""
   printf "%b" "$WT_DIRTY"
   echo "   進めるには:"
