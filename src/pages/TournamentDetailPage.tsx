@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ComponentType, type ReactNode } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Calendar, Clock, MapPin, Wallet, AlertCircle, Users, ExternalLink, CreditCard } from 'lucide-react';
+import { Calendar, Clock, MapPin, Wallet, AlertCircle, Users, ExternalLink, CreditCard, Quote } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { PreEntryModal } from '../components/PreEntryModal';
@@ -383,6 +383,32 @@ export const TournamentDetailPage = () => {
             />
           </section>
         )}
+
+        {/* 参加者の声（実際にいただいた声のみ。捏造禁止）。
+            2026-07-22 に旧デザインへ入れたまま統合から外れていた文言を、
+            2026-08-28 の統合でネイビー1枚カードの罫線区切りセクションとして戻した。
+            外枠を増やさない（設計原則①）ため中は枠なしの引用ブロックにしている。 */}
+        <section className="border-t border-gray-100 px-5 py-4">
+          <p className="text-xs text-gray-400 mb-3">{lang === 'zh' ? '参加者的声音' : '参加者の声'}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {(lang === 'zh'
+              ? [
+                  { text: '平时打单打的机会很少，短时间内能打很多场比赛，是很好的练习。希望以后继续举办！', from: '单打参加者' },
+                  { text: '在中国，平日晚上打比赛很常见，但在日本却很难找到这样的机会，真的太好了。', from: '来自中国的参加者' },
+                ]
+              : [
+                  { text: 'シングルスをやる機会が少なく、短時間でたくさん試合もできていい練習になるので、また開催して欲しい', from: 'シングルス参加者' },
+                  { text: '中国では平日の夜に試合することが多いけど、日本ではなかなかなかったので良かった', from: '中国出身の参加者' },
+                ]
+            ).map(v => (
+              <figure key={v.text} className="rounded-xl bg-gray-50 px-4 py-3">
+                <Quote className="w-4 h-4 text-gray-300 mb-2" aria-hidden="true" />
+                <blockquote className="text-sm text-gray-700 leading-relaxed">{v.text}</blockquote>
+                <figcaption className="text-xs text-gray-400 mt-2">— {v.from}</figcaption>
+              </figure>
+            ))}
+          </div>
+        </section>
 
         {/* シェア */}
         {tournament.status === 'active' && (

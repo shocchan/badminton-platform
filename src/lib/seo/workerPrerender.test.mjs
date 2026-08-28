@@ -582,6 +582,78 @@ describe('ソフト404: 既知ルートに一致しないURLはnoindexにする'
   });
 });
 
+// 言語プレフィックスなしの旧URLの 301（統合 2026-08-28 で feat/tournament-gallery-trust から復帰）。
+//
+// public/_redirects に同じ表があるが、_worker.js がある Pages では拡張子なしのページURLを
+// Worker が先に200で返すため発動しない。ここは **Workerのfetchをそのまま叩いて** 実際の
+// ステータスとLocationを見る（「ソースに文字列がある」では生成物が壊れていても通ってしまう）。
+describe('旧URL → 正規URL の 301', () => {
+  const get = async (url, init) => {
+    stubFetch({});
+    return W.default.fetch(new Request(url, init), ENV);
+  };
+
+  it('App.tsx に素のルートが無いページは 301 する（LangWrapper でトップへ流れていた分）', async () => {
+    const cases = {
+      '/venues': '/ja/venues',
+      '/join': '/ja/join',
+      '/privacy': '/ja/privacy',
+      '/tokushoho': '/ja/tokushoho',
+      '/terms': '/ja/terms',
+      '/international': '/ja/international',
+      '/game': '/ja/game',
+      '/tactics-board': '/ja/tactics-board',
+      '/shuttle-roadmap': '/ja/shuttle-roadmap',
+      '/results/vol1': '/ja/results/vol1',
+    };
+    for (const [from, to] of Object.entries(cases)) {
+      const res = await get('https://kawabado.com' + from);
+      expect(res.status, from).toBe(301);
+      expect(res.headers.get('Location'), from).toBe('https://kawabado.com' + to);
+    }
+  });
+
+  it('外部被リンクの素のURL（minton.jp → /blog/12）も 301 する', async () => {
+    const cases = {
+      '/blog/12': '/ja/blog/12',
+      '/blog': '/ja/blog',
+      '/faq': '/ja/faq',
+      '/tournaments/42': '/ja/tournaments/42',
+      '/activity/abc': '/ja/activity/abc',
+      '/activity-cn': '/zh/activity',
+      '/chaoxianzu/activity-kr': '/chaoxianzu/ko/activity',
+    };
+    for (const [from, to] of Object.entries(cases)) {
+      const res = await get('https://kawabado.com' + from);
+      expect(res.status, from).toBe(301);
+      expect(res.headers.get('Location'), from).toBe('https://kawabado.com' + to);
+    }
+  });
+
+  it('クエリは保持する（UTM付きの広告リンクを落とさない）', async () => {
+    const res = await get('https://kawabado.com/faq?utm_source=x&utm_medium=cpc');
+    expect(res.status).toBe(301);
+    expect(res.headers.get('Location')).toBe('https://kawabado.com/ja/faq?utm_source=x&utm_medium=cpc');
+  });
+
+  it('POST は 301 しない（処理リクエストを壊さない）', async () => {
+    const res = await get('https://kawabado.com/faq', { method: 'POST' });
+    expect(res.status).not.toBe(301);
+  });
+
+  it('遷移先の正規URLは 301 しない（リダイレクトループを作らない）', async () => {
+    for (const p of ['/ja/faq', '/ja/venues', '/zh/activity', '/ja/blog/12', '/cancel']) {
+      const res = await get('https://kawabado.com' + p);
+      expect(res.status, p).not.toBe(301);
+    }
+  });
+
+  it('ルート（/）は 301 しない（200＋/ja/ を指す canonical という HEAD の判断を残す）', async () => {
+    const res = await get('https://kawabado.com/');
+    expect(res.status).toBe(200);
+  });
+});
+
 // 「Reactが描いたら消える」は理屈では正しくても、実物で確かめないと意味がない。
 // jsdom に本物のHTMLを食わせてスクリプトを走らせ、消えるところまで見る。
 describe('実際のDOMでの挙動（jsdomでスクリプトを走らせる）', () => {

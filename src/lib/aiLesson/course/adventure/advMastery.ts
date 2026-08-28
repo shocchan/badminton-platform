@@ -38,15 +38,21 @@ export const questionTypeOf = (key: string): string => key.split(':')[0] ?? 'unk
 
 /** 試行がqualifying（攻略にカウントできる）か */
 export const isQualifyingAttempt = (a: AdvMasteryAttempt, poolHasMultipleTypes: boolean): boolean => {
+  // 欠けた項目があっても落ちない（2026-08-28 統合で復帰・元は 2a0a2a8）。
+  // 定着の記録が1件でも壊れていると学習画面が丸ごと真っ白になり、
+  // リロードしても同じ場所で落ちる＝その生徒は二度と入れなくなる。
+  // 判定できないものは「合格していない」に倒す（甘く数えない）
+  if (typeof a?.scorePct !== 'number' || a.scorePct < MASTERY_RULES.passPct) return false;
   // 途中でやめた回は「解いたぶんだけ」の記録なので攻略には数えない（2026-08-18）。
   // 数えると「解けそうな2問だけ答えて抜ける」で80%達成日が積める抜け道になる
   if (a.partial) return false;
-  if (a.scorePct < MASTERY_RULES.passPct) return false;
   // プールを解き尽くして未出問題を供給できなかった回は、未出比率を問わない（2026-08-18 P0）。
   // 供給不能なものを要求すると、まじめに解いた生徒ほど永久に攻略できなくなる（実測で34束中6束が該当）
-  if (!a.unseenCapped && a.unseenRatio < MASTERY_RULES.minUnseenRatio) return false;
-  if (poolHasMultipleTypes && a.questionKeys.length >= 5) {
-    const types = new Set(a.questionKeys.map(questionTypeOf));
+  if (!a.unseenCapped && (typeof a.unseenRatio !== 'number' || a.unseenRatio < MASTERY_RULES.minUnseenRatio)) return false;
+  const keys = Array.isArray(a.questionKeys) ? a.questionKeys : [];
+  if (poolHasMultipleTypes && keys.length >= 5) {
+    // 文字列でないキーが混じっていても questionTypeOf で落ちないようにする（甘くはしない）
+    const types = new Set(keys.map((k) => (typeof k === 'string' ? questionTypeOf(k) : 'unknown')));
     if (types.size < MASTERY_RULES.minQuestionTypes) return false;
   }
   return true;

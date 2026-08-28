@@ -59,6 +59,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number } | null>(null);
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
   const [confirmWarning, setConfirmWarning] = useState(false);
+  // 支払い未完了の既存申し込みを再利用した場合の案内表示フラグ
+  const [resumedEntry, setResumedEntry] = useState(false);
 
   /**
    * 成果イベントの二重送信よけ（2026-08-24）。
@@ -125,10 +127,35 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
       if (existing) {
         // 支払い前（未完了）に画面を閉じただけの場合は「申し込み済み」として弾かず、
-        // 同じエントリーをそのまま再利用して支払い画面へ戻す（重複作成しない。
-        // entries への UPDATE 権限は anon に付与していないため、内容の更新はせず既存の値をそのまま使う）
+        // 同じエントリーをそのまま再利用して支払い画面へ戻す（重複作成しない）。
+        // ただし今回入力された最新の氏名・電話・ペア名・備考は resume-entry 経由で反映する
+        // （entries への UPDATE 権限は anon に付与していないため、サービスロール経由）。
         const resumable = existing.status === 'confirmed' && tournament.payment_required && existing.payment_status !== 'completed';
         if (resumable) {
+          try {
+            const res = await fetchWithTimeout(`${EDGE_BASE}/resume-entry`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              },
+              body: JSON.stringify({
+                entry_id: existing.id,
+                cancel_token: existing.cancel_token,
+                name: formData.name,
+                phone: formData.phone,
+                partner_name: isDoubles ? formData.partner_name : null,
+                notes: formData.notes,
+              }),
+            });
+            // 実際に更新できたときだけ「今回の内容に更新した」と名乗る。
+            // Edge Function が未デプロイのうちは 404 が返るが、その場合も
+            // 支払いは今までどおり続く（案内文が従来のものに戻るだけ）
+            if (res.ok) setResumedEntry(true);
+          } catch (err) {
+            // 更新に失敗しても支払い自体は継続させる（致命的エラーにしない）
+            console.error('resume-entry update failed:', err);
+          }
           // 既存の申込を再開しただけなので generate_lead は送らない
           // （前回の申込時にすでに1件計上済み。ここで送ると同じ人が2リードになる）
           setEntryInfo({ id: existing.id, cancelToken: existing.cancel_token });
@@ -477,7 +504,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           {step === 'payment-method' && entryInfo && (
             <div className="space-y-4">
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
-                ✅ {t.paySelectLead}<span className="font-bold">{t.paySelectLeadStrong}</span>
+                ✅ {resumedEntry ? t.resumeNotice : t.paySelectLead}
+                {!resumedEntry && <span className="font-bold">{t.paySelectLeadStrong}</span>}
                 {isDoubles && (
                   <p className="text-xs text-green-700 mt-1">{t.payPairNote(Math.round(tournament.entry_fee / 2).toLocaleString())}</p>
                 )}

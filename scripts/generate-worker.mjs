@@ -1161,6 +1161,80 @@ async function verifyCoursePass(cookieHeader, secret, nowMs) {
   return true;
 }
 
+/**
+ * 言語プレフィックスなしの旧URL → 正規URL の 301 マップ（統合 2026-08-28 で復帰）。
+ *
+ * 【なぜ要るか】
+ * public/_redirects に同じ表があるが、_worker.js がある Pages（advanced mode）では
+ * 拡張子なしのページURLは Worker が先に処理して200を返すため、_redirects の301は発動しない。
+ * その結果:
+ *   - /venues /join /privacy /tokushoho /terms /international /game /tactics-board
+ *     /shuttle-roadmap は src/App.tsx に素のルートが無く、LangWrapper が lang="venues" 等と
+ *     解釈して /ja/ トップへ飛ばす＝**着地内容が失われる**（src/components/LangWrapper.tsx L25-27）。
+ *   - /blog/:id /faq /tournaments/:id 等は App.tsx の <Navigate> があるがクライアント側の
+ *     ソフト遷移で、JSを実行しないクローラーと外部被リンク（minton.jp → 素の /blog/12）には
+ *     301 が伝わらない。
+ *
+ * 【'/' を入れていない理由】
+ * ルートだけは HEAD 側の判断（2026-08-24 の本番実測にもとづき、200＋/ja/ を指す canonical で
+ * 1本に寄せる。matchOgpRoute の root:true 分岐と workerPrerender.test.mjs が固定）を優先する。
+ * こちらの方が新しい決定なので上書きしない。
+ *
+ * GET/HEAD のみ対象（POST 等の処理リクエストは 301 しない）。クエリは呼び出し側で保持。
+ * 遷移先は必ず src/App.tsx に実在するルートにすること（301ループと空振りを防ぐ）。
+ */
+const LEGACY_EXACT_REDIRECTS = {
+  '/faq': '/ja/faq',
+  '/blog': '/ja/blog',
+  '/activity': '/ja/activity',
+  '/activity-cn': '/zh/activity',
+  '/contact': '/ja/contact',
+  '/level-guide': '/ja/level-guide',
+  '/cancel-policy': '/ja/cancel-policy',
+  // 法務3ページ。旧ブランチは /privacy-policy だったが、HEAD の実ルートは /privacy
+  '/privacy': '/ja/privacy',
+  '/tokushoho': '/ja/tokushoho',
+  '/terms': '/ja/terms',
+  '/international': '/ja/international',
+  '/login': '/ja/login',
+  '/admin': '/ja/admin',
+  '/venues': '/ja/venues',
+  '/join': '/ja/join',
+  '/shuttle-roadmap': '/ja/shuttle-roadmap',
+  '/game': '/ja/game',
+  '/tactics-board': '/ja/tactics-board',
+  '/results/vol1': '/ja/results/vol1',
+  '/results/vol2': '/ja/results/vol2',
+  '/results/vol3': '/ja/results/vol3',
+  '/chaoxianzu/activity': '/chaoxianzu/ja/activity',
+  '/chaoxianzu/activity-cn': '/chaoxianzu/zh/activity',
+  '/chaoxianzu/activity-kr': '/chaoxianzu/ko/activity',
+  '/chaoxianzu/admin': '/chaoxianzu/ja/admin',
+};
+
+const LEGACY_ID_REDIRECTS = [
+  [/^\\/blog\\/(\\d+)$/, '/ja/blog/'],
+  [/^\\/tournaments\\/(\\d+)$/, '/ja/tournaments/'],
+  [/^\\/activity\\/([^/]+)$/, '/ja/activity/'],
+  [/^\\/activity-cn\\/([^/]+)$/, '/zh/activity/'],
+  [/^\\/chaoxianzu\\/activity\\/([^/]+)$/, '/chaoxianzu/ja/activity/'],
+  [/^\\/chaoxianzu\\/activity-cn\\/([^/]+)$/, '/chaoxianzu/zh/activity/'],
+  [/^\\/chaoxianzu\\/activity-kr\\/([^/]+)$/, '/chaoxianzu/ko/activity/'],
+];
+
+// pathname を正規URLへ 301 する必要があれば遷移先パスを返す（不要なら null）。
+function computeLegacyRedirect(pathname) {
+  const p = (pathname !== '/' && pathname.endsWith('/')) ? pathname.slice(0, -1) : pathname;
+  if (Object.prototype.hasOwnProperty.call(LEGACY_EXACT_REDIRECTS, p)) {
+    return LEGACY_EXACT_REDIRECTS[p];
+  }
+  for (const [re, prefix] of LEGACY_ID_REDIRECTS) {
+    const m = p.match(re);
+    if (m) return prefix + m[1];
+  }
+  return null;
+}
+
 async function handleRequest(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
@@ -1175,6 +1249,15 @@ async function handleRequest(request, env) {
           status: 401,
           headers: { 'WWW-Authenticate': 'Basic realm="kawabado admin"', 'Cache-Control': 'no-store' },
         });
+      }
+    }
+
+    // ── 言語プレフィックスなしの旧URL → 正規URLへ 301 ─────
+    // 管理ゲートの**後ろ**に置く（/admin は先に Basic 認証を通してから /ja/admin へ送る）。
+    if (request.method === 'GET' || request.method === 'HEAD') {
+      const legacyTarget = computeLegacyRedirect(pathname);
+      if (legacyTarget) {
+        return Response.redirect(url.origin + legacyTarget + url.search, 301);
       }
     }
 

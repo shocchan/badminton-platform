@@ -1545,6 +1545,14 @@ export default function AiCoursePage() {
       <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang}
         v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
         {planTopSlot}
+        {/*
+          学習画面で何かが落ちても、真っ白にしない（2026-08-28 統合で復帰・元は 2a0a2a8）。
+          白い画面はいちばん悪い行き止まりで、生徒は自力で戻れない
+          （実際に、定着の記録が1件壊れているだけで全画面が消える事故が起きた）。
+          ここは冒険画面そのものなので、戻り先は step ではなくページの読み直しにする
+          （読み直せば advProfile の復元で壊れた記録が落ちる）。
+        */}
+        <LearnerErrorBoundary t={t} onHome={() => { window.location.href = window.location.pathname; }} labPreview={labAllowed}>
         <Suspense fallback={<CourseChunkLoading t={t} scene="map" />}>
           <AdvShellLazy
             lang={uiLang} learner={learner} progress={progress} sessions={sessions} reviewsDue={reviewsDue}
@@ -1581,6 +1589,7 @@ export default function AiCoursePage() {
             onOpenUnit={(unitId) => { setActiveUnitId(unitId); setStep('n3unit'); }}
           />
         </Suspense>
+        </LearnerErrorBoundary>
       </Shell>
     );
   }

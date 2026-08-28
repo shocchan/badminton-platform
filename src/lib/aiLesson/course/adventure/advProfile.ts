@@ -6,7 +6,7 @@ import { migrateSavedRoute } from './advRoute';
 import type { LearnerSettings, ItemProgress } from '../types';
 import type {
   AdventureV2Profile, AdvSkillProfile, AdvSkillScore, AdvSkill, AdvBand, AdvMockSessionState,
-  AdvStreakState,
+  AdvStreakState, AdvMasteryAttempt,
 } from './advTypes';
 import { ADV_SKILLS } from './advTypes';
 import { isTeacherId } from './advTeacher';
@@ -123,6 +123,32 @@ const restoreMockSessionState = (v: unknown): AdvMockSessionState | null => {
 };
 
 /**
+ * 定着の記録を安全な形へ整える（2026-08-28 統合で復帰・元は 2a0a2a8）。
+ *
+ * ここは「壊れたデータでも落ちない」の最前線。実際に、項目の欠けた記録が
+ * 1件あるだけで学習画面が丸ごと真っ白になり、その生徒は二度と入れなくなった。
+ * このファイルは route / lastQuest / todaySteps を復元関数で検証しているのに、
+ * mastery だけ素通しだった。形の合わない試行は**黙って捨てる**
+ * （甘く数えるより、記録が減るほうが安全）。
+ */
+const restoreMastery = (raw: unknown): AdventureV2Profile['mastery'] => {
+  if (!isRecord(raw)) return {};
+  const out: AdventureV2Profile['mastery'] = {};
+  for (const [targetId, attempts] of Object.entries(raw)) {
+    if (!Array.isArray(attempts)) continue;
+    const clean = attempts.filter((a): a is AdvMasteryAttempt =>
+      isRecord(a)
+      && typeof a.dateKey === 'string'
+      && typeof a.scorePct === 'number' && Number.isFinite(a.scorePct)
+      && typeof a.unseenRatio === 'number' && Number.isFinite(a.unseenRatio)
+      && Array.isArray(a.questionKeys)
+      && typeof a.completedAt === 'string');
+    if (clean.length > 0) out[targetId] = clean;
+  }
+  return out;
+};
+
+/**
  * つづけた日（streak）の復元（2026-08-19）。
  * 壊れた形は null（＝初回の活動時に履歴からseedし直す。積み上げの本体は
  * questLog∪mastery なので、streakが飛んでも「祝い」が一度リセットされるだけで害がない）。
@@ -176,7 +202,7 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     // 届かないので、stage種別から決まるぶんだけ取り込み時に補う（migrateSavedRoute・冪等）
     route: isRecord(raw.route) && Array.isArray((raw.route as Record<string, unknown>).stages)
       ? migrateSavedRoute(raw.route as unknown as NonNullable<AdventureV2Profile['route']>) : null,
-    mastery: isRecord(raw.mastery) ? (raw.mastery as AdventureV2Profile['mastery']) : {},
+    mastery: restoreMastery(raw.mastery),
     lastQuest: isRecord(raw.lastQuest) && typeof raw.lastQuest.dateKey === 'string'
       ? (raw.lastQuest as unknown as AdventureV2Profile['lastQuest']) : null,
     todaySteps: isRecord(raw.todaySteps) && typeof raw.todaySteps.dateKey === 'string' && Array.isArray(raw.todaySteps.done)

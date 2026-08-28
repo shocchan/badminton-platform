@@ -170,7 +170,16 @@ const seedFull = () => {
             { dateKey: key(-10), completedSteps: 2, totalSteps: 3 },   // 未完
             { dateKey: key(0), completedSteps: 3, totalSteps: 3 },     // 攻略2（今日）
           ],
-          mastery: { 'vocab-001': [{ dateKey: key(-10), tier: 'normal', correct: 5, total: 6, passed: true }] },
+          // AdvShell が実際に書く形（AdvMasteryAttempt）で置くこと。
+          // ここは長らく { correct, total, passed } という**どの書き手も作らない形**だったが、
+          // 2026-08-28 に readAdvProfile が壊れた記録を捨てるようになった（advProfile.restoreMastery）ため、
+          // 架空の形のままだとバトル数が0になって落ちる。5/6正解＝83%として実データ相当にした。
+          mastery: {
+            'vocab-001': [{
+              dateKey: key(-10), scorePct: 83, unseenRatio: 1, questionKeys: ['rec:1', 'rec:2', 'rec:3', 'rec:4', 'rec:5', 'rec:6'],
+              tier: 'normal', timed: false, completedAt: iso(-10),
+            }],
+          },
           mockLog: [{ mockId: 'mock-1', completedAt: iso(-10), dateKey: key(-10), level: 'N3', mode: 'short', totalCorrect: 8, totalQuestions: 10, totalUnanswered: 0, sectionsFinishedInTime: 2, sectionCount: 2 }],
           teacherNotes: [{ id: 'note-1', weekStartKey: weekStartKeyOf(key(0)), bodyJa: '今週もこの調子で。', authorLabel: '翔子先生', createdAtISO: iso(0), readAtISO: null }],
         }),

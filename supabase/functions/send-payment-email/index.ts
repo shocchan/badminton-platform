@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_EMAIL = "shodorannga@gmail.com";
+const ADMIN_EMAIL = "info@kawabado.com";
 
 interface PaymentEmailRequest {
   to: string;
