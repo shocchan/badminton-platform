@@ -1167,8 +1167,9 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   // 入金確認のON/OFF。completed にした時点で自動督促メールの対象から外れる
   const handleTogglePaid = async (entry: EntryWithTournament) => {
     const paid = entry.payment_status === 'completed';
-    if (paid && entry.payment_method === 'credit') {
-      toast.error('クレジット決済分はStripeの記録と紐づくため、ここでは変更できません');
+    // Stripeで支払われた分は決済記録と紐づくので、ここで手作業で戻させない
+    if (paid && (entry.payment_method === 'credit' || entry.payment_method === 'wechat_alipay')) {
+      toast.error('オンライン決済分はStripeの記録と紐づくため、ここでは変更できません');
       return;
     }
     const msg = paid

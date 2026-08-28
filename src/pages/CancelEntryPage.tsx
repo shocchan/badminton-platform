@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useToast } from '../components/ui/Toast';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { calcCreditRefundAmount } from '../lib/payment';
+import type { PaymentMethod } from '../lib/payment';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
@@ -15,7 +16,7 @@ interface EntryInfo {
   status: string;
   entry_fee: number;
   payment_required: boolean;
-  payment_method: 'credit' | 'paypay' | 'bank' | null;
+  payment_method: PaymentMethod | null;
   payment_status: 'pending' | 'completed' | 'failed' | 'refunded' | null;
 }
 
@@ -158,9 +159,9 @@ export const CancelEntryPage = () => {
               <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-5 text-sm">
                 <p className="font-bold text-yellow-800 mb-1">💰 参加費の返金について</p>
                 <p className="text-yellow-700 text-xs">
-                  {entry.payment_method === 'credit'
-                    ? `参加費の90%（¥${calcCreditRefundAmount(entry.entry_fee).toLocaleString()}）をお支払いいただいたクレジットカードに自動返金します（キャンセル手数料として10%を差し引きます。カード明細への反映まで数日かかる場合があります）。`
-                    : '主催者より銀行振込またはPayPayにて返金します。返金まで数日かかる場合があります。'}
+                  {entry.payment_method === 'credit' || entry.payment_method === 'wechat_alipay'
+                    ? `参加費の90%（¥${calcCreditRefundAmount(entry.entry_fee).toLocaleString()}）をお支払いいただいた方法へ自動返金します（キャンセル手数料として10%を差し引きます。明細への反映まで数日かかる場合があります）。`
+                    : '主催者よりPayPayにて返金します。返金まで数日かかる場合があります。'}
                 </p>
               </div>
             )}
