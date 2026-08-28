@@ -1,50 +1,46 @@
 #!/bin/bash
-# 本番（kawabado.com）へデプロイ
-# ⚠️ 必ず先に scripts/deploy-staging.sh でステージング確認を済ませること
+# 本番デプロイは、このフォルダからは行えません（2026-08-28）
 #
-# 実行後、本番が新ビルドを配信しているかまで自動検証し、
-# 結果を画面表示＋Mac通知で知らせる（Claudeに確認を頼まなくても分かる）。
-# ビルド/アップロードの詳細ログは $LOG に退避し、画面には要点だけを出す
-# （Claude Code の Run パネルはスクロールできないため、結果が見える行数に収める）。
-set -e
-cd "$(dirname "$0")/.."
+# Cloudflare Pages の配信は差分ではなく**全置換**です。
+# 本番サイトは、このスクリプトを実行したフォルダの姿へ丸ごと入れ替わります。
+# ワークツリーが4つあり、それぞれ別ブランチを開いていたため、
+# 実行するフォルダが違うだけで本番が別物になっていました。
+# 2026-08-28 だけで3回起き、AIコースのログインが消えて
+# 実在の生徒3人がログインできなくなりました。
+#
+# 対策として、本番へ出せるフォルダを1つに固定しました。
+# ここは「出せない側」です。中身は消していません（git log で戻せます）。
 
-LOG="/tmp/kawabado-deploy-production.log"
-: > "$LOG"
+DEPLOY_DIR="/Users/shocchan/badminton-sales"
+DEPLOY_BRANCH="integration/unify-2026-08-28"
+CUR_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo '?')
 
-notify() {
-  osascript -e "display notification \"$2\" with title \"$1\"" >/dev/null 2>&1 || true
-}
-on_error() {
-  echo ""
-  echo "❌❌❌ 本番デプロイ 失敗 ❌❌❌"
-  echo "── エラー箇所の抜粋（全文: $LOG）──"
-  tail -25 "$LOG"
-  notify "kawabado.com デプロイ失敗" "エラーで中断しました。Claudeに「デプロイ失敗した」と伝えてください"
-}
-trap on_error ERR
+cat <<MSG
 
-echo "① ビルド中...（1〜2分かかります。詳細ログ: $LOG）"
-npm run build >>"$LOG" 2>&1
-echo "② 本番へアップロード中..."
-./node_modules/.bin/wrangler pages deploy dist --project-name=badminton-platform --branch=main --commit-dirty=true >>"$LOG" 2>&1
+🛑 このフォルダからは本番へデプロイできません
 
-# ── デプロイ後の自動検証: 本番が「今ビルドしたもの」を配信しているか ──
-LOCAL_HASH=$(grep -o 'assets/index-[A-Za-z0-9_-]*\.js' dist/index.html | head -1)
-echo "③ 検証中: 本番が新ビルド（${LOCAL_HASH}）を配信するか確認しています..."
-for _ in 1 2 3 4 5 6; do
-  LIVE_HASH=$(curl -s --max-time 10 https://kawabado.com/ | grep -o 'assets/index-[A-Za-z0-9_-]*\.js' | head -1 || true)
-  if [ -n "$LIVE_HASH" ] && [ "$LIVE_HASH" = "$LOCAL_HASH" ]; then
-    echo ""
-    echo "✅✅✅ 本番反映 成功！ https://kawabado.com は新ビルドを配信中 ✅✅✅"
-    notify "kawabado.com 本番反映 成功" "新しいビルドが配信されています"
-    exit 0
-  fi
-  sleep 5
-done
+   いまのフォルダ  : $(pwd)
+   いまのブランチ  : ${CUR_BRANCH}
 
-echo ""
-echo "⚠️ アップロードは完了しましたが、30秒待っても本番での配信確認が取れませんでした"
-echo "   （数分遅れて反映されることもあります。Claudeに「デプロイ確認して」と伝えてください）"
-notify "kawabado.com 要確認" "アップロード完了・配信確認が未達。Claudeに確認を頼んでください"
+   本番へ出せるのは1か所だけです:
+     フォルダ : ${DEPLOY_DIR}
+     ブランチ : ${DEPLOY_BRANCH}
+
+   理由: Cloudflare Pages は全置換です。ここから出すと、
+        ${DEPLOY_BRANCH} にしか無いものが本番から消えます。
+        2026-08-28 にこれが3回起き、生徒3人がログイン不能になりました。
+
+   進めるには:
+     1) ここでの作業をコミットする
+          git add -A && git commit -m '...'
+     2) デプロイ用フォルダへ移動する
+          cd ${DEPLOY_DIR}
+     3) この作業を取り込む
+          git merge ${CUR_BRANCH}
+     4) そこで実行する
+          ./scripts/deploy-production.sh
+
+   詳細: ${DEPLOY_DIR}/docs/DEPLOY.md
+
+MSG
 exit 1
