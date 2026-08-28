@@ -109,6 +109,8 @@ STALE_DAYS=90
 CUTOFF=$(( $(date +%s) - STALE_DAYS * 24 * 60 * 60 ))
 UNSHIPPED=""
 SKIPPED=""
+ABSORBED=""
+ABSORBED_FILE="$(dirname "$0")/ABSORBED_BRANCHES"
 # **ローカルブランチだけを見ている。** push された作業は見えない。
 # いまは push 禁止の運用なので成り立つが、他マシンから push するようになったら
 # `git branch -a` に広げること（この前提が崩れたら門(c)は嘘になる）
@@ -123,10 +125,22 @@ for b in $(git branch --format='%(refname:short)'); do
   # 門(b)(d) と同じ範囲を見る。public/ には _headers・_redirects・hero-*.webp など
   # 30項目が入っており、全置換で本番から消える。src/ だけ見ていると素通りする
   # （2026-08-28 の検証で実測）
+  # 取り込み済みと判断したブランチは数えない（理由は scripts/ABSORBED_BRANCHES に1行ずつ）。
+  # **中身を調べて結論したものだけ**が入っている。面倒で足すと、その作業が本番から消える
+  if [ -f "$ABSORBED_FILE" ] && grep -qE "^${b}[[:space:]]" "$ABSORBED_FILE" 2>/dev/null; then
+    why=$(grep -E "^${b}[[:space:]]" "$ABSORBED_FILE" | head -1 | sed "s|^${b}[[:space:]]*||")
+    ABSORBED="${ABSORBED}     ${b}\n       └ ${why}\n"
+    continue
+  fi
   n=$(git log --oneline "HEAD..$b" -- src supabase public index.html vite.config.ts 2>/dev/null | wc -l | tr -d ' ')
   [ "$n" = "0" ] && continue
   UNSHIPPED="${UNSHIPPED}     ${b}: ${n}件（最終コミット ${LAST_DAY}）\n"
 done
+
+if [ -n "$ABSORBED" ]; then
+  echo "ℹ️  (c) 取り込み済みと判断したブランチ（scripts/ABSORBED_BRANCHES）:"
+  printf "%b" "$ABSORBED"
+fi
 
 if [ -n "$SKIPPED" ]; then
   echo "ℹ️  (c) ${STALE_DAYS}日以上動いていないブランチは除外しました:"
