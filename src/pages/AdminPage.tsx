@@ -1076,6 +1076,10 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
   const [postForm, setPostForm] = useState(EMPTY_POST);
   // 記事編集の言語タブ。日本語が正、中文は任意（未入力なら公開ページは日本語にフォールバック）
   const [postLang, setPostLang] = useState<'ja' | 'zh'>('ja');
+  const [zhStatus, setZhStatus] = useState<'idle' | 'running' | 'done'>('idle');
+  const [zhError, setZhError] = useState<string | null>(null);
+  // 保存時に中国語版を自動生成するか（公開記事は既定でON）
+  const [autoZh, setAutoZh] = useState(true);
   const [postError, setPostError] = useState<string | null>(null);
   const [postSuccess, setPostSuccess] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -1524,11 +1528,26 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
         published_at: postForm.published_at || editingPost?.published_at || new Date().toISOString(),
       };
 
-      if (editingPost) {
-        await updatePost(editingPost.id, cleanForm);
-      } else {
-        await createPost(cleanForm);
+      const saved = editingPost
+        ? await updatePost(editingPost.id, cleanForm)
+        : await createPost(cleanForm);
+
+      // 公開記事は、日本語版を保存したタイミングで中国語版も作り直す。
+      // 手で中文を書いた記事は上書きしない（force=false のときサーバー側が
+      // 日本語のハッシュを見て、変わっていなければ何もしない）。
+      // 失敗しても日本語版の保存は成立しているので、警告だけ出して通す。
+      const savedId = (saved as BlogPost | undefined)?.id ?? editingPost?.id;
+      if (autoZh && savedId && (cleanForm.status ?? 'published') !== 'draft') {
+        setZhStatus('running');
+        try {
+          await generateZh(savedId);
+          setZhStatus('done');
+        } catch (err) {
+          setZhStatus('idle');
+          setZhError(err instanceof Error ? err.message : '中国語版の生成に失敗しました');
+        }
       }
+
       setShowPostForm(false);
       setEditingPost(null);
       setPostForm(EMPTY_POST);
@@ -1541,6 +1560,48 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
       setImageUploading(false);
       const msg = (err as { message?: string })?.message ?? '保存に失敗しました';
       setPostError(msg);
+    }
+  };
+
+  // 日本語版から中国語版を自動生成する（本文はタグに触れずテキストだけ差し替え）。
+  // 公開記事の保存時に自動で呼ぶほか、中文タブのボタンからも手動で叩ける。
+  const generateZh = async (postId: number, opts: { force?: boolean } = {}) => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error('管理者としてログインし直してください');
+    const res = await fetch(`${EDGE_BASE}/translate-blog-zh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ post_id: postId, force: opts.force ?? false }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
+    return body as { success?: boolean; skipped?: boolean };
+  };
+
+  const handleGenerateZh = async () => {
+    if (!editingPost) return;
+    setZhStatus('running');
+    setZhError(null);
+    try {
+      await generateZh(editingPost.id, { force: true });
+      const fresh = await supabase
+        .from('blog_posts')
+        .select('title_zh,excerpt_zh,content_zh')
+        .eq('id', editingPost.id)
+        .single();
+      if (fresh.data) {
+        setPostForm(f => ({
+          ...f,
+          title_zh: fresh.data.title_zh ?? '',
+          excerpt_zh: fresh.data.excerpt_zh ?? '',
+          content_zh: fresh.data.content_zh ?? '',
+        }));
+      }
+      setZhStatus('done');
+    } catch (err) {
+      setZhStatus('idle');
+      setZhError(err instanceof Error ? err.message : '中国語版の生成に失敗しました');
     }
   };
 
@@ -2080,6 +2141,48 @@ export const AdminPage = ({ groupSlug }: { groupSlug?: string }) => {
                       : '未入力のままでも保存できます（公開ページでは日本語が表示されます）'}
                   </span>
                 </div>
+
+                {postLang === 'ja' && (
+                  <label className="flex items-start gap-2 text-sm text-gray-700 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={autoZh}
+                      onChange={e => setAutoZh(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span>
+                      保存したら中国語版も自動で作る
+                      <span className="block text-xs text-gray-500">
+                        日本語版を書き替えたときだけ作り直します（下書きは対象外）。
+                        中文タブのボタンからいつでも作り直せます。
+                      </span>
+                    </span>
+                  </label>
+                )}
+
+                {postLang === 'zh' && (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 space-y-2">
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void handleGenerateZh()}
+                        disabled={!editingPost || zhStatus === 'running'}
+                        className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-xl hover:bg-blue-700 disabled:opacity-50"
+                      >
+                        {zhStatus === 'running' ? '生成中…' : '🤖 日本語版から中国語版を作り直す'}
+                      </button>
+                      {zhStatus === 'done' && <span className="text-sm text-green-700">生成しました ✅</span>}
+                      {!editingPost && (
+                        <span className="text-xs text-gray-500">記事を一度保存すると使えます</span>
+                      )}
+                    </div>
+                    {zhError && <p className="text-sm text-red-600">{zhError}</p>}
+                    <p className="text-xs text-gray-500">
+                      本文の画像・リンク・書式はそのままに、文章だけを中国語にします。
+                      手で直した内容はこのボタンで上書きされます。
+                    </p>
+                  </div>
+                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     {postLang === 'ja' ? 'タイトル *' : 'タイトル（中文）'}
