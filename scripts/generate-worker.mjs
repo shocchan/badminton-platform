@@ -25,6 +25,22 @@ const staticSeoRaw = (() => {
   }
 })();
 const staticSeo = JSON.parse(staticSeoRaw).pages;
+
+/**
+ * 販売LPの本文（JSを実行しないクローラー向け・2026-08-26）。
+ * scripts/ai-course/generate-lp-prerender.mts が lpContent.ts から生成する。
+ * 素のHTML本文が212文字しかなく、GPTBot/ClaudeBot 等が販売ページを読めていなかった。
+ * staticSeo.json と同じく、カレントディレクトリに依存しない読み方をする。
+ */
+const lpPrerenderRaw = (() => {
+  try {
+    return readFileSync('src/lib/seo/lpPrerender.json', 'utf8');
+  } catch (_) {
+    return readFileSync(fileURLToPath(new URL('../src/lib/seo/lpPrerender.json', import.meta.url)), 'utf8');
+  }
+})();
+const lpPrerender = JSON.parse(lpPrerenderRaw);
+const LP_PRERENDER_JSON = JSON.stringify({ ja: lpPrerender.ja, zh: lpPrerender.zh });
 const STATIC_SEO_JSON = JSON.stringify(
   Object.fromEntries(Object.entries(staticSeo).map(([k, v]) => [
     k,
@@ -516,6 +532,21 @@ function htmlToParagraphs(html, limit) {
   return out;
 }
 
+/** 販売LPの本文。<noscript> として素のHTMLへ入れる（ブラウザでは描画されない） */
+const LP_PRERENDER = ${LP_PRERENDER_JSON};
+
+/** noscript の中に置く本文を組む。**実際のページと同じ内容**（クローキングにしない） */
+function lpNoscriptHtml(lang) {
+  const doc = LP_PRERENDER[lang] || LP_PRERENDER.ja;
+  if (!doc) return '';
+  let html = '<h1>' + escAttr(doc.title) + '</h1>';
+  for (const b of doc.blocks) {
+    if (b.h) html += '<h2>' + escAttr(b.h) + '</h2>';
+    for (const line of (b.p || [])) html += '<p>' + escAttr(line) + '</p>';
+  }
+  return '<noscript><div id="lp-content">' + html + '</div></noscript>';
+}
+
 /** 検索結果に出さないURL。src/components/seo/privateRoutes.ts と同じ並び（テストで突き合わせる） */
 const PRIVATE_PATTERNS = [
   /^\\/(ja|zh)\\/admin(\\/|$)/,
@@ -704,6 +735,10 @@ function injectOgp(meta) {
   // HTML段階で先読みさせる。JSON-LDやhreflangより先に置いて、発見を早める
   if (meta.imagePreload) {
     tail += '\\n    ' + meta.imagePreload;
+  }
+  // 販売LPだけ、本文を <noscript> で入れる（JSを実行しないクローラー向け）
+  if (meta.noscriptHtml) {
+    html = html.replace('</body>', meta.noscriptHtml + '\\n  </body>');
   }
   if (meta.alternates) {
     tail += '\\n    <link rel="alternate" hreflang="ja" href="' + escAttr(meta.alternates.ja) + '" />';
@@ -898,6 +933,10 @@ async function buildOgpMeta(route, env, pageUrl) {
       },
       body: { h1: t.title, lead: t.description },
       nav: aiCourseNav(),
+      // 素のHTML本文が212文字しかなかった問題への対応（2026-08-26）。
+      // 上の body/nav は「Reactが描いたら消える見出し＋巡回用リンク」で、
+      // こちらは **LPの本文そのもの**（lpContent.ts から生成）。役割が違うので両方出す
+      noscriptHtml: lpNoscriptHtml(lang),
       // JSON-LD（Course）はLP側の src/pages/ai-lesson/landing/courseSchema.ts が持つ。
       // 素のHTMLにも出すと二重定義になるので、ここでは出さない
     };

@@ -96,16 +96,40 @@ describe('権限（entitlements）に枠がそのまま出ている', () => {
 
 describe('サーバー側の設定とずれていない', () => {
   // ai_config.plan_ai_budgets はこのTSの写し。数字が2か所にあるので、ずれたら落とす。
-  const SQL_PATH = 'supabase/migrations/20260823120000_ai_plan_voice_budget.sql';
+  //
+  // 2026-08-26: 最初の seed だけを見る作りだと、後から値を変える migration が来た瞬間に
+  // 「実際のDBの値」と食い違う。migration を時系列に読んで **DBの実効値を再現** する。
+  const MIG_DIR = 'supabase/migrations';
 
-  it('マイグレーションが seed する値が PLAN_AI_BUDGETS と一致する', async () => {
+  /** migration を順に適用して、いま ai_config.plan_ai_budgets に入っている値を再現する */
+  const effectiveBudgets = async (): Promise<Record<string, Record<string, number>>> => {
     const fs = await import('node:fs');
-    const sql = fs.readFileSync(SQL_PATH, 'utf8');
-    const m = sql.match(/'plan_ai_budgets',\s*'(\{[\s\S]*?\})'::jsonb/);
-    expect(m, 'seed の JSON が見つからない').not.toBeNull();
-    const seeded = JSON.parse(m![1]) as Record<string, {
-      voiceSessionsTotal: number; voiceSessionsPerDay: number; textSessionsPerDay: number;
-    }>;
+    const files = fs.readdirSync(MIG_DIR)
+      .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql'))
+      .sort();
+    let cur: Record<string, Record<string, number>> | null = null;
+    for (const f of files) {
+      const sql = fs.readFileSync(`${MIG_DIR}/${f}`, 'utf8');
+      // ① seed（insert ... on conflict do update）で全体を置き換える
+      const seed = sql.match(/'plan_ai_budgets',\s*'(\{[\s\S]*?\})'::jsonb/);
+      if (seed) cur = JSON.parse(seed[1]) as Record<string, Record<string, number>>;
+      // ② jsonb_set による部分更新を順に当てる。
+      //    入れ子（jsonb_set(jsonb_set(...))）があるので、jsonb_set の位置ではなく
+      //    「パスと値の組」を直接拾う。plan_ai_budgets を触る文だけに限定して誤検出を防ぐ
+      if (!cur) continue;
+      for (const stmt of sql.split(';')) {
+        if (!stmt.includes('plan_ai_budgets') || !stmt.includes('jsonb_set')) continue;
+        for (const m of stmt.matchAll(/'\{([a-z0-9-]+),([A-Za-z]+)\}'\s*,\s*'(\d+)'::jsonb/g)) {
+          const [, plan, key, val] = m;
+          if (cur[plan]) cur[plan][key] = Number(val);
+        }
+      }
+    }
+    return cur ?? {};
+  };
+
+  it('マイグレーションが行き着く値が PLAN_AI_BUDGETS と一致する', async () => {
+    const seeded = await effectiveBudgets();
     for (const p of PLAN_CATALOG) {
       const b = aiBudgetFor(p.id);
       expect(seeded[p.id], `${p.id} が seed に無い`).toBeDefined();

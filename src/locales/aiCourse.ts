@@ -217,6 +217,9 @@ const ja = {
     welcomeBack: 'おかえりなさい。今日はここから、また始めましょう。',
     // 上限到達（完了扱い・前向きに）
     doneForTodayTitle: '今日はここまでで大丈夫です',
+    // 体験（実時間60分）には「明日」が無い（2026-08-26）
+    doneForNowTitle: 'AI会話はここまでです',
+    limitReachedTrial: 'のこりの体験時間は、語彙バトルと教材で学べます。',
     // 人間コーチの可視化（静的文言＋メール窓口のみ・§B-1）
     profileTitle: (name: string) => (name ? `${name}さんの日本語ノート` : 'あなたの日本語ノート'),
     coachCardTitle: '安田コーチも伴走します',
@@ -354,6 +357,10 @@ const ja = {
     retryLimit: '接続できませんでした。時間をおいて試すか、テキストモードで練習しましょう。',
     retry: 'もう一度接続する',
     switchToText: 'テキストで練習する',
+    stuckButton: '言い方がわからない',
+    stuckSentTitle: '翔子先生に助けを求めました',
+    stuckSentBody: 'かんたんな言い方をゆっくり教えてくれます。そのあと真似して言ってみてください。',
+    stuckNote: '※ ヒントを使って言えた場合、レポートには「ヒントあり」と記録されます。',
     transcriptNote: '会話は自動で文字起こしされます',
     speakFirstHint: '接続できました！翔子先生のあいさつを待ってから、日本語で話しかけてみましょう。',
     subtitleShowZh: '中国語を見る',
@@ -416,6 +423,7 @@ const ja = {
     usageHint: 'ヒントを使って言えました',
     usageNone: '意味を確認しました（次は使ってみましょう）',
     naturalPhrase: '自然な言い方',
+    usableScene: '日本で使える場面',
     corrections: '直したほうがいいところ',
     youSaid: 'あなたが言った文',
     improved: 'もっと自然に',
@@ -428,6 +436,10 @@ const ja = {
     },
     nextReview: '次の復習',
     nextReviewNone: '（このあとの復習はありません）',
+    // 体験（実時間60分）は翌日が来ないので、日付を約束しない（2026-08-26）
+    nextReviewTrial: 'この表現は、日をおいてもう一度出てきます。体験は今日のうちだけなので、続けたときに届きます。',
+    // 「次の復習: 2026-08-27」は事実だが、明日また開く理由にはならない（2026-08-26）
+    reviewTomorrow: (expr: string) => `明日、「${expr}」をもう一度練習します。忘れかけた頃にもう一度使うのが、いちばん残ります。`,
     nextMission: '次のミッション',
     xp: '獲得XP',
     weeklyProgress: '今週の進捗',
@@ -1517,6 +1529,8 @@ const ja = {
     backToQuest: '今日の冒険へもどる',
     questTitle: 'AI会話',
     questBody: '声に出して確かめる時間です。話した内容はあとでレポートになります。',
+    // 初回だけウォームアップに差し替える理由（2026-08-26）。黙って易しくしない
+    warmUpFirst: '1回目は、かならず成功する会話から始めます。実力を測るためではなく、口を動かすためです。2回目からは、あなたが選んだレベルの内容に戻ります。',
   },
   // ── Chapter 1（learner向けUIのみ。devツール表示は対象外・日本語のまま） ──
   ch1: {
@@ -1806,6 +1820,8 @@ const zh: AiCourseDict = {
     welcomeBack: '欢迎回来。今天就从这里重新开始吧。',
     // 达到今日上限（当作完成・积极表述）
     doneForTodayTitle: '今天学到这里就可以了',
+    doneForNowTitle: 'AI会话到这里结束',
+    limitReachedTrial: '剩余的体验时间可以用词汇战斗和教材继续学习。',
     // 真人教练的可视化（静态文言＋邮件窗口・§B-1）
     profileTitle: (name: string) => (name ? `${name}的日语笔记` : '你的日语笔记'),
     coachCardTitle: '安田教练也会陪伴你的学习',
@@ -1942,6 +1958,10 @@ const zh: AiCourseDict = {
     retryLimit: '连接失败。请稍后再试，或改用文字模式练习。',
     retry: '重新连接',
     switchToText: '改用文字练习',
+    stuckButton: '不知道怎么说',
+    stuckSentTitle: '已经向翔子老师求助',
+    stuckSentBody: '老师会用简单的说法慢慢教你，然后你跟着说一遍就好。',
+    stuckNote: '※ 用了提示后说出来的，报告里会记为「有提示」。',
     transcriptNote: '会话内容会自动转成文字',
     speakFirstHint: '连接成功！等翔子老师打完招呼后，试着用日语开口说说看吧。',
     subtitleShowZh: '查看中文',
@@ -2004,6 +2024,7 @@ const zh: AiCourseDict = {
     usageHint: '在提示帮助下说出来了',
     usageNone: '确认了意思（下次试着用一下）',
     naturalPhrase: '自然的说法',
+    usableScene: '在日本能用的场合',
     corrections: '可以改进的地方',
     youSaid: '你说的句子',
     improved: '更自然的说法',
@@ -2016,6 +2037,8 @@ const zh: AiCourseDict = {
     },
     nextReview: '下次复习',
     nextReviewNone: '（之后没有安排复习）',
+    nextReviewTrial: '这个说法会隔几天再出现一次。体验只在今天之内，所以它会在你继续之后送到。',
+    reviewTomorrow: (expr: string) => `明天会再练一次「${expr}」。在快忘记的时候再用一次，记得最牢。`,
     nextMission: '下一个任务',
     xp: '获得XP',
     weeklyProgress: '本周进度',
@@ -3076,6 +3099,7 @@ const zh: AiCourseDict = {
     backToQuest: '回到今天的冒险',
     questTitle: 'AI会话',
     questBody: '开口练习的时间。说过的内容之后会整理成报告。',
+    warmUpFirst: '第一次，我们从一定能说出口的对话开始。这不是测你的水平，只是让嘴先动起来。第二次开始，就会回到你选的难度。',
   },
   ch1: {
     mapAria: (ch: string, cur: string, next: string) => `「${ch}」的地图。当前位置是${cur}。${next ? `下一个目的地是${next}。` : ''}`,

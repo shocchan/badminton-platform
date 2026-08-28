@@ -84,6 +84,29 @@ export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang 
   );
 }
 
+/*
+ * 学習サイクルの各ステップに、**アプリで実際に使っているアイコン**を出す（2026-08-27）。
+ *
+ * 新しい画像は作っていない。public/ai-course/step/ にある本物のアイコンを使う。
+ * 1個1〜2KB、5個で約8KB。LPで見た絵が、買ったあとの画面にそのまま出てくる
+ * ＝「聞いていた話と違う」が起きない。
+ *
+ * 並びは LP.flow.steps と1対1。文言を足し引きしたらここも合わせること
+ * （lpVisuals.test.ts が件数の一致を見ている）。
+ */
+const FLOW_STEP_ICONS: (string | null)[] = [
+  'goal-chest',   // 今日の目標を見る
+  'step-talk',    // AIと話す
+  'step-words',   // 言えなかった表現を確認
+  'step-review',  // 1・3・7・30日後に復習
+  /*
+   * 「職場・生活・交流で使う」に合うアイコンがアプリ側に無い。
+   * step-battle は文法バトルの絵なので、実生活の場面に当てると意味がずれる。
+   * **合わない絵を置くくらいなら置かない**。null のカードはアイコン無しで出る。
+   */
+  null,
+];
+
 export function DailyLearningFlow({ v, lang }: { v: VariantConfig; lang: Lang }) {
   const steps = LP.flow.steps[lang];
   return (
@@ -94,7 +117,18 @@ export function DailyLearningFlow({ v, lang }: { v: VariantConfig; lang: Lang })
           {steps.map((s, i) => (
             <Reveal key={i} delay={(i % 5) * 60}>
               <li className="h-full bg-lp-card border border-lp-line rounded-2xl p-5 flex flex-col gap-2">
-                <span className="w-9 h-9 rounded-full bg-lp-coral text-white font-extrabold grid place-items-center">{i + 1}</span>
+                <span className="flex items-center gap-2">
+                  <span className="w-9 h-9 rounded-full bg-lp-coral text-white font-extrabold grid place-items-center shrink-0">{i + 1}</span>
+                  {/* アプリと同じアイコン。装飾なので支援技術には読ませない */}
+                  {FLOW_STEP_ICONS[i] && (
+                    <img
+                      src={`/ai-course/step/${FLOW_STEP_ICONS[i]}@2x.webp`}
+                      alt="" aria-hidden="true" loading="lazy" decoding="async"
+                      width={36} height={36}
+                      className="w-9 h-9 object-contain opacity-90"
+                    />
+                  )}
+                </span>
                 <h3 className="font-extrabold text-lp-ink text-[1.02rem] mt-1">{s.title.replace('AI', i === 1 ? v.name[lang] : 'AI')}</h3>
                 <p className="text-[0.92rem] text-lp-ink-soft leading-relaxed">{s.body}</p>
               </li>

@@ -1,4 +1,4 @@
-deployed_at: 2026-08-26 10:58:30 +0900
-branch:      release/assetization-2026-08
-commit:      44690fc8d6855b60a9305c5023bf4be6cc4aaad0
-asset:       assets/index-Et6_OKbY.js
+deployed_at: 2026-08-28 13:40:04 +0900
+branch:      integration/unify-2026-08-28
+commit:      23ecb9c1145f69b18a2fdbca79409aca1a49977e
+asset:       assets/index-D5T808Ps.js

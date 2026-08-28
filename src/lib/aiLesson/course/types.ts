@@ -209,6 +209,12 @@ export interface LessonReport {
   /** 中国語補助（UX-004）。旧sessionには無いためoptional。欠損時はja表示のみにfallback */
   achievementsZh?: string[];
   encouragementZh?: string;
+  /**
+   * 今日の練習が日本の生活のどこで使えるか（2026-08-26）。
+   * 旧sessionには無いのでoptional。null/空なら表示しない（作り話をさせない）。
+   */
+  usableSceneJa?: string | null;
+  usableSceneZh?: string | null;
 }
 
 /** 今日のレッスンプラン（復習1＋新規1を基本に3〜4分へ収める） */

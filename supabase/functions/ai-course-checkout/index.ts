@@ -105,6 +105,14 @@ serve(async (req: Request) => {
         if (typeof v === "string" && v.length <= 200) utm[k] = v;
       }
     }
+    /*
+     * 購入したブラウザの匿名ID（2026-08-26 Phase S1）。
+     * ai_attribution へ join して「どこから来た人が買ったか」を出すためだけに使う。
+     * 個人を指すものではない。形が違えば黙って捨てる（決済は止めない）。
+     */
+    const anonId = typeof body.anonId === "string"
+      && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(body.anonId)
+      ? body.anonId : null;
 
     // ── 商品検証（金額はサーバー側カタログから。クライアントの金額は信じない） ──
     const plan = FUNCTION_PLAN_CATALOG.find((p) => p.id === planId);
@@ -191,6 +199,10 @@ serve(async (req: Request) => {
         // ログイン中の購入なら発行先アカウントを先に決めておく（webhookはこれを最優先で使う）
         user_id: attachUserId,
         utm: Object.keys(utm).length > 0 ? utm : null,
+        anon_id: anonId,
+        // 流入元は購入時点の値を焼き付ける（あとで台帳が更新されても売上の出どころは動かない）
+        attribution_source: utm.utm_source ?? null,
+        attribution_campaign: utm.utm_campaign ?? null,
       }),
     });
     if (!insRes.ok) {

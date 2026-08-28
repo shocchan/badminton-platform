@@ -143,6 +143,15 @@ export interface AdminPurchaseRow {
   error: string | null;
   createdAtISO: string;
   provisionedAtISO: string | null;
+  /** card / alipay / wechat_pay。webhookが記録する。未取得は null（2026-08-26） */
+  paymentMethod: string | null;
+  /** 購入直後の自動ログインを使った時刻。null＝使っていない（2026-08-26） */
+  loginClaimedAtISO: string | null;
+  /** 購入したブラウザの匿名ID（ai_attribution へ join する。個人を指すものではない） */
+  anonId: string | null;
+  /** 購入時点で焼き付けた流入元。台帳が後から更新されても動かない（2026-08-26 Phase S8） */
+  attributionSource: string | null;
+  attributionCampaign: string | null;
 }
 
 /**
@@ -168,5 +177,10 @@ export const adminListPurchases = async (): Promise<AdminPurchaseRow[]> => {
     error: (r.error as string) ?? null,
     createdAtISO: String(r.created_at ?? ''),
     provisionedAtISO: (r.provisioned_at as string) ?? null,
+    paymentMethod: (r.payment_method as string) ?? null,
+    loginClaimedAtISO: (r.login_claimed_at as string) ?? null,
+    anonId: (r.anon_id as string) ?? null,
+    attributionSource: (r.attribution_source as string) ?? null,
+    attributionCampaign: (r.attribution_campaign as string) ?? null,
   }));
 };

@@ -177,13 +177,46 @@ export const conversationEntryWeekOf = (learner: Learner): number =>
 export const conversationCurrentWeekOf = (learner: Learner): number =>
   Math.max(learner.currentWeek ?? 1, conversationEntryWeekOf(learner));
 
-export const selectNextMission = (learner: Learner, progresses: ItemProgress[]): Mission | null => {
+/**
+ * 初回の一本目だけに使う、確実に成功する会話（2026-08-26）。
+ *
+ * 【なぜ要るか】
+ * N2申告の人は入口が第13週なので、**人生で最初の日本語会話がいきなり尊敬語**
+ * （w13m1「〜ていらっしゃいます」）から始まっていた。
+ * この商品が相手にしているのは「読めるのに話せない」人で、
+ * 尊敬語を読めることと、初対面で口が動くことは別の力。
+ * 最初の3分で「言えた」を作れないと、その日のうちに離脱する。
+ *
+ * 【誤爆させない作り】
+ * 学習履歴から推測せず、呼び出し側が「会話が一度も無い」と分かっているときだけ
+ * 明示的に true を渡す。通信失敗で progress が空になったときに
+ * 第1週へ戻す事故を起こさないため。
+ * 2回目以降は申告レベルどおりの入口に戻る（第13週の人は第13週へ）。
+ * 画面側は「1回目だけウォームアップ」であることを言葉で出す（黙って易しくしない）。
+ */
+export const FIRST_EVER_MISSION_ID = 'w01m1';
+
+export interface SelectMissionOptions {
+  /** この学習者が会話をまだ一度もしていない（呼び出し側が確認済みのときだけ true） */
+  firstEverConversation?: boolean;
+}
+
+export const selectNextMission = (
+  learner: Learner,
+  progresses: ItemProgress[],
+  opts: SelectMissionOptions = {},
+): Mission | null => {
   const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
   const learned = (id: string) => stateOf(id) !== undefined;
 
   if (learner.adminOverrides.nextMissionId) {
     const forced = missionById(learner.adminOverrides.nextMissionId);
     if (forced) return forced;
+  }
+  // 管理者の指定より下、通常の選択より上。まだ何も学習していないときだけ効く
+  if (opts.firstEverConversation && !learned(FIRST_EVER_MISSION_ID)) {
+    const warmUp = missionById(FIRST_EVER_MISSION_ID);
+    if (warmUp?.isPublished) return warmUp;
   }
   const ordered = [...COURSE_MISSIONS]
     .filter((m) => m.isPublished)
@@ -214,10 +247,11 @@ export const buildLessonPlan = (
   learner: Learner,
   progresses: ItemProgress[],
   now = new Date(),
+  opts: SelectMissionOptions = {},
 ): LessonPlan | null => {
   const dueReviews = selectDueReviews(progresses, now);
   const weak = calculateWeakItems(progresses);
-  const nextNew = selectNextMission(learner, progresses);
+  const nextNew = selectNextMission(learner, progresses, opts);
 
   // 7日後・30日後復習と週間総合実践は、答え（表現名）を先に見せず自由会話で使わせる
   const HIDE_TARGET_KINDS: LessonKind[] = ['review_day7', 'review_day30', 'weekly_practice'];

@@ -45,7 +45,15 @@ describe('紹介コードの受け取り', () => {
 
   it('購入時に ref を一緒に送る（台帳の utm 列へ入る＝migration不要）', () => {
     expect(CHECKOUT).toMatch(/getReferralCode\(\)/);
-    expect(CHECKOUT).toMatch(/\{ \.\.\.utm, ref \}/);
+    // 2026-08-26: first-touch（localStorage）を優先する形に変わったが、
+    // ref を同じ入れ物で送ることは維持する。式の形ではなく**送られること**を見る
+    expect(CHECKOUT).toMatch(/\.\.\.\(ref \? \{ ref \} : \{\}\)/);
+  });
+
+  it('流入元が消えないほうを優先する（sessionStorageはタブを閉じると消える）', () => {
+    // 実測でUTM付き購入が0件だった原因。first-touch を後ろに置いて上書きさせる
+    expect(CHECKOUT).toMatch(/firstTouch\(\)/);
+    expect(CHECKOUT).toMatch(/\{ \.\.\.legacy, \.\.\.fromTouch/);
   });
 
   it('サーバー側の許可キーに ref が入っている（知らないキーは捨てる方針は維持）', () => {

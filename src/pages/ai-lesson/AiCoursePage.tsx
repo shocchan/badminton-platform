@@ -16,7 +16,7 @@ import { useLessonFocus } from '../../contexts/LessonFocusContext';
 import { aiCourseI18n } from '../../locales/aiCourse';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { getSession, onAuthChange, signOut, getAccessToken } from '../../lib/aiLesson/course/courseAuth';
-import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../../lib/aiLesson/course/courseAccess';
+import { fetchAccessState, formatUntilJst, type CourseAccessState, reviewUnreachable, trialShapeOf } from '../../lib/aiLesson/course/courseAccess';
 import { ensureCoursePass } from '../../lib/aiLesson/course/coursePass';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '../../lib/aiLesson/course/plans/planUpsell';
@@ -25,6 +25,8 @@ import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner'
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
+import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
+import { linkAttributionToUser } from '../../lib/aiLesson/course/attribution';
 import { ApplicationModal } from './landing/ApplicationModal';
 import type { PlanId } from '../../lib/aiLesson/course/plans/planCatalog';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
@@ -255,6 +257,24 @@ export default function AiCoursePage() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [hearingBusy, setHearingBusy] = useState(false);
   const [hearingError, setHearingError] = useState(false);
+  /**
+   * 会話がまだ一度も無い（＝1回目のウォームアップを出す）。
+   * 学習履歴からの推測ではなく、セッション一覧を実際に見て決める。
+   * 1本終えたら false にし、2回目からは申告レベルどおりの入口に戻す。
+   */
+  const [firstEverConv, setFirstEverConv] = useState(false);
+  /**
+   * AI音声会話の残り回数（体験パス=3のうち）。
+   * 日数制の体験では**時間ではなく回数が上限**なので、残りを見せる相手はこちら。
+   * サーバーが返す値だけを使い、分からないうちは null（数字を作らない）。
+   */
+  const [remainingVoiceTotal, setRemainingVoiceTotal] = useState<number | null>(null);
+  /**
+   * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
+   * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
+   * この画面のためだけに読み直す。失敗したら null のまま（作り話をしない）。
+   */
+  const [trialSummary, setTrialSummary] = useState<TrialSummary | null>(null);
   const [hasResume, setHasResume] = useState(false);
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState('');
@@ -349,6 +369,13 @@ export default function AiCoursePage() {
       trackCourseOnce('view_ai_course_home');
       // 自社DB側の再訪記録（GA4と違い管理画面のファネルに出る）。日次集計なので重複送信は無害
       logCourseEvent('app_open');
+      /*
+       * このブラウザの流入元を本人に紐付ける（2026-08-26 Phase S1）。
+       * ここまで来た＝ログイン済みなので、未ログインのまま積んだ
+       * LP閲覧・CTA・checkout開始が「誰の行動だったか」つながる。
+       * 1ブラウザ1回で足り、付け替えはサーバー側が拒否する。
+       */
+      linkAttributionToUser();
     } else if (step === 'n2grammar') trackCourse('open_ai_course_n2');
     else if (step === 'history') trackCourse('open_ai_course_review');
     else if (step === 'notebook') trackCourse('view_ai_course_notebook'); // 名前・本文は送らない
@@ -410,6 +437,16 @@ export default function AiCoursePage() {
     setAccessState(access); // 期間内でも保持する（プラン表示・期限前案内が期間を読む）
     if (access.kind === 'none' || access.kind === 'expired' || access.kind === 'not_started') {
       setStep('accessGate');
+      /*
+       * 体験を使い切って止まった人にだけ、この60分でやったことを読み直す（2026-08-26）。
+       * ゲートで止まる人はここより先の読み込みに進まないので、この画面用に別途取る。
+       * 学習データの読み取りはRLSで本人の行だけ。失敗しても画面は出す（await しない）。
+       */
+      if (access.kind === 'expired' && access.row.trialWindowMinutes) {
+        void Promise.all([courseRepository.listRecentSessions(50), courseRepository.listProgress()])
+          .then(([sess, prog]) => setTrialSummary(buildTrialSummary(sess, prog)))
+          .catch(() => setTrialSummary(null));
+      }
       return;
     }
     setAccessPlanId('row' in access ? access.row.planId ?? null : null);
@@ -433,7 +470,9 @@ export default function AiCoursePage() {
     const usage = await getTodayUsage(l.id);
     setLearner(l); setProgress(prog); setSessions(sess);
     setRemaining(remainingSessionsToday(lim, usage));
-    setPlan(buildLessonPlan(l, prog));
+    const firstEver = sess.length === 0 && prog.length === 0;
+    setFirstEverConv(firstEver);
+    setPlan(buildLessonPlan(l, prog, undefined, { firstEverConversation: firstEver }));
     setHasResume(courseRepository.loadResume<unknown>() !== null);
     // 保存済みの表示言語があれば反映（複数端末で同じ言語に）。無ければURL言語のまま。
     const saved = l.settings.uiLanguage;
@@ -550,6 +589,7 @@ export default function AiCoursePage() {
     setMode(m);
     setActiveSessionId(r.sessionId ?? null);
     setRemaining(r.remainingSessions ?? 0);
+    if (r.remainingVoiceTotal != null) setRemainingVoiceTotal(r.remainingVoiceTotal);
     trackCourse('start_ai_course_lesson', { mode: m, kind: planArg.main.kind, week: learner.currentWeek });
     courseRepository.saveResume({ missionId: planArg.main.mission.id, kind: planArg.main.kind, at: Date.now() });
     setHasResume(false);
@@ -754,6 +794,7 @@ export default function AiCoursePage() {
     };
     setLearner(nextLearner);
     setProgress(freshProgress);
+    setFirstEverConv(false);
     setPlan(buildLessonPlan(nextLearner, freshProgress));
 
     // レポート生成（AI or フォールバック）
@@ -803,6 +844,8 @@ export default function AiCoursePage() {
       isReview, nextReviewISO: updated.nextReviewAt,
     }));
     setStep('report');
+    // 会話後のレポートに実際に到達したか（会話は終えたがレポートを見ずに閉じる人を分ける）
+    logCourseEvent('report_viewed', { kind: mainStep.kind, is_review: isReview });
     trackCourse('complete_ai_course_lesson', {
       kind: mainStep.kind, usage: result.usage, duration_seconds: result.durationSeconds,
       status: result.completionStatus,
@@ -911,6 +954,7 @@ export default function AiCoursePage() {
         <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialEndedUpgrade
             lang={uiLang}
+            summary={trialSummary}
             onApply={(planId) => setApplyPlanId(planId)}
             onLogout={() => { void signOut().then(() => setStep('login')); }}
           />
@@ -977,8 +1021,10 @@ export default function AiCoursePage() {
    * 満たないときは会話を出さない＝途中で打ち切られてレポートが残らない事故を防ぐ
    * （2026-08-20 本番前の満足度チェック）
    */
+  // 実時間制（旧仕様）でだけ意味がある。日数制では残り時間で会話が切れることはない
   const trialTooShortForConversation = !!(
     accessRow?.trialStartedAtISO
+    && reviewUnreachable(accessRow)
     && Date.parse(accessRow.validUntilISO) - Date.now() < 4 * 60 * 1000
   );
   const planChip = accessPlanId && accessRow ? (
@@ -986,8 +1032,10 @@ export default function AiCoursePage() {
       lang={uiLang}
       planId={accessPlanId}
       validUntilISO={accessRow.validUntilISO}
-      // リアルタイム表示は開始済みのときだけ（未開始は開始画面がホームを差し替える）
+      // 残りの表示は開始済みのときだけ（未開始は開始画面がホームを差し替える）
       realtimeWindowMinutes={accessRow.trialStartedAtISO ? (accessRow.trialWindowMinutes ?? null) : null}
+      trialDays={accessRow.trialStartedAtISO ? (accessRow.trialDays ?? null) : null}
+      remainingVoiceTotal={remainingVoiceTotal}
       usedSeconds={planUsedSeconds}
     />
   ) : null;
@@ -1142,6 +1190,11 @@ export default function AiCoursePage() {
       onSeeReviewNote={currentNote ? () => { setActiveNote(currentNote); setNoteReturnStep('report'); setStep('reviewNote'); } : undefined}
       onSeeNotebook={activeSessionId && !advOn ? () => { trackCourse('open_notebook_from_completion'); setStep('notebook'); } : undefined}
       learnerName={learner.displayName}
+      /* 感想を聞くのは3回目以降だけ（毎回だと邪魔・2026-08-26 Phase S7） */
+      sessionCount={sessions.length}
+      /* 実時間制の体験（旧仕様）では、来ない復習日を約束しない。
+         7日制では届くので日付を出す（2026-08-26 Phase S2） */
+      realtimeTrial={reviewUnreachable(accessRow)}
       /* 「カタリ港の霧が…」はミナモ列島（旧コース）の物語。V2の生徒はその世界を一度も見ていないので出さない（2026-08-18 監査P2） */
       worldLineJa={advOn ? undefined : t.katari.fogClearedToday} /></Shell>;
   }
@@ -1264,6 +1317,7 @@ export default function AiCoursePage() {
           /* V2の生徒に「ミナモ列島・第9エリア／カタリ港」は出さない。
              戻り先も今日の冒険なので、ボタンの名前を行き先に合わせる（2026-08-18 監査P1） */
           questMode={advOn}
+          warmUpFirst={firstEverConv}
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
           targetExpression={plan.main.mission.targetExpression}
           estimatedMinutes={plan.main.mission.estimatedMinutes}
@@ -1454,24 +1508,28 @@ export default function AiCoursePage() {
     );
   }
 
-  // ── 体験パス（リアルタイム60分制）の開始ゲート（2026-08-20 CEO決定）──
+  // ── 体験パスの開始ゲート（2026-08-20 CEO決定 / 2026-08-26 日数制へ）──
   // 未開始のあいだはホームの代わりに開始画面を出す。開始（ai_start_trial）で
-  // valid_until が開始+60分になり、以降は既存の期間ゲートが自動で終了させる。
+  // valid_until が開始+7日（旧仕様の行は開始+60分）になり、
+  // 以降は既存の期間ゲートが自動で終了させる。
   //
   // ⚠️ **目標設定・レベル診断が終わるまでは開始画面を出さない**（2026-08-20 本番前チェック）。
   // 準備（AdvShell内のオンボーディング＝目標選択＋診断）は数分かかる。ここでタイマーを
-  // 先に回すと、買った60分の何割かが設定作業で消える。準備は無料、時計は学習開始から。
+  // 先に回すと、買った時間の何割かが設定作業で消える。準備は無料、時計は学習開始から。
+  // この原則は日数制でも変えない（CEO指示 Phase S2）。
   {
     const row = accessState && 'row' in accessState ? accessState.row : null;
+    const shape = trialShapeOf(row);
     const advProfile = readAdvProfile(learner.settings);
     // AdvShell の needsOnboarding と同じ判定（!profile || !goalType || !diagnosis || !route）
     const onboardingDone = !!(advProfile?.goalType && advProfile?.diagnosis && advProfile?.route);
-    if (row?.trialWindowMinutes != null && !row.trialStartedAtISO && onboardingDone) {
+    if (shape.kind !== 'none' && row && !row.trialStartedAtISO && onboardingDone) {
       return (
         <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialStartScreen
             lang={uiLang}
-            windowMinutes={row.trialWindowMinutes}
+            trialDays={shape.kind === 'days' ? shape.days : null}
+            windowMinutes={shape.kind === 'minutes' ? shape.minutes : null}
             startDeadlineISO={row.validUntilISO}
             onStarted={() => void loadAll()}
           />
@@ -1507,7 +1565,7 @@ export default function AiCoursePage() {
                * **会話が第1週の「〜といいます」から始まっていた**（実機で発覚）。
                * 設定が変わったらその場で組み直す。
                */
-              setPlan(buildLessonPlan(nextLearner, progress));
+              setPlan(buildLessonPlan(nextLearner, progress, undefined, { firstEverConversation: firstEverConv }));
               void courseRepository.updateLearner({ settings: next });
             }}
             onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
@@ -1681,6 +1739,9 @@ export default function AiCoursePage() {
           syncVocabUrl({ view: v, category: null, itemId: null });
           setStep('vocab');
         }}
+        /* 実時間制の体験（旧仕様）では「明日また続けましょう」が嘘になる。
+           7日制では翌日が来るので通常表示に戻す（2026-08-26 Phase S2） */
+        realtimeTrial={reviewUnreachable(accessRow)}
         onUpdateAvatarSettings={(patch) => {
           const nextSettings = { ...learner.settings, ...patch };
           setLearner({ ...learner, settings: nextSettings });

@@ -1,14 +1,15 @@
 // レッスン後レポート（UX改訂）。最初に見せるのは「完了＋できたこと＋直す点1つ」だけ。
 // 詳細（訂正全件・自然な言い方・定着状態・XP内訳）は「詳しく見る」に折り畳む（§10）。
 
-import { useMemo, useRef, useState } from 'react';
-import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { CheckCircle2, PenLine, CalendarDays, Zap, Clock, ArrowRight, Home, Sparkles, RotateCcw, TrendingUp, BookOpen, ChevronDown, MapPin } from 'lucide-react';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import type { CourseMasteryState, FeedbackInput, LessonReport, Mission, MissionCategory } from '../../lib/aiLesson/course/types';
 import { canDoLineForMission } from '../../lib/aiLesson/course/courseCanDo';
 import type { CanDoStage } from '../../lib/aiLesson/course/courseCanDo';
 import { pickRetryTarget } from '../../lib/aiLesson/course/courseRetry';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { TestimonialPrompt } from './TestimonialPrompt';
 import { CourseRetryCard } from './CourseRetryCard';
 import { CourseIllustration } from './CourseIllustration';
 import { ShokoAvatar } from './ShokoAvatar';
@@ -57,16 +58,64 @@ interface Props {
   learnerAvatarUrl?: string | null;
   /** 世界の変化の一言（FOREST FIRST §12。会話がミナモ列島の物語につながる） */
   worldLineJa?: string;
+  /**
+   * 実時間制の体験（600円のAI体験パス）で学習しているか（2026-08-26）。
+   *
+   * 体験の受講権は「体験を始める」から60分の**実時間**で切れる。
+   * それなのにレポートは「次の復習: 8/27」と、体験では絶対に来ない日付を
+   * 約束していた（＝お金を払った人に、届かない約束を見せていた）。
+   * 体験中は日付ではなく「続けたときに届く」と正直に言う。
+   * 間隔をあけて再会させる学習設計そのものは変えていない。
+   */
+  realtimeTrial?: boolean;
+  /**
+   * この人の会話セッション累計（2026-08-26 Phase S7）。
+   * 感想を聞くタイミングの判断だけに使う。分からなければ 0（聞かない）。
+   */
+  sessionCount?: number;
 }
 
-export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa }: Props) => {
+export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgain, onNextChapter, canNext, onSeeReviewNote, onSeeNotebook, learnerName = '', learnerAvatarUrl = null, worldLineJa, realtimeTrial = false, sessionCount = 0 }: Props) => {
   const tr = t.report;
   const zh = t.locale === 'zh';
   const r = data.report;
   const [rated, setRated] = useState(false);
   const [open, setOpen] = useState(false); // 詳細の開閉
 
+  /*
+   * 復習が実際に予定された、をファネルに残す（2026-08-26 Phase S1）。
+   * 「レポートを見た」ではなく「次に会う日が入った」ときだけ。
+   * 既存のGA4イベントに同じ意味のものが無かったので、ここだけ新設した。
+   * 体験中は日付を出さないが、予定そのものは入るので記録は行う。
+   */
+  /*
+   * 感想を聞く（2026-08-26 Phase S7）。
+   * 毎回聞くと邪魔なので **3回目以降の会話が終わったときだけ** 出す。
+   * 1回目・2回目はまだ「何が良かったか」を言葉にできる段階ではない。
+   * 閉じたらこの画面が生きている間は二度と出さない。送信は1日1件（サーバー側）。
+   */
+  const [askFeedback, setAskFeedback] = useState(() => sessionCount >= 3);
+
+  const reviewLogged = useRef(false);
+  useEffect(() => {
+    if (reviewLogged.current || !data.nextReviewISO) return;
+    reviewLogged.current = true;
+    trackCourse('schedule_ai_course_review', { review_kind: data.masteryState });
+  }, [data.nextReviewISO, data.masteryState]);
+
   const usageLine = r.targetUsage === 'self' ? tr.usageSelf : r.targetUsage === 'hint' ? tr.usageHint : tr.usageNone;
+  /*
+   * 次の復習が明日なら、日付ではなく「明日」と言う（2026-08-26）。
+   * 「次の復習: 2026-08-27」は事実だが、**明日また開く理由**にはなっていない。
+   * 何を練習するのかまで言う。日付は現地時間で比べる（保存はYYYY-MM-DD）。
+   */
+  const reviewIsTomorrow = (() => {
+    if (!data.nextReviewISO) return false;
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const p2 = (n: number) => String(n).padStart(2, '0');
+    return data.nextReviewISO.startsWith(`${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`);
+  })();
   const rate = (rating: FeedbackInput['difficultyRating']) => { setRated(true); onFeedback({ difficultyRating: rating }); };
   const durMin = Math.max(1, Math.round(data.durationSeconds / 60));
 
@@ -136,10 +185,17 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                 </p>
                 <p className="text-xs text-gray-600 mt-1">{tr.doneCoachLine}</p>
                 {worldLineJa && <p className="text-xs text-indigo-600 mt-1">{worldLineJa}</p>}
-                {data.nextReviewISO && (
-                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
-                  </p>
+                {data.nextReviewISO && !realtimeTrial && (
+                  reviewIsTomorrow ? (
+                    <p className="text-xs text-blue-800 mt-1.5 rounded-lg bg-blue-50 px-2.5 py-1.5 flex items-start gap-1.5 leading-relaxed">
+                      <CalendarDays className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-px" />
+                      {tr.reviewTomorrow(data.todayCanDo.expression)}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <CalendarDays className="w-3 h-3 text-blue-500" />{tr.nextReview}: <span className="font-bold text-gray-700">{data.nextReviewISO}</span>
+                    </p>
+                  )
                 )}
                 {/* ノートへ残った事実（通常会話=DB保存済みの時だけ表示・軽め学習では出さない） */}
                 {onSeeNotebook && (
@@ -194,6 +250,22 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                     </ul>
                   </div>
                 )}
+                {/* 感想を聞く（任意・閉じられる）。掲載の許諾は別チェックで既定OFF */}
+                {askFeedback && (
+                  <TestimonialPrompt lang={zh ? 'zh' : 'ja'} context="report"
+                    onClose={() => setAskFeedback(false)} />
+                )}
+                {/* 日本で使える場面（2026-08-26）。学習を生活につなぐ一文。無ければ出さない */}
+                {(zh ? r.usableSceneZh || r.usableSceneJa : r.usableSceneJa) && (
+                  <div className="rounded-xl bg-blue-50/70 border border-blue-100 px-3 py-2.5">
+                    <p className="text-xs text-blue-700 flex items-center gap-1.5 mb-0.5">
+                      <MapPin className="w-3.5 h-3.5" />{tr.usableScene}
+                    </p>
+                    <p className="text-sm text-gray-800 leading-relaxed">
+                      {zh ? r.usableSceneZh || r.usableSceneJa : r.usableSceneJa}
+                    </p>
+                  </div>
+                )}
                 {/* 訂正の残り */}
                 {restFixes.length > 0 && (
                   <div>
@@ -225,10 +297,19 @@ export const CourseReport = ({ t, data, onFeedback, onBackHome, onAgain, canAgai
                     <span className="text-gray-600">{tr.masteryNow}</span>
                     <span className="font-bold text-blue-700">{tr.masteryLabels[data.masteryState]}</span>
                   </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-600 flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-blue-600" />{tr.nextReview}</span>
-                    <span className="font-bold text-gray-900">{data.nextReviewISO ?? tr.nextReviewNone}</span>
-                  </div>
+                  {realtimeTrial ? (
+                    /* 体験中は届かない日付を約束しない。学習設計そのものは同じ */
+                    <div className="rounded-xl bg-amber-50 border border-amber-100 px-3 py-2.5">
+                      <p className="text-xs text-amber-900 leading-relaxed flex items-start gap-1.5">
+                        <CalendarDays className="w-3.5 h-3.5 shrink-0 mt-0.5" />{tr.nextReviewTrial}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-gray-600 flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5 text-blue-600" />{tr.nextReview}</span>
+                      <span className="font-bold text-gray-900">{data.nextReviewISO ?? tr.nextReviewNone}</span>
+                    </div>
+                  )}
                   {data.nextMissionLabel && (
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-600">{tr.nextMission}</span>

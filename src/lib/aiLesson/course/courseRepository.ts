@@ -111,6 +111,12 @@ export interface StartSessionResult {
   ok: boolean;
   sessionId?: string | null;
   remainingSessions?: number;
+  /**
+   * AI音声会話の残り回数（プラン合計。体験パス=3のうち）。
+   * サーバー（ai_start_session）が返す値をそのまま持つ。
+   * 上限は ai_config が正なので、クライアントで計算し直さない（ずれるため）。
+   */
+  remainingVoiceTotal?: number | null;
   /** 今月あと何回できるか（月次アッパー基準） */
   remainingMonthly?: number;
   code?: StartSessionCode;
@@ -281,9 +287,11 @@ const createRepository = (): CourseRepository => ({
       p_target_expression: s.targetExpression,
     });
     if (error || !data) return { ok: false, code: 'network' };
-    const r = data as { ok: boolean; code?: string; sessionId?: string; remainingSessions?: number; remainingMonthly?: number };
+    const r = data as { ok: boolean; code?: string; sessionId?: string; remainingSessions?: number;
+      remainingMonthly?: number; remainingVoiceTotal?: number | null };
     if (!r.ok) return { ok: false, code: (r.code as StartSessionCode) ?? 'unknown' };
-    return { ok: true, sessionId: r.sessionId ?? null, remainingSessions: r.remainingSessions ?? 0, remainingMonthly: r.remainingMonthly };
+    return { ok: true, sessionId: r.sessionId ?? null, remainingSessions: r.remainingSessions ?? 0,
+      remainingMonthly: r.remainingMonthly, remainingVoiceTotal: r.remainingVoiceTotal ?? null };
   },
 
   async finalizeSession(sessionId, patch, utterances, learnerId) {

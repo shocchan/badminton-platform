@@ -10,6 +10,7 @@ export interface FunctionPlan {
   accessDays: number | null;
   aiMinutes: number | null;
   realtimeWindowMinutes: number | null;
+  trialDays: number | null;
   lessonCount: number;
   status: string;
 }
@@ -17,23 +18,24 @@ export interface FunctionPlan {
 export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
   {
     "id": "ai-trial-pass",
-    "version": 4,
+    "version": 5,
     "nameJa": "AI体験パス",
     "nameZh": "AI体验通行证",
     "priceLabelJa": "600円（税込）",
     "priceLabelZh": "600日元（含税）",
     "priceJpy": 600,
-    "durationLabelJa": "開始から60分間（購入後30日以内に開始）",
-    "durationLabelZh": "开始后60分钟（购买后30天内开始）",
+    "durationLabelJa": "開始から7日間（購入後30日以内に開始）",
+    "durationLabelZh": "开始后7天（购买后30天内开始）",
     "accessDays": 30,
     "aiMinutes": null,
-    "realtimeWindowMinutes": 60,
+    "realtimeWindowMinutes": null,
+    "trialDays": 7,
     "lessonCount": 0,
     "status": "published"
   },
   {
     "id": "ai-month",
-    "version": 3,
+    "version": 4,
     "nameJa": "1か月 AI自学プラン",
     "nameZh": "1个月 AI自学方案",
     "priceLabelJa": "2,980円（税込）",
@@ -44,12 +46,13 @@ export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
     "accessDays": 30,
     "aiMinutes": null,
     "realtimeWindowMinutes": null,
+    "trialDays": null,
     "lessonCount": 0,
     "status": "published"
   },
   {
     "id": "coach-6m",
-    "version": 5,
+    "version": 6,
     "nameJa": "6か月 AI日本語伴走コース",
     "nameZh": "6个月 AI日语陪跑课程",
     "priceLabelJa": "10万円（税込）",
@@ -60,6 +63,7 @@ export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
     "accessDays": null,
     "aiMinutes": null,
     "realtimeWindowMinutes": null,
+    "trialDays": null,
     "lessonCount": 24,
     "status": "published"
   }

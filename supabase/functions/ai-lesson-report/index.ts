@@ -55,11 +55,17 @@ const REPORT_SCHEMA = {
     //  f011e44 と同じ修正）。required に入れたうえで null を許して「無し」を表現する。
     achievementsZh: { type: ["array", "null"], items: { type: "string" }, maxItems: 3 },
     encouragementZh: { type: ["string", "null"] },
+    // 「日本で使える場面」（2026-08-26）。今日の練習が生活のどこで効くかを1文で言う。
+    // レポートが「できた/直そう」だけだと、学習が日本での生活とつながらない。
+    // 上の2項目と同じく null 許容＋required（strict の要求）。
+    usableSceneJa: { type: ["string", "null"] },
+    usableSceneZh: { type: ["string", "null"] },
   },
   required: [
     "todaySummaryJa", "todaySummaryZh", "achievements", "corrections",
     "naturalPhrases", "targetUsage", "encouragementJa",
     "achievementsZh", "encouragementZh",
+    "usableSceneJa", "usableSceneZh",
   ],
 };
 
@@ -164,6 +170,12 @@ serve(async (req) => {
       "・todaySummaryZh: 同じ内容の自然な簡体字中国語",
       "・achievements: 生徒が実際にできたこと（最大3個、日本語）",
       "・corrections: 直したほうがよい所（最大2個まで。重要なものだけ。無ければ空配列）",
+      "    - original: S が実際に言った文",
+      "    - improved: それを自然にした日本語",
+      "    - noteZh: **なぜそう直すのかの理由**を簡体字中国語で1文（20〜45字）。",
+      "      文法・語感・場面の相手との距離のどれかに触れ、「もっと自然です」だけで終わらせない。",
+      "      例:「『食べれる』是口语的省略，正式场合用『食べられる』更稳妥。」",
+      "      直し方の指示（『〜に変えましょう』）ではなく、理由を書いてください。",
       "・naturalPhrases: 今日使える自然な言い方（最大2個）",
       "・targetUsage: 目標表現の使用を次で判定する。",
       "    self = 直前に T が同じ表現を言っていない状態で、S が自分から使った",
@@ -173,6 +185,10 @@ serve(async (req) => {
       "・encouragementJa: 短い励まし（1文）",
       "・achievementsZh: achievements の各項目と同じ順序の自然な簡体字中国語訳",
       "・encouragementZh: encouragementJa と同じ内容の自然な簡体字中国語",
+      "・usableSceneJa: 今日練習したことが**日本の生活のどこで使えるか**を具体的に1文。",
+      "  店・職場・病院・役所・近所づきあいなど、実際の場面を1つ挙げる。",
+      "  会話ログの内容と関係のない場面を作らないでください。思いつかなければ null。",
+      "・usableSceneZh: usableSceneJa と同じ内容の自然な簡体字中国語（Jaがnullならnull）",
     ].join("\n");
 
     const user = [

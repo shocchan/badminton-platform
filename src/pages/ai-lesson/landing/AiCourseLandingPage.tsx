@@ -11,6 +11,10 @@ import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
 import { HumanCoachSection, TestimonialsSection } from './sectionsC';
 import { PricingSection, PlanComparisonSection, PlanFitSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
+import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
+import { WhyNotAiOnlySection } from './sectionsWhy';
+import { LpTrailProgress } from './lpTrail';
+import { currentLpTheme } from './lpTheme';
 import { ApplicationModal } from './ApplicationModal';
 import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
@@ -77,6 +81,12 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
     return () => io.disconnect();
   }, [v.key]);
 
+  /*
+     見た目の切り替え（2026-08-27 試作）。マウント時に一度だけ決める。
+     読んでいる途中で変わると、同じページで色が入れ替わって混乱するため。
+  */
+  const [theme] = useState(currentLpTheme);
+
   const path = variant === 'shoko' && !noindex ? 'ai-course' : `ai-course/${variant}`;
   const canonical = `${SITE}/${lang}/ai-course`; // variantは主ページへ集約
   const other = lang === 'ja' ? 'zh' : 'ja';
@@ -114,8 +124,13 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
     // ⚠️ ここに overflow-x-hidden を付けない: 祖先が scroll container になると
     // ヘッダーの position: sticky が無効化される（2026-08-19 staging実測で発覚した既存バグ。
     // 「学習システムを見る」の着地でヘッダー分のオフセットが必要なのに固定されていなかった）。
-    // 横はみ出しの抑止は main/footer を包む内側のラッパーが担う
-    <div className="bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
+    /*
+      横はみ出しの抑止は main/footer を包む内側のラッパーが担う。
+      data-lp-theme は見た目の切り替え（?theme=adventure）。
+      既定は 'default' で、本番の一般訪問者にはこれまでどおりの見た目しか出ない。
+      lp-paper は冒険パレットのときだけ効く紙の質感（画像を使わない・0KB）。
+    */
+    <div data-lp-theme={theme} className="lp-paper bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
       <Helmet>
         <html lang={lang === 'ja' ? 'ja' : 'zh'} />
         <title>{seoTitle}</title>
@@ -196,22 +211,43 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
           ページ内スクロールの挙動に副作用が出うる。clip はスクロールコンテナを作らない）。
           clip 未対応の古いブラウザは inline style が無効になり className の hidden に落ちる */}
       <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
+      {/* 27画面ぶんの長さがあるので、いまどこまで来たかを細い帯で出す（0KB・CSSのみ） */}
+      <LpTrailProgress label={LP.trailProgressLabel[lang]} />
+
       <main>
-        {/* 2026-08-19 再構成: FV → 悩み → 人×AIの仕組み → 学習システム実物 →
-            毎日のステップ → 6か月ロードマップ → 料金3プラン＋比較 → あなたに合うプラン →
-            人間コーチ → 受講生 → FAQ → 最終CTA（12セクション） */}
+        {/*
+          2026-08-26 再構成（CEO指示 Phase S3）: **なぜこれを選ぶのかを理解してから値段を見る**順番へ。
+          直前まで、価格表が6番目・人間コーチの紹介が9番目だった。読む人は
+          この商品の唯一の代替不可能な部分を見る前に金額を見ていたことになる。
+          中国語圏には安価なAI会話アプリが大量にあるので、その状態で価格を出すと
+          「AIアプリなのに高い」という比較で終わる。
+
+          並び:
+            ① 悩み → ② 日本生活の場面 → ③ なぜAIアプリだけでは足りないか
+            → ④ 仕組み → ⑤ AIと人の役割 → ⑥ コーチ紹介 → ⑦ 学習サイクル
+            → ⑧ 600円体験 → ⑨ 6か月ロードマップ → ⑩ 料金 → ⑪ 比較・向き不向き
+            → ⑫ 受講生 → ⑬ FAQ → ⑭ 最終CTA
+          既存セクションは1つも削っていない（順番と、新設1つだけ）。
+        */}
         <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
         <PriceTeaserStrip lang={lang} variant={v.key} />
         <PainPointsSection lang={lang} />
-        <AiHumanRolesSection v={v} lang={lang} />
+        {/* 悩みの直後に「その悩みが出る場面」。機能の説明より先に自分の生活を思い浮かべてもらう */}
+        <LifeScenesSection lang={lang} />
+        {/* ここで「AIと話せます」だけの商品との違いを先に言う。競合は攻撃しない */}
+        <WhyNotAiOnlySection lang={lang} />
         <PlatformFeatures lang={lang} />
+        <AiHumanRolesSection v={v} lang={lang} />
+        {/* 役割の話の直後に、その「人」が誰なのかを出す。**価格表より前**であることが要点 */}
+        <HumanCoachSection lang={lang} />
         <DailyLearningFlow v={v} lang={lang} />
+        {/* 料金の直前に「600円で何が起きるか」。金額を見る前に中身を知ってもらう */}
+        <TrialContentsSection lang={lang} />
         <SixMonthRoadmap lang={lang} />
         <PricingSection lang={lang} onConsult={openConsult}
           onApply={setApplyPlanId} preview={planPreview} />
         <PlanComparisonSection lang={lang} />
         <PlanFitSection lang={lang} />
-        <HumanCoachSection lang={lang} />
         <TestimonialsSection lang={lang} />
         <FaqSection lang={lang} />
         <FinalCtaSection v={v} lang={lang} onConsult={openConsult} />

@@ -32,12 +32,19 @@ export interface KatariPortIntroProps {
    * （実際の戻り先は今日の冒険＝名前が嘘）。questModeでは行き先と場所名を実際に合わせる。
    */
   questMode?: boolean;
+  /**
+   * 1回目のウォームアップ回か（2026-08-26）。
+   * N2申告の人は入口が第13週なので、初回がいきなり尊敬語から始まっていた。
+   * 初回だけやさしい会話に差し替えているが、**黙って易しくすると
+   * 「レベルを見誤られた」と受け取られる**ので、理由をこの画面で先に言う。
+   */
+  warmUpFirst?: boolean;
 }
 
 export const KatariPortIntro = ({
   t, purposeJa, targetExpression, estimatedMinutes, remainingToday, starting,
   onStartVoice, onStartText, onBack, startError, recovery, onDiscardActive, onCancelRecovery,
-  questMode = false,
+  questMode = false, warmUpFirst = false,
 }: KatariPortIntroProps) => (
   <div className="max-w-md mx-auto px-4 py-4">
     <button type="button" onClick={onBack}
@@ -55,6 +62,12 @@ export const KatariPortIntro = ({
         {/* 選択中の先生を出す（翔子固定スプライトだと悠斗先生を選んだ人に女性が出る・2026-08-17） */}
         <div className="w-10 shrink-0"><TeacherAvatar size={40} expression="smile" labeled={false} /></div>
       </div>
+
+      {warmUpFirst && (
+        <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900">
+          {t.katari.warmUpFirst}
+        </p>
+      )}
 
       <dl className="mt-3 space-y-2 text-sm">
         <div className="bg-white/80 rounded-xl p-2.5">

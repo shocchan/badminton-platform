@@ -20,7 +20,7 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
       .select('learner_id, started_at, completion_status, lesson_kind, error_code')
       .gte('started_at', wide).limit(5000),
     supabase.from('ai_usage_daily').select('learner_id, usage_date').limit(5000),
-    supabase.from('ai_course_events').select('user_id, kind, created_at').gte('created_at', since).limit(5000),
+    supabase.from('ai_course_events').select('user_id, kind, props, created_at').gte('created_at', since).limit(5000),
     supabase.from('ai_course_access').select('user_id, source').limit(2000),
   ]);
 
@@ -48,6 +48,8 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
   if (usageQ.error) failed.push('usage');
   const events: FunnelEventRow[] = (eventsQ.error ? [] : eventsQ.data ?? []).map((r) => ({
     userId: String(r.user_id), kind: String(r.kind), createdAtISO: String(r.created_at),
+    // 失敗の内訳（error_occurred の where）を出すため props も持たせる（2026-08-26）
+    props: (r.props ?? null) as Record<string, unknown> | null,
   }));
   if (eventsQ.error) failed.push('events');
 

@@ -1,21 +1,35 @@
 // 決済完了ページ（Stripe Checkout の success_url の戻り先）。
 //
-// - 決済→自動発行は Webhook 側で走る。この画面は台帳の状態を数秒おきに照会して、
-//   発行が終わったら **ログインID** と次の手順を表示する（初期パスワードはメールのみ）
-// - URLの session_id は Stripe 発行の推測不能トークン。購入者のブラウザだけが知る
-// - メールが届く前に画面を閉じても、ログイン情報はメールに残るので詰まない
-import { useEffect, useRef, useState } from 'react';
+// 【2026-08-26 P0 改修】
+// 以前はログインIDだけを出し、初期パスワードはメールで送っていた。
+// 実データで、受講権を持つ12人のうち**7人が一度もセッションを開始していない**。
+// 買った直後にメールアプリへ離脱させる作りが、いちばん学習意欲の高い瞬間を捨てていた。
+//
+// いまは:
+//   決済 → 状態確認（webhookが正 = source of truth）→ 一回きりのトークンで自動ログイン
+//   → 「学習を始める」だけを出す
+// 自動ログインに失敗しても行き止まりにしない。通常ログイン（メールの初期パスワード）と
+// 再送の導線を画面内に置き、それでも駄目なときだけ問い合わせ先を出す。
+//
+// 非同期決済（Alipay / WeChat Pay）への配慮:
+// success_url に戻ったことは成功の証拠にしない。台帳の status（webhookが書く）だけを見る。
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useSearchParams } from 'react-router-dom';
-import { CheckCircle2, Loader2, Mail, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertTriangle, ArrowRight, Clock } from 'lucide-react';
 import { useLanguage } from '../../../contexts/LanguageContext';
 import { track } from './lpHelpers';
 import { LP } from './lpContent';
-import { fetchPurchaseStatus, type PurchaseStatus } from '../../../lib/aiLesson/course/plans/planCheckout';
+import {
+  fetchPurchaseStatus, claimPurchaseSession, type PurchaseStatus,
+} from '../../../lib/aiLesson/course/plans/planCheckout';
 import { planById, planView } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { logCourseEvent } from '../../../lib/aiLesson/course/courseEvents';
 
 const POLL_MS = 2500;
-const MAX_POLLS = 40; // 約100秒。Webhookは通常数秒で完了する
+const MAX_POLLS = 40; // 約100秒。カードは数秒、Alipay/WeChat Payは少し遅れることがある
+
+type AuthPhase = 'idle' | 'claiming' | 'signed_in' | 'manual';
 
 export function PurchaseCompletePage() {
   const { lang } = useLanguage();
@@ -24,7 +38,10 @@ export function PurchaseCompletePage() {
   const sessionId = params.get('session_id') ?? '';
   const [state, setState] = useState<PurchaseStatus | null>(null);
   const [timedOut, setTimedOut] = useState(false);
+  const [authPhase, setAuthPhase] = useState<AuthPhase>('idle');
+  const [claimedLoginId, setClaimedLoginId] = useState<string | null>(null);
   const purchaseTracked = useRef(false);
+  const claimAttempted = useRef(false);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -43,6 +60,37 @@ export function PurchaseCompletePage() {
     return () => { alive = false; };
   }, [sessionId]);
 
+  /**
+   * 発行が終わった瞬間に、一回きりのトークンでログインしてしまう。
+   * 失敗しても通常ログインへ倒すだけなので、ここで例外を投げない。
+   */
+  const claim = useCallback(async () => {
+    if (claimAttempted.current || !sessionId) return;
+    claimAttempted.current = true;
+    setAuthPhase('claiming');
+    const r = await claimPurchaseSession(sessionId);
+    if (r.ok) {
+      setClaimedLoginId(r.loginId);
+      setAuthPhase('signed_in');
+      // ここでは既にログイン済み＝サーバー側イベントも書ける（購入者単位で追える）
+      logCourseEvent('auth_completed', { method: 'purchase_claim' });
+      track('ai_course_auth_completed', { method: 'purchase_claim' });
+      return;
+    }
+    // not_ready は台帳の反映待ち。1度だけ短く待って再挑戦する
+    if (r.reason === 'not_ready') {
+      claimAttempted.current = false;
+      window.setTimeout(() => { void claim(); }, 2000);
+      return;
+    }
+    setAuthPhase('manual');
+    track('ai_course_auth_failed', { method: 'purchase_claim', reason: r.reason });
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (state?.status === 'provisioned') void claim();
+  }, [state?.status, claim]);
+
   // purchase 計測（発行完了を初めて観測した1回だけ。金額はカタログから）
   useEffect(() => {
     if (purchaseTracked.current || state?.status !== 'provisioned') return;
@@ -57,8 +105,7 @@ export function PurchaseCompletePage() {
     });
   }, [state, sessionId]);
 
-  // 失敗・発行待ちタイムアウトも1回だけ計測する（2026-08-23 監査: purchase_fail が無く、
-  // 「決済はしたのに学習に入れなかった人」がファネルから消えていた）
+  // 失敗・発行待ちタイムアウトも1回だけ計測する
   const failTracked = useRef(false);
   useEffect(() => {
     if (failTracked.current) return;
@@ -71,6 +118,10 @@ export function PurchaseCompletePage() {
   const title = zh ? '购买手续｜你的日语搭档' : 'ご購入手続き｜日本語の相棒';
   const planName = state?.planId ? planView(planById(state.planId)!, zh ? 'zh' : 'ja').name : null;
   const loginHref = `/${lang}/ai-course/login`;
+  /** 自動ログイン済みなら、学習画面へそのまま入る */
+  const startHref = `/${lang}/ai-course`;
+
+  const primaryBtn = 'mt-6 inline-flex items-center justify-center gap-2 min-h-12 rounded-full bg-lp-coral px-8 py-3.5 font-extrabold text-white shadow-[0_8px_0_var(--color-lp-coral-deep)]';
 
   const body = (() => {
     if (!sessionId || (state && state.status === 'unknown')) {
@@ -92,70 +143,86 @@ export function PurchaseCompletePage() {
         </div>
       );
     }
+
     if (state?.status === 'provisioned') {
+      const signedIn = authPhase === 'signed_in';
+      const claiming = authPhase === 'claiming' || authPhase === 'idle';
       return (
         <div className="text-center">
           <CheckCircle2 className="w-12 h-12 mx-auto text-lp-pine" aria-hidden="true" />
           <h1 className="mt-3 text-xl font-extrabold text-lp-ink">
-            {zh ? '购买完成，账号已开通！' : 'ご購入ありがとうございます。アカウントを発行しました！'}
+            {zh ? '准备好了，可以开始学习了！' : '600円体験の準備ができました！'}
           </h1>
           {planName && <p className="mt-1 text-[0.95rem] text-lp-ink-soft">{planName}</p>}
 
-          <div className="mt-5 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-4 text-left">
-            <p className="text-[0.8rem] font-bold text-lp-ink-soft">{zh ? '登录ID' : 'ログインID'}</p>
-            <p className="mt-0.5 font-extrabold text-lp-ink text-2xl tracking-wide select-all">{state.loginId}</p>
-            <p className="mt-2 text-[0.88rem] text-lp-ink-soft leading-relaxed">
-              <Mail className="inline w-4 h-4 mr-1 align-[-2px]" aria-hidden="true" />
-              {state.maskedEmail
-                ? (zh
-                  ? `初始密码已发送到你的邮箱（${state.maskedEmail}）。`
-                  : `初期パスワードはメール（${state.maskedEmail}）へお送りしました。`)
-                /* メールが取得できなかった購入（2026-08-23 監査P0）。
-                   「送りました」と言うと、届かない人が黙って詰む。この画面でだけ本当のことを言う */
-                : (zh
-                  ? '本次购买没有取得邮箱地址，因此无法发送初始密码。请把上面的登录ID记下来，并联系我们。'
-                  : 'この購入ではメールアドレスを取得できなかったため、初期パスワードをお送りできていません。上のログインIDを控えて、ご連絡ください。')}
-            </p>
-            {/* ログインIDは**この画面を閉じると二度と出ない**。控える前提を明示する */}
-            <p className="mt-2 text-[0.82rem] text-lp-ink-soft leading-relaxed">
+          {/* 「時計はまだ動いていない」を先に言う。ここが不安だと人は始められない */}
+          <div className="mt-5 flex items-start gap-2 rounded-2xl bg-lp-pine-soft/40 border border-lp-pine/30 px-4 py-3 text-left">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-lp-pine" aria-hidden="true" />
+            <p className="text-[0.88rem] leading-relaxed text-lp-ink">
               {zh
-                ? '※ 这个登录ID请先记下来或截图保存。'
-                : '※ このログインIDは、スクリーンショットなどで控えておいてください。'}
+                ? '准备和设置的时间不会消耗60分钟的体验时间。计时从你按下「开始体验」的那一刻才开始。'
+                : '準備・設定中は60分の体験時間を消費しません。時計は「体験を始める」を押したときから動きます。'}
             </p>
           </div>
 
-          {!state.maskedEmail && (
-            <div role="alert" className="mt-3 rounded-2xl border border-lp-coral bg-lp-coral/10 px-4 py-3 text-left">
-              <p className="text-[0.9rem] font-bold text-lp-ink">
-                {zh ? '请联系我们以获取密码' : 'パスワードのご案内が必要です'}
-              </p>
-              <p className="mt-1 text-[0.86rem] text-lp-ink-soft leading-relaxed">
+          {claiming && (
+            <p className="mt-5 inline-flex items-center gap-2 text-[0.92rem] text-lp-ink-soft" role="status" aria-live="polite">
+              <Loader2 className="w-4 h-4 motion-safe:animate-spin" aria-hidden="true" />
+              {zh ? '正在为你登录……' : 'ログインしています…'}
+            </p>
+          )}
+
+          {signedIn && (
+            <>
+              <a href={startHref} className={primaryBtn}>
+                {zh ? '开始学习' : '学習を始める'}
+                <ArrowRight className="w-5 h-5" aria-hidden="true" />
+              </a>
+              <p className="mt-4 text-[0.82rem] text-lp-ink-soft leading-relaxed">
                 {zh
-                  ? `请把登录ID「${state.loginId}」写在邮件里，发送到 ${LP.consultation.email}。我们会尽快回复初始密码。`
-                  : `ログインID「${state.loginId}」を書いて ${LP.consultation.email} までご連絡ください。折り返し初期パスワードをお送りします。`}
+                  ? `已经登录，可以直接开始。登录ID是「${claimedLoginId ?? '—'}」，密码也已发送到你的邮箱（下次登录时使用）。`
+                  : `すでにログイン済みです。ログインIDは「${claimedLoginId ?? '—'}」、パスワードはメールでもお送りしています（次回のログイン用）。`}
+              </p>
+            </>
+          )}
+
+          {/* 自動ログインに失敗したとき。人力対応を主導線にしない */}
+          {authPhase === 'manual' && (
+            <div className="mt-5 rounded-2xl border border-lp-line bg-lp-ivory-2 px-4 py-4 text-left">
+              <p className="text-[0.9rem] font-bold text-lp-ink">
+                {zh ? '请从登录页面进入' : 'ログインページからお進みください'}
+              </p>
+              <p className="mt-1.5 text-[0.86rem] text-lp-ink-soft leading-relaxed">
+                {zh
+                  ? '自动登录没有成功，但账号已经开通了。登录ID和初始密码已发送到你的邮箱。'
+                  : '自動ログインはできませんでしたが、アカウントは開通しています。ログインIDと初期パスワードはメールでお送りしています。'}
+              </p>
+              {state.loginId && (
+                <p className="mt-2 text-[0.86rem] text-lp-ink">
+                  {zh ? '登录ID：' : 'ログインID：'}
+                  <span className="font-extrabold text-lg tracking-wide select-all">{state.loginId}</span>
+                </p>
+              )}
+              {state.maskedEmail && (
+                <p className="mt-1 text-[0.82rem] text-lp-ink-soft">
+                  {zh ? `发送到：${state.maskedEmail}` : `送信先：${state.maskedEmail}`}
+                </p>
+              )}
+              <a href={loginHref}
+                className="mt-3 inline-flex items-center justify-center gap-2 min-h-11 w-full rounded-xl bg-lp-coral px-5 font-bold text-white">
+                {zh ? '打开登录页面' : 'ログインページを開く'}
+              </a>
+              <p className="mt-3 text-[0.8rem] text-lp-ink-soft leading-relaxed">
+                {zh
+                  ? `收不到邮件时，请先查看垃圾邮件文件夹；仍未收到请联系 ${LP.consultation.email}。`
+                  : `メールが届かない場合は迷惑メールフォルダをご確認のうえ、${LP.consultation.email} へご連絡ください。`}
               </p>
             </div>
           )}
-
-          <ol className="mt-4 text-left text-[0.92rem] text-lp-ink leading-relaxed list-decimal pl-5 space-y-1">
-            <li>{zh ? '查收邮件，确认初始密码' : 'メールを開いて初期パスワードを確認'}</li>
-            <li>{zh ? '在登录页面输入ID和密码' : 'ログインページでIDとパスワードを入力'}</li>
-            <li>{zh ? '输入名字，就可以开始学习了' : 'お名前を入力したら、学習スタート'}</li>
-          </ol>
-
-          <a href={loginHref}
-            className="mt-6 inline-flex items-center justify-center gap-2 min-h-12 rounded-full bg-lp-coral px-8 py-3.5 font-extrabold text-white shadow-[0_8px_0_var(--color-lp-coral-deep)]">
-            {zh ? '打开登录页面' : 'ログインページを開く'}
-          </a>
-
-          <p className="mt-5 text-[0.82rem] text-lp-ink-soft leading-relaxed">
-            {zh
-              ? `收不到邮件时，请先查看垃圾邮件文件夹；仍未收到请联系 ${LP.consultation.email}。`
-              : `メールが届かない場合は迷惑メールフォルダをご確認のうえ、${LP.consultation.email} へご連絡ください。`}
-          </p>
         </div>
       );
     }
+
     if (state?.status === 'failed' || timedOut) {
       return (
         <div className="text-center">
@@ -172,6 +239,10 @@ export function PurchaseCompletePage() {
         </div>
       );
     }
+
+    /* pending / paid（＝webhook待ち）。
+       Alipay・WeChat Pay は決済確定が遅れることがあるので、
+       「払えたのか分からない」状態にしないよう、いま何を待っているかを言う */
     return (
       <div className="text-center" role="status" aria-live="polite">
         <Loader2 className="w-10 h-10 mx-auto text-lp-pine motion-safe:animate-spin" aria-hidden="true" />
@@ -180,8 +251,8 @@ export function PurchaseCompletePage() {
         </h1>
         <p className="mt-3 text-[0.95rem] text-lp-ink-soft leading-relaxed">
           {zh
-            ? '通常几秒钟内完成。账号开通后，登录信息也会发送到你的邮箱。'
-            : '通常は数秒で完了します。アカウント発行が終わると、ログイン情報がメールでも届きます。'}
+            ? '通常几秒钟内完成。用支付宝・微信支付时，确认可能会稍慢一点。请不要关闭这个页面。'
+            : '通常は数秒で完了します。Alipay・WeChat Payの場合は少し時間がかかることがあります。このページは閉じずにお待ちください。'}
         </p>
       </div>
     );

@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:staging": "vite --mode staging --port 5176",
-    "build": "npm run validate:ai-course-language-integrity && tsc -b && vite build && node scripts/generate-worker.mjs",
-    "build:staging": "npm run validate:ai-course-language-integrity && tsc -b && vite build --mode staging && node scripts/generate-worker.mjs",
+    "build": "npm run validate:ai-course-language-integrity && tsc -b && vite build && vite-node scripts/ai-course/generate-lp-prerender.mts && node scripts/generate-worker.mjs",
+    "build:staging": "npm run validate:ai-course-language-integrity && tsc -b && vite build --mode staging && vite-node scripts/ai-course/generate-lp-prerender.mts && node scripts/generate-worker.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

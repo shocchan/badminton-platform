@@ -31,8 +31,37 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
       : line;
 
   return (
-    <section className="pt-8 sm:pt-12 pb-4">
-      <div className="mx-auto max-w-6xl px-5">
+    <section className="relative pt-8 sm:pt-12 pb-4">
+      {/*
+        冒険テーマのときだけ、いちばん上に薄く風景を敷く（2026-08-27 試作）。
+        パレットを変えただけでは「素朴」にしか見えず、冒険には見えなかったので、
+        生徒が毎日見ている水彩の世界を最初に出す。
+
+        - 既定テーマでは **DOMごと出ない**（読み込みも起きない）
+        - 上から下へ完全に消えるベールを重ね、本文の可読性は落とさない
+        - ヒーローは画面の最初なので lazy が効かない。冒険テーマを選んだ人だけが
+          51KB（AVIF）を追加で読む。既定を選んだ人の重さは変わらない
+      */}
+      {/*
+        z-index に負の値を使わないこと。親（LPのルート）が bg-lp-ivory を持つので、
+        -z-10 にすると**その背景色の裏に回って完全に見えなくなる**（実機で確認）。
+        ここは z-0 のまま先に置き、下のコンテンツ側を relative z-10 で前に出す。
+      */}
+      <div className="lp-adv-hero-bg absolute inset-x-0 top-0 h-[220px] sm:h-[300px] overflow-hidden" aria-hidden="true">
+        <picture>
+          <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
+          <img
+            src="/ai-course/map/world-bg@1x.webp"
+            alt="" aria-hidden="true" decoding="async"
+            width={512} height={768}
+            className="w-full h-full object-cover object-top"
+          />
+        </picture>
+        {/* 上は薄く（風景を見せる）、下は完全に消す（本文に重ならない） */}
+        <div className="absolute inset-0 bg-gradient-to-b from-lp-ivory/25 via-lp-ivory/70 to-lp-ivory" />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl px-5">
         <div className="grid md:grid-cols-[1.05fr_.95fr] gap-10 items-center">
           {/* copy */}
           <div className="text-center md:text-left">

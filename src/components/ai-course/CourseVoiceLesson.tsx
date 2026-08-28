@@ -3,7 +3,8 @@
 // 完了時に発話ログ＋目標表現の使用判定を onComplete で返す（Supabase保存はページ側）。
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles, Wrench } from 'lucide-react';
+import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
+import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles, Wrench, HelpCircle } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
 import type { VoicePulseStatus } from './VoicePulse';
@@ -216,7 +217,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           setUserSpeaking(speaking);
         },
         onMicSilent: () => setMicSilentHint(true),
-        onError: (kind) => { log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false }); setErrorKind(kind); },
+        onError: (kind) => {
+          log({ speaker: 'system', transcript: `error:${kind}`, atMs: 0, isFinal: true, relatedTarget: false });
+          setErrorKind(kind);
+          // 学習者の前で失敗した回数を数える（2026-08-26）。本文・個人情報は入れない
+          void logCourseEvent('error_occurred', { where: 'realtime', code: String(kind) });
+        },
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
     });
@@ -287,6 +293,47 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
       sessionRef.current?.sendCue('残り約30秒です。新しい話題を始めず、今の話を短く着地させてください。目標表現が未使用なら最後の練習として復唱させ、まとめの後 finish_lesson を呼んでください。', { switchToWrapUp: true, respondIfIdle: true });
     }
   }, [elapsed, status]);
+
+  /*
+   * 「言い方がわからない」（2026-08-26）。
+   *
+   * 会話が詰まったとき、これまでは黙るか中国語で言うしかなかった。
+   * 中国語で言うと翔子先生は日本語で返すが、**生徒が欲しいのは「今の一言の言い方」**で、
+   * 話題を進められることではない。押したら明示的にお手本を求める。
+   *
+   * 既存の sendCue（残り30秒の合図で使っている経路）に乗せるだけなので、
+   * realtime セッションの張り方は変えていない。
+   * ヒントを使った回は targetUsage が self ではなく hint になる（既存の判定どおり）。
+   * それを黙って起こさず、押す前に画面で伝える。
+   */
+  const [stuckAt, setStuckAt] = useState(0);
+  const askForHint = useCallback(() => {
+    if (status !== 'connected' || doneRef.current) return;
+    sessionRef.current?.sendCue(
+      '生徒が「言い方がわからない」と助けを求めました。'
+      + '今の話題で生徒が言いたいであろうことを、短くやさしい日本語のお手本で1文だけ示してください。'
+      + `（今日の目標表現: ${mission.targetExpression}）`
+      + '中国語で1文だけ理由や意味を添えてよいです。そのあと「言ってみてください」と促し、復唱を待ってください。'
+      + '説明を長くしないでください。',
+      { respondIfIdle: true },
+    );
+    setStuckAt(Date.now());
+    void logCourseEvent('hint_requested', { sessionId: sessionId ?? '', missionId: mission.id });
+  }, [status, mission.targetExpression, mission.id, sessionId]);
+  // 表示は数秒で自然に消す（会話の邪魔をしない）
+  useEffect(() => {
+    if (!stuckAt) return;
+    const id = setTimeout(() => setStuckAt(0), 8000);
+    return () => clearTimeout(id);
+  }, [stuckAt]);
+
+  /** 会話中どこからでも押せるヘルプボタン。接続中だけ出す */
+  const stuckBtn = status === 'connected' && !ending && !doneOverlay ? (
+    <button type="button" onClick={askForHint}
+      className="min-h-11 px-3 py-2 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-1 shrink-0 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+      <HelpCircle className="w-3.5 h-3.5" />{tv.stuckButton}
+    </button>
+  ) : null;
 
   // 4分で強制終了
   useEffect(() => { if (elapsed >= HARD_END && !doneRef.current) complete('timeout', 'completed', true); }, [elapsed, complete]);
@@ -498,6 +545,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           <p className="text-sm text-gray-600">{statusLine()}</p>
         </div>
       )}
+      {stuckAt > 0 && (
+        <div role="status" className="mx-auto max-w-sm rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-center">
+          <p className="text-sm font-bold text-amber-900">{tv.stuckSentTitle}</p>
+          <p className="mt-1 text-xs leading-relaxed text-amber-800">{tv.stuckSentBody}</p>
+        </div>
+      )}
       {msgs.map((m, i) => {
         const isStudent = m.role === 'student';
         const emphasize = i === lastTutorIdx; // 最新の翔子先生発話を少し大きく
@@ -588,6 +641,7 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
           <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
             <div className="flex items-center gap-3">
               <div className="flex-1 min-w-0">{statusIndicator(false)}</div>
+              {stuckBtn}
               <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
             </div>
           </div>
@@ -596,6 +650,12 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         {/* 右: 補助パネル（PCのみ） */}
         <aside className="hidden lg:flex lg:flex-col lg:w-80 xl:w-96 shrink-0 border-l border-gray-200 bg-white p-5 gap-4 overflow-y-auto">
           {targetCard}
+          {stuckBtn && (
+            <div>
+              {stuckBtn}
+              <p className="mt-1.5 text-[11px] leading-relaxed text-gray-400">{tv.stuckNote}</p>
+            </div>
+          )}
           {statusIndicator(true)}
           {zhAssistAvailable(subtitleMode) && (
             <div className="flex items-center gap-2 text-xs text-gray-500">

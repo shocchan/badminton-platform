@@ -13,6 +13,7 @@ import { LessonFocusProvider, useLessonFocus } from './contexts/LessonFocusConte
 import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
 import { isAiCourseRoute } from './lib/aiLesson/course/courseRoutes';
+import { captureTouch } from './lib/aiLesson/course/attribution';
 import NavigateWithId from './components/NavigateWithId';
 import { HomePageWrapper } from './components/HomePageWrapper';
 import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
@@ -97,6 +98,13 @@ const AnimatedRoutes = () => {
   // SPAのルート遷移ごとに page_view を送る（GA4無効時はno-op）。
   // /admin を開いたブラウザは trackPageView 側で以後の計測から自動除外される
   useEffect(() => { trackPageView(location.pathname); }, [location.pathname]);
+  /*
+   * 流入元の取り込み（2026-08-26 Phase S1）。
+   * どのページに着地しても拾えるようここに置く。LPだけに置くと
+   * 「広告→大会ページ→AIコース」のような経路で流入元を落とす。
+   * 初回来訪でしか使わないので location 依存にせず、マウント時1回だけ。
+   */
+  useEffect(() => { captureTouch(); }, []);
   // 管理画面・ログイン・マイページ等は検索結果に出さない。
   // ページごとに書くと必ず抜けるので、経路の判定はここ1か所（privateRoutes）に寄せる。
   // JSを実行しないクローラー向けには Worker が X-Robots-Tag を返す（二重で担保）

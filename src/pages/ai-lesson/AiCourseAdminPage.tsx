@@ -40,6 +40,8 @@ import { DEFAULT_USAGE_LIMITS } from '../../lib/aiLesson/course/courseConfig';
 import { AdminTodayTab } from '../../components/ai-course/admin/AdminTodayTab';
 import { AdminLpViewsCard } from '../../components/ai-course/admin/AdminLpViewsCard';
 import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCard';
+import { AdminTestimonialsCard } from '../../components/ai-course/admin/AdminTestimonialsCard';
+import { AdminSalesFunnelCard } from '../../components/ai-course/admin/AdminSalesFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
@@ -387,7 +389,9 @@ export default function AiCourseAdminPage() {
             */}
             <AdminLpViewsCard />
             {/* 学習ファネル（Phase 1 計測基盤）。自前fetchなので model には触らない */}
+            <AdminSalesFunnelCard />
             <AdminFunnelCard />
+            <AdminTestimonialsCard />
           </div>
         )}
 

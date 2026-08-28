@@ -103,7 +103,13 @@ const buyerMail = (input: {
   const price = ja ? plan.priceLabelJa : plan.priceLabelZh;
   const duration = ja ? plan.durationLabelJa : plan.durationLabelZh;
   const loginUrl = `${STUDENT_SITE}/${locale}/ai-course/login`;
-  const trialNote = plan.realtimeWindowMinutes !== null
+  const trialNote = plan.trialDays !== null
+    ? (ja
+      ? `・ログイン後に「体験を始める」を押すと、そこから${plan.trialDays}日間ご利用いただけます（開始は購入後30日以内）\n`
+        + `・AI先生との音声会話は合計3回まで（1日2回まで）。翌日の復習まで一周ためせます\n`
+      : `・登录后按下「开始体验」，即可从那一刻起使用${plan.trialDays}天（请在购买后30天内开始）\n`
+        + `・AI老师的语音会话共3次（每天最多2次）。可以完整体验到第二天的复习\n`)
+    : plan.realtimeWindowMinutes !== null
     ? (ja
       ? `・ログイン後に「体験を始める」を押すと、そこから${plan.realtimeWindowMinutes}分間ご利用いただけます（開始は購入後30日以内・途中で閉じてもカウントは止まりません）\n`
       : `・登录后按下「开始体验」，即可从那一刻起使用${plan.realtimeWindowMinutes}分钟（请在购买后30天内开始・中途关闭页面计时也不会停止）\n`)
@@ -352,23 +358,32 @@ serve(async (req: Request) => {
       return json({ received: true, handled: event.type, revoked: fullyRefunded });
     }
 
-    /* ── 非同期決済の失敗（2026-08-24 追加）─────────────────────
+    /* ── 非同期決済の失敗（2026-08-24 追加 / 2026-08-26 統合）───────────────
        Alipay / WeChat Pay は「決済ページで承認 → あとで入金確定」の順に進む。
        確定しなかった場合 checkout.session.async_payment_failed が届く。
        これを無視すると台帳が pending のまま残り、**買おうとして失敗した人が
-       管理画面から見えない**（離脱と区別が付かない）。 */
+       管理画面から見えない**（離脱と区別が付かない）。購入者から見ても
+       「払えたのか分からない」状態が続く。台帳を failed にして、
+       決済完了ページが「完了していません」と言い切れるようにする。
+
+       対象の状態は pending / awaiting_payment / paid の3つ。
+       **provisioned は含めない**（すでにアカウントを発行した行を巻き込まない）。
+       受講権はまだ出していないので取り消すものは無い。 */
     if (event.type === "checkout.session.async_payment_failed") {
       const s = event.data?.object ?? {};
-      const sid: string = s.id ?? "";
+      const sid: string = typeof s.id === "string" ? s.id : "";
       if (!sid) return json({ received: true, skipped: "no_session_id" });
+      const method = Array.isArray(s.payment_method_types) ? s.payment_method_types[0] ?? null : null;
       await fetch(
         `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_session_id=eq.${encodeURIComponent(sid)}` +
-          `&status=in.(pending,awaiting_payment)`,
+          `&status=in.(pending,awaiting_payment,paid)`,
         {
           method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
           body: JSON.stringify({
             status: "failed",
-            error: `async_payment_failed: ${s.payment_status ?? "unknown"}`,
+            error: `async_payment_failed: ${s.payment_status ?? "unknown"}（${method ?? "unknown"}）`,
+            // どの決済手段で落ちたかを残す（中国向け手段の失敗率を見るため）
+            payment_method: method,
             updated_at: new Date().toISOString(),
           }),
         },
@@ -514,6 +529,10 @@ serve(async (req: Request) => {
         stripe_payment_intent_id: typeof session.payment_intent === "string" ? session.payment_intent : null,
         buyer_email: buyerEmail,
         livemode: !!event.livemode,
+        // どの決済手段で買われたか（card / alipay / wechat_pay）。
+        // 中国語話者がどれを使うかは集客の判断に直結するので必ず残す（2026-08-26）
+        payment_method: Array.isArray(session.payment_method_types)
+          ? session.payment_method_types[0] ?? null : null,
         updated_at: new Date().toISOString(),
       }),
     });
@@ -727,6 +746,48 @@ serve(async (req: Request) => {
           "対応: 意図した購入か確認し、必要なら返金・案内をしてください",
         ].join(" / "),
       });
+    }
+
+    /* ── 体験の長さ（trial_days）──────────────────────────────
+       2026-08-26 から体験は日数制（7日）。60分では**翌日の復習＝商品の中心**を
+       体験できなかったため（migration 20260826150000_ai_trial_seven_days）。
+
+       RPC ai_grant_purchase_access は trial_days を引数に持たない（20260824140000 の
+       時点でこの列が無かった）ので、発行のあとにこの1列だけ書く。
+       ここが書かれないと ai_start_trial が trial_window_minutes へフォールバックし、
+       **購入メールには「7日間」と書いてあるのに60分で切れる**という食い違いになる。
+
+       - 格下げガードが働いた購入では書かない（上位の受講権の属性を触らない）
+       - `trial_started_at is null` の行だけを対象にする（進行中の体験を伸縮させない）
+       - 体験以外のプランでは null を書いて、前の体験の残りかすを消す
+       - 冪等。Webhook再送で `already` が返ったときも、初回が途中で落ちていた場合に
+         ここで直るよう、あえて実行する
+       - 失敗しても発行そのものは成功しているので落とさない。人が直せるよう通知する */
+    if (!grant.downgradeGuarded) {
+      const trialRes = await fetch(
+        `${supabaseUrl}/rest/v1/ai_course_access?user_id=eq.${userId}&trial_started_at=is.null`,
+        {
+          method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({ trial_days: plan.trialDays ?? null, updated_at: new Date().toISOString() }),
+        },
+      ).catch((e) => { console.error("trial_days patch:", e); return null; });
+      if (!trialRes || !trialRes.ok) {
+        console.error("trial_days patch failed:", trialRes ? `${trialRes.status} ${await trialRes.text()}` : "network");
+        if (plan.trialDays !== null) {
+          await raiseAlert(supabaseUrl, dbHeaders, {
+            dedupeKey: `trial_days_write_failed:${sessionId}`,
+            kind: "trial_days_write_failed",
+            severity: "warning",
+            title: "体験の日数（trial_days）を書けませんでした",
+            detail: [
+              `購入プラン: ${plan.id}（体験${plan.trialDays}日）`,
+              "受講権の発行そのものは成功しています",
+              `影響: このまま「体験を始める」を押すと ${plan.realtimeWindowMinutes ?? "?"}分で切れます（メールの案内と食い違う）`,
+              "対応: 管理画面の受講権タブで trial_days を設定してください",
+            ].join(" / "),
+          });
+        }
+      }
     }
 
     // ── 台帳を provisioned に ──
