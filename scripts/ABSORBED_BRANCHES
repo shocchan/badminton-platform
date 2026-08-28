@@ -22,3 +22,14 @@ feature/ai-course-secure-runtime-review   2026-08-28 精査33件→1件取込（
 # 「相手が作ったものを取り込まずにデプロイして消す」（2026-08-28に3回起きた事故）を防ぐ。
 #   security/rls-hardening-and-quality              … 決済（WeChat Pay / Alipay）
 #   feature/ai-course-adventure-v2-final-completion … AIコース
+
+# ── このスクリプト自身の衝突について ──────────────────────────
+# 他のworktreeのブランチには、scripts/deploy-production.sh が
+# 「ここからは出せない」と言うだけのスタブとして入っている。
+# そのため、それらのブランチを merge するたびにこのファイルが衝突する。
+#
+# **必ずこちら側（門つき）を残すこと。**
+#   git checkout --ours scripts/deploy-production.sh && git add scripts/deploy-production.sh
+#
+# スタブを採ると、唯一デプロイを許したこのブランチからも出せなくなる。
+# 門つきの実物はこのブランチにしか無いので、そうなると復元先が無い。
