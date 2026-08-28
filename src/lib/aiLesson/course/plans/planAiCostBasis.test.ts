@@ -97,22 +97,26 @@ describe('1か月プラン（¥2,980）の採算', () => {
     expect(month().costRatio!).toBeLessThan(1);
   });
 
-  it('ただし宣言した原価率 45% は超える（0.484）— 事実として固定する', () => {
-    // ⚠️ これは既存の出荷ゲート planAiBudget.test.ts が落ちる理由そのもの。
-    //    テストを緩める話ではなく、枠か価格を動かす経営判断が要る（BLOCKED として報告済み）。
+  it('宣言した原価率 45% の中に収まっている（0.417）', () => {
+    // 2026-08-28 まではここが 0.4836 で、上限45%を超えたまま公開されていた
+    //（＝上限まで使われる月ほど利益が減る）。
+    // CEO決定で音声を 10回 → 8回 に下げて収めた。テキスト8回/日は据え置き。
+    // 音声1回(4分)は¥100、テキスト1回は¥1.8。高いのは音声だけなので削る場所はここしかない。
     const ratio = month().costRatio!;
-    expect(ratio).toBeGreaterThan(0.45);
-    expect(ratio).toBeCloseTo(0.4836, 3);
+    expect(ratio).toBeLessThanOrEqual(0.45);
+    expect(ratio).toBeCloseTo(0.4165, 3);
   });
 
-  it('テキスト単価がいくらまでなら 45% に収まるか（$0.0076）', () => {
-    expect(maxAffordableTextUsdPerSession('ai-month')!).toBeCloseTo(0.00764, 4);
-    // 現行の見積り $0.0099 はこれを超えている＝上の失敗と同じことを別角度で言っている
-    expect(TEXT_USD_PER_SESSION).toBeGreaterThan(maxAffordableTextUsdPerSession('ai-month')!);
+  it('テキスト単価がいくらまでなら 45% に収まるか（$0.0121）', () => {
+    // 音声を8回に下げたぶん、テキストに使える余地が広がった（$0.0076 → $0.0121）
+    expect(maxAffordableTextUsdPerSession('ai-month')!).toBeCloseTo(0.01212, 4);
+    // 現行の見積り $0.0099 はこの中に収まっている（8/28以前は超えていた）
+    expect(TEXT_USD_PER_SESSION).toBeLessThan(maxAffordableTextUsdPerSession('ai-month')!);
   });
 
-  it('テキスト単価が $0.0444 を超えると赤字に入る', () => {
-    expect(breakEvenTextUsdPerSession('ai-month')!).toBeCloseTo(0.04436, 4);
+  it('テキスト単価が $0.0488 を超えると赤字に入る', () => {
+    // 音声8回化で $0.04436 → $0.04884 に上がった（＝耐えられる幅が広がった）
+    expect(breakEvenTextUsdPerSession('ai-month')!).toBeCloseTo(0.04884, 4);
   });
 
   it('もし監査の $0.069 が本当なら、1か月プランは上限で赤字（原価率 1.37）', () => {
@@ -121,11 +125,17 @@ describe('1か月プラン（¥2,980）の採算', () => {
     expect(e.costRatio!).toBeGreaterThan(1);
   });
 
-  it('体験パスと6か月コースは、$0.069 でも赤字にはならない（1か月だけが危ない）', () => {
-    for (const id of ['ai-trial-pass', 'coach-6m'] as const) {
+  it('$0.069 だったら、1か月と体験パスは赤字に入る（6か月だけが耐える）', () => {
+    // 体験パスは 2026-08-26 に7日間化してテキストぶんが伸びたため、
+    // 監査の $0.069 では赤字側に回る（60分だった頃は耐えていた）。
+    // **テキストの実単価は実請求と突き合わせていない**（ai_usage_events が本番未適用）。
+    // $0.0099 と $0.069 のどちらが本当かで、体験パスと1か月の成否が変わる。
+    for (const id of ['ai-month', 'ai-trial-pass'] as const) {
       const e = planEconomics(id, { textUsdPerSession: AUDIT_REPORTED_TEXT_USD_PER_SESSION });
-      expect(e.profitable, id).toBe(true);
+      expect(e.profitable, id).toBe(false);
     }
+    const long = planEconomics('coach-6m', { textUsdPerSession: AUDIT_REPORTED_TEXT_USD_PER_SESSION });
+    expect(long.profitable).toBe(true);
   });
 });
 
