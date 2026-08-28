@@ -4,7 +4,7 @@ import { supabase } from '../services/supabaseClient';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { StripePaymentForm } from './StripePaymentForm';
 import { PaymentCompletionPage } from './PaymentCompletionPage';
-import { isCreditPaymentAvailable, fetchWithTimeout } from '../lib/payment';
+import { isCreditPaymentAvailable, isStripeRedirectPaymentAvailable, fetchWithTimeout } from '../lib/payment';
 import type { PaymentMethod } from '../lib/payment';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getEntryTexts } from '../locales/entry';
@@ -47,7 +47,6 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
   const [stripeInfo, setStripeInfo] = useState<{ clientSecret: string; amount: number } | null>(null);
   const [paidInfo, setPaidInfo] = useState<{ amount: number; paidAt: string } | null>(null);
   const [confirmWarning, setConfirmWarning] = useState(false);
-  const [bankCopied, setBankCopied] = useState(false);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -200,7 +199,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
           tournament_title: tournament.title,
           tournament_date: tournament.event_date,
           payment_deadline: tournament.payment_deadline,
-          bank_account: tournament.bank_account,
+          // 銀行振込は2026-08-28に廃止。空を渡すとメール側の振込先ブロックが出ない
+          bank_account: '',
           paypay_id: tournament.paypay_id,
           payment_required: tournament.payment_required && status === 'confirmed',
           entry_fee: tournament.entry_fee,
@@ -225,11 +225,55 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
 
   const handleSelectMethod = (method: PaymentMethod) => {
     if (paymentLoading) return;
-    if (creditOnly && method !== 'credit') return;
+    // 追加受付中はオンライン決済のみ（PayPayは入金確認が間に合わないため）
+    if (creditOnly && method !== 'credit' && method !== 'wechat_alipay') return;
     setPaymentMethod(method);
     setPaymentError(null);
     if (method === 'credit' && !stripeInfo) {
       void createPaymentIntent();
+    }
+  };
+
+  // WeChat Pay / Alipay: Stripeの決済画面へ遷移する。
+  // 戻り先を控えておき、支払い後に同じ大会ページへ帰ってきて確認処理を走らせる。
+  const startRedirectCheckout = async () => {
+    if (!entryInfo) return;
+    setPaymentLoading(true);
+    setPaymentError(null);
+    try {
+      const res = await fetchWithTimeout(`${EDGE_BASE}/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          action: 'create',
+          entry_id: entryInfo.id,
+          cancel_token: entryInfo.cancelToken,
+          return_origin: window.location.origin,
+          return_path: window.location.pathname,
+          lang,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error || !data.url) {
+        setPaymentError(data.error || t.payErrPrepare);
+        return;
+      }
+      trackBeginCheckout(tournament.id, data.amount ?? tournament.entry_fee);
+      // 戻ってきたときに完了画面を出せるよう、申込情報を残しておく
+      sessionStorage.setItem(
+        'kawabado_checkout',
+        JSON.stringify({ entryId: entryInfo.id, name: formData.name, email: formData.email }),
+      );
+      window.location.href = data.url;
+    } catch (err) {
+      setPaymentError(
+        err instanceof DOMException && err.name === 'AbortError' ? t.payErrTimeout : t.payErrPrepare,
+      );
+    } finally {
+      setPaymentLoading(false);
     }
   };
 
@@ -263,8 +307,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
     }
   };
 
-  // PayPay / 銀行振込: 従来通りの案内メールを送信して完了
-  const handleConfirmOfflinePayment = async (method: 'paypay' | 'bank') => {
+  // PayPay: 従来通りの案内メールを送信して完了（入金確認は運営が手動で行う）
+  const handleConfirmOfflinePayment = async (method: 'paypay') => {
     if (!entryInfo) return;
     if (creditOnly) return; // 追加受付中はオフライン決済を成立させない
     setPaymentLoading(true);
@@ -308,15 +352,6 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
       setPaymentLoading(false);
       setStep('success');
     }
-  };
-
-  const handleCopyBank = async () => {
-    if (!tournament.bank_account) return;
-    try {
-      await navigator.clipboard.writeText(tournament.bank_account);
-      setBankCopied(true);
-      setTimeout(() => setBankCopied(false), 2000);
-    } catch { /* clipboard 非対応環境では何もしない */ }
   };
 
   // 支払い方法未選択のままモーダルを閉じた場合も、従来通りの案内メール（PayPay/銀行振込情報）を送る。
@@ -407,8 +442,8 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
               <PaymentMethodSelector
                 entryFee={tournament.entry_fee}
                 paypayId={tournament.paypay_id}
-                bankAccount={tournament.bank_account}
                 creditAvailable={isCreditPaymentAvailable}
+                redirectAvailable={isStripeRedirectPaymentAvailable}
                 creditOnly={creditOnly}
                 selected={paymentMethod}
                 onSelect={handleSelectMethod}
@@ -469,29 +504,20 @@ export const EntryForm = ({ tournament, entryCount, onClose }: EntryFormProps) =
                 </div>
               )}
 
-              {/* 銀行振込 */}
-              {paymentMethod === 'bank' && tournament.bank_account && (
+              {/* WeChat Pay / Alipay（Stripeの決済画面へ移動） */}
+              {paymentMethod === 'wechat_alipay' && (
                 <div className="border border-gray-200 rounded-xl p-4 bg-white space-y-3">
-                  <p className="text-sm font-bold text-gray-700">{t.payBankLead}</p>
-                  <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-                    <p className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">{tournament.bank_account}</p>
-                    <button
-                      onClick={() => void handleCopyBank()}
-                      className="mt-2 text-xs font-bold text-blue-700 border border-blue-300 rounded-lg px-3 py-1.5 hover:bg-blue-100 transition-colors"
-                    >
-                      {bankCopied ? t.payBankCopied : t.payBankCopy}
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-500">{t.payBankNote}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{t.pmRedirectNotice}</p>
                   <button
-                    onClick={() => void handleConfirmOfflinePayment('bank')}
+                    onClick={() => void startRedirectCheckout()}
                     disabled={paymentLoading}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors text-sm"
                   >
-                    {paymentLoading ? t.paySending : t.payBankBtn}
+                    {paymentLoading ? t.pmRedirectLoading : t.pmRedirectButton}
                   </button>
                 </div>
               )}
+
             </div>
           )}
 

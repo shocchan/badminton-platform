@@ -4,8 +4,9 @@ import { getEntryTexts } from '../locales/entry';
 interface PaymentMethodSelectorProps {
   entryFee: number;
   paypayId?: string;
-  bankAccount?: string;
   creditAvailable: boolean;
+  /** WeChat Pay / Alipay（Stripeへ遷移する決済）が使えるか */
+  redirectAvailable: boolean;
   /** 追加受付中はオンラインのクレジットカード決済のみ表示する */
   creditOnly?: boolean;
   selected: PaymentMethod | null;
@@ -15,7 +16,7 @@ interface PaymentMethodSelectorProps {
 }
 
 export const PaymentMethodSelector = ({
-  entryFee, paypayId, bankAccount, creditAvailable, creditOnly, selected, onSelect, disabled, lang,
+  entryFee, paypayId, creditAvailable, redirectAvailable, creditOnly, selected, onSelect, disabled, lang,
 }: PaymentMethodSelectorProps) => {
   const t = getEntryTexts(lang);
 
@@ -49,13 +50,14 @@ export const PaymentMethodSelector = ({
       available: !creditOnly && !!paypayId,
     },
     {
-      method: 'bank',
-      icon: '🏦',
-      title: t.pmBank,
-      subtitle: t.pmBankSub,
-      feeLabel: t.pmBankFee,
+      // 微信支付・支付宝。Stripeの決済画面へ遷移する（追加受付中も使える＝オンライン決済のため）
+      method: 'wechat_alipay',
+      icon: '🇨🇳',
+      title: t.pmWechatAlipay,
+      subtitle: t.pmWechatAlipaySub,
+      feeLabel: t.pmFeeFree,
       totalLabel: `¥${entryFee.toLocaleString()}`,
-      available: !creditOnly && !!bankAccount,
+      available: redirectAvailable,
     },
   ];
 

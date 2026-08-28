@@ -5,6 +5,7 @@ import { Helmet } from 'react-helmet-async';
 import { supabase } from '../services/supabaseClient';
 import { PreEntryModal } from '../components/PreEntryModal';
 import { EntryForm } from '../components/EntryForm';
+import { CheckoutReturnNotice } from '../components/CheckoutReturnNotice';
 import { EventSchema, tournamentToEventSchemaProps } from '../components/seo/EventSchema';
 import { Breadcrumbs } from '../components/Breadcrumbs';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -419,6 +420,9 @@ export const TournamentDetailPage = () => {
           )}
         </div>
       </article>
+
+      {/* WeChat Pay / Alipay の決済から戻ってきたときの結果表示 */}
+      <CheckoutReturnNotice tournamentId={tournament.id} />
 
       {preEntry && !showForm && (
         <PreEntryModal

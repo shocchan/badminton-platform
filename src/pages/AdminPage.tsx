@@ -35,6 +35,8 @@ type EntryWithTournament = Entry & {
 const PAYMENT_METHOD_LABEL: Record<string, string> = {
   credit: 'カード',
   paypay: 'PayPay',
+  wechat_alipay: 'WeChat/Alipay',
+  // 銀行振込は2026-08-28に受付終了。過去の申し込みの表示用に残す
   bank: '銀行振込',
 };
 const paymentMethodLabel = (m?: string | null) => (m ? PAYMENT_METHOD_LABEL[m] ?? m : '未選択');

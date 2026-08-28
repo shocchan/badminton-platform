@@ -63,12 +63,15 @@ describe('特定商取引法に基づく表記（掲示義務項目）', () => {
     expect(addr).toMatch(/開示/);
   });
 
-  it('支払方法は実装されている3種（カード・PayPay・銀行振込）と一致する', () => {
+  it('支払方法は実装されている3種（カード・PayPay・WeChat Pay/Alipay）と一致する', () => {
     const page = buildKawabadoLegalPages('ja').find((p) => p.id === 'tokushoho')!;
     const pay = page.sections.find((s) => s.heading === 'お支払い方法')!.body.join('');
     expect(pay).toMatch(/クレジットカード/);
     expect(pay).toMatch(/PayPay/);
-    expect(pay).toMatch(/銀行振込/);
+    expect(pay).toMatch(/WeChat Pay/);
+    expect(pay).toMatch(/Alipay/);
+    // 銀行振込は2026-08-28に廃止。表記に残っていたら実装との食い違いになる
+    expect(pay).not.toMatch(/銀行振込/);
   });
 
   it('返金の記載が実装（クレカは10%手数料）と食い違っていない', () => {
