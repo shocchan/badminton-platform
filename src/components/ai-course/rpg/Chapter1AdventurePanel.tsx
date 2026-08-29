@@ -16,6 +16,7 @@ import {
 import { allVocabularyItems } from '../../../lib/aiLesson/course/foundationVocabBank';
 import { buildAssessQuestions } from '../../../lib/aiLesson/course/quality/assessQuestionEngine';
 import { cognateProfileFor } from '../../../lib/aiLesson/course/quality/cognateProfile';
+import { shuffledChoicesSeeded } from '../../../lib/aiLesson/course/foundationGrade';
 import type { FoundationItem, FoundationRule, FoundationQuestion } from '../../../lib/aiLesson/course/foundationTypes';
 import { UNIT1_RULES, UNIT1_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit1';
 import { UNIT2_RULES, UNIT2_QUESTIONS } from '../../../lib/aiLesson/course/foundationUnit2';
@@ -585,10 +586,10 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <p className="text-xs text-gray-400 mb-2">{question.promptZh}</p>
               {screen.wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.ch1.retryHint(rule.titleJa)}</p>}
               <div className="grid grid-cols-1 gap-1.5">
-                {(question.choices ?? []).map((c, i) => (
-                  <button key={c} type="button" onClick={() => answerGrammarQuestion(screen, question, i)}
+                {shuffledChoicesSeeded(question, 0).map((i) => (
+                  <button key={question.choices![i]} type="button" onClick={() => answerGrammarQuestion(screen, question, i)}
                     className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-                    {c}
+                    {question.choices![i]}
                   </button>
                 ))}
               </div>
@@ -745,9 +746,9 @@ export const Chapter1AdventurePanel = ({ t, onBack, chapterId = CHAPTER1_ID, dev
               <p className="text-sm font-bold text-gray-800 mb-1">{question.promptJa}</p>
               {screen.wrongOnce && <p className="text-xs text-rose-600 mb-2">{t.ch1.recallRetry(rule.titleJa)}</p>}
               <div className="grid grid-cols-1 gap-1.5">
-                {(question.choices ?? []).map((c, i) => (
-                  <button key={c} type="button" onClick={() => answerReview(screen, i === question.answerIndex)}
-                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{c}</button>
+                {shuffledChoicesSeeded(question, 0).map((i) => (
+                  <button key={question.choices![i]} type="button" onClick={() => answerReview(screen, i === question.answerIndex)}
+                    className="action-raised action-choice touch-manipulation [-webkit-tap-highlight-color:transparent] min-h-11 px-3 py-2 text-left text-sm bg-white border border-gray-200 rounded-xl hover:border-violet-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">{question.choices![i]}</button>
                 ))}
               </div>
             </div>

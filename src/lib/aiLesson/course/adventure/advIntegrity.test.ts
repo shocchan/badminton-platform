@@ -139,6 +139,16 @@ describe('正解位置バイアス（§11〜§14）', () => {
     expect(seededFisherYates([1, 2, 3, 4, 5], 42)).toEqual(seededFisherYates([1, 2, 3, 4, 5], 42));
   });
 
+  // 2026-08-29: 小さいseedで xorshift32 の初回出力がほぼ0になり、
+  // 「正解が必ず4番目」になっていた（個人パックで実際に発生）
+  it('seededFisherYates: 小さい連番seedでも先頭要素の位置が偏らない', () => {
+    const counts = [0, 0, 0, 0];
+    for (let seed = 0; seed < 200; seed += 1) {
+      counts[seededFisherYates([0, 1, 2, 3], seed).indexOf(0)] += 1;
+    }
+    for (const c of counts) expect(c).toBeGreaterThan(200 / 4 / 2);
+  });
+
   it('balancedPositions: 20問4択で各位置5問・3連続なし', () => {
     const pos = balancedPositions(new Array(20).fill(4), 20260731);
     const counts = [0, 0, 0, 0];

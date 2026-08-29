@@ -102,13 +102,13 @@ const seededPermutation = (n: number, seedStr: string): number[] => {
 /**
  * choice選択肢の決定的表示順（questionId＋attemptSeed）。同一attempt内は再レンダーでも不変、
  * attemptが変われば順序が変わり得る。判定は表示位置ではなく元index（=安定choice ID）。
- * 正解が表示先頭に来る場合は1つずらし「常に先頭」の偏りを避ける。
+ * シャッフルの結果はそのまま使う。以前は「正解が先頭なら1つずらす」ことで
+ * 先頭偏りを避けていたが、それは逆に「1番目は絶対に正解ではない」という
+ * 別のヒントになるため廃止した（2026-08-29）。
  */
 export const shuffledChoicesSeeded = (q: FoundationQuestion, attemptSeed: number): number[] => {
   const n = q.choices?.length ?? 0;
-  const idx = seededPermutation(n, `${q.id}:c:${attemptSeed}`);
-  if (n > 1 && idx[0] === q.answerIndex) [idx[0], idx[1]] = [idx[1], idx[0]];
-  return idx;
+  return seededPermutation(n, `${q.id}:c:${attemptSeed}`);
 };
 /** 後方互換: attemptSeed=0の固定表示順 */
 export const shuffledChoices = (q: FoundationQuestion): number[] => shuffledChoicesSeeded(q, 0);

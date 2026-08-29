@@ -8,11 +8,26 @@
 import type { AdvBattleQuestion, AdvChoice } from './advVariants';
 import { hashSeed } from './advVariants';
 
-/** seed付きFisher-Yates（再現可能） */
+/**
+ * seed付きFisher-Yates（再現可能）
+ *
+ * **seedは必ず撹拌してから使う**。xorshift32は状態が小さいと出力も小さくなるので、
+ * seedをそのまま入れると 0,1,2,3… のような小さいseedで最初の乱数がほぼ0に固定され、
+ * 「正解が必ず最後の選択肢」になる（2026-08-29に個人パックで実際に発生）。
+ */
+const mixSeed = (seed: number): number => {
+  // splitmix32相当の撹拌。小さいseedでも最初から広く散る
+  let s = (seed >>> 0) + 0x9e3779b9 >>> 0;
+  s = Math.imul(s ^ (s >>> 16), 0x21f0aaad) >>> 0;
+  s = Math.imul(s ^ (s >>> 15), 0x735a2d97) >>> 0;
+  s = (s ^ (s >>> 15)) >>> 0;
+  return s || 1;
+};
+
 export const seededFisherYates = <T,>(arr: readonly T[], seed: number): T[] => {
   const a = [...arr];
-  let s = (seed >>> 0) || 1;
-  const next = () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 0x100000000; };
+  let s = mixSeed(seed);
+  const next = () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 0x100000000; };
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(next() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];

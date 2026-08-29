@@ -59,12 +59,15 @@ describe('attemptSeedシャッフル（§11）', () => {
     const orders = new Set(Array.from({ length: 8 }, (_, i) => shuffledChoicesSeeded(q, i + 1).join(',')));
     expect(orders.size).toBeGreaterThan(1);
   });
-  it('どのseedでも正解が表示先頭に来ない・全indexを含む', () => {
-    for (let seed = 0; seed < 20; seed++) {
+  it('どのseedでも全indexを含み、正解の表示位置は特定の位置に偏らない', () => {
+    const posCount = [0, 0, 0, 0];
+    for (let seed = 0; seed < 200; seed++) {
       const order = shuffledChoicesSeeded(q, seed);
-      expect(order[0]).not.toBe(q.answerIndex);
       expect([...order].sort()).toEqual([0, 1, 2, 3]);
+      posCount[order.indexOf(q.answerIndex!)] += 1;
     }
+    // 均等なら各50。半分(25)を下回る位置があれば偏っている
+    for (const c of posCount) expect(c).toBeGreaterThan(25);
   });
   it('matching右列も決定的シャッフル・正解並びそのままにならない', () => {
     const m: FoundationQuestion = { ...base, id: 'tq-m2', type: 'matching', pairs: [{ left: 'l1', right: 'r1' }, { left: 'l2', right: 'r2' }] };

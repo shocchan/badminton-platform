@@ -31,7 +31,11 @@ export interface ConvSample { studentText: string; }
 /** 決定的シャッフル（seed固定で再現可能・テスト可能） */
 export const seededShuffle = <T,>(arr: T[], seed: number): T[] => {
   const a = [...arr];
-  let s = seed >>> 0;
+  // seedはそのまま使わず撹拌する（小さいseedで並びが偏るため。advChoiceOrder参照）
+  let s = (seed >>> 0) + 0x9e3779b9 >>> 0;
+  s = Math.imul(s ^ (s >>> 16), 0x21f0aaad) >>> 0;
+  s = Math.imul(s ^ (s >>> 15), 0x735a2d97) >>> 0;
+  s = (s ^ (s >>> 15)) >>> 0;
   const rnd = () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 0x100000000; };
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(rnd() * (i + 1));

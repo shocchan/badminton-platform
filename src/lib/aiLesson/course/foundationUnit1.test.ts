@@ -112,14 +112,14 @@ describe('choice表示シャッフル（決定的・安定ID判定）', () => {
       expect([...shuffledChoices(q)].sort()).toEqual(q.choices!.map((_, i) => i).sort());
     });
   });
-  it('正解が表示上つねに先頭にはならない', () => {
-    choiceQs.forEach((q) => expect(shuffledChoices(q)[0]).not.toBe(q.answerIndex));
+  it('正解の表示位置は問題ごとにばらける（元データはすべてanswerIndex:0）', () => {
+    const positions = new Set(choiceQs.map((q) => shuffledChoices(q).indexOf(q.answerIndex!)));
+    expect(positions.size).toBeGreaterThan(1);
   });
   it('判定は表示位置ではなく元index（安定choice ID）で行う', () => {
     const q = UNIT1_QUESTIONS.find((x) => x.id === 'fq-f2')!;
     const order = shuffledChoices(q);
     const displayPosOfAnswer = order.indexOf(q.answerIndex!);
-    expect(displayPosOfAnswer).toBeGreaterThan(0); // 表示上は先頭でない
     expect(judgeQuestion(q, { choiceIndex: q.answerIndex! })).toBe(true); // IDで正解
     expect(judgeQuestion(q, { choiceIndex: order[displayPosOfAnswer === 0 ? 1 : 0] })).toBe(false);
   });
