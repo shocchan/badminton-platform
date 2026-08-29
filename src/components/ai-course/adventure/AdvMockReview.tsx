@@ -13,6 +13,7 @@ import { ChevronRight } from 'lucide-react';
 import { pressFx, primaryBtn } from './advUi';
 import type { AdvMockLogEntry } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { MOCK_DETAIL_KEEP } from '../../../lib/aiLesson/course/adventure/advMockSession';
+import { AdvMockWrongCard } from './AdvMockWrongCard';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -64,18 +65,7 @@ export const AdvMockReview = ({ lang, mockLog, onBack }: Props) => {
           <ul className="mt-4 space-y-3">
             {wrong.map((w) => (
               <li key={w.key} className={card}>
-                <p className="text-[11px] font-semibold text-gray-500">
-                  {tx(lang, w.sectionLabelJa, w.sectionLabelZh)} {w.index}
-                </p>
-                <p lang="ja" className="mt-1 whitespace-pre-wrap text-sm font-semibold text-gray-900">{w.stemJa}</p>
-                {lang === 'zh' && w.stemZh && <p className="mt-0.5 text-xs text-gray-500">{w.stemZh}</p>}
-                <p className="mt-2 text-sm text-red-600">
-                  ✕ {w.pickedTextJa ?? tx(lang, '未回答', '未作答')}
-                </p>
-                <p className="mt-0.5 text-sm font-semibold text-emerald-700">◯ {w.correctTextJa}</p>
-                <p className="mt-1.5 rounded-lg bg-gray-50 px-2.5 py-2 text-xs leading-relaxed text-gray-700">
-                  {tx(lang, w.whyJa, w.whyZh || w.whyJa)}
-                </p>
+                <AdvMockWrongCard lang={lang} w={w} label={`${tx(lang, w.sectionLabelJa, w.sectionLabelZh)} ${w.index}`} />
               </li>
             ))}
           </ul>

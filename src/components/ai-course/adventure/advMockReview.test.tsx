@@ -42,6 +42,50 @@ describe('模試の間違い直し', () => {
     expect(screen.getByText('「挑戦」の読みは？')).toBeTruthy();
   });
 
+  // 2026-08-29 CEO指摘: 解説だけでは復習にならない。そのとき何が並んでいたかが要る
+  it('出題時の選択肢が全部読める（選んだもの・正解が印つきで分かる）', () => {
+    render(<AdvMockReview lang="ja" mockLog={[entry({
+      wrong: [{
+        key: 'q1', sectionLabelJa: '言語知識', sectionLabelZh: '语言知识', index: 3,
+        stemJa: '「挑戦」の読みは？', stemZh: '「挑戦」怎么读？',
+        choicesJa: ['ちょうせん', 'とうせん', 'ちょうぜん', 'とうぜん'],
+        pickedTextJa: 'とうせん', correctTextJa: 'ちょうせん',
+        whyJa: '「挑」は音読みで「ちょう」です。', whyZh: '「挑」音读为「ちょう」。',
+      }],
+    })]} onBack={vi.fn()} />);
+    for (const c of ['ちょうせん', 'とうせん', 'ちょうぜん', 'とうぜん']) {
+      expect(screen.getAllByText(new RegExp(c)).length, c).toBeGreaterThan(0);
+    }
+    // 正解と自分の答えは印つきで区別できる（記号は別spanなので textContent で見る）
+    const lines = [...document.querySelectorAll('li li')].map((el) => el.textContent ?? '');
+    expect(lines.find((l) => l.includes('ちょうせん') && !l.includes('ちょうぜん'))).toContain('◯');
+    expect(lines.find((l) => l.startsWith('✕とうせん'))).toBeTruthy();
+  });
+
+  it('読解は本文が、聴解は原稿が読める（無ければ何を間違えたか分からない）', () => {
+    render(<AdvMockReview lang="ja" mockLog={[entry({
+      wrong: [{
+        key: 'r1', sectionLabelJa: '読解', sectionLabelZh: '阅读', index: 1,
+        stemJa: '筆者が言いたいことは？', stemZh: '作者想说什么？',
+        choicesJa: ['ア', 'イ'], pickedTextJa: 'イ', correctTextJa: 'ア',
+        passageJa: '駅前の商店街は、平日の昼でも人が多い。',
+        whyJa: '第2段落に書いてあります。', whyZh: '写在第2段。',
+      }, {
+        key: 'l1', sectionLabelJa: '聴解', sectionLabelZh: '听力', index: 2,
+        stemJa: '男の人は何をしますか', stemZh: '男人要做什么',
+        choicesJa: ['ア', 'イ'], pickedTextJa: null, correctTextJa: 'ア',
+        situationJa: '会社で男の人と女の人が話しています。',
+        transcriptJa: '男：この資料、明日までに直しておきます。',
+        whyJa: '「直しておきます」と言っています。', whyZh: '他说「直しておきます」。',
+      }],
+    })]} onBack={vi.fn()} />);
+    expect(screen.getByText(/駅前の商店街は/)).toBeTruthy();
+    expect(screen.getByText(/この資料、明日までに直しておきます/)).toBeTruthy();
+    expect(screen.getByText(/会社で男の人と女の人が話しています/)).toBeTruthy();
+    // 未回答も分かる
+    expect(screen.getByText(/未回答/)).toBeTruthy();
+  });
+
   it('解説が残っていない古い回は「残っていない」と書く（作らない）', () => {
     render(<AdvMockReview lang="ja" mockLog={[entry({ wrong: undefined })]} onBack={vi.fn()} />);
     expect(screen.getByText(/解説を保存していません/)).toBeTruthy();

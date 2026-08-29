@@ -16,6 +16,7 @@ import type { AdvMockLogEntry } from '../../../lib/aiLesson/course/adventure/adv
 import { listeningSetById } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { readingSetById } from '../../../lib/aiLesson/course/adventure/reading/readingBank';
 import { trackAdv } from '../../../lib/aiLesson/course/adventure/advAnalytics';
+import { AdvMockWrongCard } from './AdvMockWrongCard';
 
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
@@ -316,16 +317,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
     // 間違い直し（2026-08-17 監査: section終了時に「正誤は最後にまとめて表示します」と
     // 約束しながら、最終画面に集計しか無かった）。誤答＋未回答を問題単位で振り返る
     // 表示と保存で同じ材料を使う（保存だけ内容がずれる事故を防ぐ・2026-08-25）
-    const wrongItems = result.wrong.map((w) => ({
-      key: w.key,
-      label: `${tx(lang, w.sectionLabelJa, w.sectionLabelZh)} ${w.index}`,
-      stem: w.stemJa,
-      stemZh: w.stemZh,
-      pickedText: w.pickedTextJa,
-      correctText: w.correctTextJa,
-      whyJa: w.whyJa,
-      whyZh: w.whyZh,
-    }));
+    const wrongItems = result.wrong;
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
         <h2 className="text-xl font-bold text-gray-900">{tx(lang, spec.titleJa, spec.titleZh)}</h2>
@@ -384,18 +376,7 @@ export function AdvMockRunner(props: AdvMockRunnerProps) {
             <ul className="space-y-3 px-4 pb-4">
               {wrongItems.map((w) => (
                 <li key={w.key} className="rounded-xl border border-gray-200 bg-white p-3">
-                  <p className="text-[11px] font-semibold text-gray-500">{w.label}</p>
-                  <p lang="ja" className="mt-1 whitespace-pre-wrap text-sm font-semibold text-gray-900">{w.stem}</p>
-                  {lang === 'zh' && w.stemZh && <p className="mt-0.5 text-xs text-gray-500">{w.stemZh}</p>}
-                  <p className="mt-2 text-sm">
-                    <span className="text-red-600">✕ {w.pickedText ?? tx(lang, '未回答', '未作答')}</span>
-                  </p>
-                  <p className="mt-0.5 text-sm">
-                    <span className="font-semibold text-emerald-700">◯ {w.correctText}</span>
-                  </p>
-                  <p className="mt-1.5 rounded-lg bg-gray-50 px-2.5 py-2 text-xs leading-relaxed text-gray-700">
-                    {tx(lang, w.whyJa, w.whyZh || w.whyJa)}
-                  </p>
+                  <AdvMockWrongCard lang={lang} w={w} label={`${tx(lang, w.sectionLabelJa, w.sectionLabelZh)} ${w.index}`} />
                 </li>
               ))}
             </ul>

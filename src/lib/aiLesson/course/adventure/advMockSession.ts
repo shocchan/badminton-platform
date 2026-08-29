@@ -4,6 +4,8 @@ import type { MockLevel, MockSection, MockSpec } from './advMock';
 import { presentBattle, isCorrectAnswer, type PresentedQuestion } from './advChoiceOrder';
 import type { ExamSkill } from './advExamSkills';
 import type { AdvMockLogEntry, AdvMockSessionState } from './advTypes';
+import { readingSetById } from './reading/readingBank';
+import { listeningSetById } from './listening/listeningBank';
 
 /** 保存する最小状態（profile.mockSession へ入れる。正準は advTypes 側） */
 export type MockSessionState = AdvMockSessionState;
@@ -350,6 +352,17 @@ export interface MockWrongDetail {
   /** 問題文（対象語＋設問）。言語は日本語のまま持つ */
   stemJa: string;
   stemZh: string;
+  /**
+   * 出題時に並んでいた選択肢の全文（表示順）。
+   * 「選んだもの」と「正解」だけでは、何と何で迷ったのかが復習できない（2026-08-29 CEO指摘）。
+   * 2026-08-29 より前に保存された回には無い（undefined）
+   */
+  choicesJa?: string[];
+  /** 読解の本文。これが無いと読解の誤答は復習しようがない */
+  passageJa?: string;
+  /** 聴解の場面説明と読み上げ原稿（解答後なので出してよい） */
+  situationJa?: string;
+  transcriptJa?: string;
   /** 学習者が選んだ選択肢。null＝未回答 */
   pickedTextJa: string | null;
   correctTextJa: string;
@@ -376,13 +389,27 @@ export const toMockWrongDetails = (rt: MockRuntime): MockWrongDetail[] => {
       const picked = rt.state.answers[q.key] ?? null;
       const correct = q.choices.find((c) => c.isCorrect);
       if (!correct || picked === correct.choiceId) continue;
+      // 読解は本文が問題文なので、出題画面と同じく targetJapanese は出さない
+      const reading = q.skill === 'reading' ? readingSetById(q.sourceItemId) : undefined;
+      const listening = q.skill === 'listening' ? listeningSetById(q.sourceItemId) : undefined;
+      // 出題時に並んでいた順のまま残す（選択肢の並びも「どう見えたか」の一部）
+      const order = sec.presented.find((p) => p.key === q.key)?.presentedChoiceOrder;
+      const inOrder = order
+        ? order.map((id) => q.choices.find((c) => c.choiceId === id)).filter((c) => !!c)
+        : q.choices;
       out.push({
         key: q.key,
         sectionLabelJa: sec.section.labelJa,
         sectionLabelZh: sec.section.labelZh,
         index: qi + 1,
-        stemJa: clip([q.targetJapanese, q.questionJa].filter(Boolean).join('\n'), 400),
+        stemJa: clip([reading ? null : q.targetJapanese, q.questionJa].filter(Boolean).join('\n'), 400),
         stemZh: clip(q.questionZh, 400),
+        choicesJa: inOrder.map((c) => clip(c.textJa, 200)),
+        ...(reading ? { passageJa: clip(reading.passageJa, 1200) } : {}),
+        ...(listening ? {
+          situationJa: clip(listening.situationJa, 200),
+          transcriptJa: clip(listening.transcriptJa, 800),
+        } : {}),
         pickedTextJa: picked ? clip(q.choices.find((c) => c.choiceId === picked)?.textJa, 200) : null,
         correctTextJa: clip(correct.textJa, 200),
         whyJa: clip(q.explanation.whyCorrectJa, 500),
@@ -405,15 +432,27 @@ export const restoreMockWrongDetails = (v: unknown): MockWrongDetail[] => {
   const out: MockWrongDetail[] = [];
   for (const raw of v) {
     if (!isRec(raw)) continue;
-    if (typeof raw.key !== 'string' || typeof raw.stemJa !== 'string' || !raw.stemJa) continue;
+    if (typeof raw.key !== 'string') continue;
     if (typeof raw.correctTextJa !== 'string' || !raw.correctTextJa) continue;
+    const stemJa = clip(raw.stemJa as string, 400);
+    const stemZh = clip(raw.stemZh as string, 400);
+    const passageJa = clip(raw.passageJa as string, 1200);
+    const transcriptJa = clip(raw.transcriptJa as string, 800);
+    // 設問・本文・原稿がどれも無い行は、出しても何も分からないので落とす
+    if (!stemJa && !stemZh && !passageJa && !transcriptJa) continue;
     out.push({
       key: raw.key,
       sectionLabelJa: clip(raw.sectionLabelJa as string, 60),
       sectionLabelZh: clip(raw.sectionLabelZh as string, 60),
       index: typeof raw.index === 'number' && Number.isFinite(raw.index) ? Math.max(1, Math.floor(raw.index)) : 1,
-      stemJa: clip(raw.stemJa, 400),
-      stemZh: clip(raw.stemZh as string, 400),
+      stemJa,
+      stemZh,
+      ...(Array.isArray(raw.choicesJa)
+        ? { choicesJa: raw.choicesJa.filter((c): c is string => typeof c === 'string' && !!c).slice(0, 6).map((c) => clip(c, 200)) }
+        : {}),
+      ...(passageJa ? { passageJa } : {}),
+      ...(clip(raw.situationJa as string, 200) ? { situationJa: clip(raw.situationJa as string, 200) } : {}),
+      ...(transcriptJa ? { transcriptJa } : {}),
       pickedTextJa: typeof raw.pickedTextJa === 'string' ? clip(raw.pickedTextJa, 200) : null,
       correctTextJa: clip(raw.correctTextJa, 200),
       whyJa: clip(raw.whyJa as string, 500),
