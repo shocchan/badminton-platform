@@ -1,4 +1,4 @@
-deployed_at: 2026-08-29 23:02:42 +0900
+deployed_at: 2026-08-29 23:16:14 +0900
 branch:      integration/unify-2026-08-28
-commit:      b05c8d174938fc4841f554a5076c44c4884966b5
-asset:       assets/index-CfMA4ICA.js
+commit:      9e85227778f4fc3a302fb4cfc14bc2e2ac2bc719
+asset:       assets/index-DjGVkG1O.js
