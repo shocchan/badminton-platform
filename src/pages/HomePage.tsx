@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, ClipboardList, Gift, ChevronDown, ChevronLeft, ChevronRight, Trophy, X } from 'lucide-react';
+import { CalendarDays, ClipboardList, Gift, ChevronDown, ChevronLeft, ChevronRight, Trophy, X, MapPin, ArrowRight } from 'lucide-react';
 import ShuttleCounter from '../components/ShuttleCounter';
 import { ErrorState } from '../components/ui/StateViews';
 import { Helmet } from 'react-helmet-async';
@@ -13,6 +13,7 @@ import { PreEntryModal } from '../components/PreEntryModal';
 import { GeneralFaqSection } from '../components/GeneralFaqSection';
 import { supabase } from '../services/supabaseClient';
 import { HERO_IMAGE, HERO_SIZES } from '../lib/staticImageSets';
+import { BRAND_SAME_AS } from '../lib/seo/brandSameAs';
 import type { Tournament } from '../types';
 
 // レベル別カラー（TournamentCard・LevelGuidePage と統一）
@@ -228,7 +229,7 @@ export const HomePage = () => {
 
   const metaContent = lang === 'zh'
     ? {
-        title: '川口・蕨羽毛球交流会 | 平日夜间羽毛球活动 川口・蕨',
+        title: 'kawabado | 川口・蕨羽毛球交流会 - 平日夜间的比赛与社团',
         description: '埼玉县川口市・蕨市地区的平日夜间羽毛球交流活动。从超初级到高水平全级别欢迎参加。保证4场以上比赛。',
       }
     : {
@@ -259,6 +260,16 @@ export const HomePage = () => {
    */
   const orgJsonLd = {
     '@context': 'https://schema.org',
+    /*
+     * sameAs（2026-08-29 に受け口だけ用意）。
+     * 公式SNSのプロフィールURLは実体を裏づける最も強い信号だが、
+     * **リポジトリ内に実在するURLが1本も無い**（調査結果は docs/seo/brand-entity-signals.md）。
+     * 推測でURLを書くと、他人のアカウントを自分のものとして名乗ることになる。
+     * CEOから公式URLが提供されたら src/lib/seo/brandSameAs.ts に足すだけで出るようにしてある。
+     * 空のあいだは sameAs キーごと出さない（空配列を出すと「SNSが無い」と主張してしまう）。
+     * ⚠️ scripts/generate-worker.mjs の BRAND_SAME_AS と同じ内容にすること
+     */
+    ...(BRAND_SAME_AS.length > 0 ? { sameAs: BRAND_SAME_AS } : {}),
     /*
      * SportsClub を足した（2026-08-28）。
      *
@@ -640,6 +651,47 @@ export const HomePage = () => {
             申し込みはこちら →
           </Link>
         </div>
+      </div>
+
+      {/* エリア別の入口（2026-08-29）。
+          地域ページへの導線がフッターだけで、本文からの内部リンクが0本だった。
+          SEOのためのリンク集にはせず、「どこから来る人か」で分けた案内として置く。
+          蕨は専用ページをまだ作っていないので、会場ガイド（芝園公民館・蕨市民体育館）へ送る。 */}
+      <div className="max-w-6xl mx-auto px-4 pb-12">
+        <section aria-labelledby="areas" className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6">
+          <h2 id="areas" className="text-lg font-bold text-gray-900 mb-1.5 flex items-center gap-2">
+            <MapPin className="w-4.5 h-4.5 text-kb-blue" strokeWidth={1.75} aria-hidden="true" />
+            {lang === 'zh' ? '在川口・蕨・户田都能参加' : '川口・蕨・戸田から参加できます'}
+          </h2>
+          <p className="text-sm text-gray-600 leading-relaxed mb-4">
+            {lang === 'zh'
+              ? '会场是川口市的芝园公民馆和蕨市的蕨市民体育馆。两个会场都在JR蕨站步行可达的范围内。'
+              : '会場は川口市の芝園公民館と蕨市の蕨市民体育館。どちらもJR蕨駅から徒歩圏内です。'}
+          </p>
+          <ul className="grid gap-2.5 sm:grid-cols-3">
+            <li>
+              <Link to={`/${lang}/kawaguchi`}
+                className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-gray-800 hover:border-kb-blue hover:text-kb-blue transition-colors">
+                {lang === 'zh' ? '在川口市找羽毛球活动' : '川口市で探している方'}
+                <ArrowRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              </Link>
+            </li>
+            <li>
+              <Link to={`/${lang}/venues`}
+                className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-gray-800 hover:border-kb-blue hover:text-kb-blue transition-colors">
+                {lang === 'zh' ? '蕨站周边的会场' : '蕨駅周辺の会場を見る'}
+                <ArrowRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              </Link>
+            </li>
+            <li>
+              <Link to={`/${lang}/toda`}
+                className="flex items-center justify-between gap-2 rounded-xl border border-gray-200 px-4 py-3 text-sm font-bold text-gray-800 hover:border-kb-blue hover:text-kb-blue transition-colors">
+                {lang === 'zh' ? '从户田方面过来' : '戸田方面から参加する方'}
+                <ArrowRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+              </Link>
+            </li>
+          </ul>
+        </section>
       </div>
 
       <GeneralFaqSection lang={lang} />

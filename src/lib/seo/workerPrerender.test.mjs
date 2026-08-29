@@ -311,12 +311,19 @@ describe('地域ページ（/kawaguchi ・ /toda）', () => {
     expect(h1).toContain('バドミントン');
   });
 
-  it('/ja/toda: 会場までの行き方が本文に入る（乗車時間は書かない）', async () => {
+  it('/ja/toda: 出典のある事実だけを書く（電車の経路は断定しない）', async () => {
+    // 2026-08-29: 「埼京線→赤羽で乗り換え→蕨駅」という経路を書いていたが、
+    // サイト内に出典が無く、ダイヤ改正で古くなっても誰も気づけないので撤回した。
+    // ここは「戻してしまわないこと」を見張るテスト。
     const text = prerenderText(await renderPath('/ja/toda'));
-    expect(text).toContain('赤羽駅');
+    // 出典のある事実（VenueGuidePage.tsx の実測値）は残す
     expect(text).toContain('徒歩約10分');
     expect(text).toContain('徒歩約14分');
-    // サイト上に根拠が無い数字（電車の乗車時間）を書いていないこと
+    // 経路の断定はしない。案内は外部サービスへ委ねる
+    expect(text, '乗り換え駅を断定している').not.toContain('赤羽');
+    expect(text, '路線名を断定している').not.toContain('埼京線');
+    expect(text).toContain('乗換案内');
+    // 出典の無い所要時間も書かない
     expect(text).not.toMatch(/電車で\s*\d+\s*分/);
   });
 
@@ -361,6 +368,18 @@ describe('地域ページ（/kawaguchi ・ /toda）', () => {
       expect(res.status, from).toBe(301);
       expect(res.headers.get('Location'), from).toBe('https://kawabado.com' + to);
     }
+  });
+
+  it('/ja/kawaguchi: 入会制サークルではないことを本文で明示する', async () => {
+    // 検索語として「サークル」を受けている以上、入会制だと誤解させない責任がある。
+    // JSON-LD やページ下部ではなく、**本文の上のほう**に出ていること
+    const text = prerenderText(await renderPath('/ja/kawaguchi'));
+    expect(text).toContain('入会制');
+    expect(text).toContain('会員登録');
+    const title = /<title>([^<]*)<\/title>/.exec(await renderPath('/ja/kawaguchi'))[1];
+    expect(title).toContain('サークル');       // 検索語は受ける
+    const desc = /<meta name="description" content="([^"]*)"/.exec(await renderPath('/ja/kawaguchi'))[1];
+    expect(desc, 'SERPで見える位置に実態が書いていない').toContain('入会制ではなく');
   });
 
   it('素のHTMLのサイト内リンク（NAV）に両ページが入る（孤立した1枚にしない）', async () => {
@@ -604,6 +623,43 @@ describe('canonical / hreflang の穴を塞ぐ', () => {
       expect(canonicalOf(html)).toBe('https://kawabado.com/ja/' + page);
       expect(hreflangs(html).length).toBe(3);
       expect(count(html, '<h1>')).toBe(1);
+    }
+  });
+});
+
+// 規約「自己参照でない canonical と hreflang を併用しない」を、
+// **全静的ページの生成物**で確認する（1ページずつ書いたテストは必ず取りこぼす）。
+describe('canonical と hreflang が矛盾しない（全静的ページ）', () => {
+  it('hreflang を出すページの canonical は必ず自己参照', async () => {
+    const bad = [];
+    for (const page of Object.keys(W.STATIC_SEO)) {
+      for (const lang of ['ja', 'zh']) {
+        const path = '/' + lang + (page ? '/' + page : '/');
+        const html = await renderPath(path);
+        if (!html) { bad.push(path + ': 差し込み対象になっていない'); continue; }
+        const hl = hreflangs(html);
+        const canon = canonicalOf(html);
+        if (hl.length === 0) {
+          // hreflang を出さないページは canonical が /ja/ を指していてよい（ja-only）
+          if (!canon) bad.push(path + ': canonical が無い');
+          continue;
+        }
+        const selfCanonical = 'https://kawabado.com' + path;
+        if (hl.length !== 3) bad.push(path + ': hreflang が ' + hl.length + '本');
+        if (canon !== selfCanonical) {
+          bad.push(path + ': hreflang を出しているのに canonical が自己参照でない（' + canon + '）');
+        }
+      }
+    }
+    expect(bad, bad.join(' / ')).toEqual([]);
+  });
+
+  it('ja側とzh側が互いを正しく指し合う', async () => {
+    for (const page of ['kawaguchi', 'toda', 'venues', 'faq', 'international']) {
+      const ja = hreflangs(await renderPath('/ja/' + page));
+      const zh = hreflangs(await renderPath('/zh/' + page));
+      expect(ja, page).toEqual(zh);  // 相互リンクなので両者は同一の3本になる
+      expect(ja.map((h) => h[0]), page).toEqual(['ja', 'zh', 'x-default']);
     }
   });
 });

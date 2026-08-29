@@ -322,8 +322,17 @@ const NAV = [
  * Workerはビルド時に埋め込む独立ファイルなので import できない。
  * ズレたら workerPrerender.test.mjs が落ちる（片方だけ直す事故を防ぐ）。
  */
+/**
+ * 公式SNS等のプロフィールURL。src/lib/seo/brandSameAs.ts の BRAND_SAME_AS と**同じ内容**。
+ * Workerは独立ファイルなのでimportできない。ズレたら seoConventions.test.mjs が落ちる。
+ * 実在が確認できたURLだけ入れること（判断基準: docs/seo/brand-entity-signals.md）。
+ */
+const BRAND_SAME_AS = [];
+
 const ORG_JSONLD = {
   '@context': 'https://schema.org',
+  // 空のあいだは sameAs キーごと出さない（空配列は「SNSが無い」という主張になる）
+  ...(BRAND_SAME_AS.length > 0 ? { sameAs: BRAND_SAME_AS } : {}),
   // SportsClub（＝LocalBusiness のサブタイプ）を足した（2026-08-28）。
   // 別ノードを立てず1つの @id のままにする理由は HomePage.tsx のコメント参照
   '@type': ['Organization', 'SportsOrganization', 'SportsClub'],
