@@ -1,64 +1,71 @@
-// LPの見た目の切り替え（2026-08-27・CEO依頼の試作）。
+// LPの見た目（2026-08-27 試作 → 2026-08-28 冒険を既定に）。
+//
+// CEOが2案を見比べて「冒険の方がいい」と決定。何も指定しない訪問者には冒険が出る。
 //
 // 【何を守るか】
-// これは**見比べるための試作**であって、置き換えではない。
-//   ① 何もしない訪問者には、これまでどおりの見た目しか出ない
-//   ② 既定を選んだ人の重さが1バイトも増えない（風景の読み込みが起きない）
-//   ③ 試作をやめたくなったら default へ戻せる（保存が残って戻れない、を作らない）
-//
-// CEOが選ぶまで既定は消さない。
+//   ① 何もしない訪問者に冒険が出る
+//   ② 暖色へ戻す道が残っている（PCの見え方が未解決なので、消すのは次の課題）
+//   ③ 既定が変わっても古い保存値が残り続けない
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolveLpTheme } from './lpTheme';
+import { resolveLpTheme, DEFAULT_LP_THEME } from './lpTheme';
 
 const CSS = readFileSync('src/index.css', 'utf8');
 const HERO = readFileSync('src/pages/ai-lesson/landing/AiCourseHero.tsx', 'utf8');
 const PAGE = readFileSync('src/pages/ai-lesson/landing/AiCourseLandingPage.tsx', 'utf8');
 
 describe('どの見た目になるか', () => {
-  it('何も指定しなければ既定', () => {
-    expect(resolveLpTheme('', null)).toBe('default');
+  it('既定は冒険（2026-08-28 CEO決定）', () => {
+    expect(DEFAULT_LP_THEME).toBe('adventure');
   });
 
-  it('URLで指定すれば試作', () => {
-    expect(resolveLpTheme('?theme=adventure', null)).toBe('adventure');
+  it('何も指定しない訪問者に冒険が出る', () => {
+    expect(resolveLpTheme('', null)).toBe('adventure');
   });
 
-  it('保存された指定を覚えている（毎回URLに付け直さなくても見比べられる）', () => {
-    expect(resolveLpTheme('', 'adventure')).toBe('adventure');
+  it('URLで暖色に戻せる', () => {
+    expect(resolveLpTheme('?theme=default', null)).toBe('default');
   });
 
-  it('URLの指定が保存より強い（見比べるときに切り替えられる）', () => {
-    expect(resolveLpTheme('?theme=default', 'adventure')).toBe('default');
+  it('暖色に戻した指定を覚えている（毎回URLに付け直さなくてよい）', () => {
+    expect(resolveLpTheme('', 'default')).toBe('default');
+  });
+
+  it('URLの指定が保存より強い（いつでも切り替えられる）', () => {
+    expect(resolveLpTheme('?theme=adventure', 'default')).toBe('adventure');
   });
 
   it('知らない値は既定に倒す（壊れた指定で見た目が壊れない）', () => {
-    expect(resolveLpTheme('?theme=neon', null)).toBe('default');
-    expect(resolveLpTheme('', 'neon')).toBe('default');
+    expect(resolveLpTheme('?theme=neon', null)).toBe('adventure');
+    expect(resolveLpTheme('', 'neon')).toBe('adventure');
   });
 
-  it('default を明示したら保存も消す（戻れなくならない）', () => {
+  it('既定と同じ指定なら保存を消す（既定が変わったとき古い保存が残らない）', () => {
     const src = readFileSync('src/pages/ai-lesson/landing/lpTheme.ts', 'utf8');
-    expect(src).toMatch(/if \(fromUrl === 'default'\) localStorage\.removeItem\(KEY\)/);
+    expect(src).toMatch(/if \(fromUrl === DEFAULT_LP_THEME\) localStorage\.removeItem\(KEY\)/);
   });
 });
 
-describe('既定を壊していない', () => {
-  it('既定のパレットが元の値のまま', () => {
-    // 試作は別セレクタで上書きするだけ。@theme の値には触らない
+describe('戻り道が残っている', () => {
+  it('暖色パレットの定義を消していない（URL1本で戻せる）', () => {
     expect(CSS).toMatch(/--color-lp-ivory: #FBF5EC;/);
     expect(CSS).toMatch(/--color-lp-coral: #EE7A56;/);
   });
 
-  it('試作は data-lp-theme="adventure" の中でだけ効く', () => {
+  it('冒険は data-lp-theme="adventure" の中でだけ効く', () => {
     const block = /\[data-lp-theme='adventure'\] \{([\s\S]*?)\n\}/.exec(CSS);
     expect(block, '試作パレットのブロックが見つからない').toBeTruthy();
     expect(block![1]).toContain('--color-lp-coral: #C25B3C');
   });
 
-  it('既定では風景の要素を display:none にして読み込みごと止める', () => {
+  it('暖色に戻したときは風景の読み込みごと止まる', () => {
     expect(CSS).toMatch(/\.lp-adv-hero-bg \{ display: none; \}/);
     expect(CSS).toMatch(/\[data-lp-theme='adventure'\] \.lp-adv-hero-bg \{ display: block; \}/);
+  });
+
+  it('PCでは風景を出さない（縦長の原画は横帯にできない）', () => {
+    // 512×768 の縦長を横1440pxへ object-cover すると空だけの帯になる（実機で確認）
+    expect(HERO).toMatch(/lp-adv-hero-bg md:!hidden/);
   });
 
   it('紙の質感は同じ要素に効かせる（子孫セレクタにしない）', () => {
