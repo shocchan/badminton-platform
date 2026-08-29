@@ -47,7 +47,17 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
         -z-10 にすると**その背景色の裏に回って完全に見えなくなる**（実機で確認）。
         ここは z-0 のまま先に置き、下のコンテンツ側を relative z-10 で前に出す。
       */}
-      <div className="lp-adv-hero-bg absolute inset-x-0 top-0 h-[220px] sm:h-[300px] overflow-hidden" aria-hidden="true">
+      {/*
+        PCでは出さない（2026-08-28 CEO指摘「PCで見ると冒険の方イマイチ」）。
+        原画は 512×768 の縦長。横1440pxの帯に object-cover で伸ばすと、
+        見えるのは**空だけの薄い青い帯**になり、風景として読めない。
+        中央寄せにしても草原の一色帯になるだけで、縦長の絵は横帯にできない。
+
+        スマホ幅では絵として成立しているので、そこだけ残す。
+        PCも冒険にするには**横長の風景を1枚起こす**必要がある（次の課題）。
+        パレットと紙の質感はPCでも効いているので、世界観そのものは変わらない。
+      */}
+      <div className="lp-adv-hero-bg md:!hidden absolute inset-x-0 top-0 h-[220px] sm:h-[300px] overflow-hidden" aria-hidden="true">
         <picture>
           <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
           <img
