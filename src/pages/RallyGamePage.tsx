@@ -102,6 +102,15 @@ export default function RallyGamePage() {
               : 'AIとバドミントンのラリー対決！タイミングよく打ち返してハイスコアを目指そう。15ラリーごとに抽選が回って、ごくまれに無料券が当たる！'
           }
         />
+        {/*
+          canonical を日本語版へ寄せる（2026-08-28）。
+          このページの title・description は locale に関係なく日本語固定なので、
+          /ja/game と /zh/game が**中身も文言も同じ2URL**になっていた（canonical 0本）。
+          Search Console 実測でも「バドゲーム」は3か月50表示あり、実際にインデックスされている。
+          中国語版の本文が無い以上、hreflang は出さない（自己参照でない canonical と hreflang を
+          併用すると矛盾する。ブログ一覧 src/pages/blogSeo.ts と同じ扱い）。
+        */}
+        <link rel="canonical" href="https://kawabado.com/ja/game" />
       </Helmet>
 
       {/* ゲーム本体：スマホはフルスクリーン、PCは3カラム */}

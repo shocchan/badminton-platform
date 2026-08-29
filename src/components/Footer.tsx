@@ -68,6 +68,14 @@ export const Footer = () => {
               <Link to={to('venues')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '会場ガイド' : '会场指南'}
               </Link>
+              {/* 地域ページ（2026-08-28）。sitemapに載せるだけでは弱いので、
+                  全ページのフッターから内部リンクを1本ずつ通す */}
+              <Link to={to('kawaguchi')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '川口市のバドミントンサークル' : '川口市的羽毛球社团'}
+              </Link>
+              <Link to={to('toda')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '戸田からのアクセス' : '从户田出发的交通'}
+              </Link>
               <Link to={to('cancel-policy')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>

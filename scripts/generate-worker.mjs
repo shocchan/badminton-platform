@@ -122,12 +122,21 @@ async function generateSitemap(env) {
     { path: 'venues',        priority: '0.7', freq: 'monthly' },
     // 国際交流（2026-08-24 新設）。実測で「国際交流」「外国人」系の検索語は表示0件だった
     { path: 'international', priority: '0.8', freq: 'monthly' },
+    // 地域ページ（2026-08-28 新設）。会場名「芝園公民館」では3か月73表示あるのに、
+    // 「川口市 バドミントン」は18位・「バドミントン 川口」は17位で受け皿が無かった。
+    // 戸田は検索語として1度も表示されていない（＝土俵に上がっていない）
+    { path: 'kawaguchi',     priority: '0.9', freq: 'monthly' },
+    { path: 'toda',          priority: '0.7', freq: 'monthly' },
     // 種目別の恒常ページ（2026-08-24）。大会は終わると一覧から消えるので、
     // 種目＋地域の検索（例: ミックスダブルス 大会 埼玉）を受ける常設URLを置く
     { path: 'tournaments/singles',       priority: '0.8', freq: 'weekly' },
     { path: 'tournaments/doubles',       priority: '0.8', freq: 'weekly' },
     { path: 'tournaments/mixed-doubles', priority: '0.8', freq: 'weekly' },
     { path: 'contact',       priority: '0.6', freq: 'monthly' },
+    // シャトル供養カウンター（2026-08-28 追加）。今まで Helmet が1つも無く、素のHTMLが
+    // トップの文言のままだった。自己参照canonicalとhreflangを出す以上、sitemapにも載せる
+    // （「正規URLとして名乗るがsitemapには載せない」という中途半端な状態を作らない）
+    { path: 'shuttle-roadmap', priority: '0.4', freq: 'monthly' },
     // blog 一覧は jaOnlyUrls（/zh/blog は /ja/blog へ canonical のまま）。
     // 記事ごとの中国語版は下の zhPosts で /zh/blog/:id として送る
     { path: 'join',          priority: '0.6', freq: 'monthly' },
@@ -292,6 +301,8 @@ const NAV = [
   { path: 'tournaments/doubles',       ja: 'ダブルス大会',                      zh: '双打比赛' },
   { path: 'tournaments/mixed-doubles', ja: 'ミックスダブルス大会',              zh: '混合双打比赛' },
   { path: 'international',             ja: '国際交流バドミントン',              zh: '国际交流羽毛球' },
+  { path: 'kawaguchi',                 ja: '川口市のバドミントンサークル',      zh: '川口市的羽毛球社团' },
+  { path: 'toda',                      ja: '戸田からのアクセス',                zh: '从户田出发的交通' },
   { path: 'level-guide',               ja: 'クラス分け案内',                    zh: '级别说明' },
   { path: 'venues',                    ja: '会場ガイド',                        zh: '会场指南' },
   { path: 'faq',                       ja: 'よくある質問',                      zh: '常见问题' },
@@ -313,7 +324,9 @@ const NAV = [
  */
 const ORG_JSONLD = {
   '@context': 'https://schema.org',
-  '@type': ['Organization', 'SportsOrganization'],
+  // SportsClub（＝LocalBusiness のサブタイプ）を足した（2026-08-28）。
+  // 別ノードを立てず1つの @id のままにする理由は HomePage.tsx のコメント参照
+  '@type': ['Organization', 'SportsOrganization', 'SportsClub'],
   '@id': 'https://kawabado.com/#organization',
   name: '川口・蕨バドミントン交流会',
   alternateName: ['kawabado', 'カワバド', '川口・蕨羽毛球交流会'],
@@ -325,9 +338,24 @@ const ORG_JSONLD = {
     + '多国籍のメンバーが参加し、中国語での問い合わせ・申し込みにも対応しています。',
   email: 'info@kawabado.com',
   sport: 'バドミントン',
+  // 団体の address は書かない（特商法ページが「住所は請求があれば開示」と名乗っているため）。
+  // 住所は会場（location）の側にだけ持たせる。理由の全文は HomePage.tsx のコメント
+  location: [
+    {
+      '@type': 'SportsActivityLocation',
+      name: '芝園公民館',
+      address: { '@type': 'PostalAddress', streetAddress: '芝園町3-15', addressLocality: '川口市', addressRegion: '埼玉県', addressCountry: 'JP' },
+    },
+    {
+      '@type': 'SportsActivityLocation',
+      name: '蕨市民体育館',
+      address: { '@type': 'PostalAddress', streetAddress: '北町1-27-15', addressLocality: '蕨市', addressRegion: '埼玉県', addressCountry: 'JP' },
+    },
+  ],
   areaServed: [
     { '@type': 'City', name: '川口市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
     { '@type': 'City', name: '蕨市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
+    { '@type': 'City', name: '戸田市', address: { '@type': 'PostalAddress', addressRegion: '埼玉県', addressCountry: 'JP' } },
   ],
   knowsLanguage: ['ja', 'zh-Hans'],
   contactPoint: {
@@ -584,6 +612,8 @@ const isPrivatePath = (pathname) => PRIVATE_PATTERNS.some((re) => re.test(pathna
  */
 const KNOWN_LEAVES = [
   'activity', 'activity-cn', 'tournaments', 'faq', 'venues', 'international', 'contact',
+  // 地域ページ（2026-08-28）
+  'kawaguchi', 'toda',
   'level-guide', 'cancel-policy', 'tokushoho', 'privacy', 'terms', 'admin', 'blog', 'join',
   'shuttle-roadmap', 'tactics-board', 'game', 'mypage', 'ai-lesson-demo', 'ai-course',
   'auth-landing', 'login', 'signup', 'password-reset', 'password-reset-form',
@@ -1196,6 +1226,10 @@ const LEGACY_EXACT_REDIRECTS = {
   '/tokushoho': '/ja/tokushoho',
   '/terms': '/ja/terms',
   '/international': '/ja/international',
+  // 地域ページ（2026-08-28）。素の /kawaguchi は App.tsx にルートが無く、
+  // LangWrapper が lang="kawaguchi" と解釈してトップへ飛ばす＝着地内容が失われる
+  '/kawaguchi': '/ja/kawaguchi',
+  '/toda': '/ja/toda',
   '/login': '/ja/login',
   '/admin': '/ja/admin',
   '/venues': '/ja/venues',

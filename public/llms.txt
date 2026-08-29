@@ -71,6 +71,8 @@
 - [クラス案内](https://kawabado.com/ja/level-guide): 超初級〜オープンの違い
 - [会場ガイド](https://kawabado.com/ja/venues): 会場の住所・アクセス・駐車場
 - [国際交流バドミントン](https://kawabado.com/ja/international): 多国籍のメンバー・中国語対応・WeChat
+- [川口市のバドミントンサークル](https://kawabado.com/ja/kawaguchi): 川口市の会場（芝園公民館）・アクセス・参加方法
+- [戸田からのアクセス](https://kawabado.com/ja/toda): 戸田駅・戸田公園駅から会場までの行き方
 - [よくある質問](https://kawabado.com/ja/faq)
 - [キャンセルポリシー](https://kawabado.com/ja/cancel-policy)
 - [特典登録](https://kawabado.com/ja/join): 大会・活動情報のお知らせと割引券の優先案内
