@@ -21,4 +21,9 @@
  *    Workerは独立ファイルなので import できない。
  *    ズレたら src/lib/seo/seoConventions.test.mjs が落ちる。
  */
-export const BRAND_SAME_AS: string[] = [];
+export const BRAND_SAME_AS: string[] = [
+  // 2026-08-30 追加。@show_eigyouhack（営業ハック時代）から改名した公式アカウント。
+  // 表示名「カワバド｜川口・蕨バドミントン」・website は kawabado.com/ja/ で、
+  // このサイトと同じ実体であることを名乗れる状態になったので sameAs に入れた。
+  'https://x.com/kawabado',
+];

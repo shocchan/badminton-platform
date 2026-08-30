@@ -327,7 +327,7 @@ const NAV = [
  * Workerは独立ファイルなのでimportできない。ズレたら seoConventions.test.mjs が落ちる。
  * 実在が確認できたURLだけ入れること（判断基準: docs/seo/brand-entity-signals.md）。
  */
-const BRAND_SAME_AS = [];
+const BRAND_SAME_AS = ['https://x.com/kawabado'];
 
 const ORG_JSONLD = {
   '@context': 'https://schema.org',

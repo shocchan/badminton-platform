@@ -121,9 +121,13 @@ describe('規約6: 新規ページを足したら、必要な場所を全部直�
 describe('規約7: sameAs は実在URLだけ。画面とWorkerでズレない', () => {
   const src = readFileSync(join(ROOT, 'src/lib/seo/brandSameAs.ts'), 'utf8');
 
-  it('空のあいだは sameAs キー自体を出さない（空配列は「SNSが無い」という主張になる）', () => {
-    expect(W.BRAND_SAME_AS).toEqual([]);
-    expect(src).toContain('export const BRAND_SAME_AS: string[] = []');
+  it('公式Xのプロフィールを名乗る（2026-08-30 にハンドル確定）', () => {
+    // 空だった間は sameAs キーごと出していなかった。実URLが確定したので入れた。
+    // @show_eigyouhack から @kawabado へ改名済み。**旧ハンドルは書かない**
+    // （Xは旧ハンドルをリダイレクトせず、第三者が取得できるため）
+    expect(W.BRAND_SAME_AS).toContain('https://x.com/kawabado');
+    expect(W.BRAND_SAME_AS).not.toContain('https://x.com/show_eigyouhack');
+    expect(src).toContain("'https://x.com/kawabado'");
   });
 
   it('検索結果ページや招待リンクを sameAs に入れない', () => {
