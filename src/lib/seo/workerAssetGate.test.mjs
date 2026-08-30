@@ -155,7 +155,7 @@ describe('門がONのとき', () => {
 
   it('🚨 教材以外のassetは門の対象外（サイト全体を壊さないための守り）', async () => {
     const { env } = onEnv();
-    for (const p of [APP_BUNDLE, '/assets/index-BPOJXdaT.css', '/favicon.svg', '/ogp.jpg']) {
+    for (const p of [APP_BUNDLE, '/assets/index-BPOJXdaT.css', '/favicon.svg', '/ogp-v2.jpg']) {
       expect((await get(env, p)).status, p + ' が門に巻き込まれている').toBe(200);
     }
   });

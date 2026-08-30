@@ -341,7 +341,7 @@ const ORG_JSONLD = {
   alternateName: ['kawabado', 'カワバド', '川口・蕨羽毛球交流会'],
   url: 'https://kawabado.com',
   logo: { '@type': 'ImageObject', url: 'https://kawabado.com/favicon.png' },
-  image: 'https://kawabado.com/ogp.jpg',
+  image: 'https://kawabado.com/ogp-v2.jpg',
   description: '埼玉県川口市・蕨市で平日夜に開催するバドミントン交流会。'
     + '超初級からオープンまで全レベルが対象で、1人での参加が中心。'
     + '多国籍のメンバーが参加し、中国語での問い合わせ・申し込みにも対応しています。',

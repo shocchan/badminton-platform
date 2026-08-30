@@ -174,7 +174,7 @@ export const TournamentDetailPage = () => {
   const eventSchemaProps = tournamentToEventSchemaProps(tournament, {
     // canonical を自己参照にしたので、Offer の URL も見ているページと同じにする
     entryUrl: `https://kawabado.com/${lang}/tournaments/${tournament.id}`,
-    image: 'https://kawabado.com/ogp.jpg',
+    image: 'https://kawabado.com/ogp-v2.jpg',
     availability: tournament.status === 'cancelled' ? 'SoldOut' : remaining <= 0 ? 'SoldOut' : 'InStock',
   });
 
