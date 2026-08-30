@@ -1,4 +1,4 @@
-deployed_at: 2026-08-30 00:24:58 +0900
+deployed_at: 2026-08-30 17:18:30 +0900
 branch:      integration/unify-2026-08-28
-commit:      7446b2a7aa35aef2bf01b65e0600b8929642f71b
-asset:       assets/index-BxWYpN_f.js
+commit:      193deb3107e79c17599584b96bcdf26b47617d62
+asset:       assets/index-BGcRAYp6.js
