@@ -1,4 +1,4 @@
-deployed_at: 2026-08-31 10:45:58 +0900
+deployed_at: 2026-08-31 16:19:54 +0900
 branch:      integration/unify-2026-08-28
-commit:      df90f1c802818373f8bcba5050b12fbcb1067d5e
+commit:      8b045e6b5c9edaecdd6116b51868f0de973569c1
 asset:       assets/index-BzzsUVHZ.js
