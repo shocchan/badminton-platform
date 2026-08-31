@@ -1,0 +1,187 @@
+{
+ "note": "kawabado の X 投稿キュー。posted_at が null のうち先頭を1日1本出す。",
+ "posts": [
+  {
+   "id": "A-1",
+   "label": "通常活動の募集",
+   "img": true,
+   "text": "【通常活動】平日夜 19:00〜21:00\n芝園公民館（川口市）・蕨市民体育館（蕨市）で開催しています。\n\n・1回600円〜（シャトル代込み）\n・持ち物はラケットと体育館用シューズだけ\n・1回ごとの申し込み。来られる日だけでOK\n\n日程はこちら\nhttps://kawabado.com/ja/activity?utm_source=x&utm_medium=social&utm_campaign=activity",
+   "posted_at": "2026-09-01"
+  },
+  {
+   "id": "A-2",
+   "label": "大会の案内",
+   "img": false,
+   "text": "【大会のご案内】\nカワバドの大会は1人あたり4試合以上を保証しています。\n\n・シングルス 1,500円／人（1人で申し込めます）\n・ダブルス・ミックス 2,000円／ペア\n・超初級ダブルス 3,000円／ペア\n\nセルフジャッジ制、中学生以上が対象です。\nhttps://kawabado.com/ja/tournaments?utm_source=x&utm_medium=social&utm_campaign=tournament",
+   "posted_at": null
+  },
+  {
+   "id": "A-3",
+   "label": "1人参加の不安に答える",
+   "img": false,
+   "text": "「バドミントン 1人 参加」で探している方へ。\n\n川口・蕨のカワバドは参加者の多くが1人参加です。\n・持ち物はラケットと体育館用シューズ\n・超初級クラスは初心者の方が対象\n・レッスンではなく自由練習型。自分のペースでOK\n\nよくある質問はこちら\nhttps://kawabado.com/ja/faq?utm_source=x&utm_medium=social&utm_campaign=faq",
+   "posted_at": null
+  },
+  {
+   "id": "A-4",
+   "label": "会場アクセス",
+   "img": true,
+   "text": "【会場】どちらもJR蕨駅から歩けます\n\n▪️芝園公民館（川口市芝園町3-15）\n蕨駅西口から徒歩10分ほど・芝園団地内\n\n▪️蕨市民体育館（蕨市北町1-27-15）\n蕨駅から徒歩14分ほど・駐車場と駐輪場あり\n\nhttps://kawabado.com/ja/venues?utm_source=x&utm_medium=social&utm_campaign=venues",
+   "posted_at": null
+  },
+  {
+   "id": "A-5",
+   "label": "クラス分け",
+   "img": false,
+   "text": "「自分はどのクラスに出ればいい？」\n\nカワバドは超初級／初級／中級／オープンの4クラス。\n超初級・初級は初心者の方が対象で、\n「負けても楽しかった！」を目標にしたクラスです。\n\n迷ったらこちら\nhttps://kawabado.com/ja/level-guide?utm_source=x&utm_medium=social&utm_campaign=level",
+   "posted_at": null
+  },
+  {
+   "id": "A-6",
+   "label": "シャトルの持ち物ルール",
+   "img": false,
+   "text": "【大会に出る方へ・シャトルのこと】\n\n超初級ダブルス以外は、シャトルのご持参が必要です。\n・日本バドミントン協会またはBWF認定の第2種検定球以上\n・4〜9月は3番／10〜3月は4番\n・忘れた場合は会場で1球500円\n\n詳細はFAQに\nhttps://kawabado.com/ja/faq?utm_source=x&utm_medium=social&utm_campaign=shuttle",
+   "posted_at": null
+  },
+  {
+   "id": "A-7",
+   "label": "支払い方法",
+   "img": false,
+   "text": "大会の参加費、こんな方法で払えます。\n\n・クレジットカード（事前決済）\n・PayPay\n・WeChat Pay / Alipay\n\n事前決済にしておくと当日の精算が要らないので、\nそのまま体育館に入れます。\nhttps://kawabado.com/ja/?utm_source=x&utm_medium=social&utm_campaign=payment",
+   "posted_at": null
+  },
+  {
+   "id": "A-8",
+   "label": "特典登録",
+   "img": false,
+   "text": "カワバドの特典、受け取っていますか？\n\n大会・活動のお知らせと、\nばりかた屋のラーメン無料券などの地域特典をお届けしています。\n\n登録は無料です。\nhttps://kawabado.com/ja/join?utm_source=x&utm_medium=social&utm_campaign=join",
+   "posted_at": null
+  },
+  {
+   "id": "B-1",
+   "label": "芝園公民館への行き方（保存版）",
+   "img": true,
+   "text": "「芝園公民館ってどう行くの？」に答える記事を書きました。\n\n蕨駅からの道順を、写真と動画で解説しています。\n初めて来る方はこれを見ておけば迷いません。\n\nhttps://kawabado.com/ja/blog/12?utm_source=x&utm_medium=social&utm_campaign=blog12",
+   "posted_at": null
+  },
+  {
+   "id": "B-2",
+   "label": "川口・蕨でバドミントンができる場所",
+   "img": false,
+   "text": "「川口・蕨でバドミントンができる場所」をまとめました。\n\nどこで、いつ、いくらで、どうやって申し込むか。\n通常活動のことが1本で分かります。\n\nhttps://kawabado.com/ja/blog/7?utm_source=x&utm_medium=social&utm_campaign=blog7",
+   "posted_at": null
+  },
+  {
+   "id": "B-3",
+   "label": "第7回 交流杯レポート",
+   "img": true,
+   "text": "第7回 川口・蕨バド交流杯のレポートを公開しました。\n\nハンデ制の合同ダブルス。\n男子ペアが表彰台に上がりました。\n\n当日の様子はこちら\nhttps://kawabado.com/ja/blog/36?utm_source=x&utm_medium=social&utm_campaign=blog36",
+   "posted_at": null
+  },
+  {
+   "id": "B-4",
+   "label": "上海の大会で見たこと",
+   "img": false,
+   "text": "上海のバドミントン大会を見てきました。\n\n男女合同開催なのに、優勝したのは女性ペア。\nなぜ平日夜に対抗戦を続けているのか、\nその理由も書いています。\n\nhttps://kawabado.com/ja/blog/35?utm_source=x&utm_medium=social&utm_campaign=blog35",
+   "posted_at": null
+  },
+  {
+   "id": "B-5",
+   "label": "火瓶杯 団体戦 3位入賞",
+   "img": true,
+   "text": "火瓶杯のバドミントン団体戦に、\n川口・蕨代表として出場しました。\n\n結果は3位入賞。\n出た人の顔ぶれと、当日の流れを書いています。\n\nhttps://kawabado.com/ja/blog/23?utm_source=x&utm_medium=social&utm_campaign=blog23",
+   "posted_at": null
+  },
+  {
+   "id": "B-6",
+   "label": "第6回 予選ブロック＋決勝トーナメント",
+   "img": false,
+   "text": "第6回 交流杯は、初めて\n予選ブロック＋決勝トーナメント形式でやりました。\n\n「4試合以上」をどう組んだのか、\n運営側の話も書いています。\n\nhttps://kawabado.com/ja/blog/24?utm_source=x&utm_medium=social&utm_campaign=blog24",
+   "posted_at": null
+  },
+  {
+   "id": "B-7",
+   "label": "ばりかた屋コラボ",
+   "img": true,
+   "text": "バドミントンの後に、無料でラーメン🍜\n\nばりかた屋さん×カワバドのコラボ特典です。\n参加者の方にご案内しています。\n\nhttps://kawabado.com/ja/blog/11?utm_source=x&utm_medium=social&utm_campaign=blog11",
+   "posted_at": null
+  },
+  {
+   "id": "B-8",
+   "label": "クレカ払い対応のお知らせ",
+   "img": false,
+   "text": "大会参加費、クレジットカード払いに対応しました💳\n\n事前に決済しておけば当日の精算が不要です。\n現地でお金を出す手間がなくなります。\n\nhttps://kawabado.com/ja/blog/20?utm_source=x&utm_medium=social&utm_campaign=blog20",
+   "posted_at": null
+  },
+  {
+   "id": "C-1",
+   "label": "川口市の方へ",
+   "img": true,
+   "text": "「川口 バドミントン サークル」で探している方へ。\n\n川口市の芝園公民館（芝園町3-15）を中心に、\n平日夜19:00〜21:00で活動しています。\n\n入会制ではなく、参加したい回だけ申し込む形です。\nhttps://kawabado.com/ja/kawaguchi?utm_source=x&utm_medium=social&utm_campaign=kawaguchi",
+   "posted_at": null
+  },
+  {
+   "id": "C-2",
+   "label": "戸田方面の方へ",
+   "img": false,
+   "text": "「戸田 バドミントン」で探している方へ。\n\n戸田・戸田公園方面から通えます。会場は隣の蕨市・川口市。\n蕨駅から芝園公民館まで徒歩10分ほど、\n蕨市民体育館まで徒歩14分ほど。\n\nhttps://kawabado.com/ja/toda?utm_source=x&utm_medium=social&utm_campaign=toda",
+   "posted_at": null
+  },
+  {
+   "id": "C-3",
+   "label": "蕨駅から歩ける",
+   "img": false,
+   "text": "蕨でバドミントンができる場所を探している方へ。\n\nカワバドの2会場はどちらもJR蕨駅から徒歩圏。\n仕事終わりにそのまま寄って、\n21時には終わって帰れる距離です。\n\n会場の地図はこちら\nhttps://kawabado.com/ja/venues?utm_source=x&utm_medium=social&utm_campaign=warabi",
+   "posted_at": null
+  },
+  {
+   "id": "C-4",
+   "label": "入会制じゃない",
+   "img": false,
+   "text": "川口・蕨のバドミントンサークルを探している方へ。\nカワバドは「入会制のサークル」ではありません。\n\n会員登録も、続けて通う取り決めもなし。\n参加したい回だけ、そのページから申し込みます。\n\nだから月に1回でも、年に1回でも大丈夫です。\nhttps://kawabado.com/ja/kawaguchi?utm_source=x&utm_medium=social&utm_campaign=nomember",
+   "posted_at": null
+  },
+  {
+   "id": "C-5",
+   "label": "芝園団地の中にあります",
+   "img": false,
+   "text": "芝園公民館は、芝園団地の中にあります。\n\n蕨駅西口から徒歩10分ほど（770mほど）。\n館内に駐車場もありますが台数が少ないので、\n満車のときは隣のショッピングモールへ。\n\nhttps://kawabado.com/ja/venues?utm_source=x&utm_medium=social&utm_campaign=shibaen",
+   "posted_at": null
+  },
+  {
+   "id": "D-1",
+   "label": "シングルス",
+   "img": false,
+   "text": "【シングルス大会】ペアを探さなくていい大会です。\n\n1人で申し込めて、1人で4試合以上。\n「組む相手がいないから出られない」がなくなります。\n\n参加費 1,500円／人\nhttps://kawabado.com/ja/tournaments/singles?utm_source=x&utm_medium=social&utm_campaign=singles",
+   "posted_at": null
+  },
+  {
+   "id": "D-2",
+   "label": "ダブルス",
+   "img": false,
+   "text": "【ダブルス大会】2人1組で申し込みます。\n\nペアが決まってからのお申し込みをお願いしています。\n当日ペア未定だと試合が組めないためです。\n\n参加費 2,000円／ペア\nhttps://kawabado.com/ja/tournaments/doubles?utm_source=x&utm_medium=social&utm_campaign=doubles",
+   "posted_at": null
+  },
+  {
+   "id": "D-3",
+   "label": "ミックスダブルス",
+   "img": false,
+   "text": "【ミックスダブルス】男女ペアの大会です。\n\n夫婦・カップル・職場の同僚、\n組み合わせは自由です。\n\n参加費 2,000円／ペア・4試合以上保証\nhttps://kawabado.com/ja/tournaments/mixed-doubles?utm_source=x&utm_medium=social&utm_campaign=mixed",
+   "posted_at": null
+  },
+  {
+   "id": "E-1",
+   "label": "多国籍のメンバー",
+   "img": true,
+   "text": "カワバドには中国・ベトナム・インドネシア・フィリピンなど、\nいろいろな国のメンバーが集まっています。\n\n日本語に自信がなくても、バドミントンができれば通じます。\n中国語での問い合わせ・当日サポートにも対応しています。\n\nhttps://kawabado.com/ja/international?utm_source=x&utm_medium=social&utm_campaign=international",
+   "posted_at": null
+  },
+  {
+   "id": "E-2",
+   "label": "中国語対応",
+   "img": false,
+   "text": "中国語での問い合わせ・お申し込みに対応しています。\n\nサイトも中国語版があります。\n当日のサポートも中国語でできます。\n\n「日本語がまだ不安」という方も、どうぞ。\nhttps://kawabado.com/zh/?utm_source=x&utm_medium=social&utm_campaign=zh",
+   "posted_at": null
+  }
+ ]
+}
