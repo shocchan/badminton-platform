@@ -1091,13 +1091,26 @@ async function buildOgpMeta(route, env, pageUrl) {
     // security側にしか無かった LCP画像のpreload（imagePreload）をこちらへ移した。
     // title_zh / excerpt_zh / content_zh が無い環境（migration適用前）でも動くようにフォールバックする。
     // ここで落ちると記事ページの素のHTMLが**全記事**トップの文言に戻るので、黙って壊してはいけない
+    /*
+     * 【公開予定日より前の記事を素のHTMLに出さない（2026-08-31 追加）】
+     * 画面側（useBlogPosts）と sitemap は published_at <= 現在 で絞っているのに、
+     * ここだけ id で素直に引いていた。そのため**予約公開の記事が、
+     * 公開日より前でも直リンクで全文読める**状態だった。
+     * 一覧にも sitemap にも出ないので気づきにくいが、URLさえ分かれば読めてしまう。
+     *
+     * status では絞らない。unlisted（一覧に出さないがURLでは見せる）記事を
+     * ここで落とすと、いま見えているものが見えなくなる。
+     * published_at が NULL の旧データも従来どおり通す。
+     */
+    const nowIso = new Date().toISOString();
+    const publishedFilter = '&or=(published_at.lte.' + nowIso + ',published_at.is.null)';
     let p = await fetchFirst(env,
-      '/rest/v1/blog_posts?id=eq.' + route.id
+      '/rest/v1/blog_posts?id=eq.' + route.id + publishedFilter
       + '&select=title,excerpt,image_url,content,title_zh,excerpt_zh,content_zh'
       + ',published_at,created_at,updated_at');
     if (!p) {
       p = await fetchFirst(env,
-        '/rest/v1/blog_posts?id=eq.' + route.id
+        '/rest/v1/blog_posts?id=eq.' + route.id + publishedFilter
         + '&select=title,excerpt,image_url,content,published_at,created_at,updated_at');
     }
     if (!p) return null;
