@@ -516,6 +516,27 @@ describe('ブログ記事（本文そのものを素のHTMLに出す）', () => 
     expect(hreflangs(html)).toEqual([]);
   });
 
+  // 限定公開（unlisted）は sitemap に載らないだけで、素のHTMLには noindex が
+  // 何も入っていなかった。URLが漏れた瞬間に普通にインデックスされる状態だった
+  it('限定公開・下書きは素のHTMLに noindex,nofollow が入り、hreflangとBlogPostingを出さない', async () => {
+    for (const status of ['unlisted', 'draft']) {
+      const html = await renderPath('/ja/blog/7', { post: { ...POST_ZH, status } });
+      expect(html).toContain('<meta name="robots" content="noindex,nofollow" />');
+      expect(hreflangs(html)).toEqual([]);
+      expect(jsonLds(html).some((o) => o['@type'] === 'BlogPosting')).toBe(false);
+      // 本文とcanonicalは今までどおり出す（リンクを知っている人には見せる）
+      expect(canonicalOf(html)).toBe('https://kawabado.com/ja/blog/7');
+      expect(prerenderText(html)).toContain('吉田さんが優勝しました。');
+    }
+  });
+
+  it('公開記事には noindex を出さない', async () => {
+    const html = await renderPath('/ja/blog/7', { post: { ...POST_ZH, status: 'published' } });
+    expect(html).not.toContain('noindex');
+    expect(hreflangs(html).length).toBe(3);
+    expect(jsonLds(html).some((o) => o['@type'] === 'BlogPosting')).toBe(true);
+  });
+
   it('htmlToParagraphs は上限で打ち切る', () => {
     const long = '<p>' + 'あ'.repeat(500) + '</p><p>' + 'い'.repeat(500) + '</p><p>う</p>';
     const out = W.htmlToParagraphs(long, 600);

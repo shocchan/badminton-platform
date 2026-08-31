@@ -512,6 +512,9 @@ function eventJsonLd(o) {
  */
 function jsonLdTags(list) {
   if (!list || !list.length) return '';
+  // 呼び出し側が条件で null を混ぜる（noindexの記事は BlogPosting を出さない等）
+  list = list.filter(Boolean);
+  if (!list.length) return '';
   return list.map(function (o) {
     return '<script type="application/ld+json" data-kb-prerender>'
       + JSON.stringify(o).replace(/</g, '\\\\u003c')
@@ -824,6 +827,11 @@ function injectOgp(meta) {
     tail += '\\n    <link rel="alternate" hreflang="zh" href="' + escAttr(meta.alternates.zh) + '" />';
     tail += '\\n    <link rel="alternate" hreflang="x-default" href="' + escAttr(meta.alternates.ja) + '" />';
   }
+  // 下書き・限定公開は素のHTMLの段階で検索から外す（2026-08-31）。
+  // 画面側の noindex はJS実行後にしか効かないので、ここが本命
+  if (meta.noindex) {
+    tail += '\\n    <meta name="robots" content="noindex,nofollow" />';
+  }
   // canonical（2026-08-22）。JS実行前のHTMLにも入れておく。
   // study.kawabado.com など別ホストから同じ内容が配られたときの重複も、これで本体へ寄る
   if (meta.canonical) {
@@ -1107,11 +1115,11 @@ async function buildOgpMeta(route, env, pageUrl) {
     let p = await fetchFirst(env,
       '/rest/v1/blog_posts?id=eq.' + route.id + publishedFilter
       + '&select=title,excerpt,image_url,content,title_zh,excerpt_zh,content_zh'
-      + ',published_at,created_at,updated_at');
+      + ',status,published_at,created_at,updated_at');
     if (!p) {
       p = await fetchFirst(env,
         '/rest/v1/blog_posts?id=eq.' + route.id + publishedFilter
-        + '&select=title,excerpt,image_url,content,published_at,created_at,updated_at');
+        + '&select=title,excerpt,image_url,content,status,published_at,created_at,updated_at');
     }
     if (!p) return null;
     // 「中国語版があるか」の判定は本文だけを見る（src/pages/blogSeo.ts の hasZhBody と同じ）。
@@ -1130,6 +1138,15 @@ async function buildOgpMeta(route, env, pageUrl) {
     // 自己参照でない canonical と hreflang を併用すると矛盾する（src/pages/blogSeo.ts 冒頭）
     const path = '/' + (hasZh ? (wantZh ? 'zh' : 'ja') : 'ja') + '/blog/' + route.id;
     const coverUrl = p.image_url && /^https?:/.test(p.image_url) ? p.image_url : null;
+    /*
+     * 下書き・限定公開（unlisted）は検索に出さない（2026-08-31 追加）。
+     * 画面側 BlogDetailPage.tsx は noindex を出していたが、それはJS実行後。
+     * ここ（素のHTML）には何も入っておらず、sitemapに無いだけの
+     * 「見つかったら普通にインデックスされる記事」になっていた。
+     * hidden のときは画面側と同じく hreflang と BlogPosting も出さない
+     *（検索に出さないと言いながら別言語版を案内するのは矛盾する）
+     */
+    const hidden = p.status === 'draft' || p.status === 'unlisted';
     return {
       title: title + (zh ? '｜川口・蕨羽毛球交流会' : '｜川口・蕨バドミントン交流会'),
       description: excerpt || (zh
@@ -1142,7 +1159,8 @@ async function buildOgpMeta(route, env, pageUrl) {
       // 本文の言語を名乗る。中国語URLでも本文が日本語なら ja のまま（zhと名乗るのは嘘になる）
       lang: lang,
       canonical: 'https://kawabado.com' + path,
-      alternates: hasZh ? {
+      noindex: hidden,
+      alternates: (hasZh && !hidden) ? {
         ja: 'https://kawabado.com/ja/blog/' + route.id,
         zh: 'https://kawabado.com/zh/blog/' + route.id,
       } : null,
@@ -1155,7 +1173,7 @@ async function buildOgpMeta(route, env, pageUrl) {
         breadcrumbJsonLd(lang, title, path),
         // 素のHTMLにも「これは記事だ」と名乗らせる（2026-08-31）。
         // 画面側 BlogDetailPage.tsx の articleSchema と同じ内容にすること
-        blogPostingJsonLd({
+        hidden ? null : blogPostingJsonLd({
           title: title,
           description: excerpt || '',
           lang: lang,
