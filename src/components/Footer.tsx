@@ -76,6 +76,14 @@ export const Footer = () => {
               <Link to={to('toda')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '戸田からのアクセス' : '从户田出发的交通'}
               </Link>
+              {/* 大会一覧・主催者（2026-08-31）。/tournaments はルートが無いまま
+                  既定のtitleのページを見せていた。about は「誰がやっているか」の受け皿 */}
+              <Link to={to('tournaments')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会一覧' : '赛事一览'}
+              </Link>
+              <Link to={to('about')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
+                <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? 'カワバドについて' : '关于kawabado'}
+              </Link>
               <Link to={to('cancel-policy')} className="text-sm hover:text-white transition-colors flex items-center gap-2">
                 <ChevronRight className="h-3.5 w-3.5 text-gray-600 flex-shrink-0" /> {lang === 'ja' ? '大会キャンセルポリシー' : '赛事取消政策'}
               </Link>

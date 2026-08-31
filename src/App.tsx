@@ -25,6 +25,8 @@ const InternationalPage    = lazy(() => import('./pages/InternationalPage').then
 // 「川口市 バドミントンサークル」「戸田 バドミントン」のような地域名＋競技名の受け皿が無かった
 const KawaguchiPage        = lazy(() => import('./pages/KawaguchiPage').then(m => ({ default: m.KawaguchiPage })));
 const TodaPage             = lazy(() => import('./pages/TodaPage').then(m => ({ default: m.TodaPage })));
+const AboutPage            = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const TournamentListPage   = lazy(() => import('./pages/TournamentListPage').then(m => ({ default: m.TournamentListPage })));
 const TournamentTypePage   = lazy(() => import('./pages/TournamentTypePage').then(m => ({ default: m.TournamentTypePage })));
 const TournamentDetailPage = lazy(() => import('./pages/TournamentDetailPage').then(m => ({ default: m.TournamentDetailPage })));
 const BlogPage             = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
@@ -137,6 +139,9 @@ const AnimatedRoutes = () => {
           <Route path="/:lang/*" element={<LangWrapper groupSlug="kawaguchi-warabi" />}>
             <Route path="activity"        element={<ActivityListPage groupSlug="kawaguchi-warabi" />} />
             <Route path="activity/:id"    element={<ActivityPage groupSlug="kawaguchi-warabi" />} />
+            {/* 大会一覧（2026-08-31）。ここが無い間、/ja/tournaments は 200 を返しながら
+                index.html のフォールバック（既定のtitle/description）を出していた */}
+            <Route path="tournaments"               element={<TournamentListPage />} />
             {/* 種目別の恒常ページ。**必ず tournaments/:id より前**に置く
                 （後ろだと singles 等のスラッグが :id に吸われる） */}
             <Route path="tournaments/singles"       element={<TournamentTypePage slug="singles" />} />
@@ -150,6 +155,8 @@ const AnimatedRoutes = () => {
                 下の catch-all（path="*"）より前に置くこと */}
             <Route path="kawaguchi"       element={<KawaguchiPage />} />
             <Route path="toda"            element={<TodaPage />} />
+            {/* 主催者ページ（2026-08-31）。「誰がやっているか」の受け皿が1枚も無かった */}
+            <Route path="about"           element={<AboutPage />} />
             <Route path="contact"         element={<ContactPage />} />
             <Route path="level-guide"     element={<LevelGuidePage />} />
             <Route path="cancel-policy"   element={<CancelPolicyPage />} />

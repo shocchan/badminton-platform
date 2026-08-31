@@ -127,6 +127,10 @@ async function generateSitemap(env) {
     // 戸田は検索語として1度も表示されていない（＝土俵に上がっていない）
     { path: 'kawaguchi',     priority: '0.9', freq: 'monthly' },
     { path: 'toda',          priority: '0.7', freq: 'monthly' },
+    // 主催者ページ・大会一覧（2026-08-31）。/tournaments はルートが無いまま
+    // 200 を返して index.html のフォールバックを見せていたので、実体を作って登録した
+    { path: 'about',         priority: '0.7', freq: 'monthly' },
+    { path: 'tournaments',   priority: '0.9', freq: 'weekly' },
     // 種目別の恒常ページ（2026-08-24）。大会は終わると一覧から消えるので、
     // 種目＋地域の検索（例: ミックスダブルス 大会 埼玉）を受ける常設URLを置く
     { path: 'tournaments/singles',       priority: '0.8', freq: 'weekly' },
@@ -303,6 +307,8 @@ const NAV = [
   { path: 'international',             ja: '国際交流バドミントン',              zh: '国际交流羽毛球' },
   { path: 'kawaguchi',                 ja: '川口市のバドミントンサークル',      zh: '川口市的羽毛球社团' },
   { path: 'toda',                      ja: '戸田からのアクセス',                zh: '从户田出发的交通' },
+  { path: 'about',                     ja: 'カワバドについて（主催者）',        zh: '关于kawabado（主办人）' },
+  { path: 'tournaments',               ja: '大会一覧',                          zh: '赛事一览' },
   { path: 'level-guide',               ja: 'クラス分け案内',                    zh: '级别说明' },
   { path: 'venues',                    ja: '会場ガイド',                        zh: '会场指南' },
   { path: 'faq',                       ja: 'よくある質問',                      zh: '常见问题' },
@@ -421,6 +427,38 @@ function breadcrumbJsonLd(lang, name, path) {
       { '@type': 'ListItem', position: 2, name: name, item: SITE + path },
     ],
   };
+}
+
+/**
+ * ブログ記事の BlogPosting（2026-08-31 追加）。
+ *
+ * 【なぜ要るか】
+ * 画面側（src/pages/BlogDetailPage.tsx の articleSchema）は前から BlogPosting を出していたが、
+ * **素のHTMLには BreadcrumbList しか入っていなかった**。
+ * Google は JS を実行するので影響が無く、実測するまで誰も気づけない状態だった。
+ * 一方 WeChat・小紅書・Baidu・GPTBot は素のHTMLしか見ないので、
+ * これらから見ると「記事である」ことすら名乗れていなかった。
+ *
+ * 【画面側と同じ形にすること】
+ * 同じURLで2つの BlogPosting が食い違うと、どちらが本当か分からなくなる。
+ * BlogDetailPage.tsx の articleSchema を変えたらこちらも直す。
+ * src/lib/seo/seoConventions.test.mjs が両者のキーの一致を見ている。
+ */
+function blogPostingJsonLd(o) {
+  const published = o.publishedAt || o.createdAt || null;
+  return Object.assign({
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: o.title,
+    description: o.description,
+    // 本文の言語を名乗る（UIの言語ではない）。中国語URLでも本文が日本語なら ja
+    inLanguage: o.lang,
+    mainEntityOfPage: o.canonical,
+    publisher: { '@id': SITE + '/#organization' },
+  },
+  published ? { datePublished: published } : {},
+  o.updatedAt || published ? { dateModified: o.updatedAt || published } : {},
+  o.image ? { image: o.image } : {});
 }
 
 function faqJsonLd(items) {
@@ -623,6 +661,8 @@ const KNOWN_LEAVES = [
   'activity', 'activity-cn', 'tournaments', 'faq', 'venues', 'international', 'contact',
   // 地域ページ（2026-08-28）
   'kawaguchi', 'toda',
+  // 主催者ページ（2026-08-31）
+  'about',
   'level-guide', 'cancel-policy', 'tokushoho', 'privacy', 'terms', 'admin', 'blog', 'join',
   'shuttle-roadmap', 'tactics-board', 'game', 'mypage', 'ai-lesson-demo', 'ai-course',
   'auth-landing', 'login', 'signup', 'password-reset', 'password-reset-form',
@@ -1053,10 +1093,12 @@ async function buildOgpMeta(route, env, pageUrl) {
     // ここで落ちると記事ページの素のHTMLが**全記事**トップの文言に戻るので、黙って壊してはいけない
     let p = await fetchFirst(env,
       '/rest/v1/blog_posts?id=eq.' + route.id
-      + '&select=title,excerpt,image_url,content,title_zh,excerpt_zh,content_zh');
+      + '&select=title,excerpt,image_url,content,title_zh,excerpt_zh,content_zh'
+      + ',published_at,created_at,updated_at');
     if (!p) {
       p = await fetchFirst(env,
-        '/rest/v1/blog_posts?id=eq.' + route.id + '&select=title,excerpt,image_url,content');
+        '/rest/v1/blog_posts?id=eq.' + route.id
+        + '&select=title,excerpt,image_url,content,published_at,created_at,updated_at');
     }
     if (!p) return null;
     // 「中国語版があるか」の判定は本文だけを見る（src/pages/blogSeo.ts の hasZhBody と同じ）。
@@ -1096,7 +1138,21 @@ async function buildOgpMeta(route, env, pageUrl) {
         lead: excerpt,
         paragraphs: htmlToParagraphs(content, 2000),
       },
-      jsonLd: [breadcrumbJsonLd(lang, title, path)],
+      jsonLd: [
+        breadcrumbJsonLd(lang, title, path),
+        // 素のHTMLにも「これは記事だ」と名乗らせる（2026-08-31）。
+        // 画面側 BlogDetailPage.tsx の articleSchema と同じ内容にすること
+        blogPostingJsonLd({
+          title: title,
+          description: excerpt || '',
+          lang: lang,
+          canonical: 'https://kawabado.com' + path,
+          image: coverUrl,
+          publishedAt: p.published_at,
+          createdAt: p.created_at,
+          updatedAt: p.updated_at,
+        }),
+      ],
     };
   }
   return null;
