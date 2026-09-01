@@ -27,12 +27,34 @@ import { X as XIcon } from 'lucide-react';
  * 先に入れると Link 決済が消える事故が過去にあったため、決済ロジックは無変更。
  * 承認が下りたら、ここの `ready: false` を外すのと合わせてStripe側を有効化する。
  */
+/*
+ * 使える支払い方法（2026-09-01 に絵文字をやめた）。
+ *
+ * 【なぜ絵文字をやめたか】
+ * 支付宝に 🅰️（Aボタンの絵文字。ブランドと無関係）、
+ * 微信支付に 💬（汎用の吹き出し）を当てていた。
+ * CEOの指摘どおり**偽物に見える**。600円とはいえお金を預ける画面で、
+ * 支払いブランドの記号が偽物に見えるのはいちばん効く不信になる。
+ *
+ * 【本物のロゴを置かない理由】
+ * 微信支付の公式素材（pay.weixin.qq.com/material/brand.shtml）を実際に取得して
+ * 中を確認した。配布されているのは**作図ガイドのシート**で、きれいなロゴ単体は入っていない。
+ * 取り出すにはガイドの図版を切り抜くことになるが、規約が
+ * 「図形の分解・改変・文字だけの使用」を禁じている。
+ * 規約を外れた素材を置けば、結局また偽物になる。
+ *
+ * 【いまの形】
+ * 記号を置かず、**名前だけを並べる**。名前を書くのは「この方法が使える」と
+ * 言っているだけで、ロゴの使用ではない。
+ * 本物のロゴは、実際に払う Stripe の決済ページに公式のものが出る。
+ * 公式素材を正式に用意できたら、そのときロゴへ差し替える（判断はCEO）。
+ */
 export const PAYMENT_METHODS: ReadonlyArray<{
-  id: string; icon: string; label: { ja: string; zh: string }; ready: boolean;
+  id: string; label: { ja: string; zh: string }; ready: boolean;
 }> = [
-  { id: 'card',   icon: '💳', label: { ja: 'クレジットカード', zh: '信用卡' }, ready: true },
-  { id: 'alipay', icon: '🅰️', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: true },
-  { id: 'wechat', icon: '💬', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: true },
+  { id: 'card',   label: { ja: 'クレジットカード', zh: '信用卡' }, ready: true },
+  { id: 'alipay', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: true },
+  { id: 'wechat', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: true },
 ];
 
 export function PaymentMethodsNote({ lang }: { lang: Lang }) {
@@ -52,7 +74,6 @@ export function PaymentMethodsNote({ lang }: { lang: Lang }) {
                 ? 'border-lp-line bg-lp-card font-bold text-lp-ink'
                 : 'border-lp-line/60 bg-lp-card/50 text-lp-ink-soft/60'
             }`}>
-            <span aria-hidden="true">{m.icon}</span>
             <span>{m.label[lang === 'zh' ? 'zh' : 'ja']}</span>
             {!m.ready && (
               <span className="ml-0.5 rounded-full bg-lp-ink-soft/15 px-1.5 py-0.5 text-[0.72rem] font-bold text-lp-ink-soft/80">
@@ -73,8 +94,8 @@ export function PaymentMethodsNote({ lang }: { lang: Lang }) {
            「必ず全部出る」と断定しない（出なかった人に嘘をついたことになる） */
         <p className="mt-2.5 text-[0.82rem] leading-relaxed text-lp-ink-soft">
           {lang === 'zh'
-            ? '支付方式在支付页面选择。可选项会根据所在地区与设备有所不同。'
-            : 'お支払い方法は決済ページで選べます。ご利用の地域・端末によって表示される方法が異なることがあります。'}
+            ? '在支付页面可以看到各支付方式的官方标识并选择。可选项会根据所在地区与设备有所不同。'
+            : '決済ページで各社の公式マークを確認して選べます。ご利用の地域・端末によって表示される方法が異なることがあります。'}
         </p>
       )}
     </div>

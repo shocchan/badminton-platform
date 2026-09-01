@@ -87,3 +87,51 @@ describe('表示（中国語）', () => {
     }
   });
 });
+
+/* ── 支払いブランドの記号を偽物にしない（2026-09-01・CEO指摘） ──────────
+   支付宝に 🅰️（Aボタンの絵文字。ブランドと無関係）、微信支付に 💬（汎用の吹き出し）を
+   当てていた。お金を預ける画面で支払いブランドの記号が偽物に見えるのは、
+   いちばん効く不信になる。
+
+   本物のロゴも置かない。微信支付の公式素材を実際に取得して確認したところ、
+   配布されているのは作図ガイドのシートで、きれいなロゴ単体は入っていない。
+   取り出すにはガイドを切り抜くことになり、規約が禁じる「分解・改変」に当たる。
+   規約を外れた素材を置けば、結局また偽物になる。
+
+   いまは**名前だけ**を並べる。名前を書くのは「この方法が使える」と言っているだけで、
+   ロゴの使用ではない。本物のロゴは実際に払う Stripe の決済ページに出る。 */
+describe('支払いブランドの記号', () => {
+  const SRC = readFileSync('src/pages/ai-lesson/landing/sectionsD.tsx', 'utf8');
+
+  it('絵文字をブランドの記号として使わない', () => {
+    const block = /export const PAYMENT_METHODS[\s\S]*?\n\];/.exec(SRC);
+    expect(block, 'PAYMENT_METHODS が見つからない').toBeTruthy();
+    // 絵文字（記号・その他）が1つでも入っていたら落とす
+    expect(block![0]).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/u);
+  });
+
+  it('icon という項目自体を持たない（また絵文字を入れられないように）', () => {
+    const block = /export const PAYMENT_METHODS[\s\S]*?\n\];/.exec(SRC)![0];
+    expect(block).not.toMatch(/\bicon\b/);
+  });
+
+  it('支払い方法の名前は正式名称で書く', () => {
+    for (const m of PAYMENT_METHODS) {
+      expect(m.label.ja.length).toBeGreaterThan(0);
+      expect(m.label.zh.length).toBeGreaterThan(0);
+    }
+    const zh = PAYMENT_METHODS.map((m) => m.label.zh).join(' ');
+    expect(zh).toContain('支付宝');
+    expect(zh).toContain('微信支付');
+  });
+
+  it('本物のマークは決済ページで見られると案内する', () => {
+    expect(SRC).toContain('公式マーク');
+    expect(SRC).toContain('官方标识');
+  });
+
+  it('なぜロゴを置かないのかがコードに書いてある（次に絵文字へ戻さないため）', () => {
+    expect(SRC).toContain('pay.weixin.qq.com/material/brand.shtml');
+    expect(SRC).toMatch(/分解・改変/);
+  });
+});
