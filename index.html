@@ -29,5 +29,64 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!--
+      起動できなかったときの案内（2026-09-01）。
+
+      【なぜ要るか】
+      実在の生徒がPCからログインできず、画面が真っ白のままだった。
+      このサイトはJavaScriptで描くので、ブラウザがバンドルを実行できないと
+      **エラーも出ずに何も起きない**。本人には「壊れている」としか見えず、
+      何をすればいいのか分からない。
+
+      ここは ES5 だけで書く（古いブラウザで動かないと意味がないため）。
+      アロー関数・const・テンプレート文字列を使わないこと。
+      6秒待っても #root が空なら、その場に案内を描く。
+      6秒なのは、遅い回線でも普通は間に合い、待たされ過ぎない長さだから。
+    -->
+    <script>
+      (function () {
+        var WAIT_MS = 6000;
+        function show() {
+          var root = document.getElementById('root');
+          if (!root || root.firstChild) return;   // 起動できていれば何もしない
+          var zh = document.documentElement.lang === 'zh'
+            || location.pathname.indexOf('/zh') === 0;
+          var t = zh ? {
+            h: '页面没能正常打开',
+            p: '你的浏览器可能无法运行本网站。请试试下面的方法：',
+            a: '用 Chrome 或 Edge 打开这个网址（不要用微信里的浏览器）',
+            b: '如果用的是 360浏览器・QQ浏览器，请切换到「极速模式」',
+            c: '把浏览器更新到最新版本',
+            d: '还是不行的话，请把这个画面截图发给老师。',
+            u: '当前网址：'
+          } : {
+            h: 'ページが開けませんでした',
+            p: 'お使いのブラウザではこのサイトを表示できない可能性があります。次をお試しください。',
+            a: 'Chrome または Edge でこのURLを開く（アプリ内ブラウザは避けてください）',
+            b: '360ブラウザ・QQブラウザをお使いの場合は「極速モード」に切り替える',
+            c: 'ブラウザを最新版に更新する',
+            d: 'それでも開けないときは、この画面を撮って先生に送ってください。',
+            u: 'いまのURL：'
+          };
+          var box = document.createElement('div');
+          box.setAttribute('style',
+            'max-width:34rem;margin:3rem auto;padding:1.5rem 1.25rem;'
+            + 'font-family:system-ui,-apple-system,"Hiragino Sans","Microsoft YaHei",sans-serif;'
+            + 'line-height:1.9;color:#1f2937;border:1px solid #e5e7eb;border-radius:8px;background:#fff');
+          var html = '<h1 style="font-size:1.15rem;margin:0 0 .5rem">' + t.h + '</h1>'
+            + '<p style="margin:0 0 .75rem">' + t.p + '</p>'
+            + '<ul style="margin:0 0 .75rem;padding-left:1.2rem">'
+            + '<li>' + t.a + '</li><li>' + t.b + '</li><li>' + t.c + '</li></ul>'
+            + '<p style="margin:0 0 .5rem;font-size:.9rem;color:#4b5563">' + t.d + '</p>'
+            + '<p style="margin:0;font-size:.8rem;color:#6b7280;word-break:break-all">'
+            + t.u + location.href + '</p>';
+          box.innerHTML = html;
+          root.appendChild(box);
+        }
+        if (window.addEventListener) window.addEventListener('load', function () { setTimeout(show, WAIT_MS); });
+        else setTimeout(show, WAIT_MS + 2000);
+      })();
+    </script>
   </body>
 </html>
