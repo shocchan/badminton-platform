@@ -156,8 +156,18 @@
  * display:none にしておけば、既定テーマでは画像の読み込みも起きない
  * （既定を選んだ訪問者の重さを1バイトも増やさない）。
  */
-.lp-adv-hero-bg { display: none; }
-[data-lp-theme='adventure'] .lp-adv-hero-bg { display: block; }
+/*
+ * ヒーローの風景は**冒険テーマのときだけ**出す。
+ * display:none にしておけば、暖色テーマでは画像の読み込みも起きない。
+ *   .lp-adv-hero-bg    … スマホ用（背景として敷く）
+ *   .lp-adv-hero-strip … PC用（本文と同じ幅の帯。文字を重ねない）
+ */
+.lp-adv-hero-bg, .lp-adv-hero-strip { display: none !important; }
+[data-lp-theme='adventure'] .lp-adv-hero-bg { display: block !important; }
+@media (min-width: 768px) {
+  [data-lp-theme='adventure'] .lp-adv-hero-bg { display: none !important; }
+  [data-lp-theme='adventure'] .lp-adv-hero-strip { display: block !important; }
+}
 
 @media (prefers-reduced-transparency: reduce) {
   [data-lp-theme='adventure'].lp-paper { background-image: none; }

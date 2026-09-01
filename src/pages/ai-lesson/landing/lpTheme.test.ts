@@ -59,13 +59,32 @@ describe('戻り道が残っている', () => {
   });
 
   it('暖色に戻したときは風景の読み込みごと止まる', () => {
-    expect(CSS).toMatch(/\.lp-adv-hero-bg \{ display: none; \}/);
-    expect(CSS).toMatch(/\[data-lp-theme='adventure'\] \.lp-adv-hero-bg \{ display: block; \}/);
+    // display:none なら画像そのものを取りに行かない＝暖色を選んだ人の重さは増えない
+    expect(CSS).toMatch(/\.lp-adv-hero-bg, \.lp-adv-hero-strip \{ display: none !important; \}/);
+    expect(CSS).toMatch(/\[data-lp-theme='adventure'\] \.lp-adv-hero-bg \{ display: block !important; \}/);
+    expect(CSS).toMatch(/\[data-lp-theme='adventure'\] \.lp-adv-hero-strip \{ display: block !important; \}/);
   });
 
-  it('PCでは風景を出さない（縦長の原画は横帯にできない）', () => {
-    // 512×768 の縦長を横1440pxへ object-cover すると空だけの帯になる（実機で確認）
-    expect(HERO).toMatch(/lp-adv-hero-bg md:!hidden/);
+  it('スマホとPCで風景の出し方を分ける', () => {
+    /*
+     * 2026-09-01 訂正: 以前は「縦長の原画は横帯にできない」としてPCから消していたが、
+     * 同じ画像をロードマップで 1110×200 に切って出しており、実測すると
+     * 上下の色差80で地平線が見える＝絵として成立していた。
+     * 本当の原因は「全幅1440まで広げ、ベールを重ねて文字を乗せた」こと。
+     * PCは**本文と同じ幅の帯**にして文字を重ねない。
+     */
+    expect(HERO).toMatch(/lp-adv-hero-bg md:hidden/);
+    expect(HERO).toMatch(/lp-adv-hero-strip hidden md:block/);
+  });
+
+  it('PCの帯に文字を重ねない（重ねると風景が霞んで見える）', () => {
+    const strip = /lp-adv-hero-strip[\s\S]*?<\/div>/.exec(HERO);
+    expect(strip, 'PC用の帯が見つからない').toBeTruthy();
+    expect(strip![0]).not.toMatch(/bg-gradient-to-b/);
+  });
+
+  it('PCの帯は本文と同じ幅の中に置く（全幅へ広げない）', () => {
+    expect(HERO).toMatch(/max-w-6xl px-5">[\s\S]{0,400}lp-adv-hero-strip/);
   });
 
   it('紙の質感は同じ要素に効かせる（子孫セレクタにしない）', () => {

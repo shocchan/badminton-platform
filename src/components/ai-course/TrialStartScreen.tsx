@@ -13,6 +13,7 @@ import { startTrial } from '../../lib/aiLesson/course/courseAccess';
 import { formatUntilJst } from '../../lib/aiLesson/course/courseAccess';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
+import { micSupport, inAppBrowser } from '../../lib/aiLesson/course/micSupport';
 
 export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadlineISO, onStarted }: {
   lang: 'ja' | 'zh';
@@ -26,6 +27,17 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
 }) {
   const zh = lang === 'zh';
   const byDays = trialDays !== null;
+  /*
+   * マイクが使える環境かを、**時計を動かす前に**見る（2026-09-01）。
+   * 体験の中心はAI音声会話で、使えないと何も起きない。
+   * これまでは会話画面に入ってから気づく作りで、そのときには既に
+   * 「体験を始める」を押していて7日の時計が動いていた。
+   *
+   * 許可ダイアログは出さない（存在と安全コンテキストだけを見る）。
+   * 判定できないときは ok に倒すので、使える人を止めることはない。
+   */
+  const mic = micSupport();
+  const app = inAppBrowser();
   // 計測に残す値。日数制は分数を持たないので0で埋めず、日数側を送る
   const meta: Record<string, number> = byDays
     ? { trial_days: trialDays }
@@ -35,14 +47,17 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
   const viewed = useRef(false);
   if (!viewed.current) {
     viewed.current = true;
-    trackCourse('view_ai_course_trial_start', meta);
+    trackCourse('view_ai_course_trial_start', { ...meta, mic, in_app: app ?? 'no' });
+    // マイクが使えない環境で開始画面まで来た人を数える。
+    // ここが多いなら、案内をもっと手前（購入前）へ出す必要がある
+    if (mic !== 'ok') logCourseEvent('error_occurred', { where: 'mic_check', code: mic });
   }
 
   const begin = async () => {
     if (busy) return;
     setBusy(true);
     setError('');
-    trackCourse('click_ai_course_trial_start', meta);
+    trackCourse('click_ai_course_trial_start', { ...meta, mic });
     const r = await startTrial();
     // 開始が**成功したとき**だけ trial_start を立てる（押した＝始まった、ではない・2026-08-23 監査）
     if (r.ok) { logCourseEvent('trial_started', meta); trackCourse('start_ai_course_trial', meta); onStarted(); return; }
@@ -110,6 +125,28 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
               ? '目标设定与水平诊断已经完成，不计入体验时间。60分钟全部用于学习。'
               : '目標設定とレベル診断はもう終わっています（体験時間には含まれません）。60分はまるごと学習に使えます。')}
         </p>
+
+        {mic !== 'ok' && (
+          <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left">
+            <p className="text-[13px] font-bold text-red-900">
+              {zh ? '这个画面无法使用麦克风' : 'この画面ではマイクが使えません'}
+            </p>
+            <p className="mt-1 text-[13px] leading-relaxed text-red-800">
+              {zh
+                ? '体验的核心是和AI老师的语音会话。请先解决之后再开始，否则会白白用掉体验期间。'
+                : '体験の中心はAI先生との音声会話です。このまま始めると、話せないまま期間を使ってしまいます。'}
+            </p>
+            <p className="mt-2 text-[13px] leading-relaxed text-red-800">
+              {app
+                ? (zh
+                  ? '请点右上角「⋯」→「在浏览器中打开」，用 Chrome / Safari 再打开一次。'
+                  : '右上の「…」から「ブラウザで開く」を選び、Chrome / Safari で開き直してください。')
+                : (zh
+                  ? '请用最新版的 Chrome / Safari 打开，并允许麦克风权限。'
+                  : '最新版の Chrome / Safari で開き、マイクの使用を許可してください。')}
+            </p>
+          </div>
+        )}
 
         <button type="button" onClick={() => void begin()} disabled={busy}
           className="mt-5 inline-flex w-full min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-base font-bold text-white hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">

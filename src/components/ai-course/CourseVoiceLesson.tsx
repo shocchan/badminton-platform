@@ -4,6 +4,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
+import { isWeChat } from '../../lib/aiLesson/course/micSupport';
 import { X, Clock, Flag, Mic, MicOff, PenLine, CheckCircle2, AlertTriangle, RefreshCw, FileText, Square, Languages, ChevronDown, Subtitles, Wrench, HelpCircle } from 'lucide-react';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { VoicePulse } from './VoicePulse';
@@ -74,7 +75,7 @@ const prefersReducedMotion = () =>
 
 const DURATION = 180, HARD_END = 240, CLOSING_BEFORE = 30;
 const COMPLETE_OVERLAY_MS = 1600, MAX_RETRY = 2;
-const isWeChat = () => /MicroMessenger/i.test(navigator.userAgent);
+// 判定は micSupport.ts に集約（同じ正規表現が2ファイルに散っていた・2026-09-01）
 const hasZh = (s: string) => /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(s);
 const fmt = (sec: number) => `${Math.floor(Math.max(sec, 0) / 60)}:${String(Math.max(sec, 0) % 60).padStart(2, '0')}`;
 

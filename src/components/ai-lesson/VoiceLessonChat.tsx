@@ -7,6 +7,7 @@
 // - 途中終了・エラー時は自動遷移せず「レポートを見る / もう一度 / テキストへ」を選ばせる
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isWeChat } from '../../lib/aiLesson/course/micSupport';
 import {
   X, Clock, Flag, Mic, MicOff, PenLine, RefreshCw, Volume2, AlertTriangle, CheckCircle2, FileText, Square,
 } from 'lucide-react';
@@ -44,7 +45,8 @@ const SUMMARY_END_TIMEOUT_MS = 25000; // 「まとめて終了」後、finish_le
 const COMPLETE_OVERLAY_MS = 1600;   // 「レッスンが完了しました」表示時間
 const MAX_RETRY = 2;
 
-const isWeChatBrowser = (): boolean => /MicroMessenger/i.test(navigator.userAgent);
+// 判定は micSupport.ts に集約（2026-09-01）
+const isWeChatBrowser = isWeChat;
 
 export const VoiceLessonChat = ({ t, plan, courseMinutes, onFinish, onSwitchToText }: Props) => {
   const tl = t.lesson;

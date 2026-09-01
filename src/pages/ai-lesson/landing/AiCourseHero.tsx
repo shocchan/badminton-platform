@@ -48,16 +48,22 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
         ここは z-0 のまま先に置き、下のコンテンツ側を relative z-10 で前に出す。
       */}
       {/*
-        PCでは出さない（2026-08-28 CEO指摘「PCで見ると冒険の方イマイチ」）。
-        原画は 512×768 の縦長。横1440pxの帯に object-cover で伸ばすと、
-        見えるのは**空だけの薄い青い帯**になり、風景として読めない。
-        中央寄せにしても草原の一色帯になるだけで、縦長の絵は横帯にできない。
+        冒険テーマのときだけ、いちばん上に風景を出す。
 
-        スマホ幅では絵として成立しているので、そこだけ残す。
-        PCも冒険にするには**横長の風景を1枚起こす**必要がある（次の課題）。
-        パレットと紙の質感はPCでも効いているので、世界観そのものは変わらない。
+        【2026-08-28 → 09-01 の訂正】
+        「PCで見るとイマイチ」という指摘を受けて md:!hidden でPCから消し、
+        理由を「縦長の原画は横帯にできない」と書いていた。**これは誤りだった。**
+        同じ画像をロードマップで 1110×200 に切って表示しており、
+        実測すると上下の色差は80で地平線がはっきり見える（＝絵として成立している）。
+
+        本当の原因は切り取りではなく、次の2つ:
+          - 全幅1440まで広げていた（本文の最大幅1110を超えて間延びする）
+          - 白いベールを重ねたうえに文字を乗せ、風景が霞んで見えた
+
+        なので**本文と同じ幅に収め、文字を重ねない帯**にする。
+        スマホは従来どおり背景として敷く（画面が狭く、帯にすると場所を食うため）。
       */}
-      <div className="lp-adv-hero-bg md:!hidden absolute inset-x-0 top-0 h-[220px] sm:h-[300px] overflow-hidden" aria-hidden="true">
+      <div className="lp-adv-hero-bg md:hidden absolute inset-x-0 top-0 h-[220px] overflow-hidden" aria-hidden="true">
         <picture>
           <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
           <img
@@ -72,6 +78,19 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-5">
+        {/* PC用の風景。本文と同じ幅に収め、文字を重ねない（スマホは上の背景版が出る） */}
+        <div className="lp-adv-hero-strip hidden md:block mb-8 overflow-hidden rounded-3xl border border-lp-line">
+          <picture>
+            <source srcSet="/ai-course/map/world-bg@1x.avif" type="image/avif" />
+            <img
+              src="/ai-course/map/world-bg@1x.webp"
+              alt="" aria-hidden="true" decoding="async"
+              width={512} height={768}
+              className="w-full h-[180px] object-cover object-top"
+            />
+          </picture>
+        </div>
+
         <div className="grid md:grid-cols-[1.05fr_.95fr] gap-10 items-center">
           {/* copy */}
           <div className="text-center md:text-left">
