@@ -1,4 +1,4 @@
-deployed_at: 2026-09-01 09:27:47 +0900
+deployed_at: 2026-09-01 23:47:05 +0900
 branch:      integration/unify-2026-08-28
-commit:      89926f9fadb765d0ccf2d9666c6533f80f5ed648
-asset:       assets/index-DZXV8Fa8.js
+commit:      12d2a697fd4d0f6dfeb471fcedb8321c9c4ab14e
+asset:       assets/index-BliezL7z.js

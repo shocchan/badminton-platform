@@ -10,6 +10,7 @@ import {
 import { entitlementsFor } from '../../../lib/aiLesson/course/plans/planEntitlements';
 import { canStartCheckout, startCheckout } from '../../../lib/aiLesson/course/plans/planCheckout';
 import { X as XIcon } from 'lucide-react';
+import { PaymentMark, CARD_BRANDS } from './paymentMarks';
 
 /**
  * 支払い方法の案内（2026-08-23）。
@@ -28,7 +29,7 @@ import { X as XIcon } from 'lucide-react';
  * 承認が下りたら、ここの `ready: false` を外すのと合わせてStripe側を有効化する。
  */
 /*
- * 使える支払い方法（2026-09-01 に絵文字をやめた）。
+ * 使える支払い方法（2026-09-01 に絵文字をやめ、公式マークへ差し替えた）。
  *
  * 【なぜ絵文字をやめたか】
  * 支付宝に 🅰️（Aボタンの絵文字。ブランドと無関係）、
@@ -36,18 +37,18 @@ import { X as XIcon } from 'lucide-react';
  * CEOの指摘どおり**偽物に見える**。600円とはいえお金を預ける画面で、
  * 支払いブランドの記号が偽物に見えるのはいちばん効く不信になる。
  *
- * 【本物のロゴを置かない理由】
- * 微信支付の公式素材（pay.weixin.qq.com/material/brand.shtml）を実際に取得して
- * 中を確認した。配布されているのは**作図ガイドのシート**で、きれいなロゴ単体は入っていない。
- * 取り出すにはガイドの図版を切り抜くことになるが、規約が
- * 「図形の分解・改変・文字だけの使用」を禁じている。
- * 規約を外れた素材を置けば、結局また偽物になる。
+ * 【いま出しているマーク】
+ * **Stripeが自分の決済画面で出しているものと同じマーク**（`./paymentMarks`）。
+ * 取得元と守るべきことはそちらのファイルに全部書いてある。
+ * これで、LPで見たマークと実際に払う画面のマークが一致する。
  *
- * 【いまの形】
- * 記号を置かず、**名前だけを並べる**。名前を書くのは「この方法が使える」と
- * 言っているだけで、ロゴの使用ではない。
- * 本物のロゴは、実際に払う Stripe の決済ページに公式のものが出る。
- * 公式素材を正式に用意できたら、そのときロゴへ差し替える（判断はCEO）。
+ * 各社の配布素材を直接使っていない理由も paymentMarks に書いた
+ * （微信支付の公式配布物は pay.weixin.qq.com/material/brand.shtml の
+ *  作図ガイドのシートで、切り抜くと規約の禁じる「分解・改変」に当たる）。
+ *
+ * 【マークはここに書かない】
+ * 記号は id から `paymentMarks` を引く。ここに `icon` のような欄を作ると、
+ * また手近な絵文字を入れられてしまう（それが今回の原因）。
  */
 export const PAYMENT_METHODS: ReadonlyArray<{
   id: string; label: { ja: string; zh: string }; ready: boolean;
@@ -56,6 +57,25 @@ export const PAYMENT_METHODS: ReadonlyArray<{
   { id: 'alipay', label: { ja: 'Alipay（支付宝）', zh: '支付宝' }, ready: true },
   { id: 'wechat', label: { ja: 'WeChat Pay（微信支付）', zh: '微信支付' }, ready: true },
 ];
+
+/**
+ * その支払い方法のマーク。カードは「どのブランドが使えるか」が知りたいことなので、
+ * Stripeの決済画面がカード欄に出しているのと同じ4ブランドを並べる。
+ *
+ * 準備中（ready:false）のものにはマークを出さない。
+ * 使えないブランドのロゴを載せるのは、それ自体が嘘になる。
+ */
+function MethodMark({ id }: { id: string }) {
+  if (id === 'card') {
+    return (
+      <span className="inline-flex items-center gap-[3px]">
+        {CARD_BRANDS.map((b) => <PaymentMark key={b} id={b} />)}
+      </span>
+    );
+  }
+  if (id === 'alipay' || id === 'wechat') return <PaymentMark id={id} />;
+  return null;
+}
 
 export function PaymentMethodsNote({ lang }: { lang: Lang }) {
   const pending = PAYMENT_METHODS.filter((m) => !m.ready);
@@ -69,11 +89,12 @@ export function PaymentMethodsNote({ lang }: { lang: Lang }) {
           <li key={m.id}
             // 押せるものではないと支援技術にも伝える（見た目だけのグレーアウトにしない）
             aria-disabled={!m.ready || undefined}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.88rem] ${
+            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[0.88rem] ${
               m.ready
                 ? 'border-lp-line bg-lp-card font-bold text-lp-ink'
                 : 'border-lp-line/60 bg-lp-card/50 text-lp-ink-soft/60'
             }`}>
+            {m.ready && <MethodMark id={m.id} />}
             <span>{m.label[lang === 'zh' ? 'zh' : 'ja']}</span>
             {!m.ready && (
               <span className="ml-0.5 rounded-full bg-lp-ink-soft/15 px-1.5 py-0.5 text-[0.72rem] font-bold text-lp-ink-soft/80">
@@ -91,11 +112,12 @@ export function PaymentMethodsNote({ lang }: { lang: Lang }) {
         </p>
       ) : (
         /* 表示される決済手段は、国・端末・金額によってStripe側が出し分ける。
-           「必ず全部出る」と断定しない（出なかった人に嘘をついたことになる） */
+           ここに出しているのは決済画面と同じ公式マークだが、
+           「必ず全部出る」とは断定しない（出なかった人に嘘をついたことになる） */
         <p className="mt-2.5 text-[0.82rem] leading-relaxed text-lp-ink-soft">
           {lang === 'zh'
-            ? '在支付页面可以看到各支付方式的官方标识并选择。可选项会根据所在地区与设备有所不同。'
-            : '決済ページで各社の公式マークを確認して選べます。ご利用の地域・端末によって表示される方法が異なることがあります。'}
+            ? '实际付款时，在支付页面选择上面的方式。可选项会根据所在地区与设备有所不同。'
+            : 'お支払いは決済ページで上記から選びます。ご利用の地域・端末によって表示される方法が異なることがあります。'}
         </p>
       )}
     </div>

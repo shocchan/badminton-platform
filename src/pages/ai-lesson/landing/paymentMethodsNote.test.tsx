@@ -59,6 +59,12 @@ describe('表示（日本語）', () => {
     expect(screen.getByText(/表示される方法が異なることがあります/)).toBeTruthy();
   });
 
+  it('マークの読み上げが本文に混ざらない（画面の文章として読めなくならない）', () => {
+    const { container } = render(<PaymentMethodsNote lang="ja" />);
+    // aria-label は支援技術向け。見えている文字は日本語の文だけであること
+    expect(container.textContent).not.toContain('Mastercard');
+  });
+
   it('使える項目に aria-disabled を残さない（支援技術に古い状態を伝えない）', () => {
     const { container } = render(<PaymentMethodsNote lang="ja" />);
     expect(container.querySelectorAll('li[aria-disabled="true"]')).toHaveLength(0);
@@ -88,31 +94,37 @@ describe('表示（中国語）', () => {
   });
 });
 
-/* ── 支払いブランドの記号を偽物にしない（2026-09-01・CEO指摘） ──────────
-   支付宝に 🅰️（Aボタンの絵文字。ブランドと無関係）、微信支付に 💬（汎用の吹き出し）を
+/* ── 支払いブランドのマーク（2026-09-01・CEO指摘 →「Stripe使うからいい。使って」）──
+   もとは支付宝に 🅰️（Aボタンの絵文字。ブランドと無関係）、微信支付に 💬（汎用の吹き出し）を
    当てていた。お金を預ける画面で支払いブランドの記号が偽物に見えるのは、
    いちばん効く不信になる。
 
-   本物のロゴも置かない。微信支付の公式素材を実際に取得して確認したところ、
-   配布されているのは作図ガイドのシートで、きれいなロゴ単体は入っていない。
-   取り出すにはガイドを切り抜くことになり、規約が禁じる「分解・改変」に当たる。
-   規約を外れた素材を置けば、結局また偽物になる。
+   いまは**Stripeが自分の決済画面で出しているものと同じマーク**を置いている。
+   LPで見たマークと、実際に払う画面のマークが一致する。
 
-   いまは**名前だけ**を並べる。名前を書くのは「この方法が使える」と言っているだけで、
-   ロゴの使用ではない。本物のロゴは実際に払う Stripe の決済ページに出る。 */
-describe('支払いブランドの記号', () => {
+   ここで機械的に止めること:
+   - 絵文字へ戻さない
+   - 色・縦横比を変えない（各社の規約が禁じている。改変したロゴはまた偽物になる）
+   - 使えない支払い方法のロゴを出さない（それ自体が嘘になる）
+   - 外部ホストから読まない（中国から見る人に届かないことがある） */
+describe('支払いブランドのマーク', () => {
   const SRC = readFileSync('src/pages/ai-lesson/landing/sectionsD.tsx', 'utf8');
+  const MARKS = readFileSync('src/pages/ai-lesson/landing/paymentMarks.tsx', 'utf8');
+  const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/u;
 
   it('絵文字をブランドの記号として使わない', () => {
     const block = /export const PAYMENT_METHODS[\s\S]*?\n\];/.exec(SRC);
     expect(block, 'PAYMENT_METHODS が見つからない').toBeTruthy();
-    // 絵文字（記号・その他）が1つでも入っていたら落とす
-    expect(block![0]).not.toMatch(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/u);
+    expect(block![0]).not.toMatch(EMOJI);
   });
 
   it('icon という項目自体を持たない（また絵文字を入れられないように）', () => {
     const block = /export const PAYMENT_METHODS[\s\S]*?\n\];/.exec(SRC)![0];
     expect(block).not.toMatch(/\bicon\b/);
+  });
+
+  it('マークを描く側にも絵文字が無い', () => {
+    expect(MARKS.replace(/^\/\/.*$/gm, '')).not.toMatch(EMOJI);
   });
 
   it('支払い方法の名前は正式名称で書く', () => {
@@ -125,13 +137,49 @@ describe('支払いブランドの記号', () => {
     expect(zh).toContain('微信支付');
   });
 
-  it('本物のマークは決済ページで見られると案内する', () => {
-    expect(SRC).toContain('公式マーク');
-    expect(SRC).toContain('官方标识');
+  it('マークは各社のブランド色で描かれている（勝手に単色化しない）', () => {
+    // 実測（Stripeの決済画面が配信している値）と一致すること。
+    // 色を変えるのは各社の規約違反で、変えた時点でまた偽物になる
+    for (const [brand, color] of [
+      ['Visa', '#1434CB'], ['Mastercard', '#eb001b'], ['JCB', '#047ab1'],
+      ['Amex', '#016fd0'], ['支付宝', '#1C9FE5'], ['微信支付', '#65bf46'],
+    ] as const) {
+      expect(MARKS, `${brand} のブランド色が無い`).toContain(color);
+    }
   });
 
-  it('なぜロゴを置かないのかがコードに書いてある（次に絵文字へ戻さないため）', () => {
-    expect(SRC).toContain('pay.weixin.qq.com/material/brand.shtml');
-    expect(SRC).toMatch(/分解・改変/);
+  it('縦横比を固定する（潰したり伸ばしたりしない）', () => {
+    // 高さだけを指定し、幅は viewBox の比から決める
+    expect(MARKS).toContain('w-auto');
+    expect(MARKS).toMatch(/viewBox=\{VIEW_BOX\[id\]\}/);
+    // svg に width/height を直書きすると比が崩れる
+    expect(MARKS).not.toMatch(/<svg[^>]*\swidth="/);
+  });
+
+  it('外部ホストから読み込まない（中国から見る人に届かないことがある）', () => {
+    // URLはコメントに出どころとして残すが、コードで取りに行ってはいけない
+    const code = MARKS.replace(/^\/\/.*$/gm, '');
+    expect(code).not.toContain('js.stripe.com');
+    expect(code).not.toMatch(/<img/);
+  });
+
+  it('準備中の支払い方法にはマークを出さない（使えないロゴを出すのは嘘になる）', () => {
+    expect(SRC).toMatch(/\{m\.ready && <MethodMark/);
+  });
+
+  it('どこから持ってきたマークかがコードに書いてある（次に差し替える人のため）', () => {
+    expect(MARKS).toContain('js.stripe.com');
+    expect(MARKS).toContain('cs_live_');
+    // 各社の配布素材をそのまま使えなかった理由も残す
+    expect(MARKS).toContain('pay.weixin.qq.com/material/brand.shtml');
+    expect(MARKS).toMatch(/分解・改変/);
+  });
+
+  it('画面に6つのマークが出る（カード4ブランド＋支付宝＋微信支付）', () => {
+    const { container } = render(<PaymentMethodsNote lang="zh" />);
+    const svgs = container.querySelectorAll('svg[role="img"]');
+    expect(svgs).toHaveLength(6);
+    expect([...svgs].map((s) => s.getAttribute('aria-label'))).toEqual(
+      ['Visa', 'Mastercard', 'JCB', 'American Express', 'Alipay', 'WeChat Pay']);
   });
 });
