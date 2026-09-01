@@ -29,6 +29,12 @@ describe('起動できなかったときの案内', () => {
     expect(bootScript().length).toBeGreaterThan(200);
   });
 
+  it('見出しタグを使わない（index.html 自体に本文が無い状態を保つ）', () => {
+    // workerPrerender.test.mjs が「index.html に <h1 は無い」を不変条件にしている。
+    // 本文はWorkerが差し込む側の責務で、ここは起動できなかったときの案内でしかない
+    expect(HTML).not.toContain('<h1');
+  });
+
   it('type="module" ではない（古いブラウザは module を丸ごと無視する）', () => {
     // ここが module だと、案内そのものが実行されない
     expect(bootScript()).toMatch(/^<script>/);

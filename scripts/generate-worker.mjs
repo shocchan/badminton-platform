@@ -522,8 +522,116 @@ function jsonLdTags(list) {
   }).join('\\n    ');
 }
 
-const PRERENDER_STYLE = 'max-width:44rem;margin:0 auto;padding:1.5rem 1rem;'
-  + 'font-family:system-ui,sans-serif;line-height:1.9;color:#1f2937';
+/*
+ * 素のHTMLの見た目（2026-09-01）。
+ *
+ * 【なぜ手を入れたか】
+ * この本文は React が起動するまでの1〜4秒、実際に人の目に映る。
+ * CEOがWeChatのリンクから開いて「一瞬これが見えるのが気になる」と指摘。
+ * 実測: HTML到着0ms → 主JS読み込み完了916ms（光回線）。
+ * WeChat内蔵ブラウザ＋モバイル回線ならもっと長い。
+ * 129人のグループに配るリンクの第一印象がこれになる。
+ *
+ * 【隠さない理由】
+ * これは検索エンジンに中身を読ませるために置いている。
+ * 隠すと目的を失ううえ、隠しテキストは検索側に嫌われる。
+ * **隠さずに「読み込み中の画面」に見せる**（見えても壊れて見えない）。
+ *
+ * JSが動かない人にはこのまま残り、読める画面になる。
+ */
+/*
+ * 素のHTMLの見た目（2026-09-01）。
+ *
+ * 【なぜ手を入れたか】
+ * この本文は React が起動するまでの1〜4秒、実際に人の目に映る。
+ * CEOがWeChatのリンクから開いて「一瞬これが見えるのが気になる」と指摘。
+ * 実測: HTML到着0ms → 主JS読み込み完了916ms（光回線）。
+ * WeChat内蔵ブラウザ＋モバイル回線ならもっと長い。
+ * 129人のグループへ配るリンクの第一印象がこれになる。
+ *
+ * 【隠さない理由】
+ * これは検索エンジンに中身を読ませるために置いている。
+ * 隠すと目的を失ううえ、隠しテキストは検索側に嫌われる。
+ * **隠さずに「読み込み中の画面」に見せる**（見えても壊れて見えない）。
+ * JSが動かない人にはこのまま残り、読める画面になる。
+ *
+ * 【インラインstyleを配らない理由】
+ * 要素ごとに style を書くと、素のHTMLが重くなるうえ、
+ * マークアップの形（<h1>・<a href=）が変わって、それを見ている
+ * workerPrerender.test.mjs のような検査が通らなくなる。
+ * 形は素のまま、見た目は #kb-prerender 配下へまとめて当てる。
+ */
+const PRERENDER_STYLE = 'max-width:34rem;margin:0 auto;padding:1.25rem 1.15rem 2rem';
+
+/** 素のHTMLの見た目。要素の形を変えずに読みやすくする */
+const PRERENDER_CSS = '<style>'
+  + "#kb-prerender{font-family:system-ui,-apple-system,'Hiragino Sans','Microsoft YaHei',sans-serif;"
+  + 'line-height:1.85;color:#1f2937;-webkit-font-smoothing:antialiased}'
+  + '#kb-prerender h1{font-size:1.22rem;font-weight:700;margin:0 0 .55rem;line-height:1.45}'
+  + '#kb-prerender h2{font-size:1.02rem;margin:1.4rem 0 .4rem}'
+  + '#kb-prerender h3{font-size:.94rem;margin:.9rem 0 .2rem}'
+  + '#kb-prerender p{margin:0 0 .7rem}'
+  + '#kb-prerender .kb-lead{color:#4b5563;margin-bottom:.9rem}'
+  // 日時・会場・参加費。ここがいちばん読まれるので罫線で区切る
+  + '#kb-prerender dl{margin:1rem 0 0;padding:0;border-top:1px solid #e5e7eb}'
+  + '#kb-prerender dt{margin:0;padding:.5rem 0 0;font-size:.82rem;color:#6b7280}'
+  + '#kb-prerender dd{margin:0 0 .5rem;padding:0 0 .5rem;font-weight:600;'
+  + 'border-bottom:1px solid #f3f4f6}'
+  // サイト内リンクは横に流して畳む。数も中身も減らしていない
+  + '#kb-prerender nav{margin-top:1.5rem;padding-top:.9rem;border-top:1px solid #e5e7eb}'
+  + '#kb-prerender nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;'
+  + 'gap:.35rem .9rem;font-size:.76rem;line-height:1.7}'
+  + '#kb-prerender nav a{color:#6b7280}'
+  // 読み込み中の帯。これがあるだけで、続く文字が「壊れた画面」でなく「途中」に見える
+  + '#kb-prerender .kb-loading{display:flex;align-items:center;gap:.6rem;margin:0 0 1.1rem;'
+  + 'padding:.7rem .9rem;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;'
+  + 'font-size:.86rem;color:#4b5563}'
+  + '#kb-prerender .kb-spin{display:block;width:14px;height:14px;flex:0 0 auto;border-radius:50%;'
+  + 'border:2px solid #d1d5db;border-top-color:#16a34a;animation:kbspin .8s linear infinite}'
+  // 申込ボタンが出ない人への出口
+  + '#kb-prerender .kb-help{display:block;margin:1.4rem 0 0;padding:.85rem 1rem;'
+  + 'border:1px solid #fde68a;border-radius:10px;background:#fffbeb;'
+  + 'font-size:.85rem;line-height:1.8;color:#78350f}'
+  + '#kb-prerender .kb-help b{display:block;margin-bottom:.3rem;color:#92400e}'
+  + '@keyframes kbspin{to{transform:rotate(360deg)}}'
+  + '@media(prefers-reduced-motion:reduce){#kb-prerender .kb-spin{animation:none}}'
+  + '</style>';
+
+/*
+ * 開けなかった人への出口（2026-09-01）。
+ *
+ * 【なぜ要るか】
+ * 通常活動のページは素のHTMLに「可通过本页面在线报名（このページから申し込めます）」
+ * と書いてあるのに、**その画面には申込ボタンが無い**。押せるのはサイト内リンクだけ。
+ * 古いブラウザの人は「申し込めます」と読んだうえで、申し込む手段がない行き止まりに入る。
+ *
+ * 129人のWeChatグループへ配っているリンクなので、ここが詰まると誰にも気づかれずに
+ * 参加者を失う（本人は何も言わずに閉じる）。
+ *
+ * 素のHTMLの中にフォームは置けない（送信先も検証もJS側にある）ので、
+ * **どうすれば申し込めるか**を書いて、連絡先へ逃がす。
+ */
+function prerenderStuckHelp(lang) {
+  const t = lang === 'zh'
+    ? { h: '看不到报名按钮时', a: '请点右上角「\u22ef」\u2192「在浏览器中打开」',
+        b: '或者用 Chrome / Edge 打开这个网址',
+        c: '还是不行的话，请直接在微信群里告诉主办人' }
+    : { h: '申し込みボタンが出ないときは', a: '右上の「\u2026」から「ブラウザで開く」を選んでください',
+        b: 'または Chrome / Edge でこのURLを開いてください',
+        c: 'それでも出ないときは、主催者に直接ご連絡ください' };
+  return '<aside class="kb-help"><b>' + escAttr(t.h) + '</b>'
+    + escAttr(t.a) + '<br>' + escAttr(t.b) + '<br>' + escAttr(t.c) + '</aside>';
+}
+
+/**
+ * 素のHTMLの先頭に置く「読み込み中」の帯。
+ * これがあるだけで、続く文字の羅列が「壊れた画面」ではなく
+ * 「読み込んでいる途中」に見える。CSSだけで描くので画像は増えない。
+ */
+function prerenderLoadingBar(lang) {
+  const label = lang === 'zh' ? '正在打开页面…' : 'ページを開いています…';
+  return '<p class="kb-loading"><span class="kb-spin"></span>' + escAttr(label) + '</p>';
+}
 
 /**
  * React の初回描画でプリレンダ本文とJSON-LDを消すスクリプト。
@@ -555,20 +663,29 @@ const PRERENDER_CLEANUP = '<script>(function(){'
   + 'mo.observe(r,{childList:true});'
   + '})();</script>';
 
+/*
+ * サイト内リンク。クローラーにはこれまでどおり全部渡す。
+ * 一方で、人の目に1〜4秒映るあいだ**これがいちばん「壊れた画面」に見える**
+ * （長い箇条書きが縦に並ぶ）ので、小さく淡く、横に流して畳む。
+ * リンクの数も中身も減らしていない＝内部リンクの価値は変わらない。
+ */
 function renderNav(lang, list) {
   let items = '';
   for (const n of (list || NAV)) {
     const href = '/' + (n.jaOnly ? 'ja' : lang) + '/' + n.path;
     items += '<li><a href="' + href + '">' + escAttr(n[lang] || n.ja) + '</a></li>';
   }
-  return '<nav aria-label="' + (lang === 'zh' ? '站点导航' : 'サイト内リンク') + '"><ul>' + items + '</ul></nav>';
+  return '<nav aria-label="' + (lang === 'zh' ? '站点导航' : 'サイト内リンク') + '"><ul>'
+    + items + '</ul></nav>';
 }
 
 /** staticSeo.json の body（h1 / lead / paragraphs / facts / faq）をHTMLにする */
 function renderBodyHtml(body, lang) {
   if (!body || !body.h1) return '';
+  // タグは素のまま。見た目は PRERENDER_CSS が #kb-prerender 配下へまとめて当てる
+  // （インラインstyleを配ると、素のHTMLが重くなるうえ形が読みにくくなる）
   let h = '<h1>' + escAttr(body.h1) + '</h1>';
-  if (body.lead) h += '<p>' + escAttr(body.lead) + '</p>';
+  if (body.lead) h += '<p class="kb-lead">' + escAttr(body.lead) + '</p>';
   const paras = body.paragraphs || [];
   for (const p of paras) h += '<p>' + escAttr(p) + '</p>';
   const facts = body.facts || [];
@@ -848,8 +965,10 @@ function injectOgp(meta) {
   const lang = meta.lang === 'zh' ? 'zh' : 'ja';
   const bodyHtml = renderBodyHtml(meta.body, lang);
   if (bodyHtml) {
-    const block = '<div id="kb-prerender" style="' + PRERENDER_STYLE + '">'
+    const block = PRERENDER_CSS + '<div id="kb-prerender" style="' + PRERENDER_STYLE + '">'
+      + prerenderLoadingBar(lang)
       + bodyHtml
+      + prerenderStuckHelp(lang)
       + renderNav(lang, meta.nav)
       + '</div>\\n    ';
     html = html.replace(/<div id="root">\\s*<\\/div>/, function (m) {

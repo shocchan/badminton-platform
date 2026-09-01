@@ -113,9 +113,16 @@ async function renderPath(pathname, rows) {
   return W.injectOgp(meta);
 }
 
-/** プリレンダ本文の可視テキスト（タグを落とした文字数を測るため） */
+/**
+ * プリレンダ本文の可視テキスト（タグを落とした文字数を測るため）。
+ *
+ * 2026-09-01: 最初の </div> で切っていたが、本文の中に <div> が入った時点で
+ * 冒頭だけしか取れなくなった（読み込み中の帯・日時の表・案内の枠）。
+ * ブロックは必ず <div id="root"> の直前で終わるので、そこまでを本文として取る。
+ * 取り出し方を直しただけで、各テストが確かめている内容は変えていない。
+ */
 function prerenderText(html) {
-  const m = /<div id="kb-prerender"[^>]*>([\s\S]*?)<\/div>/.exec(html);
+  const m = /<div id="kb-prerender"[^>]*>([\s\S]*?)<\/div>\s*<div id="root">/.exec(html);
   if (!m) return '';
   return m[1].replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }

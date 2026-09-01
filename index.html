@@ -74,7 +74,9 @@
             'max-width:34rem;margin:3rem auto;padding:1.5rem 1.25rem;'
             + 'font-family:system-ui,-apple-system,"Hiragino Sans","Microsoft YaHei",sans-serif;'
             + 'line-height:1.9;color:#1f2937;border:1px solid #e5e7eb;border-radius:8px;background:#fff');
-          var html = '<h1 style="font-size:1.15rem;margin:0 0 .5rem">' + t.h + '</h1>'
+          // 見出しタグは使わない。index.html 自体に本文が無いことを
+          // workerPrerender.test.mjs が不変条件として見ているため（そこは正しい）
+          var html = '<p style="font-size:1.15rem;font-weight:700;margin:0 0 .5rem">' + t.h + '</p>'
             + '<p style="margin:0 0 .75rem">' + t.p + '</p>'
             + '<ul style="margin:0 0 .75rem;padding-left:1.2rem">'
             + '<li>' + t.a + '</li><li>' + t.b + '</li><li>' + t.c + '</li></ul>'
