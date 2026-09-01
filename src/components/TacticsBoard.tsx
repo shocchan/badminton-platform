@@ -542,13 +542,33 @@ export function dropSeedArrows(snap: Snapshot | null): Snapshot | null {
   return arrows.length === snap.arrows.length ? snap : { ...snap, arrows };
 }
 
+/**
+ * 前回の状態を読み直す。**選手の位置は戻すが、矢印は戻さない**（CEO判断 2026-09-01）。
+ *
+ * 【なぜ矢印を捨てるか】
+ * 2026-08-25 に「初期状態に見本の矢印を置かない」と決めた理由がそのまま当てはまる。
+ *   先に線が入っていると、消してから始めることになって手数が増える。
+ * 見本を消しても、**自分が前に引いた線が復元される**ので、開いた画面は同じように
+ * 線だらけになる。CEOから2回「初期から矢印が出る」と報告が来たのはこれ。
+ * 見本の矢印（seed-*）だけを落とす作りでは、この状況を解けない。
+ *
+ * 【消えて困る人がいないか】
+ * 意図して残したい盤面は**保存スロット**（LS_KEY）に入れる作りになっていて、
+ * そちらには一切手を出さない。つまり「残したいなら保存する」で筋が通る。
+ * ⚠️ 代わりに、作業の途中でリロードすると引いた線は戻らない。
+ *    これは承知のうえでの取り替え（毎回きれいな状態で開けることを優先した）。
+ *
+ * 選手の位置は残す。人を並べ直すのは手間で、しかも「前回の続き」で困らないため。
+ */
 export function loadInitialBoard(): { board: BoardState; firstVisit: boolean } {
   try {
     const seen = localStorage.getItem(LS_SEEN);
     if (!seen) return { board: seedBoard(), firstVisit: true };
     const raw = localStorage.getItem(LS_LAST);
-    const snap = raw ? dropSeedArrows(migrateSnapshot(JSON.parse(raw))) : null;
-    if (snap && snap.players.length > 0) return { board: { ...snap, selected: null }, firstVisit: false };
+    const snap = raw ? migrateSnapshot(JSON.parse(raw)) : null;
+    if (snap && snap.players.length > 0) {
+      return { board: { ...snap, arrows: [], selected: null }, firstVisit: false };
+    }
   } catch { /* 壊れていたら見本から始める */ }
   return { board: seedBoard(), firstVisit: false };
 }

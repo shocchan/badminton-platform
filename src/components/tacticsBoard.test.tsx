@@ -378,7 +378,7 @@ describe('初回訪問と1行ヒント', () => {
     expect(board.players).toHaveLength(4); // 選手は消さない
   });
 
-  it('自分で引いた矢印は消さない（乱数IDなので見本と区別できる）', () => {
+  it('dropSeedArrows は見本の矢印だけを落とす（保存スロットの読み込みで使う）', () => {
     const kept = dropSeedArrows({
       players: [],
       flipped: false,
@@ -388,6 +388,27 @@ describe('初回訪問と1行ヒント', () => {
       ],
     })!;
     expect(kept.arrows.map((a) => a.id)).toEqual(['x7k2a9']);
+  });
+
+  it('前回の状態を読むとき、自分で引いた矢印も戻さない（2026-09-01）', () => {
+    // 「初期から矢印が出る」の報告2回目。見本の矢印は既に消してあり、
+    // 出ていたのは**前回自分で引いた線**だった。開いた瞬間に線が入っている状態は
+    // 見本のときと同じで、消す手数から始まることになる。
+    // 残したい盤面は保存スロットに入れる作りなので、そちらは触らない。
+    localStorage.setItem(LS_SEEN, '1');
+    localStorage.setItem(LS_LAST, JSON.stringify({
+      players: DEFAULT_PLAYERS.map((p) => ({ ...p })),
+      arrows: [
+        { id: 'fx3k9a', kind: 'shuttle', fromX: 50, fromY: 62, toX: 50, toY: 13, curveX: 50, curveY: 38 },
+        { id: 'fx8m2b', kind: 'move', ownerId: 'p1', fromX: 50, fromY: 87, toX: 50, toY: 62, curveX: 50, curveY: 74 },
+      ],
+      flipped: false,
+    }));
+    const { board, firstVisit } = loadInitialBoard();
+    expect(firstVisit).toBe(false);
+    expect(board.arrows).toHaveLength(0);
+    // 選手の位置は残す（並べ直す手間のほうが大きい）
+    expect(board.players).toHaveLength(4);
   });
 
   it('2回目以降は前回の状態を読む', () => {
@@ -519,20 +540,30 @@ describe('画面', () => {
   });
 
   it('☰ の「矢印をぜんぶ消す」は効いて、シートが閉じて、「戻す」で戻る', () => {
-    // 初回は矢印ゼロになったので、消す対象がある状態＝2回目以降を作ってから試す。
-    // コートを指でなぞる操作は getBoundingClientRect が 0 を返す jsdom では再現できないため、
-    // 保存状態から読ませる（「2回目以降は前回の状態を読む」と同じやり方）
+    // 消す対象がある状態を作る。**前回の状態（LS_LAST）では作れない**——
+    // 2026-09-01 から、前回の状態を読むときに矢印は戻さないようにしたため。
+    // コートを指でなぞる操作は getBoundingClientRect が 0 を返す jsdom では再現できないので、
+    // 保存スロットから読み込む（スロットは意図して残したものなので矢印ごと戻る）。
     localStorage.setItem(LS_SEEN, '1');
-    localStorage.setItem(LS_LAST, JSON.stringify(snapshotOf({
-      ...baseState(),
-      arrows: [
-        { id: 'a1', kind: 'shuttle', fromX: 20, fromY: 90, toX: 80, toY: 20, curveX: 50, curveY: 55 },
-        { id: 'a2', kind: 'move', ownerId: 'a', fromX: 30, fromY: 70, toX: 30, toY: 50, curveX: 30, curveY: 60 },
-      ],
-    })));
+    localStorage.setItem(LS_KEY, JSON.stringify([
+      {
+        name: '作戦1',
+        savedAt: 1,
+        data: snapshotOf({
+          ...baseState(),
+          arrows: [
+            { id: 'a1', kind: 'shuttle', fromX: 20, fromY: 90, toX: 80, toY: 20, curveX: 50, curveY: 55 },
+            { id: 'a2', kind: 'move', ownerId: 'a', fromX: 30, fromY: 70, toX: 30, toY: 50, curveX: 30, curveY: 60 },
+          ],
+        }),
+      },
+    ]));
     const { container } = render(<TacticsBoard />);
     const arrows = () => container.querySelectorAll('[data-arrow-hit]').length;
-    expect(arrows()).toBe(2); // 前回の状態として矢印2本を読ませてある
+
+    openMenu();
+    fireEvent.click(screen.getAllByRole('button', { name: '読込' })[0]);
+    expect(arrows()).toBe(2); // スロットから矢印2本を読み込んだ
 
     openMenu();
     fireEvent.click(screen.getByRole('button', { name: /矢印をぜんぶ消す/ }));
