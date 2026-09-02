@@ -78,15 +78,31 @@ export const isVocabTargetInScope = (targetId: string, targetLevel: JlptLevel): 
 /**
  * 今日の語彙バトルのバンド（stage対応・日替わり）。
  * 基礎固め中はN5/N4を交互に、N3圏に入ったらN3語、N2文法期はN2/N3を交互に。
- * 会話stageでは出さない。
  * **目標レベルの範囲外のバンドは返さない**（プールが空＝押せないバトルになるため。
  * 目標をN2→N3へ変えた生徒にN2のstageが残っている場合に効く）
+ *
+ * 【会話stageでも出す（2026-09-02 修正）】
+ * ここは会話stageで null を返していた。ところが会話ルートのstageは文法targetを持たない
+ * （advRoute.conversationStages が渡すのは conversationThemeIds だけ）ので、
+ * 語彙も文法も無い＝**その日の冒険が空**になる。
+ * 空になると generateTodayQuest の空クエスト防止がAI会話を1本置くため、
+ * 「AI会話は隔日」の設計が壊れて**毎日AIを焚いていた**（実測: 14日中14日）。
+ *
+ * 2026-08-23 の決定（会話が無い日はバトルを出す＝AIを使わないのでコストは増えない）は
+ * テストの fixture で `vocabBattleTargetId: 'vocab-1'` を手書きしていたため通っており、
+ * 本番では一度も成立していなかった。ここを直すのが本体。
  */
 export const vocabTargetForStage = (
   kind: AdvRouteStage['kind'], targetLevel: JlptLevel, dayNum: number,
 ): string | null => {
-  if (kind === 'conversation_start' || kind === 'conversation_growth') return null;
   const band = (() => {
+    // 会話stageは「いまの力の帯」と「その一つ下」を日替わりに。
+    // 会話で使う語を、本人のレベルに合わせて広げる（N1申告なら vocab-n2 / vocab-n3）
+    if (kind === 'conversation_start' || kind === 'conversation_growth') {
+      const scope = VOCAB_BANDS_IN_SCOPE[targetLevel];
+      const top = scope[scope.length - 1];
+      return (dayNum % 2 === 0 ? top : scope[scope.length - 2] ?? top) ?? 'vocab-n3';
+    }
     if (kind === 'foundation_camp' || kind === 'n3_bridge') return dayNum % 2 === 0 ? 'vocab-n5' : 'vocab-n4';
     if (kind === 'n2_grammar') return dayNum % 2 === 0 ? 'vocab-n2' : 'vocab-n3';
     if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
@@ -358,6 +374,15 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     parts.battle = step('battle', [confirmTarget],
       '確認バトル（時間をおいた定着チェック）', '复查战（隔段时间的巩固检查）', 'normal');
   }
+  /**
+   * 確認バトルを**実際に出した日**か（2026-09-02）。
+   *
+   * 以下の配分は「確認バトルの日は積みすぎない」ために語彙・漢字を抑えている。
+   * ところが会話stageでは上の条件で確認バトルを作らないので、
+   * `confirmTarget` があるだけで語彙も漢字も抑えられ、**その日が丸ごと空**になっていた。
+   * 抑えるかどうかは「確認バトルを出したか」で決める。予定があるかどうかではない。
+   */
+  const confirmBattleShown = Boolean(confirmTarget) && !isConvStageKind;
 
   // 語彙バトル（2026-08-15 語彙配線）。未出優先の出題で語彙バンクを日々歩く。
   // 15分: 3日に1回、文法バトルの代わりに（時間予算内・確認バトルが優先）
@@ -477,6 +502,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   if (minutes === 5) {
     // 5分: 復習＋弱点1つ or 新規のどちらか＋ミニ会話（会話goalのみ）。
     // バトルが一度も出ないと攻略（mastery）が永久に進まないため、奇数日はバトルを入れる
+    const beforeToday = steps.length;
     const battleDay = Number(dateKey.slice(-2)) % 2 === 1;
     if (bossStep || mustPushReading) {
       push(bossStep ?? examStep);
@@ -487,6 +513,18 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     else if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 1), '弱点を1つつぶす', '攻克1个弱点'));
     else push(parts.learn);
     if (goalType !== 'jlpt') push(parts.conv);
+    /**
+     * 5分設定の会話目標が空になるのを防ぐ（2026-09-02）。
+     *
+     * この分岐は語彙バトルを一度も見ない。会話stageは文法targetを持たないので
+     * battle も learn も null になり、AI会話が無い日は**1つも出ない**。
+     * 空になると下の空クエスト防止がAI会話を置くため、隔日のはずが毎日AIを焚いていた
+     * （実測: リンさん＝N1申告・会話目標・5分設定で 14日中14日）。
+     *
+     * 5分は1日1つが原則なので、ここで足すのは**他に何も出せなかった日だけ**。
+     * AI会話の日は会話1本、そうでない日は語彙バトル1本になる。
+     */
+    if (steps.length === beforeToday && vocabStep) push(vocabStep);
   } else if (minutes === 15) {
     if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 2), '弱点補強', '弱点补强'));
     push(parts.learn);
@@ -502,10 +540,10 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
       if (confirmTarget && parts.battle) push(parts.battle);
     } else if (examDay && examSkillStep() && shouldPrioritizeExamSkill()) push(examSkillStep());
     // 3日に1回は語彙バトル（確認バトルの日と、文法バトルが無い日はそちらを優先/代替）
-    else if (vocabStep && !confirmTarget && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
+    else if (vocabStep && !confirmBattleShown && (dayNum % 3 === 2 || !parts.battle)) push(vocabStep);
     // 3日に1回は漢字バトル（2026-08-18）。語彙とは別の日に置いて時間を溢れさせない
     // 会話stageは kanjiOk 側で日を決めてあるので、絶対日の間引きは掛けない
-    else if (kanjiStep && !confirmTarget && (isConvStageKind || dayNum % 3 === 1)) push(kanjiStep);
+    else if (kanjiStep && !confirmBattleShown && (isConvStageKind || dayNum % 3 === 1)) push(kanjiStep);
     else push(parts.battle);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
@@ -514,9 +552,9 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     push(parts.learn);
     if (bossStep) push(bossStep);
     push(parts.battle);
-    if (vocabStep && !confirmTarget) push(vocabStep);
+    if (vocabStep && !confirmBattleShown) push(vocabStep);
     // 30分枠でも漢字は隔日にする（毎日だと文法・語彙・読解・会話と合わせて時間が溢れる）
-    if (kanjiStep && !confirmTarget && (isConvStageKind || dayNum % 2 === 0)) push(kanjiStep);
+    if (kanjiStep && !confirmBattleShown && (isConvStageKind || dayNum % 2 === 0)) push(kanjiStep);
     push(examSkillStep());
     push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));

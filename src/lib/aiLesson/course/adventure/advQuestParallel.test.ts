@@ -180,12 +180,20 @@ describe('語彙バトルの配線', () => {
     expect(battles[0].refIds).toEqual(['u1']);
   });
 
-  it('vocabTargetForStage: 基礎はN5/N4交互・N3圏はN3・会話stageは出さない', () => {
+  it('vocabTargetForStage: 基礎はN5/N4交互・N3圏はN3・会話stageも本人の帯で出す', () => {
     expect(['vocab-n5', 'vocab-n4']).toContain(vocabTargetForStage('foundation_camp', 'N3', 100));
     expect(vocabTargetForStage('foundation_camp', 'N3', 100)).not.toBe(vocabTargetForStage('foundation_camp', 'N3', 101));
     expect(vocabTargetForStage('n3_grammar', 'N3', 100)).toBe('vocab-n3');
     expect(['vocab-n2', 'vocab-n3']).toContain(vocabTargetForStage('n2_grammar', 'N2', 100));
-    expect(vocabTargetForStage('conversation_start', 'N3', 100)).toBeNull();
+    // 2026-09-02: 会話stageは null を返していたが、会話ルートのstageは文法targetを
+    // 持たないので、その日の冒険が空になり、空クエスト防止がAI会話を毎日焚いていた。
+    // いまは本人の帯とその一つ下を日替わりで返す（AIを使わない学習を必ず1つ確保する）
+    expect(['vocab-n2', 'vocab-n3']).toContain(vocabTargetForStage('conversation_start', 'N2', 100));
+    expect(['vocab-n3', 'vocab-n4']).toContain(vocabTargetForStage('conversation_growth', 'N3', 100));
+    expect(vocabTargetForStage('conversation_start', 'N2', 100))
+      .not.toBe(vocabTargetForStage('conversation_start', 'N2', 101));
+    // N5目標は帯が1つしかないので、日が変わっても同じバンドでよい（範囲外を出さない）
+    expect(vocabTargetForStage('conversation_start', 'N5', 100)).toBe('vocab-n5');
   });
 });
 

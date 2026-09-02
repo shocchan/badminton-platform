@@ -245,9 +245,19 @@ const targetLabelOf = (targetId: string, lang: L): string => {
   return tx(lang, '学習した内容', '学过的内容');
 };
 
-/** step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う） */
-const skillOfStep = (kind: string): ExamSkill => {
-  if (kind === 'grammar_new' || kind === 'weak_reinforce' || kind === 'battle') return 'grammar';
+/**
+ * step種別 → 鍛えている試験科目（Homeの「今鍛えている試験力」表示に使う）。
+ *
+ * バトルは**中身で決める**（2026-09-02）。`battle` を一律で文法としていたため、
+ * 語彙バトル・漢字バトルの日にも「言語知識｜文法」と出ていた。
+ * 会話目標の生徒は日課がほぼ語彙バトルなので、ほぼ毎日この表示が嘘になる。
+ */
+const skillOfStep = (kind: string, refIds: readonly string[] = []): ExamSkill => {
+  if (kind === 'battle') {
+    return refIds.some((r) => r.startsWith('vocab-') || r.startsWith('kanji-'))
+      ? 'charactersVocabulary' : 'grammar';
+  }
+  if (kind === 'grammar_new' || kind === 'weak_reinforce') return 'grammar';
   if (kind === 'vocab_new' || kind === 'review_due' || kind === 'kana_dojo') return 'charactersVocabulary';
   if (kind === 'reading_short') return 'reading';
   if (kind === 'listening_practice') return 'listening';
@@ -2554,7 +2564,7 @@ export default function AdvShell(props: AdvShellProps) {
     })
     : null;
   const allDone = quest !== null && nextStepIdx === -1;
-  const trainingSkill = nextStep ? skillOfStep(nextStep.kind) : 'grammar';
+  const trainingSkill = nextStep ? skillOfStep(nextStep.kind, nextStep.refIds) : 'grammar';
   // 中断した模試・進行中の答案用紙は残り時間が壁時計で動いているので、その間は「今日の一手」を再開側にする。
   // 主要CTAを2つ並べない（canon 原則3）ため、今日の冒険側は副次スタイルへ落とす。
   // 目標を N2/N3 から N5/N4 へ変えると、途中の模試は再開先が無くなる。

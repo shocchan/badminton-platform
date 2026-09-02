@@ -10,7 +10,7 @@
 // ・会話が無い日はバトルを出す → AIを使わないのでコストは増えない
 // ・会話の日とバトルの日を**交互**にする → どちらかの日が空にならない
 import { describe, it, expect } from 'vitest';
-import { generateTodayQuest } from './advQuest';
+import { generateTodayQuest, vocabTargetForStage } from './advQuest';
 import { generateRoute } from './advRoute';
 import { defaultAdvProfile } from './advProfile';
 import type { AdvRoute } from './advTypes';
@@ -30,7 +30,15 @@ const questOn = (dateKey: string, minutes: 5 | 15 | 30) => generateTodayQuest({
   masteredStageIds: new Set(), contentStage: route.stages[0],
   availability: {
     nextGrammarIds: [], nextUnitIds: [], conversationTargets: [],
-    confirmTargetIds: [], vocabBattleTargetId: 'vocab-1', kanjiBattleTargetId: 'kanji-1',
+    // ⚠️ ここを手書きの 'vocab-1' に戻さないこと（2026-09-02）。
+    // 本番は vocabTargetForStage から作る。手書きしていたせいで、この関数が
+    // 会話stageで null を返す限り**本番では絶対に成立しない条件**を保証していた。
+    // 実際に起きたこと: 会話目標の生徒の日課が空になり、空クエスト防止が
+    // AI会話を毎日1本置いていた（隔日のはずが14日中14日）。
+    // 本番と同じ値の作り方での検証は advConversationQuestReal.test.ts。
+    confirmTargetIds: [],
+    vocabBattleTargetId: vocabTargetForStage(route.stages[0].kind, 'N2', 20330),
+    kanjiBattleTargetId: 'kanji-1',
   },
 });
 
@@ -103,7 +111,10 @@ describe('初日は必ずAI会話の日', () => {
         masteredStageIds: new Set(), contentStage: route.stages[0],
         availability: {
           nextGrammarIds: [], nextUnitIds: [], conversationTargets: [],
-          confirmTargetIds: [], vocabBattleTargetId: 'vocab-1', kanjiBattleTargetId: 'kanji-1',
+          confirmTargetIds: [],
+          // 上と同じ理由で手書きにしない（本番と同じ関数から作る）
+          vocabBattleTargetId: vocabTargetForStage(route.stages[0].kind, 'N2', 20330),
+          kanjiBattleTargetId: 'kanji-1',
         },
       });
       expect(kinds(q).includes('conversation_mission'), `${start} に始めた人の初日に会話が無い`).toBe(true);
