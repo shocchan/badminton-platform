@@ -68,9 +68,11 @@ export const AdminTeacherPlanPanel = ({ learner, onApplied }: {
         面談で見た実力に合わせて現在地を直せます。**学習の記録は消えません**。変えるのは「これから進む道」だけです。
       </p>
       <div className="mt-2 text-xs text-gray-600">
-        いまの設定：現在地 {curBand ?? '未判定'}
-        {prof.diagnosis?.adjustedByTeacherAt && <span className="ml-1 text-blue-700">（先生が調整済み）</span>}
+        {/* 帯は内部IDではなく先生に読める言葉で出す（needs_assessment と生で出ていた） */}
+        いまの設定：現在地 {curBand ? (TEACHER_BAND_OPTIONS.find((o) => o.band === curBand)?.ja ?? curBand) : '未判定'}
         ／目標 {prof.targetJlpt ?? '—'}／{prof.dailyMinutes ?? '—'}分・週{prof.weeklyDays ?? '—'}日
+        {/* 「調整済み」は設定全体にかかる。現在地の直後に置くと、現在地を直したように見える */}
+        {prof.diagnosis?.adjustedByTeacherAt && <span className="ml-1 text-blue-700">（先生が調整済み）</span>}
       </div>
 
       <div className="mt-3 space-y-2">

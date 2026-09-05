@@ -25,6 +25,28 @@ describe('ルート説明文と実際のルートが食い違わない', () => {
     });
   }
 
+  // 2026-09-06: N2帯と判定された人にN3の区間を課さない
+  it('N2帯でN1目標なら、N3文法攻略とN2の門を通らない', () => {
+    const r = generateRoute({
+      goalType: 'jlpt', targetJlpt: 'N1',
+      knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW,
+    });
+    const ids = r.stages.map((s) => s.stageId);
+    expect(ids).not.toContain('stg-n3grammar');
+    expect(ids).not.toContain('stg-n2gate');
+    expect(ids).toContain('stg-n1grammar');
+    expect(ids).toContain('stg-n1reading');
+    expect(ids).toContain('stg-n1boss');
+  });
+
+  it('目標がN3ならN2帯でもN3文法攻略は残る（本丸なので飛ばさない）', () => {
+    const r = generateRoute({
+      goalType: 'jlpt', targetJlpt: 'N3',
+      knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW,
+    });
+    expect(r.stages.map((s) => s.stageId)).toContain('stg-n3grammar');
+  });
+
   it('回り道が無い場合は直行と書いてよい', () => {
     const r = generateRoute({
       goalType: 'jlpt', targetJlpt: 'N1',

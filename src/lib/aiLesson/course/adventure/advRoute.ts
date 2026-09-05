@@ -167,11 +167,16 @@ const jlptStages = (target: JlptLevel, knowledge: AdvBand, d: AdvDiagnosisResult
       '感情・人間関係・仕事の場面でN3を使う', '在情感・人际・工作场景中运用N3',
       { n3UnitIds: [...AREA_UNIT_MAP['area05-yukari'], ...AREA_UNIT_MAP['area06-hataraki']] }));
   }
-  // N3文法はN3目標の本丸／N2目標でも経由地
-  s.push(stage('stg-n3grammar', 'n3_grammar', 'area07-katachi',
-    'N3文法攻略', 'N3语法攻略',
-    'N3文法76項目を体系的に攻略する', '系统攻克76项N3语法',
-    { n3UnitIds: AREA_UNIT_MAP['area07-katachi'], n3GrammarIds: grammarGaps.length > 0 ? grammarGaps : undefined }));
+  // N3文法はN3目標の本丸／N2目標でも経由地。
+  // ただし**すでにN2帯**と判定された人には課さない（2026-09-06）。
+  // N1を目標に選べるようにしたとき、N2帯の受験者がN3文法攻略から始まっていた
+  const needN3Grammar = target === 'N3' || !bandAtLeast(kb, 'n2');
+  if (needN3Grammar) {
+    s.push(stage('stg-n3grammar', 'n3_grammar', 'area07-katachi',
+      'N3文法攻略', 'N3语法攻略',
+      'N3文法76項目を体系的に攻略する', '系统攻克76项N3语法',
+      { n3UnitIds: AREA_UNIT_MAP['area07-katachi'], n3GrammarIds: grammarGaps.length > 0 ? grammarGaps : undefined }));
+  }
 
   if (target === 'N3') {
     s.push(stage('stg-n3boss', 'mock_boss', 'area07-katachi',
@@ -181,10 +186,13 @@ const jlptStages = (target: JlptLevel, knowledge: AdvBand, d: AdvDiagnosisResult
     return s;
   }
   // N2目標
-  s.push(stage('stg-n2gate', 'n2_gate', 'area07-katachi',
-    'N2の門', 'N2之门',
-    'N3の総仕上げ（中ボス）を越えてN2圏へ', '通过N3中Boss・进入N2圈',
-    { n3UnitIds: AREA_UNIT_MAP['area07-katachi'] }));
+  // N2の門はN3の総仕上げ。N2帯と判定された人には置かない（同上）
+  if (needN3Grammar) {
+    s.push(stage('stg-n2gate', 'n2_gate', 'area07-katachi',
+      'N2の門', 'N2之门',
+      'N3の総仕上げ（中ボス）を越えてN2圏へ', '通过N3中Boss・进入N2圈',
+      { n3UnitIds: AREA_UNIT_MAP['area07-katachi'] }));
+  }
   s.push(stage('stg-n2grammar', 'n2_grammar', 'area08-sorano',
     'N2語彙・文法', 'N2词汇语法',
     'ソラノ塔でN2文法178項目を攻略する', '在天空塔攻克178项N2语法',

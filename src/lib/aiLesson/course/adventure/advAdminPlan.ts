@@ -45,6 +45,12 @@ export const TEACHER_BAND_OPTIONS: { band: AdvBand; ja: string; zh: string; note
     band: 'n3_late', ja: 'N3後半', zh: 'N3后半',
     note: { ja: 'N3文法攻略から', zh: '从N3语法攻略开始' },
   },
+  // 2026-09-06 追加。N1を目標にできるようにしたのに、先生が選べる上限が
+  // 「N3後半」のままだった。N1受験者にN3文法攻略から始めさせることになっていた
+  {
+    band: 'n2', ja: 'N2（上の級に挑める土台がある）', zh: 'N2（有挑战更高级别的基础）',
+    note: { ja: 'N3を飛ばしてN2語彙・文法から', zh: '跳过N3，从N2词汇・语法开始' },
+  },
 ];
 
 export interface TeacherPlanPatch {
