@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "allow": [
+      "Bash",
+      "Fetch",
+      "Write",
+      "Read"
+    ],
+    "ask": [
+      "Bash(*api.stripe.com*)",
+      "Bash(*sk_live*)",
+      "Bash(*sk_test*)",
+      "Bash(*secrets set*)"
+    ],
+    "deny": [
+      "Bash(./scripts/deploy-production.sh)",
+      "Bash(bash scripts/deploy-production.sh)",
+      "Bash(sh scripts/deploy-production.sh)",
+      "Bash(wrangler pages deploy --branch=main)",
+      "Bash(supabase functions deploy)",
+      "Bash(curl *functions/deploy*)",
+      "Write(.env.production)",
+      "Write(.env.production.local)",
+      "Write(.npmrc)",
+      "Write(secret:*)"
+    ]
+  }
+}

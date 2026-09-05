@@ -173,11 +173,19 @@ node scripts/ai-course/issue-answer-sheet.mjs --email <本人のメール> \
 # 問題そのものはWeChatで本人へ送る（アプリには問題を置かない）
 # 採点も必ずWeChatで返す: 正解未登録で発行した用紙は、提出後にアプリへ採点を
 # 書き戻す手段が無い（アプリの提出履歴は「採点は先生からWeChatで届きます」表示のまま）
+
+# ③ 個人復習パック（授業で書いた本人の作文から復習する・全員に出せる）
+#    様式と作り方: docs/ai-course/personal-packs/README.md
+node scripts/ai-course/issue-personal-pack.mjs --email <本人のメール> \
+  --pack docs/ai-course/personal-packs/<生徒ID>-<日付>.json --confirm
+# 内容を直して入れ直すときは --replace / 取り消しは --revoke <packId>
+# 本人の答えた記録（personalPack）は取り消しても消えない
 ```
 
-どちらも `--confirm` なしで dry-run できる。**発行チェック**: 本人の成長マップ下部
+いずれも `--confirm` なしで dry-run できる。**発行チェック**: 本人の成長マップ下部
 「特別な場所」に「帰化面接の表現特訓」「過去問の試験場」が出ていれば成功
-（試験場は目標N2の人にだけ出る）。
+（試験場は目標N2の人にだけ出る）。個人復習パックはメニューの
+「自分の文章で復習（先生から届いた復習）」に件数バッジ付きで出る。
 
 > ⚠️ **発行のタイミング（重要）**: 本人がアプリを開いている間に発行しない。
 > アプリはステップ完了・マークシートの解答1タップごとに settings 列を**丸ごと上書き保存**し、

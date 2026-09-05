@@ -1,26 +1,26 @@
 {
-  "generatedAt": "2026-08-01T13:59:49.166Z",
-  "teacherId": "yuto",
+  "generatedAt": "2026-08-23T12:31:46.851Z",
+  "teacherId": "shoko",
   "steps": [
     {
       "name": "ai_start_session（実RPC・利用上限を通過して予約）",
       "ok": true,
       "code": null,
-      "remainingSessions": 8
+      "remainingSessions": 9
     },
     {
       "name": "ai-lesson-token（実Edge Function・teacherId受け渡し）",
       "ok": true,
-      "effectiveTeacherId": "yuto",
-      "effectiveVoice": "cedar",
+      "effectiveTeacherId": "shoko",
+      "effectiveVoice": "marin",
       "model": "gpt-realtime-2.1",
-      "secretRef": "3cac4f882411"
+      "secretRef": "07a59dc25af8"
     },
     {
       "name": "Realtime 会話（実音声・2往復）",
       "ok": true,
-      "sessionVoice": "cedar",
-      "audioBytes": 2356686,
+      "sessionVoice": "marin",
+      "audioBytes": 2861076,
       "tutorTurns": 3,
       "studentTurns": 3,
       "errors": []
@@ -48,7 +48,9 @@
         "corrections",
         "naturalPhrases",
         "targetUsage",
-        "encouragementJa"
+        "encouragementJa",
+        "achievementsZh",
+        "encouragementZh"
       ],
       "cached": false
     },
@@ -76,7 +78,7 @@
       "name": "復習登録（実DB・翌日にスケジュール）",
       "ok": true,
       "httpStatus": 201,
-      "nextReviewAt": "2026-08-02",
+      "nextReviewAt": "2026-08-24",
       "masteryState": "introduced",
       "reviewStage": "1",
       "detail": null
@@ -94,5 +96,5 @@
   ],
   "verdict": "PASS",
   "blockedReason": null,
-  "sessionRef": "652910381e5f"
+  "sessionRef": "3556a0c653e6"
 }
