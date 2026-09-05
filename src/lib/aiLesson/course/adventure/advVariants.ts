@@ -77,7 +77,7 @@ export interface AdvBattleQuestion {
   key: string;
   /** 文法variantは AdvQuestionType。単元問題は `u-${dimension}` */
   type: string;
-  level: 'foundation' | 'n3' | 'n2';
+  level: 'foundation' | 'n3' | 'n2' | 'n1';
   /** 鍛えている試験科目（§10） */
   skill: ExamSkill;
   examSection: ExamSection;
@@ -432,7 +432,7 @@ const mkExplanation = (d: GrammarDraftLike, whyJa: string, whyZh: string, exIdx 
 
 interface GenContext {
   self: GrammarDraftLike;
-  level: 'foundation' | 'n3' | 'n2';
+  level: 'foundation' | 'n3' | 'n2' | 'n1';
   /** distractor候補（除外集合適用済み・決定的順） */
   distractorPool: GrammarDraftLike[];
   /**
@@ -445,7 +445,7 @@ interface GenContext {
   itemIndex: number;
 }
 
-const baseFields = (type: AdvQuestionType, level: 'foundation' | 'n3' | 'n2', d: GrammarDraftLike) => {
+const baseFields = (type: AdvQuestionType, level: 'foundation' | 'n3' | 'n2' | 'n1', d: GrammarDraftLike) => {
   const skill = skillOfQuestionType(type);
   return {
     type, level, skill, examSection: SECTION_OF_SKILL[skill],
@@ -849,7 +849,7 @@ export interface VariantPoolResult {
  * aliasIds は出題対象から除外（canonicalのみ）。
  */
 export const buildVariantPool = (
-  drafts: GrammarDraftLike[], level: 'foundation' | 'n3' | 'n2', aliasIds: Set<string> = new Set(),
+  drafts: GrammarDraftLike[], level: 'foundation' | 'n3' | 'n2' | 'n1', aliasIds: Set<string> = new Set(),
 ): VariantPoolResult => {
   const canonical = drafts.filter((d) => !aliasIds.has(d.grammarId));
   const byItem = new Map<string, AdvBattleQuestion[]>();

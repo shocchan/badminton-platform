@@ -79,6 +79,7 @@ export type AdvStageKind =
   | 'n3_grammar'        // N3文法攻略（カタチの遺跡）
   | 'n2_gate'           // N2の門（N3総仕上げ・中ボス）
   | 'n2_grammar'        // N2語彙・文法（ソラノ塔）
+  | 'n1_grammar'        // N1語彙・文法（ソラノ塔の上層）
   | 'reading_listening' // 読解・会話理解
   | 'mock_boss'         // 模擬ボス（ランクボス）
   | 'conversation_start'// 会話開始地点（カタリ港ほか）
@@ -102,6 +103,8 @@ export interface AdvStageTargets {
   n3GrammarIds?: string[];
   /** N2は12単元束で持つ（1〜12）。個別IDは実行時に展開 */
   n2Units?: number[];
+  /** N1の単元束（2026-09-05 構築開始）。個別IDは実行時に展開 */
+  n1Units?: number[];
   /** 初級文法（N5/N4）の束ID（n5g-unit-* / n4g-unit-*）。個別IDは実行時に展開 */
   basicUnits?: string[];
   vocabularyIds?: string[];

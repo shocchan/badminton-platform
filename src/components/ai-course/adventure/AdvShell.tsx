@@ -235,6 +235,7 @@ const targetLabelOf = (targetId: string, lang: L): string => {
   if (/^n4g-unit-/.test(targetId)) return tx(lang, '基礎の文法（N4）', '基础语法（N4）');
   if (/^n3g-unit-/.test(targetId)) return tx(lang, 'N3の文法', 'N3语法');
   if (/^n2g-unit-/.test(targetId)) return tx(lang, 'N2の文法', 'N2语法');
+  if (/^n1g-unit-/.test(targetId)) return tx(lang, 'N1の文法', 'N1语法');
   if (/^vocab-/.test(targetId)) return tx(lang, 'ことば', '词汇');
   // 読解・聴解・模試の誤答も間違えた問題ノートに載るようになった（2026-08-18）。
   // 「学習した内容」だけでは何の問題か分からないので、練習の名前で示す

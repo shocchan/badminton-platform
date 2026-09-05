@@ -12,7 +12,7 @@ import { evidenceToConfidence, scoreToBand, bandAtLeast } from './advSkillProfil
 export interface DiagQuestion {
   /** 出題記録キー（未出判定と共有）。rec:<grammarId> / n3q:<unitId>:<qid> */
   key: string;
-  level: 'foundation' | 'n3' | 'n2';
+  level: 'foundation' | 'n3' | 'n2' | 'n1';
   skill: 'vocabulary' | 'grammar';
   promptJa: string;
   promptZh: string;

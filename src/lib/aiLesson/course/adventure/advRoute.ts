@@ -10,6 +10,12 @@ import { bandAtLeast, bandRank } from './advSkillProfile';
 // 束IDの定数だけを取る（本文はdynamic import側にあるのでbundleは増えない）
 import { N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
 import { PASS_LABEL } from './advMastery';
+/**
+ * N1文法で攻略対象にする単元（2026-09-05 構築開始）。
+ * **教材ができた単元だけを並べる。** ここに書いた単元は攻略条件になるので、
+ * 中身が無い単元を先に足すと「永久に攻略できないstage」になる。
+ */
+export const N1_GRAMMAR_UNITS: number[] = [1];
 
 /** エリア → 実コンテンツ（worldAtlas実データと同期。ズレはガードテストで検知） */
 export const AREA_UNIT_MAP: Record<string, string[]> = {
@@ -29,7 +35,8 @@ const DESTINATION: Record<JlptLevel, { areaId: string; labelJa: string; labelZh:
   N4: { areaId: 'area03-toorimichi', labelJa: 'N4・トオリミチ（暮らしの道）', labelZh: 'N4・トオリミチ｜通行之路（生活）' },
   N3: { areaId: 'area07-katachi', labelJa: 'N3・カタチの遺跡', labelZh: 'N3・カタチの遺跡｜形之遗迹' },
   N2: { areaId: 'area08-sorano', labelJa: 'N2・ソラノ塔', labelZh: 'N2・ソラノ塔｜天空塔' },
-  N1: { areaId: 'area08-sorano', labelJa: 'N1（未対応）', labelZh: 'N1（尚未支持）' },
+  // 2026-09-05: N1の構築を開始。目的地はN2と同じソラノ塔の上層に置く
+  N1: { areaId: 'area08-sorano', labelJa: 'N1・ソラノ塔上層', labelZh: 'N1・ソラノ塔上层｜天空塔上层' },
 };
 
 /** 目標レベル → 目的地（次の道カード等で「次の目的地」を実データのまま名指しするために公開） */
@@ -190,6 +197,13 @@ const jlptStages = (target: JlptLevel, knowledge: AdvBand, d: AdvDiagnosisResult
     'N2模擬ボス', 'N2模拟Boss',
     '本番形式・時間配分つきの総合演習', '完整模拟考・练习时间分配',
     { n2Units: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] }));
+  if (target !== 'N1') return s;
+  // N1目標（2026-09-05 構築開始）。N1はN2の上に積む級なので、上のN2区間を通ってから来る。
+  // **教材を作った単元だけ**を攻略対象にする（作っていない単元を先に約束しない）
+  s.push(stage('stg-n1grammar', 'n1_grammar', 'area08-sorano',
+    'N1文法攻略', 'N1语法攻略',
+    'ソラノ塔の上層でN1の文型を攻略する', '在天空塔上层攻克N1句型',
+    { n1Units: N1_GRAMMAR_UNITS }));
   return s;
 };
 
@@ -374,6 +388,8 @@ export const stageContentTargetIds = (
       if (n2ByUnit.size === 0 || (n2ByUnit.get(u) ?? []).length > 0) ids.push(`n2g-unit-${u}`);
     }
   }
+  // N1文法も単元束（n1g-unit-*）。教材を作った単元だけを攻略対象にする
+  if (stage.targets.n1Units) for (const u of stage.targets.n1Units) ids.push(`n1g-unit-${u}`);
   return ids;
 };
 

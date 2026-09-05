@@ -3,6 +3,7 @@
 // N2本文はlazy chunk（bundle増加を防ぐ）。
 import { N3_GRAMMAR_DRAFTS } from '../n3GrammarDrafts';
 import { N2_GRAMMAR_ALIASES } from '../n2GrammarAliases';
+import { N1_GRAMMAR_DRAFTS_UNIT1 } from '../n1GrammarDraftsUnit1';
 import { N2_UNIT_FILE_NUMBERS, loadN2DraftUnitFile } from '../n2GrammarDraftChunks';
 import { loadAllBasicDrafts, cachedBasicDraftById, N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
@@ -40,6 +41,7 @@ export const MIN_BUNDLE_QUESTIONS = 17;
 export const grammarPatternById = (id: string): string | null =>
   N3_GRAMMAR_DRAFTS.find((d) => d.grammarId === id)?.pattern
     ?? n2DraftsCache?.find((d) => d.grammarId === id)?.pattern
+    ?? N1_GRAMMAR_DRAFTS_UNIT1.find((d) => d.grammarId === id)?.pattern
     ?? cachedBasicDraftById(id)?.pattern
     ?? null;
 
@@ -50,6 +52,9 @@ export interface GrammarPools {
   n3Ids: string[];
   n2Ids: string[];
   n2ByUnit: Map<number, string[]>;
+  /** N1文法（2026-09-05 構築開始）。単元 → grammarId。空でも壊れないように扱う */
+  n1Ids: string[];
+  n1ByUnit: Map<number, string[]>;
   /** N3文法の束（draft.unit）→ 束ID。項目単位ではプールが1〜5問しかなくmastery不可能なため、mastery/バトルは束単位 */
   n3BundleByItem: Map<string, string>;
   n3BundleIds: string[];
@@ -167,12 +172,21 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
   const n2 = await loadAllN2Drafts();
   const basic = await loadAllBasicDrafts();
   const n2Pool = buildVariantPool(n2 as unknown as GrammarDraftLike[], 'n2', N2_ALIAS_IDS);
+  // N1文法。誤答プールはN1の中だけで作る（N1の学習者にN3の表現を混ぜない）
+  const n1Drafts = N1_GRAMMAR_DRAFTS_UNIT1;
+  const n1Pool = buildVariantPool(n1Drafts as unknown as GrammarDraftLike[], 'n1');
   const n3Pool = buildVariantPool(N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[], 'n3');
   // 初級文法は誤答プールをN5/N4の中だけで作る（基礎の学習者にN3/N2の表現を混ぜない）
   const basicPool = buildVariantPool(basic as unknown as GrammarDraftLike[], 'foundation');
   const byItem = new Map<string, AdvBattleQuestion[]>([
-    ...n3Pool.byItem, ...n2Pool.byItem, ...basicPool.byItem, ...buildUnitBattlePools(),
+    ...n3Pool.byItem, ...n2Pool.byItem, ...n1Pool.byItem, ...basicPool.byItem, ...buildUnitBattlePools(),
   ]);
+  const n1ByUnit = new Map<number, string[]>();
+  for (const d of n1Drafts) {
+    const list = n1ByUnit.get(d.unit) ?? [];
+    list.push(d.grammarId);
+    n1ByUnit.set(d.unit, list);
+  }
   const n2ByUnit = new Map<number, string[]>();
   for (const d of n2) {
     if (N2_ALIAS_IDS.has(d.grammarId)) continue;
@@ -209,6 +223,14 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     n3BundleByItem.set(d.grammarId, bundle);
     const list = byItem.get(bundle) ?? [];
     list.push(...(n2Pool.byItem.get(d.grammarId) ?? []));
+    byItem.set(bundle, list);
+  }
+  // N1文法も単元束（n1g-unit-*）で攻略する（N2と同じ設計）
+  for (const d of n1Drafts) {
+    const bundle = `n1g-unit-${d.unit}`;
+    n3BundleByItem.set(d.grammarId, bundle);
+    const list = byItem.get(bundle) ?? [];
+    list.push(...(n1Pool.byItem.get(d.grammarId) ?? []));
     byItem.set(bundle, list);
   }
   // 初級文法（N5/N4）も同じ束攻略にする。108項目を項目単位で判定すると完走不可能。
@@ -257,6 +279,8 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
     n3Ids: N3_GRAMMAR_DRAFTS.map((d) => d.grammarId),
     n2Ids: n2.filter((d) => !N2_ALIAS_IDS.has(d.grammarId)).map((d) => d.grammarId),
     n2ByUnit,
+    n1Ids: n1Drafts.map((d) => d.grammarId),
+    n1ByUnit,
     n3BundleByItem,
     n3BundleIds,
     basicByUnit,
@@ -279,7 +303,7 @@ const toDiagFromUnit = (q: AssessQuestion, level: 'foundation' | 'n3', unitId: s
   };
 };
 
-const toDiagFromGrammar = (d: GrammarDraftLike, level: 'foundation' | 'n3' | 'n2'): DiagQuestion => ({
+const toDiagFromGrammar = (d: GrammarDraftLike, level: 'foundation' | 'n3' | 'n2' | 'n1'): DiagQuestion => ({
   key: `rec:${d.grammarId}`,
   level, skill: 'grammar',
   promptJa: '',

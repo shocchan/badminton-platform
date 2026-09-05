@@ -16,7 +16,7 @@ export const bandAtLeast = (a: AdvBand, b: AdvBand): boolean => {
 };
 
 /** 0-100スコア → 帯（語彙・文法の診断用。levelHint = 出題した問題の主レベル） */
-export const scoreToBand = (scorePct: number, levelHint: 'foundation' | 'n3' | 'n2'): AdvBand => {
+export const scoreToBand = (scorePct: number, levelHint: 'foundation' | 'n3' | 'n2' | 'n1'): AdvBand => {
   if (levelHint === 'foundation') {
     if (scorePct >= 85) return 'n4_late';
     if (scorePct >= 60) return 'n4';
