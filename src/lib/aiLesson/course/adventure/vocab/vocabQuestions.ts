@@ -532,9 +532,12 @@ const poolCache = new Map<string, Map<string, AdvBattleQuestion[]>>();
 export const VOCAB_POOL_SEED = 20260801;
 
 /** 目標レベル → 出題に載せるJLPTレベル。**部分生成と共有する**（別々に書くとズレる） */
-export const VOCAB_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
+export const VOCAB_SCOPE: Record<'N1' | 'N2' | 'N3', readonly string[]> = {
   N3: ['N5', 'N4', 'N3'],
   N2: ['N5', 'N4', 'N3', 'N2'],
+  // N1は下の級を全部含む（本試験の出題範囲がそうなっている）。
+  // N1語彙は2026-09-05から構築中なので、当面は下の級の比重が高い
+  N1: ['N5', 'N4', 'N3', 'N2', 'N1'],
 };
 
 /**
@@ -545,7 +548,7 @@ export const VOCAB_SCOPE: Record<'N2' | 'N3', readonly string[]> = {
  *   使い回すと索引の作り直しも起きない
  */
 const scopedActiveCache = new Map<string, VocabOriginalContent[]>();
-export const vocabScopedActive = (level: 'N2' | 'N3'): VocabOriginalContent[] => {
+export const vocabScopedActive = (level: 'N1' | 'N2' | 'N3'): VocabOriginalContent[] => {
   const hit = scopedActiveCache.get(level);
   if (hit) return hit;
   const scope = VOCAB_SCOPE[level];
@@ -561,7 +564,7 @@ export const vocabScopedActive = (level: 'N2' | 'N3'): VocabOriginalContent[] =>
  * `vocabSubset.ts` の部分生成を使う（2026-08-17）。ここは
  * 「バンク全体を見たい」用途（内部コンソール・カバレッジ集計・テスト）専用。
  */
-export const vocabPool = (level: 'N2' | 'N3', seed = VOCAB_POOL_SEED): Map<string, AdvBattleQuestion[]> => {
+export const vocabPool = (level: 'N1' | 'N2' | 'N3', seed = VOCAB_POOL_SEED): Map<string, AdvBattleQuestion[]> => {
   const cacheKey = `${level}:${seed}`;
   const hit = poolCache.get(cacheKey);
   if (hit) return hit;
