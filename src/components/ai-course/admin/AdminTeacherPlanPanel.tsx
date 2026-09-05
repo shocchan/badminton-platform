@@ -13,7 +13,7 @@ import type { AdminLearnerRow } from '../../../lib/aiLesson/course/courseAdminAp
 import { adminUpdateLearner } from '../../../lib/aiLesson/course/courseAdminApi';
 import { readAdvProfile, writeAdvProfile } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { applyTeacherPlan, TEACHER_BAND_OPTIONS } from '../../../lib/aiLesson/course/adventure/advAdminPlan';
-import type { AdvBand } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { ACTIVE_TARGET_LEVELS, type AdvBand, type JlptLevel } from '../../../lib/aiLesson/course/adventure/advTypes';
 
 export const AdminTeacherPlanPanel = ({ learner, onApplied }: {
   learner: AdminLearnerRow;
@@ -23,7 +23,7 @@ export const AdminTeacherPlanPanel = ({ learner, onApplied }: {
   const [band, setBand] = useState<AdvBand | ''>('');
   const [minutes, setMinutes] = useState<'' | '5' | '15' | '30'>('');
   const [days, setDays] = useState<'' | '3' | '5' | '7'>('');
-  const [target, setTarget] = useState<'' | 'N3' | 'N2'>('');
+  const [target, setTarget] = useState<'' | JlptLevel>('');
   const [goal, setGoal] = useState<'' | 'jlpt' | 'conversation' | 'hybrid'>('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string[] | null>(null);
@@ -120,8 +120,9 @@ export const AdminTeacherPlanPanel = ({ learner, onApplied }: {
             <select value={target} onChange={(e) => setTarget(e.target.value as typeof target)}
               className="w-full min-h-11 mt-1 px-3 border border-gray-300 rounded-lg text-sm">
               <option value="">変更しない</option>
-              <option value="N3">N3</option>
-              <option value="N2">N2</option>
+              {/* 解禁済みの級だけを出す。ここを手書きすると、級を解禁しても
+                  先生の画面に出てこない（2026-09-05 N1解禁時に実際に起きた） */}
+              {ACTIVE_TARGET_LEVELS.map((lv) => <option key={lv} value={lv}>{lv}</option>)}
             </select>
           </div>
         </div>

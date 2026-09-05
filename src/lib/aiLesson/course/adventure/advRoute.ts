@@ -271,16 +271,23 @@ export const generateRoute = (input: GenerateRouteInput): AdvRoute => {
   const hasFoundationDetour = stages.some((st) => st.kind === 'foundation_camp' || st.kind === 'n3_bridge');
 
   // §5: 「N3へ戻された」と感じさせない説明文。目標名を主語にする
-  const explanationJa = target === 'N2' && hasFoundationDetour
-    ? 'N2を攻略するために、まず不足しているN3基礎を短期間で補強します。目的地はN2のまま変わりません。'
-    : target === 'N3' && hasFoundationDetour
-      ? 'N3を攻略するために、まず土台のことばを短期間で固めます。目的地はN3のまま変わりません。'
-      : `${target}の攻略に直行できる状態です。弱点から順に攻略します。`;
-  const explanationZh = target === 'N2' && hasFoundationDetour
-    ? '为了攻略N2，先集中补足目前缺少的N3基础。目的地仍然是N2，不会改变。'
-    : target === 'N3' && hasFoundationDetour
-      ? '为了攻略N3，先短期夯实基础。目的地仍然是N3，不会改变。'
-      : `可以直接进入${target}攻略。按弱点顺序推进。`;
+  // 2026-09-05: N1解禁で見つかった穴。以前は N2/N3 以外の目標だと、
+  // 実際には基礎の回り道が入っているのに「直行できる状態です」と書いていた。
+  // 回り道の有無で分ける（原則13: 実際と違うことを書かない）
+  const explanationJa = hasFoundationDetour
+    ? (target === 'N2'
+      ? 'N2を攻略するために、まず不足しているN3基礎を短期間で補強します。目的地はN2のまま変わりません。'
+      : target === 'N3'
+        ? 'N3を攻略するために、まず土台のことばを短期間で固めます。目的地はN3のまま変わりません。'
+        : `${target}を攻略するために、まず土台を短期間で固めます。目的地は${target}のまま変わりません。`)
+    : `${target}の攻略に直行できる状態です。弱点から順に攻略します。`;
+  const explanationZh = hasFoundationDetour
+    ? (target === 'N2'
+      ? '为了攻略N2，先集中补足目前缺少的N3基础。目的地仍然是N2，不会改变。'
+      : target === 'N3'
+        ? '为了攻略N3，先短期夯实基础。目的地仍然是N3，不会改变。'
+        : `为了攻略${target}，先短期夯实基础。目的地仍然是${target}，不会改变。`)
+    : `可以直接进入${target}攻略。按弱点顺序推进。`;
 
   const base: AdvRoute = {
     generatedAt: nowISO,
