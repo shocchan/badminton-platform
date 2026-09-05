@@ -42,6 +42,8 @@ export const MOCK_MODE_LABEL: Record<'short' | 'fullTime', { ja: string; zh: str
 
 /** 本番の科目時間（分）。fullTime版で使う */
 const FULL_TIME_SEC: Record<MockLevel, Record<string, number>> = {
+  // N1は本試験と同じ「言語知識・読解」110分／「聴解」55分
+  N1: { languageKnowledge: 110 * 60, reading: 110 * 60, listening: 55 * 60 },
   N2: { languageKnowledge: 105 * 60, reading: 105 * 60, listening: 50 * 60 },
   N3: { languageKnowledge: 30 * 60, reading: 70 * 60, listening: 40 * 60 },
   // N4/N5 は2022年改定後の公式試験時間（advMock.EXAM_MINUTES と同じ値）
@@ -95,9 +97,11 @@ const pickLanguageKnowledge = (
 ): AdvBattleQuestion[] => {
   // 受験バンド優先。N5/N4 は基礎（foundation）が本体なのでそれだけを見る
   // （n3/n2 を混ぜると、目標N5の生徒の模試にN3語彙が出る＝約束と中身が食い違う）
-  const bands: AdvBattleQuestion['level'][] = level === 'N2'
-    ? ['n2', 'n3', 'foundation']
-    : level === 'N3' ? ['n3', 'foundation'] : ['foundation'];
+  const bands: AdvBattleQuestion['level'][] = level === 'N1'
+    ? ['n1', 'n2', 'n3', 'foundation']
+    : level === 'N2'
+      ? ['n2', 'n3', 'foundation']
+      : level === 'N3' ? ['n3', 'foundation'] : ['foundation'];
   // プールのMap挿入順に依存しないよう key で正規化してから決定的にシャッフル
   const shuffled = seededShuffle(
     [...pool].sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : 0)), seed,

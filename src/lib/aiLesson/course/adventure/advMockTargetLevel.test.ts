@@ -36,8 +36,14 @@ describe('mockLevelOf: 出せない級では丸めずに null を返す', () => 
     expect(mockLevelOf('N4')).toBe('N4');
   });
 
-  it('N1 は null（教材そのものが無い級を「在る」ように見せない）', () => {
-    expect(mockLevelOf('N1')).toBeNull();
+  // 2026-09-05: N1の語彙・文法を作ったので解禁。
+  // ただし読解セットも聴解音源も無いので、模試は言語知識だけの「一部科目」になる。
+  it('N1 は自分の級のまま。ただし在庫の無い科目はspecから落ちる', () => {
+    expect(mockLevelOf('N1')).toBe('N1');
+    const spec = buildMockSpec('N1', { vocabCount: 500, grammarCount: 300, readingCount: 0, listeningCount: 0 });
+    expect(spec.sections.map((s) => s.sectionId)).toEqual(['languageKnowledge']);
+    // 無い科目を在るように見せない: タイトルで「文法・語彙」だけだと分かる
+    expect(spec.titleJa).not.toContain('総合');
   });
 
   it('N3・N2 は自分の級のまま。目標未設定（会話目的）は従来どおりN2', () => {

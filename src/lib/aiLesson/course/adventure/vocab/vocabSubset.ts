@@ -33,7 +33,7 @@ export const VOCAB_SUBSET_MIN_TYPES = 2;
 
 /** バンドID（`vocab-n5` 等）→ scope済み active 配列内の添字。**添字を保つのが肝**（seedが決まる） */
 const bandCache = new Map<string, Map<string, number[]>>();
-export const vocabBands = (level: 'N2' | 'N3'): Map<string, number[]> => {
+export const vocabBands = (level: 'N1' | 'N2' | 'N3'): Map<string, number[]> => {
   const hit = bandCache.get(level);
   if (hit) return hit;
   const active = vocabScopedActive(level);
@@ -92,7 +92,7 @@ export interface VocabSubsetOptions {
  *   ② 未出 +3 / 直近誤答 +2 を語に付け、安定ソートで上位 quota 語を取る
  */
 export const selectVocabWordIndices = (
-  level: 'N2' | 'N3', band: string, opts: VocabSubsetOptions,
+  level: 'N1' | 'N2' | 'N3', band: string, opts: VocabSubsetOptions,
 ): number[] => {
   const active = vocabScopedActive(level);
   const all = vocabBands(level).get(band) ?? [];
@@ -158,7 +158,7 @@ const pickOneAspect = (built: AdvBattleQuestion[], n: number): AdvBattleQuestion
 };
 
 const buildBand = (
-  level: 'N2' | 'N3', idxs: number[], oneAspectPerWord: boolean,
+  level: 'N1' | 'N2' | 'N3', idxs: number[], oneAspectPerWord: boolean,
 ): AdvBattleQuestion[] => {
   const active = vocabScopedActive(level);
   const all: AdvBattleQuestion[] = [];
@@ -185,7 +185,7 @@ const buildBand = (
  * バトル1回ぶん（1バンド60語）で Mac 実測 16〜115ms。全量生成は 3,975〜4,873ms。
  */
 export const vocabSubsetPool = (
-  level: 'N2' | 'N3', opts: VocabSubsetOptions,
+  level: 'N1' | 'N2' | 'N3', opts: VocabSubsetOptions,
 ): Map<string, AdvBattleQuestion[]> => {
   const bands = opts.onlyBands ?? [...vocabBands(level).keys()];
   const oneAspect = opts.oneAspectPerWord === true;
@@ -223,7 +223,7 @@ export const vocabSubsetPool = (
  * 3.9〜4.9秒に対して、ここは語数に比例した数十ms で済む。
  */
 export const vocabPoolForKeys = (
-  level: 'N2' | 'N3', keys: readonly string[],
+  level: 'N1' | 'N2' | 'N3', keys: readonly string[],
 ): Map<string, AdvBattleQuestion[]> => {
   const map = new Map<string, AdvBattleQuestion[]>();
   if (!Array.isArray(keys) || keys.length === 0) return map;
@@ -259,6 +259,6 @@ export const VOCAB_MISTAKE_POOL_ID = 'vocab-mistake-redo';
  * 復元失敗を返す＝**時間制限つき模試の答案が丸ごと消える**。実測で再現済み。
  */
 export const mockVocabPool = (
-  level: 'N2' | 'N3', attemptSeed: number,
+  level: 'N1' | 'N2' | 'N3', attemptSeed: number,
 ): Map<string, AdvBattleQuestion[]> =>
   vocabSubsetPool(level, { seed: attemptSeed, oneAspectPerWord: true });

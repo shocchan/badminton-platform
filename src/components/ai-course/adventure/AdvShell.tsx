@@ -189,7 +189,7 @@ interface BattleCtx {
 /** いま要る語彙プールの注文（何をどのseedで作るか）。key が同じなら作り直さない */
 interface VocabPoolRequest {
   kind: 'battle' | 'mock';
-  level: 'N2' | 'N3';
+  level: 'N1' | 'N2' | 'N3';
   /** バトルで材料化するバンド（模試は全バンドなので空） */
   bands: string[];
   seed: number;
@@ -450,7 +450,9 @@ export default function AdvShell(props: AdvShellProps) {
   const vocabRequest = useMemo<VocabPoolRequest | null>(() => {
     // 語彙プールはN3/N2の2系統（N5/N4はfoundation帯がN3スコープに含まれる）。
     // 会話目標は targetJlpt が null なので、以前はここで全員 N2 に丸められていた（2026-08-23 監査）
-    const lv: 'N2' | 'N3' = effectiveContentLevel(profile) === 'N2' ? 'N2' : 'N3';
+    // 2026-09-05: N1を追加。N1スコープは N5〜N1 を全部含む
+    const cl = effectiveContentLevel(profile);
+    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
     if (view === 'mock') {
       // 模試を出せない目標（N5/N4）では語彙chunk（gzip 約320kB）も取りに行かない。
       // ここで取ると、受けられない模試のためにN2語彙を落とすことになる
@@ -533,7 +535,9 @@ export default function AdvShell(props: AdvShellProps) {
     // 錯題本を開いているとき／その解き直しバトル中だけ作る（他の画面の初回転送量を増やさない）
     const needed = view === 'mistakes' || (view === 'battle' && battle?.targetId === MISTAKE_TARGET_ID);
     if (!needed || mistakeVocabKeys.length === 0) return;
-    const lv: 'N2' | 'N3' = effectiveContentLevel(profile) === 'N2' ? 'N2' : 'N3';
+    // 2026-09-05: N1を追加。N1スコープは N5〜N1 を全部含む
+    const cl = effectiveContentLevel(profile);
+    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
     const reqKey = `mistake|${lv}|${mistakeVocabKeys.join(',')}`;
     if (mistakeVocabPool?.key === reqKey) return;
     let alive = true;
@@ -738,7 +742,7 @@ export default function AdvShell(props: AdvShellProps) {
       // 以前は 'N3' 以外を全部 'N2' に丸めていたため、N5目標の人にN2の読解が出ていた
       // 会話目標（targetJlpt が null）も申告レベルから決める（2026-08-23 監査:
       // 基礎帯の会話学習者に N2 の文字語彙が出ていた）
-      const lvl: 'N5' | 'N4' | 'N3' | 'N2' = effectiveContentLevel(profile);
+      const lvl: 'N5' | 'N4' | 'N3' | 'N2' | 'N1' = effectiveContentLevel(profile);
       // 復習予報＋渋滞レスキュー（2026-08-17）。
       // 数日あけると解禁ぶんが1日に集中し「今日30件」になって心が折れる。
       // 予報側で今日ぶんを決め、**出題も予報と同じ集合**を使う（画面の数字と出る数を必ず一致させる）
@@ -1125,7 +1129,7 @@ export default function AdvShell(props: AdvShellProps) {
    * 判定の本体は advTypes.aiConversationAvailable。画面の文言をそこへ合わせる
    */
   const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt', prof.targetJlpt ?? null);
-  const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' = effectiveContentLevel(prof);
+  const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' | 'N1' = effectiveContentLevel(prof);
   /**
    * ミニ模試のレベル。**出せない目標では null**（2026-08-18）。
    *

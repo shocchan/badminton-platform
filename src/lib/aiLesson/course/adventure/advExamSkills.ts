@@ -63,7 +63,15 @@ export interface ExamPart {
 }
 
 /** 実試験の構造（§6・§7）。表示は「今鍛えている科目」の裏づけに使う */
-export const EXAM_STRUCTURE: Record<'N2' | 'N3' | 'N4' | 'N5', ExamPart[]> = {
+export const EXAM_STRUCTURE: Record<'N1' | 'N2' | 'N3' | 'N4' | 'N5', ExamPart[]> = {
+  // N1（2026-09-05 追加）。本試験は「言語知識・読解」110分＋「聴解」55分の2科目
+  N1: [
+    {
+      labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读',
+      minutes: 110, skills: ['charactersVocabulary', 'grammar', 'reading', 'timeManagement'],
+    },
+    { labelJa: '聴解', labelZh: '听力', minutes: 55, skills: ['listening'] },
+  ],
   N2: [
     {
       labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读',

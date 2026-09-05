@@ -228,7 +228,7 @@ export interface AdvCompanionDef {
  */
 export interface AdvMockSessionState {
   mockId: string;
-  level: 'N5' | 'N4' | 'N3' | 'N2';
+  level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   /** 短時間版か本番時間版か（§9: 「本番同等」と偽らないため明示的に分ける） */
   mode: 'short' | 'fullTime';
   attemptSeed: number;
@@ -246,7 +246,7 @@ export interface AdvMockSessionState {
 export interface AdvMockLogEntry {
   mockId: string;
   dateKey: string;
-  level: 'N5' | 'N4' | 'N3' | 'N2';
+  level: 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
   mode: 'short' | 'fullTime';
   totalCorrect: number;
   totalQuestions: number;

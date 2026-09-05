@@ -15,7 +15,7 @@ import type { JlptLevel } from './advTypes';
  * N5/N4 は同日に目標として解禁したが、**聴解の音源が0本**で、本試験の科目・時間も
  * このリポジトリに持っていない。
  */
-export const MOCK_LEVELS = ['N5', 'N4', 'N3', 'N2'] as const;
+export const MOCK_LEVELS = ['N5', 'N4', 'N3', 'N2', 'N1'] as const;
 export type MockLevel = (typeof MOCK_LEVELS)[number];
 
 /**
@@ -37,11 +37,20 @@ export const mockLevelOf = (target: JlptLevel | null | undefined): MockLevel | n
   // タイトルが「（一部科目）」になる＝**無いものを在るように見せない**まま出せる
   if (target === 'N5') return 'N5';
   if (target === 'N4') return 'N4';
-  return null; // N1 は教材そのものが無い
+  // 2026-09-05: N1も解禁。語彙・文法の在庫が載ったため。
+  // **聴解はCEO判断で対象外**なので、buildMockSpec が聴解sectionを落とし、
+  // タイトルは「（一部科目）」になる＝無い科目を在るように見せない
+  if (target === 'N1') return 'N1';
+  return null;
 };
 
 /** 本試験の科目別時間（分）。表示と時間配分評価の正準値 */
 export const EXAM_MINUTES: Record<MockLevel, { section: ExamSection; labelJa: string; labelZh: string; minutes: number }[]> = {
+  // N1は本試験の2科目構成（言語知識・読解110分／聴解55分）
+  N1: [
+    { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读', minutes: 110 },
+    { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 55 },
+  ],
   N2: [
     { section: 'languageKnowledge', labelJa: '言語知識（文字・語彙・文法）・読解', labelZh: '语言知识（文字・词汇・语法）・阅读', minutes: 105 },
     { section: 'listening', labelJa: '聴解', labelZh: '听力', minutes: 50 },

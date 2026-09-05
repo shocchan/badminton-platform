@@ -341,14 +341,17 @@ export const migrateLegacyEvidence = (
  */
 export const effectiveContentLevel = (
   profile: Pick<AdventureV2Profile, 'targetJlpt' | 'declaredJlpt' | 'goalType'> | null | undefined,
-): 'N5' | 'N4' | 'N3' | 'N2' => {
+): 'N5' | 'N4' | 'N3' | 'N2' | 'N1' => {
   const declared = profile?.declaredJlpt;
+  // 会話目標では申告がN1でもN2の教材で足りる（会話にN1文法は要らない）
   const fromDeclared = declared === 'N1' || declared === 'N2' ? 'N2' : declared === 'N3' ? 'N3' : null;
   // 会話目標では **申告レベルを優先**する。targetJlpt は試験目標のための値で、
   // 目的を切り替えたあとも古い値が残ることがある（実測: 会話目標なのに targetJlpt='N3'）
   if (profile?.goalType === 'conversation') return fromDeclared ?? 'N3';
   const target = profile?.targetJlpt;
   if (target === 'N5' || target === 'N4' || target === 'N3') return target;
-  if (target === 'N2' || target === 'N1') return 'N2';
+  if (target === 'N2') return 'N2';
+  // 2026-09-05: N1の語彙・文法を作ったので、N1目標にはN1の教材を返す
+  if (target === 'N1') return 'N1';
   return fromDeclared ?? 'N3';
 };

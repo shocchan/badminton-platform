@@ -31,7 +31,11 @@ export interface ListeningChoice {
  * 聴解を用意しているレベル（2026-08-20 に N5/N4 を追加）。
  * 読解の ReadingLevel と同じ並びにしてある。
  */
-export type ListeningLevel = 'N2' | 'N3' | 'N4' | 'N5';
+/**
+ * 聴解セットを持ちうる級。**N1の聴解はCEO判断で対象外**（2026-09-05）。
+ * 型には入れるが音源は作らないので、listeningSetsFor('N1') は常に空になる。
+ */
+export type ListeningLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
 export interface ListeningSet {
   setId: string;

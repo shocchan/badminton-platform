@@ -36,7 +36,11 @@ export interface ReadingChoice {
 }
 
 /** 読解を用意しているレベル（2026-08-18 に N5/N4 を追加） */
-export type ReadingLevel = 'N2' | 'N3' | 'N4' | 'N5';
+/**
+ * 読解セットを持ちうる級。**N1は2026-09-05に型だけ追加した段階で、セットは0本。**
+ * readingSetsFor('N1') は空配列を返し、模試では読解sectionが落ちる（無いものを在ると見せない）。
+ */
+export type ReadingLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
 
 export interface ReadingSet {
   setId: string;
