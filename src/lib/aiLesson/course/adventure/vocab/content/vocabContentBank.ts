@@ -39,6 +39,8 @@ import { N2_VOCAB_BATCH_08 } from './n2VocabBatch08';
 // 増補で、テーマは 論説・社会・行政 → 経済・ビジネス → 抽象動詞・副詞 …と続ける。
 // 進捗と方針は docs/ai-course/n1-buildout.md
 import { N1_VOCAB_BATCH_01 } from './n1VocabBatch01';
+import { N1_VOCAB_BATCH_02 } from './n1VocabBatch02';
+import { N1_VOCAB_BATCH_03 } from './n1VocabBatch03';
 
 export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_01, ...CORE_BATCH_02, ...CORE_BATCH_03,
@@ -47,7 +49,7 @@ export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_27, ...CORE_BATCH_28, ...CORE_BATCH_29, ...CORE_BATCH_30, ...CORE_BATCH_31, ...CORE_BATCH_32,
   ...N2_VOCAB_BATCH_01, ...N2_VOCAB_BATCH_02, ...N2_VOCAB_BATCH_03, ...N2_VOCAB_BATCH_04,
   ...N2_VOCAB_BATCH_05, ...N2_VOCAB_BATCH_06, ...N2_VOCAB_BATCH_07, ...N2_VOCAB_BATCH_08,
-  ...N1_VOCAB_BATCH_01,
+  ...N1_VOCAB_BATCH_01, ...N1_VOCAB_BATCH_02, ...N1_VOCAB_BATCH_03,
 ];
 
 export const contentBySurfaceReading = (): Map<string, VocabOriginalContent> => {

@@ -28,11 +28,11 @@ N1は「今後追加予定」のまま、**教材がゼロ**だった。
 
 ## フェーズと進捗
 
-### Phase 1: 語彙 ⏳ 進行中
+### Phase 1: 語彙 ⏳ 進行中（2026-09-05 時点 **156語** / 生成問題 713問）
 - [x] `VOCAB_SCOPE` / `vocabScopedActive` / `vocabPool` / `contentForLevel` を N1 に対応
 - [x] batch 41（論説・社会・行政）**64語** — 検査 blocking 0 / warning 0
-- [ ] batch 42 経済・ビジネス
-- [ ] batch 43 抽象動詞・複合動詞
+- [x] batch 42（経済・ビジネス・契約）**49語** — 検査 blocking 0 / warning 0
+- [x] batch 43（和語の動詞・形容詞）**43語** — 検査 blocking 0 / warning 0
 - [ ] batch 44 副詞・接続表現
 - [ ] batch 45 感情・人物評価
 - [ ] batch 46 科学・医療・環境
