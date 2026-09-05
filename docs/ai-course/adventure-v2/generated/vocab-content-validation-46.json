@@ -1,0 +1,20 @@
+{
+ "generatedAt": "2026-09-05T15:09:24.237Z",
+ "batchNo": 46,
+ "words": 59,
+ "machineCheck": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "semanticReview": {
+  "findings": 0,
+  "blocking": 0,
+  "byKind": {}
+ },
+ "eligibleForActiveBeta": 59,
+ "needsHumanReview": [],
+ "blocking": [],
+ "warnings": [],
+ "note": "blocking が1件でもある語は active_beta へ昇格させない（§6）"
+}
