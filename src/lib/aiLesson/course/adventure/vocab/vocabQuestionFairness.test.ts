@@ -5,6 +5,8 @@
 //   ② 同音異字が誤答に   … 「かみ」の表記問題に 神/髪/加味 が並ぶ＝正しい漢字を選んでも不正解
 //   ③ 同表記異音が誤答に … 「一日」の読み問題に ついたち と いちにち が並ぶ＝同上
 //   ④ 空欄にそのまま入る語が誤答に … 「新しい＿＿＿を買いました」に 靴/バッグ/ラケット＝正解が3つ
+//   ⑤ 送り仮名の形で当たる … 「はがれる」の表記に 剥がれる/落ち着く/持ち込む/立ち寄る
+//      （2026-08-29 lin さんのN2バトル実測。〜がれる で終わるのが1つしかない）
 import { describe, it, expect } from 'vitest';
 import { ALL_VOCAB_CONTENT } from './content/vocabContentBank';
 import { activeContent } from './vocabContent';
@@ -102,5 +104,38 @@ describe('語彙問題の公平さ', () => {
     // 「一日」= ついたち / いちにち。読みを添えないと正解が2つに割れる
     const qs = questionsOf('一日').filter((q) => q.type === 'vocab-meaning');
     for (const q of qs) expect(q.questionJa).toMatch(/（.+?）/);
+  });
+});
+
+describe('⑤ 送り仮名の形だけで当てられないこと（2026-08-29）', () => {
+  it('表記問題の選択肢は、送り仮名がすべて同じ（読みの末尾と見比べて消せない）', () => {
+    const orth = allQuestions.filter((q) => q.type === 'vocab-orthography');
+    expect(orth.length).toBeGreaterThan(100); // 観点ごと消してしまっていないこと
+    const okuri = (t: string): string => /[ぁ-ん]+$/.exec(t)?.[0] ?? '';
+    const bad = orth.filter((q) => new Set((q.choices ?? []).map((c) => okuri(c.textJa))).size > 1);
+    expect(bad.map((q) => `${q.targetJapanese}: ${(q.choices ?? []).map((c) => c.textJa).join('/')}`)).toEqual([]);
+  });
+
+  it('表記問題の選択肢は字数もそろっている（長さで当てられない）', () => {
+    const orth = allQuestions.filter((q) => q.type === 'vocab-orthography');
+    const bad = orth.filter((q) => new Set((q.choices ?? []).map((c) => [...c.textJa].length)).size > 1);
+    expect(bad.map((q) => `${q.targetJapanese}: ${(q.choices ?? []).map((c) => c.textJa).join('/')}`)).toEqual([]);
+  });
+
+  it('送り仮名のある語の読み問題は、誤答も同じ送り仮名で終わる', () => {
+    const reading = allQuestions.filter((q) => q.type === 'vocab-reading');
+    expect(reading.length).toBeGreaterThan(100);
+    const bad: string[] = [];
+    for (const q of reading) {
+      const correct = (q.choices ?? []).find((c) => c.isCorrect);
+      if (!correct) continue;
+      // 見出し（targetJapanese）の末尾かな＝画面に出ている送り仮名
+      const okuri = /[ぁ-ん]+$/.exec(q.targetJapanese ?? '')?.[0];
+      if (!okuri) continue;
+      for (const c of q.choices ?? []) {
+        if (!c.textJa.endsWith(okuri)) bad.push(`${q.targetJapanese}: ${c.textJa}`);
+      }
+    }
+    expect(bad).toEqual([]);
   });
 });

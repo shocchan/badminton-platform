@@ -123,6 +123,23 @@ const glossTooClose = (a: string, b: string): boolean => {
  * 「表示『温泉』的词是哪个？→ 温泉」のように、**中国語の設問文に答えがそのまま出る**ため、
  * 訳を手がかりにする観点（意味・紛らわしい語）は出題しない。
  */
+/**
+ * 表記のかなの形。漢字の連なりを1つの「漢」に潰す（剥がれる → 漢がれる）。
+ *
+ * 表記問題（この読みを漢字で書くと？）の誤答は、**送り仮名の形が正解と一致する**
+ * ものに限る。一致していないと、語を1つも知らなくても形だけで当たってしまう。
+ * 実例（lin さんのN2バトル 2026-08-29）:
+ *   「はがれる」を漢字で書くと？ → 剥がれる／落ち着く／持ち込む／立ち寄る
+ *   「〜がれる」で終わるのは1つだけなので、読めなくても正解が分かる。
+ */
+const kanaShape = (surface: string): string => surface.replace(/[一-鿿々〆ヶ]+/g, '漢');
+
+/** 漢字を1文字でも共有しているか（交換 と 交感）。表記問題の誤答として一番効く */
+const sharesKanji = (a: string, b: string): boolean => {
+  const set = new Set([...a].filter((ch) => /[一-鿿]/.test(ch)));
+  return [...b].some((ch) => set.has(ch));
+};
+
 const glossRevealsSurface = (c: VocabOriginalContent): boolean =>
   c.glossZh.includes(c.surface) || c.surface.includes(c.glossZh);
 
@@ -294,8 +311,15 @@ export const buildVocabQuestions = (
      * 間違えた人が次に何を覚えればいいのか分からなかった。
      * 出典の語を名指しすれば、1問で2語ぶんの学びになる。
      */
+    // 送り仮名は画面に出ている。「剥がれる」の読みを聞かれて誤答が「おちつく」では、
+    // 語を知らなくても「〜がれる」で終わるものを選べば当たる（2026-08-29 lin さんの実測）。
+    // 送り仮名を持つ語では、誤答の読みも同じ送り仮名で終わるものに限る。
+    const okurigana = /[ぁ-ん]+$/.exec(c.surface)?.[0] ?? '';
+    const okuriganaOk = (r: string): boolean => !okurigana || r.endsWith(okurigana);
+    const readingPool = sameLevel.filter((o) => Math.abs([...o.reading].length - [...c.reading].length) <= 1
+      && okuriganaOk(o.reading));
     const realSources = pickDistinct(
-      sameLevel.filter((o) => Math.abs([...o.reading].length - [...c.reading].length) <= 1),
+      readingPool,
       3, seed + 17, (o) => o.reading === c.reading || otherReadings.includes(o.reading),
     );
     const seen = new Set<string>();
@@ -326,10 +350,36 @@ export const buildVocabQuestions = (
     // 同音異字（かみ = 神 / 髪 / 加味）。誤答に入れると**正しい漢字なのに不正解**になる。
     // 設問にも意味を添えて、どの語のことか1つに決める（2026-08-22 問題設計監査）
     const homophones = (idx.readingSurfaces.get(c.reading) ?? []).filter((sf) => sf !== c.surface);
-    const orthWrong = pickDistinctNearLength(
-      sameLevel.filter((o) => /[一-鿿]/.test(o.surface)), 3, seed + 2,
-      (o) => o.surface === c.surface || homophones.includes(o.surface), (o) => o.surface, c.surface,
-    );
+    // 誤答は**送り仮名の形が同じ**ものだけ（形で当てられないようにする・2026-08-29）。
+    // そのうえで、漢字を共有する語（交換 に対する 交感）を優先する。JLPTの表記問題は
+    // 「読みは分かるが、どの字か」を問う形式で、字がまるごと無関係な語を並べるものではない。
+    const shape = kanaShape(c.surface);
+    const okuri = /[ぁ-ん]+$/.exec(c.surface)?.[0] ?? '';
+    // 表記は「どの字か」を問う形式なので、誤答が他の級の語でも問題は成立する。
+    // 同級だけに絞ると、送り仮名が同じ語が3つ集まらず出題そのものが消えてしまう
+    const orthCands = idx.byLevel.size > 0
+      ? pool.filter((o) => o.state === 'active_beta' && o.surface !== c.surface)
+      : sameLevel;
+    const orthPool = orthCands.filter((o) => /[一-鿿]/.test(o.surface)
+      && o.surface !== c.surface && !homophones.includes(o.surface)
+      // 同義語（景色／風景）を誤答にすると、意味で選ぶ人には正解が2つに見える
+      && o.glossZh !== c.glossZh
+      // 送り仮名が違う語は、読みの末尾と見比べるだけで消せる＝問題として成立しない
+      && (/[ぁ-ん]+$/.exec(o.surface)?.[0] ?? '') === okuri
+      && charLen(o.surface) === charLen(c.surface));
+    // 良い誤答の順: ①かなの形も同じで漢字を共有（交換／交感） ②かなの形が同じ ③送り仮名だけ同じ
+    const tiers = [
+      orthPool.filter((o) => kanaShape(o.surface) === shape && sharesKanji(c.surface, o.surface)),
+      orthPool.filter((o) => kanaShape(o.surface) === shape && !sharesKanji(c.surface, o.surface)),
+      orthPool.filter((o) => kanaShape(o.surface) !== shape),
+    ];
+    const orthWrong: VocabOriginalContent[] = [];
+    for (const tier of tiers) {
+      if (orthWrong.length >= 3) break;
+      orthWrong.push(...pickDistinctNearLength(
+        tier, 3 - orthWrong.length, seed + 2, () => false, (o) => o.reading, c.reading,
+      ));
+    }
     // 訳が表記をそのまま含む語（日中同形）に意味を足すと答えが見えるので、その場合は足さない
     const hint = homophones.length > 0 && !glossRevealsSurface(c) ? `（${c.glossZh}）` : '';
     const orthPrompt = pickPrompt(c.surface, [
@@ -339,7 +389,9 @@ export const buildVocabQuestions = (
     if (orthWrong.length === 3 && orthPrompt) {
       const ch = finalizeChoices([
         choice(`${c.wordId}-o0`, c.surface, true),
-        ...orthWrong.map((o, i) => choice(`${c.wordId}-o${i + 1}`, o.surface, false, `这是「${o.reading}」`)),
+        ...orthWrong.map((o, i) => choice(`${c.wordId}-o${i + 1}`, o.surface, false,
+          // 読みだけでは「で、その語は何？」が残る。訳が表記を割らない語には意味も添える
+          glossRevealsSurface(o) ? `这是「${o.reading}」` : `这是「${o.reading}」（${o.glossZh}）`)),
       ]);
       if (ch) {
         out.push(baseQuestion(c, 'orthography', 2, orthPrompt[0], orthPrompt[1], ch));
@@ -361,16 +413,19 @@ export const buildVocabQuestions = (
     if (correctBlanked) {
       // 連語は正解のほうが長くなりやすい（例: 正解「＿＿がかかる」／誤答「＿＿風」）。
       // 空欄化した**表示どおりの文字列**で長さをそろえる
+      // 空欄化すると同じ文字列になる語がある（「頭を＿＿」など）。3件ちょうど採ると
+      // 重複を落とした時点で足りなくなり、seed次第で用法問題が消える。多めに採って上から3件使う
       const usageWrong = pickDistinctNearLength(
         sameLevel.filter((o) => o.collocationsJa.length > 0 && blankSelf(o.surface, o.collocationsJa[0]) !== null),
-        3, seed + 3,
+        8, seed + 3,
         (o) => o.collocationsJa.some((x) => c.collocationsJa.includes(x)),
         (o) => blankSelf(o.surface, o.collocationsJa[0]) ?? o.collocationsJa[0], correctBlanked,
       );
       const seenTexts = new Set([correctBlanked]);
       const wrongBlanked = usageWrong
         .map((o) => ({ o, b: blankSelf(o.surface, o.collocationsJa[0])! }))
-        .filter(({ b }) => !seenTexts.has(b) && (seenTexts.add(b), true));
+        .filter(({ b }) => !seenTexts.has(b) && (seenTexts.add(b), true))
+        .slice(0, 3);
       if (wrongBlanked.length === 3) {
         const ch = finalizeChoices([
           choice(`${c.wordId}-u0`, correctBlanked, true),
