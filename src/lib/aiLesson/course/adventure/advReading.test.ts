@@ -14,8 +14,9 @@ import {
 import { READING_TYPE_LABELS, type ReadingType } from './reading/readingTypes';
 
 describe('読解bank coverage（§6）', () => {
-  it('N2・N3ともに合計30セット以上・各typeが6セット以上', () => {
-    for (const level of ['N2', 'N3'] as const) {
+  // 2026-09-05: N1を追加（lin さんの12月受験に向けた構築）。基準はN2/N3と同じ
+  it('N1・N2・N3ともに合計30セット以上・各typeが6セット以上', () => {
+    for (const level of ['N1', 'N2', 'N3'] as const) {
       const c = readingCoverage(level);
       expect(c.total).toBeGreaterThanOrEqual(30);
       expect(c.typesBelowMinimum).toEqual([]);
@@ -177,7 +178,7 @@ describe('読解セットの品質（全件）', () => {
   });
 
   it('レベル別でも一致長で解けない（N5/N4を新設した回の再発防止）', () => {
-    for (const level of ['N5', 'N4', 'N3', 'N2'] as const) {
+    for (const level of ['N5', 'N4', 'N3', 'N2', 'N1'] as const) {
       const sets = readingSetsFor(level);
       if (sets.length === 0) continue;
       const stats = verbatimRunStats(sets);

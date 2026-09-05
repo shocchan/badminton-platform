@@ -32,6 +32,12 @@ import { N4_READING_SHORT_A } from './n4ReadingShortA';
 import { N4_READING_INFO_A } from './n4ReadingInfoA';
 import { N4_READING_KEY_A } from './n4ReadingKeyA';
 import { N4_READING_MID_A } from './n4ReadingMidA';
+// N1（2026-09-05 追加）。lin さんの12月受験に向けた新規構築
+import { N1_READING_THEME_A } from './n1ReadingThemeA';
+import { N1_READING_INT_A } from './n1ReadingIntA';
+import { N1_READING_MID_A } from './n1ReadingMidA';
+import { N1_READING_LONG_A } from './n1ReadingLongA';
+import { N1_READING_INFO_A } from './n1ReadingInfoA';
 import { READING_TYPE_LABELS, readingKeyOf, type ReadingSet, type ReadingType, type ReadingLevel } from './readingTypes';
 
 export { READING_TYPE_LABELS, readingKeyOf };
@@ -54,6 +60,8 @@ export const ALL_READING_SETS: ReadingSet[] = [
   ...N2_READING_SETS,
   ...N2_READING_SHORT_B, ...N2_READING_MID_B, ...N2_READING_INT_B,
   ...N2_READING_THEME_B, ...N2_READING_INFO_B,
+  ...N1_READING_THEME_A, ...N1_READING_INT_A, ...N1_READING_MID_A,
+  ...N1_READING_LONG_A, ...N1_READING_INFO_A,
 ];
 
 export const readingSetsFor = (level: ReadingLevel): ReadingSet[] =>
@@ -66,8 +74,9 @@ export const readingSetById = (setId: string): ReadingSet | undefined =>
 export const readingToQuestion = (s: ReadingSet): AdvBattleQuestion => ({
   key: readingKeyOf(s),
   type: `read-${s.readingType}`,
-  // N5/N4 は基礎帯の問題として扱う（AdvBattleQuestion.level は foundation/n3/n2 の3値）
-  level: s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
+  // N5/N4 は基礎帯の問題として扱う（AdvBattleQuestion.level は foundation/n3/n2/n1）
+  level: s.sourceLevel === 'N1' ? 'n1'
+    : s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
   skill: 'reading',
   examSection: SECTION_OF_SKILL.reading,
   targetJapanese: s.passageJa,

@@ -26,8 +26,8 @@ export const SPINE: [number, number][] = [
 ];
 
 /** 目標レベル → 背骨上の道の終点（0..1）。目標を上げるほど道が地図の上方へ物理的に伸びる */
-export const TARGET_END: Record<'N5' | 'N4' | 'N3' | 'N2', number> = {
-  N5: 0.18, N4: 0.45, N3: 0.85, N2: 1.0,
+export const TARGET_END: Record<'N5' | 'N4' | 'N3' | 'N2' | 'N1', number> = {
+  N5: 0.18, N4: 0.45, N3: 0.85, N2: 1.0, N1: 1.0,
 };
 
 /** 会話レーンの環状路（湾のまわり）。角丸矩形リング x36..324 y480..576 r36（周長≒706） */
@@ -216,7 +216,7 @@ export const layoutWorldNodes = (
   const convPts = conv.map((_, i) => pointOnPolyline(rg, convArc(i)));
 
   // 試験レーン: 港(0)→目標終点(T)まで等間隔
-  const baseT = (target && target !== 'N1' ? TARGET_END[target] : undefined) ?? 1;
+  const baseT = (target ? TARGET_END[target] : undefined) ?? 1;
   const denom = Math.max(exam.length - 1, 1);
   const arcsFor = (t: number): number[] => exam.map((_, i) => (t * i * sp.total) / denom);
   const chordOk = (arcs: number[]): boolean => {

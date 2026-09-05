@@ -47,10 +47,13 @@ describe('ボス地域のCTAは模試ではなく今日の冒険（ボス戦）�
       const p = profileFor(target);
       // 確認stageが**現在地**の状態で見る。霧の中（未解放）の地域は
       // 「現在地にもどる」CTAへ一律で置き換わるので、模試CTAの判定が見えない
+      // 2026-09-05: N1ルートではN2のボスが**通過点**になる（後ろにN1の区間が続く）。
+      // 攻略済みのボスはCTAが「復習」に変わるので、ボスだけ未攻略にして判定する
       const stages = p.route!.stages;
-      const map = buildAdventureMap(
-        p, p.route, new Set(stages.slice(0, -1).map((s) => s.stageId)), 1, 'exam', NOW,
+      const mastered = new Set(
+        stages.slice(0, -1).filter((s) => s.kind !== 'mock_boss').map((s) => s.stageId),
       );
+      const map = buildAdventureMap(p, p.route, mastered, 1, 'exam', NOW);
       const bosses = map.regions.filter((r) => r.id.endsWith('boss'));
       expect(bosses.length, `${target}ルートに確認stageが無い`).toBeGreaterThan(0);
       for (const b of bosses) {

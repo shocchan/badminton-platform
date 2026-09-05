@@ -12,8 +12,11 @@ export type JlptLevel = 'N5' | 'N4' | 'N3' | 'N2' | 'N1';
 // 文法148項目（N5=62 / N4=86・出題471問）・語彙1,989語（N5=468 / N4=1,521）・読解96セット。
 // **聴解は N5/N4 の音源が0本**なので、聴解stepは出ない（listeningBank が空を返す）。
 // N1は教材が無いので今後追加予定のまま。
-export const ACTIVE_TARGET_LEVELS: JlptLevel[] = ['N5', 'N4', 'N3', 'N2'];
-export const FUTURE_TARGET_LEVELS: JlptLevel[] = ['N1'];
+// 2026-09-05: N1を解禁。語彙317語・文法150項目・読解30セットを用意したうえで開けた。
+// **聴解だけはCEO判断で作らない**ので、N1の準備度では聴解が「測れない」と出る。
+// 在庫が無いものを「ある」と書かない／揃ったものを「無い」と書かない（原則13）
+export const ACTIVE_TARGET_LEVELS: JlptLevel[] = ['N5', 'N4', 'N3', 'N2', 'N1'];
+export const FUTURE_TARGET_LEVELS: JlptLevel[] = [];
 
 /** 内部能力軸（§9）。試験と会話を混ぜない */
 export type AdvSkill =

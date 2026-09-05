@@ -281,7 +281,8 @@ export function AdvOnboarding({
                 onClick={() => { setTarget(lv); trackAdv('target_level_selected', { targetLevel: lv, locale: lang }); }}>
                 <span className="font-semibold">{lv}</span>
                 <span className="ml-2 text-sm text-gray-600">
-                  {lv === 'N2' ? tx(lang, 'ソラノ塔を目指す', '目标：天空塔')
+                  {lv === 'N1' ? tx(lang, 'ソラノ塔上層を目指す', '目标：天空塔上层')
+                    : lv === 'N2' ? tx(lang, 'ソラノ塔を目指す', '目标：天空塔')
                     : lv === 'N3' ? tx(lang, 'カタチの遺跡を目指す', '目标：形之遗迹')
                       : lv === 'N4' ? tx(lang, 'トオリミチを目指す（暮らしの日本語）', '目标：通行之路（生活日语）')
                         : tx(lang, 'ミナトを目指す（はじめの一歩）', '目标：雾之港城（第一步）')}
@@ -294,8 +295,8 @@ export function AdvOnboarding({
               在庫が無いものを「ある」と書かない／揃ったものを「無い」と書かない（原則13） */}
           <p className="mt-3 text-xs text-gray-500">
             {tx(lang,
-              'N5・N4はことば・文法・読解・聴解すべて学べます。N1は今後追加予定です。',
-              'N5・N4的词汇、语法、阅读、听力均可学习。N1将于今后追加。')}
+              'N5〜N2はことば・文法・読解・聴解すべて学べます。N1はことば・文法・読解が学べます（N1の聴解は用意していません）。',
+              'N5〜N2的词汇、语法、阅读、听力均可学习。N1可学习词汇、语法、阅读（N1的听力尚未提供）。')}
           </p>
           {/* 2026-08-22: N5・N4ではAI会話を出さない（会話は先生の授業）。
               「両方」を選んだ人には、選んだその場で伝える。あとで気づかせない（原則13） */}

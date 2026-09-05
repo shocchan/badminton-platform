@@ -204,6 +204,15 @@ const jlptStages = (target: JlptLevel, knowledge: AdvBand, d: AdvDiagnosisResult
     'N1文法攻略', 'N1语法攻略',
     'ソラノ塔の上層でN1の文型を攻略する', '在天空塔上层攻克N1句型',
     { n1Units: N1_GRAMMAR_UNITS }));
+  s.push(stage('stg-n1reading', 'reading_listening', 'area08-sorano',
+    'N1読解', 'N1阅读',
+    '評論と論説を時間内に読み切る', '在限时内读完评论与论说文',
+    { n1Units: N1_GRAMMAR_UNITS }));
+  // N1の確認stageはルートの最後に置く（N2のボスは通過点になる）
+  s.push(stage('stg-n1boss', 'mock_boss', 'area08-sorano',
+    'N1模擬ボス', 'N1模拟Boss',
+    '本番形式・時間配分つきの総合演習', '完整模拟考・练习时间分配',
+    { n1Units: N1_GRAMMAR_UNITS }));
   return s;
 };
 
