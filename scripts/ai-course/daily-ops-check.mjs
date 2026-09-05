@@ -36,6 +36,23 @@ if (num('learners_with_unit_progress') > 0 && num('sessions_24h') > 0
   alerts.push(`同期停滞の疑い: 同期実績learner=${val('learners_with_unit_progress')} sessions_24h=${val('sessions_24h')} progress更新0`);
 }
 
+// バックアップ鮮度（2026-08-15 監査P0）: 日次バックアップが止まっても誰も気づけなかった。
+// 最終成功が36時間より古い、または今日のdirに ai_learners.json が無ければ警報。
+{
+  const { readdirSync, existsSync: ex } = await import('node:fs');
+  const bdir = join(homedir(), 'ai-company/backups/kawabado');
+  const dayDirs = ex(bdir)
+    ? readdirSync(bdir).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort()
+    : [];
+  const latest = dayDirs[dayDirs.length - 1];
+  const ageH = latest ? (Date.now() - Date.parse(`${latest}T10:00:00`)) / 3600000 : Infinity;
+  if (!latest || ageH > 36) {
+    alerts.push(`DBバックアップが止まっています: 最終=${latest ?? 'なし'}（bash scripts/backup-supabase.sh で手動実行を）`);
+  } else if (!ex(join(bdir, latest, 'ai_learners.json'))) {
+    alerts.push(`最新バックアップ(${latest})に ai_learners.json がありません（途中終了の疑い）`);
+  }
+}
+
 const today = new Date().toISOString().slice(0, 10);
 const logDir = join(homedir(), 'ai-company/logs/daily-pf-analytics');
 mkdirSync(logDir, { recursive: true });
