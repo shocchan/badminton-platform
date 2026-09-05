@@ -158,7 +158,7 @@ export const TournamentCard = ({ tournament, entryCount = 0, onApply }: Tourname
 
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
-  // 共通ルール（開催14日前）で締切。late_entry_until がある大会だけ追加受付として延長される
+  // 共通ルール（開催3日前）で締切。late_entry_until がある大会だけ追加受付として延長される
   const isEntryClosed = daysUntil >= 0 && computeEntryClosed(tournament);
   const isLateEntry = isLateEntryWindow(tournament);
   const config = levelConfig[tournament.level] ?? defaultConfig;

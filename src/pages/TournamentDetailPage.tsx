@@ -13,7 +13,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { feeDisplay, feePerPerson, isDoublesEvent } from '../lib/fee';
 import {
   effectiveEntryDeadline,
-  standardEntryDeadline,
+  standardCancelDeadline,
   isEntryClosed as computeEntryClosed,
   isLateEntryWindow,
   formatDeadline,
@@ -154,12 +154,13 @@ export const TournamentDetailPage = () => {
   const remaining = tournament.capacity - entryCount;
   const daysUntil = getDaysUntil(tournament.event_date);
 
-  // 申し込み締め切り。共通ルールは「大会14日前 23:59 JST」で、
+  // 申し込み締め切り。共通ルールは「大会3日前 23:59 JST」で、
   // late_entry_until が入っている大会だけ追加受付としてそこまで延長される（src/lib/entryDeadline.ts）
+  // キャンセル期限は申込締切とは別で、従来どおり「大会14日前」のまま
   const tLang = lang === 'zh' ? 'zh' : 'ja';
   const et = getEntryTexts(lang);
   const entryDeadline = effectiveEntryDeadline(tournament);
-  const cancelDeadline = standardEntryDeadline(tournament.event_date);
+  const cancelDeadline = standardCancelDeadline(tournament.event_date);
   const isEntryClosed = computeEntryClosed(tournament);
   const lateEntry = isLateEntryWindow(tournament);
   const entryDeadlineStr = formatDeadline(entryDeadline, tLang);

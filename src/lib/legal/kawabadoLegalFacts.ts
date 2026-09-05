@@ -17,7 +17,8 @@
 //                    src/components/PaymentMethodSelector.tsx（追加受付中も WeChat Pay /
 //                      Alipay は選べる。creditOnly が落とすのは PayPay だけ）
 //   手数料        … src/lib/payment.ts「決済手数料の上乗せはしない（全支払い方法で参加費は同額）」
-//   締切・追加受付 … src/lib/entryDeadline.ts（開催14日前 23:59 JST／late_entry_until）
+//   締切・追加受付 … src/lib/entryDeadline.ts（申込は開催3日前 23:59 JST／late_entry_until）
+//   キャンセル期限は申込締切とは別で開催14日前（CANCEL_LEAD_DAYS / process-cancel）
 //   返金          … supabase/functions/process-cancel/index.ts
 //                    （自動返金は payment_method === 'credit' のときだけ。entryFee の10%控除）
 //                    src/pages/CancelEntryPage.tsx（クレカ以外は振込/PayPayで返金）
@@ -119,9 +120,9 @@ export const KAWABADO_LEGAL_FACTS: KawabadoLegalFacts = {
     zh: '在各赛事・各常规活动页面所载的日期时间，于所载会场提供。',
   },
   salesConditions: {
-    // src/lib/entryDeadline.ts の共通ルール（14日前 23:59 JST）と追加受付（late_entry_until）
-    ja: '大会のお申し込みは、原則として開催日の14日前 23:59（日本時間）で締め切ります。定員に達している場合はキャンセル待ちとしてお受けします。追加受付を実施する大会に限り、締切後もオンライン決済（クレジットカード・WeChat Pay・Alipay）でお申し込みいただけます。',
-    zh: '赛事报名原则上于举办日的14天前23:59（日本时间）截止。名额已满时将作为候补受理。仅设有追加报名的赛事，在截止后仍可通过在线支付（信用卡・微信支付・支付宝）报名。',
+    // src/lib/entryDeadline.ts の共通ルール（申込は3日前 23:59 JST）と追加受付（late_entry_until）
+    ja: '大会のお申し込みは、原則として開催日の3日前 23:59（日本時間）で締め切ります。定員に達している場合はキャンセル待ちとしてお受けします。追加受付を実施する大会に限り、締切後もオンライン決済（クレジットカード・WeChat Pay・Alipay）でお申し込みいただけます。',
+    zh: '赛事报名原则上于举办日的3天前23:59（日本时间）截止。名额已满时将作为候补受理。仅设有追加报名的赛事，在截止后仍可通过在线支付（信用卡・微信支付・支付宝）报名。',
   },
   refundPolicy: {
     // process-cancel/index.ts: 自動返金は payment_method === 'credit' のときだけ。

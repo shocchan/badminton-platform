@@ -2,7 +2,7 @@
 // 狙いは「文言が綺麗か」ではなく、次の4点を機械で固定すること。
 //   1. 法令上載せる必要がある項目が抜けないこと
 //   2. 事実が未確定のまま公開されないこと
-//   3. **表記が実装と食い違わないこと**（支払方法・返金10%・締切14日前は実装が正）
+//   3. **表記が実装と食い違わないこと**（支払方法・返金10%・申込締切3日前・キャンセル期限14日前は実装が正）
 //   4. 3ページが実際にURLとして生き、404に吸われないこと
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -21,7 +21,7 @@ import {
   KAWABADO_LEGAL_PAGE_IDS,
   KAWABADO_LEGAL_SEO,
 } from './kawabadoLegalContent';
-import { DEFAULT_LEAD_DAYS } from '../entryDeadline';
+import { DEFAULT_LEAD_DAYS, CANCEL_LEAD_DAYS } from '../entryDeadline';
 import { isPrivatePath } from '../../components/seo/privateRoutes';
 import staticSeo from '../seo/staticSeo.json';
 
@@ -144,9 +144,12 @@ describe('表記と実装の突き合わせ（食い違ったら実装が正）'
     expect(refund).toMatch(/10%/);
   });
 
+  // キャンセル期限は申込締切（DEFAULT_LEAD_DAYS）とは別の定数。
+  // 2026-09-05 に申込だけ 14日前→3日前 にしたので、ここを取り違えると
+  // 「3日前まで返金できます」という嘘の表記を通してしまう
   it('キャンセル期限の日数が src/lib/entryDeadline.ts と一致する', () => {
-    expect(refundJa, `キャンセル期限が実装(${DEFAULT_LEAD_DAYS}日前)と食い違っている`)
-      .toContain(`${DEFAULT_LEAD_DAYS}日前`);
+    expect(refundJa, `キャンセル期限が実装(${CANCEL_LEAD_DAYS}日前)と食い違っている`)
+      .toContain(`${CANCEL_LEAD_DAYS}日前`);
   });
 
   it('自動返金されない支払い方法の返金経路（振込・PayPay）を書いている', () => {
@@ -178,7 +181,7 @@ describe('表記と実装の突き合わせ（食い違ったら実装が正）'
     expect(text).toMatch(/WeChat Pay/);
   });
 
-  it('締切の共通ルール（14日前）が申込条件に書かれている', () => {
+  it('申込締切の共通ルール（3日前）が申込条件に書かれている', () => {
     expect(KAWABADO_LEGAL_FACTS.salesConditions!.ja).toContain(`${DEFAULT_LEAD_DAYS}日前`);
   });
 });

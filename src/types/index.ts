@@ -12,7 +12,7 @@ export interface Tournament {
   entry_fee: number;
   cancel_deadline?: string | null;
   // 追加受付の個別override（ISO8601 timestamptz / 本番DBは timestamptz 列）。
-  // NULL の大会は共通ルール（14日前）のまま。詳細は src/lib/entryDeadline.ts
+  // NULL の大会は共通ルール（申込は3日前）のまま。詳細は src/lib/entryDeadline.ts
   // ※両ブランチが同じ列を別の位置に宣言していたため、1つに統合した（重複宣言はTSエラー）
   late_entry_until?: string | null;
   description?: string;

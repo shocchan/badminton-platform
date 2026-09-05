@@ -1,8 +1,15 @@
 import type { Tournament } from '../types';
 
 // ── 申込締切のルール ──────────────────────────────────────────
-// 【全大会共通】開催日の14日前 23:59:59（日本時間）で申し込みを締め切る。
+// 【全大会共通】開催日の3日前 23:59:59（日本時間）で申し込みを締め切る。
+//   （2026-09-05 に 14日前 → 3日前 へ変更。直前まで受け付けたいというCEO判断）
 //   このルールは緩めない。下の override が無い大会は必ずこれが適用される。
+//
+// 【キャンセル期限は別物】返金を伴うキャンセルの期限は従来どおり開催14日前で、
+//   申込締切とは別の定数（CANCEL_LEAD_DAYS）で持つ。以前は同じ定数を共有していたが、
+//   申込だけ3日前に緩めたときにキャンセル期限まで一緒に動いてしまうため分離した。
+//   サーバー側の実体は Edge Function process-cancel（tournaments.cancel_deadline が
+//   NULL のとき 14日前にフォールバック）。数字を変えるならあちらも一緒に変えること。
 //
 // 【個別override】tournaments.late_entry_until（timestamptz / 既定 NULL）に
 //   日時が入っている大会だけ、その日時まで「追加受付」として例外的に受け付ける。
@@ -14,20 +21,32 @@ import type { Tournament } from '../types';
 // 同じ判定式を SQL 側 public.tournament_entry_deadline() が持つ。
 // ─────────────────────────────────────────────────────────────
 
-export const DEFAULT_LEAD_DAYS = 14;
+/** 申込締切のリードタイム（日） */
+export const DEFAULT_LEAD_DAYS = 3;
+
+/** 返金を伴うキャンセルの期限のリードタイム（日）。申込締切とは別に持つ */
+export const CANCEL_LEAD_DAYS = 14;
 
 /** 'YYYY-MM-DD' を日本時間の指定時刻として解釈する（閲覧者のTZに左右されない） */
 const jst = (dateStr: string, time = '00:00:00') =>
   new Date(`${dateStr.slice(0, 10)}T${time}+09:00`);
 
-/** 共通ルールの締切（開催14日前 23:59:59 JST） */
-export const standardEntryDeadline = (eventDate: string): Date => {
+/** 開催日の n 日前 23:59:59 JST */
+const leadDeadline = (eventDate: string, days: number): Date => {
   const d = jst(eventDate);
-  d.setUTCDate(d.getUTCDate() - DEFAULT_LEAD_DAYS);
+  d.setUTCDate(d.getUTCDate() - days);
   // 同じ日の 23:59:59 JST に合わせる
   const ymd = new Date(d.getTime() + 9 * 3600 * 1000).toISOString().slice(0, 10);
   return jst(ymd, '23:59:59');
 };
+
+/** 共通ルールの申込締切（開催3日前 23:59:59 JST） */
+export const standardEntryDeadline = (eventDate: string): Date =>
+  leadDeadline(eventDate, DEFAULT_LEAD_DAYS);
+
+/** 返金を伴うキャンセルの期限（開催14日前 23:59:59 JST）。申込締切とは別 */
+export const standardCancelDeadline = (eventDate: string): Date =>
+  leadDeadline(eventDate, CANCEL_LEAD_DAYS);
 
 /** その大会に実際に適用される締切。override があればそちらを使う */
 export const effectiveEntryDeadline = (t: Pick<Tournament, 'event_date' | 'late_entry_until'>): Date =>
