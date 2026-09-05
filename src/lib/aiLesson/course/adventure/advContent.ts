@@ -4,6 +4,15 @@
 import { N3_GRAMMAR_DRAFTS } from '../n3GrammarDrafts';
 import { N2_GRAMMAR_ALIASES } from '../n2GrammarAliases';
 import { N1_GRAMMAR_DRAFTS_UNIT1 } from '../n1GrammarDraftsUnit1';
+import { N1_GRAMMAR_DRAFTS_UNIT2 } from '../n1GrammarDraftsUnit2';
+import { N1_GRAMMAR_DRAFTS_UNIT3 } from '../n1GrammarDraftsUnit3';
+import { N1_GRAMMAR_DRAFTS_UNIT4 } from '../n1GrammarDraftsUnit4';
+import { N1_GRAMMAR_DRAFTS_UNIT5 } from '../n1GrammarDraftsUnit5';
+import { N1_GRAMMAR_DRAFTS_UNIT6 } from '../n1GrammarDraftsUnit6';
+import { N1_GRAMMAR_DRAFTS_UNIT7 } from '../n1GrammarDraftsUnit7';
+import { N1_GRAMMAR_DRAFTS_UNIT8 } from '../n1GrammarDraftsUnit8';
+import { N1_GRAMMAR_DRAFTS_UNIT9 } from '../n1GrammarDraftsUnit9';
+import { N1_GRAMMAR_DRAFTS_UNIT10 } from '../n1GrammarDraftsUnit10';
 import { N2_UNIT_FILE_NUMBERS, loadN2DraftUnitFile } from '../n2GrammarDraftChunks';
 import { loadAllBasicDrafts, cachedBasicDraftById, N5_UNIT_IDS, N4_UNIT_IDS } from '../basicGrammarChunks';
 import { N3_UNIT_SPECS } from '../quality/n3UnitSpecs';
@@ -30,6 +39,20 @@ export const loadAllN2Drafts = async (): Promise<N2GrammarDraft[]> => {
 
 export const N2_ALIAS_IDS = new Set(Object.keys(N2_GRAMMAR_ALIASES));
 
+/** N1文法の全draft（10単元・150項目）。同期参照するので静的importのまま持つ */
+const N1_ALL_DRAFTS = [
+  ...N1_GRAMMAR_DRAFTS_UNIT1,
+  ...N1_GRAMMAR_DRAFTS_UNIT2,
+  ...N1_GRAMMAR_DRAFTS_UNIT3,
+  ...N1_GRAMMAR_DRAFTS_UNIT4,
+  ...N1_GRAMMAR_DRAFTS_UNIT5,
+  ...N1_GRAMMAR_DRAFTS_UNIT6,
+  ...N1_GRAMMAR_DRAFTS_UNIT7,
+  ...N1_GRAMMAR_DRAFTS_UNIT8,
+  ...N1_GRAMMAR_DRAFTS_UNIT9,
+  ...N1_GRAMMAR_DRAFTS_UNIT10,
+];
+
 /**
  * 束が「別日3回80%＋7日後確認」を未出の問題で通せる下限。
  * 1回のバトルが5問・3日ぶんで15問＋確認2問。これを下回る束は攻略不能なので合流させる。
@@ -41,7 +64,7 @@ export const MIN_BUNDLE_QUESTIONS = 17;
 export const grammarPatternById = (id: string): string | null =>
   N3_GRAMMAR_DRAFTS.find((d) => d.grammarId === id)?.pattern
     ?? n2DraftsCache?.find((d) => d.grammarId === id)?.pattern
-    ?? N1_GRAMMAR_DRAFTS_UNIT1.find((d) => d.grammarId === id)?.pattern
+    ?? N1_ALL_DRAFTS.find((d) => d.grammarId === id)?.pattern
     ?? cachedBasicDraftById(id)?.pattern
     ?? null;
 
@@ -173,7 +196,7 @@ export const loadGrammarPools = async (): Promise<GrammarPools> => {
   const basic = await loadAllBasicDrafts();
   const n2Pool = buildVariantPool(n2 as unknown as GrammarDraftLike[], 'n2', N2_ALIAS_IDS);
   // N1文法。誤答プールはN1の中だけで作る（N1の学習者にN3の表現を混ぜない）
-  const n1Drafts = N1_GRAMMAR_DRAFTS_UNIT1;
+  const n1Drafts = N1_ALL_DRAFTS;
   const n1Pool = buildVariantPool(n1Drafts as unknown as GrammarDraftLike[], 'n1');
   const n3Pool = buildVariantPool(N3_GRAMMAR_DRAFTS as unknown as GrammarDraftLike[], 'n3');
   // 初級文法は誤答プールをN5/N4の中だけで作る（基礎の学習者にN3/N2の表現を混ぜない）

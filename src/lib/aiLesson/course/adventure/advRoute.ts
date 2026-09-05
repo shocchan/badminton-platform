@@ -15,7 +15,7 @@ import { PASS_LABEL } from './advMastery';
  * **教材ができた単元だけを並べる。** ここに書いた単元は攻略条件になるので、
  * 中身が無い単元を先に足すと「永久に攻略できないstage」になる。
  */
-export const N1_GRAMMAR_UNITS: number[] = [1];
+export const N1_GRAMMAR_UNITS: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 /** エリア → 実コンテンツ（worldAtlas実データと同期。ズレはガードテストで検知） */
 export const AREA_UNIT_MAP: Record<string, string[]> = {
