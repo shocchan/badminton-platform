@@ -62,12 +62,14 @@ serve(async (req: Request) => {
     }
 
     // ── 申込締切をサーバー側でも強制する ────────────────────────
-    // 共通ルール: 開催14日前 23:59:59（日本時間）。
+    // 共通ルール: 開催3日前 23:59:59（日本時間）。2026-09-05 に 14日前 から変更。
     // late_entry_until が設定された大会だけ、その日時まで追加受付する。
-    // フロントの判定（src/lib/entryDeadline.ts）と同じ式。
+    // フロントの判定（src/lib/entryDeadline.ts の DEFAULT_LEAD_DAYS）と同じ式。
+    // ※ キャンセル期限（14日前）はこれとは別物。process-cancel / send-payment-email 側。
+    const ENTRY_LEAD_DAYS = 3;
     const standardDeadline = new Date(
       new Date(`${String(tournament.event_date).slice(0, 10)}T23:59:59+09:00`).getTime()
-        - 14 * 24 * 60 * 60 * 1000,
+        - ENTRY_LEAD_DAYS * 24 * 60 * 60 * 1000,
     );
     const deadline = tournament.late_entry_until
       ? new Date(tournament.late_entry_until)

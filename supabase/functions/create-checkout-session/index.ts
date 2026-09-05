@@ -194,10 +194,12 @@ serve(async (req: Request) => {
       return json({ error: "この大会は現在申し込みを受け付けていません" }, 400);
     }
 
-    // 申込締切（開催14日前 23:59:59 JST。late_entry_until があればそちら）
+    // 申込締切（開催3日前 23:59:59 JST。late_entry_until があればそちら）
+    // 2026-09-05 に 14日前 から変更。キャンセル期限（14日前）とは別物なので混同しないこと
+    const ENTRY_LEAD_DAYS = 3;
     const standardDeadline = new Date(
       new Date(`${String(tournament.event_date).slice(0, 10)}T23:59:59+09:00`).getTime()
-        - 14 * 24 * 60 * 60 * 1000,
+        - ENTRY_LEAD_DAYS * 24 * 60 * 60 * 1000,
     );
     const deadline = tournament.late_entry_until
       ? new Date(tournament.late_entry_until)
