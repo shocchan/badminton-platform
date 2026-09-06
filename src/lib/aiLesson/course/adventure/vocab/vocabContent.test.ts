@@ -133,7 +133,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
     for (const c of flagged) {
       expect(buildVocabQuestions(c, active, 1), c.surface).toEqual([]);
     }
-  }, 30_000);
+  }, 120_000);
 
   it('**active_beta の全語に有効な選択問題が2問以上ある**（要件C）', async () => {
     // 2問未満しか作れない語は「無理に水増しせず CORE から外す」のが方針。
@@ -142,14 +142,14 @@ describe('§6 語彙問題（選択式のみ）', () => {
       .map(({ c, qs }) => ({ id: `${c.surface}|${c.reading}`, n: qs.length }))
       .filter((x) => x.n < 2);
     expect(under.map((x) => `${x.id}:${x.n}`)).toEqual([]);
-  }, 30_000);
+  }, 120_000);
 
   it('CORE の大半が4形式以上（水増しはしないが、薄すぎもしない）', async () => {
     const counts = (await allQuestions()).map(({ qs }) => qs.length);
     const fourPlus = counts.filter((n) => n >= 4).length;
     // かな語は読み・表記の観点が構造上作れないため100%にはならない。7割を下限にする
     expect(fourPlus / counts.length).toBeGreaterThan(0.7);
-  }, 30_000);
+  }, 120_000);
 
   it('**画面に答えが見えない**（見出し・設問文に正解の選択肢が含まれない・2026-08-16 CEO報告）', async () => {
     // ミニ模試の表記問題で、見出し語に正解の漢字がそのまま出ていた（「今にも」）。
@@ -168,7 +168,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
       }
     }
     expect(leaks).toEqual([]);
-  }, 30_000);
+  }, 120_000);
 
   it('**用法問題は選択肢の形式を混ぜない**（正解だけ見出し語入りだと文字探しで当たる）', async () => {
     // 空欄形（＿＿を守る）と従来形（やってみる・活用語の救済）の2形式があるが、
@@ -179,7 +179,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
         expect(withBlank === 0 || withBlank === q.choices.length, `${q.key} 形式が混在`).toBe(true);
       }
     }
-  }, 30_000);
+  }, 120_000);
 
   it('**複数正解を作らない**（同じ意味の語を誤答に入れない・Pilot監査P0）', async () => {
     // 訳の完全一致だけを見ていたため「学习」と「学习（有计划地学）」が別物になり、
@@ -240,7 +240,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
       }
     }
     expect(total).toBeGreaterThan(300);
-    // 30秒→60秒→120秒。語彙バンクが増えるたびに vocabPool('N2') の初回構築が重くなり、
+    // 30秒→60秒→120秒。語彙バンクが増えるたびに vocabPool の初回構築が重くなり、
     // 全suite並列実行時にworkerが上限を超える（単体実行では5秒台）。
     // 60秒を超えたのは 2026-09-06 のN1語彙+317語と、選択肢シャッフルの追加のあと
   }, 120_000);
@@ -253,7 +253,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
         expect(VOCAB_ASPECTS as string[]).toContain(aspect);
       }
     }
-  }, 30_000);
+  }, 120_000);
 
   it('**同じseedなら同じ問題**（決定的生成）', () => {
     const a = vocabPool('N3', 123);
@@ -261,7 +261,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
     const flat = (m: Map<string, { key: string; choices: { choiceId: string }[] }[]>) =>
       [...m.values()].flat().map((q) => `${q.key}:${q.choices.map((c) => c.choiceId).join(',')}`);
     expect(flat(a)).toEqual(flat(b));
-  }, 30_000);
+  }, 120_000);
 
   it('全問が試験科目「文字・語彙」に紐づく', () => {
     for (const qs of vocabPool('N2').values()) {
@@ -270,7 +270,7 @@ describe('§6 語彙問題（選択式のみ）', () => {
         expect(q.examSection).toBe('languageKnowledge');
       }
     }
-  }, 30_000);
+  }, 120_000);
 
   it('カバレッジが取れ、観点不足の語を隠さない', () => {
     const cov = vocabQuestionCoverage('N3');
@@ -279,5 +279,5 @@ describe('§6 語彙問題（選択式のみ）', () => {
     expect(cov.questions).toBeGreaterThan(300);
     // かな語は読み・表記の観点が作れないため4観点に届かない。隠さず数える
     expect(Array.isArray(cov.belowAspectTarget)).toBe(true);
-  }, 30_000);
+  }, 120_000);
 });

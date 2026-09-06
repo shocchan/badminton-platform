@@ -43,6 +43,14 @@ const toWord = (c: VocabOriginalContent): LearnWord => ({
   collocationsJa: c.collocationsJa ?? [],
 });
 
+/**
+ * 初級コアのバッチ番号（2026-09-06）。CEOが用意した初級リスト由来の語。
+ * 同じ級の中でも**この語から先に出す**。
+ */
+export const STARTER_BATCH_NOS = [50, 51, 52];
+const isStarter = (c: VocabOriginalContent): boolean =>
+  typeof c.batchNo === 'number' && STARTER_BATCH_NOS.includes(c.batchNo);
+
 /** 決定的な並び替え（seedのみに依存。同じ日に開き直しても同じ語が出る） */
 const rotate = <T,>(arr: T[], seed: number): T[] => {
   if (arr.length === 0) return arr;
@@ -76,7 +84,14 @@ export const pickLearnSession = (
   const order = LEVEL_PRIORITY[level] ?? ['N5', 'N4', 'N3'];
   const byPriority = (arr: VocabOriginalContent[]): VocabOriginalContent[] => {
     const out: VocabOriginalContent[] = [];
-    for (const lv of order) out.push(...rotate(arr.filter((c) => c.level === lv), seed));
+    for (const lv of order) {
+      const inLevel = arr.filter((c) => c.level === lv);
+      // **初級コアを先に出す**（2026-09-06）。行く・見る・食べる のような
+      // 生活の土台になる語を、九つ・コップ・財布 より先に出す。
+      // 同じ級の中でも「先に覚えてほしい順」があるので、そこだけ固定する
+      out.push(...rotate(inLevel.filter((c) => isStarter(c)), seed));
+      out.push(...rotate(inLevel.filter((c) => !isStarter(c)), seed));
+    }
     return out;
   };
 
