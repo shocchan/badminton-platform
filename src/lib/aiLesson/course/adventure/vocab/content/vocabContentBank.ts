@@ -41,6 +41,8 @@ import { N2_VOCAB_BATCH_08 } from './n2VocabBatch08';
 // 2026-09-06: 初級コア（batchNo 50〜）。行く・見る・食べる のような
 // いちばん基本の語がバンクに無く、N5の学習者が使えなかったため
 import { STARTER_BATCH_01 } from './starterBatch01';
+import { STARTER_BATCH_02 } from './starterBatch02';
+import { STARTER_BATCH_03 } from './starterBatch03';
 import { N1_VOCAB_BATCH_01 } from './n1VocabBatch01';
 import { N1_VOCAB_BATCH_02 } from './n1VocabBatch02';
 import { N1_VOCAB_BATCH_03 } from './n1VocabBatch03';
@@ -55,7 +57,7 @@ export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_27, ...CORE_BATCH_28, ...CORE_BATCH_29, ...CORE_BATCH_30, ...CORE_BATCH_31, ...CORE_BATCH_32,
   ...N2_VOCAB_BATCH_01, ...N2_VOCAB_BATCH_02, ...N2_VOCAB_BATCH_03, ...N2_VOCAB_BATCH_04,
   ...N2_VOCAB_BATCH_05, ...N2_VOCAB_BATCH_06, ...N2_VOCAB_BATCH_07, ...N2_VOCAB_BATCH_08,
-  ...STARTER_BATCH_01,
+  ...STARTER_BATCH_01, ...STARTER_BATCH_02, ...STARTER_BATCH_03,
   ...N1_VOCAB_BATCH_01, ...N1_VOCAB_BATCH_02, ...N1_VOCAB_BATCH_03, ...N1_VOCAB_BATCH_04, ...N1_VOCAB_BATCH_05, ...N1_VOCAB_BATCH_06,
 ];
 

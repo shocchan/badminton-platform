@@ -291,9 +291,12 @@ export const buildVocabQuestions = (
     // 「一日」（ついたち／いちにち）のような同表記異音は、読みを添えないと正解が2つに割れる
     const head = (idx.surfaceReadings.get(c.surface)?.length ?? 1) > 1
       ? `${c.surface}（${c.reading}）` : c.surface;
-    if (ch) {
-      out.push(baseQuestion(c, 'meaning', 0,
-        `「${head}」の意味はどれですか。`, `「${head}」是什么意思？`, ch));
+    // 「何」の訳は「什么」。既定の設問「〜是什么意思？」は**設問の中に答えが出てしまう**ので、
+    // 答えを含まない言い方に替える。それでも含むなら、この語は意味問題を出さない
+    const askZh = [`「${head}」是什么意思？`, `「${head}」的意思是哪一个？`]
+      .find((q) => !q.includes(c.glossZh));
+    if (ch && askZh) {
+      out.push(baseQuestion(c, 'meaning', 0, `「${head}」の意味はどれですか。`, askZh, ch));
     }
   }
 
