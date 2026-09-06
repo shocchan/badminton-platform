@@ -8,7 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import { pickLearnSession } from './vocabLearnData';
 import { buildDexView } from './vocabDexData';
-import { effectiveContentLevel } from '../advProfile';
+import { effectiveContentLevel, vocabStartLevel } from '../advProfile';
 
 const profileFor = (targetJlpt: 'N5' | 'N4' | 'N3' | 'N2' | 'N1') => ({
   targetJlpt, declaredJlpt: null, goalType: 'jlpt' as const,
@@ -46,5 +46,38 @@ describe('学習者の級に合った語が出る', () => {
     expect(n5).not.toContain('N2');
     const n2 = buildDexView('N2', {}).byLevel.map((r) => r.level);
     expect(n2).toContain('N2');
+  });
+});
+
+// 2026-09-06 CEO確認で発覚。目標と実力が離れている人（李さん: 目標N3 / 診断n5）に、
+// ジャンさんで直したのと同じ役所の語がそのまま出ていた。
+describe('実力が目標より低い人は、実力から積み上げる', () => {
+  const li = { targetJlpt: 'N3' as const, declaredJlpt: null, goalType: 'jlpt' as const,
+    diagnosis: { knowledgeBand: 'n5' } as never };
+  const lin = { targetJlpt: 'N1' as const, declaredJlpt: 'N1' as const, goalType: 'jlpt' as const,
+    diagnosis: { knowledgeBand: 'n2' } as never };
+
+  it('**2級以上離れていたら実力側から**（李さん: 目標N3・実力n5 → N5から）', () => {
+    expect(vocabStartLevel(li)).toBe('N5');
+    const { session } = pickLearnSession('N3', {}, 20260906, 5, vocabStartLevel(li));
+    for (const w of session.words) {
+      expect(['N5', 'N4'], `${w.surface} が ${w.level}`).toContain(w.level);
+    }
+    // 実測で出ていた語が消えていること
+    const surfaces = session.words.map((w) => w.surface);
+    for (const bad of ['申込書', '委任状', '受理', '交付', '届け出']) {
+      expect(surfaces).not.toContain(bad);
+    }
+  });
+
+  it('1級差は目標のまま（リンさん: 目標N1・実力n2 → N1の語を出す）', () => {
+    expect(vocabStartLevel(lin)).toBe('N1');
+    const { session } = pickLearnSession('N1', {}, 20260906, 5, vocabStartLevel(lin));
+    expect(session.words[0].level).toBe('N1');
+  });
+
+  it('診断が無い人（ジャンさん）は目標のまま', () => {
+    expect(vocabStartLevel({ targetJlpt: 'N5', declaredJlpt: null, goalType: 'jlpt',
+      diagnosis: { knowledgeBand: 'needs_assessment' } as never })).toBe('N5');
   });
 });

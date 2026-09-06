@@ -35,6 +35,29 @@ const LEVEL_PRIORITY: Record<string, string[]> = {
   N5: ['N5', 'N4'],
 };
 
+const LOW_TO_HIGH = ['N5', 'N4', 'N3', 'N2', 'N1'];
+
+/**
+ * 出す順を**実力から積み上げる**形に組み替える（2026-09-06 CEO確認で発覚）。
+ *
+ * 李さんは「目標N3 / 診断の実力n5」。先生プランには
+ * 「N3を攻略するために、まず土台のことばを短期間で固めます」と書いてあるのに、
+ * 単語学習だけがその方針に従わず、初回から **申込書・委任状・受理・交付** を出していた。
+ * ジャンさんで直したのと同じ語が、李さんにはそのまま残っていた。
+ *
+ * startLevel（実力）から目標級まで**下から上へ**並べ、その下の級は最後に回す。
+ * startLevel が無い／目標と同じなら、これまでの順（目標級から）と完全に一致する。
+ */
+const priorityFor = (level: VocabScopeLevel, startLevel?: VocabScopeLevel | null): string[] => {
+  const base = LEVEL_PRIORITY[level] ?? ['N5', 'N4', 'N3'];
+  if (!startLevel || startLevel === level) return base;
+  const from = LOW_TO_HIGH.indexOf(startLevel);
+  const to = LOW_TO_HIGH.indexOf(level);
+  if (from < 0 || to < 0 || from > to) return base;
+  const climb = LOW_TO_HIGH.slice(from, to + 1);
+  return [...climb, ...base.filter((l) => !climb.includes(l))];
+};
+
 const toWord = (c: VocabOriginalContent): LearnWord => ({
   id: dexIdOf(c.surface, c.reading),
   surface: c.surface, reading: c.reading, level: c.level,
@@ -68,6 +91,8 @@ export interface LearnPick {
 
 export const pickLearnSession = (
   level: VocabScopeLevel, ledger: AdvMasteryLedger, seed: number, size = LEARN_BATCH_SIZE,
+  /** 診断で出た実力。目標より低いとき、ここから積み上げる（図鑑や錯題本のスコープは変えない） */
+  startLevel?: VocabScopeLevel | null,
 ): LearnPick => {
   const bank = vocabScopedActive(level);
   const scope = new Set(bank.map((c) => dexIdOf(c.surface, c.reading)));
@@ -81,7 +106,7 @@ export const pickLearnSession = (
     else if (e.wrongCount > 0 && e.state !== 'mastered') wrongBefore.push(c);
   }
 
-  const order = LEVEL_PRIORITY[level] ?? ['N5', 'N4', 'N3'];
+  const order = priorityFor(level, startLevel);
   const byPriority = (arr: VocabOriginalContent[]): VocabOriginalContent[] => {
     const out: VocabOriginalContent[] = [];
     for (const lv of order) {

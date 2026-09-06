@@ -10,7 +10,7 @@ import type {
 import { aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
-import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel,
+import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel,
 } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
@@ -590,13 +590,19 @@ export default function AdvShell(props: AdvShellProps) {
     // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
     // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
     const lv = effectiveContentLevel(profile);
-    const reqKey = `learn|${lv}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
+    // 実力が目標より2級以上低い人は、**実力側から積み上げる**（2026-09-06）。
+    // 李さん（目標N3 / 実力n5）に初回から「申込書・委任状・受理・交付」が出ていた
+    const start = vocabStartLevel(profile);
+    const reqKey = `learn|${lv}|${start}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
     if (learnPick?.key === reqKey) return;
     let alive = true;
     void import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData')
       .then((m) => {
         if (!alive) return;
-        setLearnPick({ key: reqKey, pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7) });
+        setLearnPick({
+          key: reqKey,
+          pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7, undefined, start),
+        });
       })
       .catch(() => { /* 失敗しても画面は壊さない */ });
     return () => { alive = false; };

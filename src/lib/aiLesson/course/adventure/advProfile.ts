@@ -355,3 +355,37 @@ export const effectiveContentLevel = (
   if (target === 'N1') return 'N1';
   return fromDeclared ?? 'N3';
 };
+
+const BAND_TO_LEVEL: Record<string, 'N5' | 'N4' | 'N3' | 'N2' | 'N1'> = {
+  pre_n5: 'N5', n5: 'N5',
+  n4: 'N4', n4_late: 'N4',
+  n3_early: 'N3', n3: 'N3', n3_late: 'N3',
+  n2_early: 'N2', n2: 'N2', n2_plus: 'N2',
+};
+const LEVEL_RANK = ['N5', 'N4', 'N3', 'N2', 'N1'];
+
+/**
+ * **新しいことばを、どの級から積み上げるか**（2026-09-06）。
+ *
+ * 目標級と、診断で出た実力が離れている人がいる。李さんは「目標N3 / 実力n5」で、
+ * 先生プランにも「まず土台のことばを固める」と書いてあるのに、単語学習だけが
+ * 目標級から出していて、初回から **申込書・委任状・受理・交付** が並んでいた。
+ * 日本語がほとんど無い人にこれを出しても、つらいだけで覚えられない。
+ *
+ * 2級以上離れているときだけ実力側から始める。1級差（例: リンさんの N1目標 / n2実力）は
+ * 学習の射程内なので**目標級のまま**にする。ここを丸めると、N1を受ける人が
+ * N2の語ばかり見ることになる。
+ *
+ * 返り値は「出す順の起点」で、図鑑や錯題本のスコープは動かさない
+ * （これまで出会った語が消えないようにするため）。
+ */
+export const vocabStartLevel = (
+  profile: Pick<AdventureV2Profile, 'targetJlpt' | 'declaredJlpt' | 'goalType' | 'diagnosis'> | null | undefined,
+): 'N5' | 'N4' | 'N3' | 'N2' | 'N1' => {
+  const target = effectiveContentLevel(profile);
+  const band = profile?.diagnosis?.knowledgeBand;
+  const fromBand = band ? BAND_TO_LEVEL[band] : undefined;
+  if (!fromBand) return target;
+  const gap = LEVEL_RANK.indexOf(target) - LEVEL_RANK.indexOf(fromBand);
+  return gap >= 2 ? fromBand : target;
+};
