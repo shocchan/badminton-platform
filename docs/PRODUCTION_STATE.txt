@@ -1,4 +1,4 @@
-deployed_at: 2026-09-06 17:44:01 +0800
+deployed_at: 2026-09-06 22:28:22 +0800
 branch:      integration/unify-2026-08-28
-commit:      ceee4247190511967020e8d7316d964542941284
-asset:       assets/index-Dory5cbA.js
+commit:      3cb20ff4b4c79ba2b2ba7bb02a23f26a58d92e2c
+asset:       assets/index-Cm2swcLy.js
