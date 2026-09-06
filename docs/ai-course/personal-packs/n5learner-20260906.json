@@ -1,0 +1,123 @@
+{
+  "packId": "n5learner-20260906-jikoshoukai",
+  "titleJa": "ジャンさんの自己紹介",
+  "titleZh": "小蒋的自我介绍",
+  "sourceLabelJa": "授業で作った自己紹介（2026年9月）",
+  "sourceLabelZh": "课上写的自我介绍（2026年9月）",
+  "passages": [
+    {
+      "id": "p1",
+      "titleJa": "自己紹介",
+      "titleZh": "自我介绍",
+      "textJa": "はじめまして。\nわたしは、ジャンといいます。\nわたしは、広東省から来ました。\nよろしくおねがいします。"
+    }
+  ],
+  "items": [
+    {
+      "id": "m-hajimemashite",
+      "kind": "meaning",
+      "target": "はじめまして",
+      "promptJa": "はじめまして。",
+      "answer": "初次见面（第一次见面时的问候）",
+      "distractors": ["很久不见", "再见", "谢谢"],
+      "noteJa": "初めて会った人にだけ使います。二回目からは「こんにちは」。",
+      "noteZh": "只对第一次见面的人使用。第二次以后用「こんにちは」。"
+    },
+    {
+      "id": "m-toiimasu",
+      "kind": "meaning",
+      "target": "〜といいます",
+      "promptJa": "わたしは、ジャンといいます。",
+      "answer": "我叫…（说自己的名字）",
+      "distractors": ["我说…", "我听说…", "我想…"],
+      "noteJa": "名前を言うときの形。「〜です」より少していねいです。",
+      "noteZh": "说自己名字时的形式。比「〜です」稍微郑重一些。"
+    },
+    {
+      "id": "m-karakimashita",
+      "kind": "meaning",
+      "target": "〜から来ました",
+      "promptJa": "わたしは、広東省から来ました。",
+      "answer": "我来自…（出身地）",
+      "distractors": ["我要去…", "我住在…", "我到了…"],
+      "noteJa": "出身を言う形。国名にも地名にも使えます。",
+      "noteZh": "说出身的形式。国名和地名都能用。"
+    },
+    {
+      "id": "m-yoroshiku",
+      "kind": "meaning",
+      "target": "よろしくおねがいします",
+      "promptJa": "よろしくおねがいします。",
+      "answer": "请多关照",
+      "distractors": ["对不起", "不客气", "我开动了"],
+      "noteJa": "自己紹介の最後に必ず言います。おじぎと一緒に。",
+      "noteZh": "自我介绍最后一定要说，同时鞠躬。"
+    },
+    {
+      "id": "r-kantonshou",
+      "kind": "reading",
+      "target": "広東省",
+      "promptJa": "わたしは、広東省から来ました。",
+      "answer": "かんとんしょう",
+      "distractors": ["こうとうしょう", "ひろとうしょう", "かんどうしょう"],
+      "meaningZh": "广东省",
+      "noteJa": "中国の地名は、日本語では特別な読み方をすることがあります。",
+      "noteZh": "中国的地名在日语中有时有特别的读法。"
+    },
+    {
+      "id": "r-kimashita",
+      "kind": "reading",
+      "target": "来ました",
+      "promptJa": "わたしは、広東省から来ました。",
+      "answer": "きました",
+      "distractors": ["らいました", "くました", "こました"],
+      "meaningZh": "来了",
+      "noteJa": "「来る」は形で読み方が変わります。来ます＝きます／来た＝きた。",
+      "noteZh": "「来る」的读法会随形式变化。来ます＝きます／来た＝きた。"
+    },
+    {
+      "id": "c-toiimasu",
+      "kind": "cloze",
+      "target": "〜といいます",
+      "promptJa": "わたしは、ジャン＿＿。",
+      "answer": "といいます",
+      "distractors": ["をいいます", "にいいます", "がいいます"],
+      "meaningZh": "我叫…",
+      "noteJa": "名前の後ろは「と」。「を」ではありません。",
+      "noteZh": "名字后面用「と」，不是「を」。"
+    },
+    {
+      "id": "c-kara",
+      "kind": "cloze",
+      "target": "〜から来ました",
+      "promptJa": "わたしは、広東省＿＿来ました。",
+      "answer": "から",
+      "distractors": ["まで", "へは", "でも"],
+      "meaningZh": "从…（出身地）",
+      "noteJa": "出発点・出身は「から」。行き先は「へ・に」。",
+      "noteZh": "起点、出身用「から」；目的地用「へ・に」。"
+    },
+    {
+      "id": "c-onegai",
+      "kind": "cloze",
+      "target": "よろしくおねがいします",
+      "promptJa": "よろしく＿＿します。",
+      "answer": "おねがい",
+      "distractors": ["おもい", "おしえ", "おわり"],
+      "meaningZh": "请多关照",
+      "noteJa": "ひとかたまりで覚えます。分けて考えないほうが速いです。",
+      "noteZh": "整句一起记。不要拆开想，这样更快。"
+    },
+    {
+      "id": "c-watashiwa",
+      "kind": "cloze",
+      "target": "わたしは",
+      "promptJa": "わたし＿＿、ジャンといいます。",
+      "answer": "は",
+      "distractors": ["が", "を", "の"],
+      "meaningZh": "我（提示话题）",
+      "noteJa": "自己紹介の「わたし」には「は」を使います。",
+      "noteZh": "自我介绍里的「わたし」用「は」。"
+    }
+  ]
+}
