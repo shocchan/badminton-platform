@@ -76,13 +76,28 @@ const pickDistractorsNearLength = <T>(
   return pickDistractors(band, () => false, n, seed);
 };
 
-/** 選択肢の並びを決定的に整える（正解の位置が常に同じにならないよう、idのhashで回転） */
+/**
+ * 選択肢の並びを決定的に整える。
+ *
+ * 2026-09-06: 以前は「idのhashで回転」だった。回転は並びの型が3通りしか無く、
+ * hashも弱かったため、正解が先頭に来る割合が偶然より高かった（3択で38.6%／期待33.3%）。
+ * 撹拌したseedでFisher-Yatesにする。決定的なのは変わらない（同じidなら同じ並び）。
+ */
 const arrange = (correct: string, distractors: string[], seed: string): { choices: string[]; answerIndex: number } => {
   const all = [correct, ...distractors];
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) % 997;
-  const shift = h % all.length;
-  const choices = [...all.slice(shift), ...all.slice(0, shift)];
+  // FNV-1a → splitmix32。文字列の細かい違いが並びに効くようにする
+  let h = 2166136261 >>> 0;
+  for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  let st = (h + 0x9e3779b9) >>> 0;
+  st = Math.imul(st ^ (st >>> 16), 0x21f0aaad) >>> 0;
+  st = Math.imul(st ^ (st >>> 15), 0x735a2d97) >>> 0;
+  st = (st ^ (st >>> 15)) >>> 0 || 1;
+  const next = () => { st ^= st << 13; st >>>= 0; st ^= st >>> 17; st ^= st << 5; st >>>= 0; return st / 0x100000000; };
+  const choices = [...all];
+  for (let i = choices.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(next() * (i + 1));
+    [choices[i], choices[j]] = [choices[j], choices[i]];
+  }
   return { choices, answerIndex: choices.indexOf(correct) };
 };
 
@@ -451,13 +466,23 @@ const productionQuestion = (item: FoundationItem): AssessQuestion | null => {
 const rotate = (tokens: string[]): string[] =>
   tokens.length < 2 ? tokens : [...tokens.slice(1), tokens[0]];
 
-/** contrast bank由来（false_friend・partial_overlapの高リスク語） */
+/**
+ * contrast bank由来（false_friend・partial_overlapの高リスク語）。
+ *
+ * 2026-09-06: bankは手書きで、**16問すべて正解が1番目**だった。
+ * 生成問題と同じ arrange に通して位置をばらす（採点はここで出した answerIndex を使う）。
+ */
 const contrastQuestions = (item: FoundationItem): AssessQuestion[] =>
-  contrastQuestionsFor(item.id).map((c, i) => ({
-    questionId: `aq-${item.id}-contrast${i}`, itemId: item.id, dimension: c.dimension, kind: 'choice' as const,
-    promptJa: c.promptJa, promptZh: c.promptZh, choices: c.choices, answerIndex: c.answerIndex,
-    explanationJa: c.explanationJa, explanationZh: c.explanationZh,
-  }));
+  contrastQuestionsFor(item.id).map((c, i) => {
+    const correct = c.choices[c.answerIndex];
+    const wrongs = c.choices.filter((_, j) => j !== c.answerIndex);
+    const { choices, answerIndex } = arrange(correct, wrongs, `${item.id}-contrast${i}`);
+    return {
+      questionId: `aq-${item.id}-contrast${i}`, itemId: item.id, dimension: c.dimension, kind: 'choice' as const,
+      promptJa: c.promptJa, promptZh: c.promptZh, choices, answerIndex,
+      explanationJa: c.explanationJa, explanationZh: c.explanationZh,
+    };
+  });
 
 export interface BuildOptions {
   /** その語を既に導入済みか（core_meaningの可否に影響） */

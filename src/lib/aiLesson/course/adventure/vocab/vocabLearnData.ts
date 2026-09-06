@@ -11,6 +11,7 @@ import { buildVocabQuestions } from './vocabQuestions';
 import type { VocabOriginalContent } from './vocabContent';
 import type { AdvMasteryLedger } from '../advTypes';
 import { collectDexEntries, dexIdOf } from './vocabDex';
+import { presentBattle } from '../advChoiceOrder';
 import type { LearnQuestion, LearnSession, LearnWord } from './vocabLearn';
 
 /** 1回のセッションで扱う語数。3〜4分で終わる量にする */
@@ -74,7 +75,7 @@ export const pickLearnSession = (
   const mixedReview = picked.length < size;
   if (mixedReview) picked.push(...byPriority(wrongBefore).slice(0, size - picked.length));
 
-  const questions: LearnQuestion[] = [];
+  const raw: { q: ReturnType<typeof buildVocabQuestions>[number]; wordId: string }[] = [];
   for (const [i, c] of picked.entries()) {
     const all = buildVocabQuestions(c, bank, seed + i * 31);
     // 観点の優先順に2問。作れない語は作れるぶんだけ（無い観点を作らない）
@@ -82,19 +83,29 @@ export const pickLearnSession = (
       .map((t) => all.find((q) => q.type === t))
       .filter((q): q is NonNullable<typeof q> => Boolean(q))
       .slice(0, 2);
-    for (const q of chosen) {
-      questions.push({
-        key: q.key,
-        wordId: dexIdOf(c.surface, c.reading),
-        type: q.type,
-        promptJa: q.questionJa,
-        promptZh: q.questionZh,
-        targetJapanese: q.targetJapanese,
-        choices: q.choices.map((ch) => ({ choiceId: ch.choiceId, textJa: ch.textJa, isCorrect: ch.isCorrect })),
-        explanationZh: q.explanation.meaningZh,
-      });
-    }
+    for (const q of chosen) raw.push({ q, wordId: dexIdOf(c.surface, c.reading) });
   }
+
+  /**
+   * **選択肢の並びは必ず presentBattle に通す**（2026-09-06 CEO指摘）。
+   *
+   * 生成器は「正解＋ダミー」の順で配列を作る（正解が必ず先頭）。
+   * バトル・模試は表示のたびに presentBattle でシャッフルしているが、
+   * この画面は生の配列をそのまま並べていたため、**10問すべて1番目が正解**だった。
+   * 実測: 40セッション400問すべてで正解が1番目。
+   * 位置の均し（同じ位置が3連続しない等）も presentBattle が持っている。
+   */
+  const presented = presentBattle(raw.map((r) => r.q), seed);
+  const questions: LearnQuestion[] = raw.map((r, i) => ({
+    key: r.q.key,
+    wordId: r.wordId,
+    type: r.q.type,
+    promptJa: r.q.questionJa,
+    promptZh: r.q.questionZh,
+    targetJapanese: r.q.targetJapanese,
+    choices: presented[i].choices.map((ch) => ({ choiceId: ch.choiceId, textJa: ch.textJa, isCorrect: ch.isCorrect })),
+    explanationZh: r.q.explanation.meaningZh,
+  }));
 
   return {
     session: { words: picked.map(toWord), questions },
