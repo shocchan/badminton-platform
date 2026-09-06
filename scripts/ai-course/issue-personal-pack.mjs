@@ -59,7 +59,8 @@ const sql = (query, opts = []) => {
 
 /** 空欄記号（advPersonalPack.ts の CLOZE_BLANK と同じもの） */
 const CLOZE_BLANK = '＿＿';
-const KINDS = new Set(['reading', 'meaning', 'cloze']);
+// pronunciation は2026-09-06追加（ひらがな→発音のローマ字を選ぶ）
+const KINDS = new Set(['reading', 'meaning', 'cloze', 'pronunciation']);
 const KANA = /^[ぁ-んー・\s]+$/;
 
 /* ── パックの検証（アプリ側 restorePersonalPack と同じ制約＋運用上の注意） ── */
@@ -80,7 +81,7 @@ const validatePack = (p) => {
     if (typeof it.id !== 'string' || !/^[A-Za-z0-9_-]{1,60}$/.test(it.id)) errs.push(`${at}.id は英数字・- ・_ の1〜60字`);
     else if (seen.has(it.id)) errs.push(`${at}.id "${it.id}" が重複`);
     else seen.add(it.id);
-    if (!KINDS.has(it.kind)) errs.push(`${at}.kind は reading / meaning / cloze`);
+    if (!KINDS.has(it.kind)) errs.push(`${at}.kind は reading / meaning / cloze / pronunciation`);
     if (typeof it.promptJa !== 'string' || !it.promptJa) errs.push(`${at}.promptJa が必要`);
     if (typeof it.answer !== 'string' || !it.answer) errs.push(`${at}.answer が必要`);
     const ds = Array.isArray(it.distractors)

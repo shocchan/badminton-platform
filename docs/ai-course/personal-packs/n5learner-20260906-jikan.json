@@ -1,0 +1,480 @@
+{
+ "packId": "n5learner-20260906-jikan",
+ "titleJa": "時間のことば（ひらがなを見て発音する）",
+ "titleZh": "时间的词（看假名读出发音）",
+ "sourceLabelJa": "今日の宿題（2026年9月6日）",
+ "sourceLabelZh": "今天的作业（2026年9月6日）",
+ "passages": [
+  {
+   "id": "p1",
+   "titleJa": "時間のことば",
+   "titleZh": "时间的词",
+   "textJa": "いま　今何時ですか？\nすぐ　すぐ行きます。\nただいま　ただいま戻りました。\nちょうど　ちょうど三時です。\nたったいま　彼はたった今、出かけました。\nあとで　あとで電話します。\nもうすぐ　もうすぐ春になります。\nこれから　これから勉強します。\nそのうち　そのうちまた会いましょう。\nあした　明日学校に行きます。\nあさって　明後日テストがあります。\nらいしゅう　来週旅行に行きます。\nらいげつ　来月新しい仕事が始まります。\nらいねん　来年日本へ行きたいです。\nいつか　いつかまた会いましょう。\nさっき　さっき電話しました。\nさっきまで　さっきまで雨が降っていました。\nもう　宿題はもう終わりました。\nいぜん　以前日本(にほん)に住んでいました。\nきのう　昨日は忙しかったです。\nおととい　一昨日は休みでした。\nせんしゅう　先週映画を見ました。\nせんげつ　先月誕生日でした。\nきょねん　去年日本に行きました。\nいつも　いつもコーヒーを飲みます。\nよく　週末はよく映画を見ます。\nたまに　たまにカラオケに行きます。\nときどき　ときどき日本料理を作ります。\nたいてい　朝ごはんはたいていパンを食べます。\nまいにち　毎日日本語を勉強します。\nまいしゅう　毎週テニスをします。\nまいつき　毎月給料をもらいます。\nまいとし　毎年旅行に行きます。"
+  }
+ ],
+ "items": [
+  {
+   "id": "p-ima",
+   "kind": "pronunciation",
+   "target": "いま",
+   "promptJa": "今何時ですか？",
+   "answer": "ima",
+   "distractors": [
+    "mou",
+    "izen",
+    "sugu"
+   ],
+   "meaningZh": "现在",
+   "noteJa": "漢字では「今」と書きます。",
+   "noteZh": "汉字写作「今」。"
+  },
+  {
+   "id": "p-sugu",
+   "kind": "pronunciation",
+   "target": "すぐ",
+   "promptJa": "すぐ行きます。",
+   "answer": "sugu",
+   "distractors": [
+    "izen",
+    "yoku",
+    "ima"
+   ],
+   "meaningZh": "马上"
+  },
+  {
+   "id": "p-tadaima",
+   "kind": "pronunciation",
+   "target": "ただいま",
+   "promptJa": "ただいま戻りました。",
+   "answer": "tadaima",
+   "distractors": [
+    "maishuu",
+    "raishuu",
+    "senshuu"
+   ],
+   "meaningZh": "现在 / 刚才"
+  },
+  {
+   "id": "p-choudo",
+   "kind": "pronunciation",
+   "target": "ちょうど",
+   "promptJa": "ちょうど三時です。",
+   "answer": "choudo",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "正好"
+  },
+  {
+   "id": "p-tatta-ima",
+   "kind": "pronunciation",
+   "target": "たったいま",
+   "promptJa": "彼はたった今、出かけました。",
+   "answer": "tatta ima",
+   "distractors": [
+    "kore kara",
+    "sono uchi",
+    "mainichi"
+   ],
+   "meaningZh": "刚刚",
+   "noteJa": "漢字では「たった今」と書きます。",
+   "noteZh": "汉字写作「たった今」。"
+  },
+  {
+   "id": "p-ato-de",
+   "kind": "pronunciation",
+   "target": "あとで",
+   "promptJa": "あとで電話します。",
+   "answer": "ato de",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "choudo"
+   ],
+   "meaningZh": "以后 / 过会儿"
+  },
+  {
+   "id": "p-mou-sugu",
+   "kind": "pronunciation",
+   "target": "もうすぐ",
+   "promptJa": "もうすぐ春になります。",
+   "answer": "mou sugu",
+   "distractors": [
+    "mainichi",
+    "raigetsu",
+    "sengetsu"
+   ],
+   "meaningZh": "马上 / 快要"
+  },
+  {
+   "id": "p-kore-kara",
+   "kind": "pronunciation",
+   "target": "これから",
+   "promptJa": "これから勉強します。",
+   "answer": "kore kara",
+   "distractors": [
+    "sono uchi",
+    "tatta ima",
+    "mainichi"
+   ],
+   "meaningZh": "从现在开始"
+  },
+  {
+   "id": "p-sono-uchi",
+   "kind": "pronunciation",
+   "target": "そのうち",
+   "promptJa": "そのうちまた会いましょう。",
+   "answer": "sono uchi",
+   "distractors": [
+    "kore kara",
+    "tatta ima",
+    "mainichi"
+   ],
+   "meaningZh": "过一阵子"
+  },
+  {
+   "id": "p-ashita",
+   "kind": "pronunciation",
+   "target": "あした",
+   "promptJa": "明日学校に行きます。",
+   "answer": "ashita",
+   "distractors": [
+    "asatte",
+    "ato de",
+    "choudo"
+   ],
+   "meaningZh": "明天",
+   "noteJa": "漢字では「明日」と書きます。",
+   "noteZh": "汉字写作「明日」。"
+  },
+  {
+   "id": "p-asatte",
+   "kind": "pronunciation",
+   "target": "あさって",
+   "promptJa": "明後日テストがあります。",
+   "answer": "asatte",
+   "distractors": [
+    "ashita",
+    "ato de",
+    "choudo"
+   ],
+   "meaningZh": "后天",
+   "noteJa": "漢字では「明後日」と書きます。",
+   "noteZh": "汉字写作「明後日」。"
+  },
+  {
+   "id": "p-raishuu",
+   "kind": "pronunciation",
+   "target": "らいしゅう",
+   "promptJa": "来週旅行に行きます。",
+   "answer": "raishuu",
+   "distractors": [
+    "maishuu",
+    "senshuu",
+    "tadaima"
+   ],
+   "meaningZh": "下周",
+   "noteJa": "漢字では「来週」と書きます。",
+   "noteZh": "汉字写作「来週」。"
+  },
+  {
+   "id": "p-raigetsu",
+   "kind": "pronunciation",
+   "target": "らいげつ",
+   "promptJa": "来月新しい仕事が始まります。",
+   "answer": "raigetsu",
+   "distractors": [
+    "mainichi",
+    "mou sugu",
+    "sengetsu"
+   ],
+   "meaningZh": "下个月",
+   "noteJa": "漢字では「来月」と書きます。",
+   "noteZh": "汉字写作「来月」。"
+  },
+  {
+   "id": "p-rainen",
+   "kind": "pronunciation",
+   "target": "らいねん",
+   "promptJa": "来年日本へ行きたいです。",
+   "answer": "rainen",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "明年",
+   "noteJa": "漢字では「来年」と書きます。",
+   "noteZh": "汉字写作「来年」。"
+  },
+  {
+   "id": "p-itsuka",
+   "kind": "pronunciation",
+   "target": "いつか",
+   "promptJa": "いつかまた会いましょう。",
+   "answer": "itsuka",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "什么时候（未来）"
+  },
+  {
+   "id": "p-sakki",
+   "kind": "pronunciation",
+   "target": "さっき",
+   "promptJa": "さっき電話しました。",
+   "answer": "sakki",
+   "distractors": [
+    "kinou",
+    "asatte",
+    "ashita"
+   ],
+   "meaningZh": "刚才"
+  },
+  {
+   "id": "p-sakki-made",
+   "kind": "pronunciation",
+   "target": "さっきまで",
+   "promptJa": "さっきまで雨が降っていました。",
+   "answer": "sakki made",
+   "distractors": [
+    "kore kara",
+    "sono uchi",
+    "tatta ima"
+   ],
+   "meaningZh": "刚刚还"
+  },
+  {
+   "id": "p-mou",
+   "kind": "pronunciation",
+   "target": "もう",
+   "promptJa": "宿題はもう終わりました。",
+   "answer": "mou",
+   "distractors": [
+    "ima",
+    "izen",
+    "sugu"
+   ],
+   "meaningZh": "已经"
+  },
+  {
+   "id": "p-izen",
+   "kind": "pronunciation",
+   "target": "いぜん",
+   "promptJa": "以前日本(にほん)に住んでいました。",
+   "answer": "izen",
+   "distractors": [
+    "sugu",
+    "yoku",
+    "ima"
+   ],
+   "meaningZh": "以前",
+   "noteJa": "漢字では「以前」と書きます。",
+   "noteZh": "汉字写作「以前」。"
+  },
+  {
+   "id": "p-kinou",
+   "kind": "pronunciation",
+   "target": "きのう",
+   "promptJa": "昨日は忙しかったです。",
+   "answer": "kinou",
+   "distractors": [
+    "sakki",
+    "asatte",
+    "ashita"
+   ],
+   "meaningZh": "昨天",
+   "noteJa": "漢字では「昨日」と書きます。",
+   "noteZh": "汉字写作「昨日」。"
+  },
+  {
+   "id": "p-ototoi",
+   "kind": "pronunciation",
+   "target": "おととい",
+   "promptJa": "一昨日は休みでした。",
+   "answer": "ototoi",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "前天",
+   "noteJa": "漢字では「一昨日」と書きます。",
+   "noteZh": "汉字写作「一昨日」。"
+  },
+  {
+   "id": "p-senshuu",
+   "kind": "pronunciation",
+   "target": "せんしゅう",
+   "promptJa": "先週映画を見ました。",
+   "answer": "senshuu",
+   "distractors": [
+    "maishuu",
+    "raishuu",
+    "tadaima"
+   ],
+   "meaningZh": "上周",
+   "noteJa": "漢字では「先週」と書きます。",
+   "noteZh": "汉字写作「先週」。"
+  },
+  {
+   "id": "p-sengetsu",
+   "kind": "pronunciation",
+   "target": "せんげつ",
+   "promptJa": "先月誕生日でした。",
+   "answer": "sengetsu",
+   "distractors": [
+    "mainichi",
+    "mou sugu",
+    "raigetsu"
+   ],
+   "meaningZh": "上个月",
+   "noteJa": "漢字では「先月」と書きます。",
+   "noteZh": "汉字写作「先月」。"
+  },
+  {
+   "id": "p-kyonen",
+   "kind": "pronunciation",
+   "target": "きょねん",
+   "promptJa": "去年日本に行きました。",
+   "answer": "kyonen",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "去年",
+   "noteJa": "漢字では「去年」と書きます。",
+   "noteZh": "汉字写作「去年」。"
+  },
+  {
+   "id": "p-itsumo",
+   "kind": "pronunciation",
+   "target": "いつも",
+   "promptJa": "いつもコーヒーを飲みます。",
+   "answer": "itsumo",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "总是 / 经常"
+  },
+  {
+   "id": "p-yoku",
+   "kind": "pronunciation",
+   "target": "よく",
+   "promptJa": "週末はよく映画を見ます。",
+   "answer": "yoku",
+   "distractors": [
+    "izen",
+    "sugu",
+    "ima"
+   ],
+   "meaningZh": "经常"
+  },
+  {
+   "id": "p-tamani",
+   "kind": "pronunciation",
+   "target": "たまに",
+   "promptJa": "たまにカラオケに行きます。",
+   "answer": "tamani",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "偶尔"
+  },
+  {
+   "id": "p-tokidoki",
+   "kind": "pronunciation",
+   "target": "ときどき",
+   "promptJa": "ときどき日本料理を作ります。",
+   "answer": "tokidoki",
+   "distractors": [
+    "mainichi",
+    "mou sugu",
+    "raigetsu"
+   ],
+   "meaningZh": "有时候"
+  },
+  {
+   "id": "p-taitei",
+   "kind": "pronunciation",
+   "target": "たいてい",
+   "promptJa": "朝ごはんはたいていパンを食べます。",
+   "answer": "taitei",
+   "distractors": [
+    "asatte",
+    "ashita",
+    "ato de"
+   ],
+   "meaningZh": "大部分时候"
+  },
+  {
+   "id": "p-mainichi",
+   "kind": "pronunciation",
+   "target": "まいにち",
+   "promptJa": "毎日日本語を勉強します。",
+   "answer": "mainichi",
+   "distractors": [
+    "mou sugu",
+    "raigetsu",
+    "sengetsu"
+   ],
+   "meaningZh": "每天",
+   "noteJa": "漢字では「毎日」と書きます。",
+   "noteZh": "汉字写作「毎日」。"
+  },
+  {
+   "id": "p-maishuu",
+   "kind": "pronunciation",
+   "target": "まいしゅう",
+   "promptJa": "毎週テニスをします。",
+   "answer": "maishuu",
+   "distractors": [
+    "raishuu",
+    "senshuu",
+    "tadaima"
+   ],
+   "meaningZh": "每周",
+   "noteJa": "漢字では「毎週」と書きます。",
+   "noteZh": "汉字写作「毎週」。"
+  },
+  {
+   "id": "p-maitsuki-maigetsu",
+   "kind": "pronunciation",
+   "target": "まいつき",
+   "promptJa": "毎月給料をもらいます。",
+   "answer": "maitsuki / maigetsu",
+   "distractors": [
+    "maitoshi / mainen",
+    "sakki made",
+    "kore kara"
+   ],
+   "meaningZh": "每个月",
+   "noteJa": "漢字では「毎月」と書きます。",
+   "noteZh": "汉字写作「毎月」。"
+  },
+  {
+   "id": "p-maitoshi-mainen",
+   "kind": "pronunciation",
+   "target": "まいとし",
+   "promptJa": "毎年旅行に行きます。",
+   "answer": "maitoshi / mainen",
+   "distractors": [
+    "maitsuki / maigetsu",
+    "sakki made",
+    "kore kara"
+   ],
+   "meaningZh": "每年",
+   "noteJa": "漢字では「毎年」と書きます。",
+   "noteZh": "汉字写作「毎年」。"
+  }
+ ]
+}

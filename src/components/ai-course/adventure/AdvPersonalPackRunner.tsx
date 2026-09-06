@@ -35,6 +35,7 @@ const answeredTotal = (state: PersonalPackState): number =>
 
 const KIND_LABEL: Record<PersonalItem['kind'], { ja: string; zh: string }> = {
   reading: { ja: '漢字の読み', zh: '汉字读法' },
+  pronunciation: { ja: '発音', zh: '发音' },
   meaning: { ja: '表現の意味', zh: '表达的意思' },
   cloze: { ja: '文に入れる', zh: '填入句子' },
 };
@@ -115,7 +116,9 @@ export const AdvPersonalPackRunner = ({ lang, profile, onSave, onBack }: Props) 
           {/* 本人の文章。ふりがなは出さない（読みの答えが透けるため） */}
           <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-900">{item.promptJa}</p>
           <p className="mt-3 text-sm font-bold text-gray-700">
-            {item.kind === 'reading'
+            {item.kind === 'pronunciation'
+              ? tx(lang, `「${item.target}」の発音は？`, `「${item.target}」怎么发音？`)
+              : item.kind === 'reading'
               ? tx(lang, `「${item.target}」の読み方は？`, `「${item.target}」怎么读？`)
               : item.kind === 'meaning'
                 // 選択肢は中国語の意味。日本語の表現を選ばせると本文から写せてしまう（2026-08-24）

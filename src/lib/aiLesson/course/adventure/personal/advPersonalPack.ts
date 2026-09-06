@@ -37,9 +37,15 @@ import type { AdventureV2Profile } from '../advTypes';
  *   意味を分かっていなくても当たる問題は問題ではないので、向きを逆にした。
  *   選択肢を中国語にすれば、例文をいくら読んでも答えは書いていない。
  */
-export type PersonalItemKind = 'reading' | 'meaning' | 'cloze';
+/**
+ * pronunciation を追加（2026-09-06 CEO要望）:
+ *   ひらがなを見て**発音できる**ようにする練習。漢字がまだ読めない段階の人に、
+ *   「漢字の読み」を出しても土台が無い。かなの並び → 音（ローマ字）を選ぶ形にする。
+ *   中国語話者は拼音に慣れているので、音をローマ字で示すのが最短で通じる。
+ */
+export type PersonalItemKind = 'reading' | 'meaning' | 'cloze' | 'pronunciation';
 
-export const PERSONAL_ITEM_KINDS: PersonalItemKind[] = ['reading', 'meaning', 'cloze'];
+export const PERSONAL_ITEM_KINDS: PersonalItemKind[] = ['reading', 'meaning', 'cloze', 'pronunciation'];
 
 /** 選択肢の数（正解1＋ダミー）。多すぎると読む負担が勝つので4択を基本にする */
 export const MIN_DISTRACTORS = 2;
