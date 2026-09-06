@@ -2,7 +2,7 @@
 //
 // vocabDex.ts（純関数・台帳から段階を出す）と、語彙バンク（意味・例文・解説）を突き合わせる。
 // ここを分けているのは、図鑑を開かない人に語彙バンク（gzipで数百kB）を落とさないため。
-import { vocabScopedActive } from './vocabQuestions';
+import { vocabScopedActive, type VocabScopeLevel } from './vocabQuestions';
 import type { VocabOriginalContent } from './vocabContent';
 import type { AdvMasteryLedger } from '../advTypes';
 import { collectDexEntries, dexIdOf, dexProgress, type DexEntry, type DexProgress, type DexState } from './vocabDex';
@@ -56,7 +56,7 @@ const toCard = (c: VocabOriginalContent, e: DexEntry | undefined): DexCard => ({
  * 並び順は「出会った語が先・その中では最近出会った順」。未発見はその後ろに
  * レベル順で並べる（何が残っているかが見えるようにする。ポケモン図鑑と同じ考え方）。
  */
-export const buildDexView = (level: 'N1' | 'N2' | 'N3', ledger: AdvMasteryLedger): DexView => {
+export const buildDexView = (level: VocabScopeLevel, ledger: AdvMasteryLedger): DexView => {
   const bank = vocabScopedActive(level);
   const scope = new Set(bank.map((c) => dexIdOf(c.surface, c.reading)));
   const entries = collectDexEntries(ledger, scope);

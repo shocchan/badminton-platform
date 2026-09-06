@@ -191,7 +191,8 @@ interface BattleCtx {
 /** いま要る語彙プールの注文（何をどのseedで作るか）。key が同じなら作り直さない */
 interface VocabPoolRequest {
   kind: 'battle' | 'mock';
-  level: 'N1' | 'N2' | 'N3';
+  /** 2026-09-06: N5/N4も丸めずに持つ（丸めるとN3の語が出る） */
+  level: 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
   /** バトルで材料化するバンド（模試は全バンドなので空） */
   bands: string[];
   seed: number;
@@ -453,8 +454,9 @@ export default function AdvShell(props: AdvShellProps) {
     // 語彙プールはN3/N2の2系統（N5/N4はfoundation帯がN3スコープに含まれる）。
     // 会話目標は targetJlpt が null なので、以前はここで全員 N2 に丸められていた（2026-08-23 監査）
     // 2026-09-05: N1を追加。N1スコープは N5〜N1 を全部含む
-    const cl = effectiveContentLevel(profile);
-    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
+    // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
+    const lv = effectiveContentLevel(profile);
     if (view === 'mock') {
       // 模試を出せない目標（N5/N4）では語彙chunk（gzip 約320kB）も取りに行かない。
       // ここで取ると、受けられない模試のためにN2語彙を落とすことになる
@@ -538,8 +540,9 @@ export default function AdvShell(props: AdvShellProps) {
     const needed = view === 'mistakes' || (view === 'battle' && battle?.targetId === MISTAKE_TARGET_ID);
     if (!needed || mistakeVocabKeys.length === 0) return;
     // 2026-09-05: N1を追加。N1スコープは N5〜N1 を全部含む
-    const cl = effectiveContentLevel(profile);
-    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
+    // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
+    const lv = effectiveContentLevel(profile);
     const reqKey = `mistake|${lv}|${mistakeVocabKeys.join(',')}`;
     if (mistakeVocabPool?.key === reqKey) return;
     let alive = true;
@@ -560,8 +563,9 @@ export default function AdvShell(props: AdvShellProps) {
   const [dexView, setDexView] = useState<{ key: string; view: import('../../../lib/aiLesson/course/adventure/vocab/vocabDexData').DexView } | null>(null);
   useEffect(() => {
     if (view !== 'dex') return;
-    const cl = effectiveContentLevel(profile);
-    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
+    // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
+    const lv = effectiveContentLevel(profile);
     const reqKey = `dex|${lv}|${Object.keys(profile?.mastery ?? {}).length}|${JSON.stringify(profile?.mastery ?? {}).length}`;
     if (dexView?.key === reqKey) return;
     let alive = true;
@@ -583,8 +587,9 @@ export default function AdvShell(props: AdvShellProps) {
   >(null);
   useEffect(() => {
     if (view !== 'vocablearn') return;
-    const cl = effectiveContentLevel(profile);
-    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
+    // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
+    const lv = effectiveContentLevel(profile);
     const reqKey = `learn|${lv}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
     if (learnPick?.key === reqKey) return;
     let alive = true;

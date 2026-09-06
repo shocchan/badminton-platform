@@ -532,7 +532,14 @@ const poolCache = new Map<string, Map<string, AdvBattleQuestion[]>>();
 export const VOCAB_POOL_SEED = 20260801;
 
 /** 目標レベル → 出題に載せるJLPTレベル。**部分生成と共有する**（別々に書くとズレる） */
-export const VOCAB_SCOPE: Record<'N1' | 'N2' | 'N3', readonly string[]> = {
+export type VocabScopeLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
+
+export const VOCAB_SCOPE: Record<'N1' | 'N2' | 'N3' | 'N4' | 'N5', readonly string[]> = {
+  // 2026-09-06: N5・N4 を追加。以前は N5/N4 の学習者も 'N3' スコープに丸められ、
+  // 「新しいことばを覚える」に **申込書・委任状・受理** のようなN3の役所語が出ていた
+  // （目標N5のジャンさんで実際に発生）。級はここで丸めない。
+  N5: ['N5', 'N4'],
+  N4: ['N5', 'N4', 'N3'],
   N3: ['N5', 'N4', 'N3'],
   N2: ['N5', 'N4', 'N3', 'N2'],
   // N1は下の級を全部含む（本試験の出題範囲がそうなっている）。
@@ -548,7 +555,7 @@ export const VOCAB_SCOPE: Record<'N1' | 'N2' | 'N3', readonly string[]> = {
  *   使い回すと索引の作り直しも起きない
  */
 const scopedActiveCache = new Map<string, VocabOriginalContent[]>();
-export const vocabScopedActive = (level: 'N1' | 'N2' | 'N3'): VocabOriginalContent[] => {
+export const vocabScopedActive = (level: VocabScopeLevel): VocabOriginalContent[] => {
   const hit = scopedActiveCache.get(level);
   if (hit) return hit;
   const scope = VOCAB_SCOPE[level];
@@ -564,7 +571,7 @@ export const vocabScopedActive = (level: 'N1' | 'N2' | 'N3'): VocabOriginalConte
  * `vocabSubset.ts` の部分生成を使う（2026-08-17）。ここは
  * 「バンク全体を見たい」用途（内部コンソール・カバレッジ集計・テスト）専用。
  */
-export const vocabPool = (level: 'N1' | 'N2' | 'N3', seed = VOCAB_POOL_SEED): Map<string, AdvBattleQuestion[]> => {
+export const vocabPool = (level: VocabScopeLevel, seed = VOCAB_POOL_SEED): Map<string, AdvBattleQuestion[]> => {
   const cacheKey = `${level}:${seed}`;
   const hit = poolCache.get(cacheKey);
   if (hit) return hit;

@@ -6,7 +6,7 @@
 // - その中で**目標の級に近い順**（N1目標ならN1→N2→…）。下の級から順に埋めさせない。
 //   目標に効く語から覚えるほうが、残り時間の使い方として正しい
 // - 出会った語しか残っていない場合は、**間違えたことがある語**を混ぜる（復習として成立する）
-import { vocabScopedActive } from './vocabQuestions';
+import { vocabScopedActive, type VocabScopeLevel } from './vocabQuestions';
 import { buildVocabQuestions } from './vocabQuestions';
 import type { VocabOriginalContent } from './vocabContent';
 import type { AdvMasteryLedger } from '../advTypes';
@@ -20,10 +20,19 @@ export const LEARN_BATCH_SIZE = 5;
 /** 確認で使う観点。意味 → 用法/文脈 の順で「分かる → 使える」へ寄せる */
 const QUIZ_ASPECTS = ['vocab-meaning', 'vocab-context', 'vocab-usage', 'vocab-reading', 'vocab-orthography'];
 
+/**
+ * 出す順。**自分の級から**始める（2026-09-06 CEO指摘）。
+ *
+ * 以前は N5/N4 の学習者もスコープが 'N3' に丸められ、さらに N3 の優先順が
+ * ['N3','N4','N5'] だったため、**目標N5の人に「申込書・委任状・受理・交付」**が出ていた。
+ * 上の級を目標にする人は上から、下の級の人は自分の級から。どちらも「いま要る語」から始める。
+ */
 const LEVEL_PRIORITY: Record<string, string[]> = {
   N1: ['N1', 'N2', 'N3', 'N4', 'N5'],
   N2: ['N2', 'N3', 'N4', 'N5'],
   N3: ['N3', 'N4', 'N5'],
+  N4: ['N4', 'N5', 'N3'],
+  N5: ['N5', 'N4'],
 };
 
 const toWord = (c: VocabOriginalContent): LearnWord => ({
@@ -50,7 +59,7 @@ export interface LearnPick {
 }
 
 export const pickLearnSession = (
-  level: 'N1' | 'N2' | 'N3', ledger: AdvMasteryLedger, seed: number, size = LEARN_BATCH_SIZE,
+  level: VocabScopeLevel, ledger: AdvMasteryLedger, seed: number, size = LEARN_BATCH_SIZE,
 ): LearnPick => {
   const bank = vocabScopedActive(level);
   const scope = new Set(bank.map((c) => dexIdOf(c.surface, c.reading)));
@@ -64,7 +73,7 @@ export const pickLearnSession = (
     else if (e.wrongCount > 0 && e.state !== 'mastered') wrongBefore.push(c);
   }
 
-  const order = LEVEL_PRIORITY[level] ?? ['N3', 'N4', 'N5'];
+  const order = LEVEL_PRIORITY[level] ?? ['N5', 'N4', 'N3'];
   const byPriority = (arr: VocabOriginalContent[]): VocabOriginalContent[] => {
     const out: VocabOriginalContent[] = [];
     for (const lv of order) out.push(...rotate(arr.filter((c) => c.level === lv), seed));
