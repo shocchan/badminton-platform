@@ -15,6 +15,8 @@ export type AdvEventName =
   | 'mastery_80_reached' | 'delayed_mastery_reached'
   | 'conversation_started' | 'conversation_completed'
   | 'report_viewed' | 'next_quest_started' | 'human_lesson_summary_viewed'
+  // 単語図鑑（2026-09-06）
+  | 'vocab_dex_viewed'
   // COMPLETION §19（読解・聴解・中ボス・模試・準備度）
   | 'reading_started' | 'reading_completed'
   | 'listening_started' | 'listening_completed' | 'audio_played'

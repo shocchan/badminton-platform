@@ -70,6 +70,7 @@ import { pressFx, primaryBtn, secondaryBtn, riseIn } from './advUi';
 import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvMockReview } from './AdvMockReview';
+import { AdvVocabDex } from './AdvVocabDex';
 import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
 import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
 import { AdvAdventureMap } from './AdvAdventureMap';
@@ -164,7 +165,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -550,6 +551,24 @@ export default function AdvShell(props: AdvShellProps) {
       .catch(() => { /* noop */ });
     return () => { alive = false; };
   }, [view, battle?.targetId, mistakeVocabKeys, mistakeVocabPool?.key, profile]);
+
+  /**
+   * 単語図鑑（2026-09-06）。**開いた人にだけ**語彙バンクを落とす。
+   * 出会いの記録は台帳（mastery）にすでにあるので、新しい保存は増やしていない。
+   */
+  const [dexView, setDexView] = useState<{ key: string; view: import('../../../lib/aiLesson/course/adventure/vocab/vocabDexData').DexView } | null>(null);
+  useEffect(() => {
+    if (view !== 'dex') return;
+    const cl = effectiveContentLevel(profile);
+    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    const reqKey = `dex|${lv}|${Object.keys(profile?.mastery ?? {}).length}|${JSON.stringify(profile?.mastery ?? {}).length}`;
+    if (dexView?.key === reqKey) return;
+    let alive = true;
+    void import('../../../lib/aiLesson/course/adventure/vocab/vocabDexData')
+      .then((m) => { if (alive) setDexView({ key: reqKey, view: m.buildDexView(lv, profile?.mastery ?? {}) }); })
+      .catch(() => { /* 失敗しても画面は壊さない（下で読み込み中表示のまま） */ });
+    return () => { alive = false; };
+  }, [view, profile, dexView?.key]);
 
   /** key → 問題。錯題本の表示と解き直しの両方がこれを引く */
   const mistakeQuestionByKey = useMemo<Map<string, AdvBattleQuestion>>(() => {
@@ -1528,6 +1547,13 @@ export default function AdvShell(props: AdvShellProps) {
     return (
       <AdvInterviewPrep lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
     );
+  }
+
+  // ── 単語図鑑（2026-09-06）──
+  // バトル・模試で出会った語がここに集まる。段階は台帳の事実だけから出す
+  if (view === 'dex') {
+    if (!dexView) return <AdvLoading lang={lang} note={tx(lang, '図鑑を開いています…', '正在打开图鉴…')} />;
+    return <AdvVocabDex lang={lang} view={dexView.view} onBack={() => setView('home')} />;
   }
 
   // ── 模試の間違い直し（あとから読み返す・2026-08-25）──
@@ -3534,6 +3560,9 @@ export default function AdvShell(props: AdvShellProps) {
               <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
                 onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
               <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+              {/* 単語図鑑（2026-09-06）。出会った語が集まる場所。記録は台帳から導くので常に出す */}
+              <SubLink lang={lang} label={tx(lang, '単語図鑑（出会った単語）', '单词图鉴（遇见的单词）')}
+                onClick={() => { trackAdv('vocab_dex_viewed', { locale: lang }); setView('dex'); }} />
               {/* 模試の間違い直し（2026-08-25）。受けた回があるときだけ出す＝空の部屋へ入れない */}
               {prof.mockLog.length > 0 && (
                 <SubLink lang={lang}
