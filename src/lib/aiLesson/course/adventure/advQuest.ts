@@ -163,6 +163,7 @@ const est = (kind: AdvQuestStep['kind']): number =>
   : kind === 'weak_reinforce' ? 4
   : kind === 'grammar_new' ? 5
   : kind === 'vocab_new' ? 4
+  : kind === 'vocab_learn' ? 4
   : kind === 'battle' ? 6
   : kind === 'reading_short' ? 5
   : kind === 'listening_practice' ? 5
@@ -193,7 +194,7 @@ const stageSteps = (
   convOk: boolean,
   /** 今日がAI会話の日か（会話stageは隔日。初日は必ず会話の日にする） */
   convDay: boolean,
-): { learn: AdvQuestStep | null; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
+): { learn: AdvQuestStep | null; learnWords: AdvQuestStep; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
   // 文法束の学習は「いま攻略中の束」の中を日替わりで巡回する（2026-08-15 進度改善）。
   // 旧実装は常に先頭を選んでいたため、前日回避と合わさって先頭2項目のping-pongになり、
   // 束の3項目目以降が一度もlearnに出ないままバトルで80%を要求されていた
@@ -225,6 +226,7 @@ const stageSteps = (
      */
     return {
       learn: convPick ? step('vocab_new', [convPick.refId], `表現の準備：${convPick.expression}`, `准备表达：${convPick.expression}`) : null,
+      learnWords: step('vocab_learn', [], '新しいことば5語', '记5个新单词'),
       battle: null,
       conv: !convDay ? null
         : convPick
@@ -239,10 +241,11 @@ const stageSteps = (
    * 「新しいことばを覚える」入口が無く、語彙は問題として出会うだけになっていた。
    * その日は新しいことば5語にする（単語図鑑にそのまま載る）。
    */
+  const learnWords = step('vocab_learn', [], '新しいことば5語', '记5个新单词');
   const learn = g
     ? step('grammar_new', [g], '新しい文法を学ぶ', '学习新语法')
     : u ? step('vocab_new', [u], '単元のことばを学ぶ', '学习单元词汇')
-      : step('vocab_learn', [], '新しいことば5語', '记5个新单词');
+      : learnWords;
   /**
    * バトルの対象は**出題プールを持つ学習対象**だけにする（2026-08-18 P0）。
    *
@@ -255,6 +258,8 @@ const stageSteps = (
   const battleRef = g ? (avail.grammarBundleByItem?.get(g) ?? g) : u;
   return {
     learn,
+    /** 新しいことば5語（2026-09-06）。文法とは別枠で、決まった曜日に入れる */
+    learnWords,
     battle: battleRef ? step('battle', [battleRef], '問題バトル', '问题战斗', 'normal') : null,
     // 起動する会話は既存runtimeの今週ミッション（今日の文法をテーマにする接続は未実装）。
     // 「今日の文法を会話で使う」と掲げると実体と食い違うため、誇張しない題名にする（原則13）。
@@ -518,7 +523,16 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
       if (confirmTarget && parts.battle) push(parts.battle);
     } else if (battleDay && parts.battle) push(parts.battle);
     else if (weakGrammarIds.length > 0) push(step('weak_reinforce', weakGrammarIds.slice(0, 1), '弱点を1つつぶす', '攻克1个弱点'));
-    else push(parts.learn);
+    /**
+     * 学ぶ日は文法と新しいことばを**入れ替えて**回す（2026-09-06 CEO要望）。
+     * 5分は1日1つが原則なので、ここに足すと時間が倍になる。足さずに交代させる。
+     * これが無いと、5分設定の人は語彙を「問題として出会う」だけで、
+     * 新しいことばを覚える機会が冒険の中に一度も来ない。
+     */
+    // **入れ替えるだけ**にする（parts.learn が null の日に learnWords を足すと、
+    // 会話の日が「ことば＋AI会話」の2つになり、5分の約束が壊れる。2026-09-06 検証で発覚）
+    else push(parts.learn && parts.learn.kind !== 'vocab_learn' && dayNum % 4 === 0
+      ? parts.learnWords : parts.learn);
     if (goalType !== 'jlpt') push(parts.conv);
     /**
      * 5分設定の会話目標が空になるのを防ぐ（2026-09-02）。
@@ -552,6 +566,12 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     // 会話stageは kanjiOk 側で日を決めてあるので、絶対日の間引きは掛けない
     else if (kanjiStep && !confirmBattleShown && (isConvStageKind || dayNum % 3 === 1)) push(kanjiStep);
     else push(parts.battle);
+    /**
+     * 新しいことば5語（2026-09-06 CEO要望「単語学習も冒険の一部に」）。
+     * 語彙バトル・漢字バトルと**別の日**に置く（同じ日に重ねると15分に収まらない）。
+     * 文法の「学ぶ」が既に新しいことばになっている日は重ねない。
+     */
+    if (parts.learn?.kind !== 'vocab_learn' && dayNum % 3 === 0) push(parts.learnWords);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
   } else {
@@ -560,6 +580,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     if (bossStep) push(bossStep);
     push(parts.battle);
     if (vocabStep && !confirmBattleShown) push(vocabStep);
+    // 新しいことば5語は隔日（2026-09-06）。30分でも毎日入れると読解・会話が押し出される
+    if (parts.learn?.kind !== 'vocab_learn' && dayNum % 2 === 1) push(parts.learnWords);
     // 30分枠でも漢字は隔日にする（毎日だと文法・語彙・読解・会話と合わせて時間が溢れる）
     if (kanjiStep && !confirmBattleShown && (isConvStageKind || dayNum % 2 === 0)) push(kanjiStep);
     push(examSkillStep());
