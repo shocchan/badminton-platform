@@ -74,6 +74,8 @@ export const heroForArea = (areaId: string | null | undefined): HomeImageAsset |
  */
 export const STEP_ICON_BY_KIND: Partial<Record<AdvQuestStep['kind'], string>> = {
   vocab_new: 'words',
+  // 新しいことば5語（2026-09-06）。ことばの学習なので語彙と同じ絵を使う
+  vocab_learn: 'words',
   grammar_new: 'grammar',
   battle: 'battle',
   weak_reinforce: 'battle',

@@ -71,6 +71,7 @@ import { AdvInterviewPrep } from './AdvInterviewPrep';
 import { interviewPrepVisible } from '../../../lib/aiLesson/course/adventure/interview/advInterview';
 import { AdvMockReview } from './AdvMockReview';
 import { AdvVocabDex } from './AdvVocabDex';
+import { AdvVocabLearn } from './AdvVocabLearn';
 import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
 import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
 import { AdvAdventureMap } from './AdvAdventureMap';
@@ -165,7 +166,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -260,7 +261,7 @@ const skillOfStep = (kind: string, refIds: readonly string[] = []): ExamSkill =>
       ? 'charactersVocabulary' : 'grammar';
   }
   if (kind === 'grammar_new' || kind === 'weak_reinforce') return 'grammar';
-  if (kind === 'vocab_new' || kind === 'review_due' || kind === 'kana_dojo') return 'charactersVocabulary';
+  if (kind === 'vocab_new' || kind === 'vocab_learn' || kind === 'review_due' || kind === 'kana_dojo') return 'charactersVocabulary';
   if (kind === 'reading_short') return 'reading';
   if (kind === 'listening_practice') return 'listening';
   return 'grammar';
@@ -569,6 +570,32 @@ export default function AdvShell(props: AdvShellProps) {
       .catch(() => { /* 失敗しても画面は壊さない（下で読み込み中表示のまま） */ });
     return () => { alive = false; };
   }, [view, profile, dexView?.key]);
+
+  /**
+   * 新しいことばを覚える（2026-09-06）。図鑑と同じく**開いた人にだけ**バンクを落とす。
+   * seed を進めると次の5語になる（「もう5語」で作り直す）
+   */
+  const [learnSeed, setLearnSeed] = useState(0);
+  /** 今日の冒険から来たときの step 番号。終わったらその step を完了にする */
+  const vocabLearnStepIdx = useRef<number | null>(null);
+  const [learnPick, setLearnPick] = useState<
+    { key: string; pick: import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData').LearnPick } | null
+  >(null);
+  useEffect(() => {
+    if (view !== 'vocablearn') return;
+    const cl = effectiveContentLevel(profile);
+    const lv: 'N1' | 'N2' | 'N3' = cl === 'N1' ? 'N1' : cl === 'N2' ? 'N2' : 'N3';
+    const reqKey = `learn|${lv}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
+    if (learnPick?.key === reqKey) return;
+    let alive = true;
+    void import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData')
+      .then((m) => {
+        if (!alive) return;
+        setLearnPick({ key: reqKey, pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7) });
+      })
+      .catch(() => { /* 失敗しても画面は壊さない */ });
+    return () => { alive = false; };
+  }, [view, profile, learnSeed, learnPick?.key]);
 
   /** key → 問題。錯題本の表示と解き直しの両方がこれを引く */
   const mistakeQuestionByKey = useMemo<Map<string, AdvBattleQuestion>>(() => {
@@ -1546,6 +1573,49 @@ export default function AdvShell(props: AdvShellProps) {
     }
     return (
       <AdvInterviewPrep lang={lang} profile={prof} onSave={save} onBack={() => setView('home')} />
+    );
+  }
+
+  // ── 新しいことばを覚える（2026-09-06）──
+  // 出会い・正誤は台帳へ1回の試行として書く。書いたぶんは単語図鑑にそのまま載る
+  if (view === 'vocablearn') {
+    if (!learnPick) return <AdvLoading lang={lang} note={tx(lang, 'ことばを選んでいます…', '正在挑选单词…')} />;
+    if (learnPick.pick.session.words.length === 0) {
+      return (
+        <div className="mx-auto w-full max-w-xl px-4 py-6">
+          <h1 className="text-xl font-bold text-gray-900">{tx(lang, '新しいことば', '新单词')}</h1>
+          <p className="mt-2 text-sm text-gray-700">
+            {tx(lang, 'このコースの語は、すべて一度は出会っています。図鑑から復習できます。',
+              '本课程的单词你都已经遇见过了。可以从图鉴复习。')}
+          </p>
+          <button type="button" className={`${primaryBtn} mt-4`} onClick={() => setView('dex')}>
+            {tx(lang, '単語図鑑を見る', '查看单词图鉴')}
+          </button>
+        </div>
+      );
+    }
+    return (
+      <AdvVocabLearn
+        lang={lang}
+        session={learnPick.pick.session}
+        mixedReview={learnPick.pick.mixedReview}
+        remainingUnseen={learnPick.pick.remainingUnseen}
+        onFinish={(rt) => {
+          void import('../../../lib/aiLesson/course/adventure/vocab/vocabLearn').then((m) => {
+            const attempt = m.toLearnAttempt(learnPick.pick.session, rt, dateKey, nowISO);
+            if (attempt.questionKeys.length === 0) return;
+            trackAdv('vocab_learn_completed', { locale: lang });
+            const ledger = recordAttempt(prof.mastery, m.VOCAB_LEARN_TARGET_ID, attempt);
+            // 台帳とstep完了は**1回のsaveにまとめる**（別々に保存すると後の保存が前を上書きする）
+            const idx = vocabLearnStepIdx.current;
+            const next = { ...prof, mastery: ledger };
+            save(idx !== null && idx >= 0 ? withStepDone(next, idx, keyOfStepIdx(idx)) : next);
+            vocabLearnStepIdx.current = null;
+          });
+        }}
+        onMore={() => { setLearnPick(null); setLearnSeed((n) => n + 1); }}
+        onBack={() => setView('home')}
+      />
     );
   }
 
@@ -2647,6 +2717,7 @@ export default function AdvShell(props: AdvShellProps) {
         '现在无法开始AI会话（今天的次数已用完，或正在准备中）。可以点下面的按钮跳过这一步，继续后面的内容。'));
       return false;
     }
+    if (s.kind === 'vocab_learn') { vocabLearnStepIdx.current = i; setView('vocablearn'); return true; }
     if (s.kind === 'kana_dojo') { setView('kana'); return true; }
     if (s.kind === 'restate') { setView('restate'); return true; }
     if (s.kind === 'reading_short') { skillFinishGuard.current = false; setView('reading'); return true; }
@@ -3560,6 +3631,9 @@ export default function AdvShell(props: AdvShellProps) {
               <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
                 onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
               <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+              {/* 新しいことばを覚える（2026-09-06）。全レベルで使える語彙学習の入口 */}
+              <SubLink lang={lang} label={tx(lang, '新しいことばを覚える（5語）', '记新单词（5个）')}
+                onClick={() => { trackAdv('vocab_learn_started', { locale: lang }); setView('vocablearn'); }} />
               {/* 単語図鑑（2026-09-06）。出会った語が集まる場所。記録は台帳から導くので常に出す */}
               <SubLink lang={lang} label={tx(lang, '単語図鑑（出会った単語）', '单词图鉴（遇见的单词）')}
                 onClick={() => { trackAdv('vocab_dex_viewed', { locale: lang }); setView('dex'); }} />

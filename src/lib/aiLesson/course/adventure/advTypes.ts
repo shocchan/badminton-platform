@@ -176,7 +176,9 @@ export type AdvMasteryState =
 export interface AdvQuestStep {
   kind: 'review_due' | 'weak_reinforce' | 'grammar_new' | 'vocab_new'
       | 'battle' | 'reading_short' | 'listening_practice' | 'conversation_mission' | 'restate'
-      | 'kana_dojo';
+      | 'kana_dojo'
+      // 新しいことばを5語おぼえる（2026-09-06）。学ぶ材料が無い日の「学ぶ」枠に入る
+      | 'vocab_learn';
   refIds: string[];
   titleJa: string; titleZh: string;
   estMinutes: number;
