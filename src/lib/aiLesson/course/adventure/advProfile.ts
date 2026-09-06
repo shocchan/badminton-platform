@@ -197,6 +197,9 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     teacherId: isTeacherId(raw.teacherId) ? raw.teacherId : null,
     diagnosis: isRecord(raw.diagnosis) && typeof raw.diagnosis.completedAt === 'string'
       ? (raw.diagnosis as unknown as AdventureV2Profile['diagnosis']) : null,
+    // 先生が個別にAI会話を止めた印（2026-09-06）。**ここで拾わないと生徒の次の保存で消える**
+    // （この関数は明示したキーしか通さないため）
+    aiConversationOff: raw.aiConversationOff === true,
     skills,
     // 保存済みルートは生成時のスナップショット。generateRoute を直しても既存learnerには
     // 届かないので、stage種別から決まるぶんだけ取り込み時に補う（migrateSavedRoute・冪等）

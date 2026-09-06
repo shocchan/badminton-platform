@@ -3,7 +3,7 @@
 // 生成結果は必ず why / 所要 / 対象能力 / 対象表現 / 成功条件 / 次の一歩 を持つ。
 import type {
   AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile, JlptLevel } from './advTypes';
-import { aiConversationAvailable } from './advTypes';
+import { aiConversationEnabledFor } from './advTypes';
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
 import { masteredStageIds, PASS_LABEL } from './advMastery';
@@ -173,7 +173,24 @@ const est = (kind: AdvQuestStep['kind']): number =>
 const step = (
   kind: AdvQuestStep['kind'], refIds: string[], titleJa: string, titleZh: string,
   tier?: AdvQuestStep['tier'],
-): AdvQuestStep => ({ kind, refIds, titleJa, titleZh, estMinutes: est(kind), tier });
+  /** 所要の上書き（5分設定の短い版など。既定は kind ごとの標準値） */
+  estOverride?: number,
+): AdvQuestStep => ({ kind, refIds, titleJa, titleZh, estMinutes: estOverride ?? est(kind), tier });
+
+/**
+ * 新しいことばを1日に何語やるか（2026-09-06 CEO要望「毎日の冒険に入れる」）。
+ *
+ * 5分設定の人は1日1ステップが原則なので、5語（4分）を足すとその日が語彙だけになる。
+ * 3語（2分）にして、文法・バトルと**並べて**入るようにする。
+ * 画面（AdvVocabLearn）も必ずこの数を使う。題名と実際の語数がずれないようにするため。
+ */
+export const learnBatchSizeFor = (dailyMinutes: number | null | undefined): number =>
+  dailyMinutes === 5 ? 3 : 5;
+
+const learnWordsStep = (dailyMinutes: number | null | undefined): AdvQuestStep => {
+  const n = learnBatchSizeFor(dailyMinutes);
+  return step('vocab_learn', [], `新しいことば${n}語`, `记${n}个新单词`, undefined, n <= 3 ? 2 : 4);
+};
 
 /**
  * step完了記録の安定キー。
@@ -194,6 +211,8 @@ const stageSteps = (
   convOk: boolean,
   /** 今日がAI会話の日か（会話stageは隔日。初日は必ず会話の日にする） */
   convDay: boolean,
+  /** 1日の学習時間（新しいことばの語数がこれで決まる） */
+  dailyMinutes: number | null,
 ): { learn: AdvQuestStep | null; learnWords: AdvQuestStep; battle: AdvQuestStep | null; conv: AdvQuestStep | null; expressions: string[] } => {
   // 文法束の学習は「いま攻略中の束」の中を日替わりで巡回する（2026-08-15 進度改善）。
   // 旧実装は常に先頭を選んでいたため、前日回避と合わさって先頭2項目のping-pongになり、
@@ -226,7 +245,7 @@ const stageSteps = (
      */
     return {
       learn: convPick ? step('vocab_new', [convPick.refId], `表現の準備：${convPick.expression}`, `准备表达：${convPick.expression}`) : null,
-      learnWords: step('vocab_learn', [], '新しいことば5語', '记5个新单词'),
+      learnWords: learnWordsStep(dailyMinutes),
       battle: null,
       conv: !convDay ? null
         : convPick
@@ -241,7 +260,7 @@ const stageSteps = (
    * 「新しいことばを覚える」入口が無く、語彙は問題として出会うだけになっていた。
    * その日は新しいことば5語にする（単語図鑑にそのまま載る）。
    */
-  const learnWords = step('vocab_learn', [], '新しいことば5語', '记5个新单词');
+  const learnWords = learnWordsStep(dailyMinutes);
   const learn = g
     ? step('grammar_new', [g], '新しい文法を学ぶ', '学习新语法')
     : u ? step('vocab_new', [u], '単元のことばを学ぶ', '学习单元词汇')
@@ -338,7 +357,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
    * AI会話を出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業でやる。
    * ここで false になると、会話step・hybridの穴埋め・空クエストの逃げ道の3か所すべてが閉じる。
    */
-  const convOk = aiConversationAvailable(goalType, profile.targetJlpt ?? null);
+  // 先生が個別に切れる（2026-09-06: 李さんは一旦AI会話なし）
+  const convOk = aiConversationEnabledFor(profile);
   /**
    * AI会話の日か（会話stageのみ隔日にする・2026-08-23）。
    *
@@ -350,7 +370,7 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   const startKey = (profile.createdAt ?? input.nowISO).slice(0, 10);
   const dayIndex = dayNumOf(dateKey) - dayNumOf(startKey);
   const convDay = Number.isFinite(dayIndex) ? dayIndex % 2 === 0 : true;
-  const parts = stageSteps(stage, availability, seed, dateKey, convOk, convDay);
+  const parts = stageSteps(stage, availability, seed, dateKey, convOk, convDay, minutes);
 
   /**
    * ボス戦（2026-08-18 P0）。学習コンテンツの供給元（contentStage）ではなく
@@ -529,10 +549,15 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
      * これが無いと、5分設定の人は語彙を「問題として出会う」だけで、
      * 新しいことばを覚える機会が冒険の中に一度も来ない。
      */
-    // **入れ替えるだけ**にする（parts.learn が null の日に learnWords を足すと、
-    // 会話の日が「ことば＋AI会話」の2つになり、5分の約束が壊れる。2026-09-06 検証で発覚）
-    else push(parts.learn && parts.learn.kind !== 'vocab_learn' && dayNum % 4 === 0
-      ? parts.learnWords : parts.learn);
+    else push(parts.learn);
+    /**
+     * 新しいことばは**毎日**入れる（2026-09-06 CEO要望）。
+     * 4日に1回の入れ替えでは「今日の冒険」にほとんど出てこなかった。
+     * 5分設定は1日1つが原則なので、ここだけ **3語（2分）** にして、
+     * 上のもう1つと並べても時間の約束を壊さないようにする。
+     * その日の「学ぶ」が既に新しいことばになっている日は重ねない。
+     */
+    if (parts.learn?.kind !== 'vocab_learn') push(parts.learnWords);
     if (goalType !== 'jlpt') push(parts.conv);
     /**
      * 5分設定の会話目標が空になるのを防ぐ（2026-09-02）。
@@ -571,7 +596,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
      * 語彙バトル・漢字バトルと**別の日**に置く（同じ日に重ねると15分に収まらない）。
      * 文法の「学ぶ」が既に新しいことばになっている日は重ねない。
      */
-    if (parts.learn?.kind !== 'vocab_learn' && dayNum % 3 === 0) push(parts.learnWords);
+    // 2026-09-06: 3日に1回 → **毎日**（CEO要望「今日の冒険に必ず出す」）
+    if (parts.learn?.kind !== 'vocab_learn') push(parts.learnWords);
     if (goalType !== 'jlpt' || parts.expressions.length > 0) push(parts.conv);
     if (restateAvailable) push(step('restate', [], '言い直し', '改口练习'));
   } else {
@@ -579,9 +605,14 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
     push(parts.learn);
     if (bossStep) push(bossStep);
     push(parts.battle);
+    /**
+     * 新しいことばは**毎日**（2026-09-06 CEO要望）。以前は隔日だった。
+     * 語彙バトルは毎日のまま残す。ここを隔日にすると、会話stageは文法targetを持たないため
+     * 「バトルが1つも無い日」ができ、2026-09-02 に直した
+     * 「AI会話だけの日を作らない」が壊れる（テストで検出）。
+     */
     if (vocabStep && !confirmBattleShown) push(vocabStep);
-    // 新しいことば5語は隔日（2026-09-06）。30分でも毎日入れると読解・会話が押し出される
-    if (parts.learn?.kind !== 'vocab_learn' && dayNum % 2 === 1) push(parts.learnWords);
+    if (parts.learn?.kind !== 'vocab_learn') push(parts.learnWords);
     // 30分枠でも漢字は隔日にする（毎日だと文法・語彙・読解・会話と合わせて時間が溢れる）
     if (kanjiStep && !confirmBattleShown && (isConvStageKind || dayNum % 2 === 0)) push(kanjiStep);
     push(examSkillStep());

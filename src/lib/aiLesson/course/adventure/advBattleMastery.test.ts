@@ -158,8 +158,10 @@ describe('advQuest（§13）', () => {
 
   it('5分は軽量構成・30分は試験技能（読解/聴解）を含む', () => {
     const q5 = generateTodayQuest(mkInput({ profile: { ...mkInput().profile, dailyMinutes: 5 } }));
-    // 奇数日はバトル（約6分）が入るため最大9分（バトル永久排除の循環を防ぐ設計・P0-1）
-    expect(q5.estimatedMinutes).toBeLessThanOrEqual(9);
+    // 奇数日はバトル（約6分）が入るため最大9分（バトル永久排除の循環を防ぐ設計・P0-1）。
+    // 2026-09-06 に新しいことば3語（2分）が毎日入るようになったので上限は11分
+    // （復習3＋バトル6＋ことば2 の日が最大。CEO決定「単語学習を毎日の冒険に入れる」）
+    expect(q5.estimatedMinutes).toBeLessThanOrEqual(11);
     // 基礎固め中（基礎キャンプ・N3橋）は試験技能を出さない設計（P0-1）になったため、
     // 30分構成の検証は橋を越えたルート（knowledgeBand n3）で行う
     const routeAfterBridge = generateRoute({ goalType: 'jlpt', targetJlpt: 'N2', knowledgeBand: 'n3', conversationBand: 'needs_assessment', diagnosis: null, nowISO: NOW });

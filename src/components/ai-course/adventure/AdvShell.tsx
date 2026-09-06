@@ -7,7 +7,7 @@ import type { Learner, LearnerSettings, CourseSessionRecord, ItemProgress } from
 import type {
   AdvEnemyTier, AdvMasteryAttempt, AdvTodayQuest, AdventureV2Profile, JlptLevel,
 } from '../../../lib/aiLesson/course/adventure/advTypes';
-import { aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
+import { aiConversationEnabledFor } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel,
@@ -16,7 +16,7 @@ import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentT
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
 import { recordAttempt, seenQuestionKeys, masteredTargetIds, classifyPendingDelay, MASTERY_RULES, type MasteryStatus} from '../../../lib/aiLesson/course/adventure/advMastery';
 import { battleSeedOf } from '../../../lib/aiLesson/course/adventure/advBattle';
-import { generateTodayQuest, vocabTargetForStage, isVocabTargetInScope, stepKeyOf } from '../../../lib/aiLesson/course/adventure/advQuest';
+import { generateTodayQuest, vocabTargetForStage, isVocabTargetInScope, stepKeyOf, learnBatchSizeFor } from '../../../lib/aiLesson/course/adventure/advQuest';
 import { computeReadiness } from '../../../lib/aiLesson/course/adventure/advReadiness';
 import { computePace } from '../../../lib/aiLesson/course/adventure/advPace';
 import { buildReviewForecast, type ReviewForecast } from '../../../lib/aiLesson/course/adventure/advReviewForecast';
@@ -593,7 +593,9 @@ export default function AdvShell(props: AdvShellProps) {
     // 実力が目標より2級以上低い人は、**実力側から積み上げる**（2026-09-06）。
     // 李さん（目標N3 / 実力n5）に初回から「申込書・委任状・受理・交付」が出ていた
     const start = vocabStartLevel(profile);
-    const reqKey = `learn|${lv}|${start}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
+    // 語数は今日の冒険のstepと同じ（題名「新しいことば3語」と中身がずれないように）
+    const size = learnBatchSizeFor(profile?.dailyMinutes ?? null);
+    const reqKey = `learn|${lv}|${start}|${size}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
     if (learnPick?.key === reqKey) return;
     let alive = true;
     void import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData')
@@ -601,7 +603,7 @@ export default function AdvShell(props: AdvShellProps) {
         if (!alive) return;
         setLearnPick({
           key: reqKey,
-          pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7, undefined, start),
+          pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7, size, start),
         });
       })
       .catch(() => { /* 失敗しても画面は壊さない */ });
@@ -1185,7 +1187,7 @@ export default function AdvShell(props: AdvShellProps) {
    * AI会話をこの人に出すか（CEO決定 2026-08-22）。N5・N4は出さない＝会話は先生の授業。
    * 判定の本体は advTypes.aiConversationAvailable。画面の文言をそこへ合わせる
    */
-  const convAvailable = aiConversationAvailable(prof.goalType ?? 'jlpt', prof.targetJlpt ?? null);
+  const convAvailable = aiConversationEnabledFor(prof);
   const contentLevel: 'N5' | 'N4' | 'N3' | 'N2' | 'N1' = effectiveContentLevel(prof);
   /**
    * ミニ模試のレベル。**出せない目標では null**（2026-08-18）。

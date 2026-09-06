@@ -392,6 +392,14 @@ export interface AdventureV2Profile {
    * ai_save_learner_settings の保護対象に入れてある
    */
   teacherNotes: import('./advTeacherNote').AdvTeacherNote[];
+  /**
+   * この人にはAI会話を出さない（先生が個別に切る・2026-09-06 CEO決定）。
+   *
+   * 目標レベルの上ではAI会話を出せる人でも、いまは土台のことばと文法に時間を使うほうが
+   * 効く場合がある（李さん: 目標N3だが実力n5）。レベルの一律判定では切れないので、
+   * 先生が人ごとに止められるようにする。省略時は false（従来どおり）。
+   */
+  aiConversationOff?: boolean;
   humanLesson: AdvHumanLessonState;
   /**
    * つまずき救済の一時スキップ（2026-08-22 配線）。
@@ -420,6 +428,18 @@ export interface AdventureV2Profile {
 export const aiConversationAvailable = (
   goalType: AdvGoalType, targetJlpt: JlptLevel | null,
 ): boolean => goalType === 'conversation' || (targetJlpt !== 'N5' && targetJlpt !== 'N4');
+
+/**
+ * この人にAI会話を出すか（2026-09-06）。レベルの判定に**先生の個別スイッチ**を重ねる。
+ * 会話を目的に選んだ人（goalType='conversation'）は会話そのものが目的なので切らない。
+ */
+export const aiConversationEnabledFor = (
+  profile: Pick<AdventureV2Profile, 'goalType' | 'targetJlpt' | 'aiConversationOff'> | null | undefined,
+): boolean => {
+  const goalType = profile?.goalType ?? 'jlpt';
+  if (goalType !== 'conversation' && profile?.aiConversationOff === true) return false;
+  return aiConversationAvailable(goalType, profile?.targetJlpt ?? null);
+};
 
 export const BAND_LABELS: Record<AdvBand, { ja: string; zh: string }> = {
   needs_assessment: { ja: '未判定', zh: '尚未判定' },
