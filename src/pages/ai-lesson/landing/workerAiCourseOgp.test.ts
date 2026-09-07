@@ -94,3 +94,32 @@ describe('法務ページ: sitemapに載せた分のタイトルがWorkerにあ�
     expect(notHandled, `sitemapにあるのにWorkerが扱っていない: ${notHandled.join(', ')}`).toEqual([]);
   });
 });
+
+/**
+ * 学習アプリ側（ログイン・購入）のカード（2026-09-07）。
+ * ここは検索ではなく**生徒に案内URLを送るたび**に効く。2026-09-07まで素のHTMLが
+ * 「川口・蕨バドミントン交流会」のままで、中国語話者に日本語のバドミントンのカードが出ていた。
+ */
+describe('学習アプリのURLを共有したときのカード', () => {
+  it('Workerに AI_COURSE_APP がある', () => {
+    expect(workerSource).toContain('const AI_COURSE_APP');
+  });
+
+  it('login と purchase を素のHTMLの差し込み対象にしている', () => {
+    expect(workerSource).toContain("kind: 'aiCourseApp'");
+    expect(workerSource).toMatch(/ai-course\\\\\/\(login\|purchase\)/);
+  });
+
+  it('バドミントンの文言を残していない（日本語・中国語とも）', () => {
+    const block = /const AI_COURSE_APP = \{[\s\S]*?\n\};/.exec(workerSource)?.[0] ?? '';
+    expect(block.length).toBeGreaterThan(100);
+    expect(block).not.toContain('バドミントン');
+    expect(block).toContain('日本語の相棒');
+    expect(block).toContain('你的日语搭档');
+  });
+
+  it('検索結果には出さない（noindexを付ける）', () => {
+    const branch = /if \(route\.kind === 'aiCourseApp'\) \{[\s\S]*?\n  \}/.exec(workerSource)?.[0] ?? '';
+    expect(branch).toContain('noindex: true');
+  });
+});

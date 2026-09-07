@@ -448,3 +448,129 @@ export const buildMailHealthAlerts = (input: MailHealthInput): MailHealthAlert[]
   }
   return out;
 };
+
+// ──────────────────────────────────────────────────────────────────────────
+// 学習が途切れた人への1通（2026-09-07 CEO案）
+//
+// なぜ購入導線と分けるか:
+//   上の3通はすべて**購入台帳**が起点で、宛先も購入行から引いている。いまの実在の生徒は
+//   全員が手動付与（ai_course_access.source='manual'）＝購入行が無いので、上の仕組みでは
+//   永久に対象にならない。実測（2026-09-07）で最長連続学習日数は3日、最後のAI会話は8/23。
+//   **途切れた人に届くものが何も無い**ことが、いちばん大きな穴だった。
+//
+// 送り方の原則（advVisit/advStreak と同じ）:
+//   - 責めない。「サボった」「途切れた」は書かない。空いた日数は事実として出すだけ
+//   - 1回の途切れにつき1通（冪等キーに最終学習日を含める）。毎日は送らない
+//   - 60日を超えた人には送らない。掘り起こしメールは押し付けになるうえ、
+//     こちらが2か月放置していた事実を相手に見せることになる
+//   - 金額・プランの案内を混ぜない。これは営業ではなく学習の声かけ
+// ──────────────────────────────────────────────────────────────────────────
+
+/** 何日あいたら声をかけるか（7日待つと戻ってこない・2026-08-17 の判断と揃える） */
+export const STALL_AFTER_DAYS = 3;
+/** これ以上あいた人には送らない */
+export const STALL_MAX_DAYS = 60;
+
+export interface LifecycleLearnerRow {
+  user_id: string;
+  email: string | null;
+  /** 学習画面の表示言語（LearnerSettings.uiLanguage）。不明は ja */
+  locale: string | null;
+  /** 最終学習日 YYYY-MM-DD（questLog∪mastery の実測。無ければ null＝一度も学習していない） */
+  last_active_day: string | null;
+  is_test: boolean | null;
+  is_active: boolean | null;
+}
+
+export interface StalledTarget {
+  kind: "learning_stalled";
+  userId: string;
+  email: string;
+  locale: "ja" | "zh";
+  lastActiveDay: string;
+  daysAway: number;
+}
+
+const dayKeyDiff = (from: string, to: string): number =>
+  Math.round((Date.parse(to) - Date.parse(from)) / DAY);
+
+/**
+ * IDログインの生徒に割り当てている**内部ドメイン**（courseAuth.studentIdToEmail）。
+ * 実在のメールボックスではないので、ここへ送ると必ず不達になる。
+ * 送ったことにして送信ログを汚すより、**最初から対象外にする**（2026-09-07）。
+ * この人たちへの連絡は先生の微信が唯一届く経路で、それはメールでは代われない。
+ */
+export const INTERNAL_LOGIN_DOMAIN = "@id.badminton-platform.pages.dev";
+export const isDeliverableEmail = (email: string): boolean =>
+  email.includes("@") && !email.toLowerCase().endsWith(INTERNAL_LOGIN_DOMAIN);
+
+/**
+ * 誰に声をかけるか。todayKey は JST の YYYY-MM-DD（学習側の dateKeyOf と同じ基準）。
+ *
+ * 一度も学習していない人（last_active_day が null）はここでは対象にしない。
+ * その人に要るのは「久しぶり」ではなく初回の案内で、文面が別物になるため。
+ */
+export const stalledDecision = (
+  rows: LifecycleLearnerRow[], todayKey: string,
+): StalledTarget[] => {
+  const out: StalledTarget[] = [];
+  for (const r of rows) {
+    if (r.is_test === true || r.is_active === false) continue;
+    if (!r.email || !r.last_active_day) continue;
+    if (!isDeliverableEmail(r.email)) continue;
+    const away = dayKeyDiff(r.last_active_day, todayKey);
+    if (!Number.isFinite(away) || away < STALL_AFTER_DAYS || away > STALL_MAX_DAYS) continue;
+    out.push({
+      kind: "learning_stalled",
+      userId: r.user_id,
+      email: r.email,
+      locale: r.locale === "zh" ? "zh" : "ja",
+      lastActiveDay: r.last_active_day,
+      daysAway: away,
+    });
+  }
+  return out;
+};
+
+/** 冪等キー。**最終学習日を含める**＝1回の途切れにつき1通、再開してまた空けば別の1通 */
+export const stalledDedupeKey = (t: StalledTarget): string =>
+  `learning_stalled:${t.userId}:${t.lastActiveDay}`;
+
+/**
+ * 本文。売り込みを混ぜない・分量を小さく約束する・記録が消えていないことを伝える。
+ * この3つが「戻ってこられない理由」を消すために要る。
+ */
+export const buildStalledMail = (t: StalledTarget): { subject: string; text: string } => {
+  const loginUrl = `${LIFECYCLE_STUDENT_SITE}/${t.locale}/ai-course/login`;
+  return t.locale === "ja"
+    ? {
+      subject: `【日本語の相棒】${t.daysAway}日ぶりに、3分だけ`,
+      text: `お久しぶりです。前回の学習から${t.daysAway}日たちました。
+
+記録はぜんぶ残っています。進んだ地域も、保存した表現も、そのままです。
+今日は全部やらなくて大丈夫です。まず1つだけ、3分ほどで終わります。
+
+ひらくと、今日のことばが1つ出ます。それを読むだけの日があってもかまいません。
+
+つづきから：${loginUrl}
+
+やめたいときや、ペースを変えたいときも、このメールに返信してください。
+
+kawabado 安田翔`,
+    }
+    : {
+      subject: `【你的日语搭档】${t.daysAway}天没见了，今天只做3分钟`,
+      text: `好久不见。距离上次学习已经过了${t.daysAway}天。
+
+记录都还在。走过的区域、保存下来的表达，都原样留着。
+今天不用全部做完。先做一个就好，大概3分钟。
+
+打开之后会出现「今天的一句话」。只读那一句就结束的日子，也完全可以。
+
+从上次的地方继续：${loginUrl}
+
+如果想暂停，或者想调整节奏，也请直接回复这封邮件。
+
+kawabado 安田翔`,
+    };
+};

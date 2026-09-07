@@ -74,6 +74,14 @@ export function TrialContentsSection({ lang }: { lang: Lang }) {
             {t.note[lang]}
           </p>
         </Reveal>
+
+        {/* 目標レベルによってAI会話が出ない件（2026-09-07）。買う前に知らせる。
+            実装は advTypes.aiConversationAvailable。約束と現物をここで揃える */}
+        <Reveal delay={140}>
+          <p className="mt-3 text-[0.86rem] leading-relaxed text-lp-ink-soft">
+            {t.levelNote[lang]}
+          </p>
+        </Reveal>
       </div>
     </section>
   );

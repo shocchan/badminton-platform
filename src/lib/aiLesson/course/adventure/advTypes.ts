@@ -290,6 +290,17 @@ export interface AdvStreakState {
   lastActiveKey: string;
 }
 
+/**
+ * 来た日（2026-09-07）。**開いた日**の記録で、勉強した日（AdvStreakState）とは別に持つ。
+ * 空いた日数を出すのは責めるためではなく、迎え方と今日の分量を変えるため（advVisit.ts）。
+ */
+export interface AdvVisitState {
+  /** 開いた日 YYYY-MM-DD の昇順・直近30日ぶん。記録開始は 2026-09-07 以降 */
+  days: string[];
+  /** おかえりカードを最後に出した日（1日1回にする）。null＝まだ一度も出していない */
+  lastCardKey: string | null;
+}
+
 /** learner設定(jsonb)内に保存するV2プロファイル全体（D-003・migration不要） */
 /** かな道場の進行状態（2026-08-15。超初心者の前提スキル・mastery台帳には入れない） */
 export interface AdvKanaState {
@@ -373,6 +384,12 @@ export interface AdventureV2Profile {
    * 攻略・mastery・準備度には一切影響しない。途切れても「失った」とは表示しない
    */
   streak: AdvStreakState | null;
+  /**
+   * 来た日（アプリを開いた日）の記録＋おかえりカードを出した日（2026-09-07）。
+   * **streak（勉強した日）とは別物**。開いただけの日を勉強した日として数えない。
+   * 詳しくは advVisit.ts の冒頭。
+   */
+  visit: AdvVisitState;
   /**
    * 帰化面接の表現特訓。enabledAt が null なら未発行＝画面に出さない。
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ

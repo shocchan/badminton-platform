@@ -76,6 +76,8 @@ import { AdvPersonalPackRunner } from './AdvPersonalPackRunner';
 import { personalPacksVisible } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
 import { AdvAdventureMap } from './AdvAdventureMap';
 import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
+import { AdvDailyCheckin } from './AdvDailyCheckin';
+import { recordVisit, markCardShown, shouldShowCheckin } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { diffNewlyDone, conquestCelebrations, type AdvCelebration } from '../../../lib/aiLesson/course/adventure/advCelebration';
@@ -662,6 +664,24 @@ export default function AdvShell(props: AdvShellProps) {
     props.onSaveSettings(writeAdvProfile(learner.settings, next, new Date().toISOString()));
   }, [learner.settings, props, profile]);
 
+  /**
+   * 来た日の記録（2026-09-07）。**開いた事実だけ**を残す＝勉強した日（streak）には混ぜない。
+   * recordVisit は同じ日の2回目に null を返すので、保存は1日1回で止まる（無限ループにならない）。
+   */
+  useEffect(() => {
+    if (!profile) return;
+    const next = recordVisit(profile.visit, dateKey);
+    if (next) save({ ...profile, visit: next });
+  }, [profile, dateKey, save]);
+  /** 今日のおかえりカードを閉じたか（保存が届くまでのあいだ二重に出さないための即時フラグ） */
+  const [checkinClosedKey, setCheckinClosedKey] = useState<string | null>(null);
+  const closeCheckin = useCallback(() => {
+    setCheckinClosedKey(dateKey);
+    if (!profile) return;
+    const next = markCardShown(profile.visit, dateKey);
+    if (next) save({ ...profile, visit: next });
+  }, [profile, dateKey, save]);
+
   // 完了は**安定キー（stepKeyOf）**で照合する（2026-08-17 監査P0: questの並びは
   // 日中の状態変化で変わるため、添字だけだと未実施stepが勝手に完了扱いになっていた）。
   // 旧形式（done: 添字）は読み取りだけ引き続き尊重する（移行日の保存データ用）
@@ -1228,8 +1248,26 @@ export default function AdvShell(props: AdvShellProps) {
         : undefined}
     />
   ) : null;
+  /**
+   * おかえりカード（2026-09-07 CEO案）。**ホームでだけ**、1日1回、いちばん上に出す。
+   * 学習の途中（バトル・模試・かな道場）には割り込ませない＝手を止めさせない。
+   * 祝いと重なったときは祝いを先に見せる（祝いのほうが一瞬で終わるため）。
+   */
+  const checkinEl = (
+    view === 'home' && celebrations.length === 0
+    && checkinClosedKey !== dateKey && shouldShowCheckin(prof.visit, dateKey)
+  ) ? (
+    <AdvDailyCheckin
+      lang={lang}
+      visit={prof.visit}
+      todayKey={dateKey}
+      seed={learner.id}
+      onStart={closeCheckin}
+      onClose={closeCheckin}
+    />
+  ) : null;
   /** viewのreturnを `<>{celebrationEl}<既存要素/></>` に包む（battle/reading/listening/mock/kana/map/complete/home の8return） */
-  const withCelebration = (el: ReactNode) => <>{celebrationEl}{el}</>;
+  const withCelebration = (el: ReactNode) => <>{celebrationEl}{checkinEl}{el}</>;
 
   // ── battle ──
   // ── かな道場（超初心者の前提レッスン・2026-08-15） ──

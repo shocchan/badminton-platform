@@ -17,6 +17,7 @@ import {
   restorePersonalPacks, restorePersonalPackState, emptyPersonalPackState,
 } from './personal/advPersonalPack';
 import { restoreTeacherNotes } from './advTeacherNote';
+import { restoreVisit, emptyVisitState } from './advVisit';
 
 const emptySkill = (): AdvSkillScore => ({
   currentScore: 0, confidence: 'none', evidenceCount: 0, lastAssessedAt: null, band: 'needs_assessment',
@@ -51,6 +52,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   mockLog: [],
   kana: null,
   streak: null,
+  visit: emptyVisitState(),
   answerSheets: [],
   answerSheetSession: null,
   answerSheetLog: [],
@@ -239,6 +241,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
       }
       : null,
     streak: restoreStreak(raw.streak),
+    // 来た日（2026-09-07）。ここで拾わないと生徒の次の保存で消える（明示したキーしか通らない）
+    visit: restoreVisit(raw.visit),
     // 期限切れのスキップは読み込み時点で落とす（保存が肥大化しない・解除漏れも起きない）
     stuckSkips: Array.isArray(raw.stuckSkips)
       ? (raw.stuckSkips as unknown[]).filter((x): x is AdventureV2Profile['stuckSkips'][number] =>

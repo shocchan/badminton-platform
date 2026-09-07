@@ -829,6 +829,11 @@ function matchOgpRoute(pathname) {
   if (m) return { kind: 'aiCourse', lang: m[1] };
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/(shoko|yuto)\\/?$/);
   if (m) return { kind: 'aiCourse', lang: m[1], variant: m[2] };
+  // 学習アプリ側（ログイン・購入）。検索には出さないが、**生徒に案内URLを送るたびに**
+  // 微信・LINEでカードが出る。2026-09-07まで素のHTMLがバドミントンのままで、
+  // 中国語話者に日本語で「川口・蕨バドミントン交流会」と表示されていた
+  m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/(login|purchase)(\\/|$)/);
+  if (m) return { kind: 'aiCourseApp', lang: m[1], page: m[2] };
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/([a-z-]+)\\/?$/);
   if (m && AI_COURSE_LEGAL[m[2]]) return { kind: 'aiCourseLegal', lang: m[1], page: m[2] };
   // 静的ページ（トップ・通常活動・FAQ・クラス案内・会場・問い合わせ・特典登録・
@@ -874,6 +879,34 @@ const AI_COURSE_SEO = {
       description: '献给「懂语法却说不出口」的中文母语者。AI老师每天陪你练习，加上真人日语教练24次一对一，用半年培养在日本真正能用的日语。可以先从600日元的AI体验通行证开始。',
     },
     ogImage: '/images/ai-course/yuto-sensei-wave.webp',
+  },
+};
+
+/**
+ * 学習アプリ側のカード（2026-09-07）。生徒へ送るURLの見え方がここで決まる。
+ * 販売LPの文言とは分ける: ここを開くのは**もう買った人・これから入る人**で、
+ * 売り込みではなく「ここが自分の教室だ」と分かることのほうが要る。
+ */
+const AI_COURSE_APP = {
+  login: {
+    ja: {
+      title: 'ログイン｜日本語の相棒（AI日本語会話コース）',
+      description: '先生から届いたIDとパスワードで、学習画面に入ります。今日の冒険・AI会話・復習はここから。',
+    },
+    zh: {
+      title: '登录｜你的日语搭档（AI日语会话课程）',
+      description: '用老师发给你的ID和密码进入学习页面。今天的冒险、AI会话与复习都从这里开始。',
+    },
+  },
+  purchase: {
+    ja: {
+      title: 'お申し込み｜日本語の相棒（AI日本語会話コース）',
+      description: 'AI体験パス・1か月AI自学プランのお申し込みページです。決済後すぐにログインIDが届きます。',
+    },
+    zh: {
+      title: '报名｜你的日语搭档（AI日语会话课程）',
+      description: 'AI体验通行证・1个月AI自学方案的报名页面。付款后会立即收到登录ID。',
+    },
   },
 };
 
@@ -1145,6 +1178,20 @@ async function buildOgpMeta(route, env, pageUrl) {
       noscriptHtml: lpNoscriptHtml(lang),
       // JSON-LD（Course）はLP側の src/pages/ai-lesson/landing/courseSchema.ts が持つ。
       // 素のHTMLにも出すと二重定義になるので、ここでは出さない
+    };
+  }
+  if (route.kind === 'aiCourseApp') {
+    const lang = route.lang === 'zh' ? 'zh' : 'ja';
+    const t = AI_COURSE_APP[route.page][lang];
+    return {
+      title: t.title,
+      description: t.description,
+      image: 'https://kawabado.com' + AI_COURSE_SEO.shoko.ogImage,
+      url: pageUrl,
+      lang: lang,
+      // 検索結果には出さない（robots.txt でも弾いているが、素のHTMLにも書いておく）。
+      // canonical・hreflang は付けない＝販売LPと別物として扱う
+      noindex: true,
     };
   }
   if (route.kind === 'aiCourseLegal') {
