@@ -15,7 +15,7 @@ const SIMULATE = process.argv.includes('--simulate-filled');
 const FILLED: LegalFacts = {
   ...LEGAL_FACTS,
   operatorName: 'サンプル事業者', address: 'on_request', phone: 'on_request',
-  priceJpyTaxIncluded: 100000,
+  priceJpyTaxIncluded: { ja: 'サンプルプラン：1,000円（税込）', zh: '示例方案：1,000日元（含税）' },
   paymentMethods: [{ ja: '銀行振込', zh: '银行转账' }],
   paymentTiming: { ja: '申込時', zh: '报名时' },
   serviceStartTiming: { ja: '決済確認後', zh: '确认付款后' },
@@ -46,8 +46,20 @@ const validators: Partial<Record<keyof LegalFacts, (v: unknown) => string | null
     ? null : "住所文字列か 'on_request'（請求時開示）が必要"),
   phone: (v) => (v === 'on_request' || (typeof v === 'string' && /[0-9]/.test(String(v)))
     ? null : "電話番号か 'on_request' が必要"),
-  priceJpyTaxIncluded: (v) => (typeof v === 'number' && Number.isInteger(v) && v > 0
-    ? null : '正の整数（税込・円）が必要'),
+  /**
+   * 2026-08-19 の商品3段階化で **数値 → Bilingual（公開中プランを全部並べた文字列）** に
+   * 変わったのに、ここだけ数値のままだった。そのため
+   * `npm run validate:ai-course-legal` は 2026-08-19 から 2026-09-07 まで**常に FAIL**で、
+   * 法務ページの検査そのものが機能していなかった（＝この期間の記載漏れは誰も止められない）。
+   * 検査は「落ちたまま放置」が最悪で、落ちない状態を保つことに意味がある。
+   */
+  priceJpyTaxIncluded: (v) => {
+    const shape = bilingual(2)(v);
+    if (shape) return shape;
+    const b = v as { ja: string };
+    // 価格の行なのに金額が1つも入っていない＝カタログとつながっていない
+    return /[0-9０-９]/.test(b.ja) ? null : '金額が入っていない（planCatalogから組み立てる）';
+  },
   paymentMethods: (v) => (Array.isArray(v) && v.length > 0
     ? (v.map(bilingual(1)).find((m) => m) ?? null) : '1件以上の支払方法が必要'),
   paymentTiming: bilingual(2),

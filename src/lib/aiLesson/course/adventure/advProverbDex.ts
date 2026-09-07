@@ -123,6 +123,21 @@ export const crossedProverbMilestone = (before: number, after: number): number |
   return (PROVERB_MILESTONES as readonly number[]).includes(after) ? after : null;
 };
 
+/**
+ * 今日の受け取りで節目に達したか。**状態を持たずに手元の記録から導く**（2026-09-07）。
+ *
+ * なぜ導出にするか: effect の中で setState すると連鎖描画になり、eslint も止める
+ * （react-hooks/set-state-in-effect）。それに、状態で持つと**再読み込みで消える**——
+ * 節目に達した日にページを開き直しただけで祝いが無かったことになるのは、実測の記録と
+ * 画面が食い違う状態（原則13）。ここは記録から毎回導く。
+ */
+export const todaysProverbMilestone = (
+  dex: AdvProverbEntry[], todayKey: string,
+): number | null => {
+  if (!dex.some((e) => e.day === todayKey)) return null;   // 今日は受け取っていない
+  return (PROVERB_MILESTONES as readonly number[]).includes(dex.length) ? dex.length : null;
+};
+
 /** 手元のことば（新しい順）。画面はこれをそのまま並べる */
 export const collectedProverbs = (
   dex: AdvProverbEntry[],

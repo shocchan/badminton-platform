@@ -8,7 +8,7 @@ import { describe, it, expect } from 'vitest';
 import {
   restoreProverbDex, collectProverb, markProverbLearned, markProverbRecalled,
   dueProverbRecall, proverbStats, collectedProverbs, crossedProverbMilestone,
-  PROVERB_RECALL_DAYS, PROVERB_KEEP,
+  todaysProverbMilestone, PROVERB_RECALL_DAYS, PROVERB_KEEP,
 } from './advProverbDex';
 import { PROVERBS } from './advProverbs';
 import type { AdvProverbEntry } from './advTypes';
@@ -122,6 +122,29 @@ describe('節目', () => {
     expect(crossedProverbMilestone(4, 5)).toBe(5);
     expect(crossedProverbMilestone(5, 6)).toBeNull();
     expect(crossedProverbMilestone(5, 5)).toBeNull();
+  });
+
+  /** 状態ではなく記録から導く版（再読み込みで祝いが消えないこと） */
+  const five = PROVERBS.slice(0, 5).map((x, i) => e({
+    id: x.id, day: i === 4 ? '2026-09-07' : '2026-09-01',
+  }));
+
+  it('今日受け取って節目に達した日は祝う', () => {
+    expect(todaysProverbMilestone(five, '2026-09-07')).toBe(5);
+  });
+
+  it('同じ記録で開き直しても祝いは消えない（状態で持たないので）', () => {
+    expect(todaysProverbMilestone(five, '2026-09-07')).toBe(5);
+    expect(todaysProverbMilestone(five, '2026-09-07')).toBe(5);
+  });
+
+  it('翌日には祝わない（今日受け取っていない）', () => {
+    expect(todaysProverbMilestone(five, '2026-09-08')).toBeNull();
+  });
+
+  it('節目でない数では祝わない', () => {
+    const four = PROVERBS.slice(0, 4).map((x) => e({ id: x.id, day: '2026-09-07' }));
+    expect(todaysProverbMilestone(four, '2026-09-07')).toBeNull();
   });
 });
 

@@ -83,7 +83,7 @@ import { AdvProverbDex } from './AdvProverbDex';
 import { todayProverbFor } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import {
   collectProverb, markProverbLearned, markProverbRecalled, dueProverbRecall,
-  proverbStats, crossedProverbMilestone,
+  proverbStats, todaysProverbMilestone,
 } from '../../../lib/aiLesson/course/adventure/advProverbDex';
 import { PROVERBS } from '../../../lib/aiLesson/course/adventure/advProverbs';
 import { visitGreeting } from '../../../lib/aiLesson/course/adventure/advVisit';
@@ -674,15 +674,6 @@ export default function AdvShell(props: AdvShellProps) {
   }, [learner.settings, props, profile]);
 
   /**
-   * 来た日の記録（2026-09-07）。**開いた事実だけ**を残す＝勉強した日（streak）には混ぜない。
-   * recordVisit は同じ日の2回目に null を返すので、保存は1日1回で止まる（無限ループにならない）。
-   */
-  useEffect(() => {
-    if (!profile) return;
-    const next = recordVisit(profile.visit, dateKey);
-    if (next) save({ ...profile, visit: next });
-  }, [profile, dateKey, save]);
-  /**
    * 今日のことば（2026-09-07 第2版）。
    * **まだ持っていないものから**、その日の状況と目標レベルに合うものを選ぶ。
    * 選び方は純関数（advDailyGift.todayProverbFor）で、日付と人と持ち物だけで決まる
@@ -741,11 +732,11 @@ export default function AdvShell(props: AdvShellProps) {
     const next = markCardShown(profile.visit, dateKey);
     if (next) save({ ...profile, visit: next });
   }, [profile, dateKey, save]);
-  /**
-   * 今日のことばを手元へ入れる。カードを出すのと同じタイミングで1回だけ走る
-   * （collectProverb が持っているものには null を返すのでループしない）。
-   */
-  const [proverbMilestone, setProverbMilestone] = useState<number | null>(null);
+  /** 今日の受け取りで節目に達したか。状態で持たず記録から導く（再読み込みでも消えない） */
+  const proverbMilestone = useMemo(
+    () => todaysProverbMilestone(profile?.proverbDex ?? [], dateKey),
+    [profile?.proverbDex, dateKey],
+  );
   /**
    * 今日おかえりカードを出す日か（ことばを手元へ入れる条件と、画面の出し分けで同じ判定を使う）。
    * 画面側の条件（view==='home' など）はここに入れない——**別の画面を見ている日でも
@@ -753,13 +744,27 @@ export default function AdvShell(props: AdvShellProps) {
    */
   const showCheckin = !!profile
     && checkinClosedKey !== dateKey && shouldShowCheckin(profile.visit, dateKey);
+  /**
+   * 開いた日にやること（来た日の記録＋今日のことばを手元へ）を、**1回のsaveにまとめる**。
+   *
+   * ⚠️ ここを2つのeffectに分けてはいけない（2026-09-07 に一度分けて、直した）。
+   * 同じcommitで走る2つのeffectは**どちらも同じ古い profile を見ている**ので、
+   * あとから呼んだ save が先の save の変更を丸ごと上書きする。まったく同じ事故が
+   * 2026-08-17 の監査でも起きている（markStep→save の2連続で、かな学習者の
+   * 「今日の冒険」が永遠に完了しなかった。下の saveKana のコメント参照）。
+   *
+   * 各更新関数は「変える必要が無ければ null」を返すので、保存は1日1回で止まる（ループしない）。
+   */
   useEffect(() => {
-    if (!profile || !showCheckin) return;
-    const next = collectProverb(profile.proverbDex, todaysProverb.id, dateKey);
-    if (!next) return;
-    const crossed = crossedProverbMilestone(profile.proverbDex.length, next.length);
-    if (crossed !== null) setProverbMilestone(crossed);
-    save({ ...profile, proverbDex: next });
+    if (!profile) return;
+    let next = profile;
+    const visit = recordVisit(profile.visit, dateKey);
+    if (visit) next = { ...next, visit };
+    if (showCheckin) {
+      const dex = collectProverb(profile.proverbDex, todaysProverb.id, dateKey);
+      if (dex) next = { ...next, proverbDex: dex };
+    }
+    if (next !== profile) save(next);
   }, [profile, showCheckin, todaysProverb, dateKey, save]);
 
 

@@ -76,7 +76,13 @@ if (num('cost_usd_this_month') >= 40) alerts.push(`AIコスト警告閾値超過
 if (num('issue_reports_unresolved') >= 1) alerts.push(`未対応の不具合報告: ${val('issue_reports_unresolved')}件`);
 if (num('contacts_new') >= 1) alerts.push(`未返信の問い合わせ: ${val('contacts_new')}件`);
 if (num('login_locked_now') >= 1) alerts.push(`ログインロック中: ${val('login_locked_now')}件`);
-if (num('invites_usable') === 0) alerts.push('有効な招待が0件（新規サインアップ不可）');
+// 招待コードの警報は 2026-09-07 に撤去した。
+// 招待は 2026-08 のIDログイン化＋セルフサービス決済で使われなくなり、アプリにも
+// Edge Functionにも `ai_course_invites` を読むコードが1行も残っていない。
+// それでも「有効な招待が0件＝新規サインアップ不可」を毎日出し続けていたため、
+// **毎日ALERTが立つのが当たり前**の状態になり、9/6のバックアップ途中終了という
+// 本物の警報が同じ画面に埋もれた。鳴りっぱなしの警報は、警報ではなくノイズになる。
+// 招待をまた使うなら、使う経路を戻すのと同時にここも戻すこと。
 // 同期障害の疑い: AI会話（ai_learning_sessions）はunit progressを書かないため、
 // sessions>0 だけを条件にすると会話だけの日に必ず誤警報する（2026-07-31初回実行で実際に誤検出）。
 // 「過去に単元同期の実績があるlearnerがいる」場合だけ、更新0を停滞のシグナルとして扱う。

@@ -32,6 +32,27 @@ import type { AdvVisitState } from '../../../lib/aiLesson/course/adventure/advTy
 type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
+/**
+ * 読み上げボタン。端末に日本語の声が無ければ出さない＝押しても鳴らないボタンを置かない。
+ *
+ * ⚠️ **描画関数の中で定義しないこと。** 中で定義すると再描画のたびに「別のコンポーネント」
+ * として扱われ、押した直後に作り直される（フォーカスが飛ぶ・連打が効かない）。
+ */
+function SpeakBtn(
+  { show, text, label, tone }: { show: boolean; text: string; label: string; tone: string },
+) {
+  if (!show) return null;
+  return (
+    <button
+      type="button" aria-label={label} title={label}
+      className={`${pressFx} inline-grid h-8 w-8 shrink-0 place-items-center rounded-full border bg-white ${tone}`}
+      onClick={() => speakJa(text)}
+    >
+      <Volume2 className="h-4 w-4" aria-hidden />
+    </button>
+  );
+}
+
 interface Props {
   lang: L;
   visit: AdvVisitState;
@@ -98,18 +119,6 @@ export function AdvDailyCheckin({
       ? tx(lang, '今日は短くて大丈夫です。まず1つだけ。', '今天短一点也没关系。先做一个。')
       : tx(lang, '今日のことばを1つ持っていってください。', '带走今天的一句话吧。');
 
-  /** 読み上げボタン（端末に日本語の声が無ければ出さない＝押しても鳴らないボタンを置かない） */
-  const SpeakBtn = ({ text, label, tone }: { text: string; label: string; tone: string }) =>
-    speakable ? (
-      <button
-        type="button" aria-label={label} title={label}
-        className={`${pressFx} inline-grid h-8 w-8 shrink-0 place-items-center rounded-full border bg-white ${tone}`}
-        onClick={() => speakJa(text)}
-      >
-        <Volume2 className="h-4 w-4" aria-hidden />
-      </button>
-    ) : null;
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/55 p-4"
@@ -166,7 +175,7 @@ export function AdvDailyCheckin({
 
           <div className="mt-2 flex items-start gap-2">
             <p className="text-xl font-bold leading-snug text-gray-900">{p.ja}</p>
-            <SpeakBtn text={p.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-amber-300 text-amber-800" />
+            <SpeakBtn show={speakable} text={p.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-amber-300 text-amber-800" />
           </div>
           <p className="mt-0.5 text-xs text-gray-500">{p.yomi}</p>
           <p className="mt-2 text-sm leading-relaxed text-gray-800">
@@ -180,7 +189,7 @@ export function AdvDailyCheckin({
               <p className="text-sm leading-relaxed text-gray-900">{p.exampleJa}</p>
               <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{p.exampleZh}</p>
             </div>
-            <SpeakBtn text={p.exampleJa} label={tx(lang, '例文を読み上げる', '朗读例句')} tone="border-amber-300 text-amber-800" />
+            <SpeakBtn show={speakable} text={p.exampleJa} label={tx(lang, '例文を読み上げる', '朗读例句')} tone="border-amber-300 text-amber-800" />
           </div>
 
           {/* 読むだけ → 自分で扱う、へ。押すとしばらくして1回だけ「覚えていますか？」で戻る */}
@@ -214,7 +223,7 @@ export function AdvDailyCheckin({
             </h3>
             <div className="mt-2 flex items-start gap-2">
               <p className="text-lg font-bold leading-snug text-gray-900">{recall.ja}</p>
-              <SpeakBtn text={recall.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-violet-300 text-violet-700" />
+              <SpeakBtn show={speakable} text={recall.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-violet-300 text-violet-700" />
             </div>
             {recallOpen ? (
               <>
@@ -254,7 +263,7 @@ export function AdvDailyCheckin({
                   </p>
                   <div className="mt-1 flex items-start gap-2">
                     <p className="text-base font-bold leading-snug text-gray-900">{r.improved}</p>
-                    <SpeakBtn text={r.improved} label={tx(lang, '読み上げる', '朗读')} tone="border-blue-300 text-blue-700" />
+                    <SpeakBtn show={speakable} text={r.improved} label={tx(lang, '読み上げる', '朗读')} tone="border-blue-300 text-blue-700" />
                   </div>
                   {r.noteZh && lang === 'zh' && (
                     <p className="mt-1 text-xs leading-relaxed text-gray-600">{r.noteZh}</p>

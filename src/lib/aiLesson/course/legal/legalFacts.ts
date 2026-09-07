@@ -88,8 +88,14 @@ export const LEGAL_FACTS: LegalFacts = {
   contactEmail: 'info@kawabado.com',
   priceJpyTaxIncluded: catalogPriceFact(),
   // 2026-08-19 CEO指示: 600円・2,980円プランはクレジットカードのオンライン決済＋自動発行
+  // 2026-09-07 追記: Alipay・WeChat Pay が本番Checkoutに出ることを実測（8/26有効化）。
+  //   LP側は 2026-08-26 に更新されていたが、**特商法表記だけが古いまま**だった。
+  //   法定表示と実際に使える手段がずれている状態なので、ここも合わせる。
+  //   ズレの再発は legalPaymentMethods.test.ts が機械で止める。
   paymentMethods: [
     { ja: 'クレジットカード（AI体験パス・1か月 AI自学プランのオンライン決済）', zh: '信用卡（AI体验通行证・1个月AI自学方案的在线支付）' },
+    { ja: 'Alipay（支付宝）', zh: '支付宝' },
+    { ja: 'WeChat Pay（微信支付）', zh: '微信支付' },
     { ja: '銀行振込', zh: '银行转账' },
   ],
   paymentTiming: { ja: '申込時に一括', zh: '报名时一次性支付' },

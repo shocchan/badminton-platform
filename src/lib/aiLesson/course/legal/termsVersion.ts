@@ -16,10 +16,13 @@
 //   特商法の販売価格は planCatalog から自動生成のため3プラン化が自動反映される
 // 2026-08-19.2: セルフサービス決済。特商法の支払方法にクレジットカードを追加し、
 //   役務提供時期を「カード決済は決済完了後ただちに自動発行」へ更新
-export const TERMS_VERSION = '2026-08-19.2';
+// 2026-09-07.1: 特商法の支払方法に Alipay・WeChat Pay を追加。
+//   本番Checkoutでは 8/26 から実際に出ていたのに、法定表示だけが古いまま12日間ずれていた
+//   （LPは8/26に更新済み）。ズレの再発は legalPaymentMethods.test.ts が止める
+export const TERMS_VERSION = '2026-09-07.1';
 
 /**
  * 上の版が指している法務本文のハッシュ（先頭16桁）。
  * 本文だけ変えて版を据え置くと、テストがここの不一致で落ちる。
  */
-export const TERMS_CONTENT_HASH = 'fc9538ed413a3b8c';
+export const TERMS_CONTENT_HASH = '50a0dc6d72168856';
