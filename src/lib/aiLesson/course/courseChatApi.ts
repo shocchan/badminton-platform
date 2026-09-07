@@ -49,6 +49,12 @@ export interface ChatTurnRequest {
   maxTurns: number;
   closingAnnounced: boolean;
   askedQuestions: string[];
+  /**
+   * この人のこと（2026-09-07）。過去のレポートの実文から組み立てた短い記録
+   * （advLearnerMemo.buildLearnerNotes）。省略可＝渡さなければ従来どおり。
+   * **推測でここに何かを足さない**。材料は実際に話した記録だけ。
+   */
+  learnerNotes?: string[];
 }
 
 // セッションごとの in-flight（多重送信防止）

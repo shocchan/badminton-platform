@@ -301,6 +301,20 @@ export interface AdvVisitState {
   lastCardKey: string | null;
 }
 
+/**
+ * 会話で直された言い方を、いつ出して・自分で「言えた」とチェックしたか（2026-09-07）。
+ * 直しの本文はここに持たない（ai_learning_sessions.report が正準・advRestateReview.ts）。
+ * `said` は**自己申告**で、機械が確かめた結果ではない。
+ */
+export interface AdvRestateLogEntry {
+  /** `${sessionId}:${correctionIndex}` */
+  key: string;
+  /** 出した日 YYYY-MM-DD */
+  dateKey: string;
+  /** 自分で「言えた」とチェックしたか */
+  said: boolean;
+}
+
 /** learner設定(jsonb)内に保存するV2プロファイル全体（D-003・migration不要） */
 /** かな道場の進行状態（2026-08-15。超初心者の前提スキル・mastery台帳には入れない） */
 export interface AdvKanaState {
@@ -390,6 +404,11 @@ export interface AdventureV2Profile {
    * 詳しくは advVisit.ts の冒頭。
    */
   visit: AdvVisitState;
+  /**
+   * 会話の言い直し復習の記録（2026-09-07）。出した日と自己申告だけを持つ。
+   * 直しの本文はセッションのレポートから毎回導出する（二重管理にしない）。
+   */
+  restateLog: AdvRestateLogEntry[];
   /**
    * 帰化面接の表現特訓。enabledAt が null なら未発行＝画面に出さない。
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ

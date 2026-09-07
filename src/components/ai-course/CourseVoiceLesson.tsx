@@ -25,7 +25,8 @@ import {
 } from '../../lib/aiLesson/course/courseSubtitles';
 import { translateTutorLine, cachedTranslation, estimateTranslateCostUsd } from '../../lib/aiLesson/course/courseTranslateApi';
 import type { AiCourseDict } from '../../locales/aiCourse';
-import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
+import { buildLearnerNotes } from '../../lib/aiLesson/course/adventure/advLearnerMemo';
+import type { CourseSessionRecord, CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 
 export interface VoiceLessonResult {
   utterances: CourseUtterance[];
@@ -61,6 +62,11 @@ interface Props {
   lang: 'ja' | 'zh';
   /** ワンタップ言語切替（音声セッションは継続。確認後に呼ぶ） */
   onToggleLang: () => void;
+  /**
+   * 過去のセッション（2026-09-07）。AI先生に渡す「この人のこと」の材料。
+   * 渡さなければ従来どおり＝毎回はじめまして。
+   */
+  pastSessions?: CourseSessionRecord[];
   onComplete: (r: VoiceLessonResult) => void;
   onSwitchToText: () => void;
   onExit: () => void;
@@ -79,7 +85,10 @@ const COMPLETE_OVERLAY_MS = 1600, MAX_RETRY = 2;
 const hasZh = (s: string) => /(你|我们|什么|怎么|没有|可以|意思|就是|因为|所以|一下|这个|那个)/.test(s);
 const fmt = (sec: number) => `${Math.floor(Math.max(sec, 0) / 60)}:${String(Math.max(sec, 0) % 60).padStart(2, '0')}`;
 
-export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleLang, onComplete, onSwitchToText, onExit, onAbortExit }: Props) => {
+export const CourseVoiceLesson = ({
+  t, learner, step, sessionId, lang, onToggleLang, pastSessions = [],
+  onComplete, onSwitchToText, onExit, onAbortExit,
+}: Props) => {
   const tv = t.voice, tl = t.lesson;
   const mission = step.mission;
   const isReview = step.kind !== 'new';
@@ -169,7 +178,10 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
     // トークン取得の待ち時間中に離脱していたら接続を始めない
     // （始めてしまうと cleanup 済みの後にセッションが動き出し、マイクが残る）
     if (isCancelled()) return;
-    const payload = buildVoicePayload(mission, learner, step);
+    // AI先生が覚えていること（2026-09-07）。実データ（過去のレポートの文）からだけ作る
+    const payload = buildVoicePayload(
+      mission, learner, step, buildLearnerNotes(pastSessions, new Date().toISOString()),
+    );
     startedTeacherRef.current = teacher.id;
     trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja' });
     sessionRef.current = startVoiceSession({
@@ -462,6 +474,21 @@ export const CourseVoiceLesson = ({ t, learner, step, sessionId, lang, onToggleL
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-sm w-full text-center">
           <div className="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4"><AlertTriangle className="w-6 h-6 text-amber-600" /></div>
           <p className="text-sm text-gray-700 leading-relaxed mb-5">{message}</p>
+          {/*
+            中国本土からは音声がつながらない（2026-09-07）。
+            音声レッスンはブラウザが api.openai.com へ**直接**つながる仕組みで、
+            本土のネットワークからは届かない。一般的な「接続に失敗しました」だけだと、
+            端末やアプリの故障だと思って何度も試すことになるので、可能性として先に伝える。
+            断定はしない（回線が一時的に不安定なだけのこともある）。
+            errorKind==='webrtc' は接続そのものが張れなかった場合
+          */}
+          {errorKind === 'webrtc' && (
+            <p className="mb-5 rounded-xl bg-amber-50 border border-amber-200 p-3 text-left text-xs leading-relaxed text-amber-900">
+              {lang === 'zh'
+                ? '如果你现在在中国大陆的网络下，语音会话可能无法直接连接。可以先用「文字会话」继续今天的练习，效果一样会留下记录。'
+                : '中国本土のネットワークからは、音声会話がつながらないことがあります。今日は「テキスト会話」で進めても、記録は同じように残ります。'}
+            </p>
+          )}
           <div className="space-y-2">
             {hasProgress && <button type="button" onClick={partialReport} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><FileText className="w-4 h-4" />{tv.viewPartialReport}</button>}
             {canRetry && <button type="button" onClick={doRetry} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><RefreshCw className="w-4 h-4" />{tv.retry}</button>}

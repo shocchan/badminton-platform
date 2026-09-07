@@ -10,6 +10,11 @@ export const buildVoicePayload = (
   mission: Mission,
   learner: Learner,
   step: LessonPlanStep,
+  /**
+   * AI先生が覚えていること（2026-09-07）。過去のレポートの実文から作った短い記録
+   * （advLearnerMemo.buildLearnerNotes）。省略時は空＝従来どおり毎回はじめまして。
+   */
+  learnerNotes: string[] = [],
 ): VoicePlanPayload & Record<string, unknown> => ({
   themeLabel: mission.titleJa,
   estimatedLevel: learner.estimatedLevel,
@@ -35,6 +40,7 @@ export const buildVoicePayload = (
   weeklyTargets: (step.weeklyTargets ?? [])
     .map((m) => `${m.targetExpression}|${m.detect}`)
     .join('///'),
+  learnerNotes,
 });
 
 export interface ConversationTurn { role: 'student' | 'tutor'; text: string }

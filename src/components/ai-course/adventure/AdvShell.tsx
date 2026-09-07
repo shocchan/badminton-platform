@@ -78,6 +78,7 @@ import { AdvAdventureMap } from './AdvAdventureMap';
 import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
 import { AdvDailyCheckin } from './AdvDailyCheckin';
 import { recordVisit, markCardShown, shouldShowCheckin } from '../../../lib/aiLesson/course/adventure/advVisit';
+import { dueRestates, markRestate } from '../../../lib/aiLesson/course/adventure/advRestateReview';
 import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { diffNewlyDone, conquestCelebrations, type AdvCelebration } from '../../../lib/aiLesson/course/adventure/advCelebration';
@@ -673,6 +674,19 @@ export default function AdvShell(props: AdvShellProps) {
     const next = recordVisit(profile.visit, dateKey);
     if (next) save({ ...profile, visit: next });
   }, [profile, dateKey, save]);
+  /**
+   * 会話で直された言い方の再登場（2026-09-07）。
+   * 直しの本文は **セッションのレポートが正準**なので、ここで毎回導出する（台帳へ書き写さない）。
+   * 保存するのは「いつ出して、自分で言えたとチェックしたか」だけ。
+   */
+  const todaysRestates = useMemo(
+    () => dueRestates(props.sessions, profile?.restateLog ?? [], dateKey),
+    [props.sessions, profile?.restateLog, dateKey],
+  );
+  const markRestateSaid = useCallback((key: string, said: boolean) => {
+    if (!profile) return;
+    save({ ...profile, restateLog: markRestate(profile.restateLog, key, dateKey, said) });
+  }, [profile, dateKey, save]);
   /** 今日のおかえりカードを閉じたか（保存が届くまでのあいだ二重に出さないための即時フラグ） */
   const [checkinClosedKey, setCheckinClosedKey] = useState<string | null>(null);
   const closeCheckin = useCallback(() => {
@@ -1262,6 +1276,8 @@ export default function AdvShell(props: AdvShellProps) {
       visit={prof.visit}
       todayKey={dateKey}
       seed={learner.id}
+      restates={todaysRestates}
+      onRestate={markRestateSaid}
       onStart={closeCheckin}
       onClose={closeCheckin}
     />

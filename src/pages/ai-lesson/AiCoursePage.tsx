@@ -1174,8 +1174,8 @@ export default function AiCoursePage() {
     return (
       <TeacherProvider teacherId={advTeacherId}>
         {mode === 'voice'
-          ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} onAbortExit={abortExit} />
-          : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />}
+          ? <CourseVoiceLesson t={t} learner={learner} step={plan.main} sessionId={activeSessionId} lang={uiLang} onToggleLang={toggleLang} pastSessions={sessions} onComplete={handleLessonComplete} onSwitchToText={() => setMode('text')} onExit={backHome} onAbortExit={abortExit} />
+          : <CourseTextLesson t={t} step={plan.main} sessionId={activeSessionId} learner={learner} pastSessions={sessions} resume={textResume} onComplete={handleLessonComplete} onExit={backHome} />}
       </TeacherProvider>
     );
   }

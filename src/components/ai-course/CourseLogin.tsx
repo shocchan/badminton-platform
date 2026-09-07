@@ -31,6 +31,12 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   const [mode, setMode] = useState<'id' | 'email'>('id');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
+  /**
+   * ログインの失敗回数（2026-09-07）。
+   * IDとパスワードは先生が配る方式なので、**忘れた人の行き先がどこにも無かった**。
+   * 完全な再発行機能を作る前に、まず詰まりを見えるようにする（8/23監査 P1-8）。
+   */
+  const [idFailures, setIdFailures] = useState(0);
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [invite, setInvite] = useState('');
   const [email, setEmail] = useState('');
@@ -102,6 +108,7 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
     setBusy(false);
     if (!r.ok) {
       setError(tx('IDまたはパスワードが違います。', 'ID或密码不正确。'));
+      setIdFailures((n) => n + 1);
       trackCourse('fail_ai_course_login', { method: 'id' });
       return;
     }
@@ -158,6 +165,27 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               </p>
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
+            {/*
+              忘れた人の行き先（2026-09-07）。自動の再発行はまだ無いので、
+              **無い機能があるように書かない**。人に頼む先だけを、はっきり出す。
+              2回失敗したら、探さなくても目に入る位置へ格上げする
+            */}
+            {idFailures >= 2 ? (
+              <div className="rounded-xl border border-amber-300 bg-amber-50 p-3">
+                <p className="text-sm font-bold text-amber-900">
+                  {tx('パスワードが分からないときは', '想不起密码的时候')}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-amber-900">
+                  {tx('WeChatで先生に「ログインできません」と送ってください。すぐに新しいパスワードをお渡しします。メールでも大丈夫です: info@kawabado.com',
+                    '请在微信上告诉老师「登录不了」，我们会马上给你新的密码。发邮件也可以: info@kawabado.com')}
+                </p>
+              </div>
+            ) : (
+              <p className="text-center text-[11px] text-gray-500">
+                {tx('パスワードが分からないときは、WeChatで先生に連絡してください。',
+                  '想不起密码时，请在微信上联系老师。')}
+              </p>
+            )}
             <button
               type="button" onClick={() => void handleIdLogin()} disabled={busy || !loginId.trim() || !password}
               className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 transition-all duration-150 flex items-center justify-center gap-2 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"

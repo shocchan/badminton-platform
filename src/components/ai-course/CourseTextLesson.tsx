@@ -25,7 +25,8 @@ import type { ReadingAid, ResumedTextLesson } from '../../lib/aiLesson/course/co
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import type { AiCourseDict } from '../../locales/aiCourse';
-import type { CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
+import { buildLearnerNotes } from '../../lib/aiLesson/course/adventure/advLearnerMemo';
+import type { CourseSessionRecord, CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
 import type { VoiceLessonResult } from './CourseVoiceLesson';
 
 interface Msg {
@@ -43,6 +44,11 @@ interface Props {
   /** 予約済みセッションID（LLM会話の認可・チェックポイント保存に使う） */
   sessionId: string | null;
   learner: Learner | null;
+  /**
+   * 過去のセッション（2026-09-07）。AI先生に渡す「この人のこと」の材料。
+   * 渡さなければ従来どおり＝毎回はじめまして。
+   */
+  pastSessions?: CourseSessionRecord[];
   /** 別端末からの再開データ（保存済み履歴とターン状態） */
   resume?: ResumedTextLesson | null;
   onComplete: (r: VoiceLessonResult) => void;
@@ -70,8 +76,18 @@ const RubyText = ({ text, aids }: { text: string; aids?: ReadingAid[] }) => {
   );
 };
 
-export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, onComplete, onExit }: Props) => {
+export const CourseTextLesson = ({
+  t, step, sessionId, learner, pastSessions = [], resume = null, onComplete, onExit,
+}: Props) => {
   const tl = t.lesson;
+  /**
+   * AI先生に渡す「この人のこと」（2026-09-07）。
+   * 実データ（過去のレポートの文）からだけ組み立てる純関数。材料が無ければ空配列。
+   */
+  const learnerNotes = useMemo(
+    () => buildLearnerNotes(pastSessions, new Date().toISOString()),
+    [pastSessions],
+  );
   const mission = step.mission;
   const isReview = step.kind !== 'new';
   // 発話の話者名は選んだ先生に揃える（音声レッスンと表示がずれないように・§18）
@@ -196,6 +212,8 @@ export const CourseTextLesson = ({ t, step, sessionId, learner, resume = null, o
       maxTurns: chatState.maxTurns,
       closingAnnounced: willBeClosing(chatState),
       askedQuestions: chatState.asked,
+      // 前回の会話の記録（2026-09-07）。渡さない＝毎回はじめまして、だった
+      learnerNotes,
     });
     if (!aliveRef.current) return;
     setBusy(false);

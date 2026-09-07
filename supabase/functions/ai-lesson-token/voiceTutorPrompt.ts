@@ -36,6 +36,11 @@ export interface VoicePromptParams {
    * 名前は最初に生徒へ見せない（自力で使えるかを見るため）。
    */
   weeklyTargets?: string;
+  /**
+   * この人のこと（2026-09-07）。過去のレポートの実文から作った短い記録。
+   * クライアントが渡し、サーバーは長さを切るだけ。**推測で足さない**。
+   */
+  learnerNotes?: string[];
 }
 
 /** 週間総合実践で扱う表現名を取り出す（先生側だけが知る） */
@@ -130,6 +135,7 @@ ${p.teacherStyle ? `- 話し方の方針: ${p.teacherStyle}（教える内容・
 - 中国語の補足も早口にしない。
 ${p.difficultyGuide ? `- レベル調整: ${p.difficultyGuide}` : ''}
 
+${(p.learnerNotes ?? []).length > 0 ? `\n【この人のこと（過去の会話の記録から）】\n${(p.learnerNotes ?? []).map((n) => `- ${n}`).join('\n')}\n- これはあなたが覚えていることとして自然に使ってよい（例:「この前の〜、その後どうでしたか」）。\n- ここに書いていないことを覚えているふりをしない。むりに毎回触れなくてよい。\n` : ''}
 ${kindGuide(p)}
 ${p.usageNotes ? `\n【この表現の使い方】\n- ${p.usageNotes}` : ''}
 ${p.commonMistakes ? `\n【中国語話者が間違えやすい点】\n- ${p.commonMistakes}\n- 生徒がこの間違いをしたら、やさしく一度だけ直す。` : ''}

@@ -11,9 +11,11 @@
 // - **スタンプは「来た日」であって「勉強した日」ではない。** 文言でも分けて書く。
 //   記録が始まる前の日は空欄（薄い枠）で、×にはしない（advVisit.VisitStamp.beforeRecords）
 // - 行き止まりにしない（原則15）: 「今日の冒険へ」と「今日はここまで」の両方を必ず出す
-import { primaryBtn, secondaryBtn } from './advUi';
+import { useState } from 'react';
+import { primaryBtn, secondaryBtn, subtleBtn } from './advUi';
 import { todayProverb, proverbOrdinal, PROVERB_TOTAL } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import { visitGreeting, visitStamps, visitedInCard } from '../../../lib/aiLesson/course/adventure/advVisit';
+import type { RestateItem } from '../../../lib/aiLesson/course/adventure/advRestateReview';
 import type { AdvVisitState } from '../../../lib/aiLesson/course/adventure/advTypes';
 
 type L = 'ja' | 'zh';
@@ -26,13 +28,27 @@ interface Props {
   todayKey: string;
   /** 今日のことばを人ごとにずらすための種（learner id など） */
   seed?: string;
+  /**
+   * 会話で直された言い方のうち、今日もう一度出すもの（advRestateReview.dueRestates）。
+   * 空なら節ごと出さない＝まだ会話をしていない人に空欄を見せない
+   */
+  restates?: RestateItem[];
+  /** 「言えた」「まだ」の自己申告（機械が確かめたものではない） */
+  onRestate?: (key: string, said: boolean) => void;
   /** 「今日の冒険へ」 */
   onStart: () => void;
   /** 「今日はここまで」＝カードを閉じてホームへ */
   onClose: () => void;
 }
 
-export function AdvDailyCheckin({ lang, visit, todayKey, seed = '', onStart, onClose }: Props) {
+export function AdvDailyCheckin({
+  lang, visit, todayKey, seed = '', restates = [], onRestate, onStart, onClose,
+}: Props) {
+  const [answered, setAnswered] = useState<Record<string, boolean>>({});
+  const answer = (key: string, said: boolean) => {
+    setAnswered((a) => ({ ...a, [key]: said }));
+    onRestate?.(key, said);
+  };
   const greeting = visitGreeting(visit, todayKey);
   const stamps = visitStamps(visit, todayKey);
   const came = visitedInCard(stamps);
@@ -115,6 +131,59 @@ export function AdvDailyCheckin({ lang, visit, todayKey, seed = '', onStart, onC
             <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{p.exampleZh}</p>
           </div>
         </section>
+
+        {/*
+          会話で直された言い方の再登場（2026-09-07）。
+          「1・3・7日後にもう一度」を、選択問題だけでなく**自分が話して直された言い方**にも効かせる。
+          ここのチェックは自己申告なので、そう分かる書き方にする（原則13）
+        */}
+        {restates.length > 0 && (
+          <section className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <h3 className="text-xs font-bold text-blue-900">
+              {tx(lang, 'この前、直した言い方', '之前被改过的说法')}
+            </h3>
+            <p className="mt-0.5 text-[0.7rem] text-blue-800">
+              {tx(lang, '声に出して言ってみてください。', '请出声说一遍看看。')}
+            </p>
+            <ul className="mt-2 flex flex-col gap-3">
+              {restates.map((r) => (
+                <li key={r.key} className="rounded-lg bg-white p-3">
+                  <p className="text-[0.7rem] text-gray-500">
+                    {tx(lang, `${r.daysSince}日前`, `${r.daysSince}天前`)}
+                  </p>
+                  <p className="mt-1 text-base font-bold leading-snug text-gray-900">{r.improved}</p>
+                  {r.noteZh && lang === 'zh' && (
+                    <p className="mt-1 text-xs leading-relaxed text-gray-600">{r.noteZh}</p>
+                  )}
+                  {answered[r.key] === undefined ? (
+                    <div className="mt-2 flex gap-2">
+                      <button type="button"
+                        className={`${secondaryBtn} min-h-[40px] py-2 text-sm`}
+                        onClick={() => answer(r.key, true)}>
+                        {tx(lang, '言えた', '说出来了')}
+                      </button>
+                      <button type="button"
+                        className={`${subtleBtn} min-h-[40px] py-2`}
+                        onClick={() => answer(r.key, false)}>
+                        {tx(lang, 'まだ', '还不行')}
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-gray-500">
+                      {answered[r.key]
+                        ? tx(lang, '記録しました。また出てきます。', '已记录。之后还会再出现。')
+                        : tx(lang, '記録しました。近いうちにもう一度出します。', '已记录。过几天会再出现一次。')}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[0.7rem] leading-relaxed text-blue-800">
+              {tx(lang, '※ このチェックは自分でつけた記録です（機械が聞き取って判定したものではありません）。',
+                '※ 这里的记录由你自己勾选（不是机器听音判定的结果）。')}
+            </p>
+          </section>
+        )}
 
         <button type="button" className={`${primaryBtn} mt-4`} onClick={onStart}>
           {tx(lang, '今日の冒険へ', '去今天的冒险')}

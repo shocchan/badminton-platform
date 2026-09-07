@@ -276,6 +276,12 @@ serve(async (req) => {
       commonMistakes: cleanText(plan.commonMistakes, 400) ?? undefined,
       reviewPrompt: cleanText(plan.reviewPrompt, 300) ?? undefined,
       weeklyTargets: cleanText(plan.weeklyTargets, 400) ?? undefined,
+      // この人のこと（2026-09-07）。5行×90字で切る＝instructionsを太らせない。
+      // 内容はクライアントが過去のレポートの実文から作る（advLearnerMemo.ts）
+      learnerNotes: (Array.isArray(plan.learnerNotes) ? plan.learnerNotes : [])
+        .map((n: unknown) => cleanText(n, 90))
+        .filter((n): n is string => !!n)
+        .slice(0, 5),
     };
 
     const instructions = buildVoiceInstructions(params);

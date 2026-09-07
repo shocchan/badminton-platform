@@ -152,6 +152,7 @@ serve(async (req) => {
       history?: HistoryMsg[]; studentText?: string;
       maxTurns?: number; closingAnnounced?: boolean;
       askedQuestions?: string[];
+      learnerNotes?: string[];
     };
     try { body = await req.json(); } catch { return json(400, { error: "invalid_json" }); }
 
@@ -180,6 +181,16 @@ serve(async (req) => {
     const estLevel = String(body.estimatedLevel ?? "N3").slice(0, 8);
 
     /**
+     * この人のこと（2026-09-07）。前回なにを話したか・くり返し出ている直し。
+     * クライアントが **過去のレポートの実文から**組み立てて渡す（advLearnerMemo.ts）。
+     * サーバーは受け取るだけで、内容を推測で足さない。
+     * 上限を切るのは入力を太らせないため（5行×90字）。
+     */
+    const learnerNotes = (Array.isArray(body.learnerNotes) ? body.learnerNotes : [])
+      .filter((n) => typeof n === "string" && n.trim())
+      .slice(0, 5).map((n) => n.trim().slice(0, 90));
+
+    /**
      * 直近の学習者発話が「今日のテーマから離れているか」の粗い判定（2026-08-23 実測対応）。
      * 目標表現の語や、テーマ名に含まれる語がどれも出てこない発話を off-topic と数える。
      * 判定を厳密にする必要はない——2回続いたときに「場面へ戻す」指示を足すだけの合図に使う。
@@ -202,6 +213,16 @@ serve(async (req) => {
       "",
       levelRules(estLevel),
       "",
+      // 記憶（2026-09-07）。無ければ節ごと出さない＝空の見出しでモデルを迷わせない
+      learnerNotes.length > 0
+        ? [
+          "【この人のこと（過去の会話の記録から）】",
+          ...learnerNotes.map((n) => `・${n}`),
+          "この記録は**あなたが覚えていること**として自然に使ってよい（例:「この前の〜、その後どうでしたか」）。",
+          "ただし、ここに書いていないことを覚えているふりをしない。毎回むりに触れなくてよい。",
+          "",
+        ].join("\n")
+        : "",
       "【応答ルール（厳守）】",
       "1. reaction: 学習者の直前の発言から、人・場所・出来事・感情のうち最低1点を具体的に拾って短く反応する（1〜2文）。",
       "   一般論やテンプレ相づちだけで返さない。過去の会話内容と矛盾しない。",

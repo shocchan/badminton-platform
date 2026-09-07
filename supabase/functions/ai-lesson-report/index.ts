@@ -19,6 +19,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+/**
+ * レポートのモデル。
+ *
+ * 【2026-09-07 に gpt-4.1 へ上げようとして、数字を出したらやめた記録】
+ *   動機は正しい: レポートは生徒がいちばんよく読む成果物で、要る仕事は
+ *   「日本語の微妙な不自然さを見つけて、なぜそう直すのかを中国語で説明する」。
+ *   4o-mini には背伸びで、プロンプトを作り込んでも上限は上がらない。
+ *
+ *   だが原価が合わない。**効くのは出力ではなく入力**で、レポートは会話ログを
+ *   まるごと渡す（上限 60発話×200字＋プロンプト＝約13,500トークン）。
+ *     - gpt-4o-mini … 1回 $0.0024
+ *     - gpt-4.1     … 1回 $0.0326（**13倍**）
+ *   テキスト1回ぶんの原価は $0.0099 → $0.0401 になり、
+ *   planAiBudget.maxAffordableTextUsdPerSession の上限
+ *   （ai-trial-pass $0.0115 / ai-month $0.0121）を3倍以上こえる。
+ *   ＝安いプランでは成立しない。planAiCostBasis.test.ts がこれを止めた。
+ *
+ * 上げたいなら、先に入力を減らすこと（4分の音声で60発話は実際には出ない。
+ * 実測にもとづいて上限を下げれば、同じ品質を安く買える）。あるいは
+ * 6か月プランだけモデルを分ける（上限 $0.0448 なら収まる余地がある）。
+ * env で差し替えられるので、実験は AI_LESSON_REPORT_MODEL でできる。
+ */
 const REPORT_MODEL = Deno.env.get("AI_LESSON_REPORT_MODEL") ?? "gpt-4o-mini";
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
 
