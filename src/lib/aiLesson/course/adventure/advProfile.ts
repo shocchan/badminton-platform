@@ -19,6 +19,7 @@ import {
 import { restoreTeacherNotes } from './advTeacherNote';
 import { restoreVisit, emptyVisitState } from './advVisit';
 import { restoreRestateLog } from './advRestateReview';
+import { restoreProverbDex } from './advProverbDex';
 
 const emptySkill = (): AdvSkillScore => ({
   currentScore: 0, confidence: 'none', evidenceCount: 0, lastAssessedAt: null, band: 'needs_assessment',
@@ -55,6 +56,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   streak: null,
   visit: emptyVisitState(),
   restateLog: [],
+  proverbDex: [],
   answerSheets: [],
   answerSheetSession: null,
   answerSheetLog: [],
@@ -247,6 +249,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     visit: restoreVisit(raw.visit),
     // 言い直し復習の記録（2026-09-07）。ここで拾わないと生徒の次の保存で消える
     restateLog: restoreRestateLog(raw.restateLog),
+    // ことば集め（2026-09-07）。ここで拾わないと生徒の次の保存で消える
+    proverbDex: restoreProverbDex(raw.proverbDex),
     // 期限切れのスキップは読み込み時点で落とす（保存が肥大化しない・解除漏れも起きない）
     stuckSkips: Array.isArray(raw.stuckSkips)
       ? (raw.stuckSkips as unknown[]).filter((x): x is AdventureV2Profile['stuckSkips'][number] =>

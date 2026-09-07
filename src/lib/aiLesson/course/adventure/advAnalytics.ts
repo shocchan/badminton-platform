@@ -17,6 +17,8 @@ export type AdvEventName =
   | 'report_viewed' | 'next_quest_started' | 'human_lesson_summary_viewed'
   // 単語図鑑（2026-09-06）
   | 'vocab_dex_viewed' | 'vocab_learn_started' | 'vocab_learn_completed'
+  // ことば集め（2026-09-07）。開いた日の1枚がどれだけ使われているかを見る
+  | 'proverb_dex_viewed' | 'proverb_learned'
   // COMPLETION §19（読解・聴解・中ボス・模試・準備度）
   | 'reading_started' | 'reading_completed'
   | 'listening_started' | 'listening_completed' | 'audio_played'

@@ -8,7 +8,7 @@ import {
   restoreVisit, emptyVisitState, recordVisit, markCardShown, shouldShowCheckin,
   daysAway, visitGreeting, visitStamps, visitedInCard, VISIT_CARD_DAYS,
 } from './advVisit';
-import { todayProverb, proverbOrdinal, PROVERB_TOTAL } from './advDailyGift';
+import { todayProverb, todayProverbFor, PROVERB_TOTAL } from './advDailyGift';
 import { PROVERBS } from './advProverbs';
 
 const st = (days: string[], lastCardKey: string | null = null) => ({ days, lastCardKey });
@@ -108,22 +108,44 @@ describe('今日のことば', () => {
     expect(todayProverb('2026-09-07', 'x').id).not.toBe(todayProverb('2026-09-08', 'x').id);
   });
 
-  it('件数ぶん連続して重複しない（一巡するまで戻らない）', () => {
-    const ids = Array.from({ length: PROVERB_TOTAL }, (_, i) => {
+  it('持っているものを避けて配る（集まっていく感じを壊さない）', () => {
+    const collected: string[] = [];
+    for (let i = 0; i < 20; i += 1) {
       const d = new Date(Date.parse('2026-09-07') + i * 86400000).toISOString().slice(0, 10);
-      return todayProverb(d, 'learner-1').id;
-    });
-    expect(new Set(ids).size).toBe(PROVERB_TOTAL);
+      const p = todayProverbFor({ dateKey: d, seed: 'learner-1', collected });
+      expect(collected, `${d} に持っている札が出た`).not.toContain(p.id);
+      collected.push(p.id);
+    }
   });
 
-  it('日付が壊れていても画面を空にしない', () => {
-    expect(todayProverb('こわれた').id).toBe(PROVERBS[0].id);
+  it('日付が壊れていても画面を空にしない（実在することばを必ず返す）', () => {
+    const p = todayProverb('こわれた');
+    expect(PROVERBS.some((x) => x.id === p.id)).toBe(true);
   });
 
-  it('通し番号は1〜件数に収まる', () => {
-    const n = proverbOrdinal('2026-09-07', 'learner-1');
-    expect(n).toBeGreaterThanOrEqual(1);
-    expect(n).toBeLessThanOrEqual(PROVERB_TOTAL);
+  it('全部集めた人にも必ず1つ返す（もらえない日を作らない）', () => {
+    const all = PROVERBS.map((x) => x.id);
+    const p = todayProverbFor({ dateKey: '2026-09-07', seed: 'x', collected: all });
+    expect(PROVERBS.some((x) => x.id === p.id)).toBe(true);
+  });
+
+  it('初級の人に上級の言い回しばかり出さない', () => {
+    for (let i = 0; i < 15; i += 1) {
+      const d = new Date(Date.parse('2026-09-07') + i * 86400000).toISOString().slice(0, 10);
+      expect(todayProverbFor({ dateKey: d, seed: 'n5', level: 'N5' }).band).not.toBe('upper');
+    }
+  });
+
+  it('久しぶりの人に「三日坊主」を渡さない（その日に合うものを優先する）', () => {
+    for (let i = 0; i < 15; i += 1) {
+      const d = new Date(Date.parse('2026-09-07') + i * 86400000).toISOString().slice(0, 10);
+      const p = todayProverbFor({ dateKey: d, seed: `s${i}`, mood: 'comeback' });
+      expect(p.mood, `${p.id} が comeback の日に出た`).toContain('comeback');
+    }
+  });
+
+  it('件数が実在の配列と一致する（画面の「◯/60」が嘘にならない）', () => {
+    expect(PROVERB_TOTAL).toBe(PROVERBS.length);
   });
 });
 

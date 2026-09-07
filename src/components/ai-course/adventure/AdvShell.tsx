@@ -79,6 +79,14 @@ import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
 import { AdvDailyCheckin } from './AdvDailyCheckin';
 import { recordVisit, markCardShown, shouldShowCheckin } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { dueRestates, markRestate } from '../../../lib/aiLesson/course/adventure/advRestateReview';
+import { AdvProverbDex } from './AdvProverbDex';
+import { todayProverbFor } from '../../../lib/aiLesson/course/adventure/advDailyGift';
+import {
+  collectProverb, markProverbLearned, markProverbRecalled, dueProverbRecall,
+  proverbStats, crossedProverbMilestone,
+} from '../../../lib/aiLesson/course/adventure/advProverbDex';
+import { PROVERBS } from '../../../lib/aiLesson/course/adventure/advProverbs';
+import { visitGreeting } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { diffNewlyDone, conquestCelebrations, type AdvCelebration } from '../../../lib/aiLesson/course/adventure/advCelebration';
@@ -169,7 +177,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn';
+type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn' | 'kotoba';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -675,6 +683,44 @@ export default function AdvShell(props: AdvShellProps) {
     if (next) save({ ...profile, visit: next });
   }, [profile, dateKey, save]);
   /**
+   * 今日のことば（2026-09-07 第2版）。
+   * **まだ持っていないものから**、その日の状況と目標レベルに合うものを選ぶ。
+   * 選び方は純関数（advDailyGift.todayProverbFor）で、日付と人と持ち物だけで決まる
+   * ＝同じ日に開き直しても変わらない。
+   */
+  const todaysProverb = useMemo(() => {
+    const g = visitGreeting(profile?.visit ?? { days: [], lastCardKey: null }, dateKey);
+    const mood = g.kind === 'long' || g.kind === 'short' ? 'comeback' as const
+      : g.kind === 'first' ? 'start' as const
+        : 'keepgoing' as const;
+    return todayProverbFor({
+      dateKey,
+      seed: learner.id,
+      collected: (profile?.proverbDex ?? []).map((e) => e.id),
+      mood,
+      level: profile?.targetJlpt ?? profile?.declaredJlpt ?? null,
+    });
+  }, [profile?.visit, profile?.proverbDex, profile?.targetJlpt, profile?.declaredJlpt, dateKey, learner.id]);
+  /** 前に「おぼえた」と言ったことばの、1回だけの再確認 */
+  const proverbRecall = useMemo(
+    () => dueProverbRecall(profile?.proverbDex ?? [], dateKey),
+    [profile?.proverbDex, dateKey],
+  );
+  const toggleProverbLearned = useCallback((id: string, learned: boolean) => {
+    if (!profile) return;
+    const next = markProverbLearned(profile.proverbDex, id, learned);
+    if (!next) return;
+    // ことば本文は送らない（idだけ）。押された回数が分かればよい
+    if (learned) trackAdv('proverb_learned', { locale: lang });
+    save({ ...profile, proverbDex: next });
+  }, [profile, save, lang]);
+  const answerProverbRecall = useCallback((id: string) => {
+    if (!profile) return;
+    const next = markProverbRecalled(profile.proverbDex, id, dateKey);
+    if (next) save({ ...profile, proverbDex: next });
+  }, [profile, dateKey, save]);
+
+  /**
    * 会話で直された言い方の再登場（2026-09-07）。
    * 直しの本文は **セッションのレポートが正準**なので、ここで毎回導出する（台帳へ書き写さない）。
    * 保存するのは「いつ出して、自分で言えたとチェックしたか」だけ。
@@ -695,6 +741,27 @@ export default function AdvShell(props: AdvShellProps) {
     const next = markCardShown(profile.visit, dateKey);
     if (next) save({ ...profile, visit: next });
   }, [profile, dateKey, save]);
+  /**
+   * 今日のことばを手元へ入れる。カードを出すのと同じタイミングで1回だけ走る
+   * （collectProverb が持っているものには null を返すのでループしない）。
+   */
+  const [proverbMilestone, setProverbMilestone] = useState<number | null>(null);
+  /**
+   * 今日おかえりカードを出す日か（ことばを手元へ入れる条件と、画面の出し分けで同じ判定を使う）。
+   * 画面側の条件（view==='home' など）はここに入れない——**別の画面を見ている日でも
+   * その日のことばは受け取れる**ほうが自然だから
+   */
+  const showCheckin = !!profile
+    && checkinClosedKey !== dateKey && shouldShowCheckin(profile.visit, dateKey);
+  useEffect(() => {
+    if (!profile || !showCheckin) return;
+    const next = collectProverb(profile.proverbDex, todaysProverb.id, dateKey);
+    if (!next) return;
+    const crossed = crossedProverbMilestone(profile.proverbDex.length, next.length);
+    if (crossed !== null) setProverbMilestone(crossed);
+    save({ ...profile, proverbDex: next });
+  }, [profile, showCheckin, todaysProverb, dateKey, save]);
+
 
   // 完了は**安定キー（stepKeyOf）**で照合する（2026-08-17 監査P0: questの並びは
   // 日中の状態変化で変わるため、添字だけだと未実施stepが勝手に完了扱いになっていた）。
@@ -1267,15 +1334,20 @@ export default function AdvShell(props: AdvShellProps) {
    * 学習の途中（バトル・模試・かな道場）には割り込ませない＝手を止めさせない。
    * 祝いと重なったときは祝いを先に見せる（祝いのほうが一瞬で終わるため）。
    */
-  const checkinEl = (
-    view === 'home' && celebrations.length === 0
-    && checkinClosedKey !== dateKey && shouldShowCheckin(prof.visit, dateKey)
-  ) ? (
+  const checkinEl = (view === 'home' && celebrations.length === 0 && showCheckin) ? (
     <AdvDailyCheckin
       lang={lang}
       visit={prof.visit}
       todayKey={dateKey}
-      seed={learner.id}
+      proverb={todaysProverb}
+      collected={proverbStats(prof.proverbDex, PROVERBS.length).collected}
+      learned={proverbStats(prof.proverbDex, PROVERBS.length).learned}
+      milestone={proverbMilestone}
+      isLearned={prof.proverbDex.some((e) => e.id === todaysProverb.id && e.learned)}
+      onToggleLearned={(v) => toggleProverbLearned(todaysProverb.id, v)}
+      onOpenDex={() => { closeCheckin(); setView('kotoba'); }}
+      recall={proverbRecall}
+      onRecallAnswered={answerProverbRecall}
       restates={todaysRestates}
       onRestate={markRestateSaid}
       onStart={closeCheckin}
@@ -1688,6 +1760,16 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 単語図鑑（2026-09-06）──
   // バトル・模試で出会った語がここに集まる。段階は台帳の事実だけから出す
+  if (view === 'kotoba') {
+    return withCelebration(
+      <AdvProverbDex
+        lang={lang}
+        dex={prof.proverbDex}
+        onToggleLearned={toggleProverbLearned}
+        onBack={() => setView('home')}
+      />,
+    );
+  }
   if (view === 'dex') {
     if (!dexView) return <AdvLoading lang={lang} note={tx(lang, '図鑑を開いています…', '正在打开图鉴…')} />;
     return <AdvVocabDex lang={lang} view={dexView.view} onBack={() => setView('home')} />;
@@ -3704,6 +3786,14 @@ export default function AdvShell(props: AdvShellProps) {
               {/* 単語図鑑（2026-09-06）。出会った語が集まる場所。記録は台帳から導くので常に出す */}
               <SubLink lang={lang} label={tx(lang, '単語図鑑（出会った単語）', '单词图鉴（遇见的单词）')}
                 onClick={() => { trackAdv('vocab_dex_viewed', { locale: lang }); setView('dex'); }} />
+              {/* ことば図鑑（2026-09-07）。おかえりカードで受け取ったことばの棚。
+                  1つも持っていない人には出さない＝空の部屋へ入れない */}
+              {prof.proverbDex.length > 0 && (
+                <SubLink lang={lang}
+                  label={tx(lang, 'ことば図鑑（今日のことば）', '词句图鉴（每天的一句话）')}
+                  badge={prof.proverbDex.length}
+                  onClick={() => { trackAdv('proverb_dex_viewed', { locale: lang }); setView('kotoba'); }} />
+              )}
               {/* 模試の間違い直し（2026-08-25）。受けた回があるときだけ出す＝空の部屋へ入れない */}
               {prof.mockLog.length > 0 && (
                 <SubLink lang={lang}

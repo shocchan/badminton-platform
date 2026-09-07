@@ -306,6 +306,22 @@ export interface AdvVisitState {
  * 直しの本文はここに持たない（ai_learning_sessions.report が正準・advRestateReview.ts）。
  * `said` は**自己申告**で、機械が確かめた結果ではない。
  */
+/**
+ * 集めた「今日のことば」1件（2026-09-07 第2版）。
+ * 本文はここに持たない——**advProverbs.PROVERBS が正準**で、ここは id と日付だけ。
+ * `learned` は自己申告であって、テストで測った定着ではない。
+ */
+export interface AdvProverbEntry {
+  /** advProverbs の id */
+  id: string;
+  /** 受け取った日 YYYY-MM-DD */
+  day: string;
+  /** 自分で「おぼえた」と決めたか（自己申告） */
+  learned: boolean;
+  /** 「覚えていますか？」を出した日。null＝まだ一度も出していない（出すのは1回だけ） */
+  recalledDay: string | null;
+}
+
 export interface AdvRestateLogEntry {
   /** `${sessionId}:${correctionIndex}` */
   key: string;
@@ -409,6 +425,11 @@ export interface AdventureV2Profile {
    * 直しの本文はセッションのレポートから毎回導出する（二重管理にしない）。
    */
   restateLog: AdvRestateLogEntry[];
+  /**
+   * ことば集め（2026-09-07 第2版）。受け取った「今日のことば」がここにたまる。
+   * 本文は持たず id と日付だけ（advProverbDex.ts）。
+   */
+  proverbDex: AdvProverbEntry[];
   /**
    * 帰化面接の表現特訓。enabledAt が null なら未発行＝画面に出さない。
    * 模擬面接はアプリでやらない（CEOの授業で行う）。アプリは表現の特訓と記録だけ
