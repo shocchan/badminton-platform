@@ -7,9 +7,17 @@
 //   questLog直近60件・attempt束あたり24件（MASTERY_RULES.maxAttemptsKept）の間引きにより、
 //   seedは**過小方向にしかズレない**＝実際より多い日数を出すことはない
 // - 攻略・mastery・準備度には一切影響しない（advXp.ts と同じ立場の「冒険の実感」用）
-// - 「活動した日」の定義はあゆみヒートマップと**同じ集合**（questLog∪全mastery attempt）。
-//   かな道場だけの日はあゆみ同様カウントされない（既存表示と数字を食い違わせない）
+// - 「活動した日」の定義は **advLearningDay（唯一の正）** に委譲する（2026-09-09・P0-1）。
+//   以前はここが questLog∪mastery を自前で数えていたため、かな道場だけの日・
+//   AI会話だけの日・途中でやめた日がストリークに入らなかった
+//   （実測: かな18行を3日やった生徒の streak が null のまま）。
+//   あゆみヒートマップ・管理画面・先生の一言も同じ集合を見る
 import type { AdventureV2Profile, AdvStreakState } from './advTypes';
+import { learningDayKeys } from './advLearningDay';
+
+/** 学習日の判定に要るプロフィールの部分（advLearningDay と同じ範囲） */
+type StreakSource = Pick<AdventureV2Profile,
+  'learningDays' | 'questLog' | 'mastery' | 'restateLog' | 'todaySteps'>;
 
 /** 祝う節目（ちょうど到達した日だけ祝う） */
 export const STREAK_MILESTONES = [3, 7, 14, 30, 50, 100] as const;
@@ -22,20 +30,19 @@ const dayDiff = (a: string, b: string): number => Math.round((Date.parse(b) - Da
 /** 前日のキー */
 const prevDayKey = (key: string): string => new Date(Date.parse(key) - DAY_MS).toISOString().slice(0, 10);
 
-/** questLog∪mastery の活動日キー集合（あゆみヒートマップと同一定義） */
-export const activeDayKeys = (p: Pick<AdventureV2Profile, 'questLog' | 'mastery'>): Set<string> => {
-  const days = new Set<string>();
-  for (const q of p.questLog ?? []) if (typeof q?.dateKey === 'string') days.add(q.dateKey);
-  for (const attempts of Object.values(p.mastery ?? {})) {
-    for (const a of attempts ?? []) if (typeof a?.dateKey === 'string') days.add(a.dateKey);
-  }
-  return days;
-};
+/**
+ * 学習した日のキー集合（あゆみヒートマップ・管理画面と同一定義）。
+ * 定義は advLearningDay.learningDayKeys が持つ＝ここでは数えない。
+ * @param convDayKeys 会話セッションの日（持っている画面だけ渡す）
+ */
+export const activeDayKeys = (
+  p: StreakSource, convDayKeys: readonly string[] = [],
+): Set<string> => learningDayKeys(p, convDayKeys);
 
-/** dateKey当日に活動記録があるか */
+/** dateKey当日に意味のある学習行動があったか */
 export const hasActivityOn = (
-  p: Pick<AdventureV2Profile, 'questLog' | 'mastery'>, dateKey: string,
-): boolean => activeDayKeys(p).has(dateKey);
+  p: StreakSource, dateKey: string, convDayKeys: readonly string[] = [],
+): boolean => activeDayKeys(p, convDayKeys).has(dateKey);
 
 /**
  * 履歴からの初期値。todayKeyを含む連続日数を過去へ遡って数える（今日の活動が無ければnull）。
@@ -60,10 +67,12 @@ export const seedStreak = (days: Set<string>, todayKey: string): AdvStreakState 
  * - 前日から+1 / 2日以上空いたら1へリセット（**責め文言はどこにも出さない。数字が戻るだけ**）
  * - best = max(best, current)
  */
-export const advanceStreak = (p: AdventureV2Profile, todayKey: string): AdvStreakState | null => {
-  if (!hasActivityOn(p, todayKey)) return null;
+export const advanceStreak = (
+  p: AdventureV2Profile, todayKey: string, convDayKeys: readonly string[] = [],
+): AdvStreakState | null => {
+  if (!hasActivityOn(p, todayKey, convDayKeys)) return null;
   const prev = p.streak;
-  if (!prev) return seedStreak(activeDayKeys(p), todayKey);
+  if (!prev) return seedStreak(activeDayKeys(p, convDayKeys), todayKey);
   if (prev.lastActiveKey === todayKey) return null;
   const gap = dayDiff(prev.lastActiveKey, todayKey);
   // 時計の巻き戻り・壊れたキー（NaN含む）では進めない（安全側＝何もしない）

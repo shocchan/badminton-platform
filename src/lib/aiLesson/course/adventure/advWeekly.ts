@@ -11,6 +11,7 @@ import type {
 import type { CourseSessionRecord } from '../types';
 import { masteredTargetIds, masteredTargetIdsAsOf } from './advMastery';
 import { EXAM_SKILL_LABELS, type ExamSkill } from './advExamSkills';
+import { learningDayKeys, sessionLearningDayKeys } from './advLearningDay';
 
 export interface WeeklySkillChange {
   skill: ExamSkill;
@@ -110,15 +111,12 @@ export const buildWeeklySummary = (
 
   const inThisWeek = (k: string) => inRange(k, thisWeekStart, nextWeekStart);
   const questThisWeek = prof.questLog.filter((q) => inThisWeek(q.dateKey));
-  // 学習日は「締めくくりを押した日（questLog）」だけでなく、バトル等の実測attemptが
-  // あった日も数える（2026-08-17 監査: 途中でやめた日が「学習0日」扱いになり、
-  // 5step中2step進めた日の努力が週まとめから消えていた）
-  const studyDayKeys = new Set(questThisWeek.map((q) => q.dateKey));
-  for (const attempts of Object.values(prof.mastery)) {
-    for (const a of attempts ?? []) {
-      if (inThisWeek(a.dateKey)) studyDayKeys.add(a.dateKey);
-    }
-  }
+  // 学習日の定義は **advLearningDay（唯一の正）**（2026-09-09・P0-1 で統一）。
+  // ここは以前 questLog∪mastery を自前で数えていたため、かな道場だけの日・
+  // AI会話だけの日が週まとめから落ちていた（2026-08-17 に途中離脱の日は救ってあった）
+  const studyDayKeys = new Set(
+    [...learningDayKeys(prof, sessionLearningDayKeys(sessions))].filter(inThisWeek),
+  );
   const studyDays = studyDayKeys.size;
   const completedQuests = questThisWeek.filter((q) => q.totalSteps > 0 && q.completedSteps >= q.totalSteps).length;
 

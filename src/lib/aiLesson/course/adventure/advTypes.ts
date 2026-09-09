@@ -384,6 +384,16 @@ export interface AdventureV2Profile {
   /** クエスト完了の連続性（consistency能力の証拠） */
   questLog: { dateKey: string; completedSteps: number; totalSteps: number }[];
   /**
+   * 学習した日の記録（2026-09-09・P0-1）。**「学習した」の唯一の正**。
+   *
+   * questLog は「やりきった冒険」だけ・直近60件で切られる**表示用の履歴（A）**。
+   * こちらは切らずに1年ぶん持つ**永続側（B）**で、かな道場だけの日・AI会話だけの日・
+   * 途中でやめた日も残る。streak・あゆみ・管理画面・先生の一言はここだけを見る。
+   *
+   * 判定と読み出しは advLearningDay.ts（開いただけの日は入れない＝ visit と混ぜない）。
+   */
+  learningDays: import('./advLearningDay').AdvLearningDay[];
+  /**
    * 経験値の累計（2026-08-16）。努力の通貨＝上限なし・やった分だけ増える。
    * 攻略・mastery・準備度には一切影響しない（advXp.ts参照）
    */

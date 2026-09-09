@@ -88,6 +88,9 @@ import {
 import { PROVERBS } from '../../../lib/aiLesson/course/adventure/advProverbs';
 import { visitGreeting } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { advanceStreak, crossedMilestone } from '../../../lib/aiLesson/course/adventure/advStreak';
+import {
+  reconcileLearningDays, sessionLearningDayKeys, learningDayKeys, lastLearningDayKey,
+} from '../../../lib/aiLesson/course/adventure/advLearningDay';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
 import { diffNewlyDone, conquestCelebrations, type AdvCelebration } from '../../../lib/aiLesson/course/adventure/advCelebration';
 import { buildAdventureMap, availableRouteKinds } from '../../../lib/aiLesson/course/adventure/advMapModel';
@@ -1088,20 +1091,41 @@ export default function AdvShell(props: AdvShellProps) {
   }, [profile, pools]);
 
   /**
-   * つづけた日（streak）の更新（2026-08-19）。「学習した日」だけを数える
-   * （questLog∪mastery＝あゆみヒートマップと同じ集合。開いただけでは数えない）。
-   * ループ安全: 保存後は lastActiveKey===dateKey で advanceStreak が null を返すので
-   * 1日1回しか保存が増えない。途切れても数字が戻るだけで、責め文言はどこにも出さない
+   * 会話セッション（V1）の「終えた日」。学習日の材料としてV2側へ渡す（2026-09-09・P0-1）。
+   * 会話しかしていない日が学習日から落ちていたのを塞ぐ
+   */
+  const convDayKeys = useMemo(() => sessionLearningDayKeys(props.sessions), [props.sessions]);
+
+  /**
+   * 学習した日の記録（2026-09-09・P0-1）と、つづけた日（streak・2026-08-19）の更新。
+   *
+   * **1つのeffectで1回だけ保存する。** 上の「来た日」effectと同じ理由:
+   * save は props の learner.settings を土台にするので、同じ描画で2回 save すると
+   * あとの save が先の変更を丸ごと消す。
+   *
+   * learningDays はここが唯一の書き手で、「今日ぶんを積む」と「既存learnerの埋め戻し」を
+   * 兼ねる。reconcileLearningDays / advanceStreak はどちらも
+   * 「変える必要が無ければ null」を返すので、毎描画で呼んでも保存はループしない。
+   * step完了・バトル・会話・言い直しのどれが起きても、その保存のあとの再描画でここが拾う
+   * ＝記録の取りこぼしが構造的に起きない。
+   *
+   * streak は「学習した日」だけを数える（定義は advLearningDay）。開いただけの日は入らない。
+   * 途切れても数字が戻るだけで、責め文言はどこにも出さない。
    */
   useEffect(() => {
     if (!profile?.enabled) return;
-    const ns = advanceStreak(profile, dateKey);
-    if (!ns) return;
-    const milestone = crossedMilestone(profile.streak ?? null, ns);
-    // 祝いの積み込みは次tickで（saveのレベルアップ通知と同じイディオム。effect内の同期setStateにしない）
-    if (milestone !== null) setTimeout(() => setCelebrations((q) => [...q, { kind: 'streak', days: milestone }]), 0);
-    save({ ...profile, streak: ns });
-  }, [profile, dateKey, save]);
+    let next = profile;
+    const days = reconcileLearningDays(profile, convDayKeys);
+    if (days) next = { ...next, learningDays: days };
+    const ns = advanceStreak(profile, dateKey, convDayKeys);
+    if (ns) {
+      next = { ...next, streak: ns };
+      const milestone = crossedMilestone(profile.streak ?? null, ns);
+      // 祝いの積み込みは次tickで（saveのレベルアップ通知と同じイディオム。effect内の同期setStateにしない）
+      if (milestone !== null) setTimeout(() => setCelebrations((q) => [...q, { kind: 'streak', days: milestone }]), 0);
+    }
+    if (next !== profile) save(next);
+  }, [profile, dateKey, convDayKeys, save]);
 
   /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
@@ -2451,7 +2475,7 @@ export default function AdvShell(props: AdvShellProps) {
   if (view === 'weekly') {
     const wk = buildWeeklySummary(prof, nowISO, props.sessions);
     // 成長の4段階（今日・今週・30日・半年）。台帳と冒険の記録から数えるだけ
-    const horizons = buildGrowthHorizons(prof, dateKey);
+    const horizons = buildGrowthHorizons(prof, dateKey, convDayKeys);
     const wkDays = daysToExamOf(prof.examDateISO, dateKey);
     const wkPace = pools && prof.goalType !== 'conversation'
       ? computePace({
@@ -2563,9 +2587,8 @@ export default function AdvShell(props: AdvShellProps) {
         {/* あゆみのカレンダー（直近5週・実測のみ）。「積み上げてきた事実」を物的証拠として見せる
             （2026-08-17 競合調査: WaniKaniヒートマップ/中国系打卡文化。金額に見合う蓄積の可視化） */}
         {(() => {
-          const activeDays = new Set<string>();
-          for (const q of prof.questLog) activeDays.add(q.dateKey);
-          for (const at of Object.values(prof.mastery)) for (const a of at ?? []) activeDays.add(a.dateKey);
+          // 学習した日の定義は1か所（advLearningDay）。ストリークと同じ集合を描く
+          const activeDays = learningDayKeys(prof, convDayKeys);
           if (activeDays.size === 0) return null;
           const today = Date.parse(dateKey);
           const cells: { key: string; active: boolean; isToday: boolean }[] = [];
@@ -2969,15 +2992,11 @@ export default function AdvShell(props: AdvShellProps) {
   }
 
   // 休み明けの検知（2026-08-17 監査: 10日ぶりに開いた人に通常挨拶＋amber警告が並び、
-  // 罪悪感だけ与えて復帰の後押しがなかった）。最終学習日はquestLogとmastery実測の新しい方
-  const lastStudyKey = (() => {
-    let last: string | null = null;
-    for (const q of prof.questLog) if (!last || q.dateKey > last) last = q.dateKey;
-    for (const at of Object.values(prof.mastery)) {
-      for (const a of at ?? []) if (!last || a.dateKey > last) last = a.dateKey;
-    }
-    return last;
-  })();
+  // 罪悪感だけ与えて復帰の後押しがなかった）。
+  // 最終学習日は **advLearningDay（唯一の正）** から取る（2026-09-09・P0-1）。
+  // 以前は questLog∪mastery だけを見ていたため、かな道場を18行終えた生徒にも
+  // 「はじめまして。今日は全部やらなくて大丈夫です」が出続けていた（実測・小蒋さん）
+  const lastStudyKey = lastLearningDayKey(prof, convDayKeys);
   const daysAway = (() => {
     if (!lastStudyKey) return 0;
     const diff = Math.floor((Date.parse(dateKey) - Date.parse(lastStudyKey)) / 86400000);

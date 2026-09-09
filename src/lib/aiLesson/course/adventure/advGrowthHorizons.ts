@@ -11,12 +11,15 @@
  * - 数えられる事実だけを出す。推定・按分・「だいたい」を作らない
  * - 記録が足りない段は **`measured: false`** にして「まだ言えません」と書く。
  *   0件を「0日」と出すと、始めたばかりの人に「何もしていない」と言うことになる
- * - 学習日数は questLog（冒険の記録）と mastery 台帳（実際に解いた記録）の**和集合**。
- *   どちらか一方だけだと、バトルしかしなかった日・会話しかしなかった日が落ちる
- * - questLog は直近60件しか持たない。半年の段は「記録に残っている範囲」と断る
+ * - 学習日数は **advLearningDay（唯一の正）** から取る（2026-09-09・P0-1）。
+ *   以前は questLog∪mastery だけを見ていたため、かな道場だけの日・AI会話だけの日・
+ *   途中でやめた日が半年の段から丸ごと落ちていた
+ * - questLog は直近60件しか持たない。**やりきった冒険の回数**だけがその制限を受ける
+ *   （学習日数は learningDays が1年ぶん持つので切れない）
  */
 import type { AdventureV2Profile } from './advTypes';
 import { MASTERY_RULES } from './advMastery';
+import { learningDayKeys } from './advLearningDay';
 
 export type HorizonKey = 'today' | 'week' | 'month' | 'halfYear';
 
@@ -72,8 +75,11 @@ const emptyHorizon = (key: HorizonKey): GrowthHorizon => ({
  * @param todayKey 'YYYY-MM-DD'（JSTの今日。呼び出し側の dateKey をそのまま渡す）
  */
 export const buildGrowthHorizons = (
-  profile: Pick<AdventureV2Profile, 'questLog' | 'mastery'> | null | undefined,
+  profile: Pick<AdventureV2Profile,
+    'questLog' | 'mastery' | 'learningDays' | 'restateLog' | 'todaySteps'> | null | undefined,
   todayKey: string,
+  /** 会話セッションの日（持っている画面だけ渡す）。無くても learningDays 側に残っている */
+  convDayKeys: readonly string[] = [],
 ): GrowthHorizons => {
   const questLog = profile?.questLog ?? [];
   const ledger = profile?.mastery ?? {};
@@ -90,10 +96,8 @@ export const buildGrowthHorizons = (
     }
   }
 
-  const studyDayKeys = new Set<string>([
-    ...questLog.map((q) => q.dateKey).filter(Boolean),
-    ...attemptsByDay.keys(),
-  ]);
+  // 学習した日の定義は1か所（advLearningDay）。ここでは数え直さない
+  const studyDayKeys = learningDayKeys(profile, convDayKeys);
 
   const firstStudyDateKey = [...studyDayKeys].sort()[0] ?? null;
   const weekSpan = daysSinceMonday(todayKey);

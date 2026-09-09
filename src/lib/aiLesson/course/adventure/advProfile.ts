@@ -19,6 +19,7 @@ import {
 import { restoreTeacherNotes } from './advTeacherNote';
 import { restoreVisit, emptyVisitState } from './advVisit';
 import { restoreRestateLog } from './advRestateReview';
+import { restoreLearningDays, emptyLearningDays } from './advLearningDay';
 import { restoreProverbDex } from './advProverbDex';
 
 const emptySkill = (): AdvSkillScore => ({
@@ -49,6 +50,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   lastQuest: null,
   todaySteps: null,
   questLog: [],
+  learningDays: emptyLearningDays(),
   xp: 0,
   mockSession: null,
   mockLog: [],
@@ -226,6 +228,9 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     questLog: Array.isArray(raw.questLog)
       ? (raw.questLog.filter((e) => isRecord(e) && typeof e.dateKey === 'string') as AdventureV2Profile['questLog'])
       : [],
+    // 学習した日（2026-09-09・P0-1）。ここで拾わないと生徒の次の保存で消える
+    //（この関数は明示したキーしか通さない）
+    learningDays: restoreLearningDays(raw.learningDays),
     xp: typeof raw.xp === 'number' && Number.isFinite(raw.xp) ? Math.max(0, Math.floor(raw.xp)) : 0,
     mockSession: restoreMockSessionState(raw.mockSession),
     mockLog: Array.isArray(raw.mockLog)

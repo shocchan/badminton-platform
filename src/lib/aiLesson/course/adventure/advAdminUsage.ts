@@ -2,9 +2,14 @@
 // CEO要望（2026-08-15）:「どれくらいログインして、各々どれくらい利用したか見たい」
 //
 // 鉄則（原則13）: 実記録から数えられるものだけを出す。推定値は出さない。
-// 学習日の定義: questLog または mastery attempt が記録された日（別々の日付キーの和集合）。
+//
+// 学習日の定義は **advLearningDay（唯一の正）** に委譲する（2026-09-09・P0-1）。
+// 以前はここが questLog∪mastery を自前で数えていたため、かな道場だけ・AI会話だけの生徒が
+// 管理画面で「未学習」と出ていた（実測: かな18行を3日やった小蒋さんが未学習表示）。
+// 生徒の画面のストリーク・あゆみと、管理画面の学習日数が食い違わないようにする。
 import type { LearnerSettings } from '../types';
 import { readAdvProfile } from './advProfile';
+import { learningDayKeys } from './advLearningDay';
 
 export interface AdvLearnerUsage {
   /** V2オンボーディング完了済みか（ルートがあるか） */
@@ -56,15 +61,9 @@ export const advLearnerUsageOf = (
       targetJlpt: null, goalType: null, diagnosisBand: null,
     };
   }
-  const days = new Set<string>();
-  for (const q of prof.questLog) days.add(q.dateKey);
+  const days = learningDayKeys(prof);
   let battleAttempts = 0;
-  for (const attempts of Object.values(prof.mastery)) {
-    for (const a of attempts ?? []) {
-      battleAttempts += 1;
-      days.add(a.dateKey);
-    }
-  }
+  for (const attempts of Object.values(prof.mastery)) battleAttempts += (attempts ?? []).length;
   const now = Date.parse(dayKeyOf(nowISO));
   const withinDays = (k: string, n: number): boolean => {
     const d = Date.parse(k);
