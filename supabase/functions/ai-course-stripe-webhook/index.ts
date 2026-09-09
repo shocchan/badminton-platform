@@ -327,14 +327,23 @@ serve(async (req: Request) => {
        台帳から離脱率が読めなかった。expired を受けたら pending だけを expired にする
        （既に払われた行には触らない）。 */
     if (event.type === "checkout.session.expired") {
+      let updated = 0;
       if (evSessionId) {
-        await fetch(`${supabaseUrl}/rest/v1/rpc/ai_expire_purchase`, {
+        const r = await fetch(`${supabaseUrl}/rest/v1/rpc/ai_expire_purchase`, {
           method: "POST", headers: dbHeaders,
           body: JSON.stringify({ p_session_id: evSessionId }),
-        }).catch((e) => console.error("expire rpc:", e));
+        }).catch((e) => { console.error("expire rpc:", e); return null; });
+        const j = r?.ok ? await r.json().catch(() => null) : null;
+        updated = Number(j?.updated ?? 0);
       }
-      await logOutcome("handled", "session expired -> ledger marked expired");
-      return json({ received: true, handled: event.type });
+      /* 0件＝この webhook の担当でないセッション（大会の決済など。Stripeアカウントを
+         共用しているので普通に届く）。**「期限切れにした」と書かない** ——
+         観測の行が実際と食い違うと、次に読む人が判断を誤る */
+      await logOutcome(
+        updated > 0 ? "handled" : "ignored",
+        updated > 0 ? "session expired -> ledger marked expired" : "expired for a session not in this ledger",
+      );
+      return json({ received: true, handled: event.type, updated });
     }
 
     /* ── 返金・チャージバック（2026-08-20 追加）─────────────────────
@@ -554,9 +563,30 @@ serve(async (req: Request) => {
     }
     const locale: "ja" | "zh" = session.metadata?.locale === "zh" ? "zh" : "ja";
     const planId: string = session.metadata?.plan_id ?? "";
+
+    /* ── 自分の商品でない決済は、静かに見送る（2026-09-09）────────────────
+       Stripeアカウントは大会決済と共用していて、この webhook は
+       アカウント全体の checkout.session.completed を受け取る。
+       大会の決済（metadata に tournament_id が入り plan_id は無い）まで
+       ここへ届くが、これまで 400 unknown_plan で突き返していた。
+
+       実害3つ:
+         1. Stripe の画面でエラー率67%になり、**本物の失敗が埋もれる**
+            （実際、今日の受講権RPC欠落もこの中に紛れていた）
+         2. Stripe は失敗が続くエンドポイントを自動で無効化する。
+            大会を1件決済するたびに、AIコースの発行が止まる方向へ近づいていた
+         3. 4xx は再送されないので、**本当に自分の商品だったのに弾いた場合に取り返せない**
+
+       plan_id が**無い**＝そもそも他所の決済なので 200 で見送る。
+       plan_id が**有るのに知らない値**＝こちらのデータの矛盾なので従来どおり 400 で目立たせる。 */
+    if (!planId) {
+      await logOutcome("ignored", "not an ai-course checkout (no plan_id in metadata)");
+      return json({ received: true, ignored: "not_ai_course" });
+    }
     const plan = FUNCTION_PLAN_CATALOG.find((p) => p.id === planId);
     if (!plan || !isSelfServePlan(plan)) {
       console.error("webhook: unknown/not-self-serve plan:", planId, sessionId);
+      await logOutcome("error", `unknown or not self-serve plan: ${planId}`);
       return json({ error: "unknown_plan" }, 400);
     }
 
