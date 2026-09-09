@@ -42,7 +42,7 @@ export interface KatariPortIntroProps {
 }
 
 export const KatariPortIntro = ({
-  t, purposeJa, targetExpression, estimatedMinutes, remainingToday, starting,
+  t, purposeJa, targetExpression, estimatedMinutes: _unusedMinutes, remainingToday, starting,
   onStartVoice, onStartText, onBack, startError, recovery, onDiscardActive, onCancelRecovery,
   questMode = false, warmUpFirst = false,
 }: KatariPortIntroProps) => (
@@ -82,9 +82,15 @@ export const KatariPortIntro = ({
           <dt className="text-[11px] text-gray-400">{t.katari.expression}</dt>
           <dd className="text-gray-900 font-bold">「{targetExpression}」</dd>
         </div>
-        <div className="bg-white/80 rounded-xl p-2.5 flex gap-4">
-          <div><dt className="text-[11px] text-gray-400">{t.katari.duration}</dt><dd className="text-gray-900 font-bold">{t.katari.durationValue(estimatedMinutes)}</dd></div>
-          <div><dt className="text-[11px] text-gray-400">{t.katari.left}</dt><dd className="text-gray-900 font-bold">{t.katari.leftValue(remainingToday)}</dd></div>
+        {/*
+          分数は出さない（2026-09-09 CEO決定「会話分数は示さなくてもいい」）。
+          先に「約3分」と書くと、そこが上限に見えて話し終える前に切り上げてしまう。
+          残り回数だけは出す＝押してから断られるのを避けるため。
+          estimatedMinutes は呼び出し側の契約として残す（会話エンジン側が使う）。
+        */}
+        <div className="bg-white/80 rounded-xl p-2.5">
+          <dt className="text-[11px] text-gray-400">{t.katari.left}</dt>
+          <dd className="text-gray-900 font-bold">{t.katari.leftValue(remainingToday)}</dd>
         </div>
       </dl>
 

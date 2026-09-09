@@ -19,13 +19,17 @@ const baseProps = {
 };
 
 describe('KatariPortIntro（会話の港・会話前カード）', () => {
-  it('場所・相手・目的・目標表現・所要時間・残回数を表示する', () => {
+  it('場所・相手・目的・目標表現・残回数を表示する（**分数は出さない**）', () => {
     render(<KatariPortIntro t={aiCourseI18n.ja} {...baseProps} />);
     expect(screen.getByText('カタリ港（会話の港）')).toBeTruthy();
     expect(screen.getByText('翔子先生（AI講師）')).toBeTruthy();
     expect(screen.getByText('以前と今の変化を説明する')).toBeTruthy();
     expect(screen.getByText('「〜ようになりました」')).toBeTruthy();
-    expect(screen.getByText('約3分')).toBeTruthy();
+    /*
+     * 分数は出さない（2026-09-09 CEO決定「会話分数は示さなくてもいい」）。
+     * 先に「約3分」と書くと、そこが上限に見えて話し終える前に切り上げてしまう。
+     */
+    expect(screen.queryByText('約3分')).toBeNull();
     expect(screen.getByText('5回')).toBeTruthy();
   });
 
