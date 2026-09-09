@@ -81,11 +81,17 @@ describe('learningCodeUrl', () => {
 });
 
 describe('learningCodeMessage', () => {
-  it('URLとコードの両方が入る（機種変更で開けない人の道を残す）', () => {
+  it('渡すのはURL1本だけ（コードは併記しない）', () => {
     const zh = learningCodeMessage('K7PX29QM4T6B', 'zh');
     expect(zh).toContain('https://study.kawabado.com/zh/learn/K7PX-29QM-4T6B');
-    expect(zh).toContain('K7PX-29QM-4T6B');
-    expect(zh).toContain('弄丢了');
+    // URLの外にコードを書かない。チャットでは3つ渡しても3つとも埋もれる（2026-09-09 CEO決定）
+    expect(zh.replace('https://study.kawabado.com/zh/learn/K7PX-29QM-4T6B', ''))
+      .not.toContain('K7PX-29QM-4T6B');
+  });
+
+  it('唯一の命綱＝「困ったら言って」を必ず残す', () => {
+    expect(learningCodeMessage('K7PX29QM4T6B', 'zh')).toContain('告诉我');
+    expect(learningCodeMessage('K7PX29QM4T6B', 'ja')).toContain('言ってください');
   });
 
   it('日本語版もある', () => {
