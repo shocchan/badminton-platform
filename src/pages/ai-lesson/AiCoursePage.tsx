@@ -23,6 +23,7 @@ import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '
 import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
 import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner';
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
+import { AccessPeriodChip } from '../../components/ai-course/AccessPeriodChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
 import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
@@ -1090,6 +1091,22 @@ export default function AiCoursePage() {
     />
   ) : null;
 
+  /*
+   * 利用期限（2026-09-09 CEO指示:「いつまでも使えると思われたくない」）。
+   * PlanStatusChip はカタログにある購入プランの人だけが対象なので、
+   * 手動発行の生徒（plan_id が null・本番で9人）と Friends Beta（カタログ外）には
+   * 期限がどこにも出ていなかった。**その残り全員**にここで出す。
+   * planChip が出ている人には出さない＝同じことを2回言わない。
+   */
+  const periodChip = !planChip && accessRow ? (
+    <AccessPeriodChip
+      lang={uiLang}
+      validUntilISO={accessRow.validUntilISO}
+      trialStartedAtISO={accessRow.trialStartedAtISO ?? null}
+      trialDays={accessRow.trialDays ?? null}
+    />
+  ) : null;
+
   // 1か月AI自学プラン利用者向けの伴走コース案内（6章のアップセル導線）。
   // plan_id 列が remote に無い間（migration 20260819100000 未適用）は accessPlanId が
   // null のままなので、既存の全生徒に対して**何も表示されない**（後方互換）
@@ -1128,8 +1145,8 @@ export default function AiCoursePage() {
       }} />
   ) : null;
   // ホーム上部に出す帯（プランチップ＋残り回数＋アップセル＋紹介）。従来契約の生徒はすべて null
-  const planTopSlot = (planChip || upsellBanner || referralCard || convBudget?.hasBudget)
-    ? <>{planChip}{budgetChip}{upsellBanner}{referralCard}</> : null;
+  const planTopSlot = (planChip || periodChip || upsellBanner || referralCard || convBudget?.hasBudget)
+    ? <>{planChip}{periodChip}{budgetChip}{upsellBanner}{referralCard}</> : null;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
