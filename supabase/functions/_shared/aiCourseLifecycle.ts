@@ -193,7 +193,7 @@ export const buildLifecycleMail = (
 
 うまくログインできない場合は、このメールに返信してください。
 
-kawabado 安田翔`,
+kawabado（日本語の相棒）`,
       }
       : {
         subject: "【你的日语搭档】体验还没有开始",
@@ -209,7 +209,7 @@ kawabado 安田翔`,
 
 如果无法登录，请直接回复这封邮件。
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
       };
   }
 
@@ -231,7 +231,7 @@ kawabado 安田翔`,
 「自分にはどれが合うか分からない」ときは、このメールに返信してください。
 むりに勧めることはしません。
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
       }
       : {
         subject: "【你的日语搭档】体验辛苦了",
@@ -249,7 +249,7 @@ kawabado 安田翔`,
 如果不确定哪个适合自己，直接回复这封邮件就好。
 我们不会强行推销。
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
       };
   }
 
@@ -264,7 +264,7 @@ kawabado 安田翔`,
 いま使う：${loginUrl}
 続きのプランを見る：${priceUrl}
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
     }
     : {
       subject: `【你的日语搭档】距离到期还有${left}天`,
@@ -276,7 +276,7 @@ kawabado 安田翔`,
 现在使用：${loginUrl}
 查看后续方案：${priceUrl}
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
     };
 };
 
@@ -556,7 +556,7 @@ export const buildStalledMail = (t: StalledTarget): { subject: string; text: str
 
 やめたいときや、ペースを変えたいときも、このメールに返信してください。
 
-kawabado 安田翔`,
+kawabado（日本語の相棒）`,
     }
     : {
       subject: `【你的日语搭档】${t.daysAway}天没见了，今天只做3分钟`,
@@ -571,7 +571,7 @@ kawabado 安田翔`,
 
 如果想暂停，或者想调整节奏，也请直接回复这封邮件。
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
     };
 };
 

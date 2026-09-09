@@ -146,7 +146,7 @@ ${trialNote}
 利用規約: ${LEGAL_SITE}/ja/ai-course/terms
 特定商取引法に基づく表記: ${LEGAL_SITE}/ja/ai-course/tokushoho
 
-kawabado 安田翔`,
+kawabado（日本語の相棒）`,
     };
   }
   const loginBlock = reusedAccount
@@ -177,7 +177,7 @@ ${trialNote}
 使用条款: ${LEGAL_SITE}/zh/ai-course/terms
 特定商业交易法标示: ${LEGAL_SITE}/zh/ai-course/tokushoho
 
-kawabado 安田翔`,
+kawabado（你的日语搭档）`,
   };
 };
 
