@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-09-09T08:14:19.179Z",
+  "purchases": [
+    {
+      "session_ref": "pspEmVug",
+      "plan_id": "ai-trial-pass",
+      "locale": "ja",
+      "status": "failed",
+      "livemode": true,
+      "is_test": false,
+      "amount_jpy": 600,
+      "payment_method": "card",
+      "has_payment_intent": true,
+      "has_buyer_email": true,
+      "has_user": false,
+      "login_id": "",
+      "provisioned": false,
+      "login_claimed": false,
+      "error": "access grant failed: 404 {\"code\":\"PGRST202\",\"details\":\"Searched for the function public.ai_grant_purchase_access with parameters p_access_days, p_ai_seconds_limit, p_note, p_plan_id, p_plan_version, p_purchase_id, p_trial_window_minutes, p_user_id or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache.\",\"hint\":\"Perhaps you meant to call the function public.ai_service_grant_beta_access\",\"message\":\"Could not find the function public.ai_grant_purchase_access(p_access_days, p_ai_seconds_limit, p_note, p_plan_id, p_plan_version, p_purchase_id, p_trial_window_minutes, p_user_id) in the schema cache\"}",
+      "created_at": "2026-09-09 08:11:47.861098+00",
+      "updated_at": "2026-09-09 08:12:55.971+00"
+    }
+  ],
+  "events": [
+    {
+      "session_ref": "",
+      "event_id": "",
+      "event_type": "signature_failed",
+      "payment_status": "",
+      "payment_method": "",
+      "livemode": null,
+      "outcome": "signature_failed",
+      "detail": "stripe-signature mismatch or stale",
+      "received_at": "2026-09-09 07:27:29.719258+00"
+    },
+    {
+      "session_ref": "pspEmVug",
+      "event_id": "",
+      "event_type": "checkout_created",
+      "payment_status": "",
+      "payment_method": "",
+      "livemode": true,
+      "outcome": "handled",
+      "detail": "plan=ai-trial-pass locale=ja amount=600",
+      "received_at": "2026-09-09 08:11:47.940783+00"
+    },
+    {
+      "session_ref": "pspEmVug",
+      "event_id": "evt_1UDgcQRtVOvBLPLdSRr8lmYD",
+      "event_type": "checkout.session.completed",
+      "payment_status": "paid",
+      "payment_method": "card",
+      "livemode": true,
+      "outcome": "received",
+      "detail": "signature ok",
+      "received_at": "2026-09-09 08:12:35.644289+00"
+    },
+    {
+      "session_ref": "pspEmVug",
+      "event_id": "evt_1UDgcQRtVOvBLPLdSRr8lmYD",
+      "event_type": "checkout.session.completed",
+      "payment_status": "paid",
+      "payment_method": "card",
+      "livemode": true,
+      "outcome": "received",
+      "detail": "signature ok",
+      "received_at": "2026-09-09 08:12:53.464553+00"
+    }
+  ],
+  "access": [
+    {
+      "session_ref": "pspEmVug",
+      "access_granted": false,
+      "access_plan": null,
+      "valid_from": null,
+      "valid_until": null,
+      "trial_started": false,
+      "trial_started_at": null,
+      "trial_days": null
+    }
+  ]
+}
