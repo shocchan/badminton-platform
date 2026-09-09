@@ -10,6 +10,8 @@ import type {
 import { aiConversationEnabledFor } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
+import { themesAtOrBelow, themeView } from '../../../lib/aiLesson/course/adventure/vocab/vocabThemePicker';
+import type { VocabScopeLevel } from '../../../lib/aiLesson/course/adventure/vocab/vocabThemePicker';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel, strictDeclaredLevelOnly,
 } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
@@ -192,7 +194,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn' | 'kotoba';
+type View = 'themes' | 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn' | 'kotoba';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -614,6 +616,12 @@ export default function AdvShell(props: AdvShellProps) {
   const [learnSeed, setLearnSeed] = useState(0);
   /** 今日の冒険から来たときの step 番号。終わったらその step を完了にする */
   const vocabLearnStepIdx = useRef<number | null>(null);
+  /*
+   * 自分で選んだ学習テーマ（2026-09-09 CEO要望）。null＝いつもの「今日のことば」。
+   * 選んでいるあいだは**その級だけ**を出す（下の級を混ぜない）。
+   * 毎日の出題は級に忠実、手で選んだときは自分の級から下まで自由、という分け方。
+   */
+  const [themeLevel, setThemeLevel] = useState<VocabScopeLevel | null>(null);
   const [learnPick, setLearnPick] = useState<
     { key: string; pick: import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData').LearnPick } | null
   >(null);
@@ -621,13 +629,15 @@ export default function AdvShell(props: AdvShellProps) {
     if (view !== 'vocablearn') return;
     // 2026-09-06: **級を丸めない**。以前は N5/N4 も 'N3' にしていたため、
     // 目標N5の人の単語学習・図鑑にN3の役所語（申込書・委任状…）が出ていた
-    const lv = effectiveContentLevel(profile);
+    // 自分でテーマを選んでいれば、その級が正（選んだものと違う級が出たら意味が無い）
+    const lv = themeLevel ?? effectiveContentLevel(profile);
     // 実力が目標より2級以上低い人は、**実力側から積み上げる**（2026-09-06）。
     // 李さん（目標N3 / 実力n5）に初回から「申込書・委任状・受理・交付」が出ていた
-    const start = vocabStartLevel(profile);
+    const start = themeLevel ?? vocabStartLevel(profile);
     // その級を**持っている**人（申告＝実効レベル）には、その級だけを出す（2026-09-09）。
-    // N1保持者に「新しいことば」としてN2以下を出しても、本人は既に知っている
-    const strict = strictDeclaredLevelOnly(profile);
+    // N1保持者に「新しいことば」としてN2以下を出しても、本人は既に知っている。
+    // テーマを選んだときも必ずその級だけ（選んだ棚から出す）
+    const strict = themeLevel !== null || strictDeclaredLevelOnly(profile);
     // 語数は今日の冒険のstepと同じ（題名「新しいことば3語」と中身がずれないように）
     const size = learnBatchSizeFor(profile?.dailyMinutes ?? null);
     const reqKey = `learn|${lv}|${start}|${strict ? 'strict' : 'climb'}|${size}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
@@ -643,7 +653,7 @@ export default function AdvShell(props: AdvShellProps) {
       })
       .catch(() => { /* 失敗しても画面は壊さない */ });
     return () => { alive = false; };
-  }, [view, profile, learnSeed, learnPick?.key]);
+  }, [view, profile, learnSeed, learnPick?.key, themeLevel]);
 
   /** key → 問題。錯題本の表示と解き直しの両方がこれを引く */
   const mistakeQuestionByKey = useMemo<Map<string, AdvBattleQuestion>>(() => {
@@ -1814,6 +1824,45 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 新しいことばを覚える（2026-09-06）──
   // 出会い・正誤は台帳へ1回の試行として書く。書いたぶんは単語図鑑にそのまま載る
+  if (view === 'themes') {
+    /*
+     * 学習テーマの棚（2026-09-09 CEO要望）。
+     * 自分の級から下は全部選べる。N1を持っている人が「N4のことば」をやりたい日が
+     * あるのは自然なので、その寄り道を塞がない。
+     * 級で並べているのは、語彙データが確実に持っているのが級だけだから
+     * （分野のタグは無い。無いものを在るように見せない）。
+     */
+    const themes = themesAtOrBelow(effectiveContentLevel(profile));
+    return (
+      <div className="mx-auto w-full max-w-md px-4 py-4">
+        <button type="button" onClick={() => setView('home')}
+          className={`${pressFx} mb-2 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm text-gray-500`}>
+          ← {tx(lang, '今日の冒険にもどる', '回到今天的冒险')}
+        </button>
+        <h2 className="text-lg font-bold text-gray-900">{tx(lang, 'テーマから選んで学ぶ', '按主题选择学习')}</h2>
+        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+          {tx(lang, '毎日の「今日のことば」とは別に、好きな級のことばを選んで練習できます。',
+            '除了每天的「今天的词汇」，你也可以自己选一个级别来练习。')}
+        </p>
+        <div className="mt-3 flex flex-col gap-2">
+          {themes.map((t) => {
+            const v = themeView(t, lang);
+            return (
+              <button key={v.level} type="button"
+                onClick={() => { setThemeLevel(v.level); setView('vocablearn'); }}
+                className={`${pressFx} flex w-full min-h-14 items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3 text-left`}>
+                <span className="min-w-0">
+                  <span className="block text-sm font-bold text-gray-900">{v.label}</span>
+                  <span className="block text-[11px] leading-relaxed text-gray-500">{v.desc}</span>
+                </span>
+                <span aria-hidden className="shrink-0 text-gray-400">›</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
   if (view === 'vocablearn') {
     if (!learnPick) return <AdvLoading lang={lang} note={tx(lang, 'ことばを選んでいます…', '正在挑选单词…')} />;
     if (learnPick.pick.session.words.length === 0) {
@@ -3962,9 +4011,16 @@ export default function AdvShell(props: AdvShellProps) {
               <SubLink lang={lang} label={tx(lang, '今週のまとめ', '本周小结')}
                 onClick={() => { trackAdv('weekly_progress_viewed', { locale: lang }); setView('weekly'); }} />
               <SubLink lang={lang} label={term('seeTeacherPrep', lang)} onClick={() => { trackAdv('human_lesson_summary_viewed', { locale: lang }); setView('prep'); }} />
+              {/* テーマから選ぶ（2026-09-09 CEO要望）。自分の級から下は全部開ける。
+                  毎日の出題は級に忠実だが、ここは自分で取りに行く棚なので寄り道を塞がない。
+                  選べるものが1つしか無い人（N5）には出さない＝選択肢の無い選択画面を作らない */}
+              {themesAtOrBelow(effectiveContentLevel(profile)).length > 1 && (
+                <SubLink lang={lang} label={tx(lang, 'テーマから選んで学ぶ', '按主题选择学习')}
+                  onClick={() => { trackAdv('vocab_learn_started', { locale: lang }); setView('themes'); }} />
+              )}
               {/* 新しいことばを覚える（2026-09-06）。全レベルで使える語彙学習の入口 */}
               <SubLink lang={lang} label={tx(lang, '新しいことばを覚える（5語）', '记新单词（5个）')}
-                onClick={() => { trackAdv('vocab_learn_started', { locale: lang }); setView('vocablearn'); }} />
+                onClick={() => { trackAdv('vocab_learn_started', { locale: lang }); setThemeLevel(null); setView('vocablearn'); }} />
               {/* 単語図鑑（2026-09-06）。出会った語が集まる場所。記録は台帳から導くので常に出す */}
               <SubLink lang={lang} label={tx(lang, '単語図鑑（出会った単語）', '单词图鉴（遇见的单词）')}
                 onClick={() => { trackAdv('vocab_dex_viewed', { locale: lang }); setView('dex'); }} />
