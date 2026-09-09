@@ -29,6 +29,8 @@ export function TestimonialPrompt({ lang, context, onClose }: {
   const [body, setBody] = useState('');
   const [consent, setConsent] = useState(false);      // 既定OFF（CEO方針）
   const [displayName, setDisplayName] = useState('');
+  // 匿名希望（2026-09-09 E-1）。表示名が空かどうかではなく、**本人の意思**として残す
+  const [anonymous, setAnonymous] = useState(false);
 
   const send = async () => {
     if (!body.trim() || phase === 'sending') return;
@@ -36,7 +38,8 @@ export function TestimonialPrompt({ lang, context, onClose }: {
     const { data, error } = await supabase.rpc('ai_submit_testimonial', {
       p_body: body,
       p_consent_publish: consent,
-      p_display_name: displayName || null,
+      p_display_name: anonymous ? null : (displayName || null),
+      p_anonymous: anonymous,
       p_locale: lang,
       p_context: context,
     });
@@ -121,15 +124,28 @@ export function TestimonialPrompt({ lang, context, onClose }: {
       </label>
 
       {consent && (
-        <label className="mt-2 block">
-          <span className="text-[12px] font-bold text-gray-600">
-            {zh ? '想署名的话（可留空）' : '載せるときの呼び名（空でもOK）'}
-          </span>
-          <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
-            maxLength={40}
-            placeholder={zh ? '例：小李（不填就用匿名）' : '例：Lさん（空なら匿名で載せます）'}
-            className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500" />
-        </label>
+        <>
+          {/* 匿名希望は「呼び名が空」とは別に、本人の意思として保存する（2026-09-09 E-1）。
+              チェックした場合、呼び名はそもそも送らない＝こちらが持たない */}
+          <label className="mt-2 flex items-start gap-2 text-[12.5px] leading-relaxed text-gray-700">
+            <input type="checkbox" checked={anonymous}
+              onChange={(e) => { setAnonymous(e.target.checked); if (e.target.checked) setDisplayName(''); }}
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500" />
+            <span>{zh ? '希望匿名（不要写名字）' : '名前は出さないでほしい（匿名希望）'}</span>
+          </label>
+
+          {!anonymous && (
+            <label className="mt-2 block">
+              <span className="text-[12px] font-bold text-gray-600">
+                {zh ? '想署名的话（可留空）' : '載せるときの呼び名（空でもOK）'}
+              </span>
+              <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)}
+                maxLength={40}
+                placeholder={zh ? '例：小李（不填就用匿名）' : '例：Lさん（空なら匿名で載せます）'}
+                className="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-500" />
+            </label>
+          )}
+        </>
       )}
 
       {phase === 'error' && (

@@ -172,8 +172,9 @@ serve(async (req: Request) => {
 
     /*
       紹介された人の割引（2026-09-09 P1-5 / D-2）。
-      Stripe の Coupon を1つだけ当てる（Checkout の discounts）。既存の決済経路を変えないので、
-      card / Alipay / WeChat Pay のどれでも同じように効く（金額は決済手段を選ぶ前に確定する）。
+      Stripe の Coupon を1つだけ当てる（Checkout の discounts）。
+      **利用できる決済手段はStripe側の設定に任せたまま**で、ここでは手段を一切固定しない。
+      割引は決済手段を選ぶ前の金額に効くので、どの手段を選んでも同じように効く。
 
       **効かせる条件を厳しく取る。**
         1. ai_config.referral.inviteeCouponId が設定されている（未設定＝割引しない）

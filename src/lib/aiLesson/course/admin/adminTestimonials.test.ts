@@ -6,12 +6,16 @@
 // 「集める仕組み」を作った。集めた以上、扱いを間違えないよう機械で固定する。
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { isPublishable, bucketOf, sortForAdmin, type TestimonialRow } from './adminTestimonials';
+import {
+  isPublishable, bucketOf, sortForAdmin, publishText, type TestimonialRow,
+} from './adminTestimonials';
 
 const t = (o: Partial<TestimonialRow>): TestimonialRow => ({
   id: 'x', userId: 'u', learnerId: null, body: 'よかったです', locale: 'ja',
   context: 'report', consentPublish: false, displayName: null,
-  approvedAtISO: null, createdAtISO: '2026-08-26T00:00:00Z', ...o,
+  approvedAtISO: null, rejectedAtISO: null, rejectReason: null,
+  anonymous: false, editedBody: null,
+  createdAtISO: '2026-08-26T00:00:00Z', ...o,
 });
 
 describe('掲載できる条件', () => {
@@ -123,5 +127,45 @@ describe('画面側の約束', () => {
   it('本名を求めていない', () => {
     expect(UI).toContain('空でもOK');
     expect(UI).not.toContain('お名前を入力');
+  });
+});
+
+/*
+ * 2026-09-09 P1-6 で足した振る舞い。
+ * 「見たけれど載せない」を記録として残せること、
+ * そして**原文を書き換えずに**掲載用の文を持てることを固定する。
+ */
+describe('却下（2026-09-09 P1-6）', () => {
+  it('却下した行は、許諾も承認もあっても公開しない', () => {
+    expect(isPublishable(t({
+      consentPublish: true,
+      approvedAtISO: '2026-09-01T00:00:00Z',
+      rejectedAtISO: '2026-09-02T00:00:00Z',
+    }))).toBe(false);
+  });
+
+  it('却下は他のどの分類より優先して見える', () => {
+    expect(bucketOf(t({ consentPublish: true, rejectedAtISO: '2026-09-02T00:00:00Z' }))).toBe('rejected');
+    expect(bucketOf(t({ consentPublish: false, rejectedAtISO: '2026-09-02T00:00:00Z' }))).toBe('rejected');
+  });
+
+  it('却下は一覧のいちばん後ろへ（手を打つものが先に来る）', () => {
+    const rows = [
+      t({ id: 'rejected', rejectedAtISO: '2026-09-02T00:00:00Z' }),
+      t({ id: 'awaiting', consentPublish: true }),
+    ];
+    expect(sortForAdmin(rows).map((r) => r.id)).toEqual(['awaiting', 'rejected']);
+  });
+});
+
+describe('掲載する文（原文を書き換えない）', () => {
+  it('編集案が無ければ原文をそのまま載せる', () => {
+    expect(publishText(t({ body: 'たのしかたです' }))).toBe('たのしかたです');
+  });
+
+  it('編集案があればそちらを載せる。**原文は残ったまま**', () => {
+    const row = t({ body: 'たのしかたです', editedBody: 'たのしかったです' });
+    expect(publishText(row)).toBe('たのしかったです');
+    expect(row.body).toBe('たのしかたです');
   });
 });

@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import type { Lang } from '../../../contexts/LanguageContext';
+import { supabase } from '../../../services/supabaseClient';
 import { LP } from './lpContent';
 import { Reveal, SectionHeading, Check } from './lpUi';
 import { imgUrl } from './lpHelpers';
@@ -77,7 +79,50 @@ export function TestimonialsSection({ lang }: { lang: Lang }) {
             </Reveal>
           ))}
         </div>
+        {/* サイト内で集めて、本人の許可を得て、CEOが承認したものだけ（2026-09-09 P1-6） */}
+        <PublishedVoices lang={lang} />
       </div>
     </section>
+  );
+}
+
+/**
+ * サイト内で集めた感想のうち、**掲載許諾＋管理者承認が揃ったものだけ**を出す（2026-09-09 P1-6）。
+ *
+ * - 1件も無ければ何も描かない（空の見出しを置かない）
+ * - 読み込みに失敗しても何も描かない（LPの他の部分を巻き込まない）
+ * - 文はDBの値をそのまま出す。ここで整形・要約・美化はしない
+ */
+function PublishedVoices({ lang }: { lang: Lang }) {
+  const [voices, setVoices] = useState<{ text: string; name: string | null }[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void supabase.rpc('ai_public_testimonials', { p_locale: lang, p_limit: 6 })
+      .then(({ data, error }) => {
+        if (!alive || error || !Array.isArray(data)) return;
+        setVoices((data as { text?: unknown; name?: unknown }[])
+          .map((v) => ({ text: String(v.text ?? ''), name: v.name ? String(v.name) : null }))
+          .filter((v) => v.text.length > 0));
+      });
+    return () => { alive = false; };
+  }, [lang]);
+
+  if (voices.length === 0) return null;
+  return (
+    <div className="mt-4 flex flex-col gap-4">
+      {voices.map((v, i) => (
+        <div key={i} className="bg-lp-card border border-lp-line rounded-2xl p-6 flex items-start gap-4">
+          <span className="inline-flex w-12 h-12 shrink-0 items-center justify-center rounded-full bg-lp-gold-soft">
+            <UserRound className="w-6 h-6 text-lp-coral-deep" aria-hidden="true" />
+          </span>
+          <div>
+            <span className="inline-block text-[0.78rem] font-extrabold bg-lp-gold-soft text-lp-coral-deep rounded-full px-3 py-0.5 mb-2">
+              {v.name ?? (lang === 'ja' ? '利用中の学習者' : '使用中的学员')}
+            </span>
+            <p className="text-[0.98rem] text-lp-ink leading-relaxed whitespace-pre-wrap">{v.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
