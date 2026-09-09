@@ -536,8 +536,12 @@ export const HomePage = () => {
           <span className="font-semibold text-sm leading-snug">
             {lang === 'zh' ? '「日常活动」和「比赛」是两种不同的活动。' : '「通常活動」と「大会」は別のものです。'}
           </span>
+          {/* 金額の表記は staticSeo.json（素のHTML側）と同じにする。
+              片方だけ直すと workerPrerender.test.mjs が落ちる＝盛った数字の検出が働く */}
           <span className="text-amber-700 text-xs hidden sm:inline">
-            {lang === 'zh' ? '日常活动 600日元起・比赛 1,000日元起（携带物品也不同）。' : '通常活動は¥600〜、大会は¥1,000〜（持ち物も違います）。'}
+            {lang === 'zh'
+              ? '日常活动600日元起、比赛1,000日元起（携带物品也不同）。'
+              : '通常活動は600円〜、大会は1,000円〜（持ち物も異なります）。'}
           </span>
           <Link
             to={`/${lang}/faq`}

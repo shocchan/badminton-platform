@@ -786,6 +786,8 @@ const KNOWN_LEAVES = [
   'about',
   'level-guide', 'cancel-policy', 'tokushoho', 'privacy', 'terms', 'admin', 'blog', 'join',
   'shuttle-roadmap', 'tactics-board', 'game', 'mypage', 'ai-lesson-demo', 'ai-course',
+  // 個人専用URL（2026-09-09）。実在するので既知として扱う（noindex は privateRoutes 側で付く）
+  'learn',
   'auth-landing', 'login', 'signup', 'password-reset', 'password-reset-form',
   'password-reset-success', 'results',
 ];
