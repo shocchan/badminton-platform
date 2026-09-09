@@ -574,3 +574,42 @@ kawabado 安田翔`,
 kawabado 安田翔`,
     };
 };
+
+/**
+ * 学習者設定（jsonb）から**最後に学習した日**を読む（2026-09-09・P0-2）。
+ *
+ * 正は `src/lib/aiLesson/course/adventure/advLearningDay.ts`（画面のストリーク・
+ * 管理画面の学習日数と同じ判定）。ここはサーバー側でその**結果だけ**を読む。
+ * 判定そのものを書き直さないこと——2つの定義が並ぶと必ず片方が古くなる。
+ *
+ * 読む順:
+ *   ① learningDays（P0-1 以降の正準。かな道場だけの日・AI会話だけの日も入っている）
+ *   ② 無ければ questLog ∪ mastery の最終日（P0-1 より前に最後に開いた人のための後方互換）
+ * どちらも無ければ null＝一度も学習していない（この人には「久しぶり」ではなく初回案内が要る）。
+ */
+export const lastLearningDayOf = (settings: unknown): string | null => {
+  const adv = (settings as Record<string, any> | null)?.adventureV2;
+  if (!adv || typeof adv !== "object") return null;
+  const isDay = (v: unknown): v is string =>
+    typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+
+  let last: string | null = null;
+  const note = (v: unknown) => { if (isDay(v) && (!last || v > last)) last = v; };
+
+  if (Array.isArray(adv.learningDays)) for (const e of adv.learningDays) note(e?.d);
+  if (last !== null) return last;
+
+  // 後方互換: learningDays がまだ書かれていない人（P0-1 のあと一度も開いていない）
+  if (Array.isArray(adv.questLog)) for (const q of adv.questLog) note(q?.dateKey);
+  if (adv.mastery && typeof adv.mastery === "object") {
+    for (const attempts of Object.values(adv.mastery as Record<string, unknown>)) {
+      if (!Array.isArray(attempts)) continue;
+      for (const a of attempts) note((a as Record<string, unknown> | null)?.dateKey);
+    }
+  }
+  return last;
+};
+
+/** JSTの今日（YYYY-MM-DD）。学習側の dateKey と同じ基準に合わせる */
+export const jstDayKey = (nowMs: number): string =>
+  new Date(nowMs).toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });

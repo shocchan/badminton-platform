@@ -30,7 +30,9 @@ import {
   buildLifecycleMail, buildMailHealthAlerts, claimDecision, findOrphanAccess,
   lifecycleDedupeKey, maskEmail, MAX_SEND_ATTEMPTS, retryDelayMs, selectLifecycleTargets,
   sendErrorCode,
-  type LifecyclePurchaseRow, type MailLogRow,
+  buildStalledMail, stalledDecision, stalledDedupeKey,
+  isDeliverableEmail, lastLearningDayOf, jstDayKey, STALL_AFTER_DAYS, STALL_MAX_DAYS,
+  type LifecyclePurchaseRow, type LifecycleLearnerRow, type MailLogRow,
 } from "../_shared/aiCourseLifecycle.ts";
 
 const cors = {
@@ -131,11 +133,77 @@ serve(async (req) => {
   const targets = selectLifecycleTargets(rows, purchases, nowMs, purchasesByUser);
   const orphans = findOrphanAccess(rows, purchases, purchasesByUser);
 
+  /* ── 学習が途切れた人への1通（2026-09-09・P0-2） ──────────────────────────
+     上の3通は**購入台帳**が起点なので、手動付与の生徒は永久に対象にならない。
+     こちらは学習者そのものが起点。誰に送るかの判定は _shared 側の純関数
+     （stalledDecision）が持ち、ここはI/Oだけ。
+
+     宛先は auth のユーザーから引く。ai_learners にメールは無く、
+     ID ログインの生徒には**実在しない内部ドメイン**が入っているので
+     isDeliverableEmail で必ず落とす（不達を送信ログに残さないため）。 */
+  const todayKey = jstDayKey(nowMs);
+  const stalledTargets = await (async () => {
+    try {
+      const learners = await get("ai_learners?select=user_id,settings,is_test,is_active&limit=1000");
+      // 先に日数で絞ってから宛先を引く（毎日全員のメールを取りに行かない）
+      const candidates = learners
+        .map((l: any) => ({ ...l, lastDay: lastLearningDayOf(l.settings) }))
+        .filter((l: any) => {
+          if (l.is_test === true || l.is_active === false || !l.user_id || !l.lastDay) return false;
+          const away = Math.round((Date.parse(todayKey) - Date.parse(l.lastDay)) / 86_400_000);
+          return Number.isFinite(away) && away >= STALL_AFTER_DAYS && away <= STALL_MAX_DAYS;
+        });
+      const withEmail: LifecycleLearnerRow[] = [];
+      for (const c of candidates) {
+        const r = await fetch(`${supabaseUrl}/auth/v1/admin/users/${c.user_id}`, {
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+        });
+        if (!r.ok) continue;
+        const u = await r.json();
+        const email = typeof u?.email === "string" ? u.email : null;
+        // 実在しない内部ドメインはここで落とす（この人たちに届く経路は微信だけ）
+        if (!email || !isDeliverableEmail(email)) continue;
+        withEmail.push({
+          user_id: c.user_id, email,
+          locale: (c.settings?.uiLanguage ?? c.settings?.adventureV2?.uiLanguage ?? null) as string | null,
+          last_active_day: c.lastDay, is_test: c.is_test, is_active: c.is_active,
+        });
+      }
+      return stalledDecision(withEmail, todayKey);
+    } catch (e) {
+      console.error("stalled scan failed", e instanceof Error ? e.name : "unknown");
+      return [];
+    }
+  })();
+
+  /**
+   * 送るものを1つの列に並べる。**送信ループは1本のまま**にする（claim・冪等・再試行・
+   * 失敗記録の作法を2か所へコピーしない）。用件ごとに違うのは
+   * 「冪等キー」と「本文」と「購入行との紐づけ」の3つだけなので、それだけを持たせる。
+   */
+  type Outgoing = {
+    kind: string; userId: string; purchaseId: string | null;
+    email: string; locale: "ja" | "zh"; planId: string | null;
+    dedupeKey: string; build: () => { subject: string; text: string };
+  };
+  const outgoing: Outgoing[] = [
+    ...targets.map((t) => ({
+      kind: t.kind, userId: t.userId, purchaseId: t.purchaseId,
+      email: t.email, locale: t.locale, planId: t.planId,
+      dedupeKey: lifecycleDedupeKey(t), build: () => buildLifecycleMail(t, nowMs),
+    })),
+    ...stalledTargets.map((t) => ({
+      kind: t.kind, userId: t.userId, purchaseId: null,
+      email: t.email, locale: t.locale, planId: null,
+      dedupeKey: stalledDedupeKey(t), build: () => buildStalledMail(t),
+    })),
+  ];
+
   const counts = { sent: 0, failed: 0, skipped: 0 };
   const detail: unknown[] = [];
 
-  for (const t of targets) {
-    const dedupeKey = lifecycleDedupeKey(t);
+  for (const t of outgoing) {
+    const dedupeKey = t.dedupeKey;
     const existing = (await get(
       `ai_course_mail_log?dedupe_key=eq.${encodeURIComponent(dedupeKey)}&select=dedupe_key,status,attempts,next_retry_at`,
     ))?.[0] as MailLogRow | undefined;
@@ -195,7 +263,7 @@ serve(async (req) => {
     }
     if (!claimed) { counts.skipped++; continue; }
 
-    const mail = buildLifecycleMail(t, nowMs);
+    const mail = t.build();
     let status: number | null = null;
     let errKind = "";
     try {
@@ -304,7 +372,10 @@ serve(async (req) => {
   }
 
   return await finish({
-    scanned: rows.length, targets: targets.length, orphanAccess: orphans.length,
+    scanned: rows.length, targets: outgoing.length,
+    // 購入導線の3通と、学習が途切れた人への1通は**別に数える**（片方が0のとき原因が分かる）
+    purchaseTargets: targets.length, stalledTargets: stalledTargets.length,
+    orphanAccess: orphans.length,
     alerts: alerts.map((a) => a.kind), ...counts,
     ...(dryRun ? { detail } : {}),
   });

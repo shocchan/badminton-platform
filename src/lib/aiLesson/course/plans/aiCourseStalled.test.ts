@@ -6,7 +6,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   stalledDecision, stalledDedupeKey, buildStalledMail,
-  STALL_AFTER_DAYS, STALL_MAX_DAYS, isDeliverableEmail,
+  STALL_AFTER_DAYS, STALL_MAX_DAYS, isDeliverableEmail, lastLearningDayOf, jstDayKey,
   type LifecycleLearnerRow,
 } from '../../../../../supabase/functions/_shared/aiCourseLifecycle';
 
@@ -109,5 +109,57 @@ describe('文面', () => {
     expect(m.subject).toContain('6天');
     expect(m.text).toContain('/zh/ai-course/login');
     expect(m.text).not.toMatch(/[぀-ゟ]/);
+  });
+});
+
+/**
+ * サーバー側で「最後に学習した日」を読む（2026-09-09・P0-2 の配線で使う）。
+ *
+ * ここで守ること: **判定を2つ持たない。**
+ * 正は advLearningDay（画面のストリークと同じ集合）で、サーバーはその結果を読むだけ。
+ * learningDays がまだ無い人（P0-1 のあと一度も開いていない）だけ、旧記録から後方互換で拾う。
+ */
+describe('最後に学習した日（サーバー側の読み取り）', () => {
+  it('learningDays があればそこから最新日を返す', () => {
+    expect(lastLearningDayOf({
+      adventureV2: { learningDays: [{ d: '2026-09-01', k: ['step'] }, { d: '2026-09-05', k: ['battle'] }] },
+    })).toBe('2026-09-05');
+  });
+
+  it('**かな道場だけの日も入る**（learningDays に残っているため）', () => {
+    // 小蒋さんのケース: questLog も mastery も空だが、かなのstepを終えた日が残っている
+    expect(lastLearningDayOf({
+      adventureV2: { learningDays: [{ d: '2026-08-24', k: ['step'] }], questLog: [], mastery: {} },
+    })).toBe('2026-08-24');
+  });
+
+  it('learningDays が無い人は旧記録（questLog∪mastery）から拾う（後方互換）', () => {
+    expect(lastLearningDayOf({
+      adventureV2: {
+        questLog: [{ dateKey: '2026-08-20', completedSteps: 1, totalSteps: 1 }],
+        mastery: { 'n3g-unit-1': [{ dateKey: '2026-08-22' }] },
+      },
+    })).toBe('2026-08-22');
+  });
+
+  it('一度も学習していない人は null（「久しぶり」ではなく初回案内が要る人）', () => {
+    expect(lastLearningDayOf({ adventureV2: { learningDays: [], questLog: [], mastery: {} } })).toBeNull();
+    expect(lastLearningDayOf({ adventureV2: {} })).toBeNull();
+    expect(lastLearningDayOf({})).toBeNull();
+    expect(lastLearningDayOf(null)).toBeNull();
+  });
+
+  it('壊れた値でも落ちない・作らない', () => {
+    expect(lastLearningDayOf({ adventureV2: { learningDays: 'nope' } })).toBeNull();
+    expect(lastLearningDayOf({ adventureV2: { learningDays: [{ d: 'きのう' }] } })).toBeNull();
+    expect(lastLearningDayOf({ adventureV2: { mastery: { x: 'nope' } } })).toBeNull();
+  });
+});
+
+describe('JSTの今日', () => {
+  it('学習側の dateKey と同じ基準（JST日付）で返す', () => {
+    // 2026-09-09 23:30 UTC は JST では翌日の 08:30
+    expect(jstDayKey(Date.parse('2026-09-09T23:30:00.000Z'))).toBe('2026-09-10');
+    expect(jstDayKey(Date.parse('2026-09-09T00:30:00.000Z'))).toBe('2026-09-09');
   });
 });
