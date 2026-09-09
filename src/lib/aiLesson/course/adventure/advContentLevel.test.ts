@@ -19,15 +19,20 @@ describe('effectiveContentLevel', () => {
     expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: null, declaredJlpt: null })).toBe('N3');
   });
 
-  it('会話目標は申告した級で決まる（N1/N2→N2圏・N3→N3圏）', () => {
-    expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N1' })).toBe('N2');
+  /*
+   * 2026-09-09 CEO報告: N1を持っていると申告したsijiaさんに、単語も模試もN2が出ていた。
+   * 会話目標のときだけ N1→N2 に丸めていたのが原因（「会話にN1文法は要らない」という理由。
+   * だが語彙まで一緒に落ちていて、N1保持者には易しすぎた）。申告どおり出す。
+   */
+  it('会話目標は申告した級で決まる（**N1申告ならN1**・N2→N2・N3→N3）', () => {
+    expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N1' })).toBe('N1');
     expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N2' })).toBe('N2');
     expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N3' })).toBe('N3');
   });
 
   it('**会話目標では古い targetJlpt より申告レベルが勝つ**（目的を切り替えた人の実測ケース）', () => {
     // 実測: 会話目標に切り替えたあとも targetJlpt='N3' が残っていた
-    expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: 'N3', declaredJlpt: 'N1' })).toBe('N2');
+    expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: 'N3', declaredJlpt: 'N1' })).toBe('N1');
     expect(effectiveContentLevel({ goalType: 'conversation', targetJlpt: 'N2', declaredJlpt: 'N3' })).toBe('N3');
     // 試験目標では従来どおり目標レベルが正
     expect(effectiveContentLevel({ goalType: 'jlpt', targetJlpt: 'N3', declaredJlpt: 'N1' })).toBe('N3');

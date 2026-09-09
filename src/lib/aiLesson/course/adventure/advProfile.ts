@@ -356,15 +356,24 @@ export const migrateLegacyEvidence = (
  *
  * 目的別の決め方:
  *  - 試験目標: 選んだ目標レベルがそのまま実効レベル（従来どおり）
- *  - 会話目標: 本人の申告（N1/N2→N2圏・N3→N3圏）。申告が無ければ **N3 に倒す**
+ *  - 会話目標: **本人の申告をそのまま使う**。申告が無ければ N3 に倒す
  *    （測っていない人へ上の帯を出さない。物足りなければ申告で上げられる）
+ *
+ * 2026-09-09 修正: 会話目標のときだけ「N1申告→N2教材」に丸めていた。
+ * 理由は「会話にN1文法は要らない」だったが、**語彙まで一緒に落ちていた**。
+ * N1を持っている人に N2 の単語を出すのは易しすぎて、学ぶものが無い
+ * （実測: sijiaさん・eliさんの2人が該当。どちらもN1申告の会話目標）。
+ * N1の語彙317語と読解5セットは既にあるので、申告どおり出す。
+ * ただしN1の聴解音源だけは作っていないので、模試の聴解は落ちる
+ * （無いものを在ると見せない・listeningTypes.ts の約束）。
  */
 export const effectiveContentLevel = (
   profile: Pick<AdventureV2Profile, 'targetJlpt' | 'declaredJlpt' | 'goalType'> | null | undefined,
 ): 'N5' | 'N4' | 'N3' | 'N2' | 'N1' => {
   const declared = profile?.declaredJlpt;
-  // 会話目標では申告がN1でもN2の教材で足りる（会話にN1文法は要らない）
-  const fromDeclared = declared === 'N1' || declared === 'N2' ? 'N2' : declared === 'N3' ? 'N3' : null;
+  // 申告した級をそのまま使う。N1を持っている人にN2の語を出すと学ぶものが無い
+  const fromDeclared = declared === 'N1' ? 'N1'
+    : declared === 'N2' ? 'N2' : declared === 'N3' ? 'N3' : null;
   // 会話目標では **申告レベルを優先**する。targetJlpt は試験目標のための値で、
   // 目的を切り替えたあとも古い値が残ることがある（実測: 会話目標なのに targetJlpt='N3'）
   if (profile?.goalType === 'conversation') return fromDeclared ?? 'N3';
