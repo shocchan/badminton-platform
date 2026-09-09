@@ -30,14 +30,17 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   const tl = t.login;
   const lang: 'ja' | 'zh' = t.locale === 'zh' ? 'zh' : 'ja';
   /*
-   * 既定は**学習コード1つ**（2026-09-09 P0-2）。
-   * 覚えるものを1つも作らないための入口で、ふだんは配った個人専用URLを押すだけ。
-   * この画面に来るのは「機種を変えた」「リンクを無くした」人なので、入力欄は1つに絞る。
+   * 既定は**ID＋パスワード**（2026-09-09 CEO決定「招待コードはやめよう。
+   * サイトから直接入る場合は、ID＝申込時のメアドとパスワードで入れるようにする」）。
    *
-   * 旧来のID＋パスワードは**消さない**（移行期間中の生徒が締め出されないため）。
-   * メールOTP（招待コード方式）もそのまま残す。
+   * ふだん使う入口は配った個人専用URL（/learn/:code）で、この画面には来ない。
+   * ここに来るのは「検索でサイトに直接来た」人なので、その人に必要なのはID＋パスワード。
+   *
+   * 学習コードの手入力は**既定から外したが、まだ消していない**。
+   * 合成メール時代の生徒14人が移行中で、URLを無くして手元にパスワードも無い人の
+   * 最後の道が消えてしまうため。全員が新方式に乗ったら外す。
    */
-  const [mode, setMode] = useState<'code' | 'id' | 'email'>('code');
+  const [mode, setMode] = useState<'code' | 'id' | 'email'>('id');
   const [learnCode, setLearnCode] = useState('');
   const [codeBlockedFor, setCodeBlockedFor] = useState(0);
   const [loginId, setLoginId] = useState('');
@@ -167,7 +170,8 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
             ? (lang === 'zh' ? '输入老师给你的「学习码」就可以开始。不需要密码。'
               : '先生から届いた「学習コード」だけで始められます。パスワードは要りません。')
             : mode === 'id'
-              ? (lang === 'zh' ? '使用老师发给你的ID和密码登录。' : '先生から届いたIDとパスワードでログインします。')
+              ? (lang === 'zh' ? '用购买时的邮箱地址和密码登录（老师发给你ID的学员，用那个ID）。'
+                : '購入時のメールアドレスとパスワードでログインします（先生からIDをもらっている方はそのIDで）。')
               : tl.subtitle}
         </p>
 

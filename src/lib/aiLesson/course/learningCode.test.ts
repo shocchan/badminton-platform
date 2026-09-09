@@ -97,7 +97,7 @@ describe('learningCodeMessage', () => {
   it('日本語版もある', () => {
     const ja = learningCodeMessage('K7PX29QM4T6B', 'ja');
     expect(ja).toContain('/ja/learn/');
-    expect(ja).toContain('パスワードは要りません');
+    expect(ja).toContain('今後はログインも要りません');
   });
 
   it('「パスワード」を覚えさせる文言を含まない', () => {
@@ -121,7 +121,41 @@ describe('learningCodeMessage', () => {
 
   it('WeChatで読める長さに収まっている（長すぎると読まれない）', () => {
     for (const lang of ['ja', 'zh'] as const) {
-      expect(learningCodeMessage('K7PX29QM4T6B', lang).length).toBeLessThan(300);
+      expect(learningCodeMessage('K7PX29QM4T6B', lang).length).toBeLessThan(400);
+    }
+  });
+
+  /*
+   * 配るときに必ず伝える3つ（2026-09-09 CEO指示）。
+   * どれか1つでも落ちると、あとで面倒が起きる:
+   *   ・お気に入りに入れる  … 入れないとチャットに埋もれて二度と開けない
+   *   ・外に出さない        … 個別URLはそれ自体が鍵。転送されたら他人が本人の画面に入る
+   *   ・サイトからはID＋パス … URLが開けない日に、行き先が無いと詰む
+   */
+  it('お気に入りに入れてもらう案内が入っている', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      expect(learningCodeMessage('K7PX29QM4T6B', lang)).toContain('收藏');
+    }
+  });
+
+  it('**個別URLなので外に出さない**ことを伝える', () => {
+    expect(learningCodeMessage('K7PX29QM4T6B', 'ja')).toMatch(/あなた専用/);
+    expect(learningCodeMessage('K7PX29QM4T6B', 'ja')).toMatch(/転送したり、グループに送ったり/);
+    expect(learningCodeMessage('K7PX29QM4T6B', 'zh')).toMatch(/专属链接/);
+    expect(learningCodeMessage('K7PX29QM4T6B', 'zh')).toMatch(/不要转发/);
+  });
+
+  it('サイトから直接ログインするときはID＋パスワードが要ることを伝える', () => {
+    expect(learningCodeMessage('K7PX29QM4T6B', 'ja')).toMatch(/ログインIDとパスワード/);
+    expect(learningCodeMessage('K7PX29QM4T6B', 'zh')).toMatch(/登录ID和密码/);
+  });
+
+  it('パスワードそのものは書かない（チャットに残さない）', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      const m = learningCodeMessage('K7PX29QM4T6B', lang);
+      // 「必要です」と伝えるだけ。値は載せない
+      expect(m).not.toMatch(/パスワード[：:]/);
+      expect(m).not.toMatch(/密码[：:]/);
     }
   });
 });

@@ -18,11 +18,10 @@ const renderLogin = (t: typeof aiCourseI18n.ja) => {
     <MemoryRouter><CourseLogin t={t} onLoggedIn={() => {}} /></MemoryRouter>,
   );
   /*
-    既定の入口は「学習コード」（2026-09-09 P0-2〜）。同意チェックはメール登録フローにあるので、
-    学習コード → IDとパスワード → メールアドレス と2つ進む。
+    既定の入口は「ID＋パスワード」（2026-09-09 CEO決定）。同意チェックはメール登録フローに
+    あるので、そこへ1つ進む。
     （移行期間中は3つの入口が並ぶが、初見に見せるのは常に1つだけ）
   */
-  fireEvent.click(screen.getByRole('button', { name: /IDとパスワードを受け取っている/ }));
   fireEvent.click(screen.getByRole('button', { name: /メールアドレスで登録/ }));
   return r;
 };
@@ -74,11 +73,10 @@ describe('公開後のふるまい（事実が揃った状態を模擬）', () =
     const t = aiCourseI18n.ja;
     render(<MemoryRouter><Published t={t} onLoggedIn={() => {}} /></MemoryRouter>);
     /*
-      既定の入口は「学習コード」（2026-09-09 P0-2）。メールOTPはその2つ奥にある:
-        学習コード → IDとパスワード → メールアドレス
+      既定の入口は「ID＋パスワード」（2026-09-09 CEO決定。サイトから直接来た人が
+      必要とするのはこれ）。メールOTPはその1つ奥にある。
       ここで確かめたいのは**メール登録の同意ゲート**なので、その画面まで進む。
     */
-    fireEvent.click(screen.getByRole('button', { name: /IDとパスワードを受け取っている/ }));
     fireEvent.click(screen.getByRole('button', { name: /メールアドレスで登録/ }));
 
     const box = screen.getByRole('checkbox') as HTMLInputElement;
