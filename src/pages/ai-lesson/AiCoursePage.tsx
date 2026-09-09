@@ -64,6 +64,8 @@ import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseNameOnlyHearing } from '../../components/ai-course/CourseNameOnlyHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
+import { ConversationBudgetChip } from '../../components/ai-course/ConversationBudgetChip';
+import { fetchConversationBudget, type ConversationBudget } from '../../lib/aiLesson/course/conversationBudget';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
@@ -270,6 +272,12 @@ export default function AiCoursePage() {
    */
   const [remainingVoiceTotal, setRemainingVoiceTotal] = useState<number | null>(null);
   /**
+   * 会話枠の残り（2026-09-09 C-3）。**押してから断られる**のを無くすため、
+   * ホームに来たときに取り直して「あと何回できるか」を先に出す。
+   * 枠を持たない従来の生徒は hasBudget=false で、何も表示しない。
+   */
+  const [convBudget, setConvBudget] = useState<ConversationBudget | null>(null);
+  /**
    * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
    * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
    * この画面のためだけに読み直す。失敗したら null のまま（作り話をしない）。
@@ -353,6 +361,14 @@ export default function AiCoursePage() {
       });
     return () => { alive = false; };
   }, [learner, accessState, sessions.length, atHome]);
+
+  // 会話枠の残りを取り直す（ホームへ来たときと、会話を終えたとき）
+  useEffect(() => {
+    if (step !== 'home' || !learner) return;
+    let alive = true;
+    void fetchConversationBudget().then((b) => { if (alive) setConvBudget(b); });
+    return () => { alive = false; };
+  }, [step, learner, sessions.length]);
 
   // AI会話が運営都合で止まっていないか（OpenAIのクレジット切れ）。
   // 会話を始めてからエラーに落とすのではなく、**始める前**に案内へ差し替えるために見る。
@@ -1063,8 +1079,12 @@ export default function AiCoursePage() {
       }}
     />
   ) : null;
-  // ホーム上部に出す購入プラン関連の帯（チップ＋アップセル）。従来契約の生徒は両方 null
-  const planTopSlot = (planChip || upsellBanner) ? <>{planChip}{upsellBanner}</> : null;
+  /* のこりの会話回数（2026-09-09 C-3）。無料枠でも無制限にはしないが、
+     押してから断られるのは避ける。枠を持たない生徒には何も出ない */
+  const budgetChip = <ConversationBudgetChip lang={uiLang} budget={convBudget} />;
+  // ホーム上部に出す購入プラン関連の帯（チップ＋残り回数＋アップセル）。従来契約の生徒はすべて null
+  const planTopSlot = (planChip || upsellBanner || convBudget?.hasBudget)
+    ? <>{planChip}{budgetChip}{upsellBanner}</> : null;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {

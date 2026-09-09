@@ -45,6 +45,7 @@ import { AdminSalesFunnelCard } from '../../components/ai-course/admin/AdminSale
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
 import { AdminPaymentWatchPanel } from '../../components/ai-course/admin/AdminPaymentWatchPanel';
 import { AdminLearningCodePanel } from '../../components/ai-course/admin/AdminLearningCodePanel';
+import { AdminBetaChallengePanel } from '../../components/ai-course/admin/AdminBetaChallengePanel';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -391,6 +392,8 @@ export default function AiCourseAdminPage() {
               販売ページを見た人（2026-08-23 CEO依頼）。ファネルの一段上＝
               「そもそも見つかっているのか」。自前fetchなので model には触らない
             */}
+            {/* 100人チャレンジ（2026-09-09）。いま一番動かしたい数字なので上に置く */}
+            <AdminBetaChallengePanel />
             <AdminLpViewsCard />
             {/* 学習ファネル（Phase 1 計測基盤）。自前fetchなので model には触らない */}
             <AdminSalesFunnelCard />
