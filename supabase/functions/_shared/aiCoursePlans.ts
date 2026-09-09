@@ -17,6 +17,23 @@ export interface FunctionPlan {
 
 export const FUNCTION_PLAN_CATALOG: FunctionPlan[] = [
   {
+    "id": "free-7d",
+    "version": 1,
+    "nameJa": "7日間の実力診断",
+    "nameZh": "7天日语实力诊断",
+    "priceLabelJa": "無料",
+    "priceLabelZh": "免费",
+    "priceJpy": 0,
+    "durationLabelJa": "開始から7日間",
+    "durationLabelZh": "开始后7天",
+    "accessDays": 7,
+    "aiMinutes": null,
+    "realtimeWindowMinutes": null,
+    "trialDays": 7,
+    "lessonCount": 0,
+    "status": "draft"
+  },
+  {
     "id": "ai-trial-pass",
     "version": 5,
     "nameJa": "AI体験パス",

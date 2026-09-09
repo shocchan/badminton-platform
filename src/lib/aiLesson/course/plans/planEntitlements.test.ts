@@ -28,13 +28,25 @@ describe('権限マトリクス', () => {
     expect(e.wechatConsult).toBe(true);
   });
 
-  it('全プランでAI会話・教材・復習・学習記録が使える', () => {
+  it('全プランで教材・復習・学習記録が使える', () => {
     for (const p of PLAN_CATALOG) {
       const e = entitlementsFor(p.id);
-      expect(e.aiConversation, p.id).toBe(true);
       expect(e.materials, p.id).toBe(true);
       expect(e.review, p.id).toBe(true);
       expect(e.learningRecords, p.id).toBe(true);
+    }
+  });
+
+  /**
+   * AI会話は「**売っているプラン**」で使える（2026-09-10）。
+   * 無料枠（free-7d）は会話を含まないので false が正しい。
+   * ここを true 固定に戻すと、画面には「使える」と出てサーバーが0回で断る
+   * ＝押しても始まらないボタンができる。
+   */
+  it('有料プランはAI会話が使え、無料枠は閉じている', () => {
+    for (const p of PLAN_CATALOG) {
+      const expected = (p.priceJpy ?? 0) > 0;
+      expect(entitlementsFor(p.id).aiConversation, p.id).toBe(expected);
     }
   });
 

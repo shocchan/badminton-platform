@@ -17,6 +17,7 @@
 //       人間コーチ = 安田翔（しょっちゃん先生）は別枠。混同させない。
 
 import type { Lang } from '../../../contexts/LanguageContext';
+import type { PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 
 export type CharacterVariant = 'shoko' | 'yuto';
 
@@ -195,7 +196,12 @@ export interface LpContent {
   planFit: {
     heading: Str; lead: Str;
     /** プランごとの「こんな人に」箇条書き。表示名・価格は planCatalog から出す */
-    byPlan: L<Record<'ai-trial-pass' | 'ai-month' | 'coach-6m', string[]>>;
+    /**
+     * 料金表に並ぶプランの箇条書き。**公開プランだけ**を持つ（無料枠は draft なので
+     * ここに項目を持たない。views は publishedPlans() から作られるので参照もされない）。
+     * 型を PlanId 全体にすると、出さないプランのコピーを書く義務が生まれる
+     */
+    byPlan: L<Partial<Record<PlanId, string[]>>>;
     notFitHeading: Str;
     notFitItems: Strs;
     /** AIのみ希望の人を否定せず安いプランへ案内する一文 */

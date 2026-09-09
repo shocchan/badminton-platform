@@ -171,6 +171,20 @@ export interface PlanAiBudget {
  * 音声の枠を使い切っても、学習を続けられる状態を必ず残す。
  */
 export const PLAN_AI_BUDGETS: Record<PlanId, PlanAiBudget> = {
+  /**
+   * 7日間の実力診断（無料・2026-09-10 CEO決定）。**AI会話は0回。**
+   * 原価を持つのは会話だけなので、ここを0にすると無料枠の変動費はゼロになる。
+   * 会話は鍵付きで見せて、開けるのは回数券か有料プラン＝クロスセルの入口にする。
+   */
+  'free-7d': {
+    planId: 'free-7d',
+    voiceSessionsTotal: 0,
+    voiceSessionsPerDay: 0,
+    textSessionsPerDay: 0,
+    // 売上0なので原価率は定義できない。0にして「1円でも使ったら超過」と読めるようにする
+    maxAiCostRatio: 0,
+    rationale: '無料枠は会話を含めない（CEO決定 2026-09-10）。教材・診断・模試・錯題本はLLMを呼ばないので変動費は実質ゼロ',
+  },
   'ai-trial-pass': {
     planId: 'ai-trial-pass',
     voiceSessionsTotal: 3,

@@ -56,15 +56,35 @@ describe('枠の作りが破綻していない', () => {
     }
   });
 
+  /**
+   * 会話の枠についての約束は「**会話を売っているプラン**」にかかる（2026-09-10）。
+   * 無料枠（free-7d）は会話を売っていない＝0回が正しい姿なので、母数から外す。
+   * 「有料なのに0回」は引き続き検出できる。
+   */
+  const paidPlans = () => PLAN_CATALOG.filter((p) => (p.priceJpy ?? 0) > 0);
+
   it('音声より先にテキストが尽きない（原価ゼロ側を狭くしない）', () => {
-    for (const p of PLAN_CATALOG) {
+    for (const p of paidPlans()) {
       const b = aiBudgetFor(p.id);
-      expect(b.textSessionsPerDay).toBeGreaterThan(b.voiceSessionsPerDay);
+      expect(b.textSessionsPerDay, p.id).toBeGreaterThan(b.voiceSessionsPerDay);
     }
   });
 
-  it('どのプランも音声が1回以上できる（会話を売っているのに0回にしない）', () => {
-    for (const p of PLAN_CATALOG) expect(aiBudgetFor(p.id).voiceSessionsTotal).toBeGreaterThan(0);
+  it('**有料の**プランは音声が1回以上できる（会話を売っているのに0回にしない）', () => {
+    expect(paidPlans().length).toBeGreaterThan(0);
+    for (const p of paidPlans()) expect(aiBudgetFor(p.id).voiceSessionsTotal, p.id).toBeGreaterThan(0);
+  });
+
+  /**
+   * 無料枠は会話ゼロ（CEO決定 2026-09-10）。
+   * 原価を持つのは会話だけなので、ここが 0 であるかぎり無料枠の変動費は実質ゼロになる。
+   * 1回でも開けると 100人×音声1回 ≒ 1万円（Friends Beta の予算まるごと）に届く。
+   */
+  it('無料枠は会話が0回（原価を持たせない）', () => {
+    const b = aiBudgetFor('free-7d');
+    expect(b.voiceSessionsTotal).toBe(0);
+    expect(b.voiceSessionsPerDay).toBe(0);
+    expect(b.textSessionsPerDay).toBe(0);
   });
 
   it('なぜその数字かが書いてある（根拠なく動かされないように）', () => {

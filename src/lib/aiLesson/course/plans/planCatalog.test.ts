@@ -111,7 +111,8 @@ describe('カタログの形', () => {
     expect(planById('ai-month')!.priceJpy).toBe(2980);
     expect(planById('coach-6m')!.priceJpy).toBe(100000);
     for (const p of PLAN_CATALOG) {
-      if (p.priceJpy === null) continue;
+      // null＝未確定。0＝無料（ラベルは「無料」で、数字は出さないのが正しい）
+      if (p.priceJpy === null || p.priceJpy === 0) continue;
       // ラベル中の数字（カンマ・万表記を展開）と数値が一致すること
       const label = p.priceLabelJa.replace(/,/g, '').replace(/(\d+)万/, (_, n) => String(Number(n) * 10000));
       expect(label, `${p.id}: ${p.priceLabelJa}`).toContain(String(p.priceJpy));
@@ -311,6 +312,9 @@ const planHash = (id: string): string => {
  * **一度でも公開したら、以後は必ず version を上げること。**
  */
 const PLAN_FINGERPRINTS: Record<string, { version: number; hash: string }> = {
+  // 2026-09-10 追加: 7日間の実力診断（無料・招待リンク限定）。
+  // draft のまま＝まだ一度も公開していないので version は 1 のまま
+  'free-7d': { version: 1, hash: '35310ef364a7' },
   // 2026-08-26 体験パスを実時間60分 → **開始から7日間**（CEO決定 Phase S2）。
   // 60分では、翌日以降にしか届かない間隔反復＝この商品の中心を体験できなかった。
   // 価格は据え置き（600円）。音声会話の合計3回も据え置き。
@@ -389,7 +393,8 @@ describe('人民元の参考表示（中国語ページ）', () => {
   it('中国語では「约◯元」を出す', () => {
     for (const p of PLAN_CATALOG) {
       const v = planView(p, 'zh');
-      if (p.priceJpy === null) { expect(v.priceApproxCny).toBeNull(); continue; }
+      // null＝未確定 / 0＝無料。どちらも「约◯元」を出さないのが正しい
+      if (p.priceJpy === null || p.priceJpy === 0) { expect(v.priceApproxCny).toBeNull(); continue; }
       expect(v.priceApproxCny).toMatch(/^约[0-9,]+元$/);
     }
   });

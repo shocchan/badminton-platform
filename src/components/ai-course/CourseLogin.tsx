@@ -40,7 +40,11 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
    * 合成メール時代の生徒14人が移行中で、URLを無くして手元にパスワードも無い人の
    * 最後の道が消えてしまうため。全員が新方式に乗ったら外す。
    */
-  const [mode, setMode] = useState<'code' | 'id' | 'email'>('id');
+  const [mode, setMode] = useState<'code' | 'id' | 'email'>(
+    // 招待URLから来た人は、その場でメール登録に入れる（IDログインを探させない）
+    () => (new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search)
+      .get('invite') ? 'email' : 'id'),
+  );
   const [learnCode, setLearnCode] = useState('');
   const [codeBlockedFor, setCodeBlockedFor] = useState(0);
   const [loginId, setLoginId] = useState('');
@@ -52,7 +56,23 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
    */
   const [idFailures, setIdFailures] = useState(0);
   const [step, setStep] = useState<'email' | 'code'>('email');
-  const [invite, setInvite] = useState('');
+  /**
+   * 招待コード。**URLの `?invite=` から拾う**（2026-09-10）。
+   *
+   * 小紅書・朋友圈・微信で配るのはURL1本だけにしたい。8桁を手で打たせると、
+   * そこで人が減る（学習コードの12桁で実際にCEOが「入力が大変」と詰まった）。
+   * URLから来たときは、招待の入力欄を出さずに**メールアドレスだけ**を聞く。
+   * 打ち間違いようがないぶん、失敗の理由も1つ減る。
+   */
+  const urlInvite = (() => {
+    try {
+      const v = new URLSearchParams(window.location.search).get('invite') ?? '';
+      // 学習コード・紹介コードと同じ文字集合（0/O/1/I/L/U を使わない）
+      const n = v.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      return /^[23456789ABCDEFGHJKMNPQRSTVWXYZ]{8}$/.test(n) ? n : '';
+    } catch { return ''; }
+  })();
+  const [invite, setInvite] = useState(urlInvite);
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -307,17 +327,30 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
           </div>
         ) : step === 'email' ? (
           <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
-                <KeyRound className="w-3.5 h-3.5" />{tl.inviteLabel}
-              </label>
-              <input
-                type="text" value={invite} onChange={(e) => { setInvite(e.target.value); setError(''); }}
-                placeholder={tl.invitePlaceholder} autoComplete="off"
-                className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <p className="text-[11px] text-gray-400 mt-1">{tl.inviteHint}</p>
-            </div>
+            {/*
+              招待URLから来た人には、この欄を出さない（2026-09-10）。
+              コードは既に入っているので、打たせる理由が無い。**画面に出す入力は少ないほどよい**
+              （12桁の学習コードを画面に出したとき、CEO自身が「入力が大変」と詰まった）。
+              招待つきで来たことは、下の一文で伝える
+            */}
+            {urlInvite ? (
+              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                {tx('招待リンクから来ました。メールアドレスだけで始められます。',
+                  '你是通过邀请链接来的。只填邮箱就可以开始。')}
+              </p>
+            ) : (
+              <div>
+                <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
+                  <KeyRound className="w-3.5 h-3.5" />{tl.inviteLabel}
+                </label>
+                <input
+                  type="text" value={invite} onChange={(e) => { setInvite(e.target.value); setError(''); }}
+                  placeholder={tl.invitePlaceholder} autoComplete="off"
+                  className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-[11px] text-gray-400 mt-1">{tl.inviteHint}</p>
+              </div>
+            )}
             <div>
               <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
                 <Mail className="w-3.5 h-3.5" />{tl.emailLabel}

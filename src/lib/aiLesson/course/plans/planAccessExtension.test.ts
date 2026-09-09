@@ -10,7 +10,7 @@
 // 実体はDBの ai_grant_purchase_access（migration 20260824140000）。
 // TS側の nextAccessOnPurchase はその写しで、SQLとのずれもここで検出する。
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   nextAccessOnPurchase, planStrengthRank, PLAN_STRENGTH_RANK, MANUAL_STRENGTH_RANK,
@@ -267,8 +267,27 @@ describe('冪等性', () => {
    5. SQL と TS のずれ検出
    ──────────────────────────────────────────────────────────── */
 describe('ai_plan_rank（SQL）と PLAN_STRENGTH_RANK（TS）が一致する', () => {
+  /**
+   * **いま効いている定義**を読む（2026-09-10）。
+   * ここは 20260824140000 の1ファイルだけを見ていたが、ai_plan_rank はその後の
+   * migration でも作り直されている。1ファイル固定だと、あとから値を変えても気づけない
+   * （planAiBudget.test.ts が migration を時系列に読んでいるのと同じ理由）。
+   */
+  const effectiveRankSql = (): string => {
+    const dir = 'supabase/migrations';
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith('.sql') && !f.endsWith('.rollback.sql'))
+      .sort();
+    let last = '';
+    for (const f of files) {
+      const sql = readFileSync(`${dir}/${f}`, 'utf8');
+      if (/function\s+public\.ai_plan_rank/.test(sql)) last = sql;
+    }
+    return last;
+  };
+
   const sqlRank = (key: string): number => {
-    const m = MIGRATION.match(new RegExp(`when '${key}'\\s*then\\s*(\\d+)`));
+    const m = effectiveRankSql().match(new RegExp(`when '${key}'\\s*then\\s*(\\d+)`));
     if (!m) throw new Error(`ai_plan_rank に ${key} が無い`);
     return Number(m[1]);
   };

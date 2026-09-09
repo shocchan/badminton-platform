@@ -67,7 +67,13 @@ export const entitlementsFor = (planId: PlanId): PlanEntitlements => {
   const budget = aiBudgetFor(p.id);
   return {
     planId: p.id,
-    aiConversation: true,
+    /**
+     * AI会話を使えるか。**枠から導く**（2026-09-10）。
+     * ここは true 固定だった。売っている3プランはどれも会話を含むので実害が無かったが、
+     * 会話ゼロの無料枠ができた時点で嘘になる（画面には「使える」と出て、
+     * サーバーは0回で断る＝押しても始まらないボタンができる）。
+     */
+    aiConversation: budget.voiceSessionsTotal > 0 || budget.textSessionsPerDay > 0,
     aiMinutesTotal: p.aiMinutes,
     aiVoiceSessionsTotal: budget.voiceSessionsTotal,
     aiVoiceSessionsPerDay: budget.voiceSessionsPerDay,
@@ -133,6 +139,8 @@ export const accessWindowFor = (planId: PlanId, purchasedAtISO: string): AccessW
  * 知らないプランIDも同じ理由で最強に倒す（弱いと決めつけない）。
  */
 export const PLAN_STRENGTH_RANK: Record<PlanId, number> = {
+  // 無料枠は**いちばん弱い**。有料の受講権を無料枠が上書きしたら事故になる
+  'free-7d': 5,
   'ai-trial-pass': 10,
   'ai-month': 50,
   'coach-6m': 90,
