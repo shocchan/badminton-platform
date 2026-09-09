@@ -8,10 +8,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
-import { Mail, ArrowRight, KeyRound, RotateCcw, Loader2, User, Lock } from 'lucide-react';
+import { Mail, ArrowRight, KeyRound, RotateCcw, Loader2, User, Lock, Ticket } from 'lucide-react';
 import { ShokoAvatar } from './ShokoAvatar';
-import { sendEmailOtp, verifyEmailOtp, signInWithStudentId } from '../../lib/aiLesson/course/courseAuth';
+import {
+  sendEmailOtp, verifyEmailOtp, signInWithStudentId, signInWithLearningCode,
+} from '../../lib/aiLesson/course/courseAuth';
 import type { OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
+import { formatLearningCode, isValidLearningCode } from '../../lib/aiLesson/course/learningCode';
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 
@@ -26,9 +29,17 @@ const RESEND_COOLDOWN_SEC = 60;
 export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   const tl = t.login;
   const lang: 'ja' | 'zh' = t.locale === 'zh' ? 'zh' : 'ja';
-  // 既定はID＋パスワード（生徒はメール不要でログインできる・CEO決定 2026-08-14）。
-  // メールOTP（招待コード方式）は「メールで登録した方はこちら」で残す
-  const [mode, setMode] = useState<'id' | 'email'>('id');
+  /*
+   * 既定は**学習コード1つ**（2026-09-09 P0-2）。
+   * 覚えるものを1つも作らないための入口で、ふだんは配った個人専用URLを押すだけ。
+   * この画面に来るのは「機種を変えた」「リンクを無くした」人なので、入力欄は1つに絞る。
+   *
+   * 旧来のID＋パスワードは**消さない**（移行期間中の生徒が締め出されないため）。
+   * メールOTP（招待コード方式）もそのまま残す。
+   */
+  const [mode, setMode] = useState<'code' | 'id' | 'email'>('code');
+  const [learnCode, setLearnCode] = useState('');
+  const [codeBlockedFor, setCodeBlockedFor] = useState(0);
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   /**
@@ -100,6 +111,29 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
   };
 
   const tx = (ja: string, zh: string) => (lang === 'zh' ? zh : ja);
+
+  /** 学習コード1つでログインする。理由は粗いまま出す（存在/失効を外へ教えない） */
+  const handleCodeLogin = async () => {
+    if (busy || !isValidLearningCode(learnCode)) return;
+    setError('');
+    setBusy(true);
+    const r = await signInWithLearningCode(learnCode);
+    setBusy(false);
+    if (r.ok) { trackCourse('login_ai_course', { method: 'code' }); onLoggedIn(); return; }
+    if (r.code === 'too_many_attempts') {
+      setCodeBlockedFor(r.retryAfter ?? 900);
+      setError(tx('短い時間に何度も試されました。15分ほどおいてから、もう一度お試しください。',
+        '短时间内尝试了太多次。请等15分钟后再试。'));
+    } else if (r.code === 'network' || r.code === 'unavailable') {
+      setError(tx('通信がうまくいきませんでした。電波のよい場所でもう一度お試しください。',
+        '网络连接不太顺利。请在信号好的地方再试一次。'));
+    } else {
+      setError(tx('この学習コードは確認できませんでした。もう一度ご確認ください。',
+        '无法确认这个学习码。请再确认一下。'));
+    }
+    trackCourse('fail_ai_course_login', { method: 'code' });   // コードそのものは送らない
+  };
+
   const handleIdLogin = async () => {
     if (busy || !loginId.trim() || !password) return;
     setError('');
@@ -129,12 +163,65 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
         <ShokoAvatar size={72} className="mx-auto mb-3 ring-4 ring-blue-50" />
         <h1 className="text-xl font-bold text-gray-900 text-center">{tl.title}</h1>
         <p className="text-sm text-gray-500 mt-2 mb-5 text-center">
-          {mode === 'id'
-            ? (lang === 'zh' ? '使用老师发给你的ID和密码登录。' : '先生から届いたIDとパスワードでログインします。')
-            : tl.subtitle}
+          {mode === 'code'
+            ? (lang === 'zh' ? '输入老师给你的「学习码」就可以开始。不需要密码。'
+              : '先生から届いた「学習コード」だけで始められます。パスワードは要りません。')
+            : mode === 'id'
+              ? (lang === 'zh' ? '使用老师发给你的ID和密码登录。' : '先生から届いたIDとパスワードでログインします。')
+              : tl.subtitle}
         </p>
 
-        {mode === 'id' ? (
+        {mode === 'code' ? (
+          <div className="space-y-3">
+            <div>
+              <label htmlFor="course-learning-code" className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
+                <Ticket className="w-3.5 h-3.5" />{tx('学習コード', '学习码')}
+              </label>
+              <input
+                id="course-learning-code"
+                type="text"
+                inputMode="text"
+                value={learnCode}
+                /* 打ちながら4桁ずつ区切る。小文字・区切り無しで貼っても通る */
+                onChange={(e) => { setLearnCode(formatLearningCode(e.target.value)); setError(''); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') void handleCodeLogin(); }}
+                placeholder="K7PX-29QM-4T6B"
+                autoComplete="one-time-code"
+                autoCapitalize="characters" autoCorrect="off" spellCheck={false}
+                maxLength={14}
+                className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl text-center text-lg tracking-[0.18em] font-mono uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                {tx('ふだんは、先生から届いたリンクを押すだけで入れます。',
+                  '平时只要点老师发给你的链接就能进入。')}
+              </p>
+            </div>
+            {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+            <button
+              type="button" onClick={() => void handleCodeLogin()}
+              disabled={busy || !isValidLearningCode(learnCode) || codeBlockedFor > 0}
+              className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 active:bg-blue-800 active:scale-[0.98] disabled:opacity-40 transition-all duration-150 flex items-center justify-center gap-2 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+            >
+              {busy && <Loader2 className="w-4 h-4 animate-spin" aria-hidden />}
+              {busy ? tx('確認中…', '确认中…') : tx('学習を始める', '开始学习')}
+              {!busy && <ArrowRight className="w-4 h-4" />}
+            </button>
+            <p className="text-center text-[11px] leading-relaxed text-gray-500">
+              {tx('コードが分からないときは、WeChatで先生に「入れません」と送ってください。すぐに新しいコードをお渡しします。',
+                '想不起学习码时，请在微信上告诉老师「进不去」，我们会马上给你新的。')}
+            </p>
+            <p id="course-consent-links" className="mt-1.5 flex flex-wrap justify-center gap-x-3 gap-y-1 text-[11px]">
+              <Link to={legalPathFor(lang, 'terms')} className="underline underline-offset-2 text-blue-700">{tl.consentTerms}</Link>
+              <Link to={legalPathFor(lang, 'privacy')} className="underline underline-offset-2 text-blue-700">{tl.consentPrivacy}</Link>
+              <Link to={legalPathFor(lang, 'ai-disclosure')} className="underline underline-offset-2 text-blue-700">{tl.consentAi}</Link>
+            </p>
+            {/* 移行期間中の道。ID＋パスワードを配られている人がここで詰まらないように */}
+            <button type="button" onClick={() => { setMode('id'); setError(''); }}
+              className="w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 active:text-gray-800 transition-colors rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
+              {tx('IDとパスワードを受け取っている方はこちら', '收到的是ID和密码的学员点这里')}
+            </button>
+          </div>
+        ) : mode === 'id' ? (
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
@@ -199,6 +286,10 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               <Link to={legalPathFor(lang, 'privacy')} className="underline underline-offset-2 text-blue-700">{tl.consentPrivacy}</Link>
               <Link to={legalPathFor(lang, 'ai-disclosure')} className="underline underline-offset-2 text-blue-700">{tl.consentAi}</Link>
             </p>
+            <button type="button" onClick={() => { setMode('code'); setError(''); }}
+              className="w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 active:text-gray-800 transition-colors rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
+              {tx('学習コードでログインする', '用学习码登录')}
+            </button>
             <button type="button" onClick={() => { setMode('email'); setError(''); }}
               className="w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 active:text-gray-800 transition-colors rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
               {tx('メールアドレスで登録・ログインする方はこちら', '用邮箱注册・登录的学员点这里')}
@@ -296,9 +387,9 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
           </div>
         )}
         {mode === 'email' && (
-          <button type="button" onClick={() => { setMode('id'); setError(''); }}
+          <button type="button" onClick={() => { setMode('code'); setError(''); }}
             className="mt-3 w-full min-h-11 py-2 text-sm text-gray-500 hover:text-gray-700 active:text-gray-800 transition-colors rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
-            {lang === 'zh' ? '用ID＋密码登录' : 'ID＋パスワードでログインする'}
+            {lang === 'zh' ? '用学习码登录' : '学習コードでログインする'}
           </button>
         )}
         <p className="text-[11px] text-gray-400 text-center mt-4">{tl.keepLoggedIn}</p>

@@ -6,6 +6,7 @@
 // - 管理者判定は ai_admins テーブル（RLSで自分の行だけ見える）
 
 import { supabase } from '../../../services/supabaseClient';
+import { isValidLearningCode, normalizeLearningCode } from './learningCode';
 
 export interface AuthUser {
   id: string;
@@ -110,6 +111,44 @@ export const signInWithStudentId = async (id: string, password: string): Promise
   if (!isValidStudentId(normalized) || password.length === 0) return { ok: false };
   const { error } = await supabase.auth.signInWithPassword({ email: studentIdToEmail(normalized), password });
   return { ok: !error };
+};
+
+/**
+ * 学習コードでログインする（2026-09-09 P0-2）。
+ *
+ * サーバー（ai-course-code-login）がコードを照合し、Supabaseの正規経路
+ * （admin/generate_link → hashed_token）で単回・短命のトークンを返す。
+ * ここはそれをセッションに換えるだけ。**パスワードは一切扱わない。**
+ *
+ * 失敗理由は意図的に粗い（存在しないのか失効なのかをクライアントへ教えない）。
+ */
+export type CodeLoginCode = 'invalid_code' | 'too_many_attempts' | 'unavailable' | 'network';
+
+export const signInWithLearningCode = async (
+  code: string,
+): Promise<{ ok: boolean; code?: CodeLoginCode; retryAfter?: number }> => {
+  if (!SUPA_URL || !ANON_KEY) return { ok: false, code: 'unavailable' };
+  const normalized = normalizeLearningCode(code);
+  if (!isValidLearningCode(normalized)) return { ok: false, code: 'invalid_code' };
+  try {
+    const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-code-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: ANON_KEY },
+      body: JSON.stringify({ code: normalized }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data?.ok !== true || typeof data?.tokenHash !== 'string') {
+      return {
+        ok: false,
+        code: (data?.code as CodeLoginCode) ?? 'invalid_code',
+        retryAfter: typeof data?.retryAfter === 'number' ? data.retryAfter : undefined,
+      };
+    }
+    const { error } = await supabase.auth.verifyOtp({ token_hash: data.tokenHash, type: 'magiclink' });
+    return error ? { ok: false, code: 'unavailable' } : { ok: true };
+  } catch {
+    return { ok: false, code: 'network' };
+  }
 };
 
 /** ログイン中の本人がパスワードを変更する（8文字以上。メール不要） */

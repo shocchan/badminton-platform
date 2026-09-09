@@ -749,6 +749,7 @@ const PRIVATE_PATTERNS = [
   /^\\/(ja|zh)\\/ai-course\\/admin(\\/|$)/,
   /^\\/(ja|zh)\\/ai-course\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/ai-course\\/purchase(\\/|$)/,
+  /^\\/(ja|zh)\\/learn(\\/|$)/,
   /^\\/(ja|zh)\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/signup(\\/|$)/,
   /^\\/(ja|zh)\\/auth-landing(\\/|$)/,

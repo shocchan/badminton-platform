@@ -44,6 +44,7 @@ import { AdminTestimonialsCard } from '../../components/ai-course/admin/AdminTes
 import { AdminSalesFunnelCard } from '../../components/ai-course/admin/AdminSalesFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
 import { AdminPaymentWatchPanel } from '../../components/ai-course/admin/AdminPaymentWatchPanel';
+import { AdminLearningCodePanel } from '../../components/ai-course/admin/AdminLearningCodePanel';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -289,6 +290,8 @@ export default function AiCourseAdminPage() {
         lastSignInAtISO={selView.account.lastSignInAtISO}
         onSaved={reloadAccess}
       />
+      {/* 学習コード（2026-09-09 P0-2）。受講権のすぐ下＝「渡すもの」を1か所にまとめる */}
+      <AdminLearningCodePanel userId={selView.account.userId} labelJa={displayNameOf(selView)} />
       {selLearner && (
         <>
           <AdminTeacherPlanPanel learner={selLearner}

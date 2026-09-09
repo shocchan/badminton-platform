@@ -58,6 +58,8 @@ const RallyGamePage       = lazy(() => import('./pages/RallyGamePage'));
 const MyPage              = lazy(() => import('./pages/MyPage'));
 // AI日本語学習デモ（限定公開: ナビ・sitemap・robots非掲載、パスコードゲートあり）
 const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
+// 個人専用URL（2026-09-09 P0-2）。押すだけで学習が始まる入口。URL自体が学習コードなのでnoindex
+const LearnCodePage       = lazy(() => import('./pages/ai-lesson/LearnCodePage'));
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 // セルフサービス決済の完了ページ（Stripe Checkout の戻り先）
@@ -176,6 +178,8 @@ const AnimatedRoutes = () => {
             <Route path="game"            element={<RallyGamePage />} />
             <Route path="mypage"          element={<MyPage />} />
             <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
+            {/* 個人専用URL。ここに来た人はコードでログインして学習画面へ送られる */}
+            <Route path="learn/:code"     element={<LearnCodePage />} />
               <Route path="ai-course"       element={<AiCourseEntry />} />
               {/* 受講者ログイン（LPと分離した専用URL）。?app=1 は既存ブックマーク互換で残す */}
               <Route path="ai-course/login" element={<AiCourseEntry forceApp />} />
@@ -235,6 +239,10 @@ const AnimatedRoutes = () => {
           )}
 
           {/* ── 言語によらないページ ── */}
+          {/* 言語なしで配られたリンクの受け皿（/learn/CODE）。中国語話者が主なので zh へ寄せる。
+              NavigateWithId は :id を読むので、ここだけパラメータ名を :id にする */}
+          <Route path="/learn/:id" element={<NavigateWithId to="/zh/learn" />} />
+
           <Route path="/cancel"      element={<CancelEntryPage />} />
           <Route path="/results/vol1" element={<Vol1Results />} />
           <Route path="/results/vol2" element={<Vol2Results />} />
