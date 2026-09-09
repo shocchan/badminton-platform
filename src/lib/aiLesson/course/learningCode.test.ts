@@ -101,4 +101,21 @@ describe('learningCodeMessage', () => {
       expect(m.includes('请记住密码')).toBe(false);
     }
   });
+
+  /*
+   * WeChatのチャットは流れる。**送った直後に保存してもらう**のがいちばん確実なので、
+   * 文面に「收藏」への一行を必ず入れる（2026-09-09 CEO指摘:
+   * 継続しない人の原因は、URL・ID・パスワードがチャットに埋もれること）。
+   */
+  it('WeChatの「收藏」に入れる案内が入っている', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      expect(learningCodeMessage('K7PX29QM4T6B', lang)).toContain('收藏');
+    }
+  });
+
+  it('WeChatで読める長さに収まっている（長すぎると読まれない）', () => {
+    for (const lang of ['ja', 'zh'] as const) {
+      expect(learningCodeMessage('K7PX29QM4T6B', lang).length).toBeLessThan(300);
+    }
+  });
 });

@@ -54,6 +54,12 @@ export const learningCodeUrl = (
 export const learningCodeMessage = (code: string, lang: 'ja' | 'zh' = 'zh'): string => {
   const url = learningCodeUrl(code, lang);
   return lang === 'zh'
-    ? `你的学习入口（点一下就能开始，不需要密码）：\n${url}\n\n换手机或打不开的时候，也可以在登录页面输入这个学习码：\n${formatLearningCode(code)}\n\n弄丢了就告诉我，我马上给你发新的。`
-    : `学習の入口です（押すだけで始められます。パスワードは要りません）：\n${url}\n\n機種変更などで開けないときは、ログイン画面でこの学習コードを入れてください：\n${formatLearningCode(code)}\n\nなくしたら言ってください。すぐに新しいものをお渡しします。`;
+    ? `你的学习入口（点一下就能开始，不需要密码）：\n${url}\n\n`
+      + `👉 请长按这条消息 →「收藏」。以后从「我 → 收藏」直接打开就行，不用在聊天记录里翻。\n\n`
+      + `换手机或打不开的时候，在登录页面输入这个学习码也可以：\n${formatLearningCode(code)}\n\n`
+      + `弄丢了随时告诉我，我马上发新的。`
+    : `学習の入口です（押すだけで始められます。パスワードは要りません）：\n${url}\n\n`
+      + `👉 このメッセージを長押しして「收藏」（お気に入り）に入れておいてください。次からは「我 → 收藏」から開けます。\n\n`
+      + `機種変更などで開けないときは、ログイン画面でこの学習コードを入れてください：\n${formatLearningCode(code)}\n\n`
+      + `なくしたら言ってください。すぐに新しいものをお渡しします。`;
 };
