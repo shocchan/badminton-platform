@@ -249,14 +249,93 @@ serve(async (req: Request) => {
         },
       });
 
+    /*
+     * ── 受信ログ（2026-09-09 P0-1）────────────────────────────────
+     *
+     * 【なぜ全件書くか】
+     * 8/20〜9/7に決済が14件開始され完了0件だったとき、手元のデータでは
+     * 「誰も払わなかった」のか「払われたのに webhook が届かなかった」のかを
+     * **区別できなかった**。受信の記録がどこにも無かったからで、Edge Function の
+     * ログ保持も1日しかない。以後は無視したイベントも署名エラーも1行残す。
+     * 沈黙（0行）そのものが「届いていない」という証拠になる。
+     *
+     * 【入れないもの】メール・氏名・会話本文。session は末尾8桁だけ
+     * （完全な session_id は ai-course-claim-session の鍵になるため観測表に置かない）。
+     */
+    const logEvent = async (e: {
+      eventId?: string | null; type: string; sessionId?: string | null;
+      paymentStatus?: string | null; paymentMethod?: string | null;
+      livemode?: boolean | null;
+      outcome: "received" | "handled" | "ignored" | "waiting" | "error" | "signature_failed";
+      detail?: string;
+    }): Promise<void> => {
+      try {
+        await fetch(`${supabaseUrl}/rest/v1/ai_payment_events`, {
+          method: "POST",
+          headers: { ...dbHeaders, Prefer: "return=minimal" },
+          body: JSON.stringify({
+            stripe_event_id: e.eventId ?? null,
+            event_type: e.type,
+            session_ref: e.sessionId ? e.sessionId.slice(-8) : null,
+            payment_status: e.paymentStatus ?? null,
+            payment_method: e.paymentMethod ?? null,
+            livemode: e.livemode ?? null,
+            outcome: e.outcome,
+            detail: (e.detail ?? "").slice(0, 300),
+          }),
+        });
+      } catch (err) {
+        // 観測が落ちても決済処理は止めない
+        console.error("logEvent failed:", err instanceof Error ? err.message : "unknown");
+      }
+    };
+
     // ── 署名検証（生ボディで行う。JSON.parse より先） ──
     const payload = await req.text();
     const sig = req.headers.get("stripe-signature") ?? "";
     if (!(await verifyStripeSignature(payload, sig, webhookSecret))) {
+      // 署名が違っても「叩かれた事実」は残す（本文は信用できないので中身は書かない）
+      await logEvent({ type: "signature_failed", outcome: "signature_failed", detail: "stripe-signature mismatch or stale" });
       return json({ error: "invalid_signature" }, 400);
     }
 
     const event = JSON.parse(payload);
+    const evSession = event?.data?.object ?? {};
+    const evSessionId: string | null = typeof evSession?.id === "string" ? evSession.id : null;
+    const evMethod: string | null = Array.isArray(evSession?.payment_method_types)
+      ? evSession.payment_method_types[0] ?? null
+      : null;
+    /** 出口ごとに結果を1行足す。受信時の1行と対にして「どこまで進んだか」を残す */
+    const logOutcome = (outcome: "received" | "handled" | "ignored" | "waiting" | "error", detail: string) =>
+      logEvent({
+        eventId: typeof event?.id === "string" ? event.id : null,
+        type: typeof event?.type === "string" ? event.type : "unknown",
+        sessionId: evSessionId,
+        paymentStatus: typeof evSession?.payment_status === "string" ? evSession.payment_status : null,
+        paymentMethod: evMethod,
+        livemode: typeof event?.livemode === "boolean" ? event.livemode : null,
+        outcome,
+        detail,
+      });
+
+    // 受け取った事実を**必ず**先に残す。この行が無ければ「届いていない」と言い切れる
+    await logOutcome("received", "signature ok");
+
+    /* ── 期限切れ（2026-09-09 追加）────────────────────────────────
+       Stripe の checkout セッションは24時間で expire する。これを無視していたため、
+       「買われなかった行」と「webhookが届かなかった行」がどちらも pending のまま並び、
+       台帳から離脱率が読めなかった。expired を受けたら pending だけを expired にする
+       （既に払われた行には触らない）。 */
+    if (event.type === "checkout.session.expired") {
+      if (evSessionId) {
+        await fetch(`${supabaseUrl}/rest/v1/rpc/ai_expire_purchase`, {
+          method: "POST", headers: dbHeaders,
+          body: JSON.stringify({ p_session_id: evSessionId }),
+        }).catch((e) => console.error("expire rpc:", e));
+      }
+      await logOutcome("handled", "session expired -> ledger marked expired");
+      return json({ received: true, handled: event.type });
+    }
 
     /* ── 返金・チャージバック（2026-08-20 追加）─────────────────────
        返金したのに学習を続けられる状態を人手で止める運用をやめる。
@@ -355,6 +434,7 @@ serve(async (req: Request) => {
           }),
         }).catch((e) => console.error("refund mail failed:", e));
       }
+      await logOutcome("handled", `${isDispute ? "dispute opened" : "refund"}${fullyRefunded ? " (access revoked)" : ""}`);
       return json({ received: true, handled: event.type, revoked: fullyRefunded });
     }
 
@@ -388,6 +468,7 @@ serve(async (req: Request) => {
           }),
         },
       ).catch((e) => console.error("async_payment_failed patch:", e));
+      await logOutcome("handled", `async payment failed (${method ?? "unknown"})`);
       return json({ received: true, handled: event.type });
     }
 
@@ -395,6 +476,7 @@ serve(async (req: Request) => {
       event.type !== "checkout.session.completed" &&
       event.type !== "checkout.session.async_payment_succeeded"
     ) {
+      await logOutcome("ignored", "not a completion event");
       return json({ received: true, ignored: event.type });
     }
     const session = event.data?.object ?? {};
@@ -435,6 +517,7 @@ serve(async (req: Request) => {
           }).catch((e) => console.error("awaiting_payment insert:", e));
         }
       }
+      await logOutcome("waiting", `payment_status=${session.payment_status ?? "unknown"} (async method approved, waiting for funds)`);
       return json({ received: true, waiting: "payment" });
     }
 
@@ -872,9 +955,29 @@ serve(async (req: Request) => {
       }).catch((e) => console.error("admin mail failed:", e));
     }
 
+    await logOutcome("handled", `provisioned (${reusedAccount ? "reused account" : "new account"}, mail ${mailDelivered ? "sent" : "not sent"})`);
     return json({ received: true, provisioned: true });
   } catch (e) {
     console.error("ai-course-stripe-webhook error:", e);
+    /*
+      例外で落ちたことも残す。ここが空のまま「何も起きていない」に見えるのが
+      いちばん困る（8/20〜9/7の14件がまさにその状態だった）。
+      supabaseUrl / dbHeaders はこの時点で未定義のことがあるので、素の fetch で書く。
+    */
+    try {
+      const url = Deno.env.get("SUPABASE_URL");
+      const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      if (url && key) {
+        await fetch(`${url}/rest/v1/ai_payment_events`, {
+          method: "POST",
+          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+          body: JSON.stringify({
+            event_type: "exception", outcome: "error",
+            detail: (e instanceof Error ? `${e.name}: ${e.message}` : "unknown").slice(0, 300),
+          }),
+        });
+      }
+    } catch { /* 観測の失敗で応答を変えない */ }
     return json({ error: "internal" }, 500);
   }
 });

@@ -43,6 +43,7 @@ import { AdminFunnelCard } from '../../components/ai-course/admin/AdminFunnelCar
 import { AdminTestimonialsCard } from '../../components/ai-course/admin/AdminTestimonialsCard';
 import { AdminSalesFunnelCard } from '../../components/ai-course/admin/AdminSalesFunnelCard';
 import { AdminAlertsPanel } from '../../components/ai-course/admin/AdminAlertsPanel';
+import { AdminPaymentWatchPanel } from '../../components/ai-course/admin/AdminPaymentWatchPanel';
 import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admin/AdminStudentsTab';
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
@@ -412,6 +413,9 @@ export default function AiCourseAdminPage() {
 
         {tab === 'ops' && (
           <div className="space-y-4">
+          {/* 決済の観測（2026-09-09 P0-1）。実決済テスト中はここを見る。
+              いちばん上に置く: 売上が1件も立っていないあいだ、これより重い問題は無い */}
+          <AdminPaymentWatchPanel />
           {/* 運用アラート（Task 1）。自前fetchなので model には触らない */}
           <AdminAlertsPanel onOpenAccount={openAccount} />
           <AdminOpsTab issues={issues} onResolve={resolveIssue}

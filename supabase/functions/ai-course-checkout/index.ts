@@ -215,6 +215,24 @@ serve(async (req: Request) => {
       return json({ error: "ledger_error" }, 500);
     }
 
+    /*
+      観測（2026-09-09 P0-1）。決済の時系列を1本の表で追えるように、
+      「セッションを作った」も webhook と同じ場所へ書く。
+      これが有って webhook 側の行が無ければ、**届いていない**と言い切れる。
+      個人情報は入れない（session は末尾8桁だけ）。失敗しても決済は止めない。
+    */
+    await fetch(`${supabaseUrl}/rest/v1/ai_payment_events`, {
+      method: "POST",
+      headers: { ...dbHeaders, Prefer: "return=minimal" },
+      body: JSON.stringify({
+        event_type: "checkout_created",
+        session_ref: String(session.id).slice(-8),
+        livemode: mode === "live",
+        outcome: "handled",
+        detail: `plan=${plan.id} locale=${locale} amount=${plan.priceJpy}`,
+      }),
+    }).catch((e) => console.error("payment event log failed:", e));
+
     return json({ url: session.url });
   } catch (e) {
     console.error("ai-course-checkout error:", e);
