@@ -25,7 +25,9 @@ import { primaryBtn, secondaryBtn, subtleBtn, pressFx } from './advUi';
 import { PROVERB_TOTAL } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import { visitGreeting, visitStamps, visitedInCard } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { canSpeakJa, speakJa } from '../../../lib/aiLesson/speak';
-import type { Proverb } from '../../../lib/aiLesson/course/adventure/advProverbs';
+import {
+  proverbSpeechText, proverbExampleSpeechText, type Proverb,
+} from '../../../lib/aiLesson/course/adventure/advProverbs';
 import type { RestateItem } from '../../../lib/aiLesson/course/adventure/advRestateReview';
 import type { AdvVisitState } from '../../../lib/aiLesson/course/adventure/advTypes';
 
@@ -175,7 +177,9 @@ export function AdvDailyCheckin({
 
           <div className="mt-2 flex items-start gap-2">
             <p className="text-xl font-bold leading-snug text-gray-900">{p.ja}</p>
-            <SpeakBtn show={speakable} text={p.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-amber-300 text-amber-800" />
+            {/* 読み上げは漢字ではなく authored のよみを渡す（2026-09-09: 「住めば都」が
+                「すめばと」と読まれた）。読みが割れる字を合成側に判断させない */}
+            <SpeakBtn show={speakable} text={proverbSpeechText(p)} label={tx(lang, '読み上げる', '朗读')} tone="border-amber-300 text-amber-800" />
           </div>
           <p className="mt-0.5 text-xs text-gray-500">{p.yomi}</p>
           <p className="mt-2 text-sm leading-relaxed text-gray-800">
@@ -189,7 +193,7 @@ export function AdvDailyCheckin({
               <p className="text-sm leading-relaxed text-gray-900">{p.exampleJa}</p>
               <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{p.exampleZh}</p>
             </div>
-            <SpeakBtn show={speakable} text={p.exampleJa} label={tx(lang, '例文を読み上げる', '朗读例句')} tone="border-amber-300 text-amber-800" />
+            <SpeakBtn show={speakable} text={proverbExampleSpeechText(p)} label={tx(lang, '例文を読み上げる', '朗读例句')} tone="border-amber-300 text-amber-800" />
           </div>
 
           {/* 読むだけ → 自分で扱う、へ。押すとしばらくして1回だけ「覚えていますか？」で戻る */}
@@ -223,7 +227,7 @@ export function AdvDailyCheckin({
             </h3>
             <div className="mt-2 flex items-start gap-2">
               <p className="text-lg font-bold leading-snug text-gray-900">{recall.ja}</p>
-              <SpeakBtn show={speakable} text={recall.ja} label={tx(lang, '読み上げる', '朗读')} tone="border-violet-300 text-violet-700" />
+              <SpeakBtn show={speakable} text={proverbSpeechText(recall)} label={tx(lang, '読み上げる', '朗读')} tone="border-violet-300 text-violet-700" />
             </div>
             {recallOpen ? (
               <>

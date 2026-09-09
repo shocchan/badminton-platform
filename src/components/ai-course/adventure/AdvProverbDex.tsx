@@ -12,7 +12,7 @@
 import { useState } from 'react';
 import { ArrowLeft, Volume2 } from 'lucide-react';
 import { pressFx, subtleBtn } from './advUi';
-import { PROVERBS } from '../../../lib/aiLesson/course/adventure/advProverbs';
+import { PROVERBS, proverbSpeechText } from '../../../lib/aiLesson/course/adventure/advProverbs';
 import { collectedProverbs, proverbStats } from '../../../lib/aiLesson/course/adventure/advProverbDex';
 import { canSpeakJa, speakJa, stopSpeaking } from '../../../lib/aiLesson/speak';
 import type { AdvProverbEntry } from '../../../lib/aiLesson/course/adventure/advTypes';
@@ -104,7 +104,8 @@ export function AdvProverbDex({ lang, dex, onToggleLearned, onBack }: Props) {
                 {speakable && (
                   <button type="button" aria-label={tx(lang, '読み上げる', '朗读')}
                     className={`${pressFx} inline-grid h-8 w-8 shrink-0 place-items-center rounded-full border border-gray-300 bg-white text-gray-600`}
-                    onClick={() => speakJa(proverb.ja)}>
+                    /* 漢字ではなく authored のよみを渡す（2026-09-09: 「住めば都」が「すめばと」と読まれた） */
+                    onClick={() => speakJa(proverbSpeechText(proverb))}>
                     <Volume2 className="h-4 w-4" aria-hidden />
                   </button>
                 )}

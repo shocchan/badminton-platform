@@ -644,3 +644,41 @@ export const PROVERBS: Proverb[] = [
 
 export const proverbById = (id: string): Proverb | null =>
   PROVERBS.find((p) => p.id === id) ?? null;
+
+/* ──────────────────────────────────────────────────────────────
+   読み上げ用のテキスト（2026-09-09 CEO実機報告）
+
+   報告: 「住めば都」の読み上げボタンを押したら **「すめばと」** と発音された。
+
+   原因: ブラウザの音声合成へ**漢字のまま**渡していた。合成側は文脈で読みを決めるので、
+   「都」のように読みが割れる字（みやこ / と）は外す。ことわざは短くて文脈が無いぶん、
+   ふつうの文より外しやすい。
+
+   なぜ直すか（数字の問題ではない）:
+   日本語を教える商品が、ことわざの読みを**間違えて教えている**。
+   聞いた人はそのまま覚える。教材の誤植と同じ重さで、放置してよいものではない。
+
+   直し方: 見出しは authored の `yomi`（ひらがな全文）をそのまま読ませる。
+   例文は、見出しがそのまま入っているとき（60件中45件）だけ、その部分を `yomi` に置き換える。
+   置き換えても**音は変わらない**（yomi は見出しの正しい読みそのもの）ので、
+   もともと正しく読めていたことばが悪くなることはない。
+   ────────────────────────────────────────────────────────────── */
+
+/** 見出しの読み上げテキスト。漢字ではなく authored のよみを読ませる */
+export const proverbSpeechText = (p: Pick<Proverb, 'ja' | 'yomi'>): string =>
+  p.yomi.trim() || p.ja;
+
+/**
+ * 例文の読み上げテキスト。
+ * 見出しがそのままの形で入っているときだけ、その部分をよみに置き換える。
+ * 活用して入っている慣用句（頭が下がる → 頭が下がります）は置き換えない
+ * ＝機械で読みを作らない（原則13: 作った読みを教えない）。
+ */
+export const proverbExampleSpeechText = (
+  p: Pick<Proverb, 'ja' | 'yomi' | 'exampleJa'>,
+): string => {
+  const head = p.ja.trim();
+  const yomi = p.yomi.trim();
+  if (!head || !yomi || !p.exampleJa.includes(head)) return p.exampleJa;
+  return p.exampleJa.split(head).join(yomi);
+};
