@@ -1400,7 +1400,13 @@ export default function AdvShell(props: AdvShellProps) {
    * N2語彙（是正/ぜせい 等）が出ていた。模試の教材が無い級では**入口を出さず、
    * 無い理由を正直に書く**（原則13）。丸めて出す方が不誠実。
    */
-  const mockLevel = mockLevelOf(prof.targetJlpt);
+  /*
+   * ミニ模試の級は**実効レベル**から出す（2026-09-09 CEO報告）。
+   * 以前は targetJlpt だけを見ていて、会話目標の人（targetJlpt が null）は
+   * 既定の 'N2' に落ちていた。N1を持っている sijiaさんの画面に
+   * 「N2ミニ模試」が出ていたのはこれが原因。申告した級を尊重する。
+   */
+  const mockLevel = mockLevelOf(effectiveContentLevel(prof));
   // 案内の先生。未選択（null）は既定へ倒す＝既存learnerの見え方を変えない
   const teacher = resolveTeacher(prof.teacherId);
   const teacherLabel = teacherName(teacher, lang);

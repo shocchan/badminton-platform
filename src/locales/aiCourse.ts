@@ -1517,7 +1517,9 @@ const ja = {
     expression: '使ってみることば',
     duration: '所要時間',
     durationValue: (min: number) => `約${min}分`,
-    left: '今日あと',
+    // AI会話は週3回の枠になった（2026-09-09 ベータ化）。「今日あと」だと
+    // 日付が変われば戻ると誤解される。数え方と同じ言葉にする
+    left: '今週あと',
     leftValue: (n: number) => `${n}回`,
     startVoice: '声で会話を始める',
     startText: 'テキストで話す',
@@ -3091,7 +3093,7 @@ const zh: AiCourseDict = {
     expression: '要试着使用的表达',
     duration: '所需时间',
     durationValue: (min: number) => `约${min}分钟`,
-    left: '今天还可',
+    left: '本周还可',
     leftValue: (n: number) => `${n}次`,
     startVoice: '开始语音会话',
     startText: '用文字对话',

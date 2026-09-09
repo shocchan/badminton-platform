@@ -1471,7 +1471,15 @@ export default function AiCoursePage() {
           purposeJa={uiLang === 'zh' ? plan.main.mission.titleZh : plan.main.mission.titleJa}
           targetExpression={plan.main.mission.targetExpression}
           estimatedMinutes={plan.main.mission.estimatedMinutes}
-          remainingToday={remaining}
+          /*
+            AI会話の残りは**週の枠**（2026-09-09 ベータ化）。
+            ここは以前 remaining（共通上限の1日ぶん＝手動発行の生徒には10）を出していて、
+            実機で「今日あと10回」と表示されていた。数える単位と表示がずれていた。
+            券を持っていればそのぶんも足す（押せる回数と同じ数を出す）。
+          */
+          remainingToday={convBudget?.hasBudget
+            ? convBudget.voiceRemainingWeek + convBudget.credits
+            : remaining}
           starting={starting}
           onStartVoice={() => { void startLesson('voice'); }}
           onStartText={() => { void startLesson('text'); }}

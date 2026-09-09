@@ -6,6 +6,7 @@
 // 決め方を1か所に集約し、「測っていない人へ上の帯を出さない」を固定する。
 import { describe, it, expect } from 'vitest';
 import { effectiveContentLevel, strictDeclaredLevelOnly } from './advProfile';
+import { mockLevelOf } from './advMock';
 
 describe('effectiveContentLevel', () => {
   it('試験目標は選んだレベルがそのまま（N5/N4/N3/N2）', () => {
@@ -78,5 +79,31 @@ describe('strictDeclaredLevelOnly', () => {
 
   it('N2を持っている会話目標の人はN2だけ', () => {
     expect(strictDeclaredLevelOnly({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N2' })).toBe(true);
+  });
+});
+
+/*
+ * 画面に出る級が、教材の級と一致しているか（2026-09-09 CEO報告）。
+ * sijiaさんはN1になっていたのに「その他の学習」に**N2ミニ模試**が出ていた。
+ * 原因は mockLevelOf に targetJlpt を直接渡していたこと。会話目標は targetJlpt が
+ * null なので、既定の 'N2' に落ちていた。級を決める入口を effectiveContentLevel に揃える。
+ */
+describe('ミニ模試の級は教材の級と一致する', () => {
+  const cases = [
+    { who: 'sijia/eli（N1申告・会話目標）', p: { goalType: 'conversation' as const, targetJlpt: null, declaredJlpt: 'N1' as const }, want: 'N1' },
+    { who: 'リン（N1目標）', p: { goalType: 'hybrid' as const, targetJlpt: 'N1' as const, declaredJlpt: 'N1' as const }, want: 'N1' },
+    { who: 'ユウキ/サマー（N2目標）', p: { goalType: 'jlpt' as const, targetJlpt: 'N2' as const, declaredJlpt: null }, want: 'N2' },
+    { who: '李（N3目標）', p: { goalType: 'jlpt' as const, targetJlpt: 'N3' as const, declaredJlpt: null }, want: 'N3' },
+    { who: '小蒋（N5目標）', p: { goalType: 'jlpt' as const, targetJlpt: 'N5' as const, declaredJlpt: null }, want: 'N5' },
+  ];
+  for (const c of cases) {
+    it(`${c.who} → ${c.want}ミニ模試`, () => {
+      expect(mockLevelOf(effectiveContentLevel(c.p))).toBe(c.want);
+    });
+  }
+
+  it('**会話目標のN1申告に N2 を出さない**（実際に出ていた不具合）', () => {
+    const p = { goalType: 'conversation' as const, targetJlpt: null, declaredJlpt: 'N1' as const };
+    expect(mockLevelOf(effectiveContentLevel(p))).not.toBe('N2');
   });
 });
