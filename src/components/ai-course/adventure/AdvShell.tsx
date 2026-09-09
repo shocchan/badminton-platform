@@ -112,6 +112,8 @@ const cachedKanjiPool = (lv: 'N5' | 'N4'): ReturnType<typeof kanjiPool> => {
 };
 import { listeningSetsFor, listeningTargetIds, listeningPool } from '../../../lib/aiLesson/course/adventure/listening/listeningBank';
 import { pickRestateMaterial } from '../../../lib/aiLesson/course/adventure/advRestate';
+// 言い直しの判定は旧コースと同じものを使い回す（決定的・API不使用＝原価ゼロ・2026-09-09 P1-4）
+import { judgeRetry, type RetryJudgement } from '../../../lib/aiLesson/course/courseRetry';
 import { buildWeeklySummary, buildDailySummary } from '../../../lib/aiLesson/course/adventure/advWeekly';
 import { buildGrowthHorizons, HORIZON_LABEL } from '../../../lib/aiLesson/course/adventure/advGrowthHorizons';
 import { collectSkillEvidence } from '../../../lib/aiLesson/course/adventure/advReadiness';
@@ -735,6 +737,10 @@ export default function AdvShell(props: AdvShellProps) {
     if (!profile) return;
     save({ ...profile, restateLog: markRestate(profile.restateLog, key, dateKey, said) });
   }, [profile, dateKey, save]);
+  /** 言い直し画面の入力と判定（2026-09-09・P1-4。画面を離れたらリセットする） */
+  const [restateInput, setRestateInput] = useState('');
+  const [restateJudge, setRestateJudge] = useState<RetryJudgement | null>(null);
+  const [restateTries, setRestateTries] = useState(0);
   /** 今日のおかえりカードを閉じたか（保存が届くまでのあいだ二重に出さないための即時フラグ） */
   const [checkinClosedKey, setCheckinClosedKey] = useState<string | null>(null);
   const closeCheckin = useCallback(() => {
@@ -1027,6 +1033,8 @@ export default function AdvShell(props: AdvShellProps) {
 
       setQuest(generateTodayQuest({
         profile, route: profile.route!, reviewQuestionCount: reviewKeysToday.length, weakGrammarIds: weak,
+        // 会話で直された言い方が今日出る番なら、5分設定でも言い直しを出す（2026-09-09・P1-4）
+        restateDueCount: todaysRestates.length,
         dateKey, nowISO, daysToExam,
         masteredStageIds: stageDone,
         contentStage,
@@ -1062,9 +1070,11 @@ export default function AdvShell(props: AdvShellProps) {
     // dailyMinutes は復習予報の1日の予算（＝何日に分散するか）を決めるので依存に入れる。
     // mastery の参照だけを見ていると、分量だけ変えた直後に古い予報が残る（2026-08-17）
     //（disable注釈はdeps行の直前に置かないと効かない。2026-08-19に位置だけ修正・内容は不変）
+    // 言い直しの素材は会話セッションから導くので、セッションが後から届く初回のために
+    // **件数**を依存に入れる（配列そのものを入れると毎描画で作り直しになる・2026-09-09 P1-4）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsOnboarding, profile?.route, profile?.mastery, profile?.kana, profile?.dailyMinutes,
-    props.reviewsDue, dateKey, poolsError, poolsRetryNonce]);
+    props.reviewsDue, todaysRestates.length, dateKey, poolsError, poolsRetryNonce]);
 
   /**
    * 攻略の検知（2026-08-19 ゲーム感強化）。台帳がどの経路（バトル・読解聴解・模試・ボス）で
@@ -1998,18 +2008,57 @@ export default function AdvShell(props: AdvShellProps) {
       .filter((p): p is string => p !== null)
       .slice(0, 3)
       .map((p) => ({ expression: p, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
+    /**
+     * ③ 今日の会話が無い日は、**前に直された言い方**（1・3・7日後にもう一度出るもの）を素材にする。
+     * これまで、おかえりカードの中でしか出ていなかったので、
+     * 「今日の冒険」から入った人には会話をしていない日は素材が薄かった（2026-09-09・P1-4）。
+     */
+    const resetRestate = () => { setRestateInput(''); setRestateJudge(null); setRestateTries(0); };
+    const dueItem = todayCorrection ? null : (todaysRestates[0] ?? null);
     const material = pickRestateMaterial({
-      conversationCorrection: todayCorrection,
+      conversationCorrection: todayCorrection
+        ?? (dueItem ? { beforeJa: dueItem.original, afterJa: dueItem.improved } : null),
       battleMistakes: wrongExpressions,
       targetExpressions: quest?.targetExpressions ?? [],
       usedExpressions: [],
     });
     const stepIdx = quest?.steps.findIndex((s) => s.kind === 'restate') ?? -1;
+    const finishRestate = (said: boolean) => {
+      // 素材が「前に直された言い方」なら、1・3・7日の記録へ返す（自己申告と同じ扱い）
+      if (dueItem) markRestateSaid(dueItem.key, said);
+      if (stepIdx >= 0) markStep(stepIdx);
+      resetRestate();
+      setView('home');
+    };
+    /**
+     * **言い直しは「見て終わり」にしない**（2026-09-09 CEO指示・P1-4）。
+     * 「間違えた」で終わらせず「今言えるようになった」まで届かせるため、
+     * 実際に打ってもらい、既存の決定的判定（courseRetry.judgeRetry・API不使用＝原価ゼロ）で見る。
+     * 正解を要求しない: 惜しければ2回目で先へ進み、難しければいつでも抜けられる（行き止まりを作らない）。
+     */
+    const canJudge = !!material.afterJa;
+    const submitRestate = () => {
+      const text = restateInput.trim();
+      if (!text || !material.afterJa) return;
+      const j = judgeRetry(text, material.afterJa);
+      setRestateJudge(j);
+      setRestateTries((n) => n + 1);
+      if (j === 'good' || (j === 'close' && restateTries >= 1)) {
+        logCourseEvent('retry_completed', { tries: restateTries + 1, source: material.source });
+        finishRestate(true);
+      }
+    };
     return (
       <div className="mx-auto w-full max-w-xl px-4 py-6">
-        <BackBar lang={lang} onBack={() => setView('home')} title={tx(lang, '言い直し', '改口练习')} teacherLang={lang} />
+        <BackBar lang={lang} onBack={() => { resetRestate(); setView('home'); }}
+          title={tx(lang, '言い直し', '改口练习')} teacherLang={lang} />
         <div className={card}>
           <p className="text-sm font-semibold text-gray-900">{tx(lang, material.titleJa, material.titleZh)}</p>
+          {dueItem && (
+            <p className="mt-1 text-xs text-gray-500">
+              {tx(lang, `${dueItem.daysSince}日前の会話から`, `来自${dueItem.daysSince}天前的会话`)}
+            </p>
+          )}
           {material.beforeJa && (
             <p className="mt-2 rounded bg-red-50 px-2 py-1 text-sm text-gray-900">✕ {material.beforeJa}</p>
           )}
@@ -2020,12 +2069,45 @@ export default function AdvShell(props: AdvShellProps) {
             {tx(lang, material.instructionJa, material.instructionZh)}
           </p>
         </div>
-        <button type="button" className={`${primaryBtn} mt-4`}
-          onClick={() => { if (stepIdx >= 0) markStep(stepIdx); setView('home'); }}>
-          {material.source === 'none'
-            ? tx(lang, '次に進む', '继续')
-            : tx(lang, '言えた（次に進む）', '说出来了（继续）')}
-        </button>
+
+        {canJudge && (
+          <div className={`${card} mt-3`}>
+            <label htmlFor="adv-restate-input" className="text-sm font-semibold text-gray-900">
+              {tx(lang, '声に出してから、ここに打ってみてください', '先出声说一遍，然后打在这里')}
+            </label>
+            <input
+              id="adv-restate-input" type="text" value={restateInput} autoComplete="off"
+              onChange={(e) => { setRestateInput(e.target.value); setRestateJudge(null); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') submitRestate(); }}
+              placeholder={tx(lang, '例：休みをいただけますか', '例：休みをいただけますか')}
+              className="mt-2 min-h-[44px] w-full rounded-xl border border-gray-300 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {restateJudge === 'close' && (
+              <p className="mt-2 text-sm text-amber-700">
+                {tx(lang, 'おしい！ もう一度だけ、上の◯の言い方に近づけてみましょう。',
+                  '很接近了！再试一次，靠近上面◯的说法。')}
+              </p>
+            )}
+            {restateJudge === 'tryAgain' && (
+              <p className="mt-2 text-sm text-amber-700">
+                {tx(lang, '上の◯の言い方を見ながら、もう一度どうぞ。', '看着上面◯的说法，再来一次。')}
+              </p>
+            )}
+            <button type="button" className={`${primaryBtn} mt-3`} onClick={submitRestate} disabled={!restateInput.trim()}>
+              {tx(lang, '言えたか見てもらう', '让老师看看')}
+            </button>
+            {/* 詰まらせない（原則15）。難しい日はそのまま先へ進める＝「できなかった」と記録しない */}
+            <button type="button" className={`${secondaryBtn} mt-2`} onClick={() => finishRestate(false)}>
+              {tx(lang, '今日はむずかしい（次に進む）', '今天有点难（继续）')}
+            </button>
+          </div>
+        )}
+
+        {!canJudge && (
+          <button type="button" className={`${primaryBtn} mt-4`} onClick={() => finishRestate(false)}>
+            {tx(lang, '次に進む', '继续')}
+          </button>
+        )}
       </div>
     );
   }

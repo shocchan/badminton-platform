@@ -128,6 +128,18 @@ export interface GenerateQuestInput {
    * **表示する数と実際に出る数が同じ**になり、終われば必ず完了する。
    */
   reviewQuestionCount: number;
+  /**
+   * 今日出す番になっている「会話で直された言い方」の件数（advRestateReview.dueRestates）。
+   *
+   * 2026-09-09（P1-4）に追加。これまで言い直しstepは
+   * `weakGrammarIds` か `targetExpressions` がある日にしか出ず、しかも15分・30分設定にしか
+   * 置いていなかった。実在の生徒の半分は5分設定なので、canon §4 の毎日ループにある
+   * 「レポート → 言い直し → 復習登録」が**一度も出ない人**がいた。
+   *
+   * 会話で自分が直された言い方は、いちばん効く素材（自分の口から出た誤り）なので、
+   * これが今日ある日は5分設定でも必ず出す。
+   */
+  restateDueCount?: number;
   weakGrammarIds: string[];
   dateKey: string;
   nowISO: string;
@@ -523,7 +535,8 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
   }
 
   // 言い直しは素材がある日だけ入れる（基礎キャンプ等、文法誤答も会話表現も無い日は空stepになるため）
-  const restateAvailable = weakGrammarIds.length > 0 || parts.expressions.length > 0;
+  const restateDue = input.restateDueCount ?? 0;
+  const restateAvailable = restateDue > 0 || weakGrammarIds.length > 0 || parts.expressions.length > 0;
 
   /**
    * ボス戦と、読解stageの読解stepは**どの学習時間設定でも必ず入れる**（2026-08-18 P0）。
@@ -557,7 +570,16 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
      * 上のもう1つと並べても時間の約束を壊さないようにする。
      * その日の「学ぶ」が既に新しいことばになっている日は重ねない。
      */
-    if (parts.learn?.kind !== 'vocab_learn') push(parts.learnWords);
+    /**
+     * 言い直し（2026-09-09・P1-4）。**新しいことばの枠と入れ替える＝時間を増やさない**。
+     *
+     * 5分設定は1日1つが原則なので、ここに足すと約束した時間を壊す。
+     * 会話で直された言い方が今日出る番の日は、この枠（2分）を言い直し（2分）に差し替える。
+     * その日の「学ぶ」枠がすでに新しいことばになっている日だけは並ぶが、
+     * 2分＋2分＝4分で5分の約束の中に収まる。
+     */
+    if (restateDue > 0) push(step('restate', [], '言い直し', '改口练习'));
+    else if (parts.learn?.kind !== 'vocab_learn') push(parts.learnWords);
     if (goalType !== 'jlpt') push(parts.conv);
     /**
      * 5分設定の会話目標が空になるのを防ぐ（2026-09-02）。
