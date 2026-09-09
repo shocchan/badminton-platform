@@ -3,7 +3,7 @@
 // 生成結果は必ず why / 所要 / 対象能力 / 対象表現 / 成功条件 / 次の一歩 を持つ。
 import type {
   AdvGoalType, AdvQuestStep, AdvRoute, AdvRouteStage, AdvSkill, AdvTodayQuest, AdventureV2Profile, JlptLevel } from './advTypes';
-import { aiConversationEnabledFor } from './advTypes';
+import { aiConversationEnabledFor, AI_CONVERSATION_IN_DAILY_QUEST } from './advTypes';
 import { seededShuffle } from './advDiagnosis';
 import { currentStageOf } from './advRoute';
 import { masteredStageIds, PASS_LABEL } from './advMastery';
@@ -116,6 +116,14 @@ export const vocabTargetForStage = (
 };
 
 export interface GenerateQuestInput {
+  /**
+   * 今日の冒険にAI会話を出すか。既定は本番の設定
+   * （AI_CONVERSATION_IN_DAILY_QUEST = false・2026-09-09 CEO決定でベータ扱い）。
+   * **テストが会話ありの構成も検証し続けられるように引数にしている。**
+   * ここを消して定数直読みにすると、隔日ロジックや時間別テンプレの検証が
+   * まとめて落ちて、戻したいときに壊れているか分からなくなる。
+   */
+  allowConversation?: boolean;
   profile: AdventureV2Profile;
   route: AdvRoute;
   /**
@@ -370,7 +378,10 @@ export const generateTodayQuest = (input: GenerateQuestInput): AdvTodayQuest => 
    * ここで false になると、会話step・hybridの穴埋め・空クエストの逃げ道の3か所すべてが閉じる。
    */
   // 先生が個別に切れる（2026-09-06: 李さんは一旦AI会話なし）
-  const convOk = aiConversationEnabledFor(profile);
+  // 2026-09-09: AI会話はベータ扱いになり、**毎日の冒険からは全員外す**。
+  // 使う人は「その他の学習」から自分で選ぶ（advTypes.AI_CONVERSATION_IN_DAILY_QUEST）
+  const convOk = (input.allowConversation ?? AI_CONVERSATION_IN_DAILY_QUEST)
+    && aiConversationEnabledFor(profile);
   /**
    * AI会話の日か（会話stageのみ隔日にする・2026-08-23）。
    *

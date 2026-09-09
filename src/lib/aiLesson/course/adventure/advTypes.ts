@@ -508,6 +508,21 @@ export const aiConversationEnabledFor = (
   return aiConversationAvailable(goalType, profile?.targetJlpt ?? null);
 };
 
+/**
+ * **今日の冒険にAI会話を出すか**（2026-09-09 CEO決定: ベータ扱いにする）。
+ *
+ *   「AI会話はベータ版っていうことにして、一旦、毎回の冒険に出さないようにして。全員。
+ *     その他のところにひっそり入れておこう」
+ *
+ * 毎日の導線から外し、「その他の学習」から**自分で選んだ人だけ**が使う形にする。
+ * 週3回の上限はサーバー側（ai_start_session）が全員にかけている。
+ *
+ * ここを false にしても**ルートと冒険マップは変えない**（advRoute は通らない）。
+ * 会話目標の人の行き先そのものを消すと、その人の地図が崩れるため。
+ * 戻したくなったら、この定数を true にするだけでよい。
+ */
+export const AI_CONVERSATION_IN_DAILY_QUEST = false;
+
 export const BAND_LABELS: Record<AdvBand, { ja: string; zh: string }> = {
   needs_assessment: { ja: '未判定', zh: '尚未判定' },
   pre_n5: { ja: '基礎の入口', zh: '基础入门' },

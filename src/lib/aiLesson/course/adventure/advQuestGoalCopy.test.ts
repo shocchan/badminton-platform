@@ -54,6 +54,9 @@ describe('今日のゴールは、実装している完了条件と一致する'
 
   it('AI会話が入る日も同じ（会話は「1回終える」で実測できる）', () => {
     const q = generateTodayQuest(mkInput({
+      // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+      // この検証は会話が入る日の文言が対象なので、明示的に有効化して確かめる
+      allowConversation: true,
       availability: {
         nextGrammarIds: ['n3g-bbb'], nextUnitIds: ['n3u-01-self'],
         conversationTargets: [{ refId: 'ctx-1', expression: '〜てもらえますか', themeJa: '仕事のお願い', themeZh: '工作请求' }],

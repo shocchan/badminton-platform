@@ -15,6 +15,10 @@ const route = generateRoute({
 });
 
 const questOn = (dateKey: string, off: boolean, minutes: 5 | 15 | 30 = 5) => generateTodayQuest({
+  // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+  // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+  allowConversation: true,
+
   profile: {
     ...defaultAdvProfile(NOW), goalType: 'jlpt', targetJlpt: 'N3',
     dailyMinutes: minutes, route, aiConversationOff: off,

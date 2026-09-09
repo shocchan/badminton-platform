@@ -149,6 +149,8 @@ export interface AdvShellProps {
      V2の生徒には常に空だった。V2の復習は間違えた問題ノートの解き直し＝AdvShell内で完結する */
   onStartConversation: () => void;
   conversationAvailable: boolean;
+  /** 今週あと何回AI会話できるか（週3回・全員）。分からなければ null＝数字を出さない */
+  conversationRemainingWeek?: number | null;
   /** 会話を出せない理由（体験の残り時間不足など）。既定文言より具体的に言えるときだけ渡す */
   conversationUnavailableReasonJa?: string;
   conversationUnavailableReasonZh?: string;
@@ -3905,6 +3907,22 @@ export default function AdvShell(props: AdvShellProps) {
                       targetIds: targets,
                     });
                     setView('battle');
+                  }} />
+              )}
+              {/*
+                AI会話（ベータ・2026-09-09 CEO決定）。
+                毎日の冒険からは全員外し、**ここから自分で選んだ人だけ**が使う。
+                週の上限はサーバー（ai_start_session）が全員にかけている。
+                残り0回でも項目は消さない＝「いつ戻るか」を押した先で言うため
+                （消すと、無くなったのか壊れたのか分からない）。
+              */}
+              {props.conversationAvailable && (
+                <SubLink lang={lang}
+                  label={tx(lang, 'AI会話（ベータ）', 'AI会话（Beta）')}
+                  badge={props.conversationRemainingWeek ?? undefined}
+                  onClick={() => {
+                    trackAdv('conversation_started', { locale: lang });
+                    props.onStartConversation();
                   }} />
               )}
               {/* ミニ模試は教材のある級だけ（2026-08-18）。N5/N4目標に「N2ミニ模試」を出さない */}

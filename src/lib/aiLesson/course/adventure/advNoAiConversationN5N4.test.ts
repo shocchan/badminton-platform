@@ -38,6 +38,10 @@ const questOf = (opts: {
     kana: { needed: false, doneRowIds: [], checkedAt: NOW },
   };
   return generateTodayQuest({
+    // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+    // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+    allowConversation: true,
+
     profile, route, reviewQuestionCount: 0, weakGrammarIds: [],
     dateKey: opts.dateKey, nowISO: NOW, daysToExam: null,
     masteredStageIds: new Set(),

@@ -22,6 +22,10 @@ const route: AdvRoute = generateRoute({
 });
 
 const questOn = (dateKey: string, minutes: 5 | 15 | 30) => generateTodayQuest({
+  // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+  // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+  allowConversation: true,
+
   profile: {
     ...defaultAdvProfile(NOW), goalType: 'conversation', targetJlpt: null,
     dailyMinutes: minutes, route, kana: { needed: false, doneRowIds: [], checkedAt: NOW },
@@ -102,6 +106,10 @@ describe('初日は必ずAI会話の日', () => {
   it('いつ始めても、その人の1日目には会話が出る', () => {
     for (const start of DAYS) {
       const q = generateTodayQuest({
+  // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+  // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+  allowConversation: true,
+
         profile: {
           ...defaultAdvProfile(`${start}T09:00:00.000Z`), goalType: 'conversation', targetJlpt: null,
           dailyMinutes: 15, route, kana: { needed: false, doneRowIds: [], checkedAt: NOW },

@@ -48,6 +48,9 @@ const questOn = (dateKey: string, minutes: 5 | 15 | 30) => {
   const stage = route.stages[0];
   const dayNum = Math.floor(Date.parse(`${dateKey}T00:00:00Z`) / 86400000);
   return generateTodayQuest({
+    // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+    // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+    allowConversation: true,
     profile, route, reviewQuestionCount: 0, weakGrammarIds: [], dateKey, nowISO: NOW,
     daysToExam: null, masteredStageIds: new Set(), contentStage: stage,
     availability: {

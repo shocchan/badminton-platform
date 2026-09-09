@@ -1704,7 +1704,15 @@ export default function AiCoursePage() {
             /* 残り時間が会話1回ぶん（4分）に満たないときは会話を出さない。
                始めた会話が途中で打ち切られてレポートも残らない、が最悪の終わり方
                （AdvShell側は「押しても無反応」にせず理由を出してstepを飛ばせる・2026-08-20） */
+            /*
+              AI会話はベータ扱いになり、毎日の冒険からは外れた（2026-09-09）。
+              この値は「その他の学習」に項目を出すかだけを決める。
+              週の残りが0でも**項目は消さない** — 押した先で「いつ戻るか」と
+              回数券を案内するため（消すと、無くなったのか壊れたのか分からない）
+            */
             conversationAvailable={!!plan && remaining > 0 && !trialTooShortForConversation}
+            conversationRemainingWeek={convBudget?.hasBudget
+              ? convBudget.voiceRemainingWeek + convBudget.credits : null}
             conversationUnavailableReasonJa={trialTooShortForConversation
               ? '体験の残り時間が会話1回ぶん（約4分）を下回りました。のこりは語彙バトル・教材でしめくくりましょう。' : undefined}
             conversationUnavailableReasonZh={trialTooShortForConversation

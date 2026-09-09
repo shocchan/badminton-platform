@@ -192,6 +192,10 @@ describe('advQuest（§13）', () => {
     const base = mkInput();
     const convRoute = generateRoute({ goalType: 'conversation', targetJlpt: null, knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW });
     const q = generateTodayQuest({
+  // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+  // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+  allowConversation: true,
+
       ...base, route: convRoute,
       profile: { ...base.profile, goalType: 'conversation', targetJlpt: null, dailyMinutes: 30 },
       examSkills: {
@@ -220,6 +224,10 @@ describe('advQuest（§13）', () => {
     const base = mkInput();
     const convRoute = generateRoute({ goalType: 'conversation', targetJlpt: null, knowledgeBand: 'n2', conversationBand: 'n3', diagnosis: null, nowISO: NOW });
     const quest = generateTodayQuest({
+  // AI会話は2026-09-09からベータ扱いで本番の今日の冒険には出ない。
+  // この検証は**会話ありの構成そのもの**が対象なので、明示的に有効化して確かめる
+  allowConversation: true,
+
       ...base, route: convRoute, reviewQuestionCount: 0,
       profile: { ...base.profile, goalType: 'conversation', targetJlpt: null, dailyMinutes: 5 },
       weakGrammarIds: [], daysToExam: null,
