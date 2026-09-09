@@ -584,8 +584,15 @@ kawabado 安田翔`,
  *
  * 読む順:
  *   ① learningDays（P0-1 以降の正準。かな道場だけの日・AI会話だけの日も入っている）
- *   ② 無ければ questLog ∪ mastery の最終日（P0-1 より前に最後に開いた人のための後方互換）
- * どちらも無ければ null＝一度も学習していない（この人には「久しぶり」ではなく初回案内が要る）。
+ *   ② 無ければ questLog ∪ mastery ∪ todaySteps の最終日
+ *      （P0-1 より前に最後に開いた人のための後方互換）
+ * どれも無ければ null＝一度も学習していない（この人には「久しぶり」ではなく初回案内が要る）。
+ *
+ * **todaySteps を必ず入れること**（2026-09-09 stagingの実測で判明）。
+ * かな道場だけ・AI会話だけの生徒は questLog も mastery も空なので、
+ * ここを落とすとサーバーだけが「一度も学習していない」と判定し、
+ * アプリ側（advLearningDay）の「8/24に学習した」と食い違う。
+ * 定義が2つに割れるのは、この作業でいちばん避けたかったこと。
  */
 export const lastLearningDayOf = (settings: unknown): string | null => {
   const adv = (settings as Record<string, any> | null)?.adventureV2;
@@ -606,6 +613,14 @@ export const lastLearningDayOf = (settings: unknown): string | null => {
       if (!Array.isArray(attempts)) continue;
       for (const a of attempts) note((a as Record<string, unknown> | null)?.dateKey);
     }
+  }
+  // stepを1つでも終えた日（かな道場・AI会話・新しいことば…）。
+  // advLearningDay.deriveLearningDays と同じ条件にそろえる
+  const ts = adv.todaySteps;
+  if (ts && typeof ts === "object") {
+    const n = (Array.isArray(ts.doneKeys) ? ts.doneKeys.length : 0)
+      + (Array.isArray(ts.done) ? ts.done.length : 0);
+    if (n > 0) note(ts.dateKey);
   }
   return last;
 };

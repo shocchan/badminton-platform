@@ -163,3 +163,45 @@ describe('JSTの今日', () => {
     expect(jstDayKey(Date.parse('2026-09-09T00:30:00.000Z'))).toBe('2026-09-09');
   });
 });
+
+/**
+ * サーバーとアプリで判定が割れないこと（2026-09-09 staging確認で発見）。
+ *
+ * かな道場だけ・AI会話だけの生徒は questLog も mastery も空なので、
+ * todaySteps を落とすとサーバーだけが「一度も学習していない」と言い、
+ * アプリの「その日に学習した」と食い違う。実例: 小蒋さん（かな18行・8/24）。
+ */
+describe('todaySteps も学習日として読む（アプリと同じ集合）', () => {
+  it('かな道場のstepだけの日を拾う', () => {
+    expect(lastLearningDayOf({
+      adventureV2: {
+        questLog: [], mastery: {},
+        todaySteps: { dateKey: '2026-08-24', done: [], doneKeys: ['kana_dojo:hd-3+hd-4+hd-5'] },
+      },
+    })).toBe('2026-08-24');
+  });
+
+  it('AI会話ミッションのstepだけの日を拾う', () => {
+    expect(lastLearningDayOf({
+      adventureV2: {
+        questLog: [], mastery: {},
+        todaySteps: { dateKey: '2026-08-23', done: [], doneKeys: ['conversation_mission:area01-minato'] },
+      },
+    })).toBe('2026-08-23');
+  });
+
+  it('stepを1つも終えていない日は拾わない（開いただけ）', () => {
+    expect(lastLearningDayOf({
+      adventureV2: { questLog: [], mastery: {}, todaySteps: { dateKey: '2026-08-24', done: [], doneKeys: [] } },
+    })).toBeNull();
+  });
+
+  it('より新しい記録があればそちらを返す', () => {
+    expect(lastLearningDayOf({
+      adventureV2: {
+        questLog: [{ dateKey: '2026-08-28', completedSteps: 1, totalSteps: 1 }], mastery: {},
+        todaySteps: { dateKey: '2026-08-24', done: [], doneKeys: ['kana_dojo:h-1'] },
+      },
+    })).toBe('2026-08-28');
+  });
+});
