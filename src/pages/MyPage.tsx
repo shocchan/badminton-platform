@@ -26,7 +26,7 @@ import {
 } from '../services/coupons';
 import ClaimAccountForm from '../components/ClaimAccountForm';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getRallyBest } from '../lib/rallyBest';
+import { fetchMyRallyBest } from '../services/rallyScores';
 import { EmptyState, ErrorState } from '../components/ui/StateViews';
 import { fetchAccessState, formatUntilJst, type CourseAccessState } from '../lib/aiLesson/course/courseAccess';
 
@@ -111,8 +111,17 @@ export default function MyPage() {
   // 登録/ログイン直後はクーポン引き継ぎ完了後に再取得する必要がある
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // この端末のゲーム自己ベスト・戦術ボード保存数（localStorage）
-  const rallyBest = useMemo(() => getRallyBest(), []);
+  /*
+   * ラリー自己ベストは**アカウント単位**（2026-09-09 CEO報告）。
+   *
+   * 以前はここで localStorage（kawabado_rally_best）を読んでいた。あれは端末に
+   * 1つしかない値なので、同じブラウザで別のアカウントに入れ替えても同じ数字が出る
+   * ＝実機でどのアカウントでも19。本人の記録ではないものを「あなたの自己ベスト」
+   * として見せていた。だからサーバー（game_plays.user_id）だけを見る。
+   *   null … まだ取れていない／RPCが無い（数字を作らない）
+   *   0    … 本人の記録がまだ無い
+   */
+  const [rallyBest, setRallyBest] = useState<number | null>(null);
   const tacticsSaved = useMemo(() => {
     try {
       const raw = localStorage.getItem('tacticsBoard_slots');
@@ -267,6 +276,14 @@ export default function MyPage() {
     return () => { alive = false; };
   }, [session]);
 
+  // 自己ベストはログインしている本人ぶんだけ。session が変われば取り直す
+  useEffect(() => {
+    if (!session) { setRallyBest(null); return; }
+    let alive = true;
+    void fetchMyRallyBest().then((b) => { if (alive) setRallyBest(b); });
+    return () => { alive = false; };
+  }, [session]);
+
   const activeCoupons = coupons.filter((c) => c.status !== 'used');
   const usedCoupons = coupons.filter((c) => c.status === 'used');
   const shownCoupons = couponTab === 'active' ? activeCoupons : usedCoupons;
@@ -352,11 +369,11 @@ export default function MyPage() {
                 <span className="text-xs font-bold">ラリー自己ベスト</span>
               </div>
               <p className="mt-1.5 text-2xl font-black text-slate-900">
-                {rallyBest > 0 ? rallyBest : '—'}
-                {rallyBest > 0 && <span className="ml-1 text-xs font-bold text-slate-400">ラリー</span>}
+                {rallyBest && rallyBest > 0 ? rallyBest : '—'}
+                {rallyBest && rallyBest > 0 && <span className="ml-1 text-xs font-bold text-slate-400">ラリー</span>}
               </p>
               <p className="mt-1 flex items-center text-[11px] font-semibold text-emerald-700">
-                {rallyBest > 0 ? '記録更新に挑戦' : 'ゲームであそぶ'}
+                {rallyBest && rallyBest > 0 ? '記録更新に挑戦' : 'ゲームであそぶ'}
                 <ChevronRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
               </p>
             </a>
@@ -366,7 +383,9 @@ export default function MyPage() {
             >
               <div className="flex items-center gap-2 text-blue-600">
                 <ClipboardList className="h-4 w-4" />
-                <span className="text-xs font-bold">保存した作戦</span>
+                {/* 戦術ボードの保存先はまだ端末のlocalStorageだけ（サーバーに置いていない）。
+                    アカウントの記録のように見せないため、ここは「この端末」と明記する */}
+                <span className="text-xs font-bold">保存した作戦（この端末）</span>
               </div>
               <p className="mt-1.5 text-2xl font-black text-slate-900">
                 {tacticsSaved}

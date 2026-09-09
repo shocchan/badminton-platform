@@ -22,6 +22,7 @@ import {
   type ShotDifficulty,
 } from '../lib/rallyGame';
 import { updateRallyBest, getRallyBest } from '../lib/rallyBest';
+import { fetchMyRallyBest } from '../services/rallyScores';
 // コートの描画・投影・効果音・シェア画像は 30秒ノック（KnockGame）と共有する。
 // 中身は以前このファイルにあったものをそのまま切り出しただけで、絵は1ピクセルも変えていない。
 import {
@@ -137,7 +138,29 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
   const [finalRally, setFinalRally] = useState(0);
   const [endText, setEndText] = useState('');
   const [isNewBest, setIsNewBest] = useState(false);
+  /*
+   * 自己ベスト。**ログイン中は本人の記録（サーバー）が正**（2026-09-09）。
+   * localStorage は端末に1つしかないので、共用端末や別アカウントだと
+   * 他人の記録が「自己ベスト」として出てしまう（マイページで実際に起きた）。
+   * 未ログインの人には端末の値をそのまま使う＝いままでの遊び心地は変えない。
+   */
   const [best, setBest] = useState(() => getRallyBest());
+  /*
+   * finish() は deps [] の rAF ループから呼ばれる＝初回レンダーの値を掴んだままになる。
+   * 自己ベストは非同期で後から入るので、判定は必ず ref 側を見る
+   * （この画面が phaseRef などを使っているのと同じ理由）
+   */
+  const bestRef = useRef(best);
+  useEffect(() => { bestRef.current = best; }, [best]);
+  useEffect(() => {
+    let alive = true;
+    void fetchMyRallyBest().then((serverBest) => {
+      // null＝未ログイン／RPC無し。そのときだけ端末の値を残す。
+      // ログイン中は0（記録なし）でも上書きする＝他人の端末記録を自分のものとして見せない
+      if (alive && serverBest !== null) setBest(serverBest);
+    });
+    return () => { alive = false; };
+  }, []);
   // rAFループやイベントリスナーから最新値を読むための参照
   const phaseRef = useRef<Phase>('ready');
   const onGameEndRef = useRef(onGameEnd);
@@ -183,8 +206,14 @@ export default function RallyGame({ onGameStart, onGameEnd, drawEveryRallies }: 
     phaseRef.current = 'over';
     setFinalRally(sim.rally);
     setEndText(text);
-    setIsNewBest(updateRallyBest(sim.rally));
-    setBest(getRallyBest());
+    /*
+     * 「自己ベスト更新！」の判定は**画面に出ている best**（ログイン中はサーバーの本人記録）
+     * と比べる。localStorage と比べると、共用端末で他人の記録に負けて更新扱いにならない。
+     * updateRallyBest は端末の控えを更新するために呼ぶだけ（戻り値は使わない）。
+     */
+    updateRallyBest(sim.rally);
+    setIsNewBest(sim.rally > bestRef.current);
+    setBest((b) => Math.max(b, sim.rally));
     setPhase('over');
     beep(220, 260, 'sawtooth', 0.04);
     onGameEndRef.current?.(sim.rally);
