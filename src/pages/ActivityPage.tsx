@@ -687,6 +687,8 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
   const notesPlaceholder = lang === 'zh'
     ? '备注（选填）例：我是第一次参加。'
     : '備考（任意）例：初参加です。';
+  /** 備考欄のラベル（placeholder と別に持つ。入力を始めても欄の名前が残るように） */
+  const notesLabel = lang === 'zh' ? '备注（选填）' : '備考（任意）';
 
   const timeRange = `${activity.start_time.slice(0, 5)}〜${activity.end_time.slice(0, 5)}`;
   const detailUrl = `https://kawabado.com${basePath}/${lang}/activity/${activity.id}`;
@@ -924,14 +926,26 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
               ✅ <span className="font-bold">{memberName}</span> さんとしてログイン中（名前は自動入力済み）
             </p>
           )}
+          {/* ラベルは placeholder に頼らない（2026-09-09 UX監査 §18）。
+              placeholder だけだと入力を始めた瞬間に何の欄か分からなくなり、
+              スクリーンリーダーでも欄の名前が読まれない。見た目はメール欄と揃える */}
+          <label htmlFor="entry-name" className="block text-xs font-medium text-gray-600 mb-1">
+            {t.namePlaceholder}
+          </label>
           <input
+            id="entry-name"
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder={t.namePlaceholder}
+            autoComplete="name"
             className="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
           />
+          <label htmlFor="entry-qty" className="block text-xs font-medium text-gray-600 mb-1">
+            {t.participants}
+          </label>
           <select
+            id="entry-qty"
             value={qty}
             onChange={e => setQty(Number(e.target.value))}
             disabled={activity.status === 'closed'}
@@ -940,7 +954,11 @@ export const ActivityPage = ({ lang: langProp, groupSlug = 'kawaguchi-warabi', f
             {[1, 2, 3].map(n => <option key={n} value={n}>{n}{t.personUnit}</option>)}
           </select>
 
+          <label htmlFor="entry-notes" className="block text-xs font-medium text-gray-600 mb-1">
+            {notesLabel}
+          </label>
           <textarea
+            id="entry-notes"
             value={entryNotes}
             onChange={e => setEntryNotes(e.target.value)}
             placeholder={notesPlaceholder}

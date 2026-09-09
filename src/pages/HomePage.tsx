@@ -411,12 +411,14 @@ export const HomePage = () => {
               <div className="flex flex-wrap gap-3 text-sm">
                 {lang === 'zh' ? <>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜间举办</span>
-                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 保证4场以上</span>
+                  {/* 「4场以上」は**大会だけ**の約束（通常活動には無い）。
+                      同じトップに通常活動（¥600）の導線も置いているので、どちらの話かを札に書く */}
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 比赛保证4场以上</span>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全级别欢迎</span>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨地区</span>
                 </> : <>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🌙 平日夜開催</span>
-                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 4試合以上保証</span>
+                  <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">🏆 大会は4試合以上保証</span>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">👥 全レベル歓迎</span>
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
                 </>}
@@ -479,19 +481,39 @@ export const HomePage = () => {
         )}
         {error && <ErrorState message="大会データの取得に失敗しました" />}
         {!loading && !error && activeTournaments.length === 0 && (
+          /*
+            大会が0件のときの行き先（2026-09-09 UX監査）。
+            もとは外部（X）へ送っていたが、大会が無い期間でも**通常活動は毎週開催している**
+            （直近90日の申込は通常活動203件・大会23件）。サイトの外へ出す前に、
+            いま申し込める活動へ案内する。
+          */
           <div className="text-center py-24" role="status" aria-live="polite">
             <div className="text-6xl mb-6">🏸</div>
-            <h2 className="text-xl font-bold text-gray-700 mb-2">現在、開催予定の大会はありません</h2>
-            <p className="text-sm text-gray-500 mb-6">新しい大会が決まり次第、こちらに掲載されます。<br />LINEやXでお知らせをお待ちください！</p>
-            <a
-              href="https://x.com/search?q=%E5%B7%9D%E5%8F%A3%E8%95%A8%E3%83%90%E3%83%89"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
-              aria-label="Xで最新情報をチェック（外部リンク）"
+            <h2 className="text-xl font-bold text-gray-700 mb-2">
+              {lang === 'zh' ? '目前没有预定举办的比赛' : '現在、開催予定の大会はありません'}
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              {lang === 'zh'
+                ? <>比赛确定后会刊登在这里。<br />平日夜间的「日常活动」正在照常举办（2小时 ¥600）。</>
+                : <>新しい大会が決まり次第、こちらに掲載されます。<br />平日夜の「通常活動」は今週も開催しています（2時間 ¥600）。</>}
+            </p>
+            <Link
+              to={`/${lang}/activity`}
+              className="inline-flex items-center gap-2 bg-emerald-600 text-white text-sm font-bold px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors"
             >
-              Xで最新情報をチェック →
-            </a>
+              {lang === 'zh' ? '查看日常活动的日程 →' : '通常活動の日程を見る →'}
+            </Link>
+            <p className="mt-4">
+              <a
+                href="https://x.com/search?q=%E5%B7%9D%E5%8F%A3%E8%95%A8%E3%83%90%E3%83%89"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-gray-400 underline hover:text-gray-600 transition-colors"
+                aria-label={lang === 'zh' ? '在X上查看最新消息（在新标签页打开）' : 'Xで最新情報をチェック（外部リンク）'}
+              >
+                {lang === 'zh' ? '在X上查看最新消息 →' : 'Xで最新情報をチェック →'}
+              </a>
+            </p>
           </div>
         )}
 
