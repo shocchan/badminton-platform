@@ -1167,7 +1167,10 @@ export default function AdvShell(props: AdvShellProps) {
     const keys = [...learningDayKeys(profile, convDayKeys)].sort();
     if (!keys.includes(dateKey)) return;
     learningDaySent.current = dateKey;
-    const todayKinds = (profile.learningDays ?? []).find((e) => e.d === dateKey)?.k ?? [];
+    // 保存済みではなく**導出**から読む。保存より先にこのeffectが走る描画があるため
+    //（保存済みだけを見ると、その日の最初の1回だけ kind が既定値に落ちる）
+    const todayKinds = reconcileLearningDays(profile, convDayKeys)?.find((e) => e.d === dateKey)?.k
+      ?? (profile.learningDays ?? []).find((e) => e.d === dateKey)?.k ?? [];
     const prev = keys.filter((k) => k < dateKey).at(-1) ?? null;
     logCourseEvent('learning_day', {
       kind: todayKinds[0] ?? 'step',
