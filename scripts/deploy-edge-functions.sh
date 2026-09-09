@@ -27,6 +27,13 @@ NO_JWT=(
   ai-course-claim-session     # 購入直後の自動ログイン。ログイン前に呼ぶ
   ai-course-apply             # 申込フォーム。未ログイン
   ai-course-auth              # ログインそのもの
+  ai-course-code-login        # 学習コードでのログイン。ログイン前なのでJWTが無い（2026-09-09）
+  # 2026-09-09 に見つけた不具合: ai-course-monitor が verify_jwt=true で出されていて、
+  # pg_cron からの呼び出しが**毎日401**で弾かれていた（cron側は成功に見える）。
+  # 監視が動いていなかったので「入金済みなのに発行されていない」等を誰も検知できなかった。
+  # この関数は x-cron-secret で自前に守っているので、JWT検証はOFFが正しい。
+  ai-course-monitor           # pg_cron が呼ぶ。x-cron-secret で検証している
+  ai-course-lifecycle-mails   # 同上（既に false で動いているが、一覧に無いと再デプロイで戻る）
 )
 
 if [ $# -eq 0 ]; then
