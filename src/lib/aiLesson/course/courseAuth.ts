@@ -161,6 +161,18 @@ export const signInWithLearningCode = async (
         retryAfter: typeof data?.retryAfter === 'number' ? data.retryAfter : undefined,
       };
     }
+    /*
+     * **いま別の人でログインしていても、コードの持ち主に入れ替える**（2026-09-09 修正）。
+     *
+     * 直前まで「この端末に既にセッションがあればコードを使わない」実装だった。
+     * その結果、個人専用URLを開いても**先に入っていた人のアカウントのまま**になり、
+     * 8人ぶんのURLがどれも同じ画面（先に入っていた人）に着いていた。
+     * 共用端末なら他人の学習記録がそのまま見える状態で、ただの不便では済まない。
+     *
+     * signOut は**トークンを受け取ったあと**に呼ぶ。先に呼ぶと、
+     * 通信が失敗したときに元のセッションまで失う。
+     */
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => null);
     const { error } = await supabase.auth.verifyOtp({ token_hash: data.tokenHash, type: 'magiclink' });
     return error ? { ok: false, code: 'unavailable' } : { ok: true };
   } catch {

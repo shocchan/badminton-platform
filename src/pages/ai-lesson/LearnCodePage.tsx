@@ -11,7 +11,7 @@ import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Loader2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { ShokoAvatar } from '../../components/ai-course/ShokoAvatar';
-import { signInWithLearningCode, getSession, type CodeLoginCode } from '../../lib/aiLesson/course/courseAuth';
+import { signInWithLearningCode, type CodeLoginCode } from '../../lib/aiLesson/course/courseAuth';
 import { isValidLearningCode } from '../../lib/aiLesson/course/learningCode';
 
 type Phase = 'working' | 'failed';
@@ -63,9 +63,17 @@ export function LearnCodePage() {
     const raw = code ?? '';
     if (!isValidLearningCode(raw)) { setReason('invalid_code'); setPhase('failed'); return; }
     setPhase('working');
-    // 既にこの端末でログイン済みなら、コードを使わずそのまま入る（トークンを無駄に焼かない）
-    const current = await getSession();
-    if (current) { go(); return; }
+    /*
+     * **必ずコードで入り直す**（2026-09-09 修正）。
+     *
+     * ここには「既にこの端末でログイン済みならコードを使わない」という近道があった。
+     * トークンを節約するつもりだったが、**個人専用URLが個人専用でなくなっていた**:
+     * 先に誰かが入っている端末では、8人ぶんのどのURLを開いても
+     * その先客のアカウントに着く（実機で確認）。共用端末なら他人の学習記録が見える。
+     *
+     * URLは「この人」を指すものなので、誰が入っていようとその人に入れ替える。
+     * 節約より、正しい人の画面が出ることが先。
+     */
     const r = await signInWithLearningCode(raw);
     if (r.ok) { go(); return; }
     setReason(r.code ?? 'invalid_code');
