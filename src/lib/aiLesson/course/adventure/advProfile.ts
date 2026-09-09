@@ -418,3 +418,25 @@ export const vocabStartLevel = (
   const gap = LEVEL_RANK.indexOf(target) - LEVEL_RANK.indexOf(fromBand);
   return gap >= 2 ? fromBand : target;
 };
+
+/**
+ * **その級だけを出すか**（2026-09-09 CEO指示）。
+ *
+ * 「sijiaさんはN1を完全に取っている人だからN1のみ出るようにしておこう」。
+ * 区別しているのは、**持っている級（declaredJlpt）** と **目指す級（targetJlpt）**:
+ *
+ *  - 目標N1（まだ持っていない）… 下の級も出す。JLPTの出題範囲がそうなっているので、
+ *    N2以下を抜くと試験対策として穴になる
+ *  - **申告N1（もう持っている）… その級だけ**。下の級は本人が既に知っている。
+ *    知っている語を「新しいことば」として出されると、学ぶものが無い
+ *
+ * 合わないと感じたら、本人が設定で申告を変えれば出る問題も変わる。
+ * だから、ここは申告に忠実にしておくのが正しい。
+ */
+export const strictDeclaredLevelOnly = (
+  profile: Pick<AdventureV2Profile, 'targetJlpt' | 'declaredJlpt' | 'goalType'> | null | undefined,
+): boolean => {
+  const declared = profile?.declaredJlpt;
+  if (!declared) return false;
+  return effectiveContentLevel(profile) === declared;
+};

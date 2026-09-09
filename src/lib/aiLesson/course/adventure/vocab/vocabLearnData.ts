@@ -48,7 +48,15 @@ const LOW_TO_HIGH = ['N5', 'N4', 'N3', 'N2', 'N1'];
  * startLevel（実力）から目標級まで**下から上へ**並べ、その下の級は最後に回す。
  * startLevel が無い／目標と同じなら、これまでの順（目標級から）と完全に一致する。
  */
-const priorityFor = (level: VocabScopeLevel, startLevel?: VocabScopeLevel | null): string[] => {
+const priorityFor = (
+  level: VocabScopeLevel, startLevel?: VocabScopeLevel | null, strict = false,
+): string[] => {
+  /*
+   * その級を**持っている**人には、その級だけを出す（2026-09-09 CEO指示）。
+   * N1保持者に「新しいことば」としてN2以下を出しても、本人は既に知っている。
+   * 図鑑・錯題本のスコープ（VOCAB_SCOPE）は動かさない＝出会った語は消えない。
+   */
+  if (strict) return [level];
   const base = LEVEL_PRIORITY[level] ?? ['N5', 'N4', 'N3'];
   if (!startLevel || startLevel === level) return base;
   const from = LOW_TO_HIGH.indexOf(startLevel);
@@ -93,6 +101,8 @@ export const pickLearnSession = (
   level: VocabScopeLevel, ledger: AdvMasteryLedger, seed: number, size = LEARN_BATCH_SIZE,
   /** 診断で出た実力。目標より低いとき、ここから積み上げる（図鑑や錯題本のスコープは変えない） */
   startLevel?: VocabScopeLevel | null,
+  /** その級を持っている人＝その級だけを出す（下の級は本人が既に知っている） */
+  strictLevel = false,
 ): LearnPick => {
   const bank = vocabScopedActive(level);
   const scope = new Set(bank.map((c) => dexIdOf(c.surface, c.reading)));
@@ -106,7 +116,7 @@ export const pickLearnSession = (
     else if (e.wrongCount > 0 && e.state !== 'mastered') wrongBefore.push(c);
   }
 
-  const order = priorityFor(level, startLevel);
+  const order = priorityFor(level, startLevel, strictLevel);
   const byPriority = (arr: VocabOriginalContent[]): VocabOriginalContent[] => {
     const out: VocabOriginalContent[] = [];
     for (const lv of order) {

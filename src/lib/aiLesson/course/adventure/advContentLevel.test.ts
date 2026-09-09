@@ -5,7 +5,7 @@
 // `targetJlpt === 'N3' ? 'N3' : 'N2'` で、**targetJlpt が null の会話目標が全員 N2 に丸められていた**。
 // 決め方を1か所に集約し、「測っていない人へ上の帯を出さない」を固定する。
 import { describe, it, expect } from 'vitest';
-import { effectiveContentLevel } from './advProfile';
+import { effectiveContentLevel, strictDeclaredLevelOnly } from './advProfile';
 
 describe('effectiveContentLevel', () => {
   it('試験目標は選んだレベルがそのまま（N5/N4/N3/N2）', () => {
@@ -48,5 +48,35 @@ describe('effectiveContentLevel', () => {
     const src = readFileSync(new URL('../../../../components/ai-course/adventure/AdvShell.tsx', import.meta.url), 'utf8');
     expect(src).not.toMatch(/targetJlpt === 'N3' \? 'N3' : 'N2'/);
     expect(src).not.toMatch(/profile\.targetJlpt === 'N5' \? 'N5'/);
+  });
+});
+
+/*
+ * その級を「持っている」人には、その級だけを出す（2026-09-09 CEO指示）。
+ * 「sijiaさんはN1完全に取ってる人だからN1のみ出るようにしておこう」
+ *
+ * 区別しているのは **持っている級（declaredJlpt）** と **目指す級（targetJlpt）**。
+ * 目標N1（未取得）は下の級も出す＝JLPTの出題範囲がそうなっているため。
+ */
+describe('strictDeclaredLevelOnly', () => {
+  it('N1を持っている会話目標の人（sijiaさん・eliさん）はN1だけ', () => {
+    expect(strictDeclaredLevelOnly({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N1' })).toBe(true);
+  });
+
+  it('**N1を目指している人（未取得）は下の級も出す**（試験範囲を削らない）', () => {
+    expect(strictDeclaredLevelOnly({ goalType: 'jlpt', targetJlpt: 'N1', declaredJlpt: null })).toBe(false);
+  });
+
+  it('申告と実効レベルがずれるときは絞らない（N3申告でN2目標＝積み上げが要る）', () => {
+    expect(strictDeclaredLevelOnly({ goalType: 'jlpt', targetJlpt: 'N2', declaredJlpt: 'N3' })).toBe(false);
+  });
+
+  it('申告が無ければ絞らない（測っていない人を狭い帯に閉じ込めない）', () => {
+    expect(strictDeclaredLevelOnly({ goalType: 'conversation', targetJlpt: null, declaredJlpt: null })).toBe(false);
+    expect(strictDeclaredLevelOnly(null)).toBe(false);
+  });
+
+  it('N2を持っている会話目標の人はN2だけ', () => {
+    expect(strictDeclaredLevelOnly({ goalType: 'conversation', targetJlpt: null, declaredJlpt: 'N2' })).toBe(true);
   });
 });

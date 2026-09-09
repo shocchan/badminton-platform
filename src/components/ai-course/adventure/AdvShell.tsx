@@ -10,7 +10,7 @@ import type {
 import { aiConversationEnabledFor } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
-import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel,
+import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel, strictDeclaredLevelOnly,
 } from '../../../lib/aiLesson/course/adventure/advProfile';
 import { currentStageOf, routeProgressPct, deriveMasteredStageIds, stageContentTargetIds } from '../../../lib/aiLesson/course/adventure/advRoute';
 import { unitCompletedLocally } from '../../../lib/aiLesson/course/rpg/worldProgress';
@@ -623,9 +623,12 @@ export default function AdvShell(props: AdvShellProps) {
     // 実力が目標より2級以上低い人は、**実力側から積み上げる**（2026-09-06）。
     // 李さん（目標N3 / 実力n5）に初回から「申込書・委任状・受理・交付」が出ていた
     const start = vocabStartLevel(profile);
+    // その級を**持っている**人（申告＝実効レベル）には、その級だけを出す（2026-09-09）。
+    // N1保持者に「新しいことば」としてN2以下を出しても、本人は既に知っている
+    const strict = strictDeclaredLevelOnly(profile);
     // 語数は今日の冒険のstepと同じ（題名「新しいことば3語」と中身がずれないように）
     const size = learnBatchSizeFor(profile?.dailyMinutes ?? null);
-    const reqKey = `learn|${lv}|${start}|${size}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
+    const reqKey = `learn|${lv}|${start}|${strict ? 'strict' : 'climb'}|${size}|${learnSeed}|${JSON.stringify(profile?.mastery ?? {}).length}`;
     if (learnPick?.key === reqKey) return;
     let alive = true;
     void import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData')
@@ -633,7 +636,7 @@ export default function AdvShell(props: AdvShellProps) {
         if (!alive) return;
         setLearnPick({
           key: reqKey,
-          pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7, size, start),
+          pick: m.pickLearnSession(lv, profile?.mastery ?? {}, 20260906 + learnSeed * 7, size, start, strict),
         });
       })
       .catch(() => { /* 失敗しても画面は壊さない */ });

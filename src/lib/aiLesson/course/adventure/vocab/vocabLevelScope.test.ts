@@ -81,3 +81,27 @@ describe('実力が目標より低い人は、実力から積み上げる', () =
       diagnosis: { knowledgeBand: 'needs_assessment' } as never })).toBe('N5');
   });
 });
+
+/*
+ * 級を「持っている」人には、その級だけを出す（2026-09-09 CEO指示）。
+ * N1保持者に「新しいことば」としてN2以下を出しても、本人は既に知っている。
+ */
+describe('strictLevel', () => {
+  it('N1保持者にはN1の語だけを出す', () => {
+    const { session } = pickLearnSession('N1', {}, 1, 8, null, true);
+    expect(session.words.length).toBeGreaterThan(0);
+    for (const w of session.words) expect(w.level, w.surface).toBe('N1');
+  });
+
+  it('N2保持者にはN2の語だけを出す', () => {
+    const { session } = pickLearnSession('N2', {}, 3, 8, null, true);
+    expect(session.words.length).toBeGreaterThan(0);
+    for (const w of session.words) expect(w.level, w.surface).toBe('N2');
+  });
+
+  it('**実力が下の人には効かせない**（絞りは申告レベルの人だけの話）', () => {
+    // 起点を下げている人（積み上げ）は strict にしない＝下の級から出る
+    const { session } = pickLearnSession('N2', {}, 3, 8, 'N4', false);
+    expect(session.words.some((w) => w.level !== 'N2')).toBe(true);
+  });
+});
