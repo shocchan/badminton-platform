@@ -172,7 +172,7 @@ export interface AdvShellProps {
   /** ヘッダー・設定画面からの画面切替要求（canon §5）。同じ画面を再度押しても伝わるよう n を持つ。
    * teacher=案内の先生の変更 / redo=目的・レベルの変更（準備のやり直し）。
    * どちらも設定画面（上部ナビ）から入る（2026-08-16 メニュー整理でホームの二次メニューから移設） */
-  requestView?: { view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep'; n: number } | null;
+  requestView?: { view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep' | 'mistakes'; n: number } | null;
   /** いまどの画面かをヘッダーへ返す（ナビのハイライト用） */
   onViewChange?: (view: 'home' | 'map') => void;
   /**
@@ -420,6 +420,12 @@ export default function AdvShell(props: AdvShellProps) {
       // （2026-08-17 CEO要望「毎回戻らないといけないので」）。questが揃うのを待つ必要があるのでフラグで持つ
       else if (v === 'nextStep') { setView('home'); setPendingNextN(reqN); }
       else if (v === 'teacher') { setView('teacher'); setAdjustOnboarding(false); }
+      /**
+       * 復習（2026-09-09・C）。V2の復習は**错题本**＝mastery台帳から作る。
+       * 以前は旧コースの語彙クイック復習（sessionStorage保存）へ出していたので、
+       * 「復習できているように見えて、タブを閉じると予定が消える」状態を売っていた。
+       */
+      else if (v === 'mistakes') { setView('mistakes'); setAdjustOnboarding(false); }
       // ヘッダーの「今日の冒険」「冒険マップ」は調整モードからの出口にもなる（2026-08-23 監査P0:
       // 調整画面で詰まったときにナビを押しても同じ画面のままだった）
       else { setView(v === 'map' ? 'map' : 'home'); setAdjustOnboarding(false); }

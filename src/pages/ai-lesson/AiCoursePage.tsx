@@ -237,7 +237,7 @@ export default function AiCoursePage() {
    * V2ヘッダーからAdvShellの画面を切り替えるための要求（canon §5）。
    * counterを進めることで「同じ画面をもう一度押した」ときも伝わる。
    */
-  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep'; n: number } | null>(null);
+  const [advRequest, setAdvRequest] = useState<{ view: 'home' | 'map' | 'teacher' | 'redo' | 'nextStep' | 'mistakes'; n: number } | null>(null);
   /** 冒険の「次にやるstep」。復習画面から直接そこへ入れるようにするため親で保持する（2026-08-17） */
   const [advNextStep, setAdvNextStep] = useState<{ titleJa: string; titleZh: string } | null>(null);
   const [advNavKey, setAdvNavKey] = useState<CourseNavKey>('home');
@@ -1189,9 +1189,34 @@ export default function AiCoursePage() {
    * 3つの分かれ道を見せるのは、1画面1決断に反するうえ旧コースへ迷い込ませる。
    * 旧コースの生徒には従来どおり庭園を見せる（そちらの世界観の入口なので壊さない）。
    */
-  /** ことばの3分復習（庭園の中の実復習フロー） */
+  /**
+   * ことばの3分復習（庭園の中の実復習フロー）。
+   *
+   * ⚠️ **V2の生徒をここへ出さない**（2026-09-09 CEO決定・C）。
+   * この復習予定は sessionStorage にしか保存されない（vocabSpacedReview の
+   * `ai_course_vocab_schedule_preview_v1`。正式なDB保存 vocabPersistence.ts は未接続）。
+   * V2の生徒をここへ出すと「復習できているように見えて、タブを閉じると予定が消える」
+   * ものを売ることになる。旧コースの生徒は従来どおり（そちらの世界の入口なので壊さない）。
+   * V2の恒久的な復習は錯題本（mastery台帳）で、下の openReview がそこへ送る。
+   */
   const openVocabQuickReview = () => { syncLabUrl(null); syncVocabUrl({ view: 'quickreview', category: null, itemId: null }); setStep('vocab'); };
-  const openReview = () => { if (advOn) { openVocabQuickReview(); return; } setStep('garden'); };
+  /**
+   * 復習を開く。
+   *
+   * V2の生徒は**錯題本（間違えた問題ノート）**へ直行する（2026-09-09・C）。
+   * 中身は mastery 台帳＝DBの jsonb に残るので、閉じても消えない。
+   * 以前はここが旧コースの語彙クイック復習（sessionStorage）へ出していた。
+   * 旧コースの生徒には従来どおり庭園を見せる。
+   */
+  const openReview = () => {
+    if (advOn) {
+      setAdvNavKey('home');
+      setAdvRequest((p) => ({ view: 'mistakes', n: (p?.n ?? 0) + 1 }));
+      setStep('home');
+      return;
+    }
+    setStep('garden');
+  };
 
   /** World Mapのエリア→実機能ルーティング（全kind接続済み・行き止まりなし・§7） */
   const chapterCompleted = (chapterId: string) =>
