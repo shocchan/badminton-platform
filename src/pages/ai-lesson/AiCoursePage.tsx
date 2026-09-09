@@ -126,6 +126,7 @@ import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabas
 import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
 import { supabase } from '../../services/supabaseClient';
 import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
+import { ConversationTopupCard } from '../../components/ai-course/ConversationTopupCard';
 import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
 import { AdventureRecordCard } from '../../components/ai-course/rpg/AdventureRecordCard';
 import { SupportReportButton } from '../../components/ai-course/ops/SupportReportButton';
@@ -1434,6 +1435,31 @@ export default function AiCoursePage() {
     );
   }
   if (step === 'conversationIntro' && plan) {
+    /*
+     * 週の枠を使い切った人には、旅立ちカードの代わりに回数券のカードを出す
+     * （2026-09-09）。押しても始められないカードを見せてから断るより、
+     * **最初から「いつ戻るか」と「待たずに続ける道」を出す**ほうが親切。
+     * 券を持っている人はそのまま始められるので、この差し替えはしない。
+     */
+    const weekExhausted = !!convBudget?.hasBudget
+      && convBudget.voiceRemainingWeek <= 0 && convBudget.credits <= 0;
+    if (weekExhausted) {
+      return (
+        <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
+          <ConversationTopupCard
+            lang={uiLang}
+            nextAvailableAtISO={convBudget?.nextVoiceAvailableAtISO ?? null}
+            credits={convBudget?.credits ?? 0}
+          />
+          <div className="mx-auto w-full max-w-md px-4 pb-8">
+            <button type="button" onClick={() => setStep('home')}
+              className="w-full min-h-11 rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">
+              {uiLang === 'zh' ? '回到今天的冒险' : '今日の冒険にもどる'}
+            </button>
+          </div>
+        </Shell>
+      );
+    }
     return (
       <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang} v2Mode={advOn} nav={navFor('home')} showLab={labAllowed}>
         <KatariPortIntro

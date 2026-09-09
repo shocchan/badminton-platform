@@ -104,6 +104,8 @@ export type StartSessionCode =
   | 'plan_voice_daily_limit'
   | 'plan_voice_total_exhausted'
   | 'plan_text_daily_limit'
+  // AI会話ベータの週上限（2026-09-09 migration 20260910100000）。**全員にかかる**
+  | 'voice_weekly_limit'
   | 'network'
   | 'unknown';
 

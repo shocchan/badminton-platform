@@ -186,3 +186,47 @@ export const fetchPurchaseStatus = async (sessionId: string): Promise<PurchaseSt
     return unknown;
   }
 };
+
+/* ────────────────────────────────────────────────────────────
+   AI会話の回数券（2026-09-09）
+   ──────────────────────────────────────────────────────────── */
+
+/**
+ * 回数券の決済ページを開く。
+ *
+ * 受講権の購入（startCheckout）と分けているのは、**回数券がログイン必須**だから。
+ * 残高は「このアカウントに積む」ものなので、誰のものか決まらない購入は成立しない。
+ * サーバー（ai-course-topup-checkout）も同じ判定をしている。
+ *
+ * 金額はここから送らない。サーバーが自分のカタログから読む。
+ */
+export const startTopupCheckout = async (
+  topupId: string, lang: 'ja' | 'zh' = 'ja',
+): Promise<StartCheckoutResult> => {
+  if (checkoutMode() === 'off') return { ok: false, reason: 'disabled' };
+  if (!SUPA_URL || !ANON_KEY) return { ok: false, reason: 'not_ready' };
+  try {
+    // ログイン中のアクセストークン。無ければサーバーが401で断る
+    const { supabase } = await import('../../../../services/supabaseClient');
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return { ok: false, reason: 'rejected' };
+
+    const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-topup-checkout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ topupId, locale: lang }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok || typeof body?.url !== 'string') {
+      return { ok: false, reason: res.status === 503 ? 'not_ready' : 'rejected' };
+    }
+    return { ok: true, url: body.url };
+  } catch {
+    return { ok: false, reason: 'network' };
+  }
+};

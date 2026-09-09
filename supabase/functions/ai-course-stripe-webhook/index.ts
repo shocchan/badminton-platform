@@ -29,6 +29,7 @@
 //     ai-course-stripe-webhook --no-verify-jwt --project-ref jdkwijdphlkrcoiggfqw
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { FUNCTION_PLAN_CATALOG, isSelfServePlan, type FunctionPlan } from "../_shared/aiCoursePlans.ts";
+import { functionTopupById } from "../_shared/conversationTopups.ts";
 
 const ID_DOMAIN = "id.badminton-platform.pages.dev";
 const ADMIN_EMAIL = "info@kawabado.com";
@@ -606,6 +607,73 @@ serve(async (req: Request) => {
 
        plan_id が**無い**＝そもそも他所の決済なので 200 で見送る。
        plan_id が**有るのに知らない値**＝こちらのデータの矛盾なので従来どおり 400 で目立たせる。 */
+    /*
+     * ── AI会話の回数券（2026-09-09）──────────────────────────────
+     *
+     * 回数券は**受講権を作らない**。残高が増えるだけなので、アカウント発行・
+     * 期間延長・メール送信の長い経路へは入れず、ここで完結させて返す。
+     *
+     * 冪等性は2段構え:
+     *   1. 台帳（ai_plan_purchases）を provisioned にするのは1回だけ
+     *   2. 付与そのものは ai_service_grant_conversation_credits が purchase_id で弾く
+     * Stripeは必ず再送してくるので、どちらか一方では足りない。
+     */
+    const topupId: string = session.metadata?.topup_id ?? "";
+    if (topupId) {
+      const topup = functionTopupById(topupId);
+      if (!topup) {
+        console.error("webhook: unknown topup:", topupId, sessionId);
+        await logOutcome("error", `unknown topup: ${topupId}`);
+        return json({ error: "unknown_topup" }, 400);
+      }
+      // 台帳の行（checkout が作っている）。user_id はそこから取る＝metadata を信じない
+      const rowRes = await fetch(
+        `${supabaseUrl}/rest/v1/ai_plan_purchases?stripe_session_id=eq.${encodeURIComponent(sessionId)}` +
+          `&select=id,user_id,status&limit=1`,
+        { headers: dbHeaders },
+      );
+      const trow = rowRes.ok ? (await rowRes.json())?.[0] : null;
+      if (!trow?.user_id) {
+        await raiseAlert(supabaseUrl, dbHeaders, {
+          dedupeKey: `topup_no_user:${sessionId}`,
+          kind: "topup_no_user",
+          severity: "critical",
+          title: "回数券の購入者を特定できませんでした",
+          detail: `topup: ${topupId} / 台帳に user_id がありません。手で付与するか返金してください`,
+        });
+        await logOutcome("error", `topup without user: ${topupId}`);
+        return json({ error: "topup_no_user" }, 500);
+      }
+
+      const grantRes = await fetch(`${supabaseUrl}/rest/v1/rpc/ai_service_grant_conversation_credits`, {
+        method: "POST", headers: dbHeaders,
+        body: JSON.stringify({
+          p_user_id: trow.user_id,
+          p_credits: topup.credits,
+          p_purchase_id: trow.id,
+          p_note: `${topup.id} v${topup.version}`,
+        }),
+      });
+      const granted = grantRes.ok ? await grantRes.json().catch(() => null) : null;
+      if (!granted?.ok) {
+        console.error("topup grant failed:", grantRes.status, topupId, sessionId);
+        await logOutcome("error", `topup grant failed: ${topupId}`);
+        // 500 を返して Stripe に再送させる（付与は冪等なので二重にはならない）
+        return json({ error: "topup_grant_failed" }, 500);
+      }
+
+      await fetch(`${supabaseUrl}/rest/v1/ai_plan_purchases?id=eq.${trow.id}`, {
+        method: "PATCH", headers: { ...dbHeaders, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          status: "provisioned", provisioned_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }),
+      }).catch(() => null);
+
+      await logOutcome("handled", `topup granted: ${topup.credits} (${topupId})`);
+      return json({ received: true, topup: topupId, credits: topup.credits, balance: granted.balance });
+    }
+
     if (!planId) {
       await logOutcome("ignored", "not an ai-course checkout (no plan_id in metadata)");
       return json({ received: true, ignored: "not_ai_course" });
