@@ -401,6 +401,18 @@ serve(async (req: Request) => {
             },
           );
         }
+
+        /* 紹介のお礼を取り消す（2026-09-09 D-3）。
+           **いまより手前には戻さない**——返金の巻き添えで、学習中の紹介者をその場で
+           締め出さない。取り消した事実は ai_referrals に残る。 */
+        try {
+          await fetch(`${supabaseUrl}/rest/v1/rpc/ai_referral_revoke_reward`, {
+            method: "POST", headers: dbHeaders,
+            body: JSON.stringify({ p_purchase_id: target.id, p_reason: "refund" }),
+          });
+        } catch (e) {
+          console.error("referral revoke failed:", e instanceof Error ? e.message : "unknown");
+        }
       }
 
       if (resendKey) {
@@ -882,6 +894,32 @@ serve(async (req: Request) => {
       }),
     });
     if (!doneRes.ok) { await markFailed(`final update failed: ${doneRes.status}`); return json({ error: "provision_failed" }, 500); }
+
+    /* ── 紹介のお礼（2026-09-09 P1-5 / D-3）────────────────────────
+       紹介された人の購入が確定して**初めて**、紹介した人の期間が伸びる。
+       ここは発行の後に置く（アカウントが出来ていない段階でお礼だけ配らない）。
+       失敗しても購入は成立しているので 200 を返す道は変えない。
+       二重付与・上限（合計90日）・自己紹介の除外は、すべてDB側の関数が守る。 */
+    try {
+      if (row.anon_id) {
+        await fetch(`${supabaseUrl}/rest/v1/rpc/ai_referral_attach_user`, {
+          method: "POST", headers: dbHeaders,
+          body: JSON.stringify({ p_anon_id: row.anon_id, p_user_id: userId }),
+        });
+      }
+      const rewardRes = await fetch(`${supabaseUrl}/rest/v1/rpc/ai_referral_reward`, {
+        method: "POST", headers: dbHeaders,
+        body: JSON.stringify({ p_invitee_user_id: userId, p_purchase_id: row.id }),
+      });
+      if (rewardRes.ok) {
+        const rw = await rewardRes.json().catch(() => null);
+        if (rw?.code === "rewarded") {
+          await logOutcome("handled", `referral reward +${rw.days}d`);
+        }
+      }
+    } catch (e) {
+      console.error("referral reward failed:", e instanceof Error ? e.message : "unknown");
+    }
 
     // ── メール送信（購入者＋管理者コピー）。ここで落ちても発行済みなので 200 を返し、
     //    管理者通知の失敗だけなら再送で二重発行しないようにする（メール失敗はログへ） ──

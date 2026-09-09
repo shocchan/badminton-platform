@@ -14,6 +14,7 @@ import { ToastProvider } from './components/ui/Toast';
 import LangWrapper from './components/LangWrapper';
 import { isAiCourseRoute } from './lib/aiLesson/course/courseRoutes';
 import { captureTouch } from './lib/aiLesson/course/attribution';
+import { captureReferral } from './lib/aiLesson/course/referralApi';
 import NavigateWithId from './components/NavigateWithId';
 import { HomePageWrapper } from './components/HomePageWrapper';
 import { ActivityPage, ActivityListPage } from './pages/ActivityPage';
@@ -113,6 +114,12 @@ const AnimatedRoutes = () => {
    * 初回来訪でしか使わないので location 依存にせず、マウント時1回だけ。
    */
   useEffect(() => { captureTouch(); }, []);
+  /*
+   * 紹介リンク（?ref=）の取り込み（2026-09-09 P1-5）。
+   * 流入元と同じ理由でここに置く。LPだけに置くと「紹介リンク→大会ページ→AIコース」で落とす。
+   * 最初に紹介してくれた人を上書きしない（referral.rememberReferral の約束）。
+   */
+  useEffect(() => { captureReferral(); }, []);
   // 管理画面・ログイン・マイページ等は検索結果に出さない。
   // ページごとに書くと必ず抜けるので、経路の判定はここ1か所（privateRoutes）に寄せる。
   // JSを実行しないクローラー向けには Worker が X-Robots-Tag を返す（二重で担保）

@@ -66,6 +66,9 @@ import { CourseNameOnlyHearing } from '../../components/ai-course/CourseNameOnly
 import { CourseHome } from '../../components/ai-course/CourseHome';
 import { ConversationBudgetChip } from '../../components/ai-course/ConversationBudgetChip';
 import { fetchConversationBudget, type ConversationBudget } from '../../lib/aiLesson/course/conversationBudget';
+import { ReferralCard } from '../../components/ai-course/ReferralCard';
+import { fetchMyReferral, type MyReferral } from '../../lib/aiLesson/course/referralApi';
+import { shouldShowReferral, readReferralDismissedAt, writeReferralDismissedAt } from '../../lib/aiLesson/course/referral';
 import { CourseLightPractice } from '../../components/ai-course/CourseLightPractice';
 import { CourseMyExpressions } from '../../components/ai-course/CourseMyExpressions';
 import { CourseNotebook } from '../../components/ai-course/CourseNotebook';
@@ -278,6 +281,14 @@ export default function AiCoursePage() {
    */
   const [convBudget, setConvBudget] = useState<ConversationBudget | null>(null);
   /**
+   * 紹介（2026-09-09 P1-5）。**ログイン直後には出さない。**
+   * 会話を数回終えた・復習を終えた・続けて来ている、のいずれかを満たしたときだけ取りに行く。
+   */
+  const [referral, setReferral] = useState<MyReferral | null>(null);
+  const [referralDismissedAt, setReferralDismissedAt] = useState<string | null>(
+    () => readReferralDismissedAt(),
+  );
+  /**
    * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
    * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
    * この画面のためだけに読み直す。失敗したら null のまま（作り話をしない）。
@@ -361,6 +372,26 @@ export default function AiCoursePage() {
       });
     return () => { alive = false; };
   }, [learner, accessState, sessions.length, atHome]);
+
+  /*
+   * 紹介カードを出してよい場面か（D-5）。判定は referral.shouldShowReferral（純関数）。
+   * 出すと決まってから初めてコードを取りに行く＝出さない人のコードは作らない。
+   */
+  const referralSignals = useMemo(() => ({
+    completedConversations: sessions.filter((s) => s.completionStatus !== 'in_progress').length,
+    completedReviews: reviewedNoteIds.size,
+    streakDays: readAdvProfile(learner?.settings)?.streak?.current ?? 0,
+    reportsViewed: progress.length,
+    dismissedAtISO: referralDismissedAt,
+    nowISO: new Date().toISOString(),
+  }), [sessions, reviewedNoteIds, learner, progress.length, referralDismissedAt]);
+
+  useEffect(() => {
+    if (step !== 'home' || referral || !shouldShowReferral(referralSignals)) return;
+    let alive = true;
+    void fetchMyReferral().then((r) => { if (alive) setReferral(r); });
+    return () => { alive = false; };
+  }, [step, referral, referralSignals]);
 
   // 会話枠の残りを取り直す（ホームへ来たときと、会話を終えたとき）
   useEffect(() => {
@@ -1082,9 +1113,20 @@ export default function AiCoursePage() {
   /* のこりの会話回数（2026-09-09 C-3）。無料枠でも無制限にはしないが、
      押してから断られるのは避ける。枠を持たない生徒には何も出ない */
   const budgetChip = <ConversationBudgetChip lang={uiLang} budget={convBudget} />;
-  // ホーム上部に出す購入プラン関連の帯（チップ＋残り回数＋アップセル）。従来契約の生徒はすべて null
-  const planTopSlot = (planChip || upsellBanner || convBudget?.hasBudget)
-    ? <>{planChip}{budgetChip}{upsellBanner}</> : null;
+  /* 紹介（D-5）。出すのは成功体験のあとだけ。閉じられたら30日は出さない */
+  const referralCard = referral ? (
+    <ReferralCard lang={uiLang} referral={referral}
+      onDismiss={() => {
+        const now = new Date().toISOString();
+        writeReferralDismissedAt(null, now);
+        setReferralDismissedAt(now);
+        setReferral(null);
+        trackCourse('dismiss_ai_course_referral');
+      }} />
+  ) : null;
+  // ホーム上部に出す帯（プランチップ＋残り回数＋アップセル＋紹介）。従来契約の生徒はすべて null
+  const planTopSlot = (planChip || upsellBanner || referralCard || convBudget?.hasBudget)
+    ? <>{planChip}{budgetChip}{upsellBanner}{referralCard}</> : null;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {

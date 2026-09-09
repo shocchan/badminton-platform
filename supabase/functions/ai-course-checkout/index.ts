@@ -169,6 +169,47 @@ serve(async (req: Request) => {
       */
       customer_creation: "always",
     });
+
+    /*
+      紹介された人の割引（2026-09-09 P1-5 / D-2）。
+      Stripe の Coupon を1つだけ当てる（Checkout の discounts）。既存の決済経路を変えないので、
+      card / Alipay / WeChat Pay のどれでも同じように効く（金額は決済手段を選ぶ前に確定する）。
+
+      **効かせる条件を厳しく取る。**
+        1. ai_config.referral.inviteeCouponId が設定されている（未設定＝割引しない）
+        2. 対象プランが一致する（既定は ai-month のみ。体験パスには当てない）
+        3. utm.ref が実在する紹介コードである（DBに無いコードでは割引しない）
+      どれか欠けたら**黙って通常価格で進む**。決済そのものは絶対に止めない。
+    */
+    let referralApplied: string | null = null;
+    try {
+      const refRaw = utm.ref ?? "";
+      if (refRaw) {
+        const cfgRes = await fetch(
+          `${supabaseUrl}/rest/v1/ai_config?key=eq.referral&select=value`, { headers: dbHeaders },
+        );
+        const refCfg = cfgRes.ok ? (await cfgRes.json())?.[0]?.value ?? {} : {};
+        const couponId = String(refCfg?.inviteeCouponId ?? "");
+        const appliesTo = String(refCfg?.inviteeAppliesToPlan ?? "ai-month");
+        if (couponId && plan.id === appliesTo) {
+          const norm = refRaw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+          const codeRes = await fetch(
+            `${supabaseUrl}/rest/v1/ai_referral_codes?code=eq.${encodeURIComponent(norm)}&select=user_id`,
+            { headers: dbHeaders },
+          );
+          const found = codeRes.ok ? (await codeRes.json())?.[0] : null;
+          if (found?.user_id) {
+            params.set("discounts[0][coupon]", couponId);
+            params.set("metadata[referral_code]", norm);
+            referralApplied = norm;
+          }
+        }
+      }
+    } catch (e) {
+      // 割引の判定で決済を止めない（通常価格で進む）
+      console.error("referral discount skipped:", e instanceof Error ? e.message : "unknown");
+    }
+
     const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
@@ -229,7 +270,8 @@ serve(async (req: Request) => {
         session_ref: String(session.id).slice(-8),
         livemode: mode === "live",
         outcome: "handled",
-        detail: `plan=${plan.id} locale=${locale} amount=${plan.priceJpy}`,
+        detail: `plan=${plan.id} locale=${locale} amount=${plan.priceJpy}`
+          + (referralApplied ? ` referral=${referralApplied}` : ""),
       }),
     }).catch((e) => console.error("payment event log failed:", e));
 
