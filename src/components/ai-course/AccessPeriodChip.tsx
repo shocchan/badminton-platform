@@ -15,14 +15,17 @@ const TONE = {
   last: 'border-rose-200 bg-rose-50 text-rose-900',
 } as const;
 
-export function AccessPeriodChip({ lang, validUntilISO, trialStartedAtISO = null, trialDays = null }: {
+export function AccessPeriodChip({ lang, validUntilISO, trialStartedAtISO = null, trialDays = null,
+  supportEmail = null }: {
   lang: 'ja' | 'zh';
   validUntilISO: string;
   trialStartedAtISO?: string | null;
   trialDays?: number | null;
+  /** 問い合わせ先（t.support.email）。期限切れのときだけ添える */
+  supportEmail?: string | null;
 }) {
   const notice = accessPeriodNotice({
-    validUntilISO, trialStartedAtISO, trialDays,
+    validUntilISO, trialStartedAtISO, trialDays, supportEmail,
     nowISO: new Date().toISOString(),
     lang,
   });

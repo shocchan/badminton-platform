@@ -1,15 +1,20 @@
-// 体験（60分）が終わった直後のアップグレード画面（2026-08-20 CEO指示）。
+// 体験が終わった直後のアップグレード画面（2026-08-20 CEO指示）。
 //
 // 以前は「料金プランを見る」で販売LPの先頭へ飛ばしていた。
 // 学習を終えたばかりの人に、また商品説明を最初から読ませるのは無駄で、
 // いちばん決めやすい瞬間を捨てている。ここで**その場で3択**を出して決めきる:
-//   ① もう一度60分（体験パス）  → クレジット決済へ直行
-//   ② 1か月 AI自学プラン        → クレジット決済へ直行
-//   ③ 6か月 伴走コース          → 連絡先を送って個別やりとり（人が対応する商品なので即決済にしない）
+//   ① AI体験パス（開始から7日間） → クレジット決済へ直行
+//   ② 1か月 AI自学プラン          → クレジット決済へ直行
+//   ③ 6か月 伴走コース            → 連絡先を送って個別やりとり（人が対応する商品なので即決済にしない）
+//
+// 2026-09-09 CEO指示で、**体験パス以外の期限切れ**（1か月プラン・Friends Beta）も
+// この画面で受けるようにした（variant='expired'）。それまでは
+// 「先生に連絡してください」＋ログアウトの行き止まりで、
+// 自分で買った人には連絡できる先生がいなかった。
 //
 // 価格・期間・含まれるものは planCatalog が正準。ここには数値を書かない。
 import { useEffect, useRef, useState } from 'react';
-import { Check, ArrowRight, Loader2, MessageSquare, X } from 'lucide-react';
+import { Check, ArrowRight, Loader2, MessageSquare, Mail, X } from 'lucide-react';
 import {
   publishedPlans, planView, type PlanId,
 } from '../../lib/aiLesson/course/plans/planCatalog';
@@ -18,33 +23,46 @@ import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { spokenMinutesLabel, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
 
-export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
+export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null,
+  variant = 'trialEnded', supportEmail = null, untilLabel = null }: {
   lang: 'ja' | 'zh';
   /** 6か月コース（人が対応する商品）の連絡先フォームを開く */
   onApply: (planId: PlanId) => void;
   onLogout: () => void;
   /**
    * 体験中に実際にやったこと（2026-08-26）。
-   * 以前はこの画面がいきなり値段3つの表だった。60分やり切った直後の人が
+   * 以前はこの画面がいきなり値段3つの表だった。やり切った直後の人が
    * 見たいのは値段ではなく自分が何をしたかで、続きを買う理由もそこにある。
    * 取得できなければ null（作り話はしない・無ければ出さない）。
    */
   summary?: TrialSummary | null;
+  /**
+   * `trialEnded` … 体験パスを完走した人（「終了」ではなく「おつかれさま」で迎える）
+   * `expired`    … それ以外の期限切れ（1か月プラン・Friends Beta 等）
+   */
+  variant?: 'trialEnded' | 'expired';
+  /** 問い合わせ先（t.support.email）。無ければ問い合わせ行を出さない */
+  supportEmail?: string | null;
+  /** 期限の日付（expired のときだけ使う）。作れなければ null＝日付を書かない */
+  untilLabel?: string | null;
 }) {
   const zh = lang === 'zh';
   const [busy, setBusy] = useState<PlanId | null>(null);
   const [error, setError] = useState('');
   const plans = publishedPlans();
+  const expired = variant === 'expired';
 
-  // 体験が終わってこの画面に到達したこと自体を1回だけ記録する
+  // この画面に到達したこと自体を1回だけ記録する
   // （「体験は終えたが続きを選ばなかった人」が何人いるかを見るため）
   const viewed = useRef(false);
   useEffect(() => {
     if (viewed.current) return;
     viewed.current = true;
-    logCourseEvent('trial_completed', {});
-    logCourseEvent('upgrade_view', { plans: plans.length });
-  }, [plans.length]);
+    // 体験の完走だけを trial_completed として数える。
+    // 期限切れを混ぜると「体験を完走した人数」が実態より多く見える
+    if (!expired) logCourseEvent('trial_completed', {});
+    logCourseEvent('upgrade_view', { plans: plans.length, variant });
+  }, [plans.length, expired, variant]);
 
   const choose = async (planId: PlanId) => {
     const cfg = plans.find((p) => p.id === planId);
@@ -68,14 +86,20 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
   return (
     <div className="mx-auto w-full max-w-md px-4 py-10">
       <div className="text-center">
-        <div className="text-4xl mb-2">🎉</div>
+        <div className="text-4xl mb-2">{expired ? '🌱' : '🎉'}</div>
         <h1 className="text-xl font-bold text-gray-900">
-          {zh ? '体验期结束了，辛苦啦！' : '体験期間が終了しました。おつかれさまでした！'}
+          {expired
+            ? (zh ? '学习期限已结束' : '利用期間が終了しました')
+            : (zh ? '体验期结束了，辛苦啦！' : '体験期間が終了しました。おつかれさまでした！')}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600">
-          {zh
-            ? '学习记录都保留着。选择下面任一方案，都可以从接下来的部分继续。'
-            : '学習記録はすべて残っています。下のどれを選んでも、続きから再開できます。'}
+          {expired && untilLabel
+            ? (zh
+              ? `你的学习期限到 ${untilLabel} 为止。学习记录都保留着，选择下面任一方案，都可以从原来的地方继续。`
+              : `利用期間は ${untilLabel} まででした。学習記録はすべて残っています。下のどれを選んでも、続きから再開できます。`)
+            : (zh
+              ? '学习记录都保留着。选择下面任一方案，都可以从接下来的部分继续。'
+              : '学習記録はすべて残っています。下のどれを選んでも、続きから再開できます。')}
         </p>
       </div>
 
@@ -226,6 +250,23 @@ export function TrialEndedUpgrade({ lang, onApply, onLogout, summary = null }: {
           ? '购买时使用哪个邮箱都可以，登录中购买会自动延续到当前账号。'
           : '購入時のメールアドレスは何でも構いません。ログインしたまま購入すると、いまのアカウントに自動で引き継がれます。'}
       </p>
+
+      {/*
+        迷った人の逃げ道（2026-09-09 CEO指示）。
+        3つのうちどれを選べばいいか分からない人が、決められないまま閉じてしまう。
+        「決めなくても聞ける」を最後に置いておく。
+        学習アプリ内の人の窓口は info@kawabado.com のみ（2026-07-30 CEO方針）
+      */}
+      {supportEmail && (
+        <p className="mt-4 text-center text-xs leading-relaxed text-gray-600">
+          {zh ? '不知道该选哪个？也可以先来问问：' : 'どれを選べばいいか迷ったら、聞いてください：'}
+          <br />
+          <a href={`mailto:${supportEmail}`}
+            className="mt-1 inline-flex min-h-11 items-center gap-1.5 font-bold text-blue-700 underline select-all">
+            <Mail className="h-4 w-4" aria-hidden="true" />{supportEmail}
+          </a>
+        </p>
+      )}
 
       <button type="button" onClick={onLogout}
         className="mt-6 flex w-full min-h-11 items-center justify-center gap-1.5 rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">

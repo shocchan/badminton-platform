@@ -151,3 +151,56 @@ describe('体験終了画面の「あなたの現在地」', () => {
     expect(screen.getByText(/这部分要继续才会送到你手上/)).toBeTruthy();
   });
 });
+
+/*
+ * 体験パス以外の期限切れ（2026-09-09 CEO指示）。
+ * それまでは「先生に連絡してください」＋ログアウトの行き止まりで、
+ * 自分で買った人には連絡できる先生がいなかった。
+ */
+describe('期限切れ（体験パス以外）でも同じ3択を出す', () => {
+  beforeEach(() => { startCheckout.mockReset(); canStartCheckout.mockReset().mockReturnValue(true); });
+  afterEach(() => cleanup());
+
+  const expired = (lang: 'ja' | 'zh' = 'ja') => render(
+    <TrialEndedUpgrade lang={lang} variant="expired" untilLabel="2026年9月1日"
+      supportEmail="info@kawabado.com" onApply={() => {}} onLogout={() => {}} />,
+  );
+
+  it('3プランがその場に並ぶ（行き止まりにしない）', () => {
+    expired();
+    for (const p of publishedPlans()) {
+      expect(screen.getByText(planView(p, 'ja').name), p.id).toBeTruthy();
+    }
+  });
+
+  it('見出しは「完走おめでとう」ではなく期限切れ。日付も出す', () => {
+    expired();
+    expect(screen.getByText('利用期間が終了しました')).toBeTruthy();
+    expect(screen.queryByText(/おつかれさまでした/)).toBeNull();
+    expect(screen.getByText(/2026年9月1日 まででした/)).toBeTruthy();
+  });
+
+  it('迷った人の逃げ道＝問い合わせ先を出す（学習アプリ内の窓口はメールのみ）', () => {
+    expired();
+    const link = screen.getByRole('link', { name: /info@kawabado\.com/ });
+    expect(link.getAttribute('href')).toBe('mailto:info@kawabado.com');
+  });
+
+  it('問い合わせ先が渡されなければ書かない（存在しない窓口を案内しない）', () => {
+    render(<TrialEndedUpgrade lang="ja" variant="expired" onApply={() => {}} onLogout={() => {}} />);
+    expect(screen.queryByText(/迷ったら、聞いてください/)).toBeNull();
+  });
+
+  it('日付が作れなければ日付を書かない', () => {
+    render(<TrialEndedUpgrade lang="ja" variant="expired" untilLabel={null}
+      onApply={() => {}} onLogout={() => {}} />);
+    expect(screen.getByText('利用期間が終了しました')).toBeTruthy();
+    expect(screen.queryByText(/まででした/)).toBeNull();
+  });
+
+  it('中国語でも同じ', () => {
+    expired('zh');
+    expect(screen.getByText('学习期限已结束')).toBeTruthy();
+    expect(screen.getByText(/不知道该选哪个/)).toBeTruthy();
+  });
+});

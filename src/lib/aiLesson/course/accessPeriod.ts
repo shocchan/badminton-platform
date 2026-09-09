@@ -56,6 +56,13 @@ export interface PeriodInput {
   trialDays?: number | null;
   nowISO: string;
   lang: 'ja' | 'zh';
+  /**
+   * 問い合わせ先（t.support.email）。期限切れのときだけ添える。
+   * 「先生に言って」だけだと、先生と直接つながっていない人（自分で買った人・
+   * 招待された人）には連絡先が無いことになる（2026-09-09 CEO指摘）。
+   * 渡されなければ書かない（存在しない窓口を案内しない）。
+   */
+  supportEmail?: string | null;
 }
 
 /**
@@ -86,7 +93,10 @@ export const accessPeriodNotice = (i: PeriodInput): PeriodNotice | null => {
     return {
       level: 'last',
       headline: zh ? '使用期限已到' : '利用期限を過ぎました',
-      sub: zh ? '想继续的话，请告诉老师。' : '続けたいときは先生に言ってください。',
+      sub: i.supportEmail
+        ? (zh ? `想继续的话，请告诉老师。发邮件也可以：${i.supportEmail}`
+          : `続けたいときは先生に言ってください。メールでも大丈夫です：${i.supportEmail}`)
+        : (zh ? '想继续的话，请告诉老师。' : '続けたいときは先生に言ってください。'),
     };
   }
 

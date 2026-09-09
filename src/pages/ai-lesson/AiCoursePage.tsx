@@ -21,6 +21,7 @@ import { ensureCoursePass } from '../../lib/aiLesson/course/coursePass';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { upsellMomentFor, readUpsellDismissedAt, writeUpsellDismissedAt } from '../../lib/aiLesson/course/plans/planUpsell';
 import { planById } from '../../lib/aiLesson/course/plans/planCatalog';
+import { expiredAudienceOf, isTrialCompletion } from '../../lib/aiLesson/course/plans/expiredOffer';
 import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner';
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { AccessPeriodChip } from '../../components/ai-course/AccessPeriodChip';
@@ -976,35 +977,41 @@ export default function AiCoursePage() {
     const zh = uiLang === 'zh';
     const until = a && a.kind === 'expired' ? formatUntilJst(a.row.validUntilISO, zh ? 'zh' : 'ja') : null;
     const from = a && a.kind === 'not_started' ? formatUntilJst(a.row.validFromISO, zh ? 'zh' : 'ja') : null;
-    // 体験パス（リアルタイム60分）の終了は「期限切れ」ではなく体験完了。
-    // その場でアップグレード（1か月プラン）へつなぐ（2026-08-20 CEO決定の設計意図）
-    const trialEnded = a?.kind === 'expired' && a.row.planId === 'ai-trial-pass';
-    const monthPlan = planById('ai-month');
-    const title = trialEnded
-      ? (zh ? '60分钟的体验结束了，辛苦啦！' : '60分の体験が終了しました。おつかれさまでした！')
-      : a?.kind === 'expired'
-        ? (zh ? '学习期限已结束' : '利用期間が終了しています')
-        : a?.kind === 'not_started'
-          ? (zh ? '学习还未开始' : '利用開始前です')
-          : (zh ? '课程还未开通' : 'コースが開通していません');
-    const body = trialEnded
-      ? (zh
-        ? `学习记录都保留着。升级到「${monthPlan?.nameZh}」（${monthPlan?.priceLabelZh}）即可从接下来的部分继续，30天内解锁全部区域。`
-        : `学習記録はすべて残っています。「${monthPlan?.nameJa}」（${monthPlan?.priceLabelJa}）にアップグレードすると、続きから30日間・全地域で学べます。`)
-      : a?.kind === 'expired'
-        ? (zh ? `你的学习期限到 ${until} 为止。学习记录都还保留着，续期后可以从原来的地方继续。请联系老师。`
-          : `利用期間は ${until} まででした。学習記録はすべて残っています。延長すると続きから再開できます。先生に連絡してください。`)
-        : a?.kind === 'not_started'
-          ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
-            : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
-          : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
-    // 体験が終わった人には、LPへ戻さず**その場で3択**（もう一度60分／1か月／6か月伴走）を出す。
-    // 60分・1か月はクレジット決済へ直行、6か月は連絡先フォーム（人が対応する商品なので即決済にしない）
-    if (trialEnded) {
+    /*
+     * 期限が切れた人を2つに分ける（2026-09-09 CEO指示）。
+     *
+     * これまでは**体験パスの人だけ**がその場の3択（購入）へ進めて、
+     * それ以外は全員「先生に連絡してください」＋ログアウトの行き止まりだった。
+     * だが自分で買った人（1か月プラン・Friends Beta）には**連絡できる先生がいない**。
+     * 「レッスン受けてない人は直接自分とやりとりすることないから」（CEO）。
+     *
+     *   selfServe … その場で3択（体験パス／1か月＝カード決済・6か月＝相談）＋問い合わせ
+     *   coached   … 先生と直接つながっている人。今までどおり先生に言うのが早い（＋問い合わせ）
+     */
+    const expiredAudience = a?.kind === 'expired' ? expiredAudienceOf(a.row.planId ?? null) : null;
+    const trialEnded = a?.kind === 'expired' && isTrialCompletion(a.row.planId);
+    const title = a?.kind === 'expired'
+      ? (zh ? '学习期限已结束' : '利用期間が終了しています')
+      : a?.kind === 'not_started'
+        ? (zh ? '学习还未开始' : '利用開始前です')
+        : (zh ? '课程还未开通' : 'コースが開通していません');
+    const body = a?.kind === 'expired'
+      ? (zh ? `你的学习期限到 ${until} 为止。学习记录都还保留着，续期后可以从原来的地方继续。请联系老师。`
+        : `利用期間は ${until} まででした。学習記録はすべて残っています。延長すると続きから再開できます。先生に連絡してください。`)
+      : a?.kind === 'not_started'
+        ? (zh ? `你的学习将从 ${from} 开始。到时候用同一个ID登录就可以。`
+          : `利用開始日は ${from} です。当日から同じIDでログインできます。`)
+        : (zh ? '这个账号还没有开通课程。请联系老师确认。' : 'このアカウントはまだコースが開通していません。先生に確認してください。');
+    // 自分で買った人には、LPへ戻さず**その場で3択**を出す。
+    // 体験パス・1か月はクレジット決済へ直行、6か月は連絡先フォーム（人が対応する商品なので即決済にしない）
+    if (expiredAudience === 'selfServe') {
       return (
         <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialEndedUpgrade
             lang={uiLang}
+            variant={trialEnded ? 'trialEnded' : 'expired'}
+            untilLabel={until}
+            supportEmail={t.support.email}
             summary={trialSummary}
             onApply={(planId) => setApplyPlanId(planId)}
             onLogout={() => { void signOut().then(() => setStep('login')); }}
@@ -1021,6 +1028,15 @@ export default function AiCoursePage() {
           <div className="text-4xl mb-3">🌱</div>
           <h2 className="text-lg font-bold text-gray-900">{title}</h2>
           <p className="mt-3 text-sm leading-relaxed text-gray-600">{body}</p>
+          {/*
+            先生と直接つながっている人でも、返事を待つあいだ何もできないのは行き止まり。
+            メールの窓口を必ず添える（2026-09-09 CEO指示）
+          */}
+          <p className="mt-4 text-xs leading-relaxed text-gray-600">
+            {zh ? '发邮件也可以：' : 'メールでも大丈夫です：'}
+            <a href={`mailto:${t.support.email}`}
+              className="ml-1 font-bold text-blue-700 underline select-all">{t.support.email}</a>
+          </p>
           <button type="button"
             className="mt-8 w-full min-h-[44px] rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
             onClick={() => { void signOut().then(() => setStep('login')); }}>
@@ -1104,6 +1120,7 @@ export default function AiCoursePage() {
       validUntilISO={accessRow.validUntilISO}
       trialStartedAtISO={accessRow.trialStartedAtISO ?? null}
       trialDays={accessRow.trialDays ?? null}
+      supportEmail={t.support.email}
     />
   ) : null;
 
