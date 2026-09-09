@@ -334,10 +334,29 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
               招待つきで来たことは、下の一文で伝える
             */}
             {urlInvite ? (
-              <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-                {tx('招待リンクから来ました。メールアドレスだけで始められます。',
-                  '你是通过邀请链接来的。只填邮箱就可以开始。')}
-              </p>
+              /*
+                招待リンクから来た人が最初に見る一枚（2026-09-10）。
+                ここに**何が始まるのか**を書く。「招待リンクから来ました」だけだと、
+                メールアドレスを入れる理由が本人に無い。
+                書かないこと: AI会話（この7日には含まれない）／合格の断定。
+                書くこと: 8分で現在地が出る／7日で終わる／記録は消えない。
+              */
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900">
+                <p className="text-sm font-bold">
+                  {tx('7日間の実力診断（無料）', '7天日语实力诊断（免费）')}
+                </p>
+                <p className="mt-1 text-sm leading-relaxed">
+                  {tx('最初の8分で、いまのJLPTの現在地が出ます。そのあとは毎日10分、あなたが間違えた問題だけ。',
+                    '最初的8分钟，测出你现在的JLPT水平。之后每天10分钟，只练你做错的题。')}
+                </p>
+                <p className="mt-1.5 text-sm font-semibold">
+                  {tx('メールアドレスだけで始められます。', '只填邮箱就可以开始。')}
+                </p>
+                <p className="mt-2 text-[11px] leading-relaxed text-emerald-800">
+                  {tx('※ この7日間にAI会話は含みません。7日後も診断結果と間違えた問題ノートは残ります。',
+                    '※ 这7天不含AI会话。7天后测试结果和错题本不会消失。')}
+                </p>
+              </div>
             ) : (
               <div>
                 <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
