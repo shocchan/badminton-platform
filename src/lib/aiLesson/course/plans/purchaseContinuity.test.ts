@@ -58,7 +58,57 @@ describe('再購入時のアカウント引き継ぎ', () => {
 
   it('引き継ぎ時はパスワードを作り直さない（前のIDでそのまま入れる）', () => {
     expect(webhook).toMatch(/reusedAccount = true/);
-    // メール文面が「これまでと同じものをご利用ください」を出す分岐を持つ
-    expect(webhook).toMatch(/これまでと同じものをご利用ください/);
+    // メール文面が「今までのパスワードのまま」を伝える分岐を持つ
+    expect(webhook).toMatch(/これまでお使いのものをそのまま/);
+    expect(webhook).toMatch(/请继续使用你原来的密码/);
+  });
+
+  /*
+   * ID＝申込時のメールアドレスへ（2026-09-09 CEO決定）。
+   * 合成メール（sxxxxxxx@id.badminton-platform.pages.dev）だと
+   *   ・パスワード再設定メールを送れない（宛先が存在しない）
+   *   ・バド側のマイページに会員として出てこない
+   * の2つが起きる。実メールにすると同じ認証アカウントになる。
+   */
+  describe('新規アカウントは申込時のメールで作る', () => {
+    it('合成メールでは作らない', () => {
+      expect(webhook).toMatch(/const authEmail = buyerEmail\.trim\(\)\.toLowerCase\(\)/);
+      // 作成リクエストに渡すのは実メール
+      expect(webhook).toMatch(/email: authEmail, password, email_confirm: true/);
+      // 合成メールの組み立てが残っていない
+      expect(webhook).not.toMatch(/`\$\{loginId\}@\$\{ID_DOMAIN\}`/);
+    });
+
+    it('**同じメールの既存アカウントがあればパスワードを作り直さない**（バド会員のパスワードを壊さない）', () => {
+      expect(webhook).toMatch(/findUserIdByEmail/);
+      // 422（競合）でも作り直さず再利用へ倒す
+      expect(webhook).toMatch(/password = null;\s*\n\s*reusedAccount = true;/);
+      // 旧実装のパスワード揃え（PUT で password を上書き）が消えている
+      expect(webhook).not.toMatch(/method: "PUT", body: JSON\.stringify\(\{ password \}\)/);
+    });
+
+    it('メールの完全一致だけを採用する（前方一致で他人を掴まない）', () => {
+      expect(webhook).toMatch(/\(u\.email \?\? ""\)\.toLowerCase\(\) === email\.toLowerCase\(\)/);
+    });
+  });
+
+  describe('ログインしないで入れる個別URL', () => {
+    it('購入時に学習コードを発行してURLをメールに載せる', () => {
+      expect(webhook).toMatch(/rpc\/ai_service_issue_learning_code/);
+      expect(webhook).toMatch(/learnUrl = `\$\{STUDENT_SITE\}\/\$\{locale\}\/learn\//);
+      expect(webhook).toMatch(/buyerMail\(\{[^}]*learnUrl/);
+    });
+
+    it('発行に失敗しても購入は止めない（URL無しのメールになるだけ）', () => {
+      // try/catch で囲われ、失敗時に return していない
+      const block = webhook.slice(webhook.indexOf('let learnUrl'), webhook.indexOf('let learnUrl') + 1200);
+      expect(block).toMatch(/try \{/);
+      expect(block).not.toMatch(/return json\(\{ error/);
+    });
+
+    it('URLが無いときは案内ごと出さない（壊れたリンクを書かない）', () => {
+      expect(webhook).toMatch(/const entryBlock = learnUrl\s*\n?\s*\?/);
+      expect(webhook).toMatch(/:\s*"";/);
+    });
   });
 });

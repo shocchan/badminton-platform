@@ -106,10 +106,27 @@ export const normalizeStudentIdInput = (raw: string): string => {
   return v.endsWith(`@${STUDENT_ID_DOMAIN}`) ? v.slice(0, -(`@${STUDENT_ID_DOMAIN}`.length)) : v;
 };
 
+/**
+ * ID欄の入力を、認証に使うメールアドレスへ変換する。受け付けるのは2種類:
+ *
+ *   1. 学習者ID（`summer` など）… 自ドメインを足す。これまでの生徒はこちら
+ *   2. **メールアドレス**（`someone@example.com`）… そのまま使う。
+ *      2026-09-09 CEO決定で、購入者のIDは申込時のメールアドレスになった
+ *      （合成メールでは再設定メールが送れず、バド側のマイページにも出なかった）
+ *
+ * どちらでもなければ null＝ログインを試みない。
+ */
+export const loginEmailFor = (raw: string): string | null => {
+  const normalized = normalizeStudentIdInput(raw);
+  if (isValidStudentId(normalized)) return studentIdToEmail(normalized);
+  // ざっくりしたメールの形だけ見る。厳密な判定はサーバーに任せる
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized) ? normalized : null;
+};
+
 export const signInWithStudentId = async (id: string, password: string): Promise<{ ok: boolean }> => {
-  const normalized = normalizeStudentIdInput(id);
-  if (!isValidStudentId(normalized) || password.length === 0) return { ok: false };
-  const { error } = await supabase.auth.signInWithPassword({ email: studentIdToEmail(normalized), password });
+  const email = loginEmailFor(id);
+  if (!email || password.length === 0) return { ok: false };
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
   return { ok: !error };
 };
 

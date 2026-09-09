@@ -225,16 +225,22 @@ export const CourseLogin = ({ t, onLoggedIn }: Props) => {
           <div className="space-y-3">
             <div>
               <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">
-                <User className="w-3.5 h-3.5" />{tx('ログインID', '登录ID')}
+                <User className="w-3.5 h-3.5" />{tx('ID（メールアドレス）', 'ID（邮箱地址）')}
               </label>
+              {/*
+                2026-09-09 CEO決定で、購入者のIDは**申込時のメールアドレス**になった。
+                これまでの生徒の短いID（tanaka など）もそのまま使えるので、
+                どちらも受け付ける（判定は courseAuth.loginEmailFor）。
+                inputMode="email" にすると @ がすぐ出せて、打ち間違いが減る
+              */}
               <input
-                type="text" inputMode="text" value={loginId}
+                type="text" inputMode="email" value={loginId}
                 onChange={(e) => { setLoginId(e.target.value.toLowerCase()); setError(''); }}
-                placeholder={tx('例：tanaka', '例如：tanaka')} autoComplete="username"
+                placeholder={tx('例：you@example.com', '例如：you@example.com')} autoComplete="username"
                 autoCapitalize="none" autoCorrect="off" spellCheck={false}
                 className="w-full min-h-11 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <p className="text-[11px] text-gray-400 mt-1">{tx('先生から届いたIDを入力してください。', '请输入老师发给你的ID。')}</p>
+              <p className="text-[11px] text-gray-400 mt-1">{tx('購入時のメールアドレス（先生からIDをもらっている方はそのID）を入力してください。', '请输入购买时使用的邮箱地址（如果老师给了你ID，就输入那个ID）。')}</p>
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 flex items-center gap-1.5 mb-1">

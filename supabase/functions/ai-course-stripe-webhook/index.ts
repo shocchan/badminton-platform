@@ -68,12 +68,11 @@ const verifyStripeSignature = async (
   });
 };
 
-/* ── ログインID（session_idから決定的に導出＝再試行で同じIDになる） ── */
-const loginIdFor = async (sessionId: string): Promise<string> => {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sessionId));
-  const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
-  return `s${hex.slice(0, 7)}`; // 英小文字はじまり8字（既存IDルール ^[a-z][a-z0-9]{1,19}$ に適合）
-};
+/*
+ * 以前ここに loginIdFor（session_id から s+7桁のIDを導出）があった。
+ * 2026-09-09 に ID＝申込時のメールアドレスへ変えたので、新規発行では使わなくなった。
+ * 既存の合成メール勢（本番14人）のIDは ID_DOMAIN 側の復元経路で今も扱う。
+ */
 
 /* ── 初期パスワード（12字・紛らわしい文字なし） ── */
 const generatePassword = (): string => {
@@ -92,8 +91,10 @@ const jstDate = (iso: string | null): string =>
 const buyerMail = (input: {
   locale: "ja" | "zh"; plan: FunctionPlan; validUntilISO: string | null;
   loginId: string; password: string | null; reusedAccount: boolean;
+  /** 押すだけで入れる個別URL。発行できなかったときは null＝その案内を丸ごと出さない */
+  learnUrl?: string | null;
 }): { subject: string; text: string } => {
-  const { locale, plan, loginId, password, reusedAccount } = input;
+  const { locale, plan, loginId, password, reusedAccount, learnUrl = null } = input;
   const ja = locale === "ja";
   // 期限が取れなかったときは推測した日付を書かない（購入者の言語で案内へ倒す）
   const until = input.validUntilISO && Number.isFinite(Date.parse(input.validUntilISO))
@@ -118,25 +119,33 @@ const buyerMail = (input: {
       : "";
 
   if (ja) {
+    /*
+     * 入口は2本立て（2026-09-09 CEO決定）。
+     *   ① 個別URL … 押すだけ。普段はこれだけでいい
+     *   ② ID＋パスワード … 検索などでログインページに来てしまったとき用
+     * URLを先に、大きく置く。IDとパスワードは「入れなかったとき」の道として後ろに置く。
+     * URLが発行できなかったときは①を丸ごと出さない（壊れたリンクを書かない）。
+     */
+    const entryBlock = learnUrl
+      ? `■ あなたの入口（押すだけで始められます）\n${learnUrl}\n\n`
+        + `👉 このメールは消さずに置いておいてください。スマホなら、リンクを開いてから\n`
+        + `   ブラウザの「ホーム画面に追加」をしておくと、次から一発で開けます。\n\n`
+      : "";
     const loginBlock = reusedAccount
-      ? `ログインページ：${loginUrl}\nログインID：${loginId}\nパスワード：これまでと同じものをご利用ください（変更されていません）`
-      : `ログインページ：${loginUrl}\nログインID：${loginId}\n初期パスワード：${password}`;
+      ? `ログインページ：${loginUrl}\nID：${loginId}\nパスワード：これまでお使いのものをそのままご利用ください（変更していません）`
+      : `ログインページ：${loginUrl}\nID：${loginId}\nパスワード：${password}`;
     return {
       subject: `【日本語の相棒】ご購入ありがとうございます（${name}）`,
-      text: `${name}のご購入を確認しました。${reusedAccount ? "お使いのアカウントに利用期間を追加しました。" : "アカウントを発行しましたので、下記からログインしてください。"}
+      text: `${name}のご購入を確認しました。${reusedAccount ? "お使いのアカウントに利用期間を追加しました。" : "すぐに始められます。"}
 
-■ ご購入内容
+${entryBlock}■ ご購入内容
 プラン：${name}
 金額：${price}
 利用期間：${duration}（${until} まで）
 
-■ ログイン情報
+■ ${learnUrl ? "うまく開けないとき／検索からログインするとき" : "ログイン情報"}
 ${loginBlock}
-
-■ はじめかた
-1. ログインページを開き、IDとパスワードを入力します
-2. お名前を入力すると、学習の準備が始まります
-3. ログイン後、「設定」からパスワードを変更できます
+※ ログイン後、「設定」からパスワードを変更できます
 
 ■ ご注意
 ・アカウントの共有・譲渡はできません（利用規約 第4条）
@@ -149,25 +158,26 @@ ${trialNote}
 kawabado（日本語の相棒）`,
     };
   }
+  const entryBlock = learnUrl
+    ? `■ 你的入口（点一下就能开始）\n${learnUrl}\n\n`
+      + `👉 请不要删除这封邮件。用手机打开链接后，再用浏览器的「添加到主屏幕」，\n`
+      + `   以后一点就能进。\n\n`
+    : "";
   const loginBlock = reusedAccount
-    ? `登录页面：${loginUrl}\n登录ID：${loginId}\n密码：请使用之前的密码（未变更）`
-    : `登录页面：${loginUrl}\n登录ID：${loginId}\n初始密码：${password}`;
+    ? `登录页面：${loginUrl}\nID：${loginId}\n密码：请继续使用你原来的密码（我们没有更改）`
+    : `登录页面：${loginUrl}\nID：${loginId}\n密码：${password}`;
   return {
     subject: `【你的日语搭档】感谢购买（${name}）`,
-    text: `已确认你购买了${name}。${reusedAccount ? "已为你的账号追加了使用期限。" : "账号已开通，请从下方登录。"}
+    text: `已确认你购买了${name}。${reusedAccount ? "已为你的账号追加了使用期限。" : "现在就可以开始。"}
 
-■ 购买内容
+${entryBlock}■ 购买内容
 方案：${name}
 金额：${price}
 使用期限：${duration}（至 ${until}）
 
-■ 登录信息
+■ ${learnUrl ? "打不开的时候／从搜索进入登录页面时" : "登录信息"}
 ${loginBlock}
-
-■ 开始方法
-1. 打开登录页面，输入ID和密码
-2. 输入名字后，学习准备就会开始
-3. 登录后可在「设置」中修改密码
+※ 登录后可在「设置」中修改密码
 
 ■ 注意事项
 ・账号不可共享或转让（使用条款 第4条）
@@ -248,6 +258,23 @@ serve(async (req: Request) => {
           "Content-Type": "application/json", ...(init.headers ?? {}),
         },
       });
+
+    /**
+     * そのメールの認証アカウントを探す。無ければ null。
+     *
+     * filter は前方一致で拾うことがあるので、**完全一致だけを採用する**
+     * （`a@x.com` を探して `ab@x.com` を掴むと、他人のアカウントに
+     * 受講権を付けてしまう）。比較は小文字に揃える。
+     */
+    const findUserIdByEmail = async (email: string): Promise<string | null> => {
+      const q = encodeURIComponent(email);
+      const res = await authAdmin(`/admin/users?page=1&per_page=20&filter=${q}`);
+      if (!res.ok) return null;
+      const listed = await res.json().catch(() => null);
+      const users: { id?: string; email?: string }[] = listed?.users ?? [];
+      const hit = users.find((u) => (u.email ?? "").toLowerCase() === email.toLowerCase());
+      return hit?.id ?? null;
+    };
 
     /*
      * ── 受信ログ（2026-09-09 P0-1）────────────────────────────────
@@ -768,36 +795,61 @@ serve(async (req: Request) => {
     }
 
     if (!userId) {
-      loginId = await loginIdFor(sessionId);
-      const internalEmail = `${loginId}@${ID_DOMAIN}`;
-      password = generatePassword();
-      const createRes = await authAdmin("/admin/users", {
-        method: "POST",
-        body: JSON.stringify({
-          email: internalEmail, password, email_confirm: true,
-          user_metadata: {
-            login_id: loginId, buyer_email: buyerEmail,
-            provisioned_by: "ai-course-stripe-webhook",
-            purchase_session: sessionId, provisioned_at: new Date().toISOString(),
-          },
-        }),
-      });
-      if (createRes.ok) {
-        userId = (await createRes.json()).id;
-      } else if (createRes.status === 422) {
-        // 前回の試行でユーザーだけ作れていた（冪等リトライ）。取得してパスワードを揃える
-        const listRes = await authAdmin(`/admin/users?page=1&per_page=1&filter=${encodeURIComponent(internalEmail)}`);
-        const listed = listRes.ok ? await listRes.json() : { users: [] };
-        const existing = (listed.users ?? []).find((u: { email?: string }) => u.email === internalEmail);
-        if (!existing) { await markFailed(`user create 422 but not found: ${internalEmail}`); return json({ error: "provision_failed" }, 500); }
-        userId = existing.id;
-        const resetRes = await authAdmin(`/admin/users/${userId}`, {
-          method: "PUT", body: JSON.stringify({ password }),
-        });
-        if (!resetRes.ok) { await markFailed(`password reset failed: ${resetRes.status}`); return json({ error: "provision_failed" }, 500); }
+      /*
+       * ID＝**申込時のメールアドレス**（2026-09-09 CEO決定）。
+       *
+       * 以前は s7fc67a3@id.badminton-platform.pages.dev という実在しない合成メールで
+       * 作っていた。そのせいで2つ困っていた:
+       *   (a) パスワードを忘れた人に再設定メールを物理的に送れない（宛先が存在しない）
+       *   (b) バドミントン側のマイページに会員として出てこない（別世界のアカウントになる）
+       * 実メールで作ると、バド会員とまったく同じ認証アカウントになり、
+       * マイページに「AI日本語学習」の入口が並ぶ。
+       *
+       * 既存の合成メール勢（本番14人）はそのまま。ここは**これから買う人だけ**に効く。
+       */
+      const authEmail = buyerEmail.trim().toLowerCase();
+      loginId = authEmail;
+
+      /*
+       * **同じメールの認証アカウントが既にあるなら、作らずに使う。**
+       * バドの会員がコースを買った場合がこれ。ここで新しいパスワードを設定すると、
+       * 会員が自分で決めたパスワードを黙って壊すことになる（本人は何も知らされない）。
+       * だから見つかったら再利用し、メールは「これまでのパスワードで」に切り替える。
+       */
+      const existingId = await findUserIdByEmail(authEmail);
+      if (existingId) {
+        userId = existingId;
+        reusedAccount = true;
       } else {
-        await markFailed(`user create failed: ${createRes.status} ${await createRes.text()}`);
-        return json({ error: "provision_failed" }, 500);
+        password = generatePassword();
+        const createRes = await authAdmin("/admin/users", {
+          method: "POST",
+          body: JSON.stringify({
+            email: authEmail, password, email_confirm: true,
+            user_metadata: {
+              login_id: authEmail, buyer_email: buyerEmail,
+              provisioned_by: "ai-course-stripe-webhook",
+              purchase_session: sessionId, provisioned_at: new Date().toISOString(),
+            },
+          }),
+        });
+        if (createRes.ok) {
+          userId = (await createRes.json()).id;
+        } else if (createRes.status === 422) {
+          /*
+           * 作ろうとした瞬間に既にあった（Webhook同時配信・直前の登録）。
+           * **パスワードは作り直さない。** 合成メール時代はこの関数しか作らないアカウント
+           * だったので揃えて良かったが、実メールでは他人（バド会員）のものでありうる。
+           */
+          const raced = await findUserIdByEmail(authEmail);
+          if (!raced) { await markFailed(`user create 422 but not found: ${authEmail}`); return json({ error: "provision_failed" }, 500); }
+          userId = raced;
+          password = null;
+          reusedAccount = true;
+        } else {
+          await markFailed(`user create failed: ${createRes.status} ${await createRes.text()}`);
+          return json({ error: "provision_failed" }, 500);
+        }
       }
 
       // learner作成のRLS（ai_learners_insert）は signup_grants の行を要求する（発行スクリプトと同じ）
@@ -807,7 +859,7 @@ serve(async (req: Request) => {
           method: "POST",
           headers: { ...dbHeaders, Prefer: "resolution=merge-duplicates,return=minimal" },
           body: JSON.stringify({
-            email: internalEmail, invite_id: null,
+            email: authEmail, invite_id: null,
             expires_at: new Date(Date.now() + 2 * 365 * 24 * 3600 * 1000).toISOString(),
             is_test: false, consumed_at: null,
           }),
@@ -854,6 +906,33 @@ serve(async (req: Request) => {
     // 取れなかったときは日付を書かない（推測した日付を送るほうが害が大きい）
     const validUntilISO: string | null =
       typeof grant.validUntil === "string" ? grant.validUntil : null;
+
+    /*
+     * ── ログインしないで入れる個別URL（2026-09-09 CEO指示）──────────
+     *
+     * 押すだけで始められる入口を1本、購入者ごとに発行してメールに載せる。
+     * IDとパスワードは「検索などからログインページに来たとき」の道として残す
+     * ＝入口は2本になるが、**普段使うのはURLだけ**で済む。
+     *
+     * ここで失敗しても購入は止めない。URLが無いメールになるだけで、
+     * ID＋パスワードで入れる状態は変わらない。**壊れたリンクは書かない。**
+     */
+    let learnUrl: string | null = null;
+    try {
+      const codeRes = await fetch(`${supabaseUrl}/rest/v1/rpc/ai_service_issue_learning_code`, {
+        method: "POST", headers: dbHeaders,
+        body: JSON.stringify({ p_user_id: userId, p_label: `購入自動発行: ${plan.id}` }),
+      });
+      const issued = codeRes.ok ? await codeRes.json().catch(() => null) : null;
+      if (issued?.ok === true && typeof issued.raw === "string") {
+        const pretty = (issued.raw.match(/.{1,4}/g) ?? []).join("-");
+        learnUrl = `${STUDENT_SITE}/${locale}/learn/${pretty}`;
+      } else {
+        console.error("learning code issue failed:", sessionId, issued?.code ?? codeRes.status);
+      }
+    } catch (e) {
+      console.error("learning code issue threw:", e);
+    }
 
     /* 格下げガードが働いた購入は人が見ておく。
        「上位プランを持っている人が下位プランを買った」＝返金や案内の判断が要る場面。
@@ -960,7 +1039,7 @@ serve(async (req: Request) => {
     let mailDelivered = false;
     let mailProblem: string | null = null;
     if (resendKey && buyerEmail) {
-      const mail = buyerMail({ locale, plan, validUntilISO, loginId: loginId!, password, reusedAccount });
+      const mail = buyerMail({ locale, plan, validUntilISO, loginId: loginId!, password, reusedAccount, learnUrl });
       const sendRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
