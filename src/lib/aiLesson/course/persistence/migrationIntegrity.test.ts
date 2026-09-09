@@ -129,7 +129,16 @@ describe('security設定がSQLに書かれている（適用時に落ちない�
         // 同じ /i 追加を独立に入れていた。コードは完全に同一だったため、
         // 具体的な誤検知事例（HEAD側）と「隣の判定と揃える」理由（security側）の
         // 両方をこのコメントに残した。
-        expect(/set\s+search_path\s*=/i.test(decl),
+        /*
+         * `=` と `TO` の**両方**を認める（2026-09-10）。
+         * PostgreSQL では `SET search_path = public` と `SET search_path TO public` は
+         * まったく同じ意味で、どちらも固定になっている。
+         * `=` だけを見ていたため、`TO` で書いた 20260910100000_ai_free_trial_invites.sql が
+         * 「未固定」と誤判定されていた（**実際は固定されていた**）。
+         * 緩めたのではなく、同じことを言う書き方をもう1つ認めただけ。
+         * search_path を書かない関数は、これまでどおり落ちる。
+         */
+        expect(/set\s+search_path\s*(=|\bto\b)/i.test(decl),
           `${f}: SECURITY DEFINER関数のsearch_pathが未固定（schema偽装で権限昇格しうる）`).toBe(true);
       }
     }
