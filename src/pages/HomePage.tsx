@@ -15,6 +15,18 @@ import { supabase } from '../services/supabaseClient';
 import { HERO_IMAGE, HERO_SIZES } from '../lib/staticImageSets';
 import { BRAND_SAME_AS } from '../lib/seo/brandSameAs';
 import type { Tournament } from '../types';
+import { homeEmphasis, activityIsPrimary, showActivityFirst } from '../lib/homeEmphasis';
+
+/** トップに出す通常活動の最低限。詳細は /:lang/activity と各活動ページが持つ */
+interface ActivityBrief {
+  id: string;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string;
+  price: number;
+}
 
 // レベル別カラー（TournamentCard・LevelGuidePage と統一）
 const levelColor = (level: string): string => {
@@ -197,6 +209,35 @@ export const HomePage = () => {
     fetchEntryCounts();
   }, []);
 
+  /*
+   * 今後の通常活動（2026-09-09 P2-8 / H-1・H-2）。
+   *
+   * トップは長く「大会のページ」と決め打ちで書かれていたが、実データは
+   *   直近90日の申込 … 通常活動203件 / 大会19件
+   *   今後の開催     … 通常活動9件 / 大会1件
+   * だった。何を主役にするかを**実データから決める**ために、ここで数と直近の1件を取る。
+   * 読めなくても大会側の表示は今までどおり動く（この取得で画面を止めない）。
+   */
+  const [nextActivities, setNextActivities] = useState<ActivityBrief[] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const n = new Date();
+    const today = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+    void supabase
+      .from('activities')
+      .select('id, title, date, start_time, end_time, location, price')
+      .gte('date', today)
+      .is('archived_at', null)
+      .neq('status', 'cancelled')
+      .order('date', { ascending: true })
+      .limit(3)
+      .then(({ data, error: e }) => {
+        if (!alive || e || !Array.isArray(data)) return;
+        setNextActivities(data as ActivityBrief[]);
+      });
+    return () => { alive = false; };
+  }, []);
+
   const _now = new Date();
   const todayStr = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
   const activeTournaments = tournaments
@@ -222,6 +263,18 @@ export const HomePage = () => {
     const dateOk  = !selectedDate || t.event_date.slice(0, 10) === selectedDate;
     return levelOk && typeOk && dateOk;
   });
+
+  /*
+   * 何を主役にするか（2026-09-09 H-2）。**実データから決める。**
+   * 決め打ちに戻せないよう判定は homeEmphasis（純関数・テストあり）に置き、
+   * ここは結果を使うだけ。大会が増えれば自然に大会が前へ出る。
+   */
+  const emphasis = homeEmphasis({
+    upcomingActivities: nextActivities?.length ?? 0,
+    upcomingTournaments: activeTournaments.length,
+  });
+  const primaryActivity = activityIsPrimary(emphasis);
+  const activityFirst = showActivityFirst(emphasis);
 
   const selectedDateLabel = selectedDate
     ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('ja-JP', { month: 'long', day: 'numeric', weekday: 'short' })
@@ -423,6 +476,32 @@ export const HomePage = () => {
                   <span className="bg-white/20 backdrop-blur-sm rounded-full px-4 py-1.5">📍 川口・蕨エリア</span>
                 </>}
               </div>
+
+              {/*
+                1画面目に押せるものを置く（2026-09-09 H-1）。
+                これまでヒーローにはボタンが1つも無く、初見は「で、どうすれば？」で止まっていた。
+                並びは実データで決める（homeEmphasis）。いま開催予定が多いほうが第一CTA。
+                **title / h1 / canonical は動かさない**——検索での見え方を表示の都合で変えない。
+              */}
+              <div className="mt-7 flex flex-col sm:flex-row gap-2.5">
+                <Link
+                  to={primaryActivity ? `/${lang}/activity` : `/${lang}/tournaments`}
+                  className="inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-2xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] transition-all shadow-lg shadow-emerald-900/30"
+                >
+                  {primaryActivity
+                    ? (lang === 'zh' ? '查看日常活动的日程' : '次回の通常活動を見る')
+                    : (lang === 'zh' ? '查看比赛' : '大会を見る')}
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to={primaryActivity ? `/${lang}/tournaments` : `/${lang}/activity`}
+                  className="inline-flex items-center justify-center gap-2 min-h-12 px-6 rounded-2xl font-bold text-white bg-white/15 hover:bg-white/25 backdrop-blur-sm border border-white/30 transition-colors"
+                >
+                  {primaryActivity
+                    ? (lang === 'zh' ? '查看比赛' : '大会を見る')
+                    : (lang === 'zh' ? '查看日常活动' : '通常活動を見る')}
+                </Link>
+              </div>
             </div>
             <div className="w-full sm:w-80 flex-shrink-0">
               <ShuttleCounter locale={lang === 'zh' ? 'zh' : 'ja'} />
@@ -446,24 +525,77 @@ export const HomePage = () => {
         </div>
       </Link>
 
-      {/* 大会ページ案内バナー */}
+      {/*
+        大会と通常活動は別のもの、という案内（2026-09-09 に文言だけ調整）。
+        「ここは大会のページです」と言い切っていたが、下に通常活動の一覧も置くようになったので、
+        **どちらもある**と言う形にする。持ち物・料金・試合数の約束が別なのは変わらない。
+      */}
       <div className="bg-amber-50 border-b border-amber-200">
         <div className="max-w-6xl mx-auto px-4 py-2.5 flex items-center gap-2 text-amber-800">
           <Trophy className="w-4 h-4 flex-shrink-0 text-amber-600" />
           <span className="font-semibold text-sm leading-snug">
-            {lang === 'zh' ? '这里是赛事（比赛）页面。' : 'ここは大会のページです。'}
+            {lang === 'zh' ? '「日常活动」和「比赛」是两种不同的活动。' : '「通常活動」と「大会」は別のものです。'}
           </span>
           <span className="text-amber-700 text-xs hidden sm:inline">
-            {lang === 'zh' ? '每次需要1,000日元以上的参赛费。' : '毎回1,000円〜の参加費が発生します。'}
+            {lang === 'zh' ? '日常活动 600日元起・比赛 1,000日元起（携带物品也不同）。' : '通常活動は¥600〜、大会は¥1,000〜（持ち物も違います）。'}
           </span>
           <Link
-            to={lang === 'zh' ? '/activity-cn' : '/activity'}
-            className="ml-auto flex-shrink-0 text-xs font-semibold bg-emerald-700 text-white px-3 py-1.5 rounded-full hover:bg-emerald-800 transition-colors whitespace-nowrap"
+            to={`/${lang}/faq`}
+            className="ml-auto flex-shrink-0 text-xs font-semibold bg-amber-700 text-white px-3 py-1.5 rounded-full hover:bg-amber-800 transition-colors whitespace-nowrap"
           >
-            {lang === 'zh' ? '日常活动 →' : '通常活動はこちら →'}
+            {lang === 'zh' ? '有什么不同？ →' : '違いを見る →'}
           </Link>
         </div>
       </div>
+
+      {/* 次回の通常活動（2026-09-09 H-1）。申込の9割を占める入口を、大会一覧より前に置く */}
+      {activityFirst && nextActivities && nextActivities.length > 0 && (
+        <section aria-labelledby="next-activities" className="bg-emerald-50/60 border-b border-emerald-100">
+          <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+              <h2 id="next-activities" className="text-lg font-extrabold text-emerald-900">
+                {lang === 'zh' ? '接下来的日常活动' : '次回の通常活動'}
+                <span className="ml-2 text-xs font-medium text-emerald-700">
+                  {lang === 'zh' ? '2小时 ¥600 ／ 只填名字就能报名' : '2時間 ¥600 ／ 名前だけで申し込めます'}
+                </span>
+              </h2>
+              <Link to={`/${lang}/activity`} className="text-sm font-bold text-emerald-800 underline underline-offset-2">
+                {lang === 'zh' ? '查看全部日程 →' : 'すべての日程を見る →'}
+              </Link>
+            </div>
+            <ul className="grid gap-2.5 sm:grid-cols-3">
+              {nextActivities.map((a) => {
+                const d = new Date(`${a.date}T00:00:00`);
+                const wd = (lang === 'zh' ? ['日', '一', '二', '三', '四', '五', '六'] : ['日', '月', '火', '水', '木', '金', '土'])[d.getDay()];
+                return (
+                  <li key={a.id}>
+                    <Link
+                      to={`/${lang}/activity/${a.id}`}
+                      className="flex h-full flex-col justify-between rounded-2xl border border-emerald-200 bg-white px-4 py-3 transition-colors hover:border-emerald-400"
+                    >
+                      <span className="text-base font-extrabold text-gray-900">
+                        {d.getMonth() + 1}/{d.getDate()}
+                        <span className="ml-1 text-sm font-bold text-gray-500">
+                          {lang === 'zh' ? `（周${wd}）` : `(${wd})`}
+                        </span>
+                        <span className="ml-2 text-sm font-medium text-gray-600">
+                          {a.start_time.slice(0, 5)}〜{a.end_time.slice(0, 5)}
+                        </span>
+                      </span>
+                      <span className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-emerald-600" />{a.location}
+                      </span>
+                      <span className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-emerald-700">
+                        {lang === 'zh' ? '报名这一天' : 'この日に申し込む'}<ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {/* メインコンテンツ */}
       <div className="max-w-6xl mx-auto px-4 py-8 sm:py-12">
