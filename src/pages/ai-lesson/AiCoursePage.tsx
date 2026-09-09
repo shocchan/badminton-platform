@@ -891,6 +891,9 @@ export default function AiCoursePage() {
       isReview, nextReviewISO: updated.nextReviewAt,
     }));
     setStep('report');
+    // AI会話を1回終えた（2026-09-09・P1-5）。これまで会話の完了は
+    // GA4（complete_ai_course_lesson）にしか残らず、自前のファネルからは見えなかった
+    logCourseEvent('conversation_complete', { mode, is_review: isReview });
     // 会話後のレポートに実際に到達したか（会話は終えたがレポートを見ずに閉じる人を分ける）
     logCourseEvent('report_viewed', { kind: mainStep.kind, is_review: isReview });
     trackCourse('complete_ai_course_lesson', {

@@ -130,17 +130,39 @@ export const AdminFunnelCard = () => {
         <Row label="復習した人数" n={a.reviewLearners} denom={a.activeLearners} />
       </ul>
 
-      <p className="mt-3 text-xs font-bold text-gray-500">再訪（この{funnel.windowDays}日で初活動した人）</p>
+      {/* 継続（2026-09-09・P1-5）。login ではなく **学習** で数える。
+          basis で「何をもって続いたと言っているか」を必ず出す＝分母の意味を隠さない */}
+      <p className="mt-3 text-xs font-bold text-gray-500">
+        継続（この{funnel.windowDays}日で
+        {r.basis === 'learning' ? '初めて学習した人' : '初活動した人'}）
+      </p>
       <ul className="mt-1 space-y-1">
         <Row label="翌日も学習（D1）" n={r.d1} denom={r.base} />
+        <Row label="3日以内に再学習（D3）" n={r.d3} denom={r.base} />
         <Row label="7日以内に再学習（D7）" n={r.d7} denom={r.base} />
+        <Row label="14日以内に再学習（D14）" n={r.d14} denom={r.base} />
+        <Row label="30日以内に再学習（D30）" n={r.d30} denom={r.base} />
       </ul>
+
+      {funnel.comebacks.length > 0 && (
+        <>
+          <p className="mt-3 text-xs font-bold text-gray-500">復帰（3日以上あけて戻って学習した回数）</p>
+          <ul className="mt-1 space-y-1">
+            {funnel.comebacks.map((c) => (
+              <Row key={c.away} label={`${c.away}日ぶり`} n={c.n} denom={null} />
+            ))}
+          </ul>
+        </>
+      )}
 
       {failed.length > 0 && (
         <p className="mt-2 text-xs text-amber-700">⚠️ 一部の系列を取得できず0扱い: {failed.join(', ')}</p>
       )}
       <p className="mt-2 text-[11px] text-gray-400">
-        活動日 = 会話・音声利用・アプリ利用イベントのいずれかがあった日（JST）。人数が少ない間は%より実数を見る。
+        {r.basis === 'learning'
+          ? '学習日 = 問題を解いた／AI会話を終えた／今日の冒険のstepを終えた／言い直しに答えた日（JST）。開いただけの日は入らない。'
+          : '⚠️ 学習日の記録（2026-09-09開始）がこの期間にまだ無いため、旧定義（会話・音声利用・アプリ利用イベントのいずれか＝開いただけを含む）で数えています。'}
+        {' '}人数が少ない間は%より実数を見る。
       </p>
     </div>
   );

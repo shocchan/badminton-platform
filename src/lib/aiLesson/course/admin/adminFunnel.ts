@@ -48,12 +48,30 @@ export interface CourseFunnel {
     reviewSessions: number;      // 復習セッション数（lesson_kind review*）
     reviewLearners: number;      // 復習した人数
   };
-  /** 再訪（期間内に初めて活動した人が母数） */
+  /**
+   * 再訪（期間内に初めて活動した人が母数）。
+   *
+   * **learning retention**（2026-09-09・P1-5）: 分子・分母ともに
+   * 「意味のある学習行動があった日（learning_day イベント）」で数える。
+   * app_open（開いただけ）は入れない＝「開くだけの人」を継続に数えない。
+   * learning_day が1件も無い期間は、旧定義（会話・音声・イベントのどれか）へ落として
+   * 数字を空欄にしない（`basis` でどちらで数えたかを必ず言う）。
+   */
   retention: {
+    /** どの定義で数えたか。'learning'＝学習行動 / 'activity'＝旧定義（開いた等を含む） */
+    basis: 'learning' | 'activity';
     base: number;   // 期間内に初活動した人数
-    d1: number;     // 翌日も活動
-    d7: number;     // 2〜7日目のどこかで再活動
+    d1: number;     // 翌日も学習
+    d3: number;     // 2〜3日目のどこかで再学習
+    d7: number;     // 2〜7日目のどこかで再学習
+    d14: number;    // 2〜14日目のどこかで再学習
+    d30: number;    // 2〜30日目のどこかで再学習
   };
+  /**
+   * 復帰（3日以上あけて戻って**学習した**回数）。comeback イベントの実数。
+   * 空けた日数は階級でしか送っていないので、内訳もその階級のまま出す
+   */
+  comebacks: { away: string; n: number }[];
   /**
    * Time to First Value（2026-08-26）。
    * 購入（発行完了）から**最初の会話を始める**までの実時間。
@@ -96,6 +114,13 @@ export const buildCourseFunnel = (input: {
   sessions: FunnelSessionRow[];
   usage: FunnelUsageRow[];
   events: FunnelEventRow[];
+  /**
+   * learning_day / comeback だけを**窓より広く**取った行（2026-09-09・P1-5）。
+   * 「その人が初めて学習した日」を窓の外まで遡って判定するために要る
+   *（窓内の行だけで判定すると、前から続けている人が「今期の新規」に化ける）。
+   * 省略時は events から拾う（テスト・旧呼び出し用）。
+   */
+  learningEvents?: FunnelEventRow[];
   nowISO: string;
   windowDays?: number;
 }): CourseFunnel => {
@@ -148,32 +173,79 @@ export const buildCourseFunnel = (input: {
     else daysByLearner.set(id, filtered);
   }
 
+  /* ── 学習した日（learning_day イベント。2026-09-09・P1-5） ──
+     app_open と違い「意味のある学習行動があった日」だけが入る。
+     判定は学習者側の advLearningDay ＝画面のストリークとまったく同じ集合なので、
+     管理画面の再訪率と生徒の画面の数字が食い違わない。 */
+  const learningEvents = input.learningEvents
+    ?? input.events.filter((e) => e.kind === 'learning_day' || e.kind === 'comeback');
+  const learningDaysByLearner = new Map<string, Set<string>>();
+  for (const e of learningEvents) {
+    if (e.kind !== 'learning_day') continue;
+    const l = learnerByUser.get(e.userId);
+    if (!l) continue;
+    const set = learningDaysByLearner.get(l.id) ?? new Set<string>();
+    set.add(jstDateKeyOf(e.createdAtISO));
+    learningDaysByLearner.set(l.id, set);
+  }
+
   // ── 再訪（期間内に「初めて」活動した人だけを母数にする） ──
   // 期間前から使っている継続者を混ぜると、D1が「継続者の毎日利用」で膨らむ
+  //
+  // learning_day が1件でもあれば**学習ベース**で数える。まだ1件も無い期間
+  //（このイベントは 2026-09-09 開始）は旧定義へ落として空欄にしない。
+  // どちらで数えたかは basis で必ず言う（分母の意味が違う数字を黙って並べない）。
+  const basis: 'learning' | 'activity' = learningDaysByLearner.size > 0 ? 'learning' : 'activity';
+  const daysForRetention = basis === 'learning' ? learningDaysByLearner : daysByLearner;
+
   const firstDayEver = new Map<string, string>();
   const noteFirst = (learnerId: string, dateKey: string): void => {
     if (!dateKey) return;
     const cur = firstDayEver.get(learnerId);
     if (!cur || dateKey < cur) firstDayEver.set(learnerId, dateKey);
   };
-  for (const s of input.sessions) { if (!isTestLearner(s.learnerId)) noteFirst(s.learnerId, jstDateKeyOf(s.startedAtISO)); }
-  for (const u of input.usage) { if (!isTestLearner(u.learnerId)) noteFirst(u.learnerId, u.usageDate); }
-  for (const e of input.events) {
-    const l = learnerByUser.get(e.userId);
-    if (l) noteFirst(l.id, jstDateKeyOf(e.createdAtISO));
+  if (basis === 'learning') {
+    for (const [id, set] of learningDaysByLearner) for (const d of set) noteFirst(id, d);
+  } else {
+    for (const s of input.sessions) { if (!isTestLearner(s.learnerId)) noteFirst(s.learnerId, jstDateKeyOf(s.startedAtISO)); }
+    for (const u of input.usage) { if (!isTestLearner(u.learnerId)) noteFirst(u.learnerId, u.usageDate); }
+    for (const e of input.events) {
+      const l = learnerByUser.get(e.userId);
+      if (l) noteFirst(l.id, jstDateKeyOf(e.createdAtISO));
+    }
   }
-  let base = 0, d1 = 0, d7 = 0;
+
+  /** 初日の翌日から n 日目までのどこかで戻ってきたか */
+  const returnedWithin = (days: Set<string>, first: string, n: number): boolean => {
+    for (let i = 1; i <= n; i += 1) if (days.has(dayAfter(first, i))) return true;
+    return false;
+  };
+  let base = 0, d1 = 0, d3 = 0, d7 = 0, d14 = 0, d30 = 0;
   for (const [learnerId, first] of firstDayEver) {
     if (first < sinceKey) continue; // 期間前からの人は母数に入れない
     base += 1;
-    const days = daysByLearner.get(learnerId) ?? new Set<string>();
+    const days = daysForRetention.get(learnerId) ?? new Set<string>();
     if (days.has(dayAfter(first, 1))) d1 += 1;
-    let returned7 = false;
-    for (let i = 1; i <= 7 && !returned7; i += 1) {
-      if (days.has(dayAfter(first, i))) returned7 = true;
-    }
-    if (returned7) d7 += 1;
+    if (returnedWithin(days, first, 3)) d3 += 1;
+    if (returnedWithin(days, first, 7)) d7 += 1;
+    if (returnedWithin(days, first, 14)) d14 += 1;
+    if (returnedWithin(days, first, 30)) d30 += 1;
   }
+
+  /* ── 復帰（3日以上あけて戻って学習した）──
+     日数は階級（'3-6' / '7-13' / '14-29' / '30+'）でしか送っていないので、そのまま数える */
+  const comebackMap = new Map<string, number>();
+  for (const e of learningEvents) {
+    if (e.kind !== 'comeback' || !inWindow(e.createdAtISO)) continue;
+    const l = learnerByUser.get(e.userId);
+    if (!l || isTestLearner(l.id)) continue;
+    const raw = e.props?.away;
+    const away = typeof raw === 'string' && raw ? raw : 'unknown';
+    comebackMap.set(away, (comebackMap.get(away) ?? 0) + 1);
+  }
+  const comebacks = [...comebackMap.entries()]
+    .map(([away, n]) => ({ away, n }))
+    .sort((a, b) => a.away.localeCompare(b.away));
 
   const reviews = sessionsAll.filter((s) => s.lessonKind.startsWith('review'));
 
@@ -251,7 +323,8 @@ export const buildCourseFunnel = (input: {
       reviewSessions: reviews.length,
       reviewLearners: new Set(reviews.map((s) => s.learnerId)).size,
     },
-    retention: { base, d1, d7 },
+    retention: { basis, base, d1, d3, d7, d14, d30 },
+    comebacks,
     errors: {
       total: errorRows.length,
       byWhere: [...errorByWhere.entries()]

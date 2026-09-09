@@ -120,6 +120,14 @@ type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 const term = (k: keyof typeof TERMS, lang: L) => TERMS[k][lang];
 const dateKeyOf = (d = new Date()): string => d.toLocaleDateString('sv-SE');
+
+/**
+ * 空けた日数の階級（2026-09-09・P1-5）。
+ * 生の日数を送らないのは、少人数のBetaでは「11日ぶり」がほぼ個人を指すため。
+ * 復帰の設計（3日・7日・14日・30日）と同じ切り方にして、施策と数字を対応させる。
+ */
+const awayBucketOf = (days: number): string =>
+  days >= 30 ? '30+' : days >= 14 ? '14-29' : days >= 7 ? '7-13' : '3-6';
 /** 試験日までの残日数（ローカル深夜同士で比較・UTC混在させない）。当日=0、試験後は負 */
 const daysToExamOf = (examDateISO: string | null, dateKey: string): number | null => {
   if (!examDateISO) return null;
@@ -1128,6 +1136,37 @@ export default function AdvShell(props: AdvShellProps) {
   }, [profile, dateKey, convDayKeys, save]);
 
   /**
+   * learning retention の土台（2026-09-09・P1-5）。
+   *
+   * これまで再訪率は app_open（＝開いた）で作っていたので、「開くだけの人」と
+   * 「学習した人」が同じ数字になっていた。ここでは **学習した日にだけ** 1件送る。
+   * 判定は advLearningDay ＝画面のストリークとまったく同じ集合（数字が食い違わない）。
+   *
+   * 送るのは1日1回・階級化した値だけ（本文・氏名・生の日数は送らない）。
+   * D1/D3/D7/D14/D30 と「初めての学習」「復帰」は、この1種類のイベントから集計側で作る。
+   */
+  const learningDaySent = useRef<string | null>(null);
+  useEffect(() => {
+    if (!profile?.enabled || learningDaySent.current === dateKey) return;
+    const keys = [...learningDayKeys(profile, convDayKeys)].sort();
+    if (!keys.includes(dateKey)) return;
+    learningDaySent.current = dateKey;
+    const todayKinds = (profile.learningDays ?? []).find((e) => e.d === dateKey)?.k ?? [];
+    const prev = keys.filter((k) => k < dateKey).at(-1) ?? null;
+    logCourseEvent('learning_day', {
+      kind: todayKinds[0] ?? 'step',
+      first: prev === null ? 'yes' : 'no',
+    });
+    if (prev !== null) {
+      const away = Math.round((Date.parse(dateKey) - Date.parse(prev)) / 86400000);
+      // 3日以上あけて戻ってきた日だけ「復帰」として残す（2日以内は通常の学習日）
+      if (Number.isFinite(away) && away >= 3) {
+        logCourseEvent('comeback', { away: awayBucketOf(away) });
+      }
+    }
+  }, [profile, dateKey, convDayKeys]);
+
+  /**
    * 継続・離脱の signal（PRODUCT_CANON §10）。
    * Paid Pilot で「学習が続いているか／離脱しかけていないか」を見るための最小の計測。
    * 日数は必ず階級（bucketOf）で送り、生の値・本文・個人情報は送らない。
@@ -1524,6 +1563,11 @@ export default function AdvShell(props: AdvShellProps) {
         companionId={prof.companionId}
         badgeJa={battle.focusKeys ? '救済' : undefined} badgeZh={battle.focusKeys ? '救援' : undefined}
         onFinish={(attempt: AdvMasteryAttempt, mastery: MasteryStatus) => {
+          // 復習（間違えた問題の解き直し）が最後まで終わったか（2026-09-09・P1-5）。
+          // 途中でやめた回は「終えた」と数えない
+          if (isMistakeBattle && !attempt.partial) {
+            logCourseEvent('review_complete', { total: attempt.questionKeys.length });
+          }
           let ledger = recordAttempt(prof.mastery, battle.targetId, attempt);
           if (battle.tier === 'midboss' || battle.tier === 'rankboss') {
             /**
@@ -2872,6 +2916,8 @@ export default function AdvShell(props: AdvShellProps) {
           '现在没有可以重做的题。可以点下面的按钮结束这一步，继续后面的内容。'));
         return false;
       }
+      // 復習を始めた（2026-09-09・P1-5）。復習ループが回っているかを外から見る唯一の手段
+      logCourseEvent('review_start', { total: reviewKeys.length });
       setMistakeKeys(reviewKeys);
       setBattle({
         tier: 'normal', targetId: MISTAKE_TARGET_ID,

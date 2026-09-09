@@ -7,6 +7,7 @@ import { PenLine, Sparkles, Lightbulb, ArrowRight, CheckCircle2 } from 'lucide-r
 import { judgeRetry } from '../../lib/aiLesson/course/courseRetry';
 import type { RetryTarget, RetryJudgement } from '../../lib/aiLesson/course/courseRetry';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
+import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import type { AiCourseDict } from '../../locales/aiCourse';
 
 interface Props {
@@ -28,6 +29,9 @@ export const CourseRetryCard = ({ t, target, onFinished }: Props) => {
     if (finished) return;
     setFinished(true);
     trackCourse(outcome === 'done' ? 'complete_ai_course_retry' : 'skip_ai_course_retry', { tries });
+    // 言い直しまで到達したか（2026-09-09・P1-5）。GA4だけでなく自前のファネルにも残す
+    //（「間違えた」で終わらず「今言えるようになった」まで届いた回数）
+    if (outcome === 'done') logCourseEvent('retry_completed', { tries });
     onFinished(outcome);
   };
 

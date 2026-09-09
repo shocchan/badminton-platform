@@ -9,8 +9,31 @@
 import { supabase } from '../../../services/supabaseClient';
 
 export type CourseEventKind =
-  /** アプリを開いた（ログイン済みで学習画面に到達）。日次の再訪判定に使う */
+  /** アプリを開いた（ログイン済みで学習画面に到達）。**開いただけ**＝学習ではない */
   | 'app_open'
+  /* ── 2026-09-09 追加: login retention ではなく learning retention を測る（P1-5） ──
+     app_open は「開いた」しか言えないので、これで再訪率を作ると
+     「開くだけの人」と「学習した人」が同じ数字になる。
+     定義は advLearningDay（＝画面のstreakと同じ判定）。1日1回だけ送る。 */
+  /**
+   * その日に**意味のある学習行動**があった（1日1回）。
+   * props.kind = step / battle / conv / restate / quest（その日に起きた種類の代表1つ）
+   * props.first = 'yes' なら、その人の**初めての学習日**（first meaningful learning）
+   */
+  | 'learning_day'
+  /**
+   * 空けたあとに戻って学習した（3日以上）。props.away は階級（'3-6' / '7-13' / '14-29' / '30+'）。
+   * 生の日数を送らないのは、少人数では日数がほぼ個人を指すため
+   */
+  | 'comeback'
+  /** 復習（間違えた問題の解き直し）を開始した */
+  | 'review_start'
+  /** 復習を最後まで終えた。props.total = 出た問題数 */
+  | 'review_complete'
+  /** AI会話を1回終えた（レポートまで到達）。props.mode = voice / text */
+  | 'conversation_complete'
+  /** 言い直し・解き直しを1回終えた（V1のretryカード） */
+  | 'retry_completed'
   /** 診断が終わりルートが生成された＝初回設定完了 */
   | 'onboarding_completed'
   /** 今日の冒険を1件完了（会話・教材・聴解などの種別は props.step に） */

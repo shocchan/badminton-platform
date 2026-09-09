@@ -61,7 +61,8 @@ describe('再訪（D1 / D7）', () => {
       sessions: [session('l1', 6), session('l1', 5)],
       usage: [], events: [], nowISO: NOW,
     });
-    expect(f.retention).toEqual({ base: 1, d1: 1, d7: 1 });
+    // learning_day がまだ1件も無い期間は旧定義（basis='activity'）で数える＝空欄にしない
+    expect(f.retention).toEqual({ basis: 'activity', base: 1, d1: 1, d3: 1, d7: 1, d14: 1, d30: 1 });
   });
 
   it('**イベントだけの日（バトル等）も活動日として数える**', () => {
@@ -83,6 +84,86 @@ describe('再訪（D1 / D7）', () => {
     });
     expect(f.retention.base).toBe(0);
     expect(f.activity.activeLearners).toBe(1); // 活動人数には入る
+  });
+});
+
+/**
+ * 継続は login ではなく **学習** で数える（2026-09-09・P1-5）。
+ * learning_day は「意味のある学習行動があった日」だけに出る（判定は advLearningDay）。
+ * app_open（開いただけ）はここに入らない＝「開くだけの人」を継続に数えない。
+ */
+describe('learning retention（学習で数える継続）', () => {
+  const lday = (userId: string, daysAgo: number, props: Record<string, string> = {}) =>
+    ({ userId, kind: 'learning_day', createdAtISO: iso(daysAgo), props: { kind: 'step', first: 'no', ...props } });
+
+  it('learning_day があれば学習ベースで数える（basisで宣言する）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1')],
+      sessions: [], usage: [],
+      events: [lday('u1', 6, { first: 'yes' }), lday('u1', 5)],
+      nowISO: NOW,
+    });
+    expect(f.retention.basis).toBe('learning');
+    expect(f.retention).toEqual({ basis: 'learning', base: 1, d1: 1, d3: 1, d7: 1, d14: 1, d30: 1 });
+  });
+
+  it('**開いただけの日は継続に数えない**（app_open は learning_day にならない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1')],
+      sessions: [], usage: [],
+      events: [
+        lday('u1', 6, { first: 'yes' }),
+        { userId: 'u1', kind: 'app_open', createdAtISO: iso(5) },
+      ],
+      nowISO: NOW,
+    });
+    expect(f.retention.basis).toBe('learning');
+    expect(f.retention.base).toBe(1);
+    expect(f.retention.d1).toBe(0);   // 翌日は「開いただけ」＝続いていない
+    expect(f.retention.d30).toBe(0);
+  });
+
+  it('D3 / D14 / D30 は「初日の翌日から◯日目までに戻ったか」で数える', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 20)],
+      sessions: [], usage: [],
+      // 初学習は20日前、次は10日前（＝10日目に復帰）
+      events: [lday('u1', 20, { first: 'yes' }), lday('u1', 10)],
+      nowISO: NOW, windowDays: 30,
+    });
+    expect(f.retention.base).toBe(1);
+    expect(f.retention.d1).toBe(0);
+    expect(f.retention.d3).toBe(0);
+    expect(f.retention.d7).toBe(0);
+    expect(f.retention.d14).toBe(1);
+    expect(f.retention.d30).toBe(1);
+  });
+
+  it('復帰は階級のまま数える（生の日数は送っていない）', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1')],
+      sessions: [], usage: [],
+      events: [
+        lday('u1', 6, { first: 'yes' }),
+        { userId: 'u1', kind: 'comeback', createdAtISO: iso(2), props: { away: '3-6' } },
+        { userId: 'u1', kind: 'comeback', createdAtISO: iso(1), props: { away: '7-13' } },
+      ],
+      nowISO: NOW,
+    });
+    expect(f.comebacks).toEqual([{ away: '3-6', n: 1 }, { away: '7-13', n: 1 }]);
+  });
+
+  it('テストアカウントの学習日・復帰は数えない', () => {
+    const f = buildCourseFunnel({
+      purchases: [], learners: [learner('l1', 'u1', 5, true)],
+      sessions: [], usage: [],
+      events: [
+        lday('u1', 6, { first: 'yes' }),
+        { userId: 'u1', kind: 'comeback', createdAtISO: iso(2), props: { away: '3-6' } },
+      ],
+      nowISO: NOW,
+    });
+    expect(f.comebacks).toEqual([]);
   });
 });
 

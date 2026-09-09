@@ -13,7 +13,7 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
   const wide = sinceISO(windowDays + 40);
   const since = sinceISO(windowDays);
 
-  const [purchases, learnersQ, sessionsQ, usageQ, eventsQ, accessQ] = await Promise.all([
+  const [purchases, learnersQ, sessionsQ, usageQ, eventsQ, accessQ, learningQ] = await Promise.all([
     adminListPurchases().catch(() => { failed.push('purchases'); return []; }),
     supabase.from('ai_learners').select('id, user_id, created_at, is_test').limit(2000),
     supabase.from('ai_learning_sessions')
@@ -22,6 +22,12 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
     supabase.from('ai_usage_daily').select('learner_id, usage_date').limit(5000),
     supabase.from('ai_course_events').select('user_id, kind, props, created_at').gte('created_at', since).limit(5000),
     supabase.from('ai_course_access').select('user_id, source').limit(2000),
+    /* 学習日・復帰は**窓より広く**取る（2026-09-09・P1-5）。
+       「その人が初めて学習した日」を窓の外まで遡らないと、前から続けている人が
+       今期の新規に化ける。種類を2つに絞っているので1人1日1行＝件数は小さい */
+    supabase.from('ai_course_events').select('user_id, kind, props, created_at')
+      .in('kind', ['learning_day', 'comeback'])
+      .gte('created_at', wide).limit(20000),
   ]);
 
   // テスト判定は2経路（ai_learners.is_test / 受講権 source='test'）。管理画面の型判定と同じ規律
@@ -52,9 +58,17 @@ export const fetchCourseFunnel = async (windowDays = 30): Promise<{ funnel: Cour
     props: (r.props ?? null) as Record<string, unknown> | null,
   }));
   if (eventsQ.error) failed.push('events');
+  const learningEvents: FunnelEventRow[] = (learningQ.error ? [] : learningQ.data ?? []).map((r) => ({
+    userId: String(r.user_id), kind: String(r.kind), createdAtISO: String(r.created_at),
+    props: (r.props ?? null) as Record<string, unknown> | null,
+  }));
+  if (learningQ.error) failed.push('learning_days');
 
   return {
-    funnel: buildCourseFunnel({ purchases, learners, sessions, usage, events, nowISO: new Date().toISOString(), windowDays }),
+    funnel: buildCourseFunnel({
+      purchases, learners, sessions, usage, events, learningEvents,
+      nowISO: new Date().toISOString(), windowDays,
+    }),
     failed,
   };
 };
