@@ -1799,6 +1799,9 @@ export default function AiCoursePage() {
               setStep('conversationIntro');
             }}
             conversationCandidates={learner ? selectMissionCandidates(learner, progress) : []}
+            /* おかえりカードの中で言語を変えられるようにする（最初に出る画面なので
+               ヘッダーの切り替えが押せない・2026-09-10 CEO報告） */
+            onToggleLang={toggleLang}
             /* 残り時間が会話1回ぶん（4分）に満たないときは会話を出さない。
                始めた会話が途中で打ち切られてレポートも残らない、が最悪の終わり方
                （AdvShell側は「押しても無反応」にせず理由を出してstepを飛ばせる・2026-08-20） */

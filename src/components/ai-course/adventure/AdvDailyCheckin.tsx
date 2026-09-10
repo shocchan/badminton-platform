@@ -20,7 +20,7 @@
 // - **「おぼえた」は自己申告**。テストで測った定着ではないので、そう見せない
 // - 行き止まりにしない（原則15）: 「今日の冒険へ」と「今日はここまで」の両方を必ず出す
 import { useState } from 'react';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Languages } from 'lucide-react';
 import { primaryBtn, secondaryBtn, subtleBtn, pressFx } from './advUi';
 import { PROVERB_TOTAL } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import { visitGreeting, visitStamps, visitedInCard } from '../../../lib/aiLesson/course/adventure/advVisit';
@@ -57,6 +57,12 @@ function SpeakBtn(
 
 interface Props {
   lang: L;
+  /**
+   * 表示言語の切り替え（2026-09-10 CEO報告）。
+   * このカードは開いていちばん最初に出るので、後ろのヘッダーの切り替えが押せない。
+   * 渡されなければボタンを出さない（動かないボタンを置かない）。
+   */
+  onToggleLang?: () => void;
   visit: AdvVisitState;
   /** ローカル日付キー YYYY-MM-DD（AdvShell の dateKeyOf と同じもの） */
   todayKey: string;
@@ -92,7 +98,7 @@ interface Props {
 }
 
 export function AdvDailyCheckin({
-  lang, visit, todayKey, proverb: p, collected, learned, milestone = null,
+  lang, onToggleLang, visit, todayKey, proverb: p, collected, learned, milestone = null,
   isLearned, onToggleLearned, onOpenDex, recall = null, onRecallAnswered,
   restates = [], onRestate, onStart, onClose,
 }: Props) {
@@ -127,6 +133,22 @@ export function AdvDailyCheckin({
       role="dialog" aria-modal="true" aria-label={headline}
     >
       <div className="my-4 w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+        {/*
+          言語の切り替えをこのカードの中に置く（2026-09-10 CEO報告）。
+          これは**開いていちばん最初に出る画面**で、後ろのヘッダーの切り替えは
+          押せない。日本語だけを見せられた初級の人は、そこで不安になる。
+          学習の入口で「読めない」と思わせないことを、装飾より優先する。
+        */}
+        {onToggleLang && (
+          <div className="mb-1 flex justify-end">
+            <button type="button" onClick={onToggleLang}
+              className="inline-flex min-h-9 items-center gap-1 rounded-lg px-2 text-xs font-bold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+              aria-label={lang === 'zh' ? '切换到日语' : '中国語に切り替える'}>
+              <Languages className="h-3.5 w-3.5" aria-hidden />
+              {lang === 'zh' ? '日本語' : '中文'}
+            </button>
+          </div>
+        )}
         <h2 className="text-lg font-bold text-gray-900">{headline}</h2>
         <p className="mt-1 text-sm leading-relaxed text-gray-600">{suggestion}</p>
 

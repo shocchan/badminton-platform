@@ -49,12 +49,24 @@ export const restoreProverbDex = (raw: unknown): AdvProverbEntry[] => {
   return out.slice(-PROVERB_KEEP);
 };
 
-/** 受け取ったことばを手元に足す。すでに持っていれば null（1日1回しか保存が増えない） */
+/**
+ * 受け取ったことばを手元に足す。**1日に増えるのは1つだけ**。
+ *
+ * 2026-09-10 実測の不具合: 全員の図鑑が初回から「60 / 60」になっていた。
+ * 呼び出し側の「今日のことば」は**手元にあるものを除いて**選ぶので、
+ *   足す → 手元が変わる → 別のことばが選ばれる → また足す
+ * が1回のページ表示の中で回り、60個ぜんぶ入っていた（全員・同じ日付・learned は0）。
+ *
+ * 「すでに持っているか」だけを見ていたのが原因。**その日ぶんを持っているか**を見る。
+ * この規則をここ（ドメイン側）に置けば、どこから呼ばれても1日1つで止まる。
+ */
 export const collectProverb = (
   dex: AdvProverbEntry[], id: string, todayKey: string,
 ): AdvProverbEntry[] | null => {
   if (!isDayKey(todayKey) || !proverbById(id)) return null;
   if (dex.some((e) => e.id === id)) return null;
+  // 今日ぶんをもう受け取っているなら増やさない（ここが抜けてループしていた）
+  if (dex.some((e) => e.day === todayKey)) return null;
   return [...dex, { id, day: todayKey, learned: false, recalledDay: null }].slice(-PROVERB_KEEP);
 };
 

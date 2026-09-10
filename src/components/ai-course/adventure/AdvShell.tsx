@@ -150,6 +150,8 @@ export interface AdvShellProps {
   onSaveSettings: (next: LearnerSettings) => void;
   /* onOpenReview は撤去（2026-08-18 監査P1）。呼び先は旧コースの「ことばの3分復習」で、
      V2の生徒には常に空だった。V2の復習は間違えた問題ノートの解き直し＝AdvShell内で完結する */
+  /** 表示言語の切り替え。おかえりカード（最初に出る画面）の中に置くために受け取る */
+  onToggleLang?: () => void;
   /** missionId を渡すと、その場面でプランを組み直してから会話画面へ行く */
   onStartConversation: (missionId?: string) => void;
   conversationAvailable: boolean;
@@ -1460,6 +1462,9 @@ export default function AdvShell(props: AdvShellProps) {
   const checkinEl = (view === 'home' && celebrations.length === 0 && showCheckin) ? (
     <AdvDailyCheckin
       lang={lang}
+      // 開いていちばん最初に出る画面なので、ヘッダーの切り替えが押せない。
+      // 日本語だけを見せられた初級の人が不安にならないよう、カードの中に置く
+      onToggleLang={props.onToggleLang}
       visit={prof.visit}
       todayKey={dateKey}
       proverb={todaysProverb}

@@ -156,3 +156,48 @@ describe('棚に並べる', () => {
     expect(list[0].proverb.ja).toBe(PROVERBS.find((p) => p.id === ID2)!.ja);
   });
 });
+
+/*
+ * 1日に増えるのは1つだけ（2026-09-10 実測の不具合）。
+ *
+ * 全員の図鑑が初回から「60 / 60」になっていた。本番実測: 学習者ぜんぶが
+ * dex 60件・すべて同じ日付・learned は0件。
+ * 「今日のことば」は手元にあるものを除いて選ぶので、
+ *   足す → 手元が変わる → 別のことばが選ばれる → また足す
+ * が1回のページ表示で回っていた。
+ */
+describe('1日に増えるのは1つだけ', () => {
+  const day = '2026-09-10';
+  const ids = PROVERBS.slice(0, 3).map((p) => p.id);
+
+  it('その日ぶんを受け取ったあとは、別のことばでも増えない', () => {
+    const first = collectProverb([], ids[0]!, day);
+    expect(first).not.toBe(null);
+    expect(first!.length).toBe(1);
+    // ここが null にならないと、呼び出し側のループで全部入ってしまう
+    expect(collectProverb(first!, ids[1]!, day)).toBe(null);
+    expect(collectProverb(first!, ids[2]!, day)).toBe(null);
+  });
+
+  it('**60個いっぺんに入らない**（実際に起きたループを再現しても1件で止まる）', () => {
+    let dex: AdvProverbEntry[] = [];
+    for (const p of PROVERBS) {
+      const next = collectProverb(dex, p.id, day);
+      if (next) dex = next;   // 呼び出し側と同じで、変化があれば入れ替える
+    }
+    expect(dex.length).toBe(1);
+  });
+
+  it('日が変われば、また1つ増える', () => {
+    const d1 = collectProverb([], ids[0]!, '2026-09-10')!;
+    const d2 = collectProverb(d1, ids[1]!, '2026-09-11');
+    expect(d2).not.toBe(null);
+    expect(d2!.length).toBe(2);
+    expect(collectProverb(d2!, ids[2]!, '2026-09-11')).toBe(null);
+  });
+
+  it('同じことばは、日が変わっても二重に入らない', () => {
+    const d1 = collectProverb([], ids[0]!, '2026-09-10')!;
+    expect(collectProverb(d1, ids[0]!, '2026-09-11')).toBe(null);
+  });
+});
