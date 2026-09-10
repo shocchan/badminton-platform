@@ -26,8 +26,21 @@ import type {
   ReviewStage,
 } from './types';
 
+/**
+ * 文法の practice から作った会話ミッション（advconv-／bizconv-。2026-09-10 Phase 6）。
+ * 冒険の教材が読み込まれたときに登録される。COURSE_MISSIONS（会話コースの90本）は変えない。
+ * 同じ id は上書き（教材の再読み込みで増殖しない）。
+ */
+const PRACTICE_MISSIONS = new Map<string, Mission>();
+
+export const registerPracticeMissions = (missions: readonly Mission[]): void => {
+  for (const m of missions) if (/^(advconv|bizconv)-/.test(m.id)) PRACTICE_MISSIONS.set(m.id, m);
+};
+
+export const practiceMissionById = (id: string): Mission | undefined => PRACTICE_MISSIONS.get(id);
+
 export const missionById = (id: string): Mission | undefined =>
-  COURSE_MISSIONS.find((m) => m.id === id);
+  COURSE_MISSIONS.find((m) => m.id === id) ?? PRACTICE_MISSIONS.get(id);
 
 const rank = (s: CourseMasteryState): number => COURSE_MASTERY_ORDER.indexOf(s);
 export const atLeast = (s: CourseMasteryState, min: CourseMasteryState): boolean => rank(s) >= rank(min);

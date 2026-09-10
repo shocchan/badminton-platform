@@ -86,6 +86,7 @@ import { dueRestates, markRestate } from '../../../lib/aiLesson/course/adventure
 import { buildKnowledgeState, rankWeakGrammarIds, appendKnowledgeEvent } from '../../../lib/aiLesson/course/knowledge/learnerKnowledgeState';
 import { vocabIdIndex } from '../../../lib/aiLesson/course/knowledge/vocabIdIndex';
 import { parseKnowledgeId } from '../../../lib/aiLesson/course/knowledge/knowledgeId';
+import { practiceMissionById } from '../../../lib/aiLesson/course/courseEngine';
 import { AdvProverbDex } from './AdvProverbDex';
 import { todayProverbFor } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import {
@@ -1006,6 +1007,8 @@ export default function AdvShell(props: AdvShellProps) {
       const knowledgeState = buildKnowledgeState({
         ledger: profile.mastery, sessions: props.sessions, knowledgeLog: profile.knowledgeLog,
         vocabIdBySurfaceReading: vocabIdIndex(), dateKeyOf: (iso) => dateKeyOf(new Date(iso)),
+        // 会話コース（w03m1…）の結果も文法へ戻す（2026-09-10 Phase 6）
+        missionGrammar: ct.missionGrammar,
       });
       const weak = rankWeakGrammarIds(weakRaw, knowledgeState, dateKey).slice(0, 5);
       // 試験後（負）はnull＝「試験まで◯日」文と追い込み配分を出さない（advQuest側は非負のみ受ける）
@@ -1872,6 +1875,33 @@ export default function AdvShell(props: AdvShellProps) {
      * いちばん上が「いつも通り」の場面＝選ばなくても迷わないように順番を変えない。
      */
     const scenes = props.conversationCandidates ?? [];
+    /**
+     * 知識項目からの場面（2026-09-10 Phase 6）。
+     *   今日の文法：冒険で学んでいる文法の practice をそのまま会話に（advconv-<grammarId>）
+     *   仕事の場面：Business context の場面（bizconv-）。使う文法が学習者の級以下のものだけ
+     * どちらも押せば必ず始まる（stageContent で Mission を登録済み）。会話の結果は grammarId へ戻る。
+     */
+    const levelRank = (l: string) => ['N5', 'N4', 'N3', 'N2', 'N1'].indexOf(l);
+    const grammarScenes = stageCt?.practiceScenes ?? [];
+    const businessScenes = (stageCt?.businessScenes ?? []).filter((s) => levelRank(s.level) <= levelRank(contentLevel));
+    const sceneButton = (m: { id: string; titleJa: string; titleZh: string; targetExpression: string }, highlight: boolean) => (
+      <button key={m.id} type="button"
+        onClick={() => {
+          trackAdv('conversation_started', { locale: lang });
+          props.onStartConversation(m.id);
+        }}
+        className={`${pressFx} flex w-full min-h-14 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left ${
+          highlight ? 'border-teal-300 bg-teal-50/60' : 'border-gray-200 bg-white'
+        }`}>
+        <span className="min-w-0">
+          <span className="block text-sm font-bold text-gray-900">{lang === 'zh' ? m.titleZh : m.titleJa}</span>
+          <span className="block text-[11px] leading-relaxed text-gray-500">
+            {tx(lang, '使ってみることば', '要试着使用的表达')}：「{m.targetExpression}」
+          </span>
+        </span>
+        <span className="shrink-0 text-xs text-teal-700">{tx(lang, '話す', '开始')} →</span>
+      </button>
+    );
     return (
       <div className="mx-auto w-full max-w-md px-4 py-4">
         <button type="button" onClick={() => setView('home')}
@@ -1903,6 +1933,24 @@ export default function AdvShell(props: AdvShellProps) {
             </button>
           ))}
         </div>
+        {grammarScenes.length > 0 && (
+          <div className="mt-5">
+            <h3 className="text-sm font-bold text-gray-800">{tx(lang, '今日の文法を使って話す', '用今天的语法来说')}</h3>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {tx(lang, '冒険で学んでいる文法を、そのまま会話で1回使ってみます。', '把冒险中学到的语法，在会话里实际用一次。')}
+            </p>
+            <div className="mt-2 flex flex-col gap-2">{grammarScenes.map((m) => sceneButton(m, scenes.length === 0))}</div>
+          </div>
+        )}
+        {businessScenes.length > 0 && (
+          <div className="mt-5">
+            <h3 className="text-sm font-bold text-gray-800">{tx(lang, '仕事の場面で話す', '在工作场景中说')}</h3>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {tx(lang, '敬語・電話・会議・交渉・面接など。使う文法は今の級までのものです。', '敬语、电话、会议、谈判、面试等。用到的语法不超过你现在的级别。')}
+            </p>
+            <div className="mt-2 flex flex-col gap-2">{businessScenes.map((m) => sceneButton(m, false))}</div>
+          </div>
+        )}
       </div>
     );
   }
@@ -3173,8 +3221,18 @@ export default function AdvShell(props: AdvShellProps) {
       setView('battle');
       return true;
     }
+    /**
+     * 今日の文法の practice を会話にした Mission（advconv-<grammarId>）が登録されていれば、それで始める
+     * （2026-09-10 Phase 6）。「今日学んだ文法 → AI会話 → 使えた → conversation_success」が同じ grammarId で繋がる。
+     * 無ければ従来どおり（会話コースの今日のミッション）
+     */
+    const practiceMissionIdOf = (step: { refIds: string[] }): string | undefined => {
+      const g = step.refIds.find((r) => parseKnowledgeId(r)?.kind === 'grammar');
+      const pid = g ? `advconv-${g}` : null;
+      return pid && practiceMissionById(pid) ? pid : undefined;
+    };
     if (s.kind === 'conversation_mission') {
-      if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(); return true; }
+      if (props.conversationAvailable) { trackAdv('conversation_started', { locale: lang }); props.onStartConversation(practiceMissionIdOf(s)); return true; }
       // 押しても無反応、を作らない（原則15）。進めない理由を言う。
       // 具体的な理由（体験の残り時間不足など）を親が持っているときはそれを優先する
       const specific = tx(lang,
@@ -4071,7 +4129,9 @@ export default function AdvShell(props: AdvShellProps) {
                   onClick={() => {
                     // 選べる場面があるなら、まず選んでもらう（2026-09-10 CEO要望）。
                     // 無ければ従来どおりそのまま会話へ＝選択肢の無い選択画面を作らない
-                    if ((props.conversationCandidates?.length ?? 0) > 1) { setView('convscenes'); return; }
+                    // 会話コースの候補が複数、または知識項目からの場面（今日の文法・仕事の場面）があれば選ばせる（Phase 6）
+                    if ((props.conversationCandidates?.length ?? 0) > 1
+                      || (stageCt?.practiceScenes.length ?? 0) > 0 || (stageCt?.businessScenes.length ?? 0) > 0) { setView('convscenes'); return; }
                     trackAdv('conversation_started', { locale: lang });
                     props.onStartConversation();
                   }} />

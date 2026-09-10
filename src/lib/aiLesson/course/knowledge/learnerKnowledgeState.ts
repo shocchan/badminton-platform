@@ -160,17 +160,29 @@ export interface SessionLike {
   report?: { targetUsage?: 'self' | 'hint' | 'none' } | null;
 }
 
-/** AI会話ミッション（advconv-<grammarId>）の完了セッション → conversation の出来事 */
+/** セッションの missionId → 文法ID。advconv-／bizconv-（Phase 6 の practice 会話）と、会話コースの対応表 */
+const grammarOfSessionMission = (missionId: string, missionGrammar?: ReadonlyMap<string, string>): string | null => {
+  const adv = /^advconv-(.+)$/.exec(missionId);
+  if (adv) return parseKnowledgeId(adv[1])?.kind === 'grammar' ? adv[1] : null;
+  const biz = /^bizconv-.+:(.+)$/.exec(missionId);
+  if (biz) return parseKnowledgeId(biz[1])?.kind === 'grammar' ? biz[1] : null;
+  const mapped = missionGrammar?.get(missionId);
+  return mapped && parseKnowledgeId(mapped)?.kind === 'grammar' ? mapped : null;
+};
+
+/**
+ * AI会話の完了セッション → conversation の出来事。
+ * advconv-<grammarId>（文法の practice）はそのまま、会話コースの w03m1… は対応表（Phase 6）で文法へ。
+ */
 export const eventsFromSessions = (
   sessions: readonly SessionLike[], dateKeyOf: (iso: string) => string,
+  missionGrammar?: ReadonlyMap<string, string>,
 ): KnowledgeEvent[] => {
   const out: KnowledgeEvent[] = [];
   for (const s of sessions) {
     if (s.completionStatus !== 'completed') continue;
-    const m = /^advconv-(.+)$/.exec(s.missionId);
-    if (!m) continue;
-    const itemId = m[1];
-    if (parseKnowledgeId(itemId)?.kind !== 'grammar') continue;
+    const itemId = grammarOfSessionMission(s.missionId, missionGrammar);
+    if (!itemId) continue;
     // 「自分で使えた」だけを成功にする。ヒント付きは成功に数えない（誇張しない）
     const ok = s.report?.targetUsage === 'self' || s.targetUsedIndependently === true;
     out.push({
@@ -248,10 +260,12 @@ export const buildKnowledgeState = (input: {
   sessions?: readonly SessionLike[];
   knowledgeLog?: readonly KnowledgeEvent[];
   vocabIdBySurfaceReading?: ReadonlyMap<string, string>;
+  /** 会話コースの missionId → grammarId（conversationKnowledge.buildMissionGrammarMap） */
+  missionGrammar?: ReadonlyMap<string, string>;
   dateKeyOf: (iso: string) => string;
 }): KnowledgeState => deriveKnowledgeState([
   ...eventsFromLedger(input.ledger, input.vocabIdBySurfaceReading),
-  ...eventsFromSessions(input.sessions ?? [], input.dateKeyOf),
+  ...eventsFromSessions(input.sessions ?? [], input.dateKeyOf, input.missionGrammar),
   ...(input.knowledgeLog ?? []),
 ]);
 

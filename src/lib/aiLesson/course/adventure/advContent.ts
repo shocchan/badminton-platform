@@ -24,6 +24,12 @@ import type { DiagQuestion, DiagnosisPools } from './advDiagnosis';
 import { buildVariantPool, type AdvBattleQuestion, type AdvChoice, type GrammarDraftLike } from './advVariants';
 import { skillOfQuestionType, SECTION_OF_SKILL } from './advExamSkills';
 import { buildConversationMission, type ConversationMissionSpec } from './advConversationBridge';
+// AI会話 × 知識項目（2026-09-10 Phase 6）。文法の practice と Business の場面を、既存の会話 runtime が読める Mission にして登録する
+import { practiceMissionFromGrammar, businessSceneMission, sceneCardOf, type PracticeSceneCard, type PracticeSource } from '../knowledge/practiceMission';
+import { BUSINESS_CONTEXTS } from '../knowledge/businessContext';
+import { buildMissionGrammarMap } from '../knowledge/conversationKnowledge';
+import { registerPracticeMissions } from '../courseEngine';
+import { COURSE_MISSIONS } from '../courseData';
 import type { AdvRoute, AdvRouteStage } from './advTypes';
 import { AREA_UNIT_MAP, isConversationStage } from './advRoute';
 
@@ -378,6 +384,12 @@ export interface StageContent {
   nextUnitIds: string[];
   conversationTargets: { refId: string; expression: string; themeJa: string; themeZh: string }[];
   missionByGrammarId: Map<string, ConversationMissionSpec>;
+  /** 今日の文法の practice を会話にしたもの（advconv-<grammarId>。登録済み・押せば始まる） */
+  practiceScenes: PracticeSceneCard[];
+  /** Business の場面（bizconv-<scene>:<grammarId>。level はその場面で使う文法の最上位の級） */
+  businessScenes: (PracticeSceneCard & { level: string; context: string })[];
+  /** 会話コースの missionId → grammarId（会話の結果を知識項目へ戻すため） */
+  missionGrammar: Map<string, string>;
 }
 
 /**
@@ -393,6 +405,7 @@ export const stageContent = async (
   const n3ById = new Map((N3_GRAMMAR_DRAFTS as unknown as (GrammarDraftLike & N2GrammarDraft)[]).map((d) => [d.grammarId, d]));
   const n2ById = new Map(n2.map((d) => [d.grammarId, d]));
   const basicById = new Map((await loadAllBasicDrafts()).map((d) => [d.grammarId, d]));
+  const n1ById = new Map(N1_ALL_DRAFTS.map((d) => [d.grammarId, d]));
 
   const grammarIds: string[] = [];
   // 初級文法（基礎キャンプ・N3の橋）を先に置く。基礎帯の学習者にはここが本体。
@@ -423,7 +436,35 @@ export const stageContent = async (
   }
 
   const battleTargetIds = [...nextUnitIds, ...new Set(nextGrammarIds.map((g) => pools.n3BundleByItem.get(g) ?? g))];
-  return { battleTargetIds, grammarBundleByItem: pools.n3BundleByItem, nextGrammarIds, nextUnitIds, conversationTargets, missionByGrammarId };
+
+  /**
+   * AI会話 × 知識項目（2026-09-10 Phase 6）。
+   * 文法の practice を既存の会話 runtime が読める Mission にして登録する（advconv-<grammarId>）。
+   * Business の場面（Phase 5）も同じ形で（bizconv-<scene>:<grammarId>）。
+   * 会話コースの90本（w01m1…）は変えない。ここで登録するのは practice 由来だけ。
+   */
+  const draftById = (id: string): PracticeSource | undefined =>
+    (n2ById.get(id) ?? n3ById.get(id) ?? basicById.get(id) ?? n1ById.get(id)) as unknown as PracticeSource | undefined;
+  const hasPractice = (d: PracticeSource | undefined): d is PracticeSource =>
+    !!d && !!d.practice?.starterJa && !!d.production?.expected;
+  const practiceMissions = nextGrammarIds.map(draftById).filter(hasPractice).map(practiceMissionFromGrammar);
+  const businessMissions = BUSINESS_CONTEXTS.flatMap((c) => c.scenes.flatMap((scene) => {
+    const d = draftById(scene.grammarIds[0]);
+    if (!hasPractice(d)) return [];
+    const level = scene.grammarIds.map((g) => draftById(g)?.level ?? 'N5')
+      .sort((a, b) => ['N5', 'N4', 'N3', 'N2', 'N1'].indexOf(b) - ['N5', 'N4', 'N3', 'N2', 'N1'].indexOf(a))[0];
+    return [{ mission: businessSceneMission(scene, d), level, context: c.id }];
+  }));
+  registerPracticeMissions([...practiceMissions, ...businessMissions.map((b) => b.mission)]);
+  const practiceScenes = practiceMissions.map((m) => sceneCardOf(m, 'grammar'));
+  const businessScenes = businessMissions.map((b) => ({ ...sceneCardOf(b.mission, 'business'), level: b.level, context: b.context }));
+  const allDrafts = [...basicById.values(), ...n3ById.values(), ...n2ById.values(), ...n1ById.values()] as unknown as { grammarId: string; pattern?: string }[];
+  const missionGrammar = new Map([...buildMissionGrammarMap(COURSE_MISSIONS, allDrafts).map.values()].map((l) => [l.missionId, l.grammarId]));
+
+  return {
+    battleTargetIds, grammarBundleByItem: pools.n3BundleByItem, nextGrammarIds, nextUnitIds, conversationTargets, missionByGrammarId,
+    practiceScenes, businessScenes, missionGrammar,
+  };
 };
 
 /**
