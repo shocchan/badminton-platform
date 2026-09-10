@@ -230,6 +230,12 @@ export const MANUAL_ALIASES: Record<string, string> = {
   '〜てくださる': 'n4g-tekureru',
   '〜られない': 'n4g-kanoukei',
   '〜ような': 'n3g-noyouna',
+  // 2026-09-10 ギャップ教材レビュー（GAP_DRAFTS_REVIEW.md）: 既存項目があるのに draft を作っていた4件。
+  // 参照は既存IDへ。N2 の参照が N1 の項目へ向くのは、同じ表現が N1 バンクに収録されているため
+  '〜とはいえ': 'n1g-049',
+  '〜やいなや': 'n1g-032',   // 〜や否や の かな表記
+  '〜において': 'n2g-107',
+  '〜つつも': 'n1g-047',
 };
 
 export const classifyUnresolved = (
