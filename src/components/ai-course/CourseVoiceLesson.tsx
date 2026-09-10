@@ -15,8 +15,13 @@ import { trackAdv } from '../../lib/aiLesson/course/adventure/advAnalytics';
 import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import {
-  detectAudioEnvironment, interruptionRuntimeFor, interruptionOverrideFromSearch, rolloutStageOf,
+  detectAudioEnvironment, interruptionRuntimeFor, interruptionOverrideFrom, interruptionDebugFrom, rolloutStageOf,
+  type InterruptionMode,
 } from '../../lib/aiLesson/interruptionPolicy';
+
+const safeSessionStorage = (): Storage | null => {
+  try { return window.sessionStorage; } catch { return null; }
+};
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -118,6 +123,15 @@ export const CourseVoiceLesson = ({
   const [atBottom, setAtBottom] = useState(true);      // 会話履歴が最下部にあるか（自動追従の可否）
   const [langConfirmOpen, setLangConfirmOpen] = useState(false);
   const [hasMeaningfulTurn, setHasMeaningfulTurn] = useState(false); // 有効な生徒発話が1回来たか（開始案内の消灯用）
+  /*
+   * 割り込み QA の数値（2026-09-10）。会話本文も音声も持たない。
+   * 本番の生徒には出さない: 出すのは ?interruptDebug=1・?interrupt= の旗・staging/QA 段階のときだけ
+   */
+  const [intPanel, setIntPanel] = useState<{
+    show: boolean; startMode: InterruptionMode; mode: InterruptionMode; reason: string;
+    valid: number; ignored: number; echo: number; fallback: number; turnsAfterFallback: number;
+  } | null>(null);
+  const fallbackSeenRef = useRef(false);
   // 生徒の発話継続時間の推定（speech_started→stopped）。咳・物音の誤確定を弾く材料
   const speakStartRef = useRef<number | null>(null);
   const lastSpeakMsRef = useRef(0);
@@ -196,10 +210,19 @@ export const CourseVoiceLesson = ({
     let deviceLabels: string[] = [];
     try { deviceLabels = (await navigator.mediaDevices.enumerateDevices()).map((d) => d.label).filter(Boolean); } catch { /* 取れなければ環境不明のまま */ }
     if (isCancelled()) return;
+    const store = safeSessionStorage();
+    const override = interruptionOverrideFrom(window.location.search, store);
+    const rollout = rolloutStageOf(window.location.hostname, import.meta.env.VITE_AI_INTERRUPTION_STAGE as string | undefined);
     const interruption = interruptionRuntimeFor({
       env: detectAudioEnvironment(navigator.userAgent, deviceLabels),
-      rollout: rolloutStageOf(window.location.hostname, import.meta.env.VITE_AI_INTERRUPTION_STAGE as string | undefined),
-      override: interruptionOverrideFromSearch(window.location.search),
+      rollout,
+      override,
+    });
+    fallbackSeenRef.current = false;
+    setIntPanel({
+      show: interruptionDebugFrom(window.location.search, store) || override !== null || rollout !== 'production',
+      startMode: interruption.mode, mode: interruption.mode, reason: interruption.reason,
+      valid: 0, ignored: 0, echo: 0, fallback: 0, turnsAfterFallback: 0,
     });
     trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja', routeStage: `interrupt:${interruption.mode}` });
     sessionRef.current = startVoiceSession({
@@ -211,7 +234,18 @@ export const CourseVoiceLesson = ({
       interruption,
       callbacks: {
         // 割り込みの出来事（会話本文は含まない）。QA で false／valid／echo／fallback の数を見る
-        onInterruption: (info) => trackAdv('voice_interruption', { stageKey: info.kind, routeStage: `interrupt:${info.mode}` }),
+        onInterruption: (info) => {
+          trackAdv('voice_interruption', { stageKey: info.kind, routeStage: `interrupt:${info.mode}` });
+          if (info.kind === 'fallback') fallbackSeenRef.current = true;
+          setIntPanel((p) => p && ({
+            ...p,
+            mode: info.mode,
+            valid: p.valid + (info.kind === 'valid' ? 1 : 0),
+            ignored: p.ignored + (info.kind === 'ignored' ? 1 : 0),
+            echo: p.echo + (info.kind === 'echo_suspect' ? 1 : 0),
+            fallback: p.fallback + (info.kind === 'fallback' ? 1 : 0),
+          }));
+        },
         // 実際に適用された先生（サーバー決定）。voice名はanalyticsへ送らない
         onVoiceRouted: (info) => {
           routedRef.current = info;
@@ -239,6 +273,8 @@ export const CourseVoiceLesson = ({
         onTutorTranscript: (text, isFinal) => {
           if (!isFinal) { setLiveT(text); return; }
           setLiveT(''); const tr = text.trim(); if (!tr) return;
+          // 半二重へ戻ったあとも会話が続いているか（QA: fallback 後に先生の発話が何回来たか）
+          if (fallbackSeenRef.current) setIntPanel((p) => p && ({ ...p, turnsAfterFallback: p.turnsAfterFallback + 1 }));
           msgsRef.current = [...msgsRef.current, { role: 'tutor', text: tr }]; setMsgs(msgsRef.current);
           log({ speaker: 'tutor', transcript: tr, atMs: startAtRef.current ? Date.now() - startAtRef.current : 0, isFinal: true, relatedTarget: false });
         },
@@ -584,6 +620,12 @@ export const CourseVoiceLesson = ({
               {tv.micSilentHint}
             </p>
           )}
+        </div>
+      )}
+      {intPanel?.show && status !== 'idle' && (
+        <div data-testid="interruption-qa-panel" className="mx-auto mb-2 max-w-sm rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-600">
+          <div>QA interrupt: start={intPanel.startMode} now={intPanel.mode} ({intPanel.reason})</div>
+          <div>valid(cancel)={intPanel.valid} ignored={intPanel.ignored} echo={intPanel.echo} fallback={intPanel.fallback} turnsAfterFallback={intPanel.turnsAfterFallback}</div>
         </div>
       )}
       {(status === 'requesting-mic' || status === 'connecting') && (

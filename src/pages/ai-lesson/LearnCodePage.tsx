@@ -54,9 +54,14 @@ export function LearnCodePage() {
   const started = useRef(false);
 
   const go = useCallback(() => {
-    // コードをURLから消してから学習画面へ（戻る操作でコードが残らない）
-    window.history.replaceState(null, '', `/${lang}/ai-course`);
-    navigate(`/${lang}/ai-course`, { replace: true });
+    // コードをURLから消してから学習画面へ（戻る操作でコードが残らない）。
+    // AI会話の割り込み QA の旗（interrupt / interruptDebug）だけは残す（2026-09-10）。コードは残さない
+    const cur = new URLSearchParams(window.location.search);
+    const keep = new URLSearchParams();
+    for (const k of ['interrupt', 'interruptDebug']) { const v = cur.get(k); if (v) keep.set(k, v); }
+    const qs = keep.toString() ? `?${keep.toString()}` : '';
+    window.history.replaceState(null, '', `/${lang}/ai-course${qs}`);
+    navigate(`/${lang}/ai-course${qs}`, { replace: true });
   }, [lang, navigate]);
 
   const attempt = useCallback(async () => {

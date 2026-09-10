@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_INTERRUPTION, DEFAULT_ADAPTIVE_VAD, detectAudioEnvironment, resolveInterruptionMode, interruptionRuntimeFor,
-  interruptionOverrideFromSearch, rolloutStageOf, initialInterruptionState, onTutorSpeaking, onSpeechStarted, onSpeechStopped,
+  interruptionOverrideFromSearch, interruptionOverrideFrom, interruptionDebugFrom, rolloutStageOf, initialInterruptionState, onTutorSpeaking, onSpeechStarted, onSpeechStopped,
   confirmInterruption, onUserTranscriptAfterInterrupt, textOverlap,
 } from './interruptionPolicy';
 
@@ -34,6 +34,23 @@ describe('どの方式で始めるか', () => {
     expect(detectAudioEnvironment('Chrome', ['AirPods Pro', 'MacBook Pro Microphone']).headphonesLikely).toBe(true);
     expect(detectAudioEnvironment('Chrome', ['MacBook Pro Microphone']).headphonesLikely).toBe(false);
   });
+  it('旗はタブの間だけ覚える（転送でクエリが消えても効く）・off で忘れる', () => {
+    const mem = new Map<string, string>();
+    const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => { mem.set(k, v); }, removeItem: (k: string) => { mem.delete(k); } };
+    expect(interruptionOverrideFrom('?interrupt=adaptive', store)).toBe('adaptive');
+    expect(interruptionOverrideFrom('', store)).toBe('adaptive');
+    expect(interruptionOverrideFrom('?interrupt=off', store)).toBeNull();
+    expect(interruptionOverrideFrom('', store)).toBeNull();
+    expect(interruptionOverrideFrom('?interrupt=nope', store)).toBeNull();
+    expect(interruptionDebugFrom('?interruptDebug=1', store)).toBe(true);
+    expect(interruptionDebugFrom('', store)).toBe(true);
+    expect(interruptionDebugFrom('?interruptDebug=0', store)).toBe(false);
+    // 保存できない環境では URL だけ
+    const broken = { getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); }, removeItem: () => { throw new Error('x'); } };
+    expect(interruptionOverrideFrom('?interrupt=adaptive', broken)).toBe('adaptive');
+    expect(interruptionOverrideFrom('', null)).toBeNull();
+  });
+
   it('旗と段階', () => {
     expect(interruptionOverrideFromSearch('?interrupt=adaptive')).toBe('adaptive');
     expect(interruptionOverrideFromSearch('?interrupt=nope')).toBeNull();
@@ -46,8 +63,10 @@ describe('どの方式で始めるか', () => {
     for (const p of [DEFAULT_ADAPTIVE_VAD.idle, DEFAULT_ADAPTIVE_VAD.speaking]) {
       expect(p.type).toBe('server_vad');
       expect(p.interrupt_response).toBe(false);
-      expect(p.create_response).toBe(true);
     }
+    // 生徒の番は VAD が返事を作る。先生の発話中は作らない（無視した「あ」に返事をさせない）
+    expect(DEFAULT_ADAPTIVE_VAD.idle.create_response).toBe(true);
+    expect(DEFAULT_ADAPTIVE_VAD.speaking.create_response).toBe(false);
     expect(DEFAULT_ADAPTIVE_VAD.speaking.threshold).toBeGreaterThan(DEFAULT_ADAPTIVE_VAD.idle.threshold);
     expect(DEFAULT_ADAPTIVE_VAD.speaking.prefix_padding_ms).toBeGreaterThanOrEqual(DEFAULT_ADAPTIVE_VAD.idle.prefix_padding_ms);
     expect(DEFAULT_INTERRUPTION.minSpeechMs).toBeGreaterThanOrEqual(400);

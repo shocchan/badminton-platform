@@ -147,6 +147,8 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
   let halfDuplex = interruption ? interruption.mode === 'half_duplex' : !!opts.muteMicWhileTutorSpeaks;
   let interruptTimer: ReturnType<typeof setTimeout> | null = null;
   let lastTutorTranscript = '';
+  // 割り込みが成立した生徒の発話の終わりで、こちらから返事を作る（先生の発話中の VAD は create_response=false）
+  let awaitingTurnAfterInterrupt = false;
   const setMicEnabled = (enabled: boolean) => {
     if (!halfDuplex) return;
     if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
@@ -487,9 +489,10 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
                   interruptTimer = null;
                   const c = confirmInterruption(intState, Date.now()); intState = c.state;
                   if (c.decision.kind === 'interrupt' && !stopped) {
-                    // 明確な発話＝先生を止めて生徒へターンを渡す。create_response は VAD 側が担う
+                    // 明確な発話＝先生を止めて生徒へターンを渡す。返事は生徒の発話が終わってから作る
                     send({ type: 'response.cancel' });
                     send({ type: 'output_audio_buffer.clear' });
+                    awaitingTurnAfterInterrupt = true;
                     callbacks.onInterruption?.({ kind: 'valid', mode: intState.mode });
                   }
                 }, Math.max(0, r.decision.fireAtMs - Date.now()));
@@ -505,6 +508,11 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
               if (r.decision.kind === 'ignore') {
                 if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
                 callbacks.onInterruption?.({ kind: 'ignored', mode: intState.mode });
+              }
+              if (awaitingTurnAfterInterrupt) {
+                awaitingTurnAfterInterrupt = false;
+                // VAD 側が既に返事を作っていれば（response.created が来ていれば）何もしない＝二重に作らない
+                setTimeout(() => { if (!stopped && !responding) send({ type: 'response.create' }); }, 800);
               }
             }
             break;

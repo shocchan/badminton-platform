@@ -62,7 +62,13 @@ export interface InterruptionRuntime {
 
 export const DEFAULT_ADAPTIVE_VAD: AdaptiveVadProfiles = {
   idle: { type: 'server_vad', threshold: 0.6, prefix_padding_ms: 300, silence_duration_ms: 800, create_response: true, interrupt_response: false },
-  speaking: { type: 'server_vad', threshold: 0.85, prefix_padding_ms: 400, silence_duration_ms: 700, create_response: true, interrupt_response: false },
+  /*
+   * 先生の発話中は create_response も false（2026-09-10 QA 準備で修正）。
+   * true のままだと、無視したはずの「あ」「咳」でもサーバーが発話を確定して返事を作り、
+   * 先生の話が終わった直後に「あ」への返事が始まる。割り込みが成立したときだけ、
+   * クライアントが発話の終わりで response.create を送る（voiceSession.ts）。
+   */
+  speaking: { type: 'server_vad', threshold: 0.85, prefix_padding_ms: 400, silence_duration_ms: 700, create_response: false, interrupt_response: false },
 };
 
 export const DEFAULT_INTERRUPTION: Omit<InterruptionRuntime, 'mode' | 'reason'> = {
@@ -129,6 +135,41 @@ export const interruptionRuntimeFor = (input: ResolveModeInput, base = DEFAULT_I
 export const interruptionOverrideFromSearch = (search: string): InterruptionMode | null => {
   const v = new URLSearchParams(search).get('interrupt');
   return v === 'adaptive' || v === 'half_duplex' ? v : null;
+};
+
+export const INTERRUPTION_OVERRIDE_KEY = 'ai_interrupt_override';
+export const INTERRUPTION_DEBUG_KEY = 'ai_interrupt_debug';
+
+type SessionStore = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
+
+/**
+ * ?interrupt= を読み、あれば**このタブの間だけ**覚える（sessionStorage）。
+ * QA は /ja/learn/<code>?interrupt=adaptive で入るが、ログイン後の転送や画面遷移でクエリが消えても
+ * 同じ方針で会話を始められるようにするため。?interrupt=off で忘れる。保存できない環境では URL だけを見る
+ */
+export const interruptionOverrideFrom = (search: string, storage: SessionStore | null): InterruptionMode | null => {
+  const raw = new URLSearchParams(search).get('interrupt');
+  try {
+    if (raw === 'off') { storage?.removeItem(INTERRUPTION_OVERRIDE_KEY); return null; }
+    const fromUrl = interruptionOverrideFromSearch(search);
+    if (fromUrl) { storage?.setItem(INTERRUPTION_OVERRIDE_KEY, fromUrl); return fromUrl; }
+    const saved = storage?.getItem(INTERRUPTION_OVERRIDE_KEY);
+    return saved === 'adaptive' || saved === 'half_duplex' ? saved : null;
+  } catch {
+    return interruptionOverrideFromSearch(search);
+  }
+};
+
+/** QA 用の数値パネルを出すか（?interruptDebug=1 で有効・0 で無効。タブの間だけ覚える） */
+export const interruptionDebugFrom = (search: string, storage: SessionStore | null): boolean => {
+  const raw = new URLSearchParams(search).get('interruptDebug');
+  try {
+    if (raw === '1') { storage?.setItem(INTERRUPTION_DEBUG_KEY, '1'); return true; }
+    if (raw === '0') { storage?.removeItem(INTERRUPTION_DEBUG_KEY); return false; }
+    return storage?.getItem(INTERRUPTION_DEBUG_KEY) === '1';
+  } catch {
+    return raw === '1';
+  }
 };
 
 /** 環境変数・ホスト名から段階を決める。production 以外を勝手に production 扱いしない */
