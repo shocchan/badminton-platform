@@ -79,8 +79,10 @@ N1 も模試1回分を持つことになった。課題6・ポイント7・概�
 音源は他の級と同じ事前生成（Realtime は使わない）。coverage PASS・準備度の N1 特例も撤去。
 詳細は `docs/ai-course/knowledge/PHASE2_3_N1_LISTENING.md`。
 
-### Phase 3: 読解 ✅ 完了（30セット・coverage PASS）
+### Phase 3: 読解 ✅ 完了（30セット・coverage PASS → 2026-09-10 Phase 2-5 で 42 セット）
 - thematic 6 / integrated 6 / midPassage 6 / longPassage 6 / infoSearch 6
+- 2026-09-10: **shortPassage 12**（仕事の文書6・評論の断片6）を追加。本試験の「内容理解（短文）」が0だったため。
+  詳細は `docs/ai-course/knowledge/PHASE2_5_N1_READING.md`
 - N2・N3と同じ合格基準（合計30以上・各type6以上）を N1 にも適用するようテストを拡張
 - 品質ゲートは既存のまま全通過:
   根拠が本文に実在／選択肢4つ・正解1つ／長さ比3.2倍以内／

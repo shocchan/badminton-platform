@@ -6,6 +6,8 @@
 // - 正解の根拠が本文中にある（rationaleSpan で明示・機械検査に使う）
 // - distractorは本文の別部分に関係する（＝もっともらしいが本文の別箇所の話）
 
+import type { MaterialKnowledge } from '../../knowledge/materialKnowledge';
+
 /** JLPTの読解区分。N2/N3で使う正準区分 */
 export type ReadingType =
   | 'shortPassage'    // 短文理解
@@ -68,6 +70,8 @@ export interface ReadingSet {
   estimatedSeconds: number;
   reviewState: 'generated_draft' | 'validated_beta' | 'authored';
   variantId: string;
+  /** 知識グラフへの接続（2026-09-10 Phase 2-5、N1 の短文から。無いセットは undefined） */
+  knowledge?: MaterialKnowledge;
 }
 
 /** 出題キー（未出判定・mastery台帳で共有） */

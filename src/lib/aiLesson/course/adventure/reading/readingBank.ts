@@ -38,6 +38,8 @@ import { N1_READING_INT_A } from './n1ReadingIntA';
 import { N1_READING_MID_A } from './n1ReadingMidA';
 import { N1_READING_LONG_A } from './n1ReadingLongA';
 import { N1_READING_INFO_A } from './n1ReadingInfoA';
+// N1 短文（2026-09-10 Phase 2-5）。本試験の「内容理解（短文）」＝仕事の文書6＋評論の断片6
+import { N1_READING_SHORT_A } from './n1ReadingShortA';
 import { READING_TYPE_LABELS, readingKeyOf, type ReadingSet, type ReadingType, type ReadingLevel } from './readingTypes';
 
 export { READING_TYPE_LABELS, readingKeyOf };
@@ -62,6 +64,7 @@ export const ALL_READING_SETS: ReadingSet[] = [
   ...N2_READING_THEME_B, ...N2_READING_INFO_B,
   ...N1_READING_THEME_A, ...N1_READING_INT_A, ...N1_READING_MID_A,
   ...N1_READING_LONG_A, ...N1_READING_INFO_A,
+  ...N1_READING_SHORT_A,
 ];
 
 export const readingSetsFor = (level: ReadingLevel): ReadingSet[] =>

@@ -5,7 +5,7 @@
 // - attempt中はtranscriptを表示しない。回答後のみ表示可
 // - 再生回数は問題仕様に従う（本試験にならい原則1回、練習用に2回まで）
 // - audio asset が manifest に無い／読み込めない問題は出題しない（HOLD）
-import type { PracticalDomain } from '../../knowledge/practicalAxis';
+import type { MaterialKnowledge } from '../../knowledge/materialKnowledge';
 
 export type ListeningType =
   | 'taskComprehension'   // 課題理解（次に何をするか）
@@ -45,18 +45,7 @@ export type ListeningLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
  * 「この1問が何を測っているか」「どの文法・語彙を聞き取れれば解けるか」を残す。
  * 既存の N5〜N2 セットには無い（任意フィールド）。Phase 4 で遡って付ける候補。
  */
-export interface ListeningKnowledge {
-  /** 何が聞き取れれば正解できるか（測っている理解の対象） */
-  comprehensionTarget: string;
-  /** 誤答の作り方（どの聞き違い・読み違いを狙っているか） */
-  distractorDesign: string;
-  /** 原稿に出る文法項目（既存の grammarId。n1g-001 など） */
-  grammarLinks: string[];
-  /** 原稿に出る語彙（既存の wordId。vc-41-001 など） */
-  vocabularyLinks: string[];
-  /** Practical Axis の分野（knowledge/practicalAxis の PracticalDomain） */
-  domain: PracticalDomain;
-}
+export type ListeningKnowledge = MaterialKnowledge;
 
 export interface ListeningSet {
   setId: string;
