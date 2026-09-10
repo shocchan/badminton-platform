@@ -125,6 +125,7 @@ import { CHAPTER1_ID as CHAPTER1_ID_FOR_PAGE } from '../../lib/aiLesson/course/r
 import type { SupabaseLike } from '../../lib/aiLesson/course/persistence/supabaseUnitProgressServer';
 import type { StoragePort } from '../../lib/aiLesson/course/n3unit/unitRuntime';
 import { supabase } from '../../services/supabaseClient';
+import { useExitGuard } from '../../lib/aiLesson/course/useExitGuard';
 import { KatariPortIntro } from '../../components/ai-course/rpg/KatariPortIntro';
 import { ConversationTopupCard } from '../../components/ai-course/ConversationTopupCard';
 import { OmoideGardenPanel } from '../../components/ai-course/rpg/OmoideGardenPanel';
@@ -358,6 +359,21 @@ export default function AiCoursePage() {
   // 会話を終えたとき（sessions更新）とホームへ戻るたびに取り直す＝
   // 「のこり◯分」が常に確定値の最新になる（別端末で使った分も戻ってきた時に反映）
   const atHome = step === 'home';
+  /*
+   * ブラウザの戻るでアプリごと出ていかせない（2026-09-10 CEO報告）。
+   * 会話画面やレポートに入っていても、戻るは**アプリの外**へ出ていた。
+   * 個人専用URLから来た人はそのタブの履歴が1件しかないので、タブごと閉じていた。
+   *
+   * ただし**レッスン中は戻さない**。会話の途中で画面を捨てると、
+   * その回の記録が残らないまま消える（進行中セッションの復旧に頼ることになる）。
+   * ログイン画面と受講権の画面も、戻り先が無いので対象外。
+   */
+  useExitGuard({
+    atHome: atHome || step === 'loading' || step === 'login' || step === 'accessGate'
+      // **会話の最中だけは戻さない**。途中で画面を捨てると、その回の記録が残らないまま消える
+      || step === 'lesson',
+    onBack: () => setStep('home'),
+  });
   useEffect(() => {
     const row = accessState && 'row' in accessState ? accessState.row : null;
     if (!learner || !row || row.aiSecondsLimit === null || row.aiSecondsLimit === undefined) {

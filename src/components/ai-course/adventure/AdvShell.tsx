@@ -10,6 +10,7 @@ import type {
 import { aiConversationEnabledFor } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { nextRoadOf } from '../../../lib/aiLesson/course/adventure/advNextRoad';
 import { AdvNextRoadCard } from './AdvNextRoadCard';
+import { useExitGuard } from '../../../lib/aiLesson/course/useExitGuard';
 import { themesAtOrBelow, themeView } from '../../../lib/aiLesson/course/adventure/vocab/vocabThemePicker';
 import type { VocabScopeLevel } from '../../../lib/aiLesson/course/adventure/vocab/vocabThemePicker';
 import { readAdvProfile, writeAdvProfile, defaultAdvProfile, migrateLegacyEvidence, effectiveContentLevel, vocabStartLevel, strictDeclaredLevelOnly,
@@ -622,6 +623,13 @@ export default function AdvShell(props: AdvShellProps) {
    * 毎日の出題は級に忠実、手で選んだときは自分の級から下まで自由、という分け方。
    */
   const [themeLevel, setThemeLevel] = useState<VocabScopeLevel | null>(null);
+
+  /*
+   * ブラウザの戻るでアプリごと出ていかせない（2026-09-10 CEO報告）。
+   * 画面の切り替えを state だけでやっていたので、ほかの学習やAI会話に入っていても
+   * 戻るは**アプリの外**へ出ていた。個人専用URLから来た人はタブごと閉じていた。
+   */
+  useExitGuard({ atHome: view === 'home', onBack: () => setView('home') });
   const [learnPick, setLearnPick] = useState<
     { key: string; pick: import('../../../lib/aiLesson/course/adventure/vocab/vocabLearnData').LearnPick } | null
   >(null);
