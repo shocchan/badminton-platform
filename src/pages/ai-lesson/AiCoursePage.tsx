@@ -359,6 +359,39 @@ export default function AiCoursePage() {
   // 体験パス（累計上限つきプラン）の使用済み秒数。自分の ai_usage_daily を合算する。
   // 会話を終えたとき（sessions更新）とホームへ戻るたびに取り直す＝
   // 「のこり◯分」が常に確定値の最新になる（別端末で使った分も戻ってきた時に反映）
+  /*
+   * 決済から帰ってきた人を、**元いた場所へ返す**（2026-09-10 CEO報告）。
+   *
+   * 実測: ¥300を払ったあとも、キャンセルしたあとも、冒険のいちばん最初の画面に
+   * 落ちていた。買った直後に「で、どこから続けるんだっけ」を探させるのは最悪で、
+   * キャンセルした人に至っては、ただ振り出しに戻されたのと同じ。
+   *
+   * どちらも会話の画面へ戻す:
+   *   ok        … 残高が増えているので、いつもの旅立ちカードが出る
+   *   cancelled … 残高0のままなので、さっきの回数券カードがそのまま出る
+   */
+  const [topupReturn, setTopupReturn] = useState<'ok' | 'cancelled' | null>(() => {
+    try {
+      const v = new URLSearchParams(window.location.search).get('topup');
+      return v === 'ok' || v === 'cancelled' ? v : null;
+    } catch { return null; }
+  });
+  useEffect(() => {
+    if (!topupReturn) return;
+    // URLの印は最初に消す（再読込のたびに同じ案内が出ないように）
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.delete('topup');
+      window.history.replaceState(null, '', u.pathname + u.search + u.hash);
+    } catch { /* URLをいじれない環境でも先へ進む */ }
+    // プランが組めるまでは待つ（会話画面は plan が要る）
+    if (!plan) return;
+    // 買った直後は残高を取り直す（古い「あと0回」のまま会話画面へ行かせない）
+    if (topupReturn === 'ok') void fetchConversationBudget().then(setConvBudget);
+    setStep('conversationIntro');
+    setTopupReturn(null);
+  }, [topupReturn, plan]);
+
   const atHome = step === 'home';
   /*
    * ブラウザの戻るでアプリごと出ていかせない（2026-09-10 CEO報告）。
@@ -1470,7 +1503,7 @@ export default function AiCoursePage() {
           />
           <div className="mx-auto w-full max-w-md px-4 pb-8">
             <button type="button" onClick={() => setStep('home')}
-              className="w-full min-h-11 rounded-xl border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">
+              className="w-full min-h-11 rounded-xl border border-gray-300 text-sm text-gray-600 transition-colors hover:bg-gray-50">
               {uiLang === 'zh' ? '回到今天的冒险' : '今日の冒険にもどる'}
             </button>
           </div>
