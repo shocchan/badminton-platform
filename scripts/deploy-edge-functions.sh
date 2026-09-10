@@ -44,6 +44,22 @@ if [ $# -eq 0 ]; then
   exit 1
 fi
 
+# ── 出す前に: 関数のコードが呼ぶDBの関数・テーブルが、本番DBにあるか（2026-09-10）──
+# 管理画面の入金確認が「本番DBに無い関数を呼んで404」だった件と同じことは、
+# Edge Function でも起きうる（webhook が無い関数を呼ぶと、払っても受講権が出ない）。
+# 出す関数のフォルダと、そこから import している _shared の部品だけを突き合わせる
+# （_shared を丸ごと見ると、使っていない部品のせいで無関係な関数のデプロイまで止まる）。
+# 無い・確かめられないなら1つも出さない。
+CHECK_PATHS=()
+for fn in "$@"; do CHECK_PATHS+=("supabase/functions/$fn"); done
+echo "── 本番DBとの突き合わせ ──"
+if ! node scripts/check-db-objects.mjs "${CHECK_PATHS[@]}"; then
+  echo ""
+  echo "🛑 デプロイしませんでした（本番の関数は何も変わっていません）"
+  echo "   上の一覧のものを作る migration を先に本番DBへ適用するか、確かめられる状態にしてから、もう一度実行してください"
+  exit 1
+fi
+
 for fn in "$@"; do
   flag=""
   for n in "${NO_JWT[@]}"; do

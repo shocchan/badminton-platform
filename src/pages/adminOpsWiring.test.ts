@@ -133,6 +133,18 @@ describe('サーバー側の入り口（マイグレーション）', () => {
     expect(migration).toContain('REVOKE SELECT, UPDATE, DELETE ON public.contacts FROM anon, authenticated');
   });
 
+  it('本番にそのまま流せる（作る前に同名のポリシーを落とす）', () => {
+    // 2026-09-10: 本番にはこの2つのポリシーだけが先に入っていて、関数3本は無かった。
+    // 作る前に落としていなかったので、流すと already exists で止まり、
+    // 1トランザクションなら関数ごと全部巻き戻る＝入金確認が直らない形だった
+    for (const policy of ['admins can read contacts', 'admins can update contacts']) {
+      const drop = migration.indexOf(`DROP POLICY IF EXISTS "${policy}" ON contacts`);
+      const create = migration.indexOf(`CREATE POLICY "${policy}" ON contacts`);
+      expect(drop, `「${policy}」を作る前に落としていない`).toBeGreaterThan(-1);
+      expect(drop).toBeLessThan(create);
+    }
+  });
+
   it('問い合わせフォームの送信（INSERT）は残す', () => {
     expect(migration).toContain('GRANT INSERT ON public.contacts TO anon, authenticated');
   });
