@@ -12,8 +12,8 @@ import { LISTENING_TYPE_LABELS, type ListeningType } from './listening/listening
 import audioManifest from '../../../../../docs/ai-course/adventure-v2/generated/audio-manifest.json';
 
 describe('聴解 coverage と音声asset（§7）', () => {
-  it('N2・N3ともに25セット以上・各type 5セット以上・全て再生可能', () => {
-    for (const level of ['N2', 'N3'] as const) {
+  it('N1・N2・N3ともに25セット以上・各type 5セット以上・全て再生可能', () => {
+    for (const level of ['N1', 'N2', 'N3'] as const) {
       const c = listeningCoverage(level);
       expect(c.total).toBeGreaterThanOrEqual(25);
       expect(c.playable).toBe(c.total);
@@ -189,7 +189,7 @@ describe('聴解 → バトル問題への正規化', () => {
   });
 
   it('プールがtype別に作られ、各5問以上', () => {
-    for (const level of ['N2', 'N3'] as const) {
+    for (const level of ['N1', 'N2', 'N3'] as const) {
       const pool = listeningPool(level);
       expect(pool.size).toBe(5);
       for (const id of listeningTargetIds(level)) {

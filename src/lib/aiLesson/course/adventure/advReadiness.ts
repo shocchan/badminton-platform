@@ -200,8 +200,8 @@ export const computeReadiness = (
    * 「音源が無いのに聴解は測れる」＝「あと◯問」と嘘をつく状態になった。
    * 測れるかどうかは**音源があるかどうか**でしか決まらないので、そこを直接見る。
    */
-  // N1 は教材そのものが無い級（listeningSetsFor の対象外）なので、そのまま「測れない」
-  const listeningMeasurable = target === 'N1' ? false : listeningSetsFor(target).length > 0;
+  // N1 も 2026-09-10 から音源を持つ。級で分けず、実在庫だけで決める
+  const listeningMeasurable = listeningSetsFor(target).length > 0;
   const evidence = collectSkillEvidence(ledger);
 
   const rows: ReadinessRow[] = EXAM_SKILLS.map((key) => {

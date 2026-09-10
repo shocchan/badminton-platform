@@ -25,6 +25,9 @@ import { N4_LISTENING_SETS_A } from './n4ListeningSetsA';
 import { N4_LISTENING_TASK_B } from './n4ListeningTaskB';
 import { N4_LISTENING_POINT_B } from './n4ListeningPointB';
 import { N4_LISTENING_QUICK_B } from './n4ListeningQuickB';
+// N1（2026-09-10 Phase 2-3）。模試1回分（課題6・ポイント7・概要6・即時14・統合5＝38）。
+// 知識グラフへの接続（knowledge）を持つ最初の級
+import { N1_LISTENING_SETS_A } from './n1ListeningSetsA';
 import {
   LISTENING_TYPE_LABELS, listeningKeyOf,
   type ListeningLevel, type ListeningSet, type ListeningType,
@@ -49,6 +52,7 @@ export const ALL_LISTENING_SETS: ListeningSet[] = [
   ...N2_LISTENING_SETS,
   ...N2_LISTENING_TASK_B, ...N2_LISTENING_POINT_B, ...N2_LISTENING_OUTLINE_B,
   ...N2_LISTENING_QUICK_B, ...N2_LISTENING_INT_B,
+  ...N1_LISTENING_SETS_A,
 ];
 
 interface AudioEntry { setId: string; path: string; durationSeconds: number; bytes: number }
@@ -86,7 +90,7 @@ export const listeningToQuestion = (s: ListeningSet): AdvBattleQuestion => ({
   type: `listen-${s.listeningType}`,
   // N5/N4 は基礎帯の問題として扱う（AdvBattleQuestion.level は foundation/n3/n2 の3値）。
   // 読解の readingToQuestion と同じ対応にしてある
-  level: s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
+  level: s.sourceLevel === 'N1' ? 'n1' : s.sourceLevel === 'N2' ? 'n2' : s.sourceLevel === 'N3' ? 'n3' : 'foundation',
   skill: 'listening',
   examSection: SECTION_OF_SKILL.listening,
   targetJapanese: null, // 音声が本体。文字は出さない
@@ -131,7 +135,7 @@ export const listeningPool = (level: ListeningLevel): Map<string, AdvBattleQuest
 export const listeningTargetIds = (level: ListeningLevel): string[] => [...listeningPool(level).keys()];
 
 export interface ListeningCoverage {
-  level: 'N2' | 'N3';
+  level: 'N1' | 'N2' | 'N3';
   total: number;
   playable: number;
   byType: Record<string, number>;
@@ -147,8 +151,9 @@ export interface ListeningCoverage {
  * 本試験のN5/N4聴解には概要理解・統合理解が無く、発話表現は絵が要るため作っていない。
  * 5type×5セット＝25セットという形は、5typeが出るN3/N2の話であって、
  * N5/N4（3type×4セット＝12）へ当てはめると「足りない」と嘘の判定になる。
+ * N1 は 2026-09-10 に5type・38セットを持ったので、N3/N2 と同じ基準で見る。
  */
-export const listeningCoverage = (level: 'N2' | 'N3'): ListeningCoverage => {
+export const listeningCoverage = (level: 'N1' | 'N2' | 'N3'): ListeningCoverage => {
   const all = ALL_LISTENING_SETS.filter((s) => s.sourceLevel === level);
   const sets = listeningSetsFor(level);
   const byType: Record<string, number> = {};
@@ -162,4 +167,4 @@ export const listeningCoverage = (level: 'N2' | 'N3'): ListeningCoverage => {
 };
 
 /** 聴解が「準備できている」か（総合模試の開放条件に使う） */
-export const listeningReady = (level: 'N2' | 'N3'): boolean => listeningCoverage(level).pass;
+export const listeningReady = (level: 'N1' | 'N2' | 'N3'): boolean => listeningCoverage(level).pass;

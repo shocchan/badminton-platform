@@ -5,6 +5,8 @@
 // - attempt中はtranscriptを表示しない。回答後のみ表示可
 // - 再生回数は問題仕様に従う（本試験にならい原則1回、練習用に2回まで）
 // - audio asset が manifest に無い／読み込めない問題は出題しない（HOLD）
+import type { PracticalDomain } from '../../knowledge/practicalAxis';
+
 export type ListeningType =
   | 'taskComprehension'   // 課題理解（次に何をするか）
   | 'pointComprehension'  // ポイント理解（理由・条件など特定の点）
@@ -32,10 +34,29 @@ export interface ListeningChoice {
  * 読解の ReadingLevel と同じ並びにしてある。
  */
 /**
- * 聴解セットを持ちうる級。**N1の聴解はCEO判断で対象外**（2026-09-05）。
- * 型には入れるが音源は作らないので、listeningSetsFor('N1') は常に空になる。
+ * 聴解セットを持ちうる級。
+ * 2026-09-05 には「N1の聴解は対象外」だったが、2026-09-10 の基盤フェーズ（Phase 2-3）で
+ * **N1 も模試1回分（38セット）を持つ**ことになった。音源は他の級と同じ事前生成（Realtime は使わない）。
  */
 export type ListeningLevel = 'N1' | 'N2' | 'N3' | 'N4' | 'N5';
+
+/**
+ * 知識グラフへの接続（2026-09-10 Phase 2-3 で N1 から付け始めた）。
+ * 「この1問が何を測っているか」「どの文法・語彙を聞き取れれば解けるか」を残す。
+ * 既存の N5〜N2 セットには無い（任意フィールド）。Phase 4 で遡って付ける候補。
+ */
+export interface ListeningKnowledge {
+  /** 何が聞き取れれば正解できるか（測っている理解の対象） */
+  comprehensionTarget: string;
+  /** 誤答の作り方（どの聞き違い・読み違いを狙っているか） */
+  distractorDesign: string;
+  /** 原稿に出る文法項目（既存の grammarId。n1g-001 など） */
+  grammarLinks: string[];
+  /** 原稿に出る語彙（既存の wordId。vc-41-001 など） */
+  vocabularyLinks: string[];
+  /** Practical Axis の分野（knowledge/practicalAxis の PracticalDomain） */
+  domain: PracticalDomain;
+}
 
 export interface ListeningSet {
   setId: string;
@@ -61,6 +82,8 @@ export interface ListeningSet {
   playLimit: 1 | 2;
   reviewState: 'generated_draft' | 'validated_beta' | 'authored';
   sourceId: string;
+  /** 知識グラフへの接続（N1 から。無い級は undefined） */
+  knowledge?: ListeningKnowledge;
 }
 
 export const listeningKeyOf = (s: ListeningSet): string => `listen:${s.setId}`;
