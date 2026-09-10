@@ -58,7 +58,7 @@ export function LearnCodePage() {
     // AI会話の割り込み QA の旗（interrupt / interruptDebug）だけは残す（2026-09-10）。コードは残さない
     const cur = new URLSearchParams(window.location.search);
     const keep = new URLSearchParams();
-    for (const k of ['interrupt', 'interruptDebug']) { const v = cur.get(k); if (v) keep.set(k, v); }
+    for (const k of ['interrupt', 'interruptDebug', 'interruptMinMs']) { const v = cur.get(k); if (v) keep.set(k, v); }
     const qs = keep.toString() ? `?${keep.toString()}` : '';
     window.history.replaceState(null, '', `/${lang}/ai-course${qs}`);
     navigate(`/${lang}/ai-course${qs}`, { replace: true });

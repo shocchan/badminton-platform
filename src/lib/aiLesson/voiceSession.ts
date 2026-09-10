@@ -55,6 +55,13 @@ export interface VoiceSessionCallbacks {
    */
   onInterruption?: (info: { kind: 'valid' | 'ignored' | 'echo_suspect' | 'fallback'; mode: InterruptionMode }) => void;
   /**
+   * QA 用の診断（2026-09-11）。session.created / session.updated で返った割り込み設定と、Realtime のエラー文。
+   * 会話本文は含まない
+   */
+  onDiagnostics?: (d:
+    | { kind: 'session'; interruptResponse: boolean | null; createResponse: boolean | null }
+    | { kind: 'error'; message: string }) => void;
+  /**
    * サーバーが実際に適用した先生・音声。診断／analytics用。
    * **会話本文・secretは含まない。**
    */
@@ -149,6 +156,8 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
   let lastTutorTranscript = '';
   // 割り込みが成立した生徒の発話の終わりで、こちらから返事を作る（先生の発話中の VAD は create_response=false）
   let awaitingTurnAfterInterrupt = false;
+  // サーバーが返す発話の始まり（audio_start_ms）。終わり（audio_end_ms）との差が実際に話していた長さ
+  let speechAudioStartMs: number | null = null;
   const setMicEnabled = (enabled: boolean) => {
     if (!halfDuplex) return;
     if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
@@ -437,6 +446,10 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           type?: string; delta?: string; transcript?: string;
           item?: { type?: string; name?: string; arguments?: string };
           error?: { message?: string };
+          // input_audio_buffer.speech_started / speech_stopped が返す、実際の発話の始まり・終わり（ms）
+          audio_start_ms?: number; audio_end_ms?: number;
+          // session.created / session.updated が返す、サーバーが実際に使っている設定
+          session?: { audio?: { input?: { turn_detection?: { interrupt_response?: boolean; create_response?: boolean } | null } } };
         };
         try {
           ev = JSON.parse(e.data as string);
@@ -480,6 +493,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           case 'input_audio_buffer.speech_started': {
             userSpeaking = true;
             sawMicSignal = true; // サーバーが音を検知＝マイクは届いている
+            speechAudioStartMs = typeof ev.audio_start_ms === 'number' ? ev.audio_start_ms : null;
             callbacks.onUserSpeaking(true);
             if (interruption) {
               const r = onSpeechStarted(intState, Date.now(), interruption); intState = r.state;
@@ -504,10 +518,22 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
             userSpeaking = false;
             callbacks.onUserSpeaking(false);
             if (interruption) {
-              const r = onSpeechStopped(intState, Date.now(), interruption); intState = r.state;
+              // 実際に話していた長さ（サーバーの audio_start_ms / audio_end_ms）。無ければ policy 側が到着時刻から見積もる
+              const measured = typeof ev.audio_end_ms === 'number' && speechAudioStartMs !== null
+                ? ev.audio_end_ms - speechAudioStartMs : null;
+              speechAudioStartMs = null;
+              const r = onSpeechStopped(intState, Date.now(), interruption, measured); intState = r.state;
               if (r.decision.kind === 'ignore') {
                 if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
                 callbacks.onInterruption?.({ kind: 'ignored', mode: intState.mode });
+              }
+              if (r.decision.kind === 'interrupt' && !stopped) {
+                // 判定時刻より先に終わりの合図が来たが、十分長く話していた（時計のずれ）。ここで先生を止める
+                if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
+                send({ type: 'response.cancel' });
+                send({ type: 'output_audio_buffer.clear' });
+                awaitingTurnAfterInterrupt = true;
+                callbacks.onInterruption?.({ kind: 'valid', mode: intState.mode });
               }
               if (awaitingTurnAfterInterrupt) {
                 awaitingTurnAfterInterrupt = false;
@@ -539,6 +565,18 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
             callbacks.onTutorSpeaking(false);
             fireFinishIfReady(); // finish_lesson 受信済みなら最終音声完了として発火
             break;
+          // サーバーが実際に使っている割り込み設定（2026-09-11 QA 用）。
+          // adaptive なのに自動割り込みが ON のままなら、先生を止めているのはサーバー側だと分かる
+          case 'session.created':
+          case 'session.updated': {
+            const td = ev.session?.audio?.input?.turn_detection;
+            callbacks.onDiagnostics?.({
+              kind: 'session',
+              interruptResponse: typeof td?.interrupt_response === 'boolean' ? td.interrupt_response : null,
+              createResponse: typeof td?.create_response === 'boolean' ? td.create_response : null,
+            });
+            break;
+          }
           case 'response.created':
             responding = true;
             break;
@@ -558,6 +596,8 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
             break;
           case 'error':
             console.warn('realtime event error:', ev.error?.message ?? 'unknown');
+            // QA パネルへ（session.update が拒否された、などをその場で見えるようにする）
+            callbacks.onDiagnostics?.({ kind: 'error', message: ev.error?.message ?? 'unknown' });
             break;
         }
       };

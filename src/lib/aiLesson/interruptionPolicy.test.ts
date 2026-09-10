@@ -11,7 +11,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_INTERRUPTION, DEFAULT_ADAPTIVE_VAD, detectAudioEnvironment, resolveInterruptionMode, interruptionRuntimeFor,
-  interruptionOverrideFromSearch, interruptionOverrideFrom, interruptionDebugFrom, rolloutStageOf, initialInterruptionState, onTutorSpeaking, onSpeechStarted, onSpeechStopped,
+  interruptionOverrideFromSearch, interruptionOverrideFrom, interruptionDebugFrom, interruptionMinSpeechFrom, rolloutStageOf, initialInterruptionState, onTutorSpeaking, onSpeechStarted, onSpeechStopped,
   confirmInterruption, onUserTranscriptAfterInterrupt, textOverlap,
 } from './interruptionPolicy';
 
@@ -51,6 +51,20 @@ describe('どの方式で始めるか', () => {
     expect(interruptionOverrideFrom('', null)).toBeNull();
   });
 
+  it('割り込みとみなす長さを QA で変えられる（600〜4000ms・範囲外は無視・off で忘れる）', () => {
+    const mem = new Map<string, string>();
+    const store = { getItem: (k: string) => mem.get(k) ?? null, setItem: (k: string, v: string) => { mem.set(k, v); }, removeItem: (k: string) => { mem.delete(k); } };
+    expect(interruptionMinSpeechFrom('', store)).toBeNull();
+    expect(interruptionMinSpeechFrom('?interruptMinMs=1200', store)).toBe(1200);
+    expect(interruptionMinSpeechFrom('', store)).toBe(1200);
+    expect(interruptionMinSpeechFrom('?interruptMinMs=100', store)).toBe(1200);
+    expect(interruptionMinSpeechFrom('?interruptMinMs=abc', store)).toBe(1200);
+    expect(interruptionMinSpeechFrom('?interruptMinMs=off', store)).toBeNull();
+    expect(interruptionMinSpeechFrom('', store)).toBeNull();
+    expect(interruptionMinSpeechFrom('?interruptMinMs=4000', null)).toBe(4000);
+    expect(interruptionMinSpeechFrom('?interruptMinMs=4001', null)).toBeNull();
+  });
+
   it('旗と段階', () => {
     expect(interruptionOverrideFromSearch('?interrupt=adaptive')).toBe('adaptive');
     expect(interruptionOverrideFromSearch('?interrupt=nope')).toBeNull();
@@ -74,24 +88,63 @@ describe('どの方式で始めるか', () => {
 });
 
 describe('先生の発話中の割り込み判断', () => {
+  // サーバーの speech_stopped は無音が silence_duration_ms 続いてから届く。判定時刻はそのぶん後ろにずらす
+  const silence = cfg.vad.speaking.silence_duration_ms;
+  const fireAt = (start: number) => start + cfg.minSpeechMs + silence;
+
+  it('既定では 2 秒続けて話したときだけ割り込む（CEO 実機報告 2026-09-11「うんうんで止まる」）', () => {
+    expect(DEFAULT_INTERRUPTION.minSpeechMs).toBe(2000);
+    expect(cfg.minSpeechMs).toBe(2000);
+  });
+
   it('**「あ」（短い音）では止まらない**', () => {
     let s = onTutorSpeaking(initialInterruptionState('adaptive'), true);
     const a = onSpeechStarted(s, 1000, cfg); s = a.state;
-    expect(a.decision).toEqual({ kind: 'arm', fireAtMs: 1000 + cfg.minSpeechMs });
-    const b = onSpeechStopped(s, 1200, cfg); s = b.state;
+    expect(a.decision).toEqual({ kind: 'arm', fireAtMs: fireAt(1000) });
+    // 0.2 秒の「あ」＋無音ぶん → 終わりの合図は 0.9 秒後に届く
+    const b = onSpeechStopped(s, 1000 + 200 + silence, cfg); s = b.state;
     expect(b.decision).toEqual({ kind: 'ignore' });
     // 武装が解けているので、あとから confirm が来ても止めない
-    expect(confirmInterruption(s, 1000 + cfg.minSpeechMs).decision).toEqual({ kind: 'none' });
+    expect(confirmInterruption(s, fireAt(1000)).decision).toEqual({ kind: 'none' });
     expect(s.counters.ignored).toBe(1);
   });
 
-  it('**明確な発話（続く音）では止まる**', () => {
+  it('**「うんうん」（約0.8秒）でも止まらない**：終わりの合図が無音ぶん遅れて届いても、判定時刻より前に来る', () => {
     let s = onTutorSpeaking(initialInterruptionState('adaptive'), true);
     s = onSpeechStarted(s, 1000, cfg).state;
-    const c = confirmInterruption(s, 1000 + cfg.minSpeechMs); s = c.state;
+    const stopAt = 1000 + 800 + silence;
+    expect(stopAt).toBeLessThan(fireAt(1000));
+    const b = onSpeechStopped(s, stopAt, cfg); s = b.state;
+    expect(b.decision).toEqual({ kind: 'ignore' });
+    expect(s.counters.valid).toBe(0);
+    expect(s.counters.ignored).toBe(1);
+  });
+
+  it('**明確な発話（2 秒以上続く音）では止まる**', () => {
+    let s = onTutorSpeaking(initialInterruptionState('adaptive'), true);
+    s = onSpeechStarted(s, 1000, cfg).state;
+    const c = confirmInterruption(s, fireAt(1000)); s = c.state;
     expect(c.decision).toEqual({ kind: 'interrupt' });
     expect(s.counters.valid).toBe(1);
-    expect(s.lastInterruptAt).toBe(1000 + cfg.minSpeechMs);
+    expect(s.lastInterruptAt).toBe(fireAt(1000));
+  });
+
+  it('サーバーの実測（audio_end_ms − audio_start_ms）があればそれで判定する', () => {
+    let s = onTutorSpeaking(initialInterruptionState('adaptive'), true);
+    s = onSpeechStarted(s, 1000, cfg).state;
+    // 合図が判定時刻より早く届いても、実際に 2.5 秒話していれば割り込み（時計のずれで取りこぼさない）
+    const long = onSpeechStopped(s, 1500, cfg, 2500);
+    expect(long.decision).toEqual({ kind: 'interrupt' });
+    expect(long.state.counters.valid).toBe(1);
+    // 実測 0.6 秒なら、到着が遅くても無視
+    s = onSpeechStarted(onTutorSpeaking(long.state, true), 5000, cfg).state;
+    expect(onSpeechStopped(s, 9000, cfg, 600).decision).toEqual({ kind: 'ignore' });
+  });
+
+  it('QA で判定の長さを変えると、判定時刻もそれに合わせて動く', () => {
+    const quick = interruptionRuntimeFor({ env: { inWeChat: false, headphonesLikely: true }, rollout: 'qa' }, { ...DEFAULT_INTERRUPTION, minSpeechMs: 1200 });
+    const s = onTutorSpeaking(initialInterruptionState('adaptive'), true);
+    expect(onSpeechStarted(s, 1000, quick).decision).toEqual({ kind: 'arm', fireAtMs: 1000 + 1200 + silence });
   });
 
   it('先生が話していないときは武装しない（生徒の番＝通常のターン）', () => {

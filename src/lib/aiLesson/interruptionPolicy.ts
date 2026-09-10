@@ -71,9 +71,14 @@ export const DEFAULT_ADAPTIVE_VAD: AdaptiveVadProfiles = {
   speaking: { type: 'server_vad', threshold: 0.85, prefix_padding_ms: 400, silence_duration_ms: 700, create_response: false, interrupt_response: false },
 };
 
+/*
+ * minSpeechMs = 2000（2026-09-11 CEO 実機報告「うんうん、と一言リアクションしただけで止まる」→「2秒くらいは止まらない方がいい」）。
+ * 「ちょっと待って」だけ（約0.9秒）では止まらず、「ちょっと待ってください、それどういう意味ですか」のように
+ * 2秒続けて話すと止まる。QA では ?interruptMinMs=1200 のように変えて試せる（600〜4000）。
+ */
 export const DEFAULT_INTERRUPTION: Omit<InterruptionRuntime, 'mode' | 'reason'> = {
   vad: DEFAULT_ADAPTIVE_VAD,
-  minSpeechMs: 550,
+  minSpeechMs: 2000,
   micResumeDelayMs: 350,
   echoFallback: { maxSuspects: 2, windowMs: 60_000, similarity: 0.6 },
 };
@@ -160,6 +165,26 @@ export const interruptionOverrideFrom = (search: string, storage: SessionStore |
   }
 };
 
+export const INTERRUPTION_MIN_MS_KEY = 'ai_interrupt_min_ms';
+
+/** QA 用: ?interruptMinMs=1200 で「割り込みとみなす発話の長さ」を変える（600〜4000ms。タブの間だけ覚える・off で忘れる） */
+export const interruptionMinSpeechFrom = (search: string, storage: SessionStore | null): number | null => {
+  const raw = new URLSearchParams(search).get('interruptMinMs');
+  const parse = (v: string | null | undefined): number | null => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 600 && n <= 4000 ? Math.round(n) : null;
+  };
+  try {
+    if (raw === 'off') { storage?.removeItem(INTERRUPTION_MIN_MS_KEY); return null; }
+    const fromUrl = parse(raw);
+    if (fromUrl !== null) { storage?.setItem(INTERRUPTION_MIN_MS_KEY, String(fromUrl)); return fromUrl; }
+    return parse(storage?.getItem(INTERRUPTION_MIN_MS_KEY));
+  } catch {
+    return parse(raw);
+  }
+};
+
 /** QA 用の数値パネルを出すか（?interruptDebug=1 で有効・0 で無効。タブの間だけ覚える） */
 export const interruptionDebugFrom = (search: string, storage: SessionStore | null): boolean => {
   const raw = new URLSearchParams(search).get('interruptDebug');
@@ -209,18 +234,43 @@ export type InterruptionDecision =
 export const onTutorSpeaking = (s: InterruptionState, speaking: boolean): InterruptionState =>
   ({ ...s, tutorSpeaking: speaking, speechStartedAt: speaking ? s.speechStartedAt : null });
 
-/** 生徒側の音の開始。先生の発話中・adaptive のときだけ武装する */
+/**
+ * 生徒側の音の開始。先生の発話中・adaptive のときだけ武装する。
+ *
+ * 判定の時刻は「開始 ＋ minSpeechMs ＋ 先生の発話中の silence_duration_ms」。
+ * サーバーの speech_stopped は**無音が silence_duration_ms 続いてから**届く。minSpeechMs だけ待つ作りでは、
+ * 「あ」「うん」（0.2〜0.5秒）でも終わりの合図が判定に間に合わず、必ず割り込みになっていた
+ * （2026-09-11 実機報告「うんうんで止まる」で判明した設計の誤り）。
+ */
 export const onSpeechStarted = (s: InterruptionState, nowMs: number, cfg: InterruptionRuntime): { state: InterruptionState; decision: InterruptionDecision } => {
   if (s.mode !== 'adaptive' || !s.tutorSpeaking) return { state: s, decision: { kind: 'none' } };
-  return { state: { ...s, speechStartedAt: nowMs }, decision: { kind: 'arm', fireAtMs: nowMs + cfg.minSpeechMs } };
+  return {
+    state: { ...s, speechStartedAt: nowMs },
+    decision: { kind: 'arm', fireAtMs: nowMs + cfg.minSpeechMs + cfg.vad.speaking.silence_duration_ms },
+  };
 };
 
-/** 音の終了。武装中なら「短かった」＝無視 */
-export const onSpeechStopped = (s: InterruptionState, nowMs: number, cfg: InterruptionRuntime): { state: InterruptionState; decision: InterruptionDecision } => {
+/**
+ * 音の終了。実際に話していた長さが minSpeechMs 未満なら「短かった」＝無視。
+ * 長さは、サーバーが返す audio_start_ms / audio_end_ms の差（measuredSpeechMs）があればそれを使い、
+ * 無ければ到着時刻の差から silence_duration_ms を引いた値で見積もる。
+ * 判定時刻より先に終わりの合図が来たのに十分長かった（時計のずれ）場合は、ここで割り込みにする。
+ */
+export const onSpeechStopped = (
+  s: InterruptionState, nowMs: number, cfg: InterruptionRuntime, measuredSpeechMs?: number | null,
+): { state: InterruptionState; decision: InterruptionDecision } => {
   if (s.speechStartedAt === null) return { state: s, decision: { kind: 'none' } };
-  const lasted = nowMs - s.speechStartedAt;
+  const lasted = typeof measuredSpeechMs === 'number' && Number.isFinite(measuredSpeechMs)
+    ? measuredSpeechMs
+    : nowMs - s.speechStartedAt - cfg.vad.speaking.silence_duration_ms;
   if (lasted < cfg.minSpeechMs) {
     return { state: { ...s, speechStartedAt: null, counters: { ...s.counters, ignored: s.counters.ignored + 1 } }, decision: { kind: 'ignore' } };
+  }
+  if (s.mode === 'adaptive' && s.tutorSpeaking) {
+    return {
+      state: { ...s, speechStartedAt: null, lastInterruptAt: nowMs, counters: { ...s.counters, valid: s.counters.valid + 1 } },
+      decision: { kind: 'interrupt' },
+    };
   }
   return { state: { ...s, speechStartedAt: null }, decision: { kind: 'none' } };
 };

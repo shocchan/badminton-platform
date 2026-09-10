@@ -15,9 +15,13 @@ import { trackAdv } from '../../lib/aiLesson/course/adventure/advAnalytics';
 import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
 import {
-  detectAudioEnvironment, interruptionRuntimeFor, interruptionOverrideFrom, interruptionDebugFrom, rolloutStageOf,
+  detectAudioEnvironment, interruptionRuntimeFor, interruptionOverrideFrom, interruptionDebugFrom, interruptionMinSpeechFrom,
+  rolloutStageOf, DEFAULT_INTERRUPTION,
   type InterruptionMode,
 } from '../../lib/aiLesson/interruptionPolicy';
+
+/** QA パネル用の方式名（日本語） */
+const MODE_LABEL: Record<InterruptionMode, string> = { adaptive: '自然な割り込み', half_duplex: '半二重' };
 
 const safeSessionStorage = (): Storage | null => {
   try { return window.sessionStorage; } catch { return null; }
@@ -125,11 +129,15 @@ export const CourseVoiceLesson = ({
   const [hasMeaningfulTurn, setHasMeaningfulTurn] = useState(false); // 有効な生徒発話が1回来たか（開始案内の消灯用）
   /*
    * 割り込み QA の数値（2026-09-10）。会話本文も音声も持たない。
-   * 本番の生徒には出さない: 出すのは ?interruptDebug=1・?interrupt= の旗・staging/QA 段階のときだけ
+   * 出すのは ?interruptDebug=1 を付けたときだけ（2026-09-11: staging や ?interrupt= だけでは出さない。
+   * PC で英語表記が見えていた CEO 指摘）。生徒には出ない。
+   * serverInterruptResponse は OpenAI が session.updated で返した「自動割り込み」の実際の値。
+   * adaptive なのに ON のままなら、先生を止めているのはクライアントの規則ではなくサーバー
    */
   const [intPanel, setIntPanel] = useState<{
-    show: boolean; startMode: InterruptionMode; mode: InterruptionMode; reason: string;
+    show: boolean; startMode: InterruptionMode; mode: InterruptionMode; reason: string; minSpeechMs: number;
     valid: number; ignored: number; echo: number; fallback: number; turnsAfterFallback: number;
+    serverInterruptResponse: boolean | null; serverCreateResponse: boolean | null; lastError: string | null;
   } | null>(null);
   const fallbackSeenRef = useRef(false);
   // 生徒の発話継続時間の推定（speech_started→stopped）。咳・物音の誤確定を弾く材料
@@ -213,16 +221,18 @@ export const CourseVoiceLesson = ({
     const store = safeSessionStorage();
     const override = interruptionOverrideFrom(window.location.search, store);
     const rollout = rolloutStageOf(window.location.hostname, import.meta.env.VITE_AI_INTERRUPTION_STAGE as string | undefined);
+    const minSpeech = interruptionMinSpeechFrom(window.location.search, store);
     const interruption = interruptionRuntimeFor({
       env: detectAudioEnvironment(navigator.userAgent, deviceLabels),
       rollout,
       override,
-    });
+    }, { ...DEFAULT_INTERRUPTION, minSpeechMs: minSpeech ?? DEFAULT_INTERRUPTION.minSpeechMs });
     fallbackSeenRef.current = false;
     setIntPanel({
-      show: interruptionDebugFrom(window.location.search, store) || override !== null || rollout !== 'production',
-      startMode: interruption.mode, mode: interruption.mode, reason: interruption.reason,
+      show: interruptionDebugFrom(window.location.search, store),
+      startMode: interruption.mode, mode: interruption.mode, reason: interruption.reason, minSpeechMs: interruption.minSpeechMs,
       valid: 0, ignored: 0, echo: 0, fallback: 0, turnsAfterFallback: 0,
+      serverInterruptResponse: null, serverCreateResponse: null, lastError: null,
     });
     trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja', routeStage: `interrupt:${interruption.mode}` });
     sessionRef.current = startVoiceSession({
@@ -246,6 +256,10 @@ export const CourseVoiceLesson = ({
             fallback: p.fallback + (info.kind === 'fallback' ? 1 : 0),
           }));
         },
+        // サーバーが実際に使っている設定と、Realtime のエラー（QA パネル用。会話本文は含まない）
+        onDiagnostics: (d) => setIntPanel((p) => p && (d.kind === 'session'
+          ? { ...p, serverInterruptResponse: d.interruptResponse, serverCreateResponse: d.createResponse }
+          : { ...p, lastError: d.message.slice(0, 120) })),
         // 実際に適用された先生（サーバー決定）。voice名はanalyticsへ送らない
         onVoiceRouted: (info) => {
           routedRef.current = info;
@@ -623,9 +637,12 @@ export const CourseVoiceLesson = ({
         </div>
       )}
       {intPanel?.show && status !== 'idle' && (
-        <div data-testid="interruption-qa-panel" className="mx-auto mb-2 max-w-sm rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 font-mono text-[11px] leading-relaxed text-gray-600">
-          <div>QA interrupt: start={intPanel.startMode} now={intPanel.mode} ({intPanel.reason})</div>
-          <div>valid(cancel)={intPanel.valid} ignored={intPanel.ignored} echo={intPanel.echo} fallback={intPanel.fallback} turnsAfterFallback={intPanel.turnsAfterFallback}</div>
+        <div data-testid="interruption-qa-panel" className="mx-auto mb-2 max-w-sm rounded-lg border border-dashed border-gray-300 bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-600 tabular-nums">
+          <div className="font-bold text-gray-700">割り込みQA（検証用・生徒には出ません）</div>
+          <div>方式: {MODE_LABEL[intPanel.startMode]} → いま {MODE_LABEL[intPanel.mode]}（{intPanel.reason}）／ 止める長さ {(intPanel.minSpeechMs / 1000).toFixed(1)}秒</div>
+          <div>止めた {intPanel.valid} ／ 無視した {intPanel.ignored} ／ エコー疑い {intPanel.echo} ／ 半二重へ {intPanel.fallback} ／ 半二重後の先生の発話 {intPanel.turnsAfterFallback}</div>
+          <div>サーバーの自動割り込み: {intPanel.serverInterruptResponse === null ? '未確認' : intPanel.serverInterruptResponse ? 'ON' : 'OFF'} ／ 自動応答: {intPanel.serverCreateResponse === null ? '未確認' : intPanel.serverCreateResponse ? 'ON' : 'OFF'}</div>
+          {intPanel.lastError && <div className="text-red-600 break-words">エラー: {intPanel.lastError}</div>}
         </div>
       )}
       {(status === 'requesting-mic' || status === 'connecting') && (
@@ -651,7 +668,7 @@ export const CourseVoiceLesson = ({
               ? <ShokoAvatar size={28} className="shrink-0 mt-5" />
               : <div className="w-7 shrink-0" aria-hidden />)}
             <div className="max-w-[85%] lg:max-w-[78%]">
-              {turnStart && <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? '翔子老师' : '翔子先生')}</p>}
+              {turnStart && <p className="text-[11px] lg:text-xs text-gray-500 mb-0.5 px-1">{isStudent ? (t.locale === 'zh' ? '你' : 'あなた') : (t.locale === 'zh' ? teacher.nameZh : teacher.nameJa)}</p>}
               <div className={`px-4 py-2.5 rounded-2xl leading-relaxed whitespace-pre-wrap break-words ${
                 isStudent
                   ? 'bg-blue-600 text-white rounded-tr-sm text-[15px] lg:text-base'
@@ -726,12 +743,20 @@ export const CourseVoiceLesson = ({
               <ChevronDown className="w-3.5 h-3.5" />{tv.backToLatest}
             </button>
           )}
-          {/* スマホ用の下部ステータスバー（PCは右パネルへ） */}
+          {/*
+            スマホ用の下部ステータスバー（PCは右パネルへ）。
+            2026-09-11 修正（CEO 実機報告・iPhone Safari / WeChat）: 状態表示と2つのボタンを1行に押し込んでいたため、
+            接続中だけ出る「言い方がわからない」（2026-08-26 追加）と「テキストで練習する」で幅を使い切り、
+            状態の文字が1文字ずつ縦に並んで重なっていた。状態表示に最低幅を持たせ、足りなければボタンを2行目へ折り返す。
+            さらに狭い端末（〜320px）ではボタン同士も折り返す
+          */}
           <div className="lg:hidden bg-white border-t border-gray-200 px-4 pt-3 shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 min-w-0">{statusIndicator(false)}</div>
-              {stuckBtn}
-              <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2" data-testid="voice-mobile-status-bar">
+              <div className="flex-1 min-w-[12rem]">{statusIndicator(false)}</div>
+              <div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+                {stuckBtn}
+                <button type="button" onClick={switchText} className="min-h-11 px-3 py-2 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 shrink-0 transition-colors active:bg-gray-100 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-3.5 h-3.5" />{tv.switchToText}</button>
+              </div>
             </div>
           </div>
         </div>
