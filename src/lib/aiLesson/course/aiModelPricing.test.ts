@@ -133,14 +133,46 @@ describe('単価が1か所にまとまっている', () => {
     }
   });
 
-  it('migration の seed と TS の単価表が一致する（DBが正・TSは写し）', () => {
+  /**
+   * DB の値 ＝ seed（20260824150000）に、その後の「update public.ai_model_prices set <列> = <値> where model = '<model>'」
+   * 形の migration を日付順に当てたもの。単価の修正は seed を書き換えず update の migration で行う
+   * （2026-09-10 Phase 8: gpt-realtime-2.1 の text output 16 → 24）。
+   */
+  const dbPrices = () => {
     const sql = fs.readFileSync(MIGRATION, 'utf8');
     const m = sql.match(/jsonb_to_recordset\('(\[[\s\S]*?\])'::jsonb\)/);
     expect(m, 'seed の JSON が見つからない').not.toBeNull();
-    const seeded = JSON.parse(m![1]) as {
+    const seeded = JSON.parse(m![1]) as Record<string, number | string>[];
+    const byModel = new Map(seeded.map((s) => [s.model as string, { ...s }]));
+    const dir = 'supabase/migrations';
+    const updates = fs.readdirSync(dir).filter((f) => /^\d{14}_.*\.sql$/.test(f) && !f.includes('.rollback.')).sort();
+    for (const f of updates) {
+      const body = fs.readFileSync(`${dir}/${f}`, 'utf8');
+      if (!/update\s+public\.ai_model_prices/i.test(body)) continue;
+      const re = /update\s+public\.ai_model_prices\s+set\s+([\s\S]*?)\s+where\s+model\s*=\s*'([^']+)'/gi;
+      let u: RegExpExecArray | null;
+      while ((u = re.exec(body)) !== null) {
+        const row = byModel.get(u[2]);
+        expect(row, `${f}: ${u[2]} は seed に無い`).toBeTruthy();
+        for (const [, col, val] of u[1].matchAll(/(\w+_per_million)\s*=\s*([\d.]+)/g)) row![col] = Number(val);
+      }
+    }
+    return [...byModel.values()] as {
       model: string; input_per_million: number; cached_input_per_million: number;
       output_per_million: number; audio_input_per_million: number; audio_output_per_million: number;
     }[];
+  };
+
+  it('text output の修正 migration が存在し、16 → 24 を where で守っている（二重適用しても壊れない）', () => {
+    const fix = fs.readFileSync('supabase/migrations/20260910130000_fix_realtime_text_output_price.sql', 'utf8');
+    expect(fix).toMatch(/set output_per_million = 24/);
+    expect(fix).toMatch(/where model = 'gpt-realtime-2.1'\s+and output_per_million = 16/);
+    expect(fix).toMatch(/developers\.openai\.com\/api\/docs\/pricing/);
+    expect(fs.existsSync('supabase/migrations/20260910130000_fix_realtime_text_output_price.rollback.sql')).toBe(true);
+  });
+
+  it('migration の seed（＋その後の update）と TS の単価表が一致する（DBが正・TSは写し）', () => {
+    const seeded = dbPrices();
     expect(seeded.map((s) => s.model).sort()).toEqual(Object.keys(MODEL_PRICES).sort());
     for (const s of seeded) {
       const p = MODEL_PRICES[s.model];

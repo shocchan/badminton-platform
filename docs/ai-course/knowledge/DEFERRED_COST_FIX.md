@@ -2,6 +2,17 @@
 
 2026-09-10 に公式の料金表と突合して見つかった不整合。**CEO承認なしで本番DBを書き換えないため保留**。
 
+## 状態（2026-09-10 Phase 8）— **migration 準備済み・本番未適用**
+
+| | |
+|---|---|
+| migration | `supabase/migrations/20260910130000_fix_realtime_text_output_price.sql`（rollback あり） |
+| TS | `aiModelPricing.ts` は 24 に修正済み（同じ commit）。テストは「seed ＋ update migration」と TS の一致を見る |
+| 本番 DB | **未適用**。`ai_model_prices.gpt-realtime-2.1.output_per_million` はまだ 16 |
+| 適用コマンド（CEO 確認後） | `node scripts/ai-course/remote-sql.mjs --file supabase/migrations/20260910130000_fix_realtime_text_output_price.sql --write --label "fix realtime text output price 16→24"` |
+| 二重適用 | where 句が「いまの値が 16」なので、二重に当てても何も起きない |
+| 価格への影響 | 音声価格・商品価格・回数券の価格は変更なし（下記） |
+
 ## 対象
 
 | | |

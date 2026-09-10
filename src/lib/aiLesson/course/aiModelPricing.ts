@@ -54,12 +54,14 @@ export const MODEL_PRICES: Record<string, ModelPrice> = {
     model: 'gpt-realtime-2.1',
     inputPerMillion: 4,
     cachedInputPerMillion: 0.4,
-    outputPerMillion: 16,
+    // 2026-09-10: 公式の料金表と突合してテキスト出力を 16 → 24 に修正（Phase 8）。
+    // DB 側は 20260910130000_fix_realtime_text_output_price.sql（本番適用は CEO 確認のうえで）
+    outputPerMillion: 24,
     audioInputPerMillion: REALTIME_COST.inputPerMillion,   // repo:courseConfig.ts (32)
     audioOutputPerMillion: REALTIME_COST.outputPerMillion, // repo:courseConfig.ts (64)
     provenance:
       'repo:src/lib/aiLesson/course/courseConfig.ts REALTIME_COST(32/64) '
-      + '+ list:realtime text 4/16, cached audio 0.4 (未突合)',
+      + '+ list:realtime text 4/24 (developers.openai.com/api/docs/pricing 2026-09-10), cached audio 0.4 (未突合)',
   },
   'gpt-realtime-2.1-mini': {
     model: 'gpt-realtime-2.1-mini',
