@@ -49,6 +49,12 @@ import { N1_VOCAB_BATCH_03 } from './n1VocabBatch03';
 import { N1_VOCAB_BATCH_04 } from './n1VocabBatch04';
 import { N1_VOCAB_BATCH_05 } from './n1VocabBatch05';
 import { N1_VOCAB_BATCH_06 } from './n1VocabBatch06';
+// 2026-09-10 Phase 2-4: N1 の監査で足りないと分かった語だけ追加（batchNo 47〜49）。
+// 47 抽象名詞・書き言葉 / 48 副詞・な形容詞 / 49 動詞・い形容詞。件数合わせはしていない。
+// N1 教材に出るが語自体は N2 相当のものは level: 'N2' で入っている（語ごとに級を判定）
+import { N1_VOCAB_BATCH_07 } from './n1VocabBatch07';
+import { N1_VOCAB_BATCH_08 } from './n1VocabBatch08';
+import { N1_VOCAB_BATCH_09 } from './n1VocabBatch09';
 
 export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...CORE_BATCH_01, ...CORE_BATCH_02, ...CORE_BATCH_03,
@@ -59,6 +65,7 @@ export const ALL_VOCAB_CONTENT: VocabOriginalContent[] = [
   ...N2_VOCAB_BATCH_05, ...N2_VOCAB_BATCH_06, ...N2_VOCAB_BATCH_07, ...N2_VOCAB_BATCH_08,
   ...STARTER_BATCH_01, ...STARTER_BATCH_02, ...STARTER_BATCH_03,
   ...N1_VOCAB_BATCH_01, ...N1_VOCAB_BATCH_02, ...N1_VOCAB_BATCH_03, ...N1_VOCAB_BATCH_04, ...N1_VOCAB_BATCH_05, ...N1_VOCAB_BATCH_06,
+  ...N1_VOCAB_BATCH_07, ...N1_VOCAB_BATCH_08, ...N1_VOCAB_BATCH_09,
 ];
 
 export const contentBySurfaceReading = (): Map<string, VocabOriginalContent> => {
