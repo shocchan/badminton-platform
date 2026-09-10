@@ -431,12 +431,15 @@ export const AdvAnswerSheetRunner = ({ lang, profile, onSave, onBack }: Props) =
               <li key={`${r.paperId}-${r.submittedAtISO}-${i}`}>
                 <button type="button" onClick={() => setReviewResult(r)}
                   className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-left text-sm`}>
-                  <span className="min-w-0 truncate text-gray-700">{tx(lang, r.titleJa, r.titleZh)}</span>
-                  <span className="flex shrink-0 items-center gap-1 text-gray-500">
-                    {r.submittedAtISO.slice(0, 10)}・
-                    {r.scorePct !== null ? `${r.scorePct}%` : tx(lang, '採点は先生からWeChatで届きます', '评分由老师通过微信发给你')}
-                    <ChevronRight className="h-4 w-4 text-gray-400" aria-hidden />
+                  {/* 2026-09-11: 未採点の文言を題名と同じ行（shrink-0）に並べると360/390pxで題名が0幅に潰れていた。日付・状態は題名の下の2行目へ（上の用紙行と同じ形） */}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-gray-700">{tx(lang, r.titleJa, r.titleZh)}</span>
+                    <span className="block text-xs text-gray-500">
+                      {r.submittedAtISO.slice(0, 10)}・
+                      {r.scorePct !== null ? `${r.scorePct}%` : tx(lang, '採点は先生からWeChatで届きます', '评分由老师通过微信发给你')}
+                    </span>
                   </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
                 </button>
               </li>
             ))}

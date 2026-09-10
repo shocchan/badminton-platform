@@ -176,6 +176,11 @@ export function AdvKanaDojo({ lang, rowIds, onFinishCheck, onRowsDone, onBack }:
     );
   }
   if (stage !== 'quiz') {
+    // 5列固定だと360px幅で拗音（きゃ）が1マスに入らず、語（おとうさん）は縦に積まれていた。
+    // 行で一番長いかなの文字数で列数と字の大きさを決め、1語を折り返さない（2026-09-11）
+    const maxKanaLen = Math.max(...row.chars.map((c) => Array.from(c.kana).length));
+    const gridCols = maxKanaLen >= 3 ? 'grid-cols-2' : maxKanaLen === 2 ? 'grid-cols-3' : 'grid-cols-5';
+    const kanaSize = maxKanaLen >= 3 ? 'text-2xl' : 'text-3xl';
     return (
       <div className="mx-auto w-full max-w-md px-4 py-8">
         <p className="text-xs font-semibold text-gray-500">
@@ -185,10 +190,10 @@ export function AdvKanaDojo({ lang, rowIds, onFinishCheck, onRowsDone, onBack }:
         <p className="mt-1 text-sm text-gray-600">
           {tx(lang, '声に出しながら、読み方をおぼえましょう。', '一边出声读，一边记住读法。')}
         </p>
-        <div className="mt-4 grid grid-cols-5 gap-2">
+        <div className={`mt-4 grid ${gridCols} gap-2`}>
           {row.chars.map((c) => (
             <div key={c.kana} className="rounded-xl border border-gray-200 bg-white p-2 text-center">
-              <p className="text-3xl font-bold text-gray-900">{c.kana}</p>
+              <p className={`${kanaSize} whitespace-nowrap font-bold text-gray-900`}>{c.kana}</p>
               <p className="mt-1 text-xs font-semibold text-blue-700">{c.romaji}</p>
             </div>
           ))}

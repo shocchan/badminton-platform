@@ -91,6 +91,9 @@ export function ConversationTopupCard({ lang, nextAvailableAtISO, credits, nowIS
               const v = topupView(t, lang);
               const best = t.credits > 1;   // 5回券。単価が安いほうに印をつける
               const perUse = Math.round(t.priceJpy / t.credits);
+              const cut = v.priceLabel.indexOf('（');
+              const priceMain = cut > 0 ? v.priceLabel.slice(0, cut) : v.priceLabel;
+              const priceNote = cut > 0 ? v.priceLabel.slice(cut) : '';
               return (
                 <button key={v.id} type="button" onClick={() => void buy(v.id)} disabled={busy !== null}
                   className={`group relative w-full rounded-2xl border px-4 py-3.5 text-left transition-all disabled:opacity-50 ${
@@ -103,8 +106,10 @@ export function ConversationTopupCard({ lang, nextAvailableAtISO, credits, nowIS
                       {zh ? '每次更便宜' : '1回あたりおトク'}
                     </span>
                   )}
+                  {/* 2026-09-11 360px幅だと「1,350日元（含税）」の1行が説明を約65pxまで潰していた。
+                      税の注記を価格の下に積んで右側を細くする（文言・価格は同じ文字列を2段に分けただけ） */}
                   <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <p className="text-[15px] font-bold text-gray-900">{v.name}</p>
                       <p className="mt-0.5 text-[11px] leading-relaxed text-gray-500">
                         {zh ? `每次最长${PAID_SESSION_MINUTES}分钟` : `1回あたり最大${PAID_SESSION_MINUTES}分`}
@@ -112,7 +117,10 @@ export function ConversationTopupCard({ lang, nextAvailableAtISO, credits, nowIS
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <span className="text-lg font-extrabold tabular-nums text-gray-900">{v.priceLabel}</span>
+                      <span className="flex shrink-0 flex-col items-end">
+                        <span className="text-lg font-extrabold leading-tight tabular-nums text-gray-900">{priceMain}</span>
+                        {priceNote && <span className="text-[10px] leading-tight text-gray-500">{priceNote}</span>}
+                      </span>
                       {busy === v.id
                         ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" aria-hidden />
                         : <ArrowRight className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" aria-hidden />}

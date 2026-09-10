@@ -54,9 +54,10 @@ export function AdvCelebrationOverlay({ lang, item, companionId, onClose, onGoMa
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/55 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto overflow-x-hidden bg-black/55 p-4"
       role="dialog" aria-modal="true" aria-label={headlineOf(lang, item)}
     >
+      {/* 2026-09-11: 放射(26rem=416px)がスマホ幅(360〜390px)を超え横スクロールが出るため、横方向だけ切る */}
       <div className="relative w-full max-w-sm">
         {/* 祝いの放射（飾り。reduced-motionでは静止） */}
         <div aria-hidden className="pointer-events-none absolute inset-0 m-auto h-[26rem] w-[26rem] max-w-none overflow-hidden">

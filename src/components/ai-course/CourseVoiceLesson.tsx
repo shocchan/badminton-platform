@@ -19,13 +19,6 @@ import {
   rolloutStageOf, DEFAULT_INTERRUPTION,
   type InterruptionMode,
 } from '../../lib/aiLesson/interruptionPolicy';
-
-/** QA パネル用の方式名（日本語） */
-const MODE_LABEL: Record<InterruptionMode, string> = { adaptive: '自然な割り込み', half_duplex: '半二重' };
-
-const safeSessionStorage = (): Storage | null => {
-  try { return window.sessionStorage; } catch { return null; }
-};
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -39,6 +32,13 @@ import { translateTutorLine, cachedTranslation, estimateTranslateCostUsd } from 
 import type { AiCourseDict } from '../../locales/aiCourse';
 import { buildLearnerNotes } from '../../lib/aiLesson/course/adventure/advLearnerMemo';
 import type { CourseSessionRecord, CourseUtterance, Learner, LessonPlanStep } from '../../lib/aiLesson/course/types';
+
+/** QA パネル用の方式名（日本語） */
+const MODE_LABEL: Record<InterruptionMode, string> = { adaptive: '自然な割り込み', half_duplex: '半二重' };
+
+const safeSessionStorage = (): Storage | null => {
+  try { return window.sessionStorage; } catch { return null; }
+};
 
 export interface VoiceLessonResult {
   utterances: CourseUtterance[];
@@ -691,11 +691,12 @@ export const CourseVoiceLesson = ({
       {/* ── トップバー ── */}
       <div className="bg-white border-b border-gray-200 px-3 lg:px-4 py-2 shrink-0">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-2">
+          {/* 2026-09-11: 360px の日本語で右端のバッジが画面外に切れていた。終了ボタンの文字だけ省略して縮め、右側（言語・残り時間・バッジ）は縮めない（読み上げは aria-label で全文） */}
           <button type="button" onClick={() => setConfirmOpen(true)} disabled={ending} aria-label={tv.endLessonButton}
-            className="min-h-11 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40 transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-            <X className="w-5 h-5" /><span className="text-xs font-medium whitespace-nowrap">{tv.endLessonButton}</span>
+            className="min-h-11 min-w-0 -ml-1 px-2 flex items-center gap-1 text-gray-500 hover:text-gray-700 rounded-lg disabled:opacity-40 transition-colors active:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+            <X className="w-5 h-5 shrink-0" /><span className="text-xs font-medium truncate">{tv.endLessonButton}</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {langBtn}
             <div className="flex items-center gap-1.5">
               <Clock className={`w-4 h-4 ${remaining <= 30 && !inExt ? 'text-red-500' : 'text-blue-600'}`} />
@@ -732,17 +733,20 @@ export const CourseVoiceLesson = ({
       {/* ── 本体: スマホ=1カラム / PC=会話（左）＋補助（右）の2カラム ── */}
       <div className="flex-1 min-h-0 w-full max-w-6xl mx-auto flex flex-col lg:flex-row">
         {/* 左: 会話 */}
-        <div className="flex-1 min-h-0 relative flex flex-col">
-          <div ref={scrollRef} onScroll={onHistoryScroll} className="flex-1 overflow-y-auto px-3 lg:px-6 py-3 lg:py-5 space-y-3 overscroll-contain">
-            {conversation}
+        <div className="flex-1 min-h-0 flex flex-col">
+          {/* 2026-09-11: 「最新へ戻る」の基準を左カラム全体にしていたため、スマホでは下部バーの上に重なり「言い方がわからない」を隠していた。会話一覧だけを基準にする */}
+          <div className="relative flex-1 min-h-0 flex flex-col">
+            <div ref={scrollRef} onScroll={onHistoryScroll} className="flex-1 overflow-y-auto px-3 lg:px-6 py-3 lg:py-5 space-y-3 overscroll-contain">
+              {conversation}
+            </div>
+            {/* 最新へ戻る（過去ログ閲覧中のみ） */}
+            {!atBottom && (
+              <button type="button" onClick={() => scrollToLatest()}
+                className="absolute bottom-3 left-1/2 -translate-x-1/2 min-h-9 px-3 py-1.5 bg-gray-900/85 text-white text-xs font-medium rounded-full shadow-lg flex items-center gap-1 transition-colors active:bg-gray-800 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
+                <ChevronDown className="w-3.5 h-3.5" />{tv.backToLatest}
+              </button>
+            )}
           </div>
-          {/* 最新へ戻る（過去ログ閲覧中のみ） */}
-          {!atBottom && (
-            <button type="button" onClick={() => scrollToLatest()}
-              className="absolute bottom-3 left-1/2 -translate-x-1/2 min-h-9 px-3 py-1.5 bg-gray-900/85 text-white text-xs font-medium rounded-full shadow-lg flex items-center gap-1 transition-colors active:bg-gray-800 touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-              <ChevronDown className="w-3.5 h-3.5" />{tv.backToLatest}
-            </button>
-          )}
           {/*
             スマホ用の下部ステータスバー（PCは右パネルへ）。
             2026-09-11 修正（CEO 実機報告・iPhone Safari / WeChat）: 状態表示と2つのボタンを1行に押し込んでいたため、
