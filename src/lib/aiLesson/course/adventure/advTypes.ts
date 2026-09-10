@@ -436,6 +436,12 @@ export interface AdventureV2Profile {
    */
   restateLog: AdvRestateLogEntry[];
   /**
+   * 知識項目ごとの出来事（2026-09-10 Phase 3）。台帳が持てないもの＝言い直し・再挑戦の成否だけ。
+   * 選択問題の正誤は台帳（mastery）から毎回導出し、ここへは書き写さない（二重管理にしない）。
+   * append-only・上限 400（knowledge/learnerKnowledgeState.ts）。旧データには無い
+   */
+  knowledgeLog: import('../knowledge/learnerKnowledgeState').KnowledgeEvent[];
+  /**
    * ことば集め（2026-09-07 第2版）。受け取った「今日のことば」がここにたまる。
    * 本文は持たず id と日付だけ（advProverbDex.ts）。
    */

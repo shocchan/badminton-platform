@@ -82,6 +82,10 @@ import { AdvCelebrationOverlay } from './AdvCelebrationOverlay';
 import { AdvDailyCheckin } from './AdvDailyCheckin';
 import { recordVisit, markCardShown, shouldShowCheckin } from '../../../lib/aiLesson/course/adventure/advVisit';
 import { dueRestates, markRestate } from '../../../lib/aiLesson/course/adventure/advRestateReview';
+// 知識項目 × 学習者の状態（2026-09-10 Phase 3）。台帳は読むだけ。書くのは言い直しの成否だけ
+import { buildKnowledgeState, rankWeakGrammarIds, appendKnowledgeEvent } from '../../../lib/aiLesson/course/knowledge/learnerKnowledgeState';
+import { vocabIdIndex } from '../../../lib/aiLesson/course/knowledge/vocabIdIndex';
+import { parseKnowledgeId } from '../../../lib/aiLesson/course/knowledge/knowledgeId';
 import { AdvProverbDex } from './AdvProverbDex';
 import { todayProverbFor } from '../../../lib/aiLesson/course/adventure/advDailyGift';
 import {
@@ -990,9 +994,20 @@ export default function AdvShell(props: AdvShellProps) {
         profile.route!, stage, mastered, stageDone, waiting);
       if (!alive) return;
       setStageCt(ct);
-      const weak = Object.entries(profile.mastery)
-        .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at.length > 0 && at[at.length - 1].scorePct < 80)
-        .map(([id]) => id).slice(0, 5);
+      /**
+       * 弱点文法（2026-09-10 Phase 3 で作り替え）。
+       * 以前は N2/N3 の文法だけを見ていた＝N1・N5/N4 の文法は何度落としても弱点にならなかった。
+       * 級で絞らず「文法の知識項目」全部を見る。並びは知識項目の状態で決める：
+       * **選択問題では分かるのに言い直しで失敗しているもの**を先に（recognition と production を分ける）
+       */
+      const weakRaw = Object.entries(profile.mastery)
+        .filter(([id, at]) => parseKnowledgeId(id)?.kind === 'grammar' && at && at.length > 0 && at[at.length - 1].scorePct < 80)
+        .map(([id]) => id);
+      const knowledgeState = buildKnowledgeState({
+        ledger: profile.mastery, sessions: props.sessions, knowledgeLog: profile.knowledgeLog,
+        vocabIdBySurfaceReading: vocabIdIndex(), dateKeyOf: (iso) => dateKeyOf(new Date(iso)),
+      });
+      const weak = rankWeakGrammarIds(weakRaw, knowledgeState, dateKey).slice(0, 5);
       // 試験後（負）はnull＝「試験まで◯日」文と追い込み配分を出さない（advQuest側は非負のみ受ける）
       const rawDays = daysToExamOf(profile.examDateISO, dateKey);
       const daysToExam = rawDays !== null && rawDays >= 0 ? rawDays : null;
@@ -2132,12 +2147,13 @@ export default function AdvShell(props: AdvShellProps) {
       return null;
     })();
     // ② バトル誤答は内部IDではなくpatternで見せる（原則13）。patternを引けないIDは素材にしない
+    // 級で絞らない（2026-09-10 Phase 3）。grammarId を持ち回り、言い直しの成否を知識項目へ記録する
     const wrongExpressions = Object.entries(prof.mastery)
-      .filter(([id, at]) => (id.startsWith('n2g-') || id.startsWith('n3g-')) && at && at[at.length - 1]?.scorePct < 80)
-      .map(([id]) => grammarPatternById(id))
-      .filter((p): p is string => p !== null)
+      .filter(([id, at]) => parseKnowledgeId(id)?.kind === 'grammar' && at && at[at.length - 1]?.scorePct < 80)
+      .map(([id]) => ({ grammarId: id, pattern: grammarPatternById(id) }))
+      .filter((x): x is { grammarId: string; pattern: string } => x.pattern !== null)
       .slice(0, 3)
-      .map((p) => ({ expression: p, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
+      .map((x) => ({ expression: x.pattern, grammarId: x.grammarId, meaningJa: tx(lang, 'バトルで間違えた文法', '战斗中答错的语法') }));
     /**
      * ③ 今日の会話が無い日は、**前に直された言い方**（1・3・7日後にもう一度出るもの）を素材にする。
      * これまで、おかえりカードの中でしか出ていなかったので、
@@ -2156,6 +2172,22 @@ export default function AdvShell(props: AdvShellProps) {
     const finishRestate = (said: boolean) => {
       // 素材が「前に直された言い方」なら、1・3・7日の記録へ返す（自己申告と同じ扱い）
       if (dueItem) markRestateSaid(dueItem.key, said);
+      /**
+       * 素材がバトルで落とした文法なら、**産出（production）の成否**を知識項目へ記録する（2026-09-10 Phase 3）。
+       * 台帳（mastery）は選択問題の正誤しか持てない。「選択では分かるが自分では言えない」を
+       * システムが区別できるのは、ここで別の経路として残すから。会話の直し（ID無し）は記録しない
+       */
+      const restatedGrammar = material.source === 'battle_mistake'
+        ? wrongExpressions.find((w) => w.expression === material.afterJa)?.grammarId ?? null : null;
+      if (restatedGrammar && profile) {
+        const nowIso = new Date().toISOString();
+        save({
+          ...profile,
+          knowledgeLog: appendKnowledgeEvent(profile.knowledgeLog, {
+            at: nowIso, dateKey, itemId: restatedGrammar, channel: 'production', kind: 'restate', ok: said, source: 'restate:battle_mistake',
+          }),
+        });
+      }
       if (stepIdx >= 0) markStep(stepIdx);
       resetRestate();
       setView('home');

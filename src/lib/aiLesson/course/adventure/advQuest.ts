@@ -61,7 +61,9 @@ export const VOCAB_BANDS_IN_SCOPE: Record<JlptLevel, readonly string[]> = {
   N4: ['vocab-n5', 'vocab-n4'],
   N3: ['vocab-n5', 'vocab-n4', 'vocab-n3'],
   N2: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2'],
-  N1: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2'],
+  // 2026-09-10 Phase 3: 'vocab-n1' が無く、N1 目標の語彙バトルが N2 語までしか出なかった
+  // （N1 語彙 513 語がバトルに一度も出ない＝級に忠実でない）。N1 の帯を足す
+  N1: ['vocab-n5', 'vocab-n4', 'vocab-n3', 'vocab-n2', 'vocab-n1'],
 };
 
 /**
@@ -105,6 +107,9 @@ export const vocabTargetForStage = (
     }
     if (kind === 'foundation_camp' || kind === 'n3_bridge') return dayNum % 2 === 0 ? 'vocab-n5' : 'vocab-n4';
     if (kind === 'n2_grammar') return dayNum % 2 === 0 ? 'vocab-n2' : 'vocab-n3';
+    // N1 の上層（2026-09-10 Phase 3）。以前は既定の 'vocab-n3' に落ちていた
+    if (kind === 'n1_grammar') return dayNum % 2 === 0 ? 'vocab-n1' : 'vocab-n2';
+    if (kind === 'mock_boss' && targetLevel === 'N1') return 'vocab-n1';
     if (kind === 'mock_boss' && targetLevel === 'N2') return 'vocab-n2';
     return 'vocab-n3';
   })();

@@ -19,6 +19,7 @@ import {
 import { restoreTeacherNotes } from './advTeacherNote';
 import { restoreVisit, emptyVisitState } from './advVisit';
 import { restoreRestateLog } from './advRestateReview';
+import { restoreKnowledgeLog } from '../knowledge/learnerKnowledgeState';
 import { restoreLearningDays, emptyLearningDays } from './advLearningDay';
 import { restoreProverbDex } from './advProverbDex';
 
@@ -58,6 +59,7 @@ export const defaultAdvProfile = (nowISO: string): AdventureV2Profile => ({
   streak: null,
   visit: emptyVisitState(),
   restateLog: [],
+  knowledgeLog: [],
   proverbDex: [],
   answerSheets: [],
   answerSheetSession: null,
@@ -254,6 +256,8 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
     visit: restoreVisit(raw.visit),
     // 言い直し復習の記録（2026-09-07）。ここで拾わないと生徒の次の保存で消える
     restateLog: restoreRestateLog(raw.restateLog),
+    // 知識項目の出来事（2026-09-10 Phase 3）。ここで拾わないと生徒の次の保存で消える
+    knowledgeLog: restoreKnowledgeLog(raw.knowledgeLog),
     // ことば集め（2026-09-07）。ここで拾わないと生徒の次の保存で消える
     proverbDex: restoreProverbDex(raw.proverbDex),
     // 期限切れのスキップは読み込み時点で落とす（保存が肥大化しない・解除漏れも起きない）
