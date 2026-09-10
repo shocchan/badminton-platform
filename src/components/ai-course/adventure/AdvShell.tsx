@@ -150,10 +150,17 @@ export interface AdvShellProps {
   onSaveSettings: (next: LearnerSettings) => void;
   /* onOpenReview は撤去（2026-08-18 監査P1）。呼び先は旧コースの「ことばの3分復習」で、
      V2の生徒には常に空だった。V2の復習は間違えた問題ノートの解き直し＝AdvShell内で完結する */
-  onStartConversation: () => void;
+  /** missionId を渡すと、その場面でプランを組み直してから会話画面へ行く */
+  onStartConversation: (missionId?: string) => void;
   conversationAvailable: boolean;
   /** 今週あと何回AI会話できるか（週3回・全員）。分からなければ null＝数字を出さない */
   conversationRemainingWeek?: number | null;
+  /**
+   * 自分で選べる話す場面（2026-09-10 CEO要望「AI会話の中に話す場面を選べるように」）。
+   * **並べたものは必ず開始できる**（前提を満たさない場面は親が外している）。
+   * 2つ未満なら選択画面を出さず、これまでどおりそのまま会話へ行く。
+   */
+  conversationCandidates?: { id: string; titleJa: string; titleZh: string; targetExpression: string }[];
   /** 会話を出せない理由（体験の残り時間不足など）。既定文言より具体的に言えるときだけ渡す */
   conversationUnavailableReasonJa?: string;
   conversationUnavailableReasonZh?: string;
@@ -195,7 +202,7 @@ export interface AdvShellProps {
   planRegionLimit?: number | null;
 }
 
-type View = 'themes' | 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn' | 'kotoba';
+type View = 'themes' | 'convscenes' | 'home' | 'mistakes' | 'map' | 'readiness' | 'grammar' | 'battle' | 'complete' | 'prep' | 'reading' | 'listening' | 'restate' | 'mock' | 'teacher' | 'weekly' | 'sheets' | 'interview' | 'kana' | 'personal' | 'mockreview' | 'dex' | 'vocablearn' | 'kotoba';
 interface BattleCtx {
   tier: AdvEnemyTier; targetId: string; targetLabel: string; targetIds: string[];
   /**
@@ -1838,6 +1845,47 @@ export default function AdvShell(props: AdvShellProps) {
 
   // ── 新しいことばを覚える（2026-09-06）──
   // 出会い・正誤は台帳へ1回の試行として書く。書いたぶんは単語図鑑にそのまま載る
+  if (view === 'convscenes') {
+    /*
+     * 話す場面を自分で選ぶ（2026-09-10 CEO要望）。
+     * 並んでいるものは**必ず開始できる**（前提を満たさない場面は親が外している）。
+     * いちばん上が「いつも通り」の場面＝選ばなくても迷わないように順番を変えない。
+     */
+    const scenes = props.conversationCandidates ?? [];
+    return (
+      <div className="mx-auto w-full max-w-md px-4 py-4">
+        <button type="button" onClick={() => setView('home')}
+          className={`${pressFx} mb-2 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm text-gray-500`}>
+          ← {tx(lang, '今日の冒険にもどる', '回到今天的冒险')}
+        </button>
+        <h2 className="text-lg font-bold text-gray-900">{tx(lang, '今日はどれを話しますか？', '今天想练哪一个？')}</h2>
+        <p className="mt-1 text-xs leading-relaxed text-gray-500">
+          {tx(lang, '選んだ場面で、AI先生と話します。迷ったら、いちばん上でだいじょうぶです。',
+            '你选的场景，就是和AI老师练习的内容。拿不定主意的话，选最上面那个就好。')}
+        </p>
+        <div className="mt-3 flex flex-col gap-2">
+          {scenes.map((m, i) => (
+            <button key={m.id} type="button"
+              onClick={() => {
+                trackAdv('conversation_started', { locale: lang });
+                props.onStartConversation(m.id);
+              }}
+              className={`${pressFx} flex w-full min-h-14 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left ${
+                i === 0 ? 'border-teal-300 bg-teal-50/60' : 'border-gray-200 bg-white'
+              }`}>
+              <span className="min-w-0">
+                <span className="block text-sm font-bold text-gray-900">{lang === 'zh' ? m.titleZh : m.titleJa}</span>
+                <span className="block text-[11px] leading-relaxed text-gray-500">
+                  {tx(lang, '使ってみることば', '要试着使用的表达')}：「{m.targetExpression}」
+                </span>
+              </span>
+              <span aria-hidden className="shrink-0 text-gray-400">›</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (view === 'themes') {
     /*
      * 学習テーマの棚（2026-09-09 CEO要望）。
@@ -1853,10 +1901,10 @@ export default function AdvShell(props: AdvShellProps) {
           className={`${pressFx} mb-2 flex min-h-11 items-center gap-1.5 rounded-lg px-1 text-sm text-gray-500`}>
           ← {tx(lang, '今日の冒険にもどる', '回到今天的冒险')}
         </button>
-        <h2 className="text-lg font-bold text-gray-900">{tx(lang, 'テーマから選んで学ぶ', '按主题选择学习')}</h2>
+        <h2 className="text-lg font-bold text-gray-900">{tx(lang, '単語をレベルから選んで学ぶ', '按级别选择单词学习')}</h2>
         <p className="mt-1 text-xs leading-relaxed text-gray-500">
-          {tx(lang, '毎日の「今日のことば」とは別に、好きな級のことばを選んで練習できます。',
-            '除了每天的「今天的词汇」，你也可以自己选一个级别来练习。')}
+          {tx(lang, '毎日の「今日のことば」とは別に、好きな級の単語を選んで練習できます。会話ではなく単語の練習です。',
+            '除了每天的「今天的词汇」，你也可以自己选一个级别来练习单词。这里是单词练习，不是会话。')}
         </p>
         <div className="mt-3 flex flex-col gap-2">
           {themes.map((t) => {
@@ -3984,6 +4032,9 @@ export default function AdvShell(props: AdvShellProps) {
                   label={tx(lang, 'AI会話（ベータ）', 'AI会话（Beta）')}
                   badge={props.conversationRemainingWeek ?? undefined}
                   onClick={() => {
+                    // 選べる場面があるなら、まず選んでもらう（2026-09-10 CEO要望）。
+                    // 無ければ従来どおりそのまま会話へ＝選択肢の無い選択画面を作らない
+                    if ((props.conversationCandidates?.length ?? 0) > 1) { setView('convscenes'); return; }
                     trackAdv('conversation_started', { locale: lang });
                     props.onStartConversation();
                   }} />
@@ -4029,7 +4080,7 @@ export default function AdvShell(props: AdvShellProps) {
                   毎日の出題は級に忠実だが、ここは自分で取りに行く棚なので寄り道を塞がない。
                   選べるものが1つしか無い人（N5）には出さない＝選択肢の無い選択画面を作らない */}
               {themesAtOrBelow(effectiveContentLevel(profile)).length > 1 && (
-                <SubLink lang={lang} label={tx(lang, 'テーマから選んで学ぶ', '按主题选择学习')}
+                <SubLink lang={lang} label={tx(lang, '単語をレベルから選んで学ぶ', '按级别选择单词学习')}
                   onClick={() => { trackAdv('vocab_learn_started', { locale: lang }); setView('themes'); }} />
               )}
               {/* 新しいことばを覚える（2026-09-06）。全レベルで使える語彙学習の入口 */}

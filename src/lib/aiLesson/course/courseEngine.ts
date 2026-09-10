@@ -199,6 +199,13 @@ export const FIRST_EVER_MISSION_ID = 'w01m1';
 export interface SelectMissionOptions {
   /** この学習者が会話をまだ一度もしていない（呼び出し側が確認済みのときだけ true） */
   firstEverConversation?: boolean;
+  /**
+   * 学習者が**自分で選んだ場面**（2026-09-10 CEO要望「AI会話の中に話す場面を選べるように」）。
+   * 選べるのは selectMissionCandidates が返したものだけ＝前提を満たしていない場面は
+   * そもそも一覧に出ないので、ここで前提の再確認はしない。
+   * 管理者の指定（adminOverrides）のほうが強い＝先生の指示を学習者が上書きできない。
+   */
+  forcedMissionId?: string;
 }
 
 export const selectNextMission = (
@@ -212,6 +219,11 @@ export const selectNextMission = (
   if (learner.adminOverrides.nextMissionId) {
     const forced = missionById(learner.adminOverrides.nextMissionId);
     if (forced) return forced;
+  }
+  // 学習者が自分で選んだ場面。**先生の指定より下**（先生の指示を上書きさせない）
+  if (opts.forcedMissionId) {
+    const chosen = missionById(opts.forcedMissionId);
+    if (chosen?.isPublished) return chosen;
   }
   // 管理者の指定より下、通常の選択より上。まだ何も学習していないときだけ効く
   if (opts.firstEverConversation && !learned(FIRST_EVER_MISSION_ID)) {
@@ -240,6 +252,34 @@ export const selectNextMission = (
   // 全て学習済みなら未定着のうち最初のものを再提示
   const notRetained = ordered.find((m) => !isRetained(stateOf(m.id) ?? 'initial'));
   return notRetained ?? null;
+};
+
+/**
+ * **自分で選べる会話の場面**（2026-09-10 CEO要望）。
+ *
+ * selectNextMission と同じ条件（公開済み・未習得・前提を満たす）で並べ、先頭から数件返す。
+ * 選択肢に出したものは**必ず開始できる**（前提を満たさない場面を並べて、選んでから
+ * 断るのは行き止まり）。並び順も同じなので、いちばん上が「いつも通り」の場面になる。
+ */
+export const selectMissionCandidates = (
+  learner: Learner,
+  progresses: ItemProgress[],
+  limit = 5,
+): Mission[] => {
+  const stateOf = (id: string) => progresses.find((p) => p.itemId === id)?.masteryState;
+  const learned = (id: string) => stateOf(id) !== undefined;
+  const ordered = [...COURSE_MISSIONS]
+    .filter((m) => m.isPublished)
+    .sort((a, b) => a.week - b.week || a.order - b.order);
+
+  const entry = conversationEntryWeekOf(learner);
+  const eligible = ordered.filter((m) => m.week <= entry
+    && !learned(m.id)
+    && m.requiredPreviousItems.every((req) => learned(req)));
+  if (eligible.length > 0) return eligible.slice(0, limit);
+
+  // 出せる新規が無い人には、まだ定着していないものを復習として並べる（空の一覧を出さない）
+  return ordered.filter((m) => !isRetained(stateOf(m.id) ?? 'initial')).slice(0, limit);
 };
 
 /** 今日のレッスンプラン: 復習1（あれば）＋メイン（新規 or 期日復習）。3〜4分に収めるため詰め込まない。 */

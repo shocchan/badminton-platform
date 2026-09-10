@@ -36,6 +36,7 @@ import { deriveInitialLearner, V2_INVITE_DEFAULT_ANSWERS } from '../../lib/aiLes
 import type { DiagnosisAnswers } from '../../lib/aiLesson/course/courseDiagnosis';
 import {
   buildLessonPlan, updateMasteryState, adjustDifficulty, selectNextMission, missionById, courseEndDateISO,
+  selectMissionCandidates,
 } from '../../lib/aiLesson/course/courseEngine';
 import { learnerStats, weekStats, estimateSessionCost } from '../../lib/aiLesson/course/courseStats';
 import { computeSpeechMetrics, buildGrowthSnapshot, dueSnapshotTrigger, calculateSpeakingGrowth } from '../../lib/aiLesson/course/courseGrowth';
@@ -1750,7 +1751,21 @@ export default function AiCoursePage() {
               setPlan(buildLessonPlan(nextLearner, progress, undefined, { firstEverConversation: firstEverConv }));
               void courseRepository.updateLearner({ settings: next });
             }}
-            onStartConversation={() => setStep(plan ? 'conversationIntro' : 'home')}
+            /*
+              話す場面を自分で選べる（2026-09-10 CEO要望）。
+              選ばれたら、その場面でプランを組み直してから会話画面へ行く
+              ＝**選んだ場面と実際に話す内容を一致させる**（一覧だけ変えて中身が
+              変わらないのが、いちばん不誠実な作り）。
+            */
+            onStartConversation={(missionId) => {
+              if (missionId && learner) {
+                setPlan(buildLessonPlan(learner, progress, undefined, {
+                  firstEverConversation: firstEverConv, forcedMissionId: missionId,
+                }));
+              }
+              setStep('conversationIntro');
+            }}
+            conversationCandidates={learner ? selectMissionCandidates(learner, progress) : []}
             /* 残り時間が会話1回ぶん（4分）に満たないときは会話を出さない。
                始めた会話が途中で打ち切られてレポートも残らない、が最悪の終わり方
                （AdvShell側は「押しても無反応」にせず理由を出してstepを飛ばせる・2026-08-20） */
