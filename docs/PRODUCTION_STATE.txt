@@ -1,4 +1,4 @@
-deployed_at: 2026-09-06 22:28:22 +0800
+deployed_at: 2026-09-10 23:01:29 +0900
 branch:      integration/unify-2026-08-28
-commit:      3cb20ff4b4c79ba2b2ba7bb02a23f26a58d92e2c
-asset:       assets/index-Cm2swcLy.js
+commit:      81417d57945118555e1111364b829a9e40ba2ad6
+asset:       assets/index-CI7YfFmG.js
