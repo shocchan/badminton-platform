@@ -15,6 +15,10 @@
 
 import { fetchWithTimeout } from '../payment';
 import { markChatPaused } from './course/courseServiceStatus';
+import {
+  initialInterruptionState, onSpeechStarted, onSpeechStopped, confirmInterruption, onTutorSpeaking, onUserTranscriptAfterInterrupt,
+  type InterruptionRuntime, type InterruptionMode,
+} from './interruptionPolicy';
 
 export type VoiceSessionStatus =
   | 'idle'
@@ -45,6 +49,11 @@ export interface VoiceSessionCallbacks {
   onError: (kind: VoiceErrorKind, message?: string) => void;
   /** 先生が finish_lesson ツールを呼び、最終音声の再生完了を検出した時に1回だけ発火 */
   onFinishLesson: (reason: string) => void;
+  /**
+   * 割り込みの出来事（2026-09-10 Phase 7。QA・analytics 用。会話本文は含まない）。
+   * valid＝明確な発話で先生を止めた／ignored＝短い音を無視した／echo_suspect／fallback＝半二重へ戻した
+   */
+  onInterruption?: (info: { kind: 'valid' | 'ignored' | 'echo_suspect' | 'fallback'; mode: InterruptionMode }) => void;
   /**
    * サーバーが実際に適用した先生・音声。診断／analytics用。
    * **会話本文・secretは含まない。**
@@ -107,6 +116,12 @@ interface StartOptions {
    * （WeChat内ブラウザ等、エコーキャンセルが効かない環境で必須）
    */
   muteMicWhileTutorSpeaks?: boolean;
+  /**
+   * 割り込み方針（2026-09-10 Phase 7）。mode='adaptive' のときはマイクを止めず、
+   * 先生の発話中は VAD を厳しくし、一定時間続いた音だけを割り込みとみなす。
+   * エコーの疑いが重なればこのセッションだけ半二重へ戻る。未指定＝従来（muteMicWhileTutorSpeaks に従う）
+   */
+  interruption?: InterruptionRuntime;
   callbacks: VoiceSessionCallbacks;
 }
 
@@ -123,8 +138,17 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
   let micStream: MediaStream | null = null;
   // 半二重: 先生の発話中はマイクを止める（エコーループ対策）。再開は少し遅らせて残響を拾わない
   let micResumeTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * 割り込み方針（2026-09-10 Phase 7）。adaptive はマイクを止めない。
+   * エコーの疑いが重なると、この変数がセッション内で 'half_duplex' に切り替わる（全員を戻さない）
+   */
+  const interruption = opts.interruption ?? null;
+  let intState = initialInterruptionState(interruption?.mode ?? 'half_duplex');
+  let halfDuplex = interruption ? interruption.mode === 'half_duplex' : !!opts.muteMicWhileTutorSpeaks;
+  let interruptTimer: ReturnType<typeof setTimeout> | null = null;
+  let lastTutorTranscript = '';
   const setMicEnabled = (enabled: boolean) => {
-    if (!opts.muteMicWhileTutorSpeaks) return;
+    if (!halfDuplex) return;
     if (micResumeTimer) { clearTimeout(micResumeTimer); micResumeTimer = null; }
     if (enabled) {
       micResumeTimer = setTimeout(() => {
@@ -235,6 +259,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
 
   const stop = () => {
     if (stopped) return;
+    if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
     // UIへ状態を反映してから片付ける（speaking/listening 表示を確実に落とす）
     callbacks.onTutorSpeaking(false);
     callbacks.onUserSpeaking(false);
@@ -421,9 +446,24 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           case 'conversation.item.input_audio_transcription.delta':
             if (ev.delta) callbacks.onUserTranscript(ev.delta, false);
             break;
-          case 'conversation.item.input_audio_transcription.completed':
+          case 'conversation.item.input_audio_transcription.completed': {
             callbacks.onUserTranscript(ev.transcript ?? '', true);
+            // 割り込み直後の文字起こしが先生の発話と同じ＝エコーの疑い。重なればこのセッションだけ半二重へ（Phase 7）
+            if (interruption) {
+              const r = onUserTranscriptAfterInterrupt(intState, ev.transcript ?? '', lastTutorTranscript, Date.now(), interruption);
+              const suspected = r.state.counters.echoSuspects > intState.counters.echoSuspects;
+              intState = r.state;
+              if (suspected) callbacks.onInterruption?.({ kind: 'echo_suspect', mode: intState.mode });
+              if (r.decision.kind === 'fallback') {
+                halfDuplex = true;
+                if (audioPlaying) setMicEnabled(false);
+                // 半二重＝OpenAI 側の interrupt_response に戻す（従来の動き）
+                send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: opts.turnDetection ?? { ...interruption.vad.idle, interrupt_response: true } } } } });
+                callbacks.onInterruption?.({ kind: 'fallback', mode: 'half_duplex' });
+              }
+            }
             break;
+          }
           // 翔子先生の文字起こし
           case 'response.output_audio_transcript.delta':
             tutorBuffer += ev.delta ?? '';
@@ -431,27 +471,63 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
             break;
           case 'response.output_audio_transcript.done':
             callbacks.onTutorTranscript(ev.transcript ?? tutorBuffer, true);
+            lastTutorTranscript = ev.transcript ?? tutorBuffer;  // エコー判定の比較対象（Phase 7）
             tutorBuffer = '';
             break;
-          // 発話状態（割り込みはOpenAI側の interrupt_response で処理される）
-          case 'input_audio_buffer.speech_started':
+          // 発話状態。半二重では OpenAI 側の interrupt_response、adaptive ではクライアントの規則で止める（Phase 7）
+          case 'input_audio_buffer.speech_started': {
             userSpeaking = true;
             sawMicSignal = true; // サーバーが音を検知＝マイクは届いている
             callbacks.onUserSpeaking(true);
+            if (interruption) {
+              const r = onSpeechStarted(intState, Date.now(), interruption); intState = r.state;
+              if (r.decision.kind === 'arm') {
+                if (interruptTimer) clearTimeout(interruptTimer);
+                interruptTimer = setTimeout(() => {
+                  interruptTimer = null;
+                  const c = confirmInterruption(intState, Date.now()); intState = c.state;
+                  if (c.decision.kind === 'interrupt' && !stopped) {
+                    // 明確な発話＝先生を止めて生徒へターンを渡す。create_response は VAD 側が担う
+                    send({ type: 'response.cancel' });
+                    send({ type: 'output_audio_buffer.clear' });
+                    callbacks.onInterruption?.({ kind: 'valid', mode: intState.mode });
+                  }
+                }, Math.max(0, r.decision.fireAtMs - Date.now()));
+              }
+            }
             break;
-          case 'input_audio_buffer.speech_stopped':
+          }
+          case 'input_audio_buffer.speech_stopped': {
             userSpeaking = false;
             callbacks.onUserSpeaking(false);
+            if (interruption) {
+              const r = onSpeechStopped(intState, Date.now(), interruption); intState = r.state;
+              if (r.decision.kind === 'ignore') {
+                if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
+                callbacks.onInterruption?.({ kind: 'ignored', mode: intState.mode });
+              }
+            }
             break;
+          }
           case 'output_audio_buffer.started':
             audioPlaying = true;
             setMicEnabled(false); // 半二重: 先生の声をマイクに拾わせない
+            if (interruption) {
+              intState = onTutorSpeaking(intState, true);
+              // adaptive: 先生の発話中だけ VAD を厳しくする
+              if (intState.mode === 'adaptive') send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: interruption.vad.speaking } } } });
+            }
             callbacks.onTutorSpeaking(true);
             break;
           case 'output_audio_buffer.stopped':
           case 'output_audio_buffer.cleared':
             audioPlaying = false;
             setMicEnabled(true); // 半二重: 少し置いてから生徒の番
+            if (interruption) {
+              intState = onTutorSpeaking(intState, false);
+              if (interruptTimer) { clearTimeout(interruptTimer); interruptTimer = null; }
+              if (intState.mode === 'adaptive') send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: interruption.vad.idle } } } });
+            }
             callbacks.onTutorSpeaking(false);
             fireFinishIfReady(); // finish_lesson 受信済みなら最終音声完了として発火
             break;
@@ -484,7 +560,10 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
         // audio.input 配下（2026-08-23 実生徒監査: 旧形式のまま送っていて
         // 「Missing required parameter: 'session.type'」で毎回拒否されていた＝VAD調整と
         // まとめ移行の instructions が一度も効いていなかった）
-        if (opts.turnDetection) {
+        if (interruption && intState.mode === 'adaptive') {
+          // adaptive: 生徒の番の VAD（interrupt_response=false。止めるかはクライアントの規則で決める・Phase 7）
+          send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: interruption.vad.idle } } } });
+        } else if (opts.turnDetection) {
           send({ type: 'session.update', session: { type: 'realtime', audio: { input: { turn_detection: opts.turnDetection } } } });
         }
         setStatus('connected');

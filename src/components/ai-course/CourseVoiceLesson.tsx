@@ -14,6 +14,9 @@ import { useTeacher } from './teacherContext';
 import { trackAdv } from '../../lib/aiLesson/course/adventure/advAnalytics';
 import { CourseIllustration } from './CourseIllustration';
 import { startVoiceSession } from '../../lib/aiLesson/voiceSession';
+import {
+  detectAudioEnvironment, interruptionRuntimeFor, interruptionOverrideFromSearch, rolloutStageOf,
+} from '../../lib/aiLesson/interruptionPolicy';
 import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
@@ -183,16 +186,32 @@ export const CourseVoiceLesson = ({
       mission, learner, step, buildLearnerNotes(pastSessions, new Date().toISOString()),
     );
     startedTeacherRef.current = teacher.id;
-    trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja' });
+    /**
+     * 割り込み方針（2026-09-10 Phase 7）。
+     * 本番の既定は半二重のまま（先生の発話中はマイクを止める・2026-08-16 のエコーループ対策）。
+     * QA／staging、または ?interrupt=adaptive のときだけ adaptive（マイクを開けたまま、
+     * 「あ」や咳では止まらず、明確な発話で止まる。エコーの疑いが重なればこのセッションだけ半二重へ）。
+     * デバイス名（イヤホンか）はマイク許可前は空なので、分からなければ null のまま方針に渡す
+     */
+    let deviceLabels: string[] = [];
+    try { deviceLabels = (await navigator.mediaDevices.enumerateDevices()).map((d) => d.label).filter(Boolean); } catch { /* 取れなければ環境不明のまま */ }
+    if (isCancelled()) return;
+    const interruption = interruptionRuntimeFor({
+      env: detectAudioEnvironment(navigator.userAgent, deviceLabels),
+      rollout: rolloutStageOf(window.location.hostname, import.meta.env.VITE_AI_INTERRUPTION_STAGE as string | undefined),
+      override: interruptionOverrideFromSearch(window.location.search),
+    });
+    trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja', routeStage: `interrupt:${interruption.mode}` });
     sessionRef.current = startVoiceSession({
       sessionId, accessToken, plan: payload,
       teacherId: teacher.id,
       turnDetection: COURSE_TURN_DETECTION,
-      // 先生の発話中はマイクを止める（半二重・2026-08-16）。
-      // スピーカーの声がマイクへ回り込み、先生が自分のエコーに割り込まれ続けて
-      // 生徒が一度も話せなくなる不具合（サマーさん報告）の根本対策
-      muteMicWhileTutorSpeaks: true,
+      // 半二重のときだけ先生の発話中にマイクを止める（adaptive では止めない）
+      muteMicWhileTutorSpeaks: interruption.mode === 'half_duplex',
+      interruption,
       callbacks: {
+        // 割り込みの出来事（会話本文は含まない）。QA で false／valid／echo／fallback の数を見る
+        onInterruption: (info) => trackAdv('voice_interruption', { stageKey: info.kind, routeStage: `interrupt:${info.mode}` }),
         // 実際に適用された先生（サーバー決定）。voice名はanalyticsへ送らない
         onVoiceRouted: (info) => {
           routedRef.current = info;

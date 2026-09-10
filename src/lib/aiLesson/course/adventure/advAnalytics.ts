@@ -29,6 +29,8 @@ export type AdvEventName =
   // FINAL COMPLETION §19（先生選択・realtime音声ルーティング）
   | 'teacher_selected' | 'teacher_changed'
   | 'realtime_session_started' | 'realtime_voice_routed' | 'realtime_session_completed'
+  // 割り込み方針（2026-09-10 Phase 7）。valid／ignored／echo_suspect／fallback を countBucket と kind で送る
+  | 'voice_interruption'
   | 'conversation_e2e_completed' | 'readiness_updated'
   // ── Paid Pilot の獲得・継続・成果・離脱リスク（PRODUCT_CANON §10） ──
   // 売上そのものではなく、「学習が成立しているか」「離脱しかけていないか」を見るための最小セット。
