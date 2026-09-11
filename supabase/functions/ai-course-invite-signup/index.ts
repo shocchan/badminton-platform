@@ -191,13 +191,17 @@ serve(async (req) => {
   // ── 2.5 受講権（7日）をここで作る ──
   // 学習画面は「受講権があるか」を学習者行を作る前に確かめる（開通していません、の画面）。
   // 学習者行ができた瞬間に付ける DB トリガーでは間に合わない（2026-09-12 CEO 実機で判明）
+  // 7日は「本人が学習画面で始めた瞬間」から数える（既存の体験パスと同じ仕組み・ai_start_trial）。
+  // 登録から30日以内に始めればよい。メールが届いてすぐ開けない人の7日を減らさない
   const planId: string = typeof redeemed.planId === "string" ? redeemed.planId : "free-7d";
   const accessDays = 7;
+  const activationDays = 30;
   const accessRes = await fetch(`${supabaseUrl}/rest/v1/ai_course_access`, {
     method: "POST", headers: { ...dbHeaders, Prefer: "return=minimal,resolution=ignore-duplicates" },
     body: JSON.stringify({
       user_id: userId, valid_from: new Date().toISOString(),
-      valid_until: new Date(Date.now() + accessDays * 86_400_000).toISOString(),
+      valid_until: new Date(Date.now() + activationDays * 86_400_000).toISOString(),
+      trial_days: accessDays,
       plan_id: planId, source: "invite", note: `招待から自動発行 / ${channel}`, granted_by: "ai-course-invite-signup",
     }),
   });
