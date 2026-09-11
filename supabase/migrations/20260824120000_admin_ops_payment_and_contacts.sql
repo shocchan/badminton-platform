@@ -66,6 +66,13 @@ GRANT EXECUTE ON FUNCTION admin_set_entry_payment(BIGINT, BOOLEAN) TO authentica
 DROP POLICY IF EXISTS "authenticated can read contacts" ON contacts;
 DROP POLICY IF EXISTS "authenticated can update contacts" ON contacts;
 
+-- 作る前に同名を落とす＝何度流しても同じ結果になる（2026-09-10 追加）。
+-- 本番にはこの2つのポリシーだけが先に入っていて、この migration の関数3本は無かった。
+-- 落とさずに流すと "already exists" でここで止まり、1トランザクションなら関数ごと
+-- 全部巻き戻る（＝入金確認・問い合わせタブが直らないまま）。
+DROP POLICY IF EXISTS "admins can read contacts" ON contacts;
+DROP POLICY IF EXISTS "admins can update contacts" ON contacts;
+
 CREATE POLICY "admins can read contacts" ON contacts
   FOR SELECT TO authenticated USING (is_admin());
 CREATE POLICY "admins can update contacts" ON contacts
