@@ -20,6 +20,8 @@ export const PRIVATE_PATH_PATTERNS: RegExp[] = [
   /^\/(ja|zh)\/ai-course\/purchase(\/|$)/,
   // 個人専用URL（2026-09-09）。URLそのものが学習コードなので、絶対に索引させない
   /^\/(ja|zh)\/learn(\/|$)/,
+  // 招待リンク限定ページ（2026-09-11）。検索に出さない
+  /^\/(ja|zh)\/invite(\/|$)/,
   /^\/(ja|zh)\/login(\/|$)/,
   /^\/(ja|zh)\/signup(\/|$)/,
   /^\/(ja|zh)\/auth-landing(\/|$)/,
