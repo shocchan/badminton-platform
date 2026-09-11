@@ -1,0 +1,839 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>7日間の実力診断 配布文面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#f4f6f8;
+  --paper:#ffffff;
+  --paper-2:#eef1f5;
+  --ink:#151d27;
+  --ink-2:#41505f;
+  --ink-3:#6f7f8f;
+  --line:#d8dee6;
+  --line-soft:#e6eaf0;
+  --ai:#1f4a80;
+  --ai-soft:#e7eefa;
+  --shu:#b23d2b;
+  --shu-soft:#fbeae6;
+  --moss:#3f6b4a;
+  --moss-soft:#e7f1e9;
+  --code-bg:#eceff4;
+  --shadow:0 1px 2px rgba(21,29,39,.05), 0 8px 24px -18px rgba(21,29,39,.35);
+  --serif:"Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans:"Noto Sans JP", "Hiragino Sans", "Yu Gothic", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#10151b;
+    --paper:#171e26;
+    --paper-2:#1e2731;
+    --ink:#e3e8ee;
+    --ink-2:#aab6c3;
+    --ink-3:#7d8b99;
+    --line:#2b3742;
+    --line-soft:#232d37;
+    --ai:#8fb4e8;
+    --ai-soft:#1b2939;
+    --shu:#e2907c;
+    --shu-soft:#31211d;
+    --moss:#8ec19b;
+    --moss-soft:#1c2822;
+    --code-bg:#131a21;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 26px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#10151b;
+  --paper:#171e26;
+  --paper-2:#1e2731;
+  --ink:#e3e8ee;
+  --ink-2:#aab6c3;
+  --ink-3:#7d8b99;
+  --line:#2b3742;
+  --line-soft:#232d37;
+  --ai:#8fb4e8;
+  --ai-soft:#1b2939;
+  --shu:#e2907c;
+  --shu-soft:#31211d;
+  --moss:#8ec19b;
+  --moss-soft:#1c2822;
+  --code-bg:#131a21;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 26px -20px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:15px;
+  line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{
+  max-width:1180px;
+  margin:0 auto;
+  padding-inline:20px;
+  padding-block:0 72px;
+}
+
+/* ---------- masthead ---------- */
+.masthead{
+  padding-block:44px 30px;
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--ink-3);
+  font-weight:700;
+  margin:0 0 14px;
+}
+h1{
+  font-family:var(--serif);
+  font-weight:700;
+  font-size:clamp(28px,5vw,42px);
+  line-height:1.3;
+  letter-spacing:.01em;
+  margin:0 0 16px;
+  text-wrap:balance;
+}
+.standfirst{
+  margin:0;
+  max-width:60ch;
+  color:var(--ink-2);
+  font-size:16px;
+}
+.standfirst strong{color:var(--ink)}
+
+.counter{
+  margin-top:26px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 28px;
+  align-items:baseline;
+  padding:16px 20px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-left:3px solid var(--ai);
+  border-radius:2px;
+}
+.counter .num{
+  font-family:var(--mono);
+  font-weight:600;
+  font-size:34px;
+  line-height:1;
+  color:var(--ai);
+  font-variant-numeric:tabular-nums;
+}
+.counter .lbl{font-size:13px;color:var(--ink-2)}
+.counter .lbl b{color:var(--ink);font-weight:700}
+.counter .zh{
+  font-family:var(--mono);
+  font-size:13px;
+  color:var(--ink-3);
+  border:1px dashed var(--line);
+  padding:3px 9px;
+  border-radius:2px;
+}
+
+/* ---------- layout ---------- */
+.cols{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:0;
+}
+@media (min-width:1000px){
+  .cols{grid-template-columns:216px minmax(0,1fr);gap:56px;align-items:start}
+}
+
+nav.index{
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:var(--ground);
+  padding-block:14px;
+  border-bottom:1px solid var(--line-soft);
+  margin-bottom:8px;
+}
+nav.index .nav-title{display:none}
+nav.index ol{
+  list-style:none;
+  margin:0;padding:0;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
+  scrollbar-width:thin;
+}
+nav.index a{
+  display:block;
+  white-space:nowrap;
+  font-size:12.5px;
+  line-height:1.4;
+  color:var(--ink-2);
+  text-decoration:none;
+  padding:6px 10px;
+  border:1px solid var(--line-soft);
+  border-radius:2px;
+  background:var(--paper);
+}
+nav.index a:hover{color:var(--ai);border-color:var(--ai)}
+nav.index a .n{font-family:var(--mono);color:var(--ink-3);margin-right:6px;font-size:11px}
+@media (min-width:1000px){
+  nav.index{
+    top:24px;
+    border-bottom:none;
+    background:transparent;
+    padding-block:38px 0;
+    margin-bottom:0;
+  }
+  nav.index .nav-title{
+    display:block;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:700;margin-bottom:12px;
+  }
+  nav.index ol{flex-direction:column;gap:0;overflow:visible}
+  nav.index a{
+    border:none;background:transparent;
+    border-left:2px solid var(--line);
+    border-radius:0;
+    padding:5px 0 5px 12px;
+    white-space:normal;
+  }
+  nav.index a:hover{border-left-color:var(--ai);background:transparent}
+}
+
+main{min-width:0;padding-top:18px}
+
+section{padding-block:34px 6px;border-top:1px solid var(--line-soft)}
+section:first-of-type{border-top:none}
+h2{
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:700;
+  line-height:1.45;
+  margin:0 0 6px;
+  text-wrap:balance;
+  scroll-margin-top:90px;
+}
+h2 .n{
+  font-family:var(--mono);
+  font-size:13px;
+  font-weight:600;
+  color:var(--ai);
+  margin-right:12px;
+  font-variant-numeric:tabular-nums;
+}
+h3{
+  font-family:var(--sans);
+  font-size:14px;
+  font-weight:700;
+  letter-spacing:.02em;
+  margin:30px 0 10px;
+  color:var(--ink);
+  display:flex;align-items:center;gap:10px;
+}
+h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+p{margin:0 0 14px;max-width:66ch}
+.sub{color:var(--ink-2);font-size:14px}
+strong{font-weight:700}
+code.inline{
+  font-family:var(--mono);
+  font-size:.86em;
+  background:var(--code-bg);
+  padding:1px 5px;
+  border-radius:2px;
+  overflow-wrap:anywhere;
+}
+a.link{color:var(--ai);text-decoration-thickness:1px;text-underline-offset:3px;overflow-wrap:anywhere}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line);border-radius:2px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:420px}
+th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:none}
+thead th{
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:700;background:var(--paper-2);
+  border-bottom:1px solid var(--line);
+}
+td:first-child{color:var(--ink-2);white-space:nowrap}
+td.key{font-weight:500;color:var(--ink)}
+table.no td:first-child{color:var(--shu);font-weight:500}
+table.todo td:first-child{font-family:var(--mono);color:var(--ink-3);text-transform:uppercase;font-size:12px}
+.wait{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;
+  color:var(--shu);background:var(--shu-soft);padding:1px 7px;border-radius:2px;margin-left:6px;
+}
+.ready{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;
+  color:var(--moss);background:var(--moss-soft);padding:1px 7px;border-radius:2px;margin-left:6px;
+}
+
+/* ---------- callouts ---------- */
+.note{
+  border-left:3px solid var(--ai);
+  background:var(--ai-soft);
+  padding:14px 18px;
+  margin:0 0 20px;
+  font-size:14px;
+  border-radius:0 2px 2px 0;
+}
+.note.warn{border-left-color:var(--shu);background:var(--shu-soft)}
+.note.good{border-left-color:var(--moss);background:var(--moss-soft)}
+.note p{margin:0;max-width:64ch}
+.note p + p{margin-top:8px}
+.note .head{
+  font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+  color:var(--ink-3);display:block;margin-bottom:5px;
+}
+
+ul.plain{margin:0 0 20px;padding-left:20px;max-width:66ch}
+ul.plain li{margin-bottom:7px}
+ul.plain li::marker{color:var(--ink-3)}
+
+/* ---------- copy blocks ---------- */
+.block{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:3px;
+  margin:0 0 20px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.block-head{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:9px 14px;
+  background:var(--paper-2);
+  border-bottom:1px solid var(--line);
+}
+.tag{
+  font-size:11px;font-weight:700;letter-spacing:.08em;
+  padding:2px 8px;border-radius:2px;
+  color:var(--ink-2);background:var(--paper);border:1px solid var(--line);
+}
+.tag.zh{color:var(--ai);border-color:var(--ai);background:var(--ai-soft)}
+.tag.ja{color:var(--moss);border-color:var(--moss);background:var(--moss-soft)}
+.tag.sh{color:var(--shu);border-color:var(--shu);background:var(--shu-soft)}
+.block-head .name{font-size:13px;font-weight:500;color:var(--ink-2);margin-right:auto}
+button.copy{
+  font-family:var(--sans);
+  font-size:12px;font-weight:700;
+  color:var(--paper);background:var(--ink);
+  border:none;border-radius:2px;
+  padding:5px 13px;cursor:pointer;
+  transition:background .15s ease;
+  min-width:74px;
+}
+button.copy:hover{background:var(--ai)}
+button.copy:focus-visible{outline:2px solid var(--ai);outline-offset:2px}
+button.copy.done{background:var(--moss)}
+pre{
+  margin:0;
+  padding:16px 18px;
+  font-family:var(--sans);
+  font-size:14.5px;
+  line-height:1.95;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  color:var(--ink);
+}
+.block.cmd pre{
+  font-family:var(--mono);
+  font-size:13px;
+  line-height:1.7;
+  white-space:pre;
+  overflow-x:auto;
+  background:var(--code-bg);
+}
+.ph{
+  font-family:var(--mono);
+  font-size:.88em;
+  color:var(--shu);
+  background:var(--shu-soft);
+  padding:0 4px;
+  border-radius:2px;
+}
+.hint{font-size:13px;color:var(--ink-3);margin:-10px 0 22px;max-width:64ch}
+.hint b{color:var(--ink-2)}
+
+footer{
+  margin-top:52px;padding-top:20px;
+  border-top:1px solid var(--line);
+  font-size:12.5px;color:var(--ink-3);
+  display:flex;flex-wrap:wrap;gap:6px 18px;
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">配布用の文面 ／ 2026-09-10</p>
+    <h1>7日間の実力診断</h1>
+    <p class="standfirst">そのまま貼れる形で置いてある。<strong>小紅書はAIが触らない</strong>（全社ルール0）ので、投稿はCEOが手で行う。</p>
+    <div class="counter">
+      <span class="num" id="days">–</span>
+      <span class="lbl"><b>12月6日</b>が本番・締め切り<br>投稿する日にこの数を書き写す</span>
+      <span class="zh" id="zh-line">距离12月JLPT还有 – 天</span>
+    </div>
+  </header>
+
+  <div class="cols">
+    <nav class="index">
+      <p class="nav-title">目次</p>
+      <ol>
+        <li><a href="#s0"><span class="n">00</span>決まっていること</a></li>
+        <li><a href="#s1"><span class="n">01</span>書かないこと</a></li>
+        <li><a href="#s2"><span class="n">02</span>小紅書</a></li>
+        <li><a href="#s3"><span class="n">03</span>朋友圈</a></li>
+        <li><a href="#s4"><span class="n">04</span>微信・個別</a></li>
+        <li><a href="#s5"><span class="n">05</span>生徒の紹介</a></li>
+        <li><a href="#s6"><span class="n">06</span>着地画面</a></li>
+        <li><a href="#s7"><span class="n">07</span>既存の生徒へ</a></li>
+        <li><a href="#s8"><span class="n">08</span>残作業</a></li>
+        <li><a href="#s9"><span class="n">09</span>微信・一斉送信</a></li>
+        <li><a href="#s10"><span class="n">10</span>元受講生 15人</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <section>
+        <h2 id="s0"><span class="n">00</span>先に決まっていること</h2>
+        <div class="tablewrap">
+          <table>
+            <tbody>
+              <tr><td class="key">配るもの</td><td>7日間の実力診断（無料）。冒険は最初の3地域まで・<strong>AI会話は含まない</strong></td></tr>
+              <tr><td class="key">配り方</td><td>経路ごとに別コード（小紅書 / 朋友圈 / 生徒紹介）。先着100名・締め切りはJLPT当日</td></tr>
+              <tr><td class="key">料金表</td><td><strong>載せない。</strong>リンクを踏んだ人にだけ現れる</td></tr>
+              <tr><td class="key">紹介した生徒</td><td>相手が有料購入したら <strong>+30日</strong>（自動）</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>コードの発行</h3>
+        <div class="block cmd">
+          <div class="block-head"><span class="tag">BASH</span><span class="name">招待コードを発行する</span><button class="copy">コピー</button></div>
+          <pre>node scripts/ai-course/issue-free-trial-invite.mjs --channel xhs --label "小紅書 2026-09" --confirm</pre>
+        </div>
+        <p class="sub"><code class="inline">--channel</code> は <code class="inline">xhs</code> / <code class="inline">moments</code> / <code class="inline">student_referral</code> / <code class="inline">wechat</code> から選ぶ。発行すると配布用URL（<code class="inline">?invite=</code> つき）が出る。<strong>踏むだけでコード入力は要らない。</strong></p>
+      </section>
+
+      <section>
+        <h2 id="s1"><span class="n">01</span>書かないと決めたこと</h2>
+        <p class="sub">貼る前にここを読む。</p>
+        <div class="tablewrap">
+          <table class="no">
+            <thead><tr><th>書かない</th><th>理由</th></tr></thead>
+            <tbody>
+              <tr><td>「1万問収録」などの問題数</td><td>問題数は成果ではない（PRODUCT_CANON 原則8）</td></tr>
+              <tr><td>「合格できます」「合格保証」</td><td>断定しない。LPにも「本课程不保证考试合格」と入っている</td></tr>
+              <tr><td>「AI会話も使えます」</td><td><strong>無料枠に会話は無い。</strong>効かない約束をしない</td></tr>
+              <tr><td>「聴解も全部できます」</td><td>聴解の音源は N3・N2 のみ。級によって出ない</td></tr>
+              <tr><td>「いつでも誰でも無料」</td><td>先着と締め切りを必ず書く。¥600を払った人が損したと感じる</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note good">
+          <span class="head">逆に必ず書くこと</span>
+          <p>7日で終わること ／ 会話は含まないこと ／ 記録は消えないこと。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s2"><span class="n">02</span>小紅書（投稿本文）</h2>
+        <div class="note warn">
+          <p>小紅書は本文に外部リンクを置けない。<strong>CTAは「私信」か「评论区」</strong>にして、個別にリンクを送る運用にする。</p>
+        </div>
+
+        <h3>A案：現在地から入る（本命）</h3>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">小紅書</span><span class="tag zh">中文</span><span class="name">A案 — 現在地から入る</span><button class="copy">コピー</button></div>
+          <pre>距离12月JLPT还有87天。
+你现在到底在什么位置，说得出来吗？
+
+我做了一个给在日中国人的日语学习工具。
+一直卡在「看得懂，但说不出来／考不过」的人用的。
+
+▫️ 8分钟的测试 → 告诉你词汇和语法现在在哪
+▫️ 1次模拟考 → 看清哪一科最弱
+▫️ 之后每天10分钟，只出你做错的题
+
+不是「刷题APP」。
+是「先量出你在哪，再决定今天练什么」。
+
+现在开放 7天免费（先到100人，12月6日截止）。
+7天结束后，测试结果・错题本・单词图鉴都不会消失。
+
+※ 这7天不含AI会话，纯粹是考试和语法词汇的部分。
+
+想试的话评论「诊断」或者私信我，我把链接发给你。
+
+#日语学习 #JLPT #N2 #N3 #在日中国人 #日语考试 #日语口语</pre>
+        </div>
+
+        <h3>B案：错题本から入る（受験文化に寄せる）</h3>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">小紅書</span><span class="tag zh">中文</span><span class="name">B案 — 错题本から入る</span><button class="copy">コピー</button></div>
+          <pre>学日语最浪费时间的，是「重复做已经会的题」。
+
+我做的这个工具，只做一件事：
+把你做错的题，在你快忘的时候再拿出来。
+
+第1天：8分钟测出你的现在位置
+第3天：一次模拟考，看哪一科最弱
+第2〜7天：每天10分钟，全是你自己错过的题
+
+距离12月JLPT还有87天。
+现在开放 7天免费（先到100人・12月6日截止）。
+
+不含AI会话，就是考试和语法词汇这块。
+7天后测试结果和错题本都留着，不会清空。
+
+需要的话私信我。
+
+#JLPT #日语学习 #N2备考 #N3 #在日中国人 #错题本</pre>
+        </div>
+        <p class="hint"><b>投稿する日に「87天」を数え直すこと。</b>12月6日が本番。今日なら <span id="hint-days">–</span> 天。</p>
+      </section>
+
+      <section>
+        <h2 id="s3"><span class="n">03</span>朋友圈（短く・個人の声で）</h2>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">朋友圈</span><span class="tag zh">中文</span><span class="name">投稿本文</span><button class="copy">コピー</button></div>
+          <pre>做了个东西，给一直卡在「看得懂但说不出来」的朋友。
+
+8分钟测出你JLPT现在的水平，之后每天10分钟只练你错的题。
+距离12月考试还有87天，现在7天免费（先到100人）。
+
+不含AI会话，纯考试和语法词汇这块。
+有兴趣的评论或者私信我 👇</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s4"><span class="n">04</span>微信で個別に送る（CEOから）</h2>
+        <p class="sub">過去のプレゼント企画で友だちになった人への<strong>一斉送信</strong>は <a class="link" href="#s9">09</a>。</p>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">微信</span><span class="tag zh">中文</span><span class="name">個別メッセージ</span><button class="copy">コピー</button></div>
+          <pre>你好，我是安田。
+
+我做了一个日语学习的工具，想先给几位朋友免费用一下。
+
+从这个链接进去，7天免费：
+<span class="ph">{URL}</span>
+
+打开之后，最初的8分钟会测出你现在的JLPT水平（词汇和语法在哪个位置）。
+之后每天10分钟，出的都是你自己做错的题。
+
+这7天不含AI会话，是考试・语法・词汇的部分。
+7天结束后，测试结果和错题本不会消失。
+
+用不惯或者哪里打不开，直接跟我说就行。</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s5"><span class="n">05</span>生徒が友達に送る（紹介リンク）</h2>
+        <p class="sub">アプリの紹介カードからコピーできる文面。<strong>生徒自身の声</strong>で書く。</p>
+        <div class="block">
+          <div class="block-head"><span class="tag">紹介カード</span><span class="tag zh">中文</span><span class="name">生徒 → 友達</span><button class="copy">コピー</button></div>
+          <pre>我在用一个练日语的工具，能测出自己JLPT现在的水平，
+而且只出你做错的题，不用重复刷已经会的。
+
+从我的链接进去可以免费用7天：
+<span class="ph">{URL}</span></pre>
+        </div>
+        <div class="note warn">
+          <p>紹介した生徒には「相手が有料で続けたら、あなたの学習期間が30日のびます」と、アプリ側で既に説明が出る。<strong>この文面に報酬の話は書かない</strong>（もらうために勧めた、に見せない）。</p>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s6"><span class="n">06</span>リンクを踏んだ人が最初に見る画面</h2>
+        <p class="sub">いまは「你是通过邀请链接来的。只填邮箱就可以开始。」だけ。<strong>ここに何が始まるのかを1行足す</strong>（実装は <a class="link" href="#s8">08-a</a>）。</p>
+        <div class="block">
+          <div class="block-head"><span class="tag zh">中文</span><span class="name">着地画面のコピー</span><button class="copy">コピー</button></div>
+          <pre>7天日语实力诊断（免费）
+最初的8分钟，测出你现在的JLPT水平。
+之后每天10分钟，只练你做错的题。
+只填邮箱就可以开始。
+
+※ 这7天不含AI会话。7天后测试结果和错题本不会消失。</pre>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="tag ja">日本語</span><span class="name">着地画面のコピー</span><button class="copy">コピー</button></div>
+          <pre>7日間の実力診断（無料）
+最初の8分で、いまのJLPTの現在地が出ます。
+そのあとは毎日10分、あなたが間違えた問題だけ。
+メールアドレスだけで始められます。
+
+※ この7日間にAI会話は含みません。7日後も診断結果と錯題本は残ります。</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s7"><span class="n">07</span>既存の生徒に伝えること</h2>
+        <p class="sub">先に払った人が損をしないように。無料枠を公開したら、いま学んでいる7人には<strong>先に</strong>これを送る。</p>
+        <div class="block">
+          <div class="block-head"><span class="tag ja">日本語</span><span class="name">在籍7人へ</span><button class="copy">コピー</button></div>
+          <pre>いま学んでいるみなさんへ
+
+12月のJLPTに向けて、はじめての方向けに「7日間の実力診断」を
+無料でお配りすることにしました（先着100名・12月6日まで）。
+
+無料で試せるのは、はじめての方だけです。
+すでに学んでいるみなさんには、お友達を紹介していただくと
+学習期間が30日のびるという形でお返しします。
+
+紹介リンクはアプリの中から取れます。</pre>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="tag zh">中文</span><span class="name">在籍7人へ</span><button class="copy">コピー</button></div>
+          <pre>致正在学习的各位
+
+为了12月的JLPT，我们决定向第一次接触的朋友
+免费提供「7天实力诊断」（先到100人・截止12月6日）。
+
+免费只针对第一次使用的人。
+对已经在学习的各位，如果你介绍朋友来，
+你的学习期间会延长30天，作为我们的回礼。
+
+推荐链接可以在APP里拿到。</pre>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s8"><span class="n">08</span>残っている作業</h2>
+        <p class="sub">他タブがコミットしてから。</p>
+        <div class="tablewrap">
+          <table class="todo">
+            <thead><tr><th>&nbsp;</th><th>内容</th><th>触るファイル</th></tr></thead>
+            <tbody>
+              <tr><td>a</td><td>招待着地の1行（<a class="link" href="#s6">06</a>）を画面に出す</td><td><code class="inline">CourseLogin.tsx</code><span class="ready">いつでも可</span></td></tr>
+              <tr><td>b</td><td>ミニ模試1回の上限</td><td><code class="inline">AdvShell.tsx</code><span class="wait">他タブ待ち</span></td></tr>
+              <tr><td>c</td><td>7日目の「できるようになったこと」</td><td><code class="inline">AdvShell.tsx</code><span class="wait">他タブ待ち</span></td></tr>
+              <tr><td>d</td><td>紹介カードから生徒がリンクを取れるようにする（発行の導線）</td><td>管理画面</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section>
+        <h2 id="s9"><span class="n">09</span>微信の一斉送信</h2>
+        <p class="sub">過去のプレゼント企画で友だちになった人へ。2026-09-10 追加。<strong>2通に分ける</strong>のが要点。1通目は招待リンクを配らない。</p>
+        <ul class="plain">
+          <li>1通目は「まだ学んでいますか」を聞くだけ。返事が来た人にだけ2通目でリンクを送る</li>
+          <li>リンクを一斉に撒くと、先着100名の枠が<strong>返事もくれない人</strong>で埋まる</li>
+          <li>返事が来てから送れば、誰が来たかが人単位で分かる</li>
+        </ul>
+        <div class="note warn">
+          <span class="head">貼るURL</span>
+          <p><code class="inline">https://kawabado.com/zh/ai-course</code></p>
+          <p><strong>ドメインのルート（kawabado.com）を貼らないこと。</strong>ルートはバドミントン大会のページで、日本語学習に興味を持って開いた人が別のサービスに着地する。<code class="inline">/zh/ai-course</code> まで含めて貼る。</p>
+        </div>
+
+        <h3>1通目（一斉送信・リンクは配らない）</h3>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">微信</span><span class="tag zh">中文</span><span class="name">1通目 — 一斉送信</span><button class="copy">コピー</button></div>
+          <pre>好久不见，我是安田翔（日语教练）。
+
+之前做日语学习资料的赠送活动时，你加了我的微信。
+当时谢谢你。
+
+这一年，我开始运营一个给在日中文母语者的日语学习系统 ——「你的日语搭档」。
+不是发资料，是每天10分钟、按你现在的水平来出题的一套东西。
+先看看是什么样子的话，这里：
+https://kawabado.com/zh/ai-course
+
+如果还在学，或者12月要考JLPT，回我一句就好。
+现在在找几位试用的朋友，回复的人我单独发给你。</pre>
+        </div>
+        <p class="hint">画像を1枚だけ付ける（<b>wechat-card</b> = 今日の冒険／词汇・语法／冒险地图 の3画面）。<b>AI会話の画面は付けない。</b>無料枠に会話は無いので、見せると効かない約束になる（<a class="link" href="#s1">01</a>）。</p>
+
+        <h3>2通目（返事が来た人にだけ）</h3>
+        <div class="block">
+          <div class="block-head"><span class="tag sh">微信</span><span class="tag zh">中文</span><span class="name">2通目 — 返信者だけ</span><button class="copy">コピー</button></div>
+          <pre>谢谢回复！
+
+这是7天的免费名额，从这个链接进去就可以开始（只填邮箱）：
+<span class="ph">{URL}</span>
+
+最初的8分钟会测出你现在的JLPT水平，之后每天10分钟，出的都是你做错的题。
+这7天不含AI会话，是考试・语法・词汇的部分。
+7天结束后，测试结果和错题本不会消失。</pre>
+        </div>
+
+        <h3>送る前に用意するもの</h3>
+        <div class="block cmd">
+          <div class="block-head"><span class="tag">BASH</span><span class="name">微信一斉送信ぶんの発行</span><button class="copy">コピー</button></div>
+          <pre>node scripts/ai-course/issue-free-trial-invite.mjs --channel wechat --label "微信一斉送信 2026-09" --max 200 --confirm</pre>
+        </div>
+        <p class="hint"><b><code class="inline">--max</code> は一斉送信の人数より多くする。</b>返事をくれた人が「已达上限」で断られるのがいちばん惜しい。</p>
+      </section>
+
+      <section>
+        <h2 id="s10"><span class="n">10</span>過去にレッスンを受けてくれた人へ（15人）</h2>
+        <p class="sub">2026-09-10。<strong>一斉送信とは別物として扱う。</strong>この15人は「システムを知らない人」ではなく<strong>「安田翔を知っている人」</strong>。商品の説明より先に、その人との関係から入る。1人ずつ手で送る。</p>
+
+        <h3>渡すもの</h3>
+        <p>メールを使わない。個人専用URL（<code class="inline">/learn/CODE</code>）を1人1本ずつ渡す。</p>
+        <div class="block cmd">
+          <div class="block-head"><span class="tag">BASH</span><span class="name">15本の個人URLを発行</span><button class="copy">コピー</button></div>
+          <pre>node scripts/ai-course/issue-alumni-code.mjs --count 15 --confirm</pre>
+        </div>
+        <ul class="plain">
+          <li>踏むだけで入れる。<strong>コード入力もメールアドレス入力も要らない</strong></li>
+          <li>7日間は<strong>初回ログインから</strong>始まる（渡した日からではない）。返事が遅い人が損をしない</li>
+          <li>同じURLを2人に渡すと同じアカウントに入る。<strong>誰に渡したかを手元に控える</strong></li>
+        </ul>
+        <div class="note warn">
+          <p>前提: migration <code class="inline">20260910100000_ai_free_trial_invites.sql</code> の本番適用。未適用ならスクリプトが発行を拒否する（配ってから気づくのを防ぐため）。</p>
+        </div>
+
+        <h3>1通目（1人ずつ・名前を入れる）</h3>
+        <div class="block">
+          <div class="block-head"><span class="tag ja">日本語</span><span class="name">1通目 — 元受講生へ</span><button class="copy">コピー</button></div>
+          <pre><span class="ph">{名前}</span>さん、お久しぶりです。安田です。
+
+前にレッスンを受けてくださった方に、順番にご連絡しています。
+
+実はこの1年、日本語学習のシステムを自分で作って運営しています。
+レッスンとは別で、毎日10分、その人の今の実力に合わせて問題が出るものです。
+
+<span class="ph">{名前}</span>さんに使ってみてほしくて、7日間ぶんの入口を用意しました。
+このリンクを開くだけで始められます（登録もパスワードも要りません）:
+
+<span class="ph">{URL}</span>
+
+最初の8分でいまのJLPTの現在地が出ます。
+そのあとは毎日10分、間違えた問題だけが戻ってきます。
+
+※ この7日間にAI会話は含みません。試験・文法・語彙の部分です。
+※ 7日が過ぎても、診断結果と間違いノートは消えません。
+
+使いにくいところがあれば、そのまま言ってください。直します。</pre>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="tag zh">中文</span><span class="name">1通目 — 中国語話者へ</span><button class="copy">コピー</button></div>
+          <pre><span class="ph">{名字}</span>，好久不见，我是安田。
+
+我在给以前上过课的同学一个个发消息。
+
+这一年我自己做了一个日语学习系统，在运营。
+和课程不一样，是每天10分钟、按你现在的水平出题的东西。
+
+想让你先用用看，准备了7天的入口。
+点这个链接就能开始（不用注册，也不用密码）：
+
+<span class="ph">{URL}</span>
+
+最初的8分钟会测出你现在的JLPT水平。
+之后每天10分钟，出的都是你自己做错的题。
+
+※ 这7天不含AI会话，是考试・语法・词汇的部分。
+※ 7天过后，测试结果和错题本不会消失。
+
+哪里不好用，直接跟我说就行，我来改。</pre>
+        </div>
+
+        <h3>2通目（3日目あたり）</h3>
+        <div class="note warn">
+          <p>1通目に紹介の話を入れないこと。<strong>まだ使っていない人に「友達を呼んで」と言わない。</strong></p>
+          <p>アプリ側の紹介カードは、復習を1回終える・3日続ける・レポートを2回開く のどれかを満たすと出る（<code class="inline">shouldShowReferral</code>）。無料枠はAI会話が0回なので、だいたい3日目に出る。<strong>この文面もそのタイミングで送る。</strong></p>
+        </div>
+        <div class="block">
+          <div class="block-head"><span class="tag ja">日本語</span><span class="name">2通目 — 紹介の話</span><button class="copy">コピー</button></div>
+          <pre><span class="ph">{名前}</span>さん、3日続きましたね。
+
+もしまわりに12月のJLPTを受ける方がいたら、アプリの中から紹介リンクが取れます。
+
+そのリンクから入った方は、同じように7日間無料で使えます。
+そしてその方が3日続けたら、<span class="ph">{名前}</span>さんの利用期間が30日のびます（合計90日まで）。
+
+紹介した時点ではなく、相手が実際に学び始めてからのお返しです。</pre>
+        </div>
+
+        <h3>7日目（ここが商談）</h3>
+        <p>15人しかいないので、<strong>7日目に一人ずつ話す</strong>のがいちばん効く。自動メールで済ませない。実際に学んだ日数と、間違いが多かった分野を見てから送る。</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>続けたい人への出口</th><th>誰に</th></tr></thead>
+            <tbody>
+              <tr><td class="key">紹介で +30日</td><td>お金をかけずに続けたい人</td></tr>
+              <tr><td class="key">AI会話 回数券（¥300 / 5回 ¥1,350）</td><td>「会話だけ足りない」と言った人</td></tr>
+              <tr><td class="key">1か月 ¥2,980 / 6か月 ¥100,000</td><td>本気で12月に間に合わせたい人</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer>
+        <span>FREE_TRIAL_COPY.md</span>
+        <span>badminton-sales / docs / ai-course / marketing</span>
+        <span>全社ルール0：小紅書はAIが触らない</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script>
+(function(){
+  var target = new Date(2026, 11, 6);
+  var now = new Date();
+  var t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var days = Math.round((target - t0) / 86400000);
+  var d = document.getElementById('days');
+  var zh = document.getElementById('zh-line');
+  var hd = document.getElementById('hint-days');
+  if (d) d.textContent = days > 0 ? days : 0;
+  if (zh) zh.textContent = '距离12月JLPT还有' + (days > 0 ? days : 0) + '天';
+  if (hd) hd.textContent = days > 0 ? days : 0;
+
+  function copyText(text, btn){
+    var done = function(){
+      var old = btn.textContent;
+      btn.textContent = 'コピー済';
+      btn.classList.add('done');
+      setTimeout(function(){ btn.textContent = old; btn.classList.remove('done'); }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function(){ fallback(text, done); });
+    } else {
+      fallback(text, done);
+    }
+  }
+  function fallback(text, done){
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch(e){ ta.remove(); return; }
+    ta.remove();
+  }
+  document.querySelectorAll('button.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var block = btn.closest('.block');
+      var pre = block && block.querySelector('pre');
+      if (!pre) return;
+      copyText(pre.textContent, btn);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
