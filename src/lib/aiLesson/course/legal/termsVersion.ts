@@ -19,10 +19,11 @@
 // 2026-09-07.1: 特商法の支払方法に Alipay・WeChat Pay を追加。
 //   本番Checkoutでは 8/26 から実際に出ていたのに、法定表示だけが古いまま12日間ずれていた
 //   （LPは8/26に更新済み）。ズレの再発は legalPaymentMethods.test.ts が止める
-export const TERMS_VERSION = '2026-09-07.1';
+// 2026-09-11.1: 招待からの登録で WeChat ID を預かる（連絡・案内用）ことをプライバシーポリシーの「取得する情報」に追記
+export const TERMS_VERSION = '2026-09-11.1';
 
 /**
  * 上の版が指している法務本文のハッシュ（先頭16桁）。
  * 本文だけ変えて版を据え置くと、テストがここの不一致で落ちる。
  */
-export const TERMS_CONTENT_HASH = '50a0dc6d72168856';
+export const TERMS_CONTENT_HASH = 'dacb07ac121b15bb';

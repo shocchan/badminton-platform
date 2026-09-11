@@ -52,8 +52,9 @@ describe('文言', () => {
     expect(SRC).not.toMatch(/AI会話が使えます|可以用AI会话|AI会話も使えます/);
   });
   it('申込欄の文言: 確認コードではなく「アカウントと個人リンクが届く」', () => {
-    expect(SRC).toContain('账号和个人链接会发到邮箱');
-    expect(SRC).toContain('アカウントと個人リンクが届きます');
+    expect(SRC).toContain('邮件里有ID・密码・个人链接');
+    expect(SRC).toContain('メールにID・パスワード・個人リンクが入っています');
+    expect(SRC).toContain('wechatLabel');
   });
   it('必ず書くこと: AI会話は含まない・7日で終わる・記録は消えない・合格を保証しない', () => {
     for (const s of ['AI会話は含みません', '不含AI会话', '7日で終わります', '7天后结束', '消えません', '不会清空', '合格を保証するものではありません', '不保证考试合格']) {

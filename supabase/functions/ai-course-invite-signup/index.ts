@@ -141,7 +141,10 @@ serve(async (req) => {
   const email = clean(body.email, 254).toLowerCase();
   const code = clean(body.code, 32).toUpperCase().replace(/[^A-Z0-9]/g, "");
   const lang: Lang = body.lang === "ja" ? "ja" : "zh";
+  // WeChat ID（必須・2〜30字）。メールが届かないときの連絡先。名前は聞かない（学習画面で表示名を聞く）
+  const wechatId = clean(body.wechatId, 40).replace(/^@/, "");
   if (!EMAIL_RE.test(email)) return json({ ok: false, code: "invalid_email" }, 400);
+  if (wechatId.length < 2 || wechatId.length > 30) return json({ ok: false, code: "invalid_wechat" }, 400);
   if (!INVITE_RE.test(code)) return json({ ok: false, code: "invalid_invite" }, 403);
 
   // ── IP ごとの回数制限（学習コードの照合と同じ装置。IP は生で残さない） ──
@@ -164,7 +167,7 @@ serve(async (req) => {
   // 登録許可の期限を延ばす（個人リンクを数日後に開いても、学習者行を作れるように）
   const grantRows = await fetch(`${supabaseUrl}/rest/v1/ai_course_signup_grants?email=eq.${encodeURIComponent(email)}&select=channel`, {
     method: "PATCH", headers: { ...dbHeaders, Prefer: "return=representation" },
-    body: JSON.stringify({ expires_at: new Date(Date.now() + GRANT_DAYS * 86_400_000).toISOString() }),
+    body: JSON.stringify({ expires_at: new Date(Date.now() + GRANT_DAYS * 86_400_000).toISOString(), wechat_id: wechatId }),
   }).then((r) => (r.ok ? r.json() : [])).catch(() => []) as { channel?: string | null }[];
   const channel: string = grantRows[0]?.channel ?? "invite";
 
@@ -174,7 +177,7 @@ serve(async (req) => {
     method: "POST", headers: dbHeaders,
     body: JSON.stringify({
       email, password, email_confirm: true,
-      user_metadata: { source: "invite_signup", provisioned_at: new Date().toISOString() },
+      user_metadata: { source: "invite_signup", provisioned_at: new Date().toISOString(), wechat_id: wechatId },
     }),
   });
   if (!createRes.ok) {

@@ -81,7 +81,7 @@ export const sendEmailOtp = async (email: string, inviteCode?: string): Promise<
 
 /** メール+6桁コードで検証してログイン */
 export type InviteSignupCode =
-  | 'invalid_email' | 'invalid_invite' | 'already_registered' | 'rate_limited'
+  | 'invalid_email' | 'invalid_wechat' | 'invalid_invite' | 'already_registered' | 'rate_limited'
   | 'mail_failed' | 'create_failed' | 'code_failed' | 'network' | 'unknown';
 
 /**
@@ -89,14 +89,14 @@ export type InviteSignupCode =
  * OTP は使わない（内蔵送信の1時間2通の上限を避ける）。サーバー: ai-course-invite-signup
  */
 export const signupWithInvite = async (
-  email: string, inviteCode: string, lang: 'ja' | 'zh',
+  email: string, inviteCode: string, lang: 'ja' | 'zh', wechatId: string,
 ): Promise<{ ok: true } | { ok: false; code: InviteSignupCode; retryAfter?: number }> => {
   if (!SUPA_URL || !ANON_KEY) return { ok: false, code: 'unknown' };
   try {
     const res = await fetch(`${SUPA_URL}/functions/v1/ai-course-invite-signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: ANON_KEY, Authorization: `Bearer ${ANON_KEY}` },
-      body: JSON.stringify({ email: email.trim(), code: inviteCode, lang }),
+      body: JSON.stringify({ email: email.trim(), code: inviteCode, lang, wechatId: wechatId.trim() }),
     });
     const data = (await res.json().catch(() => ({}))) as { ok?: boolean; code?: string; retryAfter?: number };
     if (res.ok && data.ok) return { ok: true };

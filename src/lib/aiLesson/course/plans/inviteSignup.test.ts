@@ -109,11 +109,18 @@ describe('Edge Function ai-course-invite-signup', () => {
       expect(SRC, s).toContain(s);
     }
   });
+  it('WeChat ID を必須で預かり、登録許可の行へ入れる（名前は聞かない）', () => {
+    expect(body).toMatch(/wechatId\.length < 2 \|\| wechatId\.length > 30/);
+    expect(body).toMatch(/wechat_id: wechatId/);
+    expect(PAGE).toMatch(/id="invite-wechat"/);
+    expect(PAGE).not.toMatch(/id="invite-name"/);
+    expect(read('src/lib/aiLesson/course/legal/legalContent.ts')).toContain('WeChat IDもお預かりします');
+  });
   it('未ログインから呼ばれる＝deploy スクリプトの JWT 検証 OFF の一覧に載っている', () => {
     expect(DEPLOY).toMatch(/^\s+ai-course-invite-signup\s/m);
   });
   it('画面は OTP を使わず、送信後は「メールを確認してください」を出す', () => {
-    expect(PAGE).toMatch(/signupWithInvite\(email, invite, lang\)/);
+    expect(PAGE).toMatch(/signupWithInvite\(email, invite, lang, wechat\)/);
     expect(PAGE).not.toMatch(/sendEmailOtp|verifyEmailOtp/);
     expect(PAGE).toMatch(/data-testid="invite-sent"/);
     expect(AUTH).toMatch(/functions\/v1\/ai-course-invite-signup/);

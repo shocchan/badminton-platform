@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useParams } from 'react-router-dom';
-import { KeyRound, Loader2, Mail, Lock } from 'lucide-react';
+import { KeyRound, Loader2, Mail, MessageCircle, Lock } from 'lucide-react';
 import { signupWithInvite, type InviteSignupCode } from '../../lib/aiLesson/course/courseAuth';
 import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
@@ -44,7 +44,11 @@ const T = {
     seats: '限量100个账号・7天免费',
     seatsSub: '先到先得。满员后这个链接就打不开了。',
     cta: '免费开始7天',
-    ctaSub: '只需邮箱・无需付款・不用输入任何代码',
+    ctaSub: '只需邮箱和微信号・无需付款・不用输入任何代码',
+    steps3: ['填邮箱和微信号', '邮件里收到个人链接', '点开，8分钟测出现在的位置'],
+    wechatLabel: '微信号',
+    wechatPh: '例：wxid_xxxx 或你的微信号',
+    wechatWhy: '邮件没收到时，我会用微信把链接发给你。也用于之后的活动通知。',
     s1h: '不是「测一下」，是从第一天就开始学',
     s1sub: '测出你在哪，只是为了决定今天学什么。',
     p1: ['只补你缺的：词汇・语法・阅读', '8分钟测出词汇和语法的位置。之后出的题，全是你做错过、快忘掉的那些。会的题不再出现。'],
@@ -73,14 +77,16 @@ const T = {
     boldSub: '这7天先把基础补齐。之后想开口的话，AI会话在正式课程里等你。',
     honestH: '先说清楚',
     honest: ['这7天不含AI会话。是考试・语法・词汇・阅读的部分。', '听力练习目前只有N3和N2有音频。', '7天后结束。测试结果・错题本・单词图鉴不会清空。', '不保证考试合格。'],
-    formLabel: '填邮箱，账号和个人链接会发到邮箱',
+    formLabel: '邮箱',
     emailPh: 'you@example.com',
     send: '免费开始7天',
     sending: '发送中…',
     resendIn: (s: number) => `${s} 秒后可重新发送`,
     fine: '无需付款、不会自动续费。邮件里有ID・密码・个人链接。打开个人链接就能进入，不用输密码。',
     sentH: '发好了，请查收邮件',
-    sentP: (e: string) => `已发送到 ${e}。邮件里有个人链接，点开就能开始。没收到的话请先看垃圾邮件文件夹，等几分钟仍未收到可以再发一次。`,
+    sentP: (e: string) => `已发送到 ${e}。`,
+    sentSteps: ['打开邮件里的「个人链接」', '回答几个简单的问题（1分钟）', '8分钟测试，今天就开始'],
+    sentFallback: '几分钟后还没收到？先看垃圾邮件文件夹。还是没有的话，我会用你留的微信号把链接发给你。',
     sentAgain: '换一个邮箱',
     codeLabel: '验证码',
     codeHint: (e: string) => `请查看发送到 ${e} 的邮件，输入收到的验证码。`,
@@ -103,7 +109,7 @@ const T = {
     err: {
       invalid_invite: '这个邀请链接已失效或已满员。', rate_limited: '短时间内尝试太多次，请等15分钟后再试。',
       already_registered: '这个邮箱已经注册过了。请用之前收到的个人链接进入，或者从登录页面用ID和密码登录。',
-      mail_failed: '账号已创建，但邮件没有发出去。请直接联系安田，我们会把个人链接发给你。', invalid_email: '邮箱格式不正确。',
+      mail_failed: '账号已创建，但邮件没有发出去。我会用你留的微信号把链接发给你。', invalid_email: '邮箱格式不正确。', invalid_wechat: '请填写微信号（2〜30个字符）。',
       network: '网络连接不太顺利，请再试一次。', unknown: '出了点问题，请稍后再试。',
     },
   },
@@ -120,7 +126,11 @@ const T = {
     seats: '100アカウント限定・7日間無料',
     seatsSub: '先着順。定員に達した時点で、このリンクは開けなくなります。',
     cta: '無料で7日間はじめる',
-    ctaSub: 'メールアドレスだけ・支払いなし・コード入力なし',
+    ctaSub: 'メールアドレスとWeChat IDだけ・支払いなし・コード入力なし',
+    steps3: ['メールとWeChat IDを入れる', 'メールで個人リンクが届く', '開いて、8分で現在地が分かる'],
+    wechatLabel: 'WeChat ID',
+    wechatPh: '例: wxid_xxxx またはあなたのWeChat ID',
+    wechatWhy: 'メールが届かないときは、WeChatでリンクを送ります。あとの企画のご案内にも使います。',
     s1h: '「診断」ではなく、初日から学習が始まる',
     s1sub: '現在地を量るのは、今日なにを学ぶかを決めるためです。',
     p1: ['足りない所だけを埋める: ことば・文法・読解', '8分でことばと文法の位置を測ります。その後に出るのは、間違えた問題と忘れかけた問題だけ。できる問題は出ません。'],
@@ -149,14 +159,16 @@ const T = {
     boldSub: 'この7日で基礎を埋める。その先で話したくなったら、AI会話が本コースで待っています。',
     honestH: '先に正直に書きます',
     honest: ['この7日にAI会話は含みません。試験・文法・ことば・読解の部分です。', '聴解の音源はいまN3・N2だけです。', '7日で終わります。診断結果・錯題本・単語図鑑は消えません。', '合格を保証するものではありません。'],
-    formLabel: 'メールアドレスを入れると、アカウントと個人リンクが届きます',
+    formLabel: 'メールアドレス',
     emailPh: 'you@example.com',
     send: '無料で7日間はじめる',
     sending: '送信中…',
     resendIn: (s: number) => `再送できるまで ${s} 秒`,
     fine: '支払いも自動更新もありません。メールにID・パスワード・個人リンクが入っています。個人リンクを開くだけで入れます。',
     sentH: '送りました。メールを確認してください',
-    sentP: (e: string) => `${e} 宛に送りました。メールの個人リンクを開くと始まります。届かないときは迷惑メールフォルダを確認し、数分待っても届かなければもう一度送れます。`,
+    sentP: (e: string) => `${e} 宛に送りました。`,
+    sentSteps: ['メールの「個人リンク」を開く', '簡単な質問に答える（1分）', '8分の診断で、今日から始まる'],
+    sentFallback: '数分たっても届かないときは、迷惑メールフォルダを確認してください。それでも無ければ、WeChat IDあてにリンクを送ります。',
     sentAgain: '別のメールアドレスで送る',
     codeLabel: '確認コード',
     codeHint: (e: string) => `${e} 宛のメールを確認して、届いたコードを入力してください。`,
@@ -179,7 +191,7 @@ const T = {
     err: {
       invalid_invite: 'この招待リンクは使えなくなっています（定員または期限）。', rate_limited: '短い時間に何度も試されました。15分ほどおいてからもう一度お試しください。',
       already_registered: 'このメールアドレスは登録済みです。前に届いた個人リンクから入るか、ログイン画面でIDとパスワードでログインしてください。',
-      mail_failed: 'アカウントはできましたが、メールを送れませんでした。しょっちゃんに直接連絡してください。個人リンクをお渡しします。', invalid_email: 'メールアドレスの形式が正しくありません。',
+      mail_failed: 'アカウントはできましたが、メールを送れませんでした。WeChat IDあてに個人リンクを送ります。', invalid_email: 'メールアドレスの形式が正しくありません。', invalid_wechat: 'WeChat IDを入れてください（2〜30文字）。',
       network: '通信がうまくいきませんでした。もう一度お試しください。', unknown: 'エラーが発生しました。少し待ってからもう一度お試しください。',
     },
   },
@@ -215,6 +227,7 @@ export function InviteLandingPage() {
   const examDays = daysUntil(INVITE_CAMPAIGN.examDateISO);
 
   const [email, setEmail] = useState('');
+  const [wechat, setWechat] = useState('');
   const [step, setStep] = useState<'email' | 'sent'>('email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -227,14 +240,14 @@ export function InviteLandingPage() {
 
   const msg = useCallback((c: InviteSignupCode): string => {
     const e = t.err;
-    if (c === 'invalid_invite' || c === 'rate_limited' || c === 'already_registered' || c === 'mail_failed' || c === 'invalid_email' || c === 'network') return e[c];
+    if (c === 'invalid_invite' || c === 'rate_limited' || c === 'already_registered' || c === 'mail_failed' || c === 'invalid_email' || c === 'invalid_wechat' || c === 'network') return e[c];
     return e.unknown;
   }, [t]);
 
   const send = async () => {
-    if (busy || !email.trim()) return;
+    if (busy || !email.trim() || wechat.trim().length < 2) return;
     setError(''); setBusy(true);
-    const r = await signupWithInvite(email, invite, lang);
+    const r = await signupWithInvite(email, invite, lang, wechat);
     setBusy(false);
     if (!r.ok) {
       if (r.code === 'invalid_invite') setClosedByServer(true);
@@ -326,11 +339,21 @@ export function InviteLandingPage() {
                       <span className="text-[0.85rem] text-lp-ink-soft">{t.ctaSub}</span>
                     </div>
                   )}
+                  {!closed && (
+                    <ol className="mt-6 grid grid-cols-3 gap-2 text-left" aria-label="3 steps">
+                      {t.steps3.map((s, i) => (
+                        <li key={s} className="rounded-2xl bg-lp-card border border-lp-line px-3 py-2.5">
+                          <span className="block font-mono text-[0.7rem] font-extrabold tracking-[0.14em] text-lp-coral-deep">STEP {i + 1}</span>
+                          <span className="mt-0.5 block text-[0.85rem] font-bold leading-snug text-lp-ink">{s}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
                 </div>
                 <div className="relative mx-auto w-full max-w-[420px]">
                   <img src={imgUrl(v.images.wave)} width={ww} height={wh} alt={v.name[lang]} decoding="async"
                     className="w-full h-auto drop-shadow-[0_18px_30px_rgba(55,43,38,0.18)]" />
-                  <div className="absolute -left-2 top-6 max-w-[62%] rounded-2xl rounded-bl-sm bg-white border border-lp-line px-4 py-3 text-[0.95rem] font-bold text-lp-ink shadow-[0_8px_22px_rgba(55,43,38,0.12)] whitespace-pre-line">{v.hero.bubble[lang]}</div>
+                  <div className="absolute left-2 top-4 max-w-[58%] rounded-2xl rounded-bl-sm bg-white border border-lp-line px-4 py-3 text-[0.95rem] font-bold text-lp-ink shadow-[0_8px_22px_rgba(55,43,38,0.12)] whitespace-pre-line">{v.hero.bubble[lang]}</div>
                 </div>
               </div>
               <div className="mx-auto max-w-6xl px-5 mt-8 grid md:grid-cols-2 gap-6 items-start">
@@ -432,6 +455,10 @@ export function InviteLandingPage() {
                           <label htmlFor="invite-mail" className="mb-2 flex items-center gap-2 font-extrabold text-lp-ink"><Mail className="h-4 w-4" aria-hidden />{t.formLabel}</label>
                           <input id="invite-mail" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder={t.emailPh}
                             className="w-full min-h-12 rounded-2xl border border-lp-line bg-white px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-lp-pine" />
+                          <label htmlFor="invite-wechat" className="mt-4 mb-2 flex items-center gap-2 font-extrabold text-lp-ink"><MessageCircle className="h-4 w-4" aria-hidden />{t.wechatLabel}</label>
+                          <input id="invite-wechat" type="text" autoComplete="off" autoCapitalize="none" value={wechat} onChange={(e) => { setWechat(e.target.value); setError(''); }} placeholder={t.wechatPh} maxLength={40}
+                            className="w-full min-h-12 rounded-2xl border border-lp-line bg-white px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-lp-pine" />
+                          <p className="mt-1.5 text-[0.82rem] text-lp-ink-soft leading-relaxed">{t.wechatWhy}</p>
                           {LEGAL_PUBLISH && (
                             <div className="mt-3 rounded-2xl border border-lp-line bg-white p-3">
                               <label className="flex cursor-pointer items-start gap-2 text-sm"><input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-lp-pine" /><span>{t.consent}</span></label>
@@ -444,18 +471,29 @@ export function InviteLandingPage() {
                           )}
                           {error && <p className="mt-3 text-sm font-bold text-lp-coral-deep">{error}</p>}
                           <div className="mt-4">
-                            <CtaButton variant="primary" fullWidth onClick={() => void send()} disabled={busy || !email.trim() || (LEGAL_PUBLISH && !consented)}>
+                            <CtaButton variant="primary" fullWidth onClick={() => void send()} disabled={busy || !email.trim() || wechat.trim().length < 2 || (LEGAL_PUBLISH && !consented)}>
                               {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{busy ? t.sending : t.send}{!busy && <ArrowRight />}
                             </CtaButton>
                           </div>
                           <p className="mt-3 text-[0.85rem] text-lp-ink-soft leading-relaxed">{t.fine}</p>
                         </>
                       ) : (
-                        <div className="text-center" data-testid="invite-sent">
-                          <Mail className="mx-auto h-8 w-8 text-lp-pine" aria-hidden />
-                          <h3 className="mt-2 text-xl font-extrabold">{t.sentH}</h3>
-                          <p className="mt-2 text-[0.95rem] text-lp-ink-soft">{t.sentP(email)}</p>
-                          <button type="button" onClick={() => { setStep('email'); setError(''); }} className="mt-4 underline underline-offset-2 text-sm">{t.sentAgain}</button>
+                        <div data-testid="invite-sent">
+                          <div className="text-center">
+                            <span className="inline-grid h-14 w-14 place-items-center rounded-full bg-lp-pine-soft"><Mail className="h-7 w-7 text-lp-pine" aria-hidden /></span>
+                            <h3 className="mt-3 text-xl font-extrabold">{t.sentH}</h3>
+                            <p className="mt-1 text-[0.95rem] text-lp-ink-soft">{t.sentP(email)}</p>
+                          </div>
+                          <ol className="mt-5 rounded-2xl bg-lp-ivory-2 border border-lp-line divide-y divide-lp-line">
+                            {t.sentSteps.map((s, i) => (
+                              <li key={s} className="flex items-center gap-3 px-4 py-3">
+                                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lp-pine text-[0.85rem] font-extrabold text-white">{i + 1}</span>
+                                <span className="font-bold text-lp-ink">{s}</span>
+                              </li>
+                            ))}
+                          </ol>
+                          <p className="mt-4 text-[0.85rem] text-lp-ink-soft leading-relaxed">{t.sentFallback}</p>
+                          <button type="button" onClick={() => { setStep('email'); setError(''); }} className="mt-3 underline underline-offset-2 text-sm text-lp-ink-soft">{t.sentAgain}</button>
                         </div>
                       )}
                     </div>

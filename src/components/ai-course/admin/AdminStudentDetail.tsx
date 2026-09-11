@@ -3,7 +3,8 @@
 //              → この生徒の問題報告 → panels スロット（AccessPanel等はintegratorが注入）。
 // learner未作成のアカウント（andy/wang等）は案内＋panelsのみを出す。
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '../../../services/supabaseClient';
 import { AlertTriangle, ChevronLeft, Clock } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { AdminIssueReport, AdminUsageCost } from '../../../lib/aiLesson/course/courseAdminApi';
@@ -59,6 +60,21 @@ export const AdminStudentDetail = ({
   const nowISO = useMemo(() => new Date().toISOString(), []);
   const { account, learner, adv } = view;
   const name = displayNameOf(view);
+  /*
+   * 招待から登録した人の連絡先（WeChat ID・経路）。2026-09-11 CEO決定「WeChat 紐付け」。
+   * メールが届かない人へ WeChat でリンクを送る・企画の案内に使う。管理者だけ読める RPC
+   */
+  const [contact, setContact] = useState<{ wechatId: string | null; channel: string | null } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void supabase.rpc('ai_admin_signup_contacts').then(({ data }) => {
+      if (!alive || !Array.isArray(data)) return;
+      const row = (data as { email: string; wechat_id: string | null; channel: string | null }[])
+        .find((r) => r.email?.toLowerCase() === account.email.toLowerCase());
+      setContact(row ? { wechatId: row.wechat_id, channel: row.channel } : null);
+    });
+    return () => { alive = false; };
+  }, [account.email]);
 
   // この生徒の未解決の問題報告（learner未作成なら報告も存在しない）
   const myIssues = learner
@@ -111,6 +127,13 @@ export const AdminStudentDetail = ({
         この人にすることは1つ＝ログイン情報を送ること。送る文面をここで作って渡す。
         パスワードはこちらにも残っていない（保存していない）ので、分からなければ再発行する
       */}
+      {contact && (contact.wechatId || contact.channel) && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4 text-sm" data-testid="admin-signup-contact">
+          <p className="font-bold text-gray-800">招待からの登録の連絡先</p>
+          <p className="mt-1 text-gray-700">WeChat ID: <b className="font-mono">{contact.wechatId ?? '（未記入）'}</b>{contact.channel ? <span className="ml-3 text-xs text-gray-500">経路: {contact.channel}</span> : null}</p>
+          <p className="mt-1 text-[11px] text-gray-500">メールが届かない人には、ここの WeChat ID へ個人リンクを送ります。</p>
+        </div>
+      )}
       {!account.lastSignInAtISO && (
         <div className="bg-white border border-blue-200 rounded-xl p-4">
           <p className="text-sm font-bold text-gray-800">この人はまだ一度もログインしていません</p>
