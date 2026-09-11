@@ -840,6 +840,9 @@ function matchOgpRoute(pathname) {
   // 中国語話者に日本語で「川口・蕨バドミントン交流会」と表示されていた
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/(login|purchase)(\\/|$)/);
   if (m) return { kind: 'aiCourseApp', lang: m[1], page: m[2] };
+  // 招待リンク限定ページ（2026-09-12）。素のHTMLの title/OG を招待の内容にする（noindex）
+  m = pathname.match(/^\\/(ja|zh)\\/invite\\/?$/);
+  if (m) return { kind: 'aiCourseApp', lang: m[1], page: 'invite' };
   m = pathname.match(/^\\/(ja|zh)\\/ai-course\\/([a-z-]+)\\/?$/);
   if (m && AI_COURSE_LEGAL[m[2]]) return { kind: 'aiCourseLegal', lang: m[1], page: m[2] };
   // 静的ページ（トップ・通常活動・FAQ・クラス案内・会場・問い合わせ・特典登録・
@@ -902,6 +905,17 @@ const AI_COURSE_APP = {
     zh: {
       title: '登录｜你的日语搭档（AI日语会话课程）',
       description: '用老师发给你的ID和密码进入学习页面。今天的冒险、AI会话与复习都从这里开始。',
+    },
+  },
+  // 招待リンク限定ページ（2026-09-12）。微信で配るのはこのURL。カードが「バドミントン」にならないように
+  invite: {
+    ja: {
+      title: '7日間の実力診断（招待専用）｜日本語の相棒',
+      description: 'しょっちゃんからの招待。ことば・文法・読解の足りない所だけを、毎日10分。100アカウント限定・7日間無料。',
+    },
+    zh: {
+      title: '7天日语实力诊断（邀请专用）｜你的日语搭档',
+      description: '来自安田的邀请。只补你缺的词汇・语法・阅读，每天10分钟。限量100个账号・7天免费。',
     },
   },
   purchase: {
