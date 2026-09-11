@@ -74,7 +74,7 @@ describe('時計が動く前に伝える', () => {
   });
 
   it('使えないときは開始ボタンの手前で警告する', () => {
-    expect(SCREEN).toMatch(/\{mic !== 'ok' && \([\s\S]{0,1200}?role="alert"/);
+    expect(SCREEN).toMatch(/\{mic !== 'ok' && !freeInvite && \([\s\S]{0,1200}?role="alert"/);
     expect(SCREEN).toContain('この画面ではマイクが使えません');
     expect(SCREEN).toContain('这个画面无法使用麦克风');
   });

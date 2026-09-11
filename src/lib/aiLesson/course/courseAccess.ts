@@ -49,9 +49,19 @@ export const accessStateOf = (
 /** 自分の受講権を読む（無ければ null。RLSで他人の行は見えない）。
  * plan_id / ai_seconds_limit 列は 20260818130000 で追加済み（購入プランの表示に使う） */
 export const fetchMyAccess = async (): Promise<CourseAccessRow | null> => {
+  /*
+   * **自分の行に絞る**（2026-09-12 CEO実機）。
+   * RLS は「本人の行 または 管理者は全行」なので、管理者（info@ など）が学習者として入ると
+   * 全員の行が返り maybeSingle が失敗 → null → 「コースが開通していません」になっていた。
+   * 学習者の受講権は常に「自分の1行」。管理者かどうかはこの判定と無関係。
+   */
+  const { data: sess } = await supabase.auth.getSession();
+  const uid = sess.session?.user.id;
+  if (!uid) return null;
   const { data, error } = await supabase
     .from('ai_course_access')
     .select('valid_from, valid_until, note, plan_id, ai_seconds_limit, trial_window_minutes, trial_days, trial_started_at')
+    .eq('user_id', uid)
     .maybeSingle();
   if (error || !data) return null;
   return {

@@ -61,7 +61,8 @@ const formatCode = (raw: string): string => (raw.match(/.{1,4}/g) ?? []).join("-
 const clean = (v: unknown, max: number): string => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 type Lang = "ja" | "zh";
-const mailText = (lang: Lang, p: { email: string; password: string; url: string }): { subject: string; text: string } =>
+/** password が null ＝ 既存アカウント（パスワードは変えていない） */
+const mailText = (lang: Lang, p: { email: string; password: string | null; url: string }): { subject: string; text: string } =>
   lang === "zh"
     ? {
       subject: "【日语搭档】你的账号和个人链接（7天免费）",
@@ -77,7 +78,7 @@ const mailText = (lang: Lang, p: { email: string; password: string; url: string 
         "",
         "如果需要用ID和密码登录（换手机、或者链接打不开时）:",
         `  ID（邮箱）: ${p.email}`,
-        `  密码: ${p.password}`,
+        p.password ? `  密码: ${p.password}` : "  密码: 你之前设置的密码（这个邮箱已有账号，密码没有改变。忘了的话用上面的个人链接进即可）",
         `  登录页面: ${STUDY_ORIGIN}/zh/ai-course/login`,
         "",
         "接下来的7天:",
@@ -105,7 +106,7 @@ const mailText = (lang: Lang, p: { email: string; password: string; url: string 
         "",
         "IDとパスワードでログインする場合（端末を変えたとき・リンクが開けないとき）:",
         `  ID（メールアドレス）: ${p.email}`,
-        `  パスワード: ${p.password}`,
+        p.password ? `  パスワード: ${p.password}` : "  パスワード: 以前に設定したもの（このメールアドレスには既にアカウントがあり、パスワードは変えていません。忘れた場合は上の個人リンクから入れます）",
         `  ログイン画面: ${STUDY_ORIGIN}/ja/ai-course/login`,
         "",
         "これからの7日:",
@@ -172,7 +173,7 @@ serve(async (req) => {
   const channel: string = grantRows[0]?.channel ?? "invite";
 
   // ── 2. パスワード付きのアカウント（メール確認済み扱い） ──
-  const password = randomPassword();
+  let password: string | null = randomPassword();
   const createRes = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
     method: "POST", headers: dbHeaders,
     body: JSON.stringify({
@@ -180,12 +181,25 @@ serve(async (req) => {
       user_metadata: { source: "invite_signup", provisioned_at: new Date().toISOString(), wechat_id: wechatId },
     }),
   });
-  if (!createRes.ok) {
+  let userId = "";
+  if (createRes.ok) {
+    userId = ((await createRes.json()) as { id?: string })?.id ?? "";
+  } else if (createRes.status === 422) {
+    /*
+     * 既にアカウントがあるメール（学習者行は無い＝上の ai_email_has_learner を通過している）。
+     * 2026-09-12 CEO実機: 以前バドミントン側で作ったメールが全部「登録済み」で止まっていた。
+     * **パスワードは触らない**（他人が作り直せてはいけない）。受講権と個人リンクだけ付け、
+     * メールでは「パスワードは以前のもの・個人リンクなら不要」と案内する。
+     */
+    const existing = await rpc("ai_service_user_id_by_email", { p_email: email });
+    userId = typeof existing === "string" ? existing : "";
+    password = null;
+    if (!userId) { await record(false, "already_registered"); return json({ ok: false, code: "already_registered" }, 409); }
+  } else {
     console.error("invite signup: user create failed", createRes.status);
     await record(false, "create_failed");
-    return json({ ok: false, code: createRes.status === 422 ? "already_registered" : "create_failed" }, createRes.status === 422 ? 409 : 502);
+    return json({ ok: false, code: "create_failed" }, 502);
   }
-  const userId: string = ((await createRes.json()) as { id?: string })?.id ?? "";
   if (!userId) return json({ ok: false, code: "create_failed" }, 502);
 
   // ── 2.5 受講権（7日）をここで作る ──
