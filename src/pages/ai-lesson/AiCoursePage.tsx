@@ -1338,7 +1338,11 @@ export default function AiCoursePage() {
       if (sid) {
         void courseRepository.finalizeSession(sid, {
           endedAt: nowISO(), completionStatus: 'interrupted', endReason: 'error-exit-before-start',
-        }, [], learner.id);
+        }, [], learner.id)
+          // 会話が成立しなかった回は回数を消費しない（2026-09-11）。閉じたあとで枠を取り直し、
+          // 戻った回数を会話の入口の画面にそのまま出す（取り直さないと「使い切った」のまま見える）
+          .then(() => fetchConversationBudget())
+          .then((b) => { if (b) setConvBudget(b); });
       }
       setActiveSessionId(null);
       setStep(plan ? 'conversationIntro' : 'home');

@@ -10,9 +10,11 @@
 //   Supabase Secret AI_LESSON_DEMO_CODE でサーバー側でも検証する（こちらが正）
 // - system instructions はサーバー側で組み立てる（クライアントから任意注入させない）
 // - リクエストボディ・APIキーはログへ出さない
+// - コースの回は、OpenAI へ取りに行く**前に**「この回でトークンを出す」を回数の台帳へ書く（2026-09-11）。
+//   書けなければ出さない。会話が成立しなかった回を「消費しない」にする判定の土台になる
 //
-// デプロイ: supabase functions deploy ai-lesson-token --no-verify-jwt
-// （デモは未ログイン利用のため JWT 検証なし。ゲートは招待コード）
+// デプロイ: ./scripts/deploy-edge-functions.sh ai-lesson-token
+// （本番は verify_jwt=true で動いている。コースはログインした本人の JWT を送る）
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { buildVoiceInstructions, buildWrapUpInstructions } from "./voiceTutorPrompt.ts";
@@ -130,6 +132,8 @@ const json = (status: number, body: unknown) =>
 interface CourseAuthResult {
   ok: boolean;
   code?: string;
+  /** 認可できた本人のユーザーID（回数の台帳へトークン発行を記録するときに使う） */
+  userId?: string;
 }
 
 const authorizeCourseSession = async (
@@ -183,7 +187,83 @@ const authorizeCourseSession = async (
   if (!learner || learner.user_id !== userId) return { ok: false, code: "forbidden" };
   if (!learner.is_active) return { ok: false, code: "learner_suspended" };
 
-  return { ok: true };
+  return { ok: true, userId };
+};
+
+// ── AI会話の回数: トークン発行の記録（2026-09-11 CEO指示） ──
+//
+// 「実質的な会話が成立していない回は回数を消費しない」。
+// トークンが一度も出ていない回は会話がありえないので、必ず消費しない（DB の ai_voice_settle_pending）。
+// そのために、**OpenAI へトークンを取りに行く前に**台帳へ記録する。書けなければトークンを出さない
+// （書かずに出すと、話した回が「トークン無し＝消費しない」になり、タダで話せてしまう）。
+//
+// DB 側でも確かめる: 音声で予約した回か／本人の回か／予約から10分以内か／1回の予約で5回までか／
+// 「消費しない」に決まった回ではないか（ai_service_claim_voice_token）。
+//
+// 例外は1つだけ: 台帳の関数そのものが本番DBに無いとき（migration を戻した場合）。
+// PostgREST は関数が無いと 404 + PGRST202 を返すので、そのときだけ従来どおり出す（会話を止めない）。
+type VoiceClaim =
+  | { ok: true; recorded: boolean }
+  | { ok: false; status: number; code: string };
+
+const claimVoiceToken = async (
+  sessionId: string, userId: string, reportsEvidence: boolean,
+): Promise<VoiceClaim> => {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return { ok: false, status: 503, code: "not_configured" };
+  let res: Response;
+  try {
+    res = await fetch(`${url}/rest/v1/rpc/ai_service_claim_voice_token`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_session_id: sessionId, p_user_id: userId, p_reports_evidence: reportsEvidence }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    console.error("voice claim error: network");
+    return { ok: false, status: 503, code: "claim_failed" };
+  }
+  if (!res.ok) {
+    let pgCode = "";
+    try {
+      pgCode = ((await res.json()) as { code?: string }).code ?? "";
+    } catch { /* noop */ }
+    if (res.status === 404 && pgCode === "PGRST202") {
+      console.warn("voice claim rpc missing: issuing without ledger record");
+      return { ok: true, recorded: false };
+    }
+    console.error(`voice claim error: status=${res.status} code=${pgCode || "unknown"}`);
+    return { ok: false, status: 503, code: "claim_failed" };
+  }
+  let r: { ok?: boolean; code?: string } | null = null;
+  try {
+    r = (await res.json()) as { ok?: boolean; code?: string };
+  } catch { /* noop */ }
+  if (r?.ok === true) return { ok: true, recorded: true };
+  const code = r?.code ?? "forbidden";
+  if (code === "token_limit") return { ok: false, status: 429, code };
+  // 「消費しない」に決まった回＝もう終わった回。画面側の既存の扱い（session_not_active）に揃える
+  if (code === "session_closed") return { ok: false, status: 403, code: "session_not_active" };
+  return { ok: false, status: 403, code };
+};
+
+// OpenAI がトークンを返さなかったとき（ブラウザへ何も渡していない）だけ、記録を1つ戻す。
+// 戻せなくても「トークンは出たが会話成立の報告が無い回」として扱われるだけ（直近7日で2回までは消費しない）
+const releaseVoiceToken = async (sessionId: string, userId: string): Promise<void> => {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return;
+  try {
+    await fetch(`${url}/rest/v1/rpc/ai_service_release_voice_token`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_session_id: sessionId, p_user_id: userId }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    console.error("voice release error: network");
+  }
 };
 
 // クライアントから受けるのは構造化された短い文字列のみ（長文注入を拒否）
@@ -205,6 +285,9 @@ serve(async (req) => {
     return json(405, { error: "method_not_allowed" });
   }
 
+  // 台帳へトークン発行を記録した回。OpenAI から受け取れずブラウザへ渡せなかったら戻す
+  let claimed: { sessionId: string; userId: string } | null = null;
+
   try {
     const apiKey = Deno.env.get("OPENAI_API_KEY")?.trim();
     if (!apiKey) {
@@ -220,6 +303,7 @@ serve(async (req) => {
 
     // コースモード（sessionIdあり）か、従来のデモモード（招待コードのみ）か
     const sessionId = cleanText(body.sessionId, 64);
+    let courseUserId: string | null = null;
     if (sessionId) {
       const auth = await authorizeCourseSession(req, sessionId);
       if (!auth.ok) {
@@ -227,6 +311,7 @@ serve(async (req) => {
           : auth.code === "not_configured" ? 503 : 403;
         return json(status, { error: auth.code ?? "forbidden" });
       }
+      courseUserId = auth.userId ?? null;
     } else {
       const demoCode = Deno.env.get("AI_LESSON_DEMO_CODE");
       if (!demoCode) {
@@ -241,6 +326,15 @@ serve(async (req) => {
 
     if (isRateLimited()) {
       return json(429, { error: "rate_limited" });
+    }
+
+    // AI会話の回数: OpenAI へ取りに行く前に、この回でトークンを出すことを台帳へ書く（書けなければ出さない）
+    if (sessionId) {
+      if (!courseUserId) return json(401, { error: "unauthorized" });
+      // reportsEvidence: 会話成立の材料を送る版の画面か。送らない版（更新前の画面）の回は、DB がこれまでどおり消費する
+      const claim = await claimVoiceToken(sessionId, courseUserId, body.reportsEvidence === true);
+      if (!claim.ok) return json(claim.status, { error: claim.code });
+      if (claim.recorded) claimed = { sessionId, userId: courseUserId };
     }
 
     // 案内の先生。**voice文字列ではなく teacherId だけ**を受け取り、ここで変換する
@@ -325,6 +419,11 @@ serve(async (req) => {
       console.error(
         `openai client_secrets error: status=${openaiRes.status} kind=${kind} teacher=${teacherId} voice=${voice}`,
       );
+      // ブラウザへ何も渡していないので、台帳の記録を戻す（この回は「トークン無し」のまま＝消費しない）
+      if (claimed) {
+        await releaseVoiceToken(claimed.sessionId, claimed.userId);
+        claimed = null;
+      }
       // 残高切れは「障害」ではなく「運営の在庫切れ」。生徒には ai_unavailable を返し、
       // 画面側で「アップデート中」に切り替える（接続失敗の赤いエラーを出さない）。
       if (isQuotaError(openaiRes.status, kind)) {
@@ -340,8 +439,14 @@ serve(async (req) => {
     };
     if (!secret.value) {
       console.error("openai client_secrets error: no value in response");
+      if (claimed) {
+        await releaseVoiceToken(claimed.sessionId, claimed.userId);
+        claimed = null;
+      }
       return json(502, { error: "openai_error", status: 500, kind: "no_secret" });
     }
+    // ここから先はトークンをブラウザへ返す。記録は戻さない
+    claimed = null;
 
     // ── 原価の記録・音声（2026-08-24 WAVE 4-4） ──
     //
@@ -381,6 +486,8 @@ serve(async (req) => {
   } catch (e) {
     // エラー詳細にリクエスト内容が混ざらないようメッセージのみ
     console.error("ai-lesson-token error:", e instanceof Error ? e.message : "unknown");
+    // トークンをブラウザへ返す前に落ちた＝何も渡していない
+    if (claimed) await releaseVoiceToken(claimed.sessionId, claimed.userId);
     return json(500, { error: "internal_error" });
   }
 });

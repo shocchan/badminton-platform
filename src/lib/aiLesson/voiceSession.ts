@@ -110,6 +110,11 @@ interface StartOptions {
    * teacherId → voice に変換する。未指定・不正値はサーバー側で既定の先生へ倒れる。
    */
   teacherId?: string | null;
+  /**
+   * 会話成立の材料をサーバーへ送る画面か（2026-09-11）。トークンを取るときに Edge Function へ伝え、台帳に残る。
+   * 送らない版の画面（更新前のまま開いている画面）から始めた回は、サーバーがこれまでどおり消費する
+   */
+  reportsEvidence?: boolean;
   plan: VoicePlanPayload;
   /**
    * turn_detection（VAD）の上書き設定。短い咳・雑音での誤割り込みを防ぐため、
@@ -381,6 +386,7 @@ export const startVoiceSession = (opts: StartOptions): VoiceSessionHandle => {
           sessionId: opts.sessionId ?? undefined,
           // 送るのは先生IDだけ（voice名は送らない＝任意音声の注入経路を作らない）
           teacherId: opts.teacherId ?? undefined,
+          reportsEvidence: opts.reportsEvidence === true ? true : undefined,
           plan: opts.plan,
         }),
       }, 15000);

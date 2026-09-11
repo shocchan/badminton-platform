@@ -23,6 +23,7 @@ import { courseRepository } from '../../lib/aiLesson/course/courseRepository';
 import type { VoiceErrorKind, VoiceSessionHandle, VoiceSessionStatus } from '../../lib/aiLesson/voiceSession';
 import { buildVoicePayload, detectTargetUsage } from '../../lib/aiLesson/course/courseLesson';
 import { isMeaningfulUserTurn, COURSE_TURN_DETECTION, shouldShowGreetingGuide } from '../../lib/aiLesson/course/courseInteraction';
+import { createVoiceEvidenceTracker, VOICE_EVIDENCE_HEARTBEAT_MS } from '../../lib/aiLesson/course/voiceEvidence';
 import { getAccessToken } from '../../lib/aiLesson/course/courseAuth';
 import {
   effectiveSubtitleMode, autoTranslateAll, zhAssistAvailable,
@@ -165,6 +166,35 @@ export const CourseVoiceLesson = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   /** 会話中にライブ記録済みの秒数（60秒単位で積む。完了時は差分だけ追加記録） */
   const recordedLiveRef = useRef(0);
+  /*
+   * 会話成立の材料（2026-09-11 CEO指示「実質的な会話が成立していない回は回数を消費しない」）。
+   * 成立したかどうかはサーバーだけが決める（ai_voice_conversation_established）。
+   * ここは数えて送るだけ。サーバーが「成立」と返したら、それ以降は送らない。
+   */
+  const evidenceRef = useRef(createVoiceEvidenceTracker());
+  const establishedRef = useRef(false);
+  const reportEvidence = useCallback(() => {
+    if (!sessionId || establishedRef.current) return;
+    const send = (retryLeft: number) => {
+      const snapshot = evidenceRef.current.snapshot(Date.now());
+      void courseRepository.reportVoiceEvidence(sessionId, snapshot).then((r) => {
+        if (r?.established) { establishedRef.current = true; return; }
+        // 通信の失敗は1回だけ送り直す（成立の報告を取りこぼすと、話した回が「未成立」として扱われるため）
+        if (r === null && retryLeft > 0 && !establishedRef.current) {
+          timers.current.push(setTimeout(() => send(retryLeft - 1), 3000));
+        }
+      });
+    };
+    send(1);
+  }, [sessionId]);
+  /** 接続を閉じる直前に、そこまでの材料を送る（終了・中断・テキストへ切り替え・戻る） */
+  const flushEvidence = useCallback(() => {
+    evidenceRef.current.onDisconnected(Date.now());
+    reportEvidence();
+  }, [reportEvidence]);
+  // 依存に入れない effect（先生の切り替え）からも、最新の送信処理を呼べるようにする
+  const reportEvidenceRef = useRef(reportEvidence);
+  useEffect(() => { reportEvidenceRef.current = reportEvidence; });
 
   const remaining = Math.max(DURATION - elapsed, 0);
   const inExt = elapsed >= DURATION && !doneOverlay;
@@ -175,6 +205,7 @@ export const CourseVoiceLesson = ({
     if (doneRef.current) return;
     doneRef.current = true;
     trackAdv('realtime_session_completed', { teacherId: startedTeacherRef.current ?? undefined });
+    flushEvidence();
     sessionRef.current?.stop();
     const turns = msgsRef.current;
     const { usage, count } = detectTargetUsage(turns, mission.detect);
@@ -194,7 +225,7 @@ export const CourseVoiceLesson = ({
       const id = setTimeout(() => onComplete(result), COMPLETE_OVERLAY_MS);
       timers.current.push(id);
     } else onComplete(result);
-  }, [mission.detect, onComplete]);
+  }, [mission.detect, onComplete, flushEvidence]);
 
   const start = useCallback(async (isCancelled: () => boolean = () => false) => {
     setErrorKind(null); setInterrupted(false); setStatus('requesting-mic');
@@ -237,6 +268,8 @@ export const CourseVoiceLesson = ({
     trackAdv('realtime_session_started', { teacherId: teacher.id, locale: t.locale === 'zh' ? 'zh' : 'ja', routeStage: `interrupt:${interruption.mode}` });
     sessionRef.current = startVoiceSession({
       sessionId, accessToken, plan: payload,
+      // この画面は会話成立の材料を送る（送らない版の画面から始めた回は、サーバーがこれまでどおり消費する）
+      reportsEvidence: true,
       teacherId: teacher.id,
       turnDetection: COURSE_TURN_DETECTION,
       // 半二重のときだけ先生の発話中にマイクを止める（adaptive では止めない）
@@ -267,6 +300,10 @@ export const CourseVoiceLesson = ({
         },
         onStatus: (s) => {
           setStatus(s);
+          // 実際につながっている時間だけを数える（切断・エラー画面の時間は含めない）
+          if (s === 'connected') evidenceRef.current.onConnected(Date.now());
+          // 切れた・終わった直前までの材料を送る（エラー画面のまま閉じられても残るように）
+          else if (evidenceRef.current.onDisconnected(Date.now())) reportEvidence();
           if (s === 'connected' && startAtRef.current === null) { startAtRef.current = Date.now(); log({ speaker: 'system', transcript: 'connected', atMs: 0, isFinal: true, relatedTarget: false }); }
         },
         onUserTranscript: (text, isFinal) => {
@@ -280,6 +317,9 @@ export const CourseVoiceLesson = ({
             return; // 空の生徒発話を保存しない・ターンを確定しない
           }
           setHasMeaningfulTurn(true);
+          evidenceRef.current.onMeaningfulUserTurn();
+          // 生徒の文字起こしは AI の返事より後に届くことがある。届いた時点でも送る（成立の取りこぼしを防ぐ）
+          reportEvidence();
           msgsRef.current = [...msgsRef.current, { role: 'student', text: tr }]; setMsgs(msgsRef.current);
           const rel = (() => { try { return new RegExp(mission.detect).test(tr); } catch { return false; } })();
           log({ speaker: 'student', transcript: tr, atMs: startAtRef.current ? Date.now() - startAtRef.current : 0, isFinal: true, relatedTarget: rel });
@@ -287,6 +327,8 @@ export const CourseVoiceLesson = ({
         onTutorTranscript: (text, isFinal) => {
           if (!isFinal) { setLiveT(text); return; }
           setLiveT(''); const tr = text.trim(); if (!tr) return;
+          // 生徒の発話への最初の応答が来た＝往復が1回成立した。すぐ送る
+          if (evidenceRef.current.onTutorTurn()) reportEvidence();
           // 半二重へ戻ったあとも会話が続いているか（QA: fallback 後に先生の発話が何回来たか）
           if (fallbackSeenRef.current) setIntPanel((p) => p && ({ ...p, turnsAfterFallback: p.turnsAfterFallback + 1 }));
           msgsRef.current = [...msgsRef.current, { role: 'tutor', text: tr }]; setMsgs(msgsRef.current);
@@ -294,6 +336,8 @@ export const CourseVoiceLesson = ({
         },
         onTutorSpeaking: setTutorSpeaking,
         onUserSpeaking: (speaking) => {
+          // 「応答」は声の順番で数える（文字起こしは AI の返事より後に届くことがある）
+          if (speaking) evidenceRef.current.onUserSpeechStarted(); else evidenceRef.current.onUserSpeechEnded();
           if (speaking) { speakStartRef.current = Date.now(); setMicSilentHint(false); }
           else if (speakStartRef.current) { lastSpeakMsRef.current = Date.now() - speakStartRef.current; speakStartRef.current = null; }
           setUserSpeaking(speaking);
@@ -308,7 +352,7 @@ export const CourseVoiceLesson = ({
         onFinishLesson: (reason) => complete(reason === 'student_request' ? 'student-request' : 'completed', 'completed', true),
       },
     });
-  }, [learner, mission, step, complete, sessionId, teacher.id, t.locale]);
+  }, [learner, mission, step, complete, sessionId, teacher.id, t.locale, reportEvidence]);
 
   // start は毎renderで identity が変わりうる（onComplete等に依存）。
   // ref経由で「最新のstart」を保持し、マウント時に1回だけ起動する。
@@ -336,6 +380,7 @@ export const CourseVoiceLesson = ({
     if (started === null || started === teacher.id) return; // 未開始 or 同じ先生なら何もしない
     if (doneRef.current) return;                            // 終了済みのレッスンは触らない
     trackAdv('teacher_changed', { teacherId: teacher.id });
+    if (evidenceRef.current.onDisconnected(Date.now())) reportEvidenceRef.current();
     sessionRef.current?.stop();   // 既存sessionを正常終了（マイク・PeerConnectionも閉じる）
     sessionRef.current = null;
     routedRef.current = null;
@@ -354,6 +399,13 @@ export const CourseVoiceLesson = ({
     document.addEventListener('visibilitychange', tick);
     return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick); };
   }, [status]);
+
+  // 会話成立の材料を、つながっている間だけ定期的に送る（サーバーが「成立」と返したら送らなくなる）
+  useEffect(() => {
+    if (status !== 'connected' || !sessionId) return;
+    const id = setInterval(() => { if (!doneRef.current) reportEvidence(); }, VOICE_EVIDENCE_HEARTBEAT_MS);
+    return () => clearInterval(id);
+  }, [status, sessionId, reportEvidence]);
 
   // 利用時間のライブ記録（2026-08-20 CEO指摘「リアル60分でいいと思うよ」）:
   // 会話中、経過1分ごとにサーバーへ加算する（RPCは加算専用なので二重計上しない）。
@@ -471,17 +523,17 @@ export const CourseVoiceLesson = ({
   const handleSummaryEnd = () => {
     setConfirmOpen(false);
     if (doneRef.current) return;
-    if (status !== 'connected') { sessionRef.current?.stop(); setInterrupted(true); return; }
+    if (status !== 'connected') { flushEvidence(); sessionRef.current?.stop(); setInterrupted(true); return; }
     setEnding(true);
     sessionRef.current?.sendCue('生徒がレッスンの終了を希望しています。15秒程度で短くまとめて（今日できたこと＋明日の復習予告）、finish_lesson を呼んでください。', { switchToWrapUp: true, respondIfIdle: true });
     const id = setTimeout(() => complete('manual-summary', 'completed', true), 25000);
     timers.current.push(id);
   };
-  const stopNow = () => { sessionRef.current?.stop(); setEnding(false); setInterrupted(true); };
+  const stopNow = () => { flushEvidence(); sessionRef.current?.stop(); setEnding(false); setInterrupted(true); };
   // 言語切替は音声セッションを継続したまま表示言語だけ変える（mount一回化により再起動しない）
   const confirmLangSwitch = () => { setLangConfirmOpen(false); onToggleLang(); };
   const doRetry = () => { if (retry >= MAX_RETRY) return; setRetry((c) => c + 1); void start(); };
-  const switchText = () => { sessionRef.current?.stop(); onSwitchToText(); };
+  const switchText = () => { flushEvidence(); sessionRef.current?.stop(); onSwitchToText(); };
   const partialReport = () => complete('interrupted', 'interrupted', false);
 
   const statusLine = () => ending ? tv.endingSummary : status === 'requesting-mic' ? tv.statusMicPermission
@@ -509,7 +561,7 @@ export const CourseVoiceLesson = ({
         <p className="text-sm text-gray-700 leading-relaxed mb-5">{tv.micDenied}</p>
         {isWeChat() && <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2.5 mb-4">{tv.wechatWarning}</p>}
         <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
-        <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+        <button type="button" onClick={() => { flushEvidence(); sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
           className="w-full min-h-10 mt-2 text-xs text-gray-500 underline">
           {t.roadmap.back}
         </button>
@@ -526,7 +578,7 @@ export const CourseVoiceLesson = ({
         <p className="text-base font-bold text-gray-900 mb-2">{t.limits.ai_paused_title}</p>
         <p className="text-sm text-gray-700 leading-relaxed mb-2">{t.limits.ai_paused_body}</p>
         <p className="text-xs text-gray-500 leading-relaxed mb-5">{t.limits.ai_paused_other}</p>
-        <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+        <button type="button" onClick={() => { flushEvidence(); sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
           className="w-full min-h-11 py-3 bg-blue-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-primary-blue touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           {t.roadmap.back}
         </button>
@@ -564,7 +616,7 @@ export const CourseVoiceLesson = ({
             <button type="button" onClick={switchText} className="w-full min-h-11 py-3 bg-white border border-gray-300 text-gray-700 font-bold rounded-xl flex items-center justify-center gap-2 action-raised action-secondary touch-manipulation [-webkit-tap-highlight-color:transparent] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-transparent focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"><PenLine className="w-4 h-4" />{tv.switchToText}</button>
             {/* 進捗が無いエラーからの離脱は予約を解放して戻す（放置するとsession_already_activeが残る） */}
             {!hasProgress && (
-              <button type="button" onClick={() => { sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
+              <button type="button" onClick={() => { flushEvidence(); sessionRef.current?.stop(); (onAbortExit ?? onExit)(); }}
                 className="w-full min-h-10 text-xs text-gray-500 underline">
                 {t.roadmap.back}
               </button>

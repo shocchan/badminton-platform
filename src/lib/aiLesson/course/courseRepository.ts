@@ -155,6 +155,14 @@ export interface CourseRepository {
   listGrowthSnapshots(learnerId: string): Promise<GrowthSnapshot[]>;
   saveFeedback(learnerId: string, sessionId: string | null, fb: FeedbackInput): Promise<void>;
   recordUsage(learnerId: string, seconds: number, costUsd: number): Promise<void>;
+  /**
+   * 音声会話で「会話が成立したか」の材料を送る（2026-09-11 CEO指示）。
+   * 成立したかどうかはサーバーだけが決める（ai_voice_conversation_established）。
+   * 失敗しても会話は止めない（null を返す）
+   */
+  reportVoiceEvidence(sessionId: string, evidence: {
+    connectedMs: number; userTurns: number; aiRepliesAfterUser: number; tutorTurns: number; userSpeechStarts: number;
+  }): Promise<{ established: boolean } | null>;
   flushPending(): Promise<void>;
   // 中断・再開
   saveResume(state: unknown): void;
@@ -452,6 +460,19 @@ const createRepository = (): CourseRepository => ({
       updated_at: new Date().toISOString(),
     }, { onConflict: 'learner_id,usage_date' });
     if (error) queuePending({ kind: 'usage', payload: { learnerId, seconds, costUsd } });
+  },
+
+  async reportVoiceEvidence(sessionId, evidence) {
+    // 会話中に何度か送る。失敗は会話を止めない（次の送信か、終了時の送信で追いつく）
+    try {
+      const { data, error } = await supabase.rpc('ai_voice_report_evidence', {
+        p_session_id: sessionId, p_evidence: evidence,
+      });
+      if (error || !data || (data as { ok?: boolean }).ok !== true) return null;
+      return { established: (data as { established?: boolean }).established === true };
+    } catch {
+      return null;
+    }
   },
 
   async flushPending() {
