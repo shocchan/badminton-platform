@@ -1,8 +1,9 @@
 // 招待リンク限定のページ（/:lang/invite?invite=CODE）。2026-09-11 CEO決定。
 //
-// 「検索に出ない・招待された人だけ」の7日間無料。診断ではなく**学習が始まる**と伝える。
-// 締め切りは固定日のカウントダウン、定員は「100名」とだけ（残り数は出さない）。
-// 申し込みはメールだけ。既存の ai-course-auth（招待コード照合＋メールOTP）をそのまま使う。
+// **販売LPと同じ見た目・同じ部品で作る**（「いつもの商品の、今回だけの特別版」に見せる）。
+// LPと違うのは: 冒頭の「招待された人だけ」の帯、固定日のカウントダウン、100名限定、
+// 料金の代わりにメールだけの申込欄。診断ではなく**学習が始まる**と伝える。
+// 申し込みは既存の ai-course-auth（招待コード照合＋メールOTP）をそのまま使う。
 // 個人リンクをメールで送る形は、送信の直し（Resend）が入ってから切り替える。
 //
 // 書かない: 問題数・合格の断定・AI会話が使える（docs/ai-course/marketing/FREE_TRIAL_COPY.md §1）。
@@ -10,12 +11,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, KeyRound, Loader2, Mail, Lock } from 'lucide-react';
+import { KeyRound, Loader2, Mail, Lock } from 'lucide-react';
 import { sendEmailOtp, verifyEmailOtp, type OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
 import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { INVITE_CAMPAIGN, countdownTo, daysUntil, inviteCodeFromSearch } from '../../lib/aiLesson/course/plans/inviteCampaign';
+import { VARIANTS } from './landing/lpContent';
+import { Reveal, SectionHeading, CtaButton, ArrowRight, Check } from './landing/lpUi';
+import { imgUrl } from './landing/lpHelpers';
+import { currentLpTheme } from './landing/lpTheme';
+import { PainPointsSection, DailyLearningFlow } from './landing/sectionsA';
+import { PlatformFeatures } from './landing/sectionsB';
+import { HumanCoachSection, TestimonialsSection } from './landing/sectionsC';
+import { FaqSection } from './landing/sectionsE';
+import { LifeScenesSection } from './landing/sectionsScenes';
+import { LegalFooterLinks } from './legal/LegalPage';
 
 type L = 'ja' | 'zh';
 const RESEND_COOLDOWN_SEC = 60;
@@ -166,20 +177,34 @@ const T = {
     },
   },
 } as const;
-
 const pad = (n: number) => String(n).padStart(2, '0');
-const fmtDeadline = (lang: L) => {
-  const d = new Date(INVITE_CAMPAIGN.deadlineISO);
-  const m = d.getMonth() + 1, day = d.getDate();
-  return lang === 'zh' ? `${m}月${day}日` : `${m}月${day}日`;
-};
+const fmtDeadline = () => { const d = new Date(INVITE_CAMPAIGN.deadlineISO); return `${d.getMonth() + 1}月${d.getDate()}日`; };
+
+/** 7日で開くもの／本コースで待っているもの。LPの機能一覧の直前に置き、期待を正しくそろえる */
+const SCOPE = {
+  zh: {
+    h: '这7天能打开的，和正式课程里等你的',
+    open: ['8分钟水平测试', '语法・词汇・阅读（冒险的前3个地区）', '错题本・单词图鉴', '1次模拟考'],
+    later: ['AI会话（每天开口练习）', '真人日语教练的一对一', '6个月的完整路线'],
+    openH: '7天免费里有', laterH: '正式课程里等你',
+  },
+  ja: {
+    h: 'この7日で開くもの、本コースで待っているもの',
+    open: ['8分の実力診断', '文法・ことば・読解（冒険の最初の3地域）', '錯題本・単語図鑑', 'ミニ模試 1回'],
+    later: ['AI会話（毎日話す練習）', '日本語コーチの個別レッスン', '6か月のロードマップ'],
+    openH: '7日間無料に入っているもの', laterH: '本コースで待っているもの',
+  },
+} as const;
 
 export function InviteLandingPage() {
   const { lang: rawLang } = useParams();
   const lang: L = rawLang === 'zh' ? 'zh' : 'ja';
   const t = T[lang];
+  const sc = SCOPE[lang];
+  const v = VARIANTS.shoko;
   const navigate = useNavigate();
   const invite = inviteCodeFromSearch(typeof window === 'undefined' ? '' : window.location.search);
+  const [theme] = useState(currentLpTheme);
   const [cd, setCd] = useState(() => countdownTo(INVITE_CAMPAIGN.deadlineISO));
   const examDays = daysUntil(INVITE_CAMPAIGN.examDateISO);
 
@@ -206,8 +231,7 @@ export function InviteLandingPage() {
 
   const send = async (isResend: boolean) => {
     if (busy || cooldown > 0 || !email.trim()) return;
-    setError('');
-    setBusy(true);
+    setError(''); setBusy(true);
     const r = await sendEmailOtp(email, invite);
     setBusy(false);
     if (!r.ok) {
@@ -222,178 +246,266 @@ export function InviteLandingPage() {
   };
   const verify = async () => {
     if (busy || code.trim().length < 4) return;
-    setError('');
-    setBusy(true);
+    setError(''); setBusy(true);
     const r = await verifyEmailOtp(email, code);
     setBusy(false);
     if (!r.ok) { setError(t.err.invalid_code); return; }
     trackCourse('login_ai_course', { method: 'otp' });
     navigate(`/${lang}/ai-course`, { replace: true });
   };
-  const scrollToForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const toForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const closed = cd.closed || closedByServer;
   const other: L = lang === 'zh' ? 'ja' : 'zh';
+  const search = typeof window === 'undefined' ? '' : window.location.search;
+  const [ww, wh] = v.imageSize.wave;
+
+  const countdownBlock = (
+    <div className="rounded-3xl bg-lp-card border-2 border-lp-coral/40 p-5 shadow-[0_8px_22px_rgba(55,43,38,0.06)]" aria-live="polite" data-testid="invite-countdown">
+      <div className="flex items-baseline justify-between text-[0.85rem] font-extrabold text-lp-coral-deep">
+        <span>{t.deadline}</span><span className="font-bold text-lp-ink-soft">{fmtDeadline()} 23:59 (JST)</span>
+      </div>
+      <div className="mt-1 flex items-baseline gap-2 font-mono tabular-nums text-lp-ink">
+        <span className="text-[3rem] font-extrabold leading-none">{cd.days}</span><span className="text-base font-extrabold text-lp-ink-soft">{t.day}</span>
+        <span className="text-[1.75rem] font-extrabold">{pad(cd.hours)}:{pad(cd.minutes)}:{pad(cd.seconds)}</span>
+      </div>
+      <div className="mt-4 flex items-center gap-3 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-3">
+        <span className="grid h-12 w-12 flex-none -rotate-6 place-items-center rounded-full border-2 border-lp-coral-deep text-center text-[0.75rem] font-extrabold leading-[1.1] text-lp-coral-deep" aria-hidden>{INVITE_CAMPAIGN.seats}<br />名</span>
+        <div><b className="block text-[0.98rem] text-lp-ink">{t.seats}</b><span className="text-[0.85rem] text-lp-ink-soft">{t.seatsSub}</span></div>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-[#eef1f5] text-[#14203a]">
+    <div data-lp-theme={theme} className="lp-paper bg-lp-ivory text-lp-ink min-h-screen [font-feature-settings:'palt']">
       <Helmet>
+        <html lang={lang === 'ja' ? 'ja' : 'zh'} />
         <title>{lang === 'zh' ? '7天日语实力诊断（邀请专用）' : '7日間の実力診断（招待専用）'}</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
-      <div className="mx-auto w-full max-w-md px-3 pb-14 pt-3">
-        <div className="overflow-hidden rounded-3xl border border-[#dbe1ea] bg-white shadow-[0_12px_40px_rgba(20,32,58,.08)]">
-          <div className="flex items-center justify-between border-b border-[#dbe1ea] px-4 py-3">
-            <div className="flex items-center gap-2 text-[15px] font-bold"><span className="inline-block h-5 w-5 rounded-md bg-[#1f4a80]" aria-hidden />{t.brand}</div>
-            <Link to={`/${other}/invite${window.location.search}`} className="rounded-full border border-[#dbe1ea] px-3 py-1 text-xs text-[#43506a]">{other === 'zh' ? '中文' : '日本語'}</Link>
+
+      <header className="sticky top-0 z-50 bg-lp-ivory/85 backdrop-blur border-b border-lp-line">
+        <div className="mx-auto max-w-6xl px-5 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-extrabold text-[0.95rem] sm:text-[1.05rem] whitespace-nowrap">
+            <span className="inline-grid place-items-center w-8 h-8 shrink-0 rounded-full bg-lp-coral text-white text-sm" aria-hidden="true">和</span>
+            <span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</span>
           </div>
-
-          <div className="flex items-center gap-3 bg-[#12345e] px-4 py-3 text-[12.5px] text-[#e9f0fa]">
-            <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-white/10"><KeyRound className="h-4 w-4" aria-hidden /></span>
-            <div><b className="block text-[13px] text-white">{t.inviteOnly}</b>{t.inviteOnlySub}</div>
+          <div className="flex items-center gap-3 whitespace-nowrap">
+            <Link to={`/${other}/invite${search}`} className="text-[0.92rem] font-bold text-lp-ink-soft hover:text-lp-ink underline underline-offset-4 min-h-11 flex items-center">{other === 'zh' ? '中文' : '日本語'}</Link>
+            {invite && !closed && (
+              <button type="button" onClick={toForm} className="inline-flex items-center justify-center min-h-11 px-3.5 rounded-full bg-lp-coral text-white font-extrabold text-[0.88rem] shadow-[0_3px_0_var(--color-lp-coral-deep)] active:translate-y-0.5">{t.cta}</button>
+            )}
           </div>
+        </div>
+      </header>
 
-          {!invite ? (
-            <div className="px-5 py-14 text-center">
-              <h1 className="font-serif text-xl font-bold">{t.noInviteH}</h1>
-              <p className="mt-2 text-sm text-[#43506a]">{t.noInviteP}</p>
-            </div>
-          ) : (
-            <>
-              <div className="px-5 pb-1 pt-6">
-                <span className="inline-flex items-center gap-2 text-xs font-bold tracking-wider text-[#b8302e]"><i className="inline-block h-0.5 w-4 bg-[#b8302e]" aria-hidden />{t.eyebrow(examDays)}</span>
-                <h1 className="mt-3 font-serif text-[30px] font-black leading-[1.28] [text-wrap:balance]">
-                  {t.h1a}<br /><span className="border-b-[3px] border-[#c9a24a] text-[#1f4a80]">{t.h1b}</span>
-                </h1>
-                <p className="mt-2 text-[14.5px] leading-relaxed text-[#43506a]">{t.lead}</p>
-                <div className="mt-3 flex gap-1.5">{['N3', 'N2', 'N1'].map((l) => <span key={l} className="rounded-md border-[1.5px] border-[#14203a] px-2 py-0.5 font-mono text-[13px] font-semibold">{l}</span>)}</div>
-              </div>
+      <div className="overflow-x-hidden" style={{ overflowX: 'clip' }}>
+      <main>
+        {/* 招待された人だけ、の帯。LPには無い、このページだけのもの */}
+        <div className="bg-lp-pine text-white">
+          <div className="mx-auto max-w-6xl px-5 py-3 flex items-center gap-3 text-[0.9rem]">
+            <span className="grid h-9 w-9 flex-none place-items-center rounded-full bg-white/15"><KeyRound className="h-4 w-4" aria-hidden /></span>
+            <div><b className="block">{t.inviteOnly}</b><span className="text-white/85">{t.inviteOnlySub}</span></div>
+          </div>
+        </div>
 
-              {closed ? (
-                <div className="mx-5 mt-4 rounded-2xl border border-[#dbe1ea] bg-[#f5f7fa] p-5 text-center">
-                  <Lock className="mx-auto h-6 w-6 text-[#7b869c]" aria-hidden />
-                  <h2 className="mt-2 font-serif text-lg font-bold">{t.closedH}</h2>
-                  <p className="mt-1 text-sm text-[#43506a]">{t.closedP}</p>
-                </div>
-              ) : (
-                <>
-                  <div className="mx-5 mt-4 rounded-2xl border border-[#b8302e]/35 bg-[#fbeceb] px-4 pb-3 pt-3.5" aria-live="polite" data-testid="invite-countdown">
-                    <div className="flex items-baseline justify-between text-xs font-bold text-[#b8302e]"><span>{t.deadline}</span><small className="font-medium text-[#7b869c]">{fmtDeadline(lang)} 23:59 (JST)</small></div>
-                    <div className="mt-1 flex items-baseline gap-1.5 font-mono tabular-nums">
-                      <span className="text-[44px] font-semibold leading-none">{cd.days}</span><span className="text-sm font-bold text-[#43506a]">{t.day}</span>
-                      <span className="text-[26px] font-semibold">{pad(cd.hours)}:{pad(cd.minutes)}:{pad(cd.seconds)}</span>
+        {!invite ? (
+          <section className="py-24 text-center px-5">
+            <h1 className="text-2xl font-extrabold">{t.noInviteH}</h1>
+            <p className="mt-3 text-lp-ink-soft">{t.noInviteP}</p>
+          </section>
+        ) : (
+          <>
+            {/* ヒーロー。LPと同じ組み方（左に文、右に先生）。文だけ今回のもの */}
+            <section className="relative pt-8 sm:pt-12 pb-6">
+              <div className="mx-auto max-w-6xl px-5 grid md:grid-cols-[1.05fr_.95fr] gap-10 items-center">
+                <div className="text-center md:text-left">
+                  <span className="inline-flex items-center gap-2 text-[0.8rem] font-extrabold tracking-[0.14em] text-lp-coral-deep">
+                    <span className="inline-block w-5 h-[3px] rounded bg-lp-coral" aria-hidden="true" />{t.eyebrow(examDays)}
+                  </span>
+                  <h1 className="mt-4 font-extrabold text-lp-ink text-[clamp(2rem,6vw,3.4rem)] leading-[1.24] text-balance">
+                    <span className="block">{t.h1a}</span>
+                    <span className="block relative text-lp-coral-deep"><span className="relative z-10">{t.h1b}</span><span className="absolute left-0 right-0 bottom-[0.05em] h-[0.34em] rounded bg-lp-gold/85 -rotate-1 z-0" aria-hidden="true" /></span>
+                  </h1>
+                  <p className="mt-5 inline-block rounded-xl bg-lp-pine text-white font-extrabold text-[1.02rem] px-4 py-2">{t.seats}</p>
+                  <p className="mt-4 text-[1.08rem] text-lp-ink-soft leading-relaxed max-w-[30em] mx-auto md:mx-0">{t.lead}</p>
+                  <div className="mt-4 flex gap-2 justify-center md:justify-start">{['N3', 'N2', 'N1'].map((l) => <span key={l} className="rounded-lg border-2 border-lp-ink px-2.5 py-0.5 font-mono text-[0.95rem] font-extrabold">{l}</span>)}</div>
+                  {!closed && (
+                    <div className="mt-7 flex flex-col sm:flex-row gap-3.5 justify-center md:justify-start items-center">
+                      <CtaButton variant="primary" onClick={toForm} event="click_ai_course_invite_cta" eventParams={{ location: 'hero', lang }}>{t.cta}<ArrowRight /></CtaButton>
+                      <span className="text-[0.85rem] text-lp-ink-soft">{t.ctaSub}</span>
                     </div>
-                  </div>
-                  <div className="mx-5 mt-2.5 flex items-center gap-3 rounded-2xl border border-[#dbe1ea] bg-[#f5f7fa] px-3.5 py-2.5">
-                    <span className="grid h-12 w-12 flex-none -rotate-6 place-items-center rounded-full border-2 border-[#b8302e] text-center font-serif text-[12px] font-black leading-[1.1] text-[#b8302e]" aria-hidden>{INVITE_CAMPAIGN.seats}<br />{lang === 'zh' ? '名' : '名'}</span>
-                    <div><b className="block text-sm">{t.seats}</b><span className="text-xs text-[#43506a]">{t.seatsSub}</span></div>
-                  </div>
-                  <button type="button" onClick={scrollToForm} className="mx-5 mt-3.5 block w-[calc(100%-2.5rem)] rounded-xl bg-[#b8302e] py-3.5 text-center text-base font-bold text-white">{t.cta} →</button>
-                  <p className="mx-5 mt-1.5 text-center text-[11.5px] text-[#7b869c]">{t.ctaSub}</p>
-                </>
-              )}
-
-              <section className="px-5 pt-7">
-                <h2 className="font-serif text-xl font-black leading-snug [text-wrap:balance]">{t.s1h}</h2>
-                <p className="mb-3 text-[13px] text-[#43506a]">{t.s1sub}</p>
-                <div className="grid gap-2">
-                  {[t.p1, t.p2, t.p3].map(([h, b], i) => (
-                    <div key={h} className="grid grid-cols-[30px_1fr] gap-2.5 rounded-xl bg-[#f5f7fa] px-3 py-2.5">
-                      <span className="font-serif text-lg font-black text-[#1f4a80]">{['一', '二', '三'][i]}</span>
-                      <div><b className="block text-[14.5px]">{h}</b><span className="text-[12.5px] text-[#43506a]">{b}</span></div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 overflow-hidden rounded-2xl border border-[#dbe1ea] bg-[#f5f7fa]" aria-hidden>
-                  <div className="flex items-center gap-1.5 border-b border-[#dbe1ea] bg-white px-3 py-2 text-[11px] text-[#7b869c]"><i className="h-2 w-2 rounded-full bg-[#dbe1ea]" /><i className="h-2 w-2 rounded-full bg-[#dbe1ea]" /><i className="h-2 w-2 rounded-full bg-[#dbe1ea]" />{t.shot}</div>
-                  <div className="m-2.5 rounded-xl border border-[#dbe1ea] bg-white px-3 py-2.5 text-[12.5px]"><div className="text-[11px] text-[#7b869c]">{t.shotA[0]}</div><div className="text-[15px] font-bold">{t.shotA[1]}</div><div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[#dbe1ea]"><i className="block h-full w-1/3 bg-[#1f4a80]" /></div></div>
-                  <div className="m-2.5 rounded-xl border border-[#dbe1ea] bg-white px-3 py-2.5 text-[12.5px]">
-                    <div className="flex items-center justify-between gap-2"><div><div className="text-[11px] text-[#7b869c]">{t.shotB[0]}</div><div className="text-[15px] font-bold">{t.shotB[1]}</div></div><span className="rounded-lg bg-[#1f4a80] px-3 py-1.5 text-xs font-bold text-white">{t.shotB[2]}</span></div>
-                    <ol className="mt-1.5 list-decimal pl-[18px] text-[#43506a]">{t.shotList.map((s) => <li key={s}>{s}</li>)}</ol>
-                    <div className="mt-1.5 text-[11.5px] font-bold text-[#b8302e]">{t.shotWarn}</div>
-                  </div>
-                </div>
-                <p className="mt-1.5 text-[11px] text-[#7b869c]">{t.shotCap}</p>
-              </section>
-
-              <section className="px-5 pt-7">
-                <h2 className="mb-3 font-serif text-xl font-black">{t.s2h}</h2>
-                <div className="ml-2 border-l-2 border-[#dbe1ea] pl-3.5">
-                  {t.days.map(([d, h, b]) => (
-                    <div key={d} className="relative pb-3 pt-1 before:absolute before:-left-[20px] before:top-[11px] before:h-2.5 before:w-2.5 before:rounded-full before:border-2 before:border-white before:bg-[#1f4a80]">
-                      <span className="font-mono text-[11px] font-semibold text-[#1f4a80]">{d}</span><b className="block text-sm">{h}</b><span className="text-[12.5px] text-[#43506a]">{b}</span>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section className="px-5 pt-7">
-                <h2 className="mb-3 font-serif text-xl font-black">{t.s3h}</h2>
-                <div className="grid gap-2">{t.lv.map(([l, b]) => <div key={l} className="grid grid-cols-[44px_1fr] items-start gap-2.5"><span className="rounded-md border-[1.5px] border-[#14203a] py-px text-center font-mono text-[13px] font-semibold">{l}</span><span className="text-[13px] text-[#43506a]">{b}</span></div>)}</div>
-              </section>
-
-              <div className="mx-5 mt-6 rounded-2xl bg-[#12345e] px-5 py-5 text-white">
-                <p className="font-serif text-lg font-black leading-snug [text-wrap:balance]">{t.bold}</p>
-                <p className="mt-1.5 text-[12.5px] text-[#c9d6e8]">{t.boldSub}</p>
-              </div>
-
-              <div className="mx-5 mt-5 rounded-2xl border border-[#dbe1ea] bg-[#f5f7fa] px-3.5 py-3 text-[13px]">
-                <b className="mb-1 block">{t.honestH}</b>
-                <ul className="list-disc pl-[18px] text-[#43506a]">{t.honest.map((s) => <li key={s}>{s}</li>)}</ul>
-              </div>
-
-              {!closed && (
-                <div ref={formRef} id="apply" className="mx-5 mt-5 rounded-2xl border border-[#dbe1ea] bg-[#f5f7fa] p-4">
-                  {step === 'email' ? (
-                    <>
-                      <label htmlFor="invite-mail" className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-bold"><Mail className="h-3.5 w-3.5" aria-hidden />{t.formLabel}</label>
-                      <input id="invite-mail" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder={t.emailPh}
-                        className="w-full rounded-xl border border-[#dbe1ea] bg-white px-3 py-3 text-base focus:outline-none focus:ring-2 focus:ring-[#1f4a80]" />
-                      {LEGAL_PUBLISH && (
-                        <div className="mt-2 rounded-xl border border-[#dbe1ea] bg-white p-3">
-                          <label className="flex cursor-pointer items-start gap-2 text-xs"><input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-[#1f4a80]" /><span>{t.consent}</span></label>
-                          <p className="mt-1.5 flex flex-wrap gap-x-3 text-[11px]">
-                            <Link to={legalPathFor(lang, 'terms')} className="text-[#1f4a80] underline">{t.consentTerms}</Link>
-                            <Link to={legalPathFor(lang, 'privacy')} className="text-[#1f4a80] underline">{t.consentPrivacy}</Link>
-                            <Link to={legalPathFor(lang, 'ai-disclosure')} className="text-[#1f4a80] underline">{t.consentAi}</Link>
-                          </p>
-                        </div>
-                      )}
-                      {error && <p className="mt-2 text-sm text-[#b8302e]">{error}</p>}
-                      <button type="button" onClick={() => void send(false)} disabled={busy || !email.trim() || cooldown > 0 || (LEGAL_PUBLISH && !consented)}
-                        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#b8302e] py-3.5 text-base font-bold text-white disabled:opacity-40">
-                        {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{busy ? t.sending : cooldown > 0 ? t.resendIn(cooldown) : t.send}{!busy && cooldown === 0 && <ArrowRight className="h-4 w-4" aria-hidden />}
-                      </button>
-                      <p className="mt-2.5 text-[11.5px] leading-relaxed text-[#7b869c]">{t.fine}</p>
-                    </>
-                  ) : (
-                    <>
-                      <label htmlFor="invite-code" className="mb-1.5 block text-[12.5px] font-bold">{t.codeLabel}</label>
-                      <p className="mb-2 text-xs text-[#43506a]">{t.codeHint(email)}</p>
-                      <input id="invite-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => { setCode(e.target.value); setError(''); }} placeholder="12345678"
-                        className="w-full rounded-xl border border-[#dbe1ea] bg-white px-3 py-3 text-center font-mono text-lg tracking-widest focus:outline-none focus:ring-2 focus:ring-[#1f4a80]" />
-                      {error && <p className="mt-2 text-sm text-[#b8302e]">{error}</p>}
-                      <button type="button" onClick={() => void verify()} disabled={busy || code.trim().length < 4}
-                        className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1f4a80] py-3.5 text-base font-bold text-white disabled:opacity-40">
-                        {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{t.verify}
-                      </button>
-                      <div className="mt-2.5 flex flex-wrap justify-between gap-2 text-xs">
-                        <button type="button" onClick={() => void send(true)} disabled={busy || cooldown > 0} className="underline disabled:opacity-40">{cooldown > 0 ? t.resendIn(cooldown) : t.resend}</button>
-                        <button type="button" onClick={() => { setStep('email'); setCode(''); setError(''); }} className="underline">{t.changeEmail}</button>
-                      </div>
-                      <p className="mt-2 text-[11px] text-[#7b869c]">{t.notArrived}</p>
-                    </>
                   )}
                 </div>
-              )}
-
-              <div className="px-5 pt-5">
-                {t.faq.map(([q, a]) => <details key={q} className="border-t border-[#dbe1ea] py-2.5"><summary className="cursor-pointer text-[13.5px] font-bold">{q}</summary><p className="mt-1.5 text-[12.5px] text-[#43506a]">{a}</p></details>)}
+                <div className="relative mx-auto w-full max-w-[420px]">
+                  <img src={imgUrl(v.images.wave)} width={ww} height={wh} alt={v.name[lang]} decoding="async"
+                    className="w-full h-auto drop-shadow-[0_18px_30px_rgba(55,43,38,0.18)]" />
+                  <div className="absolute -left-2 top-6 max-w-[62%] rounded-2xl rounded-bl-sm bg-white border border-lp-line px-4 py-3 text-[0.95rem] font-bold text-lp-ink shadow-[0_8px_22px_rgba(55,43,38,0.12)] whitespace-pre-line">{v.hero.bubble[lang]}</div>
+                </div>
               </div>
-              <div className="mt-4 border-t border-[#dbe1ea] px-5 pb-6 pt-4 text-[11.5px] text-[#7b869c]">{t.foot(fmtDeadline(lang))}</div>
-            </>
-          )}
+              <div className="mx-auto max-w-6xl px-5 mt-8 grid md:grid-cols-2 gap-6 items-start">
+                {closed ? (
+                  <div className="rounded-3xl bg-lp-card border border-lp-line p-6 text-center md:col-span-2">
+                    <Lock className="mx-auto h-6 w-6 text-lp-ink-soft" aria-hidden />
+                    <h2 className="mt-2 text-xl font-extrabold">{t.closedH}</h2>
+                    <p className="mt-1 text-lp-ink-soft">{t.closedP}</p>
+                  </div>
+                ) : (
+                  <>
+                    {countdownBlock}
+                    <div className="rounded-3xl bg-lp-card border border-lp-line p-6">
+                      <p className="text-[0.8rem] font-extrabold tracking-[0.14em] text-lp-coral-deep">{t.s1h}</p>
+                      <ul className="mt-3 space-y-2.5">
+                        {[t.p1, t.p2, t.p3].map(([h]) => <li key={h} className="flex items-start gap-2.5 font-bold text-lp-ink"><Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{h}</li>)}
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* ここから下はLPと同じ部品。使った先の生活が思い浮かぶ順に */}
+            <PainPointsSection lang={lang} />
+            <LifeScenesSection lang={lang} />
+
+            {/* 7日で開くもの／本コースで待っているもの（LPの機能一覧の前に、期待をそろえる） */}
+            <section id="scope" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+              <div className="mx-auto max-w-5xl px-5">
+                <Reveal><SectionHeading title={sc.h} /></Reveal>
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <Reveal className="h-full"><div className="h-full rounded-3xl bg-lp-card border-2 border-lp-pine p-6">
+                    <p className="font-extrabold text-lp-pine">{sc.openH}</p>
+                    <ul className="mt-3 space-y-2">{sc.open.map((s) => <li key={s} className="flex items-start gap-2 text-lp-ink"><Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{s}</li>)}</ul>
+                  </div></Reveal>
+                  <Reveal delay={80} className="h-full"><div className="h-full rounded-3xl bg-lp-card border border-lp-line p-6">
+                    <p className="font-extrabold text-lp-ink-soft">{sc.laterH}</p>
+                    <ul className="mt-3 space-y-2 text-lp-ink-soft">{sc.later.map((s) => <li key={s} className="flex items-start gap-2"><span className="mt-0.5 shrink-0 text-lp-coral-deep" aria-hidden>→</span>{s}</li>)}</ul>
+                  </div></Reveal>
+                </div>
+              </div>
+            </section>
+
+            <PlatformFeatures lang={lang} />
+            <DailyLearningFlow v={v} lang={lang} />
+
+            {/* 7日の流れと級ごとの一言（このページだけ） */}
+            <section id="seven-days" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+              <div className="mx-auto max-w-3xl px-5">
+                <Reveal><SectionHeading title={t.s2h} lead={t.s1sub} /></Reveal>
+                <Reveal delay={60}>
+                  <ol className="rounded-3xl bg-lp-card border border-lp-line divide-y divide-lp-line overflow-hidden">
+                    {t.days.map(([d, h, b]) => (
+                      <li key={d} className="flex items-start gap-3.5 px-5 py-4">
+                        <span className="mt-0.5 shrink-0 rounded-full bg-lp-pine-soft px-2.5 py-1 font-mono text-[0.8rem] font-extrabold text-lp-pine">{d}</span>
+                        <div><b className="block text-lp-ink">{h}</b><span className="text-[0.95rem] text-lp-ink-soft">{b}</span></div>
+                      </li>
+                    ))}
+                  </ol>
+                </Reveal>
+                <Reveal delay={120}>
+                  <div className="mt-8 rounded-3xl bg-lp-card border border-lp-line p-6">
+                    <p className="font-extrabold text-lp-ink mb-3">{t.s3h}</p>
+                    <div className="space-y-3">{t.lv.map(([l, b]) => <div key={l} className="grid grid-cols-[48px_1fr] items-start gap-3"><span className="rounded-lg border-2 border-lp-ink py-0.5 text-center font-mono font-extrabold">{l}</span><span className="text-[0.95rem] text-lp-ink-soft leading-relaxed">{b}</span></div>)}</div>
+                  </div>
+                </Reveal>
+                <Reveal delay={160}>
+                  <div className="mt-8 rounded-3xl bg-lp-pine text-white p-6">
+                    <p className="text-[1.25rem] font-extrabold leading-snug text-balance">{t.bold}</p>
+                    <p className="mt-2 text-white/85">{t.boldSub}</p>
+                  </div>
+                </Reveal>
+              </div>
+            </section>
+
+            <HumanCoachSection lang={lang} />
+            <TestimonialsSection lang={lang} />
+
+            {/* 正直な但し書き ＋ 申込 */}
+            <section id="apply" ref={formRef} className="scroll-mt-20 py-16 sm:py-24">
+              <div className="mx-auto max-w-3xl px-5">
+                <Reveal>
+                  <div className="rounded-3xl bg-lp-ivory-2 border border-lp-line p-6 mb-6">
+                    <p className="font-extrabold text-lp-ink mb-2">{t.honestH}</p>
+                    <ul className="space-y-1.5 text-[0.95rem] text-lp-ink-soft list-disc pl-5">{t.honest.map((s) => <li key={s}>{s}</li>)}</ul>
+                  </div>
+                </Reveal>
+                {closed ? (
+                  <div className="rounded-3xl bg-lp-card border border-lp-line p-6 text-center">
+                    <h2 className="text-xl font-extrabold">{t.closedH}</h2><p className="mt-1 text-lp-ink-soft">{t.closedP}</p>
+                  </div>
+                ) : (
+                  <Reveal delay={60}>
+                    <div className="rounded-3xl bg-lp-card border-2 border-lp-coral/40 p-6 shadow-[0_8px_22px_rgba(55,43,38,0.06)]">
+                      <div className="mb-5">{countdownBlock}</div>
+                      {step === 'email' ? (
+                        <>
+                          <label htmlFor="invite-mail" className="mb-2 flex items-center gap-2 font-extrabold text-lp-ink"><Mail className="h-4 w-4" aria-hidden />{t.formLabel}</label>
+                          <input id="invite-mail" type="email" inputMode="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setError(''); }} placeholder={t.emailPh}
+                            className="w-full min-h-12 rounded-2xl border border-lp-line bg-white px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-lp-pine" />
+                          {LEGAL_PUBLISH && (
+                            <div className="mt-3 rounded-2xl border border-lp-line bg-white p-3">
+                              <label className="flex cursor-pointer items-start gap-2 text-sm"><input type="checkbox" checked={consented} onChange={(e) => setConsented(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-lp-pine" /><span>{t.consent}</span></label>
+                              <p className="mt-1.5 flex flex-wrap gap-x-3 text-[0.8rem]">
+                                <Link to={legalPathFor(lang, 'terms')} className="underline underline-offset-2 text-lp-pine">{t.consentTerms}</Link>
+                                <Link to={legalPathFor(lang, 'privacy')} className="underline underline-offset-2 text-lp-pine">{t.consentPrivacy}</Link>
+                                <Link to={legalPathFor(lang, 'ai-disclosure')} className="underline underline-offset-2 text-lp-pine">{t.consentAi}</Link>
+                              </p>
+                            </div>
+                          )}
+                          {error && <p className="mt-3 text-sm font-bold text-lp-coral-deep">{error}</p>}
+                          <div className="mt-4">
+                            <CtaButton variant="primary" fullWidth onClick={() => void send(false)} disabled={busy || !email.trim() || cooldown > 0 || (LEGAL_PUBLISH && !consented)}>
+                              {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{busy ? t.sending : cooldown > 0 ? t.resendIn(cooldown) : t.send}{!busy && cooldown === 0 && <ArrowRight />}
+                            </CtaButton>
+                          </div>
+                          <p className="mt-3 text-[0.85rem] text-lp-ink-soft leading-relaxed">{t.fine}</p>
+                        </>
+                      ) : (
+                        <>
+                          <label htmlFor="invite-code" className="mb-1 block font-extrabold text-lp-ink">{t.codeLabel}</label>
+                          <p className="mb-3 text-sm text-lp-ink-soft">{t.codeHint(email)}</p>
+                          <input id="invite-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => { setCode(e.target.value); setError(''); }} placeholder="12345678"
+                            className="w-full min-h-12 rounded-2xl border border-lp-line bg-white px-4 py-3 text-center font-mono text-xl tracking-widest focus:outline-none focus:ring-2 focus:ring-lp-pine" />
+                          {error && <p className="mt-3 text-sm font-bold text-lp-coral-deep">{error}</p>}
+                          <div className="mt-4"><CtaButton variant="primary" fullWidth onClick={() => void verify()} disabled={busy || code.trim().length < 4}>{busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{t.verify}</CtaButton></div>
+                          <div className="mt-3 flex flex-wrap justify-between gap-2 text-sm">
+                            <button type="button" onClick={() => void send(true)} disabled={busy || cooldown > 0} className="underline underline-offset-2 disabled:opacity-40">{cooldown > 0 ? t.resendIn(cooldown) : t.resend}</button>
+                            <button type="button" onClick={() => { setStep('email'); setCode(''); setError(''); }} className="underline underline-offset-2">{t.changeEmail}</button>
+                          </div>
+                          <p className="mt-2 text-[0.85rem] text-lp-ink-soft">{t.notArrived}</p>
+                        </>
+                      )}
+                    </div>
+                  </Reveal>
+                )}
+                <Reveal delay={100}>
+                  <div className="mt-8">
+                    {t.faq.map(([q, a]) => <details key={q} className="border-t border-lp-line py-3"><summary className="cursor-pointer font-extrabold">{q}</summary><p className="mt-2 text-[0.95rem] text-lp-ink-soft">{a}</p></details>)}
+                  </div>
+                </Reveal>
+              </div>
+            </section>
+
+            <FaqSection lang={lang} />
+          </>
+        )}
+      </main>
+
+      <footer className="border-t border-lp-line py-10">
+        <div className="mx-auto max-w-6xl px-5 flex flex-wrap items-center justify-between gap-4 text-[0.9rem] text-lp-ink-soft">
+          <div className="flex items-center gap-2 font-extrabold text-lp-ink"><span className="inline-grid place-items-center w-7 h-7 rounded-full bg-lp-coral text-white text-xs" aria-hidden="true">和</span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</div>
+          <span>{t.foot(fmtDeadline())}</span>
         </div>
+        <div className="mx-auto max-w-6xl px-5 mt-6 text-lp-ink-soft"><LegalFooterLinks lang={lang} /></div>
+        <div className="h-24 sm:hidden" aria-hidden="true" />
+      </footer>
       </div>
+
+      {/* スマホ下部の固定CTA（LPと同じ位置・同じ見た目） */}
+      {invite && !closed && (
+        <div className="sm:hidden fixed inset-x-0 bottom-0 z-40 bg-lp-ivory/95 backdrop-blur border-t border-lp-line px-4 py-3">
+          <CtaButton variant="primary" fullWidth onClick={toForm} event="click_ai_course_invite_cta" eventParams={{ location: 'sticky', lang }}>{t.cta}<ArrowRight /></CtaButton>
+        </div>
+      )}
     </div>
   );
 }
