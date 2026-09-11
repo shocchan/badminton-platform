@@ -1,4 +1,4 @@
-deployed_at: 2026-09-12 08:20:27 +0900
+deployed_at: 2026-09-12 08:29:56 +0900
 branch:      integration/unify-2026-08-28
-commit:      6f1306cbec49e1784ba3ad9f91a3d216e33a8854
-asset:       assets/index-CfxRdEih.js
+commit:      8205710c89657df5aa62f35fbe2788c42e8f16bc
+asset:       assets/index-2c9y5DJX.js
