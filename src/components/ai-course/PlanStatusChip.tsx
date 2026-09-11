@@ -93,8 +93,10 @@ export function PlanStatusChip({ lang, planId, validUntilISO, realtimeWindowMinu
   // 実時間制と違って秒を刻む意味がない（急かすと1日で終わらせてしまい、
   // この教室の中心である翌日の復習に出会えない）
   if (trialDays !== null) {
-    const leftMs = Date.parse(validUntilISO) - nowMs;
-    const leftDays = Math.max(0, Math.ceil(leftMs / 86_400_000));
+    // nowMs は最大1分古い。「始める」直後は valid_until が今+7日なので、古い now との差が
+    // 7日を数秒超えて ceil が 8 になっていた（2026-09-12 CEO実機「7日中残り8日」）。上限は日数
+    const leftMs = Date.parse(validUntilISO) - Math.max(nowMs, Date.now());
+    const leftDays = Math.min(trialDays, Math.max(0, Math.ceil(leftMs / 86_400_000)));
     const last = leftDays <= 1;
     return (
       <div className="mx-auto w-full max-w-md lg:max-w-2xl px-4 pt-3">
