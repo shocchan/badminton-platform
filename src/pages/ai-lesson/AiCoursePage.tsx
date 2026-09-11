@@ -1741,6 +1741,7 @@ export default function AiCoursePage() {
             trialDays={shape.kind === 'days' ? shape.days : null}
             windowMinutes={shape.kind === 'minutes' ? shape.minutes : null}
             startDeadlineISO={row.validUntilISO}
+            planId={row.planId}
             onStarted={() => void loadAll()}
           />
         </Shell>

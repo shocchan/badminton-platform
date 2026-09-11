@@ -15,8 +15,10 @@ import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { logCourseEvent } from '../../lib/aiLesson/course/courseEvents';
 import { micSupport, inAppBrowser } from '../../lib/aiLesson/course/micSupport';
 
-export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadlineISO, onStarted }: {
+export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadlineISO, onStarted, planId = null }: {
   lang: 'ja' | 'zh';
+  /** 受講権のプラン。無料招待（free-7d）は AI会話が無く「購入」でもないので文言を変える（2026-09-12） */
+  planId?: string | null;
   /** 日数制の体験（現行=7）。null＝旧仕様の実時間制 */
   trialDays: number | null;
   /** 実時間制の分数（旧仕様=60）。null＝日数制 */
@@ -27,6 +29,7 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
 }) {
   const zh = lang === 'zh';
   const byDays = trialDays !== null;
+  const freeInvite = planId === 'free-7d';
   /*
    * マイクが使える環境かを、**時計を動かす前に**見る（2026-09-01）。
    * 体験の中心はAI音声会話で、使えないと何も起きない。
@@ -66,7 +69,9 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
     logCourseEvent('error_occurred', { where: 'trial_start', code: r.code ?? 'unknown' });
     setBusy(false);
     setError(r.code === 'activation_expired'
-      ? (zh ? '开始期限（购买后30天）已过。请联系 info@kawabado.com。' : '開始期限（購入後30日）を過ぎています。info@kawabado.com へご連絡ください。')
+      ? (freeInvite
+        ? (zh ? '开始期限（注册后30天）已过。请联系 info@kawabado.com。' : '開始期限（登録後30日）を過ぎています。info@kawabado.com へご連絡ください。')
+        : (zh ? '开始期限（购买后30天）已过。请联系 info@kawabado.com。' : '開始期限（購入後30日）を過ぎています。info@kawabado.com へご連絡ください。'))
       : (zh ? '暂时无法开始。请稍后再试。' : 'いま開始できませんでした。少し待ってからもう一度お試しください。'));
   };
 
@@ -82,7 +87,11 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
             : (zh ? `准备好后，开始${windowMinutes}分钟的体验` : `準備ができたら、${windowMinutes}分の体験を始めましょう`)}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600">
-          {byDays
+          {byDays && freeInvite
+            ? (zh
+              ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。8分钟测出现在的位置，之后每天10分钟，只做你缺的：语法・词汇・阅读・错题本・模拟考。`
+              : `開始ボタンを押すと、その日から${trialDays}日間使えます。8分の診断で現在地が分かり、その後は毎日10分、足りない所だけ: 文法・ことば・読解・錯題本・ミニ模試。`)
+            : byDays
             ? (zh
               ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。AI语音会话共3次（每天最多2次），语法战斗・教材・冒险随意使用。`
               : `開始ボタンを押すと、その日から${trialDays}日間使えます。AI音声会話は合計3回（1日2回まで）、文法バトル・教材・冒険は使い放題です。`)
@@ -98,9 +107,13 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
             <p className="flex items-start gap-2 text-[13px] leading-relaxed text-emerald-900">
               <CalendarCheck className="mt-0.5 w-4 h-4 shrink-0" aria-hidden="true" />
               <span>
-                {zh
-                  ? '不用一天做完。今天说过的表达，第二天会以复习的形式再出现一次——这才是这个教室最核心的部分。'
-                  : '1日で終わらせなくて大丈夫です。今日話した表現は、翌日に復習として出てきます。そこがこの教室のいちばん効くところです。'}
+                {freeInvite
+                  ? (zh
+                    ? '不用一天做完。今天做错的题，第二天会以复习的形式再出现一次——这才是这个教室最核心的部分。'
+                    : '1日で終わらせなくて大丈夫です。今日間違えた問題は、翌日に復習として出てきます。そこがこの教室のいちばん効くところです。')
+                  : zh
+                    ? '不用一天做完。今天说过的表达，第二天会以复习的形式再出现一次——这才是这个教室最核心的部分。'
+                    : '1日で終わらせなくて大丈夫です。今日話した表現は、翌日に復習として出てきます。そこがこの教室のいちばん効くところです。'}
               </span>
             </p>
           </div>
@@ -126,7 +139,8 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
               : '目標設定とレベル診断はもう終わっています（体験時間には含まれません）。60分はまるごと学習に使えます。')}
         </p>
 
-        {mic !== 'ok' && (
+        {/* 無料招待（AI会話なし）ではマイクの案内を出さない（2026-09-12） */}
+        {mic !== 'ok' && !freeInvite && (
           <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-left">
             <p className="text-[13px] font-bold text-red-900">
               {zh ? '这个画面无法使用麦克风' : 'この画面ではマイクが使えません'}
