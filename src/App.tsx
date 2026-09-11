@@ -61,6 +61,8 @@ const MyPage              = lazy(() => import('./pages/MyPage'));
 const AiLessonDemoPage    = lazy(() => import('./pages/ai-lesson/AiLessonDemoPage'));
 // 個人専用URL（2026-09-09 P0-2）。押すだけで学習が始まる入口。URL自体が学習コードなのでnoindex
 const LearnCodePage       = lazy(() => import('./pages/ai-lesson/LearnCodePage'));
+// 招待リンク限定の7日間無料（2026-09-11）。検索に出さない（noindex・LPからリンクしない）
+const InviteLandingPage   = lazy(() => import('./pages/ai-lesson/InviteLandingPage'));
 // AI日本語コース：/ai-course のエントリ振り分け（未認証=販売LP／認証済み=学習アプリ）
 const AiCourseEntry       = lazy(() => import('./pages/ai-lesson/landing/AiCourseEntry').then(m => ({ default: m.AiCourseEntry })));
 // セルフサービス決済の完了ページ（Stripe Checkout の戻り先）
@@ -187,6 +189,8 @@ const AnimatedRoutes = () => {
             <Route path="ai-lesson-demo"  element={<AiLessonDemoPage />} />
             {/* 個人専用URL。ここに来た人はコードでログインして学習画面へ送られる */}
             <Route path="learn/:code"     element={<LearnCodePage />} />
+            {/* 招待リンク限定ページ。?invite=CODE が無ければ案内だけ出す */}
+            <Route path="invite"          element={<InviteLandingPage />} />
               <Route path="ai-course"       element={<AiCourseEntry />} />
               {/* 受講者ログイン（LPと分離した専用URL）。?app=1 は既存ブックマーク互換で残す */}
               <Route path="ai-course/login" element={<AiCourseEntry forceApp />} />
