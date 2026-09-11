@@ -1,4 +1,4 @@
-deployed_at: 2026-09-10 23:01:29 +0900
+deployed_at: 2026-09-11 09:47:55 +0900
 branch:      integration/unify-2026-08-28
-commit:      81417d57945118555e1111364b829a9e40ba2ad6
-asset:       assets/index-CI7YfFmG.js
+commit:      2f3be0038f36bc370f056336f13adc84391d8241
+asset:       assets/index-DoBBOpCd.js
