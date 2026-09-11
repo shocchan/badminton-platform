@@ -124,27 +124,21 @@ export function AiCourseHero({ v, lang, onConsult, duo = false }: {
                   {LP.ctaTrial[lang].replace('{price}', trial.priceLabel)} <ArrowRight />
                 </CtaButton>
               )}
-              <CtaButton variant={trial ? 'ghost' : 'primary'} onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'hero', variant: v.key }}>
-                {LP.ctaPrimary[lang]} <ArrowRight />
-              </CtaButton>
+              {/* 主CTAは1つ（2026-09-11 LP圧縮）。相談はテキストリンクへ。
+                  体験プランが無い環境では相談が主CTAになる */}
+              {!trial && (
+                <CtaButton variant="primary" onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'hero', variant: v.key }}>
+                  {LP.ctaPrimary[lang]} <ArrowRight />
+                </CtaButton>
+              )}
             </div>
-            {/* 学習システムへのスクロール（URL・履歴は変えない）。
-                主導線を2つに絞るため、3つ目はテキストリンクへ落とす */}
-            <button type="button"
-              onClick={() => {
-                track('click_ai_course_see_system', { location: 'hero', variant: v.key });
-                scrollToSection('features');
-              }}
-              className="mt-3 inline-flex items-center min-h-11 text-[0.92rem] font-bold text-lp-pine underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
-              {LP.ctaSecondary[lang]}
-            </button>
-            <ul className="mt-6 flex flex-wrap gap-2.5 justify-center md:justify-start">
-              {LP.heroChips[lang].map((c) => (
-                <li key={c} className="inline-flex items-center gap-1.5 text-[0.86rem] font-bold text-lp-pine bg-lp-pine-soft rounded-full px-3.5 py-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-lp-pine" aria-hidden="true" />{c}
-                </li>
-              ))}
-            </ul>
+            {trial && (
+              <button type="button"
+                onClick={() => { track('click_ai_course_consultation', { location: 'hero', variant: v.key }); onConsult(); }}
+                className="mt-3 inline-flex items-center min-h-11 text-[0.95rem] font-bold text-lp-pine underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lp-pine">
+                {LP.ctaPrimary[lang]}
+              </button>
+            )}
           </div>
 
           {/* art */}

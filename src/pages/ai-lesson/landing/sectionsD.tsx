@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import type { Lang } from '../../../contexts/LanguageContext';
 import { LP } from './lpContent';
 import { Reveal, SectionHeading, Check, CtaButton, ArrowRight } from './lpUi';
@@ -172,7 +173,7 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
     onApply(view.id);
   };
   return (
-    <section id="price" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+    <section id="price" className="scroll-mt-20 bg-lp-ivory-2 py-12 sm:py-20">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal><SectionHeading title={p.heading[lang]} lead={p.lead[lang]} /></Reveal>
 
@@ -206,7 +207,11 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
                     </span>
                   )}
 
-                  <p className="mt-3 text-[0.9rem] font-bold text-lp-pine">{view.audience}</p>
+                  <p className="mt-3 text-[0.95rem] font-bold text-lp-pine">{view.audience}</p>
+                  {/* 旧「あなたに合うプラン」の1行目をここへ（2026-09-11 LP圧縮で節ごと統合） */}
+                  {(LP.planFit.byPlan[lang][view.id] ?? [])[0] && (
+                    <p className="mt-1 text-[0.9rem] text-lp-ink-soft">{(LP.planFit.byPlan[lang][view.id] ?? [])[0]}</p>
+                  )}
                   <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
                     <span className="font-extrabold text-lp-ink text-[1.9rem] leading-none">{view.priceLabel}</span>
                     {/* 中国語表示のときだけ参考の元換算（請求は日本円。注記はセクション末尾） */}
@@ -218,30 +223,47 @@ export function PricingSection({ lang, onConsult, onApply, preview = false }: {
                   {view.monthlyEquivalent && (
                     <p className="text-lp-ink-soft text-[0.9rem] mt-0.5">{view.monthlyEquivalent}</p>
                   )}
-                  <p className="text-lp-ink-soft text-[0.95rem] mt-2.5">{view.description}</p>
-
-                  <ul className="flex flex-col gap-2.5 my-5">
-                    {view.features.map((it, i) => (
-                      <li key={i} className="flex gap-2.5 items-start text-[0.95rem] text-lp-ink">
+                  {/* 含まれるものは最初の3つだけ見せ、残りと「含まれないもの」は開いて読む（2026-09-11 LP圧縮:
+                      1枚 950px→500px 以内。説明文は開いた中へ） */}
+                  <ul className="flex flex-col gap-2 mt-4 mb-4">
+                    {view.features.slice(0, 3).map((it, i) => (
+                      <li key={i} className="flex gap-2.5 items-start text-[1rem] text-lp-ink">
                         <Check className="w-5 h-5 mt-0.5 shrink-0 text-lp-pine" />{it}
                       </li>
                     ))}
                   </ul>
-
-                  {/* 含まれないもの（60分・1か月）。人間レッスン付きと誤解させない */}
-                  {view.notIncluded.length > 0 && (
-                    <div className="mb-5 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-3.5">
-                      <p className="text-[0.82rem] font-extrabold text-lp-ink-soft mb-2">
-                        {lang === 'zh' ? '不包含的内容' : '含まれないもの'}
-                      </p>
-                      <ul className="flex flex-col gap-1.5">
-                        {view.notIncluded.map((it, i) => (
-                          <li key={i} className="flex gap-2 items-start text-[0.88rem] text-lp-ink-soft">
-                            <XIcon className="w-4 h-4 mt-0.5 shrink-0 text-lp-ink-soft/60" aria-hidden="true" />{it}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                  {(view.features.length > 3 || view.notIncluded.length > 0 || view.description) && (
+                    <details className="group mb-4 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-3">
+                      <summary className="list-none cursor-pointer flex items-center justify-between gap-2 text-[0.92rem] font-extrabold text-lp-ink [&::-webkit-details-marker]:hidden">
+                        {lang === 'zh' ? '查看全部内容' : 'くわしい内容を見る'}
+                        <ChevronDown className="w-4 h-4 shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+                      </summary>
+                      {view.description && <p className="mt-3 text-[0.95rem] text-lp-ink-soft leading-relaxed">{view.description}</p>}
+                      {view.features.length > 3 && (
+                        <ul className="mt-3 flex flex-col gap-1.5">
+                          {view.features.slice(3).map((it, i) => (
+                            <li key={i} className="flex gap-2 items-start text-[0.95rem] text-lp-ink">
+                              <Check className="w-4 h-4 mt-1 shrink-0 text-lp-pine" />{it}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {/* 含まれないもの（60分・1か月）。人間レッスン付きと誤解させない */}
+                      {view.notIncluded.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-[0.82rem] font-extrabold text-lp-ink-soft mb-1.5">
+                            {lang === 'zh' ? '不包含的内容' : '含まれないもの'}
+                          </p>
+                          <ul className="flex flex-col gap-1.5">
+                            {view.notIncluded.map((it, i) => (
+                              <li key={i} className="flex gap-2 items-start text-[0.9rem] text-lp-ink-soft">
+                                <XIcon className="w-4 h-4 mt-0.5 shrink-0 text-lp-ink-soft/60" aria-hidden="true" />{it}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </details>
                   )}
 
                   <div className="mt-auto">

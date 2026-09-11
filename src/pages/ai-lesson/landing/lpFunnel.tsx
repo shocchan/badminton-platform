@@ -86,15 +86,33 @@ export function PriceTeaserStrip({ lang, variant }: { lang: Lang; variant: strin
 }
 
 /**
+ * 読み進む途中に置く同じ主CTA（2026-09-11 LP圧縮）。
+ * 監査で「悩み〜ロードマップの14画面にCTAが無い」ことが分かったので、約3画面ごとに同じ文言で置く。
+ * 文言はヒーロー・固定バーと同じ（ページ内でCTAの言い方を1つにそろえる）
+ */
+export function MidCta({ lang, variant, location }: { lang: Lang; variant: string; location: string }) {
+  const trial = trialEntryPlan(lang);
+  if (!trial) return null;
+  return (
+    <div className="mx-auto max-w-6xl px-5 py-2 text-center" data-lp-mid-cta={location}>
+      <button type="button"
+        onClick={() => goPricing(location, { plan: trial.id, variant })}
+        className="inline-flex items-center justify-center gap-2 min-h-12 rounded-full bg-lp-coral px-7 py-3 text-white font-extrabold text-[1rem] shadow-[0_6px_0_var(--color-lp-coral-deep)] hover:-translate-y-0.5 active:translate-y-0.5 transition-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine">
+        {LP.ctaTrial[lang].replace('{price}', trial.priceLabel)} <ArrowRight />
+      </button>
+      <p className="mt-2 text-[0.85rem] text-lp-ink-soft">{LP.stickyBar.note[lang]}</p>
+    </div>
+  );
+}
+
+/**
  * スマホ下部の固定CTAバー。
  * - FVを読み終えたあたり（600px超）で出す。最初から出すとFVのCTAと二重になる
  * - **料金セクションを読んでいる間は引っ込める**（案内先を自分で隠さない）
  * - 非表示のときも DOM には残す（transitionのため）が、`aria-hidden` と `tabIndex=-1` で
  *   支援技術・キーボードからは触れない状態にする
  */
-export function LpStickyCta({ lang, variant, onConsult }: {
-  lang: Lang; variant: string; onConsult: () => void;
-}) {
+export function LpStickyCta({ lang, variant }: { lang: Lang; variant: string }) {
   const trial = trialEntryPlan(lang);
   const [show, setShow] = useState(false);
 
@@ -146,11 +164,6 @@ export function LpStickyCta({ lang, variant, onConsult }: {
             className="flex-1 min-w-0 inline-flex items-center justify-center gap-1.5 min-h-11 rounded-full bg-lp-coral px-4 text-white font-extrabold text-[0.95rem] shadow-[0_4px_0_var(--color-lp-coral-deep)] active:translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine">
             <span className="truncate">{LP.ctaTrial[lang].replace('{price}', trial.priceLabel)}</span>
             <ArrowRight className="w-4 h-4 shrink-0" />
-          </button>
-          <button type="button" {...off}
-            onClick={() => { track('click_ai_course_consultation', { location: 'sticky', variant }); onConsult(); }}
-            className="shrink-0 inline-flex items-center justify-center min-h-11 rounded-full border-2 border-lp-pine px-4 font-extrabold text-[0.9rem] text-lp-pine focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lp-pine">
-            {LP.stickyBar.consult[lang]}
           </button>
         </div>
       </div>

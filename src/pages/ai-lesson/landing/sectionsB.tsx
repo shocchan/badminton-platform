@@ -37,67 +37,69 @@ const REAL_SCREENS: { id: string; w: number; h: number; title: { ja: string; zh:
     body: { ja: '今日の表現を、実際の会話で使う。中国語訳はタップで', zh: '把今天的表达用在真实会话里。中文翻译点一下就有' } },
 ];
 
+/**
+ * 実画面4枚を**主役**として縦に見せる（2026-09-11 LP圧縮）。
+ * 以前は横スクロールで、スマホでは2枚目以降が見られない前提になっていた。
+ * スマホ: 画面（左）＋「何ができるか」（右）を1段ずつ。PC: 4枚横並び。
+ */
 function RealScreens({ lang }: { lang: Lang }) {
   return (
-    <Reveal delay={80}>
-      <div className="mt-10">
-        <p className="text-center text-[0.95rem] font-bold text-lp-ink">
-          {lang === 'ja' ? '実際の学習画面（スマホ）' : '真实的学习界面（手机）'}
-        </p>
-        <p className="text-center text-[0.86rem] text-lp-ink-soft mt-1">{LP.features.screenshotNote[lang]}</p>
-        {/* スマホは横スクロール（1枚ずつスナップ）、PCは4枚並び。横スクロールは枠内に閉じ、ページ本体は横に動かない */}
-        <ul className="mt-5 flex gap-4 overflow-x-auto snap-x snap-mandatory pb-3 -mx-5 px-5 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:overflow-visible"
-          aria-label={lang === 'ja' ? '実際の学習画面' : '真实的学习界面'}>
-          {REAL_SCREENS.map((sc) => (
-            <li key={sc.id} className="snap-center shrink-0 w-[78%] sm:w-auto">
-              <figure className="h-full rounded-2xl border border-lp-line bg-lp-card overflow-hidden shadow-[0_10px_26px_rgba(55,43,38,0.08)]">
-                <div className="bg-lp-ivory-2 border-b border-lp-line">
-                  <img
-                    src={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp`}
-                    srcSet={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp 1x, /images/ai-course/screens/${sc.id}-${lang}@2x.webp 2x`}
-                    width={sc.w} height={sc.h} loading="lazy" decoding="async"
-                    alt={`${sc.title[lang]}：${sc.body[lang]}`}
-                    className="w-full h-auto block" />
-                </div>
-                <figcaption className="px-4 py-3">
-                  <p className="font-extrabold text-lp-ink text-[0.95rem]">{sc.title[lang]}</p>
-                  <p className="text-[0.86rem] text-lp-ink-soft mt-0.5">{sc.body[lang]}</p>
-                </figcaption>
+    <div className="mt-2">
+      <ol className="flex flex-col gap-5 lg:grid lg:grid-cols-4 lg:gap-4"
+        aria-label={lang === 'ja' ? '実際の学習画面' : '真实的学习界面'}>
+        {REAL_SCREENS.map((sc, i) => (
+          <Reveal key={sc.id} delay={i * 50}>
+            <li className="grid grid-cols-[54%_1fr] items-center gap-3 lg:grid-cols-1 lg:items-stretch">
+              <figure className="m-0 rounded-2xl border border-lp-line bg-lp-card overflow-hidden shadow-[0_10px_26px_rgba(55,43,38,0.08)]">
+                <img
+                  src={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp`}
+                  srcSet={`/images/ai-course/screens/${sc.id}-${lang}@1x.webp 1x, /images/ai-course/screens/${sc.id}-${lang}@2x.webp 2x`}
+                  width={sc.w} height={sc.h} loading="lazy" decoding="async"
+                  alt={`${sc.title[lang]}：${sc.body[lang]}`}
+                  className="w-full h-auto block" />
               </figure>
+              <div className="lg:px-1 lg:pt-2">
+                <span className="inline-block rounded-full bg-lp-pine text-white text-[0.78rem] font-extrabold px-2.5 py-0.5">{i + 1}</span>
+                <p className="mt-2 font-extrabold text-lp-ink text-[1.1rem] leading-snug">{sc.title[lang]}</p>
+                <p className="mt-1 text-[1rem] text-lp-ink-soft leading-relaxed">{sc.body[lang]}</p>
+              </div>
             </li>
-          ))}
-        </ul>
-      </div>
-    </Reveal>
+          </Reveal>
+        ))}
+      </ol>
+      <p className="mt-4 text-center text-[0.85rem] text-lp-ink-soft">{LP.features.screenshotNote[lang]}</p>
+    </div>
   );
 }
+
+/** 機能の一覧は4つに絞る（2026-09-11 LP圧縮）。画面4枚が主役で、こちらは補足 */
+const FEATURES_SHOW = 4;
 
 export function PlatformFeatures({ lang }: { lang: Lang }) {
   return (
     // scroll-mt-20: ヒーローの「学習システムを見る」からのスクロール着地時に
     // 固定ヘッダー（h-16）で見出しが隠れないようにする
-    <section id="features" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+    <section id="features" className="scroll-mt-20 bg-lp-ivory-2 py-12 sm:py-20">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal><SectionHeading title={LP.features.heading[lang]} lead={LP.features.lead[lang]} /></Reveal>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {LP.features.items[lang].map((f, i) => {
+
+        {/* 実画面4枚が主役（2026-09-11）。文字の説明より先に「何ができるか」を見せる */}
+        <RealScreens lang={lang} />
+
+        <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+          {LP.features.items[lang].slice(0, FEATURES_SHOW).map((f, i) => {
             const Icon = featIcon[i] || MessageCircle;
             return (
-              <Reveal key={i} delay={(i % 3) * 60}>
-                <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-5 flex gap-4 items-start">
-                  <span className="inline-flex w-12 h-12 shrink-0 items-center justify-center rounded-xl bg-lp-pine-soft text-lp-pine"><Icon className="w-6 h-6" aria-hidden="true" /></span>
-                  <div>
-                    <h3 className="font-extrabold text-lp-ink">{f.title}</h3>
-                    <p className="text-[0.95rem] text-lp-ink-soft mt-1">{f.value}</p>
-                  </div>
+              <li key={i} className="flex gap-3 items-start">
+                <span className="inline-flex w-9 h-9 shrink-0 items-center justify-center rounded-xl bg-lp-pine-soft text-lp-pine"><Icon className="w-5 h-5" aria-hidden="true" /></span>
+                <div>
+                  <h3 className="font-extrabold text-lp-ink text-[0.95rem] leading-snug">{f.title}</h3>
+                  <p className="text-[0.9rem] text-lp-ink-soft mt-0.5 leading-snug">{f.value}</p>
                 </div>
-              </Reveal>
+              </li>
             );
           })}
-        </div>
-
-        {/* 実画面4枚（2026-08-23）。「説明文だけで画面が無い」状態を解消する */}
-        <RealScreens lang={lang} />
+        </ul>
 
         {/* デモ動画枠: 実素材が撮影でき次第 SHOW_SYSTEM_DEMO を true にして差し替える。
             素材が無いあいだは枠ごと出さない（空の「準備中」を訪問者に見せない） */}
@@ -158,7 +160,7 @@ export function PlatformFeatures({ lang }: { lang: Lang }) {
  */
 export function SixMonthRoadmap({ lang }: { lang: Lang }) {
   return (
-    <section id="roadmap" className="scroll-mt-20 py-16 sm:py-24">
+    <section id="roadmap" className="scroll-mt-20 py-12 sm:py-20">
       <div className="mx-auto max-w-6xl px-5">
         <Reveal>
           <div className="mb-8 overflow-hidden rounded-3xl border border-lp-line bg-lp-card">

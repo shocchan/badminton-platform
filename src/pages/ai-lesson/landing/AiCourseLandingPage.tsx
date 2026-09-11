@@ -5,18 +5,18 @@ import { LP, VARIANTS, type CharacterVariant } from './lpContent';
 import { CtaButton } from './lpUi';
 import { track, loginPath, scrollToSection } from './lpHelpers';
 import { AiCourseHero } from './AiCourseHero';
-import { PriceTeaserStrip, LpStickyCta } from './lpFunnel';
-import { PainPointsSection, AiHumanRolesSection, DailyLearningFlow } from './sectionsA';
+import { MidCta, LpStickyCta } from './lpFunnel';
+import { PainPointsSection } from './sectionsA';
 import { PlatformFeatures, SixMonthRoadmap } from './sectionsB';
 import { HumanCoachSection, TestimonialsSection } from './sectionsC';
-import { PricingSection, PlanComparisonSection, PlanFitSection } from './sectionsD';
+import { PricingSection } from './sectionsD';
 import { FaqSection, FinalCtaSection, ConsultationModal } from './sectionsE';
 import { LifeScenesSection, TrialContentsSection } from './sectionsScenes';
 import { WhyNotAiOnlySection } from './sectionsWhy';
 import { LpTrailProgress } from './lpTrail';
 import { currentLpTheme } from './lpTheme';
 import { ApplicationModal } from './ApplicationModal';
-import { isPlanPreview, publishedPlans, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
+import { isPlanPreview, publishedPlans, trialEntryPlan, type PlanId } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { LegalFooterLinks } from '../legal/LegalPage';
 import { buildCourseSchema } from './courseSchema';
 
@@ -119,6 +119,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
   };
 
   const login = loginPath(lang);
+  const trialPlan = trialEntryPlan(lang);
 
   return (
     // ⚠️ ここに overflow-x-hidden を付けない: 祖先が scroll container になると
@@ -192,10 +193,18 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
                 **料金へ飛ぶ短いCTA**に差し替える（相談導線はFV・下部固定バー・最終CTAが持つ） */}
             {/* CtaButton の基底クラスに inline-flex があるため、className に hidden を足しても
                 display は勝てない。表示・非表示は**外側のdiv**で切り替える */}
+            {/* PCのヘッダーCTAも主CTAと同じ文言（2026-09-11 LP圧縮: ページ内のCTAを1つの言い方に） */}
             <div className="hidden sm:block">
-              <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
-                {LP.ctaPrimary[lang]}
-              </CtaButton>
+              {trialPlan ? (
+                <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11"
+                  onClick={() => { track('click_ai_course_to_pricing', { location: 'nav', plan: trialPlan.id, variant: v.key }); scrollToSection('price'); }}>
+                  {LP.ctaTrial[lang].replace('{price}', trialPlan.priceLabel)}
+                </CtaButton>
+              ) : (
+                <CtaButton variant="primary" className="!px-4 !py-2 !text-[0.92rem] min-h-11" onClick={openConsult} event="click_ai_course_consultation" eventParams={{ location: 'nav', variant: v.key }}>
+                  {LP.ctaPrimary[lang]}
+                </CtaButton>
+              )}
             </div>
             <button type="button"
               onClick={() => { track('click_ai_course_to_pricing', { location: 'nav', variant: v.key }); scrollToSection('price'); }}
@@ -229,26 +238,34 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
             → ⑫ 受講生 → ⑬ FAQ → ⑭ 最終CTA
           既存セクションは1つも削っていない（順番と、新設1つだけ）。
         */}
+        {/*
+          2026-09-11 再構成（CEO承認・LP_READABILITY_AUDIT_2026-09-11.md）: 29画面 → 約18画面。
+          削ったのは「同じ主張の2回目・3回目」と「押せない箱」だけ。
+            ① 悩み(4) → ② 場面(3) → ③ AIだけでは足りない理由＋人×AIの役割（統合）→ ④ コーチ（本人の一言）
+            → ⑤ 画面4枚が主役の学習システム → ⑥ 600円の7日で起きること → ⑦ 受講生の声（決める直前）
+            → ⑧ 料金（短いカード）→ ⑨ 6か月ロードマップ（6か月コースの補足）→ ⑩ FAQ(6) → ⑪ 最終CTA
+          同じ主CTAを約3画面ごとに置く（MidCta）。比較表・向き不向き・料金の帯・毎日の流れは統合または削除。
+        */}
         <AiCourseHero v={v} lang={lang} onConsult={openConsult} duo={duo} />
-        <PriceTeaserStrip lang={lang} variant={v.key} />
         <PainPointsSection lang={lang} />
         {/* 悩みの直後に「その悩みが出る場面」。機能の説明より先に自分の生活を思い浮かべてもらう */}
         <LifeScenesSection lang={lang} />
-        {/* ここで「AIと話せます」だけの商品との違いを先に言う。競合は攻撃しない */}
-        <WhyNotAiOnlySection lang={lang} />
-        <PlatformFeatures lang={lang} />
-        <AiHumanRolesSection v={v} lang={lang} />
+        <MidCta lang={lang} variant={v.key} location="after_scenes" />
+        {/* 「AIと話せます」だけの商品との違いと、その答え（人が方向・AIが毎日）を1節で。競合は攻撃しない */}
+        <WhyNotAiOnlySection v={v} lang={lang} />
         {/* 役割の話の直後に、その「人」が誰なのかを出す。**価格表より前**であることが要点 */}
         <HumanCoachSection lang={lang} />
-        <DailyLearningFlow v={v} lang={lang} />
+        <MidCta lang={lang} variant={v.key} location="after_coach" />
+        <PlatformFeatures lang={lang} />
         {/* 料金の直前に「600円で何が起きるか」。金額を見る前に中身を知ってもらう */}
         <TrialContentsSection lang={lang} />
-        <SixMonthRoadmap lang={lang} />
+        <MidCta lang={lang} variant={v.key} location="after_trial" />
+        {/* 決める直前に安心材料（以前は料金の8画面後にあった） */}
+        <TestimonialsSection lang={lang} />
         <PricingSection lang={lang} onConsult={openConsult}
           onApply={setApplyPlanId} preview={planPreview} />
-        <PlanComparisonSection lang={lang} />
-        <PlanFitSection lang={lang} />
-        <TestimonialsSection lang={lang} />
+        {/* 6か月の道のりは、6か月コースを検討する人にだけ効くので料金の後 */}
+        <SixMonthRoadmap lang={lang} />
         <FaqSection lang={lang} />
         <FinalCtaSection v={v} lang={lang} onConsult={openConsult} />
       </main>
@@ -288,7 +305,7 @@ export function AiCourseLandingPage({ variant = 'shoko', noindex = false, duo = 
       {/* 相談モーダル・申込モーダルはどちらもURL・履歴を変更しない
           （ログイン用パラメーターを流用しない。更新・戻る/進むでログイン画面へ飛ばさない） */}
       {/* スマホ下部の固定CTA（z-40＝モーダル z-[100] より下。モーダル表示中は覆われる） */}
-      <LpStickyCta lang={lang} variant={v.key} onConsult={openConsult} />
+      <LpStickyCta lang={lang} variant={v.key} />
 
       <ConsultationModal open={consultOpen} onClose={() => setConsultOpen(false)} lang={lang} variant={v.key} />
       {/* key で作り直す＝開くたびに入力が空に戻る（前の人の入力を持ち越さない） */}

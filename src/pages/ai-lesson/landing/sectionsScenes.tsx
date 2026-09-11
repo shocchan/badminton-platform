@@ -13,13 +13,14 @@ import { Reveal, SectionHeading, Check } from './lpUi';
 /** 日本生活の利用シーン。場面 → そこで言う日本語 → 何を練習するか の順で読ませる */
 export function LifeScenesSection({ lang }: { lang: Lang }) {
   const s = LP.scenes;
-  const items = s.items[lang];
+  // 3場面に絞る（2026-09-11 LP圧縮）。「自分の生活」を思い浮かべるのに4つは要らない
+  const items = s.items[lang].slice(0, 3);
   return (
-    <section id="scenes" className="scroll-mt-20 bg-lp-ivory py-16 sm:py-24">
+    <section id="scenes" className="scroll-mt-20 bg-lp-ivory py-12 sm:py-20">
       <div className="mx-auto max-w-5xl px-5">
         <Reveal><SectionHeading title={s.heading[lang]} lead={s.lead[lang]} /></Reveal>
 
-        <div className="grid sm:grid-cols-2 gap-5">
+        <div className="grid sm:grid-cols-3 gap-4">
           {items.map((it, i) => (
             <Reveal key={it.place} delay={60 + i * 50} className="h-full">
               <div className="h-full flex flex-col rounded-3xl bg-lp-card border border-lp-line p-6 shadow-[0_8px_22px_rgba(55,43,38,0.06)]">
@@ -31,7 +32,7 @@ export function LifeScenesSection({ lang }: { lang: Lang }) {
                 <p className="mt-3 rounded-2xl bg-lp-ivory-2 border border-lp-line px-4 py-3 text-lp-ink font-bold leading-relaxed">
                   {it.line}
                 </p>
-                <p className="mt-3 text-[0.95rem] text-lp-ink-soft leading-relaxed">{it.body}</p>
+                <p className="mt-3 text-[1rem] text-lp-ink-soft leading-relaxed">{it.body}</p>
               </div>
             </Reveal>
           ))}
@@ -48,7 +49,7 @@ export function LifeScenesSection({ lang }: { lang: Lang }) {
 export function TrialContentsSection({ lang }: { lang: Lang }) {
   const t = LP.trialContents;
   return (
-    <section id="trial-contents" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+    <section id="trial-contents" className="scroll-mt-20 bg-lp-ivory-2 py-12 sm:py-20">
       <div className="mx-auto max-w-3xl px-5">
         <Reveal><SectionHeading title={t.heading[lang]} lead={t.lead[lang]} /></Reveal>
 

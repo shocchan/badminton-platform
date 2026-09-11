@@ -167,7 +167,14 @@ export interface LpContent {
   flow: { heading: Str; lead: Str; steps: L<{ title: string; body: string }[]> };
   features: { heading: Str; lead: Str; items: L<{ title: string; value: string }[]>; screenshotNote: Str };
   roadmap: { heading: Str; note: Str; phases: L<{ span: string; items: string[] }[]> };
-  humanCoach: { eyebrow: Str; heading: Str; lead: Str; facts: Strs; note: Str };
+  humanCoach: {
+    eyebrow: Str; heading: Str; lead: Str; facts: Strs; note: Str;
+    /**
+     * 本人からの一言（2026-09-11 LP圧縮）。**事実として使える表現だけ**で組む
+     * （下の facts にある指導・設計開発の事実と、LPの方針文から。体験談は創作しない）
+     */
+    message: Str;
+  };
   testimonials: {
     heading: Str; lead: Str;
     /**
@@ -521,6 +528,10 @@ export const LP: LpContent = {
   humanCoach: {
     eyebrow: { ja: 'あなたの日本語コーチ', zh: '你的日语教练' },
     heading: { ja: '安田翔（しょっちゃん先生）', zh: '安田翔（Shocchan老师）' },
+    message: {
+      ja: '中国語話者への日本語指導と、この学習システムの設計・開発を、どちらも自分でやっています。教材の順番ではなく、あなたが日本で言いたい場面から逆算するのは、そのためです。',
+      zh: '给中文母语者教日语，和设计・开发这套学习系统，都是我自己在做。所以我们不按教材顺序走，而是从你在日本想说的场景倒推。',
+    },
     lead: {
       ja: 'AIが毎日を支え、方向はコーチが決めます。中国語話者の学習に寄り添ってきた日本語コーチが、あなた専用の道すじを設計します。',
       zh: '日常由AI陪伴，方向由教练把关。长期陪伴中文母语者学习的日语教练，为你设计专属的学习路线。',

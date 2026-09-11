@@ -11,26 +11,27 @@ const painIcon: Record<string, typeof BookOpen> = {
   calendar: CalendarDays, forget: Brain, lost: Compass, friend: Users,
 };
 
+/** 悩みは4つに絞る（2026-09-11 LP圧縮）。カードではなく罫線の一覧＝「同じ箱が続く」を避ける */
+const PAIN_SHOW = 4;
+
 export function PainPointsSection({ lang }: { lang: Lang }) {
   return (
-    <section id="pain" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
-      <div className="mx-auto max-w-6xl px-5">
+    <section id="pain" className="scroll-mt-20 bg-lp-ivory-2 py-12 sm:py-20">
+      <div className="mx-auto max-w-3xl px-5">
         <Reveal><SectionHeading eyebrow={LP.pain.heading[lang]} title={LP.pain.lead[lang]} /></Reveal>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {LP.pain.items[lang].map((it, i) => {
+        <ul className="divide-y divide-lp-line border-y border-lp-line">
+          {LP.pain.items[lang].slice(0, PAIN_SHOW).map((it, i) => {
             const Icon = painIcon[it.scene] || MessageCircle;
             return (
-              <Reveal key={i} delay={(i % 4) * 60}>
-                <div className="h-full bg-lp-card border border-lp-line rounded-2xl p-5 shadow-[0_6px_18px_rgba(55,43,38,0.06)]">
-                  <span className="inline-flex w-11 h-11 items-center justify-center rounded-xl bg-lp-coral-soft text-lp-coral-deep mb-3">
-                    <Icon className="w-5 h-5" aria-hidden="true" />
-                  </span>
-                  <p className="text-[0.98rem] text-lp-ink leading-relaxed">{it.text}</p>
-                </div>
-              </Reveal>
+              <li key={i} className="flex items-center gap-4 py-3.5">
+                <span className="inline-flex w-10 h-10 shrink-0 items-center justify-center rounded-xl bg-lp-coral-soft text-lp-coral-deep">
+                  <Icon className="w-5 h-5" aria-hidden="true" />
+                </span>
+                <p className="text-[1rem] text-lp-ink leading-relaxed">{it.text}</p>
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </section>
   );
@@ -40,14 +41,14 @@ export function PainPointsSection({ lang }: { lang: Lang }) {
  * 人×AIの役割。**人間コーチが主・AIが従**の順で見せる
  * （2026-08-19 CEO依頼: サービスの信頼性と6か月コースの価格の理由は人間コーチが担う）
  */
-export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang }) {
+/** 「なぜAIだけでは足りないか」の答えとして、同じ節の中に出す（2026-09-11 LP圧縮で統合） */
+export function AiHumanRoles({ v, lang }: { v: VariantConfig; lang: Lang }) {
   const r = LP.roles;
   const aiName = r.ai.name[lang].replace('翔子先生・悠斗先生', v.name[lang]).replace('翔子・悠斗', v.name[lang]);
   return (
-    <section id="roles" className="scroll-mt-20 py-16 sm:py-24">
-      <div className="mx-auto max-w-5xl px-5">
-        <Reveal><SectionHeading eyebrow={LP.roles.sub[lang]} title={r.heading[lang]} /></Reveal>
-        <div className="grid md:grid-cols-2 gap-5">
+    <div id="roles" className="scroll-mt-20 mt-8">
+        <p className="mb-4 text-center text-[1.15rem] font-extrabold text-lp-ink text-balance">{r.heading[lang]}</p>
+        <div className="grid md:grid-cols-2 gap-4">
           {/* 主: 人間コーチ（強調枠・先に読まれる位置） */}
           <Reveal>
             <div className="h-full bg-lp-card border-2 border-lp-pine rounded-2xl p-6">
@@ -56,9 +57,9 @@ export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang 
                 <span className="text-[0.8rem] font-extrabold tracking-wide bg-lp-pine text-white rounded-full px-3 py-0.5">{r.human.label[lang]}</span>
               </div>
               <h3 className="font-extrabold text-lp-ink text-lg mb-3">{r.human.name[lang]}</h3>
-              <ul className="flex flex-col gap-2.5">
-                {r.human.items[lang].map((s, i) => (
-                  <li key={i} className="flex gap-2.5 text-[0.97rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-pine" />{s}</li>
+              <ul className="flex flex-col gap-2">
+                {r.human.items[lang].slice(0, 3).map((s, i) => (
+                  <li key={i} className="flex gap-2.5 text-[1rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-pine" />{s}</li>
                 ))}
               </ul>
             </div>
@@ -71,16 +72,15 @@ export function AiHumanRolesSection({ v, lang }: { v: VariantConfig; lang: Lang 
                 <span className="text-[0.8rem] font-extrabold tracking-wide bg-lp-coral text-white rounded-full px-3 py-0.5">{r.ai.label[lang]}</span>
               </div>
               <h3 className="font-extrabold text-lp-ink text-lg mb-3">{aiName}</h3>
-              <ul className="flex flex-col gap-2.5">
-                {r.ai.items[lang].map((s, i) => (
-                  <li key={i} className="flex gap-2.5 text-[0.97rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-coral" />{s}</li>
+              <ul className="flex flex-col gap-2">
+                {r.ai.items[lang].slice(0, 3).map((s, i) => (
+                  <li key={i} className="flex gap-2.5 text-[1rem] text-lp-ink-soft"><Check className="w-5 h-5 shrink-0 text-lp-coral" />{s}</li>
                 ))}
               </ul>
             </div>
           </Reveal>
         </div>
-      </div>
-    </section>
+    </div>
   );
 }
 

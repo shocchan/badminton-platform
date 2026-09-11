@@ -1,13 +1,11 @@
-// 販売LPの並び順（2026-08-26 CEO指示 Phase S3〜S5）。
+// 販売LPの並び順。
 //
-// 【何を守るか】
-// 直前まで、価格表が6番目・人間コーチの紹介が9番目だった。
-// つまり読む人は、この商品の**唯一の代替できない部分**を見る前に金額を見ていた。
-// 中国語圏には安価で高機能なAI会話アプリが大量にあるので、その状態で価格を出すと
-// 「AIアプリなのに高い」という比較で終わる。
+// 2026-08-26（Phase S3〜S5）: 「なぜこれを選ぶのかを理解してから値段を見る」順に。
+// 2026-09-11（LP圧縮・CEO承認 docs/ai-course/audit/LP_READABILITY_AUDIT_2026-09-11.md）:
+//   29画面→約18画面。同じ主張の2回目・3回目（比較表・役割の別節・向き不向き・料金の帯・毎日の流れ）を
+//   統合または削除し、受講生の声を料金の直前へ、ロードマップを料金の後へ。同じ主CTAを約3画面ごとに置く。
 //
 // 並び替えは1行の移動で戻せてしまうので、順序そのものをテストで固定する。
-// セクションを増やすのは自由だが、**この前後関係だけは崩さない**。
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { LP } from './lpContent';
@@ -18,7 +16,7 @@ const PAGE = readFileSync('src/pages/ai-lesson/landing/AiCourseLandingPage.tsx',
 /** JSXに現れる順にセクション名を並べる（コメント行は除く） */
 const order = (): string[] => {
   const body = PAGE.split('\n')
-    .filter((l) => !/^\s*(\/\/|\*|\/\*|\{\s*\/\*)/.test(l))
+    .filter((l) => !/^\s*(\/\/|\*|\/\*|\{\s*\/\*|[①-⑫]|→)/.test(l))
     .join('\n');
   const main = /<main>([\s\S]*?)<\/main>/.exec(body);
   expect(main, '<main> が見つからない').toBeTruthy();
@@ -33,11 +31,10 @@ const idx = (name: string): number => {
 
 describe('「なぜこれを選ぶか」を理解してから値段を見る', () => {
   it('人間コーチの紹介が価格表より前にある', () => {
-    // これがこの並び替えの中心。逆に戻すと、AIアプリと横並びで価格比較される
     expect(idx('HumanCoachSection')).toBeLessThan(idx('PricingSection'));
   });
 
-  it('AIアプリだけでは足りない理由が、仕組みの説明より前にある', () => {
+  it('AIアプリだけでは足りない理由（＋人×AIの役割）が、仕組みの説明より前にある', () => {
     expect(idx('WhyNotAiOnlySection')).toBeLessThan(idx('PlatformFeatures'));
   });
 
@@ -46,16 +43,17 @@ describe('「なぜこれを選ぶか」を理解してから値段を見る', (
     expect(idx('LifeScenesSection')).toBeLessThan(idx('WhyNotAiOnlySection'));
   });
 
-  it('AIと人の役割 → コーチ紹介 の順（役割を説明してから、その人を出す）', () => {
-    expect(idx('AiHumanRolesSection')).toBeLessThan(idx('HumanCoachSection'));
+  it('役割（WhyNotAiOnly の中）→ コーチ紹介 の順', () => {
+    expect(idx('WhyNotAiOnlySection')).toBeLessThan(idx('HumanCoachSection'));
   });
 
-  it('600円体験の中身が価格表より前にある', () => {
-    expect(idx('TrialContentsSection')).toBeLessThan(idx('PricingSection'));
+  it('600円体験の中身 → 受講生の声 → 価格表 の順（決める直前に安心材料）', () => {
+    expect(idx('TrialContentsSection')).toBeLessThan(idx('TestimonialsSection'));
+    expect(idx('TestimonialsSection')).toBeLessThan(idx('PricingSection'));
   });
 
-  it('比較・向き不向き・受講生・FAQ は価格表より後ろ', () => {
-    for (const s of ['PlanComparisonSection', 'PlanFitSection', 'TestimonialsSection', 'FaqSection']) {
+  it('6か月ロードマップと FAQ は価格表より後ろ', () => {
+    for (const s of ['SixMonthRoadmap', 'FaqSection']) {
       expect(idx(s)).toBeGreaterThan(idx('PricingSection'));
     }
   });
@@ -65,16 +63,23 @@ describe('「なぜこれを選ぶか」を理解してから値段を見る', (
     expect(o[o.length - 1]).toBe('FinalCtaSection');
   });
 
-  it('並び替えでセクションを落としていない', () => {
-    // 既存の12セクション＋新設1つ。減っていたら「順番を直したつもりで消した」
+  it('残す節を落としていない／統合・削除した節を戻していない', () => {
+    const o = order();
     for (const s of [
-      'AiCourseHero', 'PriceTeaserStrip', 'PainPointsSection', 'LifeScenesSection',
-      'WhyNotAiOnlySection', 'PlatformFeatures', 'AiHumanRolesSection', 'HumanCoachSection',
-      'DailyLearningFlow', 'TrialContentsSection', 'SixMonthRoadmap', 'PricingSection',
-      'PlanComparisonSection', 'PlanFitSection', 'TestimonialsSection', 'FaqSection', 'FinalCtaSection',
-    ]) {
-      expect(order(), `${s} が消えている`).toContain(s);
+      'AiCourseHero', 'PainPointsSection', 'LifeScenesSection', 'WhyNotAiOnlySection', 'HumanCoachSection',
+      'PlatformFeatures', 'TrialContentsSection', 'TestimonialsSection', 'PricingSection', 'SixMonthRoadmap',
+      'FaqSection', 'FinalCtaSection',
+    ]) expect(o, `${s} が消えている`).toContain(s);
+    for (const s of ['PriceTeaserStrip', 'AiHumanRolesSection', 'DailyLearningFlow', 'PlanComparisonSection', 'PlanFitSection']) {
+      expect(o, `${s} は統合・削除済み（戻すなら監査をやり直す）`).not.toContain(s);
     }
+  });
+
+  it('同じ主CTAを途中に3回置く（場面の後・コーチの後・体験の中身の後）', () => {
+    const o = order();
+    expect(o.filter((s) => s === 'MidCta')).toHaveLength(3);
+    expect(idx('LifeScenesSection')).toBeLessThan(o.indexOf('MidCta'));
+    expect(o.lastIndexOf('MidCta')).toBeLessThan(idx('TestimonialsSection'));
   });
 });
 
@@ -97,7 +102,7 @@ describe('AIアプリとの違いを、競合を攻撃せずに書く', () => {
     }
   });
 
-  it('4つの理由がja/zhとも同じ数だけある（片方だけ足すと訳が抜ける）', () => {
+  it('理由がja/zhとも同じ数だけある（片方だけ足すと訳が抜ける）', () => {
     expect(LP.whyNotAiOnly.items.ja.length).toBe(LP.whyNotAiOnly.items.zh.length);
     expect(LP.whyNotAiOnly.items.ja.length).toBeGreaterThanOrEqual(3);
   });
@@ -118,7 +123,6 @@ describe('プランの位置づけ（Phase S4/S5）', () => {
   it('6か月コースは回数の足し算ではなく伴走として書いてある', () => {
     const c = planById('coach-6m')!;
     expect(c.descriptionJa).toContain('いっしょに進みます');
-    // 「日本で暮らしながら」＝この商品が誰のためかが説明に入っていること
     expect(c.descriptionJa).toContain('日本で暮らし');
     expect(c.descriptionZh).toContain('在日本生活');
   });
@@ -130,21 +134,61 @@ describe('プランの位置づけ（Phase S4/S5）', () => {
     }
   });
 
-  it('3プランの選び分けがLPの言葉で書いてある', () => {
+  it('3プランの選び分けの1行目が料金カードに出る（旧「あなたに合うプラン」の統合先）', () => {
     expect(LP.planFit.lead.ja).toContain('まず試したい');
     expect(LP.planFit.lead.ja).toContain('自分のペース');
     expect(LP.planFit.lead.zh).toContain('先试试');
+    const D = readFileSync('src/pages/ai-lesson/landing/sectionsD.tsx', 'utf8');
+    expect(D).toMatch(/LP\.planFit\.byPlan\[lang\]\[view\.id\]/);
   });
 
   it('今回の変更で値段を動かしていない（版の指紋が価格を含めて固定している）', () => {
-    // 金額そのものはここに書かない（planCatalog.ts が正準。ハードコードのガードに引っかかる）。
-    // 価格が変わったかどうかは planCatalog.test.ts の PLAN_FINGERPRINTS が検出する。
-    // ここでは「3プランとも値が付いていて、順序関係が壊れていない」だけを見る
     const trial = planById('ai-trial-pass')!.priceJpy!;
     const month = planById('ai-month')!.priceJpy!;
     const coach = planById('coach-6m')!.priceJpy!;
     expect(trial).toBeGreaterThan(0);
     expect(month).toBeGreaterThan(trial);
     expect(coach).toBeGreaterThan(month);
+  });
+});
+
+describe('CTA と画面写真（2026-09-11 LP圧縮）', () => {
+  const HERO = readFileSync('src/pages/ai-lesson/landing/AiCourseHero.tsx', 'utf8');
+  const FUNNEL = readFileSync('src/pages/ai-lesson/landing/lpFunnel.tsx', 'utf8');
+  const B = readFileSync('src/pages/ai-lesson/landing/sectionsB.tsx', 'utf8');
+  const C = readFileSync('src/pages/ai-lesson/landing/sectionsC.tsx', 'utf8');
+
+  it('ヒーローの主CTAは1つ。相談はテキストリンク、3つ目のボタンとチップは無い', () => {
+    expect(HERO).not.toMatch(/LP\.ctaSecondary/);
+    expect(HERO).not.toMatch(/LP\.heroChips/);
+    expect(HERO).toMatch(/\{trial && \(\s*<button type="button"[\s\S]*?LP\.ctaPrimary\[lang\]/);
+  });
+
+  it('固定バーは主CTA1つだけ（相談ボタンを並べない）', () => {
+    const sticky = FUNNEL.slice(FUNNEL.indexOf('export function LpStickyCta'));
+    expect(sticky).not.toMatch(/stickyBar\.consult/);
+    expect(sticky).toMatch(/LP\.ctaTrial\[lang\]/);
+  });
+
+  it('途中のCTAも同じ文言（ctaTrial）を使う', () => {
+    const mid = FUNNEL.slice(FUNNEL.indexOf('export function MidCta'), FUNNEL.indexOf('export function LpStickyCta'));
+    expect(mid).toMatch(/LP\.ctaTrial\[lang\]\.replace\('\{price\}'/);
+  });
+
+  it('画面写真4枚は横スクロールではなく縦に並ぶ（スマホで2枚目以降も見える）', () => {
+    const screens = B.slice(B.indexOf('function RealScreens'), B.indexOf('export function PlatformFeatures'));
+    expect(screens).not.toMatch(/overflow-x-auto|snap-x/);
+    expect(screens).toMatch(/flex-col/);
+    // 画面が機能の一覧より先（主役）
+    const pf = B.slice(B.indexOf('export function PlatformFeatures'));
+    expect(pf.indexOf('<RealScreens')).toBeLessThan(pf.indexOf('LP.features.items[lang]'));
+  });
+
+  it('コーチ紹介は本人の一言が主役で、経歴の箇条書きは2行まで', () => {
+    expect(C).toMatch(/c\.message\[lang\]/);
+    expect(C).toMatch(/c\.facts\[lang\]\.slice\(0, 2\)/);
+    // 本人の一言は事実だけで組む（体験談の創作をしない）: facts と同じ語が入っていること
+    expect(LP.humanCoach.message.ja).toMatch(/日本語指導|設計・開発/);
+    expect(LP.humanCoach.message.zh.length).toBeGreaterThan(20);
   });
 });

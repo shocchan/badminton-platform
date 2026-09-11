@@ -10,7 +10,7 @@ import { UserRound } from 'lucide-react';
 export function HumanCoachSection({ lang }: { lang: Lang }) {
   const c = LP.humanCoach;
   return (
-    <section id="coach" className="scroll-mt-20 py-16 sm:py-24">
+    <section id="coach" className="scroll-mt-20 py-12 sm:py-20">
       <div className="mx-auto max-w-5xl px-5">
         <div className="grid md:grid-cols-[.8fr_1.2fr] gap-8 items-center">
           <Reveal>
@@ -30,13 +30,17 @@ export function HumanCoachSection({ lang }: { lang: Lang }) {
                 <span className="inline-block w-5 h-[3px] rounded bg-lp-coral" aria-hidden="true" />{c.eyebrow[lang]}
               </span>
               <h2 className="mt-2 text-[clamp(1.5rem,4vw,2.1rem)] font-extrabold text-lp-ink">{c.heading[lang]}</h2>
-              <p className="mt-3 text-[1.02rem] text-lp-ink-soft leading-relaxed">{c.lead[lang]}</p>
-              <ul className="mt-5 flex flex-col gap-2.5">
-                {c.facts[lang].map((f, i) => (
-                  <li key={i} className="flex gap-2.5 text-[0.97rem] text-lp-ink"><Check className="w-5 h-5 shrink-0 text-lp-pine" />{f}</li>
+              {/* 本人の一言を主役に（2026-09-11 LP圧縮）。経歴の箇条書きは2行に圧縮して下へ */}
+              <blockquote className="mt-4 rounded-2xl bg-lp-card border-l-4 border-lp-coral px-5 py-4 text-[1.05rem] font-bold leading-relaxed text-lp-ink">
+                {c.message[lang]}
+              </blockquote>
+              <p className="mt-3 text-[1rem] text-lp-ink-soft leading-relaxed">{c.lead[lang]}</p>
+              <ul className="mt-4 flex flex-col gap-2">
+                {c.facts[lang].slice(0, 2).map((f, i) => (
+                  <li key={i} className="flex gap-2.5 text-[1rem] text-lp-ink"><Check className="w-5 h-5 shrink-0 text-lp-pine" />{f}</li>
                 ))}
               </ul>
-              <p className="mt-4 text-[0.84rem] text-lp-ink-soft">{c.note[lang]}</p>
+              <p className="mt-3 text-[0.85rem] text-lp-ink-soft">{c.note[lang]}</p>
             </div>
           </Reveal>
         </div>
@@ -53,11 +57,12 @@ export function HumanCoachSection({ lang }: { lang: Lang }) {
 export function TestimonialsSection({ lang }: { lang: Lang }) {
   const t = LP.testimonials;
   return (
-    <section id="voices" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
+    <section id="voices" className="scroll-mt-20 bg-lp-ivory-2 py-12 sm:py-20">
       <div className="mx-auto max-w-4xl px-5">
         <Reveal><SectionHeading title={t.heading[lang]} lead={t.lead[lang]} /></Reveal>
         <div className="flex flex-col gap-4">
-          {t.entries[lang].map((entry, i) => (
+          {/* 3件に絞る（2026-09-11 LP圧縮）。決める直前の安心材料は、数より読める量 */}
+          {t.entries[lang].slice(0, 3).map((entry, i) => (
             <Reveal key={i} delay={60 + i * 40}>
               <div className="bg-lp-card border border-lp-line rounded-2xl p-6 flex items-start gap-4">
                 <span className="inline-flex w-12 h-12 shrink-0 items-center justify-center rounded-full bg-lp-gold-soft">

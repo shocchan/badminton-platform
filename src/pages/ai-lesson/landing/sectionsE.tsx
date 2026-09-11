@@ -2,16 +2,24 @@ import { useEffect, useRef, useState } from 'react';
 import type { Lang } from '../../../contexts/LanguageContext';
 import { LP, type VariantConfig } from './lpContent';
 import { Reveal, SectionHeading, CtaButton, ArrowRight } from './lpUi';
-import { track, imgUrl } from './lpHelpers';
+import { track, imgUrl, scrollToSection } from './lpHelpers';
+import { trialEntryPlan } from '../../../lib/aiLesson/course/plans/planCatalog';
 import { Plus, X, MessageSquare, Copy, Check as CheckIcon, Mail, FileText } from 'lucide-react';
 
+/**
+ * 画面に出す質問は6つ（2026-09-11 LP圧縮）。並びは「不安が大きい順」ではなく「始める前に知りたい順」。
+ * 番号は LP.faq.items の添字（ja/zh とも同じ並び）。全文は FAQ の構造化データ（SEO）には残る。
+ */
+const FAQ_SHOW = [0, 1, 2, 3, 5, 7];
+
 export function FaqSection({ lang }: { lang: Lang }) {
+  const items = FAQ_SHOW.map((i) => LP.faq.items[lang][i]).filter(Boolean);
   return (
-    <section id="faq" className="scroll-mt-20 py-16 sm:py-24">
+    <section id="faq" className="scroll-mt-20 py-12 sm:py-20">
       <div className="mx-auto max-w-3xl px-5">
         <Reveal><SectionHeading title={LP.faq.heading[lang]} /></Reveal>
         <div className="flex flex-col gap-3">
-          {LP.faq.items[lang].map((it, i) => (
+          {items.map((it, i) => (
             <Reveal key={i} delay={Math.min(i, 6) * 30}>
               <details
                 className="group bg-lp-card border border-lp-line rounded-2xl px-5 open:border-lp-coral"
@@ -39,8 +47,10 @@ export function FaqSection({ lang }: { lang: Lang }) {
 export function FinalCtaSection({ v, lang, onConsult }: { v: VariantConfig; lang: Lang; onConsult: () => void }) {
   const f = LP.finalCta;
   const [cw, ch] = v.imageSize.cheer;
+  // 主CTAはページ内で1つの文言（体験）。相談はその下のテキストリンク（2026-09-11 LP圧縮）
+  const trial = trialEntryPlan(lang);
   return (
-    <section className="py-16 sm:py-24">
+    <section className="py-12 sm:py-20">
       <div className="mx-auto max-w-5xl px-5">
         <Reveal>
           <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-b from-lp-coral to-lp-coral-deep text-white text-center px-6 py-14 sm:py-20">
@@ -52,10 +62,23 @@ export function FinalCtaSection({ v, lang, onConsult }: { v: VariantConfig; lang
             />
             <h2 className="text-[clamp(1.6rem,4.5vw,2.4rem)] font-extrabold text-balance">{f.heading[lang]}</h2>
             <p className="mt-4 mx-auto max-w-[34em] text-white/90 text-[1.05rem]">{f.body[lang]}</p>
-            <div className="mt-7">
-              <CtaButton variant="white" onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'final', variant: v.key }}>
-                {LP.ctaPrimary[lang]} <ArrowRight />
-              </CtaButton>
+            <div className="mt-7 flex flex-col items-center gap-3">
+              {trial ? (
+                <>
+                  <CtaButton variant="white"
+                    onClick={() => { track('click_ai_course_to_pricing', { location: 'final', plan: trial.id, variant: v.key }); scrollToSection('price'); }}>
+                    {LP.ctaTrial[lang].replace('{price}', trial.priceLabel)} <ArrowRight />
+                  </CtaButton>
+                  <button type="button" onClick={() => { track('click_ai_course_consultation', { location: 'final', variant: v.key }); onConsult(); }}
+                    className="inline-flex items-center min-h-11 text-[0.95rem] font-bold text-white underline underline-offset-4">
+                    {LP.ctaPrimary[lang]}
+                  </button>
+                </>
+              ) : (
+                <CtaButton variant="white" onClick={onConsult} event="click_ai_course_consultation" eventParams={{ location: 'final', variant: v.key }}>
+                  {LP.ctaPrimary[lang]} <ArrowRight />
+                </CtaButton>
+              )}
             </div>
           </div>
         </Reveal>

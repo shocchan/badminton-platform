@@ -750,6 +750,8 @@ const PRIVATE_PATTERNS = [
   /^\\/(ja|zh)\\/ai-course\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/ai-course\\/purchase(\\/|$)/,
   /^\\/(ja|zh)\\/learn(\\/|$)/,
+  // 招待リンク限定ページ（2026-09-11）。検索に出さない
+  /^\\/(ja|zh)\\/invite(\\/|$)/,
   /^\\/(ja|zh)\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/signup(\\/|$)/,
   /^\\/(ja|zh)\\/auth-landing(\\/|$)/,
@@ -788,6 +790,8 @@ const KNOWN_LEAVES = [
   'shuttle-roadmap', 'tactics-board', 'game', 'mypage', 'ai-lesson-demo', 'ai-course',
   // 個人専用URL（2026-09-09）。実在するので既知として扱う（noindex は privateRoutes 側で付く）
   'learn',
+  // 招待リンク限定ページ（2026-09-11）。実在するので既知（noindex は privateRoutes 側）
+  'invite',
   'auth-landing', 'login', 'signup', 'password-reset', 'password-reset-form',
   'password-reset-success', 'results',
 ];
