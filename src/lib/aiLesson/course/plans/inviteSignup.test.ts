@@ -87,8 +87,12 @@ describe('Edge Function ai-course-invite-signup', () => {
   const at = (s: string) => { const i = body.indexOf(s); if (i < 0) throw new Error(`missing: ${s}`); return i; };
 
   it('順番: 回数制限 → 登録済み確認 → 招待照合 → アカウント作成 → 学習コード → メール → 記録', () => {
-    const order = ['ai_code_login_throttle', 'ai_email_has_learner', 'ai_redeem_invite', '/auth/v1/admin/users', 'ai_service_issue_learning_code', 'api.resend.com/emails', 'ai_course_mail_log'].map(at);
+    const order = ['ai_code_login_throttle', 'ai_email_has_learner', 'ai_redeem_invite', '/auth/v1/admin/users', '/rest/v1/ai_course_access', 'ai_service_issue_learning_code', 'api.resend.com/emails', 'ai_course_mail_log'].map(at);
     expect([...order].sort((a, b) => a - b)).toEqual(order);
+  });
+  it('受講権（7日）は登録の時点でサーバーが作る（学習画面は学習者行より先に受講権を見るため）', () => {
+    expect(body).toMatch(/rest\/v1\/ai_course_access[\s\S]*?source: "invite"/);
+    expect(body).toMatch(/const accessDays = 7;/);
   });
   it('パスワードは応答に出さない（メールにだけ）', () => {
     expect(body).toMatch(/return json\(\{ ok: true, sentTo: email \}\);/);

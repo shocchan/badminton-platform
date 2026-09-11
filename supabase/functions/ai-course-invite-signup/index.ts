@@ -188,6 +188,24 @@ serve(async (req) => {
   const userId: string = ((await createRes.json()) as { id?: string })?.id ?? "";
   if (!userId) return json({ ok: false, code: "create_failed" }, 502);
 
+  // ── 2.5 受講権（7日）をここで作る ──
+  // 学習画面は「受講権があるか」を学習者行を作る前に確かめる（開通していません、の画面）。
+  // 学習者行ができた瞬間に付ける DB トリガーでは間に合わない（2026-09-12 CEO 実機で判明）
+  const planId: string = typeof redeemed.planId === "string" ? redeemed.planId : "free-7d";
+  const accessDays = 7;
+  const accessRes = await fetch(`${supabaseUrl}/rest/v1/ai_course_access`, {
+    method: "POST", headers: { ...dbHeaders, Prefer: "return=minimal,resolution=ignore-duplicates" },
+    body: JSON.stringify({
+      user_id: userId, valid_from: new Date().toISOString(),
+      valid_until: new Date(Date.now() + accessDays * 86_400_000).toISOString(),
+      plan_id: planId, source: "invite", note: `招待から自動発行 / ${channel}`, granted_by: "ai-course-invite-signup",
+    }),
+  });
+  if (!accessRes.ok) {
+    console.error("invite signup: access grant failed", accessRes.status);
+    return json({ ok: false, code: "grant_failed" }, 502);
+  }
+
   // ── 3. 個人リンクの学習コード ──
   const issued = await rpc("ai_service_issue_learning_code", { p_user_id: userId, p_label: `invite / ${channel}` });
   if (!issued || issued.ok !== true || typeof issued.raw !== "string") {
