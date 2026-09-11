@@ -4125,8 +4125,15 @@ export default function AdvShell(props: AdvShellProps) {
               {props.conversationAvailable && (
                 <SubLink lang={lang}
                   label={tx(lang, 'AI会話（ベータ）', 'AI会话（Beta）')}
-                  badge={props.conversationRemainingWeek ?? undefined}
+                  /* 残り回数はここだけで見せる（2026-09-11 CEO要望）。ホーム上部の帯は「使ってもいない人に
+                     使い切りましたと出る」ので廃止。0回なら鍵と「回数券で続ける」を出し、押した先で回数券を案内する */
+                  trailing={props.conversationRemainingWeek == null ? undefined
+                    : props.conversationRemainingWeek > 0
+                      ? <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">{tx(lang, `あと${props.conversationRemainingWeek}回`, `还剩${props.conversationRemainingWeek}次`)}</span>
+                      : <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-700" data-testid="conversation-locked">🔒 {tx(lang, '回数券で続ける', '用次数券继续')}</span>}
                   onClick={() => {
+                    // 今週の枠も回数券も無いときは場面を選ばせず、回数券の案内（会話の入口）へ直行する
+                    if (props.conversationRemainingWeek === 0) { props.onStartConversation(); return; }
                     // 選べる場面があるなら、まず選んでもらう（2026-09-10 CEO要望）。
                     // 無ければ従来どおりそのまま会話へ＝選択肢の無い選択画面を作らない
                     // 会話コースの候補が複数、または知識項目からの場面（今日の文法・仕事の場面）があれば選ばせる（Phase 6）
@@ -4247,16 +4254,17 @@ function BackBar({ lang, onBack, title, teacherLang }: {
   );
 }
 
-function SubLink({ lang, label, badge, onClick }: { lang: L; label: string; badge?: number; onClick: () => void }) {
+function SubLink({ lang, label, badge, trailing, onClick }: { lang: L; label: string; badge?: number; trailing?: React.ReactNode; onClick: () => void }) {
   return (
     <button type="button"
-      className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700`}
+      className={`${pressFx} action-secondary flex w-full min-h-[44px] items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 text-sm text-gray-700`}
       onClick={onClick}>
-      <span>{label}</span>
-      {badge !== undefined && badge > 0 && (
+      <span className="min-w-0 text-left">{label}</span>
+      {trailing}
+      {trailing === undefined && badge !== undefined && badge > 0 && (
         <span className="rounded-full bg-amber-500 px-2 text-xs font-bold text-white">{badge}</span>
       )}
-      {(badge === undefined || badge === 0) && <span aria-hidden className="text-gray-300">›</span>}
+      {trailing === undefined && (badge === undefined || badge === 0) && <span aria-hidden className="text-gray-300">›</span>}
       <span className="sr-only">{tx(lang, '開く', '打开')}</span>
     </button>
   );

@@ -67,7 +67,6 @@ import { CourseSettings } from '../../components/ai-course/CourseSettings';
 import { CourseHearing } from '../../components/ai-course/CourseHearing';
 import { CourseNameOnlyHearing } from '../../components/ai-course/CourseNameOnlyHearing';
 import { CourseHome } from '../../components/ai-course/CourseHome';
-import { ConversationBudgetChip } from '../../components/ai-course/ConversationBudgetChip';
 import { fetchConversationBudget, type ConversationBudget } from '../../lib/aiLesson/course/conversationBudget';
 import { ReferralCard } from '../../components/ai-course/ReferralCard';
 import { fetchMyReferral, type MyReferral } from '../../lib/aiLesson/course/referralApi';
@@ -1198,9 +1197,8 @@ export default function AiCoursePage() {
       }}
     />
   ) : null;
-  /* のこりの会話回数（2026-09-09 C-3）。無料枠でも無制限にはしないが、
-     押してから断られるのは避ける。枠を持たない生徒には何も出ない */
-  const budgetChip = <ConversationBudgetChip lang={uiLang} budget={convBudget} />;
+  /* AI会話の残り回数はホーム上部には出さない（2026-09-11 CEO要望）。
+     プランの無い生徒に「使い切りました」と出ていた。残りは「ほかの学習」のAI会話の行だけで見せる */
   /* 紹介（D-5）。出すのは成功体験のあとだけ。閉じられたら30日は出さない */
   const referralCard = referral ? (
     <ReferralCard lang={uiLang} referral={referral}
@@ -1213,8 +1211,8 @@ export default function AiCoursePage() {
       }} />
   ) : null;
   // ホーム上部に出す帯（プランチップ＋残り回数＋アップセル＋紹介）。従来契約の生徒はすべて null
-  const planTopSlot = (planChip || periodChip || upsellBanner || referralCard || convBudget?.hasBudget)
-    ? <>{planChip}{periodChip}{budgetChip}{upsellBanner}{referralCard}</> : null;
+  const planTopSlot = (planChip || periodChip || upsellBanner || referralCard)
+    ? <>{planChip}{periodChip}{upsellBanner}{referralCard}</> : null;
 
   const handleLogout = async () => { await signOut(); setStep('login'); };
   const goNav = (k: CourseNavKey) => {
