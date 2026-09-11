@@ -14,6 +14,12 @@ describe('公開範囲', () => {
     expect(SRC).toMatch(/name="robots" content="noindex, nofollow"/);
     expect(APP).toMatch(/path="invite"\s+element=\{<InviteLandingPage \/>\}/);
   });
+  it('バドミントン側のヘッダー・フッターを出さない（AI コースの経路として扱う）', async () => {
+    const { isAiCourseRoute } = await import('../../lib/aiLesson/course/courseRoutes');
+    expect(isAiCourseRoute('/zh/invite')).toBe(true);
+    expect(isAiCourseRoute('/ja/invite?invite=ABCD2345'.split('?')[0])).toBe(true);
+    expect(isAiCourseRoute('/ja/join')).toBe(false);
+  });
   it('?invite= が無いと申し込み欄を出さない（案内だけ）', () => {
     expect(SRC).toMatch(/\{!invite \? \(/);
   });
