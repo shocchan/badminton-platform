@@ -10,9 +10,9 @@
 // 強めに言ってよい: 「合格を目指す」「話せる自分へ」（目標・方向として）。
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { KeyRound, Loader2, Mail, Lock } from 'lucide-react';
-import { sendEmailOtp, verifyEmailOtp, type OtpSendCode } from '../../lib/aiLesson/course/courseAuth';
+import { signupWithInvite, type InviteSignupCode } from '../../lib/aiLesson/course/courseAuth';
 import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
@@ -29,7 +29,6 @@ import { LifeScenesSection } from './landing/sectionsScenes';
 import { LegalFooterLinks } from './legal/LegalPage';
 
 type L = 'ja' | 'zh';
-const RESEND_COOLDOWN_SEC = 60;
 
 const T = {
   zh: {
@@ -74,12 +73,15 @@ const T = {
     boldSub: '这7天先把基础补齐。之后想开口的话，AI会话在正式课程里等你。',
     honestH: '先说清楚',
     honest: ['这7天不含AI会话。是考试・语法・词汇・阅读的部分。', '听力练习目前只有N3和N2有音频。', '7天后结束。测试结果・错题本・单词图鉴不会清空。', '不保证考试合格。'],
-    formLabel: '填邮箱，验证码会发到邮箱',
+    formLabel: '填邮箱，账号和个人链接会发到邮箱',
     emailPh: 'you@example.com',
     send: '免费开始7天',
     sending: '发送中…',
     resendIn: (s: number) => `${s} 秒后可重新发送`,
-    fine: '无需付款、不会自动续费。输入邮件里的验证码就能进入。',
+    fine: '无需付款、不会自动续费。邮件里有ID・密码・个人链接。打开个人链接就能进入，不用输密码。',
+    sentH: '发好了，请查收邮件',
+    sentP: (e: string) => `已发送到 ${e}。邮件里有个人链接，点开就能开始。没收到的话请先看垃圾邮件文件夹，等几分钟仍未收到可以再发一次。`,
+    sentAgain: '换一个邮箱',
     codeLabel: '验证码',
     codeHint: (e: string) => `请查看发送到 ${e} 的邮件，输入收到的验证码。`,
     verify: '进入',
@@ -99,9 +101,10 @@ const T = {
     noInviteH: '这个链接不完整',
     noInviteP: '请用安田发给你的原始链接打开。',
     err: {
-      invalid_invite: '这个邀请链接已失效或已满员。', otp_cooldown: (s: number) => `发送太频繁，请等 ${s} 秒。`,
-      otp_hourly_limit: '发送次数已达上限，请一小时后再试。', invalid_email: '邮箱格式不正确。',
-      network: '网络连接不太顺利，请再试一次。', unknown: '出了点问题，请稍后再试。', invalid_code: '验证码不正确或已过期。',
+      invalid_invite: '这个邀请链接已失效或已满员。', rate_limited: '短时间内尝试太多次，请等15分钟后再试。',
+      already_registered: '这个邮箱已经注册过了。请用之前收到的个人链接进入，或者从登录页面用ID和密码登录。',
+      mail_failed: '账号已创建，但邮件没有发出去。请直接联系安田，我们会把个人链接发给你。', invalid_email: '邮箱格式不正确。',
+      network: '网络连接不太顺利，请再试一次。', unknown: '出了点问题，请稍后再试。',
     },
   },
   ja: {
@@ -146,12 +149,15 @@ const T = {
     boldSub: 'この7日で基礎を埋める。その先で話したくなったら、AI会話が本コースで待っています。',
     honestH: '先に正直に書きます',
     honest: ['この7日にAI会話は含みません。試験・文法・ことば・読解の部分です。', '聴解の音源はいまN3・N2だけです。', '7日で終わります。診断結果・錯題本・単語図鑑は消えません。', '合格を保証するものではありません。'],
-    formLabel: 'メールアドレスを入れると、確認コードが届きます',
+    formLabel: 'メールアドレスを入れると、アカウントと個人リンクが届きます',
     emailPh: 'you@example.com',
     send: '無料で7日間はじめる',
     sending: '送信中…',
     resendIn: (s: number) => `再送できるまで ${s} 秒`,
-    fine: '支払いも自動更新もありません。届いた確認コードを入れるだけで入れます。',
+    fine: '支払いも自動更新もありません。メールにID・パスワード・個人リンクが入っています。個人リンクを開くだけで入れます。',
+    sentH: '送りました。メールを確認してください',
+    sentP: (e: string) => `${e} 宛に送りました。メールの個人リンクを開くと始まります。届かないときは迷惑メールフォルダを確認し、数分待っても届かなければもう一度送れます。`,
+    sentAgain: '別のメールアドレスで送る',
     codeLabel: '確認コード',
     codeHint: (e: string) => `${e} 宛のメールを確認して、届いたコードを入力してください。`,
     verify: '入る',
@@ -171,9 +177,10 @@ const T = {
     noInviteH: 'このリンクは途中で切れています',
     noInviteP: 'しょっちゃんから届いた元のリンクで開いてください。',
     err: {
-      invalid_invite: 'この招待リンクは使えなくなっています（定員または期限）。', otp_cooldown: (s: number) => `送信のしすぎです。あと ${s} 秒お待ちください。`,
-      otp_hourly_limit: '送信回数が上限に達しました。1時間ほどおいてからお試しください。', invalid_email: 'メールアドレスの形式が正しくありません。',
-      network: '通信がうまくいきませんでした。もう一度お試しください。', unknown: 'エラーが発生しました。少し待ってからもう一度お試しください。', invalid_code: 'コードが正しくないか、期限切れです。',
+      invalid_invite: 'この招待リンクは使えなくなっています（定員または期限）。', rate_limited: '短い時間に何度も試されました。15分ほどおいてからもう一度お試しください。',
+      already_registered: 'このメールアドレスは登録済みです。前に届いた個人リンクから入るか、ログイン画面でIDとパスワードでログインしてください。',
+      mail_failed: 'アカウントはできましたが、メールを送れませんでした。しょっちゃんに直接連絡してください。個人リンクをお渡しします。', invalid_email: 'メールアドレスの形式が正しくありません。',
+      network: '通信がうまくいきませんでした。もう一度お試しください。', unknown: 'エラーが発生しました。少し待ってからもう一度お試しください。',
     },
   },
 } as const;
@@ -202,56 +209,40 @@ export function InviteLandingPage() {
   const t = T[lang];
   const sc = SCOPE[lang];
   const v = VARIANTS.shoko;
-  const navigate = useNavigate();
   const invite = inviteCodeFromSearch(typeof window === 'undefined' ? '' : window.location.search);
   const [theme] = useState(currentLpTheme);
   const [cd, setCd] = useState(() => countdownTo(INVITE_CAMPAIGN.deadlineISO));
   const examDays = daysUntil(INVITE_CAMPAIGN.examDateISO);
 
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [step, setStep] = useState<'email' | 'sent'>('email');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [cooldown, setCooldown] = useState(0);
   const [consented, setConsented] = useState(false);
   const [closedByServer, setClosedByServer] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { const id = setInterval(() => setCd(countdownTo(INVITE_CAMPAIGN.deadlineISO)), 1000); return () => clearInterval(id); }, []);
-  useEffect(() => { if (cooldown <= 0) return; const id = window.setTimeout(() => setCooldown((c) => c - 1), 1000); return () => window.clearTimeout(id); }, [cooldown]);
   useEffect(() => { trackCourse('view_ai_course_invite', { lang }); }, [lang]);
 
-  const msg = useCallback((c: OtpSendCode | undefined, retry?: number) => {
+  const msg = useCallback((c: InviteSignupCode): string => {
     const e = t.err;
-    if (c === 'otp_cooldown') return e.otp_cooldown(retry ?? RESEND_COOLDOWN_SEC);
-    if (c === 'invalid_invite' || c === 'otp_hourly_limit' || c === 'invalid_email' || c === 'network') return e[c];
+    if (c === 'invalid_invite' || c === 'rate_limited' || c === 'already_registered' || c === 'mail_failed' || c === 'invalid_email' || c === 'network') return e[c];
     return e.unknown;
   }, [t]);
 
-  const send = async (isResend: boolean) => {
-    if (busy || cooldown > 0 || !email.trim()) return;
+  const send = async () => {
+    if (busy || !email.trim()) return;
     setError(''); setBusy(true);
-    const r = await sendEmailOtp(email, invite);
+    const r = await signupWithInvite(email, invite, lang);
     setBusy(false);
     if (!r.ok) {
       if (r.code === 'invalid_invite') setClosedByServer(true);
-      setError(msg(r.code, r.retryAfter));
-      if (r.code === 'otp_cooldown' && r.retryAfter) setCooldown(r.retryAfter);
+      setError(msg(r.code));
       return;
     }
-    trackCourse('send_ai_course_invite_otp', { lang });
-    setCooldown(RESEND_COOLDOWN_SEC);
-    if (!isResend) setStep('code');
-  };
-  const verify = async () => {
-    if (busy || code.trim().length < 4) return;
-    setError(''); setBusy(true);
-    const r = await verifyEmailOtp(email, code);
-    setBusy(false);
-    if (!r.ok) { setError(t.err.invalid_code); return; }
-    trackCourse('login_ai_course', { method: 'otp' });
-    navigate(`/${lang}/ai-course`, { replace: true });
+    trackCourse('signup_ai_course_invite', { lang });
+    setStep('sent');
   };
   const toForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   const closed = cd.closed || closedByServer;
@@ -453,26 +444,19 @@ export function InviteLandingPage() {
                           )}
                           {error && <p className="mt-3 text-sm font-bold text-lp-coral-deep">{error}</p>}
                           <div className="mt-4">
-                            <CtaButton variant="primary" fullWidth onClick={() => void send(false)} disabled={busy || !email.trim() || cooldown > 0 || (LEGAL_PUBLISH && !consented)}>
-                              {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{busy ? t.sending : cooldown > 0 ? t.resendIn(cooldown) : t.send}{!busy && cooldown === 0 && <ArrowRight />}
+                            <CtaButton variant="primary" fullWidth onClick={() => void send()} disabled={busy || !email.trim() || (LEGAL_PUBLISH && !consented)}>
+                              {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{busy ? t.sending : t.send}{!busy && <ArrowRight />}
                             </CtaButton>
                           </div>
                           <p className="mt-3 text-[0.85rem] text-lp-ink-soft leading-relaxed">{t.fine}</p>
                         </>
                       ) : (
-                        <>
-                          <label htmlFor="invite-code" className="mb-1 block font-extrabold text-lp-ink">{t.codeLabel}</label>
-                          <p className="mb-3 text-sm text-lp-ink-soft">{t.codeHint(email)}</p>
-                          <input id="invite-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => { setCode(e.target.value); setError(''); }} placeholder="12345678"
-                            className="w-full min-h-12 rounded-2xl border border-lp-line bg-white px-4 py-3 text-center font-mono text-xl tracking-widest focus:outline-none focus:ring-2 focus:ring-lp-pine" />
-                          {error && <p className="mt-3 text-sm font-bold text-lp-coral-deep">{error}</p>}
-                          <div className="mt-4"><CtaButton variant="primary" fullWidth onClick={() => void verify()} disabled={busy || code.trim().length < 4}>{busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}{t.verify}</CtaButton></div>
-                          <div className="mt-3 flex flex-wrap justify-between gap-2 text-sm">
-                            <button type="button" onClick={() => void send(true)} disabled={busy || cooldown > 0} className="underline underline-offset-2 disabled:opacity-40">{cooldown > 0 ? t.resendIn(cooldown) : t.resend}</button>
-                            <button type="button" onClick={() => { setStep('email'); setCode(''); setError(''); }} className="underline underline-offset-2">{t.changeEmail}</button>
-                          </div>
-                          <p className="mt-2 text-[0.85rem] text-lp-ink-soft">{t.notArrived}</p>
-                        </>
+                        <div className="text-center" data-testid="invite-sent">
+                          <Mail className="mx-auto h-8 w-8 text-lp-pine" aria-hidden />
+                          <h3 className="mt-2 text-xl font-extrabold">{t.sentH}</h3>
+                          <p className="mt-2 text-[0.95rem] text-lp-ink-soft">{t.sentP(email)}</p>
+                          <button type="button" onClick={() => { setStep('email'); setError(''); }} className="mt-4 underline underline-offset-2 text-sm">{t.sentAgain}</button>
+                        </div>
                       )}
                     </div>
                   </Reveal>
