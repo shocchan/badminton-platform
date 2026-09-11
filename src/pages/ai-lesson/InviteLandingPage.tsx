@@ -75,8 +75,6 @@ const T = {
     ],
     bold: '说得出来的日语，从考得过的基础开始。',
     boldSub: '这7天先把基础补齐。之后想开口的话，AI会话在正式课程里等你。',
-    honestH: '先说清楚',
-    honest: ['这7天不含AI会话。是考试・语法・词汇・阅读的部分。', '听力练习目前只有N3和N2有音频。', '7天后结束。测试结果・错题本・单词图鉴不会清空。', '不保证考试合格。'],
     formLabel: '邮箱',
     emailPh: 'you@example.com',
     send: '免费开始7天',
@@ -97,11 +95,12 @@ const T = {
     consent: '我同意使用条款与隐私政策',
     consentTerms: '使用条款', consentPrivacy: '隐私政策', consentAi: '关于AI的使用',
     faq: [
-      ['7天后会怎样？', '账号和记录都留着。想继续的话，那时会看到方案；不继续也没有任何费用。'],
+      ['7天后会怎样？', '7天后结束，但账号和记录都留着：测试结果・错题本・单词图鉴不会清空。想继续的话，那时会看到方案；不继续也没有任何费用。'],
+      ['这7天能用AI会话吗？', '这7天不含AI会话，是考试・语法・词汇・阅读的部分。AI会话和真人教练在正式课程里等你。'],
       ['每天要花多久？', '第一天8分钟测试，之后每天大约10分钟。打开就知道今天做什么。'],
       ['用手机就行吗？', '可以。微信里打开也行。'],
     ],
-    foot: (d: string) => `限量100个账号・报名截止到${d}。只对收到这个链接的人开放。`,
+    foot: (d: string) => `限量100个账号・报名截止到${d}。只对收到这个链接的人开放。本课程不保证考试合格。`,
     closedH: '报名已截止',
     closedP: '这个链接的名额已满，或已过截止日期。谢谢你的关注。',
     noInviteH: '这个链接不完整',
@@ -157,8 +156,6 @@ const T = {
     ],
     bold: '話せる日本語は、合格できる基礎から。',
     boldSub: 'この7日で基礎を埋める。その先で話したくなったら、AI会話が本コースで待っています。',
-    honestH: '先に正直に書きます',
-    honest: ['この7日にAI会話は含みません。試験・文法・ことば・読解の部分です。', '聴解の音源はいまN3・N2だけです。', '7日で終わります。診断結果・錯題本・単語図鑑は消えません。', '合格を保証するものではありません。'],
     formLabel: 'メールアドレス',
     emailPh: 'you@example.com',
     send: '無料で7日間はじめる',
@@ -179,11 +176,12 @@ const T = {
     consent: '利用規約とプライバシーポリシーに同意します',
     consentTerms: '利用規約', consentPrivacy: 'プライバシーポリシー', consentAi: 'AIの利用について',
     faq: [
-      ['7日が終わったらどうなりますか', 'アカウントと記録は残ります。続けたい人にはそのときプランが出ます。続けなくても費用は一切かかりません。'],
+      ['7日が終わったらどうなりますか', '7日で終わりますが、アカウントと記録は残ります。診断結果・錯題本・単語図鑑は消えません。続けたい人にはそのときプランが出ます。続けなくても費用は一切かかりません。'],
+      ['この7日でAI会話は使えますか', 'この7日にAI会話は含みません。試験・文法・ことば・読解の部分です。AI会話とコーチのレッスンは本コースで待っています。'],
       ['1日どれくらいかかりますか', '初日は8分の診断、その後は毎日10分ほど。開けば今日やることが出ます。'],
       ['スマホだけでできますか', 'できます。WeChatの中で開いても使えます。'],
     ],
-    foot: (d: string) => `100アカウント限定・${d}まで。このリンクを受け取った人だけに開いています。`,
+    foot: (d: string) => `100アカウント限定・${d}まで。このリンクを受け取った人だけに開いています。合格を保証するものではありません。`,
     closedH: '受付は終了しました',
     closedP: 'このリンクは定員に達したか、締め切りを過ぎています。ご関心ありがとうございました。',
     noInviteH: 'このリンクは途中で切れています',
@@ -232,7 +230,6 @@ export function InviteLandingPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [consented, setConsented] = useState(false);
-  const [closedByServer, setClosedByServer] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { const id = setInterval(() => setCd(countdownTo(INVITE_CAMPAIGN.deadlineISO)), 1000); return () => clearInterval(id); }, []);
@@ -250,7 +247,6 @@ export function InviteLandingPage() {
     const r = await signupWithInvite(email, invite, lang, wechat);
     setBusy(false);
     if (!r.ok) {
-      if (r.code === 'invalid_invite') setClosedByServer(true);
       setError(msg(r.code));
       return;
     }
@@ -258,7 +254,9 @@ export function InviteLandingPage() {
     setStep('sent');
   };
   const toForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  const closed = cd.closed || closedByServer;
+  // 「受付終了」に切り替えるのは締め切りを過ぎたときだけ（2026-09-12 CEO報告: 期限前なのに終了表示になっていた。
+  // サーバーが招待を弾いたときはページを閉じず、申込欄の下に理由を出す）
+  const closed = cd.closed;
   const other: L = lang === 'zh' ? 'ja' : 'zh';
   const search = typeof window === 'undefined' ? '' : window.location.search;
   const [ww, wh] = v.imageSize.wave;
@@ -433,15 +431,10 @@ export function InviteLandingPage() {
             <HumanCoachSection lang={lang} />
             <TestimonialsSection lang={lang} />
 
-            {/* 正直な但し書き ＋ 申込 */}
+            {/* 申込。但し書きは並べない（2026-09-12 CEO「聞かれてもいないことを言わない」）。
+                必要なことは FAQ と脚注で答える */}
             <section id="apply" ref={formRef} className="scroll-mt-20 py-16 sm:py-24">
               <div className="mx-auto max-w-3xl px-5">
-                <Reveal>
-                  <div className="rounded-3xl bg-lp-ivory-2 border border-lp-line p-6 mb-6">
-                    <p className="font-extrabold text-lp-ink mb-2">{t.honestH}</p>
-                    <ul className="space-y-1.5 text-[0.95rem] text-lp-ink-soft list-disc pl-5">{t.honest.map((s) => <li key={s}>{s}</li>)}</ul>
-                  </div>
-                </Reveal>
                 {closed ? (
                   <div className="rounded-3xl bg-lp-card border border-lp-line p-6 text-center">
                     <h2 className="text-xl font-extrabold">{t.closedH}</h2><p className="mt-1 text-lp-ink-soft">{t.closedP}</p>
