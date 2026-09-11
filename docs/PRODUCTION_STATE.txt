@@ -1,4 +1,4 @@
-deployed_at: 2026-09-12 07:31:56 +0900
+deployed_at: 2026-09-12 07:45:45 +0900
 branch:      integration/unify-2026-08-28
-commit:      2c460c1652e82a59c70d2e769c61750019199a3e
-asset:       assets/index-CelH86wU.js
+commit:      e5da1739603e2cd9bc8197e670738828ecf04adc
+asset:       assets/index-DFEe-foo.js
