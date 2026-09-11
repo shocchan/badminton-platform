@@ -750,8 +750,7 @@ const PRIVATE_PATTERNS = [
   /^\\/(ja|zh)\\/ai-course\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/ai-course\\/purchase(\\/|$)/,
   /^\\/(ja|zh)\\/learn(\\/|$)/,
-  // 招待リンク限定ページ（2026-09-11）。検索に出さない
-  /^\\/(ja|zh)\\/invite(\\/|$)/,
+  /^\\/(ja|zh)\\/invite(\\/|$)/, // 招待リンク限定ページ（2026-09-11）
   /^\\/(ja|zh)\\/login(\\/|$)/,
   /^\\/(ja|zh)\\/signup(\\/|$)/,
   /^\\/(ja|zh)\\/auth-landing(\\/|$)/,
