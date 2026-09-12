@@ -65,6 +65,7 @@ describe('N5/N4目標: 現在地診断（12問）を出さない', () => {
 
   it('診断なしで作ったルートは、現在地を断定せず基礎から始まる', () => {
     walkToCompanion('N5');
+    fireEvent.click(screen.getByRole('button', { name: '青タオルの旅人・男性' })); // 旅人は必須（2026-09-13）
     fireEvent.click(screen.getByRole('button', { name: /この内容で冒険を始める/ }));
     // 測っていないことを言う。測ったふりをしない
     expect(screen.getByText(/現在地は測っていません/)).toBeTruthy();
@@ -75,6 +76,7 @@ describe('N5/N4目標: 現在地診断（12問）を出さない', () => {
 
   it('診断を出さなくても、始めるボタンで設定が完成した状態が親へ渡る', () => {
     const onComplete = walkToCompanion('N4');
+    fireEvent.click(screen.getByRole('button', { name: '青タオルの旅人・男性' })); // 旅人は必須（2026-09-13）
     fireEvent.click(screen.getByRole('button', { name: /この内容で冒険を始める/ }));
     fireEvent.click(screen.getByRole('button', { name: /今日の冒険を始める/ }));
     expect(onComplete).toHaveBeenCalledTimes(1);

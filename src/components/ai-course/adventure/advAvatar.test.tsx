@@ -28,14 +28,19 @@ describe('traveler appearance', () => {
     expect(readAdvProfile({ ...settings, adventureV2: { ...p, avatarStyle: 'unknown' } } as unknown as LearnerSettings)?.avatarStyle).toBe('flag');
     expect(readAdvProfile({ adventureV2: p } as unknown as LearnerSettings)?.avatarStyle).toBe('flag');
   });
-  it.each(['ja', 'zh'] as const)('allows male, female and flag selection in %s', lang => {
+  it.each(['ja', 'zh'] as const)('男性・女性の2択だけ（「表示しない」は出さない・2026-09-13）in %s', lang => {
     const onChange = vi.fn();
     render(<AdvAvatarPicker lang={lang} onChange={onChange} />);
     fireEvent.click(screen.getByRole('button'));
-    for (const [name, style] of [[/男性/, 'male-blue'], [/女性/, 'female-blue'], [lang === 'ja' ? /キャラクターを表示しない/ : /不显示角色/, 'flag']] as const) {
+    for (const [name, style] of [[/男性/, 'male-blue'], [/女性/, 'female-blue']] as const) {
       fireEvent.click(screen.getByRole('button', { name }));
       expect(onChange).toHaveBeenLastCalledWith(style);
     }
+    expect(screen.queryByRole('button', { name: lang === 'ja' ? /キャラクターを表示しない/ : /不显示角色/ })).toBeNull();
+  });
+  it('初期設定モードは折りたたみ無しで選択肢だけを出す', () => {
+    render(<AdvAvatarPicker lang="ja" onChange={vi.fn()} mode="onboarding" />);
+    expect(screen.getAllByRole('button')).toHaveLength(2);
   });
   it('falls back on image error and recovers when another appearance is chosen', () => {
     const { container, rerender } = render(<AdvMapTraveler style="male-blue" />);
