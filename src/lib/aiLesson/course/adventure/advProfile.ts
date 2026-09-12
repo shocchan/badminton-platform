@@ -191,6 +191,7 @@ export const readAdvProfile = (settings: LearnerSettings | null | undefined): Ad
   return {
     ...base,
     enabled: raw.enabled === true,
+    avatarStyle: raw.avatarStyle === 'male-blue' || raw.avatarStyle === 'female-blue' ? raw.avatarStyle : 'flag',
     goalType: VALID_GOALS.has(raw.goalType as string) ? (raw.goalType as AdventureV2Profile['goalType']) : null,
     targetJlpt: VALID_LEVELS.has(raw.targetJlpt as string) ? (raw.targetJlpt as AdventureV2Profile['targetJlpt']) : null,
     // 自己申告レベル（会話目標のみ）。想定外の値は null に落とす

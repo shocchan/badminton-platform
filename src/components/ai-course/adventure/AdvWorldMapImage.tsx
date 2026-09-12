@@ -15,6 +15,7 @@
 // - 表示方式の切替（?map=image|svg・localStorage・既定 svg）は AdvWorldMapSwitch が担当
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdvWorldMap, type AdvWorldMapProps } from './AdvWorldMap';
+import { avatarStyleOf } from '../../../lib/aiLesson/course/adventure/advAvatar';
 import {
   WORLD_MAP_BG, WORLD_MAP_ASPECT, WORLD_MAP_TILES, WORLD_MAP_MARKERS, WORLD_MAP_PEDESTALS, PEDESTAL_WIDTH_VB,
   type WorldMapBackgroundAsset, type WorldMapTileAsset, type WorldMapMarkerAsset,
@@ -134,7 +135,7 @@ export const AdvWorldMapImage = ({
             })}
           </g>
         )}
-        {markerAsset && current && (() => {
+        {markerAsset && current && avatarStyleOf(props.avatarStyle) === 'flag' && (() => {
           const h = markerAsset.heightVb;
           const w = h * (markerAsset.width / markerAsset.height);
           return (

@@ -18,6 +18,8 @@
 // - アニメはCSSのみ・motion-safe 経由（reduced-motion で自動静止）
 import { useEffect, useId, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Star, Flag, ChevronDown, Lock } from 'lucide-react';
+import { AdvMapTraveler } from './AdvMapTraveler';
+import { avatarStyleOf, type AdvAvatarStyle } from '../../../lib/aiLesson/course/adventure/advAvatar';
 import { worldMapWindow, type MapRegion, type MapRouteKind } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { JlptLevel } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { layoutWorldNodes, type Pt, type RoadState } from '../../../lib/aiLesson/course/adventure/advWorldSpine';
@@ -28,6 +30,8 @@ const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
 interface Props {
   lang: L;
+  avatarStyle?: AdvAvatarStyle;
+  selectedRegionId?: string | null;
   /** map.regions をそのまま（並び＝旅の順） */
   regions: MapRegion[];
   currentRegionId: string | null;
@@ -95,6 +99,7 @@ const ROAD_STYLE: Record<RoadState, { stroke: string; width: number; dash?: stri
 export const AdvWorldMap = ({
   lang, regions: regionsAll, currentRegionId, destinationJa, destinationZh,
   doneCount, totalCount, onSelectRegion, targetJlpt, routeKind, summitSlot,
+  avatarStyle, selectedRegionId,
   backdrop, hideScenery = false, tiles, hideNodeArt = false, variant = 'svg', imageState,
 }: Props) => {
   // 会話レイヤーは第18週まであるが、環状路に置けるのは現在地を含む12地域まで
@@ -212,6 +217,12 @@ export const AdvWorldMap = ({
             );
           })}
 
+          {selectedRegionId && (() => {
+            const p = posOf.get(selectedRegionId);
+            return p ? <ellipse data-adv-selected={selectedRegionId} cx={p.x} cy={p.y - 8} rx={19} ry={13}
+              fill="white" fillOpacity={0.35} stroke="#2563eb" strokeWidth={1.5} /> : null;
+          })()}
+
           {/* 攻略済みノードの暖色グロー */}
           {!hideNodeArt && regions.filter((r) => r.state === 'done').map((r) => {
             const p = posOf.get(r.id);
@@ -222,7 +233,7 @@ export const AdvWorldMap = ({
           })}
 
           {/* ミニランドマーク（ノード）。足元に地形色の地面ブロブ */}
-          {!hideNodeArt && regions.map((r) => {
+          {!hideNodeArt && regions.filter(r => r.id !== currentRegionId || avatarStyleOf(avatarStyle) === 'flag').map((r) => {
             const p = posOf.get(r.id);
             if (!p) return null;
             return (
@@ -288,6 +299,7 @@ export const AdvWorldMap = ({
                   <span className={`pointer-events-none absolute inset-1 ${shape} border-2 border-blue-400 motion-safe:animate-ping`} aria-hidden />
                 </>
               )}
+              {isCurrent && <AdvMapTraveler style={avatarStyle} reaction={selectedRegionId} />}
               {/* 状態バッジ（ランドマークの色に加えて記号でも伝える） */}
               <span className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center ${r.layer === 'conversation' ? 'rounded-md' : 'rounded-full'} ${BADGE_FILL[r.state]}`}
                 aria-hidden>
