@@ -22,9 +22,9 @@ export interface InvitePerk {
   fulfilledAt: string | null;
 }
 
-/** 日本語会話用の文法完全版（Googleスライド）。CEO提供 2026-09-12 */
+/** 日本語会話用の文法完全版。Googleスライドの PDF 書き出しURL（リンクを知っている人は誰でも開ける・常に最新）。CEO提供 2026-09-13 */
 export const GRAMMAR_DECK_URL =
-  'https://docs.google.com/presentation/d/1ZEfZZBGT3z63t7hWtCYgBOy41vMX8GA1ea4w5p0gACw/edit';
+  'https://docs.google.com/presentation/d/1UrTZJprBcxlqWzwG6txWGUwZThxUd2vGTiu85aplquI/export/pdf';
 
 export const PERK_OPTIONS: { id: InvitePerkId; ja: { title: string; body: string }; zh: { title: string; body: string } }[] = [
   {
@@ -39,8 +39,8 @@ export const PERK_OPTIONS: { id: InvitePerkId; ja: { title: string; body: string
   },
   {
     id: 'grammar',
-    ja: { title: '日本語会話用の文法完全版', body: '会話で使う文法をまとめたスライド。選ぶとすぐ開けます。' },
-    zh: { title: '日语会话语法完全版', body: '会话常用语法的整套幻灯片。选择后马上就能打开。' },
+    ja: { title: '日本語会話用の文法完全版', body: '会話で使う文法をまとめたPDF。選ぶとすぐ開けます。' },
+    zh: { title: '日语会话语法完全版', body: '会话常用语法的完整PDF。选择后马上就能打开。' },
   },
 ];
 
