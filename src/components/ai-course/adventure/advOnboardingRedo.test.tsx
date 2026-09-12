@@ -122,12 +122,14 @@ describe('診断完了時点の確定保存（onOutcomeReady・2026-08-15）', (
     fireEvent.click(screen.getByRole('button', { name: /未定のまま進む/ }));
     fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // schedule
     fireEvent.click(screen.getByRole('button', { name: /つぎへ/ }));       // teacher
+    fireEvent.click(screen.getByRole('button', { name: '青タオルの旅人・女性' }));
     fireEvent.click(screen.getByRole('button', { name: /つぎへ（現在地診断）/ }));
     fireEvent.click(screen.getByRole('button', { name: /診断を始める/ }));
     // 1問だけの診断を「わからない」で答える → 最終問題なのでoutcome確定 → 披露画面
     fireEvent.click(screen.getByRole('button', { name: /^わからない/ }));
     expect(onOutcomeReady).toHaveBeenCalledTimes(1);
     expect(onOutcomeReady.mock.calls[0][0].route).toBeTruthy();
+    expect(onOutcomeReady.mock.calls[0][0].avatarStyle).toBe('female-blue');
     expect(onComplete).not.toHaveBeenCalled(); // CTAを押すまで画面遷移側は発火しない
   });
 });
@@ -150,5 +152,49 @@ describe('V2の生徒に旧コースのホームへ出ていく口を出さな�
         onComplete={vi.fn()} onCancel={vi.fn()} />,
     );
     expect(screen.getByRole('button', { name: /やめて元の設定のまま戻る/ })).toBeTruthy();
+  });
+});
+
+
+describe('初期設定の旅人選択', () => {
+  const reachTraveler = (lang: 'ja' | 'zh') => {
+    const zh = lang === 'zh';
+    const next = () => fireEvent.click(screen.getByRole('button', { name: zh ? '下一步' : 'つぎへ' }));
+    fireEvent.click(screen.getByRole('button', { name: zh ? '我想通过JLPT考试' : 'JLPTに合格したい' }));
+    next();
+    fireEvent.click(screen.getByRole('button', { name: /^N5/ }));
+    next();
+    fireEvent.click(screen.getByRole('button', { name: zh ? '先不定・继续' : '未定のまま進む' }));
+    next(); next();
+  };
+  it.each(['ja', 'zh'] as const)('%s: 男女・青旗を開いた状態で選べ、診断省略時も確定保存と開始へ渡す', (lang) => {
+    const ready = vi.fn(), complete = vi.fn();
+    render(<AdvOnboarding lang={lang} pools={pools} nowISO={NOW} onComplete={complete} onCancel={vi.fn()} onOutcomeReady={ready} />);
+    reachTraveler(lang);
+    const zh = lang === 'zh';
+    fireEvent.click(screen.getByRole('button', { name: zh ? '蓝头巾旅人・女性' : '青タオルの旅人・女性' }));
+    fireEvent.click(screen.getByRole('button', { name: zh ? '蓝头巾旅人・男性' : '青タオルの旅人・男性' }));
+    expect(screen.getByRole('button', { name: /男性 ✓/ }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: zh ? '用这些内容开始冒险' : 'この内容で冒険を始める' }));
+    expect(ready.mock.calls[0][0].avatarStyle).toBe('male-blue');
+    fireEvent.click(screen.getByRole('button', { name: zh ? '开始今天的冒险' : '今日の冒険を始める' }));
+    expect(complete.mock.calls[0][0].avatarStyle).toBe('male-blue');
+  });
+  it.each([undefined, 'female-blue'] as const)('未選択・既存の選択を変更しなければ保持する (%s)', (initialAvatarStyle) => {
+    const ready = vi.fn();
+    render(<AdvOnboarding lang="ja" pools={pools} nowISO={NOW} initialAvatarStyle={initialAvatarStyle}
+      onComplete={vi.fn()} onCancel={vi.fn()} onOutcomeReady={ready} />);
+    reachTraveler('ja');
+    fireEvent.click(screen.getByRole('button', { name: 'この内容で冒険を始める' }));
+    expect(ready.mock.calls[0][0].avatarStyle).toBe(initialAvatarStyle ?? 'flag');
+  });
+  it('既存の女性主人公を青旗へ戻せる', () => {
+    const ready = vi.fn();
+    render(<AdvOnboarding lang="ja" pools={pools} nowISO={NOW} initialAvatarStyle="female-blue"
+      onComplete={vi.fn()} onCancel={vi.fn()} onOutcomeReady={ready} />);
+    reachTraveler('ja');
+    fireEvent.click(screen.getByRole('button', { name: 'キャラクターを表示しない（青い旗）' }));
+    fireEvent.click(screen.getByRole('button', { name: 'この内容で冒険を始める' }));
+    expect(ready.mock.calls[0][0].avatarStyle).toBe('flag');
   });
 });

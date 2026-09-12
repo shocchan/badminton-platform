@@ -8,6 +8,8 @@ import type {
 import { ACTIVE_TARGET_LEVELS, GOAL_LABELS, aiConversationAvailable } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { COMPANIONS } from '../../../lib/aiLesson/course/adventure/advCompanion';
 import { CompanionAvatar } from './CompanionAvatar';
+import { AdvAvatarPicker } from './AdvAvatarPicker';
+import { avatarStyleOf, type AdvAvatarStyle } from '../../../lib/aiLesson/course/adventure/advAvatar';
 import { ALL_TEACHERS, DEFAULT_TEACHER_ID, type AdvTeacherId } from '../../../lib/aiLesson/course/adventure/advTeacher';
 import { TeacherAvatar } from '../TeacherAvatar';
 import {
@@ -24,6 +26,7 @@ type L = 'ja' | 'zh';
 const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 
 export interface OnboardingOutcome {
+  avatarStyle?: AdvAvatarStyle;
   goalType: AdvGoalType;
   targetJlpt: JlptLevel | null;
   examDateISO: string | null;
@@ -40,6 +43,7 @@ export interface OnboardingOutcome {
 }
 
 interface Props {
+  initialAvatarStyle?: AdvAvatarStyle;
   lang: L;
   pools: DiagnosisPools;
   nowISO: string;
@@ -101,10 +105,11 @@ const primary = primaryBtn;
 
 export function AdvOnboarding({
   lang, pools, nowISO, onComplete, onCancel, onOutcomeReady,
-  redo = false, presetTarget = null, adjust = null, onRequestFullRedo,
+  redo = false, presetTarget = null, adjust = null, onRequestFullRedo, initialAvatarStyle,
 }: Props) {
   // 調整モードは既存の設定を初期値にして、診断（12問）を通らずに終われる
   const [phase, setPhase] = useState<Phase>('goal');
+  const [avatarStyle, setAvatarStyle] = useState<AdvAvatarStyle>(avatarStyleOf(initialAvatarStyle));
   const [goal, setGoal] = useState<AdvGoalType | null>(adjust?.goalType ?? null);
   const [target, setTarget] = useState<JlptLevel | null>(adjust?.targetJlpt ?? presetTarget ?? null);
   const [examDate, setExamDate] = useState(adjust?.examDateISO ?? '');
@@ -152,7 +157,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle,
       diagnosis, skills: adjust.skills, route,
       // 調整モードでも申告した級を保存する（2026-08-23 実機再現: 会話目標で「N1を持っている」を
       // 選んで更新しても declaredJlpt が null のまま保存され、会話が第1週に戻り、
@@ -185,7 +190,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle,
       diagnosis, skills, route, declaredJlpt: declared,
     };
     setConvSkipped(true);
@@ -215,7 +220,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, diagnosis, skills, route,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle, diagnosis, skills, route,
       declaredJlpt: declared,
     };
     setOutcome(o);
@@ -429,6 +434,8 @@ export function AdvOnboarding({
 
       {phase === 'companion' && (
         <section aria-label={tx(lang, '旅の相棒', '旅行伙伴')}>
+          <AdvAvatarPicker lang={lang} value={avatarStyle} onChange={setAvatarStyle} defaultOpen />
+          <div className="mt-6" />
           {header('旅の相棒を選んでください', '请选择旅行伙伴', '学習内容は変わりません。応援のしかたが少し変わります。', '学习内容不变，只是陪伴方式略有不同。')}
           <div className="space-y-3">
             {COMPANIONS.map((c) => (
