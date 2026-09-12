@@ -26,6 +26,8 @@ import { UpsellCoachBanner } from '../../components/ai-course/UpsellCoachBanner'
 import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { AccessPeriodChip } from '../../components/ai-course/AccessPeriodChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
+import { InvitePerkScreen } from '../../components/ai-course/InvitePerkScreen';
+import { fetchMyInvitePerks, pendingInvitePerks, type InvitePerk } from '../../lib/aiLesson/course/invitePerks';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
 import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
 import { linkAttributionToUser } from '../../lib/aiLesson/course/attribution';
@@ -292,6 +294,13 @@ export default function AiCoursePage() {
   const [referralDismissedAt, setReferralDismissedAt] = useState<string | null>(
     () => readReferralDismissedAt(),
   );
+  /**
+   * 紹介した生徒への特典（2026-09-12 CEO決定）。自分の招待コードから来た人が7日間を始めると
+   * 権利ができ、次のログインで「紹介おめでとう」画面を出して1つ選んでもらう。
+   * 「あとで選ぶ」を押したらこのセッションでは出さない（次回ログインでまた出る）
+   */
+  const [pendingPerk, setPendingPerk] = useState<InvitePerk | null>(null);
+  const [perkLater, setPerkLater] = useState(false);
   /**
    * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
    * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
@@ -590,6 +599,8 @@ export default function AiCoursePage() {
     if (vocabUrl.vocab && allowed) { setStep('vocab'); return; }
     if (labUrl.lab) syncLabUrl(null);
     if (vocabUrl.vocab) syncVocabUrl(null);
+    // 紹介の特典（未選択があればホームの代わりに「紹介おめでとう」を出す）。失敗しても学習は止めない
+    void fetchMyInvitePerks().then((rows) => setPendingPerk(pendingInvitePerks(rows)[0] ?? null)).catch(() => undefined);
     setStep('home');
   }, [applyLang, syncLabUrl, syncVocabUrl]);
 
@@ -1753,6 +1764,20 @@ export default function AiCoursePage() {
         </Shell>
       );
     }
+  }
+
+  // ── 紹介おめでとう（2026-09-12）。未選択の特典があればホームの代わりに出す ──
+  if (pendingPerk && !perkLater && step === 'home') {
+    return (
+      <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
+        <InvitePerkScreen
+          lang={uiLang}
+          perk={pendingPerk}
+          onDone={() => { setPendingPerk(null); void loadAll(); }}
+          onLater={() => setPerkLater(true)}
+        />
+      </Shell>
+    );
   }
 
   // ── Adventure V2（learner単位feature flag・adventure-v2 §2/D-004）──

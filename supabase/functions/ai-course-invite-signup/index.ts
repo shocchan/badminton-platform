@@ -217,6 +217,8 @@ serve(async (req) => {
       valid_until: new Date(Date.now() + activationDays * 86_400_000).toISOString(),
       trial_days: accessDays,
       plan_id: planId, source: "invite", note: `招待から自動発行 / ${channel}`, granted_by: "ai-course-invite-signup",
+      // どのコードから来たか。生徒の紹介コードなら「始める」の瞬間に紹介者へ特典の権利ができる（20260912120000）
+      invite_code: code,
     }),
   });
   if (!accessRes.ok) {

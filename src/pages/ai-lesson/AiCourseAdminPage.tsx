@@ -50,6 +50,7 @@ import { AdminStudentsTab, displayNameOf } from '../../components/ai-course/admi
 import { AdminStudentDetail } from '../../components/ai-course/admin/AdminStudentDetail';
 import { AdminAccessLedgerTab } from '../../components/ai-course/admin/AdminAccessLedgerTab';
 import { AdminOpsTab } from '../../components/ai-course/admin/AdminOpsTab';
+import { AdminInvitePerksPanel } from '../../components/ai-course/admin/AdminInvitePerksPanel';
 import { AdminAccessPanel } from '../../components/ai-course/admin/AdminAccessPanel';
 import { AdminTeacherPlanPanel } from '../../components/ai-course/admin/AdminTeacherPlanPanel';
 import { AdminTeacherNotePanel } from '../../components/ai-course/admin/AdminTeacherNotePanel';
@@ -424,6 +425,8 @@ export default function AiCourseAdminPage() {
           <AdminPaymentWatchPanel />
           {/* 運用アラート（Task 1）。自前fetchなので model には触らない */}
           <AdminAlertsPanel onOpenAccount={openAccount} />
+          {/* 紹介の特典（2026-09-12）。自前fetch */}
+          <AdminInvitePerksPanel />
           <AdminOpsTab issues={issues} onResolve={resolveIssue}
             testLearners={testLearners} onDeleteTestLearners={deleteTestLearners}
             monthCostStudents={model.kpis.monthCostStudents}
