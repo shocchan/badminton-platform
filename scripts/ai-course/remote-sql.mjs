@@ -18,6 +18,7 @@ import { readFileSync, appendFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import { matchedIdentifiers } from './protectedMatch.mjs';
 
 const ROOT = join(import.meta.dirname, '../..');
 const EXPECTED_REF = 'jdkwijdphlkrcoiggfqw';
@@ -68,12 +69,12 @@ const PROTECTED_FILE = join(ROOT, 'scripts/ai-course/data/protected-learners.jso
 if (isWrite && existsSync(PROTECTED_FILE)) {
   const prot = JSON.parse(readFileSync(PROTECTED_FILE, 'utf8'));
   const lower = sqlText.toLowerCase();
-  const hit = (prot.identifiers ?? []).find((id) => lower.includes(String(id).toLowerCase()));
+  const hits = matchedIdentifiers(lower, prot.identifiers ?? []);
   // ドメイン一括パターン（like '%@id....'等）は生徒全員に当たり得るので保護対象
-  const domainHit = (prot.bulkPatterns ?? []).find((p) => lower.includes(String(p).toLowerCase()));
-  if ((hit || domainHit) && !flag('--allow-protected')) {
+  const domainHits = matchedIdentifiers(lower, prot.bulkPatterns ?? []);
+  if ((hits.length > 0 || domainHits.length > 0) && !flag('--allow-protected')) {
     console.error('refuse: SQL touches PROTECTED learner identifiers (real students)');
-    console.error(`  matched: ${hit ?? domainHit}`);
+    console.error(`  matched: ${[...hits, ...domainHits].join(', ')}`);
     console.error('  再確認のうえ実行する場合のみ --allow-protected を付けてください（監査ログに記録されます）');
     process.exit(2);
   }
