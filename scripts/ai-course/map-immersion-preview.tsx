@@ -21,10 +21,10 @@ export const Preview = () => {
       <span>Synthetic QA</span>
       <button onClick={() => setLang(lang === 'ja' ? 'zh' : 'ja')}>日本語 / 中文</button>
       <button onClick={() => setGoal(goal === 'jlpt' ? 'conversation' : 'jlpt')}>試験 / 会話</button>
-      <button onClick={() => setComplete(!complete)}>全攻略切替</button>
+      <button disabled={goal !== 'jlpt'} onClick={() => setComplete(!complete)}>試験ルート全攻略切替</button>
       <span role="status">{action}</span>
     </div>
-    <AdvAdventureMap lang={lang} profile={profile} route={route}
+    <AdvAdventureMap key={goal} lang={lang} profile={profile} route={route}
       mastered={new Set(complete ? route.stages.map(s => s.stageId) : [])} currentWeek={1} quest={null}
       onAvatarChange={setAvatar} onStartToday={() => setAction('today')} onBack={noop}
       onOpenReview={() => setAction('review')} reviewAvailable onStartConversation={() => setAction('conversation')}
@@ -32,4 +32,6 @@ export const Preview = () => {
       onOpenSheets={noop} interviewVisible={false} onOpenInterview={noop} />
   </>;
 };
-createRoot(document.getElementById('root')!).render(<React.StrictMode><Preview /></React.StrictMode>);
+const previewRoot = createRoot(document.getElementById('root')!);
+previewRoot.render(<React.StrictMode><Preview /></React.StrictMode>);
+if (import.meta.hot) import.meta.hot.dispose(() => previewRoot.unmount());
