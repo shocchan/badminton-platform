@@ -1,4 +1,4 @@
-deployed_at: 2026-09-13 08:20:31 +0900
+deployed_at: 2026-09-13 08:38:39 +0900
 branch:      integration/unify-2026-08-28
-commit:      6c4d55a6282aade843229f731e51ce88a7ad801e
-asset:       assets/index-Dy88Mc3V.js
+commit:      408771eb52608a3ad1c4cadb337e30143bf83fec
+asset:       assets/index-DL9qws2Y.js
