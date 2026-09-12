@@ -1,4 +1,4 @@
-deployed_at: 2026-09-12 23:35:42 +0900
+deployed_at: 2026-09-13 08:01:57 +0900
 branch:      integration/unify-2026-08-28
-commit:      49d6f629c5c584304f6910b5bb75d157d976cc8f
-asset:       assets/index-Bn3m2Gz1.js
+commit:      6d8039af19275bc7fedeae85e7473aac160cbb7c
+asset:       assets/index-Do42Fksc.js
