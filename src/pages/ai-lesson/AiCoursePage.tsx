@@ -1733,7 +1733,13 @@ export default function AiCoursePage() {
     const advProfile = readAdvProfile(learner.settings);
     // AdvShell の needsOnboarding と同じ判定（!profile || !goalType || !diagnosis || !route）
     const onboardingDone = !!(advProfile?.goalType && advProfile?.diagnosis && advProfile?.route);
-    if (shape.kind !== 'none' && row && !row.trialStartedAtISO && onboardingDone) {
+    /*
+     * 無料招待（free-7d）だけは**準備の前**に開始ボタンを出す（2026-09-12 CEO指示）。
+     * 無料の人は「準備が終わらない＝いつまでも始めない」が起きる。買った体験パスは
+     * 準備で時間を減らさない原則のまま（上の⚠️）。名前の入力（hearing）は済んだあと。
+     */
+    const startBeforeSetup = row?.planId === 'free-7d';
+    if (shape.kind !== 'none' && row && !row.trialStartedAtISO && (onboardingDone || startBeforeSetup)) {
       return (
         <Shell t={t} lang={uiLang} onToggleLang={toggleLang} accountLabel={accountLabel} onLogout={() => { void signOut().then(() => setStep('login')); }}>
           <TrialStartScreen

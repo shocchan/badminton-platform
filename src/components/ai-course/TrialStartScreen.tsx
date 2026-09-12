@@ -82,15 +82,18 @@ export function TrialStartScreen({ lang, trialDays, windowMinutes, startDeadline
           <Clock className="w-7 h-7" aria-hidden="true" />
         </span>
         <h1 className="mt-3 text-xl font-extrabold text-gray-900">
-          {byDays
+          {byDays && freeInvite
+            /* 無料招待は準備（目標・診断）の前にこの画面が出る（2026-09-12）。「準備ができたら」とは言わない */
+            ? (zh ? `开始${trialDays}天免费学习` : `${trialDays}日間の無料学習を始める`)
+            : byDays
             ? (zh ? `准备好后，开始${trialDays}天的体验` : `準備ができたら、${trialDays}日間の体験を始めましょう`)
             : (zh ? `准备好后，开始${windowMinutes}分钟的体验` : `準備ができたら、${windowMinutes}分の体験を始めましょう`)}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-gray-600">
           {byDays && freeInvite
             ? (zh
-              ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。8分钟测出现在的位置，之后每天10分钟，只做你缺的：语法・词汇・阅读・错题本・模拟考。`
-              : `開始ボタンを押すと、その日から${trialDays}日間使えます。8分の診断で現在地が分かり、その後は毎日10分、足りない所だけ: 文法・ことば・読解・錯題本・ミニ模試。`)
+              ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。接下来先选目标、做8分钟的测试，之后每天10分钟，只做你缺的：语法・词汇・阅读・错题本・模拟考。`
+              : `開始ボタンを押すと、その日から${trialDays}日間使えます。このあと目標を選び、8分の診断で現在地が分かります。その後は毎日10分、足りない所だけ: 文法・ことば・読解・錯題本・ミニ模試。`)
             : byDays
             ? (zh
               ? `按下开始按钮后，从那一刻起的${trialDays}天内都可以使用。AI语音会话共3次（每天最多2次），语法战斗・教材・冒险随意使用。`
