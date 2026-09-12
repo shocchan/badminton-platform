@@ -45,7 +45,7 @@ export function PlanStatusChip({ lang, planId, validUntilISO, realtimeWindowMinu
   const name = planView(plan, lang).name;
   const until = formatUntilJst(validUntilISO, lang);
   const upgradeLink = (
-    <a href={`/${lang}/ai-course?lp=1#price`}
+    <a href={`/${lang}/ai-course?lp=1#price`} target="_blank" rel="noopener"
       className="font-bold underline underline-offset-2">
       {zh ? '查看价格方案（解锁全部）' : '料金プランを見る（全地域を解放）'}
     </a>
