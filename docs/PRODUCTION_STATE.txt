@@ -1,4 +1,4 @@
-deployed_at: 2026-09-12 21:49:12 +0900
+deployed_at: 2026-09-12 23:35:42 +0900
 branch:      integration/unify-2026-08-28
-commit:      dc775dec23dc7793174f4f75d594d592e0bfed86
+commit:      49d6f629c5c584304f6910b5bb75d157d976cc8f
 asset:       assets/index-Bn3m2Gz1.js
