@@ -71,7 +71,13 @@ export const chooseInvitePerk = async (id: string, perk: InvitePerkId): Promise<
   const { data, error } = await supabase.rpc('ai_choose_invite_perk', { p_id: id, p_perk: perk });
   if (error || !data) return { ok: false, code: 'network' };
   const r = data as { ok: boolean; code?: string; validUntil?: string };
-  if (r.ok) return { ok: true, validUntilISO: typeof r.validUntil === 'string' ? r.validUntil : null };
+  if (r.ok) {
+    // MV・文法完全版は先生が渡す（MVは作る）ので、運営へメールで知らせる。失敗しても選択は成立している
+    if (perk !== 'month') {
+      void supabase.functions.invoke('ai-course-perk-notify', { body: { perkId: id } }).catch(() => undefined);
+    }
+    return { ok: true, validUntilISO: typeof r.validUntil === 'string' ? r.validUntil : null };
+  }
   const code = (['no_access', 'not_found', 'invalid_perk'] as const).find((c) => c === r.code) ?? 'network';
   return { ok: false, code };
 };
