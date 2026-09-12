@@ -19,6 +19,8 @@
 // - prefers-reduced-motion ではアニメーションを止める
 // - 地図が読めない/使えない人のために**一覧表示へ切り替えられる**
 import { pressFx } from './advUi';
+import { AdvAvatarPicker } from './AdvAvatarPicker';
+import type { AdvAvatarStyle } from '../../../lib/aiLesson/course/adventure/advAvatar';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { List, Map as MapIcon, Lock, Flag, ChevronRight, Star, ChevronDown } from 'lucide-react';
 import { CompanionAvatar } from './CompanionAvatar';
@@ -30,7 +32,8 @@ import {
 } from '../../../lib/aiLesson/course/adventure/advMapModel';
 import type { AdventureV2Profile, AdvRoute, AdvTodayQuest } from '../../../lib/aiLesson/course/adventure/advTypes';
 import { titleOf } from '../../../lib/aiLesson/course/adventure/advLevelTitles';
-import { LandmarkScene, LandmarkIcon } from './AdvMapLandmarks';
+import { LandmarkIcon } from './AdvMapLandmarks';
+import { AdvRegionScene } from './AdvRegionScene';
 import { AdvMapBadges } from './AdvMapBadges';
 // 世界地図は表示方式フラグ（?map=image|svg・既定 svg）で新旧を出し分ける（2026-08-22 画像差し替えの土台）
 import { AdvWorldMapSwitch } from './AdvWorldMapImage';
@@ -42,6 +45,7 @@ const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 interface Props {
   lang: L;
   profile: AdventureV2Profile;
+  onAvatarChange?: (style: AdvAvatarStyle) => void;
   route: AdvRoute | null;
   mastered: Set<string>;
   currentWeek: number;
@@ -146,14 +150,13 @@ export const AdvAdventureMap = ({
   interviewVisible, onOpenInterview,
   paceNoteJa = null, paceNoteZh = null,
   revealRegionId = null, onRevealDone,
-  nextRoadSlot,
+  nextRoadSlot, onAvatarChange,
   planRegionLimit = null,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
   const [routeKind, setRouteKind] = useState<MapRouteKind>(kinds[0]);
   const [openId, setOpenId] = useState<string | null>(null);
   const [asList, setAsList] = useState(false);
-  const currentRef = useRef<HTMLLIElement | null>(null);
   /** 地域id → <li>。バッジタップと霧晴れ再生のスクロール先に使う */
   const regionRefs = useRef(new Map<string, HTMLLIElement>());
   /** 獲得日の導出に使う基準時刻。開いた瞬間の実時刻で固定（renderごとに揺らさない） */
@@ -207,19 +210,8 @@ export const AdvAdventureMap = ({
         block: 'center',
         behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ? 'auto' : 'smooth',
       });
-    }, 120);
+    }, 320);
   };
-
-  // 地図を開いたら現在地までスクロールする。20地域あると現在地が画面外になる
-  useEffect(() => {
-    if (asList) return;
-    const el = currentRef.current;
-    if (!el) return;
-    const t = window.setTimeout(() => {
-      el.scrollIntoView({ block: 'center', behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-    }, 120);
-    return () => window.clearTimeout(t);
-  }, [asList, routeKind]);
 
   /*
    * 霧晴れの1回再生（2026-08-19 ゲーム感強化）。
@@ -291,7 +283,7 @@ export const AdvAdventureMap = ({
       <div className={`mt-2 overflow-hidden rounded-2xl border bg-white ${
         r.state === 'current' ? 'border-blue-300' : 'border-gray-200'}`}>
         <div className="relative h-24 w-full sm:h-28">
-          <LandmarkScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
+          <AdvRegionScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
             className="h-full w-full" />
           <span className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm ${STATE_STYLE[r.state].chip}`}>
             {tx(lang, STATE_LABEL[r.state].ja, STATE_LABEL[r.state].zh)}
@@ -373,9 +365,9 @@ export const AdvAdventureMap = ({
         aria-label={tx(lang, '現在地', '当前位置')}>
         <div className="relative h-28 w-full sm:h-32">
           {current
-            ? <LandmarkScene kind={current.landmark} tone={current.tone} className="h-full w-full" />
+            ? <AdvRegionScene kind={current.landmark} tone={current.tone} className="h-full w-full" />
             : lastCleared
-              ? <LandmarkScene kind={lastCleared.landmark} tone={lastCleared.tone} className="h-full w-full" />
+              ? <AdvRegionScene kind={lastCleared.landmark} tone={lastCleared.tone} className="h-full w-full" />
               : <div className="h-full w-full bg-gradient-to-b from-sky-100 to-emerald-100" />}
           {/* 文字を読ませるための暗幕。イラストは下に透ける */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/15 to-transparent" />
@@ -532,7 +524,10 @@ export const AdvAdventureMap = ({
         ルートタブの直下＝選択中ルートの全体像と一致する位置。Primary CTA より必ず下（原則16）。
         map/list 両表示で常に出す。実測 regions の別ビューで、状態の再計算はしない（原則13）
       */}
+      {onAvatarChange && <AdvAvatarPicker lang={lang} value={profile.avatarStyle} onChange={onAvatarChange} />}
       <AdvWorldMapSwitch
+        avatarStyle={profile.avatarStyle}
+        selectedRegionId={openId}
         lang={lang}
         /* 絵には現在地を含む12地域の窓だけ（上級の第13〜18週で環状路が混み合うため）。一覧は全地域 */
         regions={worldMapWindow(map.regions, map.currentRegionId)}
@@ -599,7 +594,6 @@ export const AdvAdventureMap = ({
                   ref={(el) => {
                     if (el) regionRefs.current.set(r.id, el);
                     else regionRefs.current.delete(r.id);
-                    if (isCurrent) currentRef.current = el;
                   }}>
                   {/*
                     冒険の道。**<li>全体を貫く**ように引く。
@@ -656,7 +650,7 @@ export const AdvAdventureMap = ({
                         )}
                         <span className={`relative block overflow-hidden rounded-2xl bg-white ${STATE_STYLE[r.state].ring} ${
                           isCurrent ? 'shadow-lg' : ''}`}>
-                          <LandmarkScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
+                          <AdvRegionScene kind={r.landmark} tone={r.tone} fogged={r.state === 'locked'}
                             className={`block w-full ${isCurrent ? 'h-[76px]' : 'h-[62px]'}`} />
                           {/* 攻略直後だけの霧晴れ再生。状態は既にdone（実測）で、
                               実際に起きた遷移をもう一度見せるだけ（原則13） */}
@@ -747,7 +741,7 @@ export const AdvAdventureMap = ({
           <button type="button" onClick={onOpenSheets}
             className="card-interactive w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300">
             <div className="relative h-20 w-full">
-              <LandmarkScene kind="gate" tone="night" className="h-full w-full" />
+              <AdvRegionScene kind="gate" tone="night" className="h-full w-full" />
               <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">
                 {tx(lang, 'N2受験者だけの場所', '仅N2考生可见')}
               </span>
@@ -776,7 +770,7 @@ export const AdvAdventureMap = ({
             <button type="button" onClick={onOpenInterview}
               className={`card-interactive w-full overflow-hidden rounded-2xl border border-gray-200 bg-white text-left touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300 ${sheetsVisible ? 'mt-2' : ''}`}>
               <div className="relative h-20 w-full">
-                <LandmarkScene kind="plaza" tone="sunset" className="h-full w-full" />
+                <AdvRegionScene kind="plaza" tone="sunset" className="h-full w-full" />
                 <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-gray-800">
                   {tx(lang, 'あなた専用の場所', '你的专属场所')}
                 </span>

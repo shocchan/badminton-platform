@@ -365,6 +365,8 @@ export interface AdventureV2Profile {
   examDateISO: string | null;
   weeklyDays: number | null;
   dailyMinutes: 5 | 15 | 30 | null;
+  /** 冒険マップの見た目。性別プロフィールではない。未設定は青旗。 */
+  avatarStyle?: import('./advAvatar').AdvAvatarStyle;
   companionId: AdvCompanionId | null;
   /**
    * 案内の先生（Teacher Selection）。null は未選択。

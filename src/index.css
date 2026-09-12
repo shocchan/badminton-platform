@@ -484,3 +484,12 @@
   max-width: 100%;
   height: auto;
 }
+
+/* Quiet map selection response; decorative only. */
+@keyframes kb-traveler-greet {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  45% { transform: translateY(-2px) rotate(-3deg); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .kb-map-traveler { animation: kb-traveler-greet 0.6s ease-out; }
+}
