@@ -1339,6 +1339,7 @@ export default function AdvShell(props: AdvShellProps) {
         declaredJlpt: o.declaredJlpt ?? null,
         weeklyDays: o.weeklyDays, dailyMinutes: o.dailyMinutes, companionId: o.companionId,
         teacherId: o.teacherId,
+        avatarStyle: o.avatarStyle ?? withLegacy.avatarStyle ?? 'flag',
         diagnosis: o.diagnosis,
         skills: { ...withLegacy.skills, ...o.skills, vocabulary: o.skills.vocabulary.confidence === 'none' ? withLegacy.skills.vocabulary : o.skills.vocabulary },
         route: o.route,
@@ -1368,6 +1369,7 @@ export default function AdvShell(props: AdvShellProps) {
       <AdvOnboarding
         lang={lang} pools={diagPools} nowISO={nowISO} redo={redoOnboarding || adjustOnboarding}
         presetTarget={redoPresetTarget}
+        initialAvatarStyle={profile?.avatarStyle}
         /* 調整モード: 既存の設定と診断結果を渡す（12問はやり直さない） */
         adjust={adjustOnboarding && profile?.goalType && profile?.diagnosis && profile?.skills ? {
           goalType: profile.goalType,

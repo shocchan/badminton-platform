@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { Flag } from 'lucide-react';
 import { ADV_AVATARS, avatarStyleOf, type AdvAvatarStyle } from '../../../lib/aiLesson/course/adventure/advAvatar';
 
-export const AdvAvatarPicker = ({ lang, value, onChange }: {
-  lang: 'ja' | 'zh'; value?: AdvAvatarStyle; onChange: (style: AdvAvatarStyle) => void;
+export const AdvAvatarPicker = ({ lang, value, onChange, defaultOpen = false }: {
+  defaultOpen?: boolean; lang: 'ja' | 'zh'; value?: AdvAvatarStyle; onChange: (style: AdvAvatarStyle) => void;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const selected = avatarStyleOf(value);
   const zh = lang === 'zh';
   return <section className="mt-3 rounded-2xl border border-sky-200 bg-[#FBF5EC] p-3" aria-label={zh ? '选择旅人' : '旅人を選ぶ'}>
