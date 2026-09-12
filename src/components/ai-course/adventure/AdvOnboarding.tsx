@@ -109,7 +109,15 @@ export function AdvOnboarding({
 }: Props) {
   // 調整モードは既存の設定を初期値にして、診断（12問）を通らずに終われる
   const [phase, setPhase] = useState<Phase>('goal');
-  const [avatarStyle, setAvatarStyle] = useState<AdvAvatarStyle>(avatarStyleOf(initialAvatarStyle));
+  /**
+   * 旅人（主人公）は男性・女性の2択で**必ず選ぶ**（2026-09-13 CEO指示: 男女どちらかを測る指標にもする）。
+   * 「表示しない（青旗）」の選択肢は出さない。未選択（null）のあいだは先へ進めない。
+   * 既存の人が青旗のままなら、ここで改めて選んでもらう
+   */
+  const [avatarStyle, setAvatarStyle] = useState<AdvAvatarStyle | null>(
+    avatarStyleOf(initialAvatarStyle) === 'flag' ? null : avatarStyleOf(initialAvatarStyle),
+  );
+  const avatarChosen = avatarStyle !== null;
   const [goal, setGoal] = useState<AdvGoalType | null>(adjust?.goalType ?? null);
   const [target, setTarget] = useState<JlptLevel | null>(adjust?.targetJlpt ?? presetTarget ?? null);
   const [examDate, setExamDate] = useState(adjust?.examDateISO ?? '');
@@ -157,7 +165,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle: avatarStyle ?? 'flag',
       diagnosis, skills: adjust.skills, route,
       // 調整モードでも申告した級を保存する（2026-08-23 実機再現: 会話目標で「N1を持っている」を
       // 選んで更新しても declaredJlpt が null のまま保存され、会話が第1週に戻り、
@@ -190,7 +198,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle: avatarStyle ?? 'flag',
       diagnosis, skills, route, declaredJlpt: declared,
     };
     setConvSkipped(true);
@@ -220,7 +228,7 @@ export function AdvOnboarding({
     logCourseEvent('onboarding_completed', { goal });
     const o: OnboardingOutcome = {
       goalType: goal, targetJlpt: target, examDateISO: examDate || null,
-      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle, diagnosis, skills, route,
+      weeklyDays, dailyMinutes: minutes, companionId: companion, teacherId: teacher, avatarStyle: avatarStyle ?? 'flag', diagnosis, skills, route,
       declaredJlpt: declared,
     };
     setOutcome(o);
@@ -434,8 +442,9 @@ export function AdvOnboarding({
 
       {phase === 'companion' && (
         <section aria-label={tx(lang, '旅の相棒', '旅行伙伴')}>
-          <AdvAvatarPicker lang={lang} value={avatarStyle} onChange={setAvatarStyle} defaultOpen />
-          <div className="mt-6" />
+          {header('この旅をする主人公を選ぼう', '选择你的旅行主角', '地図であなたを表す見た目です。あとで冒険マップから変えられます。', '这是地图上代表你的形象。之后可以在冒险地图里更换。')}
+          <AdvAvatarPicker lang={lang} value={avatarStyle ?? undefined} onChange={setAvatarStyle} mode="onboarding" />
+          <div className="mt-8" />
           {header('旅の相棒を選んでください', '请选择旅行伙伴', '学習内容は変わりません。応援のしかたが少し変わります。', '学习内容不变，只是陪伴方式略有不同。')}
           <div className="space-y-3">
             {COMPANIONS.map((c) => (
@@ -451,7 +460,7 @@ export function AdvOnboarding({
           {adjust ? (
             <>
               {/* 調整モード: 診断（12問）は通らず、既存の診断結果でルートを組み直す */}
-              <button type="button" className={`${primary} mt-6`} onClick={finishAdjust}>
+              <button type="button" className={`${primary} mt-6`} disabled={!avatarChosen} onClick={finishAdjust}>
                 {tx(lang, 'この内容で更新する', '用这些内容更新')}
               </button>
               <p className="mt-2 text-center text-xs text-gray-500">
@@ -471,7 +480,7 @@ export function AdvOnboarding({
             skipDiag ? (
               <>
                 {/* N5/N4は診断を出さず、そのまま冒険へ（理由は skipsDiagnosis のコメント） */}
-                <button type="button" className={`${primary} mt-6`} onClick={finishWithoutDiagnosis}>
+                <button type="button" className={`${primary} mt-6`} disabled={!avatarChosen} onClick={finishWithoutDiagnosis}>
                   {tx(lang, 'この内容で冒険を始める', '用这些内容开始冒险')}
                 </button>
                 <p className="mt-2 text-center text-xs text-gray-500">
@@ -481,7 +490,7 @@ export function AdvOnboarding({
                 </p>
               </>
             ) : (
-              <button type="button" className={`${primary} mt-6`} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
+              <button type="button" className={`${primary} mt-6`} disabled={!avatarChosen} onClick={() => { trackAdv('diagnosis_started', { goalType: goal ?? undefined, locale: lang }); setPhase('diagIntro'); }}>
                 {tx(lang, 'つぎへ（現在地診断）', '下一步（当前位置诊断）')}
               </button>
             )

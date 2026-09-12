@@ -180,21 +180,25 @@ describe('初期設定の旅人選択', () => {
     fireEvent.click(screen.getByRole('button', { name: zh ? '开始今天的冒险' : '今日の冒険を始める' }));
     expect(complete.mock.calls[0][0].avatarStyle).toBe('male-blue');
   });
-  it.each([undefined, 'female-blue'] as const)('未選択・既存の選択を変更しなければ保持する (%s)', (initialAvatarStyle) => {
-    const ready = vi.fn();
-    render(<AdvOnboarding lang="ja" pools={pools} nowISO={NOW} initialAvatarStyle={initialAvatarStyle}
-      onComplete={vi.fn()} onCancel={vi.fn()} onOutcomeReady={ready} />);
-    reachTraveler('ja');
-    fireEvent.click(screen.getByRole('button', { name: 'この内容で冒険を始める' }));
-    expect(ready.mock.calls[0][0].avatarStyle).toBe(initialAvatarStyle ?? 'flag');
-  });
-  it('既存の女性主人公を青旗へ戻せる', () => {
+  it('既存の選択（女性）は引き継がれ、変更しなければそのまま保存される', () => {
     const ready = vi.fn();
     render(<AdvOnboarding lang="ja" pools={pools} nowISO={NOW} initialAvatarStyle="female-blue"
       onComplete={vi.fn()} onCancel={vi.fn()} onOutcomeReady={ready} />);
     reachTraveler('ja');
-    fireEvent.click(screen.getByRole('button', { name: 'キャラクターを表示しない（青い旗）' }));
     fireEvent.click(screen.getByRole('button', { name: 'この内容で冒険を始める' }));
-    expect(ready.mock.calls[0][0].avatarStyle).toBe('flag');
+    expect(ready.mock.calls[0][0].avatarStyle).toBe('female-blue');
   });
+  it('未選択のままでは先へ進めない（男女どちらかを必ず選ぶ・2026-09-13）', () => {
+    const ready = vi.fn();
+    render(<AdvOnboarding lang="ja" pools={pools} nowISO={NOW} onComplete={vi.fn()} onCancel={vi.fn()} onOutcomeReady={ready} />);
+    reachTraveler('ja');
+    expect(screen.queryByRole('button', { name: /キャラクターを表示しない/ })).toBeNull();
+    const go = screen.getByRole('button', { name: 'この内容で冒険を始める' }) as HTMLButtonElement;
+    expect(go.disabled).toBe(true);
+    fireEvent.click(go);
+    expect(ready).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '青タオルの旅人・男性' }));
+    expect(go.disabled).toBe(false);
+  });
+
 });
