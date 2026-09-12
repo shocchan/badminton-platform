@@ -95,9 +95,13 @@ export function PlanStatusChip({ lang, planId, validUntilISO, realtimeWindowMinu
   if (trialDays !== null) {
     // nowMs は最大1分古い。「始める」直後は valid_until が今+7日なので、古い now との差が
     // 7日を数秒超えて ceil が 8 になっていた（2026-09-12 CEO実機「7日中残り8日」）。上限は日数
-    const leftMs = Date.parse(validUntilISO) - Math.max(nowMs, Date.now());
-    const leftDays = Math.min(trialDays, Math.max(0, Math.ceil(leftMs / 86_400_000)));
-    const last = leftDays <= 1;
+    const leftMs = Math.max(0, Date.parse(validUntilISO) - Math.max(nowMs, Date.now()));
+    // 「7日中 残り7日」が丸1日近く続いて動いて見えない（2026-09-13 CEO実機）→ 日＋時間で出す（切り捨て）
+    const leftDays = Math.min(trialDays, Math.floor(leftMs / 86_400_000));
+    const leftHours = Math.floor((leftMs - leftDays * 86_400_000) / 3_600_000);
+    const leftMinutes = Math.floor((leftMs % 3_600_000) / 60_000);
+    const last = leftMs <= 86_400_000;
+    const untilTime = new Date(validUntilISO).toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit' });
     return (
       <div className="mx-auto w-full max-w-md lg:max-w-2xl px-4 pt-3">
         <div className={`rounded-xl border px-4 py-3 ${last ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-blue-100 bg-blue-50 text-blue-900'}`}>
@@ -105,13 +109,27 @@ export function PlanStatusChip({ lang, planId, validUntilISO, realtimeWindowMinu
             <span className="inline-flex items-center gap-1.5 font-bold">
               <Clock className="w-3.5 h-3.5" aria-hidden="true" />{name}
             </span>
-            <span>{zh ? `可用至 ${until}` : `${until} まで`}</span>
+            <span>{zh ? `可用至 ${until} ${untilTime}` : `${until} ${untilTime} まで`}</span>
           </div>
           <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="inline-flex items-baseline gap-1.5">
+            <span className="inline-flex items-baseline gap-1.5" data-testid="trial-days-left">
               <span className="text-[13px]">{zh ? '体验剩余' : '体験 のこり'}</span>
-              <span className="text-2xl font-extrabold leading-none tabular-nums">{leftDays}</span>
-              <span className="text-[13px] font-bold">{zh ? `天 / 共${trialDays}天` : `日 / ${trialDays}日中`}</span>
+              {leftDays > 0 ? (
+                <>
+                  <span className="text-2xl font-extrabold leading-none tabular-nums">{leftDays}</span>
+                  <span className="text-[13px] font-bold">{zh ? '天' : '日'}</span>
+                  <span className="text-lg font-extrabold leading-none tabular-nums">{leftHours}</span>
+                  <span className="text-[13px] font-bold">{zh ? '小时' : '時間'}</span>
+                </>
+              ) : (
+                <>
+                  <span className="text-2xl font-extrabold leading-none tabular-nums">{leftHours}</span>
+                  <span className="text-[13px] font-bold">{zh ? '小时' : '時間'}</span>
+                  <span className="text-lg font-extrabold leading-none tabular-nums">{leftMinutes}</span>
+                  <span className="text-[13px] font-bold">{zh ? '分' : '分'}</span>
+                </>
+              )}
+              <span className="text-[12px] text-blue-900/70">{zh ? `/ 共${trialDays}天` : `/ ${trialDays}日間`}</span>
             </span>
             {remainingVoiceTotal !== null && (
               <span className="inline-flex items-baseline gap-1.5">
