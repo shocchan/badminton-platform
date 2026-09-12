@@ -10,7 +10,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import {
   CLOZE_BLANK, dueItems, emptyPersonalPackState, intervalDaysFor, isDue, personalPacksVisible,
-  presentPersonalItem, recordFor, restorePersonalPack, restorePersonalPacks,
+  presentPersonalItem, personalSessionPositions, displayTargetOf, recordFor, restorePersonalPack, restorePersonalPacks,
   restorePersonalPackState, summarizePack, withAnswer,
   type PersonalPack,
 } from './advPersonalPack';
@@ -140,6 +140,79 @@ describe('出題', () => {
   });
 });
 
+describe('選択肢の位置（2026-09-12 CEO指摘「ランダムに表示されるように」）', () => {
+  const mk = (n: number) => Array.from({ length: n }, (_, i) => ({
+    id: `q${i}`, kind: 'meaning' as const, target: 't', promptJa: 'p',
+    answer: 'A', distractors: ['B', 'C', 'D'],
+  }));
+
+  it('正解の位置が4つに**均等に散る**', () => {
+    const count = [0, 0, 0, 0];
+    for (let s = 0; s < 400; s++) {
+      const items = mk(20);
+      const pos = personalSessionPositions(items, s * 7 + 20);
+      for (let i = 0; i < items.length; i++) {
+        count[presentPersonalItem(items[i], s * 7 + 20 + i, pos[i]).correctIndex] += 1;
+      }
+    }
+    const total = count.reduce((a, b) => a + b, 0);
+    for (const [i, c] of count.entries()) {
+      // 均等なら25%。偏りは3ポイント以内に収める
+      expect(Math.abs(c / total - 0.25), `${i + 1}番目が ${(c / total * 100).toFixed(1)}%`)
+        .toBeLessThan(0.03);
+    }
+  });
+
+  it('**同じ位置が3問続かない**（位置で答えを当てさせない）', () => {
+    for (let s = 0; s < 400; s++) {
+      const items = mk(20);
+      const pos = personalSessionPositions(items, s * 7 + 20);
+      let run = 1; let prev = -1;
+      for (let i = 0; i < items.length; i++) {
+        const ci = presentPersonalItem(items[i], s * 7 + 20 + i, pos[i]).correctIndex;
+        run = ci === prev ? run + 1 : 1; prev = ci;
+        expect(run, `seed${s} の ${i + 1}問目で ${ci + 1}番目が${run}連続`).toBeLessThan(3);
+      }
+    }
+  });
+
+  it('位置を指定しても、正解は必ず選択肢の中に1つある', () => {
+    for (let p = 0; p < 4; p++) {
+      const r = presentPersonalItem(mk(1)[0], 123, p);
+      expect(r.choices).toHaveLength(4);
+      expect(r.choices.filter((c) => c === 'A')).toHaveLength(1);
+      expect(r.correctIndex).toBe(p);
+    }
+  });
+});
+
+describe('一覧に答えを出さない（2026-09-12 CEO指摘）', () => {
+  it('cloze の見出しは答えを空欄に伏せる', () => {
+    const item = { id: 'c1', kind: 'cloze' as const, target: '昨年の大会経験を糧に',
+      promptJa: `昨年の大会経験を${CLOZE_BLANK}に、今年は頑張ります。`,
+      answer: '糧', distractors: ['支え', '言い訳', '頼り'] };
+    expect(displayTargetOf(item)).toBe(`昨年の大会経験を${CLOZE_BLANK}に`);
+    expect(displayTargetOf(item)).not.toContain(item.answer);
+  });
+
+  it('cloze 以外はそのまま出す（読み・意味は見出しが問題そのもの）', () => {
+    const item = { id: 'r1', kind: 'reading' as const, target: '開催',
+      promptJa: '広州で開催されました。', answer: 'かいさい', distractors: ['かいせつ', 'かいさつ', 'こうさい'] };
+    expect(displayTargetOf(item)).toBe('開催');
+  });
+
+  it('実データのどのパックも、一覧に答えが出ない', () => {
+    const dir2 = join(import.meta.dirname, '../../../../../../docs/ai-course/personal-packs');
+    for (const file of readdirSync(dir2).filter((f) => f.endsWith('.json'))) {
+      const pack = restorePersonalPack(JSON.parse(readFileSync(join(dir2, file), 'utf8')))!;
+      for (const i of pack.items) {
+        expect(displayTargetOf(i), `${file} / ${i.id}: 一覧に答え「${i.answer}」が出ている`)
+          .not.toContain(i.answer);
+      }
+    }
+  });
+});
+
 describe('冒険への非干渉', () => {
   const now = '2026-08-24T00:00:00.000Z';
 
@@ -232,6 +305,29 @@ describe('docs/ai-course/personal-packs の実データ', () => {
           for (const d of i.distractors) expect(d, `${i.id}: ダミーがひらがなでない`).toMatch(/^[ぁ-んー・]+$/);
         }
         if (i.kind === 'cloze') expect(i.promptJa.split(CLOZE_BLANK)).toHaveLength(2);
+
+        /**
+         * **正解だけが長い／短い選択肢を作らない**（2026-09-12 CEO指摘）。
+         *
+         * 意味が分からなくても「一番くわしく書いてあるのが正解」で当たってしまう。
+         * 実測: サマーさん9問・ユウキさん3問・ジャンさん3問が該当し、
+         * 中には正解だけが**15文字長い**ものもあった（m-nitsurete）。
+         * 説明は選択肢ではなく meaningZh / noteJa に書く。
+         *
+         * 読みが2つある語（まいつき／まいげつ）はスラッシュで併記するので対象外。
+         */
+        const opts = [i.answer, ...i.distractors];
+        if (!opts.some((o) => o.includes('/'))) {
+          const lens = opts.map((o) => [...o].length);
+          const others = lens.slice(1);
+          expect(lens[0], `${i.id}: 正解だけが長い（答えが透ける）${JSON.stringify(opts)}`)
+            .toBeLessThanOrEqual(Math.max(...others) + 2);
+          expect(lens[0], `${i.id}: 正解だけが短い（答えが透ける）${JSON.stringify(opts)}`)
+            .toBeGreaterThanOrEqual(Math.min(...others) - 2);
+          expect(Math.max(...lens) - Math.min(...lens),
+            `${i.id}: 選択肢の長さがばらばら（正解が目で浮く）${JSON.stringify(opts)}`)
+            .toBeLessThanOrEqual(3);
+        }
       }
     });
   }

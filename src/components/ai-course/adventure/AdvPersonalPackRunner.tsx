@@ -12,7 +12,7 @@ import { ArrowLeft, BookOpen, Check, ChevronRight, PenLine, X } from 'lucide-rea
 import { choiceIdle, choiceOn, pressFx, primaryBtn, riseIn, secondaryBtn, subtleBtn } from './advUi';
 import type { AdventureV2Profile } from '../../../lib/aiLesson/course/adventure/advTypes';
 import {
-  availablePersonalPacks, dueItems, personalPackById, presentPersonalItem, recordFor,
+  availablePersonalPacks, dueItems, personalPackById, presentPersonalItem, personalSessionPositions, displayTargetOf, recordFor,
   summarizePack, withAnswer, CLOZE_BLANK,
   type PersonalItem, type PersonalPack, type PersonalPackState,
 } from '../../../lib/aiLesson/course/adventure/personal/advPersonalPack';
@@ -82,7 +82,9 @@ export const AdvPersonalPackRunner = ({ lang, profile, onSave, onBack }: Props) 
   if (session && pack && drilling) {
     // drilling が index 範囲を保証している（まとめは index === items.length で表す）
     const item = session.items[session.index] as PersonalItem;
-    const presented = presentPersonalItem(item, session.seed + session.index);
+    // 正解の位置は**この回ぶんをまとめて**決める（同じ位置が3連続しないように）
+    const positions = personalSessionPositions(session.items, session.seed);
+    const presented = presentPersonalItem(item, session.seed + session.index, positions[session.index]);
     const answered = picked !== null;
     const isCorrect = picked === item.answer;
     const isLast = session.index >= session.items.length - 1;
@@ -303,7 +305,7 @@ export const AdvPersonalPackRunner = ({ lang, profile, onSave, onBack }: Props) 
               const rec = recordFor(state, pack.packId, i.id);
               return (
                 <li key={i.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span className="min-w-0 flex-1 truncate text-gray-800">{i.target}</span>
+                  <span className="min-w-0 flex-1 truncate text-gray-800">{displayTargetOf(i)}</span>
                   <span className="shrink-0 text-[11px] text-gray-500">
                     {rec.attempts === 0
                       ? tx(lang, 'これから', '待练习')

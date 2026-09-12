@@ -22,7 +22,7 @@
 //   - 選択肢問題として出せるもの（読み・意味・空欄）だけを出題する。
 //     AIが自由記述を採点する仕組みは持たない（判定材料が無いのに判定しない）
 //   - 「できた」は連続正解の実測だけで決める。次の復習日はその実測から出す
-import { seededFisherYates } from '../advChoiceOrder';
+import { seededFisherYates, balancedPositions } from '../advChoiceOrder';
 import type { AdventureV2Profile } from '../advTypes';
 
 /**
@@ -247,11 +247,48 @@ export interface PresentedPersonalItem {
 }
 
 /** 正解＋ダミーを混ぜて並べる。seed は「その回」で固定する（描画のたびに動かさない） */
-export const presentPersonalItem = (item: PersonalItem, seed: number): PresentedPersonalItem => {
+export const presentPersonalItem = (
+  item: PersonalItem, seed: number,
+  /**
+   * 正解を置く位置（personalSessionPositions が決める）。
+   * 省略するとシャッフル任せ＝同じ位置が続く回ができる（2026-09-12 実測: 20問中4〜5連続が2割）
+   */
+  position?: number,
+): PresentedPersonalItem => {
   const pool = [item.answer, ...item.distractors];
   const choices = seededFisherYates(pool, seed);
+  if (position !== undefined && position >= 0 && position < choices.length) {
+    const cur = choices.indexOf(item.answer);
+    if (cur >= 0 && cur !== position) {
+      [choices[cur], choices[position]] = [choices[position], choices[cur]];
+    }
+  }
   return { item, choices, correctIndex: choices.indexOf(item.answer) };
 };
+
+/**
+ * 一覧に出す見出し（2026-09-12 CEO指摘）。
+ *
+ * cloze の `target` は先生が中身を分かるように「昨年の大会経験を糧に」のような
+ * **答えを含んだ形**で書く。ところが進捗一覧はこれをそのまま並べていたため、
+ * 一覧を開くだけで答えが読めていた（実測: 4パック42問）。
+ * 表示のときだけ答えを空欄に伏せる。データ側は先生が読める形のまま残す。
+ */
+export const displayTargetOf = (item: PersonalItem): string =>
+  (item.kind === 'cloze' && item.target.includes(item.answer)
+    ? item.target.split(item.answer).join(CLOZE_BLANK)
+    : item.target);
+
+/**
+ * 1回ぶんの「正解を置く位置」列（2026-09-12 CEO指摘「選択肢はランダムに」）。
+ *
+ * シャッフル自体は均等（実測 各24〜25%）だが、1回20問の中で**同じ位置が4〜5問続く**回が
+ * 2割あった。続くと「今日はずっと2番目だ」と位置で答えられてしまう。
+ * バトル・模試が使っているのと同じ balancedPositions を通して、
+ * 位置を均し、3連続を避ける。
+ */
+export const personalSessionPositions = (items: PersonalItem[], seed: number): number[] =>
+  balancedPositions(items.map((i) => 1 + i.distractors.length), seed);
 
 /* ────────────────────────────────────────────────────────────
    壊れたデータの復元（jsonbなので何が入っているか分からない）
