@@ -1,0 +1,584 @@
+{
+  "packId": "yuki-20260824-diary",
+  "titleJa": "ゆきさんの作文から（3本）",
+  "titleZh": "来自Yuki的作文（3篇）",
+  "sourceLabelJa": "授業で書いた作文（〜2026年8月）",
+  "sourceLabelZh": "课上写的作文（截至2026年8月）",
+  "passages": [
+    {
+      "id": "p1",
+      "titleJa": "不思議なワンちゃんの体／家族と友達",
+      "titleZh": "不可思议的狗狗身体／家人与朋友",
+      "textJa": "最近、不思議に思うことがあります。\n私のワンちゃんは、食べすぎるとすぐに下痢をします。\nお肉をあげるとすぐにお腹を壊してしまうので、今はドッグフードだけを食べています。\nワンちゃんの体はとても不思議ですね。\n\n最近、もう一つ気づいたことがあります。\nそれは「家族がいれば、友達はいらない」ということです。\n突然そう思うようになりました。\n今は、たくさんの友達と遊ぶよりも、家族と一緒に過ごす時間が一番大切です。\n\nなぜそう思ったかというと、友達との関係は少し複雑だからです。\nでも、家族との関係はとてもシンプルで簡単です。\n複雑な関係よりも、自分らしくいられる簡単な関係のほうが、今の私には合っていると感じました。"
+    },
+    {
+      "id": "p2",
+      "titleJa": "緊張したこと（JLPT・中国での仕事）",
+      "titleZh": "让我紧张的事（JLPT・在中国的工作）",
+      "textJa": "日本で一番緊張したのは、JLPTの試験です。\n試験はとても難しいです。\n特に「聴解」は一回だけなので、頭が真っ白になります。\n「合格したい！」と思うから、とてもドキドキします。\n\n中国の仕事も緊張しました。\n毎月ノルマがあって、大変でした。\n目標ができないと、給料が少なくなります。\nでも、それは私にとって大切な「挑戦」でした。\n\n緊張した時は、好きな音楽を聴きます。\n水を飲んだり、たくさん寝たりします。\nゆっくり休むと、また明日から頑張ることができます。"
+    },
+    {
+      "id": "p3",
+      "titleJa": "健康がいちばん大切",
+      "titleZh": "健康最重要",
+      "textJa": "毎日元気に過ごせることが、何より嬉しいです。体が元気だと、日々の生活がとても楽しくなります。この健康な毎日を、これからも大切にしていきたいです。\n\n先月は腰を痛めて、GWの香港旅行に行けませんでした。自分が病気になると、大好きな犬の世話もできません。健康が一番大切だと、身に染みてわかりました。\n\n健康でないと、目標の試験を受けることもできません。夢を叶えるためには、まず丈夫な体が必要です。これからも体調に気をつけて、毎日を元気に頑張りたいです。"
+    }
+  ],
+  "items": [
+    {
+      "id": "r-fushigi",
+      "kind": "reading",
+      "target": "不思議",
+      "promptJa": "最近、不思議に思うことがあります。",
+      "answer": "ふしぎ",
+      "distractors": [
+        "ふしそう",
+        "ふしき",
+        "ぶしぎ"
+      ],
+      "meaningZh": "不可思议、奇怪"
+    },
+    {
+      "id": "r-geri",
+      "kind": "reading",
+      "target": "下痢",
+      "promptJa": "私のワンちゃんは、食べすぎるとすぐに下痢をします。",
+      "answer": "げり",
+      "distractors": [
+        "かり",
+        "げりょう",
+        "したり"
+      ],
+      "meaningZh": "拉肚子"
+    },
+    {
+      "id": "r-kowashite",
+      "kind": "reading",
+      "target": "壊して",
+      "promptJa": "お肉をあげるとすぐにお腹を壊してしまうので、今はドッグフードだけを食べています。",
+      "answer": "こわして",
+      "distractors": [
+        "かいして",
+        "やぶして",
+        "こおして"
+      ],
+      "meaningZh": "弄坏（这里指吃坏肚子）"
+    },
+    {
+      "id": "r-sugosu",
+      "kind": "reading",
+      "target": "過ごす",
+      "promptJa": "家族と一緒に過ごす時間が一番大切です。",
+      "answer": "すごす",
+      "distractors": [
+        "かごす",
+        "すぎす",
+        "とごす"
+      ],
+      "meaningZh": "度过"
+    },
+    {
+      "id": "r-kankei",
+      "kind": "reading",
+      "target": "関係",
+      "promptJa": "友達との関係は少し複雑だからです。",
+      "answer": "かんけい",
+      "distractors": [
+        "かんげい",
+        "かんかい",
+        "けんけい"
+      ],
+      "meaningZh": "关系",
+      "noteJa": "「歓迎（かんげい）」と音が近いので、言うときに気をつけましょう。",
+      "noteZh": "和「歓迎（かんげい）」发音相近，说的时候要注意。"
+    },
+    {
+      "id": "r-fukuzatsu",
+      "kind": "reading",
+      "target": "複雑",
+      "promptJa": "複雑な関係よりも、自分らしくいられる簡単な関係のほうが合っています。",
+      "answer": "ふくざつ",
+      "distractors": [
+        "ふくさつ",
+        "ふくぞう",
+        "ふうざつ"
+      ],
+      "meaningZh": "复杂"
+    },
+    {
+      "id": "r-kantan",
+      "kind": "reading",
+      "target": "簡単",
+      "promptJa": "でも、家族との関係はとてもシンプルで簡単です。",
+      "answer": "かんたん",
+      "distractors": [
+        "かんだん",
+        "けんたん",
+        "かんてい"
+      ],
+      "meaningZh": "简单"
+    },
+    {
+      "id": "r-totsuzen",
+      "kind": "reading",
+      "target": "突然",
+      "promptJa": "突然そう思うようになりました。",
+      "answer": "とつぜん",
+      "distractors": [
+        "とうぜん",
+        "とっせん",
+        "つきぜん"
+      ],
+      "meaningZh": "突然",
+      "noteJa": "「当然（とうぜん）」と読み間違えやすい漢字です。",
+      "noteZh": "容易和「当然（とうぜん）」读混。"
+    },
+    {
+      "id": "r-kinchou",
+      "kind": "reading",
+      "target": "緊張",
+      "promptJa": "日本で一番緊張したのは、JLPTの試験です。",
+      "answer": "きんちょう",
+      "distractors": [
+        "きんちょ",
+        "けんちょう",
+        "きんはり"
+      ],
+      "meaningZh": "紧张"
+    },
+    {
+      "id": "r-shiken",
+      "kind": "reading",
+      "target": "試験",
+      "promptJa": "日本で一番緊張したのは、JLPTの試験です。",
+      "answer": "しけん",
+      "distractors": [
+        "しげん",
+        "しっけん",
+        "ためけん"
+      ],
+      "meaningZh": "考试"
+    },
+    {
+      "id": "r-choukai",
+      "kind": "reading",
+      "target": "聴解",
+      "promptJa": "特に「聴解」は一回だけなので、頭が真っ白になります。",
+      "answer": "ちょうかい",
+      "distractors": [
+        "ちょうげ",
+        "きくかい",
+        "しょうかい"
+      ],
+      "meaningZh": "听力（JLPT的听解）"
+    },
+    {
+      "id": "r-masshiro",
+      "kind": "reading",
+      "target": "真っ白",
+      "promptJa": "特に「聴解」は一回だけなので、頭が真っ白になります。",
+      "answer": "まっしろ",
+      "distractors": [
+        "まっしら",
+        "しんしろ",
+        "まじろ"
+      ],
+      "meaningZh": "一片空白"
+    },
+    {
+      "id": "r-goukaku",
+      "kind": "reading",
+      "target": "合格",
+      "promptJa": "「合格したい！」と思うから、とてもドキドキします。",
+      "answer": "ごうかく",
+      "distractors": [
+        "ごうがく",
+        "あいかく",
+        "ごうきゃく"
+      ],
+      "meaningZh": "合格、考上"
+    },
+    {
+      "id": "r-mokuhyou",
+      "kind": "reading",
+      "target": "目標",
+      "promptJa": "目標ができないと、給料が少なくなります。",
+      "answer": "もくひょう",
+      "distractors": [
+        "もくしょう",
+        "めひょう",
+        "もくびょう"
+      ],
+      "meaningZh": "目标"
+    },
+    {
+      "id": "r-kyuuryou",
+      "kind": "reading",
+      "target": "給料",
+      "promptJa": "目標ができないと、給料が少なくなります。",
+      "answer": "きゅうりょう",
+      "distractors": [
+        "きゅうりょ",
+        "きゅりょう",
+        "きゅうりき"
+      ],
+      "meaningZh": "工资"
+    },
+    {
+      "id": "r-chousen",
+      "kind": "reading",
+      "target": "挑戦",
+      "promptJa": "でも、それは私にとって大切な「挑戦」でした。",
+      "answer": "ちょうせん",
+      "distractors": [
+        "ちょうぜん",
+        "いどせん",
+        "とうせん"
+      ],
+      "meaningZh": "挑战"
+    },
+    {
+      "id": "r-ongaku",
+      "kind": "reading",
+      "target": "音楽",
+      "promptJa": "緊張した時は、好きな音楽を聴きます。",
+      "answer": "おんがく",
+      "distractors": [
+        "おんらく",
+        "いんがく",
+        "おんかく"
+      ],
+      "meaningZh": "音乐"
+    },
+    {
+      "id": "r-kenkou",
+      "kind": "reading",
+      "target": "健康",
+      "promptJa": "この健康な毎日を、これからも大切にしていきたいです。",
+      "answer": "けんこう",
+      "distractors": [
+        "けんこ",
+        "げんこう",
+        "けんきょう"
+      ],
+      "meaningZh": "健康"
+    },
+    {
+      "id": "r-koshi",
+      "kind": "reading",
+      "target": "腰",
+      "promptJa": "先月は腰を痛めて、GWの香港旅行に行けませんでした。",
+      "answer": "こし",
+      "distractors": [
+        "よう",
+        "こう",
+        "はら"
+      ],
+      "meaningZh": "腰"
+    },
+    {
+      "id": "r-itamete",
+      "kind": "reading",
+      "target": "痛めて",
+      "promptJa": "先月は腰を痛めて、GWの香港旅行に行けませんでした。",
+      "answer": "いためて",
+      "distractors": [
+        "つうめて",
+        "いたませて",
+        "やめて"
+      ],
+      "meaningZh": "弄伤"
+    },
+    {
+      "id": "r-sewa",
+      "kind": "reading",
+      "target": "世話",
+      "promptJa": "自分が病気になると、大好きな犬の世話もできません。",
+      "answer": "せわ",
+      "distractors": [
+        "せいわ",
+        "よわ",
+        "せば"
+      ],
+      "meaningZh": "照顾"
+    },
+    {
+      "id": "r-minishimite",
+      "kind": "reading",
+      "target": "身に染みて",
+      "promptJa": "健康が一番大切だと、身に染みてわかりました。",
+      "answer": "みにしみて",
+      "distractors": [
+        "みにそめて",
+        "しんにしみて",
+        "みにせんて"
+      ],
+      "meaningZh": "深切体会到"
+    },
+    {
+      "id": "r-joubu",
+      "kind": "reading",
+      "target": "丈夫",
+      "promptJa": "夢を叶えるためには、まず丈夫な体が必要です。",
+      "answer": "じょうぶ",
+      "distractors": [
+        "じょうふ",
+        "たけお",
+        "じょうぶん"
+      ],
+      "meaningZh": "结实、健壮"
+    },
+    {
+      "id": "r-kanaeru",
+      "kind": "reading",
+      "target": "叶える",
+      "promptJa": "夢を叶えるためには、まず丈夫な体が必要です。",
+      "answer": "かなえる",
+      "distractors": [
+        "かのえる",
+        "きょうえる",
+        "こたえる"
+      ],
+      "meaningZh": "实现（梦想）"
+    },
+    {
+      "id": "r-taichou",
+      "kind": "reading",
+      "target": "体調",
+      "promptJa": "これからも体調に気をつけて、毎日を元気に頑張りたいです。",
+      "answer": "たいちょう",
+      "distractors": [
+        "たいじょう",
+        "ていちょう",
+        "からだちょう"
+      ],
+      "meaningZh": "身体状况"
+    },
+    {
+      "id": "m-onaka-kowasu",
+      "kind": "meaning",
+      "target": "お腹を壊す",
+      "promptJa": "お肉をあげるとすぐにお腹を壊してしまいます。",
+      "answer": "吃坏肚子、拉肚子",
+      "distractors": [
+        "肚子饿了",
+        "生气、发火",
+        "吃得很饱"
+      ]
+    },
+    {
+      "id": "m-jibunrashiku",
+      "kind": "meaning",
+      "target": "自分らしくいられる",
+      "promptJa": "自分らしくいられる簡単な関係のほうが、今の私には合っています。",
+      "answer": "能保持自己本来的样子",
+      "distractors": [
+        "能和大家一样",
+        "能处处顾虑对方",
+        "能变得认真起来"
+      ]
+    },
+    {
+      "id": "m-atama-masshiro",
+      "kind": "meaning",
+      "target": "頭が真っ白になる",
+      "promptJa": "特に「聴解」は一回だけなので、頭が真っ白になります。",
+      "answer": "脑子一片空白",
+      "distractors": [
+        "头晕目眩",
+        "心情沉重",
+        "听得刺耳"
+      ]
+    },
+    {
+      "id": "m-noruma",
+      "kind": "meaning",
+      "target": "ノルマ",
+      "promptJa": "毎月ノルマがあって、大変でした。",
+      "answer": "（每月必须完成的）定额指标",
+      "distractors": [
+        "礼仪、规矩",
+        "风险",
+        "规则、规定"
+      ]
+    },
+    {
+      "id": "m-nitotte",
+      "kind": "meaning",
+      "target": "〜にとって",
+      "promptJa": "それは私にとって大切な「挑戦」でした。",
+      "answer": "对…来说",
+      "distractors": [
+        "关于…",
+        "由于…",
+        "作为…"
+      ]
+    },
+    {
+      "id": "m-minishimite",
+      "kind": "meaning",
+      "target": "身に染みてわかる",
+      "promptJa": "健康が一番大切だと、身に染みてわかりました。",
+      "answer": "深切地体会到",
+      "distractors": [
+        "一眼就看明白",
+        "听过就忘了",
+        "忽然想到"
+      ]
+    },
+    {
+      "id": "m-yume-kanaeru",
+      "kind": "meaning",
+      "target": "夢を叶える",
+      "promptJa": "夢を叶えるためには、まず丈夫な体が必要です。",
+      "answer": "实现梦想",
+      "distractors": [
+        "做梦",
+        "从梦中醒来",
+        "迷失在梦里"
+      ]
+    },
+    {
+      "id": "m-ki-o-tsukeru",
+      "kind": "meaning",
+      "target": "気をつける",
+      "promptJa": "これからも体調に気をつけて、毎日を元気に頑張りたいです。",
+      "answer": "注意、当心",
+      "distractors": [
+        "察觉到",
+        "毫不在意",
+        "心里痛快了"
+      ]
+    },
+    {
+      "id": "c-geri",
+      "kind": "cloze",
+      "target": "下痢をする",
+      "promptJa": "私のワンちゃんは、食べすぎるとすぐに＿＿をします。",
+      "answer": "下痢",
+      "distractors": [
+        "頭痛",
+        "風邪",
+        "けが"
+      ],
+      "meaningZh": "拉肚子"
+    },
+    {
+      "id": "c-kowashite",
+      "kind": "cloze",
+      "target": "お腹を壊してしまう",
+      "promptJa": "お肉をあげるとすぐにお腹を＿＿しまうので、今はドッグフードだけを食べています。",
+      "answer": "壊して",
+      "distractors": [
+        "痛めて",
+        "こわれて",
+        "割って"
+      ],
+      "meaningZh": "吃坏（肚子）"
+    },
+    {
+      "id": "c-rashiku",
+      "kind": "cloze",
+      "target": "自分らしくいられる",
+      "promptJa": "複雑な関係よりも、自分＿＿いられる簡単な関係のほうが合っています。",
+      "answer": "らしく",
+      "distractors": [
+        "みたいに",
+        "っぽく",
+        "そうに"
+      ],
+      "meaningZh": "像自己本来的样子"
+    },
+    {
+      "id": "c-masshiro",
+      "kind": "cloze",
+      "target": "頭が真っ白になる",
+      "promptJa": "特に「聴解」は一回だけなので、頭が＿＿になります。",
+      "answer": "真っ白",
+      "distractors": [
+        "真っ黒",
+        "真っ赤",
+        "真っ青"
+      ],
+      "meaningZh": "一片空白"
+    },
+    {
+      "id": "c-taihen",
+      "kind": "cloze",
+      "target": "ノルマがあって大変だった",
+      "promptJa": "毎月ノルマがあって、＿＿でした。",
+      "answer": "大変",
+      "distractors": [
+        "便利",
+        "簡単",
+        "上手"
+      ],
+      "meaningZh": "辛苦、够呛"
+    },
+    {
+      "id": "c-kikimasu",
+      "kind": "cloze",
+      "target": "音楽を聴く",
+      "promptJa": "緊張した時は、好きな音楽を＿＿。",
+      "answer": "聴きます",
+      "distractors": [
+        "見ます",
+        "読みます",
+        "話します"
+      ],
+      "meaningZh": "听（音乐）"
+    },
+    {
+      "id": "c-kotoga",
+      "kind": "cloze",
+      "target": "頑張ることができる",
+      "promptJa": "ゆっくり休むと、また明日から頑張る＿＿できます。",
+      "answer": "ことが",
+      "distractors": [
+        "ものが",
+        "ようが",
+        "はずが"
+      ],
+      "meaningZh": "能够…"
+    },
+    {
+      "id": "c-itamete",
+      "kind": "cloze",
+      "target": "腰を痛める",
+      "promptJa": "先月は腰を＿＿、GWの香港旅行に行けませんでした。",
+      "answer": "痛めて",
+      "distractors": [
+        "痛くて",
+        "痛んで",
+        "痛める"
+      ],
+      "meaningZh": "弄伤（腰）"
+    },
+    {
+      "id": "c-shimite",
+      "kind": "cloze",
+      "target": "身に染みてわかる",
+      "promptJa": "健康が一番大切だと、身に＿＿わかりました。",
+      "answer": "染みて",
+      "distractors": [
+        "込めて",
+        "任せて",
+        "付けて"
+      ],
+      "meaningZh": "深切地（体会到）"
+    },
+    {
+      "id": "c-kanaeru",
+      "kind": "cloze",
+      "target": "夢を叶える",
+      "promptJa": "夢を＿＿ためには、まず丈夫な体が必要です。",
+      "answer": "叶える",
+      "distractors": [
+        "眺める",
+        "預ける",
+        "迎える"
+      ],
+      "meaningZh": "实现（梦想）"
+    }
+  ]
+}
