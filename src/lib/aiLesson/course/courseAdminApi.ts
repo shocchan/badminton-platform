@@ -219,7 +219,10 @@ export const adminGetMonthlyUsageMap = async (): Promise<Record<string, LearnerU
 // 書き込みは ai_course_access のRLS（ai_is_admin）が守る。ここはUIの手足
 
 /** 受講権の発行元。purchase は将来の決済フロー専用（管理UIからは設定しない） */
-export type AdminAccessSource = 'manual' | 'purchase' | 'test';
+export type AdminAccessSource = 'manual' | 'purchase' | 'test' | 'invite';
+/** DBの source が想定外でも画面を落とさない（2026-09-13: 'invite' 追加時に受講権タブが白くなった） */
+export const toAdminAccessSource = (v: unknown): AdminAccessSource =>
+  v === 'purchase' || v === 'test' || v === 'invite' ? v : 'manual';
 
 export interface AdminAccessRow {
   userId: string;
@@ -250,7 +253,7 @@ export const adminListAccess = async (): Promise<Record<string, AdminAccessRow>>
       updatedAtISO: r.updated_at as string,
       planId: (r.plan_id as string) ?? null,
       planVersion: typeof r.plan_version === 'number' ? r.plan_version : null,
-      source: (r.source as AdminAccessSource) ?? 'manual',
+      source: toAdminAccessSource(r.source),
       aiSecondsLimit: typeof r.ai_seconds_limit === 'number' ? r.ai_seconds_limit : null,
       grantedBy: (r.granted_by as string) ?? null,
     };

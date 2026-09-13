@@ -180,3 +180,17 @@ describe('一覧の属性（旅人・目的・目標・プラン）2026-09-13', 
     expect(profileSummaryOf({ learner: null, access: { planId: null } as unknown as AdminAccessRow }).plan).toBe('手動');
   });
 });
+
+describe('受講権の source が想定外でも一覧が落ちない（2026-09-13 招待 invite 追加で受講権タブが白くなった）', () => {
+  it('invite はそのまま、未知の値は manual に寄せる', async () => {
+    const { toAdminAccessSource } = await import('../courseAdminApi');
+    expect(toAdminAccessSource('invite')).toBe('invite');
+    expect(toAdminAccessSource('purchase')).toBe('purchase');
+    expect(toAdminAccessSource('something-new')).toBe('manual');
+    expect(toAdminAccessSource(null)).toBe('manual');
+  });
+  it('バッジ表は source の全種類を持つ', async () => {
+    const { ACCESS_SOURCE_BADGE } = await import('../../../../components/ai-course/admin/AdminAccessPanel');
+    for (const s of ['manual', 'purchase', 'test', 'invite'] as const) expect(ACCESS_SOURCE_BADGE[s].cls).toBeTruthy();
+  });
+});

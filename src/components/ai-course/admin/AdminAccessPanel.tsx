@@ -12,7 +12,7 @@
 // 管理UIは日本語ハードコード（管理者=CEOは日本人。刷新仕様 原則5）。
 
 import { useState } from 'react';
-import { adminSetAccess } from '../../../lib/aiLesson/course/courseAdminApi';
+import { adminSetAccess, type AdminAccessSource } from '../../../lib/aiLesson/course/courseAdminApi';
 import { accessStateOf } from '../../../lib/aiLesson/course/courseAccess';
 import { allPlans, planById } from '../../../lib/aiLesson/course/plans/planCatalog';
 
@@ -29,7 +29,7 @@ export interface AdminAccessRowLike {
   updatedAtISO?: string;
   planId?: string | null;
   planVersion?: number | null;
-  source?: 'manual' | 'purchase' | 'test' | null;
+  source?: AdminAccessSource | null;
   aiSecondsLimit?: number | null;
   grantedBy?: string | null;
 }
@@ -46,10 +46,11 @@ export const ACCESS_STATE_BADGE: Record<'active' | 'not_started' | 'expired' | '
 };
 
 /** source の表示（表示のみ。書き込みは manual|test を opts 経由でのみ） */
-export const ACCESS_SOURCE_BADGE: Record<'manual' | 'purchase' | 'test', { label: string; cls: string }> = {
+export const ACCESS_SOURCE_BADGE: Record<AdminAccessSource, { label: string; cls: string }> = {
   manual: { label: '手動', cls: 'bg-gray-100 text-gray-600' },
   purchase: { label: '購入', cls: 'bg-blue-100 text-blue-700' },
   test: { label: 'テスト', cls: 'bg-amber-100 text-amber-700' },
+  invite: { label: '招待', cls: 'bg-emerald-100 text-emerald-700' },
 };
 
 /** ISO → JSTの YYYY-MM-DD（date input 用・表示用） */
