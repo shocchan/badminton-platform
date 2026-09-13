@@ -1,4 +1,4 @@
-deployed_at: 2026-09-13 22:10:27 +0900
+deployed_at: 2026-09-13 22:21:26 +0900
 branch:      integration/unify-2026-08-28
-commit:      a112afa973d4edfbc8d97dd136a329478d959b15
-asset:       assets/index-CHiyakVR.js
+commit:      a77d2d03fb75da57edceb2033862631e4c8e89d3
+asset:       assets/index-BgzLCa8o.js
