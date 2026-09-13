@@ -1,0 +1,23 @@
+{
+  "_comment": "実在生徒の保護リスト（remote-sql.mjs が --write 時に照合）。書き込みSQLにこれらの識別子が含まれると --allow-protected なしでは拒否される。生徒を追加したらここへ追記すること。",
+  "identifiers": [
+    "li@id.badminton-platform.pages.dev",
+    "summer@id.badminton-platform.pages.dev",
+    "andy@id.badminton-platform.pages.dev",
+    "yuki@id.badminton-platform.pages.dev",
+    "8c0b1a8c-0b84-4078-b0a4-3519548af5af",
+    "dcd33433-ee8c-4aea-9ae2-3c23a31cd6fa",
+    "f227b3aa-2f0e-4050-8c81-6dcdc69e1cdd",
+    "cd039a3b-ebf6-486b-b68b-32ec9e611228",
+    "n5learner@id.badminton-platform.pages.dev",
+    "4d7f2553-c498-4207-a0f1-6eef6ad07f6f",
+    "wang@id.badminton-platform.pages.dev",
+    "eli@id.badminton-platform.pages.dev",
+    "984fca5f-1ced-47f1-acb4-0e54af19dea1",
+    "lin@id.badminton-platform.pages.dev",
+    "5f699dcd-7e6b-427d-82ce-df75657201a3"
+  ],
+  "bulkPatterns": [
+    "%@id.badminton-platform.pages.dev"
+  ]
+}

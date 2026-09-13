@@ -7,7 +7,10 @@
 # 背景: 2026-07-07 に blog_posts を誤削除した事故を受けて導入。
 #       無料プランはバックアップ機能が無いため、日次でJSONダンプを取る。
 
-set -euo pipefail
+# set -e はテーブル単位のループでは使わない: 1テーブルのAPI応答不良で全体が中断し、
+# 以降の全テーブルが無通知で未保存になる事故が実際に起きた（2026-08-08/08-12・監査P0）。
+# 失敗テーブルは記録して継続し、最後にまとめて非0終了で知らせる。
+set -uo pipefail
 
 PROJECT_REF="jdkwijdphlkrcoiggfqw"
 TOKEN="${SUPABASE_ACCESS_TOKEN:-$(cat ~/.supabase_backup_token 2>/dev/null || true)}"
@@ -25,9 +28,10 @@ TABLES=$(curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/dat
   | python3 -c "import json,sys; print('\n'.join(r['tablename'] for r in json.load(sys.stdin)))")
 
 TOTAL=0
+FAILED=""
 for T in $TABLES; do
   printf '{"query": "select coalesce(jsonb_agg(t), '\''[]'\''::jsonb) from %s t"}' "$T" > /tmp/backup_q.json
-  curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
+  if curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
     -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
     --data @/tmp/backup_q.json \
     | python3 -c "
@@ -35,13 +39,17 @@ import json, sys
 rows = json.load(sys.stdin)[0]['coalesce']
 json.dump(rows, open('$DEST/$T.json', 'w'), ensure_ascii=False, indent=1, default=str)
 print('$T:', len(rows), 'rows')
-"
-  TOTAL=$((TOTAL + 1))
+"; then
+    TOTAL=$((TOTAL + 1))
+  else
+    echo "WARN: table $T failed, continuing" >&2
+    FAILED="$FAILED $T"
+  fi
 done
 
 # auth.users（メール・メタデータのみ。パスワードハッシュは含めない）
 printf '%s' '{"query": "select coalesce(jsonb_agg(jsonb_build_object('\''id'\'', id, '\''email'\'', email, '\''meta'\'', raw_user_meta_data, '\''created_at'\'', created_at)), '\''[]'\''::jsonb) from auth.users"}' > /tmp/backup_q.json
-curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
+if ! curl -sS -X POST "https://api.supabase.com/v1/projects/$PROJECT_REF/database/query" \
   -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
   --data @/tmp/backup_q.json \
   | python3 -c "
@@ -49,6 +57,13 @@ import json, sys
 rows = json.load(sys.stdin)[0]['coalesce']
 json.dump(rows, open('$DEST/auth_users.json', 'w'), ensure_ascii=False, indent=1, default=str)
 print('auth_users:', len(rows), 'rows')
-"
+"; then
+  echo "WARN: auth_users failed" >&2
+  FAILED="$FAILED auth_users"
+fi
 
+if [ -n "$FAILED" ]; then
+  echo "❌ backup INCOMPLETE: $DEST（成功 ${TOTAL}テーブル／失敗:$FAILED）" >&2
+  exit 1
+fi
 echo "✅ backup complete: $DEST（public ${TOTAL}テーブル + auth_users）"
