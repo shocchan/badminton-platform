@@ -255,6 +255,16 @@ serve(async (req) => {
     method: "POST", headers: { ...dbHeaders, Prefer: "return=minimal" },
     body: JSON.stringify({ user_id: userId, kind: "invite_credentials", dedupe_key: `invite_credentials:${userId}` }),
   }).catch(() => undefined);
+  // Analytics is optional and cannot change signup success. Only this server can record completion.
+  const telemetry = body.analytics as Record<string, unknown> | undefined;
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  if (telemetry && uuid.test(String(telemetry.anonId)) && uuid.test(String(telemetry.sessionId))) {
+    await rpc("ai_record_invite_event", {
+      p_anon_id: telemetry.anonId, p_session_id: telemetry.sessionId,
+      p_event_id: crypto.randomUUID(), p_code: code, p_kind: "invite_registration_completed",
+      p_landing_page: telemetry.landingPage, p_is_test: telemetry.isTest === true, p_user_id: userId,
+    }).catch(() => undefined);
+  }
   await record(true, "ok");
 
   return json({ ok: true, sentTo: email });
