@@ -2542,7 +2542,6 @@ export default function AdvShell(props: AdvShellProps) {
         lang={lang}
         profile={prof}
         route={route}
-        onAvatarChange={(avatarStyle) => save({ ...prof, avatarStyle })}
         mastered={mapMastered}
         planRegionLimit={props.planRegionLimit ?? null}
         revealRegionId={revealRegionId}
