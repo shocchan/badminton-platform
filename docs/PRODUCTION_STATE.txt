@@ -1,4 +1,4 @@
-deployed_at: 2026-09-13 21:57:18 +0900
+deployed_at: 2026-09-13 22:10:27 +0900
 branch:      integration/unify-2026-08-28
-commit:      c90762f329f689b3d776a20777fd1d23fb5857c9
-asset:       assets/index-BgRxftwA.js
+commit:      a112afa973d4edfbc8d97dd136a329478d959b15
+asset:       assets/index-CHiyakVR.js
