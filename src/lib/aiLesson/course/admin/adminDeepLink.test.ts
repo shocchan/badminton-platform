@@ -22,7 +22,7 @@ describe('URLの読み取り', () => {
 
   it('人の指定だけなら生徒タブ、何も無ければ今日', () => {
     expect(initialAdminTab(parseAdminDeepLink('?account=li'))).toBe('students');
-    expect(initialAdminTab(parseAdminDeepLink(''))).toBe('today');
+    expect(initialAdminTab(parseAdminDeepLink(''))).toBe('students');
   });
 
   it('知らないタブ名・空の指定は無視する（壊れたURLで開けなくしない）', () => {
@@ -34,7 +34,7 @@ describe('URLの読み取り', () => {
   // 先行対応でタブのボタンだけ隠したときは ?tab=content がまだ通っていた。同じ穴を二度開けない。
   it('削除した教材タブ（?tab=content）は無効な指定として扱う', () => {
     expect(parseAdminDeepLink('?tab=content')).toEqual({ tab: null, account: null });
-    expect(initialAdminTab(parseAdminDeepLink('?tab=content'))).toBe('today');
+    expect(initialAdminTab(parseAdminDeepLink('?tab=content'))).toBe('students');
   });
 });
 

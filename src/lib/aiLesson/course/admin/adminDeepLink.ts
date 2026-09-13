@@ -34,9 +34,9 @@ export const parseAdminDeepLink = (search: string): AdminDeepLink => {
   }
 };
 
-/** 最初に開くタブ。人の指定があれば生徒タブ、無指定なら今日 */
+/** 最初に開くタブ。指定が無ければ生徒一覧（2026-09-13 CEO: 一覧を主役に。「今日」は要対応の補助） */
 export const initialAdminTab = (link: AdminDeepLink): AdminTabId =>
-  link.tab ?? (link.account ? 'students' : 'today');
+  link.tab ?? 'students';
 
 export interface AccountLike { userId: string; loginId?: string | null; email?: string | null }
 

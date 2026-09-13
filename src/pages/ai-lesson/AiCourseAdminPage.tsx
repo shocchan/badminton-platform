@@ -68,8 +68,8 @@ type AdminTab = 'today' | 'students' | 'access' | 'ops';
  * 選択中タブの説明をタブバー直下に常時出す
  */
 const TABS: { id: AdminTab; label: string; desc: string; Icon: typeof Sun }[] = [
-  { id: 'today', label: '今日', desc: '今日の要対応まとめ。学習した人・止まっている人・期限接近・矛盾がここに並びます', Icon: Sun },
-  { id: 'students', label: '生徒', desc: '学習の中身。ログインして学習を始めた人の進捗を見る・調整する場所です', Icon: Users },
+  { id: 'students', label: '生徒', desc: '全員の一覧。プラン・旅人・目的・目標・最終学習・WeChat・個人リンク。行を押すと詳細', Icon: Users },
+  { id: 'today', label: '今日', desc: '今日の要対応まとめ。止まっている人・期限接近がここに並びます', Icon: Sun },
   { id: 'access', label: '受講権', desc: '契約の台帳。発行した全アカウント（未ログイン含む）の利用期間・商品を管理する場所です', Icon: KeyRound },
   /* 「教材」タブは 2026-08-25 に CEO 判断で管理画面から削除した（画面ごと・UIから完全に）。
      640件（語彙140・N2文法180・聴解320）を1件ずつ人の目で見る運用が現実的に回らなかったため。

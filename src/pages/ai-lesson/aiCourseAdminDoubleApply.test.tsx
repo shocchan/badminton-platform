@@ -158,8 +158,8 @@ const mount = () => render(
 /** 生徒タブ → 李さんの詳細ビューを開く（学習設計調整パネルが出るまで） */
 const openLiDetail = async () => {
   mount();
-  await screen.findByText('要対応');                                   // 今日タブがロード完了
-  fireEvent.click(screen.getAllByRole('button', { name: '生徒' })[0]); // タブバー（sm用が先頭）
+  // 既定タブは生徒一覧（2026-09-13）。一覧のフィルタチップが出たらロード完了
+  await screen.findByRole('button', { name: /^全部/ });
   const row = await screen.findByRole('button', { name: /李さん/ });   // モバイルカード（テーブル行はbutton roleでない）
   fireEvent.click(row);
   await screen.findByText('学習設計の調整（先生用）');
@@ -216,7 +216,7 @@ describe('管理ページ: 連続適用で1回目が消えない（P0・stale se
 
   it('受講権タブ: learner未作成（未ログイン）のアカウントでも期間を変更できる（SQL直叩きの穴の解消）', async () => {
     mount();
-    await screen.findByText('要対応');
+    await screen.findByRole('button', { name: /^全部/ });
     fireEvent.click(screen.getAllByRole('button', { name: '受講権' })[0]);
     await screen.findByText(/受講権の台帳/);
 

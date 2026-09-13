@@ -4,8 +4,11 @@
 // モバイル=カード1列 / sm以上=テーブル。並びは「要対応該当者 → 最終学習が新しい順」。
 // 表示する値はすべて §8 データソース対応表にある実在データのみ（原則13）。
 
-import { useMemo } from 'react';
-import { AlertTriangle, PauseCircle } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, PauseCircle, Link2, Copy, Check, Loader2 } from 'lucide-react';
+import { supabase } from '../../../services/supabaseClient';
+import { issueLearningCode } from '../../../lib/aiLesson/course/admin/learningCodesApi';
+import { formatLearningCode } from '../../../lib/aiLesson/course/learningCode';
 import { monthlyCapOf, profileSummaryOf } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { AdminAccountType, AdminAccountView } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { UsageLimits } from '../../../lib/aiLesson/course/admin/adminAccountsApi';
@@ -180,26 +183,85 @@ export const needsAttentionOf = (
 };
 
 // ── 本体 ──
+//
+// 2026-09-13 CEO「管理ページ余計なものが多くて使いこなせてない」→ 一覧を**羅列**に絞る。
+//   名前 / プラン・期限 / 旅人 / 目的 / 目標 / 最終学習 / 最終ログイン / WeChat / 個人リンク
+// 7日・30日・今月会話・累計$・種別バッジは一覧から外した（生徒詳細には残る）。
+// 個人リンクはその場で発行してコピーできる（前のリンクは無効になる。平文はこの1回だけ）。
 
-const FILTERS: (AdminAccountType | 'all')[] = ['student', 'test', 'admin', 'other', 'all'];
+const FILTERS: (AdminAccountType | 'all')[] = ['student', 'test', 'all'];
 const FILTER_LABELS: Record<AdminAccountType | 'all', string> = {
   student: '生徒', test: 'テスト', admin: '管理者', other: 'その他', all: '全部',
 };
 
-/** 今月会話の使用率バー（85%以上でamber・上限メーターと同じ意味色） */
-const UsageBar = ({ sessions, cap }: { sessions: number; cap: number }) => {
-  const ratio = cap > 0 ? Math.min(sessions / cap, 1) : 0;
-  const cls = ratio >= 0.85 ? 'bg-amber-500' : 'bg-blue-400';
+const STUDY_ORIGIN = 'https://study.kawabado.com';
+
+/** その場で個人リンクを発行してコピーする（AdminLearningCodePanel の最小版） */
+const InlineLearnLink = ({ userId, lang }: { userId: string; lang: 'ja' | 'zh' }) => {
+  const [busy, setBusy] = useState(false);
+  const [url, setUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const issue = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (busy) return;
+    if (url === null && !window.confirm('この人の個人リンクを発行します。前に配ったリンクは無効になります。よろしいですか？')) return;
+    setBusy(true); setErr(null);
+    const r = await issueLearningCode(userId, '', true);
+    setBusy(false);
+    if (!r.ok) { setErr('発行できませんでした'); return; }
+    setUrl(`${STUDY_ORIGIN}/${lang}/learn/${formatLearningCode(r.code)}`);
+  };
+  const copy = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!url) return;
+    try { await navigator.clipboard.writeText(url); setCopied(true); setTimeout(() => setCopied(false), 1500); } catch { /* 手でコピー */ }
+  };
+  if (url) {
+    return (
+      <span className="inline-flex items-center gap-1 max-w-[260px]" onClick={(e) => e.stopPropagation()}>
+        <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
+          className="min-w-0 flex-1 rounded border border-gray-200 bg-gray-50 px-1.5 py-1 text-[11px] text-gray-700" />
+        <button type="button" onClick={copy} className="inline-flex min-h-8 items-center gap-1 rounded-lg bg-blue-600 px-2 text-[11px] font-bold text-white">
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{copied ? '済' : 'コピー'}
+        </button>
+      </span>
+    );
+  }
   return (
-    <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden" role="progressbar"
-      aria-valuenow={sessions} aria-valuemax={cap}>
-      <div className={`h-full rounded-full ${cls}`} style={{ width: `${Math.round(ratio * 100)}%` }} />
-    </div>
+    <span className="inline-flex flex-col items-start gap-0.5">
+      <button type="button" onClick={issue} disabled={busy}
+        className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 text-[11px] font-bold text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+        {busy ? <Loader2 className="h-3 w-3 animate-spin" /> : <Link2 className="h-3 w-3" />}発行
+      </button>
+      {err && <span className="text-[10px] text-red-600">{err}</span>}
+    </span>
   );
+};
+
+const planLabelOf = (v: AdminAccountView): string => {
+  const p = profileSummaryOf(v);
+  const exp = expiryLabelOf(v);
+  return p.plan === '—' ? exp : `${p.plan}・${exp}`;
 };
 
 export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: Props) => {
   const todayKey = useMemo(() => jstTodayKey(), []);
+  /** WeChat ID（招待から登録した人）。email → wechat_id */
+  const [wechat, setWechat] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let alive = true;
+    void supabase.rpc('ai_admin_signup_contacts').then(({ data }) => {
+      if (!alive || !Array.isArray(data)) return;
+      const m = new Map<string, string>();
+      for (const r of data as { email?: string; wechat_id?: string | null }[]) {
+        if (r.email && r.wechat_id) m.set(r.email.toLowerCase(), r.wechat_id);
+      }
+      setWechat(m);
+    });
+    return () => { alive = false; };
+  }, []);
+  const wechatOf = (v: AdminAccountView): string => wechat.get((v.account.email ?? '').toLowerCase()) ?? '—';
 
   const counts = useMemo(() => {
     const c: Record<AdminAccountType | 'all', number> = { student: 0, test: 0, admin: 0, other: 0, all: views.length };
@@ -222,7 +284,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
 
   return (
     <div>
-      {/* 種別フィルタチップ */}
+      {/* 種別フィルタチップ（管理者・その他は「全部」に含める） */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
         {FILTERS.map((f) => (
           <button key={f} type="button" onClick={() => onFilter(f)}
@@ -241,49 +303,31 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
           {/* モバイル: カード1列 */}
           <ul className="mt-3 space-y-2 block sm:hidden">
             {rows.map((v) => {
-              const cap = monthlyCapOf(v, limits);
-              const sessions = v.monthUsage?.sessions ?? 0;
+              const p = profileSummaryOf(v);
               const last = lastStudyLabelOf(v.lastStudyDateKey, todayKey);
+              const lang = v.learner?.preferredLanguage ?? 'zh';
               return (
                 <li key={v.account.userId}>
-                  <button type="button" onClick={() => onSelect(v.account.userId)}
-                    className={`w-full min-h-11 text-left rounded-xl border bg-white p-3 active:opacity-80 ${needsAttentionOf(v, limits, todayKey) ? 'border-amber-300' : 'border-gray-200'}`}>
-                    <span className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-sm font-bold text-gray-900">{displayNameOf(v)}</span>
-                      {displayNameOf(v) !== v.account.loginId && (
-                        <span className="text-[11px] text-gray-400">({v.account.loginId})</span>
-                      )}
-                      <TypeBadge type={v.type} />
-                      <StateBadges view={v} />
-                    </span>
-                    {(() => { const p = profileSummaryOf(v); return (
-                      <span className="mt-1 block text-[11px] text-gray-600 tabular-nums">
-                        {p.plan}・旅人 {p.traveler}・{p.goal}・{p.target}
+                  <div className={`w-full rounded-xl border bg-white p-3 ${needsAttentionOf(v, limits, todayKey) ? 'border-amber-300' : 'border-gray-200'}`}>
+                    <button type="button" onClick={() => onSelect(v.account.userId)} className="w-full text-left">
+                      <span className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-sm font-bold text-gray-900">{displayNameOf(v)}</span>
+                        {displayNameOf(v) !== v.account.loginId && (
+                          <span className="text-[11px] text-gray-400">({v.account.loginId})</span>
+                        )}
+                        <StateBadges view={v} />
                       </span>
-                    ); })()}
-                    <span className="mt-2 grid grid-cols-3 gap-2">
-                      <span className="block">
-                        <span className="block text-[10px] text-gray-500">最終学習</span>
-                        <span className={`block text-sm font-bold tabular-nums ${last.warn ? 'text-amber-700' : 'text-gray-900'}`}>{last.label}</span>
+                      <span className="mt-1 block text-[12px] text-gray-700 tabular-nums">
+                        {planLabelOf(v)}・旅人 {p.traveler}・{p.goal}・{p.target}
                       </span>
-                      <span className="block">
-                        <span className="block text-[10px] text-gray-500">直近7日</span>
-                        <span className="block text-sm font-bold tabular-nums text-gray-900">
-                          {v.adv ? `${v.adv.studyDays7}日` : '—'}
-                        </span>
+                      <span className="mt-0.5 block text-[11px] text-gray-500 tabular-nums">
+                        最終学習 <b className={last.warn ? 'text-amber-700' : 'text-gray-800'}>{last.label}</b>
+                        ・最終ログイン {jstDateTimeLabel(v.account.lastSignInAtISO)}
+                        ・WeChat {wechatOf(v)}
                       </span>
-                      <span className="block">
-                        <span className="block text-[10px] text-gray-500">今月AI会話</span>
-                        <span className={`block text-sm font-bold tabular-nums ${cap > 0 && sessions / cap >= 0.85 ? 'text-amber-700' : 'text-gray-900'}`}>
-                          {sessions}/{cap}
-                        </span>
-                        <UsageBar sessions={sessions} cap={cap} />
-                      </span>
-                    </span>
-                    <span className="mt-1.5 block text-[11px] text-gray-500 tabular-nums">
-                      {expiryLabelOf(v)} ・ 累計${v.account.usage.totalCostUsd.toFixed(2)}
-                    </span>
-                  </button>
+                    </button>
+                    <div className="mt-2"><InlineLearnLink userId={v.account.userId} lang={lang} /></div>
+                  </div>
                 </li>
               );
             })}
@@ -291,30 +335,25 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
 
           {/* sm以上: テーブル（横スクロールはこの箱の中だけ） */}
           <div className="mt-3 hidden sm:block overflow-x-auto rounded-xl border border-gray-200 bg-white">
-            <table className="w-full min-w-[1040px] text-sm">
+            <table className="w-full min-w-[960px] text-sm">
               <thead>
                 <tr className="text-left text-[11px] text-gray-500">
                   <th className="px-3 py-2 font-medium">名前（ID）</th>
-                  <th className="px-2 py-2 font-medium">種別</th>
-                  <th className="px-2 py-2 font-medium">状態</th>
-                  <th className="px-2 py-2 font-medium">プラン</th>
+                  <th className="px-2 py-2 font-medium">プラン・期限</th>
                   <th className="px-2 py-2 font-medium">旅人</th>
                   <th className="px-2 py-2 font-medium">目的</th>
                   <th className="px-2 py-2 font-medium">目標</th>
                   <th className="px-2 py-2 font-medium">最終学習</th>
-                  <th className="px-2 py-2 font-medium">最終認証</th>
-                  <th className="px-2 py-2 font-medium text-right">7日</th>
-                  <th className="px-2 py-2 font-medium text-right">30日</th>
-                  <th className="px-2 py-2 font-medium text-right">今月会話</th>
-                  <th className="px-2 py-2 font-medium text-right">累計$</th>
-                  <th className="px-3 py-2 font-medium text-right">期限</th>
+                  <th className="px-2 py-2 font-medium">最終ログイン</th>
+                  <th className="px-2 py-2 font-medium">WeChat</th>
+                  <th className="px-3 py-2 font-medium">個人リンク</th>
                 </tr>
               </thead>
               <tbody>
                 {rows.map((v) => {
-                  const cap = monthlyCapOf(v, limits);
-                  const sessions = v.monthUsage?.sessions ?? 0;
+                  const p = profileSummaryOf(v);
                   const last = lastStudyLabelOf(v.lastStudyDateKey, todayKey);
+                  const lang = v.learner?.preferredLanguage ?? 'zh';
                   return (
                     <tr key={v.account.userId} onClick={() => onSelect(v.account.userId)}
                       className="cursor-pointer border-t border-gray-100 hover:bg-blue-50/50">
@@ -323,26 +362,16 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                         {displayNameOf(v) !== v.account.loginId && (
                           <span className="ml-1 text-[11px] text-gray-400">({v.account.loginId})</span>
                         )}
+                        <span className="ml-1"><StateBadges view={v} /></span>
                       </td>
-                      <td className="px-2 py-2.5"><TypeBadge type={v.type} /></td>
-                      <td className="px-2 py-2.5"><StateBadges view={v} /></td>
-                      {(() => { const p = profileSummaryOf(v); return (
-                        <>
-                          <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.plan}</td>
-                          <td className="px-2 py-2.5 text-xs text-gray-700">{p.traveler}</td>
-                          <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.goal}</td>
-                          <td className="px-2 py-2.5 text-xs text-gray-700 tabular-nums">{p.target}</td>
-                        </>
-                      ); })()}
-                      <td className={`px-2 py-2.5 tabular-nums ${last.warn ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{last.label}</td>
-                      <td className="px-2 py-2.5 text-xs text-gray-500 tabular-nums">{jstDateTimeLabel(v.account.lastSignInAtISO)}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-gray-700">{v.adv ? v.adv.studyDays7 : '—'}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-gray-700">{v.adv ? v.adv.studyDays30 : '—'}</td>
-                      <td className={`px-2 py-2.5 text-right tabular-nums ${cap > 0 && sessions / cap >= 0.85 ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>
-                        {sessions}/{cap}
-                      </td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-gray-700">${v.account.usage.totalCostUsd.toFixed(2)}</td>
-                      <td className="px-3 py-2.5 text-right tabular-nums text-gray-700">{expiryLabelOf(v)}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap tabular-nums">{planLabelOf(v)}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700">{p.traveler}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.goal}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700 tabular-nums">{p.target}</td>
+                      <td className={`px-2 py-2.5 tabular-nums whitespace-nowrap ${last.warn ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{last.label}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-500 tabular-nums whitespace-nowrap">{jstDateTimeLabel(v.account.lastSignInAtISO)}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700">{wechatOf(v)}</td>
+                      <td className="px-3 py-2.5"><InlineLearnLink userId={v.account.userId} lang={lang} /></td>
                     </tr>
                   );
                 })}
@@ -353,7 +382,8 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
       )}
 
       <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
-        最終認証＝OTP/パスワードで認証し直した日時。セッション保持中の学習では更新されません。
+        最終ログイン＝個人リンクまたはID・パスワードで入った最後の日時。個人リンクの「発行」は前のリンクを無効にし、URLはその場でしか表示されません。
+        行をタップすると詳細（学習内容・受講権の変更・WeChat・問題報告）が開きます。
       </p>
     </div>
   );
