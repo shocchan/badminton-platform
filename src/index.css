@@ -26,6 +26,7 @@
   from { stroke-dashoffset: var(--kb-trail-len, 400); }
   to   { stroke-dashoffset: 0; }
 }
+@keyframes kb-active-road-flow { to { stroke-dashoffset: -36; } }
 
 @media (prefers-reduced-motion: no-preference) {
   /* 霧は漂う。地域ごとに位相をずらして、一枚絵に見えないようにする */
@@ -52,6 +53,7 @@
     animation: kb-trail-draw 1.5s ease-out both;
     animation-delay: var(--kb-delay, 0s);
   }
+  .kb-map-active-road { animation: kb-active-road-flow 1.8s linear infinite; }
 }
 
 /* ── カワバド本体 ブランドトークン（大会ページ系。ロゴの青と接続するネイビー基調） ── */
@@ -488,8 +490,8 @@
 /* Quiet map selection response; decorative only. */
 @keyframes kb-traveler-greet {
   0%, 100% { transform: translateY(0) rotate(0); }
-  45% { transform: translateY(-2px) rotate(-3deg); }
+  45% { transform: translateY(-4px) rotate(-2deg); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .kb-map-traveler { animation: kb-traveler-greet 0.6s ease-out; }
+  .kb-map-traveler { animation: kb-traveler-greet 1.8s ease-in-out infinite; }
 }

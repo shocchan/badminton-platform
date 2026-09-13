@@ -216,7 +216,7 @@ export const CloudSea = ({ uid, edgeY, veil = 'solid' }: {
   const fadeFrom = Math.max(0, 1 - 120 / (edgeY + 40));
   const mist = veil === 'mist';
   const op = mist
-    ? { top: '0.62', mid: '0.54', bottom: '0.18', under: 0.25, over: 0.35, puff: 0.7 }
+    ? { top: '0.30', mid: '0.22', bottom: '0.06', under: 0.10, over: 0.14, puff: 0.36 }
     : { top: '0.94', mid: '0.88', bottom: '0.38', under: 0.45, over: 0.65, puff: 0.85 };
   return (
     <g>
