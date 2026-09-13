@@ -213,6 +213,8 @@ const SCOPE = {
   },
 } as const;
 
+import { inviteVisit, trackInvite, type InviteVisit } from '../../lib/aiLesson/course/inviteAnalytics';
+
 export function InviteLandingPage() {
   const { lang: rawLang } = useParams();
   const lang: L = rawLang === 'zh' ? 'zh' : 'ja';
@@ -220,6 +222,11 @@ export function InviteLandingPage() {
   const sc = SCOPE[lang];
   const v = VARIANTS.shoko;
   const invite = inviteCodeFromSearch(typeof window === 'undefined' ? '' : window.location.search);
+  const visitRef = useRef<InviteVisit | null>(null);
+  const visitKeyRef = useRef('');
+  const visitKey = `${invite}:${lang}`;
+  if (visitKeyRef.current !== visitKey) { visitRef.current = inviteVisit(invite); visitKeyRef.current = visitKey; }
+  useEffect(() => { trackInvite(invite, 'invite_page_view', visitRef.current); }, [invite, lang]);
   const [theme] = useState(currentLpTheme);
   const [cd, setCd] = useState(() => countdownTo(INVITE_CAMPAIGN.deadlineISO));
   const examDays = daysUntil(INVITE_CAMPAIGN.examDateISO);
@@ -244,7 +251,8 @@ export function InviteLandingPage() {
   const send = async () => {
     if (busy || !email.trim() || wechat.trim().length < 2) return;
     setError(''); setBusy(true);
-    const r = await signupWithInvite(email, invite, lang, wechat);
+    trackInvite(invite, 'invite_registration_started', visitRef.current);
+    const r = await signupWithInvite(email, invite, lang, wechat, visitRef.current);
     setBusy(false);
     if (!r.ok) {
       setError(msg(r.code));
