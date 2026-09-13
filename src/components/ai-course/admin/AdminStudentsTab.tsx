@@ -9,6 +9,7 @@ import { AlertTriangle, PauseCircle, Link2, Copy, Check, Loader2 } from 'lucide-
 import { supabase } from '../../../services/supabaseClient';
 import { issueLearningCode } from '../../../lib/aiLesson/course/admin/learningCodesApi';
 import { formatLearningCode } from '../../../lib/aiLesson/course/learningCode';
+import { fetchPlainLearningCodes, fetchReferralTree, learnUrlOf, type PlainLearningCode, type ReferralTreeRow } from '../../../lib/aiLesson/course/admin/adminReferralApi';
 import { monthlyCapOf, profileSummaryOf } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { AdminAccountType, AdminAccountView } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { UsageLimits } from '../../../lib/aiLesson/course/admin/adminAccountsApi';
@@ -196,10 +197,13 @@ const FILTER_LABELS: Record<AdminAccountType | 'all', string> = {
 
 const STUDY_ORIGIN = 'https://study.kawabado.com';
 
-/** その場で個人リンクを発行してコピーする（AdminLearningCodePanel の最小版） */
-const InlineLearnLink = ({ userId, lang }: { userId: string; lang: 'ja' | 'zh' }) => {
+/**
+ * 個人リンク（2026-09-13 CEO指示: 配ったリンクをそのまま表示。押せば自分も入れる／コピーして生徒に再送できる）。
+ * 平文が台帳にある人（2026-09-13 以降の発行）はそのまま出す。無い人は「発行」（前のリンクは無効になる）
+ */
+const InlineLearnLink = ({ userId, lang, known }: { userId: string; lang: 'ja' | 'zh'; known: PlainLearningCode | null }) => {
   const [busy, setBusy] = useState(false);
-  const [url, setUrl] = useState<string | null>(null);
+  const [url, setUrl] = useState<string | null>(known ? learnUrlOf(known.code, lang) : null);
   const [copied, setCopied] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const issue = async (e: React.MouseEvent) => {
@@ -219,12 +223,17 @@ const InlineLearnLink = ({ userId, lang }: { userId: string; lang: 'ja' | 'zh' }
   };
   if (url) {
     return (
-      <span className="inline-flex items-center gap-1 max-w-[260px]" onClick={(e) => e.stopPropagation()}>
-        <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
-          className="min-w-0 flex-1 rounded border border-gray-200 bg-gray-50 px-1.5 py-1 text-[11px] text-gray-700" />
-        <button type="button" onClick={copy} className="inline-flex min-h-8 items-center gap-1 rounded-lg bg-blue-600 px-2 text-[11px] font-bold text-white">
-          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{copied ? '済' : 'コピー'}
-        </button>
+      <span className="inline-flex flex-col items-start gap-0.5 max-w-[300px]" onClick={(e) => e.stopPropagation()}>
+        <span className="inline-flex items-center gap-1 w-full">
+          <a href={url} target="_blank" rel="noopener" title="このリンクで生徒として入る（別タブ）"
+            className="min-w-0 flex-1 truncate rounded border border-gray-200 bg-gray-50 px-1.5 py-1 text-[11px] text-blue-700 underline underline-offset-2">
+            {url.replace('https://study.kawabado.com', '')}
+          </a>
+          <button type="button" onClick={copy} className="inline-flex min-h-8 items-center gap-1 rounded-lg bg-blue-600 px-2 text-[11px] font-bold text-white">
+            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}{copied ? '済' : 'コピー'}
+          </button>
+        </span>
+        {known && <span className="text-[10px] text-gray-400 tabular-nums">使用 {known.useCount}回{known.lastUsedAtISO ? `・最終 ${jstDateTimeLabel(known.lastUsedAtISO)}` : ''}</span>}
       </span>
     );
   }
@@ -262,6 +271,18 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
     return () => { alive = false; };
   }, []);
   const wechatOf = (v: AdminAccountView): string => wechat.get((v.account.email ?? '').toLowerCase()) ?? '—';
+  /** 配った個人リンク（平文が台帳にある人）と、紹介の紐づけ */
+  const [plain, setPlain] = useState<Map<string, PlainLearningCode>>(new Map());
+  const [tree, setTree] = useState<ReferralTreeRow[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void fetchPlainLearningCodes().then((m) => { if (alive) setPlain(m); });
+    void fetchReferralTree().then((r) => { if (alive) setTree(r); });
+    return () => { alive = false; };
+  }, []);
+  const referredCount = (v: AdminAccountView): number => tree.filter((r) => r.referrerUserId === v.account.userId).length;
+  const referredRewarded = (v: AdminAccountView): number => tree.filter((r) => r.referrerUserId === v.account.userId && r.rewardedAtISO).length;
+  const referredBy = (v: AdminAccountView): ReferralTreeRow | undefined => tree.find((r) => r.inviteeUserId === v.account.userId);
 
   const counts = useMemo(() => {
     const c: Record<AdminAccountType | 'all', number> = { student: 0, test: 0, admin: 0, other: 0, all: views.length };
@@ -326,7 +347,13 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                         ・WeChat {wechatOf(v)}
                       </span>
                     </button>
-                    <div className="mt-2"><InlineLearnLink userId={v.account.userId} lang={lang} /></div>
+                    {(referredCount(v) > 0 || referredBy(v)) && (
+                      <span className="mt-0.5 block text-[11px] text-amber-800">
+                        {referredCount(v) > 0 ? `紹介 ${referredCount(v)}人（延長 ${referredRewarded(v)}）` : ''}
+                        {referredBy(v) ? `${referredCount(v) > 0 ? '・' : ''}${referredBy(v)!.referrerName} の招待から` : ''}
+                      </span>
+                    )}
+                    <div className="mt-2"><InlineLearnLink userId={v.account.userId} lang={lang} known={plain.get(v.account.userId) ?? null} /></div>
                   </div>
                 </li>
               );
@@ -335,7 +362,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
 
           {/* sm以上: テーブル（横スクロールはこの箱の中だけ） */}
           <div className="mt-3 hidden sm:block overflow-x-auto rounded-xl border border-gray-200 bg-white">
-            <table className="w-full min-w-[960px] text-sm">
+            <table className="w-full min-w-[1080px] text-sm">
               <thead>
                 <tr className="text-left text-[11px] text-gray-500">
                   <th className="px-3 py-2 font-medium">名前（ID）</th>
@@ -346,6 +373,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                   <th className="px-2 py-2 font-medium">最終学習</th>
                   <th className="px-2 py-2 font-medium">最終ログイン</th>
                   <th className="px-2 py-2 font-medium">WeChat</th>
+                  <th className="px-2 py-2 font-medium">紹介</th>
                   <th className="px-3 py-2 font-medium">個人リンク</th>
                 </tr>
               </thead>
@@ -371,7 +399,11 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                       <td className={`px-2 py-2.5 tabular-nums whitespace-nowrap ${last.warn ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{last.label}</td>
                       <td className="px-2 py-2.5 text-xs text-gray-500 tabular-nums whitespace-nowrap">{jstDateTimeLabel(v.account.lastSignInAtISO)}</td>
                       <td className="px-2 py-2.5 text-xs text-gray-700">{wechatOf(v)}</td>
-                      <td className="px-3 py-2.5"><InlineLearnLink userId={v.account.userId} lang={lang} /></td>
+                      <td className="px-2 py-2.5 text-[11px] text-gray-700 whitespace-nowrap">
+                        {referredCount(v) > 0 ? <span className="font-bold text-amber-800">{referredCount(v)}人（延長{referredRewarded(v)}）</span> : '—'}
+                        {referredBy(v) && <span className="block text-gray-400">← {referredBy(v)!.referrerName}</span>}
+                      </td>
+                      <td className="px-3 py-2.5"><InlineLearnLink userId={v.account.userId} lang={lang} known={plain.get(v.account.userId) ?? null} /></td>
                     </tr>
                   );
                 })}
@@ -382,7 +414,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
       )}
 
       <p className="mt-2 text-[11px] leading-relaxed text-gray-400">
-        最終ログイン＝個人リンクまたはID・パスワードで入った最後の日時。個人リンクの「発行」は前のリンクを無効にし、URLはその場でしか表示されません。
+        最終ログイン＝個人リンクまたはID・パスワードで入った最後の日時。個人リンクは配ったものをそのまま表示します（押すとその生徒として入れます）。2026-09-13 より前に配ったリンクは表示できないので、一度「発行」してください（前のリンクは無効になります）。
         行をタップすると詳細（学習内容・受講権の変更・WeChat・問題報告）が開きます。
       </p>
     </div>

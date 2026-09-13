@@ -12,6 +12,7 @@ import type { CourseSessionRecord, ItemProgress } from '../../../lib/aiLesson/co
 import { CourseUsageCostCard } from '../CourseUsageCostCard';
 import { AdminStudentV2Stats } from './AdminStudentV2Stats';
 import { AdminConversationStats } from './AdminConversationStats';
+import { AdminReferralSection } from './AdminReferralSection';
 import { TypeBadge, StateBadges, displayNameOf, jstDateLabel } from './AdminStudentsTab';
 import type { AdminAccountView } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 
@@ -210,6 +211,9 @@ export const AdminStudentDetail = ({
           </p>
         </div>
       )}
+
+      {/* 6.5 紹介（この人の招待から誰が登録したか・2026-09-13） */}
+      <AdminReferralSection userId={account.userId} />
 
       {/* 7. panels スロット（integratorが注入） */}
       {panels}

@@ -463,7 +463,7 @@ export default function AiCoursePage() {
     void fetchMyReferralInvite().then((r) => {
       if (!alive || !r) return;
       setRefInvite(r);
-      if (!inviteFriendsSeen(typeof localStorage === 'undefined' ? null : localStorage)) setShowInvitePopup(true);
+      if (!inviteFriendsSeen(typeof sessionStorage === 'undefined' ? null : sessionStorage)) setShowInvitePopup(true);
     });
     return () => { alive = false; };
   }, [step, learner, refInvite]);
@@ -1811,7 +1811,7 @@ export default function AiCoursePage() {
         v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
         {showInvitePopup && refInvite && (
           <InviteFriendsPopup lang={uiLang} invite={refInvite}
-            onClose={() => { markInviteFriendsSeen(typeof localStorage === 'undefined' ? null : localStorage); setShowInvitePopup(false); }} />
+            onClose={() => { markInviteFriendsSeen(typeof sessionStorage === 'undefined' ? null : sessionStorage); setShowInvitePopup(false); }} />
         )}
         {planTopSlot}
         {/*

@@ -36,10 +36,15 @@ export const fetchMyReferralInvite = async (): Promise<MyReferralInvite | null> 
 export const inviteUrl = (code: string, lang: 'ja' | 'zh', origin = 'https://kawabado.com'): string =>
   `${origin}/${lang}/invite?invite=${code}`;
 
-/** WeChat にそのまま貼れる文面（リンク込み） */
-export const inviteMessage = (code: string, lang: 'ja' | 'zh'): string => {
-  const url = inviteUrl(code, lang);
-  if (lang === 'zh') {
+/**
+ * WeChat にそのまま貼れる文面（リンク込み）。
+ * 送る相手は中国語話者なので、**画面の言語に関係なく中文・/zh のリンク**（2026-09-13 CEO指示）。
+ * 日本語は先生の確認用に残す（forceZh=false のとき）
+ */
+export const inviteMessage = (code: string, lang: 'ja' | 'zh', forceZh = true): string => {
+  const useZh = forceZh || lang === 'zh';
+  const url = inviteUrl(code, useZh ? 'zh' : 'ja');
+  if (useZh) {
     return [
       '我在用一个日语学习系统「你的日语搭档」。',
       '第1天8分钟测出你现在的位置（词汇・语法），之后每天10分钟只做你缺的。',
@@ -55,7 +60,11 @@ export const inviteMessage = (code: string, lang: 'ja' | 'zh'): string => {
   ].join('\n');
 };
 
-const SEEN_KEY = 'kawabado.aiCourse.inviteFriends.seen.v1';
+/**
+ * ポップは**しばらく毎回のログインで出す**（2026-09-13 CEO指示）。閉じたらそのタブ（セッション）では出さない。
+ * 渡す storage は sessionStorage。やめるときはここを localStorage に戻すだけ
+ */
+const SEEN_KEY = 'kawabado.aiCourse.inviteFriends.seen.v2';
 export const inviteFriendsSeen = (storage: Pick<Storage, 'getItem'> | null): boolean => {
   try { return !!storage?.getItem(SEEN_KEY); } catch { return true; }
 };

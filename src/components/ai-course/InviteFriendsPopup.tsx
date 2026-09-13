@@ -22,7 +22,8 @@ const useCopy = () => {
 const Body = ({ lang, invite, compact }: { lang: 'ja' | 'zh'; invite: MyReferralInvite; compact?: boolean }) => {
   const zh = lang === 'zh';
   const { copied, copy } = useCopy();
-  const url = inviteUrl(invite.code, lang);
+  // 送る相手は中国語話者。リンクも文面も中文で固定（画面が日本語でも）
+  const url = inviteUrl(invite.code, 'zh');
   const message = inviteMessage(invite.code, lang);
   const left = Math.max(0, invite.cap - invite.rewarded);
   const capped = left === 0;
