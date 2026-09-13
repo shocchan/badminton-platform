@@ -1,4 +1,4 @@
-deployed_at: 2026-09-13 21:29:26 +0900
+deployed_at: 2026-09-13 21:57:18 +0900
 branch:      integration/unify-2026-08-28
-commit:      d7d209b3642dc22d0e5d3f559286369e5b8b1dc7
-asset:       assets/index-Co_VT561.js
+commit:      c90762f329f689b3d776a20777fd1d23fb5857c9
+asset:       assets/index-BgRxftwA.js
