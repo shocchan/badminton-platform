@@ -290,9 +290,23 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
     return c;
   }, [views]);
 
+  /** 並び順（2026-09-13 CEO指示）: 要対応→最終学習（既定）／発行 新しい順／発行 古い順／最近ログイン順 */
+  type SortKey = 'attention' | 'createdDesc' | 'createdAsc' | 'loginDesc';
+  const [sort, setSort] = useState<SortKey>('attention');
+  const SORTS: { id: SortKey; label: string }[] = [
+    { id: 'attention', label: '要対応・最終学習' },
+    { id: 'createdDesc', label: '発行 新しい順' },
+    { id: 'createdAsc', label: '発行 古い順' },
+    { id: 'loginDesc', label: '最近ログイン順' },
+  ];
   const rows = useMemo(() => {
     const filtered = filter === 'all' ? views : views.filter((v) => v.type === filter);
+    const created = (v: AdminAccountView) => v.account.userCreatedAtISO ?? '';
+    const login = (v: AdminAccountView) => v.account.lastSignInAtISO ?? '';
     return [...filtered].sort((a, b) => {
+      if (sort === 'createdDesc') return created(b).localeCompare(created(a)) || displayNameOf(a).localeCompare(displayNameOf(b), 'ja');
+      if (sort === 'createdAsc') return created(a).localeCompare(created(b)) || displayNameOf(a).localeCompare(displayNameOf(b), 'ja');
+      if (sort === 'loginDesc') return login(b).localeCompare(login(a)) || displayNameOf(a).localeCompare(displayNameOf(b), 'ja');
       const aa = needsAttentionOf(a, limits, todayKey);
       const ba = needsAttentionOf(b, limits, todayKey);
       if (aa !== ba) return aa ? -1 : 1;
@@ -301,7 +315,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
       if (ak !== bk) return ak > bk ? -1 : 1;   // 最終学習が新しい順（なしは最後）
       return displayNameOf(a).localeCompare(displayNameOf(b), 'ja');
     });
-  }, [views, filter, limits, todayKey]);
+  }, [views, filter, limits, todayKey, sort]);
 
   return (
     <div>
@@ -313,6 +327,17 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
               ? 'border-blue-600 bg-blue-50 text-blue-700 font-bold'
               : 'border-gray-200 bg-white text-gray-600'}`}>
             {FILTER_LABELS[f]}（{counts[f]}）
+          </button>
+        ))}
+      </div>
+
+      {/* 並び替え */}
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[12px]" role="group" aria-label="並び替え">
+        <span className="text-gray-500">並び:</span>
+        {SORTS.map((o) => (
+          <button key={o.id} type="button" onClick={() => setSort(o.id)} aria-pressed={sort === o.id}
+            className={`min-h-8 rounded-full border px-2.5 ${sort === o.id ? 'border-gray-800 bg-gray-800 text-white font-bold' : 'border-gray-200 bg-white text-gray-600'}`}>
+            {o.label}
           </button>
         ))}
       </div>
@@ -392,7 +417,7 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                         )}
                         <span className="ml-1"><StateBadges view={v} /></span>
                       </td>
-                      <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap tabular-nums">{planLabelOf(v)}</td>
+                      <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap tabular-nums">{planLabelOf(v)}<span className="block text-[10px] text-gray-400">発行 {jstDateLabel(v.account.userCreatedAtISO)}</span></td>
                       <td className="px-2 py-2.5 text-xs text-gray-700">{p.traveler}</td>
                       <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.goal}</td>
                       <td className="px-2 py-2.5 text-xs text-gray-700 tabular-nums">{p.target}</td>
