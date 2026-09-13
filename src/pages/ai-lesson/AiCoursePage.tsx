@@ -27,6 +27,8 @@ import { PlanStatusChip } from '../../components/ai-course/PlanStatusChip';
 import { AccessPeriodChip } from '../../components/ai-course/AccessPeriodChip';
 import { TrialStartScreen } from '../../components/ai-course/TrialStartScreen';
 import { InvitePerkScreen } from '../../components/ai-course/InvitePerkScreen';
+import { InviteFriendsPopup, InviteFriendsCard } from '../../components/ai-course/InviteFriendsPopup';
+import { fetchMyReferralInvite, inviteFriendsSeen, markInviteFriendsSeen, type MyReferralInvite } from '../../lib/aiLesson/course/referralInvite';
 import { fetchMyInvitePerks, pendingInvitePerks, type InvitePerk } from '../../lib/aiLesson/course/invitePerks';
 import { TrialEndedUpgrade } from '../../components/ai-course/TrialEndedUpgrade';
 import { buildTrialSummary, type TrialSummary } from '../../lib/aiLesson/course/plans/trialSummary';
@@ -302,6 +304,12 @@ export default function AiCoursePage() {
   const [pendingPerk, setPendingPerk] = useState<InvitePerk | null>(null);
   const [perkLater, setPerkLater] = useState(false);
   /**
+   * 友達を招待して +7日（2026-09-13 CEO決定）。1日目の診断を終えた人にだけ出す。
+   * ポップは初回1回（ブラウザに記録）。以降はホーム上のカード
+   */
+  const [refInvite, setRefInvite] = useState<MyReferralInvite | null>(null);
+  const [showInvitePopup, setShowInvitePopup] = useState(false);
+  /**
    * 体験終了画面に出す「あなたの現在地」（2026-08-26）。
    * 受講権ゲートで止まる人は learner/progress を読み込む前に return しているので、
    * この画面のためだけに読み直す。失敗したら null のまま（作り話をしない）。
@@ -446,6 +454,19 @@ export default function AiCoursePage() {
     dismissedAtISO: referralDismissedAt,
     nowISO: new Date().toISOString(),
   }), [sessions, reviewedNoteIds, learner, progress.length, referralDismissedAt]);
+
+  useEffect(() => {
+    if (step !== 'home' || !learner || refInvite) return;
+    const adv = readAdvProfile(learner.settings);
+    if (!adv?.diagnosis?.completedAt) return;
+    let alive = true;
+    void fetchMyReferralInvite().then((r) => {
+      if (!alive || !r) return;
+      setRefInvite(r);
+      if (!inviteFriendsSeen(typeof localStorage === 'undefined' ? null : localStorage)) setShowInvitePopup(true);
+    });
+    return () => { alive = false; };
+  }, [step, learner, refInvite]);
 
   useEffect(() => {
     if (step !== 'home' || referral || !shouldShowReferral(referralSignals)) return;
@@ -1211,7 +1232,9 @@ export default function AiCoursePage() {
   /* AI会話の残り回数はホーム上部には出さない（2026-09-11 CEO要望）。
      プランの無い生徒に「使い切りました」と出ていた。残りは「ほかの学習」のAI会話の行だけで見せる */
   /* 紹介（D-5）。出すのは成功体験のあとだけ。閉じられたら30日は出さない */
-  const referralCard = referral ? (
+  const referralCard = refInvite ? (
+    <InviteFriendsCard lang={uiLang} invite={refInvite} />
+  ) : referral ? (
     <ReferralCard lang={uiLang} referral={referral}
       onDismiss={() => {
         const now = new Date().toISOString();
@@ -1786,6 +1809,10 @@ export default function AiCoursePage() {
     return (
       <Shell teacherId={advTeacherId} accountLabel={accountLabel} t={t} lang={uiLang} onToggleLang={toggleLang}
         v2Mode={advOn} nav={navFor(advNavKey)} showLab={labAllowed}>
+        {showInvitePopup && refInvite && (
+          <InviteFriendsPopup lang={uiLang} invite={refInvite}
+            onClose={() => { markInviteFriendsSeen(typeof localStorage === 'undefined' ? null : localStorage); setShowInvitePopup(false); }} />
+        )}
         {planTopSlot}
         {/*
           学習画面で何かが落ちても、真っ白にしない（2026-08-28 統合で復帰・元は 2a0a2a8）。

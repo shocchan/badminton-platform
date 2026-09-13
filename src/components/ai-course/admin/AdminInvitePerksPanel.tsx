@@ -14,14 +14,14 @@ interface Row {
   inviteeEmail: string;
   inviteCode: string;
   createdAt: string;
-  perk: 'mv' | 'month' | 'grammar' | null;
+  perk: 'mv' | 'month' | 'grammar' | 'week' | null;
   chosenAt: string | null;
   fulfilledAt: string | null;
   note: string | null;
 }
 
 const PERK_LABEL: Record<NonNullable<Row['perk']>, string> = {
-  mv: 'オリジナルMV', month: '利用1か月追加', grammar: '文法完全版（スライド）',
+  mv: 'オリジナルMV', month: '利用1か月追加', grammar: '文法完全版（スライド）', week: '紹介 +7日（自動）',
 };
 const jst = (iso: string | null): string => (iso ? new Date(iso).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—');
 
@@ -43,7 +43,7 @@ export const AdminInvitePerksPanel = () => {
     setBusy(null);
   };
 
-  const todo = (rows ?? []).filter((r) => r.perk && r.perk !== 'month' && !r.fulfilledAt).length;
+  const todo = (rows ?? []).filter((r) => r.perk && r.perk !== 'month' && r.perk !== 'week' && !r.fulfilledAt).length;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4" data-testid="admin-invite-perks">
@@ -51,7 +51,7 @@ export const AdminInvitePerksPanel = () => {
         <Gift className="w-4 h-4 text-amber-600" aria-hidden="true" />紹介の特典
         {todo > 0 && <span className="ml-1 text-xs font-medium text-amber-700">渡すもの {todo}件</span>}
       </p>
-      <p className="text-[11px] text-gray-500 mb-2">生徒の招待コードから来た人が7日間を始めると1件できます。本人が選んだ特典を渡したら「渡した」を押してください。1か月追加は自動で済んでいます。</p>
+      <p className="text-[11px] text-gray-500 mb-2">先生が紐づけた招待（3択）は本人が選んだ特典を渡したら「渡した」を押してください。生徒本人の招待リンク（+7日）は診断完了時に自動で延長されます。</p>
       {rows === null ? (
         <p className="text-xs text-gray-500">読み込み中…</p>
       ) : rows.length === 0 ? (
@@ -59,7 +59,7 @@ export const AdminInvitePerksPanel = () => {
       ) : (
         <ul className="space-y-2">
           {rows.map((r) => {
-            const needsHand = r.perk && r.perk !== 'month';
+            const needsHand = r.perk && r.perk !== 'month' && r.perk !== 'week';
             const open = needsHand && !r.fulfilledAt;
             return (
               <li key={r.id} className={`border rounded-lg p-3 text-xs ${open ? 'border-amber-200 bg-amber-50' : 'border-gray-100 bg-gray-50'}`}>
@@ -73,7 +73,8 @@ export const AdminInvitePerksPanel = () => {
                     <span className={`font-bold ${r.perk ? 'text-gray-800' : 'text-gray-500'}`}>
                       {r.perk ? PERK_LABEL[r.perk] : '未選択'}
                     </span>
-                    {r.perk === 'month' && <span className="text-emerald-700">自動で済</span>}
+                    {(r.perk === 'month' || (r.perk === 'week' && r.fulfilledAt)) && <span className="text-emerald-700">自動で済</span>}
+                    {r.perk === 'week' && !r.fulfilledAt && <span className="text-gray-500">上限超え・延長なし</span>}
                     {needsHand && (
                       <button type="button" disabled={busy === r.id} onClick={() => void fulfill(r.id, !r.fulfilledAt)}
                         className={`min-h-9 rounded-lg px-3 font-bold ${r.fulfilledAt ? 'border border-gray-300 text-gray-600' : 'bg-emerald-600 text-white'}`}>

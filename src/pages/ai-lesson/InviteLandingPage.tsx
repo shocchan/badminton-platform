@@ -17,6 +17,7 @@ import { LEGAL_PUBLISH } from '../../lib/aiLesson/course/legal/legalFacts';
 import { legalPathFor } from '../../lib/aiLesson/course/legal/legalContent';
 import { trackCourse } from '../../lib/aiLesson/course/courseAnalytics';
 import { INVITE_CAMPAIGN, countdownTo, daysUntil, inviteCodeFromSearch } from '../../lib/aiLesson/course/plans/inviteCampaign';
+import { fetchInvitePublicInfo } from '../../lib/aiLesson/course/referralInvite';
 import { VARIANTS } from './landing/lpContent';
 import { Reveal, SectionHeading, CtaButton, ArrowRight, Check } from './landing/lpUi';
 import { imgUrl } from './landing/lpHelpers';
@@ -195,7 +196,8 @@ const T = {
   },
 } as const;
 const pad = (n: number) => String(n).padStart(2, '0');
-const fmtDeadline = () => { const d = new Date(INVITE_CAMPAIGN.deadlineISO); return `${d.getMonth() + 1}月${d.getDate()}日`; };
+const fmtDeadline = (iso: string) => { const d = new Date(iso); const p = new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric' }).formatToParts(d); const m = p.find((x) => x.type === 'month')?.value; const dd = p.find((x) => x.type === 'day')?.value; return `${m}月${dd}日`; };
+const fmtDeadlineTime = (iso: string) => new Intl.DateTimeFormat('ja-JP', { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 /** 7日で開くもの／本コースで待っているもの。LPの機能一覧の直前に置き、期待を正しくそろえる */
 const SCOPE = {
@@ -228,6 +230,22 @@ export function InviteLandingPage() {
   if (visitKeyRef.current !== visitKey) { visitRef.current = inviteVisit(invite); visitKeyRef.current = visitKey; }
   useEffect(() => { trackInvite(invite, 'invite_page_view', visitRef.current); }, [invite, lang]);
   const [theme] = useState(currentLpTheme);
+  /*
+   * 締め切りはコードごと（2026-09-13）。朋友圈のコードは 9/19、生徒本人の招待リンクは JLPT 当日まで。
+   * サーバー（ai_invite_public_info）から期限を読む。読めないあいだ・読めないときは従来の固定日
+   */
+  const [deadlineISO, setDeadlineISO] = useState<string>(INVITE_CAMPAIGN.deadlineISO);
+  const [serverClosed, setServerClosed] = useState(false);
+  useEffect(() => {
+    if (!invite) return;
+    let alive = true;
+    void fetchInvitePublicInfo(invite).then((info) => {
+      if (!alive || !info) return;
+      if (info.expiresAtISO) setDeadlineISO(info.expiresAtISO);
+      setServerClosed(!info.active || info.full);
+    });
+    return () => { alive = false; };
+  }, [invite]);
   const [cd, setCd] = useState(() => countdownTo(INVITE_CAMPAIGN.deadlineISO));
   const examDays = daysUntil(INVITE_CAMPAIGN.examDateISO);
 
@@ -239,7 +257,7 @@ export function InviteLandingPage() {
   const [consented, setConsented] = useState(false);
   const formRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { const id = setInterval(() => setCd(countdownTo(INVITE_CAMPAIGN.deadlineISO)), 1000); return () => clearInterval(id); }, []);
+  useEffect(() => { setCd(countdownTo(deadlineISO)); const id = setInterval(() => setCd(countdownTo(deadlineISO)), 1000); return () => clearInterval(id); }, [deadlineISO]);
   useEffect(() => { trackCourse('view_ai_course_invite', { lang }); }, [lang]);
 
   const msg = useCallback((c: InviteSignupCode): string => {
@@ -264,7 +282,7 @@ export function InviteLandingPage() {
   const toForm = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   // 「受付終了」に切り替えるのは締め切りを過ぎたときだけ（2026-09-12 CEO報告: 期限前なのに終了表示になっていた。
   // サーバーが招待を弾いたときはページを閉じず、申込欄の下に理由を出す）
-  const closed = cd.closed;
+  const closed = cd.closed || serverClosed;
   const other: L = lang === 'zh' ? 'ja' : 'zh';
   const search = typeof window === 'undefined' ? '' : window.location.search;
   const [ww, wh] = v.imageSize.wave;
@@ -272,7 +290,7 @@ export function InviteLandingPage() {
   const countdownBlock = (
     <div className="rounded-3xl bg-lp-card border-2 border-lp-coral/40 p-5 shadow-[0_8px_22px_rgba(55,43,38,0.06)]" aria-live="polite" data-testid="invite-countdown">
       <div className="flex items-baseline justify-between text-[0.85rem] font-extrabold text-lp-coral-deep">
-        <span>{t.deadline}</span><span className="font-bold text-lp-ink-soft">{fmtDeadline()} 23:59 (JST)</span>
+        <span>{t.deadline}</span><span className="font-bold text-lp-ink-soft">{fmtDeadline(deadlineISO)} {fmtDeadlineTime(deadlineISO)} (JST)</span>
       </div>
       <div className="mt-1 flex items-baseline gap-2 font-mono tabular-nums text-lp-ink">
         <span className="text-[3rem] font-extrabold leading-none">{cd.days}</span><span className="text-base font-extrabold text-lp-ink-soft">{t.day}</span>
@@ -529,7 +547,7 @@ export function InviteLandingPage() {
       <footer className="border-t border-lp-line py-10">
         <div className="mx-auto max-w-6xl px-5 flex flex-wrap items-center justify-between gap-4 text-[0.9rem] text-lp-ink-soft">
           <div className="flex items-center gap-2 font-extrabold text-lp-ink"><span className="inline-grid place-items-center w-7 h-7 rounded-full bg-lp-coral text-white text-xs" aria-hidden="true">和</span>{lang === 'ja' ? '日本語の相棒' : '你的日语搭档'}</div>
-          <span>{t.foot(fmtDeadline())}</span>
+          <span>{t.foot(fmtDeadline(deadlineISO))}</span>
         </div>
         <div className="mx-auto max-w-6xl px-5 mt-6 text-lp-ink-soft"><LegalFooterLinks lang={lang} /></div>
         <div className="h-24 sm:hidden" aria-hidden="true" />

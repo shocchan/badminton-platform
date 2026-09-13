@@ -124,7 +124,7 @@ describe('Edge Function ai-course-invite-signup', () => {
     expect(DEPLOY).toMatch(/^\s+ai-course-invite-signup\s/m);
   });
   it('画面は OTP を使わず、送信後は「メールを確認してください」を出す', () => {
-    expect(PAGE).toMatch(/signupWithInvite\(email, invite, lang, wechat\)/);
+    expect(PAGE).toMatch(/signupWithInvite\(email, invite, lang, wechat(, [a-zA-Z.]+)?\)/);
     expect(PAGE).not.toMatch(/sendEmailOtp|verifyEmailOtp/);
     expect(PAGE).toMatch(/data-testid="invite-sent"/);
     expect(AUTH).toMatch(/functions\/v1\/ai-course-invite-signup/);
