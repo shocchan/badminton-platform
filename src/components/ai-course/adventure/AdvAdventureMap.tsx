@@ -19,8 +19,6 @@
 // - prefers-reduced-motion ではアニメーションを止める
 // - 地図が読めない/使えない人のために**一覧表示へ切り替えられる**
 import { pressFx } from './advUi';
-import { AdvAvatarPicker } from './AdvAvatarPicker';
-import type { AdvAvatarStyle } from '../../../lib/aiLesson/course/adventure/advAvatar';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { List, Map as MapIcon, Lock, Flag, ChevronRight, Star, ChevronDown } from 'lucide-react';
 import { CompanionAvatar } from './CompanionAvatar';
@@ -45,7 +43,6 @@ const tx = (lang: L, ja: string, zh: string) => (lang === 'zh' ? zh : ja);
 interface Props {
   lang: L;
   profile: AdventureV2Profile;
-  onAvatarChange?: (style: AdvAvatarStyle) => void;
   route: AdvRoute | null;
   mastered: Set<string>;
   currentWeek: number;
@@ -150,7 +147,7 @@ export const AdvAdventureMap = ({
   interviewVisible, onOpenInterview,
   paceNoteJa = null, paceNoteZh = null,
   revealRegionId = null, onRevealDone,
-  nextRoadSlot, onAvatarChange,
+  nextRoadSlot,
   planRegionLimit = null,
 }: Props) => {
   const kinds = availableRouteKinds(profile.goalType);
@@ -524,7 +521,6 @@ export const AdvAdventureMap = ({
         ルートタブの直下＝選択中ルートの全体像と一致する位置。Primary CTA より必ず下（原則16）。
         map/list 両表示で常に出す。実測 regions の別ビューで、状態の再計算はしない（原則13）
       */}
-      {onAvatarChange && <AdvAvatarPicker lang={lang} value={profile.avatarStyle} onChange={onAvatarChange} />}
       <AdvWorldMapSwitch
         avatarStyle={profile.avatarStyle}
         selectedRegionId={openId}
