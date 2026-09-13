@@ -12,5 +12,5 @@ export const AdvMapTraveler = ({ style, reaction }: { style?: AdvAvatarStyle; re
   return <img key={`${selected}-${reaction ?? ''}`} data-adv-traveler={selected}
     src={a.webp1x} srcSet={`${a.webp1x} 1x, ${a.webp2x} 2x`} width={32} height={48}
     alt="" aria-hidden decoding="async" onError={() => setFailed(selected)}
-    className="kb-map-traveler pointer-events-none absolute bottom-1 h-10 w-7 object-contain" />;
+    className="kb-map-traveler pointer-events-none absolute bottom-0 z-10 h-[58px] w-10 max-w-none object-contain drop-shadow-[0_5px_4px_rgba(15,23,42,0.35)]" />;
 };

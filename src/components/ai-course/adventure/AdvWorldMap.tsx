@@ -141,16 +141,22 @@ export const AdvWorldMap = ({
 
   /** 全攻略（実測）。旗が金の星に替わる */
   const allCleared = doneCount === totalCount;
+  const currentRegion = regions.find((r) => r.id === currentRegionId) ?? null;
+  const nextRegion = regions.find((r) => r.state === 'next') ?? null;
   // 旗ラベルが左右で見切れないよう、論理座標上でだけ内側へ寄せる（旗の意味は変わらない）
   const flagX = Math.min(Math.max(layout.flagPt.x, 56), 304);
 
   return (
     <nav aria-label={tx(lang, 'マップ全体図（タップでその地域へ移動）', '地图全景（点按前往该地区）')}
       className="mt-4" data-map-variant={variant} data-map-image-state={imageState}>
-      <p className="px-0.5 text-xs font-bold text-gray-700">
-        {tx(lang, '冒険の世界地図', '冒险世界地图')}
-      </p>
-      <div className="relative mt-1.5 overflow-hidden rounded-2xl border border-gray-200 bg-sky-100">
+      <div className="flex items-center justify-between gap-3 rounded-t-[24px] border border-b-0 border-slate-700/20 bg-[#17324d] px-4 py-3 text-white shadow-[0_18px_50px_-24px_rgba(15,43,68,0.75)]">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold tracking-[0.16em] text-sky-200">MINAMO ISLANDS</p>
+          <p className="truncate text-sm font-bold">{currentRegion ? tx(lang, currentRegion.nameJa, currentRegion.nameZh) : tx(lang, '冒険の世界地図', '冒险世界地图')}</p>
+        </div>
+        <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold tabular-nums">{doneCount} / {totalCount}</span>
+      </div>
+      <div className="relative overflow-hidden rounded-b-[24px] border border-slate-700/20 bg-sky-100 shadow-[0_18px_50px_-24px_rgba(15,43,68,0.75)]">
         {/* 画像版の下敷き（絶対配置）。SVG は relative にして DOM 順どおり下敷きの上に描く */}
         {backdrop}
         {/* 風景・道・ノードの絵（文字と状態の意味は HTML 側が持つ）。枠の縦横比はこの SVG の viewBox が決める（画像が来る前から同じ高さ＝CLS なし） */}
@@ -161,6 +167,10 @@ export const AdvWorldMap = ({
               <stop offset="0%" stopColor={WORLD_PALETTE.roadDoneGlow} stopOpacity="0.9" />
               <stop offset="100%" stopColor={WORLD_PALETTE.roadDoneGlow} stopOpacity="0" />
             </radialGradient>
+            <filter id={`${uid}-road-glow`} x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.4" result="blur" />
+              <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+            </filter>
           </defs>
 
           {/* 自作SVG風景。画像版は読込完了まで描き続け（プレースホルダ兼フォールバック）、完了後に消して画像を見せる */}
@@ -196,12 +206,17 @@ export const AdvWorldMap = ({
             // 見た目が破線なので対象外（dasharrayを演出に使うと破線が壊れる）
             const drawIn = s.state === 'done' && !st.dash;
             return (
-              <path key={`seg-${i}`} d={s.d} fill="none" stroke={st.stroke}
+              <g key={`seg-${i}`}>
+              {(s.state === 'done' || s.state === 'current') && <path d={s.d} fill="none"
+                stroke={s.state === 'current' ? '#38bdf8' : '#fbbf24'} strokeWidth={st.width + 7}
+                strokeLinecap="round" opacity={s.state === 'current' ? 0.42 : 0.25} filter={`url(#${uid}-road-glow)`} />}
+              <path d={s.d} fill="none" stroke={st.stroke}
                 strokeWidth={st.width} strokeDasharray={st.dash} strokeLinecap="round"
-                className={drawIn ? 'kb-map-trail' : undefined}
+                className={`${drawIn ? 'kb-map-trail' : ''} ${s.state === 'current' ? 'kb-map-active-road' : ''}`}
                 style={drawIn
                   ? ({ strokeDasharray: 600, '--kb-trail-len': '600', '--kb-delay': `${i * 0.12}s` } as CSSProperties)
                   : undefined} />
+              </g>
             );
           })}
 
@@ -251,11 +266,11 @@ export const AdvWorldMap = ({
             // 位相を座標から決める（毎描画で変わる乱数を使わない＝ちらつかない）
             const delay = { '--kb-delay': `${(p.x % 11) * 0.9}s` } as CSSProperties;
             return r.layer === 'exam' ? (
-              <g key={`fog-${r.id}`} opacity={0.9} fill={WORLD_PALETTE.fogA}
+              <g key={`fog-${r.id}`} opacity={hideNodeArt ? 0.48 : 0.9} fill={WORLD_PALETTE.fogA}
                 className="kb-map-fog" style={delay}>
-                <ellipse cx={p.x - 8} cy={p.y - 11} rx={23} ry={10} />
-                <ellipse cx={p.x + 10} cy={p.y - 6} rx={23} ry={10} />
-                <ellipse cx={p.x - 2} cy={p.y - 18} rx={23} ry={10} />
+                <ellipse cx={p.x - 7} cy={p.y - 10} rx={hideNodeArt ? 17 : 23} ry={hideNodeArt ? 7 : 10} />
+                <ellipse cx={p.x + 8} cy={p.y - 6} rx={hideNodeArt ? 17 : 23} ry={hideNodeArt ? 7 : 10} />
+                <ellipse cx={p.x - 1} cy={p.y - 16} rx={hideNodeArt ? 16 : 23} ry={hideNodeArt ? 7 : 10} />
               </g>
             ) : (
               <ellipse key={`fog-${r.id}`} cx={p.x} cy={p.y - 8} rx={14} ry={5}
@@ -300,6 +315,9 @@ export const AdvWorldMap = ({
                 </>
               )}
               {isCurrent && <AdvMapTraveler style={avatarStyle} reaction={selectedRegionId} />}
+              {isCurrent && <span className="pointer-events-none absolute bottom-[46px] z-20 whitespace-nowrap rounded-full border border-blue-200 bg-white/95 px-2 py-1 text-[10px] font-black text-blue-700 shadow-lg" aria-hidden>
+                {tx(lang, 'いまここ', '你在这里')}
+              </span>}
               {/* 状態バッジ（ランドマークの色に加えて記号でも伝える） */}
               <span className={`pointer-events-none absolute -right-0.5 -top-0.5 flex h-[18px] w-[18px] items-center justify-center ${r.layer === 'conversation' ? 'rounded-md' : 'rounded-full'} ${BADGE_FILL[r.state]}`}
                 aria-hidden>
@@ -339,6 +357,12 @@ export const AdvWorldMap = ({
             )}
           </div>
         )}
+        {nextRegion && <div className="pointer-events-none absolute inset-x-3 bottom-3 z-20 flex justify-center">
+          <div className="flex max-w-[92%] items-center gap-2 rounded-2xl border border-amber-200/80 bg-[#fffaf0]/95 px-3 py-2 shadow-[0_8px_24px_rgba(44,32,14,0.22)] backdrop-blur-sm">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400 text-slate-900"><ChevronDown className="h-5 w-5" strokeWidth={3} aria-hidden /></span>
+            <span className="min-w-0"><span className="block text-[10px] font-bold text-amber-800">{tx(lang, '次の目的地', '下一个目的地')}</span><span className="block truncate text-xs font-black text-slate-900">{tx(lang, nextRegion.nameJa, nextRegion.nameZh)}</span></span>
+          </div>
+        </div>}
       </div>
 
       {/* 地図直下の枠（次の道カード）。中身の実データ判定は呼び出し側が行う */}
