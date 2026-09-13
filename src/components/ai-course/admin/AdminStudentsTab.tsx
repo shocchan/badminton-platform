@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import { AlertTriangle, PauseCircle } from 'lucide-react';
-import { monthlyCapOf } from '../../../lib/aiLesson/course/admin/adminAccountModel';
+import { monthlyCapOf, profileSummaryOf } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { AdminAccountType, AdminAccountView } from '../../../lib/aiLesson/course/admin/adminAccountModel';
 import type { UsageLimits } from '../../../lib/aiLesson/course/admin/adminAccountsApi';
 
@@ -256,6 +256,11 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                       <TypeBadge type={v.type} />
                       <StateBadges view={v} />
                     </span>
+                    {(() => { const p = profileSummaryOf(v); return (
+                      <span className="mt-1 block text-[11px] text-gray-600 tabular-nums">
+                        {p.plan}・旅人 {p.traveler}・{p.goal}・{p.target}
+                      </span>
+                    ); })()}
                     <span className="mt-2 grid grid-cols-3 gap-2">
                       <span className="block">
                         <span className="block text-[10px] text-gray-500">最終学習</span>
@@ -286,12 +291,16 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
 
           {/* sm以上: テーブル（横スクロールはこの箱の中だけ） */}
           <div className="mt-3 hidden sm:block overflow-x-auto rounded-xl border border-gray-200 bg-white">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full min-w-[1040px] text-sm">
               <thead>
                 <tr className="text-left text-[11px] text-gray-500">
                   <th className="px-3 py-2 font-medium">名前（ID）</th>
                   <th className="px-2 py-2 font-medium">種別</th>
                   <th className="px-2 py-2 font-medium">状態</th>
+                  <th className="px-2 py-2 font-medium">プラン</th>
+                  <th className="px-2 py-2 font-medium">旅人</th>
+                  <th className="px-2 py-2 font-medium">目的</th>
+                  <th className="px-2 py-2 font-medium">目標</th>
                   <th className="px-2 py-2 font-medium">最終学習</th>
                   <th className="px-2 py-2 font-medium">最終認証</th>
                   <th className="px-2 py-2 font-medium text-right">7日</th>
@@ -317,6 +326,14 @@ export const AdminStudentsTab = ({ views, limits, filter, onFilter, onSelect }: 
                       </td>
                       <td className="px-2 py-2.5"><TypeBadge type={v.type} /></td>
                       <td className="px-2 py-2.5"><StateBadges view={v} /></td>
+                      {(() => { const p = profileSummaryOf(v); return (
+                        <>
+                          <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.plan}</td>
+                          <td className="px-2 py-2.5 text-xs text-gray-700">{p.traveler}</td>
+                          <td className="px-2 py-2.5 text-xs text-gray-700 whitespace-nowrap">{p.goal}</td>
+                          <td className="px-2 py-2.5 text-xs text-gray-700 tabular-nums">{p.target}</td>
+                        </>
+                      ); })()}
                       <td className={`px-2 py-2.5 tabular-nums ${last.warn ? 'text-amber-700 font-medium' : 'text-gray-700'}`}>{last.label}</td>
                       <td className="px-2 py-2.5 text-xs text-gray-500 tabular-nums">{jstDateTimeLabel(v.account.lastSignInAtISO)}</td>
                       <td className="px-2 py-2.5 text-right tabular-nums text-gray-700">{v.adv ? v.adv.studyDays7 : '—'}</td>

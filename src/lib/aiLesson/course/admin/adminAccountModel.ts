@@ -8,6 +8,7 @@ import type { AdminAccessRow, AdminLearnerRow, LearnerUsageSummary } from '../co
 import type { AdminAccountRow, UsageLimits } from './adminAccountsApi';
 import { accessStateOf } from '../courseAccess';
 import { advLearnerUsageOf, type AdvLearnerUsage } from '../adventure/advAdminUsage';
+import { readAdvProfile } from '../adventure/advProfile';
 
 export type AdminAccountType = 'student' | 'test' | 'admin' | 'other';
 
@@ -90,3 +91,30 @@ export const buildAccountViews = (
 /** この生徒の月次セッション上限（learner個別の上書き > 全体設定） */
 export const monthlyCapOf = (view: AdminAccountView, limits: UsageLimits): number =>
   view.learner?.adminOverrides.monthlyMaxSessions ?? limits.monthlyMaxSessions;
+
+/**
+ * 一覧で「ぱっと見る」ための属性（2026-09-13 CEO要望: 無料登録の人も今の生徒も、
+ * 性別属性（旅人）・目的・目標級・プランを一覧で見たい）。純関数。
+ * 旅人は本人が初期設定で選んだ見た目で、性別プロフィールではない（未選択は「—」）。
+ */
+export interface AccountProfileSummary {
+  traveler: '男' | '女' | '—';
+  goal: 'JLPT' | '会話' | '両方' | '—';
+  target: string;
+  plan: string;
+}
+
+const PLAN_LABEL: Record<string, string> = {
+  'free-7d': '無料7日', 'ai-trial-pass': '600円体験', 'ai-month': '1か月', 'coach-6m': '6か月', 'friends-beta': 'Friends',
+};
+
+export const profileSummaryOf = (view: Pick<AdminAccountView, 'learner' | 'access'>): AccountProfileSummary => {
+  const adv = view.learner ? readAdvProfile(view.learner.settings) : null;
+  const style = adv?.avatarStyle;
+  const traveler = style === 'male-blue' ? '男' : style === 'female-blue' ? '女' : '—';
+  const goal = adv?.goalType === 'jlpt' ? 'JLPT' : adv?.goalType === 'conversation' ? '会話' : adv?.goalType === 'hybrid' ? '両方' : '—';
+  const target = adv?.targetJlpt ?? (adv?.declaredJlpt ? `${adv.declaredJlpt}持` : '—');
+  const planId = view.access?.planId ?? null;
+  const plan = planId ? (PLAN_LABEL[planId] ?? planId) : (view.access ? '手動' : '—');
+  return { traveler, goal, target, plan };
+};

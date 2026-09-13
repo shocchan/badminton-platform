@@ -166,3 +166,17 @@ describe('monthlyCapOf（月次上限の単一解決）', () => {
     expect(monthlyCapOf(v, limits)).toBe(80);
   });
 });
+
+describe('一覧の属性（旅人・目的・目標・プラン）2026-09-13', () => {
+  it('旅人・目的・目標・プランを1行に要約する（未設定は —）', async () => {
+    const { profileSummaryOf } = await import('./adminAccountModel');
+    const settings = writeAdvProfile({} as LearnerSettings, {
+      ...defaultAdvProfile('2026-09-13T00:00:00Z'), enabled: true, goalType: 'jlpt', targetJlpt: 'N2', avatarStyle: 'female-blue',
+    }, '2026-09-13T00:00:00Z');
+    const learner = { settings } as unknown as AdminLearnerRow;
+    const access = { planId: 'free-7d' } as unknown as AdminAccessRow;
+    expect(profileSummaryOf({ learner, access })).toEqual({ traveler: '女', goal: 'JLPT', target: 'N2', plan: '無料7日' });
+    expect(profileSummaryOf({ learner: null, access: null })).toEqual({ traveler: '—', goal: '—', target: '—', plan: '—' });
+    expect(profileSummaryOf({ learner: null, access: { planId: null } as unknown as AdminAccessRow }).plan).toBe('手動');
+  });
+});
