@@ -1,4 +1,4 @@
-deployed_at: 2026-09-13 18:37:59 +0900
+deployed_at: 2026-09-13 21:29:26 +0900
 branch:      integration/unify-2026-08-28
-commit:      8622e5b46d52d517dd62c3ebe42c10fbc93599d8
-asset:       assets/index-DVHNXF25.js
+commit:      d7d209b3642dc22d0e5d3f559286369e5b8b1dc7
+asset:       assets/index-Co_VT561.js
