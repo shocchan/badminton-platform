@@ -21,7 +21,7 @@ import { VARIANTS } from './landing/lpContent';
 import { Reveal, SectionHeading, CtaButton, ArrowRight, Check } from './landing/lpUi';
 import { imgUrl } from './landing/lpHelpers';
 import { currentLpTheme } from './landing/lpTheme';
-import { PainPointsSection, DailyLearningFlow } from './landing/sectionsA';
+import { PainPointsSection } from './landing/sectionsA';
 import { PlatformFeatures } from './landing/sectionsB';
 import { HumanCoachSection, TestimonialsSection } from './landing/sectionsC';
 import { FaqSection } from './landing/sectionsE';
@@ -396,8 +396,14 @@ export function InviteLandingPage() {
               </div>
             </section>
 
+            {/* 途中CTA（2026-09-13 AIDA点検: 冒頭と申込フォームの間 12画面にCTAが無かった） */}
+            {!closed && (
+              <div className="mx-auto max-w-6xl px-5 py-3 text-center" data-invite-mid-cta="scope">
+                <CtaButton variant="primary" onClick={toForm} event="click_ai_course_invite_cta" eventParams={{ location: 'mid_scope', lang }}>{t.cta}<ArrowRight /></CtaButton>
+                <p className="mt-2 text-[0.85rem] text-lp-ink-soft">{t.ctaSub}</p>
+              </div>
+            )}
             <PlatformFeatures lang={lang} />
-            <DailyLearningFlow v={v} lang={lang} />
 
             {/* 7日の流れと級ごとの一言（このページだけ） */}
             <section id="seven-days" className="scroll-mt-20 bg-lp-ivory-2 py-16 sm:py-24">
@@ -428,6 +434,13 @@ export function InviteLandingPage() {
               </div>
             </section>
 
+            {/* 途中CTA（2026-09-13 AIDA点検: 冒頭と申込フォームの間 12画面にCTAが無かった） */}
+            {!closed && (
+              <div className="mx-auto max-w-6xl px-5 py-3 text-center" data-invite-mid-cta="seven">
+                <CtaButton variant="primary" onClick={toForm} event="click_ai_course_invite_cta" eventParams={{ location: 'mid_seven', lang }}>{t.cta}<ArrowRight /></CtaButton>
+                <p className="mt-2 text-[0.85rem] text-lp-ink-soft">{t.ctaSub}</p>
+              </div>
+            )}
             <HumanCoachSection lang={lang} />
             <TestimonialsSection lang={lang} />
 
